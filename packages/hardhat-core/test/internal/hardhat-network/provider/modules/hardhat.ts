@@ -75,7 +75,7 @@ describe("Hardhat module", function () {
 
       describe("hardhat_reset", function () {
         before(function () {
-          if (ALCHEMY_URL === undefined) {
+          if (ALCHEMY_URL === undefined || ALCHEMY_URL === "") {
             this.skip();
           }
         });

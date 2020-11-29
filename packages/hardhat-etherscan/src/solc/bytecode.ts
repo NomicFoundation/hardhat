@@ -1,5 +1,9 @@
-import { TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
-import { Artifacts, BuildInfo, RunTaskFunction } from "hardhat/types";
+import {
+  Artifacts,
+  CompilerInput,
+  CompilerOutput,
+  CompilerOutputBytecode,
+} from "hardhat/types";
 import { parseFullyQualifiedName } from "hardhat/utils/contract-names";
 
 import { METADATA_LENGTH_SIZE, readSolcMetadataLength } from "./metadata";
@@ -25,6 +29,18 @@ interface ImmutableValues {
   [key: string]: string;
 }
 
+type SourceName = string;
+type ContractName = string;
+
+export interface ContractInformation extends BytecodeExtractedData {
+  compilerInput: CompilerInput;
+  compilerOutput: CompilerOutput;
+  solcVersion: string;
+  sourceName: SourceName;
+  contractName: ContractName;
+  contract: CompilerOutput["contracts"][SourceName][ContractName];
+}
+
 interface BytecodeSlice {
   start: number;
   length: number;
@@ -32,76 +48,27 @@ interface BytecodeSlice {
 
 type NestedSliceReferences = BytecodeSlice[][];
 
-/* Taken from stack trace hardhat network internals
- *  This is not an exhaustive interface for compiler input nor output.
- */
-
-interface CompilerInput {
-  language: "Solidity";
-  sources: { [sourceName: string]: { content: string } };
-  settings: {
-    optimizer: { runs: number; enabled: boolean };
-    evmVersion?: string;
-    libraries?: ResolvedLinks;
-  };
-}
-
-interface CompilerOutput {
-  sources: CompilerOutputSources;
-  contracts: {
-    [sourceName: string]: {
-      [contractName: string]: {
-        abi: any;
-        evm: {
-          bytecode: CompilerOutputBytecode;
-          deployedBytecode: CompilerOutputBytecode;
-          methodIdentifiers: {
-            [methodSignature: string]: string;
-          };
-        };
-      };
-    };
-  };
-}
-
-interface CompilerOutputSource {
-  id: number;
-  ast: any;
-}
-
-interface CompilerOutputSources {
-  [sourceName: string]: CompilerOutputSource;
-}
-
-interface CompilerOutputBytecode {
-  object: string;
-  opcodes: string;
-  sourceMap: string;
-  linkReferences: {
-    [sourceName: string]: {
-      [libraryName: string]: Array<{ start: 0; length: 20 }>;
-    };
-  };
-  immutableReferences?: {
-    [key: string]: Array<{ start: number; length: number }>;
-  };
-}
-
-interface ContractBuildInfo {
-  contractName: string;
-  sourceName: string;
-  buildInfo: BuildInfo;
-}
-
-/**/
-
 export async function lookupMatchingBytecode(
-  contractBuilds: ContractBuildInfo[],
+  artifacts: Artifacts,
+  matchingVersions: string[],
   deployedBytecode: string,
   inferralType: InferralType
-) {
+): Promise<ContractInformation[]> {
   const contractMatches = [];
-  for (const { contractName, sourceName, buildInfo } of contractBuilds) {
+  const fqNames = await artifacts.getAllFullyQualifiedNames();
+
+  for (const fqName of fqNames) {
+    const buildInfo = await artifacts.getBuildInfo(fqName);
+
+    if (buildInfo === undefined) {
+      continue;
+    }
+
+    if (!matchingVersions.includes(buildInfo.solcVersion)) {
+      continue;
+    }
+
+    const { sourceName, contractName } = parseFullyQualifiedName(fqName);
     const contract = buildInfo.output.contracts[sourceName][contractName];
     // Normalize deployed bytecode according to this contract.
     const { deployedBytecode: runtimeBytecodeSymbols } = contract.evm;
@@ -123,6 +90,7 @@ export async function lookupMatchingBytecode(
       // The bytecode matches
       contractMatches.push({
         compilerInput: buildInfo.input,
+        compilerOutput: buildInfo.output,
         solcVersion: buildInfo.solcVersion,
         immutableValues,
         libraryLinks,
@@ -211,7 +179,7 @@ export async function compareBytecode(
 export async function normalizeBytecode(
   bytecode: string,
   symbols: CompilerOutputBytecode
-) {
+): Promise<BytecodeExtractedData> {
   const nestedSliceReferences: NestedSliceReferences = [];
   const libraryLinks: ResolvedLinks = {};
   for (const [sourceName, libraries] of Object.entries(
@@ -257,13 +225,14 @@ export async function normalizeBytecode(
 
   // To normalize a library object we need to take into account its call protection mechanism.
   // See https://solidity.readthedocs.io/en/latest/contracts.html#call-protection-for-libraries
+  const addressSize = 20;
   const push20OpcodeHex = "73";
-  const pushPlaceholder = push20OpcodeHex + "0".repeat(20 * 2);
+  const pushPlaceholder = push20OpcodeHex + "0".repeat(addressSize * 2);
   if (
     symbols.object.startsWith(pushPlaceholder) &&
     bytecode.startsWith(push20OpcodeHex)
   ) {
-    nestedSliceReferences.push([{ start: 1, length: 20 }]);
+    nestedSliceReferences.push([{ start: 1, length: addressSize }]);
   }
 
   const sliceReferences = flattenSlices(nestedSliceReferences);
@@ -276,7 +245,7 @@ function flattenSlices(slices: NestedSliceReferences) {
   return ([] as BytecodeSlice[]).concat(...slices);
 }
 
-export function zeroOutSlices(
+function zeroOutSlices(
   code: string,
   slices: Array<{ start: number; length: number }>
 ): string {
@@ -289,38 +258,4 @@ export function zeroOutSlices(
   }
 
   return code;
-}
-
-export async function compile(
-  taskRun: RunTaskFunction,
-  matchingVersions: string[],
-  artifactsPath: string,
-  artifacts: Artifacts
-): Promise<ContractBuildInfo[]> {
-  await taskRun(TASK_COMPILE);
-
-  const contractBuildInfos: ContractBuildInfo[] = [];
-
-  const fqns = await artifacts.getAllFullyQualifiedNames();
-  for (const name of fqns) {
-    const buildInfo = await artifacts.getBuildInfo(name);
-
-    if (buildInfo === undefined) {
-      continue;
-    }
-
-    if (!matchingVersions.includes(buildInfo.solcVersion)) {
-      continue;
-    }
-
-    const { sourceName, contractName } = parseFullyQualifiedName(name);
-
-    contractBuildInfos.push({
-      contractName,
-      sourceName,
-      buildInfo,
-    });
-  }
-
-  return contractBuildInfos;
 }

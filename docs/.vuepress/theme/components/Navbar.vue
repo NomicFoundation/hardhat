@@ -4,7 +4,7 @@
     v-bind:class="{ notFixed: $page.frontmatter.home === true }"
   >
     <div style="position: relative;">
-      <!--      <HHTopBar />-->
+      <HHTopBar />
       <div style="position: relative;">
         <header>
           <SidebarButton @toggle-sidebar="$emit('toggle-sidebar')" />

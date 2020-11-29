@@ -1,5 +1,6 @@
 import { assert } from "chai";
 import * as fs from "fs";
+import fsExtra from "fs-extra";
 import path from "path";
 
 import { DependencyGraph } from "../../../src/internal/solidity/dependencyGraph";
@@ -61,6 +62,7 @@ describe("Dependency Graph", function () {
         "contracts/WD.sol",
         path.join(projectRoot, "contracts", "WD.sol"),
         { rawContent: "no dependecy", imports: [], versionPragmas: [] },
+        "<content-hash-wd>",
         new Date()
       );
 
@@ -68,6 +70,7 @@ describe("Dependency Graph", function () {
         "contracts/WD2.sol",
         path.join(projectRoot, "contracts", "WD2.sol"),
         { rawContent: "no dependecy", imports: [], versionPragmas: [] },
+        "<content-hash-wd2>",
         new Date()
       );
 
@@ -75,6 +78,7 @@ describe("Dependency Graph", function () {
         "contracts/WD3.sol",
         path.join(projectRoot, "contracts", "WD3.sol"),
         { rawContent: "no dependecy", imports: [], versionPragmas: [] },
+        "<content-hash-wd3>",
         new Date()
       );
 
@@ -86,6 +90,7 @@ describe("Dependency Graph", function () {
           imports: ["./WD.sol", "./WD2.sol"],
           versionPragmas: [],
         },
+        "<content-hash-wd4>",
         new Date()
       );
 
@@ -97,6 +102,7 @@ describe("Dependency Graph", function () {
           imports: ["./WD.sol"],
           versionPragmas: [],
         },
+        "<content-hash-depends-on-wd>",
         new Date()
       );
 
@@ -108,6 +114,7 @@ describe("Dependency Graph", function () {
           imports: ["./loop2.sol"],
           versionPragmas: [],
         },
+        "<content-hash-loop1>",
         new Date()
       );
 
@@ -119,10 +126,16 @@ describe("Dependency Graph", function () {
           imports: ["./loop1.sol"],
           versionPragmas: [],
         },
+        "<content-hash-loop2>",
         new Date()
       );
 
-      resolver = new Resolver(projectRoot, new Parser());
+      resolver = new Resolver(
+        projectRoot,
+        new Parser(),
+        (absolutePath: string) =>
+          fsExtra.readFile(absolutePath, { encoding: "utf8" })
+      );
       resolver.resolveImport = async (_: ResolvedFile, imported: string) => {
         switch (imported) {
           case "./WD.sol":
@@ -264,7 +277,9 @@ describe("Dependency Graph", function () {
       before("Get project root", async function () {
         localResolver = new Resolver(
           await getFixtureProjectPath(PROJECT),
-          new Parser()
+          new Parser(),
+          (absolutePath: string) =>
+            fsExtra.readFile(absolutePath, { encoding: "utf8" })
         );
       });
 

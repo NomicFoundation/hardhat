@@ -121,7 +121,7 @@ You don't need a `tsconfig.json` file with Hardhat. We recommend you delete it.
 If you prefer to keep it, you should base it on the template presented [here](./typescript.md#customizing-typescript-with-a-tsconfig-json-file). Just make
 sure you removed all the `type-extension.d.ts` files, and keep your config file in your `files` field.
 
-Finally, if your config has the `BuidlerConfig` type, you should change it to `HardhatUserConfig`. 
+Finally, if your config has the `BuidlerConfig` type, you should change it to `HardhatUserConfig`.
 
 ## Updating your `console.sol` imports
 
@@ -144,7 +144,7 @@ import "hardhat/console.sol";
 
 Hardhat supports multiple contracts with the same name.
 
-If you have contracts which share their name, you can't import their artifacts using just the name. 
+If you have contracts which share their name, you can't import their artifacts using just the name.
 
 For example, if you have a contract named `Ownable`, and one of your dependencies has a contract with the same name, you won't be able to do
 `artifacts.require("Ownable")` nor `ethers.getContractFactory("Ownable")`. You need to use the contract's Fully
@@ -186,16 +186,16 @@ Join the `#hardhat-deploy` channel on [Discord](https://hardhat.org/discord) if 
 
 ### buidler-typechain
 
-The TypeChain plugin hasn't been migrated yet, but you can run TypeChain directly like this:
+The TypeChain plugin has been migrated, it's now called [`hardhat-typechain`](https://github.com/rhlsthrm/hardhat-typechain/).
 
-```
-npx typechain --target ethers-v5 --outDir typechain  'artifacts/!(build-info)/**/+([a-zA-Z0-9]).json'
-```
+Join the `#hardhat-typechain` channel on [Discord](https://hardhat.org/discord) if you need help migrating.
 
-You just need to make sure that your contracts have already been compiled.
+### buidler-gas-reporter
 
-Take a look at its [README](https://github.com/ethereum-ts/TypeChain) to learn more about its different options.
+This plugin has been migrated, it's now called [`hardhat-gas-reporter`](https://github.com/cgewecke/hardhat-gas-reporter/).
 
-### solidity-coverage and buidler-gas-reporter
+Join the `#hardhat-gas-reporter` channel on [Discord](https://hardhat.org/discord) if you need help migrating.
 
-These plugins are being ported to Hardhat. Join our [Discord Server](https://hardhat.org/discord) to receive our announcements when they are released.
+### solidity-coverage
+
+This plugin has been ported to Hardhat. Join our [Discord Server](https://hardhat.org/discord) to receive our announcement when it's released.

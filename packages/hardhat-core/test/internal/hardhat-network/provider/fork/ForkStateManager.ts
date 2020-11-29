@@ -31,7 +31,7 @@ describe("ForkStateManager", () => {
   let fsm: ForkStateManager;
 
   before(async function () {
-    if (ALCHEMY_URL === undefined) {
+    if (ALCHEMY_URL === undefined || ALCHEMY_URL === "") {
       this.skip();
       return;
     }
@@ -445,7 +445,7 @@ describe("ForkStateManager", () => {
       await fsm.putContractStorage(address, position, value);
       await fsm.clearContractStorage(address);
       const clearedValue = await fsm.getContractStorage(address, position);
-      assert.isTrue(clearedValue.equals(NULL_BYTES_32));
+      assert.lengthOf(clearedValue, 0);
     });
 
     it("can clear all remote values", async () => {
@@ -459,7 +459,7 @@ describe("ForkStateManager", () => {
         DAI_ADDRESS,
         DAI_TOTAL_SUPPLY_STORAGE_POSITION
       );
-      assert.isTrue(clearedValue.equals(NULL_BYTES_32));
+      assert.lengthOf(clearedValue, 0);
     });
 
     it("can clear remote values not previously read", async () => {
@@ -468,7 +468,7 @@ describe("ForkStateManager", () => {
         DAI_ADDRESS,
         DAI_TOTAL_SUPPLY_STORAGE_POSITION
       );
-      assert.isTrue(clearedValue.equals(NULL_BYTES_32));
+      assert.lengthOf(clearedValue, 0);
     });
   });
 

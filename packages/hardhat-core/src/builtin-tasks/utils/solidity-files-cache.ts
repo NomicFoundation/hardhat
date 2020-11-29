@@ -1,3 +1,4 @@
+import debug from "debug";
 import fsExtra from "fs-extra";
 import * as t from "io-ts";
 import type { LoDashStatic } from "lodash";
@@ -6,10 +7,13 @@ import * as path from "path";
 import { SOLIDITY_FILES_CACHE_FILENAME } from "../../internal/constants";
 import type { ProjectPathsConfig, SolcConfig } from "../../types";
 
-const FORMAT_VERSION = "hh-sol-cache-1";
+const log = debug("hardhat:core:tasks:compile:cache");
+
+const FORMAT_VERSION = "hh-sol-cache-2";
 
 const CacheEntryCodec = t.type({
   lastModificationDate: t.number,
+  contentHash: t.string,
   sourceName: t.string,
   solcConfig: t.any,
   imports: t.array(t.string),
@@ -24,6 +28,7 @@ const CacheCodec = t.type({
 
 export interface CacheEntry {
   lastModificationDate: number;
+  contentHash: string;
   sourceName: string;
   solcConfig: SolcConfig;
   imports: string[];
@@ -37,6 +42,13 @@ export interface Cache {
 }
 
 export class SolidityFilesCache {
+  public static createEmpty(): SolidityFilesCache {
+    return new SolidityFilesCache({
+      _format: FORMAT_VERSION,
+      files: {},
+    });
+  }
+
   public static async readFromFile(
     solidityFilesCachePath: string
   ): Promise<SolidityFilesCache> {
@@ -52,29 +64,25 @@ export class SolidityFilesCache {
 
     if (result.isRight()) {
       const solidityFilesCache = new SolidityFilesCache(result.value);
-      await solidityFilesCache.removeModifiedFiles();
+      await solidityFilesCache.removeNonExistingFiles();
       return solidityFilesCache;
     }
 
-    // tslint:disable-next-line only-hardhat-error
-    throw new Error("Couldn't read cache file, try running the clean task"); // TODO use HardhatError
+    log("There was a problem reading the cache");
+
+    return new SolidityFilesCache({
+      _format: FORMAT_VERSION,
+      files: {},
+    });
   }
 
   constructor(private _cache: Cache) {}
 
-  public async removeModifiedFiles() {
-    for (const [absolutePath, cachedData] of Object.entries(
-      this._cache.files
-    )) {
+  public async removeNonExistingFiles() {
+    for (const absolutePath of Object.keys(this._cache.files)) {
       if (!fsExtra.existsSync(absolutePath)) {
         this.removeEntry(absolutePath);
         continue;
-      }
-      const stats = await fsExtra.stat(absolutePath);
-      const lastModificationDate = new Date(stats.ctime);
-
-      if (lastModificationDate.valueOf() !== cachedData.lastModificationDate) {
-        this.removeEntry(absolutePath);
       }
     }
   }
@@ -103,7 +111,7 @@ export class SolidityFilesCache {
 
   public hasFileChanged(
     absolutePath: string,
-    lastModificationDate: Date,
+    contentHash: string,
     solcConfig?: SolcConfig
   ): boolean {
     const { isEqual }: LoDashStatic = require("lodash");
@@ -115,7 +123,7 @@ export class SolidityFilesCache {
       return true;
     }
 
-    if (cacheEntry.lastModificationDate < lastModificationDate.valueOf()) {
+    if (cacheEntry.contentHash !== contentHash) {
       return true;
     }
 

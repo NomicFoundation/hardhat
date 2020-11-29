@@ -15,7 +15,6 @@ import {
   ecsign,
   hashPersonalMessage,
   privateToAddress,
-  stripZeros,
   toBuffer,
 } from "ethereumjs-util";
 import EventEmitter from "events";
@@ -71,7 +70,6 @@ import { makeCommon } from "./utils/makeCommon";
 import { makeForkClient } from "./utils/makeForkClient";
 import { makeForkCommon } from "./utils/makeForkCommon";
 import { makeStateTrie } from "./utils/makeStateTrie";
-import { putGenesisAccounts } from "./utils/putGenesisAccounts";
 import { putGenesisBlock } from "./utils/putGenesisBlock";
 
 const log = debug("hardhat:core:hardhat-network:node");
@@ -109,8 +107,11 @@ export class HardhatNode extends EventEmitter {
       );
       common = await makeForkCommon(forkClient, forkBlockNumber);
 
-      stateManager = new ForkStateManager(forkClient, forkBlockNumber);
-      await putGenesisAccounts(stateManager, genesisAccounts);
+      stateManager = new ForkStateManager(
+        forkClient,
+        forkBlockNumber,
+        genesisAccounts
+      );
 
       blockchain = new ForkBlockchain(forkClient, forkBlockNumber, common);
     } else {
@@ -450,17 +451,6 @@ export class HardhatNode extends EventEmitter {
     return new BN(account.nonce);
   }
 
-  public async getAccountNonceInPreviousBlock(address: Buffer): Promise<BN> {
-    const account = await this._stateManager.getAccount(address);
-
-    const latestBlock = await this.getLatestBlock();
-    const latestBlockTxsFromAccount = latestBlock.transactions.filter(
-      (tx: Transaction) => tx.getSenderAddress().equals(address)
-    );
-
-    return new BN(account.nonce).subn(latestBlockTxsFromAccount.length);
-  }
-
   public async getLatestBlock(): Promise<Block> {
     return this._blockchain.getLatestBlock();
   }
@@ -550,27 +540,17 @@ export class HardhatNode extends EventEmitter {
   ): Promise<Buffer> {
     const key = slot.toArrayLike(Buffer, "be", 32);
 
-    let data: Buffer = await this._runInBlockContext(blockNumber, () =>
+    const data: Buffer = await this._runInBlockContext(blockNumber, () =>
       this._stateManager.getContractStorage(address, key)
     );
-    // TODO: The state manager returns the data as it was saved, it doesn't
-    //  pad it. Technically, the storage consists of 32-byte slots, so we should
-    //  always return 32 bytes. The problem is that Ganache doesn't handle them
-    //  this way. We compromise a little here to ease the migration into
-    //  Hardhat Network :(
 
-    // const EXPECTED_DATA_SIZE = 32;
-    // if (data.length < EXPECTED_DATA_SIZE) {
-    //   return Buffer.concat(
-    //     [Buffer.alloc(EXPECTED_DATA_SIZE - data.length, 0), data],
-    //     EXPECTED_DATA_SIZE
-    //   );
-    // }
-
-    // TODO: remove this line once the above problem is solved
-    //  This is here to make ForkStateManager return values compatible with
-    //  the VM's state manager unpadded format
-    data = stripZeros(data);
+    const EXPECTED_DATA_SIZE = 32;
+    if (data.length < EXPECTED_DATA_SIZE) {
+      return Buffer.concat(
+        [Buffer.alloc(EXPECTED_DATA_SIZE - data.length, 0), data],
+        EXPECTED_DATA_SIZE
+      );
+    }
 
     return data;
   }

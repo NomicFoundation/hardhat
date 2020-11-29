@@ -19,6 +19,7 @@ import {
   ProviderMessage,
 } from "../../../../../src/types";
 import {
+  assertInvalidArgumentsError,
   assertInvalidInputError,
   assertNodeBalances,
   assertNotSupported,
@@ -29,8 +30,10 @@ import {
 } from "../../helpers/assertions";
 import { EMPTY_ACCOUNT_ADDRESS } from "../../helpers/constants";
 import {
+  EXAMPLE_BLOCKHASH_CONTRACT,
   EXAMPLE_CONTRACT,
   EXAMPLE_READ_CONTRACT,
+  EXAMPLE_SETTER_CONTRACT,
 } from "../../helpers/contracts";
 import {
   dataToNumber,
@@ -369,7 +372,63 @@ describe("Eth module", function () {
               },
               numberToRpcQuantity(futureBlock),
             ],
-            `Received invalid block number ${futureBlock}. Latest block number is ${firstBlock}`
+            `Received invalid block tag ${futureBlock}. Latest block number is ${firstBlock}`
+          );
+        });
+
+        it("Should return the initial balance for the genesis accounts in the previous block after a transaction", async function () {
+          const blockNumber = await this.provider.send("eth_blockNumber");
+          const account = DEFAULT_ACCOUNTS_ADDRESSES[0];
+
+          const initialBalanceBeforeTx = await this.provider.send(
+            "eth_getBalance",
+            [account, blockNumber]
+          );
+          assert.equal(initialBalanceBeforeTx, "0xde0b6b3a7640000");
+
+          await sendTxToZeroAddress(this.provider, account);
+
+          const initialBalanceAfterTx = await this.provider.send(
+            "eth_getBalance",
+            [account, blockNumber]
+          );
+          assert.equal(initialBalanceAfterTx, "0xde0b6b3a7640000");
+        });
+
+        it("should work with blockhashes calls", async function () {
+          const contractAddress = await deployContract(
+            this.provider,
+            `0x${EXAMPLE_BLOCKHASH_CONTRACT.bytecode.object}`
+          );
+
+          const resultBlock0 = await this.provider.send("eth_call", [
+            {
+              to: contractAddress,
+              data: EXAMPLE_BLOCKHASH_CONTRACT.selectors.test0,
+            },
+          ]);
+
+          assert.lengthOf(resultBlock0, 66);
+
+          const resultBlock1 = await this.provider.send("eth_call", [
+            {
+              to: contractAddress,
+              data: EXAMPLE_BLOCKHASH_CONTRACT.selectors.test1,
+            },
+          ]);
+
+          assert.lengthOf(resultBlock1, 66);
+
+          const resultBlock1m = await this.provider.send("eth_call", [
+            {
+              to: contractAddress,
+              data: EXAMPLE_BLOCKHASH_CONTRACT.selectors.test1m,
+            },
+          ]);
+
+          assert.equal(
+            resultBlock1m,
+            "0x0000000000000000000000000000000000000000000000000000000000000000"
           );
         });
       });
@@ -472,7 +531,7 @@ describe("Eth module", function () {
               },
               numberToRpcQuantity(futureBlock),
             ],
-            `Received invalid block number ${futureBlock}. Latest block number is ${firstBlock}`
+            `Received invalid block tag ${futureBlock}. Latest block number is ${firstBlock}`
           );
         });
       });
@@ -656,7 +715,7 @@ describe("Eth module", function () {
             this.provider,
             "eth_getBalance",
             [DEFAULT_ACCOUNTS_ADDRESSES[0], numberToRpcQuantity(futureBlock)],
-            `Received invalid block number ${futureBlock}. Latest block number is ${firstBlock}`
+            `Received invalid block tag ${futureBlock}. Latest block number is ${firstBlock}`
           );
         });
       });
@@ -995,7 +1054,7 @@ describe("Eth module", function () {
             this.provider,
             "eth_getCode",
             [randomAddress(), numberToRpcQuantity(futureBlock)],
-            `Received invalid block number ${futureBlock}. Latest block number is ${firstBlock}`
+            `Received invalid block tag ${futureBlock}. Latest block number is ${firstBlock}`
           );
         });
       });
@@ -1711,6 +1770,116 @@ describe("Eth module", function () {
           assert.notEqual(logs1[0], logs2[0]);
           assert.notEqual(logs2[0].address, "changed");
         });
+
+        it("Should accept block hashes as from", async function () {
+          const exampleContract = await deployContract(
+            this.provider,
+            `0x${EXAMPLE_CONTRACT.bytecode.object}`
+          );
+
+          const newState =
+            "000000000000000000000000000000000000000000000000000000000000003b";
+
+          await this.provider.send("eth_sendTransaction", [
+            {
+              to: exampleContract,
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              data: EXAMPLE_CONTRACT.selectors.modifiesState + newState,
+            },
+          ]);
+
+          await this.provider.send("evm_mine", []);
+
+          const block0 = await this.provider.send("eth_getBlockByNumber", [
+            "0x0",
+            false,
+          ]);
+
+          const block3 = await this.provider.send("eth_getBlockByNumber", [
+            "0x3",
+            false,
+          ]);
+
+          const logsFromZero = await this.provider.send("eth_getLogs", [
+            {
+              address: exampleContract,
+              fromBlock: {
+                blockHash: block0.hash,
+              },
+            },
+          ]);
+
+          assert.lengthOf(logsFromZero, 1);
+
+          const logsFromThree = await this.provider.send("eth_getLogs", [
+            {
+              address: exampleContract,
+              fromBlock: {
+                blockHash: block3.hash,
+              },
+            },
+          ]);
+
+          assert.lengthOf(logsFromThree, 0);
+        });
+
+        it("Should accept block hashes as toBlock", async function () {
+          const exampleContract = await deployContract(
+            this.provider,
+            `0x${EXAMPLE_CONTRACT.bytecode.object}`
+          );
+
+          const newState =
+            "000000000000000000000000000000000000000000000000000000000000003b";
+
+          await this.provider.send("eth_sendTransaction", [
+            {
+              to: exampleContract,
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              data: EXAMPLE_CONTRACT.selectors.modifiesState + newState,
+            },
+          ]);
+
+          await this.provider.send("evm_mine", []);
+
+          const block0 = await this.provider.send("eth_getBlockByNumber", [
+            "0x0",
+            false,
+          ]);
+
+          const logsToZero = await this.provider.send("eth_getLogs", [
+            {
+              address: exampleContract,
+              toBlock: {
+                blockHash: block0.hash,
+              },
+            },
+          ]);
+
+          assert.lengthOf(logsToZero, 0);
+        });
+
+        it("Should throw if the block tag in toBlock or fromBlock doesn't exist", async function () {
+          await assertInvalidInputError(this.provider, "eth_getLogs", [
+            {
+              address: "0x0000000000000000000000000000000000000000",
+              fromBlock: {
+                blockHash:
+                  "0x1234567890123456789012345678901234567890123456789012345678901234",
+              },
+            },
+          ]);
+
+          await assertInvalidInputError(this.provider, "eth_getLogs", [
+            {
+              address: "0x0000000000000000000000000000000000000000",
+              toBlock: {
+                blockHash:
+                  "0x1234567890123456789012345678901234567890123456789012345678901234",
+              },
+            },
+          ]);
+        });
       });
 
       describe("eth_getProof", async function () {
@@ -1722,7 +1891,7 @@ describe("Eth module", function () {
       describe("eth_getStorageAt", async function () {
         describe("Imitating Ganache", function () {
           describe("When a slot has not been written into", function () {
-            it("Should return `0x0`, despite it not making any sense at all", async function () {
+            it("Should return `0x0000000000000000000000000000000000000000000000000000000000000000`", async function () {
               const exampleContract = await deployContract(
                 this.provider,
                 `0x${EXAMPLE_CONTRACT.bytecode.object}`
@@ -1733,7 +1902,7 @@ describe("Eth module", function () {
                   exampleContract,
                   numberToRpcQuantity(3),
                 ]),
-                "0x0"
+                "0x0000000000000000000000000000000000000000000000000000000000000000"
               );
 
               assert.strictEqual(
@@ -1741,7 +1910,7 @@ describe("Eth module", function () {
                   exampleContract,
                   numberToRpcQuantity(4),
                 ]),
-                "0x0"
+                "0x0000000000000000000000000000000000000000000000000000000000000000"
               );
 
               assert.strictEqual(
@@ -1749,7 +1918,7 @@ describe("Eth module", function () {
                   DEFAULT_ACCOUNTS_ADDRESSES[0],
                   numberToRpcQuantity(0),
                 ]),
-                "0x0"
+                "0x0000000000000000000000000000000000000000000000000000000000000000"
               );
             });
           });
@@ -1769,7 +1938,7 @@ describe("Eth module", function () {
                     numberToRpcQuantity(2),
                     numberToRpcQuantity(firstBlock),
                   ]),
-                  "0x0"
+                  "0x0000000000000000000000000000000000000000000000000000000000000000"
                 );
 
                 assert.strictEqual(
@@ -1810,7 +1979,7 @@ describe("Eth module", function () {
                     numberToRpcQuantity(0),
                     numberToRpcQuantity(firstBlock + 1),
                   ]),
-                  "0x0"
+                  "0x0000000000000000000000000000000000000000000000000000000000000000"
                 );
 
                 assert.strictEqual(
@@ -1818,7 +1987,7 @@ describe("Eth module", function () {
                     exampleContract,
                     numberToRpcQuantity(0),
                   ]),
-                  "0x7b"
+                  "0x000000000000000000000000000000000000000000000000000000000000007b"
                 );
 
                 newState =
@@ -1838,7 +2007,7 @@ describe("Eth module", function () {
                     numberToRpcQuantity(0),
                     numberToRpcQuantity(firstBlock + 2),
                   ]),
-                  "0x7b"
+                  "0x000000000000000000000000000000000000000000000000000000000000007b"
                 );
 
                 assert.strictEqual(
@@ -1846,7 +2015,7 @@ describe("Eth module", function () {
                     exampleContract,
                     numberToRpcQuantity(0),
                   ]),
-                  "0x7c"
+                  "0x000000000000000000000000000000000000000000000000000000000000007c"
                 );
               });
             });
@@ -2344,7 +2513,7 @@ describe("Eth module", function () {
             this.provider,
             "eth_getTransactionCount",
             [randomAddress(), numberToRpcQuantity(futureBlock)],
-            `Received invalid block number ${futureBlock}. Latest block number is ${firstBlock}`
+            `Received invalid block tag ${futureBlock}. Latest block number is ${firstBlock}`
           );
         });
       });
@@ -3134,6 +3303,211 @@ describe("Eth module", function () {
 
         it("Doesn't fail when unsubscribe is called for a non-existent filter", async function () {
           assert.isFalse(await this.provider.send("eth_unsubscribe", ["0x1"]));
+        });
+      });
+
+      describe("block tags", function () {
+        it("should allow EIP-1898 block tags", async function () {
+          const firstBlock = await getFirstBlock();
+
+          const contractAddress = await deployContract(
+            this.provider,
+            `0x${EXAMPLE_CONTRACT.bytecode.object}`
+          );
+
+          const newState =
+            "000000000000000000000000000000000000000000000000000000000000000a";
+
+          await this.provider.send("eth_sendTransaction", [
+            {
+              to: contractAddress,
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              data: EXAMPLE_CONTRACT.selectors.modifiesState + newState,
+            },
+          ]);
+
+          const previousBlockNumber = `0x${(firstBlock + 1).toString(16)}`;
+          const previousBlock: RpcBlockOutput = await this.provider.send(
+            "eth_getBlockByNumber",
+            [previousBlockNumber, false]
+          );
+
+          assert.equal(
+            await this.provider.send("eth_call", [
+              {
+                to: contractAddress,
+                data: EXAMPLE_CONTRACT.selectors.i,
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              },
+              {
+                blockNumber: previousBlock.number,
+              },
+            ]),
+            "0x0000000000000000000000000000000000000000000000000000000000000000"
+          );
+
+          assert.equal(
+            await this.provider.send("eth_call", [
+              {
+                to: contractAddress,
+                data: EXAMPLE_CONTRACT.selectors.i,
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              },
+              {
+                blockHash: previousBlock.hash,
+              },
+            ]),
+            "0x0000000000000000000000000000000000000000000000000000000000000000"
+          );
+
+          const latestBlock: RpcBlockOutput = await this.provider.send(
+            "eth_getBlockByNumber",
+            ["latest", false]
+          );
+
+          assert.equal(
+            await this.provider.send("eth_call", [
+              {
+                to: contractAddress,
+                data: EXAMPLE_CONTRACT.selectors.i,
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              },
+              {
+                blockNumber: latestBlock.number,
+              },
+            ]),
+            `0x${newState}`
+          );
+
+          assert.equal(
+            await this.provider.send("eth_call", [
+              {
+                to: contractAddress,
+                data: EXAMPLE_CONTRACT.selectors.i,
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              },
+              {
+                blockHash: latestBlock.hash,
+              },
+            ]),
+            `0x${newState}`
+          );
+        });
+
+        it("should not accept an empty block tag", async function () {
+          await assertInvalidArgumentsError(this.provider, "eth_getBalance", [
+            DEFAULT_ACCOUNTS_ADDRESSES[0],
+            {},
+          ]);
+        });
+
+        it("should not accept both a blockNumber and a blockHash in a block tag", async function () {
+          const latestBlock: RpcBlockOutput = await this.provider.send(
+            "eth_getBlockByNumber",
+            ["latest", false]
+          );
+
+          await assertInvalidArgumentsError(this.provider, "eth_getBalance", [
+            DEFAULT_ACCOUNTS_ADDRESSES[0],
+            {
+              blockNumber: 0,
+              blockHash: latestBlock.hash,
+            },
+          ]);
+
+          it("should accept a requireCanonical flag", async function () {
+            const block: RpcBlockOutput = await this.provider.send(
+              "eth_getBlockByNumber",
+              ["latest", false]
+            );
+
+            assertQuantity(
+              await this.provider.send("eth_getBalance", [
+                zeroAddress(),
+                {
+                  blockNumber: block.number,
+                  requireCanonical: true,
+                },
+              ]),
+              0
+            );
+
+            assertQuantity(
+              await this.provider.send("eth_getBalance", [
+                zeroAddress(),
+                {
+                  blockNumber: block.number,
+                  requireCanonical: false,
+                },
+              ]),
+              0
+            );
+
+            assertQuantity(
+              await this.provider.send("eth_getBalance", [
+                zeroAddress(),
+                {
+                  blockHash: block.hash,
+                  requireCanonical: true,
+                },
+              ]),
+              0
+            );
+
+            assertQuantity(
+              await this.provider.send("eth_getBalance", [
+                zeroAddress(),
+                {
+                  blockHash: block.hash,
+                  requireCanonical: false,
+                },
+              ]),
+              0
+            );
+          });
+        });
+      });
+
+      describe("gas usage", function () {
+        it("should use 15K less gas when writing a non-zero slot", async function () {
+          const contractAddress = await deployContract(
+            this.provider,
+            `0x${EXAMPLE_SETTER_CONTRACT.bytecode.object}`
+          );
+
+          const firstTxHash = await this.provider.send("eth_sendTransaction", [
+            {
+              to: contractAddress,
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              data: `${EXAMPLE_SETTER_CONTRACT.selectors.setValue}0000000000000000000000000000000000000000000000000000000000000001`,
+            },
+          ]);
+
+          const firstReceipt = await this.provider.send(
+            "eth_getTransactionReceipt",
+            [firstTxHash]
+          );
+
+          const gasUsedBefore = new BN(toBuffer(firstReceipt.gasUsed));
+
+          const secondTxHash = await this.provider.send("eth_sendTransaction", [
+            {
+              to: contractAddress,
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              data: `${EXAMPLE_SETTER_CONTRACT.selectors.setValue}0000000000000000000000000000000000000000000000000000000000000002`,
+            },
+          ]);
+
+          const secondReceipt = await this.provider.send(
+            "eth_getTransactionReceipt",
+            [secondTxHash]
+          );
+
+          const gasUsedAfter = new BN(toBuffer(secondReceipt.gasUsed));
+
+          const gasDifference = gasUsedBefore.sub(gasUsedAfter);
+
+          assert.equal(gasDifference.toString(), "15000");
         });
       });
     });

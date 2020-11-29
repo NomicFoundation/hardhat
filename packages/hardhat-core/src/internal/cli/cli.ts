@@ -117,22 +117,28 @@ async function main() {
       showWarningIfNoSolidityConfig,
     });
 
-    let telemetryConsent = hasConsentedTelemetry();
+    let telemetryConsent: boolean | undefined = hasConsentedTelemetry();
 
     const isHelpCommand = hardhatArguments.help || taskName === TASK_HELP;
     if (
       telemetryConsent === undefined &&
       !isHelpCommand &&
-      !isRunningOnCiServer()
+      !isRunningOnCiServer() &&
+      process.stdout.isTTY === true
     ) {
       telemetryConsent = await confirmTelemetryConsent();
-      writeTelemetryConsent(telemetryConsent);
+
+      if (telemetryConsent !== undefined) {
+        writeTelemetryConsent(telemetryConsent);
+      }
     }
 
     const analytics = await Analytics.getInstance(telemetryConsent);
 
     Reporter.setConfigPath(config.paths.configFile);
-    Reporter.setEnabled(true);
+    if (telemetryConsent === true) {
+      Reporter.setEnabled(true);
+    }
 
     const envExtenders = ctx.extendersManager.getExtenders();
     const taskDefinitions = ctx.tasksDSL.getTaskDefinitions();

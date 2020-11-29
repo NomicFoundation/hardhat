@@ -468,8 +468,10 @@ export class EthModule {
           `eth_getBlockByNumber doesn't support ${tag}`
         );
       }
-    } else {
+    } else if (BN.isBN(tag)) {
       block = await this._node.getBlockByNumber(tag);
+    } else if (Buffer.isBuffer(tag)) {
+      block = await this._node.getBlockByHash(tag);
     }
 
     if (block === undefined) {
@@ -590,9 +592,14 @@ export class EthModule {
       filter.toBlock = new BN(block.header.number);
     }
 
+    const [fromBlock, toBlock] = await Promise.all([
+      this._extractBlock(filter.fromBlock),
+      this._extractBlock(filter.toBlock),
+    ]);
+
     return {
-      fromBlock: this._extractBlock(filter.fromBlock),
-      toBlock: this._extractBlock(filter.toBlock),
+      fromBlock,
+      toBlock,
       normalizedTopics: this._extractNormalizedLogTopics(filter.topics),
       addresses: this._extractLogAddresses(filter.address),
     };
@@ -622,12 +629,6 @@ export class EthModule {
     const blockNumber = await this._blockTagToBlockNumber(blockTag);
 
     const data = await this._node.getStorageAt(address, slot, blockNumber);
-
-    // data should always be 32 bytes, but we are imitating Ganache here.
-    // Please read the comment in `getStorageAt`.
-    if (data.length === 0) {
-      return "0x0";
-    }
 
     return bufferToRpcData(data);
   }
@@ -723,24 +724,6 @@ export class EthModule {
     address: Buffer,
     blockTag: OptionalBlockTag
   ): Promise<string> {
-    // TODO: MetaMask does some eth_getTransactionCount(sender, currentBlock)
-    //   calls right after sending a transaction.
-    //   As we insta-mine, the currentBlock that they send is different from the
-    //   one we have, which results on an error.
-    //   This is not a big deal TBH, MM eventually resynchronizes, but it shows
-    //   some hard to understand errors to our users.
-    //   To avoid confusing our users, we have a special case here, just
-    //   for now.
-    //   This should be changed ASAP.
-    if (
-      BN.isBN(blockTag) &&
-      blockTag.eq((await this._node.getLatestBlockNumber()).subn(1))
-    ) {
-      return numberToRpcQuantity(
-        await this._node.getAccountNonceInPreviousBlock(address)
-      );
-    }
-
     const blockNumber = await this._blockTagToBlockNumber(blockTag);
 
     return numberToRpcQuantity(
@@ -1047,18 +1030,45 @@ export class EthModule {
       return new BN(0);
     }
 
-    const block = await this._node.getBlockByNumber(blockTag);
+    let block: Block | undefined;
+    if (BN.isBN(blockTag)) {
+      block = await this._node.getBlockByNumber(blockTag);
+    } else if (Buffer.isBuffer(blockTag)) {
+      block = await this._node.getBlockByHash(blockTag);
+    }
+
     if (block === undefined) {
       const latestBlock = await this._node.getLatestBlockNumber();
+
       throw new InvalidInputError(
-        `Received invalid block number ${blockTag.toString()}. Latest block number is ${latestBlock.toString()}`
+        `Received invalid block tag ${this._blockTagToString(
+          blockTag
+        )}. Latest block number is ${latestBlock.toString()}`
       );
     }
 
     return new BN(block.header.number);
   }
 
-  private _extractBlock(blockTag: OptionalBlockTag): BN {
+  private async _extractBlock(blockTag: OptionalBlockTag): Promise<BN> {
+    if (BN.isBN(blockTag)) {
+      return blockTag;
+    }
+
+    if (Buffer.isBuffer(blockTag)) {
+      const block = await this._node.getBlockByHash(blockTag);
+
+      if (block === undefined) {
+        throw new InvalidInputError(
+          `Received invalid block tag ${this._blockTagToString(
+            blockTag
+          )}. This block doesn't exist.`
+        );
+      }
+
+      return new BN(block.header.number);
+    }
+
     switch (blockTag) {
       case "earliest":
         return new BN(0);
@@ -1066,10 +1076,21 @@ export class EthModule {
       case "latest":
         return LATEST_BLOCK;
       case "pending":
+      default:
         return LATEST_BLOCK;
     }
+  }
 
-    return blockTag;
+  private _blockTagToString(tag: BlockTag): string {
+    if (typeof tag === "string") {
+      return tag;
+    }
+
+    if (BN.isBN(tag)) {
+      return tag.toString();
+    }
+
+    return bufferToHex(tag);
   }
 
   private _extractNormalizedLogTopics(

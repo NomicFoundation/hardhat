@@ -926,7 +926,7 @@ If you aren't overriding compilation-related tasks, please report this as a bug.
     INVALID_SOURCE_NAME_RELATIVE_PATH: {
       number: 1001,
       message:
-        "Invalid source name %name%. Expected source name but found an absolute path.",
+        "Invalid source name %name%. Expected source name but found a relative path.",
       title: "Invalid source name: relative path",
       description: `A Solidity source name was expected, but a relative path was given.
       

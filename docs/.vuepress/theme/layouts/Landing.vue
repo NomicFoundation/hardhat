@@ -6,7 +6,7 @@ div
     @touchend="onTouchEnd"
   )
     #topRow(:class="{ navBarAndBannerSticky }")
-      // HHTopBar(v-if="shouldShowNavbar")
+      HHTopBar(v-if="shouldShowNavbar")
       HHNavbar(v-if="shouldShowNavbar", @toggle-sidebar="toggleSidebar")
   
     HHHero(v-if="this.$page.frontmatter.home")

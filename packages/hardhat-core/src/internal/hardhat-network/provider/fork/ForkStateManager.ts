@@ -11,8 +11,10 @@ import { Map as ImmutableMap, Record as ImmutableRecord } from "immutable";
 import { callbackify } from "util";
 
 import { JsonRpcClient } from "../../jsonrpc/client";
+import { GenesisAccount } from "../node-types";
 import { PStateManager } from "../types/PStateManager";
 import { StateManager } from "../types/StateManager";
+import { makeAccount } from "../utils/makeAccount";
 
 import { AccountState, makeAccountState } from "./Account";
 import { randomHash } from "./random";
@@ -36,7 +38,8 @@ const notSupportedError = (method: string) =>
 
 export class ForkStateManager implements PStateManager {
   private _state: State = ImmutableMap();
-  private _stateRoot: string = randomHash();
+  private _initialStateRoot: string = randomHash();
+  private _stateRoot: string = this._initialStateRoot;
   private _stateRootToState: Map<string, State> = new Map();
   private _originalStorageCache: Map<string, Buffer> = new Map();
   private _stateCheckpoints: string[] = [];
@@ -45,9 +48,17 @@ export class ForkStateManager implements PStateManager {
 
   constructor(
     private readonly _jsonRpcClient: JsonRpcClient,
-    private readonly _forkBlockNumber: BN
+    private readonly _forkBlockNumber: BN,
+    genesisAccounts: GenesisAccount[] = []
   ) {
     this._state = ImmutableMap();
+
+    for (const ga of genesisAccounts) {
+      const { address, account } = makeAccount(ga);
+      this._putAccount(address, account);
+    }
+
+    this._stateRootToState.set(this._initialStateRoot, this._state);
   }
 
   public copy(): ForkStateManager {
@@ -104,20 +115,7 @@ export class ForkStateManager implements PStateManager {
   }
 
   public async putAccount(address: Buffer, account: Account): Promise<void> {
-    // Because the vm only ever modifies the nonce, balance and codeHash using this
-    // method we ignore the stateRoot property
-    const hexAddress = bufferToHex(address);
-    let localAccount = this._state.get(hexAddress) ?? makeAccountState();
-    localAccount = localAccount
-      .set("nonce", bufferToHex(account.nonce))
-      .set("balance", bufferToHex(account.balance));
-
-    // Code is set to empty string here to prevent unnecessary
-    // JsonRpcClient.getCode calls in getAccount method
-    if (account.codeHash.equals(KECCAK256_NULL)) {
-      localAccount = localAccount.set("code", "0x");
-    }
-    this._state = this._state.set(hexAddress, localAccount);
+    this._putAccount(address, account);
   }
 
   public touchAccount(address: Buffer): void {
@@ -154,11 +152,12 @@ export class ForkStateManager implements PStateManager {
     const account = this._state.get(bufferToHex(address));
     const cleared = account?.get("storageCleared") ?? false;
     const localValue = account?.get("storage").get(bufferToHex(key));
+
     if (localValue !== undefined) {
       return toBuffer(localValue);
     }
     if (cleared) {
-      return toBuffer(new Array(32).fill(0));
+      return toBuffer([]);
     }
     return this._jsonRpcClient.getStorageAt(
       address,
@@ -186,12 +185,25 @@ export class ForkStateManager implements PStateManager {
     key: Buffer,
     value: Buffer
   ): Promise<void> {
+    const unpaddedValue = unpadBuffer(value);
+
     const hexAddress = bufferToHex(address);
     let account = this._state.get(hexAddress) ?? makeAccountState();
-    account = account.set(
-      "storage",
-      account.get("storage").set(bufferToHex(key), bufferToHex(value))
-    );
+    const currentStorage = account.get("storage");
+
+    let newStorage;
+    if (unpaddedValue.length === 0) {
+      // if the value is an empty array or only zeros, the storage is deleted
+      newStorage = currentStorage.delete(bufferToHex(key));
+    } else {
+      newStorage = currentStorage.set(
+        bufferToHex(key),
+        bufferToHex(unpaddedValue)
+      );
+    }
+
+    account = account.set("storage", newStorage);
+
     this._state = this._state.set(hexAddress, account);
   }
 
@@ -278,29 +290,37 @@ export class ForkStateManager implements PStateManager {
     return {
       copy: () => this.copy().asStateManager(),
       getAccount: callbackify(this.getAccount.bind(this)),
-      putAccount: callbackify(this.putAccount.bind(this)),
+      putAccount: callbackify<Buffer, Account, void>(
+        this.putAccount.bind(this)
+      ),
       touchAccount: this.touchAccount.bind(this),
-      putContractCode: callbackify(this.putContractCode.bind(this)),
+      putContractCode: callbackify<Buffer, Buffer, void>(
+        this.putContractCode.bind(this)
+      ),
       getContractCode: callbackify(this.getContractCode.bind(this)),
       getContractStorage: callbackify(this.getContractStorage.bind(this)),
       getOriginalContractStorage: callbackify(
         this.getOriginalContractStorage.bind(this)
       ),
-      putContractStorage: callbackify(this.putContractStorage.bind(this)),
-      clearContractStorage: callbackify(this.clearContractStorage.bind(this)),
-      checkpoint: callbackify(this.checkpoint.bind(this)),
-      commit: callbackify(this.commit.bind(this)),
-      revert: callbackify(this.revert.bind(this)),
+      putContractStorage: callbackify<Buffer, Buffer, Buffer, void>(
+        this.putContractStorage.bind(this)
+      ),
+      clearContractStorage: callbackify<Buffer, void>(
+        this.clearContractStorage.bind(this)
+      ),
+      checkpoint: callbackify<void>(this.checkpoint.bind(this)),
+      commit: callbackify<void>(this.commit.bind(this)),
+      revert: callbackify<void>(this.revert.bind(this)),
       getStateRoot: callbackify(this.getStateRoot.bind(this)),
-      setStateRoot: callbackify(this.setStateRoot.bind(this)),
+      setStateRoot: callbackify<Buffer, void>(this.setStateRoot.bind(this)),
       dumpStorage: callbackify(this.dumpStorage.bind(this)),
       hasGenesisState: callbackify(this.hasGenesisState.bind(this)),
-      generateCanonicalGenesis: callbackify(
+      generateCanonicalGenesis: callbackify<void>(
         this.generateCanonicalGenesis.bind(this)
       ),
-      generateGenesis: callbackify(this.generateGenesis.bind(this)),
+      generateGenesis: callbackify<any, void>(this.generateGenesis.bind(this)),
       accountIsEmpty: callbackify(this.accountIsEmpty.bind(this)),
-      cleanupTouchedAccounts: callbackify(
+      cleanupTouchedAccounts: callbackify<void>(
         this.cleanupTouchedAccounts.bind(this)
       ),
       _clearOriginalStorageCache: this._clearOriginalStorageCache.bind(this),
@@ -310,6 +330,10 @@ export class ForkStateManager implements PStateManager {
   public setBlockContext(stateRoot: Buffer, blockNumber: BN) {
     if (this._stateCheckpoints.length !== 0) {
       throw checkpointedError("setBlockContext");
+    }
+    if (blockNumber.eq(this._forkBlockNumber)) {
+      this._setStateRoot(toBuffer(this._initialStateRoot));
+      return;
     }
     if (blockNumber.gt(this._forkBlockNumber)) {
       this._setStateRoot(stateRoot);
@@ -335,6 +359,23 @@ export class ForkStateManager implements PStateManager {
     }
   }
 
+  private _putAccount(address: Buffer, account: Account): void {
+    // Because the vm only ever modifies the nonce, balance and codeHash using this
+    // method we ignore the stateRoot property
+    const hexAddress = bufferToHex(address);
+    let localAccount = this._state.get(hexAddress) ?? makeAccountState();
+    localAccount = localAccount
+      .set("nonce", bufferToHex(account.nonce))
+      .set("balance", bufferToHex(account.balance));
+
+    // Code is set to empty string here to prevent unnecessary
+    // JsonRpcClient.getCode calls in getAccount method
+    if (account.codeHash.equals(KECCAK256_NULL)) {
+      localAccount = localAccount.set("code", "0x");
+    }
+    this._state = this._state.set(hexAddress, localAccount);
+  }
+
   private _setStateRoot(stateRoot: Buffer) {
     const newRoot = bufferToHex(stateRoot);
     const state = this._stateRootToState.get(newRoot);
@@ -344,4 +385,13 @@ export class ForkStateManager implements PStateManager {
     this._stateRoot = newRoot;
     this._state = state;
   }
+}
+
+function unpadBuffer(buffer: Buffer): Buffer {
+  let i = 0;
+  while (i < buffer.length && buffer[i] === 0) {
+    i++;
+  }
+
+  return buffer.slice(i);
 }

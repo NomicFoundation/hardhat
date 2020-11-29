@@ -18,7 +18,12 @@ declare interface GanacheOptions {
   forkBlockNumber?: string | number; // Translates to: fork_block_number
   gasLimit?: number;
   gasPrice?: string | number;
-  hardfork?: "byzantium" | "constantinople" | "petersburg";
+  hardfork?:
+    | "byzantium"
+    | "constantinople"
+    | "petersburg"
+    | "istanbul"
+    | "muirGlacier";
   hdPath?: string; // Translates to: hd_path
   hostname?: string;
   locked?: boolean;
@@ -50,7 +55,7 @@ export class GanacheService {
       gasLimit: 6721975,
       defaultBalanceEther: 100,
       totalAccounts: 10,
-      hardfork: "petersburg",
+      hardfork: "muirGlacier",
       allowUnlimitedContractSize: false,
       locked: false,
       hdPath: "m/44'/60'/0'/0/",

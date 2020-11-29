@@ -80,7 +80,7 @@ console.log(web3.eth.accounts)
 should become:
 
 ```js
-console.log(await pweb3.eth.getAccounts())
+console.log(await web3.eth.getAccounts())
 ``` 
 
 

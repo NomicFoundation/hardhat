@@ -42,7 +42,7 @@ describe("ForkBlockchain", () => {
   }
 
   before(async function () {
-    if (ALCHEMY_URL === undefined) {
+    if (ALCHEMY_URL === undefined || ALCHEMY_URL === "") {
       this.skip();
       return;
     }

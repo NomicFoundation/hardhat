@@ -2,6 +2,10 @@
 
 This document contains some tips on how to collaborate in this project.
 
+## Filing an issue
+
+If you find a bug or want to propose a new feature, please [open an issue](https://github.com/nomiclabs/hardhat/issues/new). Pull requests are welcome, but we recommend you discuss it in an issue first, especially for big changes. This will increase the odds that we can accept your PR.
+
 ## Project structure
 
 This repository is a monorepo handled with [Yarn workspaces](https://classic.yarnpkg.com/en/docs/workspaces/).
@@ -66,7 +70,7 @@ change should be contained in the same branch and PR than the change.
 If you are working purely on the website or documentation, not as a result of
 a technical change, you should branch from [`website`](https://github.com/nomiclabs/hardhat/tree/website)
 and use it as the base branch in your pull request. Anything merged into 
-`website` this way should also be merged into `development`.
+`website` this way should also be merged into `master`.
 
 Note that the `website` branch is automatically deployed, so take care when 
 merging into it.
