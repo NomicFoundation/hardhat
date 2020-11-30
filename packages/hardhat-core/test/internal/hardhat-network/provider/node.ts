@@ -432,7 +432,7 @@ describe("HardhatNode", () => {
         const presetTimestamp = new BN(now).addn(30);
         node.setNextBlockTimestamp(presetTimestamp);
         const timestamp = new BN(now).addn(60);
-        await node.mineBlock(false, timestamp);
+        await node.mineBlock(timestamp);
 
         const block = await node.getLatestBlock();
         const blockTimestamp = bufferToInt(block.header.timestamp);

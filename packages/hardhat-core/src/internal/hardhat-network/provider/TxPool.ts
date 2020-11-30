@@ -121,6 +121,11 @@ export class TxPool {
     return undefined;
   }
 
+  public hasPendingTransactions(): boolean {
+    const pendingMap = this._getPending();
+    return pendingMap.some((senderPendingTxs) => !senderPendingTxs.isEmpty());
+  }
+
   public getPendingTransactions(): Map<string, OrderedTransaction[]> {
     const deserializedImmutableMap = this._getPending()
       .filter((txs) => txs.size > 0)

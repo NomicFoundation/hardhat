@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { zeroAddress } from "ethereumjs-util";
+import { BN, zeroAddress } from "ethereumjs-util";
 import sinon from "sinon";
 
 import {
@@ -13,6 +13,7 @@ import { useEnvironment } from "../../../../helpers/environment";
 import { useFixtureProject } from "../../../../helpers/project";
 import {
   assertInvalidArgumentsError,
+  assertInvalidInputError,
   assertLatestBlockNumber,
   assertQuantity,
 } from "../../helpers/assertions";
@@ -273,6 +274,39 @@ describe("Evm module", function () {
             );
             assertQuantity(latestBlock2.timestamp, timestamp - 500);
           });
+        });
+      });
+
+      describe("evm_setBlockGasLimit", () => {
+        it("validates block gas limit", async function () {
+          await assertInvalidInputError(
+            this.provider,
+            "evm_setBlockGasLimit",
+            [numberToRpcQuantity(0)],
+            "Block gas limit must be greater than 0"
+          );
+        });
+
+        it("sets a new block gas limit", async function () {
+          const blockBefore = await this.provider.send("eth_getBlockByNumber", [
+            "pending",
+            false,
+          ]);
+          const gasLimitBefore = quantityToBN(blockBefore.gasLimit);
+
+          const newBlockGasLimit = new BN(34228);
+          await this.provider.send("evm_setBlockGasLimit", [
+            numberToRpcQuantity(newBlockGasLimit),
+          ]);
+
+          const blockAfter = await this.provider.send("eth_getBlockByNumber", [
+            "pending",
+            false,
+          ]);
+          const gasLimitAfter = quantityToBN(blockAfter.gasLimit);
+
+          assert.isFalse(gasLimitBefore.eq(gasLimitAfter));
+          assert.isTrue(gasLimitAfter.eq(newBlockGasLimit));
         });
       });
 
@@ -570,7 +604,6 @@ describe("Evm module", function () {
             it("automine and interval mining don't interfere with each other", async function () {
               const interval = 5000;
               const initialBlock = await getBlockNumber();
-              const initialTimestamp = getCurrentTimestamp();
 
               await this.provider.send("evm_setAutomineEnabled", [false]);
               await this.provider.send("evm_setIntervalMining", [

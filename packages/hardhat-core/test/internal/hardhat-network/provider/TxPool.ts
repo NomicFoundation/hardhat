@@ -926,4 +926,30 @@ describe("Tx Pool", () => {
       );
     });
   });
+
+  describe("hasPendingTransactions", () => {
+    it("returns false when there are no pending transactions", async () => {
+      assert.isFalse(txPool.hasPendingTransactions());
+    });
+
+    it("returns true when there is at least one pending transaction", async () => {
+      const tx1 = createTestFakeTransaction({ nonce: 0 });
+      const tx2 = createTestFakeTransaction({ nonce: 0 });
+
+      await txPool.addTransaction(tx1);
+      assert.isTrue(txPool.hasPendingTransactions());
+
+      await txPool.addTransaction(tx2);
+      assert.isTrue(txPool.hasPendingTransactions());
+    });
+
+    it("returns false when there are only queued transactions", async () => {
+      const tx1 = createTestFakeTransaction({ nonce: 1 });
+      const tx2 = createTestFakeTransaction({ nonce: 1 });
+      await txPool.addTransaction(tx1);
+      await txPool.addTransaction(tx2);
+
+      assert.isFalse(txPool.hasPendingTransactions());
+    });
+  });
 });

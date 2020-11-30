@@ -51,6 +51,11 @@ export class EvmModule {
         return this._setIntervalMiningAction(
           ...this._setIntervalMiningParams(params)
         );
+
+      case "evm_setBlockGasLimit":
+        return this._setBlockGasLimitAction(
+          ...this._setBlockGasLimitParams(params)
+        );
     }
 
     throw new MethodNotFoundError(`Method ${method} not found`);
@@ -116,7 +121,7 @@ export class EvmModule {
         );
       }
     }
-    await this._node.mineBlock(false, new BN(timestamp));
+    await this._node.mineBlock(new BN(timestamp));
     return numberToRpcQuantity(0);
   }
 
@@ -169,6 +174,21 @@ export class EvmModule {
     } else {
       this._miningTimer.stop();
     }
+    return true;
+  }
+
+  // evm_setBlockGasLimit
+
+  private _setBlockGasLimitParams(params: any[]): [BN] {
+    return validateParams(params, rpcQuantity);
+  }
+
+  private async _setBlockGasLimitAction(blockGasLimit: BN): Promise<true> {
+    if (blockGasLimit.lte(new BN(0))) {
+      throw new InvalidInputError("Block gas limit must be greater than 0");
+    }
+
+    this._node.setBlockGasLimit(blockGasLimit);
     return true;
   }
 }
