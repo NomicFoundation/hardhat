@@ -34,7 +34,7 @@ describe("Compiler bytecode and deployed bytecode matching", () => {
         contractSymbols,
         InferralType.METADATA_PRESENT_VERSION_ABSENT
       );
-      assert.isTrue(contractInformation.match);
+      assert.isDefined(contractInformation);
     });
 
     // v0.7.0 is the latest compiler milestone.
@@ -62,7 +62,7 @@ describe("Compiler bytecode and deployed bytecode matching", () => {
         contractSymbols,
         InferralType.EXACT
       );
-      assert.isTrue(contractInformation.match);
+      assert.isDefined(contractInformation);
     });
 
     it("matches bytecode with different metadata", async () => {
@@ -115,7 +115,7 @@ describe("Compiler bytecode and deployed bytecode matching", () => {
         contractSymbols,
         InferralType.EXACT
       );
-      assert.isTrue(contractInformation.match);
+      assert.isDefined(contractInformation);
     });
   });
 
@@ -144,7 +144,7 @@ describe("Compiler bytecode and deployed bytecode matching", () => {
         contractSymbols,
         InferralType.EXACT
       );
-      assert.isTrue(contractInformation.match);
+      assert.isDefined(contractInformation);
     });
   });
 
@@ -177,7 +177,7 @@ describe("Compiler bytecode and deployed bytecode matching", () => {
         contractSymbols,
         InferralType.METADATA_PRESENT_VERSION_ABSENT
       );
-      assert.isTrue(contractInformation.match);
+      assert.isDefined(contractInformation);
     });
 
     // v0.5.0 changes library placeholders.
@@ -208,7 +208,7 @@ describe("Compiler bytecode and deployed bytecode matching", () => {
         contractSymbols,
         InferralType.METADATA_PRESENT_VERSION_ABSENT
       );
-      assert.isTrue(contractInformation.match);
+      assert.isDefined(contractInformation);
     });
 
     // v0.7.0 is the latest compiler milestone.
@@ -240,7 +240,7 @@ describe("Compiler bytecode and deployed bytecode matching", () => {
         contractSymbols,
         InferralType.EXACT
       );
-      assert.isTrue(contractInformation.match);
+      assert.isDefined(contractInformation);
     });
   });
 
@@ -270,7 +270,7 @@ describe("Compiler bytecode and deployed bytecode matching", () => {
         contractSymbols,
         InferralType.EXACT
       );
-      assert.isTrue(contractInformation.match);
+      assert.isDefined(contractInformation);
     });
 
     // v0.7.0 is the latest compiler milestone.
@@ -298,7 +298,7 @@ describe("Compiler bytecode and deployed bytecode matching", () => {
         contractSymbols,
         InferralType.EXACT
       );
-      assert.isTrue(contractInformation.match);
+      assert.isDefined(contractInformation);
     });
 
     it("matches bytecode with more than one immutable", async () => {
@@ -328,7 +328,7 @@ describe("Compiler bytecode and deployed bytecode matching", () => {
         contractSymbols,
         InferralType.EXACT
       );
-      assert.isTrue(contractInformation.match);
+      assert.isDefined(contractInformation);
     });
   });
 });

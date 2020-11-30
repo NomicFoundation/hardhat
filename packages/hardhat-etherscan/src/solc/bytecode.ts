@@ -1,5 +1,6 @@
 import {
   Artifacts,
+  BuildInfo,
   CompilerInput,
   CompilerOutput,
   CompilerOutputBytecode,
@@ -8,10 +9,6 @@ import { parseFullyQualifiedName } from "hardhat/utils/contract-names";
 
 import { METADATA_LENGTH_SIZE, readSolcMetadataLength } from "./metadata";
 import { InferralType } from "./version";
-
-type BytecodeComparison =
-  | { match: false }
-  | { match: true; contractInformation: BytecodeExtractedData };
 
 interface BytecodeExtractedData {
   immutableValues: ImmutableValues;
@@ -69,47 +66,59 @@ export async function lookupMatchingBytecode(
     }
 
     const { sourceName, contractName } = parseFullyQualifiedName(fqName);
-    const contract = buildInfo.output.contracts[sourceName][contractName];
-    // Normalize deployed bytecode according to this contract.
-    const { deployedBytecode: runtimeBytecodeSymbols } = contract.evm;
 
-    const comparison = await compareBytecode(
+    const contractInformation = await extractMatchingContractInformation(
+      sourceName,
+      contractName,
+      buildInfo,
       deployedBytecode,
-      runtimeBytecodeSymbols,
       inferralType
     );
-
-    if (comparison.match) {
-      const {
-        contractInformation: {
-          immutableValues,
-          libraryLinks,
-          normalizedBytecode,
-        },
-      } = comparison;
-      // The bytecode matches
-      contractMatches.push({
-        compilerInput: buildInfo.input,
-        compilerOutput: buildInfo.output,
-        solcVersion: buildInfo.solcVersion,
-        immutableValues,
-        libraryLinks,
-        normalizedBytecode,
-        sourceName,
-        contractName,
-        contract,
-      });
+    if (contractInformation !== null) {
+      contractMatches.push(contractInformation);
     }
   }
 
   return contractMatches;
 }
 
+export async function extractMatchingContractInformation(
+  sourceName: SourceName,
+  contractName: ContractName,
+  buildInfo: BuildInfo,
+  deployedBytecode: string,
+  inferralType: InferralType
+): Promise<ContractInformation | null> {
+  const contract = buildInfo.output.contracts[sourceName][contractName];
+  // Normalize deployed bytecode according to this contract.
+  const { deployedBytecode: runtimeBytecodeSymbols } = contract.evm;
+
+  const analyzedBytecode = await compareBytecode(
+    deployedBytecode,
+    runtimeBytecodeSymbols,
+    inferralType
+  );
+
+  if (analyzedBytecode !== null) {
+    return {
+      ...analyzedBytecode,
+      compilerInput: buildInfo.input,
+      compilerOutput: buildInfo.output,
+      solcVersion: buildInfo.solcVersion,
+      sourceName,
+      contractName,
+      contract,
+    };
+  }
+
+  return null;
+}
+
 export async function compareBytecode(
   deployedBytecode: string,
   runtimeBytecodeSymbols: CompilerOutputBytecode,
   inferralType: InferralType
-): Promise<BytecodeComparison> {
+): Promise<BytecodeExtractedData | null> {
   let bytecodeSize = deployedBytecode.length;
   // We will ignore metadata information when comparing. Etherscan seems to do the same.
   if (inferralType !== InferralType.METADATA_ABSENT) {
@@ -124,7 +133,7 @@ export async function compareBytecode(
     // If, for whatever reason, the runtime bytecode object is so small that we can't even read two bytes off it,
     // this is not a match.
     if (runtimeBytecodeSlice.length !== METADATA_LENGTH_SIZE) {
-      return { match: false };
+      return null;
     }
 
     const runtimeMetadataLength = readSolcMetadataLength(runtimeBytecodeSlice);
@@ -137,7 +146,7 @@ export async function compareBytecode(
       runtimeBytecodeSymbols.object.length - runtimeMetadataLength * 2 !==
       deployedBytecode.length - deployedMetadataLength * 2
     ) {
-      return { match: false };
+      return null;
     }
 
     // The metadata length is stored at the end.
@@ -164,16 +173,13 @@ export async function compareBytecode(
   ) {
     // The bytecode matches
     return {
-      contractInformation: {
-        immutableValues,
-        libraryLinks,
-        normalizedBytecode,
-      },
-      match: true,
+      immutableValues,
+      libraryLinks,
+      normalizedBytecode,
     };
   }
 
-  return { match: false };
+  return null;
 }
 
 export async function normalizeBytecode(

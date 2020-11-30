@@ -11,11 +11,17 @@ import {
 } from "hardhat/plugins";
 import {
   ActionType,
+  Artifacts,
   CompilationJob,
   CompilerInput,
   CompilerOutput,
   DependencyGraph,
+  Network,
 } from "hardhat/types";
+import {
+  isFullyQualifiedName,
+  parseFullyQualifiedName,
+} from "hardhat/utils/contract-names";
 import path from "path";
 import semver from "semver";
 
@@ -31,6 +37,7 @@ import {
 } from "./pluginContext";
 import {
   ContractInformation,
+  extractMatchingContractInformation,
   lookupMatchingBytecode,
 } from "./solc/bytecode";
 import { getLongVersion, InferralType, inferSolcVersion } from "./solc/version";
@@ -41,6 +48,7 @@ interface VerificationArgs {
   constructorArguments: string[];
   // Filename of constructor arguments module.
   constructorArgs?: string;
+  fullyQualifiedName?: string;
 }
 
 interface Build {
@@ -61,6 +69,7 @@ const verify: ActionType<VerificationArgs> = async (
     address,
     constructorArguments: constructorArgsList,
     constructorArgs: constructorArgsModule,
+    fullyQualifiedName,
   },
   { config, network, run, artifacts }
 ) => {
@@ -217,35 +226,75 @@ Possible causes are:
   // Make sure that contract artifacts are up-to-date.
   await run(TASK_COMPILE);
 
-  const contractMatches = await lookupMatchingBytecode(
-    artifacts,
-    matchingVersions,
-    deployedContractBytecode,
-    inferredSolcVersion.inferralType
-  );
-  if (contractMatches.length === 0) {
-    const message = `The address provided as argument contains a contract, but its bytecode doesn't match any of your local contracts.
+  let contractInformation;
+  if (fullyQualifiedName !== undefined) {
+    // Check this particular contract
+    if (!isFullyQualifiedName(fullyQualifiedName)) {
+      throw new NomicLabsHardhatPluginError(
+        pluginName,
+        `A valid fully qualified name was expected. Fully qualified names look like this: "contracts/AContract.sol:TheContract"
+Instead, this name was received: ${fullyQualifiedName}`
+      );
+    }
+
+    if (!(await artifacts.artifactExists(fullyQualifiedName))) {
+      throw new NomicLabsHardhatPluginError(
+        pluginName,
+        `An artifact could not be found for the fully qualified name ${fullyQualifiedName}.
+
+Possible causes are:
+  - The contract is not present in the Hardhat project.
+  - There's a typographic error in the fully qualified name.`
+      );
+    }
+
+    // Process BuildInfo here to check version and throw an error if unexpected version is found.
+    const buildInfo = await artifacts.getBuildInfo(fullyQualifiedName);
+
+    if (buildInfo === undefined) {
+      throw new NomicLabsHardhatPluginError(
+        pluginName,
+        `Did not find a build for the contract ${fullyQualifiedName}.
+
+Possible causes are:
+  - The contract is written in a language other than Solidity.`
+      );
+    }
+
+    const { sourceName, contractName } = parseFullyQualifiedName(
+      fullyQualifiedName
+    );
+    contractInformation = await extractMatchingContractInformation(
+      sourceName,
+      contractName,
+      buildInfo,
+      deployedContractBytecode,
+      inferredSolcVersion.inferralType
+    );
+
+    if (contractInformation === null) {
+      throw new NomicLabsHardhatPluginError(
+        pluginName,
+        `The address provided as argument contains a contract, but its bytecode doesn't match the contract ${fullyQualifiedName}.
 
 Possible causes are:
   - Contract code changed after the deployment was executed. This includes code for seemingly unrelated contracts.
   - A solidity file was added, moved, deleted or renamed after the deployment was executed. This includes files for seemingly unrelated contracts.
   - Solidity compiler settings were modified after the deployment was executed (like the optimizer, target EVM, etc.).
   - The given address is wrong.
-  - The selected network (${network.name}) is wrong.`;
-    throw new NomicLabsHardhatPluginError(pluginName, message);
+  - The selected network (${network.name}) is wrong.`
+      );
+    }
+  } else {
+    // Infer the contract
+    contractInformation = await inferContract(
+      artifacts,
+      network,
+      matchingVersions,
+      deployedContractBytecode,
+      inferredSolcVersion.inferralType
+    );
   }
-  if (contractMatches.length > 1) {
-    const nameList = contractMatches
-      .map((contract) => {
-        return `${contract.sourceName}:${contract.contractName}`;
-      })
-      .join(", ");
-    const message = `More than one contract was found to match the deployed bytecode.
-The plugin does not yet support this case. Contracts found:
-${nameList}`;
-    throw new NomicLabsHardhatPluginError(pluginName, message, undefined, true);
-  }
-  const [contractInformation] = contractMatches;
 
   const libraryLinks = contractInformation.libraryLinks;
   const deployLibraryReferences =
@@ -441,6 +490,44 @@ const getMinimumBuild: ActionType<MinimumBuildArgs> = async function (
   return build;
 };
 
+async function inferContract(
+  artifacts: Artifacts,
+  network: Network,
+  matchingVersions: string[],
+  deployedContractBytecode: string,
+  inferralType: InferralType
+) {
+  const contractMatches = await lookupMatchingBytecode(
+    artifacts,
+    matchingVersions,
+    deployedContractBytecode,
+    inferralType
+  );
+  if (contractMatches.length === 0) {
+    const message = `The address provided as argument contains a contract, but its bytecode doesn't match any of your local contracts.
+
+Possible causes are:
+  - Contract code changed after the deployment was executed. This includes code for seemingly unrelated contracts.
+  - A solidity file was added, moved, deleted or renamed after the deployment was executed. This includes files for seemingly unrelated contracts.
+  - Solidity compiler settings were modified after the deployment was executed (like the optimizer, target EVM, etc.).
+  - The given address is wrong.
+  - The selected network (${network.name}) is wrong.`;
+    throw new NomicLabsHardhatPluginError(pluginName, message);
+  }
+  if (contractMatches.length > 1) {
+    const nameList = contractMatches
+      .map((contract) => {
+        return `${contract.sourceName}:${contract.contractName}`;
+      })
+      .join(", ");
+    const message = `More than one contract was found to match the deployed bytecode.
+The plugin does not yet support this case. Contracts found:
+${nameList}`;
+    throw new NomicLabsHardhatPluginError(pluginName, message, undefined, true);
+  }
+  return contractMatches[0];
+}
+
 task(TASK_VERIFY, "Verifies contract on Etherscan")
   .addPositionalParam(
     "address",
@@ -449,6 +536,12 @@ task(TASK_VERIFY, "Verifies contract on Etherscan")
   .addOptionalParam(
     "constructorArgs",
     "File path to a javascript module that exports the list of arguments."
+  )
+  .addOptionalParam(
+    "fullyQualifiedName",
+    "Fully qualified name of the contract that will be verified. " +
+      "Passing this parameter skips the automatic detection of the contract. " +
+      "This parameter is only necessary if the bytecode matches more than one contract in your project."
   )
   .addOptionalVariadicPositionalParam(
     "constructorArguments",
