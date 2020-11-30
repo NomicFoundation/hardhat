@@ -49,7 +49,7 @@
     "@types/semver": "^6.0.2",
     "chai": "^4.2.0",
     "ethers": "^5.0.8",
-    "hardhat": "^2.0.0",
+    "hardhat": "^2.0.4",
     "nock": "^13.0.5"
   },
   "peerDependencies": {

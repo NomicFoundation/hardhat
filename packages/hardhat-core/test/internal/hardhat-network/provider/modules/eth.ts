@@ -1772,6 +1772,7 @@ describe("Eth module", function () {
         });
 
         it("Should accept block hashes as from", async function () {
+          const blockNumberBegin = await this.provider.send("eth_blockNumber");
           const exampleContract = await deployContract(
             this.provider,
             `0x${EXAMPLE_CONTRACT.bytecode.object}`
@@ -1790,13 +1791,15 @@ describe("Eth module", function () {
 
           await this.provider.send("evm_mine", []);
 
+          const blockNumberEnd = await this.provider.send("eth_blockNumber");
+
           const block0 = await this.provider.send("eth_getBlockByNumber", [
-            "0x0",
+            blockNumberBegin,
             false,
           ]);
 
           const block3 = await this.provider.send("eth_getBlockByNumber", [
-            "0x3",
+            blockNumberEnd,
             false,
           ]);
 
