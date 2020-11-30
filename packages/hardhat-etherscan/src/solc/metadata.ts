@@ -1,4 +1,4 @@
-import { DecoderOptions } from "cbor";
+import type { DecoderOptions } from "cbor";
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 
 import { pluginName } from "../pluginContext";

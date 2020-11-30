@@ -29,7 +29,11 @@ import {
   TASK_VERIFY,
   TASK_VERIFY_GET_MINIMUM_BUILD,
 } from "./pluginContext";
-import type { ContractInformation } from "./solc/bytecode";
+import {
+  ContractInformation,
+  lookupMatchingBytecode,
+} from "./solc/bytecode";
+import { getLongVersion, InferralType, inferSolcVersion } from "./solc/version";
 import "./type-extensions";
 
 interface VerificationArgs {
@@ -173,9 +177,6 @@ The selected network is ${network.name}.`
     );
   }
 
-  const { getLongVersion, inferSolcVersion, InferralType } = await import(
-    "./solc/version"
-  );
   const bytecodeBuffer = Buffer.from(deployedContractBytecode, "hex");
   const inferredSolcVersion = await inferSolcVersion(bytecodeBuffer);
 
@@ -216,7 +217,6 @@ Possible causes are:
   // Make sure that contract artifacts are up-to-date.
   await run(TASK_COMPILE);
 
-  const { lookupMatchingBytecode } = await import("./solc/bytecode");
   const contractMatches = await lookupMatchingBytecode(
     artifacts,
     matchingVersions,
