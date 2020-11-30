@@ -97,7 +97,7 @@ describe("Waffle plugin plugin", function () {
     useEnvironment("hardhat-project", "hardhat");
 
     it("Should load the Waffle chai matchers", async function () {
-      await this.env.run("test", { testFiles: [] });
+      await this.env.run("test");
       assert.equal(process.exitCode, 1);
       process.exitCode = 0;
     });
