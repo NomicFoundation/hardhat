@@ -134,6 +134,7 @@ export async function complete({
 }
 
 async function getCompletionData(): Promise<CompletionData | undefined> {
+  const { default: _ } = await import("lodash");
   const projectId = getProjectId();
 
   if (projectId === undefined) {
@@ -162,9 +163,23 @@ async function getCompletionData(): Promise<CompletionData | undefined> {
 
   const networks = Object.keys(hre.config.networks);
 
-  const completionData = {
+  // we extract the tasks data explicitly to make sure everything
+  // is serializable and to avoid saving unnecessary things from the HRE
+  const tasks: CompletionData["tasks"] = _(hre.tasks)
+    .mapValues((task) => ({
+      name: task.name,
+      isSubtask: task.isSubtask,
+      paramDefinitions: _(task.paramDefinitions)
+        .mapValues((paramDefinition) => ({
+          name: paramDefinition.name,
+        }))
+        .value(),
+    }))
+    .value();
+
+  const completionData: CompletionData = {
     networks,
-    tasks: hre.tasks,
+    tasks,
   };
 
   await saveCachedCompletionData(projectId, completionData, mtimes);
