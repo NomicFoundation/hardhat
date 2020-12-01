@@ -118,7 +118,7 @@ const plugins = [
     name: "hardhat-deploy-ethers",
     author: "Ronan Sandford",
     authorUrl: "https://github.com/wighawag",
-    url: "https://github.com/wighawag/hardhat-deploy-ethers/tree/master",
+    url: "https://github.com/wighawag/hardhat-deploy-ethers/tree/main",
     description: "A hardhat-deploy plugin for Ethers.js v5",
     tags: ["Ethers.js", "hardhat-deploy"],
   },
