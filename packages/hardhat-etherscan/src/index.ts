@@ -261,6 +261,26 @@ Possible causes are:
       );
     }
 
+    if (!matchingVersions.includes(buildInfo.solcVersion)) {
+      let versionDetails;
+      if (inferredSolcVersion.inferralType === InferralType.EXACT) {
+        versionDetails = `the solidity version ${inferredSolcVersion.range}`;
+      } else {
+        versionDetails = `a solidity version in the range ${inferredSolcVersion.range}`;
+      }
+
+      throw new NomicLabsHardhatPluginError(
+        pluginName,
+        `The contract ${fullyQualifiedName} is being compiled with ${buildInfo.solcVersion}.
+However, the contract found in the address provided as argument has its bytecode marked with ${versionDetails}.
+
+Possible causes are:
+  - Solidity compiler version settings were modified after the deployment was executed.
+  - The given address is wrong.
+  - The selected network (${network.name}) is wrong.`
+      );
+    }
+
     const { sourceName, contractName } = parseFullyQualifiedName(
       fullyQualifiedName
     );
@@ -521,7 +541,7 @@ Possible causes are:
       })
       .join(", ");
     const message = `More than one contract was found to match the deployed bytecode.
-The plugin does not yet support this case. Contracts found:
+Please use the fullyQualifiedName parameter with one of the following contracts:
 ${nameList}`;
     throw new NomicLabsHardhatPluginError(pluginName, message, undefined, true);
   }
