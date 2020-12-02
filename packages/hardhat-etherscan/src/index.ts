@@ -241,11 +241,7 @@ Instead, this name was received: ${contractFQName}`
     if (!(await artifacts.artifactExists(contractFQName))) {
       throw new NomicLabsHardhatPluginError(
         pluginName,
-        `An artifact could not be found for the fully qualified name ${contractFQName}.
-
-Possible causes are:
-  - The contract is not present in the Hardhat project.
-  - There's a typographic error in the fully qualified name of the contract.`
+        `The contract ${contractFQName} is not present in your project.`
       );
     }
 
@@ -255,10 +251,8 @@ Possible causes are:
     if (buildInfo === undefined) {
       throw new NomicLabsHardhatPluginError(
         pluginName,
-        `Did not find a build for the contract ${contractFQName}.
-
-Possible causes are:
-  - The contract is written in a language other than Solidity.`
+        `The contract ${contractFQName} is present in your project, but we couldn't find its sources.
+Please make sure that it has been compiled by Hardhat and that it is written in Solidity.`
       );
     }
 
