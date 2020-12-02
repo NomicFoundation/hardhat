@@ -48,7 +48,8 @@ interface VerificationArgs {
   constructorArguments: string[];
   // Filename of constructor arguments module.
   constructorArgs?: string;
-  fullyQualifiedName?: string;
+  // Fully qualified name of the contract
+  contract?: string;
 }
 
 interface Build {
@@ -69,7 +70,7 @@ const verify: ActionType<VerificationArgs> = async (
     address,
     constructorArguments: constructorArgsList,
     constructorArgs: constructorArgsModule,
-    fullyQualifiedName,
+    contract: contractFQName,
   },
   { config, network, run, artifacts }
 ) => {
@@ -227,34 +228,34 @@ Possible causes are:
   await run(TASK_COMPILE);
 
   let contractInformation;
-  if (fullyQualifiedName !== undefined) {
+  if (contractFQName !== undefined) {
     // Check this particular contract
-    if (!isFullyQualifiedName(fullyQualifiedName)) {
+    if (!isFullyQualifiedName(contractFQName)) {
       throw new NomicLabsHardhatPluginError(
         pluginName,
         `A valid fully qualified name was expected. Fully qualified names look like this: "contracts/AContract.sol:TheContract"
-Instead, this name was received: ${fullyQualifiedName}`
+Instead, this name was received: ${contractFQName}`
       );
     }
 
-    if (!(await artifacts.artifactExists(fullyQualifiedName))) {
+    if (!(await artifacts.artifactExists(contractFQName))) {
       throw new NomicLabsHardhatPluginError(
         pluginName,
-        `An artifact could not be found for the fully qualified name ${fullyQualifiedName}.
+        `An artifact could not be found for the fully qualified name ${contractFQName}.
 
 Possible causes are:
   - The contract is not present in the Hardhat project.
-  - There's a typographic error in the fully qualified name.`
+  - There's a typographic error in the fully qualified name of the contract.`
       );
     }
 
     // Process BuildInfo here to check version and throw an error if unexpected version is found.
-    const buildInfo = await artifacts.getBuildInfo(fullyQualifiedName);
+    const buildInfo = await artifacts.getBuildInfo(contractFQName);
 
     if (buildInfo === undefined) {
       throw new NomicLabsHardhatPluginError(
         pluginName,
-        `Did not find a build for the contract ${fullyQualifiedName}.
+        `Did not find a build for the contract ${contractFQName}.
 
 Possible causes are:
   - The contract is written in a language other than Solidity.`
@@ -271,7 +272,7 @@ Possible causes are:
 
       throw new NomicLabsHardhatPluginError(
         pluginName,
-        `The contract ${fullyQualifiedName} is being compiled with ${buildInfo.solcVersion}.
+        `The contract ${contractFQName} is being compiled with ${buildInfo.solcVersion}.
 However, the contract found in the address provided as argument has its bytecode marked with ${versionDetails}.
 
 Possible causes are:
@@ -282,7 +283,7 @@ Possible causes are:
     }
 
     const { sourceName, contractName } = parseFullyQualifiedName(
-      fullyQualifiedName
+      contractFQName
     );
     contractInformation = await extractMatchingContractInformation(
       sourceName,
@@ -295,7 +296,7 @@ Possible causes are:
     if (contractInformation === null) {
       throw new NomicLabsHardhatPluginError(
         pluginName,
-        `The address provided as argument contains a contract, but its bytecode doesn't match the contract ${fullyQualifiedName}.
+        `The address provided as argument contains a contract, but its bytecode doesn't match the contract ${contractFQName}.
 
 Possible causes are:
   - Contract code changed after the deployment was executed. This includes code for seemingly unrelated contracts.
@@ -404,6 +405,10 @@ This means that unrelated contracts may be displayed on Etherscan...`
     return { success: true };
   }
 
+  // TODO: Add known edge cases here.
+  // E.g:
+  // - "Unable to locate ContractCode at <address>"
+  // - Address of library used in constructor is wrong
   throw new NomicLabsHardhatPluginError(
     pluginName,
     `The contract verification failed.
@@ -539,33 +544,35 @@ Possible causes are:
       .map((contract) => {
         return `${contract.sourceName}:${contract.contractName}`;
       })
-      .join(", ");
+      .map((fqName) => ` * ${fqName}`)
+      .join("\n");
     const message = `More than one contract was found to match the deployed bytecode.
-Please use the fullyQualifiedName parameter with one of the following contracts:
-${nameList}`;
+Please use the contract parameter with one of the following contracts:
+${nameList}
+
+For example:
+
+  hardhat verify --contract contracts/Example.sol:ExampleContract <your verify args>`;
     throw new NomicLabsHardhatPluginError(pluginName, message, undefined, true);
   }
   return contractMatches[0];
 }
 
 task(TASK_VERIFY, "Verifies contract on Etherscan")
-  .addPositionalParam(
-    "address",
-    "Address of the smart contract that will be verified"
-  )
+  .addPositionalParam("address", "Address of the smart contract to verify")
   .addOptionalParam(
     "constructorArgs",
     "File path to a javascript module that exports the list of arguments."
   )
   .addOptionalParam(
-    "fullyQualifiedName",
-    "Fully qualified name of the contract that will be verified. " +
-      "Passing this parameter skips the automatic detection of the contract. " +
-      "This parameter is only necessary if the bytecode matches more than one contract in your project."
+    "contract",
+    "Fully qualified name of the contract to verify. " +
+      "Skips automatic detection of the contract. " +
+      "Use if the deployed bytecode matches more than one contract in your project."
   )
   .addOptionalVariadicPositionalParam(
     "constructorArguments",
-    "Arguments used in the contract constructor. These are ignored if the --constructorArgs option is passed.",
+    "Contract constructor arguments. Ignored if the --constructor-args option is used.",
     []
   )
   .setAction(verify);

@@ -118,7 +118,7 @@ describe("Plugin integration tests", function () {
 
           assert.isTrue(
             reason.message.includes(
-              "use the fullyQualifiedName parameter with one of the following contracts"
+              "use the contract parameter with one of the following contracts"
             ),
             "The error should contain an explanation of how to solve the ambiguous inference."
           );
@@ -148,7 +148,7 @@ describe("Plugin integration tests", function () {
       });
     });
 
-    describe("With fully qualified name parameter", function () {
+    describe("With contract fully qualified name parameter", function () {
       it("Should fail to verify contract with a different version", async function () {
         await this.env.run(TASK_COMPILE, { force: true });
 
@@ -163,7 +163,7 @@ describe("Plugin integration tests", function () {
           .run("verify", {
             address: deployedAddress,
             constructorArguments: [],
-            fullyQualifiedName: "contracts/TestContract1.sol:InnerContract",
+            contract: "contracts/TestContract1.sol:InnerContract",
           })
           .catch((reason) => {
             assert.instanceOf(
@@ -199,7 +199,7 @@ describe("Plugin integration tests", function () {
         return this.env.run("verify", {
           address: deployedAddress,
           constructorArguments: [amount],
-          fullyQualifiedName: "contracts/TestContract1.sol:TestContract1",
+          contract: "contracts/TestContract1.sol:TestContract1",
         });
       });
     });
