@@ -27,14 +27,14 @@ import semver from "semver";
 
 import { etherscanConfigExtender } from "./config";
 import {
-  toCheckStatusRequest,
-  toVerifyRequest,
-} from "./etherscan/EtherscanVerifyContractRequest";
-import {
   pluginName,
   TASK_VERIFY,
   TASK_VERIFY_GET_MINIMUM_BUILD,
 } from "./constants";
+import {
+  toCheckStatusRequest,
+  toVerifyRequest,
+} from "./etherscan/EtherscanVerifyContractRequest";
 import {
   ContractInformation,
   extractMatchingContractInformation,
