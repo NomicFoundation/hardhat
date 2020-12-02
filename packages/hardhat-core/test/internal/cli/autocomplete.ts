@@ -276,4 +276,23 @@ describe("autocomplete", function () {
       ]);
     });
   });
+
+  describe("overriden task", () => {
+    useFixtureProject("autocomplete/overriden-task");
+
+    after(() => {
+      resetHardhatContext();
+    });
+
+    it("should work when a task is overriden", async () => {
+      const suggestions = await complete("hh ");
+      expect(suggestions).to.have.deep.members(coreTasks);
+    });
+
+    it("should work when called a second time", async () => {
+      const suggestions = await complete("hh ");
+
+      expect(suggestions).to.have.deep.members(coreTasks);
+    });
+  });
 });
