@@ -29,6 +29,7 @@ import { etherscanConfigExtender } from "./config";
 import {
   pluginName,
   TASK_VERIFY,
+  TASK_VERIFY_GET_CONSTRUCTOR_ARGUMENTS,
   TASK_VERIFY_GET_MINIMUM_BUILD,
 } from "./constants";
 import {
@@ -45,8 +46,9 @@ import "./type-extensions";
 
 interface VerificationArgs {
   address: string;
-  constructorArguments: string[];
-  // Filename of constructor arguments module.
+  // constructor args given as positional params
+  constructorArgsParams: string[];
+  // Filename of constructor arguments module
   constructorArgs?: string;
   // Fully qualified name of the contract
   contract?: string;
@@ -68,9 +70,9 @@ extendConfig(etherscanConfigExtender);
 const verify: ActionType<VerificationArgs> = async (
   {
     address,
-    constructorArguments: constructorArgsList,
+    constructorArgsParams,
     constructorArgs: constructorArgsModule,
-    contract: contractFQName,
+    contract: contractFQN,
   },
   { config, network, run, artifacts }
 ) => {
@@ -124,32 +126,13 @@ See https://etherscan.io/solcversions for more information.`
     );
   }
 
-  let constructorArguments;
-  if (typeof constructorArgsModule === "string") {
-    if (!path.isAbsolute(constructorArgsModule)) {
-      // This ensures that the npm package namespace is ignored.
-      constructorArgsModule = path.join(process.cwd(), constructorArgsModule);
+  const constructorArguments: any[] = await run(
+    TASK_VERIFY_GET_CONSTRUCTOR_ARGUMENTS,
+    {
+      constructorArgsModule,
+      constructorArgsParams,
     }
-    try {
-      constructorArguments = (await import(constructorArgsModule)).default;
-      if (!Array.isArray(constructorArguments)) {
-        throw new NomicLabsHardhatPluginError(
-          pluginName,
-          `The module doesn't export a list. The module should look like this:
-module.exports = [ arg1, arg2, ... ];`
-        );
-      }
-    } catch (error) {
-      throw new NomicLabsHardhatPluginError(
-        pluginName,
-        `Importing the module for the constructor arguments list failed.
-Reason: ${error.message}`,
-        error
-      );
-    }
-  } else {
-    constructorArguments = constructorArgsList;
-  }
+  );
 
   let etherscanAPIEndpoint: URL;
   const {
@@ -228,30 +211,30 @@ Possible causes are:
   await run(TASK_COMPILE);
 
   let contractInformation;
-  if (contractFQName !== undefined) {
+  if (contractFQN !== undefined) {
     // Check this particular contract
-    if (!isFullyQualifiedName(contractFQName)) {
+    if (!isFullyQualifiedName(contractFQN)) {
       throw new NomicLabsHardhatPluginError(
         pluginName,
         `A valid fully qualified name was expected. Fully qualified names look like this: "contracts/AContract.sol:TheContract"
-Instead, this name was received: ${contractFQName}`
+Instead, this name was received: ${contractFQN}`
       );
     }
 
-    if (!(await artifacts.artifactExists(contractFQName))) {
+    if (!(await artifacts.artifactExists(contractFQN))) {
       throw new NomicLabsHardhatPluginError(
         pluginName,
-        `The contract ${contractFQName} is not present in your project.`
+        `The contract ${contractFQN} is not present in your project.`
       );
     }
 
     // Process BuildInfo here to check version and throw an error if unexpected version is found.
-    const buildInfo = await artifacts.getBuildInfo(contractFQName);
+    const buildInfo = await artifacts.getBuildInfo(contractFQN);
 
     if (buildInfo === undefined) {
       throw new NomicLabsHardhatPluginError(
         pluginName,
-        `The contract ${contractFQName} is present in your project, but we couldn't find its sources.
+        `The contract ${contractFQN} is present in your project, but we couldn't find its sources.
 Please make sure that it has been compiled by Hardhat and that it is written in Solidity.`
       );
     }
@@ -266,7 +249,7 @@ Please make sure that it has been compiled by Hardhat and that it is written in 
 
       throw new NomicLabsHardhatPluginError(
         pluginName,
-        `The contract ${contractFQName} is being compiled with ${buildInfo.solcVersion}.
+        `The contract ${contractFQN} is being compiled with ${buildInfo.solcVersion}.
 However, the contract found in the address provided as argument has its bytecode marked with ${versionDetails}.
 
 Possible causes are:
@@ -276,9 +259,7 @@ Possible causes are:
       );
     }
 
-    const { sourceName, contractName } = parseFullyQualifiedName(
-      contractFQName
-    );
+    const { sourceName, contractName } = parseFullyQualifiedName(contractFQN);
     contractInformation = await extractMatchingContractInformation(
       sourceName,
       contractName,
@@ -290,7 +271,7 @@ Possible causes are:
     if (contractInformation === null) {
       throw new NomicLabsHardhatPluginError(
         pluginName,
-        `The address provided as argument contains a contract, but its bytecode doesn't match the contract ${contractFQName}.
+        `The address provided as argument contains a contract, but its bytecode doesn't match the contract ${contractFQN}.
 
 Possible causes are:
   - Contract code changed after the deployment was executed. This includes code for seemingly unrelated contracts.
@@ -409,6 +390,50 @@ This means that unrelated contracts may be displayed on Etherscan...`
 Reason: ${verificationStatus.message}`
   );
 };
+
+subtask(TASK_VERIFY_GET_CONSTRUCTOR_ARGUMENTS)
+  .addParam("constructorArgsModule", undefined, undefined, types.inputFile)
+  .addParam("constructorArgsParams", undefined, undefined, types.any)
+  .setAction(
+    async ({
+      constructorArgsModule,
+      constructorArgsParams,
+    }: {
+      constructorArgsModule?: string;
+      constructorArgsParams: string[];
+    }) => {
+      if (typeof constructorArgsModule !== "string") {
+        return constructorArgsParams;
+      }
+
+      const constructorArgsModulePath = path.resolve(
+        process.cwd(),
+        constructorArgsModule
+      );
+
+      try {
+        const constructorArguments = (await import(constructorArgsModulePath))
+          .default;
+
+        if (!Array.isArray(constructorArguments)) {
+          throw new NomicLabsHardhatPluginError(
+            pluginName,
+            `The module doesn't export a list. The module should look like this:
+module.exports = [ arg1, arg2, ... ];`
+          );
+        }
+
+        return constructorArguments;
+      } catch (error) {
+        throw new NomicLabsHardhatPluginError(
+          pluginName,
+          `Importing the module for the constructor arguments list failed.
+Reason: ${error.message}`,
+          error
+        );
+      }
+    }
+  );
 
 async function attemptVerification(
   etherscanAPIEndpoint: URL,
@@ -556,7 +581,9 @@ task(TASK_VERIFY, "Verifies contract on Etherscan")
   .addPositionalParam("address", "Address of the smart contract to verify")
   .addOptionalParam(
     "constructorArgs",
-    "File path to a javascript module that exports the list of arguments."
+    "File path to a javascript module that exports the list of arguments.",
+    undefined,
+    types.inputFile
   )
   .addOptionalParam(
     "contract",
@@ -565,7 +592,7 @@ task(TASK_VERIFY, "Verifies contract on Etherscan")
       "Use if the deployed bytecode matches more than one contract in your project."
   )
   .addOptionalVariadicPositionalParam(
-    "constructorArguments",
+    "constructorArgsParams",
     "Contract constructor arguments. Ignored if the --constructor-args option is used.",
     []
   )

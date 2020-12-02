@@ -59,7 +59,7 @@ describe("Plugin integration tests", function () {
 
       return this.env.run("verify", {
         address: deployedAddress,
-        constructorArguments: [],
+        constructorArgsParams: [],
       });
     });
 
@@ -74,7 +74,7 @@ describe("Plugin integration tests", function () {
 
       return this.env.run("verify", {
         address: deployedAddress,
-        constructorArguments: [],
+        constructorArgsParams: [],
       });
     });
 
@@ -85,7 +85,7 @@ describe("Plugin integration tests", function () {
 
       return this.env.run("verify", {
         address: deployedAddress,
-        constructorArguments: [],
+        constructorArgsParams: [],
       });
     });
 
@@ -107,7 +107,7 @@ describe("Plugin integration tests", function () {
       return this.env
         .run("verify", {
           address: deployedAddress,
-          constructorArguments: [amount],
+          constructorArgsParams: [amount],
         })
         .catch((reason) => {
           assert.instanceOf(
@@ -162,7 +162,7 @@ describe("Plugin integration tests", function () {
         return this.env
           .run("verify", {
             address: deployedAddress,
-            constructorArguments: [],
+            constructorArgsParams: [],
             contract: "contracts/TestContract1.sol:InnerContract",
           })
           .catch((reason) => {
@@ -198,7 +198,7 @@ describe("Plugin integration tests", function () {
 
         return this.env.run("verify", {
           address: deployedAddress,
-          constructorArguments: [amount],
+          constructorArgsParams: [amount],
           contract: "contracts/TestContract1.sol:TestContract1",
         });
       });
