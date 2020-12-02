@@ -25,7 +25,7 @@ import {
 import path from "path";
 import semver from "semver";
 
-import { defaultEtherscanConfig } from "./config";
+import { etherscanConfigExtender } from "./config";
 import {
   toCheckStatusRequest,
   toVerifyRequest,
@@ -63,7 +63,7 @@ interface MinimumBuildArgs {
   sourceName: string;
 }
 
-extendConfig(defaultEtherscanConfig);
+extendConfig(etherscanConfigExtender);
 
 const verify: ActionType<VerificationArgs> = async (
   {
