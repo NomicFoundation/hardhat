@@ -3,7 +3,7 @@ import debug from "debug";
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import util from "util";
 
-import { pluginName } from "../pluginContext";
+import { pluginName } from "../constants";
 
 const log = debug("hardhat-etherscan:metadata-decoder");
 

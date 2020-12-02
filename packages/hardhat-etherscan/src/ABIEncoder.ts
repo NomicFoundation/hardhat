@@ -1,6 +1,6 @@
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 
-import { pluginName } from "./pluginContext";
+import { pluginName } from "./constants";
 
 export async function encodeArguments(
   abi: any,

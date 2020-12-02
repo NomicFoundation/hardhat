@@ -34,7 +34,7 @@ import {
   pluginName,
   TASK_VERIFY,
   TASK_VERIFY_GET_MINIMUM_BUILD,
-} from "./pluginContext";
+} from "./constants";
 import {
   ContractInformation,
   extractMatchingContractInformation,

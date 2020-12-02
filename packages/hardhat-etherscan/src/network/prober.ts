@@ -1,7 +1,7 @@
 import { HardhatPluginError } from "hardhat/plugins";
 import { EthereumProvider } from "hardhat/types";
 
-import { pluginName } from "../pluginContext";
+import { pluginName } from "../constants";
 
 type NetworkMap = {
   [networkID in NetworkID]: string;

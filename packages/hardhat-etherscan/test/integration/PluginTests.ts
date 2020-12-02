@@ -8,7 +8,7 @@ import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import type { CompilerInput } from "hardhat/types";
 import path from "path";
 
-import { TASK_VERIFY_GET_MINIMUM_BUILD } from "../../src/pluginContext";
+import { TASK_VERIFY_GET_MINIMUM_BUILD } from "../../src/constants";
 import { useEnvironment } from "../helpers";
 
 // These are skipped because they can't currently be run in CI
