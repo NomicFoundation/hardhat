@@ -544,7 +544,7 @@ Possible causes are:
       .map((contract) => {
         return `${contract.sourceName}:${contract.contractName}`;
       })
-      .map((fqName) => ` * ${fqName}`)
+      .map((fqName) => `  * ${fqName}`)
       .join("\n");
     const message = `More than one contract was found to match the deployed bytecode.
 Please use the contract parameter with one of the following contracts:
