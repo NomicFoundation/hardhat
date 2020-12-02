@@ -47,7 +47,7 @@ type NestedSliceReferences = BytecodeSlice[][];
 
 export async function lookupMatchingBytecode(
   artifacts: Artifacts,
-  matchingVersions: string[],
+  matchingCompilerVersions: string[],
   deployedBytecode: string,
   inferralType: InferralType
 ): Promise<ContractInformation[]> {
@@ -61,7 +61,7 @@ export async function lookupMatchingBytecode(
       continue;
     }
 
-    if (!matchingVersions.includes(buildInfo.solcVersion)) {
+    if (!matchingCompilerVersions.includes(buildInfo.solcVersion)) {
       continue;
     }
 
