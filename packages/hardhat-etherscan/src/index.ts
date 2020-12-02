@@ -257,7 +257,9 @@ ${nameList}`;
     throw new NomicLabsHardhatPluginError(
       pluginName,
       `The contract ${contractInformation.sourceName}:${contractInformation.contractName} has one or more library references that cannot be detected from deployed bytecode.
-This can occur if the library is only called in the contract constructor.`
+This can occur if the library is only called in the contract constructor.`,
+      undefined,
+      true
     );
   }
 
