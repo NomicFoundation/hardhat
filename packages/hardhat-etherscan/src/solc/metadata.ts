@@ -1,7 +1,11 @@
 import type { DecoderOptions } from "cbor";
+import debug from "debug";
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
+import util from "util";
 
 import { pluginName } from "../pluginContext";
+
+const log = debug("hardhat-etherscan:metadata-decoder");
 
 export const METADATA_LENGTH_SIZE = 2;
 
@@ -23,7 +27,9 @@ export class MetadataAbsentError extends NomicLabsHardhatPluginError {
 export async function readSolcVersion(bytecode: Buffer): Promise<string> {
   let solcMetadata;
   try {
-    solcMetadata = (await decodeSolcMetadata(bytecode)).solc;
+    const metadata = await decodeSolcMetadata(bytecode);
+    log(`Metadata decoded: ${util.inspect(metadata)}`);
+    solcMetadata = metadata.solc;
   } catch (error) {
     throw new MetadataAbsentError("Could not decode metadata.");
   }
@@ -40,6 +46,15 @@ export async function decodeSolcMetadata(bytecode: Buffer) {
   const metadataPayload = bytecode.slice(
     -metadataLength - METADATA_LENGTH_SIZE,
     -METADATA_LENGTH_SIZE
+  );
+
+  log(`Read metadata length ${metadataLength}`);
+
+  const lastMetadataBytes = metadataPayload.slice(-100);
+  log(
+    `Last ${
+      lastMetadataBytes.length
+    } bytes of metadata: ${lastMetadataBytes.toString("hex")}`
   );
 
   const { decodeFirst } = await import("cbor");
