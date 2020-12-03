@@ -15,7 +15,7 @@ export async function delay(ms: number): Promise<void> {
 const verificationIntervalMs = 3000;
 
 export async function verifyContract(
-  url: URL,
+  url: string,
   req: EtherscanVerifyRequest
 ): Promise<EtherscanResponse> {
   const { default: fetch } = await import("node-fetch");
@@ -57,11 +57,11 @@ Reason: ${error.message}`,
 }
 
 export async function getVerificationStatus(
-  url: URL,
+  url: string,
   req: EtherscanCheckStatusRequest
 ): Promise<EtherscanResponse> {
   const parameters = new URLSearchParams({ ...req });
-  const urlWithQuery = new URL("", url);
+  const urlWithQuery = new URL(url);
   urlWithQuery.search = parameters.toString();
 
   const { default: fetch } = await import("node-fetch");

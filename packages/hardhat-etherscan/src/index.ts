@@ -31,12 +31,17 @@ import {
   TASK_VERIFY,
   TASK_VERIFY_GET_COMPILER_VERSIONS,
   TASK_VERIFY_GET_CONSTRUCTOR_ARGUMENTS,
+  TASK_VERIFY_GET_ETHERSCAN_ENDPOINT,
   TASK_VERIFY_GET_MINIMUM_BUILD,
 } from "./constants";
 import {
   toCheckStatusRequest,
   toVerifyRequest,
 } from "./etherscan/EtherscanVerifyContractRequest";
+import {
+  getEtherscanEndpoint,
+  retrieveContractBytecode,
+} from "./network/prober";
 import {
   ContractInformation,
   extractMatchingContractInformation,
@@ -115,29 +120,9 @@ See https://etherscan.io/apis`
     }
   );
 
-  let etherscanAPIEndpoint: URL;
-  const {
-    getEtherscanEndpoint,
-    retrieveContractBytecode,
-    NetworkProberError,
-  } = await import("./network/prober");
-  try {
-    etherscanAPIEndpoint = await getEtherscanEndpoint(network.provider);
-  } catch (error) {
-    if (error instanceof NetworkProberError) {
-      throw new NomicLabsHardhatPluginError(
-        pluginName,
-        `${error.message} The selected network is ${network.name}.
-
-Possible causes are:
-  - The selected network (${network.name}) is wrong.
-  - Faulty hardhat network config.`,
-        error
-      );
-    }
-    // Shouldn't be reachable.
-    throw error;
-  }
+  const etherscanAPIEndpoint: string = await run(
+    TASK_VERIFY_GET_ETHERSCAN_ENDPOINT
+  );
 
   const deployedContractBytecode = await retrieveContractBytecode(
     address,
@@ -417,7 +402,7 @@ Reason: ${error.message}`,
   );
 
 async function attemptVerification(
-  etherscanAPIEndpoint: URL,
+  etherscanAPIEndpoint: string,
   contractInformation: ContractInformation,
   contractAddress: string,
   etherscanAPIKey: string,
@@ -586,6 +571,16 @@ See https://etherscan.io/solcversions for more information.`
   }
 );
 
+subtask(TASK_VERIFY_GET_ETHERSCAN_ENDPOINT).setAction(
+  async (_, { network }) => {
+    return getEtherscanEndpoint(network.provider, network.name);
+  }
+);
+
+subtask(TASK_VERIFY_GET_MINIMUM_BUILD)
+  .addParam("sourceName", undefined, undefined, types.string)
+  .setAction(getMinimumBuild);
+
 task(TASK_VERIFY, "Verifies contract on Etherscan")
   .addPositionalParam("address", "Address of the smart contract to verify")
   .addOptionalParam(
@@ -606,10 +601,6 @@ task(TASK_VERIFY, "Verifies contract on Etherscan")
     []
   )
   .setAction(verify);
-
-subtask(TASK_VERIFY_GET_MINIMUM_BUILD)
-  .addParam("sourceName", undefined, undefined, types.string)
-  .setAction(getMinimumBuild);
 
 function assertHardhatPluginInvariant(
   invariant: boolean,
