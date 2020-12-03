@@ -126,18 +126,11 @@ See https://etherscan.io/apis`
 
   const deployedContractBytecode = await retrieveContractBytecode(
     address,
-    network.provider
+    network.provider,
+    network.name
   );
-  if (deployedContractBytecode === null) {
-    throw new NomicLabsHardhatPluginError(
-      pluginName,
-      `The address ${address} has no bytecode. Is the contract deployed to this network?
-The selected network is ${network.name}.`
-    );
-  }
 
-  const bytecodeBuffer = Buffer.from(deployedContractBytecode, "hex");
-  const inferredSolcVersion = await inferSolcVersion(bytecodeBuffer);
+  const inferredSolcVersion = await inferSolcVersion(deployedContractBytecode);
 
   const matchingCompilerVersions = compilerVersions.filter((version) => {
     return semver.satisfies(version, inferredSolcVersion.range);

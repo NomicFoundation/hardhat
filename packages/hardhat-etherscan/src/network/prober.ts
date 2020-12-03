@@ -48,8 +48,9 @@ Possible causes are:
 
 export async function retrieveContractBytecode(
   address: string,
-  provider: EthereumProvider
-) {
+  provider: EthereumProvider,
+  networkName: string
+): Promise<string> {
   const bytecodeString = (await provider.send("eth_getCode", [
     address,
     "latest",
@@ -58,7 +59,11 @@ export async function retrieveContractBytecode(
     ? bytecodeString.slice(2)
     : bytecodeString;
   if (deployedBytecode.length === 0) {
-    return null;
+    throw new NomicLabsHardhatPluginError(
+      pluginName,
+      `The address ${address} has no bytecode. Is the contract deployed to this network?
+The selected network is ${networkName}.`
+    );
   }
   return deployedBytecode;
 }

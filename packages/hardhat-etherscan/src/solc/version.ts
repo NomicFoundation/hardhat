@@ -30,11 +30,12 @@ interface SolcVersionRange {
 }
 
 export async function inferSolcVersion(
-  bytecode: Buffer
+  bytecode: string
 ): Promise<SolcVersionRange> {
   let solcVersionMetadata;
   try {
-    solcVersionMetadata = await readSolcVersion(bytecode);
+    const bytecodeBuffer = Buffer.from(bytecode, "hex");
+    solcVersionMetadata = await readSolcVersion(bytecodeBuffer);
   } catch (error) {
     // We want to provide our best inference here.
     // We can infer that some solidity compiler releases couldn't have produced this bytecode.
