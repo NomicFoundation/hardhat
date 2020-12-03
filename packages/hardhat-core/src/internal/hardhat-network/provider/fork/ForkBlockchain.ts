@@ -183,7 +183,9 @@ export class ForkBlockchain implements PBlockchain {
             : filterParams.addresses,
         topics: filterParams.normalizedTopics,
       });
-      return remoteLogs.map((log) => toRpcLogOutput(log)).concat(localLogs);
+      return remoteLogs
+        .map((log, index) => toRpcLogOutput(log, index))
+        .concat(localLogs);
     }
     return this._data.getLogs(filterParams);
   }

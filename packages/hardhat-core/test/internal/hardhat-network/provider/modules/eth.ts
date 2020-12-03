@@ -1883,6 +1883,27 @@ describe("Eth module", function () {
             },
           ]);
         });
+
+        it("should have logIndex for logs in remote blocks", async function () {
+          if (!isFork) {
+            this.skip();
+          }
+
+          const logs = await this.provider.send("eth_getLogs", [
+            {
+              address: "0x2A07fBCD64BE0e2329890C21c6F34e81889a5912",
+              topics: [
+                "0x8f7de836135871245dd9c04f295aef602311da1591d262ecb4d2f45c7a88003d",
+              ],
+              fromBlock: numberToRpcQuantity(10721019),
+              toBlock: numberToRpcQuantity(10721019),
+            },
+          ]);
+
+          assert.lengthOf(logs, 1);
+          assert.isDefined(logs[0].logIndex);
+          assert.isNotNull(logs[0].logIndex);
+        });
       });
 
       describe("eth_getProof", async function () {
