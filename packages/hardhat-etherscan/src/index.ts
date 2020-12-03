@@ -358,8 +358,13 @@ Reason: ${verificationStatus.message}`
 };
 
 subtask(TASK_VERIFY_GET_CONSTRUCTOR_ARGUMENTS)
-  .addParam("constructorArgsModule", undefined, undefined, types.inputFile)
   .addParam("constructorArgsParams", undefined, undefined, types.any)
+  .addOptionalParam(
+    "constructorArgsModule",
+    undefined,
+    undefined,
+    types.inputFile
+  )
   .setAction(
     async ({
       constructorArgsModule,
