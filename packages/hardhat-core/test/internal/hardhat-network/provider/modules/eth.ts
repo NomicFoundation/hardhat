@@ -144,256 +144,350 @@ describe("Eth module", function () {
       });
 
       describe("eth_call", async function () {
-        it("Should return the value returned by the contract", async function () {
-          const contractAddress = await deployContract(
-            this.provider,
-            `0x${EXAMPLE_CONTRACT.bytecode.object}`
-          );
+        describe("when called without blockTag param", () => {
+          it("Should return the value returned by the contract", async function () {
+            const contractAddress = await deployContract(
+              this.provider,
+              `0x${EXAMPLE_CONTRACT.bytecode.object}`
+            );
 
-          const result = await this.provider.send("eth_call", [
-            { to: contractAddress, data: EXAMPLE_CONTRACT.selectors.i },
-          ]);
+            const result = await this.provider.send("eth_call", [
+              { to: contractAddress, data: EXAMPLE_CONTRACT.selectors.i },
+            ]);
 
-          assert.equal(
-            result,
-            "0x0000000000000000000000000000000000000000000000000000000000000000"
-          );
+            assert.equal(
+              result,
+              "0x0000000000000000000000000000000000000000000000000000000000000000"
+            );
 
-          await this.provider.send("eth_sendTransaction", [
-            {
-              to: contractAddress,
-              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              data: `${EXAMPLE_CONTRACT.selectors.modifiesState}000000000000000000000000000000000000000000000000000000000000000a`,
-            },
-          ]);
-
-          const result2 = await this.provider.send("eth_call", [
-            { to: contractAddress, data: EXAMPLE_CONTRACT.selectors.i },
-          ]);
-
-          assert.equal(
-            result2,
-            "0x000000000000000000000000000000000000000000000000000000000000000a"
-          );
-        });
-
-        it("Should return the value returned by the contract using an unknown account as from", async function () {
-          const from = "0x1234567890123456789012345678901234567890";
-
-          const contractAddress = await deployContract(
-            this.provider,
-            `0x${EXAMPLE_CONTRACT.bytecode.object}`
-          );
-
-          const result = await this.provider.send("eth_call", [
-            { to: contractAddress, data: EXAMPLE_CONTRACT.selectors.i, from },
-          ]);
-
-          assert.equal(
-            result,
-            "0x0000000000000000000000000000000000000000000000000000000000000000"
-          );
-
-          await this.provider.send("eth_sendTransaction", [
-            {
-              to: contractAddress,
-              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              data: `${EXAMPLE_CONTRACT.selectors.modifiesState}000000000000000000000000000000000000000000000000000000000000000a`,
-            },
-          ]);
-
-          const result2 = await this.provider.send("eth_call", [
-            { to: contractAddress, data: EXAMPLE_CONTRACT.selectors.i, from },
-          ]);
-
-          assert.equal(
-            result2,
-            "0x000000000000000000000000000000000000000000000000000000000000000a"
-          );
-        });
-
-        it("Should be run in the context of the last block with 'latest' param", async function () {
-          const firstBlock = await getFirstBlock();
-          const timestamp = getCurrentTimestamp() + 60;
-          await this.provider.send("evm_setNextBlockTimestamp", [timestamp]);
-
-          const contractAddress = await deployContract(
-            this.provider,
-            `0x${EXAMPLE_READ_CONTRACT.bytecode.object}`
-          );
-
-          const blockResult = await this.provider.send("eth_call", [
-            {
-              to: contractAddress,
-              data: EXAMPLE_READ_CONTRACT.selectors.blockNumber,
-            },
-            "latest",
-          ]);
-
-          assert.equal(dataToNumber(blockResult), firstBlock + 1);
-
-          const timestampResult = await this.provider.send("eth_call", [
-            {
-              to: contractAddress,
-              data: EXAMPLE_READ_CONTRACT.selectors.blockTimestamp,
-            },
-            "latest",
-          ]);
-
-          assert.equal(timestampResult, timestamp);
-        });
-
-        it("Should be run in the context of the last block without block tag param", async function () {
-          const firstBlock = await getFirstBlock();
-          const timestamp = getCurrentTimestamp() + 60;
-          await this.provider.send("evm_setNextBlockTimestamp", [timestamp]);
-
-          const contractAddress = await deployContract(
-            this.provider,
-            `0x${EXAMPLE_READ_CONTRACT.bytecode.object}`
-          );
-
-          const blockResult = await this.provider.send("eth_call", [
-            {
-              to: contractAddress,
-              data: EXAMPLE_READ_CONTRACT.selectors.blockNumber,
-            },
-          ]);
-
-          assert.equal(dataToNumber(blockResult), firstBlock + 1);
-
-          const timestampResult = await this.provider.send("eth_call", [
-            {
-              to: contractAddress,
-              data: EXAMPLE_READ_CONTRACT.selectors.blockTimestamp,
-            },
-          ]);
-
-          assert.equal(timestampResult, timestamp);
-        });
-
-        it("Should be run in the context of a new block with 'pending' block tag param", async function () {
-          const firstBlock = await getFirstBlock();
-          const contractAddress = await deployContract(
-            this.provider,
-            `0x${EXAMPLE_READ_CONTRACT.bytecode.object}`
-          );
-
-          const timestamp = getCurrentTimestamp() + 60;
-          await this.provider.send("evm_setNextBlockTimestamp", [timestamp]);
-
-          const blockResult = await this.provider.send("eth_call", [
-            {
-              to: contractAddress,
-              data: EXAMPLE_READ_CONTRACT.selectors.blockNumber,
-            },
-            "pending",
-          ]);
-
-          assert.equal(dataToNumber(blockResult), firstBlock + 2);
-
-          const timestampResult = await this.provider.send("eth_call", [
-            {
-              to: contractAddress,
-              data: EXAMPLE_READ_CONTRACT.selectors.blockTimestamp,
-            },
-            "pending",
-          ]);
-
-          assert.equal(timestampResult, timestamp);
-        });
-
-        it("Should return an empty buffer if called an non-contract account", async function () {
-          const result = await this.provider.send("eth_call", [
-            {
-              to: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              data: EXAMPLE_CONTRACT.selectors.i,
-            },
-          ]);
-
-          assert.equal(result, "0x");
-        });
-
-        it("Should leverage block tag parameter", async function () {
-          const firstBlock = await getFirstBlock();
-
-          const contractAddress = await deployContract(
-            this.provider,
-            `0x${EXAMPLE_CONTRACT.bytecode.object}`
-          );
-
-          const newState =
-            "000000000000000000000000000000000000000000000000000000000000000a";
-
-          await this.provider.send("eth_sendTransaction", [
-            {
-              to: contractAddress,
-              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              data: EXAMPLE_CONTRACT.selectors.modifiesState + newState,
-            },
-          ]);
-
-          assert.equal(
-            await this.provider.send("eth_call", [
+            await this.provider.send("eth_sendTransaction", [
               {
                 to: contractAddress,
-                data: EXAMPLE_CONTRACT.selectors.i,
                 from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                data: `${EXAMPLE_CONTRACT.selectors.modifiesState}000000000000000000000000000000000000000000000000000000000000000a`,
               },
-              numberToRpcQuantity(firstBlock + 1),
-            ]),
-            "0x0000000000000000000000000000000000000000000000000000000000000000"
-          );
+            ]);
 
-          assert.equal(
-            await this.provider.send("eth_call", [
+            const result2 = await this.provider.send("eth_call", [
+              { to: contractAddress, data: EXAMPLE_CONTRACT.selectors.i },
+            ]);
+
+            assert.equal(
+              result2,
+              "0x000000000000000000000000000000000000000000000000000000000000000a"
+            );
+          });
+
+          it("Should return the value returned by the contract using an unknown account as from", async function () {
+            const from = "0x1234567890123456789012345678901234567890";
+
+            const contractAddress = await deployContract(
+              this.provider,
+              `0x${EXAMPLE_CONTRACT.bytecode.object}`
+            );
+
+            const result = await this.provider.send("eth_call", [
+              { to: contractAddress, data: EXAMPLE_CONTRACT.selectors.i, from },
+            ]);
+
+            assert.equal(
+              result,
+              "0x0000000000000000000000000000000000000000000000000000000000000000"
+            );
+
+            await this.provider.send("eth_sendTransaction", [
               {
                 to: contractAddress,
-                data: EXAMPLE_CONTRACT.selectors.i,
                 from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                data: `${EXAMPLE_CONTRACT.selectors.modifiesState}000000000000000000000000000000000000000000000000000000000000000a`,
+              },
+            ]);
+
+            const result2 = await this.provider.send("eth_call", [
+              { to: contractAddress, data: EXAMPLE_CONTRACT.selectors.i, from },
+            ]);
+
+            assert.equal(
+              result2,
+              "0x000000000000000000000000000000000000000000000000000000000000000a"
+            );
+          });
+
+          it("Should be run in the context of the last block", async function () {
+            const firstBlock = await getFirstBlock();
+            const timestamp = getCurrentTimestamp() + 60;
+            await this.provider.send("evm_setNextBlockTimestamp", [timestamp]);
+
+            const contractAddress = await deployContract(
+              this.provider,
+              `0x${EXAMPLE_READ_CONTRACT.bytecode.object}`
+            );
+
+            const blockResult = await this.provider.send("eth_call", [
+              {
+                to: contractAddress,
+                data: EXAMPLE_READ_CONTRACT.selectors.blockNumber,
+              },
+            ]);
+
+            assert.equal(dataToNumber(blockResult), firstBlock + 1);
+
+            const timestampResult = await this.provider.send("eth_call", [
+              {
+                to: contractAddress,
+                data: EXAMPLE_READ_CONTRACT.selectors.blockTimestamp,
+              },
+            ]);
+
+            assert.equal(timestampResult, timestamp);
+          });
+
+          it("Should return an empty buffer when a non-contract account is called", async function () {
+            const result = await this.provider.send("eth_call", [
+              {
+                to: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                data: EXAMPLE_CONTRACT.selectors.i,
+              },
+            ]);
+
+            assert.equal(result, "0x");
+          });
+
+          it("Should throw invalid input error if called in the context of a nonexistent block", async function () {
+            const firstBlock = await getFirstBlock();
+            const futureBlock = firstBlock + 1;
+
+            await assertInvalidInputError(
+              this.provider,
+              "eth_call",
+              [
+                {
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                  to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                  value: numberToRpcQuantity(123),
+                },
+                numberToRpcQuantity(futureBlock),
+              ],
+              `Received invalid block tag ${futureBlock}. Latest block number is ${firstBlock}`
+            );
+          });
+
+          it("Should work with blockhashes calls", async function () {
+            const contractAddress = await deployContract(
+              this.provider,
+              `0x${EXAMPLE_BLOCKHASH_CONTRACT.bytecode.object}`
+            );
+
+            const resultBlock0 = await this.provider.send("eth_call", [
+              {
+                to: contractAddress,
+                data: EXAMPLE_BLOCKHASH_CONTRACT.selectors.test0,
+              },
+            ]);
+
+            assert.lengthOf(resultBlock0, 66);
+
+            const resultBlock1 = await this.provider.send("eth_call", [
+              {
+                to: contractAddress,
+                data: EXAMPLE_BLOCKHASH_CONTRACT.selectors.test1,
+              },
+            ]);
+
+            assert.lengthOf(resultBlock1, 66);
+
+            const resultBlock1m = await this.provider.send("eth_call", [
+              {
+                to: contractAddress,
+                data: EXAMPLE_BLOCKHASH_CONTRACT.selectors.test1m,
+              },
+            ]);
+
+            assert.equal(
+              resultBlock1m,
+              "0x0000000000000000000000000000000000000000000000000000000000000000"
+            );
+          });
+        });
+
+        describe("when called with 'latest' blockTag param", () => {
+          it("Should be run in the context of the last block", async function () {
+            const firstBlock = await getFirstBlock();
+            const timestamp = getCurrentTimestamp() + 60;
+            await this.provider.send("evm_setNextBlockTimestamp", [timestamp]);
+
+            const contractAddress = await deployContract(
+              this.provider,
+              `0x${EXAMPLE_READ_CONTRACT.bytecode.object}`
+            );
+
+            const blockResult = await this.provider.send("eth_call", [
+              {
+                to: contractAddress,
+                data: EXAMPLE_READ_CONTRACT.selectors.blockNumber,
               },
               "latest",
-            ]),
-            `0x${newState}`
-          );
+            ]);
+
+            assert.equal(dataToNumber(blockResult), firstBlock + 1);
+
+            const timestampResult = await this.provider.send("eth_call", [
+              {
+                to: contractAddress,
+                data: EXAMPLE_READ_CONTRACT.selectors.blockTimestamp,
+              },
+              "latest",
+            ]);
+
+            assert.equal(timestampResult, timestamp);
+          });
         });
 
-        it("Should throw invalid input error if called in the context of a nonexistent block", async function () {
-          const firstBlock = await getFirstBlock();
-          const futureBlock = firstBlock + 1;
+        describe("when called with 'pending' blockTag param", () => {
+          it("Should be run in the context of a new block", async function () {
+            const firstBlock = await getFirstBlock();
+            const contractAddress = await deployContract(
+              this.provider,
+              `0x${EXAMPLE_READ_CONTRACT.bytecode.object}`
+            );
 
-          await assertInvalidInputError(
-            this.provider,
-            "eth_call",
-            [
+            const timestamp = getCurrentTimestamp() + 60;
+            await this.provider.send("evm_setNextBlockTimestamp", [timestamp]);
+
+            const blockResult = await this.provider.send("eth_call", [
+              {
+                to: contractAddress,
+                data: EXAMPLE_READ_CONTRACT.selectors.blockNumber,
+              },
+              "pending",
+            ]);
+
+            assert.equal(dataToNumber(blockResult), firstBlock + 2);
+
+            const timestampResult = await this.provider.send("eth_call", [
+              {
+                to: contractAddress,
+                data: EXAMPLE_READ_CONTRACT.selectors.blockTimestamp,
+              },
+              "pending",
+            ]);
+
+            assert.equal(timestampResult, timestamp);
+          });
+
+          it("Should be run in the context with pending transactions mined", async function () {
+            const snapshotId = await this.provider.send("evm_snapshot");
+            const contractAddress = await deployContract(
+              this.provider,
+              `0x${EXAMPLE_CONTRACT.bytecode.object}`
+            );
+
+            await this.provider.send("evm_revert", [snapshotId]);
+            await this.provider.send("evm_setAutomineEnabled", [false]);
+            await this.provider.send("eth_sendTransaction", [
               {
                 from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-                to: DEFAULT_ACCOUNTS_ADDRESSES[1],
-                value: numberToRpcQuantity(123),
+                data: `0x${EXAMPLE_CONTRACT.bytecode.object}`,
+                gas: numberToRpcQuantity(DEFAULT_BLOCK_GAS_LIMIT),
               },
-              numberToRpcQuantity(futureBlock),
-            ],
-            `Received invalid block tag ${futureBlock}. Latest block number is ${firstBlock}`
-          );
+            ]);
+
+            const result = await this.provider.send("eth_call", [
+              { to: contractAddress, data: EXAMPLE_CONTRACT.selectors.i },
+              "pending",
+            ]);
+
+            // result would equal "0x" if the contract wasn't deployed
+            assert.equal(
+              result,
+              "0x0000000000000000000000000000000000000000000000000000000000000000"
+            );
+
+            await this.provider.send("evm_mine");
+
+            await this.provider.send("eth_sendTransaction", [
+              {
+                to: contractAddress,
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                data: `${EXAMPLE_CONTRACT.selectors.modifiesState}000000000000000000000000000000000000000000000000000000000000000a`,
+              },
+            ]);
+
+            const result2 = await this.provider.send("eth_call", [
+              { to: contractAddress, data: EXAMPLE_CONTRACT.selectors.i },
+              "pending",
+            ]);
+
+            assert.equal(
+              result2,
+              "0x000000000000000000000000000000000000000000000000000000000000000a"
+            );
+          });
         });
 
-        it("Should return the initial balance for the genesis accounts in the previous block after a transaction", async function () {
-          const blockNumber = await this.provider.send("eth_blockNumber");
-          const account = DEFAULT_ACCOUNTS_ADDRESSES[0];
+        describe("when called with a block number as blockTag param", () => {
+          it("Should leverage block tag parameter", async function () {
+            const firstBlock = await getFirstBlock();
 
-          const initialBalanceBeforeTx = await this.provider.send(
-            "eth_getBalance",
-            [account, blockNumber]
-          );
-          assert.equal(initialBalanceBeforeTx, "0xde0b6b3a7640000");
+            const contractAddress = await deployContract(
+              this.provider,
+              `0x${EXAMPLE_CONTRACT.bytecode.object}`
+            );
 
-          await sendTxToZeroAddress(this.provider, account);
+            const newState =
+              "000000000000000000000000000000000000000000000000000000000000000a";
 
-          const initialBalanceAfterTx = await this.provider.send(
-            "eth_getBalance",
-            [account, blockNumber]
-          );
-          assert.equal(initialBalanceAfterTx, "0xde0b6b3a7640000");
+            await this.provider.send("eth_sendTransaction", [
+              {
+                to: contractAddress,
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                data: EXAMPLE_CONTRACT.selectors.modifiesState + newState,
+              },
+            ]);
+
+            assert.equal(
+              await this.provider.send("eth_call", [
+                {
+                  to: contractAddress,
+                  data: EXAMPLE_CONTRACT.selectors.i,
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                },
+                numberToRpcQuantity(firstBlock + 1),
+              ]),
+              "0x0000000000000000000000000000000000000000000000000000000000000000"
+            );
+
+            assert.equal(
+              await this.provider.send("eth_call", [
+                {
+                  to: contractAddress,
+                  data: EXAMPLE_CONTRACT.selectors.i,
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                },
+                "latest",
+              ]),
+              `0x${newState}`
+            );
+          });
+
+          it("Should return the initial balance for the genesis accounts in the previous block after a transaction", async function () {
+            const blockNumber = await this.provider.send("eth_blockNumber");
+            const account = DEFAULT_ACCOUNTS_ADDRESSES[0];
+
+            const initialBalanceBeforeTx = await this.provider.send(
+              "eth_getBalance",
+              [account, blockNumber]
+            );
+            assert.equal(initialBalanceBeforeTx, "0xde0b6b3a7640000");
+
+            await sendTxToZeroAddress(this.provider, account);
+
+            const initialBalanceAfterTx = await this.provider.send(
+              "eth_getBalance",
+              [account, blockNumber]
+            );
+            assert.equal(initialBalanceAfterTx, "0xde0b6b3a7640000");
+          });
         });
 
         it("should work with blockhashes calls", async function () {
@@ -512,6 +606,46 @@ describe("Eth module", function () {
               from: DEFAULT_ACCOUNTS_ADDRESSES[0],
               data: EXAMPLE_CONTRACT.selectors.modifiesState + newState,
             },
+          ]);
+
+          assert.isTrue(new BN(toBuffer(result)).gt(new BN(toBuffer(result2))));
+        });
+
+        it("should estimate gas in the context of pending block when called with 'pending' blockTag param", async function () {
+          const contractAddress = await deployContract(
+            this.provider,
+            `0x${EXAMPLE_CONTRACT.bytecode.object}`
+          );
+
+          const newState =
+            "000000000000000000000000000000000000000000000000000000000000000a";
+
+          await this.provider.send("evm_setAutomineEnabled", [false]);
+
+          await this.provider.send("eth_sendTransaction", [
+            {
+              to: contractAddress,
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              data: EXAMPLE_CONTRACT.selectors.modifiesState + newState,
+            },
+          ]);
+
+          const result = await this.provider.send("eth_estimateGas", [
+            {
+              to: contractAddress,
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              data: EXAMPLE_CONTRACT.selectors.modifiesState + newState,
+            },
+            "latest",
+          ]);
+
+          const result2 = await this.provider.send("eth_estimateGas", [
+            {
+              to: contractAddress,
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              data: EXAMPLE_CONTRACT.selectors.modifiesState + newState,
+            },
+            "pending",
           ]);
 
           assert.isTrue(new BN(toBuffer(result)).gt(new BN(toBuffer(result2))));
