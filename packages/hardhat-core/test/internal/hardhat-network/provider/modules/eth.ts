@@ -426,6 +426,29 @@ describe("Eth module", function () {
         });
 
         describe("when called with a block number as blockTag param", () => {
+          it("Should be run in the context of the block passed as a parameter", async function () {
+            const firstBlock = await getFirstBlock();
+
+            const contractAddress = await deployContract(
+              this.provider,
+              `0x${EXAMPLE_READ_CONTRACT.bytecode.object}`
+            );
+
+            await this.provider.send("evm_mine");
+            await this.provider.send("evm_mine");
+            await this.provider.send("evm_mine");
+
+            const blockResult = await this.provider.send("eth_call", [
+              {
+                to: contractAddress,
+                data: EXAMPLE_READ_CONTRACT.selectors.blockNumber,
+              },
+              numberToRpcQuantity(firstBlock + 1),
+            ]);
+
+            assert.equal(dataToNumber(blockResult), firstBlock + 1);
+          });
+
           it("Should leverage block tag parameter", async function () {
             const firstBlock = await getFirstBlock();
 

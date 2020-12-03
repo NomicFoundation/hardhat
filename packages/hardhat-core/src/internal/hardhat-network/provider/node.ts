@@ -319,7 +319,7 @@ export class HardhatNode extends EventEmitter {
         const account = await this._stateManager.getAccount(call.from);
         const nonce = new BN(account.nonce);
         tx = await this._getFakeTransaction({ ...call, nonce });
-        return this._runTxAndRevertMutations(tx, false);
+        return this._runTxAndRevertMutations(tx, blockNumberOrPending);
       }
     );
 
@@ -398,7 +398,7 @@ export class HardhatNode extends EventEmitter {
     });
 
     const result = await this._runInBlockContext(blockNumberOrPending, () =>
-      this._runTxAndRevertMutations(tx, blockNumberOrPending !== "pending")
+      this._runTxAndRevertMutations(tx, blockNumberOrPending, true)
     );
 
     let vmTrace = this._vmTracer.getLastTopLevelMessageTrace();
@@ -1406,7 +1406,7 @@ export class HardhatNode extends EventEmitter {
     }
 
     const result = await this._runInBlockContext(blockNumberOrPending, () =>
-      this._runTxAndRevertMutations(tx, blockNumberOrPending !== "pending")
+      this._runTxAndRevertMutations(tx, blockNumberOrPending, true)
     );
 
     if (result.execResult.exceptionError === undefined) {
@@ -1478,7 +1478,7 @@ export class HardhatNode extends EventEmitter {
     });
 
     const result = await this._runInBlockContext(blockNumberOrPending, () =>
-      this._runTxAndRevertMutations(tx, blockNumberOrPending !== "pending")
+      this._runTxAndRevertMutations(tx, blockNumberOrPending, true)
     );
 
     if (result.execResult.exceptionError === undefined) {
@@ -1510,14 +1510,15 @@ export class HardhatNode extends EventEmitter {
    */
   private async _runTxAndRevertMutations(
     tx: Transaction,
-    runOnNewBlock: boolean = true
+    blockNumberOrPending: BN | "pending",
+    calledToEstimateGas = false
   ): Promise<EVMResult> {
     const initialStateRoot = await this._stateManager.getStateRoot();
 
     try {
       let blockContext;
-      // if the context is to estimate gas or run calls in pending block
-      if (runOnNewBlock) {
+      // gas is estimated in the context of a new block
+      if (calledToEstimateGas && blockNumberOrPending !== "pending") {
         const [blockTimestamp] = this._calculateTimestampAndOffset();
         const needsTimestampIncrease = await this._timestampClashesWithPreviousBlockOne(
           blockTimestamp
@@ -1534,9 +1535,11 @@ export class HardhatNode extends EventEmitter {
         // run the call in a block that is as close to the real one as
         // possible, hence putting the tx to the block is good to have here.
         await this._addTransactionToBlock(blockContext, tx);
-      } else {
-        // if the context is to run calls with the latest block
+      } else if (blockNumberOrPending === "pending") {
+        // the new block has already been mined by _runInBlockContext hence we take latest here
         blockContext = await this.getLatestBlock();
+      } else {
+        blockContext = await this.getBlockByNumber(blockNumberOrPending);
       }
 
       return await this._vm.runTx({
