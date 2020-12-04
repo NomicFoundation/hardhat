@@ -31,6 +31,7 @@ import {
   TASK_VERIFY,
   TASK_VERIFY_GET_COMPILER_VERSIONS,
   TASK_VERIFY_GET_CONSTRUCTOR_ARGUMENTS,
+  TASK_VERIFY_GET_CONTRACT_INFORMATION,
   TASK_VERIFY_GET_ETHERSCAN_ENDPOINT,
   TASK_VERIFY_GET_MINIMUM_BUILD,
 } from "./constants";
@@ -74,6 +75,12 @@ interface Build {
 
 interface MinimumBuildArgs {
   sourceName: string;
+}
+
+interface GetContractInformationArgs {
+  contractFQN: string;
+  deployedBytecode: Bytecode;
+  matchingCompilerVersions: string[];
 }
 
 extendConfig(etherscanConfigExtender);
@@ -173,101 +180,11 @@ Possible causes are:
   // Make sure that contract artifacts are up-to-date.
   await run(TASK_COMPILE);
 
-  let contractInformation;
-  if (contractFQN !== undefined) {
-    // Check this particular contract
-    if (!isFullyQualifiedName(contractFQN)) {
-      throw new NomicLabsHardhatPluginError(
-        pluginName,
-        `A valid fully qualified name was expected. Fully qualified names look like this: "contracts/AContract.sol:TheContract"
-Instead, this name was received: ${contractFQN}`
-      );
-    }
-
-    if (!(await artifacts.artifactExists(contractFQN))) {
-      throw new NomicLabsHardhatPluginError(
-        pluginName,
-        `The contract ${contractFQN} is not present in your project.`
-      );
-    }
-
-    // Process BuildInfo here to check version and throw an error if unexpected version is found.
-    const buildInfo = await artifacts.getBuildInfo(contractFQN);
-
-    if (buildInfo === undefined) {
-      throw new NomicLabsHardhatPluginError(
-        pluginName,
-        `The contract ${contractFQN} is present in your project, but we couldn't find its sources.
-Please make sure that it has been compiled by Hardhat and that it is written in Solidity.`
-      );
-    }
-
-    if (!matchingCompilerVersions.includes(buildInfo.solcVersion)) {
-      let versionDetails;
-      if (isVersionRange(inferredSolcVersion)) {
-        versionDetails = `a solidity version in the range ${inferredSolcVersion}`;
-      } else {
-        versionDetails = `the solidity version ${inferredSolcVersion}`;
-      }
-
-      throw new NomicLabsHardhatPluginError(
-        pluginName,
-        `The contract ${contractFQN} is being compiled with ${buildInfo.solcVersion}.
-However, the contract found in the address provided as argument has its bytecode marked with ${versionDetails}.
-
-Possible causes are:
-  - Solidity compiler version settings were modified after the deployment was executed.
-  - The given address is wrong.
-  - The selected network (${network.name}) is wrong.`
-      );
-    }
-
-    const { sourceName, contractName } = parseFullyQualifiedName(contractFQN);
-    contractInformation = await extractMatchingContractInformation(
-      sourceName,
-      contractName,
-      buildInfo,
-      deployedBytecode
-    );
-
-    if (contractInformation === null) {
-      throw new NomicLabsHardhatPluginError(
-        pluginName,
-        `The address provided as argument contains a contract, but its bytecode doesn't match the contract ${contractFQN}.
-
-Possible causes are:
-  - Contract code changed after the deployment was executed. This includes code for seemingly unrelated contracts.
-  - A solidity file was added, moved, deleted or renamed after the deployment was executed. This includes files for seemingly unrelated contracts.
-  - Solidity compiler settings were modified after the deployment was executed (like the optimizer, target EVM, etc.).
-  - The given address is wrong.
-  - The selected network (${network.name}) is wrong.`
-      );
-    }
-  } else {
-    // Infer the contract
-    contractInformation = await inferContract(
-      artifacts,
-      network,
-      matchingCompilerVersions,
-      deployedBytecode
-    );
-  }
-
-  const libraryLinks = contractInformation.libraryLinks;
-  const deployLibraryReferences =
-    contractInformation.contract.evm.bytecode.linkReferences;
-  if (
-    Object.keys(libraryLinks).length <
-    Object.keys(deployLibraryReferences).length
-  ) {
-    throw new NomicLabsHardhatPluginError(
-      pluginName,
-      `The contract ${contractInformation.sourceName}:${contractInformation.contractName} has one or more library references that cannot be detected from deployed bytecode.
-This can occur if the library is only called in the contract constructor.`,
-      undefined,
-      true
-    );
-  }
+  const contractInformation = await run(TASK_VERIFY_GET_CONTRACT_INFORMATION, {
+    contractFQN,
+    deployedBytecode,
+    matchingCompilerVersions,
+  });
 
   const { encodeArguments } = await import("./ABIEncoder");
   const deployArgumentsEncoded = await encodeArguments(
@@ -574,6 +491,121 @@ subtask(TASK_VERIFY_GET_ETHERSCAN_ENDPOINT).setAction(
     return getEtherscanEndpoint(network.provider, network.name);
   }
 );
+
+subtask(TASK_VERIFY_GET_CONTRACT_INFORMATION)
+  .addParam("deployedBytecode", undefined, undefined, types.any)
+  .addParam("matchingCompilerVersions", undefined, undefined, types.any)
+  .addOptionalParam("contractFQN", undefined, undefined, types.string)
+  .setAction(
+    async (
+      {
+        contractFQN,
+        deployedBytecode,
+        matchingCompilerVersions,
+      }: GetContractInformationArgs,
+      { network, artifacts }
+    ): Promise<ContractInformation> => {
+      let contractInformation;
+      if (contractFQN !== undefined) {
+        // Check this particular contract
+        if (!isFullyQualifiedName(contractFQN)) {
+          throw new NomicLabsHardhatPluginError(
+            pluginName,
+            `A valid fully qualified name was expected. Fully qualified names look like this: "contracts/AContract.sol:TheContract"
+Instead, this name was received: ${contractFQN}`
+          );
+        }
+
+        if (!(await artifacts.artifactExists(contractFQN))) {
+          throw new NomicLabsHardhatPluginError(
+            pluginName,
+            `The contract ${contractFQN} is not present in your project.`
+          );
+        }
+
+        // Process BuildInfo here to check version and throw an error if unexpected version is found.
+        const buildInfo = await artifacts.getBuildInfo(contractFQN);
+
+        if (buildInfo === undefined) {
+          throw new NomicLabsHardhatPluginError(
+            pluginName,
+            `The contract ${contractFQN} is present in your project, but we couldn't find its sources.
+Please make sure that it has been compiled by Hardhat and that it is written in Solidity.`
+          );
+        }
+
+        if (!matchingCompilerVersions.includes(buildInfo.solcVersion)) {
+          const inferredSolcVersion = deployedBytecode.getInferredSolcVersion();
+          let versionDetails;
+          if (isVersionRange(inferredSolcVersion)) {
+            versionDetails = `a solidity version in the range ${inferredSolcVersion}`;
+          } else {
+            versionDetails = `the solidity version ${inferredSolcVersion}`;
+          }
+
+          throw new NomicLabsHardhatPluginError(
+            pluginName,
+            `The contract ${contractFQN} is being compiled with ${buildInfo.solcVersion}.
+However, the contract found in the address provided as argument has its bytecode marked with ${versionDetails}.
+
+Possible causes are:
+  - Solidity compiler version settings were modified after the deployment was executed.
+  - The given address is wrong.
+  - The selected network (${network.name}) is wrong.`
+          );
+        }
+
+        const { sourceName, contractName } = parseFullyQualifiedName(
+          contractFQN
+        );
+        contractInformation = await extractMatchingContractInformation(
+          sourceName,
+          contractName,
+          buildInfo,
+          deployedBytecode
+        );
+
+        if (contractInformation === null) {
+          throw new NomicLabsHardhatPluginError(
+            pluginName,
+            `The address provided as argument contains a contract, but its bytecode doesn't match the contract ${contractFQN}.
+
+Possible causes are:
+  - Contract code changed after the deployment was executed. This includes code for seemingly unrelated contracts.
+  - A solidity file was added, moved, deleted or renamed after the deployment was executed. This includes files for seemingly unrelated contracts.
+  - Solidity compiler settings were modified after the deployment was executed (like the optimizer, target EVM, etc.).
+  - The given address is wrong.
+  - The selected network (${network.name}) is wrong.`
+          );
+        }
+      } else {
+        // Infer the contract
+        contractInformation = await inferContract(
+          artifacts,
+          network,
+          matchingCompilerVersions,
+          deployedBytecode
+        );
+      }
+
+      const libraryLinks = contractInformation.libraryLinks;
+      const deployLibraryReferences =
+        contractInformation.contract.evm.bytecode.linkReferences;
+      if (
+        Object.keys(libraryLinks).length <
+        Object.keys(deployLibraryReferences).length
+      ) {
+        throw new NomicLabsHardhatPluginError(
+          pluginName,
+          `The contract ${contractInformation.sourceName}:${contractInformation.contractName} has one or more library references that cannot be detected from deployed bytecode.
+This can occur if the library is only called in the contract constructor.`,
+          undefined,
+          true
+        );
+      }
+      return contractInformation;
+    }
+  );
 
 subtask(TASK_VERIFY_GET_MINIMUM_BUILD)
   .addParam("sourceName", undefined, undefined, types.string)

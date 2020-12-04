@@ -6,3 +6,5 @@ export const TASK_VERIFY_GET_CONSTRUCTOR_ARGUMENTS =
 export const TASK_VERIFY_GET_COMPILER_VERSIONS = "verify:get-compiler-versions";
 export const TASK_VERIFY_GET_ETHERSCAN_ENDPOINT =
   "verify:get-etherscan-endpoint";
+export const TASK_VERIFY_GET_CONTRACT_INFORMATION =
+  "verify:get-contract-information";
