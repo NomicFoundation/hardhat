@@ -15,11 +15,13 @@ export class ForkTransaction extends Transaction {
 
   constructor(
     chainId: number,
+    senderPubKey: Buffer,
     data: Buffer | PrefixedHexString | BufferLike[] | TxData = {},
     opts: TransactionOptions = {}
   ) {
     super(data, opts);
 
+    (this as any)._senderPubKey = senderPubKey;
     this._chainId = chainId;
   }
 
