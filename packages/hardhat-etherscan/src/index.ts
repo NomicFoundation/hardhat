@@ -592,13 +592,13 @@ This can occur if the library is only called in the contract constructor.`,
   );
 
 subtask(TASK_VERIFY_VERIFY_MINIMUM_BUILD)
-  .addParam("constructorArgsParams", undefined, undefined, types.any)
-  .addOptionalParam(
-    "constructorArgsModule",
-    undefined,
-    undefined,
-    types.inputFile
-  )
+  .addParam("minimumBuild", undefined, undefined, types.any)
+  .addParam("contractInformation", undefined, undefined, types.any)
+  .addParam("etherscanAPIEndpoint", undefined, undefined, types.string)
+  .addParam("address", undefined, undefined, types.string)
+  .addParam("etherscanAPIKey", undefined, undefined, types.string)
+  .addParam("solcFullVersion", undefined, undefined, types.string)
+  .addParam("deployArgumentsEncoded", undefined, undefined, types.string)
   .setAction(
     async ({
       minimumBuild,
