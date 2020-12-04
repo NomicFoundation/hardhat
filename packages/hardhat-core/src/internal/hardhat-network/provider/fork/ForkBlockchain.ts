@@ -20,6 +20,7 @@ import { Block } from "../types/Block";
 import { Blockchain } from "../types/Blockchain";
 import { PBlockchain, toBlockchain } from "../types/PBlockchain";
 
+import { ForkTransaction } from "./ForkTransaction";
 import { rpcToBlockData } from "./rpcToBlockData";
 import { rpcToTxData } from "./rpcToTxData";
 
@@ -227,7 +228,23 @@ export class ForkBlockchain implements PBlockchain {
     ) {
       return undefined;
     }
-    const block = new Block(rpcToBlockData(rpcBlock), { common: this._common });
+
+    // we don't include the transactions to add our own custom ForkTransaction txs
+    const blockData = rpcToBlockData({
+      ...rpcBlock,
+      transactions: [],
+    });
+
+    const block = new Block(blockData, { common: this._common });
+
+    for (const transaction of rpcBlock.transactions) {
+      block.transactions.push(
+        new ForkTransaction(this._common.chainId(), rpcToTxData(transaction), {
+          common: this._common,
+        })
+      );
+    }
+
     this._data.addBlock(block, rpcBlock.totalDifficulty);
     return block;
   }
@@ -277,9 +294,13 @@ export class ForkBlockchain implements PBlockchain {
     ) {
       return undefined;
     }
-    const transaction = new Transaction(rpcToTxData(rpcTransaction), {
-      common: this._common,
-    });
+    const transaction = new ForkTransaction(
+      this._common.chainId(),
+      rpcToTxData(rpcTransaction),
+      {
+        common: this._common,
+      }
+    );
     this._data.addTransaction(transaction);
     return transaction;
   }
