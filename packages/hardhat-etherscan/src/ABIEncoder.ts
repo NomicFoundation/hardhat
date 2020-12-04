@@ -1,5 +1,10 @@
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 
+import {
+  isABIArgumentLengthError,
+  isABIArgumentOverflowError,
+  isABIArgumentTypeError,
+} from "./ABITypes";
 import { pluginName } from "./constants";
 
 export async function encodeArguments(
@@ -17,11 +22,6 @@ export async function encodeArguments(
       .encodeDeploy(constructorArguments)
       .replace("0x", "");
   } catch (error) {
-    const {
-      isABIArgumentLengthError,
-      isABIArgumentTypeError,
-      isABIArgumentOverflowError,
-    } = await import("./ABITypes");
     if (isABIArgumentLengthError(error)) {
       // TODO: add a list of types and constructor arguments to the error message?
       const message = `The constructor for ${sourceName}:${contractName} has ${error.count.types} parameters

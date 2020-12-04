@@ -25,6 +25,7 @@ import {
 import path from "path";
 import semver from "semver";
 
+import { encodeArguments } from "./ABIEncoder";
 import { etherscanConfigExtender } from "./config";
 import {
   pluginName,
@@ -36,6 +37,11 @@ import {
   TASK_VERIFY_GET_MINIMUM_BUILD,
   TASK_VERIFY_VERIFY_MINIMUM_BUILD,
 } from "./constants";
+import {
+  delay,
+  getVerificationStatus,
+  verifyContract,
+} from "./etherscan/EtherscanService";
 import {
   toCheckStatusRequest,
   toVerifyRequest,
@@ -197,7 +203,6 @@ Possible causes are:
     matchingCompilerVersions,
   });
 
-  const { encodeArguments } = await import("./ABIEncoder");
   const deployArgumentsEncoded = await encodeArguments(
     contractInformation.contract.abi,
     contractInformation.sourceName,
@@ -322,9 +327,6 @@ async function attemptVerification(
     compilerVersion: solcFullVersion,
     constructorArguments: deployArgumentsEncoded,
   });
-  const { getVerificationStatus, verifyContract, delay } = await import(
-    "./etherscan/EtherscanService"
-  );
   const response = await verifyContract(etherscanAPIEndpoint, request);
 
   console.log(
@@ -470,10 +472,8 @@ See https://etherscan.io/solcversions for more information.`
   }
 );
 
-subtask(TASK_VERIFY_GET_ETHERSCAN_ENDPOINT).setAction(
-  async (_, { network }) => {
-    return getEtherscanEndpoint(network.provider, network.name);
-  }
+subtask(TASK_VERIFY_GET_ETHERSCAN_ENDPOINT).setAction(async (_, { network }) =>
+  getEtherscanEndpoint(network.provider, network.name)
 );
 
 subtask(TASK_VERIFY_GET_CONTRACT_INFORMATION)
