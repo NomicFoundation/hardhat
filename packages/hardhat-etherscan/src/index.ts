@@ -43,11 +43,16 @@ import {
   retrieveContractBytecode,
 } from "./network/prober";
 import {
+  Bytecode,
   ContractInformation,
   extractMatchingContractInformation,
   lookupMatchingBytecode,
 } from "./solc/bytecode";
-import { getLongVersion, InferralType, inferSolcVersion } from "./solc/version";
+import {
+  METADATA_ABSENT_VERSION_RANGE,
+  METADATA_PRESENT_SOLC_NOT_FOUND_VERSION_RANGE,
+} from "./solc/metadata";
+import { getLongVersion } from "./solc/version";
 import "./type-extensions";
 
 interface VerificationArgs {
@@ -124,27 +129,26 @@ See https://etherscan.io/apis`
     TASK_VERIFY_GET_ETHERSCAN_ENDPOINT
   );
 
-  const deployedContractBytecode = await retrieveContractBytecode(
+  const deployedBytecodeHex = await retrieveContractBytecode(
     address,
     network.provider,
     network.name
   );
 
-  const inferredSolcVersion = await inferSolcVersion(deployedContractBytecode);
+  const deployedBytecode = new Bytecode(deployedBytecodeHex);
+  const inferredSolcVersion = deployedBytecode.getInferredSolcVersion();
 
   const matchingCompilerVersions = compilerVersions.filter((version) => {
-    return semver.satisfies(version, inferredSolcVersion.range);
+    return semver.satisfies(version, inferredSolcVersion);
   });
   if (matchingCompilerVersions.length === 0) {
     const detailedContext = [];
-    if (inferredSolcVersion.inferralType === InferralType.EXACT) {
+    if (isVersionRange(inferredSolcVersion)) {
       detailedContext.push(
-        `The expected version is ${inferredSolcVersion.range}.`
+        `The expected version range is ${inferredSolcVersion}.`
       );
     } else {
-      detailedContext.push(
-        `The expected version range is ${inferredSolcVersion.range}.`
-      );
+      detailedContext.push(`The expected version is ${inferredSolcVersion}.`);
     }
     // There is always at least one configured version.
     if (compilerVersions.length > 1) {
@@ -200,10 +204,10 @@ Please make sure that it has been compiled by Hardhat and that it is written in 
 
     if (!matchingCompilerVersions.includes(buildInfo.solcVersion)) {
       let versionDetails;
-      if (inferredSolcVersion.inferralType === InferralType.EXACT) {
-        versionDetails = `the solidity version ${inferredSolcVersion.range}`;
+      if (isVersionRange(inferredSolcVersion)) {
+        versionDetails = `a solidity version in the range ${inferredSolcVersion}`;
       } else {
-        versionDetails = `a solidity version in the range ${inferredSolcVersion.range}`;
+        versionDetails = `the solidity version ${inferredSolcVersion}`;
       }
 
       throw new NomicLabsHardhatPluginError(
@@ -223,8 +227,7 @@ Possible causes are:
       sourceName,
       contractName,
       buildInfo,
-      deployedContractBytecode,
-      inferredSolcVersion.inferralType
+      deployedBytecode
     );
 
     if (contractInformation === null) {
@@ -246,8 +249,7 @@ Possible causes are:
       artifacts,
       network,
       matchingCompilerVersions,
-      deployedContractBytecode,
-      inferredSolcVersion.inferralType
+      deployedBytecode
     );
   }
 
@@ -502,14 +504,12 @@ async function inferContract(
   artifacts: Artifacts,
   network: Network,
   matchingCompilerVersions: string[],
-  deployedContractBytecode: string,
-  inferralType: InferralType
+  deployedBytecode: Bytecode
 ) {
   const contractMatches = await lookupMatchingBytecode(
     artifacts,
     matchingCompilerVersions,
-    deployedContractBytecode,
-    inferralType
+    deployedBytecode
   );
   if (contractMatches.length === 0) {
     const message = `The address provided as argument contains a contract, but its bytecode doesn't match any of your local contracts.
@@ -607,4 +607,11 @@ function assertHardhatPluginInvariant(
   if (!invariant) {
     throw new NomicLabsHardhatPluginError(pluginName, message, undefined, true);
   }
+}
+
+function isVersionRange(version: string): boolean {
+  return (
+    version === METADATA_ABSENT_VERSION_RANGE ||
+    version === METADATA_PRESENT_SOLC_NOT_FOUND_VERSION_RANGE
+  );
 }

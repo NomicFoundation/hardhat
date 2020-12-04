@@ -134,7 +134,7 @@ describe("Plugin integration tests", function () {
     it("Should verify deployed contract with a complex parameter list on etherscan", async function () {
       await this.env.run(TASK_COMPILE, { force: true });
 
-      const modulePath = path.join(process.cwd(), "paramList");
+      const modulePath = path.join(process.cwd(), "paramList.js");
       const args = require(modulePath);
       const deployedAddress = await deployContract(
         "TestParamList",
