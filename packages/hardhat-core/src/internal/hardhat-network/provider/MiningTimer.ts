@@ -1,5 +1,3 @@
-import { IMiningTimer } from "./types/IMiningTimer";
-
 enum MiningTimerState {
   STOP,
   RUNNING,
@@ -7,7 +5,7 @@ enum MiningTimerState {
 
 // tslint:disable only-hardhat-error
 
-export class MiningTimer implements IMiningTimer {
+export class MiningTimer {
   private _state = MiningTimerState.STOP;
   private _timeout: any = null;
 
