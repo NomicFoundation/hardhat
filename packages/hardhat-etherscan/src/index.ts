@@ -34,6 +34,7 @@ import {
   TASK_VERIFY_GET_CONTRACT_INFORMATION,
   TASK_VERIFY_GET_ETHERSCAN_ENDPOINT,
   TASK_VERIFY_GET_MINIMUM_BUILD,
+  TASK_VERIFY_VERIFY_MINIMUM_BUILD,
 } from "./constants";
 import {
   toCheckStatusRequest,
@@ -81,6 +82,16 @@ interface GetContractInformationArgs {
   contractFQN: string;
   deployedBytecode: Bytecode;
   matchingCompilerVersions: string[];
+}
+
+interface VerifyMinimumBuildArgs {
+  minimumBuild: Build;
+  contractInformation: ContractInformation;
+  etherscanAPIEndpoint: string;
+  address: string;
+  etherscanAPIKey: string;
+  solcFullVersion: string;
+  deployArgumentsEncoded: string;
 }
 
 extendConfig(etherscanConfigExtender);
@@ -200,44 +211,17 @@ Possible causes are:
     sourceName: contractInformation.sourceName,
   });
 
-  const minimumBuildContractBytecode =
-    minimumBuild.output.contracts[contractInformation.sourceName][
-      contractInformation.contractName
-    ].evm.deployedBytecode.object;
-  const matchedBytecode =
-    contractInformation.compilerOutput.contracts[
-      contractInformation.sourceName
-    ][contractInformation.contractName].evm.deployedBytecode.object;
-
-  if (minimumBuildContractBytecode === matchedBytecode) {
-    const minimumBuildVerificationStatus = await attemptVerification(
-      etherscanAPIEndpoint,
-      contractInformation,
-      address,
-      etherscan.apiKey,
-      minimumBuild.input,
-      solcFullVersion,
-      deployArgumentsEncoded
-    );
-
-    if (minimumBuildVerificationStatus.isVerificationSuccess()) {
-      console.log(
-        `Successfully verified contract ${contractInformation.contractName} on Etherscan`
-      );
-      return { success: true };
-    }
-
-    console.log(
-      `We tried verifying your contract ${contractInformation.contractName} without including any unrelated one, but it failed.
-Trying again with the full solc input used to compile and deploy it.
-This means that unrelated contracts may be displayed on Etherscan...`
-    );
-  } else {
-    console.log(
-      `Compiling your contract excluding unrelated contracts did not produce identical bytecode.
-Trying again with the full solc input used to compile and deploy it.
-This means that unrelated contracts may be displayed on Etherscan...`
-    );
+  const success: boolean = await run(TASK_VERIFY_VERIFY_MINIMUM_BUILD, {
+    minimumBuild,
+    contractInformation,
+    etherscanAPIEndpoint,
+    address,
+    etherscanAPIKey: etherscan.apiKey,
+    solcFullVersion,
+    deployArgumentsEncoded,
+  });
+  if (success) {
+    return { success };
   }
 
   // Fallback verification
@@ -604,6 +588,68 @@ This can occur if the library is only called in the contract constructor.`,
         );
       }
       return contractInformation;
+    }
+  );
+
+subtask(TASK_VERIFY_VERIFY_MINIMUM_BUILD)
+  .addParam("constructorArgsParams", undefined, undefined, types.any)
+  .addOptionalParam(
+    "constructorArgsModule",
+    undefined,
+    undefined,
+    types.inputFile
+  )
+  .setAction(
+    async ({
+      minimumBuild,
+      contractInformation,
+      etherscanAPIEndpoint,
+      address,
+      etherscanAPIKey,
+      solcFullVersion,
+      deployArgumentsEncoded,
+    }: VerifyMinimumBuildArgs): Promise<boolean> => {
+      const minimumBuildContractBytecode =
+        minimumBuild.output.contracts[contractInformation.sourceName][
+          contractInformation.contractName
+        ].evm.deployedBytecode.object;
+      const matchedBytecode =
+        contractInformation.compilerOutput.contracts[
+          contractInformation.sourceName
+        ][contractInformation.contractName].evm.deployedBytecode.object;
+
+      if (minimumBuildContractBytecode === matchedBytecode) {
+        const minimumBuildVerificationStatus = await attemptVerification(
+          etherscanAPIEndpoint,
+          contractInformation,
+          address,
+          etherscanAPIKey,
+          minimumBuild.input,
+          solcFullVersion,
+          deployArgumentsEncoded
+        );
+
+        if (minimumBuildVerificationStatus.isVerificationSuccess()) {
+          console.log(
+            `Successfully verified contract ${contractInformation.contractName} on Etherscan`
+          );
+          return true;
+        }
+
+        console.log(
+          `We tried verifying your contract ${contractInformation.contractName} without including any unrelated one, but it failed.
+Trying again with the full solc input used to compile and deploy it.
+This means that unrelated contracts may be displayed on Etherscan...`
+        );
+      } else {
+        console.log(
+          `Compiling your contract excluding unrelated contracts did not produce identical bytecode.
+Trying again with the full solc input used to compile and deploy it.
+This means that unrelated contracts may be displayed on Etherscan...`
+        );
+      }
+
+      return false;
     }
   );
 

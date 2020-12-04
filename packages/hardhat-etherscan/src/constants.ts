@@ -8,3 +8,4 @@ export const TASK_VERIFY_GET_ETHERSCAN_ENDPOINT =
   "verify:get-etherscan-endpoint";
 export const TASK_VERIFY_GET_CONTRACT_INFORMATION =
   "verify:get-contract-information";
+export const TASK_VERIFY_VERIFY_MINIMUM_BUILD = "verify:verify-minimum-build";
