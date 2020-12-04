@@ -55,9 +55,10 @@ import {
   FilterParams,
   GatherTracesResult,
   GenesisAccount,
+  MineBlockResult,
   NodeConfig,
   RunCallResult,
-  RunTransactionResult,
+  SendTransactionResult,
   Snapshot,
   TracingConfig,
   TransactionParams,
@@ -268,10 +269,9 @@ export class HardhatNode extends EventEmitter {
 
   public async sendTransaction(
     tx: Transaction
-  ): Promise<RunTransactionResult | undefined> {
+  ): Promise<SendTransactionResult> {
     if (!this._automine) {
-      await this._addPendingTransaction(tx);
-      return;
+      return this._addPendingTransaction(tx);
     }
 
     await this._validateExactNonce(tx);
@@ -282,29 +282,46 @@ export class HardhatNode extends EventEmitter {
   }
 
   public async mineBlock(
-    timestamp: BN | undefined,
-    sentTxHash: string
-  ): Promise<RunTransactionResult>;
-  public async mineBlock(timestamp?: BN): Promise<void>;
-
-  public async mineBlock(
     timestamp?: BN,
     sentTxHash?: string
-  ): Promise<RunTransactionResult | void> {
-    const [block, blockResult] = await this._mineAndSaveBlock(
-      timestamp,
-      sentTxHash
+  ): Promise<MineBlockResult> {
+    const [
+      blockTimestamp,
+      offsetShouldChange,
+      newOffset,
+    ] = this._calculateTimestampAndOffset(timestamp);
+    const needsTimestampIncrease = await this._timestampClashesWithPreviousBlockOne(
+      blockTimestamp
     );
-    if (sentTxHash !== undefined) {
-      const traces = await this._gatherTraces(
-        blockResult.results[0].execResult // TODO-Ethworks handle other transactions
-      );
-      return {
-        block,
-        blockResult,
-        ...traces,
-      };
+    if (needsTimestampIncrease) {
+      blockTimestamp.iaddn(1);
     }
+
+    const previousRoot = await this._stateManager.getStateRoot();
+    let result: MineBlockResult;
+    try {
+      result = await this._mineBlockWithPendingTxs(blockTimestamp, sentTxHash);
+    } catch (err) {
+      await this._stateManager.setStateRoot(previousRoot);
+      if (err?.message.includes("sender doesn't have enough funds")) {
+        throw new InvalidInputError(err.message);
+      }
+      throw new TransactionExecutionError(err);
+    }
+
+    await this._saveBlockAsSuccessfullyRun(result.block, result.blockResult);
+
+    if (needsTimestampIncrease) {
+      this.increaseTime(new BN(1));
+    }
+
+    if (offsetShouldChange) {
+      this.setTimeIncrement(newOffset);
+    }
+
+    await this._resetNextBlockTimestamp();
+
+    return result;
   }
 
   public async runCall(
@@ -805,14 +822,13 @@ export class HardhatNode extends EventEmitter {
     this._txPool.setBlockGasLimit(gasLimit);
   }
 
-  private async _addPendingTransaction(tx: Transaction): Promise<void> {
+  private async _addPendingTransaction(tx: Transaction): Promise<string> {
     await this._txPool.addTransaction(tx);
     await this._notifyPendingTransaction(tx);
+    return bufferToHex(tx.hash());
   }
 
-  private async _mineTransaction(
-    tx: Transaction
-  ): Promise<RunTransactionResult> {
+  private async _mineTransaction(tx: Transaction): Promise<MineBlockResult> {
     await this._txPool.addTransaction(tx);
     await this._notifyPendingTransaction(tx);
     return this.mineBlock(undefined, bufferToHex(tx.hash()));
@@ -820,7 +836,7 @@ export class HardhatNode extends EventEmitter {
 
   private async _mineTransactionAndPending(
     tx: Transaction
-  ): Promise<RunTransactionResult> {
+  ): Promise<MineBlockResult[]> {
     const txHash = bufferToHex(tx.hash());
     const snapshotId = await this.takeSnapshot();
     await this._txPool.addTransaction(tx);
@@ -836,18 +852,18 @@ export class HardhatNode extends EventEmitter {
 
   private async _mineBlocksUntilTransactionIsIncluded(
     txHash: string
-  ): Promise<RunTransactionResult> {
-    let result;
+  ): Promise<MineBlockResult[]> {
+    const results = [];
     let txReceipt;
     do {
       if (!this._txPool.hasPendingTransactions()) {
         throw new Error("this should never happen"); // TODO-Ethworks use other error
       }
-      result = await this.mineBlock(undefined, txHash);
+      results.push(await this.mineBlock(undefined, txHash));
       txReceipt = await this.getTransactionReceipt(txHash);
     } while (txReceipt === undefined);
 
-    return result;
+    return results;
   }
 
   private async _gatherTraces(result: ExecResult): Promise<GatherTracesResult> {
@@ -895,62 +911,16 @@ export class HardhatNode extends EventEmitter {
     }
   }
 
-  private async _mineAndSaveBlock(
-    timestamp?: BN,
-    sentTxHash?: string
-  ): Promise<[Block, RunBlockResult]> {
-    const [
-      blockTimestamp,
-      offsetShouldChange,
-      newOffset,
-    ] = this._calculateTimestampAndOffset(timestamp);
-    const needsTimestampIncrease = await this._timestampClashesWithPreviousBlockOne(
-      blockTimestamp
-    );
-    if (needsTimestampIncrease) {
-      blockTimestamp.iaddn(1);
-    }
-
-    const previousRoot = await this._stateManager.getStateRoot();
-    let block: Block;
-    let result: RunBlockResult;
-    try {
-      [block, result] = await this._mineBlockWithPendingTxs(
-        blockTimestamp,
-        sentTxHash
-      );
-    } catch (err) {
-      await this._stateManager.setStateRoot(previousRoot);
-      if (err?.message.includes("sender doesn't have enough funds")) {
-        throw new InvalidInputError(err.message);
-      }
-      throw new TransactionExecutionError(err);
-    }
-
-    await this._saveBlockAsSuccessfullyRun(block, result);
-
-    if (needsTimestampIncrease) {
-      this.increaseTime(new BN(1));
-    }
-
-    if (offsetShouldChange) {
-      this.setTimeIncrement(newOffset);
-    }
-
-    await this._resetNextBlockTimestamp();
-
-    return [block, result];
-  }
-
   private async _mineBlockWithPendingTxs(
     blockTimestamp: BN,
     sentTxHash?: string
-  ): Promise<[Block, RunBlockResult]> {
+  ): Promise<MineBlockResult> {
     const block = await this._getNextBlockTemplate(blockTimestamp);
 
     const bloom = new Bloom();
     const results: RunTxResult[] = [];
     const receipts: TxReceipt[] = [];
+    const traces: GatherTracesResult[] = [];
 
     const blockGasLimit = this.getBlockGasLimit();
     const minTxFee = this._getMinimalTransactionFee();
@@ -968,6 +938,7 @@ export class HardhatNode extends EventEmitter {
         bloom.or(txResult.bloom);
         results.push(txResult);
         receipts.push(this._createReceipt(txResult));
+        traces.push(await this._gatherTraces(txResult.execResult));
         block.transactions.push(tx);
 
         gasLeft.isub(txResult.gasUsed);
@@ -985,13 +956,14 @@ export class HardhatNode extends EventEmitter {
     block.header.stateRoot = await this._stateManager.getStateRoot();
     block.header.bloom = bloom.bitvector;
 
-    return [
+    return {
       block,
-      {
+      blockResult: {
         results,
         receipts,
       },
-    ];
+      traces,
+    };
   }
 
   private async _runTx(
@@ -1116,12 +1088,12 @@ export class HardhatNode extends EventEmitter {
     if (error.error === ERROR.OUT_OF_GAS) {
       if (this._isContractTooLargeStackTrace(stackTrace)) {
         return encodeSolidityStackTrace(
-          "Transaction run out of gas",
+          "Transaction ran out of gas",
           stackTrace!
         );
       }
 
-      return new TransactionExecutionError("Transaction run out of gas");
+      return new TransactionExecutionError("Transaction ran out of gas");
     }
 
     if (error.error === ERROR.REVERT) {

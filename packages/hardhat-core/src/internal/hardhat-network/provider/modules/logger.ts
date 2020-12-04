@@ -1,23 +1,46 @@
 import util from "util";
 
 export class ModulesLogger {
-  public enabled = false;
   private _logs: Array<string | [string, string]> = [];
   private _titleLength = 0;
+  private _indentEnabled = false;
+  private readonly _indent = 4;
 
-  public enable(isEnabled: boolean) {
-    this.enabled = isEnabled;
+  constructor(private _enabled: boolean) {}
+
+  public isEnabled() {
+    return this._enabled;
+  }
+
+  public setEnabled(enabled: boolean) {
+    this._enabled = enabled;
+  }
+
+  public setIndentEnabled(flag: boolean) {
+    this._indentEnabled = flag;
   }
 
   public log(message: string) {
-    if (!this.enabled) {
+    if (!this.isEnabled()) {
       return;
+    }
+
+    if (this._indentEnabled) {
+      message = this._indentAllLines(message);
     }
 
     this._logs.push(message);
   }
 
   public logWithTitle(title: string, message: string) {
+    if (!this.isEnabled()) {
+      return;
+    }
+
+    if (this._indentEnabled) {
+      title = this._indentSingleLine(title);
+    }
+
     // We always use the max title length we've seen. Otherwise the value move
     // a lot with each tx/call.
     if (title.length > this._titleLength) {
@@ -49,5 +72,16 @@ export class ModulesLogger {
 
       return `${title.padEnd(this._titleLength + 1)} ${l[1]}`;
     });
+  }
+
+  private _indentSingleLine(message: string): string {
+    return " ".repeat(this._indent) + message;
+  }
+
+  private _indentAllLines(message: string): string {
+    return message
+      .split("\n")
+      .map((line) => this._indentSingleLine(line))
+      .join("\n");
   }
 }

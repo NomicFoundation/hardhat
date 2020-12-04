@@ -38,8 +38,11 @@ describe("HardhatNode", () => {
   beforeEach(async () => {
     let common: Common;
     [common, node] = await HardhatNode.create(config);
-    createTestTransaction = (txData) =>
-      new FakeTransaction({ gasPrice, ...txData }, { common });
+    createTestTransaction = (txData) => {
+      const tx = new FakeTransaction({ gasPrice, ...txData }, { common });
+      tx.hash();
+      return tx;
+    };
   });
 
   describe("getPendingTransactions", () => {
