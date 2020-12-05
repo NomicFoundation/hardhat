@@ -229,6 +229,10 @@ export class ContractsIdentifier {
    *
    * The reason we need this function is that the metadata hashes can have common prefixes,
    * and we want to ignore them.
+   *
+   * TODO: There's a small chance of false positive happening here. If we want to
+   *  discard that possibility we need to decode the code into instructions and
+   *  find the first appearance of REVERT INVALID.
    */
   private _getEndOfActualCodesTrie(
     latestMatchedTire: BytecodeTrie,
@@ -258,6 +262,7 @@ export class ContractsIdentifier {
     while (endOfMetadata > endOfActualCode) {
       // The last two bytes of the metadata hash are its big endian length
       // so we check for that.
+      //
       // We just check for the length here. Chances of a false positive are very low.
       const length = code[endOfMetadata] + code[endOfMetadata - 1] * 256;
       if (endOfActualCode + 2 + length === endOfMetadata) {
