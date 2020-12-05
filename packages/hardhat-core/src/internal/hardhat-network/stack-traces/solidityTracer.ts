@@ -568,6 +568,13 @@ export class SolidityTracer {
       return false;
     }
 
+    if (
+      trace.error?.error === ERROR.OUT_OF_GAS &&
+      call.error?.error === ERROR.OUT_OF_GAS
+    ) {
+      return true;
+    }
+
     return this._failsRightAfterCall(trace, callSubtraceStepIndex);
   }
 
