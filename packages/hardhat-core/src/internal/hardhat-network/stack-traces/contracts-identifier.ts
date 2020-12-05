@@ -144,7 +144,19 @@ export class ContractsIdentifier {
       return searchResult;
     }
 
-    // Create traces are followed by metadata that we don't index
+    // Deployment messages have their abi-encoded arguments at the end of the bytecode.
+    //
+    // We don't know how long those arguments are, as we don't know which contract is being
+    // deployed, hence we don't know the signature of its constructor.
+    //
+    // To make things even harder, we can't trust that the user actually passed the right
+    // amount of arguments.
+    //
+    // Luckily, the chances of a complete deployment bytecode being the prefix of another one are
+    // remote. For example, most of the time it ends with its metadata hash, which will differ.
+    //
+    // We take advantage of this last observation, and just return the bytecode that exactly
+    // matched the searchResult (sub)trie that we got.
     if (
       isCreateTrace(trace) &&
       searchResult.match !== undefined &&
