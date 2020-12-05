@@ -171,6 +171,19 @@ function encodeStackTraceEntry(
         `internal@${stackTraceEntry.pc}`,
         undefined
       );
+    case StackTraceEntryType.CONTRACT_CALL_RUN_OUT_OF_GAS_ERROR:
+      if (stackTraceEntry.sourceReference !== undefined) {
+        return sourceReferenceToSolidityCallsite(
+          stackTraceEntry.sourceReference
+        );
+      }
+
+      return new SolidityCallSite(
+        undefined,
+        UNRECOGNIZED_CONTRACT_NAME,
+        UNKNOWN_FUNCTION_NAME,
+        undefined
+      );
 
     case StackTraceEntryType.OTHER_EXECUTION_ERROR:
       if (stackTraceEntry.sourceReference === undefined) {
@@ -274,6 +287,9 @@ function getMessageFromLastStackTraceEntry(
 
     case StackTraceEntryType.CONTRACT_TOO_LARGE_ERROR:
       return "Transaction reverted: trying to deploy a contract whose code is too large";
+
+    case StackTraceEntryType.CONTRACT_CALL_RUN_OUT_OF_GAS_ERROR:
+      return "Transaction reverted: contract call run out of gas and made the transaction revert";
   }
 }
 
