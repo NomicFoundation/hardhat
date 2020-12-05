@@ -37,8 +37,9 @@ class BytecodeTrie {
       currentCodeByte += 1
     ) {
       if (currentCodeByte === bytecode.normalizedCode.length) {
-        // If multiple contracts with the exact same bytecode are added we keep the last of them,
-        // which is probably correct, especially if we are going to support multiple compilations
+        // If multiple contracts with the exact same bytecode are added we keep the last of them.
+        // Note that this includes the metadata hash, so the chances of happening are pretty remote, unless
+        // in super artificial cases that we have in our test suite.
         trieNode.match = bytecode;
         return;
       }
