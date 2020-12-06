@@ -1084,7 +1084,7 @@ export class EthModule {
     try {
       blockNumberOrPending = await this._resolveBlockTag(blockTag);
     } catch (error) {
-      if (error.message.includes("Received invalid block number")) {
+      if (error.message.includes("Received invalid block tag")) {
         return null;
       }
 
