@@ -254,25 +254,6 @@ describe("Eth module", function () {
             assert.equal(result, "0x");
           });
 
-          it("Should throw invalid input error if called in the context of a nonexistent block", async function () {
-            const firstBlock = await getFirstBlock();
-            const futureBlock = firstBlock + 1;
-
-            await assertInvalidInputError(
-              this.provider,
-              "eth_call",
-              [
-                {
-                  from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-                  to: DEFAULT_ACCOUNTS_ADDRESSES[1],
-                  value: numberToRpcQuantity(123),
-                },
-                numberToRpcQuantity(futureBlock),
-              ],
-              `Received invalid block tag ${futureBlock}. Latest block number is ${firstBlock}`
-            );
-          });
-
           it("Should work with blockhashes calls", async function () {
             const contractAddress = await deployContract(
               this.provider,
@@ -450,6 +431,25 @@ describe("Eth module", function () {
             assert.equal(dataToNumber(blockResult), firstBlock + 1);
           });
 
+          it("Should throw invalid input error if called in the context of a nonexistent block", async function () {
+            const firstBlock = await getFirstBlock();
+            const futureBlock = firstBlock + 1;
+
+            await assertInvalidInputError(
+              this.provider,
+              "eth_call",
+              [
+                {
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                  to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                  value: numberToRpcQuantity(123),
+                },
+                numberToRpcQuantity(futureBlock),
+              ],
+              `Received invalid block tag ${futureBlock}. Latest block number is ${firstBlock}`
+            );
+          });
+
           it("Should leverage block tag parameter", async function () {
             const firstBlock = await getFirstBlock();
 
@@ -512,43 +512,6 @@ describe("Eth module", function () {
             );
             assert.equal(initialBalanceAfterTx, "0xde0b6b3a7640000");
           });
-        });
-
-        it("should work with blockhashes calls", async function () {
-          const contractAddress = await deployContract(
-            this.provider,
-            `0x${EXAMPLE_BLOCKHASH_CONTRACT.bytecode.object}`
-          );
-
-          const resultBlock0 = await this.provider.send("eth_call", [
-            {
-              to: contractAddress,
-              data: EXAMPLE_BLOCKHASH_CONTRACT.selectors.test0,
-            },
-          ]);
-
-          assert.lengthOf(resultBlock0, 66);
-
-          const resultBlock1 = await this.provider.send("eth_call", [
-            {
-              to: contractAddress,
-              data: EXAMPLE_BLOCKHASH_CONTRACT.selectors.test1,
-            },
-          ]);
-
-          assert.lengthOf(resultBlock1, 66);
-
-          const resultBlock1m = await this.provider.send("eth_call", [
-            {
-              to: contractAddress,
-              data: EXAMPLE_BLOCKHASH_CONTRACT.selectors.test1m,
-            },
-          ]);
-
-          assert.equal(
-            resultBlock1m,
-            "0x0000000000000000000000000000000000000000000000000000000000000000"
-          );
         });
       });
 
