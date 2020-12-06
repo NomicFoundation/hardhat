@@ -5,6 +5,7 @@ on:
     branches:
       - master
       - tx-pool
+      - tx-pool-rebase
   pull_request:
     branches:
       - "*"
