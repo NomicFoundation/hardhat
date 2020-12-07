@@ -188,7 +188,7 @@ export class EvmModule {
       throw new InvalidInputError("Block gas limit must be greater than 0");
     }
 
-    this._node.setBlockGasLimit(blockGasLimit);
+    await this._node.setBlockGasLimit(blockGasLimit);
     return true;
   }
 }

@@ -817,8 +817,9 @@ export class HardhatNode extends EventEmitter {
     this._automine = automine;
   }
 
-  public setBlockGasLimit(gasLimit: BN | number) {
+  public async setBlockGasLimit(gasLimit: BN | number) {
     this._txPool.setBlockGasLimit(gasLimit);
+    await this._txPool.clean();
   }
 
   private async _addPendingTransaction(tx: Transaction): Promise<string> {

@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { BN, zeroAddress } from "ethereumjs-util";
+import { BN, bufferToHex, zeroAddress } from "ethereumjs-util";
 import sinon from "sinon";
 
 import {
@@ -17,6 +17,7 @@ import {
   assertLatestBlockNumber,
   assertQuantity,
 } from "../../helpers/assertions";
+import { EMPTY_ACCOUNT_ADDRESS } from "../../helpers/constants";
 import {
   EXAMPLE_CONTRACT,
   EXAMPLE_READ_CONTRACT,
@@ -307,6 +308,36 @@ describe("Evm module", function () {
 
           assert.isFalse(gasLimitBefore.eq(gasLimitAfter));
           assert.isTrue(gasLimitAfter.eq(newBlockGasLimit));
+        });
+
+        it("removes transactions that exceed the new block gas limit from the mempool", async function () {
+          await this.provider.send("evm_setAutomineEnabled", [false]);
+
+          const tx1Hash = await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: bufferToHex(EMPTY_ACCOUNT_ADDRESS),
+              gas: numberToRpcQuantity(21_000),
+            },
+          ]);
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              to: bufferToHex(EMPTY_ACCOUNT_ADDRESS),
+              gas: numberToRpcQuantity(40_000),
+            },
+          ]);
+
+          await this.provider.send("evm_setBlockGasLimit", [
+            numberToRpcQuantity(21_000),
+          ]);
+
+          const pendingTransactions = await this.provider.send(
+            "eth_pendingTransactions"
+          );
+
+          assert.lengthOf(pendingTransactions, 1);
+          assert.equal(pendingTransactions[0].hash, tx1Hash);
         });
       });
 

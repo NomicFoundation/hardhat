@@ -186,7 +186,7 @@ describe("HardhatNode", () => {
       });
 
       it("leaves the transactions in the tx pool that did not fit in a block", async () => {
-        node.setBlockGasLimit(42_000);
+        await node.setBlockGasLimit(42_000);
         const tx1 = createTestTransaction({
           nonce: 0,
           from: DEFAULT_ACCOUNTS_ADDRESSES[0],
@@ -282,7 +282,7 @@ describe("HardhatNode", () => {
 
     describe("gas limit tests", () => {
       it("mines only as many transactions as would fit in a block", async () => {
-        node.setBlockGasLimit(30_000);
+        await node.setBlockGasLimit(30_000);
         const tx1 = createTestTransaction({
           nonce: 0,
           from: DEFAULT_ACCOUNTS_ADDRESSES[0],
@@ -304,7 +304,7 @@ describe("HardhatNode", () => {
       });
 
       it("uses gasUsed value for determining if two transactions will fit in a block", async () => {
-        node.setBlockGasLimit(50_000);
+        await node.setBlockGasLimit(50_000);
         const tx1 = createTestTransaction({
           nonce: 0,
           from: DEFAULT_ACCOUNTS_ADDRESSES[0],
@@ -325,7 +325,7 @@ describe("HardhatNode", () => {
       });
 
       it("puts as many transactions as it can in a block", async () => {
-        node.setBlockGasLimit(42_000);
+        await node.setBlockGasLimit(42_000);
         const tx1 = createTestTransaction({
           nonce: 0,
           from: DEFAULT_ACCOUNTS_ADDRESSES[0],
