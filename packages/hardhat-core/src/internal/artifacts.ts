@@ -287,7 +287,12 @@ export class Artifacts implements IArtifacts {
     solcLongVersion: string,
     input: CompilerInput
   ): string {
-    const json = JSON.stringify({ solcVersion, solcLongVersion, input });
+    const json = JSON.stringify({
+      _format: BUILD_INFO_FORMAT_VERSION,
+      solcVersion,
+      solcLongVersion,
+      input,
+    });
 
     return createNonCryptographicHashBasedIdentifier(
       Buffer.from(json)
