@@ -3150,6 +3150,52 @@ describe("Eth module", function () {
             `known transaction: ${bufferToHex(hash)}`
           );
         });
+
+        // This test checks that an on-chain value can be set to 0
+        // To do this, we transfer all the balance of the 0x0000...0001 account
+        // to some random account, and then check that its balance is zero
+        it("should set a value to 0", async function () {
+          if (!isFork) {
+            this.skip();
+          }
+
+          const daiAddress = "0x6B175474E89094C44Da98b954EedeAC495271d0F";
+          const sender = "0x0000000000000000000000000000000000000001";
+
+          await this.provider.send("hardhat_impersonateAccount", [sender]);
+
+          // get balance of 0x0000...0001
+          const balanceBefore = await this.provider.send("eth_call", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: daiAddress,
+              data:
+                "0x70a082310000000000000000000000000000000000000000000000000000000000000001",
+            },
+          ]);
+
+          // send out the full balance
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from: sender,
+              to: daiAddress,
+              data: `0xa9059cbb0000000000000000000000005a3fed996fc40791a26e7fb78dda4f9293788951${balanceBefore.slice(
+                2
+              )}`,
+            },
+          ]);
+
+          const balanceAfter = await this.provider.send("eth_call", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: daiAddress,
+              data:
+                "0x70a082310000000000000000000000000000000000000000000000000000000000000001",
+            },
+          ]);
+
+          assert.isTrue(new BN(toBuffer(balanceAfter)).isZero());
+        });
       });
 
       describe("eth_sign", async function () {
