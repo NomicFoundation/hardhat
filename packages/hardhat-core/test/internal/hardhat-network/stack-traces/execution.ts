@@ -64,10 +64,11 @@ export async function traceTransaction(
 ): Promise<MessageTrace> {
   const tx = new Transaction({
     value: 0,
-    gasLimit: 4000000, // We assume that 4M is enough,
     gasPrice: 1,
     nonce: await getNextNonce(vm),
     ...txData,
+    // If the test didn't define a gasLimit, we assume 4M is enough
+    gasLimit: txData.gasLimit ?? 4000000,
   });
 
   tx.sign(senderPrivateKey);

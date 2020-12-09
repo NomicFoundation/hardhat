@@ -84,6 +84,7 @@ interface DeploymentTransaction {
   stackTrace?: StackFrameDescription[]; // No stack trace === the tx MUST be successful
   imports?: string[]; // Imports needed for successful compilation
   consoleLogs?: ConsoleLogs[];
+  gas?: number;
 }
 
 interface CallTransaction {
@@ -98,6 +99,7 @@ interface CallTransaction {
   function?: string; // Default: no data
   params?: Array<string | number>; // Default: no param
   consoleLogs?: ConsoleLogs[];
+  gas?: number;
 }
 
 interface DeployedContract {
@@ -568,6 +570,7 @@ async function runDeploymentTransactionTest(
   const trace = await traceTransaction(vm, {
     value: tx.value,
     data,
+    gasLimit: tx.gas,
   });
 
   return trace as CreateMessageTrace;
@@ -601,6 +604,7 @@ async function runCallTransactionTest(
     to: contract.address,
     value: tx.value,
     data,
+    gasLimit: tx.gas,
   });
 
   return trace as CallMessageTrace;
