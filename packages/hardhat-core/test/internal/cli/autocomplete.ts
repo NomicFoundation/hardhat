@@ -1,7 +1,10 @@
 import { expect } from "chai";
 import * as os from "os";
 
-import { complete as completeFn } from "../../../src/internal/cli/autocomplete";
+import {
+  complete as completeFn,
+  HARDHAT_COMPLETE_FILES,
+} from "../../../src/internal/cli/autocomplete";
 import { resetHardhatContext } from "../../../src/internal/reset";
 import { useFixtureProject } from "../../helpers/project";
 
@@ -11,7 +14,9 @@ import { useFixtureProject } from "../../helpers/project";
  * - `hh comp` means that the cursor is immediately after the word
  * - `hh --network | compile` you can optionally use `|` to indicate the cursor's position; otherwise it is assumed the cursor is at the end
  */
-async function complete(lineWithCursor: string): Promise<string[]> {
+async function complete(
+  lineWithCursor: string
+): Promise<string[] | typeof HARDHAT_COMPLETE_FILES> {
   const point = lineWithCursor.indexOf("|");
   const line = lineWithCursor.replace("|", "");
 
@@ -170,80 +175,49 @@ describe("autocomplete", function () {
     it("should not suggest params after a task if the last word doesn't start with --", async () => {
       const suggestions = await complete("hh compile --config config.js ");
 
-      expect(suggestions).to.have.deep.members([
-        "hardhat.config.js",
-        "package.json",
-        "scripts",
-      ]);
+      expect(suggestions).to.equal(HARDHAT_COMPLETE_FILES);
     });
 
     it("should complete filenames", async () => {
       const suggestions = await complete("hh run ");
 
-      expect(suggestions).to.have.deep.members([
-        "hardhat.config.js",
-        "package.json",
-        "scripts",
-      ]);
+      expect(suggestions).to.equal(HARDHAT_COMPLETE_FILES);
     });
 
     it("should complete filenames after a partial word", async () => {
       const suggestions = await complete("hh compile --config ha");
 
-      expect(suggestions).to.have.deep.members(["hardhat.config.js"]);
-    });
-
-    it("should return two suggestions when a single directory matches", async () => {
-      const suggestions = await complete("hh run scri");
-
-      expect(suggestions).to.have.deep.members(["scripts", "scripts/"]);
+      expect(suggestions).to.equal(HARDHAT_COMPLETE_FILES);
     });
 
     it("should complete filenames inside a directory", async () => {
       const suggestions = await complete("hh compile --config scripts/");
 
-      expect(suggestions).to.have.deep.members([
-        "scripts/foo1.js",
-        "scripts/foo2.js",
-        "scripts/bar.js",
-        "scripts/nested",
-      ]);
+      expect(suggestions).to.equal(HARDHAT_COMPLETE_FILES);
     });
 
     it("should complete filenames inside a directory after a partial file", async () => {
       const suggestions = await complete("hh compile --config scripts/fo");
 
-      expect(suggestions).to.have.deep.members([
-        "scripts/foo1.js",
-        "scripts/foo2.js",
-      ]);
+      expect(suggestions).to.equal(HARDHAT_COMPLETE_FILES);
     });
 
     it("should complete hidden filenames inside a directory after a dot", async () => {
       const suggestions = await complete("hh compile --config scripts/.");
 
-      expect(suggestions).to.have.deep.members(["scripts/.hidden.js"]);
+      expect(suggestions).to.equal(HARDHAT_COMPLETE_FILES);
     });
 
     it("should complete hidden filenames inside a directory after a partial word", async () => {
       const suggestions = await complete("hh compile --config scripts/.hi");
 
-      expect(suggestions).to.have.deep.members(["scripts/.hidden.js"]);
-    });
-
-    it("should not show files inside a directory if there's no slash at the end", async () => {
-      const suggestions = await complete("hh compile --config scripts/nested");
-
-      expect(suggestions).to.have.deep.members([
-        "scripts/nested",
-        "scripts/nested/",
-      ]);
+      expect(suggestions).to.equal(HARDHAT_COMPLETE_FILES);
     });
 
     it("should complete filenames inside a nested directory", async () => {
       const suggestions = await complete("hh compile --config scripts/nested/");
 
-      expect(suggestions).to.have.deep.members(["scripts/nested/nested.js"]);
+      expect(suggestions).to.equal(HARDHAT_COMPLETE_FILES);
     });
   });
 
