@@ -27,6 +27,7 @@ import {
 import { HardhatError } from "./core/errors";
 import { ERRORS } from "./core/errors-list";
 import { glob, globSync } from "./util/glob";
+import { createNonCryptographicHashBasedIdentifier } from "./util/hash";
 
 const log = debug("hardhat:core:artifacts");
 
@@ -202,12 +203,14 @@ export class Artifacts implements IArtifacts {
     input: CompilerInput,
     output: CompilerOutput
   ): Promise<string> {
-    const { default: uuid } = await import("uuid/v4");
-
     const buildInfoDir = path.join(this._artifactsPath, BUILD_INFO_DIR_NAME);
     await fsExtra.ensureDir(buildInfoDir);
 
-    const buildInfoName = uuid();
+    const buildInfoName = this._getBuildInfoName(
+      solcVersion,
+      solcLongVersion,
+      input
+    );
 
     const buildInfo = this._createBuildInfo(
       buildInfoName,
@@ -277,6 +280,23 @@ export class Artifacts implements IArtifacts {
         await fsExtra.unlink(buildInfoFile);
       }
     }
+  }
+
+  private _getBuildInfoName(
+    solcVersion: string,
+    solcLongVersion: string,
+    input: CompilerInput
+  ): string {
+    const json = JSON.stringify({
+      _format: BUILD_INFO_FORMAT_VERSION,
+      solcVersion,
+      solcLongVersion,
+      input,
+    });
+
+    return createNonCryptographicHashBasedIdentifier(
+      Buffer.from(json)
+    ).toString("hex");
   }
 
   /**
