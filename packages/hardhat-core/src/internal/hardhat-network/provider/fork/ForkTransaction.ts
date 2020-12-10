@@ -7,6 +7,10 @@ import {
 } from "ethereumjs-tx";
 import { BN, bufferToInt } from "ethereumjs-util";
 
+import { InternalError } from "../errors";
+
+// tslint:disable only-hardhat-error
+
 /**
  * Custom Transaction class to avoid EIP155 errors when hardhat is forked
  */
@@ -34,26 +38,34 @@ export class ForkTransaction extends Transaction {
   }
 
   public sign() {
-    throw new Error("Not implemented on ForkTransaction");
+    throw new InternalError("`sign` is not implemented in ForkTransaction");
   }
   public getDataFee(): BN {
-    throw new Error("Not implemented on ForkTransaction");
+    throw new InternalError(
+      "`getDataFee` is not implemented in ForkTransaction"
+    );
   }
   public getBaseFee(): BN {
-    throw new Error("Not implemented on ForkTransaction");
+    throw new InternalError(
+      "`getBaseFee` is not implemented in ForkTransaction"
+    );
   }
   public getUpfrontCost(): BN {
-    throw new Error("Not implemented on ForkTransaction");
+    throw new InternalError(
+      "`getUpfrontCost` is not implemented in ForkTransaction"
+    );
   }
 
   public validate(_?: false): boolean;
   public validate(_: true): string;
   public validate(_: boolean = false): boolean | string {
-    throw new Error("Not implemented on ForkTransaction");
+    throw new InternalError("`validate` is not implemented in ForkTransaction");
   }
 
   public toCreationAddress(): boolean {
-    throw new Error("Not implemented on ForkTransaction");
+    throw new InternalError(
+      "`toCreationAddress` is not implemented in ForkTransaction"
+    );
   }
 }
 
