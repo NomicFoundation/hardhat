@@ -3,7 +3,8 @@ import { Map as ImmutableMap, Record as ImmutableRecord } from "immutable";
 export interface AccountState {
   nonce: string | undefined;
   balance: string | undefined;
-  storage: ImmutableMap<string, string>;
+  // a null value means that the slot was set to 0 (i.e. deleted)
+  storage: ImmutableMap<string, string | null>;
   code: string | undefined;
   storageCleared: boolean;
 }

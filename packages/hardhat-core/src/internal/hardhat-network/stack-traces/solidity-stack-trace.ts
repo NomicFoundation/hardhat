@@ -26,6 +26,7 @@ export enum StackTraceEntryType {
   UNMAPPED_SOLC_0_6_3_REVERT_ERROR,
   CONTRACT_TOO_LARGE_ERROR,
   INTERNAL_FUNCTION_CALLSTACK_ENTRY,
+  CONTRACT_CALL_RUN_OUT_OF_GAS_ERROR,
 }
 
 export const FALLBACK_FUNCTION_NAME = "<fallback>";
@@ -160,6 +161,11 @@ export interface InternalFunctionCallStackEntry {
   sourceReference: SourceReference;
 }
 
+export interface ContractCallRunOutOfGasError {
+  type: StackTraceEntryType.CONTRACT_CALL_RUN_OUT_OF_GAS_ERROR;
+  sourceReference?: SourceReference;
+}
+
 export type SolidityStackTraceEntry =
   | CallstackEntryStackTraceEntry
   | UnrecognizedCreateCallstackEntryStackTraceEntry
@@ -181,6 +187,7 @@ export type SolidityStackTraceEntry =
   | OtherExecutionErrorStackTraceEntry
   | UnmappedSolc063RevertErrorStackTraceEntry
   | ContractTooLargeErrorStackTraceEntry
-  | InternalFunctionCallStackEntry;
+  | InternalFunctionCallStackEntry
+  | ContractCallRunOutOfGasError;
 
 export type SolidityStackTrace = SolidityStackTraceEntry[];

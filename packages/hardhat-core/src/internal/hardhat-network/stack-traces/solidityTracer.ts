@@ -396,6 +396,14 @@ export class SolidityTracer {
             const subTrace = this.getStackTrace(step);
             stacktrace.push(...subTrace);
 
+            if (this._isContractCallRunOutOfGasError(trace, stepIndex)) {
+              const lastFrame = stacktrace.pop()!;
+              stacktrace.push({
+                type: StackTraceEntryType.CONTRACT_CALL_RUN_OUT_OF_GAS_ERROR,
+                sourceReference: lastFrame.sourceReference,
+              });
+            }
+
             consumedAllInstructions = true;
             break;
           }
@@ -568,7 +576,34 @@ export class SolidityTracer {
       return false;
     }
 
+    if (
+      trace.error?.error === ERROR.OUT_OF_GAS &&
+      call.error?.error === ERROR.OUT_OF_GAS
+    ) {
+      return true;
+    }
+
     return this._failsRightAfterCall(trace, callSubtraceStepIndex);
+  }
+
+  private _isContractCallRunOutOfGasError(
+    trace: DecodedEvmMessageTrace,
+    callStepIndex: number
+  ): boolean {
+    if (trace.returnData.length > 0) {
+      return false;
+    }
+
+    if (trace.error?.error !== ERROR.REVERT) {
+      return false;
+    }
+
+    const call = trace.steps[callStepIndex] as MessageTrace;
+    if (call.error?.error !== ERROR.OUT_OF_GAS) {
+      return false;
+    }
+
+    return this._failsRightAfterCall(trace, callStepIndex);
   }
 
   private _isReturnDataSizeError(
