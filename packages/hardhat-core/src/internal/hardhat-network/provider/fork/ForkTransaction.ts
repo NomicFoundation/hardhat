@@ -5,7 +5,7 @@ import {
   TransactionOptions,
   TxData,
 } from "ethereumjs-tx";
-import { BN, bufferToInt } from "ethereumjs-util";
+import { BN, bufferToInt, ecrecover } from "ethereumjs-util";
 
 import { InternalError } from "../errors";
 
@@ -19,14 +19,25 @@ export class ForkTransaction extends Transaction {
 
   constructor(
     chainId: number,
-    senderPubKey: Buffer,
     data: Buffer | PrefixedHexString | BufferLike[] | TxData = {},
     opts: TransactionOptions = {}
   ) {
     super(data, opts);
 
-    (this as any)._senderPubKey = senderPubKey;
     this._chainId = chainId;
+
+    const msgHash = this.hash(false);
+    const v = bufferToInt(this.v);
+
+    const senderPubKey = ecrecover(
+      msgHash,
+      v,
+      this.r,
+      this.s,
+      (this as any)._implementsEIP155() ? chainId : undefined
+    );
+
+    (this as any)._senderPubKey = senderPubKey;
   }
 
   public verifySignature(): boolean {
@@ -77,7 +88,7 @@ ForkTransactionPrototype._validateV = function () {};
 
 ForkTransactionPrototype._implementsEIP155 = function (): boolean {
   const chainId = this.getChainId();
-  const v = bufferToInt(this._v);
+  const v = bufferToInt(this.v);
 
-  return this._v === chainId * 2 + 35 || v === chainId * 2 + 36;
+  return v === chainId * 2 + 35 || v === chainId * 2 + 36;
 };

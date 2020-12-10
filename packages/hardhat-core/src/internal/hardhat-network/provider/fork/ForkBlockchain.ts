@@ -235,15 +235,12 @@ export class ForkBlockchain implements PBlockchain {
       transactions: [],
     });
 
-    const chainId = this._common.chainId();
     const block = new Block(blockData, { common: this._common });
+    const chainId = this._jsonRpcClient.getNetworkId();
 
     for (const transaction of rpcBlock.transactions) {
-      const txData = rpcToTxData(transaction);
-      const senderPubKey = new Transaction(txData).getSenderPublicKey();
-
       block.transactions.push(
-        new ForkTransaction(chainId, senderPubKey, txData, {
+        new ForkTransaction(chainId, rpcToTxData(transaction), {
           common: this._common,
         })
       );
@@ -299,13 +296,14 @@ export class ForkBlockchain implements PBlockchain {
       return undefined;
     }
 
-    const chainId = this._common.chainId();
-    const txData = rpcToTxData(rpcTransaction);
-    const senderPubKey = new Transaction(txData).getSenderPublicKey();
-
-    const transaction = new ForkTransaction(chainId, senderPubKey, txData, {
-      common: this._common,
-    });
+    const chainId = this._jsonRpcClient.getNetworkId();
+    const transaction = new ForkTransaction(
+      chainId,
+      rpcToTxData(rpcTransaction),
+      {
+        common: this._common,
+      }
+    );
 
     this._data.addTransaction(transaction);
 
