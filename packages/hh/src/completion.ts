@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import tabtab from "@pnpm/tabtab";
+import tabtab from "@fvictorio/tabtab";
 
 export async function main() {
   const cmd = process.argv[2];
@@ -29,9 +29,24 @@ export async function main() {
           paths: [process.cwd()],
         }
       );
-      const { complete } = require(pathToHardhatAutocomplete);
+      const {
+        complete,
+        HARDHAT_COMPLETE_FILES,
+      } = require(pathToHardhatAutocomplete);
       const suggestions = await complete(env);
-      return tabtab.log(suggestions);
+
+      if (Array.isArray(suggestions)) {
+        return tabtab.log(
+          suggestions.map((suggestion) => ({ name: suggestion }))
+        );
+      }
+
+      if (suggestions === HARDHAT_COMPLETE_FILES) {
+        return tabtab.logFiles();
+      }
+
+      console.error("Couldn't complete the command, please report this issue");
+      return tabtab.log([]);
     } catch (e) {
       return tabtab.log([]);
     }

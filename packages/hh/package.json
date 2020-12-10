@@ -36,6 +36,6 @@
     "hardhat": "^2.0.0"
   },
   "dependencies": {
-    "@pnpm/tabtab": "^0.0.1"
+    "@fvictorio/tabtab": "^0.0.2"
   }
 }

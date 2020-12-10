@@ -526,6 +526,17 @@
     reflect-metadata "^0.1.12"
     tslib "^1.8.1"
 
+"@fvictorio/tabtab@^0.0.2":
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/@fvictorio/tabtab/-/tabtab-0.0.2.tgz#956fe93de7684d817da0af83d4ebc948965e72fb"
+  integrity sha512-G7k1608GyhHzo6oJTo5SrsUJNkPvI6gcNNfA9hf/zE4a5cH86pYKtJzXDJnVFMFJiIBDZYfgaAmi7fXhwhPdFg==
+  dependencies:
+    debug "^4.1.1"
+    enquirer "^2.3.4"
+    minimist "^1.2.0"
+    mkdirp "^1.0.3"
+    untildify "^4.0.0"
+
 "@jest/types@^24.9.0":
   version "24.9.0"
   resolved "https://registry.yarnpkg.com/@jest/types/-/types-24.9.0.tgz#63cb26cb7500d069e5a389441a7c6ab5e909fc59"
@@ -570,17 +581,6 @@
     ethereum-ens "^0.8.0"
     ethers "^4.0.0-beta.1"
     source-map-support "^0.5.19"
-
-"@pnpm/tabtab@^0.0.1":
-  version "0.0.1"
-  resolved "https://registry.yarnpkg.com/@pnpm/tabtab/-/tabtab-0.0.1.tgz#b9e300979e21b8f64164e49de9f818641ef920bd"
-  integrity sha512-XLx1tSzrLxvmsNdh6AjiYy6lhMq/Sw08ELFDjlPmbdPYJ9E3l6RtSX4bxXoJt7dZHKskNypF5ksx1rt5oqPsDg==
-  dependencies:
-    debug "^4.1.1"
-    enquirer "^2.3.4"
-    minimist "^1.2.0"
-    mkdirp "^1.0.3"
-    untildify "^4.0.0"
 
 "@resolver-engine/core@^0.3.3":
   version "0.3.3"

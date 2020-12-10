@@ -41,10 +41,12 @@ interface CachedCompletionData {
   mtimes: Mtimes;
 }
 
+export const HARDHAT_COMPLETE_FILES = "__hardhat_complete_files__";
+
 export async function complete({
   line,
   point,
-}: CompletionEnv): Promise<string[]> {
+}: CompletionEnv): Promise<string[] | typeof HARDHAT_COMPLETE_FILES> {
   const completionData = await getCompletionData();
 
   if (completionData === undefined) {
@@ -104,7 +106,7 @@ export async function complete({
 
     const globalParam = HARDHAT_PARAM_DEFINITIONS[paramName as GlobalParam];
     if (globalParam !== undefined && !globalParam.isFlag) {
-      return filesystemSuggestions(last);
+      return HARDHAT_COMPLETE_FILES;
     }
   }
 
@@ -120,7 +122,7 @@ export async function complete({
   }
 
   if (!last.startsWith("-")) {
-    return filesystemSuggestions(last);
+    return HARDHAT_COMPLETE_FILES;
   }
 
   // if there's a task and the last word starts with -, we complete its params and the global params
@@ -253,55 +255,6 @@ async function getCachedCompletionDataPath(projectId: string): Promise<string> {
   const cacheDir = await getCacheDir();
 
   return path.join(cacheDir, "autocomplete", `${projectId}.json`);
-}
-
-function filesystemSuggestions(last: string): string[] {
-  let partialDirectory: string;
-  let partialFilename: string;
-
-  const parsedPath = path.parse(last);
-
-  // something like foo/. is technically a directory, but we don't want to consider it as such
-  if (parsedPath.base !== "." && isDirectory(last) && last.endsWith(path.sep)) {
-    partialDirectory = last;
-    partialFilename = "";
-  } else {
-    partialDirectory = parsedPath.dir;
-    partialFilename = parsedPath.base;
-  }
-
-  const directory = path.resolve(process.cwd(), partialDirectory);
-
-  const suggestions = fs
-    .readdirSync(directory)
-    .filter((filename) => filename.startsWith(partialFilename))
-    .filter(
-      (filename) => partialFilename.startsWith(".") || !filename.startsWith(".")
-    )
-    .map((filename) => path.join(partialDirectory, filename));
-
-  // dirty trick when we match a single directory:
-  // we don't want to have a single suggestion because otherwise the shell
-  // will add an space at the end, which is annoying,
-  // so we suggest both the dir, and the dir with a trailing path separator
-  if (suggestions.length === 1) {
-    const [suggestion] = suggestions;
-
-    if (isDirectory(suggestion)) {
-      return [suggestion, path.join(suggestion, path.sep)];
-    }
-  }
-
-  return suggestions;
-}
-
-function isDirectory(filename: string): boolean {
-  try {
-    const stats = fs.statSync(filename);
-    return stats.isDirectory();
-  } catch (e) {
-    return false;
-  }
 }
 
 function isGlobalFlag(param: string): boolean {
