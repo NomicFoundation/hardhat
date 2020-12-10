@@ -32,7 +32,7 @@ export async function getEtherscanEndpoint(
 
   const endpoint = networkIDtoEndpoint[chainID];
 
-  if (endpoint === null || endpoint === undefined) {
+  if (endpoint === undefined) {
     throw new NomicLabsHardhatPluginError(
       pluginName,
       `An etherscan endpoint could not be found for this network. ChainID: ${chainID}. The selected network is ${networkName}.

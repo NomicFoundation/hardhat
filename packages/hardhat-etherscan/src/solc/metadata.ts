@@ -13,7 +13,7 @@ export const METADATA_LENGTH_SIZE = 2;
 export const METADATA_PRESENT_SOLC_NOT_FOUND_VERSION_RANGE = "0.4.7 - 0.5.8";
 export const METADATA_ABSENT_VERSION_RANGE = "<0.4.7";
 
-const log = debug("hardhat-etherscan:metadata-decoder");
+const log = debug("hardhat:hardhat-etherscan:metadata");
 
 export function inferSolcVersion(bytecode: Buffer): MetadataDescription {
   // We want to provide our best inference here.
