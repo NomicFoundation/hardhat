@@ -6,7 +6,6 @@ import {
 import type { task as taskT } from "hardhat/config";
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import type { CompilerInput } from "hardhat/types";
-// tslint:disable-next-line: no-implicit-dependencies
 import nock from "nock";
 import path from "path";
 
