@@ -174,7 +174,7 @@ See https://etherscan.io/apis`
       pluginName,
       `The constructorArguments parameter should be an array.
 If your constructor has no arguments pass an empty array. E.g:
-const { success } = await run("${TASK_VERIFY_VERIFY}", {
+await run("${TASK_VERIFY_VERIFY}", {
   <other args>,
   constructorArguments: []
 };`
@@ -262,7 +262,7 @@ Possible causes are:
     deployArgumentsEncoded,
   });
   if (success) {
-    return { success };
+    return;
   }
 
   // Fallback verification
@@ -280,7 +280,7 @@ Possible causes are:
     console.log(
       `Successfully verified full build of contract ${contractInformation.contractName} on Etherscan`
     );
-    return { success: true };
+    return;
   }
 
   // TODO: Add known edge cases here.
@@ -478,7 +478,7 @@ For example, if you are using the verify task from CLI:
 
 If you are running the verify subtask from within Hardhat instead:
 
-const { success } = await run("${TASK_VERIFY_VERIFY}", {
+await run("${TASK_VERIFY_VERIFY}", {
   <other args>,
   contract: "contracts/Example.sol:ExampleContract"
 };`;
