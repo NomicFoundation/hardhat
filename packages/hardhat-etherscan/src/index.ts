@@ -472,7 +472,7 @@ Possible causes are:
 Please use the contract parameter with one of the following contracts:
 ${nameList}
 
-For example, if you are using the verify task from CLI:
+For example:
 
   hardhat verify --contract contracts/Example.sol:ExampleContract <other args>
 
