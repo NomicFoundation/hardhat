@@ -526,10 +526,10 @@
     reflect-metadata "^0.1.12"
     tslib "^1.8.1"
 
-"@fvictorio/tabtab@^0.0.2":
-  version "0.0.2"
-  resolved "https://registry.yarnpkg.com/@fvictorio/tabtab/-/tabtab-0.0.2.tgz#956fe93de7684d817da0af83d4ebc948965e72fb"
-  integrity sha512-G7k1608GyhHzo6oJTo5SrsUJNkPvI6gcNNfA9hf/zE4a5cH86pYKtJzXDJnVFMFJiIBDZYfgaAmi7fXhwhPdFg==
+"@fvictorio/tabtab@^0.0.3":
+  version "0.0.3"
+  resolved "https://registry.yarnpkg.com/@fvictorio/tabtab/-/tabtab-0.0.3.tgz#1b97981424386490fa2a5818706d2afd1f6e4659"
+  integrity sha512-bT/BSy8MJThrTebqTCjXRnGSgZWthHLigZ4k2AvfNtC79vPyBS1myaxw8gRU6RxIcdDD3HBtm7pOsOoyC086Zg==
   dependencies:
     debug "^4.1.1"
     enquirer "^2.3.4"
