@@ -102,6 +102,28 @@ The module can then be loaded by the `verify` task when invoked like this:
 npx hardhat verify --constructor-args arguments.js DEPLOYED_CONTRACT_ADDRESS
 ```
 
+### Verification subtask
+
+If you want to call the verification task from within a Hardhat task or script, we recommend using the `"verify:verify"` subtask. Assuming the same contract as [above](#complex-arguments), you can run this subtask like this:
+
+
+```js
+const { success } = await hre.run("verify:verify", {
+  address: contractAddress,
+  constructorArguments: [
+    50,
+    "a string argument",
+    {
+      x: 10,
+      y: 5,
+    },
+    "0xabcdef",
+  ],
+})
+```
+
+The subtask returns an object with a `success` boolean field. All kinds of errors are thrown as `HardhatPluginError`s but this may change in the future.
+
 ## How it works
 
 The plugin works by fetching the bytecode in the given address and using it to check which contract in your project corresponds to it. Besides that, some sanity checks are performed locally to make sure that the verification won't fail.
