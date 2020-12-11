@@ -723,7 +723,7 @@ task(TASK_VERIFY, "Verifies contract on Etherscan")
 
 subtask(TASK_VERIFY_VERIFY)
   .addParam("address", undefined, undefined, types.string)
-  .addParam("constructorArguments", undefined, undefined, types.any)
+  .addOptionalParam("constructorArguments", undefined, [], types.any)
   .addOptionalParam("contract", undefined, undefined, types.string)
   .setAction(verifySubtask);
 
