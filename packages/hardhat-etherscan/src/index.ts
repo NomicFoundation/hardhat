@@ -35,6 +35,7 @@ import {
   TASK_VERIFY_GET_CONTRACT_INFORMATION,
   TASK_VERIFY_GET_ETHERSCAN_ENDPOINT,
   TASK_VERIFY_GET_MINIMUM_BUILD,
+  TASK_VERIFY_VERIFY,
   TASK_VERIFY_VERIFY_MINIMUM_BUILD,
 } from "./constants";
 import {
@@ -73,6 +74,13 @@ interface VerificationArgs {
   contract?: string;
 }
 
+interface VerificationSubtaskArgs {
+  address: string;
+  constructorArguments: any[];
+  // Fully qualified name of the contract
+  contract?: string;
+}
+
 interface Build {
   compilationJob: CompilationJob;
   input: CompilerInput;
@@ -107,9 +115,28 @@ const verify: ActionType<VerificationArgs> = async (
     address,
     constructorArgsParams,
     constructorArgs: constructorArgsModule,
-    contract: contractFQN,
+    contract,
   },
-  { config, network, run, artifacts }
+  { run }
+) => {
+  const constructorArguments: any[] = await run(
+    TASK_VERIFY_GET_CONSTRUCTOR_ARGUMENTS,
+    {
+      constructorArgsModule,
+      constructorArgsParams,
+    }
+  );
+
+  return run(TASK_VERIFY_VERIFY, {
+    address,
+    constructorArguments,
+    contract,
+  });
+};
+
+const verifySubtask: ActionType<VerificationSubtaskArgs> = async (
+  { address, constructorArguments, contract: contractFQN },
+  { config, network, run }
 ) => {
   const { etherscan } = config;
 
@@ -122,7 +149,11 @@ See https://etherscan.io/apis`
     );
   }
 
-  if (network.name === HARDHAT_NETWORK_NAME) {
+  // TODO: look for a better way to bypass this check during tests
+  if (
+    network.name === HARDHAT_NETWORK_NAME &&
+    process.env.HARDHAT_ETHERSCAN_MOCK_NETWORK_TESTS !== "yes"
+  ) {
     throw new NomicLabsHardhatPluginError(
       pluginName,
       `The selected network is ${network.name}. Please select a network supported by Etherscan.`
@@ -137,16 +168,21 @@ See https://etherscan.io/apis`
     );
   }
 
+  // This can only happen if the subtask is invoked from within Hardhat by a user script or another task.
+  if (!Array.isArray(constructorArguments)) {
+    throw new NomicLabsHardhatPluginError(
+      pluginName,
+      `The constructorArguments parameter should be an array.
+If your constructor has no arguments pass an empty array. E.g:
+const { success } = await run("${TASK_VERIFY_VERIFY}", {
+  <other args>,
+  constructorArguments: []
+};`
+    );
+  }
+
   const compilerVersions: string[] = await run(
     TASK_VERIFY_GET_COMPILER_VERSIONS
-  );
-
-  const constructorArguments: any[] = await run(
-    TASK_VERIFY_GET_CONSTRUCTOR_ARGUMENTS,
-    {
-      constructorArgsModule,
-      constructorArgsParams,
-    }
   );
 
   const etherscanAPIEndpoint: string = await run(
@@ -290,7 +326,7 @@ subtask(TASK_VERIFY_GET_CONSTRUCTOR_ARGUMENTS)
         if (!Array.isArray(constructorArguments)) {
           throw new NomicLabsHardhatPluginError(
             pluginName,
-            `The module doesn't export a list. The module should look like this:
+            `The module ${constructorArgsModulePath} doesn't export a list. The module should look like this:
 module.exports = [ arg1, arg2, ... ];`
           );
         }
@@ -436,9 +472,16 @@ Possible causes are:
 Please use the contract parameter with one of the following contracts:
 ${nameList}
 
-For example:
+For example, if you are using the verify task from CLI:
 
-  hardhat verify --contract contracts/Example.sol:ExampleContract <your verify args>`;
+  hardhat verify --contract contracts/Example.sol:ExampleContract <other args>
+
+If you are running the verify subtask from within Hardhat instead:
+
+const { success } = await run("${TASK_VERIFY_VERIFY}", {
+  <other args>,
+  contract: "contracts/Example.sol:ExampleContract"
+};`;
     throw new NomicLabsHardhatPluginError(pluginName, message, undefined, true);
   }
   return contractMatches[0];
@@ -677,6 +720,12 @@ task(TASK_VERIFY, "Verifies contract on Etherscan")
     []
   )
   .setAction(verify);
+
+subtask(TASK_VERIFY_VERIFY)
+  .addParam("address", undefined, undefined, types.string)
+  .addParam("constructorArguments", undefined, undefined, types.any)
+  .addOptionalParam("contract", undefined, undefined, types.string)
+  .setAction(verifySubtask);
 
 function assertHardhatPluginInvariant(
   invariant: boolean,
