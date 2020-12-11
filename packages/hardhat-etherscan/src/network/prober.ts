@@ -1,7 +1,7 @@
-import { HardhatPluginError } from "hardhat/plugins";
+import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import { EthereumProvider } from "hardhat/types";
 
-import { pluginName } from "../pluginContext";
+import { pluginName } from "../constants";
 
 type NetworkMap = {
   [networkID in NetworkID]: string;
@@ -24,30 +24,33 @@ const networkIDtoEndpoint: NetworkMap = {
   [NetworkID.KOVAN]: "https://api-kovan.etherscan.io/api",
 };
 
-export class NetworkProberError extends HardhatPluginError {
-  constructor(message: string) {
-    super(pluginName, message);
-  }
-}
-
-export async function getEtherscanEndpoint(provider: EthereumProvider) {
+export async function getEtherscanEndpoint(
+  provider: EthereumProvider,
+  networkName: string
+): Promise<string> {
   const chainID = parseInt(await provider.send("eth_chainId"), 16) as NetworkID;
 
   const endpoint = networkIDtoEndpoint[chainID];
-  if (endpoint !== null && endpoint !== undefined) {
-    // Beware: this delays URL validation until it is effectively "used".
-    // Tests should take this into account.
-    return new URL(endpoint);
+
+  if (endpoint === undefined) {
+    throw new NomicLabsHardhatPluginError(
+      pluginName,
+      `An etherscan endpoint could not be found for this network. ChainID: ${chainID}. The selected network is ${networkName}.
+
+Possible causes are:
+  - The selected network (${networkName}) is wrong.
+  - Faulty hardhat network config.`
+    );
   }
-  throw new NetworkProberError(
-    `An etherscan endpoint could not be found for this network. ChainID: ${chainID}`
-  );
+
+  return endpoint;
 }
 
 export async function retrieveContractBytecode(
   address: string,
-  provider: EthereumProvider
-) {
+  provider: EthereumProvider,
+  networkName: string
+): Promise<string> {
   const bytecodeString = (await provider.send("eth_getCode", [
     address,
     "latest",
@@ -56,7 +59,11 @@ export async function retrieveContractBytecode(
     ? bytecodeString.slice(2)
     : bytecodeString;
   if (deployedBytecode.length === 0) {
-    return null;
+    throw new NomicLabsHardhatPluginError(
+      pluginName,
+      `The address ${address} has no bytecode. Is the contract deployed to this network?
+The selected network is ${networkName}.`
+    );
   }
   return deployedBytecode;
 }
