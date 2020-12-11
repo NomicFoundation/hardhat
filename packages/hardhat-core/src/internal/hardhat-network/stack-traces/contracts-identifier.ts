@@ -7,7 +7,7 @@ import {
 } from "./library-utils";
 import { EvmMessageTrace, isCreateTrace } from "./message-trace";
 import { Bytecode } from "./model";
-import { Opcode } from "./opcodes";
+import { getOpcodeLength, Opcode } from "./opcodes";
 
 /**
  * This class represent a somewhat special Trie of bytecodes.
@@ -24,7 +24,7 @@ class BytecodeTrie {
   }
 
   public readonly childNodes: Map<number, BytecodeTrie> = new Map();
-  public readonly descendants: Set<Bytecode> = new Set();
+  public readonly descendants: Bytecode[] = [];
   public match?: Bytecode;
 
   constructor(
@@ -42,14 +42,14 @@ class BytecodeTrie {
     ) {
       if (currentCodeByte === bytecode.normalizedCode.length) {
         // If multiple contracts with the exact same bytecode are added we keep the last of them.
-        // Note that this includes the metadata hash, so the chances of happening are pretty remote, unless
-        // in super artificial cases that we have in our test suite.
+        // Note that this includes the metadata hash, so the chances of happening are pretty remote,
+        // except in super artificial cases that we have in our test suite.
         trieNode.match = bytecode;
         return;
       }
 
       const byte = bytecode.normalizedCode[currentCodeByte];
-      trieNode.descendants.add(bytecode);
+      trieNode.descendants.push(bytecode);
 
       let childNode = trieNode.childNodes.get(byte);
       if (childNode === undefined) {
@@ -203,73 +203,38 @@ export class ContractsIdentifier {
     }
 
     // If we got here we may still have the contract, but with a different metadata hash.
-    // What we do in this case is looking for the end of the code, excluding the metadata hash,
-    // and check if one of its descendants matches except for the metadata.
-
-    const endOfCodeTrie = this._getEndOfActualCodesTrie(searchResult, code);
-
-    if (endOfCodeTrie !== undefined) {
-      const endOfMetadata = this._getEndOfMetadata(code, endOfCodeTrie.depth);
-
-      if (endOfMetadata !== undefined) {
-        for (const descendant of endOfCodeTrie.descendants) {
-          if (descendant.normalizedCode.length === endOfMetadata + 1) {
-            return descendant;
-          }
-        }
-      }
+    //
+    // We check if we got to match the entire executable bytecode, and are just stuck because
+    // of the metadata. If that's the case, we can assume that any descendant will be a valid
+    // Bytecode, so we just choose the most recently added one.
+    //
+    // The reason this works is because there's no chance that Solidity includes an entire
+    // bytecode (i.e. with metadata), as a prefix of another one.
+    if (
+      this._isMatchingMetadata(code, searchResult.depth) &&
+      searchResult.descendants.length > 0
+    ) {
+      return searchResult.descendants[searchResult.descendants.length - 1];
     }
 
     return undefined;
   }
 
   /**
-   * This function looks for the trie that matched the end of the actual bytecode,
-   * before the metadata hash.
-   *
-   * The reason we need this function is that the metadata hashes can have common prefixes,
-   * and we want to ignore them.
-   *
-   * TODO: There's a small chance of false positive happening here. If we want to
-   *  discard that possibility we need to decode the code into instructions and
-   *  find the first appearance of REVERT INVALID.
+   * Returns true if the lastByte is placed right when the metadata starts or after it.
    */
-  private _getEndOfActualCodesTrie(
-    latestMatchedTire: BytecodeTrie,
-    code: Buffer
-  ): BytecodeTrie | undefined {
-    let endOfBytecodeTrie: BytecodeTrie | undefined = latestMatchedTire;
+  private _isMatchingMetadata(code: Buffer, lastByte: number): boolean {
+    for (let byte = 0; byte < lastByte; ) {
+      const opcode = code[byte];
 
-    while (endOfBytecodeTrie !== undefined) {
-      if (
-        code[endOfBytecodeTrie.depth] === Opcode.INVALID &&
-        code[endOfBytecodeTrie.depth - 1] === Opcode.REVERT
-      ) {
-        return endOfBytecodeTrie;
+      // Solidity always emits REVERT INVALID right before the metadata
+      if (opcode === Opcode.REVERT && code[byte + 1] === Opcode.INVALID) {
+        return true;
       }
 
-      endOfBytecodeTrie = endOfBytecodeTrie.parent;
+      byte += getOpcodeLength(opcode);
     }
-  }
 
-  /**
-   * This function looks for the end of the metadata hash, and returns undefined if
-   * it can't find it.
-   */
-  private _getEndOfMetadata(code: Buffer, endOfActualCode: number) {
-    let endOfMetadata = code.length - 1;
-
-    while (endOfMetadata > endOfActualCode) {
-      // The last two bytes of the metadata hash are its big endian length
-      // so we check for that.
-      //
-      // We just check for the length here. Chances of a false positive are very low.
-      const length = code[endOfMetadata] + code[endOfMetadata - 1] * 256;
-      if (endOfActualCode + 2 + length === endOfMetadata) {
-        return endOfMetadata;
-      }
-
-      endOfMetadata -= 1;
-    }
+    return false;
   }
 }
