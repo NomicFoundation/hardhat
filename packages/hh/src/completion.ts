@@ -36,9 +36,7 @@ export async function main() {
       const suggestions = await complete(env);
 
       if (Array.isArray(suggestions)) {
-        return tabtab.log(
-          suggestions.map((suggestion) => ({ name: suggestion }))
-        );
+        return tabtab.log(suggestions);
       }
 
       if (suggestions === HARDHAT_COMPLETE_FILES) {
