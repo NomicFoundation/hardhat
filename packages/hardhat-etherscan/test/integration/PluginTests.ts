@@ -6,6 +6,8 @@ import {
 import type { task as taskT } from "hardhat/config";
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import type { CompilerInput } from "hardhat/types";
+// tslint:disable-next-line: no-implicit-dependencies
+import nock from "nock";
 import path from "path";
 
 import {
@@ -433,6 +435,11 @@ describe("Plugin integration tests", function () {
               "The verification should throw an error when there's an undetectable library address but no libraries parameter was passed."
             );
           })
+          .then(() =>
+            assert.fail(
+              "The verify task should fail when the deployed bytecode is marked with an unexpected compiler version."
+            )
+          )
           .catch((reason) => {
             expect(reason).to.be.an.instanceOf(
               NomicLabsHardhatPluginError,
