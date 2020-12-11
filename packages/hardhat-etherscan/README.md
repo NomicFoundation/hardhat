@@ -102,13 +102,13 @@ The module can then be loaded by the `verify` task when invoked like this:
 npx hardhat verify --constructor-args arguments.js DEPLOYED_CONTRACT_ADDRESS
 ```
 
-### Verification subtask
+### Using programmatically
 
-If you want to call the verification task from within a Hardhat task or script, we recommend using the `"verify:verify"` subtask. Assuming the same contract as [above](#complex-arguments), you can run this subtask like this:
+To call the verification task from within a Hardhat task or script, use the `"verify:verify"` subtask. Assuming the same contract as [above](#complex-arguments), you can run the subtask like this:
 
 
 ```js
-const { success } = await hre.run("verify:verify", {
+await hre.run("verify:verify", {
   address: contractAddress,
   constructorArguments: [
     50,
@@ -122,7 +122,7 @@ const { success } = await hre.run("verify:verify", {
 })
 ```
 
-The subtask returns an object with a `success` boolean field. All kinds of errors are thrown as `HardhatPluginError`s but this may change in the future.
+If the verification is not successful, an error will be thrown.
 
 ## How it works
 
