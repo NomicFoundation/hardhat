@@ -6,10 +6,12 @@ import {
 import type { task as taskT } from "hardhat/config";
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import type { CompilerInput } from "hardhat/types";
-import nock from "nock";
 import path from "path";
 
-import { TASK_VERIFY_GET_MINIMUM_BUILD } from "../../src/constants";
+import {
+  TASK_VERIFY_GET_ETHERSCAN_ENDPOINT,
+  TASK_VERIFY_GET_MINIMUM_BUILD,
+} from "../../src/constants";
 import { useEnvironment } from "../helpers";
 
 // These are skipped because they can't currently be run in CI
@@ -123,27 +125,22 @@ describe("Plugin integration tests", function () {
 
     let signer: any;
 
-    // This environment variable allows us to avoid the network name check for this mock environment.
-    before(function () {
-      process.env.HARDHAT_ETHERSCAN_MOCK_NETWORK_TESTS = "yes";
-    });
-
-    after(function () {
-      process.env.HARDHAT_ETHERSCAN_MOCK_NETWORK_TESTS = "no";
-    });
-
     beforeEach(async function () {
       // We ensure that the compile task was run at least once before disallowing net connections.
       // This avoids failure due to compiler downloads.
       await this.env.run(TASK_COMPILE, { quiet: true });
-      nock.disableNetConnect();
+
+      const { task }: { task: typeof taskT } = require("hardhat/config");
+
+      // We override this task to avoid posting to an actual endpoint and to avoid our own sanity checks.
+      task(TASK_VERIFY_GET_ETHERSCAN_ENDPOINT).setAction(
+        async (_, hre, runSuper) => {
+          return "http://localhost:54321";
+        }
+      );
       const { ethers } = this.env as any;
       const signers = await ethers.getSigners();
       signer = signers[0];
-    });
-
-    afterEach(function () {
-      nock.enableNetConnect();
     });
 
     it("Minimum build subtask should work with simple project", async function () {
