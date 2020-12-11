@@ -131,6 +131,14 @@ const plugins = [
     tags: ["Security", "Upgrades", "OpenZeppelin"],
   },
   {
+    name: "@tenderly/hardhat-tenderly",
+    author: "Tenderly",
+    authorUrl: "https://tenderly.co/",
+    url: "https://github.com/Tenderly/hardhat-tenderly/tree/master",
+    description: "Easily integrate your Hardhat project with Tenderly. Tenderly is an Ethereum monitoring, debugging and analytics platform.",
+    tags: ["Debuggin", "Monitoring", "Alerting", "Tasks", "Scripts"],
+  },
+  {
     name: "hardhat-typechain",
     author: "Rahul Sethuram",
     authorUrl: "https://twitter.com/rhlsthrm",
