@@ -5,10 +5,7 @@ import {
   TASK_COMPILE_SOLIDITY_GET_DEPENDENCY_GRAPH,
 } from "hardhat/builtin-tasks/task-names";
 import { extendConfig, subtask, task, types } from "hardhat/config";
-import {
-  HARDHAT_NETWORK_NAME,
-  NomicLabsHardhatPluginError,
-} from "hardhat/plugins";
+import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import {
   ActionType,
   Artifacts,
@@ -146,17 +143,6 @@ const verifySubtask: ActionType<VerificationSubtaskArgs> = async (
       `Please provide an Etherscan API token via hardhat config.
 E.g.: { [...], etherscan: { apiKey: 'an API key' }, [...] }
 See https://etherscan.io/apis`
-    );
-  }
-
-  // TODO: look for a better way to bypass this check during tests
-  if (
-    network.name === HARDHAT_NETWORK_NAME &&
-    process.env.HARDHAT_ETHERSCAN_MOCK_NETWORK_TESTS !== "yes"
-  ) {
-    throw new NomicLabsHardhatPluginError(
-      pluginName,
-      `The selected network is ${network.name}. Please select a network supported by Etherscan.`
     );
   }
 
