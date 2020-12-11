@@ -1,6 +1,5 @@
 import { assert, expect } from "chai";
 import { HardhatPluginError } from "hardhat/plugins";
-// tslint:disable-next-line: no-implicit-dependencies
 import nock from "nock";
 import semver from "semver";
 
