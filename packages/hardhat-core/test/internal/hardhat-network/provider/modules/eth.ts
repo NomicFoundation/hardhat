@@ -431,6 +431,66 @@ describe("Eth module", function () {
             "0x0000000000000000000000000000000000000000000000000000000000000000"
           );
         });
+
+        it("should run in the context of the blocktag's block", async function () {
+          const contractAddress = await deployContract(
+            this.provider,
+            `0x${EXAMPLE_READ_CONTRACT.bytecode.object}`
+          );
+
+          await this.provider.send("evm_mine", []);
+          await this.provider.send("evm_mine", []);
+
+          const blockResult = await this.provider.send("eth_call", [
+            {
+              to: contractAddress,
+              data: EXAMPLE_READ_CONTRACT.selectors.blockNumber,
+            },
+            "0x1",
+          ]);
+
+          assert.equal(
+            blockResult,
+            "0x0000000000000000000000000000000000000000000000000000000000000001"
+          );
+        });
+
+        it("should accept a gas limit higher than the block gas limit being used", async function () {
+          const contractAddress = await deployContract(
+            this.provider,
+            `0x${EXAMPLE_READ_CONTRACT.bytecode.object}`
+          );
+
+          const gas = "0x5f5e100"; // 100M gas
+
+          const blockResult = await this.provider.send("eth_call", [
+            {
+              to: contractAddress,
+              data: EXAMPLE_READ_CONTRACT.selectors.blockNumber,
+              gas,
+            },
+            "0x1",
+          ]);
+
+          assert.equal(
+            blockResult,
+            "0x0000000000000000000000000000000000000000000000000000000000000001"
+          );
+
+          const blockResult2 = await this.provider.send("eth_call", [
+            {
+              to: contractAddress,
+              data: EXAMPLE_READ_CONTRACT.selectors.blockNumber,
+              gas,
+            },
+            "pending",
+          ]);
+
+          assert.equal(
+            blockResult2,
+            "0x0000000000000000000000000000000000000000000000000000000000000002"
+          );
+        });
       });
 
       describe("eth_chainId", async function () {

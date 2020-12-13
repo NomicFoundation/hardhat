@@ -10,11 +10,12 @@ export const Block: BlockConstructor = EthBlock;
 
 // tslint:disable-next-line:no-misused-new
 type BlockConstructor = new (
-  data?: BlockData | null,
+  data?: BlockData | null | [Buffer[], Buffer[], Buffer[]],
   chainOptions?: { common: Common }
 ) => Block;
 
 export interface Block {
+  readonly raw: [Buffer[], Buffer[], Buffer[]];
   readonly header: BlockHeader;
   readonly transactions: Transaction[];
   readonly uncleHeaders: BlockHeader[];

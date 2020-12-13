@@ -399,7 +399,7 @@ export class HardhatNode extends EventEmitter {
     });
 
     const result = await this._runInBlockContext(blockNumber, () =>
-      this._runTxAndRevertMutations(tx, blockNumber === null)
+      this._runTxAndRevertMutations(tx, blockNumber ?? undefined, true)
     );
 
     let vmTrace = this._vmTracer.getLastTopLevelMessageTrace();
@@ -1358,14 +1358,18 @@ If you are using a wallet or dapp, try resetting your wallet's accounts.`
    */
   private async _runTxAndRevertMutations(
     tx: Transaction,
-    runOnNewBlock: boolean = true
+    blockNumber?: BN,
+    // See: https://github.com/ethereumjs/ethereumjs-vm/issues/1014
+    workaroundEthCallGasLimitIssue = false
   ): Promise<EVMResult> {
     const initialStateRoot = await this._stateManager.getStateRoot();
 
+    let blockContext: Block | undefined;
+    let previousGasLimit: Buffer | undefined;
+
     try {
-      let blockContext;
       // if the context is to estimate gas or run calls in pending block
-      if (runOnNewBlock) {
+      if (blockNumber === undefined) {
         const [blockTimestamp] = this._calculateTimestampAndOffset();
 
         blockContext = await this._getNextBlockTemplate(blockTimestamp);
@@ -1383,9 +1387,29 @@ If you are using a wallet or dapp, try resetting your wallet's accounts.`
         // run the call in a block that is as close to the real one as
         // possible, hence putting the tx to the block is good to have here.
         await this._addTransactionToBlock(blockContext, tx);
+
+        if (workaroundEthCallGasLimitIssue) {
+          const txGasLimit = new BN(tx.gasLimit);
+          const blockGasLimit = new BN(blockContext.header.gasLimit);
+
+          if (txGasLimit.gt(blockGasLimit)) {
+            blockContext.header.gasLimit = tx.gasLimit;
+          }
+        }
       } else {
-        // if the context is to run calls with the latest block
-        blockContext = await this.getLatestBlock();
+        // if the context is to run calls with a block
+        // We know that this block number exists.
+        blockContext = (await this.getBlockByNumber(blockNumber))!;
+
+        if (workaroundEthCallGasLimitIssue) {
+          const txGasLimit = new BN(tx.gasLimit);
+          const blockGasLimit = new BN(blockContext.header.gasLimit);
+
+          if (txGasLimit.gt(blockGasLimit)) {
+            previousGasLimit = blockContext.header.gasLimit;
+            blockContext.header.gasLimit = tx.gasLimit;
+          }
+        }
       }
 
       return await this._vm.runTx({
@@ -1395,6 +1419,14 @@ If you are using a wallet or dapp, try resetting your wallet's accounts.`
         skipBalance: true,
       });
     } finally {
+      if (
+        blockContext !== undefined &&
+        workaroundEthCallGasLimitIssue &&
+        previousGasLimit !== undefined
+      ) {
+        blockContext.header.gasLimit = previousGasLimit;
+      }
+
       await this._stateManager.setStateRoot(initialStateRoot);
     }
   }
