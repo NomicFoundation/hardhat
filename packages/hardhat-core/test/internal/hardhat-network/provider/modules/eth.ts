@@ -2,6 +2,7 @@ import { assert } from "chai";
 import { BN, bufferToHex, toBuffer, zeroAddress } from "ethereumjs-util";
 import { Context } from "mocha";
 
+import { rpcQuantityToNumber } from "../../../../../src/internal/core/providers/provider-utils";
 import { InvalidInputError } from "../../../../../src/internal/hardhat-network/provider/errors";
 import { randomAddress } from "../../../../../src/internal/hardhat-network/provider/fork/random";
 import { COINBASE_ADDRESS } from "../../../../../src/internal/hardhat-network/provider/node";
@@ -438,6 +439,10 @@ describe("Eth module", function () {
             `0x${EXAMPLE_READ_CONTRACT.bytecode.object}`
           );
 
+          const blockNumber = rpcQuantityToNumber(
+            await this.provider.send("eth_blockNumber", [])
+          );
+
           await this.provider.send("evm_mine", []);
           await this.provider.send("evm_mine", []);
 
@@ -446,19 +451,20 @@ describe("Eth module", function () {
               to: contractAddress,
               data: EXAMPLE_READ_CONTRACT.selectors.blockNumber,
             },
-            "0x1",
+            numberToRpcQuantity(blockNumber),
           ]);
 
-          assert.equal(
-            blockResult,
-            "0x0000000000000000000000000000000000000000000000000000000000000001"
-          );
+          assert.equal(dataToNumber(blockResult), blockNumber);
         });
 
         it("should accept a gas limit higher than the block gas limit being used", async function () {
           const contractAddress = await deployContract(
             this.provider,
             `0x${EXAMPLE_READ_CONTRACT.bytecode.object}`
+          );
+
+          const blockNumber = rpcQuantityToNumber(
+            await this.provider.send("eth_blockNumber", [])
           );
 
           const gas = "0x5f5e100"; // 100M gas
@@ -469,13 +475,10 @@ describe("Eth module", function () {
               data: EXAMPLE_READ_CONTRACT.selectors.blockNumber,
               gas,
             },
-            "0x1",
+            numberToRpcQuantity(blockNumber),
           ]);
 
-          assert.equal(
-            blockResult,
-            "0x0000000000000000000000000000000000000000000000000000000000000001"
-          );
+          assert.equal(dataToNumber(blockResult), blockNumber);
 
           const blockResult2 = await this.provider.send("eth_call", [
             {
@@ -486,10 +489,7 @@ describe("Eth module", function () {
             "pending",
           ]);
 
-          assert.equal(
-            blockResult2,
-            "0x0000000000000000000000000000000000000000000000000000000000000002"
-          );
+          assert.equal(dataToNumber(blockResult2), blockNumber + 1);
         });
       });
 
