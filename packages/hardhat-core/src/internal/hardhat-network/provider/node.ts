@@ -71,6 +71,7 @@ import { makeForkClient } from "./utils/makeForkClient";
 import { makeForkCommon } from "./utils/makeForkCommon";
 import { makeStateTrie } from "./utils/makeStateTrie";
 import { putGenesisBlock } from "./utils/putGenesisBlock";
+import { assertHardhatInvariant } from "../../core/errors";
 
 const log = debug("hardhat:core:hardhat-network:node");
 
@@ -1394,8 +1395,15 @@ If you are using a wallet or dapp, try resetting your wallet's accounts.`
         }
       } else {
         // if the context is to run calls with a block
-        // We know that this block number exists.
-        blockContext = (await this.getBlockByNumber(blockNumber))!;
+        // We know that this block number exists, because otherwise
+        // there would be an error in the RPC layer.
+        const block = await this.getBlockByNumber(blockNumber);
+        assertHardhatInvariant(
+          block !== undefined,
+          "Tried to run a tx in the context of a non-existent block"
+        );
+
+        blockContext = block;
 
         if (workaroundEthCallGasLimitIssue) {
           const txGasLimit = new BN(tx.gasLimit);
