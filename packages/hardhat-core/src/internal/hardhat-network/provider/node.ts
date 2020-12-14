@@ -1351,10 +1351,6 @@ If you are using a wallet or dapp, try resetting your wallet's accounts.`
   /**
    * This function runs a transaction and reverts all the modifications that it
    * makes.
-   *
-   * If throwOnError is true, errors are managed locally and thrown on
-   * failure. If it's false, the tx's RunTxResult is returned, and the vmTracer
-   * inspected/reset.
    */
   private async _runTxAndRevertMutations(
     tx: Transaction,
