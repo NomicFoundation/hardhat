@@ -1384,15 +1384,6 @@ If you are using a wallet or dapp, try resetting your wallet's accounts.`
         // run the call in a block that is as close to the real one as
         // possible, hence putting the tx to the block is good to have here.
         await this._addTransactionToBlock(blockContext, tx);
-
-        if (workaroundEthCallGasLimitIssue) {
-          const txGasLimit = new BN(tx.gasLimit);
-          const blockGasLimit = new BN(blockContext.header.gasLimit);
-
-          if (txGasLimit.gt(blockGasLimit)) {
-            blockContext.header.gasLimit = tx.gasLimit;
-          }
-        }
       } else {
         // if the context is to run calls with a block
         // We know that this block number exists, because otherwise
@@ -1404,15 +1395,15 @@ If you are using a wallet or dapp, try resetting your wallet's accounts.`
         );
 
         blockContext = block;
+      }
 
-        if (workaroundEthCallGasLimitIssue) {
-          const txGasLimit = new BN(tx.gasLimit);
-          const blockGasLimit = new BN(blockContext.header.gasLimit);
+      if (workaroundEthCallGasLimitIssue) {
+        const txGasLimit = new BN(tx.gasLimit);
+        const blockGasLimit = new BN(blockContext.header.gasLimit);
 
-          if (txGasLimit.gt(blockGasLimit)) {
-            previousGasLimit = blockContext.header.gasLimit;
-            blockContext.header.gasLimit = tx.gasLimit;
-          }
+        if (txGasLimit.gt(blockGasLimit)) {
+          previousGasLimit = blockContext.header.gasLimit;
+          blockContext.header.gasLimit = tx.gasLimit;
         }
       }
 
@@ -1423,10 +1414,13 @@ If you are using a wallet or dapp, try resetting your wallet's accounts.`
         skipBalance: true,
       });
     } finally {
+      // If we changed the block's gas limit of an already existing block,
+      // we restore it here.
       if (
         blockContext !== undefined &&
         workaroundEthCallGasLimitIssue &&
-        previousGasLimit !== undefined
+        previousGasLimit !== undefined &&
+        blockNumber !== undefined
       ) {
         blockContext.header.gasLimit = previousGasLimit;
       }
