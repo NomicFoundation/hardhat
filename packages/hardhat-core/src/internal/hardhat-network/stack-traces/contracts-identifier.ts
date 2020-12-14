@@ -7,6 +7,7 @@ import {
 } from "./library-utils";
 import { EvmMessageTrace, isCreateTrace } from "./message-trace";
 import { Bytecode } from "./model";
+import { getOpcodeLength, Opcode } from "./opcodes";
 
 /**
  * This class represent a somewhat special Trie of bytecodes.
@@ -23,10 +24,13 @@ class BytecodeTrie {
   }
 
   public readonly childNodes: Map<number, BytecodeTrie> = new Map();
-  public readonly descendants: Set<Bytecode> = new Set();
+  public readonly descendants: Bytecode[] = [];
   public match?: Bytecode;
 
-  constructor(public readonly depth: number) {}
+  constructor(
+    public readonly depth: number,
+    public readonly parent?: BytecodeTrie
+  ) {}
 
   public add(bytecode: Bytecode) {
     // tslint:disable-next-line no-this-assignment
@@ -37,18 +41,19 @@ class BytecodeTrie {
       currentCodeByte += 1
     ) {
       if (currentCodeByte === bytecode.normalizedCode.length) {
-        // If multiple contracts with the exact same bytecode are added we keep the last of them,
-        // which is probably correct, especially if we are going to support multiple compilations
+        // If multiple contracts with the exact same bytecode are added we keep the last of them.
+        // Note that this includes the metadata hash, so the chances of happening are pretty remote,
+        // except in super artificial cases that we have in our test suite.
         trieNode.match = bytecode;
         return;
       }
 
       const byte = bytecode.normalizedCode[currentCodeByte];
-      trieNode.descendants.add(bytecode);
+      trieNode.descendants.push(bytecode);
 
       let childNode = trieNode.childNodes.get(byte);
       if (childNode === undefined) {
-        childNode = new BytecodeTrie(currentCodeByte);
+        childNode = new BytecodeTrie(currentCodeByte, trieNode);
         trieNode.childNodes.set(byte, childNode);
       }
 
@@ -143,7 +148,19 @@ export class ContractsIdentifier {
       return searchResult;
     }
 
-    // Create traces are followed by metadata that we don't index
+    // Deployment messages have their abi-encoded arguments at the end of the bytecode.
+    //
+    // We don't know how long those arguments are, as we don't know which contract is being
+    // deployed, hence we don't know the signature of its constructor.
+    //
+    // To make things even harder, we can't trust that the user actually passed the right
+    // amount of arguments.
+    //
+    // Luckily, the chances of a complete deployment bytecode being the prefix of another one are
+    // remote. For example, most of the time it ends with its metadata hash, which will differ.
+    //
+    // We take advantage of this last observation, and just return the bytecode that exactly
+    // matched the searchResult (sub)trie that we got.
     if (
       isCreateTrace(trace) &&
       searchResult.match !== undefined &&
@@ -185,6 +202,39 @@ export class ContractsIdentifier {
       }
     }
 
+    // If we got here we may still have the contract, but with a different metadata hash.
+    //
+    // We check if we got to match the entire executable bytecode, and are just stuck because
+    // of the metadata. If that's the case, we can assume that any descendant will be a valid
+    // Bytecode, so we just choose the most recently added one.
+    //
+    // The reason this works is because there's no chance that Solidity includes an entire
+    // bytecode (i.e. with metadata), as a prefix of another one.
+    if (
+      this._isMatchingMetadata(code, searchResult.depth) &&
+      searchResult.descendants.length > 0
+    ) {
+      return searchResult.descendants[searchResult.descendants.length - 1];
+    }
+
     return undefined;
+  }
+
+  /**
+   * Returns true if the lastByte is placed right when the metadata starts or after it.
+   */
+  private _isMatchingMetadata(code: Buffer, lastByte: number): boolean {
+    for (let byte = 0; byte < lastByte; ) {
+      const opcode = code[byte];
+
+      // Solidity always emits REVERT INVALID right before the metadata
+      if (opcode === Opcode.REVERT && code[byte + 1] === Opcode.INVALID) {
+        return true;
+      }
+
+      byte += getOpcodeLength(opcode);
+    }
+
+    return false;
   }
 }
