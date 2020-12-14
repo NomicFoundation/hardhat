@@ -27,10 +27,7 @@ class BytecodeTrie {
   public readonly descendants: Bytecode[] = [];
   public match?: Bytecode;
 
-  constructor(
-    public readonly depth: number,
-    public readonly parent?: BytecodeTrie
-  ) {}
+  constructor(public readonly depth: number) {}
 
   public add(bytecode: Bytecode) {
     // tslint:disable-next-line no-this-assignment
@@ -53,7 +50,7 @@ class BytecodeTrie {
 
       let childNode = trieNode.childNodes.get(byte);
       if (childNode === undefined) {
-        childNode = new BytecodeTrie(currentCodeByte, trieNode);
+        childNode = new BytecodeTrie(currentCodeByte);
         trieNode.childNodes.set(byte, childNode);
       }
 
