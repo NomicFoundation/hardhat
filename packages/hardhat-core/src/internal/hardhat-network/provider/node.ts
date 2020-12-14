@@ -101,12 +101,12 @@ export class HardhatNode extends EventEmitter {
     let blockchain: HardhatBlockchain | ForkBlockchain;
     let initialBlockTimeOffset: BN | undefined;
 
-    if (config.type === "forked") {
+    if ("forkConfig" in config) {
       const { forkClient, forkBlockNumber } = await makeForkClient(
         config.forkConfig,
         config.forkCachePath
       );
-      common = await makeForkCommon(forkClient, forkBlockNumber);
+      common = await makeForkCommon(config);
 
       stateManager = new ForkStateManager(
         forkClient,
