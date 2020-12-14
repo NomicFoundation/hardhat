@@ -2,6 +2,7 @@ import { assert } from "chai";
 import { BN, bufferToHex, toBuffer, zeroAddress } from "ethereumjs-util";
 import { Context } from "mocha";
 
+import { rpcQuantityToNumber } from "../../../../../src/internal/core/providers/provider-utils";
 import { InvalidInputError } from "../../../../../src/internal/hardhat-network/provider/errors";
 import { randomAddress } from "../../../../../src/internal/hardhat-network/provider/fork/random";
 import { COINBASE_ADDRESS } from "../../../../../src/internal/hardhat-network/provider/node";
@@ -430,6 +431,65 @@ describe("Eth module", function () {
             resultBlock1m,
             "0x0000000000000000000000000000000000000000000000000000000000000000"
           );
+        });
+
+        it("should run in the context of the blocktag's block", async function () {
+          const contractAddress = await deployContract(
+            this.provider,
+            `0x${EXAMPLE_READ_CONTRACT.bytecode.object}`
+          );
+
+          const blockNumber = rpcQuantityToNumber(
+            await this.provider.send("eth_blockNumber", [])
+          );
+
+          await this.provider.send("evm_mine", []);
+          await this.provider.send("evm_mine", []);
+
+          const blockResult = await this.provider.send("eth_call", [
+            {
+              to: contractAddress,
+              data: EXAMPLE_READ_CONTRACT.selectors.blockNumber,
+            },
+            numberToRpcQuantity(blockNumber),
+          ]);
+
+          assert.equal(dataToNumber(blockResult), blockNumber);
+        });
+
+        it("should accept a gas limit higher than the block gas limit being used", async function () {
+          const contractAddress = await deployContract(
+            this.provider,
+            `0x${EXAMPLE_READ_CONTRACT.bytecode.object}`
+          );
+
+          const blockNumber = rpcQuantityToNumber(
+            await this.provider.send("eth_blockNumber", [])
+          );
+
+          const gas = "0x5f5e100"; // 100M gas
+
+          const blockResult = await this.provider.send("eth_call", [
+            {
+              to: contractAddress,
+              data: EXAMPLE_READ_CONTRACT.selectors.blockNumber,
+              gas,
+            },
+            numberToRpcQuantity(blockNumber),
+          ]);
+
+          assert.equal(dataToNumber(blockResult), blockNumber);
+
+          const blockResult2 = await this.provider.send("eth_call", [
+            {
+              to: contractAddress,
+              data: EXAMPLE_READ_CONTRACT.selectors.blockNumber,
+              gas,
+            },
+            "pending",
+          ]);
+
+          assert.equal(dataToNumber(blockResult2), blockNumber + 1);
         });
       });
 

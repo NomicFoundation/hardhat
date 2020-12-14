@@ -302,6 +302,8 @@ export class HardhatNetworkProvider extends EventEmitter
       }
     );
 
+    this._logger.enable(this._loggingEnabled);
+
     this._forwardNodeEvents(node);
   }
 
