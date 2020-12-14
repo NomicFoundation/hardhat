@@ -24,7 +24,8 @@ jobs:
             node_modules
             packages/*/node_modules
             packages/hardhat-core/test/internal/hardhat-network/stack-traces/compilers
-          key: ${{ runner.os }}-node-10-${{ hashFiles('yarn.lock') }}
+            packages/hardhat-core/test/internal/hardhat-network/provider/.hardhat_node_test_cache
+          key: ${{ runner.os }}-node-${{ matrix.node }}-${{ hashFiles('yarn.lock') }}-${{ hashFiles('packages/hardhat-core/test/internal/hardhat-network/provider/node.ts') }}
       - name: Install node-gyp-cache
         run: |
           yarn global add node-gyp-cache
@@ -55,7 +56,8 @@ jobs:
             node_modules
             packages/*/node_modules
             packages/hardhat-core/test/internal/hardhat-network/stack-traces/compilers
-          key: ${{ runner.os }}-node-10-${{ hashFiles('yarn.lock') }}}
+            packages/hardhat-core/test/internal/hardhat-network/provider/.hardhat_node_test_cache
+          key: ${{ runner.os }}-node-${{ matrix.node }}-${{ hashFiles('yarn.lock') }}-${{ hashFiles('packages/hardhat-core/test/internal/hardhat-network/provider/node.ts') }}
       - name: Install node-gyp-cache
         run: |
           yarn global add node-gyp-cache
@@ -98,7 +100,8 @@ jobs:
             node_modules
             packages/*/node_modules
             packages/hardhat-core/test/internal/hardhat-network/stack-traces/compilers
-          key: ${{ runner.os }}-node-10-${{ hashFiles('yarn.lock') }}}
+            packages/hardhat-core/test/internal/hardhat-network/provider/.hardhat_node_test_cache
+          key: ${{ runner.os }}-node-${{ matrix.node }}-${{ hashFiles('yarn.lock') }}-${{ hashFiles('packages/hardhat-core/test/internal/hardhat-network/provider/node.ts') }}
       - name: Install node-gyp-cache
         run: |
           yarn global add node-gyp-cache
@@ -133,7 +136,8 @@ jobs:
             node_modules
             packages/*/node_modules
             packages/hardhat-core/test/internal/hardhat-network/stack-traces/compilers
-          key: ${{ runner.os }}-node-${{ matrix.node }}-${{ hashFiles('yarn.lock') }}}
+            packages/hardhat-core/test/internal/hardhat-network/provider/.hardhat_node_test_cache
+          key: ${{ runner.os }}-node-${{ matrix.node }}-${{ hashFiles('yarn.lock') }}-${{ hashFiles('packages/hardhat-core/test/internal/hardhat-network/provider/node.ts') }}
       - name: Install node-gyp-cache
         run: |
           yarn global add node-gyp-cache
