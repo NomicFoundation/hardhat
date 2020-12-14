@@ -2383,6 +2383,40 @@ describe("Eth module", function () {
             0
           );
         });
+
+        it("should get an existing transaction from mainnet", async function () {
+          if (!isFork) {
+            this.skip();
+          }
+
+          const tx = await this.provider.send("eth_getTransactionByHash", [
+            "0x5a4bf6970980a9381e6d6c78d96ab278035bbff58c383ffe96a0a2bbc7c02a4b",
+          ]);
+
+          assert.equal(tx.from, "0x8a9d69aa686fa0f9bbdec21294f67d4d9cfb4a3e");
+        });
+
+        it("should get an existing transaction from rinkeby", async function () {
+          const { ALCHEMY_URL } = process.env;
+          if (!isFork || ALCHEMY_URL === undefined || ALCHEMY_URL === "") {
+            this.skip();
+          }
+          const rinkebyUrl = ALCHEMY_URL.replace("mainnet", "rinkeby");
+
+          await this.provider.send("hardhat_reset", [
+            {
+              forking: {
+                jsonRpcUrl: rinkebyUrl,
+              },
+            },
+          ]);
+
+          const tx = await this.provider.send("eth_getTransactionByHash", [
+            "0x9f8322fbfc0092c0493d4421626e682a0ef0a56ea37efe8f29cda804cca92e7f",
+          ]);
+
+          assert.equal(tx.from, "0xbc3109d75dffaae85ef595902e3bd70fe0643b3b");
+        });
       });
 
       describe("eth_getTransactionCount", async function () {
