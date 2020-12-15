@@ -24,7 +24,10 @@ describe("HardhatNode", function () {
 
     const blockNumber = 9300077;
     const config: ForkedNodeConfig = {
-      type: "forked",
+      networkName: "mainnet",
+      chainId: 1,
+      networkId: 1,
+      hardfork: "muirGlacier",
       forkConfig: {
         jsonRpcUrl: ALCHEMY_URL,
         blockNumber,
