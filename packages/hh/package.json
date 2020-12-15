@@ -36,6 +36,8 @@
     "hardhat": "^2.0.0"
   },
   "dependencies": {
-    "@fvictorio/tabtab": "^0.0.3"
+    "@fvictorio/tabtab": "^0.0.3",
+    "debug": "^4.3.1",
+    "semver": "^7.3.4"
   }
 }

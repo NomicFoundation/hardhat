@@ -1,5 +1,13 @@
 #!/usr/bin/env node
 import tabtab from "@fvictorio/tabtab";
+import debug from "debug";
+import * as fs from "fs";
+import * as path from "path";
+import semver from "semver";
+
+const log = debug("hh");
+
+const REQUIRED_HARDHAT_VERSION_RANGE = ">=2.0.7";
 
 export async function main() {
   const cmd = process.argv[2];
@@ -21,18 +29,54 @@ export async function main() {
   }
 
   if (cmd === "completion") {
-    const env = tabtab.parseEnv(process.env);
+    let pathToHardhatPackageJson: string;
+
     try {
-      const pathToHardhatAutocomplete = require.resolve(
-        "hardhat/internal/cli/autocomplete",
-        {
-          paths: [process.cwd()],
-        }
+      // tslint:disable-next-line no-implicit-dependencies
+      pathToHardhatPackageJson = require.resolve("hardhat/package.json", {
+        paths: [process.cwd()],
+      });
+    } catch (e) {
+      // not inside a hardhat project
+      return;
+    }
+
+    try {
+      const env = tabtab.parseEnv(process.env);
+
+      // check hh's dependency on hardhat
+      const hardhatVersion = require(pathToHardhatPackageJson).version;
+      const pathToHardhatAutocomplete = getRequirePathFromCwd(
+        "hardhat/internal/cli/autocomplete"
       );
+
+      if (
+        !semver.satisfies(hardhatVersion, REQUIRED_HARDHAT_VERSION_RANGE) ||
+        pathToHardhatAutocomplete === null
+      ) {
+        logWarningWithThrottling(
+          `Couldn't get autocomplete for this project. The installed version of hh requires a hardhat version that satisfies ${REQUIRED_HARDHAT_VERSION_RANGE}, but this project uses ${hardhatVersion}`
+        );
+        return;
+      }
+
+      // check hardhat's dependency on hh
+      const hhVersion = require("../../package.json").version;
+
       const {
         complete,
         HARDHAT_COMPLETE_FILES,
+        REQUIRED_HH_VERSION_RANGE,
       } = require(pathToHardhatAutocomplete);
+
+      if (!semver.satisfies(hhVersion, REQUIRED_HH_VERSION_RANGE)) {
+        logWarningWithThrottling(
+          `Couldn't get autocomplete for this project. The version of hardhat used in this project requires an hh version that satisfies ${REQUIRED_HH_VERSION_RANGE}, but your version of hh is ${hhVersion}`
+        );
+        return;
+      }
+
+      // get and print suggestions
       const suggestions = await complete(env);
 
       if (Array.isArray(suggestions)) {
@@ -46,6 +90,7 @@ export async function main() {
       console.error("Couldn't complete the command, please report this issue");
       return tabtab.log([]);
     } catch (e) {
+      log(e.message);
       return tabtab.log([]);
     }
   }
@@ -54,6 +99,36 @@ export async function main() {
     `Unrecognized command "${cmd}". You can install Hardhat completion with the "install" command.`
   );
   process.exit(1);
+}
+
+function logWarningWithThrottling(message: string) {
+  // we need to write a file to disk to do the throttling because zsh calls the
+  // autocomplete function several times, and these are separate processes
+  const throttleFile = path.join(__dirname, ".hh-throttle-file");
+
+  if (fs.existsSync(throttleFile) && fileAge(throttleFile) < 5000) {
+    // if the throttle file is recent, we don't do anything
+    return;
+  }
+
+  console.warn(message);
+  fs.writeFileSync(throttleFile, "");
+}
+
+function fileAge(file: string): number {
+  const stats = fs.statSync(file);
+  return Date.now() - stats.mtimeMs;
+}
+
+function getRequirePathFromCwd(moduleToRequire: string): string | null {
+  try {
+    const pathToRequire = require.resolve(moduleToRequire, {
+      paths: [process.cwd()],
+    });
+    return pathToRequire;
+  } catch (e) {
+    return null;
+  }
 }
 
 main()
