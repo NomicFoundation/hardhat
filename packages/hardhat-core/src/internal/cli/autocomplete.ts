@@ -50,7 +50,7 @@ interface CachedCompletionData {
 
 export const HARDHAT_COMPLETE_FILES = "__hardhat_complete_files__";
 
-export const REQUIRED_HH_VERSION_RANGE = "*";
+export const REQUIRED_HH_VERSION_RANGE = "^1.0.0";
 
 export async function complete({
   line,
