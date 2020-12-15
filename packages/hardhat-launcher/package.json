@@ -1,5 +1,5 @@
 {
-  "name": "@nomiclabs/hh",
+  "name": "@nomiclabs/hardhat-launcher",
   "version": "1.0.0",
   "description": "Launcher binary for Hardhat",
   "homepage": "https://github.com/nomiclabs/hardhat/tree/master/packages/hh",
