@@ -2,6 +2,7 @@ import { assert } from "chai";
 import { BN, bufferToHex, toBuffer, zeroAddress } from "ethereumjs-util";
 import { Context } from "mocha";
 
+import { rpcQuantityToNumber } from "../../../../../src/internal/core/providers/provider-utils";
 import { InvalidInputError } from "../../../../../src/internal/hardhat-network/provider/errors";
 import { randomAddress } from "../../../../../src/internal/hardhat-network/provider/fork/random";
 import { COINBASE_ADDRESS } from "../../../../../src/internal/hardhat-network/provider/node";
@@ -430,6 +431,65 @@ describe("Eth module", function () {
             resultBlock1m,
             "0x0000000000000000000000000000000000000000000000000000000000000000"
           );
+        });
+
+        it("should run in the context of the blocktag's block", async function () {
+          const contractAddress = await deployContract(
+            this.provider,
+            `0x${EXAMPLE_READ_CONTRACT.bytecode.object}`
+          );
+
+          const blockNumber = rpcQuantityToNumber(
+            await this.provider.send("eth_blockNumber", [])
+          );
+
+          await this.provider.send("evm_mine", []);
+          await this.provider.send("evm_mine", []);
+
+          const blockResult = await this.provider.send("eth_call", [
+            {
+              to: contractAddress,
+              data: EXAMPLE_READ_CONTRACT.selectors.blockNumber,
+            },
+            numberToRpcQuantity(blockNumber),
+          ]);
+
+          assert.equal(dataToNumber(blockResult), blockNumber);
+        });
+
+        it("should accept a gas limit higher than the block gas limit being used", async function () {
+          const contractAddress = await deployContract(
+            this.provider,
+            `0x${EXAMPLE_READ_CONTRACT.bytecode.object}`
+          );
+
+          const blockNumber = rpcQuantityToNumber(
+            await this.provider.send("eth_blockNumber", [])
+          );
+
+          const gas = "0x5f5e100"; // 100M gas
+
+          const blockResult = await this.provider.send("eth_call", [
+            {
+              to: contractAddress,
+              data: EXAMPLE_READ_CONTRACT.selectors.blockNumber,
+              gas,
+            },
+            numberToRpcQuantity(blockNumber),
+          ]);
+
+          assert.equal(dataToNumber(blockResult), blockNumber);
+
+          const blockResult2 = await this.provider.send("eth_call", [
+            {
+              to: contractAddress,
+              data: EXAMPLE_READ_CONTRACT.selectors.blockNumber,
+              gas,
+            },
+            "pending",
+          ]);
+
+          assert.equal(dataToNumber(blockResult2), blockNumber + 1);
         });
       });
 
@@ -2382,6 +2442,40 @@ describe("Eth module", function () {
             block.hash,
             0
           );
+        });
+
+        it("should get an existing transaction from mainnet", async function () {
+          if (!isFork) {
+            this.skip();
+          }
+
+          const tx = await this.provider.send("eth_getTransactionByHash", [
+            "0x5a4bf6970980a9381e6d6c78d96ab278035bbff58c383ffe96a0a2bbc7c02a4b",
+          ]);
+
+          assert.equal(tx.from, "0x8a9d69aa686fa0f9bbdec21294f67d4d9cfb4a3e");
+        });
+
+        it("should get an existing transaction from rinkeby", async function () {
+          const { ALCHEMY_URL } = process.env;
+          if (!isFork || ALCHEMY_URL === undefined || ALCHEMY_URL === "") {
+            this.skip();
+          }
+          const rinkebyUrl = ALCHEMY_URL.replace("mainnet", "rinkeby");
+
+          await this.provider.send("hardhat_reset", [
+            {
+              forking: {
+                jsonRpcUrl: rinkebyUrl,
+              },
+            },
+          ]);
+
+          const tx = await this.provider.send("eth_getTransactionByHash", [
+            "0x9f8322fbfc0092c0493d4421626e682a0ef0a56ea37efe8f29cda804cca92e7f",
+          ]);
+
+          assert.equal(tx.from, "0xbc3109d75dffaae85ef595902e3bd70fe0643b3b");
         });
       });
 

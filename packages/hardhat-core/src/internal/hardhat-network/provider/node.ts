@@ -21,6 +21,7 @@ import EventEmitter from "events";
 
 import { CompilerInput, CompilerOutput } from "../../../types";
 import { HARDHAT_NETWORK_DEFAULT_GAS_PRICE } from "../../core/config/default-config";
+import { assertHardhatInvariant } from "../../core/errors";
 import { Reporter } from "../../sentry/reporter";
 import { getDifferenceInSeconds } from "../../util/date";
 import { createModelsAndDecodeBytecodes } from "../stack-traces/compiler-to-model";
@@ -100,12 +101,12 @@ export class HardhatNode extends EventEmitter {
     let blockchain: HardhatBlockchain | ForkBlockchain;
     let initialBlockTimeOffset: BN | undefined;
 
-    if (config.type === "forked") {
+    if ("forkConfig" in config) {
       const { forkClient, forkBlockNumber } = await makeForkClient(
         config.forkConfig,
         config.forkCachePath
       );
-      common = await makeForkCommon(forkClient, forkBlockNumber);
+      common = await makeForkCommon(config);
 
       stateManager = new ForkStateManager(
         forkClient,
@@ -399,7 +400,7 @@ export class HardhatNode extends EventEmitter {
     });
 
     const result = await this._runInBlockContext(blockNumber, () =>
-      this._runTxAndRevertMutations(tx, blockNumber === null)
+      this._runTxAndRevertMutations(tx, blockNumber ?? undefined, true)
     );
 
     let vmTrace = this._vmTracer.getLastTopLevelMessageTrace();
@@ -1351,21 +1352,21 @@ If you are using a wallet or dapp, try resetting your wallet's accounts.`
   /**
    * This function runs a transaction and reverts all the modifications that it
    * makes.
-   *
-   * If throwOnError is true, errors are managed locally and thrown on
-   * failure. If it's false, the tx's RunTxResult is returned, and the vmTracer
-   * inspected/reset.
    */
   private async _runTxAndRevertMutations(
     tx: Transaction,
-    runOnNewBlock: boolean = true
+    blockNumber?: BN,
+    // See: https://github.com/ethereumjs/ethereumjs-vm/issues/1014
+    workaroundEthCallGasLimitIssue = false
   ): Promise<EVMResult> {
     const initialStateRoot = await this._stateManager.getStateRoot();
 
+    let blockContext: Block | undefined;
+    let previousGasLimit: Buffer | undefined;
+
     try {
-      let blockContext;
       // if the context is to estimate gas or run calls in pending block
-      if (runOnNewBlock) {
+      if (blockNumber === undefined) {
         const [blockTimestamp] = this._calculateTimestampAndOffset();
 
         blockContext = await this._getNextBlockTemplate(blockTimestamp);
@@ -1384,8 +1385,26 @@ If you are using a wallet or dapp, try resetting your wallet's accounts.`
         // possible, hence putting the tx to the block is good to have here.
         await this._addTransactionToBlock(blockContext, tx);
       } else {
-        // if the context is to run calls with the latest block
-        blockContext = await this.getLatestBlock();
+        // if the context is to run calls with a block
+        // We know that this block number exists, because otherwise
+        // there would be an error in the RPC layer.
+        const block = await this.getBlockByNumber(blockNumber);
+        assertHardhatInvariant(
+          block !== undefined,
+          "Tried to run a tx in the context of a non-existent block"
+        );
+
+        blockContext = block;
+      }
+
+      if (workaroundEthCallGasLimitIssue) {
+        const txGasLimit = new BN(tx.gasLimit);
+        const blockGasLimit = new BN(blockContext.header.gasLimit);
+
+        if (txGasLimit.gt(blockGasLimit)) {
+          previousGasLimit = blockContext.header.gasLimit;
+          blockContext.header.gasLimit = tx.gasLimit;
+        }
       }
 
       return await this._vm.runTx({
@@ -1395,6 +1414,17 @@ If you are using a wallet or dapp, try resetting your wallet's accounts.`
         skipBalance: true,
       });
     } finally {
+      // If we changed the block's gas limit of an already existing block,
+      // we restore it here.
+      if (
+        blockContext !== undefined &&
+        workaroundEthCallGasLimitIssue &&
+        previousGasLimit !== undefined &&
+        blockNumber !== undefined
+      ) {
+        blockContext.header.gasLimit = previousGasLimit;
+      }
+
       await this._stateManager.setStateRoot(initialStateRoot);
     }
   }

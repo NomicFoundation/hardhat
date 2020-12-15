@@ -1,9 +1,6 @@
 // reused from ethers.js
 import { BN, toBuffer } from "ethereumjs-util";
 
-export const REMOTE_NETWORK_ID = 1;
-export const REMOTE_CHAIN_ID = 1;
-
 export const DAI_ADDRESS = toBuffer(
   "0x6b175474e89094c44da98b954eedeac495271d0f"
 );
