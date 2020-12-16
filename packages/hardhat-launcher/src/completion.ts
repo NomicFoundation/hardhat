@@ -54,8 +54,8 @@ export async function main() {
         !semver.satisfies(hardhatVersion, REQUIRED_HARDHAT_VERSION_RANGE) ||
         pathToHardhatAutocomplete === null
       ) {
-        logWarningWithThrottling(
-          `Couldn't get autocomplete for this project. The installed version of hh requires a hardhat version that satisfies ${REQUIRED_HARDHAT_VERSION_RANGE}, but this project uses ${hardhatVersion}`
+        await logWarningWithThrottling(
+          `\nCouldn't get autocomplete for this project. The installed version of hh requires a hardhat version that satisfies ${REQUIRED_HARDHAT_VERSION_RANGE}, but this project uses ${hardhatVersion}`
         );
         return;
       }
@@ -70,8 +70,8 @@ export async function main() {
       } = require(pathToHardhatAutocomplete);
 
       if (!semver.satisfies(hhVersion, REQUIRED_HH_VERSION_RANGE)) {
-        logWarningWithThrottling(
-          `Couldn't get autocomplete for this project. The version of hardhat used in this project requires an hh version that satisfies ${REQUIRED_HH_VERSION_RANGE}, but your version of hh is ${hhVersion}`
+        await logWarningWithThrottling(
+          `\nCouldn't get autocomplete for this project. The version of hardhat used in this project requires an hh version that satisfies ${REQUIRED_HH_VERSION_RANGE}, but your version of hh is ${hhVersion}`
         );
         return;
       }
@@ -87,7 +87,9 @@ export async function main() {
         return tabtab.logFiles();
       }
 
-      console.error("Couldn't complete the command, please report this issue");
+      console.error(
+        "\nCouldn't complete the command, please report this issue"
+      );
       return tabtab.log([]);
     } catch (e) {
       log(e.message);
