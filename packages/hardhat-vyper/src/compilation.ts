@@ -52,11 +52,11 @@ export async function compile(
     const pathFromSources = path.relative(paths.sources, file);
 
     if (await isAlreadyCompiled(file, paths, vyperVersion, files)) {
-      console.log(pathFromCWD, "is already compiled");
+      console.log("✓", pathFromCWD, "is already compiled");
       continue;
     }
 
-    console.log("Compiling", pathFromCWD);
+    console.log("⌛ Compiling", pathFromCWD);
 
     const processResult = await handleCommonErrors(
       compileWithDocker(file, docker, dockerImage, paths)
