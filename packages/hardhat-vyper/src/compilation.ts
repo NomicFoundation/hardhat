@@ -100,18 +100,20 @@ async function isAlreadyCompiled(
   }
 
   const contractName = pathToContractName(sourceFile);
-  const contractPath = `/contracts/${sourceFile.split("/contracts")[1]}`;
+  const contractPath = `/contracts${sourceFile.split("/contracts")[1]}`;
   const artifactPath = path.join(paths.artifacts, `${contractPath}/${contractName}.json`);
 
   if (!(await fsExtra.pathExists(artifactPath))) {
     return false;
   }
+  
+  const sourceFilePath = sources.find(s => s.includes(contractPath));
+  if (!sourceFilePath) {
+    return false;
+  }
 
+  const lastSourcesCtime = (await fsExtra.stat(sourceFilePath)).ctimeMs;
   const artifactCtime = (await fsExtra.stat(artifactPath)).ctimeMs;
-
-  const stats = await Promise.all(sources.map((f) => fsExtra.stat(f)));
-
-  const lastSourcesCtime = Math.max(...stats.map((s) => s.ctimeMs));
 
   return lastSourcesCtime < artifactCtime;
 }
