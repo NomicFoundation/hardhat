@@ -100,7 +100,9 @@ async function isAlreadyCompiled(
   }
 
   const contractName = pathToContractName(sourceFile);
-  const artifactPath = path.join(paths.artifacts, `${contractName}.json`);
+  const contractPath = `/contracts/${sourceFile.split("/contracts")[1]}`;
+  const artifactPath = path.join(paths.artifacts, `${contractPath}/${contractName}.json`);
+
   if (!(await fsExtra.pathExists(artifactPath))) {
     return false;
   }
