@@ -10,6 +10,10 @@ import { PROVIDERS } from "../../helpers/providers";
 
 describe("Hardhat module", function () {
   PROVIDERS.forEach(({ name, useProvider, isFork }) => {
+    if (isFork) {
+      this.timeout(50000);
+    }
+
     describe(`${name} provider`, function () {
       setCWD();
       useProvider();
