@@ -101,10 +101,17 @@ export async function main() {
   process.exit(1);
 }
 
-function logWarningWithThrottling(message: string) {
+async function logWarningWithThrottling(message: string) {
   // we need to write a file to disk to do the throttling because zsh calls the
   // autocomplete function several times, and these are separate processes
-  const throttleFile = path.join(__dirname, ".hh-throttle-file");
+  const pathToGlobalDirModule = getRequirePathFromCwd(
+    "hardhat/internal/util/global-dir"
+  )!; // we know it exists because otherwise we would've exited earlier
+
+  const { getCacheDir } = require(pathToGlobalDirModule);
+
+  const globalCacheDir = await getCacheDir();
+  const throttleFile = path.join(globalCacheDir, ".hh-throttle-file");
 
   if (fs.existsSync(throttleFile) && fileAge(throttleFile) < 5000) {
     // if the throttle file is recent, we don't do anything
