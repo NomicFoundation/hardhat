@@ -31,6 +31,7 @@ import {
   TASK_VERIFY_GET_CONSTRUCTOR_ARGUMENTS,
   TASK_VERIFY_GET_CONTRACT_INFORMATION,
   TASK_VERIFY_GET_ETHERSCAN_ENDPOINT,
+  TASK_VERIFY_GET_LIBRARIES,
   TASK_VERIFY_GET_MINIMUM_BUILD,
   TASK_VERIFY_VERIFY,
   TASK_VERIFY_VERIFY_MINIMUM_BUILD,
@@ -70,6 +71,8 @@ interface VerificationArgs {
   constructorArgs?: string;
   // Fully qualified name of the contract
   contract?: string;
+  // Filename of libraries module
+  libraries?: string;
 }
 
 interface VerificationSubtaskArgs {
@@ -116,6 +119,7 @@ const verify: ActionType<VerificationArgs> = async (
     constructorArgsParams,
     constructorArgs: constructorArgsModule,
     contract,
+    libraries: librariesModule,
   },
   { run }
 ) => {
@@ -126,6 +130,10 @@ const verify: ActionType<VerificationArgs> = async (
       constructorArgsParams,
     }
   );
+
+  const libraries: Libraries = await run(TASK_VERIFY_GET_LIBRARIES, {
+    librariesModule,
+  });
 
   return run(TASK_VERIFY_VERIFY, {
     address,
@@ -337,6 +345,43 @@ module.exports = [ arg1, arg2, ... ];`
         throw new NomicLabsHardhatPluginError(
           pluginName,
           `Importing the module for the constructor arguments list failed.
+Reason: ${error.message}`,
+          error
+        );
+      }
+    }
+  );
+
+subtask(TASK_VERIFY_GET_LIBRARIES)
+  .addOptionalParam("librariesModule", undefined, undefined, types.inputFile)
+  .setAction(
+    async ({
+      librariesModule,
+    }: {
+      librariesModule?: string;
+    }): Promise<Libraries | undefined> => {
+      if (typeof librariesModule !== "string") {
+        return;
+      }
+
+      const librariesModulePath = path.resolve(process.cwd(), librariesModule);
+
+      try {
+        const libraries = (await import(librariesModulePath)).default;
+
+        if (typeof libraries !== "object") {
+          throw new NomicLabsHardhatPluginError(
+            pluginName,
+            `The module ${librariesModulePath} doesn't export a dictionary. The module should look like this:
+module.exports = { lib1: "0x...", lib2: "0x...", ... };`
+          );
+        }
+
+        return libraries;
+      } catch (error) {
+        throw new NomicLabsHardhatPluginError(
+          pluginName,
+          `Importing the module for the libraries dictionary failed.
 Reason: ${error.message}`,
           error
         );
@@ -708,6 +753,14 @@ task(TASK_VERIFY, "Verifies contract on Etherscan")
     "Fully qualified name of the contract to verify. " +
       "Skips automatic detection of the contract. " +
       "Use if the deployed bytecode matches more than one contract in your project."
+  )
+  .addOptionalParam(
+    "libraries",
+    "File path to a javascript module that exports the dictionary of library addresses for your contract. " +
+      "Use if there are undetectable library addresses in your contract. " +
+      "Library addresses can be undetectable if they are only used in the constructor for your contract.",
+    undefined,
+    types.inputFile
   )
   .addOptionalVariadicPositionalParam(
     "constructorArgsParams",
