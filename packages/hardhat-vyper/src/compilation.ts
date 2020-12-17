@@ -51,7 +51,7 @@ export async function compile(
     const pathFromCWD = path.relative(process.cwd(), file);
     const pathFromSources = path.relative(paths.sources, file);
 
-    if (await isAlreadyCompiled(file, paths, vyperVersion, files)) {
+    if (await isAlreadyCompiled(file, paths, vyperVersion)) {
       console.log("✓", pathFromCWD, "is already compiled");
       continue;
     }
@@ -92,7 +92,6 @@ async function isAlreadyCompiled(
   sourceFile: string,
   paths: ProjectPathsConfig,
   vyperVersion: string,
-  sources: string[]
 ) {
   const lastVyperVersionUsed = await getLastVyperVersionUsed(paths);
   if (lastVyperVersionUsed !== vyperVersion) {
@@ -111,12 +110,7 @@ async function isAlreadyCompiled(
     return false;
   }
 
-  const sourceFilePath = sources.find((s) => s.includes(sourceName));
-  if (sourceFilePath === undefined) {
-    return false;
-  }
-
-  const lastSourcesCtime = (await fsExtra.stat(sourceFilePath)).ctimeMs;
+  const lastSourcesCtime = (await fsExtra.stat(sourceFile)).ctimeMs;
   const artifactCtime = (await fsExtra.stat(artifactPath)).ctimeMs;
 
   return lastSourcesCtime < artifactCtime;
