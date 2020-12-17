@@ -277,8 +277,12 @@ describe("Plugin integration tests", function () {
                 "The error should indicate the verification failure."
               )
               .and.include(
-                "constructor libraries",
+                "This contract makes use of libraries that are undetectable by the plugin",
                 "Constructor libraries should be listed as a possible cause of failure."
+              )
+              .and.include(
+                "ConstructorLib",
+                "The names of the constructor libraries should be enumerated."
               );
           });
       });
@@ -398,17 +402,170 @@ describe("Plugin integration tests", function () {
 
     describe("without a libraries parameter", function () {
       it("should fail when library parameter was not provided but there's an undetectable library", async function () {
-        assert.fail("not implemented");
+        const deployedLib = await deployContract(
+          "ConstructorLib",
+          [],
+          this.env,
+          1,
+          { signer }
+        );
+
+        const libraries = {
+          ConstructorLib: deployedLib,
+        };
+
+        const aNumber = 50;
+        const deployedAddress = await deployContract(
+          "OnlyConstructorLib",
+          [aNumber],
+          this.env,
+          1,
+          { signer, libraries }
+        );
+
+        return this.env
+          .run("verify:verify", {
+            address: deployedAddress,
+            constructorArguments: [aNumber],
+          })
+          .then(() => {
+            assert.fail(
+              "The verification should throw an error when there's an undetectable library address but no libraries parameter was passed."
+            );
+          })
+          .catch((reason) => {
+            expect(reason).to.be.an.instanceOf(
+              NomicLabsHardhatPluginError,
+              "A Hardhat plugin error should be thrown"
+            );
+
+            expect(reason.message)
+              .to.be.a("string")
+              .and.include(
+                "has one or more library addresses that cannot be detected from deployed bytecode",
+                "The error message should communicate the verification error."
+              )
+              .and.include(
+                "ConstructorLib",
+                "The error message should enumerate the missing library links."
+              );
+          });
       });
     });
 
     describe("with a libraries parameter", function () {
       it("should fail when there is one missing library used only in the constructor", async function () {
-        assert.fail("not implemented");
+        const constructorLib = await deployContract(
+          "ConstructorLib",
+          [],
+          this.env,
+          1,
+          { signer }
+        );
+        const normalLib = await deployContract("NormalLib", [], this.env, 1, {
+          signer,
+        });
+
+        const libraries = {
+          ConstructorLib: constructorLib,
+          NormalLib: normalLib,
+        };
+
+        const aNumber = 50;
+        const deployedAddress = await deployContract(
+          "BothLibs",
+          [aNumber],
+          this.env,
+          1,
+          { signer, libraries }
+        );
+
+        return this.env
+          .run("verify:verify", {
+            address: deployedAddress,
+            constructorArguments: [aNumber],
+            libraries: {
+              NormalLib: normalLib,
+            },
+          })
+          .then(() => {
+            assert.fail(
+              "The verification should throw an error when there's an undetectable library address that wasn't specified in the libraries dictionary."
+            );
+          })
+          .catch((reason) => {
+            expect(reason).to.be.an.instanceOf(
+              NomicLabsHardhatPluginError,
+              "A Hardhat plugin error should be thrown"
+            );
+
+            expect(reason.message)
+              .to.be.a("string")
+              .and.include(
+                "has one or more library addresses that cannot be detected from deployed bytecode",
+                "The error message should communicate the verification error."
+              )
+              .and.include(
+                "ConstructorLib",
+                "The error message should enumerate the missing library links."
+              );
+          });
       });
 
-      it("should fail when there is one library link with an incorrect address", async function () {
-        assert.fail("not implemented");
+      it("should fail when one detectable library address is given that is incorrect", async function () {
+        const deployedLib = await deployContract("NormalLib", [], this.env, 1, {
+          signer,
+        });
+
+        const libraries = {
+          NormalLib: deployedLib,
+        };
+
+        const deployedAddress = await deployContract(
+          "OnlyNormalLib",
+          [],
+          this.env,
+          1,
+          { signer, libraries }
+        );
+
+        return this.env
+          .run("verify:verify", {
+            address: deployedAddress,
+            libraries: {
+              NormalLib: deployedAddress,
+            },
+          })
+          .then(() => {
+            assert.fail(
+              "The verification should throw an error when there's a detectable library address that is incorrect."
+            );
+          })
+          .catch((reason) => {
+            expect(reason).to.be.an.instanceOf(
+              NomicLabsHardhatPluginError,
+              "A Hardhat plugin error should be thrown"
+            );
+
+            expect(reason.message)
+              .to.be.a("string")
+              .and.include(
+                "The following detected library addresses are different from the ones provided",
+                "The error message should communicate the library address mismatch."
+              )
+              .and.include(
+                "NormalLib",
+                "The error message should enumerate the conflicting library links."
+              )
+              .and.include(
+                deployedAddress,
+                "The error message should describe the given library address."
+              )
+              .and.include(
+                deployedLib.toLowerCase(),
+                "The error message should describe the detected library address."
+              );
+          });
       });
     });
 

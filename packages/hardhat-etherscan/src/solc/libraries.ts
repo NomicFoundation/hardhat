@@ -73,7 +73,7 @@ export async function getLibraryLinks(
       .map(({ sourceName, libName }) => `${sourceName}:${libName}`)
       .map((x) => `  * ${x}`)
       .join("\n");
-    let message = `The contract ${contractInformation.sourceName}:${contractInformation.contractName} has one or more library references that cannot be detected from deployed bytecode.
+    let message = `The contract ${contractInformation.sourceName}:${contractInformation.contractName} has one or more library addresses that cannot be detected from deployed bytecode.
 This can occur if the library is only called in the contract constructor. The missing libraries are:
 ${missingLibraryNames}`;
     // We want to distinguish the case when no undetectable libraries were provided to give a more helpful message.
@@ -88,15 +88,6 @@ where libraries.js looks like this:
 
 module.exports = {
   SomeLibrary: "0x...",
-}
-
-If you are using the "verify:verify" subtask, then you may pass the libraries parameter with such a dictionary directly:
-
-hre.run("verify:verify", {
-  <other args>
-  libraries: {
-    SomeLibrary: "0x...",
-  }
 }`;
     } else {
       message += `
@@ -143,8 +134,10 @@ function mergeLibraries(
       .join("\n");
     throw new NomicLabsHardhatPluginError(
       pluginName,
-      `The following libraries were detected with a different address than the one provided:
-${conflictDescriptions}`
+      `The following detected library addresses are different from the ones provided:
+${conflictDescriptions}
+
+You can either fix these addresses in your libraries dictionary or simply remove them to let the plugin autodetect them.`
     );
   }
 

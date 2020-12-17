@@ -222,12 +222,15 @@ Possible causes are:
   // Make sure that contract artifacts are up-to-date.
   await run(TASK_COMPILE);
 
-  const contractInformation = await run(TASK_VERIFY_GET_CONTRACT_INFORMATION, {
-    contractFQN,
-    deployedBytecode,
-    matchingCompilerVersions,
-    libraries,
-  });
+  const contractInformation: Required<ContractInformation> = await run(
+    TASK_VERIFY_GET_CONTRACT_INFORMATION,
+    {
+      contractFQN,
+      deployedBytecode,
+      matchingCompilerVersions,
+      libraries,
+    }
+  );
 
   const deployArgumentsEncoded = await encodeArguments(
     contractInformation.contract.abi,
@@ -276,12 +279,20 @@ Possible causes are:
   // TODO: Add known edge cases here.
   // E.g:
   // - "Unable to locate ContractCode at <address>"
-  // - Address of library used in constructor is wrong
-  throw new NomicLabsHardhatPluginError(
-    pluginName,
-    `The contract verification failed.
-Reason: ${verificationStatus.message}`
-  );
+  let message = `The contract verification failed.
+Reason: ${verificationStatus.message}`;
+  if (contractInformation.undetectableLibraries.length > 0) {
+    const undetectableLibraryNames = contractInformation.undetectableLibraries
+      .map(({ sourceName, libName }) => `${sourceName}:${libName}`)
+      .map((x) => `  * ${x}`)
+      .join("\n");
+    message += `
+This contract makes use of libraries that are undetectable by the plugin.
+Keep in mind that this verification failure may be due to passing in the wrong
+address for one of these undetectable libraries:
+${undetectableLibraryNames}`;
+  }
+  throw new NomicLabsHardhatPluginError(pluginName, message);
 };
 
 subtask(TASK_VERIFY_GET_CONSTRUCTOR_ARGUMENTS)

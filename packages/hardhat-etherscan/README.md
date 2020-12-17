@@ -124,6 +124,19 @@ await hre.run("verify:verify", {
 
 If the verification is not successful, an error will be thrown.
 
+#### Libraries with undetectable addresses
+
+If your contract has libraries with undetectable addresses, you may pass the libraries parameter with a dictionary specifying them:
+
+```js
+hre.run("verify:verify", {
+  <other args>
+  libraries: {
+    SomeLibrary: "0x...",
+  }
+}
+```
+
 ## How it works
 
 The plugin works by fetching the bytecode in the given address and using it to check which contract in your project corresponds to it. Besides that, some sanity checks are performed locally to make sure that the verification won't fail.
