@@ -12,7 +12,7 @@ import {
   TASK_VERIFY_GET_ETHERSCAN_ENDPOINT,
   TASK_VERIFY_GET_MINIMUM_BUILD,
 } from "../../src/constants";
-import { useEnvironment } from "../helpers";
+import { deployContract, getRandomString, useEnvironment } from "../helpers";
 
 // These are skipped because they can't currently be run in CI
 describe("Plugin integration tests", function () {
@@ -44,7 +44,7 @@ describe("Plugin integration tests", function () {
         async (_, hre, runSuper) => {
           const solcInput: CompilerInput = await runSuper();
           for (const source of Object.values(solcInput.sources)) {
-            source.content = source.content.replace("placeholder", mutation);
+            source.content = source.content.replace(/placeholder/gu, mutation);
           }
           return solcInput;
         }
@@ -116,6 +116,171 @@ describe("Plugin integration tests", function () {
           constructorArgsParams: [amount],
           contract: "contracts/TestContract1.sol:TestContract1",
         });
+      });
+    });
+
+    describe("without a libraries parameter", function () {
+      it("should verify when library parameter was not provided and libraries are automatically detectable", async function () {
+        const deployedLib = await deployContract("NormalLib", [], this.env, 2);
+
+        const deployedAddress = await deployContract(
+          "OnlyNormalLib",
+          [],
+          this.env,
+          undefined,
+          { libraries: { NormalLib: deployedLib } }
+        );
+
+        return this.env.run("verify", {
+          address: deployedAddress,
+          constructorArgsParams: [],
+        });
+      });
+    });
+
+    describe("with a libraries parameter", function () {
+      it("should verify when the library address used in constructor is correct", async function () {
+        const deployedLib = await deployContract(
+          "ConstructorLib",
+          [],
+          this.env,
+          2
+        );
+
+        const libraries = {
+          "contracts/WithLibs.sol:ConstructorLib": deployedLib,
+        };
+
+        const aNumber = 50;
+        const deployedAddress = await deployContract(
+          "OnlyConstructorLib",
+          [aNumber],
+          this.env,
+          undefined,
+          { libraries }
+        );
+
+        return this.env.run("verify:verify", {
+          address: deployedAddress,
+          constructorArguments: [aNumber],
+          libraries,
+        });
+      });
+
+      it("should still autodetect unspecified libraries", async function () {
+        const normalLib = await deployContract("NormalLib", [], this.env, 1);
+        const constructorLib = await deployContract(
+          "ConstructorLib",
+          [],
+          this.env,
+          2
+        );
+
+        const libraries = {
+          "contracts/WithLibs.sol:ConstructorLib": constructorLib,
+          "contracts/WithLibs.sol:NormalLib": normalLib,
+        };
+
+        const aNumber = 50;
+        const deployedAddress = await deployContract(
+          "BothLibs",
+          [aNumber],
+          this.env,
+          undefined,
+          { libraries }
+        );
+
+        return this.env.run("verify:verify", {
+          address: deployedAddress,
+          constructorArguments: [aNumber],
+          libraries: {
+            "contracts/WithLibs.sol:ConstructorLib": constructorLib,
+          },
+        });
+      });
+
+      it("should verify when both a constructor and a normal library address are provided", async function () {
+        const normalLib = await deployContract("NormalLib", [], this.env, 1);
+        const constructorLib = await deployContract(
+          "ConstructorLib",
+          [],
+          this.env,
+          2
+        );
+
+        const libraries = {
+          ConstructorLib: constructorLib,
+          NormalLib: normalLib,
+        };
+
+        const aNumber = 50;
+        const deployedAddress = await deployContract(
+          "BothLibs",
+          [aNumber],
+          this.env,
+          undefined,
+          { libraries }
+        );
+
+        return this.env.run("verify:verify", {
+          address: deployedAddress,
+          constructorArguments: [aNumber],
+          libraries,
+        });
+      });
+
+      // This test can only fail with the response from etherscan
+      it("should fail when there is one incorrect library address that is used only in the constructor", async function () {
+        const deployedLib = await deployContract(
+          "ConstructorLib",
+          [],
+          this.env,
+          2
+        );
+
+        const libraries = {
+          "contracts/WithLibs.sol:ConstructorLib": deployedLib,
+        };
+
+        const aNumber = 50;
+        const deployedAddress = await deployContract(
+          "OnlyConstructorLib",
+          [aNumber],
+          this.env,
+          undefined,
+          { libraries }
+        );
+
+        return this.env
+          .run("verify:verify", {
+            address: deployedAddress,
+            constructorArguments: [aNumber],
+            libraries: {
+              ConstructorLib: "0x8d8AC01B3508Ca869cB631Bb2977202Fbb574a0d",
+            },
+          })
+          .then(() => {
+            assert.fail(
+              "Verification should have failed when providing the wrong address for an undetectable library."
+            );
+          })
+          .catch((reason) => {
+            expect(reason).to.be.an.instanceOf(
+              NomicLabsHardhatPluginError,
+              "The Etherscan backend should fail this verification"
+            );
+
+            expect(reason.message)
+              .to.be.a("string")
+              .and.include(
+                "contract verification failed",
+                "The error should indicate the verification failure."
+              )
+              .and.include(
+                "constructor libraries",
+                "Constructor libraries should be listed as a possible cause of failure."
+              );
+          });
       });
     });
   });
@@ -231,6 +396,22 @@ describe("Plugin integration tests", function () {
         });
     });
 
+    describe("without a libraries parameter", function () {
+      it("should fail when library parameter was not provided but there's an undetectable library", async function () {
+        assert.fail("not implemented");
+      });
+    });
+
+    describe("with a libraries parameter", function () {
+      it("should fail when there is one missing library used only in the constructor", async function () {
+        assert.fail("not implemented");
+      });
+
+      it("should fail when there is one library link with an incorrect address", async function () {
+        assert.fail("not implemented");
+      });
+    });
+
     describe("With contract fully qualified name parameter", function () {
       it("Should fail to verify contract with a different version", async function () {
         const deployedAddress = await deployContract(
@@ -273,24 +454,3 @@ describe("Plugin integration tests", function () {
     });
   });
 });
-
-function getRandomString({ ethers }: any): string {
-  return ethers.Wallet.createRandom().address;
-}
-
-async function deployContract(
-  contractName: string,
-  constructorArguments: any[],
-  { ethers }: any,
-  confirmations: number = 5,
-  signer?: any
-) {
-  if (signer === undefined) {
-    signer = new ethers.Wallet(process.env.WALLET_PRIVATE_KEY, ethers.provider);
-  }
-
-  const factory = await ethers.getContractFactory(contractName, signer);
-  const contract = await factory.deploy(...constructorArguments);
-  await contract.deployTransaction.wait(confirmations);
-  return contract.address;
-}

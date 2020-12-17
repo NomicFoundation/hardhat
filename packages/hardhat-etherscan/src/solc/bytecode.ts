@@ -7,6 +7,7 @@ import {
 } from "hardhat/types";
 import { parseFullyQualifiedName } from "hardhat/utils/contract-names";
 
+import { LibraryNames } from "./libraries";
 import {
   inferSolcVersion,
   measureExecutableSectionLength,
@@ -19,7 +20,7 @@ interface BytecodeExtractedData {
   normalizedBytecode: string;
 }
 
-interface ResolvedLinks {
+export interface ResolvedLinks {
   [sourceName: string]: {
     [libraryName: string]: string;
   };
@@ -39,6 +40,7 @@ export interface ContractInformation extends BytecodeExtractedData {
   sourceName: SourceName;
   contractName: ContractName;
   contract: CompilerOutput["contracts"][SourceName][ContractName];
+  undetectableLibraries?: LibraryNames;
 }
 
 interface BytecodeSlice {

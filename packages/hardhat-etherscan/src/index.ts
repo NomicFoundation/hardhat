@@ -54,6 +54,7 @@ import {
   extractMatchingContractInformation,
   lookupMatchingBytecode,
 } from "./solc/bytecode";
+import { getLibraryLinks, Libraries } from "./solc/libraries";
 import {
   METADATA_ABSENT_VERSION_RANGE,
   METADATA_PRESENT_SOLC_NOT_FOUND_VERSION_RANGE,
@@ -76,6 +77,7 @@ interface VerificationSubtaskArgs {
   constructorArguments: any[];
   // Fully qualified name of the contract
   contract?: string;
+  libraries?: Libraries;
 }
 
 interface Build {
@@ -93,6 +95,7 @@ interface GetContractInformationArgs {
   contractFQN: string;
   deployedBytecode: Bytecode;
   matchingCompilerVersions: string[];
+  libraries?: Libraries;
 }
 
 interface VerifyMinimumBuildArgs {
@@ -132,7 +135,7 @@ const verify: ActionType<VerificationArgs> = async (
 };
 
 const verifySubtask: ActionType<VerificationSubtaskArgs> = async (
-  { address, constructorArguments, contract: contractFQN },
+  { address, constructorArguments, contract: contractFQN, libraries },
   { config, network, run }
 ) => {
   const { etherscan } = config;
@@ -223,6 +226,7 @@ Possible causes are:
     contractFQN,
     deployedBytecode,
     matchingCompilerVersions,
+    libraries,
   });
 
   const deployArgumentsEncoded = await encodeArguments(
@@ -515,9 +519,10 @@ subtask(TASK_VERIFY_GET_CONTRACT_INFORMATION)
         contractFQN,
         deployedBytecode,
         matchingCompilerVersions,
+        libraries,
       }: GetContractInformationArgs,
       { network, artifacts }
-    ): Promise<ContractInformation> => {
+    ): Promise<Required<ContractInformation>> => {
       let contractInformation;
       if (contractFQN !== undefined) {
         // Check this particular contract
@@ -601,22 +606,15 @@ Possible causes are:
         );
       }
 
-      const libraryLinks = contractInformation.libraryLinks;
-      const deployLibraryReferences =
-        contractInformation.contract.evm.bytecode.linkReferences;
-      if (
-        Object.keys(libraryLinks).length <
-        Object.keys(deployLibraryReferences).length
-      ) {
-        throw new NomicLabsHardhatPluginError(
-          pluginName,
-          `The contract ${contractInformation.sourceName}:${contractInformation.contractName} has one or more library references that cannot be detected from deployed bytecode.
-This can occur if the library is only called in the contract constructor.`,
-          undefined,
-          true
-        );
-      }
-      return contractInformation;
+      const { libraryLinks, undetectableLibraries } = await getLibraryLinks(
+        contractInformation,
+        libraries
+      );
+      return {
+        ...contractInformation,
+        libraryLinks,
+        undetectableLibraries,
+      };
     }
   );
 
@@ -711,6 +709,7 @@ subtask(TASK_VERIFY_VERIFY)
   .addParam("address", undefined, undefined, types.string)
   .addOptionalParam("constructorArguments", undefined, [], types.any)
   .addOptionalParam("contract", undefined, undefined, types.string)
+  .addOptionalParam("libraries", undefined, undefined, types.any)
   .setAction(verifySubtask);
 
 function assertHardhatPluginInvariant(
