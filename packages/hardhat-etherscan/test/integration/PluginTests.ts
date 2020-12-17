@@ -277,7 +277,7 @@ describe("Plugin integration tests", function () {
                 "The error should indicate the verification failure."
               )
               .and.include(
-                "This contract makes use of libraries that are undetectable by the plugin",
+                "This contract makes use of libraries whose addresses are undetectable by the plugin",
                 "Constructor libraries should be listed as a possible cause of failure."
               )
               .and.include(

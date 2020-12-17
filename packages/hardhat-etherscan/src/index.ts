@@ -287,20 +287,20 @@ Possible causes are:
   // TODO: Add known edge cases here.
   // E.g:
   // - "Unable to locate ContractCode at <address>"
-  let message = `The contract verification failed.
+  let errorMessage = `The contract verification failed.
 Reason: ${verificationStatus.message}`;
   if (contractInformation.undetectableLibraries.length > 0) {
     const undetectableLibraryNames = contractInformation.undetectableLibraries
       .map(({ sourceName, libName }) => `${sourceName}:${libName}`)
       .map((x) => `  * ${x}`)
       .join("\n");
-    message += `
-This contract makes use of libraries that are undetectable by the plugin.
+    errorMessage += `
+This contract makes use of libraries whose addresses are undetectable by the plugin.
 Keep in mind that this verification failure may be due to passing in the wrong
-address for one of these undetectable libraries:
+address for one of these libraries:
 ${undetectableLibraryNames}`;
   }
-  throw new NomicLabsHardhatPluginError(pluginName, message);
+  throw new NomicLabsHardhatPluginError(pluginName, errorMessage);
 };
 
 subtask(TASK_VERIFY_GET_CONSTRUCTOR_ARGUMENTS)
