@@ -197,8 +197,8 @@ async function normalizeLibraries(
     if (libraryFQNs.has(neededLibraryFQN)) {
       throw new NomicLabsHardhatPluginError(
         pluginName,
-        `The library names ${neededLibrary.libName} and ${neededLibraryFQN} refer to the same library and were given as two separate library links.
-Remove one of them and review your library links before proceeding.`
+        `The library names ${neededLibrary.libName} and ${neededLibraryFQN} refer to the same library and were given as two entries in the libraries dictionary.
+Remove one of them and review your libraries dictionary before proceeding.`
       );
     }
 
@@ -241,14 +241,17 @@ function lookupLibrary(
       detailedMessage += `This contract uses the following external libraries:
 ${undetectableLibraryFQNames}
 ${detectableLibraryFQNames}`;
+      if (detectableLibraries.length > 0) {
+        detailedMessage += `
+Libraries marked as optional don't need to be specified since their addresses are autodetected by the plugin.`;
+      }
     } else {
       detailedMessage += "This contract doesn't use any external libraries.";
     }
     throw new NomicLabsHardhatPluginError(
       pluginName,
-      `You gave a link for the library ${linkedLibraryName}, which is not one of the libraries of contract ${contractName}.
-${detailedMessage}
-Libraries marked as optional don't need to be specified since they are autodetected by the plugin.`
+      `You gave an address for the library ${linkedLibraryName} in the libraries dictionary, which is not one of the libraries of contract ${contractName}.
+${detailedMessage}`
     );
   }
 
@@ -263,7 +266,7 @@ Libraries marked as optional don't need to be specified since they are autodetec
 It may resolve to one of the following libraries:
 ${matchingLibrariesFQNs}
 
-To fix this, choose one of these fully qualified library names and replace where appropriate.`
+To fix this, choose one of these fully qualified library names and replace it in your libraries dictionary.`
     );
   }
 
