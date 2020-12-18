@@ -139,6 +139,7 @@ const verify: ActionType<VerificationArgs> = async (
     address,
     constructorArguments,
     contract,
+    libraries,
   });
 };
 
