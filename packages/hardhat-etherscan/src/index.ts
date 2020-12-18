@@ -759,7 +759,7 @@ task(TASK_VERIFY, "Verifies contract on Etherscan")
     "libraries",
     "File path to a javascript module that exports the dictionary of library addresses for your contract. " +
       "Use if there are undetectable library addresses in your contract. " +
-      "Library addresses can be undetectable if they are only used in the constructor for your contract.",
+      "Library addresses are undetectable if they are only used in the constructor for your contract.",
     undefined,
     types.inputFile
   )
