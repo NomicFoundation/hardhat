@@ -225,7 +225,7 @@ export function getValidationErrors(config: any): string[] {
   if (config !== undefined && typeof config.networks === "object") {
     const hardhatNetwork = config.networks[HARDHAT_NETWORK_NAME];
     if (hardhatNetwork !== undefined) {
-      if (hardhatNetwork.url !== undefined) {
+      if (hardhatNetwork.hasOwnProperty("url")) {
         errors.push(
           `HardhatConfig.networks.${HARDHAT_NETWORK_NAME} can't have an url`
         );

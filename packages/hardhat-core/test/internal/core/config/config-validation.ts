@@ -689,6 +689,20 @@ describe("Config validation", function () {
             assert.isEmpty(errors);
           });
 
+          it("Should fail if url is set for hardhat network (undefined)", function () {
+            const errors = getValidationErrors({
+              networks: { [HARDHAT_NETWORK_NAME]: { url: undefined } },
+            });
+            assert.isNotEmpty(errors);
+          });
+
+          it("Should fail if url is set for hardhat network", function () {
+            const errors = getValidationErrors({
+              networks: { [HARDHAT_NETWORK_NAME]: { url: "anyurl" } },
+            });
+            assert.isNotEmpty(errors);
+          });
+
           it("Shouldn't fail if no url is set for hardhat network", function () {
             const errors = getValidationErrors({
               networks: { [HARDHAT_NETWORK_NAME]: {} },
