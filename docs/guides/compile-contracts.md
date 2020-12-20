@@ -23,6 +23,7 @@ To force a compilation you can use the `--force` argument, or run `npx hardhat c
 If you need to customize the Solidity compiler options, then you can do so through the `solidity` config field in your `hardhat.config.js`. The simplest way to use this field is the shorthand for setting the compiler version, which we recommend always doing:
 
 ```js
+\\ In hardhat.config.js file \\
 module.exports = {
   solidity: "0.7.1"
 }
