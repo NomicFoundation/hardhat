@@ -4,6 +4,8 @@
 # Compilation output
 /build-test/
 /dist
+/plugin
+/types
 
 # Code coverage artifacts
 /coverage

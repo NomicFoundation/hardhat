@@ -6,21 +6,14 @@ import {
   NetworkConfig,
 } from "hardhat/types";
 
+import type { FactoryOptions, Libraries } from "../types";
+
 import type { SignerWithAddress } from "./signer-with-address";
 
 interface Link {
   sourceName: string;
   libraryName: string;
   address: string;
-}
-
-export interface Libraries {
-  [libraryName: string]: string;
-}
-
-export interface FactoryOptions {
-  signer?: ethers.Signer;
-  libraries?: Libraries;
 }
 
 const pluginName = "hardhat-ethers";

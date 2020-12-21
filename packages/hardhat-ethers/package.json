@@ -6,8 +6,8 @@
   "repository": "github:nomiclabs/hardhat",
   "author": "Nomic Labs LLC",
   "license": "MIT",
-  "main": "dist/src/index.js",
-  "types": "dist/src/index.d.ts",
+  "main": "plugin/index.js",
+  "types": "plugin/index.d.ts",
   "keywords": [
     "ethereum",
     "smart-contracts",
@@ -17,14 +17,19 @@
   ],
   "scripts": {
     "lint:fix": "node ../../node_modules/prettier/bin-prettier.js --write \"src/**/*.{js,ts}\" \"test/**/*.{js,ts}\" && yarn lint --fix",
-    "lint": "node ../../node_modules/tslint/bin/tslint --config tslint.json --project ./tsconfig.json",
+    "lint": "yarn lint-src && yarn lint-tests",
+    "lint-tests": "node -r ts-node/register/transpile-only ../../node_modules/tslint/bin/tslint --config tslint.json --project ./tsconfig.json",
+    "lint-src": "node -r ts-node/register/transpile-only ../../node_modules/tslint/bin/tslint --config tslint.json --project ./src/tsconfig.json",
     "test": "node ../../node_modules/mocha/bin/mocha --recursive \"test/**/*.ts\" --exit",
-    "build": "node ../../node_modules/typescript/bin/tsc --build .",
-    "clean": "node ../../node_modules/rimraf/bin.js dist"
+    "build": "node ../../node_modules/typescript/bin/tsc --build src",
+    "build-test": "node ../../node_modules/typescript/bin/tsc --build .",
+    "clean": "node ../../node_modules/rimraf/bin.js dist plugin types build-test tsconfig.tsbuildinfo"
   },
   "files": [
     "dist/src/",
     "src/",
+    "plugin/",
+    "types/",
     "LICENSE",
     "README.md"
   ],
