@@ -268,6 +268,7 @@ To customise it, take a look at [the configuration section](/config/README.md#ha
 
 - `evm_increaseTime` – same as Ganache.
 - `evm_mine` – same as Ganache
+- `evm_mineMultipleBlocks` – this method mines multiple blocks with a single call.
 - `evm_revert` – same as Ganache.
 - `evm_snapshot` – same as Ganache.
 - `evm_setNextBlockTimestamp` - this method works like `evm_increaseTime`, but takes the exact timestamp that you want in the next block, and increases the time accordingly.

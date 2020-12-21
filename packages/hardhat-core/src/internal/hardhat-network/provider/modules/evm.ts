@@ -27,6 +27,9 @@ export class EvmModule {
       case "evm_mine":
         return this._mineAction(...this._mineParams(params));
 
+      case "evm_mineMultipleBlocks":
+        return this._mineMultipleBlocksAction(...this._mineParams(params));
+
       case "evm_revert":
         return this._revertAction(...this._revertParams(params));
 
@@ -99,6 +102,31 @@ export class EvmModule {
     }
     await this._node.mineEmptyBlock(new BN(timestamp));
     return numberToRpcQuantity(0);
+  }
+
+  // evm_mineMultipleBlocks
+
+  private async _mineMultipleBlocksAction(
+    totalBlocks: number
+  ): Promise<string[]> {
+    const res = [];
+
+    if (typeof totalBlocks !== "number" && Buffer.isBuffer(totalBlocks)) {
+      throw new InvalidInputError(
+        `Expected a number for totalBlocks and got ${totalBlocks}`
+      );
+    }
+    if (totalBlocks > 0) {
+      for (let i = 0; i < totalBlocks; i++) {
+        res.push(await this._mineAction(0));
+      }
+    } else {
+      throw new InvalidInputError(
+        `Total blocks to be mined should be greater than zero!`
+      );
+    }
+
+    return res;
   }
 
   // evm_revert
