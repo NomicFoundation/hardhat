@@ -14,6 +14,8 @@ enum NetworkID {
   RINKEBY = 4,
   GOERLI = 5,
   KOVAN = 42,
+  BSC_TESTNET = 97,
+  BSC = 56,
 }
 
 const networkIDtoEndpoint: NetworkMap = {
@@ -22,6 +24,8 @@ const networkIDtoEndpoint: NetworkMap = {
   [NetworkID.RINKEBY]: "https://api-rinkeby.etherscan.io/api",
   [NetworkID.GOERLI]: "https://api-goerli.etherscan.io/api",
   [NetworkID.KOVAN]: "https://api-kovan.etherscan.io/api",
+  [NetworkID.BSC_TESTNET]: "https://api-testnet.bscscan.com/api",
+  [NetworkID.BSC]: "https://api.bscscan.com/api",
 };
 
 export async function getEtherscanEndpoint(
