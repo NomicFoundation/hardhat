@@ -97,7 +97,7 @@ module.exports = {
             ["/guides/ganache-tests.md", "Running tests with Ganache", 0],
             ["/guides/vscode-tests.md", "Running tests on VS Code", 0],
             ["/guides/typescript.md", "TypeScript support", 0],
-            ["/guides/shorthand.md", "Shorthand and autocomplete", 0],
+            ["/guides/shorthand.md", "Shorthand ('hh') and CLI autocomplete", 0],
           ],
         },
         {
