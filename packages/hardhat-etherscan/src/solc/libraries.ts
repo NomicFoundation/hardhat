@@ -1,5 +1,4 @@
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
-import { CompilerOutputBytecode } from "hardhat/types";
 
 import { pluginName } from "../constants";
 
