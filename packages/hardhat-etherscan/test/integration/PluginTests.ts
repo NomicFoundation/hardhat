@@ -334,7 +334,7 @@ describe("Plugin integration tests", function () {
         [amount],
         this.env,
         1,
-        signer
+        { signer }
       );
 
       return this.env
@@ -372,7 +372,7 @@ describe("Plugin integration tests", function () {
         constructorArguments,
         this.env,
         1,
-        signer
+        { signer }
       );
 
       return this.env
@@ -576,7 +576,7 @@ describe("Plugin integration tests", function () {
           [],
           this.env,
           1,
-          signer
+          { signer }
         );
 
         return this.env
