@@ -224,8 +224,8 @@ export function getValidationErrors(config: any): string[] {
   // These can't be validated with io-ts
   if (config !== undefined && typeof config.networks === "object") {
     const hardhatNetwork = config.networks[HARDHAT_NETWORK_NAME];
-    if (hardhatNetwork !== undefined) {
-      if (hardhatNetwork.hasOwnProperty("url")) {
+    if (hardhatNetwork !== undefined && typeof hardhatNetwork === "object") {
+      if ("url" in hardhatNetwork) {
         errors.push(
           `HardhatConfig.networks.${HARDHAT_NETWORK_NAME} can't have an url`
         );
