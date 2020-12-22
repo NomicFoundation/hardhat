@@ -291,9 +291,6 @@ Possible causes are:
     return;
   }
 
-  // TODO: Add known edge cases here.
-  // E.g:
-  // - "Unable to locate ContractCode at <address>"
   let errorMessage = `The contract verification failed.
 Reason: ${verificationStatus.message}`;
   if (contractInformation.undetectableLibraries.length > 0) {
