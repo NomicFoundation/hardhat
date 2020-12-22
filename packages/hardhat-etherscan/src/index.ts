@@ -80,7 +80,7 @@ interface VerificationSubtaskArgs {
   constructorArguments: any[];
   // Fully qualified name of the contract
   contract?: string;
-  libraries?: Libraries;
+  libraries: Libraries;
 }
 
 interface Build {
@@ -98,7 +98,7 @@ interface GetContractInformationArgs {
   contractFQN: string;
   deployedBytecode: Bytecode;
   matchingCompilerVersions: string[];
-  libraries?: Libraries;
+  libraries: Libraries;
 }
 
 interface VerifyMinimumBuildArgs {
@@ -360,9 +360,9 @@ subtask(TASK_VERIFY_GET_LIBRARIES)
       librariesModule,
     }: {
       librariesModule?: string;
-    }): Promise<Libraries | undefined> => {
+    }): Promise<Libraries> => {
       if (typeof librariesModule !== "string") {
-        return;
+        return {};
       }
 
       const librariesModulePath = path.resolve(process.cwd(), librariesModule);
@@ -569,6 +569,7 @@ subtask(TASK_VERIFY_GET_ETHERSCAN_ENDPOINT).setAction(async (_, { network }) =>
 subtask(TASK_VERIFY_GET_CONTRACT_INFORMATION)
   .addParam("deployedBytecode", undefined, undefined, types.any)
   .addParam("matchingCompilerVersions", undefined, undefined, types.any)
+  .addParam("libraries", undefined, undefined, types.any)
   .addOptionalParam("contractFQN", undefined, undefined, types.string)
   .setAction(
     async (
@@ -774,7 +775,7 @@ subtask(TASK_VERIFY_VERIFY)
   .addParam("address", undefined, undefined, types.string)
   .addOptionalParam("constructorArguments", undefined, [], types.any)
   .addOptionalParam("contract", undefined, undefined, types.string)
-  .addOptionalParam("libraries", undefined, undefined, types.any)
+  .addOptionalParam("libraries", undefined, {}, types.any)
   .setAction(verifySubtask);
 
 function assertHardhatPluginInvariant(
