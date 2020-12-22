@@ -370,7 +370,7 @@ subtask(TASK_VERIFY_GET_LIBRARIES)
       try {
         const libraries = (await import(librariesModulePath)).default;
 
-        if (typeof libraries !== "object") {
+        if (typeof libraries !== "object" || Array.isArray(libraries)) {
           throw new NomicLabsHardhatPluginError(
             pluginName,
             `The module ${librariesModulePath} doesn't export a dictionary. The module should look like this:

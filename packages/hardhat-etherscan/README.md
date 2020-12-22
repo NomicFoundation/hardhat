@@ -130,7 +130,7 @@ If your contract has libraries with undetectable addresses, you may pass the lib
 
 ```js
 hre.run("verify:verify", {
-  <other args>
+  // other args
   libraries: {
     SomeLibrary: "0x...",
   }
