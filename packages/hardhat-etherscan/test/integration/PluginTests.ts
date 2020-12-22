@@ -103,6 +103,42 @@ describe("Plugin integration tests", function () {
       });
     });
 
+    // This test can only fail with the response from etherscan
+    it("should fail when the Etherscan backend doesn't see the contract bytecode yet", async function () {
+      const deployedAddress = await deployContract(
+        "InnerContract",
+        [],
+        this.env,
+        1
+      );
+
+      return this.env
+        .run("verify:verify", {
+          address: deployedAddress,
+          constructorArguments: [],
+        })
+        .then(() => {
+          assert.fail("Verification request should fail.");
+        })
+        .catch((reason) => {
+          expect(reason).to.be.an.instanceOf(
+            NomicLabsHardhatPluginError,
+            "The Etherscan backend should fail this verification"
+          );
+
+          expect(reason.message)
+            .to.be.a("string")
+            .and.include(
+              "does not have bytecode",
+              "The error should indicate the verification failure."
+            )
+            .and.include(
+              "the contract was recently deployed and this fact hasn't propagated to the backend yet",
+              "Propagation time should be described as the cause of failure."
+            );
+        });
+    });
+
     describe("With contract fully qualified name parameter", function () {
       it("should verify when passing the correct fully qualified name", async function () {
         const amount = "20";
