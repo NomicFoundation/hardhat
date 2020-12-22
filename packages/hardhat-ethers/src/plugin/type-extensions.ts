@@ -9,15 +9,16 @@ import type {
 } from "../types";
 
 declare module "hardhat/types/runtime" {
-  // Beware, adding new types to any hardhat type submodule is not a good practice in a Hardhat plugin.
-  // Doing so increases the risk of a type clash with another plugin.
-  type Libraries = LibrariesT;
-  type FactoryOptions = FactoryOptionsT;
-  // tslint:disable-next-line: naming-convention
-  type getContractFactory = typeof getContractFactoryT;
-
   interface HardhatRuntimeEnvironment {
     // We omit the ethers field because it is redundant.
     ethers: Omit<typeof ethers, "ethers"> & HardhatEthers;
   }
+
+  // Beware, adding new types to any hardhat type submodule is not a good practice in a Hardhat plugin.
+  // Doing so increases the risk of a type clash with another plugin.
+  // Removing any of these three types is a breaking change.
+  type Libraries = LibrariesT;
+  type FactoryOptions = FactoryOptionsT;
+  // tslint:disable-next-line: naming-convention
+  type getContractFactory = typeof getContractFactoryT;
 }
