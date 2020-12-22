@@ -51,7 +51,7 @@ describe("Plugin integration tests", function () {
       );
 
       // We force compilation to make sure that Hardhat introduces a new random payload.
-      await this.env.run(TASK_COMPILE, { force: true });
+      await this.env.run(TASK_COMPILE, { force: true, quiet: true });
     });
 
     it("Should verify deployed inner contract on etherscan", async function () {
