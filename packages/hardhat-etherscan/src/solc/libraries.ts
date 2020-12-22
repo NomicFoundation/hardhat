@@ -22,7 +22,7 @@ interface LibrariesStdInput {
 
 export async function getLibraryLinks(
   contractInformation: ContractInformation,
-  libraries: Libraries | undefined
+  libraries: Libraries
 ) {
   const allLibraries = getLibraryNames(
     contractInformation.contract.evm.bytecode.linkReferences
@@ -40,21 +40,20 @@ export async function getLibraryLinks(
       })
   );
 
-  let mergedLibraryLinks = contractInformation.libraryLinks;
-  if (libraries !== undefined) {
-    const { libraryLinks } = contractInformation;
-    // Resolve and normalize library links given by user
-    const normalizedLibraries = await normalizeLibraries(
-      allLibraries,
-      detectableLibraries,
-      undetectableLibraries,
-      libraries,
-      contractInformation.contractName
-    );
+  // Resolve and normalize library links given by user
+  const normalizedLibraries = await normalizeLibraries(
+    allLibraries,
+    detectableLibraries,
+    undetectableLibraries,
+    libraries,
+    contractInformation.contractName
+  );
 
-    // Merge library links
-    mergedLibraryLinks = mergeLibraries(normalizedLibraries, libraryLinks);
-  }
+  // Merge library links
+  const mergedLibraryLinks = mergeLibraries(
+    normalizedLibraries,
+    contractInformation.libraryLinks
+  );
 
   const mergedLibraries = getLibraryNames(mergedLibraryLinks);
   if (mergedLibraries.length < allLibraries.length) {
