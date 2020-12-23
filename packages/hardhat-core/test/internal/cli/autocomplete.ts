@@ -284,6 +284,12 @@ describe("autocomplete", function () {
       expect(suggestions).to.equal(HARDHAT_COMPLETE_FILES);
     });
 
+    it("should complete filenames after a partial word that starts with --", async () => {
+      const suggestions = await complete("hh compile --config --");
+
+      expect(suggestions).to.equal(HARDHAT_COMPLETE_FILES);
+    });
+
     it("should complete filenames inside a directory", async () => {
       const suggestions = await complete("hh compile --config scripts/");
 

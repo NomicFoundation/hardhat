@@ -33,6 +33,7 @@ interface CompletionData {
         [paramName: string]: {
           name: string;
           description: string;
+          isFlag: boolean;
         };
       };
     };
@@ -122,6 +123,14 @@ export async function complete({
     if (globalParam !== undefined && !globalParam.isFlag) {
       return HARDHAT_COMPLETE_FILES;
     }
+
+    const isTaskParam =
+      task !== undefined &&
+      tasks[task]?.paramDefinitions[paramName]?.isFlag === false;
+
+    if (isTaskParam) {
+      return HARDHAT_COMPLETE_FILES;
+    }
   }
 
   // if there's no task, we complete either tasks or params
@@ -193,6 +202,7 @@ async function getCompletionData(): Promise<CompletionData | undefined> {
     paramDefinitions: mapValues(task.paramDefinitions, (paramDefinition) => ({
       name: paramDefinition.name,
       description: paramDefinition.description ?? "",
+      isFlag: paramDefinition.isFlag,
     })),
   }));
 
