@@ -345,7 +345,7 @@ describe("Evm module", function () {
         });
 
         it("should mine multiple blocks faster than unitary version", async function () {
-          const iterations = 10;
+          const iterations = 100;
           let hrTime = process.hrtime();
           for (let it = 0; it < iterations; it++) {
             await this.provider.send("evm_mine");
