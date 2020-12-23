@@ -6,9 +6,8 @@ import {
   NetworkConfig,
 } from "hardhat/types";
 
+import type { SignerWithAddress } from "../signer-with-address";
 import type { FactoryOptions, Libraries } from "../types";
-
-import type { SignerWithAddress } from "./signer-with-address";
 
 interface Link {
   sourceName: string;
@@ -22,7 +21,7 @@ export async function getSigners(
   hre: HardhatRuntimeEnvironment
 ): Promise<SignerWithAddress[]> {
   const { SignerWithAddress: SignerWithAddressImpl } = await import(
-    "./signer-with-address"
+    "../signer-with-address"
   );
 
   const accounts = await hre.ethers.provider.listAccounts();

@@ -1,4 +1,4 @@
-require("../../../src/plugin/index");
+require("../../../src/internal/index");
 
 module.exports = {
   solidity: "0.5.15",

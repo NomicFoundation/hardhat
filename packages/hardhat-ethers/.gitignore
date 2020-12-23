@@ -4,8 +4,12 @@
 # Compilation output
 /build-test/
 /dist
-/plugin
+/internal
 /types
+/signer-with-address.d.ts
+/signer-with-address.d.ts.map
+/signer-with-address.js
+/signer-with-address.js.map
 
 # Code coverage artifacts
 /coverage

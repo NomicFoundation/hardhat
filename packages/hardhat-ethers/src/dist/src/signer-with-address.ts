@@ -1,1 +1,1 @@
-export * from "../../plugin/signer-with-address";
+export * from "../../signer-with-address";

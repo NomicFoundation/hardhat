@@ -3,7 +3,7 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import path from "path";
 
 // Import this plugin type extensions for the HardhatRuntimeEnvironment
-import "../src/plugin/type-extensions";
+import "../src/internal/type-extensions";
 
 declare module "mocha" {
   interface Context {

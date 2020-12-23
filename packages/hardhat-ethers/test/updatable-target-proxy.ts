@@ -1,6 +1,6 @@
 import { assert } from "chai";
 
-import { createUpdatableTargetProxy } from "../src/plugin/updatable-target-proxy";
+import { createUpdatableTargetProxy } from "../src/internal/updatable-target-proxy";
 
 describe("updatable target proxy", function () {
   it("should proxy properties", function () {
