@@ -19,14 +19,13 @@ To enable autocomplete support you'll also need to install the shell completion 
 $ hardhat-completion install
 ✔ Which Shell do you use ? · zsh
 ✔ We will install completion to ~/.zshrc, is it ok ? (y/N) · true
-=> Tabtab line already exists in ~/.zshrc file
-=> Tabtab line already exists in ~/.config/tabtab/zsh/__tabtab.zsh file
-=> Wrote completion script to /Users/hardhat/.config/tabtab/zsh/hh.zsh file
+=> Added tabtab source line in "~/.zshrc" file
+=> Added tabtab source line in "~/.config/tabtab/zsh/__tabtab.zsh" file
+=> Wrote completion script to /home/fvictorio/.config/tabtab/zsh/hh.zsh file
 
       => Tabtab source line added to ~/.zshrc for hh package.
 
       Make sure to reload your SHELL.
-
 ```
 
 To try it out, open a **new** terminal, go to the directory of your Hardhat project, and try typing `hh` followed by tab:
