@@ -16,7 +16,7 @@ export async function main() {
     await tabtab
       .install({
         name: "hh",
-        completer: "hh-completion",
+        completer: "hardhat-completion",
       })
       .catch((err: any) => {
         console.error(
