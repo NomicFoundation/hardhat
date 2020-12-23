@@ -27,6 +27,9 @@ export class EvmModule {
       case "evm_mine":
         return this._mineAction(...this._mineParams(params));
 
+      case "evm_mineMultiple":
+        return this._mineMultipleAction(...this._mineMultipleParams(params));
+
       case "evm_revert":
         return this._revertAction(...this._revertParams(params));
 
@@ -98,6 +101,71 @@ export class EvmModule {
       }
     }
     await this._node.mineEmptyBlock(new BN(timestamp));
+    return numberToRpcQuantity(0);
+  }
+
+  // evm_mineMultiple
+
+  private _mineMultipleParams(params: any[]): [number, number[]] {
+    switch (params.length) {
+      case 0:
+        params.push(0);
+      case 1:
+        params.push([]);
+      default:
+        break;
+    }
+    return validateParams(params, t.number, t.Array);
+  }
+
+  private async _mineMultipleAction(
+    iterations: number,
+    timestamps: number[]
+  ): Promise<string> {
+    // Assert timestamps are an increasing sequence of numbers, greater
+    // than the last block timestamp
+    let timestampsBN: BN[] = [];
+    if (timestamps.length !== 0) {
+      if (timestamps.length > iterations) {
+        throw new InvalidInputError(
+          `Timestamps array size ${timestamps.length} must be lower than or ` +
+            `equal to the number of iterations specified ${iterations}.`
+        );
+      }
+      timestampsBN = timestamps.map((ts) => new BN(ts));
+      const latestBlock = await this._node.getLatestBlock();
+      const latestBlockTimestampBN = new BN(latestBlock.header.timestamp);
+      const increasingSequence = timestampsBN.every((ts, idx, arr) => {
+        if (idx === arr.length - 1) {
+          return true;
+        }
+        const tsNext = arr[idx + 1];
+        return ts.lt(tsNext);
+      });
+      if (timestampsBN[0].lte(latestBlockTimestampBN)) {
+        throw new InvalidInputError(
+          `First timestamp specified ${timestampsBN[0].toNumber()} should be greater ` +
+            `than latest block's timestamp ${latestBlockTimestampBN.toNumber()}`
+        );
+      }
+      if (!increasingSequence) {
+        throw new InvalidInputError(
+          "Timestamps specified must be an increasing sequence"
+        );
+      }
+    }
+    if (iterations <= 0) {
+      throw new InvalidInputError(
+        `Invalid iterations number, it must be greater than 0`
+      );
+    }
+    for (let it = 0; it < iterations; it++) {
+      let newBlockTimestampBN: BN = new BN(0);
+      if (it < timestampsBN.length) {
+        newBlockTimestampBN = timestampsBN[it];
+      }
+      await this._node.mineEmptyBlock(newBlockTimestampBN);
+    }
     return numberToRpcQuantity(0);
   }
 

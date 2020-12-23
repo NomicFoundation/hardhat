@@ -326,6 +326,12 @@ export function validateParams(params: any[], num: typeof t.number): [number];
 
 export function validateParams(
   params: any[],
+  num: typeof t.number,
+  numarr: typeof t.Array
+): [number, number[]];
+
+export function validateParams(
+  params: any[],
   hash: typeof rpcHash,
   bool: typeof t.boolean
 ): [Buffer, boolean];

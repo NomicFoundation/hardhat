@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { zeroAddress } from "ethereumjs-util";
+import { BN, zeroAddress } from "ethereumjs-util";
 import sinon from "sinon";
 
 import {
@@ -329,6 +329,75 @@ describe("Evm module", function () {
           );
 
           assert.isTrue(quantityToNumber(block.timestamp) > timestamp);
+        });
+      });
+
+      describe("evm_mineMultiple", async function () {
+        it("should mine multiple blocks without specifying a timestamp", async function () {
+          await this.provider.send("evm_mineMultiple", [10, []]);
+
+          const block: RpcBlockOutput = await this.provider.send(
+            "eth_getBlockByNumber",
+            ["latest", false]
+          );
+
+          assert.isEmpty(block.transactions);
+        });
+
+        it("should mine multiple blocks faster than unitary version", async function () {
+          const iterations = 10;
+          let hrTime = process.hrtime();
+          for (let it = 0; it < iterations; it++) {
+            await this.provider.send("evm_mine");
+          }
+          const timeUnitary = process.hrtime(hrTime);
+          hrTime = process.hrtime();
+          await this.provider.send("evm_mineMultiple", [iterations]);
+          const timeMultiple = process.hrtime(hrTime);
+          const acceleration =
+            (timeUnitary[0] * 1e9 + timeUnitary[1]) /
+            (timeMultiple[0] * 1e9 + timeMultiple[1]);
+          assert.equal(acceleration > 1.0, true);
+        });
+
+        it("should mine multiple blocks specifying two timestamps", async function () {
+          const timestamp = getCurrentTimestamp() + 1;
+          const timestamp2 = getCurrentTimestamp() + 2;
+
+          await this.provider.send("evm_mineMultiple", [
+            10,
+            [timestamp, timestamp2],
+          ]);
+          const firstMined: RpcBlockOutput = await this.provider.send(
+            "eth_getBlockByNumber",
+            [numberToRpcQuantity(1), false]
+          );
+
+          const secondMined: RpcBlockOutput = await this.provider.send(
+            "eth_getBlockByNumber",
+            [numberToRpcQuantity(2), false]
+          );
+
+          const lastBlock: RpcBlockOutput = await this.provider.send(
+            "eth_getBlockByNumber",
+            ["latest", false]
+          );
+
+          if (
+            firstMined.timestamp &&
+            secondMined.timestamp &&
+            lastBlock.number
+          ) {
+            assert.equal(
+              firstMined.timestamp.substr(2),
+              new BN(timestamp).toString(16)
+            );
+            assert.equal(
+              secondMined.timestamp.substr(2),
+              new BN(timestamp2).toString(16)
+            );
+            assert.equal(lastBlock.number.substr(2), new BN(10).toString(16));
+          }
         });
       });
 
