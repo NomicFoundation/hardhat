@@ -384,9 +384,9 @@ describe("Evm module", function () {
           );
 
           if (
-            firstMined.timestamp &&
-            secondMined.timestamp &&
-            lastBlock.number
+            firstMined.timestamp !== null &&
+            secondMined.timestamp !== null &&
+            lastBlock.number !== null
           ) {
             assert.equal(
               firstMined.timestamp.substr(2),
