@@ -118,10 +118,10 @@ subtask(TASK_NODE_GET_PROVIDER)
         );
       }
 
-      // enable logging
+      // enable logging conditionally
       await provider.request({
         method: "hardhat_setLoggingEnabled",
-        params: [true],
+        params: [hardhatNetworkConfig.loggingEnabled ? true : false],
       });
 
       return provider;
