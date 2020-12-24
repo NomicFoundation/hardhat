@@ -728,10 +728,10 @@
   resolved "https://registry.yarnpkg.com/@sinonjs/text-encoding/-/text-encoding-0.7.1.tgz#8da5c6530915653f3a1f38fd5f101d8c3f8079c5"
   integrity sha512-+iTbntw2IZPb/anVDbypzfQa+ay64MW0Zo8aJ8gZPWMMK6/OubMVb6lUPMagqjOPnmtauXnFCACVl3O7ogjeqQ==
 
-"@solidity-parser/parser@^0.10.1":
-  version "0.10.1"
-  resolved "https://registry.yarnpkg.com/@solidity-parser/parser/-/parser-0.10.1.tgz#d3680d1ebebed21eee67f58a41eb92175204f0c7"
-  integrity sha512-tHDPCRMEBFDxBz5rioQRoKgOQGa/K2digdfR68cd5vO6IufAqoNt1sfjssQDf2KPqHPftICBQOqlcu0w5/Jisg==
+"@solidity-parser/parser@^0.10.2":
+  version "0.10.2"
+  resolved "https://registry.yarnpkg.com/@solidity-parser/parser/-/parser-0.10.2.tgz#404018b2824dc26ee61368f96d8d176a2028f9a3"
+  integrity sha512-SFO5xlpR5rnqIds++4JDcXMG9b6KfslcxKoX+y19rizB0sNkv9mRs/TA5PhD4MrRbyaS60FkQ4updZtjPa4LjQ==
 
 "@szmarczak/http-timer@^1.1.2":
   version "1.1.2"
