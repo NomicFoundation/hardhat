@@ -6,10 +6,10 @@
 /dist
 /internal
 /types
-/signer-with-address.d.ts
-/signer-with-address.d.ts.map
-/signer-with-address.js
-/signer-with-address.js.map
+/*.js
+/*.js.map
+/*.d.ts
+/*.d.ts.map
 
 # Code coverage artifacts
 /coverage
