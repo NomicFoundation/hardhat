@@ -30,7 +30,10 @@
     "src/",
     "internal/",
     "types/",
-    "signer-with-address.ts",
+    "*.d.ts",
+    "*.d.ts.map",
+    "*.js",
+    "*.js.map",
     "LICENSE",
     "README.md"
   ],
