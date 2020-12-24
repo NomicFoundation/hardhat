@@ -6,8 +6,8 @@
   "repository": "github:nomiclabs/hardhat",
   "author": "Nomic Labs LLC",
   "license": "MIT",
-  "main": "plugin/index.js",
-  "types": "plugin/index.d.ts",
+  "main": "internal/index.js",
+  "types": "internal/index.d.ts",
   "keywords": [
     "ethereum",
     "smart-contracts",
