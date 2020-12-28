@@ -45,7 +45,11 @@ async function deployContract(
 }
 
 describe("Evm module", function () {
-  PROVIDERS.forEach(({ name, useProvider }) => {
+  PROVIDERS.forEach(({ name, useProvider, isFork }) => {
+    if (isFork) {
+      this.timeout(50000);
+    }
+
     describe(`${name} provider`, function () {
       setCWD();
       useProvider();
