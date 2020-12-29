@@ -1,17 +1,17 @@
-import * as ethers from "ethers";
+import type { ethers } from "ethers";
 import "hardhat/types/runtime";
 
 import type {
   FactoryOptions as FactoryOptionsT,
   getContractFactory as getContractFactoryT,
-  HardhatEthers,
+  HardhatEthersHelpers,
   Libraries as LibrariesT,
 } from "../types";
 
 declare module "hardhat/types/runtime" {
   interface HardhatRuntimeEnvironment {
     // We omit the ethers field because it is redundant.
-    ethers: Omit<typeof ethers, "ethers"> & HardhatEthers;
+    ethers: typeof ethers & HardhatEthersHelpers;
   }
 
   // Beware, adding new types to any hardhat type submodule is not a good practice in a Hardhat plugin.
