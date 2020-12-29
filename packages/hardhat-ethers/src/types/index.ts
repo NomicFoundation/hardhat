@@ -1,6 +1,6 @@
 import type * as ethers from "ethers";
 
-import type { SignerWithAddress } from "../signer-with-address";
+import type { SignerWithAddress } from "../signers";
 
 export interface Libraries {
   [libraryName: string]: string;
