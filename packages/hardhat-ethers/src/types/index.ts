@@ -21,7 +21,7 @@ export declare function getContractFactory(
   signer?: ethers.Signer
 ): Promise<ethers.ContractFactory>;
 
-export interface HardhatEthers {
+export interface HardhatEthersHelpers {
   provider: ethers.providers.JsonRpcProvider;
 
   getContractFactory: typeof getContractFactory;
