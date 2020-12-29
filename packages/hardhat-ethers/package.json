@@ -23,7 +23,7 @@
     "test": "node ../../node_modules/mocha/bin/mocha --recursive \"test/**/*.ts\" --exit",
     "build": "node ../../node_modules/typescript/bin/tsc --build src",
     "build-test": "node ../../node_modules/typescript/bin/tsc --build .",
-    "clean": "node ../../node_modules/rimraf/bin.js dist internal types signer-with-address.{d.ts,js}{,.map} build-test tsconfig.tsbuildinfo"
+    "clean": "node ../../node_modules/rimraf/bin.js dist internal types *.{d.ts,js}{,.map} build-test tsconfig.tsbuildinfo"
   },
   "files": [
     "dist/src/",
