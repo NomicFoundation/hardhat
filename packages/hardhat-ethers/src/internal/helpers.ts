@@ -267,7 +267,14 @@ export async function getContractAt(
       "0x",
       signer
     );
-    return factory.attach(address);
+
+    let contract = factory.attach(address);
+    // If there's no signer, we connect the contract instance to the provider for the selected network.
+    if (contract.provider === null) {
+      contract = contract.connect(hre.ethers.provider);
+    }
+
+    return contract;
   }
 
   if (signer === undefined) {
@@ -275,12 +282,17 @@ export async function getContractAt(
     signer = signers[0];
   }
 
+  // If there's no signer, we want to put the provider for the selected network here.
+  // This allows read only operations on the contract interface.
+  const signerOrProvider: ethers.Signer | ethers.providers.Provider =
+    signer !== undefined ? signer : hre.ethers.provider;
+
   const abiWithAddedGas = addGasToAbiMethodsIfNecessary(
     hre.network.config,
     nameOrAbi
   );
 
-  return new Contract(address, abiWithAddedGas, signer);
+  return new Contract(address, abiWithAddedGas, signerOrProvider);
 }
 
 // This helper adds a `gas` field to the ABI function elements if the network
