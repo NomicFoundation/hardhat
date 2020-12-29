@@ -69,7 +69,8 @@ function getContractAt(nameOrAbi: string | any[], address: string, signer?: ethe
 function getSigners() => Promise<ethers.Signer[]>;
 ```
 
-The `Contract`s and `ContractFactory`s returned by these helpers are connected to the first signer returned by `getSigners` be default.
+The `Contract`s and `ContractFactory`s returned by these helpers are connected to the first signer returned by `getSigners` by default.
+If there is no signer available, the provider is used as is to provide read-only access.
 
 ## Usage
 
