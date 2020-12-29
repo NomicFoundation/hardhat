@@ -78,7 +78,7 @@ There are no additional steps you need to take for this plugin to work.
 Install it and access ethers through the Hardhat Runtime Environment anywhere you need it (tasks, scripts, tests, etc). For example, in your `hardhat.config.js`:
 
 ```js
-usePlugin("@nomiclabs/hardhat-ethers");
+require("@nomiclabs/hardhat-ethers");
 
 // task action function receives the Hardhat Runtime Environment as second argument
 task(
