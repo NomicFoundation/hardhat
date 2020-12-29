@@ -116,7 +116,6 @@ describe("Internal test suite of hardhat-waffle's test project", function () {
       ).to.changeTokenBalance(token, receiver, 200);
     });
 
-
     it("should support the changeTokenBalance matcher with multiple accounts", async function () {
       const [sender, receiver] = await ethers.getSigners();
 
@@ -130,18 +129,20 @@ describe("Internal test suite of hardhat-waffle's test project", function () {
     });
 
     it("should support the properAddress matcher", async function () {
-      expect('0x28FAA621c3348823D6c6548981a19716bcDc740e').to.be.properAddress;
-      expect('foobar').not.to.be.properAddress;
+      expect("0x28FAA621c3348823D6c6548981a19716bcDc740e").to.be.properAddress;
+      expect("foobar").not.to.be.properAddress;
     });
 
     it("should support the properPrivateKey matcher", async function () {
-      expect('0x706618637b8ca922f6290ce1ecd4c31247e9ab75cf0530a0ac95c0332173d7c5').to.be.properPrivateKey;
-      expect('foobar').not.to.be.properPrivateKey;
+      expect(
+        "0x706618637b8ca922f6290ce1ecd4c31247e9ab75cf0530a0ac95c0332173d7c5"
+      ).to.be.properPrivateKey;
+      expect("foobar").not.to.be.properPrivateKey;
     });
 
     it("should support the properHex matcher", async function () {
-      expect('0x70').to.be.properHex(2);
-      expect('foobar').not.to.be.properHex(2);
+      expect("0x70").to.be.properHex(2);
+      expect("foobar").not.to.be.properHex(2);
     });
   });
 });
