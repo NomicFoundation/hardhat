@@ -39,7 +39,6 @@
   ],
   "devDependencies": {
     "@types/chai": "^4.2.0",
-    "@types/fs-extra": "^5.1.0",
     "chai": "^4.2.0",
     "ethers": "^5.0.0",
     "hardhat": "^2.0.0"
