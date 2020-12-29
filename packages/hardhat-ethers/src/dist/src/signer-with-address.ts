@@ -1,1 +1,1 @@
-export * from "../../signer-with-address";
+export { SignerWithAddress } from "../../signers";
