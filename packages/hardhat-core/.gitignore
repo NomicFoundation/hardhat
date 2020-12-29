@@ -105,3 +105,5 @@ typings/
 
 # DynamoDB Local files
 .dynamodb/
+
+test/internal/hardhat-network/provider/.hardhat_node_test_cache/
