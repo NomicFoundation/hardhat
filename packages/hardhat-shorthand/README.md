@@ -1,5 +1,4 @@
 [![npm](https://img.shields.io/npm/v/hardhat-shorthand.svg)](https://www.npmjs.com/package/hardhat-shorthand)
-[![hardhat](https://hardhat.org/buidler-plugin-badge.svg?1)](https://hardhat.org)
 
 # hardhat-shorthand
 
