@@ -131,7 +131,7 @@ $ npx hardhat accounts
 
 ### Compiling your contracts
 
-Next, if you take a look at `contracts/`, you should be able to find `Greeter.sol:`
+Next, if you take a look at `contracts/`, you should be able to find `Greeter.sol`:
 
 <<< @/../packages/hardhat-core/sample-project/contracts/Greeter.sol
 
@@ -144,6 +144,8 @@ npx hardhat compile
 ### Testing your contracts
 
 The sample project comes with these tests that use [Waffle](https://getwaffle.io/) and [Ethers.js](https://github.com/ethers-io/ethers.js/). You can use other libraries if you want. Check the integrations described in our guides.
+
+If you take a look at `test/`, you should be able to find `sample-test.js`:
 
 <<< @/../packages/hardhat-core/sample-project/test/sample-test.js
 
