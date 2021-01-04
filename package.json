@@ -36,5 +36,8 @@
     "lint": "wsrun --exclude-missing --serial lint",
     "lint:fix": "wsrun --exclude-missing --stages lint:fix"
   },
-  "dependencies": {}
+  "dependencies": {},
+  "resolutions": {
+    "**/antlr4": "4.7.1"
+  }
 }
