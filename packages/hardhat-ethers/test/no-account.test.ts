@@ -5,6 +5,7 @@ import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import { Artifact, HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { useEnvironment } from "./helpers";
+import { SignerWithAddress } from "../src/signers";
 
 describe("hardhat-ethers plugin", function () {
   describe("hardhat network with no accounts", function () {
@@ -84,6 +85,15 @@ describe("hardhat-ethers plugin", function () {
 
           assert.equal(greeting, "Hi");
         });
+      });
+    });
+
+    describe("getSigner", function () {
+      it("should return a valid signer for an arbitrary account", async function() {
+        const address = "0x5dA8b30645FAc04eCBC25987A2DFDFa49575945b";
+        const signer = await this.env.ethers.getSigner(address);
+        assert.instanceOf(signer, SignerWithAddress);
+        assert.equal(signer.address, address);
       });
     });
   });

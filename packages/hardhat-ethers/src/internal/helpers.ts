@@ -36,6 +36,21 @@ export async function getSigners(
   return signersWithAddress;
 }
 
+export async function getSigner(
+  hre: HardhatRuntimeEnvironment,
+  address: string
+): Promise<SignerWithAddress> {
+  const { SignerWithAddress: SignerWithAddressImpl } = await import(
+    "../signers"
+  );
+
+  const signer = hre.ethers.provider.getSigner(address);
+
+  const signerWithAddress = await SignerWithAddressImpl.create(signer);
+
+  return signerWithAddress;
+}
+
 export function getContractFactory(
   hre: HardhatRuntimeEnvironment,
   name: string,
