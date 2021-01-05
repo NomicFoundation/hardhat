@@ -1,4 +1,4 @@
-# Shorthand ("hh") and CLI autocomplete
+# Shorthand (hh) and autocomplete
 
 `hardhat-shorthand` is an NPM package that installs a globally accessible binary
 called `hh` that runs the project's locally installed `hardhat` and supports shell autocompletion for tasks.
