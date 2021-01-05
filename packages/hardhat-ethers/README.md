@@ -70,7 +70,8 @@ function getSigners() => Promise<ethers.Signer[]>;
 ```
 
 The `Contract`s and `ContractFactory`s returned by these helpers are connected to the first signer returned by `getSigners` by default.
-If there is no signer available, the provider is used as is to provide read-only access.
+
+If there is no signer available, `getContractAt` returns read-only contracts.
 
 ## Usage
 
@@ -117,4 +118,3 @@ const contractFactory = await this.env.ethers.getContractFactory(
 This allows you to create a contract factory for the `Example` contract and link its `ExampleLib` library references to the address `"0x..."`.
 
 To create a contract factory, all libraries must be linked. An error will be thrown informing you of any missing library.
-
