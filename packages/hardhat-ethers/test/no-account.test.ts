@@ -40,7 +40,6 @@ describe("hardhat-ethers plugin", function () {
         it("Should return an instance of a contract with a read-only provider", async function () {
           const receipt = await deployGreeter(this.env, signerAddress);
 
-          assert.isTrue(this.env.ethers.provider._isProvider);
           const contract = await this.env.ethers.getContractAt(
             "Greeter",
             receipt.contractAddress
@@ -48,11 +47,6 @@ describe("hardhat-ethers plugin", function () {
 
           assert.isDefined(contract.provider);
           assert.isNotNull(contract.provider);
-          assert.strictEqual(contract.provider, this.env.ethers.provider);
-          assert.containsAllKeys(contract.functions, [
-            "setGreeting(string)",
-            "greet()",
-          ]);
 
           const greeting = await contract.functions.greet();
 
@@ -78,11 +72,6 @@ describe("hardhat-ethers plugin", function () {
 
           assert.isDefined(contract.provider);
           assert.isNotNull(contract.provider);
-          assert.strictEqual(contract.provider, this.env.ethers.provider);
-          assert.containsAllKeys(contract.functions, [
-            "setGreeting(string)",
-            "greet()",
-          ]);
 
           const greeting = await contract.functions.greet();
 
