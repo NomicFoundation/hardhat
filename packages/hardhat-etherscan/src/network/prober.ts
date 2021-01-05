@@ -6,8 +6,13 @@ import { EthereumProvider } from "hardhat/types";
 
 import { pluginName } from "../constants";
 
+export interface EtherscanURLs {
+  apiURL: string;
+  browserURL: string;
+}
+
 type NetworkMap = {
-  [networkID in NetworkID]: string;
+  [networkID in NetworkID]: EtherscanURLs;
 };
 
 // See https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md#list-of-chain-ids
@@ -19,18 +24,33 @@ enum NetworkID {
   KOVAN = 42,
 }
 
-const networkIDtoEndpoint: NetworkMap = {
-  [NetworkID.MAINNET]: "https://api.etherscan.io/api",
-  [NetworkID.ROPSTEN]: "https://api-ropsten.etherscan.io/api",
-  [NetworkID.RINKEBY]: "https://api-rinkeby.etherscan.io/api",
-  [NetworkID.GOERLI]: "https://api-goerli.etherscan.io/api",
-  [NetworkID.KOVAN]: "https://api-kovan.etherscan.io/api",
+const networkIDtoEndpoints: NetworkMap = {
+  [NetworkID.MAINNET]: {
+    apiURL: "https://api.etherscan.io/api",
+    browserURL: "https://etherscan.io/",
+  },
+  [NetworkID.ROPSTEN]: {
+    apiURL: "https://api-ropsten.etherscan.io/api",
+    browserURL: "https://ropsten.etherscan.io",
+  },
+  [NetworkID.RINKEBY]: {
+    apiURL: "https://api-rinkeby.etherscan.io/api",
+    browserURL: "https://rinkeby.etherscan.io",
+  },
+  [NetworkID.GOERLI]: {
+    apiURL: "https://api-goerli.etherscan.io/api",
+    browserURL: "https://goerli.etherscan.io",
+  },
+  [NetworkID.KOVAN]: {
+    apiURL: "https://api-kovan.etherscan.io/api",
+    browserURL: "https://kovan.etherscan.io",
+  },
 };
 
-export async function getEtherscanEndpoint(
+export async function getEtherscanEndpoints(
   provider: EthereumProvider,
   networkName: string
-): Promise<string> {
+): Promise<EtherscanURLs> {
   if (networkName === HARDHAT_NETWORK_NAME) {
     throw new NomicLabsHardhatPluginError(
       pluginName,
@@ -40,9 +60,9 @@ export async function getEtherscanEndpoint(
 
   const chainID = parseInt(await provider.send("eth_chainId"), 16) as NetworkID;
 
-  const endpoint = networkIDtoEndpoint[chainID];
+  const endpoints = networkIDtoEndpoints[chainID];
 
-  if (endpoint === undefined) {
+  if (endpoints === undefined) {
     throw new NomicLabsHardhatPluginError(
       pluginName,
       `An etherscan endpoint could not be found for this network. ChainID: ${chainID}. The selected network is ${networkName}.
@@ -53,7 +73,7 @@ Possible causes are:
     );
   }
 
-  return endpoint;
+  return endpoints;
 }
 
 export async function retrieveContractBytecode(

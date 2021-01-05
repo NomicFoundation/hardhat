@@ -46,7 +46,8 @@ import {
   toVerifyRequest,
 } from "./etherscan/EtherscanVerifyContractRequest";
 import {
-  getEtherscanEndpoint,
+  EtherscanURLs,
+  getEtherscanEndpoints,
   retrieveContractBytecode,
 } from "./network/prober";
 import {
@@ -104,7 +105,7 @@ interface GetContractInformationArgs {
 interface VerifyMinimumBuildArgs {
   minimumBuild: Build;
   contractInformation: ContractInformation;
-  etherscanAPIEndpoint: string;
+  etherscanAPIEndpoints: EtherscanURLs;
   address: string;
   etherscanAPIKey: string;
   solcFullVersion: string;
@@ -190,7 +191,7 @@ If your constructor has no arguments pass an empty array. E.g:
     TASK_VERIFY_GET_COMPILER_VERSIONS
   );
 
-  const etherscanAPIEndpoint: string = await run(
+  const etherscanAPIEndpoints: EtherscanURLs = await run(
     TASK_VERIFY_GET_ETHERSCAN_ENDPOINT
   );
 
@@ -264,7 +265,7 @@ Possible causes are:
   const success: boolean = await run(TASK_VERIFY_VERIFY_MINIMUM_BUILD, {
     minimumBuild,
     contractInformation,
-    etherscanAPIEndpoint,
+    etherscanAPIEndpoints,
     address,
     etherscanAPIKey: etherscan.apiKey,
     solcFullVersion,
@@ -276,7 +277,7 @@ Possible causes are:
 
   // Fallback verification
   const verificationStatus = await attemptVerification(
-    etherscanAPIEndpoint,
+    etherscanAPIEndpoints,
     contractInformation,
     address,
     etherscan.apiKey,
@@ -286,8 +287,13 @@ Possible causes are:
   );
 
   if (verificationStatus.isVerificationSuccess()) {
+    const contractURL = new URL(
+      `/address/${address}#code`,
+      etherscanAPIEndpoints.browserURL
+    );
     console.log(
-      `Successfully verified full build of contract ${contractInformation.contractName} on Etherscan`
+      `Successfully verified full build of contract ${contractInformation.contractName} on Etherscan.
+${contractURL}`
     );
     return;
   }
@@ -397,7 +403,7 @@ Reason: ${error.message}`,
   );
 
 async function attemptVerification(
-  etherscanAPIEndpoint: string,
+  etherscanAPIEndpoints: EtherscanURLs,
   contractInformation: ContractInformation,
   contractAddress: string,
   etherscanAPIKey: string,
@@ -416,7 +422,7 @@ async function attemptVerification(
     compilerVersion: solcFullVersion,
     constructorArguments: deployArgumentsEncoded,
   });
-  const response = await verifyContract(etherscanAPIEndpoint, request);
+  const response = await verifyContract(etherscanAPIEndpoints.apiURL, request);
 
   console.log(
     `Successfully submitted source code for contract
@@ -433,7 +439,7 @@ for verification on Etherscan. Waiting for verification result...
   // Compilation is bound to take some time so there's no sense in requesting status immediately.
   await delay(700);
   const verificationStatus = await getVerificationStatus(
-    etherscanAPIEndpoint,
+    etherscanAPIEndpoints.apiURL,
     pollRequest
   );
 
@@ -570,7 +576,7 @@ See https://etherscan.io/solcversions for more information.`
 );
 
 subtask(TASK_VERIFY_GET_ETHERSCAN_ENDPOINT).setAction(async (_, { network }) =>
-  getEtherscanEndpoint(network.provider, network.name)
+  getEtherscanEndpoints(network.provider, network.name)
 );
 
 subtask(TASK_VERIFY_GET_CONTRACT_INFORMATION)
@@ -686,7 +692,7 @@ Possible causes are:
 subtask(TASK_VERIFY_VERIFY_MINIMUM_BUILD)
   .addParam("minimumBuild", undefined, undefined, types.any)
   .addParam("contractInformation", undefined, undefined, types.any)
-  .addParam("etherscanAPIEndpoint", undefined, undefined, types.string)
+  .addParam("etherscanAPIEndpoints", undefined, undefined, types.any)
   .addParam("address", undefined, undefined, types.string)
   .addParam("etherscanAPIKey", undefined, undefined, types.string)
   .addParam("solcFullVersion", undefined, undefined, types.string)
@@ -695,7 +701,7 @@ subtask(TASK_VERIFY_VERIFY_MINIMUM_BUILD)
     async ({
       minimumBuild,
       contractInformation,
-      etherscanAPIEndpoint,
+      etherscanAPIEndpoints,
       address,
       etherscanAPIKey,
       solcFullVersion,
@@ -712,7 +718,7 @@ subtask(TASK_VERIFY_VERIFY_MINIMUM_BUILD)
 
       if (minimumBuildContractBytecode === matchedBytecode) {
         const minimumBuildVerificationStatus = await attemptVerification(
-          etherscanAPIEndpoint,
+          etherscanAPIEndpoints,
           contractInformation,
           address,
           etherscanAPIKey,
@@ -722,8 +728,13 @@ subtask(TASK_VERIFY_VERIFY_MINIMUM_BUILD)
         );
 
         if (minimumBuildVerificationStatus.isVerificationSuccess()) {
+          const contractURL = new URL(
+            `/address/${address}#code`,
+            etherscanAPIEndpoints.browserURL
+          );
           console.log(
-            `Successfully verified contract ${contractInformation.contractName} on Etherscan`
+            `Successfully verified contract ${contractInformation.contractName} on Etherscan.
+${contractURL}`
           );
           return true;
         }
