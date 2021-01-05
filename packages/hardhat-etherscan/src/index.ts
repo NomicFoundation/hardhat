@@ -178,10 +178,11 @@ See https://etherscan.io/apis`
       pluginName,
       `The constructorArguments parameter should be an array.
 If your constructor has no arguments pass an empty array. E.g:
-await run("${TASK_VERIFY_VERIFY}", {
-  <other args>,
-  constructorArguments: []
-};`
+
+  await run("${TASK_VERIFY_VERIFY}", {
+    <other args>,
+    constructorArguments: []
+  };`
     );
   }
 
@@ -340,7 +341,8 @@ subtask(TASK_VERIFY_GET_CONSTRUCTOR_ARGUMENTS)
           throw new NomicLabsHardhatPluginError(
             pluginName,
             `The module ${constructorArgsModulePath} doesn't export a list. The module should look like this:
-module.exports = [ arg1, arg2, ... ];`
+
+  module.exports = [ arg1, arg2, ... ];`
           );
         }
 
@@ -377,7 +379,8 @@ subtask(TASK_VERIFY_GET_LIBRARIES)
           throw new NomicLabsHardhatPluginError(
             pluginName,
             `The module ${librariesModulePath} doesn't export a dictionary. The module should look like this:
-module.exports = { lib1: "0x...", lib2: "0x...", ... };`
+
+  module.exports = { lib1: "0x...", lib2: "0x...", ... };`
           );
         }
 
@@ -418,7 +421,8 @@ async function attemptVerification(
   console.log(
     `Successfully submitted source code for contract
 ${contractInformation.sourceName}:${contractInformation.contractName} at ${contractAddress}
-for verification on Etherscan. Waiting for verification result...`
+for verification on Etherscan. Waiting for verification result...
+`
   );
 
   const pollRequest = toCheckStatusRequest({
@@ -727,13 +731,15 @@ subtask(TASK_VERIFY_VERIFY_MINIMUM_BUILD)
         console.log(
           `We tried verifying your contract ${contractInformation.contractName} without including any unrelated one, but it failed.
 Trying again with the full solc input used to compile and deploy it.
-This means that unrelated contracts may be displayed on Etherscan...`
+This means that unrelated contracts may be displayed on Etherscan...
+`
         );
       } else {
         console.log(
           `Compiling your contract excluding unrelated contracts did not produce identical bytecode.
 Trying again with the full solc input used to compile and deploy it.
-This means that unrelated contracts may be displayed on Etherscan...`
+This means that unrelated contracts may be displayed on Etherscan...
+`
         );
       }
 
