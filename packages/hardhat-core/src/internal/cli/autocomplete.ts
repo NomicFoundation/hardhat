@@ -12,6 +12,11 @@ import { ArgumentsParser } from "./ArgumentsParser";
 
 type GlobalParam = keyof typeof HARDHAT_PARAM_DEFINITIONS;
 
+interface Suggestion {
+  name: string;
+  description: string;
+}
+
 interface CompletionEnv {
   line: string;
   point: number;
@@ -22,10 +27,13 @@ interface CompletionData {
   tasks: {
     [taskName: string]: {
       name: string;
+      description: string;
       isSubtask: boolean;
       paramDefinitions: {
         [paramName: string]: {
           name: string;
+          description: string;
+          isFlag: boolean;
         };
       };
     };
@@ -41,10 +49,14 @@ interface CachedCompletionData {
   mtimes: Mtimes;
 }
 
+export const HARDHAT_COMPLETE_FILES = "__hardhat_complete_files__";
+
+export const REQUIRED_HH_VERSION_RANGE = "^1.0.0";
+
 export async function complete({
   line,
   point,
-}: CompletionEnv): Promise<string[]> {
+}: CompletionEnv): Promise<Suggestion[] | typeof HARDHAT_COMPLETE_FILES> {
   const completionData = await getCompletionData();
 
   if (completionData === undefined) {
@@ -65,9 +77,11 @@ export async function complete({
   const startsWithLast = (completion: string) => completion.startsWith(last);
 
   const coreParams = Object.values(HARDHAT_PARAM_DEFINITIONS)
-    .map((x) => x.name)
-    .map(ArgumentsParser.paramNameToCLA)
-    .filter((x) => !words.includes(x));
+    .map((param) => ({
+      name: ArgumentsParser.paramNameToCLA(param.name),
+      description: param.description ?? "",
+    }))
+    .filter((x) => !words.includes(x.name));
 
   // check if the user entered a task
   let task: string | undefined;
@@ -94,7 +108,10 @@ export async function complete({
   }
 
   if (prev === "--network") {
-    return networks.filter(startsWithLast);
+    return networks.filter(startsWithLast).map((network) => ({
+      name: network,
+      description: "",
+    }));
   }
 
   // if the previous word is a param, then a value is expected
@@ -104,33 +121,46 @@ export async function complete({
 
     const globalParam = HARDHAT_PARAM_DEFINITIONS[paramName as GlobalParam];
     if (globalParam !== undefined && !globalParam.isFlag) {
-      return filesystemSuggestions(last);
+      return HARDHAT_COMPLETE_FILES;
+    }
+
+    const isTaskParam =
+      task !== undefined &&
+      tasks[task]?.paramDefinitions[paramName]?.isFlag === false;
+
+    if (isTaskParam) {
+      return HARDHAT_COMPLETE_FILES;
     }
   }
 
   // if there's no task, we complete either tasks or params
   if (task === undefined || tasks[task] === undefined) {
-    const taskNames = Object.values(tasks)
+    const taskSuggestions = Object.values(tasks)
       .filter((x) => !x.isSubtask)
-      .map((x) => x.name);
+      .map((x) => ({
+        name: x.name,
+        description: x.description,
+      }));
     if (last.startsWith("-")) {
-      return coreParams.filter(startsWithLast);
+      return coreParams.filter((param) => startsWithLast(param.name));
     }
-    return taskNames.filter(startsWithLast);
+    return taskSuggestions.filter((x) => startsWithLast(x.name));
   }
 
   if (!last.startsWith("-")) {
-    return filesystemSuggestions(last);
+    return HARDHAT_COMPLETE_FILES;
   }
 
   // if there's a task and the last word starts with -, we complete its params and the global params
   const taskParams = Object.values(tasks[task].paramDefinitions)
-    .map((x) => x.name)
-    .map(ArgumentsParser.paramNameToCLA)
-    .filter((x) => !words.includes(x));
+    .map((param) => ({
+      name: ArgumentsParser.paramNameToCLA(param.name),
+      description: param.description,
+    }))
+    .filter((x) => !words.includes(x.name));
 
-  return [...taskParams, ...coreParams].filter((completion) =>
-    completion.startsWith(last)
+  return [...taskParams, ...coreParams].filter((suggestion) =>
+    startsWithLast(suggestion.name)
   );
 }
 
@@ -167,9 +197,12 @@ async function getCompletionData(): Promise<CompletionData | undefined> {
   // is serializable and to avoid saving unnecessary things from the HRE
   const tasks: CompletionData["tasks"] = mapValues(hre.tasks, (task) => ({
     name: task.name,
+    description: task.description ?? "",
     isSubtask: task.isSubtask,
     paramDefinitions: mapValues(task.paramDefinitions, (paramDefinition) => ({
       name: paramDefinition.name,
+      description: paramDefinition.description ?? "",
+      isFlag: paramDefinition.isFlag,
     })),
   }));
 
@@ -253,55 +286,6 @@ async function getCachedCompletionDataPath(projectId: string): Promise<string> {
   const cacheDir = await getCacheDir();
 
   return path.join(cacheDir, "autocomplete", `${projectId}.json`);
-}
-
-function filesystemSuggestions(last: string): string[] {
-  let partialDirectory: string;
-  let partialFilename: string;
-
-  const parsedPath = path.parse(last);
-
-  // something like foo/. is technically a directory, but we don't want to consider it as such
-  if (parsedPath.base !== "." && isDirectory(last) && last.endsWith(path.sep)) {
-    partialDirectory = last;
-    partialFilename = "";
-  } else {
-    partialDirectory = parsedPath.dir;
-    partialFilename = parsedPath.base;
-  }
-
-  const directory = path.resolve(process.cwd(), partialDirectory);
-
-  const suggestions = fs
-    .readdirSync(directory)
-    .filter((filename) => filename.startsWith(partialFilename))
-    .filter(
-      (filename) => partialFilename.startsWith(".") || !filename.startsWith(".")
-    )
-    .map((filename) => path.join(partialDirectory, filename));
-
-  // dirty trick when we match a single directory:
-  // we don't want to have a single suggestion because otherwise the shell
-  // will add an space at the end, which is annoying,
-  // so we suggest both the dir, and the dir with a trailing path separator
-  if (suggestions.length === 1) {
-    const [suggestion] = suggestions;
-
-    if (isDirectory(suggestion)) {
-      return [suggestion, path.join(suggestion, path.sep)];
-    }
-  }
-
-  return suggestions;
-}
-
-function isDirectory(filename: string): boolean {
-  try {
-    const stats = fs.statSync(filename);
-    return stats.isDirectory();
-  } catch (e) {
-    return false;
-  }
 }
 
 function isGlobalFlag(param: string): boolean {

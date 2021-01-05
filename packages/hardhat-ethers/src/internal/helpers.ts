@@ -6,21 +6,13 @@ import {
   NetworkConfig,
 } from "hardhat/types";
 
-import type { SignerWithAddress } from "./signer-with-address";
+import type { SignerWithAddress } from "../signers";
+import type { FactoryOptions, Libraries } from "../types";
 
 interface Link {
   sourceName: string;
   libraryName: string;
   address: string;
-}
-
-export interface Libraries {
-  [libraryName: string]: string;
-}
-
-export interface FactoryOptions {
-  signer?: ethers.Signer;
-  libraries?: Libraries;
 }
 
 const pluginName = "hardhat-ethers";
@@ -29,7 +21,7 @@ export async function getSigners(
   hre: HardhatRuntimeEnvironment
 ): Promise<SignerWithAddress[]> {
   const { SignerWithAddress: SignerWithAddressImpl } = await import(
-    "./signer-with-address"
+    "../signers"
   );
 
   const accounts = await hre.ethers.provider.listAccounts();

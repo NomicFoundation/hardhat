@@ -1,7 +1,7 @@
 import { assert } from "chai";
 import { ethers } from "ethers";
 
-import { EthersProviderWrapper } from "../src/ethers-provider-wrapper";
+import { EthersProviderWrapper } from "../src/internal/ethers-provider-wrapper";
 
 import { useEnvironment } from "./helpers";
 

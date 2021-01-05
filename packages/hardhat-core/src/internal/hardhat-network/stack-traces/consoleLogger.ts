@@ -37,7 +37,6 @@ import {
   Bytes8Ty,
   Bytes9Ty,
   BytesTy,
-  ByteTy,
   ConsoleLogs,
   IntTy,
   StringTy,
@@ -165,7 +164,6 @@ export class ConsoleLogger {
             data.slice(bStart + REGISTER_SIZE, bStart + REGISTER_SIZE + bLen)
           );
 
-        case ByteTy:
         case Bytes1Ty:
           return bufferToHex(data.slice(position, position + 1));
         case Bytes2Ty:
