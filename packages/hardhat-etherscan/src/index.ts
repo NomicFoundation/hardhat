@@ -525,10 +525,10 @@ For example:
 
 If you are running the verify subtask from within Hardhat instead:
 
-await run("${TASK_VERIFY_VERIFY}", {
-  <other args>,
-  contract: "contracts/Example.sol:ExampleContract"
-};`;
+  await run("${TASK_VERIFY_VERIFY}", {
+    <other args>,
+    contract: "contracts/Example.sol:ExampleContract"
+  };`;
     throw new NomicLabsHardhatPluginError(pluginName, message, undefined, true);
   }
   return contractMatches[0];
