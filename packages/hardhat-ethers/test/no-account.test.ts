@@ -23,6 +23,8 @@ describe("hardhat-ethers plugin", function () {
       let signerAddress: string;
 
       beforeEach(async function () {
+        // We need some ether to send transactions so we mine a block and use the coinbase account to send them
+        // TODO: being able to send transactions with gasPrice 0 would work too, but currently can't be done.
         await this.env.network.provider.request({
           method: "evm_mine",
           params: [],
