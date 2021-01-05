@@ -44,6 +44,6 @@ This approach has the downside of there being no way to provide autocomplete sug
 
 ### "Autocompletion is not working"
 
-First, make sure you installed the autocompletion script with `hardhat-completion install`, then either reload your sell or open a new terminal to try again.
+First, make sure you installed the autocompletion script with `hardhat-completion install`, then either reload your shell or open a new terminal to try again.
 
 If you still have problems, make sure that your Hardhat config doesn't have any issues. You can do this by just running `hh`. If the command prints the help message, then your config is fine. If not, you'll see what the problem is.
