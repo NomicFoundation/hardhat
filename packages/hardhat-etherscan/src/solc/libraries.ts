@@ -80,13 +80,13 @@ ${missingLibraryNames}`;
 
 To solve this, you can create a javascript module that exports a library dictionary and pass it through the --libraries parameter:
 
-hardhat verify --libraries libraries.js <other args>
+  hardhat verify --libraries libraries.js <other args>
 
 where libraries.js looks like this:
 
-module.exports = {
-  SomeLibrary: "0x...",
-}`;
+  module.exports = {
+    SomeLibrary: "0x...",
+  }`;
     } else {
       message += `
 
