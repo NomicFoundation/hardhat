@@ -30,6 +30,6 @@ export interface HardhatEthersHelpers {
     address: string,
     signer?: ethers.Signer
   ) => Promise<ethers.Contract>;
-  getSigner: (address:string) => Promise<SignerWithAddress>;
+  getSigner: (address: string) => Promise<SignerWithAddress>;
   getSigners: () => Promise<SignerWithAddress[]>;
 }

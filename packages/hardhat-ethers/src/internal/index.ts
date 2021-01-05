@@ -5,8 +5,8 @@ import { lazyObject } from "hardhat/plugins";
 import {
   getContractAt,
   getContractFactory,
-  getSigners,
   getSigner,
+  getSigners,
 } from "./helpers";
 import type * as ProviderProxyT from "./provider-proxy";
 import "./type-extensions";
