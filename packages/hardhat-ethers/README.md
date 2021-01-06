@@ -67,6 +67,8 @@ function getContractFactory(name: string, factoryOptions: FactoryOptions): Promi
 function getContractAt(nameOrAbi: string | any[], address: string, signer?: ethers.Signer): Promise<ethers.Contract>;
 
 function getSigners() => Promise<ethers.Signer[]>;
+
+function getSigner(address: string) => Promise<ethers.Signer>;
 ```
 
 The `Contract`s and `ContractFactory`s returned by these helpers are connected to the first signer returned by `getSigners` by default.
