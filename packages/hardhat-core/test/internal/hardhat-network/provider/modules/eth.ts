@@ -1,4 +1,6 @@
 import { assert } from "chai";
+import Common from "ethereumjs-common";
+import { Transaction } from "ethereumjs-tx";
 import { BN, bufferToHex, toBuffer, zeroAddress } from "ethereumjs-util";
 import { Context } from "mocha";
 
@@ -46,6 +48,8 @@ import {
   DEFAULT_ACCOUNTS_ADDRESSES,
   DEFAULT_ACCOUNTS_BALANCES,
   DEFAULT_BLOCK_GAS_LIMIT,
+  DEFAULT_CHAIN_ID,
+  DEFAULT_NETWORK_ID,
   PROVIDERS,
 } from "../../helpers/providers";
 import { retrieveForkBlockNumber } from "../../helpers/retrieveForkBlockNumber";
@@ -2449,36 +2453,81 @@ describe("Eth module", function () {
         });
 
         it("should return the right properties", async function () {
-          const txHash = await this.provider.send("eth_sendTransaction", [
+          const address = "0x738a6fe8b5034a10e85f19f2abdfd5ed4e12463e";
+          const privateKey = Buffer.from(
+            "17ade313db5de97d19b4cfbc820d15e18a6c710c1afbf01c1f31249970d3ae46",
+            "hex"
+          );
+
+          // send eth to the account that will sign the tx
+          await this.provider.send("eth_sendTransaction", [
             {
               from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              to: DEFAULT_ACCOUNTS_ADDRESSES[1],
-              value: numberToRpcQuantity(1),
-              gas: numberToRpcQuantity(22000),
-              gasPrice: numberToRpcQuantity(2),
-              data: "0xbeef",
+              to: address,
+              value: "0x16345785d8a0000",
+              gas: numberToRpcQuantity(21000),
             },
           ]);
 
-          const tx = await this.provider.send("eth_getTransactionByHash", [
-            txHash,
+          // create and send signed tx
+          const common = Common.forCustomChain(
+            "mainnet",
+            {
+              chainId: DEFAULT_CHAIN_ID,
+              networkId: DEFAULT_NETWORK_ID,
+              name: "hardhat",
+            },
+            "muirGlacier"
+          );
+
+          const tx = new Transaction(
+            {
+              nonce: "0x00",
+              gasPrice: "0x2",
+              gasLimit: "0x55f0",
+              to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              value: "0x1",
+              data: "0xbeef",
+            },
+            {
+              common,
+            }
+          );
+
+          tx.sign(privateKey);
+
+          const rawTx = `0x${tx.serialize().toString("hex")}`;
+
+          const txHash = await this.provider.send("eth_sendRawTransaction", [
+            rawTx,
           ]);
 
-          assert.equal(tx.from, DEFAULT_ACCOUNTS_ADDRESSES[0]);
-          assert.equal(tx.to, DEFAULT_ACCOUNTS_ADDRESSES[1]);
-          assert.equal(tx.value, "0x1");
-          assert.equal(tx.nonce, "0x0");
-          assert.equal(tx.gas, "0x55f0");
-          assert.equal(tx.gasPrice, "0x2");
-          assert.equal(tx.input, "0xbeef");
-          assert.equal(tx.v, "0x11a");
-          assert.equal(
-            tx.r,
-            "0x7e71a1f3d8e9b45f9916bbb50f156ec601c32feb28cae66c50cb948e3055fe47"
+          const fetchedTx = await this.provider.send(
+            "eth_getTransactionByHash",
+            [txHash]
           );
+
+          assert.equal(fetchedTx.from, address);
+          assert.equal(fetchedTx.to, DEFAULT_ACCOUNTS_ADDRESSES[1]);
+          assert.equal(fetchedTx.value, "0x1");
+          assert.equal(fetchedTx.nonce, "0x0");
+          assert.equal(fetchedTx.gas, "0x55f0");
+          assert.equal(fetchedTx.gasPrice, "0x2");
+          assert.equal(fetchedTx.input, "0xbeef");
+
+          // tx.v is padded but fetchedTx.v is not, so we need to do this
+          const fetchedTxV = new BN(toBuffer(fetchedTx.v));
+          const expectedTxV = new BN(tx.v);
+          assert.isTrue(fetchedTxV.eq(expectedTxV));
+
           assert.equal(
-            tx.s,
-            "0x3c620197a72ef4dec0e651c34edd4cb46359698a2b44b57a9d40564afe0179c"
+            toBuffer(fetchedTx.r).toString("hex"),
+            tx.r.toString("hex")
+          );
+
+          assert.equal(
+            toBuffer(fetchedTx.s).toString("hex"),
+            tx.s.toString("hex")
           );
         });
 
