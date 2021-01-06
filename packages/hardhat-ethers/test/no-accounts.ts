@@ -85,7 +85,7 @@ describe("hardhat-ethers plugin", function () {
         const address = "0x5dA8b30645FAc04eCBC25987A2DFDFa49575945b";
 
         const signers = await this.env.ethers.getSigners();
-        assert.isTrue(signers.every((aSigner) => aSigner.address !== address))
+        assert.isTrue(signers.every((aSigner) => aSigner.address !== address));
 
         const signer = await this.env.ethers.getSigner(address);
         assert.instanceOf(signer, SignerWithAddress);

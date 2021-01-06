@@ -20,17 +20,10 @@ const pluginName = "hardhat-ethers";
 export async function getSigners(
   hre: HardhatRuntimeEnvironment
 ): Promise<SignerWithAddress[]> {
-  const { SignerWithAddress: SignerWithAddressImpl } = await import(
-    "../signers"
-  );
-
   const accounts = await hre.ethers.provider.listAccounts();
-  const signers = accounts.map((account: string) =>
-    hre.ethers.provider.getSigner(account)
-  );
 
   const signersWithAddress = await Promise.all(
-    signers.map(SignerWithAddressImpl.create)
+    accounts.map((account) => getSigner(hre, account))
   );
 
   return signersWithAddress;
