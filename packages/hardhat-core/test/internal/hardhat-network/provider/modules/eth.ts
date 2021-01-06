@@ -2448,6 +2448,40 @@ describe("Eth module", function () {
           );
         });
 
+        it("should return the right properties", async function () {
+          const txHash = await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              value: numberToRpcQuantity(1),
+              gas: numberToRpcQuantity(22000),
+              gasPrice: numberToRpcQuantity(2),
+              data: "0xbeef",
+            },
+          ]);
+
+          const tx = await this.provider.send("eth_getTransactionByHash", [
+            txHash,
+          ]);
+
+          assert.equal(tx.from, DEFAULT_ACCOUNTS_ADDRESSES[0]);
+          assert.equal(tx.to, DEFAULT_ACCOUNTS_ADDRESSES[1]);
+          assert.equal(tx.value, "0x1");
+          assert.equal(tx.nonce, "0x0");
+          assert.equal(tx.gas, "0x55f0");
+          assert.equal(tx.gasPrice, "0x2");
+          assert.equal(tx.input, "0xbeef");
+          assert.equal(tx.v, "0x11a");
+          assert.equal(
+            tx.r,
+            "0x7e71a1f3d8e9b45f9916bbb50f156ec601c32feb28cae66c50cb948e3055fe47"
+          );
+          assert.equal(
+            tx.s,
+            "0x3c620197a72ef4dec0e651c34edd4cb46359698a2b44b57a9d40564afe0179c"
+          );
+        });
+
         it("should get an existing transaction from mainnet", async function () {
           if (!isFork) {
             this.skip();

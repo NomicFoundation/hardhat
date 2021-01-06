@@ -168,8 +168,8 @@ export function getRpcTransaction(
     transactionIndex: index !== undefined ? numberToRpcQuantity(index) : null,
     value: numberToRpcQuantity(new BN(tx.value)),
     v: numberToRpcQuantity(new BN(tx.v)),
-    r: numberToRpcQuantity(new BN(tx.s)),
-    s: numberToRpcQuantity(new BN(tx.r)),
+    r: numberToRpcQuantity(new BN(tx.r)),
+    s: numberToRpcQuantity(new BN(tx.s)),
   };
 }
 
