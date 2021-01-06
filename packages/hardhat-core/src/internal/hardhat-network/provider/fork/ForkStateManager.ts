@@ -150,13 +150,15 @@ export class ForkStateManager implements PStateManager {
     key: Buffer
   ): Promise<Buffer> {
     const account = this._state.get(bufferToHex(address));
-    const cleared = account?.get("storageCleared") ?? false;
+    const contractStorageCleared = account?.get("storageCleared") ?? false;
     const localValue = account?.get("storage").get(bufferToHex(key));
 
     if (localValue !== undefined) {
       return toBuffer(localValue);
     }
-    if (cleared) {
+
+    const slotCleared = localValue === null;
+    if (contractStorageCleared || slotCleared) {
       return toBuffer([]);
     }
     return this._jsonRpcClient.getStorageAt(
@@ -191,16 +193,15 @@ export class ForkStateManager implements PStateManager {
     let account = this._state.get(hexAddress) ?? makeAccountState();
     const currentStorage = account.get("storage");
 
-    let newStorage;
+    let newValue: string | null;
     if (unpaddedValue.length === 0) {
       // if the value is an empty array or only zeros, the storage is deleted
-      newStorage = currentStorage.delete(bufferToHex(key));
+      newValue = null;
     } else {
-      newStorage = currentStorage.set(
-        bufferToHex(key),
-        bufferToHex(unpaddedValue)
-      );
+      newValue = bufferToHex(unpaddedValue);
     }
+
+    const newStorage = currentStorage.set(bufferToHex(key), newValue);
 
     account = account.set("storage", newStorage);
 

@@ -1,1 +1,1 @@
-declare module "@pnpm/tabtab";
+declare module "@fvictorio/tabtab";

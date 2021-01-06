@@ -11,32 +11,66 @@ import {
 } from "hardhat/plugins";
 import {
   ActionType,
+  Artifacts,
   CompilationJob,
   CompilerInput,
   CompilerOutput,
   DependencyGraph,
+  Network,
 } from "hardhat/types";
+import {
+  isFullyQualifiedName,
+  parseFullyQualifiedName,
+} from "hardhat/utils/contract-names";
 import path from "path";
 import semver from "semver";
 
-import { defaultEtherscanConfig } from "./config";
+import { encodeArguments } from "./ABIEncoder";
+import { etherscanConfigExtender } from "./config";
+import {
+  pluginName,
+  TASK_VERIFY,
+  TASK_VERIFY_GET_COMPILER_VERSIONS,
+  TASK_VERIFY_GET_CONSTRUCTOR_ARGUMENTS,
+  TASK_VERIFY_GET_CONTRACT_INFORMATION,
+  TASK_VERIFY_GET_ETHERSCAN_ENDPOINT,
+  TASK_VERIFY_GET_MINIMUM_BUILD,
+  TASK_VERIFY_VERIFY_MINIMUM_BUILD,
+} from "./constants";
+import {
+  delay,
+  getVerificationStatus,
+  verifyContract,
+} from "./etherscan/EtherscanService";
 import {
   toCheckStatusRequest,
   toVerifyRequest,
 } from "./etherscan/EtherscanVerifyContractRequest";
 import {
-  pluginName,
-  TASK_VERIFY,
-  TASK_VERIFY_GET_MINIMUM_BUILD,
-} from "./pluginContext";
-import type { ContractInformation } from "./solc/bytecode";
+  getEtherscanEndpoint,
+  retrieveContractBytecode,
+} from "./network/prober";
+import {
+  Bytecode,
+  ContractInformation,
+  extractMatchingContractInformation,
+  lookupMatchingBytecode,
+} from "./solc/bytecode";
+import {
+  METADATA_ABSENT_VERSION_RANGE,
+  METADATA_PRESENT_SOLC_NOT_FOUND_VERSION_RANGE,
+} from "./solc/metadata";
+import { getLongVersion } from "./solc/version";
 import "./type-extensions";
 
 interface VerificationArgs {
   address: string;
-  constructorArguments: string[];
-  // Filename of constructor arguments module.
+  // constructor args given as positional params
+  constructorArgsParams: string[];
+  // Filename of constructor arguments module
   constructorArgs?: string;
+  // Fully qualified name of the contract
+  contract?: string;
 }
 
 interface Build {
@@ -50,13 +84,30 @@ interface MinimumBuildArgs {
   sourceName: string;
 }
 
-extendConfig(defaultEtherscanConfig);
+interface GetContractInformationArgs {
+  contractFQN: string;
+  deployedBytecode: Bytecode;
+  matchingCompilerVersions: string[];
+}
+
+interface VerifyMinimumBuildArgs {
+  minimumBuild: Build;
+  contractInformation: ContractInformation;
+  etherscanAPIEndpoint: string;
+  address: string;
+  etherscanAPIKey: string;
+  solcFullVersion: string;
+  deployArgumentsEncoded: string;
+}
+
+extendConfig(etherscanConfigExtender);
 
 const verify: ActionType<VerificationArgs> = async (
   {
     address,
-    constructorArguments: constructorArgsList,
+    constructorArgsParams,
     constructorArgs: constructorArgsModule,
+    contract: contractFQN,
   },
   { config, network, run, artifacts }
 ) => {
@@ -86,121 +137,51 @@ See https://etherscan.io/apis`
     );
   }
 
-  const supportedSolcVersionRange = ">=0.4.11";
-  // Etherscan only supports solidity versions higher than or equal to v0.4.11.
-  // See https://etherscan.io/solcversions
-  // TODO: perhaps querying and scraping this list would be a better approach?
-  // This list should be validated - it links to https://github.com/ethereum/solc-bin/blob/gh-pages/bin/list.txt
-  // which has many old compilers included in the list too.
-  const configuredVersions = config.solidity.compilers.map((c) => c.version);
-  if (config.solidity.overrides !== undefined) {
-    for (const { version } of Object.values(config.solidity.overrides)) {
-      configuredVersions.push(version);
-    }
-  }
-  if (
-    configuredVersions.some((version) => {
-      return !semver.satisfies(version, supportedSolcVersionRange);
-    })
-  ) {
-    throw new NomicLabsHardhatPluginError(
-      pluginName,
-      `Etherscan only supports compiler versions 0.4.11 and higher.
-See https://etherscan.io/solcversions for more information.`
-    );
-  }
+  const compilerVersions: string[] = await run(
+    TASK_VERIFY_GET_COMPILER_VERSIONS
+  );
 
-  let constructorArguments;
-  if (typeof constructorArgsModule === "string") {
-    if (!path.isAbsolute(constructorArgsModule)) {
-      // This ensures that the npm package namespace is ignored.
-      constructorArgsModule = path.join(process.cwd(), constructorArgsModule);
+  const constructorArguments: any[] = await run(
+    TASK_VERIFY_GET_CONSTRUCTOR_ARGUMENTS,
+    {
+      constructorArgsModule,
+      constructorArgsParams,
     }
-    try {
-      constructorArguments = (await import(constructorArgsModule)).default;
-      if (!Array.isArray(constructorArguments)) {
-        throw new NomicLabsHardhatPluginError(
-          pluginName,
-          `The module doesn't export a list. The module should look like this:
-module.exports = [ arg1, arg2, ... ];`
-        );
-      }
-    } catch (error) {
-      throw new NomicLabsHardhatPluginError(
-        pluginName,
-        `Importing the module for the constructor arguments list failed.
-Reason: ${error.message}`,
-        error
-      );
-    }
-  } else {
-    constructorArguments = constructorArgsList;
-  }
+  );
 
-  let etherscanAPIEndpoint: URL;
-  const {
-    getEtherscanEndpoint,
-    retrieveContractBytecode,
-    NetworkProberError,
-  } = await import("./network/prober");
-  try {
-    etherscanAPIEndpoint = await getEtherscanEndpoint(network.provider);
-  } catch (error) {
-    if (error instanceof NetworkProberError) {
-      throw new NomicLabsHardhatPluginError(
-        pluginName,
-        `${error.message} The selected network is ${network.name}.
+  const etherscanAPIEndpoint: string = await run(
+    TASK_VERIFY_GET_ETHERSCAN_ENDPOINT
+  );
 
-Possible causes are:
-  - The selected network (${network.name}) is wrong.
-  - Faulty hardhat network config.`,
-        error
-      );
-    }
-    // Shouldn't be reachable.
-    throw error;
-  }
-
-  const deployedContractBytecode = await retrieveContractBytecode(
+  const deployedBytecodeHex = await retrieveContractBytecode(
     address,
-    network.provider
+    network.provider,
+    network.name
   );
-  if (deployedContractBytecode === null) {
-    throw new NomicLabsHardhatPluginError(
-      pluginName,
-      `The address ${address} has no bytecode. Is the contract deployed to this network?
-The selected network is ${network.name}.`
-    );
-  }
 
-  const { getLongVersion, inferSolcVersion, InferralType } = await import(
-    "./solc/version"
-  );
-  const bytecodeBuffer = Buffer.from(deployedContractBytecode, "hex");
-  const inferredSolcVersion = await inferSolcVersion(bytecodeBuffer);
+  const deployedBytecode = new Bytecode(deployedBytecodeHex);
+  const inferredSolcVersion = deployedBytecode.getInferredSolcVersion();
 
-  const matchingVersions = configuredVersions.filter((version) => {
-    return semver.satisfies(version, inferredSolcVersion.range);
+  const matchingCompilerVersions = compilerVersions.filter((version) => {
+    return semver.satisfies(version, inferredSolcVersion);
   });
-  if (matchingVersions.length === 0) {
+  if (matchingCompilerVersions.length === 0) {
     const detailedContext = [];
-    if (inferredSolcVersion.inferralType === InferralType.EXACT) {
+    if (isVersionRange(inferredSolcVersion)) {
       detailedContext.push(
-        `The expected version is ${inferredSolcVersion.range}.`
+        `The expected version range is ${inferredSolcVersion}.`
       );
     } else {
-      detailedContext.push(
-        `The expected version range is ${inferredSolcVersion.range}.`
-      );
+      detailedContext.push(`The expected version is ${inferredSolcVersion}.`);
     }
     // There is always at least one configured version.
-    if (configuredVersions.length > 1) {
+    if (compilerVersions.length > 1) {
       detailedContext.push(
-        `The selected compiler versions are: ${configuredVersions.join(", ")}`
+        `The selected compiler versions are: ${compilerVersions.join(", ")}`
       );
     } else {
       detailedContext.push(
-        `The selected compiler version is: ${configuredVersions[0]}`
+        `The selected compiler version is: ${compilerVersions[0]}`
       );
     }
     const message = `The bytecode retrieved could not have been generated by any of the selected compilers.
@@ -216,52 +197,12 @@ Possible causes are:
   // Make sure that contract artifacts are up-to-date.
   await run(TASK_COMPILE);
 
-  const { lookupMatchingBytecode } = await import("./solc/bytecode");
-  const contractMatches = await lookupMatchingBytecode(
-    artifacts,
-    matchingVersions,
-    deployedContractBytecode,
-    inferredSolcVersion.inferralType
-  );
-  if (contractMatches.length === 0) {
-    const message = `The address provided as argument contains a contract, but its bytecode doesn't match any of your local contracts.
+  const contractInformation = await run(TASK_VERIFY_GET_CONTRACT_INFORMATION, {
+    contractFQN,
+    deployedBytecode,
+    matchingCompilerVersions,
+  });
 
-Possible causes are:
-  - Contract code changed after the deployment was executed. This includes code for seemingly unrelated contracts.
-  - A solidity file was added, moved, deleted or renamed after the deployment was executed. This includes files for seemingly unrelated contracts.
-  - Solidity compiler settings were modified after the deployment was executed (like the optimizer, target EVM, etc.).
-  - The given address is wrong.
-  - The selected network (${network.name}) is wrong.`;
-    throw new NomicLabsHardhatPluginError(pluginName, message);
-  }
-  if (contractMatches.length > 1) {
-    const nameList = contractMatches
-      .map((contract) => {
-        return `${contract.sourceName}:${contract.contractName}`;
-      })
-      .join(", ");
-    const message = `More than one contract was found to match the deployed bytecode.
-The plugin does not yet support this case. Contracts found:
-${nameList}`;
-    throw new NomicLabsHardhatPluginError(pluginName, message, undefined, true);
-  }
-  const [contractInformation] = contractMatches;
-
-  const libraryLinks = contractInformation.libraryLinks;
-  const deployLibraryReferences =
-    contractInformation.contract.evm.bytecode.linkReferences;
-  if (
-    Object.keys(libraryLinks).length <
-    Object.keys(deployLibraryReferences).length
-  ) {
-    throw new NomicLabsHardhatPluginError(
-      pluginName,
-      `The contract ${contractInformation.sourceName}:${contractInformation.contractName} has one or more library references that cannot be detected from deployed bytecode.
-This can occur if the library is only called in the contract constructor.`
-    );
-  }
-
-  const { encodeArguments } = await import("./ABIEncoder");
   const deployArgumentsEncoded = await encodeArguments(
     contractInformation.contract.abi,
     contractInformation.sourceName,
@@ -275,44 +216,17 @@ This can occur if the library is only called in the contract constructor.`
     sourceName: contractInformation.sourceName,
   });
 
-  const minimumBuildContractBytecode =
-    minimumBuild.output.contracts[contractInformation.sourceName][
-      contractInformation.contractName
-    ].evm.deployedBytecode.object;
-  const matchedBytecode =
-    contractInformation.compilerOutput.contracts[
-      contractInformation.sourceName
-    ][contractInformation.contractName].evm.deployedBytecode.object;
-
-  if (minimumBuildContractBytecode === matchedBytecode) {
-    const minimumBuildVerificationStatus = await attemptVerification(
-      etherscanAPIEndpoint,
-      contractInformation,
-      address,
-      etherscan.apiKey,
-      minimumBuild.input,
-      solcFullVersion,
-      deployArgumentsEncoded
-    );
-
-    if (minimumBuildVerificationStatus.isVerificationSuccess()) {
-      console.log(
-        `Successfully verified contract ${contractInformation.contractName} on Etherscan`
-      );
-      return { success: true };
-    }
-
-    console.log(
-      `We tried verifying your contract ${contractInformation.contractName} without including any unrelated one, but it failed.
-Trying again with the full solc input used to compile and deploy it.
-This means that unrelated contracts may be displayed on Etherscan...`
-    );
-  } else {
-    console.log(
-      `Compiling your contract excluding unrelated contracts did not produce identical bytecode.
-Trying again with the full solc input used to compile and deploy it.
-This means that unrelated contracts may be displayed on Etherscan...`
-    );
+  const success: boolean = await run(TASK_VERIFY_VERIFY_MINIMUM_BUILD, {
+    minimumBuild,
+    contractInformation,
+    etherscanAPIEndpoint,
+    address,
+    etherscanAPIKey: etherscan.apiKey,
+    solcFullVersion,
+    deployArgumentsEncoded,
+  });
+  if (success) {
+    return { success };
   }
 
   // Fallback verification
@@ -333,6 +247,10 @@ This means that unrelated contracts may be displayed on Etherscan...`
     return { success: true };
   }
 
+  // TODO: Add known edge cases here.
+  // E.g:
+  // - "Unable to locate ContractCode at <address>"
+  // - Address of library used in constructor is wrong
   throw new NomicLabsHardhatPluginError(
     pluginName,
     `The contract verification failed.
@@ -340,8 +258,57 @@ Reason: ${verificationStatus.message}`
   );
 };
 
+subtask(TASK_VERIFY_GET_CONSTRUCTOR_ARGUMENTS)
+  .addParam("constructorArgsParams", undefined, undefined, types.any)
+  .addOptionalParam(
+    "constructorArgsModule",
+    undefined,
+    undefined,
+    types.inputFile
+  )
+  .setAction(
+    async ({
+      constructorArgsModule,
+      constructorArgsParams,
+    }: {
+      constructorArgsModule?: string;
+      constructorArgsParams: string[];
+    }) => {
+      if (typeof constructorArgsModule !== "string") {
+        return constructorArgsParams;
+      }
+
+      const constructorArgsModulePath = path.resolve(
+        process.cwd(),
+        constructorArgsModule
+      );
+
+      try {
+        const constructorArguments = (await import(constructorArgsModulePath))
+          .default;
+
+        if (!Array.isArray(constructorArguments)) {
+          throw new NomicLabsHardhatPluginError(
+            pluginName,
+            `The module doesn't export a list. The module should look like this:
+module.exports = [ arg1, arg2, ... ];`
+          );
+        }
+
+        return constructorArguments;
+      } catch (error) {
+        throw new NomicLabsHardhatPluginError(
+          pluginName,
+          `Importing the module for the constructor arguments list failed.
+Reason: ${error.message}`,
+          error
+        );
+      }
+    }
+  );
+
 async function attemptVerification(
-  etherscanAPIEndpoint: URL,
+  etherscanAPIEndpoint: string,
   contractInformation: ContractInformation,
   contractAddress: string,
   etherscanAPIKey: string,
@@ -360,9 +327,6 @@ async function attemptVerification(
     compilerVersion: solcFullVersion,
     constructorArguments: deployArgumentsEncoded,
   });
-  const { getVerificationStatus, verifyContract, delay } = await import(
-    "./etherscan/EtherscanService"
-  );
   const response = await verifyContract(etherscanAPIEndpoint, request);
 
   console.log(
@@ -439,25 +403,280 @@ const getMinimumBuild: ActionType<MinimumBuildArgs> = async function (
   return build;
 };
 
-task(TASK_VERIFY, "Verifies contract on Etherscan")
-  .addPositionalParam(
-    "address",
-    "Address of the smart contract that will be verified"
-  )
-  .addOptionalParam(
-    "constructorArgs",
-    "File path to a javascript module that exports the list of arguments."
-  )
-  .addOptionalVariadicPositionalParam(
-    "constructorArguments",
-    "Arguments used in the contract constructor. These are ignored if the --constructorArgs option is passed.",
-    []
-  )
-  .setAction(verify);
+async function inferContract(
+  artifacts: Artifacts,
+  network: Network,
+  matchingCompilerVersions: string[],
+  deployedBytecode: Bytecode
+) {
+  const contractMatches = await lookupMatchingBytecode(
+    artifacts,
+    matchingCompilerVersions,
+    deployedBytecode
+  );
+  if (contractMatches.length === 0) {
+    const message = `The address provided as argument contains a contract, but its bytecode doesn't match any of your local contracts.
+
+Possible causes are:
+  - Contract code changed after the deployment was executed. This includes code for seemingly unrelated contracts.
+  - A solidity file was added, moved, deleted or renamed after the deployment was executed. This includes files for seemingly unrelated contracts.
+  - Solidity compiler settings were modified after the deployment was executed (like the optimizer, target EVM, etc.).
+  - The given address is wrong.
+  - The selected network (${network.name}) is wrong.`;
+    throw new NomicLabsHardhatPluginError(pluginName, message);
+  }
+  if (contractMatches.length > 1) {
+    const nameList = contractMatches
+      .map((contract) => {
+        return `${contract.sourceName}:${contract.contractName}`;
+      })
+      .map((fqName) => `  * ${fqName}`)
+      .join("\n");
+    const message = `More than one contract was found to match the deployed bytecode.
+Please use the contract parameter with one of the following contracts:
+${nameList}
+
+For example:
+
+  hardhat verify --contract contracts/Example.sol:ExampleContract <your verify args>`;
+    throw new NomicLabsHardhatPluginError(pluginName, message, undefined, true);
+  }
+  return contractMatches[0];
+}
+
+subtask(TASK_VERIFY_GET_COMPILER_VERSIONS).setAction(
+  async (_, { config }): Promise<string[]> => {
+    const compilerVersions = config.solidity.compilers.map((c) => c.version);
+    if (config.solidity.overrides !== undefined) {
+      for (const { version } of Object.values(config.solidity.overrides)) {
+        compilerVersions.push(version);
+      }
+    }
+
+    // Etherscan only supports solidity versions higher than or equal to v0.4.11.
+    // See https://etherscan.io/solcversions
+    const supportedSolcVersionRange = ">=0.4.11";
+    if (
+      compilerVersions.some((version) => {
+        return !semver.satisfies(version, supportedSolcVersionRange);
+      })
+    ) {
+      throw new NomicLabsHardhatPluginError(
+        pluginName,
+        `Etherscan only supports compiler versions 0.4.11 and higher.
+See https://etherscan.io/solcversions for more information.`
+      );
+    }
+
+    return compilerVersions;
+  }
+);
+
+subtask(TASK_VERIFY_GET_ETHERSCAN_ENDPOINT).setAction(async (_, { network }) =>
+  getEtherscanEndpoint(network.provider, network.name)
+);
+
+subtask(TASK_VERIFY_GET_CONTRACT_INFORMATION)
+  .addParam("deployedBytecode", undefined, undefined, types.any)
+  .addParam("matchingCompilerVersions", undefined, undefined, types.any)
+  .addOptionalParam("contractFQN", undefined, undefined, types.string)
+  .setAction(
+    async (
+      {
+        contractFQN,
+        deployedBytecode,
+        matchingCompilerVersions,
+      }: GetContractInformationArgs,
+      { network, artifacts }
+    ): Promise<ContractInformation> => {
+      let contractInformation;
+      if (contractFQN !== undefined) {
+        // Check this particular contract
+        if (!isFullyQualifiedName(contractFQN)) {
+          throw new NomicLabsHardhatPluginError(
+            pluginName,
+            `A valid fully qualified name was expected. Fully qualified names look like this: "contracts/AContract.sol:TheContract"
+Instead, this name was received: ${contractFQN}`
+          );
+        }
+
+        if (!(await artifacts.artifactExists(contractFQN))) {
+          throw new NomicLabsHardhatPluginError(
+            pluginName,
+            `The contract ${contractFQN} is not present in your project.`
+          );
+        }
+
+        // Process BuildInfo here to check version and throw an error if unexpected version is found.
+        const buildInfo = await artifacts.getBuildInfo(contractFQN);
+
+        if (buildInfo === undefined) {
+          throw new NomicLabsHardhatPluginError(
+            pluginName,
+            `The contract ${contractFQN} is present in your project, but we couldn't find its sources.
+Please make sure that it has been compiled by Hardhat and that it is written in Solidity.`
+          );
+        }
+
+        if (!matchingCompilerVersions.includes(buildInfo.solcVersion)) {
+          const inferredSolcVersion = deployedBytecode.getInferredSolcVersion();
+          let versionDetails;
+          if (isVersionRange(inferredSolcVersion)) {
+            versionDetails = `a solidity version in the range ${inferredSolcVersion}`;
+          } else {
+            versionDetails = `the solidity version ${inferredSolcVersion}`;
+          }
+
+          throw new NomicLabsHardhatPluginError(
+            pluginName,
+            `The contract ${contractFQN} is being compiled with ${buildInfo.solcVersion}.
+However, the contract found in the address provided as argument has its bytecode marked with ${versionDetails}.
+
+Possible causes are:
+  - Solidity compiler version settings were modified after the deployment was executed.
+  - The given address is wrong.
+  - The selected network (${network.name}) is wrong.`
+          );
+        }
+
+        const { sourceName, contractName } = parseFullyQualifiedName(
+          contractFQN
+        );
+        contractInformation = await extractMatchingContractInformation(
+          sourceName,
+          contractName,
+          buildInfo,
+          deployedBytecode
+        );
+
+        if (contractInformation === null) {
+          throw new NomicLabsHardhatPluginError(
+            pluginName,
+            `The address provided as argument contains a contract, but its bytecode doesn't match the contract ${contractFQN}.
+
+Possible causes are:
+  - Contract code changed after the deployment was executed. This includes code for seemingly unrelated contracts.
+  - A solidity file was added, moved, deleted or renamed after the deployment was executed. This includes files for seemingly unrelated contracts.
+  - Solidity compiler settings were modified after the deployment was executed (like the optimizer, target EVM, etc.).
+  - The given address is wrong.
+  - The selected network (${network.name}) is wrong.`
+          );
+        }
+      } else {
+        // Infer the contract
+        contractInformation = await inferContract(
+          artifacts,
+          network,
+          matchingCompilerVersions,
+          deployedBytecode
+        );
+      }
+
+      const libraryLinks = contractInformation.libraryLinks;
+      const deployLibraryReferences =
+        contractInformation.contract.evm.bytecode.linkReferences;
+      if (
+        Object.keys(libraryLinks).length <
+        Object.keys(deployLibraryReferences).length
+      ) {
+        throw new NomicLabsHardhatPluginError(
+          pluginName,
+          `The contract ${contractInformation.sourceName}:${contractInformation.contractName} has one or more library references that cannot be detected from deployed bytecode.
+This can occur if the library is only called in the contract constructor.`,
+          undefined,
+          true
+        );
+      }
+      return contractInformation;
+    }
+  );
+
+subtask(TASK_VERIFY_VERIFY_MINIMUM_BUILD)
+  .addParam("minimumBuild", undefined, undefined, types.any)
+  .addParam("contractInformation", undefined, undefined, types.any)
+  .addParam("etherscanAPIEndpoint", undefined, undefined, types.string)
+  .addParam("address", undefined, undefined, types.string)
+  .addParam("etherscanAPIKey", undefined, undefined, types.string)
+  .addParam("solcFullVersion", undefined, undefined, types.string)
+  .addParam("deployArgumentsEncoded", undefined, undefined, types.string)
+  .setAction(
+    async ({
+      minimumBuild,
+      contractInformation,
+      etherscanAPIEndpoint,
+      address,
+      etherscanAPIKey,
+      solcFullVersion,
+      deployArgumentsEncoded,
+    }: VerifyMinimumBuildArgs): Promise<boolean> => {
+      const minimumBuildContractBytecode =
+        minimumBuild.output.contracts[contractInformation.sourceName][
+          contractInformation.contractName
+        ].evm.deployedBytecode.object;
+      const matchedBytecode =
+        contractInformation.compilerOutput.contracts[
+          contractInformation.sourceName
+        ][contractInformation.contractName].evm.deployedBytecode.object;
+
+      if (minimumBuildContractBytecode === matchedBytecode) {
+        const minimumBuildVerificationStatus = await attemptVerification(
+          etherscanAPIEndpoint,
+          contractInformation,
+          address,
+          etherscanAPIKey,
+          minimumBuild.input,
+          solcFullVersion,
+          deployArgumentsEncoded
+        );
+
+        if (minimumBuildVerificationStatus.isVerificationSuccess()) {
+          console.log(
+            `Successfully verified contract ${contractInformation.contractName} on Etherscan`
+          );
+          return true;
+        }
+
+        console.log(
+          `We tried verifying your contract ${contractInformation.contractName} without including any unrelated one, but it failed.
+Trying again with the full solc input used to compile and deploy it.
+This means that unrelated contracts may be displayed on Etherscan...`
+        );
+      } else {
+        console.log(
+          `Compiling your contract excluding unrelated contracts did not produce identical bytecode.
+Trying again with the full solc input used to compile and deploy it.
+This means that unrelated contracts may be displayed on Etherscan...`
+        );
+      }
+
+      return false;
+    }
+  );
 
 subtask(TASK_VERIFY_GET_MINIMUM_BUILD)
   .addParam("sourceName", undefined, undefined, types.string)
   .setAction(getMinimumBuild);
+
+task(TASK_VERIFY, "Verifies contract on Etherscan")
+  .addPositionalParam("address", "Address of the smart contract to verify")
+  .addOptionalParam(
+    "constructorArgs",
+    "File path to a javascript module that exports the list of arguments.",
+    undefined,
+    types.inputFile
+  )
+  .addOptionalParam(
+    "contract",
+    "Fully qualified name of the contract to verify. " +
+      "Skips automatic detection of the contract. " +
+      "Use if the deployed bytecode matches more than one contract in your project."
+  )
+  .addOptionalVariadicPositionalParam(
+    "constructorArgsParams",
+    "Contract constructor arguments. Ignored if the --constructor-args option is used.",
+    []
+  )
+  .setAction(verify);
 
 function assertHardhatPluginInvariant(
   invariant: boolean,
@@ -466,4 +685,11 @@ function assertHardhatPluginInvariant(
   if (!invariant) {
     throw new NomicLabsHardhatPluginError(pluginName, message, undefined, true);
   }
+}
+
+function isVersionRange(version: string): boolean {
+  return (
+    version === METADATA_ABSENT_VERSION_RANGE ||
+    version === METADATA_PRESENT_SOLC_NOT_FOUND_VERSION_RANGE
+  );
 }

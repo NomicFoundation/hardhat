@@ -19,6 +19,18 @@ export function waffleChai(chai: Chai.ChaiStatic, utils: Chai.ChaiUtils) {
   const {
     supportChangeBalances,
   } = require(`${waffleChaiPath}/matchers/changeBalances`);
+  const {
+    supportChangeEtherBalance,
+  } = require(`${waffleChaiPath}/matchers/changeEtherBalance`);
+  const {
+    supportChangeEtherBalances,
+  } = require(`${waffleChaiPath}/matchers/changeEtherBalances`);
+  const {
+    supportChangeTokenBalance,
+  } = require(`${waffleChaiPath}/matchers/changeTokenBalance`);
+  const {
+    supportChangeTokenBalances,
+  } = require(`${waffleChaiPath}/matchers/changeTokenBalances`);
   const { supportEmit } = require(`${waffleChaiPath}/matchers/emit`);
   const {
     supportProperAddress,
@@ -41,6 +53,10 @@ export function waffleChai(chai: Chai.ChaiStatic, utils: Chai.ChaiUtils) {
   supportProperHex(chai.Assertion);
   supportChangeBalance(chai.Assertion);
   supportChangeBalances(chai.Assertion);
+  supportChangeEtherBalance(chai.Assertion);
+  supportChangeEtherBalances(chai.Assertion);
+  supportChangeTokenBalance(chai.Assertion);
+  supportChangeTokenBalances(chai.Assertion);
   supportCalledOnContract(chai.Assertion);
   supportCalledOnContractWith(chai.Assertion);
 }

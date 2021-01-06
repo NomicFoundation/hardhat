@@ -9,7 +9,6 @@ export const StringTy = "String";
 export const BoolTy = "Bool";
 export const AddressTy = "Address";
 export const BytesTy = "Bytes";
-export const ByteTy = "Byte";
 export const Bytes1Ty = "Bytes1";
 export const Bytes2Ty = "Bytes2";
 export const Bytes3Ty = "Bytes3";
@@ -53,7 +52,6 @@ export const ConsoleLogs = {
   843419373: [BoolTy],
   741264322: [AddressTy],
   199720790: [BytesTy],
-  3397565313: [ByteTy],
   1847107880: [Bytes1Ty],
   3921027734: [Bytes2Ty],
   763578662: [Bytes3Ty],

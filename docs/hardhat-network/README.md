@@ -109,7 +109,6 @@ Hardhat Network allows you to print logging messages and contract variables call
   - `console.logBool(bool b)`
   - `console.logAddress(address a)`
   - `console.logBytes(bytes memory b)`
-  - `console.logByte(byte b)`
   - `console.logBytes1(bytes1 b)`
   - `console.logBytes2(bytes2 b)`
   - ...

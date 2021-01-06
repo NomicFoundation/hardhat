@@ -583,6 +583,78 @@ describe("Artifacts class", function () {
       assert.isTrue(buildInfoPaths.every((p) => p.startsWith(this.tmpDir)));
       assert.isTrue(buildInfoPaths.every((p) => p.endsWith(".json")));
     });
+
+    it("Should use a deterministic build info name based on the solc version and input", async function () {
+      const artifacts = new Artifacts(this.tmpDir);
+
+      const solcVersion = "0.5.6";
+      const solcLongVersion = "0.5.6+12321";
+      const solcInput = { input: true } as any;
+      const solcOutput = { output: true } as any;
+
+      const buildInfoPath = await artifacts.saveBuildInfo(
+        solcVersion,
+        solcLongVersion,
+        solcInput,
+        solcOutput
+      );
+
+      await fsExtra.unlink(buildInfoPath);
+
+      const buildInfoPath2 = await artifacts.saveBuildInfo(
+        solcVersion,
+        solcLongVersion,
+        solcInput,
+        solcOutput
+      );
+
+      await fsExtra.unlink(buildInfoPath2);
+
+      const buildInfoPathChangedVersion = await artifacts.saveBuildInfo(
+        `${solcVersion}changed`,
+        solcLongVersion,
+        solcInput,
+        solcOutput
+      );
+
+      const buildInfoPathChangedLongVersion = await artifacts.saveBuildInfo(
+        solcVersion,
+        `${solcLongVersion}changed`,
+        solcInput,
+        solcOutput
+      );
+
+      const buildInfoPathChangedInput = await artifacts.saveBuildInfo(
+        solcVersion,
+        solcLongVersion,
+        { ...solcInput, changed: true },
+        solcOutput
+      );
+
+      // The output depends on the other params, so this test just makes sure that
+      // it's not used
+      const buildInfoPathChangedOutput = await artifacts.saveBuildInfo(
+        solcVersion,
+        solcLongVersion,
+        solcInput,
+        { ...solcInput, changed: true }
+      );
+
+      assert.equal(buildInfoPath, buildInfoPath2);
+      assert.equal(buildInfoPath, buildInfoPathChangedOutput);
+
+      const allPaths = [
+        buildInfoPath,
+        buildInfoPath2,
+        buildInfoPathChangedVersion,
+        buildInfoPathChangedLongVersion,
+        buildInfoPathChangedInput,
+        buildInfoPathChangedOutput,
+      ];
+
+      // -2 because of the ones that we tested above that are equal
+      assert.equal(new Set(allPaths).size, allPaths.length - 2);
+    });
   });
 });
 

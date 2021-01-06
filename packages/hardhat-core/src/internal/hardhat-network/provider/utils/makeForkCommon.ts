@@ -1,13 +1,15 @@
 import Common from "ethereumjs-common";
-import { BN } from "ethereumjs-util";
 
-import { JsonRpcClient } from "../../jsonrpc/client";
+import { ForkedNodeConfig } from "../node-types";
 
-export async function makeForkCommon(
-  forkClient: JsonRpcClient,
-  forkBlockNumber: BN
-) {
-  const common = new Common(forkClient.getNetworkId());
-  common.setHardfork(common.activeHardfork(forkBlockNumber.toNumber()));
-  return common;
+export async function makeForkCommon(config: ForkedNodeConfig) {
+  return Common.forCustomChain(
+    "mainnet",
+    {
+      chainId: config.chainId,
+      networkId: config.networkId,
+      name: config.networkName,
+    },
+    config.hardfork
+  );
 }

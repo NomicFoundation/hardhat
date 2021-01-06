@@ -20,6 +20,7 @@ import { Block } from "../types/Block";
 import { Blockchain } from "../types/Blockchain";
 import { PBlockchain, toBlockchain } from "../types/PBlockchain";
 
+import { ForkTransaction } from "./ForkTransaction";
 import { rpcToBlockData } from "./rpcToBlockData";
 import { rpcToTxData } from "./rpcToTxData";
 
@@ -183,7 +184,9 @@ export class ForkBlockchain implements PBlockchain {
             : filterParams.addresses,
         topics: filterParams.normalizedTopics,
       });
-      return remoteLogs.map((log) => toRpcLogOutput(log)).concat(localLogs);
+      return remoteLogs
+        .map((log, index) => toRpcLogOutput(log, index))
+        .concat(localLogs);
     }
     return this._data.getLogs(filterParams);
   }
@@ -225,7 +228,24 @@ export class ForkBlockchain implements PBlockchain {
     ) {
       return undefined;
     }
-    const block = new Block(rpcToBlockData(rpcBlock), { common: this._common });
+
+    // we don't include the transactions to add our own custom ForkTransaction txs
+    const blockData = rpcToBlockData({
+      ...rpcBlock,
+      transactions: [],
+    });
+
+    const block = new Block(blockData, { common: this._common });
+    const chainId = this._jsonRpcClient.getNetworkId();
+
+    for (const transaction of rpcBlock.transactions) {
+      block.transactions.push(
+        new ForkTransaction(chainId, rpcToTxData(transaction), {
+          common: this._common,
+        })
+      );
+    }
+
     this._data.addBlock(block, rpcBlock.totalDifficulty);
     return block;
   }
@@ -275,10 +295,18 @@ export class ForkBlockchain implements PBlockchain {
     ) {
       return undefined;
     }
-    const transaction = new Transaction(rpcToTxData(rpcTransaction), {
-      common: this._common,
-    });
+
+    const chainId = this._jsonRpcClient.getNetworkId();
+    const transaction = new ForkTransaction(
+      chainId,
+      rpcToTxData(rpcTransaction),
+      {
+        common: this._common,
+      }
+    );
+
     this._data.addTransaction(transaction);
+
     return transaction;
   }
 

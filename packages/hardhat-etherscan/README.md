@@ -108,5 +108,4 @@ The plugin works by fetching the bytecode in the given address and using it to c
 
 ## Known limitations
 
-- Cases where more than one contract correspond to the same bytecode aren’t supported.
 - Adding, removing, moving or renaming new contracts to the hardhat project or reorganizing the directory structure of contracts after deployment may alter the resulting bytecode in some solc versions. See this [Solidity issue](https://github.com/ethereum/solidity/issues/9573) for further information.

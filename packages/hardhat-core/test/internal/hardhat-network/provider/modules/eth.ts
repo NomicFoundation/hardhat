@@ -2,6 +2,7 @@ import { assert } from "chai";
 import { BN, bufferToHex, toBuffer, zeroAddress } from "ethereumjs-util";
 import { Context } from "mocha";
 
+import { rpcQuantityToNumber } from "../../../../../src/internal/core/providers/provider-utils";
 import { InvalidInputError } from "../../../../../src/internal/hardhat-network/provider/errors";
 import { randomAddress } from "../../../../../src/internal/hardhat-network/provider/fork/random";
 import { COINBASE_ADDRESS } from "../../../../../src/internal/hardhat-network/provider/node";
@@ -59,6 +60,10 @@ const PRECOMPILES_COUNT = 8;
 
 describe("Eth module", function () {
   PROVIDERS.forEach(({ name, useProvider, isFork, chainId }) => {
+    if (isFork) {
+      this.timeout(50000);
+    }
+
     describe(`${name} provider`, function () {
       setCWD();
       useProvider();
@@ -430,6 +435,65 @@ describe("Eth module", function () {
             resultBlock1m,
             "0x0000000000000000000000000000000000000000000000000000000000000000"
           );
+        });
+
+        it("should run in the context of the blocktag's block", async function () {
+          const contractAddress = await deployContract(
+            this.provider,
+            `0x${EXAMPLE_READ_CONTRACT.bytecode.object}`
+          );
+
+          const blockNumber = rpcQuantityToNumber(
+            await this.provider.send("eth_blockNumber", [])
+          );
+
+          await this.provider.send("evm_mine", []);
+          await this.provider.send("evm_mine", []);
+
+          const blockResult = await this.provider.send("eth_call", [
+            {
+              to: contractAddress,
+              data: EXAMPLE_READ_CONTRACT.selectors.blockNumber,
+            },
+            numberToRpcQuantity(blockNumber),
+          ]);
+
+          assert.equal(dataToNumber(blockResult), blockNumber);
+        });
+
+        it("should accept a gas limit higher than the block gas limit being used", async function () {
+          const contractAddress = await deployContract(
+            this.provider,
+            `0x${EXAMPLE_READ_CONTRACT.bytecode.object}`
+          );
+
+          const blockNumber = rpcQuantityToNumber(
+            await this.provider.send("eth_blockNumber", [])
+          );
+
+          const gas = "0x5f5e100"; // 100M gas
+
+          const blockResult = await this.provider.send("eth_call", [
+            {
+              to: contractAddress,
+              data: EXAMPLE_READ_CONTRACT.selectors.blockNumber,
+              gas,
+            },
+            numberToRpcQuantity(blockNumber),
+          ]);
+
+          assert.equal(dataToNumber(blockResult), blockNumber);
+
+          const blockResult2 = await this.provider.send("eth_call", [
+            {
+              to: contractAddress,
+              data: EXAMPLE_READ_CONTRACT.selectors.blockNumber,
+              gas,
+            },
+            "pending",
+          ]);
+
+          assert.equal(dataToNumber(blockResult2), blockNumber + 1);
         });
       });
 
@@ -1772,6 +1836,7 @@ describe("Eth module", function () {
         });
 
         it("Should accept block hashes as from", async function () {
+          const blockNumberBegin = await this.provider.send("eth_blockNumber");
           const exampleContract = await deployContract(
             this.provider,
             `0x${EXAMPLE_CONTRACT.bytecode.object}`
@@ -1790,13 +1855,15 @@ describe("Eth module", function () {
 
           await this.provider.send("evm_mine", []);
 
+          const blockNumberEnd = await this.provider.send("eth_blockNumber");
+
           const block0 = await this.provider.send("eth_getBlockByNumber", [
-            "0x0",
+            blockNumberBegin,
             false,
           ]);
 
           const block3 = await this.provider.send("eth_getBlockByNumber", [
-            "0x3",
+            blockNumberEnd,
             false,
           ]);
 
@@ -1879,6 +1946,27 @@ describe("Eth module", function () {
               },
             },
           ]);
+        });
+
+        it("should have logIndex for logs in remote blocks", async function () {
+          if (!isFork) {
+            this.skip();
+          }
+
+          const logs = await this.provider.send("eth_getLogs", [
+            {
+              address: "0x2A07fBCD64BE0e2329890C21c6F34e81889a5912",
+              topics: [
+                "0x8f7de836135871245dd9c04f295aef602311da1591d262ecb4d2f45c7a88003d",
+              ],
+              fromBlock: numberToRpcQuantity(10721019),
+              toBlock: numberToRpcQuantity(10721019),
+            },
+          ]);
+
+          assert.lengthOf(logs, 1);
+          assert.isDefined(logs[0].logIndex);
+          assert.isNotNull(logs[0].logIndex);
         });
       });
 
@@ -2358,6 +2446,40 @@ describe("Eth module", function () {
             block.hash,
             0
           );
+        });
+
+        it("should get an existing transaction from mainnet", async function () {
+          if (!isFork) {
+            this.skip();
+          }
+
+          const tx = await this.provider.send("eth_getTransactionByHash", [
+            "0x5a4bf6970980a9381e6d6c78d96ab278035bbff58c383ffe96a0a2bbc7c02a4b",
+          ]);
+
+          assert.equal(tx.from, "0x8a9d69aa686fa0f9bbdec21294f67d4d9cfb4a3e");
+        });
+
+        it("should get an existing transaction from rinkeby", async function () {
+          const { ALCHEMY_URL } = process.env;
+          if (!isFork || ALCHEMY_URL === undefined || ALCHEMY_URL === "") {
+            this.skip();
+          }
+          const rinkebyUrl = ALCHEMY_URL.replace("mainnet", "rinkeby");
+
+          await this.provider.send("hardhat_reset", [
+            {
+              forking: {
+                jsonRpcUrl: rinkebyUrl,
+              },
+            },
+          ]);
+
+          const tx = await this.provider.send("eth_getTransactionByHash", [
+            "0x9f8322fbfc0092c0493d4421626e682a0ef0a56ea37efe8f29cda804cca92e7f",
+          ]);
+
+          assert.equal(tx.from, "0xbc3109d75dffaae85ef595902e3bd70fe0643b3b");
         });
       });
 
@@ -3125,6 +3247,52 @@ describe("Eth module", function () {
             txParams,
             `known transaction: ${bufferToHex(hash)}`
           );
+        });
+
+        // This test checks that an on-chain value can be set to 0
+        // To do this, we transfer all the balance of the 0x0000...0001 account
+        // to some random account, and then check that its balance is zero
+        it("should set a value to 0", async function () {
+          if (!isFork) {
+            this.skip();
+          }
+
+          const daiAddress = "0x6B175474E89094C44Da98b954EedeAC495271d0F";
+          const sender = "0x0000000000000000000000000000000000000001";
+
+          await this.provider.send("hardhat_impersonateAccount", [sender]);
+
+          // get balance of 0x0000...0001
+          const balanceBefore = await this.provider.send("eth_call", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: daiAddress,
+              data:
+                "0x70a082310000000000000000000000000000000000000000000000000000000000000001",
+            },
+          ]);
+
+          // send out the full balance
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from: sender,
+              to: daiAddress,
+              data: `0xa9059cbb0000000000000000000000005a3fed996fc40791a26e7fb78dda4f9293788951${balanceBefore.slice(
+                2
+              )}`,
+            },
+          ]);
+
+          const balanceAfter = await this.provider.send("eth_call", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: daiAddress,
+              data:
+                "0x70a082310000000000000000000000000000000000000000000000000000000000000001",
+            },
+          ]);
+
+          assert.isTrue(new BN(toBuffer(balanceAfter)).isZero());
         });
       });
 
