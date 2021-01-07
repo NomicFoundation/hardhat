@@ -20,20 +20,28 @@ const pluginName = "hardhat-ethers";
 export async function getSigners(
   hre: HardhatRuntimeEnvironment
 ): Promise<SignerWithAddress[]> {
+  const accounts = await hre.ethers.provider.listAccounts();
+
+  const signersWithAddress = await Promise.all(
+    accounts.map((account) => getSigner(hre, account))
+  );
+
+  return signersWithAddress;
+}
+
+export async function getSigner(
+  hre: HardhatRuntimeEnvironment,
+  address: string
+): Promise<SignerWithAddress> {
   const { SignerWithAddress: SignerWithAddressImpl } = await import(
     "../signers"
   );
 
-  const accounts = await hre.ethers.provider.listAccounts();
-  const signers = accounts.map((account: string) =>
-    hre.ethers.provider.getSigner(account)
-  );
+  const signer = hre.ethers.provider.getSigner(address);
 
-  const signersWithAddress = await Promise.all(
-    signers.map(SignerWithAddressImpl.create)
-  );
+  const signerWithAddress = await SignerWithAddressImpl.create(signer);
 
-  return signersWithAddress;
+  return signerWithAddress;
 }
 
 export function getContractFactory(
@@ -267,7 +275,14 @@ export async function getContractAt(
       "0x",
       signer
     );
-    return factory.attach(address);
+
+    let contract = factory.attach(address);
+    // If there's no signer, we connect the contract instance to the provider for the selected network.
+    if (contract.provider === null) {
+      contract = contract.connect(hre.ethers.provider);
+    }
+
+    return contract;
   }
 
   if (signer === undefined) {
@@ -275,12 +290,17 @@ export async function getContractAt(
     signer = signers[0];
   }
 
+  // If there's no signer, we want to put the provider for the selected network here.
+  // This allows read only operations on the contract interface.
+  const signerOrProvider: ethers.Signer | ethers.providers.Provider =
+    signer !== undefined ? signer : hre.ethers.provider;
+
   const abiWithAddedGas = addGasToAbiMethodsIfNecessary(
     hre.network.config,
     nameOrAbi
   );
 
-  return new Contract(address, abiWithAddedGas, signer);
+  return new Contract(address, abiWithAddedGas, signerOrProvider);
 }
 
 // This helper adds a `gas` field to the ABI function elements if the network
