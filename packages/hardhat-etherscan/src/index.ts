@@ -55,7 +55,7 @@ import {
   extractMatchingContractInformation,
   lookupMatchingBytecode,
 } from "./solc/bytecode";
-import { getLibraryLinks, Libraries } from "./solc/libraries";
+import { getLibraryLinks, Libraries, LibraryNames } from "./solc/libraries";
 import {
   METADATA_ABSENT_VERSION_RANGE,
   METADATA_PRESENT_SOLC_NOT_FOUND_VERSION_RANGE,
@@ -110,6 +110,12 @@ interface VerifyMinimumBuildArgs {
   solcFullVersion: string;
   deployArgumentsEncoded: string;
 }
+
+interface LibraryInformation {
+  undetectableLibraries: LibraryNames;
+}
+
+type ExtendedContractInformation = ContractInformation & LibraryInformation;
 
 extendConfig(etherscanConfigExtender);
 
@@ -231,7 +237,7 @@ Possible causes are:
   // Make sure that contract artifacts are up-to-date.
   await run(TASK_COMPILE);
 
-  const contractInformation: Required<ContractInformation> = await run(
+  const contractInformation: ExtendedContractInformation = await run(
     TASK_VERIFY_GET_CONTRACT_INFORMATION,
     {
       contractFQN,
@@ -580,7 +586,7 @@ subtask(TASK_VERIFY_GET_CONTRACT_INFORMATION)
         libraries,
       }: GetContractInformationArgs,
       { network, artifacts }
-    ): Promise<Required<ContractInformation>> => {
+    ): Promise<ExtendedContractInformation> => {
       let contractInformation;
       if (contractFQN !== undefined) {
         // Check this particular contract
