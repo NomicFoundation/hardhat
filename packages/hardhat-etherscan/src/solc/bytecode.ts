@@ -33,6 +33,9 @@ interface ImmutableValues {
 type SourceName = string;
 type ContractName = string;
 
+// TODO: Rework this type?
+// This is actually extended by the TASK_VERIFY_GET_CONTRACT_INFORMATION subtask
+// to add the libraries that are not detectable to the context.
 export interface ContractInformation extends BytecodeExtractedData {
   compilerInput: CompilerInput;
   compilerOutput: CompilerOutput;
@@ -40,7 +43,6 @@ export interface ContractInformation extends BytecodeExtractedData {
   sourceName: SourceName;
   contractName: ContractName;
   contract: CompilerOutput["contracts"][SourceName][ContractName];
-  undetectableLibraries?: LibraryNames;
 }
 
 interface BytecodeSlice {
