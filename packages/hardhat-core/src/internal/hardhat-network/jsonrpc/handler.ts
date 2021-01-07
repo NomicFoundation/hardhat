@@ -1,3 +1,4 @@
+import debug from "debug";
 import { IncomingMessage, ServerResponse } from "http";
 import getRawBody from "raw-body";
 import WebSocket from "ws";
@@ -16,6 +17,8 @@ import {
   InvalidJsonInputError,
   InvalidRequestError,
 } from "../provider/errors";
+
+const log = debug("hardhat:core:hardhat-network:jsonrpc");
 
 // tslint:disable only-hardhat-error
 
@@ -57,10 +60,20 @@ export default class JsonRpcHandler {
     const subscriptions: string[] = [];
     let isClosed = false;
 
-    const listener = (payload: { subscription: string; result: any }) => {
+    const listener = (message: {
+      type: string;
+      data: { subscription: string; result: any };
+    }) => {
+      if (message.type !== "eth_subscription") {
+        log(`Unknown message received from provider.
+Message type: ${message.type}`);
+        return;
+      }
+
+      const payload = message.data;
       // Don't attempt to send a message to the websocket if we already know it is closed,
       // or the current websocket connection isn't interested in the particular subscription.
-      if (isClosed || subscriptions.includes(payload.subscription)) {
+      if (isClosed || !subscriptions.includes(payload.subscription)) {
         return;
       }
 
@@ -68,7 +81,7 @@ export default class JsonRpcHandler {
         ws.send(
           JSON.stringify({
             jsonrpc: "2.0",
-            method: "eth_subscribe",
+            method: message.type,
             params: payload,
           })
         );
@@ -77,8 +90,8 @@ export default class JsonRpcHandler {
       }
     };
 
-    // Handle eth_subscribe notifications.
-    this._provider.addListener("notification", listener);
+    // Handle eth_subscription notifications.
+    this._provider.on("message", listener);
 
     ws.on("message", async (msg) => {
       let rpcReq: JsonRpcRequest | undefined;
@@ -99,7 +112,7 @@ export default class JsonRpcHandler {
           rpcReq.method === "eth_subscribe" &&
           isSuccessfulJsonResponse(rpcResp)
         ) {
-          subscriptions.push(rpcResp.result.id);
+          subscriptions.push(rpcResp.result);
         }
       } catch (error) {
         rpcResp = _handleError(error);
@@ -120,7 +133,7 @@ export default class JsonRpcHandler {
 
     ws.on("close", () => {
       // Remove eth_subscribe listener.
-      this._provider.removeListener("notification", listener);
+      this._provider.off("message", listener);
 
       // Clear any active subscriptions for the closed websocket connection.
       isClosed = true;
