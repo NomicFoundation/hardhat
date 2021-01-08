@@ -5,7 +5,6 @@ import {
   CompilerOutput,
   CompilerOutputBytecode,
 } from "../../../types";
-import { TracingConfig } from "../provider/node-types";
 
 import {
   getLibraryAddressPositions,

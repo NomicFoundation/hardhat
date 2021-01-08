@@ -1,17 +1,17 @@
 import {
   Artifacts,
+  BuildInfo,
   CompilerInput,
   CompilerOutput,
   CompilerOutputBytecode,
 } from "hardhat/types";
 import { parseFullyQualifiedName } from "hardhat/utils/contract-names";
 
-import { METADATA_LENGTH_SIZE, readSolcMetadataLength } from "./metadata";
-import { InferralType } from "./version";
-
-type BytecodeComparison =
-  | { match: false }
-  | { match: true; contractInformation: BytecodeExtractedData };
+import {
+  inferSolcVersion,
+  measureExecutableSectionLength,
+  METADATA_ABSENT_VERSION_RANGE,
+} from "./metadata";
 
 interface BytecodeExtractedData {
   immutableValues: ImmutableValues;
@@ -48,11 +48,47 @@ interface BytecodeSlice {
 
 type NestedSliceReferences = BytecodeSlice[][];
 
+export class Bytecode {
+  private _bytecode: string;
+  private _version: string;
+
+  private _executableSection: BytecodeSlice;
+  private _metadataSection: BytecodeSlice;
+
+  constructor(bytecode: string) {
+    this._bytecode = bytecode;
+    const { solcVersion, metadataSectionSizeInBytes } = inferSolcVersion(
+      Buffer.from(bytecode, "hex")
+    );
+    this._version = solcVersion;
+    this._executableSection = {
+      start: 0,
+      length: bytecode.length - metadataSectionSizeInBytes * 2,
+    };
+    this._metadataSection = {
+      start: this._executableSection.length,
+      length: metadataSectionSizeInBytes * 2,
+    };
+  }
+
+  public getInferredSolcVersion(): string {
+    return this._version;
+  }
+
+  public getExecutableSection(): string {
+    const { start, length } = this._executableSection;
+    return this._bytecode.slice(start, length);
+  }
+
+  public hasMetadata(): boolean {
+    return this._metadataSection.length > 0;
+  }
+}
+
 export async function lookupMatchingBytecode(
   artifacts: Artifacts,
-  matchingVersions: string[],
-  deployedBytecode: string,
-  inferralType: InferralType
+  matchingCompilerVersions: string[],
+  deployedBytecode: Bytecode
 ): Promise<ContractInformation[]> {
   const contractMatches = [];
   const fqNames = await artifacts.getAllFullyQualifiedNames();
@@ -64,84 +100,70 @@ export async function lookupMatchingBytecode(
       continue;
     }
 
-    if (!matchingVersions.includes(buildInfo.solcVersion)) {
+    if (!matchingCompilerVersions.includes(buildInfo.solcVersion)) {
       continue;
     }
 
     const { sourceName, contractName } = parseFullyQualifiedName(fqName);
-    const contract = buildInfo.output.contracts[sourceName][contractName];
-    // Normalize deployed bytecode according to this contract.
-    const { deployedBytecode: runtimeBytecodeSymbols } = contract.evm;
 
-    const comparison = await compareBytecode(
-      deployedBytecode,
-      runtimeBytecodeSymbols,
-      inferralType
+    const contractInformation = await extractMatchingContractInformation(
+      sourceName,
+      contractName,
+      buildInfo,
+      deployedBytecode
     );
-
-    if (comparison.match) {
-      const {
-        contractInformation: {
-          immutableValues,
-          libraryLinks,
-          normalizedBytecode,
-        },
-      } = comparison;
-      // The bytecode matches
-      contractMatches.push({
-        compilerInput: buildInfo.input,
-        compilerOutput: buildInfo.output,
-        solcVersion: buildInfo.solcVersion,
-        immutableValues,
-        libraryLinks,
-        normalizedBytecode,
-        sourceName,
-        contractName,
-        contract,
-      });
+    if (contractInformation !== null) {
+      contractMatches.push(contractInformation);
     }
   }
 
   return contractMatches;
 }
 
+export async function extractMatchingContractInformation(
+  sourceName: SourceName,
+  contractName: ContractName,
+  buildInfo: BuildInfo,
+  deployedBytecode: Bytecode
+): Promise<ContractInformation | null> {
+  const contract = buildInfo.output.contracts[sourceName][contractName];
+  // Normalize deployed bytecode according to this contract.
+  const { deployedBytecode: runtimeBytecodeSymbols } = contract.evm;
+
+  const analyzedBytecode = await compareBytecode(
+    deployedBytecode,
+    runtimeBytecodeSymbols
+  );
+
+  if (analyzedBytecode !== null) {
+    return {
+      ...analyzedBytecode,
+      compilerInput: buildInfo.input,
+      compilerOutput: buildInfo.output,
+      solcVersion: buildInfo.solcVersion,
+      sourceName,
+      contractName,
+      contract,
+    };
+  }
+
+  return null;
+}
+
 export async function compareBytecode(
-  deployedBytecode: string,
-  runtimeBytecodeSymbols: CompilerOutputBytecode,
-  inferralType: InferralType
-): Promise<BytecodeComparison> {
-  let bytecodeSize = deployedBytecode.length;
+  deployedBytecode: Bytecode,
+  runtimeBytecodeSymbols: CompilerOutputBytecode
+): Promise<BytecodeExtractedData | null> {
   // We will ignore metadata information when comparing. Etherscan seems to do the same.
-  if (inferralType !== InferralType.METADATA_ABSENT) {
-    // The runtime object may contain nonhexadecimal characters due to link placeholders.
-    // `Buffer.from` will return a buffer that contains bytes up until the last decodable byte.
-    // To work around this we'll just slice the relevant part of the bytecode.
-    const runtimeBytecodeSlice = Buffer.from(
-      runtimeBytecodeSymbols.object.slice(-METADATA_LENGTH_SIZE * 2),
-      "hex"
-    );
+  const deployedExecutableSection = deployedBytecode.getExecutableSection();
+  const runtimeBytecodeExecutableSectionLength = measureExecutableSectionLength(
+    runtimeBytecodeSymbols.object
+  );
 
-    // If, for whatever reason, the runtime bytecode object is so small that we can't even read two bytes off it,
-    // this is not a match.
-    if (runtimeBytecodeSlice.length !== METADATA_LENGTH_SIZE) {
-      return { match: false };
-    }
-
-    const runtimeMetadataLength = readSolcMetadataLength(runtimeBytecodeSlice);
-    const deployedMetadataLength = readSolcMetadataLength(
-      Buffer.from(deployedBytecode, "hex")
-    );
-
-    // If the bytecode itself is of different length, this is not a match.
-    if (
-      runtimeBytecodeSymbols.object.length - runtimeMetadataLength * 2 !==
-      deployedBytecode.length - deployedMetadataLength * 2
-    ) {
-      return { match: false };
-    }
-
-    // The metadata length is stored at the end.
-    bytecodeSize -= (deployedMetadataLength + METADATA_LENGTH_SIZE) * 2;
+  if (
+    deployedExecutableSection.length !== runtimeBytecodeExecutableSectionLength
+  ) {
+    return null;
   }
 
   // Normalize deployed bytecode according to this contract.
@@ -149,7 +171,10 @@ export async function compareBytecode(
     immutableValues,
     libraryLinks,
     normalizedBytecode,
-  } = await normalizeBytecode(deployedBytecode, runtimeBytecodeSymbols);
+  } = await normalizeBytecode(
+    deployedExecutableSection,
+    runtimeBytecodeSymbols
+  );
 
   // Library hash placeholders are embedded into the bytes where the library addresses are linked.
   // We need to zero them out to compare them.
@@ -159,21 +184,18 @@ export async function compareBytecode(
   );
 
   if (
-    normalizedBytecode.slice(0, bytecodeSize - 1) ===
-    referenceBytecode.slice(0, bytecodeSize - 1)
+    normalizedBytecode.slice(0, deployedExecutableSection.length) ===
+    referenceBytecode.slice(0, deployedExecutableSection.length)
   ) {
     // The bytecode matches
     return {
-      contractInformation: {
-        immutableValues,
-        libraryLinks,
-        normalizedBytecode,
-      },
-      match: true,
+      immutableValues,
+      libraryLinks,
+      normalizedBytecode,
     };
   }
 
-  return { match: false };
+  return null;
 }
 
 export async function normalizeBytecode(

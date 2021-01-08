@@ -6,7 +6,11 @@ import { setCWD } from "../../helpers/cwd";
 import { PROVIDERS } from "../../helpers/providers";
 
 describe("Web3 module", function () {
-  PROVIDERS.forEach(({ name, useProvider }) => {
+  PROVIDERS.forEach(({ name, useProvider, isFork }) => {
+    if (isFork) {
+      this.timeout(50000);
+    }
+
     describe(`${name} provider`, function () {
       setCWD();
       useProvider();

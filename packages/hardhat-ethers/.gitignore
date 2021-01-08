@@ -4,6 +4,12 @@
 # Compilation output
 /build-test/
 /dist
+/internal
+/types
+/*.js
+/*.js.map
+/*.d.ts
+/*.d.ts.map
 
 # Code coverage artifacts
 /coverage

@@ -3,11 +3,18 @@ import Common from "ethereumjs-common";
 import { FakeTxData, Transaction } from "ethereumjs-tx";
 import FakeTransaction from "ethereumjs-tx/dist/fake";
 import { BN, bufferToHex, bufferToInt } from "ethereumjs-util";
+import path from "path";
 import sinon from "sinon";
 
+import { rpcToBlockData } from "../../../../src/internal/hardhat-network/provider/fork/rpcToBlockData";
 import { HardhatNode } from "../../../../src/internal/hardhat-network/provider/node";
-import { NodeConfig } from "../../../../src/internal/hardhat-network/provider/node-types";
+import {
+  ForkedNodeConfig,
+  NodeConfig,
+} from "../../../../src/internal/hardhat-network/provider/node-types";
+import { Block } from "../../../../src/internal/hardhat-network/provider/types/Block";
 import { getCurrentTimestamp } from "../../../../src/internal/hardhat-network/provider/utils/getCurrentTimestamp";
+import { makeForkClient } from "../../../../src/internal/hardhat-network/provider/utils/makeForkClient";
 import { assertQuantity } from "../helpers/assertions";
 import { EMPTY_ACCOUNT_ADDRESS } from "../helpers/constants";
 import {
@@ -20,9 +27,10 @@ import {
   DEFAULT_NETWORK_NAME,
 } from "../helpers/providers";
 
+// tslint:disable no-string-literal
+
 describe("HardhatNode", () => {
   const config: NodeConfig = {
-    type: "local",
     automine: false,
     hardfork: DEFAULT_HARDFORK,
     networkName: DEFAULT_NETWORK_NAME,
@@ -490,6 +498,71 @@ describe("HardhatNode", () => {
           testPresetTimestamp(40);
         });
       });
+    });
+  });
+
+  describe("full block", () => {
+    it("should run a mainnet block and produce the same results", async function () {
+      this.timeout(120000);
+
+      const { ALCHEMY_URL } = process.env;
+
+      if (ALCHEMY_URL === undefined || ALCHEMY_URL === "") {
+        this.skip();
+      }
+
+      const forkCachePath = path.join(__dirname, ".hardhat_node_test_cache");
+
+      const blockNumber = 9300077;
+      const forkedNodeConfig: ForkedNodeConfig = {
+        automine: true,
+        networkName: "mainnet",
+        chainId: 1,
+        networkId: 1,
+        hardfork: "muirGlacier",
+        forkConfig: {
+          jsonRpcUrl: ALCHEMY_URL,
+          blockNumber,
+        },
+        forkCachePath,
+        blockGasLimit: 9957390,
+        genesisAccounts: [],
+      };
+
+      const [common, forkedNode] = await HardhatNode.create(forkedNodeConfig);
+      const { forkClient } = await makeForkClient(forkedNodeConfig.forkConfig);
+
+      const rpcBlock = await forkClient.getBlockByNumber(
+        new BN(blockNumber + 1),
+        true
+      );
+
+      if (rpcBlock === null) {
+        assert.fail();
+      }
+
+      // TODO this has to be changed when the chainId PR is merged
+      const block = new Block(rpcToBlockData(rpcBlock), { common });
+
+      forkedNode["_vmTracer"].disableTracing();
+      const result = await node["_vm"].runBlock({
+        block,
+        generate: true,
+        skipBlockValidation: true,
+      });
+
+      await node["_saveBlockAsSuccessfullyRun"](block, result);
+
+      const newBlock = await node.getBlockByNumber(new BN(blockNumber + 1));
+
+      if (newBlock === undefined) {
+        assert.fail();
+      }
+
+      assert.equal(
+        newBlock.header.receiptTrie.toString("hex"),
+        rpcBlock.receiptsRoot.toString("hex")
+      );
     });
   });
 });

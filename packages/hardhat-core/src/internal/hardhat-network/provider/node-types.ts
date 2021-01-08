@@ -9,21 +9,19 @@ import { Block } from "./types/Block";
 export type NodeConfig = LocalNodeConfig | ForkedNodeConfig;
 
 interface CommonConfig {
-  blockGasLimit: number;
-  genesisAccounts: GenesisAccount[];
   automine: boolean;
+  blockGasLimit: number;
+  chainId: number;
+  genesisAccounts: GenesisAccount[];
+  hardfork: string;
+  networkId: number;
+  networkName: string;
   allowUnlimitedContractSize?: boolean;
+  initialDate?: Date;
   tracingConfig?: TracingConfig;
 }
 
-export interface LocalNodeConfig extends CommonConfig {
-  type: "local";
-  hardfork: string;
-  networkName: string;
-  chainId: number;
-  networkId: number;
-  initialDate?: Date;
-}
+export type LocalNodeConfig = CommonConfig;
 
 export interface ForkConfig {
   jsonRpcUrl: string;
@@ -31,7 +29,6 @@ export interface ForkConfig {
 }
 
 export interface ForkedNodeConfig extends CommonConfig {
-  type: "forked";
   forkConfig: ForkConfig;
   forkCachePath?: string;
 }

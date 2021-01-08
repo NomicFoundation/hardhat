@@ -5,7 +5,11 @@ import { setCWD } from "../../helpers/cwd";
 import { PROVIDERS } from "../../helpers/providers";
 
 describe("Net module", function () {
-  PROVIDERS.forEach(({ name, useProvider, networkId }) => {
+  PROVIDERS.forEach(({ name, useProvider, networkId, isFork }) => {
+    if (isFork) {
+      this.timeout(50000);
+    }
+
     describe(`${name} provider`, function () {
       setCWD();
       useProvider();

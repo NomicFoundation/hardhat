@@ -163,5 +163,27 @@ contract Qux {}
 
       assert.deepEqual(versionPragmas, ["^0.5.0", "^0.5.1"]);
     });
+
+    it("should work with one ||", () => {
+      const parser = new Parser();
+      const { versionPragmas } = parser.parse(
+        `pragma solidity ^0.5.0 || ^0.6.0;`,
+        "",
+        ""
+      );
+
+      assert.deepEqual(versionPragmas, ["^0.5.0 || ^0.6.0"]);
+    });
+
+    it("should work with two ||", () => {
+      const parser = new Parser();
+      const { versionPragmas } = parser.parse(
+        `pragma solidity ^0.5.0 || ^0.6.0 || ^0.7.0;`,
+        "",
+        ""
+      );
+
+      assert.deepEqual(versionPragmas, ["^0.5.0 || ^0.6.0 || ^0.7.0"]);
+    });
   });
 });

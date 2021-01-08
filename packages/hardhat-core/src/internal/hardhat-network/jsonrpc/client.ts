@@ -322,11 +322,16 @@ export class JsonRpcClient {
   }
 
   private _shouldRetry(isRetryCall: boolean, err: any) {
+    const isRetriableError =
+      err.message.includes("header not found") ||
+      err.message.includes("connect ETIMEDOUT");
+
+    const isServiceUrl =
+      this._httpProvider.url.includes("infura") ||
+      this._httpProvider.url.includes("alchemyapi");
+
     return (
-      !isRetryCall &&
-      this._httpProvider.url.includes("infura") &&
-      err instanceof Error &&
-      err.message.includes("header not found")
+      !isRetryCall && isServiceUrl && err instanceof Error && isRetriableError
     );
   }
 

@@ -25,6 +25,7 @@ import EventEmitter from "events";
 
 import { CompilerInput, CompilerOutput } from "../../../types";
 import { HARDHAT_NETWORK_DEFAULT_GAS_PRICE } from "../../core/config/default-config";
+import { assertHardhatInvariant } from "../../core/errors";
 import { Reporter } from "../../sentry/reporter";
 import { getDifferenceInSeconds } from "../../util/date";
 import { createModelsAndDecodeBytecodes } from "../stack-traces/compiler-to-model";
@@ -113,12 +114,12 @@ export class HardhatNode extends EventEmitter {
     let blockchain: HardhatBlockchain | ForkBlockchain;
     let initialBlockTimeOffset: BN | undefined;
 
-    if (config.type === "forked") {
+    if ("forkConfig" in config) {
       const { forkClient, forkBlockNumber } = await makeForkClient(
         config.forkConfig,
         config.forkCachePath
       );
-      common = await makeForkCommon(forkClient, forkBlockNumber);
+      common = await makeForkCommon(config);
 
       stateManager = new ForkStateManager(
         forkClient,
@@ -336,7 +337,12 @@ export class HardhatNode extends EventEmitter {
         const account = await this._stateManager.getAccount(call.from);
         const nonce = new BN(account.nonce);
         tx = await this._getFakeTransaction({ ...call, nonce });
-        return this._runTxAndRevertMutations(tx, blockNumberOrPending);
+        return this._runTxAndRevertMutations(
+          tx,
+          blockNumberOrPending,
+          false,
+          true
+        );
       }
     );
 
@@ -1486,43 +1492,45 @@ export class HardhatNode extends EventEmitter {
   /**
    * This function runs a transaction and reverts all the modifications that it
    * makes.
-   *
-   * If throwOnError is true, errors are managed locally and thrown on
-   * failure. If it's false, the tx's RunTxResult is returned, and the vmTracer
-   * inspected/reset.
    */
   private async _runTxAndRevertMutations(
     tx: Transaction,
     blockNumberOrPending: BN | "pending",
-    calledToEstimateGas = false
+    calledToEstimateGas = false,
+    // See: https://github.com/ethereumjs/ethereumjs-vm/issues/1014
+    workaroundEthCallGasLimitIssue = false
   ): Promise<EVMResult> {
     const initialStateRoot = await this._stateManager.getStateRoot();
 
+    let blockContext: Block | undefined;
+    let previousGasLimit: Buffer | undefined;
+
     try {
-      let blockContext;
-      // gas is estimated in the context of a new block
-      if (calledToEstimateGas && blockNumberOrPending !== "pending") {
-        const [blockTimestamp] = this._calculateTimestampAndOffset();
-        const needsTimestampIncrease = await this._timestampClashesWithPreviousBlockOne(
-          blockTimestamp
-        );
-        if (needsTimestampIncrease) {
-          blockTimestamp.iaddn(1);
-        }
-
-        blockContext = await this._getNextBlockTemplate(blockTimestamp);
-
-        // in the context of running estimateGas call, we have to do binary
-        // search for the gas and run the call multiple times. Since it is
-        // an approximate approach to calculate the gas, it is important to
-        // run the call in a block that is as close to the real one as
-        // possible, hence putting the tx to the block is good to have here.
-        await this._addTransactionToBlock(blockContext, tx);
-      } else if (blockNumberOrPending === "pending") {
+      if (blockNumberOrPending === "pending") {
         // the new block has already been mined by _runInBlockContext hence we take latest here
         blockContext = await this.getLatestBlock();
       } else {
-        blockContext = await this.getBlockByNumber(blockNumberOrPending);
+        // We know that this block number exists, because otherwise
+        // there would be an error in the RPC layer.
+        const block = await this.getBlockByNumber(blockNumberOrPending);
+        assertHardhatInvariant(
+          block !== undefined,
+          "Tried to run a tx in the context of a non-existent block"
+        );
+        blockContext = block;
+
+        // we don't need to add the tx to the block because runTx doesn't
+        // know nothing about the txs in the current block
+      }
+
+      if (workaroundEthCallGasLimitIssue) {
+        const txGasLimit = new BN(tx.gasLimit);
+        const blockGasLimit = new BN(blockContext.header.gasLimit);
+
+        if (txGasLimit.gt(blockGasLimit)) {
+          previousGasLimit = blockContext.header.gasLimit;
+          blockContext.header.gasLimit = tx.gasLimit;
+        }
       }
 
       return await this._vm.runTx({
@@ -1532,6 +1540,17 @@ export class HardhatNode extends EventEmitter {
         skipBalance: true,
       });
     } finally {
+      // If we changed the block's gas limit of an already existing block,
+      // we restore it here.
+      if (
+        blockContext !== undefined &&
+        workaroundEthCallGasLimitIssue &&
+        previousGasLimit !== undefined &&
+        blockNumberOrPending !== undefined
+      ) {
+        blockContext.header.gasLimit = previousGasLimit;
+      }
+
       await this._stateManager.setStateRoot(initialStateRoot);
     }
   }

@@ -12,6 +12,10 @@ import { DEFAULT_ACCOUNTS_ADDRESSES, PROVIDERS } from "../../helpers/providers";
 
 describe("Hardhat module", function () {
   PROVIDERS.forEach(({ name, useProvider, isFork }) => {
+    if (isFork) {
+      this.timeout(50000);
+    }
+
     describe(`${name} provider`, function () {
       const safeBlockInThePast = 11_200_000; // this should resolve CI errors probably caused by using a block too far in the past
 
@@ -237,7 +241,7 @@ describe("Hardhat module", function () {
 
             // This condition is rather loose as Infura can sometimes return
             // a smaller block number on subsequent eth_blockNumber call
-            assert.closeTo(await getLatestBlockNumber(), initialBlock, 2);
+            assert.closeTo(await getLatestBlockNumber(), initialBlock, 4);
           });
 
           it("can reset the forked provider to a normal provider", async function () {

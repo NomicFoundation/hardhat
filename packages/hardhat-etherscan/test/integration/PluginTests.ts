@@ -8,7 +8,7 @@ import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import type { CompilerInput } from "hardhat/types";
 import path from "path";
 
-import { TASK_VERIFY_GET_MINIMUM_BUILD } from "../../src/pluginContext";
+import { TASK_VERIFY_GET_MINIMUM_BUILD } from "../../src/constants";
 import { useEnvironment } from "../helpers";
 
 // These are skipped because they can't currently be run in CI
@@ -59,7 +59,7 @@ describe("Plugin integration tests", function () {
 
       return this.env.run("verify", {
         address: deployedAddress,
-        constructorArguments: [],
+        constructorArgsParams: [],
       });
     });
 
@@ -74,7 +74,7 @@ describe("Plugin integration tests", function () {
 
       return this.env.run("verify", {
         address: deployedAddress,
-        constructorArguments: [],
+        constructorArgsParams: [],
       });
     });
 
@@ -85,7 +85,7 @@ describe("Plugin integration tests", function () {
 
       return this.env.run("verify", {
         address: deployedAddress,
-        constructorArguments: [],
+        constructorArgsParams: [],
       });
     });
 
@@ -107,13 +107,26 @@ describe("Plugin integration tests", function () {
       return this.env
         .run("verify", {
           address: deployedAddress,
-          constructorArguments: [amount],
+          constructorArgsParams: [amount],
         })
         .catch((reason) => {
           assert.instanceOf(
             reason,
             NomicLabsHardhatPluginError,
-            "Ambiguous inferences need to be reported since they are not handled well yet"
+            "Ambiguous inferences should throw an error"
+          );
+
+          assert.isTrue(
+            reason.message.includes(
+              "use the contract parameter with one of the following contracts"
+            ),
+            "The error should contain an explanation of how to solve the ambiguous inference."
+          );
+          assert.isTrue(
+            reason.message.includes(
+              "contracts/TestContract1.sol:TestContract1"
+            ),
+            "The deployed contract should be among the presented options."
           );
         });
     });
@@ -121,7 +134,7 @@ describe("Plugin integration tests", function () {
     it("Should verify deployed contract with a complex parameter list on etherscan", async function () {
       await this.env.run(TASK_COMPILE, { force: true });
 
-      const modulePath = path.join(process.cwd(), "paramList");
+      const modulePath = path.join(process.cwd(), "paramList.js");
       const args = require(modulePath);
       const deployedAddress = await deployContract(
         "TestParamList",
@@ -132,6 +145,62 @@ describe("Plugin integration tests", function () {
       return this.env.run("verify", {
         address: deployedAddress,
         constructorArgs: modulePath,
+      });
+    });
+
+    describe("With contract fully qualified name parameter", function () {
+      it("Should fail to verify contract with a different version", async function () {
+        await this.env.run(TASK_COMPILE, { force: true });
+
+        const deployedAddress = await deployContract(
+          "NewContract",
+          [],
+          this.env,
+          1
+        );
+
+        return this.env
+          .run("verify", {
+            address: deployedAddress,
+            constructorArgsParams: [],
+            contract: "contracts/TestContract1.sol:InnerContract",
+          })
+          .catch((reason) => {
+            assert.instanceOf(
+              reason,
+              NomicLabsHardhatPluginError,
+              "Ambiguous inferences should throw an error"
+            );
+
+            assert.isTrue(
+              reason.message.includes(
+                "the contract found in the address provided as argument has its bytecode marked with"
+              ),
+              "The error should describe the version found in the bytecode metadata."
+            );
+            assert.isTrue(
+              reason.message.includes("0.7.5"),
+              "The version inferred from the bytecode should be shown."
+            );
+          });
+      });
+
+      it("should verify when passing the correct fully qualified name", async function () {
+        await this.env.run(TASK_COMPILE, { force: true });
+
+        const amount = "20";
+
+        const deployedAddress = await deployContract(
+          "TestContract1",
+          [amount],
+          this.env
+        );
+
+        return this.env.run("verify", {
+          address: deployedAddress,
+          constructorArgsParams: [amount],
+          contract: "contracts/TestContract1.sol:TestContract1",
+        });
       });
     });
   });
@@ -145,14 +214,14 @@ async function deployContract(
   contractName: string,
   constructorArguments: string[],
   { ethers }: any,
-  confirmations: number = 5
+  confirmations: number = 5,
+  signer?: any
 ) {
-  const wallet = new ethers.Wallet(
-    process.env.WALLET_PRIVATE_KEY,
-    ethers.provider
-  );
+  if (signer === undefined) {
+    signer = new ethers.Wallet(process.env.WALLET_PRIVATE_KEY, ethers.provider);
+  }
 
-  const factory = await ethers.getContractFactory(contractName, wallet);
+  const factory = await ethers.getContractFactory(contractName, signer);
   const contract = await factory.deploy(...constructorArguments);
   await contract.deployTransaction.wait(confirmations);
   return contract.address;

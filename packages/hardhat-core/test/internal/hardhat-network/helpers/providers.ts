@@ -2,7 +2,6 @@ import { BN, bufferToHex, privateToAddress, toBuffer } from "ethereumjs-util";
 
 import { ALCHEMY_URL, INFURA_URL } from "../../../setup";
 
-import { REMOTE_CHAIN_ID, REMOTE_NETWORK_ID } from "./constants";
 import { useProvider } from "./useProvider";
 
 export const DEFAULT_HARDFORK = "istanbul";
@@ -92,8 +91,8 @@ if (ALCHEMY_URL !== undefined && ALCHEMY_URL !== "") {
   PROVIDERS.push({
     name: "Alchemy Forked",
     isFork: true,
-    networkId: REMOTE_NETWORK_ID,
-    chainId: REMOTE_CHAIN_ID,
+    networkId: DEFAULT_NETWORK_ID,
+    chainId: DEFAULT_CHAIN_ID,
     useProvider: () => {
       useProvider(false, { jsonRpcUrl: url });
     },

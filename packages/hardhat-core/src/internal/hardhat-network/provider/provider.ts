@@ -259,8 +259,6 @@ export class HardhatNetworkProvider extends EventEmitter
       return;
     }
 
-    let config: NodeConfig;
-
     const commonConfig = {
       automine: this._automine,
       blockGasLimit: this._blockGasLimit,
@@ -269,22 +267,20 @@ export class HardhatNetworkProvider extends EventEmitter
       tracingConfig: await this._makeTracingConfig(),
     };
 
-    if (this._forkConfig === undefined) {
+    let config: NodeConfig = {
+      hardfork: this._hardfork,
+      networkName: this._networkName,
+      chainId: this._chainId,
+      networkId: this._networkId,
+      initialDate: this._initialDate,
+      ...commonConfig,
+    };
+
+    if (this._forkConfig !== undefined) {
       config = {
-        type: "local",
-        hardfork: this._hardfork,
-        networkName: this._networkName,
-        chainId: this._chainId,
-        networkId: this._networkId,
-        initialDate: this._initialDate,
-        ...commonConfig,
-      };
-    } else {
-      config = {
-        type: "forked",
         forkConfig: this._forkConfig,
         forkCachePath: this._forkCachePath,
-        ...commonConfig,
+        ...config,
       };
     }
 
@@ -316,6 +312,8 @@ export class HardhatNetworkProvider extends EventEmitter
         this._logger.setEnabled(loggingEnabled);
       }
     );
+
+    this._logger.setEnabled(this._loggingEnabled);
 
     this._forwardNodeEvents(node);
   }
