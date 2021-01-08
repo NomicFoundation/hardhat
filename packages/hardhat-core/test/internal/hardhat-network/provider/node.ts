@@ -545,15 +545,17 @@ describe("HardhatNode", () => {
       const block = new Block(rpcToBlockData(rpcBlock), { common });
 
       forkedNode["_vmTracer"].disableTracing();
-      const result = await node["_vm"].runBlock({
+      const result = await forkedNode["_vm"].runBlock({
         block,
         generate: true,
         skipBlockValidation: true,
       });
 
-      await node["_saveBlockAsSuccessfullyRun"](block, result);
+      await forkedNode["_saveBlockAsSuccessfullyRun"](block, result);
 
-      const newBlock = await node.getBlockByNumber(new BN(blockNumber + 1));
+      const newBlock = await forkedNode.getBlockByNumber(
+        new BN(blockNumber + 1)
+      );
 
       if (newBlock === undefined) {
         assert.fail();
