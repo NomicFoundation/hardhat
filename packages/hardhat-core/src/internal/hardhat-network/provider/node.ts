@@ -19,9 +19,12 @@ import {
   ecsign,
   hashPersonalMessage,
   privateToAddress,
+  rlp,
   toBuffer,
 } from "ethereumjs-util";
 import EventEmitter from "events";
+import Trie from "merkle-patricia-tree";
+import { promisify } from "util";
 
 import { CompilerInput, CompilerOutput } from "../../../types";
 import { HARDHAT_NETWORK_DEFAULT_GAS_PRICE } from "../../core/config/default-config";
@@ -930,6 +933,7 @@ export class HardhatNode extends EventEmitter {
     const results: RunTxResult[] = [];
     const receipts: TxReceipt[] = [];
     const traces: GatherTracesResult[] = [];
+    const receiptTrie = new Trie();
 
     const blockGasLimit = this.getBlockGasLimit();
     const minTxFee = this._getMinimalTransactionFee();
@@ -938,6 +942,8 @@ export class HardhatNode extends EventEmitter {
     const txHeap = new TxPriorityHeap(pendingTxs);
 
     let tx = txHeap.peek();
+
+    let cumulativeGasUsed = new BN(0);
     while (gasLeft.gte(minTxFee) && tx !== undefined) {
       const shouldThrow =
         sentTxHash !== undefined && sentTxHash === bufferToHex(tx.hash());
@@ -946,7 +952,15 @@ export class HardhatNode extends EventEmitter {
       if (txResult !== null) {
         bloom.or(txResult.bloom);
         results.push(txResult);
-        receipts.push(this._createReceipt(txResult));
+
+        cumulativeGasUsed = cumulativeGasUsed.add(txResult.gasUsed);
+        const receipt = this._createReceipt(txResult, cumulativeGasUsed);
+        receipts.push(receipt);
+        await promisify(receiptTrie.put).bind(receiptTrie)(
+          rlp.encode(receipts.length - 1),
+          rlp.encode(Object.values(receipt))
+        );
+
         traces.push(await this._gatherTraces(txResult.execResult));
         block.transactions.push(tx);
 
@@ -964,6 +978,7 @@ export class HardhatNode extends EventEmitter {
     block.header.gasUsed = toBuffer(blockGasLimit.sub(gasLeft));
     block.header.stateRoot = await this._stateManager.getStateRoot();
     block.header.bloom = bloom.bitvector;
+    block.header.receiptTrie = receiptTrie.root;
 
     return {
       block,
@@ -1014,10 +1029,13 @@ export class HardhatNode extends EventEmitter {
     return new BN(this._vm._common.param("pow", "minerReward"));
   }
 
-  private _createReceipt(txResult: RunTxResult): TxReceipt {
+  private _createReceipt(
+    txResult: RunTxResult,
+    cumulativeGasUsed: BN
+  ): TxReceipt {
     return {
       status: txResult.execResult.exceptionError === undefined ? 1 : 0, // Receipts have a 0 as status on error
-      gasUsed: toBuffer(txResult.gasUsed),
+      gasUsed: toBuffer(cumulativeGasUsed),
       bitvector: txResult.bloom.bitvector,
       logs: txResult.execResult.logs ?? [],
     };
