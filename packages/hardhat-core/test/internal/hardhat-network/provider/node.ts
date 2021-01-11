@@ -1,7 +1,8 @@
 import { assert } from "chai";
-import { BN } from "ethereumjs-util";
+import { BN, bufferToHex } from "ethereumjs-util";
 import * as path from "path";
 
+import { numberToRpcQuantity } from "../../../../src/internal/core/providers/provider-utils";
 import { rpcToBlockData } from "../../../../src/internal/hardhat-network/provider/fork/rpcToBlockData";
 import { HardhatNode } from "../../../../src/internal/hardhat-network/provider/node";
 import { ForkedNodeConfig } from "../../../../src/internal/hardhat-network/provider/node-types";
@@ -12,7 +13,7 @@ import { makeForkClient } from "../../../../src/internal/hardhat-network/provide
 
 describe("HardhatNode", function () {
   it("should run a mainnet block and produce the same results", async function () {
-    this.timeout(120000);
+    this.timeout(0);
 
     const { ALCHEMY_URL } = process.env;
 
@@ -20,25 +21,14 @@ describe("HardhatNode", function () {
       this.skip();
     }
 
-    const forkCachePath = path.join(__dirname, ".hardhat_node_test_cache");
-
     const blockNumber = 9300077;
-    const config: ForkedNodeConfig = {
-      networkName: "mainnet",
-      chainId: 1,
-      networkId: 1,
-      hardfork: "muirGlacier",
-      forkConfig: {
-        jsonRpcUrl: ALCHEMY_URL,
-        blockNumber,
-      },
-      forkCachePath,
-      blockGasLimit: 9957390,
-      genesisAccounts: [],
+
+    const forkConfig = {
+      jsonRpcUrl: ALCHEMY_URL,
+      blockNumber,
     };
 
-    const [common, node] = await HardhatNode.create(config);
-    const { forkClient } = await makeForkClient(config.forkConfig);
+    const { forkClient } = await makeForkClient(forkConfig);
 
     const rpcBlock = await forkClient.getBlockByNumber(
       new BN(blockNumber + 1),
@@ -47,29 +37,70 @@ describe("HardhatNode", function () {
 
     if (rpcBlock === null) {
       assert.fail();
+      return;
     }
 
-    // TODO this has to be changed when the chainId PR is merged
+    const forkCachePath = path.join(__dirname, ".hardhat_node_test_cache");
+    const forkedNodeConfig: ForkedNodeConfig = {
+      networkName: "mainnet",
+      chainId: 1,
+      networkId: 1,
+      hardfork: "muirGlacier",
+      forkConfig,
+      forkCachePath,
+      blockGasLimit: rpcBlock.gasLimit.toNumber(),
+      genesisAccounts: [],
+    };
+
+    const [common, forkedNode] = await HardhatNode.create(forkedNodeConfig);
+
     const block = new Block(rpcToBlockData(rpcBlock), { common });
 
-    node["_vmTracer"].disableTracing();
-    const result = await node["_vm"].runBlock({
+    forkedNode["_vmTracer"].disableTracing();
+    block.header.receiptTrie = Buffer.alloc(32, 0);
+    const result = await forkedNode["_vm"].runBlock({
       block,
       generate: true,
       skipBlockValidation: true,
     });
 
-    await node["_saveBlockAsSuccessfullyRun"](block, result);
+    await forkedNode["_saveBlockAsSuccessfullyRun"](block, result);
 
-    const newBlock = await node.getBlockByNumber(new BN(blockNumber + 1));
+    const newBlock = await forkedNode.getBlockByNumber(new BN(blockNumber + 1));
 
     if (newBlock === undefined) {
       assert.fail();
     }
 
-    assert.equal(
-      newBlock.header.receiptTrie.toString("hex"),
+    if (
+      newBlock.header.receiptTrie.toString("hex") !==
       rpcBlock.receiptsRoot.toString("hex")
-    );
+    ) {
+      console.warn("Blocks receipt tries are different");
+
+      for (let i = 0; i < block.transactions.length; i++) {
+        const tx = block.transactions[i];
+        const txHash = bufferToHex(tx.hash(true));
+
+        const remoteReceipt = (await forkClient["_httpProvider"].request({
+          method: "eth_getTransactionReceipt",
+          params: [txHash],
+        })) as any;
+
+        const localReceipt = result.receipts[i];
+
+        assert.equal(
+          bufferToHex(localReceipt.bitvector),
+          remoteReceipt.logsBloom,
+          `Logs bloom of tx ${i} (${txHash}) should match`
+        );
+
+        assert.equal(
+          numberToRpcQuantity(new BN(localReceipt.gasUsed).toNumber()),
+          remoteReceipt.gasUsed,
+          `Gas used of tx ${i} (${txHash}) should match`
+        );
+      }
+    }
   });
 });

@@ -161,11 +161,14 @@ export class ForkStateManager implements PStateManager {
     if (contractStorageCleared || slotCleared) {
       return toBuffer([]);
     }
-    return this._jsonRpcClient.getStorageAt(
+
+    const remoteValue = await this._jsonRpcClient.getStorageAt(
       address,
       key,
       this._contextBlockNumber
     );
+
+    return unpadBuffer(remoteValue);
   }
 
   public async getOriginalContractStorage(
