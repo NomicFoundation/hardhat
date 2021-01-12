@@ -1,5 +1,9 @@
-import { EthereumProvider } from "hardhat/types";
+import debug from "debug";
+import { EventEmitter } from "events";
+import { EthereumProvider, EthSubscription } from "hardhat/types";
 import util from "util";
+
+const log = debug("hardhat:hardhat-web3:web3-provider-adapter");
 
 export interface JsonRpcRequest {
   jsonrpc: string;
@@ -19,15 +23,18 @@ export interface JsonRpcResponse {
   };
 }
 
-export class Web3HTTPProviderAdapter {
+export class Web3HTTPProviderAdapter extends EventEmitter {
   private readonly _provider: EthereumProvider;
 
   constructor(provider: EthereumProvider) {
+    super();
     this._provider = provider;
-    // We bind everything here because some test suits break otherwise
+    // We bind everything here because some test suites break otherwise
     this.send = this.send.bind(this) as any;
     this.isConnected = this.isConnected.bind(this) as any;
     this._sendJsonRpcRequest = this._sendJsonRpcRequest.bind(this) as any;
+
+    this._forwardSubscriptionEvents(provider);
   }
 
   public send(
@@ -66,6 +73,23 @@ export class Web3HTTPProviderAdapter {
 
   public isConnected(): boolean {
     return true;
+  }
+
+  private _forwardSubscriptionEvents(provider: EthereumProvider) {
+    provider.on("message", (message) => this._subscriptionListener(message));
+  }
+
+  private _subscriptionListener(message: EthSubscription) {
+    if (message.type !== "eth_subscription") {
+      log(`Received unknown message: ${message.type}`);
+      return;
+    }
+
+    const dataPayload = {
+      method: message.type,
+      params: message.data,
+    };
+    this.emit("data", dataPayload);
   }
 
   private async _sendJsonRpcRequest(

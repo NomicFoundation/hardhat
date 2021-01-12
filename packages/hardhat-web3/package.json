@@ -40,6 +40,7 @@
     "web3": "^1.0.0-beta.36"
   },
   "dependencies": {
-    "@types/bignumber.js": "^5.0.0"
+    "@types/bignumber.js": "^5.0.0",
+    "debug": "^4.1.1"
   }
 }

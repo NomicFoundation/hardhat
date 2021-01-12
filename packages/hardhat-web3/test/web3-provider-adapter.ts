@@ -1,4 +1,5 @@
 import { assert } from "chai";
+import { TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
 import Web3 from "web3";
 
 import {
@@ -140,5 +141,48 @@ describe("Web3 provider adapter", function () {
         });
       }
     );
+  });
+});
+
+describe("Events subscription in the hardhat network", function () {
+  useEnvironment("hardhat-project", "hardhat");
+
+  beforeEach(async function () {
+    await this.env.run(TASK_COMPILE, { quiet: true });
+  });
+
+  it("Should listen to contract events", async function () {
+    const { web3, artifacts } = this.env;
+    const [account] = await web3.eth.getAccounts();
+
+    const { abi: eventABI, bytecode } = await artifacts.readArtifact(
+      "EventTest"
+    );
+
+    const eventFactory = new web3.eth.Contract(eventABI, undefined, {
+      from: account,
+    });
+
+    const eventContractWeb3 = await eventFactory
+      .deploy({
+        data: bytecode,
+        arguments: [30],
+      })
+      .send({ from: account });
+
+    const events: any[] = [];
+    const errors: any[] = [];
+
+    eventContractWeb3.events
+      .NumberSet()
+      .on("data", (event: any) => events.push(event))
+      .on("error", (error: any) => errors.push(error));
+
+    await eventContractWeb3.methods.setTheNumber(50).send();
+    await eventContractWeb3.methods.setTheNumber(30).send();
+    await eventContractWeb3.methods.setTheNumber(70).send();
+
+    assert.lengthOf(events, 3);
+    assert.lengthOf(errors, 0);
   });
 });
