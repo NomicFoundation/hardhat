@@ -1,5 +1,6 @@
 import { assert } from "chai";
 import { ethers } from "ethers";
+import { TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import { Artifact } from "hardhat/types";
 
@@ -772,6 +773,30 @@ describe("Ethers plugin", function () {
 
       code = await this.env.ethers.provider.getCode(receipt.contractAddress);
       assert.lengthOf(code, 2);
+    });
+
+    describe("Event subscriptions", function() {
+      beforeEach(async function() {
+        await this.env.run(TASK_COMPILE, { quiet: true });
+      });
+
+      it.skip("should receive contract events event", async function() {
+        const eventFactory = await this.env.ethers.getContractFactory("EventTest");
+        const eventContract = await eventFactory.deploy(30);
+        const filter = eventContract.filters.NumberSet();
+
+        const events: any[] = [];
+
+        debugger;
+        this.env.ethers.provider.on(filter, (event) => events.push(event));
+
+        await eventContract.functions.setTheNumber(30);
+        await eventContract.functions.setTheNumber(50);
+        await eventContract.functions.setTheNumber(70);
+        console.log(events);
+
+        assert.lengthOf(events, 3);
+      });
     });
   });
 });
