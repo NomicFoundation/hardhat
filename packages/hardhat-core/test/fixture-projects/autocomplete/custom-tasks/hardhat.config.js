@@ -5,7 +5,7 @@ task("my-task")
   .addParam("paramWithDescription", "Param description")
   .setAction(() => {});
 
-task("task-with-description", "This is the task description")
+task("task-with-description", "This is the task description");
 
 module.exports = {
   solidity: "0.7.3",
