@@ -1,12 +1,9 @@
 import { assert } from "chai";
 import { TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
+import { JsonRpcRequest, JsonRpcResponse } from "hardhat/types";
 import Web3 from "web3";
 
-import {
-  JsonRpcRequest,
-  JsonRpcResponse,
-  Web3HTTPProviderAdapter,
-} from "../src/web3-provider-adapter";
+import { Web3HTTPProviderAdapter } from "../src/web3-provider-adapter";
 
 import { useEnvironment } from "./helpers";
 
