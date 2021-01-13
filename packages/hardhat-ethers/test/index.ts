@@ -775,19 +775,20 @@ describe("Ethers plugin", function () {
       assert.lengthOf(code, 2);
     });
 
-    describe("Event subscriptions", function() {
-      beforeEach(async function() {
+    describe("Event subscriptions", function () {
+      beforeEach(async function () {
         await this.env.run(TASK_COMPILE, { quiet: true });
       });
 
-      it.skip("should receive contract events event", async function() {
-        const eventFactory = await this.env.ethers.getContractFactory("EventTest");
+      it.skip("should receive contract events event", async function () {
+        const eventFactory = await this.env.ethers.getContractFactory(
+          "EventTest"
+        );
         const eventContract = await eventFactory.deploy(30);
         const filter = eventContract.filters.NumberSet();
 
         const events: any[] = [];
 
-        debugger;
         this.env.ethers.provider.on(filter, (event) => events.push(event));
 
         await eventContract.functions.setTheNumber(30);

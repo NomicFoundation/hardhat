@@ -49,9 +49,12 @@ describe("JsonRpcServer integration tests", function () {
         const { ethers, artifacts } = this.env;
 
         const provider = new ethers.providers.WebSocketProvider(serverURL);
-        const account = await provider.getSigner(0);
+        const account = provider.getSigner(0);
 
-        const eventFactory = await this.env.ethers.getContractFactory("EventTest", account);
+        const eventFactory = await this.env.ethers.getContractFactory(
+          "EventTest",
+          account
+        );
         const eventContract = await eventFactory.deploy(30);
         const filter = eventContract.filters.NumberSet();
 
