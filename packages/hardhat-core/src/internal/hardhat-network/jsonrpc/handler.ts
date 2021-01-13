@@ -3,7 +3,7 @@ import { IncomingMessage, ServerResponse } from "http";
 import getRawBody from "raw-body";
 import WebSocket from "ws";
 
-import { EIP1193Provider } from "../../../types";
+import { EIP1193Provider, EthSubscription } from "../../../types";
 import {
   isSuccessfulJsonResponse,
   isValidJsonRequest,
@@ -60,10 +60,7 @@ export default class JsonRpcHandler {
     const subscriptions: string[] = [];
     let isClosed = false;
 
-    const listener = (message: {
-      type: string;
-      data: { subscription: string; result: any };
-    }) => {
+    const listener = (message: EthSubscription) => {
       if (message.type !== "eth_subscription") {
         log(`Unknown message received from provider.
 Message type: ${message.type}`);
