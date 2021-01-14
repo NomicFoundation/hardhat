@@ -551,6 +551,9 @@ describe("Resolver regression tests", function () {
     useFixtureProject(projectName);
     useEnvironment();
 
+    // This test ensures the resolver lets you compile a project with the packaged console.sol
+    // in a Hardhat project that has a "hardhat" subdirectory.
+    // See issue https://github.com/nomiclabs/hardhat/issues/998
     it("Should compile the Greeter contract that imports console.log from hardhat", async function () {
       return this.env.run(TASK_COMPILE, { quiet: true });
     });
