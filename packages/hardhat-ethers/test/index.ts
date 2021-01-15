@@ -4,7 +4,7 @@ import { TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import { Artifact } from "hardhat/types";
 
-import { useEnvironment } from "./helpers";
+import { delay, useEnvironment } from "./helpers";
 
 describe("Ethers plugin", function () {
   describe("ganache", function () {
@@ -780,7 +780,7 @@ describe("Ethers plugin", function () {
         await this.env.run(TASK_COMPILE, { quiet: true });
       });
 
-      it.skip("should receive contract events event", async function () {
+      it("should receive contract events", async function () {
         const eventFactory = await this.env.ethers.getContractFactory(
           "EventTest"
         );
@@ -794,9 +794,17 @@ describe("Ethers plugin", function () {
         await eventContract.functions.setTheNumber(30);
         await eventContract.functions.setTheNumber(50);
         await eventContract.functions.setTheNumber(70);
-        console.log(events);
 
-        assert.lengthOf(events, 3);
+        // ethers.js has its own implementation of an `EventEmitter` API that introduces events into the event loop.
+        // This impacts this test specially since it is testing the in process Hardhat Network provider
+        // where most messages are resolved synchronically.
+        // If we don't delay execution of the rest of the test,
+        // then most of the events will actually fire after it's finished.
+        await delay(5000);
+
+        // Note that we expect the first event emitted during the constructor to be notified too.
+        // This is due to the fact that we rely on ethers polling for these events.
+        assert.lengthOf(events, 4);
       });
     });
   });
