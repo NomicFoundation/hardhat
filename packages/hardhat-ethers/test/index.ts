@@ -795,12 +795,11 @@ describe("Ethers plugin", function () {
         await eventContract.functions.setTheNumber(50);
         await eventContract.functions.setTheNumber(70);
 
-        // ethers.js has its own implementation of an `EventEmitter` API that introduces events into the event loop.
-        // This impacts this test specially since it is testing the in process Hardhat Network provider
-        // where most messages are resolved synchronically.
+        // This provider inherits the implementation of ethers.js base provider.
+        // This means that events are fired by the next poll.
         // If we don't delay execution of the rest of the test,
         // then most of the events will actually fire after it's finished.
-        await delay(5000);
+        await delay();
 
         // Note that we expect the first event emitted during the constructor to be notified too.
         // This is due to the fact that we rely on ethers polling for these events.

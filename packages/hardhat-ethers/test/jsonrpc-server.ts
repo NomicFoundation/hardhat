@@ -66,8 +66,7 @@ describe("JsonRpcServer integration tests", function () {
         await eventContract.functions.setTheNumber(50);
         await eventContract.functions.setTheNumber(70);
 
-        // ether.js has its own implementation of an `EventEmitter` API that introduces events into the event loop.
-        // This means that sometimes the last event is fired after this test finishes unless we wait here.
+        // Sometimes the last event is fired after this test finishes unless we wait here.
         await delay();
 
         assert.lengthOf(events, 3);

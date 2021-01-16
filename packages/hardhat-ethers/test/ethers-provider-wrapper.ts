@@ -13,7 +13,7 @@ describe("Ethers provider wrapper", function () {
 
   beforeEach(function () {
     realProvider = new ethers.providers.JsonRpcProvider();
-    wrapper = new EthersProviderWrapper(this.env.network.provider);
+    wrapper = new EthersProviderWrapper(this.env.network.provider, false);
   });
 
   it("Should return the same as the real provider", async function () {

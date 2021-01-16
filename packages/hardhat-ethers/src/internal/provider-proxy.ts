@@ -12,16 +12,20 @@ import { createUpdatableTargetProxy } from "./updatable-target-proxy";
  * the network is reset.
  */
 export function createProviderProxy(
-  hardhatProvider: EthereumProvider
+  hardhatProvider: EthereumProvider,
+  isHardhatNetwork: boolean
 ): EthersProviderWrapper {
-  const initialProvider = new EthersProviderWrapper(hardhatProvider);
+  const initialProvider = new EthersProviderWrapper(
+    hardhatProvider,
+    isHardhatNetwork
+  );
 
   const { proxy: providerProxy, setTarget } = createUpdatableTargetProxy(
     initialProvider
   );
 
   hardhatProvider.on(HARDHAT_NETWORK_RESET_EVENT, () => {
-    setTarget(new EthersProviderWrapper(hardhatProvider));
+    setTarget(new EthersProviderWrapper(hardhatProvider, isHardhatNetwork));
   });
 
   return providerProxy;

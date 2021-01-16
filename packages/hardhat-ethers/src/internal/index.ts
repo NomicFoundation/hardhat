@@ -19,7 +19,11 @@ extendEnvironment((hre) => {
 
     const { ethers } = require("ethers") as typeof EthersT;
 
-    const providerProxy = createProviderProxy(hre.network.provider);
+    const isHardhatNetwork = hre.network.name === "hardhat";
+    const providerProxy = createProviderProxy(
+      hre.network.provider,
+      isHardhatNetwork
+    );
 
     return {
       ...ethers,

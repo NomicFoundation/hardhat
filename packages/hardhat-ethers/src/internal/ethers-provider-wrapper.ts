@@ -4,9 +4,14 @@ import { EthereumProvider } from "hardhat/types";
 export class EthersProviderWrapper extends ethers.providers.JsonRpcProvider {
   private readonly _hardhatProvider: EthereumProvider;
 
-  constructor(hardhatProvider: EthereumProvider) {
+  constructor(hardhatProvider: EthereumProvider, isHardhatNetwork: boolean) {
     super();
     this._hardhatProvider = hardhatProvider;
+
+    // This ensures that the polling rate is higher for the Hardhat Network.
+    if (isHardhatNetwork) {
+      this.pollingInterval = 500;
+    }
   }
 
   public async send(method: string, params: any): Promise<any> {
