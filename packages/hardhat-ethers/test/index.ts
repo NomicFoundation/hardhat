@@ -775,6 +775,9 @@ describe("Ethers plugin", function () {
     });
 
     /*
+      This test is commented out because it uses
+      Signer._signTypedData, an experimental ethers.js method
+
     it("_signTypedData integration test", async function () {
       // See https://eips.ethereum.org/EIPS/eip-712#parameters
       // There's a json schema and an explanation for each field.
