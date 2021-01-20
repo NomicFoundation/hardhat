@@ -774,10 +774,6 @@ describe("Ethers plugin", function () {
       assert.lengthOf(code, 2);
     });
 
-    /*
-      This test is commented out because it uses
-      Signer._signTypedData, an experimental ethers.js method
-
     it("_signTypedData integration test", async function () {
       // See https://eips.ethereum.org/EIPS/eip-712#parameters
       // There's a json schema and an explanation for each field.
@@ -817,15 +813,18 @@ describe("Ethers plugin", function () {
           ],
         },
       };
-      const signer = await this.env.ethers.provider.getSigner(0);
+      const signer = this.env.ethers.provider.getSigner(0);
 
-      const signature = await signer._signTypedData(typedMessage.domain, typedMessage.types, typedMessage.message);
+      const signature = await signer._signTypedData(
+        typedMessage.domain,
+        typedMessage.types,
+        typedMessage.message
+      );
 
       const byteToHex = 2;
       const hexPrefix = 2;
-      const signatureSizeInBytes = 65
+      const signatureSizeInBytes = 65;
       assert.lengthOf(signature, signatureSizeInBytes * byteToHex + hexPrefix);
     });
-    */
   });
 });
