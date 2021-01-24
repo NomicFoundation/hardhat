@@ -69,7 +69,7 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
       }
     }
 
-    if (args.method === "eth_signTypedData") {
+    if (args.method === "eth_signTypedData" || args.method === "eth_signTypedData_v4") {
       const [address, data] = params;
 
       if (address !== undefined) {
