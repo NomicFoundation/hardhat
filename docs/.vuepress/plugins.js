@@ -191,6 +191,15 @@ const plugins = [
     tags: ["Compiling", "Dependencies"],
   },
   {
+    name: "hardhat-docgen",
+    author: "Nick Barry, samuveth",
+    authorUrl: "https://github.com/ItsNickBarry",
+    url: "https://github.com/ItsNickBarry/hardhat-docgen/tree/master",
+    description:
+      "Generate a static documentation site from NatSpec comments",
+    tags: ["Documentation", "NatSpec"],
+  },
+  {
     name: "hardhat-watcher",
     author: "Xander Deseyn",
     authorUrl: "https://github.com/N1ghtly",
