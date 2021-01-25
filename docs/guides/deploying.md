@@ -37,4 +37,4 @@ npx hardhat run --network <your-network> scripts/sample-script.js
 You can use Hardhat alongside Truffle if you want to use its migration system.
 Your contracts written using Hardhat will just work with Truffle.
 
-All you need to do is installing Truffle, and follow their [migrations guide](https://www.trufflesuite.com/docs/truffle/getting-started/running-migrations).
+All you need to do is install Truffle and follow their [migrations guide](https://www.trufflesuite.com/docs/truffle/getting-started/running-migrations).
