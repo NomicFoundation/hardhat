@@ -17,6 +17,8 @@ enum NetworkID {
   // Binance Smart Chain
   BSC = 56,
   BSC_TESTNET = 97,
+  // Fantom
+  FTM_OPERA = 250,
 }
 
 const networkIDtoEndpoint: NetworkMap = {
@@ -27,6 +29,7 @@ const networkIDtoEndpoint: NetworkMap = {
   [NetworkID.KOVAN]: "https://api-kovan.etherscan.io/api",
   [NetworkID.BSC]: "https://api.bscscan.com/api",
   [NetworkID.BSC_TESTNET]: "https://api-testnet.bscscan.com/api",
+  [NetworkID.FTM_OPERA]: "https://api.ftmscan.com/api",
 };
 
 export async function getEtherscanEndpoint(
