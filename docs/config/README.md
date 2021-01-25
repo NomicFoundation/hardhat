@@ -79,7 +79,7 @@ You can set the following fields on the `hardhat` config:
     - `initialIndex`: The initial index to derive. Default value: `0`.
     - `path`: The HD parent of all the derived keys. Default value: `"m/44'/60'/0'/0"`.
     - `count`: The number of accounts to derive. Default value: `20`.
-    - `accountsBalance`: string with the balance assigned to every account derived. Default value: "10000000000000000000000" (i.e 10000000000000000000000 Wei, i.e 10000 ETH).
+    - `accountsBalance`: string with the balance (in wei) assigned to every account derived. Default value: "10000000000000000000000" (10000 ETH).
   - An array of the initial accounts that the Hardhat Network will create. Each of them must be an object with `privateKey` and `balance` fields.
 
 - `blockGasLimit`: The block gas limit to use in Hardhat Network's blockchain. Default value: `9500000`
