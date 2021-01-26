@@ -42,7 +42,7 @@ $ npx hardhat
 888    888 888  888 888    Y88b 888 888  888 888  888 Y88b.
 888    888 "Y888888 888     "Y88888 888  888 "Y888888  "Y888
 
-Welcome to Hardhat v2.0.0
+Welcome to Hardhat v2.0.8
 
 ? What do you want to do? …
 ❯ Create a sample project
@@ -65,7 +65,7 @@ To first get a quick sense of what's available and what's going on, run `npx har
 
 ```
 $ npx hardhat
-Hardhat version 2.0.0
+Hardhat version 2.0.8
 
 Usage: hardhat [GLOBAL OPTIONS] <TASK> [TASK OPTIONS]
 
@@ -84,6 +84,7 @@ GLOBAL OPTIONS:
 
 AVAILABLE TASKS:
 
+  accounts      Prints the list of accounts
   check         Check whatever you need
   clean         Clears the cache and deletes all artifacts
   compile       Compiles the entire project, building all artifacts
