@@ -25,8 +25,6 @@ enum NetworkID {
   // Binance Smart Chain
   BSC = 56,
   BSC_TESTNET = 97,
-  // Fantom
-  FTM_OPERA = 250,
 }
 
 const networkIDtoEndpoints: NetworkMap = {
@@ -57,10 +55,6 @@ const networkIDtoEndpoints: NetworkMap = {
   [NetworkID.BSC_TESTNET]: {
     apiURL: "https://api-testnet.bscscan.com/api",
     browserURL: "https://testnet.bscscan.com",
-  },
-  [NetworkID.FTM_OPERA]: {
-    apiURL: "https://api.ftmscan.com/api",
-    browserURL: "https://ftmscan.com",
   },
 };
 
