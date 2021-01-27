@@ -4,7 +4,7 @@ require("../../../src/index");
 
 module.exports = {
   etherscan: {
-    // apiKey: process.env.ETHERSCAN_API_KEY,
+    apiKey: "something",
   },
   solidity: {
     compilers: [
@@ -15,6 +15,12 @@ module.exports = {
         version: "0.7.5",
       },
     ],
+  },
+  networks: {
+    hardhat: {
+      // Rinkeby chain ID
+      chainId: 4,
+    },
   },
   paths: {
     artifacts: "artifacts-dir",

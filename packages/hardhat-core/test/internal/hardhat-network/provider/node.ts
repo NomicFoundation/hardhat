@@ -6,6 +6,7 @@ import { BN, bufferToHex, bufferToInt } from "ethereumjs-util";
 import path from "path";
 import sinon from "sinon";
 
+import { numberToRpcQuantity } from "../../../../src/internal/core/providers/provider-utils";
 import { rpcToBlockData } from "../../../../src/internal/hardhat-network/provider/fork/rpcToBlockData";
 import { HardhatNode } from "../../../../src/internal/hardhat-network/provider/node";
 import {
@@ -256,7 +257,7 @@ describe("HardhatNode", () => {
         const tx1Receipt = await node.getTransactionReceipt(tx1.hash());
         const tx2Receipt = await node.getTransactionReceipt(tx2.hash());
         assertQuantity(tx1Receipt?.gasUsed, 21_000);
-        assertQuantity(tx2Receipt?.gasUsed, 21_000);
+        assertQuantity(tx2Receipt?.gasUsed, 42_000);
 
         const block = await node.getLatestBlock();
         assert.equal(bufferToInt(block.header.gasUsed), 42_000);
@@ -511,26 +512,14 @@ describe("HardhatNode", () => {
         this.skip();
       }
 
-      const forkCachePath = path.join(__dirname, ".hardhat_node_test_cache");
-
       const blockNumber = 9300077;
-      const forkedNodeConfig: ForkedNodeConfig = {
-        automine: true,
-        networkName: "mainnet",
-        chainId: 1,
-        networkId: 1,
-        hardfork: "muirGlacier",
-        forkConfig: {
-          jsonRpcUrl: ALCHEMY_URL,
-          blockNumber,
-        },
-        forkCachePath,
-        blockGasLimit: 9957390,
-        genesisAccounts: [],
+
+      const forkConfig = {
+        jsonRpcUrl: ALCHEMY_URL,
+        blockNumber,
       };
 
-      const [common, forkedNode] = await HardhatNode.create(forkedNodeConfig);
-      const { forkClient } = await makeForkClient(forkedNodeConfig.forkConfig);
+      const { forkClient } = await makeForkClient(forkConfig);
 
       const rpcBlock = await forkClient.getBlockByNumber(
         new BN(blockNumber + 1),
@@ -541,10 +530,25 @@ describe("HardhatNode", () => {
         assert.fail();
       }
 
-      // TODO this has to be changed when the chainId PR is merged
+      const forkCachePath = path.join(__dirname, ".hardhat_node_test_cache");
+      const forkedNodeConfig: ForkedNodeConfig = {
+        automine: true,
+        networkName: "mainnet",
+        chainId: 1,
+        networkId: 1,
+        hardfork: "muirGlacier",
+        forkConfig,
+        forkCachePath,
+        blockGasLimit: rpcBlock.gasLimit.toNumber(),
+        genesisAccounts: [],
+      };
+
+      const [common, forkedNode] = await HardhatNode.create(forkedNodeConfig);
+
       const block = new Block(rpcToBlockData(rpcBlock), { common });
 
       forkedNode["_vmTracer"].disableTracing();
+      block.header.receiptTrie = Buffer.alloc(32, 0);
       const result = await forkedNode["_vm"].runBlock({
         block,
         generate: true,
@@ -561,10 +565,36 @@ describe("HardhatNode", () => {
         assert.fail();
       }
 
-      assert.equal(
-        newBlock.header.receiptTrie.toString("hex"),
+      if (
+        newBlock.header.receiptTrie.toString("hex") !==
         rpcBlock.receiptsRoot.toString("hex")
-      );
+      ) {
+        console.warn("Blocks receipt tries are different");
+
+        for (let i = 0; i < block.transactions.length; i++) {
+          const tx = block.transactions[i];
+          const txHash = bufferToHex(tx.hash(true));
+
+          const remoteReceipt = (await forkClient["_httpProvider"].request({
+            method: "eth_getTransactionReceipt",
+            params: [txHash],
+          })) as any;
+
+          const localReceipt = result.receipts[i];
+
+          assert.equal(
+            bufferToHex(localReceipt.bitvector),
+            remoteReceipt.logsBloom,
+            `Logs bloom of tx ${i} (${txHash}) should match`
+          );
+
+          assert.equal(
+            numberToRpcQuantity(new BN(localReceipt.gasUsed).toNumber()),
+            remoteReceipt.gasUsed,
+            `Gas used of tx ${i} (${txHash}) should match`
+          );
+        }
+      }
     });
   });
 });

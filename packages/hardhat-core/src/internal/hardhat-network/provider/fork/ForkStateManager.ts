@@ -6,6 +6,7 @@ import {
   KECCAK256_NULL,
   stripZeros,
   toBuffer,
+  unpad,
 } from "ethereumjs-util";
 import { Map as ImmutableMap, Record as ImmutableRecord } from "immutable";
 import { callbackify } from "util";
@@ -161,11 +162,14 @@ export class ForkStateManager implements PStateManager {
     if (contractStorageCleared || slotCleared) {
       return toBuffer([]);
     }
-    return this._jsonRpcClient.getStorageAt(
+
+    const remoteValue = await this._jsonRpcClient.getStorageAt(
       address,
       key,
       this._contextBlockNumber
     );
+
+    return unpad(remoteValue);
   }
 
   public async getOriginalContractStorage(
@@ -187,7 +191,7 @@ export class ForkStateManager implements PStateManager {
     key: Buffer,
     value: Buffer
   ): Promise<void> {
-    const unpaddedValue = unpadBuffer(value);
+    const unpaddedValue = unpad(value);
 
     const hexAddress = bufferToHex(address);
     let account = this._state.get(hexAddress) ?? makeAccountState();
@@ -386,13 +390,4 @@ export class ForkStateManager implements PStateManager {
     this._stateRoot = newRoot;
     this._state = state;
   }
-}
-
-function unpadBuffer(buffer: Buffer): Buffer {
-  let i = 0;
-  while (i < buffer.length && buffer[i] === 0) {
-    i++;
-  }
-
-  return buffer.slice(i);
 }

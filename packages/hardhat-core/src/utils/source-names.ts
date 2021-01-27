@@ -58,7 +58,14 @@ export async function isLocalSourceName(
   projectRoot: string,
   sourceName: string
 ): Promise<boolean> {
-  if (sourceName.includes(NODE_MODULES)) {
+  // Note that we consider "hardhat/console.sol" as a special case here.
+  // This lets someone have a "hardhat" directory within their project without
+  // it impacting their use of `console.log`.
+  // See issue https://github.com/nomiclabs/hardhat/issues/998
+  if (
+    sourceName.includes(NODE_MODULES) ||
+    sourceName === "hardhat/console.sol"
+  ) {
     return false;
   }
 
