@@ -39,9 +39,7 @@ describe("HardhatNode", function () {
     hardfork: "istanbul",
   };
 
-  before(function () {
-    this.timeout(0);
-  });
+  this.timeout(0);
 
   it(`should run a mainnet block and produce the same results`, async function () {
     const {
