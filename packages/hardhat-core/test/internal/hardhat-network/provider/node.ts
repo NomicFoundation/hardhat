@@ -30,7 +30,7 @@ describe("HardhatNode", function () {
   };
   const kovanForkPoint: ForkPoint = {
     networkName: "kovan",
-    url: (ALCHEMY_URL !== undefined ? ALCHEMY_URL : "").replace(
+    url: (ALCHEMY_URL ?? "").replace(
       "mainnet",
       "kovan"
     ),
