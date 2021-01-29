@@ -15,7 +15,6 @@ function getEnv(key: string): string | undefined {
 
 export const INFURA_URL = getEnv("INFURA_URL");
 export const ALCHEMY_URL = getEnv("ALCHEMY_URL");
-export const ALCHEMY_KOVAN_URL = getEnv("ALCHEMY_KOVAN_URL");
 
 function printForkingLogicNotBeingTestedWarning(varName: string) {
   console.warn(
@@ -31,8 +30,4 @@ if (INFURA_URL === undefined || INFURA_URL === "") {
 
 if (ALCHEMY_URL === undefined || ALCHEMY_URL === "") {
   printForkingLogicNotBeingTestedWarning("ALCHEMY_URL");
-}
-
-if (ALCHEMY_KOVAN_URL === undefined || ALCHEMY_KOVAN_URL === "") {
-  printForkingLogicNotBeingTestedWarning("ALCHEMY_KOVAN_URL");
 }

@@ -8,7 +8,7 @@ import { HardhatNode } from "../../../../src/internal/hardhat-network/provider/n
 import { ForkedNodeConfig } from "../../../../src/internal/hardhat-network/provider/node-types";
 import { Block } from "../../../../src/internal/hardhat-network/provider/types/Block";
 import { makeForkClient } from "../../../../src/internal/hardhat-network/provider/utils/makeForkClient";
-import { ALCHEMY_KOVAN_URL, ALCHEMY_URL } from "../../../setup";
+import { ALCHEMY_URL } from "../../../setup";
 
 // tslint:disable no-string-literal
 
@@ -30,7 +30,10 @@ describe("HardhatNode", function () {
   };
   const kovanForkPoint: ForkPoint = {
     networkName: "kovan",
-    url: ALCHEMY_KOVAN_URL,
+    url: (ALCHEMY_URL !== undefined ? ALCHEMY_URL : "").replace(
+      "mainnet",
+      "kovan"
+    ),
     blockNumber: 23115226,
     chainId: 42,
     hardfork: "istanbul",
@@ -128,6 +131,21 @@ describe("HardhatNode", function () {
           numberToRpcQuantity(new BN(localReceipt.gasUsed).toNumber()),
           remoteReceipt.gasUsed,
           `Gas used of tx ${i} (${txHash}) should match`
+        );
+
+        assert.equal(
+          localReceipt.status,
+          remoteReceipt.status,
+          `Status of tx ${i} should be the same`
+        );
+
+        const evmResult = result.results[i];
+        assert.equal(
+          evmResult.createdAddress === undefined
+            ? undefined
+            : `0x${evmResult.createdAddress.toString("hex")}`,
+          remoteReceipt.contractAddress,
+          `Contract address created by tx ${i} should be the same`
         );
       }
     }
