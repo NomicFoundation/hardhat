@@ -30,10 +30,7 @@ describe("HardhatNode", function () {
   };
   const kovanForkPoint: ForkPoint = {
     networkName: "kovan",
-    url: (ALCHEMY_URL ?? "").replace(
-      "mainnet",
-      "kovan"
-    ),
+    url: (ALCHEMY_URL ?? "").replace("mainnet", "kovan"),
     blockNumber: 23115226,
     chainId: 42,
     hardfork: "istanbul",
