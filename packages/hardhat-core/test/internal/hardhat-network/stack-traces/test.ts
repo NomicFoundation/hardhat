@@ -685,6 +685,13 @@ const solidity07Compilers: CompilerOptions[] = [
   },
 ];
 
+const solidity08Compilers: CompilerOptions[] = [
+  {
+    solidityVersion: "0.8.0",
+    compilerPath: "soljson-v0.8.0+commit.c7dfd78e.js",
+  },
+];
+
 describe("Stack traces", function () {
   setCWD();
 
@@ -713,6 +720,8 @@ describe("Stack traces", function () {
         ? "0_6"
         : semver.satisfies(customSolcVersion, "^0.7.0")
         ? "0_7"
+        : semver.satisfies(customSolcVersion, "^0.8.0")
+        ? "0_8"
         : null;
 
       if (testsDir === null) {
@@ -739,6 +748,7 @@ describe("Stack traces", function () {
       ...solidity05Compilers.map((c) => c.compilerPath),
       ...solidity06Compilers.map((c) => c.compilerPath),
       ...solidity07Compilers.map((c) => c.compilerPath),
+      ...solidity08Compilers.map((c) => c.compilerPath),
     ]);
 
     this.timeout(paths.size * COMPILER_DOWNLOAD_TIMEOUT);
@@ -751,6 +761,7 @@ describe("Stack traces", function () {
   defineTestForSolidityMajorVersion(solidity05Compilers, "0_5");
   defineTestForSolidityMajorVersion(solidity06Compilers, "0_6");
   defineTestForSolidityMajorVersion(solidity07Compilers, "0_7");
+  defineTestForSolidityMajorVersion(solidity08Compilers, "0_8");
 });
 
 function defineTestForSolidityMajorVersion(
