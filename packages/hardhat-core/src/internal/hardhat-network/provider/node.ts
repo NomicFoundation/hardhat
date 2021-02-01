@@ -620,18 +620,6 @@ export class HardhatNode extends EventEmitter {
     return ecsign(messageHash, privateKey);
   }
 
-  // TODO: we're currently mimicking the MetaMask implementation here.
-  // The EIP 712 is still a draft. It doesn't actually distinguish different versions
-  // of the eth_signTypedData API.
-  // Also, note that go-ethereum implemented this in a clef JSON-RPC API: account_signTypedData.
-  public async signTypedData(address: Buffer, typedData: any): Promise<string> {
-    const privateKey = this._getLocalAccountPrivateKey(address);
-
-    return ethSigUtil.signTypedData(privateKey, {
-      data: typedData,
-    });
-  }
-
   public async signTypedDataV4(
     address: Buffer,
     typedData: any

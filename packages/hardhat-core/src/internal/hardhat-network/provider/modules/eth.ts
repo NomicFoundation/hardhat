@@ -249,11 +249,15 @@ export class EthModule {
         throw new MethodNotSupportedError(method);
 
       case "eth_signTypedData":
-        return this._signTypedDataAction(...this._signTypedDataParams(params));
+        throw new MethodNotSupportedError(method);
 
       case "eth_signTypedData_v3":
         throw new MethodNotSupportedError(method);
 
+      // TODO: we're currently mimicking the MetaMask implementation here.
+      // The EIP 712 is still a draft. It doesn't actually distinguish different versions
+      // of the eth_signTypedData API.
+      // Also, note that go-ethereum implemented this in a clef JSON-RPC API: account_signTypedData.
       case "eth_signTypedData_v4":
         return this._signTypedDataV4Action(
           ...this._signTypedDataV4Params(params)
@@ -888,20 +892,6 @@ export class EthModule {
   }
 
   // eth_signTransaction
-
-  // eth_signTypedData
-
-  private _signTypedDataParams(params: any[]): [Buffer, any] {
-    // Validation of the TypedData parameter is handled by eth-sig-util
-    return validateParams(params, rpcAddress, rpcUnknown);
-  }
-
-  private async _signTypedDataAction(
-    address: Buffer,
-    typedData: any
-  ): Promise<string> {
-    return this._node.signTypedData(address, typedData);
-  }
 
   // eth_signTypedData_v4
 

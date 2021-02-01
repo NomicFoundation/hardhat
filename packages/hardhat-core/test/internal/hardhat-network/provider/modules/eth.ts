@@ -3392,58 +3392,8 @@ describe("Eth module", function () {
       });
 
       describe("eth_signTypedData", function () {
-        it("should sign a message", async function () {
-          // See https://eips.ethereum.org/EIPS/eip-712#parameters
-          // There's a json schema and an explanation for each field.
-          const typedMessage = {
-            domain: {
-              chainId: 31337,
-              name: "Hardhat Network test suite",
-            },
-            message: {
-              name: "Translation",
-              start: {
-                x: 200,
-                y: 600,
-              },
-              end: {
-                x: 300,
-                y: 350,
-              },
-              cost: 50,
-            },
-            primaryType: "WeightedVector",
-            types: {
-              EIP712Domain: [
-                { name: "name", type: "string" },
-                { name: "chainId", type: "uint256" },
-              ],
-              WeightedVector: [
-                { name: "name", type: "string" },
-                { name: "start", type: "Point" },
-                { name: "end", type: "Point" },
-                { name: "cost", type: "uint256" },
-              ],
-              Point: [
-                { name: "x", type: "uint256" },
-                { name: "y", type: "uint256" },
-              ],
-            },
-          };
-
-          const [address] = DEFAULT_ACCOUNTS_ADDRESSES;
-
-          const signature = await this.provider.request({
-            method: "eth_signTypedData",
-            params: [address, typedMessage],
-          });
-          const signedMessage = {
-            data: typedMessage,
-            sig: signature,
-          };
-
-          const recoveredAddress = recoverTypedSignature(signedMessage as any);
-          assert.equal(address.toLowerCase(), recoveredAddress.toLowerCase());
+        it("is not supported", async function () {
+          await assertNotSupported(this.provider, "eth_signTypedData");
         });
       });
 
