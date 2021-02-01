@@ -813,7 +813,7 @@ describe("Ethers plugin", function () {
           ],
         },
       };
-      const signer = this.env.ethers.provider.getSigner(0);
+      const [signer] = await this.env.ethers.getSigners();
 
       const signature = await signer._signTypedData(
         typedMessage.domain,
