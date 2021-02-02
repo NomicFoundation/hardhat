@@ -257,7 +257,7 @@ describe("HardhatNode", () => {
         const tx1Receipt = await node.getTransactionReceipt(tx1.hash());
         const tx2Receipt = await node.getTransactionReceipt(tx2.hash());
         assertQuantity(tx1Receipt?.gasUsed, 21_000);
-        assertQuantity(tx2Receipt?.gasUsed, 42_000);
+        assertQuantity(tx2Receipt?.gasUsed, 21_000);
 
         const block = await node.getLatestBlock();
         assert.equal(bufferToInt(block.header.gasUsed), 42_000);
