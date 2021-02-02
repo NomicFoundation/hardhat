@@ -351,13 +351,11 @@ export class HardhatNetworkProvider extends EventEmitter
   }
 
   private _makeMiningTimer(): MiningTimer {
-    const miningTimer = new MiningTimer(this._intervalMining.blockTime, () =>
+    const miningTimer = new MiningTimer(this._intervalMining, () =>
       this.request({ method: "evm_mine" })
     );
 
-    if (this._intervalMining.enabled) {
-      miningTimer.start();
-    }
+    miningTimer.start();
 
     return miningTimer;
   }

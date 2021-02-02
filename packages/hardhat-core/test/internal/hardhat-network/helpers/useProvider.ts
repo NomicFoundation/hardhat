@@ -7,11 +7,10 @@ import { EthereumProvider } from "../../../../src/types";
 import {
   DEFAULT_ACCOUNTS,
   DEFAULT_ALLOW_UNLIMITED_CONTRACT_SIZE,
-  DEFAULT_AUTOMINE,
   DEFAULT_BLOCK_GAS_LIMIT,
   DEFAULT_CHAIN_ID,
   DEFAULT_HARDFORK,
-  DEFAULT_INTERVAL_MINING_CONFIG,
+  DEFAULT_MINING_CONFIG,
   DEFAULT_NETWORK_ID,
   DEFAULT_NETWORK_NAME,
   DEFAULT_USE_JSON_RPC,
@@ -28,15 +27,14 @@ declare module "mocha" {
 export function useProvider(
   useJsonRpc = DEFAULT_USE_JSON_RPC,
   forkConfig?: ForkConfig,
-  intervalMining = DEFAULT_INTERVAL_MINING_CONFIG,
+  mining = DEFAULT_MINING_CONFIG,
   hardfork = DEFAULT_HARDFORK,
   networkName = DEFAULT_NETWORK_NAME,
   chainId = DEFAULT_CHAIN_ID,
   networkId = DEFAULT_NETWORK_ID,
   blockGasLimit = DEFAULT_BLOCK_GAS_LIMIT,
   accounts = DEFAULT_ACCOUNTS,
-  allowUnlimitedContractSize = DEFAULT_ALLOW_UNLIMITED_CONTRACT_SIZE,
-  automine = DEFAULT_AUTOMINE
+  allowUnlimitedContractSize = DEFAULT_ALLOW_UNLIMITED_CONTRACT_SIZE
 ) {
   beforeEach("Initialize provider", async function () {
     this.hardhatNetworkProvider = new HardhatNetworkProvider(
@@ -47,8 +45,8 @@ export function useProvider(
       blockGasLimit,
       true,
       true,
-      automine,
-      intervalMining,
+      mining.auto,
+      mining.interval,
       accounts,
       undefined,
       undefined,

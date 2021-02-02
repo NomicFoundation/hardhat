@@ -1,3 +1,5 @@
+import { IntervalMiningConfig } from "./node-types";
+
 enum MiningTimerState {
   STOP,
   RUNNING,
@@ -10,23 +12,26 @@ export class MiningTimer {
   private _timeout: any = null;
 
   constructor(
-    private _blockTime: number,
+    private _blockTime: IntervalMiningConfig,
     private readonly _mineFunction: () => Promise<any>
   ) {
-    if (_blockTime <= 0) {
-      throw new Error(
-        "Block time passed to the constructor must be greater than 0 ms"
-      );
-    }
+    this._validateBlockTime(_blockTime);
   }
 
-  public getBlockTime(): number {
+  public getBlockTime(): IntervalMiningConfig {
     return this._blockTime;
   }
 
-  public setBlockTime(blockTime: number): void {
-    if (blockTime <= 0) {
-      throw new Error("New block time must be greater than 0 ms");
+  public enabled(): boolean {
+    return this._blockTime !== 0;
+  }
+
+  public setBlockTime(blockTime: IntervalMiningConfig): void {
+    this._validateBlockTime(blockTime);
+
+    if (blockTime === 0) {
+      this.stop();
+      return;
     }
 
     if (blockTime === this._blockTime) {
@@ -37,19 +42,22 @@ export class MiningTimer {
 
     if (this._state === MiningTimerState.RUNNING) {
       this.stop();
-      this.start();
     }
+
+    this.start();
   }
 
   public start(): void {
-    if (this._state === MiningTimerState.RUNNING) {
+    if (this._state === MiningTimerState.RUNNING || !this.enabled()) {
       return;
     }
+
+    const blockTime = this._getNextBlockTime();
 
     this._state = MiningTimerState.RUNNING;
     this._timeout = setTimeout(
       () => this._loop().catch(console.error),
-      this._blockTime
+      blockTime
     );
   }
 
@@ -62,6 +70,19 @@ export class MiningTimer {
     clearTimeout(this._timeout);
   }
 
+  private _validateBlockTime(blockTime: IntervalMiningConfig) {
+    if (Array.isArray(blockTime)) {
+      const [rangeStart, rangeEnd] = blockTime;
+      if (rangeEnd < rangeStart) {
+        throw new Error("Invalid block time range");
+      }
+    } else {
+      if (blockTime < 0) {
+        throw new Error("Block time cannot be negative");
+      }
+    }
+  }
+
   private async _loop() {
     if (this._state === MiningTimerState.STOP) {
       return;
@@ -69,8 +90,22 @@ export class MiningTimer {
 
     await this._mineFunction();
 
+    const blockTime = this._getNextBlockTime();
+
     this._timeout = setTimeout(() => {
       this._loop().catch(console.error);
-    }, this._blockTime);
+    }, blockTime);
+  }
+
+  private _getNextBlockTime(): number {
+    if (Array.isArray(this._blockTime)) {
+      const [minBlockTime, maxBlockTime] = this._blockTime;
+
+      return (
+        minBlockTime + Math.floor(Math.random() * (maxBlockTime - minBlockTime))
+      );
+    }
+
+    return this._blockTime;
   }
 }

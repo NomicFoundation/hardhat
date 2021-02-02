@@ -456,18 +456,14 @@ describe("Evm module", function () {
           });
 
           afterEach(async function () {
-            await this.provider.send("evm_setIntervalMining", [
-              { enabled: false },
-            ]);
+            await this.provider.send("evm_setIntervalMining", [0]);
             sinonClock.restore();
           });
 
           it("should handle race condition with interval mining", async function () {
             const interval = 5000;
             const initialBlock = await getBlockNumber();
-            await this.provider.send("evm_setIntervalMining", [
-              { enabled: true, blockTime: interval },
-            ]);
+            await this.provider.send("evm_setIntervalMining", [interval]);
 
             await sinonClock.tickAsync(interval);
             await this.provider.send("evm_mine");
@@ -550,7 +546,13 @@ describe("Evm module", function () {
           await assertInvalidArgumentsError(
             this.provider,
             "evm_setIntervalMining",
-            [{ enabled: false, blockTime: -10 }]
+            [-10]
+          );
+
+          await assertInvalidArgumentsError(
+            this.provider,
+            "evm_setIntervalMining",
+            [[2000, 1000]]
           );
         });
 
@@ -576,18 +578,14 @@ describe("Evm module", function () {
             });
 
             afterEach(async function () {
-              await this.provider.send("evm_setIntervalMining", [
-                { enabled: false },
-              ]);
+              await this.provider.send("evm_setIntervalMining", [0]);
               sinonClock.restore();
             });
 
             it("should allow enabling interval mining", async function () {
               const interval = 5000;
               const initialBlock = await getBlockNumber();
-              await this.provider.send("evm_setIntervalMining", [
-                { enabled: true, blockTime: interval },
-              ]);
+              await this.provider.send("evm_setIntervalMining", [interval]);
 
               await sinonClock.tickAsync(interval);
 
@@ -598,9 +596,7 @@ describe("Evm module", function () {
             it("should continuously mine new blocks after each interval", async function () {
               const interval = 5000;
               const initialBlock = await getBlockNumber();
-              await this.provider.send("evm_setIntervalMining", [
-                { enabled: true, blockTime: interval },
-              ]);
+              await this.provider.send("evm_setIntervalMining", [interval]);
 
               await sinonClock.tickAsync(interval);
               assert.equal(await getBlockNumber(), initialBlock + 1);
@@ -610,6 +606,43 @@ describe("Evm module", function () {
 
               await sinonClock.tickAsync(interval);
               assert.equal(await getBlockNumber(), initialBlock + 3);
+            });
+
+            it("should mine blocks when a range is used", async function () {
+              const interval = [4000, 5000];
+              const initialBlock = await getBlockNumber();
+              await this.provider.send("evm_setIntervalMining", [interval]);
+
+              // no block should be mined before the min value of the range
+              await sinonClock.tickAsync(3999);
+              assert.equal(await getBlockNumber(), initialBlock);
+
+              // when the max value has passed, one block should'be been mined
+              await sinonClock.tickAsync(1001);
+              assert.equal(await getBlockNumber(), initialBlock + 1);
+
+              // after another 5 seconds, another block should be mined
+              await sinonClock.tickAsync(5000);
+              assert.equal(await getBlockNumber(), initialBlock + 2);
+            });
+
+            it("should disable interval mining when 0 is passed", async function () {
+              const interval = 5000;
+              const initialBlock = await getBlockNumber();
+              await this.provider.send("evm_setIntervalMining", [interval]);
+
+              await sinonClock.tickAsync(interval);
+              assert.equal(await getBlockNumber(), initialBlock + 1);
+
+              await sinonClock.tickAsync(interval);
+              assert.equal(await getBlockNumber(), initialBlock + 2);
+
+              await this.provider.send("evm_setIntervalMining", [0]);
+
+              await sinonClock.tickAsync(interval);
+              assert.equal(await getBlockNumber(), initialBlock + 2);
+              await sinonClock.tickAsync(interval);
+              assert.equal(await getBlockNumber(), initialBlock + 2);
             });
 
             const sendTx = async (nonce: number) =>
@@ -641,9 +674,7 @@ describe("Evm module", function () {
               const initialBlock = await getBlockNumber();
 
               await this.provider.send("evm_setAutomineEnabled", [false]);
-              await this.provider.send("evm_setIntervalMining", [
-                { enabled: true, blockTime: interval },
-              ]);
+              await this.provider.send("evm_setIntervalMining", [interval]);
 
               await sinonClock.tickAsync(interval);
               await assertBlockWasMined(initialBlock + 1, []);
@@ -665,17 +696,13 @@ describe("Evm module", function () {
 
           describe("using sleep", () => {
             afterEach(async function () {
-              await this.provider.send("evm_setIntervalMining", [
-                { enabled: false },
-              ]);
+              await this.provider.send("evm_setIntervalMining", [0]);
             });
 
             it("should allow disabling interval mining", async function () {
               const interval = 1000;
               const initialBlock = await getBlockNumber();
-              await this.provider.send("evm_setIntervalMining", [
-                { enabled: true, blockTime: interval },
-              ]);
+              await this.provider.send("evm_setIntervalMining", [interval]);
 
               await sleep(1.7 * interval);
 
@@ -683,9 +710,7 @@ describe("Evm module", function () {
 
               assert.equal(nextBlock, initialBlock + 1);
 
-              await this.provider.send("evm_setIntervalMining", [
-                { enabled: false, blockTime: interval * 2 },
-              ]);
+              await this.provider.send("evm_setIntervalMining", [interval * 2]);
 
               await sleep(interval);
 
@@ -704,9 +729,7 @@ describe("Evm module", function () {
                 },
               ]);
 
-              await this.provider.send("evm_setIntervalMining", [
-                { enabled: true, blockTime: interval },
-              ]);
+              await this.provider.send("evm_setIntervalMining", [interval]);
 
               await sleep(1.7 * interval);
 
@@ -1209,9 +1232,7 @@ describe("Evm module", function () {
 
           describe("when interval mining is enabled", () => {
             afterEach(async function () {
-              await this.provider.send("evm_setIntervalMining", [
-                { enabled: false },
-              ]);
+              await this.provider.send("evm_setIntervalMining", [0]);
             });
 
             it("should handle race condition", async function () {
@@ -1219,9 +1240,7 @@ describe("Evm module", function () {
               const initialBlock = await getBlockNumber();
               const snapshotId = await this.provider.send("evm_snapshot");
 
-              await this.provider.send("evm_setIntervalMining", [
-                { enabled: true, blockTime: interval },
-              ]);
+              await this.provider.send("evm_setIntervalMining", [interval]);
 
               await sinonClock.tickAsync(interval);
               await this.provider.send("evm_revert", [snapshotId]);

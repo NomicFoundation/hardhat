@@ -37,10 +37,7 @@ export interface TracingConfig {
   buildInfos?: BuildInfo[];
 }
 
-export interface IntervalMiningConfig {
-  enabled: boolean;
-  blockTime: number;
-}
+export type IntervalMiningConfig = number | [number, number];
 
 export interface GenesisAccount {
   privateKey: string;
