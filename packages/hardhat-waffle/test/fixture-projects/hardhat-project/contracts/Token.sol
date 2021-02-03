@@ -1,5 +1,5 @@
 // Example taken from https://gist.github.com/jonchurch/c71de291b3ffa49ae17e416393f87135 and modified
-// Original code's license: BokkyPooBah 2017. The MIT Licence.
+// Original code's license: BokkyPooBah 2017. The MIT License.
 
 pragma solidity ^0.7.0;
 
