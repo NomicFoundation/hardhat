@@ -265,24 +265,24 @@ const plugins = [
     tags: ["Testing", "Mocking", "Buidler plugin"],
   },
   {
-    name: "buidler-ovm-compiler",
+    name: "@eth-optimism/plugins/hardhat/compiler",
     author: "Optimism",
     authorUrl: "https://github.com/ethereum-optimism",
     url:
-      "https://github.com/ethereum-optimism/optimism-monorepo/tree/master/packages/ovm-toolchain",
+      "https://github.com/ethereum-optimism/plugins/tree/master/src/hardhat/compiler",
     description:
-      "Allows users to specify a custom compiler path. This makes it possible to compile your contracts with the custom Optimism Solidity compiler.",
-    tags: ["Optimism", "Compiler", "OVM", "Buidler plugin"],
+      "Automatically compiles your Solidity contracts with the OVM compiler.",
+    tags: ["Optimism", "Solidity", "Compiler", "OVM"],
   },
   {
-    name: "buidler-ovm-node",
+    name: "@eth-optimism/plugins/hardhat/ethers",
     author: "Optimism",
     authorUrl: "https://github.com/ethereum-optimism",
     url:
-      "https://github.com/ethereum-optimism/optimism-monorepo/tree/master/packages/ovm-toolchain",
+      "https://github.com/ethereum-optimism/plugins/tree/master",
     description:
-      "Replaces the VM object with our own custom ethereumjs-vm fork. Add useOvm to your buidler config object to enable OVM execution.",
-    tags: ["Optimism", "Buidler EVM", "OVM", "Buidler plugin"],
+      "Integrates Hardhat and ethers.js with Optimism's L2 network.",
+    tags: ["Optimism", "ethers.js", "OVM"],
   },
   {
     name: "hardhat-react",
