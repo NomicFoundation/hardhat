@@ -300,5 +300,5 @@ const plugins = [
 
 module.exports = plugins.map((p) => ({
   ...p,
-  normalizedName: p.name.replace("/", "-").replace(/^@/, ""),
+  normalizedName: p.name.split("/").join("-").replace(/^@/, ""),
 }));
