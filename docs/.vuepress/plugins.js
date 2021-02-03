@@ -40,7 +40,8 @@ const plugins = [
     name: "@nomiclabs/hardhat-web3",
     author: "Nomic Labs",
     authorUrl: "https://twitter.com/nomiclabs",
-    url: "https://github.com/nomiclabs/buidler/tree/master/packages/hardhat-web3",
+    url:
+      "https://github.com/nomiclabs/buidler/tree/master/packages/hardhat-web3",
     description: "Injects Web3 1.x into the Hardhat Runtime Environment",
     tags: ["Web3.js", "Testing", "Tasks", "Scripts"],
   },
@@ -75,7 +76,8 @@ const plugins = [
     name: "@nomiclabs/hardhat-solpp",
     author: "Nomic Labs",
     authorUrl: "https://twitter.com/nomiclabs",
-    url: "https://github.com/nomiclabs/buidler/tree/master/packages/hardhat-solpp",
+    url:
+      "https://github.com/nomiclabs/buidler/tree/master/packages/hardhat-solpp",
     description:
       "Automatically run the solpp preprocessor before each compilation",
     tags: ["Solpp", "Preprocessor"],
@@ -93,7 +95,8 @@ const plugins = [
     name: "@nomiclabs/hardhat-vyper",
     author: "Nomic Labs",
     authorUrl: "https://twitter.com/nomiclabs",
-    url: "https://github.com/nomiclabs/buidler/tree/master/packages/hardhat-vyper",
+    url:
+      "https://github.com/nomiclabs/buidler/tree/master/packages/hardhat-vyper",
     description: "Adds support to compile Vyper smart contracts",
     tags: ["Vyper", "Compiler"],
   },
@@ -126,8 +129,10 @@ const plugins = [
     name: "hardhat-upgrades",
     author: "OpenZeppelin",
     authorUrl: "https://openzeppelin.com",
-    url: "https://github.com/OpenZeppelin/openzeppelin-upgrades/tree/master/packages/plugin-hardhat",
-    description: "Hardhat plugin for deploying and managing upgradeable contracts.",
+    url:
+      "https://github.com/OpenZeppelin/openzeppelin-upgrades/tree/master/packages/plugin-hardhat",
+    description:
+      "Hardhat plugin for deploying and managing upgradeable contracts.",
     tags: ["Security", "Upgrades", "OpenZeppelin"],
   },
   {
@@ -135,7 +140,8 @@ const plugins = [
     author: "Tenderly",
     authorUrl: "https://tenderly.co/",
     url: "https://github.com/Tenderly/hardhat-tenderly/tree/master",
-    description: "Easily integrate your Hardhat project with Tenderly. Tenderly is an Ethereum monitoring, debugging and analytics platform.",
+    description:
+      "Easily integrate your Hardhat project with Tenderly. Tenderly is an Ethereum monitoring, debugging and analytics platform.",
     tags: ["Debuggin", "Monitoring", "Alerting", "Tasks", "Scripts"],
   },
   {
@@ -185,9 +191,9 @@ const plugins = [
     name: "hardhat-dependency-compiler",
     author: "Nick Barry",
     authorUrl: "https://github.com/ItsNickBarry",
-    url: "https://github.com/ItsNickBarry/hardhat-dependency-compiler/tree/master",
-    description:
-      "Compile Solidity sources directly from NPM dependencies",
+    url:
+      "https://github.com/ItsNickBarry/hardhat-dependency-compiler/tree/master",
+    description: "Compile Solidity sources directly from NPM dependencies",
     tags: ["Compiling", "Dependencies"],
   },
   {
@@ -195,8 +201,7 @@ const plugins = [
     author: "Nick Barry, samuveth",
     authorUrl: "https://github.com/ItsNickBarry",
     url: "https://github.com/ItsNickBarry/hardhat-docgen/tree/master",
-    description:
-      "Generate a static documentation site from NatSpec comments",
+    description: "Generate a static documentation site from NatSpec comments",
     tags: ["Documentation", "NatSpec"],
   },
   {
@@ -204,8 +209,7 @@ const plugins = [
     author: "Xander Deseyn",
     authorUrl: "https://github.com/N1ghtly",
     url: "https://github.com/N1ghtly/hardhat-watcher/tree/main",
-    description:
-      "Automatically run Hardhat actions on file changes.",
+    description: "Automatically run Hardhat actions on file changes.",
     tags: ["Tasks", "Testing"],
   },
   {
@@ -278,10 +282,8 @@ const plugins = [
     name: "@eth-optimism/plugins/hardhat/ethers",
     author: "Optimism",
     authorUrl: "https://github.com/ethereum-optimism",
-    url:
-      "https://github.com/ethereum-optimism/plugins/tree/master",
-    description:
-      "Integrates Hardhat and ethers.js with Optimism's L2 network.",
+    url: "https://github.com/ethereum-optimism/plugins/tree/master",
+    description: "Integrates Hardhat and ethers.js with Optimism's L2 network.",
     tags: ["Optimism", "ethers.js", "OVM"],
   },
   {
