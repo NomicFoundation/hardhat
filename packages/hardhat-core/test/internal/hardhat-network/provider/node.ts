@@ -121,12 +121,11 @@ describe("HardhatNode", function () {
         assert.fail();
       }
 
-      if (
-        newBlock.header.receiptTrie.toString("hex") !==
-        rpcBlock.receiptsRoot.toString("hex")
-      ) {
-        console.warn("Receipt tries of blocks are different");
+      const localReceiptRoot = newBlock.header.receiptTrie.toString("hex");
+      const remoteReceiptRoot = rpcBlock.receiptsRoot.toString("hex");
 
+      // We do some manual comparisons here to understand why the root of the receipt tries differ.
+      if (localReceiptRoot !== remoteReceiptRoot) {
         for (let i = 0; i < block.transactions.length; i++) {
           const tx = block.transactions[i];
           const txHash = bufferToHex(tx.hash(true));
@@ -166,6 +165,12 @@ describe("HardhatNode", function () {
           );
         }
       }
+
+      assert.equal(
+        localReceiptRoot,
+        remoteReceiptRoot,
+        "The root of the receipts trie is different than expected"
+      );
     });
   }
 });
