@@ -75,6 +75,47 @@ describe("Flatten task", () => {
     });
   });
 
+  describe("Remove licences", function () {
+    useFixtureProject("contracts-project");
+
+    it("Should remove licences from all files", async function () {
+      const aFlattened = await this.env.run(TASK_FLATTEN_GET_FLATTENED_SOURCE, {
+        files: ["contracts/AWithLicence.sol"], shouldRemoveLicences: true
+      });
+
+      assert.deepEqual(getContractsOrder(aFlattened), ["C", "B", "A"]);
+
+      const abFlattened = await this.env.run(TASK_FLATTEN_GET_FLATTENED_SOURCE, {
+        files: ["contracts/BWithLicence.sol", "contracts/AWithLicence.sol"], shouldRemoveLicences: true
+      });
+
+      assert.deepEqual(getContractsOrder(abFlattened), ["C", "B", "B", "A"]);
+    });
+  });
+
+  describe("Add licence", function () {
+    useFixtureProject("contracts-project");
+
+    it("Should add a licence", async function () {
+      const aFlattened = await this.env.run(TASK_FLATTEN_GET_FLATTENED_SOURCE, {
+        files: ["contracts/AWithLicence.sol"], licence: 'A-LICENCE'
+      });
+
+      assert.isTrue(aFlattened.includes("// SPDX-License-Identifier: A-LICENCE"));
+
+      let abFlattened = await this.env.run(TASK_FLATTEN_GET_FLATTENED_SOURCE, {
+        files: ["contracts/BWithLicence.sol", "contracts/AWithLicence.sol"], licence: 'A-LICENCE'
+      });
+
+      assert.isTrue(abFlattened.includes("// SPDX-License-Identifier: A-LICENCE"));
+
+      // Replace match
+      abFlattened = abFlattened.replace("// SPDX-License-Identifier: A-LICENCE", '')
+
+      assert.isFalse(abFlattened.includes("// SPDX-License-Identifier: A-LICENCE"));
+    });
+  });
+
   describe("When project has multiline imports", function () {
     useFixtureProject("multiline-import-project");
 
