@@ -80,13 +80,13 @@ describe("Flatten task", () => {
 
     it("Should remove licences from all files", async function () {
       const aFlattened = await this.env.run(TASK_FLATTEN_GET_FLATTENED_SOURCE, {
-        files: ["contracts/AWithLicence.sol"], shouldRemoveLicences: true
+        files: ["contracts/AWithLicence.sol"], removeLicences: true
       })
 
       assert.deepEqual(getContractsOrder(aFlattened), ["C", "B", "A"])
 
       const abFlattened = await this.env.run(TASK_FLATTEN_GET_FLATTENED_SOURCE, {
-        files: ["contracts/BWithLicence.sol", "contracts/AWithLicence.sol"], shouldRemoveLicences: true
+        files: ["contracts/BWithLicence.sol", "contracts/AWithLicence.sol"], removeLicences: true
       })
 
       assert.deepEqual(getContractsOrder(abFlattened), ["C", "B", "B", "A"])
