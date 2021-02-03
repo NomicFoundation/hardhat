@@ -127,10 +127,6 @@ describe("HardhatNode", function () {
       ) {
         console.warn("Receipt tries of blocks are different");
 
-        // ethereumjs-vm outputs receipts with the accumulated gas used in the entire block.
-        // We need to calculate the actual amount of gas used for the individual transaction if we want it.
-        let gasUsedInBlock = new BN(0);
-
         for (let i = 0; i < block.transactions.length; i++) {
           const tx = block.transactions[i];
           const txHash = bufferToHex(tx.hash(true));
@@ -141,6 +137,7 @@ describe("HardhatNode", function () {
           })) as any;
 
           const localReceipt = result.receipts[i];
+          const evmResult = result.results[i];
 
           assert.equal(
             bufferToHex(localReceipt.bitvector),
@@ -148,14 +145,8 @@ describe("HardhatNode", function () {
             `Logs bloom of tx index ${i} (${txHash}) should match`
           );
 
-          // The `gasUsed` field is actually the accumulated gas used in a block.
-          const gasUsedLocalReceipt = new BN(localReceipt.gasUsed).sub(
-            gasUsedInBlock
-          );
-          gasUsedInBlock = new BN(localReceipt.gasUsed);
-
           assert.equal(
-            numberToRpcQuantity(gasUsedLocalReceipt.toNumber()),
+            numberToRpcQuantity(evmResult.gasUsed.toNumber()),
             remoteReceipt.gasUsed,
             `Gas used of tx index ${i} (${txHash}) should match`
           );
@@ -166,7 +157,6 @@ describe("HardhatNode", function () {
             `Status of tx index ${i} (${txHash}) should be the same`
           );
 
-          const evmResult = result.results[i];
           assert.equal(
             evmResult.createdAddress === undefined
               ? undefined
