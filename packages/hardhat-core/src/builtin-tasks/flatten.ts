@@ -16,7 +16,7 @@ import {
   TASK_FLATTEN_GET_FLATTENED_SOURCE,
 } from "./task-names"
 
-type FlattenInput = { files?: string[], shouldRemoveLicences?: boolean, licence?: string }
+type FlattenInput = { files?: string[], shouldRemoveLicences?: boolean, license?: string }
 
 function getSortedFiles(dependenciesGraph: DependencyGraph) {
   const tsort = require("tsort")
@@ -67,8 +67,8 @@ subtask(
 )
   .addOptionalParam("files", undefined, undefined, types.any)
   .addOptionalParam("shouldRemoveLicences", undefined, false, types.boolean)
-  .addOptionalParam("licence", undefined, undefined, types.string)
-  .setAction(async ({ files, shouldRemoveLicences, licence }: FlattenInput, { run }) => {
+  .addOptionalParam("license", undefined, undefined, types.string)
+  .setAction(async ({ files, shouldRemoveLicences, license }: FlattenInput, { run }) => {
     const dependencyGraph: DependencyGraph = await run(
       TASK_FLATTEN_GET_DEPENDENCY_GRAPH,
       { files }
@@ -90,13 +90,13 @@ subtask(
       flattened += `\n${getFileWithoutImports(file)}\n`
     }
 
-    if (shouldRemoveLicences || licence) {
+    if (shouldRemoveLicences || license) {
       // Remove every line started with "// SPDX-License-Identifier:"
       flattened = flattened.replace(/^\/\/ SPDX-License-Identifier:.*\n?/m, '')
     }
 
-    if (licence) {
-      flattened = `// SPDX-License-Identifier: ${licence}\n${flattened}`
+    if (license) {
+      flattened = `// SPDX-License-Identifier: ${license}\n${flattened}`
     }
 
     return flattened.trim()
@@ -139,11 +139,11 @@ task(TASK_FLATTEN, "Flattens and prints contracts and their dependencies")
     types.string
   )
   .addOptionalParam(
-    "licence",
-    "Licence for each file",
+    "license",
+    "License for each file",
     undefined,
     types.string
   )
-  .setAction(async ({ files, shouldRemoveLicences, licence }: FlattenInput, { run }) => {
-    console.log(await run(TASK_FLATTEN_GET_FLATTENED_SOURCE, { files, shouldRemoveLicences, licence }))
+  .setAction(async ({ files, shouldRemoveLicences, license }: FlattenInput, { run }) => {
+    console.log(await run(TASK_FLATTEN_GET_FLATTENED_SOURCE, { files, shouldRemoveLicences, license }))
   })
