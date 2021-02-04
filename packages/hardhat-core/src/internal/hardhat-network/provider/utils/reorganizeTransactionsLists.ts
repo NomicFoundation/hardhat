@@ -5,6 +5,12 @@ import { SenderTransactions } from "../PoolState";
 
 import { retrieveNonce } from "./retrieveNonce";
 
+/**
+ * Move as many transactions as possible from the queued list
+ * to the pending list.
+ *
+ * Returns the new lists and the new executable nonce of the sender.
+ */
 export function reorganizeTransactionsLists(
   pending: SenderTransactions,
   queued: SenderTransactions
@@ -21,16 +27,17 @@ export function reorganizeTransactionsLists(
   executableNonce = retrieveNonce(pending.last()).addn(1);
 
   let movedCount = 0;
-  newQueued.forEach((queuedTx) => {
+  for (const queuedTx of newQueued) {
     const queuedTxNonce = retrieveNonce(queuedTx);
+
     if (executableNonce.eq(queuedTxNonce)) {
       newPending = newPending.push(queuedTx);
       executableNonce.iaddn(1);
       movedCount++;
     } else {
-      return false; // stops iteration
+      break;
     }
-  });
+  }
   newQueued = newQueued.skip(movedCount);
 
   return {
