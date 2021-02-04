@@ -291,7 +291,7 @@ const plugins = [
     author: "Symfoni",
     authorUrl: "https://github.com/symfoni/",
     url:
-      "https://github.com/symfoni/hardhat-plugins/tree/hardhat/packages/hardhat-react",
+      "https://github.com/symfoni/symfoni-monorepo/tree/master/packages/hardhat-react",
     description:
       "A Hardhat plugin that generates a React hook component from your smart contracts. Hot reloaded into your React app. Deployed or not deployed. And everything typed and initialized.",
     tags: ["Ethers", "React", "Deploy", "Typechain", "Frontend", "Web3modal"],
