@@ -4,13 +4,6 @@ import { ethers } from "ethers";
 // EIP-712 Typed Data
 // See: https://eips.ethereum.org/EIPS/eip-712
 
-export type SignTypedDataParams = Parameters<
-  ethers.providers.JsonRpcSigner["_signTypedData"]
->;
-
-export type TypedDataDomain = SignTypedDataParams[0];
-export type TypedDataFields = SignTypedDataParams[1];
-
 export class SignerWithAddress extends ethers.Signer {
   public static async create(signer: ethers.providers.JsonRpcSigner) {
     return new SignerWithAddress(await signer.getAddress(), signer);
@@ -49,11 +42,9 @@ export class SignerWithAddress extends ethers.Signer {
   }
 
   public _signTypedData(
-    domain: TypedDataDomain,
-    types: TypedDataFields,
-    value: Record<string, any>
+    ...params: Parameters<ethers.providers.JsonRpcSigner["_signTypedData"]>
   ): Promise<string> {
-    return this._signer._signTypedData(domain, types, value);
+    return this._signer._signTypedData(...params);
   }
 
   public toJSON() {
