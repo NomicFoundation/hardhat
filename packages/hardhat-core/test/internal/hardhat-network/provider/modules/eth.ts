@@ -62,6 +62,9 @@ import {
   sendTxToZeroAddress,
 } from "../../helpers/transactions";
 
+// tslint:disable-next-line no-var-requires
+const { recoverTypedSignature_v4 } = require("eth-sig-util");
+
 const PRECOMPILES_COUNT = 8;
 
 describe("Eth module", function () {
@@ -4017,8 +4020,102 @@ describe("Eth module", function () {
         });
       });
 
-      describe("eth_signTypedData", async function () {
-        // TODO: Test this. Note that it just forwards to/from eth-sign-util
+      describe("eth_signTypedData", function () {
+        it("is not supported", async function () {
+          await assertNotSupported(this.provider, "eth_signTypedData");
+        });
+      });
+
+      describe("eth_signTypedData_v3", function () {
+        it("is not supported", async function () {
+          await assertNotSupported(this.provider, "eth_signTypedData_v3");
+        });
+      });
+
+      describe("eth_signTypedData_v4", function () {
+        // See https://eips.ethereum.org/EIPS/eip-712#parameters
+        // There's a json schema and an explanation for each field.
+        const typedMessage = {
+          domain: {
+            chainId: 31337,
+            name: "Hardhat Network test suite",
+          },
+          message: {
+            name: "Translation",
+            start: {
+              x: 200,
+              y: 600,
+            },
+            end: {
+              x: 300,
+              y: 350,
+            },
+            cost: 50,
+          },
+          primaryType: "WeightedVector",
+          types: {
+            EIP712Domain: [
+              { name: "name", type: "string" },
+              { name: "chainId", type: "uint256" },
+            ],
+            WeightedVector: [
+              { name: "name", type: "string" },
+              { name: "start", type: "Point" },
+              { name: "end", type: "Point" },
+              { name: "cost", type: "uint256" },
+            ],
+            Point: [
+              { name: "x", type: "uint256" },
+              { name: "y", type: "uint256" },
+            ],
+          },
+        };
+        const [address] = DEFAULT_ACCOUNTS_ADDRESSES;
+
+        it("should sign a message", async function () {
+          const signature = await this.provider.request({
+            method: "eth_signTypedData_v4",
+            params: [address, typedMessage],
+          });
+          const signedMessage = {
+            data: typedMessage,
+            sig: signature,
+          };
+
+          const recoveredAddress = recoverTypedSignature_v4(
+            signedMessage as any
+          );
+          assert.equal(address.toLowerCase(), recoveredAddress.toLowerCase());
+        });
+
+        it("should sign a message that is JSON stringified", async function () {
+          const signature = await this.provider.request({
+            method: "eth_signTypedData_v4",
+            params: [address, JSON.stringify(typedMessage)],
+          });
+          const signedMessage = {
+            data: typedMessage,
+            sig: signature,
+          };
+
+          const recoveredAddress = recoverTypedSignature_v4(
+            signedMessage as any
+          );
+          assert.equal(address.toLowerCase(), recoveredAddress.toLowerCase());
+        });
+
+        it("should fail with an invalid JSON", async function () {
+          try {
+            const signature = await this.provider.request({
+              method: "eth_signTypedData_v4",
+              params: [address, "{an invalid JSON"],
+            });
+          } catch (error) {
+            assert.include(error.message, "is an invalid JSON");
+            return;
+          }
+          assert.fail("should have failed with an invalid JSON");
+        });
       });
 
       describe("eth_submitHashrate", async function () {

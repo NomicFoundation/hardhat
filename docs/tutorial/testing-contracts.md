@@ -160,7 +160,7 @@ describe("Token contract", function () {
 
     // If the callback function is async, Mocha will `await` it.
     it("Should set the right owner", async function () {
-      // Expect receives a value, and wraps it in an assertion objet. These
+      // Expect receives a value, and wraps it in an Assertion object. These
       // objects have a lot of utility methods to assert values.
 
       // This test expects the owner variable stored in the contract to be equal

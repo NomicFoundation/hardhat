@@ -180,9 +180,12 @@ describe("ForkBlockchain", () => {
       );
     });
 
-    it("rejects blocks with invalid parent hash", async () => {
+    it("rejects blocks with invalid parent hash after the first block in the forked blockchain", async () => {
+      const block = createBlock(await fb.getLatestBlock());
+      await fb.addBlock(block);
+
       await assert.isRejected(
-        fb.addBlock(new Block({ header: { number: forkBlockNumber.addn(1) } })),
+        fb.addBlock(new Block({ header: { number: forkBlockNumber.addn(2) } })),
         Error,
         "Invalid parent hash"
       );

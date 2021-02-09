@@ -22,6 +22,9 @@ enum NetworkID {
   RINKEBY = 4,
   GOERLI = 5,
   KOVAN = 42,
+  // Binance Smart Chain
+  BSC = 56,
+  BSC_TESTNET = 97,
 }
 
 const networkIDtoEndpoints: NetworkMap = {
@@ -44,6 +47,14 @@ const networkIDtoEndpoints: NetworkMap = {
   [NetworkID.KOVAN]: {
     apiURL: "https://api-kovan.etherscan.io/api",
     browserURL: "https://kovan.etherscan.io",
+  },
+  [NetworkID.BSC]: {
+    apiURL: "https://api.bscscan.com/api",
+    browserURL: "https://bscscan.com",
+  },
+  [NetworkID.BSC_TESTNET]: {
+    apiURL: "https://api-testnet.bscscan.com/api",
+    browserURL: "https://testnet.bscscan.com",
   },
 };
 

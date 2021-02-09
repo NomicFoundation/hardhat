@@ -32,7 +32,7 @@
   "dependencies": {
     "@types/chai": "^4.2.0",
     "chai": "^4.2.0",
-    "ethereumjs-util": "^6.1.0",
+    "ethereumjs-util": "^6.2.0",
     "truffle-contract": "^3.0.7",
     "fs-extra": "^7.0.1"
   },

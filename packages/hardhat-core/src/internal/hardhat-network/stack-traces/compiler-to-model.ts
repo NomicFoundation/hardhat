@@ -169,6 +169,15 @@ function processFunctionDefinitionAstNode(
     functionDefinitionNode.visibility
   );
 
+  let selector: Buffer | undefined;
+  if (
+    functionType === ContractFunctionType.FUNCTION &&
+    (visibility === ContractFunctionVisibility.EXTERNAL ||
+      visibility === ContractFunctionVisibility.PUBLIC)
+  ) {
+    selector = astFunctionDefinitionToSelector(functionDefinitionNode);
+  }
+
   const cf = new ContractFunction(
     functionDefinitionNode.name,
     functionType,
@@ -176,9 +185,7 @@ function processFunctionDefinitionAstNode(
     contract,
     visibility,
     functionDefinitionNode.stateMutability === "payable",
-    functionType === ContractFunctionType.FUNCTION
-      ? astFunctionDefinitionToSelector(functionDefinitionNode)
-      : undefined
+    selector
   );
 
   contract.addLocalFunction(cf);
@@ -444,6 +451,14 @@ function astFunctionDefinitionToSelector(functionDefinition: any): Buffer {
       paramTypes.push("address");
       continue;
     }
+
+    // TODO: implement ABIv2 structs parsing
+    // This might mean we need to parse struct definitions before
+    // resolving types and trying to calculate function selectors.
+    // if (isStructType(param)) {
+    //   paramTypes.push(something);
+    //   continue;
+    // }
 
     if (isEnumType(param)) {
       // TODO: If the enum has >= 256 elements this will fail. It should be a uint16. This is
