@@ -1,13 +1,13 @@
 import { ethers } from "ethers";
 
 export class SignerWithAddress extends ethers.Signer {
-  public static async create(signer: ethers.Signer) {
+  public static async create(signer: ethers.providers.JsonRpcSigner) {
     return new SignerWithAddress(await signer.getAddress(), signer);
   }
 
   private constructor(
     public readonly address: string,
-    private readonly _signer: ethers.Signer
+    private readonly _signer: ethers.providers.JsonRpcSigner
   ) {
     super();
     (this as any).provider = _signer.provider;
@@ -35,6 +35,12 @@ export class SignerWithAddress extends ethers.Signer {
 
   public connect(provider: ethers.providers.Provider): SignerWithAddress {
     return new SignerWithAddress(this.address, this._signer.connect(provider));
+  }
+
+  public _signTypedData(
+    ...params: Parameters<ethers.providers.JsonRpcSigner["_signTypedData"]>
+  ): Promise<string> {
+    return this._signer._signTypedData(...params);
   }
 
   public toJSON() {

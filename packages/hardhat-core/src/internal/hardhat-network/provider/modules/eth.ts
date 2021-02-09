@@ -249,7 +249,19 @@ export class EthModule {
         throw new MethodNotSupportedError(method);
 
       case "eth_signTypedData":
-        return this._signTypedDataAction(...this._signTypedDataParams(params));
+        throw new MethodNotSupportedError(method);
+
+      case "eth_signTypedData_v3":
+        throw new MethodNotSupportedError(method);
+
+      // TODO: we're currently mimicking the MetaMask implementation here.
+      // The EIP 712 is still a draft. It doesn't actually distinguish different versions
+      // of the eth_signTypedData API.
+      // Also, note that go-ethereum implemented this in a clef JSON-RPC API: account_signTypedData.
+      case "eth_signTypedData_v4":
+        return this._signTypedDataV4Action(
+          ...this._signTypedDataV4Params(params)
+        );
 
       case "eth_submitHashrate":
         throw new MethodNotSupportedError(method);
@@ -881,17 +893,34 @@ export class EthModule {
 
   // eth_signTransaction
 
-  // eth_signTypedData
+  // eth_signTypedData_v4
 
-  private _signTypedDataParams(params: any[]): [Buffer, any] {
+  private _signTypedDataV4Params(params: any[]): [Buffer, any] {
+    // Validation of the TypedData parameter is handled by eth-sig-util
     return validateParams(params, rpcAddress, rpcUnknown);
   }
 
-  private async _signTypedDataAction(
+  private async _signTypedDataV4Action(
     address: Buffer,
     typedData: any
   ): Promise<string> {
-    return this._node.signTypedData(address, typedData);
+    let typedMessage: any = typedData;
+
+    // According to the MetaMask implementation,
+    // the message parameter may be JSON stringified in versions later than V1
+    // See https://github.com/MetaMask/metamask-extension/blob/0dfdd44ae7728ed02cbf32c564c75b74f37acf77/app/scripts/metamask-controller.js#L1736
+    // In fact, ethers.js JSON stringifies the message at the time of writing.
+    if (typeof typedData === "string") {
+      try {
+        typedMessage = JSON.parse(typedData);
+      } catch (error) {
+        throw new InvalidInputError(
+          `The message parameter is an invalid JSON. Either pass a valid JSON or a plain object conforming to EIP712 TypedData schema.`
+        );
+      }
+    }
+
+    return this._node.signTypedDataV4(address, typedMessage);
   }
 
   // eth_submitHashrate
