@@ -2,7 +2,12 @@ import type EthersT from "ethers";
 import { extendEnvironment } from "hardhat/config";
 import { lazyObject } from "hardhat/plugins";
 
-import { getContractAt, getContractFactory, getSigners } from "./helpers";
+import {
+  getContractAt,
+  getContractFactory,
+  getSigner,
+  getSigners,
+} from "./helpers";
 import type * as ProviderProxyT from "./provider-proxy";
 import "./type-extensions";
 
@@ -23,7 +28,8 @@ extendEnvironment((hre) => {
       // https://github.com/nomiclabs/hardhat/pull/608
       provider: providerProxy,
 
-      getSigners: async () => getSigners(hre),
+      getSigner: (address: string) => getSigner(hre, address),
+      getSigners: () => getSigners(hre),
       // We cast to any here as we hit a limitation of Function#bind and
       // overloads. See: https://github.com/microsoft/TypeScript/issues/28582
       getContractFactory: getContractFactory.bind(null, hre) as any,

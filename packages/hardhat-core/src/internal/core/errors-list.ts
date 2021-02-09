@@ -129,13 +129,22 @@ Check the error message for details, or go to [documentation](https://hardhat.or
     LIB_IMPORTED_FROM_THE_CONFIG: {
       number: 9,
       message: `Error while loading Hardhat's configuration.
-You probably imported hardhat instead of hardhat/config`,
+     
+You probably tried to import the Hardhat Runtime Environment from your config or a file imported from it.
+This is not possible, as Hardhat can't be initialized while its config is being defined.
+
+To learn more about how to access the Hardhat Runtime Environment from different contexts go to https://hardhat.org/hre`,
       title: "Failed to load config file",
       description: `There was an error while loading your config file. 
 
-The most common source of errors is trying to import \`hardhat\` instead of \`hardhat/config\`.
+The most common source of errors is trying to import the Hardhat Runtime Environment from your config or a file imported from it.
+This is not possible, as Hardhat can't be initialized while its config is being defined.
 
-Please make sure your config file is correct.`,
+You may also have accidentally imported \`hardhat\' instead of \`hardhat/config\`.
+
+Please make sure your config file is correct.
+
+To learn more about how to access the Hardhat Runtime Environment from different contexts go to https://hardhat.org/hre`,
       shouldBeReported: false,
     },
     USER_CONFIG_MODIFIED: {

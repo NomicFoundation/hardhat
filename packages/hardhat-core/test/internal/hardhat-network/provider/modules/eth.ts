@@ -1,4 +1,6 @@
 import { assert } from "chai";
+import Common from "ethereumjs-common";
+import { Transaction } from "ethereumjs-tx";
 import { BN, bufferToHex, toBuffer, zeroAddress } from "ethereumjs-util";
 import { Context } from "mocha";
 
@@ -46,6 +48,8 @@ import {
   DEFAULT_ACCOUNTS_ADDRESSES,
   DEFAULT_ACCOUNTS_BALANCES,
   DEFAULT_BLOCK_GAS_LIMIT,
+  DEFAULT_CHAIN_ID,
+  DEFAULT_NETWORK_ID,
   PROVIDERS,
 } from "../../helpers/providers";
 import { retrieveForkBlockNumber } from "../../helpers/retrieveForkBlockNumber";
@@ -55,6 +59,9 @@ import {
   sendTransactionFromTxParams,
   sendTxToZeroAddress,
 } from "../../helpers/transactions";
+
+// tslint:disable-next-line no-var-requires
+const { recoverTypedSignature_v4 } = require("eth-sig-util");
 
 const PRECOMPILES_COUNT = 8;
 
@@ -2448,6 +2455,85 @@ describe("Eth module", function () {
           );
         });
 
+        it("should return the right properties", async function () {
+          const address = "0x738a6fe8b5034a10e85f19f2abdfd5ed4e12463e";
+          const privateKey = Buffer.from(
+            "17ade313db5de97d19b4cfbc820d15e18a6c710c1afbf01c1f31249970d3ae46",
+            "hex"
+          );
+
+          // send eth to the account that will sign the tx
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: address,
+              value: "0x16345785d8a0000",
+              gas: numberToRpcQuantity(21000),
+            },
+          ]);
+
+          // create and send signed tx
+          const common = Common.forCustomChain(
+            "mainnet",
+            {
+              chainId: DEFAULT_CHAIN_ID,
+              networkId: DEFAULT_NETWORK_ID,
+              name: "hardhat",
+            },
+            "muirGlacier"
+          );
+
+          const tx = new Transaction(
+            {
+              nonce: "0x00",
+              gasPrice: "0x2",
+              gasLimit: "0x55f0",
+              to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              value: "0x1",
+              data: "0xbeef",
+            },
+            {
+              common,
+            }
+          );
+
+          tx.sign(privateKey);
+
+          const rawTx = `0x${tx.serialize().toString("hex")}`;
+
+          const txHash = await this.provider.send("eth_sendRawTransaction", [
+            rawTx,
+          ]);
+
+          const fetchedTx = await this.provider.send(
+            "eth_getTransactionByHash",
+            [txHash]
+          );
+
+          assert.equal(fetchedTx.from, address);
+          assert.equal(fetchedTx.to, DEFAULT_ACCOUNTS_ADDRESSES[1]);
+          assert.equal(fetchedTx.value, "0x1");
+          assert.equal(fetchedTx.nonce, "0x0");
+          assert.equal(fetchedTx.gas, "0x55f0");
+          assert.equal(fetchedTx.gasPrice, "0x2");
+          assert.equal(fetchedTx.input, "0xbeef");
+
+          // tx.v is padded but fetchedTx.v is not, so we need to do this
+          const fetchedTxV = new BN(toBuffer(fetchedTx.v));
+          const expectedTxV = new BN(tx.v);
+          assert.isTrue(fetchedTxV.eq(expectedTxV));
+
+          assert.equal(
+            toBuffer(fetchedTx.r).toString("hex"),
+            tx.r.toString("hex")
+          );
+
+          assert.equal(
+            toBuffer(fetchedTx.s).toString("hex"),
+            tx.s.toString("hex")
+          );
+        });
+
         it("should get an existing transaction from mainnet", async function () {
           if (!isFork) {
             this.skip();
@@ -3307,8 +3393,102 @@ describe("Eth module", function () {
         });
       });
 
-      describe("eth_signTypedData", async function () {
-        // TODO: Test this. Note that it just forwards to/from eth-sign-util
+      describe("eth_signTypedData", function () {
+        it("is not supported", async function () {
+          await assertNotSupported(this.provider, "eth_signTypedData");
+        });
+      });
+
+      describe("eth_signTypedData_v3", function () {
+        it("is not supported", async function () {
+          await assertNotSupported(this.provider, "eth_signTypedData_v3");
+        });
+      });
+
+      describe("eth_signTypedData_v4", function () {
+        // See https://eips.ethereum.org/EIPS/eip-712#parameters
+        // There's a json schema and an explanation for each field.
+        const typedMessage = {
+          domain: {
+            chainId: 31337,
+            name: "Hardhat Network test suite",
+          },
+          message: {
+            name: "Translation",
+            start: {
+              x: 200,
+              y: 600,
+            },
+            end: {
+              x: 300,
+              y: 350,
+            },
+            cost: 50,
+          },
+          primaryType: "WeightedVector",
+          types: {
+            EIP712Domain: [
+              { name: "name", type: "string" },
+              { name: "chainId", type: "uint256" },
+            ],
+            WeightedVector: [
+              { name: "name", type: "string" },
+              { name: "start", type: "Point" },
+              { name: "end", type: "Point" },
+              { name: "cost", type: "uint256" },
+            ],
+            Point: [
+              { name: "x", type: "uint256" },
+              { name: "y", type: "uint256" },
+            ],
+          },
+        };
+        const [address] = DEFAULT_ACCOUNTS_ADDRESSES;
+
+        it("should sign a message", async function () {
+          const signature = await this.provider.request({
+            method: "eth_signTypedData_v4",
+            params: [address, typedMessage],
+          });
+          const signedMessage = {
+            data: typedMessage,
+            sig: signature,
+          };
+
+          const recoveredAddress = recoverTypedSignature_v4(
+            signedMessage as any
+          );
+          assert.equal(address.toLowerCase(), recoveredAddress.toLowerCase());
+        });
+
+        it("should sign a message that is JSON stringified", async function () {
+          const signature = await this.provider.request({
+            method: "eth_signTypedData_v4",
+            params: [address, JSON.stringify(typedMessage)],
+          });
+          const signedMessage = {
+            data: typedMessage,
+            sig: signature,
+          };
+
+          const recoveredAddress = recoverTypedSignature_v4(
+            signedMessage as any
+          );
+          assert.equal(address.toLowerCase(), recoveredAddress.toLowerCase());
+        });
+
+        it("should fail with an invalid JSON", async function () {
+          try {
+            const signature = await this.provider.request({
+              method: "eth_signTypedData_v4",
+              params: [address, "{an invalid JSON"],
+            });
+          } catch (error) {
+            assert.include(error.message, "is an invalid JSON");
+            return;
+          }
+          assert.fail("should have failed with an invalid JSON");
+        });
       });
 
       describe("eth_submitHashrate", async function () {

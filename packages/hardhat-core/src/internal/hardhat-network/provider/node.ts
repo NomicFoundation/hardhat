@@ -623,7 +623,10 @@ export class HardhatNode extends EventEmitter {
     return ecsign(messageHash, privateKey);
   }
 
-  public async signTypedData(address: Buffer, typedData: any): Promise<string> {
+  public async signTypedDataV4(
+    address: Buffer,
+    typedData: any
+  ): Promise<string> {
     const privateKey = this._getLocalAccountPrivateKey(address);
 
     return ethSigUtil.signTypedData_v4(privateKey, {
