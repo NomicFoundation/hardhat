@@ -2,7 +2,7 @@
 
 You can start an instance of Hardhat Network that forks mainnet. This means that it will simulate having the same state as mainnet, but it will work as a local development network. That way you can interact with deployed protocols and test complex interactions locally.
 
-To use this feature you need the URL of a node to connect to. We recommend using [Alchemy].
+To use this feature you need to connect to an archive node. We recommend using [Alchemy].
 
 ## Forking from mainnet
 

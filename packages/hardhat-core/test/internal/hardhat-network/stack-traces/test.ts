@@ -392,13 +392,7 @@ async function runTest(
 
   const txIndexToContract: Map<number, DeployedContract> = new Map();
 
-  for (
-    let txIndex = 0;
-    txIndex < testDefinition.transactions.length;
-    txIndex++
-  ) {
-    const tx = testDefinition.transactions[txIndex];
-
+  for (const [txIndex, tx] of testDefinition.transactions.entries()) {
     let trace: MessageTrace;
 
     if ("file" in tx) {
