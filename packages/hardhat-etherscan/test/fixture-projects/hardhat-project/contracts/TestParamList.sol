@@ -1,4 +1,5 @@
-pragma solidity 0.5.15;
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity 0.7.5;
 
 pragma experimental ABIEncoderV2;
 
@@ -14,7 +15,7 @@ contract TestParamList {
 
     string message = "placeholder";
 
-    constructor(uint _amount, string memory _aString, Point memory _point) public {
+    constructor(uint _amount, string memory _aString, Point memory _point) {
         amount = _amount + 20;
         aString = _aString;
         point = _point;
