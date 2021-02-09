@@ -828,7 +828,7 @@ export class HardhatNode extends EventEmitter {
 
   public async setBlockGasLimit(gasLimit: BN | number) {
     this._txPool.setBlockGasLimit(gasLimit);
-    await this._txPool.clean();
+    await this._txPool.updatePendingAndQueued();
   }
 
   private async _addPendingTransaction(tx: Transaction): Promise<string> {
@@ -972,7 +972,7 @@ export class HardhatNode extends EventEmitter {
       tx = txHeap.peek();
     }
 
-    await this._txPool.clean();
+    await this._txPool.updatePendingAndQueued();
     await this._assignBlockReward();
     await this._updateTransactionsRoot(block);
     block.header.gasUsed = toBuffer(blockGasLimit.sub(gasLeft));

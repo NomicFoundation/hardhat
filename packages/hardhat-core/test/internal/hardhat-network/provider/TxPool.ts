@@ -599,7 +599,7 @@ describe("Tx Pool", () => {
         new Account({ nonce: 1, balance: new BN(10).pow(new BN(18)) })
       );
 
-      await txPool.clean();
+      await txPool.updatePendingAndQueued();
 
       const actualTxFromTxPool = txPool.getTransactionByHash(tx.hash());
 
@@ -626,7 +626,7 @@ describe("Tx Pool", () => {
         new Account({ nonce: 3, balance: new BN(10).pow(new BN(18)) })
       );
 
-      await txPool.clean();
+      await txPool.updatePendingAndQueued();
 
       const actualTxFromTxPool = txPool.getTransactionByHash(tx.hash());
 
@@ -704,7 +704,7 @@ describe("Tx Pool", () => {
     });
   });
 
-  describe("clean", () => {
+  describe("updatePendingAndQueued", () => {
     const address1 = toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]);
     const address2 = toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[1]);
     beforeEach(async () => {
@@ -726,7 +726,7 @@ describe("Tx Pool", () => {
 
       txPool.setBlockGasLimit(5_000_000);
 
-      await txPool.clean();
+      await txPool.updatePendingAndQueued();
       const pendingTransactions = txPool.getPendingTransactions();
 
       assertEqualTransactionMaps(pendingTransactions, makeOrderedTxMap([]));
@@ -740,7 +740,7 @@ describe("Tx Pool", () => {
 
       txPool.setBlockGasLimit(5_000_000);
 
-      await txPool.clean();
+      await txPool.updatePendingAndQueued();
       const queuedTransactions = txPool.getQueuedTransactions();
 
       assertEqualTransactionMaps(queuedTransactions, makeOrderedTxMap([]));
@@ -786,7 +786,7 @@ describe("Tx Pool", () => {
         new Account({ nonce: 1, balance: new BN(10).pow(new BN(18)) })
       );
 
-      await txPool.clean();
+      await txPool.updatePendingAndQueued();
       const pendingTransactions = txPool.getPendingTransactions();
 
       assertEqualTransactionMaps(
@@ -810,7 +810,7 @@ describe("Tx Pool", () => {
         new Account({ nonce: 0, balance: new BN(0) })
       );
 
-      await txPool.clean();
+      await txPool.updatePendingAndQueued();
       const pendingTransactions = txPool.getPendingTransactions();
 
       assertEqualTransactionMaps(pendingTransactions, makeOrderedTxMap([]));
@@ -831,10 +831,172 @@ describe("Tx Pool", () => {
         new Account({ nonce: 0, balance: new BN(0) })
       );
 
-      await txPool.clean();
+      await txPool.updatePendingAndQueued();
       const queuedTransactions = txPool.getQueuedTransactions();
 
       assertEqualTransactionMaps(queuedTransactions, makeOrderedTxMap([]));
+    });
+
+    it("moves pending transactions to queued if needed", async () => {
+      const sender = randomAddressBuffer();
+      await stateManager.putAccount(
+        sender,
+        new Account({ balance: new BN(10).pow(new BN(20)) })
+      );
+
+      const tx0 = createTestFakeTransaction({
+        nonce: 0,
+        gasLimit: 100_000,
+        from: sender,
+      });
+      const tx1 = createTestFakeTransaction({
+        nonce: 1,
+        gasLimit: 200_000,
+        from: sender,
+      });
+      const tx2 = createTestFakeTransaction({
+        nonce: 2,
+        gasLimit: 100_000,
+        from: sender,
+      });
+      const tx4 = createTestFakeTransaction({
+        nonce: 4,
+        gasLimit: 100_000,
+        from: sender,
+      });
+      const tx5 = createTestFakeTransaction({
+        nonce: 5,
+        gasLimit: 100_000,
+        from: sender,
+      });
+
+      await txPool.addTransaction(tx0);
+      await txPool.addTransaction(tx1);
+      await txPool.addTransaction(tx2);
+      await txPool.addTransaction(tx4);
+      await txPool.addTransaction(tx5);
+
+      // pending: [0, 1, 2]
+      // queued: [4, 5]
+      let pendingTxs = txPool.getPendingTransactions();
+      assert.lengthOf(txMapToArray(pendingTxs), 3);
+      assert.deepEqual(txMapToArray(pendingTxs)[0].raw, tx0.raw);
+      assert.deepEqual(txMapToArray(pendingTxs)[1].raw, tx1.raw);
+      assert.deepEqual(txMapToArray(pendingTxs)[2].raw, tx2.raw);
+
+      let queuedTxs = txPool.getQueuedTransactions();
+      assert.lengthOf(txMapToArray(queuedTxs), 2);
+      assert.deepEqual(txMapToArray(queuedTxs)[0].raw, tx4.raw);
+      assert.deepEqual(txMapToArray(queuedTxs)[1].raw, tx5.raw);
+
+      // this should drop tx1
+      txPool.setBlockGasLimit(150_000);
+      await txPool.updatePendingAndQueued();
+
+      // pending: [0]
+      // queued: [2, 4, 5]
+      pendingTxs = txPool.getPendingTransactions();
+      assert.lengthOf(txMapToArray(pendingTxs), 1);
+      assert.deepEqual(txMapToArray(pendingTxs)[0].raw, tx0.raw);
+
+      queuedTxs = txPool.getQueuedTransactions();
+      assert.lengthOf(txMapToArray(queuedTxs), 3);
+      assert.deepEqual(txMapToArray(queuedTxs)[0].raw, tx4.raw);
+      assert.deepEqual(txMapToArray(queuedTxs)[1].raw, tx5.raw);
+      assert.deepEqual(txMapToArray(queuedTxs)[2].raw, tx2.raw);
+    });
+
+    it("handles dropped transactions properly", async () => {
+      const sender = randomAddressBuffer();
+
+      const tx1 = createTestFakeTransaction({
+        nonce: 0,
+        gasLimit: 100_000,
+        from: sender,
+      });
+      await txPool.addTransaction(tx1);
+
+      let pendingTxs = txPool.getPendingTransactions();
+      assert.lengthOf(txMapToArray(pendingTxs), 1);
+      assert.deepEqual(txMapToArray(pendingTxs)[0].raw, tx1.raw);
+
+      let queuedTxs = txPool.getQueuedTransactions();
+      assert.lengthOf(txMapToArray(queuedTxs), 0);
+
+      txPool.setBlockGasLimit(90_000);
+      await txPool.updatePendingAndQueued();
+
+      const tx2 = createTestFakeTransaction({
+        gasLimit: 80_000,
+        from: sender,
+        nonce: 0,
+      });
+      await txPool.addTransaction(tx2);
+
+      pendingTxs = txPool.getPendingTransactions();
+      assert.lengthOf(txMapToArray(pendingTxs), 1);
+      assert.deepEqual(txMapToArray(pendingTxs)[0].raw, tx2.raw);
+
+      queuedTxs = txPool.getQueuedTransactions();
+      assert.lengthOf(txMapToArray(queuedTxs), 0);
+    });
+
+    it("accepts transactions after a no-op update", async function () {
+      const sender = randomAddressBuffer();
+      await stateManager.putAccount(
+        sender,
+        new Account({ balance: new BN(10).pow(new BN(20)) })
+      );
+
+      const tx0 = createTestFakeTransaction({
+        nonce: 0,
+        from: sender,
+      });
+      const tx1 = createTestFakeTransaction({
+        nonce: 1,
+        from: sender,
+      });
+      const tx2 = createTestFakeTransaction({
+        nonce: 2,
+        from: sender,
+      });
+
+      await txPool.addTransaction(tx0);
+      await txPool.addTransaction(tx1);
+      await txPool.addTransaction(tx2);
+
+      // pending: [0, 1, 2]
+      // queued: [0]
+      let pendingTxs = txPool.getPendingTransactions();
+      assert.lengthOf(txMapToArray(pendingTxs), 3);
+      assert.deepEqual(txMapToArray(pendingTxs)[0].raw, tx0.raw);
+      assert.deepEqual(txMapToArray(pendingTxs)[1].raw, tx1.raw);
+      assert.deepEqual(txMapToArray(pendingTxs)[2].raw, tx2.raw);
+
+      let queuedTxs = txPool.getQueuedTransactions();
+      assert.lengthOf(txMapToArray(queuedTxs), 0);
+
+      // this should drop tx1
+      txPool.setBlockGasLimit(100_000);
+      await txPool.updatePendingAndQueued();
+
+      const tx3 = createTestFakeTransaction({
+        nonce: 3,
+        from: sender,
+      });
+      await txPool.addTransaction(tx3);
+
+      // pending: [0, 1, 2, 3]
+      // queued: []
+      pendingTxs = txPool.getPendingTransactions();
+      assert.lengthOf(txMapToArray(pendingTxs), 4);
+      assert.deepEqual(txMapToArray(pendingTxs)[0].raw, tx0.raw);
+      assert.deepEqual(txMapToArray(pendingTxs)[1].raw, tx1.raw);
+      assert.deepEqual(txMapToArray(pendingTxs)[2].raw, tx2.raw);
+      assert.deepEqual(txMapToArray(pendingTxs)[3].raw, tx3.raw);
+
+      queuedTxs = txPool.getQueuedTransactions();
+      assert.lengthOf(txMapToArray(queuedTxs), 0);
     });
   });
 

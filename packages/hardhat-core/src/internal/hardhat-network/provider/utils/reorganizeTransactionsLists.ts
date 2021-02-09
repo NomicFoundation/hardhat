@@ -41,7 +41,6 @@ export function reorganizeTransactionsLists(
   newQueued = newQueued.skip(movedCount);
 
   return {
-    executableNonce,
     newPending,
     newQueued,
   };
