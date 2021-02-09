@@ -1,9 +1,5 @@
 import { ethers } from "ethers";
 
-// This is taken from @ethersproject/abstract-signer package.
-// EIP-712 Typed Data
-// See: https://eips.ethereum.org/EIPS/eip-712
-
 export class SignerWithAddress extends ethers.Signer {
   public static async create(signer: ethers.providers.JsonRpcSigner) {
     return new SignerWithAddress(await signer.getAddress(), signer);
