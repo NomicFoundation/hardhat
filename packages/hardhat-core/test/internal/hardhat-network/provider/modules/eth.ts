@@ -1,5 +1,4 @@
 import { assert } from "chai";
-import { recoverTypedSignature, recoverTypedSignature_v4 } from "eth-sig-util";
 import Common from "ethereumjs-common";
 import { Transaction } from "ethereumjs-tx";
 import { BN, bufferToHex, toBuffer, zeroAddress } from "ethereumjs-util";
@@ -60,6 +59,9 @@ import {
   sendTransactionFromTxParams,
   sendTxToZeroAddress,
 } from "../../helpers/transactions";
+
+// tslint:disable-next-line no-var-requires
+const { recoverTypedSignature_v4 } = require("eth-sig-util");
 
 const PRECOMPILES_COUNT = 8;
 
