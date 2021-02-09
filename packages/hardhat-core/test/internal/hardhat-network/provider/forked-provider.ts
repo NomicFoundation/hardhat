@@ -76,7 +76,7 @@ describe("Forked provider", () => {
         });
 
         describe("when used in the context of a past block", () => {
-          describe("when the block number is grater than the fork block number", () => {
+          describe("when the block number is greater than the fork block number", () => {
             it("does not affect previously added data", async function () {
               const forkBlockNumber = await getForkBlockNumber();
 
