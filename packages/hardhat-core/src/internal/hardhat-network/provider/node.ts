@@ -6,7 +6,6 @@ import { RunBlockResult } from "@nomiclabs/ethereumjs-vm/dist/runBlock";
 import { StateManager } from "@nomiclabs/ethereumjs-vm/dist/state";
 import chalk from "chalk";
 import debug from "debug";
-import * as ethSigUtil from "eth-sig-util";
 import Common from "ethereumjs-common";
 import { FakeTransaction, Transaction } from "ethereumjs-tx";
 import {
@@ -75,6 +74,10 @@ import { makeStateTrie } from "./utils/makeStateTrie";
 import { putGenesisBlock } from "./utils/putGenesisBlock";
 
 const log = debug("hardhat:core:hardhat-network:node");
+
+// This library's types are wrong, they don't type check
+// tslint:disable-next-line no-var-requires
+const ethSigUtil = require("eth-sig-util");
 
 export const COINBASE_ADDRESS = toBuffer(
   "0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e"
