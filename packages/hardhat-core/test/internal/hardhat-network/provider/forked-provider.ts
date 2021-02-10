@@ -301,6 +301,21 @@ describe("Forked provider", () => {
         });
       });
 
+      describe("eth_getTransactionCount", () => {
+        it("should have a non-zero nonce for the first unlocked account", async function () {
+          // this test works because the first unlocked accounts used by these
+          // tests happen to have transactions in mainnet
+          const [account] = await this.provider.send("eth_accounts");
+
+          const transactionCount = await this.provider.send(
+            "eth_getTransactionCount",
+            [account]
+          );
+
+          assert.isTrue(quantityToBN(transactionCount).gtn(0));
+        });
+      });
+
       describe("eth_getTransactionReceipt", () => {
         it("supports local transactions", async function () {
           const transactionHash = await this.provider.send(

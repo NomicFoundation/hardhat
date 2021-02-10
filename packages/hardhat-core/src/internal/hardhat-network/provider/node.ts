@@ -115,6 +115,8 @@ export class HardhatNode extends EventEmitter {
         genesisAccounts
       );
 
+      await stateManager.initializeGenesisAccounts(genesisAccounts);
+
       blockchain = new ForkBlockchain(forkClient, forkBlockNumber, common);
 
       initialBlockTimeOffset = new BN(
