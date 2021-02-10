@@ -19,7 +19,6 @@ const singleTypes = [
   "bool",
   "address",
   "bytes memory",
-  "byte",
 ];
 for (let i = 0; i < singleTypes.length; i++) {
   const singleType = singleTypes[i].replace(" memory", "");
@@ -38,7 +37,7 @@ const types = ["uint", "string memory", "bool", "address"];
 
 let consoleSolFIle =
   "// SPDX-License-Identifier: MIT\n" +
-  "pragma solidity >= 0.4.22 <0.7.0;" +
+  "pragma solidity >= 0.4.22 <0.9.0;" +
   "\n" +
   "\n" +
   "library console {" +

@@ -9,7 +9,7 @@ The entirety of your Hardhat setup (i.e. your config, plugins and custom tasks) 
 
 To set up your config, you have to export an object from `hardhat.config.js`.
 
-This object can have the following entries: `defaultNetwork`, [`networks`](#networks-configuration), [`solidity`](#solidity-configuration), and [`paths`](#path-configuration). For example:
+This object can have entries like `defaultNetwork`, [`networks`](#networks-configuration), [`solidity`](#solidity-configuration), [`paths`](#path-configuration) and [`mocha`](#mocha-configuration). For example:
 
 ```js
 module.exports = {
@@ -36,6 +36,9 @@ module.exports = {
     tests: "./test",
     cache: "./cache",
     artifacts: "./artifacts"
+  },
+  mocha: {
+    timeout: 20000
   }
 }
 ```
@@ -76,7 +79,7 @@ You can set the following fields on the `hardhat` config:
     - `initialIndex`: The initial index to derive. Default value: `0`.
     - `path`: The HD parent of all the derived keys. Default value: `"m/44'/60'/0'/0"`.
     - `count`: The number of accounts to derive. Default value: `20`.
-    - `accountsBalance`: string with the balance assigned to every account derived. Default value: 10000 ETH.
+    - `accountsBalance`: string with the balance (in wei) assigned to every account derived. Default value: "10000000000000000000000" (10000 ETH).
   - An array of the initial accounts that the Hardhat Network will create. Each of them must be an object with `privateKey` and `balance` fields.
 
 - `blockGasLimit`: The block gas limit to use in Hardhat Network's blockchain. Default value: `9500000`
@@ -182,6 +185,10 @@ You can customize the different paths that Hardhat uses by providing an object t
 
 - `cache`: The directory used by Hardhat to cache its internal stuff. This path is resolved from the project's root. Default value: `'./cache'`.
 - `artifacts`: The directory where the compilation artifacts are stored. This path is resolved from the project's root. Default value: `'./artifacts'`.
+
+## Mocha configuration
+
+You can configure how your tests are run using the `mocha` entry, which accepts the same options as [Mocha](https://mochajs.org/).
 
 ## Quickly integrating other tools from Hardhat's config
 

@@ -168,7 +168,7 @@ export class CompilerDownloader {
       try {
         return this._getCompilerBuildByPlatform(version, platform);
       } catch (e) {
-        log("Could'nt download native compiler, using solcjs instead");
+        log("Couldn't download native compiler, using solcjs instead");
       }
     }
 

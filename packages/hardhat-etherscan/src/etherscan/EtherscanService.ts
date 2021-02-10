@@ -1,6 +1,7 @@
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
+import type { Response } from "node-fetch";
 
-import { pluginName } from "../pluginContext";
+import { pluginName } from "../constants";
 
 import {
   EtherscanCheckStatusRequest,
@@ -15,7 +16,7 @@ export async function delay(ms: number): Promise<void> {
 const verificationIntervalMs = 3000;
 
 export async function verifyContract(
-  url: URL,
+  url: string,
   req: EtherscanVerifyRequest
 ): Promise<EtherscanResponse> {
   const { default: fetch } = await import("node-fetch");
@@ -24,27 +25,10 @@ export async function verifyContract(
     method: "post",
     body: parameters,
   };
+
+  let response: Response;
   try {
-    const response = await fetch(url, requestDetails);
-
-    if (!response.ok) {
-      // This could be always interpreted as JSON if there were any such guarantee in the Etherscan API.
-      const responseText = await response.text();
-      throw new NomicLabsHardhatPluginError(
-        pluginName,
-        `The HTTP server response is not ok. Status code: ${response.status} Response text: ${responseText}`
-      );
-    }
-
-    const etherscanResponse = new EtherscanResponse(await response.json());
-    if (!etherscanResponse.isOk()) {
-      throw new NomicLabsHardhatPluginError(
-        pluginName,
-        etherscanResponse.message
-      );
-    }
-
-    return etherscanResponse;
+    response = await fetch(url, requestDetails);
   } catch (error) {
     throw new NomicLabsHardhatPluginError(
       pluginName,
@@ -54,14 +38,48 @@ Reason: ${error.message}`,
       error
     );
   }
+
+  if (!response.ok) {
+    // This could be always interpreted as JSON if there were any such guarantee in the Etherscan API.
+    const responseText = await response.text();
+    throw new NomicLabsHardhatPluginError(
+      pluginName,
+      `Failed to send contract verification request.
+Endpoint URL: ${url}
+The HTTP server response is not ok. Status code: ${response.status} Response text: ${responseText}`
+    );
+  }
+
+  const etherscanResponse = new EtherscanResponse(await response.json());
+
+  if (etherscanResponse.isBytecodeMissingInNetworkError()) {
+    throw new NomicLabsHardhatPluginError(
+      pluginName,
+      `Failed to send contract verification request.
+Endpoint URL: ${url}
+Reason: The Etherscan API responded that the address ${req.contractaddress} does not have bytecode.
+This can happen if the contract was recently deployed and this fact hasn't propagated to the backend yet.
+Try waiting for a minute before verifying your contract. If you are invoking this from a script,
+try to wait for five confirmations of your contract deployment transaction before running the verification subtask.`
+    );
+  }
+
+  if (!etherscanResponse.isOk()) {
+    throw new NomicLabsHardhatPluginError(
+      pluginName,
+      etherscanResponse.message
+    );
+  }
+
+  return etherscanResponse;
 }
 
 export async function getVerificationStatus(
-  url: URL,
+  url: string,
   req: EtherscanCheckStatusRequest
 ): Promise<EtherscanResponse> {
   const parameters = new URLSearchParams({ ...req });
-  const urlWithQuery = new URL("", url);
+  const urlWithQuery = new URL(url);
   urlWithQuery.search = parameters.toString();
 
   const { default: fetch } = await import("node-fetch");
@@ -96,11 +114,7 @@ Reason: ${error.message}`,
   }
 
   if (etherscanResponse.isVerificationFailure()) {
-    throw new NomicLabsHardhatPluginError(
-      pluginName,
-      `The contract verification failed.
-Reason: ${etherscanResponse.message}`
-    );
+    return etherscanResponse;
   }
 
   if (!etherscanResponse.isOk()) {
@@ -135,6 +149,10 @@ export default class EtherscanResponse {
 
   public isVerificationSuccess() {
     return this.message === "Pass - Verified";
+  }
+
+  public isBytecodeMissingInNetworkError() {
+    return this.message.startsWith("Unable to locate ContractCode at");
   }
 
   public isOk() {

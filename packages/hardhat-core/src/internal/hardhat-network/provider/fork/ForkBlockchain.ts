@@ -20,6 +20,7 @@ import { Block } from "../types/Block";
 import { Blockchain } from "../types/Blockchain";
 import { PBlockchain, toBlockchain } from "../types/PBlockchain";
 
+import { ForkTransaction } from "./ForkTransaction";
 import { rpcToBlockData } from "./rpcToBlockData";
 import { rpcToTxData } from "./rpcToTxData";
 
@@ -57,10 +58,17 @@ export class ForkBlockchain implements PBlockchain {
     if (!blockNumber.eq(this._latestBlockNumber.addn(1))) {
       throw new Error("Invalid block number");
     }
-    const parent = await this.getLatestBlock();
-    if (!block.header.parentHash.equals(parent.hash())) {
-      throw new Error("Invalid parent hash");
+
+    // When forking a network whose consensus is not the classic PoW,
+    // we can't calculate the hash correctly.
+    // Thus, we avoid this check for the first block after the fork.
+    if (blockNumber.gt(this._forkBlockNumber.addn(1))) {
+      const parent = await this.getLatestBlock();
+      if (!block.header.parentHash.equals(parent.hash())) {
+        throw new Error("Invalid parent hash");
+      }
     }
+
     this._latestBlockNumber = this._latestBlockNumber.addn(1);
     const totalDifficulty = await this._computeTotalDifficulty(block);
     this._data.addBlock(block, totalDifficulty);
@@ -183,7 +191,9 @@ export class ForkBlockchain implements PBlockchain {
             : filterParams.addresses,
         topics: filterParams.normalizedTopics,
       });
-      return remoteLogs.map((log) => toRpcLogOutput(log)).concat(localLogs);
+      return remoteLogs
+        .map((log, index) => toRpcLogOutput(log, index))
+        .concat(localLogs);
     }
     return this._data.getLogs(filterParams);
   }
@@ -225,7 +235,24 @@ export class ForkBlockchain implements PBlockchain {
     ) {
       return undefined;
     }
-    const block = new Block(rpcToBlockData(rpcBlock), { common: this._common });
+
+    // we don't include the transactions to add our own custom ForkTransaction txs
+    const blockData = rpcToBlockData({
+      ...rpcBlock,
+      transactions: [],
+    });
+
+    const block = new Block(blockData, { common: this._common });
+    const chainId = this._jsonRpcClient.getNetworkId();
+
+    for (const transaction of rpcBlock.transactions) {
+      block.transactions.push(
+        new ForkTransaction(chainId, rpcToTxData(transaction), {
+          common: this._common,
+        })
+      );
+    }
+
     this._data.addBlock(block, rpcBlock.totalDifficulty);
     return block;
   }
@@ -275,10 +302,18 @@ export class ForkBlockchain implements PBlockchain {
     ) {
       return undefined;
     }
-    const transaction = new Transaction(rpcToTxData(rpcTransaction), {
-      common: this._common,
-    });
+
+    const chainId = this._jsonRpcClient.getNetworkId();
+    const transaction = new ForkTransaction(
+      chainId,
+      rpcToTxData(rpcTransaction),
+      {
+        common: this._common,
+      }
+    );
+
     this._data.addTransaction(transaction);
+
     return transaction;
   }
 

@@ -12,6 +12,7 @@ import "./asd.sol";
 pragma experimental v0.5.0;
 import "lib/asd.sol";
   `,
+        "",
         ""
       );
 
@@ -26,6 +27,7 @@ import * as from "./asd.sol";
 pragma experimental v0.5.0;
 import * as from "lib/asd.sol";
   `,
+        "",
         ""
       );
 
@@ -40,6 +42,7 @@ import {symbol1} from "./asd.sol";
 pragma experimental v0.5.0;
 import {symbol1, symbol2} as from "lib/asd.sol";
   `,
+        "",
         ""
       );
 
@@ -54,6 +57,7 @@ import {symbol1 as s1} as from "./asd.sol";
 pragma experimental v0.5.0;
 import {symbol1 as s1, symbol2} as from "lib/asd.sol";
   `,
+        "",
         ""
       );
 
@@ -77,6 +81,7 @@ import "./1.sol";
         ) = []
       
     `,
+        "",
         ""
       );
 
@@ -95,6 +100,7 @@ import "./1.sol";
         }
       }
     `,
+        "",
         ""
       );
 
@@ -113,6 +119,7 @@ import "./Bar.sol;";
 
 contract Foo {}
   `,
+        "",
         ""
       );
 
@@ -129,6 +136,7 @@ import "./Bar.sol;";
 
 contract Foo {}
   `,
+        "",
         ""
       );
 
@@ -149,10 +157,33 @@ pragma solidity ^0.5.1;
 
 contract Qux {}
   `,
+        "",
         ""
       );
 
       assert.deepEqual(versionPragmas, ["^0.5.0", "^0.5.1"]);
+    });
+
+    it("should work with one ||", () => {
+      const parser = new Parser();
+      const { versionPragmas } = parser.parse(
+        `pragma solidity ^0.5.0 || ^0.6.0;`,
+        "",
+        ""
+      );
+
+      assert.deepEqual(versionPragmas, ["^0.5.0 || ^0.6.0"]);
+    });
+
+    it("should work with two ||", () => {
+      const parser = new Parser();
+      const { versionPragmas } = parser.parse(
+        `pragma solidity ^0.5.0 || ^0.6.0 || ^0.7.0;`,
+        "",
+        ""
+      );
+
+      assert.deepEqual(versionPragmas, ["^0.5.0 || ^0.6.0 || ^0.7.0"]);
     });
   });
 });

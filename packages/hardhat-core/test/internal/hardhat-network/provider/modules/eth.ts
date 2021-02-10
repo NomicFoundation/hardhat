@@ -1,7 +1,10 @@
 import { assert } from "chai";
+import Common from "ethereumjs-common";
+import { Transaction } from "ethereumjs-tx";
 import { BN, bufferToHex, toBuffer, zeroAddress } from "ethereumjs-util";
 import { Context } from "mocha";
 
+import { rpcQuantityToNumber } from "../../../../../src/internal/core/providers/provider-utils";
 import { InvalidInputError } from "../../../../../src/internal/hardhat-network/provider/errors";
 import { randomAddress } from "../../../../../src/internal/hardhat-network/provider/fork/random";
 import { COINBASE_ADDRESS } from "../../../../../src/internal/hardhat-network/provider/node";
@@ -19,6 +22,7 @@ import {
   ProviderMessage,
 } from "../../../../../src/types";
 import {
+  assertInvalidArgumentsError,
   assertInvalidInputError,
   assertNodeBalances,
   assertNotSupported,
@@ -32,6 +36,7 @@ import {
   EXAMPLE_BLOCKHASH_CONTRACT,
   EXAMPLE_CONTRACT,
   EXAMPLE_READ_CONTRACT,
+  EXAMPLE_SETTER_CONTRACT,
 } from "../../helpers/contracts";
 import {
   dataToNumber,
@@ -43,6 +48,8 @@ import {
   DEFAULT_ACCOUNTS_ADDRESSES,
   DEFAULT_ACCOUNTS_BALANCES,
   DEFAULT_BLOCK_GAS_LIMIT,
+  DEFAULT_CHAIN_ID,
+  DEFAULT_NETWORK_ID,
   PROVIDERS,
 } from "../../helpers/providers";
 import { retrieveForkBlockNumber } from "../../helpers/retrieveForkBlockNumber";
@@ -53,10 +60,17 @@ import {
   sendTxToZeroAddress,
 } from "../../helpers/transactions";
 
+// tslint:disable-next-line no-var-requires
+const { recoverTypedSignature_v4 } = require("eth-sig-util");
+
 const PRECOMPILES_COUNT = 8;
 
 describe("Eth module", function () {
   PROVIDERS.forEach(({ name, useProvider, isFork, chainId }) => {
+    if (isFork) {
+      this.timeout(50000);
+    }
+
     describe(`${name} provider`, function () {
       setCWD();
       useProvider();
@@ -370,8 +384,27 @@ describe("Eth module", function () {
               },
               numberToRpcQuantity(futureBlock),
             ],
-            `Received invalid block number ${futureBlock}. Latest block number is ${firstBlock}`
+            `Received invalid block tag ${futureBlock}. Latest block number is ${firstBlock}`
           );
+        });
+
+        it("Should return the initial balance for the genesis accounts in the previous block after a transaction", async function () {
+          const blockNumber = await this.provider.send("eth_blockNumber");
+          const account = DEFAULT_ACCOUNTS_ADDRESSES[0];
+
+          const initialBalanceBeforeTx = await this.provider.send(
+            "eth_getBalance",
+            [account, blockNumber]
+          );
+          assert.equal(initialBalanceBeforeTx, "0xde0b6b3a7640000");
+
+          await sendTxToZeroAddress(this.provider, account);
+
+          const initialBalanceAfterTx = await this.provider.send(
+            "eth_getBalance",
+            [account, blockNumber]
+          );
+          assert.equal(initialBalanceAfterTx, "0xde0b6b3a7640000");
         });
 
         it("should work with blockhashes calls", async function () {
@@ -409,6 +442,65 @@ describe("Eth module", function () {
             resultBlock1m,
             "0x0000000000000000000000000000000000000000000000000000000000000000"
           );
+        });
+
+        it("should run in the context of the blocktag's block", async function () {
+          const contractAddress = await deployContract(
+            this.provider,
+            `0x${EXAMPLE_READ_CONTRACT.bytecode.object}`
+          );
+
+          const blockNumber = rpcQuantityToNumber(
+            await this.provider.send("eth_blockNumber", [])
+          );
+
+          await this.provider.send("evm_mine", []);
+          await this.provider.send("evm_mine", []);
+
+          const blockResult = await this.provider.send("eth_call", [
+            {
+              to: contractAddress,
+              data: EXAMPLE_READ_CONTRACT.selectors.blockNumber,
+            },
+            numberToRpcQuantity(blockNumber),
+          ]);
+
+          assert.equal(dataToNumber(blockResult), blockNumber);
+        });
+
+        it("should accept a gas limit higher than the block gas limit being used", async function () {
+          const contractAddress = await deployContract(
+            this.provider,
+            `0x${EXAMPLE_READ_CONTRACT.bytecode.object}`
+          );
+
+          const blockNumber = rpcQuantityToNumber(
+            await this.provider.send("eth_blockNumber", [])
+          );
+
+          const gas = "0x5f5e100"; // 100M gas
+
+          const blockResult = await this.provider.send("eth_call", [
+            {
+              to: contractAddress,
+              data: EXAMPLE_READ_CONTRACT.selectors.blockNumber,
+              gas,
+            },
+            numberToRpcQuantity(blockNumber),
+          ]);
+
+          assert.equal(dataToNumber(blockResult), blockNumber);
+
+          const blockResult2 = await this.provider.send("eth_call", [
+            {
+              to: contractAddress,
+              data: EXAMPLE_READ_CONTRACT.selectors.blockNumber,
+              gas,
+            },
+            "pending",
+          ]);
+
+          assert.equal(dataToNumber(blockResult2), blockNumber + 1);
         });
       });
 
@@ -510,7 +602,7 @@ describe("Eth module", function () {
               },
               numberToRpcQuantity(futureBlock),
             ],
-            `Received invalid block number ${futureBlock}. Latest block number is ${firstBlock}`
+            `Received invalid block tag ${futureBlock}. Latest block number is ${firstBlock}`
           );
         });
       });
@@ -694,7 +786,7 @@ describe("Eth module", function () {
             this.provider,
             "eth_getBalance",
             [DEFAULT_ACCOUNTS_ADDRESSES[0], numberToRpcQuantity(futureBlock)],
-            `Received invalid block number ${futureBlock}. Latest block number is ${firstBlock}`
+            `Received invalid block tag ${futureBlock}. Latest block number is ${firstBlock}`
           );
         });
       });
@@ -1033,7 +1125,7 @@ describe("Eth module", function () {
             this.provider,
             "eth_getCode",
             [randomAddress(), numberToRpcQuantity(futureBlock)],
-            `Received invalid block number ${futureBlock}. Latest block number is ${firstBlock}`
+            `Received invalid block tag ${futureBlock}. Latest block number is ${firstBlock}`
           );
         });
       });
@@ -1749,6 +1841,140 @@ describe("Eth module", function () {
           assert.notEqual(logs1[0], logs2[0]);
           assert.notEqual(logs2[0].address, "changed");
         });
+
+        it("Should accept block hashes as from", async function () {
+          const blockNumberBegin = await this.provider.send("eth_blockNumber");
+          const exampleContract = await deployContract(
+            this.provider,
+            `0x${EXAMPLE_CONTRACT.bytecode.object}`
+          );
+
+          const newState =
+            "000000000000000000000000000000000000000000000000000000000000003b";
+
+          await this.provider.send("eth_sendTransaction", [
+            {
+              to: exampleContract,
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              data: EXAMPLE_CONTRACT.selectors.modifiesState + newState,
+            },
+          ]);
+
+          await this.provider.send("evm_mine", []);
+
+          const blockNumberEnd = await this.provider.send("eth_blockNumber");
+
+          const block0 = await this.provider.send("eth_getBlockByNumber", [
+            blockNumberBegin,
+            false,
+          ]);
+
+          const block3 = await this.provider.send("eth_getBlockByNumber", [
+            blockNumberEnd,
+            false,
+          ]);
+
+          const logsFromZero = await this.provider.send("eth_getLogs", [
+            {
+              address: exampleContract,
+              fromBlock: {
+                blockHash: block0.hash,
+              },
+            },
+          ]);
+
+          assert.lengthOf(logsFromZero, 1);
+
+          const logsFromThree = await this.provider.send("eth_getLogs", [
+            {
+              address: exampleContract,
+              fromBlock: {
+                blockHash: block3.hash,
+              },
+            },
+          ]);
+
+          assert.lengthOf(logsFromThree, 0);
+        });
+
+        it("Should accept block hashes as toBlock", async function () {
+          const exampleContract = await deployContract(
+            this.provider,
+            `0x${EXAMPLE_CONTRACT.bytecode.object}`
+          );
+
+          const newState =
+            "000000000000000000000000000000000000000000000000000000000000003b";
+
+          await this.provider.send("eth_sendTransaction", [
+            {
+              to: exampleContract,
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              data: EXAMPLE_CONTRACT.selectors.modifiesState + newState,
+            },
+          ]);
+
+          await this.provider.send("evm_mine", []);
+
+          const block0 = await this.provider.send("eth_getBlockByNumber", [
+            "0x0",
+            false,
+          ]);
+
+          const logsToZero = await this.provider.send("eth_getLogs", [
+            {
+              address: exampleContract,
+              toBlock: {
+                blockHash: block0.hash,
+              },
+            },
+          ]);
+
+          assert.lengthOf(logsToZero, 0);
+        });
+
+        it("Should throw if the block tag in toBlock or fromBlock doesn't exist", async function () {
+          await assertInvalidInputError(this.provider, "eth_getLogs", [
+            {
+              address: "0x0000000000000000000000000000000000000000",
+              fromBlock: {
+                blockHash:
+                  "0x1234567890123456789012345678901234567890123456789012345678901234",
+              },
+            },
+          ]);
+
+          await assertInvalidInputError(this.provider, "eth_getLogs", [
+            {
+              address: "0x0000000000000000000000000000000000000000",
+              toBlock: {
+                blockHash:
+                  "0x1234567890123456789012345678901234567890123456789012345678901234",
+              },
+            },
+          ]);
+        });
+
+        it("should have logIndex for logs in remote blocks", async function () {
+          if (!isFork) {
+            this.skip();
+          }
+
+          const logs = await this.provider.send("eth_getLogs", [
+            {
+              address: "0x2A07fBCD64BE0e2329890C21c6F34e81889a5912",
+              topics: [
+                "0x8f7de836135871245dd9c04f295aef602311da1591d262ecb4d2f45c7a88003d",
+              ],
+              fromBlock: numberToRpcQuantity(10721019),
+              toBlock: numberToRpcQuantity(10721019),
+            },
+          ]);
+
+          assert.lengthOf(logs, 1);
+          assert.isDefined(logs[0].logIndex);
+          assert.isNotNull(logs[0].logIndex);
+        });
       });
 
       describe("eth_getProof", async function () {
@@ -2228,6 +2454,119 @@ describe("Eth module", function () {
             0
           );
         });
+
+        it("should return the right properties", async function () {
+          const address = "0x738a6fe8b5034a10e85f19f2abdfd5ed4e12463e";
+          const privateKey = Buffer.from(
+            "17ade313db5de97d19b4cfbc820d15e18a6c710c1afbf01c1f31249970d3ae46",
+            "hex"
+          );
+
+          // send eth to the account that will sign the tx
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: address,
+              value: "0x16345785d8a0000",
+              gas: numberToRpcQuantity(21000),
+            },
+          ]);
+
+          // create and send signed tx
+          const common = Common.forCustomChain(
+            "mainnet",
+            {
+              chainId: DEFAULT_CHAIN_ID,
+              networkId: DEFAULT_NETWORK_ID,
+              name: "hardhat",
+            },
+            "muirGlacier"
+          );
+
+          const tx = new Transaction(
+            {
+              nonce: "0x00",
+              gasPrice: "0x2",
+              gasLimit: "0x55f0",
+              to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              value: "0x1",
+              data: "0xbeef",
+            },
+            {
+              common,
+            }
+          );
+
+          tx.sign(privateKey);
+
+          const rawTx = `0x${tx.serialize().toString("hex")}`;
+
+          const txHash = await this.provider.send("eth_sendRawTransaction", [
+            rawTx,
+          ]);
+
+          const fetchedTx = await this.provider.send(
+            "eth_getTransactionByHash",
+            [txHash]
+          );
+
+          assert.equal(fetchedTx.from, address);
+          assert.equal(fetchedTx.to, DEFAULT_ACCOUNTS_ADDRESSES[1]);
+          assert.equal(fetchedTx.value, "0x1");
+          assert.equal(fetchedTx.nonce, "0x0");
+          assert.equal(fetchedTx.gas, "0x55f0");
+          assert.equal(fetchedTx.gasPrice, "0x2");
+          assert.equal(fetchedTx.input, "0xbeef");
+
+          // tx.v is padded but fetchedTx.v is not, so we need to do this
+          const fetchedTxV = new BN(toBuffer(fetchedTx.v));
+          const expectedTxV = new BN(tx.v);
+          assert.isTrue(fetchedTxV.eq(expectedTxV));
+
+          assert.equal(
+            toBuffer(fetchedTx.r).toString("hex"),
+            tx.r.toString("hex")
+          );
+
+          assert.equal(
+            toBuffer(fetchedTx.s).toString("hex"),
+            tx.s.toString("hex")
+          );
+        });
+
+        it("should get an existing transaction from mainnet", async function () {
+          if (!isFork) {
+            this.skip();
+          }
+
+          const tx = await this.provider.send("eth_getTransactionByHash", [
+            "0x5a4bf6970980a9381e6d6c78d96ab278035bbff58c383ffe96a0a2bbc7c02a4b",
+          ]);
+
+          assert.equal(tx.from, "0x8a9d69aa686fa0f9bbdec21294f67d4d9cfb4a3e");
+        });
+
+        it("should get an existing transaction from rinkeby", async function () {
+          const { ALCHEMY_URL } = process.env;
+          if (!isFork || ALCHEMY_URL === undefined || ALCHEMY_URL === "") {
+            this.skip();
+          }
+          const rinkebyUrl = ALCHEMY_URL.replace("mainnet", "rinkeby");
+
+          await this.provider.send("hardhat_reset", [
+            {
+              forking: {
+                jsonRpcUrl: rinkebyUrl,
+              },
+            },
+          ]);
+
+          const tx = await this.provider.send("eth_getTransactionByHash", [
+            "0x9f8322fbfc0092c0493d4421626e682a0ef0a56ea37efe8f29cda804cca92e7f",
+          ]);
+
+          assert.equal(tx.from, "0xbc3109d75dffaae85ef595902e3bd70fe0643b3b");
+        });
       });
 
       describe("eth_getTransactionCount", async function () {
@@ -2382,7 +2721,7 @@ describe("Eth module", function () {
             this.provider,
             "eth_getTransactionCount",
             [randomAddress(), numberToRpcQuantity(futureBlock)],
-            `Received invalid block number ${futureBlock}. Latest block number is ${firstBlock}`
+            `Received invalid block tag ${futureBlock}. Latest block number is ${firstBlock}`
           );
         });
       });
@@ -2995,6 +3334,52 @@ describe("Eth module", function () {
             `known transaction: ${bufferToHex(hash)}`
           );
         });
+
+        // This test checks that an on-chain value can be set to 0
+        // To do this, we transfer all the balance of the 0x0000...0001 account
+        // to some random account, and then check that its balance is zero
+        it("should set a value to 0", async function () {
+          if (!isFork) {
+            this.skip();
+          }
+
+          const daiAddress = "0x6B175474E89094C44Da98b954EedeAC495271d0F";
+          const sender = "0x0000000000000000000000000000000000000001";
+
+          await this.provider.send("hardhat_impersonateAccount", [sender]);
+
+          // get balance of 0x0000...0001
+          const balanceBefore = await this.provider.send("eth_call", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: daiAddress,
+              data:
+                "0x70a082310000000000000000000000000000000000000000000000000000000000000001",
+            },
+          ]);
+
+          // send out the full balance
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from: sender,
+              to: daiAddress,
+              data: `0xa9059cbb0000000000000000000000005a3fed996fc40791a26e7fb78dda4f9293788951${balanceBefore.slice(
+                2
+              )}`,
+            },
+          ]);
+
+          const balanceAfter = await this.provider.send("eth_call", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: daiAddress,
+              data:
+                "0x70a082310000000000000000000000000000000000000000000000000000000000000001",
+            },
+          ]);
+
+          assert.isTrue(new BN(toBuffer(balanceAfter)).isZero());
+        });
       });
 
       describe("eth_sign", async function () {
@@ -3008,8 +3393,102 @@ describe("Eth module", function () {
         });
       });
 
-      describe("eth_signTypedData", async function () {
-        // TODO: Test this. Note that it just forwards to/from eth-sign-util
+      describe("eth_signTypedData", function () {
+        it("is not supported", async function () {
+          await assertNotSupported(this.provider, "eth_signTypedData");
+        });
+      });
+
+      describe("eth_signTypedData_v3", function () {
+        it("is not supported", async function () {
+          await assertNotSupported(this.provider, "eth_signTypedData_v3");
+        });
+      });
+
+      describe("eth_signTypedData_v4", function () {
+        // See https://eips.ethereum.org/EIPS/eip-712#parameters
+        // There's a json schema and an explanation for each field.
+        const typedMessage = {
+          domain: {
+            chainId: 31337,
+            name: "Hardhat Network test suite",
+          },
+          message: {
+            name: "Translation",
+            start: {
+              x: 200,
+              y: 600,
+            },
+            end: {
+              x: 300,
+              y: 350,
+            },
+            cost: 50,
+          },
+          primaryType: "WeightedVector",
+          types: {
+            EIP712Domain: [
+              { name: "name", type: "string" },
+              { name: "chainId", type: "uint256" },
+            ],
+            WeightedVector: [
+              { name: "name", type: "string" },
+              { name: "start", type: "Point" },
+              { name: "end", type: "Point" },
+              { name: "cost", type: "uint256" },
+            ],
+            Point: [
+              { name: "x", type: "uint256" },
+              { name: "y", type: "uint256" },
+            ],
+          },
+        };
+        const [address] = DEFAULT_ACCOUNTS_ADDRESSES;
+
+        it("should sign a message", async function () {
+          const signature = await this.provider.request({
+            method: "eth_signTypedData_v4",
+            params: [address, typedMessage],
+          });
+          const signedMessage = {
+            data: typedMessage,
+            sig: signature,
+          };
+
+          const recoveredAddress = recoverTypedSignature_v4(
+            signedMessage as any
+          );
+          assert.equal(address.toLowerCase(), recoveredAddress.toLowerCase());
+        });
+
+        it("should sign a message that is JSON stringified", async function () {
+          const signature = await this.provider.request({
+            method: "eth_signTypedData_v4",
+            params: [address, JSON.stringify(typedMessage)],
+          });
+          const signedMessage = {
+            data: typedMessage,
+            sig: signature,
+          };
+
+          const recoveredAddress = recoverTypedSignature_v4(
+            signedMessage as any
+          );
+          assert.equal(address.toLowerCase(), recoveredAddress.toLowerCase());
+        });
+
+        it("should fail with an invalid JSON", async function () {
+          try {
+            const signature = await this.provider.request({
+              method: "eth_signTypedData_v4",
+              params: [address, "{an invalid JSON"],
+            });
+          } catch (error) {
+            assert.include(error.message, "is an invalid JSON");
+            return;
+          }
+          assert.fail("should have failed with an invalid JSON");
+        });
       });
 
       describe("eth_submitHashrate", async function () {
@@ -3172,6 +3651,211 @@ describe("Eth module", function () {
 
         it("Doesn't fail when unsubscribe is called for a non-existent filter", async function () {
           assert.isFalse(await this.provider.send("eth_unsubscribe", ["0x1"]));
+        });
+      });
+
+      describe("block tags", function () {
+        it("should allow EIP-1898 block tags", async function () {
+          const firstBlock = await getFirstBlock();
+
+          const contractAddress = await deployContract(
+            this.provider,
+            `0x${EXAMPLE_CONTRACT.bytecode.object}`
+          );
+
+          const newState =
+            "000000000000000000000000000000000000000000000000000000000000000a";
+
+          await this.provider.send("eth_sendTransaction", [
+            {
+              to: contractAddress,
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              data: EXAMPLE_CONTRACT.selectors.modifiesState + newState,
+            },
+          ]);
+
+          const previousBlockNumber = `0x${(firstBlock + 1).toString(16)}`;
+          const previousBlock: RpcBlockOutput = await this.provider.send(
+            "eth_getBlockByNumber",
+            [previousBlockNumber, false]
+          );
+
+          assert.equal(
+            await this.provider.send("eth_call", [
+              {
+                to: contractAddress,
+                data: EXAMPLE_CONTRACT.selectors.i,
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              },
+              {
+                blockNumber: previousBlock.number,
+              },
+            ]),
+            "0x0000000000000000000000000000000000000000000000000000000000000000"
+          );
+
+          assert.equal(
+            await this.provider.send("eth_call", [
+              {
+                to: contractAddress,
+                data: EXAMPLE_CONTRACT.selectors.i,
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              },
+              {
+                blockHash: previousBlock.hash,
+              },
+            ]),
+            "0x0000000000000000000000000000000000000000000000000000000000000000"
+          );
+
+          const latestBlock: RpcBlockOutput = await this.provider.send(
+            "eth_getBlockByNumber",
+            ["latest", false]
+          );
+
+          assert.equal(
+            await this.provider.send("eth_call", [
+              {
+                to: contractAddress,
+                data: EXAMPLE_CONTRACT.selectors.i,
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              },
+              {
+                blockNumber: latestBlock.number,
+              },
+            ]),
+            `0x${newState}`
+          );
+
+          assert.equal(
+            await this.provider.send("eth_call", [
+              {
+                to: contractAddress,
+                data: EXAMPLE_CONTRACT.selectors.i,
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              },
+              {
+                blockHash: latestBlock.hash,
+              },
+            ]),
+            `0x${newState}`
+          );
+        });
+
+        it("should not accept an empty block tag", async function () {
+          await assertInvalidArgumentsError(this.provider, "eth_getBalance", [
+            DEFAULT_ACCOUNTS_ADDRESSES[0],
+            {},
+          ]);
+        });
+
+        it("should not accept both a blockNumber and a blockHash in a block tag", async function () {
+          const latestBlock: RpcBlockOutput = await this.provider.send(
+            "eth_getBlockByNumber",
+            ["latest", false]
+          );
+
+          await assertInvalidArgumentsError(this.provider, "eth_getBalance", [
+            DEFAULT_ACCOUNTS_ADDRESSES[0],
+            {
+              blockNumber: 0,
+              blockHash: latestBlock.hash,
+            },
+          ]);
+
+          it("should accept a requireCanonical flag", async function () {
+            const block: RpcBlockOutput = await this.provider.send(
+              "eth_getBlockByNumber",
+              ["latest", false]
+            );
+
+            assertQuantity(
+              await this.provider.send("eth_getBalance", [
+                zeroAddress(),
+                {
+                  blockNumber: block.number,
+                  requireCanonical: true,
+                },
+              ]),
+              0
+            );
+
+            assertQuantity(
+              await this.provider.send("eth_getBalance", [
+                zeroAddress(),
+                {
+                  blockNumber: block.number,
+                  requireCanonical: false,
+                },
+              ]),
+              0
+            );
+
+            assertQuantity(
+              await this.provider.send("eth_getBalance", [
+                zeroAddress(),
+                {
+                  blockHash: block.hash,
+                  requireCanonical: true,
+                },
+              ]),
+              0
+            );
+
+            assertQuantity(
+              await this.provider.send("eth_getBalance", [
+                zeroAddress(),
+                {
+                  blockHash: block.hash,
+                  requireCanonical: false,
+                },
+              ]),
+              0
+            );
+          });
+        });
+      });
+
+      describe("gas usage", function () {
+        it("should use 15K less gas when writing a non-zero slot", async function () {
+          const contractAddress = await deployContract(
+            this.provider,
+            `0x${EXAMPLE_SETTER_CONTRACT.bytecode.object}`
+          );
+
+          const firstTxHash = await this.provider.send("eth_sendTransaction", [
+            {
+              to: contractAddress,
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              data: `${EXAMPLE_SETTER_CONTRACT.selectors.setValue}0000000000000000000000000000000000000000000000000000000000000001`,
+            },
+          ]);
+
+          const firstReceipt = await this.provider.send(
+            "eth_getTransactionReceipt",
+            [firstTxHash]
+          );
+
+          const gasUsedBefore = new BN(toBuffer(firstReceipt.gasUsed));
+
+          const secondTxHash = await this.provider.send("eth_sendTransaction", [
+            {
+              to: contractAddress,
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              data: `${EXAMPLE_SETTER_CONTRACT.selectors.setValue}0000000000000000000000000000000000000000000000000000000000000002`,
+            },
+          ]);
+
+          const secondReceipt = await this.provider.send(
+            "eth_getTransactionReceipt",
+            [secondTxHash]
+          );
+
+          const gasUsedAfter = new BN(toBuffer(secondReceipt.gasUsed));
+
+          const gasDifference = gasUsedBefore.sub(gasUsedAfter);
+
+          assert.equal(gasDifference.toString(), "15000");
         });
       });
     });

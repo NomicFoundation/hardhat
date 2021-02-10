@@ -249,7 +249,19 @@ export class EthModule {
         throw new MethodNotSupportedError(method);
 
       case "eth_signTypedData":
-        return this._signTypedDataAction(...this._signTypedDataParams(params));
+        throw new MethodNotSupportedError(method);
+
+      case "eth_signTypedData_v3":
+        throw new MethodNotSupportedError(method);
+
+      // TODO: we're currently mimicking the MetaMask implementation here.
+      // The EIP 712 is still a draft. It doesn't actually distinguish different versions
+      // of the eth_signTypedData API.
+      // Also, note that go-ethereum implemented this in a clef JSON-RPC API: account_signTypedData.
+      case "eth_signTypedData_v4":
+        return this._signTypedDataV4Action(
+          ...this._signTypedDataV4Params(params)
+        );
 
       case "eth_submitHashrate":
         throw new MethodNotSupportedError(method);
@@ -468,8 +480,10 @@ export class EthModule {
           `eth_getBlockByNumber doesn't support ${tag}`
         );
       }
-    } else {
+    } else if (BN.isBN(tag)) {
       block = await this._node.getBlockByNumber(tag);
+    } else if (Buffer.isBuffer(tag)) {
+      block = await this._node.getBlockByHash(tag);
     }
 
     if (block === undefined) {
@@ -590,9 +604,14 @@ export class EthModule {
       filter.toBlock = new BN(block.header.number);
     }
 
+    const [fromBlock, toBlock] = await Promise.all([
+      this._extractBlock(filter.fromBlock),
+      this._extractBlock(filter.toBlock),
+    ]);
+
     return {
-      fromBlock: this._extractBlock(filter.fromBlock),
-      toBlock: this._extractBlock(filter.toBlock),
+      fromBlock,
+      toBlock,
       normalizedTopics: this._extractNormalizedLogTopics(filter.topics),
       addresses: this._extractLogAddresses(filter.address),
     };
@@ -717,24 +736,6 @@ export class EthModule {
     address: Buffer,
     blockTag: OptionalBlockTag
   ): Promise<string> {
-    // TODO: MetaMask does some eth_getTransactionCount(sender, currentBlock)
-    //   calls right after sending a transaction.
-    //   As we insta-mine, the currentBlock that they send is different from the
-    //   one we have, which results on an error.
-    //   This is not a big deal TBH, MM eventually resynchronizes, but it shows
-    //   some hard to understand errors to our users.
-    //   To avoid confusing our users, we have a special case here, just
-    //   for now.
-    //   This should be changed ASAP.
-    if (
-      BN.isBN(blockTag) &&
-      blockTag.eq((await this._node.getLatestBlockNumber()).subn(1))
-    ) {
-      return numberToRpcQuantity(
-        await this._node.getAccountNonceInPreviousBlock(address)
-      );
-    }
-
     const blockNumber = await this._blockTagToBlockNumber(blockTag);
 
     return numberToRpcQuantity(
@@ -892,17 +893,34 @@ export class EthModule {
 
   // eth_signTransaction
 
-  // eth_signTypedData
+  // eth_signTypedData_v4
 
-  private _signTypedDataParams(params: any[]): [Buffer, any] {
+  private _signTypedDataV4Params(params: any[]): [Buffer, any] {
+    // Validation of the TypedData parameter is handled by eth-sig-util
     return validateParams(params, rpcAddress, rpcUnknown);
   }
 
-  private async _signTypedDataAction(
+  private async _signTypedDataV4Action(
     address: Buffer,
     typedData: any
   ): Promise<string> {
-    return this._node.signTypedData(address, typedData);
+    let typedMessage: any = typedData;
+
+    // According to the MetaMask implementation,
+    // the message parameter may be JSON stringified in versions later than V1
+    // See https://github.com/MetaMask/metamask-extension/blob/0dfdd44ae7728ed02cbf32c564c75b74f37acf77/app/scripts/metamask-controller.js#L1736
+    // In fact, ethers.js JSON stringifies the message at the time of writing.
+    if (typeof typedData === "string") {
+      try {
+        typedMessage = JSON.parse(typedData);
+      } catch (error) {
+        throw new InvalidInputError(
+          `The message parameter is an invalid JSON. Either pass a valid JSON or a plain object conforming to EIP712 TypedData schema.`
+        );
+      }
+    }
+
+    return this._node.signTypedDataV4(address, typedMessage);
   }
 
   // eth_submitHashrate
@@ -1041,18 +1059,45 @@ export class EthModule {
       return new BN(0);
     }
 
-    const block = await this._node.getBlockByNumber(blockTag);
+    let block: Block | undefined;
+    if (BN.isBN(blockTag)) {
+      block = await this._node.getBlockByNumber(blockTag);
+    } else if (Buffer.isBuffer(blockTag)) {
+      block = await this._node.getBlockByHash(blockTag);
+    }
+
     if (block === undefined) {
       const latestBlock = await this._node.getLatestBlockNumber();
+
       throw new InvalidInputError(
-        `Received invalid block number ${blockTag.toString()}. Latest block number is ${latestBlock.toString()}`
+        `Received invalid block tag ${this._blockTagToString(
+          blockTag
+        )}. Latest block number is ${latestBlock.toString()}`
       );
     }
 
     return new BN(block.header.number);
   }
 
-  private _extractBlock(blockTag: OptionalBlockTag): BN {
+  private async _extractBlock(blockTag: OptionalBlockTag): Promise<BN> {
+    if (BN.isBN(blockTag)) {
+      return blockTag;
+    }
+
+    if (Buffer.isBuffer(blockTag)) {
+      const block = await this._node.getBlockByHash(blockTag);
+
+      if (block === undefined) {
+        throw new InvalidInputError(
+          `Received invalid block tag ${this._blockTagToString(
+            blockTag
+          )}. This block doesn't exist.`
+        );
+      }
+
+      return new BN(block.header.number);
+    }
+
     switch (blockTag) {
       case "earliest":
         return new BN(0);
@@ -1060,10 +1105,21 @@ export class EthModule {
       case "latest":
         return LATEST_BLOCK;
       case "pending":
+      default:
         return LATEST_BLOCK;
     }
+  }
 
-    return blockTag;
+  private _blockTagToString(tag: BlockTag): string {
+    if (typeof tag === "string") {
+      return tag;
+    }
+
+    if (BN.isBN(tag)) {
+      return tag.toString();
+    }
+
+    return bufferToHex(tag);
   }
 
   private _extractNormalizedLogTopics(

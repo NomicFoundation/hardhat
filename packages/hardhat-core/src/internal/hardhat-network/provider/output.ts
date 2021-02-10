@@ -14,6 +14,7 @@ export interface RpcBlockOutput {
   hash: string | null;
   logsBloom: string | null;
   miner: string;
+  mixHash: string | null;
   nonce: string | null;
   number: string | null;
   parentHash: string;
@@ -107,6 +108,7 @@ export function getRpcBlock(
     // We pad this to 8 bytes because of a limitation in The Graph
     // See: https://github.com/nomiclabs/hardhat/issues/491
     nonce: bufferToRpcData(block.header.nonce, 16), // TODO: null when it's a pending block,
+    mixHash: bufferToRpcData(block.header.mixHash, 32), // TODO: null when it's a pending block,
     sha3Uncles: bufferToRpcData(block.header.uncleHash),
     logsBloom: bufferToRpcData(block.header.bloom), // TODO: null when it's a pending block,
     transactionsRoot: bufferToRpcData(block.header.transactionsTrie),
@@ -166,8 +168,8 @@ export function getRpcTransaction(
     transactionIndex: index !== undefined ? numberToRpcQuantity(index) : null,
     value: numberToRpcQuantity(new BN(tx.value)),
     v: numberToRpcQuantity(new BN(tx.v)),
-    r: numberToRpcQuantity(new BN(tx.s)),
-    s: numberToRpcQuantity(new BN(tx.r)),
+    r: numberToRpcQuantity(new BN(tx.r)),
+    s: numberToRpcQuantity(new BN(tx.s)),
   };
 }
 

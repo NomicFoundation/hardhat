@@ -6,6 +6,7 @@ import {
   keccak256,
   KECCAK256_NULL,
   toBuffer,
+  unpad,
 } from "ethereumjs-util";
 import sinon from "sinon";
 
@@ -240,12 +241,13 @@ describe("ForkStateManager", () => {
         DAI_TOTAL_SUPPLY_STORAGE_POSITION,
         forkBlockNumber
       );
+
       const fsmValue = await fsm.getContractStorage(
         DAI_ADDRESS,
         DAI_TOTAL_SUPPLY_STORAGE_POSITION
       );
 
-      assert.isTrue(fsmValue.equals(remoteValue));
+      assert.isTrue(fsmValue.equals(unpad(remoteValue)));
     });
   });
 
@@ -261,7 +263,7 @@ describe("ForkStateManager", () => {
         DAI_TOTAL_SUPPLY_STORAGE_POSITION
       );
 
-      assert.isTrue(fsmValue.equals(remoteValue));
+      assert.isTrue(fsmValue.equals(unpad(remoteValue)));
     });
 
     it("caches original storage value on first call and returns it for subsequent calls", async () => {
@@ -445,7 +447,7 @@ describe("ForkStateManager", () => {
       await fsm.putContractStorage(address, position, value);
       await fsm.clearContractStorage(address);
       const clearedValue = await fsm.getContractStorage(address, position);
-      assert.isTrue(clearedValue.equals(NULL_BYTES_32));
+      assert.lengthOf(clearedValue, 0);
     });
 
     it("can clear all remote values", async () => {
@@ -459,7 +461,7 @@ describe("ForkStateManager", () => {
         DAI_ADDRESS,
         DAI_TOTAL_SUPPLY_STORAGE_POSITION
       );
-      assert.isTrue(clearedValue.equals(NULL_BYTES_32));
+      assert.lengthOf(clearedValue, 0);
     });
 
     it("can clear remote values not previously read", async () => {
@@ -468,7 +470,7 @@ describe("ForkStateManager", () => {
         DAI_ADDRESS,
         DAI_TOTAL_SUPPLY_STORAGE_POSITION
       );
-      assert.isTrue(clearedValue.equals(NULL_BYTES_32));
+      assert.lengthOf(clearedValue, 0);
     });
   });
 
@@ -630,7 +632,10 @@ describe("ForkStateManager", () => {
           DAI_ADDRESS,
           DAI_TOTAL_SUPPLY_STORAGE_POSITION
         );
-        assert.equal(bufferToHex(fsmValue), bufferToHex(valueAtOldBlock));
+        assert.equal(
+          bufferToHex(fsmValue),
+          bufferToHex(unpad(valueAtOldBlock))
+        );
       });
 
       it("sets the state root", async () => {
@@ -697,7 +702,11 @@ describe("ForkStateManager", () => {
           DAI_ADDRESS,
           DAI_TOTAL_SUPPLY_STORAGE_POSITION
         );
-        assert.equal(bufferToHex(fsmValue), bufferToHex(valueAtForkBlock));
+
+        assert.equal(
+          bufferToHex(fsmValue),
+          bufferToHex(unpad(valueAtForkBlock))
+        );
         assert.isTrue(getStorageAt.calledOnce);
         assert.equal(
           getStorageAt.firstCall.lastArg.toString(),

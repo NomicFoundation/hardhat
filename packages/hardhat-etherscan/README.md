@@ -102,11 +102,63 @@ The module can then be loaded by the `verify` task when invoked like this:
 npx hardhat verify --constructor-args arguments.js DEPLOYED_CONTRACT_ADDRESS
 ```
 
+### Libraries with undetectable addresses
+
+Some library addresses are undetectable. If your contract uses a library only in the constructor, then its address cannot be found in the deployed bytecode.
+
+To supply these missing addresses, you can create a javascript module that exports a library dictionary and pass it through the `--libraries` parameter:
+
+```bash
+hardhat verify --libraries libraries.js OTHER_ARGS
+```
+
+where `libraries.js` looks like this:
+
+```js
+module.exports = {
+  SomeLibrary: "0x...",
+}
+```
+
+### Using programmatically
+
+To call the verification task from within a Hardhat task or script, use the `"verify:verify"` subtask. Assuming the same contract as [above](#complex-arguments), you can run the subtask like this:
+
+
+```js
+await hre.run("verify:verify", {
+  address: contractAddress,
+  constructorArguments: [
+    50,
+    "a string argument",
+    {
+      x: 10,
+      y: 5,
+    },
+    "0xabcdef",
+  ],
+})
+```
+
+If the verification is not successful, an error will be thrown.
+
+#### Providing libraries from a script or task
+
+If your contract has libraries with undetectable addresses, you may pass the libraries parameter with a dictionary specifying them:
+
+```js
+hre.run("verify:verify", {
+  // other args
+  libraries: {
+    SomeLibrary: "0x...",
+  }
+}
+```
+
 ## How it works
 
 The plugin works by fetching the bytecode in the given address and using it to check which contract in your project corresponds to it. Besides that, some sanity checks are performed locally to make sure that the verification won't fail.
 
 ## Known limitations
 
-- Cases where more than one contract correspond to the same bytecode aren’t supported.
 - Adding, removing, moving or renaming new contracts to the hardhat project or reorganizing the directory structure of contracts after deployment may alter the resulting bytecode in some solc versions. See this [Solidity issue](https://github.com/ethereum/solidity/issues/9573) for further information.

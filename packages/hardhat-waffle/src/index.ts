@@ -23,7 +23,7 @@ extendEnvironment((hre) => {
       provider: hardhatWaffleProvider,
       deployContract: hardhatDeployContract.bind(undefined, hre),
       deployMockContract: getDeployMockContract(),
-      solidity: require("./waffle-chai"),
+      solidity: require("./waffle-chai").waffleChai,
       createFixtureLoader: hardhatCreateFixtureLoader.bind(
         undefined,
         hardhatWaffleProvider

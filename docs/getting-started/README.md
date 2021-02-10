@@ -42,7 +42,7 @@ $ npx hardhat
 888    888 888  888 888    Y88b 888 888  888 888  888 Y88b.
 888    888 "Y888888 888     "Y88888 888  888 "Y888888  "Y888
 
-Welcome to Hardhat v2.0.0
+Welcome to Hardhat v2.0.8
 
 ? What do you want to do? …
 ❯ Create a sample project
@@ -65,7 +65,7 @@ To first get a quick sense of what's available and what's going on, run `npx har
 
 ```
 $ npx hardhat
-Hardhat version 2.0.0
+Hardhat version 2.0.8
 
 Usage: hardhat [GLOBAL OPTIONS] <TASK> [TASK OPTIONS]
 
@@ -84,6 +84,7 @@ GLOBAL OPTIONS:
 
 AVAILABLE TASKS:
 
+  accounts      Prints the list of accounts
   check         Check whatever you need
   clean         Clears the cache and deletes all artifacts
   compile       Compiles the entire project, building all artifacts
@@ -131,7 +132,7 @@ $ npx hardhat accounts
 
 ### Compiling your contracts
 
-Next, if you take a look at `contracts/`, you should be able to find `Greeter.sol:`
+Next, if you take a look at `contracts/`, you should be able to find `Greeter.sol`:
 
 <<< @/../packages/hardhat-core/sample-project/contracts/Greeter.sol
 
@@ -144,6 +145,8 @@ npx hardhat compile
 ### Testing your contracts
 
 The sample project comes with these tests that use [Waffle](https://getwaffle.io/) and [Ethers.js](https://github.com/ethers-io/ethers.js/). You can use other libraries if you want. Check the integrations described in our guides.
+
+If you take a look at `test/`, you should be able to find `sample-test.js`:
 
 <<< @/../packages/hardhat-core/sample-project/test/sample-test.js
 

@@ -40,8 +40,8 @@ This plugin adds the following elements to the `HardhatRuntimeEnvironment`:
 
 ## Usage
 Install it and access Web3.js through the Hardhat Runtime Environment anywhere you need it (tasks, scripts, tests, etc). For example, in your `hardhat.config.js`:
-```
-usePlugin("@nomiclabs/hardhat-web3");
+```js
+require("@nomiclabs/hardhat-web3");
 
 // task action function receives the Hardhat Runtime Environment as second argument
 task("accounts", "Prints accounts", async (_, { web3 }) => {

@@ -3,6 +3,7 @@ import * as fsExtra from "fs-extra";
 import path from "path";
 import slash from "slash";
 
+import { TASK_COMPILE } from "../../../src/builtin-tasks/task-names";
 import { ERRORS } from "../../../src/internal/core/errors-list";
 import { Parser } from "../../../src/internal/solidity/parse";
 import {
@@ -10,6 +11,7 @@ import {
   Resolver,
 } from "../../../src/internal/solidity/resolver";
 import { LibraryInfo } from "../../../src/types/builtin-tasks";
+import { useEnvironment } from "../../helpers/environment";
 import { expectHardhatErrorAsync } from "../../helpers/errors";
 import {
   getFixtureProjectPath,
@@ -48,6 +50,7 @@ describe("Resolved file", function () {
       sourceName,
       absolutePath,
       content,
+      "<content-hash-file-without-library>",
       lastModificationDate
     );
 
@@ -55,6 +58,7 @@ describe("Resolved file", function () {
       sourceName,
       absolutePath,
       content,
+      "<content-hash-file-with-library>",
       lastModificationDate,
       libraryName,
       libraryVersion
@@ -126,7 +130,9 @@ describe("Resolver", function () {
   });
 
   beforeEach("Init resolver", async function () {
-    resolver = new Resolver(projectPath, new Parser());
+    resolver = new Resolver(projectPath, new Parser(), (absolutePath) =>
+      fsExtra.readFile(absolutePath, { encoding: "utf8" })
+    );
   });
 
   describe("resolveSourceName", function () {
@@ -288,6 +294,7 @@ describe("Resolver", function () {
           imports: [],
           versionPragmas: [],
         },
+        "<content-hash-c>",
         new Date()
       );
 
@@ -299,6 +306,7 @@ describe("Resolver", function () {
           imports: [],
           versionPragmas: [],
         },
+        "<content-hash-l>",
         new Date(),
         "lib",
         "1.0.0"
@@ -533,6 +541,21 @@ describe("Resolver", function () {
           }
         );
       });
+    });
+  });
+});
+
+describe("Resolver regression tests", function () {
+  describe("Project with a hardhat subdirectory", function () {
+    const projectName = "project-with-hardhat-directory";
+    useFixtureProject(projectName);
+    useEnvironment();
+
+    // This test ensures the resolver lets you compile a project with the packaged console.sol
+    // in a Hardhat project that has a "hardhat" subdirectory.
+    // See issue https://github.com/nomiclabs/hardhat/issues/998
+    it("Should compile the Greeter contract that imports console.log from hardhat", async function () {
+      return this.env.run(TASK_COMPILE, { quiet: true });
     });
   });
 });

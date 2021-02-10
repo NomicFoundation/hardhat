@@ -1,6 +1,7 @@
 import chalk from "chalk";
 import { exec } from "child_process";
 import debug from "debug";
+import fsExtra from "fs-extra";
 import path from "path";
 import semver from "semver";
 
@@ -28,13 +29,12 @@ import { ResolvedFile, Resolver } from "../internal/solidity/resolver";
 import { glob } from "../internal/util/glob";
 import { getCompilersDir } from "../internal/util/global-dir";
 import { pluralize } from "../internal/util/strings";
-import { unsafeObjectEntries, unsafeObjectKeys } from "../internal/util/unsafe";
 import { Artifacts, CompilerInput, CompilerOutput, SolcBuild } from "../types";
 import * as taskTypes from "../types/builtin-tasks";
 import {
   CompilationJob,
   CompilationJobCreationError,
-  CompilationJobsCreationErrors,
+  CompilationJobCreationErrorReason,
   CompilationJobsCreationResult,
 } from "../types/builtin-tasks";
 import { getFullyQualifiedName } from "../utils/contract-names";
@@ -69,6 +69,7 @@ import {
   TASK_COMPILE_SOLIDITY_LOG_RUN_COMPILER_END,
   TASK_COMPILE_SOLIDITY_LOG_RUN_COMPILER_START,
   TASK_COMPILE_SOLIDITY_MERGE_COMPILATION_JOBS,
+  TASK_COMPILE_SOLIDITY_READ_FILE,
   TASK_COMPILE_SOLIDITY_RUN_SOLC,
   TASK_COMPILE_SOLIDITY_RUN_SOLCJS,
 } from "./task-names";
@@ -137,6 +138,18 @@ subtask(TASK_COMPILE_SOLIDITY_GET_SOURCE_NAMES)
     }
   );
 
+subtask(TASK_COMPILE_SOLIDITY_READ_FILE)
+  .addParam("absolutePath", undefined, undefined, types.string)
+  .setAction(
+    async ({ absolutePath }: { absolutePath: string }): Promise<string> => {
+      const content = await fsExtra.readFile(absolutePath, {
+        encoding: "utf8",
+      });
+
+      return content;
+    }
+  );
+
 /**
  * Receives a list of source names and returns a dependency graph. This task
  * is responsible for both resolving dependencies (like getting files from
@@ -151,10 +164,15 @@ subtask(TASK_COMPILE_SOLIDITY_GET_DEPENDENCY_GRAPH)
         sourceNames,
         solidityFilesCache,
       }: { sourceNames: string[]; solidityFilesCache?: SolidityFilesCache },
-      { config }
+      { config, run }
     ): Promise<taskTypes.DependencyGraph> => {
       const parser = new Parser(solidityFilesCache);
-      const resolver = new Resolver(config.paths.root, parser);
+      const resolver = new Resolver(
+        config.paths.root,
+        parser,
+        (absolutePath: string) =>
+          run(TASK_COMPILE_SOLIDITY_READ_FILE, { absolutePath })
+      );
 
       const resolvedFiles = await Promise.all(
         sourceNames.map((sn) => resolver.resolveSourceName(sn))
@@ -236,7 +254,7 @@ subtask(TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS)
       const connectedComponents = dependencyGraph.getConnectedComponents();
 
       log(
-        `The dependency graph was dividied in '${connectedComponents.length}' connected components`
+        `The dependency graph was divided in '${connectedComponents.length}' connected components`
       );
 
       const compilationJobsCreationResults = await Promise.all(
@@ -253,22 +271,15 @@ subtask(TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS)
         )
       );
 
-      const compilationJobsCreationResult = compilationJobsCreationResults.reduce(
-        (acc, { jobs, errors }) => {
-          acc.jobs = acc.jobs.concat(jobs);
-          for (const [code, files] of unsafeObjectEntries(errors)) {
-            acc.errors[code] = acc.errors[code] ?? [];
-            acc.errors[code] = acc.errors[code]!.concat(files!);
-          }
-          return acc;
-        },
-        {
-          jobs: [],
-          errors: {},
-        }
-      );
+      let jobs: CompilationJob[] = [];
+      let errors: CompilationJobCreationError[] = [];
 
-      return compilationJobsCreationResult;
+      for (const result of compilationJobsCreationResults) {
+        jobs = jobs.concat(result.jobs);
+        errors = errors.concat(result.errors);
+      }
+
+      return { jobs, errors };
     }
   );
 
@@ -427,7 +438,6 @@ subtask(TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_COMPILER_START)
   .setAction(
     async ({
       isCompilerDownloaded,
-      quiet,
       solcVersion,
     }: {
       isCompilerDownloaded: boolean;
@@ -692,7 +702,7 @@ subtask(TASK_COMPILE_SOLIDITY_COMPILE, async (taskArgs: any, { run }) => {
 subtask(TASK_COMPILE_SOLIDITY_LOG_COMPILATION_ERRORS)
   .addParam("output", undefined, undefined, types.any)
   .addParam("quiet", undefined, undefined, types.boolean)
-  .setAction(async ({ output, quiet }: { output: any; quiet: boolean }) => {
+  .setAction(async ({ output }: { output: any; quiet: boolean }) => {
     if (output?.errors === undefined) {
       return;
     }
@@ -765,7 +775,7 @@ subtask(TASK_COMPILE_SOLIDITY_EMIT_ARTIFACTS)
         output: CompilerOutput;
         solcBuild: SolcBuild;
       },
-      { artifacts, config, run }
+      { artifacts, run }
     ): Promise<{
       artifactsEmittedPerFile: ArtifactsEmittedPerFile;
     }> => {
@@ -917,6 +927,7 @@ subtask(TASK_COMPILE_SOLIDITY_COMPILE_JOB)
   .addParam("compilationJobs", undefined, undefined, types.any)
   .addParam("compilationJobIndex", undefined, undefined, types.int)
   .addParam("quiet", undefined, undefined, types.boolean)
+  .addOptionalParam("emitsArtifacts", undefined, true, types.boolean)
   .setAction(
     async (
       {
@@ -924,14 +935,22 @@ subtask(TASK_COMPILE_SOLIDITY_COMPILE_JOB)
         compilationJobs,
         compilationJobIndex,
         quiet,
+        emitsArtifacts,
       }: {
         compilationJob: CompilationJob;
         compilationJobs: CompilationJob[];
         compilationJobIndex: number;
         quiet: boolean;
+        emitsArtifacts: boolean;
       },
       { run }
-    ): Promise<{ artifactsEmittedPerFile: ArtifactsEmittedPerFile }> => {
+    ): Promise<{
+      artifactsEmittedPerFile: ArtifactsEmittedPerFile;
+      compilationJob: taskTypes.CompilationJob;
+      input: CompilerInput;
+      output: CompilerOutput;
+      solcBuild: any;
+    }> => {
       log(
         `Compiling job with version '${compilationJob.getSolcConfig().version}'`
       );
@@ -953,17 +972,25 @@ subtask(TASK_COMPILE_SOLIDITY_COMPILE_JOB)
 
       await run(TASK_COMPILE_SOLIDITY_CHECK_ERRORS, { output, quiet });
 
-      const { artifactsEmittedPerFile } = await run(
-        TASK_COMPILE_SOLIDITY_EMIT_ARTIFACTS,
-        {
-          compilationJob,
-          input,
-          output,
-          solcBuild,
-        }
-      );
+      let artifactsEmittedPerFile = [];
+      if (emitsArtifacts) {
+        artifactsEmittedPerFile = (
+          await run(TASK_COMPILE_SOLIDITY_EMIT_ARTIFACTS, {
+            compilationJob,
+            input,
+            output,
+            solcBuild,
+          })
+        ).artifactsEmittedPerFile;
+      }
 
-      return { artifactsEmittedPerFile };
+      return {
+        artifactsEmittedPerFile,
+        compilationJob,
+        input,
+        output,
+        solcBuild,
+      };
     }
   );
 
@@ -981,13 +1008,11 @@ subtask(TASK_COMPILE_SOLIDITY_HANDLE_COMPILATION_JOBS_FAILURES)
       {
         compilationJobsCreationErrors,
       }: {
-        compilationJobsCreationErrors: CompilationJobsCreationErrors;
+        compilationJobsCreationErrors: CompilationJobCreationError[];
       },
       { run }
     ) => {
-      const hasErrors = unsafeObjectEntries(compilationJobsCreationErrors).some(
-        ([, errors]) => errors!.length > 0
-      );
+      const hasErrors = compilationJobsCreationErrors.length > 0;
 
       if (hasErrors) {
         log(`There were errors creating the compilation jobs, throwing`);
@@ -1016,78 +1041,201 @@ subtask(TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURE_REASONS)
     async ({
       compilationJobsCreationErrors: errors,
     }: {
-      compilationJobsCreationErrors: CompilationJobsCreationErrors;
+      compilationJobsCreationErrors: CompilationJobCreationError[];
     }): Promise<string> => {
-      let noCompatibleSolc: string[] = [];
-      let incompatibleOverridenSolc: string[] = [];
-      let importsIncompatibleFile: string[] = [];
-      let other: string[] = [];
+      const noCompatibleSolc: CompilationJobCreationError[] = [];
+      const incompatibleOverridenSolc: CompilationJobCreationError[] = [];
+      const directlyImportsIncompatibleFile: CompilationJobCreationError[] = [];
+      const indirectlyImportsIncompatibleFile: CompilationJobCreationError[] = [];
+      const other: CompilationJobCreationError[] = [];
 
-      for (const code of unsafeObjectKeys(errors)) {
-        const files = errors[code];
-
-        if (files === undefined) {
-          continue;
-        }
-
+      for (const error of errors) {
         if (
-          code === CompilationJobCreationError.NO_COMPATIBLE_SOLC_VERSION_FOUND
+          error.reason ===
+          CompilationJobCreationErrorReason.NO_COMPATIBLE_SOLC_VERSION_FOUND
         ) {
-          noCompatibleSolc = noCompatibleSolc.concat(files);
+          noCompatibleSolc.push(error);
         } else if (
-          code ===
-          CompilationJobCreationError.INCOMPATIBLE_OVERRIDEN_SOLC_VERSION
+          error.reason ===
+          CompilationJobCreationErrorReason.INCOMPATIBLE_OVERRIDEN_SOLC_VERSION
         ) {
-          incompatibleOverridenSolc = incompatibleOverridenSolc.concat(files);
+          incompatibleOverridenSolc.push(error);
         } else if (
-          code === CompilationJobCreationError.IMPORTS_INCOMPATIBLE_FILE
+          error.reason ===
+          CompilationJobCreationErrorReason.DIRECTLY_IMPORTS_INCOMPATIBLE_FILE
         ) {
-          importsIncompatibleFile = importsIncompatibleFile.concat(files);
-        } else if (code === CompilationJobCreationError.OTHER_ERROR) {
-          other = other.concat(files);
+          directlyImportsIncompatibleFile.push(error);
+        } else if (
+          error.reason ===
+          CompilationJobCreationErrorReason.INDIRECTLY_IMPORTS_INCOMPATIBLE_FILE
+        ) {
+          indirectlyImportsIncompatibleFile.push(error);
+        } else if (
+          error.reason === CompilationJobCreationErrorReason.OTHER_ERROR
+        ) {
+          other.push(error);
         } else {
           // add unrecognized errors to `other`
-          other = other.concat(files);
+          other.push(error);
         }
       }
 
-      let reasons = "";
+      let errorMessage = "";
       if (incompatibleOverridenSolc.length > 0) {
-        reasons += `The compiler version for the following files is fixed through an override in your
-config file to a version that is incompatible with their version pragmas.
-
-${incompatibleOverridenSolc.map((x) => `* ${x}`).join("\n")}
+        errorMessage += `The compiler version for the following files is fixed through an override in your config file to a version that is incompatible with their Solidity version pragmas.
 
 `;
+
+        for (const error of incompatibleOverridenSolc) {
+          const { sourceName } = error.file;
+          const { versionPragmas } = error.file.content;
+          const versionsRange = versionPragmas.join(" ");
+
+          log(`File ${sourceName} has an incompatible overriden compiler`);
+
+          errorMessage += `  * ${sourceName} (${versionsRange})\n`;
+        }
+
+        errorMessage += "\n";
       }
+
       if (noCompatibleSolc.length > 0) {
-        reasons += `The pragma statement in these files don't match any of the configured compilers
-in your config. Change the pragma or configure additional compiler versions in
-your hardhat config.
-
-${noCompatibleSolc.map((x) => `* ${x}`).join("\n")}
+        errorMessage += `The Solidity version pragma statement in these files don't match any of the configured compilers in your config. Change the pragma or configure additional compiler versions in your hardhat config.
 
 `;
-      }
-      if (importsIncompatibleFile.length > 0) {
-        reasons += `These files import other files that use a different and incompatible version of Solidity:
 
-${importsIncompatibleFile.map((x) => `* ${x}`).join("\n")}
+        for (const error of noCompatibleSolc) {
+          const { sourceName } = error.file;
+          const { versionPragmas } = error.file.content;
+          const versionsRange = versionPragmas.join(" ");
+
+          log(
+            `File ${sourceName} doesn't match any of the configured compilers`
+          );
+
+          errorMessage += `  * ${sourceName} (${versionsRange})\n`;
+        }
+
+        errorMessage += "\n";
+      }
+
+      if (directlyImportsIncompatibleFile.length > 0) {
+        errorMessage += `These files import other files that use a different and incompatible version of Solidity:
 
 `;
+
+        for (const error of directlyImportsIncompatibleFile) {
+          const { sourceName } = error.file;
+          const { versionPragmas } = error.file.content;
+          const versionsRange = versionPragmas.join(" ");
+
+          const incompatibleDirectImportsFiles: ResolvedFile[] =
+            error.extra?.incompatibleDirectImports ?? [];
+
+          const incompatibleDirectImports = incompatibleDirectImportsFiles.map(
+            (x: ResolvedFile) =>
+              `${x.sourceName} (${x.content.versionPragmas.join(" ")})`
+          );
+
+          log(
+            `File ${sourceName} imports files ${incompatibleDirectImportsFiles
+              .map((x) => x.sourceName)
+              .join(", ")} that use an incompatible version of Solidity`
+          );
+
+          let directImportsText = "";
+          if (incompatibleDirectImports.length === 1) {
+            directImportsText = ` imports ${incompatibleDirectImports[0]}`;
+          } else if (incompatibleDirectImports.length === 2) {
+            directImportsText = ` imports ${incompatibleDirectImports[0]} and ${incompatibleDirectImports[1]}`;
+          } else if (incompatibleDirectImports.length > 2) {
+            const otherImportsCount = incompatibleDirectImports.length - 2;
+            directImportsText = ` imports ${incompatibleDirectImports[0]}, ${
+              incompatibleDirectImports[1]
+            } and ${otherImportsCount} other ${pluralize(
+              otherImportsCount,
+              "file"
+            )}. Use --verbose to see the full list.`;
+          }
+
+          errorMessage += `  * ${sourceName} (${versionsRange})${directImportsText}\n`;
+        }
+
+        errorMessage += "\n";
       }
+
+      if (indirectlyImportsIncompatibleFile.length > 0) {
+        errorMessage += `These files depend on other files that use a different and incompatible version of Solidity:
+
+`;
+
+        for (const error of indirectlyImportsIncompatibleFile) {
+          const { sourceName } = error.file;
+          const { versionPragmas } = error.file.content;
+          const versionsRange = versionPragmas.join(" ");
+
+          const incompatibleIndirectImports: taskTypes.TransitiveDependency[] =
+            error.extra?.incompatibleIndirectImports ?? [];
+
+          const incompatibleImports = incompatibleIndirectImports.map(
+            ({ dependency }) =>
+              `${
+                dependency.sourceName
+              } (${dependency.content.versionPragmas.join(" ")})`
+          );
+
+          for (const {
+            dependency,
+            path: dependencyPath,
+          } of incompatibleIndirectImports) {
+            const dependencyPathText = [
+              sourceName,
+              ...dependencyPath.map((x) => x.sourceName),
+              dependency.sourceName,
+            ].join(" -> ");
+
+            log(
+              `File ${sourceName} depends on file ${dependency.sourceName} that uses an incompatible version of Solidity
+The dependency path is ${dependencyPathText}
+`
+            );
+          }
+
+          let indirectImportsText = "";
+          if (incompatibleImports.length === 1) {
+            indirectImportsText = ` depends on ${incompatibleImports[0]}`;
+          } else if (incompatibleImports.length === 2) {
+            indirectImportsText = ` depends on ${incompatibleImports[0]} and ${incompatibleImports[1]}`;
+          } else if (incompatibleImports.length > 2) {
+            const otherImportsCount = incompatibleImports.length - 2;
+            indirectImportsText = ` depends on ${incompatibleImports[0]}, ${
+              incompatibleImports[1]
+            } and ${otherImportsCount} other ${pluralize(
+              otherImportsCount,
+              "file"
+            )}. Use --verbose to see the full list.`;
+          }
+
+          errorMessage += `  * ${sourceName} (${versionsRange})${indirectImportsText}\n`;
+        }
+
+        errorMessage += "\n";
+      }
+
       if (other.length > 0) {
-        reasons += `These files and its dependencies cannot be compiled with your config:
+        errorMessage += `These files and its dependencies cannot be compiled with your config. This can happen because they have incompatible Solidity pragmas, or don't match any of your configured Solidity compilers.
 
-${other.map((x) => `* ${x}`).join("\n")}
+${other.map((x) => `  * ${x.file.sourceName}`).join("\n")}
 
 `;
       }
 
-      reasons += `Learn more about compiler configuration at https://hardhat.org/config
+      errorMessage += `To learn more, run the command again with --verbose
+
+Read about compiler configuration at https://hardhat.org/config
 `;
 
-      return reasons;
+      return errorMessage;
     }
   );
 
@@ -1185,6 +1333,7 @@ subtask(TASK_COMPILE_SOLIDITY)
         for (const { file, artifactsEmitted } of artifactsEmittedPerFile) {
           solidityFilesCache.addFile(file.absolutePath, {
             lastModificationDate: file.lastModificationDate.valueOf(),
+            contentHash: file.contentHash,
             sourceName: file.sourceName,
             solcConfig: compilationJob.getSolcConfig(),
             imports: file.content.imports,
@@ -1243,7 +1392,7 @@ task(TASK_COMPILE, "Compiles the entire project, building all artifacts")
   });
 
 /**
- * If a file is present in the cache, but some of its artifacts is missing on
+ * If a file is present in the cache, but some of its artifacts are missing on
  * disk, we remove it from the cache to force it to be recompiled.
  */
 async function invalidateCacheMissingArtifacts(
@@ -1287,7 +1436,7 @@ function needsCompilation(
   for (const file of job.getResolvedFiles()) {
     const hasChanged = cache.hasFileChanged(
       file.absolutePath,
-      file.lastModificationDate,
+      file.contentHash,
       // we only check if the solcConfig is different for files that
       // emit artifacts
       job.emitsArtifacts(file) ? job.getSolcConfig() : undefined

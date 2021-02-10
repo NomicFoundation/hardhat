@@ -36,7 +36,7 @@
     ],
     "no-floating-promises": true,
     "prefer-conditional-expression": false,
-    "no-implicit-dependencies": [true, ["chai", "sinon", "chai-as-promised"]],
+    "no-implicit-dependencies": [true, ["chai", "sinon", "chai-as-promised", "nock"]],
     "await-promise": [true, "PromiseLike"],
     "strict-boolean-expressions": true,
     "no-duplicate-super": true,
@@ -63,6 +63,7 @@
       { "type": "enum", "format": "PascalCase" },
       { "type": "enumMember", "format": "UPPER_CASE" }
     ],
-    "no-duplicate-imports": [true, { "allow-namespace-imports": true }]
+    "no-duplicate-imports": [true, { "allow-namespace-imports": true }],
+    "triple-equals": true
   }
 }

@@ -84,6 +84,7 @@ interface DeploymentTransaction {
   stackTrace?: StackFrameDescription[]; // No stack trace === the tx MUST be successful
   imports?: string[]; // Imports needed for successful compilation
   consoleLogs?: ConsoleLogs[];
+  gas?: number;
 }
 
 interface CallTransaction {
@@ -98,6 +99,7 @@ interface CallTransaction {
   function?: string; // Default: no data
   params?: Array<string | number>; // Default: no param
   consoleLogs?: ConsoleLogs[];
+  gas?: number;
 }
 
 interface DeployedContract {
@@ -390,13 +392,7 @@ async function runTest(
 
   const txIndexToContract: Map<number, DeployedContract> = new Map();
 
-  for (
-    let txIndex = 0;
-    txIndex < testDefinition.transactions.length;
-    txIndex++
-  ) {
-    const tx = testDefinition.transactions[txIndex];
-
+  for (const [txIndex, tx] of testDefinition.transactions.entries()) {
     let trace: MessageTrace;
 
     if ("file" in tx) {
@@ -568,6 +564,7 @@ async function runDeploymentTransactionTest(
   const trace = await traceTransaction(vm, {
     value: tx.value,
     data,
+    gasLimit: tx.gas,
   });
 
   return trace as CreateMessageTrace;
@@ -601,6 +598,7 @@ async function runCallTransactionTest(
     to: contract.address,
     value: tx.value,
     data,
+    gasLimit: tx.gas,
   });
 
   return trace as CallMessageTrace;
@@ -681,6 +679,13 @@ const solidity07Compilers: CompilerOptions[] = [
   },
 ];
 
+const solidity08Compilers: CompilerOptions[] = [
+  {
+    solidityVersion: "0.8.0",
+    compilerPath: "soljson-v0.8.0+commit.c7dfd78e.js",
+  },
+];
+
 describe("Stack traces", function () {
   setCWD();
 
@@ -709,6 +714,8 @@ describe("Stack traces", function () {
         ? "0_6"
         : semver.satisfies(customSolcVersion, "^0.7.0")
         ? "0_7"
+        : semver.satisfies(customSolcVersion, "^0.8.0")
+        ? "0_8"
         : null;
 
       if (testsDir === null) {
@@ -735,6 +742,7 @@ describe("Stack traces", function () {
       ...solidity05Compilers.map((c) => c.compilerPath),
       ...solidity06Compilers.map((c) => c.compilerPath),
       ...solidity07Compilers.map((c) => c.compilerPath),
+      ...solidity08Compilers.map((c) => c.compilerPath),
     ]);
 
     this.timeout(paths.size * COMPILER_DOWNLOAD_TIMEOUT);
@@ -747,6 +755,7 @@ describe("Stack traces", function () {
   defineTestForSolidityMajorVersion(solidity05Compilers, "0_5");
   defineTestForSolidityMajorVersion(solidity06Compilers, "0_6");
   defineTestForSolidityMajorVersion(solidity07Compilers, "0_7");
+  defineTestForSolidityMajorVersion(solidity08Compilers, "0_8");
 });
 
 function defineTestForSolidityMajorVersion(

@@ -1,12 +1,11 @@
 import { encode } from "cbor";
 import { assert } from "chai";
 
-import { compareBytecode } from "../../../src/solc/bytecode";
+import { Bytecode, compareBytecode } from "../../../src/solc/bytecode";
 import {
+  getSolcMetadataSectionLength,
   METADATA_LENGTH_SIZE,
-  readSolcMetadataLength,
 } from "../../../src/solc/metadata";
-import { InferralType } from "../../../src/solc/version";
 
 describe("Compiler bytecode and deployed bytecode matching", () => {
   describe("with a simple standalone contract", () => {
@@ -28,13 +27,12 @@ describe("Compiler bytecode and deployed bytecode matching", () => {
         sourceMap: "",
         // immutableReferences: contract.immutableReferences,
       };
-      const deployedBytecode = contract.deployedBytecode.slice(2);
+      const deployedBytecode = new Bytecode(contract.deployedBytecode.slice(2));
       const contractInformation = await compareBytecode(
         deployedBytecode,
-        contractSymbols,
-        InferralType.METADATA_PRESENT_VERSION_ABSENT
+        contractSymbols
       );
-      assert.isTrue(contractInformation.match);
+      assert.isDefined(contractInformation);
     });
 
     // v0.7.0 is the latest compiler milestone.
@@ -56,13 +54,12 @@ describe("Compiler bytecode and deployed bytecode matching", () => {
         sourceMap: "",
         immutableReferences: contract.immutableReferences,
       };
-      const deployedBytecode = contract.deployedBytecode.slice(2);
+      const deployedBytecode = new Bytecode(contract.deployedBytecode.slice(2));
       const contractInformation = await compareBytecode(
         deployedBytecode,
-        contractSymbols,
-        InferralType.EXACT
+        contractSymbols
       );
-      assert.isTrue(contractInformation.match);
+      assert.isDefined(contractInformation);
     });
 
     it("matches bytecode with different metadata", async () => {
@@ -76,7 +73,8 @@ describe("Compiler bytecode and deployed bytecode matching", () => {
         linkReferences: {},
         immutableReferences: {},
       };
-      const deployedBytecode = contract.deployedBytecode.slice(2);
+      const deployedBytecodeHex = contract.deployedBytecode.slice(2);
+      const deployedBytecode = new Bytecode(deployedBytecodeHex);
 
       const mockSolcMetadataMapping = {
         solc: Buffer.from([0, 7, 0]),
@@ -88,13 +86,12 @@ describe("Compiler bytecode and deployed bytecode matching", () => {
       const length = Buffer.alloc(2);
       length.writeUInt16BE(mockMetadata.length, 0);
 
-      const deployedMetadataLength = readSolcMetadataLength(
-        Buffer.from(deployedBytecode, "hex")
+      const deployedMetadataSectionLength = getSolcMetadataSectionLength(
+        Buffer.from(deployedBytecodeHex, "hex")
       );
-      const deployedBytecodeTrimmed = deployedBytecode.slice(
+      const deployedBytecodeTrimmed = deployedBytecodeHex.slice(
         0,
-        deployedBytecode.length -
-          (deployedMetadataLength + METADATA_LENGTH_SIZE) * 2
+        deployedBytecodeHex.length - deployedMetadataSectionLength * 2
       );
       const bytecodeWithNewMetadata = [
         deployedBytecodeTrimmed,
@@ -112,10 +109,9 @@ describe("Compiler bytecode and deployed bytecode matching", () => {
 
       const contractInformation = await compareBytecode(
         deployedBytecode,
-        contractSymbols,
-        InferralType.EXACT
+        contractSymbols
       );
-      assert.isTrue(contractInformation.match);
+      assert.isDefined(contractInformation);
     });
   });
 
@@ -138,13 +134,12 @@ describe("Compiler bytecode and deployed bytecode matching", () => {
         sourceMap: "",
         immutableReferences: contract.immutableReferences,
       };
-      const deployedBytecode = contract.deployedBytecode.slice(2);
+      const deployedBytecode = new Bytecode(contract.deployedBytecode.slice(2));
       const contractInformation = await compareBytecode(
         deployedBytecode,
-        contractSymbols,
-        InferralType.EXACT
+        contractSymbols
       );
-      assert.isTrue(contractInformation.match);
+      assert.isDefined(contractInformation);
     });
   });
 
@@ -171,13 +166,12 @@ describe("Compiler bytecode and deployed bytecode matching", () => {
         sourceMap: "",
         // immutableReferences: contract.immutableReferences,
       };
-      const deployedBytecode = contract.deployedBytecode.slice(2);
+      const deployedBytecode = new Bytecode(contract.deployedBytecode.slice(2));
       const contractInformation = await compareBytecode(
         deployedBytecode,
-        contractSymbols,
-        InferralType.METADATA_PRESENT_VERSION_ABSENT
+        contractSymbols
       );
-      assert.isTrue(contractInformation.match);
+      assert.isDefined(contractInformation);
     });
 
     // v0.5.0 changes library placeholders.
@@ -202,13 +196,12 @@ describe("Compiler bytecode and deployed bytecode matching", () => {
         sourceMap: "",
         // immutableReferences: contract.immutableReferences,
       };
-      const deployedBytecode = contract.deployedBytecode.slice(2);
+      const deployedBytecode = new Bytecode(contract.deployedBytecode.slice(2));
       const contractInformation = await compareBytecode(
         deployedBytecode,
-        contractSymbols,
-        InferralType.METADATA_PRESENT_VERSION_ABSENT
+        contractSymbols
       );
-      assert.isTrue(contractInformation.match);
+      assert.isDefined(contractInformation);
     });
 
     // v0.7.0 is the latest compiler milestone.
@@ -234,13 +227,12 @@ describe("Compiler bytecode and deployed bytecode matching", () => {
         sourceMap: "",
         immutableReferences: contract.immutableReferences,
       };
-      const deployedBytecode = contract.deployedBytecode.slice(2);
+      const deployedBytecode = new Bytecode(contract.deployedBytecode.slice(2));
       const contractInformation = await compareBytecode(
         deployedBytecode,
-        contractSymbols,
-        InferralType.EXACT
+        contractSymbols
       );
-      assert.isTrue(contractInformation.match);
+      assert.isDefined(contractInformation);
     });
   });
 
@@ -264,13 +256,12 @@ describe("Compiler bytecode and deployed bytecode matching", () => {
         sourceMap: "",
         immutableReferences: contract.immutableReferences,
       };
-      const deployedBytecode = contract.deployedBytecode.slice(2);
+      const deployedBytecode = new Bytecode(contract.deployedBytecode.slice(2));
       const contractInformation = await compareBytecode(
         deployedBytecode,
-        contractSymbols,
-        InferralType.EXACT
+        contractSymbols
       );
-      assert.isTrue(contractInformation.match);
+      assert.isDefined(contractInformation);
     });
 
     // v0.7.0 is the latest compiler milestone.
@@ -292,13 +283,12 @@ describe("Compiler bytecode and deployed bytecode matching", () => {
         sourceMap: "",
         immutableReferences: contract.immutableReferences,
       };
-      const deployedBytecode = contract.deployedBytecode.slice(2);
+      const deployedBytecode = new Bytecode(contract.deployedBytecode.slice(2));
       const contractInformation = await compareBytecode(
         deployedBytecode,
-        contractSymbols,
-        InferralType.EXACT
+        contractSymbols
       );
-      assert.isTrue(contractInformation.match);
+      assert.isDefined(contractInformation);
     });
 
     it("matches bytecode with more than one immutable", async () => {
@@ -322,13 +312,12 @@ describe("Compiler bytecode and deployed bytecode matching", () => {
         sourceMap: "",
         immutableReferences: contract.immutableReferences,
       };
-      const deployedBytecode = contract.deployedBytecode.slice(2);
+      const deployedBytecode = new Bytecode(contract.deployedBytecode.slice(2));
       const contractInformation = await compareBytecode(
         deployedBytecode,
-        contractSymbols,
-        InferralType.EXACT
+        contractSymbols
       );
-      assert.isTrue(contractInformation.match);
+      assert.isDefined(contractInformation);
     });
   });
 });

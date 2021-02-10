@@ -1,10 +1,18 @@
-import { HardhatPluginError } from "hardhat/plugins";
+import {
+  HARDHAT_NETWORK_NAME,
+  NomicLabsHardhatPluginError,
+} from "hardhat/plugins";
 import { EthereumProvider } from "hardhat/types";
 
-import { pluginName } from "../pluginContext";
+import { pluginName } from "../constants";
+
+export interface EtherscanURLs {
+  apiURL: string;
+  browserURL: string;
+}
 
 type NetworkMap = {
-  [networkID in NetworkID]: string;
+  [networkID in NetworkID]: EtherscanURLs;
 };
 
 // See https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md#list-of-chain-ids
@@ -14,40 +22,76 @@ enum NetworkID {
   RINKEBY = 4,
   GOERLI = 5,
   KOVAN = 42,
+  // Binance Smart Chain
+  BSC = 56,
+  BSC_TESTNET = 97,
 }
 
-const networkIDtoEndpoint: NetworkMap = {
-  [NetworkID.MAINNET]: "https://api.etherscan.io/api",
-  [NetworkID.ROPSTEN]: "https://api-ropsten.etherscan.io/api",
-  [NetworkID.RINKEBY]: "https://api-rinkeby.etherscan.io/api",
-  [NetworkID.GOERLI]: "https://api-goerli.etherscan.io/api",
-  [NetworkID.KOVAN]: "https://api-kovan.etherscan.io/api",
+const networkIDtoEndpoints: NetworkMap = {
+  [NetworkID.MAINNET]: {
+    apiURL: "https://api.etherscan.io/api",
+    browserURL: "https://etherscan.io/",
+  },
+  [NetworkID.ROPSTEN]: {
+    apiURL: "https://api-ropsten.etherscan.io/api",
+    browserURL: "https://ropsten.etherscan.io",
+  },
+  [NetworkID.RINKEBY]: {
+    apiURL: "https://api-rinkeby.etherscan.io/api",
+    browserURL: "https://rinkeby.etherscan.io",
+  },
+  [NetworkID.GOERLI]: {
+    apiURL: "https://api-goerli.etherscan.io/api",
+    browserURL: "https://goerli.etherscan.io",
+  },
+  [NetworkID.KOVAN]: {
+    apiURL: "https://api-kovan.etherscan.io/api",
+    browserURL: "https://kovan.etherscan.io",
+  },
+  [NetworkID.BSC]: {
+    apiURL: "https://api.bscscan.com/api",
+    browserURL: "https://bscscan.com",
+  },
+  [NetworkID.BSC_TESTNET]: {
+    apiURL: "https://api-testnet.bscscan.com/api",
+    browserURL: "https://testnet.bscscan.com",
+  },
 };
 
-export class NetworkProberError extends HardhatPluginError {
-  constructor(message: string) {
-    super(pluginName, message);
+export async function getEtherscanEndpoints(
+  provider: EthereumProvider,
+  networkName: string
+): Promise<EtherscanURLs> {
+  if (networkName === HARDHAT_NETWORK_NAME) {
+    throw new NomicLabsHardhatPluginError(
+      pluginName,
+      `The selected network is ${networkName}. Please select a network supported by Etherscan.`
+    );
   }
-}
 
-export async function getEtherscanEndpoint(provider: EthereumProvider) {
   const chainID = parseInt(await provider.send("eth_chainId"), 16) as NetworkID;
 
-  const endpoint = networkIDtoEndpoint[chainID];
-  if (endpoint !== null && endpoint !== undefined) {
-    // Beware: this delays URL validation until it is effectively "used".
-    // Tests should take this into account.
-    return new URL(endpoint);
+  const endpoints = networkIDtoEndpoints[chainID];
+
+  if (endpoints === undefined) {
+    throw new NomicLabsHardhatPluginError(
+      pluginName,
+      `An etherscan endpoint could not be found for this network. ChainID: ${chainID}. The selected network is ${networkName}.
+
+Possible causes are:
+  - The selected network (${networkName}) is wrong.
+  - Faulty hardhat network config.`
+    );
   }
-  throw new NetworkProberError(
-    `An etherscan endpoint could not be found for this network. ChainID: ${chainID}`
-  );
+
+  return endpoints;
 }
 
 export async function retrieveContractBytecode(
   address: string,
-  provider: EthereumProvider
-) {
+  provider: EthereumProvider,
+  networkName: string
+): Promise<string> {
   const bytecodeString = (await provider.send("eth_getCode", [
     address,
     "latest",
@@ -56,7 +100,11 @@ export async function retrieveContractBytecode(
     ? bytecodeString.slice(2)
     : bytecodeString;
   if (deployedBytecode.length === 0) {
-    return null;
+    throw new NomicLabsHardhatPluginError(
+      pluginName,
+      `The address ${address} has no bytecode. Is the contract deployed to this network?
+The selected network is ${networkName}.`
+    );
   }
   return deployedBytecode;
 }

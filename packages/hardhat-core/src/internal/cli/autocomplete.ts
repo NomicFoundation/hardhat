@@ -1,27 +1,69 @@
+import findup from "find-up";
+import * as fs from "fs-extra";
+import * as path from "path";
+
+import { HardhatRuntimeEnvironment } from "../../types";
 import { HARDHAT_PARAM_DEFINITIONS } from "../core/params/hardhat-params";
-import type hardhat from "../lib/hardhat-lib";
+import { getCacheDir } from "../util/global-dir";
+import { createNonCryptographicHashBasedIdentifier } from "../util/hash";
+import { mapValues } from "../util/lang";
 
 import { ArgumentsParser } from "./ArgumentsParser";
+
+type GlobalParam = keyof typeof HARDHAT_PARAM_DEFINITIONS;
+
+interface Suggestion {
+  name: string;
+  description: string;
+}
 
 interface CompletionEnv {
   line: string;
   point: number;
 }
 
+interface CompletionData {
+  networks: string[];
+  tasks: {
+    [taskName: string]: {
+      name: string;
+      description: string;
+      isSubtask: boolean;
+      paramDefinitions: {
+        [paramName: string]: {
+          name: string;
+          description: string;
+          isFlag: boolean;
+        };
+      };
+    };
+  };
+}
+
+interface Mtimes {
+  [filename: string]: number;
+}
+
+interface CachedCompletionData {
+  completionData: CompletionData;
+  mtimes: Mtimes;
+}
+
+export const HARDHAT_COMPLETE_FILES = "__hardhat_complete_files__";
+
+export const REQUIRED_HH_VERSION_RANGE = "^1.0.0";
+
 export async function complete({
   line,
   point,
-}: CompletionEnv): Promise<string[]> {
-  let hre: typeof hardhat;
-  try {
-    process.env.TS_NODE_TRANSPILE_ONLY = "1";
-    require("../../register");
-    const { HardhatContext } = require("../context");
-    const context = HardhatContext.getHardhatContext();
-    hre = context.getHardhatRuntimeEnvironment();
-  } catch (e) {
+}: CompletionEnv): Promise<Suggestion[] | typeof HARDHAT_COMPLETE_FILES> {
+  const completionData = await getCompletionData();
+
+  if (completionData === undefined) {
     return [];
   }
+
+  const { networks, tasks } = completionData;
 
   const words = line.split(/\s+/).filter((x) => x.length > 0);
 
@@ -32,10 +74,14 @@ export async function complete({
   // `hh compile --network ha|` => prev: "--network" last: "ha"
   const [prev, last] = wordsBeforeCursor.slice(-2);
 
+  const startsWithLast = (completion: string) => completion.startsWith(last);
+
   const coreParams = Object.values(HARDHAT_PARAM_DEFINITIONS)
-    .map((x) => x.name)
-    .map(ArgumentsParser.paramNameToCLA)
-    .filter((x) => !words.includes(x));
+    .map((param) => ({
+      name: ArgumentsParser.paramNameToCLA(param.name),
+      description: param.description ?? "",
+    }))
+    .filter((x) => !words.includes(x.name));
 
   // check if the user entered a task
   let task: string | undefined;
@@ -62,7 +108,10 @@ export async function complete({
   }
 
   if (prev === "--network") {
-    return Object.keys(hre.config.networks);
+    return networks.filter(startsWithLast).map((network) => ({
+      name: network,
+      description: "",
+    }));
   }
 
   // if the previous word is a param, then a value is expected
@@ -70,42 +119,181 @@ export async function complete({
   if (prev.startsWith("-")) {
     const paramName = ArgumentsParser.cLAToParamName(prev);
 
-    const globalParam: any = (HARDHAT_PARAM_DEFINITIONS as any)[paramName];
+    const globalParam = HARDHAT_PARAM_DEFINITIONS[paramName as GlobalParam];
     if (globalParam !== undefined && !globalParam.isFlag) {
-      return [];
+      return HARDHAT_COMPLETE_FILES;
+    }
+
+    const isTaskParam =
+      task !== undefined &&
+      tasks[task]?.paramDefinitions[paramName]?.isFlag === false;
+
+    if (isTaskParam) {
+      return HARDHAT_COMPLETE_FILES;
     }
   }
 
   // if there's no task, we complete either tasks or params
-  if (task === undefined || hre.tasks[task] === undefined) {
-    const tasks = Object.values(hre.tasks)
-      .map((x) => x.name)
-      .filter((x) => !x.includes(":"));
+  if (task === undefined || tasks[task] === undefined) {
+    const taskSuggestions = Object.values(tasks)
+      .filter((x) => !x.isSubtask)
+      .map((x) => ({
+        name: x.name,
+        description: x.description,
+      }));
     if (last.startsWith("-")) {
-      return coreParams;
+      return coreParams.filter((param) => startsWithLast(param.name));
     }
-    return tasks;
+    return taskSuggestions.filter((x) => startsWithLast(x.name));
   }
 
   if (!last.startsWith("-")) {
-    return [];
+    return HARDHAT_COMPLETE_FILES;
   }
 
   // if there's a task and the last word starts with -, we complete its params and the global params
-  const taskParams = Object.values(hre.tasks[task].paramDefinitions)
-    .map((x) => x.name)
-    .map(ArgumentsParser.paramNameToCLA)
-    .filter((x) => !words.includes(x));
+  const taskParams = Object.values(tasks[task].paramDefinitions)
+    .map((param) => ({
+      name: ArgumentsParser.paramNameToCLA(param.name),
+      description: param.description,
+    }))
+    .filter((x) => !words.includes(x.name));
 
-  return [...taskParams, ...coreParams];
+  return [...taskParams, ...coreParams].filter((suggestion) =>
+    startsWithLast(suggestion.name)
+  );
+}
+
+async function getCompletionData(): Promise<CompletionData | undefined> {
+  const projectId = getProjectId();
+
+  if (projectId === undefined) {
+    return undefined;
+  }
+
+  const cachedCompletionData = await getCachedCompletionData(projectId);
+
+  if (cachedCompletionData !== undefined) {
+    if (arePreviousMtimesCorrect(cachedCompletionData.mtimes)) {
+      return cachedCompletionData.completionData;
+    }
+  }
+
+  const filesBeforeRequire = Object.keys(require.cache);
+  let hre: HardhatRuntimeEnvironment;
+  try {
+    process.env.TS_NODE_TRANSPILE_ONLY = "1";
+    require("../../register");
+    hre = (global as any).hre;
+  } catch (e) {
+    return undefined;
+  }
+  const filesAfterRequire = Object.keys(require.cache);
+  const mtimes = getMtimes(filesBeforeRequire, filesAfterRequire);
+
+  const networks = Object.keys(hre.config.networks);
+
+  // we extract the tasks data explicitly to make sure everything
+  // is serializable and to avoid saving unnecessary things from the HRE
+  const tasks: CompletionData["tasks"] = mapValues(hre.tasks, (task) => ({
+    name: task.name,
+    description: task.description ?? "",
+    isSubtask: task.isSubtask,
+    paramDefinitions: mapValues(task.paramDefinitions, (paramDefinition) => ({
+      name: paramDefinition.name,
+      description: paramDefinition.description ?? "",
+      isFlag: paramDefinition.isFlag,
+    })),
+  }));
+
+  const completionData: CompletionData = {
+    networks,
+    tasks,
+  };
+
+  await saveCachedCompletionData(projectId, completionData, mtimes);
+
+  return completionData;
+}
+
+function getProjectId(): string | undefined {
+  const packageJsonPath = findup.sync("package.json");
+
+  if (packageJsonPath === null) {
+    return undefined;
+  }
+
+  return createNonCryptographicHashBasedIdentifier(
+    Buffer.from(packageJsonPath)
+  ).toString("hex");
+}
+
+function arePreviousMtimesCorrect(mtimes: Mtimes): boolean {
+  try {
+    return Object.entries(mtimes).every(
+      ([file, mtime]) => fs.statSync(file).mtime.valueOf() === mtime
+    );
+  } catch (e) {
+    return false;
+  }
+}
+
+function getMtimes(filesLoadedBefore: string[], filesLoadedAfter: string[]) {
+  const loadedByHardhat = filesLoadedAfter.filter(
+    (f) => !filesLoadedBefore.includes(f)
+  );
+  const stats = loadedByHardhat.map((f) => fs.statSync(f));
+
+  const mtimes = loadedByHardhat.map((f, i) => ({
+    [f]: stats[i].mtime.valueOf(),
+  }));
+
+  if (mtimes.length === 0) {
+    return {};
+  }
+
+  return Object.assign(mtimes[0], ...mtimes.slice(1));
+}
+
+async function getCachedCompletionData(
+  projectId: string
+): Promise<CachedCompletionData | undefined> {
+  const cachedCompletionDataPath = await getCachedCompletionDataPath(projectId);
+
+  if (fs.existsSync(cachedCompletionDataPath)) {
+    try {
+      const cachedCompletionData = fs.readJsonSync(cachedCompletionDataPath);
+      return cachedCompletionData;
+    } catch (e) {
+      // remove the file if it seems invalid
+      fs.unlinkSync(cachedCompletionDataPath);
+      return undefined;
+    }
+  }
+}
+
+async function saveCachedCompletionData(
+  projectId: string,
+  completionData: CompletionData,
+  mtimes: Mtimes
+): Promise<void> {
+  const cachedCompletionDataPath = await getCachedCompletionDataPath(projectId);
+
+  await fs.outputJson(cachedCompletionDataPath, { completionData, mtimes });
+}
+
+async function getCachedCompletionDataPath(projectId: string): Promise<string> {
+  const cacheDir = await getCacheDir();
+
+  return path.join(cacheDir, "autocomplete", `${projectId}.json`);
 }
 
 function isGlobalFlag(param: string): boolean {
   const paramName = ArgumentsParser.cLAToParamName(param);
-  return (HARDHAT_PARAM_DEFINITIONS as any)[paramName]?.isFlag === true;
+  return HARDHAT_PARAM_DEFINITIONS[paramName as GlobalParam]?.isFlag === true;
 }
 
 function isGlobalParam(param: string): boolean {
   const paramName = ArgumentsParser.cLAToParamName(param);
-  return (HARDHAT_PARAM_DEFINITIONS as any)[paramName]?.isFlag === false;
+  return HARDHAT_PARAM_DEFINITIONS[paramName as GlobalParam]?.isFlag === false;
 }

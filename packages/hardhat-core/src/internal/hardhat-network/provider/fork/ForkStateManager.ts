@@ -6,13 +6,16 @@ import {
   KECCAK256_NULL,
   stripZeros,
   toBuffer,
+  unpad,
 } from "ethereumjs-util";
 import { Map as ImmutableMap, Record as ImmutableRecord } from "immutable";
 import { callbackify } from "util";
 
 import { JsonRpcClient } from "../../jsonrpc/client";
+import { GenesisAccount } from "../node-types";
 import { PStateManager } from "../types/PStateManager";
 import { StateManager } from "../types/StateManager";
+import { makeAccount } from "../utils/makeAccount";
 
 import { AccountState, makeAccountState } from "./Account";
 import { randomHash } from "./random";
@@ -36,7 +39,8 @@ const notSupportedError = (method: string) =>
 
 export class ForkStateManager implements PStateManager {
   private _state: State = ImmutableMap();
-  private _stateRoot: string = randomHash();
+  private _initialStateRoot: string = randomHash();
+  private _stateRoot: string = this._initialStateRoot;
   private _stateRootToState: Map<string, State> = new Map();
   private _originalStorageCache: Map<string, Buffer> = new Map();
   private _stateCheckpoints: string[] = [];
@@ -45,9 +49,17 @@ export class ForkStateManager implements PStateManager {
 
   constructor(
     private readonly _jsonRpcClient: JsonRpcClient,
-    private readonly _forkBlockNumber: BN
+    private readonly _forkBlockNumber: BN,
+    genesisAccounts: GenesisAccount[] = []
   ) {
     this._state = ImmutableMap();
+
+    for (const ga of genesisAccounts) {
+      const { address, account } = makeAccount(ga);
+      this._putAccount(address, account);
+    }
+
+    this._stateRootToState.set(this._initialStateRoot, this._state);
   }
 
   public copy(): ForkStateManager {
@@ -104,20 +116,7 @@ export class ForkStateManager implements PStateManager {
   }
 
   public async putAccount(address: Buffer, account: Account): Promise<void> {
-    // Because the vm only ever modifies the nonce, balance and codeHash using this
-    // method we ignore the stateRoot property
-    const hexAddress = bufferToHex(address);
-    let localAccount = this._state.get(hexAddress) ?? makeAccountState();
-    localAccount = localAccount
-      .set("nonce", bufferToHex(account.nonce))
-      .set("balance", bufferToHex(account.balance));
-
-    // Code is set to empty string here to prevent unnecessary
-    // JsonRpcClient.getCode calls in getAccount method
-    if (account.codeHash.equals(KECCAK256_NULL)) {
-      localAccount = localAccount.set("code", "0x");
-    }
-    this._state = this._state.set(hexAddress, localAccount);
+    this._putAccount(address, account);
   }
 
   public touchAccount(address: Buffer): void {
@@ -152,19 +151,25 @@ export class ForkStateManager implements PStateManager {
     key: Buffer
   ): Promise<Buffer> {
     const account = this._state.get(bufferToHex(address));
-    const cleared = account?.get("storageCleared") ?? false;
+    const contractStorageCleared = account?.get("storageCleared") ?? false;
     const localValue = account?.get("storage").get(bufferToHex(key));
+
     if (localValue !== undefined) {
       return toBuffer(localValue);
     }
-    if (cleared) {
-      return toBuffer(new Array(32).fill(0));
+
+    const slotCleared = localValue === null;
+    if (contractStorageCleared || slotCleared) {
+      return toBuffer([]);
     }
-    return this._jsonRpcClient.getStorageAt(
+
+    const remoteValue = await this._jsonRpcClient.getStorageAt(
       address,
       key,
       this._contextBlockNumber
     );
+
+    return unpad(remoteValue);
   }
 
   public async getOriginalContractStorage(
@@ -186,12 +191,24 @@ export class ForkStateManager implements PStateManager {
     key: Buffer,
     value: Buffer
   ): Promise<void> {
+    const unpaddedValue = unpad(value);
+
     const hexAddress = bufferToHex(address);
     let account = this._state.get(hexAddress) ?? makeAccountState();
-    account = account.set(
-      "storage",
-      account.get("storage").set(bufferToHex(key), bufferToHex(value))
-    );
+    const currentStorage = account.get("storage");
+
+    let newValue: string | null;
+    if (unpaddedValue.length === 0) {
+      // if the value is an empty array or only zeros, the storage is deleted
+      newValue = null;
+    } else {
+      newValue = bufferToHex(unpaddedValue);
+    }
+
+    const newStorage = currentStorage.set(bufferToHex(key), newValue);
+
+    account = account.set("storage", newStorage);
+
     this._state = this._state.set(hexAddress, account);
   }
 
@@ -319,6 +336,10 @@ export class ForkStateManager implements PStateManager {
     if (this._stateCheckpoints.length !== 0) {
       throw checkpointedError("setBlockContext");
     }
+    if (blockNumber.eq(this._forkBlockNumber)) {
+      this._setStateRoot(toBuffer(this._initialStateRoot));
+      return;
+    }
     if (blockNumber.gt(this._forkBlockNumber)) {
       this._setStateRoot(stateRoot);
       return;
@@ -341,6 +362,23 @@ export class ForkStateManager implements PStateManager {
       this._contextChanged = false;
       this._contextBlockNumber = this._forkBlockNumber;
     }
+  }
+
+  private _putAccount(address: Buffer, account: Account): void {
+    // Because the vm only ever modifies the nonce, balance and codeHash using this
+    // method we ignore the stateRoot property
+    const hexAddress = bufferToHex(address);
+    let localAccount = this._state.get(hexAddress) ?? makeAccountState();
+    localAccount = localAccount
+      .set("nonce", bufferToHex(account.nonce))
+      .set("balance", bufferToHex(account.balance));
+
+    // Code is set to empty string here to prevent unnecessary
+    // JsonRpcClient.getCode calls in getAccount method
+    if (account.codeHash.equals(KECCAK256_NULL)) {
+      localAccount = localAccount.set("code", "0x");
+    }
+    this._state = this._state.set(hexAddress, localAccount);
   }
 
   private _setStateRoot(stateRoot: Buffer) {

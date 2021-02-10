@@ -1,4 +1,4 @@
-import { bufferToHex, bufferToInt, fromSigned } from "ethereumjs-util";
+import { BN, bufferToHex, bufferToInt, fromSigned } from "ethereumjs-util";
 import util from "util";
 
 import {
@@ -37,7 +37,6 @@ import {
   Bytes8Ty,
   Bytes9Ty,
   BytesTy,
-  ByteTy,
   ConsoleLogs,
   IntTy,
   StringTy,
@@ -131,6 +130,10 @@ export class ConsoleLogger {
       const position = i * 32;
       switch (types[i]) {
         case UintTy:
+          return new BN(
+            data.slice(position, position + REGISTER_SIZE)
+          ).toString(10);
+
         case IntTy:
           return fromSigned(
             data.slice(position, position + REGISTER_SIZE)
@@ -165,7 +168,6 @@ export class ConsoleLogger {
             data.slice(bStart + REGISTER_SIZE, bStart + REGISTER_SIZE + bLen)
           );
 
-        case ByteTy:
         case Bytes1Ty:
           return bufferToHex(data.slice(position, position + 1));
         case Bytes2Ty:
