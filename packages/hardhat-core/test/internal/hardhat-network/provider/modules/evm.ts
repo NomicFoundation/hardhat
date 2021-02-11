@@ -101,13 +101,22 @@ describe("Evm module", function () {
         });
 
         it("should return the total offset as a decimal string, not a QUANTITY", async function () {
+          // get the current offset
+          const initialOffset = parseInt(
+            await this.provider.send("evm_increaseTime", [0]),
+            10
+          );
+
           let totalOffset = await this.provider.send("evm_increaseTime", [123]);
           assert.isString(totalOffset);
-          assert.strictEqual(parseInt(totalOffset, 10), 123);
+          assert.strictEqual(parseInt(totalOffset, 10), initialOffset + 123);
 
           totalOffset = await this.provider.send("evm_increaseTime", [3456789]);
           assert.isString(totalOffset);
-          assert.strictEqual(parseInt(totalOffset, 10), 123 + 3456789);
+          assert.strictEqual(
+            parseInt(totalOffset, 10),
+            initialOffset + 123 + 3456789
+          );
         });
 
         it("should expect an actual number as its first param, not a hex string", async function () {
