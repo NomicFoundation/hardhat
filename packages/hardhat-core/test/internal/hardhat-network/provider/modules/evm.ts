@@ -444,7 +444,7 @@ describe("Evm module", function () {
           });
 
           it("Deletes previous transactions", async function () {
-            const [from] = await this.provider.send("eth_accounts");
+            const [, from] = await this.provider.send("eth_accounts");
 
             const snapshotId: string = await this.provider.send(
               "evm_snapshot",
@@ -475,7 +475,7 @@ describe("Evm module", function () {
           });
 
           it("Allows resending the same tx after a revert", async function () {
-            const [from] = await this.provider.send("eth_accounts");
+            const [, from] = await this.provider.send("eth_accounts");
 
             const snapshotId: string = await this.provider.send(
               "evm_snapshot",
@@ -614,13 +614,15 @@ describe("Evm module", function () {
               toFake: ["Date"],
             });
 
+            const firstBlock = await mineEmptyBlock();
             await this.provider.send("evm_increaseTime", [100]);
             const snapshotBlock = await mineEmptyBlock();
+
             const snapshotId = await this.provider.send("evm_snapshot");
 
             assert.equal(
               quantityToNumber(snapshotBlock.timestamp),
-              getCurrentTimestamp() + 100
+              quantityToNumber(firstBlock.timestamp) + 100
             );
 
             sinonClock.tick(20 * 1000);
@@ -639,7 +641,7 @@ describe("Evm module", function () {
           it("Restores the previous state", async function () {
             // This is a very coarse test, as we know that the entire state is
             // managed by the vm, and is restored as a whole
-            const [from] = await this.provider.send("eth_accounts");
+            const [, from] = await this.provider.send("eth_accounts");
 
             const balanceBeforeTx = await this.provider.send("eth_getBalance", [
               from,
