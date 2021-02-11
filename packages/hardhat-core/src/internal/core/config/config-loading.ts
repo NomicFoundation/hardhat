@@ -33,7 +33,7 @@ export function resolveConfigPath(configPath: string | undefined) {
 
 export function loadConfigAndTasks(
   hardhatArguments?: Partial<HardhatArguments>,
-  { showWarningIfNoSolidityConfig } = { showWarningIfNoSolidityConfig: false }
+  { showSolidityConfigWarnings } = { showSolidityConfigWarnings: false }
 ): HardhatConfig {
   let configPath =
     hardhatArguments !== undefined ? hardhatArguments.config : undefined;
@@ -70,7 +70,7 @@ export function loadConfigAndTasks(
 
   validateConfig(userConfig);
 
-  if (userConfig.solidity === undefined && showWarningIfNoSolidityConfig) {
+  if (userConfig.solidity === undefined && showSolidityConfigWarnings) {
     console.warn(
       chalk.yellow(
         `Solidity compiler is not configured. Version ${DEFAULT_SOLC_VERSION} will be used by default. Add a 'solidity' entry to your configuration to supress this warning.

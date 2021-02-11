@@ -110,11 +110,11 @@ async function main() {
 
     let taskName = parsedTaskName ?? TASK_HELP;
 
-    const showWarningIfNoSolidityConfig = taskName === TASK_COMPILE;
+    const showSolidityConfigWarnings = taskName === TASK_COMPILE;
 
     const ctx = HardhatContext.createHardhatContext();
     const config = loadConfigAndTasks(hardhatArguments, {
-      showWarningIfNoSolidityConfig,
+      showSolidityConfigWarnings,
     });
 
     let telemetryConsent: boolean | undefined = hasConsentedTelemetry();
