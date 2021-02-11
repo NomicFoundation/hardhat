@@ -11,6 +11,7 @@ import {
 import { Map as ImmutableMap, Record as ImmutableRecord } from "immutable";
 import { callbackify } from "util";
 
+import { assertHardhatInvariant } from "../../../core/errors";
 import { JsonRpcClient } from "../../jsonrpc/client";
 import { GenesisAccount } from "../node-types";
 import { PStateManager } from "../types/PStateManager";
@@ -54,8 +55,34 @@ export class ForkStateManager implements PStateManager {
   ) {
     this._state = ImmutableMap();
 
+    this._stateRootToState.set(this._initialStateRoot, this._state);
+  }
+
+  public async initializeGenesisAccounts(genesisAccounts: GenesisAccount[]) {
+    const accounts: Array<{ address: Buffer; account: Account }> = [];
+    const noncesPromises: Array<Promise<BN>> = [];
+
     for (const ga of genesisAccounts) {
-      const { address, account } = makeAccount(ga);
+      const account = makeAccount(ga);
+      accounts.push(account);
+
+      const noncePromise = this._jsonRpcClient.getTransactionCount(
+        account.address,
+        this._forkBlockNumber
+      );
+      noncesPromises.push(noncePromise);
+    }
+
+    const nonces = await Promise.all(noncesPromises);
+
+    assertHardhatInvariant(
+      accounts.length === nonces.length,
+      "Nonces and accounts should have the same length"
+    );
+
+    for (const [index, { address, account }] of accounts.entries()) {
+      const nonce = nonces[index];
+      account.nonce = toBuffer(nonce);
       this._putAccount(address, account);
     }
 

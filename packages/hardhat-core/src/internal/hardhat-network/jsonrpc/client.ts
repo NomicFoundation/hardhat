@@ -124,6 +124,15 @@ export class JsonRpcClient {
     );
   }
 
+  public async getTransactionCount(address: Buffer, blockNumber: BN) {
+    return this._perform(
+      "eth_getTransactionCount",
+      [bufferToHex(address), numberToRpcQuantity(blockNumber)],
+      rpcQuantity,
+      () => blockNumber
+    );
+  }
+
   public async getTransactionReceipt(transactionHash: Buffer) {
     return this._perform(
       "eth_getTransactionReceipt",
