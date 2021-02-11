@@ -11,6 +11,10 @@ export const DEFAULT_NETWORK_ID = 234;
 export const DEFAULT_BLOCK_GAS_LIMIT = 6000000;
 export const DEFAULT_USE_JSON_RPC = false;
 export const DEFAULT_ALLOW_UNLIMITED_CONTRACT_SIZE = false;
+
+// Assumptions:
+// - First account has sent some transactions on mainnet
+// - Second and third accounts have a 0 nonce
 export const DEFAULT_ACCOUNTS = [
   {
     privateKey:
@@ -20,6 +24,11 @@ export const DEFAULT_ACCOUNTS = [
   {
     privateKey:
       "0xe331b6d69882b4cb4ea581d88e0b604039a3de5967688d3dcffdd2270c0fd10a",
+    balance: new BN(10).pow(new BN(18)),
+  },
+  {
+    privateKey:
+      "0xe331b6d69882b4cb4ea581d88e0b604039a3de5967688d3dcffdd2270c0fd10b",
     balance: new BN(10).pow(new BN(18)),
   },
 ];
