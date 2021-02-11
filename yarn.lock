@@ -564,10 +564,10 @@
     "@types/istanbul-reports" "^1.1.1"
     "@types/yargs" "^13.0.0"
 
-"@nomiclabs/ethereumjs-vm@4.2.2-rc.1":
-  version "4.2.2-rc.1"
-  resolved "https://registry.yarnpkg.com/@nomiclabs/ethereumjs-vm/-/ethereumjs-vm-4.2.2-rc.1.tgz#846dfdd23194511a19f6d92eea9766e513adf009"
-  integrity sha512-F8qs1s/P8YahQmn4MeLpLVr94MAMvIBOk2wNYX+D8wqEiVW85pMkt6AZkaI3NWIEHTZpCc+gLr4r9cOfxhKVbA==
+"@nomiclabs/ethereumjs-vm@4.2.2":
+  version "4.2.2"
+  resolved "https://registry.yarnpkg.com/@nomiclabs/ethereumjs-vm/-/ethereumjs-vm-4.2.2.tgz#2f8817113ca0fb6c44c1b870d0a809f0e026a6cc"
+  integrity sha512-8WmX94mMcJaZ7/m7yBbyuS6B+wuOul+eF+RY9fBpGhNaUpyMR/vFIcDojqcWQ4Yafe1tMKY5LDu2yfT4NZgV4Q==
   dependencies:
     async "^2.1.2"
     async-eventemitter "^0.2.2"
