@@ -63,10 +63,7 @@ Please use block number ${lastSafeBlock} or wait for the block to get ${
     forkBlockNumber = new BN(lastSafeBlock);
   }
 
-  const block = (await provider.request({
-    method: "eth_getBlockByNumber",
-    params: [numberToRpcQuantity(forkBlockNumber), false],
-  })) as RpcBlockOutput;
+  const block = await getBlockByNumber(provider, forkBlockNumber);
 
   const forkBlockTimestamp = rpcQuantityToNumber(block.timestamp) * 1000;
 
@@ -84,6 +81,18 @@ Please use block number ${lastSafeBlock} or wait for the block to get ${
   );
 
   return { forkClient, forkBlockNumber, forkBlockTimestamp };
+}
+
+async function getBlockByNumber(
+  provider: HttpProvider,
+  blockNumber: BN
+): Promise<RpcBlockOutput> {
+  const rpcBlockOutput = (await provider.request({
+    method: "eth_getBlockByNumber",
+    params: [numberToRpcQuantity(blockNumber), false],
+  })) as RpcBlockOutput;
+
+  return rpcBlockOutput;
 }
 
 async function getNetworkId(provider: HttpProvider) {
