@@ -75,7 +75,7 @@
     "time-require": "^0.1.2"
   },
   "dependencies": {
-    "@nomiclabs/ethereumjs-vm": "^4.2.1",
+    "@nomiclabs/ethereumjs-vm": "4.2.2",
     "@sentry/node": "^5.18.1",
     "@solidity-parser/parser": "^0.11.0",
     "@types/bn.js": "^4.11.5",
@@ -104,7 +104,7 @@
     "immutable": "^4.0.0-rc.12",
     "io-ts": "1.10.4",
     "lodash": "^4.17.11",
-    "merkle-patricia-tree": "^2.3.2",
+    "merkle-patricia-tree": "3.0.0",
     "mocha": "^7.1.2",
     "node-fetch": "^2.6.0",
     "qs": "^6.7.0",
