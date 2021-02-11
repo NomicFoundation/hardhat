@@ -4,8 +4,10 @@ import { BN, bufferToHex, toBuffer } from "ethereumjs-util";
 import { Contract, utils, Wallet } from "ethers";
 import fsExtra from "fs-extra";
 
+import { rpcQuantityToNumber } from "../../../../src/internal/core/providers/provider-utils";
 import { InvalidInputError } from "../../../../src/internal/hardhat-network/provider/errors";
 import { numberToRpcQuantity } from "../../../../src/internal/hardhat-network/provider/output";
+import { ALCHEMY_URL } from "../../../setup";
 import {
   assertQuantity,
   assertTransactionFailure,
@@ -552,6 +554,38 @@ describe("Forked provider", () => {
             assert.equal(daiAfter.toString(), expectedDai.toString());
             assert.closeTo(ethLost, 0.5, 0.001);
           });
+        });
+      });
+
+      describe("blocks timestamps", () => {
+        it("should use a timestamp relative to the forked block timestamp", async function () {
+          if (ALCHEMY_URL === undefined) {
+            this.skip();
+          }
+
+          await this.provider.send("hardhat_reset", [
+            {
+              forking: {
+                jsonRpcUrl: ALCHEMY_URL,
+                blockNumber: 11565019, // first block of 2021
+              },
+            },
+          ]);
+
+          await this.provider.send("evm_mine");
+
+          const block = await this.provider.send("eth_getBlockByNumber", [
+            "latest",
+            false,
+          ]);
+
+          const timestamp = rpcQuantityToNumber(block.timestamp);
+          const date = new Date(timestamp * 1000);
+
+          // check that the new block date is 2021-Jan-01
+          assert.equal(date.getUTCDate(), 1);
+          assert.equal(date.getUTCMonth(), 0);
+          assert.equal(date.getUTCFullYear(), 2021);
         });
       });
     });
