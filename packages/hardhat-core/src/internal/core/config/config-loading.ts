@@ -33,7 +33,7 @@ export function resolveConfigPath(configPath: string | undefined) {
 
 export function loadConfigAndTasks(
   hardhatArguments?: Partial<HardhatArguments>,
-  { showWarningIfNoSolidityConfig } = { showWarningIfNoSolidityConfig: true }
+  { showWarningIfNoSolidityConfig } = { showWarningIfNoSolidityConfig: false }
 ): HardhatConfig {
   let configPath =
     hardhatArguments !== undefined ? hardhatArguments.config : undefined;
