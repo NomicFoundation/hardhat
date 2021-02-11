@@ -75,7 +75,7 @@
     "time-require": "^0.1.2"
   },
   "dependencies": {
-    "@nomiclabs/ethereumjs-vm": "^4.2.1",
+    "@nomiclabs/ethereumjs-vm": "4.2.2-rc.1",
     "@sentry/node": "^5.18.1",
     "@solidity-parser/parser": "^0.11.0",
     "@types/bn.js": "^4.11.5",
