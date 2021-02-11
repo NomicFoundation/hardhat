@@ -121,7 +121,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: [10, 12, 13]
+        node: [10, 12, 13, 14, 15]
     steps:
       - uses: actions/setup-node@v1
         with:
