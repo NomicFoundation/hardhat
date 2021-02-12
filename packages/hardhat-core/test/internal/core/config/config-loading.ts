@@ -388,18 +388,6 @@ Hardhat plugin instead.`
       assert.equal(config.solidity.compilers[0].version, DEFAULT_SOLC_VERSION);
     });
 
-    it("should emit a warning if the solc version is too old", function () {
-      loadConfigAndTasks(
-        {
-          config: "unsupported-old-solc.js",
-        },
-        { showSolidityConfigWarnings: true }
-      );
-
-      assert.equal(consoleWarnStub.callCount, 1);
-      assert.include(consoleWarnStub.args[0][0], "is not supported yet");
-    });
-
     it("should emit a warning if the solc version is too new", function () {
       loadConfigAndTasks(
         {
