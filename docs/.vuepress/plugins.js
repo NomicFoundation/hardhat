@@ -296,6 +296,15 @@ const plugins = [
       "A Hardhat plugin that generates a React hook component from your smart contracts. Hot reloaded into your React app. Deployed or not deployed. And everything typed and initialized.",
     tags: ["Ethers", "React", "Deploy", "Typechain", "Frontend", "Web3modal"],
   },
+  {
+    name: "hardhat-etherscan-abi",
+    author: "Roman Semenov",
+    authorUrl: "https://github.com/poma",
+    url:
+      "https://github.com/poma/hardhat-etherscan-abi",
+    description: "Automatically fetch contract ABI from Etherscan",
+    tags: ["Etherscan", "ABI"],
+  },
 ];
 
 module.exports = plugins.map((p) => ({
