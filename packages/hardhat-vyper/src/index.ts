@@ -1,7 +1,4 @@
-import {
-  TASK_COMPILE_GET_COMPILATION_TASKS,
-  TASK_COMPILE_SOLIDITY,
-} from "hardhat/builtin-tasks/task-names";
+import { TASK_COMPILE_GET_COMPILATION_TASKS } from "hardhat/builtin-tasks/task-names";
 import { extendConfig, subtask } from "hardhat/internal/core/config/config-env";
 
 import { TASK_COMPILE_VYPER } from "./task-names";
@@ -14,8 +11,9 @@ extendConfig((config) => {
 
 subtask(
   TASK_COMPILE_GET_COMPILATION_TASKS,
-  async (): Promise<string[]> => {
-    return [TASK_COMPILE_SOLIDITY, TASK_COMPILE_VYPER];
+  async (_, __, runSuper): Promise<string[]> => {
+    const otherTasks = await runSuper();
+    return [...otherTasks, TASK_COMPILE_VYPER];
   }
 );
 
