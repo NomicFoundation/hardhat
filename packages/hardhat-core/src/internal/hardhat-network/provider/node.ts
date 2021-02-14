@@ -22,6 +22,7 @@ import {
   toBuffer,
 } from "ethereumjs-util";
 import EventEmitter from "events";
+import { threadId } from "worker_threads";
 
 import { CompilerInput, CompilerOutput } from "../../../types";
 import { HARDHAT_NETWORK_DEFAULT_GAS_PRICE } from "../../core/config/default-config";
@@ -42,6 +43,7 @@ import {
   StackTraceEntryType,
 } from "../stack-traces/solidity-stack-trace";
 import { SolidityTracer } from "../stack-traces/solidityTracer";
+import { VMDebugTracer } from "../stack-traces/vm-debug-tracer";
 import { VmTraceDecoder } from "../stack-traces/vm-trace-decoder";
 import { VMTracer } from "../stack-traces/vm-tracer";
 
@@ -189,6 +191,7 @@ export class HardhatNode extends EventEmitter {
   private readonly _vmTracer: VMTracer;
   private readonly _vmTraceDecoder: VmTraceDecoder;
   private readonly _solidityTracer: SolidityTracer;
+  private readonly _vmDebugTracer: VMDebugTracer;
   private readonly _consoleLogger: ConsoleLogger = new ConsoleLogger();
   private _failedStackTraces = 0;
 
@@ -212,6 +215,8 @@ export class HardhatNode extends EventEmitter {
       false
     );
     this._vmTracer.enableTracing();
+
+    this._vmDebugTracer = new VMDebugTracer(this._vm);
 
     const contractsIdentifier = new ContractsIdentifier();
     this._vmTraceDecoder = new VmTraceDecoder(contractsIdentifier);
@@ -828,6 +833,37 @@ export class HardhatNode extends EventEmitter {
     await this._txPool.clean();
   }
 
+  public async traceTransaction(hash: Buffer): Promise<object> {
+    const block = await this.getBlockByTransactionHash(hash);
+    if (block === undefined) {
+      throw new InvalidInputError(
+        `Unable to find a block containing transaction ${bufferToHex(hash)}`
+      );
+    }
+
+    return this._runInBlockContext(
+      new BN(block.header.number).subn(1),
+      async () => {
+        const blockGasLimit = this.getBlockGasLimit();
+        const gasLeft = blockGasLimit.clone();
+        for (const tx of block.transactions) {
+          const txHash = tx.hash();
+          if (txHash.equals(hash)) {
+            this._vmDebugTracer.enableTracing();
+            await this._reRunTx(tx, block, gasLeft);
+            this._vmDebugTracer.disableTracing();
+            return this._vmDebugTracer.getDebugTrace();
+          }
+          const txResult = await this._reRunTx(tx, block, gasLeft);
+          gasLeft.isub(txResult.gasUsed);
+        }
+        throw new TransactionExecutionError(
+          `Unable to find a transaction in a block that contains that transaction, this should never happen`
+        );
+      }
+    );
+  }
+
   private async _addPendingTransaction(tx: Transaction): Promise<string> {
     await this._txPool.addTransaction(tx);
     await this._notifyPendingTransaction(tx);
@@ -973,6 +1009,23 @@ export class HardhatNode extends EventEmitter {
       },
       traces,
     };
+  }
+
+  private async _reRunTx(
+    tx: Transaction,
+    block: Block,
+    gasLeft: BN
+  ): Promise<RunTxResult> {
+    const shouldThrow = true;
+    const result = await this._runTx(tx, block, gasLeft, shouldThrow);
+    if (result === null) {
+      throw new TransactionExecutionError(
+        `Failed to execute mined transaction ${bufferToHex(
+          tx.hash()
+        )} for unknown reason, this should never happen`
+      );
+    }
+    return result;
   }
 
   private async _runTx(
