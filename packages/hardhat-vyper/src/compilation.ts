@@ -9,6 +9,7 @@ import {
   ProcessResult,
 } from "@nomiclabs/hardhat-docker";
 import fsExtra from "fs-extra";
+import { emoji } from "hardhat/internal/cli/emoji";
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import { Artifact, Artifacts, ProjectPathsConfig } from "hardhat/types";
 import { localPathToSourceName } from "hardhat/utils/source-names";
@@ -52,11 +53,11 @@ export async function compile(
     const pathFromSources = path.relative(paths.sources, file);
 
     if (await isAlreadyCompiled(file, paths, vyperVersion)) {
-      console.log("✓", pathFromCWD, "is already compiled");
+      console.log(`${emoji("✓ ")}${pathFromCWD} is already compiled`);
       continue;
     }
 
-    console.log("⌛ Compiling", pathFromCWD);
+    console.log(`${emoji("⌛ ")}Compiling ${pathFromCWD}`);
 
     const processResult = await handleCommonErrors(
       compileWithDocker(file, docker, dockerImage, paths)
