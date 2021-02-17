@@ -56,9 +56,9 @@ To deploy to a remote network such as mainnet or any testnet, you need to add a 
 ```js{5,11,15-20}
 require("@nomiclabs/hardhat-waffle");
 
-// Go to https://infura.io/ and create a new project
-// Replace this with your Infura project ID
-const INFURA_PROJECT_ID = "YOUR INFURA PROJECT ID";
+// Go to https://www.alchemyapi.io, sign up, create
+// a new App in its dashboard, and replace "KEY" with its key
+const ALCHEMY_API_KEY = "KEY";
 
 // Replace this private key with your Ropsten account private key
 // To export your private key from Metamask, open Metamask and
@@ -70,13 +70,14 @@ module.exports = {
   solidity: "0.7.3",
   networks: {
     ropsten: {
-      url: `https://ropsten.infura.io/v3/${INFURA_PROJECT_ID}`,
+      url: `https://eth-ropsten.alchemyapi.io/v2/${ALCHEMY_API_KEY}`,
       accounts: [`0x${ROPSTEN_PRIVATE_KEY}`]
     }
   }
 };
 ```
-We're using [Infura](https://infura.io/), but pointing `url` to any Ethereum node or gateway would work. Go grab your `INFURA_PROJECT_ID` and come back.
+
+We're using [Alchemy](https://www.alchemyapi.io), but pointing `url` to any Ethereum node or gateway would work. Go grab your `ALCHEMY_API_KEY` and come back.
 
 To deploy on Ropsten you need to send ropsten-ETH into the address that's going to be making the deployment. You can get some ETH for testnets from a faucet, a service that distributes testing-ETH for free. [Here's the one for Ropsten](https://faucet.metamask.io/), you'll have to change Metamask's network to Ropsten before transacting. 
 
