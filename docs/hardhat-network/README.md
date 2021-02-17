@@ -129,7 +129,7 @@ To fork from the mainnet you need the URL of a node to connect to. For example, 
 npx hardhat node --fork https://eth-mainnet.alchemyapi.io/v2/<key>
 ```
 
-where you have to replace `<projectId>` with your Infura project id.
+where you have to replace `<key>` with your Alchemy API key.
 
 After doing this, you can do anything in your node that you can do with a non-forked Hardhat Network: see console logs, get stack traces or use the default accounts to deploy new contracts.
 
@@ -139,7 +139,7 @@ If you want this to be the default behavior, you can do it in your Hardhat confi
 networks: {
   hardhat: {
     forking: {
-      url: "https://mainnet.infura.io/v3/<projectId>"
+      url: "https://eth-mainnet.alchemyapi.io/v2/<key>"
     }
   }
 }
