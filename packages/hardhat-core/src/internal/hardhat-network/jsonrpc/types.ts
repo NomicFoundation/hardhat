@@ -23,6 +23,21 @@ export const nullable = <T>(codec: t.Type<T>) =>
     t.identity
   );
 
+// Note that this is slightly different from optional properties marked with ?
+// See https://github.com/gcanti/io-ts/issues/56
+export const optional = <T>(codec: t.Type<T>): t.Type<T | undefined> =>
+  new t.Type(
+    `${codec.name} or undefined`,
+    (input): input is T | undefined => input === undefined || codec.is(input),
+    (input, context) => {
+      if (input === undefined) {
+        return t.success(input);
+      }
+      return codec.validate(input, context);
+    },
+    t.identity
+  );
+
 export type RpcTransaction = t.TypeOf<typeof rpcTransaction>;
 export const rpcTransaction = t.type(
   {
@@ -48,7 +63,7 @@ const baseBlockResponse = {
   number: nullable(rpcQuantity),
   hash: nullable(rpcHash),
   parentHash: rpcHash,
-  nonce: rpcData,
+  nonce: optional(rpcData),
   sha3Uncles: rpcHash,
   logsBloom: rpcData,
   transactionsRoot: rpcHash,
@@ -63,7 +78,7 @@ const baseBlockResponse = {
   gasUsed: rpcQuantity,
   timestamp: rpcQuantity,
   uncles: t.array(rpcHash, "HASH Array"),
-  mixHash: rpcHash,
+  mixHash: optional(rpcHash),
 };
 
 export type RpcBlock = t.TypeOf<typeof rpcBlock>;

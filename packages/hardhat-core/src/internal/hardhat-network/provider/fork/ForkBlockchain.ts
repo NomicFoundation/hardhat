@@ -58,10 +58,17 @@ export class ForkBlockchain implements PBlockchain {
     if (!blockNumber.eq(this._latestBlockNumber.addn(1))) {
       throw new Error("Invalid block number");
     }
-    const parent = await this.getLatestBlock();
-    if (!block.header.parentHash.equals(parent.hash())) {
-      throw new Error("Invalid parent hash");
+
+    // When forking a network whose consensus is not the classic PoW,
+    // we can't calculate the hash correctly.
+    // Thus, we avoid this check for the first block after the fork.
+    if (blockNumber.gt(this._forkBlockNumber.addn(1))) {
+      const parent = await this.getLatestBlock();
+      if (!block.header.parentHash.equals(parent.hash())) {
+        throw new Error("Invalid parent hash");
+      }
     }
+
     this._latestBlockNumber = this._latestBlockNumber.addn(1);
     const totalDifficulty = await this._computeTotalDifficulty(block);
     this._data.addBlock(block, totalDifficulty);

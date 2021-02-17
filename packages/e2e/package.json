@@ -8,7 +8,7 @@
   "author": "Nomic Labs LLC",
   "license": "MIT",
   "scripts": {
-    "lint:fix": "node ../../node_modules/prettier/bin-prettier.js --write \"src/**/*.{js,ts}\" \"test/**/*.{js,ts}\" && yarn lint --fix",
+    "lint:fix": "node ../../node_modules/prettier/bin-prettier.js --write \"test/**/*.{js,ts}\" && yarn lint --fix",
     "lint": "node ../../node_modules/tslint/bin/tslint --config tslint.json --project ./tsconfig.json",
     "pretest": "node prepare-tests.js",
     "test": "node ../../node_modules/mocha/bin/mocha --recursive \"test/**/*.ts\" --exit",

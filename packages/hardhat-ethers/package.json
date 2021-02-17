@@ -1,13 +1,13 @@
 {
   "name": "@nomiclabs/hardhat-ethers",
-  "version": "2.0.1",
+  "version": "2.0.2-rc.1",
   "description": "Hardhat plugin for ethers",
   "homepage": "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-ethers",
   "repository": "github:nomiclabs/hardhat",
   "author": "Nomic Labs LLC",
   "license": "MIT",
-  "main": "dist/src/index.js",
-  "types": "dist/src/index.d.ts",
+  "main": "internal/index.js",
+  "types": "internal/index.d.ts",
   "keywords": [
     "ethereum",
     "smart-contracts",
@@ -17,20 +17,28 @@
   ],
   "scripts": {
     "lint:fix": "node ../../node_modules/prettier/bin-prettier.js --write \"src/**/*.{js,ts}\" \"test/**/*.{js,ts}\" && yarn lint --fix",
-    "lint": "node ../../node_modules/tslint/bin/tslint --config tslint.json --project ./tsconfig.json",
+    "lint": "yarn lint-src && yarn lint-tests",
+    "lint-tests": "node -r ts-node/register/transpile-only ../../node_modules/tslint/bin/tslint --config tslint.json --project ./tsconfig.json",
+    "lint-src": "node -r ts-node/register/transpile-only ../../node_modules/tslint/bin/tslint --config tslint.json --project ./src/tsconfig.json",
     "test": "node ../../node_modules/mocha/bin/mocha --recursive \"test/**/*.ts\" --exit",
-    "build": "node ../../node_modules/typescript/bin/tsc --build .",
-    "clean": "node ../../node_modules/rimraf/bin.js dist"
+    "build": "node ../../node_modules/typescript/bin/tsc --build src",
+    "build-test": "node ../../node_modules/typescript/bin/tsc --build .",
+    "clean": "node ../../node_modules/rimraf/bin.js dist internal types *.{d.ts,js}{,.map} build-test tsconfig.tsbuildinfo"
   },
   "files": [
     "dist/src/",
     "src/",
+    "internal/",
+    "types/",
+    "*.d.ts",
+    "*.d.ts.map",
+    "*.js",
+    "*.js.map",
     "LICENSE",
     "README.md"
   ],
   "devDependencies": {
     "@types/chai": "^4.2.0",
-    "@types/fs-extra": "^5.1.0",
     "chai": "^4.2.0",
     "ethers": "^5.0.0",
     "hardhat": "^2.0.0"

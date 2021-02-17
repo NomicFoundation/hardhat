@@ -67,9 +67,13 @@ function getContractFactory(name: string, factoryOptions: FactoryOptions): Promi
 function getContractAt(nameOrAbi: string | any[], address: string, signer?: ethers.Signer): Promise<ethers.Contract>;
 
 function getSigners() => Promise<ethers.Signer[]>;
+
+function getSigner(address: string) => Promise<ethers.Signer>;
 ```
 
-The `Contract`s and `ContractFactory`s returned by these helpers are connected to the first signer returned by `getSigners` be default.
+The `Contract`s and `ContractFactory`s returned by these helpers are connected to the first signer returned by `getSigners` by default.
+
+If there is no signer available, `getContractAt` returns read-only contracts.
 
 ## Usage
 
@@ -78,7 +82,7 @@ There are no additional steps you need to take for this plugin to work.
 Install it and access ethers through the Hardhat Runtime Environment anywhere you need it (tasks, scripts, tests, etc). For example, in your `hardhat.config.js`:
 
 ```js
-usePlugin("@nomiclabs/hardhat-ethers");
+require("@nomiclabs/hardhat-ethers");
 
 // task action function receives the Hardhat Runtime Environment as second argument
 task(
@@ -116,4 +120,3 @@ const contractFactory = await this.env.ethers.getContractFactory(
 This allows you to create a contract factory for the `Example` contract and link its `ExampleLib` library references to the address `"0x..."`.
 
 To create a contract factory, all libraries must be linked. An error will be thrown informing you of any missing library.
-

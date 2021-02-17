@@ -102,10 +102,11 @@ export class HardhatNode extends EventEmitter {
     let initialBlockTimeOffset: BN | undefined;
 
     if ("forkConfig" in config) {
-      const { forkClient, forkBlockNumber } = await makeForkClient(
-        config.forkConfig,
-        config.forkCachePath
-      );
+      const {
+        forkClient,
+        forkBlockNumber,
+        forkBlockTimestamp,
+      } = await makeForkClient(config.forkConfig, config.forkCachePath);
       common = await makeForkCommon(config);
 
       stateManager = new ForkStateManager(
@@ -114,7 +115,13 @@ export class HardhatNode extends EventEmitter {
         genesisAccounts
       );
 
+      await stateManager.initializeGenesisAccounts(genesisAccounts);
+
       blockchain = new ForkBlockchain(forkClient, forkBlockNumber, common);
+
+      initialBlockTimeOffset = new BN(
+        getDifferenceInSeconds(new Date(forkBlockTimestamp), new Date())
+      );
     } else {
       const stateTrie = await makeStateTrie(genesisAccounts);
       common = makeCommon(config, stateTrie);
@@ -623,7 +630,10 @@ export class HardhatNode extends EventEmitter {
     return ecsign(messageHash, privateKey);
   }
 
-  public async signTypedData(address: Buffer, typedData: any): Promise<string> {
+  public async signTypedDataV4(
+    address: Buffer,
+    typedData: any
+  ): Promise<string> {
     const privateKey = this._getLocalAccountPrivateKey(address);
 
     return ethSigUtil.signTypedData_v4(privateKey, {

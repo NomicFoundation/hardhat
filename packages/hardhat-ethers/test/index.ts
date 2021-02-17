@@ -773,5 +773,58 @@ describe("Ethers plugin", function () {
       code = await this.env.ethers.provider.getCode(receipt.contractAddress);
       assert.lengthOf(code, 2);
     });
+
+    it("_signTypedData integration test", async function () {
+      // See https://eips.ethereum.org/EIPS/eip-712#parameters
+      // There's a json schema and an explanation for each field.
+      const typedMessage = {
+        domain: {
+          chainId: 31337,
+          name: "Hardhat Network test suite",
+        },
+        message: {
+          name: "Translation",
+          start: {
+            x: 200,
+            y: 600,
+          },
+          end: {
+            x: 300,
+            y: 350,
+          },
+          cost: 50,
+        },
+        primaryType: "WeightedVector",
+        types: {
+          // ethers.js derives the EIP712Domain type from the domain object itself
+          // EIP712Domain: [
+          //   { name: "name", type: "string" },
+          //   { name: "chainId", type: "uint256" },
+          // ],
+          WeightedVector: [
+            { name: "name", type: "string" },
+            { name: "start", type: "Point" },
+            { name: "end", type: "Point" },
+            { name: "cost", type: "uint256" },
+          ],
+          Point: [
+            { name: "x", type: "uint256" },
+            { name: "y", type: "uint256" },
+          ],
+        },
+      };
+      const [signer] = await this.env.ethers.getSigners();
+
+      const signature = await signer._signTypedData(
+        typedMessage.domain,
+        typedMessage.types,
+        typedMessage.message
+      );
+
+      const byteToHex = 2;
+      const hexPrefix = 2;
+      const signatureSizeInBytes = 65;
+      assert.lengthOf(signature, signatureSizeInBytes * byteToHex + hexPrefix);
+    });
   });
 });

@@ -7,6 +7,7 @@ import {
 } from "hardhat/types";
 import { parseFullyQualifiedName } from "hardhat/utils/contract-names";
 
+import { LibraryNames } from "./libraries";
 import {
   inferSolcVersion,
   measureExecutableSectionLength,
@@ -19,7 +20,7 @@ interface BytecodeExtractedData {
   normalizedBytecode: string;
 }
 
-interface ResolvedLinks {
+export interface ResolvedLinks {
   [sourceName: string]: {
     [libraryName: string]: string;
   };
@@ -32,6 +33,9 @@ interface ImmutableValues {
 type SourceName = string;
 type ContractName = string;
 
+// TODO: Rework this type?
+// This is actually extended by the TASK_VERIFY_GET_CONTRACT_INFORMATION subtask
+// to add the libraries that are not detectable to the context.
 export interface ContractInformation extends BytecodeExtractedData {
   compilerInput: CompilerInput;
   compilerOutput: CompilerOutput;
