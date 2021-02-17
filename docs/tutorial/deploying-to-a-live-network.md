@@ -70,7 +70,7 @@ module.exports = {
   solidity: "0.7.3",
   networks: {
     ropsten: {
-      url: `https://eth-mainnet.alchemyapi.io/v2/${ALCHEMY_API_KEY}`,
+      url: `https://eth-ropsten.alchemyapi.io/v2/${ALCHEMY_API_KEY}`,
       accounts: [`0x${ROPSTEN_PRIVATE_KEY}`]
     }
   }
