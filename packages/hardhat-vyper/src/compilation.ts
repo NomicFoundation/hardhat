@@ -91,7 +91,7 @@ export async function compile(
 async function isAlreadyCompiled(
   sourceFile: string,
   paths: ProjectPathsConfig,
-  vyperVersion: string,
+  vyperVersion: string
 ) {
   const lastVyperVersionUsed = await getLastVyperVersionUsed(paths);
   if (lastVyperVersionUsed !== vyperVersion) {
