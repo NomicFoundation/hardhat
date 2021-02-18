@@ -65,7 +65,6 @@ export function deserializeTransaction(
 export class TxPool {
   private _state: ImmutableRecord<PoolState>;
   private _snapshotIdToState = new Map<number, ImmutableRecord<PoolState>>();
-  private _currentSnapshotId = -1;
   private _nextSnapshotId = 0;
   private _nextOrderId = 0;
 
@@ -96,11 +95,9 @@ export class TxPool {
   }
 
   public snapshot(): number {
-    if (this._snapshotIdToState.get(this._currentSnapshotId) !== this._state) {
-      this._currentSnapshotId = this._nextSnapshotId++;
-      this._snapshotIdToState.set(this._currentSnapshotId, this._state);
-    }
-    return this._currentSnapshotId;
+    const id = this._nextSnapshotId++;
+    this._snapshotIdToState.set(id, this._state);
+    return id;
   }
 
   public revert(snapshotId: number) {
@@ -108,8 +105,9 @@ export class TxPool {
     if (state === undefined) {
       throw new Error("There's no snapshot with such ID");
     }
-    this._currentSnapshotId = snapshotId;
     this._state = state;
+
+    this._removeSnapshotsAfter(snapshotId);
   }
 
   public getTransactionByHash(hash: Buffer): OrderedTransaction | undefined {
@@ -237,6 +235,16 @@ export class TxPool {
       }
     }
     this._setQueued(newQueued);
+  }
+
+  private _removeSnapshotsAfter(snapshotId: number): void {
+    const snapshotIds = [...this._snapshotIdToState.keys()].filter(
+      (x) => x >= snapshotId
+    );
+
+    for (const id of snapshotIds) {
+      this._snapshotIdToState.delete(id);
+    }
   }
 
   private _removeTx(
