@@ -37,4 +37,20 @@ describe("Vyper plugin", async function () {
       assert.fail("Should have failed");
     });
   });
+
+  describe("Mixed language", async function () {
+    useEnvironment("mixed-language");
+
+    it("Should successfully compile the contracts", async function () {
+      await this.env.run(TASK_COMPILE);
+      assert.equal(
+        this.env.artifacts.readArtifactSync("test").contractName,
+        "test"
+      );
+      assert.equal(
+        this.env.artifacts.readArtifactSync("Greeter").contractName,
+        "Greeter"
+      );
+    });
+  });
 });

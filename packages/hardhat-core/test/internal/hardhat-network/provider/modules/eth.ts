@@ -779,6 +779,7 @@ describe("Eth module", function () {
           await assertNodeBalances(this.provider, [
             DEFAULT_ACCOUNTS_BALANCES[0].subn(1 + 21000),
             DEFAULT_ACCOUNTS_BALANCES[1].addn(1),
+            ...DEFAULT_ACCOUNTS_BALANCES.slice(2),
           ]);
 
           await this.provider.send("eth_sendTransaction", [
@@ -794,6 +795,7 @@ describe("Eth module", function () {
           await assertNodeBalances(this.provider, [
             DEFAULT_ACCOUNTS_BALANCES[0].subn(1 + 21000 + 2 + 21000 * 2),
             DEFAULT_ACCOUNTS_BALANCES[1].addn(1 + 2),
+            ...DEFAULT_ACCOUNTS_BALANCES.slice(2),
           ]);
         });
 
@@ -814,6 +816,7 @@ describe("Eth module", function () {
           await assertPendingNodeBalances(this.provider, [
             DEFAULT_ACCOUNTS_BALANCES[0].subn(1 + 21000),
             DEFAULT_ACCOUNTS_BALANCES[1].addn(1),
+            ...DEFAULT_ACCOUNTS_BALANCES.slice(2),
           ]);
 
           await this.provider.send("eth_sendTransaction", [
@@ -830,6 +833,7 @@ describe("Eth module", function () {
           await assertPendingNodeBalances(this.provider, [
             DEFAULT_ACCOUNTS_BALANCES[0].subn(1 + 21000 + 2 + 21000 * 2),
             DEFAULT_ACCOUNTS_BALANCES[1].addn(1 + 2),
+            ...DEFAULT_ACCOUNTS_BALANCES.slice(2),
           ]);
         });
 
@@ -2459,7 +2463,7 @@ describe("Eth module", function () {
           const firstBlock = await getFirstBlock();
           const txParams1: TransactionParams = {
             to: toBuffer(zeroAddress()),
-            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
+            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[1]),
             data: toBuffer("0xaa"),
             nonce: new BN(0),
             value: new BN(123),
@@ -2493,7 +2497,7 @@ describe("Eth module", function () {
 
           const txParams2: TransactionParams = {
             to: toBuffer(zeroAddress()),
-            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
+            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[1]),
             data: toBuffer([]),
             nonce: new BN(1),
             value: new BN(123),
@@ -2557,7 +2561,7 @@ describe("Eth module", function () {
           const firstBlock = await getFirstBlock();
           const txParams1: TransactionParams = {
             to: toBuffer(zeroAddress()),
-            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
+            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[1]),
             data: toBuffer("0xaa"),
             nonce: new BN(0),
             value: new BN(123),
@@ -2591,7 +2595,7 @@ describe("Eth module", function () {
 
           const txParams2: TransactionParams = {
             to: toBuffer(zeroAddress()),
-            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
+            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[1]),
             data: toBuffer([]),
             nonce: new BN(1),
             value: new BN(123),
@@ -2695,7 +2699,7 @@ describe("Eth module", function () {
           const firstBlock = await getFirstBlock();
           const txParams1: TransactionParams = {
             to: toBuffer(zeroAddress()),
-            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
+            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[1]),
             data: toBuffer("0xaa"),
             nonce: new BN(0),
             value: new BN(123),
@@ -2729,7 +2733,7 @@ describe("Eth module", function () {
 
           const txParams2: TransactionParams = {
             to: toBuffer(zeroAddress()),
-            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
+            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[1]),
             data: toBuffer([]),
             nonce: new BN(1),
             value: new BN(123),
@@ -2766,7 +2770,7 @@ describe("Eth module", function () {
           const firstBlock = await getFirstBlock();
           const txParams: TransactionParams = {
             to: toBuffer([]),
-            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
+            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[1]),
             data: toBuffer("0x60006000fd"),
             nonce: new BN(0),
             value: new BN(123),
@@ -2777,7 +2781,7 @@ describe("Eth module", function () {
           const txHash = await getSignedTxHash(
             this.hardhatNetworkProvider,
             txParams,
-            0
+            1
           );
 
           // Revert. This is a deployment transaction that immediately reverts without a reason
@@ -2979,30 +2983,6 @@ describe("Eth module", function () {
         it("Should return the updated count after a transaction is made", async function () {
           assertQuantity(
             await this.provider.send("eth_getTransactionCount", [
-              DEFAULT_ACCOUNTS_ADDRESSES[0],
-            ]),
-            0
-          );
-
-          await this.provider.send("eth_sendTransaction", [
-            {
-              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              to: DEFAULT_ACCOUNTS_ADDRESSES[1],
-              value: numberToRpcQuantity(1),
-              gas: numberToRpcQuantity(21000),
-              gasPrice: numberToRpcQuantity(1),
-            },
-          ]);
-
-          assertQuantity(
-            await this.provider.send("eth_getTransactionCount", [
-              DEFAULT_ACCOUNTS_ADDRESSES[0],
-            ]),
-            1
-          );
-
-          assertQuantity(
-            await this.provider.send("eth_getTransactionCount", [
               DEFAULT_ACCOUNTS_ADDRESSES[1],
             ]),
             0
@@ -3020,31 +3000,22 @@ describe("Eth module", function () {
 
           assertQuantity(
             await this.provider.send("eth_getTransactionCount", [
-              DEFAULT_ACCOUNTS_ADDRESSES[0],
-            ]),
-            1
-          );
-
-          assertQuantity(
-            await this.provider.send("eth_getTransactionCount", [
               DEFAULT_ACCOUNTS_ADDRESSES[1],
             ]),
             1
           );
-        });
 
-        it("Should not be affected by calls", async function () {
           assertQuantity(
             await this.provider.send("eth_getTransactionCount", [
-              DEFAULT_ACCOUNTS_ADDRESSES[0],
+              DEFAULT_ACCOUNTS_ADDRESSES[2],
             ]),
             0
           );
 
-          await this.provider.send("eth_call", [
+          await this.provider.send("eth_sendTransaction", [
             {
-              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              from: DEFAULT_ACCOUNTS_ADDRESSES[2],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[2],
               value: numberToRpcQuantity(1),
               gas: numberToRpcQuantity(21000),
               gasPrice: numberToRpcQuantity(1),
@@ -3053,7 +3024,40 @@ describe("Eth module", function () {
 
           assertQuantity(
             await this.provider.send("eth_getTransactionCount", [
-              DEFAULT_ACCOUNTS_ADDRESSES[0],
+              DEFAULT_ACCOUNTS_ADDRESSES[1],
+            ]),
+            1
+          );
+
+          assertQuantity(
+            await this.provider.send("eth_getTransactionCount", [
+              DEFAULT_ACCOUNTS_ADDRESSES[2],
+            ]),
+            1
+          );
+        });
+
+        it("Should not be affected by calls", async function () {
+          assertQuantity(
+            await this.provider.send("eth_getTransactionCount", [
+              DEFAULT_ACCOUNTS_ADDRESSES[1],
+            ]),
+            0
+          );
+
+          await this.provider.send("eth_call", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[2],
+              value: numberToRpcQuantity(1),
+              gas: numberToRpcQuantity(21000),
+              gasPrice: numberToRpcQuantity(1),
+            },
+          ]);
+
+          assertQuantity(
+            await this.provider.send("eth_getTransactionCount", [
+              DEFAULT_ACCOUNTS_ADDRESSES[1],
             ]),
             0
           );
@@ -3063,8 +3067,8 @@ describe("Eth module", function () {
           const firstBlock = await getFirstBlock();
           await this.provider.send("eth_sendTransaction", [
             {
-              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[2],
               value: numberToRpcQuantity(1),
             },
           ]);
@@ -3072,7 +3076,7 @@ describe("Eth module", function () {
           if (!isFork) {
             assertQuantity(
               await this.provider.send("eth_getTransactionCount", [
-                DEFAULT_ACCOUNTS_ADDRESSES[0],
+                DEFAULT_ACCOUNTS_ADDRESSES[1],
                 "earliest",
               ]),
               0
@@ -3081,7 +3085,7 @@ describe("Eth module", function () {
 
           assertQuantity(
             await this.provider.send("eth_getTransactionCount", [
-              DEFAULT_ACCOUNTS_ADDRESSES[0],
+              DEFAULT_ACCOUNTS_ADDRESSES[1],
               numberToRpcQuantity(firstBlock),
             ]),
             0
@@ -3089,7 +3093,7 @@ describe("Eth module", function () {
 
           assertQuantity(
             await this.provider.send("eth_getTransactionCount", [
-              DEFAULT_ACCOUNTS_ADDRESSES[0],
+              DEFAULT_ACCOUNTS_ADDRESSES[1],
               "latest",
             ]),
             1
@@ -3209,7 +3213,7 @@ describe("Eth module", function () {
         it("should return the receipt for txs that were executed and failed", async function () {
           const txParams: TransactionParams = {
             to: toBuffer([]),
-            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
+            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[1]),
             data: toBuffer("0x60006000fd"),
             nonce: new BN(0),
             value: new BN(123),
@@ -3220,7 +3224,7 @@ describe("Eth module", function () {
           const txHash = await getSignedTxHash(
             this.hardhatNetworkProvider,
             txParams,
-            0
+            1
           );
 
           // Revert. This is a deployment transaction that immediately reverts without a reason
@@ -3691,7 +3695,7 @@ describe("Eth module", function () {
               "eth_sendTransaction",
               [
                 {
-                  from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[1],
                   to: zeroAddress(),
                   gas: numberToRpcQuantity(1),
                 },
@@ -3705,7 +3709,7 @@ describe("Eth module", function () {
               "eth_sendTransaction",
               [
                 {
-                  from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[1],
                   to: zeroAddress(),
                   gas: numberToRpcQuantity(21000),
                   gasPrice: numberToRpcQuantity(DEFAULT_ACCOUNTS_BALANCES[0]),
@@ -3720,7 +3724,7 @@ describe("Eth module", function () {
               "eth_sendTransaction",
               [
                 {
-                  from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[1],
                   to: zeroAddress(),
                   gas: numberToRpcQuantity(DEFAULT_BLOCK_GAS_LIMIT + 1),
                 },
@@ -3735,7 +3739,7 @@ describe("Eth module", function () {
             await assertTransactionFailure(
               this.provider,
               {
-                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                from: DEFAULT_ACCOUNTS_ADDRESSES[1],
                 data: "0xAA",
               },
               "Transaction reverted without a reason"
@@ -3750,7 +3754,7 @@ describe("Eth module", function () {
             await assertTransactionFailure(
               this.provider,
               {
-                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                from: DEFAULT_ACCOUNTS_ADDRESSES[1],
                 data:
                   "0x6000600060006000600060006000600060006000600060006000600060006000600060006000600060006000600060006000",
                 gas: numberToRpcQuantity(53500),
@@ -3763,7 +3767,7 @@ describe("Eth module", function () {
             await assertTransactionFailure(
               this.provider,
               {
-                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                from: DEFAULT_ACCOUNTS_ADDRESSES[1],
                 data: "0x60006000fd",
               },
               "Transaction reverted without a reason"
@@ -3773,7 +3777,7 @@ describe("Eth module", function () {
             await assertTransactionFailure(
               this.provider,
               {
-                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                from: DEFAULT_ACCOUNTS_ADDRESSES[1],
                 data:
                   "0x6080604052348015600f57600080fd5b506040517f08c379a00000000000000000000000000000000000000000000000000000000081526004018080602001828103825260018152602001807f410000000000000000000000000000000000000000000000000000000000000081525060200191505060405180910390fdfe",
               },
