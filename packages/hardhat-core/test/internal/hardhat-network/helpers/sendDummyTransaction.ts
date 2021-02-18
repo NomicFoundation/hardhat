@@ -12,6 +12,7 @@ export async function sendDummyTransaction(
       from: DEFAULT_ACCOUNTS_ADDRESSES[0],
       to: DEFAULT_ACCOUNTS_ADDRESSES[1],
       nonce: numberToRpcQuantity(nonce),
+      gas: numberToRpcQuantity(21_000),
     },
   ]);
 }

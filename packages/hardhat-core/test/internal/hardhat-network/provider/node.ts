@@ -209,25 +209,24 @@ describe("HardhatNode", () => {
       });
 
       it("leaves the transactions in the tx pool that did not fit in a block", async () => {
-        await node.setBlockGasLimit(42_000);
+        await node.setBlockGasLimit(55_000);
         const tx1 = createTestTransaction({
           nonce: 0,
           from: DEFAULT_ACCOUNTS_ADDRESSES[0],
           to: EMPTY_ACCOUNT_ADDRESS,
-          gasLimit: 40_000, // actual gas used is 21_000
+          gasLimit: 30_000, // actual gas used is 21_000
         });
         const expensiveTx2 = createTestTransaction({
           nonce: 0,
           from: DEFAULT_ACCOUNTS_ADDRESSES[1],
           to: EMPTY_ACCOUNT_ADDRESS,
           gasLimit: 40_000,
-          data: Buffer.alloc(1024, 1), // actual gas used is 37_384
         });
         const tx3 = createTestTransaction({
           nonce: 1,
           from: DEFAULT_ACCOUNTS_ADDRESSES[0],
           to: EMPTY_ACCOUNT_ADDRESS,
-          gasLimit: 40_000, // actual gas used is 21_000
+          gasLimit: 30_000, // actual gas used is 21_000
         });
         await node.sendTransaction(tx1);
         await node.sendTransaction(expensiveTx2);
@@ -326,19 +325,43 @@ describe("HardhatNode", () => {
         assert.isUndefined(await node.getTransactionReceipt(tx2.hash()));
       });
 
-      it("uses gasUsed value for determining if two transactions will fit in a block", async () => {
+      it("uses gasLimit value for determining if a new transaction will fit in a block (1 fits)", async () => {
         await node.setBlockGasLimit(50_000);
         const tx1 = createTestTransaction({
           nonce: 0,
           from: DEFAULT_ACCOUNTS_ADDRESSES[0],
           to: EMPTY_ACCOUNT_ADDRESS,
-          gasLimit: 40_000, // actual gas used is 21_000
+          gasLimit: 30_000, // actual gas used is 21_000
         });
         const tx2 = createTestTransaction({
           nonce: 1,
           from: DEFAULT_ACCOUNTS_ADDRESSES[0],
           to: EMPTY_ACCOUNT_ADDRESS,
-          gasLimit: 40_000, // actual gas used is 21_000
+          gasLimit: 30_000, // actual gas used is 21_000
+        });
+        await node.sendTransaction(tx1);
+        await node.sendTransaction(tx2);
+        await node.mineBlock();
+
+        await assertTransactionsWereMined([tx1]);
+        assert.isUndefined(await node.getTransactionReceipt(tx2.hash()));
+      });
+
+      it("uses gasLimit value for determining if a new transaction will fit in a block (2 fit)", async () => {
+        // here the first tx is added, and it uses 21_000 gas
+        // this leaves 31_000 of gas in the block, so the second one is also included
+        await node.setBlockGasLimit(52_000);
+        const tx1 = createTestTransaction({
+          nonce: 0,
+          from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+          to: EMPTY_ACCOUNT_ADDRESS,
+          gasLimit: 30_000, // actual gas used is 21_000
+        });
+        const tx2 = createTestTransaction({
+          nonce: 1,
+          from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+          to: EMPTY_ACCOUNT_ADDRESS,
+          gasLimit: 30_000, // actual gas used is 21_000
         });
         await node.sendTransaction(tx1);
         await node.sendTransaction(tx2);
@@ -347,36 +370,36 @@ describe("HardhatNode", () => {
         await assertTransactionsWereMined([tx1, tx2]);
       });
 
-      it("puts as many transactions as it can in a block", async () => {
-        await node.setBlockGasLimit(42_000);
+      it("uses the rest of the txs when one is dropped because of its gas limit", async () => {
+        await node.setBlockGasLimit(50_000);
         const tx1 = createTestTransaction({
           nonce: 0,
           from: DEFAULT_ACCOUNTS_ADDRESSES[0],
           to: EMPTY_ACCOUNT_ADDRESS,
-          gasLimit: 40_000, // actual gas used is 21_000
+          gasLimit: 30_000, // actual gas used is 21_000
+          gasPrice: 2,
         });
-        const expensiveTx2 = createTestTransaction({
-          nonce: 0,
-          from: DEFAULT_ACCOUNTS_ADDRESSES[1],
-          to: EMPTY_ACCOUNT_ADDRESS,
-          gasLimit: 40_000,
-          data: Buffer.alloc(1024, 1), // actual gas used is 37_384
-        });
-        const tx3 = createTestTransaction({
+        const tx2 = createTestTransaction({
           nonce: 1,
           from: DEFAULT_ACCOUNTS_ADDRESSES[0],
           to: EMPTY_ACCOUNT_ADDRESS,
-          gasLimit: 40_000, // actual gas used is 21_000
+          gasLimit: 30_000, // actual gas used is 21_000
+          gasPrice: 2,
+        });
+        const tx3 = createTestTransaction({
+          nonce: 0,
+          from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+          to: EMPTY_ACCOUNT_ADDRESS,
+          gasLimit: 21_000,
+          gasPrice: 1,
         });
         await node.sendTransaction(tx1);
-        await node.sendTransaction(expensiveTx2);
+        await node.sendTransaction(tx2);
         await node.sendTransaction(tx3);
         await node.mineBlock();
 
         await assertTransactionsWereMined([tx1, tx3]);
-        assert.isUndefined(
-          await node.getTransactionReceipt(expensiveTx2.hash())
-        );
+        assert.isUndefined(await node.getTransactionReceipt(tx2.hash()));
       });
     });
 

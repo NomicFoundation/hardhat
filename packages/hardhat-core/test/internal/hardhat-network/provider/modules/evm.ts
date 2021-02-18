@@ -408,6 +408,9 @@ describe("Evm module", function () {
           );
 
           await this.provider.send("evm_setAutomineEnabled", [false]);
+          await this.provider.send("evm_setBlockGasLimit", [
+            numberToRpcQuantity(2 * DEFAULT_BLOCK_GAS_LIMIT),
+          ]);
 
           const tx1Hash = await this.provider.send("eth_sendTransaction", [
             {
@@ -980,6 +983,7 @@ describe("Evm module", function () {
               from: DEFAULT_ACCOUNTS_ADDRESSES[0],
               to: DEFAULT_ACCOUNTS_ADDRESSES[1],
               nonce: numberToRpcQuantity(0),
+              gas: numberToRpcQuantity(21_000),
             },
           ]);
 
@@ -988,6 +992,7 @@ describe("Evm module", function () {
               from: DEFAULT_ACCOUNTS_ADDRESSES[0],
               to: DEFAULT_ACCOUNTS_ADDRESSES[1],
               nonce: numberToRpcQuantity(3),
+              gas: numberToRpcQuantity(21_000),
             },
           ]);
 
@@ -998,6 +1003,7 @@ describe("Evm module", function () {
               from: DEFAULT_ACCOUNTS_ADDRESSES[0],
               to: DEFAULT_ACCOUNTS_ADDRESSES[1],
               nonce: numberToRpcQuantity(1),
+              gas: numberToRpcQuantity(21_000),
             },
           ]);
 

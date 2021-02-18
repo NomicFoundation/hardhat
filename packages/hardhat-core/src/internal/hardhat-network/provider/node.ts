@@ -1001,12 +1001,13 @@ export class HardhatNode extends EventEmitter {
   ): Promise<RunTxResult | null> {
     const preRunStateRoot = await this._stateManager.getStateRoot();
     try {
-      const result = await this._vm.runTx({ tx, block });
-      if (result.gasUsed.gt(gasLeft)) {
+      const txGasLimit = new BN(tx.gasLimit);
+      if (txGasLimit.gt(gasLeft)) {
         await this._stateManager.setStateRoot(preRunStateRoot);
         return null;
       }
-      return result;
+
+      return this._vm.runTx({ tx, block });
     } catch (err) {
       if (shouldThrow) {
         throw err;

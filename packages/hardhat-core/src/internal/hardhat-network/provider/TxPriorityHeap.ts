@@ -39,6 +39,10 @@ export class TxPriorityHeap {
     return this._heap.peek()?.data;
   }
 
+  /**
+   * Remove the transaction at the top of the heap, and all the pending transactions
+   * from the same sender.
+   */
   public pop(): void {
     const bestTx = this._heap.pop();
     if (bestTx !== undefined) {
@@ -47,6 +51,9 @@ export class TxPriorityHeap {
     }
   }
 
+  /**
+   * Remove the transaction at the top of the heap.
+   */
   public shift(): void {
     const bestTx = this.peek();
     if (bestTx === undefined) {
