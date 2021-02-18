@@ -955,8 +955,7 @@ export class HardhatNode extends EventEmitter {
 
     let cumulativeGasUsed = new BN(0);
     while (gasLeft.gte(minTxFee) && tx !== undefined) {
-      const shouldThrow =
-        sentTxHash !== undefined && sentTxHash === bufferToHex(tx.hash());
+      const shouldThrow = sentTxHash === bufferToHex(tx.hash());
 
       const txResult = await this._runTx(tx, block, gasLeft, shouldThrow);
       if (txResult !== null) {
