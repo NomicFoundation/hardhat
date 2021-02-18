@@ -9,7 +9,7 @@ enum MiningTimerState {
 
 export class MiningTimer {
   private _state = MiningTimerState.STOP;
-  private _timeout: any = null;
+  private _timeout: NodeJS.Timeout | null = null;
 
   constructor(
     private _blockTime: IntervalMiningConfig,
@@ -67,7 +67,10 @@ export class MiningTimer {
     }
 
     this._state = MiningTimerState.STOP;
-    clearTimeout(this._timeout);
+
+    if (this._timeout !== null) {
+      clearTimeout(this._timeout);
+    }
   }
 
   private _validateBlockTime(blockTime: IntervalMiningConfig) {
