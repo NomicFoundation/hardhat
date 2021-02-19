@@ -84,7 +84,11 @@ export class TxPool {
   }
 
   public async addTransaction(tx: Transaction) {
-    const senderNonce = await this._validateTransaction(tx);
+    const senderAddress = this._getSenderAddress(tx);
+    const senderNonce = await this.getExecutableNonce(senderAddress);
+
+    await this._validateTransaction(tx, senderAddress, senderNonce);
+
     const txNonce = new BN(tx.nonce);
 
     if (txNonce.eq(senderNonce)) {
@@ -237,6 +241,14 @@ export class TxPool {
     this._setQueued(newQueued);
   }
 
+  private _getSenderAddress(tx: Transaction): Buffer {
+    try {
+      return tx.getSenderAddress(); // verifies signature
+    } catch (e) {
+      throw new InvalidInputError(e.message);
+    }
+  }
+
   private _removeSnapshotsAfter(snapshotId: number): void {
     const snapshotIds = [...this._snapshotIdToState.keys()].filter(
       (x) => x >= snapshotId
@@ -301,14 +313,11 @@ export class TxPool {
     this._setTransactionByHash(bufferToHex(hashTx(tx)), orderedTx);
   }
 
-  private async _validateTransaction(tx: Transaction): Promise<BN> {
-    let senderAddress: Buffer;
-    try {
-      senderAddress = tx.getSenderAddress(); // verifies signature so no need to check it again
-    } catch (e) {
-      throw new InvalidInputError(e.message);
-    }
-
+  private async _validateTransaction(
+    tx: Transaction,
+    senderAddress: Buffer,
+    senderNonce: BN
+  ) {
     if (this._knownTransaction(tx)) {
       throw new InvalidInputError(
         `Known transaction: ${bufferToHex(tx.hash())}`
@@ -325,7 +334,6 @@ export class TxPool {
     }
 
     const txNonce = new BN(tx.nonce);
-    const senderNonce = await this.getExecutableNonce(senderAddress);
 
     // Geth returns this error if trying to create a contract and no data is provided
     if (tx.to.length === 0 && tx.data.length === 0) {
@@ -368,8 +376,6 @@ export class TxPool {
         `Transaction gas limit is ${gasLimit} and exceeds block gas limit of ${blockGasLimit}`
       );
     }
-
-    return senderNonce;
   }
 
   private _knownTransaction(tx: Transaction): boolean {
