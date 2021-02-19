@@ -10,13 +10,13 @@ import {
   makeSerializedTransaction,
   OrderedTransaction,
   PoolState,
+  retrieveNonce,
   SenderTransactions,
   SerializedTransaction,
 } from "./PoolState";
 import { PStateManager } from "./types/PStateManager";
 import { bnToHex } from "./utils/bnToHex";
 import { reorganizeTransactionsLists } from "./utils/reorganizeTransactionsLists";
-import { retrieveNonce } from "./utils/retrieveNonce";
 
 // tslint:disable only-hardhat-error
 

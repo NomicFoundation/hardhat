@@ -1,5 +1,5 @@
 import { FakeTransaction, Transaction } from "ethereumjs-tx";
-import { BN } from "ethereumjs-util";
+import { BN, toBuffer } from "ethereumjs-util";
 import {
   List as ImmutableList,
   Map as ImmutableMap,
@@ -47,3 +47,7 @@ export const makePoolState = ImmutableRecord<PoolState>({
   hashToTransaction: ImmutableMap(),
   blockGasLimit: bnToHex(new BN(9500000)),
 });
+
+export function retrieveNonce(tx: SerializedTransaction) {
+  return new BN(toBuffer(tx.get("data").get(0)));
+}

@@ -1,9 +1,7 @@
 import { BN } from "ethereumjs-util";
 
 import { InternalError } from "../errors";
-import { SenderTransactions } from "../PoolState";
-
-import { retrieveNonce } from "./retrieveNonce";
+import { retrieveNonce, SenderTransactions } from "../PoolState";
 
 // tslint:disable only-hardhat-error
 
