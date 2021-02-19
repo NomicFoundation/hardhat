@@ -5,6 +5,8 @@ import { SenderTransactions } from "../PoolState";
 
 import { retrieveNonce } from "./retrieveNonce";
 
+// tslint:disable only-hardhat-error
+
 /**
  * Move as many transactions as possible from the queued list
  * to the pending list.
