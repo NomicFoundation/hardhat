@@ -26,6 +26,7 @@ import {
   MethodNotFoundError,
   MethodNotSupportedError,
 } from "./errors";
+import { DebugModule } from "./modules/debug";
 import { EthModule } from "./modules/eth";
 import { EvmModule } from "./modules/evm";
 import { HardhatModule } from "./modules/hardhat";
@@ -59,6 +60,7 @@ export class HardhatNetworkProvider extends EventEmitter
   private _web3Module?: Web3Module;
   private _evmModule?: EvmModule;
   private _hardhatModule?: HardhatModule;
+  private _debugModule?: DebugModule;
   private readonly _mutex = new Mutex();
   private readonly _logger = new ModulesLogger();
 
@@ -240,6 +242,10 @@ export class HardhatNetworkProvider extends EventEmitter
       return this._hardhatModule!.processRequest(method, params);
     }
 
+    if (method.startsWith("debug_")) {
+      return this._debugModule!.processRequest(method, params);
+    }
+
     throw new MethodNotFoundError(`Method ${method} not found`);
   }
 
@@ -299,6 +305,7 @@ export class HardhatNetworkProvider extends EventEmitter
     );
 
     this._logger.enable(this._loggingEnabled);
+    this._debugModule = new DebugModule(node);
 
     this._forwardNodeEvents(node);
   }
