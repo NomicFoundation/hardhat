@@ -419,6 +419,86 @@ describe("Config resolution", () => {
         });
       });
 
+      describe("Mining config", function () {
+        it("should default use default mining values ", function () {
+          const config = resolveConfig(__filename, {});
+
+          assert.deepEqual(config.networks.hardhat.mining, {
+            auto: true,
+            interval: 0,
+          });
+        });
+
+        it("should disable automine if interval is configured", function () {
+          const config = resolveConfig(__filename, {
+            networks: {
+              hardhat: {
+                mining: {
+                  interval: 1000,
+                },
+              },
+            },
+          });
+
+          assert.deepEqual(config.networks.hardhat.mining, {
+            auto: false,
+            interval: 1000,
+          });
+        });
+
+        it("should allow cofiguring only automine", function () {
+          const config = resolveConfig(__filename, {
+            networks: {
+              hardhat: {
+                mining: {
+                  auto: false,
+                },
+              },
+            },
+          });
+
+          assert.deepEqual(config.networks.hardhat.mining, {
+            auto: false,
+            interval: 0,
+          });
+        });
+
+        it("should allow cofiguring both values", function () {
+          const config = resolveConfig(__filename, {
+            networks: {
+              hardhat: {
+                mining: {
+                  auto: true,
+                  interval: 1000,
+                },
+              },
+            },
+          });
+
+          assert.deepEqual(config.networks.hardhat.mining, {
+            auto: true,
+            interval: 1000,
+          });
+        });
+
+        it("should accept an array for interval mining", function () {
+          const config = resolveConfig(__filename, {
+            networks: {
+              hardhat: {
+                mining: {
+                  interval: [1000, 5000],
+                },
+              },
+            },
+          });
+
+          assert.deepEqual(config.networks.hardhat.mining, {
+            auto: false,
+            interval: [1000, 5000],
+          });
+        });
+      });
+
       it("Should let you configure everything", function () {
         const networkConfig: HardhatNetworkConfig = {
           accounts: [{ privateKey: "0x00000", balance: "123" }],
@@ -432,6 +512,10 @@ describe("Config resolution", () => {
           loggingEnabled: true,
           allowUnlimitedContractSize: true,
           blockGasLimit: 567,
+          mining: {
+            auto: false,
+            interval: 0,
+          },
           hardfork: "hola",
           initialDate: "today",
         };

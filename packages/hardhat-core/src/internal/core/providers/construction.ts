@@ -10,7 +10,6 @@ import type {
   HttpNetworkUserConfig,
   NetworkConfig,
   ProjectPathsConfig,
-  ProjectPathsUserConfig,
 } from "../../../types";
 import { HARDHAT_NETWORK_NAME } from "../../constants";
 import { ForkConfig } from "../../hardhat-network/provider/node-types";
@@ -84,6 +83,8 @@ export function createProvider(
       hardhatNetConfig.blockGasLimit!,
       hardhatNetConfig.throwOnTransactionFailures!,
       hardhatNetConfig.throwOnCallFailures!,
+      hardhatNetConfig.mining.auto,
+      hardhatNetConfig.mining.interval,
       accounts,
       artifacts,
       hardhatNetConfig.loggingEnabled,

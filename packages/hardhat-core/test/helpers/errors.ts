@@ -1,4 +1,4 @@
-import { assert, AssertionError, expect } from "chai";
+import { assert, AssertionError } from "chai";
 
 import { HardhatError } from "../../src/internal/core/errors";
 import { ErrorDescriptor } from "../../src/internal/core/errors-list";

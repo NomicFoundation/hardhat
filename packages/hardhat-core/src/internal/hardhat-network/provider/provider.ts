@@ -26,6 +26,7 @@ import {
   MethodNotFoundError,
   MethodNotSupportedError,
 } from "./errors";
+import { MiningTimer } from "./MiningTimer";
 import { EthModule } from "./modules/eth";
 import { EvmModule } from "./modules/evm";
 import { HardhatModule } from "./modules/hardhat";
@@ -36,9 +37,11 @@ import { HardhatNode } from "./node";
 import {
   ForkConfig,
   GenesisAccount,
+  IntervalMiningConfig,
   NodeConfig,
   TracingConfig,
 } from "./node-types";
+import { LoggedError } from "./types/LoggedError";
 
 const log = debug("hardhat:core:hardhat-network:provider");
 
@@ -60,7 +63,7 @@ export class HardhatNetworkProvider extends EventEmitter
   private _evmModule?: EvmModule;
   private _hardhatModule?: HardhatModule;
   private readonly _mutex = new Mutex();
-  private readonly _logger = new ModulesLogger();
+  private _logger;
 
   private _methodBeingCollapsed?: string;
   private _methodCollapsedCount: number = 0;
@@ -73,6 +76,8 @@ export class HardhatNetworkProvider extends EventEmitter
     private readonly _blockGasLimit: number,
     private readonly _throwOnTransactionFailures: boolean,
     private readonly _throwOnCallFailures: boolean,
+    private readonly _automine: boolean,
+    private readonly _intervalMining: IntervalMiningConfig,
     private readonly _genesisAccounts: GenesisAccount[] = [],
     private readonly _artifacts?: Artifacts,
     private _loggingEnabled = false,
@@ -83,6 +88,7 @@ export class HardhatNetworkProvider extends EventEmitter
     private readonly _forkCachePath?: string
   ) {
     super();
+    this._logger = new ModulesLogger(_loggingEnabled);
   }
 
   public async request(args: RequestArguments): Promise<unknown> {
@@ -158,6 +164,11 @@ export class HardhatNetworkProvider extends EventEmitter
       const loggedSomething = this._logModuleMessages();
       if (loggedSomething) {
         this._log("");
+      }
+
+      if (err instanceof LoggedError) {
+        this._log("");
+        throw err.wrappedError;
       }
 
       if (err instanceof SolidityError) {
@@ -249,6 +260,7 @@ export class HardhatNetworkProvider extends EventEmitter
     }
 
     const commonConfig = {
+      automine: this._automine,
       blockGasLimit: this._blockGasLimit,
       genesisAccounts: this._genesisAccounts,
       allowUnlimitedContractSize: this._allowUnlimitedContractSize,
@@ -286,19 +298,21 @@ export class HardhatNetworkProvider extends EventEmitter
       this._experimentalHardhatNetworkMessageTraceHooks
     );
 
+    const miningTimer = this._makeMiningTimer();
+
     this._netModule = new NetModule(common);
     this._web3Module = new Web3Module();
-    this._evmModule = new EvmModule(node);
+    this._evmModule = new EvmModule(node, miningTimer);
     this._hardhatModule = new HardhatModule(
       node,
-      this._reset.bind(this),
+      (forkConfig?: ForkConfig) => this._reset(miningTimer, forkConfig),
       (loggingEnabled: boolean) => {
         this._loggingEnabled = loggingEnabled;
-        this._logger.enable(loggingEnabled);
+        this._logger.setEnabled(loggingEnabled);
       }
     );
 
-    this._logger.enable(this._loggingEnabled);
+    this._logger.setEnabled(this._loggingEnabled);
 
     this._forwardNodeEvents(node);
   }
@@ -335,12 +349,28 @@ export class HardhatNetworkProvider extends EventEmitter
     }
   }
 
-  private async _reset(forkConfig?: ForkConfig) {
+  private _makeMiningTimer(): MiningTimer {
+    const miningTimer = new MiningTimer(this._intervalMining, async () => {
+      try {
+        await this.request({ method: "evm_mine" });
+      } catch (e) {
+        console.error("Unexpected error calling evm_mine:", e);
+      }
+    });
+
+    miningTimer.start();
+
+    return miningTimer;
+  }
+
+  private async _reset(miningTimer: MiningTimer, forkConfig?: ForkConfig) {
     this._forkConfig = forkConfig;
     if (this._node !== undefined) {
       this._stopForwardingNodeEvents(this._node);
     }
     this._node = undefined;
+
+    miningTimer.stop();
 
     await this._init();
   }

@@ -2,14 +2,23 @@ import { BN } from "ethereumjs-util";
 import * as t from "io-ts";
 
 import { InvalidInputError, MethodNotFoundError } from "../errors";
-import { rpcQuantity, validateParams } from "../input";
+import {
+  rpcIntervalMining,
+  RpcIntervalMining,
+  rpcQuantity,
+  validateParams,
+} from "../input";
+import { MiningTimer } from "../MiningTimer";
 import { HardhatNode } from "../node";
 import { numberToRpcQuantity } from "../output";
 
 // tslint:disable only-hardhat-error
 
 export class EvmModule {
-  constructor(private readonly _node: HardhatNode) {}
+  constructor(
+    private readonly _node: HardhatNode,
+    private readonly _miningTimer: MiningTimer
+  ) {}
 
   public async processRequest(
     method: string,
@@ -32,6 +41,21 @@ export class EvmModule {
 
       case "evm_snapshot":
         return this._snapshotAction(...this._snapshotParams(params));
+
+      case "evm_setAutomineEnabled":
+        return this._setAutomineEnabledAction(
+          ...this._setAutomineEnabledParams(params)
+        );
+
+      case "evm_setIntervalMining":
+        return this._setIntervalMiningAction(
+          ...this._setIntervalMiningParams(params)
+        );
+
+      case "evm_setBlockGasLimit":
+        return this._setBlockGasLimitAction(
+          ...this._setBlockGasLimitParams(params)
+        );
     }
 
     throw new MethodNotFoundError(`Method ${method} not found`);
@@ -56,7 +80,7 @@ export class EvmModule {
           ` ${new BN(latestBlock.header.timestamp).toNumber()}`
       );
     }
-    await this._node.setNextBlockTimestamp(new BN(timestamp));
+    this._node.setNextBlockTimestamp(new BN(timestamp));
     return timestamp.toString();
   }
 
@@ -67,8 +91,8 @@ export class EvmModule {
   }
 
   private async _increaseTimeAction(increment: number): Promise<string> {
-    await this._node.increaseTime(new BN(increment));
-    const totalIncrement = await this._node.getTimeIncrement();
+    this._node.increaseTime(new BN(increment));
+    const totalIncrement = this._node.getTimeIncrement();
     // This RPC call is an exception: it returns a number in decimal
     return totalIncrement.toString();
   }
@@ -97,7 +121,7 @@ export class EvmModule {
         );
       }
     }
-    await this._node.mineEmptyBlock(new BN(timestamp));
+    await this._node.mineBlock(new BN(timestamp));
     return numberToRpcQuantity(0);
   }
 
@@ -120,5 +144,45 @@ export class EvmModule {
   private async _snapshotAction(): Promise<string> {
     const snapshotId = await this._node.takeSnapshot();
     return numberToRpcQuantity(snapshotId);
+  }
+
+  // evm_setAutomineEnabled
+
+  private _setAutomineEnabledParams(params: any[]): [boolean] {
+    return validateParams(params, t.boolean);
+  }
+
+  private async _setAutomineEnabledAction(automine: boolean): Promise<true> {
+    this._node.setAutomineEnabled(automine);
+    return true;
+  }
+
+  // evm_setIntervalMining
+
+  private _setIntervalMiningParams(params: any[]): [RpcIntervalMining] {
+    return validateParams(params, rpcIntervalMining);
+  }
+
+  private async _setIntervalMiningAction(
+    blockTime: RpcIntervalMining
+  ): Promise<true> {
+    this._miningTimer.setBlockTime(blockTime);
+
+    return true;
+  }
+
+  // evm_setBlockGasLimit
+
+  private _setBlockGasLimitParams(params: any[]): [BN] {
+    return validateParams(params, rpcQuantity);
+  }
+
+  private async _setBlockGasLimitAction(blockGasLimit: BN): Promise<true> {
+    if (blockGasLimit.lte(new BN(0))) {
+      throw new InvalidInputError("Block gas limit must be greater than 0");
+    }
+
+    await this._node.setBlockGasLimit(blockGasLimit);
+    return true;
   }
 }
