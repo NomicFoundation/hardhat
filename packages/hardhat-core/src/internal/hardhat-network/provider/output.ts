@@ -183,8 +183,8 @@ export function getRpcTransaction(
     transactionIndex: index !== undefined ? numberToRpcQuantity(index) : null,
     value: numberToRpcQuantity(new BN(tx.value)),
     v: numberToRpcQuantity(new BN(tx.v)),
-    r: numberToRpcQuantity(new BN(tx.s)),
-    s: numberToRpcQuantity(new BN(tx.r)),
+    r: numberToRpcQuantity(new BN(tx.r)),
+    s: numberToRpcQuantity(new BN(tx.s)),
   };
 }
 
@@ -198,7 +198,7 @@ export function getRpcReceipts(
 
   for (let i = 0; i < runBlockResult.results.length; i += 1) {
     const tx = block.transactions[i];
-    const { createdAddress } = runBlockResult.results[i];
+    const { createdAddress, gasUsed } = runBlockResult.results[i];
     const receipt = runBlockResult.receipts[i];
 
     cumulativeGasUsed = cumulativeGasUsed.add(new BN(receipt.gasUsed));
@@ -215,7 +215,7 @@ export function getRpcReceipts(
       from: bufferToRpcData(tx.getSenderAddress()),
       to: tx.to.length === 0 ? null : bufferToRpcData(tx.to),
       cumulativeGasUsed: numberToRpcQuantity(cumulativeGasUsed),
-      gasUsed: numberToRpcQuantity(new BN(receipt.gasUsed)),
+      gasUsed: numberToRpcQuantity(gasUsed),
       contractAddress:
         createdAddress !== undefined ? bufferToRpcData(createdAddress) : null,
       logs,

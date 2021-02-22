@@ -311,8 +311,7 @@ export class HardhatNetworkProvider extends EventEmitter
     this._evmModule = new EvmModule(node, miningTimer);
     this._hardhatModule = new HardhatModule(
       node,
-      miningTimer,
-      this._reset.bind(this),
+      (forkConfig?: ForkConfig) => this._reset(miningTimer, forkConfig),
       (loggingEnabled: boolean) => {
         this._loggingEnabled = loggingEnabled;
         this._logger.setEnabled(loggingEnabled);
@@ -358,23 +357,27 @@ export class HardhatNetworkProvider extends EventEmitter
   }
 
   private _makeMiningTimer(): MiningTimer {
-    const miningTimer = new MiningTimer(this._intervalMining.blockTime, () =>
-      this.request({ method: "evm_mine" })
-    );
+    const miningTimer = new MiningTimer(this._intervalMining, async () => {
+      try {
+        await this.request({ method: "evm_mine" });
+      } catch (e) {
+        console.error("Unexpected error calling evm_mine:", e);
+      }
+    });
 
-    if (this._intervalMining.enabled) {
-      miningTimer.start();
-    }
+    miningTimer.start();
 
     return miningTimer;
   }
 
-  private async _reset(forkConfig?: ForkConfig) {
+  private async _reset(miningTimer: MiningTimer, forkConfig?: ForkConfig) {
     this._forkConfig = forkConfig;
     if (this._node !== undefined) {
       this._stopForwardingNodeEvents(this._node);
     }
     this._node = undefined;
+
+    miningTimer.stop();
 
     await this._init();
   }

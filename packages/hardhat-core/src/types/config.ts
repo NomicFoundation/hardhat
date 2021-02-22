@@ -30,8 +30,7 @@ export interface HardhatNetworkUserConfig {
   gasPrice?: "auto" | number;
   gasMultiplier?: number;
   hardfork?: string;
-  automine?: boolean;
-  intervalMining?: HardhatNetworkIntervalMiningConfig;
+  mining?: HardhatNetworkMiningUserConfig;
   accounts?: HardhatNetworkAccountsUserConfig;
   blockGasLimit?: number;
   throwOnTransactionFailures?: boolean;
@@ -104,8 +103,7 @@ export interface HardhatNetworkConfig {
   gasPrice: "auto" | number;
   gasMultiplier: number;
   hardfork: string;
-  automine: boolean;
-  intervalMining: HardhatNetworkIntervalMiningConfig;
+  mining: HardhatNetworkMiningConfig;
   accounts: HardhatNetworkAccountsConfig;
   blockGasLimit: number;
   throwOnTransactionFailures: boolean;
@@ -163,9 +161,14 @@ export interface HttpNetworkHDAccountsConfig {
   path: string;
 }
 
-export interface HardhatNetworkIntervalMiningConfig {
-  enabled: boolean;
-  blockTime: number;
+export interface HardhatNetworkMiningConfig {
+  auto: boolean;
+  interval: number | [number, number];
+}
+
+export interface HardhatNetworkMiningUserConfig {
+  auto?: boolean;
+  interval?: number | [number, number];
 }
 
 // Project paths config

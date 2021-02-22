@@ -1,5 +1,5 @@
 import { FakeTransaction, Transaction } from "ethereumjs-tx";
-import { BN } from "ethereumjs-util";
+import { BN, toBuffer } from "ethereumjs-util";
 import {
   List as ImmutableList,
   Map as ImmutableMap,
@@ -38,7 +38,6 @@ export interface PoolState {
   pendingTransactions: AddressToTransactions; // address => list of serialized pending Transactions
   queuedTransactions: AddressToTransactions; // address => list of serialized queued Transactions
   hashToTransaction: HashToTransaction;
-  executableNonces: ImmutableMap<string, string>; // address => nonce (hex)
   blockGasLimit: string;
 }
 
@@ -46,6 +45,9 @@ export const makePoolState = ImmutableRecord<PoolState>({
   pendingTransactions: ImmutableMap(),
   queuedTransactions: ImmutableMap(),
   hashToTransaction: ImmutableMap(),
-  executableNonces: ImmutableMap(),
   blockGasLimit: bnToHex(new BN(9500000)),
 });
+
+export function retrieveNonce(tx: SerializedTransaction) {
+  return new BN(toBuffer(tx.get("data").get(0)));
+}

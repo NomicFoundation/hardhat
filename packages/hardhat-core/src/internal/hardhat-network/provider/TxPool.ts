@@ -10,13 +10,13 @@ import {
   makeSerializedTransaction,
   OrderedTransaction,
   PoolState,
+  retrieveNonce,
   SenderTransactions,
   SerializedTransaction,
 } from "./PoolState";
 import { PStateManager } from "./types/PStateManager";
 import { bnToHex } from "./utils/bnToHex";
 import { reorganizeTransactionsLists } from "./utils/reorganizeTransactionsLists";
-import { retrieveNonce } from "./utils/retrieveNonce";
 
 // tslint:disable only-hardhat-error
 
@@ -65,7 +65,6 @@ export function deserializeTransaction(
 export class TxPool {
   private _state: ImmutableRecord<PoolState>;
   private _snapshotIdToState = new Map<number, ImmutableRecord<PoolState>>();
-  private _currentSnapshotId = -1;
   private _nextSnapshotId = 0;
   private _nextOrderId = 0;
 
@@ -85,7 +84,11 @@ export class TxPool {
   }
 
   public async addTransaction(tx: Transaction) {
-    const senderNonce = await this._validateTransaction(tx);
+    const senderAddress = this._getSenderAddress(tx);
+    const senderNonce = await this.getExecutableNonce(senderAddress);
+
+    await this._validateTransaction(tx, senderAddress, senderNonce);
+
     const txNonce = new BN(tx.nonce);
 
     if (txNonce.eq(senderNonce)) {
@@ -96,11 +99,9 @@ export class TxPool {
   }
 
   public snapshot(): number {
-    if (this._snapshotIdToState.get(this._currentSnapshotId) !== this._state) {
-      this._currentSnapshotId = this._nextSnapshotId++;
-      this._snapshotIdToState.set(this._currentSnapshotId, this._state);
-    }
-    return this._currentSnapshotId;
+    const id = this._nextSnapshotId++;
+    this._snapshotIdToState.set(id, this._state);
+    return id;
   }
 
   public revert(snapshotId: number) {
@@ -108,8 +109,9 @@ export class TxPool {
     if (state === undefined) {
       throw new Error("There's no snapshot with such ID");
     }
-    this._currentSnapshotId = snapshotId;
     this._state = state;
+
+    this._removeSnapshotsAfter(snapshotId);
   }
 
   public getTransactionByHash(hash: Buffer): OrderedTransaction | undefined {
@@ -141,12 +143,16 @@ export class TxPool {
   }
 
   public async getExecutableNonce(accountAddress: Buffer): Promise<BN> {
-    const nonce = this._getExecutableNonces().get(bufferToHex(accountAddress));
-    if (nonce === undefined) {
+    const pendingTxs = this._getPendingForAddress(bufferToHex(accountAddress));
+    const lastPendingTx = pendingTxs?.last(undefined);
+
+    if (lastPendingTx === undefined) {
       const account = await this._stateManager.getAccount(accountAddress);
       return new BN(account.nonce);
     }
-    return new BN(toBuffer(nonce));
+
+    const lastPendingTxNonce = retrieveNonce(lastPendingTx);
+    return lastPendingTxNonce.addn(1);
   }
 
   public getBlockGasLimit(): BN {
@@ -161,34 +167,96 @@ export class TxPool {
     this._setBlockGasLimit(newLimit);
   }
 
-  public async clean() {
-    this._setPending(await this._cleanMap(this._getPending()));
-    this._setQueued(await this._cleanMap(this._getQueued()));
-  }
+  /**
+   * Updates the pending and queued list of all addresses, along with their
+   * executable nonces.
+   */
+  public async updatePendingAndQueued() {
+    let newPending = this._getPending();
 
-  private async _cleanMap(map: AddressToTransactions) {
-    let newMap = map;
-    for (const [address, txs] of map) {
+    // update pending transactions
+    for (const [address, txs] of newPending) {
+      const senderAccount = await this._stateManager.getAccount(
+        toBuffer(address)
+      );
+      const senderNonce = new BN(senderAccount.nonce);
+      const senderBalance = new BN(senderAccount.balance);
+
+      let foo = false;
       for (const tx of txs) {
         const deserializedTx = this._deserializeTransaction(tx);
+
+        if (foo) {
+          newPending = this._removeTx(newPending, address, deserializedTx);
+
+          const queued = this._getQueuedForAddress(address) ?? ImmutableList();
+          this._setQueuedForAddress(address, queued.push(tx));
+          continue;
+        }
+
         const txNonce = new BN(deserializedTx.data.nonce);
         const txGasLimit = new BN(deserializedTx.data.gasLimit);
-        const senderAccount = await this._stateManager.getAccount(
-          toBuffer(address)
-        );
-        const senderNonce = new BN(senderAccount.nonce);
-        const senderBalance = new BN(senderAccount.balance);
 
         if (
           txGasLimit.gt(this.getBlockGasLimit()) ||
           txNonce.lt(senderNonce) ||
           deserializedTx.data.getUpfrontCost().gt(senderBalance)
         ) {
-          newMap = this._removeTx(newMap, address, deserializedTx);
+          newPending = this._removeTx(newPending, address, deserializedTx);
+
+          // if we are dropping a pending transaction, then the executable nonce
+          // becomes the nonce of that transaction UNLESS we are dropping
+          // it because the sender (remote) nonce is greater
+          if (txNonce.gt(senderNonce)) {
+            foo = true;
+          }
         }
       }
     }
-    return newMap;
+    this._setPending(newPending);
+
+    // update queued addresses
+    let newQueued = this._getQueued();
+    for (const [address, txs] of newQueued) {
+      const senderAccount = await this._stateManager.getAccount(
+        toBuffer(address)
+      );
+      const senderNonce = new BN(senderAccount.nonce);
+      const senderBalance = new BN(senderAccount.balance);
+
+      for (const tx of txs) {
+        const deserializedTx = this._deserializeTransaction(tx);
+        const txNonce = new BN(deserializedTx.data.nonce);
+        const txGasLimit = new BN(deserializedTx.data.gasLimit);
+
+        if (
+          txGasLimit.gt(this.getBlockGasLimit()) ||
+          txNonce.lt(senderNonce) ||
+          deserializedTx.data.getUpfrontCost().gt(senderBalance)
+        ) {
+          newQueued = this._removeTx(newQueued, address, deserializedTx);
+        }
+      }
+    }
+    this._setQueued(newQueued);
+  }
+
+  private _getSenderAddress(tx: Transaction): Buffer {
+    try {
+      return tx.getSenderAddress(); // verifies signature
+    } catch (e) {
+      throw new InvalidInputError(e.message);
+    }
+  }
+
+  private _removeSnapshotsAfter(snapshotId: number): void {
+    const snapshotIds = [...this._snapshotIdToState.keys()].filter(
+      (x) => x >= snapshotId
+    );
+
+    for (const id of snapshotIds) {
+      this._snapshotIdToState.delete(id);
+    }
   }
 
   private _removeTx(
@@ -219,16 +287,11 @@ export class TxPool {
     const accountTransactions: SenderTransactions =
       this._getPendingForAddress(hexSenderAddress) ?? ImmutableList();
 
-    const {
-      executableNonce,
-      newPending,
-      newQueued,
-    } = reorganizeTransactionsLists(
+    const { newPending, newQueued } = reorganizeTransactionsLists(
       accountTransactions.push(orderedTx),
       this._getQueuedForAddress(hexSenderAddress) ?? ImmutableList()
     );
 
-    this._setExecutableNonce(hexSenderAddress, executableNonce);
     this._setPendingForAddress(hexSenderAddress, newPending);
     this._setQueuedForAddress(hexSenderAddress, newQueued);
     this._setTransactionByHash(bufferToHex(hashTx(tx)), orderedTx);
@@ -250,14 +313,11 @@ export class TxPool {
     this._setTransactionByHash(bufferToHex(hashTx(tx)), orderedTx);
   }
 
-  private async _validateTransaction(tx: Transaction): Promise<BN> {
-    let senderAddress: Buffer;
-    try {
-      senderAddress = tx.getSenderAddress(); // verifies signature so no need to check it again
-    } catch (e) {
-      throw new InvalidInputError(e.message);
-    }
-
+  private async _validateTransaction(
+    tx: Transaction,
+    senderAddress: Buffer,
+    senderNonce: BN
+  ) {
     if (this._knownTransaction(tx)) {
       throw new InvalidInputError(
         `Known transaction: ${bufferToHex(tx.hash())}`
@@ -274,7 +334,6 @@ export class TxPool {
     }
 
     const txNonce = new BN(tx.nonce);
-    const senderNonce = await this.getExecutableNonce(senderAddress);
 
     // Geth returns this error if trying to create a contract and no data is provided
     if (tx.to.length === 0 && tx.data.length === 0) {
@@ -317,8 +376,6 @@ export class TxPool {
         `Transaction gas limit is ${gasLimit} and exceeds block gas limit of ${blockGasLimit}`
       );
     }
-
-    return senderNonce;
   }
 
   private _knownTransaction(tx: Transaction): boolean {
@@ -370,10 +427,6 @@ export class TxPool {
     return this._getQueued().get(address);
   }
 
-  private _getExecutableNonces() {
-    return this._state.get("executableNonces");
-  }
-
   private _setTransactionByHash(
     hash: string,
     transaction: SerializedTransaction
@@ -409,13 +462,6 @@ export class TxPool {
     this._state = this._state.set(
       "queuedTransactions",
       this._getQueued().set(address, transactions)
-    );
-  }
-
-  private _setExecutableNonce(accountAddress: string, nonce: BN): void {
-    this._state = this._state.set(
-      "executableNonces",
-      this._getExecutableNonces().set(accountAddress, bnToHex(nonce))
     );
   }
 

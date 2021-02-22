@@ -6,6 +6,7 @@ import { BN, bufferToHex, bufferToInt } from "ethereumjs-util";
 import path from "path";
 import sinon from "sinon";
 
+import { numberToRpcQuantity } from "../../../../src/internal/core/providers/provider-utils";
 import { rpcToBlockData } from "../../../../src/internal/hardhat-network/provider/fork/rpcToBlockData";
 import { HardhatNode } from "../../../../src/internal/hardhat-network/provider/node";
 import {
@@ -15,6 +16,7 @@ import {
 import { Block } from "../../../../src/internal/hardhat-network/provider/types/Block";
 import { getCurrentTimestamp } from "../../../../src/internal/hardhat-network/provider/utils/getCurrentTimestamp";
 import { makeForkClient } from "../../../../src/internal/hardhat-network/provider/utils/makeForkClient";
+import { ALCHEMY_URL } from "../../../setup";
 import { assertQuantity } from "../helpers/assertions";
 import { EMPTY_ACCOUNT_ADDRESS } from "../helpers/constants";
 import {
@@ -28,6 +30,19 @@ import {
 } from "../helpers/providers";
 
 // tslint:disable no-string-literal
+
+interface ForkPoint {
+  networkName: string;
+  url?: string;
+  /**
+   * Fork block number.
+   * This is the last observable block from the remote blockchain.
+   * Later blocks are all constructed by Hardhat Network.
+   */
+  blockNumber: number;
+  chainId: number;
+  hardfork: "istanbul" | "muirGlacier";
+}
 
 describe("HardhatNode", () => {
   const config: NodeConfig = {
@@ -194,25 +209,24 @@ describe("HardhatNode", () => {
       });
 
       it("leaves the transactions in the tx pool that did not fit in a block", async () => {
-        await node.setBlockGasLimit(42_000);
+        await node.setBlockGasLimit(55_000);
         const tx1 = createTestTransaction({
           nonce: 0,
           from: DEFAULT_ACCOUNTS_ADDRESSES[0],
           to: EMPTY_ACCOUNT_ADDRESS,
-          gasLimit: 40_000, // actual gas used is 21_000
+          gasLimit: 30_000, // actual gas used is 21_000
         });
         const expensiveTx2 = createTestTransaction({
           nonce: 0,
           from: DEFAULT_ACCOUNTS_ADDRESSES[1],
           to: EMPTY_ACCOUNT_ADDRESS,
           gasLimit: 40_000,
-          data: Buffer.alloc(1024, 1), // actual gas used is 37_384
         });
         const tx3 = createTestTransaction({
           nonce: 1,
           from: DEFAULT_ACCOUNTS_ADDRESSES[0],
           to: EMPTY_ACCOUNT_ADDRESS,
-          gasLimit: 40_000, // actual gas used is 21_000
+          gasLimit: 30_000, // actual gas used is 21_000
         });
         await node.sendTransaction(tx1);
         await node.sendTransaction(expensiveTx2);
@@ -311,19 +325,43 @@ describe("HardhatNode", () => {
         assert.isUndefined(await node.getTransactionReceipt(tx2.hash()));
       });
 
-      it("uses gasUsed value for determining if two transactions will fit in a block", async () => {
+      it("uses gasLimit value for determining if a new transaction will fit in a block (1 fits)", async () => {
         await node.setBlockGasLimit(50_000);
         const tx1 = createTestTransaction({
           nonce: 0,
           from: DEFAULT_ACCOUNTS_ADDRESSES[0],
           to: EMPTY_ACCOUNT_ADDRESS,
-          gasLimit: 40_000, // actual gas used is 21_000
+          gasLimit: 30_000, // actual gas used is 21_000
         });
         const tx2 = createTestTransaction({
           nonce: 1,
           from: DEFAULT_ACCOUNTS_ADDRESSES[0],
           to: EMPTY_ACCOUNT_ADDRESS,
-          gasLimit: 40_000, // actual gas used is 21_000
+          gasLimit: 30_000, // actual gas used is 21_000
+        });
+        await node.sendTransaction(tx1);
+        await node.sendTransaction(tx2);
+        await node.mineBlock();
+
+        await assertTransactionsWereMined([tx1]);
+        assert.isUndefined(await node.getTransactionReceipt(tx2.hash()));
+      });
+
+      it("uses gasLimit value for determining if a new transaction will fit in a block (2 fit)", async () => {
+        // here the first tx is added, and it uses 21_000 gas
+        // this leaves 31_000 of gas in the block, so the second one is also included
+        await node.setBlockGasLimit(52_000);
+        const tx1 = createTestTransaction({
+          nonce: 0,
+          from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+          to: EMPTY_ACCOUNT_ADDRESS,
+          gasLimit: 30_000, // actual gas used is 21_000
+        });
+        const tx2 = createTestTransaction({
+          nonce: 1,
+          from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+          to: EMPTY_ACCOUNT_ADDRESS,
+          gasLimit: 30_000, // actual gas used is 21_000
         });
         await node.sendTransaction(tx1);
         await node.sendTransaction(tx2);
@@ -332,36 +370,36 @@ describe("HardhatNode", () => {
         await assertTransactionsWereMined([tx1, tx2]);
       });
 
-      it("puts as many transactions as it can in a block", async () => {
-        await node.setBlockGasLimit(42_000);
+      it("uses the rest of the txs when one is dropped because of its gas limit", async () => {
+        await node.setBlockGasLimit(50_000);
         const tx1 = createTestTransaction({
           nonce: 0,
           from: DEFAULT_ACCOUNTS_ADDRESSES[0],
           to: EMPTY_ACCOUNT_ADDRESS,
-          gasLimit: 40_000, // actual gas used is 21_000
+          gasLimit: 30_000, // actual gas used is 21_000
+          gasPrice: 2,
         });
-        const expensiveTx2 = createTestTransaction({
-          nonce: 0,
-          from: DEFAULT_ACCOUNTS_ADDRESSES[1],
-          to: EMPTY_ACCOUNT_ADDRESS,
-          gasLimit: 40_000,
-          data: Buffer.alloc(1024, 1), // actual gas used is 37_384
-        });
-        const tx3 = createTestTransaction({
+        const tx2 = createTestTransaction({
           nonce: 1,
           from: DEFAULT_ACCOUNTS_ADDRESSES[0],
           to: EMPTY_ACCOUNT_ADDRESS,
-          gasLimit: 40_000, // actual gas used is 21_000
+          gasLimit: 30_000, // actual gas used is 21_000
+          gasPrice: 2,
+        });
+        const tx3 = createTestTransaction({
+          nonce: 0,
+          from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+          to: EMPTY_ACCOUNT_ADDRESS,
+          gasLimit: 21_000,
+          gasPrice: 1,
         });
         await node.sendTransaction(tx1);
-        await node.sendTransaction(expensiveTx2);
+        await node.sendTransaction(tx2);
         await node.sendTransaction(tx3);
         await node.mineBlock();
 
         await assertTransactionsWereMined([tx1, tx3]);
-        assert.isUndefined(
-          await node.getTransactionReceipt(expensiveTx2.hash())
-        );
+        assert.isUndefined(await node.getTransactionReceipt(tx2.hash()));
       });
     });
 
@@ -501,68 +539,153 @@ describe("HardhatNode", () => {
     });
   });
 
-  describe("full block", () => {
-    it("should run a mainnet block and produce the same results", async function () {
-      this.timeout(120000);
-
-      const { ALCHEMY_URL } = process.env;
-
-      if (ALCHEMY_URL === undefined || ALCHEMY_URL === "") {
-        this.skip();
-      }
-
-      const forkCachePath = path.join(__dirname, ".hardhat_node_test_cache");
-
-      const blockNumber = 9300077;
-      const forkedNodeConfig: ForkedNodeConfig = {
-        automine: true,
+  describe("full block", function () {
+    this.timeout(120000);
+    // Note that here `blockNumber` is the number of the forked block, not the number of the "simulated" block.
+    // Tests are written to fork this block and execute all transactions of the block following the forked block.
+    // This means that if the forked block number is 9300076, what the test will do is:
+    //   - setup a forked blockchain based on block 9300076
+    //   - fetch all transactions from 9300077
+    //   - create a new block with them
+    //   - execute the whole block and save it with the rest of the blockchain
+    const forkPoints: ForkPoint[] = [
+      {
         networkName: "mainnet",
+        url: ALCHEMY_URL,
+        blockNumber: 9300076,
         chainId: 1,
-        networkId: 1,
         hardfork: "muirGlacier",
-        forkConfig: {
-          jsonRpcUrl: ALCHEMY_URL,
+      },
+      {
+        networkName: "kovan",
+        url: (ALCHEMY_URL ?? "").replace("mainnet", "kovan"),
+        blockNumber: 23115226,
+        chainId: 42,
+        hardfork: "istanbul",
+      },
+      {
+        networkName: "rinkeby",
+        url: (ALCHEMY_URL ?? "").replace("mainnet", "rinkeby"),
+        blockNumber: 8004364,
+        chainId: 4,
+        hardfork: "istanbul",
+      },
+    ];
+
+    for (const {
+      url,
+      blockNumber,
+      networkName,
+      chainId,
+      hardfork,
+    } of forkPoints) {
+      it(`should run a ${networkName} block and produce the same results`, async function () {
+        if (url === undefined || url === "") {
+          this.skip();
+        }
+
+        const forkConfig = {
+          jsonRpcUrl: url,
           blockNumber,
-        },
-        forkCachePath,
-        blockGasLimit: 9957390,
-        genesisAccounts: [],
-      };
+        };
 
-      const [common, forkedNode] = await HardhatNode.create(forkedNodeConfig);
-      const { forkClient } = await makeForkClient(forkedNodeConfig.forkConfig);
+        const { forkClient } = await makeForkClient(forkConfig);
 
-      const rpcBlock = await forkClient.getBlockByNumber(
-        new BN(blockNumber + 1),
-        true
-      );
+        const rpcBlock = await forkClient.getBlockByNumber(
+          new BN(blockNumber + 1),
+          true
+        );
 
-      if (rpcBlock === null) {
-        assert.fail();
-      }
+        if (rpcBlock === null) {
+          assert.fail();
+        }
 
-      // TODO this has to be changed when the chainId PR is merged
-      const block = new Block(rpcToBlockData(rpcBlock), { common });
+        const forkCachePath = path.join(__dirname, ".hardhat_node_test_cache");
+        const forkedNodeConfig: ForkedNodeConfig = {
+          automine: true,
+          networkName: "mainnet",
+          chainId,
+          networkId: 1,
+          hardfork,
+          forkConfig,
+          forkCachePath,
+          blockGasLimit: rpcBlock.gasLimit.toNumber(),
+          genesisAccounts: [],
+        };
 
-      forkedNode["_vmTracer"].disableTracing();
-      const result = await node["_vm"].runBlock({
-        block,
-        generate: true,
-        skipBlockValidation: true,
+        const [common, forkedNode] = await HardhatNode.create(forkedNodeConfig);
+
+        const block = new Block(rpcToBlockData(rpcBlock), { common });
+
+        forkedNode["_vmTracer"].disableTracing();
+        block.header.receiptTrie = Buffer.alloc(32, 0);
+        const result = await forkedNode["_vm"].runBlock({
+          block,
+          generate: true,
+          skipBlockValidation: true,
+        });
+
+        await forkedNode["_saveBlockAsSuccessfullyRun"](block, result);
+
+        const newBlock = await forkedNode.getBlockByNumber(
+          new BN(blockNumber + 1)
+        );
+
+        if (newBlock === undefined) {
+          assert.fail();
+        }
+
+        const localReceiptRoot = newBlock.header.receiptTrie.toString("hex");
+        const remoteReceiptRoot = rpcBlock.receiptsRoot.toString("hex");
+
+        // We do some manual comparisons here to understand why the root of the receipt tries differ.
+        if (localReceiptRoot !== remoteReceiptRoot) {
+          for (let i = 0; i < block.transactions.length; i++) {
+            const tx = block.transactions[i];
+            const txHash = bufferToHex(tx.hash(true));
+
+            const remoteReceipt = (await forkClient["_httpProvider"].request({
+              method: "eth_getTransactionReceipt",
+              params: [txHash],
+            })) as any;
+
+            const localReceipt = result.receipts[i];
+            const evmResult = result.results[i];
+
+            assert.equal(
+              bufferToHex(localReceipt.bitvector),
+              remoteReceipt.logsBloom,
+              `Logs bloom of tx index ${i} (${txHash}) should match`
+            );
+
+            assert.equal(
+              numberToRpcQuantity(evmResult.gasUsed.toNumber()),
+              remoteReceipt.gasUsed,
+              `Gas used of tx index ${i} (${txHash}) should match`
+            );
+
+            assert.equal(
+              localReceipt.status,
+              remoteReceipt.status,
+              `Status of tx index ${i} (${txHash}) should be the same`
+            );
+
+            assert.equal(
+              evmResult.createdAddress === undefined
+                ? undefined
+                : `0x${evmResult.createdAddress.toString("hex")}`,
+              remoteReceipt.contractAddress,
+              `Contract address created by tx index ${i} (${txHash}) should be the same`
+            );
+          }
+        }
+
+        assert.equal(
+          localReceiptRoot,
+          remoteReceiptRoot,
+          "The root of the receipts trie is different than expected"
+        );
       });
-
-      await node["_saveBlockAsSuccessfullyRun"](block, result);
-
-      const newBlock = await node.getBlockByNumber(new BN(blockNumber + 1));
-
-      if (newBlock === undefined) {
-        assert.fail();
-      }
-
-      assert.equal(
-        newBlock.header.receiptTrie.toString("hex"),
-        rpcBlock.receiptsRoot.toString("hex")
-      );
-    });
+    }
   });
 });

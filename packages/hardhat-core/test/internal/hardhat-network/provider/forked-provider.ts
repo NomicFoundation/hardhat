@@ -4,8 +4,10 @@ import { BN, bufferToHex, toBuffer } from "ethereumjs-util";
 import { Contract, utils, Wallet } from "ethers";
 import fsExtra from "fs-extra";
 
+import { rpcQuantityToNumber } from "../../../../src/internal/core/providers/provider-utils";
 import { InvalidInputError } from "../../../../src/internal/hardhat-network/provider/errors";
 import { numberToRpcQuantity } from "../../../../src/internal/hardhat-network/provider/output";
+import { ALCHEMY_URL } from "../../../setup";
 import {
   assertQuantity,
   assertTransactionFailure,
@@ -76,7 +78,7 @@ describe("Forked provider", () => {
         });
 
         describe("when used in the context of a past block", () => {
-          describe("when the block number is grater than the fork block number", () => {
+          describe("when the block number is greater than the fork block number", () => {
             it("does not affect previously added data", async function () {
               const forkBlockNumber = await getForkBlockNumber();
 
@@ -298,6 +300,21 @@ describe("Forked provider", () => {
             transaction.to,
             "0xdac17f958d2ee523a2206206994597c13d831ec7"
           );
+        });
+      });
+
+      describe("eth_getTransactionCount", () => {
+        it("should have a non-zero nonce for the first unlocked account", async function () {
+          // this test works because the first unlocked accounts used by these
+          // tests happen to have transactions in mainnet
+          const [account] = await this.provider.send("eth_accounts");
+
+          const transactionCount = await this.provider.send(
+            "eth_getTransactionCount",
+            [account]
+          );
+
+          assert.isTrue(quantityToBN(transactionCount).gtn(0));
         });
       });
 
@@ -537,6 +554,38 @@ describe("Forked provider", () => {
             assert.equal(daiAfter.toString(), expectedDai.toString());
             assert.closeTo(ethLost, 0.5, 0.001);
           });
+        });
+      });
+
+      describe("blocks timestamps", () => {
+        it("should use a timestamp relative to the forked block timestamp", async function () {
+          if (ALCHEMY_URL === undefined) {
+            this.skip();
+          }
+
+          await this.provider.send("hardhat_reset", [
+            {
+              forking: {
+                jsonRpcUrl: ALCHEMY_URL,
+                blockNumber: 11565019, // first block of 2021
+              },
+            },
+          ]);
+
+          await this.provider.send("evm_mine");
+
+          const block = await this.provider.send("eth_getBlockByNumber", [
+            "latest",
+            false,
+          ]);
+
+          const timestamp = rpcQuantityToNumber(block.timestamp);
+          const date = new Date(timestamp * 1000);
+
+          // check that the new block date is 2021-Jan-01
+          assert.equal(date.getUTCDate(), 1);
+          assert.equal(date.getUTCMonth(), 0);
+          assert.equal(date.getUTCFullYear(), 2021);
         });
       });
     });

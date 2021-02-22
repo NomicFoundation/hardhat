@@ -19,9 +19,12 @@ import {
   ecsign,
   hashPersonalMessage,
   privateToAddress,
+  rlp,
   toBuffer,
 } from "ethereumjs-util";
 import EventEmitter from "events";
+import Trie from "merkle-patricia-tree";
+import { promisify } from "util";
 import { threadId } from "worker_threads";
 
 import { CompilerInput, CompilerOutput } from "../../../types";
@@ -117,10 +120,11 @@ export class HardhatNode extends EventEmitter {
     let initialBlockTimeOffset: BN | undefined;
 
     if ("forkConfig" in config) {
-      const { forkClient, forkBlockNumber } = await makeForkClient(
-        config.forkConfig,
-        config.forkCachePath
-      );
+      const {
+        forkClient,
+        forkBlockNumber,
+        forkBlockTimestamp,
+      } = await makeForkClient(config.forkConfig, config.forkCachePath);
       common = await makeForkCommon(config);
 
       stateManager = new ForkStateManager(
@@ -129,7 +133,13 @@ export class HardhatNode extends EventEmitter {
         genesisAccounts
       );
 
+      await stateManager.initializeGenesisAccounts(genesisAccounts);
+
       blockchain = new ForkBlockchain(forkClient, forkBlockNumber, common);
+
+      initialBlockTimeOffset = new BN(
+        getDifferenceInSeconds(new Date(forkBlockTimestamp), new Date())
+      );
     } else {
       const stateTrie = await makeStateTrie(genesisAccounts);
       common = makeCommon(config, stateTrie);
@@ -590,7 +600,10 @@ export class HardhatNode extends EventEmitter {
     return ecsign(messageHash, privateKey);
   }
 
-  public async signTypedData(address: Buffer, typedData: any): Promise<string> {
+  public async signTypedDataV4(
+    address: Buffer,
+    typedData: any
+  ): Promise<string> {
     const privateKey = this._getLocalAccountPrivateKey(address);
 
     return ethSigUtil.signTypedData_v4(privateKey, {
@@ -830,7 +843,7 @@ export class HardhatNode extends EventEmitter {
 
   public async setBlockGasLimit(gasLimit: BN | number) {
     this._txPool.setBlockGasLimit(gasLimit);
-    await this._txPool.clean();
+    await this._txPool.updatePendingAndQueued();
   }
 
   public async traceTransaction(hash: Buffer): Promise<object> {
@@ -966,6 +979,7 @@ export class HardhatNode extends EventEmitter {
     const results: RunTxResult[] = [];
     const receipts: TxReceipt[] = [];
     const traces: GatherTracesResult[] = [];
+    const receiptTrie = new Trie();
 
     const blockGasLimit = this.getBlockGasLimit();
     const minTxFee = this._getMinimalTransactionFee();
@@ -974,15 +988,24 @@ export class HardhatNode extends EventEmitter {
     const txHeap = new TxPriorityHeap(pendingTxs);
 
     let tx = txHeap.peek();
+
+    let cumulativeGasUsed = new BN(0);
     while (gasLeft.gte(minTxFee) && tx !== undefined) {
-      const shouldThrow =
-        sentTxHash !== undefined && sentTxHash === bufferToHex(tx.hash());
+      const shouldThrow = sentTxHash === bufferToHex(tx.hash());
 
       const txResult = await this._runTx(tx, block, gasLeft, shouldThrow);
       if (txResult !== null) {
         bloom.or(txResult.bloom);
         results.push(txResult);
-        receipts.push(this._createReceipt(txResult));
+
+        cumulativeGasUsed = cumulativeGasUsed.add(txResult.gasUsed);
+        const receipt = this._createReceipt(txResult, cumulativeGasUsed);
+        receipts.push(receipt);
+        await promisify(receiptTrie.put).bind(receiptTrie)(
+          rlp.encode(receipts.length - 1),
+          rlp.encode(Object.values(receipt))
+        );
+
         traces.push(await this._gatherTraces(txResult.execResult));
         block.transactions.push(tx);
 
@@ -994,12 +1017,13 @@ export class HardhatNode extends EventEmitter {
       tx = txHeap.peek();
     }
 
-    await this._txPool.clean();
+    await this._txPool.updatePendingAndQueued();
     await this._assignBlockReward();
     await this._updateTransactionsRoot(block);
     block.header.gasUsed = toBuffer(blockGasLimit.sub(gasLeft));
     block.header.stateRoot = await this._stateManager.getStateRoot();
     block.header.bloom = bloom.bitvector;
+    block.header.receiptTrie = receiptTrie.root;
 
     return {
       block,
@@ -1036,12 +1060,13 @@ export class HardhatNode extends EventEmitter {
   ): Promise<RunTxResult | null> {
     const preRunStateRoot = await this._stateManager.getStateRoot();
     try {
-      const result = await this._vm.runTx({ tx, block });
-      if (result.gasUsed.gt(gasLeft)) {
+      const txGasLimit = new BN(tx.gasLimit);
+      if (txGasLimit.gt(gasLeft)) {
         await this._stateManager.setStateRoot(preRunStateRoot);
         return null;
       }
-      return result;
+
+      return this._vm.runTx({ tx, block });
     } catch (err) {
       if (shouldThrow) {
         throw err;
@@ -1067,10 +1092,13 @@ export class HardhatNode extends EventEmitter {
     return new BN(this._vm._common.param("pow", "minerReward"));
   }
 
-  private _createReceipt(txResult: RunTxResult): TxReceipt {
+  private _createReceipt(
+    txResult: RunTxResult,
+    cumulativeGasUsed: BN
+  ): TxReceipt {
     return {
       status: txResult.execResult.exceptionError === undefined ? 1 : 0, // Receipts have a 0 as status on error
-      gasUsed: toBuffer(txResult.gasUsed),
+      gasUsed: toBuffer(cumulativeGasUsed),
       bitvector: txResult.bloom.bitvector,
       logs: txResult.execResult.logs ?? [],
     };

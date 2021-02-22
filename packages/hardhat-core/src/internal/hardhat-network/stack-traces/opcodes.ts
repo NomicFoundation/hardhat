@@ -85,11 +85,11 @@ export enum Opcode {
   DIFFICULTY = 0x44,
   GASLIMIT = 0x45,
 
-  // Chain info operations
+  // Istanbul opcodes
   CHAINID = 0x46,
+  SELFBALANCE = 0x47,
 
   // Unallocated
-  UNRECOGNIZED_47 = 0x47,
   UNRECOGNIZED_48 = 0x48,
   UNRECOGNIZED_49 = 0x49,
   UNRECOGNIZED_4A = 0x4a,

@@ -6,10 +6,12 @@ import {
   KECCAK256_NULL,
   stripZeros,
   toBuffer,
+  unpad,
 } from "ethereumjs-util";
 import { Map as ImmutableMap, Record as ImmutableRecord } from "immutable";
 import { callbackify } from "util";
 
+import { assertHardhatInvariant } from "../../../core/errors";
 import { JsonRpcClient } from "../../jsonrpc/client";
 import { GenesisAccount } from "../node-types";
 import { PStateManager } from "../types/PStateManager";
@@ -53,8 +55,34 @@ export class ForkStateManager implements PStateManager {
   ) {
     this._state = ImmutableMap();
 
+    this._stateRootToState.set(this._initialStateRoot, this._state);
+  }
+
+  public async initializeGenesisAccounts(genesisAccounts: GenesisAccount[]) {
+    const accounts: Array<{ address: Buffer; account: Account }> = [];
+    const noncesPromises: Array<Promise<BN>> = [];
+
     for (const ga of genesisAccounts) {
-      const { address, account } = makeAccount(ga);
+      const account = makeAccount(ga);
+      accounts.push(account);
+
+      const noncePromise = this._jsonRpcClient.getTransactionCount(
+        account.address,
+        this._forkBlockNumber
+      );
+      noncesPromises.push(noncePromise);
+    }
+
+    const nonces = await Promise.all(noncesPromises);
+
+    assertHardhatInvariant(
+      accounts.length === nonces.length,
+      "Nonces and accounts should have the same length"
+    );
+
+    for (const [index, { address, account }] of accounts.entries()) {
+      const nonce = nonces[index];
+      account.nonce = toBuffer(nonce);
       this._putAccount(address, account);
     }
 
@@ -161,11 +189,14 @@ export class ForkStateManager implements PStateManager {
     if (contractStorageCleared || slotCleared) {
       return toBuffer([]);
     }
-    return this._jsonRpcClient.getStorageAt(
+
+    const remoteValue = await this._jsonRpcClient.getStorageAt(
       address,
       key,
       this._contextBlockNumber
     );
+
+    return unpad(remoteValue);
   }
 
   public async getOriginalContractStorage(
@@ -187,7 +218,7 @@ export class ForkStateManager implements PStateManager {
     key: Buffer,
     value: Buffer
   ): Promise<void> {
-    const unpaddedValue = unpadBuffer(value);
+    const unpaddedValue = unpad(value);
 
     const hexAddress = bufferToHex(address);
     let account = this._state.get(hexAddress) ?? makeAccountState();
@@ -386,13 +417,4 @@ export class ForkStateManager implements PStateManager {
     this._stateRoot = newRoot;
     this._state = state;
   }
-}
-
-function unpadBuffer(buffer: Buffer): Buffer {
-  let i = 0;
-  while (i < buffer.length && buffer[i] === 0) {
-    i++;
-  }
-
-  return buffer.slice(i);
 }

@@ -4,16 +4,13 @@ import sinon from "sinon";
 import { ALCHEMY_URL } from "../../../setup";
 import { quantityToNumber } from "../helpers/conversions";
 import { setCWD } from "../helpers/cwd";
-import {
-  DEFAULT_INTERVAL_MINING_CONFIG,
-  INTERVAL_MINING_PROVIDERS,
-} from "../helpers/providers";
+import { INTERVAL_MINING_PROVIDERS } from "../helpers/providers";
 
 describe("Interval mining provider", () => {
   INTERVAL_MINING_PROVIDERS.forEach(({ name, useProvider, isFork }) => {
     describe(`${name} provider`, function () {
       const safeBlockInThePast = 11_200_000;
-      const blockTime = DEFAULT_INTERVAL_MINING_CONFIG.blockTime;
+      const blockTime = 10000;
       let clock: sinon.SinonFakeTimers;
 
       const getBlockNumber = async () => {
@@ -30,7 +27,7 @@ describe("Interval mining provider", () => {
       });
 
       afterEach(async function () {
-        await this.provider.send("evm_setIntervalMining", [{ enabled: false }]);
+        await this.provider.send("evm_setIntervalMining", [0]);
         clock.restore();
       });
 

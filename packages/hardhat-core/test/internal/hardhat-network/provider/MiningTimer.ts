@@ -2,11 +2,10 @@ import { assert } from "chai";
 import sinon from "sinon";
 
 import { MiningTimer } from "../../../../src/internal/hardhat-network/provider/MiningTimer";
-import { DEFAULT_INTERVAL_MINING_CONFIG } from "../helpers/providers";
 import { sleep } from "../helpers/sleep";
 
 describe("Mining Timer", () => {
-  const defaultBlockTime = DEFAULT_INTERVAL_MINING_CONFIG.blockTime;
+  const defaultBlockTime = 10000;
   let miningTimer: MiningTimer;
   let mineFunction: sinon.SinonSpy;
   let sinonClock: sinon.SinonFakeTimers;
@@ -26,23 +25,37 @@ describe("Mining Timer", () => {
     sinonClock.restore();
   });
 
-  it("throws when blockTime passed to the constructor is 0 ms or less", () => {
-    assert.throws(
-      () => new MiningTimer(0, mineFunction),
-      Error,
-      "Block time passed to the constructor must be greater than 0 ms"
-    );
+  describe("construction", function () {
+    it("throws when blockTime passed to the constructor is negative", () => {
+      assert.throws(
+        () => new MiningTimer(-1, mineFunction),
+        Error,
+        "Block time cannot be negative"
+      );
+    });
 
-    assert.throws(
-      () => new MiningTimer(-1, mineFunction),
-      Error,
-      "Block time passed to the constructor must be greater than 0 ms"
-    );
+    it("throws when blockTime range is invalid", () => {
+      assert.throws(
+        () => new MiningTimer([2000, 1000], mineFunction),
+        Error,
+        "Invalid block time range"
+      );
+    });
   });
 
   describe("setBlockTime", () => {
-    it("sets a new block time", () => {
+    it("sets a new block time (fixed interval)", () => {
       const newBlockTime = 15000;
+
+      miningTimer.setBlockTime(newBlockTime);
+
+      const actualBlockTime = miningTimer.getBlockTime();
+
+      assert.equal(actualBlockTime, newBlockTime);
+    });
+
+    it("sets a new block time (range)", () => {
+      const newBlockTime: [number, number] = [0, 2000];
 
       miningTimer.setBlockTime(newBlockTime);
 
@@ -84,17 +97,32 @@ describe("Mining Timer", () => {
       assert.isTrue(mineFunction.calledOnce);
     });
 
-    it("throws when the new block time is 0 ms or less", () => {
-      assert.throws(
-        () => miningTimer.setBlockTime(0),
-        Error,
-        "New block time must be greater than 0 ms"
-      );
+    it("stops when the new block time is 0", async function () {
+      miningTimer.start();
 
+      await sinonClock.tickAsync(defaultBlockTime - 500);
+
+      miningTimer.setBlockTime(0);
+
+      assert.isTrue(mineFunction.notCalled);
+
+      await sinonClock.tickAsync(defaultBlockTime + 500);
+      assert.isTrue(mineFunction.notCalled);
+    });
+
+    it("throws when the new block time is negative", () => {
       assert.throws(
         () => miningTimer.setBlockTime(-1),
         Error,
-        "New block time must be greater than 0 ms"
+        "Block time cannot be negative"
+      );
+    });
+
+    it("throws when the new block time is an invalid range", () => {
+      assert.throws(
+        () => miningTimer.setBlockTime([3000, 2000]),
+        Error,
+        "Invalid block time range"
       );
     });
   });

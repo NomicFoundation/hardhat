@@ -79,10 +79,27 @@ export const rpcHash = new t.Type<Buffer>(
 );
 
 const isInteger = (num: unknown): num is number => Number.isInteger(num);
+
 const rpcUnsignedInteger = new t.Type<number>(
   "Unsigned integer",
   isInteger,
   (u, c) => (isInteger(u) && u >= 0 ? t.success(u) : t.failure(u, c)),
+  t.identity
+);
+
+const isNumberPair = (x: unknown): x is [number, number] =>
+  Array.isArray(x) &&
+  x.length === 2 &&
+  Number.isInteger(x[0]) &&
+  Number.isInteger(x[1]);
+
+const rpcIntervalMiningRange = new t.Type<[number, number]>(
+  "Interval mining range",
+  isNumberPair,
+  (u, c) =>
+    isNumberPair(u) && u[0] >= 0 && u[1] >= u[0]
+      ? t.success(u)
+      : t.failure(u, c),
   t.identity
 );
 
@@ -287,13 +304,10 @@ export const optionalRpcHardhatNetworkConfig = optional(
   rpcHardhatNetworkConfig
 );
 
-export const rpcIntervalMining = t.type(
-  {
-    enabled: t.boolean,
-    blockTime: optional(rpcUnsignedInteger),
-  },
-  "RpcIntervalMining"
-);
+export const rpcIntervalMining = t.union([
+  rpcUnsignedInteger,
+  rpcIntervalMiningRange,
+]);
 
 export type RpcIntervalMining = t.TypeOf<typeof rpcIntervalMining>;
 

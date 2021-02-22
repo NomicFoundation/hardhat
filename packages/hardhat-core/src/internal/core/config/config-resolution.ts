@@ -7,6 +7,8 @@ import {
   HardhatNetworkAccountsConfig,
   HardhatNetworkConfig,
   HardhatNetworkForkingConfig,
+  HardhatNetworkMiningConfig,
+  HardhatNetworkMiningUserConfig,
   HardhatNetworkUserConfig,
   HardhatUserConfig,
   HDAccountsUserConfig,
@@ -150,11 +152,14 @@ function resolveHardhatNetworkConfig(
     forking.blockNumber = hardhatNetworkConfig?.forking?.blockNumber;
   }
 
+  const mining = resolveMiningConfig(hardhatNetworkConfig.mining);
+
   const config = {
     ...clonedDefaultHardhatNetworkParams,
     ...hardhatNetworkConfig,
     accounts,
     forking,
+    mining,
   };
 
   // We do it this way because ts gets lost otherwise
@@ -198,6 +203,46 @@ function resolveHttpNetworkConfig(
     ...networkConfig,
     accounts,
     url,
+  };
+}
+
+function resolveMiningConfig(
+  userConfig: HardhatNetworkMiningUserConfig | undefined
+): HardhatNetworkMiningConfig {
+  if (userConfig === undefined) {
+    return {
+      auto: true,
+      interval: 0,
+    };
+  }
+
+  const { auto, interval } = userConfig;
+
+  if (auto === undefined && interval === undefined) {
+    return {
+      auto: true,
+      interval: 0,
+    };
+  }
+
+  if (auto === undefined && interval !== undefined) {
+    return {
+      auto: false,
+      interval,
+    };
+  }
+
+  if (auto !== undefined && interval === undefined) {
+    return {
+      auto,
+      interval: 0,
+    };
+  }
+
+  // ts can't infer it, but both values are defined here
+  return {
+    auto: auto!,
+    interval: interval!,
   };
 }
 

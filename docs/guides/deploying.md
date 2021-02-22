@@ -7,7 +7,7 @@ with some ideas and we'd value your opinion on how to best design it.
 
 In the meantime, we recommend deploying your smart contracts using
 scripts. You can deploy the `Greeter` contract from the sample project
-with the deploy script `scripts/sample-script.js`:
+with a deploy script `scripts/deploy.js` like the above one:
 
 ```js
 async function main() {
@@ -26,15 +26,24 @@ main()
   });
 ```
 
-You can run it with
+You can deploy in the `localhost` network following these steps:
 
-```
-npx hardhat run --network <your-network> scripts/sample-script.js
-```
+1. Start a [local node](../getting-started/#connecting-a-wallet-or-dapp-to-hardhat-network)
+
+    `npx hardhat node`
+
+2. Open a new terminal and deploy the smart contract in the `localhost` network
+
+    `npx hardhat run --network localhost scripts/deploy.js`
+
+As general rule, you can target any network configured in the `hardhat.config.js` 
+
+`npx hardhat run --network <your-network> scripts/deploy.js`
+
 
 ### Truffle migrations support
 
 You can use Hardhat alongside Truffle if you want to use its migration system.
 Your contracts written using Hardhat will just work with Truffle.
 
-All you need to do is installing Truffle, and follow their [migrations guide](https://www.trufflesuite.com/docs/truffle/getting-started/running-migrations).
+All you need to do is install Truffle and follow their [migrations guide](https://www.trufflesuite.com/docs/truffle/getting-started/running-migrations).

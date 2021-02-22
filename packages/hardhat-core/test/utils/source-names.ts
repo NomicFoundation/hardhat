@@ -101,6 +101,18 @@ describe("Source names utilities", function () {
         await isLocalSourceName(path.dirname(__dirname), "no/asd")
       );
     });
+
+    // This is a regression test for this issue: https://github.com/nomiclabs/hardhat/issues/998
+    it("Should return false if the source name is 'hardhat/console.sol'", async function () {
+      const projectPath = path.join(
+        path.dirname(__dirname),
+        "fixture-projects",
+        "project-with-hardhat-directory"
+      );
+      assert.isFalse(
+        await isLocalSourceName(projectPath, "hardhat/console.sol")
+      );
+    });
   });
 
   describe("validateSourceNameExistenceAndCasing", function () {

@@ -164,16 +164,10 @@ export class EvmModule {
   }
 
   private async _setIntervalMiningAction(
-    config: RpcIntervalMining
+    blockTime: RpcIntervalMining
   ): Promise<true> {
-    if (config.blockTime !== undefined) {
-      this._miningTimer.setBlockTime(config.blockTime);
-    }
-    if (config.enabled) {
-      this._miningTimer.start();
-    } else {
-      this._miningTimer.stop();
-    }
+    this._miningTimer.setBlockTime(blockTime);
+
     return true;
   }
 

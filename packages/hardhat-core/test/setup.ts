@@ -19,7 +19,7 @@ export const ALCHEMY_URL = getEnv("ALCHEMY_URL");
 function printForkingLogicNotBeingTestedWarning(varName: string) {
   console.warn(
     chalk.yellow(
-      `TEST RUN INCOMPLETE: You need to defined the env variable ${varName}`
+      `TEST RUN INCOMPLETE: You need to define the env variable ${varName}`
     )
   );
 }
