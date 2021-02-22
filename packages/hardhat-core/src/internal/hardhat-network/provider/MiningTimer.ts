@@ -7,6 +7,17 @@ enum MiningTimerState {
 
 // tslint:disable only-hardhat-error
 
+/**
+ * Timer used to periodically call the given mining function.
+ *
+ * `_blockTime` can be a number or a pair of numbers (of milliseconds).  If it
+ * is a number, it will call the given function repeatedly every `_blockTime`
+ * milliseconds. If it is a pair of numbers, then after each call it will
+ * randomly choose how much to wait until the next call.
+ *
+ * `_mineFunction` is the function to call. It can be async, and it is assumed
+ * that it will never throw.
+ */
 export class MiningTimer {
   private _state = MiningTimerState.STOP;
   private _timeout: NodeJS.Timeout | null = null;
@@ -55,10 +66,7 @@ export class MiningTimer {
     const blockTime = this._getNextBlockTime();
 
     this._state = MiningTimerState.RUNNING;
-    this._timeout = setTimeout(
-      () => this._loop().catch(console.error),
-      blockTime
-    );
+    this._timeout = setTimeout(() => this._loop(), blockTime);
   }
 
   public stop(): void {
@@ -96,7 +104,7 @@ export class MiningTimer {
     const blockTime = this._getNextBlockTime();
 
     this._timeout = setTimeout(() => {
-      this._loop().catch(console.error);
+      this._loop(); // tslint:disable-line no-floating-promises
     }, blockTime);
   }
 

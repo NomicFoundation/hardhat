@@ -350,9 +350,13 @@ export class HardhatNetworkProvider extends EventEmitter
   }
 
   private _makeMiningTimer(): MiningTimer {
-    const miningTimer = new MiningTimer(this._intervalMining, () =>
-      this.request({ method: "evm_mine" })
-    );
+    const miningTimer = new MiningTimer(this._intervalMining, async () => {
+      try {
+        await this.request({ method: "evm_mine" });
+      } catch (e) {
+        console.error("Unexpected error calling evm_mine:", e);
+      }
+    });
 
     miningTimer.start();
 
