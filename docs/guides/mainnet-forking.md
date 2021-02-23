@@ -4,6 +4,8 @@ You can start an instance of Hardhat Network that forks mainnet. This means that
 
 To use this feature you need to connect to an archive node. We recommend using [Alchemy].
 
+Note: Hardhat can only fork mainnet. Support for other testnets will be added in a future release.
+
 ## Forking from mainnet
 
 The easiest way to try this feature is to start a node from the command line:
