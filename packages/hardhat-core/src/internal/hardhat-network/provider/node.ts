@@ -1,7 +1,7 @@
 import VM from "@nomiclabs/ethereumjs-vm";
 import Bloom from "@nomiclabs/ethereumjs-vm/dist/bloom";
 import { EVMResult, ExecResult } from "@nomiclabs/ethereumjs-vm/dist/evm/evm";
-import { ERROR } from "@nomiclabs/ethereumjs-vm/dist/exceptions";
+import { ERROR, VmError } from "@nomiclabs/ethereumjs-vm/dist/exceptions";
 import { RunBlockResult } from "@nomiclabs/ethereumjs-vm/dist/runBlock";
 import { StateManager } from "@nomiclabs/ethereumjs-vm/dist/state";
 import chalk from "chalk";
@@ -930,6 +930,13 @@ export class HardhatNode extends EventEmitter {
     }
 
     const error = vmResult.exceptionError;
+
+    // If this is an internal VM error, or a different kind of error was
+    // thrown, we just rethrow. An example of a non-VmError being thrown here
+    // is an HTTP error coming from the ForkedStateManager.
+    if (!(error instanceof VmError) || error.error === ERROR.INTERNAL_ERROR) {
+      throw error;
+    }
 
     if (error.error === ERROR.OUT_OF_GAS) {
       if (this._isContractTooLargeStackTrace(stackTrace)) {

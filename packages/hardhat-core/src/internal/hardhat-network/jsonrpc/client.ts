@@ -22,7 +22,6 @@ import {
 
 export class JsonRpcClient {
   private _cache: Map<string, any> = new Map();
-  private _scopedForkCacheFolderCreated?: boolean;
 
   constructor(
     private _httpProvider: HttpProvider,
@@ -429,11 +428,7 @@ export class JsonRpcClient {
   ) {
     const requestPath = this._getDiskCachePathForKey(forkCachePath, cacheKey);
 
-    if (this._scopedForkCacheFolderCreated !== true) {
-      this._scopedForkCacheFolderCreated = true;
-      await fsExtra.ensureDir(path.dirname(requestPath));
-    }
-
+    await fsExtra.ensureDir(path.dirname(requestPath));
     await fsExtra.writeJSON(requestPath, rawResult, {
       encoding: "utf8",
     });
