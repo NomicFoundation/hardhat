@@ -233,6 +233,14 @@ const plugins = [
     tags: ["Testing", "Gas", "Hardhat plugin"],
   },
   {
+    name: "hardhat-erc1820",
+    author: "David Mihal",
+    authorUrl: "https://twitter.com/dmihal",
+    url: "https://github.com/dmihal/hardhat-erc1820/tree/master",
+    description: "Automatically deploy the ERC-1820 registry contract to Hardhat EVM chains.",
+    tags: ["Testing"],
+  },
+  {
     name: "@aragon/buidler-aragon",
     author: "Aragon One",
     authorUrl: "https://twitter.com/aragononeteam",
