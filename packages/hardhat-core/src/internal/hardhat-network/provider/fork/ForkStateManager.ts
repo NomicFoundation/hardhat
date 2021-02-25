@@ -192,7 +192,7 @@ export class ForkStateManager implements PStateManager {
 
     const remoteValue = await this._jsonRpcClient.getStorageAt(
       address,
-      key,
+      new BN(key),
       this._contextBlockNumber
     );
 
