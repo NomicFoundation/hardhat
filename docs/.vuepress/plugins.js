@@ -300,7 +300,7 @@ const plugins = [
     name: "hardhat-tracer",
     author: "Soham Zemse",
     authorUrl: "https://github.com/zemse/",
-    url: "https://github.com/zemse/hardhat-tracer",
+    url: "https://github.com/zemse/hardhat-tracer/tree/master",
     description: "See emitted events during your hardhat tests in the console",
     tags: ["Events", "Logs", "Trace", "Console", "Testing"],
   },
