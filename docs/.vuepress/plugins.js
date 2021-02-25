@@ -304,6 +304,14 @@ const plugins = [
       "A Hardhat plugin that generates a React hook component from your smart contracts. Hot reloaded into your React app. Deployed or not deployed. And everything typed and initialized.",
     tags: ["Ethers", "React", "Deploy", "Typechain", "Frontend", "Web3modal"],
   },
+  {
+    name: "hardhat-tracer",
+    author: "Soham Zemse",
+    authorUrl: "https://github.com/zemse/",
+    url: "https://github.com/zemse/hardhat-tracer/tree/master",
+    description: "See emitted events during your hardhat tests in the console",
+    tags: ["Events", "Logs", "Trace", "Console", "Testing"],
+  },
 ];
 
 module.exports = plugins.map((p) => ({
