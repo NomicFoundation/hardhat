@@ -25,7 +25,6 @@ import {
 import EventEmitter from "events";
 import Trie from "merkle-patricia-tree";
 import { promisify } from "util";
-import { threadId } from "worker_threads";
 
 import { CompilerInput, CompilerOutput } from "../../../types";
 import { HARDHAT_NETWORK_DEFAULT_GAS_PRICE } from "../../core/config/default-config";
