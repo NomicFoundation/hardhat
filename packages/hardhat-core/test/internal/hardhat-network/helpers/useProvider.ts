@@ -4,6 +4,7 @@ import { ForkConfig } from "../../../../src/internal/hardhat-network/provider/no
 import { HardhatNetworkProvider } from "../../../../src/internal/hardhat-network/provider/provider";
 import { EthereumProvider } from "../../../../src/types";
 
+import { FakeModulesLogger } from "./fakeLogger";
 import {
   DEFAULT_ACCOUNTS,
   DEFAULT_ALLOW_UNLIMITED_CONTRACT_SIZE,
@@ -18,6 +19,7 @@ import {
 
 declare module "mocha" {
   interface Context {
+    logger: FakeModulesLogger;
     provider: EthereumProvider;
     hardhatNetworkProvider: HardhatNetworkProvider;
     server?: JsonRpcServer;
@@ -26,6 +28,7 @@ declare module "mocha" {
 
 export function useProvider(
   useJsonRpc = DEFAULT_USE_JSON_RPC,
+  loggerEnabled = true,
   forkConfig?: ForkConfig,
   mining = DEFAULT_MINING_CONFIG,
   hardfork = DEFAULT_HARDFORK,
@@ -37,6 +40,7 @@ export function useProvider(
   allowUnlimitedContractSize = DEFAULT_ALLOW_UNLIMITED_CONTRACT_SIZE
 ) {
   beforeEach("Initialize provider", async function () {
+    this.logger = new FakeModulesLogger(loggerEnabled);
     this.hardhatNetworkProvider = new HardhatNetworkProvider(
       hardfork,
       networkName,
@@ -47,8 +51,8 @@ export function useProvider(
       true,
       mining.auto,
       mining.interval,
+      this.logger,
       accounts,
-      undefined,
       undefined,
       allowUnlimitedContractSize,
       undefined,

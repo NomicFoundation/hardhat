@@ -16,7 +16,7 @@ import { retrieveCommon } from "./retrieveCommon";
 export async function deployContract(
   provider: EthereumProvider,
   deploymentCode: string
-) {
+): Promise<string> {
   const hash = await provider.send("eth_sendTransaction", [
     {
       from: DEFAULT_ACCOUNTS_ADDRESSES[0],
