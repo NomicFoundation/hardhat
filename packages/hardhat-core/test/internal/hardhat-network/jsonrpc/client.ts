@@ -50,7 +50,7 @@ describe("JsonRpcClient", () => {
       function getStorageAt(blockNumber: number) {
         return clientWithFakeProvider.getStorageAt(
           DAI_ADDRESS,
-          DAI_TOTAL_SUPPLY_STORAGE_POSITION,
+          new BN(DAI_TOTAL_SUPPLY_STORAGE_POSITION),
           new BN(blockNumber)
         );
       }
@@ -187,7 +187,7 @@ describe("JsonRpcClient", () => {
 
         const value = await clientWithFakeProvider.getStorageAt(
           DAI_ADDRESS,
-          DAI_TOTAL_SUPPLY_STORAGE_POSITION,
+          new BN(DAI_TOTAL_SUPPLY_STORAGE_POSITION),
           new BN(120)
         );
         assert.equal((fakeProvider.request as sinon.SinonStub).callCount, 2);
@@ -218,7 +218,7 @@ describe("JsonRpcClient", () => {
         await assert.isRejected(
           clientWithFakeProvider.getStorageAt(
             DAI_ADDRESS,
-            DAI_TOTAL_SUPPLY_STORAGE_POSITION,
+            new BN(DAI_TOTAL_SUPPLY_STORAGE_POSITION),
             new BN(120)
           ),
           "header not found"
@@ -246,7 +246,7 @@ describe("JsonRpcClient", () => {
         await assert.isRejected(
           clientWithFakeProvider.getStorageAt(
             DAI_ADDRESS,
-            DAI_TOTAL_SUPPLY_STORAGE_POSITION,
+            new BN(DAI_TOTAL_SUPPLY_STORAGE_POSITION),
             new BN(120)
           ),
           "different error"
@@ -274,7 +274,7 @@ describe("JsonRpcClient", () => {
         await assert.isRejected(
           clientWithFakeProvider.getStorageAt(
             DAI_ADDRESS,
-            DAI_TOTAL_SUPPLY_STORAGE_POSITION,
+            new BN(DAI_TOTAL_SUPPLY_STORAGE_POSITION),
             new BN(120)
           ),
           "header not found"
@@ -383,7 +383,7 @@ describe("JsonRpcClient", () => {
           it("can fetch value from storage of an existing contract", async () => {
             const totalSupply = await client.getStorageAt(
               DAI_ADDRESS,
-              DAI_TOTAL_SUPPLY_STORAGE_POSITION,
+              new BN(DAI_TOTAL_SUPPLY_STORAGE_POSITION),
               forkNumber
             );
             const totalSupplyBN = new BN(totalSupply);
@@ -393,7 +393,7 @@ describe("JsonRpcClient", () => {
           it("can fetch empty value from storage of an existing contract", async () => {
             const value = await client.getStorageAt(
               DAI_ADDRESS,
-              toBuffer("0xbaddcafe"),
+              new BN("0xbaddcafe"),
               forkNumber
             );
             const valueBN = new BN(value);
@@ -403,7 +403,7 @@ describe("JsonRpcClient", () => {
           it("can fetch empty value from storage of a non-existent contract", async () => {
             const value = await client.getStorageAt(
               EMPTY_ACCOUNT_ADDRESS,
-              toBuffer([1]),
+              new BN(1),
               forkNumber
             );
             const valueBN = new BN(value);
