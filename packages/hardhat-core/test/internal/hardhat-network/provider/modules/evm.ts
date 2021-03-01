@@ -413,7 +413,8 @@ describe("Evm module", function () {
         it("should mine transactions with original gasLimit values", async function () {
           const contractAddress = await deployContract(
             this.provider,
-            `0x${EXAMPLE_READ_CONTRACT.bytecode.object}`
+            `0x${EXAMPLE_READ_CONTRACT.bytecode.object}`,
+            DEFAULT_ACCOUNTS_ADDRESSES[1]
           );
 
           await this.provider.send("evm_setAutomineEnabled", [false]);
@@ -424,7 +425,7 @@ describe("Evm module", function () {
           const tx1Hash = await this.provider.send("eth_sendTransaction", [
             {
               nonce: numberToRpcQuantity(1),
-              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
               to: contractAddress,
               data: EXAMPLE_READ_CONTRACT.selectors.gasLeft,
               gas: numberToRpcQuantity(DEFAULT_BLOCK_GAS_LIMIT),
@@ -434,7 +435,7 @@ describe("Evm module", function () {
           const tx2Hash = await this.provider.send("eth_sendTransaction", [
             {
               nonce: numberToRpcQuantity(2),
-              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
               to: contractAddress,
               data: EXAMPLE_READ_CONTRACT.selectors.gasLeft,
               gas: numberToRpcQuantity(DEFAULT_BLOCK_GAS_LIMIT),
@@ -523,7 +524,7 @@ describe("Evm module", function () {
 
           const txHash1 = await this.provider.send("eth_sendTransaction", [
             {
-              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
               to: "0x1111111111111111111111111111111111111111",
               gas: numberToRpcQuantity(100000),
               gasPrice: numberToRpcQuantity(1),
@@ -535,7 +536,7 @@ describe("Evm module", function () {
 
           const txHash2 = await this.provider.send("eth_sendTransaction", [
             {
-              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
               to: "0x1111111111111111111111111111111111111111",
               gas: numberToRpcQuantity(100000),
               gasPrice: numberToRpcQuantity(1),
@@ -660,7 +661,7 @@ describe("Evm module", function () {
             const sendTx = async (nonce: number) =>
               this.ctx.provider.send("eth_sendTransaction", [
                 {
-                  from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[1],
                   to: "0x1111111111111111111111111111111111111111",
                   nonce: numberToRpcQuantity(nonce),
                 },
@@ -670,14 +671,12 @@ describe("Evm module", function () {
               blockNumber: number,
               txHashes: string[]
             ) => {
-              const currentTime = getCurrentTimestamp();
               const block = await this.ctx.provider.send(
                 "eth_getBlockByNumber",
                 ["latest", false]
               );
 
               assert.equal(quantityToNumber(block.number), blockNumber);
-              assert.equal(quantityToNumber(block.timestamp), currentTime);
               assert.deepEqual(block.transactions, txHashes);
             };
 
@@ -735,7 +734,7 @@ describe("Evm module", function () {
               const interval = 1000;
               const txHash = await this.provider.send("eth_sendTransaction", [
                 {
-                  from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[1],
                   to: "0x1111111111111111111111111111111111111111",
                   nonce: numberToRpcQuantity(0),
                 },
@@ -989,8 +988,8 @@ describe("Evm module", function () {
 
           const txHash1 = await this.provider.send("eth_sendTransaction", [
             {
-              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[2],
               nonce: numberToRpcQuantity(0),
               gas: numberToRpcQuantity(21_000),
             },
@@ -998,8 +997,8 @@ describe("Evm module", function () {
 
           const txHash2 = await this.provider.send("eth_sendTransaction", [
             {
-              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[2],
               nonce: numberToRpcQuantity(3),
               gas: numberToRpcQuantity(21_000),
             },
@@ -1009,8 +1008,8 @@ describe("Evm module", function () {
 
           const txHash3 = await this.provider.send("eth_sendTransaction", [
             {
-              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[2],
               nonce: numberToRpcQuantity(1),
               gas: numberToRpcQuantity(21_000),
             },
@@ -1041,7 +1040,7 @@ describe("Evm module", function () {
         });
 
         it("Allows resending the same tx after a revert", async function () {
-          const [from] = await this.provider.send("eth_accounts");
+          const [, from] = await this.provider.send("eth_accounts");
 
           const snapshotId: string = await this.provider.send(
             "evm_snapshot",
@@ -1159,7 +1158,7 @@ describe("Evm module", function () {
         it("Restores the previous state", async function () {
           // This is a very coarse test, as we know that the entire state is
           // managed by the vm, and is restored as a whole
-          const [from] = await this.provider.send("eth_accounts");
+          const [, from] = await this.provider.send("eth_accounts");
 
           const balanceBeforeTx = await this.provider.send("eth_getBalance", [
             from,

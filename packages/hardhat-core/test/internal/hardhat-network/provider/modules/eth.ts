@@ -804,8 +804,8 @@ describe("Eth module", function () {
 
           await this.provider.send("eth_sendTransaction", [
             {
-              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[2],
               value: numberToRpcQuantity(1),
               gas: numberToRpcQuantity(21000),
               gasPrice: numberToRpcQuantity(1),
@@ -814,15 +814,16 @@ describe("Eth module", function () {
           ]);
 
           await assertPendingNodeBalances(this.provider, [
-            DEFAULT_ACCOUNTS_BALANCES[0].subn(1 + 21000),
-            DEFAULT_ACCOUNTS_BALANCES[1].addn(1),
-            ...DEFAULT_ACCOUNTS_BALANCES.slice(2),
+            DEFAULT_ACCOUNTS_BALANCES[0],
+            DEFAULT_ACCOUNTS_BALANCES[1].subn(1 + 21000),
+            DEFAULT_ACCOUNTS_BALANCES[2].addn(1),
+            ...DEFAULT_ACCOUNTS_BALANCES.slice(3),
           ]);
 
           await this.provider.send("eth_sendTransaction", [
             {
-              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[2],
               value: numberToRpcQuantity(2),
               gas: numberToRpcQuantity(21000),
               gasPrice: numberToRpcQuantity(2),
@@ -831,9 +832,10 @@ describe("Eth module", function () {
           ]);
 
           await assertPendingNodeBalances(this.provider, [
-            DEFAULT_ACCOUNTS_BALANCES[0].subn(1 + 21000 + 2 + 21000 * 2),
-            DEFAULT_ACCOUNTS_BALANCES[1].addn(1 + 2),
-            ...DEFAULT_ACCOUNTS_BALANCES.slice(2),
+            DEFAULT_ACCOUNTS_BALANCES[0],
+            DEFAULT_ACCOUNTS_BALANCES[1].subn(1 + 21000 + 2 + 21000 * 2),
+            DEFAULT_ACCOUNTS_BALANCES[2].addn(1 + 2),
+            ...DEFAULT_ACCOUNTS_BALANCES.slice(3),
           ]);
         });
 
@@ -2633,7 +2635,7 @@ describe("Eth module", function () {
 
           const txParams1: TransactionParams = {
             to: toBuffer(zeroAddress()),
-            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
+            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[1]),
             data: toBuffer("0xaa"),
             nonce: new BN(0),
             value: new BN(123),
@@ -2653,11 +2655,14 @@ describe("Eth module", function () {
 
           await this.provider.send("evm_mine");
 
-          await sendTxToZeroAddress(this.provider);
+          await sendTxToZeroAddress(
+            this.provider,
+            DEFAULT_ACCOUNTS_ADDRESSES[1]
+          );
 
           const txParams2: TransactionParams = {
             to: toBuffer(zeroAddress()),
-            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
+            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[1]),
             data: toBuffer([]),
             nonce: new BN(2),
             value: new BN(123),
@@ -2898,7 +2903,7 @@ describe("Eth module", function () {
         it("should return the right info for the pending transaction", async function () {
           const txParams: TransactionParams = {
             to: toBuffer(zeroAddress()),
-            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
+            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[1]),
             data: toBuffer([]),
             nonce: new BN(0),
             value: new BN(123),
@@ -3104,15 +3109,15 @@ describe("Eth module", function () {
           await this.provider.send("evm_setAutomineEnabled", [false]);
           await this.provider.send("eth_sendTransaction", [
             {
-              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[2],
               value: numberToRpcQuantity(1),
             },
           ]);
 
           assertQuantity(
             await this.provider.send("eth_getTransactionCount", [
-              DEFAULT_ACCOUNTS_ADDRESSES[0],
+              DEFAULT_ACCOUNTS_ADDRESSES[1],
               "latest",
             ]),
             0
@@ -3120,7 +3125,7 @@ describe("Eth module", function () {
 
           assertQuantity(
             await this.provider.send("eth_getTransactionCount", [
-              DEFAULT_ACCOUNTS_ADDRESSES[0],
+              DEFAULT_ACCOUNTS_ADDRESSES[1],
               "pending",
             ]),
             1
@@ -3411,10 +3416,26 @@ describe("Eth module", function () {
           await this.provider.send("evm_setAutomineEnabled", [false]);
 
           const txs = [];
-          txs.push(await sendDummyTransaction(this.provider, 0));
-          txs.push(await sendDummyTransaction(this.provider, 1));
-          txs.push(await sendDummyTransaction(this.provider, 4));
-          txs.push(await sendDummyTransaction(this.provider, 9));
+          txs.push(
+            await sendDummyTransaction(this.provider, 0, {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+            })
+          );
+          txs.push(
+            await sendDummyTransaction(this.provider, 1, {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+            })
+          );
+          txs.push(
+            await sendDummyTransaction(this.provider, 4, {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+            })
+          );
+          txs.push(
+            await sendDummyTransaction(this.provider, 9, {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+            })
+          );
 
           const pendingTransactions = await this.provider.send(
             "eth_pendingTransactions"
@@ -3430,11 +3451,19 @@ describe("Eth module", function () {
         it("should return an array with remaining pending transactions after a block was mined", async function () {
           await this.provider.send("evm_setAutomineEnabled", [false]);
 
-          await sendDummyTransaction(this.provider, 0);
-          await sendDummyTransaction(this.provider, 1);
+          await sendDummyTransaction(this.provider, 0, {
+            from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+          });
+          await sendDummyTransaction(this.provider, 1, {
+            from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+          });
 
-          const tx1 = await sendDummyTransaction(this.provider, 4);
-          const tx2 = await sendDummyTransaction(this.provider, 9);
+          const tx1 = await sendDummyTransaction(this.provider, 4, {
+            from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+          });
+          const tx2 = await sendDummyTransaction(this.provider, 9, {
+            from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+          });
 
           const pendingTransactionsBefore = await this.provider.send(
             "eth_pendingTransactions"
@@ -3664,8 +3693,8 @@ describe("Eth module", function () {
               [
                 {
                   nonce: numberToRpcQuantity(1),
-                  from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-                  to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                  to: DEFAULT_ACCOUNTS_ADDRESSES[2],
                 },
               ],
               "Nonce too high. Expected nonce to be 0 but got 1. Note that transactions can't be queued when automining."
@@ -3673,15 +3702,18 @@ describe("Eth module", function () {
           });
 
           it("Should throw if the tx nonce is lower than the account nonce", async function () {
-            await sendTxToZeroAddress(this.provider);
+            await sendTxToZeroAddress(
+              this.provider,
+              DEFAULT_ACCOUNTS_ADDRESSES[1]
+            );
             await assertInvalidInputError(
               this.provider,
               "eth_sendTransaction",
               [
                 {
                   nonce: numberToRpcQuantity(0),
-                  from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-                  to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                  to: DEFAULT_ACCOUNTS_ADDRESSES[2],
                 },
               ],
               "Nonce too low. Expected nonce to be 1 but got 0."
@@ -3795,8 +3827,8 @@ describe("Eth module", function () {
                 await this.provider.send("evm_setAutomineEnabled", [false]);
                 await this.provider.send("eth_sendTransaction", [
                   {
-                    from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-                    to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                    from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                    to: DEFAULT_ACCOUNTS_ADDRESSES[2],
                     nonce: numberToRpcQuantity(0),
                     gas: numberToRpcQuantity(21000),
                     gasPrice: numberToRpcQuantity(1),
@@ -3810,8 +3842,8 @@ describe("Eth module", function () {
                   "eth_sendTransaction",
                   [
                     {
-                      from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-                      to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                      from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                      to: DEFAULT_ACCOUNTS_ADDRESSES[2],
                       gas: numberToRpcQuantity(21000),
                       gasPrice: numberToRpcQuantity(1),
                       value: wholeAccountBalance,
@@ -3843,12 +3875,22 @@ describe("Eth module", function () {
                   await this.provider.send("eth_blockNumber")
                 );
 
-                await sendDummyTransaction(this.provider, 0);
-                await sendDummyTransaction(this.provider, 1);
-                await sendDummyTransaction(this.provider, 2);
-                await sendDummyTransaction(this.provider, 3);
+                await sendDummyTransaction(this.provider, 0, {
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                });
+                await sendDummyTransaction(this.provider, 1, {
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                });
+                await sendDummyTransaction(this.provider, 2, {
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                });
+                await sendDummyTransaction(this.provider, 3, {
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                });
                 await this.provider.send("evm_setAutomineEnabled", [true]);
-                const txHash = await sendDummyTransaction(this.provider, 4);
+                const txHash = await sendDummyTransaction(this.provider, 4, {
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                });
 
                 const blockAfter = await this.provider.send(
                   "eth_getBlockByNumber",
@@ -3868,8 +3910,8 @@ describe("Eth module", function () {
                 ) => {
                   return this.provider.send("eth_sendTransaction", [
                     {
-                      from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-                      to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                      from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                      to: DEFAULT_ACCOUNTS_ADDRESSES[2],
                       nonce: numberToRpcQuantity(nonce),
                       gas: numberToRpcQuantity(21000),
                       gasPrice: numberToRpcQuantity(1),
@@ -3877,7 +3919,7 @@ describe("Eth module", function () {
                     },
                   ]);
                 };
-                const initialBalance = DEFAULT_ACCOUNTS_BALANCES[0];
+                const initialBalance = DEFAULT_ACCOUNTS_BALANCES[1];
                 const firstBlock = await getFirstBlock();
 
                 await this.provider.send("evm_setAutomineEnabled", [false]);
@@ -3892,8 +3934,8 @@ describe("Eth module", function () {
                   "eth_sendTransaction",
                   [
                     {
-                      from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-                      to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                      from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                      to: DEFAULT_ACCOUNTS_ADDRESSES[2],
                       gas: numberToRpcQuantity(21000),
                       gasPrice: numberToRpcQuantity(1),
                       value: numberToRpcQuantity(100),
@@ -3924,23 +3966,26 @@ describe("Eth module", function () {
               this.provider.send("eth_sendTransaction", [
                 {
                   nonce: numberToRpcQuantity(1),
-                  from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-                  to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                  to: DEFAULT_ACCOUNTS_ADDRESSES[2],
                 },
               ])
             );
           });
 
           it("Should throw if the tx nonce is lower than the account nonce", async function () {
-            await sendTxToZeroAddress(this.provider);
+            await sendTxToZeroAddress(
+              this.provider,
+              DEFAULT_ACCOUNTS_ADDRESSES[1]
+            );
             await assertInvalidInputError(
               this.provider,
               "eth_sendTransaction",
               [
                 {
                   nonce: numberToRpcQuantity(0),
-                  from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-                  to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                  to: DEFAULT_ACCOUNTS_ADDRESSES[2],
                 },
               ],
               "Nonce too low. Expected nonce to be at least 1 but got 0."
@@ -3949,8 +3994,8 @@ describe("Eth module", function () {
 
           it("Should throw an error if the same transaction is sent twice", async function () {
             const txParams = {
-              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              to: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[1],
               nonce: numberToRpcQuantity(0),
             };
 

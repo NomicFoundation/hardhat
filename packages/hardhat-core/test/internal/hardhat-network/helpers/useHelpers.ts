@@ -25,8 +25,8 @@ export function useHelpers() {
     }
 
     this.sendTx = ({
-      from = DEFAULT_ACCOUNTS_ADDRESSES[0],
-      to = DEFAULT_ACCOUNTS_ADDRESSES[1],
+      from = DEFAULT_ACCOUNTS_ADDRESSES[1],
+      to = DEFAULT_ACCOUNTS_ADDRESSES[2],
       gas = 21000,
       gasPrice = 1,
       data,

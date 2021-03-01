@@ -101,12 +101,12 @@ describe("Provider logs", () => {
             );
             // prettier-ignore
             {
-              assert.match(this.logger.lines[1], /^  Transaction: 0x[0-9a-f]{64}$/);
-              assert.match(this.logger.lines[2], /^  From:        0x[0-9a-f]{40}$/);
-              assert.match(this.logger.lines[3], /^  To:          0x[0-9a-f]{40}$/);
-              assert.match(this.logger.lines[4], /^  Value:       0 ETH$/);
-              assert.match(this.logger.lines[5], /^  Gas used:    21000 of \d+$/);
-              assert.match(this.logger.lines[6], /^  Block #1:    0x[0-9a-f]{64}$/);
+              assert.match(this.logger.lines[1], /^  Transaction:\s+0x[0-9a-f]{64}$/);
+              assert.match(this.logger.lines[2], /^  From:       \s+0x[0-9a-f]{40}$/);
+              assert.match(this.logger.lines[3], /^  To:         \s+0x[0-9a-f]{40}$/);
+              assert.match(this.logger.lines[4], /^  Value:      \s+0 ETH$/);
+              assert.match(this.logger.lines[5], /^  Gas used:   \s+21000 of \d+$/);
+              assert.match(this.logger.lines[6], /^  Block #\d+:\s+0x[0-9a-f]{64}$/);
               assert.equal(this.logger.lines[7], "");
             }
           });
@@ -123,13 +123,13 @@ describe("Provider logs", () => {
             );
             // prettier-ignore
             {
-              assert.match(this.logger.lines[1], /^  Precompile call: <PrecompileContract 1>$/);
-              assert.match(this.logger.lines[2], /^  Transaction:     0x[0-9a-f]{64}$/);
-              assert.match(this.logger.lines[3], /^  From:            0x[0-9a-f]{40}$/);
-              assert.match(this.logger.lines[4], /^  To:              0x[0-9a-f]{40}$/);
-              assert.match(this.logger.lines[5], /^  Value:           0 ETH$/);
-              assert.match(this.logger.lines[6], /^  Gas used:        21000 of \d+$/);
-              assert.match(this.logger.lines[7], /^  Block #1:        0x[0-9a-f]{64}$/);
+              assert.match(this.logger.lines[1], /^  Precompile call:\s+<PrecompileContract 1>$/);
+              assert.match(this.logger.lines[2], /^  Transaction:\s+0x[0-9a-f]{64}$/);
+              assert.match(this.logger.lines[3], /^  From:\s+0x[0-9a-f]{40}$/);
+              assert.match(this.logger.lines[4], /^  To:\s+0x[0-9a-f]{40}$/);
+              assert.match(this.logger.lines[5], /^  Value:\s+0 ETH$/);
+              assert.match(this.logger.lines[6], /^  Gas used:\s+21000 of \d+$/);
+              assert.match(this.logger.lines[7], /^  Block #\d+:\s+0x[0-9a-f]{64}$/);
               assert.equal(this.logger.lines[8], "");
               assert.match(this.logger.lines[9], /^  Transaction ran out of gas/);
               assert.equal(this.logger.lines[10], "");
@@ -152,13 +152,13 @@ describe("Provider logs", () => {
             );
             // prettier-ignore
             {
-              assert.match(this.logger.lines[1], /^  Contract deployment: <UnrecognizedContract>$/);
-              assert.match(this.logger.lines[2], /^  Contract address:    0x[0-9a-f]{40}$/);
-              assert.match(this.logger.lines[3], /^  Transaction:         0x[0-9a-f]{64}$/);
-              assert.match(this.logger.lines[4], /^  From:                0x[0-9a-f]{40}$/);
-              assert.match(this.logger.lines[5], /^  Value:               0 ETH$/);
-              assert.match(this.logger.lines[6], /^  Gas used:            \d+ of \d+$/);
-              assert.match(this.logger.lines[7], /^  Block #1:            0x[0-9a-f]{64}$/);
+              assert.match(this.logger.lines[1], /^  Contract deployment:\s+<UnrecognizedContract>$/);
+              assert.match(this.logger.lines[2], /^  Contract address:\s+0x[0-9a-f]{40}$/);
+              assert.match(this.logger.lines[3], /^  Transaction:\s+0x[0-9a-f]{64}$/);
+              assert.match(this.logger.lines[4], /^  From:\s+0x[0-9a-f]{40}$/);
+              assert.match(this.logger.lines[5], /^  Value:\s+0 ETH$/);
+              assert.match(this.logger.lines[6], /^  Gas used:\s+\d+ of \d+$/);
+              assert.match(this.logger.lines[7], /^  Block #\d+:\s+0x[0-9a-f]{64}$/);
               assert.equal(this.logger.lines[8], "");
             }
           });
@@ -166,8 +166,9 @@ describe("Provider logs", () => {
 
         describe("eth_sendRawTransaction", function () {
           it("should print a successful transaction", async function () {
+            // send 0 eth from the DEFAULT_ACCOUNTS[1]
             await this.provider.send("eth_sendRawTransaction", [
-              "0xf86180018252089494a48723b9b46b19c72e3091838d0522618b9363808082011aa04b42288be5c6bad2a53ebc7dca277d05c4e54912a94b2ecb2565f472e49cc547a01bc01d61ed6d3dbc3de54ad928d83397e5b139a3834c71785c8ac90e85bf42e7",
+              "0xf861800282520894ce9efd622e568b3a21b19532c77fc76c93c34bd4808082011aa01ba553fa3c8de65b6ea9fcda3edf3b47a88defbda1069d4337df4241f0e04291a042805fecce14a43feff65a32c88dd328a4bc0633fb7a33f9ea065451f00e789b",
             ]);
 
             assert.lengthOf(this.logger.lines, 8);
@@ -177,12 +178,12 @@ describe("Provider logs", () => {
             );
             // prettier-ignore
             {
-              assert.match(this.logger.lines[1], /^  Transaction: 0x[0-9a-f]{64}$/);
-              assert.match(this.logger.lines[2], /^  From:        0x[0-9a-f]{40}$/);
-              assert.match(this.logger.lines[3], /^  To:          0x[0-9a-f]{40}$/);
-              assert.match(this.logger.lines[4], /^  Value:       0 ETH$/);
-              assert.match(this.logger.lines[5], /^  Gas used:    21000 of \d+$/);
-              assert.match(this.logger.lines[6], /^  Block #1:    0x[0-9a-f]{64}$/);
+              assert.match(this.logger.lines[1], /^  Transaction:\s+0x[0-9a-f]{64}$/);
+              assert.match(this.logger.lines[2], /^  From:\s+0x[0-9a-f]{40}$/);
+              assert.match(this.logger.lines[3], /^  To:\s+0x[0-9a-f]{40}$/);
+              assert.match(this.logger.lines[4], /^  Value:\s+0 ETH$/);
+              assert.match(this.logger.lines[5], /^  Gas used:\s+21000 of \d+$/);
+              assert.match(this.logger.lines[6], /^  Block #\d+:\s+0x[0-9a-f]{64}$/);
               assert.equal(this.logger.lines[7], "");
             }
           });
@@ -190,14 +191,15 @@ describe("Provider logs", () => {
           it("should print a failed transaction", async function () {
             await deployContract(
               this.provider,
-              `0x${EXAMPLE_READ_CONTRACT.bytecode.object}`
+              `0x${EXAMPLE_READ_CONTRACT.bytecode.object}`,
+              DEFAULT_ACCOUNTS_ADDRESSES[1]
             );
             this.logger.reset();
 
             // this sends a tx with value to a non-payable method of EXAMPLE_READ_CONTRACT
             await this.provider
               .send("eth_sendRawTransaction", [
-                "0xf865010182c3509461de9dc6f6cff1df2809480882cfd3c2364b28f7018457e871e7820119a08ac38650d6d0f89ffcc68420928bc75ee96fb5aa11c2c74358cc8a9a6ea82c0aa0203f7c5e2fe374ee89a5c4fd03be7cfbe4bf8e85f293b794c51e049f3b45fa28",
+                "0xf865010282c3509412ce8137a40021419ad22124561e67133eda10c501847877a79782011aa0d32f92a6272331b105f4fa7c8c87fba2bebd25fcb59b8bcc1e9e505bd2c9916ca0768e99f497949014ffaa122a109759246717232f29c4c28bd45f7dcc975820c9",
               ])
               .catch(() => {});
 
@@ -208,13 +210,13 @@ describe("Provider logs", () => {
             );
             // prettier-ignore
             {
-              assert.match(this.logger.lines[1], /^  Contract call:       <UnrecognizedContract>$/);
-              assert.match(this.logger.lines[2], /^  Transaction:         0x[0-9a-f]{64}$/);
-              assert.match(this.logger.lines[3], /^  From:                0x[0-9a-f]{40}$/);
-              assert.match(this.logger.lines[4], /^  To:                  0x[0-9a-f]{40}$/);
-              assert.match(this.logger.lines[5], /^  Value:               1 wei$/);
-              assert.match(this.logger.lines[6], /^  Gas used:            \d+ of \d+$/);
-              assert.match(this.logger.lines[7], /^  Block #2:            0x[0-9a-f]{64}$/);
+              assert.match(this.logger.lines[1], /^  Contract call:\s+<UnrecognizedContract>$/);
+              assert.match(this.logger.lines[2], /^  Transaction:\s+0x[0-9a-f]{64}$/);
+              assert.match(this.logger.lines[3], /^  From:\s+0x[0-9a-f]{40}$/);
+              assert.match(this.logger.lines[4], /^  To:\s+0x[0-9a-f]{40}$/);
+              assert.match(this.logger.lines[5], /^  Value:\s+1 wei$/);
+              assert.match(this.logger.lines[6], /^  Gas used:\s+\d+ of \d+$/);
+              assert.match(this.logger.lines[7], /^  Block #\d+:\s+0x[0-9a-f]{64}$/);
               assert.equal(this.logger.lines[8], "");
               assert.match(this.logger.lines[9], /^  Error: Transaction reverted without a reason/);
               assert.equal(this.logger.lines[10], "");
@@ -244,9 +246,9 @@ describe("Provider logs", () => {
             assert.equal(this.logger.lines[0], chalk.green("eth_call"));
             // prettier-ignore
             {
-              assert.equal(this.logger.lines[1], "  Contract call:       <UnrecognizedContract>");
-              assert.equal(this.logger.lines[2], "  From:                0xbe862ad9abfe6f22bcb087716c7d89a26051f74c");
-              assert.equal(this.logger.lines[3], "  To:                  0x61de9dc6f6cff1df2809480882cfd3c2364b28f7");
+              assert.match(this.logger.lines[1], /^  Contract call:       <UnrecognizedContract>$/);
+              assert.match(this.logger.lines[2], /^  From:                0x[0-9a-f]{40}$/);
+              assert.match(this.logger.lines[3], /^  To:                  0x[0-9a-f]{40}$/);
               assert.equal(this.logger.lines[4], "");
             }
           });
@@ -276,8 +278,8 @@ describe("Provider logs", () => {
             // prettier-ignore
             {
               assert.match(this.logger.lines[1], /^  Contract call:       <UnrecognizedContract>$/);
-              assert.match(this.logger.lines[2], /^  From:                0xbe862ad9abfe6f22bcb087716c7d89a26051f74c$/);
-              assert.match(this.logger.lines[3], /^  To:                  0x61de9dc6f6cff1df2809480882cfd3c2364b28f7$/);
+              assert.match(this.logger.lines[2], /^  From:                0x[0-9a-f]{40}$/);
+              assert.match(this.logger.lines[3], /^  To:                  0x[0-9a-f]{40}$/);
               assert.match(this.logger.lines[4], /^  Value:               1 wei$/);
               assert.equal(this.logger.lines[5], "");
               assert.match(this.logger.lines[6], /^  Error: Transaction reverted without a reason/);
@@ -299,9 +301,9 @@ describe("Provider logs", () => {
             assert.equal(this.logger.lines[0], chalk.green("eth_call"));
             // prettier-ignore
             {
-              assert.equal(this.logger.lines[1], "  WARNING: Calling an account which is not a contract");
-              assert.equal(this.logger.lines[2], "  From: 0xbe862ad9abfe6f22bcb087716c7d89a26051f74c");
-              assert.equal(this.logger.lines[3], "  To:   0x0000000000000000000000000000000000000000");
+              assert.match(this.logger.lines[1], /^  WARNING: Calling an account which is not a contract$/);
+              assert.match(this.logger.lines[2], /^  From: 0x[0-9a-f]{40}$/);
+              assert.match(this.logger.lines[3], /^  To:   0x[0-9a-f]{40}$/);
               assert.equal(this.logger.lines[4], "");
             }
           });
@@ -354,8 +356,8 @@ describe("Provider logs", () => {
             // prettier-ignore
             {
               assert.match(this.logger.lines[1], /^  Contract call:       <UnrecognizedContract>$/);
-              assert.match(this.logger.lines[2], /^  From:                0xbe862ad9abfe6f22bcb087716c7d89a26051f74c$/);
-              assert.match(this.logger.lines[3], /^  To:                  0x61de9dc6f6cff1df2809480882cfd3c2364b28f7$/);
+              assert.match(this.logger.lines[2], /^  From:                0x[0-9a-f]{40}$/);
+              assert.match(this.logger.lines[3], /^  To:                  0x[0-9a-f]{40}$/);
               assert.match(this.logger.lines[4], /^  Value:               1 wei$/);
               assert.equal(this.logger.lines[5], "");
               assert.match(this.logger.lines[6], /^  Error: Transaction reverted without a reason/);
@@ -392,27 +394,27 @@ describe("Provider logs", () => {
           {
             assert.match(this.logger.lines[1], /^  There were other pending transactions mined in the same block:$/);
             assert.equal(this.logger.lines[2], "");
-            assert.match(this.logger.lines[3], /^  Block #1: 0x[0-9a-f]{64}/);
-            assert.match(this.logger.lines[4], /^    Transaction: 0x[0-9a-f]{64}/);
-            assert.match(this.logger.lines[5], /^      From:      0x[0-9a-f]{40}/);
-            assert.match(this.logger.lines[6], /^      To:        0x[0-9a-f]{40}/);
-            assert.match(this.logger.lines[7], /^      Value:     0 ETH$/);
-            assert.match(this.logger.lines[8], /^      Gas used:  21000 of 21000$/);
+            assert.match(this.logger.lines[3], /^  Block #\d+:\s+0x[0-9a-f]{64}/);
+            assert.match(this.logger.lines[4], /^    Transaction:\s+0x[0-9a-f]{64}/);
+            assert.match(this.logger.lines[5], /^      From:\s+0x[0-9a-f]{40}/);
+            assert.match(this.logger.lines[6], /^      To:\s+0x[0-9a-f]{40}/);
+            assert.match(this.logger.lines[7], /^      Value:\s+0 ETH$/);
+            assert.match(this.logger.lines[8], /^      Gas used:\s+21000 of 21000$/);
             assert.equal(this.logger.lines[9], "");
-            assert.match(this.logger.lines[10], /^    Transaction: \u001b[1m0x[0-9a-f]{64}/);
-            assert.match(this.logger.lines[11], /^      From:      0x[0-9a-f]{40}/);
-            assert.match(this.logger.lines[12], /^      To:        0x[0-9a-f]{40}/);
-            assert.match(this.logger.lines[13], /^      Value:     0 ETH$/);
-            assert.match(this.logger.lines[14], /^      Gas used:  21000 of 21000$/);
+            assert.match(this.logger.lines[10], /^    Transaction:\s+\u001b[1m0x[0-9a-f]{64}/);
+            assert.match(this.logger.lines[11], /^      From:\s+0x[0-9a-f]{40}/);
+            assert.match(this.logger.lines[12], /^      To:\s+0x[0-9a-f]{40}/);
+            assert.match(this.logger.lines[13], /^      Value:\s+0 ETH$/);
+            assert.match(this.logger.lines[14], /^      Gas used:\s+21000 of 21000$/);
             assert.equal(this.logger.lines[15], "");
             assert.match(this.logger.lines[16], /^  Currently sent transaction:$/);
             assert.equal(this.logger.lines[17], "");
-            assert.match(this.logger.lines[18], /^  Transaction:   0x[0-9a-f]{64}/);
-            assert.match(this.logger.lines[19], /^  From:          0x[0-9a-f]{40}/);
-            assert.match(this.logger.lines[20], /^  To:            0x[0-9a-f]{40}/);
-            assert.match(this.logger.lines[21], /^  Value:         0 ETH$/);
-            assert.match(this.logger.lines[22], /^  Gas used:      21000 of 21000$/);
-            assert.match(this.logger.lines[23], /^  Block #1:      0x[0-9a-f]{64}/);
+            assert.match(this.logger.lines[18], /^  Transaction:\s+0x[0-9a-f]{64}/);
+            assert.match(this.logger.lines[19], /^  From:\s+0x[0-9a-f]{40}/);
+            assert.match(this.logger.lines[20], /^  To:\s+0x[0-9a-f]{40}/);
+            assert.match(this.logger.lines[21], /^  Value:\s+0 ETH$/);
+            assert.match(this.logger.lines[22], /^  Gas used:\s+21000 of 21000$/);
+            assert.match(this.logger.lines[23], /^  Block #\d+:\s+0x[0-9a-f]{64}/);
             assert.equal(this.logger.lines[24], "");
           }
         });
@@ -439,27 +441,27 @@ describe("Provider logs", () => {
           {
             assert.equal(this.logger.lines[1], "  There were other pending transactions mined in the same block:");
             assert.equal(this.logger.lines[2], "");
-            assert.match(this.logger.lines[3], /^  Block #1: 0x[0-9a-f]{64}/);
-            assert.match(this.logger.lines[4], /^    Transaction: \u001b[1m0x[0-9a-f]{64}/);
-            assert.match(this.logger.lines[5], /^      From:      0x[0-9a-f]{40}/);
-            assert.match(this.logger.lines[6], /^      To:        0x[0-9a-f]{40}/);
-            assert.match(this.logger.lines[7], /^      Value:     0 ETH$/);
-            assert.match(this.logger.lines[8], /^      Gas used:  21000 of 21000$/);
+            assert.match(this.logger.lines[3], /^  Block #\d+:\s+0x[0-9a-f]{64}/);
+            assert.match(this.logger.lines[4], /^    Transaction:\s+\u001b[1m0x[0-9a-f]{64}/);
+            assert.match(this.logger.lines[5], /^      From:\s+0x[0-9a-f]{40}/);
+            assert.match(this.logger.lines[6], /^      To:\s+0x[0-9a-f]{40}/);
+            assert.match(this.logger.lines[7], /^      Value:\s+0 ETH$/);
+            assert.match(this.logger.lines[8], /^      Gas used:\s+21000 of 21000$/);
             assert.equal(this.logger.lines[9], "");
-            assert.match(this.logger.lines[10], /^    Transaction: 0x[0-9a-f]{64}/);
-            assert.match(this.logger.lines[11], /^      From:      0x[0-9a-f]{40}/);
-            assert.match(this.logger.lines[12], /^      To:        0x[0-9a-f]{40}/);
-            assert.match(this.logger.lines[13], /^      Value:     0 ETH$/);
-            assert.match(this.logger.lines[14], /^      Gas used:  21000 of 21000$/);
+            assert.match(this.logger.lines[10], /^    Transaction:\s+0x[0-9a-f]{64}/);
+            assert.match(this.logger.lines[11], /^      From:\s+0x[0-9a-f]{40}/);
+            assert.match(this.logger.lines[12], /^      To:\s+0x[0-9a-f]{40}/);
+            assert.match(this.logger.lines[13], /^      Value:\s+0 ETH$/);
+            assert.match(this.logger.lines[14], /^      Gas used:\s+21000 of 21000$/);
             assert.equal(this.logger.lines[15], "");
             assert.match(this.logger.lines[16], /^  Currently sent transaction:$/);
             assert.equal(this.logger.lines[17], "");
-            assert.match(this.logger.lines[18], /^  Transaction:   0x[0-9a-f]{64}/);
-            assert.match(this.logger.lines[19], /^  From:          0x[0-9a-f]{40}/);
-            assert.match(this.logger.lines[20], /^  To:            0x[0-9a-f]{40}/);
-            assert.match(this.logger.lines[21], /^  Value:         0 ETH$/);
-            assert.match(this.logger.lines[22], /^  Gas used:      21000 of 21000$/);
-            assert.match(this.logger.lines[23], /^  Block #1:      0x[0-9a-f]{64}/);
+            assert.match(this.logger.lines[18], /^  Transaction:\s+0x[0-9a-f]{64}/);
+            assert.match(this.logger.lines[19], /^  From:\s+0x[0-9a-f]{40}/);
+            assert.match(this.logger.lines[20], /^  To:\s+0x[0-9a-f]{40}/);
+            assert.match(this.logger.lines[21], /^  Value:\s+0 ETH$/);
+            assert.match(this.logger.lines[22], /^  Gas used:\s+21000 of 21000$/);
+            assert.match(this.logger.lines[23], /^  Block #\d+:\s+0x[0-9a-f]{64}/);
             assert.equal(this.logger.lines[24], "");
           }
         });
@@ -487,40 +489,40 @@ describe("Provider logs", () => {
           {
             assert.equal(this.logger.lines[1], "  There were other pending transactions. More than one block had to be mined:");
             assert.equal(this.logger.lines[2], "");
-            assert.match(this.logger.lines[3], /^  Block #1: 0x[0-9a-f]{64}/);
-            assert.match(this.logger.lines[4], /^    Transaction: 0x[0-9a-f]{64}/);
-            assert.match(this.logger.lines[5], /^      From:      0x[0-9a-f]{40}/);
-            assert.match(this.logger.lines[6], /^      To:        0x[0-9a-f]{40}/);
-            assert.match(this.logger.lines[7], /^      Value:     0 ETH$/);
-            assert.match(this.logger.lines[8], /^      Gas used:  21000 of 21000$/);
+            assert.match(this.logger.lines[3], /^  Block #\d+:\s+0x[0-9a-f]{64}/);
+            assert.match(this.logger.lines[4], /^    Transaction:\s+0x[0-9a-f]{64}/);
+            assert.match(this.logger.lines[5], /^      From:\s+0x[0-9a-f]{40}/);
+            assert.match(this.logger.lines[6], /^      To:\s+0x[0-9a-f]{40}/);
+            assert.match(this.logger.lines[7], /^      Value:\s+0 ETH$/);
+            assert.match(this.logger.lines[8], /^      Gas used:\s+21000 of 21000$/);
             assert.equal(this.logger.lines[9], "");
-            assert.match(this.logger.lines[10], /^    Transaction: 0x[0-9a-f]{64}/);
-            assert.match(this.logger.lines[11], /^      From:      0x[0-9a-f]{40}/);
-            assert.match(this.logger.lines[12], /^      To:        0x[0-9a-f]{40}/);
-            assert.match(this.logger.lines[13], /^      Value:     0 ETH$/);
-            assert.match(this.logger.lines[14], /^      Gas used:  21000 of 21000$/);
+            assert.match(this.logger.lines[10], /^    Transaction:\s+0x[0-9a-f]{64}/);
+            assert.match(this.logger.lines[11], /^      From:\s+0x[0-9a-f]{40}/);
+            assert.match(this.logger.lines[12], /^      To:\s+0x[0-9a-f]{40}/);
+            assert.match(this.logger.lines[13], /^      Value:\s+0 ETH$/);
+            assert.match(this.logger.lines[14], /^      Gas used:\s+21000 of 21000$/);
             assert.equal(this.logger.lines[15], "");
-            assert.match(this.logger.lines[16], /^  Block #2: 0x[0-9a-f]{64}/);
-            assert.match(this.logger.lines[17], /^    Transaction: 0x[0-9a-f]{64}/);
-            assert.match(this.logger.lines[18], /^      From:      0x[0-9a-f]{40}/);
-            assert.match(this.logger.lines[19], /^      To:        0x[0-9a-f]{40}/);
-            assert.match(this.logger.lines[20], /^      Value:     0 ETH$/);
-            assert.match(this.logger.lines[21], /^      Gas used:  21000 of 21000$/);
+            assert.match(this.logger.lines[16], /^  Block #\d+:\s+0x[0-9a-f]{64}/);
+            assert.match(this.logger.lines[17], /^    Transaction:\s+0x[0-9a-f]{64}/);
+            assert.match(this.logger.lines[18], /^      From:\s+0x[0-9a-f]{40}/);
+            assert.match(this.logger.lines[19], /^      To:\s+0x[0-9a-f]{40}/);
+            assert.match(this.logger.lines[20], /^      Value:\s+0 ETH$/);
+            assert.match(this.logger.lines[21], /^      Gas used:\s+21000 of 21000$/);
             assert.equal(this.logger.lines[22], "");
-            assert.match(this.logger.lines[23], /^    Transaction: \u001b[1m0x[0-9a-f]{64}/);
-            assert.match(this.logger.lines[24], /^      From:      0x[0-9a-f]{40}/);
-            assert.match(this.logger.lines[25], /^      To:        0x[0-9a-f]{40}/);
-            assert.match(this.logger.lines[26], /^      Value:     0 ETH$/);
-            assert.match(this.logger.lines[27], /^      Gas used:  21000 of 21000$/);
+            assert.match(this.logger.lines[23], /^    Transaction:\s+\u001b[1m0x[0-9a-f]{64}/);
+            assert.match(this.logger.lines[24], /^      From:\s+0x[0-9a-f]{40}/);
+            assert.match(this.logger.lines[25], /^      To:\s+0x[0-9a-f]{40}/);
+            assert.match(this.logger.lines[26], /^      Value:\s+0 ETH$/);
+            assert.match(this.logger.lines[27], /^      Gas used:\s+21000 of 21000$/);
             assert.equal(this.logger.lines[28], "");
             assert.match(this.logger.lines[29], /^  Currently sent transaction:$/);
             assert.equal(this.logger.lines[30], "");
-            assert.match(this.logger.lines[31], /^  Transaction:   0x[0-9a-f]{64}/);
-            assert.match(this.logger.lines[32], /^  From:          0x[0-9a-f]{40}/);
-            assert.match(this.logger.lines[33], /^  To:            0x[0-9a-f]{40}/);
-            assert.match(this.logger.lines[34], /^  Value:         0 ETH$/);
-            assert.match(this.logger.lines[35], /^  Gas used:      21000 of 21000$/);
-            assert.match(this.logger.lines[36], /^  Block #2:      0x[0-9a-f]{64}/);
+            assert.match(this.logger.lines[31], /^  Transaction:\s+0x[0-9a-f]{64}/);
+            assert.match(this.logger.lines[32], /^  From:\s+0x[0-9a-f]{40}/);
+            assert.match(this.logger.lines[33], /^  To:\s+0x[0-9a-f]{40}/);
+            assert.match(this.logger.lines[34], /^  Value:\s+0 ETH$/);
+            assert.match(this.logger.lines[35], /^  Gas used:\s+21000 of 21000$/);
+            assert.match(this.logger.lines[36], /^  Block #\d+:\s+0x[0-9a-f]{64}/);
             assert.equal(this.logger.lines[37], "");
           }
         });
@@ -548,40 +550,40 @@ describe("Provider logs", () => {
           {
             assert.equal(this.logger.lines[1], "  There were other pending transactions. More than one block had to be mined:");
             assert.equal(this.logger.lines[2], "");
-            assert.match(this.logger.lines[3], /^  Block #1: 0x[0-9a-f]{64}/);
-            assert.match(this.logger.lines[4], /^    Transaction: \u001b[1m0x[0-9a-f]{64}/);
-            assert.match(this.logger.lines[5], /^      From:      0x[0-9a-f]{40}/);
-            assert.match(this.logger.lines[6], /^      To:        0x[0-9a-f]{40}/);
-            assert.match(this.logger.lines[7], /^      Value:     0 ETH$/);
-            assert.match(this.logger.lines[8], /^      Gas used:  21000 of 21000$/);
+            assert.match(this.logger.lines[3], /^  Block #\d+:\s+0x[0-9a-f]{64}/);
+            assert.match(this.logger.lines[4], /^    Transaction:\s+\u001b[1m0x[0-9a-f]{64}/);
+            assert.match(this.logger.lines[5], /^      From:\s+0x[0-9a-f]{40}/);
+            assert.match(this.logger.lines[6], /^      To:\s+0x[0-9a-f]{40}/);
+            assert.match(this.logger.lines[7], /^      Value:\s+0 ETH$/);
+            assert.match(this.logger.lines[8], /^      Gas used:\s+21000 of 21000$/);
             assert.equal(this.logger.lines[9], "");
-            assert.match(this.logger.lines[10], /^    Transaction: 0x[0-9a-f]{64}/);
-            assert.match(this.logger.lines[11], /^      From:      0x[0-9a-f]{40}/);
-            assert.match(this.logger.lines[12], /^      To:        0x[0-9a-f]{40}/);
-            assert.match(this.logger.lines[13], /^      Value:     0 ETH$/);
-            assert.match(this.logger.lines[14], /^      Gas used:  21000 of 21000$/);
+            assert.match(this.logger.lines[10], /^    Transaction:\s+0x[0-9a-f]{64}/);
+            assert.match(this.logger.lines[11], /^      From:\s+0x[0-9a-f]{40}/);
+            assert.match(this.logger.lines[12], /^      To:\s+0x[0-9a-f]{40}/);
+            assert.match(this.logger.lines[13], /^      Value:\s+0 ETH$/);
+            assert.match(this.logger.lines[14], /^      Gas used:\s+21000 of 21000$/);
             assert.equal(this.logger.lines[15], "");
-            assert.match(this.logger.lines[16], /^  Block #2: 0x[0-9a-f]{64}/);
-            assert.match(this.logger.lines[17], /^    Transaction: 0x[0-9a-f]{64}/);
-            assert.match(this.logger.lines[18], /^      From:      0x[0-9a-f]{40}/);
-            assert.match(this.logger.lines[19], /^      To:        0x[0-9a-f]{40}/);
-            assert.match(this.logger.lines[20], /^      Value:     0 ETH$/);
-            assert.match(this.logger.lines[21], /^      Gas used:  21000 of 21000$/);
+            assert.match(this.logger.lines[16], /^  Block #\d+:\s+0x[0-9a-f]{64}/);
+            assert.match(this.logger.lines[17], /^    Transaction:\s+0x[0-9a-f]{64}/);
+            assert.match(this.logger.lines[18], /^      From:\s+0x[0-9a-f]{40}/);
+            assert.match(this.logger.lines[19], /^      To:\s+0x[0-9a-f]{40}/);
+            assert.match(this.logger.lines[20], /^      Value:\s+0 ETH$/);
+            assert.match(this.logger.lines[21], /^      Gas used:\s+21000 of 21000$/);
             assert.equal(this.logger.lines[22], "");
-            assert.match(this.logger.lines[23], /^    Transaction: 0x[0-9a-f]{64}/);
-            assert.match(this.logger.lines[24], /^      From:      0x[0-9a-f]{40}/);
-            assert.match(this.logger.lines[25], /^      To:        0x[0-9a-f]{40}/);
-            assert.match(this.logger.lines[26], /^      Value:     0 ETH$/);
-            assert.match(this.logger.lines[27], /^      Gas used:  21000 of 21000$/);
+            assert.match(this.logger.lines[23], /^    Transaction:\s+0x[0-9a-f]{64}/);
+            assert.match(this.logger.lines[24], /^      From:\s+0x[0-9a-f]{40}/);
+            assert.match(this.logger.lines[25], /^      To:\s+0x[0-9a-f]{40}/);
+            assert.match(this.logger.lines[26], /^      Value:\s+0 ETH$/);
+            assert.match(this.logger.lines[27], /^      Gas used:\s+21000 of 21000$/);
             assert.equal(this.logger.lines[28], "");
             assert.match(this.logger.lines[29], /^  Currently sent transaction:$/);
             assert.equal(this.logger.lines[30], "");
-            assert.match(this.logger.lines[31], /^  Transaction:   0x[0-9a-f]{64}/);
-            assert.match(this.logger.lines[32], /^  From:          0x[0-9a-f]{40}/);
-            assert.match(this.logger.lines[33], /^  To:            0x[0-9a-f]{40}/);
-            assert.match(this.logger.lines[34], /^  Value:         0 ETH$/);
-            assert.match(this.logger.lines[35], /^  Gas used:      21000 of 21000$/);
-            assert.match(this.logger.lines[36], /^  Block #1:      0x[0-9a-f]{64}/);
+            assert.match(this.logger.lines[31], /^  Transaction:\s+0x[0-9a-f]{64}/);
+            assert.match(this.logger.lines[32], /^  From:\s+0x[0-9a-f]{40}/);
+            assert.match(this.logger.lines[33], /^  To:\s+0x[0-9a-f]{40}/);
+            assert.match(this.logger.lines[34], /^  Value:\s+0 ETH$/);
+            assert.match(this.logger.lines[35], /^  Gas used:\s+21000 of 21000$/);
+            assert.match(this.logger.lines[36], /^  Block #\d+:\s+0x[0-9a-f]{64}/);
             assert.equal(this.logger.lines[37], "");
           }
         });
@@ -612,31 +614,31 @@ describe("Provider logs", () => {
           {
             assert.equal(this.logger.lines[ 1], "  There were other pending transactions mined in the same block:");
             assert.equal(this.logger.lines[ 2], "");
-            assert.match(this.logger.lines[ 3], /^  Block #2: 0x[0-9a-f]{64}/);
-            assert.match(this.logger.lines[ 4], /^    Transaction:       0x[0-9a-f]{64}/);
-            assert.match(this.logger.lines[ 5], /^      From:            0x[0-9a-f]{40}/);
-            assert.match(this.logger.lines[ 6], /^      To:              0x[0-9a-f]{40}/);
-            assert.match(this.logger.lines[ 7], /^      Value:           0 ETH$/);
-            assert.match(this.logger.lines[ 8], /^      Gas used:        21000 of 21000$/);
+            assert.match(this.logger.lines[ 3], /^  Block #\d+:\s+0x[0-9a-f]{64}/);
+            assert.match(this.logger.lines[ 4], /^    Transaction:\s+0x[0-9a-f]{64}/);
+            assert.match(this.logger.lines[ 5], /^      From:\s+0x[0-9a-f]{40}/);
+            assert.match(this.logger.lines[ 6], /^      To:\s+0x[0-9a-f]{40}/);
+            assert.match(this.logger.lines[ 7], /^      Value:\s+0 ETH$/);
+            assert.match(this.logger.lines[ 8], /^      Gas used:\s+21000 of 21000$/);
             assert.equal(this.logger.lines[ 9], "");
-            assert.match(this.logger.lines[10], /^    Transaction:       \u001b[1m0x[0-9a-f]{64}/);
-            assert.match(this.logger.lines[11], /^      Contract call:   <UnrecognizedContract>/);
-            assert.match(this.logger.lines[12], /^      From:            0x[0-9a-f]{40}/);
-            assert.match(this.logger.lines[13], /^      To:              0x[0-9a-f]{40}/);
-            assert.match(this.logger.lines[14], /^      Value:           1 wei$/);
-            assert.match(this.logger.lines[15], /^      Gas used:        21109 of 1000000$/);
+            assert.match(this.logger.lines[10], /^    Transaction:\s+\u001b[1m0x[0-9a-f]{64}/);
+            assert.match(this.logger.lines[11], /^      Contract call:\s+<UnrecognizedContract>/);
+            assert.match(this.logger.lines[12], /^      From:\s+0x[0-9a-f]{40}/);
+            assert.match(this.logger.lines[13], /^      To:\s+0x[0-9a-f]{40}/);
+            assert.match(this.logger.lines[14], /^      Value:\s+1 wei$/);
+            assert.match(this.logger.lines[15], /^      Gas used:\s+21109 of 1000000$/);
             assert.equal(this.logger.lines[16], "");
             assert.match(this.logger.lines[17], /^      Error: Transaction reverted without a reason/);
             assert.equal(this.logger.lines[18], "");
             assert.match(this.logger.lines[19], /^  Currently sent transaction:$/);
             assert.equal(this.logger.lines[20], "");
-            assert.match(this.logger.lines[21], /^  Contract call:       <UnrecognizedContract>/);
-            assert.match(this.logger.lines[22], /^  Transaction:         0x[0-9a-f]{64}/);
-            assert.match(this.logger.lines[23], /^  From:                0x[0-9a-f]{40}/);
-            assert.match(this.logger.lines[24], /^  To:                  0x[0-9a-f]{40}/);
-            assert.match(this.logger.lines[25], /^  Value:               1 wei$/);
-            assert.match(this.logger.lines[26], /^  Gas used:            21109 of 1000000$/);
-            assert.match(this.logger.lines[27], /^  Block #2:            0x[0-9a-f]{64}/);
+            assert.match(this.logger.lines[21], /^  Contract call:\s+<UnrecognizedContract>/);
+            assert.match(this.logger.lines[22], /^  Transaction:\s+0x[0-9a-f]{64}/);
+            assert.match(this.logger.lines[23], /^  From:\s+0x[0-9a-f]{40}/);
+            assert.match(this.logger.lines[24], /^  To:\s+0x[0-9a-f]{40}/);
+            assert.match(this.logger.lines[25], /^  Value:\s+1 wei$/);
+            assert.match(this.logger.lines[26], /^  Gas used:\s+21109 of 1000000$/);
+            assert.match(this.logger.lines[27], /^  Block #\d+:\s+0x[0-9a-f]{64}/);
             assert.equal(this.logger.lines[28], "");
             assert.match(this.logger.lines[29], /^  Error: Transaction reverted without a reason/);
             assert.equal(this.logger.lines[30], "");
@@ -654,7 +656,7 @@ describe("Provider logs", () => {
           await this.provider.send("hardhat_intervalMine", []);
 
           assert.lengthOf(this.logger.lines, 1);
-          assert.equal(this.logger.lines[0], "Mined empty block #1");
+          assert.match(this.logger.lines[0], /Mined empty block #\d+/);
         });
 
         it("should collapse the mined block info", async function () {
@@ -662,9 +664,9 @@ describe("Provider logs", () => {
           await this.provider.send("hardhat_intervalMine", []);
 
           assert.lengthOf(this.logger.lines, 1);
-          assert.equal(
+          assert.match(
             this.logger.lines[0],
-            "Mined empty block range #1 to #2"
+            /Mined empty block range #\d+ to #\d+/
           );
         });
 
@@ -675,12 +677,12 @@ describe("Provider logs", () => {
           await this.provider.send("hardhat_intervalMine", []);
 
           assert.lengthOf(this.logger.lines, 3);
-          assert.equal(
+          assert.match(
             this.logger.lines[0],
-            "Mined empty block range #1 to #2"
+            /Mined empty block range #\d+ to #\d+/
           );
           assert.equal(this.logger.lines[1], chalk.green("eth_blockNumber"));
-          assert.equal(this.logger.lines[2], "Mined empty block #3");
+          assert.match(this.logger.lines[2], /Mined empty block #\d+/);
         });
 
         it("should print a block with one transaction", async function () {
@@ -693,7 +695,7 @@ describe("Provider logs", () => {
           assert.lengthOf(this.logger.lines, 8);
           // prettier-ignore
           {
-            assert.match(this.logger.lines[0], /^Mined block #1$/);
+            assert.match(this.logger.lines[0], /^Mined block #\d+$/);
             assert.match(this.logger.lines[1], /^  Block: 0x[0-9a-f]{64}/);
             assert.match(this.logger.lines[2], /^    Transaction: 0x[0-9a-f]{64}/);
             assert.match(this.logger.lines[3], /^      From:      0x[0-9a-f]{40}/);
@@ -715,7 +717,7 @@ describe("Provider logs", () => {
           assert.lengthOf(this.logger.lines, 14);
           // prettier-ignore
           {
-            assert.match(this.logger.lines[0], /^Mined block #1$/);
+            assert.match(this.logger.lines[0], /^Mined block #\d+$/);
             assert.match(this.logger.lines[1 ], /^  Block: 0x[0-9a-f]{64}/);
             assert.match(this.logger.lines[2 ], /^    Transaction: 0x[0-9a-f]{64}/);
             assert.match(this.logger.lines[3 ], /^      From:      0x[0-9a-f]{40}/);
@@ -755,20 +757,20 @@ describe("Provider logs", () => {
           assert.lengthOf(this.logger.lines, 17);
           // prettier-ignore
           {
-            assert.match(this.logger.lines[0], /^Mined block #2$/);
-            assert.match(this.logger.lines[1 ], /^  Block: 0x[0-9a-f]{64}/);
-            assert.match(this.logger.lines[2 ], /^    Transaction:       0x[0-9a-f]{64}/);
-            assert.match(this.logger.lines[3 ], /^      From:            0x[0-9a-f]{40}/);
-            assert.match(this.logger.lines[4 ], /^      To:              0x[0-9a-f]{40}/);
-            assert.match(this.logger.lines[5 ], /^      Value:           0 ETH$/);
-            assert.match(this.logger.lines[6 ], /^      Gas used:        21000 of 21000$/);
+            assert.match(this.logger.lines[0], /^Mined block #\d+$/);
+            assert.match(this.logger.lines[1 ], /^  Block:\s+0x[0-9a-f]{64}/);
+            assert.match(this.logger.lines[2 ], /^    Transaction:\s+0x[0-9a-f]{64}/);
+            assert.match(this.logger.lines[3 ], /^      From:\s+0x[0-9a-f]{40}/);
+            assert.match(this.logger.lines[4 ], /^      To:\s+0x[0-9a-f]{40}/);
+            assert.match(this.logger.lines[5 ], /^      Value:\s+0 ETH$/);
+            assert.match(this.logger.lines[6 ], /^      Gas used:\s+21000 of 21000$/);
             assert.equal(this.logger.lines[7 ], "");
-            assert.match(this.logger.lines[8 ], /^    Transaction:       0x[0-9a-f]{64}/);
-            assert.match(this.logger.lines[9 ], /^      Contract call:   <UnrecognizedContract>$/);
-            assert.match(this.logger.lines[10], /^      From:            0x[0-9a-f]{40}/);
-            assert.match(this.logger.lines[11], /^      To:              0x[0-9a-f]{40}/);
-            assert.match(this.logger.lines[12], /^      Value:           1 wei$/);
-            assert.match(this.logger.lines[13], /^      Gas used:        21109 of 1000000$/);
+            assert.match(this.logger.lines[8 ], /^    Transaction:\s+0x[0-9a-f]{64}/);
+            assert.match(this.logger.lines[9 ], /^      Contract call:\s+<UnrecognizedContract>$/);
+            assert.match(this.logger.lines[10], /^      From:\s+0x[0-9a-f]{40}/);
+            assert.match(this.logger.lines[11], /^      To:\s+0x[0-9a-f]{40}/);
+            assert.match(this.logger.lines[12], /^      Value:\s+1 wei$/);
+            assert.match(this.logger.lines[13], /^      Gas used:\s+21109 of 1000000$/);
             assert.equal(this.logger.lines[14], "");
             assert.match(this.logger.lines[15], /^      Error: Transaction reverted without a reason/);
             assert.equal(this.logger.lines[16], "");
@@ -787,7 +789,7 @@ describe("Provider logs", () => {
 
           assert.lengthOf(this.logger.lines, 3);
           assert.equal(this.logger.lines[0], chalk.green("evm_mine"));
-          assert.equal(this.logger.lines[1], "  Mined empty block #1");
+          assert.match(this.logger.lines[1], /  Mined empty block #\d+/);
           assert.equal(this.logger.lines[2], "");
         });
 
@@ -797,10 +799,10 @@ describe("Provider logs", () => {
 
           assert.lengthOf(this.logger.lines, 6);
           assert.equal(this.logger.lines[0], chalk.green("evm_mine"));
-          assert.equal(this.logger.lines[1], "  Mined empty block #1");
+          assert.match(this.logger.lines[1], /  Mined empty block #\d+/);
           assert.equal(this.logger.lines[2], "");
           assert.equal(this.logger.lines[3], chalk.green("evm_mine"));
-          assert.equal(this.logger.lines[4], "  Mined empty block #2");
+          assert.match(this.logger.lines[4], /  Mined empty block #\d+/);
           assert.equal(this.logger.lines[5], "");
         });
 
@@ -815,7 +817,7 @@ describe("Provider logs", () => {
           assert.equal(this.logger.lines[0], chalk.green("evm_mine"));
           // prettier-ignore
           {
-            assert.match(this.logger.lines[1], /^  Mined block #1$/);
+            assert.match(this.logger.lines[1], /^  Mined block #\d+$/);
             assert.match(this.logger.lines[2], /^    Block: 0x[0-9a-f]{64}/);
             assert.match(this.logger.lines[3], /^      Transaction: 0x[0-9a-f]{64}/);
             assert.match(this.logger.lines[4], /^        From:      0x[0-9a-f]{40}/);
@@ -838,7 +840,7 @@ describe("Provider logs", () => {
           assert.equal(this.logger.lines[0], chalk.green("evm_mine"));
           // prettier-ignore
           {
-            assert.match(this.logger.lines[1 ], /^  Mined block #1$/);
+            assert.match(this.logger.lines[1 ], /^  Mined block #\d+$/);
             assert.match(this.logger.lines[2 ], /^    Block: 0x[0-9a-f]{64}/);
             assert.match(this.logger.lines[3 ], /^      Transaction: 0x[0-9a-f]{64}/);
             assert.match(this.logger.lines[4 ], /^        From:      0x[0-9a-f]{40}/);
@@ -879,20 +881,20 @@ describe("Provider logs", () => {
           assert.equal(this.logger.lines[0], chalk.green("evm_mine"));
           // prettier-ignore
           {
-            assert.match(this.logger.lines[1 ], /^  Mined block #2$/);
+            assert.match(this.logger.lines[1 ], /^  Mined block #\d+$/);
             assert.match(this.logger.lines[2 ], /^    Block: 0x[0-9a-f]{64}/);
-            assert.match(this.logger.lines[3 ], /^      Transaction:     0x[0-9a-f]{64}/);
-            assert.match(this.logger.lines[4 ], /^        From:          0x[0-9a-f]{40}/);
-            assert.match(this.logger.lines[5 ], /^        To:            0x[0-9a-f]{40}/);
-            assert.match(this.logger.lines[6 ], /^        Value:         0 ETH$/);
-            assert.match(this.logger.lines[7 ], /^        Gas used:      21000 of 21000$/);
+            assert.match(this.logger.lines[3 ], /^      Transaction:\s+0x[0-9a-f]{64}/);
+            assert.match(this.logger.lines[4 ], /^        From:\s+0x[0-9a-f]{40}/);
+            assert.match(this.logger.lines[5 ], /^        To:\s+0x[0-9a-f]{40}/);
+            assert.match(this.logger.lines[6 ], /^        Value:\s+0 ETH$/);
+            assert.match(this.logger.lines[7 ], /^        Gas used:\s+21000 of 21000$/);
             assert.equal(this.logger.lines[8 ], "");
-            assert.match(this.logger.lines[9 ], /^      Transaction:     0x[0-9a-f]{64}/);
-            assert.match(this.logger.lines[10], /^        Contract call: <UnrecognizedContract>$/);
-            assert.match(this.logger.lines[11], /^        From:          0x[0-9a-f]{40}/);
-            assert.match(this.logger.lines[12], /^        To:            0x[0-9a-f]{40}/);
-            assert.match(this.logger.lines[13], /^        Value:         1 wei$/);
-            assert.match(this.logger.lines[14], /^        Gas used:      21109 of 1000000$/);
+            assert.match(this.logger.lines[9 ], /^      Transaction:\s+0x[0-9a-f]{64}/);
+            assert.match(this.logger.lines[10], /^        Contract call:\s+<UnrecognizedContract>$/);
+            assert.match(this.logger.lines[11], /^        From:\s+0x[0-9a-f]{40}/);
+            assert.match(this.logger.lines[12], /^        To:\s+0x[0-9a-f]{40}/);
+            assert.match(this.logger.lines[13], /^        Value:\s+1 wei$/);
+            assert.match(this.logger.lines[14], /^        Gas used:\s+21109 of 1000000$/);
             assert.equal(this.logger.lines[15], "");
             assert.match(this.logger.lines[16], /^        Error: Transaction reverted without a reason/);
             assert.equal(this.logger.lines[17], "");
