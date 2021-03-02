@@ -45,10 +45,6 @@ export class MiningTimer {
       return;
     }
 
-    if (blockTime === this._blockTime) {
-      return;
-    }
-
     this._blockTime = blockTime;
 
     if (this._state === MiningTimerState.RUNNING) {

@@ -84,16 +84,18 @@ describe("Mining Timer", () => {
       assert.isTrue(mineFunction.calledOnce);
     });
 
-    it("does nothing when new block time is the same as the old one", async () => {
+    it("triggers a new loop when new block time is the same as the old one", async () => {
       miningTimer.start();
 
       await sinonClock.tickAsync(defaultBlockTime - 500);
 
       miningTimer.setBlockTime(defaultBlockTime);
 
+      await sinonClock.tickAsync(500);
+
       assert.isTrue(mineFunction.notCalled);
 
-      await sinonClock.tickAsync(500);
+      await sinonClock.tickAsync(defaultBlockTime - 500);
       assert.isTrue(mineFunction.calledOnce);
     });
 
