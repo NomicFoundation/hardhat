@@ -22,14 +22,14 @@ export async function download(
   // Check if Proxy is set https
   if (process.env.https_proxy || process.env.HTTPS_PROXY) {       
     // Create the proxy from the environment variables
-    const proxy = process.env.https_proxy || process.env.HTTPS_PROXY;
+    const proxy: string = (process.env.https_proxy || process.env.HTTPS_PROXY) as string;
     fetchOptions.agent = new HttpsProxyAgent.HttpsProxyAgent(proxy);
   }
   
   // Check if Proxy is set http and `fetchOptions.agent` was not already set for https
   if ((process.env.http_proxy || process.env.HTTP_PROXY) && fetchOptions.agent === undefined) {       
     // Create the proxy from the environment variables
-    const proxy = process.env.http_proxy || process.env.HTTP_PROXY;
+    let proxy: string = (process.env.http_proxy || process.env.HTTP_PROXY) as string;
     fetchOptions.agent = new HttpsProxyAgent.HttpsProxyAgent(proxy);
   }
 
