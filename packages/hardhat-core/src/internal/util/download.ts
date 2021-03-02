@@ -1,8 +1,8 @@
 import fs from "fs";
 import fsExtra from "fs-extra";
+import HttpsProxyAgent from "https-proxy-agent";
 import path from "path";
 import util from "util";
-import HttpsProxyAgent from "https-proxy-agent";
 
 interface FetchOptions {
   timeout: number;
