@@ -9,10 +9,6 @@ interface FetchOptions {
   agent?: undefined | HttpsProxyAgent.HttpsProxyAgent;
 }
 
-function hasHttpProxy(): boolean {
-  return 
-}
-
 export async function download(
   url: string,
   filePath: string,
