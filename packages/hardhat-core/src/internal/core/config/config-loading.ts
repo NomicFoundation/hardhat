@@ -249,7 +249,7 @@ function checkUnsupportedSolidityConfig(resolvedConfig: HardhatConfig) {
       chalk.yellow(
         `Solidity ${unsupportedVersions.join(", ")} ${
           unsupportedVersions.length === 1 ? "is" : "are"
-        } not supported yet. You can still use Hardhat, but some features might not work correctly.
+        } not fully supported yet. You can still use Hardhat, but some features, like stack traces, might not work correctly.
 
 Learn more at https://hardhat.org/reference/solidity-support"
 `
