@@ -324,7 +324,7 @@ describe("Evm module", function () {
         });
 
         it("removes transactions that exceed the new block gas limit from the mempool", async function () {
-          await this.provider.send("evm_setAutomineEnabled", [false]);
+          await this.provider.send("evm_setAutomine", [false]);
 
           const tx1Hash = await this.provider.send("eth_sendTransaction", [
             {
@@ -413,10 +413,11 @@ describe("Evm module", function () {
         it("should mine transactions with original gasLimit values", async function () {
           const contractAddress = await deployContract(
             this.provider,
-            `0x${EXAMPLE_READ_CONTRACT.bytecode.object}`
+            `0x${EXAMPLE_READ_CONTRACT.bytecode.object}`,
+            DEFAULT_ACCOUNTS_ADDRESSES[1]
           );
 
-          await this.provider.send("evm_setAutomineEnabled", [false]);
+          await this.provider.send("evm_setAutomine", [false]);
           await this.provider.send("evm_setBlockGasLimit", [
             numberToRpcQuantity(2 * DEFAULT_BLOCK_GAS_LIMIT),
           ]);
@@ -424,7 +425,7 @@ describe("Evm module", function () {
           const tx1Hash = await this.provider.send("eth_sendTransaction", [
             {
               nonce: numberToRpcQuantity(1),
-              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
               to: contractAddress,
               data: EXAMPLE_READ_CONTRACT.selectors.gasLeft,
               gas: numberToRpcQuantity(DEFAULT_BLOCK_GAS_LIMIT),
@@ -434,7 +435,7 @@ describe("Evm module", function () {
           const tx2Hash = await this.provider.send("eth_sendTransaction", [
             {
               nonce: numberToRpcQuantity(2),
-              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
               to: contractAddress,
               data: EXAMPLE_READ_CONTRACT.selectors.gasLeft,
               gas: numberToRpcQuantity(DEFAULT_BLOCK_GAS_LIMIT),
@@ -486,9 +487,9 @@ describe("Evm module", function () {
         });
       });
 
-      describe("evm_setAutomineEnabled", () => {
+      describe("evm_setAutomine", () => {
         it("should allow disabling automine", async function () {
-          await this.provider.send("evm_setAutomineEnabled", [false]);
+          await this.provider.send("evm_setAutomine", [false]);
           const previousBlock = await this.provider.send("eth_blockNumber");
           await this.provider.send("eth_sendTransaction", [
             {
@@ -503,8 +504,8 @@ describe("Evm module", function () {
         });
 
         it("should allow re-enabling of automine", async function () {
-          await this.provider.send("evm_setAutomineEnabled", [false]);
-          await this.provider.send("evm_setAutomineEnabled", [true]);
+          await this.provider.send("evm_setAutomine", [false]);
+          await this.provider.send("evm_setAutomine", [true]);
           const previousBlock = await this.provider.send("eth_blockNumber");
           await this.provider.send("eth_sendTransaction", [
             {
@@ -519,11 +520,11 @@ describe("Evm module", function () {
         });
 
         it("should mine all pending transactions after re-enabling automine", async function () {
-          await this.provider.send("evm_setAutomineEnabled", [false]);
+          await this.provider.send("evm_setAutomine", [false]);
 
           const txHash1 = await this.provider.send("eth_sendTransaction", [
             {
-              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
               to: "0x1111111111111111111111111111111111111111",
               gas: numberToRpcQuantity(100000),
               gasPrice: numberToRpcQuantity(1),
@@ -531,11 +532,11 @@ describe("Evm module", function () {
             },
           ]);
 
-          await this.provider.send("evm_setAutomineEnabled", [true]);
+          await this.provider.send("evm_setAutomine", [true]);
 
           const txHash2 = await this.provider.send("eth_sendTransaction", [
             {
-              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
               to: "0x1111111111111111111111111111111111111111",
               gas: numberToRpcQuantity(100000),
               gasPrice: numberToRpcQuantity(1),
@@ -570,7 +571,7 @@ describe("Evm module", function () {
 
         describe("time based tests", () => {
           beforeEach(async function () {
-            await this.provider.send("evm_setAutomineEnabled", [false]);
+            await this.provider.send("evm_setAutomine", [false]);
 
             if (isFork) {
               // This is done to speed up subsequent mineBlock calls made by MiningTimer.
@@ -660,7 +661,7 @@ describe("Evm module", function () {
             const sendTx = async (nonce: number) =>
               this.ctx.provider.send("eth_sendTransaction", [
                 {
-                  from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[1],
                   to: "0x1111111111111111111111111111111111111111",
                   nonce: numberToRpcQuantity(nonce),
                 },
@@ -670,14 +671,12 @@ describe("Evm module", function () {
               blockNumber: number,
               txHashes: string[]
             ) => {
-              const currentTime = getCurrentTimestamp();
               const block = await this.ctx.provider.send(
                 "eth_getBlockByNumber",
                 ["latest", false]
               );
 
               assert.equal(quantityToNumber(block.number), blockNumber);
-              assert.equal(quantityToNumber(block.timestamp), currentTime);
               assert.deepEqual(block.transactions, txHashes);
             };
 
@@ -685,7 +684,7 @@ describe("Evm module", function () {
               const interval = 5000;
               const initialBlock = await getBlockNumber();
 
-              await this.provider.send("evm_setAutomineEnabled", [false]);
+              await this.provider.send("evm_setAutomine", [false]);
               await this.provider.send("evm_setIntervalMining", [interval]);
 
               await sinonClock.tickAsync(interval);
@@ -695,7 +694,7 @@ describe("Evm module", function () {
               await sinonClock.tickAsync(interval);
               await assertBlockWasMined(initialBlock + 2, [txHash1]);
 
-              await this.provider.send("evm_setAutomineEnabled", [true]);
+              await this.provider.send("evm_setAutomine", [true]);
 
               await sinonClock.tickAsync(interval / 2);
               const txHash2 = await sendTx(1);
@@ -735,7 +734,7 @@ describe("Evm module", function () {
               const interval = 1000;
               const txHash = await this.provider.send("eth_sendTransaction", [
                 {
-                  from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[1],
                   to: "0x1111111111111111111111111111111111111111",
                   nonce: numberToRpcQuantity(0),
                 },
@@ -893,7 +892,7 @@ describe("Evm module", function () {
         });
 
         it("Deletes pending transactions added after snapshot", async function () {
-          await this.provider.send("evm_setAutomineEnabled", [false]);
+          await this.provider.send("evm_setAutomine", [false]);
 
           const [, from] = await this.provider.send("eth_accounts");
 
@@ -938,7 +937,7 @@ describe("Evm module", function () {
         });
 
         it("Re-adds the transactions that were mined after snapshot to the tx pool", async function () {
-          await this.provider.send("evm_setAutomineEnabled", [false]);
+          await this.provider.send("evm_setAutomine", [false]);
 
           const [, from] = await this.provider.send("eth_accounts");
 
@@ -985,12 +984,12 @@ describe("Evm module", function () {
         });
 
         it("TxPool state reverts back correctly to the snapshot state", async function () {
-          await this.provider.send("evm_setAutomineEnabled", [false]);
+          await this.provider.send("evm_setAutomine", [false]);
 
           const txHash1 = await this.provider.send("eth_sendTransaction", [
             {
-              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[2],
               nonce: numberToRpcQuantity(0),
               gas: numberToRpcQuantity(21_000),
             },
@@ -998,8 +997,8 @@ describe("Evm module", function () {
 
           const txHash2 = await this.provider.send("eth_sendTransaction", [
             {
-              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[2],
               nonce: numberToRpcQuantity(3),
               gas: numberToRpcQuantity(21_000),
             },
@@ -1009,8 +1008,8 @@ describe("Evm module", function () {
 
           const txHash3 = await this.provider.send("eth_sendTransaction", [
             {
-              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[2],
               nonce: numberToRpcQuantity(1),
               gas: numberToRpcQuantity(21_000),
             },
@@ -1041,7 +1040,7 @@ describe("Evm module", function () {
         });
 
         it("Allows resending the same tx after a revert", async function () {
-          const [from] = await this.provider.send("eth_accounts");
+          const [, from] = await this.provider.send("eth_accounts");
 
           const snapshotId: string = await this.provider.send(
             "evm_snapshot",
@@ -1159,7 +1158,7 @@ describe("Evm module", function () {
         it("Restores the previous state", async function () {
           // This is a very coarse test, as we know that the entire state is
           // managed by the vm, and is restored as a whole
-          const [from] = await this.provider.send("eth_accounts");
+          const [, from] = await this.provider.send("eth_accounts");
 
           const balanceBeforeTx = await this.provider.send("eth_getBalance", [
             from,

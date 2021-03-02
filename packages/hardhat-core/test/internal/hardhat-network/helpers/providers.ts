@@ -49,8 +49,8 @@ export const PROVIDERS = [
     isFork: false,
     networkId: DEFAULT_NETWORK_ID,
     chainId: DEFAULT_CHAIN_ID,
-    useProvider: () => {
-      useProvider(false);
+    useProvider: (loggerEnabled = true) => {
+      useProvider(false, loggerEnabled);
     },
   },
   {
@@ -58,8 +58,8 @@ export const PROVIDERS = [
     isFork: false,
     networkId: DEFAULT_NETWORK_ID,
     chainId: DEFAULT_CHAIN_ID,
-    useProvider: () => {
-      useProvider(true);
+    useProvider: (loggerEnabled = true) => {
+      useProvider(true, loggerEnabled);
     },
   },
 ];
@@ -68,8 +68,8 @@ export const INTERVAL_MINING_PROVIDERS = [
   {
     name: "Hardhat Network",
     isFork: false,
-    useProvider: () => {
-      useProvider(false, undefined, {
+    useProvider: (loggerEnabled = true) => {
+      useProvider(false, loggerEnabled, undefined, {
         auto: false,
         interval: 10000,
       });
@@ -78,8 +78,8 @@ export const INTERVAL_MINING_PROVIDERS = [
   {
     name: "JSON-RPC",
     isFork: false,
-    useProvider: () => {
-      useProvider(true, undefined, {
+    useProvider: (loggerEnabled = true) => {
+      useProvider(true, loggerEnabled, undefined, {
         auto: false,
         interval: 10000,
       });
@@ -90,7 +90,7 @@ export const INTERVAL_MINING_PROVIDERS = [
 export const FORKED_PROVIDERS: Array<{
   rpcProvider: string;
   jsonRpcUrl: string;
-  useProvider: () => void;
+  useProvider: (loggerEnabled?: boolean) => void;
 }> = [];
 
 if (ALCHEMY_URL !== undefined && ALCHEMY_URL !== "") {
@@ -101,17 +101,18 @@ if (ALCHEMY_URL !== undefined && ALCHEMY_URL !== "") {
     isFork: true,
     networkId: DEFAULT_NETWORK_ID,
     chainId: DEFAULT_CHAIN_ID,
-    useProvider: () => {
-      useProvider(false, { jsonRpcUrl: url });
+    useProvider: (loggerEnabled = true) => {
+      useProvider(false, loggerEnabled, { jsonRpcUrl: url });
     },
   });
 
   INTERVAL_MINING_PROVIDERS.push({
     name: "Alchemy Forked",
     isFork: true,
-    useProvider: () => {
+    useProvider: (loggerEnabled = true) => {
       useProvider(
         false,
+        loggerEnabled,
         { jsonRpcUrl: url },
         {
           auto: false,
@@ -124,8 +125,8 @@ if (ALCHEMY_URL !== undefined && ALCHEMY_URL !== "") {
   FORKED_PROVIDERS.push({
     rpcProvider: "Alchemy",
     jsonRpcUrl: url,
-    useProvider: () => {
-      useProvider(false, { jsonRpcUrl: url });
+    useProvider: (loggerEnabled = true) => {
+      useProvider(false, loggerEnabled, { jsonRpcUrl: url });
     },
   });
 }
@@ -136,8 +137,8 @@ if (INFURA_URL !== undefined && INFURA_URL !== "") {
   FORKED_PROVIDERS.push({
     rpcProvider: "Infura",
     jsonRpcUrl: url,
-    useProvider: () => {
-      useProvider(false, { jsonRpcUrl: url });
+    useProvider: (loggerEnabled = true) => {
+      useProvider(false, loggerEnabled, { jsonRpcUrl: url });
     },
   });
 }

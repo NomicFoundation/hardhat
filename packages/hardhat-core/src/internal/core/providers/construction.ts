@@ -12,6 +12,7 @@ import type {
   ProjectPathsConfig,
 } from "../../../types";
 import { HARDHAT_NETWORK_NAME } from "../../constants";
+import { ModulesLogger } from "../../hardhat-network/provider/modules/logger";
 import { ForkConfig } from "../../hardhat-network/provider/node-types";
 import { getForkCacheDirPath } from "../../hardhat-network/provider/utils/disk-cache";
 import { parseDateString } from "../../util/date";
@@ -85,9 +86,9 @@ export function createProvider(
       hardhatNetConfig.throwOnCallFailures!,
       hardhatNetConfig.mining.auto,
       hardhatNetConfig.mining.interval,
+      new ModulesLogger(hardhatNetConfig.loggingEnabled),
       accounts,
       artifacts,
-      hardhatNetConfig.loggingEnabled,
       hardhatNetConfig.allowUnlimitedContractSize,
       hardhatNetConfig.initialDate !== undefined
         ? parseDateString(hardhatNetConfig.initialDate)

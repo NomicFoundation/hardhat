@@ -1,6 +1,8 @@
-import { BN } from "ethereumjs-util";
+import { BN, bufferToInt } from "ethereumjs-util";
 import * as t from "io-ts";
 
+import { BoundExperimentalHardhatNetworkMessageTraceHook } from "../../../../types";
+import { MessageTrace } from "../../stack-traces/message-trace";
 import { InvalidInputError, MethodNotFoundError } from "../errors";
 import {
   rpcIntervalMining,
@@ -10,14 +12,19 @@ import {
 } from "../input";
 import { MiningTimer } from "../MiningTimer";
 import { HardhatNode } from "../node";
+import { MineBlockResult } from "../node-types";
 import { numberToRpcQuantity } from "../output";
+
+import { ModulesLogger } from "./logger";
 
 // tslint:disable only-hardhat-error
 
 export class EvmModule {
   constructor(
     private readonly _node: HardhatNode,
-    private readonly _miningTimer: MiningTimer
+    private readonly _miningTimer: MiningTimer,
+    private readonly _logger: ModulesLogger,
+    private readonly _experimentalHardhatNetworkMessageTraceHooks: BoundExperimentalHardhatNetworkMessageTraceHook[] = []
   ) {}
 
   public async processRequest(
@@ -42,10 +49,8 @@ export class EvmModule {
       case "evm_snapshot":
         return this._snapshotAction(...this._snapshotParams(params));
 
-      case "evm_setAutomineEnabled":
-        return this._setAutomineEnabledAction(
-          ...this._setAutomineEnabledParams(params)
-        );
+      case "evm_setAutomine":
+        return this._setAutomineAction(...this._setAutomineParams(params));
 
       case "evm_setIntervalMining":
         return this._setIntervalMiningAction(
@@ -121,7 +126,10 @@ export class EvmModule {
         );
       }
     }
-    await this._node.mineBlock(new BN(timestamp));
+    const result = await this._node.mineBlock(new BN(timestamp));
+
+    await this._logBlock(result);
+
     return numberToRpcQuantity(0);
   }
 
@@ -146,14 +154,14 @@ export class EvmModule {
     return numberToRpcQuantity(snapshotId);
   }
 
-  // evm_setAutomineEnabled
+  // evm_setAutomine
 
-  private _setAutomineEnabledParams(params: any[]): [boolean] {
+  private _setAutomineParams(params: any[]): [boolean] {
     return validateParams(params, t.boolean);
   }
 
-  private async _setAutomineEnabledAction(automine: boolean): Promise<true> {
-    this._node.setAutomineEnabled(automine);
+  private async _setAutomineAction(automine: boolean): Promise<true> {
+    this._node.setAutomine(automine);
     return true;
   }
 
@@ -184,5 +192,38 @@ export class EvmModule {
 
     await this._node.setBlockGasLimit(blockGasLimit);
     return true;
+  }
+
+  private async _logBlock(result: MineBlockResult) {
+    const { block, traces } = result;
+
+    const codes: Buffer[] = [];
+    for (const txTrace of traces) {
+      const code = await this._node.getCodeFromTrace(
+        txTrace.trace,
+        new BN(block.header.number)
+      );
+
+      codes.push(code);
+    }
+
+    this._logger.logMinedBlock(result, codes);
+
+    for (const txTrace of traces) {
+      await this._runHardhatNetworkMessageTraceHooks(txTrace.trace, false);
+    }
+  }
+
+  private async _runHardhatNetworkMessageTraceHooks(
+    trace: MessageTrace | undefined,
+    isCall: boolean
+  ) {
+    if (trace === undefined) {
+      return;
+    }
+
+    for (const hook of this._experimentalHardhatNetworkMessageTraceHooks) {
+      await hook(trace, isCall);
+    }
   }
 }

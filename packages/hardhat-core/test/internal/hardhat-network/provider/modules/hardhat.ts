@@ -132,10 +132,10 @@ describe("Hardhat module", function () {
         });
 
         it("hardhat_reset resets tx pool", async function () {
-          await this.provider.send("evm_setAutomineEnabled", [false]);
+          await this.provider.send("evm_setAutomine", [false]);
           await this.provider.send("eth_sendTransaction", [
             {
-              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
               to: "0x1111111111111111111111111111111111111111",
               nonce: numberToRpcQuantity(0),
             },
@@ -173,13 +173,8 @@ describe("Hardhat module", function () {
           it("resets interval mining", async function () {
             const interval = 15_000;
 
-            await this.provider.send("evm_setAutomineEnabled", [false]);
-            await this.provider.send("evm_setIntervalMining", [
-              {
-                enabled: true,
-                blockTime: interval,
-              },
-            ]);
+            await this.provider.send("evm_setAutomine", [false]);
+            await this.provider.send("evm_setIntervalMining", [interval]);
 
             const firstBlockBefore = await getLatestBlockNumber();
 

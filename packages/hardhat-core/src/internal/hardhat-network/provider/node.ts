@@ -34,7 +34,11 @@ import { getDifferenceInSeconds } from "../../util/date";
 import { createModelsAndDecodeBytecodes } from "../stack-traces/compiler-to-model";
 import { ConsoleLogger } from "../stack-traces/consoleLogger";
 import { ContractsIdentifier } from "../stack-traces/contracts-identifier";
-import { MessageTrace } from "../stack-traces/message-trace";
+import {
+  isCreateTrace,
+  isPrecompileTrace,
+  MessageTrace,
+} from "../stack-traces/message-trace";
 import { decodeRevertReason } from "../stack-traces/revert-reasons";
 import {
   encodeSolidityStackTrace,
@@ -286,7 +290,10 @@ export class HardhatNode extends EventEmitter {
     }
 
     await this._validateExactNonce(tx);
-    if (this._txPool.hasPendingTransactions()) {
+    if (
+      this._txPool.hasPendingTransactions() ||
+      this._txPool.hasQueuedTransactions()
+    ) {
       return this._mineTransactionAndPending(tx);
     }
     return this._mineTransaction(tx);
@@ -392,6 +399,21 @@ export class HardhatNode extends EventEmitter {
 
   public async getAccountExecutableNonce(address: Buffer): Promise<BN> {
     return this._txPool.getExecutableNonce(address);
+  }
+
+  public async getCodeFromTrace(
+    trace: MessageTrace | undefined,
+    blockNumberOrPending: BN | "pending"
+  ): Promise<Buffer> {
+    if (
+      trace === undefined ||
+      isPrecompileTrace(trace) ||
+      isCreateTrace(trace)
+    ) {
+      return Buffer.from("");
+    }
+
+    return this.getCode(trace.address, blockNumberOrPending);
   }
 
   public async getLatestBlock(): Promise<Block> {
@@ -832,7 +854,7 @@ export class HardhatNode extends EventEmitter {
     return this._impersonatedAccounts.delete(bufferToHex(address));
   }
 
-  public setAutomineEnabled(automine: boolean) {
+  public setAutomine(automine: boolean) {
     this._automine = automine;
   }
 
@@ -884,6 +906,10 @@ export class HardhatNode extends EventEmitter {
       results.push(await this.mineBlock(undefined, txHash));
       txReceipt = await this.getTransactionReceipt(txHash);
     } while (txReceipt === undefined);
+
+    while (this._txPool.hasPendingTransactions()) {
+      results.push(await this.mineBlock(undefined, txHash));
+    }
 
     return results;
   }
