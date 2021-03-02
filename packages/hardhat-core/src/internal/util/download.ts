@@ -9,6 +9,10 @@ interface FetchOptions {
   agent?: undefined | HttpsProxyAgent.HttpsProxyAgent;
 }
 
+function hasHttpProxy(): boolean {
+  return 
+}
+
 export async function download(
   url: string,
   filePath: string,
@@ -19,10 +23,17 @@ export async function download(
   const streamPipeline = util.promisify(pipeline);
   const fetchOptions = <FetchOptions> { timeout: timeoutMillis, agent: undefined };
 
-  // Check if Proxy is set
-  if (process.env.http_proxy) {       
+  // Check if Proxy is set https
+  if (process.env.https_proxy || process.env.HTTPS_PROXY) {       
     // Create the proxy from the environment variables
-    const proxy = process.env.http_proxy;
+    const proxy = process.env.https_proxy || process.env.HTTPS_PROXY;
+    fetchOptions.agent = new HttpsProxyAgent.HttpsProxyAgent(proxy);
+  }
+  
+  // Check if Proxy is set http and `fetchOptions.agent` was not already set for https
+  if ((process.env.http_proxy || process.env.HTTP_PROXY) && fetchOptions.agent === undefined) {       
+    // Create the proxy from the environment variables
+    const proxy = process.env.http_proxy || process.env.HTTP_PROXY;
     fetchOptions.agent = new HttpsProxyAgent.HttpsProxyAgent(proxy);
   }
 
