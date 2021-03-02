@@ -369,7 +369,7 @@ describe("Provider logs", () => {
 
       describe("automine enabled with pending txs", function () {
         beforeEach(async function () {
-          await this.provider.send("evm_setAutomineEnabled", [false]);
+          await this.provider.send("evm_setAutomine", [false]);
           this.logger.reset();
         });
 
@@ -378,7 +378,7 @@ describe("Provider logs", () => {
             nonce: 0,
           });
 
-          await this.provider.send("evm_setAutomineEnabled", [true]);
+          await this.provider.send("evm_setAutomine", [true]);
 
           this.logger.reset();
 
@@ -424,7 +424,7 @@ describe("Provider logs", () => {
             nonce: 1,
           });
 
-          await this.provider.send("evm_setAutomineEnabled", [true]);
+          await this.provider.send("evm_setAutomine", [true]);
 
           this.logger.reset();
 
@@ -474,7 +474,7 @@ describe("Provider logs", () => {
           await this.sendTx();
           await this.sendTx();
 
-          await this.provider.send("evm_setAutomineEnabled", [true]);
+          await this.provider.send("evm_setAutomine", [true]);
 
           this.logger.reset();
 
@@ -535,7 +535,7 @@ describe("Provider logs", () => {
           await this.sendTx({ nonce: 2 });
           await this.sendTx({ nonce: 3 });
 
-          await this.provider.send("evm_setAutomineEnabled", [true]);
+          await this.provider.send("evm_setAutomine", [true]);
 
           this.logger.reset();
 
@@ -589,16 +589,16 @@ describe("Provider logs", () => {
         });
 
         it("should show the stack trace in the block list and at the end", async function () {
-          await this.provider.send("evm_setAutomineEnabled", [true]);
+          await this.provider.send("evm_setAutomine", [true]);
           const address = await deployContract(
             this.provider,
             `0x${EXAMPLE_READ_CONTRACT.bytecode.object}`
           );
-          await this.provider.send("evm_setAutomineEnabled", [false]);
+          await this.provider.send("evm_setAutomine", [false]);
 
           await this.sendTx();
 
-          await this.provider.send("evm_setAutomineEnabled", [true]);
+          await this.provider.send("evm_setAutomine", [true]);
           this.logger.reset();
 
           await this.sendTx({
@@ -648,7 +648,7 @@ describe("Provider logs", () => {
 
       describe("hardhat_intervalMine", function () {
         beforeEach(async function () {
-          await this.provider.send("evm_setAutomineEnabled", [false]);
+          await this.provider.send("evm_setAutomine", [false]);
           this.logger.reset();
         });
 
@@ -735,12 +735,12 @@ describe("Provider logs", () => {
         });
 
         it("should print stack traces", async function () {
-          await this.provider.send("evm_setAutomineEnabled", [true]);
+          await this.provider.send("evm_setAutomine", [true]);
           const address = await deployContract(
             this.provider,
             `0x${EXAMPLE_READ_CONTRACT.bytecode.object}`
           );
-          await this.provider.send("evm_setAutomineEnabled", [false]);
+          await this.provider.send("evm_setAutomine", [false]);
 
           await this.sendTx();
           await this.sendTx({
@@ -780,7 +780,7 @@ describe("Provider logs", () => {
 
       describe("evm_mine", function () {
         beforeEach(async function () {
-          await this.provider.send("evm_setAutomineEnabled", [false]);
+          await this.provider.send("evm_setAutomine", [false]);
           this.logger.reset();
         });
 
@@ -858,12 +858,12 @@ describe("Provider logs", () => {
         });
 
         it("should print stack traces", async function () {
-          await this.provider.send("evm_setAutomineEnabled", [true]);
+          await this.provider.send("evm_setAutomine", [true]);
           const address = await deployContract(
             this.provider,
             `0x${EXAMPLE_READ_CONTRACT.bytecode.object}`
           );
-          await this.provider.send("evm_setAutomineEnabled", [false]);
+          await this.provider.send("evm_setAutomine", [false]);
 
           await this.sendTx();
           await this.sendTx({

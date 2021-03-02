@@ -49,10 +49,8 @@ export class EvmModule {
       case "evm_snapshot":
         return this._snapshotAction(...this._snapshotParams(params));
 
-      case "evm_setAutomineEnabled":
-        return this._setAutomineEnabledAction(
-          ...this._setAutomineEnabledParams(params)
-        );
+      case "evm_setAutomine":
+        return this._setAutomineAction(...this._setAutomineParams(params));
 
       case "evm_setIntervalMining":
         return this._setIntervalMiningAction(
@@ -156,14 +154,14 @@ export class EvmModule {
     return numberToRpcQuantity(snapshotId);
   }
 
-  // evm_setAutomineEnabled
+  // evm_setAutomine
 
-  private _setAutomineEnabledParams(params: any[]): [boolean] {
+  private _setAutomineParams(params: any[]): [boolean] {
     return validateParams(params, t.boolean);
   }
 
-  private async _setAutomineEnabledAction(automine: boolean): Promise<true> {
-    this._node.setAutomineEnabled(automine);
+  private async _setAutomineAction(automine: boolean): Promise<true> {
+    this._node.setAutomine(automine);
     return true;
   }
 

@@ -854,7 +854,7 @@ export class HardhatNode extends EventEmitter {
     return this._impersonatedAccounts.delete(bufferToHex(address));
   }
 
-  public setAutomineEnabled(automine: boolean) {
+  public setAutomine(automine: boolean) {
     this._automine = automine;
   }
 

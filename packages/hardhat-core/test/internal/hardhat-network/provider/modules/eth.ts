@@ -436,7 +436,7 @@ describe("Eth module", function () {
             );
 
             await this.provider.send("evm_revert", [snapshotId]);
-            await this.provider.send("evm_setAutomineEnabled", [false]);
+            await this.provider.send("evm_setAutomine", [false]);
             await this.provider.send("eth_sendTransaction", [
               {
                 from: DEFAULT_ACCOUNTS_ADDRESSES[0],
@@ -678,7 +678,7 @@ describe("Eth module", function () {
           const newState =
             "000000000000000000000000000000000000000000000000000000000000000a";
 
-          await this.provider.send("evm_setAutomineEnabled", [false]);
+          await this.provider.send("evm_setAutomine", [false]);
 
           await this.provider.send("eth_sendTransaction", [
             {
@@ -800,7 +800,7 @@ describe("Eth module", function () {
         });
 
         it("Should return the pending balance", async function () {
-          await this.provider.send("evm_setAutomineEnabled", [false]);
+          await this.provider.send("evm_setAutomine", [false]);
 
           await this.provider.send("eth_sendTransaction", [
             {
@@ -1080,7 +1080,7 @@ describe("Eth module", function () {
             [numberToRpcQuantity(firstBlockNumber), false]
           );
 
-          await this.provider.send("evm_setAutomineEnabled", [false]);
+          await this.provider.send("evm_setAutomine", [false]);
           const txHash = await sendTxToZeroAddress(this.provider);
 
           const block: RpcBlockOutput = await this.provider.send(
@@ -1249,7 +1249,7 @@ describe("Eth module", function () {
         });
 
         it("Should return the number of transactions in the 'pending' block", async function () {
-          await this.provider.send("evm_setAutomineEnabled", [false]);
+          await this.provider.send("evm_setAutomine", [false]);
           await sendTxToZeroAddress(this.provider);
 
           assertQuantity(
@@ -1330,7 +1330,7 @@ describe("Eth module", function () {
           ]);
 
           await this.provider.send("evm_revert", [snapshotId]);
-          await this.provider.send("evm_setAutomineEnabled", [false]);
+          await this.provider.send("evm_setAutomine", [false]);
 
           const txHash = await this.provider.send("eth_sendTransaction", [
             {
@@ -2297,7 +2297,7 @@ describe("Eth module", function () {
                 );
 
                 await this.provider.send("evm_revert", [snapshotId]);
-                await this.provider.send("evm_setAutomineEnabled", [false]);
+                await this.provider.send("evm_setAutomine", [false]);
 
                 const txHash = await this.provider.send("eth_sendTransaction", [
                   {
@@ -2631,7 +2631,7 @@ describe("Eth module", function () {
         });
 
         it("should return the right transaction info when called with 'pending' block tag param", async function () {
-          await this.provider.send("evm_setAutomineEnabled", [false]);
+          await this.provider.send("evm_setAutomine", [false]);
 
           const txParams1: TransactionParams = {
             to: toBuffer(zeroAddress()),
@@ -2911,7 +2911,7 @@ describe("Eth module", function () {
             gasPrice: new BN(23912),
           };
 
-          await this.provider.send("evm_setAutomineEnabled", [false]);
+          await this.provider.send("evm_setAutomine", [false]);
 
           const txHash = await sendTransactionFromTxParams(
             this.provider,
@@ -3106,7 +3106,7 @@ describe("Eth module", function () {
         });
 
         it("Should return transaction count in context of a new block with 'pending' block tag param", async function () {
-          await this.provider.send("evm_setAutomineEnabled", [false]);
+          await this.provider.send("evm_setAutomine", [false]);
           await this.provider.send("eth_sendTransaction", [
             {
               from: DEFAULT_ACCOUNTS_ADDRESSES[1],
@@ -3413,7 +3413,7 @@ describe("Eth module", function () {
         });
 
         it("should return an array of pending transactions", async function () {
-          await this.provider.send("evm_setAutomineEnabled", [false]);
+          await this.provider.send("evm_setAutomine", [false]);
 
           const txs = [];
           txs.push(
@@ -3449,7 +3449,7 @@ describe("Eth module", function () {
         });
 
         it("should return an array with remaining pending transactions after a block was mined", async function () {
-          await this.provider.send("evm_setAutomineEnabled", [false]);
+          await this.provider.send("evm_setAutomine", [false]);
 
           await sendDummyTransaction(this.provider, 0, {
             from: DEFAULT_ACCOUNTS_ADDRESSES[1],
@@ -3824,7 +3824,7 @@ describe("Eth module", function () {
                 const wholeAccountBalance = numberToRpcQuantity(
                   DEFAULT_ACCOUNTS_BALANCES[0].subn(21_000)
                 );
-                await this.provider.send("evm_setAutomineEnabled", [false]);
+                await this.provider.send("evm_setAutomine", [false]);
                 await this.provider.send("eth_sendTransaction", [
                   {
                     from: DEFAULT_ACCOUNTS_ADDRESSES[1],
@@ -3835,7 +3835,7 @@ describe("Eth module", function () {
                     value: wholeAccountBalance,
                   },
                 ]);
-                await this.provider.send("evm_setAutomineEnabled", [true]);
+                await this.provider.send("evm_setAutomine", [true]);
 
                 await assertInvalidInputError(
                   this.provider,
@@ -3870,7 +3870,7 @@ describe("Eth module", function () {
               });
 
               it("Should eventually mine the sent transaction", async function () {
-                await this.provider.send("evm_setAutomineEnabled", [false]);
+                await this.provider.send("evm_setAutomine", [false]);
                 const blockNumberBefore = quantityToNumber(
                   await this.provider.send("eth_blockNumber")
                 );
@@ -3887,7 +3887,7 @@ describe("Eth module", function () {
                 await sendDummyTransaction(this.provider, 3, {
                   from: DEFAULT_ACCOUNTS_ADDRESSES[1],
                 });
-                await this.provider.send("evm_setAutomineEnabled", [true]);
+                await this.provider.send("evm_setAutomine", [true]);
                 const txHash = await sendDummyTransaction(this.provider, 4, {
                   from: DEFAULT_ACCOUNTS_ADDRESSES[1],
                 });
@@ -3922,12 +3922,12 @@ describe("Eth module", function () {
                 const initialBalance = DEFAULT_ACCOUNTS_BALANCES[1];
                 const firstBlock = await getFirstBlock();
 
-                await this.provider.send("evm_setAutomineEnabled", [false]);
+                await this.provider.send("evm_setAutomine", [false]);
                 await sendTransaction(0, 0);
                 await sendTransaction(1, 0);
                 await sendTransaction(2, initialBalance.subn(3 * 21_000));
 
-                await this.provider.send("evm_setAutomineEnabled", [true]);
+                await this.provider.send("evm_setAutomine", [true]);
 
                 await assertInvalidInputError(
                   this.provider,
@@ -3958,7 +3958,7 @@ describe("Eth module", function () {
 
         describe("when automine is disabled", () => {
           beforeEach(async function () {
-            await this.provider.send("evm_setAutomineEnabled", [false]);
+            await this.provider.send("evm_setAutomine", [false]);
           });
 
           it("Should not throw if the tx nonce is higher than the account nonce", async function () {
@@ -4564,7 +4564,7 @@ describe("Eth module", function () {
         });
 
         it("should have the right receiptsRoot when mining 2 txs", async function () {
-          await this.provider.send("evm_setAutomineEnabled", [false]);
+          await this.provider.send("evm_setAutomine", [false]);
           await this.provider.send("eth_sendTransaction", [
             {
               from: DEFAULT_ACCOUNTS_ADDRESSES[0],
