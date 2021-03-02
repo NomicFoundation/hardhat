@@ -3,7 +3,6 @@ import { Transaction } from "ethereumjs-tx";
 import {
   BN,
   bufferToHex,
-  bufferToInt,
   toBuffer,
   toRpcSig,
   zeroAddress,

@@ -146,17 +146,19 @@ export class HardhatNetworkProvider extends EventEmitter
       this._logger.printFailedMethod(method);
       this._logger.printLogs();
 
-      if (err instanceof HardhatNetworkProviderError) {
-        this._logger.printEmptyLine();
-        this._logger.printErrorMessage(err.message);
+      if (!this._logger.isLoggedError(err)) {
+        if (err instanceof HardhatNetworkProviderError) {
+          this._logger.printEmptyLine();
+          this._logger.printErrorMessage(err.message);
 
-        const isEIP155Error =
-          err instanceof InvalidInputError && err.message.includes("EIP155");
-        if (isEIP155Error) {
-          this._logger.printMetaMaskWarning();
+          const isEIP155Error =
+            err instanceof InvalidInputError && err.message.includes("EIP155");
+          if (isEIP155Error) {
+            this._logger.printMetaMaskWarning();
+          }
+        } else {
+          this._logger.printUnknownError(err);
         }
-      } else if (!(err instanceof SolidityError)) {
-        this._logger.printUnknownError(err);
       }
 
       this._logger.printEmptyLine();

@@ -19,6 +19,7 @@ import {
   UNRECOGNIZED_CONTRACT_NAME,
   UNRECOGNIZED_FUNCTION_NAME,
 } from "../../stack-traces/solidity-stack-trace";
+import { TransactionExecutionError } from "../errors";
 import {
   CallParams,
   GatherTracesResult,
@@ -77,6 +78,12 @@ export class ModulesLogger {
 
   public setEnabled(enabled: boolean) {
     this._enabled = enabled;
+  }
+
+  public isLoggedError(err: Error) {
+    return (
+      err instanceof SolidityError || err instanceof TransactionExecutionError
+    );
   }
 
   public logBlockFromAutomine(
@@ -213,7 +220,7 @@ export class ModulesLogger {
       this._logConsoleLogMessages(txTrace.consoleLogMessages);
 
       if (txTrace.error !== undefined) {
-        this.logError(txTrace.error);
+        this._logError(txTrace.error);
       }
     });
   }
@@ -251,7 +258,7 @@ export class ModulesLogger {
       this._logConsoleLogMessages(txTrace.consoleLogMessages);
 
       if (txTrace.error !== undefined) {
-        this.logError(txTrace.error);
+        this._logError(txTrace.error);
       }
     });
   }
@@ -274,7 +281,7 @@ export class ModulesLogger {
 
       this._logConsoleLogMessages(consoleLogMessages);
 
-      this.logError(error);
+      this._logError(error);
     });
   }
 
@@ -300,7 +307,7 @@ export class ModulesLogger {
 
       if (error !== undefined) {
         // TODO: If throwOnCallFailures is false, this will log the error, but the RPC method won't be red
-        this.logError(error);
+        this._logError(error);
       }
     });
   }
@@ -329,22 +336,6 @@ export class ModulesLogger {
 
   public logEmptyLine() {
     this._log("");
-  }
-
-  public logError(err: Error) {
-    if (err instanceof SolidityError) {
-      this.logEmptyLine();
-      this._log(util.inspect(err));
-    }
-  }
-
-  public printError(err: Error) {
-    if (err instanceof SolidityError) {
-      this.printEmptyLine();
-      this._indent(() => {
-        this._print(util.inspect(err));
-      });
-    }
   }
 
   public printErrorMessage(errorMessage: string) {
@@ -421,9 +412,10 @@ export class ModulesLogger {
   }
 
   public printUnknownError(err: Error) {
-    this.printError(err);
-    this.printEmptyLine();
     this._indent(() => {
+      this._printError(err);
+      this.printEmptyLine();
+
       this._print(
         "If you think this is a bug in Hardhat, please report it here: https://hardhat.org/reportbug"
       );
@@ -479,6 +471,13 @@ export class ModulesLogger {
     this._logs.push(formattedMessage);
   }
 
+  private _logError(err: Error) {
+    if (this.isLoggedError(err)) {
+      this.logEmptyLine();
+      this._log(util.inspect(err));
+    }
+  }
+
   private _logTxInsideBlock(
     tx: Transaction,
     txTrace: GatherTracesResult,
@@ -514,7 +513,7 @@ export class ModulesLogger {
       this._logConsoleLogMessages(txTrace.consoleLogMessages);
 
       if (txTrace.error !== undefined) {
-        this.logError(txTrace.error);
+        this._logError(txTrace.error);
       }
     });
   }
@@ -542,6 +541,13 @@ export class ModulesLogger {
       this._replaceLastLine(formattedMessage);
     } else {
       this._printLine(formattedMessage);
+    }
+  }
+
+  private _printError(err: Error) {
+    if (this.isLoggedError(err)) {
+      this.printEmptyLine();
+      this._print(util.inspect(err));
     }
   }
 
