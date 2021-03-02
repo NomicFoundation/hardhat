@@ -187,11 +187,11 @@ export class TxPool {
       const senderNonce = new BN(senderAccount.nonce);
       const senderBalance = new BN(senderAccount.balance);
 
-      let foo = false;
+      let moveToQueued = false;
       for (const tx of txs) {
         const deserializedTx = this._deserializeTransaction(tx);
 
-        if (foo) {
+        if (moveToQueued) {
           newPending = this._removeTx(newPending, address, deserializedTx);
 
           const queued = this._getQueuedForAddress(address) ?? ImmutableList();
@@ -209,11 +209,10 @@ export class TxPool {
         ) {
           newPending = this._removeTx(newPending, address, deserializedTx);
 
-          // if we are dropping a pending transaction, then the executable nonce
-          // becomes the nonce of that transaction UNLESS we are dropping
-          // it because the sender (remote) nonce is greater
+          // if we are dropping a pending transaction, then we move
+          // all the following txs to the queued
           if (txNonce.gt(senderNonce)) {
-            foo = true;
+            moveToQueued = true;
           }
         }
       }
