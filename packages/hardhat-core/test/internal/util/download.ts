@@ -4,7 +4,6 @@ import path from "path";
 // @ts-ignore
 import Proxy from "proxy";
 import { download } from "../../../src/internal/util/download";
-import { ERRORS } from "../../../src/internal/core/errors-list";
 import { useTmpDir } from "../../helpers/fs";
 
 

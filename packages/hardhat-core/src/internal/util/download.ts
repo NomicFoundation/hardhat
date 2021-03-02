@@ -17,17 +17,20 @@ export async function download(
   const { pipeline } = await import("stream");
   const { default: fetch } = await import("node-fetch");
   const streamPipeline = util.promisify(pipeline);
-  const fetchOptions = <FetchOptions> { timeout: timeoutMillis, agent: undefined };
+  const fetchOptions: FetchOptions = {
+    timeout: timeoutMillis,
+    agent: undefined,
+  };
 
   // Check if Proxy is set https
-  if (process.env.HTTPS_PROXY) {       
+  if ("HTTPS_PROXY" in process.env) {
     // Create the proxy from the environment variables
     const proxy: string = process.env.HTTPS_PROXY as string;
     fetchOptions.agent = new HttpsProxyAgent.HttpsProxyAgent(proxy);
   }
-  
+
   // Check if Proxy is set http and `fetchOptions.agent` was not already set for https
-  if (process.env.HTTP_PROXY && fetchOptions.agent === undefined) {       
+  if ("HTTP_PROXY" in process.env && fetchOptions.agent === undefined) {
     // Create the proxy from the environment variables
     const proxy: string = process.env.HTTP_PROXY as string;
     fetchOptions.agent = new HttpsProxyAgent.HttpsProxyAgent(proxy);
