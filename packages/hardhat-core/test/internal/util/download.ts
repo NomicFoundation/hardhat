@@ -1,6 +1,7 @@
 import { assert } from "chai";
 import fsExtra from "fs-extra";
 import path from "path";
+// @ts-ignore
 import Proxy from "proxy";
 import { download } from "../../../src/internal/util/download";
 import { ERRORS } from "../../../src/internal/core/errors-list";
