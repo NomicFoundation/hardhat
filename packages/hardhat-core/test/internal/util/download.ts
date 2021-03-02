@@ -1,6 +1,7 @@
 import { assert } from "chai";
 import fsExtra from "fs-extra";
 import path from "path";
+// @ts-ignore
 // tslint:disable-next-line no-implicit-dependencies
 import Proxy from "proxy";
 
