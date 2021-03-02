@@ -126,6 +126,13 @@ module.exports = {
             ["/errors/", "Error codes", 0],
           ],
         },
+        {
+          title: "Reference",
+          collapsable: false,
+          children: [
+            ["/reference/solidity-support.html", "Solidity support", 0],
+          ],
+        },
         "/buidler-documentation.html",
         {
           title: "Plugins",
