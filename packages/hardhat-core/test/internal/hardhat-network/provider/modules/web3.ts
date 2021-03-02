@@ -11,7 +11,7 @@ describe("Web3 module", function () {
       this.timeout(50000);
     }
 
-    describe(`Provider ${name}`, function () {
+    describe(`${name} provider`, function () {
       setCWD();
       useProvider();
 
