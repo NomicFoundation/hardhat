@@ -1,10 +1,12 @@
 import { assert } from "chai";
 import fsExtra from "fs-extra";
 import path from "path";
+import sinon from "sinon";
 
 import { TASK_CLEAN } from "../../../../src/builtin-tasks/task-names";
 import { HardhatContext } from "../../../../src/internal/context";
 import { loadConfigAndTasks } from "../../../../src/internal/core/config/config-loading";
+import { DEFAULT_SOLC_VERSION } from "../../../../src/internal/core/config/default-config";
 import { ERRORS } from "../../../../src/internal/core/errors-list";
 import { resetHardhatContext } from "../../../../src/internal/reset";
 import { glob } from "../../../../src/internal/util/glob";
@@ -352,6 +354,74 @@ Hardhat plugin instead.`
 
         resetHardhatContext();
       }
+    });
+  });
+
+  describe("solidity config warnings", function () {
+    useFixtureProject("solidity-config-warnings");
+
+    let consoleWarnStub: sinon.SinonStub;
+    beforeEach(function () {
+      consoleWarnStub = sinon.stub(console, "warn");
+      HardhatContext.createHardhatContext();
+    });
+
+    afterEach(function () {
+      consoleWarnStub.restore();
+      resetHardhatContext();
+    });
+
+    it("should emit a warning if there's no configured solidity", function () {
+      const config = loadConfigAndTasks(
+        {
+          config: "config-without-solidity.js",
+        },
+        { showSolidityConfigWarnings: true }
+      );
+
+      assert.equal(consoleWarnStub.callCount, 1);
+      assert.include(
+        consoleWarnStub.args[0][0],
+        "Solidity compiler is not configured"
+      );
+      assert.equal(config.solidity.compilers.length, 1);
+      assert.equal(config.solidity.compilers[0].version, DEFAULT_SOLC_VERSION);
+    });
+
+    it("should emit a warning if the solc version is too new", function () {
+      loadConfigAndTasks(
+        {
+          config: "unsupported-new-solc.js",
+        },
+        { showSolidityConfigWarnings: true }
+      );
+
+      assert.equal(consoleWarnStub.callCount, 1);
+      assert.include(consoleWarnStub.args[0][0], "is not fully supported yet");
+    });
+
+    it("should emit a warning if there are multiple unsupported versions", function () {
+      loadConfigAndTasks(
+        {
+          config: "multiple-unsupported-solc.js",
+        },
+        { showSolidityConfigWarnings: true }
+      );
+
+      assert.equal(consoleWarnStub.callCount, 1);
+      assert.include(consoleWarnStub.args[0][0], "are not fully supported yet");
+    });
+
+    it("should emit a warning if there is an unsupported version in an override", function () {
+      loadConfigAndTasks(
+        {
+          config: "unsupported-solc-in-override.js",
+        },
+        { showSolidityConfigWarnings: true }
+      );
+
+      assert.equal(consoleWarnStub.callCount, 1);
+      assert.include(consoleWarnStub.args[0][0], "is not fully supported yet");
     });
   });
 });

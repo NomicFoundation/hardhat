@@ -57,8 +57,7 @@ describe("HardhatNode", function () {
     },
   ];
 
-  // TODO: determine a good timeout for these tests
-  this.timeout(0);
+  this.timeout(120000);
 
   for (const {
     url,
