@@ -238,7 +238,7 @@ describe("ForkStateManager", () => {
     it("can get contract storage value", async () => {
       const remoteValue = await client.getStorageAt(
         DAI_ADDRESS,
-        DAI_TOTAL_SUPPLY_STORAGE_POSITION,
+        new BN(DAI_TOTAL_SUPPLY_STORAGE_POSITION),
         forkBlockNumber
       );
 
@@ -255,7 +255,7 @@ describe("ForkStateManager", () => {
     it("can get contract storage value", async () => {
       const remoteValue = await client.getStorageAt(
         DAI_ADDRESS,
-        DAI_TOTAL_SUPPLY_STORAGE_POSITION,
+        new BN(DAI_TOTAL_SUPPLY_STORAGE_POSITION),
         forkBlockNumber
       );
       const fsmValue = await fsm.getOriginalContractStorage(
@@ -617,7 +617,7 @@ describe("ForkStateManager", () => {
         const oldBlock = forkBlockNumber.subn(10);
         const valueAtOldBlock = await client.getStorageAt(
           DAI_ADDRESS,
-          DAI_TOTAL_SUPPLY_STORAGE_POSITION,
+          new BN(DAI_TOTAL_SUPPLY_STORAGE_POSITION),
           oldBlock
         );
 
@@ -690,7 +690,7 @@ describe("ForkStateManager", () => {
       it("restores the fork block context in which methods operate", async () => {
         const valueAtForkBlock = await client.getStorageAt(
           DAI_ADDRESS,
-          DAI_TOTAL_SUPPLY_STORAGE_POSITION,
+          new BN(DAI_TOTAL_SUPPLY_STORAGE_POSITION),
           forkBlockNumber
         );
         const getStorageAt = sinon.spy(client, "getStorageAt");
