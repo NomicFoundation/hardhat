@@ -6,5 +6,6 @@
     "test/fixture-projects/**/*.js",
     "test/helpers/**/*.ts"
   ],
-  "timeout": 30000
+  "timeout": 30000,
+  "retries": 2
 }
