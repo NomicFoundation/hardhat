@@ -746,7 +746,7 @@ describe("Eth module", function () {
             },
           ]);
 
-          // We know that it should fit in 1m gas
+          // We know that it should fit in 100k gas
           assert.isTrue(new BN(toBuffer(estimation)).lten(100000));
         });
       });
