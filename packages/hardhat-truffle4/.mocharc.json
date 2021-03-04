@@ -2,5 +2,6 @@
   "require": "ts-node/register/files",
   "file": "../common/run-with-ganache",
   "ignore": ["test/fixture-projects/**/*"],
-  "timeout": 30000
+  "timeout": 30000,
+  "retries": 4
 }
