@@ -7,5 +7,5 @@
     "test/helpers/**/*.ts"
   ],
   "timeout": 30000,
-  "retries": 2
+  "retries": 4
 }
