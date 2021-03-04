@@ -131,7 +131,7 @@ describe("Provider logs", () => {
               assert.match(this.logger.lines[6], /^  Gas used:\s+21000 of \d+$/);
               assert.match(this.logger.lines[7], /^  Block #\d+:\s+0x[0-9a-f]{64}$/);
               assert.equal(this.logger.lines[8], "");
-              assert.match(this.logger.lines[9], /^  Error: Transaction ran out of gas/);
+              assert.match(this.logger.lines[9], /^  TransactionExecutionError: Transaction ran out of gas/);
               assert.equal(this.logger.lines[10], "");
             }
           });
