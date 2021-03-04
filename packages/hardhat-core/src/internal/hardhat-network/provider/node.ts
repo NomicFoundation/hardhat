@@ -452,6 +452,10 @@ export class HardhatNode extends EventEmitter {
       gasLimit: this.getBlockGasLimit(),
     });
 
+    // TODO: This may not work if there are multiple txs in the mempool and
+    //  the one being estimated won't fit in the first block, or maybe even
+    //  if the state accessed by the tx changes after it is executed within
+    //  the first block.
     const result = await this._runInBlockContext(blockNumberOrPending, () =>
       this._runTxAndRevertMutations(tx, blockNumberOrPending, true)
     );
