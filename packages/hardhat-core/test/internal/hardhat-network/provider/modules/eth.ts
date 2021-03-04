@@ -727,6 +727,28 @@ describe("Eth module", function () {
             `Received invalid block tag ${futureBlock}. Latest block number is ${firstBlock}`
           );
         });
+
+        it("Should use pending as default blockTag", async function () {
+          if (isFork) {
+            this.skip();
+          }
+
+          const blockNumber = await this.provider.send("eth_blockNumber");
+          assert.equal(blockNumber, "0x0");
+
+          // We estimate the deployment of a contract that asserts that block.number > 0,
+          // which would fail if the estimation was run on `latest` right after the network is initialized
+          const estimation = await this.provider.send("eth_estimateGas", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              data:
+                "0x6080604052348015600f57600080fd5b5060004311601957fe5b603f8060266000396000f3fe6080604052600080fdfea2646970667358221220f77641956f2e98e8fd65e712d73442aba66a133641d08a3058907caec561bb2364736f6c63430007040033",
+            },
+          ]);
+
+          // We know that it should fit in 100k gas
+          assert.isTrue(new BN(toBuffer(estimation)).lten(100000));
+        });
       });
 
       describe("eth_gasPrice", async function () {

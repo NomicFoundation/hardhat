@@ -377,7 +377,12 @@ export class EthModule {
     transactionRequest: RpcTransactionRequest,
     blockTag: OptionalBlockTag
   ): Promise<string> {
-    const blockNumberOrPending = await this._resolveBlockTag(blockTag);
+    // estimateGas behaves differently when there's no blockTag
+    // it uses "pending" as default instead of "latest"
+    const blockNumberOrPending =
+      blockTag === undefined
+        ? "pending"
+        : await this._resolveBlockTag(blockTag);
 
     const txParams = await this._rpcTransactionRequestToNodeTransactionParams(
       transactionRequest
