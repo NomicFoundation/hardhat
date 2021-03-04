@@ -5,7 +5,10 @@ footer
       span Supported by
       .logo
     .separator
-    .copyright Copyright 2020 Nomic Labs LLC
+      
+    .legal
+      a Copyright 2020 Nomic Labs LLC | 
+      a(href="/privacy-policy.html") Privacy Policy
 </template>
 
 <script>
@@ -77,13 +80,17 @@ footer
     background #4B4D4D
     margin 24px auto
 
-  .copyright
+  .legal
     font-size 15px
     color #9B9FA8
     font-family 'Chivo'
     @media (max-width: 1000px)
       margin-bottom 40px
       font-size 12px
+    
+    a
+      font-family inherit
+      color inherit 
 
   *
     color black
