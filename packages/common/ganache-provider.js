@@ -20,6 +20,12 @@ async function startGanache(args = []) {
   const ganacheCliPath = require.resolve("ganache-cli/cli.js");
 
   const ganacheChild = spawn("node", [ganacheCliPath, ...args]);
+  ganacheChild.on('error', err => {
+    console.log(`### Error: ${err.message} ###`);
+  })
+  ganacheChild.on('exit', () => {
+    console.log('### Exit event ###');
+  })
   ganacheChild.stdout.on('data', data=>console.log(data))
   ganacheChild.stderr.on('data', data=>console.log(data))
   console.time("Ganache spawn");
