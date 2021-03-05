@@ -150,6 +150,7 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
       return parseJsonResponse(await response.text());
     } catch (error) {
       if (error.code === "ECONNREFUSED") {
+        console.error('### ECONNREFUSED error ###', error.message, error);
         throw new HardhatError(
           ERRORS.NETWORK.NODE_IS_NOT_RUNNING,
           { network: this._networkName },
