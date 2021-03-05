@@ -11,6 +11,7 @@ import {
 import { getCurrentTimestamp } from "../../../../../src/internal/hardhat-network/provider/utils/getCurrentTimestamp";
 import { useEnvironment } from "../../../../helpers/environment";
 import { useFixtureProject } from "../../../../helpers/project";
+import { workaroundWindowsCiFailures } from "../../../../utils/workaround-windows-ci-failures";
 import {
   assertInvalidArgumentsError,
   assertInvalidInputError,
@@ -42,6 +43,8 @@ describe("Evm module", function () {
     if (isFork) {
       this.timeout(50000);
     }
+
+    workaroundWindowsCiFailures({ isFork });
 
     describe(`${name} provider`, function () {
       setCWD();

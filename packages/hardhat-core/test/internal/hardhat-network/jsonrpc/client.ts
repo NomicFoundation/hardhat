@@ -9,6 +9,7 @@ import { RpcTransaction } from "../../../../src/internal/hardhat-network/jsonrpc
 import { randomHashBuffer } from "../../../../src/internal/hardhat-network/provider/fork/random";
 import { makeForkClient } from "../../../../src/internal/hardhat-network/provider/utils/makeForkClient";
 import { useTmpDir } from "../../../helpers/fs";
+import { workaroundWindowsCiFailures } from "../../../utils/workaround-windows-ci-failures";
 import {
   BLOCK_HASH_OF_10496585,
   BLOCK_NUMBER_OF_10496585,
@@ -285,6 +286,8 @@ describe("JsonRpcClient", () => {
 
   describe("Using actual providers", function () {
     FORKED_PROVIDERS.forEach(({ rpcProvider, jsonRpcUrl }) => {
+      workaroundWindowsCiFailures({ isFork: true });
+
       describe(`Using ${rpcProvider}`, () => {
         let client: JsonRpcClient;
         let forkNumber: BN;

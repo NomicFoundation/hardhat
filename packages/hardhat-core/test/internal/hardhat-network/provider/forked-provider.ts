@@ -8,6 +8,7 @@ import { rpcQuantityToNumber } from "../../../../src/internal/core/providers/pro
 import { InvalidInputError } from "../../../../src/internal/hardhat-network/provider/errors";
 import { numberToRpcQuantity } from "../../../../src/internal/hardhat-network/provider/output";
 import { ALCHEMY_URL } from "../../../setup";
+import { workaroundWindowsCiFailures } from "../../../utils/workaround-windows-ci-failures";
 import {
   assertQuantity,
   assertTransactionFailure,
@@ -49,8 +50,10 @@ const UniswapFactoryAbi = fsExtra.readJsonSync(
 
 const WETH_DEPOSIT_SELECTOR = "0xd0e30db0";
 
-describe("Forked provider", () => {
+describe("Forked provider", function () {
   FORKED_PROVIDERS.forEach(({ rpcProvider, useProvider }) => {
+    workaroundWindowsCiFailures({ isFork: true });
+
     describe(`Using ${rpcProvider}`, function () {
       setCWD();
       useProvider();
