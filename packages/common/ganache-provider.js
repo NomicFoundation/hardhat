@@ -19,7 +19,9 @@ function cleanup(ganacheChild) {
 async function startGanache(args = []) {
   const ganacheCliPath = require.resolve("ganache-cli/cli.js");
 
-  const ganacheChild = spawn("node", [ganacheCliPath, ...args]);
+  const ganacheChild = spawn("node", [ganacheCliPath, ...args], {
+    stdio: 'inherit'
+  });
   console.time("Ganache spawn");
 
   // wait for ganache child process to start
