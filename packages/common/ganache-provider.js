@@ -26,8 +26,6 @@ async function startGanache(args = []) {
   ganacheChild.on('exit', () => {
     console.log('### Exit event ###');
   })
-  ganacheChild.stdout.on('data', data=>console.log(data))
-  ganacheChild.stderr.on('data', data=>console.log(data))
   console.time("Ganache spawn");
 
   // wait for ganache child process to start

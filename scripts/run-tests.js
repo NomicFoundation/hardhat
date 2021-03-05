@@ -31,7 +31,13 @@ const shouldIgnoreVyperTests = (isGithubActions && !isLinux) || isWindows;
 // Solpp tests don't work in Windows
 const shouldIgnoreSolppTests = isWindows;
 
-const ignoredPackagesList = ["--exclude hardhat"];
+const ignoredPackagesList = [
+  "hardhat",
+  "@nomiclabs/hardhat-e2e-tests",
+  "@nomiclabs/hardhat-ganache",
+  "@nomiclabs/hardhat-solhint",
+  "@nomiclabs/hardhat-waffle",
+].map((x) => `--exclude ${x}`);
 
 if (shouldIgnoreVyperTests) {
   ignoredPackagesList.push("--exclude @nomiclabs/hardhat-vyper");
@@ -71,21 +77,21 @@ function runTests() {
 
 async function main() {
   /* Ensure a ganache instance is running */
-  const ganacheInstance = await useGanacheInstance();
-  if (ganacheInstance) {
-    console.log("** Running a Ganache instance for tests **");
-  } else {
-    console.log("** Using existing Ganache instance for tests **");
-  }
+  // const ganacheInstance = await useGanacheInstance();
+  // if (ganacheInstance) {
+  //   console.log("** Running a Ganache instance for tests **");
+  // } else {
+  //   console.log("** Using existing Ganache instance for tests **");
+  // }
 
   try {
     await runTests();
   } finally {
     /* Cleanup ganache instance */
-    if (ganacheInstance) {
-      console.log("** Tearing ganache instance down **");
-      cleanup(ganacheInstance);
-    }
+    // if (ganacheInstance) {
+    //   console.log("** Tearing ganache instance down **");
+    //   cleanup(ganacheInstance);
+    // }
   }
 }
 

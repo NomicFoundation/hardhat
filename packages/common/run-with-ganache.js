@@ -12,6 +12,12 @@ let ganacheInstance;
  * Ensure ganache is running, for tests that require it.
  */
 before(async () => {
+  if (ganacheInstance !== null) {
+    console.log("### Stopping ganache instance ###");
+    await cleanup(ganacheInstance);
+    ganacheInstance = null
+    console.log("### Stopped ganache instance ###");
+  }
   const ganacheArgsStr =
     Array.isArray(ganacheCliArgs) && ganacheCliArgs.length > 0
       ? `with args: '${JSON.stringify(ganacheCliArgs)}'`
