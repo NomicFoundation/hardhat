@@ -32,11 +32,11 @@ const shouldIgnoreVyperTests = (isGithubActions && !isLinux) || isWindows;
 const shouldIgnoreSolppTests = isWindows;
 
 const ignoredPackagesList = [
-  "hardhat",
-  "@nomiclabs/hardhat-e2e-tests",
-  "@nomiclabs/hardhat-ganache",
-  "@nomiclabs/hardhat-solhint",
-  "@nomiclabs/hardhat-waffle",
+  // "hardhat",
+  // "@nomiclabs/hardhat-e2e-tests",
+  // "@nomiclabs/hardhat-ganache",
+  // "@nomiclabs/hardhat-solhint",
+  // "@nomiclabs/hardhat-waffle",
 ].map((x) => `--exclude ${x}`);
 
 if (shouldIgnoreVyperTests) {
