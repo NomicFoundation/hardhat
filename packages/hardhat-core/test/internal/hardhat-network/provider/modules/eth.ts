@@ -21,6 +21,7 @@ import {
   EthSubscription,
   ProviderMessage,
 } from "../../../../../src/types";
+import { workaroundWindowsCiFailures } from "../../../../utils/workaround-windows-ci-failures";
 import {
   assertInvalidArgumentsError,
   assertInvalidInputError,
@@ -72,6 +73,8 @@ describe("Eth module", function () {
     if (isFork) {
       this.timeout(50000);
     }
+
+    workaroundWindowsCiFailures({ isFork });
 
     describe(`${name} provider`, function () {
       setCWD();

@@ -2,6 +2,7 @@ import { assert } from "chai";
 import { keccak256, toBuffer } from "ethereumjs-util";
 
 import { bufferToRpcData } from "../../../../../src/internal/hardhat-network/provider/output";
+import { workaroundWindowsCiFailures } from "../../../../utils/workaround-windows-ci-failures";
 import { setCWD } from "../../helpers/cwd";
 import { PROVIDERS } from "../../helpers/providers";
 
@@ -10,6 +11,8 @@ describe("Web3 module", function () {
     if (isFork) {
       this.timeout(50000);
     }
+
+    workaroundWindowsCiFailures({ isFork });
 
     describe(`${name} provider`, function () {
       setCWD();

@@ -4,6 +4,7 @@ import sinon from "sinon";
 
 import { numberToRpcQuantity } from "../../../../../src/internal/hardhat-network/provider/output";
 import { ALCHEMY_URL } from "../../../../setup";
+import { workaroundWindowsCiFailures } from "../../../../utils/workaround-windows-ci-failures";
 import { assertInvalidArgumentsError } from "../../helpers/assertions";
 import { EMPTY_ACCOUNT_ADDRESS } from "../../helpers/constants";
 import { quantityToNumber } from "../../helpers/conversions";
@@ -15,6 +16,8 @@ describe("Hardhat module", function () {
     if (isFork) {
       this.timeout(50000);
     }
+
+    workaroundWindowsCiFailures({ isFork });
 
     describe(`${name} provider`, function () {
       const safeBlockInThePast = 11_200_000; // this should resolve CI errors probably caused by using a block too far in the past

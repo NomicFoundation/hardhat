@@ -2,12 +2,15 @@ import { assert } from "chai";
 import sinon from "sinon";
 
 import { ALCHEMY_URL } from "../../../setup";
+import { workaroundWindowsCiFailures } from "../../../utils/workaround-windows-ci-failures";
 import { quantityToNumber } from "../helpers/conversions";
 import { setCWD } from "../helpers/cwd";
 import { INTERVAL_MINING_PROVIDERS } from "../helpers/providers";
 
-describe("Interval mining provider", () => {
+describe("Interval mining provider", function () {
   INTERVAL_MINING_PROVIDERS.forEach(({ name, useProvider, isFork }) => {
+    workaroundWindowsCiFailures({ isFork });
+
     describe(`${name} provider`, function () {
       const safeBlockInThePast = 11_200_000;
       const blockTime = 10000;
