@@ -1,5 +1,10 @@
 import { MethodNotFoundError } from "../errors";
-import { rpcHash, validateParams } from "../input";
+import {
+  RpcDebugTracingConfig,
+  rpcDebugTracingConfig,
+  rpcHash,
+  validateParams,
+} from "../input";
 import { HardhatNode } from "../node";
 
 // tslint:disable only-hardhat-error
@@ -23,11 +28,16 @@ export class DebugModule {
 
   // debug_traceTransaction
 
-  private _traceTransactionParams(params: any[]): [Buffer] {
-    return validateParams(params, rpcHash);
+  private _traceTransactionParams(
+    params: any[]
+  ): [Buffer, RpcDebugTracingConfig] {
+    return validateParams(params, rpcHash, rpcDebugTracingConfig);
   }
 
-  private async _traceTransactionAction(hash: Buffer): Promise<object> {
-    return this._node.traceTransaction(hash);
+  private async _traceTransactionAction(
+    hash: Buffer,
+    config: RpcDebugTracingConfig
+  ): Promise<object> {
+    return this._node.traceTransaction(hash, config);
   }
 }
