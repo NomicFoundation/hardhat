@@ -311,6 +311,19 @@ export const rpcIntervalMining = t.union([
 
 export type RpcIntervalMining = t.TypeOf<typeof rpcIntervalMining>;
 
+export const rpcDebugTracingConfig = optional(
+  t.type(
+    {
+      disableStorage: optional(t.boolean),
+      disableMemory: optional(t.boolean),
+      disableStack: optional(t.boolean),
+    },
+    "RpcDebugTracingConfig"
+  )
+);
+
+export type RpcDebugTracingConfig = t.TypeOf<typeof rpcDebugTracingConfig>;
+
 export function validateParams(params: any[]): [];
 
 export function validateParams(
@@ -445,6 +458,12 @@ export function validateParams(
   params: any[],
   miningConfig: typeof rpcIntervalMining
 ): [RpcIntervalMining];
+
+export function validateParams(
+  params: any[],
+  txHash: typeof rpcHash,
+  tracingConfig: typeof rpcDebugTracingConfig
+): [Buffer, RpcDebugTracingConfig];
 
 // tslint:disable only-hardhat-error
 

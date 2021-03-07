@@ -58,6 +58,7 @@ import { bloomFilter, Filter, filterLogs, LATEST_BLOCK, Type } from "./filter";
 import { ForkBlockchain } from "./fork/ForkBlockchain";
 import { ForkStateManager } from "./fork/ForkStateManager";
 import { HardhatBlockchain } from "./HardhatBlockchain";
+import { RpcDebugTracingConfig } from "./input";
 import {
   CallParams,
   EstimateGasResult,
@@ -871,7 +872,10 @@ export class HardhatNode extends EventEmitter {
     await this._txPool.updatePendingAndQueued();
   }
 
-  public async traceTransaction(hash: Buffer): Promise<object> {
+  public async traceTransaction(
+    hash: Buffer,
+    config: RpcDebugTracingConfig
+  ): Promise<object> {
     const block = await this.getBlockByTransactionHash(hash);
     if (block === undefined) {
       throw new InvalidInputError(
@@ -887,7 +891,7 @@ export class HardhatNode extends EventEmitter {
         for (const tx of block.transactions) {
           const txHash = tx.hash();
           if (txHash.equals(hash)) {
-            this._vmDebugTracer.enableTracing();
+            this._vmDebugTracer.enableTracing(config);
             await this._reRunTx(tx, block, gasLeft);
             this._vmDebugTracer.disableTracing();
             return this._vmDebugTracer.getDebugTrace();

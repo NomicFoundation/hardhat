@@ -4,6 +4,7 @@ import { InterpreterStep } from "@nomiclabs/ethereumjs-vm/dist/evm/interpreter";
 import { Transaction } from "ethereumjs-tx";
 import { BN } from "ethereumjs-util";
 
+import { RpcDebugTracingConfig } from "../provider/input";
 import { RpcDebugTraceOutput, RpcStructLog } from "../provider/output";
 
 // tslint:disable only-hardhat-error
@@ -12,6 +13,7 @@ export class VMDebugTracer {
   private _enabled = false;
   private _structLogs: RpcStructLog[] = [];
   private _lastTrace?: RpcDebugTraceOutput;
+  private _config: RpcDebugTracingConfig;
 
   constructor(private readonly _vm: VM) {
     this._beforeTxHandler = this._beforeTxHandler.bind(this);
@@ -19,7 +21,7 @@ export class VMDebugTracer {
     this._afterTxHandler = this._afterTxHandler.bind(this);
   }
 
-  public enableTracing() {
+  public enableTracing(config: RpcDebugTracingConfig) {
     if (this._enabled) {
       return;
     }
@@ -27,6 +29,7 @@ export class VMDebugTracer {
     this._vm.on("step", this._stepHandler);
     this._vm.on("afterTx", this._afterTxHandler);
     this._enabled = true;
+    this._config = config;
   }
 
   public disableTracing() {
@@ -37,6 +40,7 @@ export class VMDebugTracer {
     this._vm.removeListener("step", this._stepHandler);
     this._vm.removeListener("afterTx", this._afterTxHandler);
     this._enabled = false;
+    this._config = undefined;
   }
 
   public get enabled(): boolean {
@@ -73,29 +77,53 @@ export class VMDebugTracer {
     next();
   }
 
+  private _getMemory(step: InterpreterStep): string[] | undefined {
+    if (this._config?.disableMemory === true) {
+      return undefined;
+    }
+    const memory = Buffer.from(step.memory)
+      .toString("hex")
+      .match(/.{1,64}/g);
+    return memory === null ? [] : memory;
+  }
+
+  private _getStack(step: InterpreterStep): string[] | undefined {
+    if (this._config?.disableStack === true) {
+      return undefined;
+    }
+    const stack = step.stack
+      .slice()
+      .map((el: BN) => el.toString("hex").padStart(64, "0"));
+    return stack;
+  }
+
+  private async _getStorage(
+    storage: Record<string, string>
+  ): Promise<Record<string, string> | undefined> {
+    const mapValues = await require("lodash/mapValues");
+    if (this._config?.disableStorage === true) {
+      return undefined;
+    }
+    const paddedStorage = mapValues(storage, (storageValue: string) =>
+      storageValue.padStart(64, "0")
+    );
+    return paddedStorage;
+  }
+
   private async _stepToStructLog(step: InterpreterStep): Promise<RpcStructLog> {
     return new Promise((resolve) => {
       step.stateManager.dumpStorage(
         step.address,
         async (storage: Record<string, string>) => {
-          const mapValues = await require("lodash/mapValues");
-          const memory = Buffer.from(step.memory)
-            .toString("hex")
-            .match(/.{1,64}/g);
-          const paddedStorage = mapValues(storage, (storageValue: string) =>
-            storageValue.padStart(64, "0")
-          );
           const structLog: RpcStructLog = {
             pc: step.pc,
             op: step.opcode.name,
             gas: step.gasLeft.toNumber(),
             gasCost: step.opcode.fee,
             depth: step.depth + 1,
-            stack: step.stack
-              .slice()
-              .map((el: BN) => el.toString("hex").padStart(64, "0")),
-            memory: memory === null ? [] : memory,
-            storage: paddedStorage,
+            stack: this._getStack(step),
+            memory: this._getMemory(step),
+            storage: await this._getStorage(storage),
             memSize: step.memoryWordCount.toNumber(),
           };
           resolve(structLog);
