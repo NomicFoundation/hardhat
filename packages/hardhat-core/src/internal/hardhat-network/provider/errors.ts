@@ -32,8 +32,8 @@ export class HardhatNetworkProviderError extends CustomError
 
   private readonly _isHardhatNetworkProviderError: boolean;
 
-  constructor(message: string, public readonly code: number) {
-    super(message);
+  constructor(message: string, public readonly code: number, parent?: Error) {
+    super(message, parent);
 
     this._isHardhatNetworkProviderError = true;
   }
@@ -90,17 +90,12 @@ export class InvalidInputError extends HardhatNetworkProviderError {
 export class TransactionExecutionError extends HardhatNetworkProviderError {
   public static readonly CODE = -32003;
 
-  public parent: Error;
-
-  constructor(parent: Error | string) {
-    if (typeof parent === "string") {
-      parent = new Error(parent);
+  constructor(parentOrMsg: Error | string) {
+    if (typeof parentOrMsg === "string") {
+      super(parentOrMsg, TransactionExecutionError.CODE);
+    } else {
+      super(parentOrMsg.message, TransactionExecutionError.CODE, parentOrMsg);
     }
-
-    super(parent.message, TransactionExecutionError.CODE);
-
-    this.parent = parent;
-    this.stack = parent.stack;
   }
 }
 

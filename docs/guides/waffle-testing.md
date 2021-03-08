@@ -79,6 +79,10 @@ We are requiring `Chai` which is an assertions library. These asserting function
 
 This is why we're using the `hardhat-waffle` plugin, which makes it easier to assert values from Ethereum. Check out [this section](https://ethereum-waffle.readthedocs.io/en/latest/matchers.html) in Waffle's documentation for the entire list of Ethereum-specific matchers.
 
+::: warning
+Some Waffle matchers return a Promise rather than executing immediately. If you're making a call or sending a transaction, make sure to check Waffle's documentation, and `await` these Promises. Otherwise your tests may pass without running all checks.
+:::
+
 ```js
 describe("Greeter", function () {
   it("Should return the new greeting once it's changed", async function () {

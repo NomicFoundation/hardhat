@@ -9,6 +9,7 @@ import { RpcTransaction } from "../../../../src/internal/hardhat-network/jsonrpc
 import { randomHashBuffer } from "../../../../src/internal/hardhat-network/provider/fork/random";
 import { makeForkClient } from "../../../../src/internal/hardhat-network/provider/utils/makeForkClient";
 import { useTmpDir } from "../../../helpers/fs";
+import { workaroundWindowsCiFailures } from "../../../utils/workaround-windows-ci-failures";
 import {
   BLOCK_HASH_OF_10496585,
   BLOCK_NUMBER_OF_10496585,
@@ -50,7 +51,7 @@ describe("JsonRpcClient", () => {
       function getStorageAt(blockNumber: number) {
         return clientWithFakeProvider.getStorageAt(
           DAI_ADDRESS,
-          DAI_TOTAL_SUPPLY_STORAGE_POSITION,
+          new BN(DAI_TOTAL_SUPPLY_STORAGE_POSITION),
           new BN(blockNumber)
         );
       }
@@ -187,7 +188,7 @@ describe("JsonRpcClient", () => {
 
         const value = await clientWithFakeProvider.getStorageAt(
           DAI_ADDRESS,
-          DAI_TOTAL_SUPPLY_STORAGE_POSITION,
+          new BN(DAI_TOTAL_SUPPLY_STORAGE_POSITION),
           new BN(120)
         );
         assert.equal((fakeProvider.request as sinon.SinonStub).callCount, 2);
@@ -218,7 +219,7 @@ describe("JsonRpcClient", () => {
         await assert.isRejected(
           clientWithFakeProvider.getStorageAt(
             DAI_ADDRESS,
-            DAI_TOTAL_SUPPLY_STORAGE_POSITION,
+            new BN(DAI_TOTAL_SUPPLY_STORAGE_POSITION),
             new BN(120)
           ),
           "header not found"
@@ -246,7 +247,7 @@ describe("JsonRpcClient", () => {
         await assert.isRejected(
           clientWithFakeProvider.getStorageAt(
             DAI_ADDRESS,
-            DAI_TOTAL_SUPPLY_STORAGE_POSITION,
+            new BN(DAI_TOTAL_SUPPLY_STORAGE_POSITION),
             new BN(120)
           ),
           "different error"
@@ -274,7 +275,7 @@ describe("JsonRpcClient", () => {
         await assert.isRejected(
           clientWithFakeProvider.getStorageAt(
             DAI_ADDRESS,
-            DAI_TOTAL_SUPPLY_STORAGE_POSITION,
+            new BN(DAI_TOTAL_SUPPLY_STORAGE_POSITION),
             new BN(120)
           ),
           "header not found"
@@ -285,6 +286,8 @@ describe("JsonRpcClient", () => {
 
   describe("Using actual providers", function () {
     FORKED_PROVIDERS.forEach(({ rpcProvider, jsonRpcUrl }) => {
+      workaroundWindowsCiFailures({ isFork: true });
+
       describe(`Using ${rpcProvider}`, () => {
         let client: JsonRpcClient;
         let forkNumber: BN;
@@ -383,7 +386,7 @@ describe("JsonRpcClient", () => {
           it("can fetch value from storage of an existing contract", async () => {
             const totalSupply = await client.getStorageAt(
               DAI_ADDRESS,
-              DAI_TOTAL_SUPPLY_STORAGE_POSITION,
+              new BN(DAI_TOTAL_SUPPLY_STORAGE_POSITION),
               forkNumber
             );
             const totalSupplyBN = new BN(totalSupply);
@@ -393,7 +396,7 @@ describe("JsonRpcClient", () => {
           it("can fetch empty value from storage of an existing contract", async () => {
             const value = await client.getStorageAt(
               DAI_ADDRESS,
-              toBuffer("0xbaddcafe"),
+              new BN("0xbaddcafe"),
               forkNumber
             );
             const valueBN = new BN(value);
@@ -403,7 +406,7 @@ describe("JsonRpcClient", () => {
           it("can fetch empty value from storage of a non-existent contract", async () => {
             const value = await client.getStorageAt(
               EMPTY_ACCOUNT_ADDRESS,
-              toBuffer([1]),
+              new BN(1),
               forkNumber
             );
             const valueBN = new BN(value);

@@ -1,48 +1,42 @@
 import { assert } from "chai";
-import { zeroAddress } from "ethereumjs-util";
+import { BN, bufferToHex, zeroAddress } from "ethereumjs-util";
 import sinon from "sinon";
 
 import {
   bufferToRpcData,
   numberToRpcQuantity,
   RpcBlockOutput,
+  RpcTransactionOutput,
 } from "../../../../../src/internal/hardhat-network/provider/output";
 import { getCurrentTimestamp } from "../../../../../src/internal/hardhat-network/provider/utils/getCurrentTimestamp";
-import { EthereumProvider } from "../../../../../src/types";
 import { useEnvironment } from "../../../../helpers/environment";
 import { useFixtureProject } from "../../../../helpers/project";
+import { workaroundWindowsCiFailures } from "../../../../utils/workaround-windows-ci-failures";
 import {
   assertInvalidArgumentsError,
+  assertInvalidInputError,
   assertLatestBlockNumber,
   assertQuantity,
 } from "../../helpers/assertions";
-import { EXAMPLE_CONTRACT } from "../../helpers/contracts";
-import { quantityToNumber } from "../../helpers/conversions";
+import { EMPTY_ACCOUNT_ADDRESS } from "../../helpers/constants";
+import {
+  EXAMPLE_CONTRACT,
+  EXAMPLE_READ_CONTRACT,
+} from "../../helpers/contracts";
+import {
+  dataToNumber,
+  quantityToBN,
+  quantityToNumber,
+} from "../../helpers/conversions";
 import { setCWD } from "../../helpers/cwd";
 import {
   DEFAULT_ACCOUNTS_ADDRESSES,
   DEFAULT_BLOCK_GAS_LIMIT,
   PROVIDERS,
 } from "../../helpers/providers";
-
-async function deployContract(
-  provider: EthereumProvider,
-  deploymentCode: string
-) {
-  const hash = await provider.send("eth_sendTransaction", [
-    {
-      from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-      data: deploymentCode,
-      gas: numberToRpcQuantity(DEFAULT_BLOCK_GAS_LIMIT),
-    },
-  ]);
-
-  const { contractAddress } = await provider.send("eth_getTransactionReceipt", [
-    hash,
-  ]);
-
-  return contractAddress;
-}
+import { retrieveForkBlockNumber } from "../../helpers/retrieveForkBlockNumber";
+import { sleep } from "../../helpers/sleep";
+import { deployContract } from "../../helpers/transactions";
 
 describe("Evm module", function () {
   PROVIDERS.forEach(({ name, useProvider, isFork }) => {
@@ -50,9 +44,20 @@ describe("Evm module", function () {
       this.timeout(50000);
     }
 
+    workaroundWindowsCiFailures({ isFork });
+
     describe(`${name} provider`, function () {
       setCWD();
       useProvider();
+
+      const getFirstBlock = async () =>
+        isFork ? retrieveForkBlockNumber(this.ctx.hardhatNetworkProvider) : 0;
+
+      const getBlockNumber = async () => {
+        return quantityToNumber(
+          await this.ctx.provider.send("eth_blockNumber")
+        );
+      };
 
       describe("evm_increaseTime", async function () {
         it("should increase the offset of time used for block timestamps", async function () {
@@ -228,14 +233,14 @@ describe("Evm module", function () {
             .then(function () {
               assert.fail("should have failed setting next block timestamp");
             })
-            .catch(function (e) {});
+            .catch(function () {});
 
           this.provider
             .send("evm_setNextBlockTimestamp", [timestamp])
             .then(function () {
               assert.fail("should have failed setting next block timestamp");
             })
-            .catch(function (e) {});
+            .catch(function () {});
         });
 
         it("should advance the time offset accordingly to the timestamp", async function () {
@@ -289,13 +294,77 @@ describe("Evm module", function () {
         });
       });
 
+      describe("evm_setBlockGasLimit", () => {
+        it("validates block gas limit", async function () {
+          await assertInvalidInputError(
+            this.provider,
+            "evm_setBlockGasLimit",
+            [numberToRpcQuantity(0)],
+            "Block gas limit must be greater than 0"
+          );
+        });
+
+        it("sets a new block gas limit", async function () {
+          const blockBefore = await this.provider.send("eth_getBlockByNumber", [
+            "pending",
+            false,
+          ]);
+          const gasLimitBefore = quantityToBN(blockBefore.gasLimit);
+
+          const newBlockGasLimit = new BN(34228);
+          await this.provider.send("evm_setBlockGasLimit", [
+            numberToRpcQuantity(newBlockGasLimit),
+          ]);
+
+          const blockAfter = await this.provider.send("eth_getBlockByNumber", [
+            "pending",
+            false,
+          ]);
+          const gasLimitAfter = quantityToBN(blockAfter.gasLimit);
+
+          assert.isFalse(gasLimitBefore.eq(gasLimitAfter));
+          assert.isTrue(gasLimitAfter.eq(newBlockGasLimit));
+        });
+
+        it("removes transactions that exceed the new block gas limit from the mempool", async function () {
+          await this.provider.send("evm_setAutomine", [false]);
+
+          const tx1Hash = await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: bufferToHex(EMPTY_ACCOUNT_ADDRESS),
+              gas: numberToRpcQuantity(21_000),
+            },
+          ]);
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              to: bufferToHex(EMPTY_ACCOUNT_ADDRESS),
+              gas: numberToRpcQuantity(40_000),
+            },
+          ]);
+
+          await this.provider.send("evm_setBlockGasLimit", [
+            numberToRpcQuantity(21_000),
+          ]);
+
+          const pendingTransactions = await this.provider.send(
+            "eth_pendingTransactions"
+          );
+
+          assert.lengthOf(pendingTransactions, 1);
+          assert.equal(pendingTransactions[0].hash, tx1Hash);
+        });
+      });
+
       describe("evm_mine", async function () {
-        it("should mine an empty block", async function () {
+        it("should mine empty blocks", async function () {
+          const firstBlock = await getFirstBlock();
           await this.provider.send("evm_mine");
 
           const block: RpcBlockOutput = await this.provider.send(
             "eth_getBlockByNumber",
-            [numberToRpcQuantity(1), false]
+            [numberToRpcQuantity(firstBlock + 1), false]
           );
 
           assert.isEmpty(block.transactions);
@@ -304,7 +373,7 @@ describe("Evm module", function () {
 
           const block2: RpcBlockOutput = await this.provider.send(
             "eth_getBlockByNumber",
-            [numberToRpcQuantity(2), false]
+            [numberToRpcQuantity(firstBlock + 2), false]
           );
 
           assert.isEmpty(block2.transactions);
@@ -343,270 +412,808 @@ describe("Evm module", function () {
 
           assert.isTrue(quantityToNumber(block.timestamp) > timestamp);
         });
-      });
 
-      describe("Snapshot functionality", function () {
-        describe("evm_snapshot", async function () {
-          it("returns the snapshot id starting at 1", async function () {
-            const id1: string = await this.provider.send("evm_snapshot", []);
-            const id2: string = await this.provider.send("evm_snapshot", []);
-            const id3: string = await this.provider.send("evm_snapshot", []);
+        it("should mine transactions with original gasLimit values", async function () {
+          const contractAddress = await deployContract(
+            this.provider,
+            `0x${EXAMPLE_READ_CONTRACT.bytecode.object}`,
+            DEFAULT_ACCOUNTS_ADDRESSES[1]
+          );
 
-            assert.equal(id1, "0x1");
-            assert.equal(id2, "0x2");
-            assert.equal(id3, "0x3");
-          });
+          await this.provider.send("evm_setAutomine", [false]);
+          await this.provider.send("evm_setBlockGasLimit", [
+            numberToRpcQuantity(2 * DEFAULT_BLOCK_GAS_LIMIT),
+          ]);
 
-          it("Doesn't repeat snapshot ids after revert is called", async function () {
-            const id1: string = await this.provider.send("evm_snapshot", []);
-            const reverted: boolean = await this.provider.send("evm_revert", [
-              id1,
-            ]);
-            const id2: string = await this.provider.send("evm_snapshot", []);
+          const tx1Hash = await this.provider.send("eth_sendTransaction", [
+            {
+              nonce: numberToRpcQuantity(1),
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              to: contractAddress,
+              data: EXAMPLE_READ_CONTRACT.selectors.gasLeft,
+              gas: numberToRpcQuantity(DEFAULT_BLOCK_GAS_LIMIT),
+            },
+          ]);
 
-            assert.equal(id1, "0x1");
-            assert.isTrue(reverted);
-            assert.equal(id2, "0x2");
-          });
+          const tx2Hash = await this.provider.send("eth_sendTransaction", [
+            {
+              nonce: numberToRpcQuantity(2),
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              to: contractAddress,
+              data: EXAMPLE_READ_CONTRACT.selectors.gasLeft,
+              gas: numberToRpcQuantity(DEFAULT_BLOCK_GAS_LIMIT),
+            },
+          ]);
+
+          await this.provider.send("evm_mine");
+
+          const [logTx1, logTx2] = await this.provider.send("eth_getLogs", [
+            { address: contractAddress },
+          ]);
+
+          const gasUsedUntilGasLeftCall = 21_185; // value established empirically using Remix on Rinkeby network
+          const expectedGasLeft =
+            DEFAULT_BLOCK_GAS_LIMIT - gasUsedUntilGasLeftCall;
+
+          assert.equal(logTx1.transactionHash, tx1Hash);
+          assert.equal(logTx2.transactionHash, tx2Hash);
+          assert.equal(dataToNumber(logTx1.data), expectedGasLeft);
+          assert.equal(dataToNumber(logTx2.data), expectedGasLeft);
         });
 
-        describe("evm_revert", async function () {
-          let sinonClock: sinon.SinonFakeTimers | undefined;
+        describe("tests using sinon", () => {
+          let sinonClock: sinon.SinonFakeTimers;
 
-          afterEach(function () {
-            if (sinonClock !== undefined) {
-              sinonClock.restore();
-              sinonClock = undefined;
+          beforeEach(() => {
+            sinonClock = sinon.useFakeTimers({
+              now: Date.now(),
+              toFake: ["Date", "setTimeout", "clearTimeout"],
+            });
+          });
+
+          afterEach(async function () {
+            await this.provider.send("evm_setIntervalMining", [0]);
+            sinonClock.restore();
+          });
+
+          it("should handle race condition with interval mining", async function () {
+            const interval = 5000;
+            const initialBlock = await getBlockNumber();
+            await this.provider.send("evm_setIntervalMining", [interval]);
+
+            await sinonClock.tickAsync(interval);
+            await this.provider.send("evm_mine");
+
+            const currentBlock = await getBlockNumber();
+            assert.equal(currentBlock, initialBlock + 2);
+          });
+        });
+      });
+
+      describe("evm_setAutomine", () => {
+        it("should allow disabling automine", async function () {
+          await this.provider.send("evm_setAutomine", [false]);
+          const previousBlock = await this.provider.send("eth_blockNumber");
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: "0x1111111111111111111111111111111111111111",
+              value: numberToRpcQuantity(1),
+            },
+          ]);
+          const currentBlock = await this.provider.send("eth_blockNumber");
+
+          assert.equal(currentBlock, previousBlock);
+        });
+
+        it("should allow re-enabling of automine", async function () {
+          await this.provider.send("evm_setAutomine", [false]);
+          await this.provider.send("evm_setAutomine", [true]);
+          const previousBlock = await this.provider.send("eth_blockNumber");
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: "0x1111111111111111111111111111111111111111",
+              value: numberToRpcQuantity(1),
+            },
+          ]);
+          const currentBlock = await this.provider.send("eth_blockNumber");
+
+          assertQuantity(currentBlock, quantityToBN(previousBlock).addn(1));
+        });
+
+        it("should mine all pending transactions after re-enabling automine", async function () {
+          await this.provider.send("evm_setAutomine", [false]);
+
+          const txHash1 = await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              to: "0x1111111111111111111111111111111111111111",
+              gas: numberToRpcQuantity(100000),
+              gasPrice: numberToRpcQuantity(1),
+              nonce: numberToRpcQuantity(1),
+            },
+          ]);
+
+          await this.provider.send("evm_setAutomine", [true]);
+
+          const txHash2 = await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              to: "0x1111111111111111111111111111111111111111",
+              gas: numberToRpcQuantity(100000),
+              gasPrice: numberToRpcQuantity(1),
+              nonce: numberToRpcQuantity(0),
+            },
+          ]);
+
+          const currentBlock = await this.provider.send(
+            "eth_getBlockByNumber",
+            ["latest", false]
+          );
+
+          assert.lengthOf(currentBlock.transactions, 2);
+          assert.sameDeepMembers(currentBlock.transactions, [txHash1, txHash2]);
+        });
+      });
+
+      describe("evm_setIntervalMining", () => {
+        it("validates blockTime parameter", async function () {
+          await assertInvalidArgumentsError(
+            this.provider,
+            "evm_setIntervalMining",
+            [-10]
+          );
+
+          await assertInvalidArgumentsError(
+            this.provider,
+            "evm_setIntervalMining",
+            [[2000, 1000]]
+          );
+        });
+
+        describe("time based tests", () => {
+          beforeEach(async function () {
+            await this.provider.send("evm_setAutomine", [false]);
+
+            if (isFork) {
+              // This is done to speed up subsequent mineBlock calls made by MiningTimer.
+              // On first mineBlock call there are many calls to JSON RPC provider which slow things down.
+              await this.provider.send("evm_mine");
             }
           });
 
-          it("Returns false for non-existing ids", async function () {
-            const reverted1: boolean = await this.provider.send("evm_revert", [
-              "0x1",
-            ]);
-            const reverted2: boolean = await this.provider.send("evm_revert", [
-              "0x2",
-            ]);
-            const reverted3: boolean = await this.provider.send("evm_revert", [
-              "0x0",
-            ]);
+          describe("using sinon", () => {
+            let sinonClock: sinon.SinonFakeTimers;
 
-            assert.isFalse(reverted1);
-            assert.isFalse(reverted2);
-            assert.isFalse(reverted3);
+            beforeEach(() => {
+              sinonClock = sinon.useFakeTimers({
+                now: Date.now(),
+                toFake: ["Date", "setTimeout", "clearTimeout"],
+              });
+            });
+
+            afterEach(async function () {
+              await this.provider.send("evm_setIntervalMining", [0]);
+              sinonClock.restore();
+            });
+
+            it("should allow enabling interval mining", async function () {
+              const interval = 5000;
+              const initialBlock = await getBlockNumber();
+              await this.provider.send("evm_setIntervalMining", [interval]);
+
+              await sinonClock.tickAsync(interval);
+
+              const currentBlock = await getBlockNumber();
+              assert.equal(currentBlock, initialBlock + 1);
+            });
+
+            it("should continuously mine new blocks after each interval", async function () {
+              const interval = 5000;
+              const initialBlock = await getBlockNumber();
+              await this.provider.send("evm_setIntervalMining", [interval]);
+
+              await sinonClock.tickAsync(interval);
+              assert.equal(await getBlockNumber(), initialBlock + 1);
+
+              await sinonClock.tickAsync(interval);
+              assert.equal(await getBlockNumber(), initialBlock + 2);
+
+              await sinonClock.tickAsync(interval);
+              assert.equal(await getBlockNumber(), initialBlock + 3);
+            });
+
+            it("should mine blocks when a range is used", async function () {
+              const interval = [4000, 5000];
+              const initialBlock = await getBlockNumber();
+              await this.provider.send("evm_setIntervalMining", [interval]);
+
+              // no block should be mined before the min value of the range
+              await sinonClock.tickAsync(3999);
+              assert.equal(await getBlockNumber(), initialBlock);
+
+              // when the max value has passed, one block should'be been mined
+              await sinonClock.tickAsync(1001);
+              assert.equal(await getBlockNumber(), initialBlock + 1);
+
+              // after another 5 seconds, another block should be mined
+              await sinonClock.tickAsync(5000);
+              assert.equal(await getBlockNumber(), initialBlock + 2);
+            });
+
+            it("should disable interval mining when 0 is passed", async function () {
+              const interval = 5000;
+              const initialBlock = await getBlockNumber();
+              await this.provider.send("evm_setIntervalMining", [interval]);
+
+              await sinonClock.tickAsync(interval);
+              assert.equal(await getBlockNumber(), initialBlock + 1);
+
+              await sinonClock.tickAsync(interval);
+              assert.equal(await getBlockNumber(), initialBlock + 2);
+
+              await this.provider.send("evm_setIntervalMining", [0]);
+
+              await sinonClock.tickAsync(interval);
+              assert.equal(await getBlockNumber(), initialBlock + 2);
+              await sinonClock.tickAsync(interval);
+              assert.equal(await getBlockNumber(), initialBlock + 2);
+            });
+
+            const sendTx = async (nonce: number) =>
+              this.ctx.provider.send("eth_sendTransaction", [
+                {
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                  to: "0x1111111111111111111111111111111111111111",
+                  nonce: numberToRpcQuantity(nonce),
+                },
+              ]);
+
+            const assertBlockWasMined = async (
+              blockNumber: number,
+              txHashes: string[]
+            ) => {
+              const block = await this.ctx.provider.send(
+                "eth_getBlockByNumber",
+                ["latest", false]
+              );
+
+              assert.equal(quantityToNumber(block.number), blockNumber);
+              assert.deepEqual(block.transactions, txHashes);
+            };
+
+            it("automine and interval mining don't interfere with each other", async function () {
+              const interval = 5000;
+              const initialBlock = await getBlockNumber();
+
+              await this.provider.send("evm_setAutomine", [false]);
+              await this.provider.send("evm_setIntervalMining", [interval]);
+
+              await sinonClock.tickAsync(interval);
+              await assertBlockWasMined(initialBlock + 1, []);
+
+              const txHash1 = await sendTx(0);
+              await sinonClock.tickAsync(interval);
+              await assertBlockWasMined(initialBlock + 2, [txHash1]);
+
+              await this.provider.send("evm_setAutomine", [true]);
+
+              await sinonClock.tickAsync(interval / 2);
+              const txHash2 = await sendTx(1);
+              await assertBlockWasMined(initialBlock + 3, [txHash2]);
+
+              await sinonClock.tickAsync(interval / 2);
+              await assertBlockWasMined(initialBlock + 4, []);
+            });
           });
 
-          it("Returns false for already reverted ids", async function () {
-            const id1: string = await this.provider.send("evm_snapshot", []);
-            const reverted: boolean = await this.provider.send("evm_revert", [
-              id1,
-            ]);
-            const reverted2: boolean = await this.provider.send("evm_revert", [
-              id1,
-            ]);
+          describe("using sleep", () => {
+            afterEach(async function () {
+              await this.provider.send("evm_setIntervalMining", [0]);
+            });
 
-            assert.isTrue(reverted);
-            assert.isFalse(reverted2);
+            it("should allow disabling interval mining", async function () {
+              const interval = 1000;
+              const initialBlock = await getBlockNumber();
+              await this.provider.send("evm_setIntervalMining", [interval]);
+
+              await sleep(1.7 * interval);
+
+              const nextBlock = await getBlockNumber();
+
+              assert.equal(nextBlock, initialBlock + 1);
+
+              await this.provider.send("evm_setIntervalMining", [interval * 2]);
+
+              await sleep(interval);
+
+              const currentBlock = await getBlockNumber();
+
+              assert.equal(currentBlock, initialBlock + 1);
+            });
+
+            it("should mine block with transaction after the interval", async function () {
+              const interval = 1000;
+              const txHash = await this.provider.send("eth_sendTransaction", [
+                {
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                  to: "0x1111111111111111111111111111111111111111",
+                  nonce: numberToRpcQuantity(0),
+                },
+              ]);
+
+              await this.provider.send("evm_setIntervalMining", [interval]);
+
+              await sleep(1.7 * interval);
+
+              const currentBlock = await this.provider.send(
+                "eth_getBlockByNumber",
+                ["latest", false]
+              );
+
+              assert.lengthOf(currentBlock.transactions, 1);
+              assert.equal(currentBlock.transactions[0], txHash);
+
+              const txReceipt = await this.provider.send(
+                "eth_getTransactionReceipt",
+                [txHash]
+              );
+
+              assert.isNotNull(txReceipt);
+            });
           });
+        });
+      });
 
-          it("Deletes previous blocks", async function () {
-            const snapshotId: string = await this.provider.send(
-              "evm_snapshot",
-              []
-            );
-            const initialLatestBlock = await this.provider.send(
-              "eth_getBlockByNumber",
-              ["latest", false]
-            );
+      describe("evm_snapshot", async function () {
+        it("returns the snapshot id starting at 1", async function () {
+          const id1: string = await this.provider.send("evm_snapshot", []);
+          const id2: string = await this.provider.send("evm_snapshot", []);
+          const id3: string = await this.provider.send("evm_snapshot", []);
 
-            await this.provider.send("evm_mine");
-            await this.provider.send("evm_mine");
-            await this.provider.send("evm_mine");
-            await this.provider.send("evm_mine");
-            const latestBlockBeforeReverting = await this.provider.send(
-              "eth_getBlockByNumber",
-              ["latest", false]
-            );
+          assert.equal(id1, "0x1");
+          assert.equal(id2, "0x2");
+          assert.equal(id3, "0x3");
+        });
 
-            const reverted: boolean = await this.provider.send("evm_revert", [
-              snapshotId,
-            ]);
-            assert.isTrue(reverted);
+        it("Doesn't repeat snapshot ids after revert is called", async function () {
+          const id1: string = await this.provider.send("evm_snapshot", []);
+          const reverted: boolean = await this.provider.send("evm_revert", [
+            id1,
+          ]);
+          const id2: string = await this.provider.send("evm_snapshot", []);
 
-            const newLatestBlock = await this.provider.send(
-              "eth_getBlockByNumber",
-              ["latest", false]
-            );
-            assert.equal(newLatestBlock.hash, initialLatestBlock.hash);
+          assert.equal(id1, "0x1");
+          assert.isTrue(reverted);
+          assert.equal(id2, "0x2");
+        });
+      });
 
-            const blockByHash = await this.provider.send("eth_getBlockByHash", [
-              bufferToRpcData(latestBlockBeforeReverting.hash),
-              false,
-            ]);
-            assert.isNull(blockByHash);
+      describe("evm_revert", async function () {
+        it("Returns false for non-existing ids", async function () {
+          const reverted1: boolean = await this.provider.send("evm_revert", [
+            "0x1",
+          ]);
+          const reverted2: boolean = await this.provider.send("evm_revert", [
+            "0x2",
+          ]);
+          const reverted3: boolean = await this.provider.send("evm_revert", [
+            "0x0",
+          ]);
 
-            const blockByNumber = await this.provider.send(
-              "eth_getBlockByNumber",
-              [latestBlockBeforeReverting.number, false]
-            );
-            assert.isNull(blockByNumber);
-          });
+          assert.isFalse(reverted1);
+          assert.isFalse(reverted2);
+          assert.isFalse(reverted3);
+        });
 
-          it("Deletes previous transactions", async function () {
-            const [, from] = await this.provider.send("eth_accounts");
+        it("Returns false for already reverted ids", async function () {
+          const id1: string = await this.provider.send("evm_snapshot", []);
+          const reverted: boolean = await this.provider.send("evm_revert", [
+            id1,
+          ]);
+          const reverted2: boolean = await this.provider.send("evm_revert", [
+            id1,
+          ]);
 
-            const snapshotId: string = await this.provider.send(
-              "evm_snapshot",
-              []
-            );
+          assert.isTrue(reverted);
+          assert.isFalse(reverted2);
+        });
 
-            const txHash = await this.provider.send("eth_sendTransaction", [
-              {
-                from,
-                to: "0x1111111111111111111111111111111111111111",
-                value: numberToRpcQuantity(1),
-                gas: numberToRpcQuantity(100000),
-                gasPrice: numberToRpcQuantity(1),
-                nonce: numberToRpcQuantity(0),
-              },
-            ]);
+        it("Deletes blocks mined after snapshot", async function () {
+          const snapshotId: string = await this.provider.send(
+            "evm_snapshot",
+            []
+          );
+          const initialLatestBlock = await this.provider.send(
+            "eth_getBlockByNumber",
+            ["latest", false]
+          );
 
-            const reverted: boolean = await this.provider.send("evm_revert", [
-              snapshotId,
-            ]);
-            assert.isTrue(reverted);
+          await this.provider.send("evm_mine");
+          await this.provider.send("evm_mine");
+          await this.provider.send("evm_mine");
+          await this.provider.send("evm_mine");
+          const latestBlockBeforeReverting = await this.provider.send(
+            "eth_getBlockByNumber",
+            ["latest", false]
+          );
 
-            const txHashAfter = await this.provider.send(
-              "eth_getTransactionByHash",
-              [txHash]
-            );
-            assert.isNull(txHashAfter);
-          });
+          const reverted: boolean = await this.provider.send("evm_revert", [
+            snapshotId,
+          ]);
+          assert.isTrue(reverted);
 
-          it("Allows resending the same tx after a revert", async function () {
-            const [, from] = await this.provider.send("eth_accounts");
+          const newLatestBlock = await this.provider.send(
+            "eth_getBlockByNumber",
+            ["latest", false]
+          );
+          assert.equal(newLatestBlock.hash, initialLatestBlock.hash);
 
-            const snapshotId: string = await this.provider.send(
-              "evm_snapshot",
-              []
-            );
+          const blockByHash = await this.provider.send("eth_getBlockByHash", [
+            bufferToRpcData(latestBlockBeforeReverting.hash),
+            false,
+          ]);
+          assert.isNull(blockByHash);
 
-            const txParams = {
+          const blockByNumber = await this.provider.send(
+            "eth_getBlockByNumber",
+            [latestBlockBeforeReverting.number, false]
+          );
+          assert.isNull(blockByNumber);
+        });
+
+        it("Deletes transactions mined after snapshot", async function () {
+          const [, from] = await this.provider.send("eth_accounts");
+
+          const snapshotId: string = await this.provider.send(
+            "evm_snapshot",
+            []
+          );
+
+          const txHash = await this.provider.send("eth_sendTransaction", [
+            {
               from,
               to: "0x1111111111111111111111111111111111111111",
               value: numberToRpcQuantity(1),
               gas: numberToRpcQuantity(100000),
               gasPrice: numberToRpcQuantity(1),
               nonce: numberToRpcQuantity(0),
-            };
+            },
+          ]);
 
-            const txHash = await this.provider.send("eth_sendTransaction", [
-              txParams,
-            ]);
+          const reverted: boolean = await this.provider.send("evm_revert", [
+            snapshotId,
+          ]);
+          assert.isTrue(reverted);
 
-            const reverted: boolean = await this.provider.send("evm_revert", [
-              snapshotId,
-            ]);
-            assert.isTrue(reverted);
+          const txHashAfter = await this.provider.send(
+            "eth_getTransactionByHash",
+            [txHash]
+          );
+          assert.isNull(txHashAfter);
+        });
 
-            const txHash2 = await this.provider.send("eth_sendTransaction", [
-              txParams,
-            ]);
+        it("Deletes pending transactions added after snapshot", async function () {
+          await this.provider.send("evm_setAutomine", [false]);
 
-            assert.equal(txHash2, txHash);
+          const [, from] = await this.provider.send("eth_accounts");
+
+          const snapshotId: string = await this.provider.send("evm_snapshot");
+
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from,
+              to: "0x1111111111111111111111111111111111111111",
+              value: numberToRpcQuantity(0),
+              gas: numberToRpcQuantity(100000),
+              gasPrice: numberToRpcQuantity(1),
+              nonce: numberToRpcQuantity(0),
+            },
+          ]);
+
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from,
+              to: "0x1111111111111111111111111111111111111111",
+              value: numberToRpcQuantity(1),
+              gas: numberToRpcQuantity(100000),
+              gasPrice: numberToRpcQuantity(1),
+              nonce: numberToRpcQuantity(1),
+            },
+          ]);
+
+          const pendingTransactionsBefore = await this.provider.send(
+            "eth_pendingTransactions"
+          );
+          assert.lengthOf(pendingTransactionsBefore, 2);
+
+          const reverted: boolean = await this.provider.send("evm_revert", [
+            snapshotId,
+          ]);
+          assert.isTrue(reverted);
+
+          const pendingTransactionsAfter = await this.provider.send(
+            "eth_pendingTransactions"
+          );
+          assert.lengthOf(pendingTransactionsAfter, 0);
+        });
+
+        it("Re-adds the transactions that were mined after snapshot to the tx pool", async function () {
+          await this.provider.send("evm_setAutomine", [false]);
+
+          const [, from] = await this.provider.send("eth_accounts");
+
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from,
+              to: "0x1111111111111111111111111111111111111111",
+              value: numberToRpcQuantity(0),
+              gas: numberToRpcQuantity(100000),
+              gasPrice: numberToRpcQuantity(1),
+              nonce: numberToRpcQuantity(0),
+            },
+          ]);
+
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from,
+              to: "0x1111111111111111111111111111111111111111",
+              value: numberToRpcQuantity(1),
+              gas: numberToRpcQuantity(100000),
+              gasPrice: numberToRpcQuantity(1),
+              nonce: numberToRpcQuantity(1),
+            },
+          ]);
+
+          const snapshotId: string = await this.provider.send("evm_snapshot");
+
+          await this.provider.send("evm_mine");
+
+          const pendingTransactionsBefore = await this.provider.send(
+            "eth_pendingTransactions"
+          );
+          assert.lengthOf(pendingTransactionsBefore, 0);
+
+          const reverted: boolean = await this.provider.send("evm_revert", [
+            snapshotId,
+          ]);
+          assert.isTrue(reverted);
+
+          const pendingTransactionsAfter = await this.provider.send(
+            "eth_pendingTransactions"
+          );
+          assert.lengthOf(pendingTransactionsAfter, 2);
+        });
+
+        it("TxPool state reverts back correctly to the snapshot state", async function () {
+          await this.provider.send("evm_setAutomine", [false]);
+
+          const txHash1 = await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[2],
+              nonce: numberToRpcQuantity(0),
+              gas: numberToRpcQuantity(21_000),
+            },
+          ]);
+
+          const txHash2 = await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[2],
+              nonce: numberToRpcQuantity(3),
+              gas: numberToRpcQuantity(21_000),
+            },
+          ]);
+
+          const snapshotId: string = await this.provider.send("evm_snapshot");
+
+          const txHash3 = await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[2],
+              nonce: numberToRpcQuantity(1),
+              gas: numberToRpcQuantity(21_000),
+            },
+          ]);
+
+          await this.provider.send("evm_mine");
+
+          const currentBlock = await this.provider.send(
+            "eth_getBlockByNumber",
+            ["latest", false]
+          );
+
+          assert.lengthOf(currentBlock.transactions, 2);
+          assert.sameDeepMembers(currentBlock.transactions, [txHash1, txHash3]);
+
+          const reverted: boolean = await this.provider.send("evm_revert", [
+            snapshotId,
+          ]);
+          assert.isTrue(reverted);
+
+          const pendingTransactions: RpcTransactionOutput[] = await this.provider.send(
+            "eth_pendingTransactions"
+          );
+          assert.sameDeepMembers(
+            pendingTransactions.map((tx) => tx.hash),
+            [txHash1, txHash2]
+          );
+        });
+
+        it("Allows resending the same tx after a revert", async function () {
+          const [, from] = await this.provider.send("eth_accounts");
+
+          const snapshotId: string = await this.provider.send(
+            "evm_snapshot",
+            []
+          );
+
+          const txParams = {
+            from,
+            to: "0x1111111111111111111111111111111111111111",
+            value: numberToRpcQuantity(1),
+            gas: numberToRpcQuantity(100000),
+            gasPrice: numberToRpcQuantity(1),
+            nonce: numberToRpcQuantity(0),
+          };
+
+          const txHash = await this.provider.send("eth_sendTransaction", [
+            txParams,
+          ]);
+
+          const reverted: boolean = await this.provider.send("evm_revert", [
+            snapshotId,
+          ]);
+          assert.isTrue(reverted);
+
+          const txHash2 = await this.provider.send("eth_sendTransaction", [
+            txParams,
+          ]);
+
+          assert.equal(txHash2, txHash);
+        });
+
+        it("Deletes the used snapshot and the following ones", async function () {
+          const snapshotId1: string = await this.provider.send(
+            "evm_snapshot",
+            []
+          );
+          const snapshotId2: string = await this.provider.send(
+            "evm_snapshot",
+            []
+          );
+          const snapshotId3: string = await this.provider.send(
+            "evm_snapshot",
+            []
+          );
+
+          const revertedTo2: boolean = await this.provider.send("evm_revert", [
+            snapshotId2,
+          ]);
+          assert.isTrue(revertedTo2);
+
+          const revertedTo3: boolean = await this.provider.send("evm_revert", [
+            snapshotId3,
+          ]);
+          // snapshot 3 didn't exist anymore
+          assert.isFalse(revertedTo3);
+
+          const revertedTo1: boolean = await this.provider.send("evm_revert", [
+            snapshotId1,
+          ]);
+          // snapshot 1 still existed
+          assert.isTrue(revertedTo1);
+        });
+
+        it("Resets the blockchain so that new blocks are added with the right numbers", async function () {
+          const blockNumber = quantityToNumber(
+            await this.provider.send("eth_blockNumber")
+          );
+
+          await this.provider.send("evm_mine");
+          await this.provider.send("evm_mine");
+
+          await assertLatestBlockNumber(this.provider, blockNumber + 2);
+
+          const snapshotId1: string = await this.provider.send(
+            "evm_snapshot",
+            []
+          );
+
+          await this.provider.send("evm_mine");
+
+          await assertLatestBlockNumber(this.provider, blockNumber + 3);
+
+          const revertedTo1: boolean = await this.provider.send("evm_revert", [
+            snapshotId1,
+          ]);
+          assert.isTrue(revertedTo1);
+
+          await assertLatestBlockNumber(this.provider, blockNumber + 2);
+
+          await this.provider.send("evm_mine");
+
+          await assertLatestBlockNumber(this.provider, blockNumber + 3);
+
+          await this.provider.send("evm_mine");
+
+          const snapshotId2: string = await this.provider.send(
+            "evm_snapshot",
+            []
+          );
+
+          await this.provider.send("evm_mine");
+
+          await this.provider.send("evm_mine");
+
+          await assertLatestBlockNumber(this.provider, blockNumber + 6);
+
+          const revertedTo2: boolean = await this.provider.send("evm_revert", [
+            snapshotId2,
+          ]);
+          assert.isTrue(revertedTo2);
+
+          await assertLatestBlockNumber(this.provider, blockNumber + 4);
+        });
+
+        it("Restores the previous state", async function () {
+          // This is a very coarse test, as we know that the entire state is
+          // managed by the vm, and is restored as a whole
+          const [, from] = await this.provider.send("eth_accounts");
+
+          const balanceBeforeTx = await this.provider.send("eth_getBalance", [
+            from,
+          ]);
+
+          const snapshotId: string = await this.provider.send(
+            "evm_snapshot",
+            []
+          );
+
+          const txParams = {
+            from,
+            to: "0x1111111111111111111111111111111111111111",
+            value: numberToRpcQuantity(1),
+            gas: numberToRpcQuantity(100000),
+            gasPrice: numberToRpcQuantity(1),
+            nonce: numberToRpcQuantity(0),
+          };
+
+          await this.provider.send("eth_sendTransaction", [txParams]);
+
+          const balanceAfterTx = await this.provider.send("eth_getBalance", [
+            from,
+          ]);
+
+          assert.notEqual(balanceAfterTx, balanceBeforeTx);
+
+          const reverted: boolean = await this.provider.send("evm_revert", [
+            snapshotId,
+          ]);
+          assert.isTrue(reverted);
+
+          const balanceAfterRevert = await this.provider.send(
+            "eth_getBalance",
+            [from]
+          );
+
+          assert.equal(balanceAfterRevert, balanceBeforeTx);
+        });
+
+        describe("tests using sinon", () => {
+          let sinonClock: sinon.SinonFakeTimers;
+
+          beforeEach(() => {
+            sinonClock = sinon.useFakeTimers({
+              now: Date.now(),
+              toFake: ["Date", "setTimeout", "clearTimeout"],
+            });
           });
 
-          it("Deletes the used snapshot and the following ones", async function () {
-            const snapshotId1: string = await this.provider.send(
-              "evm_snapshot",
-              []
-            );
-            const snapshotId2: string = await this.provider.send(
-              "evm_snapshot",
-              []
-            );
-            const snapshotId3: string = await this.provider.send(
-              "evm_snapshot",
-              []
-            );
-
-            const revertedTo2: boolean = await this.provider.send(
-              "evm_revert",
-              [snapshotId2]
-            );
-            assert.isTrue(revertedTo2);
-
-            const revertedTo3: boolean = await this.provider.send(
-              "evm_revert",
-              [snapshotId3]
-            );
-            // snapshot 3 didn't exist anymore
-            assert.isFalse(revertedTo3);
-
-            const revertedTo1: boolean = await this.provider.send(
-              "evm_revert",
-              [snapshotId1]
-            );
-            // snapshot 1 still existed
-            assert.isTrue(revertedTo1);
-          });
-
-          it("Resets the blockchain so that new blocks are added with the right numbers", async function () {
-            const blockNumber = quantityToNumber(
-              await this.provider.send("eth_blockNumber")
-            );
-
-            await this.provider.send("evm_mine");
-            await this.provider.send("evm_mine");
-
-            await assertLatestBlockNumber(this.provider, blockNumber + 2);
-
-            const snapshotId1: string = await this.provider.send(
-              "evm_snapshot",
-              []
-            );
-
-            await this.provider.send("evm_mine");
-
-            await assertLatestBlockNumber(this.provider, blockNumber + 3);
-
-            const revertedTo1: boolean = await this.provider.send(
-              "evm_revert",
-              [snapshotId1]
-            );
-            assert.isTrue(revertedTo1);
-
-            await assertLatestBlockNumber(this.provider, blockNumber + 2);
-
-            await this.provider.send("evm_mine");
-
-            await assertLatestBlockNumber(this.provider, blockNumber + 3);
-
-            await this.provider.send("evm_mine");
-
-            const snapshotId2: string = await this.provider.send(
-              "evm_snapshot",
-              []
-            );
-
-            await this.provider.send("evm_mine");
-
-            const snapshotId3: string = await this.provider.send(
-              "evm_snapshot",
-              []
-            );
-
-            await this.provider.send("evm_mine");
-
-            await assertLatestBlockNumber(this.provider, blockNumber + 6);
-
-            const revertedTo2: boolean = await this.provider.send(
-              "evm_revert",
-              [snapshotId2]
-            );
-            assert.isTrue(revertedTo2);
-
-            await assertLatestBlockNumber(this.provider, blockNumber + 4);
+          afterEach(async function () {
+            sinonClock.restore();
           });
 
           it("Resets the date to the right time", async function () {
@@ -618,15 +1225,9 @@ describe("Evm module", function () {
               ]);
             };
 
-            sinonClock = sinon.useFakeTimers({
-              now: Date.now(),
-              toFake: ["Date"],
-            });
-
             const firstBlock = await mineEmptyBlock();
             await this.provider.send("evm_increaseTime", [100]);
             const snapshotBlock = await mineEmptyBlock();
-
             const snapshotId = await this.provider.send("evm_snapshot");
 
             assert.equal(
@@ -647,48 +1248,24 @@ describe("Evm module", function () {
             );
           });
 
-          it("Restores the previous state", async function () {
-            // This is a very coarse test, as we know that the entire state is
-            // managed by the vm, and is restored as a whole
-            const [, from] = await this.provider.send("eth_accounts");
+          describe("when interval mining is enabled", () => {
+            afterEach(async function () {
+              await this.provider.send("evm_setIntervalMining", [0]);
+            });
 
-            const balanceBeforeTx = await this.provider.send("eth_getBalance", [
-              from,
-            ]);
+            it("should handle race condition", async function () {
+              const interval = 5000;
+              const initialBlock = await getBlockNumber();
+              const snapshotId = await this.provider.send("evm_snapshot");
 
-            const snapshotId: string = await this.provider.send(
-              "evm_snapshot",
-              []
-            );
+              await this.provider.send("evm_setIntervalMining", [interval]);
 
-            const txParams = {
-              from,
-              to: "0x1111111111111111111111111111111111111111",
-              value: numberToRpcQuantity(1),
-              gas: numberToRpcQuantity(100000),
-              gasPrice: numberToRpcQuantity(1),
-              nonce: numberToRpcQuantity(0),
-            };
+              await sinonClock.tickAsync(interval);
+              await this.provider.send("evm_revert", [snapshotId]);
 
-            await this.provider.send("eth_sendTransaction", [txParams]);
-
-            const balanceAfterTx = await this.provider.send("eth_getBalance", [
-              from,
-            ]);
-
-            assert.notEqual(balanceAfterTx, balanceBeforeTx);
-
-            const reverted: boolean = await this.provider.send("evm_revert", [
-              snapshotId,
-            ]);
-            assert.isTrue(reverted);
-
-            const balanceAfterRevert = await this.provider.send(
-              "eth_getBalance",
-              [from]
-            );
-
-            assert.equal(balanceAfterRevert, balanceBeforeTx);
+              const currentBlock = await getBlockNumber();
+              assert.equal(currentBlock, initialBlock);
+            });
           });
         });
       });

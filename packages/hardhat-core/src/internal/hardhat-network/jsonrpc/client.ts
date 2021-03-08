@@ -37,14 +37,14 @@ export class JsonRpcClient {
 
   public async getStorageAt(
     address: Buffer,
-    position: Buffer,
+    position: BN,
     blockNumber: BN
   ): Promise<Buffer> {
     return this._perform(
       "eth_getStorageAt",
       [
         bufferToHex(address),
-        bufferToHex(position),
+        numberToRpcQuantity(position),
         numberToRpcQuantity(blockNumber),
       ],
       rpcData,
