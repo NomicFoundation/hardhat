@@ -39,14 +39,14 @@ export class HardhatModule {
     params: any[] = []
   ): Promise<any> {
     switch (method) {
-      case "hardhat_getStackTraceFailuresCount":
-        return this._getStackTraceFailuresCountAction(
-          ...this._getStackTraceFailuresCountParams(params)
-        );
-
       case "hardhat_addCompilationResult":
         return this._addCompilationResultAction(
           ...this._addCompilationResultParams(params)
+        );
+
+      case "hardhat_getStackTraceFailuresCount":
+        return this._getStackTraceFailuresCountAction(
+          ...this._getStackTraceFailuresCountParams(params)
         );
 
       case "hardhat_impersonateAccount":
@@ -55,17 +55,17 @@ export class HardhatModule {
       case "hardhat_intervalMine":
         return this._intervalMineAction(...this._intervalMineParams(params));
 
-      case "hardhat_stopImpersonatingAccount":
-        return this._stopImpersonatingAction(
-          ...this._stopImpersonatingParams(params)
-        );
-
       case "hardhat_reset":
         return this._resetAction(...this._resetParams(params));
 
       case "hardhat_setLoggingEnabled":
         return this._setLoggingEnabledAction(
           ...this._setLoggingEnabledParams(params)
+        );
+
+      case "hardhat_stopImpersonatingAccount":
+        return this._stopImpersonatingAction(
+          ...this._stopImpersonatingParams(params)
         );
     }
 
