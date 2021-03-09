@@ -267,9 +267,9 @@ export class TxPool {
         ) {
           newPending = this._removeTx(newPending, address, deserializedTx);
 
-          // if we are dropping a pending transaction, then we move
-          // all the following txs to the queued
-          if (txNonce.gt(senderNonce)) {
+          // if we are dropping a pending transaction with a valid nonce,
+          // then we move all the following txs to the queued list
+          if (txNonce.gte(senderNonce)) {
             moveToQueued = true;
           }
         }

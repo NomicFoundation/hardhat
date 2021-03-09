@@ -355,6 +355,76 @@ describe("Evm module", function () {
           assert.lengthOf(pendingTransactions, 1);
           assert.equal(pendingTransactions[0].hash, tx1Hash);
         });
+
+        it("pending block works after removing a pending tx (first tx is dropped)", async function () {
+          await this.provider.send("evm_setAutomine", [false]);
+
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              to: bufferToHex(EMPTY_ACCOUNT_ADDRESS),
+              gas: numberToRpcQuantity(21_000),
+              gasPrice: numberToRpcQuantity(7),
+              nonce: numberToRpcQuantity(0),
+            },
+          ]);
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              to: bufferToHex(EMPTY_ACCOUNT_ADDRESS),
+              gas: numberToRpcQuantity(21_000),
+              gasPrice: numberToRpcQuantity(12),
+              nonce: numberToRpcQuantity(1),
+            },
+          ]);
+
+          // this removes the first transaction
+          await this.provider.send("evm_setMinGasPrice", [
+            numberToRpcQuantity(10),
+          ]);
+
+          const pendingBlock = await this.provider.send(
+            "eth_getBlockByNumber",
+            ["pending", false]
+          );
+
+          assert.lengthOf(pendingBlock.transactions, 0);
+        });
+
+        it("pending block works after removing a pending tx (second tx is dropped)", async function () {
+          await this.provider.send("evm_setAutomine", [false]);
+
+          const tx1Hash = await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              to: bufferToHex(EMPTY_ACCOUNT_ADDRESS),
+              gas: numberToRpcQuantity(21_000),
+              gasPrice: numberToRpcQuantity(12),
+              nonce: numberToRpcQuantity(0),
+            },
+          ]);
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              to: bufferToHex(EMPTY_ACCOUNT_ADDRESS),
+              gas: numberToRpcQuantity(21_000),
+              gasPrice: numberToRpcQuantity(7),
+              nonce: numberToRpcQuantity(1),
+            },
+          ]);
+
+          // this removes the first transaction
+          await this.provider.send("evm_setMinGasPrice", [
+            numberToRpcQuantity(10),
+          ]);
+
+          const pendingBlock = await this.provider.send(
+            "eth_getBlockByNumber",
+            ["pending", false]
+          );
+
+          assert.deepEqual(pendingBlock.transactions, [tx1Hash]);
+        });
       });
 
       describe("evm_setMinGasPrice", () => {
