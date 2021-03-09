@@ -1,3 +1,4 @@
+import { BN } from "ethereumjs-util";
 import * as fs from "fs";
 import cloneDeep from "lodash/cloneDeep";
 import path from "path";
@@ -154,12 +155,18 @@ function resolveHardhatNetworkConfig(
 
   const mining = resolveMiningConfig(hardhatNetworkConfig.mining);
 
+  const minGasPrice = new BN(
+    hardhatNetworkConfig.minGasPrice ??
+      clonedDefaultHardhatNetworkParams.minGasPrice
+  );
+
   const config = {
     ...clonedDefaultHardhatNetworkParams,
     ...hardhatNetworkConfig,
     accounts,
     forking,
     mining,
+    minGasPrice,
   };
 
   // We do it this way because ts gets lost otherwise

@@ -116,6 +116,7 @@ export class HardhatNode extends EventEmitter {
       automine,
       genesisAccounts,
       blockGasLimit,
+      minGasPrice,
       allowUnlimitedContractSize,
       tracingConfig,
     } = config;
@@ -168,7 +169,7 @@ export class HardhatNode extends EventEmitter {
     const txPool = new TxPool(
       asPStateManager(stateManager),
       new BN(blockGasLimit),
-      new BN(0),
+      new BN(minGasPrice),
       common
     );
 

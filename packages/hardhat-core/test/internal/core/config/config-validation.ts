@@ -382,6 +382,18 @@ describe("Config validation", function () {
               validateConfig({
                 networks: {
                   [HARDHAT_NETWORK_NAME]: {
+                    minGasPrice: [],
+                  },
+                },
+              }),
+            ERRORS.GENERAL.INVALID_CONFIG
+          );
+
+          expectHardhatError(
+            () =>
+              validateConfig({
+                networks: {
+                  [HARDHAT_NETWORK_NAME]: {
                     accounts: 123,
                   },
                 },

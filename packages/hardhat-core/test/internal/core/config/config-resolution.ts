@@ -1,4 +1,5 @@
 import { assert } from "chai";
+import { BN } from "ethereumjs-util";
 import cloneDeep from "lodash/cloneDeep";
 import * as path from "path";
 
@@ -37,8 +38,8 @@ describe("Config resolution", () => {
         assert.isUndefined(config.solidity.compilers[0]?.settings?.evmVersion);
         assert.equal(config.defaultNetwork, "hardhat");
 
-        const hardhatNetworkConfig: HardhatNetworkUserConfig = config.networks
-          .hardhat as HardhatNetworkUserConfig;
+        const hardhatNetworkConfig: HardhatNetworkConfig = config.networks
+          .hardhat as HardhatNetworkConfig;
 
         assert.equal(hardhatNetworkConfig.throwOnTransactionFailures, true);
         assert.equal(hardhatNetworkConfig.throwOnCallFailures, true);
@@ -499,8 +500,40 @@ describe("Config resolution", () => {
         });
       });
 
+      describe("minGasPrice", function () {
+        it("should default to 0", function () {
+          const config = resolveConfig(__filename, {});
+
+          assert.equal(config.networks.hardhat.minGasPrice.toString(), new BN(0).toString());
+        });
+
+        it("should accept numbers", function () {
+          const config = resolveConfig(__filename, {
+            networks: {
+              hardhat: {
+                minGasPrice: 10
+              },
+            },
+          });
+
+          assert.equal(config.networks.hardhat.minGasPrice.toString(), new BN(10).toString());
+        });
+
+        it("should accept strings", function () {
+          const config = resolveConfig(__filename, {
+            networks: {
+              hardhat: {
+                minGasPrice: "100000000000"
+              },
+            },
+          });
+
+          assert.equal(config.networks.hardhat.minGasPrice.toString(), new BN(10).pow(new BN(11)).toString());
+        });
+      });
+
       it("Should let you configure everything", function () {
-        const networkConfig: HardhatNetworkConfig = {
+        const networkConfig: HardhatNetworkUserConfig = {
           accounts: [{ privateKey: "0x00000", balance: "123" }],
           chainId: 123,
           from: "from",
@@ -512,6 +545,7 @@ describe("Config resolution", () => {
           loggingEnabled: true,
           allowUnlimitedContractSize: true,
           blockGasLimit: 567,
+          minGasPrice: 10,
           mining: {
             auto: false,
             interval: 0,
@@ -524,7 +558,10 @@ describe("Config resolution", () => {
           networks: { hardhat: networkConfig },
         });
 
-        assert.deepEqual(config.networks.hardhat, networkConfig);
+        assert.deepEqual(config.networks.hardhat, {
+          ...networkConfig,
+          minGasPrice: new BN(10),
+        });
       });
     });
 

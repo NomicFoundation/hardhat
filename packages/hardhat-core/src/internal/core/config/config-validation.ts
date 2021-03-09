@@ -138,6 +138,7 @@ const HardhatNetworkConfig = t.type({
     t.union([t.array(HardhatNetworkAccount), HardhatNetworkHDAccountsConfig])
   ),
   blockGasLimit: optional(t.number),
+  minGasPrice: optional(t.union([t.number, t.string])),
   throwOnTransactionFailures: optional(t.boolean),
   throwOnCallFailures: optional(t.boolean),
   allowUnlimitedContractSize: optional(t.boolean),

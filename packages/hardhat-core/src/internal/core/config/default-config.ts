@@ -1,3 +1,5 @@
+import { BN } from "ethereumjs-util";
+
 import { HardhatNetworkConfig } from "../../../types";
 import { HARDHAT_NETWORK_NAME } from "../../constants";
 
@@ -30,6 +32,7 @@ export const DEFAULT_GAS_MULTIPLIER = 1;
 export const defaultHardhatNetworkParams: HardhatNetworkConfig = {
   hardfork: "muirGlacier",
   blockGasLimit: 9500000,
+  minGasPrice: new BN(0),
   gas: 9500000,
   gasPrice: HARDHAT_NETWORK_DEFAULT_GAS_PRICE,
   chainId: 31337,

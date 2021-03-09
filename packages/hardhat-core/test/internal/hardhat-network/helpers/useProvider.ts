@@ -1,3 +1,5 @@
+import { BN } from "ethereumjs-util";
+
 import { BackwardsCompatibilityProviderAdapter } from "../../../../src/internal/core/providers/backwards-compatibility";
 import { JsonRpcServer } from "../../../../src/internal/hardhat-network/jsonrpc/server";
 import { ForkConfig } from "../../../../src/internal/hardhat-network/provider/node-types";
@@ -47,6 +49,7 @@ export function useProvider(
       chainId,
       networkId,
       blockGasLimit,
+      new BN(0), // minGasPrice
       true,
       true,
       mining.auto,
