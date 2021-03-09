@@ -87,7 +87,7 @@ export class TxPool {
 
   public async addTransaction(tx: Transaction) {
     const senderAddress = this._getSenderAddress(tx);
-    const senderNonce = await this.getExecutableNonce(senderAddress);
+    const senderNonce = await this.getNextNonce(senderAddress);
 
     await this._validateTransaction(tx, senderAddress, senderNonce);
 
@@ -196,7 +196,11 @@ export class TxPool {
     return new Map(deserializedImmutableMap.entries());
   }
 
-  public async getExecutableNonce(accountAddress: Buffer): Promise<BN> {
+  /**
+   * Returns the next available nonce for an address, taking into account
+   * its pending transactions.
+   */
+  public async getNextNonce(accountAddress: Buffer): Promise<BN> {
     const pendingTxs = this._getPendingForAddress(bufferToHex(accountAddress));
     const lastPendingTx = pendingTxs?.last(undefined);
 
@@ -234,8 +238,7 @@ export class TxPool {
   }
 
   /**
-   * Updates the pending and queued list of all addresses, along with their
-   * executable nonces.
+   * Updates the pending and queued list of all addresses
    */
   public async updatePendingAndQueued() {
     let newPending = this._getPending();

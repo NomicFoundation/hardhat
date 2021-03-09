@@ -403,8 +403,8 @@ export class HardhatNode extends EventEmitter {
     return new BN(account.nonce);
   }
 
-  public async getAccountExecutableNonce(address: Buffer): Promise<BN> {
-    return this._txPool.getExecutableNonce(address);
+  public async getAccountNextNonce(address: Buffer): Promise<BN> {
+    return this._txPool.getNextNonce(address);
   }
 
   public async getCodeFromTrace(
@@ -979,7 +979,7 @@ export class HardhatNode extends EventEmitter {
       throw new InvalidInputError(e.message);
     }
 
-    const senderNonce = await this._txPool.getExecutableNonce(sender);
+    const senderNonce = await this._txPool.getNextNonce(sender);
     const txNonce = new BN(tx.nonce);
 
     const expectedNonceMsg = `Expected nonce to be ${senderNonce} but got ${txNonce}.`;

@@ -635,7 +635,7 @@ describe("Tx Pool", () => {
     });
   });
 
-  describe("getExecutableNonce", () => {
+  describe("getNextNonce", () => {
     const address = randomAddressBuffer();
 
     beforeEach(async () => {
@@ -650,7 +650,7 @@ describe("Tx Pool", () => {
 
       await txPool.addTransaction(tx1);
 
-      assert.isTrue((await txPool.getExecutableNonce(address)).eq(new BN(1)));
+      assert.isTrue((await txPool.getNextNonce(address)).eq(new BN(1)));
     });
 
     it("is not affected by queued transactions", async () => {
@@ -666,7 +666,7 @@ describe("Tx Pool", () => {
       await txPool.addTransaction(tx1);
       await txPool.addTransaction(tx2);
 
-      assert.isTrue((await txPool.getExecutableNonce(address)).eq(new BN(1)));
+      assert.isTrue((await txPool.getNextNonce(address)).eq(new BN(1)));
     });
 
     it("returns correct nonce after all queued transactions are moved to pending", async () => {
@@ -687,7 +687,7 @@ describe("Tx Pool", () => {
       await txPool.addTransaction(tx2);
       await txPool.addTransaction(tx3);
 
-      assert.isTrue((await txPool.getExecutableNonce(address)).eq(new BN(3)));
+      assert.isTrue((await txPool.getNextNonce(address)).eq(new BN(3)));
     });
 
     it("returns correct nonce after some queued transactions are moved to pending", async () => {
@@ -701,7 +701,7 @@ describe("Tx Pool", () => {
       await txPool.addTransaction(tx3);
       await txPool.addTransaction(tx4);
 
-      assert.isTrue((await txPool.getExecutableNonce(address)).eq(new BN(3)));
+      assert.isTrue((await txPool.getNextNonce(address)).eq(new BN(3)));
     });
   });
 
