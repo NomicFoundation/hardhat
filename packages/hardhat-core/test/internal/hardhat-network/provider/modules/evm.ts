@@ -357,6 +357,40 @@ describe("Evm module", function () {
         });
       });
 
+      describe("evm_setMinGasPrice", () => {
+        it("removes transactions that have a low gas price from the mempool", async function () {
+          await this.provider.send("evm_setAutomine", [false]);
+
+          const tx1Hash = await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: bufferToHex(EMPTY_ACCOUNT_ADDRESS),
+              gas: numberToRpcQuantity(21_000),
+              gasPrice: numberToRpcQuantity(12),
+            },
+          ]);
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              to: bufferToHex(EMPTY_ACCOUNT_ADDRESS),
+              gas: numberToRpcQuantity(21_000),
+              gasPrice: numberToRpcQuantity(7),
+            },
+          ]);
+
+          await this.provider.send("evm_setMinGasPrice", [
+            numberToRpcQuantity(10),
+          ]);
+
+          const pendingTransactions = await this.provider.send(
+            "eth_pendingTransactions"
+          );
+
+          assert.lengthOf(pendingTransactions, 1);
+          assert.equal(pendingTransactions[0].hash, tx1Hash);
+        });
+      });
+
       describe("evm_mine", async function () {
         it("should mine empty blocks", async function () {
           const firstBlock = await getFirstBlock();

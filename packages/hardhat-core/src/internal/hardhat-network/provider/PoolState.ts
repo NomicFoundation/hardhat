@@ -39,6 +39,7 @@ export interface PoolState {
   queuedTransactions: AddressToTransactions; // address => list of serialized queued Transactions
   hashToTransaction: HashToTransaction;
   blockGasLimit: string;
+  minGasPrice: string;
 }
 
 export const makePoolState = ImmutableRecord<PoolState>({
@@ -46,6 +47,7 @@ export const makePoolState = ImmutableRecord<PoolState>({
   queuedTransactions: ImmutableMap(),
   hashToTransaction: ImmutableMap(),
   blockGasLimit: bnToHex(new BN(9500000)),
+  minGasPrice: bnToHex(new BN(0)),
 });
 
 export function retrieveNonce(tx: SerializedTransaction) {

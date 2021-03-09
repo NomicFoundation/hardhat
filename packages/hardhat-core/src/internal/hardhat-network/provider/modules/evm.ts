@@ -61,6 +61,11 @@ export class EvmModule {
         return this._setBlockGasLimitAction(
           ...this._setBlockGasLimitParams(params)
         );
+
+      case "evm_setMinGasPrice":
+        return this._setMinGasPriceAction(
+          ...this._setMinGasPriceParams(params)
+        );
     }
 
     throw new MethodNotFoundError(`Method ${method} not found`);
@@ -191,6 +196,21 @@ export class EvmModule {
     }
 
     await this._node.setBlockGasLimit(blockGasLimit);
+    return true;
+  }
+
+  // evm_setMinGasPrice
+
+  private _setMinGasPriceParams(params: any[]): [BN] {
+    return validateParams(params, rpcQuantity);
+  }
+
+  private async _setMinGasPriceAction(minGasPrice: BN): Promise<true> {
+    if (minGasPrice.lt(new BN(0))) {
+      throw new InvalidInputError("Minimum gas price cannot be negative");
+    }
+
+    await this._node.setMinGasPrice(minGasPrice);
     return true;
   }
 

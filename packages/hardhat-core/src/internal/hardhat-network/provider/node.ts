@@ -168,6 +168,7 @@ export class HardhatNode extends EventEmitter {
     const txPool = new TxPool(
       asPStateManager(stateManager),
       new BN(blockGasLimit),
+      new BN(0),
       common
     );
 
@@ -868,6 +869,11 @@ export class HardhatNode extends EventEmitter {
 
   public async setBlockGasLimit(gasLimit: BN | number) {
     this._txPool.setBlockGasLimit(gasLimit);
+    await this._txPool.updatePendingAndQueued();
+  }
+
+  public async setMinGasPrice(minGasPrice: BN) {
+    this._txPool.setMinGasPrice(minGasPrice);
     await this._txPool.updatePendingAndQueued();
   }
 

@@ -75,10 +75,12 @@ export class TxPool {
   constructor(
     private readonly _stateManager: PStateManager,
     blockGasLimit: BN,
+    minGasPrice: BN,
     common: Common
   ) {
     this._state = makePoolState({
       blockGasLimit: bnToHex(blockGasLimit),
+      minGasPrice: bnToHex(minGasPrice),
     });
     this._deserializeTransaction = (tx) => deserializeTransaction(tx, common);
   }
@@ -219,6 +221,18 @@ export class TxPool {
     this._setBlockGasLimit(newLimit);
   }
 
+  public getMinGasPrice(): BN {
+    return new BN(toBuffer(this._state.get("minGasPrice")));
+  }
+
+  public setMinGasPrice(newMin: BN | number) {
+    if (typeof newMin === "number") {
+      newMin = new BN(newMin);
+    }
+
+    this._setMinGasPrice(newMin);
+  }
+
   /**
    * Updates the pending and queued list of all addresses, along with their
    * executable nonces.
@@ -247,12 +261,9 @@ export class TxPool {
         }
 
         const txNonce = new BN(deserializedTx.data.nonce);
-        const txGasLimit = new BN(deserializedTx.data.gasLimit);
 
         if (
-          txGasLimit.gt(this.getBlockGasLimit()) ||
-          txNonce.lt(senderNonce) ||
-          deserializedTx.data.getUpfrontCost().gt(senderBalance)
+          !this._isTxValid(deserializedTx, txNonce, senderNonce, senderBalance)
         ) {
           newPending = this._removeTx(newPending, address, deserializedTx);
 
@@ -278,12 +289,9 @@ export class TxPool {
       for (const tx of txs) {
         const deserializedTx = this._deserializeTransaction(tx);
         const txNonce = new BN(deserializedTx.data.nonce);
-        const txGasLimit = new BN(deserializedTx.data.gasLimit);
 
         if (
-          txGasLimit.gt(this.getBlockGasLimit()) ||
-          txNonce.lt(senderNonce) ||
-          deserializedTx.data.getUpfrontCost().gt(senderBalance)
+          !this._isTxValid(deserializedTx, txNonce, senderNonce, senderBalance)
         ) {
           newQueued = this._removeTx(newQueued, address, deserializedTx);
         }
@@ -412,6 +420,7 @@ export class TxPool {
     }
 
     const gasLimit = new BN(tx.gasLimit);
+    const gasPrice = new BN(tx.gasPrice);
     const baseFee = tx.getBaseFee();
 
     if (gasLimit.lt(baseFee)) {
@@ -425,6 +434,14 @@ export class TxPool {
     if (gasLimit.gt(blockGasLimit)) {
       throw new InvalidInputError(
         `Transaction gas limit is ${gasLimit} and exceeds block gas limit of ${blockGasLimit}`
+      );
+    }
+
+    const minGasPrice = this.getMinGasPrice();
+
+    if (gasPrice.lt(minGasPrice)) {
+      throw new InvalidInputError(
+        `Transaction gas price is ${gasPrice} and is below minimum gas price of ${minGasPrice}`
       );
     }
   }
@@ -520,10 +537,31 @@ export class TxPool {
     this._state = this._state.set("blockGasLimit", bnToHex(newLimit));
   }
 
+  private _setMinGasPrice(newMin: BN) {
+    this._state = this._state.set("minGasPrice", bnToHex(newMin));
+  }
+
   private _deleteTransactionByHash(hash: Buffer) {
     this._state = this._state.set(
       "hashToTransaction",
       this._getTransactionsByHash().delete(bufferToHex(hash))
+    );
+  }
+
+  private _isTxValid(
+    tx: OrderedTransaction,
+    txNonce: BN,
+    senderNonce: BN,
+    senderBalance: BN
+  ): boolean {
+    const txGasLimit = new BN(tx.data.gasLimit);
+    const txGasPrice = new BN(tx.data.gasPrice);
+
+    return (
+      txGasLimit.lte(this.getBlockGasLimit()) &&
+      txNonce.gte(senderNonce) &&
+      tx.data.getUpfrontCost().lte(senderBalance) &&
+      txGasPrice.gte(this.getMinGasPrice())
     );
   }
 }
