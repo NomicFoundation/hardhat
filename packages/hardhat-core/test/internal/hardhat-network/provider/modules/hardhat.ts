@@ -285,6 +285,155 @@ describe("Hardhat module", function () {
           });
         }
       });
+
+      describe("hardhat_dropTransaction", function () {
+        it("should remove pending transactions", async function () {
+          await this.provider.send("evm_setAutomine", [false]);
+          const txHash = await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[2],
+              gas: numberToRpcQuantity(21_000),
+            },
+          ]);
+
+          const result = await this.provider.send("hardhat_dropTransaction", [
+            txHash,
+          ]);
+          const tx = await this.provider.send("eth_getTransactionByHash", [
+            txHash,
+          ]);
+
+          assert.isNull(tx);
+          assert.isTrue(result);
+        });
+
+        it("should remove queued transactions", async function () {
+          await this.provider.send("evm_setAutomine", [false]);
+          const txHash = await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[2],
+              gas: numberToRpcQuantity(21_000),
+              nonce: numberToRpcQuantity(1),
+            },
+          ]);
+
+          const result = await this.provider.send("hardhat_dropTransaction", [
+            txHash,
+          ]);
+
+          const tx = await this.provider.send("eth_getTransactionByHash", [
+            txHash,
+          ]);
+
+          assert.isNull(tx);
+          assert.isTrue(result);
+        });
+
+        it("should rearrange transactions after removing one", async function () {
+          await this.provider.send("evm_setAutomine", [false]);
+
+          // send 3 txs
+          const txHash1 = await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[2],
+              gas: numberToRpcQuantity(21_000),
+            },
+          ]);
+          const txHash2 = await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[2],
+              gas: numberToRpcQuantity(21_000),
+            },
+          ]);
+          const txHash3 = await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[2],
+              gas: numberToRpcQuantity(21_000),
+            },
+          ]);
+
+          // drop second transaction
+          const result = await this.provider.send("hardhat_dropTransaction", [
+            txHash2,
+          ]);
+          assert.isTrue(result);
+
+          // mine block; it should have only the first tx
+          await this.provider.send("evm_mine");
+          const block = await this.provider.send("eth_getBlockByNumber", [
+            "latest",
+            false,
+          ]);
+          assert.deepEqual(block.transactions, [txHash1]);
+
+          // the first and third tx should exist
+          const tx1 = await this.provider.send("eth_getTransactionByHash", [
+            txHash1,
+          ]);
+          const tx2 = await this.provider.send("eth_getTransactionByHash", [
+            txHash2,
+          ]);
+          const tx3 = await this.provider.send("eth_getTransactionByHash", [
+            txHash3,
+          ]);
+
+          assert.isNotNull(tx1);
+          assert.isNull(tx2);
+          assert.isNotNull(tx3);
+        });
+
+        it("should return false if a tx doesn't exist", async function () {
+          const nonExistentTxHash =
+            "0xa4b46baa47145cb30af1ceed6172604aed4d8a27f66077cad951113bebb9513d";
+          const result = await this.provider.send("hardhat_dropTransaction", [
+            nonExistentTxHash,
+          ]);
+
+          assert.isFalse(result);
+        });
+
+        it("should return false when called a second time", async function () {
+          await this.provider.send("evm_setAutomine", [false]);
+          const txHash = await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[2],
+              gas: numberToRpcQuantity(21_000),
+            },
+          ]);
+
+          const firstResult = await this.provider.send(
+            "hardhat_dropTransaction",
+            [txHash]
+          );
+          assert.isTrue(firstResult);
+          const secondResult = await this.provider.send(
+            "hardhat_dropTransaction",
+            [txHash]
+          );
+          assert.isFalse(secondResult);
+        });
+
+        it("should throw if the tx was already mined", async function () {
+          const txHash = await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[2],
+            },
+          ]);
+
+          await assertInvalidArgumentsError(
+            this.provider,
+            "hardhat_dropTransaction",
+            [txHash]
+          );
+        });
+      });
     });
   });
 });

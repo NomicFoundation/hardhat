@@ -98,6 +98,53 @@ export class TxPool {
     }
   }
 
+  public removeTransaction(txHash: Buffer): boolean {
+    const tx = this.getTransactionByHash(txHash);
+
+    if (tx === undefined) {
+      // transaction doesn't exist in the mempool
+      return false;
+    }
+
+    this._deleteTransactionByHash(txHash);
+
+    const serializedTx = serializeTransaction(tx);
+
+    const senderAddress = bufferToHex(this._getSenderAddress(tx.data));
+
+    const pendingForAddress =
+      this._getPendingForAddress(senderAddress) ??
+      ImmutableList<SerializedTransaction>();
+    const queuedForAddress =
+      this._getQueuedForAddress(senderAddress) ??
+      ImmutableList<SerializedTransaction>();
+
+    const indexOfPendingTx = pendingForAddress.indexOf(serializedTx);
+    if (indexOfPendingTx !== -1) {
+      const newPendingForAddress = pendingForAddress.splice(
+        indexOfPendingTx,
+        pendingForAddress.size
+      );
+      const newQueuedForAddress = queuedForAddress.concat(
+        pendingForAddress.slice(indexOfPendingTx + 1)
+      );
+
+      this._setPendingForAddress(senderAddress, newPendingForAddress);
+      this._setQueuedForAddress(senderAddress, newQueuedForAddress);
+      return true;
+    }
+
+    const indexOfQueuedTx = queuedForAddress.indexOf(serializedTx);
+    if (indexOfQueuedTx !== -1) {
+      const newQueuedForAddress = queuedForAddress.splice(indexOfQueuedTx, 1);
+      this._setQueuedForAddress(senderAddress, newQueuedForAddress);
+
+      return true;
+    }
+
+    throw new Error("Tx should have existed in the pending or queued lists");
+  }
+
   public snapshot(): number {
     const id = this._nextSnapshotId++;
     this._snapshotIdToState.set(id, this._state);

@@ -14,6 +14,7 @@ import {
   rpcCompilerInput,
   rpcCompilerOutput,
   RpcHardhatNetworkConfig,
+  rpcHash,
   validateParams,
 } from "../input";
 import { HardhatNode } from "../node";
@@ -42,6 +43,11 @@ export class HardhatModule {
       case "hardhat_addCompilationResult":
         return this._addCompilationResultAction(
           ...this._addCompilationResultParams(params)
+        );
+
+      case "hardhat_dropTransaction":
+        return this._dropTransactionAction(
+          ...this._dropTransactionParams(params)
         );
 
       case "hardhat_getStackTraceFailuresCount":
@@ -105,6 +111,16 @@ export class HardhatModule {
       compilerInput,
       compilerOutput
     );
+  }
+
+  // hardhat_dropTransaction
+
+  private _dropTransactionParams(params: any[]): [Buffer] {
+    return validateParams(params, rpcHash);
+  }
+
+  private async _dropTransactionAction(hash: Buffer): Promise<boolean> {
+    return this._node.dropTransaction(hash);
   }
 
   // hardhat_impersonateAccount

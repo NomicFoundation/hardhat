@@ -52,7 +52,11 @@ import { SolidityTracer } from "../stack-traces/solidityTracer";
 import { VmTraceDecoder } from "../stack-traces/vm-trace-decoder";
 import { VMTracer } from "../stack-traces/vm-tracer";
 
-import { InvalidInputError, TransactionExecutionError } from "./errors";
+import {
+  InvalidArgumentsError,
+  InvalidInputError,
+  TransactionExecutionError,
+} from "./errors";
 import { bloomFilter, Filter, filterLogs, LATEST_BLOCK, Type } from "./filter";
 import { ForkBlockchain } from "./fork/ForkBlockchain";
 import { ForkStateManager } from "./fork/ForkStateManager";
@@ -867,6 +871,25 @@ export class HardhatNode extends EventEmitter {
     await this._txPool.updatePendingAndQueued();
   }
 
+  public async dropTransaction(hash: Buffer): Promise<boolean> {
+    const removed = this._txPool.removeTransaction(hash);
+
+    if (removed) {
+      return true;
+    }
+
+    const isTransactionMined = await this._isTransactionMined(hash);
+    if (isTransactionMined) {
+      throw new InvalidArgumentsError(
+        `Transaction ${bufferToHex(
+          hash
+        )} cannot be dropped because it's already mined`
+      );
+    }
+
+    return false;
+  }
+
   private async _addPendingTransaction(tx: Transaction): Promise<string> {
     await this._txPool.addTransaction(tx);
     await this._notifyPendingTransaction(tx);
@@ -1666,5 +1689,10 @@ export class HardhatNode extends EventEmitter {
       result,
       filterId,
     });
+  }
+
+  private async _isTransactionMined(hash: Buffer): Promise<boolean> {
+    const txReceipt = await this.getTransactionReceipt(hash);
+    return txReceipt !== undefined;
   }
 }
