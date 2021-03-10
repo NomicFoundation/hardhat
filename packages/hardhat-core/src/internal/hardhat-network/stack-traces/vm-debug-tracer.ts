@@ -3,6 +3,7 @@ import { EVMResult } from "@nomiclabs/ethereumjs-vm/dist/evm/evm";
 import { InterpreterStep } from "@nomiclabs/ethereumjs-vm/dist/evm/interpreter";
 import { Transaction } from "ethereumjs-tx";
 import { BN } from "ethereumjs-util";
+import type MapValuesT from "lodash/mapValues";
 
 import { RpcDebugTracingConfig } from "../provider/input";
 import { RpcDebugTraceOutput, RpcStructLog } from "../provider/output";
@@ -97,14 +98,14 @@ export class VMDebugTracer {
     return stack;
   }
 
-  private async _getStorage(
+  private _getStorage(
     storage: Record<string, string>
-  ): Promise<Record<string, string> | undefined> {
-    const mapValues = await require("lodash/mapValues");
+  ): Record<string, string> | undefined {
+    const mapValues: typeof MapValuesT = require("lodash/mapValues");
     if (this._config?.disableStorage === true) {
       return undefined;
     }
-    const paddedStorage = mapValues(storage, (storageValue: string) =>
+    const paddedStorage = mapValues(storage, (storageValue) =>
       storageValue.padStart(64, "0")
     );
     return paddedStorage;
@@ -123,7 +124,7 @@ export class VMDebugTracer {
             depth: step.depth + 1,
             stack: this._getStack(step),
             memory: this._getMemory(step),
-            storage: await this._getStorage(storage),
+            storage: this._getStorage(storage),
             memSize: step.memoryWordCount.toNumber(),
           };
           resolve(structLog);
