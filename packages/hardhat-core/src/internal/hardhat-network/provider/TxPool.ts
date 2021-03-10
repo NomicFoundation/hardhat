@@ -101,6 +101,10 @@ export class TxPool {
     }
   }
 
+  /**
+   * Remove transaction with the given hash from the mempool. Returns true
+   * if a transaction was removed, false otherwise.
+   */
   public removeTransaction(txHash: Buffer): boolean {
     const tx = this.getTransactionByHash(txHash);
 
@@ -112,7 +116,6 @@ export class TxPool {
     this._deleteTransactionByHash(txHash);
 
     const serializedTx = serializeTransaction(tx);
-
     const senderAddress = bufferToHex(this._getSenderAddress(tx.data));
 
     const pendingForAddress =
@@ -122,6 +125,8 @@ export class TxPool {
       this._getQueuedForAddress(senderAddress) ??
       ImmutableList<SerializedTransaction>();
 
+    // if the tx to remove is in the pending state, remove it
+    // and move the following transactions to the queued list
     const indexOfPendingTx = pendingForAddress.indexOf(serializedTx);
     if (indexOfPendingTx !== -1) {
       const newPendingForAddress = pendingForAddress.splice(
@@ -137,6 +142,7 @@ export class TxPool {
       return true;
     }
 
+    // if the tx is in the queued state, we just remove it
     const indexOfQueuedTx = queuedForAddress.indexOf(serializedTx);
     if (indexOfQueuedTx !== -1) {
       const newQueuedForAddress = queuedForAddress.splice(indexOfQueuedTx, 1);
