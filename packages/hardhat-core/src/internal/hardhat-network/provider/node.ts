@@ -979,16 +979,16 @@ export class HardhatNode extends EventEmitter {
       throw new InvalidInputError(e.message);
     }
 
-    const senderNonce = await this._txPool.getNextNonce(sender);
+    const nextNonce = await this._txPool.getNextNonce(sender);
     const txNonce = new BN(tx.nonce);
 
-    const expectedNonceMsg = `Expected nonce to be ${senderNonce} but got ${txNonce}.`;
-    if (txNonce.gt(senderNonce)) {
+    const expectedNonceMsg = `Expected nonce to be ${nextNonce} but got ${txNonce}.`;
+    if (txNonce.gt(nextNonce)) {
       throw new InvalidInputError(
         `Nonce too high. ${expectedNonceMsg} Note that transactions can't be queued when automining.`
       );
     }
-    if (txNonce.lt(senderNonce)) {
+    if (txNonce.lt(nextNonce)) {
       throw new InvalidInputError(`Nonce too low. ${expectedNonceMsg}`);
     }
   }
