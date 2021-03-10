@@ -96,7 +96,7 @@ export class TxPool {
 
     if (txNonce.lte(nextNonce)) {
       this._addPendingTransaction(tx);
-    } else if (txNonce.gt(nextNonce)) {
+    } else {
       this._addQueuedTransaction(tx);
     }
   }
