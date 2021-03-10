@@ -22,7 +22,23 @@ export class VMDebugTracer {
     this._afterTxHandler = this._afterTxHandler.bind(this);
   }
 
-  public enableTracing(config: RpcDebugTracingConfig) {
+  /**
+   * Run the `cb` callback and trace its execution
+   */
+  public async trace(
+    cb: () => Promise<void>,
+    config: RpcDebugTracingConfig,
+  ): Promise<RpcDebugTraceOutput> {
+    try {
+      this._enableTracing(config);
+      await cb();
+      return this._getDebugTrace();
+    } finally {
+      this._disableTracing();
+    }
+  }
+
+  private _enableTracing(config: RpcDebugTracingConfig) {
     if (this._enabled) {
       return;
     }
@@ -33,7 +49,7 @@ export class VMDebugTracer {
     this._config = config;
   }
 
-  public disableTracing() {
+  private _disableTracing() {
     if (!this._enabled) {
       return;
     }
@@ -44,11 +60,7 @@ export class VMDebugTracer {
     this._config = undefined;
   }
 
-  public get enabled(): boolean {
-    return this._enabled;
-  }
-
-  public getDebugTrace(): RpcDebugTraceOutput {
+  private _getDebugTrace(): RpcDebugTraceOutput {
     if (this._lastTrace === undefined) {
       throw new Error(
         "No debug trace available. Please run the transaction first"
