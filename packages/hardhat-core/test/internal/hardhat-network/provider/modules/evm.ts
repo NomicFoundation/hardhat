@@ -363,8 +363,7 @@ describe("Evm module", function () {
             {
               from: DEFAULT_ACCOUNTS_ADDRESSES[1],
               to: bufferToHex(EMPTY_ACCOUNT_ADDRESS),
-              gas: numberToRpcQuantity(21_000),
-              gasPrice: numberToRpcQuantity(7),
+              gas: numberToRpcQuantity(30_000),
               nonce: numberToRpcQuantity(0),
             },
           ]);
@@ -373,14 +372,13 @@ describe("Evm module", function () {
               from: DEFAULT_ACCOUNTS_ADDRESSES[1],
               to: bufferToHex(EMPTY_ACCOUNT_ADDRESS),
               gas: numberToRpcQuantity(21_000),
-              gasPrice: numberToRpcQuantity(12),
               nonce: numberToRpcQuantity(1),
             },
           ]);
 
           // this removes the first transaction
-          await this.provider.send("evm_setMinGasPrice", [
-            numberToRpcQuantity(10),
+          await this.provider.send("evm_setBlockGasLimit", [
+            numberToRpcQuantity(25_000),
           ]);
 
           const pendingBlock = await this.provider.send(
@@ -399,7 +397,6 @@ describe("Evm module", function () {
               from: DEFAULT_ACCOUNTS_ADDRESSES[1],
               to: bufferToHex(EMPTY_ACCOUNT_ADDRESS),
               gas: numberToRpcQuantity(21_000),
-              gasPrice: numberToRpcQuantity(12),
               nonce: numberToRpcQuantity(0),
             },
           ]);
@@ -407,15 +404,14 @@ describe("Evm module", function () {
             {
               from: DEFAULT_ACCOUNTS_ADDRESSES[1],
               to: bufferToHex(EMPTY_ACCOUNT_ADDRESS),
-              gas: numberToRpcQuantity(21_000),
-              gasPrice: numberToRpcQuantity(7),
+              gas: numberToRpcQuantity(30_000),
               nonce: numberToRpcQuantity(1),
             },
           ]);
 
-          // this removes the first transaction
-          await this.provider.send("evm_setMinGasPrice", [
-            numberToRpcQuantity(10),
+          // this removes the second transaction
+          await this.provider.send("evm_setBlockGasLimit", [
+            numberToRpcQuantity(25_000),
           ]);
 
           const pendingBlock = await this.provider.send(
@@ -428,7 +424,7 @@ describe("Evm module", function () {
       });
 
       describe("evm_setMinGasPrice", () => {
-        it("removes transactions that have a low gas price from the mempool", async function () {
+        it("makes txs below the new min gas price not minable", async function () {
           await this.provider.send("evm_setAutomine", [false]);
 
           const tx1Hash = await this.provider.send("eth_sendTransaction", [
@@ -436,28 +432,47 @@ describe("Evm module", function () {
               from: DEFAULT_ACCOUNTS_ADDRESSES[0],
               to: bufferToHex(EMPTY_ACCOUNT_ADDRESS),
               gas: numberToRpcQuantity(21_000),
-              gasPrice: numberToRpcQuantity(12),
+              gasPrice: numberToRpcQuantity(10),
             },
           ]);
-          await this.provider.send("eth_sendTransaction", [
+          const tx2Hash = await this.provider.send("eth_sendTransaction", [
             {
               from: DEFAULT_ACCOUNTS_ADDRESSES[1],
               to: bufferToHex(EMPTY_ACCOUNT_ADDRESS),
               gas: numberToRpcQuantity(21_000),
-              gasPrice: numberToRpcQuantity(7),
+              gasPrice: numberToRpcQuantity(20),
             },
           ]);
 
           await this.provider.send("evm_setMinGasPrice", [
-            numberToRpcQuantity(10),
+            numberToRpcQuantity(15),
           ]);
 
-          const pendingTransactions = await this.provider.send(
+          // check the two txs are pending
+          const pendingTransactionsBefore = await this.provider.send(
             "eth_pendingTransactions"
           );
+          assert.sameMembers(
+            pendingTransactionsBefore.map((x: any) => x.hash),
+            [tx1Hash, tx2Hash]
+          );
 
-          assert.lengthOf(pendingTransactions, 1);
-          assert.equal(pendingTransactions[0].hash, tx1Hash);
+          // check only the second one is mined
+          await this.provider.send("evm_mine");
+          const latestBlock = await this.provider.send("eth_getBlockByNumber", [
+            "latest",
+            false,
+          ]);
+          assert.sameMembers(latestBlock.transactions, [tx2Hash]);
+
+          // check the first tx is still pending
+          const pendingTransactionsAfter = await this.provider.send(
+            "eth_pendingTransactions"
+          );
+          assert.sameMembers(
+            pendingTransactionsAfter.map((x: any) => x.hash),
+            [tx1Hash]
+          );
         });
       });
 

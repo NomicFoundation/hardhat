@@ -5,10 +5,7 @@ import Common from "ethereumjs-common";
 import { BN, bufferToHex, toBuffer } from "ethereumjs-util";
 
 import { InvalidInputError } from "../../../../src/internal/hardhat-network/provider/errors";
-import {
-  randomAddress,
-  randomAddressBuffer,
-} from "../../../../src/internal/hardhat-network/provider/fork/random";
+import { randomAddressBuffer } from "../../../../src/internal/hardhat-network/provider/fork/random";
 import { TxPool } from "../../../../src/internal/hardhat-network/provider/TxPool";
 import { PStateManager } from "../../../../src/internal/hardhat-network/provider/types/PStateManager";
 import { asPStateManager } from "../../../../src/internal/hardhat-network/provider/utils/asPStateManager";
@@ -27,14 +24,13 @@ import {
 
 describe("Tx Pool", () => {
   const blockGasLimit = new BN(10_000_000);
-  const minGasPrice = new BN(0);
   let stateManager: PStateManager;
   let txPool: TxPool;
 
   beforeEach(() => {
     stateManager = asPStateManager(new StateManager());
     const common = new Common("mainnet", "muirGlacier");
-    txPool = new TxPool(stateManager, blockGasLimit, minGasPrice, common);
+    txPool = new TxPool(stateManager, blockGasLimit, common);
   });
 
   describe("addTransaction", () => {
@@ -820,42 +816,6 @@ describe("Tx Pool", () => {
       assertEqualTransactionMaps(queuedTransactions, makeOrderedTxMap([]));
     });
 
-    it("removes pending transaction when it's gas price is below the min gas price", async () => {
-      const tx1 = createTestTransaction({
-        nonce: 0,
-        gasLimit: 21_000,
-        gasPrice: 5,
-      });
-      tx1.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
-
-      await txPool.addTransaction(tx1);
-
-      txPool.setMinGasPrice(10);
-
-      await txPool.updatePendingAndQueued();
-      const pendingTransactions = txPool.getPendingTransactions();
-
-      assertEqualTransactionMaps(pendingTransactions, makeOrderedTxMap([]));
-    });
-
-    it("removes queued transaction when it's gas price is below the min gas price", async () => {
-      const tx1 = createTestTransaction({
-        nonce: 1,
-        gasLimit: 21_000,
-        gasPrice: 5,
-      });
-      tx1.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
-
-      await txPool.addTransaction(tx1);
-
-      txPool.setMinGasPrice(10);
-
-      await txPool.updatePendingAndQueued();
-      const queuedTransactions = txPool.getQueuedTransactions();
-
-      assertEqualTransactionMaps(queuedTransactions, makeOrderedTxMap([]));
-    });
-
     it("removes pending transactions with too low nonces", async () => {
       const tx1 = createTestOrderedTransaction({
         orderId: 0,
@@ -1134,35 +1094,6 @@ describe("Tx Pool", () => {
     });
   });
 
-  describe("setMinGasPrice", () => {
-    it("sets a new min gas price when new limit is a number", () => {
-      assert.equal(txPool.getMinGasPrice().toNumber(), 0);
-      txPool.setMinGasPrice(10);
-      assert.equal(txPool.getMinGasPrice().toNumber(), 10);
-    });
-
-    it("sets a new min gas price when new limit is a BN", () => {
-      assert.equal(txPool.getMinGasPrice().toNumber(), 0);
-      txPool.setMinGasPrice(new BN(10));
-      assert.equal(txPool.getMinGasPrice().toNumber(), 10);
-    });
-
-    it("makes the new min gas price actually used for validating added transactions", async () => {
-      txPool.setMinGasPrice(10);
-      const tx = createTestFakeTransaction({ gasPrice: 5 });
-      await stateManager.putAccount(
-        tx.getSenderAddress(),
-        new Account({ balance: new BN(10).pow(new BN(18)) })
-      );
-
-      await assert.isRejected(
-        txPool.addTransaction(tx),
-        InvalidInputError,
-        "Transaction gas price is 5 and is below minimum gas price of 10"
-      );
-    });
-  });
-
   describe("snapshot", () => {
     it("returns a snapshot id", () => {
       const id = txPool.snapshot();
@@ -1214,16 +1145,6 @@ describe("Tx Pool", () => {
     it("reverts to the previous state of block gas limit", () => {
       const id = txPool.snapshot();
       txPool.setBlockGasLimit(new BN(5_000_000));
-      txPool.revert(id);
-      assert.equal(
-        txPool.getBlockGasLimit().toNumber(),
-        blockGasLimit.toNumber()
-      );
-    });
-
-    it("reverts to the previous state of min gas price", () => {
-      const id = txPool.snapshot();
-      txPool.setMinGasPrice(new BN(5));
       txPool.revert(id);
       assert.equal(
         txPool.getBlockGasLimit().toNumber(),

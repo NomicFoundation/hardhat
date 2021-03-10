@@ -75,12 +75,10 @@ export class TxPool {
   constructor(
     private readonly _stateManager: PStateManager,
     blockGasLimit: BN,
-    minGasPrice: BN,
     common: Common
   ) {
     this._state = makePoolState({
       blockGasLimit: bnToHex(blockGasLimit),
-      minGasPrice: bnToHex(minGasPrice),
     });
     this._deserializeTransaction = (tx) => deserializeTransaction(tx, common);
   }
@@ -229,18 +227,6 @@ export class TxPool {
     }
 
     this._setBlockGasLimit(newLimit);
-  }
-
-  public getMinGasPrice(): BN {
-    return new BN(toBuffer(this._state.get("minGasPrice")));
-  }
-
-  public setMinGasPrice(newMin: BN | number) {
-    if (typeof newMin === "number") {
-      newMin = new BN(newMin);
-    }
-
-    this._setMinGasPrice(newMin);
   }
 
   /**
@@ -447,14 +433,6 @@ export class TxPool {
         `Transaction gas limit is ${gasLimit} and exceeds block gas limit of ${blockGasLimit}`
       );
     }
-
-    const minGasPrice = this.getMinGasPrice();
-
-    if (gasPrice.lt(minGasPrice)) {
-      throw new InvalidInputError(
-        `Transaction gas price is ${gasPrice} and is below minimum gas price of ${minGasPrice}`
-      );
-    }
   }
 
   private _knownTransaction(tx: Transaction): boolean {
@@ -537,10 +515,6 @@ export class TxPool {
     this._state = this._state.set("blockGasLimit", bnToHex(newLimit));
   }
 
-  private _setMinGasPrice(newMin: BN) {
-    this._state = this._state.set("minGasPrice", bnToHex(newMin));
-  }
-
   private _deleteTransactionByHash(hash: Buffer) {
     this._state = this._state.set(
       "hashToTransaction",
@@ -555,13 +529,11 @@ export class TxPool {
     senderBalance: BN
   ): boolean {
     const txGasLimit = new BN(tx.data.gasLimit);
-    const txGasPrice = new BN(tx.data.gasPrice);
 
     return (
       txGasLimit.lte(this.getBlockGasLimit()) &&
       txNonce.gte(senderNonce) &&
-      tx.data.getUpfrontCost().lte(senderBalance) &&
-      txGasPrice.gte(this.getMinGasPrice())
+      tx.data.getUpfrontCost().lte(senderBalance)
     );
   }
 

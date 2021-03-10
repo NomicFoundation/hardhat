@@ -3791,27 +3791,6 @@ describe("Eth module", function () {
               } and exceeds block gas limit of ${DEFAULT_BLOCK_GAS_LIMIT}`
             );
 
-            // Gas price is below minimum
-            await this.provider.send("evm_setMinGasPrice", [
-              numberToRpcQuantity(101),
-            ]);
-            await assertInvalidInputError(
-              this.provider,
-              "eth_sendTransaction",
-              [
-                {
-                  from: DEFAULT_ACCOUNTS_ADDRESSES[1],
-                  to: zeroAddress(),
-                  gas: numberToRpcQuantity(21_000),
-                  gasPrice: numberToRpcQuantity(55),
-                },
-              ],
-              `Transaction gas price is 55 and is below minimum gas price of 101`
-            );
-            await this.provider.send("evm_setMinGasPrice", [
-              numberToRpcQuantity(0),
-            ]);
-
             // Invalid opcode. We try to deploy a contract with an invalid opcode in the deployment code
             // The transaction gets executed anyway, so the account is updated
             await assertTransactionFailure(

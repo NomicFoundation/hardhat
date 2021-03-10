@@ -169,7 +169,6 @@ export class HardhatNode extends EventEmitter {
     const txPool = new TxPool(
       asPStateManager(stateManager),
       new BN(blockGasLimit),
-      new BN(minGasPrice),
       common
     );
 
@@ -187,6 +186,7 @@ export class HardhatNode extends EventEmitter {
       blockchain,
       txPool,
       automine,
+      minGasPrice,
       initialBlockTimeOffset,
       genesisAccounts,
       tracingConfig
@@ -218,6 +218,7 @@ export class HardhatNode extends EventEmitter {
     private readonly _blockchain: PBlockchain,
     private readonly _txPool: TxPool,
     private _automine: boolean,
+    private _minGasPrice: BN,
     private _blockTimeOffsetSeconds: BN = new BN(0),
     genesisAccounts: GenesisAccount[],
     tracingConfig?: TracingConfig
@@ -874,8 +875,7 @@ export class HardhatNode extends EventEmitter {
   }
 
   public async setMinGasPrice(minGasPrice: BN) {
-    this._txPool.setMinGasPrice(minGasPrice);
-    await this._txPool.updatePendingAndQueued();
+    this._minGasPrice = minGasPrice;
   }
 
   public async dropTransaction(hash: Buffer): Promise<boolean> {
@@ -1015,6 +1015,11 @@ export class HardhatNode extends EventEmitter {
 
     let cumulativeGasUsed = new BN(0);
     while (gasLeft.gte(minTxFee) && tx !== undefined) {
+      if (!this._isTxMinable(tx)) {
+        txHeap.shift();
+        tx = txHeap.peek();
+        continue;
+      }
       const shouldThrow = sentTxHash === bufferToHex(tx.hash());
 
       const txResult = await this._runTx(tx, block, gasLeft, shouldThrow);
@@ -1701,5 +1706,10 @@ export class HardhatNode extends EventEmitter {
   private async _isTransactionMined(hash: Buffer): Promise<boolean> {
     const txReceipt = await this.getTransactionReceipt(hash);
     return txReceipt !== undefined;
+  }
+
+  private _isTxMinable(tx: Transaction): boolean {
+    const txGasPrice = new BN(tx.gasPrice);
+    return txGasPrice.gte(this._minGasPrice);
   }
 }
