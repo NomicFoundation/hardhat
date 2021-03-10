@@ -4024,6 +4024,7 @@ describe("Eth module", function () {
               this.provider,
               DEFAULT_ACCOUNTS_ADDRESSES[1]
             );
+            await this.provider.send("evm_mine");
             await assertInvalidInputError(
               this.provider,
               "eth_sendTransaction",
@@ -4054,6 +4055,142 @@ describe("Eth module", function () {
               txParams,
               `Known transaction: ${bufferToHex(hash)}`
             );
+          });
+
+          it("Should replace pending transactions", async function () {
+            const txHash1 = await this.provider.send("eth_sendTransaction", [
+              {
+                from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                to: DEFAULT_ACCOUNTS_ADDRESSES[2],
+                nonce: numberToRpcQuantity(0),
+                gasPrice: numberToRpcQuantity(20),
+              },
+            ]);
+            let tx1 = await this.provider.send("eth_getTransactionByHash", [
+              txHash1,
+            ]);
+            assert.isNotNull(tx1);
+
+            const txHash2 = await this.provider.send("eth_sendTransaction", [
+              {
+                from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                to: DEFAULT_ACCOUNTS_ADDRESSES[2],
+                nonce: numberToRpcQuantity(0),
+                gasPrice: numberToRpcQuantity(30),
+              },
+            ]);
+            tx1 = await this.provider.send("eth_getTransactionByHash", [
+              txHash1,
+            ]);
+            const tx2 = await this.provider.send("eth_getTransactionByHash", [
+              txHash2,
+            ]);
+            assert.isNull(tx1);
+            assert.isNotNull(tx2);
+
+            const pendingTxs = await this.provider.send(
+              "eth_pendingTransactions"
+            );
+
+            assert.lengthOf(pendingTxs, 1);
+            assert.equal(pendingTxs[0].hash, tx2.hash);
+
+            await this.provider.send("evm_mine");
+            const minedBlock = await this.provider.send(
+              "eth_getBlockByNumber",
+              ["latest", false]
+            );
+            assert.lengthOf(minedBlock.transactions, 1);
+            assert.equal(minedBlock.transactions[0], tx2.hash);
+          });
+
+          it("Should replace queued transactions", async function () {
+            const txHash1 = await this.provider.send("eth_sendTransaction", [
+              {
+                from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                to: DEFAULT_ACCOUNTS_ADDRESSES[2],
+                nonce: numberToRpcQuantity(2),
+                gasPrice: numberToRpcQuantity(20),
+              },
+            ]);
+            let tx1 = await this.provider.send("eth_getTransactionByHash", [
+              txHash1,
+            ]);
+            assert.isNotNull(tx1);
+
+            const txHash2 = await this.provider.send("eth_sendTransaction", [
+              {
+                from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                to: DEFAULT_ACCOUNTS_ADDRESSES[2],
+                nonce: numberToRpcQuantity(2),
+                gasPrice: numberToRpcQuantity(30),
+              },
+            ]);
+            tx1 = await this.provider.send("eth_getTransactionByHash", [
+              txHash1,
+            ]);
+            const tx2 = await this.provider.send("eth_getTransactionByHash", [
+              txHash2,
+            ]);
+            assert.isNull(tx1);
+            assert.isNotNull(tx2);
+
+            await this.provider.send("evm_mine");
+            const minedBlock = await this.provider.send(
+              "eth_getBlockByNumber",
+              ["latest", false]
+            );
+            assert.lengthOf(minedBlock.transactions, 0);
+          });
+
+          it("Should throw an error if the replacement gas price is too low", async function () {
+            const txHash1 = await this.provider.send("eth_sendTransaction", [
+              {
+                from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                to: DEFAULT_ACCOUNTS_ADDRESSES[2],
+                nonce: numberToRpcQuantity(0),
+                gasPrice: numberToRpcQuantity(20),
+              },
+            ]);
+            let tx1 = await this.provider.send("eth_getTransactionByHash", [
+              txHash1,
+            ]);
+            assert.isNotNull(tx1);
+
+            await assertInvalidInputError(
+              this.provider,
+              "eth_sendTransaction",
+              [
+                {
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                  to: DEFAULT_ACCOUNTS_ADDRESSES[2],
+                  nonce: numberToRpcQuantity(0),
+                  gasPrice: numberToRpcQuantity(21),
+                },
+              ],
+              "Replacement transaction underpriced. A gas price of at least 22 is necessary to replace the existing transaction."
+            );
+
+            // check that original tx was not replaced
+            tx1 = await this.provider.send("eth_getTransactionByHash", [
+              txHash1,
+            ]);
+            assert.isNotNull(tx1);
+
+            const pendingTxs = await this.provider.send(
+              "eth_pendingTransactions"
+            );
+
+            assert.lengthOf(pendingTxs, 1);
+            assert.equal(pendingTxs[0].hash, tx1.hash);
+
+            await this.provider.send("evm_mine");
+            const minedBlock = await this.provider.send(
+              "eth_getBlockByNumber",
+              ["latest", false]
+            );
+            assert.lengthOf(minedBlock.transactions, 1);
+            assert.equal(minedBlock.transactions[0], tx1.hash);
           });
         });
 
