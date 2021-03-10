@@ -504,31 +504,40 @@ describe("Config resolution", () => {
         it("should default to 0", function () {
           const config = resolveConfig(__filename, {});
 
-          assert.equal(config.networks.hardhat.minGasPrice.toString(), new BN(0).toString());
+          assert.equal(
+            config.networks.hardhat.minGasPrice.toString(),
+            new BN(0).toString()
+          );
         });
 
         it("should accept numbers", function () {
           const config = resolveConfig(__filename, {
             networks: {
               hardhat: {
-                minGasPrice: 10
+                minGasPrice: 10,
               },
             },
           });
 
-          assert.equal(config.networks.hardhat.minGasPrice.toString(), new BN(10).toString());
+          assert.equal(
+            config.networks.hardhat.minGasPrice.toString(),
+            new BN(10).toString()
+          );
         });
 
         it("should accept strings", function () {
           const config = resolveConfig(__filename, {
             networks: {
               hardhat: {
-                minGasPrice: "100000000000"
+                minGasPrice: "100000000000",
               },
             },
           });
 
-          assert.equal(config.networks.hardhat.minGasPrice.toString(), new BN(10).pow(new BN(11)).toString());
+          assert.equal(
+            config.networks.hardhat.minGasPrice.toString(),
+            new BN(10).pow(new BN(11)).toString()
+          );
         });
       });
 
