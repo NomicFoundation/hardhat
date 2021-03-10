@@ -632,11 +632,9 @@ export class TxPool {
 
     const [existingTxIndex, existingTx] = existingTxEntry;
 
-    const deserializedExistingTx = this._deserializeTransaction(existingTx)
+    const deserializedExistingTx = this._deserializeTransaction(existingTx);
 
-    const currentGasPrice = new BN(
-      deserializedExistingTx.data.gasPrice
-    );
+    const currentGasPrice = new BN(deserializedExistingTx.data.gasPrice);
     const newGasPrice = new BN(newTx.data.gasPrice);
 
     const minNewGasPrice = this._getMinNewGasPrice(currentGasPrice);
