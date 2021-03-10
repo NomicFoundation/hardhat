@@ -234,6 +234,21 @@ next block by using the "pending" block tag:
 const pendingBlock = await network.provider.send("eth_getBlockByNumber", ["pending", false])
 ```
 
+### Removing and replacing transactions
+
+Transactions in the mempool can be removed using the `hardhat_dropTransaction`
+method:
+
+```
+const txHash = "0xabc..."
+await network.provider.send("hardhat_dropTransaction", [txHash])
+```
+
+You can also replace a transaction by sending a new one with the same nonce as
+the one that it's already in the mempool but with a higher gas price.
+Keep in mind that for this to work the new gas price has to be at least 10%
+higher than the gas price of the current transaction.
+
 ### Configuring mining modes using RPC methods
 
 You can change the mining behavior on runtime using two RPC methods:
@@ -363,6 +378,7 @@ To customise it, take a look at [the configuration section](/config/README.md#ha
 - `hardhat_stopImpersonatingAccount` – see the [Mainnet Forking guide](../guides/mainnet-forking.md)
 - `hardhat_reset` – see the [Mainnet Forking guide](../guides/mainnet-forking.md)
 - `hardhat_setLoggingEnabled` – Enable or disable logging in Hardhat Network
+- `hardhat_dropTransaction` – Remove a transaction from the mempool
 
 #### Special testing/debugging methods
 
@@ -371,6 +387,7 @@ To customise it, take a look at [the configuration section](/config/README.md#ha
 - `evm_revert` – same as Ganache.
 - `evm_snapshot` – same as Ganache.
 - `evm_setNextBlockTimestamp` - this method works like `evm_increaseTime`, but takes the exact timestamp that you want in the next block, and increases the time accordingly.
+- `evm_setMinGasPrice` - change the minimum gas price accepted by the network (in wei)
 
 ### Unsupported methods
 
