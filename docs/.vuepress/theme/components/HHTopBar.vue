@@ -55,7 +55,7 @@ export default {
   data() {
     return {
       postUrl:
-        "https://medium.com/nomic-labs-blog/buidler-has-evolved-introducing-hardhat-4bccd13bc931",
+        "https://www.notion.so/nomiclabs/Nomic-Labs-jobs-991b37c547554f75b89a95f437fd5056",
     };
   },
 };
