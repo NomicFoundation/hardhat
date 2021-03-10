@@ -239,7 +239,7 @@ const pendingBlock = await network.provider.send("eth_getBlockByNumber", ["pendi
 Transactions in the mempool can be removed using the `hardhat_dropTransaction`
 method:
 
-```
+```js
 const txHash = "0xabc..."
 await network.provider.send("hardhat_dropTransaction", [txHash])
 ```
