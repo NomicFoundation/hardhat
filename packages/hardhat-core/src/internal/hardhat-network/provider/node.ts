@@ -979,6 +979,7 @@ export class HardhatNode extends EventEmitter {
       throw new InvalidInputError(e.message);
     }
 
+    // validate nonce
     const nextNonce = await this._txPool.getNextNonce(sender);
     const txNonce = new BN(tx.nonce);
 
@@ -990,6 +991,14 @@ export class HardhatNode extends EventEmitter {
     }
     if (txNonce.lt(nextNonce)) {
       throw new InvalidInputError(`Nonce too low. ${expectedNonceMsg}`);
+    }
+
+    // validate gas price
+    const txGasPrice = new BN(tx.gasPrice);
+    if (txGasPrice.lt(this._minGasPrice)) {
+      throw new InvalidInputError(
+        `Transaction gas price is ${txGasPrice}, which is below the minimum of ${this._minGasPrice}`
+      );
     }
   }
 
@@ -1016,7 +1025,7 @@ export class HardhatNode extends EventEmitter {
     let cumulativeGasUsed = new BN(0);
     while (gasLeft.gte(minTxFee) && tx !== undefined) {
       if (!this._isTxMinable(tx)) {
-        txHeap.shift();
+        txHeap.pop();
         tx = txHeap.peek();
         continue;
       }

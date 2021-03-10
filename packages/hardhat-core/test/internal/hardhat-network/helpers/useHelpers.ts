@@ -1,3 +1,5 @@
+import { assert } from "chai";
+
 import { numberToRpcQuantity } from "../../../../src/internal/hardhat-network/provider/output";
 
 import { DEFAULT_ACCOUNTS_ADDRESSES } from "./providers";
@@ -14,7 +16,9 @@ interface SendTxOptions {
 
 declare module "mocha" {
   interface Context {
-    sendTx: (options?: SendTxOptions) => Promise<any>;
+    sendTx: (options?: SendTxOptions) => Promise<string>;
+    assertPendingTxs: (txs: string[]) => Promise<void>;
+    mine: () => Promise<void>;
   }
 }
 
@@ -44,6 +48,26 @@ export function useHelpers() {
           value: value !== undefined ? numberToRpcQuantity(value) : undefined,
         },
       ]);
+    };
+
+    this.assertLatestBlockTxs = async (txs: string[]) => {
+      const latestBlock = await this.provider.send("eth_getBlockByNumber", [
+        "latest",
+        false,
+      ]);
+
+      assert.sameMembers(txs, latestBlock.transactions);
+    };
+
+    this.assertPendingTxs = async (txs: string[]) => {
+      const pendingTxs = await this.provider.send("eth_pendingTransactions");
+      const pendingTxsHashes = pendingTxs.map((x: any) => x.hash);
+
+      assert.sameMembers(txs, pendingTxsHashes);
+    };
+
+    this.mine = async () => {
+      await this.provider.send("evm_mine");
     };
   });
 

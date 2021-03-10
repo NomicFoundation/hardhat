@@ -62,6 +62,7 @@ import {
   sendTransactionFromTxParams,
   sendTxToZeroAddress,
 } from "../../helpers/transactions";
+import { useHelpers } from "../../helpers/useHelpers";
 
 // tslint:disable-next-line no-var-requires
 const { recoverTypedSignature_v4 } = require("eth-sig-util");
@@ -79,6 +80,7 @@ describe("Eth module", function () {
     describe(`${name} provider`, function () {
       setCWD();
       useProvider();
+      useHelpers();
 
       const getFirstBlock = async () =>
         isFork ? retrieveForkBlockNumber(this.ctx.hardhatNetworkProvider) : 0;
@@ -3842,6 +3844,25 @@ describe("Eth module", function () {
             );
           });
 
+          it("Should throw if the gas price is below the minimum gas price", async function () {
+            await this.provider.send("evm_setMinGasPrice", [
+              numberToRpcQuantity(20),
+            ]);
+
+            await assertInvalidInputError(
+              this.provider,
+              "eth_sendTransaction",
+              [
+                {
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                  to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                  gasPrice: numberToRpcQuantity(10),
+                },
+              ],
+              "Transaction gas price is 10, which is below the minimum of 20"
+            );
+          });
+
           describe("when there are pending transactions in the mempool", () => {
             describe("when the sent transaction fits in the first block", () => {
               it("Should throw if the sender doesn't have enough balance as a result of mining pending transactions first", async function () {
@@ -4170,6 +4191,71 @@ describe("Eth module", function () {
             );
             assert.lengthOf(minedBlock.transactions, 1);
             assert.equal(minedBlock.transactions[0], tx1.hash);
+          });
+
+          describe("minGasPrice", function () {
+            const minGasPrice = 20;
+
+            beforeEach(async function () {
+              await this.provider.send("evm_setMinGasPrice", [
+                numberToRpcQuantity(minGasPrice),
+              ]);
+            });
+
+            it("should not mine transactions with a gas price below the minimum", async function () {
+              const txHash1 = await this.sendTx({
+                nonce: 0,
+                gasPrice: minGasPrice - 1,
+              });
+              const txHash2 = await this.sendTx({
+                nonce: 1,
+                gasPrice: minGasPrice - 1,
+              });
+
+              await this.assertPendingTxs([txHash1, txHash2]);
+              await this.mine();
+              await this.assertPendingTxs([txHash1, txHash2]);
+            });
+
+            it("should not mine a queued transaction if previous txs have a low gas price", async function () {
+              const txHash1 = await this.sendTx({
+                nonce: 0,
+                gasPrice: minGasPrice - 1,
+              });
+              const txHash2 = await this.sendTx({
+                nonce: 1,
+                gasPrice: minGasPrice - 1,
+              });
+              const txHash3 = await this.sendTx({
+                nonce: 2,
+                gasPrice: minGasPrice,
+              });
+
+              await this.assertPendingTxs([txHash1, txHash2, txHash3]);
+              await this.mine();
+              await this.assertPendingTxs([txHash1, txHash2, txHash3]);
+            });
+
+            it("should mine a pending tx even if txs from another account have a low gas price", async function () {
+              const txHash1 = await this.sendTx({
+                nonce: 0,
+                gasPrice: minGasPrice - 1,
+              });
+              const txHash2 = await this.sendTx({
+                nonce: 1,
+                gasPrice: minGasPrice - 1,
+              });
+              const txHash3 = await this.sendTx({
+                from: DEFAULT_ACCOUNTS_ADDRESSES[2],
+                nonce: 0,
+                gasPrice: minGasPrice + 1,
+              });
+
+              await this.assertPendingTxs([txHash1, txHash2, txHash3]);
+              await this.mine();
+              await this.assertPendingTxs([txHash1, txHash2]);
+              await this.assertLatestBlockTxs([txHash3]);
+            });
           });
         });
 
