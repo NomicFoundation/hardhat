@@ -296,7 +296,7 @@ export class HardhatNode extends EventEmitter {
       return this._addPendingTransaction(tx);
     }
 
-    await this._validateExactNonce(tx);
+    await this._validateAutominedTx(tx);
     if (
       this._txPool.hasPendingTransactions() ||
       this._txPool.hasQueuedTransactions()
@@ -971,7 +971,7 @@ export class HardhatNode extends EventEmitter {
     };
   }
 
-  private async _validateExactNonce(tx: Transaction) {
+  private async _validateAutominedTx(tx: Transaction) {
     let sender: Buffer;
     try {
       sender = tx.getSenderAddress(); // verifies signature as a side effect
