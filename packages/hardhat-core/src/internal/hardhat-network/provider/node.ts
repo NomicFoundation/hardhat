@@ -865,10 +865,9 @@ export class HardhatNode extends EventEmitter {
         for (const tx of block.transactions) {
           const txHash = tx.hash();
           if (txHash.equals(hash)) {
-            this._vmDebugTracer.enableTracing(config);
-            await this._reRunTx(tx, block, gasLeft);
-            this._vmDebugTracer.disableTracing();
-            return this._vmDebugTracer.getDebugTrace();
+            return this._vmDebugTracer.trace(async () => {
+              await this._reRunTx(tx, block, gasLeft);
+            }, config);
           }
           const txResult = await this._reRunTx(tx, block, gasLeft);
           gasLeft.isub(txResult.gasUsed);
