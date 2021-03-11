@@ -26,12 +26,12 @@ export class VMDebugTracer {
    * Run the `cb` callback and trace its execution
    */
   public async trace(
-    cb: () => Promise<void>,
-    config: RpcDebugTracingConfig,
+    action: () => Promise<void>,
+    config: RpcDebugTracingConfig
   ): Promise<RpcDebugTraceOutput> {
     try {
       this._enableTracing(config);
-      await cb();
+      await action();
       return this._getDebugTrace();
     } finally {
       this._disableTracing();
