@@ -25,6 +25,9 @@ enum NetworkID {
   // Binance Smart Chain
   BSC = 56,
   BSC_TESTNET = 97,
+  // Huobi ECO Chain
+  HECO = 128,
+  HECO_TESTNET = 256,
 }
 
 const networkIDtoEndpoints: NetworkMap = {
@@ -55,6 +58,14 @@ const networkIDtoEndpoints: NetworkMap = {
   [NetworkID.BSC_TESTNET]: {
     apiURL: "https://api-testnet.bscscan.com/api",
     browserURL: "https://testnet.bscscan.com",
+  },
+  [NetworkID.HECO]: {
+    apiURL: "https://api.hecoinfo.com/api",
+    browserURL: "https://hecoinfo.com/",
+  },
+  [NetworkID.HECO_TESTNET]: {
+    apiURL: "https://api-testnet.hecoinfo.com/api",
+    browserURL: "https://testnet.hecoinfo.com/",
   },
 };
 
