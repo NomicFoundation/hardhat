@@ -2,7 +2,7 @@ import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 
 import { pluginName } from "../constants";
 
-const COMPILERS_LIST_URL = "https://solc-bin.ethereum.org/bin/list.json";
+const COMPILERS_LIST_URL = "https://binaries.soliditylang.org/bin/list.json";
 
 // Non-exhaustive interface for the official compiler list.
 export interface CompilersList {

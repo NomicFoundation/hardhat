@@ -16,7 +16,7 @@ describe("solc version retrieval unit tests", function () {
   });
 
   it("solc version with commit is returned", async () => {
-    nock("https://solc-bin.ethereum.org")
+    nock("https://binaries.soliditylang.org")
       .get("/bin/list.json")
       .reply(200, {
         releases: {
@@ -29,7 +29,7 @@ describe("solc version retrieval unit tests", function () {
   });
 
   it("an exception is thrown if there was an error sending request", async () => {
-    nock("https://solc-bin.ethereum.org").get("/bin/list.json").reply(404);
+    nock("https://binaries.soliditylang.org").get("/bin/list.json").reply(404);
 
     return getLongVersion("0.5.1")
       .then(() => assert.fail("Should fail when response has status 404."))
@@ -42,7 +42,7 @@ describe("solc version retrieval unit tests", function () {
   });
 
   it("an exception is thrown if the specified version doesn't exist", async () => {
-    nock("https://solc-bin.ethereum.org")
+    nock("https://binaries.soliditylang.org")
       .get("/bin/list.json")
       .reply(200, {
         releases: {
