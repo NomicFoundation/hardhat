@@ -33,7 +33,7 @@ enum NetworkID {
 const networkIDtoEndpoints: NetworkMap = {
   [NetworkID.MAINNET]: {
     apiURL: "https://api.etherscan.io/api",
-    browserURL: "https://etherscan.io/",
+    browserURL: "https://etherscan.io",
   },
   [NetworkID.ROPSTEN]: {
     apiURL: "https://api-ropsten.etherscan.io/api",
@@ -61,11 +61,11 @@ const networkIDtoEndpoints: NetworkMap = {
   },
   [NetworkID.HECO]: {
     apiURL: "https://api.hecoinfo.com/api",
-    browserURL: "https://hecoinfo.com/",
+    browserURL: "https://hecoinfo.com",
   },
   [NetworkID.HECO_TESTNET]: {
     apiURL: "https://api-testnet.hecoinfo.com/api",
-    browserURL: "https://testnet.hecoinfo.com/",
+    browserURL: "https://testnet.hecoinfo.com",
   },
 };
 
