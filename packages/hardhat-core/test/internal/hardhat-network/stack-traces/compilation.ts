@@ -78,7 +78,7 @@ function getCompilerDownloadPath(compilerPath: string) {
 
 export async function downloadSolc(compilerPath: string): Promise<void> {
   const absoluteCompilerPath = getCompilerDownloadPath(compilerPath);
-  const compilerUrl = `https://solc-bin.ethereum.org/bin/${compilerPath}`;
+  const compilerUrl = `https://binaries.soliditylang.org/bin/${compilerPath}`;
 
   if (fs.existsSync(absoluteCompilerPath)) {
     return;
