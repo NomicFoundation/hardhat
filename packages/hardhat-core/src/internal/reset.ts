@@ -9,6 +9,7 @@ export function resetHardhatContext() {
     if (ctx.environment !== undefined) {
       const globalAsAny = global as any;
       for (const key of Object.keys(ctx.environment)) {
+        globalAsAny.hre = undefined;
         globalAsAny[key] = undefined;
       }
     }
