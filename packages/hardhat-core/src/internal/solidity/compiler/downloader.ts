@@ -91,6 +91,7 @@ export class CompilerDownloader {
     );
 
     if (expectedKeccak256 !== compilerKeccak256) {
+      await fsExtra.unlink(this._getCompilersListPath(compilerBuild.platform));
       await fsExtra.unlink(downloadedFilePath);
 
       throw new HardhatError(ERRORS.SOLC.INVALID_DOWNLOAD, {
