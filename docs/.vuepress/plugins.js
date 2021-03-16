@@ -271,7 +271,7 @@ const plugins = [
     name: "@eth-optimisim/smock",
     author: "Optimism",
     authorUrl: "https://github.com/ethereum-optimism",
-    url: "https://github.com/ethereum-optimism/smock/tree/master",
+    url: "https://github.com/ethereum-optimism/smock/tree/nu-nu",
     description:
       "smock is a utility package that can generate mock Solidity contracts written entirely in JavaScript.",
     tags: ["Testing", "Mocking", "Buidler plugin"],
