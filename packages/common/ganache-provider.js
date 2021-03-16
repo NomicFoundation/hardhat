@@ -9,7 +9,11 @@ function cleanup(ganacheChild) {
   if (ganacheChild === undefined || ganacheChild === null) {
     return;
   }
-  ganacheChild.kill();
+
+  return new Promise((resolve) => {
+    ganacheChild.on("exit", resolve);
+    ganacheChild.kill();
+  });
 }
 
 async function startGanache(args = []) {

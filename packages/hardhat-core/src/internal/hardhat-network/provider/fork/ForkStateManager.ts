@@ -18,7 +18,7 @@ import { PStateManager } from "../types/PStateManager";
 import { StateManager } from "../types/StateManager";
 import { makeAccount } from "../utils/makeAccount";
 
-import { AccountState, makeAccountState } from "./Account";
+import { AccountState, makeAccountState } from "./AccountState";
 import { randomHash } from "./random";
 
 /* tslint:disable only-hardhat-error */
@@ -192,7 +192,7 @@ export class ForkStateManager implements PStateManager {
 
     const remoteValue = await this._jsonRpcClient.getStorageAt(
       address,
-      key,
+      new BN(key),
       this._contextBlockNumber
     );
 

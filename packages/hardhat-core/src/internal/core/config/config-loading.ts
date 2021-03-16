@@ -1,10 +1,12 @@
 import chalk from "chalk";
 import fsExtra from "fs-extra";
 import path from "path";
+import semver from "semver";
 import type StackTraceParserT from "stacktrace-parser";
 
 import { HardhatArguments, HardhatConfig } from "../../../types";
 import { HardhatContext } from "../../context";
+import { SUPPORTED_SOLIDITY_VERSION_RANGE } from "../../hardhat-network/stack-traces/solidityTracer";
 import { findClosestPackageJson } from "../../util/packageInfo";
 import { HardhatError } from "../errors";
 import { ERRORS } from "../errors-list";
@@ -33,7 +35,7 @@ export function resolveConfigPath(configPath: string | undefined) {
 
 export function loadConfigAndTasks(
   hardhatArguments?: Partial<HardhatArguments>,
-  { showWarningIfNoSolidityConfig } = { showWarningIfNoSolidityConfig: true }
+  { showSolidityConfigWarnings } = { showSolidityConfigWarnings: false }
 ): HardhatConfig {
   let configPath =
     hardhatArguments !== undefined ? hardhatArguments.config : undefined;
@@ -70,15 +72,8 @@ export function loadConfigAndTasks(
 
   validateConfig(userConfig);
 
-  if (userConfig.solidity === undefined && showWarningIfNoSolidityConfig) {
-    console.warn(
-      chalk.yellow(
-        `Solidity compiler is not configured. Version ${DEFAULT_SOLC_VERSION} will be used by default. Add a 'solidity' entry to your configuration to supress this warning.
-
-Learn more about compiler configuration at https://hardhat.org/config"
-`
-      )
-    );
+  if (showSolidityConfigWarnings) {
+    checkMissingSolidityConfig(userConfig);
   }
 
   // To avoid bad practices we remove the previously exported stuff
@@ -90,6 +85,10 @@ Learn more about compiler configuration at https://hardhat.org/config"
 
   for (const extender of HardhatContext.getHardhatContext().configExtenders) {
     extender(resolved, frozenUserConfig);
+  }
+
+  if (showSolidityConfigWarnings) {
+    checkUnsupportedSolidityConfig(resolved);
   }
 
   return resolved;
@@ -213,5 +212,48 @@ function readPackageJson(packageName: string): PackageJson | undefined {
     return require(packageJsonPath);
   } catch (error) {
     return undefined;
+  }
+}
+
+function checkMissingSolidityConfig(userConfig: any) {
+  if (userConfig.solidity === undefined) {
+    console.warn(
+      chalk.yellow(
+        `Solidity compiler is not configured. Version ${DEFAULT_SOLC_VERSION} will be used by default. Add a 'solidity' entry to your configuration to supress this warning.
+
+Learn more about compiler configuration at https://hardhat.org/config"
+`
+      )
+    );
+  }
+}
+
+function checkUnsupportedSolidityConfig(resolvedConfig: HardhatConfig) {
+  const compilerVersions = resolvedConfig.solidity.compilers.map(
+    (x) => x.version
+  );
+  const overrideVersions = Object.values(resolvedConfig.solidity.overrides).map(
+    (x) => x.version
+  );
+  const solcVersions = [...compilerVersions, ...overrideVersions];
+
+  const unsupportedVersions: string[] = [];
+  for (const solcVersion of solcVersions) {
+    if (!semver.satisfies(solcVersion, SUPPORTED_SOLIDITY_VERSION_RANGE)) {
+      unsupportedVersions.push(solcVersion);
+    }
+  }
+
+  if (unsupportedVersions.length > 0) {
+    console.warn(
+      chalk.yellow(
+        `Solidity ${unsupportedVersions.join(", ")} ${
+          unsupportedVersions.length === 1 ? "is" : "are"
+        } not fully supported yet. You can still use Hardhat, but some features, like stack traces, might not work correctly.
+
+Learn more at https://hardhat.org/reference/solidity-support"
+`
+      )
+    );
   }
 }
