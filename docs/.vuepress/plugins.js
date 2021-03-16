@@ -305,6 +305,15 @@ const plugins = [
     tags: ["Ethers", "React", "Deploy", "Typechain", "Frontend", "Web3modal"],
   },
   {
+    name: "hardhat-etherscan-abi",
+    author: "Roman Semenov",
+    authorUrl: "https://github.com/poma",
+    url:
+      "https://github.com/poma/hardhat-etherscan-abi/tree/master",
+    description: "Automatically fetch contract ABI from Etherscan",
+    tags: ["Etherscan", "ABI"],
+  },
+  {
     name: "hardhat-tracer",
     author: "Soham Zemse",
     authorUrl: "https://github.com/zemse/",
