@@ -210,6 +210,10 @@ describe("Compiler downloader", function () {
         path.join(compilersDir, CompilerPlatform.WASM, "list.json"),
         mockCompilerList
       );
+      await fsExtra.outputJSON(
+        path.join(compilersDir, CompilerPlatform.BIN, "list.json"),
+        mockCompilerList
+      );
     }
 
     describe("When there's an already downloaded list", function () {

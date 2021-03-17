@@ -22,6 +22,7 @@ import { getInputFromCompilationJob } from "../internal/solidity/compiler/compil
 import {
   CompilerDownloader,
   CompilerPlatform,
+  isSolcJs,
 } from "../internal/solidity/compiler/downloader";
 import { DependencyGraph } from "../internal/solidity/dependencyGraph";
 import { Parser } from "../internal/solidity/parse";
@@ -510,7 +511,7 @@ subtask(TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD)
       );
 
       if (compilerPathResult === undefined) {
-        if (desiredPlatform === CompilerPlatform.WASM) {
+        if (isSolcJs(desiredPlatform)) {
           // if we were trying to download solcjs and it failed, there's nothing
           // we can do
           throw new HardhatError(ERRORS.SOLC.CANT_GET_COMPILER, {
@@ -524,7 +525,7 @@ subtask(TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD)
 
         // when using a native binary, check that it works correctly
         // it it doesn't, force the downloader to use solcjs
-        if (compilerPathResult.platform !== CompilerPlatform.WASM) {
+        if (!isSolcJs(compilerPathResult.platform)) {
           log("Checking native solc binary");
 
           const solcBinaryWorks = await checkSolcBinary(
@@ -562,14 +563,21 @@ subtask(TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD)
         quiet,
       });
 
-      const isSolcJs = platform === CompilerPlatform.WASM;
-
       assertHardhatInvariant(
         compilerPath !== undefined,
         "A compilerPath should be defined at this point"
       );
+      assertHardhatInvariant(
+        platform !== undefined,
+        "A platform should be defined at this point"
+      );
 
-      return { compilerPath, isSolcJs, version: solcVersion, longVersion };
+      return {
+        compilerPath,
+        isSolcJs: isSolcJs(platform),
+        version: solcVersion,
+        longVersion,
+      };
     }
   );
 

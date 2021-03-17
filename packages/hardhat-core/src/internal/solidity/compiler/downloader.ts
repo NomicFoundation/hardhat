@@ -22,6 +22,7 @@ export enum CompilerPlatform {
   WINDOWS = "windows-amd64",
   MACOS = "macosx-amd64",
   WASM = "wasm",
+  BIN = "bin",
 }
 
 interface CompilerPath {
@@ -292,6 +293,12 @@ export class CompilerDownloader {
         return CompilerPlatform.WASM;
     }
   }
+}
+
+export function isSolcJs(platform: CompilerPlatform) {
+  return (
+    platform === CompilerPlatform.WASM || platform === CompilerPlatform.BIN
+  );
 }
 
 function getCompilerURL(platform: CompilerPlatform, filePath: string) {
