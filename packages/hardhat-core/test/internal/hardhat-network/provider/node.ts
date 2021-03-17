@@ -1,7 +1,8 @@
+import { Block } from "@ethereumjs/block";
+import Common from "@ethereumjs/common";
+import { Transaction } from "@ethereumjs/tx";
+import { PostByzantiumTxReceipt } from "@ethereumjs/vm/dist/runBlock";
 import { assert } from "chai";
-import Common from "ethereumjs-common";
-import { FakeTxData, Transaction } from "ethereumjs-tx";
-import FakeTransaction from "ethereumjs-tx/dist/fake";
 import { BN, bufferToHex, bufferToInt } from "ethereumjs-util";
 import path from "path";
 import sinon from "sinon";
@@ -13,12 +14,12 @@ import {
   ForkedNodeConfig,
   NodeConfig,
 } from "../../../../src/internal/hardhat-network/provider/node-types";
-import { Block } from "../../../../src/internal/hardhat-network/provider/types/Block";
 import { getCurrentTimestamp } from "../../../../src/internal/hardhat-network/provider/utils/getCurrentTimestamp";
 import { makeForkClient } from "../../../../src/internal/hardhat-network/provider/utils/makeForkClient";
 import { ALCHEMY_URL } from "../../../setup";
 import { assertQuantity } from "../helpers/assertions";
 import { EMPTY_ACCOUNT_ADDRESS } from "../helpers/constants";
+import { FakeTransaction, FakeTxData } from "../helpers/fakeTx";
 import {
   DEFAULT_ACCOUNTS,
   DEFAULT_ACCOUNTS_ADDRESSES,
@@ -137,7 +138,9 @@ describe("HardhatNode", () => {
         await node.mineBlock();
 
         await assertTransactionsWereMined([tx]);
-        const balance = await node.getAccountBalance(EMPTY_ACCOUNT_ADDRESS);
+        const balance = await node.getAccountBalance(
+          EMPTY_ACCOUNT_ADDRESS.toBuffer()
+        );
         assert.equal(balance.toString(), "1234");
       });
 
@@ -161,7 +164,9 @@ describe("HardhatNode", () => {
         await node.mineBlock();
 
         await assertTransactionsWereMined([tx1, tx2]);
-        const balance = await node.getAccountBalance(EMPTY_ACCOUNT_ADDRESS);
+        const balance = await node.getAccountBalance(
+          EMPTY_ACCOUNT_ADDRESS.toBuffer()
+        );
         assert.equal(balance.toString(), "2468");
       });
 
@@ -185,7 +190,9 @@ describe("HardhatNode", () => {
         await node.mineBlock();
 
         await assertTransactionsWereMined([tx1, tx2]);
-        const balance = await node.getAccountBalance(EMPTY_ACCOUNT_ADDRESS);
+        const balance = await node.getAccountBalance(
+          EMPTY_ACCOUNT_ADDRESS.toBuffer()
+        );
         assert.equal(balance.toString(), "2468");
       });
 
@@ -273,12 +280,14 @@ describe("HardhatNode", () => {
         assertQuantity(tx2Receipt?.gasUsed, 21_000);
 
         const block = await node.getLatestBlock();
-        assert.equal(bufferToInt(block.header.gasUsed), 42_000);
+        assert.equal(block.header.gasUsed.toNumber(), 42_000);
       });
 
       it("assigns miner rewards", async () => {
         const miner = node.getCoinbaseAddress();
-        const initialMinerBalance = await node.getAccountBalance(miner);
+        const initialMinerBalance = await node.getAccountBalance(
+          miner.toBuffer()
+        );
 
         const oneEther = new BN(10).pow(new BN(18));
         const txFee = 21_000 * gasPrice;
@@ -294,7 +303,7 @@ describe("HardhatNode", () => {
         await node.sendTransaction(tx);
         await node.mineBlock();
 
-        const minerBalance = await node.getAccountBalance(miner);
+        const minerBalance = await node.getAccountBalance(miner.toBuffer());
         assert.equal(
           minerBalance.toString(),
           initialMinerBalance.add(minerReward).toString()
@@ -421,31 +430,31 @@ describe("HardhatNode", () => {
         await node.mineBlock();
         const block = await node.getLatestBlock();
 
-        assert.equal(bufferToInt(block.header.timestamp), now);
+        assert.equal(block.header.timestamp.toNumber(), now);
       });
 
       it("mines a block with an incremented timestamp if it clashes with the previous block", async () => {
         const firstBlock = await node.getLatestBlock();
-        const firstBlockTimestamp = bufferToInt(firstBlock.header.timestamp);
+        const firstBlockTimestamp = firstBlock.header.timestamp.toNumber();
 
         await node.mineBlock();
         const latestBlock = await node.getLatestBlock();
-        const latestBlockTimestamp = bufferToInt(latestBlock.header.timestamp);
+        const latestBlockTimestamp = latestBlock.header.timestamp.toNumber();
 
         assert.equal(latestBlockTimestamp, firstBlockTimestamp + 1);
       });
 
       it("assigns an incremented timestamp to each new block mined within the same second", async () => {
         const firstBlock = await node.getLatestBlock();
-        const firstBlockTimestamp = bufferToInt(firstBlock.header.timestamp);
+        const firstBlockTimestamp = firstBlock.header.timestamp.toNumber();
 
         await node.mineBlock();
         const secondBlock = await node.getLatestBlock();
-        const secondBlockTimestamp = bufferToInt(secondBlock.header.timestamp);
+        const secondBlockTimestamp = secondBlock.header.timestamp.toNumber();
 
         await node.mineBlock();
         const thirdBlock = await node.getLatestBlock();
-        const thirdBlockTimestamp = bufferToInt(thirdBlock.header.timestamp);
+        const thirdBlockTimestamp = thirdBlock.header.timestamp.toNumber();
 
         assert.equal(secondBlockTimestamp, firstBlockTimestamp + 1);
         assert.equal(thirdBlockTimestamp, secondBlockTimestamp + 1);
@@ -458,7 +467,7 @@ describe("HardhatNode", () => {
         await node.mineBlock();
 
         const block = await node.getLatestBlock();
-        const blockTimestamp = bufferToInt(block.header.timestamp);
+        const blockTimestamp = block.header.timestamp.toNumber();
         assert.equal(blockTimestamp, timestamp.toNumber());
       });
 
@@ -472,7 +481,7 @@ describe("HardhatNode", () => {
         await node.mineBlock();
 
         const block = await node.getLatestBlock();
-        const blockTimestamp = bufferToInt(block.header.timestamp);
+        const blockTimestamp = block.header.timestamp.toNumber();
         assert.equal(blockTimestamp, timestamp.toNumber() + 3);
       });
 
@@ -484,7 +493,7 @@ describe("HardhatNode", () => {
         await node.mineBlock(timestamp);
 
         const block = await node.getLatestBlock();
-        const blockTimestamp = bufferToInt(block.header.timestamp);
+        const blockTimestamp = block.header.timestamp.toNumber();
         assert.equal(blockTimestamp, timestamp.toNumber());
       });
 
@@ -494,7 +503,7 @@ describe("HardhatNode", () => {
         await node.mineBlock();
 
         const block = await node.getLatestBlock();
-        const blockTimestamp = bufferToInt(block.header.timestamp);
+        const blockTimestamp = block.header.timestamp.toNumber();
         assert.equal(blockTimestamp, now + 30);
       });
 
@@ -508,7 +517,7 @@ describe("HardhatNode", () => {
             await node.mineBlock();
 
             const block = await node.getLatestBlock();
-            const blockTimestamp = bufferToInt(block.header.timestamp);
+            const blockTimestamp = block.header.timestamp.toNumber();
             assert.equal(blockTimestamp, timestamp.toNumber());
           });
 
@@ -523,7 +532,7 @@ describe("HardhatNode", () => {
             await node.mineBlock();
 
             const block = await node.getLatestBlock();
-            const blockTimestamp = bufferToInt(block.header.timestamp);
+            const blockTimestamp = block.header.timestamp.toNumber();
             assert.equal(blockTimestamp, timestamp.toNumber() + 3);
           });
         }
@@ -615,10 +624,11 @@ describe("HardhatNode", () => {
 
         const [common, forkedNode] = await HardhatNode.create(forkedNodeConfig);
 
-        const block = new Block(rpcToBlockData(rpcBlock), { common });
+        const block = Block.fromBlockData(rpcToBlockData(rpcBlock), { common });
 
         forkedNode["_vmTracer"].disableTracing();
-        block.header.receiptTrie = Buffer.alloc(32, 0);
+        // receiptTrie is `readonly`
+        (block.header as any).receiptTrie = Buffer.alloc(32, 0);
         const result = await forkedNode["_vm"].runBlock({
           block,
           generate: true,
@@ -642,7 +652,7 @@ describe("HardhatNode", () => {
         if (localReceiptRoot !== remoteReceiptRoot) {
           for (let i = 0; i < block.transactions.length; i++) {
             const tx = block.transactions[i];
-            const txHash = bufferToHex(tx.hash(true));
+            const txHash = bufferToHex(tx.hash());
 
             const remoteReceipt = (await forkClient["_httpProvider"].request({
               method: "eth_getTransactionReceipt",
@@ -665,7 +675,7 @@ describe("HardhatNode", () => {
             );
 
             assert.equal(
-              localReceipt.status,
+              (localReceipt as PostByzantiumTxReceipt).status,
               remoteReceipt.status,
               `Status of tx index ${i} (${txHash}) should be the same`
             );
@@ -673,7 +683,7 @@ describe("HardhatNode", () => {
             assert.equal(
               evmResult.createdAddress === undefined
                 ? undefined
-                : `0x${evmResult.createdAddress.toString("hex")}`,
+                : `0x${evmResult.createdAddress.toString()}`,
               remoteReceipt.contractAddress,
               `Contract address created by tx index ${i} (${txHash}) should be the same`
             );

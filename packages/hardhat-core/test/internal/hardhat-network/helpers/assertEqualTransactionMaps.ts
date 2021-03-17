@@ -1,5 +1,5 @@
+import { Transaction } from "@ethereumjs/tx";
 import { assert } from "chai";
-import { Transaction } from "ethereumjs-tx";
 import { bufferToHex } from "ethereumjs-util";
 
 import { randomAddress } from "../../../../src/internal/hardhat-network/provider/fork/random";
@@ -39,7 +39,7 @@ function cloneTransaction({
 }: OrderedTransaction): OrderedTransaction {
   return {
     orderId,
-    data: new Transaction(data.raw),
+    data: Transaction.fromValuesArray(data.raw()),
   };
 }
 
@@ -52,12 +52,12 @@ describe("assertEqualTransactionMaps", () => {
     const tx2Copy = cloneTransaction(tx2);
 
     const actualMap: Map<string, OrderedTransaction[]> = new Map();
-    actualMap.set(bufferToHex(tx1.data.getSenderAddress()), [tx1]);
-    actualMap.set(bufferToHex(tx2.data.getSenderAddress()), [tx2]);
+    actualMap.set(tx1.data.getSenderAddress().toString(), [tx1]);
+    actualMap.set(tx2.data.getSenderAddress().toString(), [tx2]);
 
     const expectedMap = new Map(actualMap);
-    expectedMap.set(bufferToHex(tx1.data.getSenderAddress()), [tx1Copy]);
-    expectedMap.set(bufferToHex(tx2.data.getSenderAddress()), [tx2Copy]);
+    expectedMap.set(tx1.data.getSenderAddress().toString(), [tx1Copy]);
+    expectedMap.set(tx2.data.getSenderAddress().toString(), [tx2Copy]);
 
     assert.doesNotThrow(() => {
       assertEqualTransactionMaps(actualMap, expectedMap);
@@ -95,11 +95,11 @@ describe("assertEqualTransactionMaps", () => {
     const txB1Copy = cloneTransaction(txB1);
 
     const actualMap: Map<string, OrderedTransaction[]> = new Map();
-    actualMap.set(accountA, [txA1, txA2]);
+    actualMap.set(accountA.toString(), [txA1, txA2]);
 
     const expectedMap = new Map(actualMap);
-    expectedMap.set(accountA, [txA1Copy, txA2Copy]);
-    expectedMap.set(accountB, [txB1Copy]);
+    expectedMap.set(accountA.toString(), [txA1Copy, txA2Copy]);
+    expectedMap.set(accountB.toString(), [txB1Copy]);
 
     assert.throws(() => {
       assertEqualTransactionMaps(actualMap, expectedMap);
@@ -133,12 +133,12 @@ describe("assertEqualTransactionMaps", () => {
     const txA2Copy = cloneTransaction(txA2);
 
     const actualMap: Map<string, OrderedTransaction[]> = new Map();
-    actualMap.set(accountA, [txA1, txA2]);
-    actualMap.set(accountB, []);
+    actualMap.set(accountA.toString(), [txA1, txA2]);
+    actualMap.set(accountB.toString(), []);
 
     const expectedMap = new Map(actualMap);
-    expectedMap.set(accountA, [txA1Copy, txA2Copy]);
-    actualMap.set(accountC, []);
+    expectedMap.set(accountA.toString(), [txA1Copy, txA2Copy]);
+    actualMap.set(accountC.toString(), []);
 
     assert.throws(() => {
       assertEqualTransactionMaps(actualMap, expectedMap);
@@ -182,12 +182,12 @@ describe("assertEqualTransactionMaps", () => {
     const txB1Copy = cloneTransaction(txB1);
 
     const actualMap: Map<string, OrderedTransaction[]> = new Map();
-    actualMap.set(accountA, [txA1, txA3]);
-    actualMap.set(accountB, [txB1]);
+    actualMap.set(accountA.toString(), [txA1, txA3]);
+    actualMap.set(accountB.toString(), [txB1]);
 
     const expectedMap = new Map(actualMap);
-    expectedMap.set(accountA, [txA1Copy, txA2Copy]);
-    expectedMap.set(accountB, [txB1Copy]);
+    expectedMap.set(accountA.toString(), [txA1Copy, txA2Copy]);
+    expectedMap.set(accountB.toString(), [txB1Copy]);
 
     assert.throws(() => {
       assertEqualTransactionMaps(actualMap, expectedMap);

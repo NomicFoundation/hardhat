@@ -5,7 +5,7 @@ Hardhat comes built-in with Hardhat Network, a local Ethereum network designed f
 ## How does it work?
 
 - It mines a block with each transaction that it receives, in order and with no delay.
-- It's backed by the `ethereumjs-vm` EVM implementation, the same one used by ganache, Remix and Ethereum Studio.
+- It's backed by the `@ethereumjs/vm` EVM implementation, the same one used by ganache, Remix and Ethereum Studio.
 - It supports the following hardforks:
   - byzantium
   - constantinople
@@ -72,7 +72,7 @@ error message in the following cases:
 
 - Calling a non-payable function with ETH
 
-- Sending ETH to a contract without a payable fallback or receive function 
+- Sending ETH to a contract without a payable fallback or receive function
 
 - Calling a non-existent function when there's no fallback function
 

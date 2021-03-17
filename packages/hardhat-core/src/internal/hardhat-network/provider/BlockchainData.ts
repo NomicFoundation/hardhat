@@ -1,11 +1,11 @@
-import Bloom from "@nomiclabs/ethereumjs-vm/dist/bloom";
-import { Transaction } from "ethereumjs-tx";
+import { Block } from "@ethereumjs/block";
+import { Transaction } from "@ethereumjs/tx";
+import Bloom from "@ethereumjs/vm/dist/bloom";
 import { BN, bufferToHex } from "ethereumjs-util";
 
 import { bloomFilter, filterLogs } from "./filter";
 import { FilterParams } from "./node-types";
 import { RpcLogOutput, RpcReceiptOutput } from "./output";
-import { Block } from "./types/Block";
 
 export class BlockchainData {
   private _blocksByNumber: Map<number, Block> = new Map();

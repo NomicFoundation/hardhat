@@ -75,6 +75,10 @@
     "time-require": "^0.1.2"
   },
   "dependencies": {
+    "@ethereumjs/block": "^3.1.0",
+    "@ethereumjs/common": "^2.1.0",
+    "@ethereumjs/tx": "^3.0.2",
+    "@ethereumjs/vm": "^5.1.0",
     "@nomiclabs/ethereumjs-vm": "4.2.2",
     "@sentry/node": "^5.18.1",
     "@solidity-parser/parser": "^0.11.0",
@@ -96,7 +100,7 @@
     "ethereumjs-block": "^2.2.2",
     "ethereumjs-common": "^1.5.0",
     "ethereumjs-tx": "^2.1.2",
-    "ethereumjs-util": "^6.2.0",
+    "ethereumjs-util": "^7.0.9",
     "find-up": "^2.1.0",
     "fp-ts": "1.19.3",
     "fs-extra": "^7.0.1",
@@ -104,7 +108,7 @@
     "immutable": "^4.0.0-rc.12",
     "io-ts": "1.10.4",
     "lodash": "^4.17.11",
-    "merkle-patricia-tree": "3.0.0",
+    "merkle-patricia-tree": "^4.1.0",
     "mnemonist": "^0.38.0",
     "mocha": "^7.1.2",
     "node-fetch": "^2.6.0",

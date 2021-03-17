@@ -1,6 +1,13 @@
-import Common from "ethereumjs-common";
-import { FakeTransaction, Transaction } from "ethereumjs-tx";
-import { BN, bufferToHex, bufferToInt, toBuffer } from "ethereumjs-util";
+import Common from "@ethereumjs/common";
+import { Transaction } from "@ethereumjs/tx";
+import { DefaultStateManager as StateManager } from "@ethereumjs/vm/dist/state";
+import {
+  Address,
+  BN,
+  bufferToHex,
+  bufferToInt,
+  toBuffer,
+} from "ethereumjs-util";
 import { List as ImmutableList, Record as ImmutableRecord } from "immutable";
 
 import { InvalidInputError } from "./errors";
@@ -14,25 +21,28 @@ import {
   SenderTransactions,
   SerializedTransaction,
 } from "./PoolState";
-import { PStateManager } from "./types/PStateManager";
 import { bnToHex } from "./utils/bnToHex";
+import { FakeTransaction } from "./utils/fakeTransaction";
 import { reorganizeTransactionsLists } from "./utils/reorganizeTransactionsLists";
 
 // tslint:disable only-hardhat-error
 
 function hashTx(tx: Transaction | FakeTransaction) {
-  return tx instanceof FakeTransaction ? tx.hash(false) : tx.hash(true);
+  // @ethereumjs/Transaction and hardhat/FakeTransaction implement
+  // their own `hash` fns, equivalent to tx@2.1.2's
+  // tx.hash(true), tx.hash(false) respectively
+  return tx.hash();
 }
 
 export function serializeTransaction(
   tx: OrderedTransaction
 ): SerializedTransaction {
-  const fields = tx.data.raw.map((field) => bufferToHex(field));
+  const fields = tx.data.raw().map((field) => bufferToHex(field));
   const immutableFields = ImmutableList(fields);
   const isFake = tx.data instanceof FakeTransaction;
   return makeSerializedTransaction({
     orderId: tx.orderId,
-    fakeFrom: isFake ? bufferToHex(tx.data.getSenderAddress()) : undefined,
+    fakeFrom: isFake ? tx.data.getSenderAddress().toString() : undefined,
     data: immutableFields,
   });
 }
@@ -52,9 +62,9 @@ export function deserializeTransaction(
   let data;
   if (fakeFrom !== undefined) {
     fields.from = fakeFrom;
-    data = new FakeTransaction(fields, { common });
+    data = FakeTransaction.fromValuesArray(fields, { common });
   } else {
-    data = new Transaction(fields, { common });
+    data = Transaction.fromValuesArray(fields, { common });
   }
   return {
     orderId: tx.get("orderId"),
@@ -73,7 +83,7 @@ export class TxPool {
   ) => OrderedTransaction;
 
   constructor(
-    private readonly _stateManager: PStateManager,
+    private readonly _stateManager: StateManager,
     blockGasLimit: BN,
     common: Common
   ) {
@@ -152,8 +162,10 @@ export class TxPool {
     const lastPendingTx = pendingTxs?.last(undefined);
 
     if (lastPendingTx === undefined) {
-      const account = await this._stateManager.getAccount(accountAddress);
-      return new BN(account.nonce);
+      const account = await this._stateManager.getAccount(
+        new Address(accountAddress)
+      );
+      return account.nonce;
     }
 
     const lastPendingTxNonce = retrieveNonce(lastPendingTx);
@@ -182,7 +194,7 @@ export class TxPool {
     // update pending transactions
     for (const [address, txs] of newPending) {
       const senderAccount = await this._stateManager.getAccount(
-        toBuffer(address)
+        Address.fromString(address)
       );
       const senderNonce = new BN(senderAccount.nonce);
       const senderBalance = new BN(senderAccount.balance);
@@ -223,7 +235,7 @@ export class TxPool {
     let newQueued = this._getQueued();
     for (const [address, txs] of newQueued) {
       const senderAccount = await this._stateManager.getAccount(
-        toBuffer(address)
+        Address.fromString(address)
       );
       const senderNonce = new BN(senderAccount.nonce);
       const senderBalance = new BN(senderAccount.balance);
@@ -247,7 +259,7 @@ export class TxPool {
 
   private _getSenderAddress(tx: Transaction): Buffer {
     try {
-      return tx.getSenderAddress(); // verifies signature
+      return tx.getSenderAddress().toBuffer(); // verifies signature
     } catch (e) {
       throw new InvalidInputError(e.message);
     }
@@ -287,7 +299,7 @@ export class TxPool {
       data: tx,
     });
 
-    const hexSenderAddress = bufferToHex(tx.getSenderAddress());
+    const hexSenderAddress = tx.getSenderAddress().toString();
     const accountTransactions: SenderTransactions =
       this._getPendingForAddress(hexSenderAddress) ?? ImmutableList();
 
@@ -307,7 +319,7 @@ export class TxPool {
       data: tx,
     });
 
-    const hexSenderAddress = bufferToHex(tx.getSenderAddress());
+    const hexSenderAddress = tx.getSenderAddress().toString();
     const accountTransactions: SenderTransactions =
       this._getQueuedForAddress(hexSenderAddress) ?? ImmutableList();
     this._setQueuedForAddress(
@@ -332,7 +344,7 @@ export class TxPool {
     if (this._txWithNonceExists(tx)) {
       throw new InvalidInputError(
         `Transaction with nonce ${bufferToInt(
-          tx.nonce
+          tx.nonce.toBuffer()
         )} already exists in transaction pool`
       );
     }
@@ -340,13 +352,15 @@ export class TxPool {
     const txNonce = new BN(tx.nonce);
 
     // Geth returns this error if trying to create a contract and no data is provided
-    if (tx.to.length === 0 && tx.data.length === 0) {
+    if (tx.to === undefined && tx.data.length === 0) {
       throw new InvalidInputError(
         "contract creation without any data provided"
       );
     }
 
-    const senderAccount = await this._stateManager.getAccount(senderAddress);
+    const senderAccount = await this._stateManager.getAccount(
+      new Address(senderAddress)
+    );
     const senderBalance = new BN(senderAccount.balance);
 
     if (tx.getUpfrontCost().gt(senderBalance)) {
@@ -383,7 +397,7 @@ export class TxPool {
   }
 
   private _knownTransaction(tx: Transaction): boolean {
-    const senderAddress = bufferToHex(tx.getSenderAddress());
+    const senderAddress = tx.getSenderAddress().toString();
     return (
       this._transactionExists(tx, this._getPendingForAddress(senderAddress)) ||
       this._transactionExists(tx, this._getQueuedForAddress(senderAddress))
@@ -401,7 +415,7 @@ export class TxPool {
   }
 
   private _txWithNonceExists(tx: Transaction): boolean {
-    const senderAddress = bufferToHex(tx.getSenderAddress());
+    const senderAddress = tx.getSenderAddress().toString();
     const queuedTxs: SenderTransactions =
       this._getQueuedForAddress(senderAddress) ?? ImmutableList();
 

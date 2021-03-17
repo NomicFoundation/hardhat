@@ -1,7 +1,8 @@
-import EthBlock from "ethereumjs-block";
-import Common from "ethereumjs-common";
-import { BufferLike, Transaction, TxData } from "ethereumjs-tx";
-import { BN } from "ethereumjs-util";
+/*import EthBlock, { BlockOptions } from "@ethereumjs/block";
+import { BlockHeader } from '@ethereumjs/block/dist/header';
+import Common from "@ethereumjs/common";
+import { Transaction, TxData } from "@ethereumjs/tx";
+import { BN, BufferLike } from "ethereumjs-util";
 
 import { Blockchain } from "./Blockchain";
 import { Callback } from "./Callback";
@@ -10,8 +11,10 @@ export const Block: BlockConstructor = EthBlock;
 
 // tslint:disable-next-line:no-misused-new
 type BlockConstructor = new (
-  data?: BlockData | null,
-  chainOptions?: { common: Common }
+  header?: BlockHeader,
+  transactions: Transaction[] = [],
+  uncleHeaders: BlockHeader[] = [],
+  opts: BlockOptions = {}
 ) => Block;
 
 export interface Block {
@@ -21,6 +24,7 @@ export interface Block {
   readonly txTrie: any;
 
   readonly _common: Common;
+  constructor(data?: BlockData | null | undefined, chainOptions?: { common: Common; } | undefined): Block;
 
   hash(): Buffer;
   isGenesis(): boolean;
@@ -94,4 +98,4 @@ export interface BlockHeaderData {
   extraData?: BufferLike;
   mixHash?: BufferLike;
   nonce?: BufferLike;
-}
+}*/

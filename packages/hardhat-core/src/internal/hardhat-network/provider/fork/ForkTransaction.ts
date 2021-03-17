@@ -1,11 +1,11 @@
+import { Transaction, TxData, TxOptions } from "@ethereumjs/tx";
 import {
+  BN,
   BufferLike,
+  bufferToInt,
+  ecrecover,
   PrefixedHexString,
-  Transaction,
-  TransactionOptions,
-  TxData,
-} from "ethereumjs-tx";
-import { BN, bufferToInt, ecrecover } from "ethereumjs-util";
+} from "ethereumjs-util";
 
 import { InternalError } from "../errors";
 
@@ -17,23 +17,18 @@ import { InternalError } from "../errors";
 export class ForkTransaction extends Transaction {
   private readonly _chainId: number;
 
-  constructor(
-    chainId: number,
-    data: Buffer | PrefixedHexString | BufferLike[] | TxData = {},
-    opts: TransactionOptions = {}
-  ) {
+  constructor(chainId: number, data: TxData = {}, opts: TxOptions = {}) {
     super(data, opts);
 
     this._chainId = chainId;
 
-    const msgHash = this.hash(false);
-    const v = bufferToInt(this.v);
+    const msgHash = this.hash();
 
     const senderPubKey = ecrecover(
       msgHash,
-      v,
-      this.r,
-      this.s,
+      (this as any).v,
+      (this as any).r.toBuffer(),
+      (this as any).s.toBuffer(),
       (this as any)._implementsEIP155() ? chainId : undefined
     );
 
@@ -48,7 +43,7 @@ export class ForkTransaction extends Transaction {
     return this._chainId;
   }
 
-  public sign() {
+  public sign(): Transaction {
     throw new InternalError("`sign` is not implemented in ForkTransaction");
   }
   public getDataFee(): BN {
@@ -67,9 +62,9 @@ export class ForkTransaction extends Transaction {
     );
   }
 
-  public validate(_?: false): boolean;
-  public validate(_: true): string;
-  public validate(_: boolean = false): boolean | string {
+  public validate(stringError?: false): boolean;
+  public validate(stringError: true): string[];
+  public validate(stringError: boolean = false): boolean | string[] {
     throw new InternalError("`validate` is not implemented in ForkTransaction");
   }
 

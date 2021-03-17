@@ -1,10 +1,12 @@
-import { RunBlockResult } from "@nomiclabs/ethereumjs-vm/dist/runBlock";
-import { Transaction } from "ethereumjs-tx";
+import { Block } from "@ethereumjs/block";
+import { Transaction } from "@ethereumjs/tx";
+import {
+  PostByzantiumTxReceipt,
+  RunBlockResult,
+} from "@ethereumjs/vm/dist/runBlock";
 import { BN, bufferToHex } from "ethereumjs-util";
 
 import { RpcLog, RpcTransactionReceipt } from "../jsonrpc/types";
-
-import { Block } from "./types/Block";
 
 export interface RpcBlockOutput {
   difficulty: string;
@@ -38,11 +40,11 @@ export interface RpcTransactionOutput {
   hash: string;
   input: string;
   nonce: string;
-  r: string; // This is documented as DATA, but implementations use QUANTITY
-  s: string; // This is documented as DATA, but implementations use QUANTITY
+  r: string | null; // This is documented as DATA, but implementations use QUANTITY
+  s: string | null; // This is documented as DATA, but implementations use QUANTITY
   to: string | null;
   transactionIndex: string | null;
-  v: string;
+  v: string | null;
   value: string;
 }
 
@@ -75,7 +77,7 @@ export interface RpcLogOutput {
 
 // tslint:disable only-hardhat-error
 
-export function numberToRpcQuantity(n: number | BN): string {
+export function numberToRpcQuantity(n: number | BN | undefined): string {
   // This is here because we have some any's from dependencies
   if (typeof n !== "number" && Buffer.isBuffer(n)) {
     throw new Error(`Expected a number and got ${n}`);
@@ -85,7 +87,7 @@ export function numberToRpcQuantity(n: number | BN): string {
     n = new BN(n);
   }
 
-  return `0x${n.toString(16)}`;
+  return `0x${n?.toString(16)}`;
 }
 
 export function bufferToRpcData(buffer: Buffer, pad: number = 0): string {
@@ -104,7 +106,7 @@ export function getRpcBlock(
 ): RpcBlockOutput {
   const transactions = includeTransactions
     ? block.transactions.map((tx, index) => getRpcTransaction(tx, block, index))
-    : block.transactions.map((tx) => bufferToRpcData(tx.hash(true)));
+    : block.transactions.map((tx) => bufferToRpcData(tx.hash()));
 
   return {
     number: pending ? null : numberToRpcQuantity(new BN(block.header.number)),
@@ -119,7 +121,7 @@ export function getRpcBlock(
     transactionsRoot: bufferToRpcData(block.header.transactionsTrie),
     stateRoot: bufferToRpcData(block.header.stateRoot),
     receiptsRoot: bufferToRpcData(block.header.receiptTrie),
-    miner: bufferToRpcData(block.header.coinbase),
+    miner: bufferToRpcData(block.header.coinbase.toBuffer()),
     difficulty: numberToRpcQuantity(new BN(block.header.difficulty)),
     totalDifficulty: numberToRpcQuantity(totalDifficulty),
     extraData: bufferToRpcData(block.header.extraData),
@@ -154,18 +156,18 @@ export function getRpcTransaction(
       block === "pending"
         ? null
         : numberToRpcQuantity(new BN(block.header.number)),
-    from: bufferToRpcData(tx.getSenderAddress()),
+    from: bufferToRpcData(tx.getSenderAddress().toBuffer()),
     gas: numberToRpcQuantity(new BN(tx.gasLimit)),
     gasPrice: numberToRpcQuantity(new BN(tx.gasPrice)),
-    hash: bufferToRpcData(tx.hash(true)),
+    hash: bufferToRpcData(tx.hash()),
     input: bufferToRpcData(tx.data),
     nonce: numberToRpcQuantity(new BN(tx.nonce)),
-    to: tx.to.length === 0 ? null : bufferToRpcData(tx.to),
+    to: tx.to === undefined ? null : bufferToRpcData(tx.to.toBuffer()),
     transactionIndex: index !== undefined ? numberToRpcQuantity(index) : null,
     value: numberToRpcQuantity(new BN(tx.value)),
-    v: numberToRpcQuantity(new BN(tx.v)),
-    r: numberToRpcQuantity(new BN(tx.r)),
-    s: numberToRpcQuantity(new BN(tx.s)),
+    v: tx.v !== undefined ? numberToRpcQuantity(new BN(tx.v)) : null,
+    r: tx.r !== undefined ? numberToRpcQuantity(new BN(tx.r)) : null,
+    s: tx.s !== undefined ? numberToRpcQuantity(new BN(tx.s as BN)) : null,
   };
 }
 
@@ -193,15 +195,17 @@ export function getRpcReceipts(
       transactionIndex: numberToRpcQuantity(i),
       blockHash: bufferToRpcData(block.hash()),
       blockNumber: numberToRpcQuantity(new BN(block.header.number)),
-      from: bufferToRpcData(tx.getSenderAddress()),
-      to: tx.to.length === 0 ? null : bufferToRpcData(tx.to),
+      from: bufferToRpcData(tx.getSenderAddress().toBuffer()),
+      to: tx.to === undefined ? null : bufferToRpcData(tx.to.toBuffer()),
       cumulativeGasUsed: numberToRpcQuantity(cumulativeGasUsed),
       gasUsed: numberToRpcQuantity(gasUsed),
       contractAddress:
-        createdAddress !== undefined ? bufferToRpcData(createdAddress) : null,
+        createdAddress !== undefined
+          ? bufferToRpcData(createdAddress.toBuffer())
+          : null,
       logs,
       logsBloom: bufferToRpcData(receipt.bitvector),
-      status: numberToRpcQuantity(receipt.status),
+      status: numberToRpcQuantity((receipt as PostByzantiumTxReceipt)?.status),
     });
   }
 

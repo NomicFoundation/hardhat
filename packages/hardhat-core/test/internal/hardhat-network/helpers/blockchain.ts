@@ -1,12 +1,8 @@
-import {
-  FakeTransaction,
-  FakeTxData,
-  Transaction,
-  TxData,
-} from "ethereumjs-tx";
-import { BN, bufferToHex } from "ethereumjs-util";
+import Common from "@ethereumjs/common";
+import { Transaction, TxData } from "@ethereumjs/tx";
+import { Address, BN, bufferToHex } from "ethereumjs-util";
 
-import { randomAddressBuffer } from "../../../../src/internal/hardhat-network/provider/fork/random";
+import { randomAddress } from "../../../../src/internal/hardhat-network/provider/fork/random";
 import {
   numberToRpcQuantity,
   RpcLogOutput,
@@ -18,18 +14,23 @@ import {
 } from "../../../../src/internal/hardhat-network/provider/PoolState";
 import { serializeTransaction } from "../../../../src/internal/hardhat-network/provider/TxPool";
 
+import { FakeTransaction, FakeTxData } from "./fakeTx";
+
 export function createTestTransaction(data: TxData = {}) {
-  return new Transaction({ to: randomAddressBuffer(), ...data });
+  return new Transaction({ to: randomAddress(), ...data });
 }
 
 export function createTestFakeTransaction(data: FakeTxData = {}) {
-  return new FakeTransaction({
-    to: randomAddressBuffer(),
-    from: randomAddressBuffer(),
-    nonce: 1,
-    gasLimit: 30000,
-    ...data,
-  });
+  return new FakeTransaction(
+    {
+      to: randomAddress(),
+      from: randomAddress(),
+      nonce: new BN(1),
+      gasLimit: 30000,
+      ...data,
+    },
+    { common: new Common({ chain: "mainnet" }) }
+  );
 }
 
 interface OrderedTxData extends FakeTxData {
@@ -67,7 +68,7 @@ export function createTestReceipt(
 
 export function createTestLog(blockNumber: BN | number): RpcLogOutput {
   const log: any = {
-    address: randomAddressBuffer(),
+    address: randomAddress(),
     blockNumber: numberToRpcQuantity(blockNumber),
     // we ignore other properties for test purposes
   };

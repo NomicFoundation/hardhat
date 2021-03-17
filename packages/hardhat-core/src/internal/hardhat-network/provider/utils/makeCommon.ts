@@ -1,4 +1,4 @@
-import Common from "ethereumjs-common";
+import Common from "@ethereumjs/common";
 import { bufferToHex } from "ethereumjs-util";
 
 import { dateToTimestampSeconds } from "../../../util/date";
@@ -33,11 +33,15 @@ export function makeCommon(
         hash: "0x",
         gasLimit: blockGasLimit,
         difficulty: 1,
-        nonce: "0x42",
+        // Error: nonce must be 8 bytes, received 1 bytes
+        // nonce: "0x42",
+        nonce: "0x0000000000000042",
         extraData: "0x1234",
         stateRoot: bufferToHex(stateTrie.root),
       },
     },
+    // "chainstart"
+    // ProviderError: Genesis parameters can only be set with a Common instance set to chainstart
     hardfork
   );
 }

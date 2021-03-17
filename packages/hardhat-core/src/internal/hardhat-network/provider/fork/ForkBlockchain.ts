@@ -1,5 +1,6 @@
-import Common from "ethereumjs-common";
-import { Transaction } from "ethereumjs-tx";
+import { Block } from "@ethereumjs/block";
+import Common from "@ethereumjs/common";
+import { Transaction } from "@ethereumjs/tx";
 import { BN, bufferToInt } from "ethereumjs-util";
 
 import { JsonRpcClient } from "../../jsonrpc/client";
@@ -16,7 +17,6 @@ import {
   toRpcLogOutput,
   toRpcReceiptOutput,
 } from "../output";
-import { Block } from "../types/Block";
 import { Blockchain } from "../types/Blockchain";
 import { PBlockchain, toBlockchain } from "../types/PBlockchain";
 
@@ -242,7 +242,7 @@ export class ForkBlockchain implements PBlockchain {
       transactions: [],
     });
 
-    const block = new Block(blockData, { common: this._common });
+    const block = Block.fromBlockData(blockData, { common: this._common });
     const chainId = this._jsonRpcClient.getNetworkId();
 
     for (const transaction of rpcBlock.transactions) {
@@ -283,7 +283,7 @@ export class ForkBlockchain implements PBlockchain {
       throw new Error("Cannot delete remote block");
     }
 
-    const blockNumber = bufferToInt(block.header.number);
+    const blockNumber = bufferToInt(block.header.number.toBuffer());
     for (let i = blockNumber; this._latestBlockNumber.gten(i); i++) {
       const current = this._data.getBlockByNumber(new BN(i));
       if (current !== undefined) {

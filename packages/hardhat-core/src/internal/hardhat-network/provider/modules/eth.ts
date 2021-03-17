@@ -1,5 +1,6 @@
-import Common from "ethereumjs-common";
-import { Transaction } from "ethereumjs-tx";
+import { Block } from "@ethereumjs/block";
+import Common from "@ethereumjs/common";
+import { Transaction } from "@ethereumjs/tx";
 import {
   BN,
   bufferToHex,
@@ -61,7 +62,6 @@ import {
   RpcReceiptOutput,
   RpcTransactionOutput,
 } from "../output";
-import { Block } from "../types/Block";
 
 import { ModulesLogger } from "./logger";
 
@@ -356,7 +356,7 @@ export class EthModule {
   }
 
   private async _coinbaseAction(): Promise<string> {
-    return bufferToHex(this._node.getCoinbaseAddress());
+    return this._node.getCoinbaseAddress().toString();
   }
 
   // eth_compileLLL
@@ -870,7 +870,7 @@ export class EthModule {
   private async _sendRawTransactionAction(rawTx: Buffer): Promise<string> {
     let tx: Transaction;
     try {
-      tx = new Transaction(rawTx, { common: this._common });
+      tx = Transaction.fromRlpSerializedTx(rawTx, { common: this._common });
     } catch (error) {
       if (error.message === "invalid remainder") {
         throw new InvalidInputError("Invalid transaction");
@@ -1048,7 +1048,7 @@ export class EthModule {
     rpcTx: RpcTransactionRequest
   ): Promise<TransactionParams> {
     return {
-      to: rpcTx.to !== undefined ? rpcTx.to : Buffer.from([]),
+      to: rpcTx.to !== undefined ? rpcTx.to : undefined,
       from: rpcTx.from,
       gasLimit:
         rpcTx.gas !== undefined ? rpcTx.gas : this._node.getBlockGasLimit(),

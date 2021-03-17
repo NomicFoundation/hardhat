@@ -1,6 +1,6 @@
+import Common from "@ethereumjs/common";
 import chalk from "chalk";
 import debug from "debug";
-import Common from "ethereumjs-common";
 import { BN } from "ethereumjs-util";
 import { EventEmitter } from "events";
 import fsExtra from "fs-extra";
@@ -247,6 +247,7 @@ export class HardhatNetworkProvider extends EventEmitter
       this._logger,
       this._experimentalHardhatNetworkMessageTraceHooks
     );
+
     this._hardhatModule = new HardhatModule(
       node,
       (forkConfig?: ForkConfig) => this._reset(miningTimer, forkConfig),

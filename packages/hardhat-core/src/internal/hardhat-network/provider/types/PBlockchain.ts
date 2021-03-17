@@ -1,11 +1,11 @@
-import { Transaction } from "ethereumjs-tx";
+import { Block } from "@ethereumjs/block";
+import { Transaction } from "@ethereumjs/tx";
 import { BN } from "ethereumjs-util";
 import { callbackify } from "util";
 
 import { FilterParams } from "../node-types";
 import { RpcLogOutput, RpcReceiptOutput } from "../output";
 
-import { Block } from "./Block";
 import { Blockchain } from "./Blockchain";
 import { Callback } from "./Callback";
 
@@ -42,15 +42,13 @@ export function toBlockchain(pb: PBlockchain): Blockchain {
     try {
       pb.deleteBlock(blockHash);
     } catch (e) {
-      cb(e);
       return;
     }
-    cb(null);
   }
 
   return {
-    getBlock: callbackify(getBlock),
-    putBlock: callbackify(pb.addBlock.bind(pb)),
+    getBlock,
+    putBlock: pb.addBlock.bind(pb),
     delBlock,
     getDetails,
     iterator,

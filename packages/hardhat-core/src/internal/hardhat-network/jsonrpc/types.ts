@@ -1,6 +1,14 @@
+import { BN } from "ethereumjs-util";
 import * as t from "io-ts";
 
 import { rpcAddress, rpcData, rpcHash, rpcQuantity } from "../provider/input";
+
+// Without this BN import, tsc has 5 errors similar to:
+// ```
+// The inferred type of 'rpcTransaction' cannot be named without a reference to
+// 'ethereumjs-util/node_modules/@types/bn.js'. This is likely not portable.
+// A type annotation is necessary.
+// ```
 
 export function decode<T>(value: unknown, codec: t.Type<T>) {
   return codec.decode(value).fold(() => {

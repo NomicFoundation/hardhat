@@ -1,8 +1,7 @@
-import StateManager from "@nomiclabs/ethereumjs-vm/dist/state/stateManager";
+import Common from "@ethereumjs/common";
+import StateManager from "@ethereumjs/vm/dist/state/stateManager";
 import { assert } from "chai";
-import Account from "ethereumjs-account";
-import Common from "ethereumjs-common";
-import { BN, bufferToHex, toBuffer } from "ethereumjs-util";
+import { Account, Address, BN, bufferToHex, toBuffer } from "ethereumjs-util";
 
 import { InvalidInputError } from "../../../../src/internal/hardhat-network/provider/errors";
 import {
@@ -27,26 +26,23 @@ import {
 
 describe("Tx Pool", () => {
   const blockGasLimit = new BN(10_000_000);
-  let stateManager: PStateManager;
+  let stateManager: StateManager;
   let txPool: TxPool;
 
   beforeEach(() => {
-    stateManager = asPStateManager(new StateManager());
-    const common = new Common("mainnet", "muirGlacier");
+    stateManager = new StateManager();
+    const common = new Common({ chain: "mainnet", hardfork: "muirGlacier" });
     txPool = new TxPool(stateManager, blockGasLimit, common);
   });
 
   describe("addTransaction", () => {
     describe("for a single transaction sender", () => {
-      const address = randomAddressBuffer();
+      const address = randomAddress();
 
       describe("when the first transaction is added", () => {
         describe("when transaction nonce is equal to account nonce", () => {
           it("adds the transaction to pending", async () => {
-            await stateManager.putAccount(
-              address,
-              new Account({ nonce: new BN(0) })
-            );
+            await stateManager.putAccount(address, new Account(new BN(0)));
             const tx = createTestFakeTransaction({
               from: address,
               nonce: 0,
@@ -61,10 +57,7 @@ describe("Tx Pool", () => {
 
         describe("when transaction nonce is higher than account nonce", () => {
           it("queues the transaction", async () => {
-            await stateManager.putAccount(
-              address,
-              new Account({ nonce: new BN(0) })
-            );
+            await stateManager.putAccount(address, new Account(new BN(0)));
             const tx = createTestFakeTransaction({
               from: address,
               nonce: 3,
@@ -78,10 +71,7 @@ describe("Tx Pool", () => {
 
         describe("when transaction nonce is lower than account nonce", () => {
           it("throws an error", async () => {
-            await stateManager.putAccount(
-              address,
-              new Account({ nonce: new BN(1) })
-            );
+            await stateManager.putAccount(address, new Account(new BN(1)));
             const tx = createTestFakeTransaction({
               from: address,
               nonce: 0,
@@ -98,10 +88,7 @@ describe("Tx Pool", () => {
 
       describe("when a subsequent transaction is added", () => {
         beforeEach(async () => {
-          await stateManager.putAccount(
-            address,
-            new Account({ nonce: new BN(0) })
-          );
+          await stateManager.putAccount(address, new Account(new BN(0)));
         });
 
         describe("when transaction nonce is equal to account executable nonce", () => {
@@ -224,18 +211,12 @@ describe("Tx Pool", () => {
     });
 
     describe("for multiple transaction senders", () => {
-      const address1 = randomAddressBuffer();
-      const address2 = randomAddressBuffer();
+      const address1 = randomAddress();
+      const address2 = randomAddress();
 
       beforeEach(async () => {
-        await stateManager.putAccount(
-          address1,
-          new Account({ nonce: new BN(0) })
-        );
-        await stateManager.putAccount(
-          address2,
-          new Account({ nonce: new BN(0) })
-        );
+        await stateManager.putAccount(address1, new Account(new BN(0)));
+        await stateManager.putAccount(address2, new Account(new BN(0)));
       });
 
       it("can add transactions from many senders", async () => {
@@ -484,10 +465,10 @@ describe("Tx Pool", () => {
       });
 
       it("rejects if sender doesn't have enough ether on their balance", async () => {
-        const address = randomAddressBuffer();
+        const address = randomAddress();
         await stateManager.putAccount(
           address,
-          new Account({ nonce: new BN(0), balance: toBuffer(0) })
+          new Account(new BN(0), new BN(0))
         );
 
         const tx = createTestFakeTransaction({
@@ -503,13 +484,10 @@ describe("Tx Pool", () => {
     });
 
     describe("assigning order ids", () => {
-      const address = randomAddressBuffer();
+      const address = randomAddress();
 
       beforeEach(async () => {
-        await stateManager.putAccount(
-          address,
-          new Account({ nonce: new BN(0) })
-        );
+        await stateManager.putAccount(address, new Account(new BN(0)));
       });
 
       it("saves the order in which transactions were added", async () => {
@@ -559,7 +537,7 @@ describe("Tx Pool", () => {
 
       await txPool.addTransaction(tx);
 
-      const txFromTxPool = txPool.getTransactionByHash(tx.hash(false));
+      const txFromTxPool = txPool.getTransactionByHash(tx.hash());
 
       assert.deepEqual(txFromTxPool?.data.raw, tx.raw);
     });
@@ -574,7 +552,7 @@ describe("Tx Pool", () => {
 
       await txPool.addTransaction(tx);
 
-      const txFromTxPool = txPool.getTransactionByHash(tx.hash(false));
+      const txFromTxPool = txPool.getTransactionByHash(tx.hash());
 
       assert.deepEqual(txFromTxPool?.data.raw, tx.raw);
     });
@@ -705,16 +683,16 @@ describe("Tx Pool", () => {
   });
 
   describe("updatePendingAndQueued", () => {
-    const address1 = toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]);
-    const address2 = toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[1]);
+    const address1 = Address.fromString(DEFAULT_ACCOUNTS_ADDRESSES[0]);
+    const address2 = Address.fromString(DEFAULT_ACCOUNTS_ADDRESSES[1]);
     beforeEach(async () => {
       await stateManager.putAccount(
         address1,
-        new Account({ nonce: 0, balance: new BN(10).pow(new BN(18)) })
+        new Account(new BN(0), new BN(10).pow(new BN(18)))
       );
       await stateManager.putAccount(
         address2,
-        new Account({ nonce: 0, balance: new BN(10).pow(new BN(18)) })
+        new Account(new BN(0), new BN(10).pow(new BN(18)))
       );
     });
 
@@ -779,11 +757,11 @@ describe("Tx Pool", () => {
 
       await stateManager.putAccount(
         address1,
-        new Account({ nonce: 1, balance: new BN(10).pow(new BN(18)) })
+        new Account(new BN(1), new BN(10).pow(new BN(18)))
       );
       await stateManager.putAccount(
         address2,
-        new Account({ nonce: 1, balance: new BN(10).pow(new BN(18)) })
+        new Account(new BN(1), new BN(10).pow(new BN(18)))
       );
 
       await txPool.updatePendingAndQueued();
@@ -807,7 +785,7 @@ describe("Tx Pool", () => {
 
       await stateManager.putAccount(
         address1,
-        new Account({ nonce: 0, balance: new BN(0) })
+        new Account(new BN(0), new BN(0))
       );
 
       await txPool.updatePendingAndQueued();
@@ -828,7 +806,7 @@ describe("Tx Pool", () => {
 
       await stateManager.putAccount(
         address1,
-        new Account({ nonce: 0, balance: new BN(0) })
+        new Account(new BN(0), new BN(0))
       );
 
       await txPool.updatePendingAndQueued();
@@ -838,10 +816,10 @@ describe("Tx Pool", () => {
     });
 
     it("moves pending transactions to queued if needed", async () => {
-      const sender = randomAddressBuffer();
+      const sender = randomAddress();
       await stateManager.putAccount(
         sender,
-        new Account({ balance: new BN(10).pow(new BN(20)) })
+        new Account(new BN(0), new BN(10).pow(new BN(20)))
       );
 
       const tx0 = createTestFakeTransaction({
@@ -942,10 +920,10 @@ describe("Tx Pool", () => {
     });
 
     it("accepts transactions after a no-op update", async function () {
-      const sender = randomAddressBuffer();
+      const sender = randomAddress();
       await stateManager.putAccount(
         sender,
-        new Account({ balance: new BN(10).pow(new BN(20)) })
+        new Account(new BN(0), new BN(10).pow(new BN(20)))
       );
 
       const tx0 = createTestFakeTransaction({
@@ -1049,8 +1027,8 @@ describe("Tx Pool", () => {
     });
 
     it("reverts to the previous state of transactions", async () => {
-      const address = randomAddressBuffer();
-      await stateManager.putAccount(address, new Account({ nonce: new BN(0) }));
+      const address = randomAddress();
+      await stateManager.putAccount(address, new Account(new BN(0)));
       const tx1 = createTestOrderedTransaction({
         from: address,
         orderId: 0,

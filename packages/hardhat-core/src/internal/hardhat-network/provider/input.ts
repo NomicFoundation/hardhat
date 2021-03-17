@@ -1,4 +1,4 @@
-import { BN, isValidAddress, toBuffer } from "ethereumjs-util";
+import { BN, BufferLike, isValidAddress, toBuffer } from "ethereumjs-util";
 import * as t from "io-ts";
 import { PathReporter } from "io-ts/lib/PathReporter";
 
@@ -60,21 +60,25 @@ export const rpcQuantity = new t.Type<BN>(
   "QUANTITY",
   BN.isBN,
   (u, c) =>
-    isRpcQuantityString(u) ? t.success(new BN(toBuffer(u))) : t.failure(u, c),
+    isRpcQuantityString(u)
+      ? t.success(new BN(toBuffer(u as BufferLike)))
+      : t.failure(u, c),
   t.identity
 );
 
 export const rpcData = new t.Type<Buffer>(
   "DATA",
   Buffer.isBuffer,
-  (u, c) => (isRpcDataString(u) ? t.success(toBuffer(u)) : t.failure(u, c)),
+  (u, c) =>
+    isRpcDataString(u) ? t.success(toBuffer(u as BufferLike)) : t.failure(u, c),
   t.identity
 );
 
 export const rpcHash = new t.Type<Buffer>(
   "HASH",
   Buffer.isBuffer,
-  (u, c) => (isRpcHashString(u) ? t.success(toBuffer(u)) : t.failure(u, c)),
+  (u, c) =>
+    isRpcHashString(u) ? t.success(toBuffer(u as BufferLike)) : t.failure(u, c),
   t.identity
 );
 
@@ -110,7 +114,7 @@ export const rpcAddress = new t.Type<Buffer>(
   Buffer.isBuffer,
   (u, c) =>
     typeof u === "string" && isValidAddress(u)
-      ? t.success(toBuffer(u))
+      ? t.success(toBuffer(u as BufferLike))
       : t.failure(u, c),
   t.identity
 );
