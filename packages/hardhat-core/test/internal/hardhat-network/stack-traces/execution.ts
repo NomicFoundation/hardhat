@@ -3,8 +3,6 @@ import VM from "@ethereumjs/vm";
 import abi from "ethereumjs-abi";
 import { Account, Address, privateToAddress } from "ethereumjs-util";
 
-import { StateManager } from "../../../../src/internal/hardhat-network/provider/types/StateManager";
-import { promisify } from "../../../../src/internal/hardhat-network/provider/utils/promisify";
 import { MessageTrace } from "../../../../src/internal/hardhat-network/stack-traces/message-trace";
 import { VMTracer } from "../../../../src/internal/hardhat-network/stack-traces/vm-tracer";
 
@@ -89,6 +87,6 @@ export async function traceTransaction(
 }
 
 async function getNextNonce(vm: VM): Promise<Buffer> {
-  const acc = await vm.pStateManager.getAccount(senderAddress);
-  return acc.nonce;
+  const acc = await vm.stateManager.getAccount(new Address(senderAddress));
+  return acc.nonce.toBuffer();
 }

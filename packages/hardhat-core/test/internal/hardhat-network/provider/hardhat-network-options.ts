@@ -10,7 +10,7 @@ import { useEnvironment } from "../../../helpers/environment";
 import { expectErrorAsync } from "../../../helpers/errors";
 import { useFixtureProject } from "../../../helpers/project";
 
-describe.skip("Hardhat Network special options", function () {
+describe("Hardhat Network special options", function () {
   describe("allowUnlimitedContractSize", function () {
     // This is the compilation output of https://github.com/ethereum/solidity/blob/4d791b2679283d173896d118730c8b598bd2b7f6/test/libsolidity/syntaxTests/bytecode_too_large.sol
     const CONTRACT_BYTECODE =
