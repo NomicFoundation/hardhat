@@ -57,7 +57,7 @@ describe("Compiler downloader", function () {
         },
       });
       const compilerBin = require.resolve("solc/soljson.js");
-      await downloader.verifyCompiler(localCompilerBuild, compilerBin);
+      await downloader.verifyCompilerChecksum(localCompilerBuild, compilerBin);
     });
 
     it("Should throw if the download was unsuccessful, and delete it", async function () {
@@ -72,7 +72,11 @@ describe("Compiler downloader", function () {
       });
 
       await expectHardhatErrorAsync(
-        () => downloader.verifyCompiler(localCompilerBuild, corruptCompilerBin),
+        () =>
+          downloader.verifyCompilerChecksum(
+            localCompilerBuild,
+            corruptCompilerBin
+          ),
         ERRORS.SOLC.INVALID_DOWNLOAD
       );
 

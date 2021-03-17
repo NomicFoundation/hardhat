@@ -78,7 +78,7 @@ export class CompilerDownloader {
     return fsExtra.pathExists(downloadedFilePath);
   }
 
-  public async verifyCompiler(
+  public async verifyCompilerChecksum(
     compilerBuild: CompilerBuild,
     downloadedFilePath: string
   ) {
@@ -115,7 +115,7 @@ export class CompilerDownloader {
         await this.downloadCompiler(compilerBuild, downloadedFilePath);
       }
 
-      await this.verifyCompiler(compilerBuild, downloadedFilePath);
+      await this.verifyCompilerChecksum(compilerBuild, downloadedFilePath);
 
       if (
         compilerBuild.platform === CompilerPlatform.LINUX ||
