@@ -504,6 +504,8 @@ subtask(TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD)
 
       let compilerPath: string | undefined;
       let platform: CompilerPlatform | undefined;
+      let compilerVersion: string | undefined;
+      let compilerLongVersion: string | undefined;
       let nativeBinaryFailed = false;
 
       const compilerPathResult = await downloader.getDownloadedCompilerPath(
@@ -522,6 +524,9 @@ subtask(TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD)
         nativeBinaryFailed = true;
       } else {
         compilerPath = compilerPathResult.compilerPath;
+        platform = compilerPathResult.platform;
+        compilerVersion = compilerPathResult.version;
+        compilerLongVersion = compilerPathResult.longVersion;
 
         // when using a native binary, check that it works correctly
         // it it doesn't, force the downloader to use solcjs
@@ -555,6 +560,8 @@ subtask(TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD)
 
         compilerPath = solcjsCompilerPath.compilerPath;
         platform = CompilerPlatform.WASM;
+        compilerVersion = solcjsCompilerPath.version;
+        compilerLongVersion = solcjsCompilerPath.longVersion;
       }
 
       await run(TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_COMPILER_END, {
@@ -564,19 +571,18 @@ subtask(TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD)
       });
 
       assertHardhatInvariant(
-        compilerPath !== undefined,
-        "A compilerPath should be defined at this point"
-      );
-      assertHardhatInvariant(
-        platform !== undefined,
-        "A platform should be defined at this point"
+        compilerPath !== undefined &&
+          platform !== undefined &&
+          compilerVersion !== undefined &&
+          compilerLongVersion !== undefined,
+        "All the necessary variables should be defined at this point"
       );
 
       return {
         compilerPath,
         isSolcJs: isSolcJs(platform),
-        version: solcVersion,
-        longVersion,
+        version: compilerVersion,
+        longVersion: compilerLongVersion,
       };
     }
   );

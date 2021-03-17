@@ -28,6 +28,8 @@ export enum CompilerPlatform {
 interface CompilerPath {
   compilerPath: string; // absolute path
   platform: CompilerPlatform;
+  version: string;
+  longVersion: string;
 }
 
 export interface CompilersList {
@@ -140,6 +142,8 @@ export class CompilerDownloader {
       return {
         compilerPath: downloadedFilePath,
         platform: compilerBuild.platform,
+        version: compilerBuild.version,
+        longVersion: compilerBuild.longVersion,
       };
     } catch (e) {
       if (HardhatError.isHardhatError(e)) {
@@ -154,9 +158,10 @@ export class CompilerDownloader {
   }
 
   public async getCompilersList(
-    platform: CompilerPlatform
+    platform: CompilerPlatform,
+    { forceDownload } = { forceDownload: false }
   ): Promise<CompilersList> {
-    if (!this.compilersListExists(platform)) {
+    if (forceDownload || !this.compilersListExists(platform)) {
       await this.downloadCompilersList(platform);
     }
 
@@ -166,21 +171,21 @@ export class CompilerDownloader {
   public async getCompilerBuild(version: string): Promise<CompilerBuild> {
     const platform = this._getCurrentPlarform();
 
-    if (await this._versionExists(version, platform)) {
-      try {
-        return this._getCompilerBuildByPlatform(version, platform);
-      } catch (e) {
-        log("Couldn't download native compiler, using solcjs instead");
-      }
+    try {
+      return await this._getCompilerBuildByPlatform(version, platform);
+    } catch (e) {
+      log("Couldn't download native compiler, using solcjs instead");
     }
 
-    return this._getCompilerBuildByPlatform(version, CompilerPlatform.WASM);
+    return this._getCompilerBuildByPlatform(version, CompilerPlatform.WASM, {
+      tryLongVersion: false,
+    });
   }
 
   public async downloadCompilersList(platform: CompilerPlatform) {
     try {
       await this._download(
-        getCompilerListURL(platform),
+        getCompilersListURL(platform),
         this._getCompilersListPath(platform)
       );
     } catch (error) {
@@ -230,47 +235,63 @@ export class CompilerDownloader {
     );
   }
 
-  private async _fetchVersionPath(
-    version: string,
-    platform: CompilerPlatform
-  ): Promise<string | undefined> {
-    const compilersListExisted = await this.compilersListExists(platform);
-    let list = await this.getCompilersList(platform);
-    let compilerBuildPath = list.releases[version];
-
-    // We may need to re-download the compilers list.
-    if (compilerBuildPath === undefined && compilersListExisted) {
-      await fsExtra.unlink(this._getCompilersListPath(platform));
-
-      list = await this.getCompilersList(platform);
-      compilerBuildPath = list.releases[version];
-    }
-
-    return compilerBuildPath;
-  }
-
-  private async _versionExists(
-    version: string,
-    platform: CompilerPlatform
-  ): Promise<boolean> {
-    const versionPath = await this._fetchVersionPath(version, platform);
-    return versionPath !== undefined;
-  }
-
-  private async _getCompilerBuildByPlatform(
-    version: string,
-    platform: CompilerPlatform
-  ): Promise<CompilerBuild> {
-    const compilerBuildPath = await this._fetchVersionPath(version, platform);
-    const list = await this.getCompilersList(platform);
+  private _getCompilerBuildByPath(
+    list: CompilersList,
+    version: string
+  ): CompilerBuild {
+    const compilerBuildPath = list.releases[version];
     const compilerBuild = list.builds.find((b) => b.path === compilerBuildPath);
 
     if (compilerBuild === undefined) {
       throw new HardhatError(ERRORS.SOLC.INVALID_VERSION, { version });
     }
 
-    compilerBuild.platform = platform;
     return compilerBuild;
+  }
+
+  private async _getCompilerBuildByPlatform(
+    version: string,
+    platform: CompilerPlatform,
+    { tryLongVersion } = { tryLongVersion: true }
+  ): Promise<CompilerBuild> {
+    const compilersListExisted = this.compilersListExists(platform);
+    let list = await this.getCompilersList(platform);
+
+    if (list.releases[version] !== undefined) {
+      const compilerBuild = this._getCompilerBuildByPath(list, version);
+      compilerBuild.platform = platform;
+      return compilerBuild;
+    }
+
+    // We may need to re-download the compilers list.
+    if (compilersListExisted) {
+      await fsExtra.remove(this._getCompilersListPath(platform));
+
+      list = await this.getCompilersList(platform);
+
+      if (list.releases[version] !== undefined) {
+        const compilerBuild = this._getCompilerBuildByPath(list, version);
+        compilerBuild.platform = platform;
+        return compilerBuild;
+      }
+    }
+
+    // if after re-downloading we didn't find the path, we try with the bin
+    // builds and interpret the version as a longVersion
+    if (tryLongVersion && platform !== CompilerPlatform.BIN) {
+      const wasmList = await this.getCompilersList(CompilerPlatform.BIN, {
+        forceDownload: true,
+      });
+
+      for (const build of wasmList.builds) {
+        if (build.longVersion === version) {
+          build.platform = CompilerPlatform.BIN;
+          return build;
+        }
+      }
+    }
+
+    throw new HardhatError(ERRORS.SOLC.INVALID_VERSION, { version });
   }
 
   private _getCompilersListPath(platform: CompilerPlatform) {
@@ -305,6 +326,6 @@ function getCompilerURL(platform: CompilerPlatform, filePath: string) {
   return `${COMPILER_FILES_DIR_URL_SOLC}${platform}/${filePath}`;
 }
 
-function getCompilerListURL(platform: CompilerPlatform) {
+function getCompilersListURL(platform: CompilerPlatform) {
   return getCompilerURL(platform, "list.json");
 }
