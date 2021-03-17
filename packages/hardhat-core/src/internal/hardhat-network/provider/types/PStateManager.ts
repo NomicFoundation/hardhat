@@ -1,4 +1,4 @@
-import Account from "ethereumjs-account";
+import { Account } from "ethereumjs-util";
 
 export interface PStateManager {
   readonly getAccount: (address: Buffer) => Promise<Account>;

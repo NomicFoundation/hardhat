@@ -1,5 +1,5 @@
+import Common from "@ethereumjs/common";
 import { assert } from "chai";
-import Common from "ethereumjs-common";
 
 import {
   defaultHdAccountsConfigParams,

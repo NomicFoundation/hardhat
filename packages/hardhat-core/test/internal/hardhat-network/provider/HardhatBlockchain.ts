@@ -1,7 +1,6 @@
 import { Block } from "@ethereumjs/block";
 import { assert } from "chai";
-import { BufferLike } from "ethereumjs-tx";
-import { BN, zeros } from "ethereumjs-util";
+import { BN, BufferLike, zeros } from "ethereumjs-util";
 import { promisify } from "util";
 
 import { randomHashBuffer } from "../../../../src/internal/hardhat-network/provider/fork/random";

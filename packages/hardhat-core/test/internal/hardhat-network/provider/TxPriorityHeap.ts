@@ -5,8 +5,8 @@ import { randomAddressBuffer } from "../../../../src/internal/hardhat-network/pr
 import { OrderedTransaction } from "../../../../src/internal/hardhat-network/provider/PoolState";
 import { TxPriorityHeap } from "../../../../src/internal/hardhat-network/provider/TxPriorityHeap";
 import { createTestOrderedTransaction } from "../helpers/blockchain";
-import { makeOrderedTxMap } from "../helpers/makeOrderedTxMap";
 import { FakeTxData } from "../helpers/fakeTx";
+import { makeOrderedTxMap } from "../helpers/makeOrderedTxMap";
 
 function parseGWei(gwei: number) {
   return new BN(10).pow(new BN(9)).muln(gwei);

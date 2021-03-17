@@ -428,7 +428,9 @@ describe("Forked provider", function () {
 
         it("allows to impersonate a remote contract account", async function () {
           // Get Uniswap DAI exchange address
-          const getExchangeSelector = `0x06f2bf62${leftPad32(DAI_ADDRESS.toString())}`;
+          const getExchangeSelector = `0x06f2bf62${leftPad32(
+            DAI_ADDRESS.toString()
+          )}`;
           const result = await this.provider.send("eth_call", [
             {
               to: UNISWAP_FACTORY_ADDRESS.toString(),
