@@ -49,7 +49,9 @@ export class CompilationJob implements taskTypes.CompilationJob {
   public hasSolc9573Bug(): boolean {
     return (
       this.solidityConfig?.settings?.optimizer?.enabled === true &&
-      semver.satisfies(this.solidityConfig.version, SOLC_BUG_9573_VERSIONS)
+      semver.satisfies(this.solidityConfig.version, SOLC_BUG_9573_VERSIONS, {
+        includePrerelease: true,
+      })
     );
   }
 
@@ -248,7 +250,11 @@ function getCompilerConfigForFile(
 
   // if there's an override, we only check that
   if (overriddenCompiler !== undefined) {
-    if (!semver.satisfies(overriddenCompiler.version, versionRange)) {
+    if (
+      !semver.satisfies(overriddenCompiler.version, versionRange, {
+        includePrerelease: true,
+      })
+    ) {
       return getCompilationJobCreationError(
         file,
         directDependencies,
@@ -263,7 +269,9 @@ function getCompilerConfigForFile(
 
   // if there's no override, we find a compiler that matches the version range
   const compilerVersions = solidityConfig.compilers.map((x) => x.version);
-  const matchingVersion = semver.maxSatisfying(compilerVersions, versionRange);
+  const matchingVersion = semver.maxSatisfying(compilerVersions, versionRange, {
+    includePrerelease: true,
+  });
 
   if (matchingVersion === null) {
     return getCompilationJobCreationError(
@@ -290,7 +298,11 @@ function getCompilationJobCreationError(
   overriden: boolean
 ): CompilationJobCreationError {
   const fileVersionRange = file.content.versionPragmas.join(" ");
-  if (semver.maxSatisfying(compilerVersions, fileVersionRange) === null) {
+  if (
+    semver.maxSatisfying(compilerVersions, fileVersionRange, {
+      includePrerelease: true,
+    }) === null
+  ) {
     const reason = overriden
       ? CompilationJobCreationErrorReason.INCOMPATIBLE_OVERRIDEN_SOLC_VERSION
       : CompilationJobCreationErrorReason.NO_COMPATIBLE_SOLC_VERSION_FOUND;
@@ -300,7 +312,11 @@ function getCompilationJobCreationError(
   const incompatibleDirectImports: ResolvedFile[] = [];
   for (const dependency of directDependencies) {
     const dependencyVersionRange = dependency.content.versionPragmas.join(" ");
-    if (!semver.intersects(fileVersionRange, dependencyVersionRange)) {
+    if (
+      !semver.intersects(fileVersionRange, dependencyVersionRange, {
+        includePrerelease: true,
+      })
+    ) {
       incompatibleDirectImports.push(dependency);
     }
   }
@@ -320,7 +336,11 @@ function getCompilationJobCreationError(
   for (const transitiveDependency of transitiveDependencies) {
     const { dependency } = transitiveDependency;
     const dependencyVersionRange = dependency.content.versionPragmas.join(" ");
-    if (!semver.intersects(fileVersionRange, dependencyVersionRange)) {
+    if (
+      !semver.intersects(fileVersionRange, dependencyVersionRange, {
+        includePrerelease: true,
+      })
+    ) {
       incompatibleIndirectImports.push(transitiveDependency);
     }
   }
