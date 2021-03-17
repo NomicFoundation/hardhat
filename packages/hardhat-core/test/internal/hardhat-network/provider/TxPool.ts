@@ -23,7 +23,7 @@ import {
   DEFAULT_ACCOUNTS_ADDRESSES,
 } from "../helpers/providers";
 
-describe.only("Tx Pool", () => {
+describe("Tx Pool", () => {
   const blockGasLimit = new BN(10_000_000);
   let stateManager: StateManager;
   let txPool: TxPool;
