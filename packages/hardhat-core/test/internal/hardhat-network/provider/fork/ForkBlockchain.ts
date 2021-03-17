@@ -28,7 +28,7 @@ import {
   TOTAL_DIFFICULTY_OF_BLOCK_10496585,
 } from "../../helpers/constants";
 
-describe.skip("ForkBlockchain", () => {
+describe("ForkBlockchain", () => {
   let client: JsonRpcClient;
   let forkBlockNumber: BN;
   let common: Common;

@@ -2,7 +2,7 @@ import { Block } from "@ethereumjs/block";
 import { Transaction } from "@ethereumjs/tx";
 import ansiEscapes from "ansi-escapes";
 import chalk, { Chalk } from "chalk";
-import { BN, bufferToHex, bufferToInt } from "ethereumjs-util";
+import { BN, bufferToHex } from "ethereumjs-util";
 import util from "util";
 
 import { assertHardhatInvariant } from "../../../core/errors";
@@ -130,7 +130,7 @@ export class ModulesLogger {
       "The array of codes should have the same length as the array of results"
     );
 
-    const blockNumber = bufferToInt(result.block.header.number.toBuffer());
+    const blockNumber = result.block.header.number.toNumber();
     const isEmpty = result.block.transactions.length === 0;
 
     this._indent(() => {
@@ -209,11 +209,11 @@ export class ModulesLogger {
       this._logTxValue(new BN(tx.value));
       this._logWithTitle(
         "Gas used",
-        `${txGasUsed} of ${bufferToInt(tx.gasLimit.toBuffer())}`
+        `${txGasUsed} of ${tx.gasLimit.toNumber()}`
       );
 
       this._logWithTitle(
-        `Block #${bufferToInt(block.header.number.toBuffer())}`,
+        `Block #${block.header.number.toNumber()}`,
         bufferToHex(block.hash())
       );
 
@@ -247,11 +247,11 @@ export class ModulesLogger {
       this._logTxValue(new BN(tx.value));
       this._logWithTitle(
         "Gas used",
-        `${txGasUsed} of ${bufferToInt(tx.gasLimit.toBuffer())}`
+        `${txGasUsed} of ${tx.gasLimit.toNumber()}`
       );
 
       this._logWithTitle(
-        `Block #${bufferToInt(block.header.number.toBuffer())}`,
+        `Block #${block.header.number.toNumber()}`,
         bufferToHex(block.hash())
       );
 
@@ -507,7 +507,7 @@ export class ModulesLogger {
       this._logTxValue(new BN(tx.value));
       this._logWithTitle(
         "Gas used",
-        `${txGasUsed} of ${bufferToInt(tx.gasLimit.toBuffer())}`
+        `${txGasUsed} of ${tx.gasLimit.toNumber()}`
       );
 
       this._logConsoleLogMessages(txTrace.consoleLogMessages);
@@ -657,9 +657,7 @@ export class ModulesLogger {
 
   private _logBlockNumber(block: Block) {
     this._log(
-      `Block #${bufferToInt(block.header.number.toBuffer())}: ${bufferToHex(
-        block.hash()
-      )}`
+      `Block #${block.header.number.toNumber()}: ${bufferToHex(block.hash())}`
     );
   }
 

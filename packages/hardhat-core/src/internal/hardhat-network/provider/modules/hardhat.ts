@@ -125,7 +125,7 @@ export class HardhatModule {
 
   private async _intervalMineAction(): Promise<boolean> {
     const result = await this._node.mineBlock();
-    const blockNumber = bufferToInt(result.block.header.number.toBuffer());
+    const blockNumber = result.block.header.number.toNumber();
 
     const isEmpty = result.block.transactions.length === 0;
     if (isEmpty) {

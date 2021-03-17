@@ -136,7 +136,7 @@ export class HardhatBlockchain implements PBlockchain {
   }
 
   private _delBlock(block: Block): void {
-    const blockNumber = bufferToInt(block.header.number.toBuffer());
+    const blockNumber = block.header.number.toNumber();
     for (let i = blockNumber; i < this._length; i++) {
       const current = this._data.getBlockByNumber(new BN(i));
       if (current !== undefined) {

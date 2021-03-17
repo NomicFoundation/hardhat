@@ -5,6 +5,9 @@ import {
   bufferToInt,
   ecrecover,
   PrefixedHexString,
+  rlphash,
+  toBuffer,
+  unpadBuffer,
 } from "ethereumjs-util";
 
 import { InternalError } from "../errors";
@@ -24,6 +27,8 @@ export class ForkTransaction extends Transaction {
 
     const msgHash = this.hash();
 
+    // v,r,s cast to any because their type is BN | undefined.
+    // Not assignable to 'BNLike'.
     const senderPubKey = ecrecover(
       msgHash,
       (this as any).v,
@@ -72,6 +77,45 @@ export class ForkTransaction extends Transaction {
     throw new InternalError(
       "`toCreationAddress` is not implemented in ForkTransaction"
     );
+  }
+
+  // Ported from ethereumjs-tx `tx.hash(false)`
+  public hash(): Buffer {
+    let items;
+
+    if (this._implementsEIP155()) {
+      items = [
+        ...this.raw().slice(0, 6),
+        toBuffer(this.getChainId()),
+        unpadBuffer(toBuffer(0)),
+        unpadBuffer(toBuffer(0)),
+      ];
+    } else {
+      items = this.raw().slice(0, 6);
+    }
+
+    // create hash
+    return rlphash(items);
+  }
+
+  private _implementsEIP155(): boolean {
+    const onEIP155BlockOrLater = this.common.gteHardfork("spuriousDragon");
+
+    if (!this.isSigned()) {
+      // We sign with EIP155 all unsigned transactions after spuriousDragon
+      return onEIP155BlockOrLater;
+    }
+
+    // EIP155 spec:
+    // If block.number >= 2,675,000 and v = CHAIN_ID * 2 + 35 or v = CHAIN_ID * 2 + 36, then when computing
+    // the hash of a transaction for purposes of signing or recovering, instead of hashing only the first six
+    // elements (i.e. nonce, gasprice, startgas, to, value, data), hash nine elements, with v replaced by
+    // CHAIN_ID, r = 0 and s = 0.
+    const v = bufferToInt(this.v!.toBuffer());
+
+    const vAndChainIdMeetEIP155Conditions =
+      v === this.getChainId() * 2 + 35 || v === this.getChainId() * 2 + 36;
+    return vAndChainIdMeetEIP155Conditions && onEIP155BlockOrLater;
   }
 }
 
