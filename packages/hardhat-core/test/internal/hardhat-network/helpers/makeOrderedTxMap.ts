@@ -7,7 +7,7 @@ export function makeOrderedTxMap(
 ): Map<string, OrderedTransaction[]> {
   const map: Map<string, OrderedTransaction[]> = new Map();
   txs.forEach((tx) => {
-    const address = bufferToHex(tx.data.getSenderAddress());
+    const address = tx.data.getSenderAddress().toString();
     const txList = map.get(address) ?? [];
     txList.push(tx);
     map.set(address, txList);

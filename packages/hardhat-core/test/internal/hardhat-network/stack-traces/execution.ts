@@ -1,8 +1,7 @@
 import VM from "@ethereumjs/vm";
 import abi from "ethereumjs-abi";
-import Account from "ethereumjs-account";
-import { Transaction, TxData } from "ethereumjs-tx";
-import { privateToAddress } from "ethereumjs-util";
+import { Transaction, TxData } from "@ethereumjs/tx";
+import { privateToAddress, Address, Account } from "ethereumjs-util";
 
 import { StateManager } from "../../../../src/internal/hardhat-network/provider/types/StateManager";
 import { promisify } from "../../../../src/internal/hardhat-network/provider/utils/promisify";
@@ -16,12 +15,12 @@ const senderPrivateKey = Buffer.from(
 const senderAddress = privateToAddress(senderPrivateKey);
 
 export async function instantiateVm(): Promise<VM> {
-  const account = new Account({ balance: 1e18 });
+  const account = Account.fromAccountData({ balance: 1e18 });
 
   const vm = new VM({ activatePrecompiles: true });
 
-  await promisify(vm.stateManager.putAccount.bind(vm.stateManager))(
-    senderAddress,
+  await vm.stateManager.putAccount(
+    new Address(senderAddress),
     account
   );
 
@@ -73,9 +72,8 @@ export async function traceTransaction(
 
   tx.sign(senderPrivateKey);
 
-  const getContractCode = promisify(
-    (vm.stateManager as StateManager).getContractCode.bind(vm.stateManager)
-  );
+  const getContractCode = vm.stateManager.getContractCode;
+
   const vmTracer = new VMTracer(vm, getContractCode);
   vmTracer.enableTracing();
 

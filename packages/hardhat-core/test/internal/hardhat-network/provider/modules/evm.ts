@@ -332,14 +332,14 @@ describe("Evm module", function () {
           const tx1Hash = await this.provider.send("eth_sendTransaction", [
             {
               from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              to: bufferToHex(EMPTY_ACCOUNT_ADDRESS),
+              to: EMPTY_ACCOUNT_ADDRESS.toString(),
               gas: numberToRpcQuantity(21_000),
             },
           ]);
           await this.provider.send("eth_sendTransaction", [
             {
               from: DEFAULT_ACCOUNTS_ADDRESSES[1],
-              to: bufferToHex(EMPTY_ACCOUNT_ADDRESS),
+              to: EMPTY_ACCOUNT_ADDRESS.toString(),
               gas: numberToRpcQuantity(40_000),
             },
           ]);

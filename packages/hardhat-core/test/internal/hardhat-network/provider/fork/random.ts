@@ -1,7 +1,7 @@
 import { assert } from "chai";
 
 import {
-  randomAddress,
+  randomAddressString,
   randomHash,
 } from "../../../../../src/internal/hardhat-network/provider/fork/random";
 
@@ -16,6 +16,6 @@ describe("randomHash", () => {
 
 describe("randomAddress", () => {
   it("matches regex pattern", async () => {
-    assert.isTrue(ADDRESS_REGEX.test(randomAddress()));
+    assert.isTrue(ADDRESS_REGEX.test(randomAddressString()));
   });
 });
