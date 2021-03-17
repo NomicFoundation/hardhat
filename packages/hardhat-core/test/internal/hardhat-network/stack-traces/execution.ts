@@ -1,7 +1,7 @@
+import { Transaction, TxData } from "@ethereumjs/tx";
 import VM from "@ethereumjs/vm";
 import abi from "ethereumjs-abi";
-import { Transaction, TxData } from "@ethereumjs/tx";
-import { privateToAddress, Address, Account } from "ethereumjs-util";
+import { Account, Address, privateToAddress } from "ethereumjs-util";
 
 import { StateManager } from "../../../../src/internal/hardhat-network/provider/types/StateManager";
 import { promisify } from "../../../../src/internal/hardhat-network/provider/utils/promisify";
@@ -19,10 +19,7 @@ export async function instantiateVm(): Promise<VM> {
 
   const vm = new VM({ activatePrecompiles: true });
 
-  await vm.stateManager.putAccount(
-    new Address(senderAddress),
-    account
-  );
+  await vm.stateManager.putAccount(new Address(senderAddress), account);
 
   return vm;
 }
