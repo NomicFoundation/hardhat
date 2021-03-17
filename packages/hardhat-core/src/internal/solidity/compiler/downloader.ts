@@ -74,7 +74,7 @@ export class CompilerDownloader {
     const compilerBuild = await this.getCompilerBuild(version);
     const downloadedFilePath = this._getDownloadedFilePath(compilerBuild);
 
-    return this._fileExists(downloadedFilePath);
+    return fsExtra.pathExists(downloadedFilePath);
   }
 
   public async verifyCompiler(
@@ -110,7 +110,7 @@ export class CompilerDownloader {
 
       let downloadedFilePath = this._getDownloadedFilePath(compilerBuild);
 
-      if (!(await this._fileExists(downloadedFilePath))) {
+      if (!(await fsExtra.pathExists(downloadedFilePath))) {
         await this.downloadCompiler(compilerBuild, downloadedFilePath);
       }
 
@@ -274,10 +274,6 @@ export class CompilerDownloader {
 
   private _getCompilersListPath(platform: CompilerPlatform) {
     return path.join(this._compilersDir, platform, "list.json");
-  }
-
-  private async _fileExists(filePath: string) {
-    return fsExtra.pathExists(filePath);
   }
 
   private _getCurrentPlarform(): CompilerPlatform {
