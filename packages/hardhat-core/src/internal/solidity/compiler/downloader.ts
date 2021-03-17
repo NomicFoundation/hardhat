@@ -156,7 +156,7 @@ export class CompilerDownloader {
   public async getCompilersList(
     platform: CompilerPlatform
   ): Promise<CompilersList> {
-    if (!(await this.compilersListExists(platform))) {
+    if (!this.compilersListExists(platform)) {
       await this.downloadCompilersList(platform);
     }
 
@@ -218,8 +218,8 @@ export class CompilerDownloader {
     }
   }
 
-  public async compilersListExists(platform: CompilerPlatform) {
-    return fsExtra.pathExists(this._getCompilersListPath(platform));
+  public compilersListExists(platform: CompilerPlatform) {
+    return fsExtra.pathExistsSync(this._getCompilersListPath(platform));
   }
 
   private _getDownloadedFilePath(compilerBuild: CompilerBuild): string {

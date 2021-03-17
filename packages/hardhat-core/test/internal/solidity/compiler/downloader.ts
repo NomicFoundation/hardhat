@@ -173,9 +173,7 @@ describe("Compiler downloader", function () {
           throw new Error("This shouldn't be called");
         },
       });
-      assert.isTrue(
-        await downloader.compilersListExists(CompilerPlatform.WASM)
-      );
+      assert.isTrue(downloader.compilersListExists(CompilerPlatform.WASM));
     });
 
     it("should return false if it doesn't", async function () {
@@ -184,9 +182,7 @@ describe("Compiler downloader", function () {
           throw new Error("This shouldn't be called");
         },
       });
-      assert.isFalse(
-        await downloader.compilersListExists(CompilerPlatform.WASM)
-      );
+      assert.isFalse(downloader.compilersListExists(CompilerPlatform.WASM));
     });
   });
 
