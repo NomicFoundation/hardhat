@@ -283,7 +283,7 @@ export class ForkBlockchain implements PBlockchain {
       throw new Error("Cannot delete remote block");
     }
 
-    const blockNumber = bufferToInt(block.header.number.toBuffer());
+    const blockNumber = block.header.number.toNumber();
     for (let i = blockNumber; this._latestBlockNumber.gten(i); i++) {
       const current = this._data.getBlockByNumber(new BN(i));
       if (current !== undefined) {

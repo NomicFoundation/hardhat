@@ -326,11 +326,11 @@ export class HardhatNode extends EventEmitter {
       if (err?.message.includes("sender doesn't have enough funds")) {
         throw new InvalidInputError(err.message);
       }
-
       throw new TransactionExecutionError(err);
     }
 
     await this._saveBlockAsSuccessfullyRun(result.block, result.blockResult);
+
     if (needsTimestampIncrease) {
       this.increaseTime(new BN(1));
     }
@@ -1291,18 +1291,15 @@ export class HardhatNode extends EventEmitter {
     const header = BlockHeader.fromHeaderData(headerData, {
       common: this._vm._common,
     });
+
+    // Can this be removed / logic simplified here?
     const difficulty = header.canonicalDifficulty(latestBlock.header);
 
     const block = Block.fromBlockData(
       {
         header: {
-          gasLimit: this.getBlockGasLimit(),
-          number: new BN(latestBlock.header.number).addn(1),
-          parentHash: latestBlock.hash(),
-          coinbase: this.getCoinbaseAddress(),
-          nonce: "0x0000000000000042",
+          ...headerData,
           difficulty,
-          timestamp,
         },
       },
       { common: this._vm._common }

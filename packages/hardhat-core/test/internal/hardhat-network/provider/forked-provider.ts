@@ -50,7 +50,7 @@ const UniswapFactoryAbi = fsExtra.readJsonSync(
 
 const WETH_DEPOSIT_SELECTOR = "0xd0e30db0";
 
-describe.skip("Forked provider", function () {
+describe("Forked provider", function () {
   FORKED_PROVIDERS.forEach(({ rpcProvider, useProvider }) => {
     workaroundWindowsCiFailures({ isFork: true });
 

@@ -97,7 +97,11 @@ describe("ForkStateManager", () => {
       await fsm.putContractCode(address, code);
       await fsm.putAccount(
         address,
-        new Account(new BN(1), new BN(2), undefined, codeHash)
+        Account.fromAccountData({
+          nonce: new BN(1),
+          balance: new BN(2),
+          codeHash,
+        })
       );
 
       const account = await fsm.getAccount(address);
@@ -122,7 +126,10 @@ describe("ForkStateManager", () => {
   describe("putAccount", () => {
     it("can create a new account", async () => {
       const address = randomAddress();
-      const toPut = new Account(new BN(69), new BN(420));
+      const toPut = Account.fromAccountData({
+        nonce: new BN(69),
+        balance: new BN(420),
+      });
       await fsm.putAccount(address, toPut);
       const account = await fsm.getAccount(address);
 
@@ -137,12 +144,11 @@ describe("ForkStateManager", () => {
       const increasedBalance = new BN(account.balance).addn(1);
       await fsm.putAccount(
         WETH_ADDRESS,
-        new Account(
-          increasedNonce,
-          increasedBalance,
-          undefined,
-          account.codeHash
-        )
+        Account.fromAccountData({
+          nonce: increasedNonce,
+          balance: increasedBalance,
+          codeHash: account.codeHash,
+        })
       );
       const updatedAccount = await fsm.getAccount(WETH_ADDRESS);
       assert.isTrue(new BN(updatedAccount.nonce).eq(increasedNonce));
@@ -151,7 +157,10 @@ describe("ForkStateManager", () => {
     });
 
     it("can change the code stored if the codeHash is the hash of null", async () => {
-      const toPut = new Account(new BN(69), new BN(420));
+      const toPut = Account.fromAccountData({
+        nonce: new BN(69),
+        balance: new BN(420),
+      });
       await fsm.putAccount(WETH_ADDRESS, toPut);
 
       const wethContract = await fsm.getAccount(WETH_ADDRESS);
@@ -168,14 +177,20 @@ describe("ForkStateManager", () => {
 
     it("returns false for accounts with non-zero nonce", async () => {
       const address = randomAddress();
-      await fsm.putAccount(address, new Account(new BN(123)));
+      await fsm.putAccount(
+        address,
+        Account.fromAccountData({ nonce: new BN(123) })
+      );
       const result = await fsm.accountIsEmpty(address);
       assert.isFalse(result);
     });
 
     it("returns false for accounts with non-zero balance", async () => {
       const address = randomAddress();
-      await fsm.putAccount(address, new Account(new BN(123)));
+      await fsm.putAccount(
+        address,
+        Account.fromAccountData({ nonce: new BN(123) })
+      );
       const result = await fsm.accountIsEmpty(address);
       assert.isFalse(result);
     });
@@ -227,7 +242,10 @@ describe("ForkStateManager", () => {
 
     it("can set code of an existing account", async () => {
       const address = randomAddress();
-      const toPut = new Account(new BN(69), new BN(420));
+      const toPut = Account.fromAccountData({
+        nonce: new BN(69),
+        balance: new BN(420),
+      });
       await fsm.putAccount(address, toPut);
 
       const code = toBuffer("0xfeedface");
@@ -335,7 +353,10 @@ describe("ForkStateManager", () => {
 
     it("can set storage value of an existing account", async () => {
       const address = randomAddress();
-      const toPut = new Account(new BN(69), new BN(420));
+      const toPut = Account.fromAccountData({
+        nonce: new BN(69),
+        balance: new BN(420),
+      });
       await fsm.putAccount(address, toPut);
 
       const value = toBuffer("0xfeedface");

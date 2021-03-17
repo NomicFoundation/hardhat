@@ -247,7 +247,6 @@ export class HardhatNetworkProvider extends EventEmitter
       this._logger,
       this._experimentalHardhatNetworkMessageTraceHooks
     );
-
     this._hardhatModule = new HardhatModule(
       node,
       (forkConfig?: ForkConfig) => this._reset(miningTimer, forkConfig),

@@ -166,6 +166,7 @@ describe("Eth module", function () {
               this.provider,
               `0x${EXAMPLE_CONTRACT.bytecode.object}`
             );
+
             const result = await this.provider.send("eth_call", [
               { to: contractAddress, data: EXAMPLE_CONTRACT.selectors.i },
             ]);
