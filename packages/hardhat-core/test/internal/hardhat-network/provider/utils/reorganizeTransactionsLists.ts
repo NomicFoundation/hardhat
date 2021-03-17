@@ -1,9 +1,9 @@
 import { assert } from "chai";
-import { FakeTxData } from "ethereumjs-tx";
 import { List } from "immutable";
 
 import { reorganizeTransactionsLists } from "../../../../../src/internal/hardhat-network/provider/utils/reorganizeTransactionsLists";
 import { createTestSerializedTransaction } from "../../helpers/blockchain";
+import { FakeTxData } from "../../helpers/fakeTx";
 
 function getTestTransactionFactory() {
   let orderId = 0;

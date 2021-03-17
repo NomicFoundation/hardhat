@@ -7,10 +7,13 @@ export const randomHash = () => {
 
 let next: Buffer | undefined;
 export const randomHashBuffer = () => {
-  const { keccak256 } = require("ethereumjs-util") as typeof EthereumjsUtilT;
+  const {
+    keccakFromString,
+    keccak256,
+  } = require("ethereumjs-util") as typeof EthereumjsUtilT;
 
   if (next === undefined) {
-    next = keccak256("seed");
+    next = keccakFromString("seed");
   }
 
   const result = next;
@@ -20,6 +23,11 @@ export const randomHashBuffer = () => {
 };
 
 export const randomAddress = () => {
+  const { Address } = require("ethereumjs-util") as typeof EthereumjsUtilT;
+  return new Address(randomAddressBuffer());
+};
+
+export const randomAddressString = () => {
   const { bufferToHex } = require("ethereumjs-util") as typeof EthereumjsUtilT;
   return bufferToHex(randomAddressBuffer());
 };

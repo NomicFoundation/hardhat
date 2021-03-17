@@ -1,4 +1,4 @@
-import { BN, bufferToHex } from "ethereumjs-util";
+import { Address, BN, bufferToHex } from "ethereumjs-util";
 import fsExtra from "fs-extra";
 import * as t from "io-ts";
 import path from "path";
@@ -6,7 +6,7 @@ import path from "path";
 import { HttpProvider } from "../../core/providers/http";
 import { createNonCryptographicHashBasedIdentifier } from "../../util/hash";
 import { rpcData, rpcQuantity } from "../provider/input";
-import { numberToRpcQuantity } from "../provider/output";
+import { bufferToRpcData, numberToRpcQuantity } from "../provider/output";
 
 import {
   decode,
@@ -35,16 +35,17 @@ export class JsonRpcClient {
     return this._networkId;
   }
 
+  // Storage key must be 32 bytes long
   public async getStorageAt(
-    address: Buffer,
+    address: Address,
     position: BN,
     blockNumber: BN
   ): Promise<Buffer> {
     return this._perform(
       "eth_getStorageAt",
       [
-        bufferToHex(address),
-        numberToRpcQuantity(position),
+        address.toString(),
+        bufferToRpcData(position.toBuffer(), 64),
         numberToRpcQuantity(blockNumber),
       ],
       rpcData,
@@ -178,24 +179,24 @@ export class JsonRpcClient {
   }
 
   public async getAccountData(
-    address: Buffer,
+    address: Address,
     blockNumber: BN
   ): Promise<{ code: Buffer; transactionCount: BN; balance: BN }> {
     const results = await this._performBatch(
       [
         {
           method: "eth_getCode",
-          params: [bufferToHex(address), numberToRpcQuantity(blockNumber)],
+          params: [address.toString(), numberToRpcQuantity(blockNumber)],
           tType: rpcData,
         },
         {
           method: "eth_getTransactionCount",
-          params: [bufferToHex(address), numberToRpcQuantity(blockNumber)],
+          params: [address.toString(), numberToRpcQuantity(blockNumber)],
           tType: rpcQuantity,
         },
         {
           method: "eth_getBalance",
-          params: [bufferToHex(address), numberToRpcQuantity(blockNumber)],
+          params: [address.toString(), numberToRpcQuantity(blockNumber)],
           tType: rpcQuantity,
         },
       ],

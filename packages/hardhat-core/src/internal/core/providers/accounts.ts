@@ -1,4 +1,4 @@
-import { Transaction as TransactionT } from "ethereumjs-tx";
+import { Transaction as TransactionT, TxOptions } from "@ethereumjs/tx";
 
 import { EIP1193Provider, RequestArguments } from "../../../types";
 import { HardhatError } from "../errors";
@@ -171,16 +171,18 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
     chainId: number,
     privateKey: Buffer
   ): Promise<Buffer> {
-    const chains = require("ethereumjs-common/dist/chains");
+    const chains = require("@ethereumjs/common/dist/chains");
 
-    const { Transaction } = await import("ethereumjs-tx");
+    const { Transaction } = await import("@ethereumjs/tx");
     let transaction: TransactionT;
 
-    if (chains.chains.names[chainId] !== undefined) {
-      transaction = new Transaction(tx, { chain: chainId });
-    } else {
-      const { default: Common } = await import("ethereumjs-common");
+    const { default: Common } = await import("@ethereumjs/common");
 
+    if (chains.chains.names[chainId] !== undefined) {
+      transaction = Transaction.fromTxData(tx, {
+        common: new Common({ chain: chainId }),
+      });
+    } else {
       const common = Common.forCustomChain(
         "mainnet",
         {

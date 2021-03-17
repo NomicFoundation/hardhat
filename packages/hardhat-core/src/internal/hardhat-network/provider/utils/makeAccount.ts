@@ -1,5 +1,10 @@
-import Account from "ethereumjs-account";
-import { BN, privateToAddress, toBuffer } from "ethereumjs-util";
+import {
+  Account,
+  Address,
+  BN,
+  privateToAddress,
+  toBuffer,
+} from "ethereumjs-util";
 
 import { GenesisAccount } from "../node-types";
 
@@ -14,8 +19,8 @@ export function makeAccount(ga: GenesisAccount) {
     balance = new BN(ga.balance);
   }
 
-  const account = new Account({ balance });
+  const account = Account.fromAccountData({ balance });
   const pk = toBuffer(ga.privateKey);
-  const address = privateToAddress(pk);
+  const address = new Address(privateToAddress(pk));
   return { account, address };
 }

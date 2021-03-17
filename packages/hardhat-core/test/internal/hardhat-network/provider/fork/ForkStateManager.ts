@@ -1,19 +1,21 @@
 import { assert } from "chai";
-import Account from "ethereumjs-account";
 import {
+  Account,
+  Address,
   BN,
   bufferToHex,
   keccak256,
   KECCAK256_NULL,
+  setLengthLeft,
   toBuffer,
-  unpad,
+  unpadBuffer,
 } from "ethereumjs-util";
 import sinon from "sinon";
 
 import { JsonRpcClient } from "../../../../../src/internal/hardhat-network/jsonrpc/client";
 import { ForkStateManager } from "../../../../../src/internal/hardhat-network/provider/fork/ForkStateManager";
 import {
-  randomAddressBuffer,
+  randomAddress,
   randomHashBuffer,
 } from "../../../../../src/internal/hardhat-network/provider/fork/random";
 import { makeForkClient } from "../../../../../src/internal/hardhat-network/provider/utils/makeForkClient";
@@ -89,13 +91,13 @@ describe("ForkStateManager", () => {
     });
 
     it("works with accounts created locally", async () => {
-      const address = randomAddressBuffer();
+      const address = randomAddress();
       const code = toBuffer("0xb16b00b1e5");
       const codeHash = keccak256(code);
       await fsm.putContractCode(address, code);
       await fsm.putAccount(
         address,
-        new Account({ nonce: new BN(1), balance: new BN(2), codeHash })
+        new Account(new BN(1), new BN(2), undefined, codeHash)
       );
 
       const account = await fsm.getAccount(address);
@@ -119,8 +121,8 @@ describe("ForkStateManager", () => {
 
   describe("putAccount", () => {
     it("can create a new account", async () => {
-      const address = randomAddressBuffer();
-      const toPut = new Account({ nonce: new BN(69), balance: new BN(420) });
+      const address = randomAddress();
+      const toPut = new Account(new BN(69), new BN(420));
       await fsm.putAccount(address, toPut);
       const account = await fsm.getAccount(address);
 
@@ -135,11 +137,12 @@ describe("ForkStateManager", () => {
       const increasedBalance = new BN(account.balance).addn(1);
       await fsm.putAccount(
         WETH_ADDRESS,
-        new Account({
-          nonce: increasedNonce,
-          balance: increasedBalance,
-          codeHash: account.codeHash,
-        })
+        new Account(
+          increasedNonce,
+          increasedBalance,
+          undefined,
+          account.codeHash
+        )
       );
       const updatedAccount = await fsm.getAccount(WETH_ADDRESS);
       assert.isTrue(new BN(updatedAccount.nonce).eq(increasedNonce));
@@ -148,7 +151,7 @@ describe("ForkStateManager", () => {
     });
 
     it("can change the code stored if the codeHash is the hash of null", async () => {
-      const toPut = new Account({ nonce: new BN(69), balance: new BN(420) });
+      const toPut = new Account(new BN(69), new BN(420));
       await fsm.putAccount(WETH_ADDRESS, toPut);
 
       const wethContract = await fsm.getAccount(WETH_ADDRESS);
@@ -158,27 +161,27 @@ describe("ForkStateManager", () => {
 
   describe("accountIsEmpty", () => {
     it("returns true for empty accounts", async () => {
-      const address = randomAddressBuffer();
+      const address = randomAddress();
       const result = await fsm.accountIsEmpty(address);
       assert.isTrue(result);
     });
 
     it("returns false for accounts with non-zero nonce", async () => {
-      const address = randomAddressBuffer();
-      await fsm.putAccount(address, new Account({ nonce: new BN(123) }));
+      const address = randomAddress();
+      await fsm.putAccount(address, new Account(new BN(123)));
       const result = await fsm.accountIsEmpty(address);
       assert.isFalse(result);
     });
 
     it("returns false for accounts with non-zero balance", async () => {
-      const address = randomAddressBuffer();
-      await fsm.putAccount(address, new Account({ balance: new BN(123) }));
+      const address = randomAddress();
+      await fsm.putAccount(address, new Account(new BN(123)));
       const result = await fsm.accountIsEmpty(address);
       assert.isFalse(result);
     });
 
     it("returns false for accounts with non-empty code", async () => {
-      const address = randomAddressBuffer();
+      const address = randomAddress();
       await fsm.putContractCode(address, toBuffer("0xfafadada"));
       const result = await fsm.accountIsEmpty(address);
       assert.isFalse(result);
@@ -223,8 +226,8 @@ describe("ForkStateManager", () => {
     });
 
     it("can set code of an existing account", async () => {
-      const address = randomAddressBuffer();
-      const toPut = new Account({ nonce: new BN(69), balance: new BN(420) });
+      const address = randomAddress();
+      const toPut = new Account(new BN(69), new BN(420));
       await fsm.putAccount(address, toPut);
 
       const code = toBuffer("0xfeedface");
@@ -247,7 +250,7 @@ describe("ForkStateManager", () => {
         DAI_TOTAL_SUPPLY_STORAGE_POSITION
       );
 
-      assert.isTrue(fsmValue.equals(unpad(remoteValue)));
+      assert.isTrue(fsmValue.equals(unpadBuffer(remoteValue)));
     });
   });
 
@@ -260,17 +263,17 @@ describe("ForkStateManager", () => {
       );
       const fsmValue = await fsm.getOriginalContractStorage(
         DAI_ADDRESS,
-        DAI_TOTAL_SUPPLY_STORAGE_POSITION
+        setLengthLeft(DAI_TOTAL_SUPPLY_STORAGE_POSITION, 32)
       );
 
-      assert.isTrue(fsmValue.equals(unpad(remoteValue)));
+      assert.isTrue(fsmValue.equals(unpadBuffer(remoteValue)));
     });
 
     it("caches original storage value on first call and returns it for subsequent calls", async () => {
       const newValue = toBuffer("0xdeadbeef");
       const originalValue = await fsm.getOriginalContractStorage(
         DAI_ADDRESS,
-        DAI_TOTAL_SUPPLY_STORAGE_POSITION
+        setLengthLeft(DAI_TOTAL_SUPPLY_STORAGE_POSITION, 32)
       );
       assert.isNotTrue(originalValue.equals(newValue));
 
@@ -282,7 +285,7 @@ describe("ForkStateManager", () => {
 
       const cachedValue = await fsm.getOriginalContractStorage(
         DAI_ADDRESS,
-        DAI_TOTAL_SUPPLY_STORAGE_POSITION
+        setLengthLeft(DAI_TOTAL_SUPPLY_STORAGE_POSITION, 32)
       );
       assert.isTrue(cachedValue.equals(originalValue));
     });
@@ -292,7 +295,7 @@ describe("ForkStateManager", () => {
       const stateRoot = await fsm.getStateRoot();
       const originalValue = await fsm.getOriginalContractStorage(
         DAI_ADDRESS,
-        DAI_TOTAL_SUPPLY_STORAGE_POSITION
+        setLengthLeft(DAI_TOTAL_SUPPLY_STORAGE_POSITION, 32)
       );
       await fsm.putContractStorage(
         DAI_ADDRESS,
@@ -307,7 +310,7 @@ describe("ForkStateManager", () => {
       );
       const cachedValue = await fsm.getOriginalContractStorage(
         DAI_ADDRESS,
-        DAI_TOTAL_SUPPLY_STORAGE_POSITION
+        setLengthLeft(DAI_TOTAL_SUPPLY_STORAGE_POSITION, 32)
       );
       assert.isTrue(cachedValue.equals(originalValue));
     });
@@ -331,8 +334,8 @@ describe("ForkStateManager", () => {
     });
 
     it("can set storage value of an existing account", async () => {
-      const address = randomAddressBuffer();
-      const toPut = new Account({ nonce: new BN(69), balance: new BN(420) });
+      const address = randomAddress();
+      const toPut = new Account(new BN(69), new BN(420));
       await fsm.putAccount(address, toPut);
 
       const value = toBuffer("0xfeedface");
@@ -363,7 +366,7 @@ describe("ForkStateManager", () => {
     it("allows to checkpoint different state roots", async () => {
       const stateRootOne = await fsm.getStateRoot();
       await fsm.checkpoint();
-      await fsm.putContractCode(randomAddressBuffer(), toBuffer("0xdeadbeef"));
+      await fsm.putContractCode(randomAddress(), toBuffer("0xdeadbeef"));
       const stateRootTwo = await fsm.getStateRoot();
       await fsm.checkpoint();
       assert.deepEqual(fsm["_stateCheckpoints"], [
@@ -384,7 +387,7 @@ describe("ForkStateManager", () => {
 
     it("does not change current state root", async () => {
       await fsm.checkpoint();
-      await fsm.putContractCode(randomAddressBuffer(), toBuffer("0xdeadbeef"));
+      await fsm.putContractCode(randomAddress(), toBuffer("0xdeadbeef"));
       const beforeRoot = await fsm.getStateRoot();
       await fsm.commit();
       const afterRoot = await fsm.getStateRoot();
@@ -412,14 +415,14 @@ describe("ForkStateManager", () => {
     it("reverts the current state root back to the committed state", async () => {
       const initialRoot = await fsm.getStateRoot();
       await fsm.checkpoint();
-      await fsm.putContractCode(randomAddressBuffer(), toBuffer("0xdeadbeef"));
+      await fsm.putContractCode(randomAddress(), toBuffer("0xdeadbeef"));
       await fsm.revert();
       const stateRoot = await fsm.getStateRoot();
       assert.isTrue(stateRoot.equals(initialRoot));
     });
 
     it("does not revert more than one checkpoint back", async () => {
-      const address = randomAddressBuffer();
+      const address = randomAddress();
       await fsm.checkpoint();
       await fsm.putContractCode(address, toBuffer("0xdeadbeef"));
       await fsm.checkpoint();
@@ -442,7 +445,7 @@ describe("ForkStateManager", () => {
   describe("clearContractStorage", () => {
     it("can clear all locally set values", async () => {
       const value = toBuffer("0xfeedface");
-      const address = randomAddressBuffer();
+      const address = randomAddress();
       const position = toBuffer([2]);
       await fsm.putContractStorage(address, position, value);
       await fsm.clearContractStorage(address);
@@ -488,7 +491,7 @@ describe("ForkStateManager", () => {
 
     it("returns a different state root after storage modification", async () => {
       const root1 = await fsm.getStateRoot();
-      await fsm.putContractCode(randomAddressBuffer(), toBuffer("0xdeadbeef"));
+      await fsm.putContractCode(randomAddress(), toBuffer("0xdeadbeef"));
       const root2 = await fsm.getStateRoot();
       assert.isNotTrue(root1.equals(root2));
     });
@@ -505,7 +508,7 @@ describe("ForkStateManager", () => {
 
     it("allows to change current state root", async () => {
       const beforeRoot = await fsm.getStateRoot();
-      await fsm.putContractCode(randomAddressBuffer(), toBuffer("0xdeadbeef"));
+      await fsm.putContractCode(randomAddress(), toBuffer("0xdeadbeef"));
       const afterRoot = await fsm.getStateRoot();
       await fsm.setStateRoot(beforeRoot);
       const restoredRoot = await fsm.getStateRoot();
@@ -515,7 +518,7 @@ describe("ForkStateManager", () => {
 
     it("allows to change the state", async () => {
       const beforeRoot = await fsm.getStateRoot();
-      const address = randomAddressBuffer();
+      const address = randomAddress();
       assert.isTrue((await fsm.getContractCode(address)).equals(toBuffer([])));
       await fsm.putContractCode(address, toBuffer("0xdeadbeef"));
       assert.isTrue(
@@ -529,7 +532,7 @@ describe("ForkStateManager", () => {
   describe("dumpStorage", () => {
     it("throws not supported error", async () => {
       await assert.isRejected(
-        fsm.dumpStorage(randomAddressBuffer()),
+        fsm.dumpStorage(randomAddress()),
         Error,
         "dumpStorage is not supported when forking from remote network"
       );
@@ -571,20 +574,23 @@ describe("ForkStateManager", () => {
       const newValue = toBuffer("0xdeadbeef");
       const originalValue = await fsm.getOriginalContractStorage(
         DAI_ADDRESS,
-        DAI_TOTAL_SUPPLY_STORAGE_POSITION
+        setLengthLeft(DAI_TOTAL_SUPPLY_STORAGE_POSITION, 32)
       );
       assert.isNotTrue(originalValue.equals(newValue));
 
+      // Important: putContractStorage is implemented without position length checks in
+      // FSM, whereas getOriginalContractStorage uses underlying StateManager (which checks).
+      // These need to be brought into sync...
       await fsm.putContractStorage(
         DAI_ADDRESS,
-        DAI_TOTAL_SUPPLY_STORAGE_POSITION,
+        setLengthLeft(DAI_TOTAL_SUPPLY_STORAGE_POSITION, 32),
         newValue
       );
       fsm._clearOriginalStorageCache();
 
       const freshValue = await fsm.getOriginalContractStorage(
         DAI_ADDRESS,
-        DAI_TOTAL_SUPPLY_STORAGE_POSITION
+        setLengthLeft(DAI_TOTAL_SUPPLY_STORAGE_POSITION, 32)
       );
       assert.isTrue(freshValue.equals(newValue));
     });
@@ -592,7 +598,7 @@ describe("ForkStateManager", () => {
 
   describe("touchAccount", () => {
     it("does not throw an error", () => {
-      fsm.touchAccount(randomAddressBuffer());
+      fsm.touchAccount(randomAddress());
     });
   });
 
@@ -634,7 +640,7 @@ describe("ForkStateManager", () => {
         );
         assert.equal(
           bufferToHex(fsmValue),
-          bufferToHex(unpad(valueAtOldBlock))
+          bufferToHex(unpadBuffer(valueAtOldBlock))
         );
       });
 
@@ -705,7 +711,7 @@ describe("ForkStateManager", () => {
 
         assert.equal(
           bufferToHex(fsmValue),
-          bufferToHex(unpad(valueAtForkBlock))
+          bufferToHex(unpadBuffer(valueAtForkBlock))
         );
         assert.isTrue(getStorageAt.calledOnce);
         assert.equal(

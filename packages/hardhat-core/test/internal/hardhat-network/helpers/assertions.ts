@@ -175,7 +175,7 @@ export function assertTransaction(
   assertQuantity(tx.nonce, txParams.nonce);
   assert.equal(
     tx.to,
-    txParams.to.length === 0 ? null : bufferToHex(txParams.to)
+    txParams.to === undefined ? null : bufferToHex(txParams.to!)
   );
   assertQuantity(tx.value, txParams.value);
 

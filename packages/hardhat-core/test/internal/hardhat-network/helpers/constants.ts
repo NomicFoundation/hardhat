@@ -1,26 +1,26 @@
 // reused from ethers.js
-import { BN, toBuffer } from "ethereumjs-util";
+import { Address, BN, toBuffer } from "ethereumjs-util";
 
-export const DAI_ADDRESS = toBuffer(
+export const DAI_ADDRESS = Address.fromString(
   "0x6b175474e89094c44da98b954eedeac495271d0f"
 );
 
 export const DAI_CONTRACT_LENGTH = 7904;
 
-export const WETH_ADDRESS = toBuffer(
+export const WETH_ADDRESS = Address.fromString(
   "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
 );
 
-export const UNISWAP_FACTORY_ADDRESS = toBuffer(
+export const UNISWAP_FACTORY_ADDRESS = Address.fromString(
   "0xc0a47dFe034B400B47bDaD5FecDa2621de6c4d95"
 );
 
-export const EMPTY_ACCOUNT_ADDRESS = toBuffer(
+export const EMPTY_ACCOUNT_ADDRESS = Address.fromString(
   "0x1234567890abcdef1234567890abcdef12345678"
 );
 
 // top Ether holder as of 24.08.2020
-export const BITFINEX_WALLET_ADDRESS = toBuffer(
+export const BITFINEX_WALLET_ADDRESS = Address.fromString(
   "0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
 );
 

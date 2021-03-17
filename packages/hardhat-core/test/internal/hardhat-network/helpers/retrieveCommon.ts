@@ -1,5 +1,5 @@
 /* tslint:disable:no-string-literal */
-import Common from "ethereumjs-common";
+import Common from "@ethereumjs/common";
 
 import { HardhatNetworkProvider } from "../../../../src/internal/hardhat-network/provider/provider";
 

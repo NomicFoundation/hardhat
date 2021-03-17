@@ -1,8 +1,8 @@
+import { Block } from "@ethereumjs/block";
 import { assert } from "chai";
 import { BN } from "ethereumjs-util";
 
 import { BlockchainData } from "../../../../src/internal/hardhat-network/provider/BlockchainData";
-import { Block } from "../../../../src/internal/hardhat-network/provider/types/Block";
 import {
   createTestLog,
   createTestReceipt,
@@ -13,7 +13,7 @@ describe("BlockchainData", () => {
   let bd: BlockchainData;
 
   function createBlock(number: number) {
-    return new Block({ header: { number } });
+    return Block.fromBlockData({ header: { number } });
   }
 
   beforeEach(() => {

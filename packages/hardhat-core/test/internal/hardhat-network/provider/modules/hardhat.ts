@@ -1,5 +1,4 @@
 import { assert } from "chai";
-import { bufferToHex } from "ethereumjs-util";
 import sinon from "sinon";
 
 import { numberToRpcQuantity } from "../../../../../src/internal/hardhat-network/provider/output";
@@ -43,7 +42,7 @@ describe("Hardhat module", function () {
         it("returns true", async function () {
           const result = await this.provider.send(
             "hardhat_impersonateAccount",
-            [bufferToHex(EMPTY_ACCOUNT_ADDRESS)]
+            [EMPTY_ACCOUNT_ADDRESS.toString()]
           );
           assert.isTrue(result);
         });
@@ -66,11 +65,11 @@ describe("Hardhat module", function () {
 
         it("returns true if the account was impersonated before", async function () {
           await this.provider.send("hardhat_impersonateAccount", [
-            bufferToHex(EMPTY_ACCOUNT_ADDRESS),
+            EMPTY_ACCOUNT_ADDRESS.toString(),
           ]);
           const result = await this.provider.send(
             "hardhat_stopImpersonatingAccount",
-            [bufferToHex(EMPTY_ACCOUNT_ADDRESS)]
+            [EMPTY_ACCOUNT_ADDRESS.toString()]
           );
           assert.isTrue(result);
         });
@@ -78,7 +77,7 @@ describe("Hardhat module", function () {
         it("returns false if the account wasn't impersonated before", async function () {
           const result = await this.provider.send(
             "hardhat_stopImpersonatingAccount",
-            [bufferToHex(EMPTY_ACCOUNT_ADDRESS)]
+            [EMPTY_ACCOUNT_ADDRESS.toString()]
           );
           assert.isFalse(result);
         });

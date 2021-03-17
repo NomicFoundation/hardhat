@@ -1,4 +1,4 @@
-import VM from "@nomiclabs/ethereumjs-vm";
+import VM from "@ethereumjs/vm";
 import abi from "ethereumjs-abi";
 import Account from "ethereumjs-account";
 import { Transaction, TxData } from "ethereumjs-tx";

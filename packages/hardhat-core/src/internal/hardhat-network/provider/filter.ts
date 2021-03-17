@@ -1,4 +1,4 @@
-import Bloom from "@nomiclabs/ethereumjs-vm/dist/bloom";
+import Bloom from "@ethereumjs/vm/dist/bloom";
 import { BN, bufferToHex, toBuffer } from "ethereumjs-util";
 
 import { RpcLogOutput } from "./output";

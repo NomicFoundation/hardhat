@@ -1,2 +1,2 @@
-declare module "merkle-patricia-tree/secure";
-declare module "merkle-patricia-tree";
+//declare module "merkle-patricia-tree/secure";
+//declare module "merkle-patricia-tree";

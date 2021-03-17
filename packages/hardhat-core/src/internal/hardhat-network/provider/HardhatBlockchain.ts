@@ -1,10 +1,10 @@
-import { Transaction } from "ethereumjs-tx";
+import { Block } from "@ethereumjs/block";
+import { Transaction } from "@ethereumjs/tx";
 import { BN, bufferToInt, zeros } from "ethereumjs-util";
 
 import { BlockchainData } from "./BlockchainData";
 import { FilterParams } from "./node-types";
 import { RpcLogOutput, RpcReceiptOutput } from "./output";
-import { Block } from "./types/Block";
 import { Blockchain } from "./types/Blockchain";
 import { PBlockchain, toBlockchain } from "./types/PBlockchain";
 
@@ -106,7 +106,7 @@ export class HardhatBlockchain implements PBlockchain {
   }
 
   private _validateBlock(block: Block) {
-    const blockNumber = bufferToInt(block.header.number);
+    const blockNumber = block.header.number.toNumber();
     const parentHash = block.header.parentHash;
     const parent = this._data.getBlockByNumber(new BN(blockNumber - 1));
 
@@ -136,7 +136,7 @@ export class HardhatBlockchain implements PBlockchain {
   }
 
   private _delBlock(block: Block): void {
-    const blockNumber = bufferToInt(block.header.number);
+    const blockNumber = bufferToInt(block.header.number.toBuffer());
     for (let i = blockNumber; i < this._length; i++) {
       const current = this._data.getBlockByNumber(new BN(i));
       if (current !== undefined) {

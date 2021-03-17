@@ -1,4 +1,4 @@
-import { Transaction } from "ethereumjs-tx";
+import { Transaction } from "@ethereumjs/tx";
 import { bufferToHex, toBuffer, zeroAddress } from "ethereumjs-util";
 
 import { TransactionParams } from "../../../../src/internal/hardhat-network/provider/node-types";
@@ -56,7 +56,7 @@ export async function sendTransactionFromTxParams(
 ) {
   return provider.send("eth_sendTransaction", [
     {
-      to: bufferToHex(txParams.to),
+      to: bufferToHex(txParams.to!),
       from: bufferToHex(txParams.from),
       data: bufferToHex(txParams.data),
       nonce: numberToRpcQuantity(txParams.nonce),
@@ -76,7 +76,10 @@ export async function getSignedTxHash(
     common: await retrieveCommon(hardhatNetworkProvider),
   });
 
-  txToSign.sign(toBuffer(DEFAULT_ACCOUNTS[signerAccountIndex].privateKey));
+  // tx.sign no longer modified the underlying tx
+  const signedTx = txToSign.sign(
+    toBuffer(DEFAULT_ACCOUNTS[signerAccountIndex].privateKey)
+  );
 
-  return bufferToHex(txToSign.hash(true));
+  return bufferToHex(signedTx.hash());
 }

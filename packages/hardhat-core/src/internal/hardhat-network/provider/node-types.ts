@@ -1,10 +1,9 @@
-import { RunBlockResult } from "@nomiclabs/ethereumjs-vm/dist/runBlock";
+import { Block } from "@ethereumjs/block";
+import { RunBlockResult } from "@ethereumjs/vm/dist/runBlock";
 import { BN } from "ethereumjs-util";
 
 import { BuildInfo } from "../../../types";
 import { MessageTrace } from "../stack-traces/message-trace";
-
-import { Block } from "./types/Block";
 
 export type NodeConfig = LocalNodeConfig | ForkedNodeConfig;
 
@@ -54,7 +53,8 @@ export interface CallParams {
 }
 
 export interface TransactionParams {
-  to: Buffer;
+  // `to` should be undefined for contract creation
+  to: Buffer | undefined;
   from: Buffer;
   gasLimit: BN;
   gasPrice: BN;

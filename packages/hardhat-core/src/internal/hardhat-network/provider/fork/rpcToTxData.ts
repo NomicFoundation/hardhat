@@ -1,4 +1,4 @@
-import { TxData } from "ethereumjs-tx";
+import { TxData } from "@ethereumjs/tx";
 
 import { RpcTransaction } from "../../jsonrpc/types";
 

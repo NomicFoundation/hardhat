@@ -1,9 +1,9 @@
-import VM from "@nomiclabs/ethereumjs-vm";
-import { EVMResult } from "@nomiclabs/ethereumjs-vm/dist/evm/evm";
-import { InterpreterStep } from "@nomiclabs/ethereumjs-vm/dist/evm/interpreter";
-import Message from "@nomiclabs/ethereumjs-vm/dist/evm/message";
-import { precompiles } from "@nomiclabs/ethereumjs-vm/dist/evm/precompiles";
-import { BN } from "ethereumjs-util";
+import VM from "@ethereumjs/vm";
+import { EVMResult } from "@ethereumjs/vm/dist/evm/evm";
+import { InterpreterStep } from "@ethereumjs/vm/dist/evm/interpreter";
+import Message from "@ethereumjs/vm/dist/evm/message";
+import { precompiles } from "@ethereumjs/vm/dist/evm/precompiles";
+import { Address, BN } from "ethereumjs-util";
 
 import {
   CallMessageTrace,
@@ -27,7 +27,7 @@ export class VMTracer {
 
   constructor(
     private readonly _vm: VM,
-    private readonly _getContractCode: (address: Buffer) => Promise<Buffer>,
+    private readonly _getContractCode: (address: Address) => Promise<Buffer>,
     private readonly _throwErrors = true
   ) {
     this._beforeMessageHandler = this._beforeMessageHandler.bind(this);
@@ -106,7 +106,7 @@ export class VMTracer {
 
         trace = createTrace;
       } else {
-        const toAsBn = new BN(message.to);
+        const toAsBn = new BN(message.to.toBuffer());
 
         if (toAsBn.gtn(0) && toAsBn.lten(MAX_PRECOMPILE_NUMBER)) {
           const precompileTrace: PrecompileMessageTrace = {
@@ -133,7 +133,7 @@ export class VMTracer {
             steps: [],
             value: message.value,
             returnData: DUMMY_RETURN_DATA,
-            address: message.to,
+            address: message.to.toBuffer(),
             numberOfSubtraces: 0,
             depth: message.depth,
             gasUsed: DUMMY_GAS_USED,
@@ -209,7 +209,7 @@ export class VMTracer {
       trace.gasUsed = result.gasUsed;
 
       if (isCreateTrace(trace)) {
-        trace.deployedContract = result.createdAddress;
+        trace.deployedContract = result?.createdAddress?.toBuffer();
       }
 
       if (this._messageTraces.length > 1) {

@@ -1,4 +1,4 @@
-import Common from "ethereumjs-common";
+import Common from "@ethereumjs/common";
 
 import { ForkedNodeConfig } from "../node-types";
 

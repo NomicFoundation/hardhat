@@ -1,4 +1,4 @@
-import type { VmError } from "@nomiclabs/ethereumjs-vm/dist/exceptions";
+import type { VmError } from "@ethereumjs/vm/dist/exceptions";
 import type { BN } from "ethereumjs-util";
 
 import type { Bytecode } from "./model";
