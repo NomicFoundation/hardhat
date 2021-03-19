@@ -65,15 +65,15 @@ export async function traceTransaction(
     gasLimit: txData.gasLimit ?? 4000000,
   });
 
-  tx.sign(senderPrivateKey);
+  const signedTx = tx.sign(senderPrivateKey);
 
-  const getContractCode = vm.stateManager.getContractCode;
+  const getContractCode = vm.stateManager.getContractCode.bind(vm.stateManager);
 
   const vmTracer = new VMTracer(vm, getContractCode);
   vmTracer.enableTracing();
 
   try {
-    await vm.runTx({ tx });
+    await vm.runTx({ tx: signedTx });
 
     const messageTrace = vmTracer.getLastTopLevelMessageTrace();
     if (messageTrace === undefined) {
