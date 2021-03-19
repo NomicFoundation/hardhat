@@ -1022,23 +1022,19 @@ export class HardhatNode extends EventEmitter {
     // The BlockHeader properties are readonly so
     // the block has to be recreated here...
     await block.genTxTrie();
-    const headerData = {
+
+    const header = BlockHeader.fromHeaderData({
       ...block.toJSON().header,
       gasUsed: toBuffer(blockGasLimit.sub(gasLeft)),
       stateRoot: await this._stateManager.getStateRoot(),
       bloom: bloom.bitvector,
       receiptTrie: receiptTrie.root,
       transactionsTrie: block.txTrie.root,
-    };
+    });
 
-    block = Block.fromBlockData(
-      {
-        header: headerData,
-        transactions: block.toJSON().transactions,
-        uncleHeaders: block.toJSON().uncleHeaders,
-      },
-      { common: this._vm._common }
-    );
+    block = new Block(header, block.transactions, block.uncleHeaders, {
+      common: this._vm._common,
+    });
 
     return {
       block,
