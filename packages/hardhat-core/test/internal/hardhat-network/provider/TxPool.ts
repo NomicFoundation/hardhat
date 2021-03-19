@@ -379,15 +379,15 @@ describe("Tx Pool", () => {
         const tx1 = createTestTransaction({ to, gasLimit: 21_000 });
         const tx2 = createTestTransaction({ to, gasLimit: 21_000 });
 
-        tx1.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
-        tx2.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
+        const signedTx1 = tx1.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
+        const signedTx2 = tx2.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
 
-        await txPool.addTransaction(tx1);
+        await txPool.addTransaction(signedTx1);
 
         await assert.isRejected(
-          txPool.addTransaction(tx2),
+          txPool.addTransaction(signedTx2),
           InvalidInputError,
-          `Known transaction: ${bufferToHex(tx1.hash())}`
+          `Known transaction: ${bufferToHex(signedTx1.hash())}`
         );
       });
 
@@ -396,15 +396,15 @@ describe("Tx Pool", () => {
         const tx1 = createTestTransaction({ to, nonce: 1, gasLimit: 21_000 });
         const tx2 = createTestTransaction({ to, nonce: 1, gasLimit: 21_000 });
 
-        tx1.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
-        tx2.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
+        const signedTx1 = tx1.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
+        const signedTx2 = tx2.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
 
-        await txPool.addTransaction(tx1);
+        await txPool.addTransaction(signedTx1);
 
         await assert.isRejected(
-          txPool.addTransaction(tx2),
+          txPool.addTransaction(signedTx2),
           InvalidInputError,
-          `Known transaction: ${bufferToHex(tx1.hash())}`
+          `Known transaction: ${bufferToHex(signedTx1.hash())}`
         );
       });
 
@@ -437,7 +437,7 @@ describe("Tx Pool", () => {
         await assert.isRejected(
           txPool.addTransaction(tx),
           InvalidInputError,
-          "Invalid Signature"
+          "This transaction is not signed"
         );
       });
 
@@ -584,16 +584,16 @@ describe("Tx Pool", () => {
         gasLimit: 21_000,
       });
 
-      tx.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
+      const signedTx = tx.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
 
-      await txPool.addTransaction(tx);
+      await txPool.addTransaction(signedTx);
 
-      const oldTxFromTxPool = txPool.getTransactionByHash(tx.hash());
+      const oldTxFromTxPool = txPool.getTransactionByHash(signedTx.hash());
 
-      assert.deepEqual(oldTxFromTxPool!.data.raw, tx.raw);
+      assert.deepEqual(oldTxFromTxPool!.data.raw(), signedTx.raw());
 
       await stateManager.putAccount(
-        tx.getSenderAddress(),
+        signedTx.getSenderAddress(),
         Account.fromAccountData({
           nonce: 1,
           balance: new BN(10).pow(new BN(18)),
@@ -602,7 +602,7 @@ describe("Tx Pool", () => {
 
       await txPool.updatePendingAndQueued();
 
-      const actualTxFromTxPool = txPool.getTransactionByHash(tx.hash());
+      const actualTxFromTxPool = txPool.getTransactionByHash(signedTx.hash());
 
       assert.isUndefined(actualTxFromTxPool);
     });
@@ -614,16 +614,16 @@ describe("Tx Pool", () => {
         gasLimit: 21_000,
       });
 
-      tx.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
+      const signedTx = tx.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
 
-      await txPool.addTransaction(tx);
+      await txPool.addTransaction(signedTx);
 
-      const oldTxFromTxPool = txPool.getTransactionByHash(tx.hash());
+      const oldTxFromTxPool = txPool.getTransactionByHash(signedTx.hash());
 
-      assert.deepEqual(oldTxFromTxPool!.data.raw, tx.raw);
+      assert.deepEqual(oldTxFromTxPool!.data.raw(), signedTx.raw());
 
       await stateManager.putAccount(
-        tx.getSenderAddress(),
+        signedTx.getSenderAddress(),
         Account.fromAccountData({
           nonce: 3,
           balance: new BN(10).pow(new BN(18)),
@@ -632,7 +632,7 @@ describe("Tx Pool", () => {
 
       await txPool.updatePendingAndQueued();
 
-      const actualTxFromTxPool = txPool.getTransactionByHash(tx.hash());
+      const actualTxFromTxPool = txPool.getTransactionByHash(signedTx.hash());
 
       assert.isUndefined(actualTxFromTxPool);
     });
@@ -741,9 +741,9 @@ describe("Tx Pool", () => {
 
     it("removes pending transaction when it's gas limit exceeds block gas limit", async () => {
       const tx1 = createTestTransaction({ nonce: 0, gasLimit: 9_500_000 });
-      tx1.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
+      const signedTx1 = tx1.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
 
-      await txPool.addTransaction(tx1);
+      await txPool.addTransaction(signedTx1);
 
       txPool.setBlockGasLimit(5_000_000);
 
@@ -755,9 +755,9 @@ describe("Tx Pool", () => {
 
     it("removes queued transaction when it's gas limit exceeds block gas limit", async () => {
       const tx1 = createTestTransaction({ nonce: 1, gasLimit: 9_500_000 });
-      tx1.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
+      const signedTx1 = tx1.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
 
-      await txPool.addTransaction(tx1);
+      await txPool.addTransaction(signedTx1);
 
       txPool.setBlockGasLimit(5_000_000);
 
@@ -828,9 +828,9 @@ describe("Tx Pool", () => {
         gasLimit: 30_000,
         gasPrice: 500,
       });
-      tx1.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
+      const signedTx1 = tx1.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
 
-      await txPool.addTransaction(tx1);
+      await txPool.addTransaction(signedTx1);
 
       await stateManager.putAccount(
         address1,
@@ -849,9 +849,9 @@ describe("Tx Pool", () => {
         gasLimit: 30_000,
         gasPrice: 500,
       });
-      tx1.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
+      const signedTx1 = tx1.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
 
-      await txPool.addTransaction(tx1);
+      await txPool.addTransaction(signedTx1);
 
       await stateManager.putAccount(
         address1,
