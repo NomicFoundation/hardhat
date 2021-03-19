@@ -35,6 +35,15 @@ export class JsonRpcClient {
     return this._networkId;
   }
 
+  public async getDebugTraceTransaction(transactionHash: Buffer): Promise<any> {
+    return this._perform(
+      "debug_traceTransaction",
+      [bufferToHex(transactionHash)],
+      t.object,
+      () => undefined
+    );
+  }
+
   public async getStorageAt(
     address: Buffer,
     position: BN,
