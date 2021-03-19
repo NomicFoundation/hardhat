@@ -23,7 +23,7 @@ export class FakeTransaction extends Transaction {
     values: ArrayWithFrom<Buffer>,
     opts: TxOptions = {}
   ) {
-    const [nonce, gasPrice, gasLimit, to, value, data, v, r, s, from] = values;
+    const [nonce, gasPrice, gasLimit, to, value, data, v, r, s] = values;
 
     const emptyBuffer = Buffer.from([]);
 
