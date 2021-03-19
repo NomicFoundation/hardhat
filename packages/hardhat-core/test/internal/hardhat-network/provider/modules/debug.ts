@@ -1,7 +1,6 @@
 import { assert } from "chai";
 
 import { BackwardsCompatibilityProviderAdapter } from "../../../../../src/internal/core/providers/backwards-compatibility";
-import {ModulesLogger} from "../../../../../src/internal/hardhat-network/provider/modules/logger";
 import { ForkConfig } from "../../../../../src/internal/hardhat-network/provider/node-types";
 import { RpcDebugTraceOutput } from "../../../../../src/internal/hardhat-network/provider/output";
 import { HardhatNetworkProvider } from "../../../../../src/internal/hardhat-network/provider/provider";
@@ -27,6 +26,7 @@ import {
 } from "../../helpers/providers";
 import { sendDummyTransaction } from "../../helpers/sendDummyTransaction";
 import { deployContract } from "../../helpers/transactions";
+import { assertEqualTraces } from "../utils/assertEqualTraces";
 
 describe("Debug module", function () {
   PROVIDERS.forEach(({ name, useProvider }) => {
@@ -143,26 +143,3 @@ describe("Debug module", function () {
     });
   });
 });
-
-export function assertEqualTraces(
-  expected: RpcDebugTraceOutput,
-  actual: RpcDebugTraceOutput
-) {
-  assert.equal(actual.failed, expected.failed);
-  assert.equal(actual.gas, expected.gas);
-  assert.equal(actual.returnValue, expected.returnValue);
-
-  assert.equal(actual.structLogs.length, expected.structLogs.length);
-
-  for (const [i, log] of expected.structLogs.entries()) {
-    // if (actual.structLogs[i].op === log.op && log.op.endsWith("CALL")) {
-    //   continue
-    // }
-
-    assert.deepEqual(
-      actual.structLogs[i],
-      log,
-      `Different logs at ${i} (opcode: ${log.op}, gas: ${log.gas})`
-    );
-  }
-}

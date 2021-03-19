@@ -171,6 +171,10 @@ export class ForkBlockchain implements PBlockchain {
     }
   }
 
+  public getForkBlockNumber() {
+    return this._forkBlockNumber;
+  }
+
   public async getLogs(filterParams: FilterParams): Promise<RpcLogOutput[]> {
     if (filterParams.fromBlock.lte(this._forkBlockNumber)) {
       let toBlock = filterParams.toBlock;
@@ -200,6 +204,10 @@ export class ForkBlockchain implements PBlockchain {
 
   public asBlockchain(): Blockchain {
     return toBlockchain(this);
+  }
+
+  public getNetworkId() {
+    return this._jsonRpcClient.getNetworkId();
   }
 
   private async _getBlockByHash(blockHash: Buffer) {
