@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { BN, toBuffer } from "ethereumjs-util";
+import { BN, bufferToHex, toBuffer } from "ethereumjs-util";
 // tslint:disable-next-line:no-implicit-dependencies
 import { Contract, utils, Wallet } from "ethers";
 import fsExtra from "fs-extra";
@@ -292,7 +292,7 @@ describe("Forked provider", function () {
         it("supports remote transactions", async function () {
           const transaction = await this.provider.send(
             "eth_getTransactionByHash",
-            [FIRST_TX_HASH_OF_10496585.toString()]
+            [bufferToHex(FIRST_TX_HASH_OF_10496585)]
           );
 
           assert.equal(
@@ -349,7 +349,7 @@ describe("Forked provider", function () {
         it("supports remote transactions", async function () {
           const receipt = await this.provider.send(
             "eth_getTransactionReceipt",
-            [FIRST_TX_HASH_OF_10496585.toString()]
+            [bufferToHex(FIRST_TX_HASH_OF_10496585)]
           );
 
           assert.equal(
