@@ -73,7 +73,7 @@ subtask(
   .addOptionalParam("removeLicenses", undefined, false, types.boolean)
   .addOptionalParam("license", undefined, undefined, types.string)
   .setAction(
-    async ({ files, removeLicenses, license }: FlattenInput, { run }) => {
+    async ({ files, removeLicenses = false, license }: FlattenInput, { run }) => {
       const dependencyGraph: DependencyGraph = await run(
         TASK_FLATTEN_GET_DEPENDENCY_GRAPH,
         { files }
@@ -95,7 +95,7 @@ subtask(
         flattened += `\n${getFileWithoutImports(file)}\n`;
       }
 
-      if (removeLicenses || license) {
+      if (removeLicenses || license !== undefined) {
         // Remove every line started with "// SPDX-License-Identifier:"
         flattened = flattened.replace(
           /^\/\/ SPDX-License-Identifier:.*\n?/m,
@@ -141,12 +141,7 @@ task(TASK_FLATTEN, "Flattens and prints contracts and their dependencies")
     undefined,
     types.inputFile
   )
-  .addOptionalParam(
-    "removeLicenses",
-    "Whether licenses should be removed or not",
-    undefined,
-    types.string
-  )
+  .addFlag("removeLicenses", "Whether licenses should be removed or not")
   .addOptionalParam("license", "License for each file", undefined, types.string)
   .setAction(
     async ({ files, removeLicenses, license }: FlattenInput, { run }) => {
