@@ -75,13 +75,13 @@ describe("Flatten task", () => {
     });
   });
 
-  describe("Remove licences", function () {
+  describe("Remove licenses", function () {
     useFixtureProject("contracts-project");
 
-    it("Should remove licences from all files", async function () {
+    it("Should remove licenses from all files", async function () {
       const aFlattened = await this.env.run(TASK_FLATTEN_GET_FLATTENED_SOURCE, {
-        files: ["contracts/AWithLicence.sol"],
-        removeLicences: true,
+        files: ["contracts/AWithlicense.sol"],
+        removelicenses: true,
       });
 
       assert.deepEqual(getContractsOrder(aFlattened), ["C", "B", "A"]);
@@ -89,8 +89,8 @@ describe("Flatten task", () => {
       const abFlattened = await this.env.run(
         TASK_FLATTEN_GET_FLATTENED_SOURCE,
         {
-          files: ["contracts/BWithLicence.sol", "contracts/AWithLicence.sol"],
-          removeLicences: true,
+          files: ["contracts/BWithlicense.sol", "contracts/AWithlicense.sol"],
+          removelicenses: true,
         }
       );
 
@@ -103,7 +103,7 @@ describe("Flatten task", () => {
 
     it("Should add a license", async function () {
       const aFlattened = await this.env.run(TASK_FLATTEN_GET_FLATTENED_SOURCE, {
-        files: ["contracts/AWithLicence.sol"],
+        files: ["contracts/AWithlicense.sol"],
         license: "A-LICENSE",
       });
 
@@ -112,7 +112,7 @@ describe("Flatten task", () => {
       );
 
       let abFlattened = await this.env.run(TASK_FLATTEN_GET_FLATTENED_SOURCE, {
-        files: ["contracts/BWithLicence.sol", "contracts/AWithLicence.sol"],
+        files: ["contracts/BWithlicense.sol", "contracts/AWithlicense.sol"],
         license: "A-LICENSE",
       });
 
