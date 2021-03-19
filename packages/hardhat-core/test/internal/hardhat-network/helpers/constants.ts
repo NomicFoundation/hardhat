@@ -1,5 +1,6 @@
 // reused from ethers.js
 import { BN, toBuffer } from "ethereumjs-util";
+import path from "path";
 
 export const DAI_ADDRESS = toBuffer(
   "0x6b175474e89094c44da98b954eedeac495271d0f"
@@ -42,3 +43,10 @@ export const LAST_TX_HASH_OF_10496585 = toBuffer(
 );
 
 export const NULL_BYTES_32 = toBuffer(`0x${"0".repeat(64)}`);
+
+export const FORK_TESTS_CACHE_PATH = path.join(
+  __dirname,
+  "..",
+  "provider",
+  ".hardhat_node_test_cache"
+);

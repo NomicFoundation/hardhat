@@ -3,7 +3,6 @@ import Common from "ethereumjs-common";
 import { FakeTxData, Transaction } from "ethereumjs-tx";
 import FakeTransaction from "ethereumjs-tx/dist/fake";
 import { BN, bufferToHex, bufferToInt } from "ethereumjs-util";
-import path from "path";
 import sinon from "sinon";
 
 import { numberToRpcQuantity } from "../../../../src/internal/core/providers/provider-utils";
@@ -18,7 +17,10 @@ import { getCurrentTimestamp } from "../../../../src/internal/hardhat-network/pr
 import { makeForkClient } from "../../../../src/internal/hardhat-network/provider/utils/makeForkClient";
 import { ALCHEMY_URL } from "../../../setup";
 import { assertQuantity } from "../helpers/assertions";
-import { EMPTY_ACCOUNT_ADDRESS } from "../helpers/constants";
+import {
+  EMPTY_ACCOUNT_ADDRESS,
+  FORK_TESTS_CACHE_PATH,
+} from "../helpers/constants";
 import {
   DEFAULT_ACCOUNTS,
   DEFAULT_ACCOUNTS_ADDRESSES,
@@ -600,7 +602,6 @@ describe("HardhatNode", () => {
           assert.fail();
         }
 
-        const forkCachePath = path.join(__dirname, ".hardhat_node_test_cache");
         const forkedNodeConfig: ForkedNodeConfig = {
           automine: true,
           networkName: "mainnet",
@@ -608,7 +609,7 @@ describe("HardhatNode", () => {
           networkId: 1,
           hardfork,
           forkConfig,
-          forkCachePath,
+          FORK_TESTS_CACHE_PATH,
           blockGasLimit: rpcBlock.gasLimit.toNumber(),
           genesisAccounts: [],
         };
