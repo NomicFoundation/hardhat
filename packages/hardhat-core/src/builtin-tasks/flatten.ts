@@ -16,11 +16,11 @@ import {
   TASK_FLATTEN_GET_FLATTENED_SOURCE,
 } from "./task-names";
 
-type FlattenInput = {
+interface FlattenInput {
   files?: string[];
   removeLicenses?: boolean;
   license?: string;
-};
+}
 
 function getSortedFiles(dependenciesGraph: DependencyGraph) {
   const tsort = require("tsort");
