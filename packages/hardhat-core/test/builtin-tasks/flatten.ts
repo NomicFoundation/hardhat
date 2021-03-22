@@ -5,7 +5,7 @@ import { useEnvironment } from "../helpers/environment";
 import { useFixtureProject } from "../helpers/project";
 
 function getContractsOrder(flattenedFiles: string) {
-  const CONTRACT_REGEX = /\s*contract(\s+)(\w)/gm;
+  const CONTRACT_REGEX = /\s*contract(\s+)(\w+)/gm;
   const matches = flattenedFiles.match(CONTRACT_REGEX);
 
   return matches!.map((m: string) => m.replace("contract", "").trim());
@@ -33,7 +33,14 @@ describe("Flatten task", () => {
       const flattenedFiles = await this.env.run(
         TASK_FLATTEN_GET_FLATTENED_SOURCE
       );
-      assert.deepEqual(getContractsOrder(flattenedFiles), ["C", "B", "A"]);
+      assert.deepEqual(getContractsOrder(flattenedFiles), [
+        "C",
+        "B",
+        "A",
+        "BWithLicense",
+        "AWithLicense",
+        "CWithLicense",
+      ]);
     });
   });
 
@@ -80,21 +87,30 @@ describe("Flatten task", () => {
 
     it("Should remove licenses from all files", async function () {
       const aFlattened = await this.env.run(TASK_FLATTEN_GET_FLATTENED_SOURCE, {
-        files: ["contracts/AWithlicense.sol"],
-        removelicenses: true,
+        files: ["contracts/AWithLicense.sol"],
+        removeLicenses: true,
       });
 
-      assert.deepEqual(getContractsOrder(aFlattened), ["C", "B", "A"]);
+      assert.deepEqual(getContractsOrder(aFlattened), [
+        "BWithLicense",
+        "AWithLicense",
+      ]);
+      assert.notInclude(aFlattened, "SPDX");
 
       const abFlattened = await this.env.run(
         TASK_FLATTEN_GET_FLATTENED_SOURCE,
         {
-          files: ["contracts/BWithlicense.sol", "contracts/AWithlicense.sol"],
-          removelicenses: true,
+          files: ["contracts/AWithLicense.sol", "contracts/CWithLicense.sol"],
+          removeLicenses: true,
         }
       );
 
-      assert.deepEqual(getContractsOrder(abFlattened), ["C", "B", "B", "A"]);
+      assert.deepEqual(getContractsOrder(abFlattened), [
+        "BWithLicense",
+        "AWithLicense",
+        "CWithLicense",
+      ]);
+      assert.notInclude(abFlattened, "SPDX");
     });
   });
 
@@ -103,7 +119,7 @@ describe("Flatten task", () => {
 
     it("Should add a license", async function () {
       const aFlattened = await this.env.run(TASK_FLATTEN_GET_FLATTENED_SOURCE, {
-        files: ["contracts/AWithlicense.sol"],
+        files: ["contracts/AWithLicense.sol"],
         license: "A-LICENSE",
       });
 
@@ -112,7 +128,7 @@ describe("Flatten task", () => {
       );
 
       let abFlattened = await this.env.run(TASK_FLATTEN_GET_FLATTENED_SOURCE, {
-        files: ["contracts/BWithlicense.sol", "contracts/AWithlicense.sol"],
+        files: ["contracts/BWithLicense.sol", "contracts/AWithLicense.sol"],
         license: "A-LICENSE",
       });
 
@@ -140,6 +156,243 @@ describe("Flatten task", () => {
         TASK_FLATTEN_GET_FLATTENED_SOURCE
       );
       assert.isFalse(flattenedFiles.includes("} from"));
+    });
+  });
+
+  describe("snapshots", function () {
+    useFixtureProject("contracts-project");
+
+    it("should flatten all the files", async function () {
+      const allFlattened = await this.env.run(
+        TASK_FLATTEN_GET_FLATTENED_SOURCE
+      );
+
+      assert.equal(
+        allFlattened,
+        `// Sources flattened with hardhat v2.0.8 https://hardhat.org
+
+// File contracts/C.sol
+
+pragma solidity ^0.5.1
+contract C {};
+
+// File contracts/B.sol
+
+pragma solidity ^0.5.1
+
+contract B {}
+
+// File contracts/A.sol
+
+pragma solidity ^0.5.1
+
+contract A {}
+
+// File contracts/BWithLicense.sol
+
+// SPDX-License-Identifier: MIT
+
+pragma solidity ^0.5.1
+contract BWithLicense {}
+
+// File contracts/AWithLicense.sol
+
+// SPDX-License-Identifier: MIT
+
+pragma solidity ^0.5.1
+
+contract AWithLicense {}
+
+// File contracts/CWithLicense.sol
+
+// SPDX-License-Identifier: MIT
+
+pragma solidity ^0.5.1
+contract CWithLicense {}`
+      );
+    });
+
+    it("should flatten one file", async function () {
+      const allFlattened = await this.env.run(
+        TASK_FLATTEN_GET_FLATTENED_SOURCE,
+        {
+          files: ["contracts/AWithLicense.sol"],
+        }
+      );
+
+      assert.equal(
+        allFlattened,
+        `// Sources flattened with hardhat v2.0.8 https://hardhat.org
+
+// File contracts/BWithLicense.sol
+
+// SPDX-License-Identifier: MIT
+
+pragma solidity ^0.5.1
+contract BWithLicense {}
+
+// File contracts/AWithLicense.sol
+
+// SPDX-License-Identifier: MIT
+
+pragma solidity ^0.5.1
+
+contract AWithLicense {}`
+      );
+    });
+
+    describe("removing licenses", function () {
+      it("should flatten all the files", async function () {
+        const allFlattened = await this.env.run(
+          TASK_FLATTEN_GET_FLATTENED_SOURCE,
+          {
+            removeLicenses: true,
+          }
+        );
+
+        assert.equal(
+          allFlattened,
+          `// Sources flattened with hardhat v2.0.8 https://hardhat.org
+
+// File contracts/C.sol
+
+pragma solidity ^0.5.1
+contract C {};
+
+// File contracts/B.sol
+
+pragma solidity ^0.5.1
+
+contract B {}
+
+// File contracts/A.sol
+
+pragma solidity ^0.5.1
+
+contract A {}
+
+// File contracts/BWithLicense.sol
+
+pragma solidity ^0.5.1
+contract BWithLicense {}
+
+// File contracts/AWithLicense.sol
+
+pragma solidity ^0.5.1
+
+contract AWithLicense {}
+
+// File contracts/CWithLicense.sol
+
+pragma solidity ^0.5.1
+contract CWithLicense {}`
+        );
+      });
+
+      it("should flatten one file", async function () {
+        const allFlattened = await this.env.run(
+          TASK_FLATTEN_GET_FLATTENED_SOURCE,
+          {
+            files: ["contracts/AWithLicense.sol"],
+            removeLicenses: true,
+          }
+        );
+
+        assert.equal(
+          allFlattened,
+          `// Sources flattened with hardhat v2.0.8 https://hardhat.org
+
+// File contracts/BWithLicense.sol
+
+pragma solidity ^0.5.1
+contract BWithLicense {}
+
+// File contracts/AWithLicense.sol
+
+pragma solidity ^0.5.1
+
+contract AWithLicense {}`
+        );
+      });
+    });
+
+    describe("setting a license", function () {
+      it("should flatten all the files", async function () {
+        const allFlattened = await this.env.run(
+          TASK_FLATTEN_GET_FLATTENED_SOURCE,
+          {
+            license: "MIT",
+          }
+        );
+
+        assert.equal(
+          allFlattened,
+          `// Sources flattened with hardhat v2.0.8 https://hardhat.org
+
+// SPDX-License-Identifier: MIT
+
+// File contracts/C.sol
+
+pragma solidity ^0.5.1
+contract C {};
+
+// File contracts/B.sol
+
+pragma solidity ^0.5.1
+
+contract B {}
+
+// File contracts/A.sol
+
+pragma solidity ^0.5.1
+
+contract A {}
+
+// File contracts/BWithLicense.sol
+
+pragma solidity ^0.5.1
+contract BWithLicense {}
+
+// File contracts/AWithLicense.sol
+
+pragma solidity ^0.5.1
+
+contract AWithLicense {}
+
+// File contracts/CWithLicense.sol
+
+pragma solidity ^0.5.1
+contract CWithLicense {}`
+        );
+      });
+
+      it("should flatten one file", async function () {
+        const allFlattened = await this.env.run(
+          TASK_FLATTEN_GET_FLATTENED_SOURCE,
+          {
+            files: ["contracts/AWithLicense.sol"],
+            license: "MIT",
+          }
+        );
+
+        assert.equal(
+          allFlattened,
+          `// Sources flattened with hardhat v2.0.8 https://hardhat.org
+
+// SPDX-License-Identifier: MIT
+
+// File contracts/BWithLicense.sol
+
+pragma solidity ^0.5.1
+contract BWithLicense {}
+
+// File contracts/AWithLicense.sol
+
+pragma solidity ^0.5.1
+
+contract AWithLicense {}`
+        );
+      });
     });
   });
 });

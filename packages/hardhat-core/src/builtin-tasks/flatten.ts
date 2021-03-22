@@ -73,7 +73,10 @@ subtask(
   .addOptionalParam("removeLicenses", undefined, false, types.boolean)
   .addOptionalParam("license", undefined, undefined, types.string)
   .setAction(
-    async ({ files, removeLicenses = false, license }: FlattenInput, { run }) => {
+    async (
+      { files, removeLicenses = false, license }: FlattenInput,
+      { run }
+    ) => {
       const dependencyGraph: DependencyGraph = await run(
         TASK_FLATTEN_GET_DEPENDENCY_GRAPH,
         { files }
@@ -86,27 +89,33 @@ subtask(
       }
 
       const packageJson = await getPackageJson();
-      flattened += `// Sources flattened with hardhat v${packageJson.version} https://hardhat.org`;
 
       const sortedFiles = getSortedFiles(dependencyGraph);
 
+      let isFirst = true;
       for (const file of sortedFiles) {
-        flattened += `\n\n// File ${file.getVersionedName()}\n`;
+        if (!isFirst) {
+          flattened += "\n";
+        }
+        flattened += `// File ${file.getVersionedName()}\n`;
         flattened += `\n${getFileWithoutImports(file)}\n`;
+
+        isFirst = false;
       }
 
       if (removeLicenses || license !== undefined) {
         // Remove every line started with "// SPDX-License-Identifier:"
         flattened = flattened.replace(
-          /^\/\/ SPDX-License-Identifier:.*\n?/m,
+          /^\s*\/\/\s*SPDX-License-Identifier:.*\n?/gm,
           ""
         );
       }
 
-      if (license) {
-        flattened = `// SPDX-License-Identifier: ${license}\n${flattened}`;
+      if (license !== undefined) {
+        flattened = `// SPDX-License-Identifier: ${license}\n\n${flattened}`;
       }
 
+      flattened = `// Sources flattened with hardhat v${packageJson.version} https://hardhat.org\n\n${flattened}`;
       return flattened.trim();
     }
   );
