@@ -3,6 +3,7 @@ import { assert } from "chai";
 import { TASK_FLATTEN_GET_FLATTENED_SOURCE } from "../../src/builtin-tasks/task-names";
 import { useEnvironment } from "../helpers/environment";
 import { useFixtureProject } from "../helpers/project";
+import { regexTag } from "../utils/regex-tag";
 
 function getContractsOrder(flattenedFiles: string) {
   const CONTRACT_REGEX = /\s*contract(\s+)(\w+)/gm;
@@ -162,14 +163,16 @@ describe("Flatten task", () => {
   describe("snapshots", function () {
     useFixtureProject("contracts-project");
 
+    const versionPlaceholder = "v\\d+.\\d+.\\d+";
+
     it("should flatten all the files", async function () {
       const allFlattened = await this.env.run(
         TASK_FLATTEN_GET_FLATTENED_SOURCE
       );
 
-      assert.equal(
+      assert.match(
         allFlattened,
-        `// Sources flattened with hardhat v2.0.8 https://hardhat.org
+        regexTag`// Sources flattened with hardhat ${versionPlaceholder} https://hardhat.org
 
 // File contracts/C.sol
 
@@ -220,9 +223,9 @@ contract CWithLicense {}`
         }
       );
 
-      assert.equal(
+      assert.match(
         allFlattened,
-        `// Sources flattened with hardhat v2.0.8 https://hardhat.org
+        regexTag`// Sources flattened with hardhat ${versionPlaceholder} https://hardhat.org
 
 // File contracts/BWithLicense.sol
 
@@ -250,9 +253,9 @@ contract AWithLicense {}`
           }
         );
 
-        assert.equal(
+        assert.match(
           allFlattened,
-          `// Sources flattened with hardhat v2.0.8 https://hardhat.org
+          regexTag`// Sources flattened with hardhat ${versionPlaceholder} https://hardhat.org
 
 // File contracts/C.sol
 
@@ -298,9 +301,9 @@ contract CWithLicense {}`
           }
         );
 
-        assert.equal(
+        assert.match(
           allFlattened,
-          `// Sources flattened with hardhat v2.0.8 https://hardhat.org
+          regexTag`// Sources flattened with hardhat ${versionPlaceholder} https://hardhat.org
 
 // File contracts/BWithLicense.sol
 
@@ -325,9 +328,9 @@ contract AWithLicense {}`
           }
         );
 
-        assert.equal(
+        assert.match(
           allFlattened,
-          `// Sources flattened with hardhat v2.0.8 https://hardhat.org
+          regexTag`// Sources flattened with hardhat ${versionPlaceholder} https://hardhat.org
 
 // SPDX-License-Identifier: MIT
 
@@ -375,9 +378,9 @@ contract CWithLicense {}`
           }
         );
 
-        assert.equal(
+        assert.match(
           allFlattened,
-          `// Sources flattened with hardhat v2.0.8 https://hardhat.org
+          regexTag`// Sources flattened with hardhat ${versionPlaceholder} https://hardhat.org
 
 // SPDX-License-Identifier: MIT
 
