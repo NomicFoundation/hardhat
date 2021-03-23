@@ -68,7 +68,7 @@ export class FakeTransaction extends Transaction {
     if (this._implementsEIP155()) {
       items = [
         ...this.raw().slice(0, 6),
-        toBuffer(this.getChainId()),
+        toBuffer(this.common.chainId()),
         unpadBuffer(toBuffer(0)),
         unpadBuffer(toBuffer(0)),
       ];
@@ -96,7 +96,8 @@ export class FakeTransaction extends Transaction {
     const v = bufferToInt(this.v!.toBuffer());
 
     const vAndChainIdMeetEIP155Conditions =
-      v === this.getChainId() * 2 + 35 || v === this.getChainId() * 2 + 36;
+      v === this.common.chainId() * 2 + 35 ||
+      v === this.common.chainId() * 2 + 36;
     return vAndChainIdMeetEIP155Conditions && onEIP155BlockOrLater;
   }
 }
