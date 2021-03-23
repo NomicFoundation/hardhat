@@ -1,5 +1,5 @@
 import { Block } from "@ethereumjs/block";
-import { Transaction } from "@ethereumjs/tx";
+import { TypedTransaction } from "@ethereumjs/tx";
 import { BN } from "ethereumjs-util";
 import { callbackify } from "util";
 
@@ -16,8 +16,10 @@ export interface PBlockchain {
   deleteBlock(blockHash: Buffer): void;
   deleteLaterBlocks(block: Block): void;
   getTotalDifficulty(blockHash: Buffer): Promise<BN>;
-  getTransaction(transactionHash: Buffer): Promise<Transaction | undefined>;
-  getLocalTransaction(transactionHash: Buffer): Transaction | undefined;
+  getTransaction(
+    transactionHash: Buffer
+  ): Promise<TypedTransaction | undefined>;
+  getLocalTransaction(transactionHash: Buffer): TypedTransaction | undefined;
   getBlockByTransactionHash(
     transactionHash: Buffer
   ): Promise<Block | undefined>;

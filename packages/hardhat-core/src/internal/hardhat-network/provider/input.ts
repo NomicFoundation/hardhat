@@ -33,7 +33,7 @@ const isRpcHashString = (u: unknown) =>
 const safeIsValidAddress = (u: unknown) => {
   let isValid = false;
   try {
-    isValid = isValidAddress(u);
+    isValid = isValidAddress(u as string);
   } catch (e) {}
   return isValid;
 };

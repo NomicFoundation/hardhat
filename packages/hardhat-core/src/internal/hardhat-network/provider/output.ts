@@ -1,5 +1,5 @@
 import { Block } from "@ethereumjs/block";
-import { Transaction } from "@ethereumjs/tx";
+import { TypedTransaction } from "@ethereumjs/tx";
 import {
   PostByzantiumTxReceipt,
   RunBlockResult,
@@ -135,18 +135,18 @@ export function getRpcBlock(
 }
 
 export function getRpcTransaction(
-  tx: Transaction,
+  tx: TypedTransaction,
   block: Block,
   index: number
 ): RpcTransactionOutput;
 
 export function getRpcTransaction(
-  tx: Transaction,
+  tx: TypedTransaction,
   block: "pending"
 ): RpcTransactionOutput;
 
 export function getRpcTransaction(
-  tx: Transaction,
+  tx: TypedTransaction,
   block: Block | "pending",
   index?: number
 ): RpcTransactionOutput {
@@ -257,7 +257,7 @@ export function toRpcLogOutput(log: RpcLog, index?: number): RpcLogOutput {
 
 function getRpcLogOutput(
   log: any[],
-  tx: Transaction,
+  tx: TypedTransaction,
   block?: Block,
   transactionIndex?: number,
   logIndex?: number
