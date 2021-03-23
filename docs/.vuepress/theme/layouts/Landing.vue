@@ -25,7 +25,6 @@ div
         slot(name="page-bottom", slot="bottom")
   
     HHFooter(v-if="this.$page.frontmatter.home")
-  HHMigrationModal
 </template>
 
 <script>
@@ -39,12 +38,10 @@ import HHFooter from "../components/HHFooter";
 import HHHome from "../components/HHHome";
 import HHPage from "../components/HHPage";
 import HHSidebar from "../components/HHSidebar";
-import HHMigrationModal from "../components/HHMigrationModal";
 
 export default {
   name: "Layout",
   components: {
-    HHMigrationModal,
     HHTopBar,
     HHNavbar,
     HHHero,

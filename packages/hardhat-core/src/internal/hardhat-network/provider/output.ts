@@ -99,18 +99,23 @@ export function bufferToRpcData(buffer: Buffer, pad: number = 0): string {
 export function getRpcBlock(
   block: Block,
   totalDifficulty: BN,
-  includeTransactions = true
+  includeTransactions = true,
+  pending = false
 ): RpcBlockOutput {
+  const transactions = includeTransactions
+    ? block.transactions.map((tx, index) => getRpcTransaction(tx, block, index))
+    : block.transactions.map((tx) => bufferToRpcData(tx.hash(true)));
+
   return {
-    number: numberToRpcQuantity(new BN(block.header.number)), // TODO: null when it's a pending block,
-    hash: bufferToRpcData(block.hash()), // TODO: null when it's a pending block,
+    number: pending ? null : numberToRpcQuantity(new BN(block.header.number)),
+    hash: pending ? null : bufferToRpcData(block.hash()),
     parentHash: bufferToRpcData(block.header.parentHash),
     // We pad this to 8 bytes because of a limitation in The Graph
     // See: https://github.com/nomiclabs/hardhat/issues/491
-    nonce: bufferToRpcData(block.header.nonce, 16), // TODO: null when it's a pending block,
-    mixHash: bufferToRpcData(block.header.mixHash, 32), // TODO: null when it's a pending block,
+    nonce: pending ? null : bufferToRpcData(block.header.nonce, 16),
+    mixHash: pending ? null : bufferToRpcData(block.header.mixHash, 64),
     sha3Uncles: bufferToRpcData(block.header.uncleHash),
-    logsBloom: bufferToRpcData(block.header.bloom), // TODO: null when it's a pending block,
+    logsBloom: pending ? null : bufferToRpcData(block.header.bloom),
     transactionsRoot: bufferToRpcData(block.header.transactionsTrie),
     stateRoot: bufferToRpcData(block.header.stateRoot),
     receiptsRoot: bufferToRpcData(block.header.receiptTrie),
@@ -122,42 +127,33 @@ export function getRpcBlock(
     gasLimit: numberToRpcQuantity(new BN(block.header.gasLimit)),
     gasUsed: numberToRpcQuantity(new BN(block.header.gasUsed)),
     timestamp: numberToRpcQuantity(new BN(block.header.timestamp)),
-    transactions: block.transactions.map((tx: any, index: number) =>
-      getRpcTransaction(tx, block, index, !includeTransactions)
-    ) as string[] | RpcTransactionOutput[],
+    transactions,
     uncles: block.uncleHeaders.map((uh: any) => bufferToRpcData(uh.hash())),
   };
 }
 
 export function getRpcTransaction(
   tx: Transaction,
-  block?: Block,
-  index?: number
+  block: Block,
+  index: number
 ): RpcTransactionOutput;
 
 export function getRpcTransaction(
   tx: Transaction,
-  block?: Block,
-  index?: number,
-  txHashOnly?: boolean
-): string | RpcTransactionOutput;
+  block: "pending"
+): RpcTransactionOutput;
 
 export function getRpcTransaction(
   tx: Transaction,
-  block?: Block,
-  index?: number,
-  txHashOnly = false
-): string | RpcTransactionOutput {
-  if (txHashOnly) {
-    return bufferToRpcData(tx.hash(true));
-  }
-
+  block: Block | "pending",
+  index?: number
+): RpcTransactionOutput {
   return {
-    blockHash: block !== undefined ? bufferToRpcData(block.hash()) : null,
+    blockHash: block === "pending" ? null : bufferToRpcData(block.hash()),
     blockNumber:
-      block !== undefined
-        ? numberToRpcQuantity(new BN(block.header.number))
-        : null,
+      block === "pending"
+        ? null
+        : numberToRpcQuantity(new BN(block.header.number)),
     from: bufferToRpcData(tx.getSenderAddress()),
     gas: numberToRpcQuantity(new BN(tx.gasLimit)),
     gasPrice: numberToRpcQuantity(new BN(tx.gasPrice)),
@@ -183,7 +179,7 @@ export function getRpcReceipts(
 
   for (let i = 0; i < runBlockResult.results.length; i += 1) {
     const tx = block.transactions[i];
-    const { createdAddress } = runBlockResult.results[i];
+    const { createdAddress, gasUsed } = runBlockResult.results[i];
     const receipt = runBlockResult.receipts[i];
 
     cumulativeGasUsed = cumulativeGasUsed.add(new BN(receipt.gasUsed));
@@ -200,7 +196,7 @@ export function getRpcReceipts(
       from: bufferToRpcData(tx.getSenderAddress()),
       to: tx.to.length === 0 ? null : bufferToRpcData(tx.to),
       cumulativeGasUsed: numberToRpcQuantity(cumulativeGasUsed),
-      gasUsed: numberToRpcQuantity(new BN(receipt.gasUsed)),
+      gasUsed: numberToRpcQuantity(gasUsed),
       contractAddress:
         createdAddress !== undefined ? bufferToRpcData(createdAddress) : null,
       logs,

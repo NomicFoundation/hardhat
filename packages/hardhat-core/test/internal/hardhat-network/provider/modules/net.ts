@@ -1,6 +1,7 @@
 import { assert } from "chai";
 
 import { numberToRpcQuantity } from "../../../../../src/internal/hardhat-network/provider/output";
+import { workaroundWindowsCiFailures } from "../../../../utils/workaround-windows-ci-failures";
 import { setCWD } from "../../helpers/cwd";
 import { PROVIDERS } from "../../helpers/providers";
 
@@ -10,7 +11,9 @@ describe("Net module", function () {
       this.timeout(50000);
     }
 
-    describe(`Provider ${name}`, function () {
+    workaroundWindowsCiFailures({ isFork });
+
+    describe(`${name} provider`, function () {
       setCWD();
       useProvider();
 

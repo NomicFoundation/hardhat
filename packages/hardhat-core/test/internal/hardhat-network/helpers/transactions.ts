@@ -15,11 +15,12 @@ import { retrieveCommon } from "./retrieveCommon";
 
 export async function deployContract(
   provider: EthereumProvider,
-  deploymentCode: string
-) {
+  deploymentCode: string,
+  from = DEFAULT_ACCOUNTS_ADDRESSES[0]
+): Promise<string> {
   const hash = await provider.send("eth_sendTransaction", [
     {
-      from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+      from,
       data: deploymentCode,
       gas: numberToRpcQuantity(DEFAULT_BLOCK_GAS_LIMIT),
     },

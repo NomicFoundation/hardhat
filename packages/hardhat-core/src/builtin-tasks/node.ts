@@ -93,12 +93,26 @@ subtask(TASK_NODE_GET_PROVIDER)
 
       const hardhatNetworkConfig = config.networks[HARDHAT_NETWORK_NAME];
 
-      const forkUrl = forkUrlParam ?? hardhatNetworkConfig.forking?.url;
-      const forkBlockNumber =
-        forkBlockNumberParam ?? hardhatNetworkConfig.forking?.blockNumber;
+      const forkUrlConfig = hardhatNetworkConfig.forking?.url;
+      const forkBlockNumberConfig = hardhatNetworkConfig.forking?.blockNumber;
 
-      // we use the hardhat_reset RPC method to enable the fork
-      if (forkUrl !== undefined) {
+      const forkUrl = forkUrlParam ?? forkUrlConfig;
+      const forkBlockNumber = forkBlockNumberParam ?? forkBlockNumberConfig;
+
+      // we throw an error if the user specified a forkBlockNumber but not a
+      // forkUrl
+      if (forkBlockNumber !== undefined && forkUrl === undefined) {
+        throw new HardhatError(
+          ERRORS.BUILTIN_TASKS.NODE_FORK_BLOCK_NUMBER_WITHOUT_URL
+        );
+      }
+
+      // if the url or the block is different to the one in the configuration,
+      // we use hardhat_reset to set the fork
+      if (
+        forkUrl !== forkUrlConfig ||
+        forkBlockNumber !== forkBlockNumberConfig
+      ) {
         await provider.request({
           method: "hardhat_reset",
           params: [
@@ -110,12 +124,6 @@ subtask(TASK_NODE_GET_PROVIDER)
             },
           ],
         });
-      } else if (forkBlockNumber !== undefined) {
-        // we throw an error if the user specified a forkBlockNumber but not a
-        // forkUrl
-        throw new HardhatError(
-          ERRORS.BUILTIN_TASKS.NODE_FORK_BLOCK_NUMBER_WITHOUT_URL
-        );
       }
 
       // enable logging

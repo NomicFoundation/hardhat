@@ -1,20 +1,23 @@
+import { RunBlockResult } from "@nomiclabs/ethereumjs-vm/dist/runBlock";
 import { BN } from "ethereumjs-util";
 
 import { BuildInfo } from "../../../types";
+import { MessageTrace } from "../stack-traces/message-trace";
 
 import { Block } from "./types/Block";
 
 export type NodeConfig = LocalNodeConfig | ForkedNodeConfig;
 
 interface CommonConfig {
-  allowUnlimitedContractSize?: boolean;
+  automine: boolean;
   blockGasLimit: number;
   chainId: number;
   genesisAccounts: GenesisAccount[];
   hardfork: string;
-  initialDate?: Date;
   networkId: number;
   networkName: string;
+  allowUnlimitedContractSize?: boolean;
+  initialDate?: Date;
   tracingConfig?: TracingConfig;
 }
 
@@ -33,6 +36,8 @@ export interface ForkedNodeConfig extends CommonConfig {
 export interface TracingConfig {
   buildInfos?: BuildInfo[];
 }
+
+export type IntervalMiningConfig = number | [number, number];
 
 export interface GenesisAccount {
   privateKey: string;
@@ -70,6 +75,32 @@ export interface Snapshot {
   date: Date;
   latestBlock: Block;
   stateRoot: Buffer;
+  txPoolSnapshotId: number;
   blockTimeOffsetSeconds: BN;
   nextBlockTimestamp: BN;
+}
+
+export type SendTransactionResult =
+  | string
+  | MineBlockResult
+  | MineBlockResult[];
+
+export interface MineBlockResult {
+  block: Block;
+  blockResult: RunBlockResult;
+  traces: GatherTracesResult[];
+}
+
+export interface RunCallResult extends GatherTracesResult {
+  result: Buffer;
+}
+
+export interface EstimateGasResult extends GatherTracesResult {
+  estimation: BN;
+}
+
+export interface GatherTracesResult {
+  trace: MessageTrace | undefined;
+  error?: Error;
+  consoleLogMessages: string[];
 }

@@ -1,4 +1,3 @@
-import { RunBlockResult } from "@nomiclabs/ethereumjs-vm/dist/runBlock";
 import Common from "ethereumjs-common";
 import { Transaction } from "ethereumjs-tx";
 import {
@@ -10,22 +9,9 @@ import {
 } from "ethereumjs-util";
 import * as t from "io-ts";
 import cloneDeep from "lodash/cloneDeep";
-import util from "util";
 
 import { BoundExperimentalHardhatNetworkMessageTraceHook } from "../../../../types";
-import { weiToHumanReadableString } from "../../../util/wei-values";
-import {
-  isCreateTrace,
-  isPrecompileTrace,
-  MessageTrace,
-} from "../../stack-traces/message-trace";
-import { ContractFunctionType } from "../../stack-traces/model";
-import {
-  FALLBACK_FUNCTION_NAME,
-  RECEIVE_FUNCTION_NAME,
-  UNRECOGNIZED_CONTRACT_NAME,
-  UNRECOGNIZED_FUNCTION_NAME,
-} from "../../stack-traces/solidity-stack-trace";
+import { MessageTrace } from "../../stack-traces/message-trace";
 import {
   InvalidArgumentsError,
   InvalidInputError,
@@ -58,7 +44,13 @@ import {
   validateParams,
 } from "../input";
 import { HardhatNode } from "../node";
-import { CallParams, FilterParams, TransactionParams } from "../node-types";
+import {
+  CallParams,
+  FilterParams,
+  GatherTracesResult,
+  MineBlockResult,
+  TransactionParams,
+} from "../node-types";
 import {
   bufferToRpcData,
   getRpcBlock,
@@ -318,7 +310,7 @@ export class EthModule {
     rpcCall: RpcCallRequest,
     blockTag: OptionalBlockTag
   ): Promise<string> {
-    const blockNumber = await this._blockTagToBlockNumber(blockTag);
+    const blockNumberOrPending = await this._resolveBlockTag(blockTag);
 
     const callParams = await this._rpcCallRequestToNodeCallParams(rpcCall);
     const {
@@ -326,25 +318,22 @@ export class EthModule {
       trace,
       error,
       consoleLogMessages,
-    } = await this._node.runCall(callParams, blockNumber);
+    } = await this._node.runCall(callParams, blockNumberOrPending);
 
-    await this._logCallTrace(callParams, trace);
+    const code = await this._node.getCodeFromTrace(trace, blockNumberOrPending);
 
-    if (trace !== undefined) {
-      await this._runHardhatNetworkMessageTraceHooks(trace, true);
-    }
+    this._logger.logCallTrace(
+      callParams,
+      code,
+      trace,
+      consoleLogMessages,
+      error
+    );
 
-    this._logConsoleLogMessages(consoleLogMessages);
+    await this._runHardhatNetworkMessageTraceHooks(trace, true);
 
-    if (error !== undefined) {
-      if (this._throwOnCallFailures) {
-        throw error;
-      }
-
-      // TODO: This is a little duplicated with the provider, it should be
-      //  refactored away
-      // TODO: This will log the error, but the RPC method won't be red
-      this._logError(error);
+    if (error !== undefined && this._throwOnCallFailures) {
+      throw error;
     }
 
     return bufferToRpcData(returnData);
@@ -367,7 +356,7 @@ export class EthModule {
   }
 
   private async _coinbaseAction(): Promise<string> {
-    return bufferToHex(await this._node.getCoinbaseAddress());
+    return bufferToHex(this._node.getCoinbaseAddress());
   }
 
   // eth_compileLLL
@@ -388,7 +377,12 @@ export class EthModule {
     transactionRequest: RpcTransactionRequest,
     blockTag: OptionalBlockTag
   ): Promise<string> {
-    const blockNumber = await this._blockTagToBlockNumber(blockTag);
+    // estimateGas behaves differently when there's no blockTag
+    // it uses "pending" as default instead of "latest"
+    const blockNumberOrPending =
+      blockTag === undefined
+        ? "pending"
+        : await this._resolveBlockTag(blockTag);
 
     const txParams = await this._rpcTransactionRequestToNodeTransactionParams(
       transactionRequest
@@ -399,11 +393,18 @@ export class EthModule {
       error,
       trace,
       consoleLogMessages,
-    } = await this._node.estimateGas(txParams, blockNumber);
+    } = await this._node.estimateGas(txParams, blockNumberOrPending);
+
+    const code = await this._node.getCodeFromTrace(trace, blockNumberOrPending);
 
     if (error !== undefined) {
-      await this._logEstimateGasTrace(txParams, trace);
-      this._logConsoleLogMessages(consoleLogMessages);
+      this._logger.logEstimateGasTrace(
+        txParams,
+        code,
+        trace,
+        consoleLogMessages,
+        error
+      );
 
       throw error;
     }
@@ -431,10 +432,10 @@ export class EthModule {
     address: Buffer,
     blockTag: OptionalBlockTag
   ): Promise<string> {
-    const blockNumber = await this._blockTagToBlockNumber(blockTag);
+    const blockNumberOrPending = await this._resolveBlockTag(blockTag);
 
     return numberToRpcQuantity(
-      await this._node.getAccountBalance(address, blockNumber)
+      await this._node.getAccountBalance(address, blockNumberOrPending)
     );
   }
 
@@ -469,6 +470,7 @@ export class EthModule {
     includeTransactions: boolean
   ): Promise<RpcBlockOutput | null> {
     let block: Block | undefined;
+    let totalDifficulty: BN | undefined;
 
     if (typeof tag === "string") {
       if (tag === "earliest") {
@@ -476,9 +478,10 @@ export class EthModule {
       } else if (tag === "latest") {
         block = await this._node.getLatestBlock();
       } else {
-        throw new InvalidInputError(
-          `eth_getBlockByNumber doesn't support ${tag}`
-        );
+        [
+          block,
+          totalDifficulty,
+        ] = await this._node.getPendingBlockAndTotalDifficulty();
       }
     } else if (BN.isBN(tag)) {
       block = await this._node.getBlockByNumber(tag);
@@ -490,9 +493,16 @@ export class EthModule {
       return null;
     }
 
-    const totalDifficulty = await this._node.getBlockTotalDifficulty(block);
+    if (totalDifficulty === undefined) {
+      totalDifficulty = await this._node.getBlockTotalDifficulty(block);
+    }
 
-    return getRpcBlock(block, totalDifficulty, includeTransactions);
+    return getRpcBlock(
+      block,
+      totalDifficulty,
+      includeTransactions,
+      tag === "pending"
+    );
   }
 
   // eth_getBlockTransactionCountByHash
@@ -514,15 +524,16 @@ export class EthModule {
 
   // eth_getBlockTransactionCountByNumber
 
-  private _getBlockTransactionCountByNumberParams(params: any[]): [BN] {
-    return validateParams(params, rpcQuantity);
+  private _getBlockTransactionCountByNumberParams(params: any[]): [BlockTag] {
+    return validateParams(params, blockTagType);
   }
 
   private async _getBlockTransactionCountByNumberAction(
-    blockNumber: BN
+    blockTag: BlockTag
   ): Promise<string | null> {
-    const block = await this._node.getBlockByNumber(blockNumber);
-    if (block === undefined) {
+    const block = await this._getBlockByBlockTag(blockTag);
+
+    if (block === null) {
       return null;
     }
 
@@ -539,9 +550,11 @@ export class EthModule {
     address: Buffer,
     blockTag: OptionalBlockTag
   ): Promise<string> {
-    const blockNumber = await this._blockTagToBlockNumber(blockTag);
+    const blockNumberOrPending = await this._resolveBlockTag(blockTag);
 
-    return bufferToRpcData(await this._node.getCode(address, blockNumber));
+    return bufferToRpcData(
+      await this._node.getCode(address, blockNumberOrPending)
+    );
   }
 
   // eth_getCompilers
@@ -638,9 +651,13 @@ export class EthModule {
     slot: BN,
     blockTag: OptionalBlockTag
   ): Promise<string> {
-    const blockNumber = await this._blockTagToBlockNumber(blockTag);
+    const blockNumberOrPending = await this._resolveBlockTag(blockTag);
 
-    const data = await this._node.getStorageAt(address, slot, blockNumber);
+    const data = await this._node.getStorageAt(
+      address,
+      slot,
+      blockNumberOrPending
+    );
 
     return bufferToRpcData(data);
   }
@@ -673,17 +690,20 @@ export class EthModule {
 
   // eth_getTransactionByBlockNumberAndIndex
 
-  private _getTransactionByBlockNumberAndIndexParams(params: any[]): [BN, BN] {
-    return validateParams(params, rpcQuantity, rpcQuantity);
+  private _getTransactionByBlockNumberAndIndexParams(
+    params: any[]
+  ): [BlockTag, BN] {
+    return validateParams(params, blockTagType, rpcQuantity);
   }
 
   private async _getTransactionByBlockNumberAndIndexAction(
-    blockNumber: BN,
+    blockTag: BlockTag,
     index: BN
   ): Promise<RpcTransactionOutput | null> {
     const i = index.toNumber();
-    const block = await this._node.getBlockByNumber(blockNumber);
-    if (block === undefined) {
+    const block = await this._getBlockByBlockTag(blockTag);
+
+    if (block === null) {
       return null;
     }
 
@@ -692,7 +712,9 @@ export class EthModule {
       return null;
     }
 
-    return getRpcTransaction(tx, block, i);
+    return blockTag === "pending"
+      ? getRpcTransaction(tx, "pending")
+      : getRpcTransaction(tx, block, i);
   }
 
   // eth_getTransactionByHash
@@ -704,21 +726,24 @@ export class EthModule {
   private async _getTransactionByHashAction(
     hash: Buffer
   ): Promise<RpcTransactionOutput | null> {
-    const tx = await this._node.getTransaction(hash);
-    if (tx === undefined) {
-      return null;
+    const pendingTx = await this._node.getPendingTransaction(hash);
+    if (pendingTx !== undefined) {
+      return getRpcTransaction(pendingTx, "pending");
     }
 
     const block = await this._node.getBlockByTransactionHash(hash);
+    if (block === undefined) {
+      return null;
+    }
 
-    let index: number | undefined;
-    if (block !== undefined) {
-      const transactions: Transaction[] = block.transactions;
-      const i = transactions.findIndex((bt) => bt.hash().equals(hash));
-
-      if (i !== -1) {
-        index = i;
-      }
+    const index = block.transactions.findIndex((btx) =>
+      btx.hash().equals(hash)
+    );
+    const tx = block.transactions[index];
+    if (tx === undefined) {
+      throw new Error(
+        "Transaction not found in the saved block, this should never happen"
+      );
     }
 
     return getRpcTransaction(tx, block, index);
@@ -736,10 +761,10 @@ export class EthModule {
     address: Buffer,
     blockTag: OptionalBlockTag
   ): Promise<string> {
-    const blockNumber = await this._blockTagToBlockNumber(blockTag);
+    const blockNumberOrPending = await this._resolveBlockTag(blockTag);
 
     return numberToRpcQuantity(
-      await this._node.getAccountNonce(address, blockNumber)
+      await this._node.getAccountNonce(address, blockNumberOrPending)
     );
   }
 
@@ -831,7 +856,7 @@ export class EthModule {
 
   private async _pendingTransactionsAction(): Promise<RpcTransactionOutput[]> {
     const txs = await this._node.getPendingTransactions();
-    return txs.map((tx) => getRpcTransaction(tx));
+    return txs.map((tx) => getRpcTransaction(tx, "pending"));
   }
 
   // eth_protocolVersion
@@ -1010,9 +1035,7 @@ export class EthModule {
           : await this._getDefaultCallFrom(),
       data: rpcCall.data !== undefined ? rpcCall.data : toBuffer([]),
       gasLimit:
-        rpcCall.gas !== undefined
-          ? rpcCall.gas
-          : await this._node.getBlockGasLimit(),
+        rpcCall.gas !== undefined ? rpcCall.gas : this._node.getBlockGasLimit(),
       gasPrice:
         rpcCall.gasPrice !== undefined
           ? rpcCall.gasPrice
@@ -1028,9 +1051,7 @@ export class EthModule {
       to: rpcTx.to !== undefined ? rpcTx.to : Buffer.from([]),
       from: rpcTx.from,
       gasLimit:
-        rpcTx.gas !== undefined
-          ? rpcTx.gas
-          : await this._node.getBlockGasLimit(),
+        rpcTx.gas !== undefined ? rpcTx.gas : this._node.getBlockGasLimit(),
       gasPrice:
         rpcTx.gasPrice !== undefined
           ? rpcTx.gasPrice
@@ -1040,15 +1061,15 @@ export class EthModule {
       nonce:
         rpcTx.nonce !== undefined
           ? rpcTx.nonce
-          : await this._node.getAccountNonce(rpcTx.from, null),
+          : await this._node.getAccountExecutableNonce(rpcTx.from),
     };
   }
 
-  private async _blockTagToBlockNumber(
+  private async _resolveBlockTag(
     blockTag: OptionalBlockTag
-  ): Promise<BN | null> {
+  ): Promise<BN | "pending"> {
     if (blockTag === "pending") {
-      return null;
+      return "pending";
     }
 
     if (blockTag === undefined || blockTag === "latest") {
@@ -1077,6 +1098,41 @@ export class EthModule {
     }
 
     return new BN(block.header.number);
+  }
+
+  private async _resolveBlockTagAndReturnNullIfInvalid(blockTag: BlockTag) {
+    let blockNumberOrPending: BN | "pending";
+    try {
+      blockNumberOrPending = await this._resolveBlockTag(blockTag);
+    } catch (error) {
+      if (error.message.includes("Received invalid block tag")) {
+        return null;
+      }
+
+      throw error;
+    }
+
+    return blockNumberOrPending;
+  }
+
+  private async _getBlockByBlockTag(blockTag: BlockTag) {
+    let blockNumberOrPending: BN | "pending" | null;
+    let block: Block | undefined;
+
+    blockNumberOrPending = await this._resolveBlockTagAndReturnNullIfInvalid(
+      blockTag
+    );
+
+    if (blockNumberOrPending === null) {
+      return null;
+    }
+
+    block = await this._node.getBlockByNumber(blockNumberOrPending);
+    if (block === undefined) {
+      return null;
+    }
+
+    return block;
   }
 
   private async _extractBlock(blockTag: OptionalBlockTag): Promise<BN> {
@@ -1163,208 +1219,151 @@ export class EthModule {
     return toBuffer(localAccounts[0]);
   }
 
-  private async _logEstimateGasTrace(
-    txParams: TransactionParams,
-    trace?: MessageTrace
-  ) {
-    if (trace !== undefined) {
-      await this._logContractAndFunctionName(trace, true);
-    }
-
-    this._logFrom(txParams.from);
-    this._logTo(txParams.to, trace);
-    this._logValue(new BN(txParams.value));
-  }
-
-  private async _logTransactionTrace(
-    tx: Transaction,
-    trace: MessageTrace | undefined,
-    block: Block,
-    blockResult: RunBlockResult
-  ) {
-    if (trace !== undefined) {
-      await this._logContractAndFunctionName(trace, false);
-    }
-
-    this._logger.logWithTitle("Transaction", bufferToHex(tx.hash(true)));
-    this._logFrom(tx.getSenderAddress());
-    this._logTo(tx.to, trace);
-    this._logValue(new BN(tx.value));
-    this._logger.logWithTitle(
-      "Gas used",
-      `${new BN(blockResult.receipts[0].gasUsed).toString(10)} of ${new BN(
-        tx.gasLimit
-      ).toString(10)}`
-    );
-    this._logger.logWithTitle(
-      `Block #${new BN(block.header.number).toString(10)}`,
-      bufferToHex(block.hash())
-    );
-  }
-
-  private _logConsoleLogMessages(messages: string[]) {
-    // This is a especial case, as we always want to print the console.log
-    // messages. The difference is how.
-    // If we have a logger, we should use that, so that logs are printed in
-    // order. If we don't, we just print the messages here.
-    if (!this._logger.enabled) {
-      for (const msg of messages) {
-        console.log(msg);
-      }
-      return;
-    }
-
-    if (messages.length === 0) {
-      return;
-    }
-
-    this._logger.log("");
-
-    this._logger.log("console.log:");
-    for (const msg of messages) {
-      this._logger.log(`  ${msg}`);
-    }
-  }
-
-  private async _logCallTrace(callParams: CallParams, trace?: MessageTrace) {
-    if (trace !== undefined) {
-      await this._logContractAndFunctionName(trace, true);
-    }
-
-    this._logFrom(callParams.from);
-    this._logTo(callParams.to, trace);
-    if (callParams.value.gtn(0)) {
-      this._logValue(callParams.value);
-    }
-  }
-
-  private async _logContractAndFunctionName(
-    trace: MessageTrace,
-    shouldBeContract: boolean
-  ) {
-    if (isPrecompileTrace(trace)) {
-      this._logger.logWithTitle(
-        "Precompile call",
-        `<PrecompileContract ${trace.precompile}>`
-      );
-      return;
-    }
-
-    if (isCreateTrace(trace)) {
-      if (trace.bytecode === undefined) {
-        this._logger.logWithTitle(
-          "Contract deployment",
-          UNRECOGNIZED_CONTRACT_NAME
-        );
-      } else {
-        this._logger.logWithTitle(
-          "Contract deployment",
-          trace.bytecode.contract.name
-        );
-      }
-
-      if (trace.deployedContract !== undefined && trace.error === undefined) {
-        this._logger.logWithTitle(
-          "Contract address",
-          bufferToHex(trace.deployedContract)
-        );
-      }
-
-      return;
-    }
-
-    const code = await this._node.getCode(trace.address, null);
-    if (code.length === 0) {
-      if (shouldBeContract) {
-        this._logger.log(`WARNING: Calling an account which is not a contract`);
-      }
-
-      return;
-    }
-
-    if (trace.bytecode === undefined) {
-      this._logger.logWithTitle("Contract call", UNRECOGNIZED_CONTRACT_NAME);
-      return;
-    }
-
-    const func = trace.bytecode.contract.getFunctionFromSelector(
-      trace.calldata.slice(0, 4)
-    );
-
-    const functionName: string =
-      func === undefined
-        ? UNRECOGNIZED_FUNCTION_NAME
-        : func.type === ContractFunctionType.FALLBACK
-        ? FALLBACK_FUNCTION_NAME
-        : func.type === ContractFunctionType.RECEIVE
-        ? RECEIVE_FUNCTION_NAME
-        : func.name;
-
-    this._logger.logWithTitle(
-      "Contract call",
-      `${trace.bytecode.contract.name}#${functionName}`
-    );
-  }
-
-  private _logValue(value: BN) {
-    this._logger.logWithTitle("Value", weiToHumanReadableString(value));
-  }
-
-  private _logError(error: Error) {
-    // TODO: We log an empty line here because this is only used when throwing
-    //   errors is disabled. The empty line is normally printed by the provider
-    //   when an exception is thrown. As we don't throw, we do it here.
-    this._logger.log("");
-    this._logger.log(util.inspect(error));
-  }
-
-  private _logFrom(from: Buffer) {
-    this._logger.logWithTitle("From", bufferToHex(from));
-  }
-
   private async _sendTransactionAndReturnHash(tx: Transaction) {
-    const {
-      trace,
-      block,
-      blockResult,
-      consoleLogMessages,
-      error,
-    } = await this._node.runTransactionInNewBlock(tx);
+    let result = await this._node.sendTransaction(tx);
 
-    await this._logTransactionTrace(tx, trace, block, blockResult);
-
-    if (trace !== undefined) {
-      await this._runHardhatNetworkMessageTraceHooks(trace, false);
+    if (typeof result === "string") {
+      return result;
     }
 
-    this._logConsoleLogMessages(consoleLogMessages);
-
-    if (error !== undefined) {
-      if (this._throwOnTransactionFailures) {
-        throw error;
+    if (Array.isArray(result)) {
+      if (result.length === 1 && result[0].block.transactions.length > 1) {
+        this._logger.logMultipleTransactionsWarning();
+      } else if (result.length > 1) {
+        this._logger.logMultipleBlocksWarning();
       }
-
-      // TODO: This is a little duplicated with the provider, it should be
-      //  refactored away
-      // TODO: This will log the error, but the RPC method won't be red
-      this._logError(error);
+    } else {
+      if (result.block.transactions.length > 1) {
+        this._logger.logMultipleTransactionsWarning();
+      }
+      result = [result];
     }
 
-    return bufferToRpcData(tx.hash(true));
+    await this._handleMineBlockResults(result, tx);
+
+    return bufferToRpcData(tx.hash());
   }
 
-  private _logTo(to: Buffer, trace?: MessageTrace) {
-    if (trace !== undefined && isCreateTrace(trace)) {
-      return;
+  private async _handleMineBlockResults(
+    results: MineBlockResult[],
+    sentTx: Transaction
+  ) {
+    const singleTransactionMined =
+      results.length === 1 && results[0].block.transactions.length === 1;
+
+    if (singleTransactionMined) {
+      const block = results[0].block;
+      const tx = block.transactions[0];
+      const txGasUsed = results[0].blockResult.results[0].gasUsed.toNumber();
+      const trace = results[0].traces[0];
+      await this._logSingleTransaction(tx, block, txGasUsed, trace);
+
+      const txError = trace.error;
+      if (txError !== undefined && this._throwOnTransactionFailures) {
+        throw txError;
+      }
+    } else {
+      // this happens when automine is enabled, a tx is sent, and there are
+      // pending txs in the mempool
+      for (const result of results) {
+        await this._logBlock(result, sentTx);
+      }
+
+      const [sentTxResult, sentTxIndex] = this._getTransactionResultAndIndex(
+        sentTx,
+        results
+      );
+      const sentTxTrace = sentTxResult.traces[sentTxIndex];
+
+      if (!singleTransactionMined) {
+        const blockNumber = sentTxResult.block.header.number;
+        const code = await this._node.getCodeFromTrace(
+          sentTxTrace.trace,
+          new BN(blockNumber)
+        );
+
+        const { block, blockResult } = sentTxResult;
+        const gasUsed = blockResult.results[sentTxIndex].gasUsed.toNumber();
+        this._logger.logCurrentlySentTransaction(
+          sentTx,
+          gasUsed,
+          sentTxTrace,
+          code,
+          block
+        );
+      }
+
+      const sentTxError = sentTxTrace.error;
+      if (sentTxError !== undefined && this._throwOnTransactionFailures) {
+        throw sentTxError;
+      }
+    }
+  }
+
+  private async _logSingleTransaction(
+    tx: Transaction,
+    block: Block,
+    txGasUsed: number,
+    txTrace: GatherTracesResult
+  ) {
+    const code = await this._node.getCodeFromTrace(
+      txTrace.trace,
+      new BN(block.header.number)
+    );
+    this._logger.logSingleTransaction(tx, block, txGasUsed, txTrace, code);
+
+    await this._runHardhatNetworkMessageTraceHooks(txTrace.trace, false);
+  }
+
+  private async _logBlock(result: MineBlockResult, sentTx: Transaction) {
+    const { block, traces } = result;
+
+    const codes: Buffer[] = [];
+    for (const txTrace of traces) {
+      const code = await this._node.getCodeFromTrace(
+        txTrace.trace,
+        new BN(block.header.number)
+      );
+
+      codes.push(code);
     }
 
-    this._logger.logWithTitle("To", bufferToHex(to));
+    this._logger.logBlockFromAutomine(result, codes, sentTx.hash());
+
+    this._logger.logEmptyLine();
+
+    for (const txTrace of traces) {
+      await this._runHardhatNetworkMessageTraceHooks(txTrace.trace, false);
+    }
+  }
+
+  private _getTransactionResultAndIndex(
+    tx: Transaction,
+    results: MineBlockResult[]
+  ): [MineBlockResult, number] {
+    for (const result of results) {
+      const transactions = result.block.transactions;
+      for (let i = 0; i < transactions.length; i++) {
+        const blockTx = transactions[i];
+        if (blockTx.hash().equals(tx.hash())) {
+          return [result, i];
+        }
+      }
+    }
+
+    throw new Error(
+      "The sent transaction not found in sendTransaction result, this should never happen"
+    );
   }
 
   private async _runHardhatNetworkMessageTraceHooks(
-    trace: MessageTrace,
+    trace: MessageTrace | undefined,
     isCall: boolean
   ) {
+    if (trace === undefined) {
+      return;
+    }
+
     for (const hook of this._experimentalHardhatNetworkMessageTraceHooks) {
       await hook(trace, isCall);
     }

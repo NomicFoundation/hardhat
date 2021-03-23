@@ -152,6 +152,7 @@ export class Environment implements HardhatRuntimeEnvironment {
     const globalAsAny = global as any;
 
     const previousValues: { [name: string]: any } = {};
+    const previousHre = globalAsAny.hre;
 
     globalAsAny.hre = this;
 
@@ -170,7 +171,7 @@ export class Environment implements HardhatRuntimeEnvironment {
           continue;
         }
 
-        globalAsAny.hre = previousValues.hre;
+        globalAsAny.hre = previousHre;
         globalAsAny[key] = previousValues[key];
       }
     };

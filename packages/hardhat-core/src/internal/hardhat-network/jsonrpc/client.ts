@@ -22,7 +22,6 @@ import {
 
 export class JsonRpcClient {
   private _cache: Map<string, any> = new Map();
-  private _scopedForkCacheFolderCreated?: boolean;
 
   constructor(
     private _httpProvider: HttpProvider,
@@ -38,14 +37,14 @@ export class JsonRpcClient {
 
   public async getStorageAt(
     address: Buffer,
-    position: Buffer,
+    position: BN,
     blockNumber: BN
   ): Promise<Buffer> {
     return this._perform(
       "eth_getStorageAt",
       [
         bufferToHex(address),
-        bufferToHex(position),
+        numberToRpcQuantity(position),
         numberToRpcQuantity(blockNumber),
       ],
       rpcData,
@@ -121,6 +120,15 @@ export class JsonRpcClient {
       [bufferToHex(transactionHash)],
       nullable(rpcTransaction),
       (tx) => tx?.blockNumber ?? undefined
+    );
+  }
+
+  public async getTransactionCount(address: Buffer, blockNumber: BN) {
+    return this._perform(
+      "eth_getTransactionCount",
+      [bufferToHex(address), numberToRpcQuantity(blockNumber)],
+      rpcQuantity,
+      () => blockNumber
     );
   }
 
@@ -420,11 +428,7 @@ export class JsonRpcClient {
   ) {
     const requestPath = this._getDiskCachePathForKey(forkCachePath, cacheKey);
 
-    if (this._scopedForkCacheFolderCreated !== true) {
-      this._scopedForkCacheFolderCreated = true;
-      await fsExtra.ensureDir(path.dirname(requestPath));
-    }
-
+    await fsExtra.ensureDir(path.dirname(requestPath));
     await fsExtra.writeJSON(requestPath, rawResult, {
       encoding: "utf8",
     });

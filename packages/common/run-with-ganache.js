@@ -43,6 +43,6 @@ after(async () => {
   if (ganacheInstance === null) {
     return;
   }
-  cleanup(ganacheInstance);
+  await cleanup(ganacheInstance);
   console.log("\n### Stopped ganache instance ###");
 });

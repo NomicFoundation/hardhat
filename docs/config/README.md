@@ -18,7 +18,7 @@ module.exports = {
     hardhat: {
     },
     rinkeby: {
-      url: "https://rinkeby.infura.io/v3/123abc123abc123abc123abc123abcde",
+      url: "https://eth-mainnet.alchemyapi.io/v2/123abc123abc123abc123abc123abcde",
       accounts: [privateKey1, privateKey2, ...]
     }
   },
@@ -110,7 +110,7 @@ You can set the following fields on the `hardhat` config:
 ### JSON-RPC based networks
 
 These are networks that connect to an external node. Nodes can be running in your computer, like Ganache, or remotely,
-like Infura.
+like Alchemy or Infura.
 
 This kind of networks are configured with objects with the following fields:
 

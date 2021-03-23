@@ -109,6 +109,19 @@ export async function assertNodeBalances(
   assert.deepEqual(balances, expectedBalances.map(numberToRpcQuantity));
 }
 
+export async function assertPendingNodeBalances(
+  provider: EthereumProvider,
+  expectedBalances: Array<number | BN>
+) {
+  const accounts: string[] = await provider.send("eth_accounts");
+
+  const balances = await Promise.all(
+    accounts.map((acc) => provider.send("eth_getBalance", [acc, "pending"]))
+  );
+
+  assert.deepEqual(balances, expectedBalances.map(numberToRpcQuantity));
+}
+
 export async function assertTransactionFailure(
   provider: EthereumProvider,
   txData: RpcTransactionRequestInput,
