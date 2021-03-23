@@ -81,25 +81,6 @@ export class ForkTransaction extends Transaction {
     );
   }
 
-  // Ported from ethereumjs-tx `tx.hash(false)`
-  public hash(): Buffer {
-    let items;
-
-    if (this._implementsEIP155()) {
-      items = [
-        ...this.raw().slice(0, 6),
-        toBuffer(this.getChainId()),
-        unpadBuffer(toBuffer(0)),
-        unpadBuffer(toBuffer(0)),
-      ];
-    } else {
-      items = this.raw().slice(0, 6);
-    }
-
-    // create hash
-    return rlphash(items);
-  }
-
   private _implementsEIP155(): boolean {
     const chainId = this.getChainId();
     const v = this.v?.toNumber();
