@@ -28,6 +28,16 @@ const isRpcDataString = (u: unknown) =>
 const isRpcHashString = (u: unknown) =>
   typeof u === "string" && u.length === 66 && isRpcDataString(u);
 
+// A bug in isValidAddress makes it throw
+// if the string isn't hex prefixed...
+const safeIsValidAddress = (u: unknown) => {
+  let isValid = false;
+  try {
+    isValid = isValidAddress(u);
+  } catch (e) {}
+  return isValid;
+};
+
 interface BlockTagObject {
   blockHash?: string | Buffer;
   blockNumber?: string | number | BN;
@@ -113,7 +123,7 @@ export const rpcAddress = new t.Type<Buffer>(
   "ADDRESS",
   Buffer.isBuffer,
   (u, c) =>
-    typeof u === "string" && isValidAddress(u)
+    typeof u === "string" && safeIsValidAddress(u)
       ? t.success(toBuffer(u as BufferLike))
       : t.failure(u, c),
   t.identity
