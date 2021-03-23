@@ -80,7 +80,7 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
       }
     }
 
-    if (args.method === "eth_signTypedData") {
+    if (args.method === "eth_signTypedData_v4") {
       const [address, data] = validateParams(params, rpcAddress, t.any);
 
       if (address !== undefined) {
