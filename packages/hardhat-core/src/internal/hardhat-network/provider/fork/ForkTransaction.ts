@@ -6,6 +6,7 @@ import {
   bufferToInt,
   ecrecover,
   PrefixedHexString,
+  publicToAddress,
   rlphash,
   toBuffer,
   unpadBuffer,
@@ -36,7 +37,7 @@ export class ForkTransaction extends Transaction {
       (this as any).v,
       (this as any).r.toBuffer(),
       (this as any).s.toBuffer(),
-      (this as any)._implementsEIP155() ? chainId : undefined
+      (this as any)._implementsEIP155() ? new BN(chainId) : undefined
     );
 
     (this as any)._senderPubKey = senderPubKey;
@@ -44,6 +45,10 @@ export class ForkTransaction extends Transaction {
 
   public verifySignature(): boolean {
     return true;
+  }
+
+  public getSenderAddress(): Address {
+    return new Address(publicToAddress((this as any)._senderPubKey));
   }
 
   public getChainId(): number {
