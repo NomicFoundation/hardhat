@@ -1440,7 +1440,7 @@ export class HardhatNode extends EventEmitter {
     if (this._stateManager instanceof ForkStateManager) {
       return this._stateManager.setBlockContext(
         block.header.stateRoot,
-        new BN(block.header.number)
+        block.header.number
       );
     }
     return this._stateManager.setStateRoot(block.header.stateRoot);
