@@ -5,7 +5,6 @@ import FakeTransaction from "ethereumjs-tx/dist/fake";
 import { BN, bufferToHex, bufferToInt } from "ethereumjs-util";
 import sinon from "sinon";
 
-import { numberToRpcQuantity } from "../../../../src/internal/core/providers/provider-utils";
 import { rpcToBlockData } from "../../../../src/internal/hardhat-network/provider/fork/rpcToBlockData";
 import { HardhatNode } from "../../../../src/internal/hardhat-network/provider/node";
 import {
@@ -30,6 +29,8 @@ import {
   DEFAULT_NETWORK_ID,
   DEFAULT_NETWORK_NAME,
 } from "../helpers/providers";
+
+import { assertEqualBlocks } from "./utils/assertEqualBlocks";
 
 // tslint:disable no-string-literal
 
@@ -609,7 +610,7 @@ describe("HardhatNode", () => {
           networkId: 1,
           hardfork,
           forkConfig,
-          FORK_TESTS_CACHE_PATH,
+          forkCachePath: FORK_TESTS_CACHE_PATH,
           blockGasLimit: rpcBlock.gasLimit.toNumber(),
           genesisAccounts: [],
         };
@@ -636,56 +637,7 @@ describe("HardhatNode", () => {
           assert.fail();
         }
 
-        const localReceiptRoot = newBlock.header.receiptTrie.toString("hex");
-        const remoteReceiptRoot = rpcBlock.receiptsRoot.toString("hex");
-
-        // We do some manual comparisons here to understand why the root of the receipt tries differ.
-        if (localReceiptRoot !== remoteReceiptRoot) {
-          for (let i = 0; i < block.transactions.length; i++) {
-            const tx = block.transactions[i];
-            const txHash = bufferToHex(tx.hash(true));
-
-            const remoteReceipt = (await forkClient["_httpProvider"].request({
-              method: "eth_getTransactionReceipt",
-              params: [txHash],
-            })) as any;
-
-            const localReceipt = result.receipts[i];
-            const evmResult = result.results[i];
-
-            assert.equal(
-              bufferToHex(localReceipt.bitvector),
-              remoteReceipt.logsBloom,
-              `Logs bloom of tx index ${i} (${txHash}) should match`
-            );
-
-            assert.equal(
-              numberToRpcQuantity(evmResult.gasUsed.toNumber()),
-              remoteReceipt.gasUsed,
-              `Gas used of tx index ${i} (${txHash}) should match`
-            );
-
-            assert.equal(
-              localReceipt.status,
-              remoteReceipt.status,
-              `Status of tx index ${i} (${txHash}) should be the same`
-            );
-
-            assert.equal(
-              evmResult.createdAddress === undefined
-                ? undefined
-                : `0x${evmResult.createdAddress.toString("hex")}`,
-              remoteReceipt.contractAddress,
-              `Contract address created by tx index ${i} (${txHash}) should be the same`
-            );
-          }
-        }
-
-        assert.equal(
-          localReceiptRoot,
-          remoteReceiptRoot,
-          "The root of the receipts trie is different than expected"
-        );
+        await assertEqualBlocks(newBlock, result, rpcBlock, forkClient);
       });
     }
   });
