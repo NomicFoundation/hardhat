@@ -1,6 +1,6 @@
 import { Block } from "@ethereumjs/block";
 import Common from "@ethereumjs/common";
-import { Transaction } from "@ethereumjs/tx";
+import { Transaction, TypedTransaction } from "@ethereumjs/tx";
 import {
   BN,
   bufferToHex,
@@ -868,7 +868,7 @@ export class EthModule {
   }
 
   private async _sendRawTransactionAction(rawTx: Buffer): Promise<string> {
-    let tx: Transaction;
+    let tx: TypedTransaction;
     try {
       tx = Transaction.fromRlpSerializedTx(rawTx, { common: this._common });
     } catch (error) {
@@ -1246,7 +1246,7 @@ export class EthModule {
 
   private async _handleMineBlockResults(
     results: MineBlockResult[],
-    sentTx: Transaction
+    sentTx: TypedTransaction
   ) {
     const singleTransactionMined =
       results.length === 1 && results[0].block.transactions.length === 1;
@@ -1301,7 +1301,7 @@ export class EthModule {
   }
 
   private async _logSingleTransaction(
-    tx: Transaction,
+    tx: TypedTransaction,
     block: Block,
     txGasUsed: number,
     txTrace: GatherTracesResult
@@ -1315,7 +1315,7 @@ export class EthModule {
     await this._runHardhatNetworkMessageTraceHooks(txTrace.trace, false);
   }
 
-  private async _logBlock(result: MineBlockResult, sentTx: Transaction) {
+  private async _logBlock(result: MineBlockResult, sentTx: TypedTransaction) {
     const { block, traces } = result;
 
     const codes: Buffer[] = [];
@@ -1338,7 +1338,7 @@ export class EthModule {
   }
 
   private _getTransactionResultAndIndex(
-    tx: Transaction,
+    tx: TypedTransaction,
     results: MineBlockResult[]
   ): [MineBlockResult, number] {
     for (const result of results) {

@@ -1041,6 +1041,10 @@ export class HardhatNode extends EventEmitter {
       blockResult: {
         results,
         receipts,
+        stateRoot: block.header.stateRoot,
+        logsBloom: block.header.bloom,
+        receiptRoot: block.header.receiptTrie,
+        gasUsed: block.header.gasUsed,
       },
       traces,
     };

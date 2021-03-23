@@ -1,5 +1,5 @@
 import { Block } from "@ethereumjs/block";
-import { Transaction } from "@ethereumjs/tx";
+import { TypedTransaction } from "@ethereumjs/tx";
 import ansiEscapes from "ansi-escapes";
 import chalk, { Chalk } from "chalk";
 import { BN, bufferToHex } from "ethereumjs-util";
@@ -191,7 +191,7 @@ export class ModulesLogger {
   }
 
   public logSingleTransaction(
-    tx: Transaction,
+    tx: TypedTransaction,
     block: Block,
     txGasUsed: number,
     txTrace: GatherTracesResult,
@@ -226,7 +226,7 @@ export class ModulesLogger {
   }
 
   public logCurrentlySentTransaction(
-    tx: Transaction,
+    tx: TypedTransaction,
     txGasUsed: number,
     txTrace: GatherTracesResult,
     code: Buffer,
@@ -479,7 +479,7 @@ export class ModulesLogger {
   }
 
   private _logTxInsideBlock(
-    tx: Transaction,
+    tx: TypedTransaction,
     txTrace: GatherTracesResult,
     code: Buffer,
     txGasUsed: number,

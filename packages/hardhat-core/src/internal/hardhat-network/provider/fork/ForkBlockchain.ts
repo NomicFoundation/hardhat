@@ -1,6 +1,6 @@
 import { Block } from "@ethereumjs/block";
 import Common from "@ethereumjs/common";
-import { Transaction } from "@ethereumjs/tx";
+import { TypedTransaction } from "@ethereumjs/tx";
 import { BN, bufferToInt } from "ethereumjs-util";
 
 import { JsonRpcClient } from "../../jsonrpc/client";
@@ -118,7 +118,7 @@ export class ForkBlockchain implements PBlockchain {
 
   public async getTransaction(
     transactionHash: Buffer
-  ): Promise<Transaction | undefined> {
+  ): Promise<TypedTransaction | undefined> {
     const tx = this.getLocalTransaction(transactionHash);
     if (tx === undefined) {
       const remote = await this._jsonRpcClient.getTransactionByHash(
@@ -129,7 +129,9 @@ export class ForkBlockchain implements PBlockchain {
     return tx;
   }
 
-  public getLocalTransaction(transactionHash: Buffer): Transaction | undefined {
+  public getLocalTransaction(
+    transactionHash: Buffer
+  ): TypedTransaction | undefined {
     return this._data.getTransaction(transactionHash);
   }
 

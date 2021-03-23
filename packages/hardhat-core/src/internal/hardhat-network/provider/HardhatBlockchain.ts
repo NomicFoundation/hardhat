@@ -1,5 +1,5 @@
 import { Block } from "@ethereumjs/block";
-import { Transaction } from "@ethereumjs/tx";
+import { TypedTransaction } from "@ethereumjs/tx";
 import { BN, bufferToInt, zeros } from "ethereumjs-util";
 
 import { BlockchainData } from "./BlockchainData";
@@ -73,11 +73,13 @@ export class HardhatBlockchain implements PBlockchain {
 
   public async getTransaction(
     transactionHash: Buffer
-  ): Promise<Transaction | undefined> {
+  ): Promise<TypedTransaction | undefined> {
     return this.getLocalTransaction(transactionHash);
   }
 
-  public getLocalTransaction(transactionHash: Buffer): Transaction | undefined {
+  public getLocalTransaction(
+    transactionHash: Buffer
+  ): TypedTransaction | undefined {
     return this._data.getTransaction(transactionHash);
   }
 
