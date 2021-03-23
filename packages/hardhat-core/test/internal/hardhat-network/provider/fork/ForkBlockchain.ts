@@ -114,11 +114,7 @@ describe("ForkBlockchain", () => {
       const daiCreationBlock = new BN(4719568);
       const daiCreateTxPosition = 85;
       const block = await fb.getBlock(daiCreationBlock);
-      assert.isTrue(
-        block?.transactions[daiCreateTxPosition].to!.equals(
-          new Address(Buffer.from([]))
-        )
-      );
+      assert.isTrue(block?.transactions[daiCreateTxPosition].to === undefined);
       assert.isTrue(
         block?.transactions[daiCreateTxPosition]
           .hash()
