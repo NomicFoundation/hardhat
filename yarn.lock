@@ -141,35 +141,35 @@
     patch-package "^6.2.2"
     postinstall-postinstall "^2.1.0"
 
-"@ethereumjs/block@^3.1.0":
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/@ethereumjs/block/-/block-3.1.0.tgz#b53aa7746e0373183eb5f698adf4ef3f33ccf435"
+"@ethereumjs/block@^3.2.0":
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/@ethereumjs/block/-/block-3.2.0.tgz#4535223005419a823c7e18da24df7987e4f107fe"
   dependencies:
-    "@ethereumjs/common" "^2.1.0"
-    "@ethereumjs/tx" "^3.0.2"
-    "@types/bn.js" "^4.11.6"
-    ethereumjs-util "^7.0.8"
+    "@ethereumjs/common" "^2.2.0"
+    "@ethereumjs/tx" "^3.1.0"
+    ethereumjs-util "^7.0.9"
     merkle-patricia-tree "^4.1.0"
 
-"@ethereumjs/blockchain@^5.1.0":
-  version "5.1.0"
-  resolved "https://registry.yarnpkg.com/@ethereumjs/blockchain/-/blockchain-5.1.0.tgz#cf694a877d422d5300ea0edc5a98dac0d4eb2346"
+"@ethereumjs/blockchain@^5.2.0":
+  version "5.2.0"
+  resolved "https://registry.yarnpkg.com/@ethereumjs/blockchain/-/blockchain-5.2.0.tgz#8c9727564648ebdee09c3c9651142eda412125aa"
   dependencies:
-    "@ethereumjs/block" "^3.1.0"
-    "@ethereumjs/common" "^2.1.0"
+    "@ethereumjs/block" "^3.2.0"
+    "@ethereumjs/common" "^2.2.0"
     "@ethereumjs/ethash" "^1.0.0"
     debug "^2.2.0"
-    ethereumjs-util "^7.0.8"
+    ethereumjs-util "^7.0.9"
     level-mem "^5.0.1"
     lru-cache "^5.1.1"
-    rlp "^2.2.3"
+    rlp "^2.2.4"
     semaphore-async-await "^1.5.1"
 
-"@ethereumjs/common@^2.0.0", "@ethereumjs/common@^2.1.0":
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/@ethereumjs/common/-/common-2.1.0.tgz#00534e89419f43556843f73abdf40235f37693ee"
+"@ethereumjs/common@^2.2.0":
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/@ethereumjs/common/-/common-2.2.0.tgz#850a3e3e594ee707ad8d44a11e8152fb62450535"
   dependencies:
     crc-32 "^1.2.0"
+    ethereumjs-util "^7.0.9"
 
 "@ethereumjs/ethash@^1.0.0":
   version "1.0.0"
@@ -180,25 +180,25 @@
     ethereumjs-util "^7.0.7"
     miller-rabin "^4.0.0"
 
-"@ethereumjs/tx@^3.0.2":
-  version "3.0.2"
-  resolved "https://registry.yarnpkg.com/@ethereumjs/tx/-/tx-3.0.2.tgz#9cd34226cad25fa6d1d66b620f647f846e649cbb"
+"@ethereumjs/tx@^3.1.0", "@ethereumjs/tx@^3.1.1":
+  version "3.1.1"
+  resolved "https://registry.yarnpkg.com/@ethereumjs/tx/-/tx-3.1.1.tgz#e8d6943baa955b2d197d2f6f7864939991b8feb3"
   dependencies:
-    "@ethereumjs/common" "^2.0.0"
-    ethereumjs-util "^7.0.8"
+    "@ethereumjs/common" "^2.2.0"
+    ethereumjs-util "^7.0.9"
 
-"@ethereumjs/vm@^5.1.0":
-  version "5.1.0"
-  resolved "https://registry.yarnpkg.com/@ethereumjs/vm/-/vm-5.1.0.tgz#7b7c43259f8f2168253f69838b9716b2847c6d1a"
+"@ethereumjs/vm@^5.2.0":
+  version "5.2.0"
+  resolved "https://registry.yarnpkg.com/@ethereumjs/vm/-/vm-5.2.0.tgz#44f3c6835fc3355cf106639ad5a7aa6d79f907b3"
   dependencies:
-    "@ethereumjs/block" "^3.1.0"
-    "@ethereumjs/blockchain" "^5.1.0"
-    "@ethereumjs/common" "^2.1.0"
-    "@ethereumjs/tx" "^3.0.2"
+    "@ethereumjs/block" "^3.2.0"
+    "@ethereumjs/blockchain" "^5.2.0"
+    "@ethereumjs/common" "^2.2.0"
+    "@ethereumjs/tx" "^3.1.0"
     async-eventemitter "^0.2.4"
     core-js-pure "^3.0.1"
     debug "^2.2.0"
-    ethereumjs-util "^7.0.8"
+    ethereumjs-util "^7.0.9"
     functional-red-black-tree "^1.0.1"
     mcl-wasm "^0.7.1"
     merkle-patricia-tree "^4.1.0"
@@ -810,7 +810,7 @@
   dependencies:
     "@types/node" "*"
 
-"@types/bn.js@^4.11.3", "@types/bn.js@^4.11.4", "@types/bn.js@^4.11.5", "@types/bn.js@^4.11.6":
+"@types/bn.js@^4.11.3", "@types/bn.js@^4.11.4", "@types/bn.js@^4.11.5":
   version "4.11.6"
   resolved "https://registry.yarnpkg.com/@types/bn.js/-/bn.js-4.11.6.tgz#c306c70d9358aaea33cd4eda092a742b9505967c"
   dependencies:

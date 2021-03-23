@@ -75,10 +75,10 @@
     "time-require": "^0.1.2"
   },
   "dependencies": {
-    "@ethereumjs/block": "^3.1.0",
-    "@ethereumjs/common": "^2.1.0",
-    "@ethereumjs/tx": "^3.0.2",
-    "@ethereumjs/vm": "^5.1.0",
+    "@ethereumjs/block": "^3.2.0",
+    "@ethereumjs/common": "^2.2.0",
+    "@ethereumjs/tx": "^3.1.1",
+    "@ethereumjs/vm": "^5.2.0",
     "@sentry/node": "^5.18.1",
     "@solidity-parser/parser": "^0.11.0",
     "@types/bn.js": "^4.11.5",
