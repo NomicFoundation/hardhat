@@ -1160,10 +1160,14 @@ export class HardhatNode extends EventEmitter {
 
     const error = vmResult.exceptionError;
 
-    // If this is an internal VM error, or a different kind of error was
-    // thrown, we just rethrow. An example of a non-VmError being thrown here
-    // is an HTTP error coming from the ForkedStateManager.
-    if (!(error instanceof VmError) || error.error === ERROR.INTERNAL_ERROR) {
+    // we don't use `instanceof` in case someone uses a different VM dependency
+    // see https://github.com/nomiclabs/hardhat/issues/1317
+    const isVmError = "error" in error && typeof error.error === "string";
+
+    // If this is not a VM error, or if it's an internal VM error, we just
+    // rethrow. An example of a non-VmError being thrown here is an HTTP error
+    // coming from the ForkedStateManager.
+    if (!isVmError || error.error === ERROR.INTERNAL_ERROR) {
       throw error;
     }
 

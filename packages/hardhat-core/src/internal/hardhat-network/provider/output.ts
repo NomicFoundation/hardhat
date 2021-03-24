@@ -113,7 +113,7 @@ export function getRpcBlock(
     // We pad this to 8 bytes because of a limitation in The Graph
     // See: https://github.com/nomiclabs/hardhat/issues/491
     nonce: pending ? null : bufferToRpcData(block.header.nonce, 16),
-    mixHash: pending ? null : bufferToRpcData(block.header.mixHash, 32),
+    mixHash: pending ? null : bufferToRpcData(block.header.mixHash, 64),
     sha3Uncles: bufferToRpcData(block.header.uncleHash),
     logsBloom: pending ? null : bufferToRpcData(block.header.bloom),
     transactionsRoot: bufferToRpcData(block.header.transactionsTrie),
