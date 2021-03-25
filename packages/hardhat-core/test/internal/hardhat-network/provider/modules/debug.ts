@@ -1,6 +1,8 @@
 import { assert } from "chai";
+import _ from "lodash";
 
 import { BackwardsCompatibilityProviderAdapter } from "../../../../../src/internal/core/providers/backwards-compatibility";
+import { ModulesLogger } from "../../../../../src/internal/hardhat-network/provider/modules/logger";
 import { ForkConfig } from "../../../../../src/internal/hardhat-network/provider/node-types";
 import { RpcDebugTraceOutput } from "../../../../../src/internal/hardhat-network/provider/output";
 import { HardhatNetworkProvider } from "../../../../../src/internal/hardhat-network/provider/provider";
@@ -45,8 +47,11 @@ describe("Debug module", function () {
             `Unable to find a block containing transaction ${unknownTxHash}`
           );
         });
+
         it("Should return the right values for successful value transfer txs", async function () {
-          const txHash = await sendDummyTransaction(this.provider, 0);
+          const txHash = await sendDummyTransaction(this.provider, 0, {
+            from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+          });
 
           const trace: RpcDebugTraceOutput = await this.provider.send(
             "debug_traceTransaction",
@@ -59,14 +64,16 @@ describe("Debug module", function () {
             structLogs: [],
           });
         });
+
         it("Should return the right values for successful contract tx", async function () {
           const contractAddress = await deployContract(
             this.provider,
-            `0x${EXAMPLE_CONTRACT.bytecode.object}`
+            `0x${EXAMPLE_CONTRACT.bytecode.object}`,
+            DEFAULT_ACCOUNTS_ADDRESSES[1]
           );
           const txHash = await this.provider.send("eth_sendTransaction", [
             {
-              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
               to: contractAddress,
               data: `${EXAMPLE_CONTRACT.selectors.modifiesState}000000000000000000000000000000000000000000000000000000000000000a`,
             },
@@ -76,14 +83,15 @@ describe("Debug module", function () {
             "debug_traceTransaction",
             [txHash]
           );
-          assert.deepEqual(trace, modifiesStateTrace);
+
+          assertEqualTraces(trace, modifiesStateTrace);
         });
       });
     });
   });
 
   describe("fork tests", function () {
-    this.timeout(120000);
+    this.timeout(240000);
 
     let provider: EthereumProvider;
 
@@ -96,7 +104,7 @@ describe("Debug module", function () {
         blockNumber: 11954000,
       };
 
-      const logger = new ModulesLogger(true);
+      const logger = new ModulesLogger(false);
 
       const hardhatNetworkProvider = new HardhatNetworkProvider(
         DEFAULT_HARDFORK,
@@ -140,6 +148,69 @@ describe("Debug module", function () {
       );
 
       assertEqualTraces(trace, mainnetRevertTrace);
+    });
+
+    it("Should respect the disableMemory option", async function () {
+      const trace: RpcDebugTraceOutput = await provider.send(
+        "debug_traceTransaction",
+        [
+          "0x6214b912cc9916d8b7bf5f4ff876e259f5f3754ddebb6df8c8e897cad31ae148",
+          {
+            disableMemory: true,
+          },
+        ]
+      );
+
+      const structLogs = mainnetRevertTrace.structLogs.map((x) =>
+        _.omit(x, "memory")
+      );
+
+      assertEqualTraces(trace, {
+        ...mainnetRevertTrace,
+        structLogs,
+      });
+    });
+
+    it("Should respect the disableStack option", async function () {
+      const trace: RpcDebugTraceOutput = await provider.send(
+        "debug_traceTransaction",
+        [
+          "0x6214b912cc9916d8b7bf5f4ff876e259f5f3754ddebb6df8c8e897cad31ae148",
+          {
+            disableStack: true,
+          },
+        ]
+      );
+
+      const structLogs = mainnetRevertTrace.structLogs.map((x) =>
+        _.omit(x, "stack")
+      );
+
+      assertEqualTraces(trace, {
+        ...mainnetRevertTrace,
+        structLogs,
+      });
+    });
+
+    it("Should respect the disableStorage option", async function () {
+      const trace: RpcDebugTraceOutput = await provider.send(
+        "debug_traceTransaction",
+        [
+          "0x6214b912cc9916d8b7bf5f4ff876e259f5f3754ddebb6df8c8e897cad31ae148",
+          {
+            disableStorage: true,
+          },
+        ]
+      );
+
+      const structLogs = mainnetRevertTrace.structLogs.map((x) =>
+        _.omit(x, "storage")
+      );
+
+      assertEqualTraces(trace, {
+        ...mainnetRevertTrace,
+        structLogs,
+      });
     });
   });
 });

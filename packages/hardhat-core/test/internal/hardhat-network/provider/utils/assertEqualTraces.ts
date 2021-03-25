@@ -15,10 +15,6 @@ export function assertEqualTraces(
   assert.equal(actual.structLogs.length, expected.structLogs.length);
 
   for (const [i, log] of expected.structLogs.entries()) {
-    if (actual.structLogs[i].op === log.op && log.op.endsWith("CALL")) {
-      continue;
-    }
-
     assert.deepEqual(
       actual.structLogs[i],
       log,

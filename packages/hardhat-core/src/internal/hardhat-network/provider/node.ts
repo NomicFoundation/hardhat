@@ -903,6 +903,13 @@ export class HardhatNode extends EventEmitter {
           });
         }
 
+        const isPreSpuriousDragon = !vm._common.gteHardfork("spuriousDragon");
+        if (isPreSpuriousDragon) {
+          throw new InvalidInputError(
+            "Tracing is not supported for transactions using hardforks older than Spurious Dragon. "
+          );
+        }
+
         for (const tx of block.transactions) {
           const txWithCommon = new Transaction(tx, {
             common: vm._common,
