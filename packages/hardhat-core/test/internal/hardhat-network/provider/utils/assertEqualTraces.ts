@@ -15,6 +15,13 @@ export function assertEqualTraces(
   assert.equal(actual.structLogs.length, expected.structLogs.length);
 
   for (const [i, log] of expected.structLogs.entries()) {
+    // we ignore the gasCost of the last step because
+    // we don't guarantee that it's correct
+    if (i === expected.structLogs.length - 1) {
+      actual.structLogs[i].gasCost = 0;
+      log.gasCost = 0;
+    }
+
     assert.deepEqual(
       actual.structLogs[i],
       log,

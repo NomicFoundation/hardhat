@@ -314,6 +314,9 @@ export class VMDebugTracer {
 
     let gasCost = step.opcode.fee;
 
+    let op = step.opcode.name;
+    let error: object | undefined;
+
     const storage: Storage = {};
 
     if (step.opcode.name === "SLOAD") {
@@ -417,11 +420,17 @@ export class VMDebugTracer {
       throw new InvalidInputError(
         "Transactions that use CALLCODE are not supported"
       );
+    } else if (step.opcode.name === "INVALID") {
+      const code = await this._getContractCode(step.codeAddress);
+
+      const opcodeHex = code[step.pc].toString(16);
+      op = `opcode 0x${opcodeHex} not defined`;
+      error = {};
     }
 
     const structLog: StructLog = {
       pc: step.pc,
-      op: step.opcode.name,
+      op,
       gas: step.gasLeft.toNumber(),
       gasCost,
       depth: step.depth + 1,
@@ -430,6 +439,10 @@ export class VMDebugTracer {
       storage,
       memSize: step.memoryWordCount.toNumber(),
     };
+
+    if (error !== undefined) {
+      structLog.error = error;
+    }
 
     return structLog;
   }
@@ -452,6 +465,10 @@ export class VMDebugTracer {
 
   private _callValueTransferGas(): number {
     return this._vm._common.param("gasPrices", "callValueTransfer");
+  }
+
+  private _quadCoeffDiv(): number {
+    return this._vm._common.param("gasPrices", "quadCoeffDiv");
   }
 
   private _isAddressEmpty(address: Buffer): Promise<boolean> {
@@ -483,6 +500,21 @@ export class VMDebugTracer {
         }
       );
     });
+  }
+
+  private _getContractCode(address: Buffer): Promise<Buffer> {
+    return new Promise<Buffer>((resolve, reject) =>
+      this._vm.stateManager.getContractCode(
+        address,
+        (err: Error | null, result: Buffer) => {
+          if (err !== null) {
+            return reject(err);
+          }
+
+          return resolve(result);
+        }
+      )
+    );
   }
 
   private async _callDynamicGas(
@@ -528,16 +560,24 @@ export class VMDebugTracer {
    * Returns the increase in gas and the number of added words
    */
   private _memoryExpansion(
-    currentWordsLength: number,
+    currentWords: number,
     newSize: BN
   ): [number, number] {
-    const newWordsLength = divUp(newSize, 32).toNumber();
+    const currentSize = new BN(currentWords).muln(32);
+    const currentWordsLength = currentSize.addn(31).divn(32);
+    const newWordsLength = newSize.addn(31).divn(32);
 
-    const wordsDiff = newWordsLength - currentWordsLength;
+    const wordsDiff = newWordsLength.sub(currentWordsLength);
 
-    if (wordsDiff > 0) {
-      return [wordsDiff * this._memoryGas(), wordsDiff];
+    if (newSize.gt(currentSize)) {
+      const newTotalFee = this._memoryFee(newWordsLength);
+      const currentTotalFee = this._memoryFee(currentWordsLength);
+
+      const fee = newTotalFee.sub(currentTotalFee);
+
+      return [fee.toNumber(), wordsDiff.toNumber()];
     }
+
     return [0, 0];
   }
 
@@ -547,6 +587,15 @@ export class VMDebugTracer {
       .reverse()
       .map((value) => `0x${value}`)
       .map(toBuffer);
+  }
+
+  private _memoryFee(words: BN): BN {
+    const square = words.mul(words);
+    const linCoef = words.muln(this._memoryGas());
+    const quadCoef = square.divn(this._quadCoeffDiv());
+    const newTotalFee = linCoef.add(quadCoef);
+
+    return newTotalFee;
   }
 }
 
