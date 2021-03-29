@@ -1,4 +1,4 @@
-import { Transaction as TransactionT, TxOptions } from "@ethereumjs/tx";
+import { Transaction as TransactionT } from "@ethereumjs/tx";
 
 import { EIP1193Provider, RequestArguments } from "../../../types";
 import { HardhatError } from "../errors";
@@ -171,7 +171,7 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
     chainId: number,
     privateKey: Buffer
   ): Promise<Buffer> {
-    const chains = require("@ethereumjs/common/dist/chains");
+    const chains = await import("@ethereumjs/common/dist/chains");
 
     const { Transaction } = await import("@ethereumjs/tx");
     let transaction: TransactionT;
