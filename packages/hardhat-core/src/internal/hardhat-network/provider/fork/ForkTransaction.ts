@@ -34,10 +34,10 @@ export class ForkTransaction extends Transaction {
     // Not assignable to 'BNLike'.
     const senderPubKey = ecrecover(
       msgHash,
-      (this as any).v,
-      (this as any).r.toBuffer(),
-      (this as any).s.toBuffer(),
-      (this as any)._implementsEIP155() ? new BN(chainId) : undefined
+      this.v!,
+      this.r!.toBuffer(),
+      this.s!.toBuffer(),
+      this._implementsEIP155() ? new BN(chainId) : undefined
     );
 
     (this as any)._senderPubKey = senderPubKey;
