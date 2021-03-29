@@ -45,7 +45,7 @@ export class JsonRpcClient {
       "eth_getStorageAt",
       [
         address.toString(),
-        bufferToRpcData(position.toBuffer(), 64),
+        numberToRpcQuantity(position),
         numberToRpcQuantity(blockNumber),
       ],
       rpcData,
