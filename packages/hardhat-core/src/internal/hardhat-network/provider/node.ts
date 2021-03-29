@@ -1289,17 +1289,13 @@ export class HardhatNode extends EventEmitter {
       common: this._vm._common,
     });
 
-    // Can this be removed / logic simplified here?
-    const difficulty = header.canonicalDifficulty(latestBlock.header);
-
     const block = Block.fromBlockData(
       {
         header: {
           ...headerData,
-          difficulty,
         },
       },
-      { common: this._vm._common }
+      { common: this._vm._common, calcDifficultyFromHeader: latestBlock.header }
     );
 
     return block;
