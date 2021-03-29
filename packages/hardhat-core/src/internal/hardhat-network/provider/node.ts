@@ -355,12 +355,7 @@ export class HardhatNode extends EventEmitter {
         );
         const nonce = new BN(account.nonce);
         tx = await this._getFakeTransaction({ ...call, nonce });
-        return this._runTxAndRevertMutations(
-          tx,
-          blockNumberOrPending,
-          false,
-          true
-        );
+        return this._runTxAndRevertMutations(tx, blockNumberOrPending, false);
       }
     );
 
@@ -1061,7 +1056,7 @@ export class HardhatNode extends EventEmitter {
         return null;
       }
 
-      return this._vm.runTx({ tx, block });
+      return this._vm.runTx({ tx, block, skipBlockGasLimitValidation: true });
     } catch (err) {
       if (shouldThrow) {
         throw err;
@@ -1575,14 +1570,11 @@ export class HardhatNode extends EventEmitter {
   private async _runTxAndRevertMutations(
     tx: Transaction,
     blockNumberOrPending: BN | "pending",
-    calledToEstimateGas = false,
-    // See: https://github.com/ethereumjs/ethereumjs-vm/issues/1014
-    workaroundEthCallGasLimitIssue = false
+    calledToEstimateGas = false
   ): Promise<EVMResult> {
     const initialStateRoot = await this._stateManager.getStateRoot();
 
     let blockContext: Block | undefined;
-    let previousGasLimit: Buffer | undefined;
 
     try {
       if (blockNumberOrPending === "pending") {
@@ -1602,36 +1594,14 @@ export class HardhatNode extends EventEmitter {
         // know nothing about the txs in the current block
       }
 
-      if (workaroundEthCallGasLimitIssue) {
-        const txGasLimit = new BN(tx.gasLimit);
-        const blockGasLimit = new BN(blockContext.header.gasLimit);
-
-        if (txGasLimit.gt(blockGasLimit)) {
-          previousGasLimit = toBuffer(blockContext.header.gasLimit);
-          // ProviderError: Cannot assign to read only property 'gasLimit' of object '#<BlockHeader>'
-          (blockContext.header as any).gasLimit = tx.gasLimit;
-        }
-      }
-
       return await this._vm.runTx({
         block: blockContext,
         tx,
         skipNonce: true,
         skipBalance: true,
+        skipBlockGasLimitValidation: true,
       });
     } finally {
-      // If we changed the block's gas limit of an already existing block,
-      // we restore it here.
-      if (
-        blockContext !== undefined &&
-        workaroundEthCallGasLimitIssue &&
-        previousGasLimit !== undefined &&
-        blockNumberOrPending !== undefined
-      ) {
-        // ProviderError: Cannot assign to read only property 'gasLimit' of object '#<BlockHeader>'
-        (blockContext.header as any).gasLimit = previousGasLimit;
-      }
-
       await this._stateManager.setStateRoot(initialStateRoot);
     }
   }
