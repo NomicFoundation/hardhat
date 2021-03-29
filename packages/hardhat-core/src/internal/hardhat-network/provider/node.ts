@@ -271,10 +271,7 @@ export class HardhatNode extends EventEmitter {
     const pk = this._localAccounts.get(senderAddress);
     if (pk !== undefined) {
       const tx = new Transaction(txParams, { common: this._vm._common });
-      // New behavior is to return a signed tx,
-      // leaving the original unchanged
-      const signedTx = tx.sign(pk);
-      return signedTx;
+      return tx.sign(pk);
     }
 
     if (this._impersonatedAccounts.has(senderAddress)) {
