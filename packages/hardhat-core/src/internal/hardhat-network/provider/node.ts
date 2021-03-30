@@ -31,7 +31,7 @@ import { promisify } from "util";
 
 import { CompilerInput, CompilerOutput } from "../../../types";
 import { HARDHAT_NETWORK_DEFAULT_GAS_PRICE } from "../../core/config/default-config";
-import { assertHardhatInvariant } from "../../core/errors";
+import { assertHardhatInvariant, HardhatError } from "../../core/errors";
 import { Reporter } from "../../sentry/reporter";
 import { getDifferenceInSeconds } from "../../util/date";
 import { createModelsAndDecodeBytecodes } from "../stack-traces/compiler-to-model";
@@ -323,6 +323,12 @@ export class HardhatNode extends EventEmitter {
       if (err?.message.includes("sender doesn't have enough funds")) {
         throw new InvalidInputError(err.message);
       }
+
+      // Some network errors are HardhatErrors, and can end up here when forking
+      if (HardhatError.isHardhatError(err)) {
+        throw err;
+      }
+
       throw new TransactionExecutionError(err);
     }
 
