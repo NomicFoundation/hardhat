@@ -319,6 +319,7 @@ describe("Environment", () => {
 
           await run("example");
 
+          assert.equal(globalAsAny.hre, hre);
           assert.equal(globalAsAny.config, theConfig);
           assert.equal(globalAsAny.runSuper, runSuper);
           assert.equal(globalAsAny.network, network);
