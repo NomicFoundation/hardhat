@@ -167,7 +167,7 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
   }
 
   private async _getSignedTransaction(
-    tx: JsonRpcTransactionData,
+    jsonRpcTransactionData: JsonRpcTransactionData,
     chainId: number,
     privateKey: Buffer
   ): Promise<Buffer> {
@@ -178,8 +178,13 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
 
     const { default: Common } = await import("@ethereumjs/common");
 
+    const txData = {
+      ...jsonRpcTransactionData,
+      gasLimit: jsonRpcTransactionData.gas,
+    };
+
     if (chains.chains.names[chainId] !== undefined) {
-      transaction = Transaction.fromTxData(tx, {
+      transaction = Transaction.fromTxData(txData, {
         common: new Common({ chain: chainId }),
       });
     } else {
@@ -192,7 +197,7 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
         "istanbul"
       );
 
-      transaction = Transaction.fromTxData(tx, { common });
+      transaction = Transaction.fromTxData(txData, { common });
     }
 
     const signedTransaction = transaction.sign(privateKey);
