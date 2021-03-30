@@ -17,30 +17,21 @@ import { InternalError } from "../errors";
 // tslint:disable only-hardhat-error
 
 /**
- * Custom Transaction class to avoid EIP155 errors when hardhat is forked
+ * Custom Transaction class to avoid using Common
  */
-
 export class ForkTransaction extends Transaction {
   private readonly _chainId: number;
-
-  constructor(chainId: number, data: TxData = {}, opts: TxOptions = {}) {
+  private readonly _sender: Address;
+  constructor(
+    chainId: number,
+    sender: Address,
+    data: TxData = {},
+    opts: TxOptions = {}
+  ) {
     super(data, { ...opts, freeze: false });
 
     this._chainId = chainId;
-
-    const msgHash = this.hash();
-
-    // v,r,s cast to any because their type is BN | undefined.
-    // Not assignable to 'BNLike'.
-    const senderPubKey = ecrecover(
-      msgHash,
-      this.v!,
-      this.r!.toBuffer(),
-      this.s!.toBuffer(),
-      this._implementsEIP155() ? new BN(chainId) : undefined
-    );
-
-    (this as any)._senderPubKey = senderPubKey;
+    this._sender = sender;
   }
 
   public verifySignature(): boolean {
@@ -48,7 +39,7 @@ export class ForkTransaction extends Transaction {
   }
 
   public getSenderAddress(): Address {
-    return new Address(publicToAddress((this as any)._senderPubKey));
+    return this._sender;
   }
 
   public getChainId(): number {
@@ -58,16 +49,19 @@ export class ForkTransaction extends Transaction {
   public sign(): Transaction {
     throw new InternalError("`sign` is not implemented in ForkTransaction");
   }
+
   public getDataFee(): BN {
     throw new InternalError(
       "`getDataFee` is not implemented in ForkTransaction"
     );
   }
+
   public getBaseFee(): BN {
     throw new InternalError(
       "`getBaseFee` is not implemented in ForkTransaction"
     );
   }
+
   public getUpfrontCost(): BN {
     throw new InternalError(
       "`getUpfrontCost` is not implemented in ForkTransaction"
@@ -86,19 +80,48 @@ export class ForkTransaction extends Transaction {
     );
   }
 
-  private _implementsEIP155(): boolean {
-    const chainId = this.getChainId();
-    const v = this.v?.toNumber();
+  public getSenderPublicKey(): Buffer {
+    throw new InternalError(
+      "`getSenderPublicKey` is not implemented in ForkTransaction"
+    );
+  }
 
-    return v === chainId * 2 + 35 || v === chainId * 2 + 36;
+  public getMessageToVerifySignature(): Buffer {
+    throw new InternalError(
+      "`getMessageToVerifySignature` is not implemented in ForkTransaction"
+    );
+  }
+
+  public getMessageToSign(): Buffer {
+    throw new InternalError(
+      "`getMessageToSign` is not implemented in ForkTransaction"
+    );
   }
 }
 
 // override private methods
 const ForkTransactionPrototype: any = ForkTransaction.prototype;
 
-// make _validateV a noop
-ForkTransactionPrototype._validateV = function () {};
-
-// (Temporary: removed in Berlin release)
 ForkTransactionPrototype._validateTxV = function () {};
+
+ForkTransactionPrototype._signedTxImplementsEIP155 = function () {
+  return this.v !== 27 && this.v !== 28;
+};
+
+ForkTransactionPrototype._unsignedTxImplementsEIP155 = function () {
+  throw new InternalError(
+    "`_unsignedTxImplementsEIP155` is not implemented in ForkTransaction"
+  );
+};
+
+ForkTransactionPrototype._getMessageToSign = function () {
+  throw new InternalError(
+    "`_getMessageToSign` is not implemented in ForkTransaction"
+  );
+};
+
+ForkTransactionPrototype._processSignature = function () {
+  throw new InternalError(
+    "`_processSignature` is not implemented in ForkTransaction"
+  );
+};

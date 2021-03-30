@@ -1,7 +1,7 @@
 import { Block } from "@ethereumjs/block";
 import Common from "@ethereumjs/common";
 import { TypedTransaction } from "@ethereumjs/tx";
-import { BN, bufferToInt } from "ethereumjs-util";
+import { Address, BN, bufferToHex, bufferToInt } from "ethereumjs-util";
 
 import { JsonRpcClient } from "../../jsonrpc/client";
 import {
@@ -244,15 +244,25 @@ export class ForkBlockchain implements PBlockchain {
       transactions: [],
     });
 
-    const block = Block.fromBlockData(blockData, { common: this._common });
+    const block = Block.fromBlockData(blockData, {
+      common: this._common,
+
+      // We use freeze false here because we add the transactions manually
+      freeze: false,
+    });
     const chainId = this._jsonRpcClient.getNetworkId();
 
     for (const transaction of rpcBlock.transactions) {
-      block.transactions.push(
-        new ForkTransaction(chainId, rpcToTxData(transaction), {
+      const forkTransaction = new ForkTransaction(
+        chainId,
+        Address.fromString(bufferToHex(transaction.from)),
+        rpcToTxData(transaction),
+        {
           common: this._common,
-        })
+        }
       );
+
+      block.transactions.push(forkTransaction);
     }
 
     this._data.addBlock(block, rpcBlock.totalDifficulty);
@@ -306,8 +316,10 @@ export class ForkBlockchain implements PBlockchain {
     }
 
     const chainId = this._jsonRpcClient.getNetworkId();
+
     const transaction = new ForkTransaction(
       chainId,
+      Address.fromString(bufferToHex(rpcTransaction.from)),
       rpcToTxData(rpcTransaction),
       {
         common: this._common,
