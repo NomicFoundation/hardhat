@@ -1,4 +1,4 @@
-import { BN, BufferLike, isValidAddress, toBuffer } from "ethereumjs-util";
+import { BN, isValidAddress, toBuffer } from "ethereumjs-util";
 import * as t from "io-ts";
 import { PathReporter } from "io-ts/lib/PathReporter";
 
@@ -18,22 +18,22 @@ function optional<TypeT, OutputT>(
   );
 }
 
-const isRpcQuantityString = (u: unknown) =>
+const isRpcQuantityString = (u: unknown): u is string =>
   typeof u === "string" &&
   u.match(/^0x(?:0|(?:[1-9a-fA-F][0-9a-fA-F]*))$/) !== null;
 
-const isRpcDataString = (u: unknown) =>
+const isRpcDataString = (u: unknown): u is string =>
   typeof u === "string" && u.match(/^0x(?:[0-9a-fA-F]{2})*$/) !== null;
 
-const isRpcHashString = (u: unknown) =>
+const isRpcHashString = (u: unknown): u is string =>
   typeof u === "string" && u.length === 66 && isRpcDataString(u);
 
 // A bug in isValidAddress makes it throw
 // if the string isn't hex prefixed...
-const safeIsValidAddress = (u: unknown) => {
+const safeIsValidAddress = (u: string) => {
   let isValid = false;
   try {
-    isValid = isValidAddress(u as string);
+    isValid = isValidAddress(u);
   } catch (e) {}
   return isValid;
 };
@@ -70,25 +70,21 @@ export const rpcQuantity = new t.Type<BN>(
   "QUANTITY",
   BN.isBN,
   (u, c) =>
-    isRpcQuantityString(u)
-      ? t.success(new BN(toBuffer(u as BufferLike)))
-      : t.failure(u, c),
+    isRpcQuantityString(u) ? t.success(new BN(toBuffer(u))) : t.failure(u, c),
   t.identity
 );
 
 export const rpcData = new t.Type<Buffer>(
   "DATA",
   Buffer.isBuffer,
-  (u, c) =>
-    isRpcDataString(u) ? t.success(toBuffer(u as BufferLike)) : t.failure(u, c),
+  (u, c) => (isRpcDataString(u) ? t.success(toBuffer(u)) : t.failure(u, c)),
   t.identity
 );
 
 export const rpcHash = new t.Type<Buffer>(
   "HASH",
   Buffer.isBuffer,
-  (u, c) =>
-    isRpcHashString(u) ? t.success(toBuffer(u as BufferLike)) : t.failure(u, c),
+  (u, c) => (isRpcHashString(u) ? t.success(toBuffer(u)) : t.failure(u, c)),
   t.identity
 );
 
@@ -124,7 +120,7 @@ export const rpcAddress = new t.Type<Buffer>(
   Buffer.isBuffer,
   (u, c) =>
     typeof u === "string" && safeIsValidAddress(u)
-      ? t.success(toBuffer(u as BufferLike))
+      ? t.success(toBuffer(u))
       : t.failure(u, c),
   t.identity
 );
