@@ -167,7 +167,7 @@ export function getRpcTransaction(
     value: numberToRpcQuantity(new BN(tx.value)),
     v: tx.v !== undefined ? numberToRpcQuantity(new BN(tx.v)) : null,
     r: tx.r !== undefined ? numberToRpcQuantity(new BN(tx.r)) : null,
-    s: tx.s !== undefined ? numberToRpcQuantity(new BN(tx.s as BN)) : null,
+    s: tx.s !== undefined ? numberToRpcQuantity(new BN(tx.s)) : null,
   };
 }
 
