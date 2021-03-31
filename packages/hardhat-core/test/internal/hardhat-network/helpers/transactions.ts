@@ -1,6 +1,7 @@
-import { Transaction } from "ethereumjs-tx";
+import { Transaction } from "@ethereumjs/tx";
 import { bufferToHex, toBuffer, zeroAddress } from "ethereumjs-util";
 
+import { RpcTransactionRequestInput } from "../../../../src/internal/hardhat-network/provider/input";
 import { TransactionParams } from "../../../../src/internal/hardhat-network/provider/node-types";
 import { numberToRpcQuantity } from "../../../../src/internal/hardhat-network/provider/output";
 import { HardhatNetworkProvider } from "../../../../src/internal/hardhat-network/provider/provider";
@@ -54,17 +55,19 @@ export async function sendTransactionFromTxParams(
   provider: EthereumProvider,
   txParams: TransactionParams
 ) {
-  return provider.send("eth_sendTransaction", [
-    {
-      to: bufferToHex(txParams.to),
-      from: bufferToHex(txParams.from),
-      data: bufferToHex(txParams.data),
-      nonce: numberToRpcQuantity(txParams.nonce),
-      value: numberToRpcQuantity(txParams.value),
-      gas: numberToRpcQuantity(txParams.gasLimit),
-      gasPrice: numberToRpcQuantity(txParams.gasPrice),
-    },
-  ]);
+  const rpcTxParams: RpcTransactionRequestInput = {
+    from: bufferToHex(txParams.from),
+    data: bufferToHex(txParams.data),
+    nonce: numberToRpcQuantity(txParams.nonce),
+    value: numberToRpcQuantity(txParams.value),
+    gas: numberToRpcQuantity(txParams.gasLimit),
+    gasPrice: numberToRpcQuantity(txParams.gasPrice),
+  };
+
+  if (txParams.to !== undefined) {
+    rpcTxParams.to = bufferToHex(txParams.to!);
+  }
+  return provider.send("eth_sendTransaction", [rpcTxParams]);
 }
 
 export async function getSignedTxHash(
@@ -76,7 +79,9 @@ export async function getSignedTxHash(
     common: await retrieveCommon(hardhatNetworkProvider),
   });
 
-  txToSign.sign(toBuffer(DEFAULT_ACCOUNTS[signerAccountIndex].privateKey));
+  const signedTx = txToSign.sign(
+    toBuffer(DEFAULT_ACCOUNTS[signerAccountIndex].privateKey)
+  );
 
-  return bufferToHex(txToSign.hash(true));
+  return bufferToHex(signedTx.hash());
 }

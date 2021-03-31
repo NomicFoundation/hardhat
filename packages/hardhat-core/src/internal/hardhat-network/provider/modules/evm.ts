@@ -1,4 +1,4 @@
-import { BN, bufferToInt } from "ethereumjs-util";
+import { BN } from "ethereumjs-util";
 import * as t from "io-ts";
 
 import { BoundExperimentalHardhatNetworkMessageTraceHook } from "../../../../types";

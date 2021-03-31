@@ -18,15 +18,24 @@ function optional<TypeT, OutputT>(
   );
 }
 
-const isRpcQuantityString = (u: unknown) =>
+const isRpcQuantityString = (u: unknown): u is string =>
   typeof u === "string" &&
   u.match(/^0x(?:0|(?:[1-9a-fA-F][0-9a-fA-F]*))$/) !== null;
 
-const isRpcDataString = (u: unknown) =>
+const isRpcDataString = (u: unknown): u is string =>
   typeof u === "string" && u.match(/^0x(?:[0-9a-fA-F]{2})*$/) !== null;
 
-const isRpcHashString = (u: unknown) =>
+const isRpcHashString = (u: unknown): u is string =>
   typeof u === "string" && u.length === 66 && isRpcDataString(u);
+
+const safeIsValidAddress = (u: string) => {
+  let isValid = false;
+  // This try catch should be here until this is released: https://github.com/ethereumjs/ethereumjs-monorepo/pull/1174
+  try {
+    isValid = isValidAddress(u);
+  } catch (e) {}
+  return isValid;
+};
 
 interface BlockTagObject {
   blockHash?: string | Buffer;
@@ -109,7 +118,7 @@ export const rpcAddress = new t.Type<Buffer>(
   "ADDRESS",
   Buffer.isBuffer,
   (u, c) =>
-    typeof u === "string" && isValidAddress(u)
+    typeof u === "string" && safeIsValidAddress(u)
       ? t.success(toBuffer(u))
       : t.failure(u, c),
   t.identity

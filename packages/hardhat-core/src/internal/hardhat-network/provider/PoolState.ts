@@ -1,4 +1,4 @@
-import { FakeTransaction, Transaction } from "ethereumjs-tx";
+import { Transaction } from "@ethereumjs/tx";
 import { BN, toBuffer } from "ethereumjs-util";
 import {
   List as ImmutableList,
@@ -6,11 +6,12 @@ import {
   Record as ImmutableRecord,
 } from "immutable";
 
+import { FakeSenderTransaction } from "./transactions/FakeSenderTransaction";
 import { bnToHex } from "./utils/bnToHex";
 
 export interface OrderedTransaction {
   orderId: number;
-  data: Transaction | FakeTransaction;
+  data: Transaction | FakeSenderTransaction;
 }
 
 interface ImmutableOrderedTransaction {

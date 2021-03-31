@@ -1,6 +1,6 @@
+import Common from "@ethereumjs/common";
+import { Transaction } from "@ethereumjs/tx";
 import { assert } from "chai";
-import Common from "ethereumjs-common";
-import { Transaction } from "ethereumjs-tx";
 import { BN, bufferToHex, toBuffer, zeroAddress } from "ethereumjs-util";
 import { Context } from "mocha";
 
@@ -599,7 +599,7 @@ describe("Eth module", function () {
         it("should return the the hardcoded coinbase address", async function () {
           assert.equal(
             await this.provider.send("eth_coinbase"),
-            bufferToHex(COINBASE_ADDRESS)
+            COINBASE_ADDRESS.toString()
           );
         });
       });
@@ -778,7 +778,7 @@ describe("Eth module", function () {
 
           assertQuantity(
             await this.provider.send("eth_getBalance", [
-              bufferToHex(EMPTY_ACCOUNT_ADDRESS),
+              EMPTY_ACCOUNT_ADDRESS.toString(),
             ]),
             0
           );
@@ -928,7 +928,7 @@ describe("Eth module", function () {
           await this.provider.send("eth_sendTransaction", [
             {
               from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              to: bufferToHex(EMPTY_ACCOUNT_ADDRESS),
+              to: EMPTY_ACCOUNT_ADDRESS.toString(),
               value: numberToRpcQuantity(1),
             },
           ]);
@@ -936,7 +936,7 @@ describe("Eth module", function () {
           if (!isFork) {
             assert.strictEqual(
               await this.provider.send("eth_getBalance", [
-                bufferToHex(EMPTY_ACCOUNT_ADDRESS),
+                EMPTY_ACCOUNT_ADDRESS.toString(),
                 "earliest",
               ]),
               "0x0"
@@ -945,7 +945,7 @@ describe("Eth module", function () {
 
           assert.strictEqual(
             await this.provider.send("eth_getBalance", [
-              bufferToHex(EMPTY_ACCOUNT_ADDRESS),
+              EMPTY_ACCOUNT_ADDRESS.toString(),
               numberToRpcQuantity(firstBlock),
             ]),
             "0x0"
@@ -953,7 +953,7 @@ describe("Eth module", function () {
 
           assert.strictEqual(
             await this.provider.send("eth_getBalance", [
-              bufferToHex(EMPTY_ACCOUNT_ADDRESS),
+              EMPTY_ACCOUNT_ADDRESS.toString(),
               numberToRpcQuantity(firstBlock + 1),
             ]),
             "0x1"
@@ -961,7 +961,7 @@ describe("Eth module", function () {
 
           assert.strictEqual(
             await this.provider.send("eth_getBalance", [
-              bufferToHex(EMPTY_ACCOUNT_ADDRESS),
+              EMPTY_ACCOUNT_ADDRESS.toString(),
             ]),
             "0x1"
           );
@@ -1014,7 +1014,7 @@ describe("Eth module", function () {
           assertQuantity(block.number, firstBlock + 1);
           assert.equal(block.transactions.length, 1);
           assert.include(block.transactions as string[], txHash);
-          assert.equal(block.miner, bufferToHex(COINBASE_ADDRESS));
+          assert.equal(block.miner, COINBASE_ADDRESS.toString());
           assert.isEmpty(block.uncles);
         });
 
@@ -1034,7 +1034,7 @@ describe("Eth module", function () {
           assert.equal(block.hash, txOutput.blockHash);
           assertQuantity(block.number, firstBlock + 1);
           assert.equal(block.transactions.length, 1);
-          assert.equal(block.miner, bufferToHex(COINBASE_ADDRESS));
+          assert.equal(block.miner, COINBASE_ADDRESS.toString());
           assert.deepEqual(
             block.transactions[0] as RpcTransactionOutput,
             txOutput
@@ -1094,7 +1094,7 @@ describe("Eth module", function () {
           assert.equal(block.transactions.length, 1);
           assert.equal(block.parentHash, firstBlock.hash);
           assert.include(block.transactions as string[], txHash);
-          assert.equal(block.miner, bufferToHex(COINBASE_ADDRESS));
+          assert.equal(block.miner, COINBASE_ADDRESS.toString());
           assert.isEmpty(block.uncles);
         });
 
@@ -1116,7 +1116,7 @@ describe("Eth module", function () {
           assert.equal(block.transactions.length, 1);
           assert.equal(block.parentHash, firstBlock.hash);
           assert.include(block.transactions as string[], txHash);
-          assert.equal(block.miner, bufferToHex(COINBASE_ADDRESS));
+          assert.equal(block.miner, COINBASE_ADDRESS.toString());
           assert.isEmpty(block.uncles);
         });
 
@@ -1137,7 +1137,7 @@ describe("Eth module", function () {
           assertQuantity(block.number, firstBlockNumber + 1);
           assert.equal(block.transactions.length, 1);
           assert.equal(block.parentHash, firstBlock.hash);
-          assert.equal(block.miner, bufferToHex(COINBASE_ADDRESS));
+          assert.equal(block.miner, COINBASE_ADDRESS.toString());
           assert.isEmpty(block.uncles);
 
           const txOutput = block.transactions[0] as RpcTransactionOutput;
@@ -1384,7 +1384,7 @@ describe("Eth module", function () {
           await assertInvalidInputError(
             this.provider,
             "eth_getCode",
-            [randomAddress(), numberToRpcQuantity(futureBlock)],
+            [randomAddress().toString(), numberToRpcQuantity(futureBlock)],
             `Received invalid block tag ${futureBlock}. Latest block number is ${firstBlock}`
           );
         });
@@ -2799,7 +2799,7 @@ describe("Eth module", function () {
         it("should return the transaction if it gets to execute and failed", async function () {
           const firstBlock = await getFirstBlock();
           const txParams: TransactionParams = {
-            to: toBuffer([]),
+            to: undefined,
             from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[1]),
             data: toBuffer("0x60006000fd"),
             nonce: new BN(0),
@@ -2888,9 +2888,9 @@ describe("Eth module", function () {
             }
           );
 
-          tx.sign(privateKey);
+          const signedTx = tx.sign(privateKey);
 
-          const rawTx = `0x${tx.serialize().toString("hex")}`;
+          const rawTx = `0x${signedTx.serialize().toString("hex")}`;
 
           const txHash = await this.provider.send("eth_sendRawTransaction", [
             rawTx,
@@ -2911,17 +2911,18 @@ describe("Eth module", function () {
 
           // tx.v is padded but fetchedTx.v is not, so we need to do this
           const fetchedTxV = new BN(toBuffer(fetchedTx.v));
-          const expectedTxV = new BN(tx.v);
+          const expectedTxV = new BN(signedTx.v!);
           assert.isTrue(fetchedTxV.eq(expectedTxV));
 
+          // Also equalize left padding (signedTx has a leading 0)
           assert.equal(
             toBuffer(fetchedTx.r).toString("hex"),
-            tx.r.toString("hex")
+            toBuffer(signedTx.r!).toString("hex")
           );
 
           assert.equal(
             toBuffer(fetchedTx.s).toString("hex"),
-            tx.s.toString("hex")
+            toBuffer(signedTx.s!).toString("hex")
           );
         });
 
@@ -2969,6 +2970,11 @@ describe("Eth module", function () {
             this.skip();
           }
           const rinkebyUrl = ALCHEMY_URL.replace("mainnet", "rinkeby");
+
+          // If "mainnet" is not present the replacement failed so we skip the test
+          if (rinkebyUrl === ALCHEMY_URL) {
+            this.skip();
+          }
 
           await this.provider.send("hardhat_reset", [
             {
@@ -3164,7 +3170,7 @@ describe("Eth module", function () {
           await assertInvalidInputError(
             this.provider,
             "eth_getTransactionCount",
-            [randomAddress(), numberToRpcQuantity(futureBlock)],
+            [randomAddress().toString(), numberToRpcQuantity(futureBlock)],
             `Received invalid block tag ${futureBlock}. Latest block number is ${firstBlock}`
           );
         });
@@ -3242,7 +3248,7 @@ describe("Eth module", function () {
 
         it("should return the receipt for txs that were executed and failed", async function () {
           const txParams: TransactionParams = {
-            to: toBuffer([]),
+            to: undefined,
             from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[1]),
             data: toBuffer("0x60006000fd"),
             nonce: new BN(0),
@@ -3604,7 +3610,7 @@ describe("Eth module", function () {
         // of Ethereum: its state transition function.
         //
         // We have mostly test about logic added on top of that, and will add new ones whenever
-        // suitable. This is approximately the same as assuming that ethereumjs-vm is correct, which
+        // suitable. This is approximately the same as assuming that @ethereumjs/vm is correct, which
         // seems reasonable, and if it weren't we should address the issues there.
 
         describe("Params validation", function () {

@@ -1,4 +1,4 @@
-import { Transaction as TransactionT } from "ethereumjs-tx";
+import { Transaction as TransactionT } from "@ethereumjs/tx";
 
 import { EIP1193Provider, RequestArguments } from "../../../types";
 import { HardhatError } from "../errors";
@@ -21,8 +21,6 @@ export interface JsonRpcTransactionData {
   data?: string;
   nonce?: string | number;
 }
-
-const HD_PATH_REGEX = /^m(:?\/\d+'?)+\/?$/;
 
 export class LocalAccountsProvider extends ProviderWrapperWithChainId {
   private _addressToPrivateKey: Map<string, Buffer> = new Map();
@@ -167,20 +165,27 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
   }
 
   private async _getSignedTransaction(
-    tx: JsonRpcTransactionData,
+    jsonRpcTransactionData: JsonRpcTransactionData,
     chainId: number,
     privateKey: Buffer
   ): Promise<Buffer> {
-    const chains = require("ethereumjs-common/dist/chains");
+    const chains = await import("@ethereumjs/common/dist/chains");
 
-    const { Transaction } = await import("ethereumjs-tx");
+    const { Transaction } = await import("@ethereumjs/tx");
     let transaction: TransactionT;
 
-    if (chains.chains.names[chainId] !== undefined) {
-      transaction = new Transaction(tx, { chain: chainId });
-    } else {
-      const { default: Common } = await import("ethereumjs-common");
+    const { default: Common } = await import("@ethereumjs/common");
 
+    const txData = {
+      ...jsonRpcTransactionData,
+      gasLimit: jsonRpcTransactionData.gas,
+    };
+
+    if (chains.chains.names[chainId] !== undefined) {
+      transaction = Transaction.fromTxData(txData, {
+        common: new Common({ chain: chainId }),
+      });
+    } else {
       const common = Common.forCustomChain(
         "mainnet",
         {
@@ -190,12 +195,12 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
         "istanbul"
       );
 
-      transaction = new Transaction(tx, { common });
+      transaction = Transaction.fromTxData(txData, { common });
     }
 
-    transaction.sign(privateKey);
+    const signedTransaction = transaction.sign(privateKey);
 
-    return transaction.serialize();
+    return signedTransaction.serialize();
   }
 }
 

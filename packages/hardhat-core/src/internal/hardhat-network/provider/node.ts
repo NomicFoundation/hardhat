@@ -1,18 +1,21 @@
-import VM from "@nomiclabs/ethereumjs-vm";
-import Bloom from "@nomiclabs/ethereumjs-vm/dist/bloom";
-import { EVMResult, ExecResult } from "@nomiclabs/ethereumjs-vm/dist/evm/evm";
-import { ERROR, VmError } from "@nomiclabs/ethereumjs-vm/dist/exceptions";
+import { Block, BlockHeader } from "@ethereumjs/block";
+import Common from "@ethereumjs/common";
+import { Transaction } from "@ethereumjs/tx";
+import VM from "@ethereumjs/vm";
+import Bloom from "@ethereumjs/vm/dist/bloom";
+import { EVMResult, ExecResult } from "@ethereumjs/vm/dist/evm/evm";
+import { ERROR } from "@ethereumjs/vm/dist/exceptions";
 import {
+  PostByzantiumTxReceipt,
+  PreByzantiumTxReceipt,
   RunBlockResult,
-  TxReceipt,
-} from "@nomiclabs/ethereumjs-vm/dist/runBlock";
-import { RunTxResult } from "@nomiclabs/ethereumjs-vm/dist/runTx";
-import { StateManager } from "@nomiclabs/ethereumjs-vm/dist/state";
+} from "@ethereumjs/vm/dist/runBlock";
+import { RunTxResult } from "@ethereumjs/vm/dist/runTx";
+import { DefaultStateManager, StateManager } from "@ethereumjs/vm/dist/state";
 import chalk from "chalk";
 import debug from "debug";
-import Common from "ethereumjs-common";
-import { FakeTransaction, Transaction } from "ethereumjs-tx";
 import {
+  Address,
   BN,
   bufferToHex,
   ECDSASignature,
@@ -23,12 +26,11 @@ import {
   toBuffer,
 } from "ethereumjs-util";
 import EventEmitter from "events";
-import Trie from "merkle-patricia-tree";
-import { promisify } from "util";
+import { BaseTrie as Trie } from "merkle-patricia-tree";
 
 import { CompilerInput, CompilerOutput } from "../../../types";
 import { HARDHAT_NETWORK_DEFAULT_GAS_PRICE } from "../../core/config/default-config";
-import { assertHardhatInvariant } from "../../core/errors";
+import { assertHardhatInvariant, HardhatError } from "../../core/errors";
 import { Reporter } from "../../sentry/reporter";
 import { getDifferenceInSeconds } from "../../util/date";
 import { createModelsAndDecodeBytecodes } from "../stack-traces/compiler-to-model";
@@ -77,13 +79,10 @@ import {
   RpcLogOutput,
   RpcReceiptOutput,
 } from "./output";
+import { FakeSenderTransaction } from "./transactions/FakeSenderTransaction";
 import { TxPool } from "./TxPool";
 import { TxPriorityHeap } from "./TxPriorityHeap";
-import { Block } from "./types/Block";
-import { PBlockchain } from "./types/PBlockchain";
-import { PStateManager } from "./types/PStateManager";
-import { asPStateManager } from "./utils/asPStateManager";
-import { asStateManager } from "./utils/asStateManager";
+import { HardhatBlockchainInterface } from "./types/HardhatBlockchainInterface";
 import { getCurrentTimestamp } from "./utils/getCurrentTimestamp";
 import { makeCommon } from "./utils/makeCommon";
 import { makeForkClient } from "./utils/makeForkClient";
@@ -98,7 +97,9 @@ const log = debug("hardhat:core:hardhat-network:node");
 // tslint:disable-next-line no-var-requires
 const ethSigUtil = require("eth-sig-util");
 
-export const COINBASE_ADDRESS = toBuffer(
+type TxReceipt = PreByzantiumTxReceipt | PostByzantiumTxReceipt;
+
+export const COINBASE_ADDRESS = Address.fromString(
   "0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e"
 );
 
@@ -117,8 +118,8 @@ export class HardhatNode extends EventEmitter {
     } = config;
 
     let common: Common;
-    let stateManager: StateManager | ForkStateManager;
-    let blockchain: HardhatBlockchain | ForkBlockchain;
+    let stateManager: StateManager;
+    let blockchain: HardhatBlockchainInterface;
     let initialBlockTimeOffset: BN | undefined;
 
     if ("forkConfig" in config) {
@@ -129,13 +130,12 @@ export class HardhatNode extends EventEmitter {
       } = await makeForkClient(config.forkConfig, config.forkCachePath);
       common = await makeForkCommon(config);
 
-      stateManager = new ForkStateManager(
+      const forkStateManager = new ForkStateManager(
         forkClient,
-        forkBlockNumber,
-        genesisAccounts
+        forkBlockNumber
       );
-
-      await stateManager.initializeGenesisAccounts(genesisAccounts);
+      await forkStateManager.initializeGenesisAccounts(genesisAccounts);
+      stateManager = forkStateManager;
 
       blockchain = new ForkBlockchain(forkClient, forkBlockNumber, common);
 
@@ -146,38 +146,36 @@ export class HardhatNode extends EventEmitter {
       const stateTrie = await makeStateTrie(genesisAccounts);
       common = makeCommon(config, stateTrie);
 
-      stateManager = new StateManager({
+      stateManager = new DefaultStateManager({
         common,
         trie: stateTrie,
       });
 
-      blockchain = new HardhatBlockchain();
-      await putGenesisBlock(blockchain, common);
+      const hardhatBlockchain = new HardhatBlockchain();
+      await putGenesisBlock(hardhatBlockchain, common);
 
       if (config.initialDate !== undefined) {
         initialBlockTimeOffset = new BN(
           getDifferenceInSeconds(config.initialDate, new Date())
         );
       }
+
+      blockchain = hardhatBlockchain;
     }
 
-    const txPool = new TxPool(
-      asPStateManager(stateManager),
-      new BN(blockGasLimit),
-      common
-    );
+    const txPool = new TxPool(stateManager, new BN(blockGasLimit), common);
 
     const vm = new VM({
       common,
       activatePrecompiles: true,
-      stateManager: asStateManager(stateManager) as any,
-      blockchain: blockchain.asBlockchain() as any,
+      stateManager,
+      blockchain: blockchain as any,
       allowUnlimitedContractSize,
     });
 
     const node = new HardhatNode(
       vm,
-      asPStateManager(stateManager),
+      stateManager,
       blockchain,
       txPool,
       automine,
@@ -208,8 +206,8 @@ export class HardhatNode extends EventEmitter {
 
   private constructor(
     private readonly _vm: VM,
-    private readonly _stateManager: PStateManager,
-    private readonly _blockchain: PBlockchain,
+    private readonly _stateManager: StateManager,
+    private readonly _blockchain: HardhatBlockchainInterface,
     private readonly _txPool: TxPool,
     private _automine: boolean,
     private _blockTimeOffsetSeconds: BN = new BN(0),
@@ -271,12 +269,11 @@ export class HardhatNode extends EventEmitter {
     const pk = this._localAccounts.get(senderAddress);
     if (pk !== undefined) {
       const tx = new Transaction(txParams, { common: this._vm._common });
-      tx.sign(pk);
-      return tx;
+      return tx.sign(pk);
     }
 
     if (this._impersonatedAccounts.has(senderAddress)) {
-      return new FakeTransaction(txParams, { common: this._vm._common });
+      return this._getFakeTransaction(txParams);
     }
 
     throw new InvalidInputError(`unknown account ${senderAddress}`);
@@ -324,6 +321,12 @@ export class HardhatNode extends EventEmitter {
       if (err?.message.includes("sender doesn't have enough funds")) {
         throw new InvalidInputError(err.message);
       }
+
+      // Some network errors are HardhatErrors, and can end up here when forking
+      if (HardhatError.isHardhatError(err)) {
+        throw err;
+      }
+
       throw new TransactionExecutionError(err);
     }
 
@@ -351,15 +354,12 @@ export class HardhatNode extends EventEmitter {
     const result = await this._runInBlockContext(
       blockNumberOrPending,
       async () => {
-        const account = await this._stateManager.getAccount(call.from);
+        const account = await this._stateManager.getAccount(
+          new Address(call.from)
+        );
         const nonce = new BN(account.nonce);
         tx = await this._getFakeTransaction({ ...call, nonce });
-        return this._runTxAndRevertMutations(
-          tx,
-          blockNumberOrPending,
-          false,
-          true
-        );
+        return this._runTxAndRevertMutations(tx, blockNumberOrPending, false);
       }
     );
 
@@ -372,7 +372,7 @@ export class HardhatNode extends EventEmitter {
   }
 
   public async getAccountBalance(
-    address: Buffer,
+    address: Address,
     blockNumberOrPending?: BN | "pending"
   ): Promise<BN> {
     if (blockNumberOrPending === undefined) {
@@ -387,7 +387,7 @@ export class HardhatNode extends EventEmitter {
   }
 
   public async getAccountNonce(
-    address: Buffer,
+    address: Address,
     blockNumberOrPending: BN | "pending"
   ): Promise<BN> {
     const account = await this._runInBlockContext(blockNumberOrPending, () =>
@@ -397,7 +397,7 @@ export class HardhatNode extends EventEmitter {
     return new BN(account.nonce);
   }
 
-  public async getAccountExecutableNonce(address: Buffer): Promise<BN> {
+  public async getAccountExecutableNonce(address: Address): Promise<BN> {
     return this._txPool.getExecutableNonce(address);
   }
 
@@ -413,7 +413,7 @@ export class HardhatNode extends EventEmitter {
       return Buffer.from("");
     }
 
-    return this.getCode(trace.address, blockNumberOrPending);
+    return this.getCode(new Address(trace.address), blockNumberOrPending);
   }
 
   public async getLatestBlock(): Promise<Block> {
@@ -505,20 +505,19 @@ export class HardhatNode extends EventEmitter {
     return new BN(HARDHAT_NETWORK_DEFAULT_GAS_PRICE);
   }
 
-  public getCoinbaseAddress(): Buffer {
+  public getCoinbaseAddress(): Address {
     return COINBASE_ADDRESS;
   }
 
   public async getStorageAt(
-    address: Buffer,
+    address: Address,
     slot: BN,
     blockNumberOrPending: BN | "pending"
   ): Promise<Buffer> {
     const key = slot.toArrayLike(Buffer, "be", 32);
 
-    const data: Buffer = await this._runInBlockContext(
-      blockNumberOrPending,
-      () => this._stateManager.getContractStorage(address, key)
+    const data = await this._runInBlockContext(blockNumberOrPending, () =>
+      this._stateManager.getContractStorage(address, key)
     );
 
     const EXPECTED_DATA_SIZE = 32;
@@ -546,17 +545,20 @@ export class HardhatNode extends EventEmitter {
       );
     }
 
-    return this._blockchain.getBlock(blockNumberOrPending);
+    const block = await this._blockchain.getBlock(blockNumberOrPending);
+    return block ?? undefined;
   }
 
   public async getBlockByHash(blockHash: Buffer): Promise<Block | undefined> {
-    return this._blockchain.getBlock(blockHash);
+    const block = await this._blockchain.getBlock(blockHash);
+    return block ?? undefined;
   }
 
   public async getBlockByTransactionHash(
     hash: Buffer
   ): Promise<Block | undefined> {
-    return this._blockchain.getBlockByTransactionHash(hash);
+    const block = await this._blockchain.getBlockByTransactionHash(hash);
+    return block ?? undefined;
   }
 
   public async getBlockTotalDifficulty(block: Block): Promise<BN> {
@@ -564,7 +566,7 @@ export class HardhatNode extends EventEmitter {
   }
 
   public async getCode(
-    address: Buffer,
+    address: Address,
     blockNumberOrPending: BN | "pending"
   ): Promise<Buffer> {
     return this._runInBlockContext(blockNumberOrPending, () =>
@@ -602,7 +604,8 @@ export class HardhatNode extends EventEmitter {
     hash: Buffer | string
   ): Promise<RpcReceiptOutput | undefined> {
     const hashBuffer = hash instanceof Buffer ? hash : toBuffer(hash);
-    return this._blockchain.getTransactionReceipt(hashBuffer);
+    const receipt = await this._blockchain.getTransactionReceipt(hashBuffer);
+    return receipt ?? undefined;
   }
 
   public async getPendingTransactions(): Promise<Transaction[]> {
@@ -612,7 +615,7 @@ export class HardhatNode extends EventEmitter {
   }
 
   public async signPersonalMessage(
-    address: Buffer,
+    address: Address,
     data: Buffer
   ): Promise<ECDSASignature> {
     const messageHash = hashPersonalMessage(data);
@@ -622,7 +625,7 @@ export class HardhatNode extends EventEmitter {
   }
 
   public async signTypedDataV4(
-    address: Buffer,
+    address: Address,
     typedData: any
   ): Promise<string> {
     const privateKey = this._getLocalAccountPrivateKey(address);
@@ -942,7 +945,7 @@ export class HardhatNode extends EventEmitter {
   }
 
   private async _validateExactNonce(tx: Transaction) {
-    let sender: Buffer;
+    let sender: Address;
     try {
       sender = tx.getSenderAddress(); // verifies signature as a side effect
     } catch (e) {
@@ -967,7 +970,7 @@ export class HardhatNode extends EventEmitter {
     blockTimestamp: BN,
     sentTxHash?: string
   ): Promise<MineBlockResult> {
-    const block = await this._getNextBlockTemplate(blockTimestamp);
+    let block = await this._getNextBlockTemplate(blockTimestamp);
 
     const bloom = new Bloom();
     const results: RunTxResult[] = [];
@@ -993,9 +996,10 @@ export class HardhatNode extends EventEmitter {
         results.push(txResult);
 
         cumulativeGasUsed = cumulativeGasUsed.add(txResult.gasUsed);
+
         const receipt = this._createReceipt(txResult, cumulativeGasUsed);
         receipts.push(receipt);
-        await promisify(receiptTrie.put).bind(receiptTrie)(
+        await receiptTrie.put(
           rlp.encode(receipts.length - 1),
           rlp.encode(Object.values(receipt))
         );
@@ -1013,17 +1017,33 @@ export class HardhatNode extends EventEmitter {
 
     await this._txPool.updatePendingAndQueued();
     await this._assignBlockReward();
-    await this._updateTransactionsRoot(block);
-    block.header.gasUsed = toBuffer(blockGasLimit.sub(gasLeft));
-    block.header.stateRoot = await this._stateManager.getStateRoot();
-    block.header.bloom = bloom.bitvector;
-    block.header.receiptTrie = receiptTrie.root;
+
+    // The BlockHeader properties are readonly so
+    // the block has to be recreated here...
+    await block.genTxTrie();
+
+    const header = BlockHeader.fromHeaderData({
+      ...block.toJSON().header,
+      gasUsed: toBuffer(blockGasLimit.sub(gasLeft)),
+      stateRoot: await this._stateManager.getStateRoot(),
+      bloom: bloom.bitvector,
+      receiptTrie: receiptTrie.root,
+      transactionsTrie: block.txTrie.root,
+    });
+
+    block = new Block(header, block.transactions, block.uncleHeaders, {
+      common: this._vm._common,
+    });
 
     return {
       block,
       blockResult: {
         results,
         receipts,
+        stateRoot: block.header.stateRoot,
+        logsBloom: block.header.bloom,
+        receiptRoot: block.header.receiptTrie,
+        gasUsed: block.header.gasUsed,
       },
       traces,
     };
@@ -1043,7 +1063,7 @@ export class HardhatNode extends EventEmitter {
         return null;
       }
 
-      return this._vm.runTx({ tx, block });
+      return this._vm.runTx({ tx, block, skipBlockGasLimitValidation: true });
     } catch (err) {
       if (shouldThrow) {
         throw err;
@@ -1056,7 +1076,7 @@ export class HardhatNode extends EventEmitter {
     const minerAddress = this.getCoinbaseAddress();
     const miner = await this._stateManager.getAccount(minerAddress);
     const blockReward = this._getBlockReward();
-    miner.balance = toBuffer(new BN(miner.balance).add(blockReward));
+    miner.balance = miner.balance.add(blockReward);
     await this._stateManager.putAccount(minerAddress, miner);
   }
 
@@ -1084,7 +1104,9 @@ export class HardhatNode extends EventEmitter {
   private async _getFakeTransaction(
     txParams: TransactionParams
   ): Promise<Transaction> {
-    return new FakeTransaction(txParams, { common: this._vm._common });
+    return new FakeSenderTransaction(new Address(txParams.from), txParams, {
+      common: this._vm._common,
+    });
   }
 
   private _getSnapshotIndex(id: number): number | undefined {
@@ -1260,27 +1282,25 @@ export class HardhatNode extends EventEmitter {
   }
 
   private async _getNextBlockTemplate(timestamp: BN): Promise<Block> {
-    const block = new Block(
-      {
-        header: {
-          gasLimit: this.getBlockGasLimit(),
-          nonce: "0x42",
-          timestamp,
-        },
-      },
-      { common: this._vm._common }
-    );
-
-    block.validate = (blockchain: any, cb: any) => cb(null);
-
     const latestBlock = await this.getLatestBlock();
 
-    block.header.number = toBuffer(new BN(latestBlock.header.number).addn(1));
-    block.header.parentHash = latestBlock.hash();
-    block.header.difficulty = block.header
-      .canonicalDifficulty(latestBlock)
-      .toBuffer();
-    block.header.coinbase = this.getCoinbaseAddress();
+    const headerData = {
+      gasLimit: this.getBlockGasLimit(),
+      number: latestBlock.header.number.addn(1),
+      parentHash: latestBlock.hash(),
+      coinbase: this.getCoinbaseAddress(),
+      nonce: "0x0000000000000042",
+      timestamp,
+    };
+
+    const block = Block.fromBlockData(
+      {
+        header: {
+          ...headerData,
+        },
+      },
+      { common: this._vm._common, calcDifficultyFromHeader: latestBlock.header }
+    );
 
     return block;
   }
@@ -1292,7 +1312,7 @@ export class HardhatNode extends EventEmitter {
   private async _notifyPendingTransaction(tx: Transaction) {
     this._filters.forEach((filter) => {
       if (filter.type === Type.PENDING_TRANSACTION_SUBSCRIPTION) {
-        const hash = bufferToHex(tx.hash(true));
+        const hash = bufferToHex(tx.hash());
         if (filter.subscription) {
           this._emitEthEvent(filter.id, hash);
           return;
@@ -1303,23 +1323,13 @@ export class HardhatNode extends EventEmitter {
     });
   }
 
-  private _getLocalAccountPrivateKey(sender: Buffer): Buffer {
-    const senderAddress = bufferToHex(sender);
+  private _getLocalAccountPrivateKey(sender: Address): Buffer {
+    const senderAddress = sender.toString();
     if (!this._localAccounts.has(senderAddress)) {
       throw new InvalidInputError(`unknown account ${senderAddress}`);
     }
 
     return this._localAccounts.get(senderAddress)!;
-  }
-
-  private async _addTransactionToBlock(block: Block, tx: Transaction) {
-    block.transactions.push(tx);
-    await this._updateTransactionsRoot(block);
-  }
-
-  private async _updateTransactionsRoot(block: Block) {
-    await new Promise((resolve) => block.genTxTrie(resolve));
-    block.header.transactionsTrie = block.txTrie.root;
   }
 
   private async _saveBlockAsSuccessfullyRun(
@@ -1328,7 +1338,7 @@ export class HardhatNode extends EventEmitter {
   ) {
     const receipts = getRpcReceipts(block, runBlockResult);
 
-    await this._blockchain.addBlock(block);
+    await this._blockchain.putBlock(block);
     this._blockchain.addTransactionReceipts(receipts);
 
     const td = await this.getBlockTotalDifficulty(block);
@@ -1431,7 +1441,7 @@ export class HardhatNode extends EventEmitter {
     if (this._stateManager instanceof ForkStateManager) {
       return this._stateManager.setBlockContext(
         block.header.stateRoot,
-        new BN(block.header.number)
+        block.header.number
       );
     }
     return this._stateManager.setStateRoot(block.header.stateRoot);
@@ -1565,14 +1575,11 @@ export class HardhatNode extends EventEmitter {
   private async _runTxAndRevertMutations(
     tx: Transaction,
     blockNumberOrPending: BN | "pending",
-    calledToEstimateGas = false,
-    // See: https://github.com/ethereumjs/ethereumjs-vm/issues/1014
-    workaroundEthCallGasLimitIssue = false
+    calledToEstimateGas = false
   ): Promise<EVMResult> {
     const initialStateRoot = await this._stateManager.getStateRoot();
 
     let blockContext: Block | undefined;
-    let previousGasLimit: Buffer | undefined;
 
     try {
       if (blockNumberOrPending === "pending") {
@@ -1592,34 +1599,14 @@ export class HardhatNode extends EventEmitter {
         // know nothing about the txs in the current block
       }
 
-      if (workaroundEthCallGasLimitIssue) {
-        const txGasLimit = new BN(tx.gasLimit);
-        const blockGasLimit = new BN(blockContext.header.gasLimit);
-
-        if (txGasLimit.gt(blockGasLimit)) {
-          previousGasLimit = blockContext.header.gasLimit;
-          blockContext.header.gasLimit = tx.gasLimit;
-        }
-      }
-
       return await this._vm.runTx({
         block: blockContext,
         tx,
         skipNonce: true,
         skipBalance: true,
+        skipBlockGasLimitValidation: true,
       });
     } finally {
-      // If we changed the block's gas limit of an already existing block,
-      // we restore it here.
-      if (
-        blockContext !== undefined &&
-        workaroundEthCallGasLimitIssue &&
-        previousGasLimit !== undefined &&
-        blockNumberOrPending !== undefined
-      ) {
-        blockContext.header.gasLimit = previousGasLimit;
-      }
-
       await this._stateManager.setStateRoot(initialStateRoot);
     }
   }

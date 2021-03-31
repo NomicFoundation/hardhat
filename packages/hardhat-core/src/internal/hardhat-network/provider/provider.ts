@@ -1,6 +1,6 @@
+import Common from "@ethereumjs/common";
 import chalk from "chalk";
 import debug from "debug";
-import Common from "ethereumjs-common";
 import { BN } from "ethereumjs-util";
 import { EventEmitter } from "events";
 import fsExtra from "fs-extra";
@@ -14,7 +14,6 @@ import type {
   RequestArguments,
 } from "../../../types";
 import { HARDHAT_NETWORK_RESET_EVENT } from "../../constants";
-import { SolidityError } from "../stack-traces/solidity-errors";
 import { FIRST_SOLC_VERSION_SUPPORTED } from "../stack-traces/solidityTracer";
 import { Mutex } from "../vendor/await-semaphore";
 

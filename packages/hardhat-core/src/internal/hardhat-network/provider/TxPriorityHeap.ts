@@ -1,8 +1,9 @@
-import { FakeTransaction, Transaction } from "ethereumjs-tx";
-import { BN, bufferToHex } from "ethereumjs-util";
+import { Transaction } from "@ethereumjs/tx";
+import { BN } from "ethereumjs-util";
 import { MaxHeap } from "mnemonist/heap";
 
 import { OrderedTransaction } from "./PoolState";
+import { FakeSenderTransaction } from "./transactions/FakeSenderTransaction";
 
 function compareTransactions(
   left: OrderedTransaction,
@@ -35,7 +36,7 @@ export class TxPriorityHeap {
     }
   }
 
-  public peek(): Transaction | FakeTransaction | undefined {
+  public peek(): Transaction | FakeSenderTransaction | undefined {
     return this._heap.peek()?.data;
   }
 
@@ -46,7 +47,7 @@ export class TxPriorityHeap {
   public pop(): void {
     const bestTx = this._heap.pop();
     if (bestTx !== undefined) {
-      const bestTxSender = bufferToHex(bestTx.data.getSenderAddress());
+      const bestTxSender = bestTx.data.getSenderAddress().toString();
       this._queuedTransactions.delete(bestTxSender);
     }
   }
@@ -59,7 +60,7 @@ export class TxPriorityHeap {
     if (bestTx === undefined) {
       return;
     }
-    const bestTxSender = bufferToHex(bestTx.getSenderAddress());
+    const bestTxSender = bestTx.getSenderAddress().toString();
     const senderQueuedTxs = this._queuedTransactions.get(bestTxSender) ?? [];
     if (senderQueuedTxs.length > 0) {
       const [nextTx, ...remainingTxs] = senderQueuedTxs;

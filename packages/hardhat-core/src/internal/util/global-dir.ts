@@ -16,12 +16,6 @@ function generatePathsSync(packageName = "hardhat") {
   return envPaths(packageName);
 }
 
-async function getConfigDir(): Promise<string> {
-  const { config } = await generatePaths();
-  await fs.ensureDir(config);
-  return config;
-}
-
 function getConfigDirSync(): string {
   const { config } = generatePathsSync();
   fs.ensureDirSync(config);

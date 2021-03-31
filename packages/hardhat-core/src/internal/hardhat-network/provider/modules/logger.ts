@@ -1,7 +1,8 @@
+import { Block } from "@ethereumjs/block";
+import { TypedTransaction } from "@ethereumjs/tx";
 import ansiEscapes from "ansi-escapes";
 import chalk, { Chalk } from "chalk";
-import { Transaction } from "ethereumjs-tx";
-import { BN, bufferToHex, bufferToInt } from "ethereumjs-util";
+import { BN, bufferToHex } from "ethereumjs-util";
 import util from "util";
 
 import { assertHardhatInvariant } from "../../../core/errors";
@@ -26,7 +27,6 @@ import {
   MineBlockResult,
   TransactionParams,
 } from "../node-types";
-import { Block } from "../types/Block";
 
 interface PrintOptions {
   color?: Chalk;
@@ -130,7 +130,7 @@ export class ModulesLogger {
       "The array of codes should have the same length as the array of results"
     );
 
-    const blockNumber = bufferToInt(result.block.header.number);
+    const blockNumber = result.block.header.number.toNumber();
     const isEmpty = result.block.transactions.length === 0;
 
     this._indent(() => {
@@ -191,7 +191,7 @@ export class ModulesLogger {
   }
 
   public logSingleTransaction(
-    tx: Transaction,
+    tx: TypedTransaction,
     block: Block,
     txGasUsed: number,
     txTrace: GatherTracesResult,
@@ -204,16 +204,16 @@ export class ModulesLogger {
 
       this._logWithTitle("Transaction", txHash);
 
-      this._logTxFrom(tx.getSenderAddress());
-      this._logTxTo(tx.to, txTrace.trace);
+      this._logTxFrom(tx.getSenderAddress().toBuffer());
+      this._logTxTo(tx.to?.toBuffer(), txTrace.trace);
       this._logTxValue(new BN(tx.value));
       this._logWithTitle(
         "Gas used",
-        `${txGasUsed} of ${bufferToInt(tx.gasLimit)}`
+        `${txGasUsed} of ${tx.gasLimit.toNumber()}`
       );
 
       this._logWithTitle(
-        `Block #${bufferToInt(block.header.number)}`,
+        `Block #${block.header.number.toNumber()}`,
         bufferToHex(block.hash())
       );
 
@@ -226,7 +226,7 @@ export class ModulesLogger {
   }
 
   public logCurrentlySentTransaction(
-    tx: Transaction,
+    tx: TypedTransaction,
     txGasUsed: number,
     txTrace: GatherTracesResult,
     code: Buffer,
@@ -242,16 +242,16 @@ export class ModulesLogger {
 
       this._logWithTitle("Transaction", txHash);
 
-      this._logTxFrom(tx.getSenderAddress());
-      this._logTxTo(tx.to, txTrace.trace);
+      this._logTxFrom(tx.getSenderAddress().toBuffer());
+      this._logTxTo(tx.to?.toBuffer(), txTrace.trace);
       this._logTxValue(new BN(tx.value));
       this._logWithTitle(
         "Gas used",
-        `${txGasUsed} of ${bufferToInt(tx.gasLimit)}`
+        `${txGasUsed} of ${tx.gasLimit.toNumber()}`
       );
 
       this._logWithTitle(
-        `Block #${bufferToInt(block.header.number)}`,
+        `Block #${block.header.number.toNumber()}`,
         bufferToHex(block.hash())
       );
 
@@ -479,7 +479,7 @@ export class ModulesLogger {
   }
 
   private _logTxInsideBlock(
-    tx: Transaction,
+    tx: TypedTransaction,
     txTrace: GatherTracesResult,
     code: Buffer,
     txGasUsed: number,
@@ -502,12 +502,12 @@ export class ModulesLogger {
 
     this._indent(() => {
       this._logContractAndFunctionName(txTrace.trace, code);
-      this._logTxFrom(tx.getSenderAddress());
-      this._logTxTo(tx.to, txTrace.trace);
+      this._logTxFrom(tx.getSenderAddress().toBuffer());
+      this._logTxTo(tx.to?.toBuffer(), txTrace.trace);
       this._logTxValue(new BN(tx.value));
       this._logWithTitle(
         "Gas used",
-        `${txGasUsed} of ${bufferToInt(tx.gasLimit)}`
+        `${txGasUsed} of ${tx.gasLimit.toNumber()}`
       );
 
       this._logConsoleLogMessages(txTrace.consoleLogMessages);
@@ -637,12 +637,19 @@ export class ModulesLogger {
     this._methodCollapsedCount = 0;
   }
 
-  private _logTxTo(to: Buffer, trace?: MessageTrace) {
+  private _logTxTo(to: Buffer | undefined, trace?: MessageTrace) {
     if (trace !== undefined && isCreateTrace(trace)) {
       return;
     }
+    if (to === undefined) {
+      // only for the type-checker, since `to` is undefined only when
+      // the message is a create trace
+      return;
+    }
 
-    this._logWithTitle("To", bufferToHex(to));
+    const toString = bufferToHex(to);
+
+    this._logWithTitle("To", toString);
   }
 
   private _logTxValue(value: BN) {
@@ -655,7 +662,7 @@ export class ModulesLogger {
 
   private _logBlockNumber(block: Block) {
     this._log(
-      `Block #${bufferToInt(block.header.number)}: ${bufferToHex(block.hash())}`
+      `Block #${block.header.number.toNumber()}: ${bufferToHex(block.hash())}`
     );
   }
 

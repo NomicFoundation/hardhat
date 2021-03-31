@@ -1,4 +1,4 @@
-import { BN, bufferToHex } from "ethereumjs-util";
+import { Address, BN, bufferToHex } from "ethereumjs-util";
 import fsExtra from "fs-extra";
 import * as t from "io-ts";
 import path from "path";
@@ -35,15 +35,16 @@ export class JsonRpcClient {
     return this._networkId;
   }
 
+  // Storage key must be 32 bytes long
   public async getStorageAt(
-    address: Buffer,
+    address: Address,
     position: BN,
     blockNumber: BN
   ): Promise<Buffer> {
     return this._perform(
       "eth_getStorageAt",
       [
-        bufferToHex(address),
+        address.toString(),
         numberToRpcQuantity(position),
         numberToRpcQuantity(blockNumber),
       ],
@@ -178,24 +179,24 @@ export class JsonRpcClient {
   }
 
   public async getAccountData(
-    address: Buffer,
+    address: Address,
     blockNumber: BN
   ): Promise<{ code: Buffer; transactionCount: BN; balance: BN }> {
     const results = await this._performBatch(
       [
         {
           method: "eth_getCode",
-          params: [bufferToHex(address), numberToRpcQuantity(blockNumber)],
+          params: [address.toString(), numberToRpcQuantity(blockNumber)],
           tType: rpcData,
         },
         {
           method: "eth_getTransactionCount",
-          params: [bufferToHex(address), numberToRpcQuantity(blockNumber)],
+          params: [address.toString(), numberToRpcQuantity(blockNumber)],
           tType: rpcQuantity,
         },
         {
           method: "eth_getBalance",
-          params: [bufferToHex(address), numberToRpcQuantity(blockNumber)],
+          params: [address.toString(), numberToRpcQuantity(blockNumber)],
           tType: rpcQuantity,
         },
       ],
@@ -309,6 +310,12 @@ export class JsonRpcClient {
       if (this._shouldRetry(isRetryCall, err)) {
         return this._send(method, params, true);
       }
+
+      // This is a workaround for this TurboGeth bug: https://github.com/ledgerwatch/turbo-geth/issues/1645
+      if (err.code === -32000 && err.message.includes("not found")) {
+        return null;
+      }
+
       // tslint:disable-next-line only-hardhat-error
       throw err;
     }

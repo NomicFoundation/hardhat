@@ -1,5 +1,4 @@
 import { assert } from "chai";
-import { bufferToHex } from "ethereumjs-util";
 import sinon from "sinon";
 
 import { numberToRpcQuantity } from "../../../../../src/internal/hardhat-network/provider/output";
@@ -10,6 +9,7 @@ import { EMPTY_ACCOUNT_ADDRESS } from "../../helpers/constants";
 import { quantityToNumber } from "../../helpers/conversions";
 import { setCWD } from "../../helpers/cwd";
 import { DEFAULT_ACCOUNTS_ADDRESSES, PROVIDERS } from "../../helpers/providers";
+import { deployContract } from "../../helpers/transactions";
 
 describe("Hardhat module", function () {
   PROVIDERS.forEach(({ name, useProvider, isFork }) => {
@@ -43,9 +43,57 @@ describe("Hardhat module", function () {
         it("returns true", async function () {
           const result = await this.provider.send(
             "hardhat_impersonateAccount",
-            [bufferToHex(EMPTY_ACCOUNT_ADDRESS)]
+            [EMPTY_ACCOUNT_ADDRESS.toString()]
           );
           assert.isTrue(result);
+        });
+
+        it("lets you send a transaction from an impersonated account", async function () {
+          const impersonatedAddress =
+            "0xC014BA5EC014ba5ec014Ba5EC014ba5Ec014bA5E";
+
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: impersonatedAddress,
+              value: "0x100",
+            },
+          ]);
+
+          await this.provider.send("hardhat_impersonateAccount", [
+            impersonatedAddress,
+          ]);
+
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from: impersonatedAddress,
+              to: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              value: "0x10",
+            },
+          ]);
+        });
+
+        it("lets you deploy a contract from an impersonated account", async function () {
+          const impersonatedAddress =
+            "0xC014BA5EC014ba5ec014Ba5EC014ba5Ec014bA5E";
+
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: impersonatedAddress,
+              value: "0x100",
+            },
+          ]);
+
+          await this.provider.send("hardhat_impersonateAccount", [
+            impersonatedAddress,
+          ]);
+
+          await deployContract(
+            this.provider,
+            "0x7f410000000000000000000000000000000000000000000000000000000000000060005260016000f3",
+            impersonatedAddress
+          );
         });
       });
 
@@ -66,11 +114,11 @@ describe("Hardhat module", function () {
 
         it("returns true if the account was impersonated before", async function () {
           await this.provider.send("hardhat_impersonateAccount", [
-            bufferToHex(EMPTY_ACCOUNT_ADDRESS),
+            EMPTY_ACCOUNT_ADDRESS.toString(),
           ]);
           const result = await this.provider.send(
             "hardhat_stopImpersonatingAccount",
-            [bufferToHex(EMPTY_ACCOUNT_ADDRESS)]
+            [EMPTY_ACCOUNT_ADDRESS.toString()]
           );
           assert.isTrue(result);
         });
@@ -78,7 +126,7 @@ describe("Hardhat module", function () {
         it("returns false if the account wasn't impersonated before", async function () {
           const result = await this.provider.send(
             "hardhat_stopImpersonatingAccount",
-            [bufferToHex(EMPTY_ACCOUNT_ADDRESS)]
+            [EMPTY_ACCOUNT_ADDRESS.toString()]
           );
           assert.isFalse(result);
         });

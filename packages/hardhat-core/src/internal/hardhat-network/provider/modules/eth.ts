@@ -1,6 +1,8 @@
-import Common from "ethereumjs-common";
-import { Transaction } from "ethereumjs-tx";
+import { Block } from "@ethereumjs/block";
+import Common from "@ethereumjs/common";
+import { Transaction, TypedTransaction } from "@ethereumjs/tx";
 import {
+  Address,
   BN,
   bufferToHex,
   toBuffer,
@@ -61,7 +63,6 @@ import {
   RpcReceiptOutput,
   RpcTransactionOutput,
 } from "../output";
-import { Block } from "../types/Block";
 
 import { ModulesLogger } from "./logger";
 
@@ -356,7 +357,7 @@ export class EthModule {
   }
 
   private async _coinbaseAction(): Promise<string> {
-    return bufferToHex(this._node.getCoinbaseAddress());
+    return this._node.getCoinbaseAddress().toString();
   }
 
   // eth_compileLLL
@@ -435,7 +436,10 @@ export class EthModule {
     const blockNumberOrPending = await this._resolveBlockTag(blockTag);
 
     return numberToRpcQuantity(
-      await this._node.getAccountBalance(address, blockNumberOrPending)
+      await this._node.getAccountBalance(
+        new Address(address),
+        blockNumberOrPending
+      )
     );
   }
 
@@ -553,7 +557,7 @@ export class EthModule {
     const blockNumberOrPending = await this._resolveBlockTag(blockTag);
 
     return bufferToRpcData(
-      await this._node.getCode(address, blockNumberOrPending)
+      await this._node.getCode(new Address(address), blockNumberOrPending)
     );
   }
 
@@ -654,7 +658,7 @@ export class EthModule {
     const blockNumberOrPending = await this._resolveBlockTag(blockTag);
 
     const data = await this._node.getStorageAt(
-      address,
+      new Address(address),
       slot,
       blockNumberOrPending
     );
@@ -764,7 +768,10 @@ export class EthModule {
     const blockNumberOrPending = await this._resolveBlockTag(blockTag);
 
     return numberToRpcQuantity(
-      await this._node.getAccountNonce(address, blockNumberOrPending)
+      await this._node.getAccountNonce(
+        new Address(address),
+        blockNumberOrPending
+      )
     );
   }
 
@@ -868,9 +875,9 @@ export class EthModule {
   }
 
   private async _sendRawTransactionAction(rawTx: Buffer): Promise<string> {
-    let tx: Transaction;
+    let tx: TypedTransaction;
     try {
-      tx = new Transaction(rawTx, { common: this._common });
+      tx = Transaction.fromRlpSerializedTx(rawTx, { common: this._common });
     } catch (error) {
       if (error.message === "invalid remainder") {
         throw new InvalidInputError("Invalid transaction");
@@ -881,6 +888,10 @@ export class EthModule {
       }
 
       throw error;
+    }
+
+    if (!tx.isSigned()) {
+      throw new InvalidInputError("Invalid Signature");
     }
 
     return this._sendTransactionAndReturnHash(tx);
@@ -911,7 +922,10 @@ export class EthModule {
   }
 
   private async _signAction(address: Buffer, data: Buffer): Promise<string> {
-    const signature = await this._node.signPersonalMessage(address, data);
+    const signature = await this._node.signPersonalMessage(
+      new Address(address),
+      data
+    );
 
     return toRpcSig(signature.v, signature.r, signature.s);
   }
@@ -945,7 +959,7 @@ export class EthModule {
       }
     }
 
-    return this._node.signTypedDataV4(address, typedMessage);
+    return this._node.signTypedDataV4(new Address(address), typedMessage);
   }
 
   // eth_submitHashrate
@@ -1048,7 +1062,7 @@ export class EthModule {
     rpcTx: RpcTransactionRequest
   ): Promise<TransactionParams> {
     return {
-      to: rpcTx.to !== undefined ? rpcTx.to : Buffer.from([]),
+      to: rpcTx.to,
       from: rpcTx.from,
       gasLimit:
         rpcTx.gas !== undefined ? rpcTx.gas : this._node.getBlockGasLimit(),
@@ -1061,7 +1075,7 @@ export class EthModule {
       nonce:
         rpcTx.nonce !== undefined
           ? rpcTx.nonce
-          : await this._node.getAccountExecutableNonce(rpcTx.from),
+          : await this._node.getAccountExecutableNonce(new Address(rpcTx.from)),
     };
   }
 
@@ -1246,7 +1260,7 @@ export class EthModule {
 
   private async _handleMineBlockResults(
     results: MineBlockResult[],
-    sentTx: Transaction
+    sentTx: TypedTransaction
   ) {
     const singleTransactionMined =
       results.length === 1 && results[0].block.transactions.length === 1;
@@ -1301,7 +1315,7 @@ export class EthModule {
   }
 
   private async _logSingleTransaction(
-    tx: Transaction,
+    tx: TypedTransaction,
     block: Block,
     txGasUsed: number,
     txTrace: GatherTracesResult
@@ -1315,7 +1329,7 @@ export class EthModule {
     await this._runHardhatNetworkMessageTraceHooks(txTrace.trace, false);
   }
 
-  private async _logBlock(result: MineBlockResult, sentTx: Transaction) {
+  private async _logBlock(result: MineBlockResult, sentTx: TypedTransaction) {
     const { block, traces } = result;
 
     const codes: Buffer[] = [];
@@ -1338,7 +1352,7 @@ export class EthModule {
   }
 
   private _getTransactionResultAndIndex(
-    tx: Transaction,
+    tx: TypedTransaction,
     results: MineBlockResult[]
   ): [MineBlockResult, number] {
     for (const result of results) {

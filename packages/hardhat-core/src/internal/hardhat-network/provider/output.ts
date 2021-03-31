@@ -1,10 +1,13 @@
-import { RunBlockResult } from "@nomiclabs/ethereumjs-vm/dist/runBlock";
-import { Transaction } from "ethereumjs-tx";
+import { Block } from "@ethereumjs/block";
+import { TypedTransaction } from "@ethereumjs/tx";
+import {
+  PostByzantiumTxReceipt,
+  RunBlockResult,
+} from "@ethereumjs/vm/dist/runBlock";
 import { BN, bufferToHex } from "ethereumjs-util";
 
+import { assertHardhatInvariant } from "../../core/errors";
 import { RpcLog, RpcTransactionReceipt } from "../jsonrpc/types";
-
-import { Block } from "./types/Block";
 
 export interface RpcBlockOutput {
   difficulty: string;
@@ -104,7 +107,7 @@ export function getRpcBlock(
 ): RpcBlockOutput {
   const transactions = includeTransactions
     ? block.transactions.map((tx, index) => getRpcTransaction(tx, block, index))
-    : block.transactions.map((tx) => bufferToRpcData(tx.hash(true)));
+    : block.transactions.map((tx) => bufferToRpcData(tx.hash()));
 
   return {
     number: pending ? null : numberToRpcQuantity(new BN(block.header.number)),
@@ -119,7 +122,7 @@ export function getRpcBlock(
     transactionsRoot: bufferToRpcData(block.header.transactionsTrie),
     stateRoot: bufferToRpcData(block.header.stateRoot),
     receiptsRoot: bufferToRpcData(block.header.receiptTrie),
-    miner: bufferToRpcData(block.header.coinbase),
+    miner: bufferToRpcData(block.header.coinbase.toBuffer()),
     difficulty: numberToRpcQuantity(new BN(block.header.difficulty)),
     totalDifficulty: numberToRpcQuantity(totalDifficulty),
     extraData: bufferToRpcData(block.header.extraData),
@@ -133,34 +136,40 @@ export function getRpcBlock(
 }
 
 export function getRpcTransaction(
-  tx: Transaction,
+  tx: TypedTransaction,
   block: Block,
   index: number
 ): RpcTransactionOutput;
 
 export function getRpcTransaction(
-  tx: Transaction,
+  tx: TypedTransaction,
   block: "pending"
 ): RpcTransactionOutput;
 
 export function getRpcTransaction(
-  tx: Transaction,
+  tx: TypedTransaction,
   block: Block | "pending",
   index?: number
 ): RpcTransactionOutput {
+  // only already signed transactions should be used here,
+  // but there is no type in ethereumjs for that
+  assertHardhatInvariant(tx.v !== undefined, "tx should be signed");
+  assertHardhatInvariant(tx.r !== undefined, "tx should be signed");
+  assertHardhatInvariant(tx.s !== undefined, "tx should be signed");
+
   return {
     blockHash: block === "pending" ? null : bufferToRpcData(block.hash()),
     blockNumber:
       block === "pending"
         ? null
         : numberToRpcQuantity(new BN(block.header.number)),
-    from: bufferToRpcData(tx.getSenderAddress()),
+    from: bufferToRpcData(tx.getSenderAddress().toBuffer()),
     gas: numberToRpcQuantity(new BN(tx.gasLimit)),
     gasPrice: numberToRpcQuantity(new BN(tx.gasPrice)),
-    hash: bufferToRpcData(tx.hash(true)),
+    hash: bufferToRpcData(tx.hash()),
     input: bufferToRpcData(tx.data),
     nonce: numberToRpcQuantity(new BN(tx.nonce)),
-    to: tx.to.length === 0 ? null : bufferToRpcData(tx.to),
+    to: tx.to === undefined ? null : bufferToRpcData(tx.to.toBuffer()),
     transactionIndex: index !== undefined ? numberToRpcQuantity(index) : null,
     value: numberToRpcQuantity(new BN(tx.value)),
     v: numberToRpcQuantity(new BN(tx.v)),
@@ -193,15 +202,17 @@ export function getRpcReceipts(
       transactionIndex: numberToRpcQuantity(i),
       blockHash: bufferToRpcData(block.hash()),
       blockNumber: numberToRpcQuantity(new BN(block.header.number)),
-      from: bufferToRpcData(tx.getSenderAddress()),
-      to: tx.to.length === 0 ? null : bufferToRpcData(tx.to),
+      from: bufferToRpcData(tx.getSenderAddress().toBuffer()),
+      to: tx.to === undefined ? null : bufferToRpcData(tx.to.toBuffer()),
       cumulativeGasUsed: numberToRpcQuantity(cumulativeGasUsed),
       gasUsed: numberToRpcQuantity(gasUsed),
       contractAddress:
-        createdAddress !== undefined ? bufferToRpcData(createdAddress) : null,
+        createdAddress !== undefined
+          ? bufferToRpcData(createdAddress.toBuffer())
+          : null,
       logs,
       logsBloom: bufferToRpcData(receipt.bitvector),
-      status: numberToRpcQuantity(receipt.status),
+      status: numberToRpcQuantity((receipt as PostByzantiumTxReceipt)?.status),
     });
   }
 
@@ -253,7 +264,7 @@ export function toRpcLogOutput(log: RpcLog, index?: number): RpcLogOutput {
 
 function getRpcLogOutput(
   log: any[],
-  tx: Transaction,
+  tx: TypedTransaction,
   block?: Block,
   transactionIndex?: number,
   logIndex?: number
