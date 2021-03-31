@@ -253,7 +253,7 @@ export class TxPool {
     try {
       return tx.getSenderAddress(); // verifies signature
     } catch (e) {
-      throw new InvalidInputError(e.message);
+      throw new InvalidInputError("Invalid Signature");
     }
   }
 
