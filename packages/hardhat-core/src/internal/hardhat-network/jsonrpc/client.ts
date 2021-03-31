@@ -310,6 +310,12 @@ export class JsonRpcClient {
       if (this._shouldRetry(isRetryCall, err)) {
         return this._send(method, params, true);
       }
+
+      // This is a workaround for this TurboGeth bug: https://github.com/ledgerwatch/turbo-geth/issues/1645
+      if (err.code === -32000 && err.message.includes("not found")) {
+        return null;
+      }
+
       // tslint:disable-next-line only-hardhat-error
       throw err;
     }
