@@ -1,9 +1,9 @@
 import { Block } from "@ethereumjs/block";
 import Common from "@ethereumjs/common";
-import { Transaction } from "@ethereumjs/tx";
+import { Transaction, TxData } from "@ethereumjs/tx";
 import { PostByzantiumTxReceipt } from "@ethereumjs/vm/dist/runBlock";
 import { assert } from "chai";
-import { BN, bufferToHex } from "ethereumjs-util";
+import { Address, BN, bufferToHex } from "ethereumjs-util";
 import path from "path";
 import sinon from "sinon";
 
@@ -14,10 +14,6 @@ import {
   ForkedNodeConfig,
   NodeConfig,
 } from "../../../../src/internal/hardhat-network/provider/node-types";
-import {
-  FakeTransaction,
-  FakeTxData,
-} from "../../../../src/internal/hardhat-network/provider/utils/fakeTransaction";
 import { getCurrentTimestamp } from "../../../../src/internal/hardhat-network/provider/utils/getCurrentTimestamp";
 import { makeForkClient } from "../../../../src/internal/hardhat-network/provider/utils/makeForkClient";
 import { ALCHEMY_URL } from "../../../setup";
@@ -32,6 +28,7 @@ import {
   DEFAULT_NETWORK_ID,
   DEFAULT_NETWORK_NAME,
 } from "../helpers/providers";
+import { FakeSenderTransaction } from "../../../../src/internal/hardhat-network/provider/transactions/FakeSenderTransaction";
 
 // tslint:disable no-string-literal
 
@@ -60,13 +57,18 @@ describe("HardhatNode", () => {
   };
   const gasPrice = 1;
   let node: HardhatNode;
-  let createTestTransaction: (txData: FakeTxData) => FakeTransaction;
+  let createTestTransaction: (
+    txData: TxData & { from: string }
+  ) => FakeSenderTransaction;
 
   beforeEach(async () => {
     let common: Common;
     [common, node] = await HardhatNode.create(config);
     createTestTransaction = (txData) => {
-      const tx = new FakeTransaction({ gasPrice, ...txData }, { common });
+      const tx = new FakeSenderTransaction(Address.fromString(txData.from), {
+        gasPrice,
+        ...txData,
+      });
       tx.hash();
       return tx;
     };

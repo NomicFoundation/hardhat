@@ -1,7 +1,7 @@
 import { Block } from "@ethereumjs/block";
 import Common from "@ethereumjs/common";
 import { TypedTransaction } from "@ethereumjs/tx";
-import { Address, BN, bufferToHex } from "ethereumjs-util";
+import { Address, BN } from "ethereumjs-util";
 
 import { JsonRpcClient } from "../../jsonrpc/client";
 import {
@@ -17,9 +17,9 @@ import {
   toRpcLogOutput,
   toRpcReceiptOutput,
 } from "../output";
+import { ReadOnlyValidTransaction } from "../transactions/ReadOnlyValidTransaction";
 import { BlockchainInterface } from "../types/BlockchainInterface";
 
-import { ForkTransaction } from "./ForkTransaction";
 import { rpcToBlockData } from "./rpcToBlockData";
 import { rpcToTxData } from "./rpcToTxData";
 
@@ -233,7 +233,8 @@ export class ForkBlockchain implements BlockchainInterface {
       return undefined;
     }
 
-    // we don't include the transactions to add our own custom ForkTransaction txs
+    // we don't include the transactions to add our own custom tx objects,
+    // otherwise they are recreated with upstream classes
     const blockData = rpcToBlockData({
       ...rpcBlock,
       transactions: [],
@@ -245,19 +246,14 @@ export class ForkBlockchain implements BlockchainInterface {
       // We use freeze false here because we add the transactions manually
       freeze: false,
     });
-    const chainId = this._jsonRpcClient.getNetworkId();
 
     for (const transaction of rpcBlock.transactions) {
-      const forkTransaction = new ForkTransaction(
-        chainId,
-        Address.fromString(bufferToHex(transaction.from)),
-        rpcToTxData(transaction),
-        {
-          common: this._common,
-        }
+      const tx = new ReadOnlyValidTransaction(
+        new Address(transaction.from),
+        rpcToTxData(transaction)
       );
 
-      block.transactions.push(forkTransaction);
+      block.transactions.push(tx);
     }
 
     this._data.addBlock(block, rpcBlock.totalDifficulty);
@@ -310,15 +306,9 @@ export class ForkBlockchain implements BlockchainInterface {
       return undefined;
     }
 
-    const chainId = this._jsonRpcClient.getNetworkId();
-
-    const transaction = new ForkTransaction(
-      chainId,
-      Address.fromString(bufferToHex(rpcTransaction.from)),
-      rpcToTxData(rpcTransaction),
-      {
-        common: this._common,
-      }
+    const transaction = new ReadOnlyValidTransaction(
+      new Address(rpcTransaction.from),
+      rpcToTxData(rpcTransaction)
     );
 
     this._data.addTransaction(transaction);

@@ -1,18 +1,19 @@
+import { TxData } from "@ethereumjs/tx";
 import { assert } from "chai";
+import { AddressLike } from "ethereumjs-util";
 import { List } from "immutable";
 
-import { FakeTxData } from "../../../../../src/internal/hardhat-network/provider/utils/fakeTransaction";
 import { reorganizeTransactionsLists } from "../../../../../src/internal/hardhat-network/provider/utils/reorganizeTransactionsLists";
 import { createTestSerializedTransaction } from "../../helpers/blockchain";
 
 function getTestTransactionFactory() {
   let orderId = 0;
-  return (data: FakeTxData) =>
+  return (data: TxData & { from?: AddressLike }) =>
     createTestSerializedTransaction({ orderId: orderId++, ...data });
 }
 
 describe("reorganizeTransactionsLists", () => {
-  let createTestTransaction: (data: FakeTxData) => any;
+  let createTestTransaction: (data: TxData & { from?: AddressLike }) => any;
 
   beforeEach(() => {
     createTestTransaction = getTestTransactionFactory();

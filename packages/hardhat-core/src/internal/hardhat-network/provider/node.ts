@@ -79,10 +79,10 @@ import {
   RpcLogOutput,
   RpcReceiptOutput,
 } from "./output";
+import { FakeSenderTransaction } from "./transactions/FakeSenderTransaction";
 import { TxPool } from "./TxPool";
 import { TxPriorityHeap } from "./TxPriorityHeap";
 import { BlockchainInterface } from "./types/BlockchainInterface";
-import { FakeTransaction } from "./utils/fakeTransaction";
 import { getCurrentTimestamp } from "./utils/getCurrentTimestamp";
 import { makeCommon } from "./utils/makeCommon";
 import { makeForkClient } from "./utils/makeForkClient";
@@ -274,7 +274,7 @@ export class HardhatNode extends EventEmitter {
     }
 
     if (this._impersonatedAccounts.has(senderAddress)) {
-      return new FakeTransaction(txParams, { common: this._vm._common });
+      return this._getFakeTransaction(txParams);
     }
 
     throw new InvalidInputError(`unknown account ${senderAddress}`);
@@ -1101,7 +1101,9 @@ export class HardhatNode extends EventEmitter {
   private async _getFakeTransaction(
     txParams: TransactionParams
   ): Promise<Transaction> {
-    return new FakeTransaction(txParams, { common: this._vm._common });
+    return new FakeSenderTransaction(new Address(txParams.from), txParams, {
+      common: this._vm._common,
+    });
   }
 
   private _getSnapshotIndex(id: number): number | undefined {
