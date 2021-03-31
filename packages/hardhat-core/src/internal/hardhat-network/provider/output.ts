@@ -77,7 +77,7 @@ export interface RpcLogOutput {
 
 // tslint:disable only-hardhat-error
 
-export function numberToRpcQuantity(n: number | BN | undefined): string {
+export function numberToRpcQuantity(n: number | BN): string {
   // This is here because we have some any's from dependencies
   if (typeof n !== "number" && Buffer.isBuffer(n)) {
     throw new Error(`Expected a number and got ${n}`);
@@ -87,7 +87,7 @@ export function numberToRpcQuantity(n: number | BN | undefined): string {
     n = new BN(n);
   }
 
-  return `0x${n?.toString(16)}`;
+  return `0x${n.toString(16)}`;
 }
 
 export function bufferToRpcData(buffer: Buffer, pad: number = 0): string {
