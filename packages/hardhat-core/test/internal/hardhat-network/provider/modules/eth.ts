@@ -2971,6 +2971,11 @@ describe("Eth module", function () {
           }
           const rinkebyUrl = ALCHEMY_URL.replace("mainnet", "rinkeby");
 
+          // If "mainnet" is not present the replacement failed so we skip the test
+          if (rinkebyUrl === ALCHEMY_URL) {
+            this.skip();
+          }
+
           await this.provider.send("hardhat_reset", [
             {
               forking: {
