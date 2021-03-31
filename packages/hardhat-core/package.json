@@ -76,6 +76,7 @@
   },
   "dependencies": {
     "@ethereumjs/block": "^3.2.0",
+    "@ethereumjs/blockchain": "^5.2.1",
     "@ethereumjs/common": "^2.2.0",
     "@ethereumjs/tx": "^3.1.1",
     "@ethereumjs/vm": "^5.2.0",

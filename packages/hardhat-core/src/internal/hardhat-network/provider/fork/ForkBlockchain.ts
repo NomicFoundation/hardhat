@@ -18,14 +18,14 @@ import {
   toRpcReceiptOutput,
 } from "../output";
 import { ReadOnlyValidTransaction } from "../transactions/ReadOnlyValidTransaction";
-import { BlockchainInterface } from "../types/BlockchainInterface";
+import { HardhatBlockchainInterface } from "../types/HardhatBlockchainInterface";
 
 import { rpcToBlockData } from "./rpcToBlockData";
 import { rpcToTxData } from "./rpcToTxData";
 
 /* tslint:disable only-hardhat-error */
 
-export class ForkBlockchain implements BlockchainInterface {
+export class ForkBlockchain implements HardhatBlockchainInterface {
   private _data = new BlockchainData();
   private _latestBlockNumber = this._forkBlockNumber;
 
@@ -37,7 +37,7 @@ export class ForkBlockchain implements BlockchainInterface {
 
   public async getLatestBlock(): Promise<Block> {
     const block = await this.getBlock(this._latestBlockNumber);
-    if (block === undefined) {
+    if (block === null) {
       throw new Error("Block not found");
     }
     return block;
@@ -45,11 +45,15 @@ export class ForkBlockchain implements BlockchainInterface {
 
   public async getBlock(
     blockHashOrNumber: Buffer | number | BN
-  ): Promise<Block | undefined> {
+  ): Promise<Block | null> {
+    let block: Block | undefined;
     if (Buffer.isBuffer(blockHashOrNumber)) {
-      return this._getBlockByHash(blockHashOrNumber);
+      block = await this._getBlockByHash(blockHashOrNumber);
+      return block ?? null;
     }
-    return this._getBlockByNumber(new BN(blockHashOrNumber));
+
+    block = await this._getBlockByNumber(new BN(blockHashOrNumber));
+    return block ?? null;
   }
 
   public async addBlock(block: Block): Promise<Block> {
@@ -74,12 +78,20 @@ export class ForkBlockchain implements BlockchainInterface {
     return block;
   }
 
+  public async putBlock(block: Block): Promise<void> {
+    await this.addBlock(block);
+  }
+
   public deleteBlock(blockHash: Buffer) {
     const block = this._data.getBlockByHash(blockHash);
     if (block === undefined) {
       throw new Error("Block not found");
     }
     this._delBlock(block);
+  }
+
+  public async delBlock(blockHash: Buffer) {
+    this.deleteBlock(blockHash);
   }
 
   public deleteLaterBlocks(block: Block): void {
@@ -136,7 +148,7 @@ export class ForkBlockchain implements BlockchainInterface {
 
   public async getBlockByTransactionHash(
     transactionHash: Buffer
-  ): Promise<Block | undefined> {
+  ): Promise<Block | null> {
     let block = this._data.getBlockByTransactionHash(transactionHash);
     if (block === undefined) {
       const remote = await this._jsonRpcClient.getTransactionByHash(
@@ -148,12 +160,12 @@ export class ForkBlockchain implements BlockchainInterface {
         block = this._data.getBlockByTransactionHash(transactionHash);
       }
     }
-    return block;
+    return block ?? null;
   }
 
   public async getTransactionReceipt(
     transactionHash: Buffer
-  ): Promise<RpcReceiptOutput | undefined> {
+  ): Promise<RpcReceiptOutput | null> {
     const local = this._data.getTransactionReceipt(transactionHash);
     if (local !== undefined) {
       return local;
@@ -162,8 +174,11 @@ export class ForkBlockchain implements BlockchainInterface {
       transactionHash
     );
     if (remote !== null) {
-      return this._processRemoteReceipt(remote);
+      const receipt = this._processRemoteReceipt(remote);
+      return receipt ?? null;
     }
+
+    return null;
   }
 
   public addTransactionReceipts(receipts: RpcReceiptOutput[]) {
@@ -197,6 +212,13 @@ export class ForkBlockchain implements BlockchainInterface {
         .concat(localLogs);
     }
     return this._data.getLogs(filterParams);
+  }
+
+  public iterator(
+    _name: string,
+    _onBlock: (block: Block, reorg: boolean) => void | Promise<void>
+  ): Promise<number | void> {
+    throw new Error("Method not implemented.");
   }
 
   private async _getBlockByHash(blockHash: Buffer) {
@@ -270,7 +292,7 @@ export class ForkBlockchain implements BlockchainInterface {
     const parentBlock =
       this._data.getBlockByNumber(blockNumber.subn(1)) ??
       (await this.getBlock(blockNumber.subn(1)));
-    if (parentBlock === undefined) {
+    if (parentBlock === null) {
       throw new Error("Block not found");
     }
     const parentHash = parentBlock.hash();

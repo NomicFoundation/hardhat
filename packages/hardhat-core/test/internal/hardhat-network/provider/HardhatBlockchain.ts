@@ -4,7 +4,6 @@ import { BN, BufferLike, zeros } from "ethereumjs-util";
 
 import { randomHashBuffer } from "../../../../src/internal/hardhat-network/provider/fork/random";
 import { HardhatBlockchain } from "../../../../src/internal/hardhat-network/provider/HardhatBlockchain";
-import { BlockchainInterface } from "../../../../src/internal/hardhat-network/provider/types/BlockchainInterface";
 import {
   createTestLog,
   createTestReceipt,
@@ -12,7 +11,7 @@ import {
 } from "../helpers/blockchain";
 
 describe("HardhatBlockchain", () => {
-  let blockchain: BlockchainInterface;
+  let blockchain: HardhatBlockchain;
   let blocks: Block[];
 
   function createBlock(number: number, _difficulty?: BufferLike) {
