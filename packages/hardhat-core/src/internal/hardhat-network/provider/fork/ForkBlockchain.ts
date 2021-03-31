@@ -117,7 +117,7 @@ export class ForkBlockchain implements HardhatBlockchainInterface {
       return td;
     }
     const block = await this.getBlock(blockHash);
-    if (block === undefined) {
+    if (block === null) {
       throw new Error("Block not found");
     }
     td = this._data.getTotalDifficulty(blockHash);
