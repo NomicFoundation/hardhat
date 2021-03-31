@@ -436,7 +436,7 @@ describe("Tx Pool", () => {
         await assert.isRejected(
           txPool.addTransaction(tx),
           InvalidInputError,
-          "This transaction is not signed"
+          "Invalid Signature"
         );
       });
 
