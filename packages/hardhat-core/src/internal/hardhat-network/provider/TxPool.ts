@@ -343,9 +343,7 @@ export class TxPool {
     // Temporary check that should be removed when transaction replacement is added
     if (this._txWithNonceExists(tx)) {
       throw new InvalidInputError(
-        `Transaction with nonce ${bufferToInt(
-          tx.nonce.toBuffer()
-        )} already exists in transaction pool`
+        `Transaction with nonce ${tx.nonce.toNumber()} already exists in transaction pool`
       );
     }
 
