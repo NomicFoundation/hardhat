@@ -3,7 +3,7 @@ import { Address } from "ethereumjs-util";
 
 import { InternalError } from "../errors";
 
-// tslint:disable-file only-hardhat-error
+// tslint:disable only-hardhat-error
 
 /**
  * This class represents a transaction that is assumed to be valid.
