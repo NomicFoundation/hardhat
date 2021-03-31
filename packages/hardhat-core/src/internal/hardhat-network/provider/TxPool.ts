@@ -15,25 +15,18 @@ import {
   SenderTransactions,
   SerializedTransaction,
 } from "./PoolState";
+import { FakeSenderTransaction } from "./transactions/FakeSenderTransaction";
 import { bnToHex } from "./utils/bnToHex";
-import { FakeTransaction } from "./utils/fakeTransaction";
 import { reorganizeTransactionsLists } from "./utils/reorganizeTransactionsLists";
 
 // tslint:disable only-hardhat-error
-
-function hashTx(tx: Transaction | FakeTransaction) {
-  // @ethereumjs/Transaction and hardhat/FakeTransaction implement
-  // their own `hash` fns, equivalent to tx@2.1.2's
-  // tx.hash(true), tx.hash(false) respectively
-  return tx.hash();
-}
 
 export function serializeTransaction(
   tx: OrderedTransaction
 ): SerializedTransaction {
   const fields = tx.data.raw().map((field) => bufferToHex(field));
   const immutableFields = ImmutableList(fields);
-  const isFake = tx.data instanceof FakeTransaction;
+  const isFake = tx.data instanceof FakeSenderTransaction;
   return makeSerializedTransaction({
     orderId: tx.orderId,
     fakeFrom: isFake ? tx.data.getSenderAddress().toString() : undefined,
@@ -55,8 +48,11 @@ export function deserializeTransaction(
   const fakeFrom = tx.get("fakeFrom");
   let data;
   if (fakeFrom !== undefined) {
-    fields.from = fakeFrom;
-    data = FakeTransaction.fromValuesArray(fields, { common });
+    data = FakeSenderTransaction.fromSenderAndValuesArray(
+      Address.fromString(fakeFrom),
+      fields,
+      { common }
+    );
   } else {
     data = Transaction.fromValuesArray(fields, { common });
   }
@@ -279,7 +275,7 @@ export class TxPool {
       );
     }
 
-    this._deleteTransactionByHash(hashTx(deserializedTX.data));
+    this._deleteTransactionByHash(deserializedTX.data.hash());
 
     const indexOfTx = accountTxs.indexOf(serializeTransaction(deserializedTX));
     return map.set(address, accountTxs.remove(indexOfTx));
@@ -302,7 +298,7 @@ export class TxPool {
 
     this._setPendingForAddress(hexSenderAddress, newPending);
     this._setQueuedForAddress(hexSenderAddress, newQueued);
-    this._setTransactionByHash(bufferToHex(hashTx(tx)), orderedTx);
+    this._setTransactionByHash(bufferToHex(tx.hash()), orderedTx);
   }
 
   private _addQueuedTransaction(tx: Transaction) {
@@ -318,7 +314,7 @@ export class TxPool {
       hexSenderAddress,
       accountTransactions.push(orderedTx)
     );
-    this._setTransactionByHash(bufferToHex(hashTx(tx)), orderedTx);
+    this._setTransactionByHash(bufferToHex(tx.hash()), orderedTx);
   }
 
   private async _validateTransaction(

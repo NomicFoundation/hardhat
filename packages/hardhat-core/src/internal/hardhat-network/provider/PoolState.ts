@@ -6,12 +6,12 @@ import {
   Record as ImmutableRecord,
 } from "immutable";
 
+import { FakeSenderTransaction } from "./transactions/FakeSenderTransaction";
 import { bnToHex } from "./utils/bnToHex";
-import { FakeTransaction } from "./utils/fakeTransaction";
 
 export interface OrderedTransaction {
   orderId: number;
-  data: Transaction | FakeTransaction;
+  data: Transaction | FakeSenderTransaction;
 }
 
 interface ImmutableOrderedTransaction {
