@@ -3542,7 +3542,6 @@ describe("Eth module", function () {
               // This transaction was obtained with eth_sendTransaction, and its r value was wiped
               "0xf3808501dcd6500083015f9080800082011a80a00dbd1a45b7823be518540ca77afb7178a470b8054281530a6cdfd0ad3328cf96",
             ],
-            // A missing `r` is now treated as unsigned, via the BaseTransaction method "isSigned"
             "Invalid Signature"
           );
         });
