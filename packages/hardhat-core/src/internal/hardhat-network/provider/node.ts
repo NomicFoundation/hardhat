@@ -82,7 +82,7 @@ import {
 import { FakeSenderTransaction } from "./transactions/FakeSenderTransaction";
 import { TxPool } from "./TxPool";
 import { TxPriorityHeap } from "./TxPriorityHeap";
-import { BlockchainInterface } from "./types/BlockchainInterface";
+import { HardhatBlockchainInterface } from "./types/HardhatBlockchainInterface";
 import { getCurrentTimestamp } from "./utils/getCurrentTimestamp";
 import { makeCommon } from "./utils/makeCommon";
 import { makeForkClient } from "./utils/makeForkClient";
@@ -119,7 +119,7 @@ export class HardhatNode extends EventEmitter {
 
     let common: Common;
     let stateManager: StateManager | ForkStateManager;
-    let blockchain: HardhatBlockchain | ForkBlockchain;
+    let blockchain: HardhatBlockchainInterface;
     let initialBlockTimeOffset: BN | undefined;
 
     if ("forkConfig" in config) {
@@ -154,14 +154,16 @@ export class HardhatNode extends EventEmitter {
         trie: stateTrie,
       });
 
-      blockchain = new HardhatBlockchain();
-      await putGenesisBlock(blockchain, common);
+      const hardhatBlockchain = new HardhatBlockchain();
+      await putGenesisBlock(hardhatBlockchain, common);
 
       if (config.initialDate !== undefined) {
         initialBlockTimeOffset = new BN(
           getDifferenceInSeconds(config.initialDate, new Date())
         );
       }
+
+      blockchain = hardhatBlockchain;
     }
 
     const txPool = new TxPool(stateManager, new BN(blockGasLimit), common);
@@ -208,7 +210,7 @@ export class HardhatNode extends EventEmitter {
   private constructor(
     private readonly _vm: VM,
     private readonly _stateManager: StateManager,
-    private readonly _blockchain: BlockchainInterface,
+    private readonly _blockchain: HardhatBlockchainInterface,
     private readonly _txPool: TxPool,
     private _automine: boolean,
     private _blockTimeOffsetSeconds: BN = new BN(0),
@@ -546,17 +548,20 @@ export class HardhatNode extends EventEmitter {
       );
     }
 
-    return this._blockchain.getBlock(blockNumberOrPending);
+    const block = await this._blockchain.getBlock(blockNumberOrPending);
+    return block ?? undefined;
   }
 
   public async getBlockByHash(blockHash: Buffer): Promise<Block | undefined> {
-    return this._blockchain.getBlock(blockHash);
+    const block = await this._blockchain.getBlock(blockHash);
+    return block ?? undefined;
   }
 
   public async getBlockByTransactionHash(
     hash: Buffer
   ): Promise<Block | undefined> {
-    return this._blockchain.getBlockByTransactionHash(hash);
+    const block = await this._blockchain.getBlockByTransactionHash(hash);
+    return block ?? undefined;
   }
 
   public async getBlockTotalDifficulty(block: Block): Promise<BN> {
@@ -602,7 +607,8 @@ export class HardhatNode extends EventEmitter {
     hash: Buffer | string
   ): Promise<RpcReceiptOutput | undefined> {
     const hashBuffer = hash instanceof Buffer ? hash : toBuffer(hash);
-    return this._blockchain.getTransactionReceipt(hashBuffer);
+    const receipt = await this._blockchain.getTransactionReceipt(hashBuffer);
+    return receipt ?? undefined;
   }
 
   public async getPendingTransactions(): Promise<Transaction[]> {
@@ -1335,7 +1341,7 @@ export class HardhatNode extends EventEmitter {
   ) {
     const receipts = getRpcReceipts(block, runBlockResult);
 
-    await this._blockchain.addBlock(block);
+    await this._blockchain.putBlock(block);
     this._blockchain.addTransactionReceipts(receipts);
 
     const td = await this.getBlockTotalDifficulty(block);
