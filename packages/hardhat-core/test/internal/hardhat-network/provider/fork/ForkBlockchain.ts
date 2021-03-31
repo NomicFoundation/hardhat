@@ -1,7 +1,7 @@
 import { Block } from "@ethereumjs/block";
 import Common from "@ethereumjs/common";
 import { assert } from "chai";
-import { BN, BufferLike, bufferToHex, toBuffer, zeros } from "ethereumjs-util";
+import { BN, bufferToHex, toBuffer, zeros } from "ethereumjs-util";
 
 import { JsonRpcClient } from "../../../../../src/internal/hardhat-network/jsonrpc/client";
 import { ForkBlockchain } from "../../../../../src/internal/hardhat-network/provider/fork/ForkBlockchain";
@@ -27,13 +27,13 @@ describe("ForkBlockchain", () => {
   let common: Common;
   let fb: ForkBlockchain;
 
-  function createBlock(parent: Block, difficulty: BufferLike = zeros(32)) {
+  function createBlock(parent: Block, difficulty: number | Buffer = zeros(32)) {
     return Block.fromBlockData(
       {
         header: {
           number: new BN(parent.header.number).addn(1),
           parentHash: parent.hash(),
-          difficulty: new BN(difficulty as Buffer),
+          difficulty: new BN(difficulty),
         },
       },
       { common }
