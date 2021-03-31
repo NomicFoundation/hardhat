@@ -94,7 +94,9 @@ const ForkTransactionPrototype: any = ForkTransaction.prototype;
 ForkTransactionPrototype._validateTxV = function () {};
 
 ForkTransactionPrototype._signedTxImplementsEIP155 = function () {
-  return this.v !== 27 && this.v !== 28;
+  throw new InternalError(
+    "`_signedTxImplementsEIP155` is not implemented in ForkTransaction"
+  );
 };
 
 ForkTransactionPrototype._unsignedTxImplementsEIP155 = function () {
