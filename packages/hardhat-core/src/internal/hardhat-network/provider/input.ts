@@ -28,10 +28,9 @@ const isRpcDataString = (u: unknown): u is string =>
 const isRpcHashString = (u: unknown): u is string =>
   typeof u === "string" && u.length === 66 && isRpcDataString(u);
 
-// A bug in isValidAddress makes it throw
-// if the string isn't hex prefixed...
 const safeIsValidAddress = (u: string) => {
   let isValid = false;
+  // This try catch should be here until this is released: https://github.com/ethereumjs/ethereumjs-monorepo/pull/1174
   try {
     isValid = isValidAddress(u);
   } catch (e) {}
