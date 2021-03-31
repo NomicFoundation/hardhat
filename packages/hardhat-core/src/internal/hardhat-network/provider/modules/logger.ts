@@ -641,8 +641,13 @@ export class ModulesLogger {
     if (trace !== undefined && isCreateTrace(trace)) {
       return;
     }
+    if (to === undefined) {
+      // only for the type-checker, since `to` is undefined only when
+      // the message is a create trace
+      return;
+    }
 
-    const toString = to === undefined ? "undefined" : bufferToHex(to);
+    const toString = bufferToHex(to);
 
     this._logWithTitle("To", toString);
   }
