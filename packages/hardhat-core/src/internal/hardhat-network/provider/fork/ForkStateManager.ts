@@ -1,4 +1,4 @@
-import { DefaultStateManager as StateManager } from "@ethereumjs/vm/dist/state";
+import { StateManager } from "@ethereumjs/vm/dist/state";
 import {
   Account,
   Address,
@@ -13,11 +13,16 @@ import { Map as ImmutableMap, Record as ImmutableRecord } from "immutable";
 
 import { assertHardhatInvariant } from "../../../core/errors";
 import { JsonRpcClient } from "../../jsonrpc/client";
+import { InternalError } from "../errors";
 import { GenesisAccount } from "../node-types";
 import { makeAccount } from "../utils/makeAccount";
 
 import { AccountState, makeAccountState } from "./AccountState";
 import { randomHash } from "./random";
+
+const encodeStorageKey = (address: Buffer, position: Buffer): string => {
+  return `${address.toString("hex")}${unpadBuffer(position).toString("hex")}`;
+};
 
 /* tslint:disable only-hardhat-error */
 
@@ -32,21 +37,20 @@ const notCheckpointedError = (method: string) =>
 const notSupportedError = (method: string) =>
   new Error(`${method} is not supported when forking from remote network`);
 
-export class ForkStateManager extends StateManager {
+export class ForkStateManager implements StateManager {
   private _state: State = ImmutableMap();
   private _initialStateRoot: string = randomHash();
   private _stateRoot: string = this._initialStateRoot;
   private _stateRootToState: Map<string, State> = new Map();
+  private _originalStorageCache: Map<string, Buffer> = new Map();
   private _stateCheckpoints: string[] = [];
   private _contextBlockNumber = this._forkBlockNumber.clone();
   private _contextChanged = false;
 
   constructor(
     private readonly _jsonRpcClient: JsonRpcClient,
-    private readonly _forkBlockNumber: BN,
-    genesisAccounts: GenesisAccount[] = []
+    private readonly _forkBlockNumber: BN
   ) {
-    super();
     this._state = ImmutableMap();
 
     this._stateRootToState.set(this._initialStateRoot, this._state);
@@ -171,6 +175,10 @@ export class ForkStateManager extends StateManager {
     address: Address,
     key: Buffer
   ): Promise<Buffer> {
+    if (key.length !== 32) {
+      throw new Error("Storage key must be 32 bytes long");
+    }
+
     const account = this._state.get(address.toString());
     const contractStorageCleared = account?.get("storageCleared") ?? false;
     const localValue = account?.get("storage").get(bufferToHex(key));
@@ -198,6 +206,14 @@ export class ForkStateManager extends StateManager {
     key: Buffer,
     value: Buffer
   ): Promise<void> {
+    if (key.length !== 32) {
+      throw new Error("Storage key must be 32 bytes long");
+    }
+
+    if (value.length > 32) {
+      throw new Error("Storage value cannot be longer than 32 bytes");
+    }
+
     const unpaddedValue = unpadBuffer(value);
 
     const hexAddress = address.toString();
@@ -323,6 +339,36 @@ export class ForkStateManager extends StateManager {
       this._contextChanged = false;
       this._contextBlockNumber = this._forkBlockNumber;
     }
+  }
+
+  public accountExists(address: Address): Promise<boolean> {
+    throw new InternalError(
+      "Hardhat Network can't fork from networks running a hardfork older than Spurious Dragon"
+    );
+  }
+
+  public async deleteAccount(address: Address): Promise<void> {
+    this._state.delete(address.toString());
+  }
+
+  public clearOriginalStorageCache(): void {
+    this._originalStorageCache = new Map();
+  }
+
+  public async getOriginalContractStorage(
+    address: Address,
+    key: Buffer
+  ): Promise<Buffer> {
+    const storageKey = encodeStorageKey(address.toBuffer(), key);
+    const cachedValue = this._originalStorageCache.get(storageKey);
+    if (cachedValue !== undefined) {
+      return cachedValue;
+    }
+
+    const value = await this.getContractStorage(address, key);
+    this._originalStorageCache.set(storageKey, value);
+
+    return value;
   }
 
   private _putAccount(address: Address, account: Account): void {

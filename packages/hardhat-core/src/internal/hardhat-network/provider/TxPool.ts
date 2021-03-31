@@ -1,6 +1,6 @@
 import Common from "@ethereumjs/common";
 import { Transaction } from "@ethereumjs/tx";
-import { DefaultStateManager as StateManager } from "@ethereumjs/vm/dist/state";
+import { StateManager } from "@ethereumjs/vm/dist/state";
 import { Address, BN, bufferToHex, toBuffer } from "ethereumjs-util";
 import { List as ImmutableList, Record as ImmutableRecord } from "immutable";
 
