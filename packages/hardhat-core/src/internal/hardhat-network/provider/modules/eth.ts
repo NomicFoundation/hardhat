@@ -2,6 +2,7 @@ import { Block } from "@ethereumjs/block";
 import Common from "@ethereumjs/common";
 import { Transaction, TypedTransaction } from "@ethereumjs/tx";
 import {
+  Address,
   BN,
   bufferToHex,
   toBuffer,
@@ -435,7 +436,10 @@ export class EthModule {
     const blockNumberOrPending = await this._resolveBlockTag(blockTag);
 
     return numberToRpcQuantity(
-      await this._node.getAccountBalance(address, blockNumberOrPending)
+      await this._node.getAccountBalance(
+        new Address(address),
+        blockNumberOrPending
+      )
     );
   }
 
@@ -553,7 +557,7 @@ export class EthModule {
     const blockNumberOrPending = await this._resolveBlockTag(blockTag);
 
     return bufferToRpcData(
-      await this._node.getCode(address, blockNumberOrPending)
+      await this._node.getCode(new Address(address), blockNumberOrPending)
     );
   }
 
@@ -654,7 +658,7 @@ export class EthModule {
     const blockNumberOrPending = await this._resolveBlockTag(blockTag);
 
     const data = await this._node.getStorageAt(
-      address,
+      new Address(address),
       slot,
       blockNumberOrPending
     );
@@ -764,7 +768,10 @@ export class EthModule {
     const blockNumberOrPending = await this._resolveBlockTag(blockTag);
 
     return numberToRpcQuantity(
-      await this._node.getAccountNonce(address, blockNumberOrPending)
+      await this._node.getAccountNonce(
+        new Address(address),
+        blockNumberOrPending
+      )
     );
   }
 
@@ -911,7 +918,10 @@ export class EthModule {
   }
 
   private async _signAction(address: Buffer, data: Buffer): Promise<string> {
-    const signature = await this._node.signPersonalMessage(address, data);
+    const signature = await this._node.signPersonalMessage(
+      new Address(address),
+      data
+    );
 
     return toRpcSig(signature.v, signature.r, signature.s);
   }
@@ -945,7 +955,7 @@ export class EthModule {
       }
     }
 
-    return this._node.signTypedDataV4(address, typedMessage);
+    return this._node.signTypedDataV4(new Address(address), typedMessage);
   }
 
   // eth_submitHashrate
@@ -1061,7 +1071,7 @@ export class EthModule {
       nonce:
         rpcTx.nonce !== undefined
           ? rpcTx.nonce
-          : await this._node.getAccountExecutableNonce(rpcTx.from),
+          : await this._node.getAccountExecutableNonce(new Address(rpcTx.from)),
     };
   }
 

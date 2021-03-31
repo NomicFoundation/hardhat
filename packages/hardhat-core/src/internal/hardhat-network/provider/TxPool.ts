@@ -1,13 +1,7 @@
 import Common from "@ethereumjs/common";
 import { Transaction } from "@ethereumjs/tx";
 import { DefaultStateManager as StateManager } from "@ethereumjs/vm/dist/state";
-import {
-  Address,
-  BN,
-  bufferToHex,
-  bufferToInt,
-  toBuffer,
-} from "ethereumjs-util";
+import { Address, BN, bufferToHex, toBuffer } from "ethereumjs-util";
 import { List as ImmutableList, Record as ImmutableRecord } from "immutable";
 
 import { InvalidInputError } from "./errors";
@@ -157,14 +151,12 @@ export class TxPool {
     return new Map(deserializedImmutableMap.entries());
   }
 
-  public async getExecutableNonce(accountAddress: Buffer): Promise<BN> {
-    const pendingTxs = this._getPendingForAddress(bufferToHex(accountAddress));
+  public async getExecutableNonce(accountAddress: Address): Promise<BN> {
+    const pendingTxs = this._getPendingForAddress(accountAddress.toString());
     const lastPendingTx = pendingTxs?.last(undefined);
 
     if (lastPendingTx === undefined) {
-      const account = await this._stateManager.getAccount(
-        new Address(accountAddress)
-      );
+      const account = await this._stateManager.getAccount(accountAddress);
       return account.nonce;
     }
 
@@ -257,9 +249,9 @@ export class TxPool {
     this._setQueued(newQueued);
   }
 
-  private _getSenderAddress(tx: Transaction): Buffer {
+  private _getSenderAddress(tx: Transaction): Address {
     try {
-      return tx.getSenderAddress().toBuffer(); // verifies signature
+      return tx.getSenderAddress(); // verifies signature
     } catch (e) {
       throw new InvalidInputError(e.message);
     }
@@ -331,7 +323,7 @@ export class TxPool {
 
   private async _validateTransaction(
     tx: Transaction,
-    senderAddress: Buffer,
+    senderAddress: Address,
     senderNonce: BN
   ) {
     if (this._knownTransaction(tx)) {
@@ -356,9 +348,7 @@ export class TxPool {
       );
     }
 
-    const senderAccount = await this._stateManager.getAccount(
-      new Address(senderAddress)
-    );
+    const senderAccount = await this._stateManager.getAccount(senderAddress);
     const senderBalance = new BN(senderAccount.balance);
 
     if (tx.getUpfrontCost().gt(senderBalance)) {
