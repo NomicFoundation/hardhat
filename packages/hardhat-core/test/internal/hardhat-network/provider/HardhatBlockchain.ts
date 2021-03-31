@@ -1,15 +1,10 @@
 import { Block } from "@ethereumjs/block";
 import { assert } from "chai";
 import { BN, BufferLike, zeros } from "ethereumjs-util";
-import { promisify } from "util";
 
 import { randomHashBuffer } from "../../../../src/internal/hardhat-network/provider/fork/random";
 import { HardhatBlockchain } from "../../../../src/internal/hardhat-network/provider/HardhatBlockchain";
-import { Blockchain } from "../../../../src/internal/hardhat-network/provider/types/Blockchain";
-import {
-  PBlockchain,
-  toBlockchain,
-} from "../../../../src/internal/hardhat-network/provider/types/PBlockchain";
+import { BlockchainInterface } from "../../../../src/internal/hardhat-network/provider/types/BlockchainInterface";
 import {
   createTestLog,
   createTestReceipt,
@@ -17,8 +12,7 @@ import {
 } from "../helpers/blockchain";
 
 describe("HardhatBlockchain", () => {
-  let blockchain: PBlockchain;
-  let callbackifiedBlockchain: Blockchain;
+  let blockchain: BlockchainInterface;
   let blocks: Block[];
 
   function createBlock(number: number, _difficulty?: BufferLike) {
@@ -33,7 +27,6 @@ describe("HardhatBlockchain", () => {
 
   beforeEach(() => {
     blockchain = new HardhatBlockchain();
-    callbackifiedBlockchain = toBlockchain(new HardhatBlockchain());
     blocks = [];
   });
 
@@ -63,17 +56,6 @@ describe("HardhatBlockchain", () => {
       assert.equal(await blockchain.getBlock(one.hash()), one);
     });
 
-    it.skip("can get existing block by hash (callbackified)", async () => {
-      const genesis = createBlock(0);
-      const one = createBlock(1);
-      await promisify<Block>(callbackifiedBlockchain.putBlock)(genesis);
-      await promisify<Block>(callbackifiedBlockchain.putBlock)(one);
-      const block = await promisify<number | Buffer | BN, Block>(
-        callbackifiedBlockchain.getBlock
-      )(one.hash());
-      assert.equal(block, one);
-    });
-
     it("can get existing block by number", async () => {
       await blockchain.addBlock(createBlock(0));
       const one = createBlock(1);
@@ -99,18 +81,6 @@ describe("HardhatBlockchain", () => {
       const genesis = createBlock(0);
       const returnedBlock = await blockchain.addBlock(genesis);
       const savedBlock = await blockchain.getBlock(0);
-      assert.equal(returnedBlock, genesis);
-      assert.equal(savedBlock, genesis);
-    });
-
-    it.skip("can save genesis block (callbackified)", async () => {
-      const genesis = createBlock(0);
-      const returnedBlock = await promisify<Block, Block>(
-        callbackifiedBlockchain.putBlock
-      )(genesis);
-      const savedBlock = await promisify<number | Buffer | BN, Block>(
-        callbackifiedBlockchain.getBlock
-      )(0);
       assert.equal(returnedBlock, genesis);
       assert.equal(savedBlock, genesis);
     });
@@ -176,34 +146,6 @@ describe("HardhatBlockchain", () => {
       assert.equal(await blockchain.getBlock(blockOne.hash()), undefined);
       assert.equal(await blockchain.getBlock(blockTwo.hash()), undefined);
       assert.equal(await blockchain.getBlock(blockThree.hash()), undefined);
-    });
-
-    it.skip("removes the block and all subsequent ones (callbackified)", async () => {
-      const blockOne = createBlock(0);
-      const blockTwo = createBlock(1);
-      const blockThree = createBlock(2);
-
-      await promisify<Block>(callbackifiedBlockchain.putBlock)(blockOne);
-      await promisify<Block>(callbackifiedBlockchain.putBlock)(blockTwo);
-      await promisify<Block>(callbackifiedBlockchain.putBlock)(blockThree);
-
-      await promisify<Buffer>(callbackifiedBlockchain.delBlock)(
-        blockOne.hash()
-      );
-
-      const savedBlockOne = await promisify<number | Buffer | BN, Block>(
-        callbackifiedBlockchain.getBlock
-      )(blockOne.hash());
-      const savedBlockTwo = await promisify<number | Buffer | BN, Block>(
-        callbackifiedBlockchain.getBlock
-      )(blockTwo.hash());
-      const savedBlockThree = await promisify<number | Buffer | BN, Block>(
-        callbackifiedBlockchain.getBlock
-      )(blockThree.hash());
-
-      assert.equal(savedBlockOne, undefined);
-      assert.equal(savedBlockTwo, undefined);
-      assert.equal(savedBlockThree, undefined);
     });
 
     it("updates the latest block number", async () => {

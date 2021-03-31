@@ -81,7 +81,7 @@ import {
 } from "./output";
 import { TxPool } from "./TxPool";
 import { TxPriorityHeap } from "./TxPriorityHeap";
-import { PBlockchain } from "./types/PBlockchain";
+import { BlockchainInterface } from "./types/BlockchainInterface";
 import { FakeTransaction } from "./utils/fakeTransaction";
 import { getCurrentTimestamp } from "./utils/getCurrentTimestamp";
 import { makeCommon } from "./utils/makeCommon";
@@ -170,7 +170,7 @@ export class HardhatNode extends EventEmitter {
       common,
       activatePrecompiles: true,
       stateManager,
-      blockchain: blockchain.asBlockchain() as any,
+      blockchain: blockchain as any,
       allowUnlimitedContractSize,
     });
 
@@ -208,7 +208,7 @@ export class HardhatNode extends EventEmitter {
   private constructor(
     private readonly _vm: VM,
     private readonly _stateManager: StateManager,
-    private readonly _blockchain: PBlockchain,
+    private readonly _blockchain: BlockchainInterface,
     private readonly _txPool: TxPool,
     private _automine: boolean,
     private _blockTimeOffsetSeconds: BN = new BN(0),

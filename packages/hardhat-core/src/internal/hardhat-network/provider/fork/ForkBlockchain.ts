@@ -17,8 +17,7 @@ import {
   toRpcLogOutput,
   toRpcReceiptOutput,
 } from "../output";
-import { Blockchain } from "../types/Blockchain";
-import { PBlockchain, toBlockchain } from "../types/PBlockchain";
+import { BlockchainInterface } from "../types/BlockchainInterface";
 
 import { ForkTransaction } from "./ForkTransaction";
 import { rpcToBlockData } from "./rpcToBlockData";
@@ -26,7 +25,7 @@ import { rpcToTxData } from "./rpcToTxData";
 
 /* tslint:disable only-hardhat-error */
 
-export class ForkBlockchain implements PBlockchain {
+export class ForkBlockchain implements BlockchainInterface {
   private _data = new BlockchainData();
   private _latestBlockNumber = this._forkBlockNumber;
 
@@ -198,10 +197,6 @@ export class ForkBlockchain implements PBlockchain {
         .concat(localLogs);
     }
     return this._data.getLogs(filterParams);
-  }
-
-  public asBlockchain(): Blockchain {
-    return toBlockchain(this);
   }
 
   private async _getBlockByHash(blockHash: Buffer) {

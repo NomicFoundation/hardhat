@@ -5,12 +5,11 @@ import { BN, zeros } from "ethereumjs-util";
 import { BlockchainData } from "./BlockchainData";
 import { FilterParams } from "./node-types";
 import { RpcLogOutput, RpcReceiptOutput } from "./output";
-import { Blockchain } from "./types/Blockchain";
-import { PBlockchain, toBlockchain } from "./types/PBlockchain";
+import { BlockchainInterface } from "./types/BlockchainInterface";
 
 /* tslint:disable only-hardhat-error */
 
-export class HardhatBlockchain implements PBlockchain {
+export class HardhatBlockchain implements BlockchainInterface {
   private readonly _data = new BlockchainData();
   private _length = 0;
 
@@ -101,10 +100,6 @@ export class HardhatBlockchain implements PBlockchain {
 
   public async getLogs(filterParams: FilterParams): Promise<RpcLogOutput[]> {
     return this._data.getLogs(filterParams);
-  }
-
-  public asBlockchain(): Blockchain {
-    return toBlockchain(this);
   }
 
   private _validateBlock(block: Block) {
