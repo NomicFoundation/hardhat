@@ -1,6 +1,6 @@
 import Common from "@ethereumjs/common";
 import { Transaction, TxData } from "@ethereumjs/tx";
-import { Address, BN, bufferToHex } from "ethereumjs-util";
+import { BN, bufferToHex } from "ethereumjs-util";
 
 import { randomAddress } from "../../../../src/internal/hardhat-network/provider/fork/random";
 import {

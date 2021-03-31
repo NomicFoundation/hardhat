@@ -1,7 +1,6 @@
 import { Block } from "@ethereumjs/block";
 import { TypedTransaction } from "@ethereumjs/tx";
 import { BN } from "ethereumjs-util";
-import { callbackify } from "util";
 
 import { FilterParams } from "../node-types";
 import { RpcLogOutput, RpcReceiptOutput } from "../output";

@@ -1,16 +1,5 @@
-import Common from "@ethereumjs/common";
 import { Transaction, TxData, TxOptions } from "@ethereumjs/tx";
-import {
-  Address,
-  AddressLike,
-  BN,
-  bufferToInt,
-  rlphash,
-  toBuffer,
-  unpadBuffer,
-} from "ethereumjs-util";
-
-import { TransactionParams } from "../node-types";
+import { Address, AddressLike, BN, toBuffer } from "ethereumjs-util";
 
 export interface FakeTxData extends TxData {
   from?: AddressLike;

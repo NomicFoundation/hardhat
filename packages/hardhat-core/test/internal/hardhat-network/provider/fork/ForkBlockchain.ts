@@ -1,14 +1,7 @@
 import { Block } from "@ethereumjs/block";
 import Common from "@ethereumjs/common";
 import { assert } from "chai";
-import {
-  Address,
-  BN,
-  BufferLike,
-  bufferToHex,
-  toBuffer,
-  zeros,
-} from "ethereumjs-util";
+import { BN, BufferLike, bufferToHex, toBuffer, zeros } from "ethereumjs-util";
 
 import { JsonRpcClient } from "../../../../../src/internal/hardhat-network/jsonrpc/client";
 import { ForkBlockchain } from "../../../../../src/internal/hardhat-network/provider/fork/ForkBlockchain";

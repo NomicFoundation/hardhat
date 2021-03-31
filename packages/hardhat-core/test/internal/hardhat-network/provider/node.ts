@@ -1,14 +1,9 @@
 import { Block } from "@ethereumjs/block";
 import Common from "@ethereumjs/common";
 import { Transaction } from "@ethereumjs/tx";
-import VM from "@ethereumjs/vm";
-import {
-  AfterBlockEvent,
-  PostByzantiumTxReceipt,
-  RunBlockOpts,
-} from "@ethereumjs/vm/dist/runBlock";
+import { PostByzantiumTxReceipt } from "@ethereumjs/vm/dist/runBlock";
 import { assert } from "chai";
-import { BN, bufferToHex, bufferToInt } from "ethereumjs-util";
+import { BN, bufferToHex } from "ethereumjs-util";
 import path from "path";
 import sinon from "sinon";
 

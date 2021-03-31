@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { BN, bufferToHex, zeroAddress } from "ethereumjs-util";
+import { BN, zeroAddress } from "ethereumjs-util";
 import sinon from "sinon";
 
 import {

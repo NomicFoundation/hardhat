@@ -1,16 +1,5 @@
 import { Transaction, TxData, TxOptions } from "@ethereumjs/tx";
-import {
-  Address,
-  BN,
-  BufferLike,
-  bufferToInt,
-  ecrecover,
-  PrefixedHexString,
-  publicToAddress,
-  rlphash,
-  toBuffer,
-  unpadBuffer,
-} from "ethereumjs-util";
+import { Address, BN } from "ethereumjs-util";
 
 import { InternalError } from "../errors";
 

@@ -6,7 +6,7 @@ import path from "path";
 import { HttpProvider } from "../../core/providers/http";
 import { createNonCryptographicHashBasedIdentifier } from "../../util/hash";
 import { rpcData, rpcQuantity } from "../provider/input";
-import { bufferToRpcData, numberToRpcQuantity } from "../provider/output";
+import { numberToRpcQuantity } from "../provider/output";
 
 import {
   decode,

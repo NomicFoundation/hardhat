@@ -1,6 +1,6 @@
 import { Block } from "@ethereumjs/block";
 import { TypedTransaction } from "@ethereumjs/tx";
-import { BN, bufferToInt, zeros } from "ethereumjs-util";
+import { BN, zeros } from "ethereumjs-util";
 
 import { BlockchainData } from "./BlockchainData";
 import { FilterParams } from "./node-types";

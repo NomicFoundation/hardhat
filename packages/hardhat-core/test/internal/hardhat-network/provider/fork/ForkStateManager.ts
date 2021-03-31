@@ -1,7 +1,6 @@
 import { assert } from "chai";
 import {
   Account,
-  Address,
   BN,
   bufferToHex,
   keccak256,
@@ -689,7 +688,6 @@ describe("ForkStateManager", () => {
           DAI_TOTAL_SUPPLY_STORAGE_POSITION,
           toBuffer("0xfeedface")
         );
-        const blockTwoStateRoot = await fsm.getStateRoot();
 
         fsm.setBlockContext(blockOneStateRoot, forkBlockNumber.addn(1));
         const fsmValue = await fsm.getContractStorage(

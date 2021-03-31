@@ -1,5 +1,5 @@
 import { Transaction } from "@ethereumjs/tx";
-import { BN, bufferToHex } from "ethereumjs-util";
+import { BN } from "ethereumjs-util";
 import { MaxHeap } from "mnemonist/heap";
 
 import { OrderedTransaction } from "./PoolState";

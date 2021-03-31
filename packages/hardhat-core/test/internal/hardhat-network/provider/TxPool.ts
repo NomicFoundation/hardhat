@@ -9,7 +9,6 @@ import {
   randomAddressBuffer,
 } from "../../../../src/internal/hardhat-network/provider/fork/random";
 import { TxPool } from "../../../../src/internal/hardhat-network/provider/TxPool";
-import { PStateManager } from "../../../../src/internal/hardhat-network/provider/types/PStateManager";
 import { txMapToArray } from "../../../../src/internal/hardhat-network/provider/utils/txMapToArray";
 import { assertEqualTransactionMaps } from "../helpers/assertEqualTransactionMaps";
 import {
