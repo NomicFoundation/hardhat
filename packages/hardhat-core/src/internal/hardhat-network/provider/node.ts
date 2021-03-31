@@ -11,7 +11,7 @@ import {
   RunBlockResult,
 } from "@ethereumjs/vm/dist/runBlock";
 import { RunTxResult } from "@ethereumjs/vm/dist/runTx";
-import { DefaultStateManager as StateManager } from "@ethereumjs/vm/dist/state";
+import { DefaultStateManager, StateManager } from "@ethereumjs/vm/dist/state";
 import chalk from "chalk";
 import debug from "debug";
 import {
@@ -118,7 +118,7 @@ export class HardhatNode extends EventEmitter {
     } = config;
 
     let common: Common;
-    let stateManager: StateManager | ForkStateManager;
+    let stateManager: StateManager;
     let blockchain: HardhatBlockchainInterface;
     let initialBlockTimeOffset: BN | undefined;
 
@@ -130,15 +130,12 @@ export class HardhatNode extends EventEmitter {
       } = await makeForkClient(config.forkConfig, config.forkCachePath);
       common = await makeForkCommon(config);
 
-      stateManager = new ForkStateManager(
+      const forkStateManager = new ForkStateManager(
         forkClient,
-        forkBlockNumber,
-        genesisAccounts
+        forkBlockNumber
       );
-
-      await (stateManager as ForkStateManager).initializeGenesisAccounts(
-        genesisAccounts
-      );
+      await forkStateManager.initializeGenesisAccounts(genesisAccounts);
+      stateManager = forkStateManager;
 
       blockchain = new ForkBlockchain(forkClient, forkBlockNumber, common);
 
@@ -149,7 +146,7 @@ export class HardhatNode extends EventEmitter {
       const stateTrie = await makeStateTrie(genesisAccounts);
       common = makeCommon(config, stateTrie);
 
-      stateManager = new StateManager({
+      stateManager = new DefaultStateManager({
         common,
         trie: stateTrie,
       });

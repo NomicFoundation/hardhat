@@ -24,7 +24,9 @@ export const BITFINEX_WALLET_ADDRESS = Address.fromString(
   "0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
 );
 
-export const DAI_TOTAL_SUPPLY_STORAGE_POSITION = toBuffer([1]);
+export const DAI_TOTAL_SUPPLY_STORAGE_POSITION = toBuffer(
+  `0x${"0".repeat(63)}1`
+);
 
 // 10496585 block number was chosen for no particular reason
 export const BLOCK_NUMBER_OF_10496585 = new BN(10496585);

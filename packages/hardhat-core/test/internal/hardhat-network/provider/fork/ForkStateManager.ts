@@ -5,7 +5,6 @@ import {
   bufferToHex,
   keccak256,
   KECCAK256_NULL,
-  setLengthLeft,
   toBuffer,
   unpadBuffer,
 } from "ethereumjs-util";
@@ -280,7 +279,7 @@ describe("ForkStateManager", () => {
       );
       const fsmValue = await fsm.getOriginalContractStorage(
         DAI_ADDRESS,
-        setLengthLeft(DAI_TOTAL_SUPPLY_STORAGE_POSITION, 32)
+        DAI_TOTAL_SUPPLY_STORAGE_POSITION
       );
 
       assert.isTrue(fsmValue.equals(unpadBuffer(remoteValue)));
@@ -290,7 +289,7 @@ describe("ForkStateManager", () => {
       const newValue = toBuffer("0xdeadbeef");
       const originalValue = await fsm.getOriginalContractStorage(
         DAI_ADDRESS,
-        setLengthLeft(DAI_TOTAL_SUPPLY_STORAGE_POSITION, 32)
+        DAI_TOTAL_SUPPLY_STORAGE_POSITION
       );
       assert.isNotTrue(originalValue.equals(newValue));
 
@@ -302,7 +301,7 @@ describe("ForkStateManager", () => {
 
       const cachedValue = await fsm.getOriginalContractStorage(
         DAI_ADDRESS,
-        setLengthLeft(DAI_TOTAL_SUPPLY_STORAGE_POSITION, 32)
+        DAI_TOTAL_SUPPLY_STORAGE_POSITION
       );
       assert.isTrue(cachedValue.equals(originalValue));
     });
@@ -312,7 +311,7 @@ describe("ForkStateManager", () => {
       const stateRoot = await fsm.getStateRoot();
       const originalValue = await fsm.getOriginalContractStorage(
         DAI_ADDRESS,
-        setLengthLeft(DAI_TOTAL_SUPPLY_STORAGE_POSITION, 32)
+        DAI_TOTAL_SUPPLY_STORAGE_POSITION
       );
       await fsm.putContractStorage(
         DAI_ADDRESS,
@@ -327,7 +326,7 @@ describe("ForkStateManager", () => {
       );
       const cachedValue = await fsm.getOriginalContractStorage(
         DAI_ADDRESS,
-        setLengthLeft(DAI_TOTAL_SUPPLY_STORAGE_POSITION, 32)
+        DAI_TOTAL_SUPPLY_STORAGE_POSITION
       );
       assert.isTrue(cachedValue.equals(originalValue));
     });
@@ -359,8 +358,15 @@ describe("ForkStateManager", () => {
       await fsm.putAccount(address, toPut);
 
       const value = toBuffer("0xfeedface");
-      await fsm.putContractStorage(address, toBuffer([1]), value);
-      const fsmValue = await fsm.getContractStorage(address, toBuffer([1]));
+      await fsm.putContractStorage(
+        address,
+        toBuffer(`0x${"0".repeat(63)}1`),
+        value
+      );
+      const fsmValue = await fsm.getContractStorage(
+        address,
+        toBuffer(`0x${"0".repeat(63)}1`)
+      );
       assert.isTrue(fsmValue.equals(value));
     });
   });
@@ -466,7 +472,7 @@ describe("ForkStateManager", () => {
     it("can clear all locally set values", async () => {
       const value = toBuffer("0xfeedface");
       const address = randomAddress();
-      const position = toBuffer([2]);
+      const position = toBuffer(`0x${"0".repeat(63)}2`);
       await fsm.putContractStorage(address, position, value);
       await fsm.clearContractStorage(address);
       const clearedValue = await fsm.getContractStorage(address, position);
@@ -594,7 +600,7 @@ describe("ForkStateManager", () => {
       const newValue = toBuffer("0xdeadbeef");
       const originalValue = await fsm.getOriginalContractStorage(
         DAI_ADDRESS,
-        setLengthLeft(DAI_TOTAL_SUPPLY_STORAGE_POSITION, 32)
+        DAI_TOTAL_SUPPLY_STORAGE_POSITION
       );
       assert.isNotTrue(originalValue.equals(newValue));
 
@@ -603,14 +609,14 @@ describe("ForkStateManager", () => {
       // These need to be brought into sync...
       await fsm.putContractStorage(
         DAI_ADDRESS,
-        setLengthLeft(DAI_TOTAL_SUPPLY_STORAGE_POSITION, 32),
+        DAI_TOTAL_SUPPLY_STORAGE_POSITION,
         newValue
       );
-      fsm._clearOriginalStorageCache();
+      fsm.clearOriginalStorageCache();
 
       const freshValue = await fsm.getOriginalContractStorage(
         DAI_ADDRESS,
-        setLengthLeft(DAI_TOTAL_SUPPLY_STORAGE_POSITION, 32)
+        DAI_TOTAL_SUPPLY_STORAGE_POSITION
       );
       assert.isTrue(freshValue.equals(newValue));
     });
