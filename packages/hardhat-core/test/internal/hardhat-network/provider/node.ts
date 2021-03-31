@@ -14,12 +14,15 @@ import {
   ForkedNodeConfig,
   NodeConfig,
 } from "../../../../src/internal/hardhat-network/provider/node-types";
+import {
+  FakeTransaction,
+  FakeTxData,
+} from "../../../../src/internal/hardhat-network/provider/utils/fakeTransaction";
 import { getCurrentTimestamp } from "../../../../src/internal/hardhat-network/provider/utils/getCurrentTimestamp";
 import { makeForkClient } from "../../../../src/internal/hardhat-network/provider/utils/makeForkClient";
 import { ALCHEMY_URL } from "../../../setup";
 import { assertQuantity } from "../helpers/assertions";
 import { EMPTY_ACCOUNT_ADDRESS } from "../helpers/constants";
-import { FakeTransaction, FakeTxData } from "../helpers/fakeTx";
 import {
   DEFAULT_ACCOUNTS,
   DEFAULT_ACCOUNTS_ADDRESSES,

@@ -13,8 +13,10 @@ import {
   SerializedTransaction,
 } from "../../../../src/internal/hardhat-network/provider/PoolState";
 import { serializeTransaction } from "../../../../src/internal/hardhat-network/provider/TxPool";
-
-import { FakeTransaction, FakeTxData } from "./fakeTx";
+import {
+  FakeTransaction,
+  FakeTxData,
+} from "../../../../src/internal/hardhat-network/provider/utils/fakeTransaction";
 
 export function createTestTransaction(data: TxData = {}) {
   return new Transaction({ to: randomAddress(), ...data });

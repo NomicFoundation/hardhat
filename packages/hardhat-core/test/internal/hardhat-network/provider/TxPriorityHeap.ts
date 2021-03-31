@@ -4,8 +4,8 @@ import { BN } from "ethereumjs-util";
 import { randomAddressBuffer } from "../../../../src/internal/hardhat-network/provider/fork/random";
 import { OrderedTransaction } from "../../../../src/internal/hardhat-network/provider/PoolState";
 import { TxPriorityHeap } from "../../../../src/internal/hardhat-network/provider/TxPriorityHeap";
+import { FakeTxData } from "../../../../src/internal/hardhat-network/provider/utils/fakeTransaction";
 import { createTestOrderedTransaction } from "../helpers/blockchain";
-import { FakeTxData } from "../helpers/fakeTx";
 import { makeOrderedTxMap } from "../helpers/makeOrderedTxMap";
 
 function parseGWei(gwei: number) {
