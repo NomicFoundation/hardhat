@@ -76,7 +76,6 @@ export async function getSignedTxHash(
     common: await retrieveCommon(hardhatNetworkProvider),
   });
 
-  // tx.sign no longer modified the underlying tx
   const signedTx = txToSign.sign(
     toBuffer(DEFAULT_ACCOUNTS[signerAccountIndex].privateKey)
   );

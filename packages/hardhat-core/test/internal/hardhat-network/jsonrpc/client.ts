@@ -396,7 +396,6 @@ describe("JsonRpcClient", () => {
           it("can fetch empty value from storage of an existing contract", async () => {
             const value = await client.getStorageAt(
               DAI_ADDRESS,
-              // "0xbaddcafe" throws "invalid character"
               new BN("baddcafe", 16),
               forkNumber
             );

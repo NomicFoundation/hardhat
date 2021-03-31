@@ -1048,7 +1048,7 @@ export class EthModule {
     rpcTx: RpcTransactionRequest
   ): Promise<TransactionParams> {
     return {
-      to: rpcTx.to !== undefined ? rpcTx.to : undefined,
+      to: rpcTx.to,
       from: rpcTx.from,
       gasLimit:
         rpcTx.gas !== undefined ? rpcTx.gas : this._node.getBlockGasLimit(),

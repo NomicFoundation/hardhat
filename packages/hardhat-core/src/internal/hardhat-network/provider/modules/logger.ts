@@ -205,7 +205,7 @@ export class ModulesLogger {
       this._logWithTitle("Transaction", txHash);
 
       this._logTxFrom(tx.getSenderAddress().toBuffer());
-      this._logTxTo(tx?.to?.toBuffer(), txTrace.trace);
+      this._logTxTo(tx.to?.toBuffer(), txTrace.trace);
       this._logTxValue(new BN(tx.value));
       this._logWithTitle(
         "Gas used",
@@ -243,7 +243,7 @@ export class ModulesLogger {
       this._logWithTitle("Transaction", txHash);
 
       this._logTxFrom(tx.getSenderAddress().toBuffer());
-      this._logTxTo(tx?.to?.toBuffer(), txTrace.trace);
+      this._logTxTo(tx.to?.toBuffer(), txTrace.trace);
       this._logTxValue(new BN(tx.value));
       this._logWithTitle(
         "Gas used",
@@ -503,7 +503,7 @@ export class ModulesLogger {
     this._indent(() => {
       this._logContractAndFunctionName(txTrace.trace, code);
       this._logTxFrom(tx.getSenderAddress().toBuffer());
-      this._logTxTo(tx?.to?.toBuffer(), txTrace.trace);
+      this._logTxTo(tx.to?.toBuffer(), txTrace.trace);
       this._logTxValue(new BN(tx.value));
       this._logWithTitle(
         "Gas used",
