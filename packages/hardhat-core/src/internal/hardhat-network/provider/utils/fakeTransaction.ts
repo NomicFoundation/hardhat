@@ -22,7 +22,7 @@ export class FakeTransaction extends Transaction {
         nonce: new BN(nonce),
         gasPrice: new BN(gasPrice),
         gasLimit: new BN(gasLimit),
-        to: to !== undefined ? new Address(to) : undefined,
+        to: to !== undefined && to.length > 0 ? new Address(to) : undefined,
         value: new BN(value),
         data: data ?? emptyBuffer,
         v: v !== undefined && !v.equals(emptyBuffer) ? new BN(v) : undefined,
