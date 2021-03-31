@@ -1,6 +1,5 @@
 import { Transaction } from "@ethereumjs/tx";
 import { assert } from "chai";
-import { bufferToHex } from "ethereumjs-util";
 
 import { randomAddress } from "../../../../src/internal/hardhat-network/provider/fork/random";
 import { OrderedTransaction } from "../../../../src/internal/hardhat-network/provider/PoolState";

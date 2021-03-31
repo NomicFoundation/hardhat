@@ -1,5 +1,3 @@
-import { bufferToHex } from "ethereumjs-util";
-
 import { OrderedTransaction } from "../../../../src/internal/hardhat-network/provider/PoolState";
 
 export function makeOrderedTxMap(

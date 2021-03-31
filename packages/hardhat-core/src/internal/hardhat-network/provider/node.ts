@@ -4,7 +4,7 @@ import { Transaction } from "@ethereumjs/tx";
 import VM from "@ethereumjs/vm";
 import Bloom from "@ethereumjs/vm/dist/bloom";
 import { EVMResult, ExecResult } from "@ethereumjs/vm/dist/evm/evm";
-import { ERROR, VmError } from "@ethereumjs/vm/dist/exceptions";
+import { ERROR } from "@ethereumjs/vm/dist/exceptions";
 import {
   PostByzantiumTxReceipt,
   PreByzantiumTxReceipt,
@@ -27,7 +27,6 @@ import {
 } from "ethereumjs-util";
 import EventEmitter from "events";
 import { BaseTrie as Trie } from "merkle-patricia-tree";
-import { promisify } from "util";
 
 import { CompilerInput, CompilerOutput } from "../../../types";
 import { HARDHAT_NETWORK_DEFAULT_GAS_PRICE } from "../../core/config/default-config";
@@ -1289,10 +1288,6 @@ export class HardhatNode extends EventEmitter {
       nonce: "0x0000000000000042",
       timestamp,
     };
-
-    const header = BlockHeader.fromHeaderData(headerData, {
-      common: this._vm._common,
-    });
 
     const block = Block.fromBlockData(
       {

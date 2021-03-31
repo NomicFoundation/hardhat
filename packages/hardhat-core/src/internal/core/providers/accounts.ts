@@ -22,8 +22,6 @@ export interface JsonRpcTransactionData {
   nonce?: string | number;
 }
 
-const HD_PATH_REGEX = /^m(:?\/\d+'?)+\/?$/;
-
 export class LocalAccountsProvider extends ProviderWrapperWithChainId {
   private _addressToPrivateKey: Map<string, Buffer> = new Map();
 

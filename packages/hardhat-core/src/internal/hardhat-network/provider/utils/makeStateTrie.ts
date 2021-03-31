@@ -1,6 +1,5 @@
 import { Account, BN } from "ethereumjs-util";
 import { SecureTrie as Trie } from "merkle-patricia-tree";
-import { promisify } from "util";
 
 import { GenesisAccount } from "../node-types";
 

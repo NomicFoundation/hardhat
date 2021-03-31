@@ -76,8 +76,6 @@ function optional<TypeT, OutputT>(
 
 const HEX_STRING_REGEX = /^(0x)?([0-9a-f]{2})+$/gi;
 
-const HEX_PREFIX = "0x";
-
 function isHexString(v: unknown): v is string {
   if (typeof v !== "string") {
     return false;

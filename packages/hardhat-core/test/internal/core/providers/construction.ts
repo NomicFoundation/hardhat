@@ -1,4 +1,3 @@
-import Common from "@ethereumjs/common";
 import { assert } from "chai";
 
 import {
@@ -112,21 +111,10 @@ describe("Base providers wrapping", () => {
   });
 
   describe("Sender wrapping", () => {
-    let common: Common;
-
     beforeEach(async () => {
       mockedProvider.setReturnValue(
         "eth_estimateGas",
         numberToRpcQuantity(123)
-      );
-
-      common = Common.forCustomChain(
-        "mainnet",
-        {
-          chainId: CHAIN_ID,
-          networkId: CHAIN_ID,
-        },
-        "petersburg"
       );
     });
 

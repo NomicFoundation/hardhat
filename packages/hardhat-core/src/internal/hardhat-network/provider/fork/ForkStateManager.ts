@@ -10,7 +10,6 @@ import {
   unpadBuffer,
 } from "ethereumjs-util";
 import { Map as ImmutableMap, Record as ImmutableRecord } from "immutable";
-import { callbackify } from "util";
 
 import { assertHardhatInvariant } from "../../../core/errors";
 import { JsonRpcClient } from "../../jsonrpc/client";
@@ -23,10 +22,6 @@ import { randomHash } from "./random";
 /* tslint:disable only-hardhat-error */
 
 type State = ImmutableMap<string, ImmutableRecord<AccountState>>;
-
-const encodeStorageKey = (address: Buffer, position: Buffer): string => {
-  return `${address.toString("hex")}${unpadBuffer(position).toString("hex")}`;
-};
 
 const checkpointedError = (method: string) =>
   new Error(`${method} called when checkpointed`);

@@ -1,7 +1,7 @@
 import { Block } from "@ethereumjs/block";
 import Common from "@ethereumjs/common";
 import { TypedTransaction } from "@ethereumjs/tx";
-import { Address, BN, bufferToHex, bufferToInt } from "ethereumjs-util";
+import { Address, BN, bufferToHex } from "ethereumjs-util";
 
 import { JsonRpcClient } from "../../jsonrpc/client";
 import {

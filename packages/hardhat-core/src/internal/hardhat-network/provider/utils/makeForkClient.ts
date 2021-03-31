@@ -6,7 +6,7 @@ import { HttpProvider } from "../../../core/providers/http";
 import { rpcQuantityToNumber } from "../../../core/providers/provider-utils";
 import { JsonRpcClient } from "../../jsonrpc/client";
 import { ForkConfig } from "../node-types";
-import { getRpcBlock, numberToRpcQuantity, RpcBlockOutput } from "../output";
+import { numberToRpcQuantity, RpcBlockOutput } from "../output";
 
 import {
   FALLBACK_MAX_REORG,
