@@ -6,6 +6,7 @@ import {
 } from "@ethereumjs/vm/dist/runBlock";
 import { BN, bufferToHex } from "ethereumjs-util";
 
+import { assertHardhatInvariant } from "../../core/errors";
 import { RpcLog, RpcTransactionReceipt } from "../jsonrpc/types";
 
 export interface RpcBlockOutput {
@@ -40,11 +41,11 @@ export interface RpcTransactionOutput {
   hash: string;
   input: string;
   nonce: string;
-  r: string | null; // This is documented as DATA, but implementations use QUANTITY
-  s: string | null; // This is documented as DATA, but implementations use QUANTITY
+  r: string; // This is documented as DATA, but implementations use QUANTITY
+  s: string; // This is documented as DATA, but implementations use QUANTITY
   to: string | null;
   transactionIndex: string | null;
-  v: string | null;
+  v: string;
   value: string;
 }
 
@@ -150,6 +151,12 @@ export function getRpcTransaction(
   block: Block | "pending",
   index?: number
 ): RpcTransactionOutput {
+  // only already signed transactions should be used here,
+  // but there is no type in ethereumjs for that
+  assertHardhatInvariant(tx.v !== undefined, "tx should be signed");
+  assertHardhatInvariant(tx.r !== undefined, "tx should be signed");
+  assertHardhatInvariant(tx.s !== undefined, "tx should be signed");
+
   return {
     blockHash: block === "pending" ? null : bufferToRpcData(block.hash()),
     blockNumber:
@@ -165,9 +172,9 @@ export function getRpcTransaction(
     to: tx.to === undefined ? null : bufferToRpcData(tx.to.toBuffer()),
     transactionIndex: index !== undefined ? numberToRpcQuantity(index) : null,
     value: numberToRpcQuantity(new BN(tx.value)),
-    v: tx.v !== undefined ? numberToRpcQuantity(new BN(tx.v)) : null,
-    r: tx.r !== undefined ? numberToRpcQuantity(new BN(tx.r)) : null,
-    s: tx.s !== undefined ? numberToRpcQuantity(new BN(tx.s)) : null,
+    v: numberToRpcQuantity(new BN(tx.v)),
+    r: numberToRpcQuantity(new BN(tx.r)),
+    s: numberToRpcQuantity(new BN(tx.s)),
   };
 }
 
