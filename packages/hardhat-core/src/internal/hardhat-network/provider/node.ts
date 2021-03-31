@@ -373,7 +373,7 @@ export class HardhatNode extends EventEmitter {
   }
 
   public async getAccountBalance(
-    address: Buffer,
+    address: Address,
     blockNumberOrPending?: BN | "pending"
   ): Promise<BN> {
     if (blockNumberOrPending === undefined) {
@@ -381,24 +381,24 @@ export class HardhatNode extends EventEmitter {
     }
 
     const account = await this._runInBlockContext(blockNumberOrPending, () =>
-      this._stateManager.getAccount(new Address(address))
+      this._stateManager.getAccount(address)
     );
 
     return new BN(account.balance);
   }
 
   public async getAccountNonce(
-    address: Buffer,
+    address: Address,
     blockNumberOrPending: BN | "pending"
   ): Promise<BN> {
     const account = await this._runInBlockContext(blockNumberOrPending, () =>
-      this._stateManager.getAccount(new Address(address))
+      this._stateManager.getAccount(address)
     );
 
     return new BN(account.nonce);
   }
 
-  public async getAccountExecutableNonce(address: Buffer): Promise<BN> {
+  public async getAccountExecutableNonce(address: Address): Promise<BN> {
     return this._txPool.getExecutableNonce(address);
   }
 
@@ -414,7 +414,7 @@ export class HardhatNode extends EventEmitter {
       return Buffer.from("");
     }
 
-    return this.getCode(trace.address, blockNumberOrPending);
+    return this.getCode(new Address(trace.address), blockNumberOrPending);
   }
 
   public async getLatestBlock(): Promise<Block> {
@@ -511,15 +511,14 @@ export class HardhatNode extends EventEmitter {
   }
 
   public async getStorageAt(
-    address: Buffer,
+    address: Address,
     slot: BN,
     blockNumberOrPending: BN | "pending"
   ): Promise<Buffer> {
     const key = slot.toArrayLike(Buffer, "be", 32);
 
-    const data: Buffer = await this._runInBlockContext(
-      blockNumberOrPending,
-      () => this._stateManager.getContractStorage(new Address(address), key)
+    const data = await this._runInBlockContext(blockNumberOrPending, () =>
+      this._stateManager.getContractStorage(address, key)
     );
 
     const EXPECTED_DATA_SIZE = 32;
@@ -565,11 +564,11 @@ export class HardhatNode extends EventEmitter {
   }
 
   public async getCode(
-    address: Buffer,
+    address: Address,
     blockNumberOrPending: BN | "pending"
   ): Promise<Buffer> {
     return this._runInBlockContext(blockNumberOrPending, () =>
-      this._stateManager.getContractCode(new Address(address))
+      this._stateManager.getContractCode(address)
     );
   }
 
@@ -613,7 +612,7 @@ export class HardhatNode extends EventEmitter {
   }
 
   public async signPersonalMessage(
-    address: Buffer,
+    address: Address,
     data: Buffer
   ): Promise<ECDSASignature> {
     const messageHash = hashPersonalMessage(data);
@@ -623,7 +622,7 @@ export class HardhatNode extends EventEmitter {
   }
 
   public async signTypedDataV4(
-    address: Buffer,
+    address: Address,
     typedData: any
   ): Promise<string> {
     const privateKey = this._getLocalAccountPrivateKey(address);
@@ -943,9 +942,9 @@ export class HardhatNode extends EventEmitter {
   }
 
   private async _validateExactNonce(tx: Transaction) {
-    let sender: Buffer;
+    let sender: Address;
     try {
-      sender = tx.getSenderAddress().toBuffer(); // verifies signature as a side effect
+      sender = tx.getSenderAddress(); // verifies signature as a side effect
     } catch (e) {
       throw new InvalidInputError(e.message);
     }
@@ -1319,8 +1318,8 @@ export class HardhatNode extends EventEmitter {
     });
   }
 
-  private _getLocalAccountPrivateKey(sender: Buffer): Buffer {
-    const senderAddress = bufferToHex(sender);
+  private _getLocalAccountPrivateKey(sender: Address): Buffer {
+    const senderAddress = sender.toString();
     if (!this._localAccounts.has(senderAddress)) {
       throw new InvalidInputError(`unknown account ${senderAddress}`);
     }
