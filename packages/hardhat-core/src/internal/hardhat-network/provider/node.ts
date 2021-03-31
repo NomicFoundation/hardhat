@@ -946,7 +946,7 @@ export class HardhatNode extends EventEmitter {
     try {
       sender = tx.getSenderAddress(); // verifies signature as a side effect
     } catch (e) {
-      throw new InvalidInputError("Invalid Signature");
+      throw new InvalidInputError(e.message);
     }
 
     const senderNonce = await this._txPool.getExecutableNonce(sender);

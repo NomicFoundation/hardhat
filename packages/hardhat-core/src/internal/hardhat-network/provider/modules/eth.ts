@@ -890,6 +890,10 @@ export class EthModule {
       throw error;
     }
 
+    if (!tx.isSigned()) {
+      throw new InvalidInputError("Invalid Signature");
+    }
+
     return this._sendTransactionAndReturnHash(tx);
   }
 
