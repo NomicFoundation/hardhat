@@ -4,8 +4,8 @@ import { assert } from "chai";
 import { BN, bufferToHex, toBuffer, zeroAddress } from "ethereumjs-util";
 import { Context } from "mocha";
 
+import { InvalidInputError } from "../../../../../src/internal/core/providers/errors";
 import { rpcQuantityToNumber } from "../../../../../src/internal/core/providers/provider-utils";
-import { InvalidInputError } from "../../../../../src/internal/hardhat-network/provider/errors";
 import { randomAddress } from "../../../../../src/internal/hardhat-network/provider/fork/random";
 import { COINBASE_ADDRESS } from "../../../../../src/internal/hardhat-network/provider/node";
 import { TransactionParams } from "../../../../../src/internal/hardhat-network/provider/node-types";

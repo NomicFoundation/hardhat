@@ -4,8 +4,8 @@ import { BN, bufferToHex, toBuffer } from "ethereumjs-util";
 import { Contract, utils, Wallet } from "ethers";
 import fsExtra from "fs-extra";
 
+import { InvalidInputError } from "../../../../src/internal/core/providers/errors";
 import { rpcQuantityToNumber } from "../../../../src/internal/core/providers/provider-utils";
-import { InvalidInputError } from "../../../../src/internal/hardhat-network/provider/errors";
 import { numberToRpcQuantity } from "../../../../src/internal/hardhat-network/provider/output";
 import { ALCHEMY_URL } from "../../../setup";
 import { workaroundWindowsCiFailures } from "../../../utils/workaround-windows-ci-failures";

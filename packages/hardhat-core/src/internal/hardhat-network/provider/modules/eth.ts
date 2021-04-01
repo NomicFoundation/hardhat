@@ -13,13 +13,13 @@ import * as t from "io-ts";
 import cloneDeep from "lodash/cloneDeep";
 
 import { BoundExperimentalHardhatNetworkMessageTraceHook } from "../../../../types";
-import { MessageTrace } from "../../stack-traces/message-trace";
 import {
   InvalidArgumentsError,
   InvalidInputError,
   MethodNotFoundError,
   MethodNotSupportedError,
-} from "../errors";
+} from "../../../core/providers/errors";
+import { MessageTrace } from "../../stack-traces/message-trace";
 import { LATEST_BLOCK } from "../filter";
 import {
   BlockTag,

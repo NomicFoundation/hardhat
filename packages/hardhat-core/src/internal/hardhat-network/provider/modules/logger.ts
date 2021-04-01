@@ -6,6 +6,7 @@ import { BN, bufferToHex } from "ethereumjs-util";
 import util from "util";
 
 import { assertHardhatInvariant } from "../../../core/errors";
+import { TransactionExecutionError } from "../../../core/providers/errors";
 import { weiToHumanReadableString } from "../../../util/wei-values";
 import {
   isCreateTrace,
@@ -20,7 +21,6 @@ import {
   UNRECOGNIZED_CONTRACT_NAME,
   UNRECOGNIZED_FUNCTION_NAME,
 } from "../../stack-traces/solidity-stack-trace";
-import { TransactionExecutionError } from "../errors";
 import {
   CallParams,
   GatherTracesResult,

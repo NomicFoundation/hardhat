@@ -4,7 +4,8 @@ import { StateManager } from "@ethereumjs/vm/dist/state";
 import { Address, BN, bufferToHex, toBuffer } from "ethereumjs-util";
 import { List as ImmutableList, Record as ImmutableRecord } from "immutable";
 
-import { InvalidInputError } from "./errors";
+import { InvalidInputError } from "../../core/providers/errors";
+
 import {
   AddressToTransactions,
   makePoolState,

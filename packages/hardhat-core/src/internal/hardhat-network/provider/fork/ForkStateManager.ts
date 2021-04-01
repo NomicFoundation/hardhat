@@ -12,8 +12,8 @@ import {
 import { Map as ImmutableMap, Record as ImmutableRecord } from "immutable";
 
 import { assertHardhatInvariant } from "../../../core/errors";
+import { InternalError } from "../../../core/providers/errors";
 import { JsonRpcClient } from "../../jsonrpc/client";
-import { InternalError } from "../errors";
 import { GenesisAccount } from "../node-types";
 import { makeAccount } from "../utils/makeAccount";
 
@@ -341,7 +341,7 @@ export class ForkStateManager implements StateManager {
     }
   }
 
-  public accountExists(address: Address): Promise<boolean> {
+  public accountExists(address: Address): never {
     throw new InternalError(
       "Hardhat Network can't fork from networks running a hardfork older than Spurious Dragon"
     );

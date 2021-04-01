@@ -2,7 +2,7 @@ import { assert } from "chai";
 import { toBuffer } from "ethereumjs-util";
 import * as t from "io-ts";
 
-import { InvalidArgumentsError } from "../../../../src/internal/hardhat-network/provider/errors";
+import { InvalidArgumentsError } from "../../../../src/internal/core/providers/errors";
 import {
   optionalBlockTag,
   rpcAddress,

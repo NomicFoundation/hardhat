@@ -6,8 +6,8 @@ import {
   CompilerInput,
   CompilerOutput,
 } from "../../../../types";
+import { MethodNotFoundError } from "../../../core/providers/errors";
 import { MessageTrace } from "../../stack-traces/message-trace";
-import { MethodNotFoundError } from "../errors";
 import {
   optionalRpcHardhatNetworkConfig,
   rpcAddress,

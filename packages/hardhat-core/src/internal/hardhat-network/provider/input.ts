@@ -3,8 +3,7 @@ import * as t from "io-ts";
 import { PathReporter } from "io-ts/lib/PathReporter";
 
 import { CompilerInput, CompilerOutput } from "../../../types";
-
-import { InvalidArgumentsError } from "./errors";
+import { InvalidArgumentsError } from "../../core/providers/errors";
 
 function optional<TypeT, OutputT>(
   codec: t.Type<TypeT, OutputT, unknown>,

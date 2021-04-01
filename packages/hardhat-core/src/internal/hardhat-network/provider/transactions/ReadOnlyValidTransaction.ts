@@ -1,7 +1,7 @@
 import { Transaction, TxData, TxOptions } from "@ethereumjs/tx";
 import { Address } from "ethereumjs-util";
 
-import { InternalError } from "../errors";
+import { InternalError } from "../../../core/providers/errors";
 
 // tslint:disable only-hardhat-error
 

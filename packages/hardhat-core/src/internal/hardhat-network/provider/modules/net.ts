@@ -1,6 +1,6 @@
 import Common from "@ethereumjs/common";
 
-import { MethodNotFoundError } from "../errors";
+import { MethodNotFoundError } from "../../../core/providers/errors";
 import { validateParams } from "../input";
 import { numberToRpcQuantity } from "../output";
 

@@ -2,8 +2,11 @@ import { BN } from "ethereumjs-util";
 import * as t from "io-ts";
 
 import { BoundExperimentalHardhatNetworkMessageTraceHook } from "../../../../types";
+import {
+  InvalidInputError,
+  MethodNotFoundError,
+} from "../../../core/providers/errors";
 import { MessageTrace } from "../../stack-traces/message-trace";
-import { InvalidInputError, MethodNotFoundError } from "../errors";
 import {
   rpcIntervalMining,
   RpcIntervalMining,
