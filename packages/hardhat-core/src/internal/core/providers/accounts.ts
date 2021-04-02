@@ -13,7 +13,7 @@ import {
 import {
   RpcTransactionRequest,
   rpcTransactionRequest,
-} from "../jsonrpc/types/input/transactionRequest.s";
+} from "../jsonrpc/types/input/transactionRequest";
 import { validateParams } from "../jsonrpc/types/input/validation";
 
 import { ProviderWrapperWithChainId } from "./chainId";

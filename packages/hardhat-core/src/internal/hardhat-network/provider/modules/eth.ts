@@ -48,7 +48,7 @@ import {
 import {
   rpcTransactionRequest,
   RpcTransactionRequest,
-} from "../../../core/jsonrpc/types/input/transactionRequest.s";
+} from "../../../core/jsonrpc/types/input/transactionRequest";
 import { validateParams } from "../../../core/jsonrpc/types/input/validation";
 import {
   InvalidArgumentsError,

@@ -5,7 +5,7 @@ import {
   numberToRpcQuantity,
   rpcQuantity,
 } from "../../../../src/internal/core/jsonrpc/types/base-types";
-import { RpcTransactionRequestInput } from "../../../../src/internal/core/jsonrpc/types/input/transactionRequest.s";
+import { RpcTransactionRequestInput } from "../../../../src/internal/core/jsonrpc/types/input/transactionRequest";
 import {
   InvalidArgumentsError,
   InvalidInputError,
