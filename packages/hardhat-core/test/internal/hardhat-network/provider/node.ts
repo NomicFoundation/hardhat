@@ -7,7 +7,7 @@ import { Address, BN, bufferToHex } from "ethereumjs-util";
 import path from "path";
 import sinon from "sinon";
 
-import { numberToRpcQuantity } from "../../../../src/internal/core/providers/provider-utils";
+import { numberToRpcQuantity } from "../../../../src/internal/core/jsonrpc/types/base-types";
 import { rpcToBlockData } from "../../../../src/internal/hardhat-network/provider/fork/rpcToBlockData";
 import { HardhatNode } from "../../../../src/internal/hardhat-network/provider/node";
 import {

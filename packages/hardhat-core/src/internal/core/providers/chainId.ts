@@ -1,8 +1,8 @@
 import { EIP1193Provider, RequestArguments } from "../../../types";
 import { HardhatError } from "../errors";
 import { ERRORS } from "../errors-list";
+import { rpcQuantityToNumber } from "../jsonrpc/types/base-types";
 
-import { rpcQuantityToNumber } from "./provider-utils";
 import { ProviderWrapper } from "./wrapper";
 
 export abstract class ProviderWrapperWithChainId extends ProviderWrapper {
@@ -25,6 +25,7 @@ export abstract class ProviderWrapperWithChainId extends ProviderWrapper {
     const id = (await this._wrappedProvider.request({
       method: "eth_chainId",
     })) as string;
+
     return rpcQuantityToNumber(id);
   }
 

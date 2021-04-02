@@ -4,13 +4,17 @@ import { assert } from "chai";
 import { BN, bufferToHex, toBuffer, zeroAddress } from "ethereumjs-util";
 import { Context } from "mocha";
 
+import {
+  numberToRpcQuantity,
+  rpcDataToNumber,
+  rpcQuantityToBN,
+  rpcQuantityToNumber,
+} from "../../../../../src/internal/core/jsonrpc/types/base-types";
 import { InvalidInputError } from "../../../../../src/internal/core/providers/errors";
-import { rpcQuantityToNumber } from "../../../../../src/internal/core/providers/provider-utils";
 import { randomAddress } from "../../../../../src/internal/hardhat-network/provider/fork/random";
 import { COINBASE_ADDRESS } from "../../../../../src/internal/hardhat-network/provider/node";
 import { TransactionParams } from "../../../../../src/internal/hardhat-network/provider/node-types";
 import {
-  numberToRpcQuantity,
   RpcBlockOutput,
   RpcReceiptOutput,
   RpcTransactionOutput,
@@ -40,11 +44,6 @@ import {
   EXAMPLE_READ_CONTRACT,
   EXAMPLE_SETTER_CONTRACT,
 } from "../../helpers/contracts";
-import {
-  dataToNumber,
-  quantityToBN,
-  quantityToNumber,
-} from "../../helpers/conversions";
 import { setCWD } from "../../helpers/cwd";
 import {
   DEFAULT_ACCOUNTS_ADDRESSES,
@@ -246,7 +245,7 @@ describe("Eth module", function () {
               },
             ]);
 
-            assert.equal(dataToNumber(blockResult), firstBlock + 1);
+            assert.equal(rpcDataToNumber(blockResult), firstBlock + 1);
 
             const timestampResult = await this.provider.send("eth_call", [
               {
@@ -327,7 +326,7 @@ describe("Eth module", function () {
               numberToRpcQuantity(blockNumber),
             ]);
 
-            assert.equal(dataToNumber(blockResult), blockNumber);
+            assert.equal(rpcDataToNumber(blockResult), blockNumber);
           });
 
           it("should accept a gas limit higher than the block gas limit being used", async function () {
@@ -351,7 +350,7 @@ describe("Eth module", function () {
               numberToRpcQuantity(blockNumber),
             ]);
 
-            assert.equal(dataToNumber(blockResult), blockNumber);
+            assert.equal(rpcDataToNumber(blockResult), blockNumber);
 
             const blockResult2 = await this.provider.send("eth_call", [
               {
@@ -362,7 +361,7 @@ describe("Eth module", function () {
               "pending",
             ]);
 
-            assert.equal(dataToNumber(blockResult2), blockNumber + 1);
+            assert.equal(rpcDataToNumber(blockResult2), blockNumber + 1);
           });
         });
 
@@ -385,7 +384,7 @@ describe("Eth module", function () {
               "latest",
             ]);
 
-            assert.equal(dataToNumber(blockResult), firstBlock + 1);
+            assert.equal(rpcDataToNumber(blockResult), firstBlock + 1);
 
             const timestampResult = await this.provider.send("eth_call", [
               {
@@ -418,7 +417,7 @@ describe("Eth module", function () {
               "pending",
             ]);
 
-            assert.equal(dataToNumber(blockResult), firstBlock + 2);
+            assert.equal(rpcDataToNumber(blockResult), firstBlock + 2);
 
             const timestampResult = await this.provider.send("eth_call", [
               {
@@ -502,7 +501,7 @@ describe("Eth module", function () {
               numberToRpcQuantity(firstBlock + 1),
             ]);
 
-            assert.equal(dataToNumber(blockResult), firstBlock + 1);
+            assert.equal(rpcDataToNumber(blockResult), firstBlock + 1);
           });
 
           it("Should throw invalid input error if called in the context of a nonexistent block", async function () {
@@ -1173,8 +1172,8 @@ describe("Eth module", function () {
 
           assertQuantity(
             block.totalDifficulty,
-            quantityToBN(forkBlock.totalDifficulty).add(
-              quantityToBN(block.difficulty)
+            rpcQuantityToBN(forkBlock.totalDifficulty).add(
+              rpcQuantityToBN(block.difficulty)
             )
           );
         }
@@ -1197,7 +1196,7 @@ describe("Eth module", function () {
 
           assertQuantity(
             block.totalDifficulty,
-            quantityToNumber(block.difficulty) + 1
+            rpcQuantityToNumber(block.difficulty) + 1
           );
         }
       });
@@ -1536,7 +1535,7 @@ describe("Eth module", function () {
           assert.equal(log.removed, false);
           assert.equal(log.logIndex, "0x0");
           assert.equal(log.transactionIndex, "0x0");
-          assert.equal(quantityToNumber(log.blockNumber), firstBlock + 2);
+          assert.equal(rpcQuantityToNumber(log.blockNumber), firstBlock + 2);
           assert.equal(log.address, exampleContract);
           assert.equal(log.data, `0x${newState}`);
         });
@@ -1821,7 +1820,7 @@ describe("Eth module", function () {
           assert.equal(log.removed, false);
           assert.equal(log.logIndex, "0x0");
           assert.equal(log.transactionIndex, "0x0");
-          assert.equal(quantityToNumber(log.blockNumber), firstBlock + 2);
+          assert.equal(rpcQuantityToNumber(log.blockNumber), firstBlock + 2);
           assert.equal(log.address, exampleContract);
           assert.equal(log.data, `0x${newState}`);
         });
@@ -2100,119 +2099,6 @@ describe("Eth module", function () {
           assert.notEqual(logs1, logs2);
           assert.notEqual(logs1[0], logs2[0]);
           assert.notEqual(logs2[0].address, "changed");
-        });
-
-        it("Should accept block hashes as from", async function () {
-          const blockNumberBegin = await this.provider.send("eth_blockNumber");
-          const exampleContract = await deployContract(
-            this.provider,
-            `0x${EXAMPLE_CONTRACT.bytecode.object}`
-          );
-
-          const newState =
-            "000000000000000000000000000000000000000000000000000000000000003b";
-
-          await this.provider.send("eth_sendTransaction", [
-            {
-              to: exampleContract,
-              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              data: EXAMPLE_CONTRACT.selectors.modifiesState + newState,
-            },
-          ]);
-
-          await this.provider.send("evm_mine", []);
-
-          const blockNumberEnd = await this.provider.send("eth_blockNumber");
-
-          const block0 = await this.provider.send("eth_getBlockByNumber", [
-            blockNumberBegin,
-            false,
-          ]);
-
-          const block3 = await this.provider.send("eth_getBlockByNumber", [
-            blockNumberEnd,
-            false,
-          ]);
-
-          const logsFromZero = await this.provider.send("eth_getLogs", [
-            {
-              address: exampleContract,
-              fromBlock: {
-                blockHash: block0.hash,
-              },
-            },
-          ]);
-
-          assert.lengthOf(logsFromZero, 1);
-
-          const logsFromThree = await this.provider.send("eth_getLogs", [
-            {
-              address: exampleContract,
-              fromBlock: {
-                blockHash: block3.hash,
-              },
-            },
-          ]);
-
-          assert.lengthOf(logsFromThree, 0);
-        });
-
-        it("Should accept block hashes as toBlock", async function () {
-          const exampleContract = await deployContract(
-            this.provider,
-            `0x${EXAMPLE_CONTRACT.bytecode.object}`
-          );
-
-          const newState =
-            "000000000000000000000000000000000000000000000000000000000000003b";
-
-          await this.provider.send("eth_sendTransaction", [
-            {
-              to: exampleContract,
-              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              data: EXAMPLE_CONTRACT.selectors.modifiesState + newState,
-            },
-          ]);
-
-          await this.provider.send("evm_mine", []);
-
-          const block0 = await this.provider.send("eth_getBlockByNumber", [
-            "0x0",
-            false,
-          ]);
-
-          const logsToZero = await this.provider.send("eth_getLogs", [
-            {
-              address: exampleContract,
-              toBlock: {
-                blockHash: block0.hash,
-              },
-            },
-          ]);
-
-          assert.lengthOf(logsToZero, 0);
-        });
-
-        it("Should throw if the block tag in toBlock or fromBlock doesn't exist", async function () {
-          await assertInvalidInputError(this.provider, "eth_getLogs", [
-            {
-              address: "0x0000000000000000000000000000000000000000",
-              fromBlock: {
-                blockHash:
-                  "0x1234567890123456789012345678901234567890123456789012345678901234",
-              },
-            },
-          ]);
-
-          await assertInvalidInputError(this.provider, "eth_getLogs", [
-            {
-              address: "0x0000000000000000000000000000000000000000",
-              toBlock: {
-                blockHash:
-                  "0x1234567890123456789012345678901234567890123456789012345678901234",
-              },
-            },
-          ]);
         });
 
         it("should have logIndex for logs in remote blocks", async function () {
@@ -3883,7 +3769,9 @@ describe("Eth module", function () {
                   "sender doesn't have enough funds to send tx"
                 );
                 assert.equal(
-                  quantityToNumber(await this.provider.send("eth_blockNumber")),
+                  rpcQuantityToNumber(
+                    await this.provider.send("eth_blockNumber")
+                  ),
                   firstBlock
                 );
                 assert.lengthOf(
@@ -3902,7 +3790,7 @@ describe("Eth module", function () {
 
               it("Should eventually mine the sent transaction", async function () {
                 await this.provider.send("evm_setAutomine", [false]);
-                const blockNumberBefore = quantityToNumber(
+                const blockNumberBefore = rpcQuantityToNumber(
                   await this.provider.send("eth_blockNumber")
                 );
 
@@ -3927,7 +3815,7 @@ describe("Eth module", function () {
                   "eth_getBlockByNumber",
                   ["latest", false]
                 );
-                const blockNumberAfter = quantityToNumber(blockAfter.number);
+                const blockNumberAfter = rpcQuantityToNumber(blockAfter.number);
 
                 assert.equal(blockNumberAfter, blockNumberBefore + 3);
                 assert.lengthOf(blockAfter.transactions, 1);
@@ -3975,7 +3863,9 @@ describe("Eth module", function () {
                   "sender doesn't have enough funds to send tx"
                 );
                 assert.equal(
-                  quantityToNumber(await this.provider.send("eth_blockNumber")),
+                  rpcQuantityToNumber(
+                    await this.provider.send("eth_blockNumber")
+                  ),
                   firstBlock
                 );
                 assert.lengthOf(
@@ -4465,61 +4355,49 @@ describe("Eth module", function () {
           await assertInvalidArgumentsError(this.provider, "eth_getBalance", [
             DEFAULT_ACCOUNTS_ADDRESSES[0],
             {
-              blockNumber: 0,
+              blockNumber: "0x0",
               blockHash: latestBlock.hash,
             },
           ]);
+        });
 
-          it("should accept a requireCanonical flag", async function () {
-            const block: RpcBlockOutput = await this.provider.send(
-              "eth_getBlockByNumber",
-              ["latest", false]
-            );
+        it("should not accept both a blockNumber and requireCanonical", async function () {
+          await assertInvalidArgumentsError(this.provider, "eth_getBalance", [
+            DEFAULT_ACCOUNTS_ADDRESSES[0],
+            {
+              blockNumber: "0x0",
+              requireCanonical: true,
+            },
+          ]);
+        });
 
-            assertQuantity(
-              await this.provider.send("eth_getBalance", [
-                zeroAddress(),
-                {
-                  blockNumber: block.number,
-                  requireCanonical: true,
-                },
-              ]),
-              0
-            );
+        it("should accept a requireCanonical flag", async function () {
+          const block: RpcBlockOutput = await this.provider.send(
+            "eth_getBlockByNumber",
+            ["0x0", false]
+          );
 
-            assertQuantity(
-              await this.provider.send("eth_getBalance", [
-                zeroAddress(),
-                {
-                  blockNumber: block.number,
-                  requireCanonical: false,
-                },
-              ]),
-              0
-            );
+          assertQuantity(
+            await this.provider.send("eth_getBalance", [
+              zeroAddress(),
+              {
+                blockHash: block.hash,
+                requireCanonical: true,
+              },
+            ]),
+            0
+          );
 
-            assertQuantity(
-              await this.provider.send("eth_getBalance", [
-                zeroAddress(),
-                {
-                  blockHash: block.hash,
-                  requireCanonical: true,
-                },
-              ]),
-              0
-            );
-
-            assertQuantity(
-              await this.provider.send("eth_getBalance", [
-                zeroAddress(),
-                {
-                  blockHash: block.hash,
-                  requireCanonical: false,
-                },
-              ]),
-              0
-            );
-          });
+          assertQuantity(
+            await this.provider.send("eth_getBalance", [
+              zeroAddress(),
+              {
+                blockHash: block.hash,
+                requireCanonical: false,
+              },
+            ]),
+            0
+          );
         });
       });
 

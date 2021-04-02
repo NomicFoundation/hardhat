@@ -1,9 +1,9 @@
 import { Transaction, TxData } from "@ethereumjs/tx";
 import { Address, AddressLike, BN, bufferToHex } from "ethereumjs-util";
 
+import { numberToRpcQuantity } from "../../../../src/internal/core/jsonrpc/types/base-types";
 import { randomAddress } from "../../../../src/internal/hardhat-network/provider/fork/random";
 import {
-  numberToRpcQuantity,
   RpcLogOutput,
   RpcReceiptOutput,
 } from "../../../../src/internal/hardhat-network/provider/output";

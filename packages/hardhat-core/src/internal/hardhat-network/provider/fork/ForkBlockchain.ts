@@ -3,12 +3,10 @@ import Common from "@ethereumjs/common";
 import { TypedTransaction } from "@ethereumjs/tx";
 import { Address, BN } from "ethereumjs-util";
 
+import { RpcBlockWithTransactions } from "../../../core/jsonrpc/types/output/block";
+import { RpcTransactionReceipt } from "../../../core/jsonrpc/types/output/receipt";
+import { RpcTransaction } from "../../../core/jsonrpc/types/output/transaction";
 import { JsonRpcClient } from "../../jsonrpc/client";
-import {
-  RpcBlockWithTransactions,
-  RpcTransaction,
-  RpcTransactionReceipt,
-} from "../../jsonrpc/types";
 import { BlockchainData } from "../BlockchainData";
 import { FilterParams } from "../node-types";
 import {

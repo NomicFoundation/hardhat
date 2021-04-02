@@ -2,6 +2,10 @@ import { assert } from "chai";
 
 import { DEFAULT_GAS_MULTIPLIER } from "../../../../src/internal/core/config/default-config";
 import {
+  numberToRpcQuantity,
+  rpcQuantityToNumber,
+} from "../../../../src/internal/core/jsonrpc/types/base-types";
+import {
   AutomaticGasPriceProvider,
   AutomaticGasProvider,
   FixedGasPriceProvider,
@@ -9,10 +13,6 @@ import {
   GANACHE_GAS_MULTIPLIER,
   GanacheGasMultiplierProvider,
 } from "../../../../src/internal/core/providers/gas-providers";
-import {
-  numberToRpcQuantity,
-  rpcQuantityToNumber,
-} from "../../../../src/internal/core/providers/provider-utils";
 import { EIP1193Provider } from "../../../../src/types";
 
 import { MockedProvider } from "./mocks";

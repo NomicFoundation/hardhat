@@ -3,22 +3,24 @@ import fsExtra from "fs-extra";
 import * as t from "io-ts";
 import path from "path";
 
-import { HttpProvider } from "../../core/providers/http";
-import { createNonCryptographicHashBasedIdentifier } from "../../util/hash";
-import { rpcData, rpcQuantity } from "../provider/input";
-import { numberToRpcQuantity } from "../provider/output";
-
 import {
-  decode,
-  nullable,
-  RpcBlock,
+  numberToRpcQuantity,
+  rpcData,
+  rpcQuantity,
+} from "../../core/jsonrpc/types/base-types";
+import {
   rpcBlock,
+  RpcBlock,
   rpcBlockWithTransactions,
   RpcBlockWithTransactions,
-  rpcLog,
-  rpcTransaction,
-  rpcTransactionReceipt,
-} from "./types";
+} from "../../core/jsonrpc/types/output/block";
+import { decodeJsonRpcResponse } from "../../core/jsonrpc/types/output/decodeJsonRpcResponse";
+import { rpcLog } from "../../core/jsonrpc/types/output/log";
+import { rpcTransactionReceipt } from "../../core/jsonrpc/types/output/receipt";
+import { rpcTransaction } from "../../core/jsonrpc/types/output/transaction";
+import { HttpProvider } from "../../core/providers/http";
+import { createNonCryptographicHashBasedIdentifier } from "../../util/hash";
+import { nullable } from "../../util/io-ts";
 
 export class JsonRpcClient {
   private _cache: Map<string, any> = new Map();
@@ -236,7 +238,7 @@ export class JsonRpcClient {
     }
 
     const rawResult = await this._send(method, params);
-    const decodedResult = decode(rawResult, tType);
+    const decodedResult = decodeJsonRpcResponse(rawResult, tType);
 
     const blockNumber = getMaxAffectedBlockNumber(decodedResult);
     if (this._canBeCached(blockNumber)) {
@@ -284,7 +286,7 @@ export class JsonRpcClient {
 
     const rawResults = await this._sendBatch(batch);
     const decodedResults = rawResults.map((result, i) =>
-      decode(result, batch[i].tType)
+      decodeJsonRpcResponse(result, batch[i].tType)
     );
 
     const blockNumber = getMaxAffectedBlockNumber(decodedResults);
@@ -389,7 +391,7 @@ export class JsonRpcClient {
     const rawResult = await this._getRawFromDiskCache(forkCachePath, cacheKey);
 
     if (rawResult !== undefined) {
-      return decode(rawResult, tType);
+      return decodeJsonRpcResponse(rawResult, tType);
     }
   }
 
@@ -404,7 +406,7 @@ export class JsonRpcClient {
       return undefined;
     }
 
-    return rawResults.map((r, i) => decode(r, tTypes[i]));
+    return rawResults.map((r, i) => decodeJsonRpcResponse(r, tTypes[i]));
   }
 
   private async _getRawFromDiskCache(

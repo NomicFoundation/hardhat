@@ -1,7 +1,7 @@
 import { EIP1193Provider, RequestArguments } from "../../../types";
 import { EventEmitterWrapper } from "../../util/event-emitter";
 
-import { ProviderError } from "./errors";
+import { InvalidInputError } from "./errors";
 
 export abstract class ProviderWrapper extends EventEmitterWrapper
   implements EIP1193Provider {
@@ -21,11 +21,9 @@ export abstract class ProviderWrapper extends EventEmitterWrapper
     }
 
     if (!Array.isArray(params)) {
-      // -32000	is Invalid input according to https://github.com/ethereum/EIPs/blob/master/EIPS/eip-1474.md#error-codes
       // tslint:disable-next-line only-hardhat-error
-      throw new ProviderError(
-        "Hardhat Network doesn't support JSON-RPC params sent as an object",
-        -32000
+      throw new InvalidInputError(
+        "Hardhat Network doesn't support JSON-RPC params sent as an object"
       );
     }
 

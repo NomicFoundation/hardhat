@@ -1,6 +1,6 @@
 import { assert } from "chai";
 
-import { numberToRpcQuantity } from "../../../../src/internal/core/providers/provider-utils";
+import { numberToRpcQuantity } from "../../../../src/internal/core/jsonrpc/types/base-types";
 import {
   dateToTimestampSeconds,
   parseDateString,

@@ -14,6 +14,13 @@ import { CustomError } from "../errors";
 // -32000	Invalid input	        Missing or invalid parameters	      non-standard
 // -32003	Transaction rejected	Transaction creation failed	        non-standard
 //
+//
+// Non standard:
+
+// -32999 Invalid response      The server returned a JSON-RPC      hardhat-sepecific
+//                              response, but the result is not
+//                              in the expected format
+//
 // Not implemented:
 //
 // -32001	Resource not found	  Requested resource not found	      non-standard
@@ -111,5 +118,13 @@ export class MethodNotSupportedError extends ProviderError {
       MethodNotSupportedError.CODE,
       parent
     );
+  }
+}
+
+export class InvalidResponseError extends ProviderError {
+  public static readonly CODE = -32999;
+
+  constructor(message: string, parent?: Error) {
+    super(message, InvalidResponseError.CODE, parent);
   }
 }

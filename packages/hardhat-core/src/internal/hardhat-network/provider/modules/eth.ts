@@ -14,6 +14,45 @@ import cloneDeep from "lodash/cloneDeep";
 
 import { BoundExperimentalHardhatNetworkMessageTraceHook } from "../../../../types";
 import {
+  bufferToRpcData,
+  numberToRpcQuantity,
+  rpcAddress,
+  rpcData,
+  rpcHash,
+  rpcQuantity,
+} from "../../../core/jsonrpc/types/base-types";
+import {
+  optionalRpcNewBlockTag,
+  OptionalRpcNewBlockTag,
+  OptionalRpcOldBlockTag,
+  RpcNewBlockTag,
+  rpcNewBlockTagObjectWithHash,
+  rpcNewBlockTagObjectWithNumber,
+  rpcOldBlockTag,
+  RpcOldBlockTag,
+} from "../../../core/jsonrpc/types/input/blockTag";
+import {
+  rpcCallRequest,
+  RpcCallRequest,
+} from "../../../core/jsonrpc/types/input/callRequest";
+import {
+  optionalRpcFilterRequest,
+  OptionalRpcFilterRequest,
+  rpcFilterRequest,
+  RpcFilterRequest,
+} from "../../../core/jsonrpc/types/input/filterRequest";
+import { OptionalRpcLogAddress } from "../../../core/jsonrpc/types/input/logAddress";
+import { OptionalRpcLogTopics } from "../../../core/jsonrpc/types/input/logTopics";
+import {
+  rpcSubscribeRequest,
+  RpcSubscribeRequest,
+} from "../../../core/jsonrpc/types/input/subscribeRequest";
+import {
+  rpcTransactionRequest,
+  RpcTransactionRequest,
+} from "../../../core/jsonrpc/types/input/transactionRequest.s";
+import { validateParams } from "../../../core/jsonrpc/types/input/validation";
+import {
   InvalidArgumentsError,
   InvalidInputError,
   MethodNotFoundError,
@@ -21,30 +60,6 @@ import {
 } from "../../../core/providers/errors";
 import { MessageTrace } from "../../stack-traces/message-trace";
 import { LATEST_BLOCK } from "../filter";
-import {
-  BlockTag,
-  blockTag as blockTagType,
-  LogAddress,
-  LogTopics,
-  OptionalBlockTag,
-  optionalBlockTag,
-  OptionalRpcFilterRequest,
-  optionalRpcFilterRequest,
-  rpcAddress,
-  rpcCallRequest,
-  RpcCallRequest,
-  rpcData,
-  RpcFilterRequest,
-  rpcFilterRequest,
-  rpcHash,
-  rpcQuantity,
-  rpcSubscribeRequest,
-  RpcSubscribeRequest,
-  rpcTransactionRequest,
-  RpcTransactionRequest,
-  rpcUnknown,
-  validateParams,
-} from "../input";
 import { HardhatNode } from "../node";
 import {
   CallParams,
@@ -54,10 +69,8 @@ import {
   TransactionParams,
 } from "../node-types";
 import {
-  bufferToRpcData,
   getRpcBlock,
   getRpcTransaction,
-  numberToRpcQuantity,
   RpcBlockOutput,
   RpcLogOutput,
   RpcReceiptOutput,
@@ -303,15 +316,15 @@ export class EthModule {
 
   // eth_call
 
-  private _callParams(params: any[]): [RpcCallRequest, OptionalBlockTag] {
-    return validateParams(params, rpcCallRequest, optionalBlockTag);
+  private _callParams(params: any[]): [RpcCallRequest, OptionalRpcNewBlockTag] {
+    return validateParams(params, rpcCallRequest, optionalRpcNewBlockTag);
   }
 
   private async _callAction(
     rpcCall: RpcCallRequest,
-    blockTag: OptionalBlockTag
+    blockTag: OptionalRpcNewBlockTag
   ): Promise<string> {
-    const blockNumberOrPending = await this._resolveBlockTag(blockTag);
+    const blockNumberOrPending = await this._resolveNewBlockTag(blockTag);
 
     const callParams = await this._rpcCallRequestToNodeCallParams(rpcCall);
     const {
@@ -370,20 +383,24 @@ export class EthModule {
 
   private _estimateGasParams(
     params: any[]
-  ): [RpcTransactionRequest, OptionalBlockTag] {
-    return validateParams(params, rpcTransactionRequest, optionalBlockTag);
+  ): [RpcTransactionRequest, OptionalRpcNewBlockTag] {
+    return validateParams(
+      params,
+      rpcTransactionRequest,
+      optionalRpcNewBlockTag
+    );
   }
 
   private async _estimateGasAction(
     transactionRequest: RpcTransactionRequest,
-    blockTag: OptionalBlockTag
+    blockTag: OptionalRpcNewBlockTag
   ): Promise<string> {
     // estimateGas behaves differently when there's no blockTag
     // it uses "pending" as default instead of "latest"
-    const blockNumberOrPending =
-      blockTag === undefined
-        ? "pending"
-        : await this._resolveBlockTag(blockTag);
+    const blockNumberOrPending = await this._resolveNewBlockTag(
+      blockTag,
+      "pending"
+    );
 
     const txParams = await this._rpcTransactionRequestToNodeTransactionParams(
       transactionRequest
@@ -425,15 +442,15 @@ export class EthModule {
 
   // eth_getBalance
 
-  private _getBalanceParams(params: any[]): [Buffer, OptionalBlockTag] {
-    return validateParams(params, rpcAddress, optionalBlockTag);
+  private _getBalanceParams(params: any[]): [Buffer, OptionalRpcNewBlockTag] {
+    return validateParams(params, rpcAddress, optionalRpcNewBlockTag);
   }
 
   private async _getBalanceAction(
     address: Buffer,
-    blockTag: OptionalBlockTag
+    blockTag: OptionalRpcNewBlockTag
   ): Promise<string> {
-    const blockNumberOrPending = await this._resolveBlockTag(blockTag);
+    const blockNumberOrPending = await this._resolveNewBlockTag(blockTag);
 
     return numberToRpcQuantity(
       await this._node.getAccountBalance(
@@ -465,39 +482,33 @@ export class EthModule {
 
   // eth_getBlockByNumber
 
-  private _getBlockByNumberParams(params: any[]): [BlockTag, boolean] {
-    return validateParams(params, blockTagType, t.boolean);
+  private _getBlockByNumberParams(params: any[]): [RpcOldBlockTag, boolean] {
+    return validateParams(params, rpcOldBlockTag, t.boolean);
   }
 
   private async _getBlockByNumberAction(
-    tag: BlockTag,
+    oldBlockTag: RpcOldBlockTag,
     includeTransactions: boolean
   ): Promise<RpcBlockOutput | null> {
-    let block: Block | undefined;
-    let totalDifficulty: BN | undefined;
-
-    if (typeof tag === "string") {
-      if (tag === "earliest") {
-        block = await this._node.getBlockByNumber(new BN(0));
-      } else if (tag === "latest") {
-        block = await this._node.getLatestBlock();
-      } else {
-        [
-          block,
-          totalDifficulty,
-        ] = await this._node.getPendingBlockAndTotalDifficulty();
-      }
-    } else if (BN.isBN(tag)) {
-      block = await this._node.getBlockByNumber(tag);
-    } else if (Buffer.isBuffer(tag)) {
-      block = await this._node.getBlockByHash(tag);
-    }
-
-    if (block === undefined) {
+    const numberOrPending = await this._resolveOldBlockTag(oldBlockTag);
+    if (numberOrPending === undefined) {
       return null;
     }
 
-    if (totalDifficulty === undefined) {
+    let block: Block | undefined;
+    let totalDifficulty: BN | undefined;
+
+    if (numberOrPending === "pending") {
+      [
+        block,
+        totalDifficulty,
+      ] = await this._node.getPendingBlockAndTotalDifficulty();
+    } else {
+      block = await this._node.getBlockByNumber(numberOrPending);
+      if (block === undefined) {
+        return null;
+      }
+
       totalDifficulty = await this._node.getBlockTotalDifficulty(block);
     }
 
@@ -505,7 +516,7 @@ export class EthModule {
       block,
       totalDifficulty,
       includeTransactions,
-      tag === "pending"
+      numberOrPending === "pending"
     );
   }
 
@@ -528,16 +539,22 @@ export class EthModule {
 
   // eth_getBlockTransactionCountByNumber
 
-  private _getBlockTransactionCountByNumberParams(params: any[]): [BlockTag] {
-    return validateParams(params, blockTagType);
+  private _getBlockTransactionCountByNumberParams(
+    params: any[]
+  ): [RpcOldBlockTag] {
+    return validateParams(params, rpcOldBlockTag);
   }
 
   private async _getBlockTransactionCountByNumberAction(
-    blockTag: BlockTag
+    oldBlockTag: RpcOldBlockTag
   ): Promise<string | null> {
-    const block = await this._getBlockByBlockTag(blockTag);
+    const numberOrPending = await this._resolveOldBlockTag(oldBlockTag);
+    if (numberOrPending === undefined) {
+      return null;
+    }
 
-    if (block === null) {
+    const block = await this._node.getBlockByNumber(numberOrPending);
+    if (block === undefined) {
       return null;
     }
 
@@ -546,15 +563,15 @@ export class EthModule {
 
   // eth_getCode
 
-  private _getCodeParams(params: any[]): [Buffer, OptionalBlockTag] {
-    return validateParams(params, rpcAddress, optionalBlockTag);
+  private _getCodeParams(params: any[]): [Buffer, OptionalRpcNewBlockTag] {
+    return validateParams(params, rpcAddress, optionalRpcNewBlockTag);
   }
 
   private async _getCodeAction(
     address: Buffer,
-    blockTag: OptionalBlockTag
+    blockTag: OptionalRpcNewBlockTag
   ): Promise<string> {
-    const blockNumberOrPending = await this._resolveBlockTag(blockTag);
+    const blockNumberOrPending = await this._resolveNewBlockTag(blockTag);
 
     return bufferToRpcData(
       await this._node.getCode(new Address(address), blockNumberOrPending)
@@ -612,18 +629,19 @@ export class EthModule {
           "blockHash is mutually exclusive with fromBlock/toBlock"
         );
       }
+
       const block = await this._node.getBlockByHash(filter.blockHash);
       if (block === undefined) {
         throw new InvalidArgumentsError("blockHash cannot be found");
       }
 
-      filter.fromBlock = new BN(block.header.number);
-      filter.toBlock = new BN(block.header.number);
+      filter.fromBlock = block.header.number;
+      filter.toBlock = block.header.number;
     }
 
     const [fromBlock, toBlock] = await Promise.all([
-      this._extractBlock(filter.fromBlock),
-      this._extractBlock(filter.toBlock),
+      this._normalizeOldBlockTagForFilterRequest(filter.fromBlock),
+      this._normalizeOldBlockTagForFilterRequest(filter.toBlock),
     ]);
 
     return {
@@ -646,16 +664,23 @@ export class EthModule {
 
   // eth_getStorageAt
 
-  private _getStorageAtParams(params: any[]): [Buffer, BN, OptionalBlockTag] {
-    return validateParams(params, rpcAddress, rpcQuantity, optionalBlockTag);
+  private _getStorageAtParams(
+    params: any[]
+  ): [Buffer, BN, OptionalRpcNewBlockTag] {
+    return validateParams(
+      params,
+      rpcAddress,
+      rpcQuantity,
+      optionalRpcNewBlockTag
+    );
   }
 
   private async _getStorageAtAction(
     address: Buffer,
     slot: BN,
-    blockTag: OptionalBlockTag
+    blockTag: OptionalRpcNewBlockTag
   ): Promise<string> {
-    const blockNumberOrPending = await this._resolveBlockTag(blockTag);
+    const blockNumberOrPending = await this._resolveNewBlockTag(blockTag);
 
     const data = await this._node.getStorageAt(
       new Address(address),
@@ -696,18 +721,23 @@ export class EthModule {
 
   private _getTransactionByBlockNumberAndIndexParams(
     params: any[]
-  ): [BlockTag, BN] {
-    return validateParams(params, blockTagType, rpcQuantity);
+  ): [RpcOldBlockTag, BN] {
+    return validateParams(params, rpcOldBlockTag, rpcQuantity);
   }
 
   private async _getTransactionByBlockNumberAndIndexAction(
-    blockTag: BlockTag,
+    oldBlockTag: RpcOldBlockTag,
     index: BN
   ): Promise<RpcTransactionOutput | null> {
-    const i = index.toNumber();
-    const block = await this._getBlockByBlockTag(blockTag);
+    const numberOrPending = await this._resolveOldBlockTag(oldBlockTag);
+    if (numberOrPending === undefined) {
+      return null;
+    }
 
-    if (block === null) {
+    const block = await this._node.getBlockByNumber(numberOrPending);
+    const i = index.toNumber();
+
+    if (block === undefined) {
       return null;
     }
 
@@ -716,7 +746,7 @@ export class EthModule {
       return null;
     }
 
-    return blockTag === "pending"
+    return numberOrPending === "pending"
       ? getRpcTransaction(tx, "pending")
       : getRpcTransaction(tx, block, i);
   }
@@ -757,15 +787,15 @@ export class EthModule {
 
   private _getTransactionCountParams(
     params: any[]
-  ): [Buffer, OptionalBlockTag] {
-    return validateParams(params, rpcAddress, optionalBlockTag);
+  ): [Buffer, OptionalRpcNewBlockTag] {
+    return validateParams(params, rpcAddress, optionalRpcNewBlockTag);
   }
 
   private async _getTransactionCountAction(
     address: Buffer,
-    blockTag: OptionalBlockTag
+    blockTag: OptionalRpcNewBlockTag
   ): Promise<string> {
-    const blockNumberOrPending = await this._resolveBlockTag(blockTag);
+    const blockNumberOrPending = await this._resolveNewBlockTag(blockTag);
 
     return numberToRpcQuantity(
       await this._node.getAccountNonce(
@@ -936,7 +966,7 @@ export class EthModule {
 
   private _signTypedDataV4Params(params: any[]): [Buffer, any] {
     // Validation of the TypedData parameter is handled by eth-sig-util
-    return validateParams(params, rpcAddress, rpcUnknown);
+    return validateParams(params, rpcAddress, t.any);
   }
 
   private async _signTypedDataV4Action(
@@ -1079,108 +1109,98 @@ export class EthModule {
     };
   }
 
-  private async _resolveBlockTag(
-    blockTag: OptionalBlockTag
-  ): Promise<BN | "pending"> {
-    if (blockTag === "pending") {
-      return "pending";
-    }
-
-    if (blockTag === undefined || blockTag === "latest") {
+  private async _resolveOldBlockTag(
+    oldBlockTag: RpcOldBlockTag
+  ): Promise<BN | "pending" | undefined> {
+    if (oldBlockTag === undefined || oldBlockTag === "latest") {
       return this._node.getLatestBlockNumber();
     }
 
-    if (blockTag === "earliest") {
+    if (oldBlockTag === "pending") {
+      return "pending";
+    }
+
+    if (oldBlockTag === "earliest") {
       return new BN(0);
     }
 
+    const block = await this._node.getBlockByNumber(oldBlockTag);
+    return block?.header.number;
+  }
+
+  private async _resolveNewBlockTag(
+    newBlockTag: OptionalRpcNewBlockTag,
+    defaultValue: RpcNewBlockTag = "latest"
+  ): Promise<BN | "pending"> {
+    if (newBlockTag === undefined) {
+      newBlockTag = defaultValue;
+    }
+
+    if (newBlockTag === "pending") {
+      return "pending";
+    }
+
+    if (newBlockTag === "latest") {
+      return this._node.getLatestBlockNumber();
+    }
+
+    if (newBlockTag === "earliest") {
+      return new BN(0);
+    }
+
+    if ("blockNumber" in newBlockTag && "blockHash" in newBlockTag) {
+      throw new InvalidArgumentsError(
+        "Invalid block tag received. Only one of hash or block number can be used."
+      );
+    }
+
+    if ("blockNumber" in newBlockTag && "requireCanonical" in newBlockTag) {
+      throw new InvalidArgumentsError(
+        "Invalid block tag received. requireCanonical only works with hashes."
+      );
+    }
+
     let block: Block | undefined;
-    if (BN.isBN(blockTag)) {
-      block = await this._node.getBlockByNumber(blockTag);
-    } else if (Buffer.isBuffer(blockTag)) {
-      block = await this._node.getBlockByHash(blockTag);
+    if (BN.isBN(newBlockTag)) {
+      block = await this._node.getBlockByNumber(newBlockTag);
+    } else if ("blockNumber" in newBlockTag) {
+      block = await this._node.getBlockByNumber(newBlockTag.blockNumber);
+    } else {
+      block = await this._node.getBlockByHash(newBlockTag.blockHash);
     }
 
     if (block === undefined) {
       const latestBlock = await this._node.getLatestBlockNumber();
 
       throw new InvalidInputError(
-        `Received invalid block tag ${this._blockTagToString(
-          blockTag
+        `Received invalid block tag ${this._newBlockTagToString(
+          newBlockTag
         )}. Latest block number is ${latestBlock.toString()}`
       );
     }
 
-    return new BN(block.header.number);
+    return block.header.number;
   }
 
-  private async _resolveBlockTagAndReturnNullIfInvalid(blockTag: BlockTag) {
-    let blockNumberOrPending: BN | "pending";
-    try {
-      blockNumberOrPending = await this._resolveBlockTag(blockTag);
-    } catch (error) {
-      if (error.message.includes("Received invalid block tag")) {
-        return null;
-      }
-
-      throw error;
+  private async _normalizeOldBlockTagForFilterRequest(
+    blockTag: OptionalRpcOldBlockTag
+  ): Promise<BN> {
+    if (
+      blockTag === undefined ||
+      blockTag === "latest" ||
+      blockTag === "pending"
+    ) {
+      return LATEST_BLOCK;
     }
 
-    return blockNumberOrPending;
+    if (blockTag === "earliest") {
+      return new BN(0);
+    }
+
+    return blockTag;
   }
 
-  private async _getBlockByBlockTag(blockTag: BlockTag) {
-    let blockNumberOrPending: BN | "pending" | null;
-    let block: Block | undefined;
-
-    blockNumberOrPending = await this._resolveBlockTagAndReturnNullIfInvalid(
-      blockTag
-    );
-
-    if (blockNumberOrPending === null) {
-      return null;
-    }
-
-    block = await this._node.getBlockByNumber(blockNumberOrPending);
-    if (block === undefined) {
-      return null;
-    }
-
-    return block;
-  }
-
-  private async _extractBlock(blockTag: OptionalBlockTag): Promise<BN> {
-    if (BN.isBN(blockTag)) {
-      return blockTag;
-    }
-
-    if (Buffer.isBuffer(blockTag)) {
-      const block = await this._node.getBlockByHash(blockTag);
-
-      if (block === undefined) {
-        throw new InvalidInputError(
-          `Received invalid block tag ${this._blockTagToString(
-            blockTag
-          )}. This block doesn't exist.`
-        );
-      }
-
-      return new BN(block.header.number);
-    }
-
-    switch (blockTag) {
-      case "earliest":
-        return new BN(0);
-      case undefined:
-      case "latest":
-        return LATEST_BLOCK;
-      case "pending":
-      default:
-        return LATEST_BLOCK;
-    }
-  }
-
-  private _blockTagToString(tag: BlockTag): string {
+  private _newBlockTagToString(tag: RpcNewBlockTag): string {
     if (typeof tag === "string") {
       return tag;
     }
@@ -1189,11 +1209,15 @@ export class EthModule {
       return tag.toString();
     }
 
-    return bufferToHex(tag);
+    if ("blockNumber" in tag) {
+      return tag.blockNumber.toString();
+    }
+
+    return bufferToHex(tag.blockHash);
   }
 
   private _extractNormalizedLogTopics(
-    topics: LogTopics
+    topics: OptionalRpcLogTopics
   ): Array<Array<Buffer | null> | null> {
     if (topics === undefined || topics.length === 0) {
       return [];
@@ -1211,7 +1235,7 @@ export class EthModule {
     return normalizedTopics;
   }
 
-  private _extractLogAddresses(address: LogAddress): Buffer[] {
+  private _extractLogAddresses(address: OptionalRpcLogAddress): Buffer[] {
     if (address === undefined) {
       return [];
     }

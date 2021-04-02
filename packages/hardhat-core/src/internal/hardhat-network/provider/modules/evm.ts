@@ -3,20 +3,22 @@ import * as t from "io-ts";
 
 import { BoundExperimentalHardhatNetworkMessageTraceHook } from "../../../../types";
 import {
+  numberToRpcQuantity,
+  rpcQuantity,
+} from "../../../core/jsonrpc/types/base-types";
+import {
+  rpcIntervalMining,
+  RpcIntervalMining,
+} from "../../../core/jsonrpc/types/input/hardhat-network";
+import { validateParams } from "../../../core/jsonrpc/types/input/validation";
+import {
   InvalidInputError,
   MethodNotFoundError,
 } from "../../../core/providers/errors";
 import { MessageTrace } from "../../stack-traces/message-trace";
-import {
-  rpcIntervalMining,
-  RpcIntervalMining,
-  rpcQuantity,
-  validateParams,
-} from "../input";
 import { MiningTimer } from "../MiningTimer";
 import { HardhatNode } from "../node";
 import { MineBlockResult } from "../node-types";
-import { numberToRpcQuantity } from "../output";
 
 import { ModulesLogger } from "./logger";
 

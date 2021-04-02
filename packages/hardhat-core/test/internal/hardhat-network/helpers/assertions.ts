@@ -2,17 +2,17 @@ import { assert } from "chai";
 import { BN, bufferToHex } from "ethereumjs-util";
 
 import {
+  numberToRpcQuantity,
+  rpcQuantity,
+} from "../../../../src/internal/core/jsonrpc/types/base-types";
+import { RpcTransactionRequestInput } from "../../../../src/internal/core/jsonrpc/types/input/transactionRequest.s";
+import {
   InvalidArgumentsError,
   InvalidInputError,
   MethodNotSupportedError,
 } from "../../../../src/internal/core/providers/errors";
-import {
-  rpcQuantity,
-  RpcTransactionRequestInput,
-} from "../../../../src/internal/hardhat-network/provider/input";
 import { TransactionParams } from "../../../../src/internal/hardhat-network/provider/node-types";
 import {
-  numberToRpcQuantity,
   RpcReceiptOutput,
   RpcTransactionOutput,
 } from "../../../../src/internal/hardhat-network/provider/output";

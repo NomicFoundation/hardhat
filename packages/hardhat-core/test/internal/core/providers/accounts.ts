@@ -2,6 +2,7 @@ import { assert } from "chai";
 import { bufferToHex, privateToAddress, toBuffer } from "ethereumjs-util";
 
 import { ERRORS } from "../../../../src/internal/core/errors-list";
+import { numberToRpcQuantity } from "../../../../src/internal/core/jsonrpc/types/base-types";
 import {
   AutomaticSenderProvider,
   FixedSenderProvider,
@@ -9,7 +10,7 @@ import {
   JsonRpcTransactionData,
   LocalAccountsProvider,
 } from "../../../../src/internal/core/providers/accounts";
-import { numberToRpcQuantity } from "../../../../src/internal/core/providers/provider-utils";
+import { InvalidArgumentsError } from "../../../../src/internal/core/providers/errors";
 import { EIP1193Provider } from "../../../../src/types";
 import {
   expectHardhatError,
@@ -63,9 +64,8 @@ describe("Local accounts provider", () => {
       {
         from: privateKeyToAddress(accounts[0]),
         to: "0x2a97a65d5673a2c61e95ce33cecadf24f654f96d",
-        gasPrice: 0x3b9aca00,
-        nonce: 0x8,
-        chainId: 123,
+        gasPrice: numberToRpcQuantity(0x3b9aca00),
+        nonce: numberToRpcQuantity(0x8),
       },
     ];
 
@@ -81,9 +81,8 @@ describe("Local accounts provider", () => {
       {
         from: privateKeyToAddress(accounts[0]),
         to: "0x2a97a65d5673a2c61e95ce33cecadf24f654f96d",
-        nonce: 0x8,
-        chainId: 123,
-        gas: 123,
+        nonce: numberToRpcQuantity(0x8),
+        gas: numberToRpcQuantity(123),
       },
     ];
 
@@ -94,18 +93,17 @@ describe("Local accounts provider", () => {
     );
   });
 
-  it("Should, given two identical tx, return send the same raw tansaction", async () => {
+  it("Should, given two identical tx, return send the same raw transaction", async () => {
     await wrapper.request({
       method: "eth_sendTransaction",
       params: [
         {
           from: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
           to: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
-          gas: 21000,
-          gasPrice: 678912,
-          nonce: 0,
-          chainId: 123,
-          value: 1,
+          gas: numberToRpcQuantity(21000),
+          gasPrice: numberToRpcQuantity(678912),
+          nonce: numberToRpcQuantity(0),
+          value: numberToRpcQuantity(1),
         },
       ],
     });
@@ -132,11 +130,10 @@ describe("Local accounts provider", () => {
             {
               from: "0x000006d4548a3ac17d72b372ae1e416bf65b8ead",
               to: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
-              gas: 21000,
-              gasPrice: 678912,
-              nonce: 0,
-              chainId: 123,
-              value: 1,
+              gas: numberToRpcQuantity(21000),
+              gasPrice: numberToRpcQuantity(678912),
+              nonce: numberToRpcQuantity(0),
+              value: numberToRpcQuantity(1),
             },
           ],
         }),
@@ -159,10 +156,9 @@ describe("Local accounts provider", () => {
         {
           from: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
           to: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
-          gas: 21000,
-          gasPrice: 678912,
-          chainId: 123,
-          value: 1,
+          gas: numberToRpcQuantity(21000),
+          gasPrice: numberToRpcQuantity(678912),
+          value: numberToRpcQuantity(1),
         },
       ],
     });
@@ -241,13 +237,12 @@ describe("Local accounts provider", () => {
     });
 
     it("Should throw if no data is given", async () => {
-      await expectHardhatErrorAsync(
-        () =>
-          wrapper.request({
-            method: "eth_sign",
-            params: [privateKeyToAddress(accounts[0])],
-          }),
-        ERRORS.NETWORK.ETHSIGN_MISSING_DATA_PARAM
+      await assert.isRejected(
+        wrapper.request({
+          method: "eth_sign",
+          params: [privateKeyToAddress(accounts[0])],
+        }),
+        InvalidArgumentsError
       );
     });
 
@@ -359,10 +354,10 @@ describe("Sender providers", () => {
   beforeEach(() => {
     tx = {
       to: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
-      gas: 21000,
-      gasPrice: 678912,
-      nonce: 0,
-      value: 1,
+      gas: numberToRpcQuantity(21000),
+      gasPrice: numberToRpcQuantity(678912),
+      nonce: numberToRpcQuantity(0),
+      value: numberToRpcQuantity(1),
     };
 
     mock = new MockedProvider();
