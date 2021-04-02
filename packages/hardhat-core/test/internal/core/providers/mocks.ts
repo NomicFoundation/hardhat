@@ -1,9 +1,5 @@
 import { EventEmitter } from "events";
 
-import {
-  InternalError,
-  MethodNotSupportedError,
-} from "../../../../src/internal/core/providers/errors";
 import { EIP1193Provider, RequestArguments } from "../../../../src/types";
 
 export class MockedProvider extends EventEmitter implements EIP1193Provider {
