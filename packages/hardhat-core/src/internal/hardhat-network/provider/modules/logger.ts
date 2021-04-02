@@ -264,7 +264,7 @@ export class ModulesLogger {
   }
 
   public logEstimateGasTrace(
-    txParams: TransactionParams,
+    callParams: CallParams,
     code: Buffer,
     trace: MessageTrace | undefined,
     consoleLogMessages: string[],
@@ -275,9 +275,9 @@ export class ModulesLogger {
         printNonContractCalled: true,
       });
 
-      this._logTxFrom(txParams.from);
-      this._logTxTo(txParams.to, trace);
-      this._logTxValue(new BN(txParams.value));
+      this._logTxFrom(callParams.from);
+      this._logTxTo(callParams.to, trace);
+      this._logTxValue(new BN(callParams.value));
 
       this._logConsoleLogMessages(consoleLogMessages);
 

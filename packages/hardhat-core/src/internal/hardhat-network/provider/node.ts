@@ -447,13 +447,18 @@ export class HardhatNode extends EventEmitter {
   }
 
   public async estimateGas(
-    txParams: TransactionParams,
+    callParams: CallParams,
     blockNumberOrPending: BN | "pending"
   ): Promise<EstimateGasResult> {
-    const tx = await this._getFakeTransaction({
-      ...txParams,
-      gasLimit: this.getBlockGasLimit(),
-    });
+    // We get the CallParams and transform it into a TransactionParams to be
+    // able to run it.
+    const txParams = {
+      ...callParams,
+      nonce: await this.getAccountExecutableNonce(new Address(callParams.from)),
+      gasLimit: callParams.gasLimit ?? this.getBlockGasLimit(),
+    };
+
+    const tx = await this._getFakeTransaction(txParams);
 
     // TODO: This may not work if there are multiple txs in the mempool and
     //  the one being estimated won't fit in the first block, or maybe even

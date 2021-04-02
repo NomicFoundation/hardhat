@@ -3,6 +3,8 @@ import * as t from "io-ts";
 import { optional } from "../../../../util/io-ts";
 import { rpcAddress, rpcData, rpcQuantity } from "../base-types";
 
+// Type used by eth_call and eth_estimateGas
+// TODO: Update to Berlin
 export const rpcCallRequest = t.type(
   {
     from: optional(rpcAddress),

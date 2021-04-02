@@ -3,6 +3,8 @@ import * as t from "io-ts";
 import { optional } from "../../../../util/io-ts";
 import { rpcAddress, rpcData, rpcQuantity } from "../base-types";
 
+// Type used by eth_sendTransaction
+// TODO: Update to Berlin
 export const rpcTransactionRequest = t.type(
   {
     from: rpcAddress,
@@ -10,8 +12,8 @@ export const rpcTransactionRequest = t.type(
     gas: optional(rpcQuantity),
     gasPrice: optional(rpcQuantity),
     value: optional(rpcQuantity),
-    data: optional(rpcData),
     nonce: optional(rpcQuantity),
+    data: optional(rpcData),
   },
   "RpcTransactionRequest"
 );
@@ -22,8 +24,8 @@ export interface RpcTransactionRequestInput {
   gas?: string;
   gasPrice?: string;
   value?: string;
-  data?: string;
   nonce?: string;
+  data?: string;
 }
 
 export type RpcTransactionRequest = t.TypeOf<typeof rpcTransactionRequest>;

@@ -26,8 +26,6 @@ import {
   OptionalRpcNewBlockTag,
   OptionalRpcOldBlockTag,
   RpcNewBlockTag,
-  rpcNewBlockTagObjectWithHash,
-  rpcNewBlockTagObjectWithNumber,
   rpcOldBlockTag,
   RpcOldBlockTag,
 } from "../../../core/jsonrpc/types/input/blockTag";
@@ -383,16 +381,13 @@ export class EthModule {
 
   private _estimateGasParams(
     params: any[]
-  ): [RpcTransactionRequest, OptionalRpcNewBlockTag] {
-    return validateParams(
-      params,
-      rpcTransactionRequest,
-      optionalRpcNewBlockTag
-    );
+  ): [RpcCallRequest, OptionalRpcNewBlockTag] {
+    // Estimate gas uses a CallArgs in Geth, so we mimic it here
+    return validateParams(params, rpcCallRequest, optionalRpcNewBlockTag);
   }
 
   private async _estimateGasAction(
-    transactionRequest: RpcTransactionRequest,
+    callRequest: RpcCallRequest,
     blockTag: OptionalRpcNewBlockTag
   ): Promise<string> {
     // estimateGas behaves differently when there's no blockTag
@@ -402,22 +397,20 @@ export class EthModule {
       "pending"
     );
 
-    const txParams = await this._rpcTransactionRequestToNodeTransactionParams(
-      transactionRequest
-    );
+    const callParams = await this._rpcCallRequestToNodeCallParams(callRequest);
 
     const {
       estimation,
       error,
       trace,
       consoleLogMessages,
-    } = await this._node.estimateGas(txParams, blockNumberOrPending);
+    } = await this._node.estimateGas(callParams, blockNumberOrPending);
 
     const code = await this._node.getCodeFromTrace(trace, blockNumberOrPending);
 
     if (error !== undefined) {
       this._logger.logEstimateGasTrace(
-        txParams,
+        callParams,
         code,
         trace,
         consoleLogMessages,
