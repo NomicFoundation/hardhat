@@ -18,6 +18,8 @@ export const rpcTransactionRequest = t.type(
   "RpcTransactionRequest"
 );
 
+// This type represents possibly valid inputs to rpcTransactionRequest.
+// TODO: It can probably be inferred by io-ts.
 export interface RpcTransactionRequestInput {
   from: string;
   to?: string;

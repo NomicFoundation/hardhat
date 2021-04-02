@@ -17,6 +17,8 @@ export const rpcCallRequest = t.type(
   "RpcCallRequest"
 );
 
+// This type represents possibly valid inputs to rpcCallRequest.
+// TODO: It can probably be inferred by io-ts.
 export interface RpcCallRequestInput {
   from?: string;
   to: string;
