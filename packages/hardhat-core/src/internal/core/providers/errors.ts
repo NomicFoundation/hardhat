@@ -29,21 +29,19 @@ import { CustomError } from "../errors";
 export class ProviderError extends CustomError implements ProviderRpcError {
   public static isProviderError(other: any): other is ProviderError {
     return (
-      other !== undefined &&
-      other !== null &&
-      other._isHardhatNetworkProviderError === true
+      other !== undefined && other !== null && other._isProviderError === true
     );
   }
   public code: number;
   public data?: unknown;
 
-  private readonly _isHardhatNetworkProviderError;
+  private readonly _isProviderError;
 
   constructor(message: string, code: number, public readonly parent?: Error) {
     super(message, parent);
     this.code = code;
 
-    this._isHardhatNetworkProviderError = true;
+    this._isProviderError = true;
   }
 }
 
