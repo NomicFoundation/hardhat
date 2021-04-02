@@ -1065,7 +1065,7 @@ export class EthModule {
     rpcCall: RpcCallRequest
   ): Promise<CallParams> {
     return {
-      to: rpcCall.to !== undefined ? rpcCall.to : Buffer.from([]),
+      to: rpcCall.to,
       from:
         rpcCall.from !== undefined
           ? rpcCall.from

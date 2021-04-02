@@ -352,16 +352,14 @@ export class HardhatNode extends EventEmitter {
     call: CallParams,
     blockNumberOrPending: BN | "pending"
   ): Promise<RunCallResult> {
-    let tx: Transaction;
+    const tx = await this._getFakeTransaction({
+      ...call,
+      nonce: await this._getNonce(new Address(call.from), blockNumberOrPending),
+    });
 
     const result = await this._runInBlockContext(
       blockNumberOrPending,
       async () => {
-        const account = await this._stateManager.getAccount(
-          new Address(call.from)
-        );
-        const nonce = new BN(account.nonce);
-        tx = await this._getFakeTransaction({ ...call, nonce });
         return this._runTxAndRevertMutations(tx, blockNumberOrPending, false);
       }
     );
@@ -454,7 +452,10 @@ export class HardhatNode extends EventEmitter {
     // able to run it.
     const txParams = {
       ...callParams,
-      nonce: await this.getAccountExecutableNonce(new Address(callParams.from)),
+      nonce: await this._getNonce(
+        new Address(callParams.from),
+        blockNumberOrPending
+      ),
       gasLimit: callParams.gasLimit ?? this.getBlockGasLimit(),
     };
 
@@ -464,9 +465,9 @@ export class HardhatNode extends EventEmitter {
     //  the one being estimated won't fit in the first block, or maybe even
     //  if the state accessed by the tx changes after it is executed within
     //  the first block.
-    const result = await this._runInBlockContext(blockNumberOrPending, () =>
-      this._runTxAndRevertMutations(tx, blockNumberOrPending, true)
-    );
+    const result = await this._runInBlockContext(blockNumberOrPending, () => {
+      return this._runTxAndRevertMutations(tx, blockNumberOrPending, true);
+    });
 
     let vmTrace = this._vmTracer.getLastTopLevelMessageTrace();
     const vmTracerError = this._vmTracer.getLastError();
@@ -1664,6 +1665,21 @@ export class HardhatNode extends EventEmitter {
     this.emit("ethEvent", {
       result,
       filterId,
+    });
+  }
+
+  private async _getNonce(
+    address: Address,
+    blockNumberOrPending: BN | "pending"
+  ): Promise<BN> {
+    if (blockNumberOrPending === "pending") {
+      return this.getAccountExecutableNonce(address);
+    }
+
+    return this._runInBlockContext(blockNumberOrPending, async () => {
+      const account = await this._stateManager.getAccount(address);
+
+      return account.nonce;
     });
   }
 }
