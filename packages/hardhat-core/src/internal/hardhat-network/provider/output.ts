@@ -14,6 +14,7 @@ import {
 import { RpcLog } from "../../core/jsonrpc/types/output/log";
 import { RpcTransactionReceipt } from "../../core/jsonrpc/types/output/receipt";
 
+// TODO: These types should be moved to core, and probably inferred by io-ts
 export interface RpcBlockOutput {
   difficulty: string;
   extraData: string;
