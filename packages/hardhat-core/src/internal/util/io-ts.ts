@@ -1,27 +1,25 @@
 import * as t from "io-ts";
 
-export function optional<TypeT, OutputT>(
-  codec: t.Type<TypeT, OutputT, unknown>,
+export function optional<TypeT, OutputT, InputT>(
+  codec: t.Type<TypeT, OutputT, InputT>,
   name: string = `${codec.name} | undefined`
-): t.Type<TypeT | undefined, OutputT | undefined, unknown> {
+): t.Type<TypeT | undefined, OutputT | undefined, InputT | undefined> {
   return new t.Type(
     name,
     (u: unknown): u is TypeT | undefined => u === undefined || codec.is(u),
-    (u, c) => (u === undefined ? t.success(u) : codec.validate(u, c)),
+    (u, c) => (u === undefined ? t.success(undefined) : codec.validate(u, c)),
     (a) => (a === undefined ? undefined : codec.encode(a))
   );
 }
 
-export const nullable = <T>(codec: t.Type<T>) =>
-  new t.Type<T | null>(
-    `${codec.name} or null`,
-    (input): input is T | null =>
-      input === null || input === undefined || codec.is(input),
-    (input, context) => {
-      if (input === null || input === undefined) {
-        return t.success(null);
-      }
-      return codec.validate(input, context);
-    },
-    t.identity
+export function nullable<TypeT, OutputT, InputT>(
+  codec: t.Type<TypeT, OutputT, InputT>,
+  name: string = `${codec.name} | null`
+): t.Type<TypeT | null, OutputT | null, InputT | null> {
+  return new t.Type(
+    name,
+    (u: unknown): u is TypeT | null => u === null || codec.is(u),
+    (u, c) => (u === null ? t.success(null) : codec.validate(u, c)),
+    (a) => (a === null ? null : codec.encode(a))
   );
+}
