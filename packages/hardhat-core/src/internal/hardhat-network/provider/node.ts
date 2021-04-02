@@ -359,9 +359,7 @@ export class HardhatNode extends EventEmitter {
 
     const result = await this._runInBlockContext(
       blockNumberOrPending,
-      async () => {
-        return this._runTxAndRevertMutations(tx, blockNumberOrPending, false);
-      }
+      async () => this._runTxAndRevertMutations(tx, blockNumberOrPending, false)
     );
 
     const traces = await this._gatherTraces(result.execResult);
@@ -465,9 +463,9 @@ export class HardhatNode extends EventEmitter {
     //  the one being estimated won't fit in the first block, or maybe even
     //  if the state accessed by the tx changes after it is executed within
     //  the first block.
-    const result = await this._runInBlockContext(blockNumberOrPending, () => {
-      return this._runTxAndRevertMutations(tx, blockNumberOrPending, true);
-    });
+    const result = await this._runInBlockContext(blockNumberOrPending, () =>
+      this._runTxAndRevertMutations(tx, blockNumberOrPending, true)
+    );
 
     let vmTrace = this._vmTracer.getLastTopLevelMessageTrace();
     const vmTracerError = this._vmTracer.getLastError();
