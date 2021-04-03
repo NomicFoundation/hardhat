@@ -14,6 +14,7 @@ export const rpcTransaction = t.type(
     hash: rpcHash,
     input: rpcData,
     nonce: rpcQuantity,
+    // This is also optional because Alchemy doesn't return to for deployment txs
     to: optional(nullable(rpcAddress)),
     transactionIndex: nullable(rpcQuantity),
     value: rpcQuantity,
