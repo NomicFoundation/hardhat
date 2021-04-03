@@ -1,15 +1,24 @@
 import * as t from "io-ts";
+import { PathReporter } from "io-ts/lib/PathReporter";
 
 import { InvalidResponseError } from "../../../providers/errors";
 
 /**
  * This function decodes an RPC out type, throwing InvalidResponseError if it's not valid.
  */
-export function decodeJsonRpcResponse<T>(value: unknown, codec: t.Type<T>) {
-  return codec.decode(value).fold(() => {
-    // tslint:disable-next-line
+export function decodeJsonRpcResponse<T>(value: unknown, codec: t.Type<T>): T {
+  const result = codec.decode(value);
+
+  if (result.isLeft()) {
+    console.log(JSON.stringify(value, undefined, 2));
+    console.log();
+
     throw new InvalidResponseError(
-      `Invalid JSON-RPC response. Expected: ${codec.name}`
+      `Invalid JSON-RPC response's result.
+
+Errors: ${PathReporter.report(result).join(", ")}`
     );
-  }, t.identity);
+  }
+
+  return result.value;
 }
