@@ -1,4 +1,4 @@
-import { Block, BlockHeader } from "@ethereumjs/block";
+import { Block } from "@ethereumjs/block";
 import Common from "@ethereumjs/common";
 import { Transaction } from "@ethereumjs/tx";
 import VM from "@ethereumjs/vm";
@@ -6,11 +6,11 @@ import Bloom from "@ethereumjs/vm/dist/bloom";
 import { EVMResult, ExecResult } from "@ethereumjs/vm/dist/evm/evm";
 import { ERROR } from "@ethereumjs/vm/dist/exceptions";
 import {
+  generateTxReceipt,
   PostByzantiumTxReceipt,
   PreByzantiumTxReceipt,
   RunBlockResult,
 } from "@ethereumjs/vm/dist/runBlock";
-import { RunTxResult } from "@ethereumjs/vm/dist/runTx";
 import { DefaultStateManager, StateManager } from "@ethereumjs/vm/dist/state";
 import chalk from "chalk";
 import debug from "debug";
@@ -22,11 +22,9 @@ import {
   ecsign,
   hashPersonalMessage,
   privateToAddress,
-  rlp,
   toBuffer,
 } from "ethereumjs-util";
 import EventEmitter from "events";
-import { BaseTrie as Trie } from "merkle-patricia-tree";
 
 import { CompilerInput, CompilerOutput } from "../../../types";
 import { HARDHAT_NETWORK_DEFAULT_GAS_PRICE } from "../../core/config/default-config";
@@ -299,10 +297,7 @@ export class HardhatNode extends EventEmitter {
     return this._mineTransaction(tx);
   }
 
-  public async mineBlock(
-    timestamp?: BN,
-    sentTxHash?: string
-  ): Promise<MineBlockResult> {
+  public async mineBlock(timestamp?: BN): Promise<MineBlockResult> {
     const [
       blockTimestamp,
       offsetShouldChange,
@@ -315,14 +310,12 @@ export class HardhatNode extends EventEmitter {
       blockTimestamp.iaddn(1);
     }
 
-    const previousRoot = await this._stateManager.getStateRoot();
     let result: MineBlockResult;
     try {
-      result = await this._mineBlockWithPendingTxs(blockTimestamp, sentTxHash);
+      result = await this._mineBlockWithPendingTxs(blockTimestamp);
     } catch (err) {
-      await this._stateManager.setStateRoot(previousRoot);
       if (err?.message.includes("sender doesn't have enough funds")) {
-        throw new InvalidInputError(err.message);
+        throw new InvalidInputError(err.message, err);
       }
 
       // Some network errors are HardhatErrors, and can end up here when forking
@@ -884,8 +877,8 @@ export class HardhatNode extends EventEmitter {
   }
 
   private async _mineTransaction(tx: Transaction): Promise<MineBlockResult> {
-    const txHash = await this._addPendingTransaction(tx);
-    return this.mineBlock(undefined, txHash);
+    await this._addPendingTransaction(tx);
+    return this.mineBlock();
   }
 
   private async _mineTransactionAndPending(
@@ -917,12 +910,12 @@ export class HardhatNode extends EventEmitter {
           "Failed to mine transaction for unknown reason, this should never happen"
         );
       }
-      results.push(await this.mineBlock(undefined, txHash));
+      results.push(await this.mineBlock());
       txReceipt = await this.getTransactionReceipt(txHash);
     } while (txReceipt === undefined);
 
     while (this._txPool.hasPendingTransactions()) {
-      results.push(await this.mineBlock(undefined, txHash));
+      results.push(await this.mineBlock());
     }
 
     return results;
@@ -973,139 +966,98 @@ export class HardhatNode extends EventEmitter {
     }
   }
 
+  /**
+   * Mines a new block with as many pending txs as possible, adding it to
+   * the VM's blockchain.
+   *
+   * This method reverts any modification to the state manager if it throws.
+   */
   private async _mineBlockWithPendingTxs(
-    blockTimestamp: BN,
-    sentTxHash?: string
+    blockTimestamp: BN
   ): Promise<MineBlockResult> {
-    let block = await this._getNextBlockTemplate(blockTimestamp);
+    const parentBlock = await this.getLatestBlock();
 
-    const bloom = new Bloom();
-    const results: RunTxResult[] = [];
-    const receipts: TxReceipt[] = [];
-    const traces: GatherTracesResult[] = [];
-    const receiptTrie = new Trie();
-
-    const blockGasLimit = this.getBlockGasLimit();
-    const minTxFee = this._getMinimalTransactionFee();
-    const gasLeft = blockGasLimit.clone();
-    const pendingTxs = this._txPool.getPendingTransactions();
-    const txHeap = new TxPriorityHeap(pendingTxs);
-
-    let tx = txHeap.peek();
-
-    let cumulativeGasUsed = new BN(0);
-    while (gasLeft.gte(minTxFee) && tx !== undefined) {
-      const shouldThrow = sentTxHash === bufferToHex(tx.hash());
-
-      const txResult = await this._runTx(tx, block, gasLeft, shouldThrow);
-      if (txResult !== null) {
-        bloom.or(txResult.bloom);
-        results.push(txResult);
-
-        cumulativeGasUsed = cumulativeGasUsed.add(txResult.gasUsed);
-
-        const receipt = this._createReceipt(txResult, cumulativeGasUsed);
-        receipts.push(receipt);
-        await receiptTrie.put(
-          rlp.encode(receipts.length - 1),
-          rlp.encode(Object.values(receipt))
-        );
-
-        traces.push(await this._gatherTraces(txResult.execResult));
-        block.transactions.push(tx);
-
-        gasLeft.isub(txResult.gasUsed);
-        txHeap.shift();
-      } else {
-        txHeap.pop();
-      }
-      tx = txHeap.peek();
-    }
-
-    await this._txPool.updatePendingAndQueued();
-    await this._assignBlockReward();
-
-    // The BlockHeader properties are readonly so
-    // the block has to be recreated here...
-    await block.genTxTrie();
-
-    const header = BlockHeader.fromHeaderData({
-      ...block.toJSON().header,
-      gasUsed: toBuffer(blockGasLimit.sub(gasLeft)),
-      stateRoot: await this._stateManager.getStateRoot(),
-      bloom: bloom.bitvector,
-      receiptTrie: receiptTrie.root,
-      transactionsTrie: block.txTrie.root,
-    });
-
-    block = new Block(header, block.transactions, block.uncleHeaders, {
-      common: this._vm._common,
-    });
-
-    return {
-      block,
-      blockResult: {
-        results,
-        receipts,
-        stateRoot: block.header.stateRoot,
-        logsBloom: block.header.bloom,
-        receiptRoot: block.header.receiptTrie,
-        gasUsed: block.header.gasUsed,
-      },
-      traces,
+    const headerData = {
+      gasLimit: this.getBlockGasLimit(),
+      coinbase: this.getCoinbaseAddress(),
+      nonce: "0x0000000000000042",
+      timestamp: blockTimestamp,
     };
-  }
 
-  private async _runTx(
-    tx: Transaction,
-    block: Block,
-    gasLeft: BN,
-    shouldThrow: boolean
-  ): Promise<RunTxResult | null> {
-    const preRunStateRoot = await this._stateManager.getStateRoot();
+    const blockBuilder = await this._vm.buildBlock({
+      parentBlock,
+      headerData,
+      blockOpts: { calcDifficultyFromHeader: parentBlock.header },
+    });
+
     try {
-      const txGasLimit = new BN(tx.gasLimit);
-      if (txGasLimit.gt(gasLeft)) {
-        await this._stateManager.setStateRoot(preRunStateRoot);
-        return null;
+      const traces: GatherTracesResult[] = [];
+
+      const blockGasLimit = this.getBlockGasLimit();
+      const minTxFee = this._getMinimalTransactionFee();
+      const pendingTxs = this._txPool.getPendingTransactions();
+      const txHeap = new TxPriorityHeap(pendingTxs);
+
+      let tx = txHeap.peek();
+
+      const results = [];
+      const receipts = [];
+
+      while (
+        blockGasLimit.sub(blockBuilder.gasUsed).gte(minTxFee) &&
+        tx !== undefined
+      ) {
+        if (tx.gasLimit.gt(blockGasLimit.sub(blockBuilder.gasUsed))) {
+          txHeap.pop();
+        } else {
+          const txResult = await blockBuilder.addTransaction(tx);
+          const { txReceipt } = await generateTxReceipt.bind(this._vm)(
+            tx,
+            txResult,
+            blockBuilder.gasUsed
+          );
+
+          traces.push(await this._gatherTraces(txResult.execResult));
+          results.push(txResult);
+          receipts.push(txReceipt);
+
+          txHeap.shift();
+        }
+
+        tx = txHeap.peek();
       }
 
-      return this._vm.runTx({ tx, block, skipBlockGasLimitValidation: true });
+      // This workarounds a bug in BlockBuilder#build
+      // tslint:disable-next-line:no-string-literal
+      if (blockBuilder["checkpointed"] !== true) {
+        await this._vm.stateManager.checkpoint();
+      }
+
+      const block = await blockBuilder.build();
+
+      await this._txPool.updatePendingAndQueued();
+
+      return {
+        block,
+        blockResult: {
+          results,
+          receipts,
+          stateRoot: block.header.stateRoot,
+          logsBloom: block.header.bloom,
+          receiptRoot: block.header.receiptTrie,
+          gasUsed: block.header.gasUsed,
+        },
+        traces,
+      };
     } catch (err) {
-      if (shouldThrow) {
-        throw err;
-      }
-      return null;
+      await blockBuilder.revert();
+      throw err;
     }
-  }
-
-  private async _assignBlockReward() {
-    const minerAddress = this.getCoinbaseAddress();
-    const miner = await this._stateManager.getAccount(minerAddress);
-    const blockReward = this._getBlockReward();
-    miner.balance = miner.balance.add(blockReward);
-    await this._stateManager.putAccount(minerAddress, miner);
   }
 
   private _getMinimalTransactionFee(): BN {
     // Typically 21_000 gas
     return new BN(this._vm._common.param("gasPrices", "tx"));
-  }
-
-  private _getBlockReward(): BN {
-    return new BN(this._vm._common.param("pow", "minerReward"));
-  }
-
-  private _createReceipt(
-    txResult: RunTxResult,
-    cumulativeGasUsed: BN
-  ): TxReceipt {
-    return {
-      status: txResult.execResult.exceptionError === undefined ? 1 : 0, // Receipts have a 0 as status on error
-      gasUsed: toBuffer(cumulativeGasUsed),
-      bitvector: txResult.bloom.bitvector,
-      logs: txResult.execResult.logs ?? [],
-    };
   }
 
   private async _getFakeTransaction(
@@ -1288,30 +1240,6 @@ export class HardhatNode extends EventEmitter {
     return [blockTimestamp, offsetShouldChange, newOffset];
   }
 
-  private async _getNextBlockTemplate(timestamp: BN): Promise<Block> {
-    const latestBlock = await this.getLatestBlock();
-
-    const headerData = {
-      gasLimit: this.getBlockGasLimit(),
-      number: latestBlock.header.number.addn(1),
-      parentHash: latestBlock.hash(),
-      coinbase: this.getCoinbaseAddress(),
-      nonce: "0x0000000000000042",
-      timestamp,
-    };
-
-    const block = Block.fromBlockData(
-      {
-        header: {
-          ...headerData,
-        },
-      },
-      { common: this._vm._common, calcDifficultyFromHeader: latestBlock.header }
-    );
-
-    return block;
-  }
-
   private async _resetNextBlockTimestamp() {
     this.setNextBlockTimestamp(new BN(0));
   }
@@ -1339,13 +1267,16 @@ export class HardhatNode extends EventEmitter {
     return this._localAccounts.get(senderAddress)!;
   }
 
+  /**
+   * Saves a block as successfully run. This method requires that the block
+   * was added to the blockchain.
+   */
   private async _saveBlockAsSuccessfullyRun(
     block: Block,
     runBlockResult: RunBlockResult
   ) {
     const receipts = getRpcReceipts(block, runBlockResult);
 
-    await this._blockchain.putBlock(block);
     this._blockchain.addTransactionReceipts(receipts);
 
     const td = await this.getBlockTotalDifficulty(block);

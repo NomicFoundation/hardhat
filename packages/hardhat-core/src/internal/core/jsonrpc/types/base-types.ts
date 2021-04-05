@@ -126,18 +126,9 @@ function isRpcHashString(u: unknown): u is string {
 }
 
 function isRpcAddressString(u: unknown): u is string {
-  return typeof u === "string" && safeIsValidAddress(u);
+  return typeof u === "string" && isValidAddress(u);
 }
 
 function isInteger(num: unknown): num is number {
   return Number.isInteger(num);
-}
-
-function safeIsValidAddress(u: string) {
-  let isValid = false;
-  // This try catch should be here until this is released: https://github.com/ethereumjs/ethereumjs-monorepo/pull/1174
-  try {
-    isValid = isValidAddress(u);
-  } catch (e) {}
-  return isValid;
 }

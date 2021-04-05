@@ -1,7 +1,12 @@
 import { Block } from "@ethereumjs/block";
 import Common from "@ethereumjs/common";
 import { Transaction, TxData } from "@ethereumjs/tx";
-import { PostByzantiumTxReceipt } from "@ethereumjs/vm/dist/runBlock";
+import VM from "@ethereumjs/vm";
+import {
+  AfterBlockEvent,
+  PostByzantiumTxReceipt,
+  RunBlockOpts,
+} from "@ethereumjs/vm/dist/runBlock";
 import { assert } from "chai";
 import { Address, BN, bufferToHex } from "ethereumjs-util";
 import path from "path";
@@ -562,22 +567,20 @@ describe("HardhatNode", () => {
         chainId: 1,
         hardfork: "muirGlacier",
       },
-      // These are commented out until https://github.com/ethereumjs/ethereumjs-monorepo/pull/1158 gets released.
-      // Otherwise these tests fail because `runBlock` doesn't pass the Common to the new block it generates.
-      // {
-      //   networkName: "kovan",
-      //   url: (ALCHEMY_URL ?? "").replace("mainnet", "kovan"),
-      //   blockNumber: 23115226,
-      //   chainId: 42,
-      //   hardfork: "istanbul",
-      // },
-      // {
-      //   networkName: "rinkeby",
-      //   url: (ALCHEMY_URL ?? "").replace("mainnet", "rinkeby"),
-      //   blockNumber: 8004364,
-      //   chainId: 4,
-      //   hardfork: "istanbul",
-      // },
+      {
+        networkName: "kovan",
+        url: (ALCHEMY_URL ?? "").replace("mainnet", "kovan"),
+        blockNumber: 23115226,
+        chainId: 42,
+        hardfork: "istanbul",
+      },
+      {
+        networkName: "rinkeby",
+        url: (ALCHEMY_URL ?? "").replace("mainnet", "rinkeby"),
+        blockNumber: 8004364,
+        chainId: 4,
+        hardfork: "istanbul",
+      },
     ];
 
     for (const {
@@ -628,6 +631,7 @@ describe("HardhatNode", () => {
         block = Block.fromBlockData(
           {
             ...block,
+            // We wipe the receiptTrie just to be sure that it's not copied over
             header: { ...block.header, receiptTrie: Buffer.alloc(32, 0) },
           },
           { common }
@@ -635,29 +639,22 @@ describe("HardhatNode", () => {
 
         forkedNode["_vmTracer"].disableTracing();
 
-        const result = await forkedNode["_vm"].runBlock({
-          block,
-          generate: true,
-          skipBlockValidation: true,
-        });
-
-        // We do this because `generate` is incomplete. This can be removed once
-        // https://github.com/ethereumjs/ethereumjs-monorepo/pull/1158 is merged
-        const modifiedBlock = Block.fromBlockData(
+        const afterBlockEvent = await runBlockAndGetAfterBlockEvent(
+          forkedNode["_vm"],
           {
-            ...block,
-            header: {
-              ...block.header,
-              bloom: result.logsBloom,
-              stateRoot: result.stateRoot,
-              gasUsed: result.gasUsed,
-              receiptTrie: result.receiptRoot,
-            },
-          },
-          { common }
+            block,
+            generate: true,
+            skipBlockValidation: true,
+          }
         );
 
-        await forkedNode["_saveBlockAsSuccessfullyRun"](modifiedBlock, result);
+        const modifiedBlock = afterBlockEvent.block;
+
+        await forkedNode["_vm"].blockchain.putBlock(modifiedBlock);
+        await forkedNode["_saveBlockAsSuccessfullyRun"](
+          modifiedBlock,
+          afterBlockEvent
+        );
 
         const newBlock = await forkedNode.getBlockByNumber(
           new BN(blockNumber + 1)
@@ -681,8 +678,8 @@ describe("HardhatNode", () => {
               params: [txHash],
             })) as any;
 
-            const localReceipt = result.receipts[i];
-            const evmResult = result.results[i];
+            const localReceipt = afterBlockEvent.receipts[i];
+            const evmResult = afterBlockEvent.results[i];
 
             assert.equal(
               bufferToHex(localReceipt.bitvector),
@@ -721,3 +718,24 @@ describe("HardhatNode", () => {
     }
   });
 });
+
+async function runBlockAndGetAfterBlockEvent(
+  vm: VM,
+  runBlockOpts: RunBlockOpts
+): Promise<AfterBlockEvent> {
+  let results: AfterBlockEvent;
+  function handler(event: AfterBlockEvent) {
+    results = event;
+  }
+
+  try {
+    vm.once("afterBlock", handler);
+    await vm.runBlock(runBlockOpts);
+  } finally {
+    // We need this in case `runBlock` throws before emitting the event.
+    // Otherwise we'd be leaking the listener until the next call to runBlock.
+    vm.removeListener("afterBlock", handler);
+  }
+
+  return results!;
+}
