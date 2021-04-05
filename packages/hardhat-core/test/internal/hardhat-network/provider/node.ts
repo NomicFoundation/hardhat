@@ -563,21 +563,21 @@ describe("HardhatNode", () => {
       {
         networkName: "mainnet",
         url: ALCHEMY_URL,
-        blockNumber: 9300076,
+        blockNumber: 9300077,
         chainId: 1,
         hardfork: "muirGlacier",
       },
       {
         networkName: "kovan",
         url: (ALCHEMY_URL ?? "").replace("mainnet", "kovan"),
-        blockNumber: 23115226,
+        blockNumber: 23115227,
         chainId: 42,
         hardfork: "istanbul",
       },
       {
         networkName: "rinkeby",
         url: (ALCHEMY_URL ?? "").replace("mainnet", "rinkeby"),
-        blockNumber: 8004364,
+        blockNumber: 8004365,
         chainId: 4,
         hardfork: "istanbul",
       },
@@ -597,13 +597,13 @@ describe("HardhatNode", () => {
 
         const forkConfig = {
           jsonRpcUrl: url,
-          blockNumber,
+          blockNumber: blockNumber - 1,
         };
 
         const { forkClient } = await makeForkClient(forkConfig);
 
         const rpcBlock = await forkClient.getBlockByNumber(
-          new BN(blockNumber + 1),
+          new BN(blockNumber),
           true
         );
 
