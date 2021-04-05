@@ -30,6 +30,7 @@ import { CompilerInput, CompilerOutput } from "../../../types";
 import { HARDHAT_NETWORK_DEFAULT_GAS_PRICE } from "../../core/config/default-config";
 import { assertHardhatInvariant, HardhatError } from "../../core/errors";
 import {
+  InternalError,
   InvalidInputError,
   TransactionExecutionError,
 } from "../../core/providers/errors";
@@ -131,6 +132,13 @@ export class HardhatNode extends EventEmitter {
       } = await makeForkClient(config.forkConfig, config.forkCachePath);
       common = await makeForkCommon(config);
 
+      this._validateHardforks(
+        config.hardfork,
+        config.forkConfig.blockNumber,
+        common,
+        await forkClient.getNetworkId()
+      );
+
       const forkStateManager = new ForkStateManager(
         forkClient,
         forkBlockNumber
@@ -186,6 +194,40 @@ export class HardhatNode extends EventEmitter {
     );
 
     return [common, node];
+  }
+
+  private static _validateHardforks(
+    localHardfork: string,
+    forkBlockNumber: number | undefined,
+    common: Common,
+    remoteChainId: number
+  ): void {
+    if (!common.gteHardfork("spuriousDragon")) {
+      throw new InternalError(
+        `Invalid hardfork selected in Hardhat Network's config.
+
+The hard fork must be at least spuriousDragon, but ${localHardfork} was given.`
+      );
+    }
+
+    if (forkBlockNumber !== undefined) {
+      let upstreamCommon: Common;
+      try {
+        upstreamCommon = new Common({ chain: remoteChainId });
+      } catch (error) {
+        return;
+      }
+
+      upstreamCommon.setHardforkByBlockNumber(forkBlockNumber);
+
+      if (!upstreamCommon.gteHardfork("spuriousDragon")) {
+        throw new InternalError(
+          `Cannot fork ${upstreamCommon.chainName()} from block ${forkBlockNumber}.
+
+Hardhat Network's forking functionality only works with blocks from at least spuriousDragon.`
+        );
+      }
+    }
   }
 
   private readonly _localAccounts: Map<string, Buffer> = new Map(); // address => private key
