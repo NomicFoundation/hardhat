@@ -211,8 +211,7 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
             "istanbul"
           );
 
-    let transaction: TransactionT;
-    transaction = Transaction.fromTxData(txData, { common });
+    const transaction = Transaction.fromTxData(txData, { common });
 
     const signedTransaction = transaction.sign(privateKey);
 
