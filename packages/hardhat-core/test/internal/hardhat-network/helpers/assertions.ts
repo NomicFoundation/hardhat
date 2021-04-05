@@ -2,23 +2,23 @@ import { assert } from "chai";
 import { BN, bufferToHex } from "ethereumjs-util";
 
 import {
+  numberToRpcQuantity,
+  rpcQuantity,
+} from "../../../../src/internal/core/jsonrpc/types/base-types";
+import { RpcTransactionRequestInput } from "../../../../src/internal/core/jsonrpc/types/input/transactionRequest";
+import {
   InvalidArgumentsError,
   InvalidInputError,
   MethodNotSupportedError,
-} from "../../../../src/internal/hardhat-network/provider/errors";
-import {
-  rpcQuantity,
-  RpcTransactionRequestInput,
-} from "../../../../src/internal/hardhat-network/provider/input";
+} from "../../../../src/internal/core/providers/errors";
 import { TransactionParams } from "../../../../src/internal/hardhat-network/provider/node-types";
 import {
-  numberToRpcQuantity,
   RpcReceiptOutput,
   RpcTransactionOutput,
 } from "../../../../src/internal/hardhat-network/provider/output";
 import { EthereumProvider } from "../../../../src/types";
 
-export async function assertHardhatNetworkProviderError(
+export async function assertProviderError(
   provider: EthereumProvider,
   method: string,
   params: any[] = [],
@@ -49,7 +49,7 @@ export async function assertNotSupported(
   provider: EthereumProvider,
   method: string
 ) {
-  return assertHardhatNetworkProviderError(
+  return assertProviderError(
     provider,
     method,
     [],
@@ -64,7 +64,7 @@ export async function assertInvalidArgumentsError(
   params: any[] = [],
   message?: string
 ) {
-  return assertHardhatNetworkProviderError(
+  return assertProviderError(
     provider,
     method,
     params,
@@ -79,7 +79,7 @@ export async function assertInvalidInputError(
   params: any[] = [],
   message?: string
 ) {
-  return assertHardhatNetworkProviderError(
+  return assertProviderError(
     provider,
     method,
     params,

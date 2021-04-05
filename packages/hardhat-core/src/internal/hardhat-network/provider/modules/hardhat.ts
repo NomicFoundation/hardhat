@@ -6,16 +6,18 @@ import {
   CompilerInput,
   CompilerOutput,
 } from "../../../../types";
-import { MessageTrace } from "../../stack-traces/message-trace";
-import { MethodNotFoundError } from "../errors";
+import { rpcAddress } from "../../../core/jsonrpc/types/base-types";
 import {
   optionalRpcHardhatNetworkConfig,
-  rpcAddress,
+  RpcHardhatNetworkConfig,
+} from "../../../core/jsonrpc/types/input/hardhat-network";
+import {
   rpcCompilerInput,
   rpcCompilerOutput,
-  RpcHardhatNetworkConfig,
-  validateParams,
-} from "../input";
+} from "../../../core/jsonrpc/types/input/solc";
+import { validateParams } from "../../../core/jsonrpc/types/input/validation";
+import { MethodNotFoundError } from "../../../core/providers/errors";
+import { MessageTrace } from "../../stack-traces/message-trace";
 import { HardhatNode } from "../node";
 import { ForkConfig, MineBlockResult } from "../node-types";
 

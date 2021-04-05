@@ -4,11 +4,17 @@ import {
   PostByzantiumTxReceipt,
   RunBlockResult,
 } from "@ethereumjs/vm/dist/runBlock";
-import { BN, bufferToHex } from "ethereumjs-util";
+import { BN } from "ethereumjs-util";
 
 import { assertHardhatInvariant } from "../../core/errors";
-import { RpcLog, RpcTransactionReceipt } from "../jsonrpc/types";
+import {
+  bufferToRpcData,
+  numberToRpcQuantity,
+} from "../../core/jsonrpc/types/base-types";
+import { RpcLog } from "../../core/jsonrpc/types/output/log";
+import { RpcTransactionReceipt } from "../../core/jsonrpc/types/output/receipt";
 
+// TODO: These types should be moved to core, and probably inferred by io-ts
 export interface RpcBlockOutput {
   difficulty: string;
   extraData: string;
@@ -78,27 +84,6 @@ export interface RpcLogOutput {
 
 // tslint:disable only-hardhat-error
 
-export function numberToRpcQuantity(n: number | BN): string {
-  // This is here because we have some any's from dependencies
-  if (typeof n !== "number" && Buffer.isBuffer(n)) {
-    throw new Error(`Expected a number and got ${n}`);
-  }
-
-  if (Buffer.isBuffer(n)) {
-    n = new BN(n);
-  }
-
-  return `0x${n.toString(16)}`;
-}
-
-export function bufferToRpcData(buffer: Buffer, pad: number = 0): string {
-  let s = bufferToHex(buffer);
-  if (pad > 0 && s.length < pad + 2) {
-    s = `0x${"0".repeat(pad + 2 - s.length)}${s.slice(2)}`;
-  }
-  return s;
-}
-
 export function getRpcBlock(
   block: Block,
   totalDifficulty: BN,
@@ -115,8 +100,8 @@ export function getRpcBlock(
     parentHash: bufferToRpcData(block.header.parentHash),
     // We pad this to 8 bytes because of a limitation in The Graph
     // See: https://github.com/nomiclabs/hardhat/issues/491
-    nonce: pending ? null : bufferToRpcData(block.header.nonce, 16),
-    mixHash: pending ? null : bufferToRpcData(block.header.mixHash, 64),
+    nonce: pending ? null : bufferToRpcData(block.header.nonce, 8),
+    mixHash: pending ? null : bufferToRpcData(block.header.mixHash, 32),
     sha3Uncles: bufferToRpcData(block.header.uncleHash),
     logsBloom: pending ? null : bufferToRpcData(block.header.bloom),
     transactionsRoot: bufferToRpcData(block.header.transactionsTrie),

@@ -1,12 +1,14 @@
 import { assert } from "chai";
 import sinon from "sinon";
 
-import { numberToRpcQuantity } from "../../../../../src/internal/hardhat-network/provider/output";
+import {
+  numberToRpcQuantity,
+  rpcQuantityToNumber,
+} from "../../../../../src/internal/core/jsonrpc/types/base-types";
 import { ALCHEMY_URL } from "../../../../setup";
 import { workaroundWindowsCiFailures } from "../../../../utils/workaround-windows-ci-failures";
 import { assertInvalidArgumentsError } from "../../helpers/assertions";
 import { EMPTY_ACCOUNT_ADDRESS } from "../../helpers/constants";
-import { quantityToNumber } from "../../helpers/conversions";
 import { setCWD } from "../../helpers/cwd";
 import { DEFAULT_ACCOUNTS_ADDRESSES, PROVIDERS } from "../../helpers/providers";
 import { deployContract } from "../../helpers/transactions";
@@ -253,7 +255,7 @@ describe("Hardhat module", function () {
         }
 
         const getLatestBlockNumber = async () => {
-          return quantityToNumber(
+          return rpcQuantityToNumber(
             await this.ctx.provider.send("eth_blockNumber")
           );
         };

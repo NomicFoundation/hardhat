@@ -2,19 +2,16 @@ import { assert } from "chai";
 import { toBuffer } from "ethereumjs-util";
 import * as t from "io-ts";
 
-import { InvalidArgumentsError } from "../../../../src/internal/hardhat-network/provider/errors";
 import {
-  optionalBlockTag,
   rpcAddress,
   rpcHash,
   rpcQuantity,
-  validateParams,
-} from "../../../../src/internal/hardhat-network/provider/input";
-import { setCWD } from "../helpers/cwd";
+} from "../../../../../../src/internal/core/jsonrpc/types/base-types";
+import { optionalRpcNewBlockTag } from "../../../../../../src/internal/core/jsonrpc/types/input/blockTag";
+import { validateParams } from "../../../../../../src/internal/core/jsonrpc/types/input/validation";
+import { InvalidArgumentsError } from "../../../../../../src/internal/core/providers/errors";
 
 describe("validateParams", function () {
-  setCWD();
-
   describe("0-arguments", function () {
     it("Should return an empty array if no argument is given", function () {
       assert.deepEqual(validateParams([]), []);
@@ -82,7 +79,7 @@ describe("validateParams", function () {
   describe("Optional params", function () {
     it("Should fail if less than the minimum number of params are received", function () {
       assert.throws(
-        () => validateParams([], rpcHash, optionalBlockTag),
+        () => validateParams([], rpcHash, optionalRpcNewBlockTag),
         InvalidArgumentsError
       );
     });
@@ -97,7 +94,7 @@ describe("validateParams", function () {
               123,
             ],
             rpcHash,
-            optionalBlockTag
+            optionalRpcNewBlockTag
           ),
         InvalidArgumentsError
       );
@@ -110,7 +107,7 @@ describe("validateParams", function () {
             "0x0000000000000000000000000000000000000000000000000000000000000001",
           ],
           rpcHash,
-          optionalBlockTag
+          optionalRpcNewBlockTag
         ),
         [
           toBuffer(
@@ -124,7 +121,7 @@ describe("validateParams", function () {
         validateParams(
           ["0x1111111111111111111111111111111111111111"],
           rpcAddress,
-          optionalBlockTag
+          optionalRpcNewBlockTag
         ),
         [toBuffer("0x1111111111111111111111111111111111111111"), undefined]
       );

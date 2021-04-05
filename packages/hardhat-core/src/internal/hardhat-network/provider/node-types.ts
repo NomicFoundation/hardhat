@@ -44,7 +44,7 @@ export interface GenesisAccount {
 }
 
 export interface CallParams {
-  to: Buffer;
+  to?: Buffer;
   from: Buffer;
   gasLimit: BN;
   gasPrice: BN;
@@ -54,7 +54,7 @@ export interface CallParams {
 
 export interface TransactionParams {
   // `to` should be undefined for contract creation
-  to: Buffer | undefined;
+  to?: Buffer;
   from: Buffer;
   gasLimit: BN;
   gasPrice: BN;

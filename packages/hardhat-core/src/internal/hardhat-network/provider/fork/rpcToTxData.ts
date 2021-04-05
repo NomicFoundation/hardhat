@@ -1,6 +1,6 @@
 import { TxData } from "@ethereumjs/tx";
 
-import { RpcTransaction } from "../../jsonrpc/types";
+import { RpcTransaction } from "../../../core/jsonrpc/types/output/transaction";
 
 export function rpcToTxData(rpcTransaction: RpcTransaction): TxData {
   return {

@@ -6,6 +6,7 @@ import { BN, bufferToHex } from "ethereumjs-util";
 import util from "util";
 
 import { assertHardhatInvariant } from "../../../core/errors";
+import { TransactionExecutionError } from "../../../core/providers/errors";
 import { weiToHumanReadableString } from "../../../util/wei-values";
 import {
   isCreateTrace,
@@ -20,7 +21,6 @@ import {
   UNRECOGNIZED_CONTRACT_NAME,
   UNRECOGNIZED_FUNCTION_NAME,
 } from "../../stack-traces/solidity-stack-trace";
-import { TransactionExecutionError } from "../errors";
 import {
   CallParams,
   GatherTracesResult,
@@ -264,7 +264,7 @@ export class ModulesLogger {
   }
 
   public logEstimateGasTrace(
-    txParams: TransactionParams,
+    callParams: CallParams,
     code: Buffer,
     trace: MessageTrace | undefined,
     consoleLogMessages: string[],
@@ -275,9 +275,9 @@ export class ModulesLogger {
         printNonContractCalled: true,
       });
 
-      this._logTxFrom(txParams.from);
-      this._logTxTo(txParams.to, trace);
-      this._logTxValue(new BN(txParams.value));
+      this._logTxFrom(callParams.from);
+      this._logTxTo(callParams.to, trace);
+      this._logTxValue(new BN(callParams.value));
 
       this._logConsoleLogMessages(consoleLogMessages);
 

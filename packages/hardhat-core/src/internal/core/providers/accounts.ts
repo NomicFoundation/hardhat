@@ -1,8 +1,20 @@
 import { Transaction as TransactionT } from "@ethereumjs/tx";
+import { BN } from "ethereumjs-util";
+import * as t from "io-ts";
 
 import { EIP1193Provider, RequestArguments } from "../../../types";
 import { HardhatError } from "../errors";
 import { ERRORS } from "../errors-list";
+import {
+  rpcAddress,
+  rpcData,
+  rpcQuantityToBN,
+} from "../jsonrpc/types/base-types";
+import {
+  RpcTransactionRequest,
+  rpcTransactionRequest,
+} from "../jsonrpc/types/input/transactionRequest";
+import { validateParams } from "../jsonrpc/types/input/validation";
 
 import { ProviderWrapperWithChainId } from "./chainId";
 import { derivePrivateKeys } from "./util";
@@ -53,22 +65,24 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
     const params = this._getParams(args);
 
     if (args.method === "eth_sign") {
-      const [address, data] = params;
+      if (params.length > 0) {
+        const [address, data] = validateParams(params, rpcAddress, rpcData);
 
-      if (address !== undefined) {
-        if (data === undefined) {
-          throw new HardhatError(ERRORS.NETWORK.ETHSIGN_MISSING_DATA_PARAM);
+        if (address !== undefined) {
+          if (data === undefined) {
+            throw new HardhatError(ERRORS.NETWORK.ETHSIGN_MISSING_DATA_PARAM);
+          }
+
+          const privateKey = this._getPrivateKeyForAddress(address);
+          const messageHash = hashPersonalMessage(toBuffer(data));
+          const signature = ecsign(messageHash, privateKey);
+          return toRpcSig(signature.v, signature.r, signature.s);
         }
-
-        const privateKey = this._getPrivateKeyForAddress(address);
-        const messageHash = hashPersonalMessage(toBuffer(data));
-        const signature = ecsign(messageHash, privateKey);
-        return toRpcSig(signature.v, signature.r, signature.s);
       }
     }
 
     if (args.method === "eth_signTypedData") {
-      const [address, data] = params;
+      const [address, data] = validateParams(params, rpcAddress, t.any);
 
       if (address !== undefined) {
         if (data === undefined) {
@@ -83,39 +97,39 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
     }
 
     if (args.method === "eth_sendTransaction" && params.length > 0) {
-      const tx: JsonRpcTransactionData = params[0];
+      const [txRequest] = validateParams(params, rpcTransactionRequest);
 
-      if (tx.gas === undefined) {
+      if (txRequest.gas === undefined) {
         throw new HardhatError(
           ERRORS.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY,
           { param: "gas" }
         );
       }
 
-      if (tx.from === undefined) {
+      if (txRequest.from === undefined) {
         throw new HardhatError(
           ERRORS.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY,
           { param: "from" }
         );
       }
 
-      if (tx.gasPrice === undefined) {
+      if (txRequest.gasPrice === undefined) {
         throw new HardhatError(
           ERRORS.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY,
           { param: "gasPrice" }
         );
       }
 
-      if (tx.nonce === undefined) {
-        tx.nonce = await this._getNonceAsQuantity(tx.from);
+      if (txRequest.nonce === undefined) {
+        txRequest.nonce = await this._getNonce(txRequest.from);
       }
 
-      const privateKey = this._getPrivateKeyForAddress(tx.from!);
+      const privateKey = this._getPrivateKeyForAddress(txRequest.from!);
 
       const chainId = await this._getChainId();
 
       const rawTransaction = await this._getSignedTransaction(
-        tx,
+        txRequest,
         chainId,
         privateKey
       );
@@ -146,57 +160,58 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
     }
   }
 
-  private _getPrivateKeyForAddress(address: string): Buffer {
-    const pk = this._addressToPrivateKey.get(address.toLowerCase());
+  private _getPrivateKeyForAddress(address: Buffer): Buffer {
+    const { bufferToHex } = require("ethereumjs-util");
+    const pk = this._addressToPrivateKey.get(bufferToHex(address));
     if (pk === undefined) {
       throw new HardhatError(ERRORS.NETWORK.NOT_LOCAL_ACCOUNT, {
-        account: address,
+        account: bufferToHex(address),
       });
     }
 
     return pk;
   }
 
-  private async _getNonceAsQuantity(address: string): Promise<string> {
-    return (await this._wrappedProvider.request({
+  private async _getNonce(address: Buffer): Promise<BN> {
+    const { bufferToHex } = await import("ethereumjs-util");
+
+    const response = (await this._wrappedProvider.request({
       method: "eth_getTransactionCount",
-      params: [address, "pending"],
+      params: [bufferToHex(address), "pending"],
     })) as string;
+
+    return rpcQuantityToBN(response);
   }
 
   private async _getSignedTransaction(
-    jsonRpcTransactionData: JsonRpcTransactionData,
+    transactionRequest: RpcTransactionRequest,
     chainId: number,
     privateKey: Buffer
   ): Promise<Buffer> {
     const chains = await import("@ethereumjs/common/dist/chains");
 
     const { Transaction } = await import("@ethereumjs/tx");
-    let transaction: TransactionT;
 
     const { default: Common } = await import("@ethereumjs/common");
 
     const txData = {
-      ...jsonRpcTransactionData,
-      gasLimit: jsonRpcTransactionData.gas,
+      ...transactionRequest,
+      gasLimit: transactionRequest.gas,
     };
 
-    if (chains.chains.names[chainId] !== undefined) {
-      transaction = Transaction.fromTxData(txData, {
-        common: new Common({ chain: chainId }),
-      });
-    } else {
-      const common = Common.forCustomChain(
-        "mainnet",
-        {
-          chainId,
-          networkId: chainId,
-        },
-        "istanbul"
-      );
+    const common =
+      chains.chains.names[chainId] !== undefined
+        ? new Common({ chain: chainId })
+        : Common.forCustomChain(
+            "mainnet",
+            {
+              chainId,
+              networkId: chainId,
+            },
+            "istanbul"
+          );
 
-      transaction = Transaction.fromTxData(txData, { common });
-    }
+    const transaction = Transaction.fromTxData(txData, { common });
 
     const signedTransaction = transaction.sign(privateKey);
 
@@ -235,6 +250,7 @@ abstract class SenderProvider extends ProviderWrapper {
       method === "eth_call" ||
       method === "eth_estimateGas"
     ) {
+      // TODO: Should we validate this type?
       const tx: JsonRpcTransactionData = params[0];
 
       if (tx !== undefined && tx.from === undefined) {

@@ -2,11 +2,14 @@ import chalk from "chalk";
 import { BN, toBuffer } from "ethereumjs-util";
 
 import { HARDHAT_NETWORK_NAME } from "../../../constants";
+import {
+  numberToRpcQuantity,
+  rpcQuantityToNumber,
+} from "../../../core/jsonrpc/types/base-types";
 import { HttpProvider } from "../../../core/providers/http";
-import { rpcQuantityToNumber } from "../../../core/providers/provider-utils";
 import { JsonRpcClient } from "../../jsonrpc/client";
 import { ForkConfig } from "../node-types";
-import { numberToRpcQuantity, RpcBlockOutput } from "../output";
+import { RpcBlockOutput } from "../output";
 
 import {
   FALLBACK_MAX_REORG,

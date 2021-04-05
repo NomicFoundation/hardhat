@@ -1,9 +1,9 @@
 import { Transaction } from "@ethereumjs/tx";
 import { bufferToHex, toBuffer, zeroAddress } from "ethereumjs-util";
 
-import { RpcTransactionRequestInput } from "../../../../src/internal/hardhat-network/provider/input";
+import { numberToRpcQuantity } from "../../../../src/internal/core/jsonrpc/types/base-types";
+import { RpcTransactionRequestInput } from "../../../../src/internal/core/jsonrpc/types/input/transactionRequest";
 import { TransactionParams } from "../../../../src/internal/hardhat-network/provider/node-types";
-import { numberToRpcQuantity } from "../../../../src/internal/hardhat-network/provider/output";
 import { HardhatNetworkProvider } from "../../../../src/internal/hardhat-network/provider/provider";
 import { EthereumProvider } from "../../../../src/types";
 

@@ -4,9 +4,13 @@ import { BN, bufferToHex, toBuffer } from "ethereumjs-util";
 import { Contract, utils, Wallet } from "ethers";
 import fsExtra from "fs-extra";
 
-import { rpcQuantityToNumber } from "../../../../src/internal/core/providers/provider-utils";
-import { InvalidInputError } from "../../../../src/internal/hardhat-network/provider/errors";
-import { numberToRpcQuantity } from "../../../../src/internal/hardhat-network/provider/output";
+import {
+  numberToRpcQuantity,
+  rpcDataToBN,
+  rpcQuantityToBN,
+  rpcQuantityToNumber,
+} from "../../../../src/internal/core/jsonrpc/types/base-types";
+import { InvalidInputError } from "../../../../src/internal/core/providers/errors";
 import { ALCHEMY_URL } from "../../../setup";
 import { workaroundWindowsCiFailures } from "../../../utils/workaround-windows-ci-failures";
 import {
@@ -23,11 +27,6 @@ import {
   WETH_ADDRESS,
 } from "../helpers/constants";
 import { EXAMPLE_CONTRACT } from "../helpers/contracts";
-import {
-  dataToBN,
-  quantityToBN,
-  quantityToNumber,
-} from "../helpers/conversions";
 import { setCWD } from "../helpers/cwd";
 import { EthersProviderWrapper } from "../helpers/ethers-provider-wrapper";
 import { hexStripZeros } from "../helpers/hexStripZeros";
@@ -65,7 +64,7 @@ describe("Forked provider", function () {
         it("returns the current block number", async function () {
           const blockNumber = await this.provider.send("eth_blockNumber");
           const minBlockNumber = 10494745; // mainnet block number at 20.07.2020
-          assert.isAtLeast(quantityToNumber(blockNumber), minBlockNumber);
+          assert.isAtLeast(rpcQuantityToNumber(blockNumber), minBlockNumber);
         });
       });
 
@@ -135,7 +134,7 @@ describe("Forked provider", function () {
                 const balanceOfSelector = `0x70a08231${leftPad32(
                   BITFINEX_WALLET_ADDRESS.toString()
                 )}`;
-                return dataToBN(
+                return rpcDataToBN(
                   await this.provider.send("eth_call", [
                     { to: WETH_ADDRESS.toString(), data: balanceOfSelector },
                   ])
@@ -195,7 +194,7 @@ describe("Forked provider", function () {
               const balance = await this.provider.send("eth_getBalance", [
                 EMPTY_ACCOUNT_ADDRESS.toString(),
               ]);
-              assert.equal(quantityToNumber(balance), 123);
+              assert.equal(rpcQuantityToNumber(balance), 123);
             });
           });
         });
@@ -206,7 +205,7 @@ describe("Forked provider", function () {
           const result = await this.provider.send("eth_getBalance", [
             WETH_ADDRESS.toString(),
           ]);
-          assert.isTrue(quantityToBN(result).gtn(0));
+          assert.isTrue(rpcQuantityToBN(result).gtn(0));
         });
       });
 
@@ -215,7 +214,7 @@ describe("Forked provider", function () {
           const result = await this.provider.send("eth_getBalance", [
             BITFINEX_WALLET_ADDRESS.toString(),
           ]);
-          const initialBalance = quantityToBN(result);
+          const initialBalance = rpcQuantityToBN(result);
           await this.provider.send("eth_sendTransaction", [
             {
               from: DEFAULT_ACCOUNTS_ADDRESSES[0],
@@ -237,7 +236,7 @@ describe("Forked provider", function () {
           )}`;
 
           const getWrappedBalance = async () =>
-            dataToBN(
+            rpcDataToBN(
               await this.provider.send("eth_call", [
                 { to: WETH_ADDRESS.toString(), data: wethBalanceOfSelector },
               ])
@@ -317,7 +316,7 @@ describe("Forked provider", function () {
             [account]
           );
 
-          assert.isTrue(quantityToBN(transactionCount).gtn(0));
+          assert.isTrue(rpcQuantityToBN(transactionCount).gtn(0));
         });
       });
 

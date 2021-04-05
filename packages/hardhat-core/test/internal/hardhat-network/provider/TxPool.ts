@@ -3,7 +3,7 @@ import StateManager from "@ethereumjs/vm/dist/state/stateManager";
 import { assert } from "chai";
 import { Account, Address, BN, bufferToHex, toBuffer } from "ethereumjs-util";
 
-import { InvalidInputError } from "../../../../src/internal/hardhat-network/provider/errors";
+import { InvalidInputError } from "../../../../src/internal/core/providers/errors";
 import {
   randomAddress,
   randomAddressBuffer,

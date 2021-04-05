@@ -14,15 +14,15 @@ import type {
   RequestArguments,
 } from "../../../types";
 import { HARDHAT_NETWORK_RESET_EVENT } from "../../constants";
-import { FIRST_SOLC_VERSION_SUPPORTED } from "../stack-traces/solidityTracer";
-import { Mutex } from "../vendor/await-semaphore";
-
 import {
-  HardhatNetworkProviderError,
   InvalidInputError,
   MethodNotFoundError,
   MethodNotSupportedError,
-} from "./errors";
+  ProviderError,
+} from "../../core/providers/errors";
+import { FIRST_SOLC_VERSION_SUPPORTED } from "../stack-traces/solidityTracer";
+import { Mutex } from "../vendor/await-semaphore";
+
 import { MiningTimer } from "./MiningTimer";
 import { EthModule } from "./modules/eth";
 import { EvmModule } from "./modules/evm";
@@ -146,7 +146,7 @@ export class HardhatNetworkProvider extends EventEmitter
       this._logger.printLogs();
 
       if (!this._logger.isLoggedError(err)) {
-        if (err instanceof HardhatNetworkProviderError) {
+        if (ProviderError.isProviderError(err)) {
           this._logger.printEmptyLine();
           this._logger.printErrorMessage(err.message);
 
