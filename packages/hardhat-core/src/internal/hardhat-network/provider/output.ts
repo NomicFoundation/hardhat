@@ -64,10 +64,15 @@ export interface RpcReceiptOutput {
   gasUsed: string;
   logs: RpcLogOutput[];
   logsBloom: string;
-  status: string;
   to: string | null;
   transactionHash: string;
   transactionIndex: string;
+
+  // Only present after Byzantium
+  status?: string;
+
+  // Only present before Byzantium
+  root?: string;
 }
 
 export interface RpcLogOutput {
@@ -182,7 +187,7 @@ export function getRpcReceipts(
       getRpcLogOutput(log, tx, block, i, logIndex)
     );
 
-    receipts.push({
+    const rpcReceipt: RpcReceiptOutput = {
       transactionHash: bufferToRpcData(tx.hash()),
       transactionIndex: numberToRpcQuantity(i),
       blockHash: bufferToRpcData(block.hash()),
@@ -197,8 +202,15 @@ export function getRpcReceipts(
           : null,
       logs,
       logsBloom: bufferToRpcData(receipt.bitvector),
-      status: numberToRpcQuantity((receipt as PostByzantiumTxReceipt)?.status),
-    });
+    };
+
+    if ("stateRoot" in receipt) {
+      rpcReceipt.root = bufferToRpcData(receipt.stateRoot);
+    } else {
+      rpcReceipt.status = numberToRpcQuantity(receipt.status);
+    }
+
+    receipts.push(rpcReceipt);
   }
 
   return receipts;
