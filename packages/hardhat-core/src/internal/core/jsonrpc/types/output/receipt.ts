@@ -1,6 +1,6 @@
 import * as t from "io-ts";
 
-import { nullable } from "../../../../util/io-ts";
+import { nullable, optional } from "../../../../util/io-ts";
 import { rpcAddress, rpcData, rpcHash, rpcQuantity } from "../base-types";
 
 import { rpcLog } from "./log";
@@ -19,7 +19,8 @@ export const rpcTransactionReceipt = t.type(
     contractAddress: nullable(rpcAddress),
     logs: t.array(rpcLog, "RpcLog Array"),
     logsBloom: rpcData,
-    status: rpcQuantity,
+    status: optional(nullable(rpcQuantity)),
+    root: optional(rpcData),
   },
   "RpcTransactionReceipt"
 );

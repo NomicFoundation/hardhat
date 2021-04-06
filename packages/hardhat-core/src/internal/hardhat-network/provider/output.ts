@@ -5,6 +5,7 @@ import {
   RunBlockResult,
 } from "@ethereumjs/vm/dist/runBlock";
 import { BN } from "ethereumjs-util";
+import { date } from "fp-ts";
 
 import { assertHardhatInvariant } from "../../core/errors";
 import {
@@ -231,7 +232,11 @@ export function toRpcReceiptOutput(
     gasUsed: numberToRpcQuantity(receipt.gasUsed),
     logs: receipt.logs.map(toRpcLogOutput),
     logsBloom: bufferToRpcData(receipt.logsBloom),
-    status: numberToRpcQuantity(receipt.status),
+    status:
+      receipt.status !== undefined && receipt.status !== null
+        ? numberToRpcQuantity(receipt.status)
+        : undefined,
+    root: receipt.root ? bufferToRpcData(receipt.root) : undefined,
     to: receipt.to !== null ? bufferToRpcData(receipt.to) : null,
     transactionHash: bufferToRpcData(receipt.transactionHash),
     transactionIndex: numberToRpcQuantity(receipt.transactionIndex),
