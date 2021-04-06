@@ -206,7 +206,7 @@ export class HardhatNode extends EventEmitter {
       throw new InternalError(
         `Invalid hardfork selected in Hardhat Network's config.
 
-The hard fork must be at least spuriousDragon, but ${localHardfork} was given.`
+The hardfork must be at least spuriousDragon, but ${localHardfork} was given.`
       );
     }
 
