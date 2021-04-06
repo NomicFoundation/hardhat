@@ -37,15 +37,10 @@ import {
 
 // tslint:disable no-string-literal
 
-interface ForkPoint {
+interface ForkedBlock {
   networkName: string;
   url?: string;
-  /**
-   * Fork block number.
-   * This is the last observable block from the remote blockchain.
-   * Later blocks are all constructed by Hardhat Network.
-   */
-  blockNumber: number;
+  blockToRun: number;
   chainId: number;
   hardfork: "istanbul" | "muirGlacier" | "berlin";
 }
@@ -552,39 +547,32 @@ describe("HardhatNode", () => {
 
   describe("full block", function () {
     this.timeout(120000);
-    // Note that here `blockNumber` is the number of the forked block, not the number of the "simulated" block.
-    // Tests are written to fork this block and execute all transactions of the block following the forked block.
-    // This means that if the forked block number is 9300076, what the test will do is:
-    //   - setup a forked blockchain based on block 9300076
-    //   - fetch all transactions from 9300077
-    //   - create a new block with them
-    //   - execute the whole block and save it with the rest of the blockchain
-    const forkPoints: ForkPoint[] = [
+    const forkedBlocks: ForkedBlock[] = [
       {
         networkName: "mainnet",
         url: ALCHEMY_URL,
-        blockNumber: 9300077,
+        blockToRun: 9300077,
         chainId: 1,
         hardfork: "muirGlacier",
       },
       {
         networkName: "kovan",
         url: (ALCHEMY_URL ?? "").replace("mainnet", "kovan"),
-        blockNumber: 23115227,
+        blockToRun: 23115227,
         chainId: 42,
         hardfork: "istanbul",
       },
       {
         networkName: "rinkeby",
         url: (ALCHEMY_URL ?? "").replace("mainnet", "rinkeby"),
-        blockNumber: 8004365,
+        blockToRun: 8004365,
         chainId: 4,
         hardfork: "istanbul",
       },
       {
         networkName: "ropsten",
         url: (ALCHEMY_URL ?? "").replace("mainnet", "ropsten"),
-        blockNumber: 9812365, // this block has a EIP-2930 tx
+        blockToRun: 9812365, // this block has a EIP-2930 tx
         chainId: 3,
         hardfork: "berlin",
       },
@@ -592,11 +580,11 @@ describe("HardhatNode", () => {
 
     for (const {
       url,
-      blockNumber,
+      blockToRun,
       networkName,
       chainId,
       hardfork,
-    } of forkPoints) {
+    } of forkedBlocks) {
       it(`should run a ${networkName} block and produce the same results`, async function () {
         if (url === undefined || url === "") {
           this.skip();
@@ -604,13 +592,13 @@ describe("HardhatNode", () => {
 
         const forkConfig = {
           jsonRpcUrl: url,
-          blockNumber: blockNumber - 1,
+          blockNumber: blockToRun - 1,
         };
 
         const { forkClient } = await makeForkClient(forkConfig);
 
         const rpcBlock = await forkClient.getBlockByNumber(
-          new BN(blockNumber),
+          new BN(blockToRun),
           true
         );
 
@@ -663,7 +651,7 @@ describe("HardhatNode", () => {
         await forkedNode["_vm"].blockchain.putBlock(block);
         await forkedNode["_saveBlockAsSuccessfullyRun"](block, afterBlockEvent);
 
-        const newBlock = await forkedNode.getBlockByNumber(new BN(blockNumber));
+        const newBlock = await forkedNode.getBlockByNumber(new BN(blockToRun));
 
         if (newBlock === undefined) {
           assert.fail();
