@@ -47,7 +47,7 @@ interface ForkPoint {
    */
   blockNumber: number;
   chainId: number;
-  hardfork: "istanbul" | "muirGlacier";
+  hardfork: "istanbul" | "muirGlacier" | "berlin";
 }
 
 describe("HardhatNode", () => {
@@ -582,6 +582,13 @@ describe("HardhatNode", () => {
         chainId: 4,
         hardfork: "istanbul",
       },
+      {
+        networkName: "ropsten",
+        url: (ALCHEMY_URL ?? "").replace("mainnet", "ropsten"),
+        blockNumber: 9812365, // this block has a EIP-2930 tx
+        chainId: 3,
+        hardfork: "berlin",
+      },
     ];
 
     for (const {
@@ -627,16 +634,13 @@ describe("HardhatNode", () => {
 
         const [common, forkedNode] = await HardhatNode.create(forkedNodeConfig);
 
-        let block = Block.fromBlockData(rpcToBlockData(rpcBlock), { common });
+        const block = Block.fromBlockData(rpcToBlockData(rpcBlock), {
+          common,
+          freeze: false,
+        });
 
-        block = Block.fromBlockData(
-          {
-            ...block,
-            // We wipe the receiptTrie just to be sure that it's not copied over
-            header: { ...block.header, receiptTrie: Buffer.alloc(32, 0) },
-          },
-          { common }
-        );
+        // We wipe the receiptTrie just to be sure that it's not copied over
+        (block as any).header.receiptTrie = Buffer.alloc(32, 0);
 
         forkedNode["_vmTracer"].disableTracing();
 
@@ -651,15 +655,15 @@ describe("HardhatNode", () => {
 
         const modifiedBlock = afterBlockEvent.block;
 
-        await forkedNode["_vm"].blockchain.putBlock(modifiedBlock);
-        await forkedNode["_saveBlockAsSuccessfullyRun"](
-          modifiedBlock,
-          afterBlockEvent
-        );
+        // Restore the receipt trie
+        (block as any).header.receiptTrie = modifiedBlock.header.receiptTrie;
 
-        const newBlock = await forkedNode.getBlockByNumber(
-          new BN(blockNumber + 1)
-        );
+        // TODO we should use modifiedBlock instead of block here,
+        // but we can't because of a bug in the vm
+        await forkedNode["_vm"].blockchain.putBlock(block);
+        await forkedNode["_saveBlockAsSuccessfullyRun"](block, afterBlockEvent);
+
+        const newBlock = await forkedNode.getBlockByNumber(new BN(blockNumber));
 
         if (newBlock === undefined) {
           assert.fail();
