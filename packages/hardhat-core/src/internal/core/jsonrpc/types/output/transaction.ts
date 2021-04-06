@@ -3,6 +3,13 @@ import * as t from "io-ts";
 import { nullable, optional } from "../../../../util/io-ts";
 import { rpcAddress, rpcData, rpcHash, rpcQuantity } from "../base-types";
 
+const rpcAccessListItem = t.type({
+  address: rpcData,
+  storageKeys: t.array(rpcData),
+});
+
+export const rpcAccessList = t.array(rpcAccessListItem);
+
 export type RpcTransaction = t.TypeOf<typeof rpcTransaction>;
 export const rpcTransaction = t.type(
   {
@@ -21,6 +28,11 @@ export const rpcTransaction = t.type(
     v: rpcQuantity,
     r: rpcQuantity,
     s: rpcQuantity,
+
+    // EIP-2929/2930 properties
+    type: optional(rpcQuantity),
+    chainId: optional(rpcQuantity),
+    accessList: optional(rpcAccessList),
   },
   "RpcTransaction"
 );
