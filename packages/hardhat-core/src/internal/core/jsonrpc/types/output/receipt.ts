@@ -21,6 +21,7 @@ export const rpcTransactionReceipt = t.type(
     logsBloom: rpcData,
     status: optional(nullable(rpcQuantity)),
     root: optional(rpcData),
+    type: optional(rpcQuantity),
   },
   "RpcTransactionReceipt"
 );

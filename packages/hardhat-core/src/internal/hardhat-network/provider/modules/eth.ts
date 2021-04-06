@@ -78,6 +78,7 @@ import {
   RpcLogOutput,
   RpcReceiptOutput,
   RpcTransactionOutput,
+  shouldShowTransactionTypeForHardfork,
 } from "../output";
 
 import { ModulesLogger } from "./logger";
@@ -486,7 +487,12 @@ export class EthModule {
 
     const totalDifficulty = await this._node.getBlockTotalDifficulty(block);
 
-    return getRpcBlock(block, totalDifficulty, includeTransactions);
+    return getRpcBlock(
+      block,
+      totalDifficulty,
+      shouldShowTransactionTypeForHardfork(this._common),
+      includeTransactions
+    );
   }
 
   // eth_getBlockByNumber
@@ -524,6 +530,7 @@ export class EthModule {
     return getRpcBlock(
       block,
       totalDifficulty,
+      shouldShowTransactionTypeForHardfork(this._common),
       includeTransactions,
       numberOrPending === "pending"
     );
@@ -723,7 +730,12 @@ export class EthModule {
       return null;
     }
 
-    return getRpcTransaction(tx, block, i);
+    return getRpcTransaction(
+      tx,
+      shouldShowTransactionTypeForHardfork(this._common),
+      block,
+      i
+    );
   }
 
   // eth_getTransactionByBlockNumberAndIndex
@@ -755,9 +767,13 @@ export class EthModule {
       return null;
     }
 
+    const showTransactionType = shouldShowTransactionTypeForHardfork(
+      this._common
+    );
+
     return numberOrPending === "pending"
-      ? getRpcTransaction(tx, "pending")
-      : getRpcTransaction(tx, block, i);
+      ? getRpcTransaction(tx, showTransactionType, "pending")
+      : getRpcTransaction(tx, showTransactionType, block, i);
   }
 
   // eth_getTransactionByHash
@@ -771,7 +787,11 @@ export class EthModule {
   ): Promise<RpcTransactionOutput | null> {
     const pendingTx = await this._node.getPendingTransaction(hash);
     if (pendingTx !== undefined) {
-      return getRpcTransaction(pendingTx, "pending");
+      return getRpcTransaction(
+        pendingTx,
+        shouldShowTransactionTypeForHardfork(this._common),
+        "pending"
+      );
     }
 
     const block = await this._node.getBlockByTransactionHash(hash);
@@ -789,7 +809,12 @@ export class EthModule {
       );
     }
 
-    return getRpcTransaction(tx, block, index);
+    return getRpcTransaction(
+      tx,
+      shouldShowTransactionTypeForHardfork(this._common),
+      block,
+      index
+    );
   }
 
   // eth_getTransactionCount
@@ -902,7 +927,13 @@ export class EthModule {
 
   private async _pendingTransactionsAction(): Promise<RpcTransactionOutput[]> {
     const txs = await this._node.getPendingTransactions();
-    return txs.map((tx) => getRpcTransaction(tx, "pending"));
+    return txs.map((tx) =>
+      getRpcTransaction(
+        tx,
+        shouldShowTransactionTypeForHardfork(this._common),
+        "pending"
+      )
+    );
   }
 
   // eth_protocolVersion
