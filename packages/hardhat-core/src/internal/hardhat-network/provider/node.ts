@@ -1087,7 +1087,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       //
       // IMPORTANT: this workaround only works because while BlockBuilder#addTransaction
       // recreates the transactions you pass it, it actually runs yours.
-      block.transactions.splice(0, transactions.length);
+      block.transactions.splice(0);
       block.transactions.push(...transactions);
 
       await this._txPool.updatePendingAndQueued();
