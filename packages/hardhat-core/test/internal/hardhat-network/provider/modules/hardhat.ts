@@ -10,7 +10,6 @@ import { ALCHEMY_URL } from "../../../../setup";
 import { workaroundWindowsCiFailures } from "../../../../utils/workaround-windows-ci-failures";
 import { assertInvalidArgumentsError } from "../../helpers/assertions";
 import { EMPTY_ACCOUNT_ADDRESS } from "../../helpers/constants";
-import { MSG_SENDER_RETURNER } from "../../helpers/contracts";
 import { setCWD } from "../../helpers/cwd";
 import { DEFAULT_ACCOUNTS_ADDRESSES, PROVIDERS } from "../../helpers/providers";
 import { deployContract } from "../../helpers/transactions";
