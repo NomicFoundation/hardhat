@@ -81,9 +81,10 @@ import {
 } from "./node-types";
 import {
   getRpcBlock,
-  getRpcReceipts,
+  getRpcReceiptOutputsFromLocalBlockExecution,
   RpcLogOutput,
   RpcReceiptOutput,
+  shouldShowTransactionTypeForHardfork,
 } from "./output";
 import { FakeSenderTransaction } from "./transactions/FakeSenderTransaction";
 import { TxPool } from "./TxPool";
@@ -1351,7 +1352,11 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     block: Block,
     runBlockResult: RunBlockResult
   ) {
-    const receipts = getRpcReceipts(block, runBlockResult);
+    const receipts = getRpcReceiptOutputsFromLocalBlockExecution(
+      block,
+      runBlockResult,
+      shouldShowTransactionTypeForHardfork(this._vm._common)
+    );
 
     this._blockchain.addTransactionReceipts(receipts);
 
@@ -1370,7 +1375,15 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         case Type.BLOCK_SUBSCRIPTION:
           const hash = block.hash();
           if (filter.subscription) {
-            this._emitEthEvent(filter.id, getRpcBlock(block, td, false));
+            this._emitEthEvent(
+              filter.id,
+              getRpcBlock(
+                block,
+                td,
+                shouldShowTransactionTypeForHardfork(this._vm._common),
+                false
+              )
+            );
             return;
           }
 

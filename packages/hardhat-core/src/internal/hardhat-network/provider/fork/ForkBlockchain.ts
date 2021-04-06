@@ -10,10 +10,11 @@ import { JsonRpcClient } from "../../jsonrpc/client";
 import { BlockchainData } from "../BlockchainData";
 import { FilterParams } from "../node-types";
 import {
+  remoteReceiptToRpcReceiptOutput,
   RpcLogOutput,
   RpcReceiptOutput,
+  shouldShowTransactionTypeForHardfork,
   toRpcLogOutput,
-  toRpcReceiptOutput,
 } from "../output";
 import { ReadOnlyValidTransaction } from "../transactions/ReadOnlyValidTransaction";
 import { HardhatBlockchainInterface } from "../types/HardhatBlockchainInterface";
@@ -172,7 +173,7 @@ export class ForkBlockchain implements HardhatBlockchainInterface {
       transactionHash
     );
     if (remote !== null) {
-      const receipt = this._processRemoteReceipt(remote);
+      const receipt = await this._processRemoteReceipt(remote);
       return receipt ?? null;
     }
 
@@ -336,13 +337,21 @@ export class ForkBlockchain implements HardhatBlockchainInterface {
     return transaction;
   }
 
-  private _processRemoteReceipt(
+  private async _processRemoteReceipt(
     txReceipt: RpcTransactionReceipt | null
-  ): RpcReceiptOutput | undefined {
+  ): Promise<RpcReceiptOutput | undefined> {
     if (txReceipt === null || txReceipt.blockNumber.gt(this._forkBlockNumber)) {
       return undefined;
     }
-    const receipt = toRpcReceiptOutput(txReceipt);
+
+    const tx = await this.getTransaction(txReceipt.transactionHash);
+
+    const receipt = remoteReceiptToRpcReceiptOutput(
+      txReceipt,
+      tx!,
+      shouldShowTransactionTypeForHardfork(this._common)
+    );
+
     this._data.addTransactionReceipt(receipt);
     return receipt;
   }
