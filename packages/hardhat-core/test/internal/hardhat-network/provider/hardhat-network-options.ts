@@ -98,7 +98,7 @@ describe("Hardhat Network special options", function () {
             {
               from: sender,
               // This is a deployment with a constructor that just executes CHAIN_ID
-              // which as added in Istanbul
+              // which was added in Istanbul
               data: "0x46",
             },
           ]),
