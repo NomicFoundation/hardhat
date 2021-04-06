@@ -145,6 +145,14 @@ const plugins = [
     tags: ["Debuggin", "Monitoring", "Alerting", "Tasks", "Scripts"],
   },
   {
+    name: "hardhat-ethernal",
+    author: "Ethernal",
+    authorUrl: "https://www.tryethernal.com",
+    url: "https://github.com/tryethernal/hardhat-ethernal/tree/master",
+    description: "Integrate your Hardhat project and Hardhat network with Ethernal. Ethernal is a block explorer for private chains.",
+    tags: ["explorer", "debugging", "development-tool"]
+  },
+  {
     name: "hardhat-typechain",
     author: "Rahul Sethuram",
     authorUrl: "https://twitter.com/rhlsthrm",
