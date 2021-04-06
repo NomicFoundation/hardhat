@@ -659,6 +659,7 @@ describe("HardhatNode", () => {
 
         // TODO we should use modifiedBlock instead of block here,
         // but we can't because of a bug in the vm
+        // TODO: Change this once https://github.com/ethereumjs/ethereumjs-monorepo/pull/1185 is released.
         await forkedNode["_vm"].blockchain.putBlock(block);
         await forkedNode["_saveBlockAsSuccessfullyRun"](block, afterBlockEvent);
 
