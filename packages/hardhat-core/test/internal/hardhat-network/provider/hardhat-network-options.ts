@@ -91,7 +91,7 @@ describe("Hardhat Network special options", function () {
       useFixtureProject("hardhat-network-spurious-dragon");
       useEnvironment();
 
-      it("should accept hard forks as late as chainnstart and use them", async function () {
+      it("should accept hardforks as late as chainstart and use them", async function () {
         const [sender] = await this.env.network.provider.send("eth_accounts");
         await assert.isRejected(
           this.env.network.provider.send("eth_sendTransaction", [

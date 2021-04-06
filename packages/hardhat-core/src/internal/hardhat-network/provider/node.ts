@@ -133,7 +133,6 @@ export class HardhatNode extends EventEmitter {
       common = await makeForkCommon(config);
 
       this._validateHardforks(
-        config.hardfork,
         config.forkConfig.blockNumber,
         common,
         forkClient.getNetworkId()
@@ -197,7 +196,6 @@ export class HardhatNode extends EventEmitter {
   }
 
   private static _validateHardforks(
-    localHardfork: string,
     forkBlockNumber: number | undefined,
     common: Common,
     remoteChainId: number
@@ -206,7 +204,7 @@ export class HardhatNode extends EventEmitter {
       throw new InternalError(
         `Invalid hardfork selected in Hardhat Network's config.
 
-The hardfork must be at least spuriousDragon, but ${localHardfork} was given.`
+The hardfork must be at least spuriousDragon, but ${common.hardfork()} was given.`
       );
     }
 
