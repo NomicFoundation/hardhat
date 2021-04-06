@@ -1,6 +1,6 @@
 import { Block } from "@ethereumjs/block";
 import Common from "@ethereumjs/common";
-import { Transaction, TxData } from "@ethereumjs/tx";
+import { Transaction, TxData, TypedTransaction } from "@ethereumjs/tx";
 import VM from "@ethereumjs/vm";
 import {
   AfterBlockEvent,
@@ -114,7 +114,7 @@ describe("HardhatNode", () => {
   });
 
   describe("mineBlock", () => {
-    async function assertTransactionsWereMined(txs: Transaction[]) {
+    async function assertTransactionsWereMined(txs: TypedTransaction[]) {
       for (const tx of txs) {
         const txReceipt = await node.getTransactionReceipt(tx.hash());
         assert.isDefined(txReceipt);

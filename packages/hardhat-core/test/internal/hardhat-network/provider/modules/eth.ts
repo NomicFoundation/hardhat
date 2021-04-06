@@ -3415,10 +3415,10 @@ describe("Eth module", function () {
 
       describe("eth_sendRawTransaction", async function () {
         it("Should throw if the data isn't a proper transaction", async function () {
-          await assertInvalidInputError(
+          await assertInvalidArgumentsError(
             this.provider,
             "eth_sendRawTransaction",
-            ["0x123456"],
+            ["0x223456"],
             "Invalid transaction"
           );
         });
@@ -3428,7 +3428,7 @@ describe("Eth module", function () {
             this.skip();
             return;
           }
-          await assertInvalidInputError(
+          await assertInvalidArgumentsError(
             this.provider,
             "eth_sendRawTransaction",
             [
@@ -3444,13 +3444,13 @@ describe("Eth module", function () {
             this.skip();
             return;
           }
-          await assertInvalidInputError(
+          await assertInvalidArgumentsError(
             this.provider,
             "eth_sendRawTransaction",
             [
               "0xf86e820a0f843b9aca0083030d40941aad5e821c667e909c16a49363ca48f672b46c5d88169866e539efe0008025a07bc6a357d809c9d27f8f5a826861e7f9b4b7c9cff4f91f894b88e98212069b3da05dbadbdfa67bab1d76d2d81e33d90162d508431362331f266dd6aa0cb4b525aa",
             ],
-            "Incompatible EIP155-based"
+            "Trying to send an incompatible EIP-155 transaction"
           );
         });
 

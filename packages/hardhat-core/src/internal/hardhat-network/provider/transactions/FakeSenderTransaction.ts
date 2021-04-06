@@ -1,5 +1,5 @@
 import { Transaction, TxData, TxOptions } from "@ethereumjs/tx";
-import { Address } from "ethereumjs-util";
+import { Address, rlp } from "ethereumjs-util";
 
 import { InternalError } from "../../../core/providers/errors";
 
@@ -31,6 +31,12 @@ export class FakeSenderTransaction extends Transaction {
     serialized: Buffer,
     opts?: TxOptions
   ): never {
+    const values = rlp.decode(serialized);
+
+    if (!Array.isArray(values)) {
+      throw new Error("Invalid serialized tx input. Must be array");
+    }
+
     throw new InternalError(
       "`fromRlpSerializedTx` is not implemented in FakeSenderTransaction"
     );
@@ -40,6 +46,20 @@ export class FakeSenderTransaction extends Transaction {
     throw new InternalError(
       "`fromRlpSerializedTx` is not implemented in FakeSenderTransaction"
     );
+  }
+
+  public static fromSenderAndRlpSerializedTx(
+    sender: Address,
+    serialized: Buffer,
+    opts?: TxOptions
+  ) {
+    const values = rlp.decode(serialized);
+
+    if (!Array.isArray(values)) {
+      throw new Error("Invalid serialized tx input. Must be array");
+    }
+
+    return this.fromSenderAndValuesArray(sender, values, opts);
   }
 
   public static fromSenderAndValuesArray(
