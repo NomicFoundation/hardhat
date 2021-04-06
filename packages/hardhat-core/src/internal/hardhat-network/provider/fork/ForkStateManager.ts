@@ -1,4 +1,4 @@
-import { StateManager } from "@ethereumjs/vm/dist/state";
+import { EIP2929StateManager } from "@ethereumjs/vm/dist/state/interface";
 import {
   Account,
   Address,
@@ -37,7 +37,7 @@ const notCheckpointedError = (method: string) =>
 const notSupportedError = (method: string) =>
   new Error(`${method} is not supported when forking from remote network`);
 
-export class ForkStateManager implements StateManager {
+export class ForkStateManager implements EIP2929StateManager {
   private _state: State = ImmutableMap();
   private _initialStateRoot: string = randomHash();
   private _stateRoot: string = this._initialStateRoot;
@@ -46,6 +46,9 @@ export class ForkStateManager implements StateManager {
   private _stateCheckpoints: string[] = [];
   private _contextBlockNumber = this._forkBlockNumber.clone();
   private _contextChanged = false;
+
+  // copied from DefaultStateManager
+  private _accessedStorage: Array<Map<string, Set<string>>> = [new Map()];
 
   constructor(
     private readonly _jsonRpcClient: JsonRpcClient,
@@ -369,6 +372,69 @@ export class ForkStateManager implements StateManager {
     this._originalStorageCache.set(storageKey, value);
 
     return value;
+  }
+
+  // the following methods are copied verbatim from
+  // DefaultStateManager
+
+  public isWarmedAddress(address: Buffer): boolean {
+    for (let i = this._accessedStorage.length - 1; i >= 0; i--) {
+      const currentMap = this._accessedStorage[i];
+      if (currentMap.has(address.toString("hex"))) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public addWarmedAddress(address: Buffer): void {
+    const key = address.toString("hex");
+    const storageSet = this._accessedStorage[
+      this._accessedStorage.length - 1
+    ].get(key);
+    if (storageSet === undefined) {
+      const emptyStorage = new Set<string>();
+      this._accessedStorage[this._accessedStorage.length - 1].set(
+        key,
+        emptyStorage
+      );
+    }
+  }
+
+  public isWarmedStorage(address: Buffer, slot: Buffer): boolean {
+    const addressKey = address.toString("hex");
+    const storageKey = slot.toString("hex");
+
+    for (let i = this._accessedStorage.length - 1; i >= 0; i--) {
+      const currentMap = this._accessedStorage[i];
+      if (
+        currentMap.has(addressKey) &&
+        currentMap.get(addressKey)!.has(storageKey)
+      ) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  public addWarmedStorage(address: Buffer, slot: Buffer): void {
+    const addressKey = address.toString("hex");
+    let storageSet = this._accessedStorage[
+      this._accessedStorage.length - 1
+    ].get(addressKey);
+    if (storageSet === undefined) {
+      storageSet = new Set();
+      this._accessedStorage[this._accessedStorage.length - 1].set(
+        addressKey,
+        storageSet!
+      );
+    }
+    storageSet!.add(slot.toString("hex"));
+  }
+
+  public clearWarmedAccounts(): void {
+    this._accessedStorage = [new Map()];
   }
 
   private _putAccount(address: Address, account: Account): void {
