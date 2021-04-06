@@ -1,3 +1,4 @@
+import { DefaultStateManager } from "@ethereumjs/vm/dist/state";
 import { EIP2929StateManager } from "@ethereumjs/vm/dist/state/interface";
 import {
   Account,
@@ -47,8 +48,11 @@ export class ForkStateManager implements EIP2929StateManager {
   private _contextBlockNumber = this._forkBlockNumber.clone();
   private _contextChanged = false;
 
-  // copied from DefaultStateManager
+  // used by the DefaultStateManager calls
   private _accessedStorage: Array<Map<string, Set<string>>> = [new Map()];
+  private _accessedStorageReverted: Array<Map<string, Set<string>>> = [
+    new Map(),
+  ];
 
   constructor(
     private readonly _jsonRpcClient: JsonRpcClient,
@@ -378,63 +382,31 @@ export class ForkStateManager implements EIP2929StateManager {
   // DefaultStateManager
 
   public isWarmedAddress(address: Buffer): boolean {
-    for (let i = this._accessedStorage.length - 1; i >= 0; i--) {
-      const currentMap = this._accessedStorage[i];
-      if (currentMap.has(address.toString("hex"))) {
-        return true;
-      }
-    }
-    return false;
+    return DefaultStateManager.prototype.isWarmedAddress.call(this, address);
   }
 
   public addWarmedAddress(address: Buffer): void {
-    const key = address.toString("hex");
-    const storageSet = this._accessedStorage[
-      this._accessedStorage.length - 1
-    ].get(key);
-    if (storageSet === undefined) {
-      const emptyStorage = new Set<string>();
-      this._accessedStorage[this._accessedStorage.length - 1].set(
-        key,
-        emptyStorage
-      );
-    }
+    return DefaultStateManager.prototype.addWarmedAddress.call(this, address);
   }
 
   public isWarmedStorage(address: Buffer, slot: Buffer): boolean {
-    const addressKey = address.toString("hex");
-    const storageKey = slot.toString("hex");
-
-    for (let i = this._accessedStorage.length - 1; i >= 0; i--) {
-      const currentMap = this._accessedStorage[i];
-      if (
-        currentMap.has(addressKey) &&
-        currentMap.get(addressKey)!.has(storageKey)
-      ) {
-        return true;
-      }
-    }
-
-    return false;
+    return DefaultStateManager.prototype.isWarmedStorage.call(
+      this,
+      address,
+      slot
+    );
   }
 
   public addWarmedStorage(address: Buffer, slot: Buffer): void {
-    const addressKey = address.toString("hex");
-    let storageSet = this._accessedStorage[
-      this._accessedStorage.length - 1
-    ].get(addressKey);
-    if (storageSet === undefined) {
-      storageSet = new Set();
-      this._accessedStorage[this._accessedStorage.length - 1].set(
-        addressKey,
-        storageSet!
-      );
-    }
-    storageSet!.add(slot.toString("hex"));
+    return DefaultStateManager.prototype.addWarmedStorage.call(
+      this,
+      address,
+      slot
+    );
   }
 
   public clearWarmedAccounts(): void {
-    this._accessedStorage = [new Map()];
+    return DefaultStateManager.prototype.clearWarmedAccounts.call(this);
   }
 
   private _putAccount(address: Address, account: Account): void {
