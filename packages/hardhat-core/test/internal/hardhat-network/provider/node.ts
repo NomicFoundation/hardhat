@@ -547,6 +547,8 @@ describe("HardhatNode", () => {
 
   describe("full block", function () {
     this.timeout(120000);
+
+    // TODO: Run one block of each hard fork starting from spurious dragon
     const forkedBlocks: ForkedBlock[] = [
       {
         networkName: "mainnet",
