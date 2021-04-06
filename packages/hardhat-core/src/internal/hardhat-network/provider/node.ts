@@ -215,6 +215,9 @@ The hardfork must be at least spuriousDragon, but ${localHardfork} was given.`
       try {
         upstreamCommon = new Common({ chain: remoteChainId });
       } catch (error) {
+        // If ethereumjs doesn't have a common it will throw and we won't have
+        // info about the activation block of each hardfork, so we don't run
+        // this validation.
         return;
       }
 
