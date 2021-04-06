@@ -1,10 +1,10 @@
 import * as t from "io-ts";
 
 import { optional } from "../../../../util/io-ts";
+import { rpcAccessList } from "../access-list";
 import { rpcAddress, rpcData, rpcQuantity } from "../base-types";
 
 // Type used by eth_sendTransaction
-// TODO: Update to Berlin
 export const rpcTransactionRequest = t.type(
   {
     from: rpcAddress,
@@ -14,6 +14,8 @@ export const rpcTransactionRequest = t.type(
     value: optional(rpcQuantity),
     nonce: optional(rpcQuantity),
     data: optional(rpcData),
+    accessList: optional(rpcAccessList),
+    chainId: optional(rpcQuantity),
   },
   "RpcTransactionRequest"
 );
