@@ -25,6 +25,8 @@ import {
   EthSubscription,
   ProviderMessage,
 } from "../../../../../src/types";
+import { useEnvironment } from "../../../../helpers/environment";
+import { useFixtureProject } from "../../../../helpers/project";
 import { workaroundWindowsCiFailures } from "../../../../utils/workaround-windows-ci-failures";
 import {
   assertInvalidArgumentsError,
@@ -4502,6 +4504,50 @@ describe("Eth module", function () {
             "0xd95b673818fa493deec414e01e610d97ee287c9421c8eff4102b1647c1a184e4"
           );
         });
+      });
+    });
+  });
+});
+
+describe("Eth module - special tests", function () {
+  describe("Receipts formatting", function () {
+    describe("Before byzantium", function () {
+      useFixtureProject("hardhat-network-spurious-dragon");
+      useEnvironment();
+
+      it("Should have a root field, and shouldn't have a status one", async function () {
+        const [sender] = await this.env.network.provider.send("eth_accounts");
+        const tx = await this.env.network.provider.send("eth_sendTransaction", [
+          { from: sender, to: sender },
+        ]);
+
+        const receipt = await this.env.network.provider.send(
+          "eth_getTransactionReceipt",
+          [tx]
+        );
+
+        assert.isDefined(receipt.root);
+        assert.isUndefined(receipt.status);
+      });
+    });
+
+    describe("After byzantium", function () {
+      useFixtureProject("default-config-project");
+      useEnvironment();
+
+      it("Should have a status field and not a root one", async function () {
+        const [sender] = await this.env.network.provider.send("eth_accounts");
+        const tx = await this.env.network.provider.send("eth_sendTransaction", [
+          { from: sender, to: sender },
+        ]);
+
+        const receipt = await this.env.network.provider.send(
+          "eth_getTransactionReceipt",
+          [tx]
+        );
+
+        assert.isDefined(receipt.status);
+        assert.isUndefined(receipt.root);
       });
     });
   });
