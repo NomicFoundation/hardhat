@@ -136,7 +136,7 @@ export class HardhatNode extends EventEmitter {
         config.hardfork,
         config.forkConfig.blockNumber,
         common,
-        await forkClient.getNetworkId()
+        forkClient.getNetworkId()
       );
 
       const forkStateManager = new ForkStateManager(
