@@ -86,6 +86,7 @@ import {
   RpcReceiptOutput,
   shouldShowTransactionTypeForHardfork,
 } from "./output";
+import { FakeSenderAccessListEIP2930Transaction } from "./transactions/FakeSenderAccessListEIP2930Transaction";
 import { FakeSenderTransaction } from "./transactions/FakeSenderTransaction";
 import { TxPool } from "./TxPool";
 import { TxPriorityHeap } from "./TxPriorityHeap";
@@ -1134,13 +1135,16 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
   private async _getFakeTransaction(
     txParams: TransactionParams
-  ): Promise<TypedTransaction> {
+  ): Promise<FakeSenderAccessListEIP2930Transaction | FakeSenderTransaction> {
+    const sender = new Address(txParams.from);
+
     if (txParams.accessList !== undefined) {
-      // TODO: create the right type of tx depending on the params
-      throw new Error("TODO");
+      return new FakeSenderAccessListEIP2930Transaction(sender, txParams, {
+        common: this._vm._common,
+      });
     }
 
-    return new FakeSenderTransaction(new Address(txParams.from), txParams, {
+    return new FakeSenderTransaction(sender, txParams, {
       common: this._vm._common,
     });
   }
