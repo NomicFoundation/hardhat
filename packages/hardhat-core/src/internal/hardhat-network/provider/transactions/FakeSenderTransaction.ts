@@ -6,7 +6,7 @@ import { InternalError } from "../../../core/providers/errors";
 // tslint:disable only-hardhat-error
 
 /**
- * This class represents a transaction sent by a sender whose private
+ * This class represents a legacy transaction sent by a sender whose private
  * key we don't control.
  *
  * The transaction's signature is never validated, but assumed to be valid.
