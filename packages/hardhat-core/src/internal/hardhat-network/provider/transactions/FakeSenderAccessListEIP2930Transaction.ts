@@ -14,13 +14,7 @@ import {
 // tslint:disable only-hardhat-error
 
 /**
- * This class represents an EIP-2930 transaction sent by a sender whose private
- * key we don't control.
- *
- * The transaction's signature is never validated, but assumed to be valid.
- *
- * The sender's private key is never recovered from the signature. Instead,
- * the sender's address is received as parameter.
+ * This class is the EIP-2930 version of FakeSenderTransaction.
  */
 export class FakeSenderAccessListEIP2930Transaction extends AccessListEIP2930Transaction {
   public static fromTxData(
@@ -106,12 +100,12 @@ export class FakeSenderAccessListEIP2930Transaction extends AccessListEIP2930Tra
     return new FakeSenderAccessListEIP2930Transaction(
       sender,
       {
-        chainId: new BN(chainId),
-        nonce: new BN(nonce),
-        gasPrice: new BN(gasPrice),
-        gasLimit: new BN(gasLimit),
-        to: to !== undefined && to.length > 0 ? new Address(to) : undefined,
-        value: new BN(value),
+        chainId,
+        nonce,
+        gasPrice,
+        gasLimit,
+        to: to !== undefined && to.length > 0 ? to : undefined,
+        value,
         data: data ?? Buffer.from([]),
         accessList: accessList ?? [],
         v: v !== undefined ? new BN(v) : undefined, // EIP2930 supports v's with value 0 (empty Buffer)
@@ -129,7 +123,15 @@ export class FakeSenderAccessListEIP2930Transaction extends AccessListEIP2930Tra
     data: AccessListEIP2930TxData = {},
     opts?: TxOptions
   ) {
-    super({ v: 0, r: 1, s: 2, ...data }, { ...opts, freeze: false });
+    super(
+      {
+        ...data,
+        v: data.v ?? new BN(1),
+        r: data.r ?? new BN(1),
+        s: data.s ?? new BN(2),
+      },
+      { ...opts, freeze: false }
+    );
 
     this._sender = sender;
   }

@@ -31,12 +31,6 @@ export class FakeSenderTransaction extends Transaction {
     serialized: Buffer,
     opts?: TxOptions
   ): never {
-    const values = rlp.decode(serialized);
-
-    if (!Array.isArray(values)) {
-      throw new Error("Invalid serialized tx input. Must be array");
-    }
-
     throw new InternalError(
       "`fromRlpSerializedTx` is not implemented in FakeSenderTransaction"
     );
@@ -95,7 +89,10 @@ export class FakeSenderTransaction extends Transaction {
   private readonly _sender: Address;
 
   public constructor(sender: Address, data: TxData = {}, opts?: TxOptions) {
-    super({ v: 27, r: 1, s: 2, ...data }, { ...opts, freeze: false });
+    super(
+      { ...data, v: data.v ?? 27, r: data.r ?? 1, s: data.s ?? 2 },
+      { ...opts, freeze: false }
+    );
 
     this._sender = sender;
   }

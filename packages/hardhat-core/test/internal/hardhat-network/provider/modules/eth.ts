@@ -26,8 +26,6 @@ import {
   EthSubscription,
   ProviderMessage,
 } from "../../../../../src/types";
-import { useEnvironment } from "../../../../helpers/environment";
-import { useFixtureProject } from "../../../../helpers/project";
 import { workaroundWindowsCiFailures } from "../../../../utils/workaround-windows-ci-failures";
 import {
   assertInvalidArgumentsError,
@@ -64,6 +62,7 @@ import {
   sendTransactionFromTxParams,
   sendTxToZeroAddress,
 } from "../../helpers/transactions";
+import { useProvider as importedUseProvider } from "../../helpers/useProvider";
 
 // tslint:disable-next-line no-var-requires
 const { recoverTypedSignature_v4 } = require("eth-sig-util");
@@ -4510,34 +4509,62 @@ describe("Eth module", function () {
   });
 });
 
-describe("Eth module - fixture based tests", function () {
+describe("Eth module - hardfork dependant tests", function () {
+  function useProviderAndCommon(hardfork: string) {
+    importedUseProvider(undefined, undefined, undefined, undefined, hardfork);
+    beforeEach(async function () {
+      // TODO: Find out a better way to obtain the common here
+
+      // tslint:disable-next-line:no-string-literal
+      await this.hardhatNetworkProvider["_init"]();
+      // tslint:disable-next-line:no-string-literal
+      this.common = this.hardhatNetworkProvider["_common"];
+    });
+  }
+
   const privateKey = Buffer.from(
     "17ade313db5de97d19b4cfbc820d15e18a6c710c1afbf01c1f31249970d3ae46",
     "hex"
   );
 
-  function getSampleSignedTx() {
+  function getSampleSignedTx(common?: Common) {
+    if (common === undefined) {
+      common = new Common({
+        chain: "mainnet",
+        hardfork: "spuriousDragon",
+      });
+    }
+
     const tx = Transaction.fromTxData(
-      {},
       {
-        common: new Common({
-          chain: "mainnet",
-          hardfork: "spuriousDragon",
-        }),
+        to: "0x1111111111111111111111111111111111111111",
+        gasLimit: 21000,
+        gasPrice: 0,
+      },
+      {
+        common,
       }
     );
 
     return tx.sign(privateKey);
   }
 
-  function getSampleSignedAccessListTx() {
+  function getSampleSignedAccessListTx(common?: Common) {
+    if (common === undefined) {
+      common = new Common({
+        chain: "mainnet",
+        hardfork: "berlin",
+      });
+    }
+
     const tx = AccessListEIP2930Transaction.fromTxData(
-      {},
       {
-        common: new Common({
-          chain: "mainnet",
-          hardfork: "berlin",
-        }),
+        to: "0x1111111111111111111111111111111111111111",
+        gasLimit: 21000,
+        gasPrice: 0,
+      },
+      {
+        common,
       }
     );
 
@@ -4547,13 +4574,12 @@ describe("Eth module - fixture based tests", function () {
   describe("Transaction, call and estimate gas validations", function () {
     describe("chain id validation", function () {
       describe("In a hardfork without access list but with EIP-155", function () {
-        useFixtureProject("hardhat-network-spurious-dragon");
-        useEnvironment();
+        useProviderAndCommon("spuriousDragon");
 
         it("Should validate the chain id if sent to eth_sendTransaction", async function () {
-          const [sender] = await this.env.network.provider.send("eth_accounts");
+          const [sender] = await this.provider.send("eth_accounts");
           await assertInvalidArgumentsError(
-            this.env.network.provider,
+            this.provider,
             "eth_sendTransaction",
             [{ from: sender, to: sender, chainId: numberToRpcQuantity(1) }],
             "Invalid chainId"
@@ -4565,7 +4591,7 @@ describe("Eth module - fixture based tests", function () {
           const serialized = bufferToRpcData(signedTx.serialize());
 
           await assertInvalidArgumentsError(
-            this.env.network.provider,
+            this.provider,
             "eth_sendRawTransaction",
             [serialized],
             "signed for another chain"
@@ -4574,13 +4600,12 @@ describe("Eth module - fixture based tests", function () {
       });
 
       describe("In a hardfork with access list", function () {
-        useFixtureProject("hardhat-network-berlin");
-        useEnvironment();
+        useProviderAndCommon("berlin");
 
         it("Should validate the chain id if sent to eth_sendTransaction using access list", async function () {
-          const [sender] = await this.env.network.provider.send("eth_accounts");
+          const [sender] = await this.provider.send("eth_accounts");
           await assertInvalidArgumentsError(
-            this.env.network.provider,
+            this.provider,
             "eth_sendTransaction",
             [
               {
@@ -4599,7 +4624,7 @@ describe("Eth module - fixture based tests", function () {
           const serialized = bufferToRpcData(signedTx.serialize());
 
           await assertInvalidArgumentsError(
-            this.env.network.provider,
+            this.provider,
             "eth_sendRawTransaction",
             [serialized],
             "Trying to send a raw transaction with an invalid chainId"
@@ -4610,62 +4635,151 @@ describe("Eth module - fixture based tests", function () {
 
     describe("Transaction type validation by hardfork", function () {
       describe("Without EIP155 nor access list", function () {
+        useProviderAndCommon("tangerineWhistle");
+
         it("Should reject an eth_sendRawTransaction if signed with EIP-155", async function () {
-          throw Error("Not implemented");
+          const spuriousDragonCommon = this.common.copy();
+          spuriousDragonCommon.setHardfork("spuriousDragon");
+
+          const signedTx = getSampleSignedTx(spuriousDragonCommon);
+          const serialized = bufferToRpcData(signedTx.serialize());
+
+          await assertInvalidArgumentsError(
+            this.provider,
+            "eth_sendRawTransaction",
+            [serialized],
+            "Trying to send an EIP-155 transaction"
+          );
         });
 
         it("Should reject an eth_sendRawTransaction if the tx uses an access list", async function () {
-          throw Error("Not implemented");
+          const berlinCommon = this.common.copy();
+          berlinCommon.setHardfork("berlin");
+
+          const signedTx = getSampleSignedAccessListTx(berlinCommon);
+          const serialized = bufferToRpcData(signedTx.serialize());
+
+          await assertInvalidArgumentsError(
+            this.provider,
+            "eth_sendRawTransaction",
+            [serialized],
+            "Trying to send an EIP-2930 transaction"
+          );
         });
 
         it("Should reject an eth_sendTransaction if an access list was provided", async function () {
-          throw Error("Not implemented");
+          const [sender] = await this.provider.send("eth_accounts");
+
+          await assertInvalidArgumentsError(
+            this.provider,
+            "eth_sendTransaction",
+            [{ from: sender, to: sender, accessList: [] }],
+            "Access list received but is not supported by the current hardfork"
+          );
         });
       });
 
       describe("With EIP155 and not access list", function () {
+        useProviderAndCommon("spuriousDragon");
+
         it("Should accept an eth_sendRawTransaction if signed with EIP-155", async function () {
-          throw Error("Not implemented");
+          const signedTx = getSampleSignedTx(this.common);
+          const serialized = bufferToRpcData(signedTx.serialize());
+
+          await this.provider.send("eth_sendRawTransaction", [serialized]);
         });
 
         it("Should reject an eth_sendRawTransaction if the tx uses an access list", async function () {
-          throw Error("Not implemented");
+          const berlinCommon = this.common.copy();
+          berlinCommon.setHardfork("berlin");
+
+          const signedTx = getSampleSignedAccessListTx(berlinCommon);
+          const serialized = bufferToRpcData(signedTx.serialize());
+
+          await assertInvalidArgumentsError(
+            this.provider,
+            "eth_sendRawTransaction",
+            [serialized],
+            "Trying to send an EIP-2930 transaction"
+          );
         });
 
         it("Should reject an eth_sendTransaction if an access list was provided", async function () {
-          throw Error("Not implemented");
+          const [sender] = await this.provider.send("eth_accounts");
+
+          await assertInvalidArgumentsError(
+            this.provider,
+            "eth_sendTransaction",
+            [{ from: sender, to: sender, accessList: [] }],
+            "Access list received but is not supported by the current hardfork"
+          );
         });
       });
 
       describe("With access list", function () {
+        useProviderAndCommon("berlin");
+
         it("Should accept an eth_sendRawTransaction if the tx uses an access list", async function () {
-          throw Error("Not implemented");
+          const signedTx = getSampleSignedAccessListTx(this.common);
+          const serialized = bufferToRpcData(signedTx.serialize());
+
+          await this.provider.send("eth_sendRawTransaction", [serialized]);
         });
 
         it("Should accept an eth_sendTransaction if an access list was provided", async function () {
-          throw Error("Not implemented");
+          const [sender] = await this.provider.send("eth_accounts");
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from: sender,
+              to: sender,
+              accessList: [],
+            },
+          ]);
         });
       });
     });
 
     describe("Call and estimate gas types validation by hardfork", function () {
       describe("Without access list", function () {
+        useProviderAndCommon("petersburg");
+
         it("Should reject an eth_call if an access list was provided", async function () {
-          throw Error("Not implemented");
+          const [sender] = await this.provider.send("eth_accounts");
+
+          await assertInvalidArgumentsError(
+            this.provider,
+            "eth_call",
+            [{ from: sender, to: sender, accessList: [] }],
+            "Access list received but is not supported by the current hardfork"
+          );
         });
 
         it("Should reject an eth_estimateGas if an access list was provided", async function () {
-          throw Error("Not implemented");
+          const [sender] = await this.provider.send("eth_accounts");
+
+          await assertInvalidArgumentsError(this.provider, "eth_estimateGas", [
+            { from: sender, to: sender, accessList: [] },
+          ]);
         });
       });
 
       describe("With access list", function () {
+        useProviderAndCommon("berlin");
+
         it("Should accept an eth_call if an access list was provided", async function () {
-          throw Error("Not implemented");
+          const [sender] = await this.provider.send("eth_accounts");
+
+          await this.provider.send("eth_call", [
+            { from: sender, to: sender, accessList: [] },
+          ]);
         });
 
         it("Should accept an eth_estimateGas if an access list was provided", async function () {
-          throw Error("Not implemented");
+          const [sender] = await this.provider.send("eth_accounts");
+
+          await this.provider.send("eth_estimateGas", [
+            { from: sender, to: sender, accessList: [] },
+          ]);
         });
       });
     });
@@ -4674,21 +4788,71 @@ describe("Eth module - fixture based tests", function () {
   describe("Transaction and receipt output formatting", function () {
     describe("Transactions formatting", function () {
       describe("Before berlin", function () {
+        useProviderAndCommon("petersburg");
         it("Should not include the fields type, chainId and accessList", async function () {
-          throw Error("Not implemented");
+          const [sender] = await this.provider.send("eth_accounts");
+          const txHash = await this.provider.send("eth_sendTransaction", [
+            { from: sender, to: sender },
+          ]);
+
+          const tx = await this.provider.send("eth_getTransactionByHash", [
+            txHash,
+          ]);
+
+          assert.isUndefined(tx.type);
+          assert.isUndefined(tx.chainId);
+          assert.isUndefined(tx.accessList);
         });
       });
 
       describe("After berlin", function () {
+        useProviderAndCommon("berlin");
         describe("legacy tx", function () {
           it("Should include the field type, but not chainId and accessList", async function () {
-            throw Error("Not implemented");
+            const [sender] = await this.provider.send("eth_accounts");
+            const txHash = await this.provider.send("eth_sendTransaction", [
+              { from: sender, to: sender },
+            ]);
+
+            const tx = await this.provider.send("eth_getTransactionByHash", [
+              txHash,
+            ]);
+
+            assert.equal(tx.type, numberToRpcQuantity(0));
+            assert.isUndefined(tx.chainId);
+            assert.isUndefined(tx.accessList);
           });
         });
 
         describe("access list tx", function () {
           it("Should include the fields type,chainId and accessList", async function () {
-            throw Error("Not implemented");
+            const accessList = [
+              {
+                address: "0x1234567890123456789012345678901234567890",
+                storageKeys: [
+                  "0x1111111111111111111111111111111111111111111111111111111111111111",
+                ],
+              },
+            ];
+            const [sender] = await this.provider.send("eth_accounts");
+            const txHash = await this.provider.send("eth_sendTransaction", [
+              {
+                from: sender,
+                to: sender,
+                accessList,
+              },
+            ]);
+
+            const tx = await this.provider.send("eth_getTransactionByHash", [
+              txHash,
+            ]);
+
+            assert.equal(tx.type, numberToRpcQuantity(1));
+            assert.equal(
+              tx.chainId,
+              numberToRpcQuantity(this.common.chainId())
+            );
+            assert.deepEqual(tx.accessList, accessList);
           });
         });
       });
@@ -4699,17 +4863,15 @@ describe("Eth module - fixture based tests", function () {
 
     describe("Receipts formatting", function () {
       describe("Before byzantium", function () {
-        useFixtureProject("hardhat-network-spurious-dragon");
-        useEnvironment();
+        useProviderAndCommon("spuriousDragon");
 
         it("Should have a root field, and shouldn't have a status one nor type", async function () {
-          const [sender] = await this.env.network.provider.send("eth_accounts");
-          const tx = await this.env.network.provider.send(
-            "eth_sendTransaction",
-            [{ from: sender, to: sender }]
-          );
+          const [sender] = await this.provider.send("eth_accounts");
+          const tx = await this.provider.send("eth_sendTransaction", [
+            { from: sender, to: sender },
+          ]);
 
-          const receipt = await this.env.network.provider.send(
+          const receipt = await this.provider.send(
             "eth_getTransactionReceipt",
             [tx]
           );
@@ -4721,17 +4883,15 @@ describe("Eth module - fixture based tests", function () {
       });
 
       describe("After byzantium, before berlin", function () {
-        useFixtureProject("hardhat-network-byzantium");
-        useEnvironment();
+        useProviderAndCommon("byzantium");
 
         it("Should have a status field and not a root one nor type", async function () {
-          const [sender] = await this.env.network.provider.send("eth_accounts");
-          const tx = await this.env.network.provider.send(
-            "eth_sendTransaction",
-            [{ from: sender, to: sender }]
-          );
+          const [sender] = await this.provider.send("eth_accounts");
+          const tx = await this.provider.send("eth_sendTransaction", [
+            { from: sender, to: sender },
+          ]);
 
-          const receipt = await this.env.network.provider.send(
+          const receipt = await this.provider.send(
             "eth_getTransactionReceipt",
             [tx]
           );
@@ -4743,17 +4903,15 @@ describe("Eth module - fixture based tests", function () {
       });
 
       describe("After berlin", function () {
-        useFixtureProject("hardhat-network-berlin");
-        useEnvironment();
+        useProviderAndCommon("berlin");
 
         it("Should have status and type fields and not a root one", async function () {
-          const [sender] = await this.env.network.provider.send("eth_accounts");
-          const tx = await this.env.network.provider.send(
-            "eth_sendTransaction",
-            [{ from: sender, to: sender }]
-          );
+          const [sender] = await this.provider.send("eth_accounts");
+          const tx = await this.provider.send("eth_sendTransaction", [
+            { from: sender, to: sender },
+          ]);
 
-          const receipt = await this.env.network.provider.send(
+          const receipt = await this.provider.send(
             "eth_getTransactionReceipt",
             [tx]
           );

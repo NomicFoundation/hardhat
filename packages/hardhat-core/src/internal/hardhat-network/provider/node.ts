@@ -11,8 +11,6 @@ import { EVMResult, ExecResult } from "@ethereumjs/vm/dist/evm/evm";
 import { ERROR } from "@ethereumjs/vm/dist/exceptions";
 import {
   generateTxReceipt,
-  PostByzantiumTxReceipt,
-  PreByzantiumTxReceipt,
   RunBlockResult,
 } from "@ethereumjs/vm/dist/runBlock";
 import { DefaultStateManager, StateManager } from "@ethereumjs/vm/dist/state";
@@ -105,10 +103,26 @@ const log = debug("hardhat:core:hardhat-network:node");
 // tslint:disable-next-line no-var-requires
 const ethSigUtil = require("eth-sig-util");
 
-type TxReceipt = PreByzantiumTxReceipt | PostByzantiumTxReceipt;
-
 export const COINBASE_ADDRESS = Address.fromString(
   "0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e"
+);
+
+// TODO: Delete this before the release of Berlin
+//  It's a workaround that is also included here: https://github.com/ethereumjs/ethereumjs-monorepo/pull/1185
+Object.defineProperty(AccessListEIP2930Transaction.prototype, "type", {
+  get() {
+    return this.transactionType;
+  },
+});
+
+Object.defineProperty(
+  FakeSenderAccessListEIP2930Transaction.prototype,
+  "type",
+  {
+    get() {
+      return this.transactionType;
+    },
+  }
 );
 
 // tslint:disable only-hardhat-error
@@ -1092,8 +1106,11 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       }
 
       // This workarounds a bug in BlockBuilder#build
+      //  It's a workaround that is also included here: https://github.com/ethereumjs/ethereumjs-monorepo/pull/1185
       // tslint:disable-next-line:no-string-literal
       if (blockBuilder["checkpointed"] !== true) {
+        // tslint:disable-next-line:no-string-literal
+        blockBuilder["checkpointed"] = true;
         await this._vm.stateManager.checkpoint();
       }
 
