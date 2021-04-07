@@ -947,6 +947,8 @@ export class EthModule {
   private async _sendRawTransactionAction(rawTx: Buffer): Promise<string> {
     // We validate that the tx is not legacy nor eip-2930 here
     // because otherwise the catch logic below gets too tricky
+    // This can happen because of an EIP-2929 tx that's not EIP-2930,
+    // which we don't support, or because the input is just completely invalid
     if (rawTx[0] <= 0x7f && rawTx[0] !== 1) {
       throw new InvalidArgumentsError(`Invalid transaction`);
     }
@@ -1533,6 +1535,7 @@ You can use them by running Hardhat Network with 'hardfork' ${ACCESS_LIST_MIN_HA
 
   // TODO: Find a better place for this
   private _validateEip155HardforkRequirement(tx: Transaction) {
+    // 27 and 28 are only valid for non-EIP-155 legacy txs
     if (tx.v!.eqn(27) || tx.v!.eqn(28)) {
       return;
     }

@@ -187,9 +187,9 @@ export function getRpcTransaction(
         : undefined,
     accessList:
       tx instanceof AccessListEIP2930Transaction
-        ? tx.accessList.map((item) => ({
-            address: bufferToHex(item[0]),
-            storageKeys: item[1].map(bufferToHex),
+        ? tx.accessList.map(([address, storageKeys]) => ({
+            address: bufferToHex(address),
+            storageKeys: storageKeys.map(bufferToHex),
           }))
         : undefined,
     chainId:
@@ -234,6 +234,8 @@ export function getRpcReceiptOutputsFromLocalBlockExecution(
           : null,
       logs,
       logsBloom: bufferToRpcData(receipt.bitvector),
+      // There's no way to execute an EIP-2929 tx locally if we aren't in
+      // an HF >= Berlin, so this check is enough
       type: showTransactionType
         ? numberToRpcQuantity(tx.transactionType)
         : undefined,

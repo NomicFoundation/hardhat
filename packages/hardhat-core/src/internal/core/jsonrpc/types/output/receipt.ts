@@ -19,6 +19,7 @@ export const rpcTransactionReceipt = t.type(
     contractAddress: nullable(rpcAddress),
     logs: t.array(rpcLog, "RpcLog Array"),
     logsBloom: rpcData,
+    // This should be just optional, but Alchemy returns null
     status: optional(nullable(rpcQuantity)),
     root: optional(rpcData),
     type: optional(rpcQuantity),
