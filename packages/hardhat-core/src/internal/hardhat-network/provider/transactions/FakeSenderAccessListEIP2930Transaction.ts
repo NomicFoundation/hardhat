@@ -1,0 +1,184 @@
+import { AccessListEIP2930Transaction, TxData } from "@ethereumjs/tx";
+import {
+  AccessListEIP2930TxData,
+  AccessListEIP2930ValuesArray,
+  TxOptions,
+} from "@ethereumjs/tx/dist/types";
+import { Address, BN, rlp } from "ethereumjs-util";
+
+import {
+  InternalError,
+  InvalidArgumentsError,
+} from "../../../core/providers/errors";
+
+// tslint:disable only-hardhat-error
+
+/**
+ * This class represents an EIP-2930 transaction sent by a sender whose private
+ * key we don't control.
+ *
+ * The transaction's signature is never validated, but assumed to be valid.
+ *
+ * The sender's private key is never recovered from the signature. Instead,
+ * the sender's address is received as parameter.
+ */
+export class FakeSenderAccessListEIP2930Transaction extends AccessListEIP2930Transaction {
+  public static fromTxData(
+    txData: AccessListEIP2930TxData,
+    opts?: TxOptions
+  ): never {
+    throw new InternalError(
+      "`fromTxData` is not implemented in FakeSenderAccessListEIP2930Transaction"
+    );
+  }
+
+  public static fromSerializedTx(serialized: Buffer, opts?: TxOptions): never {
+    throw new InternalError(
+      "`fromSerializedTx` is not implemented in FakeSenderAccessListEIP2930Transaction"
+    );
+  }
+
+  public static fromRlpSerializedTx(
+    serialized: Buffer,
+    opts?: TxOptions
+  ): never {
+    throw new InternalError(
+      "`fromRlpSerializedTx` is not implemented in FakeSenderAccessListEIP2930Transaction"
+    );
+  }
+
+  public static fromValuesArray(
+    values: AccessListEIP2930ValuesArray,
+    opts?: TxOptions
+  ): never {
+    throw new InternalError(
+      "`fromValuesArray` is not implemented in FakeSenderAccessListEIP2930Transaction"
+    );
+  }
+
+  public static fromSenderAndRlpSerializedTx(
+    sender: Address,
+    serialized: Buffer,
+    opts?: TxOptions
+  ) {
+    if (serialized[0] !== 1) {
+      throw new InvalidArgumentsError(
+        `Invalid serialized tx input: not an EIP-2930 transaction (wrong tx type, expected: 1, received: ${serialized[0]}`
+      );
+    }
+
+    const values = rlp.decode(serialized);
+
+    if (!Array.isArray(values)) {
+      throw new InvalidArgumentsError(
+        "Invalid serialized tx input. Must be array"
+      );
+    }
+
+    return this.fromSenderAndValuesArray(sender, values as any, opts);
+  }
+
+  public static fromSenderAndValuesArray(
+    sender: Address,
+    values: AccessListEIP2930ValuesArray,
+    opts: TxOptions = {}
+  ): FakeSenderAccessListEIP2930Transaction {
+    if (values.length !== 8 && values.length !== 11) {
+      throw new InvalidArgumentsError(
+        "Invalid EIP-2930 transaction. Only expecting 8 values (for unsigned tx) or 11 values (for signed tx)."
+      );
+    }
+
+    const [
+      chainId,
+      nonce,
+      gasPrice,
+      gasLimit,
+      to,
+      value,
+      data,
+      accessList,
+      v,
+      r,
+      s,
+    ] = values;
+
+    return new FakeSenderAccessListEIP2930Transaction(
+      sender,
+      {
+        chainId: new BN(chainId),
+        nonce: new BN(nonce),
+        gasPrice: new BN(gasPrice),
+        gasLimit: new BN(gasLimit),
+        to: to !== undefined && to.length > 0 ? new Address(to) : undefined,
+        value: new BN(value),
+        data: data ?? Buffer.from([]),
+        accessList: accessList ?? [],
+        v: v !== undefined ? new BN(v) : undefined, // EIP2930 supports v's with value 0 (empty Buffer)
+        r: r !== undefined && r.length !== 0 ? new BN(r) : undefined,
+        s: s !== undefined && s.length !== 0 ? new BN(s) : undefined,
+      },
+      opts
+    );
+  }
+
+  private readonly _sender: Address;
+
+  public constructor(
+    sender: Address,
+    data: AccessListEIP2930TxData = {},
+    opts?: TxOptions
+  ) {
+    super({ v: 0, r: 1, s: 2, ...data }, { ...opts, freeze: false });
+
+    this._sender = sender;
+  }
+
+  public verifySignature(): boolean {
+    return true;
+  }
+
+  public getSenderAddress(): Address {
+    return this._sender;
+  }
+
+  public getSenderPublicKey(): never {
+    throw new InternalError(
+      "`getSenderPublicKey` is not implemented in FakeSenderAccessListEIP2930Transaction"
+    );
+  }
+
+  public _processSignature(v: number, r: Buffer, s: Buffer): never {
+    throw new InternalError(
+      "`_processSignature` is not implemented in FakeSenderAccessListEIP2930Transaction"
+    );
+  }
+
+  public sign(privateKey: Buffer): never {
+    throw new InternalError(
+      "`sign` is not implemented in FakeSenderAccessListEIP2930Transaction"
+    );
+  }
+
+  public getMessageToSign(): never {
+    throw new InternalError(
+      "`getMessageToSign` is not implemented in FakeSenderAccessListEIP2930Transaction"
+    );
+  }
+
+  public getMessageToVerifySignature(): never {
+    throw new InternalError(
+      "`getMessageToVerifySignature` is not implemented in FakeSenderAccessListEIP2930Transaction"
+    );
+  }
+
+  public validate(stringError?: false): boolean;
+  public validate(stringError: true): string[];
+  public validate(stringError: boolean = false): boolean | string[] {
+    if (stringError) {
+      return [];
+    }
+
+    return true;
+  }
+}
