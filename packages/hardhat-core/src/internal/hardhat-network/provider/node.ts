@@ -30,6 +30,7 @@ import { CompilerInput, CompilerOutput } from "../../../types";
 import { HARDHAT_NETWORK_DEFAULT_GAS_PRICE } from "../../core/config/default-config";
 import { assertHardhatInvariant, HardhatError } from "../../core/errors";
 import {
+  InternalError,
   InvalidInputError,
   TransactionExecutionError,
 } from "../../core/providers/errors";
@@ -131,6 +132,12 @@ export class HardhatNode extends EventEmitter {
       } = await makeForkClient(config.forkConfig, config.forkCachePath);
       common = await makeForkCommon(config);
 
+      this._validateHardforks(
+        config.forkConfig.blockNumber,
+        common,
+        forkClient.getNetworkId()
+      );
+
       const forkStateManager = new ForkStateManager(
         forkClient,
         forkBlockNumber
@@ -186,6 +193,42 @@ export class HardhatNode extends EventEmitter {
     );
 
     return [common, node];
+  }
+
+  private static _validateHardforks(
+    forkBlockNumber: number | undefined,
+    common: Common,
+    remoteChainId: number
+  ): void {
+    if (!common.gteHardfork("spuriousDragon")) {
+      throw new InternalError(
+        `Invalid hardfork selected in Hardhat Network's config.
+
+The hardfork must be at least spuriousDragon, but ${common.hardfork()} was given.`
+      );
+    }
+
+    if (forkBlockNumber !== undefined) {
+      let upstreamCommon: Common;
+      try {
+        upstreamCommon = new Common({ chain: remoteChainId });
+      } catch (error) {
+        // If ethereumjs doesn't have a common it will throw and we won't have
+        // info about the activation block of each hardfork, so we don't run
+        // this validation.
+        return;
+      }
+
+      upstreamCommon.setHardforkByBlockNumber(forkBlockNumber);
+
+      if (!upstreamCommon.gteHardfork("spuriousDragon")) {
+        throw new InternalError(
+          `Cannot fork ${upstreamCommon.chainName()} from block ${forkBlockNumber}.
+
+Hardhat Network's forking functionality only works with blocks from at least spuriousDragon.`
+        );
+      }
+    }
   }
 
   private readonly _localAccounts: Map<string, Buffer> = new Map(); // address => private key
@@ -990,6 +1033,8 @@ export class HardhatNode extends EventEmitter {
       blockOpts: { calcDifficultyFromHeader: parentBlock.header },
     });
 
+    const transactions = [];
+
     try {
       const traces: GatherTracesResult[] = [];
 
@@ -1010,6 +1055,7 @@ export class HardhatNode extends EventEmitter {
         if (tx.gasLimit.gt(blockGasLimit.sub(blockBuilder.gasUsed))) {
           txHeap.pop();
         } else {
+          transactions.push(tx);
           const txResult = await blockBuilder.addTransaction(tx);
           const { txReceipt } = await generateTxReceipt.bind(this._vm)(
             tx,
@@ -1034,6 +1080,15 @@ export class HardhatNode extends EventEmitter {
       }
 
       const block = await blockBuilder.build();
+
+      // We replace the block's transactions with the actual ones,
+      // as the block builder recreates them, turning fake transactions
+      // into real ones.
+      //
+      // IMPORTANT: this workaround only works because while BlockBuilder#addTransaction
+      // recreates the transactions you pass it, it actually runs yours.
+      block.transactions.splice(0);
+      block.transactions.push(...transactions);
 
       await this._txPool.updatePendingAndQueued();
 
