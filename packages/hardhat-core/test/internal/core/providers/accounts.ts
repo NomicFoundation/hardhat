@@ -23,6 +23,8 @@ function privateKeyToAddress(privateKey: string): string {
   return bufferToHex(privateToAddress(toBuffer(privateKey))).toLowerCase();
 }
 
+const MOCK_PROVIDER_CHAIN_ID = 123;
+
 describe("Local accounts provider", () => {
   let mock: MockedProvider;
   let wrapper: EIP1193Provider;
@@ -35,7 +37,10 @@ describe("Local accounts provider", () => {
 
   beforeEach(() => {
     mock = new MockedProvider();
-    mock.setReturnValue("net_version", numberToRpcQuantity(123));
+    mock.setReturnValue(
+      "net_version",
+      numberToRpcQuantity(MOCK_PROVIDER_CHAIN_ID)
+    );
     mock.setReturnValue("eth_getTransactionCount", numberToRpcQuantity(0x8));
     mock.setReturnValue("eth_accounts", []);
 
@@ -164,6 +169,83 @@ describe("Local accounts provider", () => {
     });
 
     assert.equal(mock.getNumberOfCalls("eth_getTransactionCount"), 1);
+  });
+
+  it("should send access list transactions", async () => {
+    await wrapper.request({
+      method: "eth_sendTransaction",
+      params: [
+        {
+          from: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
+          to: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
+          gas: numberToRpcQuantity(30000),
+          gasPrice: numberToRpcQuantity(1),
+          nonce: numberToRpcQuantity(0),
+          value: numberToRpcQuantity(1),
+          chainId: numberToRpcQuantity(MOCK_PROVIDER_CHAIN_ID),
+          accessList: [
+            {
+              address: "0x57d7aD4D3F0C74e3766874CF06fA1DC23C21f7E8",
+              storageKeys: [
+                "0xa50e92910457911e0e22d6dd1672f440a37b590b231d8309101255290f5394ec",
+              ],
+            },
+          ],
+        },
+      ],
+    });
+
+    const rawTransaction = mock.getLatestParams("eth_sendRawTransaction")[0];
+
+    // this is a valid raw EIP_2930 tx
+    // checked in a local hardhat node, where the sender account
+    // had funds and the chain id was 123
+    const expectedRaw =
+      "0x01f89a7b800182753094b5bc06d4548a3ac17d72b372ae1e416bf65b8e" +
+      "ad0180f838f79457d7ad4d3f0c74e3766874cf06fa1dc23c21f7e8e1a0a5" +
+      "0e92910457911e0e22d6dd1672f440a37b590b231d8309101255290f5394" +
+      "ec80a02b2fca5e2cf3569d29693e965f045529efa6a54bf0ab11104dd4ea" +
+      "8b2ca3daf7a06025c30f36a179a09b9952e025632a65f220ec385eccd23a" +
+      "1fb952976eace481";
+
+    assert.equal(rawTransaction, expectedRaw);
+  });
+
+  it("should add the chainId value if it's missing", async () => {
+    await wrapper.request({
+      method: "eth_sendTransaction",
+      params: [
+        {
+          from: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
+          to: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
+          gas: numberToRpcQuantity(30000),
+          gasPrice: numberToRpcQuantity(1),
+          nonce: numberToRpcQuantity(0),
+          value: numberToRpcQuantity(1),
+          accessList: [
+            {
+              address: "0x57d7aD4D3F0C74e3766874CF06fA1DC23C21f7E8",
+              storageKeys: [
+                "0xa50e92910457911e0e22d6dd1672f440a37b590b231d8309101255290f5394ec",
+              ],
+            },
+          ],
+        },
+      ],
+    });
+
+    const rawTransaction = mock.getLatestParams("eth_sendRawTransaction")[0];
+
+    // see previous test
+    const expectedRaw =
+      "0x01f89a7b800182753094b5bc06d4548a3ac17d72b372ae1e416bf65b8e" +
+      "ad0180f838f79457d7ad4d3f0c74e3766874cf06fa1dc23c21f7e8e1a0a5" +
+      "0e92910457911e0e22d6dd1672f440a37b590b231d8309101255290f5394" +
+      "ec80a02b2fca5e2cf3569d29693e965f045529efa6a54bf0ab11104dd4ea" +
+      "8b2ca3daf7a06025c30f36a179a09b9952e025632a65f220ec385eccd23a" +
+      "1fb952976eace481";
+
+    assert.equal(rawTransaction, expectedRaw);
   });
 
   describe("eth_sign", () => {
