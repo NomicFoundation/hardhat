@@ -131,6 +131,16 @@ export class FakeSenderTransaction extends Transaction {
       "`getMessageToSign` is not implemented in FakeSenderTransaction"
     );
   }
+
+  public validate(stringError?: false): boolean;
+  public validate(stringError: true): string[];
+  public validate(stringError: boolean = false): boolean | string[] {
+    if (stringError) {
+      return [];
+    }
+
+    return true;
+  }
 }
 
 // Override private methods
