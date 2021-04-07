@@ -421,7 +421,7 @@ export class TxPool {
       this._getQueuedForAddress(senderAddress) ?? ImmutableList();
 
     const queuedTx = queuedTxs.find((ftx) =>
-      this._deserializeTransaction(ftx).data.nonce.eq(new BN(tx.nonce))
+      this._deserializeTransaction(ftx).data.nonce.eq(tx.nonce)
     );
     return queuedTx !== undefined;
   }
