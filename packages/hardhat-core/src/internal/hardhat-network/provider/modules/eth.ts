@@ -994,9 +994,7 @@ You can use them by running Hardhat Network with 'hardfork' ${ACCESS_LIST_MIN_HA
 
       if (error.message.includes("The chain ID does not match")) {
         throw new InvalidArgumentsError(
-          `Trying to send a raw transaction with an invalid chainId. The expected chainId is ${this._common
-            .chainIdBN()
-            .toString()}`,
+          `Trying to send a raw transaction with an invalid chainId. The expected chainId is ${this._common.chainIdBN()}`,
           error
         );
       }
