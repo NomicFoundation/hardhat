@@ -1,10 +1,11 @@
 import Common from "@ethereumjs/common";
-import { Transaction } from "@ethereumjs/tx";
+import { AccessListEIP2930Transaction, Transaction } from "@ethereumjs/tx";
 import { assert } from "chai";
 import { BN, bufferToHex, toBuffer, zeroAddress } from "ethereumjs-util";
 import { Context } from "mocha";
 
 import {
+  bufferToRpcData,
   numberToRpcQuantity,
   rpcDataToNumber,
   rpcQuantityToBN,
@@ -4509,45 +4510,258 @@ describe("Eth module", function () {
   });
 });
 
-describe("Eth module - special tests", function () {
-  describe("Receipts formatting", function () {
-    describe("Before byzantium", function () {
-      useFixtureProject("hardhat-network-spurious-dragon");
-      useEnvironment();
+describe("Eth module - fixture based tests", function () {
+  const privateKey = Buffer.from(
+    "17ade313db5de97d19b4cfbc820d15e18a6c710c1afbf01c1f31249970d3ae46",
+    "hex"
+  );
 
-      it("Should have a root field, and shouldn't have a status one", async function () {
-        const [sender] = await this.env.network.provider.send("eth_accounts");
-        const tx = await this.env.network.provider.send("eth_sendTransaction", [
-          { from: sender, to: sender },
-        ]);
+  function getSampleSignedTx() {
+    const tx = Transaction.fromTxData(
+      {},
+      {
+        common: new Common({
+          chain: "mainnet",
+          hardfork: "spuriousDragon",
+        }),
+      }
+    );
 
-        const receipt = await this.env.network.provider.send(
-          "eth_getTransactionReceipt",
-          [tx]
-        );
+    return tx.sign(privateKey);
+  }
 
-        assert.isDefined(receipt.root);
-        assert.isUndefined(receipt.status);
+  function getSampleSignedAccessListTx() {
+    const tx = AccessListEIP2930Transaction.fromTxData(
+      {},
+      {
+        common: new Common({
+          chain: "mainnet",
+          hardfork: "berlin",
+        }),
+      }
+    );
+
+    return tx.sign(privateKey);
+  }
+
+  describe("Transaction, call and estimate gas validations", function () {
+    describe("chain id validation", function () {
+      describe("In a hardfork without access list but with EIP-155", function () {
+        useFixtureProject("hardhat-network-spurious-dragon");
+        useEnvironment();
+
+        it("Should validate the chain id if sent to eth_sendTransaction", async function () {
+          const [sender] = await this.env.network.provider.send("eth_accounts");
+          await assertInvalidArgumentsError(
+            this.env.network.provider,
+            "eth_sendTransaction",
+            [{ from: sender, to: sender, chainId: numberToRpcQuantity(1) }],
+            "Invalid chainId"
+          );
+        });
+
+        it("Should validate the chain id if an EIP-155 tx is sent with eth_sendRawTransaction", async function () {
+          const signedTx = getSampleSignedTx();
+          const serialized = bufferToRpcData(signedTx.serialize());
+
+          await assertInvalidArgumentsError(
+            this.env.network.provider,
+            "eth_sendRawTransaction",
+            [serialized],
+            "signed for another chain"
+          );
+        });
+      });
+
+      describe("In a hardfork with access list", function () {
+        useFixtureProject("hardhat-network-berlin");
+        useEnvironment();
+
+        it("Should validate the chain id if sent to eth_sendTransaction using access list", async function () {
+          const [sender] = await this.env.network.provider.send("eth_accounts");
+          await assertInvalidArgumentsError(
+            this.env.network.provider,
+            "eth_sendTransaction",
+            [
+              {
+                from: sender,
+                to: sender,
+                chainId: numberToRpcQuantity(1),
+                accessList: [],
+              },
+            ],
+            "Invalid chainId"
+          );
+        });
+
+        it("Should validate the chain id in eth_sendRawTransaction using an access list tx", async function () {
+          const signedTx = getSampleSignedAccessListTx();
+          const serialized = bufferToRpcData(signedTx.serialize());
+
+          await assertInvalidArgumentsError(
+            this.env.network.provider,
+            "eth_sendRawTransaction",
+            [serialized],
+            "Trying to send a raw transaction with an invalid chainId"
+          );
+        });
       });
     });
 
-    describe("After byzantium", function () {
-      useFixtureProject("default-config-project");
-      useEnvironment();
+    describe("Transaction type validation by hardfork", function () {
+      describe("Without EIP155 nor access list", function () {
+        it("Should reject an eth_sendRawTransaction if signed with EIP-155", async function () {
+          throw Error("Not implemented");
+        });
 
-      it("Should have a status field and not a root one", async function () {
-        const [sender] = await this.env.network.provider.send("eth_accounts");
-        const tx = await this.env.network.provider.send("eth_sendTransaction", [
-          { from: sender, to: sender },
-        ]);
+        it("Should reject an eth_sendRawTransaction if the tx uses an access list", async function () {
+          throw Error("Not implemented");
+        });
 
-        const receipt = await this.env.network.provider.send(
-          "eth_getTransactionReceipt",
-          [tx]
-        );
+        it("Should reject an eth_sendTransaction if an access list was provided", async function () {
+          throw Error("Not implemented");
+        });
+      });
 
-        assert.isDefined(receipt.status);
-        assert.isUndefined(receipt.root);
+      describe("With EIP155 and not access list", function () {
+        it("Should accept an eth_sendRawTransaction if signed with EIP-155", async function () {
+          throw Error("Not implemented");
+        });
+
+        it("Should reject an eth_sendRawTransaction if the tx uses an access list", async function () {
+          throw Error("Not implemented");
+        });
+
+        it("Should reject an eth_sendTransaction if an access list was provided", async function () {
+          throw Error("Not implemented");
+        });
+      });
+
+      describe("With access list", function () {
+        it("Should accept an eth_sendRawTransaction if the tx uses an access list", async function () {
+          throw Error("Not implemented");
+        });
+
+        it("Should accept an eth_sendTransaction if an access list was provided", async function () {
+          throw Error("Not implemented");
+        });
+      });
+    });
+
+    describe("Call and estimate gas types validation by hardfork", function () {
+      describe("Without access list", function () {
+        it("Should reject an eth_call if an access list was provided", async function () {
+          throw Error("Not implemented");
+        });
+
+        it("Should reject an eth_estimateGas if an access list was provided", async function () {
+          throw Error("Not implemented");
+        });
+      });
+
+      describe("With access list", function () {
+        it("Should accept an eth_call if an access list was provided", async function () {
+          throw Error("Not implemented");
+        });
+
+        it("Should accept an eth_estimateGas if an access list was provided", async function () {
+          throw Error("Not implemented");
+        });
+      });
+    });
+  });
+
+  describe("Transaction and receipt output formatting", function () {
+    describe("Transactions formatting", function () {
+      describe("Before berlin", function () {
+        it("Should not include the fields type, chainId and accessList", async function () {
+          throw Error("Not implemented");
+        });
+      });
+
+      describe("After berlin", function () {
+        describe("legacy tx", function () {
+          it("Should include the field type, but not chainId and accessList", async function () {
+            throw Error("Not implemented");
+          });
+        });
+
+        describe("access list tx", function () {
+          it("Should include the fields type,chainId and accessList", async function () {
+            throw Error("Not implemented");
+          });
+        });
+      });
+
+      // TODO: There's a case missing here, which is forking from Berlin but choosing the local hardfork to be < Berlin.
+      //  In that case only remote EIP-2930 txs should have a type.
+    });
+
+    describe("Receipts formatting", function () {
+      describe("Before byzantium", function () {
+        useFixtureProject("hardhat-network-spurious-dragon");
+        useEnvironment();
+
+        it("Should have a root field, and shouldn't have a status one nor type", async function () {
+          const [sender] = await this.env.network.provider.send("eth_accounts");
+          const tx = await this.env.network.provider.send(
+            "eth_sendTransaction",
+            [{ from: sender, to: sender }]
+          );
+
+          const receipt = await this.env.network.provider.send(
+            "eth_getTransactionReceipt",
+            [tx]
+          );
+
+          assert.isDefined(receipt.root);
+          assert.isUndefined(receipt.status);
+          assert.isUndefined(receipt.type);
+        });
+      });
+
+      describe("After byzantium, before berlin", function () {
+        useFixtureProject("hardhat-network-byzantium");
+        useEnvironment();
+
+        it("Should have a status field and not a root one nor type", async function () {
+          const [sender] = await this.env.network.provider.send("eth_accounts");
+          const tx = await this.env.network.provider.send(
+            "eth_sendTransaction",
+            [{ from: sender, to: sender }]
+          );
+
+          const receipt = await this.env.network.provider.send(
+            "eth_getTransactionReceipt",
+            [tx]
+          );
+
+          assert.isDefined(receipt.status);
+          assert.isUndefined(receipt.root);
+          assert.isUndefined(receipt.type);
+        });
+      });
+
+      describe("After berlin", function () {
+        useFixtureProject("hardhat-network-berlin");
+        useEnvironment();
+
+        it("Should have status and type fields and not a root one", async function () {
+          const [sender] = await this.env.network.provider.send("eth_accounts");
+          const tx = await this.env.network.provider.send(
+            "eth_sendTransaction",
+            [{ from: sender, to: sender }]
+          );
+
+          const receipt = await this.env.network.provider.send(
+            "eth_getTransactionReceipt",
+            [tx]
+          );
+
+          assert.isDefined(receipt.status);
+          assert.isUndefined(receipt.root);
+          assert.equal(receipt.type, "0x0");
+        });
       });
     });
   });
