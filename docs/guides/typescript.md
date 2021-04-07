@@ -119,18 +119,20 @@ When using JavaScript, all the properties in the HRE are injected into the globa
 An example for tests:
 
 ```typescript
+import { expect } from "chai" ;
 import { ethers } from "hardhat";
-import { Signer } from "ethers";
+import "@nomiclabs/hardhat-waffle";
 
-describe("Token", function () {
-  let accounts: Signer[];
+describe("Greeter", function() {
+  it("Should return the new greeting once it's changed", async function() {
+    const Greeter = await ethers.getContractFactory("Greeter");
+    const greeter = await Greeter.deploy("Hello, world!");
 
-  beforeEach(async function () {
-    accounts = await ethers.getSigners();
-  });
+    await greeter.deployed();
+    expect(await greeter.greet()).to.equal("Hello, world!");
 
-  it("should do something right", async function () {
-    // Do something with the accounts
+    await greeter.setGreeting("Hola, mundo!");
+    expect(await greeter.greet()).to.equal("Hola, mundo!");
   });
 });
 ```
@@ -164,7 +166,7 @@ main()
 
 One of the advantages of using TypeScript, is that you can have a type-safe configuration, and avoid typos and other common errors.
 
-To do that, you have to write your config in this way:
+To do that, you can write your `hardhat.config.ts` like this:
 
 ```ts
 import { HardhatUserConfig } from "hardhat/config";
