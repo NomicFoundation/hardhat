@@ -1,4 +1,5 @@
-import { StateManager } from "@ethereumjs/vm/dist/state";
+import { DefaultStateManager } from "@ethereumjs/vm/dist/state";
+import { EIP2929StateManager } from "@ethereumjs/vm/dist/state/interface";
 import {
   Account,
   Address,
@@ -37,7 +38,7 @@ const notCheckpointedError = (method: string) =>
 const notSupportedError = (method: string) =>
   new Error(`${method} is not supported when forking from remote network`);
 
-export class ForkStateManager implements StateManager {
+export class ForkStateManager implements EIP2929StateManager {
   private _state: State = ImmutableMap();
   private _initialStateRoot: string = randomHash();
   private _stateRoot: string = this._initialStateRoot;
@@ -46,6 +47,12 @@ export class ForkStateManager implements StateManager {
   private _stateCheckpoints: string[] = [];
   private _contextBlockNumber = this._forkBlockNumber.clone();
   private _contextChanged = false;
+
+  // used by the DefaultStateManager calls
+  private _accessedStorage: Array<Map<string, Set<string>>> = [new Map()];
+  private _accessedStorageReverted: Array<Map<string, Set<string>>> = [
+    new Map(),
+  ];
 
   constructor(
     private readonly _jsonRpcClient: JsonRpcClient,
@@ -369,6 +376,37 @@ export class ForkStateManager implements StateManager {
     this._originalStorageCache.set(storageKey, value);
 
     return value;
+  }
+
+  // the following methods are copied verbatim from
+  // DefaultStateManager
+
+  public isWarmedAddress(address: Buffer): boolean {
+    return DefaultStateManager.prototype.isWarmedAddress.call(this, address);
+  }
+
+  public addWarmedAddress(address: Buffer): void {
+    return DefaultStateManager.prototype.addWarmedAddress.call(this, address);
+  }
+
+  public isWarmedStorage(address: Buffer, slot: Buffer): boolean {
+    return DefaultStateManager.prototype.isWarmedStorage.call(
+      this,
+      address,
+      slot
+    );
+  }
+
+  public addWarmedStorage(address: Buffer, slot: Buffer): void {
+    return DefaultStateManager.prototype.addWarmedStorage.call(
+      this,
+      address,
+      slot
+    );
+  }
+
+  public clearWarmedAccounts(): void {
+    return DefaultStateManager.prototype.clearWarmedAccounts.call(this);
   }
 
   private _putAccount(address: Address, account: Account): void {

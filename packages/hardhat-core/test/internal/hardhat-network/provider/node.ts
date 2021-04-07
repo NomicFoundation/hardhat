@@ -37,17 +37,12 @@ import {
 
 // tslint:disable no-string-literal
 
-interface ForkPoint {
+interface ForkedBlock {
   networkName: string;
   url?: string;
-  /**
-   * Fork block number.
-   * This is the last observable block from the remote blockchain.
-   * Later blocks are all constructed by Hardhat Network.
-   */
-  blockNumber: number;
+  blockToRun: number;
   chainId: number;
-  hardfork: "istanbul" | "muirGlacier";
+  hardfork: "istanbul" | "muirGlacier" | "berlin";
 }
 
 describe("HardhatNode", () => {
@@ -552,44 +547,44 @@ describe("HardhatNode", () => {
 
   describe("full block", function () {
     this.timeout(120000);
-    // Note that here `blockNumber` is the number of the forked block, not the number of the "simulated" block.
-    // Tests are written to fork this block and execute all transactions of the block following the forked block.
-    // This means that if the forked block number is 9300076, what the test will do is:
-    //   - setup a forked blockchain based on block 9300076
-    //   - fetch all transactions from 9300077
-    //   - create a new block with them
-    //   - execute the whole block and save it with the rest of the blockchain
-    const forkPoints: ForkPoint[] = [
+    const forkedBlocks: ForkedBlock[] = [
       {
         networkName: "mainnet",
         url: ALCHEMY_URL,
-        blockNumber: 9300076,
+        blockToRun: 9300077,
         chainId: 1,
         hardfork: "muirGlacier",
       },
       {
         networkName: "kovan",
         url: (ALCHEMY_URL ?? "").replace("mainnet", "kovan"),
-        blockNumber: 23115226,
+        blockToRun: 23115227,
         chainId: 42,
         hardfork: "istanbul",
       },
       {
         networkName: "rinkeby",
         url: (ALCHEMY_URL ?? "").replace("mainnet", "rinkeby"),
-        blockNumber: 8004364,
+        blockToRun: 8004365,
         chainId: 4,
         hardfork: "istanbul",
+      },
+      {
+        networkName: "ropsten",
+        url: (ALCHEMY_URL ?? "").replace("mainnet", "ropsten"),
+        blockToRun: 9812365, // this block has a EIP-2930 tx
+        chainId: 3,
+        hardfork: "berlin",
       },
     ];
 
     for (const {
       url,
-      blockNumber,
+      blockToRun,
       networkName,
       chainId,
       hardfork,
-    } of forkPoints) {
+    } of forkedBlocks) {
       it(`should run a ${networkName} block and produce the same results`, async function () {
         if (url === undefined || url === "") {
           this.skip();
@@ -597,13 +592,13 @@ describe("HardhatNode", () => {
 
         const forkConfig = {
           jsonRpcUrl: url,
-          blockNumber,
+          blockNumber: blockToRun - 1,
         };
 
         const { forkClient } = await makeForkClient(forkConfig);
 
         const rpcBlock = await forkClient.getBlockByNumber(
-          new BN(blockNumber + 1),
+          new BN(blockToRun),
           true
         );
 
@@ -626,16 +621,13 @@ describe("HardhatNode", () => {
 
         const [common, forkedNode] = await HardhatNode.create(forkedNodeConfig);
 
-        let block = Block.fromBlockData(rpcToBlockData(rpcBlock), { common });
+        const block = Block.fromBlockData(rpcToBlockData(rpcBlock), {
+          common,
+          freeze: false,
+        });
 
-        block = Block.fromBlockData(
-          {
-            ...block,
-            // We wipe the receiptTrie just to be sure that it's not copied over
-            header: { ...block.header, receiptTrie: Buffer.alloc(32, 0) },
-          },
-          { common }
-        );
+        // We wipe the receiptTrie just to be sure that it's not copied over
+        (block as any).header.receiptTrie = Buffer.alloc(32, 0);
 
         forkedNode["_vmTracer"].disableTracing();
 
@@ -650,15 +642,16 @@ describe("HardhatNode", () => {
 
         const modifiedBlock = afterBlockEvent.block;
 
-        await forkedNode["_vm"].blockchain.putBlock(modifiedBlock);
-        await forkedNode["_saveBlockAsSuccessfullyRun"](
-          modifiedBlock,
-          afterBlockEvent
-        );
+        // Restore the receipt trie
+        (block as any).header.receiptTrie = modifiedBlock.header.receiptTrie;
 
-        const newBlock = await forkedNode.getBlockByNumber(
-          new BN(blockNumber + 1)
-        );
+        // TODO we should use modifiedBlock instead of block here,
+        // but we can't because of a bug in the vm
+        // TODO: Change this once https://github.com/ethereumjs/ethereumjs-monorepo/pull/1185 is released.
+        await forkedNode["_vm"].blockchain.putBlock(block);
+        await forkedNode["_saveBlockAsSuccessfullyRun"](block, afterBlockEvent);
+
+        const newBlock = await forkedNode.getBlockByNumber(new BN(blockToRun));
 
         if (newBlock === undefined) {
           assert.fail();
