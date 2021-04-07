@@ -26,7 +26,9 @@ export function serializeTransaction(
   tx: OrderedTransaction
 ): SerializedTransaction {
   const rlpSerialization = bufferToHex(tx.data.serialize());
-  const isFake = tx.data instanceof FakeSenderTransaction;
+  const isFake =
+    tx.data instanceof FakeSenderTransaction ||
+    tx.data instanceof FakeSenderAccessListEIP2930Transaction;
   return makeSerializedTransaction({
     orderId: tx.orderId,
     fakeFrom: isFake ? tx.data.getSenderAddress().toString() : undefined,
