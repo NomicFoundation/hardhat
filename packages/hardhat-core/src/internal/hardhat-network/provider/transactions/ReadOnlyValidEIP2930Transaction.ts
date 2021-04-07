@@ -1,26 +1,25 @@
-import { Transaction, TxData, TxOptions } from "@ethereumjs/tx";
-import { Address } from "ethereumjs-util";
+import Common from "@ethereumjs/common";
+import {
+  AccessListEIP2930Transaction,
+  AccessListEIP2930TxData,
+  AccessListEIP2930ValuesArray,
+  TxOptions,
+} from "@ethereumjs/tx";
+import { Address, BN } from "ethereumjs-util";
 
 import { InternalError } from "../../../core/providers/errors";
 
 // tslint:disable only-hardhat-error
 
 /**
- * This class represents a transaction that is assumed to be valid.
- *
- * This transaction is not meant to be run. It can only be used to read
- * from its values.
- *
- * The transaction's signature is never validated, but assumed to be valid.
- *
- * The sender's private key is never recovered from the signature. Instead,
- * the sender's address is received as parameter.
- *
- * This class doesn't use its Common instance, so there's no need to provide
- * one.
+ * This class is like `ReadOnlyValidTransaction` but for
+ * EIP-2930 (access list) transactions.
  */
-export class ReadOnlyValidTransaction extends Transaction {
-  public static fromTxData(txData: TxData, opts?: TxOptions): never {
+export class ReadOnlyValidEIP2930Transaction extends AccessListEIP2930Transaction {
+  public static fromTxData(
+    txData: AccessListEIP2930TxData,
+    opts?: TxOptions
+  ): never {
     throw new InternalError(
       "`fromTxData` is not implemented in ReadOnlyValidTransaction"
     );
@@ -41,7 +40,10 @@ export class ReadOnlyValidTransaction extends Transaction {
     );
   }
 
-  public static fromValuesArray(values: Buffer[], opts?: TxOptions): never {
+  public static fromValuesArray(
+    values: AccessListEIP2930ValuesArray,
+    opts?: TxOptions
+  ): never {
     throw new InternalError(
       "`fromRlpSerializedTx` is not implemented in ReadOnlyValidTransaction"
     );
@@ -49,8 +51,32 @@ export class ReadOnlyValidTransaction extends Transaction {
 
   private readonly _sender: Address;
 
-  public constructor(sender: Address, data: TxData = {}) {
-    super(data, { freeze: false });
+  public constructor(sender: Address, data: AccessListEIP2930TxData = {}) {
+    const fakeCommon = new Common({
+      chain: "mainnet",
+    });
+
+    // this class should only be used with txs in a hardfork that
+    // supports EIP-2930
+    (fakeCommon as any).isActivatedEIP = (eip: number) => {
+      if (eip === 2930) {
+        return true;
+      }
+
+      throw new Error("Expected `isActivatedEIP` to only be called with 2930");
+    };
+
+    // this class should only be used with EIP-2930 txs,
+    // which (we assume) always have a defined `chainId` value
+    (fakeCommon as any).chainIdBN = () => {
+      if (data.chainId !== undefined) {
+        return new BN(data.chainId);
+      }
+
+      throw new Error("Expected txData to have a chainId");
+    };
+
+    super(data, { freeze: false, common: fakeCommon });
 
     this._sender = sender;
   }
@@ -123,7 +149,7 @@ export class ReadOnlyValidTransaction extends Transaction {
 // Override private methods
 
 const ReadOnlyValidTransactionPrototype: any =
-  ReadOnlyValidTransaction.prototype;
+  ReadOnlyValidEIP2930Transaction.prototype;
 
 ReadOnlyValidTransactionPrototype._validateTxV = function () {};
 
