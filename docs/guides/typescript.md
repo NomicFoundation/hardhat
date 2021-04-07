@@ -138,14 +138,18 @@ describe("Token", function () {
 An example for scripts:
 
 ```typescript
-import { run, ethers } from "hardhat";
+import { ethers } from "hardhat";
+import "@nomiclabs/hardhat-ethers";
 
 async function main() {
-  await run("compile");
 
-  const accounts = await ethers.getSigners();
+    // We get the contract to deploy
+    const Greeter = await ethers.getContractFactory("Greeter");
+    const greeter = await Greeter.deploy("Hello, Hardhat!");
 
-  console.log("Accounts:", accounts.map(a => a.address));
+    await greeter.deployed();
+
+    console.log("Greeter deployed to:", greeter.address);
 }
 
 main()
