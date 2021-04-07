@@ -15,6 +15,7 @@ import {
   SenderTransactions,
   SerializedTransaction,
 } from "./PoolState";
+import { FakeSenderAccessListEIP2930Transaction } from "./transactions/FakeSenderAccessListEIP2930Transaction";
 import { FakeSenderTransaction } from "./transactions/FakeSenderTransaction";
 import { bnToHex } from "./utils/bnToHex";
 import { reorganizeTransactionsLists } from "./utils/reorganizeTransactionsLists";
@@ -30,6 +31,7 @@ export function serializeTransaction(
     orderId: tx.orderId,
     fakeFrom: isFake ? tx.data.getSenderAddress().toString() : undefined,
     data: rlpSerialization,
+    txType: tx.data.transactionType,
   });
 }
 
@@ -42,11 +44,22 @@ export function deserializeTransaction(
 
   let data;
   if (fakeFrom !== undefined) {
-    data = FakeSenderTransaction.fromSenderAndRlpSerializedTx(
-      Address.fromString(fakeFrom),
-      toBuffer(rlpSerialization),
-      { common }
-    );
+    const sender = Address.fromString(fakeFrom);
+    const serialization = toBuffer(rlpSerialization);
+
+    if (tx.get("txType") === 1) {
+      data = FakeSenderAccessListEIP2930Transaction.fromSenderAndRlpSerializedTx(
+        sender,
+        serialization,
+        { common }
+      );
+    } else {
+      data = FakeSenderTransaction.fromSenderAndRlpSerializedTx(
+        sender,
+        serialization,
+        { common }
+      );
+    }
   } else {
     data = TransactionFactory.fromSerializedData(toBuffer(rlpSerialization), {
       common,

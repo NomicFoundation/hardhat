@@ -18,6 +18,7 @@ interface ImmutableOrderedTransaction {
   orderId: number;
   fakeFrom: string | undefined;
   data: string;
+  txType: number;
 }
 
 export const makeSerializedTransaction = ImmutableRecord<
@@ -26,6 +27,7 @@ export const makeSerializedTransaction = ImmutableRecord<
   orderId: 0,
   fakeFrom: undefined,
   data: "",
+  txType: 0,
 });
 
 export type SerializedTransaction = ImmutableRecord<
