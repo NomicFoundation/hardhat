@@ -1024,14 +1024,13 @@ You can use them by running Hardhat Network with 'hardfork' ${ACCESS_LIST_MIN_HA
   private async _sendTransactionAction(
     transactionRequest: RpcTransactionRequest
   ): Promise<string> {
+    const expectedChainId = this._common.chainIdBN();
     if (
       transactionRequest.chainId !== undefined &&
-      !transactionRequest.chainId.eq(this._common.chainIdBN())
+      !transactionRequest.chainId.eq(expectedChainId)
     ) {
       throw new InvalidArgumentsError(
-        `Invalid chainId ${transactionRequest.chainId.toString()} provided, expected ${this._common
-          .chainIdBN()
-          .toString()} instead.`
+        `Invalid chainId ${transactionRequest.chainId.toString()} provided, expected ${expectedChainId} instead.`
       );
     }
 
