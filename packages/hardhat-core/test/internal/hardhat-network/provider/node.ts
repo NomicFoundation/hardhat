@@ -643,14 +643,11 @@ describe("HardhatNode", () => {
 
         const modifiedBlock = afterBlockEvent.block;
 
-        // Restore the receipt trie
-        (block as any).header.receiptTrie = modifiedBlock.header.receiptTrie;
-
-        // TODO we should use modifiedBlock instead of block here,
-        // but we can't because of a bug in the vm
-        // TODO: Change this once https://github.com/ethereumjs/ethereumjs-monorepo/pull/1185 is released.
-        await forkedNode["_vm"].blockchain.putBlock(block);
-        await forkedNode["_saveBlockAsSuccessfullyRun"](block, afterBlockEvent);
+        await forkedNode["_vm"].blockchain.putBlock(modifiedBlock);
+        await forkedNode["_saveBlockAsSuccessfullyRun"](
+          modifiedBlock,
+          afterBlockEvent
+        );
 
         const newBlock = await forkedNode.getBlockByNumber(new BN(blockToRun));
 
@@ -663,8 +660,8 @@ describe("HardhatNode", () => {
 
         // We do some manual comparisons here to understand why the root of the receipt tries differ.
         if (localReceiptRoot !== remoteReceiptRoot) {
-          for (let i = 0; i < block.transactions.length; i++) {
-            const tx = block.transactions[i];
+          for (let i = 0; i < newBlock.transactions.length; i++) {
+            const tx = newBlock.transactions[i];
             const txHash = bufferToHex(tx.hash());
 
             const remoteReceipt = (await forkClient["_httpProvider"].request({
