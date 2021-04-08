@@ -145,34 +145,3 @@ export class ReadOnlyValidEIP2930Transaction extends AccessListEIP2930Transactio
     );
   }
 }
-
-// Override private methods
-
-const ReadOnlyValidTransactionPrototype: any =
-  ReadOnlyValidEIP2930Transaction.prototype;
-
-ReadOnlyValidTransactionPrototype._validateTxV = function () {};
-
-ReadOnlyValidTransactionPrototype._signedTxImplementsEIP155 = function () {
-  throw new InternalError(
-    "`_signedTxImplementsEIP155` is not implemented in ReadOnlyValidEIP2930Transaction"
-  );
-};
-
-ReadOnlyValidTransactionPrototype._unsignedTxImplementsEIP155 = function () {
-  throw new InternalError(
-    "`_unsignedTxImplementsEIP155` is not implemented in ReadOnlyValidEIP2930Transaction"
-  );
-};
-
-ReadOnlyValidTransactionPrototype._getMessageToSign = function () {
-  throw new InternalError(
-    "`_getMessageToSign` is not implemented in ReadOnlyValidEIP2930Transaction"
-  );
-};
-
-ReadOnlyValidTransactionPrototype._processSignature = function () {
-  throw new InternalError(
-    "`_processSignature` is not implemented in ReadOnlyValidEIP2930Transaction"
-  );
-};
