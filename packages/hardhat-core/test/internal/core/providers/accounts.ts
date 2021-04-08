@@ -1,3 +1,5 @@
+import Common from "@ethereumjs/common";
+import { AccessListEIP2930Transaction } from "@ethereumjs/tx";
 import { assert } from "chai";
 import { bufferToHex, privateToAddress, toBuffer } from "ethereumjs-util";
 
@@ -23,6 +25,8 @@ function privateKeyToAddress(privateKey: string): string {
   return bufferToHex(privateToAddress(toBuffer(privateKey))).toLowerCase();
 }
 
+const MOCK_PROVIDER_CHAIN_ID = 123;
+
 describe("Local accounts provider", () => {
   let mock: MockedProvider;
   let wrapper: EIP1193Provider;
@@ -35,7 +39,10 @@ describe("Local accounts provider", () => {
 
   beforeEach(() => {
     mock = new MockedProvider();
-    mock.setReturnValue("net_version", numberToRpcQuantity(123));
+    mock.setReturnValue(
+      "net_version",
+      numberToRpcQuantity(MOCK_PROVIDER_CHAIN_ID)
+    );
     mock.setReturnValue("eth_getTransactionCount", numberToRpcQuantity(0x8));
     mock.setReturnValue("eth_accounts", []);
 
@@ -164,6 +171,85 @@ describe("Local accounts provider", () => {
     });
 
     assert.equal(mock.getNumberOfCalls("eth_getTransactionCount"), 1);
+  });
+
+  it("should send access list transactions", async () => {
+    const tx = {
+      from: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
+      to: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
+      gas: numberToRpcQuantity(30000),
+      gasPrice: numberToRpcQuantity(1),
+      nonce: numberToRpcQuantity(0),
+      value: numberToRpcQuantity(1),
+      chainId: numberToRpcQuantity(MOCK_PROVIDER_CHAIN_ID),
+      accessList: [
+        {
+          address: "0x57d7ad4d3f0c74e3766874cf06fa1dc23c21f7e8",
+          storageKeys: [
+            "0xa50e92910457911e0e22d6dd1672f440a37b590b231d8309101255290f5394ec",
+          ],
+        },
+      ],
+    };
+    await wrapper.request({
+      method: "eth_sendTransaction",
+      params: [tx],
+    });
+
+    const rawTransaction = mock.getLatestParams("eth_sendRawTransaction")[0];
+
+    // this is a valid raw EIP_2930 tx
+    // checked in a local hardhat node, where the sender account
+    // had funds and the chain id was 123
+    const expectedRaw =
+      "0x01f89a7b800182753094b5bc06d4548a3ac17d72b372ae1e416bf65b8e" +
+      "ad0180f838f79457d7ad4d3f0c74e3766874cf06fa1dc23c21f7e8e1a0a5" +
+      "0e92910457911e0e22d6dd1672f440a37b590b231d8309101255290f5394" +
+      "ec80a02b2fca5e2cf3569d29693e965f045529efa6a54bf0ab11104dd4ea" +
+      "8b2ca3daf7a06025c30f36a179a09b9952e025632a65f220ec385eccd23a" +
+      "1fb952976eace481";
+
+    assert.equal(rawTransaction, expectedRaw);
+
+    validateRawEIP2930Transaction(expectedRaw, tx);
+  });
+
+  it("should add the chainId value if it's missing", async () => {
+    const tx = {
+      from: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
+      to: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
+      gas: numberToRpcQuantity(30000),
+      gasPrice: numberToRpcQuantity(1),
+      nonce: numberToRpcQuantity(0),
+      value: numberToRpcQuantity(1),
+      accessList: [
+        {
+          address: "0x57d7ad4d3f0c74e3766874cf06fa1dc23c21f7e8",
+          storageKeys: [
+            "0xa50e92910457911e0e22d6dd1672f440a37b590b231d8309101255290f5394ec",
+          ],
+        },
+      ],
+    };
+    await wrapper.request({
+      method: "eth_sendTransaction",
+      params: [tx],
+    });
+
+    const rawTransaction = mock.getLatestParams("eth_sendRawTransaction")[0];
+
+    // see previous test
+    const expectedRaw =
+      "0x01f89a7b800182753094b5bc06d4548a3ac17d72b372ae1e416bf65b8e" +
+      "ad0180f838f79457d7ad4d3f0c74e3766874cf06fa1dc23c21f7e8e1a0a5" +
+      "0e92910457911e0e22d6dd1672f440a37b590b231d8309101255290f5394" +
+      "ec80a02b2fca5e2cf3569d29693e965f045529efa6a54bf0ab11104dd4ea" +
+      "8b2ca3daf7a06025c30f36a179a09b9952e025632a65f220ec385eccd23a" +
+      "1fb952976eace481";
+
+    assert.equal(rawTransaction, expectedRaw);
+
+    validateRawEIP2930Transaction(expectedRaw, tx);
   });
 
   describe("eth_sign", () => {
@@ -436,3 +522,36 @@ describe("Sender providers", () => {
     });
   });
 });
+
+/**
+ * Validate that `rawTx` is an EIP-2930 transaction that has
+ * the same values as `tx`
+ */
+function validateRawEIP2930Transaction(rawTx: string, tx: any) {
+  const common = Common.forCustomChain(
+    "mainnet",
+    { chainId: MOCK_PROVIDER_CHAIN_ID },
+    "berlin"
+  );
+
+  const sentTx = AccessListEIP2930Transaction.fromSerializedTx(
+    toBuffer(rawTx),
+    { common }
+  );
+
+  const accessList = sentTx.accessList.map(([address, storageKeys]) => {
+    return {
+      address: bufferToHex(address),
+      storageKeys: storageKeys.map(bufferToHex),
+    };
+  });
+
+  assert.equal(sentTx.getSenderAddress().toString(), tx.from);
+  assert.equal(sentTx.to?.toString(), tx.to);
+
+  assert.equal(numberToRpcQuantity(sentTx.gasLimit), tx.gas);
+  assert.equal(numberToRpcQuantity(sentTx.gasPrice), tx.gasPrice);
+  assert.equal(numberToRpcQuantity(sentTx.nonce), tx.nonce);
+  assert.equal(numberToRpcQuantity(sentTx.value), tx.value);
+  assert.deepEqual(accessList, tx.accessList);
+}
