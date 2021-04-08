@@ -271,6 +271,7 @@ export class ForkBlockchain implements HardhatBlockchainInterface {
 
     for (const transaction of rpcBlock.transactions) {
       let tx;
+      // TODO: Check the type instead
       if (transaction.accessList !== undefined) {
         tx = new ReadOnlyValidEIP2930Transaction(
           new Address(transaction.from),
