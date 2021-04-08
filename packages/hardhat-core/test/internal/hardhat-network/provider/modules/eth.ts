@@ -33,6 +33,7 @@ import {
   assertNodeBalances,
   assertNotSupported,
   assertPendingNodeBalances,
+  assertProviderError,
   assertQuantity,
   assertReceiptMatchesGethOne,
   assertTransaction,
@@ -4952,6 +4953,234 @@ describe("Eth module - hardfork dependant tests", function () {
 
       assert.isDefined(tx.accessList);
       assert.isArray(tx.accessList);
+    });
+  });
+
+  describe("Access list transactions", function () {
+    useProviderAndCommon("berlin");
+
+    // This contract is useful to test that an access list is being used.
+    //
+    // The way it works is by letting you control how much gas "test"
+    // forwards to "write".
+    //
+    // If you don't provide the right access list, all the storage accesses that
+    // "write" makes are cold, and hence more expensive. You can find the max
+    // amount of gas that you can forward to "write" that makes it OOG in this case.
+    // That OOG makes "test" revert.
+    //
+    // Now, if you do provide an access list, all the storage accesses are warm,
+    // so cheaper. If you forward the same amount of gas to "write" than before,
+    // but provide an access list, it won't OOG and "test" won't revert.
+    //
+    // pragma solidity 0.7.0;
+    //
+    // contract C {
+    //     uint a = 1; uint b = 1; uint c = 1; uint d = 1; uint e = 1; uint f = 1; uint g = 1;
+    //     uint h = 1; uint i = 1; uint j = 1; uint k = 1; uint l = 1; uint m = 1; uint n = 1;
+    //
+    //     function test(uint gasToForward) public {
+    //         this.write{gas: gasToForward}();
+    //     }
+    //
+    //     function write() public {
+    //         a += 1; b += 1; c += 1; d += 1; e += 1; f += 1; g += 1;
+    //         h += 1; i += 1; j += 1; k += 1; l += 1; m += 1; n += 1;
+    //     }
+    // }
+    const TEST_CONTRACT_DEPLOYMENT_BYTECODE =
+      "0x6080604052600160005560018055600160025560016003556001600455600160055560016006556001600755600160085560016009556001600a556001600b556001600c556001600d5534801561005557600080fd5b506101fc806100656000396000f3fe608060405234801561001057600080fd5b50600436106100365760003560e01c806329e99f071461003b578063bcb4ab0e14610069575b600080fd5b6100676004803603602081101561005157600080fd5b8101908080359060200190929190505050610073565b005b6100716100d8565b005b3073ffffffffffffffffffffffffffffffffffffffff1663bcb4ab0e826040518263ffffffff1660e01b8152600401600060405180830381600088803b1580156100bc57600080fd5b5087f11580156100d0573d6000803e3d6000fd5b505050505050565b6001600080828254019250508190555060018060008282540192505081905550600160026000828254019250508190555060016003600082825401925050819055506001600460008282540192505081905550600160056000828254019250508190555060016006600082825401925050819055506001600760008282540192505081905550600160086000828254019250508190555060016009600082825401925050819055506001600a600082825401925050819055506001600b600082825401925050819055506001600c600082825401925050819055506001600d6000828254019250508190555056fea2646970667358221220f49d12643dee70a8cfde7a6346c0ca133768619dd2fb07c942e69d5c0433fe3b64736f6c63430007000033";
+    const TEST_FUNCTION_SELECTOR = "0x29e99f07";
+    const MAX_GAS_TO_FORWARD_THAT_FAILS_WITHOUT_ACCESS_LIST = 70605;
+    const WRITE_STORAGE_KEYS = [
+      bufferToRpcData(toBuffer(0), 32),
+      bufferToRpcData(toBuffer(1), 32),
+      bufferToRpcData(toBuffer(2), 32),
+      bufferToRpcData(toBuffer(3), 32),
+      bufferToRpcData(toBuffer(4), 32),
+      bufferToRpcData(toBuffer(5), 32),
+      bufferToRpcData(toBuffer(6), 32),
+      bufferToRpcData(toBuffer(7), 32),
+      bufferToRpcData(toBuffer(8), 32),
+      bufferToRpcData(toBuffer(9), 32),
+      bufferToRpcData(toBuffer(10), 32),
+      bufferToRpcData(toBuffer(11), 32),
+      bufferToRpcData(toBuffer(12), 32),
+      bufferToRpcData(toBuffer(13), 32),
+    ];
+
+    function abiEncodeUint(uint: number) {
+      return new BN(uint).toBuffer("be", 32).toString("hex");
+    }
+
+    let contract: string;
+    let txData: any;
+
+    beforeEach(async function () {
+      contract = await deployContract(
+        this.provider,
+        TEST_CONTRACT_DEPLOYMENT_BYTECODE
+      );
+
+      txData = {
+        to: contract,
+        data:
+          TEST_FUNCTION_SELECTOR +
+          abiEncodeUint(MAX_GAS_TO_FORWARD_THAT_FAILS_WITHOUT_ACCESS_LIST),
+        accessList: [
+          {
+            address: contract,
+            storageKeys: WRITE_STORAGE_KEYS,
+          },
+        ],
+      };
+    });
+
+    describe("Validate access list test contract", function () {
+      it("Should revert if the max gas is forwarded", async function () {
+        await assert.isRejected(
+          this.provider.send("eth_call", [
+            {
+              ...txData,
+              accessList: undefined,
+            },
+          ]),
+          "reverted without a reason"
+        );
+      });
+
+      it("Should not revert if the more gas is forwarded", async function () {
+        await this.provider.send("eth_call", [
+          {
+            to: contract,
+            data:
+              TEST_FUNCTION_SELECTOR +
+              abiEncodeUint(
+                MAX_GAS_TO_FORWARD_THAT_FAILS_WITHOUT_ACCESS_LIST + 1
+              ),
+          },
+        ]);
+      });
+    });
+
+    describe("eth_call", function () {
+      it("should use the access list if sent", async function () {
+        await this.provider.send("eth_call", [txData]);
+      });
+    });
+
+    describe("eth_estimateGas", function () {
+      it("should use the access list if sent", async function () {
+        // It would revert and throw if the access list is not used
+        await this.provider.send("eth_estimateGas", [txData]);
+      });
+    });
+
+    describe("eth_sendRawTransaction", function () {
+      it("should use the access list if an EIP-2930 tx is sent", async function () {
+        const unsignedTx = AccessListEIP2930Transaction.fromTxData(
+          { ...txData, gasPrice: 0, gasLimit: 1000000 },
+          {
+            common: this.common,
+          }
+        );
+
+        const signedTx = unsignedTx.sign(privateKey);
+
+        const txHash = await this.provider.send("eth_sendRawTransaction", [
+          bufferToRpcData(signedTx.serialize()),
+        ]);
+
+        const tx = await this.provider.send("eth_getTransactionByHash", [
+          txHash,
+        ]);
+
+        assert.equal(tx.type, numberToRpcQuantity(1));
+      });
+    });
+
+    describe("eth_sendTransaction", function () {
+      describe("When automining", function () {
+        it("Should use an EIP-2930 tx if an access list is sent using a local account", async function () {
+          const [from] = await this.provider.send("eth_accounts");
+          const txHash = await this.provider.send("eth_sendTransaction", [
+            { ...txData, from },
+          ]);
+
+          const tx = await this.provider.send("eth_getTransactionByHash", [
+            txHash,
+          ]);
+
+          assert.equal(tx.type, numberToRpcQuantity(1));
+        });
+
+        it("Should use an EIP-2930 tx if an access list is sent using an impersonated account", async function () {
+          const from = "0x1234567890123456789012345678901234567890";
+          await this.provider.send("hardhat_impersonateAccount", [from]);
+
+          const txHash = await this.provider.send("eth_sendTransaction", [
+            { ...txData, from, gasPrice: numberToRpcQuantity(0) },
+          ]);
+
+          const tx = await this.provider.send("eth_getTransactionByHash", [
+            txHash,
+          ]);
+
+          assert.equal(tx.type, numberToRpcQuantity(1));
+        });
+      });
+
+      describe("When txs go through the mempool", function () {
+        beforeEach("Disable automining", async function () {
+          await this.provider.send("evm_setAutomine", [false]);
+        });
+
+        it("Should use an EIP-2930 tx if an access list is sent using a local account", async function () {
+          const [from] = await this.provider.send("eth_accounts");
+          const txHash = await this.provider.send("eth_sendTransaction", [
+            { ...txData, from },
+          ]);
+
+          const pendingTx = await this.provider.send(
+            "eth_getTransactionByHash",
+            [txHash]
+          );
+
+          assert.equal(pendingTx.type, numberToRpcQuantity(1));
+
+          await this.provider.send("evm_mine", []);
+
+          const minedTx = await this.provider.send("eth_getTransactionByHash", [
+            txHash,
+          ]);
+
+          assert.equal(minedTx.type, numberToRpcQuantity(1));
+        });
+
+        it("Should use an EIP-2930 tx if an access list is sent using an impersonated account", async function () {
+          const from = "0x1234567890123456789012345678901234567890";
+          await this.provider.send("hardhat_impersonateAccount", [from]);
+
+          const txHash = await this.provider.send("eth_sendTransaction", [
+            { ...txData, from, gasPrice: numberToRpcQuantity(0) },
+          ]);
+
+          const pendingTx = await this.provider.send(
+            "eth_getTransactionByHash",
+            [txHash]
+          );
+
+          assert.equal(pendingTx.type, numberToRpcQuantity(1));
+
+          await this.provider.send("evm_mine", []);
+
+          const minedTx = await this.provider.send("eth_getTransactionByHash", [
+            txHash,
+          ]);
+
+          assert.equal(minedTx.type, numberToRpcQuantity(1));
+        });
+      });
     });
   });
 });
