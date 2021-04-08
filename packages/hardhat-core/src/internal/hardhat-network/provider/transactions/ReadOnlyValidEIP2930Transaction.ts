@@ -21,13 +21,13 @@ export class ReadOnlyValidEIP2930Transaction extends AccessListEIP2930Transactio
     opts?: TxOptions
   ): never {
     throw new InternalError(
-      "`fromTxData` is not implemented in ReadOnlyValidTransaction"
+      "`fromTxData` is not implemented in ReadOnlyValidEIP2930Transaction"
     );
   }
 
   public static fromSerializedTx(serialized: Buffer, opts?: TxOptions): never {
     throw new InternalError(
-      "`fromSerializedTx` is not implemented in ReadOnlyValidTransaction"
+      "`fromSerializedTx` is not implemented in ReadOnlyValidEIP2930Transaction"
     );
   }
 
@@ -36,7 +36,7 @@ export class ReadOnlyValidEIP2930Transaction extends AccessListEIP2930Transactio
     opts?: TxOptions
   ): never {
     throw new InternalError(
-      "`fromRlpSerializedTx` is not implemented in ReadOnlyValidTransaction"
+      "`fromRlpSerializedTx` is not implemented in ReadOnlyValidEIP2930Transaction"
     );
   }
 
@@ -45,7 +45,7 @@ export class ReadOnlyValidEIP2930Transaction extends AccessListEIP2930Transactio
     opts?: TxOptions
   ): never {
     throw new InternalError(
-      "`fromRlpSerializedTx` is not implemented in ReadOnlyValidTransaction"
+      "`fromRlpSerializedTx` is not implemented in ReadOnlyValidEIP2930Transaction"
     );
   }
 
@@ -91,25 +91,25 @@ export class ReadOnlyValidEIP2930Transaction extends AccessListEIP2930Transactio
 
   public sign(): never {
     throw new InternalError(
-      "`sign` is not implemented in ReadOnlyValidTransaction"
+      "`sign` is not implemented in ReadOnlyValidEIP2930Transaction"
     );
   }
 
   public getDataFee(): never {
     throw new InternalError(
-      "`getDataFee` is not implemented in ReadOnlyValidTransaction"
+      "`getDataFee` is not implemented in ReadOnlyValidEIP2930Transaction"
     );
   }
 
   public getBaseFee(): never {
     throw new InternalError(
-      "`getBaseFee` is not implemented in ReadOnlyValidTransaction"
+      "`getBaseFee` is not implemented in ReadOnlyValidEIP2930Transaction"
     );
   }
 
   public getUpfrontCost(): never {
     throw new InternalError(
-      "`getUpfrontCost` is not implemented in ReadOnlyValidTransaction"
+      "`getUpfrontCost` is not implemented in ReadOnlyValidEIP2930Transaction"
     );
   }
 
@@ -117,31 +117,31 @@ export class ReadOnlyValidEIP2930Transaction extends AccessListEIP2930Transactio
   public validate(stringError: true): never;
   public validate(stringError: boolean = false): never {
     throw new InternalError(
-      "`validate` is not implemented in ReadOnlyValidTransaction"
+      "`validate` is not implemented in ReadOnlyValidEIP2930Transaction"
     );
   }
 
   public toCreationAddress(): never {
     throw new InternalError(
-      "`toCreationAddress` is not implemented in ReadOnlyValidTransaction"
+      "`toCreationAddress` is not implemented in ReadOnlyValidEIP2930Transaction"
     );
   }
 
   public getSenderPublicKey(): never {
     throw new InternalError(
-      "`getSenderPublicKey` is not implemented in ReadOnlyValidTransaction"
+      "`getSenderPublicKey` is not implemented in ReadOnlyValidEIP2930Transaction"
     );
   }
 
   public getMessageToVerifySignature(): never {
     throw new InternalError(
-      "`getMessageToVerifySignature` is not implemented in ReadOnlyValidTransaction"
+      "`getMessageToVerifySignature` is not implemented in ReadOnlyValidEIP2930Transaction"
     );
   }
 
   public getMessageToSign(): never {
     throw new InternalError(
-      "`getMessageToSign` is not implemented in ReadOnlyValidTransaction"
+      "`getMessageToSign` is not implemented in ReadOnlyValidEIP2930Transaction"
     );
   }
 }
@@ -155,24 +155,24 @@ ReadOnlyValidTransactionPrototype._validateTxV = function () {};
 
 ReadOnlyValidTransactionPrototype._signedTxImplementsEIP155 = function () {
   throw new InternalError(
-    "`_signedTxImplementsEIP155` is not implemented in ReadOnlyValidTransaction"
+    "`_signedTxImplementsEIP155` is not implemented in ReadOnlyValidEIP2930Transaction"
   );
 };
 
 ReadOnlyValidTransactionPrototype._unsignedTxImplementsEIP155 = function () {
   throw new InternalError(
-    "`_unsignedTxImplementsEIP155` is not implemented in ReadOnlyValidTransaction"
+    "`_unsignedTxImplementsEIP155` is not implemented in ReadOnlyValidEIP2930Transaction"
   );
 };
 
 ReadOnlyValidTransactionPrototype._getMessageToSign = function () {
   throw new InternalError(
-    "`_getMessageToSign` is not implemented in ReadOnlyValidTransaction"
+    "`_getMessageToSign` is not implemented in ReadOnlyValidEIP2930Transaction"
   );
 };
 
 ReadOnlyValidTransactionPrototype._processSignature = function () {
   throw new InternalError(
-    "`_processSignature` is not implemented in ReadOnlyValidTransaction"
+    "`_processSignature` is not implemented in ReadOnlyValidEIP2930Transaction"
   );
 };
