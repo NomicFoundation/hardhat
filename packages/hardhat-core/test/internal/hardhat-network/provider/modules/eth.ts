@@ -4923,4 +4923,35 @@ describe("Eth module - hardfork dependant tests", function () {
       });
     });
   });
+
+  describe("Impersonated accounts", function () {
+    useProviderAndCommon("berlin");
+
+    it("should allow sending access list txs from impersonated accounts", async function () {
+      // impersonate and add funds to some account
+      const impersonated = "0x462B1B252FC8e9A447807e4494b271844fBCDa10";
+      await this.provider.send("eth_sendTransaction", [
+        {
+          from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+          to: impersonated,
+          value: numberToRpcQuantity(new BN("100000000000000000")),
+        },
+      ]);
+      await this.provider.send("hardhat_impersonateAccount", [impersonated]);
+
+      // send tx from impersonated account
+      const txHash = await this.provider.send("eth_sendTransaction", [
+        {
+          from: impersonated,
+          to: impersonated,
+          accessList: [],
+        },
+      ]);
+
+      const tx = await this.provider.send("eth_getTransactionByHash", [txHash]);
+
+      assert.isDefined(tx.accessList);
+      assert.isArray(tx.accessList);
+    });
+  });
 });
