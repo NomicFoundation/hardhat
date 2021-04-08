@@ -2,6 +2,7 @@ import chalk from "chalk";
 import { BN, toBuffer } from "ethereumjs-util";
 
 import { HARDHAT_NETWORK_NAME } from "../../../constants";
+import { HardhatError } from "../../../core/errors";
 import {
   numberToRpcQuantity,
   rpcQuantityToNumber,
@@ -46,6 +47,12 @@ export async function makeForkClient(
 
   let forkBlockNumber;
   if (forkConfig.blockNumber !== undefined) {
+    if (forkConfig.blockNumber > latestBlock) {
+      throw new Error(
+        `Trying to initialize a provider with block ${forkConfig.blockNumber} but the current block is ${latestBlock}`
+      );
+    }
+
     if (forkConfig.blockNumber > lastSafeBlock) {
       const confirmations = latestBlock - forkConfig.blockNumber + 1;
       const requiredConfirmations = maxReorg + 1;
