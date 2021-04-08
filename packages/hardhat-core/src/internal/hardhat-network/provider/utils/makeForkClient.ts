@@ -48,6 +48,7 @@ export async function makeForkClient(
   let forkBlockNumber;
   if (forkConfig.blockNumber !== undefined) {
     if (forkConfig.blockNumber > latestBlock) {
+      // tslint:disable-next-line only-hardhat-error
       throw new Error(
         `Trying to initialize a provider with block ${forkConfig.blockNumber} but the current block is ${latestBlock}`
       );
