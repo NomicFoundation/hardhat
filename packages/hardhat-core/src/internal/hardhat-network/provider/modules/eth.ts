@@ -947,7 +947,7 @@ export class EthModule {
   private async _sendRawTransactionAction(rawTx: Buffer): Promise<string> {
     // We validate that the tx is not legacy nor eip-2930 here
     // because otherwise the catch logic below gets too tricky
-    // This can happen because of an EIP-2929 tx that's not EIP-2930,
+    // This can happen because of an EIP-2718 tx that's not EIP-2930,
     // which we don't support, or because the input is just completely invalid
     if (rawTx[0] <= 0x7f && rawTx[0] !== 1) {
       throw new InvalidArgumentsError(`Invalid transaction`);
