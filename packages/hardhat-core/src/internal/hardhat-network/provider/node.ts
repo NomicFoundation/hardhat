@@ -59,6 +59,7 @@ import { SolidityTracer } from "../stack-traces/solidityTracer";
 import { VmTraceDecoder } from "../stack-traces/vm-trace-decoder";
 import { VMTracer } from "../stack-traces/vm-tracer";
 
+import "./ethereumjs-workarounds";
 import { bloomFilter, Filter, filterLogs, LATEST_BLOCK, Type } from "./filter";
 import { ForkBlockchain } from "./fork/ForkBlockchain";
 import { ForkStateManager } from "./fork/ForkStateManager";
@@ -1065,8 +1066,6 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       blockOpts: { calcDifficultyFromHeader: parentBlock.header },
     });
 
-    const transactions = [];
-
     try {
       const traces: GatherTracesResult[] = [];
 
@@ -1087,7 +1086,6 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         if (tx.gasLimit.gt(blockGasLimit.sub(blockBuilder.gasUsed))) {
           txHeap.pop();
         } else {
-          transactions.push(tx);
           const txResult = await blockBuilder.addTransaction(tx);
           const { txReceipt } = await generateTxReceipt.bind(this._vm)(
             tx,
@@ -1115,15 +1113,6 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       }
 
       const block = await blockBuilder.build();
-
-      // We replace the block's transactions with the actual ones,
-      // as the block builder recreates them, turning fake transactions
-      // into real ones.
-      //
-      // IMPORTANT: this workaround only works because while BlockBuilder#addTransaction
-      // recreates the transactions you pass it, it actually runs yours.
-      block.transactions.splice(0);
-      block.transactions.push(...transactions);
 
       await this._txPool.updatePendingAndQueued();
 

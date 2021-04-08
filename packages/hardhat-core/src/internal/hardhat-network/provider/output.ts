@@ -234,7 +234,7 @@ export function getRpcReceiptOutputsFromLocalBlockExecution(
           : null,
       logs,
       logsBloom: bufferToRpcData(receipt.bitvector),
-      // There's no way to execute an EIP-2929 tx locally if we aren't in
+      // There's no way to execute an EIP-2718 tx locally if we aren't in
       // an HF >= Berlin, so this check is enough
       type: showTransactionType
         ? numberToRpcQuantity(tx.transactionType)

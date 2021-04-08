@@ -1,6 +1,6 @@
 import { Block } from "@ethereumjs/block";
 import Common from "@ethereumjs/common";
-import { Transaction, TxData, TypedTransaction } from "@ethereumjs/tx";
+import { TxData, TypedTransaction } from "@ethereumjs/tx";
 import VM from "@ethereumjs/vm";
 import {
   AfterBlockEvent,
@@ -42,7 +42,6 @@ interface ForkedBlock {
   url?: string;
   blockToRun: number;
   chainId: number;
-  hardfork: "istanbul" | "muirGlacier" | "berlin";
 }
 
 describe("HardhatNode", () => {
@@ -547,46 +546,59 @@ describe("HardhatNode", () => {
 
   describe("full block", function () {
     this.timeout(120000);
-    // TODO: Run one block of each hard fork starting from spurious dragon
+
     const forkedBlocks: ForkedBlock[] = [
+      // We don't run this test against spurious dragon because
+      // its receipts contain the state root, and we can't compute it
+      {
+        networkName: "mainnet",
+        url: ALCHEMY_URL,
+        blockToRun: 4370001,
+        chainId: 1,
+      },
+      {
+        networkName: "mainnet",
+        url: ALCHEMY_URL,
+        blockToRun: 7280001,
+        chainId: 1,
+      },
+      {
+        networkName: "mainnet",
+        url: ALCHEMY_URL,
+        blockToRun: 9069001,
+        chainId: 1,
+      },
       {
         networkName: "mainnet",
         url: ALCHEMY_URL,
         blockToRun: 9300077,
         chainId: 1,
-        hardfork: "muirGlacier",
       },
       {
         networkName: "kovan",
         url: (ALCHEMY_URL ?? "").replace("mainnet", "kovan"),
         blockToRun: 23115227,
         chainId: 42,
-        hardfork: "istanbul",
       },
       {
         networkName: "rinkeby",
         url: (ALCHEMY_URL ?? "").replace("mainnet", "rinkeby"),
         blockToRun: 8004365,
         chainId: 4,
-        hardfork: "istanbul",
       },
       {
         networkName: "ropsten",
         url: (ALCHEMY_URL ?? "").replace("mainnet", "ropsten"),
         blockToRun: 9812365, // this block has a EIP-2930 tx
         chainId: 3,
-        hardfork: "berlin",
       },
     ];
 
-    for (const {
-      url,
-      blockToRun,
-      networkName,
-      chainId,
-      hardfork,
-    } of forkedBlocks) {
-      it(`should run a ${networkName} block and produce the same results`, async function () {
+    for (const { url, blockToRun, networkName, chainId } of forkedBlocks) {
+      const remoteCommon = new Common({ chain: chainId });
+      const hardfork = remoteCommon.getHardforkByBlockNumber(blockToRun);
+
+      it(`should run a ${networkName} block from ${hardfork} and produce the same results`, async function () {
         if (url === undefined || url === "") {
           this.skip();
         }
@@ -608,6 +620,7 @@ describe("HardhatNode", () => {
         }
 
         const forkCachePath = path.join(__dirname, ".hardhat_node_test_cache");
+
         const forkedNodeConfig: ForkedNodeConfig = {
           automine: true,
           networkName: "mainnet",
@@ -622,13 +635,17 @@ describe("HardhatNode", () => {
 
         const [common, forkedNode] = await HardhatNode.create(forkedNodeConfig);
 
-        const block = Block.fromBlockData(rpcToBlockData(rpcBlock), {
-          common,
-          freeze: false,
-        });
-
-        // We wipe the receiptTrie just to be sure that it's not copied over
-        (block as any).header.receiptTrie = Buffer.alloc(32, 0);
+        const block = Block.fromBlockData(
+          rpcToBlockData({
+            ...rpcBlock,
+            // We wipe the receipt root to make sure we get a new one
+            receiptsRoot: Buffer.alloc(32, 0),
+          }),
+          {
+            common,
+            freeze: false,
+          }
+        );
 
         forkedNode["_vmTracer"].disableTracing();
 
