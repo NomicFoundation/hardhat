@@ -1,6 +1,6 @@
 import { Block } from "@ethereumjs/block";
 import Common from "@ethereumjs/common";
-import { Transaction, TxData, TypedTransaction } from "@ethereumjs/tx";
+import { TxData, TypedTransaction } from "@ethereumjs/tx";
 import VM from "@ethereumjs/vm";
 import {
   AfterBlockEvent,
@@ -677,8 +677,8 @@ describe("HardhatNode", () => {
 
         // We do some manual comparisons here to understand why the root of the receipt tries differ.
         if (localReceiptRoot !== remoteReceiptRoot) {
-          for (let i = 0; i < block.transactions.length; i++) {
-            const tx = block.transactions[i];
+          for (let i = 0; i < newBlock.transactions.length; i++) {
+            const tx = newBlock.transactions[i];
             const txHash = bufferToHex(tx.hash());
 
             const remoteReceipt = (await forkClient["_httpProvider"].request({

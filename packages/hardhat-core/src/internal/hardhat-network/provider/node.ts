@@ -108,6 +108,24 @@ export const COINBASE_ADDRESS = Address.fromString(
   "0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e"
 );
 
+// TODO: Delete this before the release of Berlin
+//  It's a workaround that is also included here: https://github.com/ethereumjs/ethereumjs-monorepo/pull/1185
+Object.defineProperty(AccessListEIP2930Transaction.prototype, "type", {
+  get() {
+    return this.transactionType;
+  },
+});
+
+Object.defineProperty(
+  FakeSenderAccessListEIP2930Transaction.prototype,
+  "type",
+  {
+    get() {
+      return this.transactionType;
+    },
+  }
+);
+
 // tslint:disable only-hardhat-error
 
 export class HardhatNode extends EventEmitter {

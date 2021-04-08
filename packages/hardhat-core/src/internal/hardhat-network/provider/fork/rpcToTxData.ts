@@ -20,7 +20,7 @@ export function rpcToTxData(
   if (rpcTransaction.type !== undefined) {
     txData.type = rpcTransaction.type;
   }
-  if (rpcTransaction.chainId !== undefined) {
+  if (rpcTransaction.chainId !== undefined && rpcTransaction.chainId !== null) {
     txData.chainId = rpcTransaction.chainId;
   }
   if (rpcTransaction.accessList !== undefined) {
