@@ -6,6 +6,7 @@ import { Address, BN } from "ethereumjs-util";
 import { RpcBlockWithTransactions } from "../../../core/jsonrpc/types/output/block";
 import { RpcTransactionReceipt } from "../../../core/jsonrpc/types/output/receipt";
 import { RpcTransaction } from "../../../core/jsonrpc/types/output/transaction";
+import { InternalError } from "../../../core/providers/errors";
 import { JsonRpcClient } from "../../jsonrpc/client";
 import { BlockchainData } from "../BlockchainData";
 import { FilterParams } from "../node-types";
@@ -271,17 +272,18 @@ export class ForkBlockchain implements HardhatBlockchainInterface {
 
     for (const transaction of rpcBlock.transactions) {
       let tx;
-      // TODO: Check the type instead
-      if (transaction.accessList !== undefined) {
+      if (transaction.type === undefined || transaction.type.eqn(0)) {
+        tx = new ReadOnlyValidTransaction(
+          new Address(transaction.from),
+          rpcToTxData(transaction)
+        );
+      } else if (transaction.type.eqn(1)) {
         tx = new ReadOnlyValidEIP2930Transaction(
           new Address(transaction.from),
           rpcToTxData(transaction)
         );
       } else {
-        tx = new ReadOnlyValidTransaction(
-          new Address(transaction.from),
-          rpcToTxData(transaction)
-        );
+        throw new InternalError(`Unknown transaction type ${transaction.type}`);
       }
 
       block.transactions.push(tx);
