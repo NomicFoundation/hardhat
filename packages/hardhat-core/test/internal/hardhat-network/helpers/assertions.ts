@@ -10,12 +10,14 @@ import {
   InvalidArgumentsError,
   InvalidInputError,
   MethodNotSupportedError,
+  ProviderError,
 } from "../../../../src/internal/core/providers/errors";
 import { TransactionParams } from "../../../../src/internal/hardhat-network/provider/node-types";
 import {
   RpcReceiptOutput,
   RpcTransactionOutput,
 } from "../../../../src/internal/hardhat-network/provider/output";
+import { SolidityError } from "../../../../src/internal/hardhat-network/stack-traces/solidity-errors";
 import { EthereumProvider } from "../../../../src/types";
 
 export async function assertProviderError(
@@ -29,6 +31,11 @@ export async function assertProviderError(
   try {
     res = await provider.send(method, params);
   } catch (error) {
+    if (!isProviderError(error)) {
+      // This is not a provider error, so we rethrow it, as something broke
+      throw error;
+    }
+
     if (code !== undefined) {
       assert.equal(error.code, code);
     }
@@ -122,6 +129,10 @@ export async function assertPendingNodeBalances(
   assert.deepEqual(balances, expectedBalances.map(numberToRpcQuantity));
 }
 
+function isProviderError(error: any): error is ProviderError {
+  return typeof error.code === "number" && typeof error.message === "string";
+}
+
 export async function assertTransactionFailure(
   provider: EthereumProvider,
   txData: RpcTransactionRequestInput,
@@ -131,7 +142,18 @@ export async function assertTransactionFailure(
   try {
     await provider.send("eth_sendTransaction", [txData]);
   } catch (error) {
+    if (!(error instanceof SolidityError) && !isProviderError(error)) {
+      // Something broke here, so we rethrow
+      throw error;
+    }
+
     if (code !== undefined) {
+      if (error instanceof SolidityError) {
+        assert.fail(
+          `Expected a ProviderError with code ${code} but got a SolidityError instead`
+        );
+      }
+
       assert.equal(error.code, code);
     }
 
