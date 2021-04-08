@@ -61,7 +61,7 @@ export class FakeSenderAccessListEIP2930Transaction extends AccessListEIP2930Tra
       );
     }
 
-    const values = rlp.decode(serialized);
+    const values = rlp.decode(serialized.slice(1));
 
     if (!Array.isArray(values)) {
       throw new InvalidArgumentsError(
