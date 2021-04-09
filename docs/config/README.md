@@ -67,7 +67,7 @@ You can set the following fields on the `hardhat` config:
 
 - `from`: The address to use as default sender. If not present the first account of the Hardhat Network is used.
 
-- `gas`: Its value should be `"auto"` or a number. If a number is used, it will be the gas limit used by default in every transaction. If `"auto"` is used, the gas limit will be automatically estimated. Default value: `9500000`.
+- `gas`: Its value should be `"auto"` or a number. If a number is used, it will be the gas limit used by default in every transaction. If `"auto"` is used, the gas limit will be automatically estimated. Default value: The same value as `blockGasLimit`.
 
 - `gasPrice`: Its value should be `"auto"` or a number. This parameter behaves like `gas`. Default value: `8000000000`.
 
@@ -82,9 +82,9 @@ You can set the following fields on the `hardhat` config:
     - `accountsBalance`: string with the balance (in wei) assigned to every account derived. Default value: "10000000000000000000000" (10000 ETH).
   - An array of the initial accounts that the Hardhat Network will create. Each of them must be an object with `privateKey` and `balance` fields.
 
-- `blockGasLimit`: The block gas limit to use in Hardhat Network's blockchain. Default value: `9500000`
+- `blockGasLimit`: The block gas limit to use in Hardhat Network's blockchain. Default value: `12450000`
 
-- `hardfork`: This setting changes how Hardhat Network works, to mimic Ethereum's mainnet at a given hardfork. It must be one of `"chainstart"`, `"homestead"`, `"dao"`, `"tangerineWhistle"`, `"spuriousDragon"`, `"byzantium"`, `"constantinople"`, `"petersburg"`, `"istanbul"`, `"muirGlacier"`, and `"berlin"`. Default value: `"muirGlacier"`
+- `hardfork`: This setting changes how Hardhat Network works, to mimic Ethereum's mainnet at a given hardfork. It must be one of `"chainstart"`, `"homestead"`, `"dao"`, `"tangerineWhistle"`, `"spuriousDragon"`, `"byzantium"`, `"constantinople"`, `"petersburg"`, `"istanbul"`, `"muirGlacier"`, and `"berlin"`. Default value: `"berlin"`
 
 - `throwOnTransactionFailures`: A boolean that controls if Hardhat Network throws on transaction failures.
   If this value is `true`, Hardhat Network will throw [combined JavaScript and Soldity stack traces](../hardhat-network/README.md#solidity-stack-traces)
@@ -98,7 +98,7 @@ You can set the following fields on the `hardhat` config:
 - `loggingEnabled`: A boolean that controls if Hardhat Network logs every request or not. Default value: `false` for the
   in-process Hardhat Network provider, `true` for the Hardhat Network backed JSON-RPC server (i.e. the `node` task).
 
-- `initialDate`: An optional string setting the date of the blockchain. If no option is set, the current date is used. Valid values are [Javascript's date time strings](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/parse#Date_Time_String_Format).
+- `initialDate`: An optional string setting the date of the blockchain. Valid values are [Javascript's date time strings](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/parse#Date_Time_String_Format). Default: The current date and time.
 
 - `allowUnlimitedContractSize`: An optional boolean that disables the contract size limit imposed by the [EIP 170](https://eips.ethereum.org/EIPS/eip-170). Default value: `false`
 

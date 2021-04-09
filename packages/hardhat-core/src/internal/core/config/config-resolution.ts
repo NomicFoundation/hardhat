@@ -154,12 +154,24 @@ function resolveHardhatNetworkConfig(
 
   const mining = resolveMiningConfig(hardhatNetworkConfig.mining);
 
+  const blockGasLimit =
+    hardhatNetworkConfig.blockGasLimit ??
+    clonedDefaultHardhatNetworkParams.blockGasLimit;
+
+  const gas = hardhatNetworkConfig.gas ?? blockGasLimit;
+
+  const initialDate =
+    hardhatNetworkConfig.initialDate ?? new Date().toISOString();
+
   const config = {
     ...clonedDefaultHardhatNetworkParams,
     ...hardhatNetworkConfig,
     accounts,
     forking,
     mining,
+    blockGasLimit,
+    gas,
+    initialDate,
   };
 
   // We do it this way because ts gets lost otherwise
