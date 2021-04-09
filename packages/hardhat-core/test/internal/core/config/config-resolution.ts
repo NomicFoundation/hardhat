@@ -280,6 +280,34 @@ describe("Config resolution", () => {
 
         assert.deepEqual(config.networks.hardhat, {
           ...defaultHardhatNetworkParams,
+          // See the another test to understand why this is ignored
+          gas: config.networks.hardhat.gas,
+        });
+      });
+
+      it("Should use the block gas limit as default gas", function () {
+        const configWithoutBlockGasLimit = resolveConfig(__filename, {});
+        assert.deepEqual(configWithoutBlockGasLimit.networks.hardhat, {
+          ...defaultHardhatNetworkParams,
+          gas: configWithoutBlockGasLimit.networks.hardhat.blockGasLimit,
+        });
+
+        const configWithBlockGasLimit = resolveConfig(__filename, {
+          networks: { hardhat: { blockGasLimit: 1 } },
+        });
+        assert.deepEqual(configWithBlockGasLimit.networks.hardhat, {
+          ...defaultHardhatNetworkParams,
+          blockGasLimit: 1,
+          gas: 1,
+        });
+
+        const configWithBlockGasLimitAndGas = resolveConfig(__filename, {
+          networks: { hardhat: { blockGasLimit: 2, gas: 3 } },
+        });
+        assert.deepEqual(configWithBlockGasLimitAndGas.networks.hardhat, {
+          ...defaultHardhatNetworkParams,
+          blockGasLimit: 2,
+          gas: 3,
         });
       });
 
