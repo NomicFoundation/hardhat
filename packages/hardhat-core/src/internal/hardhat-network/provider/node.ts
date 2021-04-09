@@ -1,14 +1,23 @@
-import VM from "@nomiclabs/ethereumjs-vm";
-import Bloom from "@nomiclabs/ethereumjs-vm/dist/bloom";
-import { EVMResult, ExecResult } from "@nomiclabs/ethereumjs-vm/dist/evm/evm";
-import { ERROR } from "@nomiclabs/ethereumjs-vm/dist/exceptions";
-import { RunBlockResult } from "@nomiclabs/ethereumjs-vm/dist/runBlock";
-import { StateManager } from "@nomiclabs/ethereumjs-vm/dist/state";
+import { Block } from "@ethereumjs/block";
+import Common from "@ethereumjs/common";
+import {
+  AccessListEIP2930Transaction,
+  Transaction,
+  TypedTransaction,
+} from "@ethereumjs/tx";
+import VM from "@ethereumjs/vm";
+import Bloom from "@ethereumjs/vm/dist/bloom";
+import { EVMResult, ExecResult } from "@ethereumjs/vm/dist/evm/evm";
+import { ERROR } from "@ethereumjs/vm/dist/exceptions";
+import {
+  generateTxReceipt,
+  RunBlockResult,
+} from "@ethereumjs/vm/dist/runBlock";
+import { DefaultStateManager, StateManager } from "@ethereumjs/vm/dist/state";
 import chalk from "chalk";
 import debug from "debug";
-import Common from "ethereumjs-common";
-import { FakeTransaction, Transaction } from "ethereumjs-tx";
 import {
+  Address,
   BN,
   bufferToHex,
   ECDSASignature,
@@ -21,13 +30,22 @@ import EventEmitter from "events";
 
 import { CompilerInput, CompilerOutput } from "../../../types";
 import { HARDHAT_NETWORK_DEFAULT_GAS_PRICE } from "../../core/config/default-config";
-import { assertHardhatInvariant } from "../../core/errors";
+import { assertHardhatInvariant, HardhatError } from "../../core/errors";
+import {
+  InternalError,
+  InvalidInputError,
+  TransactionExecutionError,
+} from "../../core/providers/errors";
 import { Reporter } from "../../sentry/reporter";
 import { getDifferenceInSeconds } from "../../util/date";
 import { createModelsAndDecodeBytecodes } from "../stack-traces/compiler-to-model";
 import { ConsoleLogger } from "../stack-traces/consoleLogger";
 import { ContractsIdentifier } from "../stack-traces/contracts-identifier";
-import { MessageTrace } from "../stack-traces/message-trace";
+import {
+  isCreateTrace,
+  isPrecompileTrace,
+  MessageTrace,
+} from "../stack-traces/message-trace";
 import { decodeRevertReason } from "../stack-traces/revert-reasons";
 import {
   encodeSolidityStackTrace,
@@ -41,37 +59,44 @@ import { SolidityTracer } from "../stack-traces/solidityTracer";
 import { VmTraceDecoder } from "../stack-traces/vm-trace-decoder";
 import { VMTracer } from "../stack-traces/vm-tracer";
 
-import { InvalidInputError, TransactionExecutionError } from "./errors";
+import "./ethereumjs-workarounds";
 import { bloomFilter, Filter, filterLogs, LATEST_BLOCK, Type } from "./filter";
 import { ForkBlockchain } from "./fork/ForkBlockchain";
 import { ForkStateManager } from "./fork/ForkStateManager";
 import { HardhatBlockchain } from "./HardhatBlockchain";
 import {
   CallParams,
+  EstimateGasResult,
   FilterParams,
+  GatherTracesResult,
   GenesisAccount,
+  MineBlockResult,
   NodeConfig,
+  RunCallResult,
+  SendTransactionResult,
   Snapshot,
   TracingConfig,
   TransactionParams,
 } from "./node-types";
 import {
   getRpcBlock,
-  getRpcReceipts,
+  getRpcReceiptOutputsFromLocalBlockExecution,
   RpcLogOutput,
   RpcReceiptOutput,
+  shouldShowTransactionTypeForHardfork,
 } from "./output";
-import { Block } from "./types/Block";
-import { PBlockchain } from "./types/PBlockchain";
-import { PStateManager } from "./types/PStateManager";
-import { asPStateManager } from "./utils/asPStateManager";
-import { asStateManager } from "./utils/asStateManager";
+import { FakeSenderAccessListEIP2930Transaction } from "./transactions/FakeSenderAccessListEIP2930Transaction";
+import { FakeSenderTransaction } from "./transactions/FakeSenderTransaction";
+import { TxPool } from "./TxPool";
+import { TxPriorityHeap } from "./TxPriorityHeap";
+import { HardhatBlockchainInterface } from "./types/HardhatBlockchainInterface";
 import { getCurrentTimestamp } from "./utils/getCurrentTimestamp";
 import { makeCommon } from "./utils/makeCommon";
 import { makeForkClient } from "./utils/makeForkClient";
 import { makeForkCommon } from "./utils/makeForkCommon";
 import { makeStateTrie } from "./utils/makeStateTrie";
 import { putGenesisBlock } from "./utils/putGenesisBlock";
+import { txMapToArray } from "./utils/txMapToArray";
 
 const log = debug("hardhat:core:hardhat-network:node");
 
@@ -79,7 +104,7 @@ const log = debug("hardhat:core:hardhat-network:node");
 // tslint:disable-next-line no-var-requires
 const ethSigUtil = require("eth-sig-util");
 
-export const COINBASE_ADDRESS = toBuffer(
+export const COINBASE_ADDRESS = Address.fromString(
   "0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e"
 );
 
@@ -90,6 +115,7 @@ export class HardhatNode extends EventEmitter {
     config: NodeConfig
   ): Promise<[Common, HardhatNode]> {
     const {
+      automine,
       genesisAccounts,
       blockGasLimit,
       allowUnlimitedContractSize,
@@ -97,8 +123,8 @@ export class HardhatNode extends EventEmitter {
     } = config;
 
     let common: Common;
-    let stateManager: StateManager | ForkStateManager;
-    let blockchain: HardhatBlockchain | ForkBlockchain;
+    let stateManager: StateManager;
+    let blockchain: HardhatBlockchainInterface;
     let initialBlockTimeOffset: BN | undefined;
 
     if ("forkConfig" in config) {
@@ -109,13 +135,18 @@ export class HardhatNode extends EventEmitter {
       } = await makeForkClient(config.forkConfig, config.forkCachePath);
       common = await makeForkCommon(config);
 
-      stateManager = new ForkStateManager(
-        forkClient,
-        forkBlockNumber,
-        genesisAccounts
+      this._validateHardforks(
+        config.forkConfig.blockNumber,
+        common,
+        forkClient.getNetworkId()
       );
 
-      await stateManager.initializeGenesisAccounts(genesisAccounts);
+      const forkStateManager = new ForkStateManager(
+        forkClient,
+        forkBlockNumber
+      );
+      await forkStateManager.initializeGenesisAccounts(genesisAccounts);
+      stateManager = forkStateManager;
 
       blockchain = new ForkBlockchain(forkClient, forkBlockNumber, common);
 
@@ -126,41 +157,81 @@ export class HardhatNode extends EventEmitter {
       const stateTrie = await makeStateTrie(genesisAccounts);
       common = makeCommon(config, stateTrie);
 
-      stateManager = new StateManager({
+      stateManager = new DefaultStateManager({
         common,
         trie: stateTrie,
       });
 
-      blockchain = new HardhatBlockchain();
-      await putGenesisBlock(blockchain, common);
+      const hardhatBlockchain = new HardhatBlockchain();
+      await putGenesisBlock(hardhatBlockchain, common);
 
       if (config.initialDate !== undefined) {
         initialBlockTimeOffset = new BN(
           getDifferenceInSeconds(config.initialDate, new Date())
         );
       }
+
+      blockchain = hardhatBlockchain;
     }
+
+    const txPool = new TxPool(stateManager, new BN(blockGasLimit), common);
 
     const vm = new VM({
       common,
       activatePrecompiles: true,
-      stateManager: asStateManager(stateManager) as any,
-      blockchain: blockchain.asBlockchain() as any,
+      stateManager,
+      blockchain: blockchain as any,
       allowUnlimitedContractSize,
     });
 
     const node = new HardhatNode(
       vm,
-      asPStateManager(stateManager),
+      stateManager,
       blockchain,
-      new BN(blockGasLimit),
-
+      txPool,
+      automine,
       initialBlockTimeOffset,
       genesisAccounts,
       tracingConfig
     );
 
     return [common, node];
+  }
+
+  private static _validateHardforks(
+    forkBlockNumber: number | undefined,
+    common: Common,
+    remoteChainId: number
+  ): void {
+    if (!common.gteHardfork("spuriousDragon")) {
+      throw new InternalError(
+        `Invalid hardfork selected in Hardhat Network's config.
+
+The hardfork must be at least spuriousDragon, but ${common.hardfork()} was given.`
+      );
+    }
+
+    if (forkBlockNumber !== undefined) {
+      let upstreamCommon: Common;
+      try {
+        upstreamCommon = new Common({ chain: remoteChainId });
+      } catch (error) {
+        // If ethereumjs doesn't have a common it will throw and we won't have
+        // info about the activation block of each hardfork, so we don't run
+        // this validation.
+        return;
+      }
+
+      upstreamCommon.setHardforkByBlockNumber(forkBlockNumber);
+
+      if (!upstreamCommon.gteHardfork("spuriousDragon")) {
+        throw new InternalError(
+          `Cannot fork ${upstreamCommon.chainName()} from block ${forkBlockNumber}.
+
+Hardhat Network's forking functionality only works with blocks from at least spuriousDragon.`
+        );
+      }
+    }
   }
 
   private readonly _localAccounts: Map<string, Buffer> = new Map(); // address => private key
@@ -182,9 +253,10 @@ export class HardhatNode extends EventEmitter {
 
   private constructor(
     private readonly _vm: VM,
-    private readonly _stateManager: PStateManager,
-    private readonly _blockchain: PBlockchain,
-    private readonly _blockGasLimit: BN,
+    private readonly _stateManager: StateManager,
+    private readonly _blockchain: HardhatBlockchainInterface,
+    private readonly _txPool: TxPool,
+    private _automine: boolean,
     private _blockTimeOffsetSeconds: BN = new BN(0),
     genesisAccounts: GenesisAccount[],
     tracingConfig?: TracingConfig
@@ -196,7 +268,7 @@ export class HardhatNode extends EventEmitter {
     this._vmTracer = new VMTracer(
       this._vm,
       this._stateManager.getContractCode.bind(this._stateManager),
-      true
+      false
     );
     this._vmTracer.enableTracing();
 
@@ -238,210 +310,125 @@ export class HardhatNode extends EventEmitter {
 
   public async getSignedTransaction(
     txParams: TransactionParams
-  ): Promise<Transaction> {
+  ): Promise<TypedTransaction> {
     const senderAddress = bufferToHex(txParams.from);
 
     const pk = this._localAccounts.get(senderAddress);
     if (pk !== undefined) {
-      const tx = new Transaction(txParams, { common: this._vm._common });
-      tx.sign(pk);
-      return tx;
+      let tx: TypedTransaction;
+
+      if (txParams.accessList !== undefined) {
+        tx = AccessListEIP2930Transaction.fromTxData(txParams, {
+          common: this._vm._common,
+        });
+      } else {
+        tx = Transaction.fromTxData(txParams, { common: this._vm._common });
+      }
+
+      return tx.sign(pk);
     }
 
     if (this._impersonatedAccounts.has(senderAddress)) {
-      return new FakeTransaction(txParams, { common: this._vm._common });
+      return this._getFakeTransaction(txParams);
     }
 
     throw new InvalidInputError(`unknown account ${senderAddress}`);
   }
 
-  public async _getFakeTransaction(
-    txParams: TransactionParams
-  ): Promise<Transaction> {
-    return new FakeTransaction(txParams, { common: this._vm._common });
+  public async sendTransaction(
+    tx: TypedTransaction
+  ): Promise<SendTransactionResult> {
+    if (!this._automine) {
+      return this._addPendingTransaction(tx);
+    }
+
+    await this._validateExactNonce(tx);
+
+    if (
+      this._txPool.hasPendingTransactions() ||
+      this._txPool.hasQueuedTransactions()
+    ) {
+      return this._mineTransactionAndPending(tx);
+    }
+
+    return this._mineTransaction(tx);
   }
 
-  public async runTransactionInNewBlock(
-    tx: Transaction
-  ): Promise<{
-    trace: MessageTrace | undefined;
-    block: Block;
-    blockResult: RunBlockResult;
-    error?: Error;
-    consoleLogMessages: string[];
-  }> {
-    await this._validateTransaction(tx);
-    await this._notifyPendingTransaction(tx);
-
-    const [
-      blockTimestamp,
-      offsetShouldChange,
-      newOffset,
-    ] = this._calculateTimestampAndOffset();
-
-    const block = await this._getNextBlockTemplate(blockTimestamp);
-
-    const needsTimestampIncrease = await this._timestampClashesWithPreviousBlockOne(
-      block
-    );
-
-    if (needsTimestampIncrease) {
-      await this._increaseBlockTimestamp(block);
-    }
-
-    await this._addTransactionToBlock(block, tx);
-
-    const result = await this._vm.runBlock({
-      block,
-      generate: true,
-      skipBlockValidation: true,
-    });
-
-    if (needsTimestampIncrease) {
-      await this.increaseTime(new BN(1));
-    }
-
-    await this._saveBlockAsSuccessfullyRun(block, result);
-
-    let vmTrace = this._vmTracer.getLastTopLevelMessageTrace();
-    const vmTracerError = this._vmTracer.getLastError();
-    this._vmTracer.clearLastError();
-
-    if (vmTrace !== undefined) {
-      vmTrace = this._vmTraceDecoder.tryToDecodeMessageTrace(vmTrace);
-    }
-
-    const consoleLogMessages = await this._getConsoleLogMessages(
-      vmTrace,
-      vmTracerError
-    );
-
-    const error = await this._manageErrors(
-      result.results[0].execResult,
-      vmTrace,
-      vmTracerError
-    );
-
-    if (offsetShouldChange) {
-      await this.increaseTime(newOffset.sub(await this.getTimeIncrement()));
-    }
-
-    await this._resetNextBlockTimestamp();
-
-    return {
-      trace: vmTrace,
-      block,
-      blockResult: result,
-      error,
-      consoleLogMessages,
-    };
-  }
-
-  public async mineEmptyBlock(timestamp: BN) {
-    // need to check if timestamp is specified or nextBlockTimestamp is set
-    // if it is, time offset must be set to timestamp|nextBlockTimestamp - Date.now
-    // if it is not, time offset remain the same
+  public async mineBlock(timestamp?: BN): Promise<MineBlockResult> {
     const [
       blockTimestamp,
       offsetShouldChange,
       newOffset,
     ] = this._calculateTimestampAndOffset(timestamp);
-
-    const block = await this._getNextBlockTemplate(blockTimestamp);
-
     const needsTimestampIncrease = await this._timestampClashesWithPreviousBlockOne(
-      block
+      blockTimestamp
     );
+    if (needsTimestampIncrease) {
+      blockTimestamp.iaddn(1);
+    }
+
+    let result: MineBlockResult;
+    try {
+      result = await this._mineBlockWithPendingTxs(blockTimestamp);
+    } catch (err) {
+      if (err?.message.includes("sender doesn't have enough funds")) {
+        throw new InvalidInputError(err.message, err);
+      }
+
+      // Some network errors are HardhatErrors, and can end up here when forking
+      if (HardhatError.isHardhatError(err)) {
+        throw err;
+      }
+
+      throw new TransactionExecutionError(err);
+    }
+
+    await this._saveBlockAsSuccessfullyRun(result.block, result.blockResult);
 
     if (needsTimestampIncrease) {
-      await this._increaseBlockTimestamp(block);
+      this.increaseTime(new BN(1));
     }
 
-    await new Promise((resolve) => block.genTxTrie(resolve));
-    block.header.transactionsTrie = block.txTrie.root;
-
-    const previousRoot = await this._stateManager.getStateRoot();
-
-    let result: RunBlockResult;
-    try {
-      result = await this._vm.runBlock({
-        block,
-        generate: true,
-        skipBlockValidation: true,
-      });
-
-      if (needsTimestampIncrease) {
-        await this.increaseTime(new BN(1));
-      }
-
-      await this._saveBlockAsSuccessfullyRun(block, result);
-
-      if (offsetShouldChange) {
-        await this.increaseTime(newOffset.sub(await this.getTimeIncrement()));
-      }
-
-      await this._resetNextBlockTimestamp();
-
-      return result;
-    } catch (error) {
-      // We set the state root to the previous one. This is equivalent to a
-      // rollback of this block.
-      await this._stateManager.setStateRoot(previousRoot);
-
-      throw new TransactionExecutionError(error);
+    if (offsetShouldChange) {
+      this.setTimeIncrement(newOffset);
     }
+
+    await this._resetNextBlockTimestamp();
+
+    return result;
   }
 
   public async runCall(
     call: CallParams,
-    blockNumber: BN | null
-  ): Promise<{
-    result: Buffer;
-    trace: MessageTrace | undefined;
-    error?: Error;
-    consoleLogMessages: string[];
-  }> {
+    blockNumberOrPending: BN | "pending"
+  ): Promise<RunCallResult> {
     const tx = await this._getFakeTransaction({
       ...call,
-      nonce: await this.getAccountNonce(call.from, null),
+      nonce: await this._getNonce(new Address(call.from), blockNumberOrPending),
     });
 
-    const result = await this._runInBlockContext(blockNumber, () =>
-      this._runTxAndRevertMutations(tx, blockNumber ?? undefined, true)
+    const result = await this._runInBlockContext(
+      blockNumberOrPending,
+      async () => this._runTxAndRevertMutations(tx, blockNumberOrPending)
     );
 
-    let vmTrace = this._vmTracer.getLastTopLevelMessageTrace();
-    const vmTracerError = this._vmTracer.getLastError();
-    this._vmTracer.clearLastError();
-
-    if (vmTrace !== undefined) {
-      vmTrace = this._vmTraceDecoder.tryToDecodeMessageTrace(vmTrace);
-    }
-
-    const consoleLogMessages = await this._getConsoleLogMessages(
-      vmTrace,
-      vmTracerError
-    );
-
-    const error = await this._manageErrors(
-      result.execResult,
-      vmTrace,
-      vmTracerError
-    );
+    const traces = await this._gatherTraces(result.execResult);
 
     return {
+      ...traces,
       result: result.execResult.returnValue,
-      trace: vmTrace,
-      error,
-      consoleLogMessages,
     };
   }
 
   public async getAccountBalance(
-    address: Buffer,
-    blockNumber: BN | null
+    address: Address,
+    blockNumberOrPending?: BN | "pending"
   ): Promise<BN> {
-    const account = await this._runInBlockContext(blockNumber, () =>
+    if (blockNumberOrPending === undefined) {
+      blockNumberOrPending = await this.getLatestBlockNumber();
+    }
+
+    const account = await this._runInBlockContext(blockNumberOrPending, () =>
       this._stateManager.getAccount(address)
     );
 
@@ -449,14 +436,33 @@ export class HardhatNode extends EventEmitter {
   }
 
   public async getAccountNonce(
-    address: Buffer,
-    blockNumber: BN | null
+    address: Address,
+    blockNumberOrPending: BN | "pending"
   ): Promise<BN> {
-    const account = await this._runInBlockContext(blockNumber, () =>
+    const account = await this._runInBlockContext(blockNumberOrPending, () =>
       this._stateManager.getAccount(address)
     );
 
     return new BN(account.nonce);
+  }
+
+  public async getAccountExecutableNonce(address: Address): Promise<BN> {
+    return this._txPool.getExecutableNonce(address);
+  }
+
+  public async getCodeFromTrace(
+    trace: MessageTrace | undefined,
+    blockNumberOrPending: BN | "pending"
+  ): Promise<Buffer> {
+    if (
+      trace === undefined ||
+      isPrecompileTrace(trace) ||
+      isCreateTrace(trace)
+    ) {
+      return Buffer.from("");
+    }
+
+    return this.getCode(new Address(trace.address), blockNumberOrPending);
   }
 
   public async getLatestBlock(): Promise<Block> {
@@ -467,30 +473,47 @@ export class HardhatNode extends EventEmitter {
     return new BN((await this.getLatestBlock()).header.number);
   }
 
+  public async getPendingBlockAndTotalDifficulty(): Promise<[Block, BN]> {
+    return this._runInPendingBlockContext(async () => {
+      const block = await this._blockchain.getLatestBlock();
+      const totalDifficulty = await this._blockchain.getTotalDifficulty(
+        block.hash()
+      );
+
+      return [block, totalDifficulty];
+    });
+  }
+
   public async getLocalAccountAddresses(): Promise<string[]> {
     return [...this._localAccounts.keys()];
   }
 
-  public async getBlockGasLimit(): Promise<BN> {
-    return this._blockGasLimit;
+  public getBlockGasLimit(): BN {
+    return this._txPool.getBlockGasLimit();
   }
 
   public async estimateGas(
-    txParams: TransactionParams,
-    blockNumber: BN | null
-  ): Promise<{
-    estimation: BN;
-    trace: MessageTrace | undefined;
-    error?: Error;
-    consoleLogMessages: string[];
-  }> {
-    const tx = await this._getFakeTransaction({
-      ...txParams,
-      gasLimit: await this.getBlockGasLimit(),
-    });
+    callParams: CallParams,
+    blockNumberOrPending: BN | "pending"
+  ): Promise<EstimateGasResult> {
+    // We get the CallParams and transform it into a TransactionParams to be
+    // able to run it.
+    const txParams = {
+      ...callParams,
+      nonce: await this._getNonce(
+        new Address(callParams.from),
+        blockNumberOrPending
+      ),
+    };
 
-    const result = await this._runInBlockContext(blockNumber, () =>
-      this._runTxAndRevertMutations(tx)
+    const tx = await this._getFakeTransaction(txParams);
+
+    // TODO: This may not work if there are multiple txs in the mempool and
+    //  the one being estimated won't fit in the first block, or maybe even
+    //  if the state accessed by the tx changes after it is executed within
+    //  the first block.
+    const result = await this._runInBlockContext(blockNumberOrPending, () =>
+      this._runTxAndRevertMutations(tx, blockNumberOrPending)
     );
 
     let vmTrace = this._vmTracer.getLastTopLevelMessageTrace();
@@ -510,7 +533,7 @@ export class HardhatNode extends EventEmitter {
     // manage errors
     if (result.execResult.exceptionError !== undefined) {
       return {
-        estimation: await this.getBlockGasLimit(),
+        estimation: this.getBlockGasLimit(),
         trace: vmTrace,
         error: await this._manageErrors(
           result.execResult,
@@ -525,6 +548,7 @@ export class HardhatNode extends EventEmitter {
 
     return {
       estimation: await this._correctInitialEstimation(
+        blockNumberOrPending,
         txParams,
         initialEstimation
       ),
@@ -537,18 +561,18 @@ export class HardhatNode extends EventEmitter {
     return new BN(HARDHAT_NETWORK_DEFAULT_GAS_PRICE);
   }
 
-  public async getCoinbaseAddress(): Promise<Buffer> {
+  public getCoinbaseAddress(): Address {
     return COINBASE_ADDRESS;
   }
 
   public async getStorageAt(
-    address: Buffer,
+    address: Address,
     slot: BN,
-    blockNumber: BN | null
+    blockNumberOrPending: BN | "pending"
   ): Promise<Buffer> {
     const key = slot.toArrayLike(Buffer, "be", 32);
 
-    const data: Buffer = await this._runInBlockContext(blockNumber, () =>
+    const data = await this._runInBlockContext(blockNumberOrPending, () =>
       this._stateManager.getContractStorage(address, key)
     );
 
@@ -563,18 +587,34 @@ export class HardhatNode extends EventEmitter {
     return data;
   }
 
-  public async getBlockByNumber(blockNumber: BN): Promise<Block | undefined> {
-    return this._blockchain.getBlock(blockNumber);
+  public async getBlockByNumber(pending: "pending"): Promise<Block>;
+  public async getBlockByNumber(
+    blockNumberOrPending: BN | "pending"
+  ): Promise<Block | undefined>;
+
+  public async getBlockByNumber(
+    blockNumberOrPending: BN | "pending"
+  ): Promise<Block | undefined> {
+    if (blockNumberOrPending === "pending") {
+      return this._runInPendingBlockContext(() =>
+        this._blockchain.getLatestBlock()
+      );
+    }
+
+    const block = await this._blockchain.getBlock(blockNumberOrPending);
+    return block ?? undefined;
   }
 
   public async getBlockByHash(blockHash: Buffer): Promise<Block | undefined> {
-    return this._blockchain.getBlock(blockHash);
+    const block = await this._blockchain.getBlock(blockHash);
+    return block ?? undefined;
   }
 
   public async getBlockByTransactionHash(
     hash: Buffer
   ): Promise<Block | undefined> {
-    return this._blockchain.getBlockByTransactionHash(hash);
+    const block = await this._blockchain.getBlockByTransactionHash(hash);
+    return block ?? undefined;
   }
 
   public async getBlockTotalDifficulty(block: Block): Promise<BN> {
@@ -582,46 +622,56 @@ export class HardhatNode extends EventEmitter {
   }
 
   public async getCode(
-    address: Buffer,
-    blockNumber: BN | null
+    address: Address,
+    blockNumberOrPending: BN | "pending"
   ): Promise<Buffer> {
-    return this._runInBlockContext(blockNumber, () =>
+    return this._runInBlockContext(blockNumberOrPending, () =>
       this._stateManager.getContractCode(address)
     );
   }
 
-  public async setNextBlockTimestamp(timestamp: BN) {
+  public getNextBlockTimestamp(): BN {
+    return this._nextBlockTimestamp.clone();
+  }
+
+  public setNextBlockTimestamp(timestamp: BN) {
     this._nextBlockTimestamp = new BN(timestamp);
   }
 
-  public async increaseTime(increment: BN) {
+  public getTimeIncrement(): BN {
+    return this._blockTimeOffsetSeconds.clone();
+  }
+
+  public setTimeIncrement(timeIncrement: BN) {
+    this._blockTimeOffsetSeconds = timeIncrement;
+  }
+
+  public increaseTime(increment: BN) {
     this._blockTimeOffsetSeconds = this._blockTimeOffsetSeconds.add(increment);
   }
 
-  public async getTimeIncrement(): Promise<BN> {
-    return this._blockTimeOffsetSeconds;
-  }
-
-  public async getNextBlockTimestamp(): Promise<BN> {
-    return this._nextBlockTimestamp;
-  }
-
-  public async getTransaction(hash: Buffer): Promise<Transaction | undefined> {
-    return this._blockchain.getTransaction(hash);
+  public async getPendingTransaction(
+    hash: Buffer
+  ): Promise<TypedTransaction | undefined> {
+    return this._txPool.getTransactionByHash(hash)?.data;
   }
 
   public async getTransactionReceipt(
-    hash: Buffer
+    hash: Buffer | string
   ): Promise<RpcReceiptOutput | undefined> {
-    return this._blockchain.getTransactionReceipt(hash);
+    const hashBuffer = hash instanceof Buffer ? hash : toBuffer(hash);
+    const receipt = await this._blockchain.getTransactionReceipt(hashBuffer);
+    return receipt ?? undefined;
   }
 
-  public async getPendingTransactions(): Promise<Transaction[]> {
-    return [];
+  public async getPendingTransactions(): Promise<TypedTransaction[]> {
+    const txPoolPending = txMapToArray(this._txPool.getPendingTransactions());
+    const txPoolQueued = txMapToArray(this._txPool.getQueuedTransactions());
+    return txPoolPending.concat(txPoolQueued);
   }
 
   public async signPersonalMessage(
-    address: Buffer,
+    address: Address,
     data: Buffer
   ): Promise<ECDSASignature> {
     const messageHash = hashPersonalMessage(data);
@@ -631,7 +681,7 @@ export class HardhatNode extends EventEmitter {
   }
 
   public async signTypedDataV4(
-    address: Buffer,
+    address: Address,
     typedData: any
   ): Promise<string> {
     const privateKey = this._getLocalAccountPrivateKey(address);
@@ -641,21 +691,21 @@ export class HardhatNode extends EventEmitter {
     });
   }
 
-  public async getStackTraceFailuresCount(): Promise<number> {
+  public getStackTraceFailuresCount(): number {
     return this._failedStackTraces;
   }
 
   public async takeSnapshot(): Promise<number> {
     const id = this._nextSnapshotId;
 
-    // We copy all the maps here, as they may be modified
     const snapshot: Snapshot = {
       id,
       date: new Date(),
       latestBlock: await this.getLatestBlock(),
       stateRoot: await this._stateManager.getStateRoot(),
-      blockTimeOffsetSeconds: new BN(this._blockTimeOffsetSeconds),
-      nextBlockTimestamp: new BN(this._nextBlockTimestamp),
+      txPoolSnapshotId: this._txPool.snapshot(),
+      blockTimeOffsetSeconds: this.getTimeIncrement(),
+      nextBlockTimestamp: this.getNextBlockTimestamp(),
     };
 
     this._snapshots.push(snapshot);
@@ -688,8 +738,9 @@ export class HardhatNode extends EventEmitter {
     // used once
     this._blockchain.deleteLaterBlocks(snapshot.latestBlock);
     await this._stateManager.setStateRoot(snapshot.stateRoot);
-    this._blockTimeOffsetSeconds = newOffset;
-    this._nextBlockTimestamp = snapshot.nextBlockTimestamp;
+    this.setTimeIncrement(newOffset);
+    this.setNextBlockTimestamp(snapshot.nextBlockTimestamp);
+    this._txPool.revert(snapshot.txPoolSnapshotId);
 
     // We delete this and the following snapshots, as they can only be used
     // once in Ganache
@@ -866,6 +917,226 @@ export class HardhatNode extends EventEmitter {
     return this._impersonatedAccounts.delete(bufferToHex(address));
   }
 
+  public setAutomine(automine: boolean) {
+    this._automine = automine;
+  }
+
+  public async setBlockGasLimit(gasLimit: BN | number) {
+    this._txPool.setBlockGasLimit(gasLimit);
+    await this._txPool.updatePendingAndQueued();
+  }
+
+  private async _addPendingTransaction(tx: TypedTransaction): Promise<string> {
+    await this._txPool.addTransaction(tx);
+    await this._notifyPendingTransaction(tx);
+    return bufferToHex(tx.hash());
+  }
+
+  private async _mineTransaction(
+    tx: TypedTransaction
+  ): Promise<MineBlockResult> {
+    await this._addPendingTransaction(tx);
+    return this.mineBlock();
+  }
+
+  private async _mineTransactionAndPending(
+    tx: TypedTransaction
+  ): Promise<MineBlockResult[]> {
+    const snapshotId = await this.takeSnapshot();
+
+    let result;
+    try {
+      const txHash = await this._addPendingTransaction(tx);
+      result = await this._mineBlocksUntilTransactionIsIncluded(txHash);
+    } catch (err) {
+      await this.revertToSnapshot(snapshotId);
+      throw err;
+    }
+
+    this._removeSnapshot(snapshotId);
+    return result;
+  }
+
+  private async _mineBlocksUntilTransactionIsIncluded(
+    txHash: string
+  ): Promise<MineBlockResult[]> {
+    const results = [];
+    let txReceipt;
+    do {
+      if (!this._txPool.hasPendingTransactions()) {
+        throw new TransactionExecutionError(
+          "Failed to mine transaction for unknown reason, this should never happen"
+        );
+      }
+      results.push(await this.mineBlock());
+      txReceipt = await this.getTransactionReceipt(txHash);
+    } while (txReceipt === undefined);
+
+    while (this._txPool.hasPendingTransactions()) {
+      results.push(await this.mineBlock());
+    }
+
+    return results;
+  }
+
+  private async _gatherTraces(result: ExecResult): Promise<GatherTracesResult> {
+    let vmTrace = this._vmTracer.getLastTopLevelMessageTrace();
+    const vmTracerError = this._vmTracer.getLastError();
+    this._vmTracer.clearLastError();
+
+    if (vmTrace !== undefined) {
+      vmTrace = this._vmTraceDecoder.tryToDecodeMessageTrace(vmTrace);
+    }
+
+    const consoleLogMessages = await this._getConsoleLogMessages(
+      vmTrace,
+      vmTracerError
+    );
+
+    const error = await this._manageErrors(result, vmTrace, vmTracerError);
+
+    return {
+      trace: vmTrace,
+      consoleLogMessages,
+      error,
+    };
+  }
+
+  private async _validateExactNonce(tx: TypedTransaction) {
+    let sender: Address;
+    try {
+      sender = tx.getSenderAddress(); // verifies signature as a side effect
+    } catch (e) {
+      throw new InvalidInputError(e.message);
+    }
+
+    const senderNonce = await this._txPool.getExecutableNonce(sender);
+    const txNonce = new BN(tx.nonce);
+
+    const expectedNonceMsg = `Expected nonce to be ${senderNonce} but got ${txNonce}.`;
+    if (txNonce.gt(senderNonce)) {
+      throw new InvalidInputError(
+        `Nonce too high. ${expectedNonceMsg} Note that transactions can't be queued when automining.`
+      );
+    }
+    if (txNonce.lt(senderNonce)) {
+      throw new InvalidInputError(`Nonce too low. ${expectedNonceMsg}`);
+    }
+  }
+
+  /**
+   * Mines a new block with as many pending txs as possible, adding it to
+   * the VM's blockchain.
+   *
+   * This method reverts any modification to the state manager if it throws.
+   */
+  private async _mineBlockWithPendingTxs(
+    blockTimestamp: BN
+  ): Promise<MineBlockResult> {
+    const parentBlock = await this.getLatestBlock();
+
+    const headerData = {
+      gasLimit: this.getBlockGasLimit(),
+      coinbase: this.getCoinbaseAddress(),
+      nonce: "0x0000000000000042",
+      timestamp: blockTimestamp,
+    };
+
+    const blockBuilder = await this._vm.buildBlock({
+      parentBlock,
+      headerData,
+      blockOpts: { calcDifficultyFromHeader: parentBlock.header },
+    });
+
+    try {
+      const traces: GatherTracesResult[] = [];
+
+      const blockGasLimit = this.getBlockGasLimit();
+      const minTxFee = this._getMinimalTransactionFee();
+      const pendingTxs = this._txPool.getPendingTransactions();
+      const txHeap = new TxPriorityHeap(pendingTxs);
+
+      let tx = txHeap.peek();
+
+      const results = [];
+      const receipts = [];
+
+      while (
+        blockGasLimit.sub(blockBuilder.gasUsed).gte(minTxFee) &&
+        tx !== undefined
+      ) {
+        if (tx.gasLimit.gt(blockGasLimit.sub(blockBuilder.gasUsed))) {
+          txHeap.pop();
+        } else {
+          const txResult = await blockBuilder.addTransaction(tx);
+          const { txReceipt } = await generateTxReceipt.bind(this._vm)(
+            tx,
+            txResult,
+            blockBuilder.gasUsed
+          );
+
+          traces.push(await this._gatherTraces(txResult.execResult));
+          results.push(txResult);
+          receipts.push(txReceipt);
+
+          txHeap.shift();
+        }
+
+        tx = txHeap.peek();
+      }
+
+      // This workarounds a bug in BlockBuilder#build
+      //  It's a workaround that is also included here: https://github.com/ethereumjs/ethereumjs-monorepo/pull/1185
+      // tslint:disable-next-line:no-string-literal
+      if (blockBuilder["checkpointed"] !== true) {
+        // tslint:disable-next-line:no-string-literal
+        blockBuilder["checkpointed"] = true;
+        await this._vm.stateManager.checkpoint();
+      }
+
+      const block = await blockBuilder.build();
+
+      await this._txPool.updatePendingAndQueued();
+
+      return {
+        block,
+        blockResult: {
+          results,
+          receipts,
+          stateRoot: block.header.stateRoot,
+          logsBloom: block.header.bloom,
+          receiptRoot: block.header.receiptTrie,
+          gasUsed: block.header.gasUsed,
+        },
+        traces,
+      };
+    } catch (err) {
+      await blockBuilder.revert();
+      throw err;
+    }
+  }
+
+  private _getMinimalTransactionFee(): BN {
+    // Typically 21_000 gas
+    return new BN(this._vm._common.param("gasPrices", "tx"));
+  }
+
+  private async _getFakeTransaction(
+    txParams: TransactionParams
+  ): Promise<FakeSenderAccessListEIP2930Transaction | FakeSenderTransaction> {
+    const sender = new Address(txParams.from);
+
+    if (txParams.accessList !== undefined) {
+      return new FakeSenderAccessListEIP2930Transaction(sender, txParams, {
+        common: this._vm._common,
+      });
+    }
+
+    return new FakeSenderTransaction(sender, txParams, {
+      common: this._vm._common,
+    });
+  }
+
   private _getSnapshotIndex(id: number): number | undefined {
     for (const [i, snapshot] of this._snapshots.entries()) {
       if (snapshot.id === id) {
@@ -879,6 +1150,14 @@ export class HardhatNode extends EventEmitter {
     }
 
     return undefined;
+  }
+
+  private _removeSnapshot(id: number) {
+    const snapshotIndex = this._getSnapshotIndex(id);
+    if (snapshotIndex === undefined) {
+      return;
+    }
+    this._snapshots.splice(snapshotIndex);
   }
 
   private _initLocalAccounts(genesisAccounts: GenesisAccount[]) {
@@ -931,15 +1210,26 @@ export class HardhatNode extends EventEmitter {
 
     const error = vmResult.exceptionError;
 
+    // we don't use `instanceof` in case someone uses a different VM dependency
+    // see https://github.com/nomiclabs/hardhat/issues/1317
+    const isVmError = "error" in error && typeof error.error === "string";
+
+    // If this is not a VM error, or if it's an internal VM error, we just
+    // rethrow. An example of a non-VmError being thrown here is an HTTP error
+    // coming from the ForkedStateManager.
+    if (!isVmError || error.error === ERROR.INTERNAL_ERROR) {
+      throw error;
+    }
+
     if (error.error === ERROR.OUT_OF_GAS) {
       if (this._isContractTooLargeStackTrace(stackTrace)) {
         return encodeSolidityStackTrace(
-          "Transaction run out of gas",
+          "Transaction ran out of gas",
           stackTrace!
         );
       }
 
-      return new TransactionExecutionError("Transaction run out of gas");
+      return new TransactionExecutionError("Transaction ran out of gas");
     }
 
     if (error.error === ERROR.REVERT) {
@@ -994,18 +1284,17 @@ export class HardhatNode extends EventEmitter {
     let blockTimestamp: BN;
     let offsetShouldChange: boolean;
     let newOffset: BN = new BN(0);
+    const currentTimestamp = new BN(getCurrentTimestamp());
 
     // if timestamp is not provided, we check nextBlockTimestamp, if it is
     // set, we use it as the timestamp instead. If it is not set, we use
     // time offset + real time as the timestamp.
-    if (timestamp === undefined || timestamp.eq(new BN(0))) {
-      if (this._nextBlockTimestamp.eq(new BN(0))) {
-        blockTimestamp = new BN(getCurrentTimestamp()).add(
-          this._blockTimeOffsetSeconds
-        );
+    if (timestamp === undefined || timestamp.eqn(0)) {
+      if (this.getNextBlockTimestamp().eqn(0)) {
+        blockTimestamp = currentTimestamp.add(this.getTimeIncrement());
         offsetShouldChange = false;
       } else {
-        blockTimestamp = new BN(this._nextBlockTimestamp);
+        blockTimestamp = this.getNextBlockTimestamp();
         offsetShouldChange = true;
       }
     } else {
@@ -1014,46 +1303,20 @@ export class HardhatNode extends EventEmitter {
     }
 
     if (offsetShouldChange) {
-      newOffset = blockTimestamp.sub(new BN(getCurrentTimestamp()));
+      newOffset = blockTimestamp.sub(currentTimestamp);
     }
 
     return [blockTimestamp, offsetShouldChange, newOffset];
   }
 
-  private async _getNextBlockTemplate(timestamp: BN): Promise<Block> {
-    const block = new Block(
-      {
-        header: {
-          gasLimit: this._blockGasLimit,
-          nonce: "0x42",
-          timestamp,
-        },
-      },
-      { common: this._vm._common }
-    );
-
-    block.validate = (blockchain: any, cb: any) => cb(null);
-
-    const latestBlock = await this.getLatestBlock();
-
-    block.header.number = toBuffer(new BN(latestBlock.header.number).addn(1));
-    block.header.parentHash = latestBlock.hash();
-    block.header.difficulty = block.header
-      .canonicalDifficulty(latestBlock)
-      .toBuffer();
-    block.header.coinbase = await this.getCoinbaseAddress();
-
-    return block;
-  }
-
   private async _resetNextBlockTimestamp() {
-    this._nextBlockTimestamp = new BN(0);
+    this.setNextBlockTimestamp(new BN(0));
   }
 
-  private async _notifyPendingTransaction(tx: Transaction) {
+  private async _notifyPendingTransaction(tx: TypedTransaction) {
     this._filters.forEach((filter) => {
       if (filter.type === Type.PENDING_TRANSACTION_SUBSCRIPTION) {
-        const hash = bufferToHex(tx.hash(true));
+        const hash = bufferToHex(tx.hash());
         if (filter.subscription) {
           this._emitEthEvent(filter.id, hash);
           return;
@@ -1064,8 +1327,8 @@ export class HardhatNode extends EventEmitter {
     });
   }
 
-  private _getLocalAccountPrivateKey(sender: Buffer): Buffer {
-    const senderAddress = bufferToHex(sender);
+  private _getLocalAccountPrivateKey(sender: Address): Buffer {
+    const senderAddress = sender.toString();
     if (!this._localAccounts.has(senderAddress)) {
       throw new InvalidInputError(`unknown account ${senderAddress}`);
     }
@@ -1073,21 +1336,20 @@ export class HardhatNode extends EventEmitter {
     return this._localAccounts.get(senderAddress)!;
   }
 
-  private async _addTransactionToBlock(block: Block, tx: Transaction) {
-    block.transactions.push(tx);
-
-    await new Promise((resolve) => block.genTxTrie(resolve));
-
-    block.header.transactionsTrie = block.txTrie.root;
-  }
-
+  /**
+   * Saves a block as successfully run. This method requires that the block
+   * was added to the blockchain.
+   */
   private async _saveBlockAsSuccessfullyRun(
     block: Block,
     runBlockResult: RunBlockResult
   ) {
-    const receipts = getRpcReceipts(block, runBlockResult);
+    const receipts = getRpcReceiptOutputsFromLocalBlockExecution(
+      block,
+      runBlockResult,
+      shouldShowTransactionTypeForHardfork(this._vm._common)
+    );
 
-    await this._blockchain.addBlock(block);
     this._blockchain.addTransactionReceipts(receipts);
 
     const td = await this.getBlockTotalDifficulty(block);
@@ -1105,7 +1367,15 @@ export class HardhatNode extends EventEmitter {
         case Type.BLOCK_SUBSCRIPTION:
           const hash = block.hash();
           if (filter.subscription) {
-            this._emitEthEvent(filter.id, getRpcBlock(block, td, false));
+            this._emitEthEvent(
+              filter.id,
+              getRpcBlock(
+                block,
+                td,
+                shouldShowTransactionTypeForHardfork(this._vm._common),
+                false
+              )
+            );
             return;
           }
 
@@ -1138,93 +1408,32 @@ export class HardhatNode extends EventEmitter {
     });
   }
 
-  private _transactionWasSuccessful(tx: Transaction): boolean {
-    const localTransaction = this._blockchain.getLocalTransaction(tx.hash());
-    return localTransaction !== undefined;
-  }
-
   private async _timestampClashesWithPreviousBlockOne(
-    block: Block
+    blockTimestamp: BN
   ): Promise<boolean> {
-    const blockTimestamp = new BN(block.header.timestamp);
-
     const latestBlock = await this.getLatestBlock();
     const latestBlockTimestamp = new BN(latestBlock.header.timestamp);
 
     return latestBlockTimestamp.eq(blockTimestamp);
   }
 
-  private async _increaseBlockTimestamp(block: Block) {
-    block.header.timestamp = new BN(block.header.timestamp).addn(1).toBuffer();
-  }
-
-  private async _validateTransaction(tx: Transaction) {
-    // Geth throws this error if a tx is sent twice
-    if (this._transactionWasSuccessful(tx)) {
-      throw new InvalidInputError(
-        `known transaction: ${bufferToHex(tx.hash(true)).toString()}`
-      );
-    }
-
-    if (!tx.verifySignature()) {
-      throw new InvalidInputError("Invalid transaction signature");
-    }
-
-    // Geth returns this error if trying to create a contract and no data is provided
-    if (tx.to.length === 0 && tx.data.length === 0) {
-      throw new InvalidInputError(
-        "contract creation without any data provided"
-      );
-    }
-
-    const expectedNonce = await this.getAccountNonce(
-      tx.getSenderAddress(),
-      null
-    );
-    const actualNonce = new BN(tx.nonce);
-    if (!expectedNonce.eq(actualNonce)) {
-      throw new InvalidInputError(
-        `Invalid nonce. Expected ${expectedNonce} but got ${actualNonce}.
-
-If you are running a script or test, you may be sending transactions in parallel.
-Using JavaScript? You probably forgot an await.
-
-If you are using a wallet or dapp, try resetting your wallet's accounts.`
-      );
-    }
-
-    const baseFee = tx.getBaseFee();
-    const gasLimit = new BN(tx.gasLimit);
-
-    if (baseFee.gt(gasLimit)) {
-      throw new InvalidInputError(
-        `Transaction requires at least ${baseFee} gas but got ${gasLimit}`
-      );
-    }
-
-    if (gasLimit.gt(this._blockGasLimit)) {
-      throw new InvalidInputError(
-        `Transaction gas limit is ${gasLimit} and exceeds block gas limit of ${this._blockGasLimit}`
-      );
-    }
-  }
-
   private async _runInBlockContext<T>(
-    blockNumber: BN | null,
+    blockNumberOrPending: BN | "pending",
     action: () => Promise<T>
   ): Promise<T> {
-    if (
-      blockNumber === null ||
-      blockNumber.eq(await this.getLatestBlockNumber())
-    ) {
+    if (blockNumberOrPending === "pending") {
+      return this._runInPendingBlockContext(action);
+    }
+
+    if (blockNumberOrPending.eq(await this.getLatestBlockNumber())) {
       return action();
     }
 
-    const block = await this.getBlockByNumber(blockNumber);
+    const block = await this.getBlockByNumber(blockNumberOrPending);
     if (block === undefined) {
       // TODO handle this better
       throw new Error(
-        `Block with number ${blockNumber} doesn't exist. This should never happen.`
+        `Block with number ${blockNumberOrPending} doesn't exist. This should never happen.`
       );
     }
 
@@ -1237,11 +1446,21 @@ If you are using a wallet or dapp, try resetting your wallet's accounts.`
     }
   }
 
+  private async _runInPendingBlockContext<T>(action: () => Promise<T>) {
+    const snapshotId = await this.takeSnapshot();
+    try {
+      await this.mineBlock();
+      return await action();
+    } finally {
+      await this.revertToSnapshot(snapshotId);
+    }
+  }
+
   private async _setBlockContext(block: Block): Promise<void> {
     if (this._stateManager instanceof ForkStateManager) {
       return this._stateManager.setBlockContext(
         block.header.stateRoot,
-        new BN(block.header.number)
+        block.header.number
       );
     }
     return this._stateManager.setStateRoot(block.header.stateRoot);
@@ -1255,6 +1474,7 @@ If you are using a wallet or dapp, try resetting your wallet's accounts.`
   }
 
   private async _correctInitialEstimation(
+    blockNumberOrPending: BN | "pending",
     txParams: TransactionParams,
     initialEstimation: BN
   ): Promise<BN> {
@@ -1272,20 +1492,24 @@ If you are using a wallet or dapp, try resetting your wallet's accounts.`
       });
     }
 
-    const result = await this._runTxAndRevertMutations(tx);
+    const result = await this._runInBlockContext(blockNumberOrPending, () =>
+      this._runTxAndRevertMutations(tx, blockNumberOrPending)
+    );
 
     if (result.execResult.exceptionError === undefined) {
       return initialEstimation;
     }
 
     return this._binarySearchEstimation(
+      blockNumberOrPending,
       txParams,
       initialEstimation,
-      await this.getBlockGasLimit()
+      this.getBlockGasLimit()
     );
   }
 
   private async _binarySearchEstimation(
+    blockNumberOrPending: BN | "pending",
     txParams: TransactionParams,
     highestFailingEstimation: BN,
     lowestSuccessfulEstimation: BN,
@@ -1340,10 +1564,13 @@ If you are using a wallet or dapp, try resetting your wallet's accounts.`
       gasLimit: newEstimation,
     });
 
-    const result = await this._runTxAndRevertMutations(tx);
+    const result = await this._runInBlockContext(blockNumberOrPending, () =>
+      this._runTxAndRevertMutations(tx, blockNumberOrPending)
+    );
 
     if (result.execResult.exceptionError === undefined) {
       return this._binarySearchEstimation(
+        blockNumberOrPending,
         txParams,
         highestFailingEstimation,
         newEstimation,
@@ -1352,6 +1579,7 @@ If you are using a wallet or dapp, try resetting your wallet's accounts.`
     }
 
     return this._binarySearchEstimation(
+      blockNumberOrPending,
       txParams,
       newEstimation,
       lowestSuccessfulEstimation,
@@ -1364,57 +1592,29 @@ If you are using a wallet or dapp, try resetting your wallet's accounts.`
    * makes.
    */
   private async _runTxAndRevertMutations(
-    tx: Transaction,
-    blockNumber?: BN,
-    // See: https://github.com/ethereumjs/ethereumjs-vm/issues/1014
-    workaroundEthCallGasLimitIssue = false
+    tx: TypedTransaction,
+    blockNumberOrPending: BN | "pending"
   ): Promise<EVMResult> {
     const initialStateRoot = await this._stateManager.getStateRoot();
 
     let blockContext: Block | undefined;
-    let previousGasLimit: Buffer | undefined;
 
     try {
-      // if the context is to estimate gas or run calls in pending block
-      if (blockNumber === undefined) {
-        const [blockTimestamp] = this._calculateTimestampAndOffset();
-
-        blockContext = await this._getNextBlockTemplate(blockTimestamp);
-        const needsTimestampIncrease = await this._timestampClashesWithPreviousBlockOne(
-          blockContext
-        );
-
-        if (needsTimestampIncrease) {
-          await this._increaseBlockTimestamp(blockContext);
-        }
-
-        // in the context of running estimateGas call, we have to do binary
-        // search for the gas and run the call multiple times. Since it is
-        // an approximate approach to calculate the gas, it is important to
-        // run the call in a block that is as close to the real one as
-        // possible, hence putting the tx to the block is good to have here.
-        await this._addTransactionToBlock(blockContext, tx);
+      if (blockNumberOrPending === "pending") {
+        // the new block has already been mined by _runInBlockContext hence we take latest here
+        blockContext = await this.getLatestBlock();
       } else {
-        // if the context is to run calls with a block
         // We know that this block number exists, because otherwise
         // there would be an error in the RPC layer.
-        const block = await this.getBlockByNumber(blockNumber);
+        const block = await this.getBlockByNumber(blockNumberOrPending);
         assertHardhatInvariant(
           block !== undefined,
           "Tried to run a tx in the context of a non-existent block"
         );
-
         blockContext = block;
-      }
 
-      if (workaroundEthCallGasLimitIssue) {
-        const txGasLimit = new BN(tx.gasLimit);
-        const blockGasLimit = new BN(blockContext.header.gasLimit);
-
-        if (txGasLimit.gt(blockGasLimit)) {
-          previousGasLimit = blockContext.header.gasLimit;
-          blockContext.header.gasLimit = tx.gasLimit;
-        }
+        // we don't need to add the tx to the block because runTx doesn't
+        // know anything about the txs in the current block
       }
 
       return await this._vm.runTx({
@@ -1422,19 +1622,9 @@ If you are using a wallet or dapp, try resetting your wallet's accounts.`
         tx,
         skipNonce: true,
         skipBalance: true,
+        skipBlockGasLimitValidation: true,
       });
     } finally {
-      // If we changed the block's gas limit of an already existing block,
-      // we restore it here.
-      if (
-        blockContext !== undefined &&
-        workaroundEthCallGasLimitIssue &&
-        previousGasLimit !== undefined &&
-        blockNumber !== undefined
-      ) {
-        blockContext.header.gasLimit = previousGasLimit;
-      }
-
       await this._stateManager.setStateRoot(initialStateRoot);
     }
   }
@@ -1484,6 +1674,21 @@ If you are using a wallet or dapp, try resetting your wallet's accounts.`
     this.emit("ethEvent", {
       result,
       filterId,
+    });
+  }
+
+  private async _getNonce(
+    address: Address,
+    blockNumberOrPending: BN | "pending"
+  ): Promise<BN> {
+    if (blockNumberOrPending === "pending") {
+      return this.getAccountExecutableNonce(address);
+    }
+
+    return this._runInBlockContext(blockNumberOrPending, async () => {
+      const account = await this._stateManager.getAccount(address);
+
+      return account.nonce;
     });
   }
 }

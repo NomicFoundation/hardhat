@@ -1,7 +1,8 @@
 import { assert } from "chai";
 import { keccak256, toBuffer } from "ethereumjs-util";
 
-import { bufferToRpcData } from "../../../../../src/internal/hardhat-network/provider/output";
+import { bufferToRpcData } from "../../../../../src/internal/core/jsonrpc/types/base-types";
+import { workaroundWindowsCiFailures } from "../../../../utils/workaround-windows-ci-failures";
 import { setCWD } from "../../helpers/cwd";
 import { PROVIDERS } from "../../helpers/providers";
 
@@ -11,14 +12,16 @@ describe("Web3 module", function () {
       this.timeout(50000);
     }
 
-    describe(`Provider ${name}`, function () {
+    workaroundWindowsCiFailures({ isFork });
+
+    describe(`${name} provider`, function () {
       setCWD();
       useProvider();
 
       describe("web3_clientVersion", async function () {
         it("Should return the right value", async function () {
           const res = await this.provider.send("web3_clientVersion");
-          assert.match(res, /^HardhatNetwork\/.*\/ethereumjs-vm/);
+          assert.match(res, /^HardhatNetwork\/.*\/@ethereumjs\/vm/);
         });
       });
 

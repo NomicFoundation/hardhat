@@ -1,17 +1,27 @@
+import { BN } from "ethereumjs-util";
 import * as t from "io-ts";
 
-import { CompilerInput, CompilerOutput } from "../../../../types";
-import { MethodNotFoundError } from "../errors";
+import {
+  BoundExperimentalHardhatNetworkMessageTraceHook,
+  CompilerInput,
+  CompilerOutput,
+} from "../../../../types";
+import { rpcAddress } from "../../../core/jsonrpc/types/base-types";
 import {
   optionalRpcHardhatNetworkConfig,
-  rpcAddress,
+  RpcHardhatNetworkConfig,
+} from "../../../core/jsonrpc/types/input/hardhat-network";
+import {
   rpcCompilerInput,
   rpcCompilerOutput,
-  RpcHardhatNetworkConfig,
-  validateParams,
-} from "../input";
+} from "../../../core/jsonrpc/types/input/solc";
+import { validateParams } from "../../../core/jsonrpc/types/input/validation";
+import { MethodNotFoundError } from "../../../core/providers/errors";
+import { MessageTrace } from "../../stack-traces/message-trace";
 import { HardhatNode } from "../node";
-import { ForkConfig } from "../node-types";
+import { ForkConfig, MineBlockResult } from "../node-types";
+
+import { ModulesLogger } from "./logger";
 
 // tslint:disable only-hardhat-error
 
@@ -21,7 +31,9 @@ export class HardhatModule {
     private readonly _resetCallback: (forkConfig?: ForkConfig) => Promise<void>,
     private readonly _setLoggingEnabledCallback: (
       loggingEnabled: boolean
-    ) => void
+    ) => void,
+    private readonly _logger: ModulesLogger,
+    private readonly _experimentalHardhatNetworkMessageTraceHooks: BoundExperimentalHardhatNetworkMessageTraceHook[] = []
   ) {}
 
   public async processRequest(
@@ -41,6 +53,9 @@ export class HardhatModule {
 
       case "hardhat_impersonateAccount":
         return this._impersonateAction(...this._impersonateParams(params));
+
+      case "hardhat_intervalMine":
+        return this._intervalMineAction(...this._intervalMineParams(params));
 
       case "hardhat_stopImpersonatingAccount":
         return this._stopImpersonatingAction(
@@ -104,6 +119,31 @@ export class HardhatModule {
     return this._node.addImpersonatedAccount(address);
   }
 
+  // hardhat_intervalMine
+
+  private _intervalMineParams(params: any[]): [] {
+    return [];
+  }
+
+  private async _intervalMineAction(): Promise<boolean> {
+    const result = await this._node.mineBlock();
+    const blockNumber = result.block.header.number.toNumber();
+
+    const isEmpty = result.block.transactions.length === 0;
+    if (isEmpty) {
+      this._logger.printMinedBlockNumber(blockNumber, isEmpty);
+    } else {
+      await this._logBlock(result);
+      this._logger.printMinedBlockNumber(blockNumber, isEmpty);
+      const printedSomething = this._logger.printLogs();
+      if (printedSomething) {
+        this._logger.printEmptyLine();
+      }
+    }
+
+    return true;
+  }
+
   // hardhat_stopImpersonatingAccount
 
   private _stopImpersonatingParams(params: any[]): [Buffer] {
@@ -138,5 +178,38 @@ export class HardhatModule {
   ): Promise<true> {
     this._setLoggingEnabledCallback(loggingEnabled);
     return true;
+  }
+
+  private async _logBlock(result: MineBlockResult) {
+    const { block, traces } = result;
+
+    const codes: Buffer[] = [];
+    for (const txTrace of traces) {
+      const code = await this._node.getCodeFromTrace(
+        txTrace.trace,
+        new BN(block.header.number)
+      );
+
+      codes.push(code);
+    }
+
+    this._logger.logIntervalMinedBlock(result, codes);
+
+    for (const txTrace of traces) {
+      await this._runHardhatNetworkMessageTraceHooks(txTrace.trace, false);
+    }
+  }
+
+  private async _runHardhatNetworkMessageTraceHooks(
+    trace: MessageTrace | undefined,
+    isCall: boolean
+  ) {
+    if (trace === undefined) {
+      return;
+    }
+
+    for (const hook of this._experimentalHardhatNetworkMessageTraceHooks) {
+      await hook(trace, isCall);
+    }
   }
 }

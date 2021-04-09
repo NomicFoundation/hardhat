@@ -1,9 +1,9 @@
-import VM from "@nomiclabs/ethereumjs-vm";
-import { EVMResult } from "@nomiclabs/ethereumjs-vm/dist/evm/evm";
-import { InterpreterStep } from "@nomiclabs/ethereumjs-vm/dist/evm/interpreter";
-import Message from "@nomiclabs/ethereumjs-vm/dist/evm/message";
-import { precompiles } from "@nomiclabs/ethereumjs-vm/dist/evm/precompiles";
-import { BN } from "ethereumjs-util";
+import VM from "@ethereumjs/vm";
+import { EVMResult } from "@ethereumjs/vm/dist/evm/evm";
+import { InterpreterStep } from "@ethereumjs/vm/dist/evm/interpreter";
+import Message from "@ethereumjs/vm/dist/evm/message";
+import { precompiles } from "@ethereumjs/vm/dist/evm/precompiles";
+import { Address, BN } from "ethereumjs-util";
 
 import {
   CallMessageTrace,
@@ -27,8 +27,8 @@ export class VMTracer {
 
   constructor(
     private readonly _vm: VM,
-    private readonly _getContractCode: (address: Buffer) => Promise<Buffer>,
-    private readonly _dontThrowErrors = false
+    private readonly _getContractCode: (address: Address) => Promise<Buffer>,
+    private readonly _throwErrors = true
   ) {
     this._beforeMessageHandler = this._beforeMessageHandler.bind(this);
     this._stepHandler = this._stepHandler.bind(this);
@@ -36,6 +36,9 @@ export class VMTracer {
   }
 
   public enableTracing() {
+    if (this._enabled) {
+      return;
+    }
     this._vm.on("beforeMessage", this._beforeMessageHandler);
     this._vm.on("step", this._stepHandler);
     this._vm.on("afterMessage", this._afterMessageHandler);
@@ -43,6 +46,9 @@ export class VMTracer {
   }
 
   public disableTracing() {
+    if (!this._enabled) {
+      return;
+    }
     this._vm.removeListener("beforeMessage", this._beforeMessageHandler);
     this._vm.removeListener("step", this._stepHandler);
     this._vm.removeListener("afterMessage", this._afterMessageHandler);
@@ -70,7 +76,7 @@ export class VMTracer {
   }
 
   private _shouldKeepTracing() {
-    return !this._dontThrowErrors || this._lastError === undefined;
+    return this._throwErrors || this._lastError === undefined;
   }
 
   private async _beforeMessageHandler(message: Message, next: any) {
@@ -100,7 +106,7 @@ export class VMTracer {
 
         trace = createTrace;
       } else {
-        const toAsBn = new BN(message.to);
+        const toAsBn = new BN(message.to.toBuffer());
 
         if (toAsBn.gtn(0) && toAsBn.lten(MAX_PRECOMPILE_NUMBER)) {
           const precompileTrace: PrecompileMessageTrace = {
@@ -127,7 +133,7 @@ export class VMTracer {
             steps: [],
             value: message.value,
             returnData: DUMMY_RETURN_DATA,
-            address: message.to,
+            address: message.to.toBuffer(),
             numberOfSubtraces: 0,
             depth: message.depth,
             gasUsed: DUMMY_GAS_USED,
@@ -153,11 +159,11 @@ export class VMTracer {
       this._messageTraces.push(trace);
       next();
     } catch (error) {
-      if (this._dontThrowErrors) {
+      if (this._throwErrors) {
+        next(error);
+      } else {
         this._lastError = error;
         next();
-      } else {
-        next(error);
       }
     }
   }
@@ -180,11 +186,11 @@ export class VMTracer {
       trace.steps.push({ pc: step.pc });
       next();
     } catch (error) {
-      if (this._dontThrowErrors) {
+      if (this._throwErrors) {
+        next(error);
+      } else {
         this._lastError = error;
         next();
-      } else {
-        next(error);
       }
     }
   }
@@ -203,7 +209,7 @@ export class VMTracer {
       trace.gasUsed = result.gasUsed;
 
       if (isCreateTrace(trace)) {
-        trace.deployedContract = result.createdAddress;
+        trace.deployedContract = result?.createdAddress?.toBuffer();
       }
 
       if (this._messageTraces.length > 1) {
@@ -212,11 +218,11 @@ export class VMTracer {
 
       next();
     } catch (error) {
-      if (this._dontThrowErrors) {
+      if (this._throwErrors) {
+        next(error);
+      } else {
         this._lastError = error;
         next();
-      } else {
-        next(error);
       }
     }
   }

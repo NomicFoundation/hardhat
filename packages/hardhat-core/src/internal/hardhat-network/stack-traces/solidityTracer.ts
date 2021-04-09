@@ -1,4 +1,4 @@
-import { ERROR } from "@nomiclabs/ethereumjs-vm/dist/exceptions";
+import { ERROR } from "@ethereumjs/vm/dist/exceptions";
 import semver from "semver";
 
 import {
@@ -46,6 +46,8 @@ import {
 } from "./solidity-stack-trace";
 
 // tslint:disable only-hardhat-error
+
+export const SUPPORTED_SOLIDITY_VERSION_RANGE = "<0.8.0";
 
 export const FIRST_SOLC_VERSION_SUPPORTED = "0.5.1";
 const FIRST_SOLC_VERSION_CREATE_PARAMS_VALIDATION = "0.5.9";

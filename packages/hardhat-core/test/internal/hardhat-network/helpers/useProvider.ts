@@ -1,15 +1,19 @@
+import { BN } from "ethereumjs-util";
+
 import { BackwardsCompatibilityProviderAdapter } from "../../../../src/internal/core/providers/backwards-compatibility";
 import { JsonRpcServer } from "../../../../src/internal/hardhat-network/jsonrpc/server";
 import { ForkConfig } from "../../../../src/internal/hardhat-network/provider/node-types";
 import { HardhatNetworkProvider } from "../../../../src/internal/hardhat-network/provider/provider";
 import { EthereumProvider } from "../../../../src/types";
 
+import { FakeModulesLogger } from "./fakeLogger";
 import {
   DEFAULT_ACCOUNTS,
   DEFAULT_ALLOW_UNLIMITED_CONTRACT_SIZE,
   DEFAULT_BLOCK_GAS_LIMIT,
   DEFAULT_CHAIN_ID,
   DEFAULT_HARDFORK,
+  DEFAULT_MINING_CONFIG,
   DEFAULT_NETWORK_ID,
   DEFAULT_NETWORK_NAME,
   DEFAULT_USE_JSON_RPC,
@@ -17,6 +21,7 @@ import {
 
 declare module "mocha" {
   interface Context {
+    logger: FakeModulesLogger;
     provider: EthereumProvider;
     hardhatNetworkProvider: HardhatNetworkProvider;
     server?: JsonRpcServer;
@@ -25,7 +30,9 @@ declare module "mocha" {
 
 export function useProvider(
   useJsonRpc = DEFAULT_USE_JSON_RPC,
+  loggerEnabled = true,
   forkConfig?: ForkConfig,
+  mining = DEFAULT_MINING_CONFIG,
   hardfork = DEFAULT_HARDFORK,
   networkName = DEFAULT_NETWORK_NAME,
   chainId = DEFAULT_CHAIN_ID,
@@ -35,6 +42,7 @@ export function useProvider(
   allowUnlimitedContractSize = DEFAULT_ALLOW_UNLIMITED_CONTRACT_SIZE
 ) {
   beforeEach("Initialize provider", async function () {
+    this.logger = new FakeModulesLogger(loggerEnabled);
     this.hardhatNetworkProvider = new HardhatNetworkProvider(
       hardfork,
       networkName,
@@ -43,8 +51,10 @@ export function useProvider(
       blockGasLimit,
       true,
       true,
+      mining.auto,
+      mining.interval,
+      this.logger,
       accounts,
-      undefined,
       undefined,
       allowUnlimitedContractSize,
       undefined,

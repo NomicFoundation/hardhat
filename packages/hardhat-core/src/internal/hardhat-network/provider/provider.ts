@@ -1,12 +1,10 @@
-import ansiEscapes from "ansi-escapes";
-import chalk, { Chalk } from "chalk";
+import Common from "@ethereumjs/common";
+import chalk from "chalk";
 import debug from "debug";
-import Common from "ethereumjs-common";
 import { BN } from "ethereumjs-util";
 import { EventEmitter } from "events";
 import fsExtra from "fs-extra";
 import semver from "semver";
-import util from "util";
 
 import type {
   Artifacts,
@@ -16,16 +14,16 @@ import type {
   RequestArguments,
 } from "../../../types";
 import { HARDHAT_NETWORK_RESET_EVENT } from "../../constants";
-import { SolidityError } from "../stack-traces/solidity-errors";
-import { FIRST_SOLC_VERSION_SUPPORTED } from "../stack-traces/solidityTracer";
-import { Mutex } from "../vendor/await-semaphore";
-
 import {
-  HardhatNetworkProviderError,
   InvalidInputError,
   MethodNotFoundError,
   MethodNotSupportedError,
-} from "./errors";
+  ProviderError,
+} from "../../core/providers/errors";
+import { FIRST_SOLC_VERSION_SUPPORTED } from "../stack-traces/solidityTracer";
+import { Mutex } from "../vendor/await-semaphore";
+
+import { MiningTimer } from "./MiningTimer";
 import { EthModule } from "./modules/eth";
 import { EvmModule } from "./modules/evm";
 import { HardhatModule } from "./modules/hardhat";
@@ -36,6 +34,7 @@ import { HardhatNode } from "./node";
 import {
   ForkConfig,
   GenesisAccount,
+  IntervalMiningConfig,
   NodeConfig,
   TracingConfig,
 } from "./node-types";
@@ -60,10 +59,6 @@ export class HardhatNetworkProvider extends EventEmitter
   private _evmModule?: EvmModule;
   private _hardhatModule?: HardhatModule;
   private readonly _mutex = new Mutex();
-  private readonly _logger = new ModulesLogger();
-
-  private _methodBeingCollapsed?: string;
-  private _methodCollapsedCount: number = 0;
 
   constructor(
     private readonly _hardfork: string,
@@ -73,9 +68,11 @@ export class HardhatNetworkProvider extends EventEmitter
     private readonly _blockGasLimit: number,
     private readonly _throwOnTransactionFailures: boolean,
     private readonly _throwOnCallFailures: boolean,
+    private readonly _automine: boolean,
+    private readonly _intervalMining: IntervalMiningConfig,
+    private readonly _logger: ModulesLogger,
     private readonly _genesisAccounts: GenesisAccount[] = [],
     private readonly _artifacts?: Artifacts,
-    private _loggingEnabled = false,
     private readonly _allowUnlimitedContractSize = false,
     private readonly _initialDate?: Date,
     private readonly _experimentalHardhatNetworkMessageTraceHooks: BoundExperimentalHardhatNetworkMessageTraceHook[] = [],
@@ -96,7 +93,7 @@ export class HardhatNetworkProvider extends EventEmitter
 
     try {
       let result;
-      if (this._loggingEnabled && !PRIVATE_RPC_METHODS.has(args.method)) {
+      if (this._logger.isEnabled() && !PRIVATE_RPC_METHODS.has(args.method)) {
         result = await this._sendWithLogging(args.method, args.params);
       } else {
         result = await this._send(args.method, args.params);
@@ -116,8 +113,6 @@ export class HardhatNetworkProvider extends EventEmitter
     method: string,
     params: any[] = []
   ): Promise<any> {
-    this._logger.clearLogs();
-
     try {
       const result = await this._send(method, params);
       // We log after running the method, because we want to use different
@@ -127,94 +122,48 @@ export class HardhatNetworkProvider extends EventEmitter
       //  fails without throwing, this will be displayed in green. It's unclear
       //  if this is correct. See Eth module's TODOs for more info.
 
-      if (this._shouldCollapseMethod(method)) {
-        this._logCollapsedMethod(method);
-      } else {
-        this._startCollapsingMethod(method);
-        this._log(method, false, chalk.green);
-      }
+      if (method !== "hardhat_intervalMine") {
+        this._logger.printMethod(method);
 
-      const loggedSomething = this._logModuleMessages();
-      if (loggedSomething) {
-        this._stopCollapsingMethod();
-        this._log("");
+        const printedSomething = this._logger.printLogs();
+        if (printedSomething) {
+          this._logger.printEmptyLine();
+        }
       }
 
       return result;
     } catch (err) {
-      this._stopCollapsingMethod();
-
       if (
         err instanceof MethodNotFoundError ||
         err instanceof MethodNotSupportedError
       ) {
-        this._log(`${method} - Method not supported`, false, chalk.red);
+        this._logger.printMethodNotSupported(method);
 
         throw err;
       }
 
-      this._log(method, false, chalk.red);
+      this._logger.printFailedMethod(method);
+      this._logger.printLogs();
 
-      const loggedSomething = this._logModuleMessages();
-      if (loggedSomething) {
-        this._log("");
-      }
+      if (!this._logger.isLoggedError(err)) {
+        if (ProviderError.isProviderError(err)) {
+          this._logger.printEmptyLine();
+          this._logger.printErrorMessage(err.message);
 
-      if (err instanceof SolidityError) {
-        this._logError(err);
-      } else if (err instanceof HardhatNetworkProviderError) {
-        this._log(err.message, true);
-
-        const isEIP155Error =
-          err instanceof InvalidInputError && err.message.includes("EIP155");
-        if (isEIP155Error) {
-          this._logMetaMaskWarning();
+          const isEIP155Error =
+            err instanceof InvalidInputError && err.message.includes("EIP155");
+          if (isEIP155Error) {
+            this._logger.printMetaMaskWarning();
+          }
+        } else {
+          this._logger.printUnknownError(err);
         }
-      } else {
-        this._logError(err, true);
-        this._log("");
-        this._log(
-          "If you think this is a bug in Hardhat, please report it here: https://hardhat.org/reportbug",
-          true
-        );
       }
 
-      this._log("");
+      this._logger.printEmptyLine();
 
       throw err;
     }
-  }
-
-  private _logCollapsedMethod(method: string) {
-    this._methodCollapsedCount += 1;
-
-    process.stdout.write(
-      // tslint:disable-next-line:prefer-template
-      ansiEscapes.cursorHide +
-        ansiEscapes.cursorPrevLine +
-        chalk.green(`${method} (${this._methodCollapsedCount})`) +
-        "\n" +
-        ansiEscapes.eraseEndLine +
-        ansiEscapes.cursorShow
-    );
-  }
-
-  private _startCollapsingMethod(method: string) {
-    this._methodBeingCollapsed = method;
-    this._methodCollapsedCount = 1;
-  }
-
-  private _stopCollapsingMethod() {
-    this._methodBeingCollapsed = undefined;
-    this._methodCollapsedCount = 0;
-  }
-
-  private _shouldCollapseMethod(method: string) {
-    return (
-      method === this._methodBeingCollapsed &&
-      !this._logger.hasLogs() &&
-      this._methodCollapsedCount > 0
-    );
   }
 
   private async _send(method: string, params: any[] = []): Promise<any> {
@@ -249,6 +198,7 @@ export class HardhatNetworkProvider extends EventEmitter
     }
 
     const commonConfig = {
+      automine: this._automine,
       blockGasLimit: this._blockGasLimit,
       genesisAccounts: this._genesisAccounts,
       allowUnlimitedContractSize: this._allowUnlimitedContractSize,
@@ -286,19 +236,25 @@ export class HardhatNetworkProvider extends EventEmitter
       this._experimentalHardhatNetworkMessageTraceHooks
     );
 
+    const miningTimer = this._makeMiningTimer();
+
     this._netModule = new NetModule(common);
     this._web3Module = new Web3Module();
-    this._evmModule = new EvmModule(node);
+    this._evmModule = new EvmModule(
+      node,
+      miningTimer,
+      this._logger,
+      this._experimentalHardhatNetworkMessageTraceHooks
+    );
     this._hardhatModule = new HardhatModule(
       node,
-      this._reset.bind(this),
+      (forkConfig?: ForkConfig) => this._reset(miningTimer, forkConfig),
       (loggingEnabled: boolean) => {
-        this._loggingEnabled = loggingEnabled;
-        this._logger.enable(loggingEnabled);
-      }
+        this._logger.setEnabled(loggingEnabled);
+      },
+      this._logger,
+      this._experimentalHardhatNetworkMessageTraceHooks
     );
-
-    this._logger.enable(this._loggingEnabled);
 
     this._forwardNodeEvents(node);
   }
@@ -335,12 +291,28 @@ export class HardhatNetworkProvider extends EventEmitter
     }
   }
 
-  private async _reset(forkConfig?: ForkConfig) {
+  private _makeMiningTimer(): MiningTimer {
+    const miningTimer = new MiningTimer(this._intervalMining, async () => {
+      try {
+        await this.request({ method: "hardhat_intervalMine" });
+      } catch (e) {
+        console.error("Unexpected error calling hardhat_intervalMine:", e);
+      }
+    });
+
+    miningTimer.start();
+
+    return miningTimer;
+  }
+
+  private async _reset(miningTimer: MiningTimer, forkConfig?: ForkConfig) {
     this._forkConfig = forkConfig;
     if (this._node !== undefined) {
       this._stopForwardingNodeEvents(this._node);
     }
     this._node = undefined;
+
+    miningTimer.stop();
 
     await this._init();
   }
@@ -377,45 +349,5 @@ export class HardhatNetworkProvider extends EventEmitter
     };
 
     this.emit("message", message);
-  }
-
-  private _logModuleMessages(): boolean {
-    const logs = this._logger.getLogs();
-    if (logs.length === 0) {
-      return false;
-    }
-
-    for (const msg of logs) {
-      this._log(msg, true);
-    }
-
-    return true;
-  }
-
-  private _logError(err: Error, logInRed = false) {
-    this._log(util.inspect(err), true, logInRed ? chalk.red : undefined);
-  }
-
-  private _log(msg: string, indent = false, color?: Chalk) {
-    if (indent) {
-      msg = msg
-        .split("\n")
-        .map((line) => `  ${line}`)
-        .join("\n");
-    }
-
-    if (color !== undefined) {
-      console.log(color(msg));
-      return;
-    }
-
-    console.log(msg);
-  }
-
-  private _logMetaMaskWarning() {
-    const message =
-      "If you are using MetaMask, you can learn how to fix this error here: https://hardhat.org/metamask-issue";
-
-    this._log(message, true, chalk.yellow);
   }
 }

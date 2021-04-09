@@ -8,10 +8,6 @@ import * as types from "../../../../src/internal/core/params/argumentTypes";
 import { ArgumentType } from "../../../../src/types";
 import { expectHardhatError } from "../../../helpers/errors";
 
-function a(f: () => any) {
-  expectHardhatError(f, ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE);
-}
-
 describe("argumentTypes", () => {
   it("should set the right name to all the argument types", () => {
     for (const typeName of Object.keys(types)) {

@@ -1,28 +1,29 @@
-import { BN, bufferToHex } from "ethereumjs-util";
+import { Address, BN, bufferToHex } from "ethereumjs-util";
 import fsExtra from "fs-extra";
 import * as t from "io-ts";
 import path from "path";
 
-import { HttpProvider } from "../../core/providers/http";
-import { createNonCryptographicHashBasedIdentifier } from "../../util/hash";
-import { rpcData, rpcQuantity } from "../provider/input";
-import { numberToRpcQuantity } from "../provider/output";
-
 import {
-  decode,
-  nullable,
-  RpcBlock,
+  numberToRpcQuantity,
+  rpcData,
+  rpcQuantity,
+} from "../../core/jsonrpc/types/base-types";
+import {
   rpcBlock,
+  RpcBlock,
   rpcBlockWithTransactions,
   RpcBlockWithTransactions,
-  rpcLog,
-  rpcTransaction,
-  rpcTransactionReceipt,
-} from "./types";
+} from "../../core/jsonrpc/types/output/block";
+import { decodeJsonRpcResponse } from "../../core/jsonrpc/types/output/decodeJsonRpcResponse";
+import { rpcLog } from "../../core/jsonrpc/types/output/log";
+import { rpcTransactionReceipt } from "../../core/jsonrpc/types/output/receipt";
+import { rpcTransaction } from "../../core/jsonrpc/types/output/transaction";
+import { HttpProvider } from "../../core/providers/http";
+import { createNonCryptographicHashBasedIdentifier } from "../../util/hash";
+import { nullable } from "../../util/io-ts";
 
 export class JsonRpcClient {
   private _cache: Map<string, any> = new Map();
-  private _scopedForkCacheFolderCreated?: boolean;
 
   constructor(
     private _httpProvider: HttpProvider,
@@ -36,16 +37,17 @@ export class JsonRpcClient {
     return this._networkId;
   }
 
+  // Storage key must be 32 bytes long
   public async getStorageAt(
-    address: Buffer,
-    position: Buffer,
+    address: Address,
+    position: BN,
     blockNumber: BN
   ): Promise<Buffer> {
     return this._perform(
       "eth_getStorageAt",
       [
-        bufferToHex(address),
-        bufferToHex(position),
+        address.toString(),
+        numberToRpcQuantity(position),
         numberToRpcQuantity(blockNumber),
       ],
       rpcData,
@@ -179,24 +181,24 @@ export class JsonRpcClient {
   }
 
   public async getAccountData(
-    address: Buffer,
+    address: Address,
     blockNumber: BN
   ): Promise<{ code: Buffer; transactionCount: BN; balance: BN }> {
     const results = await this._performBatch(
       [
         {
           method: "eth_getCode",
-          params: [bufferToHex(address), numberToRpcQuantity(blockNumber)],
+          params: [address.toString(), numberToRpcQuantity(blockNumber)],
           tType: rpcData,
         },
         {
           method: "eth_getTransactionCount",
-          params: [bufferToHex(address), numberToRpcQuantity(blockNumber)],
+          params: [address.toString(), numberToRpcQuantity(blockNumber)],
           tType: rpcQuantity,
         },
         {
           method: "eth_getBalance",
-          params: [bufferToHex(address), numberToRpcQuantity(blockNumber)],
+          params: [address.toString(), numberToRpcQuantity(blockNumber)],
           tType: rpcQuantity,
         },
       ],
@@ -236,7 +238,7 @@ export class JsonRpcClient {
     }
 
     const rawResult = await this._send(method, params);
-    const decodedResult = decode(rawResult, tType);
+    const decodedResult = decodeJsonRpcResponse(rawResult, tType);
 
     const blockNumber = getMaxAffectedBlockNumber(decodedResult);
     if (this._canBeCached(blockNumber)) {
@@ -284,7 +286,7 @@ export class JsonRpcClient {
 
     const rawResults = await this._sendBatch(batch);
     const decodedResults = rawResults.map((result, i) =>
-      decode(result, batch[i].tType)
+      decodeJsonRpcResponse(result, batch[i].tType)
     );
 
     const blockNumber = getMaxAffectedBlockNumber(decodedResults);
@@ -310,6 +312,12 @@ export class JsonRpcClient {
       if (this._shouldRetry(isRetryCall, err)) {
         return this._send(method, params, true);
       }
+
+      // This is a workaround for this TurboGeth bug: https://github.com/ledgerwatch/turbo-geth/issues/1645
+      if (err.code === -32000 && err.message.includes("not found")) {
+        return null;
+      }
+
       // tslint:disable-next-line only-hardhat-error
       throw err;
     }
@@ -383,7 +391,7 @@ export class JsonRpcClient {
     const rawResult = await this._getRawFromDiskCache(forkCachePath, cacheKey);
 
     if (rawResult !== undefined) {
-      return decode(rawResult, tType);
+      return decodeJsonRpcResponse(rawResult, tType);
     }
   }
 
@@ -398,7 +406,7 @@ export class JsonRpcClient {
       return undefined;
     }
 
-    return rawResults.map((r, i) => decode(r, tTypes[i]));
+    return rawResults.map((r, i) => decodeJsonRpcResponse(r, tTypes[i]));
   }
 
   private async _getRawFromDiskCache(
@@ -429,11 +437,7 @@ export class JsonRpcClient {
   ) {
     const requestPath = this._getDiskCachePathForKey(forkCachePath, cacheKey);
 
-    if (this._scopedForkCacheFolderCreated !== true) {
-      this._scopedForkCacheFolderCreated = true;
-      await fsExtra.ensureDir(path.dirname(requestPath));
-    }
-
+    await fsExtra.ensureDir(path.dirname(requestPath));
     await fsExtra.writeJSON(requestPath, rawResult, {
       encoding: "utf8",
     });
