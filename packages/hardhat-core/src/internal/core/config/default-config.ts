@@ -27,7 +27,10 @@ export const defaultHardhatNetworkHdAccountsConfigParams = {
 
 export const DEFAULT_GAS_MULTIPLIER = 1;
 
-export const defaultHardhatNetworkParams: Omit<HardhatNetworkConfig, "gas"> = {
+export const defaultHardhatNetworkParams: Omit<
+  HardhatNetworkConfig,
+  "gas" | "initialDate"
+> = {
   hardfork: "berlin",
   blockGasLimit: 12450000,
   gasPrice: HARDHAT_NETWORK_DEFAULT_GAS_PRICE,

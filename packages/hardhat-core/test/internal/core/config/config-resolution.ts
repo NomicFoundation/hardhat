@@ -1,6 +1,7 @@
 import { assert } from "chai";
 import cloneDeep from "lodash/cloneDeep";
 import * as path from "path";
+import sinon from "sinon";
 
 import { resolveConfig } from "../../../../src/internal/core/config/config-resolution";
 import {
@@ -280,8 +281,9 @@ describe("Config resolution", () => {
 
         assert.deepEqual(config.networks.hardhat, {
           ...defaultHardhatNetworkParams,
-          // See the another test to understand why this is ignored
+          // The default values of the next tests are dynamic
           gas: config.networks.hardhat.gas,
+          initialDate: config.networks.hardhat.initialDate,
         });
       });
 
@@ -290,6 +292,7 @@ describe("Config resolution", () => {
         assert.deepEqual(configWithoutBlockGasLimit.networks.hardhat, {
           ...defaultHardhatNetworkParams,
           gas: configWithoutBlockGasLimit.networks.hardhat.blockGasLimit,
+          initialDate: configWithoutBlockGasLimit.networks.hardhat.initialDate,
         });
 
         const configWithBlockGasLimit = resolveConfig(__filename, {
@@ -299,6 +302,7 @@ describe("Config resolution", () => {
           ...defaultHardhatNetworkParams,
           blockGasLimit: 1,
           gas: 1,
+          initialDate: configWithBlockGasLimit.networks.hardhat.initialDate,
         });
 
         const configWithBlockGasLimitAndGas = resolveConfig(__filename, {
@@ -308,7 +312,50 @@ describe("Config resolution", () => {
           ...defaultHardhatNetworkParams,
           blockGasLimit: 2,
           gas: 3,
+          initialDate:
+            configWithBlockGasLimitAndGas.networks.hardhat.initialDate,
         });
+      });
+
+      it("Should resolve initialDate to the current time", function () {
+        const fakeNow = new Date(
+          "Fri Apr 8 2021 15:21:19 GMT-0300 (Argentina Standard Time)"
+        );
+
+        let sinonClock: sinon.SinonFakeTimers | undefined;
+        try {
+          sinonClock = sinon.useFakeTimers({
+            now: fakeNow,
+            toFake: [],
+          });
+
+          const configWithoutInitialDate = resolveConfig(__filename, {});
+          assert.equal(
+            new Date(
+              configWithoutInitialDate.networks.hardhat.initialDate
+            ).valueOf(),
+            fakeNow.valueOf()
+          );
+        } finally {
+          if (sinonClock !== undefined) {
+            sinonClock.restore();
+          }
+        }
+
+        const initialDate =
+          "Fri Apr 09 2021 15:21:19 GMT-0300 (Argentina Standard Time)";
+        const configWithInitialDate = resolveConfig(__filename, {
+          networks: {
+            hardhat: {
+              initialDate,
+            },
+          },
+        });
+
+        assert.equal(
+          configWithInitialDate.networks.hardhat.initialDate,
+          initialDate
+        );
       });
 
       it("Should normalize the accounts' private keys", function () {

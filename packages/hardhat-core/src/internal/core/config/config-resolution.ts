@@ -157,7 +157,11 @@ function resolveHardhatNetworkConfig(
   const blockGasLimit =
     hardhatNetworkConfig.blockGasLimit ??
     clonedDefaultHardhatNetworkParams.blockGasLimit;
+
   const gas = hardhatNetworkConfig.gas ?? blockGasLimit;
+
+  const initialDate =
+    hardhatNetworkConfig.initialDate ?? new Date().toISOString();
 
   const config = {
     ...clonedDefaultHardhatNetworkParams,
@@ -167,6 +171,7 @@ function resolveHardhatNetworkConfig(
     mining,
     blockGasLimit,
     gas,
+    initialDate,
   };
 
   // We do it this way because ts gets lost otherwise
