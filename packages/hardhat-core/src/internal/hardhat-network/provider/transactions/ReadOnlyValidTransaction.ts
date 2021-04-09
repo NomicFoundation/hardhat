@@ -19,7 +19,6 @@ import { InternalError } from "../../../core/providers/errors";
  * This class doesn't use its Common instance, so there's no need to provide
  * one.
  */
-// TODO: In Berlin we need two types of ReadOnlyValid transactions.
 export class ReadOnlyValidTransaction extends Transaction {
   public static fromTxData(txData: TxData, opts?: TxOptions): never {
     throw new InternalError(

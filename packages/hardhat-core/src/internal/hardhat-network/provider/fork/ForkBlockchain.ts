@@ -6,15 +6,18 @@ import { Address, BN } from "ethereumjs-util";
 import { RpcBlockWithTransactions } from "../../../core/jsonrpc/types/output/block";
 import { RpcTransactionReceipt } from "../../../core/jsonrpc/types/output/receipt";
 import { RpcTransaction } from "../../../core/jsonrpc/types/output/transaction";
+import { InternalError } from "../../../core/providers/errors";
 import { JsonRpcClient } from "../../jsonrpc/client";
 import { BlockchainData } from "../BlockchainData";
 import { FilterParams } from "../node-types";
 import {
+  remoteReceiptToRpcReceiptOutput,
   RpcLogOutput,
   RpcReceiptOutput,
+  shouldShowTransactionTypeForHardfork,
   toRpcLogOutput,
-  toRpcReceiptOutput,
 } from "../output";
+import { ReadOnlyValidEIP2930Transaction } from "../transactions/ReadOnlyValidEIP2930Transaction";
 import { ReadOnlyValidTransaction } from "../transactions/ReadOnlyValidTransaction";
 import { HardhatBlockchainInterface } from "../types/HardhatBlockchainInterface";
 
@@ -172,7 +175,7 @@ export class ForkBlockchain implements HardhatBlockchainInterface {
       transactionHash
     );
     if (remote !== null) {
-      const receipt = this._processRemoteReceipt(remote);
+      const receipt = await this._processRemoteReceipt(remote);
       return receipt ?? null;
     }
 
@@ -268,10 +271,20 @@ export class ForkBlockchain implements HardhatBlockchainInterface {
     });
 
     for (const transaction of rpcBlock.transactions) {
-      const tx = new ReadOnlyValidTransaction(
-        new Address(transaction.from),
-        rpcToTxData(transaction)
-      );
+      let tx;
+      if (transaction.type === undefined || transaction.type.eqn(0)) {
+        tx = new ReadOnlyValidTransaction(
+          new Address(transaction.from),
+          rpcToTxData(transaction)
+        );
+      } else if (transaction.type.eqn(1)) {
+        tx = new ReadOnlyValidEIP2930Transaction(
+          new Address(transaction.from),
+          rpcToTxData(transaction)
+        );
+      } else {
+        throw new InternalError(`Unknown transaction type ${transaction.type}`);
+      }
 
       block.transactions.push(tx);
     }
@@ -336,13 +349,21 @@ export class ForkBlockchain implements HardhatBlockchainInterface {
     return transaction;
   }
 
-  private _processRemoteReceipt(
+  private async _processRemoteReceipt(
     txReceipt: RpcTransactionReceipt | null
-  ): RpcReceiptOutput | undefined {
+  ): Promise<RpcReceiptOutput | undefined> {
     if (txReceipt === null || txReceipt.blockNumber.gt(this._forkBlockNumber)) {
       return undefined;
     }
-    const receipt = toRpcReceiptOutput(txReceipt);
+
+    const tx = await this.getTransaction(txReceipt.transactionHash);
+
+    const receipt = remoteReceiptToRpcReceiptOutput(
+      txReceipt,
+      tx!,
+      shouldShowTransactionTypeForHardfork(this._common)
+    );
+
     this._data.addTransactionReceipt(receipt);
     return receipt;
   }

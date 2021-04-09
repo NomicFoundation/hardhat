@@ -1,14 +1,16 @@
 import { Block } from "@ethereumjs/block";
 import Common from "@ethereumjs/common";
-import { Transaction } from "@ethereumjs/tx";
+import {
+  AccessListEIP2930Transaction,
+  Transaction,
+  TypedTransaction,
+} from "@ethereumjs/tx";
 import VM from "@ethereumjs/vm";
 import Bloom from "@ethereumjs/vm/dist/bloom";
 import { EVMResult, ExecResult } from "@ethereumjs/vm/dist/evm/evm";
 import { ERROR } from "@ethereumjs/vm/dist/exceptions";
 import {
   generateTxReceipt,
-  PostByzantiumTxReceipt,
-  PreByzantiumTxReceipt,
   RunBlockResult,
 } from "@ethereumjs/vm/dist/runBlock";
 import { DefaultStateManager, StateManager } from "@ethereumjs/vm/dist/state";
@@ -57,6 +59,7 @@ import { SolidityTracer } from "../stack-traces/solidityTracer";
 import { VmTraceDecoder } from "../stack-traces/vm-trace-decoder";
 import { VMTracer } from "../stack-traces/vm-tracer";
 
+import "./ethereumjs-workarounds";
 import { bloomFilter, Filter, filterLogs, LATEST_BLOCK, Type } from "./filter";
 import { ForkBlockchain } from "./fork/ForkBlockchain";
 import { ForkStateManager } from "./fork/ForkStateManager";
@@ -77,10 +80,12 @@ import {
 } from "./node-types";
 import {
   getRpcBlock,
-  getRpcReceipts,
+  getRpcReceiptOutputsFromLocalBlockExecution,
   RpcLogOutput,
   RpcReceiptOutput,
+  shouldShowTransactionTypeForHardfork,
 } from "./output";
+import { FakeSenderAccessListEIP2930Transaction } from "./transactions/FakeSenderAccessListEIP2930Transaction";
 import { FakeSenderTransaction } from "./transactions/FakeSenderTransaction";
 import { TxPool } from "./TxPool";
 import { TxPriorityHeap } from "./TxPriorityHeap";
@@ -98,8 +103,6 @@ const log = debug("hardhat:core:hardhat-network:node");
 // This library's types are wrong, they don't type check
 // tslint:disable-next-line no-var-requires
 const ethSigUtil = require("eth-sig-util");
-
-type TxReceipt = PreByzantiumTxReceipt | PostByzantiumTxReceipt;
 
 export const COINBASE_ADDRESS = Address.fromString(
   "0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e"
@@ -307,12 +310,21 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
   public async getSignedTransaction(
     txParams: TransactionParams
-  ): Promise<Transaction> {
+  ): Promise<TypedTransaction> {
     const senderAddress = bufferToHex(txParams.from);
 
     const pk = this._localAccounts.get(senderAddress);
     if (pk !== undefined) {
-      const tx = new Transaction(txParams, { common: this._vm._common });
+      let tx: TypedTransaction;
+
+      if (txParams.accessList !== undefined) {
+        tx = AccessListEIP2930Transaction.fromTxData(txParams, {
+          common: this._vm._common,
+        });
+      } else {
+        tx = Transaction.fromTxData(txParams, { common: this._vm._common });
+      }
+
       return tx.sign(pk);
     }
 
@@ -324,19 +336,21 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   }
 
   public async sendTransaction(
-    tx: Transaction
+    tx: TypedTransaction
   ): Promise<SendTransactionResult> {
     if (!this._automine) {
       return this._addPendingTransaction(tx);
     }
 
     await this._validateExactNonce(tx);
+
     if (
       this._txPool.hasPendingTransactions() ||
       this._txPool.hasQueuedTransactions()
     ) {
       return this._mineTransactionAndPending(tx);
     }
+
     return this._mineTransaction(tx);
   }
 
@@ -395,7 +409,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
     const result = await this._runInBlockContext(
       blockNumberOrPending,
-      async () => this._runTxAndRevertMutations(tx, blockNumberOrPending, false)
+      async () => this._runTxAndRevertMutations(tx, blockNumberOrPending)
     );
 
     const traces = await this._gatherTraces(result.execResult);
@@ -490,7 +504,6 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         new Address(callParams.from),
         blockNumberOrPending
       ),
-      gasLimit: callParams.gasLimit ?? this.getBlockGasLimit(),
     };
 
     const tx = await this._getFakeTransaction(txParams);
@@ -500,7 +513,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     //  if the state accessed by the tx changes after it is executed within
     //  the first block.
     const result = await this._runInBlockContext(blockNumberOrPending, () =>
-      this._runTxAndRevertMutations(tx, blockNumberOrPending, true)
+      this._runTxAndRevertMutations(tx, blockNumberOrPending)
     );
 
     let vmTrace = this._vmTracer.getLastTopLevelMessageTrace();
@@ -639,7 +652,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
   public async getPendingTransaction(
     hash: Buffer
-  ): Promise<Transaction | undefined> {
+  ): Promise<TypedTransaction | undefined> {
     return this._txPool.getTransactionByHash(hash)?.data;
   }
 
@@ -651,7 +664,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     return receipt ?? undefined;
   }
 
-  public async getPendingTransactions(): Promise<Transaction[]> {
+  public async getPendingTransactions(): Promise<TypedTransaction[]> {
     const txPoolPending = txMapToArray(this._txPool.getPendingTransactions());
     const txPoolQueued = txMapToArray(this._txPool.getQueuedTransactions());
     return txPoolPending.concat(txPoolQueued);
@@ -913,19 +926,21 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     await this._txPool.updatePendingAndQueued();
   }
 
-  private async _addPendingTransaction(tx: Transaction): Promise<string> {
+  private async _addPendingTransaction(tx: TypedTransaction): Promise<string> {
     await this._txPool.addTransaction(tx);
     await this._notifyPendingTransaction(tx);
     return bufferToHex(tx.hash());
   }
 
-  private async _mineTransaction(tx: Transaction): Promise<MineBlockResult> {
+  private async _mineTransaction(
+    tx: TypedTransaction
+  ): Promise<MineBlockResult> {
     await this._addPendingTransaction(tx);
     return this.mineBlock();
   }
 
   private async _mineTransactionAndPending(
-    tx: Transaction
+    tx: TypedTransaction
   ): Promise<MineBlockResult[]> {
     const snapshotId = await this.takeSnapshot();
 
@@ -987,7 +1002,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     };
   }
 
-  private async _validateExactNonce(tx: Transaction) {
+  private async _validateExactNonce(tx: TypedTransaction) {
     let sender: Address;
     try {
       sender = tx.getSenderAddress(); // verifies signature as a side effect
@@ -1033,8 +1048,6 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       blockOpts: { calcDifficultyFromHeader: parentBlock.header },
     });
 
-    const transactions = [];
-
     try {
       const traces: GatherTracesResult[] = [];
 
@@ -1055,7 +1068,6 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         if (tx.gasLimit.gt(blockGasLimit.sub(blockBuilder.gasUsed))) {
           txHeap.pop();
         } else {
-          transactions.push(tx);
           const txResult = await blockBuilder.addTransaction(tx);
           const { txReceipt } = await generateTxReceipt.bind(this._vm)(
             tx,
@@ -1074,21 +1086,15 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       }
 
       // This workarounds a bug in BlockBuilder#build
+      //  It's a workaround that is also included here: https://github.com/ethereumjs/ethereumjs-monorepo/pull/1185
       // tslint:disable-next-line:no-string-literal
       if (blockBuilder["checkpointed"] !== true) {
+        // tslint:disable-next-line:no-string-literal
+        blockBuilder["checkpointed"] = true;
         await this._vm.stateManager.checkpoint();
       }
 
       const block = await blockBuilder.build();
-
-      // We replace the block's transactions with the actual ones,
-      // as the block builder recreates them, turning fake transactions
-      // into real ones.
-      //
-      // IMPORTANT: this workaround only works because while BlockBuilder#addTransaction
-      // recreates the transactions you pass it, it actually runs yours.
-      block.transactions.splice(0);
-      block.transactions.push(...transactions);
 
       await this._txPool.updatePendingAndQueued();
 
@@ -1117,8 +1123,16 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
   private async _getFakeTransaction(
     txParams: TransactionParams
-  ): Promise<Transaction> {
-    return new FakeSenderTransaction(new Address(txParams.from), txParams, {
+  ): Promise<FakeSenderAccessListEIP2930Transaction | FakeSenderTransaction> {
+    const sender = new Address(txParams.from);
+
+    if (txParams.accessList !== undefined) {
+      return new FakeSenderAccessListEIP2930Transaction(sender, txParams, {
+        common: this._vm._common,
+      });
+    }
+
+    return new FakeSenderTransaction(sender, txParams, {
       common: this._vm._common,
     });
   }
@@ -1299,7 +1313,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     this.setNextBlockTimestamp(new BN(0));
   }
 
-  private async _notifyPendingTransaction(tx: Transaction) {
+  private async _notifyPendingTransaction(tx: TypedTransaction) {
     this._filters.forEach((filter) => {
       if (filter.type === Type.PENDING_TRANSACTION_SUBSCRIPTION) {
         const hash = bufferToHex(tx.hash());
@@ -1330,7 +1344,11 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     block: Block,
     runBlockResult: RunBlockResult
   ) {
-    const receipts = getRpcReceipts(block, runBlockResult);
+    const receipts = getRpcReceiptOutputsFromLocalBlockExecution(
+      block,
+      runBlockResult,
+      shouldShowTransactionTypeForHardfork(this._vm._common)
+    );
 
     this._blockchain.addTransactionReceipts(receipts);
 
@@ -1349,7 +1367,15 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         case Type.BLOCK_SUBSCRIPTION:
           const hash = block.hash();
           if (filter.subscription) {
-            this._emitEthEvent(filter.id, getRpcBlock(block, td, false));
+            this._emitEthEvent(
+              filter.id,
+              getRpcBlock(
+                block,
+                td,
+                shouldShowTransactionTypeForHardfork(this._vm._common),
+                false
+              )
+            );
             return;
           }
 
@@ -1467,7 +1493,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     }
 
     const result = await this._runInBlockContext(blockNumberOrPending, () =>
-      this._runTxAndRevertMutations(tx, blockNumberOrPending, true)
+      this._runTxAndRevertMutations(tx, blockNumberOrPending)
     );
 
     if (result.execResult.exceptionError === undefined) {
@@ -1539,7 +1565,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     });
 
     const result = await this._runInBlockContext(blockNumberOrPending, () =>
-      this._runTxAndRevertMutations(tx, blockNumberOrPending, true)
+      this._runTxAndRevertMutations(tx, blockNumberOrPending)
     );
 
     if (result.execResult.exceptionError === undefined) {
@@ -1566,9 +1592,8 @@ Hardhat Network's forking functionality only works with blocks from at least spu
    * makes.
    */
   private async _runTxAndRevertMutations(
-    tx: Transaction,
-    blockNumberOrPending: BN | "pending",
-    calledToEstimateGas = false
+    tx: TypedTransaction,
+    blockNumberOrPending: BN | "pending"
   ): Promise<EVMResult> {
     const initialStateRoot = await this._stateManager.getStateRoot();
 
@@ -1589,7 +1614,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         blockContext = block;
 
         // we don't need to add the tx to the block because runTx doesn't
-        // know nothing about the txs in the current block
+        // know anything about the txs in the current block
       }
 
       return await this._vm.runTx({

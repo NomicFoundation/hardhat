@@ -1,10 +1,8 @@
 import { Block } from "@ethereumjs/block";
-import { TypedTransaction } from "@ethereumjs/tx";
-import {
-  PostByzantiumTxReceipt,
-  RunBlockResult,
-} from "@ethereumjs/vm/dist/runBlock";
-import { BN } from "ethereumjs-util";
+import Common from "@ethereumjs/common";
+import { AccessListEIP2930Transaction, TypedTransaction } from "@ethereumjs/tx";
+import { RunBlockResult } from "@ethereumjs/vm/dist/runBlock";
+import { BN, bufferToHex } from "ethereumjs-util";
 
 import { assertHardhatInvariant } from "../../core/errors";
 import {
@@ -13,6 +11,8 @@ import {
 } from "../../core/jsonrpc/types/base-types";
 import { RpcLog } from "../../core/jsonrpc/types/output/log";
 import { RpcTransactionReceipt } from "../../core/jsonrpc/types/output/receipt";
+
+const FIRST_HARDFORK_WITH_TRANSACTION_TYPE = "berlin";
 
 // TODO: These types should be moved to core, and probably inferred by io-ts
 export interface RpcBlockOutput {
@@ -53,6 +53,13 @@ export interface RpcTransactionOutput {
   transactionIndex: string | null;
   v: string;
   value: string;
+
+  // Only shown if the local hardfork is at least Berlin, or if the (remote) tx has an access list
+  type?: string;
+
+  // Only shown if the tx has an access list
+  accessList?: Array<{ address: string; storageKeys: string[] }>;
+  chainId?: string;
 }
 
 export interface RpcReceiptOutput {
@@ -73,6 +80,9 @@ export interface RpcReceiptOutput {
 
   // Only present before Byzantium
   root?: string;
+
+  // Only shown if the local hardfork is at least Berlin, or if the (remote) tx has an access list
+  type?: string;
 }
 
 export interface RpcLogOutput {
@@ -92,11 +102,14 @@ export interface RpcLogOutput {
 export function getRpcBlock(
   block: Block,
   totalDifficulty: BN,
+  showTransactionType: boolean,
   includeTransactions = true,
   pending = false
 ): RpcBlockOutput {
   const transactions = includeTransactions
-    ? block.transactions.map((tx, index) => getRpcTransaction(tx, block, index))
+    ? block.transactions.map((tx, index) =>
+        getRpcTransaction(tx, showTransactionType, block, index)
+      )
     : block.transactions.map((tx) => bufferToRpcData(tx.hash()));
 
   return {
@@ -127,17 +140,20 @@ export function getRpcBlock(
 
 export function getRpcTransaction(
   tx: TypedTransaction,
+  showTransactionType: boolean,
   block: Block,
   index: number
 ): RpcTransactionOutput;
 
 export function getRpcTransaction(
   tx: TypedTransaction,
+  showTransactionType: boolean,
   block: "pending"
 ): RpcTransactionOutput;
 
 export function getRpcTransaction(
   tx: TypedTransaction,
+  showTransactionType: boolean,
   block: Block | "pending",
   index?: number
 ): RpcTransactionOutput {
@@ -165,12 +181,28 @@ export function getRpcTransaction(
     v: numberToRpcQuantity(new BN(tx.v)),
     r: numberToRpcQuantity(new BN(tx.r)),
     s: numberToRpcQuantity(new BN(tx.s)),
+    type:
+      showTransactionType || tx instanceof AccessListEIP2930Transaction
+        ? numberToRpcQuantity(tx.transactionType)
+        : undefined,
+    accessList:
+      tx instanceof AccessListEIP2930Transaction
+        ? tx.accessList.map(([address, storageKeys]) => ({
+            address: bufferToHex(address),
+            storageKeys: storageKeys.map(bufferToHex),
+          }))
+        : undefined,
+    chainId:
+      tx instanceof AccessListEIP2930Transaction
+        ? numberToRpcQuantity(tx.chainId)
+        : undefined,
   };
 }
 
-export function getRpcReceipts(
+export function getRpcReceiptOutputsFromLocalBlockExecution(
   block: Block,
-  runBlockResult: RunBlockResult
+  runBlockResult: RunBlockResult,
+  showTransactionType: boolean
 ): RpcReceiptOutput[] {
   const receipts: RpcReceiptOutput[] = [];
 
@@ -202,6 +234,11 @@ export function getRpcReceipts(
           : null,
       logs,
       logsBloom: bufferToRpcData(receipt.bitvector),
+      // There's no way to execute an EIP-2718 tx locally if we aren't in
+      // an HF >= Berlin, so this check is enough
+      type: showTransactionType
+        ? numberToRpcQuantity(tx.transactionType)
+        : undefined,
     };
 
     if ("stateRoot" in receipt) {
@@ -216,8 +253,10 @@ export function getRpcReceipts(
   return receipts;
 }
 
-export function toRpcReceiptOutput(
-  receipt: RpcTransactionReceipt
+export function remoteReceiptToRpcReceiptOutput(
+  receipt: RpcTransactionReceipt,
+  tx: TypedTransaction,
+  showTransactionType: boolean
 ): RpcReceiptOutput {
   return {
     blockHash: bufferToRpcData(receipt.blockHash),
@@ -231,10 +270,19 @@ export function toRpcReceiptOutput(
     gasUsed: numberToRpcQuantity(receipt.gasUsed),
     logs: receipt.logs.map(toRpcLogOutput),
     logsBloom: bufferToRpcData(receipt.logsBloom),
-    status: numberToRpcQuantity(receipt.status),
+    status:
+      receipt.status !== undefined && receipt.status !== null
+        ? numberToRpcQuantity(receipt.status)
+        : undefined,
+    root:
+      receipt.root !== undefined ? bufferToRpcData(receipt.root) : undefined,
     to: receipt.to !== null ? bufferToRpcData(receipt.to) : null,
     transactionHash: bufferToRpcData(receipt.transactionHash),
     transactionIndex: numberToRpcQuantity(receipt.transactionIndex),
+    type:
+      showTransactionType || tx instanceof AccessListEIP2930Transaction
+        ? numberToRpcQuantity(tx.transactionType)
+        : undefined,
   };
 }
 
@@ -283,4 +331,8 @@ function getRpcLogOutput(
     data: bufferToRpcData(log[2]),
     topics: log[1].map((topic: Buffer) => bufferToRpcData(topic)),
   };
+}
+
+export function shouldShowTransactionTypeForHardfork(common: Common) {
+  return common.gteHardfork(FIRST_HARDFORK_WITH_TRANSACTION_TYPE);
 }

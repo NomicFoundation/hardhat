@@ -1,4 +1,3 @@
-import { Transaction as TransactionT } from "@ethereumjs/tx";
 import { BN } from "ethereumjs-util";
 import * as t from "io-ts";
 
@@ -188,9 +187,11 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
     chainId: number,
     privateKey: Buffer
   ): Promise<Buffer> {
-    const chains = await import("@ethereumjs/common/dist/chains");
+    const { chains } = await import("@ethereumjs/common/dist/chains");
 
-    const { Transaction } = await import("@ethereumjs/tx");
+    const { AccessListEIP2930Transaction, Transaction } = await import(
+      "@ethereumjs/tx"
+    );
 
     const { default: Common } = await import("@ethereumjs/common");
 
@@ -200,18 +201,36 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
     };
 
     const common =
-      chains.chains.names[chainId] !== undefined
-        ? new Common({ chain: chainId })
+      chains.names[chainId] !== undefined
+        ? new Common({ chain: chainId, hardfork: "berlin" })
         : Common.forCustomChain(
             "mainnet",
             {
               chainId,
               networkId: chainId,
             },
-            "istanbul"
+            "berlin"
           );
 
-    const transaction = Transaction.fromTxData(txData, { common });
+    let transaction;
+    if (txData.accessList !== undefined) {
+      // we convert the access list to the type
+      // that AccessListEIP2930Transaction expects
+      const accessList = txData.accessList.map(
+        ({ address, storageKeys }) =>
+          [address, storageKeys] as [Buffer, Buffer[]]
+      );
+
+      transaction = AccessListEIP2930Transaction.fromTxData(
+        {
+          ...txData,
+          accessList,
+        },
+        { common }
+      );
+    } else {
+      transaction = Transaction.fromTxData(txData, { common });
+    }
 
     const signedTransaction = transaction.sign(privateKey);
 

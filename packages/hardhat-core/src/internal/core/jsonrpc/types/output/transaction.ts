@@ -31,7 +31,7 @@ export const rpcTransaction = t.type(
 
     // EIP-2929/2930 properties
     type: optional(rpcQuantity),
-    chainId: optional(rpcQuantity),
+    chainId: optional(nullable(rpcQuantity)),
     accessList: optional(rpcAccessList),
   },
   "RpcTransaction"

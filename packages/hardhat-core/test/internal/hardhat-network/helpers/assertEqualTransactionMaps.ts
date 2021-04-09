@@ -32,13 +32,16 @@ export function assertEqualTransactionLists(
   );
 }
 
+// TODO: This probably is wrong, as we are returning the same data,
+// whereas it was copied before. This should be removed along with
+// immutable.js
 function cloneTransaction({
   orderId,
   data,
 }: OrderedTransaction): OrderedTransaction {
   return {
     orderId,
-    data: Transaction.fromValuesArray(data.raw()),
+    data,
   };
 }
 

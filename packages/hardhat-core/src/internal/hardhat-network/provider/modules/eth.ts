@@ -1,6 +1,10 @@
 import { Block } from "@ethereumjs/block";
 import Common from "@ethereumjs/common";
-import { Transaction, TypedTransaction } from "@ethereumjs/tx";
+import {
+  Transaction,
+  TransactionFactory,
+  TypedTransaction,
+} from "@ethereumjs/tx";
 import {
   Address,
   BN,
@@ -13,6 +17,7 @@ import * as t from "io-ts";
 import cloneDeep from "lodash/cloneDeep";
 
 import { BoundExperimentalHardhatNetworkMessageTraceHook } from "../../../../types";
+import { RpcAccessList } from "../../../core/jsonrpc/types/access-list";
 import {
   bufferToRpcData,
   numberToRpcQuantity,
@@ -73,9 +78,13 @@ import {
   RpcLogOutput,
   RpcReceiptOutput,
   RpcTransactionOutput,
+  shouldShowTransactionTypeForHardfork,
 } from "../output";
 
 import { ModulesLogger } from "./logger";
+
+const ACCESS_LIST_MIN_HARDFORK = "berlin";
+const EIP155_MIN_HARDFORK = "spuriousDragon";
 
 // tslint:disable only-hardhat-error
 export class EthModule {
@@ -322,9 +331,12 @@ export class EthModule {
     rpcCall: RpcCallRequest,
     blockTag: OptionalRpcNewBlockTag
   ): Promise<string> {
+    this._validateAccessListHardforkRequirement(rpcCall);
+
     const blockNumberOrPending = await this._resolveNewBlockTag(blockTag);
 
     const callParams = await this._rpcCallRequestToNodeCallParams(rpcCall);
+
     const {
       result: returnData,
       trace,
@@ -390,6 +402,8 @@ export class EthModule {
     callRequest: RpcCallRequest,
     blockTag: OptionalRpcNewBlockTag
   ): Promise<string> {
+    this._validateAccessListHardforkRequirement(callRequest);
+
     // estimateGas behaves differently when there's no blockTag
     // it uses "pending" as default instead of "latest"
     const blockNumberOrPending = await this._resolveNewBlockTag(
@@ -406,9 +420,12 @@ export class EthModule {
       consoleLogMessages,
     } = await this._node.estimateGas(callParams, blockNumberOrPending);
 
-    const code = await this._node.getCodeFromTrace(trace, blockNumberOrPending);
-
     if (error !== undefined) {
+      const code = await this._node.getCodeFromTrace(
+        trace,
+        blockNumberOrPending
+      );
+
       this._logger.logEstimateGasTrace(
         callParams,
         code,
@@ -470,7 +487,12 @@ export class EthModule {
 
     const totalDifficulty = await this._node.getBlockTotalDifficulty(block);
 
-    return getRpcBlock(block, totalDifficulty, includeTransactions);
+    return getRpcBlock(
+      block,
+      totalDifficulty,
+      shouldShowTransactionTypeForHardfork(this._common),
+      includeTransactions
+    );
   }
 
   // eth_getBlockByNumber
@@ -508,6 +530,7 @@ export class EthModule {
     return getRpcBlock(
       block,
       totalDifficulty,
+      shouldShowTransactionTypeForHardfork(this._common),
       includeTransactions,
       numberOrPending === "pending"
     );
@@ -707,7 +730,12 @@ export class EthModule {
       return null;
     }
 
-    return getRpcTransaction(tx, block, i);
+    return getRpcTransaction(
+      tx,
+      shouldShowTransactionTypeForHardfork(this._common),
+      block,
+      i
+    );
   }
 
   // eth_getTransactionByBlockNumberAndIndex
@@ -739,9 +767,13 @@ export class EthModule {
       return null;
     }
 
+    const showTransactionType = shouldShowTransactionTypeForHardfork(
+      this._common
+    );
+
     return numberOrPending === "pending"
-      ? getRpcTransaction(tx, "pending")
-      : getRpcTransaction(tx, block, i);
+      ? getRpcTransaction(tx, showTransactionType, "pending")
+      : getRpcTransaction(tx, showTransactionType, block, i);
   }
 
   // eth_getTransactionByHash
@@ -755,7 +787,11 @@ export class EthModule {
   ): Promise<RpcTransactionOutput | null> {
     const pendingTx = await this._node.getPendingTransaction(hash);
     if (pendingTx !== undefined) {
-      return getRpcTransaction(pendingTx, "pending");
+      return getRpcTransaction(
+        pendingTx,
+        shouldShowTransactionTypeForHardfork(this._common),
+        "pending"
+      );
     }
 
     const block = await this._node.getBlockByTransactionHash(hash);
@@ -773,7 +809,12 @@ export class EthModule {
       );
     }
 
-    return getRpcTransaction(tx, block, index);
+    return getRpcTransaction(
+      tx,
+      shouldShowTransactionTypeForHardfork(this._common),
+      block,
+      index
+    );
   }
 
   // eth_getTransactionCount
@@ -886,7 +927,13 @@ export class EthModule {
 
   private async _pendingTransactionsAction(): Promise<RpcTransactionOutput[]> {
     const txs = await this._node.getPendingTransactions();
-    return txs.map((tx) => getRpcTransaction(tx, "pending"));
+    return txs.map((tx) =>
+      getRpcTransaction(
+        tx,
+        shouldShowTransactionTypeForHardfork(this._common),
+        "pending"
+      )
+    );
   }
 
   // eth_protocolVersion
@@ -898,23 +945,71 @@ export class EthModule {
   }
 
   private async _sendRawTransactionAction(rawTx: Buffer): Promise<string> {
+    // We validate that the tx is not legacy nor eip-2930 here
+    // because otherwise the catch logic below gets too tricky
+    // This can happen because of an EIP-2718 tx that's not EIP-2930,
+    // which we don't support, or because the input is just completely invalid
+    if (rawTx[0] <= 0x7f && rawTx[0] !== 1) {
+      throw new InvalidArgumentsError(`Invalid transaction`);
+    }
+
     let tx: TypedTransaction;
     try {
-      tx = Transaction.fromRlpSerializedTx(rawTx, { common: this._common });
+      tx = TransactionFactory.fromSerializedData(rawTx, {
+        common: this._common,
+      });
     } catch (error) {
+      // This section of the code is incredibly dependant of TransactionFactory.fromSerializedData
+      // AccessListEIP2930Transaction.fromSerializedTx and Transaction.fromSerializedTx
+      // Please keep it updated.
+
       if (error.message === "invalid remainder") {
-        throw new InvalidInputError("Invalid transaction");
+        throw new InvalidArgumentsError("Invalid transaction", error);
       }
 
-      if (error.message.includes("EIP155")) {
-        throw new InvalidInputError(error.message);
+      if (error.message.includes("Incompatible EIP155")) {
+        throw new InvalidArgumentsError(
+          "Trying to send an incompatible EIP-155 transaction, signed for another chain.",
+          error
+        );
+      }
+
+      if (
+        error.message.includes(
+          "Common support for TypedTransactions (EIP-2718) not activated"
+        )
+      ) {
+        throw new InvalidArgumentsError(
+          `Trying to send an EIP-2930 transaction but they are not supported by the current hard fork.
+      
+You can use them by running Hardhat Network with 'hardfork' ${ACCESS_LIST_MIN_HARDFORK} or later.`,
+          error
+        );
+      }
+
+      if (
+        error.message.includes("TypedTransaction with ID") &&
+        error.message.includes(" unknown")
+      ) {
+        throw new InvalidArgumentsError(`Invalid transaction`, error);
+      }
+
+      if (error.message.includes("The chain ID does not match")) {
+        throw new InvalidArgumentsError(
+          `Trying to send a raw transaction with an invalid chainId. The expected chainId is ${this._common.chainIdBN()}`,
+          error
+        );
       }
 
       throw error;
     }
 
     if (!tx.isSigned()) {
-      throw new InvalidInputError("Invalid Signature");
+      throw new InvalidArgumentsError("Invalid Signature");
+    }
+
+    if (tx instanceof Transaction) {
+      this._validateEip155HardforkRequirement(tx);
     }
 
     return this._sendTransactionAndReturnHash(tx);
@@ -929,6 +1024,18 @@ export class EthModule {
   private async _sendTransactionAction(
     transactionRequest: RpcTransactionRequest
   ): Promise<string> {
+    const expectedChainId = this._common.chainIdBN();
+    if (
+      transactionRequest.chainId !== undefined &&
+      !transactionRequest.chainId.eq(expectedChainId)
+    ) {
+      throw new InvalidArgumentsError(
+        `Invalid chainId ${transactionRequest.chainId.toString()} provided, expected ${expectedChainId} instead.`
+      );
+    }
+
+    this._validateAccessListHardforkRequirement(transactionRequest);
+
     const txParams = await this._rpcTransactionRequestToNodeTransactionParams(
       transactionRequest
     );
@@ -1078,6 +1185,7 @@ export class EthModule {
           ? rpcCall.gasPrice
           : await this._node.getGasPrice(),
       value: rpcCall.value !== undefined ? rpcCall.value : new BN(0),
+      accessList: this._rpcAccessListToNodeAccessList(rpcCall.accessList),
     };
   }
 
@@ -1099,7 +1207,18 @@ export class EthModule {
         rpcTx.nonce !== undefined
           ? rpcTx.nonce
           : await this._node.getAccountExecutableNonce(new Address(rpcTx.from)),
+      accessList: this._rpcAccessListToNodeAccessList(rpcTx.accessList),
     };
+  }
+
+  private _rpcAccessListToNodeAccessList(
+    rpcAccessList?: RpcAccessList
+  ): Array<[Buffer, Buffer[]]> | undefined {
+    if (rpcAccessList === undefined) {
+      return undefined;
+    }
+
+    return rpcAccessList.map((tuple) => [tuple.address, tuple.storageKeys]);
   }
 
   private async _resolveOldBlockTag(
@@ -1250,7 +1369,7 @@ export class EthModule {
     return toBuffer(localAccounts[0]);
   }
 
-  private async _sendTransactionAndReturnHash(tx: Transaction) {
+  private async _sendTransactionAndReturnHash(tx: TypedTransaction) {
     let result = await this._node.sendTransaction(tx);
 
     if (typeof result === "string") {
@@ -1397,6 +1516,34 @@ export class EthModule {
 
     for (const hook of this._experimentalHardhatNetworkMessageTraceHooks) {
       await hook(trace, isCall);
+    }
+  }
+
+  // TODO: Find a better place for this
+  private _validateAccessListHardforkRequirement(
+    rpcRequest: RpcCallRequest | RpcTransactionRequest
+  ) {
+    if (
+      rpcRequest.accessList !== undefined &&
+      !this._common.gteHardfork(ACCESS_LIST_MIN_HARDFORK)
+    ) {
+      throw new InvalidArgumentsError(`Access list received but is not supported by the current hardfork. 
+      
+You can use them by running Hardhat Network with 'hardfork' ${ACCESS_LIST_MIN_HARDFORK} or later.`);
+    }
+  }
+
+  // TODO: Find a better place for this
+  private _validateEip155HardforkRequirement(tx: Transaction) {
+    // 27 and 28 are only valid for non-EIP-155 legacy txs
+    if (tx.v!.eqn(27) || tx.v!.eqn(28)) {
+      return;
+    }
+
+    if (!this._common.gteHardfork(EIP155_MIN_HARDFORK)) {
+      throw new InvalidArgumentsError(`Trying to send an EIP-155 transaction, but they are not supported by the current hardfork.  
+      
+You can use them by running Hardhat Network with 'hardfork' ${EIP155_MIN_HARDFORK} or later.`);
     }
   }
 }

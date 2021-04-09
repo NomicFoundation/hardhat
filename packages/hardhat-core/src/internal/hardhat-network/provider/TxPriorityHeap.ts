@@ -1,9 +1,8 @@
-import { Transaction } from "@ethereumjs/tx";
+import { TypedTransaction } from "@ethereumjs/tx";
 import { BN } from "ethereumjs-util";
 import { MaxHeap } from "mnemonist/heap";
 
 import { OrderedTransaction } from "./PoolState";
-import { FakeSenderTransaction } from "./transactions/FakeSenderTransaction";
 
 function compareTransactions(
   left: OrderedTransaction,
@@ -36,7 +35,7 @@ export class TxPriorityHeap {
     }
   }
 
-  public peek(): Transaction | FakeSenderTransaction | undefined {
+  public peek(): TypedTransaction | undefined {
     return this._heap.peek()?.data;
   }
 

@@ -1,12 +1,12 @@
 import { Transaction, TxData, TxOptions } from "@ethereumjs/tx";
-import { Address } from "ethereumjs-util";
+import { Address, BN, rlp } from "ethereumjs-util";
 
 import { InternalError } from "../../../core/providers/errors";
 
 // tslint:disable only-hardhat-error
 
 /**
- * This class represents a transaction sent by a sender whose private
+ * This class represents a legacy transaction sent by a sender whose private
  * key we don't control.
  *
  * The transaction's signature is never validated, but assumed to be valid.
@@ -42,6 +42,20 @@ export class FakeSenderTransaction extends Transaction {
     );
   }
 
+  public static fromSenderAndRlpSerializedTx(
+    sender: Address,
+    serialized: Buffer,
+    opts?: TxOptions
+  ) {
+    const values = rlp.decode(serialized);
+
+    if (!Array.isArray(values)) {
+      throw new Error("Invalid serialized tx input. Must be array");
+    }
+
+    return this.fromSenderAndValuesArray(sender, values, opts);
+  }
+
   public static fromSenderAndValuesArray(
     sender: Address,
     values: Buffer[],
@@ -75,7 +89,15 @@ export class FakeSenderTransaction extends Transaction {
   private readonly _sender: Address;
 
   public constructor(sender: Address, data: TxData = {}, opts?: TxOptions) {
-    super({ v: 27, r: 1, s: 2, ...data }, { ...opts, freeze: false });
+    super(
+      {
+        ...data,
+        v: data.v ?? new BN(27),
+        r: data.r ?? new BN(1),
+        s: data.s ?? new BN(2),
+      },
+      { ...opts, freeze: false }
+    );
 
     this._sender = sender;
   }
@@ -110,6 +132,16 @@ export class FakeSenderTransaction extends Transaction {
     throw new InternalError(
       "`getMessageToSign` is not implemented in FakeSenderTransaction"
     );
+  }
+
+  public validate(stringError?: false): boolean;
+  public validate(stringError: true): string[];
+  public validate(stringError: boolean = false): boolean | string[] {
+    if (stringError) {
+      return [];
+    }
+
+    return true;
   }
 }
 

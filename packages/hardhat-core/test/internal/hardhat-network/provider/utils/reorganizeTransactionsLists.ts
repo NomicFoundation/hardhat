@@ -3,13 +3,25 @@ import { assert } from "chai";
 import { AddressLike } from "ethereumjs-util";
 import { List } from "immutable";
 
+import { SerializedTransaction } from "../../../../../src/internal/hardhat-network/provider/PoolState";
+import { deserializeTransaction } from "../../../../../src/internal/hardhat-network/provider/TxPool";
 import { reorganizeTransactionsLists } from "../../../../../src/internal/hardhat-network/provider/utils/reorganizeTransactionsLists";
-import { createTestSerializedTransaction } from "../../helpers/blockchain";
+import {
+  createTestOrderedTransaction,
+  createTestSerializedTransaction,
+} from "../../helpers/blockchain";
 
 function getTestTransactionFactory() {
   let orderId = 0;
   return (data: TxData & { from?: AddressLike }) =>
     createTestSerializedTransaction({ orderId: orderId++, ...data });
+}
+
+function retrieveNonce(tx: SerializedTransaction) {
+  // We create this tx to get the same common
+  const txForCommon = createTestOrderedTransaction({ orderId: 0 });
+
+  return deserializeTransaction(tx, txForCommon.data.common).data.nonce;
 }
 
 describe("reorganizeTransactionsLists", () => {
@@ -31,7 +43,8 @@ describe("reorganizeTransactionsLists", () => {
       const queued = List.of(tx3, tx4);
       const { newPending, newQueued } = reorganizeTransactionsLists(
         pending,
-        queued
+        queued,
+        retrieveNonce
       );
       assert.deepEqual(newPending.toArray(), pending.toArray());
       assert.deepEqual(newQueued.toArray(), queued.toArray());
@@ -48,7 +61,8 @@ describe("reorganizeTransactionsLists", () => {
 
       const { newPending, newQueued } = reorganizeTransactionsLists(
         List.of(tx1),
-        List.of(tx2, tx3)
+        List.of(tx2, tx3),
+        retrieveNonce
       );
       assert.deepEqual(newPending.toArray(), [tx1, tx2, tx3]);
       assert.deepEqual(newQueued.toArray(), []);
@@ -65,7 +79,8 @@ describe("reorganizeTransactionsLists", () => {
 
       const { newPending, newQueued } = reorganizeTransactionsLists(
         List.of(tx1),
-        List.of(tx2, tx4)
+        List.of(tx2, tx4),
+        retrieveNonce
       );
       assert.deepEqual(newPending.toArray(), [tx1, tx2]);
       assert.deepEqual(newQueued.toArray(), [tx4]);
@@ -80,7 +95,8 @@ describe("reorganizeTransactionsLists", () => {
 
       const { newPending, newQueued } = reorganizeTransactionsLists(
         List.of(tx1),
-        List.of(tx4, tx2)
+        List.of(tx4, tx2),
+        retrieveNonce
       );
       assert.deepEqual(newPending.toArray(), [tx1, tx2]);
       assert.deepEqual(newQueued.toArray(), [tx4]);
@@ -98,7 +114,8 @@ describe("reorganizeTransactionsLists", () => {
 
       const { newPending, newQueued } = reorganizeTransactionsLists(
         List.of(tx1),
-        List.of(tx3, tx4, tx2, tx5, tx8)
+        List.of(tx3, tx4, tx2, tx5, tx8),
+        retrieveNonce
       );
       assert.deepEqual(newPending.toArray(), [tx1, tx2, tx3, tx4, tx5]);
       assert.deepEqual(newQueued.toArray(), [tx8]);
