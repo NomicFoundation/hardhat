@@ -60,10 +60,8 @@ describe("Compiler downloader", function () {
       await downloader.verifyCompiler(localCompilerBuild, compilerBin);
     });
 
-    it("Should throw if the download was unsuccessful, and delete it", async function () {
+    it("Should throw if the download checksum verification fails, and delete it, and the compilers list", async function () {
       const compilersDir = this.tmpDir;
-      const corruptCompilerBin = path.join(compilersDir, "asd");
-      await fsExtra.createFile(corruptCompilerBin);
 
       const downloader = new CompilerDownloader(compilersDir, {
         download: async () => {
@@ -71,12 +69,22 @@ describe("Compiler downloader", function () {
         },
       });
 
+      const compilersList = downloader.getCompilersListPath(
+        localCompilerBuild.platform
+      );
+
+      const corruptCompilerBin = path.join(compilersDir, "asd");
+
+      await fsExtra.createFile(compilersList);
+      await fsExtra.createFile(corruptCompilerBin);
+
       await expectHardhatErrorAsync(
         () => downloader.verifyCompiler(localCompilerBuild, corruptCompilerBin),
         ERRORS.SOLC.INVALID_DOWNLOAD
       );
 
       assert.isFalse(await fsExtra.pathExists(corruptCompilerBin));
+      assert.isFalse(await fsExtra.pathExists(compilersList));
     });
   });
 
