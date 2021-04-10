@@ -39,7 +39,7 @@ export interface CompilersList {
 
 const log = debug("hardhat:core:solidity:downloader");
 
-const COMPILER_FILES_DIR_URL_SOLC = "https://solc-bin.ethereum.org/";
+const COMPILER_FILES_DIR_URL_SOLC = "https://binaries.soliditylang.org/";
 
 async function downloadFile(
   url: string,
