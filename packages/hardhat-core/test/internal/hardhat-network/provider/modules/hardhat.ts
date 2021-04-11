@@ -1,15 +1,18 @@
 import { assert } from "chai";
-import { bufferToHex } from "ethereumjs-util";
 import sinon from "sinon";
 
-import { numberToRpcQuantity } from "../../../../../src/internal/hardhat-network/provider/output";
+import {
+  numberToRpcQuantity,
+  rpcQuantityToNumber,
+} from "../../../../../src/internal/core/jsonrpc/types/base-types";
+import { expectErrorAsync } from "../../../../helpers/errors";
 import { ALCHEMY_URL } from "../../../../setup";
 import { workaroundWindowsCiFailures } from "../../../../utils/workaround-windows-ci-failures";
 import { assertInvalidArgumentsError } from "../../helpers/assertions";
 import { EMPTY_ACCOUNT_ADDRESS } from "../../helpers/constants";
-import { quantityToNumber } from "../../helpers/conversions";
 import { setCWD } from "../../helpers/cwd";
 import { DEFAULT_ACCOUNTS_ADDRESSES, PROVIDERS } from "../../helpers/providers";
+import { deployContract } from "../../helpers/transactions";
 
 describe("Hardhat module", function () {
   PROVIDERS.forEach(({ name, useProvider, isFork }) => {
@@ -43,9 +46,86 @@ describe("Hardhat module", function () {
         it("returns true", async function () {
           const result = await this.provider.send(
             "hardhat_impersonateAccount",
-            [bufferToHex(EMPTY_ACCOUNT_ADDRESS)]
+            [EMPTY_ACCOUNT_ADDRESS.toString()]
           );
           assert.isTrue(result);
+        });
+
+        it("lets you send a transaction from an impersonated account", async function () {
+          const impersonatedAddress =
+            "0xC014BA5EC014ba5ec014Ba5EC014ba5Ec014bA5E";
+
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: impersonatedAddress,
+              value: "0x100",
+            },
+          ]);
+
+          // The tx's msg.sender should be correct during execution
+
+          // msg.sender assertion contract:
+          //
+          // pragma solidity 0.7.0;
+          //
+          // contract C {
+          //     constructor() {
+          //         require(msg.sender == 0xC014BA5EC014ba5ec014Ba5EC014ba5Ec014bA5E);
+          //     }
+          // }
+          const CODE =
+            "0x6080604052348015600f57600080fd5b5073c014ba5ec014ba5ec014ba5ec014ba5ec014ba5e73ffffffffffffffffffffffffffffffffffffffff163373ffffffffffffffffffffffffffffffffffffffff1614605b57600080fd5b603f8060686000396000f3fe6080604052600080fdfea26469706673582212208048da4076c3540ec6ad48a816e6531a302449e979836bd7955dc6bd2c87a52064736f6c63430007000033";
+
+          await this.provider.send("hardhat_impersonateAccount", [
+            impersonatedAddress,
+          ]);
+
+          await expectErrorAsync(() =>
+            deployContract(this.provider, CODE, DEFAULT_ACCOUNTS_ADDRESSES[0])
+          );
+
+          // deploying with the right address should work
+          await deployContract(this.provider, CODE, impersonatedAddress);
+
+          // Getting the tx through the RPC should give the right from
+
+          const tx = await this.provider.send("eth_sendTransaction", [
+            {
+              from: impersonatedAddress,
+              to: impersonatedAddress,
+            },
+          ]);
+
+          const receipt = await this.provider.send(
+            "eth_getTransactionReceipt",
+            [tx]
+          );
+
+          assert.equal(receipt.from, impersonatedAddress.toLowerCase());
+        });
+
+        it("lets you deploy a contract from an impersonated account", async function () {
+          const impersonatedAddress =
+            "0xC014BA5EC014ba5ec014Ba5EC014ba5Ec014bA5E";
+
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: impersonatedAddress,
+              value: "0x100",
+            },
+          ]);
+
+          await this.provider.send("hardhat_impersonateAccount", [
+            impersonatedAddress,
+          ]);
+
+          await deployContract(
+            this.provider,
+            "0x7f410000000000000000000000000000000000000000000000000000000000000060005260016000f3",
+            impersonatedAddress
+          );
         });
       });
 
@@ -66,11 +146,11 @@ describe("Hardhat module", function () {
 
         it("returns true if the account was impersonated before", async function () {
           await this.provider.send("hardhat_impersonateAccount", [
-            bufferToHex(EMPTY_ACCOUNT_ADDRESS),
+            EMPTY_ACCOUNT_ADDRESS.toString(),
           ]);
           const result = await this.provider.send(
             "hardhat_stopImpersonatingAccount",
-            [bufferToHex(EMPTY_ACCOUNT_ADDRESS)]
+            [EMPTY_ACCOUNT_ADDRESS.toString()]
           );
           assert.isTrue(result);
         });
@@ -78,7 +158,7 @@ describe("Hardhat module", function () {
         it("returns false if the account wasn't impersonated before", async function () {
           const result = await this.provider.send(
             "hardhat_stopImpersonatingAccount",
-            [bufferToHex(EMPTY_ACCOUNT_ADDRESS)]
+            [EMPTY_ACCOUNT_ADDRESS.toString()]
           );
           assert.isFalse(result);
         });
@@ -205,7 +285,7 @@ describe("Hardhat module", function () {
         }
 
         const getLatestBlockNumber = async () => {
-          return quantityToNumber(
+          return rpcQuantityToNumber(
             await this.ctx.provider.send("eth_blockNumber")
           );
         };

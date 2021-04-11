@@ -1,60 +1,71 @@
-import Common from "ethereumjs-common";
-import { FakeTransaction, Transaction } from "ethereumjs-tx";
-import { BN, bufferToHex, bufferToInt, toBuffer } from "ethereumjs-util";
+import Common from "@ethereumjs/common";
+import { TransactionFactory, TypedTransaction } from "@ethereumjs/tx";
+import { StateManager } from "@ethereumjs/vm/dist/state";
+import { Address, BN, bufferToHex, toBuffer } from "ethereumjs-util";
 import { List as ImmutableList, Record as ImmutableRecord } from "immutable";
 
-import { InvalidInputError } from "./errors";
+import { InvalidInputError } from "../../core/providers/errors";
+
 import {
   AddressToTransactions,
   makePoolState,
   makeSerializedTransaction,
   OrderedTransaction,
   PoolState,
-  retrieveNonce,
   SenderTransactions,
   SerializedTransaction,
 } from "./PoolState";
-import { PStateManager } from "./types/PStateManager";
+import { FakeSenderAccessListEIP2930Transaction } from "./transactions/FakeSenderAccessListEIP2930Transaction";
+import { FakeSenderTransaction } from "./transactions/FakeSenderTransaction";
 import { bnToHex } from "./utils/bnToHex";
 import { reorganizeTransactionsLists } from "./utils/reorganizeTransactionsLists";
 
 // tslint:disable only-hardhat-error
 
-function hashTx(tx: Transaction | FakeTransaction) {
-  return tx instanceof FakeTransaction ? tx.hash(false) : tx.hash(true);
-}
-
 export function serializeTransaction(
   tx: OrderedTransaction
 ): SerializedTransaction {
-  const fields = tx.data.raw.map((field) => bufferToHex(field));
-  const immutableFields = ImmutableList(fields);
-  const isFake = tx.data instanceof FakeTransaction;
+  const rlpSerialization = bufferToHex(tx.data.serialize());
+  const isFake =
+    tx.data instanceof FakeSenderTransaction ||
+    tx.data instanceof FakeSenderAccessListEIP2930Transaction;
   return makeSerializedTransaction({
     orderId: tx.orderId,
-    fakeFrom: isFake ? bufferToHex(tx.data.getSenderAddress()) : undefined,
-    data: immutableFields,
+    fakeFrom: isFake ? tx.data.getSenderAddress().toString() : undefined,
+    data: rlpSerialization,
+    txType: tx.data.transactionType,
   });
 }
-
-type ArrayWithFrom<T> = T[] & { from?: string };
 
 export function deserializeTransaction(
   tx: SerializedTransaction,
   common: Common
 ): OrderedTransaction {
-  const fields: ArrayWithFrom<Buffer> = tx
-    .get("data")
-    .map((field) => toBuffer(field))
-    .toArray();
-
+  const rlpSerialization = tx.get("data");
   const fakeFrom = tx.get("fakeFrom");
+
   let data;
   if (fakeFrom !== undefined) {
-    fields.from = fakeFrom;
-    data = new FakeTransaction(fields, { common });
+    const sender = Address.fromString(fakeFrom);
+    const serialization = toBuffer(rlpSerialization);
+
+    if (tx.get("txType") === 1) {
+      data = FakeSenderAccessListEIP2930Transaction.fromSenderAndRlpSerializedTx(
+        sender,
+        serialization,
+        { common }
+      );
+    } else {
+      data = FakeSenderTransaction.fromSenderAndRlpSerializedTx(
+        sender,
+        serialization,
+        { common }
+      );
+    }
   } else {
-    data = new Transaction(fields, { common });
+    data = TransactionFactory.fromSerializedData(toBuffer(rlpSerialization), {
+      common,
+    });
   }
   return {
     orderId: tx.get("orderId"),
@@ -73,7 +84,7 @@ export class TxPool {
   ) => OrderedTransaction;
 
   constructor(
-    private readonly _stateManager: PStateManager,
+    private readonly _stateManager: StateManager,
     blockGasLimit: BN,
     common: Common
   ) {
@@ -83,7 +94,7 @@ export class TxPool {
     this._deserializeTransaction = (tx) => deserializeTransaction(tx, common);
   }
 
-  public async addTransaction(tx: Transaction) {
+  public async addTransaction(tx: TypedTransaction) {
     const senderAddress = this._getSenderAddress(tx);
     const senderNonce = await this.getExecutableNonce(senderAddress);
 
@@ -147,16 +158,17 @@ export class TxPool {
     return new Map(deserializedImmutableMap.entries());
   }
 
-  public async getExecutableNonce(accountAddress: Buffer): Promise<BN> {
-    const pendingTxs = this._getPendingForAddress(bufferToHex(accountAddress));
+  public async getExecutableNonce(accountAddress: Address): Promise<BN> {
+    const pendingTxs = this._getPendingForAddress(accountAddress.toString());
     const lastPendingTx = pendingTxs?.last(undefined);
 
     if (lastPendingTx === undefined) {
       const account = await this._stateManager.getAccount(accountAddress);
-      return new BN(account.nonce);
+      return account.nonce;
     }
 
-    const lastPendingTxNonce = retrieveNonce(lastPendingTx);
+    const lastPendingTxNonce = this._deserializeTransaction(lastPendingTx).data
+      .nonce;
     return lastPendingTxNonce.addn(1);
   }
 
@@ -182,7 +194,7 @@ export class TxPool {
     // update pending transactions
     for (const [address, txs] of newPending) {
       const senderAccount = await this._stateManager.getAccount(
-        toBuffer(address)
+        Address.fromString(address)
       );
       const senderNonce = new BN(senderAccount.nonce);
       const senderBalance = new BN(senderAccount.balance);
@@ -223,7 +235,7 @@ export class TxPool {
     let newQueued = this._getQueued();
     for (const [address, txs] of newQueued) {
       const senderAccount = await this._stateManager.getAccount(
-        toBuffer(address)
+        Address.fromString(address)
       );
       const senderNonce = new BN(senderAccount.nonce);
       const senderBalance = new BN(senderAccount.balance);
@@ -245,10 +257,14 @@ export class TxPool {
     this._setQueued(newQueued);
   }
 
-  private _getSenderAddress(tx: Transaction): Buffer {
+  private _getSenderAddress(tx: TypedTransaction): Address {
     try {
       return tx.getSenderAddress(); // verifies signature
     } catch (e) {
+      if (!tx.isSigned()) {
+        throw new InvalidInputError("Invalid Signature");
+      }
+
       throw new InvalidInputError(e.message);
     }
   }
@@ -275,51 +291,52 @@ export class TxPool {
       );
     }
 
-    this._deleteTransactionByHash(hashTx(deserializedTX.data));
+    this._deleteTransactionByHash(deserializedTX.data.hash());
 
     const indexOfTx = accountTxs.indexOf(serializeTransaction(deserializedTX));
     return map.set(address, accountTxs.remove(indexOfTx));
   }
 
-  private _addPendingTransaction(tx: Transaction) {
+  private _addPendingTransaction(tx: TypedTransaction) {
     const orderedTx = serializeTransaction({
       orderId: this._nextOrderId++,
       data: tx,
     });
 
-    const hexSenderAddress = bufferToHex(tx.getSenderAddress());
+    const hexSenderAddress = tx.getSenderAddress().toString();
     const accountTransactions: SenderTransactions =
       this._getPendingForAddress(hexSenderAddress) ?? ImmutableList();
 
     const { newPending, newQueued } = reorganizeTransactionsLists(
       accountTransactions.push(orderedTx),
-      this._getQueuedForAddress(hexSenderAddress) ?? ImmutableList()
+      this._getQueuedForAddress(hexSenderAddress) ?? ImmutableList(),
+      (stx) => this._deserializeTransaction(stx).data.nonce
     );
 
     this._setPendingForAddress(hexSenderAddress, newPending);
     this._setQueuedForAddress(hexSenderAddress, newQueued);
-    this._setTransactionByHash(bufferToHex(hashTx(tx)), orderedTx);
+    this._setTransactionByHash(bufferToHex(tx.hash()), orderedTx);
   }
 
-  private _addQueuedTransaction(tx: Transaction) {
+  private _addQueuedTransaction(tx: TypedTransaction) {
     const orderedTx = serializeTransaction({
       orderId: this._nextOrderId++,
       data: tx,
     });
 
-    const hexSenderAddress = bufferToHex(tx.getSenderAddress());
+    const hexSenderAddress = tx.getSenderAddress().toString();
     const accountTransactions: SenderTransactions =
       this._getQueuedForAddress(hexSenderAddress) ?? ImmutableList();
     this._setQueuedForAddress(
       hexSenderAddress,
       accountTransactions.push(orderedTx)
     );
-    this._setTransactionByHash(bufferToHex(hashTx(tx)), orderedTx);
+    this._setTransactionByHash(bufferToHex(tx.hash()), orderedTx);
   }
 
   private async _validateTransaction(
-    tx: Transaction,
-    senderAddress: Buffer,
+    tx: TypedTransaction,
+    senderAddress: Address,
     senderNonce: BN
   ) {
     if (this._knownTransaction(tx)) {
@@ -331,16 +348,14 @@ export class TxPool {
     // Temporary check that should be removed when transaction replacement is added
     if (this._txWithNonceExists(tx)) {
       throw new InvalidInputError(
-        `Transaction with nonce ${bufferToInt(
-          tx.nonce
-        )} already exists in transaction pool`
+        `Transaction with nonce ${tx.nonce.toNumber()} already exists in transaction pool`
       );
     }
 
     const txNonce = new BN(tx.nonce);
 
     // Geth returns this error if trying to create a contract and no data is provided
-    if (tx.to.length === 0 && tx.data.length === 0) {
+    if (tx.to === undefined && tx.data.length === 0) {
       throw new InvalidInputError(
         "contract creation without any data provided"
       );
@@ -382,8 +397,8 @@ export class TxPool {
     }
   }
 
-  private _knownTransaction(tx: Transaction): boolean {
-    const senderAddress = bufferToHex(tx.getSenderAddress());
+  private _knownTransaction(tx: TypedTransaction): boolean {
+    const senderAddress = tx.getSenderAddress().toString();
     return (
       this._transactionExists(tx, this._getPendingForAddress(senderAddress)) ||
       this._transactionExists(tx, this._getQueuedForAddress(senderAddress))
@@ -391,7 +406,7 @@ export class TxPool {
   }
 
   private _transactionExists(
-    tx: Transaction,
+    tx: TypedTransaction,
     txList: SenderTransactions | undefined
   ) {
     const existingTx = txList?.find((etx) =>
@@ -400,13 +415,13 @@ export class TxPool {
     return existingTx !== undefined;
   }
 
-  private _txWithNonceExists(tx: Transaction): boolean {
-    const senderAddress = bufferToHex(tx.getSenderAddress());
+  private _txWithNonceExists(tx: TypedTransaction): boolean {
+    const senderAddress = tx.getSenderAddress().toString();
     const queuedTxs: SenderTransactions =
       this._getQueuedForAddress(senderAddress) ?? ImmutableList();
 
     const queuedTx = queuedTxs.find((ftx) =>
-      retrieveNonce(ftx).eq(new BN(tx.nonce))
+      this._deserializeTransaction(ftx).data.nonce.eq(tx.nonce)
     );
     return queuedTx !== undefined;
   }

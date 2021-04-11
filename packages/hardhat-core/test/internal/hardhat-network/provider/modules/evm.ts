@@ -1,10 +1,15 @@
 import { assert } from "chai";
-import { BN, bufferToHex, zeroAddress } from "ethereumjs-util";
+import { BN, zeroAddress } from "ethereumjs-util";
 import sinon from "sinon";
 
 import {
   bufferToRpcData,
   numberToRpcQuantity,
+  rpcDataToNumber,
+  rpcQuantityToBN,
+  rpcQuantityToNumber,
+} from "../../../../../src/internal/core/jsonrpc/types/base-types";
+import {
   RpcBlockOutput,
   RpcTransactionOutput,
 } from "../../../../../src/internal/hardhat-network/provider/output";
@@ -23,11 +28,6 @@ import {
   EXAMPLE_CONTRACT,
   EXAMPLE_READ_CONTRACT,
 } from "../../helpers/contracts";
-import {
-  dataToNumber,
-  quantityToBN,
-  quantityToNumber,
-} from "../../helpers/conversions";
 import { setCWD } from "../../helpers/cwd";
 import {
   DEFAULT_ACCOUNTS_ADDRESSES,
@@ -54,14 +54,14 @@ describe("Evm module", function () {
         isFork ? retrieveForkBlockNumber(this.ctx.hardhatNetworkProvider) : 0;
 
       const getBlockNumber = async () => {
-        return quantityToNumber(
+        return rpcQuantityToNumber(
           await this.ctx.provider.send("eth_blockNumber")
         );
       };
 
       describe("evm_increaseTime", async function () {
         it("should increase the offset of time used for block timestamps", async function () {
-          const blockNumber = quantityToNumber(
+          const blockNumber = rpcQuantityToNumber(
             await this.provider.send("eth_blockNumber")
           );
 
@@ -97,9 +97,9 @@ describe("Evm module", function () {
             false,
           ]);
 
-          const firstTimestamp = quantityToNumber(firstBlock.timestamp);
-          const secondTimestamp = quantityToNumber(secondBlock.timestamp);
-          const thirdTimestamp = quantityToNumber(thirdBlock.timestamp);
+          const firstTimestamp = rpcQuantityToNumber(firstBlock.timestamp);
+          const secondTimestamp = rpcQuantityToNumber(secondBlock.timestamp);
+          const thirdTimestamp = rpcQuantityToNumber(thirdBlock.timestamp);
 
           assert.isAtLeast(secondTimestamp - firstTimestamp, 123);
           assert.isAtLeast(thirdTimestamp - secondTimestamp, 456);
@@ -189,7 +189,7 @@ describe("Evm module", function () {
             ["latest", false]
           );
 
-          assert.isTrue(quantityToNumber(block.timestamp) > timestamp);
+          assert.isTrue(rpcQuantityToNumber(block.timestamp) > timestamp);
         });
         it("should be overridden if next EMPTY block is mined with timestamp", async function () {
           const timestamp = getCurrentTimestamp() + 90;
@@ -222,7 +222,7 @@ describe("Evm module", function () {
             ["latest", false]
           );
 
-          assert.isTrue(quantityToNumber(block.timestamp) > timestamp);
+          assert.isTrue(rpcQuantityToNumber(block.timestamp) > timestamp);
         });
         it("shouldn't set if specified timestamp is less or equal to the previous block", async function () {
           const timestamp = getCurrentTimestamp() + 70;
@@ -309,7 +309,7 @@ describe("Evm module", function () {
             "pending",
             false,
           ]);
-          const gasLimitBefore = quantityToBN(blockBefore.gasLimit);
+          const gasLimitBefore = rpcQuantityToBN(blockBefore.gasLimit);
 
           const newBlockGasLimit = new BN(34228);
           await this.provider.send("evm_setBlockGasLimit", [
@@ -320,7 +320,7 @@ describe("Evm module", function () {
             "pending",
             false,
           ]);
-          const gasLimitAfter = quantityToBN(blockAfter.gasLimit);
+          const gasLimitAfter = rpcQuantityToBN(blockAfter.gasLimit);
 
           assert.isFalse(gasLimitBefore.eq(gasLimitAfter));
           assert.isTrue(gasLimitAfter.eq(newBlockGasLimit));
@@ -332,14 +332,14 @@ describe("Evm module", function () {
           const tx1Hash = await this.provider.send("eth_sendTransaction", [
             {
               from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              to: bufferToHex(EMPTY_ACCOUNT_ADDRESS),
+              to: EMPTY_ACCOUNT_ADDRESS.toString(),
               gas: numberToRpcQuantity(21_000),
             },
           ]);
           await this.provider.send("eth_sendTransaction", [
             {
               from: DEFAULT_ACCOUNTS_ADDRESSES[1],
-              to: bufferToHex(EMPTY_ACCOUNT_ADDRESS),
+              to: EMPTY_ACCOUNT_ADDRESS.toString(),
               gas: numberToRpcQuantity(40_000),
             },
           ]);
@@ -380,7 +380,7 @@ describe("Evm module", function () {
         });
 
         it("should mine an empty block with exact timestamp", async function () {
-          const blockNumber = quantityToNumber(
+          const blockNumber = rpcQuantityToNumber(
             await this.provider.send("eth_blockNumber")
           );
 
@@ -396,7 +396,7 @@ describe("Evm module", function () {
         });
 
         it("should mine an empty block with the timestamp and other later blocks have higher timestamp", async function () {
-          const blockNumber = quantityToNumber(
+          const blockNumber = rpcQuantityToNumber(
             await this.provider.send("eth_blockNumber")
           );
 
@@ -410,7 +410,7 @@ describe("Evm module", function () {
             [numberToRpcQuantity(blockNumber + 2), false]
           );
 
-          assert.isTrue(quantityToNumber(block.timestamp) > timestamp);
+          assert.isTrue(rpcQuantityToNumber(block.timestamp) > timestamp);
         });
 
         it("should mine transactions with original gasLimit values", async function () {
@@ -457,8 +457,8 @@ describe("Evm module", function () {
 
           assert.equal(logTx1.transactionHash, tx1Hash);
           assert.equal(logTx2.transactionHash, tx2Hash);
-          assert.equal(dataToNumber(logTx1.data), expectedGasLeft);
-          assert.equal(dataToNumber(logTx2.data), expectedGasLeft);
+          assert.equal(rpcDataToNumber(logTx1.data), expectedGasLeft);
+          assert.equal(rpcDataToNumber(logTx2.data), expectedGasLeft);
         });
 
         describe("tests using sinon", () => {
@@ -519,7 +519,7 @@ describe("Evm module", function () {
           ]);
           const currentBlock = await this.provider.send("eth_blockNumber");
 
-          assertQuantity(currentBlock, quantityToBN(previousBlock).addn(1));
+          assertQuantity(currentBlock, rpcQuantityToBN(previousBlock).addn(1));
         });
 
         it("should mine all pending transactions after re-enabling automine", async function () {
@@ -679,7 +679,7 @@ describe("Evm module", function () {
                 ["latest", false]
               );
 
-              assert.equal(quantityToNumber(block.number), blockNumber);
+              assert.equal(rpcQuantityToNumber(block.number), blockNumber);
               assert.deepEqual(block.transactions, txHashes);
             };
 
@@ -1108,7 +1108,7 @@ describe("Evm module", function () {
         });
 
         it("Resets the blockchain so that new blocks are added with the right numbers", async function () {
-          const blockNumber = quantityToNumber(
+          const blockNumber = rpcQuantityToNumber(
             await this.provider.send("eth_blockNumber")
           );
 
@@ -1231,8 +1231,8 @@ describe("Evm module", function () {
             const snapshotId = await this.provider.send("evm_snapshot");
 
             assert.equal(
-              quantityToNumber(snapshotBlock.timestamp),
-              quantityToNumber(firstBlock.timestamp) + 100
+              rpcQuantityToNumber(snapshotBlock.timestamp),
+              rpcQuantityToNumber(firstBlock.timestamp) + 100
             );
 
             sinonClock.tick(20 * 1000);
@@ -1243,8 +1243,8 @@ describe("Evm module", function () {
             // Check that time was correctly reverted to the snapshot time and that the new
             // block's timestamp has been incremented to avoid timestamp collision
             assert.equal(
-              quantityToNumber(afterRevertBlock.timestamp),
-              quantityToNumber(snapshotBlock.timestamp) + 1
+              rpcQuantityToNumber(afterRevertBlock.timestamp),
+              rpcQuantityToNumber(snapshotBlock.timestamp) + 1
             );
           });
 

@@ -35,6 +35,8 @@ describe("Environment", () => {
       },
       hardhat: {
         ...defaultHardhatNetworkParams,
+        gas: defaultHardhatNetworkParams.blockGasLimit,
+        initialDate: new Date().toISOString(),
         accounts: [],
       },
       default: {

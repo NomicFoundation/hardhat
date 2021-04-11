@@ -27,10 +27,12 @@ export const defaultHardhatNetworkHdAccountsConfigParams = {
 
 export const DEFAULT_GAS_MULTIPLIER = 1;
 
-export const defaultHardhatNetworkParams: HardhatNetworkConfig = {
-  hardfork: "muirGlacier",
-  blockGasLimit: 9500000,
-  gas: 9500000,
+export const defaultHardhatNetworkParams: Omit<
+  HardhatNetworkConfig,
+  "gas" | "initialDate"
+> = {
+  hardfork: "berlin",
+  blockGasLimit: 12450000,
   gasPrice: HARDHAT_NETWORK_DEFAULT_GAS_PRICE,
   chainId: 31337,
   throwOnTransactionFailures: true,
