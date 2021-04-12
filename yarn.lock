@@ -212,10 +212,10 @@
     "@ethereumjs/common" "^2.2.0"
     ethereumjs-util "^7.0.10"
 
-"@ethereumjs/vm@^5.3.1":
-  version "5.3.1"
-  resolved "https://registry.yarnpkg.com/@ethereumjs/vm/-/vm-5.3.1.tgz#1fa0ae1c3744b56650f59c3651cafbb8d622f5a4"
-  integrity sha512-bEQ0rC9rosHqL5g9MQVQpEUkWWL+/qIbpR4iZXN+PTIycbiVl79Ij42ru/ZW0Gs1DuahpvXeIhurcZnvmYDHmQ==
+"@ethereumjs/vm@^5.3.2":
+  version "5.3.2"
+  resolved "https://registry.yarnpkg.com/@ethereumjs/vm/-/vm-5.3.2.tgz#b4d83a3d50a7ad22d6d412cc21bbde221b3e2871"
+  integrity sha512-QmCUQrW6xbhgEbQh9njue4kAJdM056C+ytBFUTF/kDYa3kNDm4Qxp9HUyTlt1OCSXvDhws0qqlh8+q+pmXpN7g==
   dependencies:
     "@ethereumjs/block" "^3.2.1"
     "@ethereumjs/blockchain" "^5.2.1"
