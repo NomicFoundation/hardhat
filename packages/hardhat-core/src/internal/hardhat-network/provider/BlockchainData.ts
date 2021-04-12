@@ -1,17 +1,17 @@
-import Bloom from "@nomiclabs/ethereumjs-vm/dist/bloom";
-import { Transaction } from "ethereumjs-tx";
+import { Block } from "@ethereumjs/block";
+import { TypedTransaction } from "@ethereumjs/tx";
+import Bloom from "@ethereumjs/vm/dist/bloom";
 import { BN, bufferToHex } from "ethereumjs-util";
 
 import { bloomFilter, filterLogs } from "./filter";
 import { FilterParams } from "./node-types";
 import { RpcLogOutput, RpcReceiptOutput } from "./output";
-import { Block } from "./types/Block";
 
 export class BlockchainData {
   private _blocksByNumber: Map<number, Block> = new Map();
   private _blocksByHash: Map<string, Block> = new Map();
   private _blocksByTransactions: Map<string, Block> = new Map();
-  private _transactions: Map<string, Transaction> = new Map();
+  private _transactions: Map<string, TypedTransaction> = new Map();
   private _transactionReceipts: Map<string, RpcReceiptOutput> = new Map();
   private _totalDifficulty: Map<string, BN> = new Map();
 
@@ -103,7 +103,7 @@ export class BlockchainData {
     }
   }
 
-  public addTransaction(transaction: Transaction) {
+  public addTransaction(transaction: TypedTransaction) {
     this._transactions.set(bufferToHex(transaction.hash()), transaction);
   }
 

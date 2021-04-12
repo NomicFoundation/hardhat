@@ -8,7 +8,6 @@ import {
   HardhatConfig,
   HardhatRuntimeEnvironment,
   Network,
-  NetworkConfig,
   ParamDefinition,
   RunSuperFunction,
   RunTaskFunction,
@@ -298,7 +297,7 @@ export class Environment implements HardhatRuntimeEnvironment {
     paramDefinition: ParamDefinition<any>,
     argumentValue: any
   ) {
-    const { name, isOptional, defaultValue, type } = paramDefinition;
+    const { name, isOptional, defaultValue } = paramDefinition;
 
     if (argumentValue === undefined) {
       if (isOptional) {

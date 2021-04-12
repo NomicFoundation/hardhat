@@ -6,6 +6,7 @@ import {
   HARDHAT_NETWORK_NAME,
   HARDHAT_NETWORK_SUPPORTED_HARDFORKS,
 } from "../../constants";
+import { optional } from "../../util/io-ts";
 import { fromEntries } from "../../util/lang";
 import { HardhatError } from "../errors";
 import { ERRORS } from "../errors-list";
@@ -62,21 +63,7 @@ export const DotPathReporter: Reporter<string[]> = {
   report: (validation) => validation.fold(failure, success),
 };
 
-function optional<TypeT, OutputT>(
-  codec: t.Type<TypeT, OutputT, unknown>,
-  name: string = `${codec.name} | undefined`
-): t.Type<TypeT | undefined, OutputT | undefined, unknown> {
-  return new t.Type(
-    name,
-    (u: unknown): u is TypeT | undefined => u === undefined || codec.is(u),
-    (u, c) => (u === undefined ? t.success(u) : codec.validate(u, c)),
-    (a) => (a === undefined ? undefined : codec.encode(a))
-  );
-}
-
 const HEX_STRING_REGEX = /^(0x)?([0-9a-f]{2})+$/gi;
-
-const HEX_PREFIX = "0x";
 
 function isHexString(v: unknown): v is string {
   if (typeof v !== "string") {

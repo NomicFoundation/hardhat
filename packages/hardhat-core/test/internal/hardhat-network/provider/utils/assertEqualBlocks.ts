@@ -1,17 +1,17 @@
-import { RunBlockResult } from "@nomiclabs/ethereumjs-vm/dist/runBlock";
+import { Block } from "@ethereumjs/block";
+import { PostByzantiumTxReceipt } from "@ethereumjs/vm/dist/runBlock";
 import { assert } from "chai";
 import { bufferToHex } from "ethereumjs-util";
 
-import { numberToRpcQuantity } from "../../../../../src/internal/core/providers/provider-utils";
+import { numberToRpcQuantity } from "../../../../../src/internal/core/jsonrpc/types/base-types";
+import { RpcBlockWithTransactions } from "../../../../../src/internal/core/jsonrpc/types/output/block";
 import { JsonRpcClient } from "../../../../../src/internal/hardhat-network/jsonrpc/client";
-import { RpcBlockWithTransactions } from "../../../../../src/internal/hardhat-network/jsonrpc/types";
-import { Block } from "../../../../../src/internal/hardhat-network/provider/types/Block";
 
 // tslint:disable no-string-literal
 
 export async function assertEqualBlocks(
   block: Block,
-  result: RunBlockResult,
+  afterBlockEvent: any,
   expectedBlock: RpcBlockWithTransactions,
   forkClient: JsonRpcClient
 ) {
@@ -22,15 +22,15 @@ export async function assertEqualBlocks(
   if (localReceiptRoot !== remoteReceiptRoot) {
     for (let i = 0; i < block.transactions.length; i++) {
       const tx = block.transactions[i];
-      const txHash = bufferToHex(tx.hash(true));
+      const txHash = bufferToHex(tx.hash());
 
       const remoteReceipt = (await forkClient["_httpProvider"].request({
         method: "eth_getTransactionReceipt",
         params: [txHash],
       })) as any;
 
-      const localReceipt = result.receipts[i];
-      const evmResult = result.results[i];
+      const localReceipt = afterBlockEvent.receipts[i];
+      const evmResult = afterBlockEvent.results[i];
 
       assert.equal(
         bufferToHex(localReceipt.bitvector),
@@ -45,7 +45,7 @@ export async function assertEqualBlocks(
       );
 
       assert.equal(
-        localReceipt.status,
+        (localReceipt as PostByzantiumTxReceipt).status,
         remoteReceipt.status,
         `Status of tx index ${i} (${txHash}) should be the same`
       );
@@ -53,7 +53,7 @@ export async function assertEqualBlocks(
       assert.equal(
         evmResult.createdAddress === undefined
           ? undefined
-          : `0x${evmResult.createdAddress.toString("hex")}`,
+          : `0x${evmResult.createdAddress.toString()}`,
         remoteReceipt.contractAddress,
         `Contract address created by tx index ${i} (${txHash}) should be the same`
       );

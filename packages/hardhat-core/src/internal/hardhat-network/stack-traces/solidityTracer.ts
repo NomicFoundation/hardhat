@@ -1,4 +1,4 @@
-import { ERROR } from "@nomiclabs/ethereumjs-vm/dist/exceptions";
+import { ERROR } from "@ethereumjs/vm/dist/exceptions";
 import semver from "semver";
 
 import {

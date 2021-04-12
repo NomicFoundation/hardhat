@@ -3,9 +3,9 @@ import { BN, toBuffer } from "ethereumjs-util";
 import fsExtra from "fs-extra";
 import sinon from "sinon";
 
+import { RpcTransaction } from "../../../../src/internal/core/jsonrpc/types/output/transaction";
 import { HttpProvider } from "../../../../src/internal/core/providers/http";
 import { JsonRpcClient } from "../../../../src/internal/hardhat-network/jsonrpc/client";
-import { RpcTransaction } from "../../../../src/internal/hardhat-network/jsonrpc/types";
 import { randomHashBuffer } from "../../../../src/internal/hardhat-network/provider/fork/random";
 import { makeForkClient } from "../../../../src/internal/hardhat-network/provider/utils/makeForkClient";
 import { useTmpDir } from "../../../helpers/fs";
@@ -396,7 +396,7 @@ describe("JsonRpcClient", () => {
           it("can fetch empty value from storage of an existing contract", async () => {
             const value = await client.getStorageAt(
               DAI_ADDRESS,
-              new BN("0xbaddcafe"),
+              new BN("baddcafe", 16),
               forkNumber
             );
             const valueBN = new BN(value);

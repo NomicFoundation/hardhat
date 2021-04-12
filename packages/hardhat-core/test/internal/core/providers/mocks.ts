@@ -1,10 +1,6 @@
 import { EventEmitter } from "events";
 
-import {
-  EIP1193Provider,
-  EthereumProvider,
-  RequestArguments,
-} from "../../../../src/types";
+import { EIP1193Provider, RequestArguments } from "../../../../src/types";
 
 export class MockedProvider extends EventEmitter implements EIP1193Provider {
   private _returnValues: any = {};

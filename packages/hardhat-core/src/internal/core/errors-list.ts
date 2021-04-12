@@ -321,6 +321,16 @@ Please make sure your node is running, and check your internet connection and ne
 Try using another mnemonic or deriving less keys.`,
       shouldBeReported: false,
     },
+    INVALID_RPC_DATA_VALUE: {
+      number: 112,
+      message:
+        "Received invalid value `%value%` from/to the node's JSON-RPC, but a Data was expected.",
+      title: "Invalid JSON-RPC value",
+      description: `One of your calls sent or received an invalid JSON-RPC DATA value. 
+
+Please double check your calls' parameters and keep your Ethereum node up to date.`,
+      shouldBeReported: false,
+    },
   },
   TASK_DEFINITIONS: {
     PARAM_AFTER_VARIADIC: {

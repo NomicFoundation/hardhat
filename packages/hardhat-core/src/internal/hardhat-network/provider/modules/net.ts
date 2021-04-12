@@ -1,8 +1,8 @@
-import Common from "ethereumjs-common";
+import Common from "@ethereumjs/common";
 
-import { MethodNotFoundError } from "../errors";
-import { validateParams } from "../input";
-import { numberToRpcQuantity } from "../output";
+import { numberToRpcQuantity } from "../../../core/jsonrpc/types/base-types";
+import { validateParams } from "../../../core/jsonrpc/types/input/validation";
+import { MethodNotFoundError } from "../../../core/providers/errors";
 
 // tslint:disable only-hardhat-error
 

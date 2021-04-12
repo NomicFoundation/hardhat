@@ -1,5 +1,6 @@
-import { RpcBlockWithTransactions } from "../../jsonrpc/types";
-import { BlockData } from "../types/Block";
+import { BlockData } from "@ethereumjs/block";
+
+import { RpcBlockWithTransactions } from "../../../core/jsonrpc/types/output/block";
 
 import { rpcToTxData } from "./rpcToTxData";
 

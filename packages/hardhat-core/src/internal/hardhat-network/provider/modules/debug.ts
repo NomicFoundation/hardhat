@@ -1,10 +1,10 @@
-import { MethodNotFoundError } from "../errors";
+import { rpcHash } from "../../../core/jsonrpc/types/base-types";
 import {
-  RpcDebugTracingConfig,
   rpcDebugTracingConfig,
-  rpcHash,
-  validateParams,
-} from "../input";
+  RpcDebugTracingConfig,
+} from "../../../core/jsonrpc/types/input/debugTraceTransaction";
+import { validateParams } from "../../../core/jsonrpc/types/input/validation";
+import { MethodNotFoundError } from "../../../core/providers/errors";
 import { HardhatNode } from "../node";
 
 // tslint:disable only-hardhat-error

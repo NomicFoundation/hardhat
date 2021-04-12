@@ -1,4 +1,4 @@
-import { BN, bufferToInt } from "ethereumjs-util";
+import { BN } from "ethereumjs-util";
 import * as t from "io-ts";
 
 import {
@@ -6,16 +6,18 @@ import {
   CompilerInput,
   CompilerOutput,
 } from "../../../../types";
-import { MessageTrace } from "../../stack-traces/message-trace";
-import { MethodNotFoundError } from "../errors";
+import { rpcAddress } from "../../../core/jsonrpc/types/base-types";
 import {
   optionalRpcHardhatNetworkConfig,
-  rpcAddress,
+  RpcHardhatNetworkConfig,
+} from "../../../core/jsonrpc/types/input/hardhat-network";
+import {
   rpcCompilerInput,
   rpcCompilerOutput,
-  RpcHardhatNetworkConfig,
-  validateParams,
-} from "../input";
+} from "../../../core/jsonrpc/types/input/solc";
+import { validateParams } from "../../../core/jsonrpc/types/input/validation";
+import { MethodNotFoundError } from "../../../core/providers/errors";
+import { MessageTrace } from "../../stack-traces/message-trace";
 import { HardhatNode } from "../node";
 import { ForkConfig, MineBlockResult } from "../node-types";
 
@@ -125,7 +127,7 @@ export class HardhatModule {
 
   private async _intervalMineAction(): Promise<boolean> {
     const result = await this._node.mineBlock();
-    const blockNumber = bufferToInt(result.block.header.number);
+    const blockNumber = result.block.header.number.toNumber();
 
     const isEmpty = result.block.transactions.length === 0;
     if (isEmpty) {

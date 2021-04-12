@@ -1,13 +1,13 @@
-import VM from "@nomiclabs/ethereumjs-vm";
-import { EVMResult } from "@nomiclabs/ethereumjs-vm/dist/evm/evm";
-import { InterpreterStep } from "@nomiclabs/ethereumjs-vm/dist/evm/interpreter";
-import Message from "@nomiclabs/ethereumjs-vm/dist/evm/message";
-import { Transaction } from "ethereumjs-tx";
-import { BN, setLength, toBuffer } from "ethereumjs-util";
+import { TypedTransaction } from "@ethereumjs/tx";
+import VM from "@ethereumjs/vm";
+import { EVMResult } from "@ethereumjs/vm/dist/evm/evm";
+import { InterpreterStep } from "@ethereumjs/vm/dist/evm/interpreter";
+import Message from "@ethereumjs/vm/dist/evm/message";
+import { Address, BN, setLengthLeft, toBuffer } from "ethereumjs-util";
 
 import { assertHardhatInvariant } from "../../core/errors";
-import { InvalidInputError } from "../provider/errors";
-import { RpcDebugTracingConfig } from "../provider/input";
+import { RpcDebugTracingConfig } from "../../core/jsonrpc/types/input/debugTraceTransaction";
+import { InvalidInputError } from "../../core/providers/errors";
 import { RpcDebugTraceOutput, RpcStructLog } from "../provider/output";
 
 // tslint:disable only-hardhat-error
@@ -113,7 +113,7 @@ export class VMDebugTracer {
     return this._lastTrace;
   }
 
-  private async _beforeTxHandler(_tx: Transaction, next: any) {
+  private async _beforeTxHandler(_tx: TypedTransaction, next: any) {
     this._lastTrace = undefined;
     this._messages = [];
     this._addressToStorage = {};
@@ -123,7 +123,7 @@ export class VMDebugTracer {
   private async _beforeMessageHandler(message: Message, next: any) {
     const debugMessage: DebugMessage = {
       structLogs: [],
-      to: message.to?.toString("hex") ?? "",
+      to: message.to?.toString() ?? "",
     };
 
     if (this._messages.length > 0) {
@@ -322,7 +322,7 @@ export class VMDebugTracer {
     if (step.opcode.name === "SLOAD") {
       const address = step.address;
       const [keyBuffer] = this._getFromStack(stack, 1);
-      const key: Buffer = setLength(keyBuffer, 32);
+      const key: Buffer = setLengthLeft(keyBuffer, 32);
 
       const storageValue = await this._getContractStorage(address, key);
 
@@ -405,7 +405,7 @@ export class VMDebugTracer {
       const [memoryGas] = this._memoryExpansion(memoryLength, memSize);
 
       const dynamicGas = await this._callDynamicGas(
-        recipientAddressBuffer.slice(-20),
+        new Address(recipientAddressBuffer.slice(-20)),
         value,
         availableGas,
         memoryGas,
@@ -471,54 +471,20 @@ export class VMDebugTracer {
     return this._vm._common.param("gasPrices", "quadCoeffDiv");
   }
 
-  private _isAddressEmpty(address: Buffer): Promise<boolean> {
-    return new Promise<boolean>((resolve, reject) => {
-      this._vm.stateManager.accountIsEmpty(
-        address,
-        (err: Error | null, result: boolean) => {
-          if (err !== null) {
-            return reject(err);
-          }
-
-          return resolve(result);
-        }
-      );
-    });
+  private _isAddressEmpty(address: Address): Promise<boolean> {
+    return this._vm.stateManager.accountIsEmpty(address);
   }
 
-  private _getContractStorage(address: Buffer, key: Buffer): Promise<Buffer> {
-    return new Promise<Buffer>((resolve, reject) => {
-      this._vm.stateManager.getContractStorage(
-        address,
-        key,
-        (err: Error | null, result: Buffer) => {
-          if (err !== null) {
-            return reject(result);
-          }
-
-          return resolve(result);
-        }
-      );
-    });
+  private _getContractStorage(address: Address, key: Buffer): Promise<Buffer> {
+    return this._vm.stateManager.getContractStorage(address, key);
   }
 
-  private _getContractCode(address: Buffer): Promise<Buffer> {
-    return new Promise<Buffer>((resolve, reject) =>
-      this._vm.stateManager.getContractCode(
-        address,
-        (err: Error | null, result: Buffer) => {
-          if (err !== null) {
-            return reject(err);
-          }
-
-          return resolve(result);
-        }
-      )
-    );
+  private _getContractCode(address: Address): Promise<Buffer> {
+    return this._vm.stateManager.getContractCode(address);
   }
 
   private async _callDynamicGas(
-    address: Buffer,
+    address: Address,
     value: BN,
     availableGas: number,
     memoryGas: number,

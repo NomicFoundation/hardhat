@@ -1,6 +1,6 @@
+import { TxData } from "@ethereumjs/tx";
 import { assert } from "chai";
-import { FakeTxData } from "ethereumjs-tx";
-import { BN } from "ethereumjs-util";
+import { AddressLike, BN } from "ethereumjs-util";
 
 import { randomAddressBuffer } from "../../../../src/internal/hardhat-network/provider/fork/random";
 import { OrderedTransaction } from "../../../../src/internal/hardhat-network/provider/PoolState";
@@ -14,12 +14,14 @@ function parseGWei(gwei: number) {
 
 function getTestTransactionFactory() {
   let orderId = 0;
-  return (data: FakeTxData) =>
+  return (data: TxData & { from?: AddressLike }) =>
     createTestOrderedTransaction({ orderId: orderId++, ...data });
 }
 
 describe("TxPriorityHeap", () => {
-  let createTestTransaction: (data: FakeTxData) => OrderedTransaction;
+  let createTestTransaction: (
+    data: TxData & { from?: AddressLike }
+  ) => OrderedTransaction;
 
   beforeEach(() => {
     createTestTransaction = getTestTransactionFactory();
