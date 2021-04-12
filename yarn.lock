@@ -171,6 +171,16 @@
     ethereumjs-util "^7.0.9"
     merkle-patricia-tree "^4.1.0"
 
+"@ethereumjs/block@^3.2.1":
+  version "3.2.1"
+  resolved "https://registry.yarnpkg.com/@ethereumjs/block/-/block-3.2.1.tgz#c24c345e6dd6299efa4bed40979280b7dda96d3a"
+  integrity sha512-FCxo5KwwULne2A2Yuae4iaGGqSsRjwzXOlDhGalOFiBbLfP3hE04RHaHGw4c8vh1PfOrLauwi0dQNUBkOG3zIA==
+  dependencies:
+    "@ethereumjs/common" "^2.2.0"
+    "@ethereumjs/tx" "^3.1.3"
+    ethereumjs-util "^7.0.10"
+    merkle-patricia-tree "^4.1.0"
+
 "@ethereumjs/blockchain@^5.2.1":
   version "5.2.1"
   resolved "https://registry.yarnpkg.com/@ethereumjs/blockchain/-/blockchain-5.2.1.tgz#83ed83647667265f1666f111caf065ef9d1e82b5"
@@ -204,7 +214,7 @@
     ethereumjs-util "^7.0.7"
     miller-rabin "^4.0.0"
 
-"@ethereumjs/tx@^3.1.0", "@ethereumjs/tx@^3.1.2":
+"@ethereumjs/tx@^3.1.0":
   version "3.1.2"
   resolved "https://registry.yarnpkg.com/@ethereumjs/tx/-/tx-3.1.2.tgz#17ac0d69727cd056b9bda62eb0ca695992a263f3"
   integrity sha512-bpnO+swaw2nmdBybDR0Nn+tt3AJxkUWakoQda5dCGh+yQiHlg8KZgBf84pK6Z/R0tdxn9mhi1b13qi0kn5RKGg==
@@ -212,15 +222,23 @@
     "@ethereumjs/common" "^2.2.0"
     ethereumjs-util "^7.0.10"
 
-"@ethereumjs/vm@^5.3.0":
-  version "5.3.0"
-  resolved "https://registry.yarnpkg.com/@ethereumjs/vm/-/vm-5.3.0.tgz#a2bd18a8b9521068d8c1ef05cd895fc2124a796b"
-  integrity sha512-sauQgdLs9wK3H8WEmCnuABkkso/KkrHIBAqk/qOpeUtyHtV/g/fmYnL1P3Q2gam1PazWi3Y6puNBIdyOeBqTHw==
+"@ethereumjs/tx@^3.1.3":
+  version "3.1.3"
+  resolved "https://registry.yarnpkg.com/@ethereumjs/tx/-/tx-3.1.3.tgz#0e4b0ccec2f12b1f0bbbb0e7542dd79d9ec25d87"
+  integrity sha512-DJBu6cbwYtiPTFeCUR8DF5p+PF0jxs+0rALJZiEcTz2tiRPIEkM72GEbrkGuqzENLCzBrJHT43O0DxSYTqeo+g==
   dependencies:
-    "@ethereumjs/block" "^3.2.0"
+    "@ethereumjs/common" "^2.2.0"
+    ethereumjs-util "^7.0.10"
+
+"@ethereumjs/vm@^5.3.1":
+  version "5.3.1"
+  resolved "https://registry.yarnpkg.com/@ethereumjs/vm/-/vm-5.3.1.tgz#1fa0ae1c3744b56650f59c3651cafbb8d622f5a4"
+  integrity sha512-bEQ0rC9rosHqL5g9MQVQpEUkWWL+/qIbpR4iZXN+PTIycbiVl79Ij42ru/ZW0Gs1DuahpvXeIhurcZnvmYDHmQ==
+  dependencies:
+    "@ethereumjs/block" "^3.2.1"
     "@ethereumjs/blockchain" "^5.2.1"
     "@ethereumjs/common" "^2.2.0"
-    "@ethereumjs/tx" "^3.1.2"
+    "@ethereumjs/tx" "^3.1.3"
     async-eventemitter "^0.2.4"
     core-js-pure "^3.0.1"
     debug "^2.2.0"
