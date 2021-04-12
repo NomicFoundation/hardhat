@@ -9,10 +9,7 @@ import VM from "@ethereumjs/vm";
 import Bloom from "@ethereumjs/vm/dist/bloom";
 import { EVMResult, ExecResult } from "@ethereumjs/vm/dist/evm/evm";
 import { ERROR } from "@ethereumjs/vm/dist/exceptions";
-import {
-  generateTxReceipt,
-  RunBlockResult,
-} from "@ethereumjs/vm/dist/runBlock";
+import { RunBlockResult } from "@ethereumjs/vm/dist/runBlock";
 import { DefaultStateManager, StateManager } from "@ethereumjs/vm/dist/state";
 import chalk from "chalk";
 import debug from "debug";
@@ -1069,29 +1066,15 @@ Hardhat Network's forking functionality only works with blocks from at least spu
           txHeap.pop();
         } else {
           const txResult = await blockBuilder.addTransaction(tx);
-          const { txReceipt } = await generateTxReceipt.bind(this._vm)(
-            tx,
-            txResult,
-            blockBuilder.gasUsed
-          );
 
           traces.push(await this._gatherTraces(txResult.execResult));
           results.push(txResult);
-          receipts.push(txReceipt);
+          receipts.push(txResult.receipt);
 
           txHeap.shift();
         }
 
         tx = txHeap.peek();
-      }
-
-      // This workarounds a bug in BlockBuilder#build
-      //  It's a workaround that is also included here: https://github.com/ethereumjs/ethereumjs-monorepo/pull/1185
-      // tslint:disable-next-line:no-string-literal
-      if (blockBuilder["checkpointed"] !== true) {
-        // tslint:disable-next-line:no-string-literal
-        blockBuilder["checkpointed"] = true;
-        await this._vm.stateManager.checkpoint();
       }
 
       const block = await blockBuilder.build();
