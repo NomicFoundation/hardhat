@@ -76,7 +76,7 @@ describe("Eth module", function () {
       this.timeout(50000);
     }
 
-    workaroundWindowsCiFailures({ isFork });
+    workaroundWindowsCiFailures.call(this, { isFork });
 
     describe(`${name} provider`, function () {
       setCWD();
