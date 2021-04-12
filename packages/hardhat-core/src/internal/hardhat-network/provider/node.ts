@@ -31,7 +31,7 @@ import EventEmitter from "events";
 import { CompilerInput, CompilerOutput } from "../../../types";
 import { HARDHAT_NETWORK_DEFAULT_GAS_PRICE } from "../../core/config/default-config";
 import { assertHardhatInvariant, HardhatError } from "../../core/errors";
-import {RpcDebugTracingConfig} from "../../core/jsonrpc/types/input/debugTraceTransaction";
+import { RpcDebugTracingConfig } from "../../core/jsonrpc/types/input/debugTraceTransaction";
 import {
   InternalError,
   InvalidInputError,

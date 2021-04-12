@@ -669,7 +669,12 @@ describe("HardhatNode", () => {
           assert.fail();
         }
 
-        await assertEqualBlocks(newBlock, rpcBlock, forkClient);
+        await assertEqualBlocks(
+          newBlock,
+          afterBlockEvent,
+          rpcBlock,
+          forkClient
+        );
       });
     }
   });
