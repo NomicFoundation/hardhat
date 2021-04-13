@@ -2,7 +2,7 @@ import { BN, bufferToHex, privateToAddress, toBuffer } from "ethereumjs-util";
 
 import { ALCHEMY_URL, INFURA_URL } from "../../../setup";
 
-import { useProvider } from "./useProvider";
+import { useProvider, UseProviderOptions } from "./useProvider";
 
 export const DEFAULT_HARDFORK = "istanbul";
 export const DEFAULT_NETWORK_NAME = "TestNet";
@@ -49,8 +49,8 @@ export const PROVIDERS = [
     isFork: false,
     networkId: DEFAULT_NETWORK_ID,
     chainId: DEFAULT_CHAIN_ID,
-    useProvider: (loggerEnabled = true) => {
-      useProvider(false, loggerEnabled);
+    useProvider: (options: UseProviderOptions = {}) => {
+      useProvider({ useJsonRpc: false, loggerEnabled: true, ...options });
     },
   },
   {
@@ -58,8 +58,8 @@ export const PROVIDERS = [
     isFork: false,
     networkId: DEFAULT_NETWORK_ID,
     chainId: DEFAULT_CHAIN_ID,
-    useProvider: (loggerEnabled = true) => {
-      useProvider(true, loggerEnabled);
+    useProvider: (options: UseProviderOptions = {}) => {
+      useProvider({ useJsonRpc: true, loggerEnabled: true, ...options });
     },
   },
 ];
@@ -68,20 +68,30 @@ export const INTERVAL_MINING_PROVIDERS = [
   {
     name: "Hardhat Network",
     isFork: false,
-    useProvider: (loggerEnabled = true) => {
-      useProvider(false, loggerEnabled, undefined, {
-        auto: false,
-        interval: 10000,
+    useProvider: (options: UseProviderOptions = {}) => {
+      useProvider({
+        useJsonRpc: false,
+        loggerEnabled: true,
+        mining: {
+          auto: false,
+          interval: 10000,
+        },
+        ...options,
       });
     },
   },
   {
     name: "JSON-RPC",
     isFork: false,
-    useProvider: (loggerEnabled = true) => {
-      useProvider(true, loggerEnabled, undefined, {
-        auto: false,
-        interval: 10000,
+    useProvider: (options: UseProviderOptions = {}) => {
+      useProvider({
+        useJsonRpc: true,
+        loggerEnabled: true,
+        mining: {
+          auto: false,
+          interval: 10000,
+        },
+        ...options,
       });
     },
   },
@@ -90,7 +100,7 @@ export const INTERVAL_MINING_PROVIDERS = [
 export const FORKED_PROVIDERS: Array<{
   rpcProvider: string;
   jsonRpcUrl: string;
-  useProvider: (loggerEnabled?: boolean) => void;
+  useProvider: (options?: UseProviderOptions) => void;
 }> = [];
 
 if (ALCHEMY_URL !== undefined && ALCHEMY_URL !== "") {
@@ -101,32 +111,43 @@ if (ALCHEMY_URL !== undefined && ALCHEMY_URL !== "") {
     isFork: true,
     networkId: DEFAULT_NETWORK_ID,
     chainId: DEFAULT_CHAIN_ID,
-    useProvider: (loggerEnabled = true) => {
-      useProvider(false, loggerEnabled, { jsonRpcUrl: url });
+    useProvider: (options: UseProviderOptions = {}) => {
+      useProvider({
+        useJsonRpc: false,
+        loggerEnabled: true,
+        forkConfig: { jsonRpcUrl: url },
+        ...options,
+      });
     },
   });
 
   INTERVAL_MINING_PROVIDERS.push({
     name: "Alchemy Forked",
     isFork: true,
-    useProvider: (loggerEnabled = true) => {
-      useProvider(
-        false,
-        loggerEnabled,
-        { jsonRpcUrl: url },
-        {
+    useProvider: (options: UseProviderOptions = {}) => {
+      useProvider({
+        useJsonRpc: false,
+        loggerEnabled: true,
+        forkConfig: { jsonRpcUrl: url },
+        mining: {
           auto: false,
           interval: 10000,
-        }
-      );
+        },
+        ...options,
+      });
     },
   });
 
   FORKED_PROVIDERS.push({
     rpcProvider: "Alchemy",
     jsonRpcUrl: url,
-    useProvider: (loggerEnabled = true) => {
-      useProvider(false, loggerEnabled, { jsonRpcUrl: url });
+    useProvider: (options: UseProviderOptions = {}) => {
+      useProvider({
+        useJsonRpc: false,
+        loggerEnabled: true,
+        forkConfig: { jsonRpcUrl: url },
+        ...options,
+      });
     },
   });
 }
@@ -137,8 +158,13 @@ if (INFURA_URL !== undefined && INFURA_URL !== "") {
   FORKED_PROVIDERS.push({
     rpcProvider: "Infura",
     jsonRpcUrl: url,
-    useProvider: (loggerEnabled = true) => {
-      useProvider(false, loggerEnabled, { jsonRpcUrl: url });
+    useProvider: (options: UseProviderOptions = {}) => {
+      useProvider({
+        useJsonRpc: false,
+        loggerEnabled: true,
+        forkConfig: { jsonRpcUrl: url },
+        ...options,
+      });
     },
   });
 }

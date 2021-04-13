@@ -4512,7 +4512,7 @@ describe("Eth module", function () {
 
 describe("Eth module - hardfork dependant tests", function () {
   function useProviderAndCommon(hardfork: string) {
-    importedUseProvider(undefined, undefined, undefined, undefined, hardfork);
+    importedUseProvider({ hardfork });
     beforeEach(async function () {
       // TODO: Find out a better way to obtain the common here
 

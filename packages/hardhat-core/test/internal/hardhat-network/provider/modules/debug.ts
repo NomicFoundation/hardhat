@@ -86,6 +86,35 @@ describe("Debug module", function () {
 
           assertEqualTraces(trace, modifiesStateTrace);
         });
+
+        describe("berlin", function () {
+          useProvider({ hardfork: "berlin" });
+
+          it("Should work with EIP-2930 txs", async function () {
+            const txHash = await sendDummyTransaction(this.provider, 0, {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              accessList: [
+                {
+                  address: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                  storageKeys: [],
+                },
+              ],
+              gas: 25_000,
+            });
+
+            const trace: RpcDebugTraceOutput = await this.provider.send(
+              "debug_traceTransaction",
+              [txHash]
+            );
+            assert.deepEqual(trace, {
+              gas: 23400,
+              failed: false,
+              returnValue: "",
+              structLogs: [],
+            });
+          });
+        });
       });
     });
   });
