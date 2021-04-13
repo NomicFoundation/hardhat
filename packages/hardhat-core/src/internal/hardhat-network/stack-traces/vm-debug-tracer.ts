@@ -3,6 +3,10 @@ import VM from "@ethereumjs/vm";
 import { EVMResult } from "@ethereumjs/vm/dist/evm/evm";
 import { InterpreterStep } from "@ethereumjs/vm/dist/evm/interpreter";
 import Message from "@ethereumjs/vm/dist/evm/message";
+import {
+  EIP2929StateManager,
+  StateManager,
+} from "@ethereumjs/vm/dist/state/interface";
 import { Address, BN, setLengthLeft, toBuffer } from "ethereumjs-util";
 
 import { assertHardhatInvariant } from "../../core/errors";
@@ -398,14 +402,15 @@ export class VMDebugTracer {
       const outSizeBN = new BN(outSizeBuffer);
       const outPosition = outSizeBN.isZero() ? outSizeBN : outBN.add(outSizeBN);
       const memSize = inPosition.gt(outPosition) ? inPosition : outPosition;
+      const toAddress = new Address(recipientAddressBuffer.slice(-20));
 
-      const constantGas = this._callConstantGas();
+      const constantGas = this._callConstantGas(toAddress);
       const availableGas = step.gasLeft.toNumber() - constantGas;
 
       const [memoryGas] = this._memoryExpansion(memoryLength, memSize);
 
       const dynamicGas = await this._callDynamicGas(
-        new Address(recipientAddressBuffer.slice(-20)),
+        toAddress,
         value,
         availableGas,
         memoryGas,
@@ -455,7 +460,24 @@ export class VMDebugTracer {
     return this._vm._common.param("gasPrices", "sha3Word");
   }
 
-  private _callConstantGas(): number {
+  private _callConstantGas(address: Address): number {
+    if (this._vm._common.gteHardfork("berlin")) {
+      const stateManager = this._vm.stateManager as
+        | StateManager
+        | EIP2929StateManager;
+
+      assertHardhatInvariant(
+        "isWarmedAddress" in stateManager,
+        "The VM should have an EIP2929StateManger when berlin is enabled"
+      );
+
+      const isWarmed = stateManager.isWarmedAddress(address.toBuffer());
+
+      return isWarmed
+        ? this._vm._common.param("gasPrices", "warmstorageread")
+        : this._vm._common.param("gasPrices", "coldaccountaccess");
+    }
+
     return this._vm._common.param("gasPrices", "call");
   }
 
