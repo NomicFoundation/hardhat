@@ -967,9 +967,21 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         }
 
         for (const tx of block.transactions) {
-          const txWithCommon = new Transaction(tx, {
-            common: vm._common,
-          });
+          let txWithCommon: Transaction | AccessListEIP2930Transaction;
+          if (tx.type === 0) {
+            txWithCommon = new Transaction(tx, {
+              common: vm._common,
+            });
+          } else if (tx.type === 1) {
+            txWithCommon = new AccessListEIP2930Transaction(tx, {
+              common: vm._common,
+            });
+          } else {
+            throw new InternalError(
+              "Only legacy and EIP2930 txs are supported"
+            );
+          }
+
           const txHash = txWithCommon.hash();
           if (txHash.equals(hash)) {
             const vmDebugTracer = new VMDebugTracer(vm);
