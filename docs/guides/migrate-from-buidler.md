@@ -182,7 +182,7 @@ You can find which plugins have been updated in [the Plugins section](https://ha
 
 This plugin has already been ported, it's now called [`hardhat-deploy`](https://github.com/wighawag/hardhat-deploy).
 
-Join the `#hardhat-deploy` channel on [Discord](https://hardhat.org/discord) if you need help migrating.
+Join the [`#hardhat-deploy` channel on Discord](https://discord.gg/8JVd3QZP) if you need help migrating.
 
 ### buidler-typechain
 
