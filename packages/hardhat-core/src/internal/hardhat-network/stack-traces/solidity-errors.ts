@@ -293,7 +293,7 @@ function getMessageFromLastStackTraceEntry(
   }
 }
 
-// Note: This error class MUST NOT extend HardhatNetworkProviderError, as libraries
+// Note: This error class MUST NOT extend ProviderError, as libraries
 //   use the code property to detect if they are dealing with a JSON-RPC error,
 //   and take control of errors.
 export class SolidityError extends Error {

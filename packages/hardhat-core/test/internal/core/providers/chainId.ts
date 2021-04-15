@@ -1,11 +1,11 @@
 import { assert } from "chai";
 
 import { ERRORS } from "../../../../src/internal/core/errors-list";
+import { numberToRpcQuantity } from "../../../../src/internal/core/jsonrpc/types/base-types";
 import {
   ChainIdValidatorProvider,
   ProviderWrapperWithChainId,
 } from "../../../../src/internal/core/providers/chainId";
-import { numberToRpcQuantity } from "../../../../src/internal/core/providers/provider-utils";
 import { RequestArguments } from "../../../../src/types";
 import { expectHardhatErrorAsync } from "../../../helpers/errors";
 

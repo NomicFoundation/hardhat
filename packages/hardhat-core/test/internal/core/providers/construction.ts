@@ -1,11 +1,14 @@
 import { assert } from "chai";
-import Common from "ethereumjs-common";
 
 import {
   defaultHdAccountsConfigParams,
   defaultHttpNetworkParams,
 } from "../../../../src/internal/core/config/default-config";
 import { ERRORS } from "../../../../src/internal/core/errors-list";
+import {
+  numberToRpcQuantity,
+  rpcQuantityToNumber,
+} from "../../../../src/internal/core/jsonrpc/types/base-types";
 import { BackwardsCompatibilityProviderAdapter } from "../../../../src/internal/core/providers/backwards-compatibility";
 import {
   applyProviderWrappers,
@@ -13,10 +16,6 @@ import {
   isHDAccountsConfig,
 } from "../../../../src/internal/core/providers/construction";
 import { GANACHE_GAS_MULTIPLIER } from "../../../../src/internal/core/providers/gas-providers";
-import {
-  numberToRpcQuantity,
-  rpcQuantityToNumber,
-} from "../../../../src/internal/core/providers/provider-utils";
 import { expectHardhatErrorAsync } from "../../../helpers/errors";
 
 import { MockedProvider } from "./mocks";
@@ -112,21 +111,10 @@ describe("Base providers wrapping", () => {
   });
 
   describe("Sender wrapping", () => {
-    let common: Common;
-
     beforeEach(async () => {
       mockedProvider.setReturnValue(
         "eth_estimateGas",
         numberToRpcQuantity(123)
-      );
-
-      common = Common.forCustomChain(
-        "mainnet",
-        {
-          chainId: CHAIN_ID,
-          networkId: CHAIN_ID,
-        },
-        "petersburg"
       );
     });
 

@@ -1,5 +1,5 @@
-import { FakeTransaction, Transaction } from "ethereumjs-tx";
-import { BN, toBuffer } from "ethereumjs-util";
+import { TypedTransaction } from "@ethereumjs/tx";
+import { BN } from "ethereumjs-util";
 import {
   List as ImmutableList,
   Map as ImmutableMap,
@@ -10,13 +10,14 @@ import { bnToHex } from "./utils/bnToHex";
 
 export interface OrderedTransaction {
   orderId: number;
-  data: Transaction | FakeTransaction;
+  data: TypedTransaction;
 }
 
 interface ImmutableOrderedTransaction {
   orderId: number;
   fakeFrom: string | undefined;
-  data: ImmutableList<string>;
+  data: string;
+  txType: number;
 }
 
 export const makeSerializedTransaction = ImmutableRecord<
@@ -24,7 +25,8 @@ export const makeSerializedTransaction = ImmutableRecord<
 >({
   orderId: 0,
   fakeFrom: undefined,
-  data: ImmutableList(),
+  data: "",
+  txType: 0,
 });
 
 export type SerializedTransaction = ImmutableRecord<
@@ -47,7 +49,3 @@ export const makePoolState = ImmutableRecord<PoolState>({
   hashToTransaction: ImmutableMap(),
   blockGasLimit: bnToHex(new BN(9500000)),
 });
-
-export function retrieveNonce(tx: SerializedTransaction) {
-  return new BN(toBuffer(tx.get("data").get(0)));
-}

@@ -1,9 +1,9 @@
 import { assert } from "chai";
 import sinon from "sinon";
 
+import { rpcQuantityToNumber } from "../../../../src/internal/core/jsonrpc/types/base-types";
 import { ALCHEMY_URL } from "../../../setup";
 import { workaroundWindowsCiFailures } from "../../../utils/workaround-windows-ci-failures";
-import { quantityToNumber } from "../helpers/conversions";
 import { setCWD } from "../helpers/cwd";
 import { INTERVAL_MINING_PROVIDERS } from "../helpers/providers";
 
@@ -17,7 +17,7 @@ describe("Interval mining provider", function () {
       let clock: sinon.SinonFakeTimers;
 
       const getBlockNumber = async () => {
-        return quantityToNumber(
+        return rpcQuantityToNumber(
           await this.ctx.provider.send("eth_blockNumber")
         );
       };

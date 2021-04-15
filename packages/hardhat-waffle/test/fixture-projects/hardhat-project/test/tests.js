@@ -93,7 +93,7 @@ describe("Internal test suite of hardhat-waffle's test project", function () {
 
       await expect(() =>
         contract.incByValue({ value: 200 })
-      ).to.changeEtherBalance(sender, -344832000000200, { includeFee: true });
+      ).to.changeEtherBalance(sender, -355232000000200, { includeFee: true });
     });
 
     it("should support the changeEtherBalance matcher with multiple accounts", async function () {

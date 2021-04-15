@@ -1,12 +1,11 @@
+import { Block } from "@ethereumjs/block";
+import Common from "@ethereumjs/common";
 import { assert } from "chai";
-import Common from "ethereumjs-common";
-import { BufferLike } from "ethereumjs-tx";
 import { BN, bufferToHex, toBuffer, zeros } from "ethereumjs-util";
 
 import { JsonRpcClient } from "../../../../../src/internal/hardhat-network/jsonrpc/client";
 import { ForkBlockchain } from "../../../../../src/internal/hardhat-network/provider/fork/ForkBlockchain";
 import { randomHashBuffer } from "../../../../../src/internal/hardhat-network/provider/fork/random";
-import { Block } from "../../../../../src/internal/hardhat-network/provider/types/Block";
 import { makeForkClient } from "../../../../../src/internal/hardhat-network/provider/utils/makeForkClient";
 import { ALCHEMY_URL } from "../../../../setup";
 import {
@@ -28,13 +27,13 @@ describe("ForkBlockchain", () => {
   let common: Common;
   let fb: ForkBlockchain;
 
-  function createBlock(parent: Block, difficulty: BufferLike = zeros(32)) {
-    return new Block(
+  function createBlock(parent: Block, difficulty: number | Buffer = zeros(32)) {
+    return Block.fromBlockData(
       {
         header: {
           number: new BN(parent.header.number).addn(1),
           parentHash: parent.hash(),
-          difficulty,
+          difficulty: new BN(difficulty),
         },
       },
       { common }
@@ -53,7 +52,7 @@ describe("ForkBlockchain", () => {
     client = clientResult.forkClient;
     forkBlockNumber = clientResult.forkBlockNumber;
 
-    common = new Common("mainnet");
+    common = new Common({ chain: "mainnet" });
     common.setHardfork(common.activeHardfork(forkBlockNumber.toNumber()));
     fb = new ForkBlockchain(client, forkBlockNumber, common);
   });
@@ -108,9 +107,7 @@ describe("ForkBlockchain", () => {
       const daiCreationBlock = new BN(4719568);
       const daiCreateTxPosition = 85;
       const block = await fb.getBlock(daiCreationBlock);
-      assert.isTrue(
-        block?.transactions[daiCreateTxPosition].to.equals(Buffer.from([]))
-      );
+      assert.isTrue(block?.transactions[daiCreateTxPosition].to === undefined);
       assert.isTrue(
         block?.transactions[daiCreateTxPosition]
           .hash()
@@ -174,7 +171,9 @@ describe("ForkBlockchain", () => {
 
     it("rejects blocks with invalid block number", async () => {
       await assert.isRejected(
-        fb.addBlock(new Block({ header: { number: forkBlockNumber.addn(2) } })),
+        fb.addBlock(
+          Block.fromBlockData({ header: { number: forkBlockNumber.addn(2) } })
+        ),
         Error,
         "Invalid block number"
       );
@@ -185,7 +184,9 @@ describe("ForkBlockchain", () => {
       await fb.addBlock(block);
 
       await assert.isRejected(
-        fb.addBlock(new Block({ header: { number: forkBlockNumber.addn(2) } })),
+        fb.addBlock(
+          Block.fromBlockData({ header: { number: forkBlockNumber.addn(2) } })
+        ),
         Error,
         "Invalid parent hash"
       );
@@ -254,7 +255,7 @@ describe("ForkBlockchain", () => {
 
     it("throws when hash of non-existent block is given", async () => {
       assert.throws(
-        () => fb.deleteBlock(new Block().hash()),
+        () => fb.deleteBlock(Block.fromBlockData().hash()),
         Error,
         "Block not found"
       );

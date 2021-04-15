@@ -2,11 +2,15 @@ import chalk from "chalk";
 import { BN, toBuffer } from "ethereumjs-util";
 
 import { HARDHAT_NETWORK_NAME } from "../../../constants";
+import { HardhatError } from "../../../core/errors";
+import {
+  numberToRpcQuantity,
+  rpcQuantityToNumber,
+} from "../../../core/jsonrpc/types/base-types";
 import { HttpProvider } from "../../../core/providers/http";
-import { rpcQuantityToNumber } from "../../../core/providers/provider-utils";
 import { JsonRpcClient } from "../../jsonrpc/client";
 import { ForkConfig } from "../node-types";
-import { getRpcBlock, numberToRpcQuantity, RpcBlockOutput } from "../output";
+import { RpcBlockOutput } from "../output";
 
 import {
   FALLBACK_MAX_REORG,
@@ -43,6 +47,13 @@ export async function makeForkClient(
 
   let forkBlockNumber;
   if (forkConfig.blockNumber !== undefined) {
+    if (forkConfig.blockNumber > latestBlock) {
+      // tslint:disable-next-line only-hardhat-error
+      throw new Error(
+        `Trying to initialize a provider with block ${forkConfig.blockNumber} but the current block is ${latestBlock}`
+      );
+    }
+
     if (forkConfig.blockNumber > lastSafeBlock) {
       const confirmations = latestBlock - forkConfig.blockNumber + 1;
       const requiredConfirmations = maxReorg + 1;

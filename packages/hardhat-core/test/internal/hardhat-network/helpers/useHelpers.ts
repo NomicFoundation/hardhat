@@ -1,4 +1,4 @@
-import { numberToRpcQuantity } from "../../../../src/internal/hardhat-network/provider/output";
+import { numberToRpcQuantity } from "../../../../src/internal/core/jsonrpc/types/base-types";
 
 import { DEFAULT_ACCOUNTS_ADDRESSES } from "./providers";
 

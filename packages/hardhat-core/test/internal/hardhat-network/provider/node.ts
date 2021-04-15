@@ -1,19 +1,25 @@
+import { Block } from "@ethereumjs/block";
+import Common from "@ethereumjs/common";
+import { TxData, TypedTransaction } from "@ethereumjs/tx";
+import VM from "@ethereumjs/vm";
+import {
+  AfterBlockEvent,
+  PostByzantiumTxReceipt,
+  RunBlockOpts,
+} from "@ethereumjs/vm/dist/runBlock";
 import { assert } from "chai";
-import Common from "ethereumjs-common";
-import { FakeTxData, Transaction } from "ethereumjs-tx";
-import FakeTransaction from "ethereumjs-tx/dist/fake";
-import { BN, bufferToHex, bufferToInt } from "ethereumjs-util";
+import { Address, BN, bufferToHex } from "ethereumjs-util";
 import path from "path";
 import sinon from "sinon";
 
-import { numberToRpcQuantity } from "../../../../src/internal/core/providers/provider-utils";
+import { numberToRpcQuantity } from "../../../../src/internal/core/jsonrpc/types/base-types";
 import { rpcToBlockData } from "../../../../src/internal/hardhat-network/provider/fork/rpcToBlockData";
 import { HardhatNode } from "../../../../src/internal/hardhat-network/provider/node";
 import {
   ForkedNodeConfig,
   NodeConfig,
 } from "../../../../src/internal/hardhat-network/provider/node-types";
-import { Block } from "../../../../src/internal/hardhat-network/provider/types/Block";
+import { FakeSenderTransaction } from "../../../../src/internal/hardhat-network/provider/transactions/FakeSenderTransaction";
 import { getCurrentTimestamp } from "../../../../src/internal/hardhat-network/provider/utils/getCurrentTimestamp";
 import { makeForkClient } from "../../../../src/internal/hardhat-network/provider/utils/makeForkClient";
 import { ALCHEMY_URL } from "../../../setup";
@@ -31,17 +37,11 @@ import {
 
 // tslint:disable no-string-literal
 
-interface ForkPoint {
+interface ForkedBlock {
   networkName: string;
   url?: string;
-  /**
-   * Fork block number.
-   * This is the last observable block from the remote blockchain.
-   * Later blocks are all constructed by Hardhat Network.
-   */
-  blockNumber: number;
+  blockToRun: number;
   chainId: number;
-  hardfork: "istanbul" | "muirGlacier";
 }
 
 describe("HardhatNode", () => {
@@ -56,13 +56,18 @@ describe("HardhatNode", () => {
   };
   const gasPrice = 1;
   let node: HardhatNode;
-  let createTestTransaction: (txData: FakeTxData) => FakeTransaction;
+  let createTestTransaction: (
+    txData: TxData & { from: string }
+  ) => FakeSenderTransaction;
 
   beforeEach(async () => {
     let common: Common;
     [common, node] = await HardhatNode.create(config);
     createTestTransaction = (txData) => {
-      const tx = new FakeTransaction({ gasPrice, ...txData }, { common });
+      const tx = new FakeSenderTransaction(Address.fromString(txData.from), {
+        gasPrice,
+        ...txData,
+      });
       tx.hash();
       return tx;
     };
@@ -103,7 +108,7 @@ describe("HardhatNode", () => {
   });
 
   describe("mineBlock", () => {
-    async function assertTransactionsWereMined(txs: Transaction[]) {
+    async function assertTransactionsWereMined(txs: TypedTransaction[]) {
       for (const tx of txs) {
         const txReceipt = await node.getTransactionReceipt(tx.hash());
         assert.isDefined(txReceipt);
@@ -273,7 +278,7 @@ describe("HardhatNode", () => {
         assertQuantity(tx2Receipt?.gasUsed, 21_000);
 
         const block = await node.getLatestBlock();
-        assert.equal(bufferToInt(block.header.gasUsed), 42_000);
+        assert.equal(block.header.gasUsed.toNumber(), 42_000);
       });
 
       it("assigns miner rewards", async () => {
@@ -421,31 +426,31 @@ describe("HardhatNode", () => {
         await node.mineBlock();
         const block = await node.getLatestBlock();
 
-        assert.equal(bufferToInt(block.header.timestamp), now);
+        assert.equal(block.header.timestamp.toNumber(), now);
       });
 
       it("mines a block with an incremented timestamp if it clashes with the previous block", async () => {
         const firstBlock = await node.getLatestBlock();
-        const firstBlockTimestamp = bufferToInt(firstBlock.header.timestamp);
+        const firstBlockTimestamp = firstBlock.header.timestamp.toNumber();
 
         await node.mineBlock();
         const latestBlock = await node.getLatestBlock();
-        const latestBlockTimestamp = bufferToInt(latestBlock.header.timestamp);
+        const latestBlockTimestamp = latestBlock.header.timestamp.toNumber();
 
         assert.equal(latestBlockTimestamp, firstBlockTimestamp + 1);
       });
 
       it("assigns an incremented timestamp to each new block mined within the same second", async () => {
         const firstBlock = await node.getLatestBlock();
-        const firstBlockTimestamp = bufferToInt(firstBlock.header.timestamp);
+        const firstBlockTimestamp = firstBlock.header.timestamp.toNumber();
 
         await node.mineBlock();
         const secondBlock = await node.getLatestBlock();
-        const secondBlockTimestamp = bufferToInt(secondBlock.header.timestamp);
+        const secondBlockTimestamp = secondBlock.header.timestamp.toNumber();
 
         await node.mineBlock();
         const thirdBlock = await node.getLatestBlock();
-        const thirdBlockTimestamp = bufferToInt(thirdBlock.header.timestamp);
+        const thirdBlockTimestamp = thirdBlock.header.timestamp.toNumber();
 
         assert.equal(secondBlockTimestamp, firstBlockTimestamp + 1);
         assert.equal(thirdBlockTimestamp, secondBlockTimestamp + 1);
@@ -458,7 +463,7 @@ describe("HardhatNode", () => {
         await node.mineBlock();
 
         const block = await node.getLatestBlock();
-        const blockTimestamp = bufferToInt(block.header.timestamp);
+        const blockTimestamp = block.header.timestamp.toNumber();
         assert.equal(blockTimestamp, timestamp.toNumber());
       });
 
@@ -472,7 +477,7 @@ describe("HardhatNode", () => {
         await node.mineBlock();
 
         const block = await node.getLatestBlock();
-        const blockTimestamp = bufferToInt(block.header.timestamp);
+        const blockTimestamp = block.header.timestamp.toNumber();
         assert.equal(blockTimestamp, timestamp.toNumber() + 3);
       });
 
@@ -484,7 +489,7 @@ describe("HardhatNode", () => {
         await node.mineBlock(timestamp);
 
         const block = await node.getLatestBlock();
-        const blockTimestamp = bufferToInt(block.header.timestamp);
+        const blockTimestamp = block.header.timestamp.toNumber();
         assert.equal(blockTimestamp, timestamp.toNumber());
       });
 
@@ -494,7 +499,7 @@ describe("HardhatNode", () => {
         await node.mineBlock();
 
         const block = await node.getLatestBlock();
-        const blockTimestamp = bufferToInt(block.header.timestamp);
+        const blockTimestamp = block.header.timestamp.toNumber();
         assert.equal(blockTimestamp, now + 30);
       });
 
@@ -508,7 +513,7 @@ describe("HardhatNode", () => {
             await node.mineBlock();
 
             const block = await node.getLatestBlock();
-            const blockTimestamp = bufferToInt(block.header.timestamp);
+            const blockTimestamp = block.header.timestamp.toNumber();
             assert.equal(blockTimestamp, timestamp.toNumber());
           });
 
@@ -523,7 +528,7 @@ describe("HardhatNode", () => {
             await node.mineBlock();
 
             const block = await node.getLatestBlock();
-            const blockTimestamp = bufferToInt(block.header.timestamp);
+            const blockTimestamp = block.header.timestamp.toNumber();
             assert.equal(blockTimestamp, timestamp.toNumber() + 3);
           });
         }
@@ -541,58 +546,72 @@ describe("HardhatNode", () => {
 
   describe("full block", function () {
     this.timeout(120000);
-    // Note that here `blockNumber` is the number of the forked block, not the number of the "simulated" block.
-    // Tests are written to fork this block and execute all transactions of the block following the forked block.
-    // This means that if the forked block number is 9300076, what the test will do is:
-    //   - setup a forked blockchain based on block 9300076
-    //   - fetch all transactions from 9300077
-    //   - create a new block with them
-    //   - execute the whole block and save it with the rest of the blockchain
-    const forkPoints: ForkPoint[] = [
+
+    const forkedBlocks: ForkedBlock[] = [
+      // We don't run this test against spurious dragon because
+      // its receipts contain the state root, and we can't compute it
       {
         networkName: "mainnet",
         url: ALCHEMY_URL,
-        blockNumber: 9300076,
+        blockToRun: 4370001,
         chainId: 1,
-        hardfork: "muirGlacier",
+      },
+      {
+        networkName: "mainnet",
+        url: ALCHEMY_URL,
+        blockToRun: 7280001,
+        chainId: 1,
+      },
+      {
+        networkName: "mainnet",
+        url: ALCHEMY_URL,
+        blockToRun: 9069001,
+        chainId: 1,
+      },
+      {
+        networkName: "mainnet",
+        url: ALCHEMY_URL,
+        blockToRun: 9300077,
+        chainId: 1,
       },
       {
         networkName: "kovan",
         url: (ALCHEMY_URL ?? "").replace("mainnet", "kovan"),
-        blockNumber: 23115226,
+        blockToRun: 23115227,
         chainId: 42,
-        hardfork: "istanbul",
       },
       {
         networkName: "rinkeby",
         url: (ALCHEMY_URL ?? "").replace("mainnet", "rinkeby"),
-        blockNumber: 8004364,
+        blockToRun: 8004365,
         chainId: 4,
-        hardfork: "istanbul",
+      },
+      {
+        networkName: "ropsten",
+        url: (ALCHEMY_URL ?? "").replace("mainnet", "ropsten"),
+        blockToRun: 9812365, // this block has a EIP-2930 tx
+        chainId: 3,
       },
     ];
 
-    for (const {
-      url,
-      blockNumber,
-      networkName,
-      chainId,
-      hardfork,
-    } of forkPoints) {
-      it(`should run a ${networkName} block and produce the same results`, async function () {
+    for (const { url, blockToRun, networkName, chainId } of forkedBlocks) {
+      const remoteCommon = new Common({ chain: chainId });
+      const hardfork = remoteCommon.getHardforkByBlockNumber(blockToRun);
+
+      it(`should run a ${networkName} block from ${hardfork} and produce the same results`, async function () {
         if (url === undefined || url === "") {
           this.skip();
         }
 
         const forkConfig = {
           jsonRpcUrl: url,
-          blockNumber,
+          blockNumber: blockToRun - 1,
         };
 
         const { forkClient } = await makeForkClient(forkConfig);
 
         const rpcBlock = await forkClient.getBlockByNumber(
-          new BN(blockNumber + 1),
+          new BN(blockToRun),
           true
         );
 
@@ -601,6 +620,7 @@ describe("HardhatNode", () => {
         }
 
         const forkCachePath = path.join(__dirname, ".hardhat_node_test_cache");
+
         const forkedNodeConfig: ForkedNodeConfig = {
           automine: true,
           networkName: "mainnet",
@@ -615,21 +635,38 @@ describe("HardhatNode", () => {
 
         const [common, forkedNode] = await HardhatNode.create(forkedNodeConfig);
 
-        const block = new Block(rpcToBlockData(rpcBlock), { common });
+        const block = Block.fromBlockData(
+          rpcToBlockData({
+            ...rpcBlock,
+            // We wipe the receipt root to make sure we get a new one
+            receiptsRoot: Buffer.alloc(32, 0),
+          }),
+          {
+            common,
+            freeze: false,
+          }
+        );
 
         forkedNode["_vmTracer"].disableTracing();
-        block.header.receiptTrie = Buffer.alloc(32, 0);
-        const result = await forkedNode["_vm"].runBlock({
-          block,
-          generate: true,
-          skipBlockValidation: true,
-        });
 
-        await forkedNode["_saveBlockAsSuccessfullyRun"](block, result);
-
-        const newBlock = await forkedNode.getBlockByNumber(
-          new BN(blockNumber + 1)
+        const afterBlockEvent = await runBlockAndGetAfterBlockEvent(
+          forkedNode["_vm"],
+          {
+            block,
+            generate: true,
+            skipBlockValidation: true,
+          }
         );
+
+        const modifiedBlock = afterBlockEvent.block;
+
+        await forkedNode["_vm"].blockchain.putBlock(modifiedBlock);
+        await forkedNode["_saveBlockAsSuccessfullyRun"](
+          modifiedBlock,
+          afterBlockEvent
+        );
+
+        const newBlock = await forkedNode.getBlockByNumber(new BN(blockToRun));
 
         if (newBlock === undefined) {
           assert.fail();
@@ -640,17 +677,17 @@ describe("HardhatNode", () => {
 
         // We do some manual comparisons here to understand why the root of the receipt tries differ.
         if (localReceiptRoot !== remoteReceiptRoot) {
-          for (let i = 0; i < block.transactions.length; i++) {
-            const tx = block.transactions[i];
-            const txHash = bufferToHex(tx.hash(true));
+          for (let i = 0; i < newBlock.transactions.length; i++) {
+            const tx = newBlock.transactions[i];
+            const txHash = bufferToHex(tx.hash());
 
             const remoteReceipt = (await forkClient["_httpProvider"].request({
               method: "eth_getTransactionReceipt",
               params: [txHash],
             })) as any;
 
-            const localReceipt = result.receipts[i];
-            const evmResult = result.results[i];
+            const localReceipt = afterBlockEvent.receipts[i];
+            const evmResult = afterBlockEvent.results[i];
 
             assert.equal(
               bufferToHex(localReceipt.bitvector),
@@ -665,7 +702,7 @@ describe("HardhatNode", () => {
             );
 
             assert.equal(
-              localReceipt.status,
+              (localReceipt as PostByzantiumTxReceipt).status,
               remoteReceipt.status,
               `Status of tx index ${i} (${txHash}) should be the same`
             );
@@ -673,7 +710,7 @@ describe("HardhatNode", () => {
             assert.equal(
               evmResult.createdAddress === undefined
                 ? undefined
-                : `0x${evmResult.createdAddress.toString("hex")}`,
+                : `0x${evmResult.createdAddress.toString()}`,
               remoteReceipt.contractAddress,
               `Contract address created by tx index ${i} (${txHash}) should be the same`
             );
@@ -689,3 +726,24 @@ describe("HardhatNode", () => {
     }
   });
 });
+
+async function runBlockAndGetAfterBlockEvent(
+  vm: VM,
+  runBlockOpts: RunBlockOpts
+): Promise<AfterBlockEvent> {
+  let results: AfterBlockEvent;
+  function handler(event: AfterBlockEvent) {
+    results = event;
+  }
+
+  try {
+    vm.once("afterBlock", handler);
+    await vm.runBlock(runBlockOpts);
+  } finally {
+    // We need this in case `runBlock` throws before emitting the event.
+    // Otherwise we'd be leaking the listener until the next call to runBlock.
+    vm.removeListener("afterBlock", handler);
+  }
+
+  return results!;
+}

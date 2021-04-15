@@ -1,16 +1,15 @@
-import { Transaction } from "ethereumjs-tx";
-import { BN, bufferToInt, zeros } from "ethereumjs-util";
+import { Block } from "@ethereumjs/block";
+import { TypedTransaction } from "@ethereumjs/tx";
+import { BN, zeros } from "ethereumjs-util";
 
 import { BlockchainData } from "./BlockchainData";
 import { FilterParams } from "./node-types";
 import { RpcLogOutput, RpcReceiptOutput } from "./output";
-import { Block } from "./types/Block";
-import { Blockchain } from "./types/Blockchain";
-import { PBlockchain, toBlockchain } from "./types/PBlockchain";
+import { HardhatBlockchainInterface } from "./types/HardhatBlockchainInterface";
 
 /* tslint:disable only-hardhat-error */
 
-export class HardhatBlockchain implements PBlockchain {
+export class HardhatBlockchain implements HardhatBlockchainInterface {
   private readonly _data = new BlockchainData();
   private _length = 0;
 
@@ -24,14 +23,14 @@ export class HardhatBlockchain implements PBlockchain {
 
   public async getBlock(
     blockHashOrNumber: Buffer | BN | number
-  ): Promise<Block | undefined> {
+  ): Promise<Block | null> {
     if (typeof blockHashOrNumber === "number") {
-      return this._data.getBlockByNumber(new BN(blockHashOrNumber));
+      return this._data.getBlockByNumber(new BN(blockHashOrNumber)) ?? null;
     }
     if (BN.isBN(blockHashOrNumber)) {
-      return this._data.getBlockByNumber(blockHashOrNumber);
+      return this._data.getBlockByNumber(blockHashOrNumber) ?? null;
     }
-    return this._data.getBlockByHash(blockHashOrNumber);
+    return this._data.getBlockByHash(blockHashOrNumber) ?? null;
   }
 
   public async addBlock(block: Block): Promise<Block> {
@@ -42,12 +41,20 @@ export class HardhatBlockchain implements PBlockchain {
     return block;
   }
 
+  public async putBlock(block: Block): Promise<void> {
+    await this.addBlock(block);
+  }
+
   public deleteBlock(blockHash: Buffer) {
     const block = this._data.getBlockByHash(blockHash);
     if (block === undefined) {
       throw new Error("Block not found");
     }
     this._delBlock(block);
+  }
+
+  public async delBlock(blockHash: Buffer) {
+    this.deleteBlock(blockHash);
   }
 
   public deleteLaterBlocks(block: Block): void {
@@ -73,22 +80,25 @@ export class HardhatBlockchain implements PBlockchain {
 
   public async getTransaction(
     transactionHash: Buffer
-  ): Promise<Transaction | undefined> {
+  ): Promise<TypedTransaction | undefined> {
     return this.getLocalTransaction(transactionHash);
   }
 
-  public getLocalTransaction(transactionHash: Buffer): Transaction | undefined {
+  public getLocalTransaction(
+    transactionHash: Buffer
+  ): TypedTransaction | undefined {
     return this._data.getTransaction(transactionHash);
   }
 
   public async getBlockByTransactionHash(
     transactionHash: Buffer
-  ): Promise<Block | undefined> {
-    return this._data.getBlockByTransactionHash(transactionHash);
+  ): Promise<Block | null> {
+    const block = this._data.getBlockByTransactionHash(transactionHash);
+    return block ?? null;
   }
 
   public async getTransactionReceipt(transactionHash: Buffer) {
-    return this._data.getTransactionReceipt(transactionHash);
+    return this._data.getTransactionReceipt(transactionHash) ?? null;
   }
 
   public addTransactionReceipts(receipts: RpcReceiptOutput[]) {
@@ -101,12 +111,15 @@ export class HardhatBlockchain implements PBlockchain {
     return this._data.getLogs(filterParams);
   }
 
-  public asBlockchain(): Blockchain {
-    return toBlockchain(this);
+  public iterator(
+    _name: string,
+    _onBlock: (block: Block, reorg: boolean) => void | Promise<void>
+  ): Promise<number | void> {
+    throw new Error("Method not implemented.");
   }
 
   private _validateBlock(block: Block) {
-    const blockNumber = bufferToInt(block.header.number);
+    const blockNumber = block.header.number.toNumber();
     const parentHash = block.header.parentHash;
     const parent = this._data.getBlockByNumber(new BN(blockNumber - 1));
 
@@ -136,7 +149,7 @@ export class HardhatBlockchain implements PBlockchain {
   }
 
   private _delBlock(block: Block): void {
-    const blockNumber = bufferToInt(block.header.number);
+    const blockNumber = block.header.number.toNumber();
     for (let i = blockNumber; i < this._length; i++) {
       const current = this._data.getBlockByNumber(new BN(i));
       if (current !== undefined) {

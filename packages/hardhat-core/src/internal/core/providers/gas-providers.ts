@@ -1,6 +1,9 @@
 import { EIP1193Provider, RequestArguments } from "../../../types";
+import {
+  numberToRpcQuantity,
+  rpcQuantityToNumber,
+} from "../jsonrpc/types/base-types";
 
-import { numberToRpcQuantity, rpcQuantityToNumber } from "./provider-utils";
 import { ProviderWrapper } from "./wrapper";
 
 const DEFAULT_GAS_MULTIPLIER = 1;
@@ -14,6 +17,8 @@ export class FixedGasProvider extends ProviderWrapper {
   public async request(args: RequestArguments): Promise<unknown> {
     if (args.method === "eth_sendTransaction") {
       const params = this._getParams(args);
+
+      // TODO: Should we validate this type?
       const tx = params[0];
       if (tx !== undefined && tx.gas === undefined) {
         tx.gas = numberToRpcQuantity(this._gasLimit);
@@ -32,6 +37,8 @@ export class FixedGasPriceProvider extends ProviderWrapper {
   public async request(args: RequestArguments): Promise<unknown> {
     if (args.method === "eth_sendTransaction") {
       const params = this._getParams(args);
+
+      // TODO: Should we validate this type?
       const tx = params[0];
       if (tx !== undefined && tx.gasPrice === undefined) {
         tx.gasPrice = numberToRpcQuantity(this._gasPrice);
@@ -109,6 +116,8 @@ export class AutomaticGasProvider extends MultipliedGasEstimationProvider {
   public async request(args: RequestArguments): Promise<unknown> {
     if (args.method === "eth_sendTransaction") {
       const params = this._getParams(args);
+
+      // TODO: Should we validate this type?
       const tx = params[0];
       if (tx !== undefined && tx.gas === undefined) {
         tx.gas = await this._getMultipliedGasEstimation(params);
@@ -125,6 +134,8 @@ export class AutomaticGasPriceProvider extends ProviderWrapper {
   public async request(args: RequestArguments): Promise<unknown> {
     if (args.method === "eth_sendTransaction") {
       const params = this._getParams(args);
+
+      // TODO: Should we validate this type?
       const tx = params[0];
       if (tx !== undefined && tx.gasPrice === undefined) {
         tx.gasPrice = await this._getGasPriceAsQuantity();
