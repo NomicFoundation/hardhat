@@ -10,7 +10,7 @@ import Bloom from "@ethereumjs/vm/dist/bloom";
 import { EVMResult, ExecResult } from "@ethereumjs/vm/dist/evm/evm";
 import { ERROR } from "@ethereumjs/vm/dist/exceptions";
 import { RunBlockResult } from "@ethereumjs/vm/dist/runBlock";
-import { DefaultStateManager, StateManager } from "@ethereumjs/vm/dist/state";
+import { StateManager } from "@ethereumjs/vm/dist/state";
 import chalk from "chalk";
 import debug from "debug";
 import {
@@ -61,6 +61,7 @@ import { bloomFilter, Filter, filterLogs, LATEST_BLOCK, Type } from "./filter";
 import { ForkBlockchain } from "./fork/ForkBlockchain";
 import { ForkStateManager } from "./fork/ForkStateManager";
 import { HardhatBlockchain } from "./HardhatBlockchain";
+import { HardhatStateManager } from "./HardhatStateManager";
 import {
   CallParams,
   EstimateGasResult,
@@ -151,13 +152,11 @@ export class HardhatNode extends EventEmitter {
         getDifferenceInSeconds(new Date(forkBlockTimestamp), new Date())
       );
     } else {
-      const stateTrie = await makeStateTrie(genesisAccounts);
-      common = makeCommon(config, stateTrie);
+      const hardhatStateManager = new HardhatStateManager();
+      await hardhatStateManager.initializeGenesisAccounts(genesisAccounts);
 
-      stateManager = new DefaultStateManager({
-        common,
-        trie: stateTrie,
-      });
+      const initialStateRoot = await hardhatStateManager.getStateRoot();
+      common = makeCommon(config, initialStateRoot);
 
       const hardhatBlockchain = new HardhatBlockchain();
       await putGenesisBlock(hardhatBlockchain, common);
@@ -169,6 +168,7 @@ export class HardhatNode extends EventEmitter {
       }
 
       blockchain = hardhatBlockchain;
+      stateManager = hardhatStateManager;
     }
 
     const txPool = new TxPool(stateManager, new BN(blockGasLimit), common);
