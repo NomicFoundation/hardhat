@@ -285,7 +285,8 @@ describe("Resolver", function () {
         );
 
         await expectHardhatErrorAsync(
-          () => resolver.resolveSourceName("@not-installed/contracts/tokens/l.sol"),
+          () =>
+            resolver.resolveSourceName("@not-installed/contracts/tokens/l.sol"),
           ERRORS.RESOLVER.LIBRARY_NOT_INSTALLED,
           "Library @not-installed/contracts is not installed"
         );
