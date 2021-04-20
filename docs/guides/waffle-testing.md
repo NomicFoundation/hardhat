@@ -46,7 +46,7 @@ Look at the `hardhat.config.js` file and you'll see that the Waffle plugin is en
 <<< @/../packages/hardhat-core/sample-project/hardhat.config.js{1}
 
 ::: tip
-There's no need for `require("@nomiclabs/hardhat-ethers")`, as `hardhat-waffle` already does it.
+There's no need for `require("@nomiclabs/hardhat-ethers")`, as `@nomiclabs/hardhat-waffle` already does it.
 :::
 
 ## Testing
@@ -77,7 +77,7 @@ const { expect } = require("chai");
 
 We are requiring `Chai` which is an assertions library. These asserting functions are called "matchers", and the ones we're using here actually come from Waffle.
 
-This is why we're using the `hardhat-waffle` plugin, which makes it easier to assert values from Ethereum. Check out [this section](https://ethereum-waffle.readthedocs.io/en/latest/matchers.html) in Waffle's documentation for the entire list of Ethereum-specific matchers.
+This is why we're using the `@nomiclabs/hardhat-waffle` plugin, which makes it easier to assert values from Ethereum. Check out [this section](https://ethereum-waffle.readthedocs.io/en/latest/matchers.html) in Waffle's documentation for the entire list of Ethereum-specific matchers.
 
 ::: warning
 Some Waffle matchers return a Promise rather than executing immediately. If you're making a call or sending a transaction, make sure to check Waffle's documentation, and `await` these Promises. Otherwise your tests may pass without running all checks.
