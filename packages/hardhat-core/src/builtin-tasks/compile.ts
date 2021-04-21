@@ -805,6 +805,7 @@ subtask(TASK_COMPILE_SOLIDITY_EMIT_ARTIFACTS)
               sourceName: file.sourceName,
               contractName,
               contractOutput,
+              outputSources: output.sources,
             }
           );
 
