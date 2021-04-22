@@ -198,6 +198,36 @@ If you are sure you need a `tsconfig.json` file, here's a template to base yours
 However you modify it, please make sure your config file is included in your project. The easiest way of doing this is
 by keeping its path in the `files` array.
 
+### Support for path mappings
+
+Typescript allows defining custom [path mappings](https://www.typescriptlang.org/docs/handbook/module-resolution.html#path-mapping) via the [`paths`](https://www.typescriptlang.org/tsconfig#paths) configuration option:
+
+```json5
+{
+  "compilerOptions": {
+    "paths": { "~/*": ["src/*"] },
+    // ...Other compilerOptions
+  },
+  "include": ["./scripts", "./test"],
+  "files": ["./hardhat.config.ts"]
+}
+```
+
+To support this option when running Hardhat tests or scripts, you need to install the package [`tsconfig-paths`](https://www.npmjs.com/package/tsconfig-paths) and register it in your `hardhat.config.ts`:
+
+```typescript
+import { HardhatUserConfig } from 'hardhat/config';
+
+// This adds support for typescript paths mappings
+import 'tsconfig-paths/register';
+
+const config: HardhatUserConfig = {
+  // Your type-safe config goes here
+};
+
+export default config;
+```
+
 ## Performance optimizations
 
 Under the hood, Hardhat uses [ts-node](https://www.npmjs.com/package/ts-node) to support TypeScript. By default, it
