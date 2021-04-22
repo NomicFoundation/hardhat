@@ -202,7 +202,7 @@ by keeping its path in the `files` array.
 
 Typescript allows defining custom [path mappings](https://www.typescriptlang.org/docs/handbook/module-resolution.html#path-mapping) via the [`paths`](https://www.typescriptlang.org/tsconfig#paths) configuration option:
 
-```json
+```json5
 {
   "compilerOptions": {
     "paths": { "~/*": ["src/*"] },
