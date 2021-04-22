@@ -83,12 +83,13 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
     if (args.method === "eth_signTypedData_v4") {
       const [address, data] = validateParams(params, rpcAddress, t.any);
 
-      if (address !== undefined) {
-        if (data === undefined) {
-          throw new HardhatError(ERRORS.NETWORK.ETHSIGN_MISSING_DATA_PARAM);
-        }
+      if (data === undefined) {
+        throw new HardhatError(ERRORS.NETWORK.ETHSIGN_MISSING_DATA_PARAM);
+      }
 
-        const privateKey = this._getPrivateKeyForAddress(address);
+      // if we don't manage the address, the method is forwarded
+      const privateKey = this._getPrivateKeyForAddressOrNull(address);
+      if (privateKey !== null) {
         return ethSigUtil.signTypedData_v4(privateKey, {
           data,
         });
@@ -169,6 +170,14 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
     }
 
     return pk;
+  }
+
+  private _getPrivateKeyForAddressOrNull(address: Buffer): Buffer | null {
+    try {
+      return this._getPrivateKeyForAddress(address);
+    } catch (e) {
+      return null;
+    }
   }
 
   private async _getNonce(address: Buffer): Promise<BN> {

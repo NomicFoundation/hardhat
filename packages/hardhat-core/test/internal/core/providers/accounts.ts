@@ -421,20 +421,15 @@ describe("Local accounts provider", () => {
       );
     });
 
-    it("Should throw if the address isn't one of the local ones", async () => {
-      await expectHardhatErrorAsync(
-        () =>
-          wrapper.request({
-            method: "eth_signTypedData_v4",
-            params: ["0x000006d4548a3ac17d72b372ae1e416bf65b8ead", {}],
-          }),
-        ERRORS.NETWORK.NOT_LOCAL_ACCOUNT
-      );
-    });
-
-    it("Should just forward if no address is given", async () => {
-      await wrapper.request({ method: "eth_signTypedData_v4" });
-      assert.deepEqual(mock.getLatestParams("eth_signTypedData_v4"), []);
+    it("Should just forward if the address isn't one of the local ones", async () => {
+      await wrapper.request({
+        method: "eth_signTypedData_v4",
+        params: ["0x000006d4548a3ac17d72b372ae1e416bf65b8ead", {}],
+      });
+      assert.deepEqual(mock.getLatestParams("eth_signTypedData_v4"), [
+        "0x000006d4548a3ac17d72b372ae1e416bf65b8ead",
+        {},
+      ]);
     });
   });
 });
