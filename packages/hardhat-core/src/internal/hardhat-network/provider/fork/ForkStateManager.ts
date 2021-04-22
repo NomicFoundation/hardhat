@@ -18,7 +18,11 @@ import { JsonRpcClient } from "../../jsonrpc/client";
 import { GenesisAccount } from "../node-types";
 import { makeAccount } from "../utils/makeAccount";
 
-import { AccountState, makeAccountState } from "./AccountState";
+import {
+  AccountState,
+  makeAccountState,
+  makeEmptyAccountState,
+} from "./AccountState";
 import { randomHash } from "./random";
 
 const encodeStorageKey = (address: Buffer, position: Buffer): string => {
@@ -355,7 +359,11 @@ export class ForkStateManager implements EIP2929StateManager {
   }
 
   public async deleteAccount(address: Address): Promise<void> {
-    this._state.delete(address.toString());
+    // we set an empty account instead of deleting it to avoid
+    // re-fetching the state from the remote node.
+    // This is only valid post spurious dragon, but we don't support older hardforks when forking.
+    const emptyAccount = makeEmptyAccountState();
+    this._state = this._state.set(address.toString(), emptyAccount);
   }
 
   public clearOriginalStorageCache(): void {
