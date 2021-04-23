@@ -1,4 +1,5 @@
 import { assert } from "chai";
+import { intToHex } from "ethereumjs-util";
 import sinon from "sinon";
 
 import {
@@ -8,7 +9,10 @@ import {
 import { expectErrorAsync } from "../../../../helpers/errors";
 import { ALCHEMY_URL } from "../../../../setup";
 import { workaroundWindowsCiFailures } from "../../../../utils/workaround-windows-ci-failures";
-import { assertInvalidArgumentsError } from "../../helpers/assertions";
+import {
+  assertInvalidArgumentsError,
+  assertInvalidInputError,
+} from "../../helpers/assertions";
 import { EMPTY_ACCOUNT_ADDRESS } from "../../helpers/constants";
 import { setCWD } from "../../helpers/cwd";
 import { DEFAULT_ACCOUNTS_ADDRESSES, PROVIDERS } from "../../helpers/providers";
@@ -364,6 +368,108 @@ describe("Hardhat module", function () {
             assert.equal(await getLatestBlockNumber(), 0);
           });
         }
+      });
+
+      describe("hardhat_setNonce", function () {
+        it("should reject an invalid address", async function () {
+          await assertInvalidArgumentsError(
+            this.provider,
+            "hardhat_setNonce",
+            ["0x1234", "0x0"],
+            'Errors encountered in param 0: Invalid value "0x1234" supplied to : ADDRESS'
+          );
+        });
+
+        it("should reject a non-numeric nonce", async function () {
+          await assertInvalidArgumentsError(
+            this.provider,
+            "hardhat_setNonce",
+            [DEFAULT_ACCOUNTS_ADDRESSES[0].toString(), "xyz"],
+            'Errors encountered in param 1: Invalid value "xyz" supplied to : QUANTITY'
+          );
+        });
+
+        it("should not reject valid argument types", async function () {
+          await this.provider.send("hardhat_setNonce", [
+            DEFAULT_ACCOUNTS_ADDRESSES[0].toString(),
+            "0x0",
+          ]);
+        });
+
+        it("should throw an InvalidInputError if new nonce is smaller than the current nonce", async function () {
+          // Arrange: Send a transaction, in order to ensure a non-zero nonce.
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              value: "0x100",
+            },
+          ]);
+          await this.provider.send("evm_mine");
+
+          // Act & Assert: Ensure that a zero nonce now triggers the error.
+          await assertInvalidInputError(
+            this.provider,
+            "hardhat_setNonce",
+            [DEFAULT_ACCOUNTS_ADDRESSES[0], "0x0"],
+            "New nonce must not be smaller than the existing nonce"
+          );
+        });
+
+        it("should result in a modified nonce", async function () {
+          // Arrange: Send a transaction, in order to ensure a non-zero nonce.
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              value: "0x100",
+            },
+          ]);
+          await this.provider.send("evm_mine");
+
+          // Act: Set the new nonce.
+          const targetNonce = 99;
+          await this.provider.send("hardhat_setNonce", [
+            DEFAULT_ACCOUNTS_ADDRESSES[0],
+            intToHex(targetNonce),
+          ]);
+
+          // Assert: Ensure nonce got set.
+          const resultingNonce = await this.provider.send(
+            "eth_getTransactionCount",
+            [DEFAULT_ACCOUNTS_ADDRESSES[0], "latest"]
+          );
+          assert.equal(resultingNonce, targetNonce);
+        });
+
+        it("should not result in a modified state root", async function () {
+          // Arrange 1: Send a transaction, in order to ensure a non-zero nonce.
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              value: "0x100",
+            },
+          ]);
+          await this.provider.send("evm_mine");
+
+          // Arrange 2: Capture the existing state root.
+          const oldStateRoot = (
+            await this.provider.send("eth_getBlockByNumber", ["latest", false])
+          ).stateRoot;
+
+          // Act: Set the new nonce.
+          await this.provider.send("hardhat_setNonce", [
+            DEFAULT_ACCOUNTS_ADDRESSES[0],
+            intToHex(99),
+          ]);
+
+          // Assert: Ensure state root hasn't changed.
+          const newStateRoot = (
+            await this.provider.send("eth_getBlockByNumber", ["latest", false])
+          ).stateRoot;
+          assert.equal(newStateRoot, oldStateRoot);
+        });
       });
     });
   });

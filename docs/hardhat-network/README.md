@@ -362,6 +362,7 @@ To customise it, take a look at [the configuration section](/config/README.md#ha
 - `hardhat_impersonateAccount` – see the [Mainnet Forking guide](../guides/mainnet-forking.md)
 - `hardhat_reset` – see the [Mainnet Forking guide](../guides/mainnet-forking.md)
 - `hardhat_setLoggingEnabled` – Enable or disable logging in Hardhat Network
+- `hardhat_setNonce` – Modifies an account's nonce by overwriting it. Throws an InvalidInputError if nonce is smaller than the current one. The reason for this restriction is to avoid collisions when deploying contracts using the same nonce more than once.
 - `hardhat_stopImpersonatingAccount` – see the [Mainnet Forking guide](../guides/mainnet-forking.md)
 
 #### Special testing/debugging methods

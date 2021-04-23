@@ -923,6 +923,17 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     await this._txPool.updatePendingAndQueued();
   }
 
+  public async setAccountNonce(address: Address, newNonce: BN): Promise<void> {
+    const account = await this._stateManager.getAccount(address);
+    if (newNonce.lt(account.nonce)) {
+      throw new InvalidInputError(
+        "New nonce must not be smaller than the existing nonce"
+      );
+    }
+    account.nonce = newNonce;
+    await this._stateManager.putAccount(address, account);
+  }
+
   private async _addPendingTransaction(tx: TypedTransaction): Promise<string> {
     await this._txPool.addTransaction(tx);
     await this._notifyPendingTransaction(tx);

@@ -1,4 +1,4 @@
-import { BN } from "ethereumjs-util";
+import { Address, BN } from "ethereumjs-util";
 import * as t from "io-ts";
 
 import {
@@ -6,7 +6,10 @@ import {
   CompilerInput,
   CompilerOutput,
 } from "../../../../types";
-import { rpcAddress } from "../../../core/jsonrpc/types/base-types";
+import {
+  rpcAddress,
+  rpcQuantity,
+} from "../../../core/jsonrpc/types/base-types";
 import {
   optionalRpcHardhatNetworkConfig,
   RpcHardhatNetworkConfig,
@@ -69,6 +72,9 @@ export class HardhatModule {
         return this._setLoggingEnabledAction(
           ...this._setLoggingEnabledParams(params)
         );
+
+      case "hardhat_setNonce":
+        return this._setNonceAction(...this._setNonceParams(params));
     }
 
     throw new MethodNotFoundError(`Method ${method} not found`);
@@ -177,6 +183,17 @@ export class HardhatModule {
     loggingEnabled: boolean
   ): Promise<true> {
     this._setLoggingEnabledCallback(loggingEnabled);
+    return true;
+  }
+
+  // hardhat_setNonce
+
+  private _setNonceParams(params: any[]): [Buffer, BN] {
+    return validateParams(params, rpcAddress, rpcQuantity);
+  }
+
+  private async _setNonceAction(address: Buffer, newNonce: BN) {
+    await this._node.setAccountNonce(new Address(address), newNonce);
     return true;
   }
 
