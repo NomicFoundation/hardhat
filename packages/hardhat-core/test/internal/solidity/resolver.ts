@@ -267,8 +267,28 @@ describe("Resolver", function () {
 
       it("Should fail if the library is not installed", async function () {
         await expectHardhatErrorAsync(
+          () => resolver.resolveSourceName("not-installed.sol"),
+          ERRORS.RESOLVER.LIBRARY_NOT_INSTALLED,
+          "Library not-installed.sol is not installed"
+        );
+
+        await expectHardhatErrorAsync(
           () => resolver.resolveSourceName("not-installed/l.sol"),
-          ERRORS.RESOLVER.LIBRARY_NOT_INSTALLED
+          ERRORS.RESOLVER.LIBRARY_NOT_INSTALLED,
+          "Library not-installed is not installed"
+        );
+
+        await expectHardhatErrorAsync(
+          () => resolver.resolveSourceName("@not-installed/contracts/l.sol"),
+          ERRORS.RESOLVER.LIBRARY_NOT_INSTALLED,
+          "Library @not-installed/contracts is not installed"
+        );
+
+        await expectHardhatErrorAsync(
+          () =>
+            resolver.resolveSourceName("@not-installed/contracts/tokens/l.sol"),
+          ERRORS.RESOLVER.LIBRARY_NOT_INSTALLED,
+          "Library @not-installed/contracts is not installed"
         );
       });
 
