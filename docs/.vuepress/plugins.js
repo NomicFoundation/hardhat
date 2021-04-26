@@ -276,7 +276,7 @@ const plugins = [
     tags: ["Networks", "Config"],
   },
   {
-    name: "@eth-optimisim/smock",
+    name: "@eth-optimism/smock",
     author: "Optimism",
     authorUrl: "https://github.com/ethereum-optimism",
     url: "https://github.com/ethereum-optimism/smock/tree/master",
