@@ -1,4 +1,4 @@
-import Common from "ethereumjs-common";
+import Common from "@ethereumjs/common";
 import { bufferToHex } from "ethereumjs-util";
 
 import { dateToTimestampSeconds } from "../../../util/date";
@@ -15,7 +15,7 @@ export function makeCommon(
     blockGasLimit,
     hardfork,
   }: LocalNodeConfig,
-  stateTrie: any
+  stateRoot: Buffer
 ) {
   const initialBlockTimestamp =
     initialDate !== undefined
@@ -33,9 +33,9 @@ export function makeCommon(
         hash: "0x",
         gasLimit: blockGasLimit,
         difficulty: 1,
-        nonce: "0x42",
+        nonce: "0x0000000000000042",
         extraData: "0x1234",
-        stateRoot: bufferToHex(stateTrie.root),
+        stateRoot: bufferToHex(stateRoot),
       },
     },
     hardfork

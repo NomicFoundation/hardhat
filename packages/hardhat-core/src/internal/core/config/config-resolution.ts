@@ -160,12 +160,24 @@ function resolveHardhatNetworkConfig(
       clonedDefaultHardhatNetworkParams.minGasPrice
   );
 
+  const blockGasLimit =
+    hardhatNetworkConfig.blockGasLimit ??
+    clonedDefaultHardhatNetworkParams.blockGasLimit;
+
+  const gas = hardhatNetworkConfig.gas ?? blockGasLimit;
+
+  const initialDate =
+    hardhatNetworkConfig.initialDate ?? new Date().toISOString();
+
   const config = {
     ...clonedDefaultHardhatNetworkParams,
     ...hardhatNetworkConfig,
     accounts,
     forking,
     mining,
+    blockGasLimit,
+    gas,
+    initialDate,
     minGasPrice,
   };
 

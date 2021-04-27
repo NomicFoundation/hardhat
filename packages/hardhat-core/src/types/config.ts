@@ -113,7 +113,7 @@ export interface HardhatNetworkConfig {
   throwOnTransactionFailures: boolean;
   throwOnCallFailures: boolean;
   allowUnlimitedContractSize: boolean;
-  initialDate?: string;
+  initialDate: string;
   loggingEnabled: boolean;
   forking?: HardhatNetworkForkingConfig;
 }

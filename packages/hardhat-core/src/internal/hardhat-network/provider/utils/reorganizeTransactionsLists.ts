@@ -1,7 +1,7 @@
 import { BN } from "ethereumjs-util";
 
-import { InternalError } from "../errors";
-import { retrieveNonce, SenderTransactions } from "../PoolState";
+import { InternalError } from "../../../core/providers/errors";
+import { SenderTransactions, SerializedTransaction } from "../PoolState";
 
 // tslint:disable only-hardhat-error
 
@@ -13,7 +13,8 @@ import { retrieveNonce, SenderTransactions } from "../PoolState";
  */
 export function reorganizeTransactionsLists(
   pending: SenderTransactions,
-  queued: SenderTransactions
+  queued: SenderTransactions,
+  retrieveNonce: (serializedTx: SerializedTransaction) => BN
 ) {
   let newPending = pending;
   let newQueued = queued.sortBy(retrieveNonce, (l, r) => l.cmp(r));

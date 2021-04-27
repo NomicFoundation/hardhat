@@ -1,7 +1,7 @@
 import { assert } from "chai";
 import chalk from "chalk";
 
-import { numberToRpcQuantity } from "../../../../src/internal/hardhat-network/provider/output";
+import { numberToRpcQuantity } from "../../../../src/internal/core/jsonrpc/types/base-types";
 import { workaroundWindowsCiFailures } from "../../../utils/workaround-windows-ci-failures";
 import { EXAMPLE_CONTRACT, EXAMPLE_READ_CONTRACT } from "../helpers/contracts";
 import { setCWD } from "../helpers/cwd";
@@ -17,7 +17,7 @@ import { useHelpers } from "../helpers/useHelpers";
 
 describe("Provider logs", function () {
   PROVIDERS.forEach(({ isFork, name, useProvider }) => {
-    workaroundWindowsCiFailures({ isFork });
+    workaroundWindowsCiFailures.call(this, { isFork });
 
     describe(`${name} provider`, function () {
       setCWD();

@@ -1,6 +1,6 @@
 import { assert } from "chai";
 
-import { numberToRpcQuantity } from "../../../../../src/internal/hardhat-network/provider/output";
+import { numberToRpcQuantity } from "../../../../../src/internal/core/jsonrpc/types/base-types";
 import { workaroundWindowsCiFailures } from "../../../../utils/workaround-windows-ci-failures";
 import { setCWD } from "../../helpers/cwd";
 import { PROVIDERS } from "../../helpers/providers";
@@ -11,7 +11,7 @@ describe("Net module", function () {
       this.timeout(50000);
     }
 
-    workaroundWindowsCiFailures({ isFork });
+    workaroundWindowsCiFailures.call(this, { isFork });
 
     describe(`${name} provider`, function () {
       setCWD();

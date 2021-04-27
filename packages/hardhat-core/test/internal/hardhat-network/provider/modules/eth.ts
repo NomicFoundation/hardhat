@@ -1,16 +1,21 @@
+import Common from "@ethereumjs/common";
+import { AccessListEIP2930Transaction, Transaction } from "@ethereumjs/tx";
 import { assert } from "chai";
-import Common from "ethereumjs-common";
-import { Transaction } from "ethereumjs-tx";
 import { BN, bufferToHex, toBuffer, zeroAddress } from "ethereumjs-util";
 import { Context } from "mocha";
 
-import { rpcQuantityToNumber } from "../../../../../src/internal/core/providers/provider-utils";
-import { InvalidInputError } from "../../../../../src/internal/hardhat-network/provider/errors";
+import {
+  bufferToRpcData,
+  numberToRpcQuantity,
+  rpcDataToNumber,
+  rpcQuantityToBN,
+  rpcQuantityToNumber,
+} from "../../../../../src/internal/core/jsonrpc/types/base-types";
+import { InvalidInputError } from "../../../../../src/internal/core/providers/errors";
 import { randomAddress } from "../../../../../src/internal/hardhat-network/provider/fork/random";
 import { COINBASE_ADDRESS } from "../../../../../src/internal/hardhat-network/provider/node";
 import { TransactionParams } from "../../../../../src/internal/hardhat-network/provider/node-types";
 import {
-  numberToRpcQuantity,
   RpcBlockOutput,
   RpcReceiptOutput,
   RpcTransactionOutput,
@@ -28,6 +33,7 @@ import {
   assertNodeBalances,
   assertNotSupported,
   assertPendingNodeBalances,
+  assertProviderError,
   assertQuantity,
   assertReceiptMatchesGethOne,
   assertTransaction,
@@ -40,11 +46,6 @@ import {
   EXAMPLE_READ_CONTRACT,
   EXAMPLE_SETTER_CONTRACT,
 } from "../../helpers/contracts";
-import {
-  dataToNumber,
-  quantityToBN,
-  quantityToNumber,
-} from "../../helpers/conversions";
 import { setCWD } from "../../helpers/cwd";
 import {
   DEFAULT_ACCOUNTS_ADDRESSES,
@@ -63,6 +64,7 @@ import {
   sendTxToZeroAddress,
 } from "../../helpers/transactions";
 import { useHelpers } from "../../helpers/useHelpers";
+import { useProvider as importedUseProvider } from "../../helpers/useProvider";
 
 // tslint:disable-next-line no-var-requires
 const { recoverTypedSignature_v4 } = require("eth-sig-util");
@@ -75,7 +77,7 @@ describe("Eth module", function () {
       this.timeout(50000);
     }
 
-    workaroundWindowsCiFailures({ isFork });
+    workaroundWindowsCiFailures.call(this, { isFork });
 
     describe(`${name} provider`, function () {
       setCWD();
@@ -248,7 +250,7 @@ describe("Eth module", function () {
               },
             ]);
 
-            assert.equal(dataToNumber(blockResult), firstBlock + 1);
+            assert.equal(rpcDataToNumber(blockResult), firstBlock + 1);
 
             const timestampResult = await this.provider.send("eth_call", [
               {
@@ -329,7 +331,7 @@ describe("Eth module", function () {
               numberToRpcQuantity(blockNumber),
             ]);
 
-            assert.equal(dataToNumber(blockResult), blockNumber);
+            assert.equal(rpcDataToNumber(blockResult), blockNumber);
           });
 
           it("should accept a gas limit higher than the block gas limit being used", async function () {
@@ -353,7 +355,7 @@ describe("Eth module", function () {
               numberToRpcQuantity(blockNumber),
             ]);
 
-            assert.equal(dataToNumber(blockResult), blockNumber);
+            assert.equal(rpcDataToNumber(blockResult), blockNumber);
 
             const blockResult2 = await this.provider.send("eth_call", [
               {
@@ -364,7 +366,7 @@ describe("Eth module", function () {
               "pending",
             ]);
 
-            assert.equal(dataToNumber(blockResult2), blockNumber + 1);
+            assert.equal(rpcDataToNumber(blockResult2), blockNumber + 1);
           });
         });
 
@@ -387,7 +389,7 @@ describe("Eth module", function () {
               "latest",
             ]);
 
-            assert.equal(dataToNumber(blockResult), firstBlock + 1);
+            assert.equal(rpcDataToNumber(blockResult), firstBlock + 1);
 
             const timestampResult = await this.provider.send("eth_call", [
               {
@@ -420,7 +422,7 @@ describe("Eth module", function () {
               "pending",
             ]);
 
-            assert.equal(dataToNumber(blockResult), firstBlock + 2);
+            assert.equal(rpcDataToNumber(blockResult), firstBlock + 2);
 
             const timestampResult = await this.provider.send("eth_call", [
               {
@@ -504,7 +506,7 @@ describe("Eth module", function () {
               numberToRpcQuantity(firstBlock + 1),
             ]);
 
-            assert.equal(dataToNumber(blockResult), firstBlock + 1);
+            assert.equal(rpcDataToNumber(blockResult), firstBlock + 1);
           });
 
           it("Should throw invalid input error if called in the context of a nonexistent block", async function () {
@@ -601,7 +603,7 @@ describe("Eth module", function () {
         it("should return the the hardcoded coinbase address", async function () {
           assert.equal(
             await this.provider.send("eth_coinbase"),
-            bufferToHex(COINBASE_ADDRESS)
+            COINBASE_ADDRESS.toString()
           );
         });
       });
@@ -780,7 +782,7 @@ describe("Eth module", function () {
 
           assertQuantity(
             await this.provider.send("eth_getBalance", [
-              bufferToHex(EMPTY_ACCOUNT_ADDRESS),
+              EMPTY_ACCOUNT_ADDRESS.toString(),
             ]),
             0
           );
@@ -930,7 +932,7 @@ describe("Eth module", function () {
           await this.provider.send("eth_sendTransaction", [
             {
               from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              to: bufferToHex(EMPTY_ACCOUNT_ADDRESS),
+              to: EMPTY_ACCOUNT_ADDRESS.toString(),
               value: numberToRpcQuantity(1),
             },
           ]);
@@ -938,7 +940,7 @@ describe("Eth module", function () {
           if (!isFork) {
             assert.strictEqual(
               await this.provider.send("eth_getBalance", [
-                bufferToHex(EMPTY_ACCOUNT_ADDRESS),
+                EMPTY_ACCOUNT_ADDRESS.toString(),
                 "earliest",
               ]),
               "0x0"
@@ -947,7 +949,7 @@ describe("Eth module", function () {
 
           assert.strictEqual(
             await this.provider.send("eth_getBalance", [
-              bufferToHex(EMPTY_ACCOUNT_ADDRESS),
+              EMPTY_ACCOUNT_ADDRESS.toString(),
               numberToRpcQuantity(firstBlock),
             ]),
             "0x0"
@@ -955,7 +957,7 @@ describe("Eth module", function () {
 
           assert.strictEqual(
             await this.provider.send("eth_getBalance", [
-              bufferToHex(EMPTY_ACCOUNT_ADDRESS),
+              EMPTY_ACCOUNT_ADDRESS.toString(),
               numberToRpcQuantity(firstBlock + 1),
             ]),
             "0x1"
@@ -963,7 +965,7 @@ describe("Eth module", function () {
 
           assert.strictEqual(
             await this.provider.send("eth_getBalance", [
-              bufferToHex(EMPTY_ACCOUNT_ADDRESS),
+              EMPTY_ACCOUNT_ADDRESS.toString(),
             ]),
             "0x1"
           );
@@ -1016,7 +1018,7 @@ describe("Eth module", function () {
           assertQuantity(block.number, firstBlock + 1);
           assert.equal(block.transactions.length, 1);
           assert.include(block.transactions as string[], txHash);
-          assert.equal(block.miner, bufferToHex(COINBASE_ADDRESS));
+          assert.equal(block.miner, COINBASE_ADDRESS.toString());
           assert.isEmpty(block.uncles);
         });
 
@@ -1036,7 +1038,7 @@ describe("Eth module", function () {
           assert.equal(block.hash, txOutput.blockHash);
           assertQuantity(block.number, firstBlock + 1);
           assert.equal(block.transactions.length, 1);
-          assert.equal(block.miner, bufferToHex(COINBASE_ADDRESS));
+          assert.equal(block.miner, COINBASE_ADDRESS.toString());
           assert.deepEqual(
             block.transactions[0] as RpcTransactionOutput,
             txOutput
@@ -1096,7 +1098,7 @@ describe("Eth module", function () {
           assert.equal(block.transactions.length, 1);
           assert.equal(block.parentHash, firstBlock.hash);
           assert.include(block.transactions as string[], txHash);
-          assert.equal(block.miner, bufferToHex(COINBASE_ADDRESS));
+          assert.equal(block.miner, COINBASE_ADDRESS.toString());
           assert.isEmpty(block.uncles);
         });
 
@@ -1118,7 +1120,7 @@ describe("Eth module", function () {
           assert.equal(block.transactions.length, 1);
           assert.equal(block.parentHash, firstBlock.hash);
           assert.include(block.transactions as string[], txHash);
-          assert.equal(block.miner, bufferToHex(COINBASE_ADDRESS));
+          assert.equal(block.miner, COINBASE_ADDRESS.toString());
           assert.isEmpty(block.uncles);
         });
 
@@ -1139,7 +1141,7 @@ describe("Eth module", function () {
           assertQuantity(block.number, firstBlockNumber + 1);
           assert.equal(block.transactions.length, 1);
           assert.equal(block.parentHash, firstBlock.hash);
-          assert.equal(block.miner, bufferToHex(COINBASE_ADDRESS));
+          assert.equal(block.miner, COINBASE_ADDRESS.toString());
           assert.isEmpty(block.uncles);
 
           const txOutput = block.transactions[0] as RpcTransactionOutput;
@@ -1175,8 +1177,8 @@ describe("Eth module", function () {
 
           assertQuantity(
             block.totalDifficulty,
-            quantityToBN(forkBlock.totalDifficulty).add(
-              quantityToBN(block.difficulty)
+            rpcQuantityToBN(forkBlock.totalDifficulty).add(
+              rpcQuantityToBN(block.difficulty)
             )
           );
         }
@@ -1199,7 +1201,7 @@ describe("Eth module", function () {
 
           assertQuantity(
             block.totalDifficulty,
-            quantityToNumber(block.difficulty) + 1
+            rpcQuantityToNumber(block.difficulty) + 1
           );
         }
       });
@@ -1386,7 +1388,7 @@ describe("Eth module", function () {
           await assertInvalidInputError(
             this.provider,
             "eth_getCode",
-            [randomAddress(), numberToRpcQuantity(futureBlock)],
+            [randomAddress().toString(), numberToRpcQuantity(futureBlock)],
             `Received invalid block tag ${futureBlock}. Latest block number is ${firstBlock}`
           );
         });
@@ -1538,7 +1540,7 @@ describe("Eth module", function () {
           assert.equal(log.removed, false);
           assert.equal(log.logIndex, "0x0");
           assert.equal(log.transactionIndex, "0x0");
-          assert.equal(quantityToNumber(log.blockNumber), firstBlock + 2);
+          assert.equal(rpcQuantityToNumber(log.blockNumber), firstBlock + 2);
           assert.equal(log.address, exampleContract);
           assert.equal(log.data, `0x${newState}`);
         });
@@ -1823,7 +1825,7 @@ describe("Eth module", function () {
           assert.equal(log.removed, false);
           assert.equal(log.logIndex, "0x0");
           assert.equal(log.transactionIndex, "0x0");
-          assert.equal(quantityToNumber(log.blockNumber), firstBlock + 2);
+          assert.equal(rpcQuantityToNumber(log.blockNumber), firstBlock + 2);
           assert.equal(log.address, exampleContract);
           assert.equal(log.data, `0x${newState}`);
         });
@@ -2102,119 +2104,6 @@ describe("Eth module", function () {
           assert.notEqual(logs1, logs2);
           assert.notEqual(logs1[0], logs2[0]);
           assert.notEqual(logs2[0].address, "changed");
-        });
-
-        it("Should accept block hashes as from", async function () {
-          const blockNumberBegin = await this.provider.send("eth_blockNumber");
-          const exampleContract = await deployContract(
-            this.provider,
-            `0x${EXAMPLE_CONTRACT.bytecode.object}`
-          );
-
-          const newState =
-            "000000000000000000000000000000000000000000000000000000000000003b";
-
-          await this.provider.send("eth_sendTransaction", [
-            {
-              to: exampleContract,
-              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              data: EXAMPLE_CONTRACT.selectors.modifiesState + newState,
-            },
-          ]);
-
-          await this.provider.send("evm_mine", []);
-
-          const blockNumberEnd = await this.provider.send("eth_blockNumber");
-
-          const block0 = await this.provider.send("eth_getBlockByNumber", [
-            blockNumberBegin,
-            false,
-          ]);
-
-          const block3 = await this.provider.send("eth_getBlockByNumber", [
-            blockNumberEnd,
-            false,
-          ]);
-
-          const logsFromZero = await this.provider.send("eth_getLogs", [
-            {
-              address: exampleContract,
-              fromBlock: {
-                blockHash: block0.hash,
-              },
-            },
-          ]);
-
-          assert.lengthOf(logsFromZero, 1);
-
-          const logsFromThree = await this.provider.send("eth_getLogs", [
-            {
-              address: exampleContract,
-              fromBlock: {
-                blockHash: block3.hash,
-              },
-            },
-          ]);
-
-          assert.lengthOf(logsFromThree, 0);
-        });
-
-        it("Should accept block hashes as toBlock", async function () {
-          const exampleContract = await deployContract(
-            this.provider,
-            `0x${EXAMPLE_CONTRACT.bytecode.object}`
-          );
-
-          const newState =
-            "000000000000000000000000000000000000000000000000000000000000003b";
-
-          await this.provider.send("eth_sendTransaction", [
-            {
-              to: exampleContract,
-              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              data: EXAMPLE_CONTRACT.selectors.modifiesState + newState,
-            },
-          ]);
-
-          await this.provider.send("evm_mine", []);
-
-          const block0 = await this.provider.send("eth_getBlockByNumber", [
-            "0x0",
-            false,
-          ]);
-
-          const logsToZero = await this.provider.send("eth_getLogs", [
-            {
-              address: exampleContract,
-              toBlock: {
-                blockHash: block0.hash,
-              },
-            },
-          ]);
-
-          assert.lengthOf(logsToZero, 0);
-        });
-
-        it("Should throw if the block tag in toBlock or fromBlock doesn't exist", async function () {
-          await assertInvalidInputError(this.provider, "eth_getLogs", [
-            {
-              address: "0x0000000000000000000000000000000000000000",
-              fromBlock: {
-                blockHash:
-                  "0x1234567890123456789012345678901234567890123456789012345678901234",
-              },
-            },
-          ]);
-
-          await assertInvalidInputError(this.provider, "eth_getLogs", [
-            {
-              address: "0x0000000000000000000000000000000000000000",
-              toBlock: {
-                blockHash:
-                  "0x1234567890123456789012345678901234567890123456789012345678901234",
-              },
-            },
-          ]);
         });
 
         it("should have logIndex for logs in remote blocks", async function () {
@@ -2801,7 +2690,7 @@ describe("Eth module", function () {
         it("should return the transaction if it gets to execute and failed", async function () {
           const firstBlock = await getFirstBlock();
           const txParams: TransactionParams = {
-            to: toBuffer([]),
+            to: undefined,
             from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[1]),
             data: toBuffer("0x60006000fd"),
             nonce: new BN(0),
@@ -2890,9 +2779,9 @@ describe("Eth module", function () {
             }
           );
 
-          tx.sign(privateKey);
+          const signedTx = tx.sign(privateKey);
 
-          const rawTx = `0x${tx.serialize().toString("hex")}`;
+          const rawTx = `0x${signedTx.serialize().toString("hex")}`;
 
           const txHash = await this.provider.send("eth_sendRawTransaction", [
             rawTx,
@@ -2913,17 +2802,18 @@ describe("Eth module", function () {
 
           // tx.v is padded but fetchedTx.v is not, so we need to do this
           const fetchedTxV = new BN(toBuffer(fetchedTx.v));
-          const expectedTxV = new BN(tx.v);
+          const expectedTxV = new BN(signedTx.v!);
           assert.isTrue(fetchedTxV.eq(expectedTxV));
 
+          // Also equalize left padding (signedTx has a leading 0)
           assert.equal(
             toBuffer(fetchedTx.r).toString("hex"),
-            tx.r.toString("hex")
+            toBuffer(signedTx.r!).toString("hex")
           );
 
           assert.equal(
             toBuffer(fetchedTx.s).toString("hex"),
-            tx.s.toString("hex")
+            toBuffer(signedTx.s!).toString("hex")
           );
         });
 
@@ -2971,6 +2861,11 @@ describe("Eth module", function () {
             this.skip();
           }
           const rinkebyUrl = ALCHEMY_URL.replace("mainnet", "rinkeby");
+
+          // If "mainnet" is not present the replacement failed so we skip the test
+          if (rinkebyUrl === ALCHEMY_URL) {
+            this.skip();
+          }
 
           await this.provider.send("hardhat_reset", [
             {
@@ -3166,7 +3061,7 @@ describe("Eth module", function () {
           await assertInvalidInputError(
             this.provider,
             "eth_getTransactionCount",
-            [randomAddress(), numberToRpcQuantity(futureBlock)],
+            [randomAddress().toString(), numberToRpcQuantity(futureBlock)],
             `Received invalid block tag ${futureBlock}. Latest block number is ${firstBlock}`
           );
         });
@@ -3244,7 +3139,7 @@ describe("Eth module", function () {
 
         it("should return the receipt for txs that were executed and failed", async function () {
           const txParams: TransactionParams = {
-            to: toBuffer([]),
+            to: undefined,
             from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[1]),
             data: toBuffer("0x60006000fd"),
             nonce: new BN(0),
@@ -3523,10 +3418,10 @@ describe("Eth module", function () {
 
       describe("eth_sendRawTransaction", async function () {
         it("Should throw if the data isn't a proper transaction", async function () {
-          await assertInvalidInputError(
+          await assertInvalidArgumentsError(
             this.provider,
             "eth_sendRawTransaction",
-            ["0x123456"],
+            ["0x223456"],
             "Invalid transaction"
           );
         });
@@ -3536,7 +3431,7 @@ describe("Eth module", function () {
             this.skip();
             return;
           }
-          await assertInvalidInputError(
+          await assertInvalidArgumentsError(
             this.provider,
             "eth_sendRawTransaction",
             [
@@ -3552,13 +3447,13 @@ describe("Eth module", function () {
             this.skip();
             return;
           }
-          await assertInvalidInputError(
+          await assertInvalidArgumentsError(
             this.provider,
             "eth_sendRawTransaction",
             [
               "0xf86e820a0f843b9aca0083030d40941aad5e821c667e909c16a49363ca48f672b46c5d88169866e539efe0008025a07bc6a357d809c9d27f8f5a826861e7f9b4b7c9cff4f91f894b88e98212069b3da05dbadbdfa67bab1d76d2d81e33d90162d508431362331f266dd6aa0cb4b525aa",
             ],
-            "Incompatible EIP155-based"
+            "Trying to send an incompatible EIP-155 transaction"
           );
         });
 
@@ -3606,7 +3501,7 @@ describe("Eth module", function () {
         // of Ethereum: its state transition function.
         //
         // We have mostly test about logic added on top of that, and will add new ones whenever
-        // suitable. This is approximately the same as assuming that ethereumjs-vm is correct, which
+        // suitable. This is approximately the same as assuming that @ethereumjs/vm is correct, which
         // seems reasonable, and if it weren't we should address the issues there.
 
         describe("Params validation", function () {
@@ -3898,7 +3793,9 @@ describe("Eth module", function () {
                   "sender doesn't have enough funds to send tx"
                 );
                 assert.equal(
-                  quantityToNumber(await this.provider.send("eth_blockNumber")),
+                  rpcQuantityToNumber(
+                    await this.provider.send("eth_blockNumber")
+                  ),
                   firstBlock
                 );
                 assert.lengthOf(
@@ -3917,7 +3814,7 @@ describe("Eth module", function () {
 
               it("Should eventually mine the sent transaction", async function () {
                 await this.provider.send("evm_setAutomine", [false]);
-                const blockNumberBefore = quantityToNumber(
+                const blockNumberBefore = rpcQuantityToNumber(
                   await this.provider.send("eth_blockNumber")
                 );
 
@@ -3942,7 +3839,7 @@ describe("Eth module", function () {
                   "eth_getBlockByNumber",
                   ["latest", false]
                 );
-                const blockNumberAfter = quantityToNumber(blockAfter.number);
+                const blockNumberAfter = rpcQuantityToNumber(blockAfter.number);
 
                 assert.equal(blockNumberAfter, blockNumberBefore + 3);
                 assert.lengthOf(blockAfter.transactions, 1);
@@ -3990,7 +3887,9 @@ describe("Eth module", function () {
                   "sender doesn't have enough funds to send tx"
                 );
                 assert.equal(
-                  quantityToNumber(await this.provider.send("eth_blockNumber")),
+                  rpcQuantityToNumber(
+                    await this.provider.send("eth_blockNumber")
+                  ),
                   firstBlock
                 );
                 assert.lengthOf(
@@ -4682,61 +4581,49 @@ describe("Eth module", function () {
           await assertInvalidArgumentsError(this.provider, "eth_getBalance", [
             DEFAULT_ACCOUNTS_ADDRESSES[0],
             {
-              blockNumber: 0,
+              blockNumber: "0x0",
               blockHash: latestBlock.hash,
             },
           ]);
+        });
 
-          it("should accept a requireCanonical flag", async function () {
-            const block: RpcBlockOutput = await this.provider.send(
-              "eth_getBlockByNumber",
-              ["latest", false]
-            );
+        it("should not accept both a blockNumber and requireCanonical", async function () {
+          await assertInvalidArgumentsError(this.provider, "eth_getBalance", [
+            DEFAULT_ACCOUNTS_ADDRESSES[0],
+            {
+              blockNumber: "0x0",
+              requireCanonical: true,
+            },
+          ]);
+        });
 
-            assertQuantity(
-              await this.provider.send("eth_getBalance", [
-                zeroAddress(),
-                {
-                  blockNumber: block.number,
-                  requireCanonical: true,
-                },
-              ]),
-              0
-            );
+        it("should accept a requireCanonical flag", async function () {
+          const block: RpcBlockOutput = await this.provider.send(
+            "eth_getBlockByNumber",
+            ["0x0", false]
+          );
 
-            assertQuantity(
-              await this.provider.send("eth_getBalance", [
-                zeroAddress(),
-                {
-                  blockNumber: block.number,
-                  requireCanonical: false,
-                },
-              ]),
-              0
-            );
+          assertQuantity(
+            await this.provider.send("eth_getBalance", [
+              zeroAddress(),
+              {
+                blockHash: block.hash,
+                requireCanonical: true,
+              },
+            ]),
+            0
+          );
 
-            assertQuantity(
-              await this.provider.send("eth_getBalance", [
-                zeroAddress(),
-                {
-                  blockHash: block.hash,
-                  requireCanonical: true,
-                },
-              ]),
-              0
-            );
-
-            assertQuantity(
-              await this.provider.send("eth_getBalance", [
-                zeroAddress(),
-                {
-                  blockHash: block.hash,
-                  requireCanonical: false,
-                },
-              ]),
-              0
-            );
-          });
+          assertQuantity(
+            await this.provider.send("eth_getBalance", [
+              zeroAddress(),
+              {
+                blockHash: block.hash,
+                requireCanonical: false,
+              },
+            ]),
+            0
+          );
         });
       });
 
@@ -4840,6 +4727,681 @@ describe("Eth module", function () {
             block.receiptsRoot,
             "0xd95b673818fa493deec414e01e610d97ee287c9421c8eff4102b1647c1a184e4"
           );
+        });
+      });
+    });
+  });
+});
+
+describe("Eth module - hardfork dependant tests", function () {
+  function useProviderAndCommon(hardfork: string) {
+    importedUseProvider(undefined, undefined, undefined, undefined, hardfork);
+    beforeEach(async function () {
+      // TODO: Find out a better way to obtain the common here
+
+      // tslint:disable-next-line:no-string-literal
+      await this.hardhatNetworkProvider["_init"]();
+      // tslint:disable-next-line:no-string-literal
+      this.common = this.hardhatNetworkProvider["_common"];
+    });
+  }
+
+  const privateKey = Buffer.from(
+    "17ade313db5de97d19b4cfbc820d15e18a6c710c1afbf01c1f31249970d3ae46",
+    "hex"
+  );
+
+  function getSampleSignedTx(common?: Common) {
+    if (common === undefined) {
+      common = new Common({
+        chain: "mainnet",
+        hardfork: "spuriousDragon",
+      });
+    }
+
+    const tx = Transaction.fromTxData(
+      {
+        to: "0x1111111111111111111111111111111111111111",
+        gasLimit: 21000,
+        gasPrice: 0,
+      },
+      {
+        common,
+      }
+    );
+
+    return tx.sign(privateKey);
+  }
+
+  function getSampleSignedAccessListTx(common?: Common) {
+    if (common === undefined) {
+      common = new Common({
+        chain: "mainnet",
+        hardfork: "berlin",
+      });
+    }
+
+    const tx = AccessListEIP2930Transaction.fromTxData(
+      {
+        to: "0x1111111111111111111111111111111111111111",
+        gasLimit: 21000,
+        gasPrice: 0,
+      },
+      {
+        common,
+      }
+    );
+
+    return tx.sign(privateKey);
+  }
+
+  describe("Transaction, call and estimate gas validations", function () {
+    describe("chain id validation", function () {
+      describe("In a hardfork without access list but with EIP-155", function () {
+        useProviderAndCommon("spuriousDragon");
+
+        it("Should validate the chain id if sent to eth_sendTransaction", async function () {
+          const [sender] = await this.provider.send("eth_accounts");
+          await assertInvalidArgumentsError(
+            this.provider,
+            "eth_sendTransaction",
+            [{ from: sender, to: sender, chainId: numberToRpcQuantity(1) }],
+            "Invalid chainId"
+          );
+        });
+
+        it("Should validate the chain id if an EIP-155 tx is sent with eth_sendRawTransaction", async function () {
+          const signedTx = getSampleSignedTx();
+          const serialized = bufferToRpcData(signedTx.serialize());
+
+          await assertInvalidArgumentsError(
+            this.provider,
+            "eth_sendRawTransaction",
+            [serialized],
+            "signed for another chain"
+          );
+        });
+      });
+
+      describe("In a hardfork with access list", function () {
+        useProviderAndCommon("berlin");
+
+        it("Should validate the chain id if sent to eth_sendTransaction using access list", async function () {
+          const [sender] = await this.provider.send("eth_accounts");
+          await assertInvalidArgumentsError(
+            this.provider,
+            "eth_sendTransaction",
+            [
+              {
+                from: sender,
+                to: sender,
+                chainId: numberToRpcQuantity(1),
+                accessList: [],
+              },
+            ],
+            "Invalid chainId"
+          );
+        });
+
+        it("Should validate the chain id in eth_sendRawTransaction using an access list tx", async function () {
+          const signedTx = getSampleSignedAccessListTx();
+          const serialized = bufferToRpcData(signedTx.serialize());
+
+          await assertInvalidArgumentsError(
+            this.provider,
+            "eth_sendRawTransaction",
+            [serialized],
+            "Trying to send a raw transaction with an invalid chainId"
+          );
+        });
+      });
+    });
+
+    describe("Transaction type validation by hardfork", function () {
+      describe("Without EIP155 nor access list", function () {
+        useProviderAndCommon("tangerineWhistle");
+
+        it("Should reject an eth_sendRawTransaction if signed with EIP-155", async function () {
+          const spuriousDragonCommon = this.common.copy();
+          spuriousDragonCommon.setHardfork("spuriousDragon");
+
+          const signedTx = getSampleSignedTx(spuriousDragonCommon);
+          const serialized = bufferToRpcData(signedTx.serialize());
+
+          await assertInvalidArgumentsError(
+            this.provider,
+            "eth_sendRawTransaction",
+            [serialized],
+            "Trying to send an EIP-155 transaction"
+          );
+        });
+
+        it("Should reject an eth_sendRawTransaction if the tx uses an access list", async function () {
+          const berlinCommon = this.common.copy();
+          berlinCommon.setHardfork("berlin");
+
+          const signedTx = getSampleSignedAccessListTx(berlinCommon);
+          const serialized = bufferToRpcData(signedTx.serialize());
+
+          await assertInvalidArgumentsError(
+            this.provider,
+            "eth_sendRawTransaction",
+            [serialized],
+            "Trying to send an EIP-2930 transaction"
+          );
+        });
+
+        it("Should reject an eth_sendTransaction if an access list was provided", async function () {
+          const [sender] = await this.provider.send("eth_accounts");
+
+          await assertInvalidArgumentsError(
+            this.provider,
+            "eth_sendTransaction",
+            [{ from: sender, to: sender, accessList: [] }],
+            "Access list received but is not supported by the current hardfork"
+          );
+        });
+      });
+
+      describe("With EIP155 and not access list", function () {
+        useProviderAndCommon("spuriousDragon");
+
+        it("Should accept an eth_sendRawTransaction if signed with EIP-155", async function () {
+          const signedTx = getSampleSignedTx(this.common);
+          const serialized = bufferToRpcData(signedTx.serialize());
+
+          await this.provider.send("eth_sendRawTransaction", [serialized]);
+        });
+
+        it("Should reject an eth_sendRawTransaction if the tx uses an access list", async function () {
+          const berlinCommon = this.common.copy();
+          berlinCommon.setHardfork("berlin");
+
+          const signedTx = getSampleSignedAccessListTx(berlinCommon);
+          const serialized = bufferToRpcData(signedTx.serialize());
+
+          await assertInvalidArgumentsError(
+            this.provider,
+            "eth_sendRawTransaction",
+            [serialized],
+            "Trying to send an EIP-2930 transaction"
+          );
+        });
+
+        it("Should reject an eth_sendTransaction if an access list was provided", async function () {
+          const [sender] = await this.provider.send("eth_accounts");
+
+          await assertInvalidArgumentsError(
+            this.provider,
+            "eth_sendTransaction",
+            [{ from: sender, to: sender, accessList: [] }],
+            "Access list received but is not supported by the current hardfork"
+          );
+        });
+      });
+
+      describe("With access list", function () {
+        useProviderAndCommon("berlin");
+
+        it("Should accept an eth_sendRawTransaction if the tx uses an access list", async function () {
+          const signedTx = getSampleSignedAccessListTx(this.common);
+          const serialized = bufferToRpcData(signedTx.serialize());
+
+          await this.provider.send("eth_sendRawTransaction", [serialized]);
+        });
+
+        it("Should accept an eth_sendTransaction if an access list was provided", async function () {
+          const [sender] = await this.provider.send("eth_accounts");
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from: sender,
+              to: sender,
+              accessList: [],
+            },
+          ]);
+        });
+      });
+    });
+
+    describe("Call and estimate gas types validation by hardfork", function () {
+      describe("Without access list", function () {
+        useProviderAndCommon("petersburg");
+
+        it("Should reject an eth_call if an access list was provided", async function () {
+          const [sender] = await this.provider.send("eth_accounts");
+
+          await assertInvalidArgumentsError(
+            this.provider,
+            "eth_call",
+            [{ from: sender, to: sender, accessList: [] }],
+            "Access list received but is not supported by the current hardfork"
+          );
+        });
+
+        it("Should reject an eth_estimateGas if an access list was provided", async function () {
+          const [sender] = await this.provider.send("eth_accounts");
+
+          await assertInvalidArgumentsError(this.provider, "eth_estimateGas", [
+            { from: sender, to: sender, accessList: [] },
+          ]);
+        });
+      });
+
+      describe("With access list", function () {
+        useProviderAndCommon("berlin");
+
+        it("Should accept an eth_call if an access list was provided", async function () {
+          const [sender] = await this.provider.send("eth_accounts");
+
+          await this.provider.send("eth_call", [
+            { from: sender, to: sender, accessList: [] },
+          ]);
+        });
+
+        it("Should accept an eth_estimateGas if an access list was provided", async function () {
+          const [sender] = await this.provider.send("eth_accounts");
+
+          await this.provider.send("eth_estimateGas", [
+            { from: sender, to: sender, accessList: [] },
+          ]);
+        });
+      });
+    });
+  });
+
+  describe("Transaction and receipt output formatting", function () {
+    describe("Transactions formatting", function () {
+      describe("Before berlin", function () {
+        useProviderAndCommon("petersburg");
+        it("Should not include the fields type, chainId and accessList", async function () {
+          const [sender] = await this.provider.send("eth_accounts");
+          const txHash = await this.provider.send("eth_sendTransaction", [
+            { from: sender, to: sender },
+          ]);
+
+          const tx = await this.provider.send("eth_getTransactionByHash", [
+            txHash,
+          ]);
+
+          assert.isUndefined(tx.type);
+          assert.isUndefined(tx.chainId);
+          assert.isUndefined(tx.accessList);
+        });
+      });
+
+      describe("After berlin", function () {
+        useProviderAndCommon("berlin");
+        describe("legacy tx", function () {
+          it("Should include the field type, but not chainId and accessList", async function () {
+            const [sender] = await this.provider.send("eth_accounts");
+            const txHash = await this.provider.send("eth_sendTransaction", [
+              { from: sender, to: sender },
+            ]);
+
+            const tx = await this.provider.send("eth_getTransactionByHash", [
+              txHash,
+            ]);
+
+            assert.equal(tx.type, numberToRpcQuantity(0));
+            assert.isUndefined(tx.chainId);
+            assert.isUndefined(tx.accessList);
+          });
+        });
+
+        describe("access list tx", function () {
+          it("Should include the fields type,chainId and accessList", async function () {
+            const accessList = [
+              {
+                address: "0x1234567890123456789012345678901234567890",
+                storageKeys: [
+                  "0x1111111111111111111111111111111111111111111111111111111111111111",
+                ],
+              },
+            ];
+            const [sender] = await this.provider.send("eth_accounts");
+            const txHash = await this.provider.send("eth_sendTransaction", [
+              {
+                from: sender,
+                to: sender,
+                accessList,
+              },
+            ]);
+
+            const tx = await this.provider.send("eth_getTransactionByHash", [
+              txHash,
+            ]);
+
+            assert.equal(tx.type, numberToRpcQuantity(1));
+            assert.equal(
+              tx.chainId,
+              numberToRpcQuantity(this.common.chainId())
+            );
+            assert.deepEqual(tx.accessList, accessList);
+          });
+        });
+      });
+
+      // TODO: There's a case missing here, which is forking from Berlin but choosing the local hardfork to be < Berlin.
+      //  In that case only remote EIP-2930 txs should have a type.
+    });
+
+    describe("Receipts formatting", function () {
+      describe("Before byzantium", function () {
+        useProviderAndCommon("spuriousDragon");
+
+        it("Should have a root field, and shouldn't have a status one nor type", async function () {
+          const [sender] = await this.provider.send("eth_accounts");
+          const tx = await this.provider.send("eth_sendTransaction", [
+            { from: sender, to: sender },
+          ]);
+
+          const receipt = await this.provider.send(
+            "eth_getTransactionReceipt",
+            [tx]
+          );
+
+          assert.isDefined(receipt.root);
+          assert.isUndefined(receipt.status);
+          assert.isUndefined(receipt.type);
+        });
+      });
+
+      describe("After byzantium, before berlin", function () {
+        useProviderAndCommon("byzantium");
+
+        it("Should have a status field and not a root one nor type", async function () {
+          const [sender] = await this.provider.send("eth_accounts");
+          const tx = await this.provider.send("eth_sendTransaction", [
+            { from: sender, to: sender },
+          ]);
+
+          const receipt = await this.provider.send(
+            "eth_getTransactionReceipt",
+            [tx]
+          );
+
+          assert.isDefined(receipt.status);
+          assert.isUndefined(receipt.root);
+          assert.isUndefined(receipt.type);
+        });
+      });
+
+      describe("After berlin", function () {
+        useProviderAndCommon("berlin");
+
+        it("Should have status and type fields and not a root one", async function () {
+          const [sender] = await this.provider.send("eth_accounts");
+          const tx = await this.provider.send("eth_sendTransaction", [
+            { from: sender, to: sender },
+          ]);
+
+          const receipt = await this.provider.send(
+            "eth_getTransactionReceipt",
+            [tx]
+          );
+
+          assert.isDefined(receipt.status);
+          assert.isUndefined(receipt.root);
+          assert.equal(receipt.type, "0x0");
+        });
+      });
+    });
+  });
+
+  describe("Impersonated accounts", function () {
+    useProviderAndCommon("berlin");
+
+    it("should allow sending access list txs from impersonated accounts", async function () {
+      // impersonate and add funds to some account
+      const impersonated = "0x462B1B252FC8e9A447807e4494b271844fBCDa10";
+      await this.provider.send("eth_sendTransaction", [
+        {
+          from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+          to: impersonated,
+          value: numberToRpcQuantity(new BN("100000000000000000")),
+        },
+      ]);
+      await this.provider.send("hardhat_impersonateAccount", [impersonated]);
+
+      // send tx from impersonated account
+      const txHash = await this.provider.send("eth_sendTransaction", [
+        {
+          from: impersonated,
+          to: impersonated,
+          accessList: [],
+        },
+      ]);
+
+      const tx = await this.provider.send("eth_getTransactionByHash", [txHash]);
+
+      assert.isDefined(tx.accessList);
+      assert.isArray(tx.accessList);
+    });
+  });
+
+  describe("Access list transactions", function () {
+    useProviderAndCommon("berlin");
+
+    // This contract is useful to test that an access list is being used.
+    //
+    // The way it works is by letting you control how much gas "test"
+    // forwards to "write".
+    //
+    // If you don't provide the right access list, all the storage accesses that
+    // "write" makes are cold, and hence more expensive. You can find the max
+    // amount of gas that you can forward to "write" that makes it OOG in this case.
+    // That OOG makes "test" revert.
+    //
+    // Now, if you do provide an access list, all the storage accesses are warm,
+    // so cheaper. If you forward the same amount of gas to "write" than before,
+    // but provide an access list, it won't OOG and "test" won't revert.
+    //
+    // pragma solidity 0.7.0;
+    //
+    // contract C {
+    //     uint a = 1; uint b = 1; uint c = 1; uint d = 1; uint e = 1; uint f = 1; uint g = 1;
+    //     uint h = 1; uint i = 1; uint j = 1; uint k = 1; uint l = 1; uint m = 1; uint n = 1;
+    //
+    //     function test(uint gasToForward) public {
+    //         this.write{gas: gasToForward}();
+    //     }
+    //
+    //     function write() public {
+    //         a += 1; b += 1; c += 1; d += 1; e += 1; f += 1; g += 1;
+    //         h += 1; i += 1; j += 1; k += 1; l += 1; m += 1; n += 1;
+    //     }
+    // }
+    const TEST_CONTRACT_DEPLOYMENT_BYTECODE =
+      "0x6080604052600160005560018055600160025560016003556001600455600160055560016006556001600755600160085560016009556001600a556001600b556001600c556001600d5534801561005557600080fd5b506101fc806100656000396000f3fe608060405234801561001057600080fd5b50600436106100365760003560e01c806329e99f071461003b578063bcb4ab0e14610069575b600080fd5b6100676004803603602081101561005157600080fd5b8101908080359060200190929190505050610073565b005b6100716100d8565b005b3073ffffffffffffffffffffffffffffffffffffffff1663bcb4ab0e826040518263ffffffff1660e01b8152600401600060405180830381600088803b1580156100bc57600080fd5b5087f11580156100d0573d6000803e3d6000fd5b505050505050565b6001600080828254019250508190555060018060008282540192505081905550600160026000828254019250508190555060016003600082825401925050819055506001600460008282540192505081905550600160056000828254019250508190555060016006600082825401925050819055506001600760008282540192505081905550600160086000828254019250508190555060016009600082825401925050819055506001600a600082825401925050819055506001600b600082825401925050819055506001600c600082825401925050819055506001600d6000828254019250508190555056fea2646970667358221220f49d12643dee70a8cfde7a6346c0ca133768619dd2fb07c942e69d5c0433fe3b64736f6c63430007000033";
+    const TEST_FUNCTION_SELECTOR = "0x29e99f07";
+    const MAX_GAS_TO_FORWARD_THAT_FAILS_WITHOUT_ACCESS_LIST = 70605;
+    const WRITE_STORAGE_KEYS = [
+      bufferToRpcData(toBuffer(0), 32),
+      bufferToRpcData(toBuffer(1), 32),
+      bufferToRpcData(toBuffer(2), 32),
+      bufferToRpcData(toBuffer(3), 32),
+      bufferToRpcData(toBuffer(4), 32),
+      bufferToRpcData(toBuffer(5), 32),
+      bufferToRpcData(toBuffer(6), 32),
+      bufferToRpcData(toBuffer(7), 32),
+      bufferToRpcData(toBuffer(8), 32),
+      bufferToRpcData(toBuffer(9), 32),
+      bufferToRpcData(toBuffer(10), 32),
+      bufferToRpcData(toBuffer(11), 32),
+      bufferToRpcData(toBuffer(12), 32),
+      bufferToRpcData(toBuffer(13), 32),
+    ];
+
+    function abiEncodeUint(uint: number) {
+      return new BN(uint).toBuffer("be", 32).toString("hex");
+    }
+
+    let contract: string;
+    let txData: any;
+
+    beforeEach(async function () {
+      contract = await deployContract(
+        this.provider,
+        TEST_CONTRACT_DEPLOYMENT_BYTECODE
+      );
+
+      txData = {
+        to: contract,
+        data:
+          TEST_FUNCTION_SELECTOR +
+          abiEncodeUint(MAX_GAS_TO_FORWARD_THAT_FAILS_WITHOUT_ACCESS_LIST),
+        accessList: [
+          {
+            address: contract,
+            storageKeys: WRITE_STORAGE_KEYS,
+          },
+        ],
+      };
+    });
+
+    describe("Validate access list test contract", function () {
+      it("Should revert if the max gas is forwarded", async function () {
+        await assert.isRejected(
+          this.provider.send("eth_call", [
+            {
+              ...txData,
+              accessList: undefined,
+            },
+          ]),
+          "reverted without a reason"
+        );
+      });
+
+      it("Should not revert if the more gas is forwarded", async function () {
+        await this.provider.send("eth_call", [
+          {
+            to: contract,
+            data:
+              TEST_FUNCTION_SELECTOR +
+              abiEncodeUint(
+                MAX_GAS_TO_FORWARD_THAT_FAILS_WITHOUT_ACCESS_LIST + 1
+              ),
+          },
+        ]);
+      });
+    });
+
+    describe("eth_call", function () {
+      it("should use the access list if sent", async function () {
+        await this.provider.send("eth_call", [txData]);
+      });
+    });
+
+    describe("eth_estimateGas", function () {
+      it("should use the access list if sent", async function () {
+        // It would revert and throw if the access list is not used
+        await this.provider.send("eth_estimateGas", [txData]);
+      });
+    });
+
+    describe("eth_sendRawTransaction", function () {
+      it("should use the access list if an EIP-2930 tx is sent", async function () {
+        const unsignedTx = AccessListEIP2930Transaction.fromTxData(
+          { ...txData, gasPrice: 0, gasLimit: 1000000 },
+          {
+            common: this.common,
+          }
+        );
+
+        const signedTx = unsignedTx.sign(privateKey);
+
+        const txHash = await this.provider.send("eth_sendRawTransaction", [
+          bufferToRpcData(signedTx.serialize()),
+        ]);
+
+        const tx = await this.provider.send("eth_getTransactionByHash", [
+          txHash,
+        ]);
+
+        assert.equal(tx.type, numberToRpcQuantity(1));
+      });
+    });
+
+    describe("eth_sendTransaction", function () {
+      describe("When automining", function () {
+        it("Should use an EIP-2930 tx if an access list is sent using a local account", async function () {
+          const [from] = await this.provider.send("eth_accounts");
+          const txHash = await this.provider.send("eth_sendTransaction", [
+            { ...txData, from },
+          ]);
+
+          const tx = await this.provider.send("eth_getTransactionByHash", [
+            txHash,
+          ]);
+
+          assert.equal(tx.type, numberToRpcQuantity(1));
+        });
+
+        it("Should use an EIP-2930 tx if an access list is sent using an impersonated account", async function () {
+          const from = "0x1234567890123456789012345678901234567890";
+          await this.provider.send("hardhat_impersonateAccount", [from]);
+
+          const txHash = await this.provider.send("eth_sendTransaction", [
+            { ...txData, from, gasPrice: numberToRpcQuantity(0) },
+          ]);
+
+          const tx = await this.provider.send("eth_getTransactionByHash", [
+            txHash,
+          ]);
+
+          assert.equal(tx.type, numberToRpcQuantity(1));
+        });
+      });
+
+      describe("When txs go through the mempool", function () {
+        beforeEach("Disable automining", async function () {
+          await this.provider.send("evm_setAutomine", [false]);
+        });
+
+        it("Should use an EIP-2930 tx if an access list is sent using a local account", async function () {
+          const [from] = await this.provider.send("eth_accounts");
+          const txHash = await this.provider.send("eth_sendTransaction", [
+            { ...txData, from },
+          ]);
+
+          const pendingTx = await this.provider.send(
+            "eth_getTransactionByHash",
+            [txHash]
+          );
+
+          assert.equal(pendingTx.type, numberToRpcQuantity(1));
+
+          await this.provider.send("evm_mine", []);
+
+          const minedTx = await this.provider.send("eth_getTransactionByHash", [
+            txHash,
+          ]);
+
+          assert.equal(minedTx.type, numberToRpcQuantity(1));
+        });
+
+        it("Should use an EIP-2930 tx if an access list is sent using an impersonated account", async function () {
+          const from = "0x1234567890123456789012345678901234567890";
+          await this.provider.send("hardhat_impersonateAccount", [from]);
+
+          const txHash = await this.provider.send("eth_sendTransaction", [
+            { ...txData, from, gasPrice: numberToRpcQuantity(0) },
+          ]);
+
+          const pendingTx = await this.provider.send(
+            "eth_getTransactionByHash",
+            [txHash]
+          );
+
+          assert.equal(pendingTx.type, numberToRpcQuantity(1));
+
+          await this.provider.send("evm_mine", []);
+
+          const minedTx = await this.provider.send("eth_getTransactionByHash", [
+            txHash,
+          ]);
+
+          assert.equal(minedTx.type, numberToRpcQuantity(1));
         });
       });
     });

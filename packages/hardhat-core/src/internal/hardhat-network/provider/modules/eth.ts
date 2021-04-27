@@ -1,6 +1,12 @@
-import Common from "ethereumjs-common";
-import { Transaction } from "ethereumjs-tx";
+import { Block } from "@ethereumjs/block";
+import Common from "@ethereumjs/common";
 import {
+  Transaction,
+  TransactionFactory,
+  TypedTransaction,
+} from "@ethereumjs/tx";
+import {
+  Address,
   BN,
   bufferToHex,
   toBuffer,
@@ -11,38 +17,52 @@ import * as t from "io-ts";
 import cloneDeep from "lodash/cloneDeep";
 
 import { BoundExperimentalHardhatNetworkMessageTraceHook } from "../../../../types";
-import { MessageTrace } from "../../stack-traces/message-trace";
+import { RpcAccessList } from "../../../core/jsonrpc/types/access-list";
+import {
+  bufferToRpcData,
+  numberToRpcQuantity,
+  rpcAddress,
+  rpcData,
+  rpcHash,
+  rpcQuantity,
+} from "../../../core/jsonrpc/types/base-types";
+import {
+  optionalRpcNewBlockTag,
+  OptionalRpcNewBlockTag,
+  OptionalRpcOldBlockTag,
+  RpcNewBlockTag,
+  rpcOldBlockTag,
+  RpcOldBlockTag,
+} from "../../../core/jsonrpc/types/input/blockTag";
+import {
+  rpcCallRequest,
+  RpcCallRequest,
+} from "../../../core/jsonrpc/types/input/callRequest";
+import {
+  optionalRpcFilterRequest,
+  OptionalRpcFilterRequest,
+  rpcFilterRequest,
+  RpcFilterRequest,
+} from "../../../core/jsonrpc/types/input/filterRequest";
+import { OptionalRpcLogAddress } from "../../../core/jsonrpc/types/input/logAddress";
+import { OptionalRpcLogTopics } from "../../../core/jsonrpc/types/input/logTopics";
+import {
+  rpcSubscribeRequest,
+  RpcSubscribeRequest,
+} from "../../../core/jsonrpc/types/input/subscribeRequest";
+import {
+  rpcTransactionRequest,
+  RpcTransactionRequest,
+} from "../../../core/jsonrpc/types/input/transactionRequest";
+import { validateParams } from "../../../core/jsonrpc/types/input/validation";
 import {
   InvalidArgumentsError,
   InvalidInputError,
   MethodNotFoundError,
   MethodNotSupportedError,
-} from "../errors";
+} from "../../../core/providers/errors";
+import { MessageTrace } from "../../stack-traces/message-trace";
 import { LATEST_BLOCK } from "../filter";
-import {
-  BlockTag,
-  blockTag as blockTagType,
-  LogAddress,
-  LogTopics,
-  OptionalBlockTag,
-  optionalBlockTag,
-  OptionalRpcFilterRequest,
-  optionalRpcFilterRequest,
-  rpcAddress,
-  rpcCallRequest,
-  RpcCallRequest,
-  rpcData,
-  RpcFilterRequest,
-  rpcFilterRequest,
-  rpcHash,
-  rpcQuantity,
-  rpcSubscribeRequest,
-  RpcSubscribeRequest,
-  rpcTransactionRequest,
-  RpcTransactionRequest,
-  rpcUnknown,
-  validateParams,
-} from "../input";
 import { HardhatNode } from "../node";
 import {
   CallParams,
@@ -52,18 +72,19 @@ import {
   TransactionParams,
 } from "../node-types";
 import {
-  bufferToRpcData,
   getRpcBlock,
   getRpcTransaction,
-  numberToRpcQuantity,
   RpcBlockOutput,
   RpcLogOutput,
   RpcReceiptOutput,
   RpcTransactionOutput,
+  shouldShowTransactionTypeForHardfork,
 } from "../output";
-import { Block } from "../types/Block";
 
 import { ModulesLogger } from "./logger";
+
+const ACCESS_LIST_MIN_HARDFORK = "berlin";
+const EIP155_MIN_HARDFORK = "spuriousDragon";
 
 // tslint:disable only-hardhat-error
 export class EthModule {
@@ -302,17 +323,20 @@ export class EthModule {
 
   // eth_call
 
-  private _callParams(params: any[]): [RpcCallRequest, OptionalBlockTag] {
-    return validateParams(params, rpcCallRequest, optionalBlockTag);
+  private _callParams(params: any[]): [RpcCallRequest, OptionalRpcNewBlockTag] {
+    return validateParams(params, rpcCallRequest, optionalRpcNewBlockTag);
   }
 
   private async _callAction(
     rpcCall: RpcCallRequest,
-    blockTag: OptionalBlockTag
+    blockTag: OptionalRpcNewBlockTag
   ): Promise<string> {
-    const blockNumberOrPending = await this._resolveBlockTag(blockTag);
+    this._validateAccessListHardforkRequirement(rpcCall);
+
+    const blockNumberOrPending = await this._resolveNewBlockTag(blockTag);
 
     const callParams = await this._rpcCallRequestToNodeCallParams(rpcCall);
+
     const {
       result: returnData,
       trace,
@@ -356,7 +380,7 @@ export class EthModule {
   }
 
   private async _coinbaseAction(): Promise<string> {
-    return bufferToHex(this._node.getCoinbaseAddress());
+    return this._node.getCoinbaseAddress().toString();
   }
 
   // eth_compileLLL
@@ -369,37 +393,41 @@ export class EthModule {
 
   private _estimateGasParams(
     params: any[]
-  ): [RpcTransactionRequest, OptionalBlockTag] {
-    return validateParams(params, rpcTransactionRequest, optionalBlockTag);
+  ): [RpcCallRequest, OptionalRpcNewBlockTag] {
+    // Estimate gas uses a CallArgs in Geth, so we mimic it here
+    return validateParams(params, rpcCallRequest, optionalRpcNewBlockTag);
   }
 
   private async _estimateGasAction(
-    transactionRequest: RpcTransactionRequest,
-    blockTag: OptionalBlockTag
+    callRequest: RpcCallRequest,
+    blockTag: OptionalRpcNewBlockTag
   ): Promise<string> {
+    this._validateAccessListHardforkRequirement(callRequest);
+
     // estimateGas behaves differently when there's no blockTag
     // it uses "pending" as default instead of "latest"
-    const blockNumberOrPending =
-      blockTag === undefined
-        ? "pending"
-        : await this._resolveBlockTag(blockTag);
-
-    const txParams = await this._rpcTransactionRequestToNodeTransactionParams(
-      transactionRequest
+    const blockNumberOrPending = await this._resolveNewBlockTag(
+      blockTag,
+      "pending"
     );
+
+    const callParams = await this._rpcCallRequestToNodeCallParams(callRequest);
 
     const {
       estimation,
       error,
       trace,
       consoleLogMessages,
-    } = await this._node.estimateGas(txParams, blockNumberOrPending);
-
-    const code = await this._node.getCodeFromTrace(trace, blockNumberOrPending);
+    } = await this._node.estimateGas(callParams, blockNumberOrPending);
 
     if (error !== undefined) {
+      const code = await this._node.getCodeFromTrace(
+        trace,
+        blockNumberOrPending
+      );
+
       this._logger.logEstimateGasTrace(
-        txParams,
+        callParams,
         code,
         trace,
         consoleLogMessages,
@@ -424,18 +452,21 @@ export class EthModule {
 
   // eth_getBalance
 
-  private _getBalanceParams(params: any[]): [Buffer, OptionalBlockTag] {
-    return validateParams(params, rpcAddress, optionalBlockTag);
+  private _getBalanceParams(params: any[]): [Buffer, OptionalRpcNewBlockTag] {
+    return validateParams(params, rpcAddress, optionalRpcNewBlockTag);
   }
 
   private async _getBalanceAction(
     address: Buffer,
-    blockTag: OptionalBlockTag
+    blockTag: OptionalRpcNewBlockTag
   ): Promise<string> {
-    const blockNumberOrPending = await this._resolveBlockTag(blockTag);
+    const blockNumberOrPending = await this._resolveNewBlockTag(blockTag);
 
     return numberToRpcQuantity(
-      await this._node.getAccountBalance(address, blockNumberOrPending)
+      await this._node.getAccountBalance(
+        new Address(address),
+        blockNumberOrPending
+      )
     );
   }
 
@@ -456,52 +487,52 @@ export class EthModule {
 
     const totalDifficulty = await this._node.getBlockTotalDifficulty(block);
 
-    return getRpcBlock(block, totalDifficulty, includeTransactions);
+    return getRpcBlock(
+      block,
+      totalDifficulty,
+      shouldShowTransactionTypeForHardfork(this._common),
+      includeTransactions
+    );
   }
 
   // eth_getBlockByNumber
 
-  private _getBlockByNumberParams(params: any[]): [BlockTag, boolean] {
-    return validateParams(params, blockTagType, t.boolean);
+  private _getBlockByNumberParams(params: any[]): [RpcOldBlockTag, boolean] {
+    return validateParams(params, rpcOldBlockTag, t.boolean);
   }
 
   private async _getBlockByNumberAction(
-    tag: BlockTag,
+    oldBlockTag: RpcOldBlockTag,
     includeTransactions: boolean
   ): Promise<RpcBlockOutput | null> {
-    let block: Block | undefined;
-    let totalDifficulty: BN | undefined;
-
-    if (typeof tag === "string") {
-      if (tag === "earliest") {
-        block = await this._node.getBlockByNumber(new BN(0));
-      } else if (tag === "latest") {
-        block = await this._node.getLatestBlock();
-      } else {
-        [
-          block,
-          totalDifficulty,
-        ] = await this._node.getPendingBlockAndTotalDifficulty();
-      }
-    } else if (BN.isBN(tag)) {
-      block = await this._node.getBlockByNumber(tag);
-    } else if (Buffer.isBuffer(tag)) {
-      block = await this._node.getBlockByHash(tag);
-    }
-
-    if (block === undefined) {
+    const numberOrPending = await this._resolveOldBlockTag(oldBlockTag);
+    if (numberOrPending === undefined) {
       return null;
     }
 
-    if (totalDifficulty === undefined) {
+    let block: Block | undefined;
+    let totalDifficulty: BN | undefined;
+
+    if (numberOrPending === "pending") {
+      [
+        block,
+        totalDifficulty,
+      ] = await this._node.getPendingBlockAndTotalDifficulty();
+    } else {
+      block = await this._node.getBlockByNumber(numberOrPending);
+      if (block === undefined) {
+        return null;
+      }
+
       totalDifficulty = await this._node.getBlockTotalDifficulty(block);
     }
 
     return getRpcBlock(
       block,
       totalDifficulty,
+      shouldShowTransactionTypeForHardfork(this._common),
       includeTransactions,
-      tag === "pending"
+      numberOrPending === "pending"
     );
   }
 
@@ -524,16 +555,22 @@ export class EthModule {
 
   // eth_getBlockTransactionCountByNumber
 
-  private _getBlockTransactionCountByNumberParams(params: any[]): [BlockTag] {
-    return validateParams(params, blockTagType);
+  private _getBlockTransactionCountByNumberParams(
+    params: any[]
+  ): [RpcOldBlockTag] {
+    return validateParams(params, rpcOldBlockTag);
   }
 
   private async _getBlockTransactionCountByNumberAction(
-    blockTag: BlockTag
+    oldBlockTag: RpcOldBlockTag
   ): Promise<string | null> {
-    const block = await this._getBlockByBlockTag(blockTag);
+    const numberOrPending = await this._resolveOldBlockTag(oldBlockTag);
+    if (numberOrPending === undefined) {
+      return null;
+    }
 
-    if (block === null) {
+    const block = await this._node.getBlockByNumber(numberOrPending);
+    if (block === undefined) {
       return null;
     }
 
@@ -542,18 +579,18 @@ export class EthModule {
 
   // eth_getCode
 
-  private _getCodeParams(params: any[]): [Buffer, OptionalBlockTag] {
-    return validateParams(params, rpcAddress, optionalBlockTag);
+  private _getCodeParams(params: any[]): [Buffer, OptionalRpcNewBlockTag] {
+    return validateParams(params, rpcAddress, optionalRpcNewBlockTag);
   }
 
   private async _getCodeAction(
     address: Buffer,
-    blockTag: OptionalBlockTag
+    blockTag: OptionalRpcNewBlockTag
   ): Promise<string> {
-    const blockNumberOrPending = await this._resolveBlockTag(blockTag);
+    const blockNumberOrPending = await this._resolveNewBlockTag(blockTag);
 
     return bufferToRpcData(
-      await this._node.getCode(address, blockNumberOrPending)
+      await this._node.getCode(new Address(address), blockNumberOrPending)
     );
   }
 
@@ -608,18 +645,19 @@ export class EthModule {
           "blockHash is mutually exclusive with fromBlock/toBlock"
         );
       }
+
       const block = await this._node.getBlockByHash(filter.blockHash);
       if (block === undefined) {
         throw new InvalidArgumentsError("blockHash cannot be found");
       }
 
-      filter.fromBlock = new BN(block.header.number);
-      filter.toBlock = new BN(block.header.number);
+      filter.fromBlock = block.header.number;
+      filter.toBlock = block.header.number;
     }
 
     const [fromBlock, toBlock] = await Promise.all([
-      this._extractBlock(filter.fromBlock),
-      this._extractBlock(filter.toBlock),
+      this._normalizeOldBlockTagForFilterRequest(filter.fromBlock),
+      this._normalizeOldBlockTagForFilterRequest(filter.toBlock),
     ]);
 
     return {
@@ -642,19 +680,26 @@ export class EthModule {
 
   // eth_getStorageAt
 
-  private _getStorageAtParams(params: any[]): [Buffer, BN, OptionalBlockTag] {
-    return validateParams(params, rpcAddress, rpcQuantity, optionalBlockTag);
+  private _getStorageAtParams(
+    params: any[]
+  ): [Buffer, BN, OptionalRpcNewBlockTag] {
+    return validateParams(
+      params,
+      rpcAddress,
+      rpcQuantity,
+      optionalRpcNewBlockTag
+    );
   }
 
   private async _getStorageAtAction(
     address: Buffer,
     slot: BN,
-    blockTag: OptionalBlockTag
+    blockTag: OptionalRpcNewBlockTag
   ): Promise<string> {
-    const blockNumberOrPending = await this._resolveBlockTag(blockTag);
+    const blockNumberOrPending = await this._resolveNewBlockTag(blockTag);
 
     const data = await this._node.getStorageAt(
-      address,
+      new Address(address),
       slot,
       blockNumberOrPending
     );
@@ -685,25 +730,35 @@ export class EthModule {
       return null;
     }
 
-    return getRpcTransaction(tx, block, i);
+    return getRpcTransaction(
+      tx,
+      shouldShowTransactionTypeForHardfork(this._common),
+      block,
+      i
+    );
   }
 
   // eth_getTransactionByBlockNumberAndIndex
 
   private _getTransactionByBlockNumberAndIndexParams(
     params: any[]
-  ): [BlockTag, BN] {
-    return validateParams(params, blockTagType, rpcQuantity);
+  ): [RpcOldBlockTag, BN] {
+    return validateParams(params, rpcOldBlockTag, rpcQuantity);
   }
 
   private async _getTransactionByBlockNumberAndIndexAction(
-    blockTag: BlockTag,
+    oldBlockTag: RpcOldBlockTag,
     index: BN
   ): Promise<RpcTransactionOutput | null> {
-    const i = index.toNumber();
-    const block = await this._getBlockByBlockTag(blockTag);
+    const numberOrPending = await this._resolveOldBlockTag(oldBlockTag);
+    if (numberOrPending === undefined) {
+      return null;
+    }
 
-    if (block === null) {
+    const block = await this._node.getBlockByNumber(numberOrPending);
+    const i = index.toNumber();
+
+    if (block === undefined) {
       return null;
     }
 
@@ -712,9 +767,13 @@ export class EthModule {
       return null;
     }
 
-    return blockTag === "pending"
-      ? getRpcTransaction(tx, "pending")
-      : getRpcTransaction(tx, block, i);
+    const showTransactionType = shouldShowTransactionTypeForHardfork(
+      this._common
+    );
+
+    return numberOrPending === "pending"
+      ? getRpcTransaction(tx, showTransactionType, "pending")
+      : getRpcTransaction(tx, showTransactionType, block, i);
   }
 
   // eth_getTransactionByHash
@@ -728,7 +787,11 @@ export class EthModule {
   ): Promise<RpcTransactionOutput | null> {
     const pendingTx = await this._node.getPendingTransaction(hash);
     if (pendingTx !== undefined) {
-      return getRpcTransaction(pendingTx, "pending");
+      return getRpcTransaction(
+        pendingTx,
+        shouldShowTransactionTypeForHardfork(this._common),
+        "pending"
+      );
     }
 
     const block = await this._node.getBlockByTransactionHash(hash);
@@ -746,25 +809,33 @@ export class EthModule {
       );
     }
 
-    return getRpcTransaction(tx, block, index);
+    return getRpcTransaction(
+      tx,
+      shouldShowTransactionTypeForHardfork(this._common),
+      block,
+      index
+    );
   }
 
   // eth_getTransactionCount
 
   private _getTransactionCountParams(
     params: any[]
-  ): [Buffer, OptionalBlockTag] {
-    return validateParams(params, rpcAddress, optionalBlockTag);
+  ): [Buffer, OptionalRpcNewBlockTag] {
+    return validateParams(params, rpcAddress, optionalRpcNewBlockTag);
   }
 
   private async _getTransactionCountAction(
     address: Buffer,
-    blockTag: OptionalBlockTag
+    blockTag: OptionalRpcNewBlockTag
   ): Promise<string> {
-    const blockNumberOrPending = await this._resolveBlockTag(blockTag);
+    const blockNumberOrPending = await this._resolveNewBlockTag(blockTag);
 
     return numberToRpcQuantity(
-      await this._node.getAccountNonce(address, blockNumberOrPending)
+      await this._node.getAccountNonce(
+        new Address(address),
+        blockNumberOrPending
+      )
     );
   }
 
@@ -856,7 +927,13 @@ export class EthModule {
 
   private async _pendingTransactionsAction(): Promise<RpcTransactionOutput[]> {
     const txs = await this._node.getPendingTransactions();
-    return txs.map((tx) => getRpcTransaction(tx, "pending"));
+    return txs.map((tx) =>
+      getRpcTransaction(
+        tx,
+        shouldShowTransactionTypeForHardfork(this._common),
+        "pending"
+      )
+    );
   }
 
   // eth_protocolVersion
@@ -868,19 +945,71 @@ export class EthModule {
   }
 
   private async _sendRawTransactionAction(rawTx: Buffer): Promise<string> {
-    let tx: Transaction;
+    // We validate that the tx is not legacy nor eip-2930 here
+    // because otherwise the catch logic below gets too tricky
+    // This can happen because of an EIP-2718 tx that's not EIP-2930,
+    // which we don't support, or because the input is just completely invalid
+    if (rawTx[0] <= 0x7f && rawTx[0] !== 1) {
+      throw new InvalidArgumentsError(`Invalid transaction`);
+    }
+
+    let tx: TypedTransaction;
     try {
-      tx = new Transaction(rawTx, { common: this._common });
+      tx = TransactionFactory.fromSerializedData(rawTx, {
+        common: this._common,
+      });
     } catch (error) {
+      // This section of the code is incredibly dependant of TransactionFactory.fromSerializedData
+      // AccessListEIP2930Transaction.fromSerializedTx and Transaction.fromSerializedTx
+      // Please keep it updated.
+
       if (error.message === "invalid remainder") {
-        throw new InvalidInputError("Invalid transaction");
+        throw new InvalidArgumentsError("Invalid transaction", error);
       }
 
-      if (error.message.includes("EIP155")) {
-        throw new InvalidInputError(error.message);
+      if (error.message.includes("Incompatible EIP155")) {
+        throw new InvalidArgumentsError(
+          "Trying to send an incompatible EIP-155 transaction, signed for another chain.",
+          error
+        );
+      }
+
+      if (
+        error.message.includes(
+          "Common support for TypedTransactions (EIP-2718) not activated"
+        )
+      ) {
+        throw new InvalidArgumentsError(
+          `Trying to send an EIP-2930 transaction but they are not supported by the current hard fork.
+      
+You can use them by running Hardhat Network with 'hardfork' ${ACCESS_LIST_MIN_HARDFORK} or later.`,
+          error
+        );
+      }
+
+      if (
+        error.message.includes("TypedTransaction with ID") &&
+        error.message.includes(" unknown")
+      ) {
+        throw new InvalidArgumentsError(`Invalid transaction`, error);
+      }
+
+      if (error.message.includes("The chain ID does not match")) {
+        throw new InvalidArgumentsError(
+          `Trying to send a raw transaction with an invalid chainId. The expected chainId is ${this._common.chainIdBN()}`,
+          error
+        );
       }
 
       throw error;
+    }
+
+    if (!tx.isSigned()) {
+      throw new InvalidArgumentsError("Invalid Signature");
+    }
+
+    if (tx instanceof Transaction) {
+      this._validateEip155HardforkRequirement(tx);
     }
 
     return this._sendTransactionAndReturnHash(tx);
@@ -895,6 +1024,18 @@ export class EthModule {
   private async _sendTransactionAction(
     transactionRequest: RpcTransactionRequest
   ): Promise<string> {
+    const expectedChainId = this._common.chainIdBN();
+    if (
+      transactionRequest.chainId !== undefined &&
+      !transactionRequest.chainId.eq(expectedChainId)
+    ) {
+      throw new InvalidArgumentsError(
+        `Invalid chainId ${transactionRequest.chainId.toString()} provided, expected ${expectedChainId} instead.`
+      );
+    }
+
+    this._validateAccessListHardforkRequirement(transactionRequest);
+
     const txParams = await this._rpcTransactionRequestToNodeTransactionParams(
       transactionRequest
     );
@@ -911,7 +1052,10 @@ export class EthModule {
   }
 
   private async _signAction(address: Buffer, data: Buffer): Promise<string> {
-    const signature = await this._node.signPersonalMessage(address, data);
+    const signature = await this._node.signPersonalMessage(
+      new Address(address),
+      data
+    );
 
     return toRpcSig(signature.v, signature.r, signature.s);
   }
@@ -922,7 +1066,7 @@ export class EthModule {
 
   private _signTypedDataV4Params(params: any[]): [Buffer, any] {
     // Validation of the TypedData parameter is handled by eth-sig-util
-    return validateParams(params, rpcAddress, rpcUnknown);
+    return validateParams(params, rpcAddress, t.any);
   }
 
   private async _signTypedDataV4Action(
@@ -945,7 +1089,7 @@ export class EthModule {
       }
     }
 
-    return this._node.signTypedDataV4(address, typedMessage);
+    return this._node.signTypedDataV4(new Address(address), typedMessage);
   }
 
   // eth_submitHashrate
@@ -1028,7 +1172,7 @@ export class EthModule {
     rpcCall: RpcCallRequest
   ): Promise<CallParams> {
     return {
-      to: rpcCall.to !== undefined ? rpcCall.to : Buffer.from([]),
+      to: rpcCall.to,
       from:
         rpcCall.from !== undefined
           ? rpcCall.from
@@ -1041,6 +1185,7 @@ export class EthModule {
           ? rpcCall.gasPrice
           : await this._node.getGasPrice(),
       value: rpcCall.value !== undefined ? rpcCall.value : new BN(0),
+      accessList: this._rpcAccessListToNodeAccessList(rpcCall.accessList),
     };
   }
 
@@ -1048,7 +1193,7 @@ export class EthModule {
     rpcTx: RpcTransactionRequest
   ): Promise<TransactionParams> {
     return {
-      to: rpcTx.to !== undefined ? rpcTx.to : Buffer.from([]),
+      to: rpcTx.to,
       from: rpcTx.from,
       gasLimit:
         rpcTx.gas !== undefined ? rpcTx.gas : this._node.getBlockGasLimit(),
@@ -1061,112 +1206,113 @@ export class EthModule {
       nonce:
         rpcTx.nonce !== undefined
           ? rpcTx.nonce
-          : await this._node.getAccountNextNonce(rpcTx.from),
+          : await this._node.getAccountNextNonce(new Address(rpcTx.from)),
+      accessList: this._rpcAccessListToNodeAccessList(rpcTx.accessList),
     };
   }
 
-  private async _resolveBlockTag(
-    blockTag: OptionalBlockTag
-  ): Promise<BN | "pending"> {
-    if (blockTag === "pending") {
-      return "pending";
+  private _rpcAccessListToNodeAccessList(
+    rpcAccessList?: RpcAccessList
+  ): Array<[Buffer, Buffer[]]> | undefined {
+    if (rpcAccessList === undefined) {
+      return undefined;
     }
 
-    if (blockTag === undefined || blockTag === "latest") {
+    return rpcAccessList.map((tuple) => [tuple.address, tuple.storageKeys]);
+  }
+
+  private async _resolveOldBlockTag(
+    oldBlockTag: RpcOldBlockTag
+  ): Promise<BN | "pending" | undefined> {
+    if (oldBlockTag === undefined || oldBlockTag === "latest") {
       return this._node.getLatestBlockNumber();
     }
 
-    if (blockTag === "earliest") {
+    if (oldBlockTag === "pending") {
+      return "pending";
+    }
+
+    if (oldBlockTag === "earliest") {
       return new BN(0);
     }
 
+    const block = await this._node.getBlockByNumber(oldBlockTag);
+    return block?.header.number;
+  }
+
+  private async _resolveNewBlockTag(
+    newBlockTag: OptionalRpcNewBlockTag,
+    defaultValue: RpcNewBlockTag = "latest"
+  ): Promise<BN | "pending"> {
+    if (newBlockTag === undefined) {
+      newBlockTag = defaultValue;
+    }
+
+    if (newBlockTag === "pending") {
+      return "pending";
+    }
+
+    if (newBlockTag === "latest") {
+      return this._node.getLatestBlockNumber();
+    }
+
+    if (newBlockTag === "earliest") {
+      return new BN(0);
+    }
+
+    if ("blockNumber" in newBlockTag && "blockHash" in newBlockTag) {
+      throw new InvalidArgumentsError(
+        "Invalid block tag received. Only one of hash or block number can be used."
+      );
+    }
+
+    if ("blockNumber" in newBlockTag && "requireCanonical" in newBlockTag) {
+      throw new InvalidArgumentsError(
+        "Invalid block tag received. requireCanonical only works with hashes."
+      );
+    }
+
     let block: Block | undefined;
-    if (BN.isBN(blockTag)) {
-      block = await this._node.getBlockByNumber(blockTag);
-    } else if (Buffer.isBuffer(blockTag)) {
-      block = await this._node.getBlockByHash(blockTag);
+    if (BN.isBN(newBlockTag)) {
+      block = await this._node.getBlockByNumber(newBlockTag);
+    } else if ("blockNumber" in newBlockTag) {
+      block = await this._node.getBlockByNumber(newBlockTag.blockNumber);
+    } else {
+      block = await this._node.getBlockByHash(newBlockTag.blockHash);
     }
 
     if (block === undefined) {
       const latestBlock = await this._node.getLatestBlockNumber();
 
       throw new InvalidInputError(
-        `Received invalid block tag ${this._blockTagToString(
-          blockTag
+        `Received invalid block tag ${this._newBlockTagToString(
+          newBlockTag
         )}. Latest block number is ${latestBlock.toString()}`
       );
     }
 
-    return new BN(block.header.number);
+    return block.header.number;
   }
 
-  private async _resolveBlockTagAndReturnNullIfInvalid(blockTag: BlockTag) {
-    let blockNumberOrPending: BN | "pending";
-    try {
-      blockNumberOrPending = await this._resolveBlockTag(blockTag);
-    } catch (error) {
-      if (error.message.includes("Received invalid block tag")) {
-        return null;
-      }
-
-      throw error;
+  private async _normalizeOldBlockTagForFilterRequest(
+    blockTag: OptionalRpcOldBlockTag
+  ): Promise<BN> {
+    if (
+      blockTag === undefined ||
+      blockTag === "latest" ||
+      blockTag === "pending"
+    ) {
+      return LATEST_BLOCK;
     }
 
-    return blockNumberOrPending;
+    if (blockTag === "earliest") {
+      return new BN(0);
+    }
+
+    return blockTag;
   }
 
-  private async _getBlockByBlockTag(blockTag: BlockTag) {
-    let blockNumberOrPending: BN | "pending" | null;
-    let block: Block | undefined;
-
-    blockNumberOrPending = await this._resolveBlockTagAndReturnNullIfInvalid(
-      blockTag
-    );
-
-    if (blockNumberOrPending === null) {
-      return null;
-    }
-
-    block = await this._node.getBlockByNumber(blockNumberOrPending);
-    if (block === undefined) {
-      return null;
-    }
-
-    return block;
-  }
-
-  private async _extractBlock(blockTag: OptionalBlockTag): Promise<BN> {
-    if (BN.isBN(blockTag)) {
-      return blockTag;
-    }
-
-    if (Buffer.isBuffer(blockTag)) {
-      const block = await this._node.getBlockByHash(blockTag);
-
-      if (block === undefined) {
-        throw new InvalidInputError(
-          `Received invalid block tag ${this._blockTagToString(
-            blockTag
-          )}. This block doesn't exist.`
-        );
-      }
-
-      return new BN(block.header.number);
-    }
-
-    switch (blockTag) {
-      case "earliest":
-        return new BN(0);
-      case undefined:
-      case "latest":
-        return LATEST_BLOCK;
-      case "pending":
-      default:
-        return LATEST_BLOCK;
-    }
-  }
-
-  private _blockTagToString(tag: BlockTag): string {
+  private _newBlockTagToString(tag: RpcNewBlockTag): string {
     if (typeof tag === "string") {
       return tag;
     }
@@ -1175,11 +1321,15 @@ export class EthModule {
       return tag.toString();
     }
 
-    return bufferToHex(tag);
+    if ("blockNumber" in tag) {
+      return tag.blockNumber.toString();
+    }
+
+    return bufferToHex(tag.blockHash);
   }
 
   private _extractNormalizedLogTopics(
-    topics: LogTopics
+    topics: OptionalRpcLogTopics
   ): Array<Array<Buffer | null> | null> {
     if (topics === undefined || topics.length === 0) {
       return [];
@@ -1197,7 +1347,7 @@ export class EthModule {
     return normalizedTopics;
   }
 
-  private _extractLogAddresses(address: LogAddress): Buffer[] {
+  private _extractLogAddresses(address: OptionalRpcLogAddress): Buffer[] {
     if (address === undefined) {
       return [];
     }
@@ -1219,7 +1369,7 @@ export class EthModule {
     return toBuffer(localAccounts[0]);
   }
 
-  private async _sendTransactionAndReturnHash(tx: Transaction) {
+  private async _sendTransactionAndReturnHash(tx: TypedTransaction) {
     let result = await this._node.sendTransaction(tx);
 
     if (typeof result === "string") {
@@ -1246,7 +1396,7 @@ export class EthModule {
 
   private async _handleMineBlockResults(
     results: MineBlockResult[],
-    sentTx: Transaction
+    sentTx: TypedTransaction
   ) {
     const singleTransactionMined =
       results.length === 1 && results[0].block.transactions.length === 1;
@@ -1301,7 +1451,7 @@ export class EthModule {
   }
 
   private async _logSingleTransaction(
-    tx: Transaction,
+    tx: TypedTransaction,
     block: Block,
     txGasUsed: number,
     txTrace: GatherTracesResult
@@ -1315,7 +1465,7 @@ export class EthModule {
     await this._runHardhatNetworkMessageTraceHooks(txTrace.trace, false);
   }
 
-  private async _logBlock(result: MineBlockResult, sentTx: Transaction) {
+  private async _logBlock(result: MineBlockResult, sentTx: TypedTransaction) {
     const { block, traces } = result;
 
     const codes: Buffer[] = [];
@@ -1338,7 +1488,7 @@ export class EthModule {
   }
 
   private _getTransactionResultAndIndex(
-    tx: Transaction,
+    tx: TypedTransaction,
     results: MineBlockResult[]
   ): [MineBlockResult, number] {
     for (const result of results) {
@@ -1366,6 +1516,34 @@ export class EthModule {
 
     for (const hook of this._experimentalHardhatNetworkMessageTraceHooks) {
       await hook(trace, isCall);
+    }
+  }
+
+  // TODO: Find a better place for this
+  private _validateAccessListHardforkRequirement(
+    rpcRequest: RpcCallRequest | RpcTransactionRequest
+  ) {
+    if (
+      rpcRequest.accessList !== undefined &&
+      !this._common.gteHardfork(ACCESS_LIST_MIN_HARDFORK)
+    ) {
+      throw new InvalidArgumentsError(`Access list received but is not supported by the current hardfork. 
+      
+You can use them by running Hardhat Network with 'hardfork' ${ACCESS_LIST_MIN_HARDFORK} or later.`);
+    }
+  }
+
+  // TODO: Find a better place for this
+  private _validateEip155HardforkRequirement(tx: Transaction) {
+    // 27 and 28 are only valid for non-EIP-155 legacy txs
+    if (tx.v!.eqn(27) || tx.v!.eqn(28)) {
+      return;
+    }
+
+    if (!this._common.gteHardfork(EIP155_MIN_HARDFORK)) {
+      throw new InvalidArgumentsError(`Trying to send an EIP-155 transaction, but they are not supported by the current hardfork.  
+      
+You can use them by running Hardhat Network with 'hardfork' ${EIP155_MIN_HARDFORK} or later.`);
     }
   }
 }

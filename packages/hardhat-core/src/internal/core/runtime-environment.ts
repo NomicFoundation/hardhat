@@ -8,7 +8,6 @@ import {
   HardhatConfig,
   HardhatRuntimeEnvironment,
   Network,
-  NetworkConfig,
   ParamDefinition,
   RunSuperFunction,
   RunTaskFunction,
@@ -152,6 +151,7 @@ export class Environment implements HardhatRuntimeEnvironment {
     const globalAsAny = global as any;
 
     const previousValues: { [name: string]: any } = {};
+    const previousHre = globalAsAny.hre;
 
     globalAsAny.hre = this;
 
@@ -170,7 +170,7 @@ export class Environment implements HardhatRuntimeEnvironment {
           continue;
         }
 
-        globalAsAny.hre = previousValues.hre;
+        globalAsAny.hre = previousHre;
         globalAsAny[key] = previousValues[key];
       }
     };
@@ -297,7 +297,7 @@ export class Environment implements HardhatRuntimeEnvironment {
     paramDefinition: ParamDefinition<any>,
     argumentValue: any
   ) {
-    const { name, isOptional, defaultValue, type } = paramDefinition;
+    const { name, isOptional, defaultValue } = paramDefinition;
 
     if (argumentValue === undefined) {
       if (isOptional) {

@@ -76,9 +76,14 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
     // the async call that follows would probably loose of the stack trace
     const error = new ProviderError("HttpProviderError", -1);
 
-    const requests = batch.map((r) =>
-      this._getJsonRpcRequest(r.method, r.params)
-    );
+    // we need this to sort the responses
+    const idToIndexMap: Record<string, number> = {};
+
+    const requests = batch.map((r, i) => {
+      const jsonRpcRequest = this._getJsonRpcRequest(r.method, r.params);
+      idToIndexMap[jsonRpcRequest.id] = i;
+      return jsonRpcRequest;
+    });
 
     const jsonRpcResponses = await this._fetchJsonRpcResponse(requests);
 
@@ -95,7 +100,16 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
     // We already know that it has this type, but TS can't infer it.
     const responses = jsonRpcResponses as SuccessfulJsonRpcResponse[];
 
-    return responses.map((response) => response.result);
+    // we use the id to sort the responses so that they match the order of the requests
+    const sortedResponses = responses
+      .map(
+        (response) =>
+          [idToIndexMap[response.id], response.result] as [number, any]
+      )
+      .sort(([indexA], [indexB]) => indexA - indexB)
+      .map(([, result]) => result);
+
+    return sortedResponses;
   }
 
   private async _fetchJsonRpcResponse(

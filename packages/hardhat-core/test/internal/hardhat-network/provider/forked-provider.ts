@@ -4,9 +4,13 @@ import { BN, bufferToHex, toBuffer } from "ethereumjs-util";
 import { Contract, utils, Wallet } from "ethers";
 import fsExtra from "fs-extra";
 
-import { rpcQuantityToNumber } from "../../../../src/internal/core/providers/provider-utils";
-import { InvalidInputError } from "../../../../src/internal/hardhat-network/provider/errors";
-import { numberToRpcQuantity } from "../../../../src/internal/hardhat-network/provider/output";
+import {
+  numberToRpcQuantity,
+  rpcDataToBN,
+  rpcQuantityToBN,
+  rpcQuantityToNumber,
+} from "../../../../src/internal/core/jsonrpc/types/base-types";
+import { InvalidInputError } from "../../../../src/internal/core/providers/errors";
 import { ALCHEMY_URL } from "../../../setup";
 import { workaroundWindowsCiFailures } from "../../../utils/workaround-windows-ci-failures";
 import {
@@ -23,11 +27,6 @@ import {
   WETH_ADDRESS,
 } from "../helpers/constants";
 import { EXAMPLE_CONTRACT } from "../helpers/contracts";
-import {
-  dataToBN,
-  quantityToBN,
-  quantityToNumber,
-} from "../helpers/conversions";
 import { setCWD } from "../helpers/cwd";
 import { EthersProviderWrapper } from "../helpers/ethers-provider-wrapper";
 import { hexStripZeros } from "../helpers/hexStripZeros";
@@ -52,7 +51,7 @@ const WETH_DEPOSIT_SELECTOR = "0xd0e30db0";
 
 describe("Forked provider", function () {
   FORKED_PROVIDERS.forEach(({ rpcProvider, useProvider }) => {
-    workaroundWindowsCiFailures({ isFork: true });
+    workaroundWindowsCiFailures.call(this, { isFork: true });
 
     describe(`Using ${rpcProvider}`, function () {
       setCWD();
@@ -65,7 +64,7 @@ describe("Forked provider", function () {
         it("returns the current block number", async function () {
           const blockNumber = await this.provider.send("eth_blockNumber");
           const minBlockNumber = 10494745; // mainnet block number at 20.07.2020
-          assert.isAtLeast(quantityToNumber(blockNumber), minBlockNumber);
+          assert.isAtLeast(rpcQuantityToNumber(blockNumber), minBlockNumber);
         });
       });
 
@@ -73,7 +72,7 @@ describe("Forked provider", function () {
         it("can get DAI total supply", async function () {
           const daiTotalSupplySelector = "0x18160ddd";
           const result = await this.provider.send("eth_call", [
-            { to: bufferToHex(DAI_ADDRESS), data: daiTotalSupplySelector },
+            { to: DAI_ADDRESS.toString(), data: daiTotalSupplySelector },
           ]);
 
           const bnResult = new BN(toBuffer(result));
@@ -128,24 +127,24 @@ describe("Forked provider", function () {
             it("does not affect previously added storage data", async function () {
               const forkBlockNumber = await getForkBlockNumber();
               await this.provider.send("hardhat_impersonateAccount", [
-                bufferToHex(BITFINEX_WALLET_ADDRESS),
+                BITFINEX_WALLET_ADDRESS.toString(),
               ]);
 
               const getWrappedBalance = async () => {
                 const balanceOfSelector = `0x70a08231${leftPad32(
-                  BITFINEX_WALLET_ADDRESS
+                  BITFINEX_WALLET_ADDRESS.toString()
                 )}`;
-                return dataToBN(
+                return rpcDataToBN(
                   await this.provider.send("eth_call", [
-                    { to: bufferToHex(WETH_ADDRESS), data: balanceOfSelector },
+                    { to: WETH_ADDRESS.toString(), data: balanceOfSelector },
                   ])
                 ).toString();
               };
 
               await this.provider.send("eth_sendTransaction", [
                 {
-                  from: bufferToHex(BITFINEX_WALLET_ADDRESS),
-                  to: bufferToHex(WETH_ADDRESS),
+                  from: BITFINEX_WALLET_ADDRESS.toString(),
+                  to: WETH_ADDRESS.toString(),
                   data: WETH_DEPOSIT_SELECTOR,
                   value: numberToRpcQuantity(123),
                   gas: numberToRpcQuantity(50000),
@@ -156,8 +155,8 @@ describe("Forked provider", function () {
 
               await this.provider.send("eth_call", [
                 {
-                  from: bufferToHex(BITFINEX_WALLET_ADDRESS),
-                  to: bufferToHex(WETH_ADDRESS),
+                  from: BITFINEX_WALLET_ADDRESS.toString(),
+                  to: WETH_ADDRESS.toString(),
                   data: WETH_DEPOSIT_SELECTOR,
                   value: numberToRpcQuantity(321),
                 },
@@ -170,13 +169,13 @@ describe("Forked provider", function () {
             it("does not affect previously added balance data", async function () {
               const forkBlockNumber = await getForkBlockNumber();
               await this.provider.send("hardhat_impersonateAccount", [
-                bufferToHex(BITFINEX_WALLET_ADDRESS),
+                BITFINEX_WALLET_ADDRESS.toString(),
               ]);
 
               await this.provider.send("eth_sendTransaction", [
                 {
-                  from: bufferToHex(BITFINEX_WALLET_ADDRESS),
-                  to: bufferToHex(EMPTY_ACCOUNT_ADDRESS),
+                  from: BITFINEX_WALLET_ADDRESS.toString(),
+                  to: EMPTY_ACCOUNT_ADDRESS.toString(),
                   value: numberToRpcQuantity(123),
                   gas: numberToRpcQuantity(21000),
                   gasPrice: numberToRpcQuantity(1),
@@ -185,17 +184,17 @@ describe("Forked provider", function () {
 
               await this.provider.send("eth_call", [
                 {
-                  from: bufferToHex(BITFINEX_WALLET_ADDRESS),
-                  to: bufferToHex(EMPTY_ACCOUNT_ADDRESS),
+                  from: BITFINEX_WALLET_ADDRESS.toString(),
+                  to: EMPTY_ACCOUNT_ADDRESS.toString(),
                   value: numberToRpcQuantity(321),
                 },
                 numberToRpcQuantity(forkBlockNumber - 1),
               ]);
 
               const balance = await this.provider.send("eth_getBalance", [
-                bufferToHex(EMPTY_ACCOUNT_ADDRESS),
+                EMPTY_ACCOUNT_ADDRESS.toString(),
               ]);
-              assert.equal(quantityToNumber(balance), 123);
+              assert.equal(rpcQuantityToNumber(balance), 123);
             });
           });
         });
@@ -204,29 +203,29 @@ describe("Forked provider", function () {
       describe("eth_getBalance", function () {
         it("can get the balance of the WETH contract", async function () {
           const result = await this.provider.send("eth_getBalance", [
-            bufferToHex(WETH_ADDRESS),
+            WETH_ADDRESS.toString(),
           ]);
-          assert.isTrue(quantityToBN(result).gtn(0));
+          assert.isTrue(rpcQuantityToBN(result).gtn(0));
         });
       });
 
       describe("eth_sendTransaction", () => {
         it("supports Ether transfers to remote accounts", async function () {
           const result = await this.provider.send("eth_getBalance", [
-            bufferToHex(BITFINEX_WALLET_ADDRESS),
+            BITFINEX_WALLET_ADDRESS.toString(),
           ]);
-          const initialBalance = quantityToBN(result);
+          const initialBalance = rpcQuantityToBN(result);
           await this.provider.send("eth_sendTransaction", [
             {
               from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              to: bufferToHex(BITFINEX_WALLET_ADDRESS),
+              to: BITFINEX_WALLET_ADDRESS.toString(),
               value: numberToRpcQuantity(100),
               gas: numberToRpcQuantity(21000),
               gasPrice: numberToRpcQuantity(1),
             },
           ]);
           const balance = await this.provider.send("eth_getBalance", [
-            bufferToHex(BITFINEX_WALLET_ADDRESS),
+            BITFINEX_WALLET_ADDRESS.toString(),
           ]);
           assertQuantity(balance, initialBalance.addn(100));
         });
@@ -237,9 +236,9 @@ describe("Forked provider", function () {
           )}`;
 
           const getWrappedBalance = async () =>
-            dataToBN(
+            rpcDataToBN(
               await this.provider.send("eth_call", [
-                { to: bufferToHex(WETH_ADDRESS), data: wethBalanceOfSelector },
+                { to: WETH_ADDRESS.toString(), data: wethBalanceOfSelector },
               ])
             );
 
@@ -247,7 +246,7 @@ describe("Forked provider", function () {
           await this.provider.send("eth_sendTransaction", [
             {
               from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              to: bufferToHex(WETH_ADDRESS),
+              to: WETH_ADDRESS.toString(),
               data: WETH_DEPOSIT_SELECTOR,
               value: numberToRpcQuantity(100),
               gas: numberToRpcQuantity(50000),
@@ -317,7 +316,7 @@ describe("Forked provider", function () {
             [account]
           );
 
-          assert.isTrue(quantityToBN(transactionCount).gtn(0));
+          assert.isTrue(rpcQuantityToBN(transactionCount).gtn(0));
         });
       });
 
@@ -379,14 +378,14 @@ describe("Forked provider", function () {
       describe("evm_revert", () => {
         it("can revert the state of WETH contract to a previous snapshot", async function () {
           const getWethBalance = async () =>
-            this.provider.send("eth_getBalance", [bufferToHex(WETH_ADDRESS)]);
+            this.provider.send("eth_getBalance", [WETH_ADDRESS.toString()]);
 
           const initialBalance = await getWethBalance();
           const snapshotId = await this.provider.send("evm_snapshot", []);
           await this.provider.send("eth_sendTransaction", [
             {
               from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              to: bufferToHex(WETH_ADDRESS),
+              to: WETH_ADDRESS.toString(),
               data: WETH_DEPOSIT_SELECTOR,
               value: numberToRpcQuantity(100),
               gas: numberToRpcQuantity(50000),
@@ -408,30 +407,32 @@ describe("Forked provider", function () {
 
         it("allows to impersonate a remote EOA", async function () {
           await this.provider.send("hardhat_impersonateAccount", [
-            bufferToHex(BITFINEX_WALLET_ADDRESS),
+            BITFINEX_WALLET_ADDRESS.toString(),
           ]);
 
           await this.provider.send("eth_sendTransaction", [
             {
-              from: bufferToHex(BITFINEX_WALLET_ADDRESS),
-              to: bufferToHex(EMPTY_ACCOUNT_ADDRESS),
+              from: BITFINEX_WALLET_ADDRESS.toString(),
+              to: EMPTY_ACCOUNT_ADDRESS.toString(),
               value: oneEtherQuantity,
               gas: numberToRpcQuantity(21000),
               gasPrice: numberToRpcQuantity(1),
             },
           ]);
           const balance = await this.provider.send("eth_getBalance", [
-            bufferToHex(EMPTY_ACCOUNT_ADDRESS),
+            EMPTY_ACCOUNT_ADDRESS.toString(),
           ]);
           assert.equal(balance, oneEtherQuantity);
         });
 
         it("allows to impersonate a remote contract account", async function () {
           // Get Uniswap DAI exchange address
-          const getExchangeSelector = `0x06f2bf62${leftPad32(DAI_ADDRESS)}`;
+          const getExchangeSelector = `0x06f2bf62${leftPad32(
+            DAI_ADDRESS.toString()
+          )}`;
           const result = await this.provider.send("eth_call", [
             {
-              to: bufferToHex(UNISWAP_FACTORY_ADDRESS),
+              to: UNISWAP_FACTORY_ADDRESS.toString(),
               data: getExchangeSelector,
             },
           ]);
@@ -444,13 +445,13 @@ describe("Forked provider", function () {
 
           // Transfer 10^18 DAI from the exchange contract to the EMPTY_ACCOUNT_ADDRESS
           const transferRawData = `0xa9059cbb${leftPad32(
-            EMPTY_ACCOUNT_ADDRESS
+            EMPTY_ACCOUNT_ADDRESS.toString()
           )}${leftPad32(oneEtherQuantity)}`;
 
           await this.provider.send("eth_sendTransaction", [
             {
               from: daiExchangeAddress,
-              to: bufferToHex(DAI_ADDRESS),
+              to: DAI_ADDRESS.toString(),
               gas: numberToRpcQuantity(200_000),
               gasPrice: numberToRpcQuantity(1),
               data: transferRawData,
@@ -459,11 +460,11 @@ describe("Forked provider", function () {
 
           // Check DAI balance of EMPTY_ACCOUNT_ADDRESS
           const balanceOfSelector = `0x70a08231${leftPad32(
-            EMPTY_ACCOUNT_ADDRESS
+            EMPTY_ACCOUNT_ADDRESS.toString()
           )}`;
 
           const daiBalance = await this.provider.send("eth_call", [
-            { to: bufferToHex(DAI_ADDRESS), data: balanceOfSelector },
+            { to: DAI_ADDRESS.toString(), data: balanceOfSelector },
           ]);
 
           assert.equal(hexStripZeros(daiBalance), oneEtherQuantity);
@@ -473,17 +474,17 @@ describe("Forked provider", function () {
       describe("hardhat_stopImpersonatingAccount", () => {
         it("disables account impersonating", async function () {
           await this.provider.send("hardhat_impersonateAccount", [
-            bufferToHex(BITFINEX_WALLET_ADDRESS),
+            BITFINEX_WALLET_ADDRESS.toString(),
           ]);
           await this.provider.send("hardhat_stopImpersonatingAccount", [
-            bufferToHex(BITFINEX_WALLET_ADDRESS),
+            BITFINEX_WALLET_ADDRESS.toString(),
           ]);
 
           await assertTransactionFailure(
             this.provider,
             {
-              from: bufferToHex(BITFINEX_WALLET_ADDRESS),
-              to: bufferToHex(EMPTY_ACCOUNT_ADDRESS),
+              from: BITFINEX_WALLET_ADDRESS.toString(),
+              to: EMPTY_ACCOUNT_ADDRESS.toString(),
               value: numberToRpcQuantity(100),
               gas: numberToRpcQuantity(21000),
               gasPrice: numberToRpcQuantity(1),
@@ -506,13 +507,13 @@ describe("Forked provider", function () {
             wallet = new Wallet(DEFAULT_ACCOUNTS[0].privateKey, ethersProvider);
 
             factory = new Contract(
-              bufferToHex(UNISWAP_FACTORY_ADDRESS),
+              UNISWAP_FACTORY_ADDRESS.toString(),
               UniswapFactoryAbi,
               ethersProvider
             );
 
             const daiExchangeAddress = await factory.getExchange(
-              bufferToHex(DAI_ADDRESS)
+              DAI_ADDRESS.toString()
             );
 
             daiExchange = new Contract(
@@ -522,7 +523,7 @@ describe("Forked provider", function () {
             );
 
             dai = new Contract(
-              bufferToHex(DAI_ADDRESS),
+              DAI_ADDRESS.toString(),
               ERC20Abi,
               ethersProvider
             );

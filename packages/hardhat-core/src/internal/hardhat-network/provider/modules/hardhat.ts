@@ -1,4 +1,4 @@
-import { BN, bufferToInt } from "ethereumjs-util";
+import { BN } from "ethereumjs-util";
 import * as t from "io-ts";
 
 import {
@@ -6,17 +6,18 @@ import {
   CompilerInput,
   CompilerOutput,
 } from "../../../../types";
-import { MessageTrace } from "../../stack-traces/message-trace";
-import { MethodNotFoundError } from "../errors";
+import { rpcAddress, rpcHash } from "../../../core/jsonrpc/types/base-types";
 import {
   optionalRpcHardhatNetworkConfig,
-  rpcAddress,
+  RpcHardhatNetworkConfig,
+} from "../../../core/jsonrpc/types/input/hardhat-network";
+import {
   rpcCompilerInput,
   rpcCompilerOutput,
-  RpcHardhatNetworkConfig,
-  rpcHash,
-  validateParams,
-} from "../input";
+} from "../../../core/jsonrpc/types/input/solc";
+import { validateParams } from "../../../core/jsonrpc/types/input/validation";
+import { MethodNotFoundError } from "../../../core/providers/errors";
+import { MessageTrace } from "../../stack-traces/message-trace";
 import { HardhatNode } from "../node";
 import { ForkConfig, MineBlockResult } from "../node-types";
 
@@ -40,19 +41,14 @@ export class HardhatModule {
     params: any[] = []
   ): Promise<any> {
     switch (method) {
-      case "hardhat_addCompilationResult":
-        return this._addCompilationResultAction(
-          ...this._addCompilationResultParams(params)
-        );
-
-      case "hardhat_dropTransaction":
-        return this._dropTransactionAction(
-          ...this._dropTransactionParams(params)
-        );
-
       case "hardhat_getStackTraceFailuresCount":
         return this._getStackTraceFailuresCountAction(
           ...this._getStackTraceFailuresCountParams(params)
+        );
+
+      case "hardhat_addCompilationResult":
+        return this._addCompilationResultAction(
+          ...this._addCompilationResultParams(params)
         );
 
       case "hardhat_impersonateAccount":
@@ -60,6 +56,11 @@ export class HardhatModule {
 
       case "hardhat_intervalMine":
         return this._intervalMineAction(...this._intervalMineParams(params));
+
+      case "hardhat_stopImpersonatingAccount":
+        return this._stopImpersonatingAction(
+          ...this._stopImpersonatingParams(params)
+        );
 
       case "hardhat_reset":
         return this._resetAction(...this._resetParams(params));
@@ -69,9 +70,9 @@ export class HardhatModule {
           ...this._setLoggingEnabledParams(params)
         );
 
-      case "hardhat_stopImpersonatingAccount":
-        return this._stopImpersonatingAction(
-          ...this._stopImpersonatingParams(params)
+      case "hardhat_dropTransaction":
+        return this._dropTransactionAction(
+          ...this._dropTransactionParams(params)
         );
     }
 
@@ -113,16 +114,6 @@ export class HardhatModule {
     );
   }
 
-  // hardhat_dropTransaction
-
-  private _dropTransactionParams(params: any[]): [Buffer] {
-    return validateParams(params, rpcHash);
-  }
-
-  private async _dropTransactionAction(hash: Buffer): Promise<boolean> {
-    return this._node.dropTransaction(hash);
-  }
-
   // hardhat_impersonateAccount
 
   private _impersonateParams(params: any[]): [Buffer] {
@@ -141,7 +132,7 @@ export class HardhatModule {
 
   private async _intervalMineAction(): Promise<boolean> {
     const result = await this._node.mineBlock();
-    const blockNumber = bufferToInt(result.block.header.number);
+    const blockNumber = result.block.header.number.toNumber();
 
     const isEmpty = result.block.transactions.length === 0;
     if (isEmpty) {
@@ -192,6 +183,16 @@ export class HardhatModule {
   ): Promise<true> {
     this._setLoggingEnabledCallback(loggingEnabled);
     return true;
+  }
+
+  // hardhat_dropTransaction
+
+  private _dropTransactionParams(params: any[]): [Buffer] {
+    return validateParams(params, rpcHash);
+  }
+
+  private async _dropTransactionAction(hash: Buffer): Promise<boolean> {
+    return this._node.dropTransaction(hash);
   }
 
   private async _logBlock(result: MineBlockResult) {
