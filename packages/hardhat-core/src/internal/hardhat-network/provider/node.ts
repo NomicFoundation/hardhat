@@ -923,6 +923,15 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     await this._txPool.updatePendingAndQueued();
   }
 
+  public async setAccountBalance(
+    address: Address,
+    newBalance: BN
+  ): Promise<void> {
+    const account = await this._stateManager.getAccount(address);
+    account.balance = newBalance;
+    await this._stateManager.putAccount(address, account);
+  }
+
   public async setAccountNonce(address: Address, newNonce: BN): Promise<void> {
     const account = await this._stateManager.getAccount(address);
     if (newNonce.lt(account.nonce)) {

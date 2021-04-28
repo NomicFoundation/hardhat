@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { intToHex } from "ethereumjs-util";
+import { BN, intToHex } from "ethereumjs-util";
 import sinon from "sinon";
 
 import {
@@ -368,6 +368,95 @@ describe("Hardhat module", function () {
             assert.equal(await getLatestBlockNumber(), 0);
           });
         }
+      });
+
+      describe("hardhat_setBalance", function () {
+        it("should reject an invalid address", async function () {
+          await assertInvalidArgumentsError(
+            this.provider,
+            "hardhat_setBalance",
+            ["0x1234", "0x0"],
+            'Errors encountered in param 0: Invalid value "0x1234" supplied to : ADDRESS'
+          );
+        });
+
+        it("should reject a non-numeric nonce", async function () {
+          await assertInvalidArgumentsError(
+            this.provider,
+            "hardhat_setBalance",
+            [DEFAULT_ACCOUNTS_ADDRESSES[0].toString(), "xyz"],
+            'Errors encountered in param 1: Invalid value "xyz" supplied to : QUANTITY'
+          );
+        });
+
+        it("should not reject valid argument types", async function () {
+          await this.provider.send("hardhat_setBalance", [
+            DEFAULT_ACCOUNTS_ADDRESSES[0].toString(),
+            "0x0",
+          ]);
+        });
+
+        it("should result in a modified balance", async function () {
+          // Arrange: Capture existing balance
+          const existingBalance = new BN(
+            (
+              await this.provider.send("eth_getBalance", [
+                DEFAULT_ACCOUNTS_ADDRESSES[0],
+              ])
+            ).replace("0x", ""),
+            "hex"
+          );
+
+          // Act: Set the new balance.
+          const targetBalance = existingBalance.add(new BN(1)).mul(new BN(2));
+          // For sanity, ensure that we really are making a change:
+          assert.notEqual(targetBalance, existingBalance);
+          await this.provider.send("hardhat_setBalance", [
+            DEFAULT_ACCOUNTS_ADDRESSES[0],
+            `0x${targetBalance.toString(16)}`,
+          ]);
+
+          // Assert: Ensure the new balance was set.
+          const newBalance = new BN(
+            (
+              await this.provider.send("eth_getBalance", [
+                DEFAULT_ACCOUNTS_ADDRESSES[0],
+              ])
+            ).replace("0x", ""),
+            "hex"
+          );
+          assert(targetBalance.eq(newBalance));
+        });
+
+        it("should not result in a modified state root", async function () {
+          // Arrange 1: Send a transaction, in order to ensure a pre-existing
+          // state root.
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              value: "0x100",
+            },
+          ]);
+          await this.provider.send("evm_mine");
+
+          // Arrange 2: Capture the existing state root.
+          const oldStateRoot = (
+            await this.provider.send("eth_getBlockByNumber", ["latest", false])
+          ).stateRoot;
+
+          // Act: Set the new balance.
+          await this.provider.send("hardhat_setBalance", [
+            DEFAULT_ACCOUNTS_ADDRESSES[0],
+            intToHex(99),
+          ]);
+
+          // Assert: Ensure state root hasn't changed.
+          const newStateRoot = (
+            await this.provider.send("eth_getBlockByNumber", ["latest", false])
+          ).stateRoot;
+          assert.equal(newStateRoot, oldStateRoot);
+        });
       });
 
       describe("hardhat_setNonce", function () {

@@ -73,6 +73,9 @@ export class HardhatModule {
           ...this._setLoggingEnabledParams(params)
         );
 
+      case "hardhat_setBalance":
+        return this._setBalanceAction(...this._setBalanceParams(params));
+
       case "hardhat_setNonce":
         return this._setNonceAction(...this._setNonceParams(params));
     }
@@ -183,6 +186,17 @@ export class HardhatModule {
     loggingEnabled: boolean
   ): Promise<true> {
     this._setLoggingEnabledCallback(loggingEnabled);
+    return true;
+  }
+
+  // hardhat_setBalance
+
+  private _setBalanceParams(params: any[]): [Buffer, BN] {
+    return validateParams(params, rpcAddress, rpcQuantity);
+  }
+
+  private async _setBalanceAction(address: Buffer, newBalance: BN) {
+    await this._node.setAccountBalance(new Address(address), newBalance);
     return true;
   }
 
