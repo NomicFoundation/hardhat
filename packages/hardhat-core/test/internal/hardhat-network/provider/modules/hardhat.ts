@@ -459,6 +459,78 @@ describe("Hardhat module", function () {
         });
       });
 
+      describe("hardhat_setCode", function () {
+        it("should reject an invalid address", async function () {
+          await assertInvalidArgumentsError(
+            this.provider,
+            "hardhat_setCode",
+            ["0x1234", "0x0"],
+            'Errors encountered in param 0: Invalid value "0x1234" supplied to : ADDRESS'
+          );
+        });
+
+        it("should reject a non-numeric nonce", async function () {
+          await assertInvalidArgumentsError(
+            this.provider,
+            "hardhat_setCode",
+            [DEFAULT_ACCOUNTS_ADDRESSES[0].toString(), "xyz"],
+            'Errors encountered in param 1: Invalid value "xyz" supplied to : DATA'
+          );
+        });
+
+        it("should not reject valid argument types", async function () {
+          await this.provider.send("hardhat_setBalance", [
+            DEFAULT_ACCOUNTS_ADDRESSES[0].toString(),
+            "0x0",
+          ]);
+        });
+
+        it("should result in modified code", async function () {
+          const targetCode = "0x0123456789abcdef";
+          await this.provider.send("hardhat_setCode", [
+            DEFAULT_ACCOUNTS_ADDRESSES[0].toString(),
+            targetCode,
+          ]);
+
+          const actualCode = await this.provider.send("eth_getCode", [
+            DEFAULT_ACCOUNTS_ADDRESSES[0].toString(),
+            "latest",
+          ]);
+
+          assert.equal(actualCode, targetCode);
+        });
+
+        it("should not result in a modified state root", async function () {
+          // Arrange 1: Send a transaction, in order to ensure a pre-existing
+          // state root.
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              value: "0x100",
+            },
+          ]);
+          await this.provider.send("evm_mine");
+
+          // Arrange 2: Capture the existing state root.
+          const oldStateRoot = (
+            await this.provider.send("eth_getBlockByNumber", ["latest", false])
+          ).stateRoot;
+
+          // Act: Set the new nonce.
+          await this.provider.send("hardhat_setCode", [
+            DEFAULT_ACCOUNTS_ADDRESSES[0],
+            "0x0123456789abcdef",
+          ]);
+
+          // Assert: Ensure state root hasn't changed.
+          const newStateRoot = (
+            await this.provider.send("eth_getBlockByNumber", ["latest", false])
+          ).stateRoot;
+          assert.equal(newStateRoot, oldStateRoot);
+        });
+      });
+
       describe("hardhat_setNonce", function () {
         it("should reject an invalid address", async function () {
           await assertInvalidArgumentsError(

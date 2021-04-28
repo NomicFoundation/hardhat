@@ -8,6 +8,7 @@ import {
 } from "../../../../types";
 import {
   rpcAddress,
+  rpcData,
   rpcQuantity,
 } from "../../../core/jsonrpc/types/base-types";
 import {
@@ -75,6 +76,9 @@ export class HardhatModule {
 
       case "hardhat_setBalance":
         return this._setBalanceAction(...this._setBalanceParams(params));
+
+      case "hardhat_setCode":
+        return this._setCodeAction(...this._setCodeParams(params));
 
       case "hardhat_setNonce":
         return this._setNonceAction(...this._setNonceParams(params));
@@ -197,6 +201,17 @@ export class HardhatModule {
 
   private async _setBalanceAction(address: Buffer, newBalance: BN) {
     await this._node.setAccountBalance(new Address(address), newBalance);
+    return true;
+  }
+
+  // hardhat_setCode
+
+  private _setCodeParams(params: any[]): [Buffer, Buffer] {
+    return validateParams(params, rpcAddress, rpcData);
+  }
+
+  private async _setCodeAction(address: Buffer, newCode: Buffer) {
+    await this._node.setAccountCode(new Address(address), newCode);
     return true;
   }
 
