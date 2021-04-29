@@ -950,6 +950,18 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     await this._stateManager.putAccount(address, account);
   }
 
+  public async setAccountStorage(
+    address: Address,
+    slotIndex: BN,
+    value: Buffer
+  ) {
+    await this._stateManager.putContractStorage(
+      address,
+      slotIndex.toArrayLike(Buffer, "be", 32),
+      value
+    );
+  }
+
   private async _addPendingTransaction(tx: TypedTransaction): Promise<string> {
     await this._txPool.addTransaction(tx);
     await this._notifyPendingTransaction(tx);

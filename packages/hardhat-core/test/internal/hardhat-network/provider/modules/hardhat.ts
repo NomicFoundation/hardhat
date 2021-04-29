@@ -632,6 +632,111 @@ describe("Hardhat module", function () {
           assert.equal(newStateRoot, oldStateRoot);
         });
       });
+
+      describe("hardhat_setStorageSlot", function () {
+        it("should reject an invalid address", async function () {
+          await assertInvalidArgumentsError(
+            this.provider,
+            "hardhat_setStorageSlot",
+            ["0x1234", intToHex(0), intToHex(99)],
+            'Errors encountered in param 0: Invalid value "0x1234" supplied to : ADDRESS'
+          );
+        });
+
+        it("should reject storage key that is non-numeric", async function () {
+          await assertInvalidArgumentsError(
+            this.provider,
+            "hardhat_setStorageSlot",
+            [DEFAULT_ACCOUNTS_ADDRESSES[0].toString(), "xyz", intToHex(99)],
+            'Errors encountered in param 1: Invalid value "xyz" supplied to : QUANTITY'
+          );
+        });
+
+        it("should reject a storage key that is greater than 32 bytes", async function () {
+          const MAX_WORD_VALUE = new BN(2).pow(new BN(256));
+          await assertInvalidInputError(
+            this.provider,
+            "hardhat_setStorageSlot",
+            [
+              DEFAULT_ACCOUNTS_ADDRESSES[0].toString(),
+              `0x${MAX_WORD_VALUE.add(new BN(1)).toString(16)}`,
+              "0xff",
+            ],
+            "Storage key must not be greater than 2^256"
+          );
+        });
+
+        for (const badInputLength of [1, 2, 31, 33, 64]) {
+          it(`should reject a value that is ${badInputLength} (not exactly 32) bytes long`, async function () {
+            await assertInvalidInputError(
+              this.provider,
+              "hardhat_setStorageSlot",
+              [
+                DEFAULT_ACCOUNTS_ADDRESSES[0].toString(),
+                intToHex(0),
+                `0x${"ff".repeat(badInputLength)}`,
+              ],
+              "Storage value must be exactly 32 bytes long"
+            );
+          });
+        }
+
+        it("should not reject valid argument types", async function () {
+          await this.provider.send("hardhat_setStorageSlot", [
+            DEFAULT_ACCOUNTS_ADDRESSES[0].toString(),
+            intToHex(0),
+            `0x${"ff".repeat(32)}`,
+          ]);
+        });
+
+        it("should result in modified storage", async function () {
+          const targetStorageSlot = 1;
+          const targetStorageValue = 99;
+          await this.provider.send("hardhat_setStorageSlot", [
+            DEFAULT_ACCOUNTS_ADDRESSES[0],
+            intToHex(0),
+            `0x${new BN(targetStorageValue).toString(16, 64)}`,
+          ]);
+
+          const resultingStorageValue = await this.provider.send(
+            "eth_getStorageAt",
+            [DEFAULT_ACCOUNTS_ADDRESSES[0], intToHex(0), "latest"]
+          );
+
+          assert.equal(resultingStorageValue, targetStorageValue);
+        });
+
+        it("should not result in a modified state root", async function () {
+          // Arrange 1: Send a transaction, in order to ensure a pre-existing
+          // state root.
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              value: "0x100",
+            },
+          ]);
+          await this.provider.send("evm_mine");
+
+          // Arrange 2: Capture the existing state root.
+          const oldStateRoot = (
+            await this.provider.send("eth_getBlockByNumber", ["latest", false])
+          ).stateRoot;
+
+          // Act: Set the new storage value.
+          await this.provider.send("hardhat_setStorageSlot", [
+            DEFAULT_ACCOUNTS_ADDRESSES[0],
+            intToHex(0),
+            `0x${"ff".repeat(32)}`,
+          ]);
+
+          // Assert: Ensure state root hasn't changed.
+          const newStateRoot = (
+            await this.provider.send("eth_getBlockByNumber", ["latest", false])
+          ).stateRoot;
+          assert.equal(newStateRoot, oldStateRoot);
+        });
+      });
     });
   });
 });

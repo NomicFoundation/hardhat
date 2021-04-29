@@ -20,7 +20,10 @@ import {
   rpcCompilerOutput,
 } from "../../../core/jsonrpc/types/input/solc";
 import { validateParams } from "../../../core/jsonrpc/types/input/validation";
-import { MethodNotFoundError } from "../../../core/providers/errors";
+import {
+  InvalidInputError,
+  MethodNotFoundError,
+} from "../../../core/providers/errors";
 import { MessageTrace } from "../../stack-traces/message-trace";
 import { HardhatNode } from "../node";
 import { ForkConfig, MineBlockResult } from "../node-types";
@@ -82,6 +85,11 @@ export class HardhatModule {
 
       case "hardhat_setNonce":
         return this._setNonceAction(...this._setNonceParams(params));
+
+      case "hardhat_setStorageSlot":
+        return this._setStorageSlotAction(
+          ...this._setStorageSlotParams(params)
+        );
     }
 
     throw new MethodNotFoundError(`Method ${method} not found`);
@@ -223,6 +231,39 @@ export class HardhatModule {
 
   private async _setNonceAction(address: Buffer, newNonce: BN) {
     await this._node.setAccountNonce(new Address(address), newNonce);
+    return true;
+  }
+
+  // hardhat_setStorageSlot
+
+  private _setStorageSlotParams(params: any[]): [Buffer, BN, Buffer] {
+    const validatedParams = validateParams(
+      params,
+      rpcAddress,
+      rpcQuantity,
+      rpcData
+    );
+
+    const MAX_WORD_VALUE = new BN(2).pow(new BN(256));
+    if (validatedParams[1].gt(MAX_WORD_VALUE)) {
+      throw new InvalidInputError("Storage key must not be greater than 2^256");
+    }
+
+    if (validatedParams[2].length !== 32) {
+      throw new InvalidInputError(
+        "Storage value must be exactly 32 bytes long"
+      );
+    }
+
+    return validatedParams;
+  }
+
+  private async _setStorageSlotAction(
+    address: Buffer,
+    slotIndex: BN,
+    value: Buffer
+  ) {
+    await this._node.setAccountStorage(new Address(address), slotIndex, value);
     return true;
   }
 
