@@ -106,7 +106,7 @@
     "lodash": "^4.17.11",
     "merkle-patricia-tree": "^4.1.0",
     "mnemonist": "^0.38.0",
-    "mocha": "^7.1.2",
+    "mocha": "^8.3.2",
     "node-fetch": "^2.6.0",
     "qs": "^6.7.0",
     "raw-body": "^2.4.1",
