@@ -549,8 +549,6 @@ describe("HardhatNode", () => {
       return;
     }
 
-    this.timeout(120000);
-
     const forkedBlocks: ForkedBlock[] = [
       // We don't run this test against spurious dragon because
       // its receipts contain the state root, and we can't compute it
@@ -603,6 +601,8 @@ describe("HardhatNode", () => {
       const hardfork = remoteCommon.getHardforkByBlockNumber(blockToRun);
 
       it(`should run a ${networkName} block from ${hardfork} and produce the same results`, async function () {
+        this.timeout(120000);
+
         const forkConfig = {
           jsonRpcUrl: url,
           blockNumber: blockToRun - 1,
@@ -732,6 +732,7 @@ async function runBlockAndGetAfterBlockEvent(
   runBlockOpts: RunBlockOpts
 ): Promise<AfterBlockEvent> {
   let results: AfterBlockEvent;
+
   function handler(event: AfterBlockEvent) {
     results = event;
   }
