@@ -329,6 +329,15 @@ const plugins = [
     description: "See emitted events during your hardhat tests in the console",
     tags: ["Events", "Logs", "Trace", "Console", "Testing"],
   },
+  {
+    name: "hardhat-circom",
+    author: "Project Sophon",
+    authorUrl: "https://github.com/projectsophon",
+    url:
+      "https://github.com/projectsophon/hardhat-circom/tree/master",
+    description: "Provide tasks to integrate Circom and SnarkJS",
+    tags: ["Circom", "Snarkjs", "Preprocessor", "Compiling", "Tasks", "Scripts"],
+  },
 ];
 
 module.exports = plugins.map((p) => ({
