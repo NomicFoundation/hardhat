@@ -1,12 +1,11 @@
 const defaultSlugify = require("@vuepress/shared-utils/lib/slugify");
-const plugins = require("./plugins.js");
-const pluginsChildren = [];
+const plugins = require("./sorted-plugins.js");
 
-plugins.forEach((plugin) => {
-  let readmePath = "/plugins/" + plugin.normalizedName + ".md";
-
-  pluginsChildren.push([readmePath, plugin.name, 0]);
-});
+const pluginsChildren = plugins.map((p) => [
+  "/plugins/" + p.normalizedName + ".md",
+  p.name,
+  0,
+]);
 
 module.exports = {
   title:
@@ -142,9 +141,9 @@ module.exports = {
       ],
     },
     algolia: {
-      apiKey: '70d2567dd1257c8a53bbb823a0085f02',
-      indexName: 'hardhat'
-    }
+      apiKey: "70d2567dd1257c8a53bbb823a0085f02",
+      indexName: "hardhat",
+    },
   },
   head: [
     [
