@@ -17,11 +17,11 @@
     "cli"
   ],
   "scripts": {
-    "lint:fix": "node ../../node_modules/prettier/bin-prettier.js --write \"src/**/*.{js,ts}\" \"test/**/*.{js,ts}\" && yarn lint --fix",
-    "lint": "node ../../node_modules/tslint/bin/tslint --config tslint.json --project ./tsconfig.json",
-    "test": "node ../../node_modules/mocha/bin/mocha --recursive \"test/**/*.ts\" --exit",
-    "build": "node ../../node_modules/typescript/bin/tsc --build .",
-    "clean": "node ../../node_modules/rimraf/bin.js dist"
+    "lint:fix": "prettier --write \"src/**/*.{js,ts}\" \"test/**/*.{js,ts}\" && yarn lint --fix",
+    "lint": "tslint --config tslint.json --project ./tsconfig.json",
+    "test": "mocha --recursive \"test/**/*.ts\" --exit",
+    "build": "tsc --build .",
+    "clean": "rimraf dist"
   },
   "files": [
     "dist/src/",
@@ -32,8 +32,19 @@
   "devDependencies": {
     "@types/chai": "^4.2.0",
     "@types/fs-extra": "^5.1.0",
+    "@types/mocha": "^5.2.6",
+    "@types/node": "^10.17.24",
     "chai": "^4.2.0",
-    "hardhat": "^2.0.0"
+    "hardhat": "^2.0.0",
+    "mocha": "^7.1.2",
+    "prettier": "2.0.5",
+    "rimraf": "^3.0.2",
+    "ts-node": "^8.1.0",
+    "tslint-config-prettier": "^1.18.0",
+    "tslint-consistent-codestyle": "^1.15.1",
+    "tslint-plugin-prettier": "^2.0.1",
+    "tslint": "^5.16.0",
+    "typescript": "~4.0.3"
   },
   "dependencies": {
     "@fvictorio/tabtab": "^0.0.3",
