@@ -10,7 +10,9 @@ function getEnv(key: string): string | undefined {
     return undefined;
   }
 
-  return variable.trim();
+  const trimmed = variable.trim();
+
+  return trimmed.length === 0 ? undefined : trimmed;
 }
 
 export const INFURA_URL = getEnv("INFURA_URL");
