@@ -166,7 +166,7 @@ describe("Hardhat module", function () {
 
       describe("hardhat_reset", function () {
         before(function () {
-          if (ALCHEMY_URL === undefined || ALCHEMY_URL === "") {
+          if (ALCHEMY_URL === undefined) {
             this.skip();
           }
         });
