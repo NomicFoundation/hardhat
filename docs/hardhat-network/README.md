@@ -92,7 +92,7 @@ error message in the following cases:
 
 ## `console.log`
 
-Hardhat Network allows you to print logging messages and contract variables calling `console.log()` from your Solidity code. You can see an example in the Sample Project. Follow the steps in [Quick Start](/getting-started/README.md#quick-start) to try it out.
+Hardhat Network allows you to print logging messages and contract variables by calling `console.log()` from your Solidity code. You can see an example in the Sample Project. Follow the steps in [Quick Start](/getting-started/README.md#quick-start) to try it out.
 
 - You can use it in calls and transactions. It works with `view` functions, but not in `pure` ones.
 - It always works, regardless of the call or transaction failing or being successful.
@@ -102,7 +102,7 @@ Hardhat Network allows you to print logging messages and contract variables call
   - `string`
   - `bool`
   - `address`
-- There's also the single parameter API for the types above, and additionally `bytes`, `bytes1`.. up to `bytes32`:
+- There's also the single parameter API for the types above, and additionally `bytes`, `bytes1`... up to `bytes32`:
   - `console.logInt(int i)`
   - `console.logUint(uint i)`
   - `console.logString(string memory s)`
@@ -216,8 +216,8 @@ new block that will include as many pending transactions as possible.
 
 ### Mempool behavior
 
-When automine is disabled, every sent transaction is added to the mempool, that
-contains all the transactions that could be mined in the future. Hardhat
+When automine is disabled, every sent transaction is added to the mempool,
+which contains all the transactions that could be mined in the future. Hardhat
 Network's mempool follows the same rules as geth. This means, among other
 things, that:
 
