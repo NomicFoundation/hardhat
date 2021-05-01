@@ -65,7 +65,7 @@ bug, and use it as the base branch in pull requests.
 
 If you are modifying the default config, adding a feature, or doing any kind of
 technical work that should be reflected in the documentation, the documentation
-change should be contained in the same branch and PR than the change.
+change should be contained in the same branch and PR as the change.
 
 If you are working purely on the website or documentation, not as a result of
 a technical change, you should branch from [`website`](https://github.com/nomiclabs/hardhat/tree/website)
