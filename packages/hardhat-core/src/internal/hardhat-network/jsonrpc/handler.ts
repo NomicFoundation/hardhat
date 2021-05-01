@@ -10,6 +10,7 @@ import {
   ProviderError,
 } from "../../core/providers/errors";
 import {
+  FailedJsonRpcResponse,
   isSuccessfulJsonResponse,
   isValidJsonRequest,
   isValidJsonResponse,
@@ -229,7 +230,7 @@ const _handleError = (error: any): JsonRpcResponse => {
     error = new InternalError(error);
   }
 
-  return {
+  const response: FailedJsonRpcResponse = {
     jsonrpc: "2.0",
     id: null,
     error: {
@@ -237,4 +238,12 @@ const _handleError = (error: any): JsonRpcResponse => {
       message: error.message,
     },
   };
+
+  if (error.transactionHash !== undefined) {
+    response.error.data = {
+      txHash: error.transactionHash,
+    };
+  }
+
+  return response;
 };
