@@ -457,6 +457,33 @@ describe("Hardhat module", function () {
           ).stateRoot;
           assert.equal(newStateRoot, oldStateRoot);
         });
+
+        it("should get changed balance by block", async function () {
+          // Arrange 1: Get current block number
+          const currentBlockNumber = await this.provider.send(
+            "eth_blockNumber"
+          );
+
+          // Arrange 2: Set a new balance
+          const targetBalance = new BN("123454321");
+          const targetBalanceHex = `0x${targetBalance.toString(16)}`;
+          await this.provider.send("hardhat_setBalance", [
+            DEFAULT_ACCOUNTS_ADDRESSES[0],
+            targetBalanceHex,
+          ]);
+
+          // Arrange 3: Mine a block
+          await this.provider.send("evm_mine");
+
+          // Act: Get the balance of the account in the previous block
+          const balancePreviousBlock = await this.provider.send(
+            "eth_getBalance",
+            [DEFAULT_ACCOUNTS_ADDRESSES[0], currentBlockNumber]
+          );
+
+          // Assert: Check that the balance is the one we set
+          assert.equal(balancePreviousBlock, targetBalanceHex);
+        });
       });
 
       describe("hardhat_setCode", function () {
