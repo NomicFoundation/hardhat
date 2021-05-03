@@ -56,6 +56,38 @@ If you are using the `node` task, you can also specify a block number with the `
 npx hardhat node --fork https://eth-mainnet.alchemyapi.io/v2/<key> --fork-block-number 11095000
 ```
 
+## Forking from mainnet (Binance Smart Chain)
+
+In this case you will need to connect to a Binance Smart Chain Archive Node - you can spin up API endpoints for Binance Chain development via [ANKR](https://www.ankr.com).
+
+NOTE: This feature is not supported out the box, hence configuring [Hardhat Network]( https://hardhat.org/hardhat-network) to always do this in your [`hardhat.config.js`](https://hardhat.org/config/#configuration) may result in miscellaneous errors.
+
+The recommendation is to specify `localhost` as a network in [`hardhat.config.js`](https://hardhat.org/config/#configuration) 
+
+````
+  networks: {
+    localhost: {
+      url: "http://127.0.0.1:8545"
+    },
+  }
+
+````
+
+And then to start the [Hardhat Network]( https://hardhat.org/hardhat-network) with the `--fork` parameter specifying your [ANKR](https://www.ankr.com) chain endpoint:
+
+````
+npx hardhat node --fork https://apis.ankr.com/xxxxx/xxxxx/binance/archive/main
+````
+
+Hardhat will then start a HTTP and WebSocket JSON-RPC server at `localhost`.
+
+To deploy the smart contract/s to this archive mainnet fork from your Hardhat project root directory run:
+
+````
+npx hardhat run --network localhost scripts/the-deploy-script-filename.js
+````
+For more information on configurations for smart contract deployment on Hardhat see: [Deploying your contracts](https://hardhat.org/guides/deploying.html) 
+
 ## Impersonating accounts
 
 Once you've got local instances of mainnet protocols, setting them in the specific state your tests need is likely the next step. To make this easy, Hardhat Network allows you to send transactions impersonating specific account and contract addresses.
