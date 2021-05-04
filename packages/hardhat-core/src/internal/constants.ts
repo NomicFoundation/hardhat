@@ -6,11 +6,17 @@ export const HARDHAT_NETWORK_NAME = "hardhat";
 export const SOLIDITY_FILES_CACHE_FILENAME = "solidity-files-cache.json";
 
 export const HARDHAT_NETWORK_SUPPORTED_HARDFORKS = [
+  // "chainstart",
+  // "homestead",
+  // "dao",
+  // "tangerineWhistle",
+  // "spuriousDragon",
   "byzantium",
   "constantinople",
   "petersburg",
   "istanbul",
   "muirGlacier",
+  "berlin",
 ];
 
 export const ARTIFACT_FORMAT_VERSION = "hh-sol-artifact-1";

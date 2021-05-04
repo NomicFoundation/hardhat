@@ -1,4 +1,4 @@
-import VM from "@nomiclabs/ethereumjs-vm";
+import VM from "@ethereumjs/vm";
 import { assert } from "chai";
 import { BN, toBuffer } from "ethereumjs-util";
 import fs from "fs";

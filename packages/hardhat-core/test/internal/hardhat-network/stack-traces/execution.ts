@@ -1,11 +1,8 @@
-import VM from "@nomiclabs/ethereumjs-vm";
+import { Transaction, TxData } from "@ethereumjs/tx";
+import VM from "@ethereumjs/vm";
 import abi from "ethereumjs-abi";
-import Account from "ethereumjs-account";
-import { Transaction, TxData } from "ethereumjs-tx";
-import { privateToAddress } from "ethereumjs-util";
+import { Account, Address, privateToAddress } from "ethereumjs-util";
 
-import { StateManager } from "../../../../src/internal/hardhat-network/provider/types/StateManager";
-import { promisify } from "../../../../src/internal/hardhat-network/provider/utils/promisify";
 import { MessageTrace } from "../../../../src/internal/hardhat-network/stack-traces/message-trace";
 import { VMTracer } from "../../../../src/internal/hardhat-network/stack-traces/vm-tracer";
 
@@ -16,14 +13,11 @@ const senderPrivateKey = Buffer.from(
 const senderAddress = privateToAddress(senderPrivateKey);
 
 export async function instantiateVm(): Promise<VM> {
-  const account = new Account({ balance: 1e18 });
+  const account = Account.fromAccountData({ balance: 1e18 });
 
   const vm = new VM({ activatePrecompiles: true });
 
-  await promisify(vm.stateManager.putAccount.bind(vm.stateManager))(
-    senderAddress,
-    account
-  );
+  await vm.stateManager.putAccount(new Address(senderAddress), account);
 
   return vm;
 }
@@ -71,16 +65,15 @@ export async function traceTransaction(
     gasLimit: txData.gasLimit ?? 4000000,
   });
 
-  tx.sign(senderPrivateKey);
+  const signedTx = tx.sign(senderPrivateKey);
 
-  const getContractCode = promisify(
-    (vm.stateManager as StateManager).getContractCode.bind(vm.stateManager)
-  );
+  const getContractCode = vm.stateManager.getContractCode.bind(vm.stateManager);
+
   const vmTracer = new VMTracer(vm, getContractCode);
   vmTracer.enableTracing();
 
   try {
-    await vm.runTx({ tx });
+    await vm.runTx({ tx: signedTx });
 
     const messageTrace = vmTracer.getLastTopLevelMessageTrace();
     if (messageTrace === undefined) {
@@ -94,6 +87,6 @@ export async function traceTransaction(
 }
 
 async function getNextNonce(vm: VM): Promise<Buffer> {
-  const acc = await vm.pStateManager.getAccount(senderAddress);
-  return acc.nonce;
+  const acc = await vm.stateManager.getAccount(new Address(senderAddress));
+  return acc.nonce.toBuffer();
 }

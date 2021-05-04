@@ -1,6 +1,7 @@
 import { assert } from "chai";
 
-import { numberToRpcQuantity } from "../../../../src/internal/core/providers/provider-utils";
+import { numberToRpcQuantity } from "../../../../src/internal/core/jsonrpc/types/base-types";
+import { InternalError } from "../../../../src/internal/core/providers/errors";
 import {
   dateToTimestampSeconds,
   parseDateString,
@@ -9,6 +10,7 @@ import { HardhatNetworkUserConfig } from "../../../../src/types";
 import { useEnvironment } from "../../../helpers/environment";
 import { expectErrorAsync } from "../../../helpers/errors";
 import { useFixtureProject } from "../../../helpers/project";
+import { ALCHEMY_URL } from "../../../setup";
 
 describe("Hardhat Network special options", function () {
   describe("allowUnlimitedContractSize", function () {
@@ -81,6 +83,66 @@ describe("Hardhat Network special options", function () {
       // We don't know the exact timestamp of the second one, but we can cap it
       assert.isAtLeast(+secondBlock.timestamp, initialDate + 1);
       assert.isBelow(+secondBlock.timestamp, initialDate + 20);
+    });
+  });
+
+  describe("hardfork", function () {
+    describe("When not forking", function () {
+      useFixtureProject("hardhat-network-spurious-dragon");
+      useEnvironment();
+
+      // We skip this test as we are temporally disabling older hardforks due
+      // to a bug in EthereumJS.
+      // TODO: Remove the skip once the DefaultStateManager is fixed
+      it.skip("should accept hardforks as late as chainstart and use them", async function () {
+        const [sender] = await this.env.network.provider.send("eth_accounts");
+        await assert.isRejected(
+          this.env.network.provider.send("eth_sendTransaction", [
+            {
+              from: sender,
+              // This is a deployment with a constructor that just executes CHAIN_ID
+              // which was added in Istanbul
+              data: "0x46",
+            },
+          ]),
+          "Transaction reverted"
+        );
+      });
+    });
+
+    describe("When forking", function () {
+      if (ALCHEMY_URL === undefined) {
+        return;
+      }
+
+      // We skip this test as we are temporally disabling older hardforks due
+      // to a bug in EthereumJS.
+      // TODO: Remove the skip once the DefaultStateManager is fixed
+      describe.skip("Local hardfork validation", function () {
+        useFixtureProject("hardhat-network-fork-tangerine-whistle");
+        useEnvironment();
+
+        it("Shouldn't work with hardforks before spurious dragon", async function () {
+          await assert.isRejected(
+            this.env.network.provider.send("eth_accounts"),
+            InternalError,
+            "Invalid hardfork"
+          );
+        });
+      });
+
+      describe("Remote hardfork validation", function () {
+        useFixtureProject("hardhat-network-fork-from-old-block");
+        useEnvironment();
+
+        it("Shouldn't work with block numbers from before spurious dragon", async function () {
+          await assert.isRejected(
+            this.env.network.provider.send("eth_accounts"),
+            InternalError,
+            "Cannot fork mainnet from block"
+          );
+        });
+      });
     });
   });
 });

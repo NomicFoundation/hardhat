@@ -7,22 +7,21 @@
       @touchend="onTouchEnd"
     >
       <Navbar v-if="shouldShowNavbar" @toggle-sidebar="toggleSidebar" />
-  
+
       <div class="sidebar-mask" @click="toggleSidebar(false)"></div>
-  
+
       <Sidebar :items="sidebarItems" @toggle-sidebar="toggleSidebar">
         <slot name="sidebar-top" slot="top" />
         <slot name="sidebar-bottom" slot="bottom" />
       </Sidebar>
-  
+
       <Home v-if="$page.frontmatter.home" />
-  
+
       <Page v-else :sidebar-items="sidebarItems">
         <slot name="page-top" slot="top" />
         <slot name="page-bottom" slot="bottom" />
       </Page>
     </div>
-    <HHMigrationModal />
   </div>
 </template>
 
@@ -34,10 +33,9 @@ import Navbar from "../components/Navbar.vue";
 import Page from "../components/Page.vue";
 import Sidebar from "../components/Sidebar.vue";
 import { resolveSidebarItems } from "../util";
-import HHMigrationModal from "../components/HHMigrationModal";
 
 export default {
-  components: {HHMigrationModal, Home, Page, Sidebar, Navbar },
+  components: { Home, Page, Sidebar, Navbar },
 
   data() {
     return {

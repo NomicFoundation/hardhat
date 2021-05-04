@@ -25,6 +25,11 @@ export function getLargestPossibleReorg(networkId: number): number | undefined {
   if (networkId === 4) {
     return 5;
   }
+
+  // Ropsten
+  if (networkId === 3) {
+    return 100;
+  }
 }
 
 export const FALLBACK_MAX_REORG = 30;

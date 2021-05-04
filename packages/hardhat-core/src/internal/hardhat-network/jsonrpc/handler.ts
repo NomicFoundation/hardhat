@@ -4,18 +4,19 @@ import WebSocket from "ws";
 
 import { EIP1193Provider } from "../../../types";
 import {
+  InternalError,
+  InvalidJsonInputError,
+  InvalidRequestError,
+  ProviderError,
+} from "../../core/providers/errors";
+import {
+  FailedJsonRpcResponse,
   isSuccessfulJsonResponse,
   isValidJsonRequest,
   isValidJsonResponse,
   JsonRpcRequest,
   JsonRpcResponse,
 } from "../../util/jsonrpc";
-import {
-  HardhatNetworkProviderError,
-  InternalError,
-  InvalidJsonInputError,
-  InvalidRequestError,
-} from "../provider/errors";
 
 // tslint:disable only-hardhat-error
 
@@ -225,11 +226,11 @@ const _readWsRequest = (msg: string): JsonRpcRequest => {
 
 const _handleError = (error: any): JsonRpcResponse => {
   // In case of non-hardhat error, treat it as internal and associate the appropriate error code.
-  if (!HardhatNetworkProviderError.isHardhatNetworkProviderError(error)) {
-    error = new InternalError(error.message);
+  if (!ProviderError.isProviderError(error)) {
+    error = new InternalError(error);
   }
 
-  return {
+  const response: FailedJsonRpcResponse = {
     jsonrpc: "2.0",
     id: null,
     error: {
@@ -237,4 +238,12 @@ const _handleError = (error: any): JsonRpcResponse => {
       message: error.message,
     },
   };
+
+  if (error.transactionHash !== undefined) {
+    response.error.data = {
+      txHash: error.transactionHash,
+    };
+  }
+
+  return response;
 };

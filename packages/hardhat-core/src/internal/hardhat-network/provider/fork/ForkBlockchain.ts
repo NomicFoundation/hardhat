@@ -1,32 +1,32 @@
-import Common from "ethereumjs-common";
-import { Transaction } from "ethereumjs-tx";
-import { BN, bufferToInt } from "ethereumjs-util";
+import { Block } from "@ethereumjs/block";
+import Common from "@ethereumjs/common";
+import { TypedTransaction } from "@ethereumjs/tx";
+import { Address, BN } from "ethereumjs-util";
 
+import { RpcBlockWithTransactions } from "../../../core/jsonrpc/types/output/block";
+import { RpcTransactionReceipt } from "../../../core/jsonrpc/types/output/receipt";
+import { RpcTransaction } from "../../../core/jsonrpc/types/output/transaction";
+import { InternalError } from "../../../core/providers/errors";
 import { JsonRpcClient } from "../../jsonrpc/client";
-import {
-  RpcBlockWithTransactions,
-  RpcTransaction,
-  RpcTransactionReceipt,
-} from "../../jsonrpc/types";
 import { BlockchainData } from "../BlockchainData";
 import { FilterParams } from "../node-types";
 import {
+  remoteReceiptToRpcReceiptOutput,
   RpcLogOutput,
   RpcReceiptOutput,
+  shouldShowTransactionTypeForHardfork,
   toRpcLogOutput,
-  toRpcReceiptOutput,
 } from "../output";
-import { Block } from "../types/Block";
-import { Blockchain } from "../types/Blockchain";
-import { PBlockchain, toBlockchain } from "../types/PBlockchain";
+import { ReadOnlyValidEIP2930Transaction } from "../transactions/ReadOnlyValidEIP2930Transaction";
+import { ReadOnlyValidTransaction } from "../transactions/ReadOnlyValidTransaction";
+import { HardhatBlockchainInterface } from "../types/HardhatBlockchainInterface";
 
-import { ForkTransaction } from "./ForkTransaction";
 import { rpcToBlockData } from "./rpcToBlockData";
 import { rpcToTxData } from "./rpcToTxData";
 
 /* tslint:disable only-hardhat-error */
 
-export class ForkBlockchain implements PBlockchain {
+export class ForkBlockchain implements HardhatBlockchainInterface {
   private _data = new BlockchainData();
   private _latestBlockNumber = this._forkBlockNumber;
 
@@ -38,7 +38,7 @@ export class ForkBlockchain implements PBlockchain {
 
   public async getLatestBlock(): Promise<Block> {
     const block = await this.getBlock(this._latestBlockNumber);
-    if (block === undefined) {
+    if (block === null) {
       throw new Error("Block not found");
     }
     return block;
@@ -46,11 +46,15 @@ export class ForkBlockchain implements PBlockchain {
 
   public async getBlock(
     blockHashOrNumber: Buffer | number | BN
-  ): Promise<Block | undefined> {
+  ): Promise<Block | null> {
+    let block: Block | undefined;
     if (Buffer.isBuffer(blockHashOrNumber)) {
-      return this._getBlockByHash(blockHashOrNumber);
+      block = await this._getBlockByHash(blockHashOrNumber);
+      return block ?? null;
     }
-    return this._getBlockByNumber(new BN(blockHashOrNumber));
+
+    block = await this._getBlockByNumber(new BN(blockHashOrNumber));
+    return block ?? null;
   }
 
   public async addBlock(block: Block): Promise<Block> {
@@ -75,12 +79,20 @@ export class ForkBlockchain implements PBlockchain {
     return block;
   }
 
+  public async putBlock(block: Block): Promise<void> {
+    await this.addBlock(block);
+  }
+
   public deleteBlock(blockHash: Buffer) {
     const block = this._data.getBlockByHash(blockHash);
     if (block === undefined) {
       throw new Error("Block not found");
     }
     this._delBlock(block);
+  }
+
+  public async delBlock(blockHash: Buffer) {
+    this.deleteBlock(blockHash);
   }
 
   public deleteLaterBlocks(block: Block): void {
@@ -106,7 +118,7 @@ export class ForkBlockchain implements PBlockchain {
       return td;
     }
     const block = await this.getBlock(blockHash);
-    if (block === undefined) {
+    if (block === null) {
       throw new Error("Block not found");
     }
     td = this._data.getTotalDifficulty(blockHash);
@@ -118,7 +130,7 @@ export class ForkBlockchain implements PBlockchain {
 
   public async getTransaction(
     transactionHash: Buffer
-  ): Promise<Transaction | undefined> {
+  ): Promise<TypedTransaction | undefined> {
     const tx = this.getLocalTransaction(transactionHash);
     if (tx === undefined) {
       const remote = await this._jsonRpcClient.getTransactionByHash(
@@ -129,13 +141,15 @@ export class ForkBlockchain implements PBlockchain {
     return tx;
   }
 
-  public getLocalTransaction(transactionHash: Buffer): Transaction | undefined {
+  public getLocalTransaction(
+    transactionHash: Buffer
+  ): TypedTransaction | undefined {
     return this._data.getTransaction(transactionHash);
   }
 
   public async getBlockByTransactionHash(
     transactionHash: Buffer
-  ): Promise<Block | undefined> {
+  ): Promise<Block | null> {
     let block = this._data.getBlockByTransactionHash(transactionHash);
     if (block === undefined) {
       const remote = await this._jsonRpcClient.getTransactionByHash(
@@ -147,12 +161,12 @@ export class ForkBlockchain implements PBlockchain {
         block = this._data.getBlockByTransactionHash(transactionHash);
       }
     }
-    return block;
+    return block ?? null;
   }
 
   public async getTransactionReceipt(
     transactionHash: Buffer
-  ): Promise<RpcReceiptOutput | undefined> {
+  ): Promise<RpcReceiptOutput | null> {
     const local = this._data.getTransactionReceipt(transactionHash);
     if (local !== undefined) {
       return local;
@@ -161,8 +175,11 @@ export class ForkBlockchain implements PBlockchain {
       transactionHash
     );
     if (remote !== null) {
-      return this._processRemoteReceipt(remote);
+      const receipt = await this._processRemoteReceipt(remote);
+      return receipt ?? null;
     }
+
+    return null;
   }
 
   public addTransactionReceipts(receipts: RpcReceiptOutput[]) {
@@ -198,8 +215,11 @@ export class ForkBlockchain implements PBlockchain {
     return this._data.getLogs(filterParams);
   }
 
-  public asBlockchain(): Blockchain {
-    return toBlockchain(this);
+  public iterator(
+    _name: string,
+    _onBlock: (block: Block, reorg: boolean) => void | Promise<void>
+  ): Promise<number | void> {
+    throw new Error("Method not implemented.");
   }
 
   private async _getBlockByHash(blockHash: Buffer) {
@@ -236,21 +256,37 @@ export class ForkBlockchain implements PBlockchain {
       return undefined;
     }
 
-    // we don't include the transactions to add our own custom ForkTransaction txs
+    // we don't include the transactions to add our own custom tx objects,
+    // otherwise they are recreated with upstream classes
     const blockData = rpcToBlockData({
       ...rpcBlock,
       transactions: [],
     });
 
-    const block = new Block(blockData, { common: this._common });
-    const chainId = this._jsonRpcClient.getNetworkId();
+    const block = Block.fromBlockData(blockData, {
+      common: this._common,
+
+      // We use freeze false here because we add the transactions manually
+      freeze: false,
+    });
 
     for (const transaction of rpcBlock.transactions) {
-      block.transactions.push(
-        new ForkTransaction(chainId, rpcToTxData(transaction), {
-          common: this._common,
-        })
-      );
+      let tx;
+      if (transaction.type === undefined || transaction.type.eqn(0)) {
+        tx = new ReadOnlyValidTransaction(
+          new Address(transaction.from),
+          rpcToTxData(transaction)
+        );
+      } else if (transaction.type.eqn(1)) {
+        tx = new ReadOnlyValidEIP2930Transaction(
+          new Address(transaction.from),
+          rpcToTxData(transaction)
+        );
+      } else {
+        throw new InternalError(`Unknown transaction type ${transaction.type}`);
+      }
+
+      block.transactions.push(tx);
     }
 
     this._data.addBlock(block, rpcBlock.totalDifficulty);
@@ -267,7 +303,7 @@ export class ForkBlockchain implements PBlockchain {
     const parentBlock =
       this._data.getBlockByNumber(blockNumber.subn(1)) ??
       (await this.getBlock(blockNumber.subn(1)));
-    if (parentBlock === undefined) {
+    if (parentBlock === null) {
       throw new Error("Block not found");
     }
     const parentHash = parentBlock.hash();
@@ -283,7 +319,7 @@ export class ForkBlockchain implements PBlockchain {
       throw new Error("Cannot delete remote block");
     }
 
-    const blockNumber = bufferToInt(block.header.number);
+    const blockNumber = block.header.number.toNumber();
     for (let i = blockNumber; this._latestBlockNumber.gten(i); i++) {
       const current = this._data.getBlockByNumber(new BN(i));
       if (current !== undefined) {
@@ -303,13 +339,9 @@ export class ForkBlockchain implements PBlockchain {
       return undefined;
     }
 
-    const chainId = this._jsonRpcClient.getNetworkId();
-    const transaction = new ForkTransaction(
-      chainId,
-      rpcToTxData(rpcTransaction),
-      {
-        common: this._common,
-      }
+    const transaction = new ReadOnlyValidTransaction(
+      new Address(rpcTransaction.from),
+      rpcToTxData(rpcTransaction)
     );
 
     this._data.addTransaction(transaction);
@@ -317,13 +349,21 @@ export class ForkBlockchain implements PBlockchain {
     return transaction;
   }
 
-  private _processRemoteReceipt(
+  private async _processRemoteReceipt(
     txReceipt: RpcTransactionReceipt | null
-  ): RpcReceiptOutput | undefined {
+  ): Promise<RpcReceiptOutput | undefined> {
     if (txReceipt === null || txReceipt.blockNumber.gt(this._forkBlockNumber)) {
       return undefined;
     }
-    const receipt = toRpcReceiptOutput(txReceipt);
+
+    const tx = await this.getTransaction(txReceipt.transactionHash);
+
+    const receipt = remoteReceiptToRpcReceiptOutput(
+      txReceipt,
+      tx!,
+      shouldShowTransactionTypeForHardfork(this._common)
+    );
+
     this._data.addTransactionReceipt(receipt);
     return receipt;
   }

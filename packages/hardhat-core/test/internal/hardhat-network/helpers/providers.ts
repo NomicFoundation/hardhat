@@ -11,6 +11,10 @@ export const DEFAULT_NETWORK_ID = 234;
 export const DEFAULT_BLOCK_GAS_LIMIT = 6000000;
 export const DEFAULT_USE_JSON_RPC = false;
 export const DEFAULT_ALLOW_UNLIMITED_CONTRACT_SIZE = false;
+export const DEFAULT_MINING_CONFIG = {
+  auto: true,
+  interval: 0,
+};
 
 // Assumptions:
 // - First account has sent some transactions on mainnet
@@ -43,19 +47,46 @@ export const PROVIDERS = [
   {
     name: "Hardhat Network",
     isFork: false,
+    isJsonRpc: false,
     networkId: DEFAULT_NETWORK_ID,
     chainId: DEFAULT_CHAIN_ID,
-    useProvider: () => {
-      useProvider(false);
+    useProvider: (loggerEnabled = true) => {
+      useProvider(false, loggerEnabled);
     },
   },
   {
     name: "JSON-RPC",
     isFork: false,
+    isJsonRpc: true,
     networkId: DEFAULT_NETWORK_ID,
     chainId: DEFAULT_CHAIN_ID,
-    useProvider: () => {
-      useProvider(true);
+    useProvider: (loggerEnabled = true) => {
+      useProvider(true, loggerEnabled);
+    },
+  },
+];
+
+export const INTERVAL_MINING_PROVIDERS = [
+  {
+    name: "Hardhat Network",
+    isFork: false,
+    isJsonRpc: false,
+    useProvider: (loggerEnabled = true) => {
+      useProvider(false, loggerEnabled, undefined, {
+        auto: false,
+        interval: 10000,
+      });
+    },
+  },
+  {
+    name: "JSON-RPC",
+    isFork: false,
+    isJsonRpc: true,
+    useProvider: (loggerEnabled = true) => {
+      useProvider(true, loggerEnabled, undefined, {
+        auto: false,
+        interval: 10000,
+      });
     },
   },
 ];
@@ -63,7 +94,7 @@ export const PROVIDERS = [
 export const FORKED_PROVIDERS: Array<{
   rpcProvider: string;
   jsonRpcUrl: string;
-  useProvider: () => void;
+  useProvider: (loggerEnabled?: boolean) => void;
 }> = [];
 
 if (ALCHEMY_URL !== undefined && ALCHEMY_URL !== "") {
@@ -72,18 +103,36 @@ if (ALCHEMY_URL !== undefined && ALCHEMY_URL !== "") {
   PROVIDERS.push({
     name: "Alchemy Forked",
     isFork: true,
+    isJsonRpc: false,
     networkId: DEFAULT_NETWORK_ID,
     chainId: DEFAULT_CHAIN_ID,
-    useProvider: () => {
-      useProvider(false, { jsonRpcUrl: url });
+    useProvider: (loggerEnabled = true) => {
+      useProvider(false, loggerEnabled, { jsonRpcUrl: url });
+    },
+  });
+
+  INTERVAL_MINING_PROVIDERS.push({
+    name: "Alchemy Forked",
+    isFork: true,
+    isJsonRpc: false,
+    useProvider: (loggerEnabled = true) => {
+      useProvider(
+        false,
+        loggerEnabled,
+        { jsonRpcUrl: url },
+        {
+          auto: false,
+          interval: 10000,
+        }
+      );
     },
   });
 
   FORKED_PROVIDERS.push({
     rpcProvider: "Alchemy",
     jsonRpcUrl: url,
-    useProvider: () => {
-      useProvider(false, { jsonRpcUrl: url });
+    useProvider: (loggerEnabled = true) => {
+      useProvider(false, loggerEnabled, { jsonRpcUrl: url });
     },
   });
 }
@@ -94,8 +143,8 @@ if (INFURA_URL !== undefined && INFURA_URL !== "") {
   FORKED_PROVIDERS.push({
     rpcProvider: "Infura",
     jsonRpcUrl: url,
-    useProvider: () => {
-      useProvider(false, { jsonRpcUrl: url });
+    useProvider: (loggerEnabled = true) => {
+      useProvider(false, loggerEnabled, { jsonRpcUrl: url });
     },
   });
 }

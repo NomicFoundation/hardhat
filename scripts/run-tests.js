@@ -43,20 +43,6 @@ if (shouldIgnoreSolppTests) {
 
 const ignoredPackages = ignoredPackagesList.join(" ");
 
-const {
-  cleanup,
-  ganacheSetup,
-} = require("../packages/common/ganache-provider");
-
-async function useGanacheInstance() {
-  try {
-    return await ganacheSetup(["--deterministic"]);
-  } catch (error) {
-    error.message = `Could not setup own ganache instance: ${error.message}`;
-    throw error;
-  }
-}
-
 function runTests() {
   console.time("Total test time");
 
@@ -70,23 +56,7 @@ function runTests() {
 }
 
 async function main() {
-  /* Ensure a ganache instance is running */
-  const ganacheInstance = await useGanacheInstance();
-  if (ganacheInstance) {
-    console.log("** Running a Ganache instance for tests **");
-  } else {
-    console.log("** Using existing Ganache instance for tests **");
-  }
-
-  try {
-    await runTests();
-  } finally {
-    /* Cleanup ganache instance */
-    if (ganacheInstance) {
-      console.log("** Tearing ganache instance down **");
-      cleanup(ganacheInstance);
-    }
-  }
+  await runTests();
 }
 
 main().catch((error) => {
