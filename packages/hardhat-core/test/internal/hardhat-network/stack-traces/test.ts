@@ -247,6 +247,12 @@ function compareStackTraces(
   description: StackFrameDescription[],
   runs: number | undefined
 ) {
+  assert.equal(
+    trace.length,
+    description.length,
+    `Expected a trace of length ${description.length} but got one with length ${trace.length}`
+  );
+
   for (let i = 0; i < trace.length; i++) {
     const actual = trace[i];
     const expected = description[i];
