@@ -1515,7 +1515,10 @@ function sourceLocationToSourceReference(
 
   return {
     function: funcName,
-    contract: bytecode.contract.name,
+    contract:
+      func.type === ContractFunctionType.FREE_FUNCTION
+        ? undefined
+        : bytecode.contract.name,
     file: func.location.file,
     line: location.getStartingLineNumber(),
   };
