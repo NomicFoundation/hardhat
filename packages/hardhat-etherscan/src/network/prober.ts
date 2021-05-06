@@ -29,7 +29,7 @@ enum NetworkID {
   HECO = 128,
   HECO_TESTNET = 256,
   // Fantom mainnet
-  OPERA = 250
+  OPERA = 250,
 }
 
 const networkIDtoEndpoints: NetworkMap = {
