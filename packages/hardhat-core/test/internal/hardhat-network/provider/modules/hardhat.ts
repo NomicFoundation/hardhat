@@ -380,7 +380,7 @@ describe("Hardhat module", function () {
           );
         });
 
-        it("should reject a non-numeric nonce", async function () {
+        it("should reject a non-numeric balance", async function () {
           await assertInvalidArgumentsError(
             this.provider,
             "hardhat_setBalance",
@@ -495,7 +495,7 @@ describe("Hardhat module", function () {
           );
         });
 
-        it("should reject a non-numeric nonce", async function () {
+        it("should reject an invalid data argument", async function () {
           await assertInvalidArgumentsError(
             this.provider,
             "hardhat_setCode",
@@ -505,9 +505,9 @@ describe("Hardhat module", function () {
         });
 
         it("should not reject valid argument types", async function () {
-          await this.provider.send("hardhat_setBalance", [
+          await this.provider.send("hardhat_setCode", [
             DEFAULT_ACCOUNTS_ADDRESSES[0].toString(),
-            "0x0",
+            "0xff",
           ]);
         });
 
@@ -542,7 +542,7 @@ describe("Hardhat module", function () {
             await this.provider.send("eth_getBlockByNumber", ["latest", false])
           ).stateRoot;
 
-          // Act: Set the new nonce.
+          // Act: Set the new code.
           await this.provider.send("hardhat_setCode", [
             DEFAULT_ACCOUNTS_ADDRESSES[0],
             "0x0123456789abcdef",
