@@ -438,7 +438,6 @@ describe("Hardhat module", function () {
               value: "0x100",
             },
           ]);
-          await this.provider.send("evm_mine");
 
           // Arrange 2: Capture the existing state root.
           const oldStateRoot = (
@@ -537,7 +536,6 @@ describe("Hardhat module", function () {
               value: "0x100",
             },
           ]);
-          await this.provider.send("evm_mine");
 
           // Arrange 2: Capture the existing state root.
           const oldStateRoot = (
@@ -593,7 +591,6 @@ describe("Hardhat module", function () {
               value: "0x100",
             },
           ]);
-          await this.provider.send("evm_mine");
 
           // Act & Assert: Ensure that a zero nonce now triggers the error.
           await assertInvalidInputError(
@@ -613,7 +610,6 @@ describe("Hardhat module", function () {
               value: "0x100",
             },
           ]);
-          await this.provider.send("evm_mine");
 
           // Act: Set the new nonce.
           const targetNonce = 99;
@@ -639,7 +635,6 @@ describe("Hardhat module", function () {
               value: "0x100",
             },
           ]);
-          await this.provider.send("evm_mine");
 
           // Arrange 2: Capture the existing state root.
           const oldStateRoot = (
@@ -743,7 +738,6 @@ describe("Hardhat module", function () {
               value: "0x100",
             },
           ]);
-          await this.provider.send("evm_mine");
 
           // Arrange 2: Capture the existing state root.
           const oldStateRoot = (
