@@ -410,7 +410,7 @@ describe("Hardhat module", function () {
           // Act: Set the new balance.
           const targetBalance = existingBalance.add(new BN(1)).mul(new BN(2));
           // For sanity, ensure that we really are making a change:
-          assert.notEqual(targetBalance, existingBalance);
+          assert.notDeepEqual(targetBalance, existingBalance);
           await this.provider.send("hardhat_setBalance", [
             DEFAULT_ACCOUNTS_ADDRESSES[0],
             `0x${targetBalance.toString(16)}`,
