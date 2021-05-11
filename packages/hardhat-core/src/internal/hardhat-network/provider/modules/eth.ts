@@ -360,7 +360,7 @@ export class EthModule {
       throw error;
     }
 
-    return bufferToRpcData(returnData);
+    return bufferToRpcData(returnData.value);
   }
 
   // eth_chainId

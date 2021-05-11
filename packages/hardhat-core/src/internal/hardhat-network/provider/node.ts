@@ -43,7 +43,6 @@ import {
   isPrecompileTrace,
   MessageTrace,
 } from "../stack-traces/message-trace";
-import { decodeRevertReason } from "../stack-traces/revert-reasons";
 import {
   encodeSolidityStackTrace,
   SolidityError,
@@ -83,6 +82,7 @@ import {
   RpcReceiptOutput,
   shouldShowTransactionTypeForHardfork,
 } from "./output";
+import { ReturnData } from "./return-data";
 import { FakeSenderAccessListEIP2930Transaction } from "./transactions/FakeSenderAccessListEIP2930Transaction";
 import { FakeSenderTransaction } from "./transactions/FakeSenderTransaction";
 import { TxPool } from "./TxPool";
@@ -413,7 +413,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
     return {
       ...traces,
-      result: result.execResult.returnValue,
+      result: new ReturnData(result.execResult.returnValue),
     };
   }
 
@@ -1205,58 +1205,57 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     }
 
     if (error.error === ERROR.OUT_OF_GAS) {
-      if (this._isContractTooLargeStackTrace(stackTrace)) {
+      if (
+        stackTrace !== undefined &&
+        this._isContractTooLargeStackTrace(stackTrace)
+      ) {
         return encodeSolidityStackTrace(
           "Transaction ran out of gas",
-          stackTrace!
+          stackTrace
         );
       }
 
       return new TransactionExecutionError("Transaction ran out of gas");
     }
 
-    if (error.error === ERROR.REVERT) {
-      if (vmResult.returnValue.length === 0) {
-        if (stackTrace !== undefined) {
-          return encodeSolidityStackTrace(
-            "Transaction reverted without a reason",
-            stackTrace
-          );
-        }
+    const returnData = new ReturnData(vmResult.returnValue);
 
-        return new TransactionExecutionError(
-          "Transaction reverted without a reason"
-        );
-      }
+    let returnDataExplanation;
+    if (returnData.isEmpty()) {
+      returnDataExplanation = "without reason string";
+    } else if (returnData.isErrorReturnData()) {
+      returnDataExplanation = `with reason "${returnData.decodeError()}"`;
+    } else if (returnData.isPanicReturnData()) {
+      const panicCode = returnData.decodePanic().toString("hex");
+      returnDataExplanation = `with panic code "0x${panicCode}"`;
+    } else {
+      returnDataExplanation = "with unrecognized return data";
+    }
+
+    if (error.error === ERROR.REVERT) {
+      const fallbackMessage = `VM Exception while processing transaction: revert ${returnDataExplanation}`;
 
       if (stackTrace !== undefined) {
-        return encodeSolidityStackTrace(
-          `VM Exception while processing transaction: revert ${decodeRevertReason(
-            vmResult.returnValue
-          )}`,
-          stackTrace
-        );
+        return encodeSolidityStackTrace(fallbackMessage, stackTrace);
       }
 
-      return new TransactionExecutionError(
-        `VM Exception while processing transaction: revert ${decodeRevertReason(
-          vmResult.returnValue
-        )}`
-      );
+      return new TransactionExecutionError(fallbackMessage);
     }
 
     if (stackTrace !== undefined) {
-      return encodeSolidityStackTrace("Transaction failed: revert", stackTrace);
+      return encodeSolidityStackTrace(
+        `Transaction failed: revert ${returnDataExplanation}`,
+        stackTrace
+      );
     }
 
-    return new TransactionExecutionError("Transaction failed: revert");
+    return new TransactionExecutionError(
+      `Transaction reverted ${returnDataExplanation}`
+    );
   }
 
-  private _isContractTooLargeStackTrace(
-    stackTrace: SolidityStackTrace | undefined
-  ) {
+  private _isContractTooLargeStackTrace(stackTrace: SolidityStackTrace) {
     return (
-      stackTrace !== undefined &&
       stackTrace.length > 0 &&
       stackTrace[stackTrace.length - 1].type ===
         StackTraceEntryType.CONTRACT_TOO_LARGE_ERROR

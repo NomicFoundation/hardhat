@@ -2,6 +2,8 @@ import { ERROR } from "@ethereumjs/vm/dist/exceptions";
 import { BN } from "ethereumjs-util";
 import semver from "semver";
 
+import { ReturnData } from "../provider/return-data";
+
 import {
   DecodedCallMessageTrace,
   DecodedCreateMessageTrace,
@@ -24,7 +26,6 @@ import {
   SourceLocation,
 } from "./model";
 import { isCall, isCreate, Opcode } from "./opcodes";
-import { panicReturnDataToErrorCode } from "./panic-errors";
 import {
   CallFailedErrorStackTraceEntry,
   CallstackEntryStackTraceEntry,
@@ -347,7 +348,7 @@ export class ErrorInferrer {
               trace.calldata.slice(0, 4)
             )!
           ),
-          message: trace.returnData,
+          message: new ReturnData(trace.returnData),
           isInvalidOpcodeError: lastInstruction.opcode === Opcode.INVALID,
         });
       } else {
@@ -355,7 +356,7 @@ export class ErrorInferrer {
         inferredStacktrace.push({
           type: StackTraceEntryType.REVERT_ERROR,
           sourceReference: this._getConstructorStartSourceReference(trace),
-          message: trace.returnData,
+          message: new ReturnData(trace.returnData),
           isInvalidOpcodeError: lastInstruction.opcode === Opcode.INVALID,
         });
       }
@@ -371,7 +372,7 @@ export class ErrorInferrer {
         sourceReference:
           this._getLastSourceReference(trace) ??
           this._getContractStartWithoutFunctionSourceReference(trace),
-        message: trace.returnData,
+        message: new ReturnData(trace.returnData),
         isInvalidOpcodeError: lastInstruction.opcode === Opcode.INVALID,
       };
       const inferredStacktrace = [...stacktrace, revertFrame];
@@ -403,7 +404,8 @@ export class ErrorInferrer {
       stacktrace.splice(-2);
     }
 
-    const errorCode = panicReturnDataToErrorCode(trace.returnData);
+    const panicReturnData = new ReturnData(trace.returnData);
+    const errorCode = panicReturnData.decodePanic();
 
     // if the error comes from a call to a zero-initialized function,
     // we remove the last frame, which represents the call, to avoid
@@ -478,7 +480,7 @@ export class ErrorInferrer {
                 trace,
                 failingFunction
               ),
-              message: trace.returnData,
+              message: new ReturnData(trace.returnData),
               isInvalidOpcodeError: lastInstruction.opcode === Opcode.INVALID,
             },
           ];
@@ -970,7 +972,7 @@ export class ErrorInferrer {
         trace.bytecode,
         inst.location
       )!,
-      message: trace.returnData,
+      message: new ReturnData(trace.returnData),
       isInvalidOpcodeError: inst.opcode === Opcode.INVALID,
     };
   }

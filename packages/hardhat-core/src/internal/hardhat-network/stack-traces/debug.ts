@@ -11,7 +11,6 @@ import {
 } from "./message-trace";
 import { JumpType } from "./model";
 import { isJump, isPush, Opcode } from "./opcodes";
-import { decodeRevertReason } from "./revert-reasons";
 import {
   SolidityStackTrace,
   SourceReference,
@@ -190,7 +189,7 @@ function flattenSourceReference(sourceReference?: SourceReference) {
 export function printStackTrace(trace: SolidityStackTrace) {
   const withDecodedMessages = trace.map((entry) =>
     entry.type === StackTraceEntryType.REVERT_ERROR
-      ? { ...entry, message: decodeRevertReason(entry.message) }
+      ? { ...entry, message: entry.message.decodeError() }
       : entry
   );
 

@@ -1,7 +1,6 @@
 import { bufferToHex } from "ethereumjs-util";
 
 import { panicErrorCodeToReason } from "./panic-errors";
-import { decodeRevertReason } from "./revert-reasons";
 import {
   CONSTRUCTOR_FUNCTION_NAME,
   PRECOMPILE_FUNCTION_NAME,
@@ -259,19 +258,15 @@ function getMessageFromLastStackTraceEntry(
 
     case StackTraceEntryType.UNRECOGNIZED_CREATE_ERROR:
     case StackTraceEntryType.UNRECOGNIZED_CONTRACT_ERROR:
-      if (stackTraceEntry.message.length > 0) {
-        return `VM Exception while processing transaction: revert ${decodeRevertReason(
-          stackTraceEntry.message
-        )}`;
+      if (stackTraceEntry.message.isErrorReturnData()) {
+        return `VM Exception while processing transaction: revert ${stackTraceEntry.message.decodeError()}`;
       }
 
       return "Transaction reverted without a reason";
 
     case StackTraceEntryType.REVERT_ERROR:
-      if (stackTraceEntry.message.length > 0) {
-        return `VM Exception while processing transaction: revert ${decodeRevertReason(
-          stackTraceEntry.message
-        )}`;
+      if (stackTraceEntry.message.isErrorReturnData()) {
+        return `VM Exception while processing transaction: revert ${stackTraceEntry.message.decodeError()}`;
       }
 
       if (stackTraceEntry.isInvalidOpcodeError) {

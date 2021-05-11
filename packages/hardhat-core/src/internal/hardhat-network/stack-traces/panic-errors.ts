@@ -1,12 +1,6 @@
 import { rawDecode } from "ethereumjs-abi";
 import { BN } from "ethereumjs-util";
 
-export function panicReturnDataToErrorCode(returnData: Buffer): BN {
-  const [errorCode] = rawDecode(["uint256"], returnData.slice(5));
-
-  return errorCode;
-}
-
 export function panicErrorCodeToReason(errorCode: BN): string {
   switch (errorCode.toString()) {
     case (0x01).toString():

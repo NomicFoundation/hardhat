@@ -1,5 +1,7 @@
 import { BN } from "ethereumjs-util";
 
+import { ReturnData } from "../provider/return-data";
+
 import { ContractFunctionType, SourceFile } from "./model";
 
 export enum StackTraceEntryType {
@@ -70,7 +72,7 @@ export interface PrecompileErrorStackTraceEntry {
 
 export interface RevertErrorStackTraceEntry {
   type: StackTraceEntryType.REVERT_ERROR;
-  message: Buffer;
+  message: ReturnData;
   sourceReference: SourceReference;
   isInvalidOpcodeError: boolean;
 }
@@ -142,14 +144,14 @@ export interface DirectLibraryCallErrorStackTraceEntry {
 
 export interface UnrecognizedCreateErrorStackTraceEntry {
   type: StackTraceEntryType.UNRECOGNIZED_CREATE_ERROR;
-  message: Buffer;
+  message: ReturnData;
   sourceReference?: undefined;
 }
 
 export interface UnrecognizedContractErrorStackTraceEntry {
   type: StackTraceEntryType.UNRECOGNIZED_CONTRACT_ERROR;
   address: Buffer;
-  message: Buffer;
+  message: ReturnData;
   sourceReference?: undefined;
 }
 

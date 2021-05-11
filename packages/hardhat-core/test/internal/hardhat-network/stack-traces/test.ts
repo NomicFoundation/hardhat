@@ -5,6 +5,7 @@ import fs from "fs";
 import path from "path";
 import semver from "semver";
 
+import { ReturnData } from "../../../../src/internal/hardhat-network/provider/return-data";
 import { createModelsAndDecodeBytecodes } from "../../../../src/internal/hardhat-network/stack-traces/compiler-to-model";
 import {
   ConsoleLogger,
@@ -21,7 +22,6 @@ import {
   CreateMessageTrace,
   MessageTrace,
 } from "../../../../src/internal/hardhat-network/stack-traces/message-trace";
-import { decodeRevertReason } from "../../../../src/internal/hardhat-network/stack-traces/revert-reasons";
 import {
   SolidityStackTraceEntry,
   StackTraceEntryType,
@@ -264,10 +264,8 @@ function compareStackTraces(
       `Stack trace of tx ${txIndex} entry ${i} type is incorrect`
     );
 
-    const actualMessage = (actual as any).message as Buffer | undefined;
-    const decodedMessage = decodeRevertReason(
-      actualMessage !== undefined ? actualMessage : Buffer.from([])
-    );
+    const actualMessage = (actual as any).message as ReturnData | undefined;
+    const decodedMessage = actualMessage?.decodeError() ?? "";
 
     if (expected.message !== undefined) {
       assert.equal(
