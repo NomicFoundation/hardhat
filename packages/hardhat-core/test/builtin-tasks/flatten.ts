@@ -327,7 +327,6 @@ contract AWithLicense {}`
             license: "MIT",
           }
         );
-        console.log(allFlattened)
 
         assert.match(
           allFlattened,
@@ -406,7 +405,7 @@ contract AWithLicense {}`
           {
             files: ["contracts/AWithABIEncoder.sol"],
             unifyABIEncoderV2: true,
-            license: "MIT"
+            license: "MIT",
           }
         );
 
