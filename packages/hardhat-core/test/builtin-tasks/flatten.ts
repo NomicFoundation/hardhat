@@ -327,6 +327,7 @@ contract AWithLicense {}`
             license: "MIT",
           }
         );
+        console.log(allFlattened)
 
         assert.match(
           allFlattened,
@@ -394,6 +395,39 @@ contract BWithLicense {}
 pragma solidity ^0.5.1
 
 contract AWithLicense {}`
+        );
+      });
+    });
+
+    describe("unify ABIEncoder V2", function () {
+      it("should flatten one file", async function () {
+        const allFlattened = await this.env.run(
+          TASK_FLATTEN_GET_FLATTENED_SOURCE,
+          {
+            files: ["contracts/AWithABIEncoder.sol"],
+            unifyABIEncoderV2: true,
+            license: "MIT"
+          }
+        );
+
+        assert.match(
+          allFlattened,
+          regexTag`// Sources flattened with hardhat ${versionPlaceholder} https://hardhat.org
+
+// SPDX-License-Identifier: MIT
+
+// File contracts/AWithABIEncoder.sol
+
+pragma solidity ^0.5.1
+contract A {}
+
+pragma solidity ^0.5.1
+pragma experimental ABIEncoderV2;
+contract B {}
+
+pragma solidity ^0.5.1
+
+contract C {}`
         );
       });
     });

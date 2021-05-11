@@ -18,6 +18,7 @@ import {
 
 interface FlattenInput {
   files?: string[];
+  unifyABIEncoderV2?: boolean;
   removeLicenses?: boolean;
   license?: string;
 }
@@ -70,11 +71,12 @@ subtask(
   "Returns all contracts and their dependencies flattened"
 )
   .addOptionalParam("files", undefined, undefined, types.any)
+  .addOptionalParam("unifyABIEncoderV2", undefined, false, types.boolean)
   .addOptionalParam("removeLicenses", undefined, false, types.boolean)
   .addOptionalParam("license", undefined, undefined, types.string)
   .setAction(
     async (
-      { files, removeLicenses = false, license }: FlattenInput,
+      { files, unifyABIEncoderV2 = false, removeLicenses = false, license }: FlattenInput,
       { run }
     ) => {
       const dependencyGraph: DependencyGraph = await run(
@@ -115,6 +117,11 @@ subtask(
         flattened = `// SPDX-License-Identifier: ${license}\n\n${flattened}`;
       }
 
+      if (unifyABIEncoderV2) {
+        // Remove every line started with "pragma experimental ABIEncoderV2;" except the first one
+        flattened = flattened.replace(/pragma experimental ABIEncoderV2;\n/gm, (i => (m: string) => !i++ ? m : '')(0));
+      }
+
       flattened = `// Sources flattened with hardhat v${packageJson.version} https://hardhat.org\n\n${flattened}`;
       return flattened.trim();
     }
@@ -150,13 +157,15 @@ task(TASK_FLATTEN, "Flattens and prints contracts and their dependencies")
     undefined,
     types.inputFile
   )
+  .addFlag("unifyABIEncoderV2", "Whether to unify 'pragma experimental ABIEncoderV2' ocurrences")
   .addFlag("removeLicenses", "Whether licenses should be removed or not")
   .addOptionalParam("license", "License for each file", undefined, types.string)
   .setAction(
-    async ({ files, removeLicenses, license }: FlattenInput, { run }) => {
+    async ({ files, unifyABIEncoderV2, removeLicenses, license }: FlattenInput, { run }) => {
       console.log(
         await run(TASK_FLATTEN_GET_FLATTENED_SOURCE, {
           files,
+          unifyABIEncoderV2,
           removeLicenses,
           license,
         })
