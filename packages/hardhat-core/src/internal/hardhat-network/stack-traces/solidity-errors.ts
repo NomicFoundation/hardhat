@@ -1,5 +1,6 @@
 import { bufferToHex } from "ethereumjs-util";
 
+import { panicErrorCodeToReason } from "./panic-errors";
 import { decodeRevertReason } from "./revert-reasons";
 import {
   CONSTRUCTOR_FUNCTION_NAME,
@@ -112,6 +113,7 @@ function encodeStackTraceEntry(
 
     case StackTraceEntryType.CALLSTACK_ENTRY:
     case StackTraceEntryType.REVERT_ERROR:
+    case StackTraceEntryType.PANIC_ERROR:
     case StackTraceEntryType.FUNCTION_NOT_PAYABLE_ERROR:
     case StackTraceEntryType.INVALID_PARAMS_ERROR:
     case StackTraceEntryType.FALLBACK_NOT_PAYABLE_ERROR:
@@ -277,6 +279,10 @@ function getMessageFromLastStackTraceEntry(
       }
 
       return "Transaction reverted without a reason";
+
+    case StackTraceEntryType.PANIC_ERROR:
+      const panicReason = panicErrorCodeToReason(stackTraceEntry.errorCode);
+      return `VM Exception while processing transaction: ${panicReason}`;
 
     case StackTraceEntryType.OTHER_EXECUTION_ERROR:
       // TODO: What if there was returnData?

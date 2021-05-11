@@ -58,6 +58,7 @@ interface StackFrameDescription {
   };
   message?: string;
   value?: string | number;
+  errorCode?: string;
 }
 
 interface TestDefinition {
@@ -302,6 +303,27 @@ function compareStackTraces(
       assert.isUndefined(
         actual.value,
         `Stack trace of tx ${txIndex} entry ${i} shouldn't have value`
+      );
+    }
+
+    if (expected.errorCode !== undefined) {
+      const actualErrorCode = (actual as any).errorCode;
+
+      assert.isDefined(
+        actualErrorCode,
+        `Stack trace of tx ${txIndex} entry ${i} should have an errorCode`
+      );
+
+      const actualErrorCodeHex = actualErrorCode.toString("hex");
+
+      assert.isTrue(
+        expected.errorCode === actualErrorCodeHex,
+        `Stack trace of tx ${txIndex} entry ${i} has errorCode ${actualErrorCodeHex} and should have ${expected.errorCode}`
+      );
+    } else if ("errorCode" in actual) {
+      assert.isUndefined(
+        actual.errorCode,
+        `Stack trace of tx ${txIndex} entry ${i} shouldn't have errorCode`
       );
     }
 

@@ -1,4 +1,5 @@
 import { ERROR } from "@ethereumjs/vm/dist/exceptions";
+import { BN } from "ethereumjs-util";
 import semver from "semver";
 
 import {
@@ -23,6 +24,7 @@ import {
   SourceLocation,
 } from "./model";
 import { isCall, isCreate, Opcode } from "./opcodes";
+import { panicReturnDataToErrorCode } from "./panic-errors";
 import {
   CallFailedErrorStackTraceEntry,
   CallstackEntryStackTraceEntry,
@@ -30,6 +32,7 @@ import {
   FALLBACK_FUNCTION_NAME,
   InternalFunctionCallStackEntry,
   OtherExecutionErrorStackTraceEntry,
+  PanicErrorStackTraceEntry,
   RECEIVE_FUNCTION_NAME,
   RevertErrorStackTraceEntry,
   SolidityStackTrace,
@@ -294,6 +297,15 @@ export class ErrorInferrer {
       return;
     }
 
+    const panicStacktrace = this._checkPanic(
+      trace,
+      stacktrace,
+      lastInstruction
+    );
+    if (panicStacktrace !== undefined) {
+      return panicStacktrace;
+    }
+
     if (
       lastInstruction.location !== undefined &&
       (!isDecodedCallTrace(trace) || jumpedIntoFunction)
@@ -366,6 +378,49 @@ export class ErrorInferrer {
 
       return this._fixInitialModifier(trace, inferredStacktrace);
     }
+  }
+
+  /**
+   * Check if the trace reverted with a panic error.
+   */
+  private _checkPanic(
+    trace: DecodedEvmMessageTrace,
+    stacktrace: SolidityStackTrace,
+    lastInstruction: Instruction
+  ): SolidityStackTrace | undefined {
+    if (!this._isPanicReturnData(trace.returnData)) {
+      return;
+    }
+
+    // If the last frame is an internal function, it means that the trace
+    // jumped to a function to return the panic. In that case, we remove
+    // the two last frames: the frame from where it jumped, and the internal
+    // function it jumped to
+    const lastFrame = stacktrace[stacktrace.length - 1];
+    if (
+      lastFrame?.type === StackTraceEntryType.INTERNAL_FUNCTION_CALLSTACK_ENTRY
+    ) {
+      stacktrace.splice(-2);
+    }
+
+    const errorCode = panicReturnDataToErrorCode(trace.returnData);
+
+    // if the error comes from a call to a zero-initialized function,
+    // we remove the last frame, which represents the call, to avoid
+    // having duplicated frames
+    if (errorCode.eqn(0x51)) {
+      stacktrace.splice(-1);
+    }
+
+    const inferredStacktrace = [...stacktrace];
+    inferredStacktrace.push(
+      this._instructionWithinFunctionToPanicStackTraceEntry(
+        trace,
+        lastInstruction,
+        errorCode
+      )
+    );
+    return this._fixInitialModifier(trace, inferredStacktrace);
   }
 
   /**
@@ -920,6 +975,21 @@ export class ErrorInferrer {
     };
   }
 
+  private _instructionWithinFunctionToPanicStackTraceEntry(
+    trace: DecodedEvmMessageTrace,
+    inst: Instruction,
+    errorCode: BN
+  ): PanicErrorStackTraceEntry {
+    return {
+      type: StackTraceEntryType.PANIC_ERROR,
+      sourceReference:
+        sourceLocationToSourceReference(trace.bytecode, inst.location) ??
+        this._getLastSourceReference(trace)!,
+      errorCode,
+      isInvalidOpcodeError: inst.opcode === Opcode.INVALID,
+    };
+  }
+
   private _solidity063MaybeUnmappedRevert(trace: DecodedEvmMessageTrace) {
     const lastStep = trace.steps[trace.steps.length - 1];
     if (!isEvmStep(lastStep)) {
@@ -1441,6 +1511,11 @@ export class ErrorInferrer {
     }
 
     return this._failsRightAfterCall(trace, callStepIndex);
+  }
+
+  private _isPanicReturnData(returnData: Buffer): boolean {
+    // 4e487b71 is the method hash of Panic(uint256)
+    return returnData.slice(0, 4).toString("hex") === "4e487b71";
   }
 }
 

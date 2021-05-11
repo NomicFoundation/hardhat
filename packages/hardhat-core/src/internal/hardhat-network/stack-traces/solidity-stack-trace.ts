@@ -8,6 +8,7 @@ export enum StackTraceEntryType {
   UNRECOGNIZED_CONTRACT_CALLSTACK_ENTRY,
   PRECOMPILE_ERROR,
   REVERT_ERROR,
+  PANIC_ERROR,
   FUNCTION_NOT_PAYABLE_ERROR,
   INVALID_PARAMS_ERROR,
   FALLBACK_NOT_PAYABLE_ERROR,
@@ -70,6 +71,13 @@ export interface PrecompileErrorStackTraceEntry {
 export interface RevertErrorStackTraceEntry {
   type: StackTraceEntryType.REVERT_ERROR;
   message: Buffer;
+  sourceReference: SourceReference;
+  isInvalidOpcodeError: boolean;
+}
+
+export interface PanicErrorStackTraceEntry {
+  type: StackTraceEntryType.PANIC_ERROR;
+  errorCode: BN;
   sourceReference: SourceReference;
   isInvalidOpcodeError: boolean;
 }
@@ -172,6 +180,7 @@ export type SolidityStackTraceEntry =
   | UnrecognizedContractCallstackEntryStackTraceEntry
   | PrecompileErrorStackTraceEntry
   | RevertErrorStackTraceEntry
+  | PanicErrorStackTraceEntry
   | FunctionNotPayableErrorStackTraceEntry
   | InvalidParamsErrorStackTraceEntry
   | FallbackNotPayableErrorStackTraceEntry
