@@ -1,5 +1,6 @@
 import chalk from "chalk";
 import fsExtra from "fs-extra";
+import debug from "debug";
 import path from "path";
 import semver from "semver";
 import type StackTraceParserT from "stacktrace-parser";
@@ -15,6 +16,8 @@ import { getUserConfigPath } from "../project-structure";
 import { resolveConfig } from "./config-resolution";
 import { validateConfig } from "./config-validation";
 import { DEFAULT_SOLC_VERSION } from "./default-config";
+
+const log = debug("hardhat:core:config");
 
 function importCsjOrEsModule(filePath: string): any {
   const imported = require(filePath);
@@ -41,7 +44,7 @@ export function loadConfigAndTasks(
     hardhatArguments !== undefined ? hardhatArguments.config : undefined;
 
   configPath = resolveConfigPath(configPath);
-
+  log(`Hardhat config path located at ${configPath}`);
   // Before loading the builtin tasks, the default and user's config we expose
   // the config env in the global object.
   const configEnv = require("./config-env");
