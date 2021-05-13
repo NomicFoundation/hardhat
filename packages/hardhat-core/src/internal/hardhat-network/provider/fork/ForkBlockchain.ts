@@ -226,10 +226,6 @@ export class ForkBlockchain implements HardhatBlockchainInterface {
     throw new Error("Method not implemented.");
   }
 
-  public getNetworkId() {
-    return this._jsonRpcClient.getNetworkId();
-  }
-
   private async _getBlockByHash(blockHash: Buffer) {
     const block = this._data.getBlockByHash(blockHash);
     if (block !== undefined) {

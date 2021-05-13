@@ -127,6 +127,8 @@ export class HardhatNode extends EventEmitter {
     let blockchain: HardhatBlockchainInterface;
     let initialBlockTimeOffset: BN | undefined;
 
+    let forkNetworkId: number | undefined;
+
     if ("forkConfig" in config) {
       const {
         forkClient,
@@ -135,10 +137,12 @@ export class HardhatNode extends EventEmitter {
       } = await makeForkClient(config.forkConfig, config.forkCachePath);
       common = await makeForkCommon(config);
 
+      forkNetworkId = forkClient.getNetworkId();
+
       this._validateHardforks(
         config.forkConfig.blockNumber,
         common,
-        forkClient.getNetworkId()
+        forkNetworkId
       );
 
       const forkStateManager = new ForkStateManager(
@@ -191,7 +195,8 @@ export class HardhatNode extends EventEmitter {
       automine,
       initialBlockTimeOffset,
       genesisAccounts,
-      tracingConfig
+      tracingConfig,
+      forkNetworkId
     );
 
     return [common, node];
@@ -258,7 +263,8 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     private _automine: boolean,
     private _blockTimeOffsetSeconds: BN = new BN(0),
     genesisAccounts: GenesisAccount[],
-    tracingConfig?: TracingConfig
+    tracingConfig?: TracingConfig,
+    private _forkNetworkId?: number
   ) {
     super();
 
@@ -946,7 +952,12 @@ Hardhat Network's forking functionality only works with blocks from at least spu
           blockchain instanceof ForkBlockchain &&
           blockNumber <= blockchain.getForkBlockNumber().toNumber()
         ) {
-          const common = getCommon(blockchain.getNetworkId(), blockNumber);
+          assertHardhatInvariant(
+            this._forkNetworkId !== undefined,
+            "this._forkNetworkId should exist if the blockchain is an instance of ForkBlockchain"
+          );
+
+          const common = getCommon(this._forkNetworkId, blockNumber);
 
           vm = new VM({
             common,
