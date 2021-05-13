@@ -13,8 +13,13 @@ function getEnv(key: string): string | undefined {
   return variable.trim();
 }
 
-export const INFURA_URL = getEnv("INFURA_URL");
-export const ALCHEMY_URL = getEnv("ALCHEMY_URL");
+const DISABLE_FORKING_TESTS = process.env.DISABLE_FORK_TESTS !== undefined;
+export const INFURA_URL = DISABLE_FORKING_TESTS
+  ? undefined
+  : getEnv("INFURA_URL");
+export const ALCHEMY_URL = DISABLE_FORKING_TESTS
+  ? undefined
+  : getEnv("ALCHEMY_URL");
 
 function printForkingLogicNotBeingTestedWarning(varName: string) {
   console.warn(
