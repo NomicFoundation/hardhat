@@ -44,7 +44,7 @@ export function loadConfigAndTasks(
     hardhatArguments !== undefined ? hardhatArguments.config : undefined;
 
   configPath = resolveConfigPath(configPath);
-  log(`Hardhat config path located at ${configPath}`);
+  log(`Loading Hardhat config from ${configPath}`);
   // Before loading the builtin tasks, the default and user's config we expose
   // the config env in the global object.
   const configEnv = require("./config-env");
