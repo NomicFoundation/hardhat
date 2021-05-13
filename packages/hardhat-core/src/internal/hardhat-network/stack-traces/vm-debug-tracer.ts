@@ -414,7 +414,7 @@ export class VMDebugTracer {
       // so that it uses tihs opcode is hard,
       // so we just throw
       throw new InvalidInputError(
-        "Transactions that use CALLCODE are not supported"
+        "Transactions that use CALLCODE are not supported by Hardhat's debug_traceTransaction"
       );
     } else if (step.opcode.name === "INVALID") {
       const code = await this._getContractCode(step.codeAddress);
