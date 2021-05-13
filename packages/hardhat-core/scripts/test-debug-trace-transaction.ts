@@ -15,10 +15,10 @@ import {
 } from "../test/internal/hardhat-network/helpers/providers";
 import { assertEqualTraces } from "../test/internal/hardhat-network/provider/utils/assertEqualTraces";
 
-async function main(rpcUrl: string, txHash: string, blockNumber: string) {
+async function main(rpcUrl: string, txHash: string, blockNumber: string | undefined) {
   const forkConfig: ForkConfig = {
     jsonRpcUrl: rpcUrl,
-    blockNumber: +blockNumber,
+    blockNumber: blockNumber !== undefined ? +blockNumber : undefined,
   };
 
   const { forkClient } = await makeForkClient(forkConfig);
@@ -64,7 +64,9 @@ const txHashArg = process.argv[3];
 const blockNumberArg = process.argv[4];
 
 if (rpcUrlArg === undefined) {
-  console.warn("No rpcUrl given");
+  console.warn(
+    "No rpcUrl given. Add the URL of an archive node with support for debug_traceTransaction."
+  );
   usage();
 }
 if (txHashArg === undefined) {
@@ -72,8 +74,7 @@ if (txHashArg === undefined) {
   usage();
 }
 if (blockNumberArg === undefined) {
-  console.warn("No blockNumber given");
-  usage();
+  console.warn("No blockNumber given. Caching will be disabled.");
 }
 
 main(rpcUrlArg, txHashArg, blockNumberArg)
