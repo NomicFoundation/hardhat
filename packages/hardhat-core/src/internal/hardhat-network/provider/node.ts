@@ -931,10 +931,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     await this._txPool.updatePendingAndQueued();
   }
 
-  public async traceTransaction(
-    hash: Buffer,
-    config: RpcDebugTracingConfig
-  ): Promise<object> {
+  public async traceTransaction(hash: Buffer, config: RpcDebugTracingConfig) {
     const block = await this.getBlockByTransactionHash(hash);
     if (block === undefined) {
       throw new InvalidInputError(

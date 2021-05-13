@@ -6,6 +6,7 @@ import {
 import { validateParams } from "../../../core/jsonrpc/types/input/validation";
 import { MethodNotFoundError } from "../../../core/providers/errors";
 import { HardhatNode } from "../node";
+import { RpcDebugTraceOutput } from "../output";
 
 // tslint:disable only-hardhat-error
 
@@ -37,7 +38,7 @@ export class DebugModule {
   private async _traceTransactionAction(
     hash: Buffer,
     config: RpcDebugTracingConfig
-  ): Promise<object> {
+  ): Promise<RpcDebugTraceOutput> {
     return this._node.traceTransaction(hash, config);
   }
 }
