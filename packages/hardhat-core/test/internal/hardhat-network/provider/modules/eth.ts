@@ -4927,6 +4927,39 @@ describe("Eth module - hardfork dependant tests", function () {
             );
             assert.deepEqual(tx.accessList, accessList);
           });
+
+          it("Should accept access lists with null storageKeys", async function () {
+            const accessList = [
+              {
+                address: "0x1234567890123456789012345678901234567890",
+                storageKeys: null,
+              },
+            ];
+            const [sender] = await this.provider.send("eth_accounts");
+            const txHash = await this.provider.send("eth_sendTransaction", [
+              {
+                from: sender,
+                to: sender,
+                accessList,
+              },
+            ]);
+
+            const tx = await this.provider.send("eth_getTransactionByHash", [
+              txHash,
+            ]);
+
+            assert.equal(tx.type, numberToRpcQuantity(1));
+            assert.equal(
+              tx.chainId,
+              numberToRpcQuantity(this.common.chainId())
+            );
+            assert.deepEqual(tx.accessList, [
+              {
+                address: "0x1234567890123456789012345678901234567890",
+                storageKeys: [],
+              },
+            ]);
+          });
         });
       });
 

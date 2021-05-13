@@ -1218,7 +1218,10 @@ You can use them by running Hardhat Network with 'hardfork' ${ACCESS_LIST_MIN_HA
       return undefined;
     }
 
-    return rpcAccessList.map((tuple) => [tuple.address, tuple.storageKeys]);
+    return rpcAccessList.map((tuple) => [
+      tuple.address,
+      tuple.storageKeys ?? [],
+    ]);
   }
 
   private async _resolveOldBlockTag(
