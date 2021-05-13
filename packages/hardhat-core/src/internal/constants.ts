@@ -6,11 +6,11 @@ export const HARDHAT_NETWORK_NAME = "hardhat";
 export const SOLIDITY_FILES_CACHE_FILENAME = "solidity-files-cache.json";
 
 export const HARDHAT_NETWORK_SUPPORTED_HARDFORKS = [
-  "chainstart",
-  "homestead",
-  "dao",
-  "tangerineWhistle",
-  "spuriousDragon",
+  // "chainstart",
+  // "homestead",
+  // "dao",
+  // "tangerineWhistle",
+  // "spuriousDragon",
   "byzantium",
   "constantinople",
   "petersburg",

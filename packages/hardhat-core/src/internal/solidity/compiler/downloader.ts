@@ -39,7 +39,7 @@ export interface CompilersList {
 
 const log = debug("hardhat:core:solidity:downloader");
 
-const COMPILER_FILES_DIR_URL_SOLC = "https://solc-bin.ethereum.org/";
+const COMPILER_FILES_DIR_URL_SOLC = "https://binaries.soliditylang.org/";
 
 async function downloadFile(
   url: string,
@@ -92,6 +92,7 @@ export class CompilerDownloader {
 
     if (expectedKeccak256 !== compilerKeccak256) {
       await fsExtra.unlink(downloadedFilePath);
+      await fsExtra.unlink(this.getCompilersListPath(compilerBuild.platform));
 
       throw new HardhatError(ERRORS.SOLC.INVALID_DOWNLOAD, {
         remoteVersion: compilerBuild.version,
@@ -158,7 +159,7 @@ export class CompilerDownloader {
       await this.downloadCompilersList(platform);
     }
 
-    return fsExtra.readJson(this._getCompilersListPath(platform));
+    return fsExtra.readJson(this.getCompilersListPath(platform));
   }
 
   public async getCompilerBuild(version: string): Promise<CompilerBuild> {
@@ -179,7 +180,7 @@ export class CompilerDownloader {
     try {
       await this._download(
         getCompilerListURL(platform),
-        this._getCompilersListPath(platform)
+        this.getCompilersListPath(platform)
       );
     } catch (error) {
       throw new HardhatError(
@@ -217,7 +218,11 @@ export class CompilerDownloader {
   }
 
   public async compilersListExists(platform: CompilerPlatform) {
-    return fsExtra.pathExists(this._getCompilersListPath(platform));
+    return fsExtra.pathExists(this.getCompilersListPath(platform));
+  }
+
+  public getCompilersListPath(platform: CompilerPlatform) {
+    return path.join(this._compilersDir, platform, "list.json");
   }
 
   private _getDownloadedFilePath(compilerBuild: CompilerBuild): string {
@@ -238,7 +243,7 @@ export class CompilerDownloader {
 
     // We may need to re-download the compilers list.
     if (compilerBuildPath === undefined && compilersListExisted) {
-      await fsExtra.unlink(this._getCompilersListPath(platform));
+      await fsExtra.unlink(this.getCompilersListPath(platform));
 
       list = await this.getCompilersList(platform);
       compilerBuildPath = list.releases[version];
@@ -269,10 +274,6 @@ export class CompilerDownloader {
 
     compilerBuild.platform = platform;
     return compilerBuild;
-  }
-
-  private _getCompilersListPath(platform: CompilerPlatform) {
-    return path.join(this._compilersDir, platform, "list.json");
   }
 
   private async _fileExists(filePath: string) {

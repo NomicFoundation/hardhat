@@ -286,7 +286,7 @@ describe("JsonRpcClient", () => {
 
   describe("Using actual providers", function () {
     FORKED_PROVIDERS.forEach(({ rpcProvider, jsonRpcUrl }) => {
-      workaroundWindowsCiFailures({ isFork: true });
+      workaroundWindowsCiFailures.call(this, { isFork: true });
 
       describe(`Using ${rpcProvider}`, () => {
         let client: JsonRpcClient;

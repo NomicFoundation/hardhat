@@ -28,6 +28,8 @@ enum NetworkID {
   // Huobi ECO Chain
   HECO = 128,
   HECO_TESTNET = 256,
+  // Fantom mainnet
+  OPERA = 250,
 }
 
 const networkIDtoEndpoints: NetworkMap = {
@@ -66,6 +68,10 @@ const networkIDtoEndpoints: NetworkMap = {
   [NetworkID.HECO_TESTNET]: {
     apiURL: "https://api-testnet.hecoinfo.com/api",
     browserURL: "https://testnet.hecoinfo.com",
+  },
+  [NetworkID.OPERA]: {
+    apiURL: "https://api.ftmscan.com/api",
+    browserURL: "https://ftmscan.com",
   },
 };
 

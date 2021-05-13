@@ -12,18 +12,12 @@ import {
 } from "ethereumjs-util";
 import { Map as ImmutableMap, Record as ImmutableRecord } from "immutable";
 
-import { assertHardhatInvariant } from "../../../core/errors";
-import { InternalError } from "../../../core/providers/errors";
-import { JsonRpcClient } from "../../jsonrpc/client";
-import { GenesisAccount } from "../node-types";
-import { makeAccount } from "../utils/makeAccount";
+import { InternalError } from "../../core/providers/errors";
 
-import {
-  AccountState,
-  makeAccountState,
-  makeEmptyAccountState,
-} from "./AccountState";
-import { randomHash } from "./random";
+import { AccountState, makeAccountState } from "./fork/AccountState";
+import { randomHash } from "./fork/random";
+import { GenesisAccount } from "./node-types";
+import { makeAccount } from "./utils/makeAccount";
 
 const encodeStorageKey = (address: Buffer, position: Buffer): string => {
   return `${address.toString("hex")}${unpadBuffer(position).toString("hex")}`;
@@ -42,14 +36,13 @@ const notCheckpointedError = (method: string) =>
 const notSupportedError = (method: string) =>
   new Error(`${method} is not supported when forking from remote network`);
 
-export class ForkStateManager implements EIP2929StateManager {
+export class HardhatStateManager implements EIP2929StateManager {
   private _state: State = ImmutableMap();
   private _initialStateRoot: string = randomHash();
   private _stateRoot: string = this._initialStateRoot;
   private _stateRootToState: Map<string, State> = new Map();
   private _originalStorageCache: Map<string, Buffer> = new Map();
   private _stateCheckpoints: string[] = [];
-  private _contextBlockNumber = this._forkBlockNumber.clone();
   private _contextChanged = false;
 
   // used by the DefaultStateManager calls
@@ -58,57 +51,29 @@ export class ForkStateManager implements EIP2929StateManager {
     new Map(),
   ];
 
-  constructor(
-    private readonly _jsonRpcClient: JsonRpcClient,
-    private readonly _forkBlockNumber: BN
-  ) {
+  constructor() {
     this._state = ImmutableMap();
 
     this._stateRootToState.set(this._initialStateRoot, this._state);
   }
 
   public async initializeGenesisAccounts(genesisAccounts: GenesisAccount[]) {
-    const accounts: Array<{ address: Address; account: Account }> = [];
-    const noncesPromises: Array<Promise<BN>> = [];
-
     for (const ga of genesisAccounts) {
-      const account = makeAccount(ga);
-      accounts.push(account);
-
-      const noncePromise = this._jsonRpcClient.getTransactionCount(
-        account.address.toBuffer(),
-        this._forkBlockNumber
-      );
-      noncesPromises.push(noncePromise);
-    }
-
-    const nonces = await Promise.all(noncesPromises);
-
-    assertHardhatInvariant(
-      accounts.length === nonces.length,
-      "Nonces and accounts should have the same length"
-    );
-
-    for (const [index, { address, account }] of accounts.entries()) {
-      const nonce = nonces[index];
-      account.nonce = nonce;
+      const { address, account } = makeAccount(ga);
       this._putAccount(address, account);
     }
 
     this._stateRootToState.set(this._initialStateRoot, this._state);
   }
 
-  public copy(): ForkStateManager {
-    const fsm = new ForkStateManager(
-      this._jsonRpcClient,
-      this._forkBlockNumber
-    );
-    fsm._state = this._state;
-    fsm._stateRoot = this._stateRoot;
+  public copy(): HardhatStateManager {
+    const hsm = new HardhatStateManager();
+    hsm._state = this._state;
+    hsm._stateRoot = this._stateRoot;
 
     // because this map is append-only we don't need to copy it
-    fsm._stateRootToState = this._stateRootToState;
-    return fsm;
+    hsm._stateRootToState = this._stateRootToState;
+    return hsm;
   }
 
   public async getAccount(address: Address): Promise<Account> {
@@ -118,33 +83,14 @@ export class ForkStateManager implements EIP2929StateManager {
     const localBalance = localAccount?.get("balance");
     const localCode = localAccount?.get("code");
 
-    let nonce: Buffer | BN | undefined =
-      localNonce !== undefined ? toBuffer(localNonce) : undefined;
+    const nonce: Buffer | BN =
+      localNonce !== undefined ? toBuffer(localNonce) : new BN(0);
 
-    let balance: Buffer | BN | undefined =
-      localBalance !== undefined ? toBuffer(localBalance) : undefined;
+    const balance: Buffer | BN =
+      localBalance !== undefined ? toBuffer(localBalance) : new BN(0);
 
-    let code: Buffer | undefined =
-      localCode !== undefined ? toBuffer(localCode) : undefined;
-
-    if (balance === undefined || nonce === undefined || code === undefined) {
-      const accountData = await this._jsonRpcClient.getAccountData(
-        address,
-        this._contextBlockNumber
-      );
-
-      if (nonce === undefined) {
-        nonce = accountData.transactionCount;
-      }
-
-      if (balance === undefined) {
-        balance = accountData.balance;
-      }
-
-      if (code === undefined) {
-        code = accountData.code;
-      }
-    }
+    const code: Buffer =
+      localCode !== undefined ? toBuffer(localCode) : toBuffer([]);
 
     const codeHash = keccak256(code);
     // We ignore stateRoot since we found that it is not used anywhere of interest to us
@@ -174,12 +120,7 @@ export class ForkStateManager implements EIP2929StateManager {
       return toBuffer(localCode);
     }
 
-    const accountData = await this._jsonRpcClient.getAccountData(
-      address,
-      this._contextBlockNumber
-    );
-
-    return accountData.code;
+    return toBuffer([]);
   }
 
   public async getContractStorage(
@@ -191,25 +132,13 @@ export class ForkStateManager implements EIP2929StateManager {
     }
 
     const account = this._state.get(address.toString());
-    const contractStorageCleared = account?.get("storageCleared") ?? false;
     const localValue = account?.get("storage").get(bufferToHex(key));
 
     if (localValue !== undefined) {
       return toBuffer(localValue);
     }
 
-    const slotCleared = localValue === null;
-    if (contractStorageCleared || slotCleared) {
-      return toBuffer([]);
-    }
-
-    const remoteValue = await this._jsonRpcClient.getStorageAt(
-      address,
-      new BN(key),
-      this._contextBlockNumber
-    );
-
-    return unpadBuffer(remoteValue);
+    return toBuffer([]);
   }
 
   public async putContractStorage(
@@ -320,27 +249,6 @@ export class ForkStateManager implements EIP2929StateManager {
     // perform this operation.
   }
 
-  public setBlockContext(stateRoot: Buffer, blockNumber: BN) {
-    if (this._stateCheckpoints.length !== 0) {
-      throw checkpointedError("setBlockContext");
-    }
-    if (blockNumber.eq(this._forkBlockNumber)) {
-      this._setStateRoot(toBuffer(this._initialStateRoot));
-      return;
-    }
-    if (blockNumber.gt(this._forkBlockNumber)) {
-      this._setStateRoot(stateRoot);
-      return;
-    }
-    this._contextChanged = true;
-    this._state = ImmutableMap();
-    this._stateRoot = bufferToHex(stateRoot);
-    this._stateRootToState.set(this._stateRoot, this._state);
-    this._contextBlockNumber = blockNumber;
-    // Note that we don't need to clear the original storage cache here
-    // because the VM does it before executing a message anyway.
-  }
-
   public restoreForkBlockContext(stateRoot: Buffer) {
     if (this._stateCheckpoints.length !== 0) {
       throw checkpointedError("restoreForkBlockContext");
@@ -348,7 +256,6 @@ export class ForkStateManager implements EIP2929StateManager {
     this._setStateRoot(stateRoot);
     if (this._contextChanged) {
       this._contextChanged = false;
-      this._contextBlockNumber = this._forkBlockNumber;
     }
   }
 
@@ -359,11 +266,7 @@ export class ForkStateManager implements EIP2929StateManager {
   }
 
   public async deleteAccount(address: Address): Promise<void> {
-    // we set an empty account instead of deleting it to avoid
-    // re-fetching the state from the remote node.
-    // This is only valid post spurious dragon, but we don't support older hardforks when forking.
-    const emptyAccount = makeEmptyAccountState();
-    this._state = this._state.set(address.toString(), emptyAccount);
+    this._state = this._state.delete(address.toString());
   }
 
   public clearOriginalStorageCache(): void {
