@@ -48,7 +48,6 @@ function isStructLog(
 const EMPTY_MEMORY_WORD = "0".repeat(64);
 
 export class VMDebugTracer {
-  private _enabled = false;
   private _lastTrace?: RpcDebugTraceOutput;
   private _config: RpcDebugTracingConfig;
 
@@ -83,28 +82,20 @@ export class VMDebugTracer {
   }
 
   private _enableTracing(config: RpcDebugTracingConfig) {
-    if (this._enabled) {
-      return;
-    }
     this._vm.on("beforeTx", this._beforeTxHandler);
     this._vm.on("beforeMessage", this._beforeMessageHandler);
     this._vm.on("step", this._stepHandler);
     this._vm.on("afterMessage", this._afterMessageHandler);
     this._vm.on("afterTx", this._afterTxHandler);
-    this._enabled = true;
     this._config = config;
   }
 
   private _disableTracing() {
-    if (!this._enabled) {
-      return;
-    }
     this._vm.removeListener("beforeTx", this._beforeTxHandler);
     this._vm.removeListener("beforeMessage", this._beforeMessageHandler);
     this._vm.removeListener("step", this._stepHandler);
     this._vm.removeListener("afterTx", this._afterTxHandler);
     this._vm.removeListener("afterMessage", this._afterMessageHandler);
-    this._enabled = false;
     this._config = undefined;
   }
 
