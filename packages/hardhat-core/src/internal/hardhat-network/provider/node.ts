@@ -964,6 +964,10 @@ Hardhat Network's forking functionality only works with blocks from at least spu
           });
         }
 
+        // We don't support tracing transactions before the spuriousDragon fork
+        // to avoid having to distinguish between empty and non-existing accounts.
+        // We *could* do it during the non-forked mode, but for simplicity we just
+        // don't support it at all.
         const isPreSpuriousDragon = !vm._common.gteHardfork("spuriousDragon");
         if (isPreSpuriousDragon) {
           throw new InvalidInputError(
