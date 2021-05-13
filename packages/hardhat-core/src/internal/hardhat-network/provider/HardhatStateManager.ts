@@ -266,7 +266,7 @@ export class HardhatStateManager implements EIP2929StateManager {
   }
 
   public async deleteAccount(address: Address): Promise<void> {
-    this._state.delete(address.toString());
+    this._state = this._state.delete(address.toString());
   }
 
   public clearOriginalStorageCache(): void {

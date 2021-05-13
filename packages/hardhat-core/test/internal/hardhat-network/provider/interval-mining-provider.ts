@@ -9,7 +9,7 @@ import { INTERVAL_MINING_PROVIDERS } from "../helpers/providers";
 
 describe("Interval mining provider", function () {
   INTERVAL_MINING_PROVIDERS.forEach(({ name, useProvider, isFork }) => {
-    workaroundWindowsCiFailures({ isFork });
+    workaroundWindowsCiFailures.call(this, { isFork });
 
     describe(`${name} provider`, function () {
       const safeBlockInThePast = 11_200_000;

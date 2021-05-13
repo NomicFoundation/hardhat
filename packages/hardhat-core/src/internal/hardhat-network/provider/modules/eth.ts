@@ -1389,7 +1389,16 @@ You can use them by running Hardhat Network with 'hardfork' ${ACCESS_LIST_MIN_HA
       result = [result];
     }
 
-    await this._handleMineBlockResults(result, tx);
+    try {
+      await this._handleMineBlockResults(result, tx);
+    } catch (e) {
+      // This is a temporary solution until we improve our internal errors
+      // We need this to be able to return the transaction hash in the JSON-RPC
+      // response when the transaction fails
+      (e as any).transactionHash = bufferToRpcData(tx.hash());
+
+      throw e;
+    }
 
     return bufferToRpcData(tx.hash());
   }

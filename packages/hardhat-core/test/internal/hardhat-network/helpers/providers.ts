@@ -47,6 +47,7 @@ export const PROVIDERS = [
   {
     name: "Hardhat Network",
     isFork: false,
+    isJsonRpc: false,
     networkId: DEFAULT_NETWORK_ID,
     chainId: DEFAULT_CHAIN_ID,
     useProvider: (loggerEnabled = true) => {
@@ -56,6 +57,7 @@ export const PROVIDERS = [
   {
     name: "JSON-RPC",
     isFork: false,
+    isJsonRpc: true,
     networkId: DEFAULT_NETWORK_ID,
     chainId: DEFAULT_CHAIN_ID,
     useProvider: (loggerEnabled = true) => {
@@ -68,6 +70,7 @@ export const INTERVAL_MINING_PROVIDERS = [
   {
     name: "Hardhat Network",
     isFork: false,
+    isJsonRpc: false,
     useProvider: (loggerEnabled = true) => {
       useProvider(false, loggerEnabled, undefined, {
         auto: false,
@@ -78,6 +81,7 @@ export const INTERVAL_MINING_PROVIDERS = [
   {
     name: "JSON-RPC",
     isFork: false,
+    isJsonRpc: true,
     useProvider: (loggerEnabled = true) => {
       useProvider(true, loggerEnabled, undefined, {
         auto: false,
@@ -99,6 +103,7 @@ if (ALCHEMY_URL !== undefined) {
   PROVIDERS.push({
     name: "Alchemy Forked",
     isFork: true,
+    isJsonRpc: false,
     networkId: DEFAULT_NETWORK_ID,
     chainId: DEFAULT_CHAIN_ID,
     useProvider: (loggerEnabled = true) => {
@@ -109,6 +114,7 @@ if (ALCHEMY_URL !== undefined) {
   INTERVAL_MINING_PROVIDERS.push({
     name: "Alchemy Forked",
     isFork: true,
+    isJsonRpc: false,
     useProvider: (loggerEnabled = true) => {
       useProvider(
         false,
