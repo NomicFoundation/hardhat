@@ -1,7 +1,7 @@
 import { RpcDebugTraceOutput } from "../../src/internal/hardhat-network/provider/output";
 
 export const trace: RpcDebugTraceOutput = {
-  gas: 43645,
+  gas: 44945,
   failed: false,
   returnValue: "",
   structLogs: [
@@ -922,7 +922,7 @@ export const trace: RpcDebugTraceOutput = {
       pc: 198,
       op: "SLOAD",
       gas: 5978622,
-      gasCost: 800,
+      gasCost: 2100,
       depth: 1,
       stack: [
         "000000000000000000000000000000000000000000000000000000001b334ecc",
@@ -943,7 +943,7 @@ export const trace: RpcDebugTraceOutput = {
     {
       pc: 199,
       op: "PUSH32",
-      gas: 5977822,
+      gas: 5976522,
       gasCost: 3,
       depth: 1,
       stack: [
@@ -965,7 +965,7 @@ export const trace: RpcDebugTraceOutput = {
     {
       pc: 232,
       op: "DUP3",
-      gas: 5977819,
+      gas: 5976519,
       gasCost: 3,
       depth: 1,
       stack: [
@@ -988,7 +988,7 @@ export const trace: RpcDebugTraceOutput = {
     {
       pc: 233,
       op: "PUSH1",
-      gas: 5977816,
+      gas: 5976516,
       gasCost: 3,
       depth: 1,
       stack: [
@@ -1012,7 +1012,7 @@ export const trace: RpcDebugTraceOutput = {
     {
       pc: 235,
       op: "MLOAD",
-      gas: 5977813,
+      gas: 5976513,
       gasCost: 3,
       depth: 1,
       stack: [
@@ -1037,7 +1037,7 @@ export const trace: RpcDebugTraceOutput = {
     {
       pc: 236,
       op: "DUP1",
-      gas: 5977810,
+      gas: 5976510,
       gasCost: 3,
       depth: 1,
       stack: [
@@ -1062,7 +1062,7 @@ export const trace: RpcDebugTraceOutput = {
     {
       pc: 237,
       op: "DUP3",
-      gas: 5977807,
+      gas: 5976507,
       gasCost: 3,
       depth: 1,
       stack: [
@@ -1088,7 +1088,7 @@ export const trace: RpcDebugTraceOutput = {
     {
       pc: 238,
       op: "DUP2",
-      gas: 5977804,
+      gas: 5976504,
       gasCost: 3,
       depth: 1,
       stack: [
@@ -1115,7 +1115,7 @@ export const trace: RpcDebugTraceOutput = {
     {
       pc: 239,
       op: "MSTORE",
-      gas: 5977801,
+      gas: 5976501,
       gasCost: 9,
       depth: 1,
       stack: [
@@ -1145,7 +1145,7 @@ export const trace: RpcDebugTraceOutput = {
     {
       pc: 240,
       op: "PUSH1",
-      gas: 5977792,
+      gas: 5976492,
       gasCost: 3,
       depth: 1,
       stack: [
@@ -1173,7 +1173,7 @@ export const trace: RpcDebugTraceOutput = {
     {
       pc: 242,
       op: "ADD",
-      gas: 5977789,
+      gas: 5976489,
       gasCost: 3,
       depth: 1,
       stack: [
@@ -1202,7 +1202,7 @@ export const trace: RpcDebugTraceOutput = {
     {
       pc: 243,
       op: "SWAP2",
-      gas: 5977786,
+      gas: 5976486,
       gasCost: 3,
       depth: 1,
       stack: [
@@ -1230,7 +1230,7 @@ export const trace: RpcDebugTraceOutput = {
     {
       pc: 244,
       op: "POP",
-      gas: 5977783,
+      gas: 5976483,
       gasCost: 2,
       depth: 1,
       stack: [
@@ -1258,7 +1258,7 @@ export const trace: RpcDebugTraceOutput = {
     {
       pc: 245,
       op: "POP",
-      gas: 5977781,
+      gas: 5976481,
       gasCost: 2,
       depth: 1,
       stack: [
@@ -1285,7 +1285,7 @@ export const trace: RpcDebugTraceOutput = {
     {
       pc: 246,
       op: "PUSH1",
-      gas: 5977779,
+      gas: 5976479,
       gasCost: 3,
       depth: 1,
       stack: [
@@ -1311,7 +1311,7 @@ export const trace: RpcDebugTraceOutput = {
     {
       pc: 248,
       op: "MLOAD",
-      gas: 5977776,
+      gas: 5976476,
       gasCost: 3,
       depth: 1,
       stack: [
@@ -1338,7 +1338,7 @@ export const trace: RpcDebugTraceOutput = {
     {
       pc: 249,
       op: "DUP1",
-      gas: 5977773,
+      gas: 5976473,
       gasCost: 3,
       depth: 1,
       stack: [
@@ -1365,7 +1365,7 @@ export const trace: RpcDebugTraceOutput = {
     {
       pc: 250,
       op: "SWAP2",
-      gas: 5977770,
+      gas: 5976470,
       gasCost: 3,
       depth: 1,
       stack: [
@@ -1393,7 +1393,7 @@ export const trace: RpcDebugTraceOutput = {
     {
       pc: 251,
       op: "SUB",
-      gas: 5977767,
+      gas: 5976467,
       gasCost: 3,
       depth: 1,
       stack: [
@@ -1421,7 +1421,7 @@ export const trace: RpcDebugTraceOutput = {
     {
       pc: 252,
       op: "SWAP1",
-      gas: 5977764,
+      gas: 5976464,
       gasCost: 3,
       depth: 1,
       stack: [
@@ -1448,7 +1448,7 @@ export const trace: RpcDebugTraceOutput = {
     {
       pc: 253,
       op: "LOG2",
-      gas: 5977761,
+      gas: 5976461,
       gasCost: 1381,
       depth: 1,
       stack: [
@@ -1475,7 +1475,7 @@ export const trace: RpcDebugTraceOutput = {
     {
       pc: 254,
       op: "DUP1",
-      gas: 5976380,
+      gas: 5975080,
       gasCost: 3,
       depth: 1,
       stack: [
@@ -1498,7 +1498,7 @@ export const trace: RpcDebugTraceOutput = {
     {
       pc: 255,
       op: "PUSH1",
-      gas: 5976377,
+      gas: 5975077,
       gasCost: 3,
       depth: 1,
       stack: [
@@ -1522,7 +1522,7 @@ export const trace: RpcDebugTraceOutput = {
     {
       pc: 257,
       op: "DUP2",
-      gas: 5976374,
+      gas: 5975074,
       gasCost: 3,
       depth: 1,
       stack: [
@@ -1547,7 +1547,7 @@ export const trace: RpcDebugTraceOutput = {
     {
       pc: 258,
       op: "SWAP1",
-      gas: 5976371,
+      gas: 5975071,
       gasCost: 3,
       depth: 1,
       stack: [
@@ -1573,7 +1573,7 @@ export const trace: RpcDebugTraceOutput = {
     {
       pc: 259,
       op: "SSTORE",
-      gas: 5976368,
+      gas: 5975068,
       gasCost: 20000,
       depth: 1,
       stack: [
@@ -1599,7 +1599,7 @@ export const trace: RpcDebugTraceOutput = {
     {
       pc: 260,
       op: "POP",
-      gas: 5956368,
+      gas: 5955068,
       gasCost: 2,
       depth: 1,
       stack: [
@@ -1623,7 +1623,7 @@ export const trace: RpcDebugTraceOutput = {
     {
       pc: 261,
       op: "POP",
-      gas: 5956366,
+      gas: 5955066,
       gasCost: 2,
       depth: 1,
       stack: [
@@ -1646,7 +1646,7 @@ export const trace: RpcDebugTraceOutput = {
     {
       pc: 262,
       op: "JUMP",
-      gas: 5956364,
+      gas: 5955064,
       gasCost: 8,
       depth: 1,
       stack: [
@@ -1668,7 +1668,7 @@ export const trace: RpcDebugTraceOutput = {
     {
       pc: 101,
       op: "JUMPDEST",
-      gas: 5956356,
+      gas: 5955056,
       gasCost: 1,
       depth: 1,
       stack: [
@@ -1689,7 +1689,7 @@ export const trace: RpcDebugTraceOutput = {
     {
       pc: 102,
       op: "STOP",
-      gas: 5956355,
+      gas: 5955055,
       gasCost: 0,
       depth: 1,
       stack: [

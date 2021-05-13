@@ -15,7 +15,11 @@ import {
 } from "../test/internal/hardhat-network/helpers/providers";
 import { assertEqualTraces } from "../test/internal/hardhat-network/provider/utils/assertEqualTraces";
 
-async function main(rpcUrl: string, txHash: string, blockNumber: string | undefined) {
+async function main(
+  rpcUrl: string,
+  txHash: string,
+  blockNumber: string | undefined
+) {
   const forkConfig: ForkConfig = {
     jsonRpcUrl: rpcUrl,
     blockNumber: blockNumber !== undefined ? +blockNumber : undefined,

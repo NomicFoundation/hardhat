@@ -4477,7 +4477,7 @@ describe("Eth module", function () {
       });
 
       describe("gas usage", function () {
-        it("should use 15K less gas when writing a non-zero slot", async function () {
+        it("should use 17100 less gas when writing a non-zero slot", async function () {
           const contractAddress = await deployContract(
             this.provider,
             `0x${EXAMPLE_SETTER_CONTRACT.bytecode.object}`
@@ -4515,7 +4515,7 @@ describe("Eth module", function () {
 
           const gasDifference = gasUsedBefore.sub(gasUsedAfter);
 
-          assert.equal(gasDifference.toString(), "15000");
+          assert.equal(gasDifference.toString(), "17100");
         });
       });
 
