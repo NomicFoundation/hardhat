@@ -315,7 +315,7 @@ you can get traces of transactions from the remote network even if the node you 
 doesn't support
 `debug_traceTransaction`.
 
-There are some known limitations around this method:
+### Known limitations
 
 - You can't trace transactions that use a hardfork older than [Spurious Dragon](https://ethereum.org/en/history/#spurious-dragon)
 - The last step of a message is not guaranteed to have a correct value in the
