@@ -954,7 +954,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
             "this._forkNetworkId should exist if the blockchain is an instance of ForkBlockchain"
           );
 
-          const common = getCommon(this._forkNetworkId, blockNumber);
+          const common = getCommonForTracing(this._forkNetworkId, blockNumber);
 
           vm = new VM({
             common,
@@ -1756,7 +1756,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   }
 }
 
-function getCommon(networkId: number, blockNumber: number): Common | undefined {
+function getCommonForTracing(networkId: number, blockNumber: number): Common {
   try {
     const common = new Common({ chain: networkId });
 
@@ -1764,6 +1764,8 @@ function getCommon(networkId: number, blockNumber: number): Common | undefined {
 
     return common;
   } catch (e) {
-    return undefined;
+    throw new InternalError(
+      `Network id ${networkId} does not correspond to a network that Hardhat can trace`
+    );
   }
 }
