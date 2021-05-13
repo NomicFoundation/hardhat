@@ -1758,7 +1758,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
 function getCommon(networkId: number, blockNumber: number): Common | undefined {
   try {
-    const common = Common.forCustomChain(networkId, {});
+    const common = new Common({ chain: networkId });
 
     common.setHardfork(common.activeHardfork(blockNumber));
 
