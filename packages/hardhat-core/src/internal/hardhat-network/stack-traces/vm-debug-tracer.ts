@@ -453,20 +453,7 @@ export class VMDebugTracer {
 
   private _callConstantGas(address: Address): number {
     if (this._vm._common.gteHardfork("berlin")) {
-      const stateManager = this._vm.stateManager as
-        | StateManager
-        | EIP2929StateManager;
-
-      assertHardhatInvariant(
-        "isWarmedAddress" in stateManager,
-        "The VM should have an EIP2929StateManger when berlin is enabled"
-      );
-
-      const isWarmed = stateManager.isWarmedAddress(address.toBuffer());
-
-      return isWarmed
-        ? this._vm._common.param("gasPrices", "warmstorageread")
-        : this._vm._common.param("gasPrices", "coldaccountaccess");
+      return this._vm._common.param("gasPrices", "warmstorageread");
     }
 
     return this._vm._common.param("gasPrices", "call");
@@ -503,6 +490,31 @@ export class VMDebugTracer {
     memoryGas: number,
     callCost: BN
   ): Promise<number> {
+    // The available gas is reduced when the address is cold
+    if (this._vm._common.gteHardfork("berlin")) {
+      const stateManager = this._vm.stateManager as
+        | StateManager
+        | EIP2929StateManager;
+
+      assertHardhatInvariant(
+        "isWarmedAddress" in stateManager,
+        "The VM should have an EIP2929StateManger when berlin is enabled"
+      );
+
+      const isWarmed = stateManager.isWarmedAddress(address.toBuffer());
+
+      const coldCost =
+        this._vm._common.param("gasPrices", "coldaccountaccess") -
+        this._vm._common.param("gasPrices", "warmstorageread");
+
+      // This comment is copied verbatim from geth:
+      // The WarmStorageReadCostEIP2929 (100) is already deducted in the form of a constant cost, so
+      // the cost to charge for cold access, if any, is Cold - Warm
+      if (!isWarmed) {
+        availableGas -= coldCost;
+      }
+    }
+
     let gas = 0;
 
     const transfersValue = !value.isZero();
