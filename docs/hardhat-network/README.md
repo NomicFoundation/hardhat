@@ -311,7 +311,7 @@ const trace = await hre.network.provider.send("debug_traceTransaction", [
 ```
 
 If you are using [mainnet forking](https://hardhat.org/guides/mainnet-forking.html) with an archive node,
-you can get traces of transactions from the mainnet even if the node you are using
+you can get traces of transactions from the remote network even if the node you are using
 doesn't support
 `debug_traceTransaction`.
 
