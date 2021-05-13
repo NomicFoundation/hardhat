@@ -1,6 +1,6 @@
 import chalk from "chalk";
-import fsExtra from "fs-extra";
 import debug from "debug";
+import fsExtra from "fs-extra";
 import path from "path";
 import semver from "semver";
 import type StackTraceParserT from "stacktrace-parser";
