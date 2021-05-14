@@ -264,8 +264,19 @@ function compareStackTraces(
       `Stack trace of tx ${txIndex} entry ${i} type is incorrect`
     );
 
-    const actualMessage = (actual as any).message as ReturnData | undefined;
-    const decodedMessage = actualMessage?.decodeError() ?? "";
+    const actualMessage = (actual as any).message as
+      | ReturnData
+      | string
+      | undefined;
+
+    // actual.message is a ReturnData in revert errors, but a string
+    // in custom errors
+    let decodedMessage = "";
+    if (typeof actualMessage === "string") {
+      decodedMessage = actualMessage;
+    } else if (actualMessage instanceof ReturnData) {
+      decodedMessage = actualMessage.decodeError();
+    }
 
     if (expected.message !== undefined) {
       assert.equal(
@@ -717,6 +728,10 @@ const solidity08Compilers: CompilerOptions[] = [
   {
     solidityVersion: "0.8.0",
     compilerPath: "soljson-v0.8.0+commit.c7dfd78e.js",
+  },
+  {
+    solidityVersion: "0.8.4",
+    compilerPath: "soljson-v0.8.4+commit.c7e474f2.js",
   },
 ];
 

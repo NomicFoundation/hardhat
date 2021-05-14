@@ -1,7 +1,9 @@
 import { ERROR } from "@ethereumjs/vm/dist/exceptions";
+import { defaultAbiCoder as abi, ParamType } from "@ethersproject/abi";
 import { BN } from "ethereumjs-util";
 import semver from "semver";
 
+import { AbiHelpers } from "../../util/abi-helpers";
 import { ReturnData } from "../provider/return-data";
 
 import {
@@ -30,6 +32,7 @@ import {
   CallFailedErrorStackTraceEntry,
   CallstackEntryStackTraceEntry,
   CONSTRUCTOR_FUNCTION_NAME,
+  CustomErrorStackTraceEntry,
   FALLBACK_FUNCTION_NAME,
   InternalFunctionCallStackEntry,
   OtherExecutionErrorStackTraceEntry,
@@ -307,6 +310,15 @@ export class ErrorInferrer {
       return panicStacktrace;
     }
 
+    const customErrorStacktrace = this._checkCustomErrors(
+      trace,
+      stacktrace,
+      lastInstruction
+    );
+    if (customErrorStacktrace !== undefined) {
+      return customErrorStacktrace;
+    }
+
     if (
       lastInstruction.location !== undefined &&
       (!isDecodedCallTrace(trace) || jumpedIntoFunction)
@@ -423,6 +435,43 @@ export class ErrorInferrer {
       )
     );
     return this._fixInitialModifier(trace, inferredStacktrace);
+  }
+
+  private _checkCustomErrors(
+    trace: DecodedEvmMessageTrace,
+    stacktrace: SolidityStackTrace,
+    lastInstruction: Instruction
+  ): SolidityStackTrace | undefined {
+    const returnData = new ReturnData(trace.returnData);
+
+    if (returnData.isEmpty()) {
+      // if there is no return data, then it can't be a custom error
+      return;
+    }
+
+    for (const customError of trace.bytecode.contract.customErrors) {
+      if (returnData.matchesSelector(customError.selector)) {
+        // if the return data matches a custom error in the called contract,
+        // we format the message using the returnData and the custom error instance
+        const decodedValues = abi.decode(
+          customError.paramTypes,
+          returnData.value.slice(4)
+        );
+
+        const params = AbiHelpers.formatValues([...decodedValues]);
+        const message = `${customError.name}(${params})`;
+
+        const inferredStacktrace = [...stacktrace];
+        inferredStacktrace.push(
+          this._instructionWithinFunctionToCustomErrorStackTraceEntry(
+            trace,
+            lastInstruction,
+            message
+          )
+        );
+        return this._fixInitialModifier(trace, inferredStacktrace);
+      }
+    }
   }
 
   /**
@@ -988,6 +1037,21 @@ export class ErrorInferrer {
         sourceLocationToSourceReference(trace.bytecode, inst.location) ??
         this._getLastSourceReference(trace)!,
       errorCode,
+      isInvalidOpcodeError: inst.opcode === Opcode.INVALID,
+    };
+  }
+
+  private _instructionWithinFunctionToCustomErrorStackTraceEntry(
+    trace: DecodedEvmMessageTrace,
+    inst: Instruction,
+    message: string
+  ): CustomErrorStackTraceEntry {
+    return {
+      type: StackTraceEntryType.CUSTOM_ERROR,
+      sourceReference:
+        sourceLocationToSourceReference(trace.bytecode, inst.location) ??
+        this._getLastSourceReference(trace)!,
+      message,
       isInvalidOpcodeError: inst.opcode === Opcode.INVALID,
     };
   }

@@ -113,6 +113,7 @@ function encodeStackTraceEntry(
     case StackTraceEntryType.CALLSTACK_ENTRY:
     case StackTraceEntryType.REVERT_ERROR:
     case StackTraceEntryType.PANIC_ERROR:
+    case StackTraceEntryType.CUSTOM_ERROR:
     case StackTraceEntryType.FUNCTION_NOT_PAYABLE_ERROR:
     case StackTraceEntryType.INVALID_PARAMS_ERROR:
     case StackTraceEntryType.FALLBACK_NOT_PAYABLE_ERROR:
@@ -278,6 +279,9 @@ function getMessageFromLastStackTraceEntry(
     case StackTraceEntryType.PANIC_ERROR:
       const panicReason = panicErrorCodeToReason(stackTraceEntry.errorCode);
       return `VM Exception while processing transaction: ${panicReason}`;
+
+    case StackTraceEntryType.CUSTOM_ERROR:
+      return `VM Exception while processing transaction: custom error ${stackTraceEntry.message}`;
 
     case StackTraceEntryType.OTHER_EXECUTION_ERROR:
       // TODO: What if there was returnData?
