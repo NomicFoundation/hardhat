@@ -97,7 +97,7 @@ export const FORKED_PROVIDERS: Array<{
   useProvider: (loggerEnabled?: boolean) => void;
 }> = [];
 
-if (ALCHEMY_URL !== undefined && ALCHEMY_URL !== "") {
+if (ALCHEMY_URL !== undefined) {
   const url = ALCHEMY_URL;
 
   PROVIDERS.push({
@@ -137,7 +137,7 @@ if (ALCHEMY_URL !== undefined && ALCHEMY_URL !== "") {
   });
 }
 
-if (INFURA_URL !== undefined && INFURA_URL !== "") {
+if (INFURA_URL !== undefined) {
   const url = INFURA_URL;
 
   FORKED_PROVIDERS.push({

@@ -39,7 +39,7 @@ import {
 
 interface ForkedBlock {
   networkName: string;
-  url?: string;
+  url: string;
   blockToRun: number;
   chainId: number;
 }
@@ -545,7 +545,9 @@ describe("HardhatNode", () => {
   });
 
   describe("full block", function () {
-    this.timeout(120000);
+    if (ALCHEMY_URL === undefined) {
+      return;
+    }
 
     const forkedBlocks: ForkedBlock[] = [
       // We don't run this test against spurious dragon because
@@ -576,19 +578,19 @@ describe("HardhatNode", () => {
       },
       {
         networkName: "kovan",
-        url: (ALCHEMY_URL ?? "").replace("mainnet", "kovan"),
+        url: ALCHEMY_URL.replace("mainnet", "kovan"),
         blockToRun: 23115227,
         chainId: 42,
       },
       {
         networkName: "rinkeby",
-        url: (ALCHEMY_URL ?? "").replace("mainnet", "rinkeby"),
+        url: ALCHEMY_URL.replace("mainnet", "rinkeby"),
         blockToRun: 8004365,
         chainId: 4,
       },
       {
         networkName: "ropsten",
-        url: (ALCHEMY_URL ?? "").replace("mainnet", "ropsten"),
+        url: ALCHEMY_URL.replace("mainnet", "ropsten"),
         blockToRun: 9812365, // this block has a EIP-2930 tx
         chainId: 3,
       },
@@ -599,9 +601,7 @@ describe("HardhatNode", () => {
       const hardfork = remoteCommon.getHardforkByBlockNumber(blockToRun);
 
       it(`should run a ${networkName} block from ${hardfork} and produce the same results`, async function () {
-        if (url === undefined || url === "") {
-          this.skip();
-        }
+        this.timeout(120000);
 
         const forkConfig = {
           jsonRpcUrl: url,
@@ -732,6 +732,7 @@ async function runBlockAndGetAfterBlockEvent(
   runBlockOpts: RunBlockOpts
 ): Promise<AfterBlockEvent> {
   let results: AfterBlockEvent;
+
   function handler(event: AfterBlockEvent) {
     results = event;
   }
