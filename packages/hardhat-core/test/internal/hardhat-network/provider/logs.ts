@@ -17,7 +17,7 @@ import { useHelpers } from "../helpers/useHelpers";
 
 describe("Provider logs", function () {
   PROVIDERS.forEach(({ isFork, name, useProvider }) => {
-    workaroundWindowsCiFailures({ isFork });
+    workaroundWindowsCiFailures.call(this, { isFork });
 
     describe(`${name} provider`, function () {
       setCWD();

@@ -20,7 +20,7 @@ describe("Hardhat module", function () {
       this.timeout(50000);
     }
 
-    workaroundWindowsCiFailures({ isFork });
+    workaroundWindowsCiFailures.call(this, { isFork });
 
     describe(`${name} provider`, function () {
       const safeBlockInThePast = 11_200_000; // this should resolve CI errors probably caused by using a block too far in the past
@@ -166,7 +166,7 @@ describe("Hardhat module", function () {
 
       describe("hardhat_reset", function () {
         before(function () {
-          if (ALCHEMY_URL === undefined || ALCHEMY_URL === "") {
+          if (ALCHEMY_URL === undefined) {
             this.skip();
           }
         });
