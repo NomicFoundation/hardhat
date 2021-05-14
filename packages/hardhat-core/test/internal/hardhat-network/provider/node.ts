@@ -2,17 +2,11 @@ import { Block } from "@ethereumjs/block";
 import Common from "@ethereumjs/common";
 import { TxData, TypedTransaction } from "@ethereumjs/tx";
 import VM from "@ethereumjs/vm";
-import {
-  AfterBlockEvent,
-  PostByzantiumTxReceipt,
-  RunBlockOpts,
-} from "@ethereumjs/vm/dist/runBlock";
+import { AfterBlockEvent, RunBlockOpts } from "@ethereumjs/vm/dist/runBlock";
 import { assert } from "chai";
 import { Address, BN, bufferToHex } from "ethereumjs-util";
-import path from "path";
 import sinon from "sinon";
 
-import { numberToRpcQuantity } from "../../../../src/internal/core/jsonrpc/types/base-types";
 import { rpcToBlockData } from "../../../../src/internal/hardhat-network/provider/fork/rpcToBlockData";
 import { HardhatNode } from "../../../../src/internal/hardhat-network/provider/node";
 import {
@@ -24,7 +18,10 @@ import { getCurrentTimestamp } from "../../../../src/internal/hardhat-network/pr
 import { makeForkClient } from "../../../../src/internal/hardhat-network/provider/utils/makeForkClient";
 import { ALCHEMY_URL } from "../../../setup";
 import { assertQuantity } from "../helpers/assertions";
-import { EMPTY_ACCOUNT_ADDRESS } from "../helpers/constants";
+import {
+  EMPTY_ACCOUNT_ADDRESS,
+  FORK_TESTS_CACHE_PATH,
+} from "../helpers/constants";
 import {
   DEFAULT_ACCOUNTS,
   DEFAULT_ACCOUNTS_ADDRESSES,
@@ -34,6 +31,8 @@ import {
   DEFAULT_NETWORK_ID,
   DEFAULT_NETWORK_NAME,
 } from "../helpers/providers";
+
+import { assertEqualBlocks } from "./utils/assertEqualBlocks";
 
 // tslint:disable no-string-literal
 
@@ -619,8 +618,6 @@ describe("HardhatNode", () => {
           assert.fail();
         }
 
-        const forkCachePath = path.join(__dirname, ".hardhat_node_test_cache");
-
         const forkedNodeConfig: ForkedNodeConfig = {
           automine: true,
           networkName: "mainnet",
@@ -628,7 +625,7 @@ describe("HardhatNode", () => {
           networkId: 1,
           hardfork,
           forkConfig,
-          forkCachePath,
+          forkCachePath: FORK_TESTS_CACHE_PATH,
           blockGasLimit: rpcBlock.gasLimit.toNumber(),
           genesisAccounts: [],
         };
@@ -672,55 +669,11 @@ describe("HardhatNode", () => {
           assert.fail();
         }
 
-        const localReceiptRoot = newBlock.header.receiptTrie.toString("hex");
-        const remoteReceiptRoot = rpcBlock.receiptsRoot.toString("hex");
-
-        // We do some manual comparisons here to understand why the root of the receipt tries differ.
-        if (localReceiptRoot !== remoteReceiptRoot) {
-          for (let i = 0; i < newBlock.transactions.length; i++) {
-            const tx = newBlock.transactions[i];
-            const txHash = bufferToHex(tx.hash());
-
-            const remoteReceipt = (await forkClient["_httpProvider"].request({
-              method: "eth_getTransactionReceipt",
-              params: [txHash],
-            })) as any;
-
-            const localReceipt = afterBlockEvent.receipts[i];
-            const evmResult = afterBlockEvent.results[i];
-
-            assert.equal(
-              bufferToHex(localReceipt.bitvector),
-              remoteReceipt.logsBloom,
-              `Logs bloom of tx index ${i} (${txHash}) should match`
-            );
-
-            assert.equal(
-              numberToRpcQuantity(evmResult.gasUsed.toNumber()),
-              remoteReceipt.gasUsed,
-              `Gas used of tx index ${i} (${txHash}) should match`
-            );
-
-            assert.equal(
-              (localReceipt as PostByzantiumTxReceipt).status,
-              remoteReceipt.status,
-              `Status of tx index ${i} (${txHash}) should be the same`
-            );
-
-            assert.equal(
-              evmResult.createdAddress === undefined
-                ? undefined
-                : `0x${evmResult.createdAddress.toString()}`,
-              remoteReceipt.contractAddress,
-              `Contract address created by tx index ${i} (${txHash}) should be the same`
-            );
-          }
-        }
-
-        assert.equal(
-          localReceiptRoot,
-          remoteReceiptRoot,
-          "The root of the receipts trie is different than expected"
+        await assertEqualBlocks(
+          newBlock,
+          afterBlockEvent,
+          rpcBlock,
+          forkClient
         );
       });
     }
