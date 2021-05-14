@@ -13,7 +13,10 @@ import type {
   EthSubscription,
   RequestArguments,
 } from "../../../types";
-import { HARDHAT_NETWORK_RESET_EVENT } from "../../constants";
+import {
+  HARDHAT_NETWORK_RESET_EVENT,
+  HARDHAT_NETWORK_REVERT_SNAPSHOT_EVENT,
+} from "../../constants";
 import {
   InvalidInputError,
   MethodNotFoundError,
@@ -103,6 +106,9 @@ export class HardhatNetworkProvider extends EventEmitter
 
       if (args.method === "hardhat_reset") {
         this.emit(HARDHAT_NETWORK_RESET_EVENT);
+      }
+      if (args.method === "evm_revert") {
+        this.emit(HARDHAT_NETWORK_REVERT_SNAPSHOT_EVENT);
       }
 
       return result;
