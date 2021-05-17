@@ -1191,7 +1191,36 @@ describe("Config validation", function () {
       });
 
       assert.deepEqual(errors, []);
-
+      assert.deepEqual(
+        getValidationErrors({
+          networks: {
+            [HARDHAT_NETWORK_NAME]: {
+              accounts: [{ privateKey: "0x1111", balance: "0" }],
+            },
+          },
+        }),
+        []
+      );
+      assert.deepEqual(
+        getValidationErrors({
+          networks: {
+            [HARDHAT_NETWORK_NAME]: {
+              accounts: [{ privateKey: "0x1111", balance: "100123" }],
+            },
+          },
+        }),
+        []
+      );
+      assert.deepEqual(
+        getValidationErrors({
+          networks: {
+            [HARDHAT_NETWORK_NAME]: {
+              accounts: [{ privateKey: "0x1111", balance: "12300000000123" }],
+            },
+          },
+        }),
+        []
+      );
       assert.deepEqual(
         getValidationErrors({
           networks: {
