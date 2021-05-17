@@ -454,7 +454,7 @@ describe("Config validation", function () {
               validateConfig({
                 networks: {
                   [HARDHAT_NETWORK_NAME]: {
-                    accounts: [{ privateKey:"0xxxxx" , balance: 213 }],
+                    accounts: [{ privateKey: "0xxxxx", balance: 213 }],
                   },
                 },
               }),
@@ -466,7 +466,7 @@ describe("Config validation", function () {
               validateConfig({
                 networks: {
                   [HARDHAT_NETWORK_NAME]: {
-                    accounts: [{ privateKey:"0xxxxx" , balance: "0.1231" }],
+                    accounts: [{ privateKey: "0xxxxx", balance: "0.1231" }],
                   },
                 },
               }),
@@ -478,7 +478,7 @@ describe("Config validation", function () {
               validateConfig({
                 networks: {
                   [HARDHAT_NETWORK_NAME]: {
-                    accounts: [{ privateKey:"0xxxxx" , balance: "001231" }],
+                    accounts: [{ privateKey: "0xxxxx", balance: "001231" }],
                   },
                 },
               }),
@@ -490,7 +490,7 @@ describe("Config validation", function () {
               validateConfig({
                 networks: {
                   [HARDHAT_NETWORK_NAME]: {
-                    accounts: [{ privateKey:"0xxxxx" , balance: ".02123" }],
+                    accounts: [{ privateKey: "0xxxxx", balance: ".02123" }],
                   },
                 },
               }),
@@ -502,7 +502,7 @@ describe("Config validation", function () {
               validateConfig({
                 networks: {
                   [HARDHAT_NETWORK_NAME]: {
-                    accounts: [{ privateKey:"0xxxxx" , balance: "-123" }],
+                    accounts: [{ privateKey: "0xxxxx", balance: "-123" }],
                   },
                 },
               }),
