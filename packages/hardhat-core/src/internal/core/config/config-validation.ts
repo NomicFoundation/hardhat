@@ -64,6 +64,7 @@ export const DotPathReporter: Reporter<string[]> = {
 };
 
 const HEX_STRING_REGEX = /^(0x)?([0-9a-f]{2})+$/gi;
+const DEC_STRING_REGEX = /^[1-9]+[0-9]+([0-9])?$/g;
 
 function isHexString(v: unknown): v is string {
   if (typeof v !== "string") {
@@ -73,6 +74,14 @@ function isHexString(v: unknown): v is string {
   return v.trim().match(HEX_STRING_REGEX) !== null;
 }
 
+function isDecString(v: unknown): v is string {
+  if (typeof v !== "string") {
+    return false;
+  }
+
+  return v.match(DEC_STRING_REGEX) !== null;
+}
+
 export const hexString = new t.Type<string>(
   "hex string",
   isHexString,
@@ -80,12 +89,18 @@ export const hexString = new t.Type<string>(
   t.identity
 );
 
+export const decString = new t.Type<string>(
+  "dec string",
+  isDecString,
+  (u, c) => (isDecString(u) ? t.success(u) : t.failure(u, c)),
+  t.identity
+);
 // TODO: These types have outdated name. They should match the UserConfig types.
 // IMPORTANT: This t.types MUST be kept in sync with the actual types.
 
 const HardhatNetworkAccount = t.type({
   privateKey: hexString,
-  balance: t.string,
+  balance: decString,
 });
 
 const commonHDAccountsFields = {
@@ -96,7 +111,7 @@ const commonHDAccountsFields = {
 
 const HardhatNetworkHDAccountsConfig = t.type({
   mnemonic: optional(t.string),
-  accountsBalance: optional(t.string),
+  accountsBalance: optional(decString),
   ...commonHDAccountsFields,
 });
 
@@ -251,6 +266,14 @@ export function getValidationErrors(config: any): string[] {
                 `HardhatConfig.networks.${HARDHAT_NETWORK_NAME}.accounts[].balance`,
                 account.balance,
                 "string"
+              )
+            );
+          } else if (decString.decode(account.balance).isLeft()) {
+            errors.push(
+              getErrorMessage(
+                `HardhatConfig.networks.${HARDHAT_NETWORK_NAME}.accounts[].balance`,
+                account.balance,
+                "decimal(wei)"
               )
             );
           }
