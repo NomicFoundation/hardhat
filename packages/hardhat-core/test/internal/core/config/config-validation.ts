@@ -1205,6 +1205,16 @@ describe("Config validation", function () {
         getValidationErrors({
           networks: {
             [HARDHAT_NETWORK_NAME]: {
+              accounts: [{ privateKey: "0x1111", balance: "1" }],
+            },
+          },
+        }),
+        []
+      );
+      assert.deepEqual(
+        getValidationErrors({
+          networks: {
+            [HARDHAT_NETWORK_NAME]: {
               accounts: [{ privateKey: "0x1111", balance: "100123" }],
             },
           },
