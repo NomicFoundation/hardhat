@@ -26,7 +26,7 @@ export function rpcToTxData(
   if (rpcTransaction.accessList !== undefined) {
     txData.accessList = rpcTransaction.accessList.map((item) => [
       item.address,
-      item.storageKeys,
+      item.storageKeys ?? [],
     ]);
   }
 
