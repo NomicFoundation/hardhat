@@ -1,4 +1,6 @@
 {
+  "skip": true,
+  "reason": "Known bug: https://github.com/nomiclabs/hardhat/issues/1463",
   "transactions": [
     {
       "file": "c.sol",
