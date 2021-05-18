@@ -30,6 +30,10 @@ module.exports = {
 
 We recommend always setting a compiler version to avoid unexpected behavior or compiling errors as new releases of Solidity are published.
 
+:::: warning
+Hardhat will automatically download the versions of `solc` that you set up. If you are behind an HTTP proxy, you may need to set the `HTTP_PROXY` or `HTTPS_PROXY` environment variable to the URL of your proxy.
+::::
+
 The expanded usage allows for more control of the compiler:
 
 ```js
