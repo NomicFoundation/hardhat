@@ -1,5 +1,5 @@
 {
-  "solc": "0.8.4",
+  "solc": "^0.8.4",
   "transactions": [
     {
       "file": "c.sol",

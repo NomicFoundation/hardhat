@@ -31,8 +31,14 @@ export class AbiHelpers {
   }
 
   private static _formatValue(value: any): string {
+    // print nested values as [value1, value2, ...]
     if (Array.isArray(value)) {
       return `[${value.map((v) => AbiHelpers._formatValue(v)).join(", ")}]`;
+    }
+
+    // surround string values with quotes
+    if (typeof value === "string") {
+      return `"${value}"`;
     }
 
     return value.toString();
