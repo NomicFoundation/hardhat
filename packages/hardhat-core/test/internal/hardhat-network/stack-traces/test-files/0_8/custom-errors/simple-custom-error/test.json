@@ -11,7 +11,7 @@
       "stackTrace": [
         {
           "type": "CUSTOM_ERROR",
-          "message": "Unauthorized()",
+          "message": "reverted with custom error 'Unauthorized()'",
           "sourceReference": {
             "contract": "C",
             "file": "c.sol",

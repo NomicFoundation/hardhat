@@ -281,7 +281,7 @@ function getMessageFromLastStackTraceEntry(
       return `VM Exception while processing transaction: ${panicReason}`;
 
     case StackTraceEntryType.CUSTOM_ERROR:
-      return `VM Exception while processing transaction: custom error ${stackTraceEntry.message}`;
+      return `VM Exception while processing transaction: ${stackTraceEntry.message}`;
 
     case StackTraceEntryType.OTHER_EXECUTION_ERROR:
       // TODO: What if there was returnData?

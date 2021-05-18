@@ -11,7 +11,7 @@
       "stackTrace": [
         {
           "type": "CUSTOM_ERROR",
-          "message": "MyError(42, \"failure reason\")",
+          "message": "reverted with custom error 'MyError(42, \"failure reason\")'",
           "sourceReference": {
             "contract": "C",
             "file": "c.sol",

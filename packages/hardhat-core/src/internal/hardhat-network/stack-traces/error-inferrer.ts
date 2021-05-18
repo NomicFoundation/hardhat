@@ -444,10 +444,13 @@ export class ErrorInferrer {
   ): SolidityStackTrace | undefined {
     const returnData = new ReturnData(trace.returnData);
 
-    if (returnData.isEmpty()) {
-      // if there is no return data, then it can't be a custom error
+    if (returnData.isEmpty() || returnData.isErrorReturnData()) {
+      // if there is no return data, or if it's a Error(string),
+      // then it can't be a custom error
       return;
     }
+
+    let errorMessage = "reverted with an unrecognized custom error";
 
     for (const customError of trace.bytecode.contract.customErrors) {
       if (returnData.matchesSelector(customError.selector)) {
@@ -459,19 +462,21 @@ export class ErrorInferrer {
         );
 
         const params = AbiHelpers.formatValues([...decodedValues]);
-        const message = `${customError.name}(${params})`;
-
-        const inferredStacktrace = [...stacktrace];
-        inferredStacktrace.push(
-          this._instructionWithinFunctionToCustomErrorStackTraceEntry(
-            trace,
-            lastInstruction,
-            message
-          )
-        );
-        return this._fixInitialModifier(trace, inferredStacktrace);
+        errorMessage = `reverted with custom error '${customError.name}(${params})'`;
+        break;
       }
     }
+
+    const inferredStacktrace = [...stacktrace];
+    inferredStacktrace.push(
+      this._instructionWithinFunctionToCustomErrorStackTraceEntry(
+        trace,
+        lastInstruction,
+        errorMessage
+      )
+    );
+
+    return this._fixInitialModifier(trace, inferredStacktrace);
   }
 
   /**

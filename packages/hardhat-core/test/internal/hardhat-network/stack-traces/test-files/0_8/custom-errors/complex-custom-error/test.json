@@ -11,7 +11,7 @@
       "stackTrace": [
         {
           "type": "CUSTOM_ERROR",
-          "message": "MyError(0, [1, 2, 3], 0x12345678, [4, 5], [[6, 7], [8, 9]])",
+          "message": "reverted with custom error 'MyError(0, [1, 2, 3], \"0x12345678\", [4, 5], [[6, 7], [8, 9]])'",
           "sourceReference": {
             "contract": "C",
             "file": "c.sol",
