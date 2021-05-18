@@ -26,7 +26,7 @@ describe("Compiler List download", function () {
 });
 
 describe("Compiler List download with proxy", function () {
-  let env: any;
+  let env: typeof process.env;
   let proxy: any;
   let proxyPort: number;
 

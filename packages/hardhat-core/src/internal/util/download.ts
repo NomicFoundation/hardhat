@@ -23,16 +23,19 @@ export async function download(
   };
 
   // Check if Proxy is set https
-  if ("HTTPS_PROXY" in process.env) {
+  if (process.env.HTTPS_PROXY !== undefined) {
     // Create the proxy from the environment variables
-    const proxy: string = process.env.HTTPS_PROXY as string;
+    const proxy: string = process.env.HTTPS_PROXY;
     fetchOptions.agent = new HttpsProxyAgent.HttpsProxyAgent(proxy);
   }
 
   // Check if Proxy is set http and `fetchOptions.agent` was not already set for https
-  if ("HTTP_PROXY" in process.env && fetchOptions.agent === undefined) {
+  if (
+    process.env.HTTP_PROXY !== undefined &&
+    fetchOptions.agent === undefined
+  ) {
     // Create the proxy from the environment variables
-    const proxy: string = process.env.HTTP_PROXY as string;
+    const proxy: string = process.env.HTTP_PROXY;
     fetchOptions.agent = new HttpsProxyAgent.HttpsProxyAgent(proxy);
   }
 
