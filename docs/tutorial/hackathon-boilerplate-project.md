@@ -59,7 +59,7 @@ npm run start
 To start the react web app. Open [http://localhost:3000/](http://localhost:3000/) in your browser and you should see this:
 ![](/front-5.png)
  
-Set your network in MetaMask to `localhost:8545`, and click the button. You should then see this:
+Set your network in MetaMask to `localhost:8545` and Chain ID to hardhat network's chain id `31337`, then click the button. You should then see this:
 
 ![](/front-2.png)
 
