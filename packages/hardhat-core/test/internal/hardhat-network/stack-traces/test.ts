@@ -274,7 +274,10 @@ function compareStackTraces(
     let decodedMessage = "";
     if (typeof actualMessage === "string") {
       decodedMessage = actualMessage;
-    } else if (actualMessage instanceof ReturnData) {
+    } else if (
+      actualMessage instanceof ReturnData &&
+      actualMessage.isErrorReturnData()
+    ) {
       decodedMessage = actualMessage.decodeError();
     }
 
