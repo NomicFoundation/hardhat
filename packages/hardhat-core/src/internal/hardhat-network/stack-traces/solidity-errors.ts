@@ -1,6 +1,6 @@
 import { bufferToHex } from "ethereumjs-util";
 
-import { panicErrorCodeToReason } from "./panic-errors";
+import { panicErrorCodeToMessage } from "./panic-errors";
 import {
   CONSTRUCTOR_FUNCTION_NAME,
   PRECOMPILE_FUNCTION_NAME,
@@ -277,8 +277,8 @@ function getMessageFromLastStackTraceEntry(
       return "Transaction reverted without a reason";
 
     case StackTraceEntryType.PANIC_ERROR:
-      const panicReason = panicErrorCodeToReason(stackTraceEntry.errorCode);
-      return `VM Exception while processing transaction: reverted with '${panicReason}'`;
+      const panicMessage = panicErrorCodeToMessage(stackTraceEntry.errorCode);
+      return `VM Exception while processing transaction: ${panicMessage}`;
 
     case StackTraceEntryType.CUSTOM_ERROR:
       return `VM Exception while processing transaction: ${stackTraceEntry.message}`;

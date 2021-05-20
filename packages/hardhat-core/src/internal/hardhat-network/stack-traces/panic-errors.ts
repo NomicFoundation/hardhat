@@ -1,7 +1,17 @@
 import { rawDecode } from "ethereumjs-abi";
 import { BN } from "ethereumjs-util";
 
-export function panicErrorCodeToReason(errorCode: BN): string {
+export function panicErrorCodeToMessage(errorCode: BN): string {
+  const reason = panicErrorCodeToReason(errorCode);
+
+  if (reason !== undefined) {
+    return `reverted with panic code 0x${errorCode.toString(16)} (${reason})`;
+  }
+
+  return `reverted with unknown panic code 0x${errorCode.toString(16)}`;
+}
+
+function panicErrorCodeToReason(errorCode: BN): string | undefined {
   switch (errorCode.toNumber()) {
     case 0x1:
       return "Assertion error";
@@ -21,7 +31,5 @@ export function panicErrorCodeToReason(errorCode: BN): string {
       return "Too much memory was allocated, or an array was created that is too large";
     case 0x51:
       return "Called a zero-initialized variable of internal function type";
-    default:
-      return "Unrecognized panic error";
   }
 }
