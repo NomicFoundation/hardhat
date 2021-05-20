@@ -350,23 +350,7 @@ export class ErrorInferrer {
       return;
     }
 
-    const panicStacktrace = this._checkPanic(
-      trace,
-      stacktrace,
-      lastInstruction
-    );
-    if (panicStacktrace !== undefined) {
-      return panicStacktrace;
-    }
-
-    const customErrorStacktrace = this._checkCustomErrors(
-      trace,
-      stacktrace,
-      lastInstruction
-    );
-    if (customErrorStacktrace !== undefined) {
-      return customErrorStacktrace;
-    }
+    const inferredStacktrace = [...stacktrace];
 
     if (
       lastInstruction.location !== undefined &&
@@ -380,8 +364,6 @@ export class ErrorInferrer {
       // If it's a call trace, we already jumped into a function. But optimizations can happen.
       const failingFunction = lastInstruction.location.getContainingFunction();
 
-      const inferredStacktrace = [...stacktrace];
-
       // If the failure is in a modifier we add an entry with the function/constructor
       if (
         failingFunction !== undefined &&
@@ -391,6 +373,31 @@ export class ErrorInferrer {
           this._getEntryBeforeFailureInModifier(trace, functionJumpdests)
         );
       }
+    }
+
+    const panicStacktrace = this._checkPanic(
+      trace,
+      inferredStacktrace,
+      lastInstruction
+    );
+    if (panicStacktrace !== undefined) {
+      return panicStacktrace;
+    }
+
+    const customErrorStacktrace = this._checkCustomErrors(
+      trace,
+      inferredStacktrace,
+      lastInstruction
+    );
+    if (customErrorStacktrace !== undefined) {
+      return customErrorStacktrace;
+    }
+
+    if (
+      lastInstruction.location !== undefined &&
+      (!isDecodedCallTrace(trace) || jumpedIntoFunction)
+    ) {
+      const failingFunction = lastInstruction.location.getContainingFunction();
 
       if (failingFunction !== undefined) {
         inferredStacktrace.push(
@@ -436,7 +443,7 @@ export class ErrorInferrer {
         message: new ReturnData(trace.returnData),
         isInvalidOpcodeError: lastInstruction.opcode === Opcode.INVALID,
       };
-      const inferredStacktrace = [...stacktrace, revertFrame];
+      inferredStacktrace.push(revertFrame);
 
       return this._fixInitialModifier(trace, inferredStacktrace);
     }
