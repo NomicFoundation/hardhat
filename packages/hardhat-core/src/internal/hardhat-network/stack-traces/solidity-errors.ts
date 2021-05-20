@@ -278,7 +278,7 @@ function getMessageFromLastStackTraceEntry(
 
     case StackTraceEntryType.PANIC_ERROR:
       const panicReason = panicErrorCodeToReason(stackTraceEntry.errorCode);
-      return `VM Exception while processing transaction: ${panicReason}`;
+      return `VM Exception while processing transaction: reverted with '${panicReason}'`;
 
     case StackTraceEntryType.CUSTOM_ERROR:
       return `VM Exception while processing transaction: ${stackTraceEntry.message}`;
