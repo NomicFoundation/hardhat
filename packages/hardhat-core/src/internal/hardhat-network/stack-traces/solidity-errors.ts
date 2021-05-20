@@ -260,21 +260,21 @@ function getMessageFromLastStackTraceEntry(
     case StackTraceEntryType.UNRECOGNIZED_CREATE_ERROR:
     case StackTraceEntryType.UNRECOGNIZED_CONTRACT_ERROR:
       if (stackTraceEntry.message.isErrorReturnData()) {
-        return `VM Exception while processing transaction: revert ${stackTraceEntry.message.decodeError()}`;
+        return `VM Exception while processing transaction: reverted with reason string '${stackTraceEntry.message.decodeError()}'`;
       }
 
-      return "Transaction reverted without a reason";
+      return "Transaction reverted without a reason string";
 
     case StackTraceEntryType.REVERT_ERROR:
       if (stackTraceEntry.message.isErrorReturnData()) {
-        return `VM Exception while processing transaction: revert ${stackTraceEntry.message.decodeError()}`;
+        return `VM Exception while processing transaction: reverted with reason string '${stackTraceEntry.message.decodeError()}'`;
       }
 
       if (stackTraceEntry.isInvalidOpcodeError) {
         return "VM Exception while processing transaction: invalid opcode";
       }
 
-      return "Transaction reverted without a reason";
+      return "Transaction reverted without a reason string";
 
     case StackTraceEntryType.PANIC_ERROR:
       const panicMessage = panicErrorCodeToMessage(stackTraceEntry.errorCode);
@@ -288,7 +288,7 @@ function getMessageFromLastStackTraceEntry(
       return `Transaction reverted and Hardhat couldn't infer the reason. Please report this to help us improve Hardhat.`;
 
     case StackTraceEntryType.UNMAPPED_SOLC_0_6_3_REVERT_ERROR:
-      return "Transaction reverted without a reason and without a valid sourcemap provided by the compiler. Some line numbers may be off. We strongly recommend upgrading solc and always using revert reasons.";
+      return "Transaction reverted without a reason string and without a valid sourcemap provided by the compiler. Some line numbers may be off. We strongly recommend upgrading solc and always using revert reasons.";
 
     case StackTraceEntryType.CONTRACT_TOO_LARGE_ERROR:
       return "Transaction reverted: trying to deploy a contract whose code is too large";
