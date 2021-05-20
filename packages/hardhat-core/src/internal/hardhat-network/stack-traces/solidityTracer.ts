@@ -169,14 +169,7 @@ export class SolidityTracer {
   private _traceEvmExecution(
     trace: DecodedEvmMessageTrace
   ): SolidityStackTrace {
-    const isSolc08 = semver.satisfies(trace.bytecode.compilerVersion, "^0.8.0");
-
-    let stackTrace;
-    if (isSolc08) {
-      stackTrace = this._solc08RawTraceEvmExecution(trace);
-    } else {
-      stackTrace = this._defaultRawTraceEvmExecution(trace);
-    }
+    const stackTrace = this._rawTraceEvmExecution(trace);
 
     if (stackTraceMayRequireAdjustments(stackTrace, trace)) {
       return adjustStackTrace(stackTrace, trace);
@@ -185,72 +178,7 @@ export class SolidityTracer {
     return stackTrace;
   }
 
-  private _defaultRawTraceEvmExecution(
-    trace: DecodedEvmMessageTrace
-  ): SolidityStackTrace {
-    const stacktrace: SolidityStackTrace = [];
-
-    let subtracesSeen = 0;
-    let jumpedIntoFunction = false;
-    const functionJumpdests: Instruction[] = [];
-
-    let lastSubmessageData: SubmessageData | undefined;
-
-    for (let stepIndex = 0; stepIndex < trace.steps.length; stepIndex++) {
-      const step = trace.steps[stepIndex];
-      const nextStep = trace.steps[stepIndex + 1];
-
-      if (isEvmStep(step)) {
-        const inst = trace.bytecode.getInstruction(step.pc);
-
-        if (inst.jumpType === JumpType.INTO_FUNCTION) {
-          const nextEvmStep = nextStep as EvmStep; // A jump can't be followed by a subtrace
-          const nextInst = trace.bytecode.getInstruction(nextEvmStep.pc);
-
-          if (nextInst !== undefined && nextInst.opcode === Opcode.JUMPDEST) {
-            if (jumpedIntoFunction || !isDecodedCallTrace(trace)) {
-              stacktrace.push(
-                instructionToCallstackStackTraceEntry(trace.bytecode, inst)
-              );
-            }
-
-            jumpedIntoFunction = true;
-            functionJumpdests.push(nextInst);
-          }
-        } else if (inst.jumpType === JumpType.OUTOF_FUNCTION) {
-          stacktrace.pop();
-          functionJumpdests.pop();
-        }
-      } else {
-        subtracesSeen += 1;
-
-        // If there are more subtraces, this one didn't terminate the execution
-        if (subtracesSeen < trace.numberOfSubtraces) {
-          continue;
-        }
-
-        const submessageTrace = this.getStackTrace(step);
-
-        lastSubmessageData = {
-          messageTrace: step,
-          stepIndex,
-          stacktrace: submessageTrace,
-        };
-      }
-    }
-
-    const stacktraceWithInferredError = this._errorInferrer.inferAfterTracing(
-      trace,
-      stacktrace,
-      functionJumpdests,
-      jumpedIntoFunction,
-      lastSubmessageData
-    );
-
-    return stacktraceWithInferredError;
-  }
-
-  private _solc08RawTraceEvmExecution(
+  private _rawTraceEvmExecution(
     trace: DecodedEvmMessageTrace
   ): SolidityStackTrace {
     const stacktrace: SolidityStackTrace = [];
