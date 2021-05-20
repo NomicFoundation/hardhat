@@ -2,25 +2,20 @@
   "transactions": [
     {
       "file": "c.sol",
-      "contract": "C",
+      "contract": "C"
+    },
+    {
+      "to": 0,
       "params": [false],
+      "function": "test",
       "stackTrace": [
-        {
-          "type": "CALLSTACK_ENTRY",
-          "sourceReference": {
-            "contract": "C",
-            "file": "c.sol",
-            "function": "constructor",
-            "line": 10
-          }
-        },
         {
           "type": "PANIC_ERROR",
           "errorCode": "1",
           "sourceReference": {
             "contract": "C",
             "file": "c.sol",
-            "function": "m",
+            "function": "test",
             "line": 6
           }
         }

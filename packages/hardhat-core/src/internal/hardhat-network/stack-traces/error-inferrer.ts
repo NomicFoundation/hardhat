@@ -175,6 +175,55 @@ export class ErrorInferrer {
     );
   }
 
+  public filterRedundantFrames(
+    stacktrace: SolidityStackTrace
+  ): SolidityStackTrace {
+    return stacktrace.filter((frame, i) => {
+      if (i + 1 === stacktrace.length) {
+        return true;
+      }
+
+      const nextFrame = stacktrace[i + 1];
+
+      // we can only filter frames if we know their sourceReference
+      // and the one from the next frame
+      if (
+        frame.sourceReference === undefined ||
+        nextFrame.sourceReference === undefined
+      ) {
+        return true;
+      }
+
+      // constructors contain the whole contract, so we ignore them
+      if (
+        frame.sourceReference.function === "constructor" &&
+        nextFrame.sourceReference.function !== "constructor"
+      ) {
+        return true;
+      }
+
+      // this is probably a recursive call
+      if (
+        i > 0 &&
+        frame.type === nextFrame.type &&
+        frame.sourceReference.range[0] === nextFrame.sourceReference.range[0] &&
+        frame.sourceReference.range[1] === nextFrame.sourceReference.range[1] &&
+        frame.sourceReference.line === nextFrame.sourceReference.line
+      ) {
+        return true;
+      }
+
+      if (
+        frame.sourceReference.range[0] <= nextFrame.sourceReference.range[0] &&
+        frame.sourceReference.range[1] >= nextFrame.sourceReference.range[1]
+      ) {
+        return false;
+      }
+
+      return true;
+    });
+  }
+
   // Heuristics
 
   /**
@@ -434,6 +483,7 @@ export class ErrorInferrer {
         errorCode
       )
     );
+
     return this._fixInitialModifier(trace, inferredStacktrace);
   }
 
@@ -714,6 +764,10 @@ export class ErrorInferrer {
       contract: trace.bytecode.contract.name,
       function: func.name,
       line: func.location.getStartingLineNumber(),
+      range: [
+        func.location.offset,
+        func.location.offset + func.location.length,
+      ],
     };
   }
 
@@ -761,11 +815,13 @@ export class ErrorInferrer {
 
   private _getContractStartWithoutFunctionSourceReference(
     trace: DecodedEvmMessageTrace
-  ) {
+  ): SourceReference {
+    const location = trace.bytecode.contract.location;
     return {
-      file: trace.bytecode.contract.location.file,
+      file: location.file,
       contract: trace.bytecode.contract.name,
-      line: trace.bytecode.contract.location.getStartingLineNumber(),
+      line: location.getStartingLineNumber(),
+      range: [location.offset, location.offset + location.length],
     };
   }
 
@@ -811,6 +867,10 @@ export class ErrorInferrer {
       contract: trace.bytecode.contract.name,
       function: FALLBACK_FUNCTION_NAME,
       line: func.location.getStartingLineNumber(),
+      range: [
+        func.location.offset,
+        func.location.offset + func.location.length,
+      ],
     };
   }
 
@@ -856,6 +916,10 @@ export class ErrorInferrer {
       contract: contract.name,
       function: CONSTRUCTOR_FUNCTION_NAME,
       line,
+      range: [
+        contract.location.offset,
+        contract.location.offset + contract.location.length,
+      ],
     };
   }
 
@@ -1096,13 +1160,15 @@ export class ErrorInferrer {
       ) {
         if (trace.bytecode.contract.fallback !== undefined) {
           // Failed within the fallback
+          const location = trace.bytecode.contract.fallback.location;
           revertFrame = {
             type: StackTraceEntryType.UNMAPPED_SOLC_0_6_3_REVERT_ERROR,
             sourceReference: {
               contract: trace.bytecode.contract.name,
               function: FALLBACK_FUNCTION_NAME,
-              file: trace.bytecode.contract.fallback.location.file,
-              line: trace.bytecode.contract.fallback.location.getStartingLineNumber(),
+              file: location.file,
+              line: location.getStartingLineNumber(),
+              range: [location.offset, location.offset + location.length],
             },
           };
 
@@ -1110,13 +1176,15 @@ export class ErrorInferrer {
         }
       } else {
         // Failed within the receive function
+        const location = trace.bytecode.contract.receive.location;
         revertFrame = {
           type: StackTraceEntryType.UNMAPPED_SOLC_0_6_3_REVERT_ERROR,
           sourceReference: {
             contract: trace.bytecode.contract.name,
             function: RECEIVE_FUNCTION_NAME,
-            file: trace.bytecode.contract.receive.location.file,
-            line: trace.bytecode.contract.receive.location.getStartingLineNumber(),
+            file: location.file,
+            line: location.getStartingLineNumber(),
+            range: [location.offset, location.offset + location.length],
           },
         };
 
@@ -1238,11 +1306,13 @@ export class ErrorInferrer {
       // When the latest instruction is not within a function we need
       // some default sourceReference to show to the user
       if (constructorRevertFrame.sourceReference === undefined) {
+        const location = trace.bytecode.contract.location;
         const defaultSourceReference: SourceReference = {
           function: CONSTRUCTOR_FUNCTION_NAME,
           contract: trace.bytecode.contract.name,
-          file: trace.bytecode.contract.location.file,
-          line: trace.bytecode.contract.location.getStartingLineNumber(),
+          file: location.file,
+          line: location.getStartingLineNumber(),
+          range: [location.offset, location.offset + location.length],
         };
 
         if (trace.bytecode.contract.constructorFunction !== undefined) {
@@ -1598,6 +1668,7 @@ export function instructionToCallstackStackTraceEntry(
   // These are normally made from yul code, so they don't map to any Solidity
   // function
   if (inst.location === undefined) {
+    const location = bytecode.contract.location;
     return {
       type: StackTraceEntryType.INTERNAL_FUNCTION_CALLSTACK_ENTRY,
       pc: inst.pc,
@@ -1606,6 +1677,7 @@ export function instructionToCallstackStackTraceEntry(
         contract: bytecode.contract.name,
         function: undefined,
         line: bytecode.contract.location.getStartingLineNumber(),
+        range: [location.offset, location.offset + location.length],
       },
     };
   }
@@ -1630,6 +1702,10 @@ export function instructionToCallstackStackTraceEntry(
       contract: bytecode.contract.name,
       file: inst.location!.file,
       line: inst.location!.getStartingLineNumber(),
+      range: [
+        inst.location!.offset,
+        inst.location!.offset + inst.location!.length,
+      ],
     },
     functionType: ContractFunctionType.FUNCTION,
   };
@@ -1667,5 +1743,6 @@ function sourceLocationToSourceReference(
         : bytecode.contract.name,
     file: func.location.file,
     line: location.getStartingLineNumber(),
+    range: [location.offset, location.offset + location.length],
   };
 }

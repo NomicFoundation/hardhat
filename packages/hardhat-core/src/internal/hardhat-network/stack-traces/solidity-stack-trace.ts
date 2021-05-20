@@ -46,6 +46,7 @@ export interface SourceReference {
   contract?: string;
   function?: string;
   line: number;
+  range: [number, number];
 }
 
 export interface CallstackEntryStackTraceEntry {

@@ -272,24 +272,17 @@ export class SolidityTracer {
           const nextEvmStep = nextStep as EvmStep; // A jump can't be followed by a subtrace
           const nextInst = trace.bytecode.getInstruction(nextEvmStep.pc);
 
-          if (
-            nextInst !== undefined &&
-            nextInst.opcode === Opcode.JUMPDEST &&
-            nextInst.location !== undefined
-          ) {
-            if (jumpedIntoFunction || !isDecodedCallTrace(trace)) {
-              stacktrace.push(
-                instructionToCallstackStackTraceEntry(trace.bytecode, inst)
-              );
+          if (nextInst !== undefined && nextInst.opcode === Opcode.JUMPDEST) {
+            stacktrace.push(
+              instructionToCallstackStackTraceEntry(trace.bytecode, inst)
+            );
+            if (nextInst.location !== undefined) {
+              jumpedIntoFunction = true;
             }
-            jumpedIntoFunction = true;
+            functionJumpdests.push(nextInst);
           }
-
-          functionJumpdests.push(nextInst);
         } else if (inst.jumpType === JumpType.OUTOF_FUNCTION) {
-          if (inst.location !== undefined) {
-            stacktrace.pop();
-          }
+          stacktrace.pop();
           functionJumpdests.pop();
         }
       } else {
@@ -318,7 +311,9 @@ export class SolidityTracer {
       lastSubmessageData
     );
 
-    return stacktraceWithInferredError;
+    return this._errorInferrer.filterRedundantFrames(
+      stacktraceWithInferredError
+    );
   }
 
   private _getLastSubtrace(trace: EvmMessageTrace): MessageTrace | undefined {
