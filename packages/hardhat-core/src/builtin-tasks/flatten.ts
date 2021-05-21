@@ -124,9 +124,16 @@ subtask(
 
       if (unifyABIEncoderV2) {
         // Remove every line started with "pragma experimental ABIEncoderV2;" except the first one
+        let first = true;
         flattened = flattened.replace(
           /pragma experimental ABIEncoderV2;\n/gm,
-          ((i) => (m: string) => (!i++ ? m : ""))(0)
+          (pragma) => {
+            if (first) {
+              first = false;
+              return pragma;
+            }
+            return "";
+          }
         );
       }
 
