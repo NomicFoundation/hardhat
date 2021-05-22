@@ -1,17 +1,17 @@
 // SPDX-License-Identifier: MIT
 
 pragma solidity ^0.5.1
-contract A {}
+contract AWithABIEncoder {}
 
 // SPDX-License-Identifier: MIT
 
 pragma solidity ^0.5.1
 pragma experimental ABIEncoderV2;
-contract B {}
+contract BWithABIEncoder {}
 
 // SPDX-License-Identifier: MIT
 
 pragma solidity ^0.5.1
 pragma experimental ABIEncoderV2;
 
-contract C {}
+contract CWithABIEncoder {}

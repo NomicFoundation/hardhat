@@ -40,6 +40,9 @@ describe("Flatten task", () => {
         "A",
         "BWithLicense",
         "AWithLicense",
+        "AWithABIEncoder",
+        "BWithABIEncoder",
+        "CWithABIEncoder",
         "CWithLicense",
       ]);
     });
@@ -206,6 +209,26 @@ pragma solidity ^0.5.1
 
 contract AWithLicense {}
 
+// File contracts/AWithABIEncoder.sol
+
+// SPDX-License-Identifier: MIT
+
+pragma solidity ^0.5.1
+contract AWithABIEncoder {}
+
+// SPDX-License-Identifier: MIT
+
+pragma solidity ^0.5.1
+pragma experimental ABIEncoderV2;
+contract BWithABIEncoder {}
+
+// SPDX-License-Identifier: MIT
+
+pragma solidity ^0.5.1
+pragma experimental ABIEncoderV2;
+
+contract CWithABIEncoder {}
+
 // File contracts/CWithLicense.sol
 
 // SPDX-License-Identifier: MIT
@@ -285,6 +308,20 @@ pragma solidity ^0.5.1
 
 contract AWithLicense {}
 
+// File contracts/AWithABIEncoder.sol
+
+pragma solidity ^0.5.1
+contract AWithABIEncoder {}
+
+pragma solidity ^0.5.1
+pragma experimental ABIEncoderV2;
+contract BWithABIEncoder {}
+
+pragma solidity ^0.5.1
+pragma experimental ABIEncoderV2;
+
+contract CWithABIEncoder {}
+
 // File contracts/CWithLicense.sol
 
 pragma solidity ^0.5.1
@@ -362,6 +399,20 @@ pragma solidity ^0.5.1
 
 contract AWithLicense {}
 
+// File contracts/AWithABIEncoder.sol
+
+pragma solidity ^0.5.1
+contract AWithABIEncoder {}
+
+pragma solidity ^0.5.1
+pragma experimental ABIEncoderV2;
+contract BWithABIEncoder {}
+
+pragma solidity ^0.5.1
+pragma experimental ABIEncoderV2;
+
+contract CWithABIEncoder {}
+
 // File contracts/CWithLicense.sol
 
 pragma solidity ^0.5.1
@@ -418,15 +469,15 @@ contract AWithLicense {}`
 // File contracts/AWithABIEncoder.sol
 
 pragma solidity ^0.5.1
-contract A {}
+contract AWithABIEncoder {}
 
 pragma solidity ^0.5.1
 pragma experimental ABIEncoderV2;
-contract B {}
+contract BWithABIEncoder {}
 
 pragma solidity ^0.5.1
 
-contract C {}`
+contract CWithABIEncoder {}`
         );
       });
     });
