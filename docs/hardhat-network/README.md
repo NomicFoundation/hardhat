@@ -383,7 +383,7 @@ To customise it, take a look at [the configuration section](/config/README.md#ha
 - `eth_pendingTransactions`
 - `eth_sendRawTransaction`
 - `eth_sendTransaction`
-- `eth_signTypedData`
+- `eth_signTypedData_v4`
 - `eth_sign`
 - `eth_subscribe`
 - `eth_syncing`
