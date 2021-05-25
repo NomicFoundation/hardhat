@@ -1,5 +1,6 @@
 import {
   ActionType,
+  ArgumentsExtender,
   ConfigExtender,
   ConfigurableTaskDefinition,
   EnvironmentExtender,
@@ -116,6 +117,17 @@ export function subtask<ArgsT extends TaskArguments>(
 export const internalTask = subtask;
 
 export const types = argumentTypes;
+
+/**
+ * Register an arguments extender what will be run before the
+ * config is initialized.
+ *
+ * @param extender A function that receives the HardhatArguments.
+ */
+export function extendArguments(extender: ArgumentsExtender) {
+  const ctx = HardhatContext.getHardhatContext();
+  ctx.argumentsExtenders.push(extender);
+}
 
 /**
  * Register an environment extender what will be run after the

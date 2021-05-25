@@ -199,6 +199,12 @@ export interface Network {
 }
 
 /**
+ * A function that receives HardhatArguments and
+ * modify its properties.
+ */
+export type ArgumentsExtender = (args: Partial<HardhatArguments>) => void;
+
+/**
  * A function that receives a HardhatRuntimeEnvironment and
  * modify its properties or add new ones.
  */

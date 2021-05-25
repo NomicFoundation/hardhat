@@ -12,6 +12,7 @@ import { findClosestPackageJson } from "../../util/packageInfo";
 import { HardhatError } from "../errors";
 import { ERRORS } from "../errors-list";
 import { getUserConfigPath } from "../project-structure";
+import { loadTsNode, willRunWithTypescript } from "../typescript-support";
 
 import { resolveConfig } from "./config-resolution";
 import { validateConfig } from "./config-validation";
@@ -37,11 +38,14 @@ export function resolveConfigPath(configPath: string | undefined) {
 }
 
 export function loadConfigAndTasks(
-  hardhatArguments?: Partial<HardhatArguments>,
+  hardhatArguments: Partial<HardhatArguments> = {},
   { showSolidityConfigWarnings } = { showSolidityConfigWarnings: false }
 ): HardhatConfig {
-  let configPath =
-    hardhatArguments !== undefined ? hardhatArguments.config : undefined;
+  if (willRunWithTypescript(hardhatArguments?.config)) {
+    loadTsNode();
+  }
+
+  let configPath = hardhatArguments.config;
 
   configPath = resolveConfigPath(configPath);
   log(`Loading Hardhat config from ${configPath}`);
@@ -86,7 +90,10 @@ export function loadConfigAndTasks(
 
   const resolved = resolveConfig(configPath, userConfig);
 
-  for (const extender of HardhatContext.getHardhatContext().configExtenders) {
+  for (const extender of ctx.argumentsExtenders) {
+    extender(hardhatArguments);
+  }
+  for (const extender of ctx.configExtenders) {
     extender(resolved, frozenUserConfig);
   }
 

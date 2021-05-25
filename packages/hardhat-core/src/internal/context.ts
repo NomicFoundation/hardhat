@@ -1,4 +1,5 @@
 import {
+  ArgumentsExtender,
   ConfigExtender,
   ExperimentalHardhatNetworkMessageTraceHook,
   HardhatRuntimeEnvironment,
@@ -47,6 +48,7 @@ export class HardhatContext {
   public readonly tasksDSL = new TasksDSL();
   public readonly extendersManager = new ExtenderManager();
   public environment?: HardhatRuntimeEnvironment;
+  public readonly argumentsExtenders: ArgumentsExtender[] = [];
   public readonly configExtenders: ConfigExtender[] = [];
 
   // NOTE: This is experimental and will be removed. Please contact our team if
