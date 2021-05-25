@@ -118,7 +118,7 @@ All these tips assume you are running `yarn watch` from the root directory.
 You can [link](https://classic.yarnpkg.com/en/docs/cli/link/) any package to test it locally. For example, if you are working on
 `hardhat`, you can follow these steps:
 
-1. Go to `packages/hardhat` and run `yarn link`
+1. Go to `packages/hardhat-core` and run `yarn link`
 2. Go to some hardhat project and run `yarn link hardhat`
 
 Now any change you make in the code will be reflected in that project.
@@ -134,7 +134,7 @@ alias lhh='node --preserve-symlinks $(node -e "console.log(require.resolve(\"har
 
 If for any reason linking doesn't work for you, you can use [`yalc`](https://github.com/whitecolor/yalc).
 
-1. Go to `packages/hardhat` and run `yalc publish`
+1. Go to `packages/hardhat-core` and run `yalc publish`
 2. Go to some hardhat project and run `yalc add hardhat`
 
 Unlike linking, if you make a change in the code, you'll need to repeat the process.
@@ -143,7 +143,7 @@ Unlike linking, if you make a change in the code, you'll need to repeat the proc
 
 An even more realistic way of using your local changes in a project is to use [`yarn pack`](https://classic.yarnpkg.com/en/docs/cli/pack/):
 
-1. Go to `packages/hardhat` and run `yarn pack`. This will create a `nomiclabs-hardhat-x.y.z.tgz` file in that directory.
+1. Go to `packages/hardhat-core` and run `yarn pack`. This will create a `nomiclabs-hardhat-x.y.z.tgz` file in that directory.
 2. Go to some hardhat project and run `yarn add /path/to/hardhat/packages/hardhat/nomiclabs-hardhat-x.y.z.tgz`.
 
 Unlike linking, if you make a change in the code, you'll need to repeat the process.
