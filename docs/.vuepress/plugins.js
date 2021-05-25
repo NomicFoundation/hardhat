@@ -1,3 +1,13 @@
+// This list of plugins is automatically sorted by the numbers of downloads
+// that the plugin got on npm in the last 30 days. Please add yourself to the
+// bottom of the list.
+//
+// If your plugin's `name` is not it's package name, you can add an optional
+// `npmPackage` field.
+//
+// Note that the `url` is an URL to the **branch** the website should get your 
+// plugin's the README.md from, not the repository.
+
 const plugins = [
   {
     name: "@nomiclabs/hardhat-ethers",
@@ -127,6 +137,7 @@ const plugins = [
   },
   {
     name: "hardhat-upgrades",
+    npmPackage: "@openzeppelin/hardhat-upgrades",
     author: "OpenZeppelin",
     authorUrl: "https://openzeppelin.com",
     url:
@@ -286,6 +297,7 @@ const plugins = [
   },
   {
     name: "@eth-optimism/plugins/hardhat/compiler",
+    npmPackage: "@eth-optimism/plugins",
     author: "Optimism",
     authorUrl: "https://github.com/ethereum-optimism",
     url:
@@ -296,6 +308,7 @@ const plugins = [
   },
   {
     name: "@eth-optimism/plugins/hardhat/ethers",
+    npmPackage: "@eth-optimism/plugins",
     author: "Optimism",
     authorUrl: "https://github.com/ethereum-optimism",
     url: "https://github.com/ethereum-optimism/plugins/tree/master",
@@ -304,6 +317,7 @@ const plugins = [
   },
   {
     name: "hardhat-react",
+    npmPackage: "@symfoni/hardhat-react",
     author: "Symfoni",
     authorUrl: "https://github.com/symfoni/",
     url:
