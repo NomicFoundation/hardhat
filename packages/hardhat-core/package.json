@@ -26,6 +26,7 @@
     "node": ">=8.2.0"
   },
   "scripts": {
+    "prepack": "yarn build",
     "lint:fix": "prettier --write \"src/**/*.{js,ts}\" \"test/**/*.{js,ts}\" && yarn lint-src --fix && yarn lint-tests --fix",
     "lint": "yarn lint-src && yarn lint-tests",
     "lint-tests": "NODE_OPTIONS='--require ts-node/register/transpile-only' tslint --config tslint.json --project ./tsconfig.json",
