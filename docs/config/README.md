@@ -89,11 +89,11 @@ You can set the following fields on the `hardhat` config:
 - `hardfork`: This setting changes how Hardhat Network works, to mimic Ethereum's mainnet at a given hardfork. It must be one of `"byzantium"`, `"constantinople"`, `"petersburg"`, `"istanbul"`, `"muirGlacier"`, and `"berlin"`. Default value: `"berlin"`
 
 - `throwOnTransactionFailures`: A boolean that controls if Hardhat Network throws on transaction failures.
-  If this value is `true`, Hardhat Network will throw [combined JavaScript and Soldity stack traces](../hardhat-network/README.md#solidity-stack-traces)
+  If this value is `true`, Hardhat Network will throw [combined JavaScript and Solidity stack traces](../hardhat-network/README.md#solidity-stack-traces)
   on transaction failures. If it is `false`, it will return the failing transaction hash. In both cases
   the transactions are added into the blockchain. Default value: `true`
 - `throwOnCallFailures`: A boolean that controls if Hardhat Network throws on call failures.
-  If this value is `true`, Hardhat Network will throw [combined JavaScript and Soldity stack traces](../hardhat-network/README.md#solidity-stack-traces)
+  If this value is `true`, Hardhat Network will throw [combined JavaScript and Solidity stack traces](../hardhat-network/README.md#solidity-stack-traces)
   when a call fails. If it is `false`, it will return the call's `return data`, which can contain
   a revert reason. Default value: `true`
 

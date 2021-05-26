@@ -44,6 +44,7 @@ import {
   EXAMPLE_BLOCKHASH_CONTRACT,
   EXAMPLE_CONTRACT,
   EXAMPLE_READ_CONTRACT,
+  EXAMPLE_REVERT_CONTRACT,
   EXAMPLE_SETTER_CONTRACT,
 } from "../../helpers/contracts";
 import { setCWD } from "../../helpers/cwd";
@@ -72,7 +73,7 @@ const { recoverTypedSignature_v4 } = require("eth-sig-util");
 const PRECOMPILES_COUNT = 8;
 
 describe("Eth module", function () {
-  PROVIDERS.forEach(({ name, useProvider, isFork, chainId }) => {
+  PROVIDERS.forEach(({ name, useProvider, isFork, isJsonRpc, chainId }) => {
     if (isFork) {
       this.timeout(50000);
     }
@@ -3493,6 +3494,25 @@ describe("Eth module", function () {
 
           assertReceiptMatchesGethOne(receipt, receiptFromGeth, 1);
         });
+
+        it("Should return the hash of the failed transaction", async function () {
+          if (!isJsonRpc || isFork) {
+            this.skip();
+          }
+
+          try {
+            // sends a tx with 21000 gas to the 0x1 precompile
+            await this.provider.send("eth_sendRawTransaction", [
+              "0xf8618001825208940000000000000000000000000000000000000001808082011aa03e2b434ea8994b24017a30d58870e7387a69523b25f153f0d90411a8af8343d6a00c26d36e92d8a8334193b02982ce0b2ec9afc85ad26eaf8c2993ad07d3495f95",
+            ]);
+
+            assert.fail("Tx should have failed");
+          } catch (e) {
+            assert.notInclude(e.message, "Tx should have failed");
+
+            assert.isDefined(e.data.txHash);
+          }
+        });
       });
 
       describe("eth_sendTransaction", async function () {
@@ -4158,6 +4178,58 @@ describe("Eth module", function () {
           });
         });
 
+        describe("return txHash", () => {
+          it("Should return the hash of an out of gas transaction", async function () {
+            if (!isJsonRpc || isFork) {
+              this.skip();
+            }
+
+            try {
+              await this.provider.send("eth_sendTransaction", [
+                {
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                  to: "0x0000000000000000000000000000000000000001",
+                  gas: numberToRpcQuantity(21000), // Address 1 is a precompile, so this will OOG
+                  gasPrice: numberToRpcQuantity(1),
+                },
+              ]);
+
+              assert.fail("Tx should have failed");
+            } catch (e) {
+              assert.notInclude(e.message, "Tx should have failed");
+
+              assert.isDefined(e.data.txHash);
+            }
+          });
+
+          it("Should return the hash of a reverted transaction", async function () {
+            if (!isJsonRpc || isFork) {
+              this.skip();
+            }
+
+            try {
+              const contractAddress = await deployContract(
+                this.provider,
+                `0x${EXAMPLE_REVERT_CONTRACT.bytecode.object}`
+              );
+
+              await this.provider.send("eth_sendTransaction", [
+                {
+                  to: contractAddress,
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                  data: `${EXAMPLE_REVERT_CONTRACT.selectors.f}0000000000000000000000000000000000000000000000000000000000000000`,
+                },
+              ]);
+
+              assert.fail("Tx should have failed");
+            } catch (e) {
+              assert.notInclude(e.message, "Tx should have failed");
+
+              assert.isDefined(e.data.txHash);
+            }
+          });
+        });
+
         // This test checks that an on-chain value can be set to 0
         // To do this, we transfer all the balance of the 0x0000...0001 account
         // to some random account, and then check that its balance is zero
@@ -4628,7 +4700,7 @@ describe("Eth module", function () {
       });
 
       describe("gas usage", function () {
-        it("should use 15K less gas when writing a non-zero slot", async function () {
+        it("should use 17100 less gas when writing a non-zero slot", async function () {
           const contractAddress = await deployContract(
             this.provider,
             `0x${EXAMPLE_SETTER_CONTRACT.bytecode.object}`
@@ -4666,7 +4738,7 @@ describe("Eth module", function () {
 
           const gasDifference = gasUsedBefore.sub(gasUsedAfter);
 
-          assert.equal(gasDifference.toString(), "15000");
+          assert.equal(gasDifference.toString(), "17100");
         });
       });
 
@@ -4735,7 +4807,7 @@ describe("Eth module", function () {
 
 describe("Eth module - hardfork dependant tests", function () {
   function useProviderAndCommon(hardfork: string) {
-    importedUseProvider(undefined, undefined, undefined, undefined, hardfork);
+    importedUseProvider({ hardfork });
     beforeEach(async function () {
       // TODO: Find out a better way to obtain the common here
 
@@ -5077,6 +5149,39 @@ describe("Eth module - hardfork dependant tests", function () {
               numberToRpcQuantity(this.common.chainId())
             );
             assert.deepEqual(tx.accessList, accessList);
+          });
+
+          it("Should accept access lists with null storageKeys", async function () {
+            const accessList = [
+              {
+                address: "0x1234567890123456789012345678901234567890",
+                storageKeys: null,
+              },
+            ];
+            const [sender] = await this.provider.send("eth_accounts");
+            const txHash = await this.provider.send("eth_sendTransaction", [
+              {
+                from: sender,
+                to: sender,
+                accessList,
+              },
+            ]);
+
+            const tx = await this.provider.send("eth_getTransactionByHash", [
+              txHash,
+            ]);
+
+            assert.equal(tx.type, numberToRpcQuantity(1));
+            assert.equal(
+              tx.chainId,
+              numberToRpcQuantity(this.common.chainId())
+            );
+            assert.deepEqual(tx.accessList, [
+              {
+                address: "0x1234567890123456789012345678901234567890",
+                storageKeys: [],
+              },
+            ]);
           });
         });
       });

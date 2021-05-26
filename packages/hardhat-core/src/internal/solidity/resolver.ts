@@ -15,7 +15,7 @@ import {
   validateSourceNameExistenceAndCasing,
   validateSourceNameFormat,
 } from "../../utils/source-names";
-import { HardhatError } from "../core/errors";
+import { assertHardhatInvariant, HardhatError } from "../core/errors";
 import { ERRORS } from "../core/errors-list";
 import { createNonCryptographicHashBasedIdentifier } from "../util/hash";
 
@@ -39,6 +39,12 @@ export class ResolvedFile implements IResolvedFile {
     libraryName?: string,
     libraryVersion?: string
   ) {
+    assertHardhatInvariant(
+      (libraryName === undefined && libraryVersion === undefined) ||
+        (libraryName !== undefined && libraryVersion !== undefined),
+      "Libraries should have both name and version, or neither one"
+    );
+
     if (libraryName !== undefined && libraryVersion !== undefined) {
       this.library = {
         name: libraryName,

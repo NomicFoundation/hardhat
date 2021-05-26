@@ -10,7 +10,9 @@ function getEnv(key: string): string | undefined {
     return undefined;
   }
 
-  return variable.trim();
+  const trimmed = variable.trim();
+
+  return trimmed.length === 0 ? undefined : trimmed;
 }
 
 export const INFURA_URL = getEnv("INFURA_URL");
@@ -24,10 +26,10 @@ function printForkingLogicNotBeingTestedWarning(varName: string) {
   );
 }
 
-if (INFURA_URL === undefined || INFURA_URL === "") {
+if (INFURA_URL === undefined) {
   printForkingLogicNotBeingTestedWarning("INFURA_URL");
 }
 
-if (ALCHEMY_URL === undefined || ALCHEMY_URL === "") {
+if (ALCHEMY_URL === undefined) {
   printForkingLogicNotBeingTestedWarning("ALCHEMY_URL");
 }
