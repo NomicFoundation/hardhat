@@ -8,6 +8,8 @@ import {
 } from "../../../../types";
 import { rpcAddress } from "../../../core/jsonrpc/types/base-types";
 import {
+  HardhatMineActionParams,
+  optionalHardhatMineParams,
   optionalRpcHardhatNetworkConfig,
   RpcHardhatNetworkConfig,
 } from "../../../core/jsonrpc/types/input/hardhat-network";
@@ -56,6 +58,9 @@ export class HardhatModule {
 
       case "hardhat_intervalMine":
         return this._intervalMineAction(...this._intervalMineParams(params));
+
+      case "hardhat_mine":
+        return this._mineAction(...this._mineParams(params));
 
       case "hardhat_stopImpersonatingAccount":
         return this._stopImpersonatingAction(
@@ -141,6 +146,30 @@ export class HardhatModule {
       }
     }
 
+    return true;
+  }
+
+  // hardhat_mine
+
+  private _mineParams(params: any[]): [HardhatMineActionParams | undefined] {
+    return validateParams(params, optionalHardhatMineParams); // todo: test that this fills in default values or returns undefined
+  }
+
+  private async _mineAction(
+    params: HardhatMineActionParams = { blocks: 1, interval: 1 }
+  ): Promise<boolean> {
+    if (params.blocks === 1) {
+      const latestBlock = await this._node.getLatestBlock();
+      const timestamp = latestBlock.header.timestamp.add(
+        new BN(params.interval!)
+      );
+      const result = await this._node.mineBlock(timestamp);
+      await this._logBlock(result);
+      return true; // todo (xianny): should this return the null address instead? e.g. ./evm.ts -> _mineAction
+    }
+
+    await this._node.addBlockRange(params.blocks!, params.interval!);
+    // todo (xianny): logging?
     return true;
   }
 

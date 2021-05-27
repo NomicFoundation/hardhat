@@ -11,6 +11,11 @@ export class BlockchainData {
   private _blocksByNumber: Map<number, Block> = new Map();
   private _blocksByHash: Map<string, Block> = new Map();
   private _blocksByTransactions: Map<string, Block> = new Map();
+  private _blockRanges: Array<{
+    start: number;
+    end: number;
+    interval: number;
+  }> = new Array();
   private _transactions: Map<string, TypedTransaction> = new Map();
   private _transactionReceipts: Map<string, RpcReceiptOutput> = new Map();
   private _totalDifficulty: Map<string, BN> = new Map();
@@ -86,6 +91,12 @@ export class BlockchainData {
       this._transactions.set(transactionHash, transaction);
       this._blocksByTransactions.set(transactionHash, block);
     }
+  }
+
+  // todo(xianny): catch more cases
+  public addBlockRange(lastBlock: number, blocks: number, interval: number) {
+    const range = { start: lastBlock + 1, end: lastBlock + blocks, interval };
+    this._blockRanges.push(range);
   }
 
   public removeBlock(block: Block) {

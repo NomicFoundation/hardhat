@@ -41,6 +41,13 @@ export class HardhatBlockchain implements HardhatBlockchainInterface {
     return block;
   }
 
+  public async addBlockRange(blocks: number, interval: number): Promise<void> {
+    // todo (xianny): handle more cases?
+    const lastBlock = this._length - 1;
+    this._data.addBlockRange(lastBlock, blocks, interval);
+    return;
+  }
+
   public async putBlock(block: Block): Promise<void> {
     await this.addBlock(block);
   }

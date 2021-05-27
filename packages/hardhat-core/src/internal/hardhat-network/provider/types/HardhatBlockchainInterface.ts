@@ -6,6 +6,7 @@ import { FilterParams } from "../node-types";
 import { RpcLogOutput, RpcReceiptOutput } from "../output";
 
 export interface HardhatBlockchainInterface extends BlockchainInterface {
+  addBlockRange(blocks: number, interval: number): void;
   addTransactionReceipts(receipts: RpcReceiptOutput[]): void;
   deleteLaterBlocks(block: Block): void;
   getBlockByTransactionHash(transactionHash: Buffer): Promise<Block | null>;

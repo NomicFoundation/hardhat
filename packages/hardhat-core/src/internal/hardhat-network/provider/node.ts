@@ -403,6 +403,26 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     return result;
   }
 
+  public async addBlockRange(blocks: number, interval: number) {
+    // todo(xianny): mine pending txs; create blockrange
+    let minedBlocks = 0;
+    while (
+      this._txPool.hasPendingTransactions() ||
+      this._txPool.hasQueuedTransactions()
+    ) {
+      // todo(xianny): do i need this, or is checking the result of mineBlock enough?
+      const result = await this.mineBlock();
+      if (result.blockResult.results.length === 0) {
+        // todo(xianny): check if success?
+        break;
+      }
+      minedBlocks++;
+    }
+    this._blockchain.addBlockRange(blocks, interval!);
+    // todo(xianny): do stuff with this._vm and/or this._stateManager too?
+    return this._blockchain.getLatestBlock(); // todo(xianny): more appropriate return?
+  }
+
   public async runCall(
     call: CallParams,
     blockNumberOrPending: BN | "pending"

@@ -79,6 +79,10 @@ export class ForkBlockchain implements HardhatBlockchainInterface {
     return block;
   }
 
+  public async addBlockRange(blocks: number, interval: number): Promise<void> {
+    // todo (xianny):
+  }
+
   public async putBlock(block: Block): Promise<void> {
     await this.addBlock(block);
   }
