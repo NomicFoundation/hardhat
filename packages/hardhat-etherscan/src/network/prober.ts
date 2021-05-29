@@ -31,8 +31,8 @@ enum NetworkID {
   // Fantom mainnet
   OPERA = 250,
   //Optimistim
-  OPTIMISM = 10,
-  OPTIMISM_KOVAN = 69,
+  OPTIMISTIC_ETHEREUM = 10,
+  OPTIMISTIC_KOVAN = 69,
 }
 
 const networkIDtoEndpoints: NetworkMap = {
@@ -76,11 +76,11 @@ const networkIDtoEndpoints: NetworkMap = {
     apiURL: "https://api.ftmscan.com/api",
     browserURL: "https://ftmscan.com",
   },
-  [NetworkID.OPTIMISM]: {
+  [NetworkID.OPTIMISTIC_ETHEREUM]: {
     apiURL: "https://api-optimistic.etherscan.io",
     browserURL: "https://optimistic.etherscan.io/",
   },
-  [NetworkID.OPTIMISM_KOVAN]: {
+  [NetworkID.OPTIMISTIC_KOVAN]: {
     apiURL: "https://api-kovan-optimistic.etherscan.io",
     browserURL: "https://kovan-optimistic.etherscan.io/",
   },
