@@ -32,6 +32,7 @@ export class HardhatModule {
     private readonly _setLoggingEnabledCallback: (
       loggingEnabled: boolean
     ) => void,
+    private readonly _setLogMethodsCallback: (logMethods: boolean) => void,
     private readonly _logger: ModulesLogger,
     private readonly _experimentalHardhatNetworkMessageTraceHooks: BoundExperimentalHardhatNetworkMessageTraceHook[] = []
   ) {}
@@ -69,6 +70,9 @@ export class HardhatModule {
         return this._setLoggingEnabledAction(
           ...this._setLoggingEnabledParams(params)
         );
+
+      case "hardhat_setLogMethods":
+        return this._setLogMethodsAction(...this._setLogMethodsParams(params));
     }
 
     throw new MethodNotFoundError(`Method ${method} not found`);
@@ -177,6 +181,15 @@ export class HardhatModule {
     loggingEnabled: boolean
   ): Promise<true> {
     this._setLoggingEnabledCallback(loggingEnabled);
+    return true;
+  }
+
+  private _setLogMethodsParams(params: any[]): [boolean] {
+    return validateParams(params, t.boolean);
+  }
+
+  private async _setLogMethodsAction(logMethods: boolean): Promise<true> {
+    this._setLogMethodsCallback(logMethods);
     return true;
   }
 
