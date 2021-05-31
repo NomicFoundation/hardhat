@@ -8,7 +8,11 @@ function compareTransactions(
   left: OrderedTransaction,
   right: OrderedTransaction
 ) {
-  const cmp = new BN(left.data.gasPrice).cmp(new BN(right.data.gasPrice));
+  // temporary fix to support EIP-1559 txs
+  const leftGasPrice = "gasPrice" in left.data ? left.data.gasPrice : 0;
+  const rightGasPrice = "gasPrice" in right.data ? right.data.gasPrice : 0;
+
+  const cmp = new BN(leftGasPrice).cmp(new BN(rightGasPrice));
   return cmp === 0 ? right.orderId - left.orderId : cmp;
 }
 

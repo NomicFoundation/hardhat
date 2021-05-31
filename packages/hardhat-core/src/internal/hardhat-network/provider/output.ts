@@ -183,6 +183,11 @@ export function getRpcTransaction(
   assertHardhatInvariant(tx.r !== undefined, "tx should be signed");
   assertHardhatInvariant(tx.s !== undefined, "tx should be signed");
 
+  // temporary fix to support EIP-1559 txs
+  const gasPrice = numberToRpcQuantity(
+    new BN("gasPrice" in tx ? tx.gasPrice : 0)
+  );
+
   return {
     blockHash: block === "pending" ? null : bufferToRpcData(block.hash()),
     blockNumber:
@@ -191,7 +196,7 @@ export function getRpcTransaction(
         : numberToRpcQuantity(new BN(block.header.number)),
     from: bufferToRpcData(tx.getSenderAddress().toBuffer()),
     gas: numberToRpcQuantity(new BN(tx.gasLimit)),
-    gasPrice: numberToRpcQuantity(new BN(tx.gasPrice)),
+    gasPrice,
     hash: bufferToRpcData(tx.hash()),
     input: bufferToRpcData(tx.data),
     nonce: numberToRpcQuantity(new BN(tx.nonce)),
