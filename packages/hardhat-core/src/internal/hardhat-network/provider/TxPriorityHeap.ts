@@ -8,11 +8,16 @@ function compareTransactions(
   left: OrderedTransaction,
   right: OrderedTransaction
 ) {
-  // temporary fix to support EIP-1559 txs
-  const leftGasPrice = "gasPrice" in left.data ? left.data.gasPrice : 0;
-  const rightGasPrice = "gasPrice" in right.data ? right.data.gasPrice : 0;
+  const leftMaxPriorityFeePerGas =
+    "gasPrice" in left.data
+      ? left.data.gasPrice
+      : left.data.maxPriorityFeePerGas;
+  const rightMaxPriotyFeePerGas =
+    "gasPrice" in right.data
+      ? right.data.gasPrice
+      : right.data.maxPriorityFeePerGas;
 
-  const cmp = new BN(leftGasPrice).cmp(new BN(rightGasPrice));
+  const cmp = leftMaxPriorityFeePerGas.cmp(rightMaxPriotyFeePerGas);
   return cmp === 0 ? right.orderId - left.orderId : cmp;
 }
 
