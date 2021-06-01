@@ -87,11 +87,22 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
         throw new HardhatError(ERRORS.NETWORK.ETHSIGN_MISSING_DATA_PARAM);
       }
 
+      let typedMessage = data;
+      if (typeof data == "string") {
+        try {
+          typedMessage = JSON.parse(data);
+        } catch (error) {
+          throw new HardhatError(
+            ERRORS.NETWORK.ETHSIGN_TYPED_DATA_V4_INVALID_DATA_PARAM
+          );
+        }
+      }
+
       // if we don't manage the address, the method is forwarded
       const privateKey = this._getPrivateKeyForAddressOrNull(address);
       if (privateKey !== null) {
         return ethSigUtil.signTypedData_v4(privateKey, {
-          data,
+          data: typedMessage,
         });
       }
     }
