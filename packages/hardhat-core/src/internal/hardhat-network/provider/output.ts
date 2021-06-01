@@ -36,6 +36,7 @@ export interface RpcBlockOutput {
   transactions: string[] | RpcTransactionOutput[];
   transactionsRoot: string;
   uncles: string[];
+  baseFeePerGas: string;
 }
 
 export type RpcTransactionOutput =
@@ -180,6 +181,7 @@ export function getRpcBlock(
     timestamp: numberToRpcQuantity(new BN(block.header.timestamp)),
     transactions,
     uncles: block.uncleHeaders.map((uh: any) => bufferToRpcData(uh.hash())),
+    baseFeePerGas: numberToRpcQuantity(block.header.baseFeePerGas ?? 0),
   };
 }
 
