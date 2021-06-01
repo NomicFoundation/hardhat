@@ -1,5 +1,9 @@
 import Common from "@ethereumjs/common";
-import { AccessListEIP2930Transaction, Transaction } from "@ethereumjs/tx";
+import {
+  AccessListEIP2930Transaction,
+  FeeMarketEIP1559Transaction,
+  Transaction,
+} from "@ethereumjs/tx";
 import { assert } from "chai";
 import { BN, toBuffer } from "ethereumjs-util";
 
@@ -9,7 +13,10 @@ import {
   rpcDataToNumber,
 } from "../../../../../../src/internal/core/jsonrpc/types/base-types";
 import { assertInvalidArgumentsError } from "../../../helpers/assertions";
-import { DEFAULT_ACCOUNTS_ADDRESSES } from "../../../helpers/providers";
+import {
+  DEFAULT_ACCOUNTS,
+  DEFAULT_ACCOUNTS_ADDRESSES,
+} from "../../../helpers/providers";
 import { deployContract } from "../../../helpers/transactions";
 import { useProvider as importedUseProvider } from "../../../helpers/useProvider";
 
@@ -27,7 +34,7 @@ describe("Eth module - hardfork dependant tests", function () {
   }
 
   const privateKey = Buffer.from(
-    "17ade313db5de97d19b4cfbc820d15e18a6c710c1afbf01c1f31249970d3ae46",
+    DEFAULT_ACCOUNTS[1].privateKey.slice(2),
     "hex"
   );
 
@@ -66,6 +73,29 @@ describe("Eth module - hardfork dependant tests", function () {
         to: "0x1111111111111111111111111111111111111111",
         gasLimit: 21000,
         gasPrice: 0,
+      },
+      {
+        common,
+      }
+    );
+
+    return tx.sign(privateKey);
+  }
+
+  function getSampleSignedEIP1559Tx(common?: Common) {
+    if (common === undefined) {
+      common = new Common({
+        chain: "mainnet",
+        hardfork: "london",
+      });
+    }
+
+    const tx = FeeMarketEIP1559Transaction.fromTxData(
+      {
+        to: "0x1111111111111111111111111111111111111111",
+        gasLimit: 21000,
+        maxFeePerGas: 1,
+        maxPriorityFeePerGas: 1,
       },
       {
         common,
@@ -396,6 +426,17 @@ describe("Eth module - hardfork dependant tests", function () {
 
       // TODO: There's a case missing here, which is forking from Berlin but choosing the local hardfork to be < Berlin.
       //  In that case only remote EIP-2930 txs should have a type.
+
+      describe("With EIP-1559", function () {
+        useProviderAndCommon("london");
+
+        it("Should accept an eth_sendRawTransaction if the tx is an EIP-1559 tx", async function () {
+          const signedTx = getSampleSignedEIP1559Tx(this.common);
+          const serialized = bufferToRpcData(signedTx.serialize());
+
+          await this.provider.send("eth_sendRawTransaction", [serialized]);
+        });
+      });
     });
 
     describe("Receipts formatting", function () {
