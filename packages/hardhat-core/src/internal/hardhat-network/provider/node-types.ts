@@ -57,20 +57,37 @@ export interface CallParams {
   accessList?: AccessListBufferItem[];
 }
 
-export interface TransactionParams {
+export type TransactionParams =
+  | LegacyTransactionParams
+  | AccessListTransactionParams
+  | EIP1559TransactionParams;
+
+interface BaseTransactionParams {
   // `to` should be undefined for contract creation
   to?: Buffer;
   from: Buffer;
   gasLimit: BN;
-  gasPrice: BN;
   value: BN;
   data: Buffer;
   nonce: BN;
+}
+
+export interface LegacyTransactionParams extends BaseTransactionParams {
+  gasPrice: BN;
+}
+
+export interface AccessListTransactionParams extends BaseTransactionParams {
   // We use this access list format because @ethereumjs/tx access list data
   // forces us to use it or stringify them
-  accessList?: AccessListBufferItem[];
+  accessList: AccessListBufferItem[];
   // We don't include chainId as it's not necessary, the node
   // already knows its chainId, and the Eth module must validate it
+}
+
+export interface EIP1559TransactionParams extends BaseTransactionParams {
+  accessList: AccessListBufferItem[];
+  maxFeePerGas: BN;
+  maxPriorityFeePerGas: BN;
 }
 
 export interface FilterParams {

@@ -40,7 +40,13 @@ export class FixedGasPriceProvider extends ProviderWrapper {
 
       // TODO: Should we validate this type?
       const tx = params[0];
-      if (tx !== undefined && tx.gasPrice === undefined) {
+      // temporary change to ignore EIP-1559
+      if (
+        tx !== undefined &&
+        tx.gasPrice === undefined &&
+        tx.maxFeePerGas === undefined &&
+        tx.maxPriorityFeePerGas === undefined
+      ) {
         tx.gasPrice = numberToRpcQuantity(this._gasPrice);
       }
     }
@@ -137,7 +143,13 @@ export class AutomaticGasPriceProvider extends ProviderWrapper {
 
       // TODO: Should we validate this type?
       const tx = params[0];
-      if (tx !== undefined && tx.gasPrice === undefined) {
+      // temporary change to ignore EIP-1559
+      if (
+        tx !== undefined &&
+        tx.gasPrice === undefined &&
+        tx.maxFeePerGas === undefined &&
+        tx.maxPriorityFeePerGas === undefined
+      ) {
         tx.gasPrice = await this._getGasPriceAsQuantity();
       }
     }

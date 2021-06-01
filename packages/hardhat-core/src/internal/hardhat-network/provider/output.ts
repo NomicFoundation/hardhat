@@ -38,12 +38,16 @@ export interface RpcBlockOutput {
   uncles: string[];
 }
 
-export interface RpcTransactionOutput {
+export type RpcTransactionOutput =
+  | LegacyRpcTransactionOutput
+  | AccessListEIP2930RpcTransactionOutput
+  | EIP1559RpcTransactionOutput;
+
+interface BaseRpcTransactionOutput {
   blockHash: string | null;
   blockNumber: string | null;
   from: string;
   gas: string;
-  gasPrice: string;
   hash: string;
   input: string;
   nonce: string;
@@ -53,6 +57,27 @@ export interface RpcTransactionOutput {
   transactionIndex: string | null;
   v: string;
   value: string;
+}
+
+interface LegacyRpcTransactionOutput extends BaseRpcTransactionOutput {
+  gasPrice: string;
+}
+
+interface AccessListEIP2930RpcTransactionOutput
+  extends BaseRpcTransactionOutput {
+  gasPrice: string;
+
+  // Only shown if the local hardfork is at least Berlin, or if the (remote) tx has an access list
+  type?: string;
+
+  // Only shown if the tx has an access list
+  accessList?: Array<{ address: string; storageKeys: string[] }>;
+  chainId?: string;
+}
+
+interface EIP1559RpcTransactionOutput extends BaseRpcTransactionOutput {
+  maxFeePerGas: string;
+  maxPriorityFeePerGas: string;
 
   // Only shown if the local hardfork is at least Berlin, or if the (remote) tx has an access list
   type?: string;
@@ -183,12 +208,7 @@ export function getRpcTransaction(
   assertHardhatInvariant(tx.r !== undefined, "tx should be signed");
   assertHardhatInvariant(tx.s !== undefined, "tx should be signed");
 
-  // temporary fix to support EIP-1559 txs
-  const gasPrice = numberToRpcQuantity(
-    new BN("gasPrice" in tx ? tx.gasPrice : 0)
-  );
-
-  return {
+  const baseOutput = {
     blockHash: block === "pending" ? null : bufferToRpcData(block.hash()),
     blockNumber:
       block === "pending"
@@ -196,7 +216,6 @@ export function getRpcTransaction(
         : numberToRpcQuantity(new BN(block.header.number)),
     from: bufferToRpcData(tx.getSenderAddress().toBuffer()),
     gas: numberToRpcQuantity(new BN(tx.gasLimit)),
-    gasPrice,
     hash: bufferToRpcData(tx.hash()),
     input: bufferToRpcData(tx.data),
     nonce: numberToRpcQuantity(new BN(tx.nonce)),
@@ -221,6 +240,21 @@ export function getRpcTransaction(
       tx instanceof AccessListEIP2930Transaction
         ? numberToRpcQuantity(tx.chainId)
         : undefined,
+  };
+
+  if ("maxFeePerGas" in tx) {
+    // EIP-1559
+    return {
+      ...baseOutput,
+      maxFeePerGas: numberToRpcQuantity(tx.maxFeePerGas),
+      maxPriorityFeePerGas: numberToRpcQuantity(tx.maxPriorityFeePerGas),
+    };
+  }
+
+  // Not EIP-1559
+  return {
+    ...baseOutput,
+    gasPrice: numberToRpcQuantity(tx.gasPrice),
   };
 }
 

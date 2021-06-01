@@ -1183,39 +1183,118 @@ You can use them by running Hardhat Network with 'hardfork' ${ACCESS_LIST_MIN_HA
           ? rpcCall.gasPrice
           : await this._node.getGasPrice(),
       value: rpcCall.value !== undefined ? rpcCall.value : new BN(0),
-      accessList: this._rpcAccessListToNodeAccessList(rpcCall.accessList),
+      accessList:
+        rpcCall.accessList !== undefined
+          ? this._rpcAccessListToNodeAccessList(rpcCall.accessList)
+          : undefined,
     };
   }
 
   private async _rpcTransactionRequestToNodeTransactionParams(
     rpcTx: RpcTransactionRequest
   ): Promise<TransactionParams> {
-    return {
+    this._validateRpcTransaction(rpcTx);
+
+    const baseParams = {
       to: rpcTx.to,
       from: rpcTx.from,
       gasLimit:
         rpcTx.gas !== undefined ? rpcTx.gas : this._node.getBlockGasLimit(),
-      gasPrice:
-        rpcTx.gasPrice !== undefined
-          ? rpcTx.gasPrice
-          : await this._node.getGasPrice(),
       value: rpcTx.value !== undefined ? rpcTx.value : new BN(0),
       data: rpcTx.data !== undefined ? rpcTx.data : toBuffer([]),
       nonce:
         rpcTx.nonce !== undefined
           ? rpcTx.nonce
           : await this._node.getAccountExecutableNonce(new Address(rpcTx.from)),
-      accessList: this._rpcAccessListToNodeAccessList(rpcTx.accessList),
+    };
+
+    if (
+      rpcTx.maxFeePerGas !== undefined &&
+      rpcTx.maxPriorityFeePerGas !== undefined
+    ) {
+      // EIP-1559 params
+      const accessList =
+        rpcTx.accessList !== undefined
+          ? this._rpcAccessListToNodeAccessList(rpcTx.accessList)
+          : [];
+
+      return {
+        ...baseParams,
+        maxFeePerGas: rpcTx.maxFeePerGas,
+        maxPriorityFeePerGas: rpcTx.maxPriorityFeePerGas,
+        accessList,
+      };
+    }
+
+    const gasPrice =
+      rpcTx.gasPrice !== undefined
+        ? rpcTx.gasPrice
+        : await this._node.getGasPrice();
+
+    // AccessList params
+    if (rpcTx.accessList !== undefined) {
+      return {
+        ...baseParams,
+        gasPrice,
+        accessList: this._rpcAccessListToNodeAccessList(rpcTx.accessList),
+      };
+    }
+
+    // Legacy params
+    return {
+      ...baseParams,
+      gasPrice,
     };
   }
 
-  private _rpcAccessListToNodeAccessList(
-    rpcAccessList?: RpcAccessList
-  ): Array<[Buffer, Buffer[]]> | undefined {
-    if (rpcAccessList === undefined) {
-      return undefined;
+  private _validateRpcTransaction(rpcTx: RpcTransactionRequest) {
+    if (rpcTx.gasPrice !== undefined && rpcTx.maxFeePerGas !== undefined) {
+      throw new InvalidInputError(
+        "Transaction cannot have both gasPrice and maxFeePerGas"
+      );
     }
 
+    if (
+      rpcTx.gasPrice !== undefined &&
+      rpcTx.maxPriorityFeePerGas !== undefined
+    ) {
+      throw new InvalidInputError(
+        "Transaction cannot have both gasPrice and maxPriorityFeePerGas"
+      );
+    }
+
+    if (
+      rpcTx.maxFeePerGas !== undefined &&
+      rpcTx.maxPriorityFeePerGas === undefined
+    ) {
+      throw new InvalidInputError(
+        "Transaction has maxFeePerGas but not maxPriorityFeePerGas"
+      );
+    }
+
+    if (
+      rpcTx.maxFeePerGas === undefined &&
+      rpcTx.maxPriorityFeePerGas !== undefined
+    ) {
+      throw new InvalidInputError(
+        "Transaction has maxPriorityFeePerGas but not maxFeePerGas"
+      );
+    }
+
+    if (
+      rpcTx.maxFeePerGas !== undefined &&
+      rpcTx.maxPriorityFeePerGas !== undefined &&
+      rpcTx.maxPriorityFeePerGas.gt(rpcTx.maxFeePerGas)
+    ) {
+      throw new InvalidInputError(
+        `maxPriorityFeePerGas (${rpcTx.maxPriorityFeePerGas.toString()}) is bigger than maxFeePerGas (${rpcTx.maxFeePerGas.toString()})`
+      );
+    }
+  }
+
+  private _rpcAccessListToNodeAccessList(
+    rpcAccessList: RpcAccessList
+  ): Array<[Buffer, Buffer[]]> {
     return rpcAccessList.map((tuple) => [
       tuple.address,
       tuple.storageKeys ?? [],

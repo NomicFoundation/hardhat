@@ -2,6 +2,7 @@ import { Block } from "@ethereumjs/block";
 import Common from "@ethereumjs/common";
 import {
   AccessListEIP2930Transaction,
+  FeeMarketEIP1559Transaction,
   Transaction,
   TypedTransaction,
 } from "@ethereumjs/tx";
@@ -86,6 +87,7 @@ import {
   shouldShowTransactionTypeForHardfork,
 } from "./output";
 import { FakeSenderAccessListEIP2930Transaction } from "./transactions/FakeSenderAccessListEIP2930Transaction";
+import { FakeSenderEIP1559Transaction } from "./transactions/FakeSenderEIP1559Transaction";
 import { FakeSenderTransaction } from "./transactions/FakeSenderTransaction";
 import { TxPool } from "./TxPool";
 import { TxPriorityHeap } from "./TxPriorityHeap";
@@ -322,7 +324,11 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     if (pk !== undefined) {
       let tx: TypedTransaction;
 
-      if (txParams.accessList !== undefined) {
+      if ("maxFeePerGas" in txParams) {
+        tx = FeeMarketEIP1559Transaction.fromTxData(txParams, {
+          common: this._vm._common,
+        });
+      } else if ("accessList" in txParams) {
         tx = AccessListEIP2930Transaction.fromTxData(txParams, {
           common: this._vm._common,
         });
@@ -1190,10 +1196,20 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
   private async _getFakeTransaction(
     txParams: TransactionParams
-  ): Promise<FakeSenderAccessListEIP2930Transaction | FakeSenderTransaction> {
+  ): Promise<
+    | FakeSenderTransaction
+    | FakeSenderAccessListEIP2930Transaction
+    | FakeSenderEIP1559Transaction
+  > {
     const sender = new Address(txParams.from);
 
-    if (txParams.accessList !== undefined) {
+    if ("maxFeePerGas" in txParams) {
+      return new FakeSenderEIP1559Transaction(sender, txParams, {
+        common: this._vm._common,
+      });
+    }
+
+    if ("accessList" in txParams) {
       return new FakeSenderAccessListEIP2930Transaction(sender, txParams, {
         common: this._vm._common,
       });

@@ -16,6 +16,8 @@ export const rpcTransactionRequest = t.type(
     data: optional(rpcData),
     accessList: optional(rpcAccessList),
     chainId: optional(rpcQuantity),
+    maxFeePerGas: optional(rpcQuantity),
+    maxPriorityFeePerGas: optional(rpcQuantity),
   },
   "RpcTransactionRequest"
 );
@@ -30,6 +32,8 @@ export interface RpcTransactionRequestInput {
   value?: string;
   nonce?: string;
   data?: string;
+  maxFeePerGas?: string;
+  maxPriorityFeePerGas?: string;
 }
 
 export type RpcTransactionRequest = t.TypeOf<typeof rpcTransactionRequest>;
