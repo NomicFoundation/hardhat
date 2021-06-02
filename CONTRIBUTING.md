@@ -10,14 +10,12 @@ If you find a bug or want to propose a new feature, please [open an issue](https
 
 This repository is a monorepo handled with [Yarn workspaces](https://classic.yarnpkg.com/en/docs/workspaces/).
 
-There's a folder for each subproject in `packages/`. All of them are plugins, except for `/packages/hardhat` which
-is the main project (i.e. the one that's published as [hardhat](https://npmjs.com/package/hardhat)).
+There's a folder for each subproject in `packages/`. All of them are plugins, except for `/packages/hardhat-core` which
+is the main project (i.e. the one that's published as [hardhat](https://npmjs.com/package/hardhat) in npm).
 
 ## Installing
 
-To install this project you have to run:
-
-1. `yarn`
+To install the project's dependencies, run `yarn` in the root directory of the repository.
 
 ## Building the projects
 
@@ -115,15 +113,15 @@ All these tips assume you are running `yarn watch` from the root directory.
 
 ### Linking
 
-You can [link](https://classic.yarnpkg.com/en/docs/cli/link/) any package to test it locally. For example, if you are working on
+You can [link](https://classic.yarnpkg.com/en/docs/cli/link/) any package to test it locally. While the rest of the commands we run use `yarn`, we recommend you use `npm` for linking, since `yarn link` won't create the `hardhat` executable. For example, if you are working on
 `hardhat`, you can follow these steps:
 
-1. Go to `packages/hardhat-core` and run `yarn link`
-2. Go to some hardhat project and run `yarn link hardhat`
+1. Go to `packages/hardhat-core` and run `npm link`
+2. Go to some hardhat project and run `npm link hardhat`
 
 Now any change you make in the code will be reflected in that project.
 
-Note that `yarn link` won't create an executable in `node_modules/.bin/hardhat`. To work around this we recommend
+If you prefer to use `yarn link`, you need to work around the lack of an executable in `node_modules/.bin/hardhat`. We recommend
 having an alias like this:
 
 ```bash
@@ -136,8 +134,6 @@ If for any reason linking doesn't work for you, you can use [`yalc`](https://git
 
 1. Go to `packages/hardhat-core` and run `yalc publish`
 2. Go to some hardhat project and run `yalc add hardhat`
-
-Unlike linking, if you make a change in the code, you'll need to repeat the process.
 
 ### yarn pack
 
