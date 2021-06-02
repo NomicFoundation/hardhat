@@ -1,11 +1,13 @@
 import { assert } from "chai";
 import { BN, intToHex } from "ethereumjs-util";
+import { ethers } from "ethers";
 import sinon from "sinon";
 
 import {
   numberToRpcQuantity,
   rpcQuantityToNumber,
 } from "../../../../../src/internal/core/jsonrpc/types/base-types";
+import { CompilerOutputContract } from "../../../../../src/types/artifacts";
 import { expectErrorAsync } from "../../../../helpers/errors";
 import { ALCHEMY_URL } from "../../../../setup";
 import { workaroundWindowsCiFailures } from "../../../../utils/workaround-windows-ci-failures";
@@ -17,6 +19,7 @@ import { EMPTY_ACCOUNT_ADDRESS } from "../../helpers/constants";
 import { setCWD } from "../../helpers/cwd";
 import { DEFAULT_ACCOUNTS_ADDRESSES, PROVIDERS } from "../../helpers/providers";
 import { deployContract } from "../../helpers/transactions";
+import { compileLiteral } from "../../stack-traces/compilation";
 
 describe("Hardhat module", function () {
   PROVIDERS.forEach(({ name, useProvider, isFork }) => {
@@ -536,19 +539,23 @@ describe("Hardhat module", function () {
       });
 
       describe("hardhat_setCode", function () {
-        /**
-         * pragma solidity 0.7.0;
-         * contract Nine {
-         *     function returnNine() public pure returns (int) { return 9; }
-         * }
-         */
-        const contractNine = {
-          deployedBytecode:
-            "0x6080604052348015600f57600080fd5b506004361060285760003560e01c8063df78ca5114602d575b600080fd5b60336049565b6040518082815260200191505060405180910390f35b6000600990509056fea2646970667358221220e47ced4bf94a19dc36ecfe8fc91eff72db16454f6ccc3c9dd8c0a44b21a52b8464736f6c63430007000033",
-          encodedFunctionData: "0xdf78ca51",
-          encodedExpectedResult:
-            "0x0000000000000000000000000000000000000000000000000000000000000009",
-        };
+        let contractNine: CompilerOutputContract;
+        let abiEncoder: ethers.utils.Interface;
+        before(async function () {
+          [
+            ,
+            {
+              contracts: {
+                ["literal.sol"]: { Nine: contractNine },
+              },
+            },
+          ] = await compileLiteral(`
+            contract Nine {
+                function returnNine() public pure returns (int) { return 9; }
+            }
+          `);
+          abiEncoder = new ethers.utils.Interface(contractNine.abi);
+        });
 
         it("should reject an invalid address", async function () {
           await assertInvalidArgumentsError(
@@ -596,7 +603,7 @@ describe("Hardhat module", function () {
 
           await this.provider.send("hardhat_setCode", [
             notYetExistingAccount,
-            contractNine.deployedBytecode,
+            `0x${contractNine.evm.deployedBytecode.object}`,
           ]);
 
           assert.equal(
@@ -604,18 +611,18 @@ describe("Hardhat module", function () {
               {
                 from: DEFAULT_ACCOUNTS_ADDRESSES[0],
                 to: notYetExistingAccount,
-                data: contractNine.encodedFunctionData,
+                data: abiEncoder.encodeFunctionData("returnNine", []),
               },
               "latest",
             ]),
-            contractNine.encodedExpectedResult
+            abiEncoder.encodeFunctionResult("returnNine", [9])
           );
         });
 
         it("should, when setting code on an existing EOA, result in code that can actually be executed", async function () {
           await this.provider.send("hardhat_setCode", [
             DEFAULT_ACCOUNTS_ADDRESSES[0].toString(),
-            contractNine.deployedBytecode,
+            `0x${contractNine.evm.deployedBytecode.object}`,
           ]);
 
           assert.equal(
@@ -623,50 +630,51 @@ describe("Hardhat module", function () {
               {
                 from: DEFAULT_ACCOUNTS_ADDRESSES[1],
                 to: DEFAULT_ACCOUNTS_ADDRESSES[0],
-                data: contractNine.encodedFunctionData,
+                data: abiEncoder.encodeFunctionData("returnNine", []),
               },
               "latest",
             ]),
-            contractNine.encodedExpectedResult
+            abiEncoder.encodeFunctionResult("returnNine", [9])
           );
         });
 
         it("should, when setting code on an existing contract account, result in code that can actually be executed", async function () {
-          /**
-           * pragma solidity 0.7.0;
-           * contract Ten {
-           *     function returnTen() public pure returns (int) { return 10; }
-           * }
-           */
-          const contractTen = {
-            deploymentBytecode:
-              "0x6080604052348015600f57600080fd5b5060888061001e6000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c806303e995ce14602d575b600080fd5b60336049565b6040518082815260200191505060405180910390f35b6000600a90509056fea2646970667358221220462ba154070e9bdc9090481ba1c1db0a9e2fd4c02ae811a606a19c159e7c65ff64736f6c63430007000033",
-            encodedFunctionData: "0x03e995ce",
-            encodedExpectedResult:
-              "0x000000000000000000000000000000000000000000000000000000000000000a",
-          };
-
+          // Arrange: Deploy a contract that always returns 10.
+          const [
+            ,
+            {
+              contracts: {
+                ["literal.sol"]: { Ten: contractTen },
+              },
+            },
+          ] = await compileLiteral(`
+            contract Ten {
+              function returnTen() public pure returns (int) { return 10; }
+            }
+          `);
           const contractTenAddress = await deployContract(
             this.provider,
-            contractTen.deploymentBytecode,
+            `0x${contractTen.evm.bytecode.object}`,
             DEFAULT_ACCOUNTS_ADDRESSES[0]
           );
 
+          // Act: Replace the code at that address to always return 9.
           await this.provider.send("hardhat_setCode", [
             contractTenAddress,
-            contractNine.deployedBytecode,
+            `0x${contractNine.evm.deployedBytecode.object}`,
           ]);
 
+          // Assert: Verify the call to get 9.
           assert.equal(
             await this.provider.send("eth_call", [
               {
                 from: DEFAULT_ACCOUNTS_ADDRESSES[0],
                 to: contractTenAddress,
-                data: contractNine.encodedFunctionData,
+                data: abiEncoder.encodeFunctionData("returnNine", []),
               },
               "latest",
             ]),
-            contractNine.encodedExpectedResult
+            abiEncoder.encodeFunctionResult("returnNine", [9])
           );
         });
 
@@ -908,34 +916,26 @@ describe("Hardhat module", function () {
 
         it("should permit a contract call to read an updated storage slot value", async function () {
           // Arrange: Deploy a contract that can get and set storage.
-
-          /**
-           * pragma solidity 0.7.0;
-           * contract Storage {
-           *     function getValue(uint256 slot) public view returns (uint256 result) {
-           *         assembly { result := sload(slot) }
-           *     }
-           *     function setValue(uint256 slot, uint256 val) public {
-           *         assembly { sstore(slot, val) }
-           *     }
-           * }
-           */
-          const storageContract = {
-            deploymentBytecode:
-              "0x608060405234801561001057600080fd5b5060f38061001f6000396000f3fe6080604052348015600f57600080fd5b506004361060325760003560e01c80630ff4c9161460375780637b8d56e3146076575b600080fd5b606060048036036020811015604b57600080fd5b810190808035906020019092919050505060ab565b6040518082815260200191505060405180910390f35b60a960048036036040811015608a57600080fd5b81019080803590602001909291908035906020019092919050505060b6565b005b600081549050919050565b808255505056fea264697066735822122015032f742bb2eefc38614731d7da1b0b0a8f56d64d3043c5ca623165e2b33e9e64736f6c63430007000033",
-            encodedGetValueAt0:
-              "0x0ff4c9160000000000000000000000000000000000000000000000000000000000000000",
-            encodedPut9InSlot0:
-              "0x7b8d56e300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000009",
-            encoded9Result:
-              "0x0000000000000000000000000000000000000000000000000000000000000009",
-            encoded10Result:
-              "0x000000000000000000000000000000000000000000000000000000000000000a",
-          };
-
+          const [
+            ,
+            {
+              contracts: {
+                ["literal.sol"]: { Storage: storageContract },
+              },
+            },
+          ] = await compileLiteral(
+            `contract Storage {
+              function getValue(uint256 slot) public view returns (uint256 result) {
+                assembly { result := sload(slot) }
+              }
+              function setValue(uint256 slot, uint256 val) public {
+                assembly { sstore(slot, val) }
+              }
+            }`
+          );
           const contractAddress = await deployContract(
             this.provider,
-            storageContract.deploymentBytecode,
+            `0x${storageContract.evm.bytecode.object}`,
             DEFAULT_ACCOUNTS_ADDRESSES[0]
           );
 
@@ -947,16 +947,17 @@ describe("Hardhat module", function () {
           ]);
 
           // Assert: Verify that the contract retrieves the modified value.
+          const abiEncoder = new ethers.utils.Interface(storageContract.abi);
           assert.equal(
             await this.provider.send("eth_call", [
               {
                 from: DEFAULT_ACCOUNTS_ADDRESSES[0],
                 to: contractAddress,
-                data: storageContract.encodedGetValueAt0,
+                data: abiEncoder.encodeFunctionData("getValue", [0]),
               },
               "latest",
             ]),
-            storageContract.encoded10Result
+            abiEncoder.encodeFunctionResult("getValue", [10])
           );
         });
 
