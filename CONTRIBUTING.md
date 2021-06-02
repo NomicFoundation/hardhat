@@ -135,6 +135,8 @@ If for any reason linking doesn't work for you, you can use [`yalc`](https://git
 1. Go to `packages/hardhat-core` and run `yalc publish`
 2. Go to some hardhat project and run `yalc add hardhat`
 
+Unlike linking, if you make a change in the code, you'll need to repeat the process.
+
 ### yarn pack
 
 An even more realistic way of using your local changes in a project is to use [`yarn pack`](https://classic.yarnpkg.com/en/docs/cli/pack/):
