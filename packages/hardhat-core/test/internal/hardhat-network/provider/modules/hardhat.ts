@@ -483,9 +483,73 @@ describe("Hardhat module", function () {
           // Assert: Check that the balance is the one we set
           assert.equal(balancePreviousBlock, targetBalanceHex);
         });
+
+        it("should fund an account and permit that account to send a transaction", async function () {
+          // Arrange: Fund a not-yet-existing account.
+          const notYetExistingAccount =
+            "0x1234567890123456789012345678901234567890";
+          const amountToBeSent = new BN(10);
+          const gasRequired = new BN("48000000000000000");
+          const balanceRequired = amountToBeSent.add(gasRequired);
+          await this.provider.send("hardhat_setBalance", [
+            notYetExistingAccount,
+            `0x${balanceRequired.toString(16)}`,
+          ]);
+
+          // Arrange: Capture the existing balance of the destination account.
+          const existingBalance = new BN(
+            (
+              await this.provider.send("eth_getBalance", [
+                DEFAULT_ACCOUNTS_ADDRESSES[0],
+              ])
+            ).replace("0x", ""),
+            "hex"
+          );
+
+          // Act: Send a transaction from the newly-funded account.
+          await this.provider.send("hardhat_impersonateAccount", [
+            notYetExistingAccount,
+          ]);
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from: notYetExistingAccount,
+              to: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              value: `0x${amountToBeSent.toString(16)}`,
+            },
+          ]);
+          await this.provider.send("hardhat_stopImpersonatingAccount", [
+            notYetExistingAccount,
+          ]);
+
+          // Assert: ensure the destination address is increased as expected.
+          const newBalance = new BN(
+            (
+              await this.provider.send("eth_getBalance", [
+                DEFAULT_ACCOUNTS_ADDRESSES[0],
+              ])
+            ).replace("0x", ""),
+            "hex"
+          );
+
+          assert(newBalance.eq(existingBalance.add(amountToBeSent)));
+        });
       });
 
       describe("hardhat_setCode", function () {
+        /**
+         * pragma solidity 0.7.0;
+         * contract Nine {
+         *     function returnNine() public pure returns (int) { return 9; }
+         * }
+         */
+        const contractNine = {
+          deployedBytecode:
+            "0x6080604052348015600f57600080fd5b506004361060285760003560e01c8063df78ca5114602d575b600080fd5b60336049565b6040518082815260200191505060405180910390f35b6000600990509056fea2646970667358221220e47ced4bf94a19dc36ecfe8fc91eff72db16454f6ccc3c9dd8c0a44b21a52b8464736f6c63430007000033",
+          encodedFunctionData: "0xdf78ca51",
+          encodedExpectedResult:
+            "0x0000000000000000000000000000000000000000000000000000000000000009",
+        };
+
         it("should reject an invalid address", async function () {
           await assertInvalidArgumentsError(
             this.provider,
@@ -524,6 +588,86 @@ describe("Hardhat module", function () {
           ]);
 
           assert.equal(actualCode, targetCode);
+        });
+
+        it("should, when setting code on an empty account, result in code that can actually be executed", async function () {
+          const notYetExistingAccount =
+            "0x1234567890123456789012345678901234567890";
+
+          await this.provider.send("hardhat_setCode", [
+            notYetExistingAccount,
+            contractNine.deployedBytecode,
+          ]);
+
+          assert.equal(
+            await this.provider.send("eth_call", [
+              {
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                to: notYetExistingAccount,
+                data: contractNine.encodedFunctionData,
+              },
+              "latest",
+            ]),
+            contractNine.encodedExpectedResult
+          );
+        });
+
+        it("should, when setting code on an existing EOA, result in code that can actually be executed", async function () {
+          await this.provider.send("hardhat_setCode", [
+            DEFAULT_ACCOUNTS_ADDRESSES[0].toString(),
+            contractNine.deployedBytecode,
+          ]);
+
+          assert.equal(
+            await this.provider.send("eth_call", [
+              {
+                from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                to: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                data: contractNine.encodedFunctionData,
+              },
+              "latest",
+            ]),
+            contractNine.encodedExpectedResult
+          );
+        });
+
+        it("should, when setting code on an existing contract account, result in code that can actually be executed", async function () {
+          /**
+           * pragma solidity 0.7.0;
+           * contract Ten {
+           *     function returnTen() public pure returns (int) { return 10; }
+           * }
+           */
+          const contractTen = {
+            deploymentBytecode:
+              "0x6080604052348015600f57600080fd5b5060888061001e6000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c806303e995ce14602d575b600080fd5b60336049565b6040518082815260200191505060405180910390f35b6000600a90509056fea2646970667358221220462ba154070e9bdc9090481ba1c1db0a9e2fd4c02ae811a606a19c159e7c65ff64736f6c63430007000033",
+            encodedFunctionData: "0x03e995ce",
+            encodedExpectedResult:
+              "0x000000000000000000000000000000000000000000000000000000000000000a",
+          };
+
+          const contractTenAddress = await deployContract(
+            this.provider,
+            contractTen.deploymentBytecode,
+            DEFAULT_ACCOUNTS_ADDRESSES[0]
+          );
+
+          await this.provider.send("hardhat_setCode", [
+            contractTenAddress,
+            contractNine.deployedBytecode,
+          ]);
+
+          assert.equal(
+            await this.provider.send("eth_call", [
+              {
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                to: contractTenAddress,
+                data: contractNine.encodedFunctionData,
+              },
+              "latest",
+            ]),
+            contractNine.encodedExpectedResult
+          );
         });
 
         it("should not result in a modified state root", async function () {
@@ -653,6 +797,40 @@ describe("Hardhat module", function () {
           ).stateRoot;
           assert.equal(newStateRoot, oldStateRoot);
         });
+
+        it("should not break a subsequent transaction", async function () {
+          // Arrange: Send a transaction, in order to ensure a non-zero nonce.
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              value: "0x100",
+            },
+          ]);
+
+          // Act: Set the new nonce and execute a transaction.
+
+          const targetNonce = 99;
+          await this.provider.send("hardhat_setNonce", [
+            DEFAULT_ACCOUNTS_ADDRESSES[0],
+            intToHex(targetNonce),
+          ]);
+
+          const txHash = await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              value: "0x100",
+            },
+          ]);
+
+          // Assert: The executed transaction should reflects the nonce we set.
+          assert.equal(
+            (await this.provider.send("eth_getTransactionByHash", [txHash]))
+              .nonce,
+            targetNonce
+          );
+        });
       });
 
       describe("hardhat_setStorageSlot", function () {
@@ -726,6 +904,60 @@ describe("Hardhat module", function () {
           );
 
           assert.equal(resultingStorageValue, targetStorageValue);
+        });
+
+        it("should permit a contract call to read an updated storage slot value", async function () {
+          // Arrange: Deploy a contract that can get and set storage.
+
+          /**
+           * pragma solidity 0.7.0;
+           * contract Storage {
+           *     function getValue(uint256 slot) public view returns (uint256 result) {
+           *         assembly { result := sload(slot) }
+           *     }
+           *     function setValue(uint256 slot, uint256 val) public {
+           *         assembly { sstore(slot, val) }
+           *     }
+           * }
+           */
+          const storageContract = {
+            deploymentBytecode:
+              "0x608060405234801561001057600080fd5b5060f38061001f6000396000f3fe6080604052348015600f57600080fd5b506004361060325760003560e01c80630ff4c9161460375780637b8d56e3146076575b600080fd5b606060048036036020811015604b57600080fd5b810190808035906020019092919050505060ab565b6040518082815260200191505060405180910390f35b60a960048036036040811015608a57600080fd5b81019080803590602001909291908035906020019092919050505060b6565b005b600081549050919050565b808255505056fea264697066735822122015032f742bb2eefc38614731d7da1b0b0a8f56d64d3043c5ca623165e2b33e9e64736f6c63430007000033",
+            encodedGetValueAt0:
+              "0x0ff4c9160000000000000000000000000000000000000000000000000000000000000000",
+            encodedPut9InSlot0:
+              "0x7b8d56e300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000009",
+            encoded9Result:
+              "0x0000000000000000000000000000000000000000000000000000000000000009",
+            encoded10Result:
+              "0x000000000000000000000000000000000000000000000000000000000000000a",
+          };
+
+          const contractAddress = await deployContract(
+            this.provider,
+            storageContract.deploymentBytecode,
+            DEFAULT_ACCOUNTS_ADDRESSES[0]
+          );
+
+          // Act: Modify the value in the existing storage slot.
+          await this.provider.send("hardhat_setStorageSlot", [
+            contractAddress,
+            intToHex(0),
+            `0x${new BN(10).toString(16, 64)}`,
+          ]);
+
+          // Assert: Verify that the contract retrieves the modified value.
+          assert.equal(
+            await this.provider.send("eth_call", [
+              {
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                to: contractAddress,
+                data: storageContract.encodedGetValueAt0,
+              },
+              "latest",
+            ]),
+            storageContract.encoded10Result
+          );
         });
 
         it("should not result in a modified state root", async function () {
