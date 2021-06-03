@@ -292,6 +292,9 @@ describe("HardhatNode", () => {
           nonce: 0,
           from: DEFAULT_ACCOUNTS_ADDRESSES[0],
           to: EMPTY_ACCOUNT_ADDRESS,
+          // base fee is 7 by default so this produces the same reward
+          // as a pre-London tx with a gasPrice of 1
+          gasPrice: 8,
           gasLimit: 21_000,
           value: 1234,
         });

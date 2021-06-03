@@ -99,6 +99,86 @@ describe("Eth module", function () {
               InvalidInputError.CODE
             );
           });
+
+          it("Should accept EIP-1559 transactions", async function () {
+            const hash = await this.provider.send("eth_sendTransaction", [
+              {
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                value: numberToRpcQuantity(1),
+                gas: numberToRpcQuantity(21000),
+                maxFeePerGas: numberToRpcQuantity(1),
+                maxPriorityFeePerGas: numberToRpcQuantity(1),
+              },
+            ]);
+
+            assert.match(hash, /^0x[a-f\d]{64}$/);
+          });
+
+          it("Should throw if tx includes gasPrice, maxFeePerGas and maxPriorityFeePerGas", async function () {
+            await assertTransactionFailure(
+              this.provider,
+              {
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                value: numberToRpcQuantity(1),
+                gas: numberToRpcQuantity(21000),
+                gasPrice: numberToRpcQuantity(1),
+                maxFeePerGas: numberToRpcQuantity(1),
+                maxPriorityFeePerGas: numberToRpcQuantity(1),
+              },
+              "Transaction cannot have both gasPrice and maxFeePerGas",
+              InvalidInputError.CODE
+            );
+          });
+
+          it("Should throw if tx includes gasPrice and maxFeePerGas", async function () {
+            await assertTransactionFailure(
+              this.provider,
+              {
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                value: numberToRpcQuantity(1),
+                gas: numberToRpcQuantity(21000),
+                gasPrice: numberToRpcQuantity(1),
+                maxFeePerGas: numberToRpcQuantity(1),
+              },
+              "Transaction cannot have both gasPrice and maxFeePerGas",
+              InvalidInputError.CODE
+            );
+          });
+
+          it("Should throw if tx includes gasPrice and maxPriorityFeePerGas", async function () {
+            await assertTransactionFailure(
+              this.provider,
+              {
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                value: numberToRpcQuantity(1),
+                gas: numberToRpcQuantity(21000),
+                gasPrice: numberToRpcQuantity(1),
+                maxPriorityFeePerGas: numberToRpcQuantity(1),
+              },
+              "Transaction cannot have both gasPrice and maxPriorityFeePerGas",
+              InvalidInputError.CODE
+            );
+          });
+
+          it("Should throw if maxPriorityFeePerGas is bigger than maxFeePerGas", async function () {
+            await assertTransactionFailure(
+              this.provider,
+              {
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                value: numberToRpcQuantity(1),
+                gas: numberToRpcQuantity(21000),
+                maxFeePerGas: numberToRpcQuantity(1),
+                maxPriorityFeePerGas: numberToRpcQuantity(2),
+              },
+              "maxPriorityFeePerGas (2) is bigger than maxFeePerGas (1)",
+              InvalidInputError.CODE
+            );
+          });
         });
 
         describe("when automine is enabled", () => {
