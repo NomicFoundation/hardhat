@@ -5,10 +5,16 @@ import { BN, bufferToHex, toBuffer, zeroAddress } from "ethereumjs-util";
 
 import { numberToRpcQuantity } from "../../../../../../../internal/core/jsonrpc/types/base-types";
 import { TransactionParams } from "../../../../../../../internal/hardhat-network/provider/node-types";
-import { RpcTransactionOutput } from "../../../../../../../internal/hardhat-network/provider/output";
+import {
+  AccessListEIP2930RpcTransactionOutput,
+  EIP1559RpcTransactionOutput,
+  LegacyRpcTransactionOutput,
+} from "../../../../../../../internal/hardhat-network/provider/output";
 import { workaroundWindowsCiFailures } from "../../../../../../utils/workaround-windows-ci-failures";
 import {
-  assertTransaction,
+  assertAccessListTransaction,
+  assertEIP1559Transaction,
+  assertLegacyTransaction,
   assertTransactionFailure,
 } from "../../../../helpers/assertions";
 import { setCWD } from "../../../../helpers/cwd";
@@ -76,12 +82,12 @@ describe("Eth module", function () {
             false,
           ]);
 
-          const tx: RpcTransactionOutput = await this.provider.send(
+          const tx: LegacyRpcTransactionOutput = await this.provider.send(
             "eth_getTransactionByHash",
             [txHash]
           );
 
-          assertTransaction(
+          assertLegacyTransaction(
             tx,
             txHash,
             txParams1,
@@ -110,12 +116,12 @@ describe("Eth module", function () {
             false,
           ]);
 
-          const tx2: RpcTransactionOutput = await this.provider.send(
+          const tx2: LegacyRpcTransactionOutput = await this.provider.send(
             "eth_getTransactionByHash",
             [txHash2]
           );
 
-          assertTransaction(
+          assertLegacyTransaction(
             tx2,
             txHash2,
             txParams2,
@@ -165,7 +171,7 @@ describe("Eth module", function () {
             false,
           ]);
 
-          assertTransaction(
+          assertLegacyTransaction(
             tx,
             txHash,
             txParams,
@@ -273,12 +279,12 @@ describe("Eth module", function () {
             txParams
           );
 
-          const tx: RpcTransactionOutput = await this.provider.send(
+          const tx: LegacyRpcTransactionOutput = await this.provider.send(
             "eth_getTransactionByHash",
             [txHash]
           );
 
-          assertTransaction(tx, txHash, txParams);
+          assertLegacyTransaction(tx, txHash, txParams);
         });
 
         it("should get an existing transaction from mainnet", async function () {
@@ -318,6 +324,87 @@ describe("Eth module", function () {
           ]);
 
           assert.equal(tx.from, "0xbc3109d75dffaae85ef595902e3bd70fe0643b3b");
+        });
+
+        it("should return access list transactions", async function () {
+          const firstBlock = await getFirstBlock();
+          const txParams: TransactionParams = {
+            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[1]),
+            to: toBuffer(zeroAddress()),
+            data: toBuffer("0x"),
+            nonce: new BN(0),
+            value: new BN(123),
+            gasLimit: new BN(25000),
+            gasPrice: new BN(23912),
+            accessList: [
+              [toBuffer(zeroAddress()), [toBuffer("0x0"), toBuffer("0x1")]],
+            ],
+          };
+
+          const txHash = await sendTransactionFromTxParams(
+            this.provider,
+            txParams
+          );
+
+          const tx: AccessListEIP2930RpcTransactionOutput = await this.provider.send(
+            "eth_getTransactionByHash",
+            [txHash]
+          );
+
+          const block = await this.provider.send("eth_getBlockByNumber", [
+            numberToRpcQuantity(firstBlock + 1),
+            false,
+          ]);
+
+          assertAccessListTransaction(
+            tx,
+            txHash,
+            txParams,
+            firstBlock + 1,
+            block.hash,
+            0
+          );
+        });
+
+        it("should return EIP-1559 transactions", async function () {
+          const firstBlock = await getFirstBlock();
+          const txParams: TransactionParams = {
+            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[1]),
+            to: toBuffer(zeroAddress()),
+            data: toBuffer("0x"),
+            nonce: new BN(0),
+            value: new BN(123),
+            gasLimit: new BN(25000),
+            maxFeePerGas: new BN(100),
+            maxPriorityFeePerGas: new BN(10),
+            accessList: [
+              [toBuffer(zeroAddress()), [toBuffer("0x0"), toBuffer("0x1")]],
+            ],
+          };
+
+          const txHash = await sendTransactionFromTxParams(
+            this.provider,
+            txParams
+          );
+
+          const tx: EIP1559RpcTransactionOutput = await this.provider.send(
+            "eth_getTransactionByHash",
+            [txHash]
+          );
+
+          const block = await this.provider.send("eth_getBlockByNumber", [
+            numberToRpcQuantity(firstBlock + 1),
+            false,
+          ]);
+
+          assertEIP1559Transaction(
+            tx,
+            txHash,
+            txParams,
+            firstBlock + 1,
+            block.hash,
+            0
+          );
         });
       });
     });

@@ -58,33 +58,30 @@ interface BaseRpcTransactionOutput {
   transactionIndex: string | null;
   v: string;
   value: string;
-}
-
-interface LegacyRpcTransactionOutput extends BaseRpcTransactionOutput {
-  gasPrice: string;
-}
-
-interface AccessListEIP2930RpcTransactionOutput
-  extends BaseRpcTransactionOutput {
-  gasPrice: string;
-
   // Only shown if the local hardfork is at least Berlin, or if the (remote) tx has an access list
   type?: string;
+}
 
-  // Only shown if the tx has an access list
-  accessList?: Array<{ address: string; storageKeys: string[] }>;
+export interface LegacyRpcTransactionOutput extends BaseRpcTransactionOutput {
+  gasPrice: string;
+}
+
+export type RpcAccessListOutput = Array<{
+  address: string;
+  storageKeys: string[];
+}>;
+
+export interface AccessListEIP2930RpcTransactionOutput
+  extends BaseRpcTransactionOutput {
+  gasPrice: string;
+  accessList?: RpcAccessListOutput;
   chainId?: string;
 }
 
-interface EIP1559RpcTransactionOutput extends BaseRpcTransactionOutput {
+export interface EIP1559RpcTransactionOutput extends BaseRpcTransactionOutput {
   maxFeePerGas: string;
   maxPriorityFeePerGas: string;
-
-  // Only shown if the local hardfork is at least Berlin, or if the (remote) tx has an access list
-  type?: string;
-
-  // Only shown if the tx has an access list
-  accessList?: Array<{ address: string; storageKeys: string[] }>;
+  accessList?: RpcAccessListOutput;
   chainId?: string;
 }
 

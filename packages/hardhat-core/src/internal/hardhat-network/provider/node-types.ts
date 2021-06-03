@@ -77,6 +77,7 @@ export interface LegacyTransactionParams extends BaseTransactionParams {
 }
 
 export interface AccessListTransactionParams extends BaseTransactionParams {
+  gasPrice: BN;
   // We use this access list format because @ethereumjs/tx access list data
   // forces us to use it or stringify them
   accessList: AccessListBufferItem[];

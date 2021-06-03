@@ -32,6 +32,10 @@ export interface RpcTransactionRequestInput {
   value?: string;
   nonce?: string;
   data?: string;
+  accessList?: Array<{
+    address: string;
+    storageKeys: string[];
+  }>;
   maxFeePerGas?: string;
   maxPriorityFeePerGas?: string;
 }
