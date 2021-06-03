@@ -11,6 +11,7 @@ import {
   rpcQuantityToNumber,
 } from "../../../../src/internal/core/jsonrpc/types/base-types";
 import { InvalidInputError } from "../../../../src/internal/core/providers/errors";
+import { LegacyRpcTransactionOutput } from "../../../../src/internal/hardhat-network/provider/output";
 import { ALCHEMY_URL } from "../../../setup";
 import { workaroundWindowsCiFailures } from "../../../utils/workaround-windows-ci-failures";
 import {
@@ -591,6 +592,19 @@ describe("Forked provider", function () {
           assert.equal(date.getUTCMonth(), 0);
           assert.equal(date.getUTCFullYear(), 2021);
         });
+      });
+
+      it("legacy transactions before the berlin hardfork should have type 0", async function () {
+        // last tx before the berlin hardfork
+        const txHash =
+          "0x8cd030cb5c760d76badf6e44b87b00210219a2180f044376f2ed3041d1f7e27b";
+
+        const tx: LegacyRpcTransactionOutput = await this.provider.send(
+          "eth_getTransactionByHash",
+          [txHash]
+        );
+
+        assert.equal(tx.type, "0x0");
       });
     });
   });
