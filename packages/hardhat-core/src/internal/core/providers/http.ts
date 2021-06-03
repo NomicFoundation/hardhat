@@ -2,7 +2,10 @@ import { EventEmitter } from "events";
 import type { Response } from "node-fetch";
 
 import { EIP1193Provider, RequestArguments } from "../../../types";
-import { HARDHAT_NETWORK_RESET_EVENT } from "../../constants";
+import {
+  HARDHAT_NETWORK_RESET_EVENT,
+  HARDHAT_NETWORK_REVERT_SNAPSHOT_EVENT,
+} from "../../constants";
 import {
   FailedJsonRpcResponse,
   JsonRpcRequest,
@@ -61,6 +64,9 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
 
     if (args.method === "hardhat_reset") {
       this.emit(HARDHAT_NETWORK_RESET_EVENT);
+    }
+    if (args.method === "evm_revert") {
+      this.emit(HARDHAT_NETWORK_REVERT_SNAPSHOT_EVENT);
     }
 
     return jsonRpcResponse.result;

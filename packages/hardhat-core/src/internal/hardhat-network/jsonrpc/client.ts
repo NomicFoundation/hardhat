@@ -37,6 +37,15 @@ export class JsonRpcClient {
     return this._networkId;
   }
 
+  public async getDebugTraceTransaction(transactionHash: Buffer): Promise<any> {
+    return this._perform(
+      "debug_traceTransaction",
+      [bufferToHex(transactionHash)],
+      t.object,
+      () => undefined
+    );
+  }
+
   // Storage key must be 32 bytes long
   public async getStorageAt(
     address: Address,

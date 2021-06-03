@@ -91,7 +91,10 @@ describe("Hardhat Network special options", function () {
       useFixtureProject("hardhat-network-spurious-dragon");
       useEnvironment();
 
-      it("should accept hardforks as late as chainstart and use them", async function () {
+      // We skip this test as we are temporally disabling older hardforks due
+      // to a bug in EthereumJS.
+      // TODO: Remove the skip once the DefaultStateManager is fixed
+      it.skip("should accept hardforks as late as chainstart and use them", async function () {
         const [sender] = await this.env.network.provider.send("eth_accounts");
         await assert.isRejected(
           this.env.network.provider.send("eth_sendTransaction", [
@@ -112,7 +115,10 @@ describe("Hardhat Network special options", function () {
         return;
       }
 
-      describe("Local hardfork validation", function () {
+      // We skip this test as we are temporally disabling older hardforks due
+      // to a bug in EthereumJS.
+      // TODO: Remove the skip once the DefaultStateManager is fixed
+      describe.skip("Local hardfork validation", function () {
         useFixtureProject("hardhat-network-fork-tangerine-whistle");
         useEnvironment();
 

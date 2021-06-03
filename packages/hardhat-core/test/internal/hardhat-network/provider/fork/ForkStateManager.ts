@@ -32,7 +32,7 @@ describe("ForkStateManager", () => {
   let fsm: ForkStateManager;
 
   before(async function () {
-    if (ALCHEMY_URL === undefined || ALCHEMY_URL === "") {
+    if (ALCHEMY_URL === undefined) {
       this.skip();
       return;
     }
@@ -163,6 +163,40 @@ describe("ForkStateManager", () => {
 
       const wethContract = await fsm.getAccount(WETH_ADDRESS);
       assert.isTrue(wethContract.codeHash.equals(KECCAK256_NULL));
+    });
+  });
+
+  describe("deleteAccount", () => {
+    it("can delete an account", async () => {
+      const { code } = await client.getAccountData(
+        WETH_ADDRESS,
+        forkBlockNumber
+      );
+      const codeHash = keccak256(code);
+      let account = await fsm.getAccount(WETH_ADDRESS);
+
+      assert.isTrue(new BN(account.balance).gtn(0));
+      assert.isTrue(new BN(account.nonce).eqn(1));
+      assert.isTrue(account.codeHash.equals(codeHash));
+      assert.isNotTrue(account.stateRoot.equals(Buffer.from([])));
+
+      await fsm.deleteAccount(WETH_ADDRESS);
+      account = await fsm.getAccount(WETH_ADDRESS);
+
+      assert.isTrue(new BN(account.balance).eqn(0));
+      assert.isTrue(new BN(account.nonce).eqn(0));
+      assert.isTrue(account.codeHash.equals(KECCAK256_NULL));
+      assert.isNotTrue(account.stateRoot.equals(Buffer.from([])));
+    });
+
+    it("can delete non-existent account", async () => {
+      await fsm.deleteAccount(EMPTY_ACCOUNT_ADDRESS);
+      const account = await fsm.getAccount(EMPTY_ACCOUNT_ADDRESS);
+
+      assert.isTrue(new BN(account.balance).eqn(0));
+      assert.isTrue(new BN(account.nonce).eqn(0));
+      assert.isTrue(account.codeHash.equals(KECCAK256_NULL));
+      assert.isNotTrue(account.stateRoot.equals(Buffer.from([])));
     });
   });
 
