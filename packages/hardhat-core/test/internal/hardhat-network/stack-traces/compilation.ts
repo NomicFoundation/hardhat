@@ -111,6 +111,7 @@ export async function downloadSolc(compilerPath: string): Promise<void> {
 }
 
 async function getSolc(compilerPath: string): Promise<any> {
+  await downloadSolc(compilerPath);
   let absoluteCompilerPath = compilerPath;
   if (!path.isAbsolute(absoluteCompilerPath)) {
     absoluteCompilerPath = getCompilerDownloadPath(compilerPath);
