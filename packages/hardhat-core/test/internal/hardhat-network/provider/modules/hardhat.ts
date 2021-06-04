@@ -526,6 +526,43 @@ describe("Hardhat module", function () {
 
           assert(newBalance.eq(existingBalance.add(amountToBeSent)));
         });
+
+        it("should have its effects persist across snapshot save/restore", async function () {
+          const a = DEFAULT_ACCOUNTS_ADDRESSES[0];
+          const currentBlockNumber = await this.provider.send(
+            "eth_blockNumber"
+          );
+
+          // set balance1
+          const targetBalance1 = numberToRpcQuantity(1);
+          await this.provider.send("hardhat_setBalance", [a, targetBalance1]);
+
+          // snapshot after balance1
+          const snapshotId = await this.provider.send("evm_snapshot");
+
+          // set balance 2
+          const targetBalance2 = numberToRpcQuantity(2);
+          await this.provider.send("hardhat_setBalance", [a, targetBalance2]);
+
+          // check that previous block has balance 2
+          await this.provider.send("evm_mine");
+          const balancePreviousBlock = await this.provider.send(
+            "eth_getBalance",
+            [a, currentBlockNumber]
+          );
+          assert.strictEqual(balancePreviousBlock, targetBalance2);
+
+          // revert snapshot
+          await this.provider.send("evm_revert", [snapshotId]);
+
+          // repeat previous check with balance 1 now
+          await this.provider.send("evm_mine");
+          const balancePreviousBlockAfterRevert = await this.provider.send(
+            "eth_getBalance",
+            [a, currentBlockNumber]
+          );
+          assert.strictEqual(balancePreviousBlockAfterRevert, targetBalance1);
+        });
       });
 
       describe("hardhat_setCode", function () {

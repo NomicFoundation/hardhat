@@ -713,7 +713,10 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       txPoolSnapshotId: this._txPool.snapshot(),
       blockTimeOffsetSeconds: this.getTimeIncrement(),
       nextBlockTimestamp: this.getNextBlockTimestamp(),
+      irregularStatesByBlockNum: this._irregularStatesByBlockNum,
     };
+
+    this._irregularStatesByBlockNum = new Map(this._irregularStatesByBlockNum);
 
     this._snapshots.push(snapshot);
     this._nextSnapshotId += 1;
@@ -744,7 +747,15 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     // Note: There's no need to copy the maps here, as snapshots can only be
     // used once
     this._blockchain.deleteLaterBlocks(snapshot.latestBlock);
-    await this._stateManager.setStateRoot(snapshot.stateRoot);
+    this._irregularStatesByBlockNum = snapshot.irregularStatesByBlockNum;
+    const irregularStateOrUndefined = this._irregularStatesByBlockNum.get(
+      (await this.getLatestBlock()).header.number.toString()
+    );
+    await this._stateManager.setStateRoot(
+      irregularStateOrUndefined !== undefined
+        ? irregularStateOrUndefined
+        : snapshot.stateRoot
+    );
     this.setTimeIncrement(newOffset);
     this.setNextBlockTimestamp(snapshot.nextBlockTimestamp);
     this._txPool.revert(snapshot.txPoolSnapshotId);
