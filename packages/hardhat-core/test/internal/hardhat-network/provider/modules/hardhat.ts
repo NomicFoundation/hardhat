@@ -1,5 +1,6 @@
 import { assert } from "chai";
 import { BN, intToHex } from "ethereumjs-util";
+// tslint:disable-next-line:no-implicit-dependencies
 import { ethers } from "ethers";
 import sinon from "sinon";
 
