@@ -401,13 +401,10 @@ describe("Hardhat module", function () {
 
         it("should result in a modified balance", async function () {
           // Arrange: Capture existing balance
-          const existingBalance = new BN(
-            (
-              await this.provider.send("eth_getBalance", [
-                DEFAULT_ACCOUNTS_ADDRESSES[0],
-              ])
-            ).replace("0x", ""),
-            "hex"
+          const existingBalance = rpcQuantityToBN(
+            await this.provider.send("eth_getBalance", [
+              DEFAULT_ACCOUNTS_ADDRESSES[0],
+            ])
           );
 
           // Act: Set the new balance.
@@ -416,17 +413,14 @@ describe("Hardhat module", function () {
           assert.notDeepEqual(targetBalance, existingBalance);
           await this.provider.send("hardhat_setBalance", [
             DEFAULT_ACCOUNTS_ADDRESSES[0],
-            `0x${targetBalance.toString(16)}`,
+            numberToRpcQuantity(targetBalance),
           ]);
 
           // Assert: Ensure the new balance was set.
-          const newBalance = new BN(
-            (
-              await this.provider.send("eth_getBalance", [
-                DEFAULT_ACCOUNTS_ADDRESSES[0],
-              ])
-            ).replace("0x", ""),
-            "hex"
+          const newBalance = rpcQuantityToBN(
+            await this.provider.send("eth_getBalance", [
+              DEFAULT_ACCOUNTS_ADDRESSES[0],
+            ])
           );
           assert(targetBalance.eq(newBalance));
         });
@@ -468,7 +462,7 @@ describe("Hardhat module", function () {
 
           // Arrange 2: Set a new balance
           const targetBalance = new BN("123454321");
-          const targetBalanceHex = `0x${targetBalance.toString(16)}`;
+          const targetBalanceHex = numberToRpcQuantity(targetBalance);
           await this.provider.send("hardhat_setBalance", [
             DEFAULT_ACCOUNTS_ADDRESSES[0],
             targetBalanceHex,
@@ -496,17 +490,14 @@ describe("Hardhat module", function () {
           const balanceRequired = amountToBeSent.add(gasRequired);
           await this.provider.send("hardhat_setBalance", [
             notYetExistingAccount,
-            `0x${balanceRequired.toString(16)}`,
+            numberToRpcQuantity(balanceRequired),
           ]);
 
           // Arrange: Capture the existing balance of the destination account.
-          const existingBalance = new BN(
-            (
-              await this.provider.send("eth_getBalance", [
-                DEFAULT_ACCOUNTS_ADDRESSES[0],
-              ])
-            ).replace("0x", ""),
-            "hex"
+          const existingBalance = rpcQuantityToBN(
+            await this.provider.send("eth_getBalance", [
+              DEFAULT_ACCOUNTS_ADDRESSES[0],
+            ])
           );
 
           // Act: Send a transaction from the newly-funded account.
@@ -517,7 +508,7 @@ describe("Hardhat module", function () {
             {
               from: notYetExistingAccount,
               to: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              value: `0x${amountToBeSent.toString(16)}`,
+              value: numberToRpcQuantity(amountToBeSent),
             },
           ]);
           await this.provider.send("hardhat_stopImpersonatingAccount", [
@@ -525,13 +516,10 @@ describe("Hardhat module", function () {
           ]);
 
           // Assert: ensure the destination address is increased as expected.
-          const newBalance = new BN(
-            (
-              await this.provider.send("eth_getBalance", [
-                DEFAULT_ACCOUNTS_ADDRESSES[0],
-              ])
-            ).replace("0x", ""),
-            "hex"
+          const newBalance = rpcQuantityToBN(
+            await this.provider.send("eth_getBalance", [
+              DEFAULT_ACCOUNTS_ADDRESSES[0],
+            ])
           );
 
           assert(newBalance.eq(existingBalance.add(amountToBeSent)));
@@ -867,7 +855,7 @@ describe("Hardhat module", function () {
             "hardhat_setStorageSlot",
             [
               DEFAULT_ACCOUNTS_ADDRESSES[0].toString(),
-              `0x${MAX_WORD_VALUE.add(new BN(1)).toString(16)}`,
+              numberToRpcQuantity(MAX_WORD_VALUE.add(new BN(1))),
               "0xff",
             ],
             "Storage key must not be greater than 2^256"
