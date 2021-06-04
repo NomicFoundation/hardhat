@@ -5,6 +5,7 @@ import sinon from "sinon";
 
 import {
   numberToRpcQuantity,
+  rpcQuantityToBN,
   rpcQuantityToNumber,
 } from "../../../../../src/internal/core/jsonrpc/types/base-types";
 import { CompilerOutputContract } from "../../../../../src/types/artifacts";
