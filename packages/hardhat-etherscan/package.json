@@ -1,6 +1,6 @@
 {
   "name": "@nomiclabs/hardhat-etherscan",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "description": "Hardhat plugin for verifying contracts on etherscan",
   "repository": "github:nomiclabs/hardhat",
   "homepage": "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-etherscan",
@@ -20,11 +20,11 @@
     "etherscan"
   ],
   "scripts": {
-    "lint:fix": "node ../../node_modules/prettier/bin-prettier.js --write \"src/**/*.{js,ts}\" \"test/**/*.{js,ts}\" && yarn lint --fix",
-    "lint": "node ../../node_modules/tslint/bin/tslint --config tslint.json --project ./tsconfig.json",
-    "test": "node ../../node_modules/mocha/bin/mocha --recursive \"test/**/*.ts\" --exit",
-    "build": "node ../../node_modules/typescript/bin/tsc --build .",
-    "clean": "node ../../node_modules/rimraf/bin.js dist"
+    "lint:fix": "prettier --write \"src/**/*.{js,ts}\" \"test/**/*.{js,ts}\" && yarn lint --fix",
+    "lint": "tslint --config tslint.json --project ./tsconfig.json",
+    "test": "mocha --recursive \"test/**/*.ts\" --exit",
+    "build": "tsc --build .",
+    "clean": "rimraf dist"
   },
   "files": [
     "dist/src/",
@@ -46,12 +46,23 @@
     "@types/cbor": "^5.0.1",
     "@types/chai": "^4.2.0",
     "@types/fs-extra": "^5.1.0",
+    "@types/mocha": "^5.2.6",
     "@types/node-fetch": "^2.3.7",
+    "@types/node": "^10.17.24",
     "@types/semver": "^6.0.2",
     "chai": "^4.2.0",
     "ethers": "^5.0.8",
     "hardhat": "^2.0.4",
-    "nock": "^13.0.5"
+    "mocha": "^7.1.2",
+    "nock": "^13.0.5",
+    "prettier": "2.0.5",
+    "rimraf": "^3.0.2",
+    "ts-node": "^8.1.0",
+    "tslint-config-prettier": "^1.18.0",
+    "tslint-consistent-codestyle": "^1.15.1",
+    "tslint-plugin-prettier": "^2.0.1",
+    "tslint": "^5.16.0",
+    "typescript": "~4.0.3"
   },
   "peerDependencies": {
     "hardhat": "^2.0.4"

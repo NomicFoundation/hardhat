@@ -1,7 +1,7 @@
 <template lang="pug">
 section.top-bar
   a(
-    href="https://medium.com/nomic-labs-blog/better-solidity-debugging-console-log-is-finally-here-fc66c54f2c4a",
+    href="https://www.notion.so/nomiclabs/Nomic-Labs-jobs-991b37c547554f75b89a95f437fd5056",
     target="_blank",
     rel="noopener noreferrer"
   )
@@ -17,8 +17,8 @@ section.top-bar
             |
             |
         span.top-text 
-          a(:href="postUrl" class="top-bar-link" target="_blank" rel="noopener noreferrer") Buidler is now Hardhat: Learn more about the latest release and rebrand 
-            span here
+          a(:href="postUrl" class="top-bar-link" target="_blank" rel="noopener noreferrer") Join the Hardhat team! Nomic Labs is 
+            span hiring
         span.colored.reverse.animation-6chars
           span 
             |
@@ -55,7 +55,7 @@ export default {
   data() {
     return {
       postUrl:
-        "https://medium.com/nomic-labs-blog/buidler-has-evolved-introducing-hardhat-4bccd13bc931",
+        "https://www.notion.so/nomiclabs/Nomic-Labs-jobs-991b37c547554f75b89a95f437fd5056",
     };
   },
 };

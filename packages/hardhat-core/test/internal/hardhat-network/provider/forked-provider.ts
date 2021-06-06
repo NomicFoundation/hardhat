@@ -51,7 +51,7 @@ const WETH_DEPOSIT_SELECTOR = "0xd0e30db0";
 
 describe("Forked provider", function () {
   FORKED_PROVIDERS.forEach(({ rpcProvider, useProvider }) => {
-    workaroundWindowsCiFailures({ isFork: true });
+    workaroundWindowsCiFailures.call(this, { isFork: true });
 
     describe(`Using ${rpcProvider}`, function () {
       setCWD();

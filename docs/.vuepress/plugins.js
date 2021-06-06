@@ -145,6 +145,14 @@ const plugins = [
     tags: ["Debuggin", "Monitoring", "Alerting", "Tasks", "Scripts"],
   },
   {
+    name: "hardhat-ethernal",
+    author: "Ethernal",
+    authorUrl: "https://www.tryethernal.com",
+    url: "https://github.com/tryethernal/hardhat-ethernal/tree/master",
+    description: "Integrate your Hardhat project and Hardhat network with Ethernal. Ethernal is a block explorer for private chains.",
+    tags: ["explorer", "debugging", "development-tool"]
+  },
+  {
     name: "hardhat-typechain",
     author: "Rahul Sethuram",
     authorUrl: "https://twitter.com/rhlsthrm",
@@ -268,7 +276,7 @@ const plugins = [
     tags: ["Networks", "Config"],
   },
   {
-    name: "@eth-optimisim/smock",
+    name: "@eth-optimism/smock",
     author: "Optimism",
     authorUrl: "https://github.com/ethereum-optimism",
     url: "https://github.com/ethereum-optimism/smock/tree/master",
@@ -305,12 +313,30 @@ const plugins = [
     tags: ["Ethers", "React", "Deploy", "Typechain", "Frontend", "Web3modal"],
   },
   {
+    name: "hardhat-etherscan-abi",
+    author: "Roman Semenov",
+    authorUrl: "https://github.com/poma",
+    url:
+      "https://github.com/poma/hardhat-etherscan-abi/tree/master",
+    description: "Automatically fetch contract ABI from Etherscan",
+    tags: ["Etherscan", "ABI"],
+  },
+  {
     name: "hardhat-tracer",
     author: "Soham Zemse",
     authorUrl: "https://github.com/zemse/",
     url: "https://github.com/zemse/hardhat-tracer/tree/master",
     description: "See emitted events during your hardhat tests in the console",
     tags: ["Events", "Logs", "Trace", "Console", "Testing"],
+  },
+  {
+    name: "hardhat-circom",
+    author: "Project Sophon",
+    authorUrl: "https://github.com/projectsophon",
+    url:
+      "https://github.com/projectsophon/hardhat-circom/tree/master",
+    description: "Provide tasks to integrate Circom and SnarkJS",
+    tags: ["Circom", "Snarkjs", "Preprocessor", "Compiling", "Tasks", "Scripts"],
   },
 ];
 
