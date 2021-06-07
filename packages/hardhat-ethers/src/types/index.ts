@@ -13,12 +13,12 @@ export interface FactoryOptions {
 
 export declare function getContractFactory(
   name: string,
-  signerOrOptions?: ethers.Signer | FactoryOptions
+  signerOrOptions?: ethers.Signer | string | FactoryOptions
 ): Promise<ethers.ContractFactory>;
 export declare function getContractFactory(
   abi: any[],
   bytecode: ethers.utils.BytesLike,
-  signer?: ethers.Signer
+  signer?: ethers.Signer | string
 ): Promise<ethers.ContractFactory>;
 
 export interface HardhatEthersHelpers {
@@ -28,7 +28,7 @@ export interface HardhatEthersHelpers {
   getContractAt: (
     nameOrAbi: string | any[],
     address: string,
-    signer?: ethers.Signer
+    signer?: ethers.Signer | string
   ) => Promise<ethers.Contract>;
   getSigner: (address: string) => Promise<SignerWithAddress>;
   getSigners: () => Promise<SignerWithAddress[]>;
