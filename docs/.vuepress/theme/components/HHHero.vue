@@ -10,7 +10,7 @@
 
       ClientOnly
         component(v-if="HHAnimation", :is="HHAnimation")
-        HHMobileAnimation
+        component(v-if="HHMobileAnimation", :is="HHMobileAnimation")
         
 </template>
 
@@ -29,13 +29,16 @@ preloadImage(HardhatHeroAtlas2);
 
 export default {
   name: "HHHero",
-  components: { HHCta, HHMobileAnimation },
+  components: { HHCta },
   data() {
-    return { HHAnimation: null };
+    return { HHAnimation: null , HHMobileAnimation: null};
   },
   mounted() {
     import("./HHAnimation").then((module) => {
       this.HHAnimation = module.default;
+    });
+    import("./HHMobileAnimation").then((module) => {
+      this.HHMobileAnimation = module.default;
     });
   },
 };

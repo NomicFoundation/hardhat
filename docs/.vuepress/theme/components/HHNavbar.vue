@@ -122,7 +122,7 @@ export default {
 
     margin 0 auto
     @media (max-width: 1000px)
-      padding 1rem 20px
+      padding 1rem 0
 
     .logo
       background-image url('../img/hardhat_logos/Hardhat-logo.svg')
@@ -136,6 +136,7 @@ export default {
       left -24px
       @media (max-width: 1000px)
         height 40px
+        left 0
       @media (max-width: 1000px) and (min-width: 720px)
         left calc(-128px + 56px)
 
@@ -209,6 +210,11 @@ export default {
       justify-content center
       cursor pointer
       position relative
+      width 48px
+      height 48px
+      #nav-icon3
+        width inherit
+        height inherit
       @media (max-width: 1000px) and (min-width: 720px)
         left calc(142px - 56px)
 
@@ -376,8 +382,18 @@ export default {
   top: 16px;
 
 .navbar-mobile
-  #tools-dropdown
-    display none
+  #Tools
+    a
+      margin-bottom 0
+    #tools-dropdown-wrapper
+      margin-bottom 40px
+      .dropdown-tool-title
+        line-height 40px
+        span
+          font-size 15px
+          font-family 'Chivo'
+          &.hardhat
+            color #6E6F70
 
 .desktop-nav
   #Tools

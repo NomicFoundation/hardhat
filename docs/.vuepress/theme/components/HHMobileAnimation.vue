@@ -2,7 +2,7 @@
 #mobile-hero-image-wrapper.hero-image-wrapper
   .hero-frame
     #mobile_animation_container(ref="mobileAnimationContainer")
-      canvas#mobile_canvas(ref="mobile_canvas", width="407", height="216")
+      canvas#mobile_canvas(ref="mobile_canvas", width="407px", height="216px")
       #mobile_dom_overlay_container
     #ethereum-bg(ref="ethereumBg")
 </template>
@@ -115,7 +115,7 @@ export default {
     justify-content center
     align-items center
     transform-origin bottom
-    transform scale(1.3)
+    transform scale(1.2)
   @media (max-width: 720px)
     transform scale(1)
   #ethereum-bg
@@ -138,6 +138,11 @@ export default {
     transform translateY(0)
     transition ease-in-out 0.5s all
     pointer-events none
+    #mobile_canvas
+      width inherit !important
+      height inherit !important
+      position absolute
+      bottom 0
     &.characters-hidden
       opacity 0
       transform translateY(216px)
