@@ -10,6 +10,7 @@
     "dotenv": "^6.2.0",
     "exports-loader": "^1.1.1",
     "imports-loader": "^1.2.0",
+    "jquery": "^3.6.0",
     "prettier": "^2.1.2",
     "pug": "^3.0.0",
     "pug-plain-loader": "^1.0.0",

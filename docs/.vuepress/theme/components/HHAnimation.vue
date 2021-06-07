@@ -115,19 +115,7 @@ export default {
   flex-direction column
   justify-content center
   @media (max-width: 1000px)
-    height 40vh
-    max-height 693px
-    min-height 200px
-    transform scale(1)
-    z-index -1
-    top 60px
-    right 10%
-    width 100%
-    display flex
-    align-items center
-  @media (max-width: 820px)
-    // top 100px
-    transform scale(0.6) translateY(30px)
+    display none
   .hero-frame
     position absolute
     z-index -1

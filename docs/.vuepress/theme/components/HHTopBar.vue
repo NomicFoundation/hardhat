@@ -13,16 +13,10 @@ section.top-bar
           span <
           span <
           span <
-          span <
-            |
-            |
         span.top-text 
           a(:href="postUrl" class="top-bar-link" target="_blank" rel="noopener noreferrer") Join the Hardhat team! Nomic Labs is 
             span hiring
         span.colored.reverse.animation-6chars
-          span 
-            |
-            | >
           span >
           span >
           span >
@@ -35,15 +29,11 @@ section.top-bar
           span <
           span <
           span <
-            |
-            |
         span.top-text
           a(:href="postUrl" class="top-bar-link" target="_blank" rel="noopener noreferrer") Buidler is now Hardhat: Learn more 
             span here
         span.colored.reverse.animation-4chars
-          span 
-            |
-            | >
+          span >
           span >
           span >
           span >
@@ -167,7 +157,9 @@ export default {
     .top-text
       color white
       font-size 15px !important
+      margin 0 8px
       @media screen and (max-width 1000px)
+        margin 0
         font-size 13px !important
 
   .top-bar-link
