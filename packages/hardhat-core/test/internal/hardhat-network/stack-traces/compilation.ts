@@ -60,8 +60,8 @@ function getSolcInputForFiles(
 
 function getSolcInputForLiteral(
   source: string,
-  filename: string = "literal.sol",
-  compilerOptions: CompilerOptions
+  compilerOptions: CompilerOptions,
+  filename: string = "literal.sol"
 ): CompilerInput {
   return getSolcInput({ [filename]: { content: source } }, compilerOptions);
 }
@@ -151,15 +151,15 @@ export async function compileFiles(
 
 export async function compileLiteral(
   source: string,
-  filename: string = "literal.sol",
   compilerOptions: CompilerOptions = {
     solidityVersion: "0.8.0",
     compilerPath: "soljson-v0.8.0+commit.c7dfd78e.js",
     runs: 1,
-  }
+  },
+  filename: string = "literal.sol"
 ): Promise<[CompilerInput, CompilerOutput]> {
   return compile(
-    getSolcInputForLiteral(source, filename, compilerOptions),
+    getSolcInputForLiteral(source, compilerOptions, filename),
     compilerOptions
   );
 }
