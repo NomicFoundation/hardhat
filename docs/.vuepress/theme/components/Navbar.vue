@@ -55,25 +55,25 @@
 </template>
 
 <script>
-import SidebarButton from "./SidebarButton.vue";
-import AlgoliaSearchBox from "./AlgoliaSearchBox.vue";
-import SearchBox from "./SearchBox.vue";
-import NavLinks from "./NavLinks.vue";
-import HHTopBar from "./HHTopBar";
+  import SidebarButton from "./SidebarButton.vue";
+  import AlgoliaSearchBox from "./AlgoliaSearchBox.vue";
+  import SearchBox from "./SearchBox.vue";
+  import NavLinks from "./NavLinks.vue";
+  import HHTopBar from "./HHTopBar";
 
-import LogoImg from "../img/hardhat_logos/Hardhat-logo.svg";
-import GithubLogo from "../img/assets/social/github.svg";
-import TwitterLogo from "../img/assets/social/twitter.svg";
-import DiscordLogo from "../img/assets/social/discord.svg";
+  import LogoImg from "../img/hardhat_logos/Hardhat-logo.svg";
+  import GithubLogo from "../img/assets/social/github.svg";
+  import TwitterLogo from "../img/assets/social/twitter.svg";
+  import DiscordLogo from "../img/assets/social/discord.svg";
 
-export default {
-  components: {
-    HHTopBar,
-    SidebarButton,
-    NavLinks,
-    SearchBox,
-    AlgoliaSearchBox,
-  },
+  export default {
+    components: {
+      HHTopBar,
+      SidebarButton,
+      NavLinks,
+      SearchBox,
+      AlgoliaSearchBox,
+    },
 
   data() {
     return {

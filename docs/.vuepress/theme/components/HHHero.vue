@@ -1,22 +1,22 @@
 <template lang="pug">
-header
-  section.hero.padded-container
-    .hero-text-wrapper
-      section.hero-text-container
-        span.top-hero-text Flexible. Extensible. Fast.
-        h1.hero-title Ethereum development environment for professionals
+  header
+    section.hero.padded-container
+      .hero-text-wrapper
+        section.hero-text-container
+          span.top-hero-text Flexible. Extensible. Fast.
+          h1.hero-title Ethereum development environment for professionals
 
-        HHCta.mb-hidden(text="Get started", link="/getting-started/")
+          HHCta(text="Get started", link="/getting-started/")
 
-    ClientOnly
-      component(v-if="HHAnimation", :is="HHAnimation")
-
-    .hero-cta-link.mb-show
-      HHCta.mb-show(text="Get started", link="/getting-started/")
+      ClientOnly
+        component(v-if="HHAnimation", :is="HHAnimation")
+        component(v-if="HHMobileAnimation", :is="HHMobileAnimation")
+        
 </template>
 
 <script>
 import HHCta from "./HHCta";
+import HHMobileAnimation from "./HHMobileAnimation";
 
 // We preload these images as soon as this component is laoded
 import CachedBmp from "../img/animated_hero/CachedBmp_9.png";
@@ -31,11 +31,14 @@ export default {
   name: "HHHero",
   components: { HHCta },
   data() {
-    return { HHAnimation: null };
+    return { HHAnimation: null , HHMobileAnimation: null};
   },
   mounted() {
     import("./HHAnimation").then((module) => {
       this.HHAnimation = module.default;
+    });
+    import("./HHMobileAnimation").then((module) => {
+      this.HHMobileAnimation = module.default;
     });
   },
 };
@@ -53,7 +56,8 @@ function preloadImage(url) {
   image.src = url;
 
   window.__preloadedImages.push(image);
-}
+};
+
 </script>
 
 <style lang="stylus" scoped>
@@ -63,20 +67,10 @@ header
   flex-direction column
   min-height 560px
   max-height 960px
+  position relative
+  z-index 100
   @media screen and (max-width 1000px)
-    margin-bottom 60px
-    max-height 70vh
-    min-height 640px
-  @media (max-width: 660px)
-    max-height 620px
-    margin-bottom 0
-  @media (min-width: 661px) and (max-width 999px)
-    height 60vh
-    max-height 600px
-  @media (min-width: 1000px) and (max-width: 1040px)
-    height 70vh
-    max-height 800px
-
+    height 100vh
 .hero
   padding 0
   position relative
@@ -89,16 +83,12 @@ header
     padding 0 20px
     flex-direction column
     justify-content space-between
-    max-height calc(100vh - 150px)
-    transform scale(1)
-    max-height 60vh
-  @media (max-width: 740px)
-    max-height 620px
+    height 100% !important
+    max-height unset !important
   @media (min-width: 1000px) and (max-width: 1040px)
     max-height 1020px
 
   .hero-text-wrapper
-    // height calc(100vh - 10rem)
     display flex
     flex-direction column
     justify-content center
@@ -106,12 +96,12 @@ header
       display block
       width 100%
       height auto
-
     .hero-text-container
       display inline-block
       max-width 45rem
+      margin-bottom auto
+      margin-top 64px;
       @media screen and (max-width 1000px)
-        text-align center
         margin 0 auto
         display block
 
@@ -121,9 +111,10 @@ header
         font-size 32px
         color #0A0A0A
         @media (max-width: 1000px)
-          font-size 18px
+          font-size 25px
           margin-bottom 12px
           margin-top 30px
+          text-align left
         @media (max-width: 670px)
           margin-bottom 16px
 
@@ -134,13 +125,19 @@ header
         margin-bottom 5rem
         font-weight 100
         @media (max-width: 1000px)
-          font-size 39px
+          font-size 40px
           line-height 42px
           margin-bottom 0
+          text-align left
 
   .cta-link
-    padding 20px
+    padding 0px 28px
+    height 48px
+    line-height 48px
+    width 135px
+    text-align center
     @media (max-width: 1000px)
+      margin-top 48px
       &:after
         content ''
         position absolute

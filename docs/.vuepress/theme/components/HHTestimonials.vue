@@ -23,7 +23,7 @@
               )
               .user-details-wrapper
                 .user-name
-                  span {{testimonial.name}} 
+                  span {{testimonial.name}}, 
                   br.mb-show
                   span {{testimonial.position}}  at  {{testimonial.company}}
                 img(:src="testimonial.logo_url")
@@ -119,167 +119,148 @@ export default {
 @import "../styles/util/variables.styl";
 
 #testimonials
-  margin-top 60px
-
-
+  margin-top 32px
+  .slick-list
+      @media (max-width: 1000px)
+          height 520px
+      @media (max-width: 670px)
+          height 680px
   .padded-container
-    position relative
-    padding 0
-
-    &:after,
-    &:before
-      content ''
-      border 0.1rem solid #D4D4D4
-      width 5rem
-      position absolute
-      top 0
+      position relative
+      padding 0
+      &:after,
+      &:before
+          content ''
+          border 0.1rem solid #C4C4C4
+          width 36px
+          position absolute
+          top 0
+          min-height $carousel-height
+          @media (max-width: 1000px)
+              display none
+              min-height $carousel-height-mb
+      &:after
+          left 0
+          border-right none
+      &:before
+          right 0
+          border-left none
+  .VueCarousel-inner
+      height fit-content
       min-height $carousel-height
       @media (max-width: 1000px)
-        display none
-        min-height $carousel-height-mb
-
-    &:after
-      left 0
-      border-right none
-
-    &:before
-      right 0
-      border-left none
-
-  .VueCarousel-navigation-button
-    width 3rem
-    height 3rem
-    background white
-    border none
-    box-shadow 0 2px 6px lightgray
-    border-radius 100px
-    position absolute
-    top calc(50% - 3rem)
-    cursor pointer
-    transition 0.2s ease-in-out all
-    transform translateY(0px)
-
-    &:hover
-      transform translateY(-5px)
-      box-shadow 0 8px 20px alpha(lightgray, .5)
-
-    @media (max-width: 1000px)
-      top 40px
-      transform scale(.7)
-
-    &.VueCarousel-navigation-prev
-      left -5rem
-      @media (max-width: 1000px)
-        left 5px
-      @media (min-width: 1000px) and (max-width: 1040px)
-        left -66px
-
-    &.VueCarousel-navigation-next
-      right -5rem
-      @media (max-width: 1000px)
-        right 5px
-      @media (min-width: 1000px) and (max-width: 1040px)
-        right -66px
-
-      img
-        transform rotate(180deg)
-
-    &:focus
-      outline none
-
-    &:active
-      background whitesmoke
-
-  .testimonial-slider
-    height fit-content
-    min-height $carousel-height
-    @media (max-width: 1000px)
-      min-height $carousel-height-mb
-
-    .testimonial
-      @media (max-width: 1000px)
-        height 520px
-      @media (max-width: 670px)
-        height 680px
-      position relative
-      padding 2.5rem
-      height $carousel-height
-      @media (max-width: 1000px)
-        padding 0
-        height $carousel-height-mb
-
-      &:focus
-        outline 0
-
-  .testimonial
-    display flex
-    @media (max-width: 1000px)
-      flex-direction column
-
-    .user-column
-      width 30%
-      display flex
-      flex-direction column
-      justify-content center
-      padding 2rem 1rem 0
-      @media (max-width: 1000px)
-        width 100%
-        flex-direction row
-        padding 0
-
-      .user-picture
-        width 150px
-        height 150px
-        background-size cover
-        background-position center
-        background-repeat no-repeat
-        margin 0 auto 1rem
+          min-height $carousel-height-mb
+      .VueCarousel-slide
+          position relative
+          padding 2.5rem
+          height $carousel-height
+          @media (max-width: 1000px)
+              padding 0
+              height $carousel-height-mb
+          &:focus
+              outline 0
+  .VueCarousel-navigation
+    .VueCarousel-navigation-button
+        width 3rem
+        height 3rem
+        background white
+        border none
+        box-shadow 0 2px 6px #C4C4C4
         border-radius 100px
+        position absolute
+        top calc(50% - 3rem)
+        cursor pointer
+        transition 0.2s ease-in-out all
+        &:hover
+            box-shadow 0 8px 20px alpha(#C4C4C4, .5)
         @media (max-width: 1000px)
-          margin 0
-          width 110px
-          height 110px
-
-      .user-details-wrapper
-        @media (max-width: 1000px)
-          margin-left 1rem
+            top 40px
+            transform scale(.7)
+        &.VueCarousel-navigation-prev
+            left -5rem
+            @media (max-width: 1000px)
+                left 5px
+            @media (min-width: 1000px) and (max-width: 1040px)
+                left -66px
+        &.VueCarousel-navigation-next
+            right -5rem
+            @media (max-width: 1000px)
+                right 5px
+            @media (min-width: 1000px) and (max-width: 1040px)
+                right -66px
+            img
+                transform rotate(180deg)
+        &:focus
+            outline none
+        &:active
+            background whitesmoke
+  .testimonial
+      display flex
+      @media (max-width: 1000px)
+          flex-direction column
+      .user-column
+          width 30%
           display flex
           flex-direction column
           justify-content center
-
-        .user-name
-          text-align center
-          font-size 15px
-          color #6E6F70
-          font-family 'ChivoBold'
-          font-weight 100
-          line-height 24px
+          padding 2rem 1rem 0
           @media (max-width: 1000px)
-            text-align left
-            margin-bottom 10px
+              width 100%
+              flex-direction row
+              padding 0
+          .user-picture
+              width 154px
+              height 154px
+              background-size cover
+              background-position center 
+              background-repeat no-repeat
+              margin 0 auto
+              border-radius 100px
+              @media (max-width: 1000px)
+                  margin 0
+                  width 110px
+                  height 110px
+          .user-details-wrapper
+              display flex
+              flex-direction column
+              align-items center
+              margin-top 32px
+              @media (max-width: 1000px)
+                  margin-left 1rem
+                  display flex
+                  flex-direction column
+                  justify-content center
+              .user-name
+                margin-bottom 24px
+                *
+                  text-align center
+                  font-size 15px
+                  color #0A0A0A, 100%
+                  font-family 'ChivoBold'
+                  line-height 24px
 
-        img
-          display block
-          margin 20px auto
-          max-height 40px
-          max-width 100px
+                @media (max-width: 1000px)
+                    text-align left
+                    margin-bottom 10px
+              img
+                  margin 20px auto
+                  max-height 40px
+                  max-width 100px
+                  @media (max-width: 1000px)
+                      margin 5px 0
+      .comment-column
+          width 70%
+          padding 1.5rem
+          display flex
+          flex-direction column
+          justify-content center
           @media (max-width: 1000px)
-            margin 5px 0
-
-    .comment-column
-      width 70%
-      padding 1.5rem
-      display flex
-      flex-direction column
-      justify-content center
-      @media (max-width: 1000px)
-        width 100%
-        padding 0 40px
-        margin-top 20px
-
-      p
-        color #6e6f70
-        line-height 28px
-        font-size 15px
-        font-family 'ChivoLight'
+              width 100%
+              padding 0 40px
+              margin-top 20px
+          p
+              color #0A0A0A
+              line-height 28px
+              font-size 15px
+              font-family 'ChivoLight'
 </style>
