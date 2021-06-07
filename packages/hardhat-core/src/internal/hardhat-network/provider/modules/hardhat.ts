@@ -237,7 +237,7 @@ export class HardhatModule {
   // hardhat_setStorageSlot
 
   private _setStorageSlotParams(params: any[]): [Buffer, BN, Buffer] {
-    const validatedParams = validateParams(
+    const [b, slotIndex, value] = validateParams(
       params,
       rpcAddress,
       rpcQuantity,
@@ -245,17 +245,17 @@ export class HardhatModule {
     );
 
     const MAX_WORD_VALUE = new BN(2).pow(new BN(256));
-    if (validatedParams[1].gt(MAX_WORD_VALUE)) {
+    if (slotIndex.gt(MAX_WORD_VALUE)) {
       throw new InvalidInputError("Storage key must not be greater than 2^256");
     }
 
-    if (validatedParams[2].length !== 32) {
+    if (value.length !== 32) {
       throw new InvalidInputError(
         "Storage value must be exactly 32 bytes long"
       );
     }
 
-    return validatedParams;
+    return [b, slotIndex, value];
   }
 
   private async _setStorageSlotAction(
