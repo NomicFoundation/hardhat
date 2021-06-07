@@ -776,7 +776,7 @@ describe("Hardhat module", function () {
             this.provider,
             "hardhat_setNonce",
             [DEFAULT_ACCOUNTS_ADDRESSES[0], "0x0"],
-            "New nonce must not be smaller than the existing nonce"
+            "New nonce (0) must not be smaller than the existing nonce (1)"
           );
         });
 

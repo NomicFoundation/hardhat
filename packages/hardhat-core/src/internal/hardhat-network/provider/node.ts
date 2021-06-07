@@ -968,7 +968,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     const account = await this._stateManager.getAccount(address);
     if (newNonce.lt(account.nonce)) {
       throw new InvalidInputError(
-        "New nonce must not be smaller than the existing nonce"
+        `New nonce (${newNonce.toString()}) must not be smaller than the existing nonce (${account.nonce.toString()})`
       );
     }
     account.nonce = newNonce;
