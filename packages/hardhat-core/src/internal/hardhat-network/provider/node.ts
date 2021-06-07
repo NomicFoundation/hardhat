@@ -754,9 +754,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       (await this.getLatestBlock()).header.number.toString()
     );
     await this._stateManager.setStateRoot(
-      irregularStateOrUndefined !== undefined
-        ? irregularStateOrUndefined
-        : snapshot.stateRoot
+      irregularStateOrUndefined ?? snapshot.stateRoot
     );
     this.setTimeIncrement(newOffset);
     this.setNextBlockTimestamp(snapshot.nextBlockTimestamp);
@@ -1600,9 +1598,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       block.header.number.toString()
     );
     return this._stateManager.setStateRoot(
-      irregularStateOrUndefined !== undefined
-        ? irregularStateOrUndefined
-        : block.header.stateRoot
+      irregularStateOrUndefined ?? block.header.stateRoot
     );
   }
 
