@@ -30,7 +30,7 @@ enum NetworkID {
   HECO_TESTNET = 256,
   // Fantom mainnet
   OPERA = 250,
-  //Optimistim
+  // Optimistim
   OPTIMISTIC_ETHEREUM = 10,
   OPTIMISTIC_KOVAN = 69,
 }
