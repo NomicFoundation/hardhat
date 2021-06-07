@@ -389,14 +389,14 @@ describe("Hardhat module", function () {
           await assertInvalidArgumentsError(
             this.provider,
             "hardhat_setBalance",
-            [DEFAULT_ACCOUNTS_ADDRESSES[0].toString(), "xyz"],
+            [DEFAULT_ACCOUNTS_ADDRESSES[0], "xyz"],
             'Errors encountered in param 1: Invalid value "xyz" supplied to : QUANTITY'
           );
         });
 
         it("should not reject valid argument types", async function () {
           await this.provider.send("hardhat_setBalance", [
-            DEFAULT_ACCOUNTS_ADDRESSES[0].toString(),
+            DEFAULT_ACCOUNTS_ADDRESSES[0],
             "0x0",
           ]);
         });
@@ -597,14 +597,14 @@ describe("Hardhat module", function () {
           await assertInvalidArgumentsError(
             this.provider,
             "hardhat_setCode",
-            [DEFAULT_ACCOUNTS_ADDRESSES[0].toString(), "xyz"],
+            [DEFAULT_ACCOUNTS_ADDRESSES[0], "xyz"],
             'Errors encountered in param 1: Invalid value "xyz" supplied to : DATA'
           );
         });
 
         it("should not reject valid argument types", async function () {
           await this.provider.send("hardhat_setCode", [
-            DEFAULT_ACCOUNTS_ADDRESSES[0].toString(),
+            DEFAULT_ACCOUNTS_ADDRESSES[0],
             "0xff",
           ]);
         });
@@ -612,12 +612,12 @@ describe("Hardhat module", function () {
         it("should result in modified code", async function () {
           const targetCode = "0x0123456789abcdef";
           await this.provider.send("hardhat_setCode", [
-            DEFAULT_ACCOUNTS_ADDRESSES[0].toString(),
+            DEFAULT_ACCOUNTS_ADDRESSES[0],
             targetCode,
           ]);
 
           const actualCode = await this.provider.send("eth_getCode", [
-            DEFAULT_ACCOUNTS_ADDRESSES[0].toString(),
+            DEFAULT_ACCOUNTS_ADDRESSES[0],
             "latest",
           ]);
 
@@ -648,7 +648,7 @@ describe("Hardhat module", function () {
 
         it("should, when setting code on an existing EOA, result in code that can actually be executed", async function () {
           await this.provider.send("hardhat_setCode", [
-            DEFAULT_ACCOUNTS_ADDRESSES[0].toString(),
+            DEFAULT_ACCOUNTS_ADDRESSES[0],
             `0x${contractNine.evm.deployedBytecode.object}`,
           ]);
 
@@ -749,14 +749,14 @@ describe("Hardhat module", function () {
           await assertInvalidArgumentsError(
             this.provider,
             "hardhat_setNonce",
-            [DEFAULT_ACCOUNTS_ADDRESSES[0].toString(), "xyz"],
+            [DEFAULT_ACCOUNTS_ADDRESSES[0], "xyz"],
             'Errors encountered in param 1: Invalid value "xyz" supplied to : QUANTITY'
           );
         });
 
         it("should not reject valid argument types", async function () {
           await this.provider.send("hardhat_setNonce", [
-            DEFAULT_ACCOUNTS_ADDRESSES[0].toString(),
+            DEFAULT_ACCOUNTS_ADDRESSES[0],
             "0x0",
           ]);
         });
@@ -882,11 +882,7 @@ describe("Hardhat module", function () {
           await assertInvalidArgumentsError(
             this.provider,
             "hardhat_setStorageSlot",
-            [
-              DEFAULT_ACCOUNTS_ADDRESSES[0].toString(),
-              "xyz",
-              numberToRpcQuantity(99),
-            ],
+            [DEFAULT_ACCOUNTS_ADDRESSES[0], "xyz", numberToRpcQuantity(99)],
             'Errors encountered in param 1: Invalid value "xyz" supplied to : QUANTITY'
           );
         });
@@ -897,7 +893,7 @@ describe("Hardhat module", function () {
             this.provider,
             "hardhat_setStorageSlot",
             [
-              DEFAULT_ACCOUNTS_ADDRESSES[0].toString(),
+              DEFAULT_ACCOUNTS_ADDRESSES[0],
               numberToRpcQuantity(MAX_WORD_VALUE.add(new BN(1))),
               "0xff",
             ],
@@ -911,7 +907,7 @@ describe("Hardhat module", function () {
               this.provider,
               "hardhat_setStorageSlot",
               [
-                DEFAULT_ACCOUNTS_ADDRESSES[0].toString(),
+                DEFAULT_ACCOUNTS_ADDRESSES[0],
                 numberToRpcQuantity(0),
                 `0x${"ff".repeat(badInputLength)}`,
               ],
@@ -924,7 +920,7 @@ describe("Hardhat module", function () {
 
         it("should not reject valid argument types", async function () {
           await this.provider.send("hardhat_setStorageSlot", [
-            DEFAULT_ACCOUNTS_ADDRESSES[0].toString(),
+            DEFAULT_ACCOUNTS_ADDRESSES[0],
             numberToRpcQuantity(0),
             `0x${"ff".repeat(32)}`,
           ]);
