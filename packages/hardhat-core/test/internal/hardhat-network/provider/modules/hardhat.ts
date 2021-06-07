@@ -961,9 +961,6 @@ describe("Hardhat module", function () {
               function getValue(uint256 slot) public view returns (uint256 result) {
                 assembly { result := sload(slot) }
               }
-              function setValue(uint256 slot, uint256 val) public {
-                assembly { sstore(slot, val) }
-              }
             }`
           );
           const contractAddress = await deployContract(
