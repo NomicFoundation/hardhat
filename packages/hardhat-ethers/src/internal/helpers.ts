@@ -47,30 +47,40 @@ export async function getSigner(
 export function getContractFactory(
   hre: HardhatRuntimeEnvironment,
   name: string,
-  signerOrOptions?: ethers.Signer | FactoryOptions
+  signerOrOptions?: ethers.Signer | string | FactoryOptions
 ): Promise<ethers.ContractFactory>;
 
 export function getContractFactory(
   hre: HardhatRuntimeEnvironment,
   abi: any[],
   bytecode: ethers.utils.BytesLike,
-  signer?: ethers.Signer
+  signer?: ethers.Signer | string
 ): Promise<ethers.ContractFactory>;
 
 export async function getContractFactory(
   hre: HardhatRuntimeEnvironment,
   nameOrAbi: string | any[],
   bytecodeOrFactoryOptions?:
-    | (ethers.Signer | FactoryOptions)
+    | (ethers.Signer | string | FactoryOptions)
     | ethers.utils.BytesLike,
-  signer?: ethers.Signer
+  signer?: ethers.Signer | string
 ) {
   if (typeof nameOrAbi === "string") {
+    let signerOrOptions = bytecodeOrFactoryOptions as ethers.Signer | string | FactoryOptions | undefined;
+
+    if (typeof signerOrOptions === "string") {
+      signerOrOptions = await getSigner(hre, signerOrOptions);
+    }
+
     return getContractFactoryByName(
       hre,
       nameOrAbi,
-      bytecodeOrFactoryOptions as ethers.Signer | FactoryOptions | undefined
+      signerOrOptions
     );
+  }
+
+  if (typeof signer === "string") {
+    signer = await getSigner(hre, signer);
   }
 
   return getContractFactoryByAbiAndBytecode(
@@ -263,9 +273,13 @@ export async function getContractAt(
   hre: HardhatRuntimeEnvironment,
   nameOrAbi: string | any[],
   address: string,
-  signer?: ethers.Signer
+  signer?: ethers.Signer | string
 ) {
   const { Contract } = require("ethers") as typeof ethers;
+
+  if (typeof signer === "string") {
+    signer = await getSigner(hre, signer);
+  }
 
   if (typeof nameOrAbi === "string") {
     const artifact = await hre.artifacts.readArtifact(nameOrAbi);
