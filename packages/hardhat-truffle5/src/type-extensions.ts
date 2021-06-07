@@ -9,12 +9,14 @@ declare module "hardhat/types/artifacts" {
 }
 
 declare module "hardhat/types/runtime" {
+  type Describe = (
+    description: string,
+    definition: (accounts: string[]) => any
+  ) => void;
+
   export interface HardhatRuntimeEnvironment {
     assert: typeof assert;
     expect: typeof expect;
-    contract: (
-      description: string,
-      definition: (accounts: string[]) => any
-    ) => void;
+    contract: Describe & Record<"only" | "skip", Describe>;
   }
 }
