@@ -85,133 +85,129 @@
 
 <script>
     import $ from 'jquery';
-    const onToolPress = (e) => {
-        const toolElement = e.currentTarget;
-        const selectedTool = $(toolElement).attr('id');
-        console.log(selectedTool)
-        updateSelectedTool(selectedTool);
-        if (!$(toolElement).hasClass('active')) {
-            $('.active').removeClass('active');
-            $(toolElement).addClass('active');
-        }
-    };
 
     export default {
         name: "HHTools",
         data() {
             return {
-                currentTool: 'runner'
+                currentTool: 'runner',
+                tagChangeInterval: null,
+                toolsData: {
+                    runner: {
+                        title: 'Runner',
+                        details: 'Task runner that ties compiling, testing and everything else together through a simple and flexible architecture that is extended through a rich plugin ecosystem.',
+                        tags: ['compile', 'test', 'extend'],
+                        position: 'left'
+                    },
+                    ignition: {
+                        title: 'Ignition',
+                        details: 'Deployment system for structuring, automating and distributing smart contract deployment setups.',
+                        tags: ['deploy', 'distribute'],
+                        position: 'left'
+                    },
+                    network: {
+                        title: 'Network',
+                        details: 'Development network to locally deploy smart contracts. Packed with development features like Solidity console.log, stack traces, different mining modes and more.',
+                        tags: ['debug', 'deploy', 'simulate'],
+                        position: 'right'
+                    },
+                    solidity: {
+                        title: 'Solidity',
+                        details: 'Visual Studio Code extension for Solidity editing assistance. Code navigation, refactoring and type-smart suggestions.',
+                        tags: ['code', 'refactor'],
+                        position: 'right'
+                    },
+                }
             }
         },
+        mounted() {
+            this.updateSelectedTool('runner');
+        },
         methods: {
-            onToolPress
+            updateSelectedTool(selectedTool) {
+                let currentTag = 0;
+                let tags = this.toolsData[selectedTool].tags;
+                let totalTags = tags.length;
+                $('.tool-data').attr('id', selectedTool);
+
+                const setElementTransition = (elClass, elHiddenClass, innerHTML, targetClass) => {
+                    $(`.${elClass}`).addClass(elHiddenClass);
+                    setTimeout(() => {
+                        if (targetClass) {
+                            $(`.${targetClass}`).html(innerHTML);
+                        } else {
+                            $(`.${elClass}`).html(innerHTML);
+                        }
+                        setTimeout(() => {
+                            let width = $('.tool-tags').width();
+                            $('.tool-tags-wrapper').css({
+                                width: width + 32 + 'px'
+                            });
+                            $(`.${elClass}`).removeClass(elHiddenClass);
+                        }, 100);
+                    }, 100);
+                };
+
+                setElementTransition(
+                    'tool-title', 
+                    'tool-hidden', 
+                    this.toolsData[selectedTool].title);
+
+                setElementTransition(
+                    'tool-tags-wrapper', 
+                    'tags-wrapper-hidden', 
+                    this.toolsData[selectedTool].tags[0], 
+                    'tool-tags');
+
+                setElementTransition(
+                    'tool-description', 
+                    'description-hidden', 
+                    this.toolsData[selectedTool].details);
+
+                const startTagAnimation = () => {
+                    if (currentTag < totalTags - 1) {
+                        currentTag += 1;
+                    } else {
+                        currentTag = 0;
+                    };
+
+                    $('.tool-tags').addClass('tag-hidden');
+                    let tagArray = [];
+                    for (let i = 0; i < tags[currentTag].length; i++) {
+                        tagArray.push(tags[currentTag][i])
+                    };
+
+                    setTimeout(() => {
+                        $('.tool-tags').html(
+                            tagArray.map((character, i) => {
+                                return (`<span class="character" style="animation-delay:${i / 15}s">${character}</span>`)
+                            })
+                        );
+                        let width = $('.tool-tags').width();
+                        $('.tool-tags-wrapper').css({
+                            width: width + 32 + 'px'
+                        });
+                    }, 100);
+
+                    setTimeout(() => {
+                        $('.tool-tags').removeClass('tag-hidden');
+                    }, 200);
+                };
+
+                clearInterval(this.tagChangeInterval);
+                this.tagChangeInterval = setInterval(startTagAnimation, 1500);
+            },
+            onToolPress(e) {
+                const toolElement = e.currentTarget;
+                const selectedTool = $(toolElement).attr('id');
+                this.updateSelectedTool(selectedTool);
+                if (!$(toolElement).hasClass('active')) {
+                    $('.active').removeClass('active');
+                    $(toolElement).addClass('active');
+                }
+            }
         }
     };
-
-
-    const toolsData = {
-        runner: {
-            title: 'Runner',
-            details: 'Task runner that ties compiling, testing and everything else together through a simple and flexible architecture that is extended through a rich plugin ecosystem.',
-            tags: ['compile', 'test', 'extend'],
-            position: 'left'
-        },
-        ignition: {
-            title: 'Ignition',
-            details: 'Deployment system for structuring, automating and distributing smart contract deployment setups.',
-            tags: ['deploy', 'distribute'],
-            position: 'left'
-        },
-        network: {
-            title: 'Network',
-            details: 'Development network to locally deploy smart contracts. Packed with development features like Solidity console.log, stack traces, different mining modes and more.',
-            tags: ['debug', 'deploy', 'simulate'],
-            position: 'right'
-        },
-        solidity: {
-            title: 'Solidity',
-            details: 'Visual Studio Code extension for Solidity editing assistance. Code navigation, refactoring and type-smart suggestions.',
-            tags: ['code', 'refactor'],
-            position: 'right'
-        },
-    };
-        
-    let tagChangeInterval;
-    const updateSelectedTool = (selectedTool) => {
-        let currentTag = 0;
-        let tags = toolsData[selectedTool].tags;
-        let totalTags = tags.length;
-        $('.tool-data').attr('id', selectedTool);
-
-        const setElementTransition = (elClass, elHiddenClass, innerHTML, targetClass) => {
-            $(`.${elClass}`).addClass(elHiddenClass);
-            setTimeout(() => {
-                if (targetClass) {
-                    $(`.${targetClass}`).html(innerHTML);
-                } else {
-                    $(`.${elClass}`).html(innerHTML);
-                }
-                setTimeout(() => {
-                    let width = $('.tool-tags').width();
-                    $('.tool-tags-wrapper').css({
-                        width: width + 32 + 'px'
-                    });
-                    $(`.${elClass}`).removeClass(elHiddenClass);
-                }, 100);
-            }, 100);
-        };
-
-        setElementTransition(
-            'tool-title', 
-            'tool-hidden', 
-            toolsData[selectedTool].title);
-
-        setElementTransition(
-            'tool-tags-wrapper', 
-            'tags-wrapper-hidden', 
-            toolsData[selectedTool].tags[0], 
-            'tool-tags');
-
-        setElementTransition(
-            'tool-description', 
-            'description-hidden', 
-            toolsData[selectedTool].details);
-
-        const startTagAnimation = () => {
-            if (currentTag < totalTags - 1) {
-                currentTag += 1;
-            } else {
-                currentTag = 0;
-            };
-
-            $('.tool-tags').addClass('tag-hidden');
-            let tagArray = [];
-            for (let i = 0; i < tags[currentTag].length; i++) {
-                tagArray.push(tags[currentTag][i])
-            };
-
-            setTimeout(() => {
-                $('.tool-tags').html(
-                    tagArray.map((character, i) => {
-                        return (`<span class="character" style="animation-delay:${i / 15}s">${character}</span>`)
-                    })
-                );
-                let width = $('.tool-tags').width();
-                $('.tool-tags-wrapper').css({
-                    width: width + 32 + 'px'
-                });
-            }, 100);
-
-            setTimeout(() => {
-                $('.tool-tags').removeClass('tag-hidden');
-            }, 200);
-        };
-
-        clearInterval(tagChangeInterval);
-        tagChangeInterval = setInterval(startTagAnimation, 1500);
-    };
-
-    updateSelectedTool('runner');
 </script>
 
 <style lang="stylus">
