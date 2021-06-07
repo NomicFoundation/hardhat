@@ -255,7 +255,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   private readonly _consoleLogger: ConsoleLogger = new ConsoleLogger();
   private _failedStackTraces = 0;
 
-  private _irregularStatesByBlockNum: Map<string, Buffer> = new Map(); // blockNumber as BN.toString() => state root
+  private _irregularStatesByBlockNumber: Map<string, Buffer> = new Map(); // blockNumber as BN.toString() => state root
 
   private constructor(
     private readonly _vm: VM,
@@ -713,10 +713,12 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       txPoolSnapshotId: this._txPool.snapshot(),
       blockTimeOffsetSeconds: this.getTimeIncrement(),
       nextBlockTimestamp: this.getNextBlockTimestamp(),
-      irregularStatesByBlockNum: this._irregularStatesByBlockNum,
+      irregularStatesByBlockNumber: this._irregularStatesByBlockNumber,
     };
 
-    this._irregularStatesByBlockNum = new Map(this._irregularStatesByBlockNum);
+    this._irregularStatesByBlockNumber = new Map(
+      this._irregularStatesByBlockNumber
+    );
 
     this._snapshots.push(snapshot);
     this._nextSnapshotId += 1;
@@ -747,8 +749,8 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     // Note: There's no need to copy the maps here, as snapshots can only be
     // used once
     this._blockchain.deleteLaterBlocks(snapshot.latestBlock);
-    this._irregularStatesByBlockNum = snapshot.irregularStatesByBlockNum;
-    const irregularStateOrUndefined = this._irregularStatesByBlockNum.get(
+    this._irregularStatesByBlockNumber = snapshot.irregularStatesByBlockNumber;
+    const irregularStateOrUndefined = this._irregularStatesByBlockNumber.get(
       (await this.getLatestBlock()).header.number.toString()
     );
     await this._stateManager.setStateRoot(
@@ -951,7 +953,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     const account = await this._stateManager.getAccount(address);
     account.balance = newBalance;
     await this._stateManager.putAccount(address, account);
-    this._irregularStatesByBlockNum.set(
+    this._irregularStatesByBlockNumber.set(
       (await this.getLatestBlock()).header.number.toString(),
       await this._stateManager.getStateRoot()
     );
@@ -1581,7 +1583,9 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
   private async _setBlockContext(block: Block): Promise<void> {
     if (this._stateManager instanceof ForkStateManager) {
-      if (this._irregularStatesByBlockNum.has(block.header.number.toString())) {
+      if (
+        this._irregularStatesByBlockNumber.has(block.header.number.toString())
+      ) {
         throw new InternalError(
           "Irregular states are not supported on a forked chain"
         );
@@ -1592,7 +1596,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       );
     }
 
-    const irregularStateOrUndefined = this._irregularStatesByBlockNum.get(
+    const irregularStateOrUndefined = this._irregularStatesByBlockNumber.get(
       block.header.number.toString()
     );
     return this._stateManager.setStateRoot(
