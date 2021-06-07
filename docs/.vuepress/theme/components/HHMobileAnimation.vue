@@ -42,52 +42,48 @@ import "../img/animated_hero_mobile/Hardhat-mobile_HTML5 Canvas.js";
 // Finally, as this is a SPA, we properly remove all the listeners the animation
 // sets, or it will leak as our users navigate the site.
 
-const initMobileHero = () => {
-  let mobile_canvas = document.getElementById("mobile_canvas");
-  let mobile_anim_container = document.getElementById("mobile_animation_container");
-  let mobile_dom_overlay_container = document.getElementById("mobile_dom_overlay_container");
-  let fnStartAnimation;
-
-  const AdobeAn = window.AdobeAn;
-  const compID = "77EE05FCC4694DC9B740761F53D7E669"
-  const comp = AdobeAn.getComposition(compID);
-  let lib_mobile = comp.getLibrary();
-  var ss=comp.getSpriteSheet();
-  let exportRoot = new lib_mobile.Hardhatmobilev4HTML5Canvas2lib();
-  let stage = new lib_mobile.Stage(mobile_canvas);	
-  //Registers the "tick" event listener.
-  fnStartAnimation = function() {
-    stage.addChild(exportRoot);
-    createjs.Ticker.framerate = lib_mobile.properties.fps;
-    createjs.Ticker.addEventListener("tick", stage);
-  }	    
-  //Code to support hidpi screens and responsive scaling.
-  AdobeAn.makeResponsive(
-    false,
-    "both",
-    false,
-    1,
-    [mobile_canvas, mobile_anim_container],
-    stage
-  );	
-  AdobeAn.compositionLoaded(lib_mobile.properties.id);
-
-  fnStartAnimation();
-}
-
-
 export default {
   name: "HHMobileAnimation",
   mounted() {
-      initMobileHero();
-      window.addEventListener('scroll', this.handleScroll)
+    let mobile_canvas = document.getElementById("mobile_canvas");
+    let mobile_anim_container = document.getElementById("mobile_animation_container");
+    let mobile_dom_overlay_container = document.getElementById("mobile_dom_overlay_container");
+    let fnStartAnimation;
+
+    if (typeof window !== 'undefined') {
+      const AdobeAn = window.AdobeAn;
+      const compID = "77EE05FCC4694DC9B740761F53D7E669"
+      const comp = AdobeAn.getComposition(compID);
+      let lib_mobile = comp.getLibrary();
+      var ss=comp.getSpriteSheet();
+      let exportRoot = new lib_mobile.Hardhatmobilev4HTML5Canvas2lib();
+      let stage = new lib_mobile.Stage(mobile_canvas);	
+      //Registers the "tick" event listener.
+      fnStartAnimation = function() {
+        stage.addChild(exportRoot);
+        createjs.Ticker.framerate = lib_mobile.properties.fps;
+        createjs.Ticker.addEventListener("tick", stage);
+      }	    
+      //Code to support hidpi screens and responsive scaling.
+      AdobeAn.makeResponsive(
+        false,
+        "both",
+        false,
+        1,
+        [mobile_canvas, mobile_anim_container],
+        stage
+      );	
+      AdobeAn.compositionLoaded(lib_mobile.properties.id);
+
+      fnStartAnimation();
+    }
+    window.addEventListener('scroll', this.handleScroll)
   },
   destroyed() {
     window.removeEventListener('scroll', this.handleScroll);
   },
   methods: {
     handleScroll(e) {
-      console.log(window.scrollY)
       if (window.scrollY > 0) {
         console.log('+')
         this.$refs.mobileAnimationContainer.classList.add('characters-hidden');
@@ -104,6 +100,7 @@ export default {
 <style lang="stylus" scoped>
 .hero-image-wrapper
   display none
+  pointer-events none
   @media (max-width: 1000px)
     position fixed
     bottom 0
