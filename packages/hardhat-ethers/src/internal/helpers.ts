@@ -2,6 +2,7 @@ import type { ethers } from "ethers";
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import {
   Artifact,
+  Artifacts,
   HardhatRuntimeEnvironment,
   NetworkConfig,
 } from "hardhat/types";
@@ -47,7 +48,8 @@ export async function getSigner(
 export function getContractFactory(
   hre: HardhatRuntimeEnvironment,
   name: string,
-  signerOrOptions?: ethers.Signer | FactoryOptions
+  signerOrOptions?: ethers.Signer | FactoryOptions,
+  readArtifact?: Artifacts["readArtifact"]
 ): Promise<ethers.ContractFactory>;
 
 export function getContractFactory(
@@ -63,13 +65,14 @@ export async function getContractFactory(
   bytecodeOrFactoryOptions?:
     | (ethers.Signer | FactoryOptions)
     | ethers.utils.BytesLike,
-  signer?: ethers.Signer
+  signerOrReadArtifact?: ethers.Signer | Artifacts["readArtifact"]
 ) {
   if (typeof nameOrAbi === "string") {
     return getContractFactoryByName(
       hre,
       nameOrAbi,
-      bytecodeOrFactoryOptions as ethers.Signer | FactoryOptions | undefined
+      bytecodeOrFactoryOptions as ethers.Signer | FactoryOptions | undefined,
+      signerOrReadArtifact as Artifacts["readArtifact"]
     );
   }
 
@@ -77,7 +80,7 @@ export async function getContractFactory(
     hre,
     nameOrAbi,
     bytecodeOrFactoryOptions as ethers.utils.BytesLike,
-    signer
+    signerOrReadArtifact as ethers.Signer
   );
 }
 
@@ -95,9 +98,10 @@ function isFactoryOptions(
 async function getContractFactoryByName(
   hre: HardhatRuntimeEnvironment,
   contractName: string,
-  signerOrOptions?: ethers.Signer | FactoryOptions
+  signerOrOptions?: ethers.Signer | FactoryOptions,
+  readArtifact = hre.artifacts.readArtifact
 ) {
-  const artifact = await hre.artifacts.readArtifact(contractName);
+  const artifact = await readArtifact(contractName);
 
   let libraries: Libraries = {};
   let signer: ethers.Signer | undefined;
