@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { BN, intToHex } from "ethereumjs-util";
+import { BN } from "ethereumjs-util";
 // tslint:disable-next-line:no-implicit-dependencies
 import { ethers } from "ethers";
 import sinon from "sinon";
@@ -446,7 +446,7 @@ describe("Hardhat module", function () {
           // Act: Set the new balance.
           await this.provider.send("hardhat_setBalance", [
             DEFAULT_ACCOUNTS_ADDRESSES[0],
-            intToHex(99),
+            numberToRpcQuantity(99),
           ]);
 
           // Assert: Ensure state root hasn't changed.
@@ -794,7 +794,7 @@ describe("Hardhat module", function () {
           const targetNonce = 99;
           await this.provider.send("hardhat_setNonce", [
             DEFAULT_ACCOUNTS_ADDRESSES[0],
-            intToHex(targetNonce),
+            numberToRpcQuantity(targetNonce),
           ]);
 
           // Assert: Ensure nonce got set.
@@ -823,7 +823,7 @@ describe("Hardhat module", function () {
           // Act: Set the new nonce.
           await this.provider.send("hardhat_setNonce", [
             DEFAULT_ACCOUNTS_ADDRESSES[0],
-            intToHex(99),
+            numberToRpcQuantity(99),
           ]);
 
           // Assert: Ensure state root hasn't changed.
@@ -848,7 +848,7 @@ describe("Hardhat module", function () {
           const targetNonce = 99;
           await this.provider.send("hardhat_setNonce", [
             DEFAULT_ACCOUNTS_ADDRESSES[0],
-            intToHex(targetNonce),
+            numberToRpcQuantity(targetNonce),
           ]);
 
           const txHash = await this.provider.send("eth_sendTransaction", [
@@ -873,7 +873,7 @@ describe("Hardhat module", function () {
           await assertInvalidArgumentsError(
             this.provider,
             "hardhat_setStorageSlot",
-            ["0x1234", intToHex(0), intToHex(99)],
+            ["0x1234", numberToRpcQuantity(0), numberToRpcQuantity(99)],
             'Errors encountered in param 0: Invalid value "0x1234" supplied to : ADDRESS'
           );
         });
@@ -882,7 +882,11 @@ describe("Hardhat module", function () {
           await assertInvalidArgumentsError(
             this.provider,
             "hardhat_setStorageSlot",
-            [DEFAULT_ACCOUNTS_ADDRESSES[0].toString(), "xyz", intToHex(99)],
+            [
+              DEFAULT_ACCOUNTS_ADDRESSES[0].toString(),
+              "xyz",
+              numberToRpcQuantity(99),
+            ],
             'Errors encountered in param 1: Invalid value "xyz" supplied to : QUANTITY'
           );
         });
@@ -908,7 +912,7 @@ describe("Hardhat module", function () {
               "hardhat_setStorageSlot",
               [
                 DEFAULT_ACCOUNTS_ADDRESSES[0].toString(),
-                intToHex(0),
+                numberToRpcQuantity(0),
                 `0x${"ff".repeat(badInputLength)}`,
               ],
               "Storage value must be exactly 32 bytes long"
@@ -919,7 +923,7 @@ describe("Hardhat module", function () {
         it("should not reject valid argument types", async function () {
           await this.provider.send("hardhat_setStorageSlot", [
             DEFAULT_ACCOUNTS_ADDRESSES[0].toString(),
-            intToHex(0),
+            numberToRpcQuantity(0),
             `0x${"ff".repeat(32)}`,
           ]);
         });
@@ -929,13 +933,13 @@ describe("Hardhat module", function () {
           const targetStorageValue = 99;
           await this.provider.send("hardhat_setStorageSlot", [
             DEFAULT_ACCOUNTS_ADDRESSES[0],
-            intToHex(0),
+            numberToRpcQuantity(0),
             `0x${new BN(targetStorageValue).toString(16, 64)}`,
           ]);
 
           const resultingStorageValue = await this.provider.send(
             "eth_getStorageAt",
-            [DEFAULT_ACCOUNTS_ADDRESSES[0], intToHex(0), "latest"]
+            [DEFAULT_ACCOUNTS_ADDRESSES[0], numberToRpcQuantity(0), "latest"]
           );
 
           assert.equal(resultingStorageValue, targetStorageValue);
@@ -969,7 +973,7 @@ describe("Hardhat module", function () {
           // Act: Modify the value in the existing storage slot.
           await this.provider.send("hardhat_setStorageSlot", [
             contractAddress,
-            intToHex(0),
+            numberToRpcQuantity(0),
             `0x${new BN(10).toString(16, 64)}`,
           ]);
 
@@ -1007,7 +1011,7 @@ describe("Hardhat module", function () {
           // Act: Set the new storage value.
           await this.provider.send("hardhat_setStorageSlot", [
             DEFAULT_ACCOUNTS_ADDRESSES[0],
-            intToHex(0),
+            numberToRpcQuantity(0),
             `0x${"ff".repeat(32)}`,
           ]);
 
