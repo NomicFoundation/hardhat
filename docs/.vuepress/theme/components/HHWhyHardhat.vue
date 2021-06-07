@@ -73,7 +73,7 @@
           .columns-container
             .column.link-left-space
             .column
-              HHCta(text="Get started with TypeScript", link="/guides/typescript.html")
+              HHCta(text="Get started in TypeScript", link="/guides/typescript.html")
               .bracket.left-bracket
       section#vibrant-community.section-content
         .columns-container.reverse
@@ -242,7 +242,7 @@
             height 190px !important
             bottom 0 !important
             background-image url('../img/mobile_images/Why Hardhat - 1 Mobile.svg')
-            margin-bottom 16px
+            margin-bottom -8px
         @media (min-width: 1000px) and (max-width: 1040px)
             transform scale(.9)
   #extend
@@ -335,7 +335,8 @@
                 @media screen and (max-width: 1000px)
                     padding 0 15px
                     font-size 18px
-                    margin 20px 0 !important
+                    margin 20px auto !important
+                    padding 0 8px
             a
                 margin-top 80px
                 background white
@@ -370,7 +371,8 @@
             width 400px !important
             background-size contain !important
             height 260px
-            bottom 50px
+            bottom 40px
+            left 24px !important
             transform translateX(-30px)
     &:before
         position absolute

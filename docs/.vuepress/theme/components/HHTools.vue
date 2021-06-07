@@ -225,7 +225,7 @@
             position relative
             @media (max-width: 1000px)
                 flex-direction column
-                height unset
+                height 690px
                 margin-bottom 8px
             &:before,
             &:after
@@ -312,11 +312,12 @@
                         color #0A0A0A
                         margin-bottom 24px
                         letter-spacing 4px
-                        font-weight 600 
-                        font-family 'ChivoLight'
+                        font-weight 200
+                        font-family 'Chivo'
                         @media (max-width: 1000px)
                             position absolute
                             left 24px
+                            font-size 20px
                     .left-tools-list
                         @media (max-width: 1000px)
                             width 100%
@@ -499,6 +500,8 @@
                         font-family 'ChivoLight'
                         @media (max-width: 1000px)
                             width 100%
+                            font-size 18px
+                            height 136px
                         &.description-hidden
                             opacity 0
                     .learn-more-link

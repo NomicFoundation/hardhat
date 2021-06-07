@@ -108,7 +108,7 @@ header
         font-size 32px
         color #0A0A0A
         @media (max-width: 1000px)
-          font-size 18px
+          font-size 25px
           margin-bottom 12px
           margin-top 30px
           text-align left
@@ -131,6 +131,8 @@ header
     padding 0px 28px
     height 48px
     line-height 48px
+    width 135px
+    text-align center
     @media (max-width: 1000px)
       margin-top 48px
       &:after
