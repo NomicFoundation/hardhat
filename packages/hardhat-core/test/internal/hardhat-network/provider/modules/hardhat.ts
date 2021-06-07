@@ -915,7 +915,9 @@ describe("Hardhat module", function () {
                 numberToRpcQuantity(0),
                 `0x${"ff".repeat(badInputLength)}`,
               ],
-              "Storage value must be exactly 32 bytes long"
+              `Storage value must be exactly 32 bytes long. Received 0x${"ff".repeat(
+                badInputLength
+              )}, which is ${badInputLength} bytes long.`
             );
           });
         }

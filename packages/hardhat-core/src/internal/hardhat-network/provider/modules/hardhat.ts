@@ -7,6 +7,7 @@ import {
   CompilerOutput,
 } from "../../../../types";
 import {
+  bufferToRpcData,
   rpcAddress,
   rpcData,
   rpcQuantity,
@@ -253,7 +254,9 @@ export class HardhatModule {
 
     if (value.length !== 32) {
       throw new InvalidInputError(
-        "Storage value must be exactly 32 bytes long"
+        `Storage value must be exactly 32 bytes long. Received ${bufferToRpcData(
+          value
+        )}, which is ${value.length} bytes long.`
       );
     }
 
