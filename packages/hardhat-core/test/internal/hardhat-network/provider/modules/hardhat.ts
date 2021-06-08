@@ -456,7 +456,7 @@ describe("Hardhat module", function () {
           assert.equal(newStateRoot, oldStateRoot);
         });
 
-        it("should get changed balance by block", async function () {
+        it("should get changed balance by block even after a new block is mined", async function () {
           // Arrange 1: Get current block number
           const currentBlockNumber = await this.provider.send(
             "eth_blockNumber"
@@ -705,6 +705,32 @@ describe("Hardhat module", function () {
           );
         });
 
+        it("should get changed code by block even after a new block is mined", async function () {
+          // Arrange 1: Get current block number
+          const currentBlockNumber = await this.provider.send(
+            "eth_blockNumber"
+          );
+
+          // Act 1: Set code on an account.
+          const code = `0x${contractNine.evm.deployedBytecode.object}`;
+          await this.provider.send("hardhat_setCode", [
+            DEFAULT_ACCOUNTS_ADDRESSES[0],
+            code,
+          ]);
+
+          // Act 2: Mine a block
+          await this.provider.send("evm_mine");
+
+          // Assert: Ensure code is still there.
+          assert.equal(
+            await this.provider.send("eth_getCode", [
+              DEFAULT_ACCOUNTS_ADDRESSES[0],
+              currentBlockNumber,
+            ]),
+            code
+          );
+        });
+
         it("should not result in a modified state root", async function () {
           // Arrange 1: Send a transaction, in order to ensure a pre-existing
           // state root.
@@ -866,6 +892,39 @@ describe("Hardhat module", function () {
             targetNonce
           );
         });
+
+        it("should get changed nonce by block even after a new block is mined", async function () {
+          // Arrange 1: Send a transaction, in order to ensure a non-zero nonce.
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              value: "0x100",
+            },
+          ]);
+
+          // Arrange 2: Get current block number.
+          const currentBlockNumber = await this.provider.send(
+            "eth_blockNumber"
+          );
+
+          // Act 1: Set the new nonce.
+          const targetNonce = 99;
+          await this.provider.send("hardhat_setNonce", [
+            DEFAULT_ACCOUNTS_ADDRESSES[0],
+            numberToRpcQuantity(targetNonce),
+          ]);
+
+          // Act 2: Mine a block
+          await this.provider.send("evm_mine");
+
+          // Assert: Ensure modified nonce has persisted.
+          const resultingNonce = await this.provider.send(
+            "eth_getTransactionCount",
+            [DEFAULT_ACCOUNTS_ADDRESSES[0], currentBlockNumber]
+          );
+          assert.equal(resultingNonce, targetNonce);
+        });
       });
 
       describe("hardhat_setStorageSlot", function () {
@@ -1015,6 +1074,35 @@ describe("Hardhat module", function () {
             await this.provider.send("eth_getBlockByNumber", ["latest", false])
           ).stateRoot;
           assert.equal(newStateRoot, oldStateRoot);
+        });
+
+        it("should have the storage modification persist even after a new block is mined", async function () {
+          // Arrange 1: Get current block number.
+          const currentBlockNumber = await this.provider.send(
+            "eth_blockNumber"
+          );
+
+          // Act 1: Modify storage
+          const targetStorageSlot = 1;
+          const targetStorageValue = 99;
+          await this.provider.send("hardhat_setStorageSlot", [
+            DEFAULT_ACCOUNTS_ADDRESSES[0],
+            numberToRpcQuantity(0),
+            `0x${new BN(targetStorageValue).toString(16, 64)}`,
+          ]);
+
+          // Act 2: Mine a block
+          await this.provider.send("evm_mine");
+
+          // Assert: Get storage by block
+          assert.equal(
+            await this.provider.send("eth_getStorageAt", [
+              DEFAULT_ACCOUNTS_ADDRESSES[0],
+              numberToRpcQuantity(0),
+              currentBlockNumber,
+            ]),
+            targetStorageValue
+          );
         });
       });
     });
