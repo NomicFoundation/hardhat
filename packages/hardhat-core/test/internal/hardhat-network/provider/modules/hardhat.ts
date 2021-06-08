@@ -986,7 +986,6 @@ describe("Hardhat module", function () {
         });
 
         it("should result in modified storage", async function () {
-          const targetStorageSlot = 1;
           const targetStorageValue = 99;
           await this.provider.send("hardhat_setStorageSlot", [
             DEFAULT_ACCOUNTS_ADDRESSES[0],
@@ -1083,7 +1082,6 @@ describe("Hardhat module", function () {
           );
 
           // Act 1: Modify storage
-          const targetStorageSlot = 1;
           const targetStorageValue = 99;
           await this.provider.send("hardhat_setStorageSlot", [
             DEFAULT_ACCOUNTS_ADDRESSES[0],
