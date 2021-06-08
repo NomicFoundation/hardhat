@@ -1,5 +1,28 @@
 import * as t from "io-ts";
 
+export function optionalOrNullable<TypeT, OutputT, InputT>(
+  codec: t.Type<TypeT, OutputT, InputT>,
+  name: string = `${codec.name} | undefined`
+): t.Type<TypeT | undefined, OutputT | undefined, InputT | undefined | null> {
+  return new t.Type(
+    name,
+    (u: unknown): u is TypeT | undefined =>
+      u === undefined || u === null || codec.is(u),
+    (i, c) => {
+      if (i === undefined || i === null) {
+        return t.success(undefined);
+      }
+      return codec.validate(i, c);
+    },
+    (a) => {
+      if (a === undefined || a === null) {
+        return undefined;
+      }
+      return codec.encode(a);
+    }
+  );
+}
+
 export function optional<TypeT, OutputT, InputT>(
   codec: t.Type<TypeT, OutputT, InputT>,
   name: string = `${codec.name} | undefined`
