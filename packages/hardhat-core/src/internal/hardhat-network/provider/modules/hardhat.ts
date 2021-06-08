@@ -238,7 +238,7 @@ export class HardhatModule {
   // hardhat_setStorageSlot
 
   private _setStorageSlotParams(params: any[]): [Buffer, BN, Buffer] {
-    const [b, slotIndex, value] = validateParams(
+    const [address, slotIndex, value] = validateParams(
       params,
       rpcAddress,
       rpcQuantity,
@@ -260,7 +260,7 @@ export class HardhatModule {
       );
     }
 
-    return [b, slotIndex, value];
+    return [address, slotIndex, value];
   }
 
   private async _setStorageSlotAction(
