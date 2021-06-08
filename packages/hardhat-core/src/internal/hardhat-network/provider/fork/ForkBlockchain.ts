@@ -188,6 +188,10 @@ export class ForkBlockchain implements HardhatBlockchainInterface {
     }
   }
 
+  public getForkBlockNumber() {
+    return this._forkBlockNumber;
+  }
+
   public async getLogs(filterParams: FilterParams): Promise<RpcLogOutput[]> {
     if (filterParams.fromBlock.lte(this._forkBlockNumber)) {
       let toBlock = filterParams.toBlock;

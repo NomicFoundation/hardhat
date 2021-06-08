@@ -32,7 +32,7 @@ describe("ForkStateManager", () => {
   let fsm: ForkStateManager;
 
   before(async function () {
-    if (ALCHEMY_URL === undefined || ALCHEMY_URL === "") {
+    if (ALCHEMY_URL === undefined) {
       this.skip();
       return;
     }

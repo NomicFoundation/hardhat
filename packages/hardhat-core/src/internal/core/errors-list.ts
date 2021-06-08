@@ -130,7 +130,7 @@ Check the error message for details, or go to [documentation](https://hardhat.or
       number: 9,
       message: `Error while loading Hardhat's configuration.
      
-You probably tried to import the Hardhat Runtime Environment from your config or a file imported from it.
+You probably tried to import the "hardhat" module from your config or a file imported from it.
 This is not possible, as Hardhat can't be initialized while its config is being defined.
 
 To learn more about how to access the Hardhat Runtime Environment from different contexts go to https://hardhat.org/hre`,

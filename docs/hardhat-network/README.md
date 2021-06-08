@@ -282,6 +282,45 @@ eth_call
 This logging is enabled by default when using Hardhat Network's node (i.e. `npx hardhat node`), but disabled when using
 the in-process Hardhat Network provider. See [Hardhat Network's config](../config/README.md#hardhat-network) to learn more about how to control its logging.
 
+## The `debug_traceTransaction` method
+
+You can get debug traces of already mined transactions using the
+`debug_traceTransaction` RPC method. The returned object has a detailed
+description of the transaction execution, including a list of steps describing
+each executed opcode and the state of the EVM at that point.
+
+To get a trace, call this method with the hash of the transaction as its
+argument:
+
+```js
+const trace = await hre.network.provider.send("debug_traceTransaction",
+["0x123..."])
+```
+
+You can also selectively disable some properties in the list of steps:
+
+```js
+const trace = await hre.network.provider.send("debug_traceTransaction", [
+  "0x123...",
+  {
+    disableMemory: true,
+    disableStack: true,
+    disableStorage: true,
+  }
+]);
+```
+
+If you are using [mainnet forking](https://hardhat.org/guides/mainnet-forking.html) with an archive node,
+you can get traces of transactions from the remote network even if the node you are using
+doesn't support
+`debug_traceTransaction`.
+
+### Known limitations
+
+- You can't trace transactions that use a hardfork older than [Spurious Dragon](https://ethereum.org/en/history/#spurious-dragon)
+- The last step of a message is not guaranteed to have a correct value in the
+  `gasCost` property
+
 ## Hardhat Network initial state
 
 Hardhat Network is initialized by default in this state:
@@ -344,7 +383,7 @@ To customise it, take a look at [the configuration section](/config/README.md#ha
 - `eth_pendingTransactions`
 - `eth_sendRawTransaction`
 - `eth_sendTransaction`
-- `eth_signTypedData`
+- `eth_signTypedData_v4`
 - `eth_sign`
 - `eth_subscribe`
 - `eth_syncing`
