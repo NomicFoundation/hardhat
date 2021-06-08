@@ -964,6 +964,11 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   }
 
   public async setAccountNonce(address: Address, newNonce: BN): Promise<void> {
+    if (this._txPool.hasPendingTransactions()) {
+      throw new InternalError(
+        "Cannot set account nonce when there are pending transactions"
+      );
+    }
     const account = await this._stateManager.getAccount(address);
     if (newNonce.lt(account.nonce)) {
       throw new InvalidInputError(
