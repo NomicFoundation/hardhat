@@ -1582,13 +1582,6 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
   private async _setBlockContext(block: Block): Promise<void> {
     if (this._stateManager instanceof ForkStateManager) {
-      if (
-        this._irregularStatesByBlockNumber.has(block.header.number.toString())
-      ) {
-        throw new InternalError(
-          "Irregular states are not supported on a forked chain"
-        );
-      }
       return this._stateManager.setBlockContext(
         block.header.stateRoot,
         block.header.number
