@@ -16,7 +16,6 @@
 
 <script>
 import HHCta from "./HHCta";
-import HHMobileAnimation from "./HHMobileAnimation";
 
 // We preload these images as soon as this component is laoded
 import CachedBmp from "../img/animated_hero/CachedBmp_9.png";
