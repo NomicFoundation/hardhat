@@ -462,14 +462,13 @@ export class ErrorInferrer {
     }
 
     // If the last frame is an internal function, it means that the trace
-    // jumped to a function to return the panic. In that case, we remove
-    // the two last frames: the frame from where it jumped, and the internal
-    // function it jumped to
+    // jumped there to return the panic. If that's the case, we remove that
+    // frame.
     const lastFrame = stacktrace[stacktrace.length - 1];
     if (
       lastFrame?.type === StackTraceEntryType.INTERNAL_FUNCTION_CALLSTACK_ENTRY
     ) {
-      stacktrace.splice(-2);
+      stacktrace.splice(-1);
     }
 
     const panicReturnData = new ReturnData(trace.returnData);
