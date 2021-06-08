@@ -1662,8 +1662,7 @@ export class ErrorInferrer {
   }
 
   private _isPanicReturnData(returnData: Buffer): boolean {
-    // 4e487b71 is the method hash of Panic(uint256)
-    return returnData.slice(0, 4).toString("hex") === "4e487b71";
+    return new ReturnData(returnData).isPanicReturnData();
   }
 }
 
