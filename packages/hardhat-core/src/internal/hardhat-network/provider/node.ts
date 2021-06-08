@@ -14,6 +14,7 @@ import { StateManager } from "@ethereumjs/vm/dist/state";
 import chalk from "chalk";
 import debug from "debug";
 import {
+  Account,
   Address,
   BN,
   bufferToHex,
@@ -951,10 +952,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     const account = await this._stateManager.getAccount(address);
     account.balance = newBalance;
     await this._stateManager.putAccount(address, account);
-    this._irregularStatesByBlockNumber.set(
-      (await this.getLatestBlock()).header.number.toString(),
-      await this._stateManager.getStateRoot()
-    );
+    await this._persistIrregularWorldState();
   }
 
   public async setAccountCode(
@@ -962,6 +960,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     newCode: Buffer
   ): Promise<void> {
     await this._stateManager.putContractCode(address, newCode);
+    await this._persistIrregularWorldState();
   }
 
   public async setAccountNonce(address: Address, newNonce: BN): Promise<void> {
@@ -973,6 +972,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     }
     account.nonce = newNonce;
     await this._stateManager.putAccount(address, account);
+    await this._persistIrregularWorldState();
   }
 
   public async setAccountStorage(
@@ -985,6 +985,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       slotIndex.toArrayLike(Buffer, "be", 32),
       value
     );
+    await this._persistIrregularWorldState();
   }
 
   public async traceTransaction(hash: Buffer, config: RpcDebugTracingConfig) {
@@ -1826,6 +1827,13 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
       return account.nonce;
     });
+  }
+
+  private async _persistIrregularWorldState(): Promise<void> {
+    this._irregularStatesByBlockNumber.set(
+      (await this.getLatestBlock()).header.number.toString(),
+      await this._stateManager.getStateRoot()
+    );
   }
 }
 
