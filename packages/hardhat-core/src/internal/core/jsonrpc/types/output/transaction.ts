@@ -1,14 +1,8 @@
 import * as t from "io-ts";
 
 import { nullable, optional } from "../../../../util/io-ts";
+import { rpcAccessList } from "../access-list";
 import { rpcAddress, rpcData, rpcHash, rpcQuantity } from "../base-types";
-
-const rpcAccessListItem = t.type({
-  address: rpcData,
-  storageKeys: t.array(rpcData),
-});
-
-export const rpcAccessList = t.array(rpcAccessListItem);
 
 export type RpcTransaction = t.TypeOf<typeof rpcTransaction>;
 export const rpcTransaction = t.type(
