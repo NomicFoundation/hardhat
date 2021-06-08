@@ -136,7 +136,9 @@ function traceSteps(
 
           const func = inst.location.getContainingFunction();
           if (func !== undefined) {
-            location += `:${func.contract.name}:${func.name}`;
+            location += `:${
+              func.contract?.name ?? func.location.file.sourceName
+            }:${func.name}`;
           }
 
           location += `   -  ${inst.location.offset}:${inst.location.length}`;

@@ -318,7 +318,7 @@ export class SolidityError extends Error {
 class SolidityCallSite implements NodeJS.CallSite {
   constructor(
     private _sourceName: string | undefined,
-    private _contract: string,
+    private _contract: string | undefined,
     private _functionName: string | undefined,
     private _line: number | undefined
   ) {}
@@ -340,6 +340,11 @@ class SolidityCallSite implements NodeJS.CallSite {
   }
 
   public getFunctionName() {
+    // if it's a top-level function, we print its name
+    if (this._contract === undefined) {
+      return this._functionName ?? null;
+    }
+
     return null;
   }
 
@@ -348,7 +353,11 @@ class SolidityCallSite implements NodeJS.CallSite {
   }
 
   public getMethodName() {
-    return this._functionName !== undefined ? this._functionName : null;
+    if (this._contract !== undefined) {
+      return this._functionName ?? null;
+    }
+
+    return null;
   }
 
   public getPosition() {
@@ -368,7 +377,7 @@ class SolidityCallSite implements NodeJS.CallSite {
   }
 
   public getTypeName() {
-    return this._contract;
+    return this._contract ?? null;
   }
 
   public isAsync() {

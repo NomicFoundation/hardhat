@@ -39,7 +39,7 @@ export const UNRECOGNIZED_CONTRACT_NAME = "<UnrecognizedContract>";
 
 export interface SourceReference {
   file: SourceFile;
-  contract: string;
+  contract?: string;
   function?: string;
   line: number;
 }

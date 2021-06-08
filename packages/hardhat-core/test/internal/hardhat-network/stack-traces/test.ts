@@ -247,6 +247,12 @@ function compareStackTraces(
   description: StackFrameDescription[],
   runs: number | undefined
 ) {
+  assert.equal(
+    trace.length,
+    description.length,
+    `Expected a trace of length ${description.length} but got one with length ${trace.length}`
+  );
+
   for (let i = 0; i < trace.length; i++) {
     const actual = trace[i];
     const expected = description[i];
@@ -673,9 +679,17 @@ const solidity06Compilers: CompilerOptions[] = [
 ];
 
 const solidity07Compilers: CompilerOptions[] = [
+  // {
+  //   solidityVersion: "0.7.0",
+  //   compilerPath: "soljson-v0.7.0+commit.9e61f92b.js",
+  // },
+  // {
+  //   solidityVersion: "0.7.1",
+  //   compilerPath: "soljson-v0.7.1+commit.f4a555be.js",
+  // },
   {
-    solidityVersion: "0.7.0",
-    compilerPath: "soljson-v0.7.0+commit.9e61f92b.js",
+    solidityVersion: "0.7.4",
+    compilerPath: "soljson-v0.7.4+commit.3f05b770.js",
   },
 ];
 
