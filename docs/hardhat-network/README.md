@@ -92,7 +92,7 @@ error message in the following cases:
 
 ## `console.log`
 
-Hardhat Network allows you to print logging messages and contract variables calling `console.log()` from your Solidity code. You can see an example in the Sample Project. Follow the steps in [Quick Start](/getting-started/README.md#quick-start) to try it out.
+Hardhat Network allows you to print logging messages and contract variables by calling `console.log()` from your Solidity code. You can see an example in the Sample Project. Follow the steps in [Quick Start](/getting-started/README.md#quick-start) to try it out.
 
 - You can use it in calls and transactions. It works with `view` functions, but not in `pure` ones.
 - It always works, regardless of the call or transaction failing or being successful.
@@ -102,7 +102,7 @@ Hardhat Network allows you to print logging messages and contract variables call
   - `string`
   - `bool`
   - `address`
-- There's also the single parameter API for the types above, and additionally `bytes`, `bytes1`.. up to `bytes32`:
+- There's also the single parameter API for the types above, and additionally `bytes`, `bytes1`... up to `bytes32`:
   - `console.logInt(int i)`
   - `console.logUint(uint i)`
   - `console.logString(string memory s)`
@@ -216,8 +216,8 @@ new block that will include as many pending transactions as possible.
 
 ### Mempool behavior
 
-When automine is disabled, every sent transaction is added to the mempool, that
-contains all the transactions that could be mined in the future. Hardhat
+When automine is disabled, every sent transaction is added to the mempool,
+which contains all the transactions that could be mined in the future. Hardhat
 Network's mempool follows the same rules as geth. This means, among other
 things, that:
 
@@ -399,9 +399,13 @@ To customise it, take a look at [the configuration section](/config/README.md#ha
 
 - `hardhat_addCompilationResult` – Add information about compiled contracts
 - `hardhat_impersonateAccount` – see the [Mainnet Forking guide](../guides/mainnet-forking.md)
-- `hardhat_stopImpersonatingAccount` – see the [Mainnet Forking guide](../guides/mainnet-forking.md)
 - `hardhat_reset` – see the [Mainnet Forking guide](../guides/mainnet-forking.md)
+- `hardhat_setBalance` – Modifies the balance of an account.
+- `hardhat_setCode` – Modifies the code of an account.
 - `hardhat_setLoggingEnabled` – Enable or disable logging in Hardhat Network
+- `hardhat_setNonce` – Modifies an account's nonce by overwriting it. Throws an InvalidInputError if nonce is smaller than the current one. The reason for this restriction is to avoid collisions when deploying contracts using the same nonce more than once.
+- `hardhat_setStorageSlot` – Writes a single slot of an account's storage. The storage slot index must not exceed 2^256, and the value to write must be exactly 32 bytes long.
+- `hardhat_stopImpersonatingAccount` – see the [Mainnet Forking guide](../guides/mainnet-forking.md)
 
 #### Special testing/debugging methods
 
