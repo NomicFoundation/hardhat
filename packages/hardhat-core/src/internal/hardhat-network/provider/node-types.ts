@@ -5,6 +5,8 @@ import { BN } from "ethereumjs-util";
 import { BuildInfo } from "../../../types";
 import { MessageTrace } from "../stack-traces/message-trace";
 
+import type { ReturnData } from "./return-data";
+
 export type NodeConfig = LocalNodeConfig | ForkedNodeConfig;
 
 interface CommonConfig {
@@ -102,7 +104,7 @@ export interface MineBlockResult {
 }
 
 export interface RunCallResult extends GatherTracesResult {
-  result: Buffer;
+  result: ReturnData;
 }
 
 export interface EstimateGasResult extends GatherTracesResult {
