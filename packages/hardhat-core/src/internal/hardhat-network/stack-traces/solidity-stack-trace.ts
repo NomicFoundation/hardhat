@@ -1,5 +1,7 @@
 import { BN } from "ethereumjs-util";
 
+import { ReturnData } from "../provider/return-data";
+
 import { ContractFunctionType, SourceFile } from "./model";
 
 export enum StackTraceEntryType {
@@ -8,6 +10,7 @@ export enum StackTraceEntryType {
   UNRECOGNIZED_CONTRACT_CALLSTACK_ENTRY,
   PRECOMPILE_ERROR,
   REVERT_ERROR,
+  PANIC_ERROR,
   FUNCTION_NOT_PAYABLE_ERROR,
   INVALID_PARAMS_ERROR,
   FALLBACK_NOT_PAYABLE_ERROR,
@@ -69,7 +72,14 @@ export interface PrecompileErrorStackTraceEntry {
 
 export interface RevertErrorStackTraceEntry {
   type: StackTraceEntryType.REVERT_ERROR;
-  message: Buffer;
+  message: ReturnData;
+  sourceReference: SourceReference;
+  isInvalidOpcodeError: boolean;
+}
+
+export interface PanicErrorStackTraceEntry {
+  type: StackTraceEntryType.PANIC_ERROR;
+  errorCode: BN;
   sourceReference: SourceReference;
   isInvalidOpcodeError: boolean;
 }
@@ -134,14 +144,14 @@ export interface DirectLibraryCallErrorStackTraceEntry {
 
 export interface UnrecognizedCreateErrorStackTraceEntry {
   type: StackTraceEntryType.UNRECOGNIZED_CREATE_ERROR;
-  message: Buffer;
+  message: ReturnData;
   sourceReference?: undefined;
 }
 
 export interface UnrecognizedContractErrorStackTraceEntry {
   type: StackTraceEntryType.UNRECOGNIZED_CONTRACT_ERROR;
   address: Buffer;
-  message: Buffer;
+  message: ReturnData;
   sourceReference?: undefined;
 }
 
@@ -172,6 +182,7 @@ export type SolidityStackTraceEntry =
   | UnrecognizedContractCallstackEntryStackTraceEntry
   | PrecompileErrorStackTraceEntry
   | RevertErrorStackTraceEntry
+  | PanicErrorStackTraceEntry
   | FunctionNotPayableErrorStackTraceEntry
   | InvalidParamsErrorStackTraceEntry
   | FallbackNotPayableErrorStackTraceEntry

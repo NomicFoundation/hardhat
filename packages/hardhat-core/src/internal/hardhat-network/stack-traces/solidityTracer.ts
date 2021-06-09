@@ -1,6 +1,8 @@
 import { ERROR } from "@ethereumjs/vm/dist/exceptions";
 import semver from "semver";
 
+import { ReturnData } from "../provider/return-data";
+
 import {
   ErrorInferrer,
   instructionToCallstackStackTraceEntry,
@@ -125,7 +127,7 @@ export class SolidityTracer {
       return [
         {
           type: StackTraceEntryType.UNRECOGNIZED_CREATE_ERROR,
-          message: trace.returnData,
+          message: new ReturnData(trace.returnData),
         },
       ];
     }
@@ -134,7 +136,7 @@ export class SolidityTracer {
       {
         type: StackTraceEntryType.UNRECOGNIZED_CONTRACT_ERROR,
         address: trace.address,
-        message: trace.returnData,
+        message: new ReturnData(trace.returnData),
       },
     ];
   }

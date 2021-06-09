@@ -1,5 +1,8 @@
 import { ERROR } from "@ethereumjs/vm/dist/exceptions";
+import { BN } from "ethereumjs-util";
 import semver from "semver";
+
+import { ReturnData } from "../provider/return-data";
 
 import {
   DecodedCallMessageTrace,
@@ -30,6 +33,7 @@ import {
   FALLBACK_FUNCTION_NAME,
   InternalFunctionCallStackEntry,
   OtherExecutionErrorStackTraceEntry,
+  PanicErrorStackTraceEntry,
   RECEIVE_FUNCTION_NAME,
   RevertErrorStackTraceEntry,
   SolidityStackTrace,
@@ -294,6 +298,15 @@ export class ErrorInferrer {
       return;
     }
 
+    const panicStacktrace = this._checkPanic(
+      trace,
+      stacktrace,
+      lastInstruction
+    );
+    if (panicStacktrace !== undefined) {
+      return panicStacktrace;
+    }
+
     if (
       lastInstruction.location !== undefined &&
       (!isDecodedCallTrace(trace) || jumpedIntoFunction)
@@ -335,7 +348,7 @@ export class ErrorInferrer {
               trace.calldata.slice(0, 4)
             )!
           ),
-          message: trace.returnData,
+          message: new ReturnData(trace.returnData),
           isInvalidOpcodeError: lastInstruction.opcode === Opcode.INVALID,
         });
       } else {
@@ -343,7 +356,7 @@ export class ErrorInferrer {
         inferredStacktrace.push({
           type: StackTraceEntryType.REVERT_ERROR,
           sourceReference: this._getConstructorStartSourceReference(trace),
-          message: trace.returnData,
+          message: new ReturnData(trace.returnData),
           isInvalidOpcodeError: lastInstruction.opcode === Opcode.INVALID,
         });
       }
@@ -359,13 +372,57 @@ export class ErrorInferrer {
         sourceReference:
           this._getLastSourceReference(trace) ??
           this._getContractStartWithoutFunctionSourceReference(trace),
-        message: trace.returnData,
+        message: new ReturnData(trace.returnData),
         isInvalidOpcodeError: lastInstruction.opcode === Opcode.INVALID,
       };
       const inferredStacktrace = [...stacktrace, revertFrame];
 
       return this._fixInitialModifier(trace, inferredStacktrace);
     }
+  }
+
+  /**
+   * Check if the trace reverted with a panic error.
+   */
+  private _checkPanic(
+    trace: DecodedEvmMessageTrace,
+    stacktrace: SolidityStackTrace,
+    lastInstruction: Instruction
+  ): SolidityStackTrace | undefined {
+    if (!this._isPanicReturnData(trace.returnData)) {
+      return;
+    }
+
+    // If the last frame is an internal function, it means that the trace
+    // jumped to a function to return the panic. In that case, we remove
+    // the two last frames: the frame from where it jumped, and the internal
+    // function it jumped to
+    const lastFrame = stacktrace[stacktrace.length - 1];
+    if (
+      lastFrame?.type === StackTraceEntryType.INTERNAL_FUNCTION_CALLSTACK_ENTRY
+    ) {
+      stacktrace.splice(-2);
+    }
+
+    const panicReturnData = new ReturnData(trace.returnData);
+    const errorCode = panicReturnData.decodePanic();
+
+    // if the error comes from a call to a zero-initialized function,
+    // we remove the last frame, which represents the call, to avoid
+    // having duplicated frames
+    if (errorCode.eqn(0x51)) {
+      stacktrace.splice(-1);
+    }
+
+    const inferredStacktrace = [...stacktrace];
+    inferredStacktrace.push(
+      this._instructionWithinFunctionToPanicStackTraceEntry(
+        trace,
+        lastInstruction,
+        errorCode
+      )
+    );
+    return this._fixInitialModifier(trace, inferredStacktrace);
   }
 
   /**
@@ -423,7 +480,7 @@ export class ErrorInferrer {
                 trace,
                 failingFunction
               ),
-              message: trace.returnData,
+              message: new ReturnData(trace.returnData),
               isInvalidOpcodeError: lastInstruction.opcode === Opcode.INVALID,
             },
           ];
@@ -915,7 +972,22 @@ export class ErrorInferrer {
         trace.bytecode,
         inst.location
       )!,
-      message: trace.returnData,
+      message: new ReturnData(trace.returnData),
+      isInvalidOpcodeError: inst.opcode === Opcode.INVALID,
+    };
+  }
+
+  private _instructionWithinFunctionToPanicStackTraceEntry(
+    trace: DecodedEvmMessageTrace,
+    inst: Instruction,
+    errorCode: BN
+  ): PanicErrorStackTraceEntry {
+    return {
+      type: StackTraceEntryType.PANIC_ERROR,
+      sourceReference:
+        sourceLocationToSourceReference(trace.bytecode, inst.location) ??
+        this._getLastSourceReference(trace)!,
+      errorCode,
       isInvalidOpcodeError: inst.opcode === Opcode.INVALID,
     };
   }
@@ -1441,6 +1513,11 @@ export class ErrorInferrer {
     }
 
     return this._failsRightAfterCall(trace, callStepIndex);
+  }
+
+  private _isPanicReturnData(returnData: Buffer): boolean {
+    // 4e487b71 is the method hash of Panic(uint256)
+    return returnData.slice(0, 4).toString("hex") === "4e487b71";
   }
 }
 
