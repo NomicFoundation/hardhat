@@ -27,3 +27,5 @@ In this tutorial we'll guide you through:
   - Set up a [Metamask](https://metamask.io/) wallet 
 
 If you can't do any of the above, follow the links and take some time to learn the basics.
+
+(Dont use yarn for now. you may get some errors because some dependencies don't support yarn)
