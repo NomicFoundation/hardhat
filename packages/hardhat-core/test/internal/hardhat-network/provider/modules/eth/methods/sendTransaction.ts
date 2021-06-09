@@ -99,6 +99,25 @@ describe("Eth module", function () {
               InvalidInputError.CODE
             );
           });
+
+          it("Should succeed if sending an explicit null for an optional parameter value", async function () {
+            assert.match(
+              await this.provider.send("eth_sendTransaction", [
+                {
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                  to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                  gas: null,
+                  gasPrice: null,
+                  value: null,
+                  nonce: null,
+                  data: null,
+                  accessList: null,
+                  chainId: null,
+                },
+              ]),
+              /^0x[a-f\d]{64}$/
+            );
+          });
         });
 
         describe("when automine is enabled", () => {
