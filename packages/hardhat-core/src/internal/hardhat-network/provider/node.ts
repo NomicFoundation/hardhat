@@ -964,9 +964,9 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   }
 
   public async setAccountNonce(address: Address, newNonce: BN): Promise<void> {
-    if (this._txPool.hasPendingTransactions()) {
+    if (!this._txPool.isEmpty()) {
       throw new InternalError(
-        "Cannot set account nonce when there are pending transactions"
+        "Cannot set account nonce when the transaction pool is not empty"
       );
     }
     const account = await this._stateManager.getAccount(address);

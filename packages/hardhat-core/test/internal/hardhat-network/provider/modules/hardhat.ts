@@ -14,6 +14,7 @@ import { expectErrorAsync } from "../../../../helpers/errors";
 import { ALCHEMY_URL } from "../../../../setup";
 import { workaroundWindowsCiFailures } from "../../../../utils/workaround-windows-ci-failures";
 import {
+  assertInternalError,
   assertInvalidArgumentsError,
   assertInvalidInputError,
 } from "../../helpers/assertions";
@@ -924,6 +925,23 @@ describe("Hardhat module", function () {
             [DEFAULT_ACCOUNTS_ADDRESSES[0], currentBlockNumber]
           );
           assert.equal(resultingNonce, targetNonce);
+        });
+
+        it("should throw when there are pending transactions", async function () {
+          await this.provider.send("evm_setAutomine", [false]);
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+            },
+          ]);
+
+          await assertInternalError(
+            this.provider,
+            "hardhat_setNonce",
+            [DEFAULT_ACCOUNTS_ADDRESSES[0], "0xff"],
+            "Cannot set account nonce when the transaction pool is not empty"
+          );
         });
       });
 
