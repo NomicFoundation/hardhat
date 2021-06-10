@@ -11,18 +11,26 @@ export interface CompilerOptions {
   runs?: number;
 }
 
+interface SolcSourceFileToContents {
+  [filename: string]: { content: string };
+}
+
+function getSolcSourceFileMapping(sources: string[]): SolcSourceFileToContents {
+  return Object.assign(
+    {},
+    ...sources.map((s) => ({
+      [path.basename(s)]: { content: fs.readFileSync(s, "utf8") },
+    }))
+  );
+}
+
 function getSolcInput(
-  sources: string[],
+  sources: SolcSourceFileToContents,
   compilerOptions: CompilerOptions
 ): CompilerInput {
   return {
     language: "Solidity",
-    sources: Object.assign(
-      {},
-      ...sources.map((s) => ({
-        [path.basename(s)]: { content: fs.readFileSync(s, "utf8") },
-      }))
-    ),
+    sources,
     settings: {
       optimizer: {
         enabled: compilerOptions.runs !== undefined,
@@ -41,6 +49,21 @@ function getSolcInput(
       },
     },
   };
+}
+
+function getSolcInputForFiles(
+  sources: string[],
+  compilerOptions: CompilerOptions
+): CompilerInput {
+  return getSolcInput(getSolcSourceFileMapping(sources), compilerOptions);
+}
+
+function getSolcInputForLiteral(
+  source: string,
+  compilerOptions: CompilerOptions,
+  filename: string = "literal.sol"
+): CompilerInput {
+  return getSolcInput({ [filename]: { content: source } }, compilerOptions);
 }
 
 /**
@@ -88,6 +111,7 @@ export async function downloadSolc(compilerPath: string): Promise<void> {
 }
 
 async function getSolc(compilerPath: string): Promise<any> {
+  await downloadSolc(compilerPath);
   let absoluteCompilerPath = compilerPath;
   if (!path.isAbsolute(absoluteCompilerPath)) {
     absoluteCompilerPath = getCompilerDownloadPath(compilerPath);
@@ -96,12 +120,10 @@ async function getSolc(compilerPath: string): Promise<any> {
   return solcWrapper(loadCompilerSources(absoluteCompilerPath));
 }
 
-export async function compile(
-  sources: string[],
+async function compile(
+  input: CompilerInput,
   compilerOptions: CompilerOptions
 ): Promise<[CompilerInput, CompilerOutput]> {
-  const input = getSolcInput(sources, compilerOptions);
-
   const solc = await getSolc(compilerOptions.compilerPath);
 
   const output = JSON.parse(solc.compile(JSON.stringify(input)));
@@ -115,4 +137,29 @@ export async function compile(
   }
 
   return [input, output];
+}
+
+export async function compileFiles(
+  sources: string[],
+  compilerOptions: CompilerOptions
+): Promise<[CompilerInput, CompilerOutput]> {
+  return compile(
+    getSolcInputForFiles(sources, compilerOptions),
+    compilerOptions
+  );
+}
+
+export async function compileLiteral(
+  source: string,
+  compilerOptions: CompilerOptions = {
+    solidityVersion: "0.8.0",
+    compilerPath: "soljson-v0.8.0+commit.c7dfd78e.js",
+    runs: 1,
+  },
+  filename: string = "literal.sol"
+): Promise<[CompilerInput, CompilerOutput]> {
+  return compile(
+    getSolcInputForLiteral(source, compilerOptions, filename),
+    compilerOptions
+  );
 }

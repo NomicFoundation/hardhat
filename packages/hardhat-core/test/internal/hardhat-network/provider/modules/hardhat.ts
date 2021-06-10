@@ -1,18 +1,28 @@
 import { assert } from "chai";
+import { BN } from "ethereumjs-util";
+// tslint:disable-next-line:no-implicit-dependencies
+import { ethers } from "ethers";
 import sinon from "sinon";
 
 import {
   numberToRpcQuantity,
+  rpcQuantityToBN,
   rpcQuantityToNumber,
 } from "../../../../../src/internal/core/jsonrpc/types/base-types";
+import { CompilerOutputContract } from "../../../../../src/types/artifacts";
 import { expectErrorAsync } from "../../../../helpers/errors";
 import { ALCHEMY_URL } from "../../../../setup";
 import { workaroundWindowsCiFailures } from "../../../../utils/workaround-windows-ci-failures";
-import { assertInvalidArgumentsError } from "../../helpers/assertions";
+import {
+  assertInternalError,
+  assertInvalidArgumentsError,
+  assertInvalidInputError,
+} from "../../helpers/assertions";
 import { EMPTY_ACCOUNT_ADDRESS } from "../../helpers/constants";
 import { setCWD } from "../../helpers/cwd";
 import { DEFAULT_ACCOUNTS_ADDRESSES, PROVIDERS } from "../../helpers/providers";
 import { deployContract } from "../../helpers/transactions";
+import { compileLiteral } from "../../stack-traces/compilation";
 
 describe("Hardhat module", function () {
   PROVIDERS.forEach(({ name, useProvider, isFork }) => {
@@ -364,6 +374,752 @@ describe("Hardhat module", function () {
             assert.equal(await getLatestBlockNumber(), 0);
           });
         }
+      });
+
+      describe("hardhat_setBalance", function () {
+        it("should reject an invalid address", async function () {
+          await assertInvalidArgumentsError(
+            this.provider,
+            "hardhat_setBalance",
+            ["0x1234", "0x0"],
+            'Errors encountered in param 0: Invalid value "0x1234" supplied to : ADDRESS'
+          );
+        });
+
+        it("should reject a non-numeric balance", async function () {
+          await assertInvalidArgumentsError(
+            this.provider,
+            "hardhat_setBalance",
+            [DEFAULT_ACCOUNTS_ADDRESSES[0], "xyz"],
+            'Errors encountered in param 1: Invalid value "xyz" supplied to : QUANTITY'
+          );
+        });
+
+        it("should not reject valid argument types", async function () {
+          await this.provider.send("hardhat_setBalance", [
+            DEFAULT_ACCOUNTS_ADDRESSES[0],
+            "0x0",
+          ]);
+        });
+
+        it("should result in a modified balance", async function () {
+          // Arrange: Capture existing balance
+          const existingBalance = rpcQuantityToBN(
+            await this.provider.send("eth_getBalance", [
+              DEFAULT_ACCOUNTS_ADDRESSES[0],
+            ])
+          );
+
+          // Act: Set the new balance.
+          const targetBalance = existingBalance.add(new BN(1)).mul(new BN(2));
+          // For sanity, ensure that we really are making a change:
+          assert.isFalse(targetBalance.eq(existingBalance));
+          await this.provider.send("hardhat_setBalance", [
+            DEFAULT_ACCOUNTS_ADDRESSES[0],
+            numberToRpcQuantity(targetBalance),
+          ]);
+
+          // Assert: Ensure the new balance was set.
+          const newBalance = rpcQuantityToBN(
+            await this.provider.send("eth_getBalance", [
+              DEFAULT_ACCOUNTS_ADDRESSES[0],
+            ])
+          );
+          assert(targetBalance.eq(newBalance));
+        });
+
+        it("should not result in a modified state root", async function () {
+          // Arrange 1: Send a transaction, in order to ensure a pre-existing
+          // state root.
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              value: "0x100",
+            },
+          ]);
+
+          // Arrange 2: Capture the existing state root.
+          const oldStateRoot = (
+            await this.provider.send("eth_getBlockByNumber", ["latest", false])
+          ).stateRoot;
+
+          // Act: Set the new balance.
+          await this.provider.send("hardhat_setBalance", [
+            DEFAULT_ACCOUNTS_ADDRESSES[0],
+            numberToRpcQuantity(99),
+          ]);
+
+          // Assert: Ensure state root hasn't changed.
+          const newStateRoot = (
+            await this.provider.send("eth_getBlockByNumber", ["latest", false])
+          ).stateRoot;
+          assert.equal(newStateRoot, oldStateRoot);
+        });
+
+        it("should get changed balance by block even after a new block is mined", async function () {
+          // Arrange 1: Get current block number
+          const currentBlockNumber = await this.provider.send(
+            "eth_blockNumber"
+          );
+
+          // Arrange 2: Set a new balance
+          const targetBalance = new BN("123454321");
+          const targetBalanceHex = numberToRpcQuantity(targetBalance);
+          await this.provider.send("hardhat_setBalance", [
+            DEFAULT_ACCOUNTS_ADDRESSES[0],
+            targetBalanceHex,
+          ]);
+
+          // Arrange 3: Mine a block
+          await this.provider.send("evm_mine");
+
+          // Act: Get the balance of the account in the previous block
+          const balancePreviousBlock = await this.provider.send(
+            "eth_getBalance",
+            [DEFAULT_ACCOUNTS_ADDRESSES[0], currentBlockNumber]
+          );
+
+          // Assert: Check that the balance is the one we set
+          assert.equal(balancePreviousBlock, targetBalanceHex);
+        });
+
+        it("should fund an account and permit that account to send a transaction", async function () {
+          // Arrange: Fund a not-yet-existing account.
+          const notYetExistingAccount =
+            "0x1234567890123456789012345678901234567890";
+          const amountToBeSent = new BN(10);
+          const gasRequired = new BN("48000000000000000");
+          const balanceRequired = amountToBeSent.add(gasRequired);
+          await this.provider.send("hardhat_setBalance", [
+            notYetExistingAccount,
+            numberToRpcQuantity(balanceRequired),
+          ]);
+
+          // Arrange: Capture the existing balance of the destination account.
+          const existingBalance = rpcQuantityToBN(
+            await this.provider.send("eth_getBalance", [
+              DEFAULT_ACCOUNTS_ADDRESSES[0],
+            ])
+          );
+
+          // Act: Send a transaction from the newly-funded account.
+          await this.provider.send("hardhat_impersonateAccount", [
+            notYetExistingAccount,
+          ]);
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from: notYetExistingAccount,
+              to: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              value: numberToRpcQuantity(amountToBeSent),
+            },
+          ]);
+          await this.provider.send("hardhat_stopImpersonatingAccount", [
+            notYetExistingAccount,
+          ]);
+
+          // Assert: ensure the destination address is increased as expected.
+          const newBalance = rpcQuantityToBN(
+            await this.provider.send("eth_getBalance", [
+              DEFAULT_ACCOUNTS_ADDRESSES[0],
+            ])
+          );
+
+          assert(newBalance.eq(existingBalance.add(amountToBeSent)));
+        });
+
+        it("should have its effects persist across snapshot save/restore", async function () {
+          const a = DEFAULT_ACCOUNTS_ADDRESSES[0];
+          const currentBlockNumber = await this.provider.send(
+            "eth_blockNumber"
+          );
+
+          // set balance1
+          const targetBalance1 = numberToRpcQuantity(1);
+          await this.provider.send("hardhat_setBalance", [a, targetBalance1]);
+
+          // snapshot after balance1
+          const snapshotId = await this.provider.send("evm_snapshot");
+
+          // set balance 2
+          const targetBalance2 = numberToRpcQuantity(2);
+          await this.provider.send("hardhat_setBalance", [a, targetBalance2]);
+
+          // check that previous block has balance 2
+          await this.provider.send("evm_mine");
+          const balancePreviousBlock = await this.provider.send(
+            "eth_getBalance",
+            [a, currentBlockNumber]
+          );
+          assert.strictEqual(balancePreviousBlock, targetBalance2);
+
+          // revert snapshot
+          await this.provider.send("evm_revert", [snapshotId]);
+
+          // repeat previous check with balance 1 now
+          await this.provider.send("evm_mine");
+          const balancePreviousBlockAfterRevert = await this.provider.send(
+            "eth_getBalance",
+            [a, currentBlockNumber]
+          );
+          assert.strictEqual(balancePreviousBlockAfterRevert, targetBalance1);
+        });
+      });
+
+      describe("hardhat_setCode", function () {
+        let contractNine: CompilerOutputContract;
+        let abiEncoder: ethers.utils.Interface;
+        before(async function () {
+          [
+            ,
+            {
+              contracts: {
+                ["literal.sol"]: { Nine: contractNine },
+              },
+            },
+          ] = await compileLiteral(`
+            contract Nine {
+                function returnNine() public pure returns (int) { return 9; }
+            }
+          `);
+          abiEncoder = new ethers.utils.Interface(contractNine.abi);
+        });
+
+        it("should reject an invalid address", async function () {
+          await assertInvalidArgumentsError(
+            this.provider,
+            "hardhat_setCode",
+            ["0x1234", "0x0"],
+            'Errors encountered in param 0: Invalid value "0x1234" supplied to : ADDRESS'
+          );
+        });
+
+        it("should reject an invalid data argument", async function () {
+          await assertInvalidArgumentsError(
+            this.provider,
+            "hardhat_setCode",
+            [DEFAULT_ACCOUNTS_ADDRESSES[0], "xyz"],
+            'Errors encountered in param 1: Invalid value "xyz" supplied to : DATA'
+          );
+        });
+
+        it("should not reject valid argument types", async function () {
+          await this.provider.send("hardhat_setCode", [
+            DEFAULT_ACCOUNTS_ADDRESSES[0],
+            "0xff",
+          ]);
+        });
+
+        it("should result in modified code", async function () {
+          const targetCode = "0x0123456789abcdef";
+          await this.provider.send("hardhat_setCode", [
+            DEFAULT_ACCOUNTS_ADDRESSES[0],
+            targetCode,
+          ]);
+
+          const actualCode = await this.provider.send("eth_getCode", [
+            DEFAULT_ACCOUNTS_ADDRESSES[0],
+            "latest",
+          ]);
+
+          assert.equal(actualCode, targetCode);
+        });
+
+        it("should, when setting code on an empty account, result in code that can actually be executed", async function () {
+          const notYetExistingAccount =
+            "0x1234567890123456789012345678901234567890";
+
+          await this.provider.send("hardhat_setCode", [
+            notYetExistingAccount,
+            `0x${contractNine.evm.deployedBytecode.object}`,
+          ]);
+
+          assert.equal(
+            await this.provider.send("eth_call", [
+              {
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                to: notYetExistingAccount,
+                data: abiEncoder.encodeFunctionData("returnNine", []),
+              },
+              "latest",
+            ]),
+            abiEncoder.encodeFunctionResult("returnNine", [9])
+          );
+        });
+
+        it("should, when setting code on an existing EOA, result in code that can actually be executed", async function () {
+          await this.provider.send("hardhat_setCode", [
+            DEFAULT_ACCOUNTS_ADDRESSES[0],
+            `0x${contractNine.evm.deployedBytecode.object}`,
+          ]);
+
+          assert.equal(
+            await this.provider.send("eth_call", [
+              {
+                from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                to: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                data: abiEncoder.encodeFunctionData("returnNine", []),
+              },
+              "latest",
+            ]),
+            abiEncoder.encodeFunctionResult("returnNine", [9])
+          );
+        });
+
+        it("should, when setting code on an existing contract account, result in code that can actually be executed", async function () {
+          // Arrange: Deploy a contract that always returns 10.
+          const [
+            ,
+            {
+              contracts: {
+                ["literal.sol"]: { Ten: contractTen },
+              },
+            },
+          ] = await compileLiteral(`
+            contract Ten {
+              function returnTen() public pure returns (int) { return 10; }
+            }
+          `);
+          const contractTenAddress = await deployContract(
+            this.provider,
+            `0x${contractTen.evm.bytecode.object}`,
+            DEFAULT_ACCOUNTS_ADDRESSES[0]
+          );
+
+          // Act: Replace the code at that address to always return 9.
+          await this.provider.send("hardhat_setCode", [
+            contractTenAddress,
+            `0x${contractNine.evm.deployedBytecode.object}`,
+          ]);
+
+          // Assert: Verify the call to get 9.
+          assert.equal(
+            await this.provider.send("eth_call", [
+              {
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                to: contractTenAddress,
+                data: abiEncoder.encodeFunctionData("returnNine", []),
+              },
+              "latest",
+            ]),
+            abiEncoder.encodeFunctionResult("returnNine", [9])
+          );
+        });
+
+        it("should get changed code by block even after a new block is mined", async function () {
+          // Arrange 1: Get current block number
+          const currentBlockNumber = await this.provider.send(
+            "eth_blockNumber"
+          );
+
+          // Act 1: Set code on an account.
+          const code = `0x${contractNine.evm.deployedBytecode.object}`;
+          await this.provider.send("hardhat_setCode", [
+            DEFAULT_ACCOUNTS_ADDRESSES[0],
+            code,
+          ]);
+
+          // Act 2: Mine a block
+          await this.provider.send("evm_mine");
+
+          // Assert: Ensure code is still there.
+          assert.equal(
+            await this.provider.send("eth_getCode", [
+              DEFAULT_ACCOUNTS_ADDRESSES[0],
+              currentBlockNumber,
+            ]),
+            code
+          );
+        });
+
+        it("should not result in a modified state root", async function () {
+          // Arrange 1: Send a transaction, in order to ensure a pre-existing
+          // state root.
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              value: "0x100",
+            },
+          ]);
+
+          // Arrange 2: Capture the existing state root.
+          const oldStateRoot = (
+            await this.provider.send("eth_getBlockByNumber", ["latest", false])
+          ).stateRoot;
+
+          // Act: Set the new code.
+          await this.provider.send("hardhat_setCode", [
+            DEFAULT_ACCOUNTS_ADDRESSES[0],
+            "0x0123456789abcdef",
+          ]);
+
+          // Assert: Ensure state root hasn't changed.
+          const newStateRoot = (
+            await this.provider.send("eth_getBlockByNumber", ["latest", false])
+          ).stateRoot;
+          assert.equal(newStateRoot, oldStateRoot);
+        });
+      });
+
+      describe("hardhat_setNonce", function () {
+        it("should reject an invalid address", async function () {
+          await assertInvalidArgumentsError(
+            this.provider,
+            "hardhat_setNonce",
+            ["0x1234", "0x0"],
+            'Errors encountered in param 0: Invalid value "0x1234" supplied to : ADDRESS'
+          );
+        });
+
+        it("should reject a non-numeric nonce", async function () {
+          await assertInvalidArgumentsError(
+            this.provider,
+            "hardhat_setNonce",
+            [DEFAULT_ACCOUNTS_ADDRESSES[0], "xyz"],
+            'Errors encountered in param 1: Invalid value "xyz" supplied to : QUANTITY'
+          );
+        });
+
+        it("should not reject valid argument types", async function () {
+          await this.provider.send("hardhat_setNonce", [
+            DEFAULT_ACCOUNTS_ADDRESSES[1],
+            "0x0",
+          ]);
+        });
+
+        it("should throw an InvalidInputError if new nonce is smaller than the current nonce", async function () {
+          // Arrange: Send a transaction, in order to ensure a non-zero nonce.
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              value: "0x100",
+            },
+          ]);
+
+          // Act & Assert: Ensure that a zero nonce now triggers the error.
+          await assertInvalidInputError(
+            this.provider,
+            "hardhat_setNonce",
+            [DEFAULT_ACCOUNTS_ADDRESSES[1], "0x0"],
+            "New nonce (0) must not be smaller than the existing nonce (1)"
+          );
+        });
+
+        it("should result in a modified nonce", async function () {
+          // Arrange: Send a transaction, in order to ensure a non-zero nonce.
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              value: "0x100",
+            },
+          ]);
+
+          // Act: Set the new nonce.
+          const targetNonce = 99;
+          await this.provider.send("hardhat_setNonce", [
+            DEFAULT_ACCOUNTS_ADDRESSES[0],
+            numberToRpcQuantity(targetNonce),
+          ]);
+
+          // Assert: Ensure nonce got set.
+          const resultingNonce = await this.provider.send(
+            "eth_getTransactionCount",
+            [DEFAULT_ACCOUNTS_ADDRESSES[0], "latest"]
+          );
+          assert.equal(resultingNonce, targetNonce);
+        });
+
+        it("should not result in a modified state root", async function () {
+          // Arrange 1: Send a transaction, in order to ensure a non-zero nonce.
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              value: "0x100",
+            },
+          ]);
+
+          // Arrange 2: Capture the existing state root.
+          const oldStateRoot = (
+            await this.provider.send("eth_getBlockByNumber", ["latest", false])
+          ).stateRoot;
+
+          // Act: Set the new nonce.
+          await this.provider.send("hardhat_setNonce", [
+            DEFAULT_ACCOUNTS_ADDRESSES[0],
+            numberToRpcQuantity(99),
+          ]);
+
+          // Assert: Ensure state root hasn't changed.
+          const newStateRoot = (
+            await this.provider.send("eth_getBlockByNumber", ["latest", false])
+          ).stateRoot;
+          assert.equal(newStateRoot, oldStateRoot);
+        });
+
+        it("should not break a subsequent transaction", async function () {
+          // Arrange: Send a transaction, in order to ensure a non-zero nonce.
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              value: "0x100",
+            },
+          ]);
+
+          // Act: Set the new nonce and execute a transaction.
+
+          const targetNonce = 99;
+          await this.provider.send("hardhat_setNonce", [
+            DEFAULT_ACCOUNTS_ADDRESSES[0],
+            numberToRpcQuantity(targetNonce),
+          ]);
+
+          const txHash = await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              value: "0x100",
+            },
+          ]);
+
+          // Assert: The executed transaction should reflects the nonce we set.
+          assert.equal(
+            (await this.provider.send("eth_getTransactionByHash", [txHash]))
+              .nonce,
+            targetNonce
+          );
+        });
+
+        it("should get changed nonce by block even after a new block is mined", async function () {
+          // Arrange 1: Send a transaction, in order to ensure a non-zero nonce.
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              value: "0x100",
+            },
+          ]);
+
+          // Arrange 2: Get current block number.
+          const currentBlockNumber = await this.provider.send(
+            "eth_blockNumber"
+          );
+
+          // Act 1: Set the new nonce.
+          const targetNonce = 99;
+          await this.provider.send("hardhat_setNonce", [
+            DEFAULT_ACCOUNTS_ADDRESSES[0],
+            numberToRpcQuantity(targetNonce),
+          ]);
+
+          // Act 2: Mine a block
+          await this.provider.send("evm_mine");
+
+          // Assert: Ensure modified nonce has persisted.
+          const resultingNonce = await this.provider.send(
+            "eth_getTransactionCount",
+            [DEFAULT_ACCOUNTS_ADDRESSES[0], currentBlockNumber]
+          );
+          assert.equal(resultingNonce, targetNonce);
+        });
+
+        it("should throw when there are pending transactions", async function () {
+          await this.provider.send("evm_setAutomine", [false]);
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+            },
+          ]);
+
+          await assertInternalError(
+            this.provider,
+            "hardhat_setNonce",
+            [DEFAULT_ACCOUNTS_ADDRESSES[0], "0xff"],
+            "Cannot set account nonce when the transaction pool is not empty"
+          );
+        });
+      });
+
+      describe("hardhat_setStorageSlot", function () {
+        it("should reject an invalid address", async function () {
+          await assertInvalidArgumentsError(
+            this.provider,
+            "hardhat_setStorageSlot",
+            ["0x1234", numberToRpcQuantity(0), numberToRpcQuantity(99)],
+            'Errors encountered in param 0: Invalid value "0x1234" supplied to : ADDRESS'
+          );
+        });
+
+        it("should reject storage key that is non-numeric", async function () {
+          await assertInvalidArgumentsError(
+            this.provider,
+            "hardhat_setStorageSlot",
+            [DEFAULT_ACCOUNTS_ADDRESSES[0], "xyz", numberToRpcQuantity(99)],
+            'Errors encountered in param 1: Invalid value "xyz" supplied to : QUANTITY'
+          );
+        });
+
+        it("should reject a storage key that is greater than 32 bytes", async function () {
+          const MAX_WORD_VALUE = new BN(2).pow(new BN(256));
+          await assertInvalidInputError(
+            this.provider,
+            "hardhat_setStorageSlot",
+            [
+              DEFAULT_ACCOUNTS_ADDRESSES[0],
+              numberToRpcQuantity(MAX_WORD_VALUE.add(new BN(1))),
+              "0xff",
+            ],
+            "Storage key must not be greater than 2^256. Received 115792089237316195423570985008687907853269984665640564039457584007913129639937."
+          );
+        });
+
+        for (const badInputLength of [1, 2, 31, 33, 64]) {
+          it(`should reject a value that is ${badInputLength} (not exactly 32) bytes long`, async function () {
+            await assertInvalidInputError(
+              this.provider,
+              "hardhat_setStorageSlot",
+              [
+                DEFAULT_ACCOUNTS_ADDRESSES[0],
+                numberToRpcQuantity(0),
+                `0x${"ff".repeat(badInputLength)}`,
+              ],
+              `Storage value must be exactly 32 bytes long. Received 0x${"ff".repeat(
+                badInputLength
+              )}, which is ${badInputLength} bytes long.`
+            );
+          });
+        }
+
+        it("should not reject valid argument types", async function () {
+          await this.provider.send("hardhat_setStorageSlot", [
+            DEFAULT_ACCOUNTS_ADDRESSES[0],
+            numberToRpcQuantity(0),
+            `0x${"ff".repeat(32)}`,
+          ]);
+        });
+
+        it("should result in modified storage", async function () {
+          const targetStorageValue = 99;
+          await this.provider.send("hardhat_setStorageSlot", [
+            DEFAULT_ACCOUNTS_ADDRESSES[0],
+            numberToRpcQuantity(0),
+            `0x${new BN(targetStorageValue).toString(16, 64)}`,
+          ]);
+
+          const resultingStorageValue = await this.provider.send(
+            "eth_getStorageAt",
+            [DEFAULT_ACCOUNTS_ADDRESSES[0], numberToRpcQuantity(0), "latest"]
+          );
+
+          assert.equal(resultingStorageValue, targetStorageValue);
+        });
+
+        it("should permit a contract call to read an updated storage slot value", async function () {
+          // Arrange: Deploy a contract that can get and set storage.
+          const [
+            ,
+            {
+              contracts: {
+                ["literal.sol"]: { Storage: storageContract },
+              },
+            },
+          ] = await compileLiteral(
+            `contract Storage {
+              function getValue(uint256 slot) public view returns (uint256 result) {
+                assembly { result := sload(slot) }
+              }
+            }`
+          );
+          const contractAddress = await deployContract(
+            this.provider,
+            `0x${storageContract.evm.bytecode.object}`,
+            DEFAULT_ACCOUNTS_ADDRESSES[0]
+          );
+
+          // Act: Modify the value in the existing storage slot.
+          await this.provider.send("hardhat_setStorageSlot", [
+            contractAddress,
+            numberToRpcQuantity(0),
+            `0x${new BN(10).toString(16, 64)}`,
+          ]);
+
+          // Assert: Verify that the contract retrieves the modified value.
+          const abiEncoder = new ethers.utils.Interface(storageContract.abi);
+          assert.equal(
+            await this.provider.send("eth_call", [
+              {
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                to: contractAddress,
+                data: abiEncoder.encodeFunctionData("getValue", [0]),
+              },
+              "latest",
+            ]),
+            abiEncoder.encodeFunctionResult("getValue", [10])
+          );
+        });
+
+        it("should not result in a modified state root", async function () {
+          // Arrange 1: Send a transaction, in order to ensure a pre-existing
+          // state root.
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              value: "0x100",
+            },
+          ]);
+
+          // Arrange 2: Capture the existing state root.
+          const oldStateRoot = (
+            await this.provider.send("eth_getBlockByNumber", ["latest", false])
+          ).stateRoot;
+
+          // Act: Set the new storage value.
+          await this.provider.send("hardhat_setStorageSlot", [
+            DEFAULT_ACCOUNTS_ADDRESSES[0],
+            numberToRpcQuantity(0),
+            `0x${"ff".repeat(32)}`,
+          ]);
+
+          // Assert: Ensure state root hasn't changed.
+          const newStateRoot = (
+            await this.provider.send("eth_getBlockByNumber", ["latest", false])
+          ).stateRoot;
+          assert.equal(newStateRoot, oldStateRoot);
+        });
+
+        it("should have the storage modification persist even after a new block is mined", async function () {
+          // Arrange 1: Get current block number.
+          const currentBlockNumber = await this.provider.send(
+            "eth_blockNumber"
+          );
+
+          // Act 1: Modify storage
+          const targetStorageValue = 99;
+          await this.provider.send("hardhat_setStorageSlot", [
+            DEFAULT_ACCOUNTS_ADDRESSES[0],
+            numberToRpcQuantity(0),
+            `0x${new BN(targetStorageValue).toString(16, 64)}`,
+          ]);
+
+          // Act 2: Mine a block
+          await this.provider.send("evm_mine");
+
+          // Assert: Get storage by block
+          assert.equal(
+            await this.provider.send("eth_getStorageAt", [
+              DEFAULT_ACCOUNTS_ADDRESSES[0],
+              numberToRpcQuantity(0),
+              currentBlockNumber,
+            ]),
+            targetStorageValue
+          );
+        });
       });
     });
   });
