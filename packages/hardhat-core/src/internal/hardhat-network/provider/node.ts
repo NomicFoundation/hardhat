@@ -1585,16 +1585,18 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   }
 
   private async _setBlockContext(block: Block): Promise<void> {
-    if (this._stateManager instanceof ForkStateManager) {
-      return this._stateManager.setBlockContext(
-        block.header.stateRoot,
-        block.header.number
-      );
-    }
-
     const irregularStateOrUndefined = this._irregularStatesByBlockNumber.get(
       block.header.number.toString()
     );
+
+    if (this._stateManager instanceof ForkStateManager) {
+      return this._stateManager.setBlockContext(
+        block.header.stateRoot,
+        block.header.number,
+        irregularStateOrUndefined
+      );
+    }
+
     return this._stateManager.setStateRoot(
       irregularStateOrUndefined ?? block.header.stateRoot
     );
