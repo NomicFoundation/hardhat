@@ -575,10 +575,10 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
   public async getStorageAt(
     address: Address,
-    slot: BN,
+    positionIndex: BN,
     blockNumberOrPending: BN | "pending"
   ): Promise<Buffer> {
-    const key = slot.toArrayLike(Buffer, "be", 32);
+    const key = positionIndex.toArrayLike(Buffer, "be", 32);
 
     const data = await this._runInBlockContext(blockNumberOrPending, () =>
       this._stateManager.getContractStorage(address, key)
@@ -980,14 +980,14 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     await this._persistIrregularWorldState();
   }
 
-  public async setAccountStorage(
+  public async setStorageAt(
     address: Address,
-    slotIndex: BN,
+    positionIndex: BN,
     value: Buffer
   ) {
     await this._stateManager.putContractStorage(
       address,
-      slotIndex.toArrayLike(Buffer, "be", 32),
+      positionIndex.toArrayLike(Buffer, "be", 32),
       value
     );
     await this._persistIrregularWorldState();

@@ -404,7 +404,7 @@ To customise it, take a look at [the configuration section](/config/README.md#ha
 - `hardhat_setCode` – Modifies the code of an account.
 - `hardhat_setLoggingEnabled` – Enable or disable logging in Hardhat Network
 - `hardhat_setNonce` – Modifies an account's nonce by overwriting it. Throws an InvalidInputError if nonce is smaller than the current one. The reason for this restriction is to avoid collisions when deploying contracts using the same nonce more than once.
-- `hardhat_setStorageSlot` – Writes a single slot of an account's storage. The storage slot index must not exceed 2^256, and the value to write must be exactly 32 bytes long.
+- `hardhat_setStorageAt` – Writes a single position of an account's storage. The storage position index must not exceed 2^256, and the value to write must be exactly 32 bytes long.
 - `hardhat_stopImpersonatingAccount` – see the [Mainnet Forking guide](../guides/mainnet-forking.md)
 
 #### Special testing/debugging methods
