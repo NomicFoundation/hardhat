@@ -244,9 +244,9 @@ export class HardhatModule {
     );
 
     const MAX_WORD_VALUE = new BN(2).pow(new BN(256));
-    if (positionIndex.gt(MAX_WORD_VALUE)) {
+    if (positionIndex.gte(MAX_WORD_VALUE)) {
       throw new InvalidInputError(
-        `Storage key must not be greater than 2^256. Received ${positionIndex.toString()}.`
+        `Storage key must not be greater than or equal to 2^256. Received ${positionIndex.toString()}.`
       );
     }
 

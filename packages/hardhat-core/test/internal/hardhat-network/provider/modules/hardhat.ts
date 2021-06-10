@@ -974,7 +974,7 @@ describe("Hardhat module", function () {
               numberToRpcQuantity(MAX_WORD_VALUE.add(new BN(1))),
               "0xff",
             ],
-            "Storage key must not be greater than 2^256. Received 115792089237316195423570985008687907853269984665640564039457584007913129639937."
+            "Storage key must not be greater than or equal to 2^256. Received 115792089237316195423570985008687907853269984665640564039457584007913129639937."
           );
         });
 
