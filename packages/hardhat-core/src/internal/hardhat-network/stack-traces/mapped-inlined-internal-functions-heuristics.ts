@@ -47,7 +47,7 @@ export function stackTraceMayRequireAdjustments(
   return (
     lastFrame.type === StackTraceEntryType.REVERT_ERROR &&
     !lastFrame.isInvalidOpcodeError &&
-    lastFrame.message.length === 0 &&
+    lastFrame.message.isEmpty() &&
     semver.gte(
       decodedTrace.bytecode.compilerVersion,
       FIRST_SOLC_VERSION_WITH_MAPPED_SMALL_INTERNAL_FUNCTIONS

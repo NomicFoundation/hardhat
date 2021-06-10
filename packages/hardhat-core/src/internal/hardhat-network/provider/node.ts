@@ -14,6 +14,7 @@ import { StateManager } from "@ethereumjs/vm/dist/state";
 import chalk from "chalk";
 import debug from "debug";
 import {
+  Account,
   Address,
   BN,
   bufferToHex,
@@ -45,7 +46,6 @@ import {
   isPrecompileTrace,
   MessageTrace,
 } from "../stack-traces/message-trace";
-import { decodeRevertReason } from "../stack-traces/revert-reasons";
 import {
   encodeSolidityStackTrace,
   SolidityError,
@@ -86,6 +86,7 @@ import {
   RpcReceiptOutput,
   shouldShowTransactionTypeForHardfork,
 } from "./output";
+import { ReturnData } from "./return-data";
 import { FakeSenderAccessListEIP2930Transaction } from "./transactions/FakeSenderAccessListEIP2930Transaction";
 import { FakeSenderTransaction } from "./transactions/FakeSenderTransaction";
 import { TxPool } from "./TxPool";
@@ -258,6 +259,8 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   private readonly _consoleLogger: ConsoleLogger = new ConsoleLogger();
   private _failedStackTraces = 0;
 
+  private _irregularStatesByBlockNumber: Map<string, Buffer> = new Map(); // blockNumber as BN.toString() => state root
+
   private constructor(
     private readonly _vm: VM,
     private readonly _stateManager: StateManager,
@@ -425,7 +428,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
     return {
       ...traces,
-      result: result.execResult.returnValue,
+      result: new ReturnData(result.execResult.returnValue),
     };
   }
 
@@ -715,7 +718,12 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       txPoolSnapshotId: this._txPool.snapshot(),
       blockTimeOffsetSeconds: this.getTimeIncrement(),
       nextBlockTimestamp: this.getNextBlockTimestamp(),
+      irregularStatesByBlockNumber: this._irregularStatesByBlockNumber,
     };
+
+    this._irregularStatesByBlockNumber = new Map(
+      this._irregularStatesByBlockNumber
+    );
 
     this._snapshots.push(snapshot);
     this._nextSnapshotId += 1;
@@ -746,7 +754,13 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     // Note: There's no need to copy the maps here, as snapshots can only be
     // used once
     this._blockchain.deleteLaterBlocks(snapshot.latestBlock);
-    await this._stateManager.setStateRoot(snapshot.stateRoot);
+    this._irregularStatesByBlockNumber = snapshot.irregularStatesByBlockNumber;
+    const irregularStateOrUndefined = this._irregularStatesByBlockNumber.get(
+      (await this.getLatestBlock()).header.number.toString()
+    );
+    await this._stateManager.setStateRoot(
+      irregularStateOrUndefined ?? snapshot.stateRoot
+    );
     this.setTimeIncrement(newOffset);
     this.setNextBlockTimestamp(snapshot.nextBlockTimestamp);
     this._txPool.revert(snapshot.txPoolSnapshotId);
@@ -956,6 +970,54 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     }
 
     return false;
+  }
+
+  public async setAccountBalance(
+    address: Address,
+    newBalance: BN
+  ): Promise<void> {
+    const account = await this._stateManager.getAccount(address);
+    account.balance = newBalance;
+    await this._stateManager.putAccount(address, account);
+    await this._persistIrregularWorldState();
+  }
+
+  public async setAccountCode(
+    address: Address,
+    newCode: Buffer
+  ): Promise<void> {
+    await this._stateManager.putContractCode(address, newCode);
+    await this._persistIrregularWorldState();
+  }
+
+  public async setAccountNonce(address: Address, newNonce: BN): Promise<void> {
+    if (!this._txPool.isEmpty()) {
+      throw new InternalError(
+        "Cannot set account nonce when the transaction pool is not empty"
+      );
+    }
+    const account = await this._stateManager.getAccount(address);
+    if (newNonce.lt(account.nonce)) {
+      throw new InvalidInputError(
+        `New nonce (${newNonce.toString()}) must not be smaller than the existing nonce (${account.nonce.toString()})`
+      );
+    }
+    account.nonce = newNonce;
+    await this._stateManager.putAccount(address, account);
+    await this._persistIrregularWorldState();
+  }
+
+  public async setAccountStorage(
+    address: Address,
+    slotIndex: BN,
+    value: Buffer
+  ) {
+    await this._stateManager.putContractStorage(
+      address,
+      slotIndex.toArrayLike(Buffer, "be", 32),
+      value
+    );
+    await this._persistIrregularWorldState();
   }
 
   public async traceTransaction(hash: Buffer, config: RpcDebugTracingConfig) {
@@ -1331,58 +1393,57 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     }
 
     if (error.error === ERROR.OUT_OF_GAS) {
-      if (this._isContractTooLargeStackTrace(stackTrace)) {
+      if (
+        stackTrace !== undefined &&
+        this._isContractTooLargeStackTrace(stackTrace)
+      ) {
         return encodeSolidityStackTrace(
           "Transaction ran out of gas",
-          stackTrace!
+          stackTrace
         );
       }
 
       return new TransactionExecutionError("Transaction ran out of gas");
     }
 
-    if (error.error === ERROR.REVERT) {
-      if (vmResult.returnValue.length === 0) {
-        if (stackTrace !== undefined) {
-          return encodeSolidityStackTrace(
-            "Transaction reverted without a reason",
-            stackTrace
-          );
-        }
+    const returnData = new ReturnData(vmResult.returnValue);
 
-        return new TransactionExecutionError(
-          "Transaction reverted without a reason"
-        );
-      }
+    let returnDataExplanation;
+    if (returnData.isEmpty()) {
+      returnDataExplanation = "without reason string";
+    } else if (returnData.isErrorReturnData()) {
+      returnDataExplanation = `with reason "${returnData.decodeError()}"`;
+    } else if (returnData.isPanicReturnData()) {
+      const panicCode = returnData.decodePanic().toString("hex");
+      returnDataExplanation = `with panic code "0x${panicCode}"`;
+    } else {
+      returnDataExplanation = "with unrecognized return data";
+    }
+
+    if (error.error === ERROR.REVERT) {
+      const fallbackMessage = `VM Exception while processing transaction: revert ${returnDataExplanation}`;
 
       if (stackTrace !== undefined) {
-        return encodeSolidityStackTrace(
-          `VM Exception while processing transaction: revert ${decodeRevertReason(
-            vmResult.returnValue
-          )}`,
-          stackTrace
-        );
+        return encodeSolidityStackTrace(fallbackMessage, stackTrace);
       }
 
-      return new TransactionExecutionError(
-        `VM Exception while processing transaction: revert ${decodeRevertReason(
-          vmResult.returnValue
-        )}`
-      );
+      return new TransactionExecutionError(fallbackMessage);
     }
 
     if (stackTrace !== undefined) {
-      return encodeSolidityStackTrace("Transaction failed: revert", stackTrace);
+      return encodeSolidityStackTrace(
+        `Transaction failed: revert ${returnDataExplanation}`,
+        stackTrace
+      );
     }
 
-    return new TransactionExecutionError("Transaction failed: revert");
+    return new TransactionExecutionError(
+      `Transaction reverted ${returnDataExplanation}`
+    );
   }
 
-  private _isContractTooLargeStackTrace(
-    stackTrace: SolidityStackTrace | undefined
-  ) {
+  private _isContractTooLargeStackTrace(stackTrace: SolidityStackTrace) {
     return (
-      stackTrace !== undefined &&
       stackTrace.length > 0 &&
       stackTrace[stackTrace.length - 1].type ===
         StackTraceEntryType.CONTRACT_TOO_LARGE_ERROR
@@ -1572,7 +1633,13 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         block.header.number
       );
     }
-    return this._stateManager.setStateRoot(block.header.stateRoot);
+
+    const irregularStateOrUndefined = this._irregularStatesByBlockNumber.get(
+      block.header.number.toString()
+    );
+    return this._stateManager.setStateRoot(
+      irregularStateOrUndefined ?? block.header.stateRoot
+    );
   }
 
   private async _restoreBlockContext(stateRoot: Buffer) {
@@ -1809,6 +1876,13 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   private _isTxMinable(tx: TypedTransaction): boolean {
     const txGasPrice = new BN(tx.gasPrice);
     return txGasPrice.gte(this._minGasPrice);
+  }
+
+  private async _persistIrregularWorldState(): Promise<void> {
+    this._irregularStatesByBlockNumber.set(
+      (await this.getLatestBlock()).header.number.toString(),
+      await this._stateManager.getStateRoot()
+    );
   }
 }
 

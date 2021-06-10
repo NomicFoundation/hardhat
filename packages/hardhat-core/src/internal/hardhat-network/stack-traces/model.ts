@@ -23,6 +23,7 @@ export enum ContractFunctionType {
   RECEIVE,
   GETTER,
   MODIFIER,
+  FREE_FUNCTION,
 }
 
 export enum ContractFunctionVisibility {
@@ -252,12 +253,12 @@ export class ContractFunction {
     public readonly name: string,
     public readonly type: ContractFunctionType,
     public readonly location: SourceLocation,
-    public readonly contract: Contract,
+    public readonly contract?: Contract,
     public readonly visibility?: ContractFunctionVisibility,
     public readonly isPayable?: boolean,
     public selector?: Buffer
   ) {
-    if (!contract.location.contains(location)) {
+    if (contract !== undefined && !contract.location.contains(location)) {
       throw new Error("Incompatible contract and function location");
     }
   }
