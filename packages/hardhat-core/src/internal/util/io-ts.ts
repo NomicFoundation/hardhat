@@ -6,8 +6,7 @@ export function optionalOrNullable<TypeT, OutputT, InputT>(
 ): t.Type<TypeT | undefined, OutputT | undefined, InputT | undefined | null> {
   return new t.Type(
     name,
-    (u: unknown): u is TypeT | undefined =>
-      u === undefined || u === null || codec.is(u),
+    (u: unknown): u is TypeT | undefined => u === undefined || codec.is(u),
     (i, c) => {
       if (i === undefined || i === null) {
         return t.success(undefined);
