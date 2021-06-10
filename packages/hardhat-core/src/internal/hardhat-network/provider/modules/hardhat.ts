@@ -5,6 +5,7 @@ import {
   BoundExperimentalHardhatNetworkMessageTraceHook,
   CompilerInput,
   CompilerOutput,
+  HardhatNetworkLoggingConfig,
 } from "../../../../types";
 import { rpcAddress } from "../../../core/jsonrpc/types/base-types";
 import {

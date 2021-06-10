@@ -4,6 +4,7 @@ import ansiEscapes from "ansi-escapes";
 import chalk, { Chalk } from "chalk";
 import { BN, bufferToHex } from "ethereumjs-util";
 import util from "util";
+import { HardhatNetworkLoggingConfig } from "../../../../types";
 
 import { assertHardhatInvariant } from "../../../core/errors";
 import { TransactionExecutionError } from "../../../core/providers/errors";
@@ -69,6 +70,7 @@ export class ModulesLogger {
 
   constructor(
     private _enabled: boolean,
+    private _loggingConfig: HardhatNetworkLoggingConfig,
     private _printLine = printLine,
     private _replaceLastLine = replaceLastLine
   ) {}
@@ -79,6 +81,10 @@ export class ModulesLogger {
 
   public setEnabled(enabled: boolean) {
     this._enabled = enabled;
+  }
+
+  public setConfig(loggingConfig: HardhatNetworkLoggingConfig) {
+    this._loggingConfig = loggingConfig;
   }
 
   public shouldLogMethods() {
@@ -399,7 +405,7 @@ export class ModulesLogger {
   }
 
   public printMethod(method: string) {
-    if (!this._logMethods) {
+    if (this._loggingConfig.level === 'minimal') {
       return;
     }
 
