@@ -14,7 +14,7 @@ export function optionalOrNullable<TypeT, OutputT, InputT>(
       return codec.validate(i, c);
     },
     (a) => {
-      if (a === undefined || a === null) {
+      if (a === undefined) {
         return undefined;
       }
       return codec.encode(a);
