@@ -36,7 +36,7 @@ import {
 import { setCWD } from "../helpers/cwd";
 
 import {
-  compile,
+  compileFiles,
   COMPILER_DOWNLOAD_TIMEOUT,
   CompilerOptions,
   downloadSolc,
@@ -231,7 +231,7 @@ async function compileIfNecessary(
     return [JSON.parse(inputJson), JSON.parse(outputJson)];
   }
 
-  const [compilerInput, compilerOutput] = await compile(
+  const [compilerInput, compilerOutput] = await compileFiles(
     sources,
     compilerOptions
   );

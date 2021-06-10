@@ -90,6 +90,7 @@ export interface Snapshot {
   txPoolSnapshotId: number;
   blockTimeOffsetSeconds: BN;
   nextBlockTimestamp: BN;
+  irregularStatesByBlockNumber: Map<string, Buffer>;
 }
 
 export type SendTransactionResult =
