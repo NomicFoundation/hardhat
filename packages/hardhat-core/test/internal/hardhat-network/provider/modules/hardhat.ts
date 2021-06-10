@@ -783,7 +783,7 @@ describe("Hardhat module", function () {
 
         it("should not reject valid argument types", async function () {
           await this.provider.send("hardhat_setNonce", [
-            DEFAULT_ACCOUNTS_ADDRESSES[0],
+            DEFAULT_ACCOUNTS_ADDRESSES[1],
             "0x0",
           ]);
         });
@@ -792,8 +792,8 @@ describe("Hardhat module", function () {
           // Arrange: Send a transaction, in order to ensure a non-zero nonce.
           await this.provider.send("eth_sendTransaction", [
             {
-              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[0],
               value: "0x100",
             },
           ]);
@@ -802,7 +802,7 @@ describe("Hardhat module", function () {
           await assertInvalidInputError(
             this.provider,
             "hardhat_setNonce",
-            [DEFAULT_ACCOUNTS_ADDRESSES[0], "0x0"],
+            [DEFAULT_ACCOUNTS_ADDRESSES[1], "0x0"],
             "New nonce (0) must not be smaller than the existing nonce (1)"
           );
         });

@@ -320,10 +320,20 @@ export class ForkStateManager implements EIP2929StateManager {
     // perform this operation.
   }
 
-  public setBlockContext(stateRoot: Buffer, blockNumber: BN) {
+  public setBlockContext(
+    stateRoot: Buffer,
+    blockNumber: BN,
+    irregularState?: Buffer
+  ) {
     if (this._stateCheckpoints.length !== 0) {
       throw checkpointedError("setBlockContext");
     }
+
+    if (irregularState !== undefined) {
+      this._setStateRoot(irregularState);
+      return;
+    }
+
     if (blockNumber.eq(this._forkBlockNumber)) {
       this._setStateRoot(toBuffer(this._initialStateRoot));
       return;
