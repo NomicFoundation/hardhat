@@ -19,21 +19,21 @@ export function reorganizeTransactionsLists(
   let newPending = pending;
   let newQueued = queued.sortBy(retrieveNonce, (l, r) => l.cmp(r));
 
-  let nextNonce: BN;
+  let nextPendingNonce: BN;
 
   if (pending.last() === undefined) {
     throw new InternalError("Pending list cannot be empty");
   }
 
-  nextNonce = retrieveNonce(pending.last()).addn(1);
+  nextPendingNonce = retrieveNonce(pending.last()).addn(1);
 
   let movedCount = 0;
   for (const queuedTx of newQueued) {
     const queuedTxNonce = retrieveNonce(queuedTx);
 
-    if (nextNonce.eq(queuedTxNonce)) {
+    if (nextPendingNonce.eq(queuedTxNonce)) {
       newPending = newPending.push(queuedTx);
-      nextNonce.iaddn(1);
+      nextPendingNonce.iaddn(1);
       movedCount++;
     } else {
       break;

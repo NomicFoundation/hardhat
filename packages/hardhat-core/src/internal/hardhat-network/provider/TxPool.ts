@@ -96,17 +96,17 @@ export class TxPool {
 
   public async addTransaction(tx: TypedTransaction) {
     const senderAddress = this._getSenderAddress(tx);
-    const accountNonce = await this._getAccountNonce(senderAddress);
-    const nextNonce = await this.getNextNonce(senderAddress);
+    const nextConfirmedNonce = await this._getNextConfirmedNonce(senderAddress);
+    const nextPendingNonce = await this.getNextPendingNonce(senderAddress);
 
-    await this._validateTransaction(tx, senderAddress, accountNonce);
+    await this._validateTransaction(tx, senderAddress, nextConfirmedNonce);
 
     const txNonce = new BN(tx.nonce);
 
-    if (txNonce.lte(nextNonce)) {
-      this._addPendingTransaction(tx);
-    } else {
+    if (txNonce.gt(nextPendingNonce)) {
       this._addQueuedTransaction(tx);
+    } else {
+      this._addPendingTransaction(tx);
     }
   }
 
@@ -220,12 +220,12 @@ export class TxPool {
    * Returns the next available nonce for an address, taking into account
    * its pending transactions.
    */
-  public async getNextNonce(accountAddress: Address): Promise<BN> {
+  public async getNextPendingNonce(accountAddress: Address): Promise<BN> {
     const pendingTxs = this._getPendingForAddress(accountAddress.toString());
     const lastPendingTx = pendingTxs?.last(undefined);
 
     if (lastPendingTx === undefined) {
-      return this._getAccountNonce(accountAddress);
+      return this._getNextConfirmedNonce(accountAddress);
     }
 
     const lastPendingTxNonce = this._deserializeTransaction(lastPendingTx).data
@@ -562,7 +562,7 @@ export class TxPool {
    * Returns the next available nonce for an address, ignoring its
    * pending transactions.
    */
-  private async _getAccountNonce(accountAddress: Address): Promise<BN> {
+  private async _getNextConfirmedNonce(accountAddress: Address): Promise<BN> {
     const account = await this._stateManager.getAccount(accountAddress);
     return new BN(account.nonce);
   }

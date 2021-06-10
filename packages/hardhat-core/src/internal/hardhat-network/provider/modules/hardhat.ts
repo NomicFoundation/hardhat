@@ -267,7 +267,7 @@ export class HardhatModule {
   }
 
   private async _setNonceAction(address: Buffer, newNonce: BN) {
-    await this._node.setAccountNonce(new Address(address), newNonce);
+    await this._node.setNextConfirmedNonce(new Address(address), newNonce);
     return true;
   }
 

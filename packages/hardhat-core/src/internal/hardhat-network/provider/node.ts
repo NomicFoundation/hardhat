@@ -447,7 +447,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     return new BN(account.balance);
   }
 
-  public async getAccountNonce(
+  public async getNextConfirmedNonce(
     address: Address,
     blockNumberOrPending: BN | "pending"
   ): Promise<BN> {
@@ -458,8 +458,8 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     return new BN(account.nonce);
   }
 
-  public async getAccountNextNonce(address: Address): Promise<BN> {
-    return this._txPool.getNextNonce(address);
+  public async getAccountNextPendingNonce(address: Address): Promise<BN> {
+    return this._txPool.getNextPendingNonce(address);
   }
 
   public async getCodeFromTrace(
@@ -990,7 +990,10 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     await this._persistIrregularWorldState();
   }
 
-  public async setAccountNonce(address: Address, newNonce: BN): Promise<void> {
+  public async setNextConfirmedNonce(
+    address: Address,
+    newNonce: BN
+  ): Promise<void> {
     if (!this._txPool.isEmpty()) {
       throw new InternalError(
         "Cannot set account nonce when the transaction pool is not empty"
@@ -1181,16 +1184,16 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     }
 
     // validate nonce
-    const nextNonce = await this._txPool.getNextNonce(sender);
+    const nextPendingNonce = await this._txPool.getNextPendingNonce(sender);
     const txNonce = new BN(tx.nonce);
 
-    const expectedNonceMsg = `Expected nonce to be ${nextNonce} but got ${txNonce}.`;
-    if (txNonce.gt(nextNonce)) {
+    const expectedNonceMsg = `Expected nonce to be ${nextPendingNonce} but got ${txNonce}.`;
+    if (txNonce.gt(nextPendingNonce)) {
       throw new InvalidInputError(
         `Nonce too high. ${expectedNonceMsg} Note that transactions can't be queued when automining.`
       );
     }
-    if (txNonce.lt(nextNonce)) {
+    if (txNonce.lt(nextPendingNonce)) {
       throw new InvalidInputError(`Nonce too low. ${expectedNonceMsg}`);
     }
 
@@ -1858,7 +1861,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     blockNumberOrPending: BN | "pending"
   ): Promise<BN> {
     if (blockNumberOrPending === "pending") {
-      return this.getAccountNextNonce(address);
+      return this.getAccountNextPendingNonce(address);
     }
 
     return this._runInBlockContext(blockNumberOrPending, async () => {
