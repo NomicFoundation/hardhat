@@ -419,6 +419,7 @@ To customise it, take a look at [the configuration section](/config/README.md#ha
 - `hardhat_setBalance` – Modifies the balance of an account.
 - `hardhat_setCode` – Modifies the code of an account.
 - `hardhat_setLoggingEnabled` – Enable or disable logging in Hardhat Network
+- `hardhat_setMinGasPrice` - change the minimum gas price accepted by the network (in wei)
 - `hardhat_setNonce` – Modifies an account's nonce by overwriting it. Throws an InvalidInputError if nonce is smaller than the current one. The reason for this restriction is to avoid collisions when deploying contracts using the same nonce more than once.
 - `hardhat_setStorageSlot` – Writes a single slot of an account's storage. The storage slot index must not exceed 2^256, and the value to write must be exactly 32 bytes long.
 - `hardhat_stopImpersonatingAccount` – see the [Mainnet Forking guide](../guides/mainnet-forking.md)
@@ -430,7 +431,6 @@ To customise it, take a look at [the configuration section](/config/README.md#ha
 - `evm_revert` – same as Ganache.
 - `evm_snapshot` – same as Ganache.
 - `evm_setNextBlockTimestamp` - this method works like `evm_increaseTime`, but takes the exact timestamp that you want in the next block, and increases the time accordingly.
-- `evm_setMinGasPrice` - change the minimum gas price accepted by the network (in wei)
 
 ### Unsupported methods
 

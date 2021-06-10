@@ -289,7 +289,7 @@ describe("Eth module", function () {
           });
 
           it("Should throw if the gas price is below the minimum gas price", async function () {
-            await this.provider.send("evm_setMinGasPrice", [
+            await this.provider.send("hardhat_setMinGasPrice", [
               numberToRpcQuantity(20),
             ]);
 
@@ -645,7 +645,7 @@ describe("Eth module", function () {
             const minGasPrice = 20;
 
             beforeEach(async function () {
-              await this.provider.send("evm_setMinGasPrice", [
+              await this.provider.send("hardhat_setMinGasPrice", [
                 numberToRpcQuantity(minGasPrice),
               ]);
             });

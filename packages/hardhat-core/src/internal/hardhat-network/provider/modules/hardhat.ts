@@ -79,6 +79,11 @@ export class HardhatModule {
           ...this._setLoggingEnabledParams(params)
         );
 
+      case "hardhat_setMinGasPrice":
+        return this._setMinGasPriceAction(
+          ...this._setMinGasPriceParams(params)
+        );
+
       case "hardhat_dropTransaction":
         return this._dropTransactionAction(
           ...this._dropTransactionParams(params)
@@ -205,6 +210,21 @@ export class HardhatModule {
     loggingEnabled: boolean
   ): Promise<true> {
     this._setLoggingEnabledCallback(loggingEnabled);
+    return true;
+  }
+
+  // hardhat_setMinGasPrice
+
+  private _setMinGasPriceParams(params: any[]): [BN] {
+    return validateParams(params, rpcQuantity);
+  }
+
+  private async _setMinGasPriceAction(minGasPrice: BN): Promise<true> {
+    if (minGasPrice.lt(new BN(0))) {
+      throw new InvalidInputError("Minimum gas price cannot be negative");
+    }
+
+    await this._node.setMinGasPrice(minGasPrice);
     return true;
   }
 
