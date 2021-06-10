@@ -87,10 +87,8 @@ export class HardhatModule {
       case "hardhat_setNonce":
         return this._setNonceAction(...this._setNonceParams(params));
 
-      case "hardhat_setStorageSlot":
-        return this._setStorageSlotAction(
-          ...this._setStorageSlotParams(params)
-        );
+      case "hardhat_setStorageAt":
+        return this._setStorageAtAction(...this._setStorageAtParams(params));
     }
 
     throw new MethodNotFoundError(`Method ${method} not found`);
@@ -235,10 +233,10 @@ export class HardhatModule {
     return true;
   }
 
-  // hardhat_setStorageSlot
+  // hardhat_setStorageAt
 
-  private _setStorageSlotParams(params: any[]): [Buffer, BN, Buffer] {
-    const [address, slotIndex, value] = validateParams(
+  private _setStorageAtParams(params: any[]): [Buffer, BN, Buffer] {
+    const [address, positionIndex, value] = validateParams(
       params,
       rpcAddress,
       rpcQuantity,
@@ -246,9 +244,9 @@ export class HardhatModule {
     );
 
     const MAX_WORD_VALUE = new BN(2).pow(new BN(256));
-    if (slotIndex.gt(MAX_WORD_VALUE)) {
+    if (positionIndex.gt(MAX_WORD_VALUE)) {
       throw new InvalidInputError(
-        `Storage key must not be greater than 2^256. Received ${slotIndex.toString()}.`
+        `Storage key must not be greater than 2^256. Received ${positionIndex.toString()}.`
       );
     }
 
@@ -260,15 +258,15 @@ export class HardhatModule {
       );
     }
 
-    return [address, slotIndex, value];
+    return [address, positionIndex, value];
   }
 
-  private async _setStorageSlotAction(
+  private async _setStorageAtAction(
     address: Buffer,
-    slotIndex: BN,
+    positionIndex: BN,
     value: Buffer
   ) {
-    await this._node.setAccountStorage(new Address(address), slotIndex, value);
+    await this._node.setStorageAt(new Address(address), positionIndex, value);
     return true;
   }
 
