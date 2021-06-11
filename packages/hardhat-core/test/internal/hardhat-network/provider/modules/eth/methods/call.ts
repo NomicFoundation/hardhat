@@ -245,6 +245,26 @@ describe("Eth module", function () {
 
             assert.equal(rpcDataToNumber(blockResult2), blockNumber + 1);
           });
+
+          it("Should accept explicit nulls for optional parameter values", async function () {
+            // For simplicity of this test, and because this test only intends
+            // to exercise input parameter validation, utilize the case of
+            // eth_call calling into a non-contract account, which returns an
+            // empty buffer.
+            assert.equal(
+              await this.provider.send("eth_call", [
+                {
+                  from: null,
+                  to: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                  gas: null,
+                  gasPrice: null,
+                  value: null,
+                  data: null,
+                },
+              ]),
+              "0x"
+            );
+          });
         });
 
         describe("when called with 'latest' blockTag param", () => {
