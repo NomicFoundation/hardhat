@@ -9,7 +9,9 @@ function compareTransactions(
   right: OrderedTransaction
 ) {
   // TODO: remove these `as any`
-  const cmp = new BN((left.data as any).gasPrice).cmp(new BN((right.data as any).gasPrice));
+  const cmp = new BN((left.data as any).gasPrice).cmp(
+    new BN((right.data as any).gasPrice)
+  );
   return cmp === 0 ? right.orderId - left.orderId : cmp;
 }
 
