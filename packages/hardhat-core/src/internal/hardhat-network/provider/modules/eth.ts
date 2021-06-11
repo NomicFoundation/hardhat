@@ -977,11 +977,12 @@ export class EthModule {
       if (
         error.message.includes(
           "Common support for TypedTransactions (EIP-2718) not activated"
-        )
+        ) ||
+        error.message.includes("EIP-2930 not enabled on Common")
       ) {
         throw new InvalidArgumentsError(
           `Trying to send an EIP-2930 transaction but they are not supported by the current hard fork.
-      
+
 You can use them by running Hardhat Network with 'hardfork' ${ACCESS_LIST_MIN_HARDFORK} or later.`,
           error
         );

@@ -78,6 +78,8 @@ export class ReadOnlyValidEIP2930Transaction extends AccessListEIP2930Transactio
 
     super(data, { freeze: false, common: fakeCommon });
 
+    // TODO: remove this as any
+    (this as any).common = fakeCommon;
     this._sender = sender;
   }
 
