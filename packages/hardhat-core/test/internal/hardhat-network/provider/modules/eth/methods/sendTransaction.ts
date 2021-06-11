@@ -143,6 +143,7 @@ describe("Eth module", function () {
                   {
                     from: DEFAULT_ACCOUNTS_ADDRESSES[0],
                     data: "0x00",
+                    to: toValue,
                   },
                 ]);
 
