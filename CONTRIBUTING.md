@@ -10,14 +10,12 @@ If you find a bug or want to propose a new feature, please [open an issue](https
 
 This repository is a monorepo handled with [Yarn workspaces](https://classic.yarnpkg.com/en/docs/workspaces/).
 
-There's a folder for each subproject in `packages/`. All of them are plugins, except for `/packages/hardhat` which
-is the main project (i.e. the one that's published as [hardhat](https://npmjs.com/package/hardhat)).
+There's a folder for each subproject in `packages/`. All of them are plugins, except for `/packages/hardhat-core` which
+is the main project (i.e. the one that's published as [hardhat](https://npmjs.com/package/hardhat) in npm).
 
 ## Installing
 
-To install this project you have to run:
-
-1. `yarn`
+To install the project's dependencies, run `yarn` in the root directory of the repository.
 
 ## Building the projects
 
@@ -65,7 +63,7 @@ bug, and use it as the base branch in pull requests.
 
 If you are modifying the default config, adding a feature, or doing any kind of
 technical work that should be reflected in the documentation, the documentation
-change should be contained in the same branch and PR than the change.
+change should be contained in the same branch and PR as the change.
 
 If you are working purely on the website or documentation, not as a result of
 a technical change, you should branch from [`website`](https://github.com/nomiclabs/hardhat/tree/website)
@@ -115,15 +113,15 @@ All these tips assume you are running `yarn watch` from the root directory.
 
 ### Linking
 
-You can [link](https://classic.yarnpkg.com/en/docs/cli/link/) any package to test it locally. For example, if you are working on
+You can [link](https://classic.yarnpkg.com/en/docs/cli/link/) any package to test it locally. While the rest of the commands we run use `yarn`, we recommend you use `npm` for linking, since `yarn link` won't create the `hardhat` executable. For example, if you are working on
 `hardhat`, you can follow these steps:
 
-1. Go to `packages/hardhat-core` and run `yarn link`
-2. Go to some hardhat project and run `yarn link hardhat`
+1. Go to `packages/hardhat-core` and run `npm link`
+2. Go to some hardhat project and run `npm link hardhat`
 
 Now any change you make in the code will be reflected in that project.
 
-Note that `yarn link` won't create an executable in `node_modules/.bin/hardhat`. To work around this we recommend
+If you prefer to use `yarn link`, you need to work around the lack of an executable in `node_modules/.bin/hardhat`. We recommend
 having an alias like this:
 
 ```bash

@@ -165,20 +165,22 @@ export interface CompilerInput {
   };
 }
 
+export interface CompilerOutputContract {
+  abi: any;
+  evm: {
+    bytecode: CompilerOutputBytecode;
+    deployedBytecode: CompilerOutputBytecode;
+    methodIdentifiers: {
+      [methodSignature: string]: string;
+    };
+  };
+}
+
 export interface CompilerOutput {
   sources: CompilerOutputSources;
   contracts: {
     [sourceName: string]: {
-      [contractName: string]: {
-        abi: any;
-        evm: {
-          bytecode: CompilerOutputBytecode;
-          deployedBytecode: CompilerOutputBytecode;
-          methodIdentifiers: {
-            [methodSignature: string]: string;
-          };
-        };
-      };
+      [contractName: string]: CompilerOutputContract;
     };
   };
 }
