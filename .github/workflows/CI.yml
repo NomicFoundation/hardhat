@@ -83,6 +83,7 @@ jobs:
         env:
           INFURA_URL: ${{ secrets.INFURA_URL }}
           ALCHEMY_URL: ${{ secrets.ALCHEMY_URL }}
+          DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI: true
         run: yarn test
 
   test_macos:
@@ -114,6 +115,7 @@ jobs:
         env:
           INFURA_URL: ${{ secrets.INFURA_URL }}
           ALCHEMY_URL: ${{ secrets.ALCHEMY_URL }}
+          DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI: true
         run: yarn test
 
   test_linux:
@@ -150,4 +152,5 @@ jobs:
         env:
           INFURA_URL: ${{ secrets.INFURA_URL }}
           ALCHEMY_URL: ${{ secrets.ALCHEMY_URL }}
+          DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI: true
         run: yarn test
