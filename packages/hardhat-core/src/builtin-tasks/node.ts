@@ -66,14 +66,17 @@ Private Key: ${privateKey}
 subtask(TASK_NODE_GET_PROVIDER)
   .addOptionalParam("forkUrl", undefined, undefined, types.string)
   .addOptionalParam("forkBlockNumber", undefined, undefined, types.int)
+  .addOptionalParam("forkNetwork", undefined, undefined, types.string)
   .setAction(
     async (
       {
         forkBlockNumber: forkBlockNumberParam,
         forkUrl: forkUrlParam,
+        forkNetwork: forkNetworkParam,
       }: {
         forkBlockNumber?: number;
         forkUrl?: string;
+        forkNetwork?: string;
       },
       { artifacts, config, network }
     ): Promise<EthereumProvider> => {
@@ -93,11 +96,54 @@ subtask(TASK_NODE_GET_PROVIDER)
 
       const hardhatNetworkConfig = config.networks[HARDHAT_NETWORK_NAME];
 
-      const forkUrlConfig = hardhatNetworkConfig.forking?.url;
+      const forkNetworkConfig =
+        hardhatNetworkConfig.forking !== undefined &&
+        "network" in hardhatNetworkConfig.forking
+          ? hardhatNetworkConfig.forking?.network
+          : undefined;
+      let forkUrlConfig =
+        hardhatNetworkConfig.forking !== undefined &&
+        "url" in hardhatNetworkConfig.forking
+          ? hardhatNetworkConfig.forking?.url
+          : undefined;
       const forkBlockNumberConfig = hardhatNetworkConfig.forking?.blockNumber;
 
-      const forkUrl = forkUrlParam ?? forkUrlConfig;
+      if (forkNetworkParam === undefined && forkNetworkConfig !== undefined) {
+        const networkConfig = config.networks[forkNetworkConfig];
+        if (networkConfig === undefined) {
+          throw new HardhatError(ERRORS.NETWORK.FORK_NETWORK_NOT_EXISTS);
+        }
+        if (!("url" in networkConfig)) {
+          throw new HardhatError(ERRORS.NETWORK.FORK_NETWORK_WITHOUT_URL);
+        }
+        forkUrlConfig = networkConfig.url;
+      }
+
+      const forkNetwork = forkNetworkParam ?? forkNetworkConfig;
+      let forkUrl = forkUrlParam ?? forkUrlConfig;
       const forkBlockNumber = forkBlockNumberParam ?? forkBlockNumberConfig;
+
+      if (forkNetwork !== undefined) {
+        const networkConfig = config.networks[forkNetwork];
+        if (networkConfig === undefined) {
+          throw new HardhatError(ERRORS.NETWORK.FORK_NETWORK_NOT_EXISTS);
+        }
+        if (!("url" in networkConfig)) {
+          throw new HardhatError(ERRORS.NETWORK.FORK_NETWORK_WITHOUT_URL);
+        }
+        forkUrl = networkConfig.url;
+      }
+
+      if (forkUrl !== undefined) {
+        // assign the fork settings to the network object so plugin can retrive the network used as fork
+        hardhatNetworkConfig.forking = {
+          ...hardhatNetworkConfig.forking,
+
+          url: forkUrl,
+          network: forkNetwork,
+          enabled: true,
+        };
+      }
 
       // we throw an error if the user specified a forkBlockNumber but not a
       // forkUrl
@@ -245,7 +291,7 @@ task(TASK_NODE, "Starts a JSON-RPC server on top of Hardhat Network")
     async (
       {
         forkBlockNumber,
-        fork: forkUrl,
+        fork,
         hostname: hostnameParam,
         port,
       }: {
@@ -266,10 +312,26 @@ task(TASK_NODE, "Starts a JSON-RPC server on top of Hardhat Network")
         );
       }
 
+      const urlSchemes = ["http", "https", "ws", "wss"];
+      let forkUrl: string | undefined;
+      let forkNetwork: string | undefined;
+      if (
+        urlSchemes.reduce<boolean>(
+          (prev, curr) =>
+            prev || (fork !== undefined ? fork.startsWith(`${curr}:`) : false),
+          false
+        )
+      ) {
+        forkUrl = fork;
+      } else {
+        forkNetwork = fork;
+      }
+
       try {
         const provider: EthereumProvider = await run(TASK_NODE_GET_PROVIDER, {
           forkBlockNumber,
           forkUrl,
+          forkNetwork,
         });
 
         // the default hostname is "localhost" unless we are inside a docker

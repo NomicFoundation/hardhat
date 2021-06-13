@@ -26,6 +26,7 @@ export type LocalNodeConfig = CommonConfig;
 
 export interface ForkConfig {
   jsonRpcUrl: string;
+  network?: string;
   blockNumber?: number;
 }
 

@@ -17,6 +17,7 @@ import {
   HttpNetworkConfig,
   HttpNetworkUserConfig,
   MultiSolcUserConfig,
+  NetworkConfig,
   NetworksConfig,
   NetworksUserConfig,
   NetworkUserConfig,
@@ -29,7 +30,8 @@ import {
 } from "../../../types";
 import { HARDHAT_NETWORK_NAME } from "../../constants";
 import { fromEntries } from "../../util/lang";
-import { assertHardhatInvariant } from "../errors";
+import { assertHardhatInvariant, HardhatError } from "../errors";
+import { ERRORS } from "../errors-list";
 
 import {
   DEFAULT_SOLC_VERSION,
@@ -76,12 +78,6 @@ function resolveNetworksConfig(
   const localhostNetworkConfig =
     (networksConfig.localhost as HttpNetworkUserConfig) ?? undefined;
 
-  const hardhat = resolveHardhatNetworkConfig(hardhatNetworkConfig);
-  const localhost = resolveHttpNetworkConfig({
-    ...cloneDeep(defaultLocalhostNetworkParams),
-    ...localhostNetworkConfig,
-  });
-
   const otherNetworks: { [name: string]: HttpNetworkConfig } = fromEntries(
     Object.entries(networksConfig)
       .filter(
@@ -95,6 +91,16 @@ function resolveNetworksConfig(
         name,
         resolveHttpNetworkConfig(config as HttpNetworkUserConfig),
       ])
+  );
+
+  const localhost = resolveHttpNetworkConfig({
+    ...cloneDeep(defaultLocalhostNetworkParams),
+    ...localhostNetworkConfig,
+  });
+
+  const hardhat = resolveHardhatNetworkConfig(
+    { localhost, ...otherNetworks },
+    hardhatNetworkConfig
   );
 
   return {
@@ -120,6 +126,7 @@ function normalizeHexString(str: string): string {
 }
 
 function resolveHardhatNetworkConfig(
+  otherNetworks: { [networkName: string]: NetworkConfig },
   hardhatNetworkConfig: HardhatNetworkUserConfig = {}
 ): HardhatNetworkConfig {
   const clonedDefaultHardhatNetworkParams = cloneDeep(
@@ -139,13 +146,39 @@ function resolveHardhatNetworkConfig(
           ...hardhatNetworkConfig.accounts,
         };
 
-  const forking: HardhatNetworkForkingConfig | undefined =
-    hardhatNetworkConfig.forking !== undefined
-      ? {
-          url: hardhatNetworkConfig.forking.url,
-          enabled: hardhatNetworkConfig.forking.enabled ?? true,
-        }
-      : undefined;
+  let forking: HardhatNetworkForkingConfig | undefined;
+  if (hardhatNetworkConfig.forking !== undefined) {
+    let forkUrl: string | undefined;
+    let forkNetwork: string | undefined;
+
+    if ("network" in hardhatNetworkConfig.forking) {
+      forkNetwork = hardhatNetworkConfig.forking.network;
+      const networkConfig = otherNetworks[forkNetwork];
+      if (networkConfig === undefined) {
+        throw new HardhatError(ERRORS.NETWORK.FORK_NETWORK_NOT_EXISTS);
+      }
+      if (!("url" in networkConfig)) {
+        throw new HardhatError(ERRORS.NETWORK.FORK_NETWORK_WITHOUT_URL);
+      }
+      forkUrl = networkConfig.url;
+    }
+    if ("url" in hardhatNetworkConfig.forking) {
+      forkUrl = hardhatNetworkConfig.forking.url;
+    }
+
+    if (forkUrl === undefined) {
+      throw new HardhatError(ERRORS.NETWORK.FORK_WITHOUT_URL);
+    }
+
+    forking =
+      hardhatNetworkConfig.forking !== undefined
+        ? {
+            url: forkUrl,
+            network: forkNetwork,
+            enabled: hardhatNetworkConfig.forking.enabled ?? true,
+          }
+        : undefined;
+  }
 
   const blockNumber = hardhatNetworkConfig?.forking?.blockNumber;
   if (blockNumber !== undefined && forking !== undefined) {

@@ -331,6 +331,27 @@ Try using another mnemonic or deriving less keys.`,
 Please double check your calls' parameters and keep your Ethereum node up to date.`,
       shouldBeReported: false,
     },
+    FORK_NETWORK_NOT_EXISTS: {
+      number: 608,
+      message: `You specified a fork network that do not exists.`,
+      title: "Missing valid fork network",
+      description: `You passed a fork network name that is not itself configured`,
+      shouldBeReported: false,
+    },
+    FORK_NETWORK_WITHOUT_URL: {
+      number: 609,
+      message: `You specified a fork network that do not provide an url.`,
+      title: "Missing valid fork network",
+      description: `You passed a fork network that do not provide an url`,
+      shouldBeReported: false,
+    },
+    FORK_WITHOUT_URL: {
+      number: 609,
+      message: `No url provided for the fork`,
+      title: "Missing valid fork network",
+      description: `You did not provide an url or a network with an url for the fork`,
+      shouldBeReported: false,
+    },
   },
   TASK_DEFINITIONS: {
     PARAM_AFTER_VARIADIC: {

@@ -115,11 +115,23 @@ const HardhatNetworkHDAccountsConfig = t.type({
   ...commonHDAccountsFields,
 });
 
-const HardhatNetworkForkingConfig = t.type({
+const HardhatNetworkForkingConfigWithUrl = t.type({
   enabled: optional(t.boolean),
   url: t.string,
   blockNumber: optional(t.number),
 });
+
+const HardhatNetworkForkingConfigWithNetwork = t.type({
+  enabled: optional(t.boolean),
+  url: optional(t.string),
+  blockNumber: optional(t.number),
+  network: t.string,
+});
+
+const HardhatNetworkForkingConfig = t.union([
+  HardhatNetworkForkingConfigWithUrl,
+  HardhatNetworkForkingConfigWithNetwork,
+]);
 
 const commonNetworkConfigFields = {
   chainId: optional(t.number),
