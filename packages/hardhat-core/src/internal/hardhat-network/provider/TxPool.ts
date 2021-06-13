@@ -438,7 +438,8 @@ export class TxPool {
     }
 
     const gasLimit = new BN(tx.gasLimit);
-    const gasPrice = new BN(tx.gasPrice);
+    // TODO remove this "as any"
+    const gasPrice = new BN((tx as any).gasPrice);
     const baseFee = tx.getBaseFee();
 
     if (gasLimit.lt(baseFee)) {
@@ -627,8 +628,11 @@ export class TxPool {
 
     const deserializedExistingTx = this._deserializeTransaction(existingTx);
 
-    const currentGasPrice = new BN(deserializedExistingTx.data.gasPrice);
-    const newGasPrice = new BN(newTx.data.gasPrice);
+    // TODO remove these "as any"
+    const currentGasPrice = new BN(
+      (deserializedExistingTx.data as any).gasPrice
+    );
+    const newGasPrice = new BN((newTx.data as any).gasPrice);
 
     const minNewGasPrice = this._getMinNewGasPrice(currentGasPrice);
 
