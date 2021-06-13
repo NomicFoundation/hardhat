@@ -44,7 +44,7 @@ export function waffleChai(chai: Chai.ChaiStatic, utils: Chai.ChaiUtils) {
     supportRevertedWith,
   } = require(`${waffleChaiPath}/matchers/revertedWith`);
   const { supportHexEqual } = require(`${waffleChaiPath}/matchers/hexEqual`);
-  
+
   supportBigNumber(chai.Assertion, utils);
   supportReverted(chai.Assertion);
   supportRevertedWith(chai.Assertion);

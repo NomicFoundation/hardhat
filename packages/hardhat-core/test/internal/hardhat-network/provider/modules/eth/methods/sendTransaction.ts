@@ -101,6 +101,25 @@ describe("Eth module", function () {
               InvalidInputError.CODE
             );
           });
+
+          it("Should succeed if sending an explicit null for an optional parameter value", async function () {
+            assert.match(
+              await this.provider.send("eth_sendTransaction", [
+                {
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                  to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                  gas: null,
+                  gasPrice: null,
+                  value: null,
+                  nonce: null,
+                  data: null,
+                  accessList: null,
+                  chainId: null,
+                },
+              ]),
+              /^0x[a-f\d]{64}$/
+            );
+          });
         });
 
         describe("when automine is enabled", () => {
@@ -118,43 +137,48 @@ describe("Eth module", function () {
             assert.match(hash, /^0x[a-f\d]{64}$/);
           });
 
-          it("Should work with just from and data", async function () {
-            const firstBlock = await getFirstBlock();
-            const hash = await this.provider.send("eth_sendTransaction", [
-              {
-                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-                data: "0x00",
-              },
-            ]);
+          describe("With just from and data", function () {
+            for (const toValue of [undefined, null]) {
+              it(`Should work with a 'to' value of ${toValue}`, async function () {
+                const firstBlock = await getFirstBlock();
+                const hash = await this.provider.send("eth_sendTransaction", [
+                  {
+                    from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                    data: "0x00",
+                    to: toValue,
+                  },
+                ]);
 
-            const receipt = await this.provider.send(
-              "eth_getTransactionReceipt",
-              [hash]
-            );
+                const receipt = await this.provider.send(
+                  "eth_getTransactionReceipt",
+                  [hash]
+                );
 
-            const receiptFromGeth = {
-              blockHash:
-                "0x01490da2af913e9a868430b7b4c5060fc29cbdb1692bb91d3c72c734acd73bc8",
-              blockNumber: "0x6",
-              contractAddress: "0x6ea84fcbef576d66896dc2c32e139b60e641170c",
-              cumulativeGasUsed: "0xcf0c",
-              from: "0xda4585f6e68ed1cdfdad44a08dbe3979ec74ad8f",
-              gasUsed: "0xcf0c",
-              logs: [],
-              logsBloom:
-                "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
-              status: "0x1",
-              to: null,
-              transactionHash:
-                "0xbd24cbe9c1633b98e61d93619230341141d2cff49470ed6afa739cee057fd0aa",
-              transactionIndex: "0x0",
-            };
+                const receiptFromGeth = {
+                  blockHash:
+                    "0x01490da2af913e9a868430b7b4c5060fc29cbdb1692bb91d3c72c734acd73bc8",
+                  blockNumber: "0x6",
+                  contractAddress: "0x6ea84fcbef576d66896dc2c32e139b60e641170c",
+                  cumulativeGasUsed: "0xcf0c",
+                  from: "0xda4585f6e68ed1cdfdad44a08dbe3979ec74ad8f",
+                  gasUsed: "0xcf0c",
+                  logs: [],
+                  logsBloom:
+                    "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+                  status: "0x1",
+                  to: null,
+                  transactionHash:
+                    "0xbd24cbe9c1633b98e61d93619230341141d2cff49470ed6afa739cee057fd0aa",
+                  transactionIndex: "0x0",
+                };
 
-            assertReceiptMatchesGethOne(
-              receipt,
-              receiptFromGeth,
-              firstBlock + 1
-            );
+                assertReceiptMatchesGethOne(
+                  receipt,
+                  receiptFromGeth,
+                  firstBlock + 1
+                );
+              });
+            }
           });
 
           it("Should throw if the tx nonce is higher than the account nonce", async function () {

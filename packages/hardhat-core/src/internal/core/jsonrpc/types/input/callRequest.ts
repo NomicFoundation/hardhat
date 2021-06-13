@@ -1,19 +1,19 @@
 import * as t from "io-ts";
 
-import { optional } from "../../../../util/io-ts";
+import { optionalOrNullable } from "../../../../util/io-ts";
 import { rpcAccessList } from "../access-list";
 import { rpcAddress, rpcData, rpcQuantity } from "../base-types";
 
 // Type used by eth_call and eth_estimateGas
 export const rpcCallRequest = t.type(
   {
-    from: optional(rpcAddress),
-    to: optional(rpcAddress),
-    gas: optional(rpcQuantity),
-    gasPrice: optional(rpcQuantity),
-    value: optional(rpcQuantity),
-    data: optional(rpcData),
-    accessList: optional(rpcAccessList),
+    from: optionalOrNullable(rpcAddress),
+    to: optionalOrNullable(rpcAddress),
+    gas: optionalOrNullable(rpcQuantity),
+    gasPrice: optionalOrNullable(rpcQuantity),
+    value: optionalOrNullable(rpcQuantity),
+    data: optionalOrNullable(rpcData),
+    accessList: optionalOrNullable(rpcAccessList),
   },
   "RpcCallRequest"
 );
