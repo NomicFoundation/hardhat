@@ -10,6 +10,7 @@ import {
   bufferToRpcData,
   rpcAddress,
   rpcData,
+  rpcHash,
   rpcQuantity,
 } from "../../../core/jsonrpc/types/base-types";
 import {
@@ -76,6 +77,16 @@ export class HardhatModule {
       case "hardhat_setLoggingEnabled":
         return this._setLoggingEnabledAction(
           ...this._setLoggingEnabledParams(params)
+        );
+
+      case "hardhat_setMinGasPrice":
+        return this._setMinGasPriceAction(
+          ...this._setMinGasPriceParams(params)
+        );
+
+      case "hardhat_dropTransaction":
+        return this._dropTransactionAction(
+          ...this._dropTransactionParams(params)
         );
 
       case "hardhat_setBalance":
@@ -200,6 +211,31 @@ export class HardhatModule {
     return true;
   }
 
+  // hardhat_setMinGasPrice
+
+  private _setMinGasPriceParams(params: any[]): [BN] {
+    return validateParams(params, rpcQuantity);
+  }
+
+  private async _setMinGasPriceAction(minGasPrice: BN): Promise<true> {
+    if (minGasPrice.lt(new BN(0))) {
+      throw new InvalidInputError("Minimum gas price cannot be negative");
+    }
+
+    await this._node.setMinGasPrice(minGasPrice);
+    return true;
+  }
+
+  // hardhat_dropTransaction
+
+  private _dropTransactionParams(params: any[]): [Buffer] {
+    return validateParams(params, rpcHash);
+  }
+
+  private async _dropTransactionAction(hash: Buffer): Promise<boolean> {
+    return this._node.dropTransaction(hash);
+  }
+
   // hardhat_setBalance
 
   private _setBalanceParams(params: any[]): [Buffer, BN] {
@@ -229,7 +265,7 @@ export class HardhatModule {
   }
 
   private async _setNonceAction(address: Buffer, newNonce: BN) {
-    await this._node.setAccountNonce(new Address(address), newNonce);
+    await this._node.setNextConfirmedNonce(new Address(address), newNonce);
     return true;
   }
 

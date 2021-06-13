@@ -234,6 +234,21 @@ next block by using the "pending" block tag:
 const pendingBlock = await network.provider.send("eth_getBlockByNumber", ["pending", false])
 ```
 
+### Removing and replacing transactions
+
+Transactions in the mempool can be removed using the `hardhat_dropTransaction`
+method:
+
+```js
+const txHash = "0xabc..."
+await network.provider.send("hardhat_dropTransaction", [txHash])
+```
+
+You can also replace a transaction by sending a new one with the same nonce as
+the one that it's already in the mempool but with a higher gas price.
+Keep in mind that, like in Geth, for this to work the new gas price has to be at least 10%
+higher than the gas price of the current transaction.
+
 ### Configuring mining modes using RPC methods
 
 You can change the mining behavior on runtime using two RPC methods:
@@ -398,11 +413,13 @@ To customise it, take a look at [the configuration section](/config/README.md#ha
 #### Hardhat network methods
 
 - `hardhat_addCompilationResult` – Add information about compiled contracts
+- `hardhat_dropTransaction` – Remove a transaction from the mempool
 - `hardhat_impersonateAccount` – see the [Mainnet Forking guide](../guides/mainnet-forking.md)
 - `hardhat_reset` – see the [Mainnet Forking guide](../guides/mainnet-forking.md)
 - `hardhat_setBalance` – Modifies the balance of an account.
 - `hardhat_setCode` – Modifies the code of an account.
 - `hardhat_setLoggingEnabled` – Enable or disable logging in Hardhat Network
+- `hardhat_setMinGasPrice` - change the minimum gas price accepted by the network (in wei)
 - `hardhat_setNonce` – Modifies an account's nonce by overwriting it. Throws an InvalidInputError if nonce is smaller than the current one. The reason for this restriction is to avoid collisions when deploying contracts using the same nonce more than once.
 - `hardhat_setStorageAt` – Writes a single position of an account's storage. The storage position index must not exceed 2^256, and the value to write must be exactly 32 bytes long.
 - `hardhat_stopImpersonatingAccount` – see the [Mainnet Forking guide](../guides/mainnet-forking.md)
