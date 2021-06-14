@@ -61,7 +61,7 @@ describe("Eth module", function () {
                 from: zeroAddress(),
                 to: DEFAULT_ACCOUNTS_ADDRESSES[0],
                 gas: numberToRpcQuantity(21000),
-                gasPrice: numberToRpcQuantity(1),
+                gasPrice: numberToRpcQuantity(10),
               },
               "unknown account",
               InvalidInputError.CODE
@@ -83,7 +83,7 @@ describe("Eth module", function () {
               {
                 from: DEFAULT_ACCOUNTS_ADDRESSES[0],
                 gas: numberToRpcQuantity(21000),
-                gasPrice: numberToRpcQuantity(1),
+                gasPrice: numberToRpcQuantity(10),
               },
               "contract creation without any data provided",
               InvalidInputError.CODE
@@ -95,7 +95,7 @@ describe("Eth module", function () {
                 from: DEFAULT_ACCOUNTS_ADDRESSES[0],
                 data: "0x",
                 gas: numberToRpcQuantity(21000),
-                gasPrice: numberToRpcQuantity(1),
+                gasPrice: numberToRpcQuantity(10),
               },
               "contract creation without any data provided",
               InvalidInputError.CODE
@@ -109,8 +109,8 @@ describe("Eth module", function () {
                 to: DEFAULT_ACCOUNTS_ADDRESSES[1],
                 value: numberToRpcQuantity(1),
                 gas: numberToRpcQuantity(21000),
-                maxFeePerGas: numberToRpcQuantity(1),
-                maxPriorityFeePerGas: numberToRpcQuantity(1),
+                maxFeePerGas: numberToRpcQuantity(10),
+                maxPriorityFeePerGas: numberToRpcQuantity(10),
               },
             ]);
 
@@ -125,9 +125,9 @@ describe("Eth module", function () {
                 to: DEFAULT_ACCOUNTS_ADDRESSES[1],
                 value: numberToRpcQuantity(1),
                 gas: numberToRpcQuantity(21000),
-                gasPrice: numberToRpcQuantity(1),
-                maxFeePerGas: numberToRpcQuantity(1),
-                maxPriorityFeePerGas: numberToRpcQuantity(1),
+                gasPrice: numberToRpcQuantity(10),
+                maxFeePerGas: numberToRpcQuantity(10),
+                maxPriorityFeePerGas: numberToRpcQuantity(10),
               },
               "Transaction cannot have both gasPrice and maxFeePerGas",
               InvalidInputError.CODE
@@ -142,8 +142,8 @@ describe("Eth module", function () {
                 to: DEFAULT_ACCOUNTS_ADDRESSES[1],
                 value: numberToRpcQuantity(1),
                 gas: numberToRpcQuantity(21000),
-                gasPrice: numberToRpcQuantity(1),
-                maxFeePerGas: numberToRpcQuantity(1),
+                gasPrice: numberToRpcQuantity(10),
+                maxFeePerGas: numberToRpcQuantity(10),
               },
               "Transaction cannot have both gasPrice and maxFeePerGas",
               InvalidInputError.CODE
@@ -174,10 +174,10 @@ describe("Eth module", function () {
                 to: DEFAULT_ACCOUNTS_ADDRESSES[1],
                 value: numberToRpcQuantity(1),
                 gas: numberToRpcQuantity(21000),
-                maxFeePerGas: numberToRpcQuantity(1),
-                maxPriorityFeePerGas: numberToRpcQuantity(2),
+                maxFeePerGas: numberToRpcQuantity(10),
+                maxPriorityFeePerGas: numberToRpcQuantity(20),
               },
-              "maxPriorityFeePerGas (2) is bigger than maxFeePerGas (1)",
+              "maxPriorityFeePerGas (20) is bigger than maxFeePerGas (10)",
               InvalidInputError.CODE
             );
           });
@@ -210,7 +210,7 @@ describe("Eth module", function () {
                 to: DEFAULT_ACCOUNTS_ADDRESSES[1],
                 value: numberToRpcQuantity(1),
                 gas: numberToRpcQuantity(21000),
-                gasPrice: numberToRpcQuantity(1),
+                gasPrice: numberToRpcQuantity(10),
               },
             ]);
 
@@ -414,9 +414,11 @@ describe("Eth module", function () {
           describe("when there are pending transactions in the mempool", () => {
             describe("when the sent transaction fits in the first block", () => {
               it("Should throw if the sender doesn't have enough balance as a result of mining pending transactions first", async function () {
+                const gasPrice = 10;
+
                 const firstBlock = await getFirstBlock();
                 const wholeAccountBalance = numberToRpcQuantity(
-                  DEFAULT_ACCOUNTS_BALANCES[0].subn(21_000)
+                  DEFAULT_ACCOUNTS_BALANCES[0].subn(gasPrice * 21_000)
                 );
                 await this.provider.send("evm_setAutomine", [false]);
                 await this.provider.send("eth_sendTransaction", [
@@ -425,7 +427,7 @@ describe("Eth module", function () {
                     to: DEFAULT_ACCOUNTS_ADDRESSES[2],
                     nonce: numberToRpcQuantity(0),
                     gas: numberToRpcQuantity(21000),
-                    gasPrice: numberToRpcQuantity(1),
+                    gasPrice: numberToRpcQuantity(gasPrice),
                     value: wholeAccountBalance,
                   },
                 ]);
@@ -439,7 +441,7 @@ describe("Eth module", function () {
                       from: DEFAULT_ACCOUNTS_ADDRESSES[1],
                       to: DEFAULT_ACCOUNTS_ADDRESSES[2],
                       gas: numberToRpcQuantity(21000),
-                      gasPrice: numberToRpcQuantity(1),
+                      gasPrice: numberToRpcQuantity(10),
                       value: wholeAccountBalance,
                     },
                   ],
@@ -500,6 +502,8 @@ describe("Eth module", function () {
               });
 
               it("Should throw if the sender doesn't have enough balance as a result of mining pending transactions first", async function () {
+                const gasPrice = 10;
+
                 const sendTransaction = async (
                   nonce: number,
                   value: BN | number
@@ -510,7 +514,7 @@ describe("Eth module", function () {
                       to: DEFAULT_ACCOUNTS_ADDRESSES[2],
                       nonce: numberToRpcQuantity(nonce),
                       gas: numberToRpcQuantity(21000),
-                      gasPrice: numberToRpcQuantity(1),
+                      gasPrice: numberToRpcQuantity(gasPrice),
                       value: numberToRpcQuantity(value),
                     },
                   ]);
@@ -521,7 +525,10 @@ describe("Eth module", function () {
                 await this.provider.send("evm_setAutomine", [false]);
                 await sendTransaction(0, 0);
                 await sendTransaction(1, 0);
-                await sendTransaction(2, initialBalance.subn(3 * 21_000));
+                await sendTransaction(
+                  2,
+                  initialBalance.subn(3 * gasPrice * 21_000)
+                );
 
                 await this.provider.send("evm_setAutomine", [true]);
 
@@ -533,7 +540,7 @@ describe("Eth module", function () {
                       from: DEFAULT_ACCOUNTS_ADDRESSES[1],
                       to: DEFAULT_ACCOUNTS_ADDRESSES[2],
                       gas: numberToRpcQuantity(21000),
-                      gasPrice: numberToRpcQuantity(1),
+                      gasPrice: numberToRpcQuantity(gasPrice),
                       value: numberToRpcQuantity(100),
                     },
                   ],
@@ -823,7 +830,7 @@ describe("Eth module", function () {
                   from: DEFAULT_ACCOUNTS_ADDRESSES[0],
                   to: "0x0000000000000000000000000000000000000001",
                   gas: numberToRpcQuantity(21000), // Address 1 is a precompile, so this will OOG
-                  gasPrice: numberToRpcQuantity(1),
+                  gasPrice: numberToRpcQuantity(10),
                 },
               ]);
 

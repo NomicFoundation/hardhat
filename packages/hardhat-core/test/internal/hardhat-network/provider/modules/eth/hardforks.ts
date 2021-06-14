@@ -50,7 +50,7 @@ describe("Eth module - hardfork dependant tests", function () {
       {
         to: "0x1111111111111111111111111111111111111111",
         gasLimit: 21000,
-        gasPrice: 0,
+        gasPrice: 10,
       },
       {
         common,
@@ -72,7 +72,7 @@ describe("Eth module - hardfork dependant tests", function () {
       {
         to: "0x1111111111111111111111111111111111111111",
         gasLimit: 21000,
-        gasPrice: 0,
+        gasPrice: 10,
       },
       {
         common,
@@ -94,8 +94,8 @@ describe("Eth module - hardfork dependant tests", function () {
       {
         to: "0x1111111111111111111111111111111111111111",
         gasLimit: 21000,
-        maxFeePerGas: 1,
-        maxPriorityFeePerGas: 1,
+        maxFeePerGas: 10,
+        maxPriorityFeePerGas: 10,
       },
       {
         common,
@@ -656,7 +656,7 @@ describe("Eth module - hardfork dependant tests", function () {
     describe("eth_sendRawTransaction", function () {
       it("should use the access list if an EIP-2930 tx is sent", async function () {
         const unsignedTx = AccessListEIP2930Transaction.fromTxData(
-          { ...txData, gasPrice: 0, gasLimit: 1000000 },
+          { ...txData, gasPrice: 10, gasLimit: 1000000 },
           {
             common: this.common,
           }
@@ -695,8 +695,19 @@ describe("Eth module - hardfork dependant tests", function () {
           const from = "0x1234567890123456789012345678901234567890";
           await this.provider.send("hardhat_impersonateAccount", [from]);
 
+          // add funds to impersonated account
+          const [sender] = await this.provider.send("eth_accounts");
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from: sender,
+              to: from,
+              value: "0x16345785d8a0000",
+              gasPrice: "0x10",
+            },
+          ]);
+
           const txHash = await this.provider.send("eth_sendTransaction", [
-            { ...txData, from, gasPrice: numberToRpcQuantity(0) },
+            { ...txData, from, gasPrice: numberToRpcQuantity(10) },
           ]);
 
           const tx = await this.provider.send("eth_getTransactionByHash", [
@@ -738,8 +749,20 @@ describe("Eth module - hardfork dependant tests", function () {
           const from = "0x1234567890123456789012345678901234567890";
           await this.provider.send("hardhat_impersonateAccount", [from]);
 
+          // add funds to impersonated account
+          const [sender] = await this.provider.send("eth_accounts");
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from: sender,
+              to: from,
+              value: "0x16345785d8a0000",
+              gasPrice: "0x10",
+            },
+          ]);
+          await this.provider.send("evm_mine", []);
+
           const txHash = await this.provider.send("eth_sendTransaction", [
-            { ...txData, from, gasPrice: numberToRpcQuantity(0) },
+            { ...txData, from, gasPrice: numberToRpcQuantity(10) },
           ]);
 
           const pendingTx = await this.provider.send(

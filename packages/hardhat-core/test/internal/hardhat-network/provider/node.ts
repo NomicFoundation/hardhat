@@ -53,8 +53,9 @@ describe("HardhatNode", () => {
     blockGasLimit: DEFAULT_BLOCK_GAS_LIMIT,
     minGasPrice: new BN(0),
     genesisAccounts: DEFAULT_ACCOUNTS,
+    baseFee: 10,
   };
-  const gasPrice = 1;
+  const gasPrice = 20;
   let node: HardhatNode;
   let createTestTransaction: (
     txData: TxData & { from: string }
@@ -395,21 +396,21 @@ describe("HardhatNode", () => {
           from: DEFAULT_ACCOUNTS_ADDRESSES[0],
           to: EMPTY_ACCOUNT_ADDRESS,
           gasLimit: 30_000, // actual gas used is 21_000
-          gasPrice: 2,
+          gasPrice: 40,
         });
         const tx2 = createTestTransaction({
           nonce: 1,
           from: DEFAULT_ACCOUNTS_ADDRESSES[0],
           to: EMPTY_ACCOUNT_ADDRESS,
           gasLimit: 30_000, // actual gas used is 21_000
-          gasPrice: 2,
+          gasPrice: 40,
         });
         const tx3 = createTestTransaction({
           nonce: 0,
           from: DEFAULT_ACCOUNTS_ADDRESSES[1],
           to: EMPTY_ACCOUNT_ADDRESS,
           gasLimit: 21_000,
-          gasPrice: 1,
+          gasPrice: 20,
         });
         await node.sendTransaction(tx1);
         await node.sendTransaction(tx2);

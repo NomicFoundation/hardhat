@@ -99,23 +99,28 @@ describe("Eth module", function () {
           assertReceiptMatchesGethOne(receipt, receiptFromGeth, 1);
         });
 
-        it("Should return the hash of the failed transaction", async function () {
-          if (!isJsonRpc || isFork) {
-            this.skip();
-          }
+        describe("Set lower baseFeePerGas", function () {
+          // setting a lower baseFeePerGas here to avoid having to re-create the raw tx
+          useProvider({ initialBaseFeePerGas: 1 });
 
-          try {
-            // sends a tx with 21000 gas to the 0x1 precompile
-            await this.provider.send("eth_sendRawTransaction", [
-              "0xf8618001825208940000000000000000000000000000000000000001808082011aa03e2b434ea8994b24017a30d58870e7387a69523b25f153f0d90411a8af8343d6a00c26d36e92d8a8334193b02982ce0b2ec9afc85ad26eaf8c2993ad07d3495f95",
-            ]);
+          it("Should return the hash of the failed transaction", async function () {
+            if (!isJsonRpc || isFork) {
+              this.skip();
+            }
 
-            assert.fail("Tx should have failed");
-          } catch (e) {
-            assert.notInclude(e.message, "Tx should have failed");
+            try {
+              // sends a tx with 21000 gas to the 0x1 precompile
+              await this.provider.send("eth_sendRawTransaction", [
+                "0xf8618001825208940000000000000000000000000000000000000001808082011aa03e2b434ea8994b24017a30d58870e7387a69523b25f153f0d90411a8af8343d6a00c26d36e92d8a8334193b02982ce0b2ec9afc85ad26eaf8c2993ad07d3495f95",
+              ]);
 
-            assert.isDefined(e.data.txHash);
-          }
+              assert.fail("Tx should have failed");
+            } catch (e) {
+              assert.notInclude(e.message, "Tx should have failed");
+
+              assert.isDefined(e.data.txHash);
+            }
+          });
         });
       });
     });

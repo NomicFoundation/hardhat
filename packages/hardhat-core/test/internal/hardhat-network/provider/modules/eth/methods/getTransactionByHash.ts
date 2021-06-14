@@ -201,6 +201,7 @@ describe("Eth module", function () {
               to: address,
               value: "0x16345785d8a0000",
               gas: numberToRpcQuantity(21000),
+              gasPrice: numberToRpcQuantity(10),
             },
           ]);
 
@@ -218,7 +219,7 @@ describe("Eth module", function () {
           const tx = new Transaction(
             {
               nonce: "0x00",
-              gasPrice: "0x2",
+              gasPrice: "0xa",
               gasLimit: "0x55f0",
               to: DEFAULT_ACCOUNTS_ADDRESSES[1],
               value: "0x1",
@@ -247,7 +248,7 @@ describe("Eth module", function () {
           assert.equal(fetchedTx.value, "0x1");
           assert.equal(fetchedTx.nonce, "0x0");
           assert.equal(fetchedTx.gas, "0x55f0");
-          assert.equal(fetchedTx.gasPrice, "0x2");
+          assert.equal(fetchedTx.gasPrice, "0xa");
           assert.equal(fetchedTx.input, "0xbeef");
 
           // tx.v is padded but fetchedTx.v is not, so we need to do this

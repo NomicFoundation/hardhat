@@ -45,7 +45,7 @@ export async function sendTxToZeroAddress(
     to: zeroAddress(),
     value: numberToRpcQuantity(1),
     gas: numberToRpcQuantity(21000),
-    gasPrice: numberToRpcQuantity(1),
+    gasPrice: numberToRpcQuantity(10),
   };
 
   return provider.send("eth_sendTransaction", [burnTxParams]);

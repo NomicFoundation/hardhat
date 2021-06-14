@@ -168,6 +168,9 @@ describe("Provider logs", function () {
         });
 
         describe("eth_sendRawTransaction", function () {
+          // set lower baseFeePerGas to avoid having to re-create the raw tx
+          useProvider({ initialBaseFeePerGas: 1 });
+
           it("should print a successful transaction", async function () {
             // send 0 eth from the DEFAULT_ACCOUNTS[1]
             await this.provider.send("eth_sendRawTransaction", [
@@ -240,7 +243,7 @@ describe("Provider logs", function () {
                 from: DEFAULT_ACCOUNTS_ADDRESSES[0],
                 to: address,
                 gas: numberToRpcQuantity(1000000),
-                gasPrice: numberToRpcQuantity(1),
+                gasPrice: numberToRpcQuantity(10),
                 data: EXAMPLE_READ_CONTRACT.selectors.blockNumber,
               },
             ]);
@@ -269,7 +272,7 @@ describe("Provider logs", function () {
                   from: DEFAULT_ACCOUNTS_ADDRESSES[0],
                   to: address,
                   gas: numberToRpcQuantity(1000000),
-                  gasPrice: numberToRpcQuantity(1),
+                  gasPrice: numberToRpcQuantity(10),
                   data: EXAMPLE_READ_CONTRACT.selectors.blockGasLimit,
                   value: numberToRpcQuantity(1),
                 },
@@ -296,7 +299,7 @@ describe("Provider logs", function () {
                 from: DEFAULT_ACCOUNTS_ADDRESSES[0],
                 to: "0x0000000000000000000000000000000000000000",
                 gas: numberToRpcQuantity(21000),
-                gasPrice: numberToRpcQuantity(1),
+                gasPrice: numberToRpcQuantity(10),
               },
             ]);
 
@@ -325,7 +328,7 @@ describe("Provider logs", function () {
                 from: DEFAULT_ACCOUNTS_ADDRESSES[0],
                 to: address,
                 gas: numberToRpcQuantity(1000000),
-                gasPrice: numberToRpcQuantity(1),
+                gasPrice: numberToRpcQuantity(10),
                 data: EXAMPLE_READ_CONTRACT.selectors.blockNumber,
               },
             ]);
@@ -347,7 +350,7 @@ describe("Provider logs", function () {
                   from: DEFAULT_ACCOUNTS_ADDRESSES[0],
                   to: address,
                   gas: numberToRpcQuantity(1000000),
-                  gasPrice: numberToRpcQuantity(1),
+                  gasPrice: numberToRpcQuantity(10),
                   data: EXAMPLE_READ_CONTRACT.selectors.blockGasLimit,
                   value: numberToRpcQuantity(1),
                 },

@@ -67,7 +67,7 @@ describe("Eth module", function () {
               to: DEFAULT_ACCOUNTS_ADDRESSES[1],
               value: numberToRpcQuantity(1),
               gas: numberToRpcQuantity(21000),
-              gasPrice: numberToRpcQuantity(1),
+              gasPrice: numberToRpcQuantity(10),
             },
           ]);
 
@@ -91,7 +91,7 @@ describe("Eth module", function () {
               to: DEFAULT_ACCOUNTS_ADDRESSES[2],
               value: numberToRpcQuantity(1),
               gas: numberToRpcQuantity(21000),
-              gasPrice: numberToRpcQuantity(1),
+              gasPrice: numberToRpcQuantity(10),
             },
           ]);
 
@@ -124,7 +124,7 @@ describe("Eth module", function () {
               to: DEFAULT_ACCOUNTS_ADDRESSES[2],
               value: numberToRpcQuantity(1),
               gas: numberToRpcQuantity(21000),
-              gasPrice: numberToRpcQuantity(1),
+              gasPrice: numberToRpcQuantity(10),
             },
           ]);
 

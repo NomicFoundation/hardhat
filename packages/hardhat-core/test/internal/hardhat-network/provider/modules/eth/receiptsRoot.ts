@@ -37,7 +37,7 @@ describe("Eth module", function () {
               from: DEFAULT_ACCOUNTS_ADDRESSES[0],
               to: DEFAULT_ACCOUNTS_ADDRESSES[0],
               gas: numberToRpcQuantity(21000),
-              gasPrice: numberToRpcQuantity(1),
+              gasPrice: numberToRpcQuantity(10),
             },
           ]);
 
@@ -59,7 +59,7 @@ describe("Eth module", function () {
               from: DEFAULT_ACCOUNTS_ADDRESSES[0],
               to: DEFAULT_ACCOUNTS_ADDRESSES[0],
               gas: numberToRpcQuantity(21000),
-              gasPrice: numberToRpcQuantity(1),
+              gasPrice: numberToRpcQuantity(10),
             },
           ]);
           await this.provider.send("eth_sendTransaction", [
@@ -67,7 +67,7 @@ describe("Eth module", function () {
               from: DEFAULT_ACCOUNTS_ADDRESSES[0],
               to: DEFAULT_ACCOUNTS_ADDRESSES[0],
               gas: numberToRpcQuantity(21000),
-              gasPrice: numberToRpcQuantity(1),
+              gasPrice: numberToRpcQuantity(10),
             },
           ]);
           await this.provider.send("evm_mine", []);
