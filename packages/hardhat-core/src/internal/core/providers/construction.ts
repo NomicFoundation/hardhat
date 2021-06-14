@@ -82,6 +82,7 @@ export function createProvider(
       hardhatNetConfig.chainId!,
       hardhatNetConfig.chainId!,
       hardhatNetConfig.blockGasLimit!,
+      hardhatNetConfig.baseFee,
       hardhatNetConfig.throwOnTransactionFailures!,
       hardhatNetConfig.throwOnCallFailures!,
       hardhatNetConfig.mining.auto,

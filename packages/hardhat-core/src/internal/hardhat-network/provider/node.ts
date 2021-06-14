@@ -1,4 +1,4 @@
-import { Block } from "@ethereumjs/block";
+import { Block, HeaderData } from "@ethereumjs/block";
 import Common from "@ethereumjs/common";
 import {
   AccessListEIP2930Transaction,
@@ -27,7 +27,10 @@ import {
 import EventEmitter from "events";
 
 import { CompilerInput, CompilerOutput } from "../../../types";
-import { HARDHAT_NETWORK_DEFAULT_GAS_PRICE } from "../../core/config/default-config";
+import {
+  HARDHAT_NETWORK_DEFAULT_BASE_FEE,
+  HARDHAT_NETWORK_DEFAULT_GAS_PRICE,
+} from "../../core/config/default-config";
 import { assertHardhatInvariant, HardhatError } from "../../core/errors";
 import { RpcDebugTracingConfig } from "../../core/jsonrpc/types/input/debugTraceTransaction";
 import {
@@ -37,6 +40,7 @@ import {
 } from "../../core/providers/errors";
 import { Reporter } from "../../sentry/reporter";
 import { getDifferenceInSeconds } from "../../util/date";
+import { hardforkGte } from "../../util/hardforks";
 import { createModelsAndDecodeBytecodes } from "../stack-traces/compiler-to-model";
 import { ConsoleLogger } from "../stack-traces/consoleLogger";
 import { ContractsIdentifier } from "../stack-traces/contracts-identifier";
@@ -167,7 +171,12 @@ export class HardhatNode extends EventEmitter {
       common = makeCommon(config, initialStateRoot);
 
       const hardhatBlockchain = new HardhatBlockchain();
-      await putGenesisBlock(hardhatBlockchain, common);
+
+      let baseFee;
+      if (hardforkGte(config.hardfork, "london")) {
+        baseFee = config.baseFee ?? HARDHAT_NETWORK_DEFAULT_BASE_FEE;
+      }
+      await putGenesisBlock(hardhatBlockchain, common, baseFee);
 
       if (config.initialDate !== undefined) {
         initialBlockTimeOffset = new BN(
@@ -1122,12 +1131,16 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   ): Promise<MineBlockResult> {
     const parentBlock = await this.getLatestBlock();
 
-    const headerData = {
+    const headerData: HeaderData = {
       gasLimit: this.getBlockGasLimit(),
       coinbase: this.getCoinbaseAddress(),
       nonce: "0x0000000000000042",
       timestamp: blockTimestamp,
     };
+
+    if (this._hasEIP1559()) {
+      headerData.baseFeePerGas = parentBlock.header.calcNextBaseFee();
+    }
 
     const blockBuilder = await this._vm.buildBlock({
       parentBlock,
@@ -1773,6 +1786,10 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
       return account.nonce;
     });
+  }
+
+  private _hasEIP1559(): boolean {
+    return this._vm._common.gteHardfork("london");
   }
 }
 

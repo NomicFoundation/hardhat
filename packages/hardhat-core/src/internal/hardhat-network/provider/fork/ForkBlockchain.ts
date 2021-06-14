@@ -226,6 +226,11 @@ export class ForkBlockchain implements HardhatBlockchainInterface {
     throw new Error("Method not implemented.");
   }
 
+  public async getBaseFee(): Promise<BN> {
+    const latestBlock = await this.getLatestBlock();
+    return latestBlock.header.calcNextBaseFee();
+  }
+
   private async _getBlockByHash(blockHash: Buffer) {
     const block = this._data.getBlockByHash(blockHash);
     if (block !== undefined) {

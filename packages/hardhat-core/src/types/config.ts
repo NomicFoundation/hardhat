@@ -29,6 +29,7 @@ export interface HardhatNetworkUserConfig {
   gas?: "auto" | number;
   gasPrice?: "auto" | number;
   gasMultiplier?: number;
+  baseFee?: number;
   hardfork?: string;
   mining?: HardhatNetworkMiningUserConfig;
   accounts?: HardhatNetworkAccountsUserConfig;
@@ -102,6 +103,7 @@ export interface HardhatNetworkConfig {
   gas: "auto" | number;
   gasPrice: "auto" | number;
   gasMultiplier: number;
+  baseFee?: number;
   hardfork: string;
   mining: HardhatNetworkMiningConfig;
   accounts: HardhatNetworkAccountsConfig;

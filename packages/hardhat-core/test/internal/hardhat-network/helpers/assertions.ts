@@ -282,7 +282,7 @@ export function assertEqualAccessLists(
   txAccessList: RpcAccessListOutput,
   txParamsAccessList: AccessListBufferItem[]
 ) {
-  assert.equal(txAccessList.length, txParamsAccessList.length)
+  assert.equal(txAccessList.length, txParamsAccessList.length);
 
   for (const [i, txAccessListItem] of txAccessList.entries()) {
     const txParamsAccessListItem = txParamsAccessList[i];

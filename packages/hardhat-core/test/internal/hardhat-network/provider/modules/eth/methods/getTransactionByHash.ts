@@ -1,7 +1,13 @@
 import Common from "@ethereumjs/common";
 import { Transaction } from "@ethereumjs/tx";
 import { assert } from "chai";
-import { BN, bufferToHex, toBuffer, zeroAddress } from "ethereumjs-util";
+import {
+  BN,
+  bufferToHex,
+  setLengthLeft,
+  toBuffer,
+  zeroAddress,
+} from "ethereumjs-util";
 
 import { numberToRpcQuantity } from "../../../../../../../internal/core/jsonrpc/types/base-types";
 import { TransactionParams } from "../../../../../../../internal/hardhat-network/provider/node-types";
@@ -334,10 +340,16 @@ describe("Eth module", function () {
             data: toBuffer("0x"),
             nonce: new BN(0),
             value: new BN(123),
-            gasLimit: new BN(25000),
+            gasLimit: new BN(30000),
             gasPrice: new BN(23912),
             accessList: [
-              [toBuffer(zeroAddress()), [toBuffer("0x0"), toBuffer("0x1")]],
+              [
+                toBuffer(zeroAddress()),
+                [
+                  setLengthLeft(Buffer.from([0]), 32),
+                  setLengthLeft(Buffer.from([1]), 32),
+                ],
+              ],
             ],
           };
 
@@ -374,11 +386,17 @@ describe("Eth module", function () {
             data: toBuffer("0x"),
             nonce: new BN(0),
             value: new BN(123),
-            gasLimit: new BN(25000),
+            gasLimit: new BN(30000),
             maxFeePerGas: new BN(100),
             maxPriorityFeePerGas: new BN(10),
             accessList: [
-              [toBuffer(zeroAddress()), [toBuffer("0x0"), toBuffer("0x1")]],
+              [
+                toBuffer(zeroAddress()),
+                [
+                  setLengthLeft(Buffer.from([0]), 32),
+                  setLengthLeft(Buffer.from([1]), 32),
+                ],
+              ],
             ],
           };
 

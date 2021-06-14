@@ -1,6 +1,10 @@
 import { Block } from "@ethereumjs/block";
 import Common from "@ethereumjs/common";
-import { AccessListEIP2930Transaction, TypedTransaction } from "@ethereumjs/tx";
+import {
+  AccessListEIP2930Transaction,
+  Transaction as LegacyTransaction,
+  TypedTransaction,
+} from "@ethereumjs/tx";
 import { RunBlockResult } from "@ethereumjs/vm/dist/runBlock";
 import { BN, bufferToHex } from "ethereumjs-util";
 
@@ -207,6 +211,8 @@ export function getRpcTransaction(
   assertHardhatInvariant(tx.r !== undefined, "tx should be signed");
   assertHardhatInvariant(tx.s !== undefined, "tx should be signed");
 
+  const isTypedTransaction = tx.type !== 0;
+
   const baseOutput = {
     blockHash: block === "pending" ? null : bufferToRpcData(block.hash()),
     blockNumber:
@@ -225,20 +231,17 @@ export function getRpcTransaction(
     r: numberToRpcQuantity(new BN(tx.r)),
     s: numberToRpcQuantity(new BN(tx.s)),
     type:
-      showTransactionType || tx instanceof AccessListEIP2930Transaction
+      showTransactionType || isTypedTransaction
         ? numberToRpcQuantity(tx.transactionType)
         : undefined,
     accessList:
-      tx instanceof AccessListEIP2930Transaction
+      "accessList" in tx
         ? tx.accessList.map(([address, storageKeys]) => ({
             address: bufferToHex(address),
             storageKeys: storageKeys.map(bufferToHex),
           }))
         : undefined,
-    chainId:
-      tx instanceof AccessListEIP2930Transaction
-        ? numberToRpcQuantity(tx.chainId)
-        : undefined,
+    chainId: "chainId" in tx ? numberToRpcQuantity(tx.chainId) : undefined,
   };
 
   if ("maxFeePerGas" in tx) {
@@ -316,6 +319,8 @@ export function remoteReceiptToRpcReceiptOutput(
   tx: TypedTransaction,
   showTransactionType: boolean
 ): RpcReceiptOutput {
+  const isTypedTransaction = tx.type !== 0;
+
   return {
     blockHash: bufferToRpcData(receipt.blockHash),
     blockNumber: numberToRpcQuantity(receipt.blockNumber),
@@ -338,7 +343,7 @@ export function remoteReceiptToRpcReceiptOutput(
     transactionHash: bufferToRpcData(receipt.transactionHash),
     transactionIndex: numberToRpcQuantity(receipt.transactionIndex),
     type:
-      showTransactionType || tx instanceof AccessListEIP2930Transaction
+      showTransactionType || isTypedTransaction
         ? numberToRpcQuantity(tx.transactionType)
         : undefined,
   };

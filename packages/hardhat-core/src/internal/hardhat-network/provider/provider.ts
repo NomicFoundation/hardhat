@@ -71,6 +71,7 @@ export class HardhatNetworkProvider extends EventEmitter
     private readonly _chainId: number,
     private readonly _networkId: number,
     private readonly _blockGasLimit: number,
+    private readonly _baseFee: number | undefined,
     private readonly _throwOnTransactionFailures: boolean,
     private readonly _throwOnCallFailures: boolean,
     private readonly _automine: boolean,
@@ -215,6 +216,7 @@ export class HardhatNetworkProvider extends EventEmitter
       genesisAccounts: this._genesisAccounts,
       allowUnlimitedContractSize: this._allowUnlimitedContractSize,
       tracingConfig: await this._makeTracingConfig(),
+      baseFee: this._baseFee,
     };
 
     let config: NodeConfig = {

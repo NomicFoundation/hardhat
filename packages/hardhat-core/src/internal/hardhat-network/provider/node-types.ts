@@ -18,6 +18,7 @@ interface CommonConfig {
   allowUnlimitedContractSize?: boolean;
   initialDate?: Date;
   tracingConfig?: TracingConfig;
+  baseFee?: number;
 }
 
 export type LocalNodeConfig = CommonConfig;

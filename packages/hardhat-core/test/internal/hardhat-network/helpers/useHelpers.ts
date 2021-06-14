@@ -1,4 +1,9 @@
-import { numberToRpcQuantity } from "../../../../src/internal/core/jsonrpc/types/base-types";
+import { BN } from "ethereumjs-util";
+
+import {
+  numberToRpcQuantity,
+  rpcQuantityToBN,
+} from "../../../../src/internal/core/jsonrpc/types/base-types";
 
 import { DEFAULT_ACCOUNTS_ADDRESSES } from "./providers";
 
@@ -15,6 +20,8 @@ interface SendTxOptions {
 declare module "mocha" {
   interface Context {
     sendTx: (options?: SendTxOptions) => Promise<any>;
+    getBaseFeePerGas: (blockNumber: number) => Promise<BN>;
+    getLatestBaseFeePerGas: () => Promise<BN>;
   }
 }
 
@@ -45,9 +52,29 @@ export function useHelpers() {
         },
       ]);
     };
+
+    this.getBaseFeePerGas = async (blockNumber: number): Promise<BN> => {
+      const block = await this.provider.send("eth_getBlockByNumber", [
+        numberToRpcQuantity(blockNumber),
+        false,
+      ]);
+
+      return rpcQuantityToBN(block.baseFeePerGas);
+    };
+
+    this.getLatestBaseFeePerGas = async (): Promise<BN> => {
+      const block = await this.provider.send("eth_getBlockByNumber", [
+        "latest",
+        false,
+      ]);
+
+      return rpcQuantityToBN(block.baseFeePerGas);
+    };
   });
 
   afterEach("Remove helpers", async function () {
     delete (this as any).sendTx;
+    delete (this as any).getBaseFeePerGas;
+    delete (this as any).getLatestBaseFeePerGas;
   });
 }

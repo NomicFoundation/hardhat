@@ -281,20 +281,30 @@ describe("HardhatNode", () => {
       });
 
       it("assigns miner rewards", async () => {
+        const gasPriceBN = new BN(1);
+
+        let baseFeePerGas = new BN(0);
+        const pendingBlock = await node.getBlockByNumber("pending");
+        if (pendingBlock.header.baseFeePerGas !== undefined) {
+          baseFeePerGas = pendingBlock.header.baseFeePerGas;
+        }
+
         const miner = node.getCoinbaseAddress();
         const initialMinerBalance = await node.getAccountBalance(miner);
 
         const oneEther = new BN(10).pow(new BN(18));
-        const txFee = 21_000 * gasPrice;
-        const minerReward = oneEther.muln(2).addn(txFee);
+        const txFee = gasPriceBN.add(baseFeePerGas).muln(21_000);
+        const burnedTxFee = baseFeePerGas.muln(21_000);
+
+        // the miner reward is 2 ETH plus the tx fee, minus the part
+        // of the fee that is burned
+        const minerReward = oneEther.muln(2).add(txFee).sub(burnedTxFee);
 
         const tx = createTestTransaction({
           nonce: 0,
           from: DEFAULT_ACCOUNTS_ADDRESSES[0],
           to: EMPTY_ACCOUNT_ADDRESS,
-          // base fee is 7 by default so this produces the same reward
-          // as a pre-London tx with a gasPrice of 1
-          gasPrice: 8,
+          gasPrice: gasPriceBN.add(baseFeePerGas),
           gasLimit: 21_000,
           value: 1234,
         });
