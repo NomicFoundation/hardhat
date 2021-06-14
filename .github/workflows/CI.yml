@@ -143,6 +143,11 @@ jobs:
       - name: Run tests
         run: yarn test
 
+  # We should run this tests with multiple configurations
+  # but we hit the rate limits of every node provider we tried,
+  # so as a temporal workaround, we run them with a single config.
+  # Once we properly refactor Hardhat Network's tests we should
+  # add more configurations (different OS and node versions).
   test_fork:
     name: Test Hardhat Network's fork
     runs-on: ubuntu-latest
