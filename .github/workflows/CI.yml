@@ -57,7 +57,7 @@ jobs:
             packages/*/node_modules
             packages/hardhat-core/test/internal/hardhat-network/stack-traces/compilers
             packages/hardhat-core/test/internal/hardhat-network/provider/.hardhat_node_test_cache
-          key: ${{ runner.os }}-node-${{ matrix.node }}-${{ hashFiles('yarn.lock') }}-${{ hashFiles('packages/hardhat-core/test/internal/hardhat-network/provider/node.ts') }}
+          key: ${{ runner.os }}-node-10-${{ hashFiles('yarn.lock') }}-${{ hashFiles('packages/hardhat-core/test/internal/hardhat-network/provider/node.ts') }}
       - name: Install node-gyp-cache
         run: |
           yarn global add node-gyp-cache
@@ -80,10 +80,6 @@ jobs:
       - name: Install
         run: yarn --frozen-lockfile
       - name: Run tests
-        env:
-          INFURA_URL: ${{ secrets.INFURA_URL }}
-          ALCHEMY_URL: ${{ secrets.ALCHEMY_URL }}
-          DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI: true
         run: yarn test
 
   test_macos:
@@ -102,7 +98,7 @@ jobs:
             packages/*/node_modules
             packages/hardhat-core/test/internal/hardhat-network/stack-traces/compilers
             packages/hardhat-core/test/internal/hardhat-network/provider/.hardhat_node_test_cache
-          key: ${{ runner.os }}-node-${{ matrix.node }}-${{ hashFiles('yarn.lock') }}-${{ hashFiles('packages/hardhat-core/test/internal/hardhat-network/provider/node.ts') }}
+          key: ${{ runner.os }}-node-10-${{ hashFiles('yarn.lock') }}-${{ hashFiles('packages/hardhat-core/test/internal/hardhat-network/provider/node.ts') }}
       - name: Install node-gyp-cache
         run: |
           yarn global add node-gyp-cache
@@ -112,10 +108,6 @@ jobs:
       - name: Clean
         run: yarn clean
       - name: Run tests
-        env:
-          INFURA_URL: ${{ secrets.INFURA_URL }}
-          ALCHEMY_URL: ${{ secrets.ALCHEMY_URL }}
-          DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI: true
         run: yarn test
 
   test_linux:
@@ -123,7 +115,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: [10, 12, 14, 15]
+        node: [ 10, 12, 14, 15 ]
     steps:
       - uses: actions/setup-node@v1
         with:
@@ -149,8 +141,48 @@ jobs:
       - name: Clean
         run: yarn clean
       - name: Run tests
+        run: yarn test
+
+  # We should run this tests with multiple configurations
+  # but somehow the requests to Alchemy take much longer when doing that.
+  # As a temporal workaround, we run them with a single config.
+  # 
+  # Once we properly refactor Hardhat Network's tests we should
+  # add more configurations (different OS and node versions).
+  #
+  # We should also understand what's going on before blindly refactoring them.
+  test_fork:
+    name: Test Hardhat Network's fork
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 10
+      - uses: actions/checkout@v2
+      - uses: actions/cache@v2
+        id: cache
+        with:
+          path: |
+            node_modules
+            packages/*/node_modules
+            packages/hardhat-core/test/internal/hardhat-network/stack-traces/compilers
+            packages/hardhat-core/test/internal/hardhat-network/provider/.hardhat_node_test_cache
+          key: ${{ runner.os }}-node-10-${{ hashFiles('yarn.lock') }}-${{ hashFiles('packages/hardhat-core/test/internal/hardhat-network/provider/node.ts') }}
+      - name: Install node-gyp-cache
+        run: |
+          yarn global add node-gyp-cache
+          yarn config set node_gyp node-gyp-cache
+      - name: Install
+        run: yarn --frozen-lockfile
+      - name: Clean
+        run: yarn clean
+      - name: Run core tests
         env:
           INFURA_URL: ${{ secrets.INFURA_URL }}
           ALCHEMY_URL: ${{ secrets.ALCHEMY_URL }}
           DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI: true
-        run: yarn test
+          FORCE_COLOR: 3
+        run: |
+          cd packages/hardhat-core
+          yarn build
+          npx mocha --recursive "test/internal/hardhat-network/{helpers,jsonrpc,provider}/*.ts"
