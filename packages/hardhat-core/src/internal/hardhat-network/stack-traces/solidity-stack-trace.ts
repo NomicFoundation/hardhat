@@ -87,6 +87,7 @@ export interface PanicErrorStackTraceEntry {
 
 export interface CustomErrorStackTraceEntry {
   type: StackTraceEntryType.CUSTOM_ERROR;
+  // unlike RevertErrorStackTraceEntry, this includes the message already parsed
   message: string;
   sourceReference: SourceReference;
 }
