@@ -174,5 +174,6 @@ jobs:
           ALCHEMY_URL: ${{ secrets.ALCHEMY_URL }}
           DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI: true
         run: |
+          cd packages/hardhat-core
           yarn build
-          npx mocha --recursive 'test/internal/hardhat-network/{helpers,jsonrpc,provider}/*.ts'
+          npx mocha --recursive "test/internal/hardhat-network/{helpers,jsonrpc,provider}/*.ts"
