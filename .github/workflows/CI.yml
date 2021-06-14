@@ -178,6 +178,7 @@ jobs:
           INFURA_URL: ${{ secrets.INFURA_URL }}
           ALCHEMY_URL: ${{ secrets.ALCHEMY_URL }}
           DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI: true
+          FORCE_COLOR: 3
         run: |
           cd packages/hardhat-core
           yarn build
