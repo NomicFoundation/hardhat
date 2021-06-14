@@ -51,6 +51,7 @@ describe("HardhatNode", () => {
     chainId: DEFAULT_CHAIN_ID,
     networkId: DEFAULT_NETWORK_ID,
     blockGasLimit: DEFAULT_BLOCK_GAS_LIMIT,
+    minGasPrice: new BN(0),
     genesisAccounts: DEFAULT_ACCOUNTS,
   };
   const gasPrice = 1;
@@ -627,6 +628,7 @@ describe("HardhatNode", () => {
           forkConfig,
           forkCachePath: FORK_TESTS_CACHE_PATH,
           blockGasLimit: rpcBlock.gasLimit.toNumber(),
+          minGasPrice: new BN(0),
           genesisAccounts: [],
         };
 

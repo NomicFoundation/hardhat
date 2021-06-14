@@ -66,6 +66,7 @@ export function useProvider({
       chainId,
       networkId,
       blockGasLimit,
+      new BN(0), // minGasPrice
       true,
       true,
       mining.auto,

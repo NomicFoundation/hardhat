@@ -24,6 +24,11 @@ import { LazyTruffleContractProvisioner } from "./provisioner";
 import { RUN_TRUFFLE_FIXTURE_TASK } from "./task-names";
 import "./type-extensions";
 
+type Describe = (
+  description: string,
+  definition: (accounts: string[]) => any
+) => void;
+
 let accounts: string[] | undefined;
 
 extendEnvironment((env) => {
@@ -113,9 +118,11 @@ extendEnvironment((env) => {
 
   env.assert = lazyFunction(() => require("chai").assert);
   env.expect = lazyFunction(() => require("chai").expect);
-  env.contract = (
+
+  const describeContract = (
     description: string,
-    definition: (accounts: string[]) => any
+    definition: (accounts: string[]) => any,
+    modifier?: "only" | "skip"
   ) => {
     if (env.network.name === HARDHAT_NETWORK_NAME) {
       if (accounts === undefined) {
@@ -140,7 +147,9 @@ extendEnvironment((env) => {
       );
     }
 
-    describe(`Contract: ${description}`, () => {
+    const describeMod = modifier === undefined ? describe : describe[modifier];
+
+    describeMod(`Contract: ${description}`, () => {
       before("Running truffle fixture if available", async function () {
         await env.run(RUN_TRUFFLE_FIXTURE_TASK);
       });
@@ -148,6 +157,14 @@ extendEnvironment((env) => {
       definition(accounts!);
     });
   };
+
+  env.contract = Object.assign<Describe, Record<"only" | "skip", Describe>>(
+    (desc, def) => describeContract(desc, def),
+    {
+      only: (desc, def) => describeContract(desc, def, "only"),
+      skip: (desc, def) => describeContract(desc, def, "skip"),
+    }
+  );
 });
 
 subtask(TASK_TEST_SETUP_TEST_ENVIRONMENT, async (_, { web3, network }) => {
