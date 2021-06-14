@@ -1,3 +1,5 @@
+import { BN } from "ethereumjs-util";
+
 import { HardhatNetworkConfig } from "../../../types";
 import { HARDHAT_NETWORK_NAME } from "../../constants";
 
@@ -43,6 +45,7 @@ export const defaultHardhatNetworkParams: Omit<
   accounts: defaultHardhatNetworkHdAccountsConfigParams,
   loggingEnabled: false,
   gasMultiplier: DEFAULT_GAS_MULTIPLIER,
+  minGasPrice: new BN(0),
 };
 
 export const defaultHttpNetworkParams = {

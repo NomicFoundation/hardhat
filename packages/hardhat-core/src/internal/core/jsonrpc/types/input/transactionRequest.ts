@@ -1,6 +1,6 @@
 import * as t from "io-ts";
 
-import { optional } from "../../../../util/io-ts";
+import { optionalOrNullable } from "../../../../util/io-ts";
 import { rpcAccessList } from "../access-list";
 import { rpcAddress, rpcData, rpcQuantity } from "../base-types";
 
@@ -8,16 +8,16 @@ import { rpcAddress, rpcData, rpcQuantity } from "../base-types";
 export const rpcTransactionRequest = t.type(
   {
     from: rpcAddress,
-    to: optional(rpcAddress),
-    gas: optional(rpcQuantity),
-    gasPrice: optional(rpcQuantity),
-    value: optional(rpcQuantity),
-    nonce: optional(rpcQuantity),
-    data: optional(rpcData),
-    accessList: optional(rpcAccessList),
-    chainId: optional(rpcQuantity),
-    maxFeePerGas: optional(rpcQuantity),
-    maxPriorityFeePerGas: optional(rpcQuantity),
+    to: optionalOrNullable(rpcAddress),
+    gas: optionalOrNullable(rpcQuantity),
+    gasPrice: optionalOrNullable(rpcQuantity),
+    value: optionalOrNullable(rpcQuantity),
+    nonce: optionalOrNullable(rpcQuantity),
+    data: optionalOrNullable(rpcData),
+    accessList: optionalOrNullable(rpcAccessList),
+    chainId: optionalOrNullable(rpcQuantity),
+    maxFeePerGas: optionalOrNullable(rpcQuantity),
+    maxPriorityFeePerGas: optionalOrNullable(rpcQuantity),
   },
   "RpcTransactionRequest"
 );

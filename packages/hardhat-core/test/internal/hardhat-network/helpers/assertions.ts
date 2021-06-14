@@ -7,6 +7,7 @@ import {
 } from "../../../../src/internal/core/jsonrpc/types/base-types";
 import { RpcTransactionRequestInput } from "../../../../src/internal/core/jsonrpc/types/input/transactionRequest";
 import {
+  InternalError,
   InvalidArgumentsError,
   InvalidInputError,
   MethodNotSupportedError,
@@ -72,6 +73,21 @@ export async function assertNotSupported(
     [],
     `Method ${method} is not supported`,
     MethodNotSupportedError.CODE
+  );
+}
+
+export async function assertInternalError(
+  provider: EthereumProvider,
+  method: string,
+  params: any[] = [],
+  message?: string
+) {
+  return assertProviderError(
+    provider,
+    method,
+    params,
+    message,
+    InternalError.CODE
   );
 }
 

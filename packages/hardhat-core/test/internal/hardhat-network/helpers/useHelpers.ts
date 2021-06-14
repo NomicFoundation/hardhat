@@ -1,3 +1,4 @@
+import { assert } from "chai";
 import { BN } from "ethereumjs-util";
 
 import {
@@ -19,7 +20,10 @@ interface SendTxOptions {
 
 declare module "mocha" {
   interface Context {
-    sendTx: (options?: SendTxOptions) => Promise<any>;
+    sendTx: (options?: SendTxOptions) => Promise<string>;
+    assertLatestBlockTxs: (txs: string[]) => Promise<void>;
+    assertPendingTxs: (txs: string[]) => Promise<void>;
+    mine: () => Promise<void>;
     getBaseFeePerGas: (blockNumber: number) => Promise<BN>;
     getLatestBaseFeePerGas: () => Promise<BN>;
   }
@@ -53,6 +57,26 @@ export function useHelpers() {
       ]);
     };
 
+    this.assertLatestBlockTxs = async (txs: string[]) => {
+      const latestBlock = await this.provider.send("eth_getBlockByNumber", [
+        "latest",
+        false,
+      ]);
+
+      assert.sameMembers(txs, latestBlock.transactions);
+    };
+
+    this.assertPendingTxs = async (txs: string[]) => {
+      const pendingTxs = await this.provider.send("eth_pendingTransactions");
+      const pendingTxsHashes = pendingTxs.map((x: any) => x.hash);
+
+      assert.sameMembers(txs, pendingTxsHashes);
+    };
+
+    this.mine = async () => {
+      await this.provider.send("evm_mine");
+    };
+
     this.getBaseFeePerGas = async (blockNumber: number): Promise<BN> => {
       const block = await this.provider.send("eth_getBlockByNumber", [
         numberToRpcQuantity(blockNumber),
@@ -74,6 +98,9 @@ export function useHelpers() {
 
   afterEach("Remove helpers", async function () {
     delete (this as any).sendTx;
+    delete (this as any).assertLatestBlockTxs;
+    delete (this as any).assertPendingTxs;
+    delete (this as any).mine;
     delete (this as any).getBaseFeePerGas;
     delete (this as any).getLatestBaseFeePerGas;
   });

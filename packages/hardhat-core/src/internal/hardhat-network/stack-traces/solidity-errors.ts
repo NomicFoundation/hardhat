@@ -1,6 +1,6 @@
 import { bufferToHex } from "ethereumjs-util";
 
-import { decodeRevertReason } from "./revert-reasons";
+import { panicErrorCodeToReason } from "./panic-errors";
 import {
   CONSTRUCTOR_FUNCTION_NAME,
   PRECOMPILE_FUNCTION_NAME,
@@ -112,6 +112,7 @@ function encodeStackTraceEntry(
 
     case StackTraceEntryType.CALLSTACK_ENTRY:
     case StackTraceEntryType.REVERT_ERROR:
+    case StackTraceEntryType.PANIC_ERROR:
     case StackTraceEntryType.FUNCTION_NOT_PAYABLE_ERROR:
     case StackTraceEntryType.INVALID_PARAMS_ERROR:
     case StackTraceEntryType.FALLBACK_NOT_PAYABLE_ERROR:
@@ -257,19 +258,15 @@ function getMessageFromLastStackTraceEntry(
 
     case StackTraceEntryType.UNRECOGNIZED_CREATE_ERROR:
     case StackTraceEntryType.UNRECOGNIZED_CONTRACT_ERROR:
-      if (stackTraceEntry.message.length > 0) {
-        return `VM Exception while processing transaction: revert ${decodeRevertReason(
-          stackTraceEntry.message
-        )}`;
+      if (stackTraceEntry.message.isErrorReturnData()) {
+        return `VM Exception while processing transaction: revert ${stackTraceEntry.message.decodeError()}`;
       }
 
       return "Transaction reverted without a reason";
 
     case StackTraceEntryType.REVERT_ERROR:
-      if (stackTraceEntry.message.length > 0) {
-        return `VM Exception while processing transaction: revert ${decodeRevertReason(
-          stackTraceEntry.message
-        )}`;
+      if (stackTraceEntry.message.isErrorReturnData()) {
+        return `VM Exception while processing transaction: revert ${stackTraceEntry.message.decodeError()}`;
       }
 
       if (stackTraceEntry.isInvalidOpcodeError) {
@@ -277,6 +274,10 @@ function getMessageFromLastStackTraceEntry(
       }
 
       return "Transaction reverted without a reason";
+
+    case StackTraceEntryType.PANIC_ERROR:
+      const panicReason = panicErrorCodeToReason(stackTraceEntry.errorCode);
+      return `VM Exception while processing transaction: ${panicReason}`;
 
     case StackTraceEntryType.OTHER_EXECUTION_ERROR:
       // TODO: What if there was returnData?
@@ -318,7 +319,7 @@ export class SolidityError extends Error {
 class SolidityCallSite implements NodeJS.CallSite {
   constructor(
     private _sourceName: string | undefined,
-    private _contract: string,
+    private _contract: string | undefined,
     private _functionName: string | undefined,
     private _line: number | undefined
   ) {}
@@ -340,6 +341,11 @@ class SolidityCallSite implements NodeJS.CallSite {
   }
 
   public getFunctionName() {
+    // if it's a top-level function, we print its name
+    if (this._contract === undefined) {
+      return this._functionName ?? null;
+    }
+
     return null;
   }
 
@@ -348,7 +354,11 @@ class SolidityCallSite implements NodeJS.CallSite {
   }
 
   public getMethodName() {
-    return this._functionName !== undefined ? this._functionName : null;
+    if (this._contract !== undefined) {
+      return this._functionName ?? null;
+    }
+
+    return null;
   }
 
   public getPosition() {
@@ -368,7 +378,7 @@ class SolidityCallSite implements NodeJS.CallSite {
   }
 
   public getTypeName() {
-    return this._contract;
+    return this._contract ?? null;
   }
 
   public isAsync() {

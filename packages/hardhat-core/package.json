@@ -1,6 +1,6 @@
 {
   "name": "hardhat",
-  "version": "2.3.0",
+  "version": "2.3.3",
   "author": "Nomic Labs LLC",
   "license": "SEE LICENSE IN LICENSE",
   "homepage": "https://hardhat.org",
@@ -88,9 +88,9 @@
   "dependencies": {
     "@ethereumjs/block": "^3.3.0",
     "@ethereumjs/blockchain": "^5.3.0",
-    "@ethereumjs/common": "^2.3.0",
-    "@ethereumjs/tx": "^3.2.0",
-    "@ethereumjs/vm": "^5.4.0",
+    "@ethereumjs/common": "^2.3.1",
+    "@ethereumjs/tx": "^3.2.1",
+    "@ethereumjs/vm": "^5.3.2",
     "@sentry/node": "^5.18.1",
     "@solidity-parser/parser": "^0.11.0",
     "@types/bn.js": "^5.1.0",
@@ -131,7 +131,7 @@
     "true-case-path": "^2.2.1",
     "tsort": "0.0.1",
     "uuid": "^3.3.2",
-    "ws": "^7.2.1"
+    "ws": "^7.4.6"
   },
   "nyc": {
     "extension": [

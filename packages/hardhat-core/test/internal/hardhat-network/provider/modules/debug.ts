@@ -1,4 +1,5 @@
 import { assert } from "chai";
+import { BN } from "ethereumjs-util";
 import _ from "lodash";
 
 import { BackwardsCompatibilityProviderAdapter } from "../../../../../src/internal/core/providers/backwards-compatibility";
@@ -20,6 +21,7 @@ import {
   DEFAULT_ACCOUNTS,
   DEFAULT_ACCOUNTS_ADDRESSES,
   DEFAULT_ALLOW_UNLIMITED_CONTRACT_SIZE,
+  DEFAULT_BASE_FEE_PER_GAS,
   DEFAULT_CHAIN_ID,
   DEFAULT_HARDFORK,
   DEFAULT_NETWORK_ID,
@@ -141,6 +143,8 @@ describe("Debug module", function () {
         DEFAULT_CHAIN_ID,
         DEFAULT_NETWORK_ID,
         13000000,
+        DEFAULT_BASE_FEE_PER_GAS,
+        new BN(0),
         true,
         true,
         false, // mining.auto

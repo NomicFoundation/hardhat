@@ -234,7 +234,7 @@ Under the hood, Hardhat uses [ts-node](https://www.npmjs.com/package/ts-node) to
 will recompile and type-check everything on every run. Depending on your project's size, this can get slow.
 
 You can make Hardhat run faster by preventing `ts-node` from type-checking your project. This is done by setting the
-`TS_NODE_TRANSPILE_ONLY` en variable to `1`. 
+`TS_NODE_TRANSPILE_ONLY` env variable to `1`. 
 
 For example, you can run your TypeScript-based tests faster like this `TS_NODE_TRANSPILE_ONLY=1 npx hardhat test`.
 
