@@ -10,6 +10,7 @@ import {
   bufferToRpcData,
   rpcAddress,
   rpcData,
+  rpcHash,
   rpcQuantity,
 } from "../../../core/jsonrpc/types/base-types";
 import {
@@ -78,6 +79,16 @@ export class HardhatModule {
           ...this._setLoggingEnabledParams(params)
         );
 
+      case "hardhat_setMinGasPrice":
+        return this._setMinGasPriceAction(
+          ...this._setMinGasPriceParams(params)
+        );
+
+      case "hardhat_dropTransaction":
+        return this._dropTransactionAction(
+          ...this._dropTransactionParams(params)
+        );
+
       case "hardhat_setBalance":
         return this._setBalanceAction(...this._setBalanceParams(params));
 
@@ -87,10 +98,8 @@ export class HardhatModule {
       case "hardhat_setNonce":
         return this._setNonceAction(...this._setNonceParams(params));
 
-      case "hardhat_setStorageSlot":
-        return this._setStorageSlotAction(
-          ...this._setStorageSlotParams(params)
-        );
+      case "hardhat_setStorageAt":
+        return this._setStorageAtAction(...this._setStorageAtParams(params));
     }
 
     throw new MethodNotFoundError(`Method ${method} not found`);
@@ -202,6 +211,31 @@ export class HardhatModule {
     return true;
   }
 
+  // hardhat_setMinGasPrice
+
+  private _setMinGasPriceParams(params: any[]): [BN] {
+    return validateParams(params, rpcQuantity);
+  }
+
+  private async _setMinGasPriceAction(minGasPrice: BN): Promise<true> {
+    if (minGasPrice.lt(new BN(0))) {
+      throw new InvalidInputError("Minimum gas price cannot be negative");
+    }
+
+    await this._node.setMinGasPrice(minGasPrice);
+    return true;
+  }
+
+  // hardhat_dropTransaction
+
+  private _dropTransactionParams(params: any[]): [Buffer] {
+    return validateParams(params, rpcHash);
+  }
+
+  private async _dropTransactionAction(hash: Buffer): Promise<boolean> {
+    return this._node.dropTransaction(hash);
+  }
+
   // hardhat_setBalance
 
   private _setBalanceParams(params: any[]): [Buffer, BN] {
@@ -231,14 +265,14 @@ export class HardhatModule {
   }
 
   private async _setNonceAction(address: Buffer, newNonce: BN) {
-    await this._node.setAccountNonce(new Address(address), newNonce);
+    await this._node.setNextConfirmedNonce(new Address(address), newNonce);
     return true;
   }
 
-  // hardhat_setStorageSlot
+  // hardhat_setStorageAt
 
-  private _setStorageSlotParams(params: any[]): [Buffer, BN, Buffer] {
-    const [address, slotIndex, value] = validateParams(
+  private _setStorageAtParams(params: any[]): [Buffer, BN, Buffer] {
+    const [address, positionIndex, value] = validateParams(
       params,
       rpcAddress,
       rpcQuantity,
@@ -246,9 +280,9 @@ export class HardhatModule {
     );
 
     const MAX_WORD_VALUE = new BN(2).pow(new BN(256));
-    if (slotIndex.gt(MAX_WORD_VALUE)) {
+    if (positionIndex.gte(MAX_WORD_VALUE)) {
       throw new InvalidInputError(
-        `Storage key must not be greater than 2^256. Received ${slotIndex.toString()}.`
+        `Storage key must not be greater than or equal to 2^256. Received ${positionIndex.toString()}.`
       );
     }
 
@@ -260,15 +294,15 @@ export class HardhatModule {
       );
     }
 
-    return [address, slotIndex, value];
+    return [address, positionIndex, value];
   }
 
-  private async _setStorageSlotAction(
+  private async _setStorageAtAction(
     address: Buffer,
-    slotIndex: BN,
+    positionIndex: BN,
     value: Buffer
   ) {
-    await this._node.setAccountStorage(new Address(address), slotIndex, value);
+    await this._node.setStorageAt(new Address(address), positionIndex, value);
     return true;
   }
 

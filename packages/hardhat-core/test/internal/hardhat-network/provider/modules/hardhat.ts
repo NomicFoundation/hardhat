@@ -783,7 +783,7 @@ describe("Hardhat module", function () {
 
         it("should not reject valid argument types", async function () {
           await this.provider.send("hardhat_setNonce", [
-            DEFAULT_ACCOUNTS_ADDRESSES[0],
+            DEFAULT_ACCOUNTS_ADDRESSES[1],
             "0x0",
           ]);
         });
@@ -792,8 +792,8 @@ describe("Hardhat module", function () {
           // Arrange: Send a transaction, in order to ensure a non-zero nonce.
           await this.provider.send("eth_sendTransaction", [
             {
-              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[0],
               value: "0x100",
             },
           ]);
@@ -802,7 +802,7 @@ describe("Hardhat module", function () {
           await assertInvalidInputError(
             this.provider,
             "hardhat_setNonce",
-            [DEFAULT_ACCOUNTS_ADDRESSES[0], "0x0"],
+            [DEFAULT_ACCOUNTS_ADDRESSES[1], "0x0"],
             "New nonce (0) must not be smaller than the existing nonce (1)"
           );
         });
@@ -945,11 +945,11 @@ describe("Hardhat module", function () {
         });
       });
 
-      describe("hardhat_setStorageSlot", function () {
+      describe("hardhat_setStorageAt", function () {
         it("should reject an invalid address", async function () {
           await assertInvalidArgumentsError(
             this.provider,
-            "hardhat_setStorageSlot",
+            "hardhat_setStorageAt",
             ["0x1234", numberToRpcQuantity(0), numberToRpcQuantity(99)],
             'Errors encountered in param 0: Invalid value "0x1234" supplied to : ADDRESS'
           );
@@ -958,7 +958,7 @@ describe("Hardhat module", function () {
         it("should reject storage key that is non-numeric", async function () {
           await assertInvalidArgumentsError(
             this.provider,
-            "hardhat_setStorageSlot",
+            "hardhat_setStorageAt",
             [DEFAULT_ACCOUNTS_ADDRESSES[0], "xyz", numberToRpcQuantity(99)],
             'Errors encountered in param 1: Invalid value "xyz" supplied to : QUANTITY'
           );
@@ -968,13 +968,13 @@ describe("Hardhat module", function () {
           const MAX_WORD_VALUE = new BN(2).pow(new BN(256));
           await assertInvalidInputError(
             this.provider,
-            "hardhat_setStorageSlot",
+            "hardhat_setStorageAt",
             [
               DEFAULT_ACCOUNTS_ADDRESSES[0],
               numberToRpcQuantity(MAX_WORD_VALUE.add(new BN(1))),
               "0xff",
             ],
-            "Storage key must not be greater than 2^256. Received 115792089237316195423570985008687907853269984665640564039457584007913129639937."
+            "Storage key must not be greater than or equal to 2^256. Received 115792089237316195423570985008687907853269984665640564039457584007913129639937."
           );
         });
 
@@ -982,7 +982,7 @@ describe("Hardhat module", function () {
           it(`should reject a value that is ${badInputLength} (not exactly 32) bytes long`, async function () {
             await assertInvalidInputError(
               this.provider,
-              "hardhat_setStorageSlot",
+              "hardhat_setStorageAt",
               [
                 DEFAULT_ACCOUNTS_ADDRESSES[0],
                 numberToRpcQuantity(0),
@@ -996,7 +996,7 @@ describe("Hardhat module", function () {
         }
 
         it("should not reject valid argument types", async function () {
-          await this.provider.send("hardhat_setStorageSlot", [
+          await this.provider.send("hardhat_setStorageAt", [
             DEFAULT_ACCOUNTS_ADDRESSES[0],
             numberToRpcQuantity(0),
             `0x${"ff".repeat(32)}`,
@@ -1005,7 +1005,7 @@ describe("Hardhat module", function () {
 
         it("should result in modified storage", async function () {
           const targetStorageValue = 99;
-          await this.provider.send("hardhat_setStorageSlot", [
+          await this.provider.send("hardhat_setStorageAt", [
             DEFAULT_ACCOUNTS_ADDRESSES[0],
             numberToRpcQuantity(0),
             `0x${new BN(targetStorageValue).toString(16, 64)}`,
@@ -1019,7 +1019,7 @@ describe("Hardhat module", function () {
           assert.equal(resultingStorageValue, targetStorageValue);
         });
 
-        it("should permit a contract call to read an updated storage slot value", async function () {
+        it("should permit a contract call to read an updated storage value", async function () {
           // Arrange: Deploy a contract that can get and set storage.
           const [
             ,
@@ -1030,8 +1030,8 @@ describe("Hardhat module", function () {
             },
           ] = await compileLiteral(
             `contract Storage {
-              function getValue(uint256 slot) public view returns (uint256 result) {
-                assembly { result := sload(slot) }
+              function getValue(uint256 position) public view returns (uint256 result) {
+                assembly { result := sload(position) }
               }
             }`
           );
@@ -1041,8 +1041,8 @@ describe("Hardhat module", function () {
             DEFAULT_ACCOUNTS_ADDRESSES[0]
           );
 
-          // Act: Modify the value in the existing storage slot.
-          await this.provider.send("hardhat_setStorageSlot", [
+          // Act: Modify the value in the existing storage position.
+          await this.provider.send("hardhat_setStorageAt", [
             contractAddress,
             numberToRpcQuantity(0),
             `0x${new BN(10).toString(16, 64)}`,
@@ -1080,7 +1080,7 @@ describe("Hardhat module", function () {
           ).stateRoot;
 
           // Act: Set the new storage value.
-          await this.provider.send("hardhat_setStorageSlot", [
+          await this.provider.send("hardhat_setStorageAt", [
             DEFAULT_ACCOUNTS_ADDRESSES[0],
             numberToRpcQuantity(0),
             `0x${"ff".repeat(32)}`,
@@ -1101,7 +1101,7 @@ describe("Hardhat module", function () {
 
           // Act 1: Modify storage
           const targetStorageValue = 99;
-          await this.provider.send("hardhat_setStorageSlot", [
+          await this.provider.send("hardhat_setStorageAt", [
             DEFAULT_ACCOUNTS_ADDRESSES[0],
             numberToRpcQuantity(0),
             `0x${new BN(targetStorageValue).toString(16, 64)}`,
@@ -1118,6 +1118,208 @@ describe("Hardhat module", function () {
               currentBlockNumber,
             ]),
             targetStorageValue
+          );
+        });
+      });
+
+      describe("hardhat_dropTransaction", function () {
+        it("should remove pending transactions", async function () {
+          await this.provider.send("evm_setAutomine", [false]);
+          const txHash = await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[2],
+              gas: numberToRpcQuantity(21_000),
+            },
+          ]);
+
+          const result = await this.provider.send("hardhat_dropTransaction", [
+            txHash,
+          ]);
+          const tx = await this.provider.send("eth_getTransactionByHash", [
+            txHash,
+          ]);
+
+          assert.isNull(tx);
+          assert.isTrue(result);
+        });
+
+        it("should remove queued transactions", async function () {
+          await this.provider.send("evm_setAutomine", [false]);
+          const txHash = await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[2],
+              gas: numberToRpcQuantity(21_000),
+              nonce: numberToRpcQuantity(1),
+            },
+          ]);
+
+          const result = await this.provider.send("hardhat_dropTransaction", [
+            txHash,
+          ]);
+
+          const tx = await this.provider.send("eth_getTransactionByHash", [
+            txHash,
+          ]);
+
+          assert.isNull(tx);
+          assert.isTrue(result);
+        });
+
+        it("should rearrange transactions after removing one", async function () {
+          await this.provider.send("evm_setAutomine", [false]);
+
+          // send 3 txs
+          const txHash1 = await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[2],
+              gas: numberToRpcQuantity(21_000),
+            },
+          ]);
+          const txHash2 = await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[2],
+              gas: numberToRpcQuantity(21_000),
+            },
+          ]);
+          const txHash3 = await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[2],
+              gas: numberToRpcQuantity(21_000),
+            },
+          ]);
+
+          // drop second transaction
+          const result = await this.provider.send("hardhat_dropTransaction", [
+            txHash2,
+          ]);
+          assert.isTrue(result);
+
+          // mine block; it should have only the first tx
+          await this.provider.send("evm_mine");
+          const block = await this.provider.send("eth_getBlockByNumber", [
+            "latest",
+            false,
+          ]);
+          assert.deepEqual(block.transactions, [txHash1]);
+
+          // the first and third tx should exist
+          const tx1 = await this.provider.send("eth_getTransactionByHash", [
+            txHash1,
+          ]);
+          const tx2 = await this.provider.send("eth_getTransactionByHash", [
+            txHash2,
+          ]);
+          const tx3 = await this.provider.send("eth_getTransactionByHash", [
+            txHash3,
+          ]);
+
+          assert.isNotNull(tx1);
+          assert.isNull(tx2);
+          assert.isNotNull(tx3);
+        });
+
+        it("should return false if a tx doesn't exist", async function () {
+          const nonExistentTxHash =
+            "0xa4b46baa47145cb30af1ceed6172604aed4d8a27f66077cad951113bebb9513d";
+          const result = await this.provider.send("hardhat_dropTransaction", [
+            nonExistentTxHash,
+          ]);
+
+          assert.isFalse(result);
+        });
+
+        it("should return false when called a second time", async function () {
+          await this.provider.send("evm_setAutomine", [false]);
+          const txHash = await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[2],
+              gas: numberToRpcQuantity(21_000),
+            },
+          ]);
+
+          const firstResult = await this.provider.send(
+            "hardhat_dropTransaction",
+            [txHash]
+          );
+          assert.isTrue(firstResult);
+          const secondResult = await this.provider.send(
+            "hardhat_dropTransaction",
+            [txHash]
+          );
+          assert.isFalse(secondResult);
+        });
+
+        it("should throw if the tx was already mined", async function () {
+          const txHash = await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              to: DEFAULT_ACCOUNTS_ADDRESSES[2],
+            },
+          ]);
+
+          await assertInvalidArgumentsError(
+            this.provider,
+            "hardhat_dropTransaction",
+            [txHash]
+          );
+        });
+      });
+
+      describe("hardhat_setMinGasPrice", () => {
+        it("makes txs below the new min gas price not minable", async function () {
+          await this.provider.send("evm_setAutomine", [false]);
+
+          const tx1Hash = await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: EMPTY_ACCOUNT_ADDRESS.toString(),
+              gas: numberToRpcQuantity(21_000),
+              gasPrice: numberToRpcQuantity(10),
+            },
+          ]);
+          const tx2Hash = await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              to: EMPTY_ACCOUNT_ADDRESS.toString(),
+              gas: numberToRpcQuantity(21_000),
+              gasPrice: numberToRpcQuantity(20),
+            },
+          ]);
+
+          await this.provider.send("hardhat_setMinGasPrice", [
+            numberToRpcQuantity(15),
+          ]);
+
+          // check the two txs are pending
+          const pendingTransactionsBefore = await this.provider.send(
+            "eth_pendingTransactions"
+          );
+          assert.sameMembers(
+            pendingTransactionsBefore.map((x: any) => x.hash),
+            [tx1Hash, tx2Hash]
+          );
+
+          // check only the second one is mined
+          await this.provider.send("evm_mine");
+          const latestBlock = await this.provider.send("eth_getBlockByNumber", [
+            "latest",
+            false,
+          ]);
+          assert.sameMembers(latestBlock.transactions, [tx2Hash]);
+
+          // check the first tx is still pending
+          const pendingTransactionsAfter = await this.provider.send(
+            "eth_pendingTransactions"
+          );
+          assert.sameMembers(
+            pendingTransactionsAfter.map((x: any) => x.hash),
+            [tx1Hash]
           );
         });
       });

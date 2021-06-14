@@ -1,13 +1,13 @@
 import * as t from "io-ts";
 
-import { optional } from "../../../../util/io-ts";
+import { optionalOrNullable } from "../../../../util/io-ts";
 
-export const rpcDebugTracingConfig = optional(
+export const rpcDebugTracingConfig = optionalOrNullable(
   t.type(
     {
-      disableStorage: optional(t.boolean),
-      disableMemory: optional(t.boolean),
-      disableStack: optional(t.boolean),
+      disableStorage: optionalOrNullable(t.boolean),
+      disableMemory: optionalOrNullable(t.boolean),
+      disableStack: optionalOrNullable(t.boolean),
     },
     "RpcDebugTracingConfig"
   )
