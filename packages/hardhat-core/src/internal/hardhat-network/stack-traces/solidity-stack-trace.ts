@@ -83,14 +83,12 @@ export interface PanicErrorStackTraceEntry {
   type: StackTraceEntryType.PANIC_ERROR;
   errorCode: BN;
   sourceReference: SourceReference;
-  isInvalidOpcodeError: boolean;
 }
 
 export interface CustomErrorStackTraceEntry {
   type: StackTraceEntryType.CUSTOM_ERROR;
   message: string;
   sourceReference: SourceReference;
-  isInvalidOpcodeError: boolean;
 }
 
 export interface UnmappedSolc063RevertErrorStackTraceEntry {

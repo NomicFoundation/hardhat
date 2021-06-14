@@ -1112,7 +1112,6 @@ export class ErrorInferrer {
         sourceLocationToSourceReference(trace.bytecode, inst.location) ??
         this._getLastSourceReference(trace)!,
       errorCode,
-      isInvalidOpcodeError: inst.opcode === Opcode.INVALID,
     };
   }
 
@@ -1127,7 +1126,6 @@ export class ErrorInferrer {
         sourceLocationToSourceReference(trace.bytecode, inst.location) ??
         this._getLastSourceReference(trace)!,
       message,
-      isInvalidOpcodeError: inst.opcode === Opcode.INVALID,
     };
   }
 
