@@ -88,7 +88,7 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
       }
 
       let typedMessage = data;
-      if (typeof data == "string") {
+      if (typeof data === "string") {
         try {
           typedMessage = JSON.parse(data);
         } catch (error) {
