@@ -2,7 +2,7 @@
 .hero-image-wrapper
   .hero-frame
     #animation_container(ref="animationContainer")
-      canvas#canvas(ref="canvas", width="1120", height="693")
+      canvas#canvas(ref="canvas", width="1120px", height="693px")
 </template>
 
 <script>
@@ -120,8 +120,8 @@ export default {
     position absolute
     z-index -1
     border none
-    width 1130px
-    height 693px
+    // width 1120px
+    // height 693px
     right -460px
     @media (max-width: 1000px)
       top unset

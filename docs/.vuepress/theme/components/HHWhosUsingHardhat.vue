@@ -534,7 +534,7 @@ function splitInChunks(arr, chunkSize) {
 
 #whos-using-hardhat
   @media (max-width: 1000px)
-    margin-bottom 120px
+    margin-bottom 90px
 
   .section-title
     text-align center
@@ -587,6 +587,8 @@ function splitInChunks(arr, chunkSize) {
         max-height 67px
         transition .1s ease-in-out opacity
         display inline-block
+        &[title="HEGIC"]
+          transform scale(1.5)
 
   .banner-container-mobile
     @media screen and (min-width: 760px)

@@ -213,8 +213,8 @@ export default {
       width 48px
       height 48px
       #nav-icon3
-        width inherit
-        height inherit
+        // width inherit
+        // height inherit
       @media (max-width: 1000px) and (min-width: 720px)
         left calc(142px - 56px)
 
@@ -317,14 +317,14 @@ export default {
 
 #nav-icon3
   top: 4px;
-  width: 60px;
-  height: 45px;
+  width: 28px;
+  height: 28px;
   position: relative;
   margin: 0 auto;
   -webkit-transform: rotate(0deg);
   -moz-transform: rotate(0deg);
   -o-transform: rotate(0deg);
-  transform: rotate(0deg) scale(.5);
+  transform: rotate(0deg);
   -webkit-transition: .5s ease-in-out;
   -moz-transition: .5s ease-in-out;
   -o-transition: .5s ease-in-out;
@@ -359,11 +359,11 @@ export default {
 
 
 #nav-icon3 div:nth-child(2)
-  top: 18px;
+  top: 8px;
 
 
 #nav-icon3 div:nth-child(3)
-  top: 36px;
+  top: 16px;
 
 
 #nav-icon3.open div:nth-child(2)
@@ -373,13 +373,13 @@ export default {
 #nav-icon3.open div:nth-child(1)
   transform: rotate(45deg);
   width: 100%;
-  top: 16px;
+  top: 8px;
 
 
 #nav-icon3.open div:nth-child(3)
   transform: rotate(-45deg);
   width: 100%;
-  top: 16px;
+  top: 8px;
 
 .navbar-mobile
   #Tools

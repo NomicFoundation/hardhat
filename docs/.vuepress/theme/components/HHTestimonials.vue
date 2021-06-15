@@ -218,18 +218,19 @@ export default {
               border-radius 100px
               @media (max-width: 1000px)
                   margin 0
-                  width 110px
-                  height 110px
+                  width 120px
+                  height 120px
           .user-details-wrapper
               display flex
               flex-direction column
               align-items center
               margin-top 32px
               @media (max-width: 1000px)
-                  margin-left 1rem
+                  margin-left 30px
                   display flex
                   flex-direction column
                   justify-content center
+                  margin-top 0
               .user-name
                 margin-bottom 24px
                 *

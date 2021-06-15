@@ -9,8 +9,10 @@
           HHCta(text="Get started", link="/getting-started/")
 
       ClientOnly
-        component(v-if="HHAnimation", :is="HHAnimation")
         component(v-if="HHMobileAnimation", :is="HHMobileAnimation")
+        
+      ClientOnly
+        component(v-if="HHAnimation", :is="HHAnimation")
         
 </template>
 

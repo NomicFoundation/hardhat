@@ -37,7 +37,7 @@ export default {
     @media (max-width: 1000px)
         height 815px
     @media (min-width: 1000px)
-        min-height 51vw
+        min-height 820px
     .background
         position absolute
         z-index -1
@@ -94,10 +94,10 @@ export default {
             width 700px
             font-weight 100
             @media screen and (max-width: 1000px)
-                font-size 28px
-                width 80%
-                max-width 513px
-                padding 0 20px
+                font-size 39px
+                width 100%
+                padding 0 24px
+                margin-bottom 24px
         p
             font-size 24px
             line-height 40px

@@ -115,6 +115,8 @@ export default {
     transform scale(1.2)
   @media (max-width: 720px)
     transform scale(1)
+  @media screen and (max-height: 670px)
+    transform scale(0.7)
   #ethereum-bg
     width 180px
     height 306px
