@@ -10,6 +10,7 @@ const pluginsChildren = plugins.map((p) => [
 module.exports = {
   title:
     "Hardhat | Ethereum development environment for professionals by Nomic Labs",
+  base: '/hardhat_vue/',
   description:
     "Hardhat is an Ethereum development environment. Compile your contracts and run them on a development network. Get Solidity stack traces, console.log and more.",
   themeConfig: {

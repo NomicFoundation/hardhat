@@ -61,9 +61,7 @@
                 </div>
                 <div id="runner" class="tool-data">
                     <div class="tool-header">
-                        <h3>Hardhat 
-                            <span class="tool-title"></span>
-                        </h3>
+                        <h3>Hardhat<span class="tool-title"></span></h3>
                         <div class="tool-tags-wrapper">
                             <span>#<span class="tool-tags"></span></span>
                             
@@ -267,7 +265,7 @@
                     grid-template-rows 96px
                     padding 0px
                     // height unset
-                    height 315px
+                    height 276px
                 &:before,
                 &:after
                     content ''
@@ -322,6 +320,8 @@
                             justify-content space-between
                 .tool-selection-right
                     padding-top 48px
+                    @media (max-width: 1000px)
+                        padding-top 0
                     .right-tools-list
                         @media (max-width: 1000px)
                             display flex
@@ -442,6 +442,7 @@
                         .tool-title
                             transition 0.1s ease-in-out all
                             opacity 1
+                            margin-left 8px
                             &.title-hidden
                                 opacity 0
                     .tool-tags-wrapper
@@ -497,7 +498,7 @@
                         @media (max-width: 1000px)
                             width 100%
                             font-size 18px
-                            height 136px
+                            height 160px
                         &.description-hidden
                             opacity 0
                     .learn-more-link

@@ -170,10 +170,12 @@
                 @media (max-width 1000px)
                     width 100% !important
         .details
+            @media (max-width 1000px)
+              padding-right 24px
             &:first-child
                 margin-bottom 64px
                 @media (max-width 1000px)
-                    margin-bottom 0
+                    margin-bottom 24px !important
                     p
                         margin-bottom 0
             h2
@@ -197,7 +199,8 @@
             position relative
             @media (max-width: 1000px)
                 margin-top 32px
-                width 317px
+                max-width 317px
+                width calc(100% - 24px)
                 text-align center
             &:after, &:before
                 content ''
@@ -278,13 +281,12 @@
   #tasks
     .image-container
         position absolute
+        top 0
         right 50px
         width 712px
         height 446px
         background-image url('../img/graphics/Graphic-4@2x.png')
         transform-origin right center
-        bottom 0
-        top 74px
         @media (min-width: 1000px) and (max-width: 1100px)
             right 10px
             transform translateY(20px)

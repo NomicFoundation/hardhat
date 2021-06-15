@@ -2791,7 +2791,7 @@ window.AdobeAn = window.AdobeAn || {};
     respDim,
     isScale,
     scaleType,
-    domContainers,
+    desktopDomContainers,
     stage
   ) {
     var lastW,
@@ -2821,10 +2821,11 @@ window.AdobeAn = window.AdobeAn || {};
         } else if (scaleType == 2) {
           sRatio = Math.max(xRatio, yRatio);
         }
-      }
-      domContainers[0].width = w * pRatio * sRatio;
-      domContainers[0].height = h * pRatio * sRatio;
-      domContainers.forEach(function (container) {
+      };
+      
+      desktopDomContainers[0].width = w * pRatio * sRatio;
+      desktopDomContainers[0].height = h * pRatio * sRatio;
+      desktopDomContainers.forEach(function (container) {
         container.style.width = w * sRatio + "px";
         container.style.height = h * sRatio + "px";
       });
