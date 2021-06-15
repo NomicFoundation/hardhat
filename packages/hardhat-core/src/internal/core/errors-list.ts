@@ -336,7 +336,7 @@ Please double check your calls' parameters and keep your Ethereum node up to dat
       message: 'Invalid "data" param when calling eth_signTypedData_v4.',
       title: "Invalid `data` param when calling eth_signTypedData_v4.",
       description: `You called \`eth_signTypedData_v4\` with incorrect parameters.
-Please check that you are sending a \`data\` parameter with as a JSON string or object conforming to EIP712 TypedData schema.`,
+Please check that you are sending a \`data\` parameter with a JSON string or object conforming to EIP712 TypedData schema.`,
       shouldBeReported: false,
     },
   },
