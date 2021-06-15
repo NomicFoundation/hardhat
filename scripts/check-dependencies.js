@@ -14,6 +14,7 @@ const IGNORE_FOR_PACKAGES = {
     "@nomiclabs/hardhat-truffle5",
   ],
   ethers: ["@nomiclabs/hardhat-etherscan"],
+  mocha: ["@nomiclabs/hardhat-mocha"],
 };
 
 function checkPeerDepedencies(packageJson) {
