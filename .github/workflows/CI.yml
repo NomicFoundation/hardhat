@@ -144,10 +144,13 @@ jobs:
         run: yarn test
 
   # We should run this tests with multiple configurations
-  # but we hit the rate limits of every node provider we tried,
-  # so as a temporal workaround, we run them with a single config.
+  # but somehow the requests to Alchemy take much longer when doing that.
+  # As a temporal workaround, we run them with a single config.
+  # 
   # Once we properly refactor Hardhat Network's tests we should
   # add more configurations (different OS and node versions).
+  #
+  # We should also understand what's going on before blindly refactoring them.
   test_fork:
     name: Test Hardhat Network's fork
     runs-on: ubuntu-latest
