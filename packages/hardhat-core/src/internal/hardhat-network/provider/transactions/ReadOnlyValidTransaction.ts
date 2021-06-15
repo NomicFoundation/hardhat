@@ -52,6 +52,8 @@ export class ReadOnlyValidTransaction extends Transaction {
   public constructor(sender: Address, data: TxData = {}) {
     super(data, { freeze: false });
 
+    // TODO: remove this as any
+    (this as any).common = this._getCommon();
     this._sender = sender;
   }
 

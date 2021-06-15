@@ -65,27 +65,33 @@ function createSourcesModelFromAst(
 
     fileIdToSourceFile.set(source.id, file);
 
-    for (const contractNode of source.ast.nodes) {
-      if (contractNode.nodeType !== "ContractDefinition") {
-        continue;
+    for (const node of source.ast.nodes) {
+      if (node.nodeType === "ContractDefinition") {
+        const contractType = contractKindToContractType(node.contractKind);
+
+        if (contractType === undefined) {
+          continue;
+        }
+
+        processContractAstNode(
+          file,
+          node,
+          fileIdToSourceFile,
+          contractType,
+          contractIdToContract,
+          contractIdToLinearizedBaseContractIds
+        );
       }
 
-      const contractType = contractKindToContractType(
-        contractNode.contractKind
-      );
-
-      if (contractType === undefined) {
-        continue;
+      // top-level functions
+      if (node.nodeType === "FunctionDefinition") {
+        processFunctionDefinitionAstNode(
+          node,
+          fileIdToSourceFile,
+          undefined,
+          file
+        );
       }
-
-      processContractAstNode(
-        file,
-        contractNode,
-        fileIdToSourceFile,
-        contractType,
-        contractIdToContract,
-        contractIdToLinearizedBaseContractIds
-      );
     }
   }
 
@@ -151,7 +157,7 @@ function processContractAstNode(
 function processFunctionDefinitionAstNode(
   functionDefinitionNode: any,
   fileIdToSourceFile: Map<number, SourceFile>,
-  contract: Contract,
+  contract: Contract | undefined,
   file: SourceFile
 ) {
   if (functionDefinitionNode.implemented === false) {
@@ -188,7 +194,10 @@ function processFunctionDefinitionAstNode(
     selector
   );
 
-  contract.addLocalFunction(cf);
+  if (contract !== undefined) {
+    contract.addLocalFunction(cf);
+  }
+
   file.addFunction(cf);
 }
 
@@ -433,6 +442,10 @@ function functionDefinitionKindToFunctionType(
 
   if (kind === "receive") {
     return ContractFunctionType.RECEIVE;
+  }
+
+  if (kind === "freeFunction") {
+    return ContractFunctionType.FREE_FUNCTION;
   }
 
   return ContractFunctionType.FUNCTION;

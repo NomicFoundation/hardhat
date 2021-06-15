@@ -1,3 +1,4 @@
+import { BN } from "ethereumjs-util";
 import * as fs from "fs";
 import cloneDeep from "lodash/cloneDeep";
 import path from "path";
@@ -154,6 +155,11 @@ function resolveHardhatNetworkConfig(
 
   const mining = resolveMiningConfig(hardhatNetworkConfig.mining);
 
+  const minGasPrice = new BN(
+    hardhatNetworkConfig.minGasPrice ??
+      clonedDefaultHardhatNetworkParams.minGasPrice
+  );
+
   const blockGasLimit =
     hardhatNetworkConfig.blockGasLimit ??
     clonedDefaultHardhatNetworkParams.blockGasLimit;
@@ -172,6 +178,7 @@ function resolveHardhatNetworkConfig(
     blockGasLimit,
     gas,
     initialDate,
+    minGasPrice,
   };
 
   // We do it this way because ts gets lost otherwise

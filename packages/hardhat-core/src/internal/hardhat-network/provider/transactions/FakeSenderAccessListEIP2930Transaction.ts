@@ -133,6 +133,9 @@ export class FakeSenderAccessListEIP2930Transaction extends AccessListEIP2930Tra
       { ...opts, freeze: false }
     );
 
+    // TODO: remove this as any
+    (this as any).common = this._getCommon(opts?.common);
+
     this._sender = sender;
   }
 

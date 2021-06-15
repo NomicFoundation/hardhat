@@ -12,7 +12,7 @@ This plugin adds support for Vyper to Hardhat. Once installed, Vyper contracts c
 This plugin generates the same artifact format as the built-in Solidity compiler, so that it can be used in conjunction with
 all other plugins.
 
-The Vyper compiler is run using the [official Docker images](https://hub.docker.com/r/ethereum/vyper).
+The Vyper compiler is run using the [official Docker images](https://hub.docker.com/r/vyperlang/vyper).
 
 ## Installation
 
@@ -51,14 +51,14 @@ This plugin does not extend the Hardhat Runtime Environment.
 ## Configuration
 
 This plugin adds an optional `vyper` entry to Hardhat's config, which lets you specify the Vyper version to use. If no
-version is given, the [latest one on Docker Hub](https://hub.docker.com/r/ethereum/vyper/tags) will be used.
+version is given, the [latest one on Docker Hub](https://hub.docker.com/r/vyperlang/vyper/tags) will be used.
 
 This is an example of how to set it:
 
 ```js
 module.exports = {
   vyper: {
-    version: "0.1.0b9"
+    version: "0.1.0b10"
   }
 };
 ```

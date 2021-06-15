@@ -678,100 +678,220 @@ describe("Ethers plugin", function () {
   describe("hardhat", function () {
     useEnvironment("hardhat-project", "hardhat");
 
-    it("should return the correct block number after a hardhat_reset", async function () {
-      let blockNumber = await this.env.ethers.provider.getBlockNumber();
-      assert.equal(blockNumber.toString(), "0");
+    describe("hardhat_reset", function () {
+      it("should return the correct block number after a hardhat_reset", async function () {
+        let blockNumber = await this.env.ethers.provider.getBlockNumber();
+        assert.equal(blockNumber.toString(), "0");
 
-      await this.env.ethers.provider.send("evm_mine", []);
-      await this.env.ethers.provider.send("evm_mine", []);
-      blockNumber = await this.env.ethers.provider.getBlockNumber();
-      assert.equal(blockNumber.toString(), "2");
+        await this.env.ethers.provider.send("evm_mine", []);
+        await this.env.ethers.provider.send("evm_mine", []);
+        blockNumber = await this.env.ethers.provider.getBlockNumber();
+        assert.equal(blockNumber.toString(), "2");
 
-      await this.env.ethers.provider.send("hardhat_reset", []);
-      blockNumber = await this.env.ethers.provider.getBlockNumber();
-      assert.equal(blockNumber.toString(), "0");
-    });
-
-    it("should return the correct block after a hardhat_reset", async function () {
-      await this.env.ethers.provider.send("evm_mine", []);
-
-      let blockOne = await this.env.ethers.provider.getBlock(1);
-      let blockTwo = await this.env.ethers.provider.getBlock(2);
-      assert.isNotNull(blockOne);
-      assert.isNull(blockTwo);
-
-      await this.env.ethers.provider.send("hardhat_reset", []);
-
-      blockOne = await this.env.ethers.provider.getBlock(1);
-      blockTwo = await this.env.ethers.provider.getBlock(2);
-      assert.isNull(blockOne);
-      assert.isNull(blockTwo);
-    });
-
-    it("should return the correct nonce after a hardhat_reset", async function () {
-      const [sig] = await this.env.ethers.getSigners();
-
-      let nonce = await this.env.ethers.provider.getTransactionCount(
-        sig.address
-      );
-
-      assert.equal(nonce, 0);
-
-      const response = await sig.sendTransaction({
-        from: sig.address,
-        to: this.env.ethers.constants.AddressZero,
-        value: "0x1",
+        await this.env.ethers.provider.send("hardhat_reset", []);
+        blockNumber = await this.env.ethers.provider.getBlockNumber();
+        assert.equal(blockNumber.toString(), "0");
       });
-      await response.wait();
 
-      nonce = await this.env.ethers.provider.getTransactionCount(sig.address);
-      assert.equal(nonce, 1);
+      it("should return the correct block after a hardhat_reset", async function () {
+        await this.env.ethers.provider.send("evm_mine", []);
 
-      await this.env.ethers.provider.send("hardhat_reset", []);
-      nonce = await this.env.ethers.provider.getTransactionCount(sig.address);
-      assert.equal(nonce, 0);
-    });
+        let blockOne = await this.env.ethers.provider.getBlock(1);
+        let blockTwo = await this.env.ethers.provider.getBlock(2);
+        assert.isNotNull(blockOne);
+        assert.isNull(blockTwo);
 
-    it("should return the correct balance after a hardhat_reset", async function () {
-      const [sig] = await this.env.ethers.getSigners();
+        await this.env.ethers.provider.send("hardhat_reset", []);
 
-      let balance = await this.env.ethers.provider.getBalance(sig.address);
-
-      assert.equal(balance.toString(), "10000000000000000000000");
-
-      const response = await sig.sendTransaction({
-        from: sig.address,
-        to: this.env.ethers.constants.AddressZero,
+        blockOne = await this.env.ethers.provider.getBlock(1);
+        blockTwo = await this.env.ethers.provider.getBlock(2);
+        assert.isNull(blockOne);
+        assert.isNull(blockTwo);
       });
-      await response.wait();
 
-      balance = await this.env.ethers.provider.getBalance(sig.address);
-      assert.equal(balance.toString(), "9999999832000000000000");
+      it("should return the correct nonce after a hardhat_reset", async function () {
+        const [sig] = await this.env.ethers.getSigners();
 
-      await this.env.ethers.provider.send("hardhat_reset", []);
-      balance = await this.env.ethers.provider.getBalance(sig.address);
-      assert.equal(balance.toString(), "10000000000000000000000");
+        let nonce = await this.env.ethers.provider.getTransactionCount(
+          sig.address
+        );
+
+        assert.equal(nonce, 0);
+
+        const response = await sig.sendTransaction({
+          from: sig.address,
+          to: this.env.ethers.constants.AddressZero,
+          value: "0x1",
+        });
+        await response.wait();
+
+        nonce = await this.env.ethers.provider.getTransactionCount(sig.address);
+        assert.equal(nonce, 1);
+
+        await this.env.ethers.provider.send("hardhat_reset", []);
+        nonce = await this.env.ethers.provider.getTransactionCount(sig.address);
+        assert.equal(nonce, 0);
+      });
+
+      it("should return the correct balance after a hardhat_reset", async function () {
+        const [sig] = await this.env.ethers.getSigners();
+
+        let balance = await this.env.ethers.provider.getBalance(sig.address);
+
+        assert.equal(balance.toString(), "10000000000000000000000");
+
+        const response = await sig.sendTransaction({
+          from: sig.address,
+          to: this.env.ethers.constants.AddressZero,
+        });
+        await response.wait();
+
+        balance = await this.env.ethers.provider.getBalance(sig.address);
+        assert.equal(balance.toString(), "9999999832000000000000");
+
+        await this.env.ethers.provider.send("hardhat_reset", []);
+        balance = await this.env.ethers.provider.getBalance(sig.address);
+        assert.equal(balance.toString(), "10000000000000000000000");
+      });
+
+      it("should return the correct code after a hardhat_reset", async function () {
+        const [sig] = await this.env.ethers.getSigners();
+
+        const Greeter = await this.env.ethers.getContractFactory("Greeter");
+        const tx = Greeter.getDeployTransaction();
+
+        const response = await sig.sendTransaction(tx);
+
+        const receipt = await response.wait();
+
+        let code = await this.env.ethers.provider.getCode(
+          receipt.contractAddress
+        );
+        assert.lengthOf(code, 1568);
+
+        await this.env.ethers.provider.send("hardhat_reset", []);
+
+        code = await this.env.ethers.provider.getCode(receipt.contractAddress);
+        assert.lengthOf(code, 2);
+      });
     });
 
-    it("should return the correct code after a hardhat_reset", async function () {
-      const [sig] = await this.env.ethers.getSigners();
+    describe("evm_revert", function () {
+      it("should return the correct block number after a evm_revert", async function () {
+        const snapshotId = await this.env.ethers.provider.send(
+          "evm_snapshot",
+          []
+        );
+        let blockNumber = await this.env.ethers.provider.getBlockNumber();
+        assert.equal(blockNumber.toString(), "0");
 
-      const Greeter = await this.env.ethers.getContractFactory("Greeter");
-      const tx = Greeter.getDeployTransaction();
+        await this.env.ethers.provider.send("evm_mine", []);
+        await this.env.ethers.provider.send("evm_mine", []);
+        blockNumber = await this.env.ethers.provider.getBlockNumber();
+        assert.equal(blockNumber.toString(), "2");
 
-      const response = await sig.sendTransaction(tx);
+        await this.env.ethers.provider.send("evm_revert", [snapshotId]);
+        blockNumber = await this.env.ethers.provider.getBlockNumber();
+        assert.equal(blockNumber.toString(), "0");
+      });
 
-      const receipt = await response.wait();
+      it("should return the correct block after a evm_revert", async function () {
+        const snapshotId = await this.env.ethers.provider.send(
+          "evm_snapshot",
+          []
+        );
+        await this.env.ethers.provider.send("evm_mine", []);
 
-      let code = await this.env.ethers.provider.getCode(
-        receipt.contractAddress
-      );
-      assert.lengthOf(code, 1568);
+        let blockOne = await this.env.ethers.provider.getBlock(1);
+        let blockTwo = await this.env.ethers.provider.getBlock(2);
+        assert.isNotNull(blockOne);
+        assert.isNull(blockTwo);
 
-      await this.env.ethers.provider.send("hardhat_reset", []);
+        await this.env.ethers.provider.send("evm_revert", [snapshotId]);
 
-      code = await this.env.ethers.provider.getCode(receipt.contractAddress);
-      assert.lengthOf(code, 2);
+        blockOne = await this.env.ethers.provider.getBlock(1);
+        blockTwo = await this.env.ethers.provider.getBlock(2);
+        assert.isNull(blockOne);
+        assert.isNull(blockTwo);
+      });
+
+      it("should return the correct nonce after a evm_revert", async function () {
+        const snapshotId = await this.env.ethers.provider.send(
+          "evm_snapshot",
+          []
+        );
+        const [sig] = await this.env.ethers.getSigners();
+
+        let nonce = await this.env.ethers.provider.getTransactionCount(
+          sig.address
+        );
+
+        assert.equal(nonce, 0);
+
+        const response = await sig.sendTransaction({
+          from: sig.address,
+          to: this.env.ethers.constants.AddressZero,
+          value: "0x1",
+        });
+        await response.wait();
+
+        nonce = await this.env.ethers.provider.getTransactionCount(sig.address);
+        assert.equal(nonce, 1);
+
+        await this.env.ethers.provider.send("evm_revert", [snapshotId]);
+        nonce = await this.env.ethers.provider.getTransactionCount(sig.address);
+        assert.equal(nonce, 0);
+      });
+
+      it("should return the correct balance after a evm_revert", async function () {
+        const snapshotId = await this.env.ethers.provider.send(
+          "evm_snapshot",
+          []
+        );
+        const [sig] = await this.env.ethers.getSigners();
+
+        let balance = await this.env.ethers.provider.getBalance(sig.address);
+
+        assert.equal(balance.toString(), "10000000000000000000000");
+
+        const response = await sig.sendTransaction({
+          from: sig.address,
+          to: this.env.ethers.constants.AddressZero,
+        });
+        await response.wait();
+
+        balance = await this.env.ethers.provider.getBalance(sig.address);
+        assert.equal(balance.toString(), "9999999832000000000000");
+
+        await this.env.ethers.provider.send("evm_revert", [snapshotId]);
+        balance = await this.env.ethers.provider.getBalance(sig.address);
+        assert.equal(balance.toString(), "10000000000000000000000");
+      });
+
+      it("should return the correct code after a evm_revert", async function () {
+        const snapshotId = await this.env.ethers.provider.send(
+          "evm_snapshot",
+          []
+        );
+        const [sig] = await this.env.ethers.getSigners();
+
+        const Greeter = await this.env.ethers.getContractFactory("Greeter");
+        const tx = Greeter.getDeployTransaction();
+
+        const response = await sig.sendTransaction(tx);
+
+        const receipt = await response.wait();
+
+        let code = await this.env.ethers.provider.getCode(
+          receipt.contractAddress
+        );
+        assert.lengthOf(code, 1568);
+
+        await this.env.ethers.provider.send("evm_revert", [snapshotId]);
+
+        code = await this.env.ethers.provider.getCode(receipt.contractAddress);
+        assert.lengthOf(code, 2);
+      });
     });
 
     it("_signTypedData integration test", async function () {

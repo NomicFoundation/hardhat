@@ -15,7 +15,7 @@ import {
   validateSourceNameExistenceAndCasing,
   validateSourceNameFormat,
 } from "../../utils/source-names";
-import { HardhatError } from "../core/errors";
+import { assertHardhatInvariant, HardhatError } from "../core/errors";
 import { ERRORS } from "../core/errors-list";
 import { createNonCryptographicHashBasedIdentifier } from "../util/hash";
 
@@ -39,6 +39,12 @@ export class ResolvedFile implements IResolvedFile {
     libraryName?: string,
     libraryVersion?: string
   ) {
+    assertHardhatInvariant(
+      (libraryName === undefined && libraryVersion === undefined) ||
+        (libraryName !== undefined && libraryVersion !== undefined),
+      "Libraries should have both name and version, or neither one"
+    );
+
     if (libraryName !== undefined && libraryVersion !== undefined) {
       this.library = {
         name: libraryName,
@@ -339,9 +345,14 @@ export class Resolver {
   }
 
   private _getLibraryName(sourceName: string): string {
-    const endIndex: number = this._isScopedPackage(sourceName)
-      ? sourceName.indexOf("/", sourceName.indexOf("/") + 1)
-      : sourceName.indexOf("/");
+    let endIndex: number;
+    if (this._isScopedPackage(sourceName)) {
+      endIndex = sourceName.indexOf("/", sourceName.indexOf("/") + 1);
+    } else if (sourceName.indexOf("/") === -1) {
+      endIndex = sourceName.length;
+    } else {
+      endIndex = sourceName.indexOf("/");
+    }
 
     return sourceName.slice(0, endIndex);
   }

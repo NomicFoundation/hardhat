@@ -1,6 +1,6 @@
 {
   "name": "hardhat",
-  "version": "2.2.0",
+  "version": "2.3.3",
   "author": "Nomic Labs LLC",
   "license": "SEE LICENSE IN LICENSE",
   "homepage": "https://hardhat.org",
@@ -26,15 +26,14 @@
     "node": ">=8.2.0"
   },
   "scripts": {
-    "lint:fix": "node ../../node_modules/prettier/bin-prettier.js --write \"src/**/*.{js,ts}\" \"test/**/*.{js,ts}\" && yarn lint-src --fix && yarn lint-tests --fix",
+    "lint:fix": "prettier --write \"src/**/*.{js,ts}\" \"test/**/*.{js,ts}\" && yarn lint-src --fix && yarn lint-tests --fix",
     "lint": "yarn lint-src && yarn lint-tests",
-    "lint-tests": "node -r ts-node/register/transpile-only ../../node_modules/tslint/bin/tslint --config tslint.json --project ./tsconfig.json",
-    "lint-src": "node -r ts-node/register/transpile-only ../../node_modules/tslint/bin/tslint --config tslint.json --project src/tsconfig.json",
-    "test": "node ../../node_modules/mocha/bin/mocha --recursive \"test/**/*.ts\"",
-    "coverage": "node ../../node_modules/nyc/bin/nyc.js ../../node_modules/mocha/bin/mocha --recursive \"test/**/*.ts\"",
-    "build": "node ../../node_modules/typescript/bin/tsc --build src",
-    "build-test": "node ../../node_modules/typescript/bin/tsc --build .",
-    "clean": "node ../../node_modules/rimraf/bin.js builtin-tasks internal types utils *.d.ts *.map *.js build-test tsconfig.tsbuildinfo"
+    "lint-tests": "NODE_OPTIONS='--require ts-node/register/transpile-only' tslint --config tslint.json --project ./tsconfig.json",
+    "lint-src": "NODE_OPTIONS='--require ts-node/register/transpile-only' tslint --config tslint.json --project src/tsconfig.json",
+    "test": "mocha --recursive \"test/**/*.ts\"",
+    "build": "tsc --build src",
+    "build-test": "tsc --build .",
+    "clean": "rimraf builtin-tasks internal types utils *.d.ts *.map *.js build-test tsconfig.tsbuildinfo"
   },
   "files": [
     "builtin-tasks/",
@@ -61,6 +60,8 @@
     "@types/fs-extra": "^5.1.0",
     "@types/glob": "^7.1.1",
     "@types/lodash": "^4.14.123",
+    "@types/mocha": "^5.2.6",
+    "@types/node": "^10.17.24",
     "@types/node-fetch": "^2.3.7",
     "@types/qs": "^6.5.3",
     "@types/resolve": "^1.17.1",
@@ -71,14 +72,24 @@
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "ethers": "^5.0.0",
+    "mocha": "^7.1.2",
+    "prettier": "2.0.5",
+    "proxy": "^1.0.2",
+    "rimraf": "^3.0.2",
     "sinon": "^9.0.0",
-    "time-require": "^0.1.2"
+    "time-require": "^0.1.2",
+    "ts-node": "^8.1.0",
+    "tslint": "^5.16.0",
+    "tslint-config-prettier": "^1.18.0",
+    "tslint-consistent-codestyle": "^1.15.1",
+    "tslint-plugin-prettier": "^2.0.1",
+    "typescript": "~4.0.3"
   },
   "dependencies": {
-    "@ethereumjs/block": "^3.2.1",
-    "@ethereumjs/blockchain": "^5.2.1",
-    "@ethereumjs/common": "^2.2.0",
-    "@ethereumjs/tx": "^3.1.3",
+    "@ethereumjs/block": "^3.3.0",
+    "@ethereumjs/blockchain": "^5.3.0",
+    "@ethereumjs/common": "^2.3.1",
+    "@ethereumjs/tx": "^3.2.1",
     "@ethereumjs/vm": "^5.3.2",
     "@sentry/node": "^5.18.1",
     "@solidity-parser/parser": "^0.11.0",
@@ -101,10 +112,11 @@
     "fp-ts": "1.19.3",
     "fs-extra": "^7.0.1",
     "glob": "^7.1.3",
+    "https-proxy-agent": "^5.0.0",
     "immutable": "^4.0.0-rc.12",
     "io-ts": "1.10.4",
     "lodash": "^4.17.11",
-    "merkle-patricia-tree": "^4.1.0",
+    "merkle-patricia-tree": "^4.2.0",
     "mnemonist": "^0.38.0",
     "mocha": "^7.1.2",
     "node-fetch": "^2.6.0",
@@ -119,7 +131,7 @@
     "true-case-path": "^2.2.1",
     "tsort": "0.0.1",
     "uuid": "^3.3.2",
-    "ws": "^7.2.1"
+    "ws": "^7.4.6"
   },
   "nyc": {
     "extension": [

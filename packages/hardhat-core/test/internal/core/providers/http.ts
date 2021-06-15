@@ -4,7 +4,7 @@ import { ALCHEMY_URL } from "../../../setup";
 describe("HttpProvider", function () {
   describe("429 Too many requests - retries", function () {
     it("Retries are correctly handled for Alchemy", async function () {
-      if (ALCHEMY_URL === undefined || ALCHEMY_URL === "") {
+      if (ALCHEMY_URL === undefined) {
         this.skip();
         return;
       }

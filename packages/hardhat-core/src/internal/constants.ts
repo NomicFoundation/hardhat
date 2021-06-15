@@ -25,3 +25,5 @@ export const BUILD_INFO_FORMAT_VERSION = "hh-sol-build-info-1";
 export const BUILD_INFO_DIR_NAME = "build-info";
 
 export const HARDHAT_NETWORK_RESET_EVENT = "hardhatNetworkReset";
+export const HARDHAT_NETWORK_REVERT_SNAPSHOT_EVENT =
+  "hardhatNetworkRevertSnapshot";

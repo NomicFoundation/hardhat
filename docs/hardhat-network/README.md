@@ -92,7 +92,7 @@ error message in the following cases:
 
 ## `console.log`
 
-Hardhat Network allows you to print logging messages and contract variables calling `console.log()` from your Solidity code. You can see an example in the Sample Project. Follow the steps in [Quick Start](/getting-started/README.md#quick-start) to try it out.
+Hardhat Network allows you to print logging messages and contract variables by calling `console.log()` from your Solidity code. You can see an example in the Sample Project. Follow the steps in [Quick Start](/getting-started/README.md#quick-start) to try it out.
 
 - You can use it in calls and transactions. It works with `view` functions, but not in `pure` ones.
 - It always works, regardless of the call or transaction failing or being successful.
@@ -102,7 +102,7 @@ Hardhat Network allows you to print logging messages and contract variables call
   - `string`
   - `bool`
   - `address`
-- There's also the single parameter API for the types above, and additionally `bytes`, `bytes1`.. up to `bytes32`:
+- There's also the single parameter API for the types above, and additionally `bytes`, `bytes1`... up to `bytes32`:
   - `console.logInt(int i)`
   - `console.logUint(uint i)`
   - `console.logString(string memory s)`
@@ -216,8 +216,8 @@ new block that will include as many pending transactions as possible.
 
 ### Mempool behavior
 
-When automine is disabled, every sent transaction is added to the mempool, that
-contains all the transactions that could be mined in the future. Hardhat
+When automine is disabled, every sent transaction is added to the mempool,
+which contains all the transactions that could be mined in the future. Hardhat
 Network's mempool follows the same rules as geth. This means, among other
 things, that:
 
@@ -233,6 +233,21 @@ next block by using the "pending" block tag:
 ```js
 const pendingBlock = await network.provider.send("eth_getBlockByNumber", ["pending", false])
 ```
+
+### Removing and replacing transactions
+
+Transactions in the mempool can be removed using the `hardhat_dropTransaction`
+method:
+
+```js
+const txHash = "0xabc..."
+await network.provider.send("hardhat_dropTransaction", [txHash])
+```
+
+You can also replace a transaction by sending a new one with the same nonce as
+the one that it's already in the mempool but with a higher gas price.
+Keep in mind that, like in Geth, for this to work the new gas price has to be at least 10%
+higher than the gas price of the current transaction.
 
 ### Configuring mining modes using RPC methods
 
@@ -281,6 +296,45 @@ eth_call
 
 This logging is enabled by default when using Hardhat Network's node (i.e. `npx hardhat node`), but disabled when using
 the in-process Hardhat Network provider. See [Hardhat Network's config](../config/README.md#hardhat-network) to learn more about how to control its logging.
+
+## The `debug_traceTransaction` method
+
+You can get debug traces of already mined transactions using the
+`debug_traceTransaction` RPC method. The returned object has a detailed
+description of the transaction execution, including a list of steps describing
+each executed opcode and the state of the EVM at that point.
+
+To get a trace, call this method with the hash of the transaction as its
+argument:
+
+```js
+const trace = await hre.network.provider.send("debug_traceTransaction",
+["0x123..."])
+```
+
+You can also selectively disable some properties in the list of steps:
+
+```js
+const trace = await hre.network.provider.send("debug_traceTransaction", [
+  "0x123...",
+  {
+    disableMemory: true,
+    disableStack: true,
+    disableStorage: true,
+  }
+]);
+```
+
+If you are using [mainnet forking](https://hardhat.org/guides/mainnet-forking.html) with an archive node,
+you can get traces of transactions from the remote network even if the node you are using
+doesn't support
+`debug_traceTransaction`.
+
+### Known limitations
+
+- You can't trace transactions that use a hardfork older than [Spurious Dragon](https://ethereum.org/en/history/#spurious-dragon)
+- The last step of a message is not guaranteed to have a correct value in the
+  `gasCost` property
 
 ## Hardhat Network initial state
 
@@ -344,7 +398,7 @@ To customise it, take a look at [the configuration section](/config/README.md#ha
 - `eth_pendingTransactions`
 - `eth_sendRawTransaction`
 - `eth_sendTransaction`
-- `eth_signTypedData`
+- `eth_signTypedData_v4`
 - `eth_sign`
 - `eth_subscribe`
 - `eth_syncing`
@@ -359,10 +413,16 @@ To customise it, take a look at [the configuration section](/config/README.md#ha
 #### Hardhat network methods
 
 - `hardhat_addCompilationResult` – Add information about compiled contracts
+- `hardhat_dropTransaction` – Remove a transaction from the mempool
 - `hardhat_impersonateAccount` – see the [Mainnet Forking guide](../guides/mainnet-forking.md)
-- `hardhat_stopImpersonatingAccount` – see the [Mainnet Forking guide](../guides/mainnet-forking.md)
 - `hardhat_reset` – see the [Mainnet Forking guide](../guides/mainnet-forking.md)
+- `hardhat_setBalance` – Modifies the balance of an account.
+- `hardhat_setCode` – Modifies the code of an account.
 - `hardhat_setLoggingEnabled` – Enable or disable logging in Hardhat Network
+- `hardhat_setMinGasPrice` - change the minimum gas price accepted by the network (in wei)
+- `hardhat_setNonce` – Modifies an account's nonce by overwriting it. Throws an InvalidInputError if nonce is smaller than the current one. The reason for this restriction is to avoid collisions when deploying contracts using the same nonce more than once.
+- `hardhat_setStorageAt` – Writes a single position of an account's storage. The storage position index must not exceed 2^256, and the value to write must be exactly 32 bytes long.
+- `hardhat_stopImpersonatingAccount` – see the [Mainnet Forking guide](../guides/mainnet-forking.md)
 
 #### Special testing/debugging methods
 

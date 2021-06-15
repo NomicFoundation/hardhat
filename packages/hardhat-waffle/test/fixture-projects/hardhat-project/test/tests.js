@@ -144,5 +144,10 @@ describe("Internal test suite of hardhat-waffle's test project", function () {
       expect("0x70").to.be.properHex(2);
       expect("foobar").not.to.be.properHex(2);
     });
+    
+    it("should support the hexEqual matcher", async function() {
+      expect('0x00012AB').to.hexEqual('0x12ab');
+      expect('0xdeadbeaf').not.to.hexEqual('0x12ab');
+    });
   });
 });
