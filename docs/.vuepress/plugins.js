@@ -136,8 +136,7 @@ const plugins = [
     tags: ["Ethers.js", "hardhat-deploy"],
   },
   {
-    name: "hardhat-upgrades",
-    npmPackage: "@openzeppelin/hardhat-upgrades",
+    name: "@openzeppelin/hardhat-upgrades",
     author: "OpenZeppelin",
     authorUrl: "https://openzeppelin.com",
     url:
