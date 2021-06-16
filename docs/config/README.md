@@ -58,7 +58,7 @@ Hardhat comes built-in with a special network called `hardhat`. When using this 
 an instance of the [Hardhat Network](../hardhat-network/README.md) will be automatically created when you run a task, script or test your smart contracts
 
 Hardhat Network has first-class support of Solidity. It always knows which
-smart contracts are being run and knows exactly what they do and why
+smart contracts are being run and exactly what they do and why
 they fail. Learn more about it [here](../hardhat-network/README.md).
 
 You can set the following fields on the `hardhat` config:
@@ -67,7 +67,7 @@ You can set the following fields on the `hardhat` config:
 
 - `from`: The address to use as default sender. If not present the first account of the Hardhat Network is used.
 
-- `gas`: Its value should be `"auto"` or a number. If a number is used, it will be the gas limit used by default in every transaction. If `"auto"` is used, the gas limit will be automatically estimated. Default value: The same value as `blockGasLimit`.
+- `gas`: Its value should be `"auto"` or a number. If a number is used, it will be the gas limit used by default in every transaction. If `"auto"` is used, the gas limit will be automatically estimated. Default value: the same value as `blockGasLimit`.
 
 - `gasPrice`: Its value should be `"auto"` or a number. This parameter behaves like `gas`. Default value: `8000000000`.
 
@@ -79,7 +79,7 @@ You can set the following fields on the `hardhat` config:
     - `initialIndex`: The initial index to derive. Default value: `0`.
     - `path`: The HD parent of all the derived keys. Default value: `"m/44'/60'/0'/0"`.
     - `count`: The number of accounts to derive. Default value: `20`.
-    - `accountsBalance`: string with the balance (in wei) assigned to every account derived. Default value: "10000000000000000000000" (10000 ETH).
+    - `accountsBalance`: string with the balance (in wei) assigned to every account derived. Default value: `"10000000000000000000000"` (10000 ETH).
   - An array of the initial accounts that the Hardhat Network will create. Each of them must be an object with `privateKey` and `balance` fields.
 
 - `blockGasLimit`: The block gas limit to use in Hardhat Network's blockchain. Default value: `12450000`
@@ -181,7 +181,7 @@ The `solidity` config is an optional field that can be one of the following:
 
 You can customize the different paths that Hardhat uses by providing an object to the `paths` field with the following keys:
 
-- `root`: The root of the Hardhat project. This path is resolved from `hardhat.config.js`'s directory. Default value: The directory containing the config file.
+- `root`: The root of the Hardhat project. This path is resolved from `hardhat.config.js`'s directory. Default value: the directory containing the config file.
 - `sources`: The directory where your contract are stored. This path is resolved from the project's root. Default value: `'./contracts'`.
 - `tests`: The directory where your tests are located. This path is resolved from the project's root. Default value: `'./test'`.
 

@@ -441,7 +441,7 @@ Please double check your task definitions.`,
 The only supported param additions for overridden tasks are flags
 and optional params.
 
-Please, double check your task definitions.`,
+Please double check your task definitions.`,
       shouldBeReported: false,
     },
     OVERRIDE_NO_POSITIONAL_PARAMS: {
@@ -453,7 +453,7 @@ Please, double check your task definitions.`,
 The only supported param additions for overridden tasks are flags
 and optional params.
 
-Please, double check your task definitions.`,
+Please double check your task definitions.`,
       shouldBeReported: false,
     },
     OVERRIDE_NO_VARIADIC_PARAMS: {
@@ -465,7 +465,7 @@ Please, double check your task definitions.`,
 The only supported param additions for overridden tasks are flags
 and optional params.
 
-Please, double check your task definitions.`,
+Please double check your task definitions.`,
       shouldBeReported: false,
     },
     CLI_ARGUMENT_TYPE_REQUIRED: {
@@ -561,7 +561,7 @@ Please double check how you invoked Hardhat or ran your task.`,
       number: 308,
       message: "Unrecognized positional argument %argument%",
       title: "Unrecognized task positional argument",
-      description: `You tried to run a task with more positional arguments than needed. 
+      description: `You tried to run a task with more positional arguments than expected.
 
 Please double check how you invoked Hardhat or ran your task.`,
       shouldBeReported: false,

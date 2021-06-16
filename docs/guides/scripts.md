@@ -2,7 +2,7 @@
 
 In this guide we will go through the steps of creating a script with Hardhat. For a general overview of using Hardhat refer to the [Getting started guide].
 
-You can write your custom scripts that can use all of Hardhat's functionality. A classic use case is writing a deployment script for your smart contracts.
+You can write your own custom scripts that can use all of Hardhat's functionality. A classic use case is writing a deployment script for your smart contracts.
 
 There are two ways of writing a script that accesses the [Hardhat Runtime Environment].
 
@@ -68,7 +68,7 @@ $ node scripts/sample-script.js
 Greeter address: 0x5FbDB2315678afecb367f032d93F642f64180aa3
 ```
 
-By accessing the [Hardhat Runtime Environment] at the top, you are allowed to run the script in a standalone fashion. Hardhat always runs the compile task when running scripts through it. But in a standalone fashion you may want to call compile manually to make sure everything is compiled. This is done by calling `hre.run('compile')`. Uncomment the following line out and re-run the script with `node`:
+By accessing the [Hardhat Runtime Environment] at the top, you are allowed to run the script in a standalone fashion. Hardhat always runs the compile task when it's invoked via `npx hardhat run`, but in a standalone fashion you may want to call compile manually to make sure everything is compiled. This is done by calling `hre.run('compile')`. Uncomment the following line and re-run the script with `node`:
 
 ```js
 await hre.run("compile");

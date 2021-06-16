@@ -239,7 +239,7 @@ of Waffle adapted to work well with Hardhat.
 
 Also, you don't need to call `chai.use`. This initialization is already handled by `@nomiclabs/hardhat-waffle`. Just be sure to include `require("@nomiclabs/hardhat-waffle");` in your Hardhat config.
 
-Finally, instead of initializing a `MockProvider`, just use the plugin's provider like this
+Finally, instead of initializing a `MockProvider`, just use the plugin's provider like this:
 
 ```js
 const { waffle } = require("hardhat");

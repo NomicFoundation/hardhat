@@ -32,7 +32,7 @@ module.exports = {
 };
 ```
 
-Create a folder named `contracts` inside your project. Add a file named `Greeter.sol`, copy and paste the code below:
+Create a folder named `contracts` inside your project. Add a file named `Greeter.sol`, and copy and paste this code:
 
 ```c
 pragma solidity ^0.7.0;

@@ -1,6 +1,6 @@
 # Compiling your contracts
 
-To compile your contracts in your Hardhat project, use the `compile` built-in task:
+To compile your contracts in your Hardhat project, use the built-in `compile` task:
 ```
 $ npx hardhat compile
 Compiling...
@@ -9,18 +9,20 @@ Compiled 1 contract successfully
 
 The compiled artifacts will be saved in the `artifacts/` directory by default, or whatever your configured artifacts path is. Look at the [paths configuration section](../config/README.md#path-configuration) to learn how to change it. This directory will be created if it doesn't exist.
 
-After the initial compilation, Hardhat will try to do the least amount of work possible the next time you compile. For example, if you didn't change any file since the last compilation, nothing will be compiled. If you only modified one file, only that file and others affected by it will be recompiled.
+After the initial compilation, Hardhat will try to do the least amount of work possible the next time you compile. For example, if you didn't change any files since the last compilation, nothing will be compiled:
 
 ```
 $ npx hardhat compile
 Nothing to compile
 ```
 
+If you only modified one file, only that file and others affected by it will be recompiled.
+
 To force a compilation you can use the `--force` argument, or run `npx hardhat clean` to clear the cache and delete the artifacts.
 
 ## Configuring the compiler
 
-If you need to customize the Solidity compiler options, then you can do so through the `solidity` config field in your `hardhat.config.js`. The simplest way to use this field is the shorthand for setting the compiler version, which we recommend always doing:
+If you need to customize the Solidity compiler options, then you can do so through the `solidity` field in your `hardhat.config.js`. The simplest way to use this field is via the shorthand for setting the compiler version, which we recommend always doing:
 
 ```js
 module.exports = {
@@ -28,7 +30,7 @@ module.exports = {
 }
 ```
 
-We recommend always setting a compiler version to avoid unexpected behavior or compiling errors as new releases of Solidity are published.
+We recommend always setting a compiler version in order to avoid unexpected behavior or compiling errors as new releases of Solidity are published.
 
 :::: warning
 Hardhat will automatically download the versions of `solc` that you set up. If you are behind an HTTP proxy, you may need to set the `HTTP_PROXY` or `HTTPS_PROXY` environment variable to the URL of your proxy.
@@ -110,11 +112,11 @@ An **artifact** has all the information that is necessary to deploy and interact
 
 - `contractName`: A string with the contract's name.
 
-- `abi`: A [JSON description](https://solidity.readthedocs.io/en/latest/abi-spec.html#abi-json) of the contract's ABI.
+- `abi`: A [JSON description of the contract's ABI](https://solidity.readthedocs.io/en/latest/abi-spec.html#abi-json).
 
-- `bytecode`: A `"0x"`-prefixed hex string of the unlinked deployment bytecode. If the contract is not deployable, this has the `"0x"` string.
+- `bytecode`: A `"0x"`-prefixed hex string of the unlinked deployment bytecode. If the contract is not deployable, this has the string `"0x"`.
 
-- `deployedBytecode`: A `"0x"`-prefixed hex string of the unlinked runtime/deployed bytecode. If the contract is not deployable, this has the `"0x"` string.
+- `deployedBytecode`: A `"0x"`-prefixed hex string of the unlinked runtime/deployed bytecode. If the contract is not deployable, this has the string `"0x"`.
 
 - `linkReferences`: The bytecode's link references object [as returned by solc](https://solidity.readthedocs.io/en/latest/using-the-compiler.html). If the contract doesn't need to be linked, this value contains an empty object.
 
@@ -132,7 +134,7 @@ You shouldn't interact with these files directly.
 
 The [HRE] has an `artifacts` object with helper methods. For example, you can get a list with the paths to all artifacts by calling `hre.artifacts.getArtifactPaths()`.
 
-You can also read an artifact using the name of the contract by calling `hre.artifacts.readArtifact("Bar")` and that will give us the content of the artifact for the `Bar` contract. This would only work if there was just one contract `Bar` in the whole project, but calling `hre.artifacts.readArtifact("Foo")`, would throw an error if there were two `Foo` contracts. To disambiguate this case, you would have to use the **Fully Qualified Name** of the contract: `hre.artifacts.readArtifact("contracts/Foo.sol:Foo")`.
+You can also read an artifact using the name of the contract by calling `hre.artifacts.readArtifact("Bar")` and that will yield the content of the artifact for the `Bar` contract. This would only work if there was just one contract named `Bar` in the whole project; it would throw an error if there were two. To disambiguate this case, you would have to use the **Fully Qualified Name** of the contract: `hre.artifacts.readArtifact("contracts/Bar.sol:Bar")`.
 
 ### Directory structure
 The `artifacts/` directory has a structure that follows the original directory structure of the contracts. For example, if your contracts look like this:
@@ -144,7 +146,7 @@ contracts
 └── Qux.sol
 ```
 
-the structure of your artifact directory then could look like this:
+then the structure of your artifact directory then would look like this:
 
 ```
 artifacts

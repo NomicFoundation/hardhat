@@ -144,7 +144,7 @@ import "hardhat/console.sol";
 
 Hardhat supports multiple contracts with the same name.
 
-If you have contracts which share their name, you can't import their artifacts using just the name.
+If you have multiple contracts with the same name, you can't import their artifacts using just the name.
 
 For example, if you have a contract named `Ownable`, and one of your dependencies has a contract with the same name, you won't be able to do
 `artifacts.require("Ownable")` nor `ethers.getContractFactory("Ownable")`. You need to use the contract's Fully
@@ -153,13 +153,13 @@ Qualified Name instead (e.g. `contracts/Ownable.sol:Ownable`).
 If you try to import a contract with a repeated name, Hardhat will fail and show an error message that includes the different
 options to fix it. All you need to do is copy & paste them.
 
-For example, you may need to replace this
+For example, you may need to replace this:
 
 ```js
 const Ownable = await ethers.getContractFactory("Ownable");
 ```
 
-with this
+with this:
 
 ```js
 const Ownable = await ethers.getContractFactory("contracts/Ownable.sol:Ownable");

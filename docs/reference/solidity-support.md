@@ -1,7 +1,7 @@
 # Solidity support
 
 Hardhat Network has first-class Solidity support. It always knows which smart contracts are
-being run, what they do exactly, and why they fail, making smart contracts development easier.
+being run, what exactly they do, and why they fail, making smart contract development easier.
 
 To do these kinds of things, Hardhat integrates very deeply with Solidity, which means that new
 versions of it aren't automatically supported.

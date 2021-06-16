@@ -38,7 +38,7 @@ And the initialized `ethers` object if you're using the `hardhat-ethers` plugin:
 
 And the `artifacts` object if you're using the `hardhat-truffle5` plugin, and so on. 
 
-Anything that has been injected into the [Hardhat Runtime Environment] will be magically available in the global scope, or if you're the more explicit kind of developer, you can also require the HRE explicitly and get autocomplete:
+Anything that has been injected into the [Hardhat Runtime Environment] will be magically available in the global scope. Alternatively, if you're the more explicit kind of developer, you can instead require the HRE explicitly and get autocomplete:
 
 TODO-HH: re-run this
 
@@ -62,7 +62,7 @@ You will also notice that the console has the handy history feature you expect o
 
 ### Asynchronous operations and top-level await
 
-Interacting with the Ethereum network and your smart contracts are asynchronous operations, hence most APIs and libraries
+Interacting with the Ethereum network, and therefore with your smart contracts, are asynchronous operations. Therefore most APIs and libraries
 use JavaScript's `Promise` for returning values.   
 
 To make things easier, Hardhat's console supports `await` top-level await (i.e. `console.log(await web3.eth.getBalance()`). To use this feature, you need to be using Node 10 or higher.

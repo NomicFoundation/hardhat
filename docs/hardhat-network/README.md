@@ -16,8 +16,8 @@ Hardhat comes built-in with Hardhat Network, a local Ethereum network designed f
 ## How can I use it?
 
 - Hardhat will always spin up an instance on startup when `defaultNetwork` is empty or set to `hardhat`. It's the default behavior.
-- It can be used to run tests, in the console, scripts, and tasks.
-- Plugins (ethers.js, web3.js, Waffle, Truffle, etc) connect directly to the provider.
+- It can be used to run tests in the console, and to run scripts and tasks.
+- Plugins (ethers.js, web3.js, Waffle, Truffle, etc) connect directly to its provider.
 - There's no need to make any changes to your tests or scripts.
 - It's simply another network and it can be used with `--network`.
 
@@ -33,7 +33,7 @@ It will start Hardhat Network, and expose it as a JSON-RPC and WebSocket server.
 
 Then, just connect your wallet or application to `http://localhost:8545`.
 
-If you want to connect Hardhat to this node, you only need to run it using `--network localhost`.
+If you want to connect Hardhat to this node, you only need to run Hardhat using `--network localhost`.
 
 ## Solidity stack traces
 
@@ -117,7 +117,7 @@ Hardhat Network allows you to print logging messages and contract variables by c
   - Example: `console.log("Changing owner from %s to %s", currentOwner, newOwner)`
 - It works with any library: ethers.js, web3.js, waffle, truffle-contract, etc.
 - `console.log` is implemented in standard Solidity and then detected in Hardhat Network. This makes its compilation work with any other tools (like Remix, Waffle or Truffle).
-- `console.log` calls can run in other networks, like mainnet, kovan, ropsten, etc. They do nothing in those networks, but spend a minimal amount of gas.
+- `console.log` calls can run in other networks, like mainnet, kovan, ropsten, etc. They do nothing in those networks, but do spend a minimal amount of gas.
 
 ## Mainnet forking
 

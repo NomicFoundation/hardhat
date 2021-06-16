@@ -113,13 +113,12 @@ declare module "hardhat/types/runtime" {
 
 Config types are handled slightly differently in Hardhat.
 
-For each config element/type, there's two Typescript types defined. One
-that ends with `UserConfig`, that represents the user's input, and another
-one that ends with just `Config`, which represents the configuration values
-after any resolution and default values have been applied. The first kind of
-types is used by users when writing their config. The second one is used
-during the execution of tasks, tests and scripts, and is present in the
-Hardhat Runtime Environment.
+For each config element/type, there are two Typescript types defined. One ends
+with `UserConfig`; it represents the user's input is used by users when writing
+their config. The other ends with just `Config`; it represents the
+configuration values after any resolution and default values have been applied,
+and it's used during the execution of tasks, tests and scripts, and is present
+in the Hardhat Runtime Environment.
 
 For example, `HardhatUserConfig` represents the entire config written by the
 user, and all of its fields are optional. `HardhatConfig`, is the result

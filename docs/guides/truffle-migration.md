@@ -7,7 +7,7 @@ The bulk of Hardhat's functionality comes from plugins, and as a developer you'r
 
 
 
-To migrate an existing Truffle project onto Hardhat there are 
+To migrate an existing Truffle project to Hardhat there are
 two main things to consider: testing and deployment.
 
 ### Testing
