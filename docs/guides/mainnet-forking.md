@@ -24,6 +24,8 @@ networks: {
 }
 ```
 
+(Note that you'll need to replace the `<key>` component of the URL with your personal Alchemy API key.)
+
 By accessing any state that exists on mainnet, Hardhat Network will pull the data and expose it transparently as if it was available locally.
 
 ## Pinning a block
