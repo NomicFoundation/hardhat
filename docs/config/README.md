@@ -114,7 +114,7 @@ You can set the following fields on the `hardhat` config:
 These are networks that connect to an external node. Nodes can be running in your computer, like Ganache, or remotely,
 like Alchemy or Infura.
 
-This kind of networks are configured with objects with the following fields:
+This kind of network is configured with objects with the following fields:
 
 - `url`: The url of the node. This argument is required for custom networks.
 
@@ -163,7 +163,7 @@ To use an HD Wallet with Hardhat you should set your network's `accounts` field 
 
 The `solidity` config is an optional field that can be one of the following:
 
-- A solc version to use. E.g. `"0.7.3"`.
+- A solc version to use, e.g. `"0.7.3"`.
 
 - An object which describes the configuration for a single compiler. It contains the following keys:
 
@@ -181,7 +181,7 @@ The `solidity` config is an optional field that can be one of the following:
 
 You can customize the different paths that Hardhat uses by providing an object to the `paths` field with the following keys:
 
-- `root`: The root of the Hardhat project. This path is resolved from the `hardhat.config.js`'s directory. Default value: The directory containing the config file.
+- `root`: The root of the Hardhat project. This path is resolved from `hardhat.config.js`'s directory. Default value: The directory containing the config file.
 - `sources`: The directory where your contract are stored. This path is resolved from the project's root. Default value: `'./contracts'`.
 - `tests`: The directory where your tests are located. This path is resolved from the project's root. Default value: `'./test'`.
 

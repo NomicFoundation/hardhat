@@ -41,7 +41,7 @@ The artifact format is now supplemented with build information and debug artifac
 
 Apart from updating types and names, fixture projects need their `buidler.config.js` renamed to `hardhat.config.js`.
 
-### Changes needed to your test projects' config
+### Changes needed to your test project's config
 
 The compiler configuration is now expected in the `solidity` field instead of `solc`. Note that Hardhat projects allow multiple solidity versions in its compilation pipeline. For more information see its [documentation](../guides/compile-contracts.md).
 

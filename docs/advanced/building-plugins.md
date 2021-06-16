@@ -5,8 +5,8 @@ for integrating other tools and extending the built-in functionality.
 
 ## What exactly are plugins in Hardhat?
 
-Plugins are bits of reusable configuration. Anything that you can do in a plugin, can
-also be done in your config file. You can test your ideas in a config file, and move
+Plugins are bits of reusable configuration. Anything that you can do in a plugin can
+also be done in your config file. You can test your ideas in a config file and then move
 them into a plugin when ready.
 
 When developing a plugin the main tools available to integrate new functionality are extending the
@@ -116,7 +116,7 @@ If you are still in doubt, these can be helpful:
 
 ## Hooking into the user's workflow
 
-To integrate into your users' existing workflow, we recommend plugin authors to override built-in tasks whenever it makes sense.
+To integrate into your users' existing workflow, we recommend that plugin authors override built-in tasks whenever it makes sense.
 
 Examples of suggested overrides are:
 

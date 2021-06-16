@@ -55,7 +55,7 @@ Everything gets easier when you use higher-level libraries, like [Ethers.js](htt
 
 Hardhat lets you hook into the HRE construction, and extend it with new functionality. This way, you only have to initialize everything once, and your new features or libraries will be available everywhere the HRE is used.
 
-You can do this by adding a HRE extender into a queue. This extender is just a synchronous function that receives the HRE, and adds fields to it with your new functionality. These new fields will also get [injected into the global scope during runtime](#exporting-globally).
+You can do this by adding an HRE extender into a queue. This extender is just a synchronous function that receives the HRE and adds fields to it with your new functionality. These new fields will also get [injected into the global scope during runtime](#exporting-globally).
 
 For example, adding an instance of [Web3.js](https://web3js.readthedocs.io/en/latest/) to the HRE can be done in this way:
 

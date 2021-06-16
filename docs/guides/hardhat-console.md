@@ -9,7 +9,7 @@ All contracts have already been compiled, skipping compilation.
 
 The `compile` task will be called before opening the console prompt, but you can skip this with the `--no-compile` parameter.
 
-The execution environment for the console is the same as for tasks. This means the configuration has been processed, and the [Hardhat Runtime Environment] initialized and injected into the global scope. For example, that you'll have access in the global scope to the `config` object:
+The execution environment for the console is the same as for tasks. This means the configuration has been processed, and the [Hardhat Runtime Environment] has been initialized and injected into the global scope. For example, you'll have access in the global scope to the `config` object:
 ```
 > config
 { defaultNetwork: 'hardhat',

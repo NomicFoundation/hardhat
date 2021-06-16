@@ -86,7 +86,7 @@ This stems from the fact that **most of Hardhat's functionality comes from plugi
 
 The sample project uses the `@nomiclabs/hardhat-waffle` plugin, which depends on the `@nomiclabs/hardhat-ethers` plugin. These integrate the Ethers.js and Waffle tools into your project. 
 
-To use a plugin, the first step is always to install it using `npm` or `yarn`, and then requiring it in your config file:
+To use a plugin, the first step is always to install it using `npm` or `yarn`, followed by requiring it in your config file:
 
 ```js
 require("@nomiclabs/hardhat-waffle");

@@ -3,7 +3,7 @@
 Hardhat Network has first-class Solidity support. It always knows which smart contracts are
 being run, what they do exactly, and why they fail, making smart contracts development easier.
 
-To do this kind of things, Hardhat integrates very deeply with Solidity, which means that new
+To do these kinds of things, Hardhat integrates very deeply with Solidity, which means that new
 versions of it aren't automatically supported.
 
 This section of the docs explains which versions are supported, and what happens if you use
@@ -22,8 +22,8 @@ you need to do it, please read on.
 
 ### Using an unsupported version
 
-When running an unsupported version of Solidity our integration with it may not work, or
-do it incorrectly.
+When running an unsupported version of Solidity, our integration with it may not work, or
+it may work incorrectly.
 
 This can mean that Solidity stack traces may stop working, be incorrect, or incomplete. It
 can also mean that `console.log` may stop working.

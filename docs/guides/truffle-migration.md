@@ -3,7 +3,7 @@
 
 Hardhat is a task runner that facilitates building Ethereum smart contracts. It helps developers manage and automate the recurring tasks that are inherent to the process of building smart contracts, as well as easily introducing more functionality around this workflow. This means compiling and testing at the very core.
 
-The bulk of Hardhat's functionality comes from plugins, which as a developer you're free to choose the ones you want to use. There are plugins for Truffle 4 and 5 that make migrating to Hardhat easy.
+The bulk of Hardhat's functionality comes from plugins, and as a developer you're free to choose the ones you want to use. There are plugins for Truffle 4 and 5 that make migrating to Hardhat easy.
 
 
 
@@ -16,7 +16,7 @@ When it comes to unit tests, there are two Hardhat plugins
 that support the Truffle testing APIs: `hardhat-truffle4` and `hardhat-truffle5`. 
 Both plugins support Solidity 4+. Using these you can run your existing tests with Hardhat.
 
-Read [this guide](./truffle-testing.md) If you want to learn the details of writing Truffle tests to run in Hardhat, but it's not necessary to migrate your existing test suite.
+If you want to learn the details of writing Truffle tests to run in Hardhat, then you can read [this guide](./truffle-testing.md), but it's not necessary in order to migrate your existing test suite.
 
 #### Migrations and hardhat-truffle fixtures
 

@@ -8,7 +8,7 @@ If you still want to run your tests using Ganache, you can do it in two ways.
 
 ## Manually running Ganache
 
-You don't need to do anything especial to use Ganache if you don't want to.
+You don't need to do anything special to use Ganache if you don't want to.
 
 Just start Ganache and run Hardhat with
 

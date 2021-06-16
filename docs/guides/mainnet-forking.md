@@ -58,9 +58,9 @@ npx hardhat node --fork https://eth-mainnet.alchemyapi.io/v2/<key> --fork-block-
 
 ## Impersonating accounts
 
-Once you've got local instances of mainnet protocols, setting them in the specific state your tests need is likely the next step. To make this easy, Hardhat Network allows you to send transactions impersonating specific account and contract addresses.
+Once you've got local instances of mainnet protocols, setting them in the specific state your tests need is likely the next step. To make this easy, Hardhat Network allows you to send transactions impersonating specific accounts and contract addresses.
 
-To impersonate an account use the `hardhat_impersonateAccount` RPC method passing the address to impersonate as its parameter:
+To impersonate an account use the `hardhat_impersonateAccount` RPC method, passing the address to impersonate as its parameter:
 
 ```tsx
 await hre.network.provider.request({

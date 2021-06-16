@@ -20,7 +20,7 @@ as global variables.
 
 These scripts must be run through Hardhat: `npx hardhat run script.js`.
 
-This makes it easy to port scripts that were developed for other tools that inject variables into the global state.
+This makes it easy to port scripts that were developed for other tools and that inject variables into the global state.
 
 ## Standalone scripts: using Hardhat as a library
 

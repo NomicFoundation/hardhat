@@ -56,7 +56,7 @@ module.exports = {
 
 - `evmVersion`: a string controlling the target evm version. One of `homestead`, `tangerineWhistle`, `spuriousDragon`, `byzantium`, `constantinople`, `petersburg`, `istanbul`, and `berlin`. Default value: managed by `solc`. 
 
-If any of your contracts has a version pragma that is not satisfied by the compiler version you configured, then Hardhat will throw an error.
+If any of your contracts have a version pragma that is not satisfied by the compiler version you configured, then Hardhat will throw an error.
 
 ### Multiple Solidity versions
 
@@ -112,9 +112,9 @@ An **artifact** has all the information that is necessary to deploy and interact
 
 - `abi`: A [JSON description](https://solidity.readthedocs.io/en/latest/abi-spec.html#abi-json) of the contract's ABI.
 
-- `bytecode`: A `"0x"`-prefixed hex string of the unlinked deployment bytecode. If the contract is not deployable then, this has the `"0x"` string.
+- `bytecode`: A `"0x"`-prefixed hex string of the unlinked deployment bytecode. If the contract is not deployable, this has the `"0x"` string.
 
-- `deployedBytecode`: A `"0x"`-prefixed hex string of the unlinked runtime/deployed bytecode. If the contract is not deployable then, this has the `"0x"` string.
+- `deployedBytecode`: A `"0x"`-prefixed hex string of the unlinked runtime/deployed bytecode. If the contract is not deployable, this has the `"0x"` string.
 
 - `linkReferences`: The bytecode's link references object [as returned by solc](https://solidity.readthedocs.io/en/latest/using-the-compiler.html). If the contract doesn't need to be linked, this value contains an empty object.
 

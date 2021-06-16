@@ -60,7 +60,7 @@ Please [report it](https://github.com/nomiclabs/buidler/issues/new) to help us i
 
 You have one or more errors in your config file. 
       
-Check the error message for details, or go to [documentation](https://buidler.dev/config/) to learn more.
+Check the error message for details, or go to the [documentation](https://buidler.dev/config/) to learn more.
 
 
 ### BDLR9: Failed to load config file

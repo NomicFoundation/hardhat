@@ -6,7 +6,7 @@ This guide will teach you how to migrate your project from Buidler into Hardhat.
 
 ## Installing the Hardhat packages
 
-The first thing you need to do to migrate your project, is installing the new npm packages.
+The first thing you need to do to migrate your project is to install the new npm packages.
 
 The package `@nomiclabs/buidler` is now `hardhat`. The plugins, which used to have package names like `@nomiclabs/buidler-<name>`,
 are now `@nomiclabs/hardhat-<name>`.
@@ -174,7 +174,7 @@ updated guide](./vscode-tests.md).
 
 All of the official Buidler plugins have already been migrated to Hardhat.
 
-Some community-built plugins, haven't been migrated yet. If you are using one of those, you have to temporarily disable them.
+Some community-built plugins haven't been migrated yet. If you are using one of those, you have to temporarily disable them.
 
 You can find which plugins have been updated in [the Plugins section](https://hardhat.org/plugins).
 

@@ -46,7 +46,7 @@ For some ideas, you could create a task to reset the state of a development envi
 
 Let’s go through the process of creating one to interact with a smart contract.
 
-Tasks in Hardhat are asynchronous JavaScript functions that get access to the [Hardhat Runtime Environment](../advanced/hardhat-runtime-environment.md), through which you get access to the configuration, parameters, programmatic access to other tasks and any objects plugins may have injected.
+Tasks in Hardhat are asynchronous JavaScript functions that get access to the [Hardhat Runtime Environment](../advanced/hardhat-runtime-environment.md), through which you get access to the configuration, parameters, programmatic access to other tasks and any plugin objects may have injected.
 
 For our example we will use Web3.js to interact with our contracts, so we will install the [Web3.js plugin](https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-web3), which injects a Web3.js instance into the Hardhat environment:
 
@@ -56,7 +56,7 @@ npm install --save-dev @nomiclabs/hardhat-web3 web3
 
 _Take a look at the [list of Hardhat plugins](../plugins/README.md) to see other available libraries._
 
-Task creation code can go in `hardhat.config.js`, or whatever your configuration file is called. It’s a good place to create simple tasks. If your task is more complex, it's also perfectly valid to split the code into several files and `require` from the configuration file.
+Task creation code can go in `hardhat.config.js`, or whatever your configuration file is called. It’s a good place to create simple tasks. If your task is more complex, it's also perfectly valid to split the code into several files and `require` them from the configuration file.
 
 _If you’re writing a Hardhat plugin that adds a task, they can also be created from a separate npm package. Learn more about creating tasks through plugins in our [Building plugins section](../advanced/building-plugins.md)._
 
@@ -158,7 +158,7 @@ $ npx hardhat balance --account 0x080f632fb4211cfc19d1e795f3f3109f221d44c9
 100 ETH
 ```
 
-And there you have it. Your first fully functional Hardhat task, allowing you to interact with the Ethereum blockchain in an easy way.
+And there you have it, your first fully functional Hardhat task, allowing you to interact with the Ethereum blockchain in an easy way.
 
 ## Advanced usage
 
@@ -190,7 +190,7 @@ task("hello", "Prints 'Hello, World!'", async () => {
 });
 ```
 
-### Tasks' actions requirements
+### Tasks' action requirements
 
 The only requirement for writing a task is that the `Promise` returned by its action must not resolve before every async process it started is finished.
 
@@ -200,7 +200,7 @@ This is an example of a task whose action doesn't meet this requirement.
 task("BAD", "This task is broken", async () => {
   setTimeout(() => {
     throw new Error(
-      "This tasks' action returned a promise that resolved before I was thrown"
+      "This task's action returned a promise that resolved before I was thrown"
     );
   }, 1000);
 });
@@ -266,9 +266,9 @@ Calling it with `npx hardhat hello --times notanumber` will result in an error.
 
 ### Overriding tasks
 
-Defining a task with the same name than an existing one will override it. This is useful to change or extend the behavior of built-in and plugin-provided tasks.
+Defining a task with the same name as an existing one will override the existing one. This is useful to change or extend the behavior of built-in and plugin-provided tasks.
 
-Task overriding works very similarly to overriding methods when extending a class. You can set your own action, which can call the previous one. The only restriction when overriding tasks, is that you can't add or remove parameters.
+Task overriding works very similarly to overriding methods when extending a class. You can set your own action, which can call the previous one. The only restriction when overriding tasks is that you can't add or remove parameters.
 
 Task override order is important since actions can only call the immediately previous definition, using the `runSuper` function.
 
@@ -276,11 +276,11 @@ Overriding built-in tasks is a great way to customize and extend Hardhat. To kno
 
 #### The `runSuper` function
 
-`runSuper` is a function available to override task's actions. It can be received as the third argument of the task or used directly from the global object.
+`runSuper` is a function available to override a task's actions. It can be received as the third argument of the task or used directly from the global object.
 
-This function works like [JavaScript's `super` keyword](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/super), it calls the task's previously defined action.
+This function works like [JavaScript's `super` keyword](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/super): it calls the task's previously defined action.
 
-If the task isn't overriding a previous task definition calling `runSuper` will result in an error. To check if calling it won't fail, you can use the `boolean` field `runSuper.isDefined`.
+If the task isn't overriding a previous task definition, then calling `runSuper` will result in an error. To check whether calling it would fail, you can use the `boolean` field `runSuper.isDefined`.
 
 The `runSuper` function receives a single optional argument: an object with the task arguments. If this argument isn't provided, the same task arguments received by the action calling it will be used.
 

@@ -51,14 +51,14 @@ There's no need for `require("@nomiclabs/hardhat-ethers")`, as `@nomiclabs/hardh
 
 ## Testing
 
-Tests using Waffle are written with [Mocha](https://mochajs.org/) alongside with [Chai](https://www.chaijs.com/). If you
+Tests using Waffle are written with [Mocha](https://mochajs.org/) alongside [Chai](https://www.chaijs.com/). If you
 haven't heard of them, they are super popular JavaScript testing utilities.
 
-Inside `test` folder you'll find `sample-test.js`. Let's take a look at it, and we'll explain it next:
+Inside the `test` folder you'll find `sample-test.js`. Let's take a look at it, and we'll explain it next:
 
 <<< @/../packages/hardhat-core/sample-project/test/sample-test.js
 
-On your terminal run `npx hardhat test`. You should see the following output:
+In your terminal, run `npx hardhat test`. You should see the following output:
 
 ```
 $ npx hardhat test
@@ -111,14 +111,14 @@ Once the contract is deployed, we can call our contract methods on `greeter` and
 expect(await greeter.greet()).to.equal("Hello, world!");
 ```
 
-Here we're using our `Contract` instance to call a smart contract function in our Solidity code. `greet()` returns the greeter's greeting and we're checking that it's equal to `Hello, world!`, as it should. To do this we're using the Chai matchers `expect`, `to` and `equal`.
+Here we're using our `Contract` instance to call a smart contract function in our Solidity code. `greet()` returns the greeter's greeting, and we're checking that it's equal to `Hello, world!`, as it should be. To do this we're using the Chai matchers `expect`, `to` and `equal`.
 
 ```js
 await greeter.setGreeting("Hola, mundo!");
 expect(await greeter.greet()).to.equal("Hola, mundo!");
 ```
 
-We can modify the state of a contract in the same way we read from it. Calling `setGreeting` will set a new greeting message. After the `Promise` is resolved, we perform another assertion to verify that the greeting effectively changed.
+We can modify the state of a contract in the same way we read from it. Calling `setGreeting` will set a new greeting message. After the `Promise` is resolved, we perform another assertion to verify that the greeting change took effect.
 
 ### Testing from a different account
 
