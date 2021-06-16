@@ -183,22 +183,22 @@ Please install Hardhat locally using npm or Yarn, and try again.`,
       number: 13,
       message: `Your Hardhat project uses typescript, but ts-node is not installed.
       
-Please run: npm install --save-dev ts-node`,
+Please run: npm \`install --save-dev ts-node\``,
       title: "ts-node not installed",
       description: `You are running a Hardhat project that uses typescript, but you haven't installed ts-node.
 
-Please run this and try again: npm install --save-dev ts-node`,
+Please run this and try again: \`npm install --save-dev ts-node\``,
       shouldBeReported: false,
     },
     TYPESCRIPT_NOT_INSTALLED: {
       number: 14,
       message: `Your Hardhat project uses typescript, but it's not installed.
       
-Please run: npm install --save-dev typescript`,
+Please run: \`npm install --save-dev typescript\``,
       title: "typescript not installed",
       description: `You are running a Hardhat project that uses typescript, but it's not installed.
 
-Please run this and try again: npm install --save-dev typescript`,
+Please run this and try again: \`npm install --save-dev typescript\``,
       shouldBeReported: false,
     },
   },
