@@ -2,7 +2,7 @@
 
 Hardhat projects are `npm` projects with the `hardhat` package installed and a `hardhat.config.js` file.
 
-If you run `npx hardhat` in a folder without those files you will be shown two options to facilitate project creation:
+If you run `npx hardhat` in a folder without a Hardhat configuration file, you will be shown two options to facilitate project creation:
 
 ```
 $ npx hardhat
