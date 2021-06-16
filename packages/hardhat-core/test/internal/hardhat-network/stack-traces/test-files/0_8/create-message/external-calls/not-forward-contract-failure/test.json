@@ -1,0 +1,20 @@
+{
+  "transactions": [
+    {
+      "file": "c.sol",
+      "contract": "C",
+      "stackTrace": [
+        {
+          "type": "REVERT_ERROR",
+          "message": "failed here",
+          "sourceReference": {
+            "contract": "C",
+            "file": "c.sol",
+            "function": "constructor",
+            "line": 11
+          }
+        }
+      ]
+    }
+  ]
+}

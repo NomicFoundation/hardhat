@@ -11,6 +11,15 @@
       "function": "test",
       "stackTrace": [
         {
+          "type": "CALLSTACK_ENTRY",
+          "sourceReference": {
+            "function": "test",
+            "contract": "C",
+            "file": "c.sol",
+            "line": 10
+          }
+        },
+        {
           "type": "UNMAPPED_SOLC_0_6_3_REVERT_ERROR",
           "sourceReference": {
             "contract": "C",

@@ -12,7 +12,7 @@ const PANIC_SELECTOR = "4e487b71";
  * Represents the returnData of a transaction, whose contents are unknown.
  */
 export class ReturnData {
-  protected _selector: string | undefined;
+  private _selector: string | undefined;
 
   constructor(public value: Buffer) {
     if (value.length >= 4) {
@@ -22,6 +22,14 @@ export class ReturnData {
 
   public isEmpty(): boolean {
     return this.value.length === 0;
+  }
+
+  public matchesSelector(selector: Buffer): boolean {
+    if (this._selector === undefined) {
+      return false;
+    }
+
+    return this._selector === selector.toString("hex");
   }
 
   public isErrorReturnData(): boolean {
