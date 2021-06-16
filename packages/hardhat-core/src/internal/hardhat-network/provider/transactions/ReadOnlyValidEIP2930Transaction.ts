@@ -49,6 +49,8 @@ export class ReadOnlyValidEIP2930Transaction extends AccessListEIP2930Transactio
     );
   }
 
+  public readonly common: Common;
+
   private readonly _sender: Address;
 
   public constructor(sender: Address, data: AccessListEIP2930TxData = {}) {
@@ -78,8 +80,7 @@ export class ReadOnlyValidEIP2930Transaction extends AccessListEIP2930Transactio
 
     super(data, { freeze: false, common: fakeCommon });
 
-    // TODO: remove this as any
-    (this as any).common = fakeCommon;
+    this.common = fakeCommon;
     this._sender = sender;
   }
 

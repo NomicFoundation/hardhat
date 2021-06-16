@@ -1213,10 +1213,12 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     }
 
     // validate gas price
-    const txGasPrice = new BN((tx as any).gasPrice); // TODO remove this "as any"
-    if (txGasPrice.lt(this._minGasPrice)) {
+    const txPriorityFee = new BN(
+      "gasPrice" in tx ? tx.gasPrice : tx.maxPriorityFeePerGas
+    );
+    if (txPriorityFee.lt(this._minGasPrice)) {
       throw new InvalidInputError(
-        `Transaction gas price is ${txGasPrice}, which is below the minimum of ${this._minGasPrice}`
+        `Transaction gas price is ${txPriorityFee}, which is below the minimum of ${this._minGasPrice}`
       );
     }
   }
@@ -1908,8 +1910,10 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   }
 
   private _isTxMinable(tx: TypedTransaction): boolean {
-    const txGasPrice = new BN((tx as any).gasPrice);
-    return txGasPrice.gte(this._minGasPrice);
+    const txPriorityFee = new BN(
+      "gasPrice" in tx ? tx.gasPrice : tx.maxPriorityFeePerGas
+    );
+    return txPriorityFee.gte(this._minGasPrice);
   }
 
   private async _persistIrregularWorldState(): Promise<void> {

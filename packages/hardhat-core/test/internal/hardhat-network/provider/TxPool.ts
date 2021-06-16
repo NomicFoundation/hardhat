@@ -285,7 +285,7 @@ describe("Tx Pool", () => {
             await assert.isRejected(
               txPool.addTransaction(tx1b),
               InvalidInputError,
-              `Replacement transaction underpriced. A gas price of at least 22 is necessary to replace the existing transaction.`
+              `Replacement transaction underpriced. A priority fee of at least 22 is necessary to replace the existing transaction.`
             );
 
             const pendingTxs = txPool.getPendingTransactions();
@@ -314,7 +314,7 @@ describe("Tx Pool", () => {
             await assert.isRejected(
               txPool.addTransaction(tx2b),
               InvalidInputError,
-              `Replacement transaction underpriced. A gas price of at least 22 is necessary to replace the existing transaction.`
+              `Replacement transaction underpriced. A priority fee of at least 22 is necessary to replace the existing transaction.`
             );
 
             const queuedTxs = txPool.getQueuedTransactions();

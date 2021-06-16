@@ -438,8 +438,6 @@ export class TxPool {
     }
 
     const gasLimit = new BN(tx.gasLimit);
-    // TODO remove this "as any"
-    const gasPrice = new BN((tx as any).gasPrice);
     const baseFee = tx.getBaseFee();
 
     if (gasLimit.lt(baseFee)) {
@@ -628,17 +626,22 @@ export class TxPool {
 
     const deserializedExistingTx = this._deserializeTransaction(existingTx);
 
-    // TODO remove these "as any"
-    const currentGasPrice = new BN(
-      (deserializedExistingTx.data as any).gasPrice
+    const currentPriorityFee = new BN(
+      "gasPrice" in deserializedExistingTx.data
+        ? deserializedExistingTx.data.gasPrice
+        : deserializedExistingTx.data.maxPriorityFeePerGas
     );
-    const newGasPrice = new BN((newTx.data as any).gasPrice);
+    const newPriorityFee = new BN(
+      "gasPrice" in newTx.data
+        ? newTx.data.gasPrice
+        : newTx.data.maxPriorityFeePerGas
+    );
 
-    const minNewGasPrice = this._getMinNewGasPrice(currentGasPrice);
+    const minNewPriorityFee = this._getMinNewPriorityFee(currentPriorityFee);
 
-    if (newGasPrice.lt(minNewGasPrice)) {
+    if (newPriorityFee.lt(minNewPriorityFee)) {
       throw new InvalidInputError(
-        `Replacement transaction underpriced. A gas price of at least ${minNewGasPrice.toString()} is necessary to replace the existing transaction.`
+        `Replacement transaction underpriced. A priority fee of at least ${minNewPriorityFee.toString()} is necessary to replace the existing transaction.`
       );
     }
 
@@ -649,15 +652,15 @@ export class TxPool {
     return newTxs;
   }
 
-  private _getMinNewGasPrice(currentGasPrice: BN): BN {
-    let minNewGasPrice = currentGasPrice.muln(110);
+  private _getMinNewPriorityFee(currentPriorityFee: BN): BN {
+    let minNewPriorityFee = currentPriorityFee.muln(110);
 
-    if (minNewGasPrice.modn(100) === 0) {
-      minNewGasPrice = minNewGasPrice.divn(100);
+    if (minNewPriorityFee.modn(100) === 0) {
+      minNewPriorityFee = minNewPriorityFee.divn(100);
     } else {
-      minNewGasPrice = minNewGasPrice.divn(100).addn(1);
+      minNewPriorityFee = minNewPriorityFee.divn(100).addn(1);
     }
 
-    return minNewGasPrice;
+    return minNewPriorityFee;
   }
 }

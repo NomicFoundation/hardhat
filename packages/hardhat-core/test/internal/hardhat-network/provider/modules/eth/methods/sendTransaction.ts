@@ -727,7 +727,7 @@ describe("Eth module", function () {
                   gasPrice: numberToRpcQuantity(21),
                 },
               ],
-              "Replacement transaction underpriced. A gas price of at least 22 is necessary to replace the existing transaction."
+              "Replacement transaction underpriced. A priority fee of at least 22 is necessary to replace the existing transaction."
             );
 
             // check that original tx was not replaced
