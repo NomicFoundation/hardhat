@@ -7,7 +7,7 @@ with some ideas and we'd value your opinion on how to best design it.
 
 In the meantime, we recommend deploying your smart contracts using
 scripts. You can deploy the `Greeter` contract from the sample project
-with a deploy script `scripts/deploy.js` like the above one:
+with a deploy script `scripts/deploy.js` like this:
 
 ```js
 async function main() {
