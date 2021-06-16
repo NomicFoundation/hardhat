@@ -154,8 +154,8 @@ module.exports = {};
 Finally, we can run it:
 
 ```
-$ npx hardhat balance --account 0x080f632fb4211cfc19d1e795f3f3109f221d44c9
-100 ETH
+$ npx hardhat balance --account 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+10000 ETH
 ```
 
 And there you have it, your first fully functional Hardhat task, allowing you to interact with the Ethereum blockchain in an easy way.
