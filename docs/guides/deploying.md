@@ -1,12 +1,12 @@
 # Deploying your contracts
 
-When it comes to deploying, there are no plugins that implement
+When it comes to deploying, there are no official plugins that implement
 a deployment system for Hardhat yet, but there's
 [an open issue](https://github.com/nomiclabs/hardhat/issues/381)
 with some ideas and we'd value your opinion on how to best design it.
 
 In the meantime, we recommend deploying your smart contracts using
-scripts. You can deploy the `Greeter` contract from the sample project
+scripts, or using [the hardhat-deploy community plugin](https://github.com/wighawag/hardhat-deploy/tree/master). You can deploy the `Greeter` contract from the sample project
 with a deploy script `scripts/deploy.js` like this:
 
 ```js
