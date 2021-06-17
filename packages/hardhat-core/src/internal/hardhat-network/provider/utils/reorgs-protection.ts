@@ -35,7 +35,6 @@ export function getLargestPossibleReorg(networkId: number): number | undefined {
   if (networkId === 100) {
     return 38;
   }
-
 }
 
 export const FALLBACK_MAX_REORG = 30;
