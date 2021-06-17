@@ -1,0 +1,20 @@
+{
+  "description": "Should output right parameters into console",
+  "transactions": [
+    {
+      "file": "c.sol",
+      "contract": "C",
+      "imports": ["/../../../../../../../../../console.sol"]
+    },
+    {
+      "to": 0,
+      "function": "log",
+      "params": [
+        "0x0000000000000000000000000000000000000000000000000000000000000032"
+      ],
+      "consoleLogs": [
+        ["0x0000000000000000000000000000000000000000000000000000000000000032"]
+      ]
+    }
+  ]
+}

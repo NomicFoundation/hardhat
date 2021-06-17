@@ -1420,7 +1420,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       const panicCode = returnData.decodePanic().toString("hex");
       returnDataExplanation = `with panic code "0x${panicCode}"`;
     } else {
-      returnDataExplanation = "with unrecognized return data";
+      returnDataExplanation = "with unrecognized return data or custom error";
     }
 
     if (error.error === ERROR.REVERT) {

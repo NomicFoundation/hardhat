@@ -11,6 +11,7 @@ export enum StackTraceEntryType {
   PRECOMPILE_ERROR,
   REVERT_ERROR,
   PANIC_ERROR,
+  CUSTOM_ERROR,
   FUNCTION_NOT_PAYABLE_ERROR,
   INVALID_PARAMS_ERROR,
   FALLBACK_NOT_PAYABLE_ERROR,
@@ -45,6 +46,7 @@ export interface SourceReference {
   contract?: string;
   function?: string;
   line: number;
+  range: [number, number];
 }
 
 export interface CallstackEntryStackTraceEntry {
@@ -81,7 +83,13 @@ export interface PanicErrorStackTraceEntry {
   type: StackTraceEntryType.PANIC_ERROR;
   errorCode: BN;
   sourceReference: SourceReference;
-  isInvalidOpcodeError: boolean;
+}
+
+export interface CustomErrorStackTraceEntry {
+  type: StackTraceEntryType.CUSTOM_ERROR;
+  // unlike RevertErrorStackTraceEntry, this includes the message already parsed
+  message: string;
+  sourceReference: SourceReference;
 }
 
 export interface UnmappedSolc063RevertErrorStackTraceEntry {
@@ -183,6 +191,7 @@ export type SolidityStackTraceEntry =
   | PrecompileErrorStackTraceEntry
   | RevertErrorStackTraceEntry
   | PanicErrorStackTraceEntry
+  | CustomErrorStackTraceEntry
   | FunctionNotPayableErrorStackTraceEntry
   | InvalidParamsErrorStackTraceEntry
   | FallbackNotPayableErrorStackTraceEntry

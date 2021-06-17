@@ -1,4 +1,6 @@
-import { bufferToHex } from "ethereumjs-util";
+import { bufferToHex, keccak256 } from "ethereumjs-util";
+
+import { AbiHelpers } from "../../util/abi-helpers";
 
 import { Opcode } from "./opcodes";
 
@@ -123,6 +125,7 @@ export class SourceLocation {
 
 export class Contract {
   public readonly localFunctions: ContractFunction[] = [];
+  public readonly customErrors: CustomError[] = [];
 
   private _constructor: ContractFunction | undefined;
   private _fallback: ContractFunction | undefined;
@@ -174,6 +177,10 @@ export class Contract {
     }
 
     this.localFunctions.push(func);
+  }
+
+  public addCustomError(customError: CustomError) {
+    this.customErrors.push(customError);
   }
 
   public addNextLinearizedBaseContract(baseContract: Contract) {
@@ -262,6 +269,27 @@ export class ContractFunction {
       throw new Error("Incompatible contract and function location");
     }
   }
+}
+
+export class CustomError {
+  /**
+   * Return a CustomError from the given ABI information: the name
+   * of the error and its inputs. Returns undefined if it can't build
+   * the CustomError.
+   */
+  public static fromABI(name: string, inputs: any[]): CustomError | undefined {
+    const selector = AbiHelpers.computeSelector(name, inputs);
+
+    if (selector !== undefined) {
+      return new CustomError(selector, name, inputs);
+    }
+  }
+
+  private constructor(
+    public readonly selector: Buffer,
+    public readonly name: string,
+    public readonly paramTypes: any[]
+  ) {}
 }
 
 export class Instruction {
