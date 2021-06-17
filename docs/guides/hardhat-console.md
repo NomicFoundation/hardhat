@@ -58,7 +58,7 @@ hardhat.ethers                      hardhat.hardhatArguments            hardhat.
 hardhat.tasks                       hardhat.waffle                      hardhat.web3                        >
 ```
 
-You will also notice that the console has the handy history feature you expect out of most interactive terminals, including across different sessions. Try it by pressing the up arrow key.
+You will also notice that the console has the handy history feature you expect out of most interactive terminals, including across different sessions. Try it by pressing the up arrow key.  The Hardhat console is just an instance of a Node.js console.
 
 ### Asynchronous operations and top-level await
 
