@@ -10,8 +10,9 @@
   "scripts": {
     "lint:fix": "prettier --write \"test/**/*.{js,ts}\" && yarn lint --fix",
     "lint": "tslint --config tslint.json --project ./tsconfig.json",
-    "pretest": "node prepare-tests.js",
-    "test": "mocha --recursive \"test/**/*.ts\" --exit",
+    "test:npm": "node run-tests.js npm",
+    "test:yarn": "node run-tests.js yarn",
+    "test": "npm run test:npm && npm run test:yarn",
     "build": "tsc --build .",
     "clean": "rimraf dist"
   },
