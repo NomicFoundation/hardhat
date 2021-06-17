@@ -1,7 +1,10 @@
 import { assert } from "chai";
 import { BN, bufferToHex, toBuffer } from "ethereumjs-util";
 
-import { numberToRpcQuantity } from "../../../../../../../src/internal/core/jsonrpc/types/base-types";
+import {
+  numberToRpcQuantity,
+  rpcQuantityToNumber,
+} from "../../../../../../../src/internal/core/jsonrpc/types/base-types";
 import { TransactionParams } from "../../../../../../../src/internal/hardhat-network/provider/node-types";
 import {
   RpcBlockOutput,
@@ -49,6 +52,65 @@ describe("Eth module", function () {
           );
 
           assert.isNull(receipt);
+        });
+
+        it("should return the right tx index and gas used", async function () {
+          const firstBlock = await getFirstBlock();
+          const contractAddress = await deployContract(
+            this.provider,
+            `0x${EXAMPLE_CONTRACT.bytecode.object}`
+          );
+
+          await this.provider.send("evm_setAutomine", [false]);
+          const txHashes = await Promise.all(
+            Array.from(new Array(2)).map(() =>
+              this.provider.send("eth_sendTransaction", [
+                {
+                  to: contractAddress,
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                  data: `${EXAMPLE_CONTRACT.selectors.modifiesState}000000000000000000000000000000000000000000000000000000000000000a`,
+                  gas: `0x${new BN(150_000).toString(16)}`,
+                },
+              ])
+            )
+          );
+
+          await this.provider.send("evm_mine", []);
+          const block: RpcBlockOutput = await this.provider.send(
+            "eth_getBlockByNumber",
+            [numberToRpcQuantity(firstBlock + 2), false]
+          );
+
+          assert.equal(block.transactions.length, 2);
+
+          const receipts = await Promise.all(
+            txHashes.map(
+              (txHash) =>
+                this.provider.send("eth_getTransactionReceipt", [
+                  txHash,
+                ]) as Promise<RpcReceiptOutput>
+            )
+          );
+
+          let logIndex = 0;
+          let cumGasUsed = 0;
+
+          for (const receipt of receipts) {
+            cumGasUsed += rpcQuantityToNumber(receipt.gasUsed);
+            assert.equal(
+              cumGasUsed,
+              rpcQuantityToNumber(receipt.cumulativeGasUsed)
+            );
+            for (const event of receipt.logs) {
+              assert.equal(
+                logIndex,
+                rpcQuantityToNumber(
+                  event.logIndex === null ? "0" : event.logIndex
+                )
+              );
+              logIndex += 1;
+            }
+          }
         });
 
         it("should return the right values for successful txs", async function () {
