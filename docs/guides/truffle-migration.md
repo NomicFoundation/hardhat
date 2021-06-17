@@ -14,7 +14,7 @@ two main things to consider: testing and deployment.
 
 When it comes to unit tests, there are two Hardhat plugins 
 that support the Truffle testing APIs: `hardhat-truffle4` and `hardhat-truffle5`. 
-Both plugins support Solidity 4+. Using these you can run your existing tests with Hardhat.
+Using these you can run your existing tests with Hardhat.
 
 If you want to learn the details of writing Truffle tests to run in Hardhat, then you can read [this guide](./truffle-testing.md), but it's not necessary in order to migrate your existing test suite.
 

@@ -2,7 +2,7 @@
 
 Hardhat allows you to use Truffle to test your smart contracts. This mainly means compatibility with the [`@truffle/contract`](https://www.npmjs.com/package/@truffle/contract) package to interact with your smart contracts. 
 
-Truffle 4 and Truffle 5 are supported using the `@nomiclabs/hardhat-truffle4` and `@nomiclabs/hardhat-truffle5` plugins respectively. Both work with either Solidity 4+.
+Truffle 4 and Truffle 5 are supported using the `@nomiclabs/hardhat-truffle4` and `@nomiclabs/hardhat-truffle5` plugins respectively.
 
 Let's see how to do this creating a new Hardhat project.
 
