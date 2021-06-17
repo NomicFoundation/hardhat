@@ -141,7 +141,10 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
         method: "POST",
         body: JSON.stringify(request),
         redirect: "follow",
-        timeout: this._timeout,
+        timeout:
+          process.env.DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI !== undefined
+            ? 0
+            : this._timeout,
         headers: {
           "Content-Type": "application/json",
           ...this._extraHeaders,
