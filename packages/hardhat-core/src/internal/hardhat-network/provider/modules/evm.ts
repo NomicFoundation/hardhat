@@ -86,7 +86,7 @@ export class EvmModule {
     );
     if (increment.lte(new BN(0))) {
       throw new InvalidInputError(
-        `Timestamp ${timestamp} is lower than previous block's timestamp` +
+        `Timestamp ${timestamp} is lower than or equal to previous block's timestamp` +
           ` ${new BN(latestBlock.header.timestamp).toNumber()}`
       );
     }
