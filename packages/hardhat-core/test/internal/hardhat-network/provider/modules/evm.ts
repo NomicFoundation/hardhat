@@ -232,7 +232,9 @@ describe("Evm module", function () {
             this.provider,
             "evm_setNextBlockTimestamp",
             [timestamp - 1],
-            `Timestamp ${timestamp - 1} is lower than or equal to previous block's timestamp ${timestamp}`
+            `Timestamp ${
+              timestamp - 1
+            } is lower than or equal to previous block's timestamp ${timestamp}`
           );
 
           await assertInvalidInputError(
