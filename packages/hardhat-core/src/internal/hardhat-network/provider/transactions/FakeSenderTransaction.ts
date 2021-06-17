@@ -99,6 +99,9 @@ export class FakeSenderTransaction extends Transaction {
       { ...opts, freeze: false }
     );
 
+    // TODO: remove this as any
+    (this as any).common = this._getCommon(opts?.common);
+
     this._sender = sender;
   }
 

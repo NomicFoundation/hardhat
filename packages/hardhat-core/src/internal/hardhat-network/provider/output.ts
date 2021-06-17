@@ -191,7 +191,8 @@ export function getRpcTransaction(
         : numberToRpcQuantity(new BN(block.header.number)),
     from: bufferToRpcData(tx.getSenderAddress().toBuffer()),
     gas: numberToRpcQuantity(new BN(tx.gasLimit)),
-    gasPrice: numberToRpcQuantity(new BN(tx.gasPrice)),
+    // TODO: remove this `as any`
+    gasPrice: numberToRpcQuantity(new BN((tx as any).gasPrice)),
     hash: bufferToRpcData(tx.hash()),
     input: bufferToRpcData(tx.data),
     nonce: numberToRpcQuantity(new BN(tx.nonce)),

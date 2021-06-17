@@ -6,7 +6,7 @@ chai.use(chaiAsPromised);
 
 function getEnv(key: string): string | undefined {
   const variable = process.env[key];
-  if (variable === undefined) {
+  if (variable === undefined || variable === "") {
     return undefined;
   }
 

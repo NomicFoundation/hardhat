@@ -5,6 +5,7 @@ import fs from "fs";
 import path from "path";
 import semver from "semver";
 
+import { ReturnData } from "../../../../src/internal/hardhat-network/provider/return-data";
 import { createModelsAndDecodeBytecodes } from "../../../../src/internal/hardhat-network/stack-traces/compiler-to-model";
 import {
   ConsoleLogger,
@@ -21,7 +22,6 @@ import {
   CreateMessageTrace,
   MessageTrace,
 } from "../../../../src/internal/hardhat-network/stack-traces/message-trace";
-import { decodeRevertReason } from "../../../../src/internal/hardhat-network/stack-traces/revert-reasons";
 import {
   SolidityStackTraceEntry,
   StackTraceEntryType,
@@ -36,7 +36,7 @@ import {
 import { setCWD } from "../helpers/cwd";
 
 import {
-  compile,
+  compileFiles,
   COMPILER_DOWNLOAD_TIMEOUT,
   CompilerOptions,
   downloadSolc,
@@ -58,6 +58,7 @@ interface StackFrameDescription {
   };
   message?: string;
   value?: string | number;
+  errorCode?: string;
 }
 
 interface TestDefinition {
@@ -230,7 +231,7 @@ async function compileIfNecessary(
     return [JSON.parse(inputJson), JSON.parse(outputJson)];
   }
 
-  const [compilerInput, compilerOutput] = await compile(
+  const [compilerInput, compilerOutput] = await compileFiles(
     sources,
     compilerOptions
   );
@@ -263,10 +264,22 @@ function compareStackTraces(
       `Stack trace of tx ${txIndex} entry ${i} type is incorrect`
     );
 
-    const actualMessage = (actual as any).message as Buffer | undefined;
-    const decodedMessage = decodeRevertReason(
-      actualMessage !== undefined ? actualMessage : Buffer.from([])
-    );
+    const actualMessage = (actual as any).message as
+      | ReturnData
+      | string
+      | undefined;
+
+    // actual.message is a ReturnData in revert errors, but a string
+    // in custom errors
+    let decodedMessage = "";
+    if (typeof actualMessage === "string") {
+      decodedMessage = actualMessage;
+    } else if (
+      actualMessage instanceof ReturnData &&
+      actualMessage.isErrorReturnData()
+    ) {
+      decodedMessage = actualMessage.decodeError();
+    }
 
     if (expected.message !== undefined) {
       assert.equal(
@@ -302,6 +315,27 @@ function compareStackTraces(
       assert.isUndefined(
         actual.value,
         `Stack trace of tx ${txIndex} entry ${i} shouldn't have value`
+      );
+    }
+
+    if (expected.errorCode !== undefined) {
+      const actualErrorCode = (actual as any).errorCode;
+
+      assert.isDefined(
+        actualErrorCode,
+        `Stack trace of tx ${txIndex} entry ${i} should have an errorCode`
+      );
+
+      const actualErrorCodeHex = actualErrorCode.toString("hex");
+
+      assert.isTrue(
+        expected.errorCode === actualErrorCodeHex,
+        `Stack trace of tx ${txIndex} entry ${i} has errorCode ${actualErrorCodeHex} and should have ${expected.errorCode}`
+      );
+    } else if ("errorCode" in actual) {
+      assert.isUndefined(
+        actual.errorCode,
+        `Stack trace of tx ${txIndex} entry ${i} shouldn't have errorCode`
       );
     }
 
@@ -695,9 +729,17 @@ const solidity07Compilers: CompilerOptions[] = [
 
 const solidity08Compilers: CompilerOptions[] = [
   {
-    solidityVersion: "0.8.0",
-    compilerPath: "soljson-v0.8.0+commit.c7dfd78e.js",
+    solidityVersion: "0.8.1",
+    compilerPath: "soljson-v0.8.1+commit.df193b15.js",
   },
+  {
+    solidityVersion: "0.8.4",
+    compilerPath: "soljson-v0.8.4+commit.c7e474f2.js",
+  },
+  // {
+  //   solidityVersion: "0.8.5",
+  //   compilerPath: "soljson-v0.8.5+commit.a4f2e591.js",
+  // },
 ];
 
 describe("Stack traces", function () {

@@ -96,17 +96,71 @@ export class TxPool {
 
   public async addTransaction(tx: TypedTransaction) {
     const senderAddress = this._getSenderAddress(tx);
-    const senderNonce = await this.getExecutableNonce(senderAddress);
+    const nextConfirmedNonce = await this._getNextConfirmedNonce(senderAddress);
+    const nextPendingNonce = await this.getNextPendingNonce(senderAddress);
 
-    await this._validateTransaction(tx, senderAddress, senderNonce);
+    await this._validateTransaction(tx, senderAddress, nextConfirmedNonce);
 
     const txNonce = new BN(tx.nonce);
 
-    if (txNonce.eq(senderNonce)) {
-      this._addPendingTransaction(tx);
-    } else {
+    if (txNonce.gt(nextPendingNonce)) {
       this._addQueuedTransaction(tx);
+    } else {
+      this._addPendingTransaction(tx);
     }
+  }
+
+  /**
+   * Remove transaction with the given hash from the mempool. Returns true
+   * if a transaction was removed, false otherwise.
+   */
+  public removeTransaction(txHash: Buffer): boolean {
+    const tx = this.getTransactionByHash(txHash);
+
+    if (tx === undefined) {
+      // transaction doesn't exist in the mempool
+      return false;
+    }
+
+    this._deleteTransactionByHash(txHash);
+
+    const serializedTx = serializeTransaction(tx);
+    const senderAddress = this._getSenderAddress(tx.data).toString();
+
+    const pendingForAddress =
+      this._getPendingForAddress(senderAddress) ??
+      ImmutableList<SerializedTransaction>();
+    const queuedForAddress =
+      this._getQueuedForAddress(senderAddress) ??
+      ImmutableList<SerializedTransaction>();
+
+    // if the tx to remove is in the pending state, remove it
+    // and move the following transactions to the queued list
+    const indexOfPendingTx = pendingForAddress.indexOf(serializedTx);
+    if (indexOfPendingTx !== -1) {
+      const newPendingForAddress = pendingForAddress.splice(
+        indexOfPendingTx,
+        pendingForAddress.size
+      );
+      const newQueuedForAddress = queuedForAddress.concat(
+        pendingForAddress.slice(indexOfPendingTx + 1)
+      );
+
+      this._setPendingForAddress(senderAddress, newPendingForAddress);
+      this._setQueuedForAddress(senderAddress, newQueuedForAddress);
+      return true;
+    }
+
+    // if the tx is in the queued state, we just remove it
+    const indexOfQueuedTx = queuedForAddress.indexOf(serializedTx);
+    if (indexOfQueuedTx !== -1) {
+      const newQueuedForAddress = queuedForAddress.splice(indexOfQueuedTx, 1);
+      this._setQueuedForAddress(senderAddress, newQueuedForAddress);
+
+      return true;
+    }
+
+    throw new Error("Tx should have existed in the pending or queued lists");
   }
 
   public snapshot(): number {
@@ -144,6 +198,10 @@ export class TxPool {
     return queuedMap.some((senderQueuedTxs) => !senderQueuedTxs.isEmpty());
   }
 
+  public isEmpty(): boolean {
+    return !(this.hasPendingTransactions() || this.hasQueuedTransactions());
+  }
+
   public getPendingTransactions(): Map<string, OrderedTransaction[]> {
     const deserializedImmutableMap = this._getPending()
       .filter((txs) => txs.size > 0)
@@ -158,13 +216,16 @@ export class TxPool {
     return new Map(deserializedImmutableMap.entries());
   }
 
-  public async getExecutableNonce(accountAddress: Address): Promise<BN> {
+  /**
+   * Returns the next available nonce for an address, taking into account
+   * its pending transactions.
+   */
+  public async getNextPendingNonce(accountAddress: Address): Promise<BN> {
     const pendingTxs = this._getPendingForAddress(accountAddress.toString());
     const lastPendingTx = pendingTxs?.last(undefined);
 
     if (lastPendingTx === undefined) {
-      const account = await this._stateManager.getAccount(accountAddress);
-      return account.nonce;
+      return this._getNextConfirmedNonce(accountAddress);
     }
 
     const lastPendingTxNonce = this._deserializeTransaction(lastPendingTx).data
@@ -185,8 +246,7 @@ export class TxPool {
   }
 
   /**
-   * Updates the pending and queued list of all addresses, along with their
-   * executable nonces.
+   * Updates the pending and queued list of all addresses
    */
   public async updatePendingAndQueued() {
     let newPending = this._getPending();
@@ -212,18 +272,15 @@ export class TxPool {
         }
 
         const txNonce = new BN(deserializedTx.data.nonce);
-        const txGasLimit = new BN(deserializedTx.data.gasLimit);
 
         if (
-          txGasLimit.gt(this.getBlockGasLimit()) ||
-          txNonce.lt(senderNonce) ||
-          deserializedTx.data.getUpfrontCost().gt(senderBalance)
+          !this._isTxValid(deserializedTx, txNonce, senderNonce, senderBalance)
         ) {
           newPending = this._removeTx(newPending, address, deserializedTx);
 
-          // if we are dropping a pending transaction, then we move
-          // all the following txs to the queued
-          if (txNonce.gt(senderNonce)) {
+          // if we are dropping a pending transaction with a valid nonce,
+          // then we move all the following txs to the queued list
+          if (txNonce.gte(senderNonce)) {
             moveToQueued = true;
           }
         }
@@ -243,12 +300,9 @@ export class TxPool {
       for (const tx of txs) {
         const deserializedTx = this._deserializeTransaction(tx);
         const txNonce = new BN(deserializedTx.data.nonce);
-        const txGasLimit = new BN(deserializedTx.data.gasLimit);
 
         if (
-          txGasLimit.gt(this.getBlockGasLimit()) ||
-          txNonce.lt(senderNonce) ||
-          deserializedTx.data.getUpfrontCost().gt(senderBalance)
+          !this._isTxValid(deserializedTx, txNonce, senderNonce, senderBalance)
         ) {
           newQueued = this._removeTx(newQueued, address, deserializedTx);
         }
@@ -298,40 +352,51 @@ export class TxPool {
   }
 
   private _addPendingTransaction(tx: TypedTransaction) {
-    const orderedTx = serializeTransaction({
+    const orderedTx = {
       orderId: this._nextOrderId++,
       data: tx,
-    });
+    };
+    const serializedTx = serializeTransaction(orderedTx);
 
     const hexSenderAddress = tx.getSenderAddress().toString();
     const accountTransactions: SenderTransactions =
       this._getPendingForAddress(hexSenderAddress) ?? ImmutableList();
 
-    const { newPending, newQueued } = reorganizeTransactionsLists(
-      accountTransactions.push(orderedTx),
-      this._getQueuedForAddress(hexSenderAddress) ?? ImmutableList(),
-      (stx) => this._deserializeTransaction(stx).data.nonce
-    );
+    const replaced = this._replacePendingTx(hexSenderAddress, orderedTx);
+    if (!replaced) {
+      const { newPending, newQueued } = reorganizeTransactionsLists(
+        accountTransactions.push(serializedTx),
+        this._getQueuedForAddress(hexSenderAddress) ?? ImmutableList(),
+        (stx) => this._deserializeTransaction(stx).data.nonce
+      );
 
-    this._setPendingForAddress(hexSenderAddress, newPending);
-    this._setQueuedForAddress(hexSenderAddress, newQueued);
-    this._setTransactionByHash(bufferToHex(tx.hash()), orderedTx);
+      this._setPendingForAddress(hexSenderAddress, newPending);
+      this._setQueuedForAddress(hexSenderAddress, newQueued);
+    }
+
+    this._setTransactionByHash(bufferToHex(tx.hash()), serializedTx);
   }
 
   private _addQueuedTransaction(tx: TypedTransaction) {
-    const orderedTx = serializeTransaction({
+    const orderedTx = {
       orderId: this._nextOrderId++,
       data: tx,
-    });
+    };
+    const serializedTx = serializeTransaction(orderedTx);
 
     const hexSenderAddress = tx.getSenderAddress().toString();
     const accountTransactions: SenderTransactions =
       this._getQueuedForAddress(hexSenderAddress) ?? ImmutableList();
-    this._setQueuedForAddress(
-      hexSenderAddress,
-      accountTransactions.push(orderedTx)
-    );
-    this._setTransactionByHash(bufferToHex(tx.hash()), orderedTx);
+
+    const replaced = this._replaceQueuedTx(hexSenderAddress, orderedTx);
+    if (!replaced) {
+      this._setQueuedForAddress(
+        hexSenderAddress,
+        accountTransactions.push(serializedTx)
+      );
+    }
+
+    this._setTransactionByHash(bufferToHex(tx.hash()), serializedTx);
   }
 
   private async _validateTransaction(
@@ -342,13 +407,6 @@ export class TxPool {
     if (this._knownTransaction(tx)) {
       throw new InvalidInputError(
         `Known transaction: ${bufferToHex(tx.hash())}`
-      );
-    }
-
-    // Temporary check that should be removed when transaction replacement is added
-    if (this._txWithNonceExists(tx)) {
-      throw new InvalidInputError(
-        `Transaction with nonce ${tx.nonce.toNumber()} already exists in transaction pool`
       );
     }
 
@@ -380,6 +438,8 @@ export class TxPool {
     }
 
     const gasLimit = new BN(tx.gasLimit);
+    // TODO remove this "as any"
+    const gasPrice = new BN((tx as any).gasPrice);
     const baseFee = tx.getBaseFee();
 
     if (gasLimit.lt(baseFee)) {
@@ -413,17 +473,6 @@ export class TxPool {
       this._deserializeTransaction(etx).data.hash().equals(tx.hash())
     );
     return existingTx !== undefined;
-  }
-
-  private _txWithNonceExists(tx: TypedTransaction): boolean {
-    const senderAddress = tx.getSenderAddress().toString();
-    const queuedTxs: SenderTransactions =
-      this._getQueuedForAddress(senderAddress) ?? ImmutableList();
-
-    const queuedTx = queuedTxs.find((ftx) =>
-      this._deserializeTransaction(ftx).data.nonce.eq(tx.nonce)
-    );
-    return queuedTx !== undefined;
   }
 
   private _getTransactionsByHash() {
@@ -493,5 +542,122 @@ export class TxPool {
       "hashToTransaction",
       this._getTransactionsByHash().delete(bufferToHex(hash))
     );
+  }
+
+  private _isTxValid(
+    tx: OrderedTransaction,
+    txNonce: BN,
+    senderNonce: BN,
+    senderBalance: BN
+  ): boolean {
+    const txGasLimit = new BN(tx.data.gasLimit);
+
+    return (
+      txGasLimit.lte(this.getBlockGasLimit()) &&
+      txNonce.gte(senderNonce) &&
+      tx.data.getUpfrontCost().lte(senderBalance)
+    );
+  }
+
+  /**
+   * Returns the next available nonce for an address, ignoring its
+   * pending transactions.
+   */
+  private async _getNextConfirmedNonce(accountAddress: Address): Promise<BN> {
+    const account = await this._stateManager.getAccount(accountAddress);
+    return new BN(account.nonce);
+  }
+
+  /**
+   * Checks if some pending tx with the same nonce as `newTx` exists.
+   * If it exists, it replaces it with `newTx` and returns true.
+   * Otherwise returns false.
+   */
+  private _replacePendingTx(
+    accountAddress: string,
+    newTx: OrderedTransaction
+  ): boolean {
+    const pendingTxs = this._getPendingForAddress(accountAddress);
+    const newPendingTxs = this._replaceTx(pendingTxs, newTx);
+
+    if (newPendingTxs !== undefined) {
+      this._setPendingForAddress(accountAddress, newPendingTxs);
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Checks if some queued tx with the same nonce as `newTx` exists.
+   * If it exists, it replaces it with `newTx` and returns true.
+   * Otherwise returns false.
+   */
+  private _replaceQueuedTx(
+    accountAddress: string,
+    newTx: OrderedTransaction
+  ): boolean {
+    const queuedTxs = this._getQueuedForAddress(accountAddress);
+    const newQueuedTxs = this._replaceTx(queuedTxs, newTx);
+
+    if (newQueuedTxs !== undefined) {
+      this._setQueuedForAddress(accountAddress, newQueuedTxs);
+      return true;
+    }
+
+    return false;
+  }
+
+  private _replaceTx(
+    txs: SenderTransactions | undefined,
+    newTx: OrderedTransaction
+  ): SenderTransactions | undefined {
+    if (txs === undefined) {
+      return;
+    }
+
+    const existingTxEntry = txs.findEntry((tx) =>
+      this._deserializeTransaction(tx).data.nonce.eq(new BN(newTx.data.nonce))
+    );
+
+    if (existingTxEntry === undefined) {
+      return;
+    }
+
+    const [existingTxIndex, existingTx] = existingTxEntry;
+
+    const deserializedExistingTx = this._deserializeTransaction(existingTx);
+
+    // TODO remove these "as any"
+    const currentGasPrice = new BN(
+      (deserializedExistingTx.data as any).gasPrice
+    );
+    const newGasPrice = new BN((newTx.data as any).gasPrice);
+
+    const minNewGasPrice = this._getMinNewGasPrice(currentGasPrice);
+
+    if (newGasPrice.lt(minNewGasPrice)) {
+      throw new InvalidInputError(
+        `Replacement transaction underpriced. A gas price of at least ${minNewGasPrice.toString()} is necessary to replace the existing transaction.`
+      );
+    }
+
+    const newTxs = txs.set(existingTxIndex, serializeTransaction(newTx));
+
+    this._deleteTransactionByHash(deserializedExistingTx.data.hash());
+
+    return newTxs;
+  }
+
+  private _getMinNewGasPrice(currentGasPrice: BN): BN {
+    let minNewGasPrice = currentGasPrice.muln(110);
+
+    if (minNewGasPrice.modn(100) === 0) {
+      minNewGasPrice = minNewGasPrice.divn(100);
+    } else {
+      minNewGasPrice = minNewGasPrice.divn(100).addn(1);
+    }
+
+    return minNewGasPrice;
   }
 }

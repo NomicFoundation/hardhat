@@ -1,6 +1,6 @@
 import * as t from "io-ts";
 
-import { optional } from "../../../../util/io-ts";
+import { optionalOrNullable } from "../../../../util/io-ts";
 import { rpcData, rpcQuantity } from "../base-types";
 
 export const rpcNewBlockTagObjectWithNumber = t.type({
@@ -9,7 +9,7 @@ export const rpcNewBlockTagObjectWithNumber = t.type({
 
 export const rpcNewBlockTagObjectWithHash = t.type({
   blockHash: rpcData,
-  requireCanonical: optional(t.boolean),
+  requireCanonical: optionalOrNullable(t.boolean),
 });
 
 export const rpcBlockTagName = t.keyof({
@@ -28,7 +28,7 @@ export const rpcNewBlockTag = t.union([
 
 export type RpcNewBlockTag = t.TypeOf<typeof rpcNewBlockTag>;
 
-export const optionalRpcNewBlockTag = optional(rpcNewBlockTag);
+export const optionalRpcNewBlockTag = optionalOrNullable(rpcNewBlockTag);
 
 export type OptionalRpcNewBlockTag = t.TypeOf<typeof optionalRpcNewBlockTag>;
 
@@ -37,6 +37,6 @@ export const rpcOldBlockTag = t.union([rpcQuantity, rpcBlockTagName]);
 
 export type RpcOldBlockTag = t.TypeOf<typeof rpcOldBlockTag>;
 
-export const optionalRpcOldBlockTag = optional(rpcOldBlockTag);
+export const optionalRpcOldBlockTag = optionalOrNullable(rpcOldBlockTag);
 
 export type OptionalRpcOldBlockTag = t.TypeOf<typeof optionalRpcOldBlockTag>;
