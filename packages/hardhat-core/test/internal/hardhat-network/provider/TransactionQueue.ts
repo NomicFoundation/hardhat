@@ -56,7 +56,7 @@ describe(`TxPriorityHeap (tests using seed ${bufferToHex(SEED)})`, () => {
         });
 
         assert.throws(
-          () => new TransactionQueue(makeOrderedTxMap([tx1])),
+          () => new TransactionQueue(makeOrderedTxMap([tx1]), "priority"),
           InternalError
         );
       });
@@ -81,7 +81,7 @@ describe(`TxPriorityHeap (tests using seed ${bufferToHex(SEED)})`, () => {
 
           const txs = [tx1, tx2, tx3, tx4];
           txs.sort(weakRandomComparator);
-          const queue = new TransactionQueue(makeOrderedTxMap(txs));
+          const queue = new TransactionQueue(makeOrderedTxMap(txs), "priority");
 
           assert.equal(queue.getNextTransaction(), tx4.data);
           assert.equal(queue.getNextTransaction(), tx2.data);
@@ -155,7 +155,7 @@ describe(`TxPriorityHeap (tests using seed ${bufferToHex(SEED)})`, () => {
 
         const txs = [tx1, tx2, tx3, tx4, tx5, tx6, tx7, tx8, tx9, tx10];
         txs.sort(weakRandomComparator);
-        const queue = new TransactionQueue(makeOrderedTxMap(txs));
+        const queue = new TransactionQueue(makeOrderedTxMap(txs), "priority");
 
         assert.equal(queue.getNextTransaction(), tx1.data);
         assert.equal(queue.getNextTransaction(), tx2.data);
@@ -182,7 +182,8 @@ describe(`TxPriorityHeap (tests using seed ${bufferToHex(SEED)})`, () => {
         });
 
         assert.doesNotThrow(
-          () => new TransactionQueue(makeOrderedTxMap([tx1]), new BN(1))
+          () =>
+            new TransactionQueue(makeOrderedTxMap([tx1]), "priority", new BN(1))
         );
       });
     });
@@ -217,7 +218,11 @@ describe(`TxPriorityHeap (tests using seed ${bufferToHex(SEED)})`, () => {
 
         const txs = [tx1, tx2, tx3, tx4, tx5];
         txs.sort(weakRandomComparator);
-        const queue = new TransactionQueue(makeOrderedTxMap(txs), baseFee);
+        const queue = new TransactionQueue(
+          makeOrderedTxMap(txs),
+          "priority",
+          baseFee
+        );
 
         assert.equal(queue.getNextTransaction(), tx5.data);
         assert.equal(queue.getNextTransaction(), tx4.data);
@@ -307,7 +312,11 @@ describe(`TxPriorityHeap (tests using seed ${bufferToHex(SEED)})`, () => {
 
         const txs = [tx1, tx2, tx3, tx4, tx5, tx6, tx7, tx8, tx9, tx10];
         txs.sort(weakRandomComparator);
-        const queue = new TransactionQueue(makeOrderedTxMap(txs), baseFee);
+        const queue = new TransactionQueue(
+          makeOrderedTxMap(txs),
+          "priority",
+          baseFee
+        );
 
         assert.equal(queue.getNextTransaction(), tx1.data);
         assert.equal(queue.getNextTransaction(), tx2.data);

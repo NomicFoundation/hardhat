@@ -3,6 +3,7 @@ import { Context, getFunctionName, ValidationError } from "io-ts/lib";
 import { Reporter } from "io-ts/lib/Reporter";
 
 import {
+  HARDHAT_MEMPOOL_SUPPORTED_ORDERS,
   HARDHAT_NETWORK_NAME,
   HARDHAT_NETWORK_SUPPORTED_HARDFORKS,
 } from "../../constants";
@@ -176,6 +177,22 @@ const HardhatNetworkForkingConfig = t.type({
   blockNumber: optional(t.number),
 });
 
+const HardhatNetworkMempoolConfig = t.type({
+  order: optional(
+    t.keyof(
+      fromEntries(
+        HARDHAT_MEMPOOL_SUPPORTED_ORDERS.map((order) => [order, null])
+      )
+    )
+  ),
+});
+
+const HardhatNetworkMiningConfig = t.type({
+  auto: optional(t.boolean),
+  interval: optional(t.union([t.number, t.tuple([t.number, t.number])])),
+  mempool: optional(HardhatNetworkMempoolConfig),
+});
+
 const commonNetworkConfigFields = {
   chainId: optional(t.number),
   from: optional(t.string),
@@ -202,6 +219,7 @@ const HardhatNetworkConfig = t.type({
   initialDate: optional(t.string),
   loggingEnabled: optional(t.boolean),
   forking: optional(HardhatNetworkForkingConfig),
+  mining: optional(HardhatNetworkMiningConfig),
 });
 
 const HDAccountsConfig = t.type({

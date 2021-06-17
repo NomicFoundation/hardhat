@@ -502,6 +502,9 @@ describe("Config resolution", () => {
           assert.deepEqual(config.networks.hardhat.mining, {
             auto: true,
             interval: 0,
+            mempool: {
+              order: "priority",
+            },
           });
         });
 
@@ -519,10 +522,13 @@ describe("Config resolution", () => {
           assert.deepEqual(config.networks.hardhat.mining, {
             auto: false,
             interval: 1000,
+            mempool: {
+              order: "priority",
+            },
           });
         });
 
-        it("should allow cofiguring only automine", function () {
+        it("should allow configuring only automine", function () {
           const config = resolveConfig(__filename, {
             networks: {
               hardhat: {
@@ -536,10 +542,13 @@ describe("Config resolution", () => {
           assert.deepEqual(config.networks.hardhat.mining, {
             auto: false,
             interval: 0,
+            mempool: {
+              order: "priority",
+            },
           });
         });
 
-        it("should allow cofiguring both values", function () {
+        it("should allow configuring both values", function () {
           const config = resolveConfig(__filename, {
             networks: {
               hardhat: {
@@ -554,6 +563,9 @@ describe("Config resolution", () => {
           assert.deepEqual(config.networks.hardhat.mining, {
             auto: true,
             interval: 1000,
+            mempool: {
+              order: "priority",
+            },
           });
         });
 
@@ -571,6 +583,31 @@ describe("Config resolution", () => {
           assert.deepEqual(config.networks.hardhat.mining, {
             auto: false,
             interval: [1000, 5000],
+            mempool: {
+              order: "priority",
+            },
+          });
+        });
+
+        it("should set the mempool order", function () {
+          const config = resolveConfig(__filename, {
+            networks: {
+              hardhat: {
+                mining: {
+                  mempool: {
+                    order: "fifo",
+                  },
+                },
+              },
+            },
+          });
+
+          assert.deepEqual(config.networks.hardhat.mining, {
+            auto: true,
+            interval: 0,
+            mempool: {
+              order: "fifo",
+            },
           });
         });
       });
@@ -633,6 +670,9 @@ describe("Config resolution", () => {
           mining: {
             auto: false,
             interval: 0,
+            mempool: {
+              order: "priority",
+            },
           },
           hardfork: "hola",
           initialDate: "today",
