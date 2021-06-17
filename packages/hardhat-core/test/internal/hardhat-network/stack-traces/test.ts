@@ -830,7 +830,28 @@ describe("Solidity support", function () {
       .sort(semver.compare)[solidityCompilers.length - 1];
 
     assert.isTrue(
-      semver.satisfies(latestSupportedVersion, SUPPORTED_SOLIDITY_VERSION_RANGE)
+      semver.satisfies(
+        latestSupportedVersion,
+        SUPPORTED_SOLIDITY_VERSION_RANGE
+      ),
+      `Expected ${latestSupportedVersion} to be within the ${SUPPORTED_SOLIDITY_VERSION_RANGE} range`
+    );
+
+    const nextPatchVersion = semver.inc(latestSupportedVersion, "patch")!;
+    const nextMinorVersion = semver.inc(latestSupportedVersion, "minor")!;
+    const nextMajorVersion = semver.inc(latestSupportedVersion, "major")!;
+
+    assert.isFalse(
+      semver.satisfies(nextPatchVersion, SUPPORTED_SOLIDITY_VERSION_RANGE),
+      `Expected ${nextPatchVersion} to not be within the ${SUPPORTED_SOLIDITY_VERSION_RANGE} range`
+    );
+    assert.isFalse(
+      semver.satisfies(nextMinorVersion, SUPPORTED_SOLIDITY_VERSION_RANGE),
+      `Expected ${nextMinorVersion} to not be within the ${SUPPORTED_SOLIDITY_VERSION_RANGE} range`
+    );
+    assert.isFalse(
+      semver.satisfies(nextMajorVersion, SUPPORTED_SOLIDITY_VERSION_RANGE),
+      `Expected ${nextMajorVersion} to not be within the ${SUPPORTED_SOLIDITY_VERSION_RANGE} range`
     );
   });
 });
