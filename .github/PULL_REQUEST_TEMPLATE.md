@@ -1,5 +1,6 @@
 Thank you for using Hardhat and taking the time to send a Pull Request!
 
-- If you are sending a **documentation change**, please make sure you created your branch from the `website` branch, and that this pull request uses it as its base branch.
-- If you are sending a **bug fix**, please make sure you are including relevant tests.
-- If you are sending a **new feature**, please make sure you discussed it first on an issue or with someone from the team.
+- [ ] (If this PR includes a **documentation change**) This PR's branch was created from the `website` branch, and this PR uses the `website` branch as its base branch.
+- [ ] (If this PR includes a **bug fix**) Relevant tests have been included.
+- [ ] (If this PR includes a **new feature**) The change was previously discussed on an Issue or with someone from the team.
+- [x] I didn't do anything of this.
