@@ -37,7 +37,7 @@ export default {
     @media (max-width: 1000px)
         height 815px
     @media (min-width: 1000px)
-        min-height 820px
+        min-height 1030px
     .background
         position absolute
         z-index -1

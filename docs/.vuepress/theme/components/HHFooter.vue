@@ -9,6 +9,10 @@ footer
     .legal
       a Copyright 2020 Nomic Labs LLC | 
       a(href="/privacy-policy.html") Privacy Policy
+    .tool-controls
+      button 3 Tools
+      button 4 Tools
+      button 5 Tools
 </template>
 
 <script>
@@ -22,7 +26,7 @@ footer
   padding 3rem 0
   font-size 1rem
   background #0A0A0A
-
+  position relative
   .supported-by
     margin-bottom 2rem
     font-size 2rem
@@ -94,4 +98,17 @@ footer
 
   *
     color black
+
+  .tool-controls
+    position absolute
+    bottom 24px
+    left 0px
+    width 100%
+    button
+      background none
+      border none
+      outline none
+      margin 0 12px
+      color white
+      font-weight 400
 </style>
