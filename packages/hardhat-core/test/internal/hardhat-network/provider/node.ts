@@ -411,6 +411,18 @@ describe("HardhatNode", () => {
     describe("timestamp tests", () => {
       let clock: sinon.SinonFakeTimers;
 
+      const assertIncreaseTime = async (expectedTime: number) => {
+        const block = await node.getLatestBlock();
+        const blockTimestamp = block.header.timestamp.toNumber();
+
+        // We check that the time increased at least what we had expected
+        // but allow a little bit of POSITIVE difference(i.e. that the
+        // actual timestamp is a little bit bigger) because time may have ellapsed
+        // We assume that the test CAN NOT have taken more than a second
+        assert.isAtLeast(blockTimestamp, expectedTime);
+        assert.isAtMost(blockTimestamp, expectedTime + 1);
+      };
+
       beforeEach(() => {
         clock = sinon.useFakeTimers(Date.now());
       });
@@ -495,12 +507,31 @@ describe("HardhatNode", () => {
 
       it("mines a block with correct timestamp after time increase", async () => {
         const now = getCurrentTimestamp();
-        node.increaseTime(new BN(30));
+        const delta = 30;
+        node.increaseTime(new BN(delta));
         await node.mineBlock();
 
-        const block = await node.getLatestBlock();
-        const blockTimestamp = block.header.timestamp.toNumber();
-        assert.equal(blockTimestamp, now + 30);
+        await assertIncreaseTime(now + delta);
+      });
+
+      it("mining a block having increaseTime called twice counts both calls", async () => {
+        const now = getCurrentTimestamp();
+        const delta = 30;
+        node.increaseTime(new BN(delta));
+        node.increaseTime(new BN(delta));
+        await node.mineBlock();
+        await assertIncreaseTime(now + delta * 2);
+      });
+
+      it("mining a block having called increaseTime takes into account 'real' passing time", async () => {
+        const now = getCurrentTimestamp();
+        const delta = 30;
+        const elapsedTimeInSeconds = 3;
+        node.increaseTime(new BN(delta));
+        clock.tick(elapsedTimeInSeconds * 1_000);
+        await node.mineBlock(); 
+
+        await assertIncreaseTime(now + delta + elapsedTimeInSeconds);
       });
 
       describe("when time is increased by 30s", () => {
