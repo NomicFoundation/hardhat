@@ -20,8 +20,7 @@ and following its instructions. Once your project is ready, you should run
 npm install --save-dev hardhat
 ```
 
-Hardhat requires Node >= 10. We support all [currently maintained Node versions](https://endoflife.date/nodejs), and we keep support for
-unmaintained versions for two months after their end-of-life.
+Hardhat requires Node >= 10. We support all [currently maintained Node versions](https://endoflife.date/nodejs), and we will continue to support unmaintained versions for two months after their Security Support period ends.
 
 To use your local installation of Hardhat, you need to use `npx` to run it (i.e. `npx hardhat`). 
 
