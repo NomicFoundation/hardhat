@@ -426,7 +426,7 @@ To customise it, take a look at [the configuration section](/config/README.md#ha
 
 #### Special testing/debugging methods
 
-- `evm_increaseTime` – same as Ganache.
+- `evm_increaseTime` – same as Ganache(Note that this method takes into account 'real' time ellapsing and if it is called multiple times, all of the calls are taken into account).
 - `evm_mine` – same as Ganache
 - `evm_revert` – same as Ganache.
 - `evm_snapshot` – same as Ganache.
