@@ -41,11 +41,9 @@
         height 96px
         width 198px
         margin-bottom 20px !important
-        &.left
-
-        &.right
-            position relative
-            bottom 0px
+        @media (max-width: 1000px)
+            margin-bottom 12px !important
+            width calc(335px / 2)
         .tool-selector
             border-radius 4px
             display flex
@@ -89,7 +87,7 @@
                 &:before
                     box-shadow 6px -2px 10px #EEE3FF
         @media (max-width: 1000px)
-            width calc(50% - 9px)
+            width 160px
         &#Runner .tool-icon
             background-image url("../img/tool_icons/Hardhat-Runner.svg")
         &#Network .tool-icon

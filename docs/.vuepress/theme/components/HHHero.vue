@@ -35,13 +35,32 @@ export default {
     return { HHAnimation: null , HHMobileAnimation: null};
   },
   mounted() {
-    import("./HHAnimation").then((module) => {
-      this.HHAnimation = module.default;
-    });
-    import("./HHMobileAnimation").then((module) => {
-      this.HHMobileAnimation = module.default;
-    });
+    this.showCorrectAnimation();
   },
+  created() {
+    window.addEventListener("resize", this.onResize);
+  },
+  destroyed() {
+    window.removeEventListener("resize", this.onResize);
+  },
+  methods: {
+    onResize() {
+      this.showCorrectAnimation();
+    },
+    showCorrectAnimation() {
+      if (window.innerWidth > 1000) {
+        import("./HHAnimation").then((module) => {
+          this.HHAnimation = module.default;
+          this.HHMobileAnimation = undefined;
+        });
+      } else {
+        import("./HHMobileAnimation").then((module) => {
+          this.HHMobileAnimation = module.default;
+          this.HHAnimation = undefined;
+        });
+      }
+    }
+  }
 };
 
 function preloadImage(url) {

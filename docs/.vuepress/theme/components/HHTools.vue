@@ -199,15 +199,20 @@
 
 <style lang="stylus">
     #tools
+        @media screen and (max-width: 1000px)
+            margin-bottom 120px
         &.large 
             .tool-section-wrapper,
             .tool-data
                 height 382px !important
+                @media (max-width: 1000px)
+                    height 656px !important
         &.small
             .tool-section-wrapper,
             .tool-data
                 height 262px !important
             .tool-selection-area
+                height 224px !important
                 &:before
                     height 175px !important
                     top calc(50% - (175px / 2)) !important
@@ -219,10 +224,25 @@
             margin-bottom 147px
             position relative
             &.list-5-items
+                &:after
+                    bottom -38px
+                height 351px
                 .right-tools-column
                     position relative
                     bottom 56px
+                .tool-selection-area
+                    width 100% !important
+                    padding 0
+                    height 320px
+                .tool-data
+                    height height 263px !important
             &.list-3-items
+                &:after
+                    bottom -12px
+                @media (max-width: 1000px)
+                    height 551px !important
+                    .left-tools-column
+                        top 16px !important
                 .left-tools-column,
                 .right-tools-column
                     transform translateY(-8px)
@@ -260,18 +280,21 @@
                 right 0 
                 transform rotate(180deg);
                 @media (max-width: 1000px)
-                    bottom 68px
+                    bottom 0
                     top unset
             .tool-selection-area,
             .tool-data
                 height 318px
                 padding 40px
                 @media (max-width: 1000px)
-                    width 100%
+                    width 100% !important
             .tool-selection-area
                 height 100%
                 position relative
                 width 500px
+                @media (max-width: 1000px)
+                    padding 0
+                    height 280px
                 &:before,
                 &:after
                     content ''
@@ -285,9 +308,9 @@
                     transform translateY(18px)
                     @media (max-width: 1000px)
                         transform unset
-                        top unset
-                        bottom 0
-                        height 1px
+                        top unset !important
+                        bottom 0 !important
+                        height 1px !important
                         width 172px
                         left calc(50% - 172px / 2)
                 &:after
@@ -313,8 +336,6 @@
                     font-weight 200
                     font-family 'Chivo'
                     @media (max-width: 1000px)
-                        position absolute
-                        left 24px
                         font-size 20px
                 .tools-list
                     display flex
@@ -322,10 +343,14 @@
                         grid-template-columns auto
                         grid-template-rows 96px
                         padding 0px
-                        height 276px
+                        height 236px
                     .tools-column
+                        @media (max-width: 1000px)
+                            width calc(335px / 2)
                         &.left-tools-column
                             margin-right 32px
+                            @media (max-width: 1000px)
+                                margin-right 12px
             .tool-data
                 padding 0 50px 
                 width 458px
@@ -335,6 +360,7 @@
                 @media (max-width: 1000px)
                     padding 0 24px 
                     margin-top 40px
+                    height 260px !important
                 .tool-header
                     font-family 'Chivo'
                     display flex
