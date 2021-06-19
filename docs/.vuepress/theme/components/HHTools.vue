@@ -235,7 +235,7 @@
                     padding 0
                     height 320px
                 .tool-data
-                    height height 263px !important
+                    height 263px !important
             &.list-3-items
                 &:after
                     bottom -12px
