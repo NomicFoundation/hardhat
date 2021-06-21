@@ -1,5 +1,5 @@
 <template>
-    <div 
+    <div
         :class="className" 
         :id="id" 
         v-on:click="$emit('update-selected-tool')"

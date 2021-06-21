@@ -10,7 +10,7 @@
 
       ClientOnly
         component(v-if="HHMobileAnimation", :is="HHMobileAnimation")
-        
+
       ClientOnly
         component(v-if="HHAnimation", :is="HHAnimation")
         
@@ -48,16 +48,18 @@ export default {
       this.showCorrectAnimation();
     },
     showCorrectAnimation() {
-      if (window.innerWidth > 1000) {
-        import("./HHAnimation").then((module) => {
-          this.HHAnimation = module.default;
-          this.HHMobileAnimation = undefined;
-        });
-      } else {
-        import("./HHMobileAnimation").then((module) => {
-          this.HHMobileAnimation = module.default;
-          this.HHAnimation = undefined;
-        });
+      if (typeof window !== undefined) {
+        if (window.innerWidth > 1000) {
+          import("./HHAnimation").then((module) => {
+            this.HHAnimation = module.default;
+            this.HHMobileAnimation = undefined;
+          });
+        } else {
+          import("./HHMobileAnimation").then((module) => {
+            this.HHMobileAnimation = module.default;
+            this.HHAnimation = undefined;
+          });
+        }
       }
     }
   }
