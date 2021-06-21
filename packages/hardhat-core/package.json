@@ -31,6 +31,9 @@
     "lint-tests": "NODE_OPTIONS='--require ts-node/register/transpile-only' tslint --config tslint.json --project ./tsconfig.json",
     "lint-src": "NODE_OPTIONS='--require ts-node/register/transpile-only' tslint --config tslint.json --project src/tsconfig.json",
     "test": "mocha --recursive \"test/**/*.ts\"",
+    "test:except-tracing": "mocha --recursive \"test/**/*.ts\" --invert --grep \"Stack traces\"",
+    "test:tracing": "mocha --recursive \"test/internal/hardhat-network/{helpers,stack-traces}/*.ts\"",
+    "test:forking": "mocha --recursive \"test/internal/hardhat-network/{helpers,jsonrpc,provider}/*.ts\"",
     "build": "tsc --build .",
     "clean": "rimraf builtin-tasks internal types utils *.d.ts *.map *.js build-test tsconfig.tsbuildinfo"
   },
