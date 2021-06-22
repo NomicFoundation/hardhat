@@ -8,7 +8,7 @@
   "author": "Nomic Labs LLC",
   "license": "MIT",
   "scripts": {
-    "lint:fix": "prettier --write \"test/**/*.{js,ts}\" && yarn lint --fix",
+    "lint:fix": "prettier --write \"test/**/*.js\" && yarn lint --fix",
     "lint": "tslint --config tslint.json --project ./tsconfig.json",
     "pretest": "node prepare-tests.js",
     "test": "mocha --recursive \"test/**/*.ts\" --exit",

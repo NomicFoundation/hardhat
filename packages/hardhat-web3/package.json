@@ -17,7 +17,7 @@
     "web3.js"
   ],
   "scripts": {
-    "lint:fix": "prettier --write \"src/**/*.{js,ts}\" \"test/**/*.{js,ts}\" && yarn lint --fix",
+    "lint:fix": "prettier --write \"src/**/*.js\" \"test/**/*.js\" && yarn lint --fix",
     "lint": "tslint --config tslint.json --project ./tsconfig.json",
     "test": "mocha --recursive \"test/**/*.ts\" --exit && node web3-lazy-object-tests/when-accessing-web3-class.js && node web3-lazy-object-tests/when-accessing-web3-object.js && node web3-lazy-object-tests/when-requiring-web3-module.js",
     "build": "tsc --build .",
