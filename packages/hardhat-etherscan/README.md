@@ -10,6 +10,7 @@
 This plugin helps you verify the source code for your Solidity contracts on [Etherscan](https://etherscan.io).
 
 It's smart and it tries to do as much as possible to facilitate the process:
+
 - Just provide the deployment address and constructor arguments, and the plugin will detect locally which contract to verify.
 - If your contract uses Solidity libraries, the plugin will detect them and deal with them automatically. You don't need to do anything about them.
 - A simulation of the verification process will run locally, allowing the plugin to detect and communicate any mistakes during the process.
@@ -117,13 +118,12 @@ where `libraries.js` looks like this:
 ```js
 module.exports = {
   SomeLibrary: "0x...",
-}
+};
 ```
 
 ### Using programmatically
 
 To call the verification task from within a Hardhat task or script, use the `"verify:verify"` subtask. Assuming the same contract as [above](#complex-arguments), you can run the subtask like this:
-
 
 ```js
 await hre.run("verify:verify", {
@@ -137,7 +137,7 @@ await hre.run("verify:verify", {
     },
     "0xabcdef",
   ],
-})
+});
 ```
 
 If the verification is not successful, an error will be thrown.

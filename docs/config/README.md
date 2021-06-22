@@ -74,6 +74,7 @@ You can set the following fields on the `hardhat` config:
 - `gasMultiplier`: A number used to multiply the results of gas estimation to give it some slack due to the uncertainty of the estimation process. Default: `1`.
 
 - `accounts`: This field can be configured as one of these:
+
   - An object describing an [HD wallet](#hd-wallet-config). This is the default. It can have any of the following fields:
     - `mnemonic`: a 12 or 24 word mnemonic phrase as defined by BIP39. Default value: `"test test test test test test test test test test test junk"`
     - `initialIndex`: The initial index to derive. Default value: `0`.
@@ -169,7 +170,7 @@ The `solidity` config is an optional field that can be one of the following:
 
   - `version`: The solc version to use.
 
-  - `settings`:  An object with the same schema as the `settings` entry in the [Input JSON](https://solidity.readthedocs.io/en/v0.7.4/using-the-compiler.html#input-description).
+  - `settings`: An object with the same schema as the `settings` entry in the [Input JSON](https://solidity.readthedocs.io/en/v0.7.4/using-the-compiler.html#input-description).
 
 - An object which describes multiple compilers and their respective configurations. It contains the following:
 

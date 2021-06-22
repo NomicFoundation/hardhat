@@ -20,7 +20,7 @@ async function main() {
 
 main()
   .then(() => process.exit(0))
-  .catch(error => {
+  .catch((error) => {
     console.error(error);
     process.exit(1);
   });
@@ -30,16 +30,15 @@ You can deploy in the `localhost` network following these steps:
 
 1. Start a [local node](../getting-started/#connecting-a-wallet-or-dapp-to-hardhat-network)
 
-    `npx hardhat node`
+   `npx hardhat node`
 
 2. Open a new terminal and deploy the smart contract in the `localhost` network
 
-    `npx hardhat run --network localhost scripts/deploy.js`
+   `npx hardhat run --network localhost scripts/deploy.js`
 
-As general rule, you can target any network configured in the `hardhat.config.js` 
+As general rule, you can target any network configured in the `hardhat.config.js`
 
 `npx hardhat run --network <your-network> scripts/deploy.js`
-
 
 ### Truffle migrations support
 

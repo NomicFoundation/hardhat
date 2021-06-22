@@ -29,6 +29,6 @@ do it incorrectly.
 This can mean that Solidity stack traces may stop working, be incorrect, or incomplete. It
 can also mean that `console.log` may stop working.
 
-Despite those things possibly breaking, the actual compilation and execution of your smart 
+Despite those things possibly breaking, the actual compilation and execution of your smart
 contracts won't be affected. You can still trust your test results or deploy smart contracts.
 You will just get less help from Hardhat when doing so.

@@ -27,7 +27,7 @@ will be able to run the test you are currently editing with it.
 
 Running tests written in TypeScript from [Visual Studio Code](https://code.visualstudio.com) requires two extra steps.
 
-First, you have to change your `.mocharc.json` to this: 
+First, you have to change your `.mocharc.json` to this:
 
 ```json{2}
 {

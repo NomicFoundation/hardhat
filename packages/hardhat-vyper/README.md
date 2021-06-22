@@ -58,8 +58,8 @@ This is an example of how to set it:
 ```js
 module.exports = {
   vyper: {
-    version: "0.1.0b10"
-  }
+    version: "0.1.0b10",
+  },
 };
 ```
 

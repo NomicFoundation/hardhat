@@ -139,7 +139,7 @@ If you want this to be the default behavior, you can do it in your Hardhat confi
 networks: {
   hardhat: {
     forking: {
-      url: "https://eth-mainnet.alchemyapi.io/v2/<key>"
+      url: "https://eth-mainnet.alchemyapi.io/v2/<key>";
     }
   }
 }
@@ -177,7 +177,7 @@ networks: {
 ```
 
 In this example, automining is disabled and interval mining is set so that a new
-block is generated every 5 seconds.  You can also configure interval mining to
+block is generated every 5 seconds. You can also configure interval mining to
 generate a new block after a random delay:
 
 ```js
@@ -225,13 +225,16 @@ things, that:
 - If two transactions can be included and both have the same gas price, the one
   that was received first is included first
 - If a transaction is invalid (for example, its nonce is lower than the nonce
-of the address that sent it), the transaction is dropped.
+  of the address that sent it), the transaction is dropped.
 
 You can get the list of pending transactions that will be included in the
 next block by using the "pending" block tag:
 
 ```js
-const pendingBlock = await network.provider.send("eth_getBlockByNumber", ["pending", false])
+const pendingBlock = await network.provider.send("eth_getBlockByNumber", [
+  "pending",
+  false,
+]);
 ```
 
 ### Removing and replacing transactions
@@ -240,8 +243,8 @@ Transactions in the mempool can be removed using the `hardhat_dropTransaction`
 method:
 
 ```js
-const txHash = "0xabc..."
-await network.provider.send("hardhat_dropTransaction", [txHash])
+const txHash = "0xabc...";
+await network.provider.send("hardhat_dropTransaction", [txHash]);
 ```
 
 You can also replace a transaction by sending a new one with the same nonce as
@@ -256,13 +259,13 @@ You can change the mining behavior on runtime using two RPC methods:
 automining:
 
 ```js
-await network.provider.send("evm_setAutomine", [false])
+await network.provider.send("evm_setAutomine", [false]);
 ```
 
 And to enable interval mining:
 
 ```js
-await network.provider.send("evm_setIntervalMining", [5000])
+await network.provider.send("evm_setIntervalMining", [5000]);
 ```
 
 ## Logging
@@ -308,8 +311,9 @@ To get a trace, call this method with the hash of the transaction as its
 argument:
 
 ```js
-const trace = await hre.network.provider.send("debug_traceTransaction",
-["0x123..."])
+const trace = await hre.network.provider.send("debug_traceTransaction", [
+  "0x123...",
+]);
 ```
 
 You can also selectively disable some properties in the list of steps:
@@ -321,7 +325,7 @@ const trace = await hre.network.provider.send("debug_traceTransaction", [
     disableMemory: true,
     disableStack: true,
     disableStorage: true,
-  }
+  },
 ]);
 ```
 

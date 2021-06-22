@@ -107,14 +107,11 @@ Read the documentation on the [Hardhat Runtime Environment](https://hardhat.org/
 Some contracts need to be linked with libraries before they are deployed. You can pass the addresses of their libraries to the `getContractFactory` function with an object like this:
 
 ```js
-const contractFactory = await this.env.ethers.getContractFactory(
-  "Example",
-  {
-    libraries: {
-      ExampleLib: "0x..."
-    }
-  }
-);
+const contractFactory = await this.env.ethers.getContractFactory("Example", {
+  libraries: {
+    ExampleLib: "0x...",
+  },
+});
 ```
 
 This allows you to create a contract factory for the `Example` contract and link its `ExampleLib` library references to the address `"0x..."`.

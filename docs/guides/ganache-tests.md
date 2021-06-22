@@ -37,7 +37,7 @@ require("@nomiclabs/hardhat-ganache");
 ```
 
 Finally, you can run your tests with
- 
+
 ```
 npx hardhat --network ganache test
 ```

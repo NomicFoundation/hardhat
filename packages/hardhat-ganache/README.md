@@ -54,9 +54,9 @@ module.exports = {
   networks: {
     ganache: {
       gasLimit: 6000000000,
-      defaultBalanceEther: 10
-    }
-  }
+      defaultBalanceEther: 10,
+    },
+  },
 };
 ```
 

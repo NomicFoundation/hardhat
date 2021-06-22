@@ -27,14 +27,17 @@ This will keep everything compiled, and these problems will be avoided.
 All tests are written using [mocha](https://mochajs.org) and [chai](https://www.chaijs.com).
 
 ### Per-package
+
 You can run a package's tests by executing `yarn test` inside its folder.
 
 _Note_: for package [hardhat-vyper](./packages/hardhat-vyper) case, a running instance of Docker Desktop is required, with `vyperlang/vyper` image pulled. To install it, run:
+
 ```
 docker pull vyperlang/vyper:0.1.0b10
 ```
 
 ### Entire project
+
 You can run all the tests at once by running `yarn test` from the root folder.
 
 For the case of package [hardhat-vyper](./packages/hardhat-vyper), an `vyperlang/vyper` docker instance installed is required (see previous section for details). _Exception_ of this requirement is if running on a Windows local machine, in this case we skip it by default since Win 10 Pro version would be also required.
@@ -53,10 +56,10 @@ The linter is always run in the CI, so make sure it passes before pushing code. 
 ## Branching
 
 We work on the branch [`master`](https://github.com/nomiclabs/hardhat/tree/master). Versions of the different packages
-are always tagged and pushed to GitHub. So if you are looking for the latests released version of something, please 
+are always tagged and pushed to GitHub. So if you are looking for the latests released version of something, please
 refer to the tags.
 
-Please, branch from `master` when implementing a new feature or fixing a 
+Please, branch from `master` when implementing a new feature or fixing a
 bug, and use it as the base branch in pull requests.
 
 ### Website and documentation branching
@@ -67,10 +70,10 @@ change should be contained in the same branch and PR as the change.
 
 If you are working purely on the website or documentation, not as a result of
 a technical change, you should branch from [`website`](https://github.com/nomiclabs/hardhat/tree/website)
-and use it as the base branch in your pull request. Anything merged into 
+and use it as the base branch in your pull request. Anything merged into
 `website` this way should also be merged into `master`.
 
-Note that the `website` branch is automatically deployed, so take care when 
+Note that the `website` branch is automatically deployed, so take care when
 merging into it.
 
 ## Dependencies
@@ -160,10 +163,10 @@ You should avoid monkey-patching whenever possible. But if it's necessary to do 
 it in a Hardhat plugin or your tests may fail in very hard to debug ways.
 
 When tests are run, Hardhat gets initialized multiple times, and that means unloading and reloading config and plugin
-modules. This unloading process may or may not lead to your dependencies being reloaded. This makes monkey-patching 
+modules. This unloading process may or may not lead to your dependencies being reloaded. This makes monkey-patching
 harder, as you may apply the same patch multiple times to the same module.
 
-This problem is normally not present if you are monkey-patching an object that you initialized, but it is when 
+This problem is normally not present if you are monkey-patching an object that you initialized, but it is when
 monkey-patching a class, its prototype, or a singleton object initialized by the library itself.
 
 For an example on how to do it properly, please take a look at the `hardhat-truffle5` plugin.

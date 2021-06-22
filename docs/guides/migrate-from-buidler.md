@@ -64,7 +64,7 @@ For example, if you had something like this in your config:
 ```js
 networks: {
   buidlerevm: {
-    blockGasLimit: 12000000
+    blockGasLimit: 12000000;
   }
 }
 ```
@@ -74,7 +74,7 @@ you need to replace it with:
 ```js
 networks: {
   hardhat: {
-    blockGasLimit: 12000000
+    blockGasLimit: 12000000;
   }
 }
 ```
@@ -162,7 +162,9 @@ const Ownable = await ethers.getContractFactory("Ownable");
 with this
 
 ```js
-const Ownable = await ethers.getContractFactory("contracts/Ownable.sol:Ownable");
+const Ownable = await ethers.getContractFactory(
+  "contracts/Ownable.sol:Ownable"
+);
 ```
 
 ## Mocha and VSCode setup changes

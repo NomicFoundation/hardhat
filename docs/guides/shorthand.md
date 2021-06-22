@@ -39,7 +39,6 @@ same version. This is why you need to use `npx` or npm scripts to run Hardhat.
 
 This approach has the downside of there being no way to provide autocomplete suggestions directly for the `hardhat` command, as well as making the CLI commands longer. These are the two issues that `hh` solves.
 
-
 ## Troubleshooting
 
 ### "Autocompletion is not working"
