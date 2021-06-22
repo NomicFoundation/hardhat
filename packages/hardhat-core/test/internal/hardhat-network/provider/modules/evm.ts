@@ -228,19 +228,21 @@ describe("Evm module", function () {
           const timestamp = getCurrentTimestamp() + 70;
           await this.provider.send("evm_mine", [timestamp]);
 
-          this.provider
-            .send("evm_setNextBlockTimestamp", [timestamp - 1])
-            .then(function () {
-              assert.fail("should have failed setting next block timestamp");
-            })
-            .catch(function () {});
+          await assertInvalidInputError(
+            this.provider,
+            "evm_setNextBlockTimestamp",
+            [timestamp - 1],
+            `Timestamp ${
+              timestamp - 1
+            } is lower than or equal to previous block's timestamp ${timestamp}`
+          );
 
-          this.provider
-            .send("evm_setNextBlockTimestamp", [timestamp])
-            .then(function () {
-              assert.fail("should have failed setting next block timestamp");
-            })
-            .catch(function () {});
+          await assertInvalidInputError(
+            this.provider,
+            "evm_setNextBlockTimestamp",
+            [timestamp],
+            `Timestamp ${timestamp} is lower than or equal to previous block's timestamp ${timestamp}`
+          );
         });
 
         it("should advance the time offset accordingly to the timestamp", async function () {
