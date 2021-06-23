@@ -1,4 +1,5 @@
 /node_modules
+/build-test
 /builtin-tasks
 /internal
 /types
