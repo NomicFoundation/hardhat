@@ -8,8 +8,8 @@
   "author": "Nomic Labs LLC",
   "license": "MIT",
   "scripts": {
-    "lint:fix": "prettier --write \"test/**/*.js\" && yarn lint --fix",
-    "lint": "prettier --check \"test/**/*.js\" && tslint --config tslint.json --project ./tsconfig.json",
+    "lint": "prettier --check \"**/*.{js,md,json}\" && tslint --config tslint.json --project ./tsconfig.json",
+    "lint:fix": "prettier --write \"**/*.{js,md,json}\" && tslint --config tslint.json --project ./tsconfig.json",
     "pretest": "node prepare-tests.js",
     "test": "mocha --recursive \"test/**/*.ts\" --exit",
     "build": "tsc --build .",
