@@ -1234,16 +1234,22 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
         for (const tx of block.transactions) {
           let txWithCommon: TypedTransaction;
+          const sender = tx.getSenderAddress();
           if (tx.type === 0) {
-            txWithCommon = new Transaction(tx, {
+            txWithCommon = new FakeSenderTransaction(sender, tx, {
               common: vm._common,
             });
           } else if (tx.type === 1) {
-            txWithCommon = new AccessListEIP2930Transaction(tx, {
-              common: vm._common,
-            });
+            txWithCommon = new FakeSenderAccessListEIP2930Transaction(
+              sender,
+              tx,
+              {
+                common: vm._common,
+              }
+            );
           } else if (tx.type === 2) {
-            txWithCommon = new FeeMarketEIP1559Transaction(
+            txWithCommon = new FakeSenderEIP1559Transaction(
+              sender,
               { ...tx, gasPrice: undefined },
               {
                 common: vm._common,
