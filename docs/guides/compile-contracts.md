@@ -146,7 +146,7 @@ contracts
 └── Qux.sol
 ```
 
-then the structure of your artifact directory then would look like this:
+then the structure of your artifact directory would look like this:
 
 ```
 artifacts
