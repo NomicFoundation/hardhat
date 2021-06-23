@@ -1,6 +1,6 @@
 {
   "name": "hardhat",
-  "version": "2.4.0",
+  "version": "2.4.1",
   "author": "Nomic Labs LLC",
   "license": "SEE LICENSE IN LICENSE",
   "homepage": "https://hardhat.org",
@@ -31,8 +31,10 @@
     "lint-src": "NODE_OPTIONS='--require ts-node/register/transpile-only' tslint --config tslint.json --project src/tsconfig.json",
     "lint-tests": "NODE_OPTIONS='--require ts-node/register/transpile-only' tslint --config tslint.json --project ./tsconfig.json",
     "test": "mocha --recursive \"test/**/*.ts\"",
-    "build": "tsc --build src",
-    "build-test": "tsc --build .",
+    "test:except-tracing": "mocha --recursive \"test/**/*.ts\" --invert --grep \"Stack traces\"",
+    "test:tracing": "mocha --recursive \"test/internal/hardhat-network/{helpers,stack-traces}/*.ts\"",
+    "test:forking": "mocha --recursive \"test/internal/hardhat-network/{helpers,jsonrpc,provider}/*.ts\"",
+    "build": "tsc --build .",
     "clean": "rimraf builtin-tasks internal types utils *.d.ts *.map *.js build-test tsconfig.tsbuildinfo"
   },
   "files": [
