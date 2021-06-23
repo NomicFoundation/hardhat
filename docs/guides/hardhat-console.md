@@ -65,8 +65,7 @@ You will also notice that the console has the handy history feature you expect o
 
 ### Asynchronous operations and top-level await
 
-Interacting with the Ethereum network and your smart contracts are asynchronous operations, hence most APIs and libraries
-use JavaScript's `Promise` for returning values.
+Interacting with the Ethereum network and your smart contracts are asynchronous operations, hence most APIs and libraries use JavaScript's `Promise` for returning values.
 
 To make things easier, Hardhat's console supports `await` top-level await (i.e. `console.log(await web3.eth.getBalance()`). To use this feature, you need to be using Node 10 or higher.
 

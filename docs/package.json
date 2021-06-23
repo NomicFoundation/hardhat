@@ -2,8 +2,8 @@
   "scripts": {
     "dev": "vuepress dev .",
     "build": "NODE_ENV=production vuepress build .",
-    "lint": "prettier --check \"**/*.{js,md,json}\"",
-    "lint:fix": "prettier --write \"**/*.{js,md,json}\""
+    "lint": "prettier --prose-wrap=never --check \"**/*.{js,md,json}\"",
+    "lint:fix": "prettier --prose-wrap=never --write \"**/*.{js,md,json}\""
   },
   "devDependencies": {
     "@prettier/plugin-pug": "^1.8.1",

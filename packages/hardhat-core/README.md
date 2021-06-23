@@ -1,6 +1,4 @@
-![](https://user-images.githubusercontent.com/176499/96893278-ebc67580-1460-11eb-9530-d5df3a3d65d0.png)
-[![NPM Package](https://img.shields.io/npm/v/hardhat.svg?style=flat-square)](https://www.npmjs.org/package/hardhat)
-![Build Status](https://github.com/nomiclabs/hardhat/workflows/CI/badge.svg)
+![](https://user-images.githubusercontent.com/176499/96893278-ebc67580-1460-11eb-9530-d5df3a3d65d0.png) [![NPM Package](https://img.shields.io/npm/v/hardhat.svg?style=flat-square)](https://www.npmjs.org/package/hardhat) ![Build Status](https://github.com/nomiclabs/hardhat/workflows/CI/badge.svg)
 
 ---
 

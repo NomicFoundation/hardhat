@@ -1,7 +1,6 @@
 # Buidler errors
 
-This section contains a list of all the possible errors you may encounter when
-using Buidler and an explanation of each of them.
+This section contains a list of all the possible errors you may encounter when using Buidler and an explanation of each of them.
 
 ## General errors
 
@@ -105,15 +104,13 @@ Please check that you are sending a `data` parameter.
 
 ### BDLR104: Unrecognized account
 
-You are trying to send a transaction or sign some data with an
-account not managed by your Ethereum node nor Buidler.
+You are trying to send a transaction or sign some data with an account not managed by your Ethereum node nor Buidler.
 
 Please double check your accounts and the `from` parameter in your RPC calls.
 
 ### BDLR105: Missing transaction parameter
 
-You are trying to send a transaction with a locally managed
-account, and some parameters are missing.
+You are trying to send a transaction with a locally managed account, and some parameters are missing.
 
 Please double check your transactions' parameters.
 
@@ -163,9 +160,7 @@ Try using another mnemonic or deriving less keys.
 
 ### BDLR200: Could not add positional param
 
-Could add a positional param to your task because
-there is already a variadic positional param and it has to be the last
-positional one.
+Could add a positional param to your task because there is already a variadic positional param and it has to be the last positional one.
 
 Please double check your task definitions.
 
@@ -195,25 +190,19 @@ Please, double check your task definitions.
 
 ### BDLR210: Attempted to add mandatory params to an overridden task
 
-You can't add mandatory (non optional) param definitions in an overridden task.
-The only supported param additions for overridden tasks are flags,
-and optional params.
+You can't add mandatory (non optional) param definitions in an overridden task. The only supported param additions for overridden tasks are flags, and optional params.
 
 Please, double check your task definitions.
 
 ### BDLR211: Attempted to add positional params to an overridden task
 
-You can't add positional param definitions in an overridden task.
-The only supported param additions for overridden tasks are flags,
-and optional params.
+You can't add positional param definitions in an overridden task. The only supported param additions for overridden tasks are flags, and optional params.
 
 Please, double check your task definitions.
 
 ### BDLR212: Attempted to add variadic params to an overridden task
 
-You can't add variadic param definitions in an overridden task.
-The only supported param additions for overridden tasks are flags,
-and optional params.
+You can't add variadic param definitions in an overridden task. The only supported param additions for overridden tasks are flags, and optional params.
 
 Please, double check your task definitions.
 
@@ -263,8 +252,7 @@ Please double check your arguments.
 
 ### BDLR302: Invalid file argument
 
-One of your tasks expected a file as an argument, but you provided a
-non-existent or non-readable file.
+One of your tasks expected a file as an argument, but you provided a non-existent or non-readable file.
 
 Please double check your arguments.
 

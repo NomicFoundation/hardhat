@@ -12,8 +12,7 @@ A lot of Hardhat's functionality comes from plugins, and, as a developer, you're
 
 Hardhat is used through a local installation in your project. This way your environment will be reproducible, and you will avoid future version conflicts.
 
-To install it, you need to create an npm project by going to an empty folder, running `npm init`,
-and following its instructions. Once your project is ready, you should run
+To install it, you need to create an npm project by going to an empty folder, running `npm init`, and following its instructions. Once your project is ready, you should run
 
 ```
 npm install --save-dev hardhat
@@ -25,8 +24,7 @@ To use your local installation of Hardhat, you need to use `npx` to run it (i.e.
 
 This guide will explore the basics of creating a Hardhat project.
 
-A barebones installation with no plugins allows you to create your own tasks, compile your Solidity code,
-run your tests and run Hardhat Network, a local development network you can deploy your contracts to.
+A barebones installation with no plugins allows you to create your own tasks, compile your Solidity code, run your tests and run Hardhat Network, a local development network you can deploy your contracts to.
 
 To create your Hardhat project run `npx hardhat` in your project folder:
 
@@ -49,14 +47,11 @@ Welcome to Hardhat v2.0.8
   Quit
 ```
 
-Let’s create the sample project and go through these steps to try out the sample task and compile, test
-and deploy the sample contract.
+Let’s create the sample project and go through these steps to try out the sample task and compile, test and deploy the sample contract.
 
 The sample project will ask you to install `hardhat-waffle` and `hardhat-ethers`, which makes Hardhat compatible with tests built with Waffle. You can learn more about it [in this guide](../guides/waffle-testing.md).
 
-::: tip
-Hardhat will let you know how, but, in case you missed it, you can install them with `npm install --save-dev @nomiclabs/hardhat-waffle ethereum-waffle chai @nomiclabs/hardhat-ethers ethers`
-:::
+::: tip Hardhat will let you know how, but, in case you missed it, you can install them with `npm install --save-dev @nomiclabs/hardhat-waffle ethereum-waffle chai @nomiclabs/hardhat-ethers ethers` :::
 
 ### Running tasks
 
@@ -168,8 +163,7 @@ Changing greeting from 'Hello, world!' to 'Hola, mundo!'
 
 ### Deploying your contracts
 
-Next, to deploy the contract we will use a Hardhat script.
-Inside `scripts/` you will find `sample-script.js` with the following code:
+Next, to deploy the contract we will use a Hardhat script. Inside `scripts/` you will find `sample-script.js` with the following code:
 
 <<< @/../packages/hardhat-core/sample-project/scripts/sample-script.js
 
@@ -206,5 +200,4 @@ npx hardhat run scripts/sample-script.js --network localhost
 
 Congrats! You have created a project, ran a Hardhat task, compiled a smart contract, installed a Waffle integration plugin, wrote and ran a test using the Waffle and ethers.js plugins, and deployed a contract.
 
-For any questions or feedback you may have, you can find us in the [Hardhat Discord
-server](https://hardhat.org/discord).
+For any questions or feedback you may have, you can find us in the [Hardhat Discord server](https://hardhat.org/discord).

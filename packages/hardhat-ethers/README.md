@@ -1,5 +1,4 @@
-[![npm](https://img.shields.io/npm/v/@nomiclabs/hardhat-ethers.svg)](https://www.npmjs.com/package/@nomiclabs/hardhat-ethers)
-[![hardhat](https://hardhat.org/buidler-plugin-badge.svg?1)](https://hardhat.org)
+[![npm](https://img.shields.io/npm/v/@nomiclabs/hardhat-ethers.svg)](https://www.npmjs.com/package/@nomiclabs/hardhat-ethers) [![hardhat](https://hardhat.org/buidler-plugin-badge.svg?1)](https://hardhat.org)
 
 # hardhat-ethers
 
@@ -35,13 +34,11 @@ This plugin creates no additional tasks.
 
 This plugins adds an `ethers` object to the Hardhat Runtime Environment.
 
-This object has the same API than `ethers.js`, with some extra Hardhat-specific
-functionality.
+This object has the same API than `ethers.js`, with some extra Hardhat-specific functionality.
 
 ### Provider object
 
-A `provider` field is added to `ethers`, which is an `ethers.providers.Provider`
-automatically connected to the selected network.
+A `provider` field is added to `ethers`, which is an `ethers.providers.Provider` automatically connected to the selected network.
 
 ### Helpers
 

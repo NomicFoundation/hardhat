@@ -316,5 +316,4 @@ subtask("print", "Prints a message")
   });
 ```
 
-For any questions or feedback you may have, you can find us in the [Hardhat Discord
-server](https://hardhat.org/discord).
+For any questions or feedback you may have, you can find us in the [Hardhat Discord server](https://hardhat.org/discord).

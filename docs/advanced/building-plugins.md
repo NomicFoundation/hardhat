@@ -1,32 +1,20 @@
 # Building plugins
 
-In this section, we will explore the creation of plugins for Hardhat, which are the key component
-for integrating other tools and extending the built-in functionality.
+In this section, we will explore the creation of plugins for Hardhat, which are the key component for integrating other tools and extending the built-in functionality.
 
 ## What exactly are plugins in Hardhat?
 
-Plugins are bits of reusable configuration. Anything that you can do in a plugin, can
-also be done in your config file. You can test your ideas in a config file, and move
-them into a plugin when ready.
+Plugins are bits of reusable configuration. Anything that you can do in a plugin, can also be done in your config file. You can test your ideas in a config file, and move them into a plugin when ready.
 
-When developing a plugin the main tools available to integrate new functionality are extending the
-[Hardhat Runtime Environment](/advanced/hardhat-runtime-environment.md), extending the Hardhat config, defining new tasks and
-overriding existing ones, which are all configuration actions achieved through code.
+When developing a plugin the main tools available to integrate new functionality are extending the [Hardhat Runtime Environment](/advanced/hardhat-runtime-environment.md), extending the Hardhat config, defining new tasks and overriding existing ones, which are all configuration actions achieved through code.
 
-Some examples of things you could achieve by creating a plugin are running a linter when
-the `check` task runs, using different compiler versions for different files or
-generating an UML diagram for your contracts.
+Some examples of things you could achieve by creating a plugin are running a linter when the `check` task runs, using different compiler versions for different files or generating an UML diagram for your contracts.
 
 ## Extending the Hardhat Runtime Environment
 
-Let’s go through the process of creating a plugin that adds new functionality to the Hardhat Runtime Environment.
-By doing this, we make sure our new feature is available everywhere. This means your plugin users can access it from
-tasks, tests, scripts, and the Hardhat console.
+Let’s go through the process of creating a plugin that adds new functionality to the Hardhat Runtime Environment. By doing this, we make sure our new feature is available everywhere. This means your plugin users can access it from tasks, tests, scripts, and the Hardhat console.
 
-The Hardhat Runtime Environment (HRE) is configured through a queue of extension functions
-that you can add to using the `extendEnvironment()` function. It receives one parameter which is a callback which will be executed
-after the HRE is initialized. If `extendEnvironment` is called multiple times, its
-callbacks will be executed in order.
+The Hardhat Runtime Environment (HRE) is configured through a queue of extension functions that you can add to using the `extendEnvironment()` function. It receives one parameter which is a callback which will be executed after the HRE is initialized. If `extendEnvironment` is called multiple times, its callbacks will be executed in order.
 
 For example, adding the following to `hardhat.config.js`:
 
@@ -57,15 +45,13 @@ $ npx hardhat envtest
 Hello, Hardhat!
 ```
 
-This is literally all it takes to put together a plugin for Hardhat. Now `hi` is available to be used in
-the Hardhat console, your tasks, tests and other plugins.
+This is literally all it takes to put together a plugin for Hardhat. Now `hi` is available to be used in the Hardhat console, your tasks, tests and other plugins.
 
 ## Using the Hardhat TypeScript plugin boilerplate
 
 For a complete example of a plugin you can take a look at the [Hardhat TypeScript plugin boilerplate project](https://github.com/nomiclabs/hardhat-ts-plugin-boilerplate/).
 
-Plugins don't need to be written in TypeScript, but we recommend doing it, as many of our users use it. Creating a plugin in
-JavaScript can lead to a subpar experience for them.
+Plugins don't need to be written in TypeScript, but we recommend doing it, as many of our users use it. Creating a plugin in JavaScript can lead to a subpar experience for them.
 
 ### Extending the HRE
 

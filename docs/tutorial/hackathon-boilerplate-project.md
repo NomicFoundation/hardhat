@@ -61,8 +61,7 @@ npm install
 npm run start
 ```
 
-To start the react web app. Open [http://localhost:3000/](http://localhost:3000/) in your browser and you should see this:
-![](/front-5.png)
+To start the react web app. Open [http://localhost:3000/](http://localhost:3000/) in your browser and you should see this: ![](/front-5.png)
 
 Set your network in MetaMask to `localhost:8545`, and click the button. You should then see this:
 
@@ -99,7 +98,6 @@ eth_sendTransaction
     Transferring from 0xc783df8a850f42e7f7e57013759c285caa701eb6 to 0x0987a41e73e69f60c5071ce3c8f7e730f9a60f90 100 tokens
 ```
 
-Showing the `console.log` output from the `transfer()` function in our contract, and this is what the web app will look like after you run the faucet task:
-![](/front-6.png)
+Showing the `console.log` output from the `transfer()` function in our contract, and this is what the web app will look like after you run the faucet task: ![](/front-6.png)
 
 Try playing around with it and reading the code. It's full of comments explaining what's going on and clearly indicating what code is Ethereum boilerplate and what's actually dApp logic. This should make the repository easy to reuse for your project.
