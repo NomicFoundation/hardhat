@@ -28,7 +28,7 @@
   "scripts": {
     "lint:fix": "prettier --write \"test/**/*.js\" && yarn lint-src --fix && yarn lint-tests --fix",
     "lint": "yarn lint-src && yarn lint-tests",
-    "lint-tests": "NODE_OPTIONS='--require ts-node/register/transpile-only' tslint --config tslint.json --project ./tsconfig.json",
+    "lint-tests": "prettier --check \"test/**/*.js\" && NODE_OPTIONS='--require ts-node/register/transpile-only' tslint --config tslint.json --project ./tsconfig.json",
     "lint-src": "NODE_OPTIONS='--require ts-node/register/transpile-only' tslint --config tslint.json --project src/tsconfig.json",
     "test": "mocha --recursive \"test/**/*.ts\"",
     "build": "tsc --build src",
