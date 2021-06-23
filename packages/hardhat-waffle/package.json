@@ -16,8 +16,10 @@
     "ethers.js"
   ],
   "scripts": {
-    "lint": "prettier --check \"**/*.{js,md,json}\" && tslint --config tslint.json --project ./tsconfig.json",
-    "lint:fix": "prettier --write \"**/*.{js,md,json}\" && tslint --fix --config tslint.json --project ./tsconfig.json",
+    "lint": "yarn prettier --check && yarn tslint",
+    "lint:fix": "yarn prettier --write && yarn tslint --fix",
+    "prettier": "prettier \"**/*.{js,md,json}\"",
+    "tslint": "tslint --fix --config tslint.json --project ./tsconfig.json",
     "test": "mocha --recursive \"test/**/*.ts\" --exit",
     "build": "tsc --build .",
     "clean": "rimraf dist"
