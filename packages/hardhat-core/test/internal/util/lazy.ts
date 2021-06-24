@@ -4,8 +4,6 @@ import { ERRORS } from "../../../src/internal/core/errors-list";
 import { lazyFunction, lazyObject } from "../../../src/internal/util/lazy";
 import { expectHardhatError } from "../../helpers/errors";
 
-// eslint-disable 
-
 describe("lazy module", () => {
   describe("lazyObject", () => {
     it("shouldn't call the initializer function eagerly", () => {

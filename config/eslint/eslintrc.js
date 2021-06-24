@@ -4,7 +4,7 @@ module.exports = {
     es6: true,
     node: true,
   },
-  extends: ["prettier"],
+  extends: ["plugin:prettier/recommended"],
   parser: "@typescript-eslint/parser",
   plugins: [
     "@nomiclabs/eslint-plugin",

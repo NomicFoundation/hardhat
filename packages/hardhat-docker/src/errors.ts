@@ -39,10 +39,7 @@ export class DockerBadGatewayError extends HardhatDockerError {
 }
 
 export class ImageDoesntExistError extends HardhatDockerError {
-  constructor(
-    public readonly image: Image,
-    public readonly parent?: Error
-  ) {
+  constructor(public readonly image: Image, public readonly parent?: Error) {
     super(parent);
     Object.setPrototypeOf(this, ImageDoesntExistError.prototype);
   }
