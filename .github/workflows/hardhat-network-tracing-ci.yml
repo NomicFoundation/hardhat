@@ -2,18 +2,18 @@ name: Hardhat Network Tracing Capabilities CI
 
 on:
   push:
-    branches: [ $default-branch ]
+    branches: [$default-branch]
     paths:
-      - 'packages/hardhat-core/**/*'
-      - 'packages/hardhat-common/**/*'
-      - 'config/**/*'
+      - "packages/hardhat-core/**/*"
+      - "packages/hardhat-common/**/*"
+      - "config/**/*"
   pull_request:
     branches:
-      - '*'
+      - "*"
     paths:
-      - 'packages/hardhat-core/**/*'
-      - 'packages/hardhat-common/**/*'
-      - 'config/**/*'
+      - "packages/hardhat-core/**/*"
+      - "packages/hardhat-common/**/*"
+      - "config/**/*"
 
 defaults:
   run:
@@ -24,13 +24,12 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-
   test_tracing:
     name: Test tracing capabilities on Ubuntu with Node ${{ matrix.node }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: [ 10, 12, 14, 16 ]
+        node: [10, 12, 14, 16]
     steps:
       - uses: actions/setup-node@v1
         with:
@@ -50,5 +49,5 @@ jobs:
         env:
           DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI: true
           FORCE_COLOR: 3
-          NODE_OPTIONS: '--max-old-space-size=4096'
+          NODE_OPTIONS: "--max-old-space-size=4096"
         run: yarn test:tracing
