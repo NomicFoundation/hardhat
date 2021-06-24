@@ -53,6 +53,7 @@ export function loadTsNode() {
 
   // If we are running tests we just want to transpile
   if (isRunningHardhatCoreTests()) {
+    // eslint-disable-next-line import/no-extraneous-dependencies
     require("ts-node/register/transpile-only");
     return;
   }
@@ -62,6 +63,7 @@ export function loadTsNode() {
     process.env.TS_NODE_FILES = "true";
   }
 
+  // eslint-disable-next-line import/no-extraneous-dependencies
   require("ts-node/register");
 }
 
