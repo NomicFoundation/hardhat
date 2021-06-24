@@ -4,30 +4,27 @@ Hardhat is a development environment to compile, deploy, test, and debug your Et
 
 Hardhat comes built-in with Hardhat Network, a local Ethereum network designed for development. Its functionality focuses around Solidity debugging, featuring stack traces, `console.log()` and explicit error messages when transactions fail.
 
-Hardhat Runner, the CLI command to interact with Hardhat, is an extensible task runner. It's designed around the concepts of **tasks** and **plugins**. Every time you're running Hardhat from the CLI you're running a task. E.g. `npx hardhat compile` is running the built-in `compile` task. Tasks can call other tasks, allowing complex workflows to be defined. Users and plugins can override existing tasks, making those workflows customizable and extendable. 
+Hardhat Runner, the CLI command to interact with Hardhat, is an extensible task runner. It's designed around the concepts of **tasks** and **plugins**. Every time you're running Hardhat from the CLI you're running a task. E.g. `npx hardhat compile` is running the built-in `compile` task. Tasks can call other tasks, allowing complex workflows to be defined. Users and plugins can override existing tasks, making those workflows customizable and extendable.
 
 A lot of Hardhat's functionality comes from plugins, and, as a developer, you're free to choose which ones you want to use. Hardhat is unopinionated in terms of what tools you end up using, but it does come with some built-in defaults. All of which can be overriden.
 
-
 ## Installation
 
-Hardhat is used through a local installation in your project. This way your environment will be reproducible, and you will avoid future version conflicts. 
+Hardhat is used through a local installation in your project. This way your environment will be reproducible, and you will avoid future version conflicts.
 
-To install it, you need to create an npm project by going to an empty folder, running `npm init`, 
-and following its instructions. Once your project is ready, you should run
+To install it, you need to create an npm project by going to an empty folder, running `npm init`, and following its instructions. Once your project is ready, you should run
 
 ```
 npm install --save-dev hardhat
 ```
 
-To use your local installation of Hardhat, you need to use `npx` to run it (i.e. `npx hardhat`). 
+To use your local installation of Hardhat, you need to use `npx` to run it (i.e. `npx hardhat`).
 
 ## Quick Start
 
 This guide will explore the basics of creating a Hardhat project.
 
-A barebones installation with no plugins allows you to create your own tasks, compile your Solidity code, 
-run your tests and run Hardhat Network, a local development network you can deploy your contracts to.
+A barebones installation with no plugins allows you to create your own tasks, compile your Solidity code, run your tests and run Hardhat Network, a local development network you can deploy your contracts to.
 
 To create your Hardhat project run `npx hardhat` in your project folder:
 
@@ -50,14 +47,11 @@ Welcome to Hardhat v2.0.8
   Quit
 ```
 
-Let’s create the sample project and go through these steps to try out the sample task and compile, test 
-and deploy the sample contract. 
+Let’s create the sample project and go through these steps to try out the sample task and compile, test and deploy the sample contract.
 
-The sample project will ask you to install `hardhat-waffle` and `hardhat-ethers`, which makes Hardhat compatible with tests built with Waffle. You can learn more about it [in this guide](../guides/waffle-testing.md). 
+The sample project will ask you to install `hardhat-waffle` and `hardhat-ethers`, which makes Hardhat compatible with tests built with Waffle. You can learn more about it [in this guide](../guides/waffle-testing.md).
 
-::: tip
-Hardhat will let you know how, but, in case you missed it, you can install them with `npm install --save-dev @nomiclabs/hardhat-waffle ethereum-waffle chai @nomiclabs/hardhat-ethers ethers`
-:::
+::: tip Hardhat will let you know how, but, in case you missed it, you can install them with `npm install --save-dev @nomiclabs/hardhat-waffle ethereum-waffle chai @nomiclabs/hardhat-ethers ethers` :::
 
 ### Running tasks
 
@@ -98,7 +92,7 @@ AVAILABLE TASKS:
 To get help for a specific task run: npx hardhat help [task]
 ```
 
-This is the list of built-in tasks, and the sample `accounts` task. Further ahead, when you start using plugins to add more functionality, tasks defined by those will also show up here. This is your starting point to find out what tasks are available to run. 
+This is the list of built-in tasks, and the sample `accounts` task. Further ahead, when you start using plugins to add more functionality, tasks defined by those will also show up here. This is your starting point to find out what tasks are available to run.
 
 If you take a look at the `hardhat.config.js` file, you will find the definition of the task `accounts`:
 
@@ -169,8 +163,7 @@ Changing greeting from 'Hello, world!' to 'Hola, mundo!'
 
 ### Deploying your contracts
 
-Next, to deploy the contract we will use a Hardhat script.
-Inside `scripts/` you will find `sample-script.js` with the following code:
+Next, to deploy the contract we will use a Hardhat script. Inside `scripts/` you will find `sample-script.js` with the following code:
 
 <<< @/../packages/hardhat-core/sample-project/scripts/sample-script.js
 
@@ -183,7 +176,8 @@ Greeter deployed to: 0x5FbDB2315678afecb367f032d93F642f64180aa3
 ```
 
 ### Connecting a wallet or Dapp to Hardhat Network
-Hardhat will always spin up an in-memory instance of Hardhat Network on startup by default. It's also possible to run Hardhat Network in a standalone fashion so that external clients can connect to it. This could be MetaMask, your Dapp front-end, or a script. 
+
+Hardhat will always spin up an in-memory instance of Hardhat Network on startup by default. It's also possible to run Hardhat Network in a standalone fashion so that external clients can connect to it. This could be MetaMask, your Dapp front-end, or a script.
 
 To run Hardhat Network in this way, run `npx hardhat node`:
 
@@ -206,5 +200,4 @@ npx hardhat run scripts/sample-script.js --network localhost
 
 Congrats! You have created a project, ran a Hardhat task, compiled a smart contract, installed a Waffle integration plugin, wrote and ran a test using the Waffle and ethers.js plugins, and deployed a contract.
 
-For any questions or feedback you may have, you can find us in the [Hardhat Discord
-server](https://hardhat.org/discord).
+For any questions or feedback you may have, you can find us in the [Hardhat Discord server](https://hardhat.org/discord).

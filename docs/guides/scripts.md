@@ -6,17 +6,13 @@ You can write your custom scripts that can use all of Hardhat's functionality. A
 
 There are two ways of writing a script that accesses the [Hardhat Runtime Environment].
 
-::: tip
-Hardhat scripts are useful for simple things that don't take user arguments, and for
-integrating with external tools that aren't well suited for the Hardhat CLI, like a Node.js debugger.
+::: tip Hardhat scripts are useful for simple things that don't take user arguments, and for integrating with external tools that aren't well suited for the Hardhat CLI, like a Node.js debugger.
 
-If you want to automate more complex things, and receive user arguments, you can learn how to [create your own tasks here](../guides/create-task.md).
-:::
+If you want to automate more complex things, and receive user arguments, you can learn how to [create your own tasks here](../guides/create-task.md). :::
 
 ## Hardhat CLI dependant
 
-You can write scripts that access the [Hardhat Runtime Environment]'s properties
-as global variables.
+You can write scripts that access the [Hardhat Runtime Environment]'s properties as global variables.
 
 These scripts must be run through Hardhat: `npx hardhat run script.js`.
 
@@ -81,8 +77,7 @@ Greeter address: 0x5FbDB2315678afecb367f032d93F642f64180aa3
 
 ### Hardhat arguments
 
-You can still pass arguments to Hardhat when using it as a library. This is done
-by setting environment variables. These are:
+You can still pass arguments to Hardhat when using it as a library. This is done by setting environment variables. These are:
 
 - `HARDHAT_NETWORK`: Sets the network to connect to.
 

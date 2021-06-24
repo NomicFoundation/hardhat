@@ -2,18 +2,18 @@ name: Hardhat Network Forking Functionality CI
 
 on:
   push:
-    branches: [ $default-branch ]
+    branches: [$default-branch]
     paths:
-      - 'packages/hardhat-core/**/*'
-      - 'packages/hardhat-common/**/*'
-      - 'config/**/*'
+      - "packages/hardhat-core/**/*"
+      - "packages/hardhat-common/**/*"
+      - "config/**/*"
   pull_request:
     branches:
-      - '*'
+      - "*"
     paths:
-      - 'packages/hardhat-core/**/*'
-      - 'packages/hardhat-common/**/*'
-      - 'config/**/*'
+      - "packages/hardhat-core/**/*"
+      - "packages/hardhat-common/**/*"
+      - "config/**/*"
 
 defaults:
   run:
@@ -24,11 +24,10 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-
   # We should run this tests with multiple configurations
   # but somehow the requests to Alchemy take much longer when doing that.
   # As a temporary workaround, we run them with a single config.
-  # 
+  #
   # Once we properly refactor Hardhat Network's tests we should
   # add more configurations (different OS and node versions).
   #

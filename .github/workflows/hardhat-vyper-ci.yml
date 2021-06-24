@@ -2,22 +2,22 @@ name: hardhat-vyper CI
 
 on:
   push:
-    branches: [ $default-branch ]
+    branches: [$default-branch]
     paths:
-      - 'packages/hardhat-vyper/**/*'
-      - 'packages/hardhat-docker/**/*'
-      - 'packages/hardhat-core/**/*'
-      - 'packages/hardhat-common/**/*'
-      - 'config/**/*'
+      - "packages/hardhat-vyper/**/*"
+      - "packages/hardhat-docker/**/*"
+      - "packages/hardhat-core/**/*"
+      - "packages/hardhat-common/**/*"
+      - "config/**/*"
   pull_request:
     branches:
-      - '*'
+      - "*"
     paths:
-      - 'packages/hardhat-vyper/**/*'
-      - 'packages/hardhat-docker/**/*'
-      - 'packages/hardhat-core/**/*'
-      - 'packages/hardhat-common/**/*'
-      - 'config/**/*'
+      - "packages/hardhat-vyper/**/*"
+      - "packages/hardhat-docker/**/*"
+      - "packages/hardhat-core/**/*"
+      - "packages/hardhat-common/**/*"
+      - "config/**/*"
 
 defaults:
   run:
@@ -28,13 +28,12 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-
   test_on_linux:
     name: Test hardhat-vyper on Ubuntu with Node ${{ matrix.node }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: [ 10, 12, 14, 16 ]
+        node: [10, 12, 14, 16]
     steps:
       - uses: actions/setup-node@v1
         with:
@@ -48,4 +47,3 @@ jobs:
         run: yarn build
       - name: Run tests
         run: yarn test
-  

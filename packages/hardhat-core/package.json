@@ -26,10 +26,12 @@
     "node": ">=8.2.0"
   },
   "scripts": {
-    "lint:fix": "prettier --write \"src/**/*.{js,ts}\" \"test/**/*.{js,ts}\" && yarn lint-src --fix && yarn lint-tests --fix",
-    "lint": "yarn lint-src && yarn lint-tests",
-    "lint-tests": "NODE_OPTIONS='--require ts-node/register/transpile-only' tslint --config tslint.json --project ./tsconfig.json",
-    "lint-src": "NODE_OPTIONS='--require ts-node/register/transpile-only' tslint --config tslint.json --project src/tsconfig.json",
+    "lint": "yarn prettier --check && yarn lint:src && yarn lint:test",
+    "lint:fix": "yarn prettier --write && yarn lint:src --fix && yarn lint:test --fix",
+    "lint:src": "yarn tslint --project ./src/tsconfig.json",
+    "lint:test": "yarn tslint --project ./tsconfig.json",
+    "tslint": "NODE_OPTIONS='--require ts-node/register/transpile-only' tslint --config tslint.json",
+    "prettier": "prettier \"**/*.{js,md,json}\"",
     "test": "mocha --recursive \"test/**/*.ts\"",
     "test:except-tracing": "mocha --recursive \"test/**/*.ts\" --invert --grep \"Stack traces\"",
     "test:tracing": "mocha --recursive \"test/internal/hardhat-network/{helpers,stack-traces}/*.ts\"",
