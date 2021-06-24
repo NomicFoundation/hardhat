@@ -4,7 +4,7 @@ import { AbiHelpers } from "../../util/abi-helpers";
 
 import { Opcode } from "./opcodes";
 
-// tslint:disable only-hardhat-error
+/* eslint-disable @nomiclabs/only-hardhat-error */
 
 export enum JumpType {
   NOT_JUMP,
@@ -141,15 +141,15 @@ export class Contract {
     public readonly location: SourceLocation
   ) {}
 
-  get constructorFunction(): ContractFunction | undefined {
+  public get constructorFunction(): ContractFunction | undefined {
     return this._constructor;
   }
 
-  get fallback(): ContractFunction | undefined {
+  public get fallback(): ContractFunction | undefined {
     return this._fallback;
   }
 
-  get receive(): ContractFunction | undefined {
+  public get receive(): ContractFunction | undefined {
     return this._receive;
   }
 

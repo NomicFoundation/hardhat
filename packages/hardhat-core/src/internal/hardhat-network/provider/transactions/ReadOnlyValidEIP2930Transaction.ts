@@ -9,7 +9,7 @@ import { Address, BN } from "ethereumjs-util";
 
 import { InternalError } from "../../../core/providers/errors";
 
-// tslint:disable only-hardhat-error
+/* eslint-disable @nomiclabs/only-hardhat-error */
 
 /**
  * This class is like `ReadOnlyValidTransaction` but for
@@ -51,7 +51,7 @@ export class ReadOnlyValidEIP2930Transaction extends AccessListEIP2930Transactio
 
   private readonly _sender: Address;
 
-  public constructor(sender: Address, data: AccessListEIP2930TxData = {}) {
+  constructor(sender: Address, data: AccessListEIP2930TxData = {}) {
     const fakeCommon = new Common({
       chain: "mainnet",
     });

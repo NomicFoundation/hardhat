@@ -8,7 +8,7 @@ import {
 } from "../../../../helpers/providers";
 import { retrieveForkBlockNumber } from "../../../../helpers/retrieveForkBlockNumber";
 
-// tslint:disable-next-line no-var-requires
+// eslint-disable-next-line  @typescript-eslint/no-var-requires, @typescript-eslint/naming-convention
 const { recoverTypedSignature_v4 } = require("eth-sig-util");
 
 describe("Eth module", function () {

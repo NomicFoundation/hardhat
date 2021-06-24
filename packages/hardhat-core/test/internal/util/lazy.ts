@@ -4,7 +4,7 @@ import { ERRORS } from "../../../src/internal/core/errors-list";
 import { lazyFunction, lazyObject } from "../../../src/internal/util/lazy";
 import { expectHardhatError } from "../../helpers/errors";
 
-// tslint:disable no-inferred-empty-object-type
+// eslint-disable 
 
 describe("lazy module", () => {
   describe("lazyObject", () => {

@@ -275,12 +275,12 @@ describe("Artifacts class", function () {
 
       assert.deepEqual(storedArtifact, artifact);
 
-      // tslint:disable-next-line no-string-literal
+      // eslint-disable-next-line  dot-notation,@typescript-eslint/dot-notation
       const artifactPath = await artifacts["_getArtifactPath"](
         artifact.contractName
       );
 
-      // tslint:disable-next-line no-string-literal
+      // eslint-disable-next-line  dot-notation,@typescript-eslint/dot-notation
       const debugFilePath = artifacts["_getDebugFilePath"](artifactPath);
 
       assert.isTrue(await fsExtra.pathExists(debugFilePath));
@@ -305,12 +305,12 @@ describe("Artifacts class", function () {
 
       assert.deepEqual(storedArtifact, artifact);
 
-      // tslint:disable-next-line no-string-literal
+      // eslint-disable-next-line  dot-notation,@typescript-eslint/dot-notation
       const artifactPath = await artifacts["_getArtifactPath"](
         artifact.contractName
       );
 
-      // tslint:disable-next-line no-string-literal
+      // eslint-disable-next-line  dot-notation, @typescript-eslint/dot-notation
       const debugFilePath = artifacts["_getDebugFilePath"](artifactPath);
 
       assert.isFalse(await fsExtra.pathExists(debugFilePath));

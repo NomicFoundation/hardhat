@@ -44,7 +44,7 @@ For the case of package [hardhat-vyper](./packages/hardhat-vyper), an `vyperlang
 We use [Prettier](https://prettier.io/) to format all the code without any special configuration. Whatever Prettier does
 is considered The Right Thing. It's completely fine to commit non-prettied code and then reformat it in a later commit.
 
-We also have [tslint](https://palantir.github.io/tslint/) installed in all the projects. It checks that you have run
+We also have [eslint](https://eslint.org/) installed in all the projects. It checks that you have run
 Prettier and forbids some dangerous patterns.
 
 The linter is always run in the CI, so make sure it passes before pushing code. You can use `yarn lint` and

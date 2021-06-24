@@ -26,7 +26,7 @@ function isCLIArgumentType(
  *
  */
 export class SimpleTaskDefinition implements TaskDefinition {
-  get description() {
+  public get description() {
     return this._description;
   }
   public readonly paramDefinitions: ParamDefinitionsMap = {};
@@ -578,7 +578,7 @@ export class OverriddenTaskDefinition implements TaskDefinition {
   /**
    * Retrieves the parent task's name.
    */
-  get name() {
+  public get name() {
     return this.parentTaskDefinition.name;
   }
 
@@ -586,7 +586,7 @@ export class OverriddenTaskDefinition implements TaskDefinition {
    * Retrieves, if defined, the description of the overriden task,
    * otherwise retrieves the description of the parent task.
    */
-  get description() {
+  public get description() {
     if (this._description !== undefined) {
       return this._description;
     }
@@ -598,7 +598,7 @@ export class OverriddenTaskDefinition implements TaskDefinition {
    * Retrieves, if defined, the action of the overriden task,
    * otherwise retrieves the action of the parent task.
    */
-  get action() {
+  public get action() {
     if (this._action !== undefined) {
       return this._action;
     }
@@ -609,14 +609,14 @@ export class OverriddenTaskDefinition implements TaskDefinition {
   /**
    * Retrieves the parent task's param definitions.
    */
-  get paramDefinitions() {
+  public get paramDefinitions() {
     return this.parentTaskDefinition.paramDefinitions;
   }
 
   /**
    * Retrieves the parent task's positional param definitions.
    */
-  get positionalParamDefinitions() {
+  public get positionalParamDefinitions() {
     return this.parentTaskDefinition.positionalParamDefinitions;
   }
 

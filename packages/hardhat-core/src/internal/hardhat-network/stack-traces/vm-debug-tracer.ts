@@ -14,7 +14,7 @@ import { RpcDebugTracingConfig } from "../../core/jsonrpc/types/input/debugTrace
 import { InvalidInputError } from "../../core/providers/errors";
 import { RpcDebugTraceOutput, RpcStructLog } from "../provider/output";
 
-// tslint:disable only-hardhat-error
+/* eslint-disable @nomiclabs/only-hardhat-error */
 
 interface StructLog {
   depth: number;

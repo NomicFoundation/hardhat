@@ -3,7 +3,7 @@ import { Address } from "ethereumjs-util";
 
 import { InternalError } from "../../../core/providers/errors";
 
-// tslint:disable only-hardhat-error
+/* eslint-disable @nomiclabs/only-hardhat-error */
 
 /**
  * This class represents a transaction that is assumed to be valid.
@@ -49,7 +49,7 @@ export class ReadOnlyValidTransaction extends Transaction {
 
   private readonly _sender: Address;
 
-  public constructor(sender: Address, data: TxData = {}) {
+  constructor(sender: Address, data: TxData = {}) {
     super(data, { freeze: false });
 
     // TODO: remove this as any

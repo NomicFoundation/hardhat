@@ -11,7 +11,7 @@ import {
   InvalidArgumentsError,
 } from "../../../core/providers/errors";
 
-// tslint:disable only-hardhat-error
+/* eslint-disable @nomiclabs/only-hardhat-error */
 
 /**
  * This class is the EIP-2930 version of FakeSenderTransaction.
@@ -118,7 +118,7 @@ export class FakeSenderAccessListEIP2930Transaction extends AccessListEIP2930Tra
 
   private readonly _sender: Address;
 
-  public constructor(
+  constructor(
     sender: Address,
     data: AccessListEIP2930TxData = {},
     opts?: TxOptions

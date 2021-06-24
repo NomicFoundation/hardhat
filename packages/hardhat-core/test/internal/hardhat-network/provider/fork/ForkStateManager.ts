@@ -51,7 +51,7 @@ describe("ForkStateManager", () => {
   });
 
   describe("copy", () => {
-    /* tslint:disable no-string-literal */
+    /* eslint-disable  dot-notation,@typescript-eslint/dot-notation */
     it("creates a new object with the same state", async () => {
       const fsmCopy = fsm.copy();
 
@@ -61,7 +61,7 @@ describe("ForkStateManager", () => {
       assert.equal(fsmCopy["_stateRoot"], fsm["_stateRoot"]);
       assert.equal(fsmCopy["_stateRootToState"], fsm["_stateRootToState"]);
     });
-    /* tslint:enable no-string-literal */
+    /* eslint-enable  dot-notation,@typescript-eslint/dot-notation */
   });
 
   describe("getAccount", () => {
@@ -405,7 +405,7 @@ describe("ForkStateManager", () => {
     });
   });
 
-  /* tslint:disable no-string-literal */
+  /* eslint-disable  dot-notation,@typescript-eslint/dot-notation */
   describe("checkpoint", () => {
     it("stores current state root on the stack", async () => {
       const stateRoot = await fsm.getStateRoot();
@@ -500,7 +500,7 @@ describe("ForkStateManager", () => {
       assert.deepEqual(fsm["_stateCheckpoints"], [bufferToHex(stateRoot)]);
     });
   });
-  /* tslint:enable no-string-literal */
+  /* eslint-enable  dot-notation,@typescript-eslint/dot-notation */
 
   describe("clearContractStorage", () => {
     it("can clear all locally set values", async () => {

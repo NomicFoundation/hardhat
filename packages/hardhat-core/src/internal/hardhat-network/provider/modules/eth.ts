@@ -86,7 +86,7 @@ import { ModulesLogger } from "./logger";
 const ACCESS_LIST_MIN_HARDFORK = "berlin";
 const EIP155_MIN_HARDFORK = "spuriousDragon";
 
-// tslint:disable only-hardhat-error
+/* eslint-disable @nomiclabs/only-hardhat-error */
 export class EthModule {
   constructor(
     private readonly _common: Common,

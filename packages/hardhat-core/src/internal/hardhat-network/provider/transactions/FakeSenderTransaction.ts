@@ -3,7 +3,7 @@ import { Address, BN, rlp } from "ethereumjs-util";
 
 import { InternalError } from "../../../core/providers/errors";
 
-// tslint:disable only-hardhat-error
+/* eslint-disable @nomiclabs/only-hardhat-error */
 
 /**
  * This class represents a legacy transaction sent by a sender whose private
@@ -88,7 +88,7 @@ export class FakeSenderTransaction extends Transaction {
 
   private readonly _sender: Address;
 
-  public constructor(sender: Address, data: TxData = {}, opts?: TxOptions) {
+  constructor(sender: Address, data: TxData = {}, opts?: TxOptions) {
     super(
       {
         ...data,

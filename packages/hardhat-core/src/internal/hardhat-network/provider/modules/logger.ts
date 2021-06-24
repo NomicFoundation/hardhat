@@ -41,7 +41,7 @@ function printLine(line: string) {
 
 function replaceLastLine(newLine: string) {
   process.stdout.write(
-    // tslint:disable-next-line:prefer-template
+    // eslint-disable-next-line prefer-template
     ansiEscapes.cursorHide +
       ansiEscapes.cursorPrevLine +
       newLine +

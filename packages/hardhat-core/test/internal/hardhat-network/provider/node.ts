@@ -34,7 +34,7 @@ import {
 
 import { assertEqualBlocks } from "./utils/assertEqualBlocks";
 
-// tslint:disable no-string-literal
+// eslint-disable  dot-notation,@typescript-eslint/dot-notation
 
 interface ForkedBlock {
   networkName: string;

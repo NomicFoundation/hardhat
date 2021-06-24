@@ -54,10 +54,12 @@ import {
 const CONSOLE_ADDRESS = "0x000000000000000000636F6e736F6c652e6c6f67"; // toHex("console.log")
 const REGISTER_SIZE = 32;
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface ConsoleLogArray extends Array<ConsoleLogEntry> {}
 
 export type ConsoleLogEntry = string | ConsoleLogArray;
 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export type ConsoleLogs = ConsoleLogEntry[];
 
 export class ConsoleLogger {

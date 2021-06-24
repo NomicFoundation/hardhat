@@ -58,7 +58,7 @@ export interface SubmessageData {
   stepIndex: number;
 }
 
-// tslint:disable only-hardhat-error
+/* eslint-disable @nomiclabs/only-hardhat-error */
 
 export class ErrorInferrer {
   public inferBeforeTracingCallMessage(
@@ -967,7 +967,7 @@ export class ErrorInferrer {
 
     let hasReadDeploymentCodeSize = false;
 
-    // tslint:disable-next-line prefer-for-of
+    // eslint-disable-next-line @typescript-eslint/prefer-for-of
     for (let stepIndex = 0; stepIndex < trace.steps.length; stepIndex++) {
       const step = trace.steps[stepIndex];
       if (!isEvmStep(step)) {
