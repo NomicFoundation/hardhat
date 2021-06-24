@@ -6,7 +6,6 @@ import { BN, toBuffer } from "ethereumjs-util";
 import {
   bufferToRpcData,
   numberToRpcQuantity,
-  rpcDataToNumber,
 } from "../../../../../../src/internal/core/jsonrpc/types/base-types";
 import { assertInvalidArgumentsError } from "../../../helpers/assertions";
 import { DEFAULT_ACCOUNTS_ADDRESSES } from "../../../helpers/providers";

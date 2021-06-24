@@ -182,7 +182,7 @@ function createLazyProxy<ActualT extends GuardT, GuardT extends object>(
       return descriptor;
     },
 
-    getPrototypeOf(target) {
+    getPrototypeOf(_target) {
       return Reflect.getPrototypeOf(getRealTarget());
     },
 
@@ -190,15 +190,15 @@ function createLazyProxy<ActualT extends GuardT, GuardT extends object>(
       return Reflect.has(getRealTarget(), property);
     },
 
-    isExtensible(target) {
+    isExtensible(_target) {
       return Reflect.isExtensible(getRealTarget());
     },
 
-    ownKeys(target) {
+    ownKeys(_target) {
       return Reflect.ownKeys(getRealTarget());
     },
 
-    preventExtensions(target) {
+    preventExtensions(_target) {
       Object.preventExtensions(dummyTarget);
       return Reflect.preventExtensions(getRealTarget());
     },
@@ -221,7 +221,7 @@ function createLazyProxy<ActualT extends GuardT, GuardT extends object>(
       return Reflect.apply(getRealTarget() as Function, thisArg, argArray);
     };
 
-    handler.construct = (target, argArray: any, newTarget?: any) => {
+    handler.construct = (target, argArray: any, _newTarget?: any) => {
       // eslint-disable-next-line @typescript-eslint/ban-types
       return Reflect.construct(getRealTarget() as Function, argArray);
     };

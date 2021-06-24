@@ -121,6 +121,13 @@ module.exports = {
     ],
     "@typescript-eslint/no-this-alias": "error",
     "@typescript-eslint/no-unused-expressions": "error",
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      {
+        argsIgnorePattern: "^_",
+        varsIgnorePattern: "^_",
+      },
+    ],
     "@typescript-eslint/prefer-for-of": "error",
     "@typescript-eslint/prefer-function-type": "error",
     "@typescript-eslint/prefer-namespace-keyword": "error",
@@ -178,6 +185,7 @@ module.exports = {
     "no-undef-init": "error",
     "no-unsafe-finally": "error",
     "no-unused-labels": "error",
+    "no-unused-vars": "off",
     "no-var": "error",
     "object-shorthand": "error",
     "one-var": ["error", "never"],

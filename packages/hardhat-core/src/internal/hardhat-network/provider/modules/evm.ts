@@ -150,7 +150,7 @@ export class EvmModule {
 
   // evm_snapshot
 
-  private _snapshotParams(params: any[]): [] {
+  private _snapshotParams(_params: any[]): [] {
     return [];
   }
 

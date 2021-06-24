@@ -61,8 +61,7 @@ describe("HardhatNode", () => {
   ) => FakeSenderTransaction;
 
   beforeEach(async () => {
-    let common: Common;
-    [common, node] = await HardhatNode.create(config);
+    [, node] = await HardhatNode.create(config);
     createTestTransaction = (txData) => {
       const tx = new FakeSenderTransaction(Address.fromString(txData.from), {
         gasPrice,

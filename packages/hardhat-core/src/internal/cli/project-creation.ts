@@ -482,7 +482,7 @@ async function installDependencies(
       reject(false);
     });
 
-    childProcess.once("error", (status) => {
+    childProcess.once("error", (_status) => {
       childProcess.removeAllListeners("close");
       reject(false);
     });

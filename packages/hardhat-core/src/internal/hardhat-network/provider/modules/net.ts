@@ -39,7 +39,7 @@ export class NetModule {
 
   // net_peerCount
 
-  private _peerCountParams(params: any[]): [] {
+  private _peerCountParams(_params: any[]): [] {
     return [];
   }
 
@@ -49,7 +49,7 @@ export class NetModule {
 
   // net_version
 
-  private _versionParams(params: any[]): [] {
+  private _versionParams(_params: any[]): [] {
     return [];
   }
 

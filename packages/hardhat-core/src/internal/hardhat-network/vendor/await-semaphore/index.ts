@@ -12,7 +12,7 @@ export class Semaphore {
   }
 
   public acquire() {
-    return new Promise<() => void>((res, rej) => {
+    return new Promise<() => void>((res) => {
       const task = () => {
         let released = false;
         res(() => {

@@ -21,12 +21,7 @@ import {
   UNRECOGNIZED_CONTRACT_NAME,
   UNRECOGNIZED_FUNCTION_NAME,
 } from "../../stack-traces/solidity-stack-trace";
-import {
-  CallParams,
-  GatherTracesResult,
-  MineBlockResult,
-  TransactionParams,
-} from "../node-types";
+import { CallParams, GatherTracesResult, MineBlockResult } from "../node-types";
 
 interface PrintOptions {
   color?: Chalk;

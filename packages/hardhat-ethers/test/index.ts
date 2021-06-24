@@ -292,7 +292,7 @@ describe("Ethers plugin", function () {
             const library2Factory = await this.env.ethers.getContractFactory(
               "contracts/AmbiguousLibrary2.sol:AmbiguousLibrary"
             );
-            const library2 = await libraryFactory.deploy();
+            const library2 = await library2Factory.deploy();
 
             try {
               await this.env.ethers.getContractFactory("TestAmbiguousLib", {
@@ -394,10 +394,9 @@ describe("Ethers plugin", function () {
             const library = await libraryFactory.deploy();
 
             try {
-              const contractFactory = await this.env.ethers.getContractFactory(
-                "TestContractLib",
-                { libraries: { TestLibrary: library as any } }
-              );
+              await this.env.ethers.getContractFactory("TestContractLib", {
+                libraries: { TestLibrary: library as any },
+              });
             } catch (reason) {
               assert.instanceOf(
                 reason,

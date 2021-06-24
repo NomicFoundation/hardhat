@@ -152,7 +152,7 @@ export class HardhatModule {
 
   // hardhat_intervalMine
 
-  private _intervalMineParams(params: any[]): [] {
+  private _intervalMineParams(_params: any[]): [] {
     return [];
   }
 

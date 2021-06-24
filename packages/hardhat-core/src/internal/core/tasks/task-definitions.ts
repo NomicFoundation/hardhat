@@ -660,11 +660,11 @@ export class OverriddenTaskDefinition implements TaskDefinition {
    * Overriden tasks can't add new parameters.
    */
   public addPositionalParam<T>(
-    name: string,
-    description?: string,
-    defaultValue?: T,
-    type?: ArgumentType<T>,
-    isOptional?: boolean
+    _name: string,
+    _description?: string,
+    _defaultValue?: T,
+    _type?: ArgumentType<T>,
+    _isOptional?: boolean
   ): this {
     return this._throwNoParamsOverrideError(
       ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_POSITIONAL_PARAMS
@@ -675,10 +675,10 @@ export class OverriddenTaskDefinition implements TaskDefinition {
    * Overriden tasks can't add new parameters.
    */
   public addOptionalPositionalParam<T>(
-    name: string,
-    description?: string,
-    defaultValue?: T,
-    type?: ArgumentType<T>
+    _name: string,
+    _description?: string,
+    _defaultValue?: T,
+    _type?: ArgumentType<T>
   ): this {
     return this._throwNoParamsOverrideError(
       ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_POSITIONAL_PARAMS
@@ -689,11 +689,11 @@ export class OverriddenTaskDefinition implements TaskDefinition {
    * Overriden tasks can't add new parameters.
    */
   public addVariadicPositionalParam<T>(
-    name: string,
-    description?: string,
-    defaultValue?: T[],
-    type?: ArgumentType<T>,
-    isOptional?: boolean
+    _name: string,
+    _description?: string,
+    _defaultValue?: T[],
+    _type?: ArgumentType<T>,
+    _isOptional?: boolean
   ): this {
     return this._throwNoParamsOverrideError(
       ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_VARIADIC_PARAMS
@@ -704,10 +704,10 @@ export class OverriddenTaskDefinition implements TaskDefinition {
    * Overriden tasks can't add new parameters.
    */
   public addOptionalVariadicPositionalParam<T>(
-    name: string,
-    description?: string,
-    defaultValue?: T[],
-    type?: ArgumentType<T>
+    _name: string,
+    _description?: string,
+    _defaultValue?: T[],
+    _type?: ArgumentType<T>
   ): this {
     return this._throwNoParamsOverrideError(
       ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_VARIADIC_PARAMS

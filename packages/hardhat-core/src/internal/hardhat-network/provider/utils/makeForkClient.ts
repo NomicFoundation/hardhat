@@ -2,7 +2,6 @@ import chalk from "chalk";
 import { BN, toBuffer } from "ethereumjs-util";
 
 import { HARDHAT_NETWORK_NAME } from "../../../constants";
-import { HardhatError } from "../../../core/errors";
 import {
   numberToRpcQuantity,
   rpcQuantityToNumber,

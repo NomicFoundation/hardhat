@@ -6,5 +6,5 @@ module.exports = {
   },
   rules: {
     "@nomiclabs/only-hardhat-error": "error",
-  }
+  },
 };

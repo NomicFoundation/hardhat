@@ -15,28 +15,31 @@ import { InternalError } from "../../../core/providers/errors";
  * the sender's address is received as parameter.
  */
 export class FakeSenderTransaction extends Transaction {
-  public static fromTxData(txData: TxData, opts?: TxOptions): never {
+  public static fromTxData(_txData: TxData, _opts?: TxOptions): never {
     throw new InternalError(
       "`fromTxData` is not implemented in FakeSenderTransaction"
     );
   }
 
-  public static fromSerializedTx(serialized: Buffer, opts?: TxOptions): never {
+  public static fromSerializedTx(
+    _serialized: Buffer,
+    _opts?: TxOptions
+  ): never {
     throw new InternalError(
       "`fromSerializedTx` is not implemented in FakeSenderTransaction"
     );
   }
 
   public static fromRlpSerializedTx(
-    serialized: Buffer,
-    opts?: TxOptions
+    _serialized: Buffer,
+    _opts?: TxOptions
   ): never {
     throw new InternalError(
       "`fromRlpSerializedTx` is not implemented in FakeSenderTransaction"
     );
   }
 
-  public static fromValuesArray(values: Buffer[], opts?: TxOptions): never {
+  public static fromValuesArray(_values: Buffer[], _opts?: TxOptions): never {
     throw new InternalError(
       "`fromRlpSerializedTx` is not implemented in FakeSenderTransaction"
     );

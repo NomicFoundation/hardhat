@@ -17,23 +17,26 @@ import { InternalError } from "../../../core/providers/errors";
  */
 export class ReadOnlyValidEIP2930Transaction extends AccessListEIP2930Transaction {
   public static fromTxData(
-    txData: AccessListEIP2930TxData,
-    opts?: TxOptions
+    _txData: AccessListEIP2930TxData,
+    _opts?: TxOptions
   ): never {
     throw new InternalError(
       "`fromTxData` is not implemented in ReadOnlyValidEIP2930Transaction"
     );
   }
 
-  public static fromSerializedTx(serialized: Buffer, opts?: TxOptions): never {
+  public static fromSerializedTx(
+    _serialized: Buffer,
+    _opts?: TxOptions
+  ): never {
     throw new InternalError(
       "`fromSerializedTx` is not implemented in ReadOnlyValidEIP2930Transaction"
     );
   }
 
   public static fromRlpSerializedTx(
-    serialized: Buffer,
-    opts?: TxOptions
+    _serialized: Buffer,
+    _opts?: TxOptions
   ): never {
     throw new InternalError(
       "`fromRlpSerializedTx` is not implemented in ReadOnlyValidEIP2930Transaction"
@@ -41,8 +44,8 @@ export class ReadOnlyValidEIP2930Transaction extends AccessListEIP2930Transactio
   }
 
   public static fromValuesArray(
-    values: AccessListEIP2930ValuesArray,
-    opts?: TxOptions
+    _values: AccessListEIP2930ValuesArray,
+    _opts?: TxOptions
   ): never {
     throw new InternalError(
       "`fromRlpSerializedTx` is not implemented in ReadOnlyValidEIP2930Transaction"
@@ -117,7 +120,7 @@ export class ReadOnlyValidEIP2930Transaction extends AccessListEIP2930Transactio
 
   public validate(stringError?: false): never;
   public validate(stringError: true): never;
-  public validate(stringError: boolean = false): never {
+  public validate(_stringError: boolean = false): never {
     throw new InternalError(
       "`validate` is not implemented in ReadOnlyValidEIP2930Transaction"
     );

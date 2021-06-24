@@ -1,4 +1,4 @@
-import { bufferToHex, keccak256 } from "ethereumjs-util";
+import { bufferToHex } from "ethereumjs-util";
 
 import { AbiHelpers } from "../../util/abi-helpers";
 

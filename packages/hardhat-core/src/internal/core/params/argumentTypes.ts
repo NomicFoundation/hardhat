@@ -264,5 +264,5 @@ export const json: CLIArgumentType<any> = {
 
 export const any: ArgumentType<any> = {
   name: "any",
-  validate(argName: string, argumentValue: any) {},
+  validate(_argName: string, _argumentValue: any) {},
 };

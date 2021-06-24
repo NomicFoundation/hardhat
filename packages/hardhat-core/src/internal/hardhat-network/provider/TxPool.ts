@@ -438,8 +438,6 @@ export class TxPool {
     }
 
     const gasLimit = new BN(tx.gasLimit);
-    // TODO remove this "as any"
-    const gasPrice = new BN((tx as any).gasPrice);
     const baseFee = tx.getBaseFee();
 
     if (gasLimit.lt(baseFee)) {

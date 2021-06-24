@@ -116,8 +116,8 @@ function deepFreezeUserConfig(
     set(
       target: any,
       property: string | number | symbol,
-      value: any,
-      receiver: any
+      _value: any,
+      _receiver: any
     ): boolean {
       throw new HardhatError(ERRORS.GENERAL.USER_CONFIG_MODIFIED, {
         path: [...propertyPath, property]
