@@ -107,3 +107,5 @@ typings/
 .dynamodb/
 
 test/internal/hardhat-network/provider/.hardhat_node_test_cache/
+
+!.eslintrc.js
