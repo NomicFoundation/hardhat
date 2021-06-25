@@ -16,8 +16,10 @@
     "ethers.js"
   ],
   "scripts": {
-    "lint:fix": "prettier --write \"src/**/*.{js,ts}\" \"test/**/*.{js,ts}\" && yarn lint --fix",
-    "lint": "eslint 'src/**/*.ts' 'test/**/*.ts'",
+    "lint": "yarn prettier --check && yarn eslint",
+    "lint:fix": "yarn prettier --write && yarn eslint --fix",
+    "eslint": "eslint 'src/**/*.ts' 'test/**/*.ts'",
+    "prettier": "prettier \"**/*.{js,md,json}\"",
     "test": "mocha --recursive \"test/**/*.ts\" --exit",
     "build": "tsc --build .",
     "clean": "rimraf dist"

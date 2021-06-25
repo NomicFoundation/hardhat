@@ -9,9 +9,7 @@
       "to": 0,
       "function": "printSomething",
       "params": [],
-      "consoleLogs": [
-        ["something"]
-      ]
+      "consoleLogs": [["something"]]
     }
   ]
 }
