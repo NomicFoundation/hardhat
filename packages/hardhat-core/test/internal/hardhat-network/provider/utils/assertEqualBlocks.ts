@@ -7,7 +7,7 @@ import { numberToRpcQuantity } from "../../../../../src/internal/core/jsonrpc/ty
 import { RpcBlockWithTransactions } from "../../../../../src/internal/core/jsonrpc/types/output/block";
 import { JsonRpcClient } from "../../../../../src/internal/hardhat-network/jsonrpc/client";
 
-// eslint-disable  dot-notation,@typescript-eslint/dot-notation
+/* eslint-disable @typescript-eslint/dot-notation */
 
 export async function assertEqualBlocks(
   block: Block,

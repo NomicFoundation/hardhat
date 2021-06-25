@@ -153,7 +153,7 @@ module.exports = {
     "id-blacklist": "error",
     "id-match": "error",
     "import/no-extraneous-dependencies": ["error", {
-      devDependencies: ["test/**/*.ts"],
+      devDependencies: false,
     }],
     "import/order": [
       "error",

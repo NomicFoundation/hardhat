@@ -6,6 +6,11 @@ module.exports = {
   },
   rules: {
     "@nomiclabs/only-hardhat-error": "off",
-    "@typescript-eslint/dot-notation": "off",
+    "import/no-extraneous-dependencies": [
+      "error",
+      {
+        devDependencies: true,
+      },
+    ],
   },
 };

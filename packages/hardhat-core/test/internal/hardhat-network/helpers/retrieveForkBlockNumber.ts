@@ -1,6 +1,8 @@
 import { ForkBlockchain } from "../../../../src/internal/hardhat-network/provider/fork/ForkBlockchain";
 import { HardhatNetworkProvider } from "../../../../src/internal/hardhat-network/provider/provider";
 
+/* eslint-disable @typescript-eslint/dot-notation */
+
 export async function retrieveForkBlockNumber(
   provider: HardhatNetworkProvider
 ): Promise<number> {
