@@ -25,7 +25,7 @@ import { deployContract } from "../../helpers/transactions";
 import { compileLiteral } from "../../stack-traces/compilation";
 
 describe("Hardhat module", function () {
-  PROVIDERS.forEach(({ name, useProvider, isFork }) => {
+  PROVIDERS.forEach(({ name, useProvider, isFork, chainId }) => {
     if (isFork) {
       this.timeout(50000);
     }
@@ -247,6 +247,13 @@ describe("Hardhat module", function () {
           assert.isTrue(result);
           assert.lengthOf(pendingTxsBefore, 1);
           assert.lengthOf(pendingTxsAfter, 0);
+        });
+
+        describe("hardhat_getForkedChainId", function () {
+          it("gets correct chainId", async function () {
+            const _chainId = await this.provider.send("hardhat_getForkedChainId");
+            assert.equal(chainId, _chainId);
+          })
         });
 
         describe("tests using sinon", () => {

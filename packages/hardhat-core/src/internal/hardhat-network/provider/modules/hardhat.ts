@@ -74,6 +74,9 @@ export class HardhatModule {
       case "hardhat_reset":
         return this._resetAction(...this._resetParams(params));
 
+      case "hardhat_getForkedChainId":
+        return this._getForkedChainIdAction();
+
       case "hardhat_setLoggingEnabled":
         return this._setLoggingEnabledAction(
           ...this._setLoggingEnabledParams(params)
@@ -196,6 +199,12 @@ export class HardhatModule {
   ): Promise<true> {
     await this._resetCallback(networkConfig?.forking);
     return true;
+  }
+
+  // hardhat_getForkedChainId
+  
+  private async _getForkedChainIdAction(): Promise<number | undefined> {
+    return this._node.getForkedChainId();
   }
 
   // hardhat_setLoggingEnabled
