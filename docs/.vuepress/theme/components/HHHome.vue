@@ -32,6 +32,8 @@
 
 <style lang="stylus">
   main
+    position relative
+    z-index 99
     .title-wrapper
         margin-bottom 72px
         position relative

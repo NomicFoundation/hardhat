@@ -35,7 +35,7 @@ export default {
     flex-direction column
     justify-content center
     @media (max-width: 1000px)
-        height 815px
+        height 745px
     @media (min-width: 1000px)
         min-height 1030px
     .background
@@ -86,7 +86,7 @@ export default {
         justify-content center
         align-items center
         margin-bottom auto
-        margin-top 307px
+        margin-top 207px
         h2
             font-size 45px
             margin-bottom 32px

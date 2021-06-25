@@ -7,12 +7,8 @@ footer
     .separator
       
     .legal
-      a Copyright 2020 Nomic Labs LLC | 
+      a Copyright 2021 Nomic Labs LLC | 
       a(href="/privacy-policy.html") Privacy Policy
-    .tool-controls
-      button 3 Tools
-      button 4 Tools
-      button 5 Tools
 </template>
 
 <script>
@@ -95,20 +91,4 @@ footer
     a
       font-family inherit
       color inherit 
-
-  *
-    color black
-
-  .tool-controls
-    position absolute
-    bottom 24px
-    left 0px
-    width 100%
-    button
-      background none
-      border none
-      outline none
-      margin 0 12px
-      color white
-      font-weight 400
 </style>

@@ -1,5 +1,5 @@
 <template lang="pug">
-#mobile-hero-image-wrapper.hero-image-wrapper
+#mobile-hero-image-wrapper.hero-image-wrapper(ref="mobileImageWrapper")
   .hero-frame
     #mobile_animation_container(ref="mobileAnimationContainer")
       canvas#mobile_canvas(ref="mobile_canvas", width="407px", height="216px")
@@ -84,14 +84,10 @@ export default {
   },
   methods: {
     handleScroll(e) {
-      if (window.scrollY > 0) {
-        console.log('+')
-        this.$refs.mobileAnimationContainer.classList.add('characters-hidden');
-        this.$refs.ethereumBg.classList.add('ethereum-hidden');
-      } else {
-        this.$refs.mobileAnimationContainer.classList.remove('characters-hidden');
-        this.$refs.ethereumBg.classList.remove('ethereum-hidden');
-      }
+      let scrollOffset = window.scrollY;
+      this.$refs.mobileAnimationContainer.style.transform = `translateY(${scrollOffset / 3}px)`;
+      this.$refs.ethereumBg.style.opacity = 1 - scrollOffset / 200;
+      this.$refs.mobileImageWrapper.style.background = `linear-gradient(180deg, transparent ${scrollOffset > 100 ? 100 : scrollOffset < 0 ? 0 : scrollOffset}%, white ${scrollOffset > 100 ? 100 : scrollOffset < 0 ? 0 : scrollOffset + 50}%, white 100%)`;
     }
   }
 };
@@ -101,10 +97,11 @@ export default {
 .hero-image-wrapper
   display none
   pointer-events none
+  z-index 100000000 !important
   @media (max-width: 1000px)
+    background linear-gradient(180deg, transparent 0%, white 50%, white 100%)
     position fixed
     bottom 0
-    z-index 1
     left 0
     width 100%
     height 216px
@@ -113,9 +110,12 @@ export default {
     align-items center
     transform-origin bottom
     transform scale(1.2)
+    // transition ease-in-out 0.5s background
+    &.hero-image-hidden
+      background transparent
   @media (max-width: 720px)
     transform scale(1)
-  @media screen and (max-height: 670px)
+  @media (max-height: 800px)
     transform scale(0.7)
   #ethereum-bg
     width 180px
@@ -128,21 +128,13 @@ export default {
     left calc(50% - 90px)
     z-index -1
     pointer-events none
-    transition ease-in-out 0.5s all
-    &.ethereum-hidden
-      opacity 0
   #mobile_animation_container
     z-index 1
     bottom 0
     transform translateY(0)
-    transition ease-in-out 0.5s all
     pointer-events none
     #mobile_canvas
       width inherit !important
       height inherit !important
       position absolute
-      bottom 0
-    &.characters-hidden
-      opacity 0
-      transform translateY(216px)
 </style>

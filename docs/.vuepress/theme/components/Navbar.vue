@@ -161,7 +161,6 @@ $navbar-horizontal-padding = 2rem
     width 200px
     padding-left 20px
     margin-right 2rem
-
     li
       transition 0.2s ease-in-out opacity
 

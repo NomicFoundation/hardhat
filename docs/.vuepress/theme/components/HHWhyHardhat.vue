@@ -132,6 +132,8 @@
                 display block
     @media screen and (max-width: 1000px)
         padding 1rem 24px 0
+        @media (max-width: 1000px)
+            padding 0 24px 0
     .section-content
         margin-bottom 160px
         @media (max-width: 1000px)
@@ -245,7 +247,7 @@
             height 190px !important
             bottom 0 !important
             background-image url('../img/mobile_images/Why Hardhat - 1 Mobile.svg')
-            margin-bottom -8px
+            margin-bottom -38px
         @media (min-width: 1000px) and (max-width: 1040px)
             transform scale(.9)
   #extend
@@ -263,6 +265,8 @@
             margin-bottom 16px
             height 190px !important
   #plugins
+    @media (max-width: 1000px)
+      margin-bottom 48px !important
     .image-container
         width 486px
         height 528px
@@ -294,7 +298,8 @@
         @media (max-width: 999px)
             position relative
             top 0
-            height 260px !important
+            height 200px !important
+            right 0
             background-image url('../img/mobile_images/Why Hardhat - 4 Mobile.svg')
   #vibrant-community
     position relative
@@ -309,12 +314,16 @@
             padding 0 5px
     .details-column
         width 40%
+    .details-column
+        @media screen and (max-width: 1000px)
+            margin-top 241px
     .column
         width 50% !important
         position relative
         .details
             border none !important
             margin 0 !important
+            padding-right 0
             @media screen and (max-width: 1000px)
                 text-align center
                 font-size 20px
@@ -337,7 +346,7 @@
                 @media screen and (max-width: 1000px)
                     padding 0 15px
                     font-size 18px
-                    margin 20px auto !important
+                    margin 20px auto 32px !important
                     padding 0 8px
             a
                 margin-top 80px
@@ -347,7 +356,7 @@
                 transition 0.1s ease-in-out all
                 @media (max-width: 1000px)
                     margin-top 0rem
-                    margin-bottom 60px
+                    margin-bottom 48px
                     width 232px
                 &:hover
                     // box-shadow 0 0 5px alpha(black, 0.1)
@@ -370,12 +379,12 @@
             margin 0 auto
             bottom 10px
         @media (max-width: 660px)
-            width 400px !important
+            position absolute
+            width 346px !important
             background-size contain !important
             height 260px
-            bottom 40px
-            left 24px !important
-            transform translateX(-30px)
+            top -24px
+            left calc(50% - (346px / 2)) !important
     &:before
         position absolute
         width calc(100% + 20rem)

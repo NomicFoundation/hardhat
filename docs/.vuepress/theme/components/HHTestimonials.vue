@@ -119,7 +119,7 @@ export default {
 @import "../styles/util/variables.styl";
 
 #testimonials
-  margin-top 32px
+  margin-top 12px
   .slick-list
       @media (max-width: 1000px)
           height 520px
@@ -161,35 +161,41 @@ export default {
               outline 0
   .VueCarousel-navigation
     .VueCarousel-navigation-button
-        width 3rem
-        height 3rem
+        width 50px
+        height 50px
         background white
         border none
         box-shadow 0 2px 6px #C4C4C4
         border-radius 100px
         position absolute
-        top calc(50% - 3rem)
+        top 50%
         cursor pointer
         transition 0.2s ease-in-out all
         &:hover
             box-shadow 0 8px 20px alpha(#C4C4C4, .5)
         @media (max-width: 1000px)
             top 40px
-            transform scale(.7)
+            // transform scale(.7)
+            width 24px
+            height 24px
         &.VueCarousel-navigation-prev
-            left -5rem
+            left -38px
             @media (max-width: 1000px)
-                left 5px
+                left 32px
             @media (min-width: 1000px) and (max-width: 1040px)
                 left -66px
         &.VueCarousel-navigation-next
-            right -5rem
+            right -38px
             @media (max-width: 1000px)
-                right 5px
+                right 32px
             @media (min-width: 1000px) and (max-width: 1040px)
                 right -66px
             img
-                transform rotate(180deg)
+              transform rotate(180deg)
+        img
+            height 17px
+            @media (max-width: 1000px)
+              height 8px
         &:focus
             outline none
         &:active
@@ -230,16 +236,26 @@ export default {
                   display flex
                   flex-direction column
                   justify-content center
+                  align-items baseline
                   margin-top 0
               .user-name
                 margin-bottom 24px
+                text-align center
+                min-height 48px
+                display flex
+                align-items center
+                justify-content center
+                flex-direction column
+                @media (max-width: 1000px)
+                  min-height unset
                 *
                   text-align center
                   font-size 15px
-                  color #0A0A0A, 100%
-                  font-family 'ChivoBold'
+                  color #0A0A0A
+                  font-family 'Chivo'
                   line-height 24px
-
+                  @media (max-width: 1000px)
+                    line-height 8px
                 @media (max-width: 1000px)
                     text-align left
                     margin-bottom 10px
@@ -257,11 +273,12 @@ export default {
           justify-content center
           @media (max-width: 1000px)
               width 100%
-              padding 0 40px
-              margin-top 20px
+              padding 0 48px
+              margin-top 42px
           p
               color #0A0A0A
               line-height 28px
               font-size 15px
               font-family 'ChivoLight'
+              max-width 507px
 </style>

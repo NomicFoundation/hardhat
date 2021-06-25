@@ -2,6 +2,7 @@
     <div
         :class="className" 
         :id="id" 
+        class="tool-selector-wrapper"
         v-on:click="$emit('update-selected-tool')"
     >
         <div class="tool-selector">
@@ -28,7 +29,7 @@
                 required: true
             },
             className: {
-                type: String,
+                type: Object,
                 required: true
             }
         }
@@ -44,6 +45,7 @@
         @media (max-width: 1000px)
             margin-bottom 12px !important
             width calc(335px / 2)
+            height 88px
         .tool-selector
             border-radius 4px
             display flex
@@ -55,6 +57,8 @@
             cursor pointer
             position relative
             z-index 1
+            @media (max-width: 1000px)
+                padding 12px
         .active-tool-underlay
             &:after,
             &:before
@@ -87,7 +91,7 @@
                 &:before
                     box-shadow 6px -2px 10px #EEE3FF
         @media (max-width: 1000px)
-            width 160px
+            width 162px
         &#Runner .tool-icon
             background-image url("../img/tool_icons/Hardhat-Runner.svg")
         &#Network .tool-icon
@@ -100,7 +104,7 @@
             transition-duration 0.1s
             min-width 72px
             min-height 72px
-            background-size 56px
+            background-size 48px
             background-position center
             background-repeat no-repeat
             border-radius 8px

@@ -2,9 +2,11 @@
     <section 
         id="tools" 
         :class="{
-            large: toolsData.length > 4 || toolDisplayNumber > 4,
-            small: toolsData.length <= 3 || toolDisplayNumber <= 3,
+            large: toolDisplayNumber > 4,
+            small: toolDisplayNumber <= 3,
         }"
+        @mouseover="onToolAreaHover"
+        @mouseleave="onToolAreaLeave"
     >
         <div class="padded-container">
             <div 
@@ -31,8 +33,7 @@
                                 :className="{
                                     active: currentTool == index, 
                                     left: tool.position == 'left',
-                                    right: tool.position == 'right',
-                                    ['tool-selector-wrapper']: true
+                                    right: tool.position == 'right'
                                 }"
                             />
                         </div>
@@ -40,14 +41,21 @@
                 </div>
                 <div :id="toolsData[currentTool].title" class="tool-data">
                     <div class="tool-header">
-                        <h3>Hardhat<span class="tool-title"></span></h3>
+                        <h3>Hardhat
+                            <span class="tool-title">{{toolsData[currentTool].title}}</span>
+                        </h3>
                         <div class="tool-tags-wrapper">
-                            <span>#<span class="tool-tags"></span></span>
-                            
+                            <span>#
+                                <span class="tool-tags">
+                                    {{toolsData[currentTool].tags[currentTagIndex]}}
+                                </span>
+                            </span>
                         </div>
                     </div>
                     <div class="tool-body">
-                        <p class="tool-description"></p>
+                        <p class="tool-description">
+                            {{toolsData[currentTool].details}}
+                        </p>
                         <div class="learn-more-wrapper">
                             <a class="learn-more-link" href="#"> 
                                 Learn more
@@ -69,8 +77,14 @@
         components: { HHToolSelector },
         data() {
             return {
+                toolAreaHovered: false,
+                currentTagIndex: 0,
                 tagChangeInterval: null,
-                toolDisplayNumber: this.$route.query.tools,
+                toolChangeInterval: null,
+                tagAnimationTimer: 2,
+                toolChangeTimer: 2,
+                toolDisplayNumber: this.$route.query.tools ? this.$route.query.tools : 4,
+                tagSwitchRound: 1,
                 toolsData: [
                     {
                         title: 'Runner',
@@ -112,86 +126,69 @@
             if (this.toolsData.length == 3 || this.toolDisplayNumber == 3) {
                 this.toolsData[1].position = 'right';
             };
+            
+            this.tagChangeInterval = setInterval(() => {
+                this.onTagChangeInterval(this)
+            }, this.tagAnimationTimer * 1000);
+
+            this.toolChangeInterval = setInterval(() => {
+                this.onToolChangeInterval(this);
+            }, (((this.tagAnimationTimer * this.toolsData[this.currentTool].tags.length) * 2 ) * 1000));
+        },
+        destroyed() {
+            clearInterval(this.tagChangeInterval);
+            clearInterval(this.toolChangeInterval);
         },
         methods: {
-            updateSelectedTool(selectedTool) {
-                console.log(selectedTool)
-                this.currentTool = selectedTool;
-                let currentTag = 0;
-                let tags = this.toolsData[selectedTool].tags;
-                let totalTags = tags.length;
-
-                const setElementTransition = (elClass, elHiddenClass, innerHTML, targetClass) => {
-                    $(`.${elClass}`).addClass(elHiddenClass);
-                    setTimeout(() => {
-                        if (targetClass) {
-                            $(`.${targetClass}`).html(innerHTML);
-                        } else {
-                            $(`.${elClass}`).html(innerHTML);
-                        }
-                        setTimeout(() => {
-                            let width = $('.tool-tags').width();
-                            $('.tool-tags-wrapper').css({
-                                width: width + 32 + 'px'
-                            });
-                            $(`.${elClass}`).removeClass(elHiddenClass);
-                        }, 100);
-                    }, 100);
-                };
-
-                setElementTransition(
-                    'tool-title', 
-                    'tool-hidden', 
-                    this.toolsData[selectedTool].title);
-
-                setElementTransition(
-                    'tool-tags-wrapper', 
-                    'tags-wrapper-hidden', 
-                    this.toolsData[selectedTool].tags[0], 
-                    'tool-tags');
-
-                setElementTransition(
-                    'tool-description', 
-                    'description-hidden', 
-                    this.toolsData[selectedTool].details);
-
-                const startTagAnimation = () => {
-                    if (currentTag < totalTags - 1) {
-                        currentTag += 1;
-                    } else {
-                        currentTag = 0;
-                    };
-
-                    $('.tool-tags').addClass('tag-hidden');
-                    let tagArray = [];
-                    for (let i = 0; i < tags[currentTag].length; i++) {
-                        tagArray.push(tags[currentTag][i])
-                    };
-
-                    setTimeout(() => {
-                        $('.tool-tags').html(
-                            tagArray.map((character, i) => {
-                                return (`<span class="character" style="animation-delay:${i / 15}s">${character}</span>`)
-                            })
-                        );
-                        let width = $('.tool-tags').width();
-                        $('.tool-tags-wrapper').css({
-                            width: width + 32 + 'px'
-                        });
-                    }, 100);
-
-                    setTimeout(() => {
-                        $('.tool-tags').removeClass('tag-hidden');
-                    }, 200);
-                };
+            resetTagCounter() {
+                this.currentTagIndex = 0;
+            },
+            onTagChangeInterval(that) {
+                const totalTags = that.toolsData[that.currentTool].tags.length;
+                if (that.currentTagIndex == totalTags - 1) {
+                    that.currentTagIndex = 0;
+                } else {
+                    that.currentTagIndex = that.currentTagIndex + 1;
+                }
+            },
+            onToolChangeInterval(that) {
+                // console.log('Tool change');
+                if (that.currentTool == that.toolDisplayNumber - 1) {
+                    that.currentTool = 0;
+                } else {
+                    that.currentTool = that.currentTool + 1;
+                }
 
                 clearInterval(this.tagChangeInterval);
-                this.tagChangeInterval = setInterval(startTagAnimation, 1500);
+                clearInterval(this.toolChangeInterval);
+
+                this.resetTagCounter();
+                this.toolChangeInterval = setInterval(() => {
+                    this.onToolChangeInterval(this);
+                }, (((this.tagAnimationTimer * this.toolsData[this.currentTool].tags.length) * 2 ) * 1000));
+
+                this.tagChangeInterval = setInterval(() => {
+                    this.onTagChangeInterval(this);
+                }, this.tagAnimationTimer * 1000);
+            },
+            updateSelectedTool(selectedTool) {
+                this.resetTagCounter();
+                this.currentTool = selectedTool;
             },
             onToolPress(indexOfPressedTool) {
-                this.currentTool = indexOfPressedTool;
-                console.log(this.toolsData.length)
-                this.updateSelectedTool(this.currentTool);
+                this.updateSelectedTool(indexOfPressedTool);
+            },
+            onToolAreaHover() {
+                // console.log('Interval interrumpted');
+                clearInterval(this.toolChangeInterval);
+            },
+            onToolAreaLeave() {
+                setTimeout(() => {
+                    // console.log('Interval restored')
+                    this.toolChangeInterval = setInterval(() => {
+                        this.onToolChangeInterval(this);
+                    }, (((this.tagAnimationTimer * this.toolsData[this.currentTool].tags.length) * 2 ) * 1000));
+                }, 2000)
             }
         }
     };
@@ -210,7 +207,7 @@
         &.small
             .tool-section-wrapper,
             .tool-data
-                height 262px !important
+                height 272px !important
             .tool-selection-area
                 height 224px !important
                 &:before
@@ -223,19 +220,25 @@
             height 318px
             margin-bottom 147px
             position relative
+            &.list-4-items
+                @media (max-width: 1000px)
+                    &:after
+                        bottom -24px !important
             &.list-5-items
-                &:after
-                    bottom -38px
                 height 351px
+                &:after
+                    bottom 0
                 .right-tools-column
                     position relative
                     bottom 56px
                 .tool-selection-area
-                    width 100% !important
-                    padding 0
-                    height 320px
+                    @media (max-width: 1000px)
+                        width 100% !important
+                        height 320px
+                        padding 0
                 .tool-data
-                    height 263px !important
+                    @media (max-width: 1000px)
+                        height 263px !important
             &.list-3-items
                 &:after
                     bottom -12px
@@ -243,9 +246,6 @@
                     height 551px !important
                     .left-tools-column
                         top 16px !important
-                .left-tools-column,
-                .right-tools-column
-                    transform translateY(-8px)
                 .left-tools-column
                     position relative
                     top 56px
@@ -254,7 +254,7 @@
                     bottom 60px
             @media (max-width: 1000px)
                 flex-direction column
-                height 690px
+                height 590px
                 margin-bottom 8px
             &:before,
             &:after
@@ -280,7 +280,7 @@
                 right 0 
                 transform rotate(180deg);
                 @media (max-width: 1000px)
-                    bottom 0
+                    bottom 40px
                     top unset
             .tool-selection-area,
             .tool-data
@@ -305,7 +305,6 @@
                     height 232px
                     width 1px
                     background #E5E5E5
-                    transform translateY(18px)
                     @media (max-width: 1000px)
                         transform unset
                         top unset !important
@@ -321,7 +320,7 @@
                     border-left 1px solid #E5E5E5
                     right -5px
                     top calc(50% - 5px)
-                    transform translateY(16px) rotate(135deg) 
+                    transform rotate(135deg) 
                     @media (max-width: 1000px)
                         transform translateY(0) rotate(225deg) 
                         bottom -5px
@@ -340,10 +339,9 @@
                 .tools-list
                     display flex
                     @media (max-width: 1000px)
-                        grid-template-columns auto
-                        grid-template-rows 96px
                         padding 0px
                         height 236px
+                        justify-content space-around
                     .tools-column
                         @media (max-width: 1000px)
                             width calc(335px / 2)
@@ -375,7 +373,6 @@
                         .tool-title
                             transition 0.1s ease-in-out all
                             opacity 1
-                            margin-left 8px
                             &.title-hidden
                                 opacity 0
                     .tool-tags-wrapper
@@ -388,34 +385,23 @@
                         border-radius 8px 0 8px 0
                         letter-spacing 1px
                         font-family 'Chivo'
-                        transition 0.2s ease-in-out all
                         opacity 1
                         white-space nowrap
                         color #6E6F70 !important
                         span
                             color #6E6F70 !important
                             font-weight 600
-                        &.tags-wrapper-hidden
-                            opacity 0
                         .tool-tags
-                            transition 0.1s ease-in-out all
-                            span.character
-                                opacity 0
-                                position relative
-                                display inline-block
-                                color #6E6F70 !important
-                                animation fadeInTag 1s ease-out forwards
-                            &.tag-hidden
-                                opacity 0
-                        @keyframes fadeInTag
-                            0% 
-                                opacity: 0;
-                            10%
-                                opacity: 1;
-                            95%
-                                opacity: 1;
-                            100%
-                                opacity: 0;
+                            animation fadeInTag 2s ease-out infinite
+                            @keyframes fadeInTag
+                                0% 
+                                    opacity 0
+                                10%
+                                    opacity 1
+                                90%
+                                    opacity 1
+                                100%
+                                    opacity 0
                 .tool-body
                     .tool-description
                         font-size 15px

@@ -9,11 +9,11 @@
             a(:href="navLink.link") {{navLink.text}}
             #tools-dropdown-wrapper(v-if="navLink.text == 'Tools'")
                 .tools-dropdown
-                  div(v-for="tool of tools")
+                  div.tools-item-wrapper(v-for="tool of tools")
                     .tools-item(:id="tool")
                         .dropdown-tool-image
                         .dropdown-tool-title
-                            span.hardhat Hardhat 
+                            span.hardhat Hardhat
                             span.name {{tool.charAt(0).toUpperCase() + tool.slice(1)}}
       ul.social-links
         li(v-for="socialLink of social")
@@ -36,7 +36,7 @@
           div
           div
           div
-      .navbar-mobile-wrapper
+      .navbar-mobile-wrapper.hidden
         .navbar-mobile.hidden
           +nav('')
 </template>
@@ -84,13 +84,17 @@ export default {
     menuToggler.addEventListener("click", (e) => {
       if (mobileMenuContainer.classList.contains("hidden")) {
         mobileMenuWrapper.style.pointerEvents = "all";
+        mobileMenuWrapper.style.background = "white";
         mobileMenuContainer.classList.remove("hidden");
+        mobileMenuWrapper.classList.remove("hidden");
         menuToggler.classList.add("open");
         document.querySelector("html").style.overflowY = "hidden";
       } else {
         menuToggler.classList.remove("open");
         mobileMenuWrapper.style.pointerEvents = "none";
+        mobileMenuWrapper.style.background = "none";
         mobileMenuContainer.classList.add("hidden");
+        mobileMenuWrapper.classList.add("hidden");
         document.querySelector("html").style.overflowY = "auto";
       }
     });
@@ -182,13 +186,20 @@ export default {
                 width 100%
 
       ul.social-links
-        margin-left 20px
+        margin-left 44px
         list-style none
-        justify-content space-evenly
         display flex
         align-items center
-        width 150px
-
+        justify-content unset 
+        @media screen and (max-width: 1000px)
+          width 150px
+          justify-content space-evenly
+          li
+            margin-right 0
+        li
+          margin-right 15px
+          &:last-child
+            margin-right 0
         li
           transition 0.2s ease-in-out opacity
           display inline-block
@@ -219,17 +230,17 @@ export default {
         left calc(142px - 56px)
 
     .navbar-mobile-wrapper
-      overflow hidden
+      overflow auto
       position absolute
       width 100vw
-      height calc(100vh - 105px - 40px)
+      height calc(100vh - 80px - 40px)
       left 0
-      top 100px
+      top 80px
       pointer-events none
-
+      overflow hidden
       .navbar-mobile.hidden
         nav
-          left 50px !important
+          left 20px !important
           opacity 0
 
       .navbar-mobile
@@ -242,6 +253,7 @@ export default {
         opacity 1
         width 100vw
         transition .5s ease-in-out left
+        background white
         @media screen and (max-height: 400px)
           nav
             li
@@ -281,14 +293,14 @@ export default {
               margin 0
               text-align center
               position relative
-              top -20px
+              // top -20px
 
             .social-links
               margin 0
               flex-direction row
               width 100%
               padding 0 70px
-
+              margin-top 40px
               img
                 width 30px
                 height 30px
@@ -296,7 +308,6 @@ export default {
         nav
           max-width unset
           display block
-          height 100%
           padding 20px
 
           ul
@@ -394,6 +405,7 @@ export default {
           font-family 'Chivo'
           &.hardhat
             color #6E6F70
+            margin-right 8px
 
 .desktop-nav
   #Tools
@@ -415,8 +427,8 @@ export default {
       position absolute
       z-index 0
       top 10px
-      left -198px
-      width 548px
+      left -170px
+      width 492px
       height 200px
       opacity 0
       pointer-events none
@@ -427,12 +439,15 @@ export default {
         top 56px
         width inherit
         height 168px
-        padding 24px 32px
+        padding 24px 48px
         border-radius 4px
         background white
         flex-wrap wrap
         justify-content space-between
         display flex
+        .tools-item-wrapper
+          display flex
+          align-items center
         &:before
           content ''
           position absolute
@@ -443,7 +458,6 @@ export default {
           top -6px
           transform rotate(45deg)
         .tools-item
-          width 230px
           display flex
           align-items center
           cursor pointer
@@ -485,5 +499,6 @@ export default {
               font-weight 500
               &.hardhat
                 color #6E6F70
+                margin-right 4px
 
 </style>

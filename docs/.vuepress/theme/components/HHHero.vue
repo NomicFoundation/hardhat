@@ -38,7 +38,9 @@ export default {
     this.showCorrectAnimation();
   },
   created() {
-    window.addEventListener("resize", this.onResize);
+    if (typeof window !== "undefined") {
+      window.addEventListener("resize", this.onResize);
+    }
   },
   destroyed() {
     window.removeEventListener("resize", this.onResize);
@@ -48,7 +50,7 @@ export default {
       this.showCorrectAnimation();
     },
     showCorrectAnimation() {
-      if (typeof window !== undefined) {
+      if (typeof window !== "undefined") {
         if (window.innerWidth > 1000) {
           import("./HHAnimation").then((module) => {
             this.HHAnimation = module.default;
@@ -88,7 +90,7 @@ header
   display flex
   flex-direction column
   min-height 560px
-  max-height 960px
+  max-height 720px
   position relative
   z-index 100
   @media screen and (max-width 1000px)
@@ -128,7 +130,7 @@ header
         display block
 
       .top-hero-text
-        margin-bottom 1.5rem
+        margin-bottom 32px
         display block
         font-size 32px
         color #0A0A0A
@@ -144,7 +146,7 @@ header
         line-height 72px
         font-family 'ChivoBold'
         font-size 72px
-        margin-bottom 5rem
+        margin-bottom 64px
         font-weight 100
         @media (max-width: 1000px)
           font-size 40px
