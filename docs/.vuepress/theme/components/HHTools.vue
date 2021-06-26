@@ -46,7 +46,7 @@
                         </h3>
                         <div class="tool-tags-wrapper">
                             <span>#
-                                <span class="tool-tags">
+                                <span class="tool-tags" ref="toolTag">
                                     {{toolsData[currentTool].tags[currentTagIndex]}}
                                 </span>
                             </span>
@@ -145,14 +145,24 @@
             },
             onTagChangeInterval(that) {
                 const totalTags = that.toolsData[that.currentTool].tags.length;
-                if (that.currentTagIndex == totalTags - 1) {
-                    that.currentTagIndex = 0;
-                } else {
-                    that.currentTagIndex = that.currentTagIndex + 1;
-                }
+                let hiddenClass = 'tag-hidden';
+
+                this.$refs.toolTag.classList.add(hiddenClass);
+
+                setTimeout(() => {
+                    if (that.currentTagIndex == totalTags - 1) {
+                        this.resetTagCounter();
+                    } else {
+                        that.currentTagIndex = that.currentTagIndex + 1;
+                    };
+                }, 100);
+                
+                setTimeout(() => {
+                    this.$refs.toolTag.classList.remove(hiddenClass);
+                }, 200);
+
             },
             onToolChangeInterval(that) {
-                // console.log('Tool change');
                 if (that.currentTool == that.toolDisplayNumber - 1) {
                     that.currentTool = 0;
                 } else {
@@ -181,14 +191,19 @@
             onToolAreaHover() {
                 // console.log('Interval interrumpted');
                 clearInterval(this.toolChangeInterval);
+                // clearInterval(this.tagChangeInterval);
             },
             onToolAreaLeave() {
                 setTimeout(() => {
-                    // console.log('Interval restored')
+                    clearInterval(this.tagChangeInterval);
                     this.toolChangeInterval = setInterval(() => {
                         this.onToolChangeInterval(this);
                     }, (((this.tagAnimationTimer * this.toolsData[this.currentTool].tags.length) * 2 ) * 1000));
-                }, 2000)
+
+                    this.tagChangeInterval = setInterval(() => {
+                        this.onTagChangeInterval(this);
+                    }, this.tagAnimationTimer * 1000);
+                }, 2000);
             }
         }
     };
@@ -392,16 +407,9 @@
                             color #6E6F70 !important
                             font-weight 600
                         .tool-tags
-                            animation fadeInTag 2s ease-out infinite
-                            @keyframes fadeInTag
-                                0% 
-                                    opacity 0
-                                10%
-                                    opacity 1
-                                90%
-                                    opacity 1
-                                100%
-                                    opacity 0
+                            transition 0.1s ease-in-out opacity
+                        .tool-tags.tag-hidden
+                            opacity 0
                 .tool-body
                     .tool-description
                         font-size 15px

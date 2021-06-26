@@ -248,6 +248,7 @@ export default {
                 flex-direction column
                 @media (max-width: 1000px)
                   min-height unset
+                  align-items unset
                 *
                   text-align center
                   font-size 15px
@@ -256,6 +257,7 @@ export default {
                   line-height 24px
                   @media (max-width: 1000px)
                     line-height 8px
+                    text-align left
                 @media (max-width: 1000px)
                     text-align left
                     margin-bottom 10px

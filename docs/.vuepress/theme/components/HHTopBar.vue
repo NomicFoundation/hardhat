@@ -175,6 +175,7 @@ export default {
 
   .top-bar-content
     line-height 24px
+    white-space nowrap
 
   .desktop-top-bar
     @media screen and (max-width: 600px)

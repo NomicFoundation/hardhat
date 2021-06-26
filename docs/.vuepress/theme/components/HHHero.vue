@@ -141,7 +141,8 @@ header
           text-align left
         @media (max-width: 670px)
           margin-bottom 16px
-
+        @media (max-width: 328px)
+          font-size 22px
       .hero-title
         line-height 72px
         font-family 'ChivoBold'
@@ -153,6 +154,9 @@ header
           line-height 42px
           margin-bottom 0
           text-align left
+         @media (max-width: 328px)
+          font-size 36px
+          line-height 38px
 
   .cta-link
     padding 0px 28px
@@ -170,7 +174,8 @@ header
         bottom 30px
         z-index -1
         background linear-gradient(180deg, alpha(white, 0), white)
-
+    @media (max-width: 328px)
+      margin-top 24px
   .hero-cta-link
     position relative
     margin 0 auto 20px

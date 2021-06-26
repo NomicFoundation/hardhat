@@ -87,7 +87,12 @@ export default {
       let scrollOffset = window.scrollY;
       this.$refs.mobileAnimationContainer.style.transform = `translateY(${scrollOffset / 3}px)`;
       this.$refs.ethereumBg.style.opacity = 1 - scrollOffset / 200;
-      this.$refs.mobileImageWrapper.style.background = `linear-gradient(180deg, transparent ${scrollOffset > 100 ? 100 : scrollOffset < 0 ? 0 : scrollOffset}%, white ${scrollOffset > 100 ? 100 : scrollOffset < 0 ? 0 : scrollOffset + 50}%, white 100%)`;
+      this.$refs.mobileImageWrapper.style.background = `
+        linear-gradient(
+            180deg, 
+            rgba(255,255,255,0) ${scrollOffset > 100 ? 100 : scrollOffset < 0 ? 0 : scrollOffset}%, 
+            white ${scrollOffset > 100 ? 100 : scrollOffset < 0 ? 0 : scrollOffset + 50}%, white 100%
+          )`;
     }
   }
 };
@@ -99,7 +104,7 @@ export default {
   pointer-events none
   z-index 100000000 !important
   @media (max-width: 1000px)
-    background linear-gradient(180deg, transparent 0%, white 50%, white 100%)
+    background linear-gradient(180deg, rgba(255,255,255,0) 0%, white 50%, white 100%)
     position fixed
     bottom 0
     left 0
@@ -117,6 +122,10 @@ export default {
     transform scale(1)
   @media (max-height: 800px)
     transform scale(0.7)
+  @media (max-width: 328px)
+    transform scale(0.55) translateX(80px)
+  @media (max-width: 328px)
+    background none !important
   #ethereum-bg
     width 180px
     height 306px
