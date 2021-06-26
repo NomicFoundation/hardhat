@@ -25,7 +25,7 @@ import { deployContract } from "../../helpers/transactions";
 import { compileLiteral } from "../../stack-traces/compilation";
 
 describe("Hardhat module", function () {
-  PROVIDERS.forEach(({ name, useProvider, isFork}) => {
+  PROVIDERS.forEach(({ name, useProvider, isFork }) => {
     if (isFork) {
       this.timeout(50000);
     }
