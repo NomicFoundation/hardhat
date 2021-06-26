@@ -127,7 +127,6 @@ await network.provider.request({
 
 Returns the chanId of the forked network, or null if this chain is not a fork.
 
-
 ## Troubleshooting
 
 ### "Project ID does not have access to archive state"

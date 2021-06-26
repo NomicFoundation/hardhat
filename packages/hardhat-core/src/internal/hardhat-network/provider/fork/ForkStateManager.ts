@@ -14,7 +14,7 @@ import { Map as ImmutableMap, Record as ImmutableRecord } from "immutable";
 
 import { assertHardhatInvariant } from "../../../core/errors";
 import { InternalError } from "../../../core/providers/errors";
-import { JsonRpcClient } from "../../jsonrpc/client";
+import {} from "../../jsonrpc/client";
 import { GenesisAccount } from "../node-types";
 import { makeAccount } from "../utils/makeAccount";
 

@@ -74,6 +74,7 @@ describe("JsonRpcClient", () => {
           fakeProvider as any,
           1,
           123,
+          1,
           3
         );
 
@@ -88,6 +89,7 @@ describe("JsonRpcClient", () => {
           fakeProvider as any,
           1,
           123,
+          undefined,
           3
         );
 
@@ -102,6 +104,7 @@ describe("JsonRpcClient", () => {
           fakeProvider as any,
           1,
           123,
+          undefined,
           3
         );
 
@@ -122,6 +125,7 @@ describe("JsonRpcClient", () => {
             fakeProvider as any,
             1,
             123,
+            undefined,
             3,
             this.tmpDir
           );
@@ -149,6 +153,7 @@ describe("JsonRpcClient", () => {
             fakeProvider as any,
             1,
             123,
+            undefined,
             3,
             this.tmpDir
           );
@@ -183,6 +188,7 @@ describe("JsonRpcClient", () => {
           fakeProvider as any,
           1,
           123,
+          undefined,
           3
         );
 
@@ -213,6 +219,7 @@ describe("JsonRpcClient", () => {
           fakeProvider as any,
           1,
           123,
+          undefined,
           3
         );
 
@@ -242,6 +249,7 @@ describe("JsonRpcClient", () => {
           fakeProvider as any,
           1,
           123,
+          undefined,
           3
         );
         await assert.isRejected(
@@ -270,6 +278,7 @@ describe("JsonRpcClient", () => {
           fakeProvider as any,
           1,
           123,
+          undefined,
           3
         );
         await assert.isRejected(
