@@ -39,7 +39,12 @@ export async function makeForkClient(
   );
 
   const networkId = await getNetworkId(provider);
-  const chainId = await getChainId(provider);
+  let chainId;
+  try {
+    chainId = await _getChainIdFromEthChainId(provider);
+  } catch (error) {
+    chainId = await _getChainIdFromEthNetVersion(provider);
+  }
 
   const actualMaxReorg = getLargestPossibleReorg(networkId);
   const maxReorg = actualMaxReorg ?? FALLBACK_MAX_REORG;
@@ -117,12 +122,26 @@ async function getNetworkId(provider: HttpProvider) {
   return parseInt(networkIdString, 10);
 }
 
-async function getChainId(provider: HttpProvider) {
-  const chainIdString = (await provider.request({
+async function _getChainIdFromEthChainId(
+  provider: HttpProvider
+): Promise<number> {
+  const id = (await provider.request({
     method: "eth_chainId",
   })) as string;
 
-  return rpcQuantityToNumber(chainIdString);
+  return rpcQuantityToNumber(id);
+}
+
+async function _getChainIdFromEthNetVersion(
+  provider: HttpProvider
+): Promise<number> {
+  const id = (await provider.request({
+    method: "net_version",
+  })) as string;
+
+  // There's a node returning this as decimal instead of QUANTITY.
+  // TODO: Document here which node does that
+  return id.startsWith("0x") ? rpcQuantityToNumber(id) : parseInt(id, 10);
 }
 
 async function getLatestBlockNumber(provider: HttpProvider) {
