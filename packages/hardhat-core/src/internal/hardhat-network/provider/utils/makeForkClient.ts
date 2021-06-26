@@ -39,6 +39,9 @@ export async function makeForkClient(
   );
 
   const networkId = await getNetworkId(provider);
+  const chainId = await getChainId(provider);
+
+
   const actualMaxReorg = getLargestPossibleReorg(networkId);
   const maxReorg = actualMaxReorg ?? FALLBACK_MAX_REORG;
 
@@ -86,6 +89,7 @@ Please use block number ${lastSafeBlock} or wait for the block to get ${
   const forkClient = new JsonRpcClient(
     provider,
     networkId,
+    chainId,
     latestBlock,
     maxReorg,
     cacheToDiskEnabled ? forkCachePath : undefined
@@ -110,7 +114,16 @@ async function getNetworkId(provider: HttpProvider) {
   const networkIdString = (await provider.request({
     method: "net_version",
   })) as string;
+
   return parseInt(networkIdString, 10);
+}
+
+async function getChainId(provider: HttpProvider) {
+  const chainIdString = (await provider.request({
+    method: "eth_chainId",
+  })) as string;
+
+  return rpcQuantityToNumber(chainIdString);
 }
 
 async function getLatestBlockNumber(provider: HttpProvider) {

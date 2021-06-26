@@ -142,7 +142,7 @@ export class HardhatNode extends EventEmitter {
       common = await makeForkCommon(config);
 
       forkNetworkId = forkClient.getNetworkId();
-      forkChainId = config.chainId;
+      forkChainId = forkClient.getChainId();
 
       this._validateHardforks(
         config.forkConfig.blockNumber,

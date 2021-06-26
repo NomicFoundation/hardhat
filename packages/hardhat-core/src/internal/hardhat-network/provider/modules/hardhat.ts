@@ -75,7 +75,9 @@ export class HardhatModule {
         return this._resetAction(...this._resetParams(params));
 
       case "hardhat_getForkedChainId":
-        return this._getForkedChainIdAction();
+        return this._getForkedChainIdAction(
+          ...this._getForkedChainIdParams(params)
+        );
 
       case "hardhat_setLoggingEnabled":
         return this._setLoggingEnabledAction(
@@ -203,6 +205,10 @@ export class HardhatModule {
 
   // hardhat_getForkedChainId
   
+  private _getForkedChainIdParams(params: any[]): [] {
+    return validateParams(params);
+  }
+
   private async _getForkedChainIdAction(): Promise<number | undefined> {
     return this._node.getForkedChainId();
   }

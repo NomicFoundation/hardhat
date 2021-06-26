@@ -25,7 +25,7 @@ import { deployContract } from "../../helpers/transactions";
 import { compileLiteral } from "../../stack-traces/compilation";
 
 describe("Hardhat module", function () {
-  PROVIDERS.forEach(({ name, useProvider, isFork, chainId }) => {
+  PROVIDERS.forEach(({ name, useProvider, isFork}) => {
     if (isFork) {
       this.timeout(50000);
     }
@@ -249,13 +249,6 @@ describe("Hardhat module", function () {
           assert.lengthOf(pendingTxsAfter, 0);
         });
 
-        describe("hardhat_getForkedChainId", function () {
-          it("gets correct chainId", async function () {
-            const _chainId = await this.provider.send("hardhat_getForkedChainId");
-            assert.equal(chainId, _chainId);
-          })
-        });
-
         describe("tests using sinon", () => {
           let sinonClock: sinon.SinonFakeTimers;
 
@@ -381,6 +374,15 @@ describe("Hardhat module", function () {
             assert.equal(await getLatestBlockNumber(), 0);
           });
         }
+      });
+
+      describe("hardhat_getForkedChainId", function () {
+        it("gets correct chainId", async function () {
+          const hardhatChainId = await this.provider.send("hardhat_getForkedChainId");
+          const remoteChainId = parseInt(await this.provider.send("eth_chainId"), 16);
+
+          assert.equal(hardhatChainId, remoteChainId);
+        });
       });
 
       describe("hardhat_setBalance", function () {
