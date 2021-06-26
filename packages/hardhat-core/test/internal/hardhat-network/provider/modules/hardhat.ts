@@ -379,9 +379,12 @@ describe("Hardhat module", function () {
       describe("hardhat_getForkedChainId", function () {
         it("gets correct chainId", async function () {
           const hardhatChainId = await this.provider.send("hardhat_getForkedChainId");
-          const remoteChainId = parseInt(await this.provider.send("eth_chainId"), 16);
+          if(isFork){
+            assert.equal(hardhatChainId, 1);
+          } else {
+            assert.isUndefined(hardhatChainId);
+          }
 
-          assert.equal(hardhatChainId, remoteChainId);
         });
       });
 
