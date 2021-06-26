@@ -41,7 +41,6 @@ export async function makeForkClient(
   const networkId = await getNetworkId(provider);
   const chainId = await getChainId(provider);
 
-
   const actualMaxReorg = getLargestPossibleReorg(networkId);
   const maxReorg = actualMaxReorg ?? FALLBACK_MAX_REORG;
 

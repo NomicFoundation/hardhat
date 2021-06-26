@@ -204,13 +204,13 @@ export class HardhatModule {
   }
 
   // hardhat_getForkedChainId
-  
+
   private _getForkedChainIdParams(params: any[]): [] {
     return validateParams(params);
   }
 
-  private async _getForkedChainIdAction(): Promise<number | undefined> {
-    return this._node.getForkedChainId();
+  private async _getForkedChainIdAction(): Promise<number | null> {
+    return (await this._node.getForkedChainId()) ?? null;
   }
 
   // hardhat_setLoggingEnabled

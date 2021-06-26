@@ -114,6 +114,20 @@ await network.provider.request({
 
 This will reset Hardhat Network, starting a new instance in the state described [here](../hardhat-network/README.md#hardhat-network-initial-state).
 
+## Getting the chainId of the original chain
+
+You can query the original chainId of the network that this fork was forked from:
+
+```ts
+await network.provider.request({
+  method: "hardhat_getForkedChainId",
+  params: [],
+)};
+```
+
+Returns the chanId of the forked network, or null if this chain is not a fork.
+
+
 ## Troubleshooting
 
 ### "Project ID does not have access to archive state"

@@ -381,6 +381,7 @@ To customise it, take a look at [the configuration section](/config/README.md#ha
 - `hardhat_dropTransaction` – Remove a transaction from the mempool
 - `hardhat_impersonateAccount` – see the [Mainnet Forking guide](../guides/mainnet-forking.md)
 - `hardhat_reset` – see the [Mainnet Forking guide](../guides/mainnet-forking.md)
+- `hardhat_getForkedChainId` - see the [Mainnet Forking guide](../guides/mainnet-forking.md)
 - `hardhat_setBalance` – Modifies the balance of an account.
 - `hardhat_setCode` – Modifies the code of an account.
 - `hardhat_setLoggingEnabled` – Enable or disable logging in Hardhat Network
