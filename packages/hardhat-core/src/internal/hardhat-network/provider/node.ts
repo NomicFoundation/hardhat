@@ -147,7 +147,7 @@ export class HardhatNode extends EventEmitter {
       this._validateHardforks(
         config.forkConfig.blockNumber,
         common,
-        forkNetworkId
+        forkChainId ?? forkNetworkId
       );
 
       const forkStateManager = new ForkStateManager(
