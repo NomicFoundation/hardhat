@@ -1,5 +1,5 @@
 {
   "require": "ts-node/register/files",
   "ignore": ["test/fixture-projects/**/*"],
-  "timeout": 60000
+  "timeout": 180000
 }

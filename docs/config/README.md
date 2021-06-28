@@ -1,7 +1,6 @@
 # Configuration
 
-When Hardhat is run, it searches for the closest `hardhat.config.js` file starting
-from the Current Working Directory. This file normally lives in the root of your project. An empty `hardhat.config.js` is enough for Hardhat to work.
+When Hardhat is run, it searches for the closest `hardhat.config.js` file starting from the Current Working Directory. This file normally lives in the root of your project. An empty `hardhat.config.js` is enough for Hardhat to work.
 
 The entirety of your Hardhat setup (i.e. your config, plugins and custom tasks) is contained in this file.
 
@@ -47,19 +46,15 @@ module.exports = {
 
 The `networks` config field is an optional object where network names map to their configuration.
 
-There are two kinds of networks in Hardhat: [JSON-RPC](https://eth.wiki/json-rpc/API) based networks,
-and the built-in Hardhat Network.
+There are two kinds of networks in Hardhat: [JSON-RPC](https://eth.wiki/json-rpc/API) based networks, and the built-in Hardhat Network.
 
 You can customize which network is used by default when running Hardhat by setting the config's `defaultNetwork` field. If you omit this config, its default value is `"hardhat"`.
 
 ### Hardhat Network
 
-Hardhat comes built-in with a special network called `hardhat`. When using this network,
-an instance of the [Hardhat Network](../hardhat-network/README.md) will be automatically created when you run a task, script or test your smart contracts
+Hardhat comes built-in with a special network called `hardhat`. When using this network, an instance of the [Hardhat Network](../hardhat-network/README.md) will be automatically created when you run a task, script or test your smart contracts
 
-Hardhat Network has first-class support of Solidity. It always knows which
-smart contracts are being run and knows exactly what they do and why
-they fail. Learn more about it [here](../hardhat-network/README.md).
+Hardhat Network has first-class support of Solidity. It always knows which smart contracts are being run and knows exactly what they do and why they fail. Learn more about it [here](../hardhat-network/README.md).
 
 You can set the following fields on the `hardhat` config:
 
@@ -74,6 +69,7 @@ You can set the following fields on the `hardhat` config:
 - `gasMultiplier`: A number used to multiply the results of gas estimation to give it some slack due to the uncertainty of the estimation process. Default: `1`.
 
 - `accounts`: This field can be configured as one of these:
+
   - An object describing an [HD wallet](#hd-wallet-config). This is the default. It can have any of the following fields:
     - `mnemonic`: a 12 or 24 word mnemonic phrase as defined by BIP39. Default value: `"test test test test test test test test test test test junk"`
     - `initialIndex`: The initial index to derive. Default value: `0`.
@@ -88,17 +84,10 @@ You can set the following fields on the `hardhat` config:
 
 - `hardfork`: This setting changes how Hardhat Network works, to mimic Ethereum's mainnet at a given hardfork. It must be one of `"byzantium"`, `"constantinople"`, `"petersburg"`, `"istanbul"`, `"muirGlacier"`, and `"berlin"`. Default value: `"berlin"`
 
-- `throwOnTransactionFailures`: A boolean that controls if Hardhat Network throws on transaction failures.
-  If this value is `true`, Hardhat Network will throw [combined JavaScript and Solidity stack traces](../hardhat-network/README.md#solidity-stack-traces)
-  on transaction failures. If it is `false`, it will return the failing transaction hash. In both cases
-  the transactions are added into the blockchain. Default value: `true`
-- `throwOnCallFailures`: A boolean that controls if Hardhat Network throws on call failures.
-  If this value is `true`, Hardhat Network will throw [combined JavaScript and Solidity stack traces](../hardhat-network/README.md#solidity-stack-traces)
-  when a call fails. If it is `false`, it will return the call's `return data`, which can contain
-  a revert reason. Default value: `true`
+- `throwOnTransactionFailures`: A boolean that controls if Hardhat Network throws on transaction failures. If this value is `true`, Hardhat Network will throw [combined JavaScript and Solidity stack traces](../hardhat-network/README.md#solidity-stack-traces) on transaction failures. If it is `false`, it will return the failing transaction hash. In both cases the transactions are added into the blockchain. Default value: `true`
+- `throwOnCallFailures`: A boolean that controls if Hardhat Network throws on call failures. If this value is `true`, Hardhat Network will throw [combined JavaScript and Solidity stack traces](../hardhat-network/README.md#solidity-stack-traces) when a call fails. If it is `false`, it will return the call's `return data`, which can contain a revert reason. Default value: `true`
 
-- `loggingEnabled`: A boolean that controls if Hardhat Network logs every request or not. Default value: `false` for the
-  in-process Hardhat Network provider, `true` for the Hardhat Network backed JSON-RPC server (i.e. the `node` task).
+- `loggingEnabled`: A boolean that controls if Hardhat Network logs every request or not. Default value: `false` for the in-process Hardhat Network provider, `true` for the Hardhat Network backed JSON-RPC server (i.e. the `node` task).
 
 - `initialDate`: An optional string setting the date of the blockchain. Valid values are [Javascript's date time strings](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/parse#Date_Time_String_Format). Default: The current date and time.
 
@@ -111,8 +100,7 @@ You can set the following fields on the `hardhat` config:
 
 ### JSON-RPC based networks
 
-These are networks that connect to an external node. Nodes can be running in your computer, like Ganache, or remotely,
-like Alchemy or Infura.
+These are networks that connect to an external node. Nodes can be running in your computer, like Ganache, or remotely, like Alchemy or Infura.
 
 This kind of networks are configured with objects with the following fields:
 
@@ -169,7 +157,7 @@ The `solidity` config is an optional field that can be one of the following:
 
   - `version`: The solc version to use.
 
-  - `settings`:  An object with the same schema as the `settings` entry in the [Input JSON](https://solidity.readthedocs.io/en/v0.7.4/using-the-compiler.html#input-description).
+  - `settings`: An object with the same schema as the `settings` entry in the [Input JSON](https://solidity.readthedocs.io/en/v0.7.4/using-the-compiler.html#input-description).
 
 - An object which describes multiple compilers and their respective configurations. It contains the following:
 

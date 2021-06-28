@@ -34,7 +34,7 @@ import {
 
 import { assertEqualBlocks } from "./utils/assertEqualBlocks";
 
-// tslint:disable no-string-literal
+/* eslint-disable @typescript-eslint/dot-notation */
 
 interface ForkedBlock {
   networkName: string;
@@ -62,8 +62,7 @@ describe("HardhatNode", () => {
   ) => FakeSenderTransaction;
 
   beforeEach(async () => {
-    let common: Common;
-    [common, node] = await HardhatNode.create(config);
+    [, node] = await HardhatNode.create(config);
     createTestTransaction = (txData) => {
       const tx = new FakeSenderTransaction(Address.fromString(txData.from), {
         gasPrice,

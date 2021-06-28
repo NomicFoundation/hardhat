@@ -1,6 +1,3 @@
-import { ERROR } from "@ethereumjs/vm/dist/exceptions";
-import semver from "semver";
-
 import { ReturnData } from "../provider/return-data";
 
 import {
@@ -26,33 +23,15 @@ import {
   MessageTrace,
   PrecompileMessageTrace,
 } from "./message-trace";
+import { Instruction, JumpType } from "./model";
+import { Opcode } from "./opcodes";
 import {
-  Bytecode,
-  ContractFunction,
-  ContractFunctionType,
-  ContractType,
-  Instruction,
-  JumpType,
-  SourceLocation,
-} from "./model";
-import { isCall, isCreate, Opcode } from "./opcodes";
-import {
-  CallFailedErrorStackTraceEntry,
-  CallstackEntryStackTraceEntry,
-  CONSTRUCTOR_FUNCTION_NAME,
-  FALLBACK_FUNCTION_NAME,
-  InternalFunctionCallStackEntry,
-  OtherExecutionErrorStackTraceEntry,
-  RECEIVE_FUNCTION_NAME,
-  RevertErrorStackTraceEntry,
   SolidityStackTrace,
   SolidityStackTraceEntry,
-  SourceReference,
   StackTraceEntryType,
-  UnmappedSolc063RevertErrorStackTraceEntry,
 } from "./solidity-stack-trace";
 
-export const SUPPORTED_SOLIDITY_VERSION_RANGE = "<0.8.0";
+export const SUPPORTED_SOLIDITY_VERSION_RANGE = "<=0.8.4";
 export const FIRST_SOLC_VERSION_SUPPORTED = "0.5.1";
 
 export class SolidityTracer {
@@ -201,13 +180,12 @@ export class SolidityTracer {
           const nextInst = trace.bytecode.getInstruction(nextEvmStep.pc);
 
           if (nextInst !== undefined && nextInst.opcode === Opcode.JUMPDEST) {
-            if (jumpedIntoFunction || !isDecodedCallTrace(trace)) {
-              stacktrace.push(
-                instructionToCallstackStackTraceEntry(trace.bytecode, inst)
-              );
+            stacktrace.push(
+              instructionToCallstackStackTraceEntry(trace.bytecode, inst)
+            );
+            if (nextInst.location !== undefined) {
+              jumpedIntoFunction = true;
             }
-
-            jumpedIntoFunction = true;
             functionJumpdests.push(nextInst);
           }
         } else if (inst.jumpType === JumpType.OUTOF_FUNCTION) {
@@ -240,7 +218,9 @@ export class SolidityTracer {
       lastSubmessageData
     );
 
-    return stacktraceWithInferredError;
+    return this._errorInferrer.filterRedundantFrames(
+      stacktraceWithInferredError
+    );
   }
 
   private _getLastSubtrace(trace: EvmMessageTrace): MessageTrace | undefined {

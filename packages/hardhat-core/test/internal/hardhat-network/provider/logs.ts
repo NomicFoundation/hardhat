@@ -13,7 +13,7 @@ import {
 import { deployContract } from "../helpers/transactions";
 import { useHelpers } from "../helpers/useHelpers";
 
-// tslint:disable prefer-template
+// eslint-disable  prefer-template
 
 describe("Provider logs", function () {
   PROVIDERS.forEach(({ isFork, name, useProvider }) => {

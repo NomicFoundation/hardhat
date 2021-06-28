@@ -1,4 +1,4 @@
-// tslint:disable-next-line:no-implicit-dependencies
+// eslint-disable-next-line import/no-extraneous-dependencies
 import { ethers } from "ethers";
 
 import { EthereumProvider } from "../../../../src/types";

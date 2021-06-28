@@ -1,4 +1,3 @@
-import { Transaction } from "@ethereumjs/tx";
 import { assert } from "chai";
 
 import { randomAddress } from "../../../../src/internal/hardhat-network/provider/fork/random";

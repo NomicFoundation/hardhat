@@ -24,7 +24,7 @@ import { HardhatBlockchainInterface } from "../types/HardhatBlockchainInterface"
 import { rpcToBlockData } from "./rpcToBlockData";
 import { rpcToTxData } from "./rpcToTxData";
 
-/* tslint:disable only-hardhat-error */
+/* eslint-disable @nomiclabs/only-hardhat-error */
 
 export class ForkBlockchain implements HardhatBlockchainInterface {
   private _data = new BlockchainData();

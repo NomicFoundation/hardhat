@@ -331,6 +331,14 @@ Try using another mnemonic or deriving less keys.`,
 Please double check your calls' parameters and keep your Ethereum node up to date.`,
       shouldBeReported: false,
     },
+    ETHSIGN_TYPED_DATA_V4_INVALID_DATA_PARAM: {
+      number: 113,
+      message: 'Invalid "data" param when calling eth_signTypedData_v4.',
+      title: "Invalid `data` param when calling eth_signTypedData_v4.",
+      description: `You called \`eth_signTypedData_v4\` with incorrect parameters.
+Please check that you are sending a \`data\` parameter with a JSON string or object conforming to EIP712 TypedData schema.`,
+      shouldBeReported: false,
+    },
   },
   TASK_DEFINITIONS: {
     PARAM_AFTER_VARIADIC: {

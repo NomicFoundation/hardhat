@@ -1,6 +1,6 @@
 import { assert } from "chai";
 import { BN, bufferToHex, toBuffer } from "ethereumjs-util";
-// tslint:disable-next-line:no-implicit-dependencies
+// eslint-disable-next-line import/no-extraneous-dependencies
 import { Contract, utils, Wallet } from "ethers";
 import fsExtra from "fs-extra";
 

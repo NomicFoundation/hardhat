@@ -3,7 +3,7 @@ import { PathReporter } from "io-ts/lib/PathReporter";
 
 import { InvalidArgumentsError } from "../../../providers/errors";
 
-// tslint:disable only-hardhat-error
+/* eslint-disable @nomiclabs/only-hardhat-error */
 
 /**
  * This function validates a list of params, throwing InvalidArgumentsError

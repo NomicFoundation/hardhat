@@ -89,7 +89,7 @@ abstract class MultipliedGasEstimationProvider extends ProviderWrapper {
         return numberToRpcQuantity(blockGasLimit);
       }
 
-      // tslint:disable-next-line only-hardhat-error
+      // eslint-disable-next-line @nomiclabs/only-hardhat-error
       throw error;
     }
   }

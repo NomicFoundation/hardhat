@@ -1,7 +1,9 @@
 import { ERROR } from "@ethereumjs/vm/dist/exceptions";
+import { defaultAbiCoder as abi } from "@ethersproject/abi";
 import { BN } from "ethereumjs-util";
 import semver from "semver";
 
+import { AbiHelpers } from "../../util/abi-helpers";
 import { ReturnData } from "../provider/return-data";
 
 import {
@@ -30,6 +32,7 @@ import {
   CallFailedErrorStackTraceEntry,
   CallstackEntryStackTraceEntry,
   CONSTRUCTOR_FUNCTION_NAME,
+  CustomErrorStackTraceEntry,
   FALLBACK_FUNCTION_NAME,
   InternalFunctionCallStackEntry,
   OtherExecutionErrorStackTraceEntry,
@@ -55,7 +58,7 @@ export interface SubmessageData {
   stepIndex: number;
 }
 
-// tslint:disable only-hardhat-error
+/* eslint-disable @nomiclabs/only-hardhat-error */
 
 export class ErrorInferrer {
   public inferBeforeTracingCallMessage(
@@ -167,9 +170,58 @@ export class ErrorInferrer {
       ) ??
       this._checkNonContractCalled(trace, stacktrace) ??
       this._checkSolidity063UnmappedRevert(trace, stacktrace) ??
-      this._checkContractTooLarge(trace, stacktrace) ??
+      this._checkContractTooLarge(trace) ??
       this._otherExecutionErrorStacktrace(trace, stacktrace)
     );
+  }
+
+  public filterRedundantFrames(
+    stacktrace: SolidityStackTrace
+  ): SolidityStackTrace {
+    return stacktrace.filter((frame, i) => {
+      if (i + 1 === stacktrace.length) {
+        return true;
+      }
+
+      const nextFrame = stacktrace[i + 1];
+
+      // we can only filter frames if we know their sourceReference
+      // and the one from the next frame
+      if (
+        frame.sourceReference === undefined ||
+        nextFrame.sourceReference === undefined
+      ) {
+        return true;
+      }
+
+      // constructors contain the whole contract, so we ignore them
+      if (
+        frame.sourceReference.function === "constructor" &&
+        nextFrame.sourceReference.function !== "constructor"
+      ) {
+        return true;
+      }
+
+      // this is probably a recursive call
+      if (
+        i > 0 &&
+        frame.type === nextFrame.type &&
+        frame.sourceReference.range[0] === nextFrame.sourceReference.range[0] &&
+        frame.sourceReference.range[1] === nextFrame.sourceReference.range[1] &&
+        frame.sourceReference.line === nextFrame.sourceReference.line
+      ) {
+        return true;
+      }
+
+      if (
+        frame.sourceReference.range[0] <= nextFrame.sourceReference.range[0] &&
+        frame.sourceReference.range[1] >= nextFrame.sourceReference.range[1]
+      ) {
+        return false;
+      }
+
+      return true;
+    });
   }
 
   // Heuristics
@@ -298,14 +350,7 @@ export class ErrorInferrer {
       return;
     }
 
-    const panicStacktrace = this._checkPanic(
-      trace,
-      stacktrace,
-      lastInstruction
-    );
-    if (panicStacktrace !== undefined) {
-      return panicStacktrace;
-    }
+    const inferredStacktrace = [...stacktrace];
 
     if (
       lastInstruction.location !== undefined &&
@@ -319,8 +364,6 @@ export class ErrorInferrer {
       // If it's a call trace, we already jumped into a function. But optimizations can happen.
       const failingFunction = lastInstruction.location.getContainingFunction();
 
-      const inferredStacktrace = [...stacktrace];
-
       // If the failure is in a modifier we add an entry with the function/constructor
       if (
         failingFunction !== undefined &&
@@ -330,6 +373,31 @@ export class ErrorInferrer {
           this._getEntryBeforeFailureInModifier(trace, functionJumpdests)
         );
       }
+    }
+
+    const panicStacktrace = this._checkPanic(
+      trace,
+      inferredStacktrace,
+      lastInstruction
+    );
+    if (panicStacktrace !== undefined) {
+      return panicStacktrace;
+    }
+
+    const customErrorStacktrace = this._checkCustomErrors(
+      trace,
+      inferredStacktrace,
+      lastInstruction
+    );
+    if (customErrorStacktrace !== undefined) {
+      return customErrorStacktrace;
+    }
+
+    if (
+      lastInstruction.location !== undefined &&
+      (!isDecodedCallTrace(trace) || jumpedIntoFunction)
+    ) {
+      const failingFunction = lastInstruction.location.getContainingFunction();
 
       if (failingFunction !== undefined) {
         inferredStacktrace.push(
@@ -375,7 +443,7 @@ export class ErrorInferrer {
         message: new ReturnData(trace.returnData),
         isInvalidOpcodeError: lastInstruction.opcode === Opcode.INVALID,
       };
-      const inferredStacktrace = [...stacktrace, revertFrame];
+      inferredStacktrace.push(revertFrame);
 
       return this._fixInitialModifier(trace, inferredStacktrace);
     }
@@ -394,14 +462,13 @@ export class ErrorInferrer {
     }
 
     // If the last frame is an internal function, it means that the trace
-    // jumped to a function to return the panic. In that case, we remove
-    // the two last frames: the frame from where it jumped, and the internal
-    // function it jumped to
+    // jumped there to return the panic. If that's the case, we remove that
+    // frame.
     const lastFrame = stacktrace[stacktrace.length - 1];
     if (
       lastFrame?.type === StackTraceEntryType.INTERNAL_FUNCTION_CALLSTACK_ENTRY
     ) {
-      stacktrace.splice(-2);
+      stacktrace.splice(-1);
     }
 
     const panicReturnData = new ReturnData(trace.returnData);
@@ -422,6 +489,49 @@ export class ErrorInferrer {
         errorCode
       )
     );
+
+    return this._fixInitialModifier(trace, inferredStacktrace);
+  }
+
+  private _checkCustomErrors(
+    trace: DecodedEvmMessageTrace,
+    stacktrace: SolidityStackTrace,
+    lastInstruction: Instruction
+  ): SolidityStackTrace | undefined {
+    const returnData = new ReturnData(trace.returnData);
+
+    if (returnData.isEmpty() || returnData.isErrorReturnData()) {
+      // if there is no return data, or if it's a Error(string),
+      // then it can't be a custom error
+      return;
+    }
+
+    let errorMessage = "reverted with an unrecognized custom error";
+
+    for (const customError of trace.bytecode.contract.customErrors) {
+      if (returnData.matchesSelector(customError.selector)) {
+        // if the return data matches a custom error in the called contract,
+        // we format the message using the returnData and the custom error instance
+        const decodedValues = abi.decode(
+          customError.paramTypes,
+          returnData.value.slice(4)
+        );
+
+        const params = AbiHelpers.formatValues([...decodedValues]);
+        errorMessage = `reverted with custom error '${customError.name}(${params})'`;
+        break;
+      }
+    }
+
+    const inferredStacktrace = [...stacktrace];
+    inferredStacktrace.push(
+      this._instructionWithinFunctionToCustomErrorStackTraceEntry(
+        trace,
+        lastInstruction,
+        errorMessage
+      )
+    );
+
     return this._fixInitialModifier(trace, inferredStacktrace);
   }
 
@@ -548,8 +658,7 @@ export class ErrorInferrer {
   }
 
   private _checkContractTooLarge(
-    trace: DecodedEvmMessageTrace,
-    stacktrace: SolidityStackTrace
+    trace: DecodedEvmMessageTrace
   ): SolidityStackTrace | undefined {
     if (isCreateTrace(trace) && this._isContractTooLargeError(trace)) {
       return [
@@ -660,6 +769,10 @@ export class ErrorInferrer {
       contract: trace.bytecode.contract.name,
       function: func.name,
       line: func.location.getStartingLineNumber(),
+      range: [
+        func.location.offset,
+        func.location.offset + func.location.length,
+      ],
     };
   }
 
@@ -707,11 +820,13 @@ export class ErrorInferrer {
 
   private _getContractStartWithoutFunctionSourceReference(
     trace: DecodedEvmMessageTrace
-  ) {
+  ): SourceReference {
+    const location = trace.bytecode.contract.location;
     return {
-      file: trace.bytecode.contract.location.file,
+      file: location.file,
       contract: trace.bytecode.contract.name,
-      line: trace.bytecode.contract.location.getStartingLineNumber(),
+      line: location.getStartingLineNumber(),
+      range: [location.offset, location.offset + location.length],
     };
   }
 
@@ -757,6 +872,10 @@ export class ErrorInferrer {
       contract: trace.bytecode.contract.name,
       function: FALLBACK_FUNCTION_NAME,
       line: func.location.getStartingLineNumber(),
+      range: [
+        func.location.offset,
+        func.location.offset + func.location.length,
+      ],
     };
   }
 
@@ -802,6 +921,10 @@ export class ErrorInferrer {
       contract: contract.name,
       function: CONSTRUCTOR_FUNCTION_NAME,
       line,
+      range: [
+        contract.location.offset,
+        contract.location.offset + contract.location.length,
+      ],
     };
   }
 
@@ -843,7 +966,7 @@ export class ErrorInferrer {
 
     let hasReadDeploymentCodeSize = false;
 
-    // tslint:disable-next-line prefer-for-of
+    // eslint-disable-next-line @typescript-eslint/prefer-for-of
     for (let stepIndex = 0; stepIndex < trace.steps.length; stepIndex++) {
       const step = trace.steps[stepIndex];
       if (!isEvmStep(step)) {
@@ -988,7 +1111,20 @@ export class ErrorInferrer {
         sourceLocationToSourceReference(trace.bytecode, inst.location) ??
         this._getLastSourceReference(trace)!,
       errorCode,
-      isInvalidOpcodeError: inst.opcode === Opcode.INVALID,
+    };
+  }
+
+  private _instructionWithinFunctionToCustomErrorStackTraceEntry(
+    trace: DecodedEvmMessageTrace,
+    inst: Instruction,
+    message: string
+  ): CustomErrorStackTraceEntry {
+    return {
+      type: StackTraceEntryType.CUSTOM_ERROR,
+      sourceReference:
+        sourceLocationToSourceReference(trace.bytecode, inst.location) ??
+        this._getLastSourceReference(trace)!,
+      message,
     };
   }
 
@@ -1027,13 +1163,15 @@ export class ErrorInferrer {
       ) {
         if (trace.bytecode.contract.fallback !== undefined) {
           // Failed within the fallback
+          const location = trace.bytecode.contract.fallback.location;
           revertFrame = {
             type: StackTraceEntryType.UNMAPPED_SOLC_0_6_3_REVERT_ERROR,
             sourceReference: {
               contract: trace.bytecode.contract.name,
               function: FALLBACK_FUNCTION_NAME,
-              file: trace.bytecode.contract.fallback.location.file,
-              line: trace.bytecode.contract.fallback.location.getStartingLineNumber(),
+              file: location.file,
+              line: location.getStartingLineNumber(),
+              range: [location.offset, location.offset + location.length],
             },
           };
 
@@ -1041,13 +1179,15 @@ export class ErrorInferrer {
         }
       } else {
         // Failed within the receive function
+        const location = trace.bytecode.contract.receive.location;
         revertFrame = {
           type: StackTraceEntryType.UNMAPPED_SOLC_0_6_3_REVERT_ERROR,
           sourceReference: {
             contract: trace.bytecode.contract.name,
             function: RECEIVE_FUNCTION_NAME,
-            file: trace.bytecode.contract.receive.location.file,
-            line: trace.bytecode.contract.receive.location.getStartingLineNumber(),
+            file: location.file,
+            line: location.getStartingLineNumber(),
+            range: [location.offset, location.offset + location.length],
           },
         };
 
@@ -1169,11 +1309,13 @@ export class ErrorInferrer {
       // When the latest instruction is not within a function we need
       // some default sourceReference to show to the user
       if (constructorRevertFrame.sourceReference === undefined) {
+        const location = trace.bytecode.contract.location;
         const defaultSourceReference: SourceReference = {
           function: CONSTRUCTOR_FUNCTION_NAME,
           contract: trace.bytecode.contract.name,
-          file: trace.bytecode.contract.location.file,
-          line: trace.bytecode.contract.location.getStartingLineNumber(),
+          file: location.file,
+          line: location.getStartingLineNumber(),
+          range: [location.offset, location.offset + location.length],
         };
 
         if (trace.bytecode.contract.constructorFunction !== undefined) {
@@ -1516,8 +1658,7 @@ export class ErrorInferrer {
   }
 
   private _isPanicReturnData(returnData: Buffer): boolean {
-    // 4e487b71 is the method hash of Panic(uint256)
-    return returnData.slice(0, 4).toString("hex") === "4e487b71";
+    return new ReturnData(returnData).isPanicReturnData();
   }
 }
 
@@ -1529,6 +1670,7 @@ export function instructionToCallstackStackTraceEntry(
   // These are normally made from yul code, so they don't map to any Solidity
   // function
   if (inst.location === undefined) {
+    const location = bytecode.contract.location;
     return {
       type: StackTraceEntryType.INTERNAL_FUNCTION_CALLSTACK_ENTRY,
       pc: inst.pc,
@@ -1537,6 +1679,7 @@ export function instructionToCallstackStackTraceEntry(
         contract: bytecode.contract.name,
         function: undefined,
         line: bytecode.contract.location.getStartingLineNumber(),
+        range: [location.offset, location.offset + location.length],
       },
     };
   }
@@ -1561,6 +1704,10 @@ export function instructionToCallstackStackTraceEntry(
       contract: bytecode.contract.name,
       file: inst.location!.file,
       line: inst.location!.getStartingLineNumber(),
+      range: [
+        inst.location!.offset,
+        inst.location!.offset + inst.location!.length,
+      ],
     },
     functionType: ContractFunctionType.FUNCTION,
   };
@@ -1598,5 +1745,6 @@ function sourceLocationToSourceReference(
         : bytecode.contract.name,
     file: func.location.file,
     line: location.getStartingLineNumber(),
+    range: [location.offset, location.offset + location.length],
   };
 }

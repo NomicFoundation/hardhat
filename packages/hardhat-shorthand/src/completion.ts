@@ -32,7 +32,6 @@ export async function main() {
     let pathToHardhatPackageJson: string;
 
     try {
-      // tslint:disable-next-line no-implicit-dependencies
       pathToHardhatPackageJson = require.resolve("hardhat/package.json", {
         paths: [process.cwd()],
       });

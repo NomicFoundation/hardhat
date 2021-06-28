@@ -6,13 +6,12 @@ import {
   DEFAULT_ACCOUNTS_ADDRESSES,
   PROVIDERS,
 } from "../../../../helpers/providers";
-import { retrieveForkBlockNumber } from "../../../../helpers/retrieveForkBlockNumber";
 
-// tslint:disable-next-line no-var-requires
+// eslint-disable-next-line  @typescript-eslint/no-var-requires, @typescript-eslint/naming-convention
 const { recoverTypedSignature_v4 } = require("eth-sig-util");
 
 describe("Eth module", function () {
-  PROVIDERS.forEach(({ name, useProvider, isFork, isJsonRpc, chainId }) => {
+  PROVIDERS.forEach(({ name, useProvider, isFork }) => {
     if (isFork) {
       this.timeout(50000);
     }
@@ -97,7 +96,7 @@ describe("Eth module", function () {
 
         it("should fail with an invalid JSON", async function () {
           try {
-            const signature = await this.provider.request({
+            await this.provider.request({
               method: "eth_signTypedData_v4",
               params: [address, "{an invalid JSON"],
             });

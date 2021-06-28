@@ -1,3 +1,4 @@
+import debug from "debug";
 import abi from "ethereumjs-abi";
 
 import {
@@ -17,10 +18,13 @@ import {
   ContractFunctionType,
   ContractFunctionVisibility,
   ContractType,
+  CustomError,
   SourceFile,
   SourceLocation,
 } from "./model";
 import { decodeInstructions } from "./source-maps";
+
+const log = debug("hardhat:core:hardhat-network:compiler-to-model");
 
 export function createModelsAndDecodeBytecodes(
   solcVersion: string,
@@ -314,6 +318,20 @@ function decodeBytecodes(
     const contractFile = contract.location.file.sourceName;
     const contractEvmOutput =
       compilerOutput.contracts[contractFile][contract.name].evm;
+    const contractAbiOutput =
+      compilerOutput.contracts[contractFile][contract.name].abi;
+
+    for (const abiItem of contractAbiOutput) {
+      if (abiItem.type === "error") {
+        const customError = CustomError.fromABI(abiItem.name, abiItem.inputs);
+
+        if (customError !== undefined) {
+          contract.addCustomError(customError);
+        } else {
+          log(`Couldn't build CustomError for error '${abiItem.name}'`);
+        }
+      }
+    }
 
     // This is an abstract contract
     if (contractEvmOutput.bytecode.object === "") {
@@ -577,7 +595,7 @@ function correctSelectors(
       const fixedSelector = contract.correctSelector(functionName, selector);
 
       if (!fixedSelector) {
-        // tslint:disable-next-line only-hardhat-error
+        // eslint-disable-next-line @nomiclabs/only-hardhat-error
         throw new Error(
           `Failed to compute the selector one or more implementations of ${contract.name}#${functionName}. Hardhat Network can automatically fix this problem if you don't use function overloading.`
         );

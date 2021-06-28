@@ -7,12 +7,7 @@ import {
 } from "hardhat/types";
 import { parseFullyQualifiedName } from "hardhat/utils/contract-names";
 
-import { LibraryNames } from "./libraries";
-import {
-  inferSolcVersion,
-  measureExecutableSectionLength,
-  METADATA_ABSENT_VERSION_RANGE,
-} from "./metadata";
+import { inferSolcVersion, measureExecutableSectionLength } from "./metadata";
 
 interface BytecodeExtractedData {
   immutableValues: ImmutableValues;
