@@ -1,1 +1,2 @@
-test/fixture-projects/**/*
+/test/fixture-projects/**/artifacts
+/test/fixture-projects/**/cache
