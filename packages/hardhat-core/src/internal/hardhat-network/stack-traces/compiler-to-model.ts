@@ -595,7 +595,7 @@ function correctSelectors(
       const fixedSelector = contract.correctSelector(functionName, selector);
 
       if (!fixedSelector) {
-        // tslint:disable-next-line only-hardhat-error
+        // eslint-disable-next-line @nomiclabs/only-hardhat-error
         throw new Error(
           `Failed to compute the selector one or more implementations of ${contract.name}#${functionName}. Hardhat Network can automatically fix this problem if you don't use function overloading.`
         );

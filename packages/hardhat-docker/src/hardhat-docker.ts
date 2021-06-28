@@ -141,7 +141,7 @@ export class HardhatDocker {
       im.on("error", reject);
 
       // Not having the data handler causes the process to exit
-      im.on("data", (data) => {});
+      im.on("data", () => {});
     });
   }
 

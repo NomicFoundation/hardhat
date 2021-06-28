@@ -117,7 +117,7 @@ export interface RpcDebugTraceOutput {
   structLogs: RpcStructLog[];
 }
 
-// tslint:disable only-hardhat-error
+/* eslint-disable @nomiclabs/only-hardhat-error */
 
 export function getRpcBlock(
   block: Block,
