@@ -17,7 +17,7 @@
     "build": "tsc --build .",
     "clean": "rimraf dist"
   },
-  "devDependencies": {
+  "dependencies": {
     "@types/chai": "^4.2.0",
     "@types/fs-extra": "^5.1.0",
     "@types/mocha": "^5.2.6",

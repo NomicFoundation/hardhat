@@ -1,4 +1,3 @@
-/* eslint-disable import/no-extraneous-dependencies */
 const fsExtra = require("fs-extra");
 const path = require("path");
 const shell = require("shelljs");
