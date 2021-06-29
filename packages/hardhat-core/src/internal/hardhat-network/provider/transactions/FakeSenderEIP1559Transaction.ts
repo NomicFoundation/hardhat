@@ -1,4 +1,4 @@
-import { FeeMarketEIP1559Transaction, TxData } from "@ethereumjs/tx";
+import { FeeMarketEIP1559Transaction } from "@ethereumjs/tx";
 import {
   FeeMarketEIP1559TxData,
   FeeMarketEIP1559ValuesArray,
@@ -11,30 +11,33 @@ import {
   InvalidArgumentsError,
 } from "../../../core/providers/errors";
 
-// tslint:disable only-hardhat-error
+/* eslint-disable @nomiclabs/only-hardhat-error */
 
 /**
  * This class is the EIP-1559 version of FakeSenderTransaction.
  */
 export class FakeSenderEIP1559Transaction extends FeeMarketEIP1559Transaction {
   public static fromTxData(
-    txData: FeeMarketEIP1559TxData,
-    opts?: TxOptions
+    _txData: FeeMarketEIP1559TxData,
+    _opts?: TxOptions
   ): never {
     throw new InternalError(
       "`fromTxData` is not implemented in FakeSenderEIP1559Transaction"
     );
   }
 
-  public static fromSerializedTx(serialized: Buffer, opts?: TxOptions): never {
+  public static fromSerializedTx(
+    _serialized: Buffer,
+    _opts?: TxOptions
+  ): never {
     throw new InternalError(
       "`fromSerializedTx` is not implemented in FakeSenderEIP1559Transaction"
     );
   }
 
   public static fromRlpSerializedTx(
-    serialized: Buffer,
-    opts?: TxOptions
+    _serialized: Buffer,
+    _opts?: TxOptions
   ): never {
     throw new InternalError(
       "`fromRlpSerializedTx` is not implemented in FakeSenderEIP1559Transaction"
@@ -42,8 +45,8 @@ export class FakeSenderEIP1559Transaction extends FeeMarketEIP1559Transaction {
   }
 
   public static fromValuesArray(
-    values: FeeMarketEIP1559ValuesArray,
-    opts?: TxOptions
+    _values: FeeMarketEIP1559ValuesArray,
+    _opts?: TxOptions
   ): never {
     throw new InternalError(
       "`fromValuesArray` is not implemented in FakeSenderEIP1559Transaction"
@@ -120,7 +123,7 @@ export class FakeSenderEIP1559Transaction extends FeeMarketEIP1559Transaction {
 
   private readonly _sender: Address;
 
-  public constructor(
+  constructor(
     sender: Address,
     data: FeeMarketEIP1559TxData = {},
     opts?: TxOptions
@@ -152,13 +155,13 @@ export class FakeSenderEIP1559Transaction extends FeeMarketEIP1559Transaction {
     );
   }
 
-  public _processSignature(v: number, r: Buffer, s: Buffer): never {
+  public _processSignature(_v: number, _r: Buffer, _s: Buffer): never {
     throw new InternalError(
       "`_processSignature` is not implemented in FakeSenderEIP1559Transaction"
     );
   }
 
-  public sign(privateKey: Buffer): never {
+  public sign(_privateKey: Buffer): never {
     throw new InternalError(
       "`sign` is not implemented in FakeSenderEIP1559Transaction"
     );

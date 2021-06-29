@@ -1,27 +1,14 @@
 import { assert } from "chai";
 import { BN } from "ethereumjs-util";
-import { Context } from "mocha";
 
-import {
-  numberToRpcQuantity,
-  rpcQuantityToBN,
-  rpcQuantityToNumber,
-} from "../../../../internal/core/jsonrpc/types/base-types";
-import { COINBASE_ADDRESS } from "../../../../internal/hardhat-network/provider/node";
-import {
-  RpcBlockOutput,
-  RpcTransactionOutput,
-} from "../../../../internal/hardhat-network/provider/output";
 import { workaroundWindowsCiFailures } from "../../../utils/workaround-windows-ci-failures";
-import { assertQuantity } from "../helpers/assertions";
 import { setCWD } from "../helpers/cwd";
-import { DEFAULT_BASE_FEE_PER_GAS, PROVIDERS } from "../helpers/providers";
+import { PROVIDERS } from "../helpers/providers";
 import { retrieveForkBlockNumber } from "../helpers/retrieveForkBlockNumber";
-import { sendTxToZeroAddress } from "../helpers/transactions";
 import { useHelpers } from "../helpers/useHelpers";
 
 describe("Block's baseFeePerGas", function () {
-  PROVIDERS.forEach(({ name, useProvider, isFork, isJsonRpc, chainId }) => {
+  PROVIDERS.forEach(({ name, useProvider, isFork }) => {
     if (isFork) {
       this.timeout(50000);
     }

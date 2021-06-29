@@ -1,10 +1,6 @@
 import { Block } from "@ethereumjs/block";
 import Common from "@ethereumjs/common";
-import {
-  AccessListEIP2930Transaction,
-  Transaction as LegacyTransaction,
-  TypedTransaction,
-} from "@ethereumjs/tx";
+import { TypedTransaction } from "@ethereumjs/tx";
 import { RunBlockResult } from "@ethereumjs/vm/dist/runBlock";
 import { BN, bufferToHex } from "ethereumjs-util";
 
