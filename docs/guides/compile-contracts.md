@@ -134,7 +134,7 @@ You shouldn't interact with these files directly.
 
 The [HRE] has an `artifacts` object with helper methods. For example, you can get a list with the paths to all artifacts by calling `hre.artifacts.getArtifactPaths()`.
 
-You can also read an artifact using the name of the contract by calling `hre.artifacts.readArtifact("Bar")` and that will yield the content of the artifact for the `Bar` contract. This would only work if there was just one contract named `Bar` in the whole project; it would throw an error if there were two. To disambiguate this case, you would have to use the **Fully Qualified Name** of the contract: `hre.artifacts.readArtifact("contracts/Bar.sol:Bar")`.
+You can also read an artifact using the name of the contract by calling `hre.artifacts.readArtifact("Bar")`, which will return the content of the artifact for the `Bar` contract. This would only work if there was just one contract named `Bar` in the whole project; it would throw an error if there were two. To disambiguate this case, you would have to use the **Fully Qualified Name** of the contract: `hre.artifacts.readArtifact("contracts/Bar.sol:Bar")`.
 
 ### Directory structure
 
