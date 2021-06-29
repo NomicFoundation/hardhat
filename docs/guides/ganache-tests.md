@@ -18,11 +18,9 @@ npx hardhat --network localhost test
 
 ## Using the `hardhat-ganache` plugin
 
-If you don't want to manually start and stop Ganache every time, you can use
-the `hardhat-ganache` plugin.
+If you don't want to manually start and stop Ganache every time, you can use the `hardhat-ganache` plugin.
 
-This plugin creates a network called `ganache`, and automatically
-starts and stops Ganache before and after running your tests and scripts.
+This plugin creates a network called `ganache`, and automatically starts and stops Ganache before and after running your tests and scripts.
 
 To use it, you have to install it with `npm`
 
@@ -37,7 +35,7 @@ require("@nomiclabs/hardhat-ganache");
 ```
 
 Finally, you can run your tests with
- 
+
 ```
 npx hardhat --network ganache test
 ```

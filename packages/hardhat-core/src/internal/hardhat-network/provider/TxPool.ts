@@ -20,7 +20,7 @@ import { FakeSenderTransaction } from "./transactions/FakeSenderTransaction";
 import { bnToHex } from "./utils/bnToHex";
 import { reorganizeTransactionsLists } from "./utils/reorganizeTransactionsLists";
 
-// tslint:disable only-hardhat-error
+/* eslint-disable @nomiclabs/only-hardhat-error */
 
 export function serializeTransaction(
   tx: OrderedTransaction
@@ -438,8 +438,6 @@ export class TxPool {
     }
 
     const gasLimit = new BN(tx.gasLimit);
-    // TODO remove this "as any"
-    const gasPrice = new BN((tx as any).gasPrice);
     const baseFee = tx.getBaseFee();
 
     if (gasLimit.lt(baseFee)) {

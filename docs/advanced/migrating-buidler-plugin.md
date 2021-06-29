@@ -18,8 +18,7 @@ import { extendEnvironment } from "hardhat/config";
 
 ### Plugins
 
-Similarly, references to Buidler plugins should be replaced with their corresponding Hardhat plugins.
-For example, `@nomiclabs/buidler-ethers` would be `@nomiclabs/hardhat-ethers`.
+Similarly, references to Buidler plugins should be replaced with their corresponding Hardhat plugins. For example, `@nomiclabs/buidler-ethers` would be `@nomiclabs/hardhat-ethers`.
 
 ## Adapting your plugin's source code
 
@@ -63,16 +62,16 @@ needs to be replaced with this:
 
 ```js
 module.exports = {
-    solidity: {
-        version: "0.7.2",
-        settings: {
-            optimizer: {
-                enabled: true,
-                runs: 200
-            }
-        }
-    }
-}
+  solidity: {
+    version: "0.7.2",
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 200,
+      },
+    },
+  },
+};
 ```
 
 ## Adapting your type extensions
@@ -87,8 +86,7 @@ Then, you need to add an `import "./type-extensions";` in your `src/index.ts` fi
 
 ### Extending Hardhat types
 
-Hardhat types are meant to be imported from `hardhat/types`, but when extending them,
-you should import them from the module that declares them.
+Hardhat types are meant to be imported from `hardhat/types`, but when extending them, you should import them from the module that declares them.
 
 For example, if you want you use the `HardhatRuntimeEnvironment` type, you should import it with:
 
@@ -96,8 +94,7 @@ For example, if you want you use the `HardhatRuntimeEnvironment` type, you shoul
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 ```
 
-But if you want to extend it, you should import the module that declares it
-instead, which is `hardhat/types/runtime`.
+But if you want to extend it, you should import the module that declares it instead, which is `hardhat/types/runtime`.
 
 ```typescript
 import "hardhat/types/runtime";
@@ -120,21 +117,15 @@ configuration values after any resolution and default values have been applied,
 and it's used during the execution of tasks, tests and scripts, and is present
 in the Hardhat Runtime Environment.
 
-For example, `HardhatUserConfig` represents the entire config written by the
-user, and all of its fields are optional. `HardhatConfig`, is the result
-of resolving/normalizing it, and applying default values. None of its fields
-are optional.
+For example, `HardhatUserConfig` represents the entire config written by the user, and all of its fields are optional. `HardhatConfig`, is the result of resolving/normalizing it, and applying default values. None of its fields are optional.
 
 Some types have been renamed to match this new pattern:
 
 - `ProjectPaths` is now `ProjectPathsUserConfig`
 - `Networks` is now `NetworksUserConfig`
-- Both have their resolved versions: `ProjectPathsConfig` and
-  `NetworksConfig`, respectively.
+- Both have their resolved versions: `ProjectPathsConfig` and `NetworksConfig`, respectively.
 
-You can find an example of how to properly extend these types,
-resolve/normalize the users's config, and apply default values in the
-`src/type-extensions.ts` and `src/index.ts` files.
+You can find an example of how to properly extend these types, resolve/normalize the users's config, and apply default values in the `src/type-extensions.ts` and `src/index.ts` files.
 
 ### How type extensions are loaded in Hardhat
 
@@ -143,7 +134,7 @@ Previously, type extensions were loaded by plugin users by adding references to 
 Now, they're loaded automatically when importing the plugin in a hardhat config file. For example:
 
 ```typescript
-import "@nomiclabs/hardhat-ethers"
+import "@nomiclabs/hardhat-ethers";
 ```
 
 This is enough to import the type extensions included in the `@nomiclabs/hardhat-ethers` plugin.

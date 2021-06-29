@@ -67,8 +67,7 @@ For this tutorial, we're going to create a task to get an account’s balance fr
 ```js
 require("@nomiclabs/hardhat-web3");
 
-task("balance", "Prints an account's balance")
-  .setAction(async () => {});
+task("balance", "Prints an account's balance").setAction(async () => {});
 
 module.exports = {};
 ```
@@ -141,7 +140,7 @@ require("@nomiclabs/hardhat-web3");
 
 task("balance", "Prints an account's balance")
   .addParam("account", "The account's address")
-  .setAction(async taskArgs => {
+  .setAction(async (taskArgs) => {
     const account = web3.utils.toChecksumAddress(taskArgs.account);
     const balance = await web3.eth.getBalance(account);
 
@@ -169,7 +168,11 @@ Creating a task is done by calling the `task` function. It will return a `TaskDe
 The simplest task you can define is
 
 ```js
-task("hello", "Prints 'Hello, World!'", async function(taskArguments, hre, runSuper) {
+task("hello", "Prints 'Hello, World!'", async function (
+  taskArguments,
+  hre,
+  runSuper
+) {
   console.log("Hello, World!");
 });
 ```
@@ -254,7 +257,12 @@ An example of a task defining a type for one of its parameters is
 
 ```js
 task("hello", "Prints 'Hello' multiple times")
-  .addOptionalParam("times", "The number of times to print 'Hello'", 1, types.int)
+  .addOptionalParam(
+    "times",
+    "The number of times to print 'Hello'",
+    1,
+    types.int
+  )
   .setAction(async ({ times }) => {
     for (let i = 0; i < times; i++) {
       console.log("Hello");
@@ -297,17 +305,15 @@ To run a subtask, or any task whatsoever, you can use the `run` function. It tak
 This is an example of a task running a subtask:
 
 ```js
-task("hello-world", "Prints a hello world message")
-  .setAction(async () => {
-    await run("print", {message: "Hello, World!"})
-  });
+task("hello-world", "Prints a hello world message").setAction(async () => {
+  await run("print", { message: "Hello, World!" });
+});
 
 subtask("print", "Prints a message")
   .addParam("message", "The message to print")
   .setAction(async (taskArgs) => {
-    console.log(taskArgs.message)
+    console.log(taskArgs.message);
   });
-``` 
+```
 
-For any questions or feedback you may have, you can find us in the [Hardhat Discord
-server](https://hardhat.org/discord).
+For any questions or feedback you may have, you can find us in the [Hardhat Discord server](https://hardhat.org/discord).

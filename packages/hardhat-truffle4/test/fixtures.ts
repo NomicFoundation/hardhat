@@ -1,6 +1,5 @@
 import { assert } from "chai";
 import { HARDHAT_NETWORK_NAME } from "hardhat/plugins";
-import path from "path";
 
 import {
   getTruffleFixtureFunction,

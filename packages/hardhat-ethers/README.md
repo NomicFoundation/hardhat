@@ -1,5 +1,4 @@
-[![npm](https://img.shields.io/npm/v/@nomiclabs/hardhat-ethers.svg)](https://www.npmjs.com/package/@nomiclabs/hardhat-ethers)
-[![hardhat](https://hardhat.org/buidler-plugin-badge.svg?1)](https://hardhat.org)
+[![npm](https://img.shields.io/npm/v/@nomiclabs/hardhat-ethers.svg)](https://www.npmjs.com/package/@nomiclabs/hardhat-ethers) [![hardhat](https://hardhat.org/buidler-plugin-badge.svg?1)](https://hardhat.org)
 
 # hardhat-ethers
 
@@ -35,13 +34,11 @@ This plugin creates no additional tasks.
 
 This plugins adds an `ethers` object to the Hardhat Runtime Environment.
 
-This object has the same API than `ethers.js`, with some extra Hardhat-specific
-functionality.
+This object has the same API than `ethers.js`, with some extra Hardhat-specific functionality.
 
 ### Provider object
 
-A `provider` field is added to `ethers`, which is an `ethers.providers.Provider`
-automatically connected to the selected network.
+A `provider` field is added to `ethers`, which is an `ethers.providers.Provider` automatically connected to the selected network.
 
 ### Helpers
 
@@ -107,14 +104,11 @@ Read the documentation on the [Hardhat Runtime Environment](https://hardhat.org/
 Some contracts need to be linked with libraries before they are deployed. You can pass the addresses of their libraries to the `getContractFactory` function with an object like this:
 
 ```js
-const contractFactory = await this.env.ethers.getContractFactory(
-  "Example",
-  {
-    libraries: {
-      ExampleLib: "0x..."
-    }
-  }
-);
+const contractFactory = await this.env.ethers.getContractFactory("Example", {
+  libraries: {
+    ExampleLib: "0x...",
+  },
+});
 ```
 
 This allows you to create a contract factory for the `Example` contract and link its `ExampleLib` library references to the address `"0x..."`.

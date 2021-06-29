@@ -113,7 +113,7 @@ export class HardhatPluginError extends CustomError {
    * @param message An error message that will be shown to the user.
    * @param parent The error that causes this error to be thrown.
    */
-  public constructor(pluginName: string, message: string, parent?: Error);
+  constructor(pluginName: string, message: string, parent?: Error);
 
   /**
    * A DEPRECATED constructor that automatically obtains the caller package and
@@ -124,9 +124,9 @@ export class HardhatPluginError extends CustomError {
    * @param message An error message that will be shown to the user.
    * @param parent The error that causes this error to be thrown.
    */
-  public constructor(message: string, parent?: Error);
+  constructor(message: string, parent?: Error);
 
-  public constructor(
+  constructor(
     pluginNameOrMessage: string,
     messageOrParent?: string | Error,
     parent?: Error
@@ -161,7 +161,7 @@ export class NomicLabsHardhatPluginError extends HardhatPluginError {
    * This class is used to throw errors from *core* hardhat plugins. If you are
    * developing a third-party plugin, use HardhatPluginError instead.
    */
-  public constructor(
+  constructor(
     pluginName: string,
     message: string,
     parent?: Error,

@@ -23,5 +23,4 @@ networks: {
 }
 ```
 
-Note that if your setup or any of your plugins depends on the chain id being `31337`, you might need to clean your
-cache or make further adaptations in your config.
+Note that if your setup or any of your plugins depends on the chain id being `31337`, you might need to clean your cache or make further adaptations in your config.

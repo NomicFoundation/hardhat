@@ -142,9 +142,9 @@ module.exports = {
       ],
     },
     algolia: {
-      apiKey: '70d2567dd1257c8a53bbb823a0085f02',
-      indexName: 'hardhat'
-    }
+      apiKey: "70d2567dd1257c8a53bbb823a0085f02",
+      indexName: "hardhat",
+    },
   },
   head: [
     [

@@ -4,8 +4,7 @@ This section describes common problems with working with Hardhat and how to solv
 
 ## Out of memory errors when compiling large projects
 
-If your project has lots of smart contracts, compiling them may require more memory than what
-Node allows by default and crash.
+If your project has lots of smart contracts, compiling them may require more memory than what Node allows by default and crash.
 
 If you are experiencing this problem, you can use Hardhat's `--max-memory` argument:
 

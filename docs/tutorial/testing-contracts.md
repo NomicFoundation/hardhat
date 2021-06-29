@@ -1,17 +1,18 @@
 # 5. Testing contracts
 
-Writing automated tests when building smart contracts is of crucial importance, as your user's money is what's at stake. For this we're going to use **Hardhat Network**, a local Ethereum network designed for development that is built-in and the default network in **Hardhat**. You don't need to setup anything to use it. In our tests we're going to use ethers.js to interact with the Ethereum contract we built in the previous section, and [Mocha](https://mochajs.org/) as our test runner. 
+Writing automated tests when building smart contracts is of crucial importance, as your user's money is what's at stake. For this we're going to use **Hardhat Network**, a local Ethereum network designed for development that is built-in and the default network in **Hardhat**. You don't need to setup anything to use it. In our tests we're going to use ethers.js to interact with the Ethereum contract we built in the previous section, and [Mocha](https://mochajs.org/) as our test runner.
 
 ## Writing tests
-Create a new directory called `test` inside our project root directory and create a new file called `Token.js`. 
+
+Create a new directory called `test` inside our project root directory and create a new file called `Token.js`.
 
 Let's start with the code below. We'll explain it next, but for now paste this into `Token.js`:
 
 ```js
 const { expect } = require("chai");
 
-describe("Token contract", function() {
-  it("Deployment should assign the total supply of tokens to the owner", async function() {
+describe("Token contract", function () {
+  it("Deployment should assign the total supply of tokens to the owner", async function () {
     const [owner] = await ethers.getSigners();
 
     const Token = await ethers.getContractFactory("Token");
@@ -22,7 +23,7 @@ describe("Token contract", function() {
     expect(await hardhatToken.totalSupply()).to.equal(ownerBalance);
   });
 });
-````
+```
 
 On your terminal run `npx hardhat test`. You should see the following output:
 
@@ -45,13 +46,12 @@ const [owner] = await ethers.getSigners();
 A `Signer` in ethers.js is an object that represents an Ethereum account. It's used to send transactions to contracts and other accounts. Here we're getting a list of the accounts in the node we're connected to, which in this case is **Hardhat Network**, and only keeping the first one.
 
 The `ethers` variable is available in the global scope. If you like your code always being explicit, you can add this line at the top:
+
 ```js
 const { ethers } = require("hardhat");
 ```
 
-::: tip
-To learn more about `Signer`, you can look at the [Signers documentation](https://docs.ethers.io/v5/api/signer/).
-:::
+::: tip To learn more about `Signer`, you can look at the [Signers documentation](https://docs.ethers.io/v5/api/signer/). :::
 
 ```js
 const Token = await ethers.getContractFactory("Token");
@@ -71,7 +71,7 @@ const ownerBalance = await hardhatToken.balanceOf(owner.address);
 
 Once the contract is deployed, we can call our contract methods on `hardhatToken` and use them to get the balance of the owner account by calling `balanceOf()`.
 
-Remember that the owner of the token who gets the entire supply is the account that makes the deployment, and when using the `hardhat-ethers` plugin  `ContractFactory` and `Contract` instances are connected to the first signer by default. This means that the account in the `owner` variable executed the deployment, and `balanceOf()` should return the entire supply amount.
+Remember that the owner of the token who gets the entire supply is the account that makes the deployment, and when using the `hardhat-ethers` plugin `ContractFactory` and `Contract` instances are connected to the first signer by default. This means that the account in the `owner` variable executed the deployment, and `balanceOf()` should return the entire supply amount.
 
 ```js
 expect(await hardhatToken.totalSupply()).to.equal(ownerBalance);
@@ -89,18 +89,17 @@ If you need to send a transaction from an account (or `Signer` in ethers.js spea
 const { expect } = require("chai");
 
 describe("Transactions", function () {
-
-  it("Should transfer tokens between accounts", async function() {
+  it("Should transfer tokens between accounts", async function () {
     const [owner, addr1, addr2] = await ethers.getSigners();
 
     const Token = await ethers.getContractFactory("Token");
 
     const hardhatToken = await Token.deploy();
-   
+
     // Transfer 50 tokens from owner to addr1
     await hardhatToken.transfer(addr1.address, 50);
     expect(await hardhatToken.balanceOf(addr1.address)).to.equal(50);
-    
+
     // Transfer 50 tokens from addr1 to addr2
     await hardhatToken.connect(addr1).transfer(addr2.address, 50);
     expect(await hardhatToken.balanceOf(addr2.address)).to.equal(50);
@@ -224,8 +223,10 @@ describe("Token contract", function () {
     });
   });
 });
-````
+```
+
 This is what the output of `npx hardhat test` should look like against the full test suite:
+
 ```
 $ npx hardhat test
 

@@ -6,7 +6,11 @@
     "composite": true
   },
   "include": ["./test/**/*.ts"],
-  "exclude": ["./test/**/hardhat.config.ts", "./node_modules", "./test/internal/hardhat-network/stack-traces/test-files"],
+  "exclude": [
+    "./test/**/hardhat.config.ts",
+    "./node_modules",
+    "./test/internal/hardhat-network/stack-traces/test-files"
+  ],
   "references": [
     {
       "path": "./src"

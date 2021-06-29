@@ -6,7 +6,6 @@ import {
 import type { task as taskT } from "hardhat/config";
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import type { CompilerInput } from "hardhat/types";
-import nock from "nock";
 import path from "path";
 
 import {
@@ -339,11 +338,9 @@ describe("Plugin integration tests", function () {
       const { task }: { task: typeof taskT } = require("hardhat/config");
 
       // We override this task to avoid posting to an actual endpoint and to avoid our own sanity checks.
-      task(TASK_VERIFY_GET_ETHERSCAN_ENDPOINT).setAction(
-        async (_, hre, runSuper) => {
-          return "http://localhost:54321";
-        }
-      );
+      task(TASK_VERIFY_GET_ETHERSCAN_ENDPOINT).setAction(async () => {
+        return "http://localhost:54321";
+      });
       const { ethers } = this.env as any;
       const signers = await ethers.getSigners();
       signer = signers[0];

@@ -1,18 +1,16 @@
 # TypeScript Support
 
-In this guide, we will go through the steps to get a Hardhat project working with TypeScript. This means that you can write your Hardhat config, tasks, scripts and tests in [TypeScript](https://www.typescriptlang.org/). 
+In this guide, we will go through the steps to get a Hardhat project working with TypeScript. This means that you can write your Hardhat config, tasks, scripts and tests in [TypeScript](https://www.typescriptlang.org/).
 
 For a general overview of using Hardhat refer to the [Getting started guide](../getting-started).
 
 ## Enabling TypeScript support
 
-Hardhat will automatically enable its TypeScript support if your config file ends in `.ts` and is written
-in valid TypeScript. This requires a few changes to work properly.
+Hardhat will automatically enable its TypeScript support if your config file ends in `.ts` and is written in valid TypeScript. This requires a few changes to work properly.
 
 ### Installing dependencies
 
-Hardhat uses TypeScript and `ts-node` under the hood, so you need to install them.
-To do it, open your terminal, go to your Hardhat project, and run:
+Hardhat uses TypeScript and `ts-node` under the hood, so you need to install them. To do it, open your terminal, go to your Hardhat project, and run:
 
 ```
 npm install --save-dev ts-node typescript
@@ -26,11 +24,9 @@ npm install --save-dev chai @types/node @types/mocha @types/chai
 
 ### TypeScript configuration
 
-You can easily turn a JavaScript Hardhat config file into a TypeScript one. Let's see how this is done starting with a
-fresh Hardhat project.
+You can easily turn a JavaScript Hardhat config file into a TypeScript one. Let's see how this is done starting with a fresh Hardhat project.
 
-Open your terminal, go to an empty folder, run `npx hardhat`, and go through the steps to create a sample
-project. When you're done your project directory should look something like this:
+Open your terminal, go to an empty folder, run `npx hardhat`, and go through the steps to create a sample project. When you're done your project directory should look something like this:
 
 ```
 $ ls -l
@@ -145,7 +141,10 @@ async function main() {
 
   const accounts = await ethers.getSigners();
 
-  console.log("Accounts:", accounts.map(a => a.address));
+  console.log(
+    "Accounts:",
+    accounts.map((a) => a.address)
+  );
 }
 
 main()
@@ -174,10 +173,9 @@ export default config;
 
 ## Customizing TypeScript with a `tsconfig.json` file
 
-Hardhat doesn't need a `tsconfig.json` file to work, but you can still create one. 
+Hardhat doesn't need a `tsconfig.json` file to work, but you can still create one.
 
-If you don't know what a `tsconfig.json` file is, or you are not sure if you care about it, 
-we recommend you skip this section.
+If you don't know what a `tsconfig.json` file is, or you are not sure if you care about it, we recommend you skip this section.
 
 If you are sure you need a `tsconfig.json` file, here's a template to base yours on:
 
@@ -195,8 +193,7 @@ If you are sure you need a `tsconfig.json` file, here's a template to base yours
 }
 ```
 
-However you modify it, please make sure your config file is included in your project. The easiest way of doing this is
-by keeping its path in the `files` array.
+However you modify it, please make sure your config file is included in your project. The easiest way of doing this is by keeping its path in the `files` array.
 
 ### Support for path mappings
 
@@ -204,22 +201,22 @@ Typescript allows defining custom [path mappings](https://www.typescriptlang.org
 
 ```json5
 {
-  "compilerOptions": {
-    "paths": { "~/*": ["src/*"] },
+  compilerOptions: {
+    paths: { "~/*": ["src/*"] },
     // ...Other compilerOptions
   },
-  "include": ["./scripts", "./test"],
-  "files": ["./hardhat.config.ts"]
+  include: ["./scripts", "./test"],
+  files: ["./hardhat.config.ts"],
 }
 ```
 
 To support this option when running Hardhat tests or scripts, you need to install the package [`tsconfig-paths`](https://www.npmjs.com/package/tsconfig-paths) and register it in your `hardhat.config.ts`:
 
 ```typescript
-import { HardhatUserConfig } from 'hardhat/config';
+import { HardhatUserConfig } from "hardhat/config";
 
 // This adds support for typescript paths mappings
-import 'tsconfig-paths/register';
+import "tsconfig-paths/register";
 
 const config: HardhatUserConfig = {
   // Your type-safe config goes here
@@ -230,11 +227,9 @@ export default config;
 
 ## Performance optimizations
 
-Under the hood, Hardhat uses [ts-node](https://www.npmjs.com/package/ts-node) to support TypeScript. By default, it
-will recompile and type-check everything on every run. Depending on your project's size, this can get slow.
+Under the hood, Hardhat uses [ts-node](https://www.npmjs.com/package/ts-node) to support TypeScript. By default, it will recompile and type-check everything on every run. Depending on your project's size, this can get slow.
 
-You can make Hardhat run faster by preventing `ts-node` from type-checking your project. This is done by setting the
-`TS_NODE_TRANSPILE_ONLY` env variable to `1`. 
+You can make Hardhat run faster by preventing `ts-node` from type-checking your project. This is done by setting the `TS_NODE_TRANSPILE_ONLY` env variable to `1`.
 
 For example, you can run your TypeScript-based tests faster like this `TS_NODE_TRANSPILE_ONLY=1 npx hardhat test`.
 

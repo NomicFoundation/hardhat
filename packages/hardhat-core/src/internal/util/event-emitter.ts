@@ -77,12 +77,12 @@ export class EventEmitterWrapper implements EventEmitter {
     return this._wrapped.getMaxListeners();
   }
 
-  // tslint:disable-next-line ban-types
+  // eslint-disable-next-line @typescript-eslint/ban-types
   public listeners(event: string | symbol): Function[] {
     return this._wrapped.listeners(event);
   }
 
-  // tslint:disable-next-line ban-types
+  // eslint-disable-next-line @typescript-eslint/ban-types
   public rawListeners(event: string | symbol): Function[] {
     return this._wrapped.rawListeners(event);
   }

@@ -1,10 +1,11 @@
-/* tslint:disable:no-string-literal */
 import { ForkBlockchain } from "../../../../src/internal/hardhat-network/provider/fork/ForkBlockchain";
 import { HardhatNetworkProvider } from "../../../../src/internal/hardhat-network/provider/provider";
 
+/* eslint-disable @typescript-eslint/dot-notation */
+
 export async function retrieveForkBlockNumber(
   provider: HardhatNetworkProvider
-) {
+): Promise<number> {
   if (provider["_node"] === undefined) {
     await provider["_init"]();
   }

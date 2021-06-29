@@ -1,4 +1,4 @@
-/* tslint:disable:no-string-literal */
+/* eslint-disable dot-notation,@typescript-eslint/dot-notation */
 import Common from "@ethereumjs/common";
 
 import { HardhatNetworkProvider } from "../../../../src/internal/hardhat-network/provider/provider";

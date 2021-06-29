@@ -29,7 +29,7 @@ import {
 import { useHelpers } from "../../../../helpers/useHelpers";
 
 describe("Eth module", function () {
-  PROVIDERS.forEach(({ name, useProvider, isFork, isJsonRpc, chainId }) => {
+  PROVIDERS.forEach(({ name, useProvider, isFork, isJsonRpc }) => {
     if (isFork) {
       this.timeout(50000);
     }
@@ -308,7 +308,7 @@ describe("Eth module", function () {
                 data:
                   "0x6080604052348015600f57600080fd5b506040517f08c379a00000000000000000000000000000000000000000000000000000000081526004018080602001828103825260018152602001807f410000000000000000000000000000000000000000000000000000000000000081525060200191505060405180910390fdfe",
               },
-              "revert A"
+              "reverted with reason string 'A'"
             );
           });
 
