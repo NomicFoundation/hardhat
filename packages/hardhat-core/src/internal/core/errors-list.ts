@@ -963,7 +963,7 @@ If you aren't overriding compilation-related tasks, please report this as a bug.
     INVALID_SOURCE_NAME_BACKSLASHES: {
       number: 1002,
       message:
-        "Invalid source %name%. The source name uses backslashes (\\\\) instead of slashes (/).",
+        "Invalid source %name%. The source name uses backslashes (\\) instead of slashes (/).",
       title: "Invalid source name: backslashes",
       description: `A Solidity source name was invalid because it uses backslashes (\\\\) instead of slashes (/).
       
