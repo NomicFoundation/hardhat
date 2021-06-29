@@ -226,7 +226,7 @@ Manually creating a `Promise` can look challenging, but you don't have to do tha
 
 ### Defining parameters
 
-Hardhat tasks can receive named parameters with a value (eg `--parameterName parameterValue`), flags with no value (eg `--flagName`), positional parameters, or variadic parameters. Variadic parameters act like JavaScript's rest parameters. The Config DSL `task` function returns an object with methods to define all of them. Once defined, Hardhat takes control of parsing parameters, validating them, and printing help messages.
+Hardhat tasks can receive named parameters with a value (eg `--parameter-name parameterValue`), flags with no value (eg `--flag-name`), positional parameters, or variadic parameters. Variadic parameters act like JavaScript's rest parameters. The Config DSL `task` function returns an object with methods to define all of them. Once defined, Hardhat takes control of parsing parameters, validating them, and printing help messages.
 
 Adding an optional parameter to the `hello` task can look like this:
 
