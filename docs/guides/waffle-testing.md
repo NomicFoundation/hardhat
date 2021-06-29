@@ -43,8 +43,7 @@ Look at the `hardhat.config.js` file and you'll see that the Waffle plugin is en
 
 ## Testing
 
-Tests using Waffle are written with [Mocha](https://mochajs.org/) alongside [Chai](https://www.chaijs.com/). If you
-haven't heard of them, they are super popular JavaScript testing utilities.
+Tests using Waffle are written with [Mocha](https://mochajs.org/) alongside [Chai](https://www.chaijs.com/). If you haven't heard of them, they are super popular JavaScript testing utilities.
 
 Inside the `test` folder you'll find `sample-test.js`. Let's take a look at it, and we'll explain it next:
 
@@ -71,9 +70,7 @@ We are requiring `Chai` which is an assertions library. These asserting function
 
 This is why we're using the `@nomiclabs/hardhat-waffle` plugin, which makes it easier to assert values from Ethereum. Check out [this section](https://ethereum-waffle.readthedocs.io/en/latest/matchers.html) in Waffle's documentation for the entire list of Ethereum-specific matchers.
 
-::: warning
-Some Waffle matchers return a Promise rather than executing immediately. If you're making a call or sending a transaction, make sure to check Waffle's documentation, and `await` these Promises. Otherwise your tests may pass without waiting for all checks to complete.
-:::
+::: warning Some Waffle matchers return a Promise rather than executing immediately. If you're making a call or sending a transaction, make sure to check Waffle's documentation, and `await` these Promises. Otherwise your tests may pass without waiting for all checks to complete. :::
 
 ```js
 describe("Greeter", function () {

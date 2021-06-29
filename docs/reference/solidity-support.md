@@ -1,10 +1,8 @@
 # Solidity support
 
-Hardhat Network has first-class Solidity support. It always knows which smart contracts are
-being run, what exactly they do, and why they fail, making smart contract development easier.
+Hardhat Network has first-class Solidity support. It always knows which smart contracts are being run, what exactly they do, and why they fail, making smart contract development easier.
 
-To do these kinds of things, Hardhat integrates very deeply with Solidity, which means that new
-versions of it aren't automatically supported.
+To do these kinds of things, Hardhat integrates very deeply with Solidity, which means that new versions of it aren't automatically supported.
 
 This section of the docs explains which versions are supported, and what happens if you use an unsupported one.
 
@@ -21,8 +19,7 @@ We recommend against using Hardhat with newer, unsupported versions of Solidity,
 
 ### Using an unsupported version
 
-When running an unsupported version of Solidity, our integration with it may not work, or
-it may work incorrectly.
+When running an unsupported version of Solidity, our integration with it may not work, or it may work incorrectly.
 
 This can mean that Solidity stack traces may stop working, be incorrect, or incomplete. It can also mean that `console.log` may stop working.
 
