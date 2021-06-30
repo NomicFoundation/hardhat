@@ -8,6 +8,7 @@ import {
   rpcQuantityToNumber,
 } from "../../../core/jsonrpc/types/base-types";
 import { HttpProvider } from "../../../core/providers/http";
+import { getNetworkIdFromNetVersion, getChainIdFromEthChainId } from "../../../core/providers/chainId";
 import { JsonRpcClient } from "../../jsonrpc/client";
 import { ForkConfig } from "../node-types";
 import { RpcBlockOutput } from "../output";
@@ -38,12 +39,12 @@ export async function makeForkClient(
     FORK_HTTP_TIMEOUT
   );
 
-  const networkId = await getNetworkId(provider);
+  const networkId = await getNetworkIdFromNetVersion(provider);
   let chainId;
   try {
-    chainId = await _getChainIdFromEthChainId(provider);
+    chainId = await getChainIdFromEthChainId(provider);
   } catch (error) {
-    chainId = await _getChainIdFromEthNetVersion(provider);
+    chainId = networkId;
   }
 
   const actualMaxReorg = getLargestPossibleReorg(networkId);
@@ -112,36 +113,6 @@ async function getBlockByNumber(
   })) as RpcBlockOutput;
 
   return rpcBlockOutput;
-}
-
-async function getNetworkId(provider: HttpProvider) {
-  const networkIdString = (await provider.request({
-    method: "net_version",
-  })) as string;
-
-  return parseInt(networkIdString, 10);
-}
-
-async function _getChainIdFromEthChainId(
-  provider: HttpProvider
-): Promise<number> {
-  const id = (await provider.request({
-    method: "eth_chainId",
-  })) as string;
-
-  return rpcQuantityToNumber(id);
-}
-
-async function _getChainIdFromEthNetVersion(
-  provider: HttpProvider
-): Promise<number> {
-  const id = (await provider.request({
-    method: "net_version",
-  })) as string;
-
-  // There's a node returning this as decimal instead of QUANTITY.
-  // TODO: Document here which node does that
-  return id.startsWith("0x") ? rpcQuantityToNumber(id) : parseInt(id, 10);
 }
 
 async function getLatestBlockNumber(provider: HttpProvider) {
