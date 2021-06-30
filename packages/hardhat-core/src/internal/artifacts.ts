@@ -65,7 +65,7 @@ export class Artifacts implements IArtifacts {
     } catch (error) {
       if (
         typeof error.message === "string" &&
-        error.message.includes("no matching file exists")
+        (error.message as string).includes("no matching file exists")
       ) {
         throw new HardhatError(ERRORS.INTERNAL.WRONG_ARTIFACT_PATH, {
           contractName: name,
@@ -99,7 +99,7 @@ export class Artifacts implements IArtifacts {
     } catch (error) {
       if (
         typeof error.message === "string" &&
-        error.message.includes("no matching file exists")
+        (error.message as string).includes("no matching file exists")
       ) {
         throw new HardhatError(ERRORS.INTERNAL.WRONG_ARTIFACT_PATH, {
           contractName: name,
