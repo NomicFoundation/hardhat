@@ -78,7 +78,7 @@ abstract class MultipliedGasEstimationProvider extends ProviderWrapper {
 
       return numberToRpcQuantity(gas);
     } catch (error) {
-      if (error.message.toLowerCase().includes("execution error")) {
+      if ((error.message.toLowerCase() as string).includes("execution error")) {
         const blockGasLimit = await this._getBlockGasLimit();
         return numberToRpcQuantity(blockGasLimit);
       }

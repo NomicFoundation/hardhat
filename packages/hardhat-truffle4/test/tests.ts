@@ -34,7 +34,7 @@ function testArtifactsFunctionality() {
     const version = await this.env.network.provider.send("web3_clientVersion");
     // We only run these test on Ganache, see this:
     // https://github.com/ethereum/web3.js/issues/935
-    if (!version.toLowerCase().includes("testrpc")) {
+    if (!(version as string).toLowerCase().includes("testrpc")) {
       this.skip();
     }
   });

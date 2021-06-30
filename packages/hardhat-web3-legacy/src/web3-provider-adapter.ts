@@ -102,7 +102,7 @@ export class Web3HTTPProviderAdapter {
       }
 
       response.error = {
-        code: error.code ? +error.code : 404,
+        code: Boolean(error.code) ? +error.code : 404,
         message: error.message,
         data: {
           stack: error.stack,
