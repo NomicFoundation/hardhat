@@ -1,3 +1,4 @@
+import { ExecException } from "child_process";
 import Docker, { ContainerCreateOptions } from "dockerode";
 import fsExtra from "fs-extra";
 import { IncomingMessage } from "http";
@@ -37,7 +38,7 @@ export class HardhatDocker {
     // TODO: This doesn't support windows
     const { exec } = await import("child_process");
     return new Promise((resolve) => {
-      exec("which docker", (error?: any) => resolve(!error));
+      exec("which docker", (error?: ExecException | null) => resolve(!error));
     });
   }
 
