@@ -76,7 +76,7 @@ describe("Web3 provider adapter", function () {
     // See: https://github.com/rsksmart/rskj/issues/876
     this.env.network.provider
       .send("web3_clientVersion")
-      .then((version) => {
+      .then((version: string) => {
         if (version.includes("RskJ")) {
           done();
           return;
@@ -128,7 +128,7 @@ describe("Web3 provider adapter", function () {
           // See: https://github.com/rsksmart/rskj/issues/876
           this.env.network.provider
             .send("web3_clientVersion")
-            .then((version) => {
+            .then((version: string) => {
               if (version.includes("RskJ")) {
                 assert.equal(
                   response2![1].error!.message,
