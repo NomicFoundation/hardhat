@@ -379,7 +379,9 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     try {
       result = await this._mineBlockWithPendingTxs(blockTimestamp);
     } catch (err) {
-      if (err?.message.includes("sender doesn't have enough funds")) {
+      if (
+        (err?.message as string).includes("sender doesn't have enough funds")
+      ) {
         throw new InvalidInputError(err.message, err);
       }
 
