@@ -201,7 +201,7 @@ async function getPathTrueCase(fromDir: string, p: string): Promise<string> {
   } catch (error) {
     if (
       typeof error.message === "string" &&
-      error.message.includes("no matching file exists")
+      (error.message as string).includes("no matching file exists")
     ) {
       throw new HardhatError(
         ERRORS.SOURCE_NAMES.FILE_NOT_FOUND,
