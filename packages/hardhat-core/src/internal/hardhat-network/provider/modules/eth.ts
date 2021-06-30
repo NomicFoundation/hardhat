@@ -962,12 +962,12 @@ export class EthModule {
       // This section of the code is incredibly dependant of TransactionFactory.fromSerializedData
       // AccessListEIP2930Transaction.fromSerializedTx and Transaction.fromSerializedTx
       // Please keep it updated.
-
-      if (error.message === "invalid remainder") {
+      const { message }: { message: string } = error;
+      if (message === "invalid remainder") {
         throw new InvalidArgumentsError("Invalid transaction", error);
       }
 
-      if (error.message.includes("Incompatible EIP155")) {
+      if (message.includes("Incompatible EIP155")) {
         throw new InvalidArgumentsError(
           "Trying to send an incompatible EIP-155 transaction, signed for another chain.",
           error
@@ -975,10 +975,10 @@ export class EthModule {
       }
 
       if (
-        error.message.includes(
+        message.includes(
           "Common support for TypedTransactions (EIP-2718) not activated"
         ) ||
-        error.message.includes("EIP-2930 not enabled on Common")
+        message.includes("EIP-2930 not enabled on Common")
       ) {
         throw new InvalidArgumentsError(
           `Trying to send an EIP-2930 transaction but they are not supported by the current hard fork.
@@ -989,13 +989,13 @@ You can use them by running Hardhat Network with 'hardfork' ${ACCESS_LIST_MIN_HA
       }
 
       if (
-        error.message.includes("TypedTransaction with ID") &&
-        error.message.includes(" unknown")
+        message.includes("TypedTransaction with ID") &&
+        message.includes(" unknown")
       ) {
         throw new InvalidArgumentsError(`Invalid transaction`, error);
       }
 
-      if (error.message.includes("The chain ID does not match")) {
+      if (message.includes("The chain ID does not match")) {
         throw new InvalidArgumentsError(
           `Trying to send a raw transaction with an invalid chainId. The expected chainId is ${this._common.chainIdBN()}`,
           error
