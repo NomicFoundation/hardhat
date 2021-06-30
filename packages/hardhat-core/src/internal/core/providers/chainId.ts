@@ -10,10 +10,10 @@ export abstract class ProviderWrapperWithChainId extends ProviderWrapper {
   protected async _getChainId(): Promise<number> {
     if (this._chainId === undefined) {
       try {
-        this._chainId = await getChainIdFromEthChainId(this._wrappedProvider);//await this._getChainIdFromEthChainId();
+        this._chainId = await getChainIdFromEthChainId(this._wrappedProvider);
       } catch (error) {
         // If eth_chainId fails we default to net_version
-        this._chainId = await getNetworkIdFromNetVersion(this._wrappedProvider);//this._getChainIdFromEthNetVersion();
+        this._chainId = await getNetworkIdFromNetVersion(this._wrappedProvider);
       }
     }
 

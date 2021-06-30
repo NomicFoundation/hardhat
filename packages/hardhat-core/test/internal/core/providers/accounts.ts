@@ -40,7 +40,7 @@ describe("Local accounts provider", () => {
   beforeEach(() => {
     mock = new MockedProvider();
     mock.setReturnValue(
-      "net_version",
+      "eth_chainId",
       numberToRpcQuantity(MOCK_PROVIDER_CHAIN_ID)
     );
     mock.setReturnValue("eth_getTransactionCount", numberToRpcQuantity(0x8));
