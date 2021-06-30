@@ -313,7 +313,7 @@ describe("Ethers plugin", function () {
                 "getContractFactory should report the ambiguous name resolution as the cause"
               );
               assert.isTrue(
-                reason.message.includes(
+                (reason.message as string).includes(
                   "AmbiguousLibrary.sol:AmbiguousLibrary"
                 ) &&
                   reason.message.includes(
