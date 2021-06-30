@@ -11,7 +11,7 @@ export function isNodeCalledWithoutAScript() {
 export function disableReplWriterShowProxy() {
   const repl = require("repl");
 
-  if (repl.writer.options) {
+  if (Boolean(repl.writer.options)) {
     Object.defineProperty(repl.writer.options, "showProxy", {
       value: false,
       writable: false,
