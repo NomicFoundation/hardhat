@@ -469,18 +469,21 @@ export function getArtifactFromContractOutput(
   contractName: string,
   contractOutput: any
 ): Artifact {
-  const evmBytecode = contractOutput.evm && contractOutput.evm.bytecode;
+  const evmBytecode =
+    Boolean(contractOutput.evm) && contractOutput.evm.bytecode;
   let bytecode: string =
-    evmBytecode && evmBytecode.object ? evmBytecode.object : "";
+    Boolean(evmBytecode) && Boolean(evmBytecode.object)
+      ? evmBytecode.object
+      : "";
 
   if (bytecode.slice(0, 2).toLowerCase() !== "0x") {
     bytecode = `0x${bytecode}`;
   }
 
   const evmDeployedBytecode =
-    contractOutput.evm && contractOutput.evm.deployedBytecode;
+    Boolean(contractOutput.evm) && contractOutput.evm.deployedBytecode;
   let deployedBytecode: string =
-    evmDeployedBytecode && evmDeployedBytecode.object
+    Boolean(evmDeployedBytecode) && Boolean(evmDeployedBytecode.object)
       ? evmDeployedBytecode.object
       : "";
 
@@ -489,9 +492,11 @@ export function getArtifactFromContractOutput(
   }
 
   const linkReferences =
-    evmBytecode && evmBytecode.linkReferences ? evmBytecode.linkReferences : {};
+    Boolean(evmBytecode) && Boolean(evmBytecode.linkReferences)
+      ? evmBytecode.linkReferences
+      : {};
   const deployedLinkReferences =
-    evmDeployedBytecode && evmDeployedBytecode.linkReferences
+    Boolean(evmDeployedBytecode) && Boolean(evmDeployedBytecode.linkReferences)
       ? evmDeployedBytecode.linkReferences
       : {};
 
