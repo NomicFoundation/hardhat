@@ -323,7 +323,10 @@ export class JsonRpcClient {
       }
 
       // This is a workaround for this TurboGeth bug: https://github.com/ledgerwatch/turbo-geth/issues/1645
-      if (err.code === -32000 && err.message.includes("not found")) {
+      if (
+        err.code === -32000 &&
+        (err.message as string).includes("not found")
+      ) {
         return null;
       }
 
@@ -347,9 +350,9 @@ export class JsonRpcClient {
     }
   }
 
-  private _shouldRetry(isRetryCall: boolean, err: any) {
+  private _shouldRetry(isRetryCall: boolean, err: any): boolean {
     const isRetriableError =
-      err.message.includes("header not found") ||
+      (err.message as string).includes("header not found") ||
       err.message.includes("connect ETIMEDOUT");
 
     const isServiceUrl =
