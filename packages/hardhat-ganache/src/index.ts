@@ -22,7 +22,7 @@ task(TASK_RUN, async (_args, env, runSuper) => {
 extendConfig((resolvedConfig: any, config: any) => {
   const defaultOptions = GanacheService.getDefaultOptions();
 
-  if (config.networks && config.networks.ganache) {
+  if (Boolean(config.networks) && Boolean(config.networks.ganache)) {
     const customOptions = config.networks.ganache;
     resolvedConfig.networks.ganache = { ...defaultOptions, ...customOptions };
   } else {
