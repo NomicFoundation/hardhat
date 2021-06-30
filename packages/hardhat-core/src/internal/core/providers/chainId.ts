@@ -2,6 +2,7 @@ import { EIP1193Provider, RequestArguments } from "../../../types";
 import { HardhatError } from "../errors";
 import { ERRORS } from "../errors-list";
 import { rpcQuantityToNumber } from "../jsonrpc/types/base-types";
+
 import { ProviderWrapper } from "./wrapper";
 
 export abstract class ProviderWrapperWithChainId extends ProviderWrapper {
@@ -48,7 +49,6 @@ export class ChainIdValidatorProvider extends ProviderWrapperWithChainId {
   }
 }
 
-
 export async function getNetworkIdFromNetVersion(provider: EIP1193Provider) {
   const networkIdString = (await provider.request({
     method: "net_version",
@@ -64,5 +64,5 @@ export async function getChainIdFromEthChainId(
     method: "eth_chainId",
   })) as string;
 
-  return id.startsWith("0x") ? rpcQuantityToNumber(id) : parseInt(id, 10);;
+  return id.startsWith("0x") ? rpcQuantityToNumber(id) : parseInt(id, 10);
 }

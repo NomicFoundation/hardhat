@@ -7,8 +7,11 @@ import {
   numberToRpcQuantity,
   rpcQuantityToNumber,
 } from "../../../core/jsonrpc/types/base-types";
+import {
+  getChainIdFromEthChainId,
+  getNetworkIdFromNetVersion,
+} from "../../../core/providers/chainId";
 import { HttpProvider } from "../../../core/providers/http";
-import { getNetworkIdFromNetVersion, getChainIdFromEthChainId } from "../../../core/providers/chainId";
 import { JsonRpcClient } from "../../jsonrpc/client";
 import { ForkConfig } from "../node-types";
 import { RpcBlockOutput } from "../output";
