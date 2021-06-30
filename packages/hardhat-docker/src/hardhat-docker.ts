@@ -212,8 +212,8 @@ export class HardhatDocker {
 
       if (
         error.statusCode === 400 &&
-        error.message !== undefined &&
-        error.message.includes("executable file not found")
+        (error.message ?? "") !== "" &&
+        (error.message as string).includes("executable file not found")
       ) {
         throw new ExecutableNotFoundError(error);
       }
