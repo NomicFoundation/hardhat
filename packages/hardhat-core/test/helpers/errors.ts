@@ -114,7 +114,7 @@ export async function expectHardhatErrorAsync(
 
     if (errorMessage !== undefined) {
       if (typeof errorMessage === "string") {
-        if (!err.message.includes(errorMessage)) {
+        if (!(err.message as string).includes(errorMessage)) {
           notExactMatch.message += `${err.message}`;
           throw notExactMatch;
         }
