@@ -58,7 +58,7 @@ npx hardhat node --fork https://eth-mainnet.alchemyapi.io/v2/<key> --fork-block-
 
 ## Customizing Hardhat Network's behavior
 
-Once you've got local instances of mainnet protocols, setting them in the specific state your tests need is likely the next step. Hardhat provides several RPC methods that let you modify anything about an address.
+Once you've got local instances of mainnet protocols, setting them in the specific state your tests need is likely the next step. Hardhat Network provides several RPC methods to help you with this.
 
 ### Impersonating accounts
 
@@ -89,7 +89,7 @@ const signer = await ethers.provider.getSigner("0x364d6D0333432C3Ac016Ca832fb859
 signer.sendTransaction(...)
 ```
 
-### Set account nonce
+### Setting account nonce
 
 This method lets you change the nonce of an account. For example:
 
@@ -104,7 +104,7 @@ This will result in account `0x0d20...000B` having a nonce of 33.
 
 You can only use this method to increase the nonce of an account; you can't set a lower value than the account's current nonce.
 
-### Set account balance
+### Setting account balance
 
 This method lets you change the balance of an account. For example:
 
@@ -117,7 +117,7 @@ await network.provider.send("hardhat_setBalance", [
 
 This will result in account `0x0d20...000B` having a balance of 4096 wei.
 
-### Set bytecode of an address
+### Setting bytecode of an address
 
 This method lets you set the bytecode of an address. For example:
 
@@ -130,7 +130,7 @@ await network.provider.send("hardhat_setCode", [
 
 This will result in account `0x0d20...000B` becoming a smart contract with bytecode `a1a2a3....` If that address was already a smart contract, then its code will be replaced by the specified one.
 
-### Modify storage of contract
+### Modifying contract storage
 
 This method lets you modify any position in the storage of a smart contract. For example:
 
@@ -142,7 +142,7 @@ await network.provider.send("hardhat_setStorageAt", [
 ]);
 ```
 
-This will set the first storage position inside that contract to 1.
+This will set the contract's first storage position (at index `0x0`) to 1.
 
 The mapping between a smart contract's variables and its storage position is not straightforward except in some very simple cases. For example, if you deploy this contract:
 
