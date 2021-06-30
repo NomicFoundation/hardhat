@@ -335,7 +335,9 @@ function resolveCompiler(compiler: SolcUserConfig): SolcConfig {
 
       for (const output of outputs) {
         if (
-          !resolved.settings.outputSelection[file][contract].includes(output)
+          !(resolved.settings.outputSelection[file][
+            contract
+          ] as string).includes(output)
         ) {
           resolved.settings.outputSelection[file][contract].push(output);
         }
