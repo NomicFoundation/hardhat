@@ -1452,7 +1452,8 @@ function needsCompilation(
 
 function hasCompilationErrors(output: any): boolean {
   return (
-    output.errors && output.errors.some((x: any) => x.severity === "error")
+    (output.errors ?? []).length !== 0 &&
+    output.errors.some((x: any) => x.severity === "error")
   );
 }
 
