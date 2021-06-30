@@ -11,32 +11,14 @@ export abstract class ProviderWrapperWithChainId extends ProviderWrapper {
   protected async _getChainId(): Promise<number> {
     if (this._chainId === undefined) {
       try {
-        this._chainId = await this._getChainIdFromEthChainId();
+        this._chainId = await getChainIdFromEthChainId(this._wrappedProvider);
       } catch (error) {
         // If eth_chainId fails we default to net_version
-        this._chainId = await this._getChainIdFromEthNetVersion();
+        this._chainId = await getNetworkIdFromNetVersion(this._wrappedProvider);
       }
     }
 
     return this._chainId;
-  }
-
-  private async _getChainIdFromEthChainId(): Promise<number> {
-    const id = (await this._wrappedProvider.request({
-      method: "eth_chainId",
-    })) as string;
-
-    return rpcQuantityToNumber(id);
-  }
-
-  private async _getChainIdFromEthNetVersion(): Promise<number> {
-    const id = (await this._wrappedProvider.request({
-      method: "net_version",
-    })) as string;
-
-    // There's a node returning this as decimal instead of QUANTITY.
-    // TODO: Document here which node does that
-    return id.startsWith("0x") ? rpcQuantityToNumber(id) : parseInt(id, 10);
   }
 }
 
@@ -65,4 +47,22 @@ export class ChainIdValidatorProvider extends ProviderWrapperWithChainId {
 
     return this._wrappedProvider.request(args);
   }
+}
+
+export async function getNetworkIdFromNetVersion(provider: EIP1193Provider) {
+  const networkIdString = (await provider.request({
+    method: "net_version",
+  })) as string;
+
+  return parseInt(networkIdString, 10);
+}
+
+export async function getChainIdFromEthChainId(
+  provider: EIP1193Provider
+): Promise<number> {
+  const id = (await provider.request({
+    method: "eth_chainId",
+  })) as string;
+
+  return id.startsWith("0x") ? rpcQuantityToNumber(id) : parseInt(id, 10);
 }

@@ -73,8 +73,8 @@ describe("JsonRpcClient", () => {
         clientWithFakeProvider = new JsonRpcClient(
           fakeProvider as any,
           1,
-          123,
           1,
+          123,
           3
         );
 
@@ -88,8 +88,8 @@ describe("JsonRpcClient", () => {
         clientWithFakeProvider = new JsonRpcClient(
           fakeProvider as any,
           1,
+          1,
           123,
-          undefined,
           3
         );
 
@@ -103,8 +103,8 @@ describe("JsonRpcClient", () => {
         clientWithFakeProvider = new JsonRpcClient(
           fakeProvider as any,
           1,
+          1,
           123,
-          undefined,
           3
         );
 
@@ -124,8 +124,8 @@ describe("JsonRpcClient", () => {
           clientWithFakeProvider = new JsonRpcClient(
             fakeProvider as any,
             1,
+            1,
             123,
-            undefined,
             3,
             this.tmpDir
           );
@@ -152,8 +152,8 @@ describe("JsonRpcClient", () => {
           clientWithFakeProvider = new JsonRpcClient(
             fakeProvider as any,
             1,
+            1,
             123,
-            undefined,
             3,
             this.tmpDir
           );
@@ -187,8 +187,8 @@ describe("JsonRpcClient", () => {
         const clientWithFakeProvider = new JsonRpcClient(
           fakeProvider as any,
           1,
+          1,
           123,
-          undefined,
           3
         );
 
@@ -218,8 +218,8 @@ describe("JsonRpcClient", () => {
         const clientWithFakeProvider = new JsonRpcClient(
           fakeProvider as any,
           1,
+          1,
           123,
-          undefined,
           3
         );
 
@@ -248,8 +248,8 @@ describe("JsonRpcClient", () => {
         const clientWithFakeProvider = new JsonRpcClient(
           fakeProvider as any,
           1,
+          1,
           123,
-          undefined,
           3
         );
         await assert.isRejected(
@@ -277,8 +277,8 @@ describe("JsonRpcClient", () => {
         const clientWithFakeProvider = new JsonRpcClient(
           fakeProvider as any,
           1,
+          1,
           123,
-          undefined,
           3
         );
         await assert.isRejected(
