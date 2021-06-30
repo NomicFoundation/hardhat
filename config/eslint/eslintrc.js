@@ -135,7 +135,7 @@ module.exports = {
     "@typescript-eslint/strict-boolean-expressions": [
       "error",
       {
-        allowAny: true,
+        allowAny: false,
       },
     ],
     "@typescript-eslint/triple-slash-reference": [
