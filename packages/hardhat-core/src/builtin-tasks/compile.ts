@@ -719,7 +719,7 @@ subtask(TASK_COMPILE_SOLIDITY_LOG_COMPILATION_ERRORS)
       }
     }
 
-    const hasConsoleErrors = output.errors.some(isConsoleLogError);
+    const hasConsoleErrors: boolean = output.errors.some(isConsoleLogError);
     if (hasConsoleErrors) {
       console.error(
         chalk.red(
