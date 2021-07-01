@@ -366,6 +366,14 @@ const plugins = [
     description: "Exporting solidity contract storage layout",
     tags: ["solidity", "storage-layout"],
   },
+  {
+    name: "hardhat-change-network",
+    author: "David Mihal",
+    authorUrl: "https://github.com/dmihal",
+    url: "https://github.com/dmihal/hardhat-change-network/tree/master",
+    description: "Allows changing the current network in Hardhat.",
+    tags: ["Testing"],
+  },
 ];
 
 module.exports = plugins.map((p) => ({
