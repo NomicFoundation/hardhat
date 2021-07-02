@@ -93,7 +93,7 @@ const networkIDtoEndpoints: NetworkMap = {
   },
   [NetworkID.POLYGON_MUMBAI]: {
     apiURL: "https://api-testnet.polygonscan.com/api",
-    browserURL: "https://mumbai.polygonscan.com/"
+    browserURL: "https://mumbai.polygonscan.com/",
   },
 };
 
