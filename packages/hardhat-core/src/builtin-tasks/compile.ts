@@ -1451,10 +1451,8 @@ function needsCompilation(
 }
 
 function hasCompilationErrors(output: any): boolean {
-  return (
-    (output.errors ?? []).length !== 0 &&
-    output.errors.some((x: any) => x.severity === "error")
-  );
+  const errors = output.errors ?? [];
+  return errors.some((x: any) => x.severity === "error");
 }
 
 async function checkSolcBinary(solcPath: string): Promise<boolean> {
