@@ -43,13 +43,13 @@ Look at the `hardhat.config.js` file and you'll see that the Waffle plugin is en
 
 ## Testing
 
-Tests using Waffle are written with [Mocha](https://mochajs.org/) alongside with [Chai](https://www.chaijs.com/). If you haven't heard of them, they are super popular JavaScript testing utilities.
+Tests using Waffle are written with [Mocha](https://mochajs.org/) alongside [Chai](https://www.chaijs.com/). If you haven't heard of them, they are super popular JavaScript testing utilities.
 
-Inside `test` folder you'll find `sample-test.js`. Let's take a look at it, and we'll explain it next:
+Inside the `test` folder you'll find `sample-test.js`. Let's take a look at it, and we'll explain it next:
 
 <<< @/../packages/hardhat-core/sample-project/test/sample-test.js
 
-On your terminal run `npx hardhat test`. You should see the following output:
+In your terminal, run `npx hardhat test`. You should see the following output:
 
 ```
 $ npx hardhat test
@@ -70,7 +70,7 @@ We are requiring `Chai` which is an assertions library. These asserting function
 
 This is why we're using the `@nomiclabs/hardhat-waffle` plugin, which makes it easier to assert values from Ethereum. Check out [this section](https://ethereum-waffle.readthedocs.io/en/latest/matchers.html) in Waffle's documentation for the entire list of Ethereum-specific matchers.
 
-::: warning Some Waffle matchers return a Promise rather than executing immediately. If you're making a call or sending a transaction, make sure to check Waffle's documentation, and `await` these Promises. Otherwise your tests may pass without running all checks. :::
+::: warning Some Waffle matchers return a Promise rather than executing immediately. If you're making a call or sending a transaction, make sure to check Waffle's documentation, and `await` these Promises. Otherwise your tests may pass without waiting for all checks to complete. :::
 
 ```js
 describe("Greeter", function () {
@@ -100,14 +100,14 @@ Once the contract is deployed, we can call our contract methods on `greeter` and
 expect(await greeter.greet()).to.equal("Hello, world!");
 ```
 
-Here we're using our `Contract` instance to call a smart contract function in our Solidity code. `greet()` returns the greeter's greeting and we're checking that it's equal to `Hello, world!`, as it should. To do this we're using the Chai matchers `expect`, `to` and `equal`.
+Here we're using our `Contract` instance to call a smart contract function in our Solidity code. `greet()` returns the greeter's greeting, and we're checking that it's equal to `Hello, world!`, as it should be. To do this we're using the Chai matchers `expect`, `to` and `equal`.
 
 ```js
 await greeter.setGreeting("Hola, mundo!");
 expect(await greeter.greet()).to.equal("Hola, mundo!");
 ```
 
-We can modify the state of a contract in the same way we read from it. Calling `setGreeting` will set a new greeting message. After the `Promise` is resolved, we perform another assertion to verify that the greeting effectively changed.
+We can modify the state of a contract in the same way we read from it. Calling `setGreeting` will set a new greeting message. After the `Promise` is resolved, we perform another assertion to verify that the greeting change took effect.
 
 ### Testing from a different account
 
@@ -214,7 +214,7 @@ Please, make sure you import them from the `waffle` field of the [Hardhat Runtim
 
 Also, you don't need to call `chai.use`. This initialization is already handled by `@nomiclabs/hardhat-waffle`. Just be sure to include `require("@nomiclabs/hardhat-waffle");` in your Hardhat config.
 
-Finally, instead of initializing a `MockProvider`, just use the plugin's provider like this
+Finally, instead of initializing a `MockProvider`, just use the plugin's provider like this:
 
 ```js
 const { waffle } = require("hardhat");
