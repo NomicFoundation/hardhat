@@ -128,11 +128,9 @@ async function compile(
 
   const output = JSON.parse(solc.compile(JSON.stringify(input)));
 
-  if ((output.errors ?? []).length !== 0) {
-    for (const error of output.errors) {
-      if (error.severity === "error") {
-        throw new Error(`Failed to compile: ${error.message}`);
-      }
+  for (const error of output?.errors ?? []) {
+    if (error.severity === "error") {
+      throw new Error(`Failed to compile: ${error.message}`);
     }
   }
 
