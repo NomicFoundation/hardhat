@@ -2,7 +2,7 @@
 
 Hardhat projects are `npm` projects with the `hardhat` package installed and a `hardhat.config.js` file.
 
-If you run `npx hardhat` in a folder without those files you will be shown two options to facilitate project creation:
+If you run `npx hardhat` in a folder without a Hardhat configuration file, you will be shown two options to facilitate project creation:
 
 ```
 $ npx hardhat
@@ -23,7 +23,7 @@ Welcome to Hardhat v2.0.0
   Quit
 ```
 
-If you select _Create an empty hardhat.config.js_, Hardhat will create a `hardhat.config.js` with the following content:
+If you select _Create an empty hardhat.config.js_, Hardhat will create a `hardhat.config.js` like the following:
 
 ```js
 /**
@@ -83,11 +83,11 @@ You need to install these dependencies to run the sample project:
   npm install --save-dev @nomiclabs/hardhat-waffle ethereum-waffle chai @nomiclabs/hardhat-ethers ethers
 ```
 
-This stems from the fact that **most of Hardhat's functionality comes from plugins**, so check out the [plugins section](../plugins/README.md) for the official list and see if there are any other ones that look interesting.
+This stems from the fact that **most of Hardhat's functionality comes from plugins**, so check out the [plugins section](../plugins/README.md) for the official list and see if there are any other ones of interest to you.
 
 The sample project uses the `@nomiclabs/hardhat-waffle` plugin, which depends on the `@nomiclabs/hardhat-ethers` plugin. These integrate the Ethers.js and Waffle tools into your project.
 
-To use a plugin, the first step is always to install it using `npm` or `yarn`, and then requiring it in your config file:
+To use a plugin, the first step is always to install it using `npm` or `yarn`, followed by requiring it in your config file:
 
 ```js
 require("@nomiclabs/hardhat-waffle");
@@ -95,6 +95,6 @@ require("@nomiclabs/hardhat-waffle");
 module.exports = {};
 ```
 
-Plugins are **essential** to Hardhat projects, so make sure to check out all the available ones and also build your own ones!
+Plugins are **essential** to Hardhat projects, so make sure to check out all the available ones and also build your own!
 
 For any help or feedback you may have, you can find us in the [Hardhat Support Discord server](https://hardhat.org/discord).
