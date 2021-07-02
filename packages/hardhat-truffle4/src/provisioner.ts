@@ -231,10 +231,11 @@ export class LazyTruffleContractProvisioner {
     return [...args, {}];
   }
 
-  private _isLastArgumentTxParams(args: any[]) {
+  private _isLastArgumentTxParams(args: any[]): boolean {
     const lastArg = args[args.length - 1];
     return (
-      Boolean(lastArg) && Object.getPrototypeOf(lastArg) === Object.prototype
+      lastArg !== undefined &&
+      Object.getPrototypeOf(lastArg) === Object.prototype
     );
   }
 
