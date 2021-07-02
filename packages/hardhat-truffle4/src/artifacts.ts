@@ -23,7 +23,7 @@ export class TruffleEnvironmentArtifacts {
   }
 
   public contractWasLinked(Contract: TruffleContract): boolean {
-    return !(Contract?.binary?.includes("__") as boolean) ?? false;
+      return !(Contract?.binary?.includes?.("__") as boolean) ?? false;
   }
 
   /**
