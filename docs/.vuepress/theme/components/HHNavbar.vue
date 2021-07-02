@@ -6,7 +6,7 @@
           router-link(to="/" active-class="highlighted" exact) Home
         li(v-for="navLink of navLinks.slice(1)")
           div(:id="navLink.text")
-            a(:href="navLink.link") {{navLink.text}}
+            a(@click="toggleToolDropdown" :class="isToolDropdownOpen ? 'dropdown-open' : ''") {{navLink.text}}
             #tools-dropdown-wrapper(v-if="navLink.text == 'Tools'")
                 .tools-dropdown
                   div.tools-item-wrapper(v-for="tool of tools")
@@ -48,6 +48,16 @@ import DiscordLogo from "../img/assets/social/discord.svg";
 
 export default {
   name: "HHNavbar",
+  data() {
+    return {
+      isToolDropdownOpen: false,
+    } 
+  },
+  methods: {
+    toggleToolDropdown() {
+      this.isToolDropdownOpen = !this.isToolDropdownOpen
+    }
+  },
   computed: {
     social() {
       const { repo } = this.$site.themeConfig;
@@ -254,6 +264,7 @@ export default {
         width 100vw
         transition .5s ease-in-out left
         background white
+        overflow-y scroll
         @media screen and (max-height: 400px)
           nav
             li
@@ -309,7 +320,7 @@ export default {
           max-width unset
           display block
           padding 20px
-
+          padding-top 64px
           ul
             display flex
             flex-direction column
@@ -395,9 +406,20 @@ export default {
 .navbar-mobile
   #Tools
     a
-      margin-bottom 0
+      margin-bottom 20px
+      transition ease-in-out 0.2s all
+      &.dropdown-open
+        margin-bottom 0
+        & + #tools-dropdown-wrapper
+          max-height 200px
+          margin-bottom 20px
+          opacity 1
     #tools-dropdown-wrapper
-      margin-bottom 40px
+      max-height 0
+      overflow hidden
+      margin-bottom 0px
+      transition ease-in-out 0.2s all
+      opacity 0
       .dropdown-tool-title
         line-height 40px
         span
