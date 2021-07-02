@@ -37,7 +37,7 @@ export default {
     @media (max-width: 1000px)
         height 650px
         top 0
-        margin-bottom 140px
+        margin-bottom 110px
     @media (min-width: 1000px)
         // min-height 1030px
     .background
@@ -69,13 +69,13 @@ export default {
             &.left-graphic
                 background-image url('../img/textures/Texture_bricks-L.svg')
                 z-index 100
-                top 0
+                top 140px
                 width 835px
                 height 863px
                 left -100px
                 background-position left center
             &.right-graphic
-                top 0
+                top 140px
                 width 835px
                 height 863px
                 background-image url('../img/textures/Texture_bricks-R.svg')
@@ -93,7 +93,7 @@ export default {
         top 88px
         margin-top 124px
         @media screen and (max-width: 1000px)
-            margin-top unset
+            margin-top -30px
         h2
             font-size 45px
             margin-bottom 32px

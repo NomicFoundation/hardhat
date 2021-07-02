@@ -363,7 +363,8 @@
                         &.left-tools-column
                             margin-right 32px
                             @media (max-width: 1000px)
-                                margin-right 12px
+                                margin-right 0
+                                margin-left 4px
             .tool-data
                 padding 0 50px 
                 width 458px

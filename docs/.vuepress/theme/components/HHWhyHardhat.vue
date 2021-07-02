@@ -199,7 +199,8 @@
                 line-height 28px
                 color #6E6F70
                 font-family 'ChivoLight'
-                width 464px
+                @media (max-width: 1000px)
+                    width 100%
         .cta-link // This style adds the white-space next to the button
             position relative
             @media (max-width: 1000px)

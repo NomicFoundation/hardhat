@@ -6,7 +6,13 @@
           router-link(to="/" active-class="highlighted" exact) Home
         li(v-for="navLink of navLinks.slice(1)")
           div(:id="navLink.text")
-            a(@click="toggleToolDropdown" :class="isToolDropdownOpen ? 'dropdown-open' : ''") {{navLink.text}}
+            a(
+              v-if="navLink.text == 'Tools'"
+              @click="toggleToolDropdown" 
+              :class="isToolDropdownOpen ? 'dropdown-open' : ''") {{navLink.text}}
+            a(
+              v-else
+            ) {{navLink.text}}
             #tools-dropdown-wrapper(v-if="navLink.text == 'Tools'")
                 .tools-dropdown
                   div.tools-item-wrapper(v-for="tool of tools")
