@@ -168,24 +168,23 @@ export default {
         box-shadow 0 2px 6px #C4C4C4
         border-radius 100px
         position absolute
-        top 50%
+        top calc(50% + 2px)
         cursor pointer
         transition 0.2s ease-in-out all
         &:hover
             box-shadow 0 8px 20px alpha(#C4C4C4, .5)
         @media (max-width: 1000px)
-            top 40px
-            // transform scale(.7)
+            top 60px
             width 24px
             height 24px
         &.VueCarousel-navigation-prev
-            left -38px
+            left -40px
             @media (max-width: 1000px)
                 left 32px
             @media (min-width: 1000px) and (max-width: 1040px)
                 left -66px
         &.VueCarousel-navigation-next
-            right -38px
+            right -40px
             @media (max-width: 1000px)
                 right 32px
             @media (min-width: 1000px) and (max-width: 1040px)
@@ -205,15 +204,17 @@ export default {
       @media (max-width: 1000px)
           flex-direction column
       .user-column
-          width 30%
           display flex
           flex-direction column
           justify-content center
-          padding 2rem 1rem 0
+          padding 2rem 0 0
+          margin-left 80px
+          width 154px
           @media (max-width: 1000px)
               width 100%
               flex-direction row
               padding 0
+              margin-left unset
           .user-picture
               width 154px
               height 154px
@@ -246,6 +247,8 @@ export default {
                 align-items center
                 justify-content center
                 flex-direction column
+                span
+                  white-space nowrap
                 @media (max-width: 1000px)
                   min-height unset
                   align-items unset
@@ -268,19 +271,20 @@ export default {
                   @media (max-width: 1000px)
                       margin 5px 0
       .comment-column
-          width 70%
-          padding 1.5rem
           display flex
           flex-direction column
           justify-content center
+          color #6E6F70
+          margin-left 100px
+          margin-right 44px
           @media (max-width: 1000px)
               width 100%
               padding 0 48px
+              margin 0
               margin-top 42px
           p
-              color #0A0A0A
               line-height 28px
               font-size 15px
               font-family 'ChivoLight'
-              max-width 507px
+              color #6E6F70
 </style>

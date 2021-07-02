@@ -44,6 +44,11 @@ import "../img/animated_hero_mobile/Hardhat-mobile_HTML5 Canvas.js";
 
 export default {
   name: "HHMobileAnimation",
+  data() {
+    return {
+      scrollPosition: 0
+    }
+  },
   mounted() {
     let mobile_canvas = document.getElementById("mobile_canvas");
     let mobile_anim_container = document.getElementById("mobile_animation_container");
@@ -84,7 +89,8 @@ export default {
   },
   methods: {
     handleScroll(e) {
-      let scrollOffset = window.scrollY;
+      this.scrollPosition = window.scrollY;
+      let scrollOffset = this.scrollPosition
       this.$refs.mobileAnimationContainer.style.transform = `translateY(${scrollOffset / 3}px)`;
       this.$refs.ethereumBg.style.opacity = 1 - scrollOffset / 200;
       this.$refs.mobileImageWrapper.style.background = `

@@ -180,6 +180,7 @@
                     margin-bottom 24px !important
                     p
                         margin-bottom 0
+                        width unset
             h2
                 margin-bottom 24px
                 font-family 'ChivoBold'
@@ -190,6 +191,7 @@
                 @media (max-width 1000px)
                     font-size 28px
                     margin-bottom 16px
+                    line-height 32px
                 @media (min-width: 1000px) and (max-width: 1040px)
                     font-size 38px
             p
@@ -197,6 +199,7 @@
                 line-height 28px
                 color #6E6F70
                 font-family 'ChivoLight'
+                width 464px
         .cta-link // This style adds the white-space next to the button
             position relative
             @media (max-width: 1000px)
@@ -204,6 +207,7 @@
                 max-width 317px
                 width calc(100% - 24px)
                 text-align center
+                white-space normal
             &:after, &:before
                 content ''
                 position absolute
@@ -335,7 +339,7 @@
                 font-weight 100
                 font-size 24px !important
                 line-height 24px
-                margin-bottom 26px
+                margin-bottom 24px
                 @media screen and (max-width: 1000px)
                     font-size 20px !important
                     letter-spacing 4px

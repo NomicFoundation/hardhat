@@ -212,7 +212,7 @@
 <style lang="stylus">
     #tools
         @media screen and (max-width: 1000px)
-            margin-bottom 120px
+            margin-bottom 110px
         &.large 
             .tool-section-wrapper,
             .tool-data

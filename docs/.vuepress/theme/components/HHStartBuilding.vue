@@ -27,17 +27,19 @@ export default {
     position relative
     overflow hidden
     justify-content center
-    max-height 810px
-    height 100%
+    height 945px
     width 100vw
-    min-height 615px
     display flex
     flex-direction column
     justify-content center
+    z-index -1
+    top -180px
     @media (max-width: 1000px)
-        height 745px
+        height 650px
+        top 0
+        margin-bottom 140px
     @media (min-width: 1000px)
-        min-height 1030px
+        // min-height 1030px
     .background
         position absolute
         z-index -1
@@ -48,6 +50,9 @@ export default {
         background-repeat no-repeat
         background-size cover
         @media (max-width: 580px)
+            width 100%
+            background-size cover
+            height 100%
             background-image url('../img/textures/CTA-Background-gradient-mobile.svg')
         @media (min-width: 1900px)
             background-image url('../img/textures/CTA-background-gradient-1920.svg')
@@ -78,15 +83,17 @@ export default {
                 right 0
                 // transform rotate(180deg)
                 background-position right center
-                opacity .5
     .cta-container
         display flex
         flex-direction column
         text-align center
         justify-content center
         align-items center
-        margin-bottom auto
-        margin-top 207px
+        position relative
+        top 88px
+        margin-top 124px
+        @media screen and (max-width: 1000px)
+            margin-top unset
         h2
             font-size 45px
             margin-bottom 32px

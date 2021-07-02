@@ -19,12 +19,15 @@ export default {};
 footer
   background $hh-yellow
   text-align center
-  padding 3rem 0
   font-size 1rem
   background #0A0A0A
   position relative
+  padding 64px 0 40px;
+  .padded-container {
+    padding: 0;
+  }
   .supported-by
-    margin-bottom 2rem
+    margin-bottom 96px
     font-size 2rem
     height 5rem
     display flex

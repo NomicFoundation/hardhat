@@ -533,7 +533,9 @@ function splitInChunks(arr, chunkSize) {
 <style lang="stylus" scoped>
 
 #whos-using-hardhat
+  margin-top -140px
   @media (max-width: 1000px)
+    margin-top unset
     margin-bottom 90px
 
   .section-title
@@ -563,11 +565,12 @@ function splitInChunks(arr, chunkSize) {
     
     .marquee-content
       width: 10000px
-    
     .marquee
-      margin-bottom 50px
+      display: flex;
+      align-items: center;
+      margin-bottom 32px
       padding-left 0
-      height 80px
+      height 72px
       animation-duration 50s
       animation-name marquee
       animation-timing-function linear
