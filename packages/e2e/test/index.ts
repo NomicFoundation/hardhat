@@ -41,7 +41,7 @@ describe("e2e tests", function () {
     });
   });
 
-  describe("sample project", function () {
+  describe("basic sample project", function () {
     // These tests generate the sample project and then exercise the commands
     // that are suggested to the user after project generation.  It would be
     // better if that list of commands were exernalized somewhere, in a place
@@ -55,7 +55,7 @@ describe("e2e tests", function () {
     // consuming) even a single test already has a crazy long run time, so for
     // expediency this is one big complex test.
 
-    useFixture("sample-project");
+    useFixture("basic-sample-project");
 
     it("should permit successful execution all of the suggested commands", async function () {
       if (os.type() === "Windows_NT") {
@@ -65,13 +65,40 @@ describe("e2e tests", function () {
       shell.exec(`${hardhatBinary}`, {
         env: {
           ...process.env,
-          HARDHAT_CREATE_SAMPLE_PROJECT_WITH_DEFAULTS: "true",
+          HARDHAT_CREATE_BASIC_SAMPLE_PROJECT_WITH_DEFAULTS: "true",
         },
       });
       shell.exec(`${hardhatBinary} accounts`);
       shell.exec(`${hardhatBinary} compile`);
       shell.exec(`${hardhatBinary} test`);
       shell.exec("node scripts/sample-script.js");
+    });
+  });
+
+  describe("advanced sample project", function () {
+    useFixture("advanced-sample-project");
+
+    it("should successfully execute all of the suggested commands", async function () {
+      if (os.type() === "Windows_NT") {
+        // See https://github.com/nomiclabs/hardhat/issues/1698
+        this.skip();
+      }
+      shell.exec(`${hardhatBinary}`, {
+        env: {
+          ...process.env,
+          HARDHAT_CREATE_ADVANCED_SAMPLE_PROJECT_WITH_DEFAULTS: "true",
+        },
+      });
+      shell.exec(`${hardhatBinary} compile`);
+      shell.exec(`${hardhatBinary} test`);
+      shell.exec("node scripts/sample-script.js");
+      shell.exec("REPORT_GAS=true npx hardhat test");
+      shell.exec(`${hardhatBinary} coverage`);
+      shell.exec("npx eslint '**/*.js'");
+      shell.exec("npx eslint '**/*.js' --fix");
+      shell.exec("npx prettier '**/*.{json,sol,md}' --check");
+      shell.exec("npx solhint '**/*.sol'");
+      shell.exec("npx solhint '**/*.sol' --fix");
     });
   });
 });

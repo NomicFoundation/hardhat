@@ -8,7 +8,9 @@ Try running some of the following tasks:
   REPORT_GAS=true npx hardhat test
   npx hardhat coverage
   npx hardhat run scripts/deploy.js
-  npx eslint '**'
-  npx eslint '**' --fix
+  npx eslint '**/*.js'
+  npx eslint '**/*.js' --fix
+  npx prettier '**/*.{json,sol,md}' --check
+  npx prettier '**/*.{json,sol,md}' --write
   npx solhint '**/*.sol'
   npx solhint '**/*.sol' --fix

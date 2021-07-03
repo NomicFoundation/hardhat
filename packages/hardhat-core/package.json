@@ -40,7 +40,7 @@
   "files": [
     "builtin-tasks/",
     "internal/",
-    "sample-project/",
+    "sample-projects/",
     "src/",
     "types/",
     "utils/",
