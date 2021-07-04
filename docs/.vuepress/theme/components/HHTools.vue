@@ -238,11 +238,11 @@
             &.list-4-items
                 @media (max-width: 1000px)
                     &:after
-                        bottom -24px !important
+                        bottom -34px !important
             &.list-5-items
                 height 351px
                 &:after
-                    bottom 0
+                    bottom -10px
                 .right-tools-column
                     position relative
                     bottom 56px
@@ -256,7 +256,7 @@
                         height 263px !important
             &.list-3-items
                 &:after
-                    bottom -12px
+                    bottom -22px
                 @media (max-width: 1000px)
                     height 551px !important
                     .left-tools-column
@@ -380,10 +380,15 @@
                     display flex
                     align-items center
                     margin-bottom 30px
+                    @media (max-width: 1000px)
+                        margin-bottom 16px
+                        flex-direction column 
+                        align-items flex-start  
                     h3
                         font-size 24px
                         color #6E6F70
                         white-space nowrap
+                        line-height 32px
                         @media (max-width: 1000px)
                             font-size 24px
                         .tool-title
@@ -404,6 +409,9 @@
                         opacity 1
                         white-space nowrap
                         color #6E6F70 !important
+                        @media (max-width: 1000px)
+                            margin-left 0
+                            margin-top 8px
                         span
                             color #6E6F70 !important
                             font-weight 600

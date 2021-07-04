@@ -77,7 +77,7 @@
                 box-shadow 0 0 10px white
                 background-size 72px
                 @media (max-width: 1000px)
-                    background-size 64px
+                    background-size 50px
             .active-tool-underlay
                 position absolute
                 background gray
@@ -112,8 +112,9 @@
             @media (max-width: 1000px)
                 min-width unset
                 min-height unset
-                min-width 64px
-                min-height 64px
+                background-size 42px
+                min-width 48px
+                min-height 48px
         .tool-name
             margin-left 16px
             .hardhat,
