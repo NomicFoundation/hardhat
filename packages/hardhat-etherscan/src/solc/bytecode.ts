@@ -166,14 +166,8 @@ export async function compareBytecode(
   }
 
   // Normalize deployed bytecode according to this contract.
-  const {
-    immutableValues,
-    libraryLinks,
-    normalizedBytecode,
-  } = await normalizeBytecode(
-    deployedExecutableSection,
-    runtimeBytecodeSymbols
-  );
+  const { immutableValues, libraryLinks, normalizedBytecode } =
+    await normalizeBytecode(deployedExecutableSection, runtimeBytecodeSymbols);
 
   // Library hash placeholders are embedded into the bytes where the library addresses are linked.
   // We need to zero them out to compare them.

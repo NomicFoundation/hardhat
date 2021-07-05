@@ -44,13 +44,8 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
   }
 
   public async request(args: RequestArguments): Promise<unknown> {
-    const {
-      ecsign,
-      hashPersonalMessage,
-      toRpcSig,
-      toBuffer,
-      bufferToHex,
-    } = await import("ethereumjs-util");
+    const { ecsign, hashPersonalMessage, toRpcSig, toBuffer, bufferToHex } =
+      await import("ethereumjs-util");
 
     if (
       args.method === "eth_accounts" ||

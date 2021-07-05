@@ -634,9 +634,8 @@ Possible causes are:
           );
         }
 
-        const { sourceName, contractName } = parseFullyQualifiedName(
-          contractFQN
-        );
+        const { sourceName, contractName } =
+          parseFullyQualifiedName(contractFQN);
         contractInformation = await extractMatchingContractInformation(
           sourceName,
           contractName,

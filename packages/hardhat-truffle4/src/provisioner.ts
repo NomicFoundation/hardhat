@@ -231,7 +231,7 @@ export class LazyTruffleContractProvisioner {
     return [...args, {}];
   }
 
-  private _isLastArgumentTxParams(args: any[]): boolean {
+  private _isLastArgumentTxParams(args: any[]) {
     const lastArg = args[args.length - 1];
     return (
       lastArg !== undefined &&

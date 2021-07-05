@@ -1,5 +1,5 @@
 import { EIP1193Provider, RequestArguments } from "../../../types";
-import {assertIsError} from "../errors";
+import { assertIsError } from "../errors";
 import {
   numberToRpcQuantity,
   rpcQuantityToNumber,

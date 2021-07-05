@@ -9,8 +9,10 @@ import {
 } from "../../../types";
 import { EventEmitterWrapper } from "../../util/event-emitter";
 
-export class BackwardsCompatibilityProviderAdapter extends EventEmitterWrapper
-  implements EthereumProvider {
+export class BackwardsCompatibilityProviderAdapter
+  extends EventEmitterWrapper
+  implements EthereumProvider
+{
   constructor(private readonly _provider: EIP1193Provider) {
     super(_provider);
     // We bind everything here because some test suits break otherwise

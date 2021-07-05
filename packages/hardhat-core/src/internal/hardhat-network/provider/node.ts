@@ -27,7 +27,11 @@ import EventEmitter from "events";
 
 import { CompilerInput, CompilerOutput } from "../../../types";
 import { HARDHAT_NETWORK_DEFAULT_GAS_PRICE } from "../../core/config/default-config";
-import { assertHardhatInvariant, assertIsError, HardhatError } from "../../core/errors";
+import {
+  assertHardhatInvariant,
+  assertIsError,
+  HardhatError,
+} from "../../core/errors";
 import { RpcDebugTracingConfig } from "../../core/jsonrpc/types/input/debugTraceTransaction";
 import {
   InternalError,
@@ -129,11 +133,8 @@ export class HardhatNode extends EventEmitter {
     let forkNetworkId: number | undefined;
 
     if ("forkConfig" in config) {
-      const {
-        forkClient,
-        forkBlockNumber,
-        forkBlockTimestamp,
-      } = await makeForkClient(config.forkConfig, config.forkCachePath);
+      const { forkClient, forkBlockNumber, forkBlockTimestamp } =
+        await makeForkClient(config.forkConfig, config.forkCachePath);
       common = await makeForkCommon(config);
 
       forkNetworkId = forkClient.getNetworkId();
@@ -363,14 +364,10 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   }
 
   public async mineBlock(timestamp?: BN): Promise<MineBlockResult> {
-    const [
-      blockTimestamp,
-      offsetShouldChange,
-      newOffset,
-    ] = this._calculateTimestampAndOffset(timestamp);
-    const needsTimestampIncrease = await this._timestampClashesWithPreviousBlockOne(
-      blockTimestamp
-    );
+    const [blockTimestamp, offsetShouldChange, newOffset] =
+      this._calculateTimestampAndOffset(timestamp);
+    const needsTimestampIncrease =
+      await this._timestampClashesWithPreviousBlockOne(blockTimestamp);
     if (needsTimestampIncrease) {
       blockTimestamp.iaddn(1);
     }
@@ -380,9 +377,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       result = await this._mineBlockWithPendingTxs(blockTimestamp);
     } catch (err) {
       assertIsError(err);
-      if (
-        err.message.includes("sender doesn't have enough funds")
-      ) {
+      if (err.message.includes("sender doesn't have enough funds")) {
         throw new InvalidInputError(err.message, err);
       }
 

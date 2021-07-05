@@ -20,18 +20,16 @@ interface ImmutableOrderedTransaction {
   txType: number;
 }
 
-export const makeSerializedTransaction = ImmutableRecord<
-  ImmutableOrderedTransaction
->({
-  orderId: 0,
-  fakeFrom: undefined,
-  data: "",
-  txType: 0,
-});
+export const makeSerializedTransaction =
+  ImmutableRecord<ImmutableOrderedTransaction>({
+    orderId: 0,
+    fakeFrom: undefined,
+    data: "",
+    txType: 0,
+  });
 
-export type SerializedTransaction = ImmutableRecord<
-  ImmutableOrderedTransaction
->;
+export type SerializedTransaction =
+  ImmutableRecord<ImmutableOrderedTransaction>;
 export type SenderTransactions = ImmutableList<SerializedTransaction>;
 export type AddressToTransactions = ImmutableMap<string, SenderTransactions>;
 export type HashToTransaction = ImmutableMap<string, SerializedTransaction>;

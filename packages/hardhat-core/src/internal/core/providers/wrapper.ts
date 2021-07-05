@@ -3,8 +3,10 @@ import { EventEmitterWrapper } from "../../util/event-emitter";
 
 import { InvalidInputError } from "./errors";
 
-export abstract class ProviderWrapper extends EventEmitterWrapper
-  implements EIP1193Provider {
+export abstract class ProviderWrapper
+  extends EventEmitterWrapper
+  implements EIP1193Provider
+{
   constructor(protected readonly _wrappedProvider: EIP1193Provider) {
     super(_wrappedProvider);
   }

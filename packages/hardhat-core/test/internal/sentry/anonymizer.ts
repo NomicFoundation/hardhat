@@ -71,9 +71,8 @@ describe("Anonymizer", () => {
         "package.json"
       );
 
-      const anonymizationResult = anonymizer.anonymizeFilename(
-        pathToHardhatConfig
-      );
+      const anonymizationResult =
+        anonymizer.anonymizeFilename(pathToHardhatConfig);
 
       assert.equal(anonymizationResult.anonymizedFilename, "hardhat.config.ts");
       assert.isTrue(anonymizationResult.anonymizeContent);
@@ -91,9 +90,8 @@ describe("Anonymizer", () => {
         "package.json"
       );
 
-      const anonymizationResult = anonymizer.anonymizeFilename(
-        pathToHardhatConfig
-      );
+      const anonymizationResult =
+        anonymizer.anonymizeFilename(pathToHardhatConfig);
 
       assert.equal(
         anonymizationResult.anonymizedFilename,
@@ -110,9 +108,8 @@ describe("Anonymizer", () => {
       );
       const anonymizer = new MockedAnonymizer(pathToHardhatConfig);
 
-      const anonymizationResult = anonymizer.anonymizeFilename(
-        pathToHardhatConfig
-      );
+      const anonymizationResult =
+        anonymizer.anonymizeFilename(pathToHardhatConfig);
 
       assert.equal(anonymizationResult.anonymizedFilename, "hardhat.config.ts");
       assert.isTrue(anonymizationResult.anonymizeContent);
@@ -123,9 +120,8 @@ describe("Anonymizer", () => {
     it("should return the same message if there are no paths", () => {
       const anonymizer = new Anonymizer();
       const errorMessage = "Something happened";
-      const anonymizedErrorMessage = anonymizer.anonymizeErrorMessage(
-        errorMessage
-      );
+      const anonymizedErrorMessage =
+        anonymizer.anonymizeErrorMessage(errorMessage);
 
       assert.equal(anonymizedErrorMessage, errorMessage);
     });
@@ -133,9 +129,8 @@ describe("Anonymizer", () => {
     it("should anonymize a single path", () => {
       const anonymizer = new Anonymizer();
       const errorMessage = `Something happened at file ${__filename}`;
-      const anonymizedErrorMessage = anonymizer.anonymizeErrorMessage(
-        errorMessage
-      );
+      const anonymizedErrorMessage =
+        anonymizer.anonymizeErrorMessage(errorMessage);
 
       assert.equal(
         anonymizedErrorMessage,
@@ -146,9 +141,8 @@ describe("Anonymizer", () => {
     it("should anonymize a path between parentheses", () => {
       const anonymizer = new Anonymizer();
       const errorMessage = `Something happened (${__filename})`;
-      const anonymizedErrorMessage = anonymizer.anonymizeErrorMessage(
-        errorMessage
-      );
+      const anonymizedErrorMessage =
+        anonymizer.anonymizeErrorMessage(errorMessage);
 
       assert.equal(anonymizedErrorMessage, "Something happened <user-file>");
     });
@@ -158,9 +152,8 @@ describe("Anonymizer", () => {
       const file1 = __filename;
       const file2 = path.resolve(__filename, "..", "some-other-file.js");
       const errorMessage = `Something happened at file ${file1} and at file ${file2}`;
-      const anonymizedErrorMessage = anonymizer.anonymizeErrorMessage(
-        errorMessage
-      );
+      const anonymizedErrorMessage =
+        anonymizer.anonymizeErrorMessage(errorMessage);
 
       assert.equal(
         anonymizedErrorMessage,
@@ -173,9 +166,8 @@ describe("Anonymizer", () => {
       const file1 = __filename;
       const file2 = path.resolve(__filename, "..", "some-other-file.js");
       const errorMessage = `Something happened at file ${file1} and\nsomething else happened at file ${file2}`;
-      const anonymizedErrorMessage = anonymizer.anonymizeErrorMessage(
-        errorMessage
-      );
+      const anonymizedErrorMessage =
+        anonymizer.anonymizeErrorMessage(errorMessage);
 
       assert.equal(
         anonymizedErrorMessage,
@@ -187,9 +179,8 @@ describe("Anonymizer", () => {
       const anonymizer = new Anonymizer();
       const file = `${__filename.slice(0, __filename.length - 5)}...`;
       const errorMessage = `Something happened at file ${file}: something`;
-      const anonymizedErrorMessage = anonymizer.anonymizeErrorMessage(
-        errorMessage
-      );
+      const anonymizedErrorMessage =
+        anonymizer.anonymizeErrorMessage(errorMessage);
 
       assert.equal(
         anonymizedErrorMessage,
@@ -200,9 +191,8 @@ describe("Anonymizer", () => {
     it("should anonymize a file that doesn't have a path separator", () => {
       const anonymizer = new Anonymizer();
       const errorMessage = "Something happened at file foo.json";
-      const anonymizedErrorMessage = anonymizer.anonymizeErrorMessage(
-        errorMessage
-      );
+      const anonymizedErrorMessage =
+        anonymizer.anonymizeErrorMessage(errorMessage);
 
       assert.equal(
         anonymizedErrorMessage,
@@ -214,9 +204,8 @@ describe("Anonymizer", () => {
       const anonymizer = new Anonymizer();
       const errorMessage =
         "Something happened at file foo.json and at file bar.ts";
-      const anonymizedErrorMessage = anonymizer.anonymizeErrorMessage(
-        errorMessage
-      );
+      const anonymizedErrorMessage =
+        anonymizer.anonymizeErrorMessage(errorMessage);
 
       assert.equal(
         anonymizedErrorMessage,
@@ -227,9 +216,8 @@ describe("Anonymizer", () => {
     it("shouldn't anonymize stand-alone extensions", () => {
       const anonymizer = new Anonymizer();
       const errorMessage = "The .json extension is not supported";
-      const anonymizedErrorMessage = anonymizer.anonymizeErrorMessage(
-        errorMessage
-      );
+      const anonymizedErrorMessage =
+        anonymizer.anonymizeErrorMessage(errorMessage);
 
       assert.equal(anonymizedErrorMessage, errorMessage);
     });
@@ -237,9 +225,8 @@ describe("Anonymizer", () => {
     it("shouldn't interpret periods as files with extensions", () => {
       const anonymizer = new Anonymizer();
       const errorMessage = "This is a sentence. This is another sentence.";
-      const anonymizedErrorMessage = anonymizer.anonymizeErrorMessage(
-        errorMessage
-      );
+      const anonymizedErrorMessage =
+        anonymizer.anonymizeErrorMessage(errorMessage);
 
       assert.equal(anonymizedErrorMessage, errorMessage);
     });
@@ -248,9 +235,8 @@ describe("Anonymizer", () => {
       const anonymizer = new Anonymizer();
       const errorMessage =
         "My PK is 0x3ecf4eda095143894fef9fc0c2480d44c4c7e40bf340448e3039da92888b3096";
-      const anonymizedErrorMessage = anonymizer.anonymizeErrorMessage(
-        errorMessage
-      );
+      const anonymizedErrorMessage =
+        anonymizer.anonymizeErrorMessage(errorMessage);
 
       assert.equal(
         anonymizedErrorMessage,
@@ -262,9 +248,8 @@ describe("Anonymizer", () => {
       const anonymizer = new Anonymizer();
       const errorMessage =
         "My PK is 3ecf4eda095143894fef9fc0c2480d44c4c7e40bf340448e3039da92888b3096";
-      const anonymizedErrorMessage = anonymizer.anonymizeErrorMessage(
-        errorMessage
-      );
+      const anonymizedErrorMessage =
+        anonymizer.anonymizeErrorMessage(errorMessage);
 
       assert.equal(
         anonymizedErrorMessage,
@@ -276,9 +261,8 @@ describe("Anonymizer", () => {
       const anonymizer = new Anonymizer();
       const errorMessage =
         "My PKs are 0x3ecf4eda095143894fef9fc0c2480d44c4c7e40bf340448e3039da92888b3096\nand 0x7b63fe0cc949ac8fd4161a943b7ab26156c06315c2a9030e064980e7bcc7a056";
-      const anonymizedErrorMessage = anonymizer.anonymizeErrorMessage(
-        errorMessage
-      );
+      const anonymizedErrorMessage =
+        anonymizer.anonymizeErrorMessage(errorMessage);
 
       assert.equal(
         anonymizedErrorMessage,
@@ -290,9 +274,8 @@ describe("Anonymizer", () => {
       const anonymizer = new Anonymizer();
       const errorMessage =
         "My addresses are 0xf658b4176b77f6d6439D249D04f166eF315d69FC and 30444113Ad783A6bd92E057a21572a70890e7768";
-      const anonymizedErrorMessage = anonymizer.anonymizeErrorMessage(
-        errorMessage
-      );
+      const anonymizedErrorMessage =
+        anonymizer.anonymizeErrorMessage(errorMessage);
 
       assert.equal(
         anonymizedErrorMessage,
@@ -304,9 +287,8 @@ describe("Anonymizer", () => {
       const anonymizer = new Anonymizer();
       const errorMessage =
         "My mnemonic phrase is test test test test test test test test test test test test. This is an error message.";
-      const anonymizedErrorMessage = anonymizer.anonymizeErrorMessage(
-        errorMessage
-      );
+      const anonymizedErrorMessage =
+        anonymizer.anonymizeErrorMessage(errorMessage);
 
       assert.equal(
         anonymizedErrorMessage,
@@ -318,9 +300,8 @@ describe("Anonymizer", () => {
       const anonymizer = new Anonymizer();
       const errorMessage =
         "   My mnemonic phrase is test test test test test test test test test test test test. This is an error message.";
-      const anonymizedErrorMessage = anonymizer.anonymizeErrorMessage(
-        errorMessage
-      );
+      const anonymizedErrorMessage =
+        anonymizer.anonymizeErrorMessage(errorMessage);
 
       assert.equal(
         anonymizedErrorMessage,
@@ -332,9 +313,8 @@ describe("Anonymizer", () => {
       const anonymizer = new Anonymizer();
       const errorMessage =
         "[module] My mnemonic phrase is test test test test test test test test test test test test. This is an error message.";
-      const anonymizedErrorMessage = anonymizer.anonymizeErrorMessage(
-        errorMessage
-      );
+      const anonymizedErrorMessage =
+        anonymizer.anonymizeErrorMessage(errorMessage);
 
       assert.equal(
         anonymizedErrorMessage,
@@ -346,9 +326,8 @@ describe("Anonymizer", () => {
       const anonymizer = new Anonymizer();
       const errorMessage =
         "My mnemonic phrase is test test test test test tset test test test test test test. This is an error message.";
-      const anonymizedErrorMessage = anonymizer.anonymizeErrorMessage(
-        errorMessage
-      );
+      const anonymizedErrorMessage =
+        anonymizer.anonymizeErrorMessage(errorMessage);
 
       assert.equal(
         anonymizedErrorMessage,
@@ -360,9 +339,8 @@ describe("Anonymizer", () => {
       const anonymizer = new Anonymizer();
       const errorMessage =
         "My mnemonic phrase is 就 就 就 就 就 就 就 就 就 就 就 就. This is an error message.";
-      const anonymizedErrorMessage = anonymizer.anonymizeErrorMessage(
-        errorMessage
-      );
+      const anonymizedErrorMessage =
+        anonymizer.anonymizeErrorMessage(errorMessage);
 
       assert.equal(
         anonymizedErrorMessage,
@@ -374,9 +352,8 @@ describe("Anonymizer", () => {
       const anonymizer = new Anonymizer();
       const errorMessage = `My mnemonic phrase is test test test test test test test test test test test test. This is an error message.
 And here is some more more more more`;
-      const anonymizedErrorMessage = anonymizer.anonymizeErrorMessage(
-        errorMessage
-      );
+      const anonymizedErrorMessage =
+        anonymizer.anonymizeErrorMessage(errorMessage);
 
       assert.equal(
         anonymizedErrorMessage,
@@ -390,9 +367,8 @@ And here is some <mnemonic>`
       const errorMessage = `My mnemonic phrase is test test test test test test test test test test test test. This is an error message.
 And here is some test test test test. And then there is more more more more.
 And a bit more more more more more more more more more more more more.`;
-      const anonymizedErrorMessage = anonymizer.anonymizeErrorMessage(
-        errorMessage
-      );
+      const anonymizedErrorMessage =
+        anonymizer.anonymizeErrorMessage(errorMessage);
 
       assert.equal(
         anonymizedErrorMessage,
@@ -407,9 +383,8 @@ And a bit <mnemonic>.`
       const errorMessage = `My mnemonic phrase is test test test         test
 test\ttest \r
 test test test test test test. This is an error message.`;
-      const anonymizedErrorMessage = anonymizer.anonymizeErrorMessage(
-        errorMessage
-      );
+      const anonymizedErrorMessage =
+        anonymizer.anonymizeErrorMessage(errorMessage);
 
       assert.equal(
         anonymizedErrorMessage,

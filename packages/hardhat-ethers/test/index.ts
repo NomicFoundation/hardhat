@@ -303,8 +303,8 @@ describe("Ethers plugin", function () {
                     library2.address,
                 },
               });
-              assertIsError(reason);
             } catch (reason) {
+              assertIsError(reason);
               assert.instanceOf(
                 reason,
                 NomicLabsHardhatPluginError,
@@ -315,7 +315,7 @@ describe("Ethers plugin", function () {
                 "getContractFactory should report the ambiguous name resolution as the cause"
               );
               assert.isTrue(
-                (reason.message as string).includes(
+                reason.message.includes(
                   "AmbiguousLibrary.sol:AmbiguousLibrary"
                 ) &&
                   reason.message.includes(

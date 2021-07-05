@@ -16,10 +16,8 @@ function compareTransactions(
 }
 
 export class TxPriorityHeap {
-  private readonly _queuedTransactions: Map<
-    string,
-    OrderedTransaction[]
-  > = new Map();
+  private readonly _queuedTransactions: Map<string, OrderedTransaction[]> =
+    new Map();
   private readonly _heap = new MaxHeap<OrderedTransaction>(compareTransactions);
 
   /**

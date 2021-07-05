@@ -408,14 +408,12 @@ describe("Compilation jobs", function () {
       const FooMock = new MockFile("Foo", ["^0.5.0"]);
       const [dependencyGraph] = await createMockData([{ file: FooMock }]);
 
-      const {
-        jobs,
-        errors,
-      } = await createCompilationJobsFromConnectedComponent(
-        dependencyGraph,
-        (file: ResolvedFile) =>
-          createCompilationJobFromFile(dependencyGraph, file, solcConfig055)
-      );
+      const { jobs, errors } =
+        await createCompilationJobsFromConnectedComponent(
+          dependencyGraph,
+          (file: ResolvedFile) =>
+            createCompilationJobFromFile(dependencyGraph, file, solcConfig055)
+        );
 
       assert.lengthOf(jobs, 1);
       assert.isEmpty(errors);
@@ -427,14 +425,12 @@ describe("Compilation jobs", function () {
         { file: FooMock },
       ]);
 
-      const {
-        jobs,
-        errors,
-      } = await createCompilationJobsFromConnectedComponent(
-        dependencyGraph,
-        (file: ResolvedFile) =>
-          createCompilationJobFromFile(dependencyGraph, file, solcConfig055)
-      );
+      const { jobs, errors } =
+        await createCompilationJobsFromConnectedComponent(
+          dependencyGraph,
+          (file: ResolvedFile) =>
+            createCompilationJobFromFile(dependencyGraph, file, solcConfig055)
+        );
 
       assert.lengthOf(jobs, 0);
       assert.sameDeepMembers(errors, [
@@ -456,14 +452,12 @@ describe("Compilation jobs", function () {
         { file: ImportedMock },
       ]);
 
-      const {
-        jobs,
-        errors,
-      } = await createCompilationJobsFromConnectedComponent(
-        dependencyGraph,
-        (file: ResolvedFile) =>
-          createCompilationJobFromFile(dependencyGraph, file, solcConfig055)
-      );
+      const { jobs, errors } =
+        await createCompilationJobsFromConnectedComponent(
+          dependencyGraph,
+          (file: ResolvedFile) =>
+            createCompilationJobFromFile(dependencyGraph, file, solcConfig055)
+        );
 
       assert.lengthOf(jobs, 3);
       assert.isEmpty(errors);
@@ -479,18 +473,16 @@ describe("Compilation jobs", function () {
         { file: ImportedMock },
       ]);
 
-      const {
-        jobs,
-        errors,
-      } = await createCompilationJobsFromConnectedComponent(
-        dependencyGraph,
-        (file: ResolvedFile) =>
-          createCompilationJobFromFile(
-            dependencyGraph,
-            file,
-            solcConfig055Optimized
-          )
-      );
+      const { jobs, errors } =
+        await createCompilationJobsFromConnectedComponent(
+          dependencyGraph,
+          (file: ResolvedFile) =>
+            createCompilationJobFromFile(
+              dependencyGraph,
+              file,
+              solcConfig055Optimized
+            )
+        );
 
       assert.lengthOf(jobs, 1);
       assert.isEmpty(errors);

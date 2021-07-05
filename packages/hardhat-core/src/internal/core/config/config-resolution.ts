@@ -268,9 +268,8 @@ function resolveMiningConfig(
 function resolveSolidityConfig(userConfig: HardhatUserConfig): SolidityConfig {
   const userSolidityConfig = userConfig.solidity ?? DEFAULT_SOLC_VERSION;
 
-  const multiSolcConfig: MultiSolcUserConfig = normalizeSolidityConfig(
-    userSolidityConfig
-  );
+  const multiSolcConfig: MultiSolcUserConfig =
+    normalizeSolidityConfig(userSolidityConfig);
 
   const overrides = multiSolcConfig.overrides ?? {};
 
@@ -335,9 +334,9 @@ function resolveCompiler(compiler: SolcUserConfig): SolcConfig {
 
       for (const output of outputs) {
         if (
-          !(resolved.settings.outputSelection[file][
-            contract
-          ] as string).includes(output)
+          !(
+            resolved.settings.outputSelection[file][contract] as string
+          ).includes(output)
         ) {
           resolved.settings.outputSelection[file][contract].push(output);
         }

@@ -22,16 +22,10 @@ export class TruffleEnvironmentArtifacts {
     return Contract.bytecode.includes("__");
   }
 
-  public contractWasLinked(Contract: TruffleContract) {
-    try {
-      if ((Contract.binary as string).includes("__")) {
-        return false;
-      }
-    } catch (e) {
-      return false;
-    }
-
-    return true;
+  public contractWasLinked(Contract: TruffleContract): boolean {
+    const hasLibraryPlaceholder: boolean | undefined =
+      Contract?.binary?.includes?.("__");
+    return hasLibraryPlaceholder === false;
   }
 
   /**

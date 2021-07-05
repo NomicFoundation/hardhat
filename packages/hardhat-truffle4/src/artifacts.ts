@@ -23,7 +23,9 @@ export class TruffleEnvironmentArtifacts {
   }
 
   public contractWasLinked(Contract: TruffleContract): boolean {
-    return !(Contract?.binary?.includes?.("__") as boolean) ?? false;
+    const hasLibraryPlaceholder: boolean | undefined =
+      Contract?.binary?.includes?.("__");
+    return hasLibraryPlaceholder === false;
   }
 
   /**

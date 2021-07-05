@@ -1101,9 +1101,8 @@ describe("Evm module", function () {
           ]);
           assert.isTrue(reverted);
 
-          const pendingTransactions: RpcTransactionOutput[] = await this.provider.send(
-            "eth_pendingTransactions"
-          );
+          const pendingTransactions: RpcTransactionOutput[] =
+            await this.provider.send("eth_pendingTransactions");
           assert.sameDeepMembers(
             pendingTransactions.map((tx) => tx.hash),
             [txHash1, txHash2]
