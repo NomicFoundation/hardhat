@@ -6,12 +6,6 @@ Hardhat comes built-in with Hardhat Network, a local Ethereum network designed f
 
 - It mines a block with each transaction that it receives, in order and with no delay.
 - It's backed by the `@ethereumjs/vm` EVM implementation, the same one used by ganache, Remix and Ethereum Studio.
-- It supports the following hardforks:
-  - byzantium
-  - constantinople
-  - petersburg
-  - istanbul
-  - muirGlacier
 
 ## How can I use it?
 
