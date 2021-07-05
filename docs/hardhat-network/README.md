@@ -9,7 +9,6 @@ Hardhat comes built-in with Hardhat Network, a local Ethereum network designed f
 
 ## How can I use it?
 
-- Hardhat will always spin up an instance on startup when `defaultNetwork` is empty or set to `hardhat`. It's the default behavior.
 - It can be used to run tests in the console, and to run scripts and tasks.
 - Plugins (ethers.js, web3.js, Waffle, Truffle, etc) connect directly to its provider.
 - There's no need to make any changes to your tests or scripts.
