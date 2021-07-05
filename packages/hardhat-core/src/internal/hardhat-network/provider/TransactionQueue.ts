@@ -1,6 +1,6 @@
 import { TypedTransaction } from "@ethereumjs/tx";
 import { BN } from "ethereumjs-util";
-import { MaxHeap } from "mnemonist/heap";
+import Heap from "mnemonist/heap";
 
 import { InternalError } from "../../core/providers/errors";
 import { OrderedTransaction } from "./PoolState";
@@ -20,7 +20,7 @@ function getEffectiveMinerFee(tx: OrderedTransaction, baseFee?: BN): BN {
   return BN.min(maxPriorityFeePerGas, maxFeePerGas.sub(baseFee));
 }
 
-function compareTransactions(
+function decreasingOrderEffectiveMinerFeeComparator(
   left: OrderedTransaction,
   right: OrderedTransaction,
   baseFee?: BN
@@ -28,8 +28,15 @@ function compareTransactions(
   const leftEffectiveMinerFee = getEffectiveMinerFee(left, baseFee);
   const rightEffectiveMinerFee = getEffectiveMinerFee(right, baseFee);
 
-  const cmp = leftEffectiveMinerFee.cmp(rightEffectiveMinerFee);
-  return cmp === 0 ? right.orderId - left.orderId : cmp;
+  const cmp = rightEffectiveMinerFee.cmp(leftEffectiveMinerFee);
+
+  if (cmp !== 0) {
+    return cmp;
+  }
+
+  // If two txs have the same effective miner fee we want to sort them
+  // in increasing order by orderId.
+  return left.orderId - right.orderId;
 }
 /**
  * A queue of transactions in the order that they could be mined in the next
@@ -49,7 +56,7 @@ export class TransactionQueue {
     OrderedTransaction[]
   > = new Map();
 
-  private readonly _heap: MaxHeap<OrderedTransaction>;
+  private readonly _heap: Heap<OrderedTransaction>;
 
   private _lastTransactionSender?: string;
 
@@ -64,8 +71,8 @@ export class TransactionQueue {
     pendingTransactions: Map<string, OrderedTransaction[]>,
     baseFee?: BN
   ) {
-    this._heap = new MaxHeap<OrderedTransaction>((a, b) =>
-      compareTransactions(a, b, baseFee)
+    this._heap = new Heap<OrderedTransaction>((a, b) =>
+      decreasingOrderEffectiveMinerFeeComparator(a, b, baseFee)
     );
 
     for (const [address, txList] of pendingTransactions) {
