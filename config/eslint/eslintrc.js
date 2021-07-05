@@ -132,12 +132,7 @@ module.exports = {
     "@typescript-eslint/prefer-function-type": "error",
     "@typescript-eslint/prefer-namespace-keyword": "error",
     "@typescript-eslint/restrict-plus-operands": "error",
-    "@typescript-eslint/strict-boolean-expressions": [
-      "error",
-      {
-        allowAny: false,
-      },
-    ],
+    "@typescript-eslint/strict-boolean-expressions": "error",
     "@typescript-eslint/triple-slash-reference": [
       "error",
       {
