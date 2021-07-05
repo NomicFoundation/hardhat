@@ -168,13 +168,13 @@ Creating a task is done by calling the `task` function. It will return a `TaskDe
 The simplest task you can define is
 
 ```js
-task("hello", "Prints 'Hello, World!'", async function (
-  taskArguments,
-  hre,
-  runSuper
-) {
-  console.log("Hello, World!");
-});
+task(
+  "hello",
+  "Prints 'Hello, World!'",
+  async function (taskArguments, hre, runSuper) {
+    console.log("Hello, World!");
+  }
+);
 ```
 
 `task`'s first argument is the task name. The second one is its description, which is used for printing help messages in the CLI. The third one is an async function that receives the following arguments:

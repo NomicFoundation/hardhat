@@ -82,7 +82,7 @@
     "eslint-plugin-prettier": "^3.4.0",
     "ethers": "^5.0.0",
     "mocha": "^7.1.2",
-    "prettier": "2.0.5",
+    "prettier": "2.3.2",
     "proxy": "^1.0.2",
     "rimraf": "^3.0.2",
     "sinon": "^9.0.0",
