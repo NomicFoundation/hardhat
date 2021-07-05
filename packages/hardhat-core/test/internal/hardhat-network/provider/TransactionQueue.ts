@@ -1,6 +1,7 @@
 import { TxData } from "@ethereumjs/tx";
 import { assert } from "chai";
-import { AddressLike, BN } from "ethereumjs-util";
+import { AddressLike, BN, keccak256, bufferToHex } from "ethereumjs-util";
+import { randomBytes } from "crypto";
 
 import {
   AccessListEIP2930TxData,
@@ -26,7 +27,20 @@ function getTestTransactionFactory() {
     createTestOrderedTransaction({ orderId: orderId++, ...data });
 }
 
-describe("TxPriorityHeap", () => {
+const SEED = randomBytes(8);
+
+let lastValue = keccak256(SEED);
+function weakRandomComparator(_left: unknown, _right: unknown) {
+  lastValue = keccak256(lastValue);
+  const leftRandomId = new BN(lastValue);
+
+  lastValue = keccak256(lastValue);
+  const rightRandomId = new BN(lastValue);
+
+  return leftRandomId.cmp(rightRandomId);
+}
+
+describe(`TxPriorityHeap (tests using seed ${bufferToHex(SEED)})`, () => {
   let createTestTransaction: (data: TestTxData) => OrderedTransaction;
 
   beforeEach(() => {
@@ -65,9 +79,9 @@ describe("TxPriorityHeap", () => {
             gasPrice: 2000,
           });
 
-          const queue = new TransactionQueue(
-            makeOrderedTxMap([tx1, tx2, tx3, tx4])
-          );
+          const txs = [tx1, tx2, tx3, tx4];
+          txs.sort(weakRandomComparator);
+          const queue = new TransactionQueue(makeOrderedTxMap(txs));
 
           assert.equal(queue.getNextTransaction(), tx4.data);
           assert.equal(queue.getNextTransaction(), tx2.data);
@@ -95,34 +109,40 @@ describe("TxPriorityHeap", () => {
         const tx3 = createTestTransaction({
           gasPrice: 98,
           from: senderWithFirstTxNotMined,
+          nonce: 0,
         });
 
         // Discarded
         const tx4 = createTestTransaction({
           gasPrice: 97,
           from: senderWithFirstTxNotMined,
+          nonce: 1,
         });
 
         const tx5 = createTestTransaction({
           gasPrice: 96,
           from: senderWithThirdTxNotMined,
+          nonce: 0,
         });
 
         const tx6 = createTestTransaction({
           gasPrice: 95,
           from: senderWithThirdTxNotMined,
+          nonce: 1,
         });
 
         // Not mined
         const tx7 = createTestTransaction({
           gasPrice: 94,
           from: senderWithThirdTxNotMined,
+          nonce: 2,
         });
 
         // Discarded
         const tx8 = createTestTransaction({
           gasPrice: 93,
           from: senderWithThirdTxNotMined,
+          nonce: 3,
         });
 
         const tx9 = createTestTransaction({
@@ -133,9 +153,9 @@ describe("TxPriorityHeap", () => {
           gasPrice: 91,
         });
 
-        const queue = new TransactionQueue(
-          makeOrderedTxMap([tx1, tx2, tx3, tx4, tx5, tx6, tx7, tx8, tx9, tx10])
-        );
+        const txs = [tx1, tx2, tx3, tx4, tx5, tx6, tx7, tx8, tx9, tx10];
+        txs.sort(weakRandomComparator);
+        const queue = new TransactionQueue(makeOrderedTxMap(txs));
 
         assert.equal(queue.getNextTransaction(), tx1.data);
         assert.equal(queue.getNextTransaction(), tx2.data);
@@ -195,10 +215,9 @@ describe("TxPriorityHeap", () => {
         // Effective miner fee: 155
         const tx5 = createTestTransaction({ gasPrice: 170 });
 
-        const queue = new TransactionQueue(
-          makeOrderedTxMap([tx1, tx2, tx3, tx4, tx5]),
-          baseFee
-        );
+        const txs = [tx1, tx2, tx3, tx4, tx5];
+        txs.sort(weakRandomComparator);
+        const queue = new TransactionQueue(makeOrderedTxMap(txs), baseFee);
 
         assert.equal(queue.getNextTransaction(), tx5.data);
         assert.equal(queue.getNextTransaction(), tx4.data);
@@ -238,6 +257,7 @@ describe("TxPriorityHeap", () => {
         const tx4 = createTestTransaction({
           gasPrice: 97,
           from: senderWithFirstTxNotMined,
+          nonce: 2,
         });
 
         // Discarded
@@ -245,12 +265,14 @@ describe("TxPriorityHeap", () => {
         const tx5 = createTestTransaction({
           gasPrice: 96,
           from: senderWithFirstTxNotMined,
+          nonce: 3,
         });
 
         // Effective miner fee: 75
         const tx6 = createTestTransaction({
           gasPrice: 95,
           from: senderWithSecondTxNotMined,
+          nonce: 1,
         });
 
         // Not mined
@@ -258,6 +280,7 @@ describe("TxPriorityHeap", () => {
         const tx7 = createTestTransaction({
           gasPrice: 94,
           from: senderWithSecondTxNotMined,
+          nonce: 2,
         });
 
         // Discarded
@@ -265,6 +288,7 @@ describe("TxPriorityHeap", () => {
         const tx8 = createTestTransaction({
           gasPrice: 93,
           from: senderWithSecondTxNotMined,
+          nonce: 3,
         });
 
         // Discarded
@@ -273,6 +297,7 @@ describe("TxPriorityHeap", () => {
           maxFeePerGas: 92,
           maxPriorityFeePerGas: 80,
           from: senderWithSecondTxNotMined,
+          nonce: 4,
         });
 
         // Effective miner fee: 71
@@ -280,10 +305,9 @@ describe("TxPriorityHeap", () => {
           gasPrice: 91,
         });
 
-        const queue = new TransactionQueue(
-          makeOrderedTxMap([tx1, tx2, tx3, tx4, tx5, tx6, tx7, tx8, tx9, tx10]),
-          baseFee
-        );
+        const txs = [tx1, tx2, tx3, tx4, tx5, tx6, tx7, tx8, tx9, tx10];
+        txs.sort(weakRandomComparator);
+        const queue = new TransactionQueue(makeOrderedTxMap(txs), baseFee);
 
         assert.equal(queue.getNextTransaction(), tx1.data);
         assert.equal(queue.getNextTransaction(), tx2.data);
@@ -293,7 +317,6 @@ describe("TxPriorityHeap", () => {
 
         assert.equal(queue.getNextTransaction(), tx6.data);
         assert.equal(queue.getNextTransaction(), tx7.data);
-        assert.equal(queue.getNextTransaction(), tx8.data);
         queue.removeLastSenderTransactions();
 
         assert.equal(queue.getNextTransaction(), tx10.data);
