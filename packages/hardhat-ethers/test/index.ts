@@ -1,5 +1,6 @@
 import { assert } from "chai";
 import { ethers } from "ethers";
+import { assertIsError } from "hardhat/internal/core/errors";
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import { Artifact } from "hardhat/types";
 
@@ -302,6 +303,7 @@ describe("Ethers plugin", function () {
                     library2.address,
                 },
               });
+              assertIsError(reason);
             } catch (reason) {
               assert.instanceOf(
                 reason,

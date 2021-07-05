@@ -18,6 +18,7 @@ import { decodeJsonRpcResponse } from "../../core/jsonrpc/types/output/decodeJso
 import { rpcLog } from "../../core/jsonrpc/types/output/log";
 import { rpcTransactionReceipt } from "../../core/jsonrpc/types/output/receipt";
 import { rpcTransaction } from "../../core/jsonrpc/types/output/transaction";
+import { ProviderError } from "../../core/providers/errors";
 import { HttpProvider } from "../../core/providers/http";
 import { createNonCryptographicHashBasedIdentifier } from "../../util/hash";
 import { nullable } from "../../util/io-ts";
@@ -317,15 +318,16 @@ export class JsonRpcClient {
   ): Promise<any> {
     try {
       return await this._httpProvider.request({ method, params });
-    } catch (err) {
+    } catch (err: unknown) {
       if (this._shouldRetry(isRetryCall, err)) {
         return this._send(method, params, true);
       }
 
       // This is a workaround for this TurboGeth bug: https://github.com/ledgerwatch/turbo-geth/issues/1645
       if (
+        err instanceof ProviderError &&
         err.code === -32000 &&
-        (err.message as string).includes("not found")
+        err.message.includes("not found")
       ) {
         return null;
       }

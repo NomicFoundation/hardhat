@@ -1,4 +1,5 @@
 import { EIP1193Provider, RequestArguments } from "../../../types";
+import {assertIsError} from "../errors";
 import {
   numberToRpcQuantity,
   rpcQuantityToNumber,
@@ -77,8 +78,9 @@ abstract class MultipliedGasEstimationProvider extends ProviderWrapper {
       const gas = multiplied > gasLimit ? gasLimit - 1 : multiplied;
 
       return numberToRpcQuantity(gas);
-    } catch (error) {
-      if ((error.message.toLowerCase() as string).includes("execution error")) {
+    } catch (error: unknown) {
+      assertIsError(error);
+      if (error.message.toLowerCase().includes("execution error")) {
         const blockGasLimit = await this._getBlockGasLimit();
         return numberToRpcQuantity(blockGasLimit);
       }

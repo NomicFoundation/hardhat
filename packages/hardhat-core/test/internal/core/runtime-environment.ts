@@ -8,6 +8,7 @@ import {
   defaultHardhatNetworkParams,
   defaultHttpNetworkParams,
 } from "../../../src/internal/core/config/default-config";
+import {assertIsError} from "../../../src/internal/core/errors";
 import { ERRORS } from "../../../src/internal/core/errors-list";
 import { Environment } from "../../../src/internal/core/runtime-environment";
 import { TasksDSL } from "../../../src/internal/core/tasks/dsl";
@@ -246,11 +247,13 @@ describe("Environment", () => {
           try {
             await env.run(taskNameToRun, taskArguments);
           } catch (error) {
+            assertIsError(error);
+
             assert.fail(
               error,
               undefined,
               `Should not throw error task ${taskNameToRun} with args ${argsString}. Error message: ${
-                (error.message as string) || error
+                error.message || error
               }`
             );
           }

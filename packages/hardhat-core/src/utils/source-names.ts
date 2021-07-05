@@ -1,6 +1,6 @@
 import path from "path";
 
-import { HardhatError } from "../internal/core/errors";
+import { assertIsError, HardhatError } from "../internal/core/errors";
 import { ERRORS } from "../internal/core/errors-list";
 
 const NODE_MODULES = "node_modules";
@@ -199,9 +199,11 @@ async function getPathTrueCase(fromDir: string, p: string): Promise<string> {
     const tcp = await trueCasePath(p, fromDir);
     return normalizeSourceName(path.relative(fromDir, tcp));
   } catch (error) {
+    assertIsError(error);
+
     if (
       typeof error.message === "string" &&
-      (error.message as string).includes("no matching file exists")
+      error.message.includes("no matching file exists")
     ) {
       throw new HardhatError(
         ERRORS.SOURCE_NAMES.FILE_NOT_FOUND,

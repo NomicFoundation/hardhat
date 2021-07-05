@@ -264,3 +264,12 @@ export function assertHardhatInvariant(
     throw new HardhatError(ERRORS.GENERAL.ASSERTION_ERROR, { message });
   }
 }
+
+export function assertIsError(error: unknown): asserts error is Error {
+  const isError = typeof error === "object" && error instanceof Error;
+  if (!isError) {
+    throw new HardhatError(ERRORS.GENERAL.ASSERTION_ERROR, {
+      message: `Expected value of type Error but got '${error}' instead`,
+    });
+  }
+}

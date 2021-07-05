@@ -17,6 +17,7 @@ import * as t from "io-ts";
 import cloneDeep from "lodash/cloneDeep";
 
 import { BoundExperimentalHardhatNetworkMessageTraceHook } from "../../../../types";
+import { assertIsError } from "../../../core/errors";
 import { RpcAccessList } from "../../../core/jsonrpc/types/access-list";
 import {
   bufferToRpcData,
@@ -413,12 +414,8 @@ export class EthModule {
 
     const callParams = await this._rpcCallRequestToNodeCallParams(callRequest);
 
-    const {
-      estimation,
-      error,
-      trace,
-      consoleLogMessages,
-    } = await this._node.estimateGas(callParams, blockNumberOrPending);
+    const { estimation, error, trace, consoleLogMessages } =
+      await this._node.estimateGas(callParams, blockNumberOrPending);
 
     if (error !== undefined) {
       const code = await this._node.getCodeFromTrace(
@@ -514,10 +511,8 @@ export class EthModule {
     let totalDifficulty: BN | undefined;
 
     if (numberOrPending === "pending") {
-      [
-        block,
-        totalDifficulty,
-      ] = await this._node.getPendingBlockAndTotalDifficulty();
+      [block, totalDifficulty] =
+        await this._node.getPendingBlockAndTotalDifficulty();
     } else {
       block = await this._node.getBlockByNumber(numberOrPending);
       if (block === undefined) {
@@ -959,15 +954,17 @@ export class EthModule {
         common: this._common,
       });
     } catch (error) {
+      assertIsError(error);
+
       // This section of the code is incredibly dependant of TransactionFactory.fromSerializedData
       // AccessListEIP2930Transaction.fromSerializedTx and Transaction.fromSerializedTx
       // Please keep it updated.
-      const { message }: { message: string } = error;
-      if (message === "invalid remainder") {
+
+      if (error.message === "invalid remainder") {
         throw new InvalidArgumentsError("Invalid transaction", error);
       }
 
-      if (message.includes("Incompatible EIP155")) {
+      if (error.message.includes("Incompatible EIP155")) {
         throw new InvalidArgumentsError(
           "Trying to send an incompatible EIP-155 transaction, signed for another chain.",
           error
@@ -975,10 +972,10 @@ export class EthModule {
       }
 
       if (
-        message.includes(
+        error.message.includes(
           "Common support for TypedTransactions (EIP-2718) not activated"
         ) ||
-        message.includes("EIP-2930 not enabled on Common")
+        error.message.includes("EIP-2930 not enabled on Common")
       ) {
         throw new InvalidArgumentsError(
           `Trying to send an EIP-2930 transaction but they are not supported by the current hard fork.
@@ -989,13 +986,13 @@ You can use them by running Hardhat Network with 'hardfork' ${ACCESS_LIST_MIN_HA
       }
 
       if (
-        message.includes("TypedTransaction with ID") &&
-        message.includes(" unknown")
+        error.message.includes("TypedTransaction with ID") &&
+        error.message.includes(" unknown")
       ) {
         throw new InvalidArgumentsError(`Invalid transaction`, error);
       }
 
-      if (message.includes("The chain ID does not match")) {
+      if (error.message.includes("The chain ID does not match")) {
         throw new InvalidArgumentsError(
           `Trying to send a raw transaction with an invalid chainId. The expected chainId is ${this._common.chainIdBN()}`,
           error

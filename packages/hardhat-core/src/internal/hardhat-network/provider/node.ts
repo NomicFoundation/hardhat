@@ -27,7 +27,7 @@ import EventEmitter from "events";
 
 import { CompilerInput, CompilerOutput } from "../../../types";
 import { HARDHAT_NETWORK_DEFAULT_GAS_PRICE } from "../../core/config/default-config";
-import { assertHardhatInvariant, HardhatError } from "../../core/errors";
+import { assertHardhatInvariant, assertIsError, HardhatError } from "../../core/errors";
 import { RpcDebugTracingConfig } from "../../core/jsonrpc/types/input/debugTraceTransaction";
 import {
   InternalError,
@@ -379,8 +379,9 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     try {
       result = await this._mineBlockWithPendingTxs(blockTimestamp);
     } catch (err) {
+      assertIsError(err);
       if (
-        (err?.message as string).includes("sender doesn't have enough funds")
+        err.message.includes("sender doesn't have enough funds")
       ) {
         throw new InvalidInputError(err.message, err);
       }

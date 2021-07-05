@@ -99,7 +99,9 @@ export async function expectHardhatErrorAsync(
   try {
     await f();
   } catch (err) {
-    assert.instanceOf(err, HardhatError);
+    if (!(err instanceof HardhatError)) {
+      assert.fail();
+    }
     assert.equal(err.number, errorDescriptor.number);
     assert.notInclude(
       err.message,
@@ -114,7 +116,7 @@ export async function expectHardhatErrorAsync(
 
     if (errorMessage !== undefined) {
       if (typeof errorMessage === "string") {
-        if (!(err.message as string).includes(errorMessage)) {
+        if (!err.message.includes(errorMessage)) {
           notExactMatch.message += `${err.message}`;
           throw notExactMatch;
         }

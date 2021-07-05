@@ -1,7 +1,7 @@
 import * as fs from "fs";
 
 import { subtask, task, types } from "../internal/core/config/config-env";
-import { HardhatError } from "../internal/core/errors";
+import { assertIsError, HardhatError } from "../internal/core/errors";
 import { ERRORS } from "../internal/core/errors-list";
 import { DependencyGraph } from "../internal/solidity/dependencyGraph";
 import { ResolvedFile, ResolvedFilesMap } from "../internal/solidity/resolver";
@@ -41,12 +41,9 @@ function getSortedFiles(dependenciesGraph: DependencyGraph) {
 
     const sortedNames = [...new Set(withEntries)];
     return sortedNames.map((n) => filesMap[n]);
-  } catch (error) {
-    if (
-      (error.toString() as string).includes(
-        "Error: There is a cycle in the graph."
-      )
-    ) {
+  } catch (error: unknown) {
+    assertIsError(error);
+    if (error.toString().includes("Error: There is a cycle in the graph.")) {
       throw new HardhatError(ERRORS.BUILTIN_TASKS.FLATTEN_CYCLE, error);
     }
 
