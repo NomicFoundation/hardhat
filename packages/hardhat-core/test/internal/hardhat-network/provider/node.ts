@@ -53,7 +53,7 @@ describe("HardhatNode", () => {
     blockGasLimit: DEFAULT_BLOCK_GAS_LIMIT,
     minGasPrice: new BN(0),
     genesisAccounts: DEFAULT_ACCOUNTS,
-    baseFee: 10,
+    initialBaseFeePerGas: 10,
   };
   const gasPrice = 20;
   let node: HardhatNode;

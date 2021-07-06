@@ -28,8 +28,8 @@ import EventEmitter from "events";
 
 import { CompilerInput, CompilerOutput } from "../../../types";
 import {
-  HARDHAT_NETWORK_DEFAULT_BASE_FEE,
   HARDHAT_NETWORK_DEFAULT_GAS_PRICE,
+  HARDHAT_NETWORK_DEFAULT_INITIAL_BASE_FEE_PER_GAS,
 } from "../../core/config/default-config";
 import { assertHardhatInvariant, HardhatError } from "../../core/errors";
 import { RpcDebugTracingConfig } from "../../core/jsonrpc/types/input/debugTraceTransaction";
