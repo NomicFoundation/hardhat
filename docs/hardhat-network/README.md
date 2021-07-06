@@ -4,8 +4,9 @@ Hardhat Runner comes built-in with Hardhat Network, a local Ethereum network nod
 
 ## How does it work?
 
-- It mines a block with each transaction that it receives, in order and with no delay.
-- It's backed by the `@ethereumjs/vm` EVM implementation, the same one used by ganache, Remix and Ethereum Studio.
+It mines a block with each transaction that it receives, in order and with no delay.
+
+It's backed by the `@ethereumjs/vm` EVM implementation, the same one used by ganache, Remix and Ethereum Studio.
 
 ## How can I use it?
 
