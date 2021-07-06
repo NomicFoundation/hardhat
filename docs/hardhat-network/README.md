@@ -26,7 +26,7 @@ Hardhat Network can run in a stand-alone fashion so that external clients can co
 npx hardhat node
 ```
 
-It will start Hardhat Network, and expose it as a JSON-RPC and WebSocket server.
+This will start Hardhat Network, and expose it as a JSON-RPC and WebSocket server.
 
 Then, just connect your wallet or application to `http://localhost:8545`.
 
