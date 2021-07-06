@@ -12,9 +12,6 @@ export function decodeJsonRpcResponse<T>(value: unknown, codec: t.Type<T>): T {
   const result = codec.decode(value);
 
   if (result.isLeft()) {
-    console.log(JSON.stringify(value, undefined, 2));
-    console.log();
-
     throw new InvalidResponseError(
       `Invalid JSON-RPC response's result.
 
