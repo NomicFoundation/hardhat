@@ -43,6 +43,13 @@ export const rpcUnsignedInteger = new t.Type<number>(
   t.identity
 );
 
+export const rpcQuantityAsNumber = new t.Type<BN>(
+  "Integer",
+  BN.isBN,
+  (u, c) => (isInteger(u) ? t.success(new BN(u)) : t.failure(u, c)),
+  t.identity
+);
+
 // Conversion functions
 
 /**
