@@ -10,10 +10,13 @@ It's backed by the `@ethereumjs/vm` EVM implementation, the same one used by gan
 
 ## How can I use it?
 
-- It can be used to run tests in the console, and to run scripts and tasks.
-- Plugins (ethers.js, web3.js, Waffle, Truffle, etc) connect directly to its provider.
-- There's no need to make any changes to your tests or scripts.
-- It's simply another network and it can be used with `--network`.
+By default, if you're using Hardhat Runner, then you're already using Hardhat Network.
+
+When Hardhat Runner executes your tests, scripts or tasks, an in-process Hardhat Network node is started automatically, and all Hardhat Runner plugins (ethers.js, web3.js, Waffle, Truffle, etc) connect directly to this node's provider.
+
+There's no need to make any changes to your tests or scripts.
+
+Hardhat Network is simply another network.  If you wanted to be explicit, you could run, for example, `npx hardhat run --network hardhat scripts/my-script.js`.
 
 ## Connecting to Hardhat Network from wallets and other software
 
