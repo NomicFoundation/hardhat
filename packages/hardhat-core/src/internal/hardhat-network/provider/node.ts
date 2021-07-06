@@ -95,7 +95,7 @@ import { FakeSenderAccessListEIP2930Transaction } from "./transactions/FakeSende
 import { FakeSenderEIP1559Transaction } from "./transactions/FakeSenderEIP1559Transaction";
 import { FakeSenderTransaction } from "./transactions/FakeSenderTransaction";
 import { TxPool } from "./TxPool";
-import { TxPriorityHeap } from "./TxPriorityHeap";
+import { TransactionQueue } from "./TransactionQueue";
 import { HardhatBlockchainInterface } from "./types/HardhatBlockchainInterface";
 import { getCurrentTimestamp } from "./utils/getCurrentTimestamp";
 import { makeCommon } from "./utils/makeCommon";
@@ -1237,9 +1237,11 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       timestamp: blockTimestamp,
     };
 
-    if (this._hasEIP1559()) {
-      headerData.baseFeePerGas = parentBlock.header.calcNextBaseFee();
-    }
+    const nextBlockBaseFee = this._hasEIP1559()
+      ? parentBlock.header.calcNextBaseFee()
+      : undefined;
+
+    headerData.baseFeePerGas = nextBlockBaseFee;
 
     const blockBuilder = await this._vm.buildBlock({
       parentBlock,
@@ -1253,9 +1255,12 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       const blockGasLimit = this.getBlockGasLimit();
       const minTxFee = this._getMinimalTransactionFee();
       const pendingTxs = this._txPool.getPendingTransactions();
-      const txHeap = new TxPriorityHeap(pendingTxs);
+      const transactionQueue = new TransactionQueue(
+        pendingTxs,
+        nextBlockBaseFee
+      );
 
-      let tx = txHeap.peek();
+      let tx = transactionQueue.getNextTransaction();
 
       const results = [];
       const receipts = [];
@@ -1264,25 +1269,20 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         blockGasLimit.sub(blockBuilder.gasUsed).gte(minTxFee) &&
         tx !== undefined
       ) {
-        if (!this._isTxMinable(tx)) {
-          txHeap.pop();
-          tx = txHeap.peek();
-          continue;
-        }
-
-        if (tx.gasLimit.gt(blockGasLimit.sub(blockBuilder.gasUsed))) {
-          txHeap.pop();
+        if (
+          !this._isTxMinable(tx) ||
+          tx.gasLimit.gt(blockGasLimit.sub(blockBuilder.gasUsed))
+        ) {
+          transactionQueue.removeLastSenderTransactions();
         } else {
           const txResult = await blockBuilder.addTransaction(tx);
 
           traces.push(await this._gatherTraces(txResult.execResult));
           results.push(txResult);
           receipts.push(txResult.receipt);
-
-          txHeap.shift();
         }
 
-        tx = txHeap.peek();
+        tx = transactionQueue.getNextTransaction();
       }
 
       const block = await blockBuilder.build();
