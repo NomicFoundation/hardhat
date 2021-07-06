@@ -1,6 +1,6 @@
 # Hardhat Network
 
-Hardhat comes built-in with Hardhat Network, a local Ethereum network designed for development. It allows you to deploy your contracts, run your tests and debug your code.
+Hardhat Runner comes built-in with Hardhat Network, a local Ethereum network node designed for development. It allows you to deploy your contracts, run your tests and debug your code.
 
 ## How does it work?
 
