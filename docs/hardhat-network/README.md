@@ -18,7 +18,7 @@ There's no need to make any changes to your tests or scripts.
 
 Hardhat Network is simply another network.  If you wanted to be explicit, you could run, for example, `npx hardhat run --network hardhat scripts/my-script.js`.
 
-## Connecting to Hardhat Network from wallets and other software
+### Running stand-alone to support wallets and other software
 
 Hardhat Network can run in a standalone fashion so that external clients can connect to it. This could be MetaMask, your Dapp front-end, or a script. To run Hardhat Network in this way, run:
 
