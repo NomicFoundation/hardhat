@@ -81,14 +81,13 @@ When a transaction fails without a reason, Hardhat Network will create a clear e
 
 ## `console.log`
 
-Hardhat Network allows you to print logging messages and contract variables by calling `console.log()` from your Solidity code. You can see an example in the Sample Project. Follow the steps in [Quick Start](/getting-started/README.md#quick-start) to try it out.
+Hardhat Network allows you to print logging messages and contract variables by calling `console.log()` from your Solidity code.
 
-- It always works, regardless of the call or transaction failing or being successful.
-- To use it you need to import `hardhat/console.sol`.
-- `console.log` implements the same formatting options that can be found in Node.js' [`console.log`](https://nodejs.org/dist/latest-v12.x/docs/api/console.html#console_console_log_data_args), which in turn uses [`util.format`](https://nodejs.org/dist/latest-v12.x/docs/api/util.html#util_util_format_format_args).
-  - Example: `console.log("Changing owner from %s to %s", currentOwner, newOwner)`
-- It works with any library: ethers.js, web3.js, waffle, truffle-contract, etc.
-- `console.log` is implemented in standard Solidity and then detected in Hardhat Network. This makes its compilation work with any other tools (like Remix, Waffle or Truffle).
+To use it, you simply import `hardhat/console.sol` and call it.  It implements the same formatting options that can be found in Node.js' [`console.log`](https://nodejs.org/dist/latest-v12.x/docs/api/console.html#console_console_log_data_args), which in turn uses [`util.format`](https://nodejs.org/dist/latest-v12.x/docs/api/util.html#util_util_format_format_args). For example: `console.log("Changing owner from %s to %s", currentOwner, newOwner)`.
+
+It always works, regardless of the call or transaction failing or being successful, and, because it's implemented in standard Solidity, it works with any other tool or library: Remix, Waffle, Truffle, ethers.js, web3.js, etc.
+
+You can see an example in the Sample Project. Follow the steps in [Quick Start](/getting-started/README.md#quick-start) to try it out.  <!-- TODO: UNCOMMENT THIS WHEN THE LINKS WORK: For a deeper look, see the [Guide to Debugging a Transaction](/hardhat-network/guides/debugging.md) , or refer to the [Reference](/hardhat-network/reference/console.log.md)-->
 
 ## Mainnet forking
 
