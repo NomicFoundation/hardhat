@@ -91,10 +91,12 @@ You can see an example in the Sample Project. Follow the steps in [Quick Start](
 
 ## Mainnet forking
 
-The Hardhat Network is empty by default, except for some accounts with an initial balance. But sometimes it's more useful to have a local network that simulates the state of the mainnet. This is what forking is for.
+Hardhat Network has the ability to copy the state of the mainnet blockchain into your local environment, including all balances and deployed contracts.  This is known as "forking mainnet."
 
-After doing this, you can do anything in your node that you can do with a non-forked Hardhat Network: see console logs, get stack traces or use the default accounts to deploy new contracts.
+In a local environment forked from mainnet, you can execute transactions to invoke mainnet-deployed contracts, or interact with the network in any other way that you would with mainnet.  In addition, you can do anything that supported by a non-forked Hardhat Network: see console logs, get stack traces, or use the default accounts to deploy new contracts.
 
+
+In actuality, Hardhat Network can be used to fork __any__ network, not just mainnet.
 There are other things you can do with a forked Hardhat Network, check [our guide](../guides/mainnet-forking.md) to learn more.
 
 ## Mining modes
