@@ -93,29 +93,7 @@ You can see an example in the Sample Project. Follow the steps in [Quick Start](
 
 The Hardhat Network is empty by default, except for some accounts with an initial balance. But sometimes it's more useful to have a local network that simulates the state of the mainnet. This is what forking is for.
 
-To fork from the mainnet you need the URL of a node to connect to. For example, using Alchemy, you can start a local node that forks the mainnet with this command:
-
-```
-npx hardhat node --fork https://eth-mainnet.alchemyapi.io/v2/<key>
-```
-
-where you have to replace `<key>` with your Alchemy API key.
-
 After doing this, you can do anything in your node that you can do with a non-forked Hardhat Network: see console logs, get stack traces or use the default accounts to deploy new contracts.
-
-If you want this to be the default behavior, you can do it in your Hardhat config:
-
-```js
-networks: {
-  hardhat: {
-    forking: {
-      url: "https://eth-mainnet.alchemyapi.io/v2/<key>";
-    }
-  }
-}
-```
-
-This means that if you execute a task that uses the Hardhat Network, that task will start a forked node and run on it.
 
 There are other things you can do with a forked Hardhat Network, check [our guide](../guides/mainnet-forking.md) to learn more.
 
