@@ -5,7 +5,7 @@
 // If your plugin's `name` is not it's package name, you can add an optional
 // `npmPackage` field.
 //
-// Note that the `url` is an URL to the **branch** the website should get your 
+// Note that the `url` is an URL to the **branch** the website should get your
 // plugin's the README.md from, not the repository.
 
 const plugins = [
