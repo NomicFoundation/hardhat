@@ -13,14 +13,7 @@ const isGithubActions = process.env.GITHUB_WORKFLOW !== undefined;
 const isLinux = os.type() === "Linux";
 const isWindows = os.type() === "Windows_NT";
 
-// only Build tests in local environment
-const shouldBuildTests = !isGithubActions;
-
 shell.exec("yarn build");
-
-if (shouldBuildTests) {
-  shell.exec("yarn build-test");
-}
 
 // ** check for packages to be ignored ** //
 

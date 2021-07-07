@@ -1,7 +1,0 @@
-{
-  "extends": "../../config/tslint/tslint.json",
-  "rulesDirectory": "./tslint",
-  "rules": {
-    "only-hardhat-error": true
-  }
-}

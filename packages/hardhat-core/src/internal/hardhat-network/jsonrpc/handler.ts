@@ -18,7 +18,7 @@ import {
   JsonRpcResponse,
 } from "../../util/jsonrpc";
 
-// tslint:disable only-hardhat-error
+/* eslint-disable @nomiclabs/only-hardhat-error */
 
 export default class JsonRpcHandler {
   constructor(private readonly _provider: EIP1193Provider) {}

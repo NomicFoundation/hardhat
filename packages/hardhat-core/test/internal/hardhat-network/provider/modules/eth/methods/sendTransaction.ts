@@ -29,7 +29,7 @@ import {
 import { useHelpers } from "../../../../helpers/useHelpers";
 
 describe("Eth module", function () {
-  PROVIDERS.forEach(({ name, useProvider, isFork, isJsonRpc, chainId }) => {
+  PROVIDERS.forEach(({ name, useProvider, isFork, isJsonRpc }) => {
     if (isFork) {
       this.timeout(50000);
     }

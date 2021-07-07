@@ -29,7 +29,7 @@ const encodeStorageKey = (address: Buffer, position: Buffer): string => {
   return `${address.toString("hex")}${unpadBuffer(position).toString("hex")}`;
 };
 
-/* tslint:disable only-hardhat-error */
+/* eslint-disable @nomiclabs/only-hardhat-error */
 
 type State = ImmutableMap<string, ImmutableRecord<AccountState>>;
 
@@ -155,7 +155,7 @@ export class ForkStateManager implements EIP2929StateManager {
     this._putAccount(address, account);
   }
 
-  public touchAccount(address: Address): void {
+  public touchAccount(_address: Address): void {
     // We don't do anything here. See cleanupTouchedAccounts for explanation
   }
 
@@ -287,7 +287,7 @@ export class ForkStateManager implements EIP2929StateManager {
     this._setStateRoot(stateRoot);
   }
 
-  public async dumpStorage(address: Address): Promise<Record<string, string>> {
+  public async dumpStorage(_address: Address): Promise<Record<string, string>> {
     throw notSupportedError("dumpStorage");
   }
 
@@ -299,7 +299,7 @@ export class ForkStateManager implements EIP2929StateManager {
     throw notSupportedError("generateCanonicalGenesis");
   }
 
-  public async generateGenesis(initState: any): Promise<void> {
+  public async generateGenesis(_initState: any): Promise<void> {
     throw notSupportedError("generateGenesis");
   }
 
@@ -362,7 +362,7 @@ export class ForkStateManager implements EIP2929StateManager {
     }
   }
 
-  public accountExists(address: Address): never {
+  public accountExists(_address: Address): never {
     throw new InternalError(
       "Hardhat Network can't fork from networks running a hardfork older than Spurious Dragon"
     );

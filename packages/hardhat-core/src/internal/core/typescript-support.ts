@@ -53,7 +53,7 @@ export function loadTsNode() {
 
   // If we are running tests we just want to transpile
   if (isRunningHardhatCoreTests()) {
-    // tslint:disable-next-line no-implicit-dependencies
+    // eslint-disable-next-line import/no-extraneous-dependencies
     require("ts-node/register/transpile-only");
     return;
   }
@@ -63,7 +63,7 @@ export function loadTsNode() {
     process.env.TS_NODE_FILES = "true";
   }
 
-  // tslint:disable-next-line no-implicit-dependencies
+  // eslint-disable-next-line import/no-extraneous-dependencies
   require("ts-node/register");
 }
 
