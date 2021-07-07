@@ -1,5 +1,5 @@
 import { ERROR } from "@ethereumjs/vm/dist/exceptions";
-import { defaultAbiCoder as abi, ParamType } from "@ethersproject/abi";
+import { defaultAbiCoder as abi } from "@ethersproject/abi";
 import { BN } from "ethereumjs-util";
 import semver from "semver";
 
@@ -58,7 +58,7 @@ export interface SubmessageData {
   stepIndex: number;
 }
 
-// tslint:disable only-hardhat-error
+/* eslint-disable @nomiclabs/only-hardhat-error */
 
 export class ErrorInferrer {
   public inferBeforeTracingCallMessage(
@@ -170,7 +170,7 @@ export class ErrorInferrer {
       ) ??
       this._checkNonContractCalled(trace, stacktrace) ??
       this._checkSolidity063UnmappedRevert(trace, stacktrace) ??
-      this._checkContractTooLarge(trace, stacktrace) ??
+      this._checkContractTooLarge(trace) ??
       this._otherExecutionErrorStacktrace(trace, stacktrace)
     );
   }
@@ -658,8 +658,7 @@ export class ErrorInferrer {
   }
 
   private _checkContractTooLarge(
-    trace: DecodedEvmMessageTrace,
-    stacktrace: SolidityStackTrace
+    trace: DecodedEvmMessageTrace
   ): SolidityStackTrace | undefined {
     if (isCreateTrace(trace) && this._isContractTooLargeError(trace)) {
       return [
@@ -967,7 +966,7 @@ export class ErrorInferrer {
 
     let hasReadDeploymentCodeSize = false;
 
-    // tslint:disable-next-line prefer-for-of
+    // eslint-disable-next-line @typescript-eslint/prefer-for-of
     for (let stepIndex = 0; stepIndex < trace.steps.length; stepIndex++) {
       const step = trace.steps[stepIndex];
       if (!isEvmStep(step)) {

@@ -128,6 +128,7 @@ export class GanacheService {
 
       // Start server with current configs (port and hostname)
       await new Promise((resolve, reject) => {
+        // eslint-disable-next-line prefer-const
         let onError: (err: Error) => void;
 
         const onListening = () => {

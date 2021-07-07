@@ -1,6 +1,3 @@
-import { ERROR } from "@ethereumjs/vm/dist/exceptions";
-import semver from "semver";
-
 import { ReturnData } from "../provider/return-data";
 
 import {
@@ -26,30 +23,12 @@ import {
   MessageTrace,
   PrecompileMessageTrace,
 } from "./message-trace";
+import { Instruction, JumpType } from "./model";
+import { Opcode } from "./opcodes";
 import {
-  Bytecode,
-  ContractFunction,
-  ContractFunctionType,
-  ContractType,
-  Instruction,
-  JumpType,
-  SourceLocation,
-} from "./model";
-import { isCall, isCreate, Opcode } from "./opcodes";
-import {
-  CallFailedErrorStackTraceEntry,
-  CallstackEntryStackTraceEntry,
-  CONSTRUCTOR_FUNCTION_NAME,
-  FALLBACK_FUNCTION_NAME,
-  InternalFunctionCallStackEntry,
-  OtherExecutionErrorStackTraceEntry,
-  RECEIVE_FUNCTION_NAME,
-  RevertErrorStackTraceEntry,
   SolidityStackTrace,
   SolidityStackTraceEntry,
-  SourceReference,
   StackTraceEntryType,
-  UnmappedSolc063RevertErrorStackTraceEntry,
 } from "./solidity-stack-trace";
 
 export const SUPPORTED_SOLIDITY_VERSION_RANGE = "<=0.8.4";

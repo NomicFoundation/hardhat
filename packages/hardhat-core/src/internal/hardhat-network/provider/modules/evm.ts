@@ -22,7 +22,7 @@ import { MineBlockResult } from "../node-types";
 
 import { ModulesLogger } from "./logger";
 
-// tslint:disable only-hardhat-error
+/* eslint-disable @nomiclabs/only-hardhat-error */
 
 export class EvmModule {
   constructor(
@@ -150,7 +150,7 @@ export class EvmModule {
 
   // evm_snapshot
 
-  private _snapshotParams(params: any[]): [] {
+  private _snapshotParams(_params: any[]): [] {
     return [];
   }
 

@@ -9,9 +9,7 @@
     {
       "to": 0,
       "function": "test",
-      "consoleLogs": [
-        ["log from top-level function"]
-      ]
+      "consoleLogs": [["log from top-level function"]]
     }
   ]
 }

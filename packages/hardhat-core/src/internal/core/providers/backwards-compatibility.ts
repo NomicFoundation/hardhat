@@ -49,7 +49,7 @@ export class BackwardsCompatibilityProviderAdapter extends EventEmitterWrapper
       });
     } catch (error) {
       if (error.code === undefined) {
-        // tslint:disable-next-line only-hardhat-error
+        // eslint-disable-next-line @nomiclabs/only-hardhat-error
         throw error;
       }
 

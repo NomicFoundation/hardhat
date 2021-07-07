@@ -86,7 +86,7 @@ import { ModulesLogger } from "./logger";
 const ACCESS_LIST_MIN_HARDFORK = "berlin";
 const EIP155_MIN_HARDFORK = "spuriousDragon";
 
-// tslint:disable only-hardhat-error
+/* eslint-disable @nomiclabs/only-hardhat-error */
 export class EthModule {
   constructor(
     private readonly _common: Common,
@@ -887,7 +887,7 @@ export class EthModule {
 
   // eth_newBlockFilter
 
-  private _newBlockFilterParams(params: any[]): [] {
+  private _newBlockFilterParams(_params: any[]): [] {
     return [];
   }
 
@@ -910,7 +910,7 @@ export class EthModule {
 
   // eth_newPendingTransactionFilter
 
-  private _newPendingTransactionParams(params: any[]): [] {
+  private _newPendingTransactionParams(_params: any[]): [] {
     return [];
   }
 
@@ -921,7 +921,7 @@ export class EthModule {
 
   // eth_pendingTransactions
 
-  private _pendingTransactionsParams(params: any[]): [] {
+  private _pendingTransactionsParams(_params: any[]): [] {
     return [];
   }
 

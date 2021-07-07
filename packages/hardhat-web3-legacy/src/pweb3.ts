@@ -12,7 +12,6 @@ export function promisifyWeb3(web3: any) {
     const originalModule = pweb3[module];
     pweb3[module] = {};
 
-    // tslint:disable-next-line forin
     for (const prop in web3[module]) {
       if (module === "eth" && prop === "contract") {
         continue;

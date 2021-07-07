@@ -159,8 +159,9 @@ const plugins = [
     author: "Ethernal",
     authorUrl: "https://www.tryethernal.com",
     url: "https://github.com/tryethernal/hardhat-ethernal/tree/master",
-    description: "Integrate your Hardhat project and Hardhat network with Ethernal. Ethernal is a block explorer for private chains.",
-    tags: ["explorer", "debugging", "development-tool"]
+    description:
+      "Integrate your Hardhat project and Hardhat network with Ethernal. Ethernal is a block explorer for private chains.",
+    tags: ["explorer", "debugging", "development-tool"],
   },
   {
     name: "hardhat-typechain",
@@ -255,7 +256,8 @@ const plugins = [
     author: "David Mihal",
     authorUrl: "https://twitter.com/dmihal",
     url: "https://github.com/dmihal/hardhat-erc1820/tree/master",
-    description: "Automatically deploy the ERC-1820 registry contract to Hardhat EVM chains.",
+    description:
+      "Automatically deploy the ERC-1820 registry contract to Hardhat EVM chains.",
     tags: ["Testing"],
   },
   {
@@ -329,8 +331,7 @@ const plugins = [
     name: "hardhat-etherscan-abi",
     author: "Roman Semenov",
     authorUrl: "https://github.com/poma",
-    url:
-      "https://github.com/poma/hardhat-etherscan-abi/tree/master",
+    url: "https://github.com/poma/hardhat-etherscan-abi/tree/master",
     description: "Automatically fetch contract ABI from Etherscan",
     tags: ["Etherscan", "ABI"],
   },
@@ -346,10 +347,16 @@ const plugins = [
     name: "hardhat-circom",
     author: "Project Sophon",
     authorUrl: "https://github.com/projectsophon",
-    url:
-      "https://github.com/projectsophon/hardhat-circom/tree/master",
+    url: "https://github.com/projectsophon/hardhat-circom/tree/master",
     description: "Provide tasks to integrate Circom and SnarkJS",
-    tags: ["Circom", "Snarkjs", "Preprocessor", "Compiling", "Tasks", "Scripts"],
+    tags: [
+      "Circom",
+      "Snarkjs",
+      "Preprocessor",
+      "Compiling",
+      "Tasks",
+      "Scripts",
+    ],
   },
 ];
 

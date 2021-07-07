@@ -18,19 +18,22 @@ You can also configure Hardhat Network to always do this:
 networks: {
   hardhat: {
     forking: {
-      url: "https://eth-mainnet.alchemyapi.io/v2/<key>"
+      url: "https://eth-mainnet.alchemyapi.io/v2/<key>";
     }
   }
 }
 ```
 
+(Note that you'll need to replace the `<key>` component of the URL with your personal Alchemy API key.)
+
 By accessing any state that exists on mainnet, Hardhat Network will pull the data and expose it transparently as if it was available locally.
 
 ## Pinning a block
 
-Hardhat Network will by default fork from the latest mainnet block. While this might be practical depending on the context, we recommend forking from a specific block number to set up a test suite that depends on forking.
+Hardhat Network will by default fork from the latest mainnet block. While this might be practical depending on the context, to set up a test suite that depends on forking we recommend forking from a specific block number.
 
 There are two reasons for this:
+
 - The state your tests run against may change between runs. This could cause your tests or scripts to behave differently.
 - Pinning enables caching. Every time data is fetched from mainnet, Hardhat Network caches it on disk to speed up future access. If you don't pin the block, there's going to be new data with each new block and the cache won't be useful. We measured up to 20x speed improvements with block pinning.
 
@@ -49,7 +52,6 @@ networks: {
 }
 ```
 
-
 If you are using the `node` task, you can also specify a block number with the `--fork-block-number` flag:
 
 ```
@@ -64,13 +66,13 @@ Once you've got local instances of mainnet protocols, setting them in the specif
 
 Hardhat Network allows you to send transactions impersonating specific account and contract addresses.
 
-To impersonate an account use the `hardhat_impersonateAccount` RPC method passing the address to impersonate as its parameter:
+To impersonate an account use the `hardhat_impersonateAccount` RPC method, passing the address to impersonate as its parameter:
 
 ```tsx
 await hre.network.provider.request({
   method: "hardhat_impersonateAccount",
-  params: ["0x364d6D0333432C3Ac016Ca832fb8594A8cE43Ca6"]}
-)
+  params: ["0x364d6D0333432C3Ac016Ca832fb8594A8cE43Ca6"],
+});
 ```
 
 Call `hardhat_stopImpersonatingAccount` to stop impersonating:
@@ -78,8 +80,8 @@ Call `hardhat_stopImpersonatingAccount` to stop impersonating:
 ```tsx
 await hre.network.provider.request({
   method: "hardhat_stopImpersonatingAccount",
-  params: ["0x364d6D0333432C3Ac016Ca832fb8594A8cE43Ca6"]}
-)
+  params: ["0x364d6D0333432C3Ac016Ca832fb8594A8cE43Ca6"],
+});
 ```
 
 If you are using [`hardhat-ethers`](https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-ethers), call `getSigner` after impersonating the account:
@@ -161,13 +163,15 @@ You can manipulate forking during runtime to reset back to a fresh forked state,
 ```ts
 await network.provider.request({
   method: "hardhat_reset",
-  params: [{
-    forking: {
-      jsonRpcUrl: "https://eth-mainnet.alchemyapi.io/v2/<key>",
-      blockNumber: 11095000
-    }
-  }]
-})
+  params: [
+    {
+      forking: {
+        jsonRpcUrl: "https://eth-mainnet.alchemyapi.io/v2/<key>",
+        blockNumber: 11095000,
+      },
+    },
+  ],
+});
 ```
 
 You can disable forking by passing empty params:
@@ -175,8 +179,8 @@ You can disable forking by passing empty params:
 ```ts
 await network.provider.request({
   method: "hardhat_reset",
-  params: []
-})
+  params: [],
+});
 ```
 
 This will reset Hardhat Network, starting a new instance in the state described [here](../hardhat-network/README.md#hardhat-network-initial-state).
@@ -185,6 +189,6 @@ This will reset Hardhat Network, starting a new instance in the state described 
 
 ### "Project ID does not have access to archive state"
 
-Using Infura without the archival addon you will only have access to the state of the blockchain during recent blocks. To avoid this problem, you can use a local archive node, or a service that provides archival data like [Alchemy].
+When using Infura without the archival add-on, you will only have access to the state of the blockchain from recent blocks. To avoid this problem, you can use either a local archive node or a service that provides archival data, like [Alchemy].
 
-[Alchemy]: https://alchemyapi.io/
+[alchemy]: https://alchemyapi.io/
