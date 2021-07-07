@@ -97,8 +97,8 @@ In a local environment forked from mainnet, you can execute transactions to invo
 
 
 In actuality, Hardhat Network can be used to fork __any__ network, not just mainnet.
-There are other things you can do with a forked Hardhat Network, check [our guide](../guides/mainnet-forking.md) to learn more.
 
+There are other things you can do with a forked Hardhat Network. Check [our guide](../guides/mainnet-forking.md) to learn more.
 ## Mining modes
 
 Hardhat supports two modes for mining transactions:
