@@ -154,7 +154,9 @@ export class FakeSenderTransaction extends Transaction {
 // Override private methods
 const FakeSenderTransactionPrototype: any = FakeSenderTransaction.prototype;
 
-FakeSenderTransactionPrototype._validateTxV = function () {};
+FakeSenderTransactionPrototype._validateTxV = function (_v: any, common: any) {
+  return this._getCommon(common);
+};
 
 FakeSenderTransactionPrototype._signedTxImplementsEIP155 = function () {
   throw new InternalError(
