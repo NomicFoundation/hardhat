@@ -130,7 +130,12 @@ export class ReadOnlyValidTransaction extends Transaction {
 const ReadOnlyValidTransactionPrototype: any =
   ReadOnlyValidTransaction.prototype;
 
-ReadOnlyValidTransactionPrototype._validateTxV = function () {};
+ReadOnlyValidTransactionPrototype._validateTxV = function (
+  _v: any,
+  common: any
+) {
+  return this._getCommon(common);
+};
 
 ReadOnlyValidTransactionPrototype._signedTxImplementsEIP155 = function () {
   throw new InternalError(
