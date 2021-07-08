@@ -35,7 +35,7 @@
     "@nomiclabs/truffle-contract": "^4.2.23",
     "@types/chai": "^4.2.0",
     "chai": "^4.2.0",
-    "ethereumjs-util": "^7.0.10",
+    "ethereumjs-util": "^7.1.0",
     "fs-extra": "^7.0.1"
   },
   "devDependencies": {
