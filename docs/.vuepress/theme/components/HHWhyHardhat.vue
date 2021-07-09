@@ -172,8 +172,6 @@
                 @media (max-width 1000px)
                     width 100% !important
         .details
-            @media (max-width 1000px)
-              padding-right 24px
             &:first-child
                 margin-bottom 64px
                 @media (max-width 1000px)
@@ -203,12 +201,12 @@
                     width 100%
         .cta-link // This style adds the white-space next to the button
             position relative
+            white-space nowrap
             @media (max-width: 1000px)
                 margin-top 32px
                 max-width 317px
-                width calc(100% - 24px)
                 text-align center
-                white-space normal
+                padding 13px 28px !important
             &:after, &:before
                 content ''
                 position absolute
@@ -220,12 +218,23 @@
                 left 100%
             &:after
                 right 100%
+            span
+                white-space inherit
         .cta-container.pull-left
             a
                 margin-left 50%
     .image-container
         position absolute
         background-size contain
+        max-width 414px
+        &:after
+            content ''
+            width 100%
+            height 100%
+            top 0
+            left 0
+            background linear-gradient(90deg, white 0%, transparent 10%, transparent 90%, white)
+            position absolute
         @media screen and (max-width: 1000px)
             position relative
             left unset
@@ -244,7 +253,7 @@
     .image-container
         width 605px
         height 542px
-        background-image url('../img/graphics/Graphic-1@2x.png')
+        background-image url('../img/graphics/Graphic-1@2x.svg')
         left 30px
         top -40px
         transform-origin left center
@@ -259,7 +268,7 @@
     .image-container
         width 505px
         height 500px
-        background-image url('../img/graphics/Graphic-2@2x.png')
+        background-image url('../img/graphics/Graphic-2@2x.svg')
         bottom -65px
         right 30px
         transform-origin bottom right
@@ -275,7 +284,7 @@
     .image-container
         width 486px
         height 528px
-        background-image url('../img/graphics/Graphic-3@2x.png')
+        background-image url('../img/graphics/Graphic-3@2x.svg')
         transform translateY(-30px)
         transform-origin left center
         left 30px
@@ -294,7 +303,7 @@
         right 50px
         width 712px
         height 446px
-        background-image url('../img/graphics/Graphic-4@2x.png')
+        background-image url('../img/graphics/Graphic-4@2x.svg')
         transform-origin right center
         @media (min-width: 1000px) and (max-width: 1100px)
             right 10px
@@ -380,6 +389,8 @@
         background-blend-mode multiply
         transform-origin bottom center
         transform translateY(-20px)
+        &:after
+            display none
         @media (max-width: 1000px)
             margin 0 auto
             bottom 10px

@@ -256,7 +256,7 @@
                         height 263px !important
             &.list-3-items
                 &:after
-                    bottom -22px
+                    bottom -72px
                 @media (max-width: 1000px)
                     height 551px !important
                     .left-tools-column
@@ -372,9 +372,9 @@
                 flex-direction column
                 justify-content center
                 @media (max-width: 1000px)
-                    padding 0 24px 
+                    padding 0 20px 
                     margin-top 40px
-                    height 260px !important
+                    height 363px !important
                 .tool-header
                     font-family 'Chivo'
                     display flex
@@ -434,7 +434,7 @@
                         @media (max-width: 1000px)
                             width 100%
                             font-size 18px
-                            height 160px
+                            height 196px
                         &.description-hidden
                             opacity 0
                     .learn-more-link

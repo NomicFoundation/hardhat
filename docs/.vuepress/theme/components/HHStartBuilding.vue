@@ -72,7 +72,7 @@ export default {
                 top 140px
                 width 835px
                 height 863px
-                left -100px
+                left 0
                 background-position left center
             &.right-graphic
                 top 140px
