@@ -54,7 +54,7 @@ async function mineBlockWithValueTransferTxs(
   await provider.send("evm_setAutomine", [true]);
 }
 
-describe.only("Block's baseFeePerGas", function () {
+describe("Block's baseFeePerGas", function () {
   PROVIDERS.forEach(({ name, useProvider, isFork }) => {
     if (isFork) {
       this.timeout(50000);
