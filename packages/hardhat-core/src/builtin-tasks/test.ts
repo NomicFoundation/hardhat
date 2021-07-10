@@ -53,7 +53,7 @@ subtask(TASK_TEST_RUN_MOCHA_TESTS)
     const mocha = new Mocha(config.mocha);
     testFiles.forEach((file) => mocha.addFile(file));
 
-    const testFailures = await new Promise<number>((resolve, _) => {
+    const testFailures = await new Promise<number>((resolve) => {
       mocha.run(resolve);
     });
 

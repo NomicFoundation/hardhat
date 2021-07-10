@@ -1,8 +1,6 @@
 import { assert } from "chai";
-import { ethers } from "ethers";
 import { TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
-import { NomicLabsHardhatPluginError } from "hardhat/plugins";
-import { Artifact, HardhatRuntimeEnvironment } from "hardhat/types";
+import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { SignerWithAddress } from "../src/signers";
 

@@ -43,6 +43,7 @@ export function waffleChai(chai: Chai.ChaiStatic, utils: Chai.ChaiUtils) {
   const {
     supportRevertedWith,
   } = require(`${waffleChaiPath}/matchers/revertedWith`);
+  const { supportHexEqual } = require(`${waffleChaiPath}/matchers/hexEqual`);
 
   supportBigNumber(chai.Assertion, utils);
   supportReverted(chai.Assertion);
@@ -51,6 +52,7 @@ export function waffleChai(chai: Chai.ChaiStatic, utils: Chai.ChaiUtils) {
   supportProperAddress(chai.Assertion);
   supportProperPrivateKey(chai.Assertion);
   supportProperHex(chai.Assertion);
+  supportHexEqual(chai.Assertion);
   supportChangeBalance(chai.Assertion);
   supportChangeBalances(chai.Assertion);
   supportChangeEtherBalance(chai.Assertion);
@@ -62,8 +64,9 @@ export function waffleChai(chai: Chai.ChaiStatic, utils: Chai.ChaiUtils) {
 }
 
 function supportCalledOnContract(Assertion: Chai.AssertionStatic) {
+  // eslint-disable-next-line import/no-extraneous-dependencies
   const Chai = require("chai");
-  Assertion.addMethod("calledOnContract", function (contract: any) {
+  Assertion.addMethod("calledOnContract", function (_contract: any) {
     throw new Chai.AssertionError(
       "Waffle's calledOnContract is not supported by Hardhat"
     );
@@ -71,8 +74,9 @@ function supportCalledOnContract(Assertion: Chai.AssertionStatic) {
 }
 
 function supportCalledOnContractWith(Assertion: Chai.AssertionStatic) {
+  // eslint-disable-next-line import/no-extraneous-dependencies
   const Chai = require("chai");
-  Assertion.addMethod("calledOnContractWith", function (contract: any) {
+  Assertion.addMethod("calledOnContractWith", function (_contract: any) {
     throw new Chai.AssertionError(
       "Waffle's calledOnContractWith is not supported by Hardhat"
     );

@@ -21,12 +21,7 @@ import {
   UNRECOGNIZED_CONTRACT_NAME,
   UNRECOGNIZED_FUNCTION_NAME,
 } from "../../stack-traces/solidity-stack-trace";
-import {
-  CallParams,
-  GatherTracesResult,
-  MineBlockResult,
-  TransactionParams,
-} from "../node-types";
+import { CallParams, GatherTracesResult, MineBlockResult } from "../node-types";
 
 interface PrintOptions {
   color?: Chalk;
@@ -41,7 +36,7 @@ function printLine(line: string) {
 
 function replaceLastLine(newLine: string) {
   process.stdout.write(
-    // tslint:disable-next-line:prefer-template
+    // eslint-disable-next-line prefer-template
     ansiEscapes.cursorHide +
       ansiEscapes.cursorPrevLine +
       newLine +

@@ -1,6 +1,6 @@
 import * as t from "io-ts";
 
-import { optional } from "../../../../util/io-ts";
+import { optionalOrNullable } from "../../../../util/io-ts";
 import { rpcHash } from "../base-types";
 
 import { optionalRpcOldBlockTag } from "./blockTag";
@@ -13,14 +13,14 @@ export const rpcFilterRequest = t.type(
     toBlock: optionalRpcOldBlockTag,
     address: optionalRpcLogAddress,
     topics: optionalRpcLogTopics,
-    blockHash: optional(rpcHash),
+    blockHash: optionalOrNullable(rpcHash),
   },
   "RpcFilterRequest"
 );
 
 export type RpcFilterRequest = t.TypeOf<typeof rpcFilterRequest>;
 
-export const optionalRpcFilterRequest = optional(rpcFilterRequest);
+export const optionalRpcFilterRequest = optionalOrNullable(rpcFilterRequest);
 
 export type OptionalRpcFilterRequest = t.TypeOf<
   typeof optionalRpcFilterRequest

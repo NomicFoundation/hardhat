@@ -15,7 +15,6 @@ import {
 } from "./internal/util/console";
 
 if (!HardhatContext.isCreated()) {
-  // tslint:disable-next-line no-var-requires
   require("source-map-support/register");
 
   const ctx = HardhatContext.createHardhatContext();

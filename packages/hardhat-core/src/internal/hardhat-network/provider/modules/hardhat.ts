@@ -1,4 +1,4 @@
-import { BN } from "ethereumjs-util";
+import { Address, BN } from "ethereumjs-util";
 import * as t from "io-ts";
 
 import {
@@ -6,7 +6,13 @@ import {
   CompilerInput,
   CompilerOutput,
 } from "../../../../types";
-import { rpcAddress } from "../../../core/jsonrpc/types/base-types";
+import {
+  bufferToRpcData,
+  rpcAddress,
+  rpcData,
+  rpcHash,
+  rpcQuantity,
+} from "../../../core/jsonrpc/types/base-types";
 import {
   optionalRpcHardhatNetworkConfig,
   RpcHardhatNetworkConfig,
@@ -16,14 +22,17 @@ import {
   rpcCompilerOutput,
 } from "../../../core/jsonrpc/types/input/solc";
 import { validateParams } from "../../../core/jsonrpc/types/input/validation";
-import { MethodNotFoundError } from "../../../core/providers/errors";
+import {
+  InvalidInputError,
+  MethodNotFoundError,
+} from "../../../core/providers/errors";
 import { MessageTrace } from "../../stack-traces/message-trace";
 import { HardhatNode } from "../node";
 import { ForkConfig, MineBlockResult } from "../node-types";
 
 import { ModulesLogger } from "./logger";
 
-// tslint:disable only-hardhat-error
+/* eslint-disable @nomiclabs/only-hardhat-error */
 
 export class HardhatModule {
   constructor(
@@ -73,6 +82,27 @@ export class HardhatModule {
 
       case "hardhat_setLogMethods":
         return this._setLogMethodsAction(...this._setLogMethodsParams(params));
+      case "hardhat_setMinGasPrice":
+        return this._setMinGasPriceAction(
+          ...this._setMinGasPriceParams(params)
+        );
+
+      case "hardhat_dropTransaction":
+        return this._dropTransactionAction(
+          ...this._dropTransactionParams(params)
+        );
+
+      case "hardhat_setBalance":
+        return this._setBalanceAction(...this._setBalanceParams(params));
+
+      case "hardhat_setCode":
+        return this._setCodeAction(...this._setCodeParams(params));
+
+      case "hardhat_setNonce":
+        return this._setNonceAction(...this._setNonceParams(params));
+
+      case "hardhat_setStorageAt":
+        return this._setStorageAtAction(...this._setStorageAtParams(params));
     }
 
     throw new MethodNotFoundError(`Method ${method} not found`);
@@ -125,7 +155,7 @@ export class HardhatModule {
 
   // hardhat_intervalMine
 
-  private _intervalMineParams(params: any[]): [] {
+  private _intervalMineParams(_params: any[]): [] {
     return [];
   }
 
@@ -190,6 +220,100 @@ export class HardhatModule {
 
   private async _setLogMethodsAction(logMethods: boolean): Promise<true> {
     this._setLogMethodsCallback(logMethods);
+    return true;
+  }
+  // hardhat_setMinGasPrice
+
+  private _setMinGasPriceParams(params: any[]): [BN] {
+    return validateParams(params, rpcQuantity);
+  }
+
+  private async _setMinGasPriceAction(minGasPrice: BN): Promise<true> {
+    if (minGasPrice.lt(new BN(0))) {
+      throw new InvalidInputError("Minimum gas price cannot be negative");
+    }
+
+    await this._node.setMinGasPrice(minGasPrice);
+    return true;
+  }
+
+  // hardhat_dropTransaction
+
+  private _dropTransactionParams(params: any[]): [Buffer] {
+    return validateParams(params, rpcHash);
+  }
+
+  private async _dropTransactionAction(hash: Buffer): Promise<boolean> {
+    return this._node.dropTransaction(hash);
+  }
+
+  // hardhat_setBalance
+
+  private _setBalanceParams(params: any[]): [Buffer, BN] {
+    return validateParams(params, rpcAddress, rpcQuantity);
+  }
+
+  private async _setBalanceAction(address: Buffer, newBalance: BN) {
+    await this._node.setAccountBalance(new Address(address), newBalance);
+    return true;
+  }
+
+  // hardhat_setCode
+
+  private _setCodeParams(params: any[]): [Buffer, Buffer] {
+    return validateParams(params, rpcAddress, rpcData);
+  }
+
+  private async _setCodeAction(address: Buffer, newCode: Buffer) {
+    await this._node.setAccountCode(new Address(address), newCode);
+    return true;
+  }
+
+  // hardhat_setNonce
+
+  private _setNonceParams(params: any[]): [Buffer, BN] {
+    return validateParams(params, rpcAddress, rpcQuantity);
+  }
+
+  private async _setNonceAction(address: Buffer, newNonce: BN) {
+    await this._node.setNextConfirmedNonce(new Address(address), newNonce);
+    return true;
+  }
+
+  // hardhat_setStorageAt
+
+  private _setStorageAtParams(params: any[]): [Buffer, BN, Buffer] {
+    const [address, positionIndex, value] = validateParams(
+      params,
+      rpcAddress,
+      rpcQuantity,
+      rpcData
+    );
+
+    const MAX_WORD_VALUE = new BN(2).pow(new BN(256));
+    if (positionIndex.gte(MAX_WORD_VALUE)) {
+      throw new InvalidInputError(
+        `Storage key must not be greater than or equal to 2^256. Received ${positionIndex.toString()}.`
+      );
+    }
+
+    if (value.length !== 32) {
+      throw new InvalidInputError(
+        `Storage value must be exactly 32 bytes long. Received ${bufferToRpcData(
+          value
+        )}, which is ${value.length} bytes long.`
+      );
+    }
+
+    return [address, positionIndex, value];
+  }
+
+  private async _setStorageAtAction(
+    address: Buffer,
+    positionIndex: BN,
+    value: Buffer
+  ) {
+    await this._node.setStorageAt(new Address(address), positionIndex, value);
     return true;
   }
 

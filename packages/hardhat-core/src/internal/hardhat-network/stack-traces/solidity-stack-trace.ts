@@ -1,5 +1,7 @@
 import { BN } from "ethereumjs-util";
 
+import { ReturnData } from "../provider/return-data";
+
 import { ContractFunctionType, SourceFile } from "./model";
 
 export enum StackTraceEntryType {
@@ -8,6 +10,8 @@ export enum StackTraceEntryType {
   UNRECOGNIZED_CONTRACT_CALLSTACK_ENTRY,
   PRECOMPILE_ERROR,
   REVERT_ERROR,
+  PANIC_ERROR,
+  CUSTOM_ERROR,
   FUNCTION_NOT_PAYABLE_ERROR,
   INVALID_PARAMS_ERROR,
   FALLBACK_NOT_PAYABLE_ERROR,
@@ -39,9 +43,10 @@ export const UNRECOGNIZED_CONTRACT_NAME = "<UnrecognizedContract>";
 
 export interface SourceReference {
   file: SourceFile;
-  contract: string;
+  contract?: string;
   function?: string;
   line: number;
+  range: [number, number];
 }
 
 export interface CallstackEntryStackTraceEntry {
@@ -69,9 +74,22 @@ export interface PrecompileErrorStackTraceEntry {
 
 export interface RevertErrorStackTraceEntry {
   type: StackTraceEntryType.REVERT_ERROR;
-  message: Buffer;
+  message: ReturnData;
   sourceReference: SourceReference;
   isInvalidOpcodeError: boolean;
+}
+
+export interface PanicErrorStackTraceEntry {
+  type: StackTraceEntryType.PANIC_ERROR;
+  errorCode: BN;
+  sourceReference: SourceReference;
+}
+
+export interface CustomErrorStackTraceEntry {
+  type: StackTraceEntryType.CUSTOM_ERROR;
+  // unlike RevertErrorStackTraceEntry, this includes the message already parsed
+  message: string;
+  sourceReference: SourceReference;
 }
 
 export interface UnmappedSolc063RevertErrorStackTraceEntry {
@@ -134,14 +152,14 @@ export interface DirectLibraryCallErrorStackTraceEntry {
 
 export interface UnrecognizedCreateErrorStackTraceEntry {
   type: StackTraceEntryType.UNRECOGNIZED_CREATE_ERROR;
-  message: Buffer;
+  message: ReturnData;
   sourceReference?: undefined;
 }
 
 export interface UnrecognizedContractErrorStackTraceEntry {
   type: StackTraceEntryType.UNRECOGNIZED_CONTRACT_ERROR;
   address: Buffer;
-  message: Buffer;
+  message: ReturnData;
   sourceReference?: undefined;
 }
 
@@ -172,6 +190,8 @@ export type SolidityStackTraceEntry =
   | UnrecognizedContractCallstackEntryStackTraceEntry
   | PrecompileErrorStackTraceEntry
   | RevertErrorStackTraceEntry
+  | PanicErrorStackTraceEntry
+  | CustomErrorStackTraceEntry
   | FunctionNotPayableErrorStackTraceEntry
   | InvalidParamsErrorStackTraceEntry
   | FallbackNotPayableErrorStackTraceEntry
