@@ -37,10 +37,8 @@ import { Web3Module } from "./modules/web3";
 import { HardhatNode } from "./node";
 import {
   ForkConfig,
-  ForkedNodeConfig,
   GenesisAccount,
   IntervalMiningConfig,
-  LocalNodeConfig,
   NodeConfig,
   TracingConfig,
 } from "./node-types";

@@ -1,4 +1,3 @@
-import { object } from "io-ts";
 import { assertHardhatInvariant } from "../core/errors";
 
 export enum HardforkName {
