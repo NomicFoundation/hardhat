@@ -1,10 +1,10 @@
 module.exports = {
-  extends: ["../../config/eslint/eslintrc.js"],
+  extends: [`${__dirname}/../../config/eslint/eslintrc.js`],
   parserOptions: {
-    project: "src/tsconfig.json",
-    sourceType: "module",
+    project: `${__dirname}/src/tsconfig.json`,
+    sourceType: "module"
   },
   rules: {
-    "@nomiclabs/only-hardhat-error": "error",
-  },
+    "@nomiclabs/only-hardhat-error": "error"
+  }
 };
