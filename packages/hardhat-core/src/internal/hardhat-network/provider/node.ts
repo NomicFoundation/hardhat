@@ -41,7 +41,11 @@ import {
 } from "../../core/providers/errors";
 import { Reporter } from "../../sentry/reporter";
 import { getDifferenceInSeconds } from "../../util/date";
-import { hardforkGte } from "../../util/hardforks";
+import {
+  getHardforkName,
+  hardforkGte,
+  HardforkName,
+} from "../../util/hardforks";
 import { createModelsAndDecodeBytecodes } from "../stack-traces/compiler-to-model";
 import { ConsoleLogger } from "../stack-traces/consoleLogger";
 import { ContractsIdentifier } from "../stack-traces/contracts-identifier";
@@ -75,6 +79,7 @@ import {
   FilterParams,
   GatherTracesResult,
   GenesisAccount,
+  isForkedNodeConfig,
   MineBlockResult,
   NodeConfig,
   RunCallResult,
@@ -131,10 +136,17 @@ export class HardhatNode extends EventEmitter {
     let stateManager: StateManager;
     let blockchain: HardhatBlockchainInterface;
     let initialBlockTimeOffset: BN | undefined;
-
+    let nextBlockBaseFeePerGas: BN | undefined;
     let forkNetworkId: number | undefined;
 
-    if ("forkConfig" in config) {
+    const initialBaseFeePerGasConfig =
+      config.initialBaseFeePerGas !== undefined
+        ? new BN(config.initialBaseFeePerGas)
+        : undefined;
+
+    const hardfork = getHardforkName(config.hardfork);
+
+    if (isForkedNodeConfig(config)) {
       const {
         forkClient,
         forkBlockNumber,
@@ -162,6 +174,19 @@ export class HardhatNode extends EventEmitter {
       initialBlockTimeOffset = new BN(
         getDifferenceInSeconds(new Date(forkBlockTimestamp), new Date())
       );
+
+      if (hardforkGte(hardfork, HardforkName.LONDON)) {
+        if (initialBaseFeePerGasConfig !== undefined) {
+          nextBlockBaseFeePerGas = initialBaseFeePerGasConfig;
+        } else {
+          const latestBlock = await blockchain.getLatestBlock();
+          if (latestBlock.header.baseFeePerGas === undefined) {
+            nextBlockBaseFeePerGas = new BN(
+              HARDHAT_NETWORK_DEFAULT_INITIAL_BASE_FEE_PER_GAS
+            );
+          }
+        }
+      }
     } else {
       const hardhatStateManager = new HardhatStateManager();
       await hardhatStateManager.initializeGenesisAccounts(genesisAccounts);
@@ -171,11 +196,19 @@ export class HardhatNode extends EventEmitter {
 
       const hardhatBlockchain = new HardhatBlockchain();
 
-      let baseFee;
-      if (hardforkGte(config.hardfork, "london")) {
-        baseFee = config.baseFee ?? HARDHAT_NETWORK_DEFAULT_BASE_FEE;
-      }
-      await putGenesisBlock(hardhatBlockchain, common, baseFee);
+      const genesisBlockBaseFeePerGas = hardforkGte(
+        hardfork,
+        HardforkName.LONDON
+      )
+        ? initialBaseFeePerGasConfig ??
+          new BN(HARDHAT_NETWORK_DEFAULT_INITIAL_BASE_FEE_PER_GAS)
+        : undefined;
+
+      await putGenesisBlock(
+        hardhatBlockchain,
+        common,
+        genesisBlockBaseFeePerGas
+      );
 
       if (config.initialDate !== undefined) {
         initialBlockTimeOffset = new BN(
@@ -207,7 +240,8 @@ export class HardhatNode extends EventEmitter {
       initialBlockTimeOffset,
       genesisAccounts,
       tracingConfig,
-      forkNetworkId
+      forkNetworkId,
+      nextBlockBaseFeePerGas
     );
 
     return [common, node];
@@ -253,6 +287,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   private readonly _impersonatedAccounts: Set<string> = new Set(); // address
 
   private _nextBlockTimestamp: BN = new BN(0);
+  private _nextBlockBaseFeePerGas?: BN;
 
   private _lastFilterId = new BN(0);
   private _filters: Map<string, Filter> = new Map();
@@ -278,11 +313,16 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     private _blockTimeOffsetSeconds: BN = new BN(0),
     genesisAccounts: GenesisAccount[],
     tracingConfig?: TracingConfig,
-    private _forkNetworkId?: number
+    private _forkNetworkId?: number,
+    nextBlockBaseFee?: BN
   ) {
     super();
 
     this._initLocalAccounts(genesisAccounts);
+
+    if (nextBlockBaseFee !== undefined) {
+      this.setNextBlockBaseFeePerGas(nextBlockBaseFee);
+    }
 
     this._vmTracer = new VMTracer(
       this._vm,
@@ -417,6 +457,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     }
 
     await this._resetNextBlockTimestamp();
+    this._resetNextBlockBaseFeePerGas();
 
     return result;
   }
@@ -673,6 +714,18 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     this._blockTimeOffsetSeconds = this._blockTimeOffsetSeconds.add(increment);
   }
 
+  public setNextBlockBaseFeePerGas(baseFeePerGas: BN) {
+    this._nextBlockBaseFeePerGas = baseFeePerGas;
+  }
+
+  public getNextBlockBaseFeePerGas(): BN | undefined {
+    return this._nextBlockBaseFeePerGas;
+  }
+
+  private _resetNextBlockBaseFeePerGas() {
+    this._nextBlockBaseFeePerGas = undefined;
+  }
+
   public async getPendingTransaction(
     hash: Buffer
   ): Promise<TypedTransaction | undefined> {
@@ -730,6 +783,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       blockTimeOffsetSeconds: this.getTimeIncrement(),
       nextBlockTimestamp: this.getNextBlockTimestamp(),
       irregularStatesByBlockNumber: this._irregularStatesByBlockNumber,
+      nextBlockBaseFee: this.getNextBlockBaseFeePerGas(),
     };
 
     this._irregularStatesByBlockNumber = new Map(
@@ -775,6 +829,12 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     this.setTimeIncrement(newOffset);
     this.setNextBlockTimestamp(snapshot.nextBlockTimestamp);
     this._txPool.revert(snapshot.txPoolSnapshotId);
+
+    if (snapshot.nextBlockBaseFee) {
+      this.setNextBlockBaseFeePerGas(snapshot.nextBlockBaseFee);
+    } else {
+      this._resetNextBlockBaseFeePerGas();
+    }
 
     // We delete this and the following snapshots, as they can only be used
     // once in Ganache
@@ -1237,9 +1297,14 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       timestamp: blockTimestamp,
     };
 
-    const nextBlockBaseFee = this._hasEIP1559()
-      ? parentBlock.header.calcNextBaseFee()
-      : undefined;
+    let nextBlockBaseFee: BN | undefined;
+    if (this._hasEIP1559()) {
+      nextBlockBaseFee = this.getNextBlockBaseFeePerGas();
+
+      if (nextBlockBaseFee === undefined) {
+        nextBlockBaseFee = parentBlock.header.calcNextBaseFee();
+      }
+    }
 
     headerData.baseFeePerGas = nextBlockBaseFee;
 

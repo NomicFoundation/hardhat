@@ -9,6 +9,12 @@ import type { ReturnData } from "./return-data";
 
 export type NodeConfig = LocalNodeConfig | ForkedNodeConfig;
 
+export function isForkedNodeConfig(
+  config: NodeConfig
+): config is ForkedNodeConfig {
+  return "forkConfig" in config && config.forkConfig !== undefined;
+}
+
 interface CommonConfig {
   automine: boolean;
   blockGasLimit: number;
@@ -111,6 +117,7 @@ export interface Snapshot {
   blockTimeOffsetSeconds: BN;
   nextBlockTimestamp: BN;
   irregularStatesByBlockNumber: Map<string, Buffer>;
+  nextBlockBaseFee: BN | undefined;
 }
 
 export type SendTransactionResult =
