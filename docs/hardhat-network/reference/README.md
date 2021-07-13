@@ -288,6 +288,36 @@ see the [Mainnet Forking guide](../guides/mainnet-forking.md)
 
 ### Special testing/debugging methods
 
+#### `debug_traceTransaction`
+
+Get debug traces of already-mined transactions.
+
+To get a trace, call this method with the hash of the transaction as its argument:
+
+```js
+const trace = await hre.network.provider.send("debug_traceTransaction", [
+  "0x123...",
+]);
+```
+
+You can also selectively disable some properties in the list of steps:
+
+```js
+const trace = await hre.network.provider.send("debug_traceTransaction", [
+  "0x123...",
+  {
+    disableMemory: true,
+    disableStack: true,
+    disableStorage: true,
+  },
+]);
+```
+
+##### Known limitations
+
+- You can't trace transactions that use a hardfork older than [Spurious Dragon](https://ethereum.org/en/history/#spurious-dragon)
+- The last step of a message is not guaranteed to have a correct value in the `gasCost` property
+
 #### `evm_increaseTime`
 
 same as Ganache.
