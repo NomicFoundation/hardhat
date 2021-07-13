@@ -158,85 +158,184 @@ To customise it, take a look at [the configuration section](/config/README.md#ha
 
 ## JSON-RPC methods support
 
-### Supported methods
+### Standard methods
 
-- `eth_accounts`
-- `eth_blockNumber`
-- `eth_call`
-- `eth_chainId`
-- `eth_coinbase`
-- `eth_estimateGas`
-- `eth_gasPrice`
-- `eth_getBalance`
-- `eth_getBlockByHash`
-- `eth_getBlockByNumber`
-- `eth_getBlockTransactionCountByHash`
-- `eth_getBlockTransactionCountByNumber`
-- `eth_getCode`
-- `eth_getFilterChanges`
-- `eth_getFilterLogs`
-- `eth_getLogs`
-- `eth_getStorageAt`
-- `eth_getTransactionByBlockHashAndIndex`
-- `eth_getTransactionByBlockNumberAndIndex`
-- `eth_getTransactionByHash`
-- `eth_getTransactionCount`
-- `eth_getTransactionReceipt`
-- `eth_mining`
-- `eth_newBlockFilter`
-- `eth_newFilter`
-- `eth_newPendingTransactionFilter`
-- `eth_pendingTransactions`
-- `eth_sendRawTransaction`
-- `eth_sendTransaction`
-- `eth_signTypedData_v4`
-- `eth_sign`
-- `eth_subscribe`
-- `eth_syncing`
-- `eth_uninstallFilter`
-- `eth_unsubscribe`
-- `net_listening`
-- `net_peerCount`
-- `net_version`
-- `web3_clientVersion`
-- `web3_sha3`
+#### `eth_accounts`
 
-#### Hardhat network methods
+#### `eth_blockNumber`
 
-- `hardhat_addCompilationResult` – Add information about compiled contracts
-- `hardhat_dropTransaction` – Remove a transaction from the mempool
-- `hardhat_impersonateAccount` – see the [Mainnet Forking guide](../guides/mainnet-forking.md)
-- `hardhat_reset` – see the [Mainnet Forking guide](../guides/mainnet-forking.md)
-- `hardhat_setBalance` – Modifies the balance of an account.
-- `hardhat_setCode` – Modifies the code of an account.
-- `hardhat_setLoggingEnabled` – Enable or disable logging in Hardhat Network
-- `hardhat_setMinGasPrice` - change the minimum gas price accepted by the network (in wei)
-- `hardhat_setNonce` – Modifies an account's nonce by overwriting it. Throws an InvalidInputError if nonce is smaller than the current one. The reason for this restriction is to avoid collisions when deploying contracts using the same nonce more than once.
-- `hardhat_setStorageAt` – Writes a single position of an account's storage. The storage position index must not exceed 2^256, and the value to write must be exactly 32 bytes long.
-- `hardhat_stopImpersonatingAccount` – see the [Mainnet Forking guide](../guides/mainnet-forking.md)
+#### `eth_call`
 
-#### Special testing/debugging methods
+#### `eth_chainId`
 
-- `evm_increaseTime` – same as Ganache.
-- `evm_mine` – same as Ganache
-- `evm_revert` – same as Ganache.
-- `evm_snapshot` – same as Ganache.
-- `evm_setNextBlockTimestamp` - this method works like `evm_increaseTime`, but takes the exact timestamp that you want in the next block, and increases the time accordingly.
+#### `eth_coinbase`
+
+#### `eth_estimateGas`
+
+#### `eth_gasPrice`
+
+#### `eth_getBalance`
+
+#### `eth_getBlockByHash`
+
+#### `eth_getBlockByNumber`
+
+#### `eth_getBlockTransactionCountByHash`
+
+#### `eth_getBlockTransactionCountByNumber`
+
+#### `eth_getCode`
+
+#### `eth_getFilterChanges`
+
+#### `eth_getFilterLogs`
+
+#### `eth_getLogs`
+
+#### `eth_getStorageAt`
+
+#### `eth_getTransactionByBlockHashAndIndex`
+
+#### `eth_getTransactionByBlockNumberAndIndex`
+
+#### `eth_getTransactionByHash`
+
+#### `eth_getTransactionCount`
+
+#### `eth_getTransactionReceipt`
+
+#### `eth_mining`
+
+#### `eth_newBlockFilter`
+
+#### `eth_newFilter`
+
+#### `eth_newPendingTransactionFilter`
+
+#### `eth_pendingTransactions`
+
+#### `eth_sendRawTransaction`
+
+#### `eth_sendTransaction`
+
+#### `eth_signTypedData_v4`
+
+#### `eth_sign`
+
+#### `eth_subscribe`
+
+#### `eth_syncing`
+
+#### `eth_uninstallFilter`
+
+#### `eth_unsubscribe`
+
+#### `net_listening`
+
+#### `net_peerCount`
+
+#### `net_version`
+
+#### `web3_clientVersion`
+
+#### `web3_sha3`
+
+### Hardhat network methods
+
+#### `hardhat_addCompilationResult`
+
+Add information about compiled contracts
+
+#### `hardhat_dropTransaction`
+
+Remove a transaction from the mempool
+
+#### `hardhat_impersonateAccount`
+
+see the [Mainnet Forking guide](../guides/mainnet-forking.md)
+
+#### `hardhat_reset`
+
+see the [Mainnet Forking guide](../guides/mainnet-forking.md)
+
+#### `hardhat_setBalance`
+
+Modifies the balance of an account.
+
+#### `hardhat_setCode`
+
+Modifies the code of an account.
+
+#### `hardhat_setLoggingEnabled`
+
+Enable or disable logging in Hardhat Network
+
+#### `hardhat_setMinGasPrice`
+
+change the minimum gas price accepted by the network (in wei)
+
+#### `hardhat_setNonce`
+
+Modifies an account's nonce by overwriting it. Throws an InvalidInputError if nonce is smaller than the current one. The reason for this restriction is to avoid collisions when deploying contracts using the same nonce more than once.
+
+#### `hardhat_setStorageAt`
+
+Writes a single position of an account's storage. The storage position index must not exceed 2^256, and the value to write must be exactly 32 bytes long.
+
+#### `hardhat_stopImpersonatingAccount`
+
+see the [Mainnet Forking guide](../guides/mainnet-forking.md)
+
+### Special testing/debugging methods
+
+#### `evm_increaseTime`
+
+same as Ganache.
+
+#### `evm_mine`
+
+same as Ganache
+
+#### `evm_revert`
+
+same as Ganache.
+
+#### `evm_snapshot`
+
+same as Ganache.
+
+#### `evm_setNextBlockTimestamp`
+
+This method works like `evm_increaseTime`, but takes the exact timestamp that you want in the next block, and increases the time accordingly.
 
 ### Unsupported methods
 
-- `eth_compileLLL`
-- `eth_compileSerpent`
-- `eth_compileSolidity`
-- `eth_getCompilers`
-- `eth_getProof`
-- `eth_getUncleByBlockHashAndIndex`
-- `eth_getUncleByBlockNumberAndIndex`
-- `eth_getUncleCountByBlockHash`
-- `eth_getUncleCountByBlockNumber`
-- `eth_getWork`
-- `eth_hashrate`
-- `eth_protocolVersion`
-- `eth_signTransaction`
-- `eth_submitHashrate`
-- `eth_submitWork`
+#### `eth_compileLLL`
+
+#### `eth_compileSerpent`
+
+#### `eth_compileSolidity`
+
+#### `eth_getCompilers`
+
+#### `eth_getProof`
+
+#### `eth_getUncleByBlockHashAndIndex`
+
+#### `eth_getUncleByBlockNumberAndIndex`
+
+#### `eth_getUncleCountByBlockHash`
+
+#### `eth_getUncleCountByBlockNumber`
+
+#### `eth_getWork`
+
+#### `eth_hashrate`
+
+#### `eth_protocolVersion`
+
+#### `eth_signTransaction`
+
+#### `eth_submitHashrate`
+
+#### `eth_submitWork`
