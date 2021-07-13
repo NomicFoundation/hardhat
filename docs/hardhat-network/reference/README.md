@@ -369,3 +369,17 @@ This method works like `evm_increaseTime`, but takes the exact timestamp that yo
 #### `eth_submitHashrate`
 
 #### `eth_submitWork`
+
+## Limitations
+
+### Supported Solidity versions
+
+Hardhat Network can run any smart contract, but it only understands Solidity 0.5.1 and newer.
+
+If you are compiling with an older version of Solidity, or using another language, you can use Hardhat Network, but Solidity stack traces won't be generated.
+
+### Solidity optimizer support
+
+Hardhat Network can work with smart contracts compiled with optimizations, but this may lead to your stack traces' line numbers being a little off.
+
+We recommend compiling without optimizations when testing and debugging your contracts.

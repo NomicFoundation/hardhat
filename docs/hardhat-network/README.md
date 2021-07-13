@@ -152,14 +152,4 @@ For more details, see [the reference documentation for this method](./reference/
 
 ## Limitations
 
-### Supported Solidity versions
-
-Hardhat Network can run any smart contract, but it only understands Solidity 0.5.1 and newer.
-
-If you are compiling with an older version of Solidity, or using another language, you can use Hardhat Network, but Solidity stack traces won't be generated.
-
-### Solidity optimizer support
-
-Hardhat Network can work with smart contracts compiled with optimizations, but this may lead to your stack traces' line numbers being a little off.
-
-We recommend compiling without optimizations when testing and debugging your contracts.
+Hardhat Network does have a few limitations.  Solidity stack traces can only be generated for supported Solidity versions, and contracts compiled with optimizations may cause stack trace line numbers to be offset.  For more details, consult [the Reference](./reference/README.md#limitations).
