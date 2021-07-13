@@ -110,7 +110,7 @@ Hardhat Network can be configured to **automine** blocks, immediately upon recei
 
 You can use one of these modes, both or neither. By default, only the automine mode is enabled.
 
-When automine is disabled, every sent transaction is added to the mempool, which contains all the transactions that could be mined in the future. Hardhat Network's mempool follows the same rules as geth. This means, among other things, that transactions are prioritized by gas price, then arrival time, and that invalid transactions are dropped. Pending transactions can be queried via the `eth_getBlockByNumber" RPC method (with `"pending"` as the block number argument), they can be removed using the `hardhat_dropTransaction` RPC method, and they can be replaced by a new transaction with the same nonce but a gas price 10% higher.
+When automine is disabled, every sent transaction is added to the mempool, which contains all the transactions that could be mined in the future. Hardhat Network's mempool follows the same rules as geth. This means, among other things, that transactions are prioritized by gas price, then arrival time, and that invalid transactions are dropped. Pending transactions can be queried via the `eth_getBlockByNumber` RPC method (with `"pending"` as the block number argument), they can be removed using the `hardhat_dropTransaction` RPC method, and they can be replaced by a new transaction with the same nonce but a gas price 10% higher.
 
 If neither mining mode is enabled, no new blocks will be mined, but you can manually mine new blocks using the `evm_mine` RPC method. This will generate a new block that will include as many pending transactions as possible.
 
