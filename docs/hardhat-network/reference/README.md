@@ -103,6 +103,7 @@ await network.provider.send("evm_setIntervalMining", [5000]);
 ```
 
 ## `console.log`
+
 - You can use it in calls and transactions. It works with `view` functions, but not in `pure` ones.
 - It always works, regardless of the call or transaction failing or being successful.
 - To use it you need to import `hardhat/console.sol`.

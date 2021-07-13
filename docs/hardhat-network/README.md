@@ -20,7 +20,7 @@ When Hardhat Runner executes your tests, scripts or tasks, an in-process Hardhat
 
 There's no need to make any changes to your tests or scripts.
 
-Hardhat Network is simply another network.  If you wanted to be explicit, you could run, for example, `npx hardhat run --network hardhat scripts/my-script.js`.
+Hardhat Network is simply another network. If you wanted to be explicit, you could run, for example, `npx hardhat run --network hardhat scripts/my-script.js`.
 
 ### Running stand-alone to support wallets and other software
 
@@ -89,20 +89,19 @@ When a transaction fails without a reason, Hardhat Network will create a clear e
 
 Hardhat Network allows you to print logging messages and contract variables by calling `console.log()` from your Solidity code.
 
-To use it, you simply import `hardhat/console.sol` and call it.  It implements the same formatting options that can be found in Node.js' [`console.log`](https://nodejs.org/dist/latest-v12.x/docs/api/console.html#console_console_log_data_args), which in turn uses [`util.format`](https://nodejs.org/dist/latest-v12.x/docs/api/util.html#util_util_format_format_args). For example: `console.log("Changing owner from %s to %s", currentOwner, newOwner)`.
+To use it, you simply import `hardhat/console.sol` and call it. It implements the same formatting options that can be found in Node.js' [`console.log`](https://nodejs.org/dist/latest-v12.x/docs/api/console.html#console_console_log_data_args), which in turn uses [`util.format`](https://nodejs.org/dist/latest-v12.x/docs/api/util.html#util_util_format_format_args). For example: `console.log("Changing owner from %s to %s", currentOwner, newOwner)`.
 
 It always works, regardless of the call or transaction failing or being successful, and, because it's implemented in standard Solidity, it works with any other tool or library: Remix, Waffle, Truffle, ethers.js, web3.js, etc.
 
-You can see an example in the Sample Project. Follow the steps in [Quick Start](/getting-started/README.md#quick-start) to try it out.  <!-- TODO: UNCOMMENT THIS WHEN THE LINKS WORK: For a deeper look, see the [Guide to Debugging a Transaction](/hardhat-network/guides/debugging.md) , or refer to the [Reference](/hardhat-network/reference/console.log.md)-->
+You can see an example in the Sample Project. Follow the steps in [Quick Start](/getting-started/README.md#quick-start) to try it out. <!-- TODO: UNCOMMENT THIS WHEN THE LINKS WORK: For a deeper look, see the [Guide to Debugging a Transaction](/hardhat-network/guides/debugging.md) , or refer to the [Reference](/hardhat-network/reference/console.log.md)-->
 
 ### Mainnet forking
 
-Hardhat Network has the ability to copy the state of the mainnet blockchain into your local environment, including all balances and deployed contracts.  This is known as "forking mainnet."
+Hardhat Network has the ability to copy the state of the mainnet blockchain into your local environment, including all balances and deployed contracts. This is known as "forking mainnet."
 
-In a local environment forked from mainnet, you can execute transactions to invoke mainnet-deployed contracts, or interact with the network in any other way that you would with mainnet.  In addition, you can do anything that supported by a non-forked Hardhat Network: see console logs, get stack traces, or use the default accounts to deploy new contracts.
+In a local environment forked from mainnet, you can execute transactions to invoke mainnet-deployed contracts, or interact with the network in any other way that you would with mainnet. In addition, you can do anything that supported by a non-forked Hardhat Network: see console logs, get stack traces, or use the default accounts to deploy new contracts.
 
-
-In actuality, Hardhat Network can be used to fork __any__ network, not just mainnet.
+In actuality, Hardhat Network can be used to fork **any** network, not just mainnet.
 
 There are other things you can do with a forked Hardhat Network. Check [our guide](../guides/mainnet-forking.md) to learn more. <!-- TODO: move that guide to docs/hardhat-network/guides/mainnet-forking.md -->
 
@@ -156,6 +155,6 @@ If you are using [mainnet forking](https://hardhat.org/guides/mainnet-forking.ht
 
 For more details, see [the reference documentation for this method](./reference/README.md#debug_tracetransaction).
 
-## Why *wouldn't* I want to use it?
+## Why _wouldn't_ I want to use it?
 
-Hardhat Network does have a few limitations.  Solidity stack traces can only be generated for supported Solidity versions, and contracts compiled with optimizations may cause stack trace line numbers to be offset.  For more details, consult [the Reference](./reference/README.md#limitations).
+Hardhat Network does have a few limitations. Solidity stack traces can only be generated for supported Solidity versions, and contracts compiled with optimizations may cause stack trace line numbers to be offset. For more details, consult [the Reference](./reference/README.md#limitations).
