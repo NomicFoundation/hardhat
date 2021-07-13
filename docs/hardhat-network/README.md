@@ -1,5 +1,7 @@
 # Hardhat Network: An Explanation <!--theoretical, not practical; for studying, not for working-->
 
+<!-- TODO: make all RPC method mentions be links to the reference on those methods. -->
+
 Hardhat Runner comes built-in with Hardhat Network, a local Ethereum network node designed for development. It allows you to deploy your contracts, run your tests and debug your code.
 
 ## How does it work?
