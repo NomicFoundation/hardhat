@@ -148,7 +148,7 @@ This logging is enabled by default when using Hardhat Network's node (i.e. `npx 
 
 ### The `debug_traceTransaction` method
 
-You can get debug traces of already mined transactions using the `debug_traceTransaction` RPC method. The returned object has a detailed description of the transaction execution, including a list of steps describing each executed opcode and the state of the EVM at that point.
+You can get debug traces of already-mined transactions using the `debug_traceTransaction` RPC method. The returned object has a detailed description of the transaction execution, including a list of steps describing each executed opcode and the state of the EVM at that point.
 
 If you are using [mainnet forking](https://hardhat.org/guides/mainnet-forking.html) with an archive node, you can get traces of transactions from the remote network even if the node you are using doesn't support `debug_traceTransaction`.
 
