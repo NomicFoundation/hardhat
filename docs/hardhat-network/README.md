@@ -59,7 +59,7 @@ The last two lines correspond to the JavaScript test code that executed a failin
 
 ### Automatic error messages
 
-Hardhat Network always knows why your transaction or call failed, and uses this information to make debugging your contracts easier.
+Hardhat Network always knows why your transaction or call failed, and it uses this information to make debugging your contracts easier.
 
 When a transaction fails without a reason, Hardhat Network will create a clear error message in the following cases:
 
