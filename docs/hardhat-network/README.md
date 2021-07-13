@@ -32,7 +32,7 @@ This will start Hardhat Network, and expose it as a JSON-RPC and WebSocket serve
 
 Then, just connect your wallet or application to `http://localhost:8545`.
 
-If you want to connect Hardhat to this node, you only need to run Hardhat using `--network localhost`.
+If you want to connect Hardhat Runner to this node, you only need to run using `--network localhost`.
 
 ## Why would I want to use it?
 
@@ -106,7 +106,7 @@ There are other things you can do with a forked Hardhat Network. Check [our guid
 
 ### Mining modes
 
-Hardhat can be configured to **automine** blocks, immediately upon receiving each transaction, or it can be configured for **interval mining**, where a new block is mined periodically, incorporating as many pending transactions as possible.
+Hardhat Network can be configured to **automine** blocks, immediately upon receiving each transaction, or it can be configured for **interval mining**, where a new block is mined periodically, incorporating as many pending transactions as possible.
 
 You can use one of these modes, both or neither. By default, only the automine mode is enabled.
 
