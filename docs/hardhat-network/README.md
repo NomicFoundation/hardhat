@@ -22,7 +22,7 @@ Hardhat Network is simply another network.  If you wanted to be explicit, you co
 
 ### Running stand-alone to support wallets and other software
 
-Hardhat Network can run in a stand-alone fashion so that external clients can connect to it. This could be MetaMask, your Dapp front-end, or a script. To run Hardhat Network in this way, run:
+Alternatively, Hardhat Network can run in a stand-alone fashion so that external clients can connect to it. This could be MetaMask, your Dapp front-end, or a script. To run Hardhat Network in this way, run:
 
 ```
 npx hardhat node
