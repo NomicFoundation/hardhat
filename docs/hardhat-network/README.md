@@ -93,7 +93,7 @@ To use it, you simply import `hardhat/console.sol` and call it. It implements th
 
 It always works, regardless of the call or transaction failing or being successful, and, because it's implemented in standard Solidity, it works with any other tool or library: Remix, Waffle, Truffle, ethers.js, web3.js, etc.
 
-You can see an example in the Sample Project. Follow the steps in [Quick Start](/getting-started/README.md#quick-start) to try it out. <!-- TODO: UNCOMMENT THIS WHEN THE LINKS WORK: For a deeper look, see the [Guide to Debugging a Transaction](/hardhat-network/guides/debugging.md) , or refer to the [Reference](/hardhat-network/reference/console.log.md)-->
+You can see an example in the Sample Project. Follow the steps in [Quick Start](/getting-started/README.md#quick-start) to try it out. You can also refer to more details in [the reference documentation](./reference/README.md#consolelog).<!-- TODO: UNCOMMENT THIS WHEN THE LINKS WORK: For a deeper look, see the [Guide to Debugging a Transaction](/hardhat-network/guides/debugging.md) , or refer to the [Reference](/hardhat-network/reference/console.log.md)-->
 
 ### Mainnet forking
 
