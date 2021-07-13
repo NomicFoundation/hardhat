@@ -34,7 +34,9 @@ Then, just connect your wallet or application to `http://localhost:8545`.
 
 If you want to connect Hardhat to this node, you only need to run Hardhat using `--network localhost`.
 
-## Solidity stack traces
+## Why would I want to use it?
+
+### Solidity stack traces
 
 Hardhat Network has first-class Solidity support. It always knows which smart contracts are being run, what they do exactly and why they fail.
 
@@ -55,7 +57,7 @@ Error: Transaction reverted: function selector was not recognized and there's no
 
 The last two lines correspond to the JavaScript test code that executed a failing transaction. The rest is the Solidity stack trace. This way you know exactly why your tests aren't passing.
 
-## Automatic error messages
+### Automatic error messages
 
 Hardhat Network always knows why your transaction or call failed, and uses this information to make debugging your contracts easier.
 
@@ -81,7 +83,7 @@ When a transaction fails without a reason, Hardhat Network will create a clear e
 
 - Trying to deploy a contract that exceeds the bytecode size limit imposed by [EIP-170](https://eips.ethereum.org/EIPS/eip-170)
 
-## `console.log`
+### `console.log`
 
 Hardhat Network allows you to print logging messages and contract variables by calling `console.log()` from your Solidity code.
 
@@ -91,7 +93,7 @@ It always works, regardless of the call or transaction failing or being successf
 
 You can see an example in the Sample Project. Follow the steps in [Quick Start](/getting-started/README.md#quick-start) to try it out.  <!-- TODO: UNCOMMENT THIS WHEN THE LINKS WORK: For a deeper look, see the [Guide to Debugging a Transaction](/hardhat-network/guides/debugging.md) , or refer to the [Reference](/hardhat-network/reference/console.log.md)-->
 
-## Mainnet forking
+### Mainnet forking
 
 Hardhat Network has the ability to copy the state of the mainnet blockchain into your local environment, including all balances and deployed contracts.  This is known as "forking mainnet."
 
@@ -102,7 +104,7 @@ In actuality, Hardhat Network can be used to fork __any__ network, not just main
 
 There are other things you can do with a forked Hardhat Network. Check [our guide](../guides/mainnet-forking.md) to learn more. <!-- TODO: move that guide to docs/hardhat-network/guides/mainnet-forking.md -->
 
-## Mining modes
+### Mining modes
 
 Hardhat can be configured to **automine** blocks, immediately upon receiving each transaction, or it can be configured for **interval mining**, where a new block is mined periodically, incorporating as many pending transactions as possible.
 
@@ -114,7 +116,7 @@ If neither mining mode is enabled, no new blocks will be mined, but you can manu
 
 For more details on mining modes and mempool behavior, see [the reference documentation](reference/README.md#Mining%20modes). <!-- TODO: ensure this link works -->
 
-## Logging
+### Logging
 
 Hardhat Network uses its tracing infrastructure to offer rich logging that will help you develop and debug smart contracts.
 
@@ -144,7 +146,7 @@ eth_call
 
 This logging is enabled by default when using Hardhat Network's node (i.e. `npx hardhat node`), but disabled when using the in-process Hardhat Network provider. See [Hardhat Network's config](../config/README.md#hardhat-network) to learn more about how to control its logging.
 
-## The `debug_traceTransaction` method
+### The `debug_traceTransaction` method
 
 You can get debug traces of already mined transactions using the `debug_traceTransaction` RPC method. The returned object has a detailed description of the transaction execution, including a list of steps describing each executed opcode and the state of the EVM at that point.
 
@@ -152,6 +154,6 @@ If you are using [mainnet forking](https://hardhat.org/guides/mainnet-forking.ht
 
 For more details, see [the reference documentation for this method](./reference/README.md#debug_tracetransaction).
 
-## Limitations
+## Why *wouldn't* I want to use it?
 
 Hardhat Network does have a few limitations.  Solidity stack traces can only be generated for supported Solidity versions, and contracts compiled with optimizations may cause stack trace line numbers to be offset.  For more details, consult [the Reference](./reference/README.md#limitations).
