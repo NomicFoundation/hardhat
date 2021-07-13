@@ -127,6 +127,8 @@ await network.provider.send("evm_setIntervalMining", [5000]);
   - Example: `console.log("Changing owner from %s to %s", currentOwner, newOwner)`
 - `console.log` is implemented in standard Solidity and then detected in Hardhat Network. This makes its compilation work with any other tools (like Remix, Waffle or Truffle).
 - `console.log` calls can run in other networks, like mainnet, kovan, ropsten, etc. They do nothing in those networks, but do spend a minimal amount of gas.
+- `console.log` output can also be viewed for testnets and mainnet via [Tenderly](https://tenderly.co/).
+- `console.log` works by sending static calls to a well-known contract address. At runtime, Hardhat Network detects calls to that address, decodes the input data to the calls, and writes it to the console.
 
 ## Initial State
 
