@@ -4,6 +4,7 @@ import { BN } from "ethereumjs-util";
 import { ethers } from "ethers";
 import sinon from "sinon";
 
+import { describe } from "mocha";
 import {
   numberToRpcQuantity,
   rpcQuantityToBN,
@@ -23,6 +24,7 @@ import { setCWD } from "../../helpers/cwd";
 import { DEFAULT_ACCOUNTS_ADDRESSES, PROVIDERS } from "../../helpers/providers";
 import { deployContract } from "../../helpers/transactions";
 import { compileLiteral } from "../../stack-traces/compilation";
+import { RpcBlockOutput } from "../../../../../src/internal/hardhat-network/provider/output";
 
 describe("Hardhat module", function () {
   PROVIDERS.forEach(({ name, useProvider, isFork }) => {
@@ -1359,6 +1361,113 @@ describe("Hardhat module", function () {
               "hardhat_setMinGasPrice",
               [numberToRpcQuantity(1)],
               "hardhat_setMinGasPrice is not support when EIP-1559 is active"
+            );
+          });
+        });
+      });
+
+      describe("hardhat_setNextBlockBaseFeePerGas", function () {
+        it("Should set the baseFee of a single block", async function () {
+          await this.provider.send("hardhat_setNextBlockBaseFeePerGas", [
+            numberToRpcQuantity(10),
+          ]);
+
+          await this.provider.send("evm_mine", []);
+
+          const block1: RpcBlockOutput = await this.provider.send(
+            "eth_getBlockByNumber",
+            ["latest", false]
+          );
+
+          assert.equal(block1.baseFeePerGas, numberToRpcQuantity(10));
+
+          await this.provider.send("evm_mine", []);
+
+          const block2: RpcBlockOutput = await this.provider.send(
+            "eth_getBlockByNumber",
+            ["latest", false]
+          );
+
+          assert.notEqual(block2.baseFeePerGas, numberToRpcQuantity(10));
+        });
+
+        describe("When automine is enabled", function () {
+          it("Should prevent you from sending transactions with lower maxFeePerGas or gasPrice", async function () {
+            await this.provider.send("hardhat_setNextBlockBaseFeePerGas", [
+              numberToRpcQuantity(10),
+            ]);
+
+            await assertInvalidInputError(
+              this.provider,
+              "eth_sendTransaction",
+              [
+                {
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                  to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                  gasPrice: numberToRpcQuantity(9),
+                },
+              ],
+              "Transaction gasPrice (9) is too low for the next block, which has a baseFeePerGas of 10"
+            );
+
+            await assertInvalidInputError(
+              this.provider,
+              "eth_sendTransaction",
+              [
+                {
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                  to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                  maxFeePerGas: numberToRpcQuantity(8),
+                },
+              ],
+              "Transaction maxFeePerGas (8) is too low for the next block, which has a baseFeePerGas of 10"
+            );
+          });
+        });
+
+        describe("When automine is disabled", function () {
+          it("Should let you send transactions with lower maxFeePerGas or gasPrice, but not mine them", async function () {
+            await this.provider.send("hardhat_setNextBlockBaseFeePerGas", [
+              numberToRpcQuantity(10),
+            ]);
+
+            await this.provider.send("evm_setAutomine", [false]);
+
+            await this.provider.send("eth_sendTransaction", [
+              {
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                gasPrice: numberToRpcQuantity(9),
+              },
+            ]);
+
+            await this.provider.send("eth_sendTransaction", [
+              {
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                maxFeePerGas: numberToRpcQuantity(8),
+              },
+            ]);
+
+            await this.provider.send("evm_mine", []);
+
+            const block: RpcBlockOutput = await this.provider.send(
+              "eth_getBlockByNumber",
+              ["latest", false]
+            );
+
+            assert.lengthOf(block.transactions, 0);
+          });
+        });
+
+        describe("When EIP-1559 is not active", function () {
+          useProvider({ hardfork: "berlin" });
+          it("should be disabled", async function () {
+            await assertInvalidInputError(
+              this.provider,
+              "hardhat_setNextBlockBaseFeePerGas",
+              [numberToRpcQuantity(8)],
+              "hardhat_setNextBlockBaseFeePerGas is disabled because EIP-1559 is not active"
             );
           });
         });

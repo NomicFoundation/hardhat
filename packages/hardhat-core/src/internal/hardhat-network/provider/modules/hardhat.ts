@@ -100,6 +100,11 @@ export class HardhatModule {
 
       case "hardhat_setStorageAt":
         return this._setStorageAtAction(...this._setStorageAtParams(params));
+
+      case "hardhat_setNextBlockBaseFeePerGas":
+        return this._setNextBlockBaseFeePerGasAction(
+          ...this._setNextBlockBaseFeePerGasParams(params)
+        );
     }
 
     throw new MethodNotFoundError(`Method ${method} not found`);
@@ -313,6 +318,22 @@ export class HardhatModule {
     value: Buffer
   ) {
     await this._node.setStorageAt(new Address(address), positionIndex, value);
+    return true;
+  }
+
+  // hardhat_setNextBlockBaseFeePerGas
+  private _setNextBlockBaseFeePerGasParams(params: any[]): [BN] {
+    return validateParams(params, rpcQuantity);
+  }
+
+  private _setNextBlockBaseFeePerGasAction(baseFeePerGas: BN) {
+    if (!this._node.isEip1559Active()) {
+      throw new InvalidInputError(
+        "hardhat_setNextBlockBaseFeePerGas is disabled because EIP-1559 is not active"
+      );
+    }
+
+    this._node.setUserProvidedNextBlockBaseFeePerGas(baseFeePerGas);
     return true;
   }
 
