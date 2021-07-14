@@ -30,6 +30,7 @@ import { CompilerInput, CompilerOutput } from "../../../types";
 import {
   HARDHAT_NETWORK_DEFAULT_GAS_PRICE,
   HARDHAT_NETWORK_DEFAULT_INITIAL_BASE_FEE_PER_GAS,
+  HARDHAT_NETWORK_DEFAULT_MAX_PRIORITY_FEE_PER_GAS,
 } from "../../core/config/default-config";
 import { assertHardhatInvariant, HardhatError } from "../../core/errors";
 import { RpcDebugTracingConfig } from "../../core/jsonrpc/types/input/debugTraceTransaction";
@@ -625,6 +626,10 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     return new BN(HARDHAT_NETWORK_DEFAULT_GAS_PRICE);
   }
 
+  public async getMaxPriorityFeePerGas(): Promise<BN> {
+    return new BN(HARDHAT_NETWORK_DEFAULT_MAX_PRIORITY_FEE_PER_GAS);
+  }
+
   public getCoinbaseAddress(): Address {
     return COINBASE_ADDRESS;
   }
@@ -726,8 +731,8 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     this._userProvidedNextBlockBaseFeePerGas = undefined;
   }
 
-  private async _getNextBlockBaseFeePerGas(): Promise<BN | undefined> {
-    if (!this._hasEIP1559()) {
+  public async getNextBlockBaseFeePerGas(): Promise<BN | undefined> {
+    if (!this.isEip1559Active()) {
       return undefined;
     }
 
@@ -1155,7 +1160,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         }
 
         for (const tx of block.transactions) {
-          let txWithCommon: Transaction | AccessListEIP2930Transaction;
+          let txWithCommon: TypedTransaction;
           if (tx.type === 0) {
             txWithCommon = new Transaction(tx, {
               common: vm._common,
@@ -1164,9 +1169,16 @@ Hardhat Network's forking functionality only works with blocks from at least spu
             txWithCommon = new AccessListEIP2930Transaction(tx, {
               common: vm._common,
             });
+          } else if (tx.type === 2) {
+            txWithCommon = new FeeMarketEIP1559Transaction(
+              { ...tx, gasPrice: undefined },
+              {
+                common: vm._common,
+              }
+            );
           } else {
             throw new InternalError(
-              "Only legacy and EIP2930 txs are supported"
+              "Only legacy, EIP2930, and EIP1559 txs are supported"
             );
           }
 
@@ -1295,7 +1307,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     }
 
     // Validate that maxFeePerGas >= next block's baseFee
-    const nextBlockGasFee = await this._getNextBlockBaseFeePerGas();
+    const nextBlockGasFee = await this.getNextBlockBaseFeePerGas();
     if (nextBlockGasFee !== undefined) {
       if ("maxFeePerGas" in tx) {
         if (nextBlockGasFee.gt(tx.maxFeePerGas)) {
@@ -1331,7 +1343,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       timestamp: blockTimestamp,
     };
 
-    headerData.baseFeePerGas = await this._getNextBlockBaseFeePerGas();
+    headerData.baseFeePerGas = await this.getNextBlockBaseFeePerGas();
 
     const blockBuilder = await this._vm.buildBlock({
       parentBlock,
@@ -1918,7 +1930,10 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         // If this VM is running with EIP1559 activated, and the block is not
         // an EIP1559 one, this will crash, so we create a new one that has
         // baseFeePerGas = 0.
-        if (this._hasEIP1559() && block.header.baseFeePerGas === undefined) {
+        if (
+          this.isEip1559Active() &&
+          block.header.baseFeePerGas === undefined
+        ) {
           block = Block.fromBlockData(block, { freeze: false });
           (block.header as any).baseFeePerGas = new BN(0);
         }
@@ -2032,7 +2047,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     );
   }
 
-  private _hasEIP1559(): boolean {
+  public isEip1559Active(): boolean {
     return this._vm._common.gteHardfork("london");
   }
 }
