@@ -51,6 +51,8 @@ export function hardforkGte(
   hardforkA: HardforkName,
   hardforkB: HardforkName
 ): boolean {
+  // This function should not load any ethereumjs library, as it's used during
+  // the Hardhat initialization, and that would make it too slow.
   const indexA = HARDFORKS_ORDER.lastIndexOf(hardforkA);
   const indexB = HARDFORKS_ORDER.lastIndexOf(hardforkB);
 
