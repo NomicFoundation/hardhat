@@ -302,6 +302,9 @@ export class ForkBlockchain implements HardhatBlockchainInterface {
           new Address(transaction.from),
           rpcToTxData(transaction)
         );
+      } else if (transaction.type.eqn(2)) {
+        // TODO(London): Implement ReadOnlyValidEIP1559Transaction
+        throw new Error("Not implemented");
       } else {
         throw new InternalError(`Unknown transaction type ${transaction.type}`);
       }
