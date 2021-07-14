@@ -1211,9 +1211,11 @@ You can use them by running Hardhat Network with 'hardfork' ${ACCESS_LIST_MIN_HA
             ),
     };
 
+    // TODO(London): Make sure that this txs aren't accepted before london
     if (
-      rpcTx.maxFeePerGas !== undefined &&
-      rpcTx.maxPriorityFeePerGas !== undefined
+      rpcTx.maxFeePerGas !== undefined ||
+      rpcTx.maxPriorityFeePerGas !== undefined ||
+      rpcTx.gasPrice === undefined
     ) {
       // EIP-1559 params
       const accessList =
@@ -1221,18 +1223,19 @@ You can use them by running Hardhat Network with 'hardfork' ${ACCESS_LIST_MIN_HA
           ? this._rpcAccessListToNodeAccessList(rpcTx.accessList)
           : [];
 
+      // TODO(London): Mimic what Geth does here to provide default values.
+      //   It first gets a default maxPriorityFeePerGas (we can hardcode it)
+      //   Then, maxFeePerGas = 2 * nextBlockBaseFeePerGas + maxPriorityFeePerGas
+      //   It returns an error if maxFeePerGas < maxPriorityFeePerGas. Was this already validated?
       return {
         ...baseParams,
-        maxFeePerGas: rpcTx.maxFeePerGas,
-        maxPriorityFeePerGas: rpcTx.maxPriorityFeePerGas,
+        maxFeePerGas: rpcTx.maxFeePerGas ?? rpcTx.maxPriorityFeePerGas!,
+        maxPriorityFeePerGas: rpcTx.maxPriorityFeePerGas ?? rpcTx.maxFeePerGas!,
         accessList,
       };
     }
 
-    const gasPrice =
-      rpcTx.gasPrice !== undefined
-        ? rpcTx.gasPrice
-        : await this._node.getGasPrice();
+    const gasPrice = rpcTx.gasPrice;
 
     // AccessList params
     if (rpcTx.accessList !== undefined) {
@@ -1263,24 +1266,6 @@ You can use them by running Hardhat Network with 'hardfork' ${ACCESS_LIST_MIN_HA
     ) {
       throw new InvalidInputError(
         "Transaction cannot have both gasPrice and maxPriorityFeePerGas"
-      );
-    }
-
-    if (
-      rpcTx.maxFeePerGas !== undefined &&
-      rpcTx.maxPriorityFeePerGas === undefined
-    ) {
-      throw new InvalidInputError(
-        "Transaction has maxFeePerGas but not maxPriorityFeePerGas"
-      );
-    }
-
-    if (
-      rpcTx.maxFeePerGas === undefined &&
-      rpcTx.maxPriorityFeePerGas !== undefined
-    ) {
-      throw new InvalidInputError(
-        "Transaction has maxPriorityFeePerGas but not maxFeePerGas"
       );
     }
 
