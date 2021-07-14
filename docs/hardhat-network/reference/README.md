@@ -253,9 +253,13 @@ Add information about compiled contracts
 
 Remove a transaction from the mempool
 
+#### `hardhat_getStackTraceFailuresCount`
+
 #### `hardhat_impersonateAccount`
 
 see the [Mainnet Forking guide](../guides/mainnet-forking.md)
+
+#### `hardhat_intervalMine`
 
 #### `hardhat_reset`
 
