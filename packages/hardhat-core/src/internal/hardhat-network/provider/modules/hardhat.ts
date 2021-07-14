@@ -162,7 +162,11 @@ export class HardhatModule {
 
     const isEmpty = result.block.transactions.length === 0;
     if (isEmpty) {
-      this._logger.printMinedBlockNumber(blockNumber, isEmpty);
+      this._logger.printMinedBlockNumber(
+        blockNumber,
+        isEmpty,
+        result.block.header.baseFeePerGas
+      );
     } else {
       await this._logBlock(result);
       this._logger.printMinedBlockNumber(blockNumber, isEmpty);
