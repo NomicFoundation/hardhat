@@ -75,7 +75,7 @@ describe("Eth module", function () {
             nonce: new BN(0),
             value: new BN(123),
             gasLimit: new BN(25000),
-            gasPrice: new BN(23912),
+            gasPrice: new BN(10e9),
           };
 
           const txHash = await sendTransactionFromTxParams(
@@ -109,7 +109,7 @@ describe("Eth module", function () {
             nonce: new BN(1),
             value: new BN(123),
             gasLimit: new BN(80000),
-            gasPrice: new BN(239),
+            gasPrice: new BN(10e9),
           };
 
           const txHash2 = await sendTransactionFromTxParams(
@@ -146,7 +146,7 @@ describe("Eth module", function () {
             nonce: new BN(0),
             value: new BN(123),
             gasLimit: new BN(250000),
-            gasPrice: new BN(23912),
+            gasPrice: new BN(10e9),
           };
 
           const txHash = await getSignedTxHash(
@@ -201,7 +201,7 @@ describe("Eth module", function () {
               to: address,
               value: "0x16345785d8a0000",
               gas: numberToRpcQuantity(21000),
-              gasPrice: numberToRpcQuantity(10),
+              gasPrice: numberToRpcQuantity(10e9),
             },
           ]);
 
@@ -219,7 +219,7 @@ describe("Eth module", function () {
           const tx = new Transaction(
             {
               nonce: "0x00",
-              gasPrice: "0xa",
+              gasPrice: numberToRpcQuantity(10e9),
               gasLimit: "0x55f0",
               to: DEFAULT_ACCOUNTS_ADDRESSES[1],
               value: "0x1",
@@ -248,7 +248,7 @@ describe("Eth module", function () {
           assert.equal(fetchedTx.value, "0x1");
           assert.equal(fetchedTx.nonce, "0x0");
           assert.equal(fetchedTx.gas, "0x55f0");
-          assert.equal(fetchedTx.gasPrice, "0xa");
+          assert.equal(fetchedTx.gasPrice, numberToRpcQuantity(10e9));
           assert.equal(fetchedTx.input, "0xbeef");
 
           // tx.v is padded but fetchedTx.v is not, so we need to do this
@@ -276,7 +276,7 @@ describe("Eth module", function () {
             nonce: new BN(0),
             value: new BN(123),
             gasLimit: new BN(25000),
-            gasPrice: new BN(23912),
+            gasPrice: new BN(10e9),
           };
 
           await this.provider.send("evm_setAutomine", [false]);
@@ -342,7 +342,7 @@ describe("Eth module", function () {
             nonce: new BN(0),
             value: new BN(123),
             gasLimit: new BN(30000),
-            gasPrice: new BN(23912),
+            gasPrice: new BN(10e9),
             accessList: [
               [
                 toBuffer(zeroAddress()),
@@ -388,8 +388,8 @@ describe("Eth module", function () {
             nonce: new BN(0),
             value: new BN(123),
             gasLimit: new BN(30000),
-            maxFeePerGas: new BN(100),
-            maxPriorityFeePerGas: new BN(10),
+            maxFeePerGas: new BN(10e9),
+            maxPriorityFeePerGas: new BN(1e9),
             accessList: [
               [
                 toBuffer(zeroAddress()),
