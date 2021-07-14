@@ -1226,6 +1226,15 @@ You can use them by running Hardhat Network with 'hardfork' ${ACCESS_LIST_MIN_HA
 
       if (rpcTx.maxPriorityFeePerGas === undefined) {
         rpcTx.maxPriorityFeePerGas = await this._node.getMaxPriorityFeePerGas();
+
+        // If you only provide a maxFeePerGas, and the suggested tip is higher
+        // than that, we adjust the tip to make the tx valid
+        if (
+          rpcTx.maxFeePerGas !== undefined &&
+          rpcTx.maxFeePerGas.lt(rpcTx.maxPriorityFeePerGas)
+        ) {
+          rpcTx.maxPriorityFeePerGas = rpcTx.maxFeePerGas;
+        }
       }
 
       if (rpcTx.maxFeePerGas === undefined) {
