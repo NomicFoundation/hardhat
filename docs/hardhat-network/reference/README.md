@@ -333,13 +333,13 @@ same as Ganache
 
 same as Ganache.
 
-#### `evm_snapshot`
-
-same as Ganache.
-
 #### `evm_setNextBlockTimestamp`
 
 This method works like `evm_increaseTime`, but takes the exact timestamp that you want in the next block, and increases the time accordingly.
+
+#### `evm_snapshot`
+
+same as Ganache.
 
 ### Unsupported methods
 
