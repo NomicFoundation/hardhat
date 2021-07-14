@@ -287,7 +287,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   private readonly _impersonatedAccounts: Set<string> = new Set(); // address
 
   private _nextBlockTimestamp: BN = new BN(0);
-  private _nextBlockBaseFeePerGas?: BN;
+  private _userProvidedNextBlockBaseFeePerGas?: BN;
 
   private _lastFilterId = new BN(0);
   private _filters: Map<string, Filter> = new Map();
@@ -321,7 +321,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     this._initLocalAccounts(genesisAccounts);
 
     if (nextBlockBaseFee !== undefined) {
-      this.setNextBlockBaseFeePerGas(nextBlockBaseFee);
+      this.setUserProvidedNextBlockBaseFeePerGas(nextBlockBaseFee);
     }
 
     this._vmTracer = new VMTracer(
@@ -457,7 +457,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     }
 
     await this._resetNextBlockTimestamp();
-    this._resetNextBlockBaseFeePerGas();
+    this._resetUserProvidedNextBlockBaseFeePerGas();
 
     return result;
   }
@@ -714,16 +714,30 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     this._blockTimeOffsetSeconds = this._blockTimeOffsetSeconds.add(increment);
   }
 
-  public setNextBlockBaseFeePerGas(baseFeePerGas: BN) {
-    this._nextBlockBaseFeePerGas = baseFeePerGas;
+  public setUserProvidedNextBlockBaseFeePerGas(baseFeePerGas: BN) {
+    this._userProvidedNextBlockBaseFeePerGas = baseFeePerGas;
   }
 
-  public getNextBlockBaseFeePerGas(): BN | undefined {
-    return this._nextBlockBaseFeePerGas;
+  public getUserProvidedNextBlockBaseFeePerGas(): BN | undefined {
+    return this._userProvidedNextBlockBaseFeePerGas;
   }
 
-  private _resetNextBlockBaseFeePerGas() {
-    this._nextBlockBaseFeePerGas = undefined;
+  private _resetUserProvidedNextBlockBaseFeePerGas() {
+    this._userProvidedNextBlockBaseFeePerGas = undefined;
+  }
+
+  private async _getNextBlockBaseFeePerGas(): Promise<BN | undefined> {
+    if (!this._hasEIP1559()) {
+      return undefined;
+    }
+
+    const userDefined = this.getUserProvidedNextBlockBaseFeePerGas();
+    if (userDefined !== undefined) {
+      return userDefined;
+    }
+
+    const latestBlock = await this.getLatestBlock();
+    return latestBlock.header.calcNextBaseFee();
   }
 
   public async getPendingTransaction(
@@ -783,7 +797,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       blockTimeOffsetSeconds: this.getTimeIncrement(),
       nextBlockTimestamp: this.getNextBlockTimestamp(),
       irregularStatesByBlockNumber: this._irregularStatesByBlockNumber,
-      nextBlockBaseFee: this.getNextBlockBaseFeePerGas(),
+      userProvidedNextBlockBaseFeePerGas: this.getUserProvidedNextBlockBaseFeePerGas(),
     };
 
     this._irregularStatesByBlockNumber = new Map(
@@ -830,10 +844,12 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     this.setNextBlockTimestamp(snapshot.nextBlockTimestamp);
     this._txPool.revert(snapshot.txPoolSnapshotId);
 
-    if (snapshot.nextBlockBaseFee) {
-      this.setNextBlockBaseFeePerGas(snapshot.nextBlockBaseFee);
+    if (snapshot.userProvidedNextBlockBaseFeePerGas) {
+      this.setUserProvidedNextBlockBaseFeePerGas(
+        snapshot.userProvidedNextBlockBaseFeePerGas
+      );
     } else {
-      this._resetNextBlockBaseFeePerGas();
+      this._resetUserProvidedNextBlockBaseFeePerGas();
     }
 
     // We delete this and the following snapshots, as they can only be used
@@ -1297,16 +1313,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       timestamp: blockTimestamp,
     };
 
-    let nextBlockBaseFee: BN | undefined;
-    if (this._hasEIP1559()) {
-      nextBlockBaseFee = this.getNextBlockBaseFeePerGas();
-
-      if (nextBlockBaseFee === undefined) {
-        nextBlockBaseFee = parentBlock.header.calcNextBaseFee();
-      }
-    }
-
-    headerData.baseFeePerGas = nextBlockBaseFee;
+    headerData.baseFeePerGas = await this._getNextBlockBaseFeePerGas();
 
     const blockBuilder = await this._vm.buildBlock({
       parentBlock,
@@ -1322,7 +1329,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       const pendingTxs = this._txPool.getPendingTransactions();
       const transactionQueue = new TransactionQueue(
         pendingTxs,
-        nextBlockBaseFee
+        headerData.baseFeePerGas
       );
 
       let tx = transactionQueue.getNextTransaction();

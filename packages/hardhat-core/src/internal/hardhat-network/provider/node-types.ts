@@ -117,7 +117,7 @@ export interface Snapshot {
   blockTimeOffsetSeconds: BN;
   nextBlockTimestamp: BN;
   irregularStatesByBlockNumber: Map<string, Buffer>;
-  nextBlockBaseFee: BN | undefined;
+  userProvidedNextBlockBaseFeePerGas: BN | undefined;
 }
 
 export type SendTransactionResult =
