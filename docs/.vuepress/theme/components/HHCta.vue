@@ -43,7 +43,8 @@ export default {
     padding 13px 10px
     white-space nowrap
     font-size 14px
-
+    @media screen and (max-width 320px)
+      font-size 12px !important
   span
     font inherit
     position relative

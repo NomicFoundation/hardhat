@@ -230,6 +230,8 @@
                     top calc(50% - (175px / 2)) !important
         .padded-container
             margin-top 20px
+            @media (max-width: 1000px)
+                padding 1rem 24px
         .tool-section-wrapper 
             display flex
             height 318px
@@ -238,11 +240,13 @@
             &.list-4-items
                 @media (max-width: 1000px)
                     &:after
-                        bottom -34px !important
+                        bottom -88px !important
             &.list-5-items
                 height 351px
                 &:after
                     bottom -10px
+                    @media (max-width: 1000px)
+                        bottom -32px
                 .right-tools-column
                     position relative
                     bottom 56px
@@ -372,7 +376,7 @@
                 flex-direction column
                 justify-content center
                 @media (max-width: 1000px)
-                    padding 0 20px 
+                    padding 0 24px 
                     margin-top 40px
                     height 363px !important
                 .tool-header

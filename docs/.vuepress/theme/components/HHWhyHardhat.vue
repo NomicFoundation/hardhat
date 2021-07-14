@@ -207,6 +207,8 @@
                 max-width 317px
                 text-align center
                 padding 13px 28px !important
+            @media (max-width: 1000px)
+                padding 13px 20px !important
             &:after, &:before
                 content ''
                 position absolute
@@ -225,24 +227,25 @@
                 margin-left 50%
     .image-container
         position absolute
-        background-size contain
-        max-width 414px
+        opacity 0.999999
         &:after
             content ''
             width 100%
             height 100%
             top 0
             left 0
-            background linear-gradient(90deg, white 0%, transparent 10%, transparent 90%, white)
+            background linear-gradient(90deg, white 0%, rgba(255,255,255, 0) 10%, rgba(255,255,255, 0) 90%, white)
             position absolute
         @media screen and (max-width: 1000px)
             position relative
             left unset
             top unset
             right unset
-            background-size contain !important
+            height 
+            // background-size 339px 191px
             width 100%
             margin 0
+            height 191px !important
   #console-log,
   #extend,
   #plugins,
@@ -258,12 +261,9 @@
         top -40px
         transform-origin left center
         @media (max-width: 1000px)
-            height 190px !important
             bottom 0 !important
-            background-image url('../img/mobile_images/Why Hardhat - 1 Mobile.svg')
+            background-image url('../img/graphics/Graphic-1@2x_mobile.svg')
             margin-bottom -38px
-        @media (min-width: 1000px) and (max-width: 1040px)
-            transform scale(.9)
   #extend
     .image-container
         width 505px
@@ -273,29 +273,26 @@
         right 30px
         transform-origin bottom right
         @media (max-width: 1000px)
-            background-image url('../img/mobile_images/Why Hardhat - 2 Mobile.svg')
+            background-image url('../img/graphics/Graphic-2@2x_mobile.svg')
             bottom 0 !important
             position relative
             margin-bottom 16px
-            height 190px !important
   #plugins
     @media (max-width: 1000px)
       margin-bottom 48px !important
     .image-container
         width 486px
         height 528px
-        background-image url('../img/graphics/Graphic-3@2x.svg')
-        transform translateY(-30px)
+        background-image url('../img/graphics/Graphic-3@2x_mobile.svg')
         transform-origin left center
         left 30px
         @media (max-width: 1000px)
             background-image url('../img/mobile_images/Why Hardhat - 3 Mobile.svg')
             position relative
             top 0
-            height 190px !important
             margin-bottom 16px
-            background-size 80%
             transform none
+            height 191px !important
   #tasks
     .image-container
         position absolute
@@ -308,19 +305,17 @@
         @media (min-width: 1000px) and (max-width: 1100px)
             right 10px
             transform translateY(20px)
-            background-image url('../img/mobile_images/Why Hardhat - 4 Mobile.svg')
         @media (max-width: 999px)
             position relative
             top 0
-            height 200px !important
             right 0
-            background-image url('../img/mobile_images/Why Hardhat - 4 Mobile.svg')
+            background-image url('../img/graphics/Graphic-4@2x_mobile.svg')
   #vibrant-community
     position relative
     margin-top 214px
     margin-bottom 0 !important
     @media (max-width: 1000px)
-        margin-top 160px
+        margin-top 220px
         margin-bottom 0rem !important
     .column:first-child
         padding 3rem 2rem 0rem 0
@@ -328,9 +323,10 @@
             padding 0 5px
     .details-column
         width 40%
-    .details-column
         @media screen and (max-width: 1000px)
-            margin-top 241px
+            margin-top 16px
+        @media (max-width: 660px)
+            margin-top 200px
     .column
         width 50% !important
         position relative
@@ -394,6 +390,7 @@
         @media (max-width: 1000px)
             margin 0 auto
             bottom 10px
+            transform scale(1.5)
         @media (max-width: 660px)
             position absolute
             width 346px !important
