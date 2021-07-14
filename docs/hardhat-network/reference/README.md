@@ -221,9 +221,9 @@ To customise it, take a look at [the configuration section](/config/README.md#ha
 
 #### `eth_sendTransaction`
 
-#### `eth_signTypedData_v4`
-
 #### `eth_sign`
+
+#### `eth_signTypedData_v4`
 
 #### `eth_subscribe`
 
@@ -368,6 +368,10 @@ This method works like `evm_increaseTime`, but takes the exact timestamp that yo
 #### `eth_protocolVersion`
 
 #### `eth_signTransaction`
+
+#### `eth_signTypedData`
+
+#### `eth_signTypedData_v3`
 
 #### `eth_submitHashrate`
 
