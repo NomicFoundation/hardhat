@@ -1306,6 +1306,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       );
     }
 
+    // TODO(London): Test these validations.
     // Validate that maxFeePerGas >= next block's baseFee
     const nextBlockGasFee = await this.getNextBlockBaseFeePerGas();
     if (nextBlockGasFee !== undefined) {
@@ -2030,6 +2031,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   ): boolean {
     const txMaxFee = "gasPrice" in tx ? tx.gasPrice : tx.maxFeePerGas;
 
+    // TODO(London): Test this
     const canPayBaseFee =
       nextBlockBaseFeePerGas !== undefined
         ? txMaxFee.gte(nextBlockBaseFeePerGas)
