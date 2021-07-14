@@ -1272,57 +1272,72 @@ describe("Hardhat module", function () {
       });
 
       describe("hardhat_setMinGasPrice", () => {
-        useProvider({ hardfork: "berlin" });
+        describe("When EIP-1559 is not active", function () {
+          useProvider({ hardfork: "berlin" });
 
-        it("makes txs below the new min gas price not minable", async function () {
-          await this.provider.send("evm_setAutomine", [false]);
+          it("makes txs below the new min gas price not minable", async function () {
+            await this.provider.send("evm_setAutomine", [false]);
 
-          const tx1Hash = await this.provider.send("eth_sendTransaction", [
-            {
-              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              to: EMPTY_ACCOUNT_ADDRESS.toString(),
-              gas: numberToRpcQuantity(21_000),
-              gasPrice: numberToRpcQuantity(10),
-            },
-          ]);
-          const tx2Hash = await this.provider.send("eth_sendTransaction", [
-            {
-              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
-              to: EMPTY_ACCOUNT_ADDRESS.toString(),
-              gas: numberToRpcQuantity(21_000),
-              gasPrice: numberToRpcQuantity(20),
-            },
-          ]);
+            const tx1Hash = await this.provider.send("eth_sendTransaction", [
+              {
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                to: EMPTY_ACCOUNT_ADDRESS.toString(),
+                gas: numberToRpcQuantity(21_000),
+                gasPrice: numberToRpcQuantity(10),
+              },
+            ]);
+            const tx2Hash = await this.provider.send("eth_sendTransaction", [
+              {
+                from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                to: EMPTY_ACCOUNT_ADDRESS.toString(),
+                gas: numberToRpcQuantity(21_000),
+                gasPrice: numberToRpcQuantity(20),
+              },
+            ]);
 
-          await this.provider.send("hardhat_setMinGasPrice", [
-            numberToRpcQuantity(15),
-          ]);
+            await this.provider.send("hardhat_setMinGasPrice", [
+              numberToRpcQuantity(15),
+            ]);
 
-          // check the two txs are pending
-          const pendingTransactionsBefore = await this.provider.send(
-            "eth_pendingTransactions"
-          );
-          assert.sameMembers(
-            pendingTransactionsBefore.map((x: any) => x.hash),
-            [tx1Hash, tx2Hash]
-          );
+            // check the two txs are pending
+            const pendingTransactionsBefore = await this.provider.send(
+              "eth_pendingTransactions"
+            );
+            assert.sameMembers(
+              pendingTransactionsBefore.map((x: any) => x.hash),
+              [tx1Hash, tx2Hash]
+            );
 
-          // check only the second one is mined
-          await this.provider.send("evm_mine");
-          const latestBlock = await this.provider.send("eth_getBlockByNumber", [
-            "latest",
-            false,
-          ]);
-          assert.sameMembers(latestBlock.transactions, [tx2Hash]);
+            // check only the second one is mined
+            await this.provider.send("evm_mine");
+            const latestBlock = await this.provider.send(
+              "eth_getBlockByNumber",
+              ["latest", false]
+            );
+            assert.sameMembers(latestBlock.transactions, [tx2Hash]);
 
-          // check the first tx is still pending
-          const pendingTransactionsAfter = await this.provider.send(
-            "eth_pendingTransactions"
-          );
-          assert.sameMembers(
-            pendingTransactionsAfter.map((x: any) => x.hash),
-            [tx1Hash]
-          );
+            // check the first tx is still pending
+            const pendingTransactionsAfter = await this.provider.send(
+              "eth_pendingTransactions"
+            );
+            assert.sameMembers(
+              pendingTransactionsAfter.map((x: any) => x.hash),
+              [tx1Hash]
+            );
+          });
+        });
+
+        describe("When EIP-1559 is active", function () {
+          useProvider({ hardfork: "london" });
+
+          it("Should be disabled", async function () {
+            await assertInvalidInputError(
+              this.provider,
+              "hardhat_setMinGasPrice",
+              [numberToRpcQuantity(1)],
+              "hardhat_setMinGasPrice is not support when EIP-1559 is active"
+            );
+          });
         });
       });
     });
