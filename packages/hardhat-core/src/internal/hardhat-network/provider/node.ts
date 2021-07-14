@@ -1293,6 +1293,24 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         `Transaction gas price is ${txPriorityFee}, which is below the minimum of ${this._minGasPrice}`
       );
     }
+
+    // Validate that maxFeePerGas >= next block's baseFee
+    const nextBlockGasFee = await this._getNextBlockBaseFeePerGas();
+    if (nextBlockGasFee !== undefined) {
+      if ("maxFeePerGas" in tx) {
+        if (nextBlockGasFee.gt(tx.maxFeePerGas)) {
+          throw new InvalidInputError(
+            `Transaction maxFeePerGas (${tx.maxFeePerGas}) is too low for the next block, which has a baseFeePerGas of ${nextBlockGasFee}`
+          );
+        }
+      } else {
+        if (nextBlockGasFee.gt(tx.gasPrice)) {
+          throw new InvalidInputError(
+            `Transaction gasPrice (${tx.gasPrice}) is too low for the next block, which has a baseFeePerGas of ${nextBlockGasFee}`
+          );
+        }
+      }
+    }
   }
 
   /**
