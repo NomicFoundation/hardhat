@@ -12,7 +12,7 @@ export interface AccountState {
 export const makeAccountState = ImmutableRecord<AccountState>({
   nonce: undefined,
   balance: undefined,
-  storage: ImmutableMap(),
+  storage: ImmutableMap<string, string | null>(),
   code: undefined,
   storageCleared: false,
 });
@@ -22,7 +22,7 @@ export const makeAccountState = ImmutableRecord<AccountState>({
 export const makeEmptyAccountState = ImmutableRecord<AccountState>({
   nonce: "0x0",
   balance: "0x0",
-  storage: ImmutableMap(),
+  storage: ImmutableMap<string, string | null>(),
   code: "0x",
   storageCleared: true,
 });
