@@ -1360,7 +1360,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         tx !== undefined
       ) {
         if (
-          !this._isTxMinable(tx) ||
+          !this._isTxMinable(tx, headerData.baseFeePerGas) ||
           tx.gasLimit.gt(blockGasLimit.sub(blockBuilder.gasUsed))
         ) {
           transactionQueue.removeLastSenderTransactions();
@@ -2009,11 +2009,20 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     return txReceipt !== undefined;
   }
 
-  private _isTxMinable(tx: TypedTransaction): boolean {
-    const txPriorityFee = new BN(
-      "gasPrice" in tx ? tx.gasPrice : tx.maxPriorityFeePerGas
-    );
-    return txPriorityFee.gte(this._minGasPrice);
+  private _isTxMinable(
+    tx: TypedTransaction,
+    nextBlockBaseFeePerGas?: BN
+  ): boolean {
+    const txMaxFee = "gasPrice" in tx ? tx.gasPrice : tx.maxFeePerGas;
+
+    const canPayBaseFee =
+      nextBlockBaseFeePerGas !== undefined
+        ? txMaxFee.gte(nextBlockBaseFeePerGas)
+        : true;
+
+    const atLeastMinGasPrice = txMaxFee.gte(this._minGasPrice);
+
+    return canPayBaseFee && atLeastMinGasPrice;
   }
 
   private async _persistIrregularWorldState(): Promise<void> {
