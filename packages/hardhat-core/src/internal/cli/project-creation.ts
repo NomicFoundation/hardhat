@@ -114,16 +114,6 @@ ${content}`;
   await fsExtra.writeFile(gitIgnorePath, content);
 }
 
-function printSuggestedCommands() {
-  console.log(`Try running some of the following tasks:`);
-  console.log(`  npx hardhat accounts`);
-  console.log(`  npx hardhat compile`);
-  console.log(`  npx hardhat test`);
-  console.log(`  npx hardhat node`);
-  console.log(`  node scripts/sample-script.js`);
-  console.log(`  npx hardhat help`);
-}
-
 async function printRecommendedDepsInstallationInstructions() {
   console.log(
     `You need to install these dependencies to run the sample project:`
@@ -336,9 +326,7 @@ export async function createProject() {
     `\n${emoji("✨ ")}${chalk.cyan("Project created")}${emoji(" ✨")}`
   );
 
-  console.log(``);
-
-  printSuggestedCommands();
+  console.log("See the README.txt file for some example tasks you can run.");
 }
 
 function createConfirmationPrompt(name: string, message: string) {
