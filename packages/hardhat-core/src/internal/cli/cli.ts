@@ -85,11 +85,7 @@ async function main() {
 
     showStackTraces = hardhatArguments.showStackTraces;
 
-    if (
-      hardhatArguments.config === undefined &&
-      !isCwdInsideProject() &&
-      process.stdout.isTTY === true
-    ) {
+    if (hardhatArguments.config === undefined && !isCwdInsideProject()) {
       await createProject();
       return;
     }

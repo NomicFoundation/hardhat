@@ -151,6 +151,9 @@ module.exports = {
 }
 
 async function getAction() {
+  if (process.env.HARDHAT_CREATE_SAMPLE_PROJECT_WITH_DEFAULTS !== undefined) {
+    return CREATE_SAMPLE_PROJECT_ACTION;
+  }
   const { default: enquirer } = await import("enquirer");
   try {
     const actionResponse = await enquirer.prompt<{ action: string }>([
@@ -239,26 +242,37 @@ export async function createProject() {
     shouldAddGitAttributes: boolean;
   };
 
-  try {
-    responses = await enquirer.prompt<typeof responses>([
-      {
-        name: "projectRoot",
-        type: "input",
-        initial: process.cwd(),
-        message: "Hardhat project root:",
-      },
-      createConfirmationPrompt(
-        "shouldAddGitIgnore",
-        "Do you want to add a .gitignore?"
-      ),
-    ]);
-  } catch (e) {
-    if (e === "") {
-      return;
-    }
+  const useDefaultPromptResponses =
+    process.env.HARDHAT_CREATE_SAMPLE_PROJECT_WITH_DEFAULTS !== undefined;
 
-    // eslint-disable-next-line @nomiclabs/only-hardhat-error
-    throw e;
+  if (useDefaultPromptResponses) {
+    responses = {
+      projectRoot: process.cwd(),
+      shouldAddGitIgnore: true,
+      shouldAddGitAttributes: true,
+    };
+  } else {
+    try {
+      responses = await enquirer.prompt<typeof responses>([
+        {
+          name: "projectRoot",
+          type: "input",
+          initial: process.cwd(),
+          message: "Hardhat project root:",
+        },
+        createConfirmationPrompt(
+          "shouldAddGitIgnore",
+          "Do you want to add a .gitignore?"
+        ),
+      ]);
+    } catch (e) {
+      if (e === "") {
+        return;
+      }
+
+      // eslint-disable-next-line @nomiclabs/only-hardhat-error
+      throw e;
+    }
   }
 
   const { projectRoot, shouldAddGitIgnore } = responses;
@@ -296,9 +310,9 @@ export async function createProject() {
     if (installedRecommendedDeps.length === recommendedDeps.length) {
       shouldShowInstallationInstructions = false;
     } else if (installedExceptHardhat.length === 0) {
-      const shouldInstall = await confirmRecommendedDepsInstallation(
-        dependenciesToInstall
-      );
+      const shouldInstall =
+        useDefaultPromptResponses ||
+        (await confirmRecommendedDepsInstallation(dependenciesToInstall));
       if (shouldInstall) {
         const installed = await installRecommendedDependencies(
           dependenciesToInstall
