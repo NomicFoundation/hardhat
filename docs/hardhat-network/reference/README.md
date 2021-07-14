@@ -333,6 +333,16 @@ same as Ganache
 
 same as Ganache.
 
+#### `evm_setAutomine`
+
+Enables or disables, based on the single boolean argument, the automatic mining of new blocks with each new transaction submitted to the network.
+
+#### `evm_setBlockGasLimit`
+
+#### `evm_setIntervalMining`
+
+Enables (with a numeric argument greater than 0) or disables (with a numeric argument equal to 0), the automatic mining of blocks at a regular interval of milliseconds, each of which will include all pending transactions.
+
 #### `evm_setNextBlockTimestamp`
 
 This method works like `evm_increaseTime`, but takes the exact timestamp that you want in the next block, and increases the time accordingly.
