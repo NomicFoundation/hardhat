@@ -1879,11 +1879,25 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       } else {
         // We know that this block number exists, because otherwise
         // there would be an error in the RPC layer.
-        const block = await this.getBlockByNumber(blockNumberOrPending);
+        let block = await this.getBlockByNumber(blockNumberOrPending);
         assertHardhatInvariant(
           block !== undefined,
           "Tried to run a tx in the context of a non-existent block"
         );
+
+        // NOTE: This is a workaround of both an @ethereumjs/vm limitation, and
+        //   a bug in Hardhat Network.
+        //
+        // See: https://github.com/nomiclabs/hardhat/issues/1666
+        //
+        // If this VM is running with EIP1559 activated, and the block is not
+        // an EIP1559 one, this will crash, so we create a new one that has
+        // baseFeePerGas = 0.
+        if (this._hasEIP1559() && block.header.baseFeePerGas === undefined) {
+          block = Block.fromBlockData(block, { freeze: false });
+          (block.header as any).baseFeePerGas = new BN(0);
+        }
+
         blockContext = block;
 
         // we don't need to add the tx to the block because runTx doesn't
