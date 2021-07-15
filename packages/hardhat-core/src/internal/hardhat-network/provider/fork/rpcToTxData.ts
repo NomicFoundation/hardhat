@@ -1,13 +1,19 @@
 import { AccessListEIP2930TxData, TxData } from "@ethereumjs/tx";
 
+import { FeeMarketEIP1559TxData } from "@ethereumjs/tx/dist/types";
 import { RpcTransaction } from "../../../core/jsonrpc/types/output/transaction";
 
 export function rpcToTxData(
   rpcTransaction: RpcTransaction
-): TxData | AccessListEIP2930TxData {
-  const txData: AccessListEIP2930TxData = {
+): TxData | AccessListEIP2930TxData | FeeMarketEIP1559TxData {
+  return {
     gasLimit: rpcTransaction.gas,
-    gasPrice: rpcTransaction.gasPrice,
+    // NOTE: RPC EIP-1559 txs still have this field for backwards compatibility,
+    //  but FeeMarketEIP1559TxData doesn't.
+    gasPrice:
+      rpcTransaction.type?.eqn(2) ?? false
+        ? undefined
+        : rpcTransaction.gasPrice,
     to: rpcTransaction.to ?? undefined,
     nonce: rpcTransaction.nonce,
     data: rpcTransaction.input,
@@ -15,20 +21,13 @@ export function rpcToTxData(
     r: rpcTransaction.r,
     s: rpcTransaction.s,
     value: rpcTransaction.value,
-  };
-
-  if (rpcTransaction.type !== undefined) {
-    txData.type = rpcTransaction.type;
-  }
-  if (rpcTransaction.chainId !== undefined && rpcTransaction.chainId !== null) {
-    txData.chainId = rpcTransaction.chainId;
-  }
-  if (rpcTransaction.accessList !== undefined) {
-    txData.accessList = rpcTransaction.accessList.map((item) => [
+    type: rpcTransaction.type,
+    chainId: rpcTransaction.chainId ?? undefined,
+    maxFeePerGas: rpcTransaction.maxFeePerGas,
+    maxPriorityFeePerGas: rpcTransaction.maxPriorityFeePerGas,
+    accessList: rpcTransaction.accessList?.map((item) => [
       item.address,
       item.storageKeys ?? [],
-    ]);
-  }
-
-  return txData;
+    ]),
+  };
 }

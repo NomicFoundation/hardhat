@@ -3,6 +3,7 @@ import Common from "@ethereumjs/common";
 import { TypedTransaction } from "@ethereumjs/tx";
 import { Address, BN } from "ethereumjs-util";
 
+import { FeeMarketEIP1559TxData } from "@ethereumjs/tx/dist/types";
 import { RpcBlockWithTransactions } from "../../../core/jsonrpc/types/output/block";
 import { RpcTransactionReceipt } from "../../../core/jsonrpc/types/output/receipt";
 import { RpcTransaction } from "../../../core/jsonrpc/types/output/transaction";
@@ -21,6 +22,7 @@ import { ReadOnlyValidEIP2930Transaction } from "../transactions/ReadOnlyValidEI
 import { ReadOnlyValidTransaction } from "../transactions/ReadOnlyValidTransaction";
 import { HardhatBlockchainInterface } from "../types/HardhatBlockchainInterface";
 
+import { ReadOnlyValidEIP1559Transaction } from "../transactions/ReadOnlyValidEIP1559Transaction";
 import { rpcToBlockData } from "./rpcToBlockData";
 import { rpcToTxData } from "./rpcToTxData";
 
@@ -303,8 +305,10 @@ export class ForkBlockchain implements HardhatBlockchainInterface {
           rpcToTxData(transaction)
         );
       } else if (transaction.type.eqn(2)) {
-        // TODO(London): Implement ReadOnlyValidEIP1559Transaction
-        throw new Error("Not implemented");
+        tx = new ReadOnlyValidEIP1559Transaction(
+          new Address(transaction.from),
+          rpcToTxData(transaction) as FeeMarketEIP1559TxData
+        );
       } else {
         throw new InternalError(`Unknown transaction type ${transaction.type}`);
       }
