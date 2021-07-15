@@ -358,6 +358,14 @@ const plugins = [
       "Scripts",
     ],
   },
+  {
+    name: "hardhat-storage-layout",
+    author: "Aurora Labs",
+    authorUrl: "https://github.com/aurora-is-near",
+    url: "https://github.com/aurora-is-near/hardhat-storage-layout/tree/main",
+    description: "Exporting solidity contract storage layout",
+    tags: ["solidity", "storage-layout"],
+  },
 ];
 
 module.exports = plugins.map((p) => ({
