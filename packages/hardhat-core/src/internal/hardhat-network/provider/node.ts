@@ -176,6 +176,11 @@ export class HardhatNode extends EventEmitter {
         getDifferenceInSeconds(new Date(forkBlockTimestamp), new Date())
       );
 
+      // If the hardfork is London or later we need a base fee per gas for the
+      // first local block. If initialBaseFeePerGas config was provided we use
+      // that. Otherwise, what we do depends on the block we forked from. If
+      // it's an EIP-1559 block we don't need to do anything here, as we'll
+      // end up automatically computing the next base fee per gas based on it.
       if (hardforkGte(hardfork, HardforkName.LONDON)) {
         if (initialBaseFeePerGasConfig !== undefined) {
           nextBlockBaseFeePerGas = initialBaseFeePerGasConfig;
