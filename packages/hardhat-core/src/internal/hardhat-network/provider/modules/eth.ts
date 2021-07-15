@@ -81,6 +81,7 @@ import {
   shouldShowTransactionTypeForHardfork,
 } from "../output";
 
+import { assertHardhatNetworkInvariant } from "../utils/assertions";
 import { ModulesLogger } from "./logger";
 
 const ACCESS_LIST_MIN_HARDFORK = "berlin";
@@ -1228,8 +1229,12 @@ You can use them by running Hardhat Network with 'hardfork' ${ACCESS_LIST_MIN_HA
       }
 
       if (rpcTx.maxFeePerGas === undefined) {
-        // If we are here EIP-1559 is active and this can't be undefined
-        const baseFeePerGas = (await this._node.getNextBlockBaseFeePerGas())!;
+        const baseFeePerGas = await this._node.getNextBlockBaseFeePerGas();
+
+        assertHardhatNetworkInvariant(
+          baseFeePerGas !== undefined,
+          "EIP-1559 transactions should only be sent if the next block has baseFeePerGas"
+        );
 
         rpcTx.maxFeePerGas = baseFeePerGas
           .muln(2)
