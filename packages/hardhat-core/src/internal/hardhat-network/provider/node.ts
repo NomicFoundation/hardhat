@@ -457,7 +457,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       this.setTimeIncrement(newOffset);
     }
 
-    await this._resetNextBlockTimestamp();
+    this._resetNextBlockTimestamp();
     this._resetUserProvidedNextBlockBaseFeePerGas();
 
     return result;
@@ -1612,7 +1612,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     return [blockTimestamp, offsetShouldChange, newOffset];
   }
 
-  private async _resetNextBlockTimestamp() {
+  private _resetNextBlockTimestamp() {
     this.setNextBlockTimestamp(new BN(0));
   }
 
