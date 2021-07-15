@@ -267,7 +267,7 @@ export class ForkBlockchain implements HardhatBlockchainInterface {
 
     // We copy the common and set it to London or Berlin if the remote block
     // had EIP-1559 activated or not. The reason for this is that ethereumjs
-    // throw if we have a base fee for an older hardfork, and set a default
+    // throws if we have a base fee for an older hardfork, and set a default
     // one for London.
     const common = this._common.copy();
     if (rpcBlock.baseFeePerGas !== undefined) {
