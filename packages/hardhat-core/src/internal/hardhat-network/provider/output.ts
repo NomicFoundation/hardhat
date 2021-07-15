@@ -36,7 +36,7 @@ export interface RpcBlockOutput {
   transactions: string[] | RpcTransactionOutput[];
   transactionsRoot: string;
   uncles: string[];
-  baseFeePerGas: string;
+  baseFeePerGas?: string;
 }
 
 export type RpcTransactionOutput =
@@ -155,7 +155,7 @@ export function getRpcBlock(
       )
     : block.transactions.map((tx) => bufferToRpcData(tx.hash()));
 
-  return {
+  const output: RpcBlockOutput = {
     number: pending ? null : numberToRpcQuantity(new BN(block.header.number)),
     hash: pending ? null : bufferToRpcData(block.hash()),
     parentHash: bufferToRpcData(block.header.parentHash),
@@ -178,8 +178,13 @@ export function getRpcBlock(
     timestamp: numberToRpcQuantity(new BN(block.header.timestamp)),
     transactions,
     uncles: block.uncleHeaders.map((uh: any) => bufferToRpcData(uh.hash())),
-    baseFeePerGas: numberToRpcQuantity(block.header.baseFeePerGas ?? 0),
   };
+
+  if (block.header.baseFeePerGas) {
+    output.baseFeePerGas = numberToRpcQuantity(block.header.baseFeePerGas);
+  }
+
+  return output;
 }
 
 export function getRpcTransaction(

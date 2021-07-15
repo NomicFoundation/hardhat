@@ -117,7 +117,7 @@ describe("Eth module", function () {
             nonce: new BN(0),
             value: new BN(123),
             gasLimit: new BN(250000),
-            gasPrice: new BN(23912),
+            gasPrice: new BN(10e9),
           };
 
           const txHash = await getSignedTxHash(
@@ -155,7 +155,7 @@ describe("Eth module", function () {
               to: DEFAULT_ACCOUNTS_ADDRESSES[1],
               value: numberToRpcQuantity(1),
               gas: numberToRpcQuantity(21000),
-              gasPrice: numberToRpcQuantity(10),
+              gasPrice: numberToRpcQuantity(10e9),
             },
           ]);
 

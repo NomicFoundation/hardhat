@@ -11,7 +11,6 @@ export const DEFAULT_NETWORK_ID = 234;
 export const DEFAULT_BLOCK_GAS_LIMIT = 6000000;
 export const DEFAULT_USE_JSON_RPC = false;
 export const DEFAULT_ALLOW_UNLIMITED_CONTRACT_SIZE = false;
-export const DEFAULT_BASE_FEE_PER_GAS = 10;
 export const DEFAULT_MINING_CONFIG = {
   auto: true,
   interval: 0,

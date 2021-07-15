@@ -265,6 +265,17 @@ export class ForkBlockchain implements HardhatBlockchainInterface {
       return undefined;
     }
 
+    // We copy the common and set it to London or Berlin if the remote block
+    // had EIP-1559 activated or not. The reason for this is that ethereumjs
+    // throws if we have a base fee for an older hardfork, and set a default
+    // one for London.
+    const common = this._common.copy();
+    if (rpcBlock.baseFeePerGas !== undefined) {
+      common.setHardfork("london");
+    } else {
+      common.setHardfork("berlin");
+    }
+
     // we don't include the transactions to add our own custom tx objects,
     // otherwise they are recreated with upstream classes
     const blockData = rpcToBlockData({
@@ -273,7 +284,7 @@ export class ForkBlockchain implements HardhatBlockchainInterface {
     });
 
     const block = Block.fromBlockData(blockData, {
-      common: this._common,
+      common,
 
       // We use freeze false here because we add the transactions manually
       freeze: false,
@@ -291,6 +302,9 @@ export class ForkBlockchain implements HardhatBlockchainInterface {
           new Address(transaction.from),
           rpcToTxData(transaction)
         );
+      } else if (transaction.type.eqn(2)) {
+        // TODO(London): Implement ReadOnlyValidEIP1559Transaction
+        throw new Error("Not implemented");
       } else {
         throw new InternalError(`Unknown transaction type ${transaction.type}`);
       }

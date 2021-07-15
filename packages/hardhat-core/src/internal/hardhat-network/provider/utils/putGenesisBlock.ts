@@ -1,12 +1,13 @@
 import { Block, HeaderData } from "@ethereumjs/block";
 import Common from "@ethereumjs/common";
+import { BN } from "ethereumjs-util";
 
 import { HardhatBlockchain } from "../HardhatBlockchain";
 
 export async function putGenesisBlock(
   blockchain: HardhatBlockchain,
   common: Common,
-  initialBaseFee?: number
+  initialBaseFee?: BN
 ) {
   const header: HeaderData = {};
 

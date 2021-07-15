@@ -77,7 +77,7 @@ describe("Eth module", function () {
             nonce: new BN(0),
             value: new BN(123),
             gasLimit: new BN(25000),
-            gasPrice: new BN(23912),
+            gasPrice: new BN(10e9),
           };
 
           const txHash = await sendTransactionFromTxParams(
@@ -111,7 +111,7 @@ describe("Eth module", function () {
             nonce: new BN(1),
             value: new BN(123),
             gasLimit: new BN(80000),
-            gasPrice: new BN(239),
+            gasPrice: new BN(10e9),
           };
 
           const txHash2 = await sendTransactionFromTxParams(
@@ -148,7 +148,7 @@ describe("Eth module", function () {
             nonce: new BN(0),
             value: new BN(123),
             gasLimit: new BN(30000),
-            gasPrice: new BN(23912),
+            gasPrice: new BN(10e9),
             accessList: [
               [
                 toBuffer(zeroAddress()),
@@ -194,8 +194,8 @@ describe("Eth module", function () {
             nonce: new BN(0),
             value: new BN(123),
             gasLimit: new BN(30000),
-            maxFeePerGas: new BN(100),
-            maxPriorityFeePerGas: new BN(10),
+            maxFeePerGas: new BN(10e9),
+            maxPriorityFeePerGas: new BN(1e9),
             accessList: [
               [
                 toBuffer(zeroAddress()),

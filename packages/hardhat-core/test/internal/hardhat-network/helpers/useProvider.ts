@@ -13,7 +13,6 @@ import { FakeModulesLogger } from "./fakeLogger";
 import {
   DEFAULT_ACCOUNTS,
   DEFAULT_ALLOW_UNLIMITED_CONTRACT_SIZE,
-  DEFAULT_BASE_FEE_PER_GAS,
   DEFAULT_BLOCK_GAS_LIMIT,
   DEFAULT_CHAIN_ID,
   DEFAULT_HARDFORK,
@@ -59,7 +58,7 @@ export function useProvider({
   blockGasLimit = DEFAULT_BLOCK_GAS_LIMIT,
   accounts = DEFAULT_ACCOUNTS,
   allowUnlimitedContractSize = DEFAULT_ALLOW_UNLIMITED_CONTRACT_SIZE,
-  initialBaseFeePerGas = DEFAULT_BASE_FEE_PER_GAS,
+  initialBaseFeePerGas,
 }: UseProviderOptions = {}) {
   beforeEach("Initialize provider", async function () {
     this.logger = new FakeModulesLogger(loggerEnabled);

@@ -1,10 +1,6 @@
 import { assert } from "chai";
-import { BN } from "ethereumjs-util";
 
-import {
-  numberToRpcQuantity,
-  rpcQuantityToBN,
-} from "../../../../src/internal/core/jsonrpc/types/base-types";
+import { numberToRpcQuantity } from "../../../../src/internal/core/jsonrpc/types/base-types";
 
 import { DEFAULT_ACCOUNTS_ADDRESSES } from "./providers";
 
@@ -24,11 +20,12 @@ declare module "mocha" {
     assertLatestBlockTxs: (txs: string[]) => Promise<void>;
     assertPendingTxs: (txs: string[]) => Promise<void>;
     mine: () => Promise<void>;
-    getBaseFeePerGas: (blockNumber: number) => Promise<BN>;
-    getLatestBaseFeePerGas: () => Promise<BN>;
   }
 }
 
+/**
+ * @deprecated
+ */
 export function useHelpers() {
   beforeEach("Initialize helpers", async function () {
     if (this.provider === undefined) {
@@ -39,7 +36,7 @@ export function useHelpers() {
       from = DEFAULT_ACCOUNTS_ADDRESSES[1],
       to = DEFAULT_ACCOUNTS_ADDRESSES[2],
       gas = 21000,
-      gasPrice = 10,
+      gasPrice = 1e9,
       data,
       nonce,
       value,
@@ -76,24 +73,6 @@ export function useHelpers() {
     this.mine = async () => {
       await this.provider.send("evm_mine");
     };
-
-    this.getBaseFeePerGas = async (blockNumber: number): Promise<BN> => {
-      const block = await this.provider.send("eth_getBlockByNumber", [
-        numberToRpcQuantity(blockNumber),
-        false,
-      ]);
-
-      return rpcQuantityToBN(block.baseFeePerGas);
-    };
-
-    this.getLatestBaseFeePerGas = async (): Promise<BN> => {
-      const block = await this.provider.send("eth_getBlockByNumber", [
-        "latest",
-        false,
-      ]);
-
-      return rpcQuantityToBN(block.baseFeePerGas);
-    };
   });
 
   afterEach("Remove helpers", async function () {
@@ -101,7 +80,5 @@ export function useHelpers() {
     delete (this as any).assertLatestBlockTxs;
     delete (this as any).assertPendingTxs;
     delete (this as any).mine;
-    delete (this as any).getBaseFeePerGas;
-    delete (this as any).getLatestBaseFeePerGas;
   });
 }

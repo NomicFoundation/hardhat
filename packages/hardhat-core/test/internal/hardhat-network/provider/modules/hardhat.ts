@@ -1272,6 +1272,8 @@ describe("Hardhat module", function () {
       });
 
       describe("hardhat_setMinGasPrice", () => {
+        useProvider({ hardfork: "berlin" });
+
         it("makes txs below the new min gas price not minable", async function () {
           await this.provider.send("evm_setAutomine", [false]);
 

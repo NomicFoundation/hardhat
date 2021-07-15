@@ -38,13 +38,14 @@ describe("Eth module", function () {
 
     describe(`${name} provider`, function () {
       setCWD();
-      useProvider();
-      useHelpers();
-
-      const getFirstBlock = async () =>
-        isFork ? retrieveForkBlockNumber(this.ctx.hardhatNetworkProvider) : 0;
 
       describe("eth_sendTransaction", async function () {
+        useProvider();
+        useHelpers();
+
+        const getFirstBlock = async () =>
+          isFork ? retrieveForkBlockNumber(this.ctx.hardhatNetworkProvider) : 0;
+
         // Because of the way we are testing this (i.e. integration testing) it's almost impossible to
         // fully test this method in a reasonable amount of time. This is because it executes the core
         // of Ethereum: its state transition function.
@@ -61,7 +62,7 @@ describe("Eth module", function () {
                 from: zeroAddress(),
                 to: DEFAULT_ACCOUNTS_ADDRESSES[0],
                 gas: numberToRpcQuantity(21000),
-                gasPrice: numberToRpcQuantity(10),
+                gasPrice: numberToRpcQuantity(10e9),
               },
               "unknown account",
               InvalidInputError.CODE
@@ -83,7 +84,7 @@ describe("Eth module", function () {
               {
                 from: DEFAULT_ACCOUNTS_ADDRESSES[0],
                 gas: numberToRpcQuantity(21000),
-                gasPrice: numberToRpcQuantity(10),
+                gasPrice: numberToRpcQuantity(10e9),
               },
               "contract creation without any data provided",
               InvalidInputError.CODE
@@ -95,7 +96,7 @@ describe("Eth module", function () {
                 from: DEFAULT_ACCOUNTS_ADDRESSES[0],
                 data: "0x",
                 gas: numberToRpcQuantity(21000),
-                gasPrice: numberToRpcQuantity(10),
+                gasPrice: numberToRpcQuantity(10e9),
               },
               "contract creation without any data provided",
               InvalidInputError.CODE
@@ -109,8 +110,8 @@ describe("Eth module", function () {
                 to: DEFAULT_ACCOUNTS_ADDRESSES[1],
                 value: numberToRpcQuantity(1),
                 gas: numberToRpcQuantity(21000),
-                maxFeePerGas: numberToRpcQuantity(10),
-                maxPriorityFeePerGas: numberToRpcQuantity(10),
+                maxFeePerGas: numberToRpcQuantity(10e9),
+                maxPriorityFeePerGas: numberToRpcQuantity(10e9),
               },
             ]);
 
@@ -125,7 +126,7 @@ describe("Eth module", function () {
                 to: DEFAULT_ACCOUNTS_ADDRESSES[1],
                 value: numberToRpcQuantity(1),
                 gas: numberToRpcQuantity(21000),
-                gasPrice: numberToRpcQuantity(10),
+                gasPrice: numberToRpcQuantity(10e9),
                 maxFeePerGas: numberToRpcQuantity(10),
                 maxPriorityFeePerGas: numberToRpcQuantity(10),
               },
@@ -210,7 +211,7 @@ describe("Eth module", function () {
                 to: DEFAULT_ACCOUNTS_ADDRESSES[1],
                 value: numberToRpcQuantity(1),
                 gas: numberToRpcQuantity(21000),
-                gasPrice: numberToRpcQuantity(10),
+                gasPrice: numberToRpcQuantity(10e9),
               },
             ]);
 
@@ -441,7 +442,7 @@ describe("Eth module", function () {
                       from: DEFAULT_ACCOUNTS_ADDRESSES[1],
                       to: DEFAULT_ACCOUNTS_ADDRESSES[2],
                       gas: numberToRpcQuantity(21000),
-                      gasPrice: numberToRpcQuantity(10),
+                      gasPrice: numberToRpcQuantity(10e9),
                       value: wholeAccountBalance,
                     },
                   ],
@@ -502,7 +503,7 @@ describe("Eth module", function () {
               });
 
               it("Should throw if the sender doesn't have enough balance as a result of mining pending transactions first", async function () {
-                const gasPrice = 10;
+                const gasPrice = new BN(10e9);
 
                 const sendTransaction = async (
                   nonce: number,
@@ -527,7 +528,7 @@ describe("Eth module", function () {
                 await sendTransaction(1, 0);
                 await sendTransaction(
                   2,
-                  initialBalance.subn(3 * gasPrice * 21_000)
+                  initialBalance.sub(gasPrice.muln(21_000).muln(3))
                 );
 
                 await this.provider.send("evm_setAutomine", [true]);
@@ -622,7 +623,7 @@ describe("Eth module", function () {
                 from: DEFAULT_ACCOUNTS_ADDRESSES[1],
                 to: DEFAULT_ACCOUNTS_ADDRESSES[2],
                 nonce: numberToRpcQuantity(0),
-                gasPrice: numberToRpcQuantity(20),
+                gasPrice: numberToRpcQuantity(20e9),
               },
             ]);
             let tx1 = await this.provider.send("eth_getTransactionByHash", [
@@ -635,7 +636,7 @@ describe("Eth module", function () {
                 from: DEFAULT_ACCOUNTS_ADDRESSES[1],
                 to: DEFAULT_ACCOUNTS_ADDRESSES[2],
                 nonce: numberToRpcQuantity(0),
-                gasPrice: numberToRpcQuantity(30),
+                gasPrice: numberToRpcQuantity(30e9),
               },
             ]);
             tx1 = await this.provider.send("eth_getTransactionByHash", [
@@ -708,7 +709,7 @@ describe("Eth module", function () {
                 from: DEFAULT_ACCOUNTS_ADDRESSES[1],
                 to: DEFAULT_ACCOUNTS_ADDRESSES[2],
                 nonce: numberToRpcQuantity(0),
-                gasPrice: numberToRpcQuantity(20),
+                gasPrice: numberToRpcQuantity(20e9),
               },
             ]);
             let tx1 = await this.provider.send("eth_getTransactionByHash", [
@@ -724,10 +725,10 @@ describe("Eth module", function () {
                   from: DEFAULT_ACCOUNTS_ADDRESSES[1],
                   to: DEFAULT_ACCOUNTS_ADDRESSES[2],
                   nonce: numberToRpcQuantity(0),
-                  gasPrice: numberToRpcQuantity(21),
+                  gasPrice: numberToRpcQuantity(21e9),
                 },
               ],
-              "Replacement transaction underpriced. A priority fee of at least 22 is necessary to replace the existing transaction."
+              "Replacement transaction underpriced. A priority fee of at least 22000000000 is necessary to replace the existing transaction."
             );
 
             // check that original tx was not replaced
@@ -751,71 +752,6 @@ describe("Eth module", function () {
             assert.lengthOf(minedBlock.transactions, 1);
             assert.equal(minedBlock.transactions[0], tx1.hash);
           });
-
-          describe("minGasPrice", function () {
-            const minGasPrice = 20;
-
-            beforeEach(async function () {
-              await this.provider.send("hardhat_setMinGasPrice", [
-                numberToRpcQuantity(minGasPrice),
-              ]);
-            });
-
-            it("should not mine transactions with a gas price below the minimum", async function () {
-              const txHash1 = await this.sendTx({
-                nonce: 0,
-                gasPrice: minGasPrice - 1,
-              });
-              const txHash2 = await this.sendTx({
-                nonce: 1,
-                gasPrice: minGasPrice - 1,
-              });
-
-              await this.assertPendingTxs([txHash1, txHash2]);
-              await this.mine();
-              await this.assertPendingTxs([txHash1, txHash2]);
-            });
-
-            it("should not mine a queued transaction if previous txs have a low gas price", async function () {
-              const txHash1 = await this.sendTx({
-                nonce: 0,
-                gasPrice: minGasPrice - 1,
-              });
-              const txHash2 = await this.sendTx({
-                nonce: 1,
-                gasPrice: minGasPrice - 1,
-              });
-              const txHash3 = await this.sendTx({
-                nonce: 2,
-                gasPrice: minGasPrice,
-              });
-
-              await this.assertPendingTxs([txHash1, txHash2, txHash3]);
-              await this.mine();
-              await this.assertPendingTxs([txHash1, txHash2, txHash3]);
-            });
-
-            it("should mine a pending tx even if txs from another account have a low gas price", async function () {
-              const txHash1 = await this.sendTx({
-                nonce: 0,
-                gasPrice: minGasPrice - 1,
-              });
-              const txHash2 = await this.sendTx({
-                nonce: 1,
-                gasPrice: minGasPrice - 1,
-              });
-              const txHash3 = await this.sendTx({
-                from: DEFAULT_ACCOUNTS_ADDRESSES[2],
-                nonce: 0,
-                gasPrice: minGasPrice + 1,
-              });
-
-              await this.assertPendingTxs([txHash1, txHash2, txHash3]);
-              await this.mine();
-              await this.assertPendingTxs([txHash1, txHash2]);
-              await this.assertLatestBlockTxs([txHash3]);
-            });
-          });
         });
 
         describe("return txHash", () => {
@@ -830,14 +766,13 @@ describe("Eth module", function () {
                   from: DEFAULT_ACCOUNTS_ADDRESSES[0],
                   to: "0x0000000000000000000000000000000000000001",
                   gas: numberToRpcQuantity(21000), // Address 1 is a precompile, so this will OOG
-                  gasPrice: numberToRpcQuantity(10),
+                  gasPrice: numberToRpcQuantity(10e9),
                 },
               ]);
 
               assert.fail("Tx should have failed");
             } catch (e) {
               assert.notInclude(e.message, "Tx should have failed");
-
               assert.isDefined(e.data.txHash);
             }
           });
@@ -914,6 +849,75 @@ describe("Eth module", function () {
           ]);
 
           assert.isTrue(new BN(toBuffer(balanceAfter)).isZero());
+        });
+      });
+
+      describe("eth_sendTransaction with minGasPrice", function () {
+        useProvider({ hardfork: "berlin" });
+        useHelpers();
+
+        const minGasPrice = 20;
+
+        beforeEach(async function () {
+          await this.provider.send("evm_setAutomine", [false]);
+          await this.provider.send("hardhat_setMinGasPrice", [
+            numberToRpcQuantity(minGasPrice),
+          ]);
+        });
+
+        it("should not mine transactions with a gas price below the minimum", async function () {
+          const txHash1 = await this.sendTx({
+            nonce: 0,
+            gasPrice: minGasPrice - 1,
+          });
+          const txHash2 = await this.sendTx({
+            nonce: 1,
+            gasPrice: minGasPrice - 1,
+          });
+
+          await this.assertPendingTxs([txHash1, txHash2]);
+          await this.mine();
+          await this.assertPendingTxs([txHash1, txHash2]);
+        });
+
+        it("should not mine a queued transaction if previous txs have a low gas price", async function () {
+          const txHash1 = await this.sendTx({
+            nonce: 0,
+            gasPrice: minGasPrice - 1,
+          });
+          const txHash2 = await this.sendTx({
+            nonce: 1,
+            gasPrice: minGasPrice - 1,
+          });
+          const txHash3 = await this.sendTx({
+            nonce: 2,
+            gasPrice: minGasPrice,
+          });
+
+          await this.assertPendingTxs([txHash1, txHash2, txHash3]);
+          await this.mine();
+          await this.assertPendingTxs([txHash1, txHash2, txHash3]);
+        });
+
+        it("should mine a pending tx even if txs from another account have a low gas price", async function () {
+          const txHash1 = await this.sendTx({
+            nonce: 0,
+            gasPrice: minGasPrice - 1,
+          });
+          const txHash2 = await this.sendTx({
+            nonce: 1,
+            gasPrice: minGasPrice - 1,
+          });
+          const txHash3 = await this.sendTx({
+            from: DEFAULT_ACCOUNTS_ADDRESSES[2],
+            nonce: 0,
+            gasPrice: minGasPrice + 1,
+          });
+
+          await this.assertPendingTxs([txHash1, txHash2, txHash3]);
+          await this.mine();
+          await this.assertPendingTxs([txHash1, txHash2]);
+          await this.assertLatestBlockTxs([txHash3]);
         });
       });
     });

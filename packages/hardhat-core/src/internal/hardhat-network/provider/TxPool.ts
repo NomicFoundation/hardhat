@@ -19,6 +19,7 @@ import { FakeSenderAccessListEIP2930Transaction } from "./transactions/FakeSende
 import { FakeSenderTransaction } from "./transactions/FakeSenderTransaction";
 import { bnToHex } from "./utils/bnToHex";
 import { reorganizeTransactionsLists } from "./utils/reorganizeTransactionsLists";
+import { FakeSenderEIP1559Transaction } from "./transactions/FakeSenderEIP1559Transaction";
 
 /* eslint-disable @nomiclabs/only-hardhat-error */
 
@@ -28,7 +29,8 @@ export function serializeTransaction(
   const rlpSerialization = bufferToHex(tx.data.serialize());
   const isFake =
     tx.data instanceof FakeSenderTransaction ||
-    tx.data instanceof FakeSenderAccessListEIP2930Transaction;
+    tx.data instanceof FakeSenderAccessListEIP2930Transaction ||
+    tx.data instanceof FakeSenderEIP1559Transaction;
   return makeSerializedTransaction({
     orderId: tx.orderId,
     fakeFrom: isFake ? tx.data.getSenderAddress().toString() : undefined,
@@ -55,6 +57,12 @@ export function deserializeTransaction(
         serialization,
         { common }
       );
+    } else if (tx.get("txType") === 2) {
+      data = FakeSenderEIP1559Transaction.fromSenderAndRlpSerializedTx(
+        sender,
+        serialization,
+        { common }
+      );
     } else {
       data = FakeSenderTransaction.fromSenderAndRlpSerializedTx(
         sender,
@@ -67,6 +75,7 @@ export function deserializeTransaction(
       common,
     });
   }
+
   return {
     orderId: tx.get("orderId"),
     data,
@@ -205,14 +214,22 @@ export class TxPool {
   public getPendingTransactions(): Map<string, OrderedTransaction[]> {
     const deserializedImmutableMap = this._getPending()
       .filter((txs) => txs.size > 0)
-      .map((txs) => txs.map(this._deserializeTransaction).toJS());
+      .map(
+        (txs) =>
+          txs.map(this._deserializeTransaction).toJS() as OrderedTransaction[]
+      );
+
     return new Map(deserializedImmutableMap.entries());
   }
 
   public getQueuedTransactions(): Map<string, OrderedTransaction[]> {
     const deserializedImmutableMap = this._getQueued()
       .filter((txs) => txs.size > 0)
-      .map((txs) => txs.map(this._deserializeTransaction).toJS());
+      .map(
+        (txs) =>
+          txs.map(this._deserializeTransaction).toJS() as OrderedTransaction[]
+      );
+
     return new Map(deserializedImmutableMap.entries());
   }
 

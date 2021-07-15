@@ -93,8 +93,8 @@ describe("Eth module - hardfork dependant tests", function () {
       {
         to: "0x1111111111111111111111111111111111111111",
         gasLimit: 21000,
-        maxFeePerGas: 10,
-        maxPriorityFeePerGas: 10,
+        maxFeePerGas: 10e9,
+        maxPriorityFeePerGas: 1e9,
       },
       {
         common,

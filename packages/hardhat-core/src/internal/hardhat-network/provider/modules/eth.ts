@@ -81,6 +81,7 @@ import {
   shouldShowTransactionTypeForHardfork,
 } from "../output";
 
+import { assertHardhatNetworkInvariant } from "../utils/assertions";
 import { ModulesLogger } from "./logger";
 
 const ACCESS_LIST_MIN_HARDFORK = "berlin";
@@ -1211,15 +1212,34 @@ You can use them by running Hardhat Network with 'hardfork' ${ACCESS_LIST_MIN_HA
             ),
     };
 
+    // TODO(London): Test these new defaults
     if (
-      rpcTx.maxFeePerGas !== undefined &&
-      rpcTx.maxPriorityFeePerGas !== undefined
+      this._node.isEip1559Active() &&
+      (rpcTx.maxFeePerGas !== undefined ||
+        rpcTx.maxPriorityFeePerGas !== undefined ||
+        rpcTx.gasPrice === undefined)
     ) {
-      // EIP-1559 params
       const accessList =
         rpcTx.accessList !== undefined
           ? this._rpcAccessListToNodeAccessList(rpcTx.accessList)
           : [];
+
+      if (rpcTx.maxPriorityFeePerGas === undefined) {
+        rpcTx.maxPriorityFeePerGas = await this._node.getMaxPriorityFeePerGas();
+      }
+
+      if (rpcTx.maxFeePerGas === undefined) {
+        const baseFeePerGas = await this._node.getNextBlockBaseFeePerGas();
+
+        assertHardhatNetworkInvariant(
+          baseFeePerGas !== undefined,
+          "EIP-1559 transactions should only be sent if the next block has baseFeePerGas"
+        );
+
+        rpcTx.maxFeePerGas = baseFeePerGas
+          .muln(2)
+          .add(rpcTx.maxPriorityFeePerGas);
+      }
 
       return {
         ...baseParams,
@@ -1229,10 +1249,7 @@ You can use them by running Hardhat Network with 'hardfork' ${ACCESS_LIST_MIN_HA
       };
     }
 
-    const gasPrice =
-      rpcTx.gasPrice !== undefined
-        ? rpcTx.gasPrice
-        : await this._node.getGasPrice();
+    const gasPrice = rpcTx.gasPrice ?? (await this._node.getGasPrice());
 
     // AccessList params
     if (rpcTx.accessList !== undefined) {
@@ -1251,6 +1268,17 @@ You can use them by running Hardhat Network with 'hardfork' ${ACCESS_LIST_MIN_HA
   }
 
   private _validateRpcTransaction(rpcTx: RpcTransactionRequest) {
+    // TODO(London): Test these new validations
+    if (
+      !this._node.isEip1559Active() &&
+      (rpcTx.maxFeePerGas !== undefined ||
+        rpcTx.maxPriorityFeePerGas !== undefined)
+    ) {
+      throw new InvalidInputError(
+        "Trying to send an EIP-1559 transaction but the EIP is not active"
+      );
+    }
+
     if (rpcTx.gasPrice !== undefined && rpcTx.maxFeePerGas !== undefined) {
       throw new InvalidInputError(
         "Transaction cannot have both gasPrice and maxFeePerGas"
@@ -1263,24 +1291,6 @@ You can use them by running Hardhat Network with 'hardfork' ${ACCESS_LIST_MIN_HA
     ) {
       throw new InvalidInputError(
         "Transaction cannot have both gasPrice and maxPriorityFeePerGas"
-      );
-    }
-
-    if (
-      rpcTx.maxFeePerGas !== undefined &&
-      rpcTx.maxPriorityFeePerGas === undefined
-    ) {
-      throw new InvalidInputError(
-        "Transaction has maxFeePerGas but not maxPriorityFeePerGas"
-      );
-    }
-
-    if (
-      rpcTx.maxFeePerGas === undefined &&
-      rpcTx.maxPriorityFeePerGas !== undefined
-    ) {
-      throw new InvalidInputError(
-        "Transaction has maxPriorityFeePerGas but not maxFeePerGas"
       );
     }
 

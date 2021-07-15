@@ -1,11 +1,58 @@
 import { assert } from "chai";
-import { BN } from "ethereumjs-util";
 
 import { workaroundWindowsCiFailures } from "../../../utils/workaround-windows-ci-failures";
-import { setCWD } from "../helpers/cwd";
 import { PROVIDERS } from "../helpers/providers";
-import { retrieveForkBlockNumber } from "../helpers/retrieveForkBlockNumber";
-import { useHelpers } from "../helpers/useHelpers";
+import {
+  numberToRpcQuantity,
+  rpcQuantityToBN,
+} from "../../../../src/internal/core/jsonrpc/types/base-types";
+import { EthereumProvider } from "../../../../src/types";
+
+async function getLatestBaseFeePerGas(provider: EthereumProvider) {
+  const block = await provider.send("eth_getBlockByNumber", ["latest", false]);
+
+  if (block.baseFeePerGas === undefined) {
+    return undefined;
+  }
+
+  return rpcQuantityToBN(block.baseFeePerGas);
+}
+
+async function assertLatestBaseFeePerGas(
+  provider: EthereumProvider,
+  expectedBaseFeePerGas: number
+) {
+  const baseFeePerGas = await getLatestBaseFeePerGas(provider);
+
+  assert.isDefined(baseFeePerGas);
+  assert.equal(baseFeePerGas!.toString(), expectedBaseFeePerGas.toString());
+}
+
+async function sendValueTransferTx(provider: EthereumProvider, sender: string) {
+  await provider.send("eth_sendTransaction", [
+    {
+      from: sender,
+      to: sender,
+      gas: numberToRpcQuantity(21000),
+    },
+  ]);
+}
+
+async function mineBlockWithValueTransferTxs(
+  provider: EthereumProvider,
+  valueTransferTxs: number
+) {
+  await provider.send("evm_setAutomine", [false]);
+  const [sender] = await provider.send("eth_accounts");
+
+  for (let i = 0; i < valueTransferTxs; i++) {
+    await sendValueTransferTx(provider, sender);
+  }
+
+  await provider.send("evm_mine");
+
+  await provider.send("evm_setAutomine", [true]);
+}
 
 describe("Block's baseFeePerGas", function () {
   PROVIDERS.forEach(({ name, useProvider, isFork }) => {
@@ -16,117 +63,130 @@ describe("Block's baseFeePerGas", function () {
     workaroundWindowsCiFailures.call(this, { isFork });
 
     describe(`${name} provider`, function () {
-      const initialBaseFeePerGas = new BN(1_000_000_000);
-      setCWD();
-      useProvider({
-        blockGasLimit: 63000,
-        initialBaseFeePerGas: initialBaseFeePerGas.toNumber(),
-      });
-      useHelpers();
+      describe("Initial base fee per gas", function () {
+        if (!isFork) {
+          describe("When not forking from a remote network the first block must have the right value", function () {
+            describe("With an initialBaseFeePerGas config value", function () {
+              useProvider({ initialBaseFeePerGas: 123 });
 
-      const getFirstBlock = async () =>
-        isFork ? retrieveForkBlockNumber(this.ctx.hardhatNetworkProvider) : 0;
+              it("should use the given value", async function () {
+                await assertLatestBaseFeePerGas(this.provider, 123);
+              });
+            });
 
-      it("Should start with the initial base fee", async function () {
-        const baseFeePerGas = await this.getLatestBaseFeePerGas();
+            describe("Without an initialBaseFeePerGas config value", function () {
+              useProvider({});
 
-        assert(baseFeePerGas.eq(initialBaseFeePerGas));
-      });
+              it("should use the initial base fee from the EIP (i.e. 1gwei)", async function () {
+                await assertLatestBaseFeePerGas(this.provider, 1_000_000_000);
+              });
+            });
+          });
+        } else {
+          describe("When forking from a remote network the next block must have the right value", function () {
+            describe("With an initialBaseFeePerGas config value", function () {
+              useProvider({ initialBaseFeePerGas: 123123 });
 
-      it("Should reduce the base fee if the block is empty", async function () {
-        await this.provider.send("evm_mine");
+              it("should use the given value", async function () {
+                await mineBlockWithValueTransferTxs(this.provider, 0);
+                await assertLatestBaseFeePerGas(this.provider, 123123);
+              });
+            });
 
-        const baseFeePerGas1 = await this.getLatestBaseFeePerGas();
-        assert.equal(baseFeePerGas1.toString(), "875000000");
+            describe("Without an initialBaseFeePerGas config value", function () {
+              describe("When forking from an EIP-1559 network", function () {
+                useProvider({});
 
-        await this.provider.send("evm_mine");
+                it("Should use the same base fee as the one remote networks's next block", async function () {
+                  await this.provider.send("evm_mine");
+                  // TODO: Implement once we have access to an EIP-1559 network
+                  // await assertLatestBaseFeePerGas(this.provider, ???);
+                });
+              });
 
-        const baseFeePerGas2 = await this.getLatestBaseFeePerGas();
-        assert.equal(baseFeePerGas2.toString(), "765625000");
-      });
-
-      it("Should increase the base fee if the block is full", async function () {
-        await this.provider.send("evm_setAutomine", [false]);
-
-        const firstBlock = await getFirstBlock();
-
-        // send 3 txs to fill the block
-        const gasPrice = initialBaseFeePerGas.toNumber();
-        await this.sendTx({ gasPrice });
-        await this.sendTx({ gasPrice });
-        await this.sendTx({ gasPrice });
-        await this.provider.send("evm_mine");
-
-        // send 3 txs to fill the block
-        await this.sendTx({ gasPrice });
-        await this.sendTx({ gasPrice });
-        await this.sendTx({ gasPrice });
-        await this.provider.send("evm_mine");
-        // mine a new block to check the baseFeePerGas after the second full block
-        await this.provider.send("evm_mine");
-
-        // check baseFeePerGas after first full block
-        const baseFeePerGas1 = await this.getBaseFeePerGas(firstBlock + 2);
-        assert.equal(baseFeePerGas1.toString(), "984375000");
-
-        // check baseFeePerGas after second full block
-        const baseFeePerGas2 = await this.getBaseFeePerGas(firstBlock + 3);
-        assert.equal(baseFeePerGas2.toString(), "1107421875");
+              describe("When forking from a non-EIP1559 network", function () {
+                useProvider({});
+                it("should use the initial base fee from the EIP (i.e. 1gwei)", async function () {
+                  await mineBlockWithValueTransferTxs(this.provider, 0);
+                  await assertLatestBaseFeePerGas(this.provider, 1_000_000_000);
+                });
+              });
+            });
+          });
+        }
       });
 
-      it("Should increase the base fee if the block is full", async function () {
-        await this.provider.send("evm_setAutomine", [false]);
+      describe("Base fee adjustment", function () {
+        // These tests will run 6 blocks:
+        //   The first one will be empty,
+        //   The second one will be 1/4 filled
+        //   The third one will be 1/2 filled, matching the gas target exactly
+        //   The forth will be 3/4 filled
+        //   The fifth will be completely filled
+        //
+        // All of the tests have a blockGasLimit of 21_000 * 4, so blocks can
+        // only accept 4 value transfer txs.
+        //
+        // The initialBaseFeePerGas is 1_000_000_000, so the gas fee of the
+        // blocks will be:
+        //   1. 1_000_000_000 -- empty
+        //   2. 875_000_000 -- 1/4 full
+        //   3. 820_312_500 -- 1/2 full
+        //   4. 820_312_500 -- 3/4 full
+        //   5. 871_582_031 -- full
+        //   6. 980529784 -- doesn't matter if full or not
 
-        const firstBlock = await getFirstBlock();
+        async function validateTheNext6BlocksBaseFeePerGas(
+          provider: EthereumProvider
+        ) {
+          await assertLatestBaseFeePerGas(provider, 1_000_000_000);
 
-        // send 3 txs to fill the block
-        const gasPrice = initialBaseFeePerGas.toNumber();
-        await this.sendTx({ gasPrice });
-        await this.sendTx({ gasPrice });
-        await this.sendTx({ gasPrice });
-        await this.provider.send("evm_mine");
+          await mineBlockWithValueTransferTxs(provider, 1);
 
-        // send 3 txs to fill the block
-        await this.sendTx({ gasPrice });
-        await this.sendTx({ gasPrice });
-        await this.sendTx({ gasPrice });
-        await this.provider.send("evm_mine");
-        // mine a new block to check the baseFeePerGas after the second full block
-        await this.provider.send("evm_mine");
+          await assertLatestBaseFeePerGas(provider, 875_000_000);
 
-        // check baseFeePerGas after first full block
-        const baseFeePerGas1 = await this.getBaseFeePerGas(firstBlock + 2);
-        assert.equal(baseFeePerGas1.toString(), "984375000");
+          await mineBlockWithValueTransferTxs(provider, 2);
 
-        // check baseFeePerGas after second full block
-        const baseFeePerGas2 = await this.getBaseFeePerGas(firstBlock + 3);
-        assert.equal(baseFeePerGas2.toString(), "1107421875");
-      });
+          await assertLatestBaseFeePerGas(provider, 820_312_500);
 
-      it("Should correctly update the base fee after a full and an empty block", async function () {
-        await this.provider.send("evm_setAutomine", [false]);
+          await mineBlockWithValueTransferTxs(provider, 3);
 
-        const firstBlock = await getFirstBlock();
+          await assertLatestBaseFeePerGas(provider, 820_312_500);
 
-        // send 3 txs to fill the block
-        const gasPrice = initialBaseFeePerGas.toNumber();
-        await this.sendTx({ gasPrice });
-        await this.sendTx({ gasPrice });
-        await this.sendTx({ gasPrice });
-        await this.provider.send("evm_mine");
+          await mineBlockWithValueTransferTxs(provider, 4);
 
-        // mine an empty block
-        await this.provider.send("evm_mine");
-        // mine a new block to check the baseFeePerGas after the empty block
-        await this.provider.send("evm_mine");
+          await assertLatestBaseFeePerGas(provider, 871_582_031);
 
-        // check baseFeePerGas after first full block
-        const baseFeePerGas1 = await this.getBaseFeePerGas(firstBlock + 2);
-        assert.equal(baseFeePerGas1.toString(), "984375000");
+          await mineBlockWithValueTransferTxs(provider, 0);
 
-        // check baseFeePerGas after second full block
-        const baseFeePerGas2 = await this.getBaseFeePerGas(firstBlock + 3);
-        assert.equal(baseFeePerGas2.toString(), "861328125");
+          await assertLatestBaseFeePerGas(provider, 980_529_784);
+        }
+
+        if (!isFork) {
+          describe("When not forking", function () {
+            useProvider({
+              blockGasLimit: 21000 * 4,
+              initialBaseFeePerGas: 1_000_000_000,
+            });
+
+            it("should update the baseFeePerGas starting with the first block", async function () {
+              await validateTheNext6BlocksBaseFeePerGas(this.provider);
+            });
+          });
+        } else {
+          describe("When not forking", function () {
+            useProvider({
+              blockGasLimit: 21000 * 4,
+              initialBaseFeePerGas: 1_000_000_000,
+            });
+
+            it("should update the baseFeePerGas starting with the first block", async function () {
+              // We mine an empty block first, to make the scenario match the non-forking one
+              await mineBlockWithValueTransferTxs(this.provider, 0);
+              await validateTheNext6BlocksBaseFeePerGas(this.provider);
+            });
+          });
+        }
       });
     });
   });

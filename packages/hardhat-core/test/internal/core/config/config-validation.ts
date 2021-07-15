@@ -1278,5 +1278,43 @@ describe("Config validation", function () {
 
       assert.isEmpty(errors);
     });
+
+    describe("London-specific fields and validations", function () {
+      describe("Hardhat network", function () {
+        describe("When using a hardfork before London", function () {
+          it("Should throw if an initialBaseFeePerGas is used", function () {
+            expectHardhatError(
+              () =>
+                validateConfig({
+                  networks: {
+                    hardhat: {
+                      hardfork: "berlin",
+                      initialBaseFeePerGas: 123,
+                    },
+                  },
+                }),
+              ERRORS.GENERAL.INVALID_CONFIG
+            );
+          });
+        });
+
+        describe("When using London", function () {
+          it("Should throw if minGasPrice is used", function () {
+            expectHardhatError(
+              () =>
+                validateConfig({
+                  networks: {
+                    hardhat: {
+                      hardfork: "london",
+                      minGasPrice: 123,
+                    },
+                  },
+                }),
+              ERRORS.GENERAL.INVALID_CONFIG
+            );
+          });
+        });
+      });
+    });
   });
 });
