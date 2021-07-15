@@ -205,14 +205,22 @@ export class TxPool {
   public getPendingTransactions(): Map<string, OrderedTransaction[]> {
     const deserializedImmutableMap = this._getPending()
       .filter((txs) => txs.size > 0)
-      .map((txs) => txs.map(this._deserializeTransaction).toJS());
+      .map(
+        (txs) =>
+          txs.map(this._deserializeTransaction).toJS() as OrderedTransaction[]
+      );
+
     return new Map(deserializedImmutableMap.entries());
   }
 
   public getQueuedTransactions(): Map<string, OrderedTransaction[]> {
     const deserializedImmutableMap = this._getQueued()
       .filter((txs) => txs.size > 0)
-      .map((txs) => txs.map(this._deserializeTransaction).toJS());
+      .map(
+        (txs) =>
+          txs.map(this._deserializeTransaction).toJS() as OrderedTransaction[]
+      );
+
     return new Map(deserializedImmutableMap.entries());
   }
 
