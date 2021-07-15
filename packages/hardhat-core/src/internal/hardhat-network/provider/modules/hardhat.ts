@@ -226,6 +226,12 @@ export class HardhatModule {
       throw new InvalidInputError("Minimum gas price cannot be negative");
     }
 
+    if (this._node.isEip1559Active()) {
+      throw new InvalidInputError(
+        "hardhat_setMinGasPrice is not support when EIP-1559 is active"
+      );
+    }
+
     await this._node.setMinGasPrice(minGasPrice);
     return true;
   }

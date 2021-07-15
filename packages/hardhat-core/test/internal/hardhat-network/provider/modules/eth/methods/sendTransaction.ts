@@ -393,25 +393,6 @@ describe("Eth module", function () {
             );
           });
 
-          it("Should throw if the gas price is below the minimum gas price", async function () {
-            await this.provider.send("hardhat_setMinGasPrice", [
-              numberToRpcQuantity(20),
-            ]);
-
-            await assertInvalidInputError(
-              this.provider,
-              "eth_sendTransaction",
-              [
-                {
-                  from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-                  to: DEFAULT_ACCOUNTS_ADDRESSES[1],
-                  gasPrice: numberToRpcQuantity(10),
-                },
-              ],
-              "Transaction gas price is 10, which is below the minimum of 20"
-            );
-          });
-
           describe("when there are pending transactions in the mempool", () => {
             describe("when the sent transaction fits in the first block", () => {
               it("Should throw if the sender doesn't have enough balance as a result of mining pending transactions first", async function () {
