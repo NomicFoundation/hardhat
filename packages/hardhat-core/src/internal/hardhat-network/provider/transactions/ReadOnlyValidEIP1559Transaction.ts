@@ -11,8 +11,7 @@ import { InternalError } from "../../../core/providers/errors";
 /* eslint-disable @nomiclabs/only-hardhat-error */
 
 /**
- * This class is like `ReadOnlyValidTransaction` but for
- * EIP-2930 (access list) transactions.
+ * This class is like `ReadOnlyValidTransaction` but for EIP-1559 transactions.
  */
 export class ReadOnlyValidEIP1559Transaction extends FeeMarketEIP1559Transaction {
   public static fromTxData(
@@ -62,7 +61,7 @@ export class ReadOnlyValidEIP1559Transaction extends FeeMarketEIP1559Transaction
     });
 
     // this class should only be used with txs in a hardfork that
-    // supports EIP-2930
+    // supports EIP-1559
     (fakeCommon as any).isActivatedEIP = (eip: number) => {
       if (eip === 2930) {
         return true;
@@ -77,8 +76,8 @@ export class ReadOnlyValidEIP1559Transaction extends FeeMarketEIP1559Transaction
       );
     };
 
-    // this class should only be used with EIP-2930 txs,
-    // which (we assume) always have a defined `chainId` value
+    // this class should only be used with EIP-1559 txs,
+    // which always have a `chainId` value
     (fakeCommon as any).chainIdBN = () => {
       if (data.chainId !== undefined) {
         return new BN(data.chainId);
