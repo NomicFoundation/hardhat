@@ -32,6 +32,7 @@ export const rpcTransactionReceipt = t.type(
     status: optional(nullable(t.union([rpcQuantity, rpcQuantityAsNumber]))),
     root: optional(rpcData),
     type: optional(rpcQuantity),
+    effectiveGasPrice: optional(rpcQuantity),
   },
   "RpcTransactionReceipt"
 );

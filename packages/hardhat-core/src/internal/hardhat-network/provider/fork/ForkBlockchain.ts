@@ -15,6 +15,7 @@ import {
   remoteReceiptToRpcReceiptOutput,
   RpcLogOutput,
   RpcReceiptOutput,
+  shouldShowEffectiveGasPriceForHardfork,
   shouldShowTransactionTypeForHardfork,
   toRpcLogOutput,
 } from "../output";
@@ -388,7 +389,8 @@ export class ForkBlockchain implements HardhatBlockchainInterface {
     const receipt = remoteReceiptToRpcReceiptOutput(
       txReceipt,
       tx!,
-      shouldShowTransactionTypeForHardfork(this._common)
+      shouldShowTransactionTypeForHardfork(this._common),
+      shouldShowEffectiveGasPriceForHardfork(this._common)
     );
 
     this._data.addTransactionReceipt(receipt);
