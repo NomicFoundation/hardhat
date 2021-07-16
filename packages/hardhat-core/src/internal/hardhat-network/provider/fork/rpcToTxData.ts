@@ -6,14 +6,13 @@ import { RpcTransaction } from "../../../core/jsonrpc/types/output/transaction";
 export function rpcToTxData(
   rpcTransaction: RpcTransaction
 ): TxData | AccessListEIP2930TxData | FeeMarketEIP1559TxData {
+  const isEip1559 = rpcTransaction.type?.eqn(2) ?? false;
+
   return {
     gasLimit: rpcTransaction.gas,
     // NOTE: RPC EIP-1559 txs still have this field for backwards compatibility,
     //  but FeeMarketEIP1559TxData doesn't.
-    gasPrice:
-      rpcTransaction.type?.eqn(2) ?? false
-        ? undefined
-        : rpcTransaction.gasPrice,
+    gasPrice: isEip1559 ? undefined : rpcTransaction.gasPrice,
     to: rpcTransaction.to ?? undefined,
     nonce: rpcTransaction.nonce,
     data: rpcTransaction.input,
