@@ -112,7 +112,7 @@ interface DeployedContract {
   address: Buffer;
 }
 
-const TEST_TIMEOUT_MILLIS = 35000;
+const TEST_TIMEOUT_MILLIS = 120000;
 
 function defineTest(
   dirPath: string,

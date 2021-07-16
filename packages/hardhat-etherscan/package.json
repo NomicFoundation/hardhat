@@ -1,6 +1,6 @@
 {
   "name": "@nomiclabs/hardhat-etherscan",
-  "version": "2.1.3",
+  "version": "2.1.4",
   "description": "Hardhat plugin for verifying contracts on etherscan",
   "repository": "github:nomiclabs/hardhat",
   "homepage": "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-etherscan",
@@ -20,8 +20,10 @@
     "etherscan"
   ],
   "scripts": {
-    "lint:fix": "prettier --write \"src/**/*.{js,ts}\" \"test/**/*.{js,ts}\" && yarn lint --fix",
-    "lint": "tslint --config tslint.json --project ./tsconfig.json",
+    "lint": "yarn prettier --check && yarn eslint",
+    "lint:fix": "yarn prettier --write && yarn eslint --fix",
+    "eslint": "eslint 'src/**/*.ts' 'test/**/*.ts'",
+    "prettier": "prettier \"**/*.{js,md,json}\"",
     "test": "mocha --recursive \"test/**/*.ts\" --exit",
     "build": "tsc --build .",
     "clean": "rimraf dist"
@@ -50,7 +52,13 @@
     "@types/node-fetch": "^2.3.7",
     "@types/node": "^10.17.24",
     "@types/semver": "^6.0.2",
+    "@typescript-eslint/eslint-plugin": "^4.28.0",
+    "@typescript-eslint/parser": "^4.28.0",
     "chai": "^4.2.0",
+    "eslint": "^7.29.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-import": "^2.23.4",
+    "eslint-plugin-prettier": "^3.4.0",
     "ethers": "^5.0.8",
     "hardhat": "^2.0.4",
     "mocha": "^7.1.2",
@@ -58,10 +66,6 @@
     "prettier": "2.0.5",
     "rimraf": "^3.0.2",
     "ts-node": "^8.1.0",
-    "tslint-config-prettier": "^1.18.0",
-    "tslint-consistent-codestyle": "^1.15.1",
-    "tslint-plugin-prettier": "^2.0.1",
-    "tslint": "^5.16.0",
     "typescript": "~4.0.3"
   },
   "peerDependencies": {

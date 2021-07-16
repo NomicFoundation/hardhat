@@ -30,7 +30,7 @@ class BytecodeTrie {
   constructor(public readonly depth: number) {}
 
   public add(bytecode: Bytecode) {
-    // tslint:disable-next-line no-this-assignment
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     let trieNode: BytecodeTrie = this;
     for (
       let currentCodeByte = 0;
@@ -71,7 +71,7 @@ class BytecodeTrie {
       return undefined;
     }
 
-    // tslint:disable-next-line no-this-assignment
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     let trieNode: BytecodeTrie = this;
     for (; currentCodeByte <= code.length; currentCodeByte += 1) {
       if (currentCodeByte === code.length) {

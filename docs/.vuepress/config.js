@@ -83,7 +83,6 @@ module.exports = {
           collapsable: false,
           depth: 1,
           children: [
-            ["/guides/migrate-from-buidler.md", "Migrating from Buidler", 0],
             ["/guides/project-setup.md", "Setting up a project", 0],
             ["/guides/compile-contracts.md", "Compiling your contracts", 0],
             ["/guides/waffle-testing.md", "Testing with ethers.js & Waffle", 0],
@@ -142,9 +141,9 @@ module.exports = {
       ],
     },
     algolia: {
-      apiKey: '70d2567dd1257c8a53bbb823a0085f02',
-      indexName: 'hardhat'
-    }
+      apiKey: "70d2567dd1257c8a53bbb823a0085f02",
+      indexName: "hardhat",
+    },
   },
   head: [
     [

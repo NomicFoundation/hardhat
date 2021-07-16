@@ -2,8 +2,6 @@ import type cbor from "cbor";
 import debug from "debug";
 import util from "util";
 
-import { pluginName } from "../constants";
-
 interface MetadataDescription {
   solcVersion: string;
   metadataSectionSizeInBytes: number;

@@ -6,7 +6,6 @@ import { BN, toBuffer } from "ethereumjs-util";
 import {
   bufferToRpcData,
   numberToRpcQuantity,
-  rpcDataToNumber,
 } from "../../../../../../src/internal/core/jsonrpc/types/base-types";
 import { assertInvalidArgumentsError } from "../../../helpers/assertions";
 import { DEFAULT_ACCOUNTS_ADDRESSES } from "../../../helpers/providers";
@@ -19,9 +18,9 @@ describe("Eth module - hardfork dependant tests", function () {
     beforeEach(async function () {
       // TODO: Find out a better way to obtain the common here
 
-      // tslint:disable-next-line:no-string-literal
+      // eslint-disable-next-line dot-notation,@typescript-eslint/dot-notation
       await this.hardhatNetworkProvider["_init"]();
-      // tslint:disable-next-line:no-string-literal
+      // eslint-disable-next-line dot-notation,@typescript-eslint/dot-notation
       this.common = this.hardhatNetworkProvider["_common"];
     });
   }

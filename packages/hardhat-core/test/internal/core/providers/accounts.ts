@@ -467,11 +467,6 @@ describe("Local accounts provider", () => {
     });
 
     it("Should throw if data string input is not JSON", async () => {
-      const provider = new LocalAccountsProvider(mock, [
-        // keccak256("cow")
-        "0xc85ef7d79691fe79573b1a7064c19c1a9819ebdbd1faaab1a8ec92344438aaf4",
-      ]);
-
       await expectHardhatErrorAsync(
         () =>
           wrapper.request({

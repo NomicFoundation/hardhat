@@ -39,7 +39,7 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
     super();
   }
 
-  get url(): string {
+  public get url(): string {
     return this._url;
   }
 
@@ -58,7 +58,7 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
       error.message = jsonRpcResponse.error.message;
       error.code = jsonRpcResponse.error.code;
       error.data = jsonRpcResponse.error.data;
-      // tslint:disable-next-line only-hardhat-error
+      // eslint-disable-next-line @nomiclabs/only-hardhat-error
       throw error;
     }
 
@@ -98,7 +98,7 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
         error.message = response.error.message;
         error.code = response.error.code;
         error.data = response.error.data;
-        // tslint:disable-next-line only-hardhat-error
+        // eslint-disable-next-line @nomiclabs/only-hardhat-error
         throw error;
       }
     }
@@ -163,7 +163,7 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
 
         const url = new URL(this._url);
 
-        // tslint:disable-next-line only-hardhat-error
+        // eslint-disable-next-line @nomiclabs/only-hardhat-error
         throw new ProviderError(
           `Too Many Requests error received from ${url.hostname}`,
           -32005 // Limit exceeded according to EIP1474
@@ -184,7 +184,7 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
         throw new HardhatError(ERRORS.NETWORK.NETWORK_TIMEOUT, {}, error);
       }
 
-      // tslint:disable-next-line only-hardhat-error
+      // eslint-disable-next-line @nomiclabs/only-hardhat-error
       throw error;
     }
   }

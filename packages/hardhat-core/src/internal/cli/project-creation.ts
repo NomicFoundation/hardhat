@@ -181,7 +181,7 @@ async function getAction() {
       return QUIT_ACTION;
     }
 
-    // tslint:disable-next-line only-hardhat-error
+    // eslint-disable-next-line @nomiclabs/only-hardhat-error
     throw e;
   }
 }
@@ -257,7 +257,7 @@ export async function createProject() {
       return;
     }
 
-    // tslint:disable-next-line only-hardhat-error
+    // eslint-disable-next-line @nomiclabs/only-hardhat-error
     throw e;
   }
 
@@ -425,7 +425,7 @@ async function confirmRecommendedDepsInstallation(
       return false;
     }
 
-    // tslint:disable-next-line only-hardhat-error
+    // eslint-disable-next-line @nomiclabs/only-hardhat-error
     throw e;
   }
 
@@ -482,7 +482,7 @@ async function installDependencies(
       reject(false);
     });
 
-    childProcess.once("error", (status) => {
+    childProcess.once("error", (_status) => {
       childProcess.removeAllListeners("close");
       reject(false);
     });
