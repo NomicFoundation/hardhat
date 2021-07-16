@@ -1,5 +1,4 @@
-[![npm](https://img.shields.io/npm/v/@nomiclabs/hardhat-mocha.svg)](https://www.npmjs.com/package/@nomiclabs/hardhat-mocha)
-[![hardhat](https://hardhat.org/buidler-plugin-badge.svg?1)](https://hardhat.org)
+[![npm](https://img.shields.io/npm/v/@nomiclabs/hardhat-mocha.svg)](https://www.npmjs.com/package/@nomiclabs/hardhat-mocha) [![hardhat](https://hardhat.org/buidler-plugin-badge.svg?1)](https://hardhat.org)
 
 # hardhat-mocha
 
@@ -11,7 +10,7 @@ This plugin lets you use a different Mocha version than the one built in with Mo
 
 ## Installation
 
-The major version of this plugin and Mocha that you use must much, so keep it in mind when installing it. 
+The major version of this plugin and Mocha that you use must much, so keep it in mind when installing it.
 
 ```bash
 npm install --save-dev --save-exact '@nomiclabs/hardhat-mocha@^8.0.0' 'mocha@^8.0.0'
