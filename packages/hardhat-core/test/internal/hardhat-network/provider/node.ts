@@ -607,6 +607,12 @@ describe("HardhatNode", () => {
         blockToRun: 9812365, // this block has a EIP-2930 tx
         chainId: 3,
       },
+      {
+        networkName: "ropsten",
+        url: ALCHEMY_URL.replace("mainnet", "ropsten"),
+        blockToRun: 10499406, // this block has a EIP-1559 tx
+        chainId: 3,
+      },
     ];
 
     for (const { url, blockToRun, networkName, chainId } of forkedBlocks) {
