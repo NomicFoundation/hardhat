@@ -1,0 +1,4 @@
+/node_modules
+/dist
+/test/fixture-projects/**/artifacts
+/test/fixture-projects/**/cache

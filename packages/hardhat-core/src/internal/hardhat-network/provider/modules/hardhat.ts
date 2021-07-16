@@ -32,7 +32,7 @@ import { ForkConfig, MineBlockResult } from "../node-types";
 
 import { ModulesLogger } from "./logger";
 
-// tslint:disable only-hardhat-error
+/* eslint-disable @nomiclabs/only-hardhat-error */
 
 export class HardhatModule {
   constructor(
@@ -152,7 +152,7 @@ export class HardhatModule {
 
   // hardhat_intervalMine
 
-  private _intervalMineParams(params: any[]): [] {
+  private _intervalMineParams(_params: any[]): [] {
     return [];
   }
 

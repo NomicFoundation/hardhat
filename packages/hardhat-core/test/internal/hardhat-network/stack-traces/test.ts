@@ -26,7 +26,10 @@ import {
   SolidityStackTraceEntry,
   StackTraceEntryType,
 } from "../../../../src/internal/hardhat-network/stack-traces/solidity-stack-trace";
-import { SolidityTracer } from "../../../../src/internal/hardhat-network/stack-traces/solidityTracer";
+import {
+  SolidityTracer,
+  SUPPORTED_SOLIDITY_VERSION_RANGE,
+} from "../../../../src/internal/hardhat-network/stack-traces/solidityTracer";
 import { VmTraceDecoder } from "../../../../src/internal/hardhat-network/stack-traces/vm-trace-decoder";
 import {
   CompilerInput,
@@ -109,7 +112,7 @@ interface DeployedContract {
   address: Buffer;
 }
 
-const TEST_TIMEOUT_MILLIS = 35000;
+const TEST_TIMEOUT_MILLIS = 120000;
 
 function defineTest(
   dirPath: string,
@@ -644,7 +647,8 @@ async function runCallTransactionTest(
   return trace as CallMessageTrace;
 }
 
-const solidity05Compilers: CompilerOptions[] = [
+const solidityCompilers = [
+  // 0.5
   {
     solidityVersion: "0.5.1",
     compilerPath: "soljson-v0.5.1+commit.c8a2cb62.js",
@@ -653,9 +657,8 @@ const solidity05Compilers: CompilerOptions[] = [
     solidityVersion: "0.5.17",
     compilerPath: "soljson-v0.5.17+commit.d19bba13.js",
   },
-];
 
-const solidity06Compilers: CompilerOptions[] = [
+  // 0.6
   {
     solidityVersion: "0.6.0",
     compilerPath: "soljson-v0.6.0+commit.26b70077.js",
@@ -710,9 +713,8 @@ const solidity06Compilers: CompilerOptions[] = [
     solidityVersion: "0.6.12",
     compilerPath: "soljson-v0.6.12+commit.27d51765.js",
   },
-];
 
-const solidity07Compilers: CompilerOptions[] = [
+  // 0.7
   // {
   //   solidityVersion: "0.7.0",
   //   compilerPath: "soljson-v0.7.0+commit.9e61f92b.js",
@@ -725,9 +727,8 @@ const solidity07Compilers: CompilerOptions[] = [
     solidityVersion: "0.7.4",
     compilerPath: "soljson-v0.7.4+commit.3f05b770.js",
   },
-];
 
-const solidity08Compilers: CompilerOptions[] = [
+  // 0.8
   {
     solidityVersion: "0.8.1",
     compilerPath: "soljson-v0.8.1+commit.df193b15.js",
@@ -741,6 +742,19 @@ const solidity08Compilers: CompilerOptions[] = [
   //   compilerPath: "soljson-v0.8.5+commit.a4f2e591.js",
   // },
 ];
+
+const solidity05Compilers = solidityCompilers.filter(({ solidityVersion }) =>
+  semver.satisfies(solidityVersion, "^0.5.0")
+);
+const solidity06Compilers = solidityCompilers.filter(({ solidityVersion }) =>
+  semver.satisfies(solidityVersion, "^0.6.0")
+);
+const solidity07Compilers = solidityCompilers.filter(({ solidityVersion }) =>
+  semver.satisfies(solidityVersion, "^0.7.0")
+);
+const solidity08Compilers = solidityCompilers.filter(({ solidityVersion }) =>
+  semver.satisfies(solidityVersion, "^0.8.0")
+);
 
 describe("Stack traces", function () {
   setCWD();
@@ -794,12 +808,7 @@ describe("Stack traces", function () {
   }
 
   before("Download solcjs binaries", async function () {
-    const paths = new Set([
-      ...solidity05Compilers.map((c) => c.compilerPath),
-      ...solidity06Compilers.map((c) => c.compilerPath),
-      ...solidity07Compilers.map((c) => c.compilerPath),
-      ...solidity08Compilers.map((c) => c.compilerPath),
-    ]);
+    const paths = new Set(solidityCompilers.map((c) => c.compilerPath));
 
     this.timeout(paths.size * COMPILER_DOWNLOAD_TIMEOUT);
 
@@ -812,6 +821,39 @@ describe("Stack traces", function () {
   defineTestForSolidityMajorVersion(solidity06Compilers, "0_6");
   defineTestForSolidityMajorVersion(solidity07Compilers, "0_7");
   defineTestForSolidityMajorVersion(solidity08Compilers, "0_8");
+});
+
+describe("Solidity support", function () {
+  it("check that the latest tested version is within the supported version range", async function () {
+    const latestSupportedVersion = solidityCompilers
+      .map((sc) => sc.solidityVersion)
+      .sort(semver.compare)[solidityCompilers.length - 1];
+
+    assert.isTrue(
+      semver.satisfies(
+        latestSupportedVersion,
+        SUPPORTED_SOLIDITY_VERSION_RANGE
+      ),
+      `Expected ${latestSupportedVersion} to be within the ${SUPPORTED_SOLIDITY_VERSION_RANGE} range`
+    );
+
+    const nextPatchVersion = semver.inc(latestSupportedVersion, "patch")!;
+    const nextMinorVersion = semver.inc(latestSupportedVersion, "minor")!;
+    const nextMajorVersion = semver.inc(latestSupportedVersion, "major")!;
+
+    assert.isFalse(
+      semver.satisfies(nextPatchVersion, SUPPORTED_SOLIDITY_VERSION_RANGE),
+      `Expected ${nextPatchVersion} to not be within the ${SUPPORTED_SOLIDITY_VERSION_RANGE} range`
+    );
+    assert.isFalse(
+      semver.satisfies(nextMinorVersion, SUPPORTED_SOLIDITY_VERSION_RANGE),
+      `Expected ${nextMinorVersion} to not be within the ${SUPPORTED_SOLIDITY_VERSION_RANGE} range`
+    );
+    assert.isFalse(
+      semver.satisfies(nextMajorVersion, SUPPORTED_SOLIDITY_VERSION_RANGE),
+      `Expected ${nextMajorVersion} to not be within the ${SUPPORTED_SOLIDITY_VERSION_RANGE} range`
+    );
+  });
 });
 
 function defineTestForSolidityMajorVersion(

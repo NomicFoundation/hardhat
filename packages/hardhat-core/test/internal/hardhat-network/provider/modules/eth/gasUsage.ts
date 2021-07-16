@@ -8,11 +8,10 @@ import {
   DEFAULT_ACCOUNTS_ADDRESSES,
   PROVIDERS,
 } from "../../../helpers/providers";
-import { retrieveForkBlockNumber } from "../../../helpers/retrieveForkBlockNumber";
 import { deployContract } from "../../../helpers/transactions";
 
 describe("Eth module", function () {
-  PROVIDERS.forEach(({ name, useProvider, isFork, isJsonRpc, chainId }) => {
+  PROVIDERS.forEach(({ name, useProvider, isFork }) => {
     if (isFork) {
       this.timeout(50000);
     }

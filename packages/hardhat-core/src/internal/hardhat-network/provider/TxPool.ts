@@ -20,7 +20,7 @@ import { FakeSenderTransaction } from "./transactions/FakeSenderTransaction";
 import { bnToHex } from "./utils/bnToHex";
 import { reorganizeTransactionsLists } from "./utils/reorganizeTransactionsLists";
 
-// tslint:disable only-hardhat-error
+/* eslint-disable @nomiclabs/only-hardhat-error */
 
 export function serializeTransaction(
   tx: OrderedTransaction
@@ -205,14 +205,22 @@ export class TxPool {
   public getPendingTransactions(): Map<string, OrderedTransaction[]> {
     const deserializedImmutableMap = this._getPending()
       .filter((txs) => txs.size > 0)
-      .map((txs) => txs.map(this._deserializeTransaction).toJS());
+      .map(
+        (txs) =>
+          txs.map(this._deserializeTransaction).toJS() as OrderedTransaction[]
+      );
+
     return new Map(deserializedImmutableMap.entries());
   }
 
   public getQueuedTransactions(): Map<string, OrderedTransaction[]> {
     const deserializedImmutableMap = this._getQueued()
       .filter((txs) => txs.size > 0)
-      .map((txs) => txs.map(this._deserializeTransaction).toJS());
+      .map(
+        (txs) =>
+          txs.map(this._deserializeTransaction).toJS() as OrderedTransaction[]
+      );
+
     return new Map(deserializedImmutableMap.entries());
   }
 
@@ -438,8 +446,6 @@ export class TxPool {
     }
 
     const gasLimit = new BN(tx.gasLimit);
-    // TODO remove this "as any"
-    const gasPrice = new BN((tx as any).gasPrice);
     const baseFee = tx.getBaseFee();
 
     if (gasLimit.lt(baseFee)) {

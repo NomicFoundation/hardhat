@@ -16,13 +16,12 @@
     "ethers.js"
   ],
   "scripts": {
-    "lint:fix": "prettier --write \"src/**/*.{js,ts}\" \"test/**/*.{js,ts}\" && yarn lint --fix",
-    "lint": "yarn lint-src && yarn lint-tests",
-    "lint-tests": "tslint --config tslint.json --project ./tsconfig.json",
-    "lint-src": "tslint --config tslint.json --project ./src/tsconfig.json",
+    "lint": "yarn prettier --check && yarn eslint",
+    "lint:fix": "yarn prettier --write && yarn eslint --fix",
+    "eslint": "eslint 'src/**/*.ts' 'test/**/*.ts'",
+    "prettier": "prettier \"**/*.{js,md,json}\"",
     "test": "mocha --recursive \"test/**/*.ts\" --exit",
-    "build": "tsc --build src",
-    "build-test": "tsc --build .",
+    "build": "tsc --build .",
     "clean": "rimraf dist internal types *.{d.ts,js}{,.map} build-test tsconfig.tsbuildinfo"
   },
   "files": [
@@ -41,17 +40,19 @@
     "@types/chai": "^4.2.0",
     "@types/mocha": "^5.2.6",
     "@types/node": "^10.17.24",
+    "@typescript-eslint/eslint-plugin": "^4.28.0",
+    "@typescript-eslint/parser": "^4.28.0",
     "chai": "^4.2.0",
+    "eslint": "^7.29.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-import": "^2.23.4",
+    "eslint-plugin-prettier": "^3.4.0",
     "ethers": "^5.0.0",
     "hardhat": "^2.0.0",
     "mocha": "^7.1.2",
     "prettier": "2.0.5",
     "rimraf": "^3.0.2",
     "ts-node": "^8.1.0",
-    "tslint-config-prettier": "^1.18.0",
-    "tslint-consistent-codestyle": "^1.15.1",
-    "tslint-plugin-prettier": "^2.0.1",
-    "tslint": "^5.16.0",
     "typescript": "~4.0.3"
   },
   "peerDependencies": {

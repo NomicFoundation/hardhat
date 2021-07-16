@@ -143,8 +143,7 @@ async function main() {
     const envExtenders = ctx.extendersManager.getExtenders();
     const taskDefinitions = ctx.tasksDSL.getTaskDefinitions();
 
-    // tslint:disable-next-line: prefer-const
-    let [abortAnalytics, hitPromise] = await analytics.sendTaskHit(taskName);
+    const [abortAnalytics, hitPromise] = await analytics.sendTaskHit(taskName);
 
     let taskArguments: TaskArguments;
 
@@ -220,8 +219,8 @@ async function main() {
 
     try {
       Reporter.reportError(error);
-    } catch (error) {
-      log("Couldn't report error to sentry: %O", error);
+    } catch (e) {
+      log("Couldn't report error to sentry: %O", e);
     }
 
     if (showStackTraces) {

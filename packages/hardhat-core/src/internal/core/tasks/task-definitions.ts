@@ -26,7 +26,7 @@ function isCLIArgumentType(
  *
  */
 export class SimpleTaskDefinition implements TaskDefinition {
-  get description() {
+  public get description() {
     return this._description;
   }
   public readonly paramDefinitions: ParamDefinitionsMap = {};
@@ -578,7 +578,7 @@ export class OverriddenTaskDefinition implements TaskDefinition {
   /**
    * Retrieves the parent task's name.
    */
-  get name() {
+  public get name() {
     return this.parentTaskDefinition.name;
   }
 
@@ -586,7 +586,7 @@ export class OverriddenTaskDefinition implements TaskDefinition {
    * Retrieves, if defined, the description of the overriden task,
    * otherwise retrieves the description of the parent task.
    */
-  get description() {
+  public get description() {
     if (this._description !== undefined) {
       return this._description;
     }
@@ -598,7 +598,7 @@ export class OverriddenTaskDefinition implements TaskDefinition {
    * Retrieves, if defined, the action of the overriden task,
    * otherwise retrieves the action of the parent task.
    */
-  get action() {
+  public get action() {
     if (this._action !== undefined) {
       return this._action;
     }
@@ -609,14 +609,14 @@ export class OverriddenTaskDefinition implements TaskDefinition {
   /**
    * Retrieves the parent task's param definitions.
    */
-  get paramDefinitions() {
+  public get paramDefinitions() {
     return this.parentTaskDefinition.paramDefinitions;
   }
 
   /**
    * Retrieves the parent task's positional param definitions.
    */
-  get positionalParamDefinitions() {
+  public get positionalParamDefinitions() {
     return this.parentTaskDefinition.positionalParamDefinitions;
   }
 
@@ -660,11 +660,11 @@ export class OverriddenTaskDefinition implements TaskDefinition {
    * Overriden tasks can't add new parameters.
    */
   public addPositionalParam<T>(
-    name: string,
-    description?: string,
-    defaultValue?: T,
-    type?: ArgumentType<T>,
-    isOptional?: boolean
+    _name: string,
+    _description?: string,
+    _defaultValue?: T,
+    _type?: ArgumentType<T>,
+    _isOptional?: boolean
   ): this {
     return this._throwNoParamsOverrideError(
       ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_POSITIONAL_PARAMS
@@ -675,10 +675,10 @@ export class OverriddenTaskDefinition implements TaskDefinition {
    * Overriden tasks can't add new parameters.
    */
   public addOptionalPositionalParam<T>(
-    name: string,
-    description?: string,
-    defaultValue?: T,
-    type?: ArgumentType<T>
+    _name: string,
+    _description?: string,
+    _defaultValue?: T,
+    _type?: ArgumentType<T>
   ): this {
     return this._throwNoParamsOverrideError(
       ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_POSITIONAL_PARAMS
@@ -689,11 +689,11 @@ export class OverriddenTaskDefinition implements TaskDefinition {
    * Overriden tasks can't add new parameters.
    */
   public addVariadicPositionalParam<T>(
-    name: string,
-    description?: string,
-    defaultValue?: T[],
-    type?: ArgumentType<T>,
-    isOptional?: boolean
+    _name: string,
+    _description?: string,
+    _defaultValue?: T[],
+    _type?: ArgumentType<T>,
+    _isOptional?: boolean
   ): this {
     return this._throwNoParamsOverrideError(
       ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_VARIADIC_PARAMS
@@ -704,10 +704,10 @@ export class OverriddenTaskDefinition implements TaskDefinition {
    * Overriden tasks can't add new parameters.
    */
   public addOptionalVariadicPositionalParam<T>(
-    name: string,
-    description?: string,
-    defaultValue?: T[],
-    type?: ArgumentType<T>
+    _name: string,
+    _description?: string,
+    _defaultValue?: T[],
+    _type?: ArgumentType<T>
   ): this {
     return this._throwNoParamsOverrideError(
       ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_VARIADIC_PARAMS

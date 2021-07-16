@@ -1,7 +1,6 @@
 # hardhat-vyper
 
-[![npm](https://img.shields.io/npm/v/@nomiclabs/hardhat-vyper.svg)](https://www.npmjs.com/package/@nomiclabs/hardhat-vyper)
-[![hardhat](https://hardhat.org/buidler-plugin-badge.svg?1)](https://hardhat.org)
+[![npm](https://img.shields.io/npm/v/@nomiclabs/hardhat-vyper.svg)](https://www.npmjs.com/package/@nomiclabs/hardhat-vyper) [![hardhat](https://hardhat.org/buidler-plugin-badge.svg?1)](https://hardhat.org)
 
 [Hardhat](https://hardhat.org) plugin to develop smart contracts with Vyper.
 
@@ -9,8 +8,7 @@
 
 This plugin adds support for Vyper to Hardhat. Once installed, Vyper contracts can be compiled by running the `compile` task.
 
-This plugin generates the same artifact format as the built-in Solidity compiler, so that it can be used in conjunction with
-all other plugins.
+This plugin generates the same artifact format as the built-in Solidity compiler, so that it can be used in conjunction with all other plugins.
 
 The Vyper compiler is run using the [official Docker images](https://hub.docker.com/r/vyperlang/vyper).
 
@@ -50,16 +48,15 @@ This plugin does not extend the Hardhat Runtime Environment.
 
 ## Configuration
 
-This plugin adds an optional `vyper` entry to Hardhat's config, which lets you specify the Vyper version to use. If no
-version is given, the [latest one on Docker Hub](https://hub.docker.com/r/vyperlang/vyper/tags) will be used.
+This plugin adds an optional `vyper` entry to Hardhat's config, which lets you specify the Vyper version to use. If no version is given, the [latest one on Docker Hub](https://hub.docker.com/r/vyperlang/vyper/tags) will be used.
 
 This is an example of how to set it:
 
 ```js
 module.exports = {
   vyper: {
-    version: "0.1.0b10"
-  }
+    version: "0.1.0b10",
+  },
 };
 ```
 

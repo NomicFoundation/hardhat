@@ -19,8 +19,6 @@ import { ProviderWrapperWithChainId } from "./chainId";
 import { derivePrivateKeys } from "./util";
 import { ProviderWrapper } from "./wrapper";
 
-// This library's types are wrong, they don't type check
-// tslint:disable-next-line no-var-requires
 const ethSigUtil = require("eth-sig-util");
 
 export interface JsonRpcTransactionData {

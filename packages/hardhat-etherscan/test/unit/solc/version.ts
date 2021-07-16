@@ -1,9 +1,7 @@
 import { assert, expect } from "chai";
 import { HardhatPluginError } from "hardhat/plugins";
 import nock from "nock";
-import semver from "semver";
 
-import { decodeSolcMetadata } from "../../../src/solc/metadata";
 import { getLongVersion } from "../../../src/solc/version";
 
 describe("solc version retrieval unit tests", function () {

@@ -1,4 +1,3 @@
-import { rawDecode } from "ethereumjs-abi";
 import { BN } from "ethereumjs-util";
 
 export function panicErrorCodeToMessage(errorCode: BN): string {

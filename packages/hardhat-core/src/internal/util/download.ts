@@ -51,7 +51,7 @@ export async function download(
   // See: https://github.com/node-fetch/node-fetch/issues/83
   const _discarded = await response.arrayBuffer();
 
-  // tslint:disable-next-line only-hardhat-error
+  // eslint-disable-next-line @nomiclabs/only-hardhat-error
   throw new Error(
     `Failed to download ${url} - ${response.statusText} received`
   );

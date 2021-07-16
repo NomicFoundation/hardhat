@@ -16,8 +16,9 @@ if (process.argv[2] !== "npm" && process.argv[2] !== "yarn") {
 const isYarn = process.argv[2] === "yarn";
 
 async function main() {
-  const fixtures = fsExtra.readdirSync(fixtureProjectsDir)
-    .map(fixture => path.join(fixtureProjectsDir, fixture));
+  const fixtures = fsExtra
+    .readdirSync(fixtureProjectsDir)
+    .map((fixture) => path.join(fixtureProjectsDir, fixture));
 
   // we run the cleanup both before and after running the tests, just in case
   cleanup(fixtures);

@@ -3,19 +3,6 @@ import Web3 from "web3";
 
 import { promisifyWeb3 } from "../src/pweb3";
 
-const CONTRACT_SOURCE = `pragma solidity 0.5.10;
-
-contract Test {
-    
-    function constantFunction() public pure returns (uint256) {
-        return 1;
-    }
-    
-    function nonConstantFunction() public {
-    }
-    
-}`;
-
 const CONTRACT_BYTECODE =
   "6080604052348015600f57600080fd5b50609b8061001e6000396000f3fe6080604052348015600f57600080fd5b506004361060325760003560e01c80635a44b650146037578063e730f60b146053575b600080fd5b603d605b565b6040518082815260200191505060405180910390f35b60596064565b005b60006001905090565b56fea265627a7a7230582075918bec172b335d3087851edc0735dd08bf398d38b6680f77bd9d9765d02be464736f6c634300050a0032";
 
@@ -85,7 +72,7 @@ describe("pweb3", () => {
         .then(
           (actualAccounts: string[]) =>
             assert.deepEqual(actualAccounts, expectedAccounts),
-          (pweb3Error: Error) => assert.instanceOf(error, Error)
+          (_pweb3Error: Error) => assert.instanceOf(error, Error)
         )
         .then(done);
     });
