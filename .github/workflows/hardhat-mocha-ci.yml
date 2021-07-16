@@ -1,0 +1,75 @@
+name: hardhat-mocha CI
+
+on:
+  push:
+    branches: [$default-branch]
+    paths:
+      - "packages/hardhat-mocha/**/*"
+      - "packages/hardhat-core/**/*"
+      - "packages/hardhat-common/**/*"
+      - "config/**/*"
+  pull_request:
+    branches:
+      - "*"
+    paths:
+      - "packages/hardhat-mocha/**/*"
+      - "packages/hardhat-core/**/*"
+      - "packages/hardhat-common/**/*"
+      - "config/**/*"
+
+defaults:
+  run:
+    working-directory: packages/hardhat-mocha
+
+concurrency:
+  group: ${{github.workflow}}-${{github.ref}}
+  cancel-in-progress: true
+
+jobs:
+  test_on_windows:
+    name: Test hardhat-mocha on Windows with Node 10
+    runs-on: windows-latest
+    steps:
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 10
+      - uses: actions/checkout@v2
+      - name: Install
+        run: yarn --frozen-lockfile
+      - name: Build
+        run: yarn build
+      - name: Run tests
+        run: yarn test
+
+  test_on_macos:
+    name: Test hardhat-mocha on MacOS with Node 10
+    runs-on: macos-latest
+    steps:
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 10
+      - uses: actions/checkout@v2
+      - name: Install
+        run: yarn --frozen-lockfile
+      - name: Build
+        run: yarn build
+      - name: Run tests
+        run: yarn test
+
+  test_on_linux:
+    name: Test hardhat-mocha on Ubuntu with Node ${{ matrix.node }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [10, 12, 14, 16]
+    steps:
+      - uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node }}
+      - uses: actions/checkout@v2
+      - name: Install
+        run: yarn --frozen-lockfile
+      - name: Build
+        run: yarn build
+      - name: Run tests
+        run: yarn test
