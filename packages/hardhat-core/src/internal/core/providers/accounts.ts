@@ -19,8 +19,6 @@ import { ProviderWrapperWithChainId } from "./chainId";
 import { derivePrivateKeys } from "./util";
 import { ProviderWrapper } from "./wrapper";
 
-// This library's types are wrong, they don't type check
-// tslint:disable-next-line no-var-requires
 const ethSigUtil = require("eth-sig-util");
 
 export interface JsonRpcTransactionData {
@@ -80,17 +78,29 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
       }
     }
 
-    if (args.method === "eth_signTypedData") {
+    if (args.method === "eth_signTypedData_v4") {
       const [address, data] = validateParams(params, rpcAddress, t.any);
 
-      if (address !== undefined) {
-        if (data === undefined) {
-          throw new HardhatError(ERRORS.NETWORK.ETHSIGN_MISSING_DATA_PARAM);
-        }
+      if (data === undefined) {
+        throw new HardhatError(ERRORS.NETWORK.ETHSIGN_MISSING_DATA_PARAM);
+      }
 
-        const privateKey = this._getPrivateKeyForAddress(address);
+      let typedMessage = data;
+      if (typeof data === "string") {
+        try {
+          typedMessage = JSON.parse(data);
+        } catch (error) {
+          throw new HardhatError(
+            ERRORS.NETWORK.ETHSIGN_TYPED_DATA_V4_INVALID_DATA_PARAM
+          );
+        }
+      }
+
+      // if we don't manage the address, the method is forwarded
+      const privateKey = this._getPrivateKeyForAddressOrNull(address);
+      if (privateKey !== null) {
         return ethSigUtil.signTypedData_v4(privateKey, {
-          data,
+          data: typedMessage,
         });
       }
     }
@@ -169,6 +179,14 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
     }
 
     return pk;
+  }
+
+  private _getPrivateKeyForAddressOrNull(address: Buffer): Buffer | null {
+    try {
+      return this._getPrivateKeyForAddress(address);
+    } catch (e) {
+      return null;
+    }
   }
 
   private async _getNonce(address: Buffer): Promise<BN> {

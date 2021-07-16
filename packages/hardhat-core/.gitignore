@@ -22,6 +22,9 @@
 /types
 /utils
 
+test/internal/hardhat-network/provider/.hardhat_node_test_cache/
+!.eslintrc.js
+
 # Below is Github's node gitignore template,
 # ignoring the node_modules part, as it'd ignore every node_modules, and we have some for testing
 
@@ -105,5 +108,3 @@ typings/
 
 # DynamoDB Local files
 .dynamodb/
-
-test/internal/hardhat-network/provider/.hardhat_node_test_cache/

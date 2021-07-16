@@ -51,7 +51,7 @@ const PRIVATE_RPC_METHODS = new Set([
   "hardhat_setLoggingEnabled",
 ]);
 
-// tslint:disable only-hardhat-error
+/* eslint-disable @nomiclabs/only-hardhat-error */
 
 export class HardhatNetworkProvider extends EventEmitter
   implements EIP1193Provider {
@@ -71,6 +71,7 @@ export class HardhatNetworkProvider extends EventEmitter
     private readonly _chainId: number,
     private readonly _networkId: number,
     private readonly _blockGasLimit: number,
+    private readonly _minGasPrice: BN,
     private readonly _throwOnTransactionFailures: boolean,
     private readonly _throwOnCallFailures: boolean,
     private readonly _automine: boolean,
@@ -212,6 +213,7 @@ export class HardhatNetworkProvider extends EventEmitter
     const commonConfig = {
       automine: this._automine,
       blockGasLimit: this._blockGasLimit,
+      minGasPrice: this._minGasPrice,
       genesisAccounts: this._genesisAccounts,
       allowUnlimitedContractSize: this._allowUnlimitedContractSize,
       tracingConfig: await this._makeTracingConfig(),

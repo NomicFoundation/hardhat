@@ -349,8 +349,158 @@ describe("Local accounts provider", () => {
     });
   });
 
-  describe("eth_signTypedData", () => {
-    // TODO: Test this. Note that it just forwards to/from eth-sign-util
+  describe("eth_signTypedData_v4", () => {
+    it("Should be compatible with EIP-712 example", async () => {
+      // This test was taken from the `eth_signTypedData` example from the
+      // EIP-712 specification.
+      // <https://eips.ethereum.org/EIPS/eip-712#eth_signtypeddata>
+
+      const provider = new LocalAccountsProvider(mock, [
+        // keccak256("cow")
+        "0xc85ef7d79691fe79573b1a7064c19c1a9819ebdbd1faaab1a8ec92344438aaf4",
+      ]);
+
+      const result = await provider.request({
+        method: "eth_signTypedData_v4",
+        params: [
+          "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
+          {
+            types: {
+              EIP712Domain: [
+                { name: "name", type: "string" },
+                { name: "version", type: "string" },
+                { name: "chainId", type: "uint256" },
+                { name: "verifyingContract", type: "address" },
+              ],
+              Person: [
+                { name: "name", type: "string" },
+                { name: "wallet", type: "address" },
+              ],
+              Mail: [
+                { name: "from", type: "Person" },
+                { name: "to", type: "Person" },
+                { name: "contents", type: "string" },
+              ],
+            },
+            primaryType: "Mail",
+            domain: {
+              name: "Ether Mail",
+              version: "1",
+              chainId: 1,
+              verifyingContract: "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC",
+            },
+            message: {
+              from: {
+                name: "Cow",
+                wallet: "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
+              },
+              to: {
+                name: "Bob",
+                wallet: "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB",
+              },
+              contents: "Hello, Bob!",
+            },
+          },
+        ],
+      });
+
+      assert.equal(
+        result,
+        "0x4355c47d63924e8a72e509b65029052eb6c299d53a04e167c5775fd466751c9d07299936d304c153f6443dfa05f40ff007d72911b6f72307f996231605b915621c"
+      );
+    });
+
+    it("Should be compatible with stringified JSON input", async () => {
+      const provider = new LocalAccountsProvider(mock, [
+        // keccak256("cow")
+        "0xc85ef7d79691fe79573b1a7064c19c1a9819ebdbd1faaab1a8ec92344438aaf4",
+      ]);
+
+      const result = await provider.request({
+        method: "eth_signTypedData_v4",
+        params: [
+          "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
+          JSON.stringify({
+            types: {
+              EIP712Domain: [
+                { name: "name", type: "string" },
+                { name: "version", type: "string" },
+                { name: "chainId", type: "uint256" },
+                { name: "verifyingContract", type: "address" },
+              ],
+              Person: [
+                { name: "name", type: "string" },
+                { name: "wallet", type: "address" },
+              ],
+              Mail: [
+                { name: "from", type: "Person" },
+                { name: "to", type: "Person" },
+                { name: "contents", type: "string" },
+              ],
+            },
+            primaryType: "Mail",
+            domain: {
+              name: "Ether Mail",
+              version: "1",
+              chainId: 1,
+              verifyingContract: "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC",
+            },
+            message: {
+              from: {
+                name: "Cow",
+                wallet: "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
+              },
+              to: {
+                name: "Bob",
+                wallet: "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB",
+              },
+              contents: "Hello, Bob!",
+            },
+          }),
+        ],
+      });
+
+      assert.equal(
+        result,
+        "0x4355c47d63924e8a72e509b65029052eb6c299d53a04e167c5775fd466751c9d07299936d304c153f6443dfa05f40ff007d72911b6f72307f996231605b915621c"
+      );
+    });
+
+    it("Should throw if data string input is not JSON", async () => {
+      await expectHardhatErrorAsync(
+        () =>
+          wrapper.request({
+            method: "eth_signTypedData_v4",
+            params: [
+              "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
+              "}thisisnotvalidjson{",
+            ],
+          }),
+        ERRORS.NETWORK.ETHSIGN_TYPED_DATA_V4_INVALID_DATA_PARAM
+      );
+    });
+
+    it("Should throw if no data is given", async () => {
+      await expectHardhatErrorAsync(
+        () =>
+          wrapper.request({
+            method: "eth_signTypedData_v4",
+            params: [privateKeyToAddress(accounts[0])],
+          }),
+        ERRORS.NETWORK.ETHSIGN_MISSING_DATA_PARAM
+      );
+    });
+
+    it("Should just forward if the address isn't one of the local ones", async () => {
+      await wrapper.request({
+        method: "eth_signTypedData_v4",
+        params: ["0x000006d4548a3ac17d72b372ae1e416bf65b8ead", {}],
+      });
+      assert.deepEqual(mock.getLatestParams("eth_signTypedData_v4"), [
+        "0x000006d4548a3ac17d72b372ae1e416bf65b8ead",
+        {},
+      ]);
+    });
   });
 });
 

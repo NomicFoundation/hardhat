@@ -35,6 +35,7 @@ enum NetworkID {
   OPTIMISTIC_KOVAN = 69,
   // Polygon
   POLYGON = 137,
+  POLYGON_MUMBAI = 80001,
 }
 
 const networkIDtoEndpoints: NetworkMap = {
@@ -89,6 +90,10 @@ const networkIDtoEndpoints: NetworkMap = {
   [NetworkID.POLYGON]: {
     apiURL: "https://api.polygonscan.com/api",
     browserURL: "https://polygonscan.com",
+  },
+  [NetworkID.POLYGON_MUMBAI]: {
+    apiURL: "https://api-testnet.polygonscan.com/api",
+    browserURL: "https://mumbai.polygonscan.com/",
   },
 };
 

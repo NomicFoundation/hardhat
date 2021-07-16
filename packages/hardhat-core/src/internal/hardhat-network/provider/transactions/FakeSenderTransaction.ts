@@ -3,7 +3,7 @@ import { Address, BN, rlp } from "ethereumjs-util";
 
 import { InternalError } from "../../../core/providers/errors";
 
-// tslint:disable only-hardhat-error
+/* eslint-disable @nomiclabs/only-hardhat-error */
 
 /**
  * This class represents a legacy transaction sent by a sender whose private
@@ -15,28 +15,31 @@ import { InternalError } from "../../../core/providers/errors";
  * the sender's address is received as parameter.
  */
 export class FakeSenderTransaction extends Transaction {
-  public static fromTxData(txData: TxData, opts?: TxOptions): never {
+  public static fromTxData(_txData: TxData, _opts?: TxOptions): never {
     throw new InternalError(
       "`fromTxData` is not implemented in FakeSenderTransaction"
     );
   }
 
-  public static fromSerializedTx(serialized: Buffer, opts?: TxOptions): never {
+  public static fromSerializedTx(
+    _serialized: Buffer,
+    _opts?: TxOptions
+  ): never {
     throw new InternalError(
       "`fromSerializedTx` is not implemented in FakeSenderTransaction"
     );
   }
 
   public static fromRlpSerializedTx(
-    serialized: Buffer,
-    opts?: TxOptions
+    _serialized: Buffer,
+    _opts?: TxOptions
   ): never {
     throw new InternalError(
       "`fromRlpSerializedTx` is not implemented in FakeSenderTransaction"
     );
   }
 
-  public static fromValuesArray(values: Buffer[], opts?: TxOptions): never {
+  public static fromValuesArray(_values: Buffer[], _opts?: TxOptions): never {
     throw new InternalError(
       "`fromRlpSerializedTx` is not implemented in FakeSenderTransaction"
     );
@@ -88,7 +91,7 @@ export class FakeSenderTransaction extends Transaction {
 
   private readonly _sender: Address;
 
-  public constructor(sender: Address, data: TxData = {}, opts?: TxOptions) {
+  constructor(sender: Address, data: TxData = {}, opts?: TxOptions) {
     super(
       {
         ...data,
@@ -151,7 +154,9 @@ export class FakeSenderTransaction extends Transaction {
 // Override private methods
 const FakeSenderTransactionPrototype: any = FakeSenderTransaction.prototype;
 
-FakeSenderTransactionPrototype._validateTxV = function () {};
+FakeSenderTransactionPrototype._validateTxV = function (_v: any, common: any) {
+  return this._getCommon(common);
+};
 
 FakeSenderTransactionPrototype._signedTxImplementsEIP155 = function () {
   throw new InternalError(

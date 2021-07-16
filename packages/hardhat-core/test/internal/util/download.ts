@@ -2,7 +2,7 @@ import { assert } from "chai";
 import fsExtra from "fs-extra";
 import path from "path";
 // @ts-ignore
-// tslint:disable-next-line no-implicit-dependencies
+// eslint-disable-next-line  import/no-extraneous-dependencies
 import Proxy from "proxy";
 
 import { download } from "../../../src/internal/util/download";

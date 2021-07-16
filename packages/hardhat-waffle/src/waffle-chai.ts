@@ -64,8 +64,9 @@ export function waffleChai(chai: Chai.ChaiStatic, utils: Chai.ChaiUtils) {
 }
 
 function supportCalledOnContract(Assertion: Chai.AssertionStatic) {
+  // eslint-disable-next-line import/no-extraneous-dependencies
   const Chai = require("chai");
-  Assertion.addMethod("calledOnContract", function (contract: any) {
+  Assertion.addMethod("calledOnContract", function (_contract: any) {
     throw new Chai.AssertionError(
       "Waffle's calledOnContract is not supported by Hardhat"
     );
@@ -73,8 +74,9 @@ function supportCalledOnContract(Assertion: Chai.AssertionStatic) {
 }
 
 function supportCalledOnContractWith(Assertion: Chai.AssertionStatic) {
+  // eslint-disable-next-line import/no-extraneous-dependencies
   const Chai = require("chai");
-  Assertion.addMethod("calledOnContractWith", function (contract: any) {
+  Assertion.addMethod("calledOnContractWith", function (_contract: any) {
     throw new Chai.AssertionError(
       "Waffle's calledOnContractWith is not supported by Hardhat"
     );

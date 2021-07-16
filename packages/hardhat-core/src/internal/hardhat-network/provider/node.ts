@@ -14,7 +14,6 @@ import { StateManager } from "@ethereumjs/vm/dist/state";
 import chalk from "chalk";
 import debug from "debug";
 import {
-  Account,
   Address,
   BN,
   bufferToHex,
@@ -32,6 +31,7 @@ import { assertHardhatInvariant, HardhatError } from "../../core/errors";
 import { RpcDebugTracingConfig } from "../../core/jsonrpc/types/input/debugTraceTransaction";
 import {
   InternalError,
+  InvalidArgumentsError,
   InvalidInputError,
   TransactionExecutionError,
 } from "../../core/providers/errors";
@@ -95,21 +95,18 @@ import { getCurrentTimestamp } from "./utils/getCurrentTimestamp";
 import { makeCommon } from "./utils/makeCommon";
 import { makeForkClient } from "./utils/makeForkClient";
 import { makeForkCommon } from "./utils/makeForkCommon";
-import { makeStateTrie } from "./utils/makeStateTrie";
 import { putGenesisBlock } from "./utils/putGenesisBlock";
 import { txMapToArray } from "./utils/txMapToArray";
 
 const log = debug("hardhat:core:hardhat-network:node");
 
-// This library's types are wrong, they don't type check
-// tslint:disable-next-line no-var-requires
 const ethSigUtil = require("eth-sig-util");
 
 export const COINBASE_ADDRESS = Address.fromString(
   "0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e"
 );
 
-// tslint:disable only-hardhat-error
+/* eslint-disable @nomiclabs/only-hardhat-error */
 
 export class HardhatNode extends EventEmitter {
   public static async create(
@@ -121,6 +118,7 @@ export class HardhatNode extends EventEmitter {
       blockGasLimit,
       allowUnlimitedContractSize,
       tracingConfig,
+      minGasPrice,
     } = config;
 
     let common: Common;
@@ -194,6 +192,7 @@ export class HardhatNode extends EventEmitter {
       blockchain,
       txPool,
       automine,
+      minGasPrice,
       initialBlockTimeOffset,
       genesisAccounts,
       tracingConfig,
@@ -264,6 +263,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     private readonly _blockchain: HardhatBlockchainInterface,
     private readonly _txPool: TxPool,
     private _automine: boolean,
+    private _minGasPrice: BN,
     private _blockTimeOffsetSeconds: BN = new BN(0),
     genesisAccounts: GenesisAccount[],
     tracingConfig?: TracingConfig,
@@ -350,7 +350,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       return this._addPendingTransaction(tx);
     }
 
-    await this._validateExactNonce(tx);
+    await this._validateAutominedTx(tx);
 
     if (
       this._txPool.hasPendingTransactions() ||
@@ -443,7 +443,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     return new BN(account.balance);
   }
 
-  public async getAccountNonce(
+  public async getNextConfirmedNonce(
     address: Address,
     blockNumberOrPending: BN | "pending"
   ): Promise<BN> {
@@ -454,8 +454,8 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     return new BN(account.nonce);
   }
 
-  public async getAccountExecutableNonce(address: Address): Promise<BN> {
-    return this._txPool.getExecutableNonce(address);
+  public async getAccountNextPendingNonce(address: Address): Promise<BN> {
+    return this._txPool.getNextPendingNonce(address);
   }
 
   public async getCodeFromTrace(
@@ -945,6 +945,29 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     await this._txPool.updatePendingAndQueued();
   }
 
+  public async setMinGasPrice(minGasPrice: BN) {
+    this._minGasPrice = minGasPrice;
+  }
+
+  public async dropTransaction(hash: Buffer): Promise<boolean> {
+    const removed = this._txPool.removeTransaction(hash);
+
+    if (removed) {
+      return true;
+    }
+
+    const isTransactionMined = await this._isTransactionMined(hash);
+    if (isTransactionMined) {
+      throw new InvalidArgumentsError(
+        `Transaction ${bufferToHex(
+          hash
+        )} cannot be dropped because it's already mined`
+      );
+    }
+
+    return false;
+  }
+
   public async setAccountBalance(
     address: Address,
     newBalance: BN
@@ -963,7 +986,10 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     await this._persistIrregularWorldState();
   }
 
-  public async setAccountNonce(address: Address, newNonce: BN): Promise<void> {
+  public async setNextConfirmedNonce(
+    address: Address,
+    newNonce: BN
+  ): Promise<void> {
     if (!this._txPool.isEmpty()) {
       throw new InternalError(
         "Cannot set account nonce when the transaction pool is not empty"
@@ -1145,7 +1171,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     };
   }
 
-  private async _validateExactNonce(tx: TypedTransaction) {
+  private async _validateAutominedTx(tx: TypedTransaction) {
     let sender: Address;
     try {
       sender = tx.getSenderAddress(); // verifies signature as a side effect
@@ -1153,17 +1179,26 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       throw new InvalidInputError(e.message);
     }
 
-    const senderNonce = await this._txPool.getExecutableNonce(sender);
+    // validate nonce
+    const nextPendingNonce = await this._txPool.getNextPendingNonce(sender);
     const txNonce = new BN(tx.nonce);
 
-    const expectedNonceMsg = `Expected nonce to be ${senderNonce} but got ${txNonce}.`;
-    if (txNonce.gt(senderNonce)) {
+    const expectedNonceMsg = `Expected nonce to be ${nextPendingNonce} but got ${txNonce}.`;
+    if (txNonce.gt(nextPendingNonce)) {
       throw new InvalidInputError(
         `Nonce too high. ${expectedNonceMsg} Note that transactions can't be queued when automining.`
       );
     }
-    if (txNonce.lt(senderNonce)) {
+    if (txNonce.lt(nextPendingNonce)) {
       throw new InvalidInputError(`Nonce too low. ${expectedNonceMsg}`);
+    }
+
+    // validate gas price
+    const txGasPrice = new BN((tx as any).gasPrice); // TODO remove this "as any"
+    if (txGasPrice.lt(this._minGasPrice)) {
+      throw new InvalidInputError(
+        `Transaction gas price is ${txGasPrice}, which is below the minimum of ${this._minGasPrice}`
+      );
     }
   }
 
@@ -1208,6 +1243,12 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         blockGasLimit.sub(blockBuilder.gasUsed).gte(minTxFee) &&
         tx !== undefined
       ) {
+        if (!this._isTxMinable(tx)) {
+          txHeap.pop();
+          tx = txHeap.peek();
+          continue;
+        }
+
         if (tx.gasLimit.gt(blockGasLimit.sub(blockBuilder.gasUsed))) {
           txHeap.pop();
         } else {
@@ -1329,11 +1370,11 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       }
 
       stackTrace = this._solidityTracer.getStackTrace(vmTrace);
-    } catch (error) {
+    } catch (err) {
       this._failedStackTraces += 1;
       log(
         "Could not generate stack trace. Please report this to help us improve Hardhat.\n",
-        error
+        err
       );
     }
 
@@ -1375,7 +1416,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       const panicCode = returnData.decodePanic().toString("hex");
       returnDataExplanation = `with panic code "0x${panicCode}"`;
     } else {
-      returnDataExplanation = "with unrecognized return data";
+      returnDataExplanation = "with unrecognized return data or custom error";
     }
 
     if (error.error === ERROR.REVERT) {
@@ -1818,7 +1859,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     blockNumberOrPending: BN | "pending"
   ): Promise<BN> {
     if (blockNumberOrPending === "pending") {
-      return this.getAccountExecutableNonce(address);
+      return this.getAccountNextPendingNonce(address);
     }
 
     return this._runInBlockContext(blockNumberOrPending, async () => {
@@ -1826,6 +1867,16 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
       return account.nonce;
     });
+  }
+
+  private async _isTransactionMined(hash: Buffer): Promise<boolean> {
+    const txReceipt = await this.getTransactionReceipt(hash);
+    return txReceipt !== undefined;
+  }
+
+  private _isTxMinable(tx: TypedTransaction): boolean {
+    const txGasPrice = new BN((tx as any).gasPrice);
+    return txGasPrice.gte(this._minGasPrice);
   }
 
   private async _persistIrregularWorldState(): Promise<void> {
