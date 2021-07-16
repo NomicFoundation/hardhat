@@ -528,7 +528,7 @@ describe("HardhatNode", () => {
         const elapsedTimeInSeconds = 3;
         node.increaseTime(new BN(delta));
         clock.tick(elapsedTimeInSeconds * 1_000);
-        await node.mineBlock(); 
+        await node.mineBlock();
 
         await assertIncreaseTime(now + delta + elapsedTimeInSeconds);
       });
