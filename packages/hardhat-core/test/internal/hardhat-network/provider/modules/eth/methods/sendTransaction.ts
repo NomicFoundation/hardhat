@@ -27,6 +27,11 @@ import {
   sendTxToZeroAddress,
 } from "../../../../helpers/transactions";
 import { useHelpers } from "../../../../helpers/useHelpers";
+import {
+  EIP1559RpcTransactionOutput,
+  RpcBlockOutput,
+} from "../../../../../../../src/internal/hardhat-network/provider/output";
+import { rpcQuantityToBN } from "../../../../../../../src/internal/core/jsonrpc/types/base-types";
 
 describe("Eth module", function () {
   PROVIDERS.forEach(({ name, useProvider, isFork, isJsonRpc }) => {
@@ -541,6 +546,48 @@ describe("Eth module", function () {
               });
             });
           });
+
+          it("Should throw if a tx can't be mined in the next block because of its fees", async function () {
+            await assertInvalidInputError(
+              this.provider,
+              "eth_sendTransaction",
+              [
+                {
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                  to: DEFAULT_ACCOUNTS_ADDRESSES[2],
+                  maxFeePerGas: numberToRpcQuantity(1),
+                },
+              ],
+              "too low for the next block, which has a baseFeePerGas of"
+            );
+
+            await assertInvalidInputError(
+              this.provider,
+              "eth_sendTransaction",
+              [
+                {
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                  to: DEFAULT_ACCOUNTS_ADDRESSES[2],
+                  gasPrice: numberToRpcQuantity(1),
+                },
+              ],
+              "too low for the next block, which has a baseFeePerGas of"
+            );
+
+            await assertInvalidInputError(
+              this.provider,
+              "eth_sendTransaction",
+              [
+                {
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                  to: DEFAULT_ACCOUNTS_ADDRESSES[2],
+                  gasPrice: numberToRpcQuantity(1),
+                  accessList: [],
+                },
+              ],
+              "too low for the next block, which has a baseFeePerGas of"
+            );
+          });
         });
 
         describe("when automine is disabled", () => {
@@ -732,6 +779,116 @@ describe("Eth module", function () {
             );
             assert.lengthOf(minedBlock.transactions, 1);
             assert.equal(minedBlock.transactions[0], tx1.hash);
+          });
+        });
+
+        describe("Fee params default values", function () {
+          let nextBlockBaseFee: BN;
+          const ONE_GWEI = new BN(10).pow(new BN(9));
+
+          beforeEach(async function () {
+            // We disable automining as enqueueing the txs is enough and we want
+            // to test some that may have a low maxFeePerGas
+            await this.provider.send("evm_setAutomine", [false]);
+
+            const pendingBlock: RpcBlockOutput = await this.provider.send(
+              "eth_getBlockByNumber",
+              ["pending", false]
+            );
+
+            nextBlockBaseFee = rpcQuantityToBN(pendingBlock.baseFeePerGas!);
+          });
+
+          describe("When no fee param is provided", function () {
+            it("Should use 1gwei maxPriorityFeePerGas and base the maxFeePerGas on that plus 2 * next block's baseFee", async function () {
+              const txHash = await this.provider.send("eth_sendTransaction", [
+                {
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                  to: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                },
+              ]);
+
+              const tx: EIP1559RpcTransactionOutput = await this.provider.send(
+                "eth_getTransactionByHash",
+                [txHash]
+              );
+
+              assert.equal(
+                tx.maxPriorityFeePerGas,
+                numberToRpcQuantity(ONE_GWEI)
+              );
+              assert.equal(
+                tx.maxFeePerGas,
+                numberToRpcQuantity(nextBlockBaseFee.muln(2).add(ONE_GWEI))
+              );
+            });
+          });
+
+          describe("When maxFeePerGas is provided", function () {
+            it("Should use 1gwei maxPriorityFeePerGas if maxFeePerGas is >= 1gwei", async function () {
+              const txHash = await this.provider.send("eth_sendTransaction", [
+                {
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                  to: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                  maxFeePerGas: numberToRpcQuantity(ONE_GWEI.muln(2)),
+                },
+              ]);
+
+              const tx: EIP1559RpcTransactionOutput = await this.provider.send(
+                "eth_getTransactionByHash",
+                [txHash]
+              );
+
+              assert.equal(
+                tx.maxPriorityFeePerGas,
+                numberToRpcQuantity(ONE_GWEI)
+              );
+              assert.equal(
+                tx.maxFeePerGas,
+                numberToRpcQuantity(ONE_GWEI.muln(2))
+              );
+            });
+
+            it("Should use 1gwei maxPriorityFeePerGas if maxFeePerGas is < 1gwei", async function () {
+              const txHash = await this.provider.send("eth_sendTransaction", [
+                {
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                  to: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                  maxFeePerGas: numberToRpcQuantity(10000),
+                },
+              ]);
+
+              const tx: EIP1559RpcTransactionOutput = await this.provider.send(
+                "eth_getTransactionByHash",
+                [txHash]
+              );
+
+              assert.equal(tx.maxPriorityFeePerGas, numberToRpcQuantity(10000));
+              assert.equal(tx.maxFeePerGas, numberToRpcQuantity(10000));
+            });
+          });
+
+          describe("When maxPriorityFeePerGas is provided", function () {
+            it("Should use the maxPriorityFeePerGas and base the maxFeePerGas on that plus 2 * next block's baseFee", async function () {
+              const txHash = await this.provider.send("eth_sendTransaction", [
+                {
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                  to: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                  maxPriorityFeePerGas: numberToRpcQuantity(1000),
+                },
+              ]);
+
+              const tx: EIP1559RpcTransactionOutput = await this.provider.send(
+                "eth_getTransactionByHash",
+                [txHash]
+              );
+
+              assert.equal(tx.maxPriorityFeePerGas, numberToRpcQuantity(1000));
+              assert.equal(
+                tx.maxFeePerGas,
+                numberToRpcQuantity(nextBlockBaseFee.muln(2).addn(1000))
+              );
+            });
           });
         });
 

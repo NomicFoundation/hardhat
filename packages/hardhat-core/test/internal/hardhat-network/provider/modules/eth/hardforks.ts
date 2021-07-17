@@ -42,14 +42,7 @@ describe("Eth module - hardfork dependant tests", function () {
     "hex"
   );
 
-  function getSampleSignedTx(common?: Common) {
-    if (common === undefined) {
-      common = new Common({
-        chain: "mainnet",
-        hardfork: "spuriousDragon",
-      });
-    }
-
+  function getSampleSignedTx(common: Common) {
     const tx = Transaction.fromTxData(
       {
         to: "0x1111111111111111111111111111111111111111",
@@ -64,14 +57,7 @@ describe("Eth module - hardfork dependant tests", function () {
     return tx.sign(privateKey);
   }
 
-  function getSampleSignedAccessListTx(common?: Common) {
-    if (common === undefined) {
-      common = new Common({
-        chain: "mainnet",
-        hardfork: "berlin",
-      });
-    }
-
+  function getSampleSignedAccessListTx(common: Common) {
     const tx = AccessListEIP2930Transaction.fromTxData(
       {
         to: "0x1111111111111111111111111111111111111111",
@@ -86,14 +72,7 @@ describe("Eth module - hardfork dependant tests", function () {
     return tx.sign(privateKey);
   }
 
-  function getSampleSignedEIP1559Tx(common?: Common) {
-    if (common === undefined) {
-      common = new Common({
-        chain: "mainnet",
-        hardfork: "london",
-      });
-    }
-
+  function getSampleSignedEIP1559Tx(common: Common) {
     const tx = FeeMarketEIP1559Transaction.fromTxData(
       {
         to: "0x1111111111111111111111111111111111111111",
@@ -133,7 +112,9 @@ describe("Eth module - hardfork dependant tests", function () {
         });
 
         it("Should validate the chain id if an EIP-155 tx is sent with eth_sendRawTransaction", async function () {
-          const signedTx = getSampleSignedTx();
+          const signedTx = getSampleSignedTx(
+            new Common({ chain: "mainnet", hardfork: "spuriousDragon" })
+          );
           const serialized = bufferToRpcData(signedTx.serialize());
 
           await assertInvalidArgumentsError(
@@ -166,7 +147,44 @@ describe("Eth module - hardfork dependant tests", function () {
         });
 
         it("Should validate the chain id in eth_sendRawTransaction using an access list tx", async function () {
-          const signedTx = getSampleSignedAccessListTx();
+          const signedTx = getSampleSignedAccessListTx(
+            new Common({ chain: "mainnet", hardfork: "berlin" })
+          );
+          const serialized = bufferToRpcData(signedTx.serialize());
+
+          await assertInvalidArgumentsError(
+            this.provider,
+            "eth_sendRawTransaction",
+            [serialized],
+            "Trying to send a raw transaction with an invalid chainId"
+          );
+        });
+      });
+
+      describe("In a hardfork with EIP-1559", function () {
+        useProviderAndCommon("london");
+
+        it("Should validate the chain id if sent to eth_sendTransaction using an eip-1559 fields", async function () {
+          const [sender] = await this.provider.send("eth_accounts");
+          await assertInvalidArgumentsError(
+            this.provider,
+            "eth_sendTransaction",
+            [
+              {
+                from: sender,
+                to: sender,
+                chainId: numberToRpcQuantity(1),
+                maxFeePerGas: numberToRpcQuantity(10e9),
+              },
+            ],
+            "Invalid chainId"
+          );
+        });
+
+        it("Should validate the chain id in eth_sendRawTransaction using an eip-1559 tx", async function () {
+          const signedTx = getSampleSignedEIP1559Tx(
+            new Common({ chain: "mainnet", hardfork: "london" })
+          );
           const serialized = bufferToRpcData(signedTx.serialize());
 
           await assertInvalidArgumentsError(
@@ -180,6 +198,73 @@ describe("Eth module - hardfork dependant tests", function () {
     });
 
     describe("Transaction type validation by hardfork", function () {
+      function rejectsSendTransactionWithAccessList() {
+        it("Should reject an eth_sendTransaction if an access list was provided", async function () {
+          const [sender] = await this.provider.send("eth_accounts");
+
+          await assertInvalidArgumentsError(
+            this.provider,
+            "eth_sendTransaction",
+            [{ from: sender, to: sender, accessList: [] }],
+            "Access list received but is not supported by the current hardfork"
+          );
+        });
+      }
+
+      function rejectsSendTransactionWithEIP1559Fields() {
+        it("Should reject an eth_sendTransaction if an EIP-1559 fields were provided", async function () {
+          const [sender] = await this.provider.send("eth_accounts");
+
+          await assertInvalidArgumentsError(
+            this.provider,
+            "eth_sendTransaction",
+            [
+              {
+                from: sender,
+                to: sender,
+                accessList: [],
+                maxFeePerGas: numberToRpcQuantity(10e9),
+              },
+            ],
+            "EIP-1559 style fee params (maxFeePerGas or maxPriorityFeePerGas) received but they are not supported by the current hardfork"
+          );
+        });
+      }
+
+      function rejectsSendRawTransactionWithAccessListTx() {
+        it("Should reject an eth_sendRawTransaction if the tx uses an access list", async function () {
+          const berlinCommon = this.common.copy();
+          berlinCommon.setHardfork("berlin");
+
+          const signedTx = getSampleSignedAccessListTx(berlinCommon);
+          const serialized = bufferToRpcData(signedTx.serialize());
+
+          await assertInvalidArgumentsError(
+            this.provider,
+            "eth_sendRawTransaction",
+            [serialized],
+            "Trying to send an EIP-2930 transaction"
+          );
+        });
+      }
+
+      function rejectsSendRawTransactionWithEIP1559Tx() {
+        it("Should reject an eth_sendRawTransaction if the tx uses an EIP-1559 tx", async function () {
+          const londonCommon = this.common.copy();
+          londonCommon.setHardfork("london");
+
+          const signedTx = getSampleSignedEIP1559Tx(londonCommon);
+          const serialized = bufferToRpcData(signedTx.serialize());
+
+          await assertInvalidArgumentsError(
+            this.provider,
+            "eth_sendRawTransaction",
+            [serialized],
+            "Trying to send an EIP-1559 transaction"
+          );
+        });
+      }
+
       describe("Without EIP155 nor access list", function () {
         useProviderAndCommon("tangerineWhistle");
 
@@ -198,31 +283,10 @@ describe("Eth module - hardfork dependant tests", function () {
           );
         });
 
-        it("Should reject an eth_sendRawTransaction if the tx uses an access list", async function () {
-          const berlinCommon = this.common.copy();
-          berlinCommon.setHardfork("berlin");
-
-          const signedTx = getSampleSignedAccessListTx(berlinCommon);
-          const serialized = bufferToRpcData(signedTx.serialize());
-
-          await assertInvalidArgumentsError(
-            this.provider,
-            "eth_sendRawTransaction",
-            [serialized],
-            "Trying to send an EIP-2930 transaction"
-          );
-        });
-
-        it("Should reject an eth_sendTransaction if an access list was provided", async function () {
-          const [sender] = await this.provider.send("eth_accounts");
-
-          await assertInvalidArgumentsError(
-            this.provider,
-            "eth_sendTransaction",
-            [{ from: sender, to: sender, accessList: [] }],
-            "Access list received but is not supported by the current hardfork"
-          );
-        });
+        rejectsSendTransactionWithAccessList();
+        rejectsSendRawTransactionWithAccessListTx();
+        rejectsSendTransactionWithEIP1559Fields();
+        rejectsSendRawTransactionWithEIP1559Tx();
       });
 
       describe("With EIP155 and not access list", function () {
@@ -235,31 +299,10 @@ describe("Eth module - hardfork dependant tests", function () {
           await this.provider.send("eth_sendRawTransaction", [serialized]);
         });
 
-        it("Should reject an eth_sendRawTransaction if the tx uses an access list", async function () {
-          const berlinCommon = this.common.copy();
-          berlinCommon.setHardfork("berlin");
-
-          const signedTx = getSampleSignedAccessListTx(berlinCommon);
-          const serialized = bufferToRpcData(signedTx.serialize());
-
-          await assertInvalidArgumentsError(
-            this.provider,
-            "eth_sendRawTransaction",
-            [serialized],
-            "Trying to send an EIP-2930 transaction"
-          );
-        });
-
-        it("Should reject an eth_sendTransaction if an access list was provided", async function () {
-          const [sender] = await this.provider.send("eth_accounts");
-
-          await assertInvalidArgumentsError(
-            this.provider,
-            "eth_sendTransaction",
-            [{ from: sender, to: sender, accessList: [] }],
-            "Access list received but is not supported by the current hardfork"
-          );
-        });
+        rejectsSendTransactionWithAccessList();
+        rejectsSendRawTransactionWithAccessListTx();
+        rejectsSendTransactionWithEIP1559Fields();
+        rejectsSendRawTransactionWithEIP1559Tx();
       });
 
       describe("With access list", function () {
@@ -279,6 +322,32 @@ describe("Eth module - hardfork dependant tests", function () {
               from: sender,
               to: sender,
               accessList: [],
+            },
+          ]);
+        });
+
+        rejectsSendTransactionWithEIP1559Fields();
+        rejectsSendRawTransactionWithEIP1559Tx();
+      });
+
+      describe("With EIP1559", function () {
+        useProviderAndCommon("london");
+
+        it("Should accept an eth_sendRawTransaction with an EIP-1559 tx", async function () {
+          const signedTx = getSampleSignedEIP1559Tx(this.common);
+          const serialized = bufferToRpcData(signedTx.serialize());
+
+          await this.provider.send("eth_sendRawTransaction", [serialized]);
+        });
+
+        it("Should accept an eth_sendTransaction if EIP-1559 fields were provided", async function () {
+          const [sender] = await this.provider.send("eth_accounts");
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from: sender,
+              to: sender,
+              accessList: [],
+              maxFeePerGas: numberToRpcQuantity(10e9),
             },
           ]);
         });
@@ -716,33 +785,70 @@ describe("Eth module - hardfork dependant tests", function () {
   });
 
   describe("Impersonated accounts", function () {
-    useProviderAndCommon("berlin");
+    describe("Berlin hardfork", function () {
+      useProviderAndCommon("berlin");
 
-    it("should allow sending access list txs from impersonated accounts", async function () {
-      // impersonate and add funds to some account
-      const impersonated = "0x462B1B252FC8e9A447807e4494b271844fBCDa10";
-      await this.provider.send("eth_sendTransaction", [
-        {
-          from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-          to: impersonated,
-          value: numberToRpcQuantity(new BN("100000000000000000")),
-        },
-      ]);
-      await this.provider.send("hardhat_impersonateAccount", [impersonated]);
+      it("should allow sending access list txs from impersonated accounts", async function () {
+        // impersonate and add funds to some account
+        const impersonated = "0x462B1B252FC8e9A447807e4494b271844fBCDa10";
+        await this.provider.send("eth_sendTransaction", [
+          {
+            from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+            to: impersonated,
+            value: numberToRpcQuantity(new BN("100000000000000000")),
+          },
+        ]);
+        await this.provider.send("hardhat_impersonateAccount", [impersonated]);
 
-      // send tx from impersonated account
-      const txHash = await this.provider.send("eth_sendTransaction", [
-        {
-          from: impersonated,
-          to: impersonated,
-          accessList: [],
-        },
-      ]);
+        // send tx from impersonated account
+        const txHash = await this.provider.send("eth_sendTransaction", [
+          {
+            from: impersonated,
+            to: impersonated,
+            accessList: [],
+          },
+        ]);
 
-      const tx = await this.provider.send("eth_getTransactionByHash", [txHash]);
+        const tx = await this.provider.send("eth_getTransactionByHash", [
+          txHash,
+        ]);
 
-      assert.isDefined(tx.accessList);
-      assert.isArray(tx.accessList);
+        assert.isDefined(tx.accessList);
+        assert.isArray(tx.accessList);
+      });
+    });
+
+    describe("London hardfork", function () {
+      useProviderAndCommon("london");
+
+      it("should allow sending EIP-1559 txs from impersonated accounts", async function () {
+        // impersonate and add funds to some account
+        const impersonated = "0x462B1B252FC8e9A447807e4494b271844fBCDa10";
+        await this.provider.send("eth_sendTransaction", [
+          {
+            from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+            to: impersonated,
+            value: numberToRpcQuantity(new BN("100000000000000000")),
+          },
+        ]);
+        await this.provider.send("hardhat_impersonateAccount", [impersonated]);
+
+        // send tx from impersonated account
+        const txHash = await this.provider.send("eth_sendTransaction", [
+          {
+            from: impersonated,
+            to: impersonated,
+            maxFeePerGas: numberToRpcQuantity(10e9),
+          },
+        ]);
+
+        const tx = await this.provider.send("eth_getTransactionByHash", [
+          txHash,
+        ]);
+
+        assert.isDefined(tx.accessList);
+        assert.isArray(tx.accessList);
+      });
     });
   });
 
