@@ -355,7 +355,7 @@ describe("Eth module - hardfork dependant tests", function () {
     });
 
     describe("Call and estimate gas types validation by hardfork", function () {
-      describe("Without access list", function () {
+      describe("Running a hardfork without access list", function () {
         useProviderAndCommon("petersburg");
 
         it("Should reject an eth_call if an access list was provided", async function () {
@@ -369,6 +369,17 @@ describe("Eth module - hardfork dependant tests", function () {
           );
         });
 
+        it("Should reject an eth_call with EIP-1559 fields", async function () {
+          const [sender] = await this.provider.send("eth_accounts");
+
+          await assertInvalidArgumentsError(
+            this.provider,
+            "eth_call",
+            [{ from: sender, to: sender, maxFeePerGas: "0x1" }],
+            "EIP-1559 style fee params (maxFeePerGas or maxPriorityFeePerGas) received but they are not supported by the current hardfork"
+          );
+        });
+
         it("Should reject an eth_estimateGas if an access list was provided", async function () {
           const [sender] = await this.provider.send("eth_accounts");
 
@@ -376,9 +387,17 @@ describe("Eth module - hardfork dependant tests", function () {
             { from: sender, to: sender, accessList: [] },
           ]);
         });
+
+        it("Should reject an eth_estimateGas with EIP-1559 fields", async function () {
+          const [sender] = await this.provider.send("eth_accounts");
+
+          await assertInvalidArgumentsError(this.provider, "eth_estimateGas", [
+            { from: sender, to: sender, maxFeePerGas: numberToRpcQuantity(1) },
+          ]);
+        });
       });
 
-      describe("With access list", function () {
+      describe("Running a hardfork without access list", function () {
         useProviderAndCommon("berlin");
 
         it("Should accept an eth_call if an access list was provided", async function () {
@@ -389,11 +408,50 @@ describe("Eth module - hardfork dependant tests", function () {
           ]);
         });
 
+        it("Should reject an eth_call with EIP-1559 fields", async function () {
+          const [sender] = await this.provider.send("eth_accounts");
+
+          await assertInvalidArgumentsError(
+            this.provider,
+            "eth_call",
+            [{ from: sender, to: sender, maxFeePerGas: "0x1" }],
+            "EIP-1559 style fee params (maxFeePerGas or maxPriorityFeePerGas) received but they are not supported by the current hardfork"
+          );
+        });
+
         it("Should accept an eth_estimateGas if an access list was provided", async function () {
           const [sender] = await this.provider.send("eth_accounts");
 
           await this.provider.send("eth_estimateGas", [
             { from: sender, to: sender, accessList: [] },
+          ]);
+        });
+
+        it("Should reject an eth_estimateGas with EIP-1559 fields", async function () {
+          const [sender] = await this.provider.send("eth_accounts");
+
+          await assertInvalidArgumentsError(this.provider, "eth_estimateGas", [
+            { from: sender, to: sender, maxFeePerGas: numberToRpcQuantity(1) },
+          ]);
+        });
+      });
+
+      describe("Running a hardfork with EIP-1559", function () {
+        useProviderAndCommon("london");
+
+        it("Should accept an eth_call with EIP-1559 fields", async function () {
+          const [sender] = await this.provider.send("eth_accounts");
+
+          await this.provider.send("eth_call", [
+            { from: sender, to: sender, maxFeePerGas: "0x1" },
+          ]);
+        });
+
+        it("Should reject an eth_estimateGas with EIP-1559 fields", async function () {
+          const [sender] = await this.provider.send("eth_accounts");
+
+          await this.provider.send("eth_estimateGas", [
+            { from: sender, to: sender, maxFeePerGas: numberToRpcQuantity(1) },
           ]);
         });
       });

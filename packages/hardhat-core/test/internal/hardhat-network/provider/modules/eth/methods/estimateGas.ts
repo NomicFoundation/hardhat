@@ -158,6 +158,56 @@ describe("Eth module", function () {
           // We know that it should fit in 100k gas
           assert.isTrue(new BN(toBuffer(estimation)).lten(100000));
         });
+
+        describe("Fee price fields", function () {
+          describe("Running a hardfork with EIP-1559", function () {
+            it("Should validate that gasPrice and maxFeePerGas & maxPriorityFeePerGas are not mixed", async function () {
+              await assertInvalidInputError(
+                this.provider,
+                "eth_estimateGas",
+                [
+                  {
+                    from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                    to: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                    gasPrice: numberToRpcQuantity(1),
+                    maxFeePerGas: numberToRpcQuantity(1),
+                  },
+                ],
+                "Cannot send both gasPrice and maxFeePerGas"
+              );
+
+              await assertInvalidInputError(
+                this.provider,
+                "eth_estimateGas",
+                [
+                  {
+                    from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                    to: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                    gasPrice: numberToRpcQuantity(1),
+                    maxPriorityFeePerGas: numberToRpcQuantity(1),
+                  },
+                ],
+                "Cannot send both gasPrice and maxPriorityFeePerGas"
+              );
+            });
+
+            it("Should validate that maxFeePerGas >= maxPriorityFeePerGas", async function () {
+              await assertInvalidInputError(
+                this.provider,
+                "eth_estimateGas",
+                [
+                  {
+                    from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                    to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                    maxFeePerGas: numberToRpcQuantity(1),
+                    maxPriorityFeePerGas: numberToRpcQuantity(2),
+                  },
+                ],
+                "maxPriorityFeePerGas (2) is bigger than maxFeePerGas (1)"
+              );
+            });
+          });
+        });
       });
     });
   });

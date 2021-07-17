@@ -59,12 +59,15 @@ export interface CallParams {
   to?: Buffer;
   from: Buffer;
   gasLimit: BN;
-  gasPrice: BN;
   value: BN;
   data: Buffer;
   // We use this access list format because @ethereumjs/tx access list data
   // forces us to use it or stringify them
   accessList?: AccessListBufferItem[];
+  // Fee params
+  gasPrice?: BN;
+  maxFeePerGas?: BN;
+  maxPriorityFeePerGas?: BN;
 }
 
 export type TransactionParams =

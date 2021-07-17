@@ -127,7 +127,13 @@ describe("Eth module", function () {
         });
 
         describe("Base fee validation", function () {
-          // We set an initial base fee too high for the fixture txs
+          // The raw tx we are using may not work in a fork because of its
+          // chainID and nonce
+          if (isFork) {
+            return;
+          }
+
+          // We set an initial base fee too high for the raw tx
           useProvider({ initialBaseFeePerGas: 100e9 });
 
           describe("With automining enabled", function () {
