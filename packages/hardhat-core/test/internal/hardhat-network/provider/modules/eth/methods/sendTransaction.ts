@@ -731,7 +731,7 @@ describe("Eth module", function () {
             assert.lengthOf(minedBlock.transactions, 0);
           });
 
-          it("Should throw an error if the replacement gas price is too low", async function () {
+          it("Should throw an error if the replacement gasPrice, maxFeePerGas or maxPriorityFeePerGas are too low", async function () {
             const txHash1 = await this.provider.send("eth_sendTransaction", [
               {
                 from: DEFAULT_ACCOUNTS_ADDRESSES[1],
@@ -740,6 +740,7 @@ describe("Eth module", function () {
                 gasPrice: numberToRpcQuantity(20e9),
               },
             ]);
+
             let tx1 = await this.provider.send("eth_getTransactionByHash", [
               txHash1,
             ]);
@@ -756,7 +757,35 @@ describe("Eth module", function () {
                   gasPrice: numberToRpcQuantity(21e9),
                 },
               ],
-              "Replacement transaction underpriced. A priority fee of at least 22000000000 is necessary to replace the existing transaction."
+              "Replacement transaction underpriced. A gasPrice/maxFeePerGas of at least 22000000000 is necessary to replace the existing transaction with nonce 0."
+            );
+
+            await assertInvalidInputError(
+              this.provider,
+              "eth_sendTransaction",
+              [
+                {
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                  to: DEFAULT_ACCOUNTS_ADDRESSES[2],
+                  nonce: numberToRpcQuantity(0),
+                  maxFeePerGas: numberToRpcQuantity(21e9),
+                },
+              ],
+              "Replacement transaction underpriced. A gasPrice/maxFeePerGas of at least 22000000000 is necessary to replace the existing transaction with nonce 0."
+            );
+
+            await assertInvalidInputError(
+              this.provider,
+              "eth_sendTransaction",
+              [
+                {
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                  to: DEFAULT_ACCOUNTS_ADDRESSES[2],
+                  nonce: numberToRpcQuantity(0),
+                  maxPriorityFeePerGas: numberToRpcQuantity(21e9),
+                },
+              ],
+              "Replacement transaction underpriced. A gasPrice/maxPriorityFeePerGas of at least 22000000000 is necessary to replace the existing transaction with nonce 0."
             );
 
             // check that original tx was not replaced

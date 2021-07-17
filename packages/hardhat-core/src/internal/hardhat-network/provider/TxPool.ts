@@ -643,22 +643,43 @@ export class TxPool {
 
     const deserializedExistingTx = this._deserializeTransaction(existingTx);
 
-    const currentPriorityFee = new BN(
+    const currentMaxFeePerGas = new BN(
+      "gasPrice" in deserializedExistingTx.data
+        ? deserializedExistingTx.data.gasPrice
+        : deserializedExistingTx.data.maxFeePerGas
+    );
+
+    const currentPriorityFeePerGas = new BN(
       "gasPrice" in deserializedExistingTx.data
         ? deserializedExistingTx.data.gasPrice
         : deserializedExistingTx.data.maxPriorityFeePerGas
     );
-    const newPriorityFee = new BN(
+
+    const newMaxFeePerGas = new BN(
+      "gasPrice" in newTx.data ? newTx.data.gasPrice : newTx.data.maxFeePerGas
+    );
+
+    const newPriorityFeePerGas = new BN(
       "gasPrice" in newTx.data
         ? newTx.data.gasPrice
         : newTx.data.maxPriorityFeePerGas
     );
 
-    const minNewPriorityFee = this._getMinNewPriorityFee(currentPriorityFee);
+    const minNewMaxFeePerGas = this._getMinNewFeePrice(currentMaxFeePerGas);
 
-    if (newPriorityFee.lt(minNewPriorityFee)) {
+    const minNewPriorityFeePerGas = this._getMinNewFeePrice(
+      currentPriorityFeePerGas
+    );
+
+    if (newMaxFeePerGas.lt(minNewMaxFeePerGas)) {
       throw new InvalidInputError(
-        `Replacement transaction underpriced. A priority fee of at least ${minNewPriorityFee.toString()} is necessary to replace the existing transaction.`
+        `Replacement transaction underpriced. A gasPrice/maxFeePerGas of at least ${minNewMaxFeePerGas.toString()} is necessary to replace the existing transaction with nonce ${newTx.data.nonce.toString()}.`
+      );
+    }
+
+    if (newPriorityFeePerGas.lt(minNewPriorityFeePerGas)) {
+      throw new InvalidInputError(
+        `Replacement transaction underpriced. A gasPrice/maxPriorityFeePerGas of at least ${minNewPriorityFeePerGas.toString()} is necessary to replace the existing transaction with nonce ${newTx.data.nonce.toString()}.`
       );
     }
 
@@ -669,8 +690,8 @@ export class TxPool {
     return newTxs;
   }
 
-  private _getMinNewPriorityFee(currentPriorityFee: BN): BN {
-    let minNewPriorityFee = currentPriorityFee.muln(110);
+  private _getMinNewFeePrice(feePrice: BN): BN {
+    let minNewPriorityFee = feePrice.muln(110);
 
     if (minNewPriorityFee.modn(100) === 0) {
       minNewPriorityFee = minNewPriorityFee.divn(100);
