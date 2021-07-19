@@ -252,10 +252,10 @@ export function getRpcTransaction(
   };
 
   if ("maxFeePerGas" in tx) {
-    const effectiveGasPrice = getEffectiveGasPrice(
-      tx,
-      block === "pending" ? "pending" : block.header.baseFeePerGas!
-    );
+    const effectiveGasPrice =
+      block === "pending"
+        ? tx.maxFeePerGas
+        : getEffectiveGasPrice(tx, block.header.baseFeePerGas!);
 
     // EIP-1559
     return {
@@ -274,17 +274,10 @@ export function getRpcTransaction(
   };
 }
 
-function getEffectiveGasPrice(
-  tx: TypedTransaction,
-  baseFeePerGas: BN | "pending"
-) {
+function getEffectiveGasPrice(tx: TypedTransaction, baseFeePerGas: BN) {
   const maxFeePerGas = "maxFeePerGas" in tx ? tx.maxFeePerGas : tx.gasPrice;
   const maxPriorityFeePerGas =
     "maxPriorityFeePerGas" in tx ? tx.maxPriorityFeePerGas : tx.gasPrice;
-
-  if (baseFeePerGas === "pending") {
-    return maxFeePerGas;
-  }
 
   // baseFeePerGas + min(maxFeePerGas - baseFeePerGas, maxPriorityFeePerGas)
   return baseFeePerGas.add(
