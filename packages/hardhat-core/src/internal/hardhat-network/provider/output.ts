@@ -14,6 +14,7 @@ import { RpcTransactionReceipt } from "../../core/jsonrpc/types/output/receipt";
 import { assertHardhatNetworkInvariant } from "./utils/assertions";
 
 const FIRST_HARDFORK_WITH_TRANSACTION_TYPE = "berlin";
+const FIRST_HARDFORK_WITH_EIP1559 = "london";
 
 // TODO: These types should be moved to core, and probably inferred by io-ts
 export interface RpcBlockOutput {
@@ -453,5 +454,5 @@ export function shouldShowTransactionTypeForHardfork(common: Common) {
 }
 
 export function shouldShowEffectiveGasPriceForHardfork(common: Common) {
-  return common.gteHardfork(FIRST_HARDFORK_WITH_TRANSACTION_TYPE);
+  return common.gteHardfork(FIRST_HARDFORK_WITH_EIP1559);
 }
