@@ -11,6 +11,7 @@ import {
 } from "../../core/jsonrpc/types/base-types";
 import { RpcLog } from "../../core/jsonrpc/types/output/log";
 import { RpcTransactionReceipt } from "../../core/jsonrpc/types/output/receipt";
+import { assertHardhatNetworkInvariant } from "./utils/assertions";
 
 const FIRST_HARDFORK_WITH_TRANSACTION_TYPE = "berlin";
 
@@ -361,7 +362,12 @@ export function remoteReceiptToRpcReceiptOutput(
 ): RpcReceiptOutput {
   const isTypedTransaction = tx.type !== 0;
   const effectiveGasPrice =
-    "gasPrice" in tx ? tx.gasPrice : receipt.effectiveGasPrice!;
+    receipt.effectiveGasPrice ?? ("gasPrice" in tx ? tx.gasPrice : undefined);
+
+  assertHardhatNetworkInvariant(
+    effectiveGasPrice !== undefined,
+    "Receipt without effectiveGasPrice nor gasPrice in its tx"
+  );
 
   return {
     blockHash: bufferToRpcData(receipt.blockHash),
