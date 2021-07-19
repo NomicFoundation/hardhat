@@ -49,6 +49,7 @@ const log = debug("hardhat:core:hardhat-network:provider");
 const PRIVATE_RPC_METHODS = new Set([
   "hardhat_getStackTraceFailuresCount",
   "hardhat_setLoggingEnabled",
+  "hardhat_setLogMethods",
 ]);
 
 /* eslint-disable @nomiclabs/only-hardhat-error */
@@ -265,6 +266,9 @@ export class HardhatNetworkProvider extends EventEmitter
       (forkConfig?: ForkConfig) => this._reset(miningTimer, forkConfig),
       (loggingEnabled: boolean) => {
         this._logger.setEnabled(loggingEnabled);
+      },
+      (logMethods: boolean) => {
+        this._logger.setLogMethods(logMethods);
       },
       this._logger,
       this._experimentalHardhatNetworkMessageTraceHooks

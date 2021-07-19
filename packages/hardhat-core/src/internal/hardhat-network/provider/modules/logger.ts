@@ -60,6 +60,7 @@ export class ModulesLogger {
   private _emptyMinedBlocksRangeStart: number | undefined = undefined;
   private _methodBeingCollapsed?: string;
   private _methodCollapsedCount: number = 0;
+  private _logMethods = true;
 
   constructor(
     private _enabled: boolean,
@@ -73,6 +74,14 @@ export class ModulesLogger {
 
   public setEnabled(enabled: boolean) {
     this._enabled = enabled;
+  }
+
+  public shouldLogMethods() {
+    return this._logMethods;
+  }
+
+  public setLogMethods(logMethods: boolean) {
+    this._logMethods = logMethods;
   }
 
   public isLoggedError(err: Error) {
@@ -385,6 +394,10 @@ export class ModulesLogger {
   }
 
   public printMethod(method: string) {
+    if (!this._logMethods) {
+      return;
+    }
+
     if (this._shouldCollapseMethod(method)) {
       this._methodCollapsedCount += 1;
 
