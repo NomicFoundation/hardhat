@@ -5,6 +5,7 @@ import { EthereumProvider } from "./provider";
 /**
  * This class is used to dynamically validate task's argument types.
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export interface ArgumentType<T> {
   /**
    * The type's name.

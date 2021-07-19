@@ -86,7 +86,7 @@ describe("Environment", () => {
   beforeEach(() => {
     const ctx = HardhatContext.createHardhatContext();
     dsl = ctx.tasksDSL;
-    dsl.task("example", async (ret) => {
+    dsl.task("example", async () => {
       return 27;
     });
 
@@ -298,7 +298,7 @@ describe("Environment", () => {
     });
 
     it("should run overridden task correctly", async () => {
-      dsl.task("example", "description", async (ret) => {
+      dsl.task("example", "description", async () => {
         return 28;
       });
       tasks = dsl.getTaskDefinitions();

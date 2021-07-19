@@ -34,7 +34,7 @@ import {
 
 import { assertEqualBlocks } from "./utils/assertEqualBlocks";
 
-// tslint:disable no-string-literal
+/* eslint-disable @typescript-eslint/dot-notation */
 
 interface ForkedBlock {
   networkName: string;
@@ -51,6 +51,7 @@ describe("HardhatNode", () => {
     chainId: DEFAULT_CHAIN_ID,
     networkId: DEFAULT_NETWORK_ID,
     blockGasLimit: DEFAULT_BLOCK_GAS_LIMIT,
+    minGasPrice: new BN(0),
     genesisAccounts: DEFAULT_ACCOUNTS,
   };
   const gasPrice = 1;
@@ -60,8 +61,7 @@ describe("HardhatNode", () => {
   ) => FakeSenderTransaction;
 
   beforeEach(async () => {
-    let common: Common;
-    [common, node] = await HardhatNode.create(config);
+    [, node] = await HardhatNode.create(config);
     createTestTransaction = (txData) => {
       const tx = new FakeSenderTransaction(Address.fromString(txData.from), {
         gasPrice,
@@ -627,6 +627,7 @@ describe("HardhatNode", () => {
           forkConfig,
           forkCachePath: FORK_TESTS_CACHE_PATH,
           blockGasLimit: rpcBlock.gasLimit.toNumber(),
+          minGasPrice: new BN(0),
           genesisAccounts: [],
         };
 

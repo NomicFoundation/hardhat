@@ -22,7 +22,7 @@ import { MineBlockResult } from "../node-types";
 
 import { ModulesLogger } from "./logger";
 
-// tslint:disable only-hardhat-error
+/* eslint-disable @nomiclabs/only-hardhat-error */
 
 export class EvmModule {
   constructor(
@@ -86,7 +86,7 @@ export class EvmModule {
     );
     if (increment.lte(new BN(0))) {
       throw new InvalidInputError(
-        `Timestamp ${timestamp} is lower than previous block's timestamp` +
+        `Timestamp ${timestamp} is lower than or equal to previous block's timestamp` +
           ` ${new BN(latestBlock.header.timestamp).toNumber()}`
       );
     }
@@ -150,7 +150,7 @@ export class EvmModule {
 
   // evm_snapshot
 
-  private _snapshotParams(params: any[]): [] {
+  private _snapshotParams(_params: any[]): [] {
     return [];
   }
 

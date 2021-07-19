@@ -6,7 +6,7 @@ import {
   dateToTimestampSeconds,
   parseDateString,
 } from "../../../../src/internal/util/date";
-import { HardhatNetworkUserConfig } from "../../../../src/types";
+import { HardhatNetworkConfig } from "../../../../src/types";
 import { useEnvironment } from "../../../helpers/environment";
 import { expectErrorAsync } from "../../../helpers/errors";
 import { useFixtureProject } from "../../../helpers/project";
@@ -73,7 +73,7 @@ describe("Hardhat Network special options", function () {
       );
 
       const hardhatNetworkConfig = this.env.config.networks
-        .hardhat as HardhatNetworkUserConfig;
+        .hardhat as HardhatNetworkConfig;
       const initialDateString = hardhatNetworkConfig.initialDate!;
       const initialDate = dateToTimestampSeconds(
         parseDateString(initialDateString)

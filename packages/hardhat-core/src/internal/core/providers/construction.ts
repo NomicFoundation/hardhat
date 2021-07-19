@@ -77,13 +77,14 @@ export function createProvider(
     );
 
     eip1193Provider = new HardhatNetworkProvider(
-      hardhatNetConfig.hardfork!,
+      hardhatNetConfig.hardfork,
       HARDHAT_NETWORK_NAME,
-      hardhatNetConfig.chainId!,
-      hardhatNetConfig.chainId!,
-      hardhatNetConfig.blockGasLimit!,
-      hardhatNetConfig.throwOnTransactionFailures!,
-      hardhatNetConfig.throwOnCallFailures!,
+      hardhatNetConfig.chainId,
+      hardhatNetConfig.chainId,
+      hardhatNetConfig.blockGasLimit,
+      hardhatNetConfig.minGasPrice,
+      hardhatNetConfig.throwOnTransactionFailures,
+      hardhatNetConfig.throwOnCallFailures,
       hardhatNetConfig.mining.auto,
       hardhatNetConfig.mining.interval,
       new ModulesLogger(hardhatNetConfig.loggingEnabled, hardhatNetConfig.logging),
