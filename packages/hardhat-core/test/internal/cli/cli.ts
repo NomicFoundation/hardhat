@@ -1,4 +1,5 @@
 import child_process from "child_process";
+import os from "os";
 
 import { assert } from "chai";
 
@@ -33,6 +34,10 @@ describe("command-line interface", function () {
 
   describe("sample project", function () {
     it("should permit successful execution all of the suggested commands", async function () {
+      if (os.type() === "Windows_NT") {
+        // cf. https://github.com/nomiclabs/hardhat/issues/1698
+        this.skip();
+      }
       try {
         child_process.execSync("yarn init --yes");
         child_process.execSync(`yarn add --dev file:${getPackageRoot()}`);
