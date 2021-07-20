@@ -135,7 +135,7 @@ describe("Eth module", function () {
                 maxFeePerGas: numberToRpcQuantity(10),
                 maxPriorityFeePerGas: numberToRpcQuantity(10),
               },
-              "Transaction cannot have both gasPrice and maxFeePerGas",
+              "Cannot send both gasPrice and maxFeePerGas",
               InvalidInputError.CODE
             );
           });
@@ -151,7 +151,7 @@ describe("Eth module", function () {
                 gasPrice: numberToRpcQuantity(10),
                 maxFeePerGas: numberToRpcQuantity(10),
               },
-              "Transaction cannot have both gasPrice and maxFeePerGas",
+              "Cannot send both gasPrice and maxFeePerGas",
               InvalidInputError.CODE
             );
           });
@@ -167,7 +167,7 @@ describe("Eth module", function () {
                 gasPrice: numberToRpcQuantity(1),
                 maxPriorityFeePerGas: numberToRpcQuantity(1),
               },
-              "Transaction cannot have both gasPrice and maxPriorityFeePerGas",
+              "Cannot send both gasPrice and maxPriorityFeePerGas",
               InvalidInputError.CODE
             );
           });

@@ -1163,15 +1163,14 @@ export class EthModule {
       data: rpcCall.data !== undefined ? rpcCall.data : toBuffer([]),
       gasLimit:
         rpcCall.gas !== undefined ? rpcCall.gas : this._node.getBlockGasLimit(),
-      gasPrice:
-        rpcCall.gasPrice !== undefined
-          ? rpcCall.gasPrice
-          : await this._node.getGasPrice(),
       value: rpcCall.value !== undefined ? rpcCall.value : new BN(0),
       accessList:
         rpcCall.accessList !== undefined
           ? this._rpcAccessListToNodeAccessList(rpcCall.accessList)
           : undefined,
+      gasPrice: rpcCall.gasPrice,
+      maxFeePerGas: rpcCall.maxFeePerGas,
+      maxPriorityFeePerGas: rpcCall.maxPriorityFeePerGas,
     };
   }
 
@@ -1601,7 +1600,7 @@ You can use them by running Hardhat Network with 'hardfork' ${ACCESS_LIST_MIN_HA
       rpcRequest.maxFeePerGas !== undefined
     ) {
       throw new InvalidInputError(
-        "Transaction cannot have both gasPrice and maxFeePerGas"
+        "Cannot send both gasPrice and maxFeePerGas params"
       );
     }
 
@@ -1610,7 +1609,7 @@ You can use them by running Hardhat Network with 'hardfork' ${ACCESS_LIST_MIN_HA
       rpcRequest.maxPriorityFeePerGas !== undefined
     ) {
       throw new InvalidInputError(
-        "Transaction cannot have both gasPrice and maxPriorityFeePerGas"
+        "Cannot send both gasPrice and maxPriorityFeePerGas"
       );
     }
 
