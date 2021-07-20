@@ -431,7 +431,11 @@ describe("Eth module - hardfork dependant tests", function () {
           const [sender] = await this.provider.send("eth_accounts");
 
           await assertInvalidArgumentsError(this.provider, "eth_estimateGas", [
-            { from: sender, to: sender, maxFeePerGas: numberToRpcQuantity(1) },
+            {
+              from: sender,
+              to: sender,
+              maxFeePerGas: numberToRpcQuantity(10e9),
+            },
           ]);
         });
       });
@@ -447,11 +451,15 @@ describe("Eth module - hardfork dependant tests", function () {
           ]);
         });
 
-        it("Should reject an eth_estimateGas with EIP-1559 fields", async function () {
+        it("Should accept an eth_estimateGas with EIP-1559 fields", async function () {
           const [sender] = await this.provider.send("eth_accounts");
 
           await this.provider.send("eth_estimateGas", [
-            { from: sender, to: sender, maxFeePerGas: numberToRpcQuantity(1) },
+            {
+              from: sender,
+              to: sender,
+              maxFeePerGas: numberToRpcQuantity(10e9),
+            },
           ]);
         });
       });
