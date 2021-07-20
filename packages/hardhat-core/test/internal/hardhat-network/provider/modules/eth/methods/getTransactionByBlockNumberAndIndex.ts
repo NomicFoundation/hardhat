@@ -6,6 +6,7 @@ import { TransactionParams } from "../../../../../../../internal/hardhat-network
 import {
   EIP1559RpcTransactionOutput,
   LegacyRpcTransactionOutput,
+  AccessListEIP2930RpcTransactionOutput,
 } from "../../../../../../../internal/hardhat-network/provider/output";
 import { workaroundWindowsCiFailures } from "../../../../../../utils/workaround-windows-ci-failures";
 import {
@@ -171,7 +172,7 @@ describe("Eth module", function () {
             false,
           ]);
 
-          const tx: LegacyRpcTransactionOutput = await this.provider.send(
+          const tx: AccessListEIP2930RpcTransactionOutput = await this.provider.send(
             "eth_getTransactionByBlockNumberAndIndex",
             [numberToRpcQuantity(firstBlock + 1), numberToRpcQuantity(0)]
           );

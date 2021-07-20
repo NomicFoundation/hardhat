@@ -11,8 +11,10 @@ import {
 } from "../../core/jsonrpc/types/base-types";
 import { RpcLog } from "../../core/jsonrpc/types/output/log";
 import { RpcTransactionReceipt } from "../../core/jsonrpc/types/output/receipt";
+import { assertHardhatNetworkInvariant } from "./utils/assertions";
 
 const FIRST_HARDFORK_WITH_TRANSACTION_TYPE = "berlin";
+const FIRST_HARDFORK_WITH_EIP1559 = "london";
 
 // TODO: These types should be moved to core, and probably inferred by io-ts
 export interface RpcBlockOutput {
@@ -75,14 +77,15 @@ export interface AccessListEIP2930RpcTransactionOutput
   extends BaseRpcTransactionOutput {
   gasPrice: string;
   accessList?: RpcAccessListOutput;
-  chainId?: string;
+  chainId: string;
 }
 
 export interface EIP1559RpcTransactionOutput extends BaseRpcTransactionOutput {
+  gasPrice: string;
   maxFeePerGas: string;
   maxPriorityFeePerGas: string;
   accessList?: RpcAccessListOutput;
-  chainId?: string;
+  chainId: string;
 }
 
 export interface RpcReceiptOutput {
@@ -104,8 +107,11 @@ export interface RpcReceiptOutput {
   // Only present before Byzantium
   root?: string;
 
-  // Only shown if the local hardfork is at least Berlin, or if the (remote) tx has an access list
+  // Only shown if the local hardfork is at least Berlin, or if the (remote) is not a legacy one
   type?: string;
+
+  // Only shown if the local hardfork is at least London, or if the (remote) is EIP-1559
+  effectiveGasPrice?: string;
 }
 
 export interface RpcLogOutput {
@@ -246,9 +252,16 @@ export function getRpcTransaction(
   };
 
   if ("maxFeePerGas" in tx) {
+    const effectiveGasPrice =
+      block === "pending"
+        ? tx.maxFeePerGas
+        : getEffectiveGasPrice(tx, block.header.baseFeePerGas!);
+
     // EIP-1559
     return {
       ...baseOutput,
+      gasPrice: numberToRpcQuantity(effectiveGasPrice),
+      chainId: numberToRpcQuantity(tx.chainId),
       maxFeePerGas: numberToRpcQuantity(tx.maxFeePerGas),
       maxPriorityFeePerGas: numberToRpcQuantity(tx.maxPriorityFeePerGas),
     };
@@ -259,6 +272,17 @@ export function getRpcTransaction(
     ...baseOutput,
     gasPrice: numberToRpcQuantity(tx.gasPrice),
   };
+}
+
+function getEffectiveGasPrice(tx: TypedTransaction, baseFeePerGas: BN) {
+  const maxFeePerGas = "maxFeePerGas" in tx ? tx.maxFeePerGas : tx.gasPrice;
+  const maxPriorityFeePerGas =
+    "maxPriorityFeePerGas" in tx ? tx.maxPriorityFeePerGas : tx.gasPrice;
+
+  // baseFeePerGas + min(maxFeePerGas - baseFeePerGas, maxPriorityFeePerGas)
+  return baseFeePerGas.add(
+    BN.min(maxFeePerGas.sub(baseFeePerGas), maxPriorityFeePerGas)
+  );
 }
 
 export function getRpcReceiptOutputsFromLocalBlockExecution(
@@ -309,6 +333,15 @@ export function getRpcReceiptOutputsFromLocalBlockExecution(
       rpcReceipt.status = numberToRpcQuantity(receipt.status);
     }
 
+    if (block.header.baseFeePerGas !== undefined) {
+      const effectiveGasPrice = getEffectiveGasPrice(
+        tx,
+        block.header.baseFeePerGas
+      );
+
+      rpcReceipt.effectiveGasPrice = numberToRpcQuantity(effectiveGasPrice);
+    }
+
     receipts.push(rpcReceipt);
   }
 
@@ -318,9 +351,17 @@ export function getRpcReceiptOutputsFromLocalBlockExecution(
 export function remoteReceiptToRpcReceiptOutput(
   receipt: RpcTransactionReceipt,
   tx: TypedTransaction,
-  showTransactionType: boolean
+  showTransactionType: boolean,
+  showEffectiveGasPrice: boolean
 ): RpcReceiptOutput {
   const isTypedTransaction = tx.type !== 0;
+  const effectiveGasPrice =
+    receipt.effectiveGasPrice ?? ("gasPrice" in tx ? tx.gasPrice : undefined);
+
+  assertHardhatNetworkInvariant(
+    effectiveGasPrice !== undefined,
+    "Receipt without effectiveGasPrice nor gasPrice in its tx"
+  );
 
   return {
     blockHash: bufferToRpcData(receipt.blockHash),
@@ -346,6 +387,10 @@ export function remoteReceiptToRpcReceiptOutput(
     type:
       showTransactionType || isTypedTransaction
         ? numberToRpcQuantity(tx.transactionType)
+        : undefined,
+    effectiveGasPrice:
+      showEffectiveGasPrice || tx.type === 2
+        ? numberToRpcQuantity(effectiveGasPrice)
         : undefined,
   };
 }
@@ -399,4 +444,8 @@ function getRpcLogOutput(
 
 export function shouldShowTransactionTypeForHardfork(common: Common) {
   return common.gteHardfork(FIRST_HARDFORK_WITH_TRANSACTION_TYPE);
+}
+
+export function shouldShowEffectiveGasPriceForHardfork(common: Common) {
+  return common.gteHardfork(FIRST_HARDFORK_WITH_EIP1559);
 }
