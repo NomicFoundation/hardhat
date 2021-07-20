@@ -69,6 +69,7 @@ import { VmTraceDecoder } from "../stack-traces/vm-trace-decoder";
 import { VMTracer } from "../stack-traces/vm-tracer";
 
 import "./ethereumjs-workarounds";
+import { rpcQuantityToBN } from "../../core/jsonrpc/types/base-types";
 import { bloomFilter, Filter, filterLogs, LATEST_BLOCK, Type } from "./filter";
 import { ForkBlockchain } from "./fork/ForkBlockchain";
 import { ForkStateManager } from "./fork/ForkStateManager";
@@ -77,6 +78,7 @@ import { HardhatStateManager } from "./HardhatStateManager";
 import {
   CallParams,
   EstimateGasResult,
+  FeeHistory,
   FilterParams,
   GatherTracesResult,
   GenesisAccount,
@@ -1260,6 +1262,133 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         );
       }
     );
+  }
+
+  public async getFeeHistory(
+    blockCount: BN,
+    newestBlock: BN | "pending",
+    rewardPercentiles: number[]
+  ): Promise<FeeHistory> {
+    const latestBlock = await this.getLatestBlockNumber();
+    const pendingBlockNumber = latestBlock.addn(1);
+
+    const resolvedNewestBlock =
+      newestBlock === "pending" ? pendingBlockNumber : newestBlock;
+
+    const oldestBlock = BN.max(
+      resolvedNewestBlock.sub(blockCount).addn(1),
+      new BN(0)
+    );
+
+    const baseFeePerGas: BN[] = [];
+    const gasUsedRatio: number[] = [];
+    const reward: BN[][] = [];
+
+    const lastBlock = resolvedNewestBlock.addn(1);
+
+    // We get the pending block here, and only if necessary, as it's something
+    // constly to do.
+    let pendingBlock: Block | undefined;
+    if (lastBlock.gte(pendingBlockNumber)) {
+      pendingBlock = await this.getBlockByNumber("pending");
+    }
+
+    for (
+      let blockNumber = oldestBlock;
+      blockNumber.lte(lastBlock);
+      blockNumber = blockNumber.addn(1)
+    ) {
+      if (blockNumber.lt(pendingBlockNumber)) {
+        // We know the block exists
+        const block = (await this.getBlockByNumber(blockNumber))!;
+        baseFeePerGas.push(block.header.baseFeePerGas ?? new BN(0));
+
+        if (blockNumber.lt(lastBlock)) {
+          gasUsedRatio.push(this._getGasUsedRatio(block));
+
+          if (rewardPercentiles.length > 0) {
+            reward.push(await this._getRewards(block, rewardPercentiles));
+          }
+        }
+      } else if (blockNumber.eq(pendingBlockNumber)) {
+        // This can only be run with EIP-1559, so this exists
+        baseFeePerGas.push((await this.getNextBlockBaseFeePerGas())!);
+
+        if (blockNumber.lt(lastBlock)) {
+          gasUsedRatio.push(this._getGasUsedRatio(pendingBlock!));
+
+          if (rewardPercentiles.length > 0) {
+            // We don't compute this for the pending block, as there's no
+            // effective miner fee yet.
+            reward.push(rewardPercentiles.map((_) => new BN(0)));
+          }
+        }
+      } else if (blockNumber.eq(pendingBlockNumber.addn(1))) {
+        baseFeePerGas.push(pendingBlock!.header.calcNextBaseFee());
+      } else {
+        assertHardhatInvariant(false, "This should never happen");
+      }
+    }
+
+    return {
+      oldestBlock,
+      baseFeePerGas,
+      gasUsedRatio,
+      reward: rewardPercentiles.length > 0 ? reward : undefined,
+    };
+  }
+
+  private _getGasUsedRatio(block: Block): number {
+    const FLOATS_PRECISION = 100_000;
+
+    return (
+      block.header.gasUsed
+        .muln(FLOATS_PRECISION)
+        .div(block.header.gasLimit)
+        .toNumber() / FLOATS_PRECISION
+    );
+  }
+
+  private async _getRewards(
+    block: Block,
+    rewardPercentiles: number[]
+  ): Promise<BN[]> {
+    const FLOATS_PRECISION = 100_000;
+
+    if (block.transactions.length === 0) {
+      return rewardPercentiles.map((_) => new BN(0));
+    }
+
+    const receipts = await Promise.all(
+      block.transactions
+        .map((tx) => tx.hash())
+        .map((hash) => this.getTransactionReceipt(hash))
+    );
+
+    const effectiveGasPriceAndGas = receipts
+      .map((r) => ({
+        effectiveGasPrice: rpcQuantityToBN(r?.effectiveGasPrice!),
+        gasUsed: rpcQuantityToBN(r?.gasUsed!),
+      }))
+      .sort((a, b) => a.effectiveGasPrice.cmp(b.effectiveGasPrice));
+
+    return rewardPercentiles.map((p) => {
+      let gasUsed = new BN(0);
+      const targetGas = block.header.gasLimit
+        .muln(Math.ceil(p * FLOATS_PRECISION))
+        .divn(100 * FLOATS_PRECISION);
+
+      for (const values of effectiveGasPriceAndGas) {
+        gasUsed = gasUsed.add(values.gasUsed);
+
+        if (targetGas.lte(gasUsed)) {
+          return values.effectiveGasPrice;
+        }
+      }
+
+      return effectiveGasPriceAndGas[effectiveGasPriceAndGas.length - 1]
+        .effectiveGasPrice;
+    });
   }
 
   private async _addPendingTransaction(tx: TypedTransaction): Promise<string> {
