@@ -1191,9 +1191,7 @@ export class EthModule {
           const prev = rewardPercentiles[i - 1];
           if (prev > p) {
             throw new InvalidInputError(
-              `The reward percentiles should be in increasing order, but the percentile number ${
-                i + 1
-              } is smaller than the previous one`
+              `The reward percentiles should be in non-decreasing order, but the percentile number ${i} is greater than the next one`
             );
           }
         }

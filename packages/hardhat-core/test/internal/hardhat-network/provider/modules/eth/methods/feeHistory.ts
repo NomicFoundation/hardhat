@@ -72,7 +72,7 @@ describe("Eth module", function () {
               this.provider,
               "eth_feeHistory",
               [numberToRpcQuantity(1), "latest", [1, 2, 2, 1]],
-              "The reward percentiles should be in increasing order, but the percentile number 4 is smaller than the previous one"
+              "The reward percentiles should be in non-decreasing order, but the percentile number 3 is greater than the next one"
             );
           });
         });
