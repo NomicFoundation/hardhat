@@ -600,56 +600,27 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     // TODO: This is more complex in Geth, we should make sure we aren't missing
     //  anything here.
 
-    let gasPrice = callParams.gasPrice;
-    let maxFeePerGas = callParams.maxFeePerGas;
-    let maxPriorityFeePerGas = callParams.maxPriorityFeePerGas;
-
-    if (!this.isEip1559Active()) {
-      if (gasPrice === undefined) {
-        gasPrice = await this.getGasPrice();
-      }
-    } else if (gasPrice === undefined) {
-      if (maxPriorityFeePerGas === undefined) {
-        maxPriorityFeePerGas = await this.getMaxPriorityFeePerGas();
-
-        if (
-          callParams.maxFeePerGas !== undefined &&
-          callParams.maxFeePerGas.lt(maxPriorityFeePerGas)
-        ) {
-          maxPriorityFeePerGas = callParams.maxFeePerGas;
-        }
-      }
-
-      if (callParams.maxPriorityFeePerGas === undefined) {
-        if (blockNumberOrPending !== "pending") {
-          const block = await this.getBlockByNumber(blockNumberOrPending);
-
-          maxFeePerGas = maxPriorityFeePerGas.add(
-            block?.header.baseFeePerGas ?? new BN(0)
-          );
-        }
-
-        const baseFeePerGas = await this.getNextBlockBaseFeePerGas();
-        maxFeePerGas = baseFeePerGas!.muln(2).add(maxPriorityFeePerGas);
-      }
-    }
+    const feePriceFields = await this._getEstimateGasFeePriceFields(
+      callParams,
+      blockNumberOrPending
+    );
 
     let txParams: TransactionParams;
 
-    if (gasPrice !== undefined) {
+    if ("gasPrice" in feePriceFields) {
       if (callParams.accessList === undefined) {
         // Legacy tx
         txParams = {
           ...callParams,
           nonce,
-          gasPrice,
+          gasPrice: feePriceFields.gasPrice,
         };
       } else {
         // Access list tx
         txParams = {
           ...callParams,
           nonce,
-          gasPrice,
+          gasPrice: feePriceFields.gasPrice,
           accessList: callParams.accessList ?? [],
         };
       }
@@ -658,8 +629,8 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       txParams = {
         ...callParams,
         nonce,
-        maxFeePerGas: maxFeePerGas!,
-        maxPriorityFeePerGas: maxPriorityFeePerGas!,
+        maxFeePerGas: feePriceFields.maxFeePerGas,
+        maxPriorityFeePerGas: feePriceFields.maxPriorityFeePerGas,
         accessList: callParams.accessList ?? [],
       };
     }
@@ -2152,6 +2123,46 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
   public isEip1559Active(): boolean {
     return this._vm._common.gteHardfork("london");
+  }
+
+  private async _getEstimateGasFeePriceFields(
+    callParams: CallParams,
+    blockNumberOrPending: BN | "pending"
+  ): Promise<
+    { gasPrice: BN } | { maxFeePerGas: BN; maxPriorityFeePerGas: BN }
+  > {
+    if (!this.isEip1559Active() || callParams.gasPrice !== undefined) {
+      return { gasPrice: callParams.gasPrice ?? (await this.getGasPrice()) };
+    }
+
+    let maxFeePerGas = callParams.maxFeePerGas;
+    let maxPriorityFeePerGas = callParams.maxPriorityFeePerGas;
+
+    if (maxPriorityFeePerGas === undefined) {
+      maxPriorityFeePerGas = await this.getMaxPriorityFeePerGas();
+
+      if (
+        callParams.maxFeePerGas !== undefined &&
+        callParams.maxFeePerGas.lt(maxPriorityFeePerGas)
+      ) {
+        maxPriorityFeePerGas = callParams.maxFeePerGas;
+      }
+    }
+
+    if (maxFeePerGas === undefined) {
+      if (blockNumberOrPending === "pending") {
+        const baseFeePerGas = await this.getNextBlockBaseFeePerGas();
+        maxFeePerGas = baseFeePerGas!.muln(2).add(maxPriorityFeePerGas);
+      } else {
+        const block = await this.getBlockByNumber(blockNumberOrPending);
+
+        maxFeePerGas = maxPriorityFeePerGas.add(
+          block!.header.baseFeePerGas ?? new BN(0)
+        );
+      }
+    }
+
+    return { maxFeePerGas, maxPriorityFeePerGas };
   }
 }
 
