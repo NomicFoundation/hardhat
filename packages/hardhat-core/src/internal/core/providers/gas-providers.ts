@@ -1,7 +1,9 @@
+import { BN } from "ethereumjs-util";
 import { EIP1193Provider, RequestArguments } from "../../../types";
 import {
   numberToRpcQuantity,
   rpcQuantityToNumber,
+  rpcQuantityToBN,
 } from "../jsonrpc/types/base-types";
 
 import { ProviderWrapper } from "./wrapper";
@@ -135,36 +137,135 @@ export class AutomaticGasProvider extends MultipliedGasEstimationProvider {
 }
 
 export class AutomaticGasPriceProvider extends ProviderWrapper {
-  private _gasPrice: string | undefined;
+  // The amount of blocks you are expected to wait when using EIP-1559.
+  public static readonly EIP1559_BASE_FEE_BLOCKS_PREFERENCE: number = 3;
+
+  // See eth_feeHistory for an explanation of what this means
+  public static readonly EIP1559_REWARD_PERCENTILE: number = 0.5;
+
+  private _nodeHasFeeHistory?: boolean;
 
   public async request(args: RequestArguments): Promise<unknown> {
-    if (args.method === "eth_sendTransaction") {
-      const params = this._getParams(args);
-
-      // TODO: Should we validate this type?
-      const tx = params[0];
-      // temporary change to ignore EIP-1559
-      if (
-        tx !== undefined &&
-        tx.gasPrice === undefined &&
-        tx.maxFeePerGas === undefined &&
-        tx.maxPriorityFeePerGas === undefined
-      ) {
-        tx.gasPrice = await this._getGasPriceAsQuantity();
-      }
+    if (args.method !== "eth_sendTransaction") {
+      return this._wrappedProvider.request(args);
     }
+
+    const params = this._getParams(args);
+
+    // TODO: Should we validate this type?
+    const tx = params[0];
+
+    if (tx === undefined) {
+      return this._wrappedProvider.request(args);
+    }
+
+    // We don't need to do anything in these cases
+    if (
+      tx.gasPrice !== undefined ||
+      (tx.maxFeePerGas !== undefined && tx.maxPriorityFeePerGas !== undefined)
+    ) {
+      return this._wrappedProvider.request(args);
+    }
+
+    let eip1559Values = await this._getEip1559FeePriceValues();
+
+    // eth_feeHistory failed, so we send a legacy one
+    if (
+      tx.maxFeePerGas === undefined &&
+      tx.maxPriorityFeePerGas === undefined &&
+      eip1559Values === undefined
+    ) {
+      tx.gasPrice = numberToRpcQuantity(await this._getGasPrice());
+      return this._wrappedProvider.request(args);
+    }
+
+    // If eth_feeHistory failed, but the user still wants to send an EIP-1559 tx
+    // we use the gasPrice as default values.
+    if (eip1559Values === undefined) {
+      const gasPrice = await this._getGasPrice();
+
+      eip1559Values = {
+        maxFeePerGas: gasPrice,
+        maxPriorityFeePerGas: gasPrice,
+      };
+    }
+
+    let maxFeePerGas =
+      tx.maxFeePerGas !== undefined
+        ? rpcQuantityToBN(tx.maxFeePerGas)
+        : eip1559Values.maxFeePerGas;
+
+    const maxPriorityFeePerGas =
+      tx.maxPriorityFeePerGas !== undefined
+        ? rpcQuantityToBN(tx.maxPriorityFeePerGas)
+        : eip1559Values.maxPriorityFeePerGas;
+
+    if (maxFeePerGas.lt(maxPriorityFeePerGas)) {
+      maxFeePerGas = maxFeePerGas.add(maxPriorityFeePerGas);
+    }
+
+    tx.maxFeePerGas = numberToRpcQuantity(maxFeePerGas);
+    tx.maxPriorityFeePerGas = numberToRpcQuantity(maxPriorityFeePerGas);
 
     return this._wrappedProvider.request(args);
   }
 
-  private async _getGasPriceAsQuantity(): Promise<string> {
-    if (this._gasPrice === undefined) {
-      this._gasPrice = (await this._wrappedProvider.request({
-        method: "eth_gasPrice",
-      })) as string;
+  private async _getGasPrice(): Promise<BN> {
+    const response = (await this._wrappedProvider.request({
+      method: "eth_gasPrice",
+    })) as string;
+
+    return rpcQuantityToBN(response);
+  }
+
+  private async _getEip1559FeePriceValues(): Promise<
+    | {
+        maxFeePerGas: BN;
+        maxPriorityFeePerGas: BN;
+      }
+    | undefined
+  > {
+    if (this._nodeHasFeeHistory === false) {
+      return;
     }
 
-    return this._gasPrice;
+    try {
+      const response = (await this._wrappedProvider.request({
+        method: "eth_feeHistory",
+        params: [
+          "0x1",
+          "latest",
+          [AutomaticGasPriceProvider.EIP1559_REWARD_PERCENTILE],
+        ],
+      })) as { baseFeePerGas: string[]; reward: string[][] };
+
+      return {
+        // Each block increases the base fee by 1/8 at most, when full.
+        // We have the next block's base fee, so we compute a cap for the
+        // next N blocks here.
+        maxFeePerGas: rpcQuantityToBN(response.baseFeePerGas[1])
+          .mul(
+            new BN(9).pow(
+              new BN(
+                AutomaticGasPriceProvider.EIP1559_BASE_FEE_BLOCKS_PREFERENCE - 1
+              )
+            )
+          )
+          .div(
+            new BN(8).pow(
+              new BN(
+                AutomaticGasPriceProvider.EIP1559_BASE_FEE_BLOCKS_PREFERENCE - 1
+              )
+            )
+          ),
+
+        maxPriorityFeePerGas: rpcQuantityToBN(response.reward[0][0]),
+      };
+    } catch (_error) {
+      this._nodeHasFeeHistory = false;
+
+      return undefined;
+    }
   }
 }
 

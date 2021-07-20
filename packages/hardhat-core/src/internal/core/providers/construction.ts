@@ -207,7 +207,11 @@ export function applyProviderWrappers(
   }
 
   if (netConfig.gasPrice === undefined || netConfig.gasPrice === "auto") {
-    provider = new AutomaticGasPriceProvider(provider);
+    // Hardhat Network handles this in a more performant way, and we don't
+    // sign txs locally, in a provider, when using it, there's no need for this.
+    if (isResolvedHttpNetworkConfig(netConfig)) {
+      provider = new AutomaticGasPriceProvider(provider);
+    }
   } else {
     provider = new FixedGasPriceProvider(provider, netConfig.gasPrice);
   }
