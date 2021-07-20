@@ -2141,11 +2141,8 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     if (maxPriorityFeePerGas === undefined) {
       maxPriorityFeePerGas = await this.getMaxPriorityFeePerGas();
 
-      if (
-        callParams.maxFeePerGas !== undefined &&
-        callParams.maxFeePerGas.lt(maxPriorityFeePerGas)
-      ) {
-        maxPriorityFeePerGas = callParams.maxFeePerGas;
+      if (maxFeePerGas !== undefined && maxFeePerGas.lt(maxPriorityFeePerGas)) {
+        maxPriorityFeePerGas = maxFeePerGas;
       }
     }
 
