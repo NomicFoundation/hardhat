@@ -3,10 +3,12 @@ import { assert } from "chai";
 import { workaroundWindowsCiFailures } from "../../../../../../utils/workaround-windows-ci-failures";
 import {
   assertInvalidArgumentsError,
+  assertInvalidInputError,
   assertReceiptMatchesGethOne,
 } from "../../../../helpers/assertions";
 import { setCWD } from "../../../../helpers/cwd";
 import { PROVIDERS } from "../../../../helpers/providers";
+import { RpcTransactionOutput } from "../../../../../../../src/internal/hardhat-network/provider/output";
 
 describe("Eth module", function () {
   PROVIDERS.forEach(({ name, useProvider, isFork, isJsonRpc }) => {
@@ -26,7 +28,7 @@ describe("Eth module", function () {
             this.provider,
             "eth_sendRawTransaction",
             ["0x223456"],
-            "Invalid transaction"
+            `Invalid transaction type ${0x22}.`
           );
         });
 
@@ -98,27 +100,66 @@ describe("Eth module", function () {
           assertReceiptMatchesGethOne(receipt, receiptFromGeth, 1);
         });
 
-        describe("Set lower baseFeePerGas", function () {
-          // setting a lower baseFeePerGas here to avoid having to re-create the raw tx
-          useProvider({ initialBaseFeePerGas: 1 });
+        describe("Transaction hash returned within the error data", function () {
+          describe("Set lower baseFeePerGas", function () {
+            // setting a lower baseFeePerGas here to avoid having to re-create the raw tx
+            useProvider({ initialBaseFeePerGas: 1 });
 
-          it("Should return the hash of the failed transaction", async function () {
-            if (!isJsonRpc || isFork) {
-              this.skip();
-            }
+            it("Should return the hash of the failed transaction", async function () {
+              if (!isJsonRpc || isFork) {
+                this.skip();
+              }
 
-            try {
-              // sends a tx with 21000 gas to the 0x1 precompile
-              await this.provider.send("eth_sendRawTransaction", [
-                "0xf8618001825208940000000000000000000000000000000000000001808082011aa03e2b434ea8994b24017a30d58870e7387a69523b25f153f0d90411a8af8343d6a00c26d36e92d8a8334193b02982ce0b2ec9afc85ad26eaf8c2993ad07d3495f95",
-              ]);
+              try {
+                // sends a tx with 21000 gas to the 0x1 precompile
+                await this.provider.send("eth_sendRawTransaction", [
+                  "0xf8618001825208940000000000000000000000000000000000000001808082011aa03e2b434ea8994b24017a30d58870e7387a69523b25f153f0d90411a8af8343d6a00c26d36e92d8a8334193b02982ce0b2ec9afc85ad26eaf8c2993ad07d3495f95",
+                ]);
 
-              assert.fail("Tx should have failed");
-            } catch (e) {
-              assert.notInclude(e.message, "Tx should have failed");
+                assert.fail("Tx should have failed");
+              } catch (e) {
+                assert.notInclude(e.message, "Tx should have failed");
 
-              assert.isDefined(e.data.txHash);
-            }
+                assert.isDefined(e.data.txHash);
+              }
+            });
+          });
+        });
+
+        describe("Base fee validation", function () {
+          // We set an initial base fee too high for the fixture txs
+          useProvider({ initialBaseFeePerGas: 100e9 });
+
+          describe("With automining enabled", function () {
+            it("Should reject txs that can't be mined in the next block", async function () {
+              await assertInvalidInputError(
+                this.provider,
+                "eth_sendRawTransaction",
+                [
+                  "0xf8618001825208940000000000000000000000000000000000000001808082011aa03e2b434ea8994b24017a30d58870e7387a69523b25f153f0d90411a8af8343d6a00c26d36e92d8a8334193b02982ce0b2ec9afc85ad26eaf8c2993ad07d3495f95",
+                ],
+                "too low for the next block, which has a baseFeePerGas of"
+              );
+            });
+          });
+
+          describe("With automining disabled", function () {
+            it("Should enqueue txs that can't be mined in the next block", async function () {
+              await this.provider.send("evm_setAutomine", [false]);
+              const txHash = await this.provider.send(
+                "eth_sendRawTransaction",
+                [
+                  "0xf8618001825208940000000000000000000000000000000000000001808082011aa03e2b434ea8994b24017a30d58870e7387a69523b25f153f0d90411a8af8343d6a00c26d36e92d8a8334193b02982ce0b2ec9afc85ad26eaf8c2993ad07d3495f95",
+                ]
+              );
+
+              const tx: RpcTransactionOutput = await this.provider.send(
+                "eth_getTransactionByHash",
+                [txHash]
+              );
+
+              assert.equal(tx.blockNumber, null);
+            });
           });
         });
       });

@@ -2036,7 +2036,6 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   ): boolean {
     const txMaxFee = "gasPrice" in tx ? tx.gasPrice : tx.maxFeePerGas;
 
-    // TODO(London): Test this
     const canPayBaseFee =
       nextBlockBaseFeePerGas !== undefined
         ? txMaxFee.gte(nextBlockBaseFeePerGas)

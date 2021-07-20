@@ -84,6 +84,7 @@ import {
 import { assertHardhatNetworkInvariant } from "../utils/assertions";
 import { ModulesLogger } from "./logger";
 
+const EIP1559_MIN_HARDFORK = "london";
 const ACCESS_LIST_MIN_HARDFORK = "berlin";
 const EIP155_MIN_HARDFORK = "spuriousDragon";
 
@@ -332,7 +333,7 @@ export class EthModule {
     rpcCall: RpcCallRequest,
     blockTag: OptionalRpcNewBlockTag
   ): Promise<string> {
-    this._validateAccessListHardforkRequirement(rpcCall);
+    this._validateTransactionAndCallRequest(rpcCall);
 
     const blockNumberOrPending = await this._resolveNewBlockTag(blockTag);
 
@@ -403,7 +404,7 @@ export class EthModule {
     callRequest: RpcCallRequest,
     blockTag: OptionalRpcNewBlockTag
   ): Promise<string> {
-    this._validateAccessListHardforkRequirement(callRequest);
+    this._validateTransactionAndCallRequest(callRequest);
 
     // estimateGas behaves differently when there's no blockTag
     // it uses "pending" as default instead of "latest"
@@ -946,11 +947,7 @@ export class EthModule {
   }
 
   private async _sendRawTransactionAction(rawTx: Buffer): Promise<string> {
-    // If the tx is an EIP-2718, we check that it's one of the supported types
-    // to simplify the catch logic below.
-    if (rawTx[0] <= 0x7f && rawTx[0] !== 1 && rawTx[0] !== 2) {
-      throw new InvalidArgumentsError(`Invalid transaction`);
-    }
+    this._validateRawTransactionHardforkRequirements(rawTx);
 
     let tx: TypedTransaction;
     try {
@@ -969,20 +966,6 @@ export class EthModule {
       if (error.message.includes("Incompatible EIP155")) {
         throw new InvalidArgumentsError(
           "Trying to send an incompatible EIP-155 transaction, signed for another chain.",
-          error
-        );
-      }
-
-      if (
-        error.message.includes(
-          "Common support for TypedTransactions (EIP-2718) not activated"
-        ) ||
-        error.message.includes("EIP-2930 not enabled on Common")
-      ) {
-        throw new InvalidArgumentsError(
-          `Trying to send an EIP-2930 transaction but they are not supported by the current hard fork.
-      
-You can use them by running Hardhat Network with 'hardfork' ${ACCESS_LIST_MIN_HARDFORK} or later.`,
           error
         );
       }
@@ -1034,7 +1017,7 @@ You can use them by running Hardhat Network with 'hardfork' ${ACCESS_LIST_MIN_HA
       );
     }
 
-    this._validateAccessListHardforkRequirement(transactionRequest);
+    this._validateTransactionAndCallRequest(transactionRequest);
 
     const txParams = await this._rpcTransactionRequestToNodeTransactionParams(
       transactionRequest
@@ -1195,8 +1178,6 @@ You can use them by running Hardhat Network with 'hardfork' ${ACCESS_LIST_MIN_HA
   private async _rpcTransactionRequestToNodeTransactionParams(
     rpcTx: RpcTransactionRequest
   ): Promise<TransactionParams> {
-    this._validateRpcTransaction(rpcTx);
-
     const baseParams = {
       to: rpcTx.to,
       from: rpcTx.from,
@@ -1212,7 +1193,6 @@ You can use them by running Hardhat Network with 'hardfork' ${ACCESS_LIST_MIN_HA
             ),
     };
 
-    // TODO(London): Test these new defaults
     if (
       this._node.isEip1559Active() &&
       (rpcTx.maxFeePerGas !== undefined ||
@@ -1274,44 +1254,6 @@ You can use them by running Hardhat Network with 'hardfork' ${ACCESS_LIST_MIN_HA
       ...baseParams,
       gasPrice,
     };
-  }
-
-  private _validateRpcTransaction(rpcTx: RpcTransactionRequest) {
-    // TODO(London): Test these new validations
-    if (
-      !this._node.isEip1559Active() &&
-      (rpcTx.maxFeePerGas !== undefined ||
-        rpcTx.maxPriorityFeePerGas !== undefined)
-    ) {
-      throw new InvalidInputError(
-        "Trying to send an EIP-1559 transaction but the EIP is not active"
-      );
-    }
-
-    if (rpcTx.gasPrice !== undefined && rpcTx.maxFeePerGas !== undefined) {
-      throw new InvalidInputError(
-        "Transaction cannot have both gasPrice and maxFeePerGas"
-      );
-    }
-
-    if (
-      rpcTx.gasPrice !== undefined &&
-      rpcTx.maxPriorityFeePerGas !== undefined
-    ) {
-      throw new InvalidInputError(
-        "Transaction cannot have both gasPrice and maxPriorityFeePerGas"
-      );
-    }
-
-    if (
-      rpcTx.maxFeePerGas !== undefined &&
-      rpcTx.maxPriorityFeePerGas !== undefined &&
-      rpcTx.maxPriorityFeePerGas.gt(rpcTx.maxFeePerGas)
-    ) {
-      throw new InvalidInputError(
-        `maxPriorityFeePerGas (${rpcTx.maxPriorityFeePerGas.toString()}) is bigger than maxFeePerGas (${rpcTx.maxFeePerGas.toString()})`
-      );
-    }
   }
 
   private _rpcAccessListToNodeAccessList(
@@ -1630,10 +1572,21 @@ You can use them by running Hardhat Network with 'hardfork' ${ACCESS_LIST_MIN_HA
     }
   }
 
-  // TODO: Find a better place for this
-  private _validateAccessListHardforkRequirement(
+  private _validateTransactionAndCallRequest(
     rpcRequest: RpcCallRequest | RpcTransactionRequest
   ) {
+    if (
+      (rpcRequest.maxFeePerGas !== undefined ||
+        rpcRequest.maxPriorityFeePerGas !== undefined) &&
+      !this._common.gteHardfork(EIP1559_MIN_HARDFORK)
+    ) {
+      throw new InvalidArgumentsError(`EIP-1559 style fee params (maxFeePerGas or maxPriorityFeePerGas) received but they are not supported by the current hardfork. 
+
+You can use them by running Hardhat Network with 'hardfork' ${EIP1559_MIN_HARDFORK} or later.`);
+    }
+
+    // NOTE: This validation should go after the maxFeePerGas one, as EIP-1559
+    //  also accepts access list.
     if (
       rpcRequest.accessList !== undefined &&
       !this._common.gteHardfork(ACCESS_LIST_MIN_HARDFORK)
@@ -1641,6 +1594,34 @@ You can use them by running Hardhat Network with 'hardfork' ${ACCESS_LIST_MIN_HA
       throw new InvalidArgumentsError(`Access list received but is not supported by the current hardfork. 
       
 You can use them by running Hardhat Network with 'hardfork' ${ACCESS_LIST_MIN_HARDFORK} or later.`);
+    }
+
+    if (
+      rpcRequest.gasPrice !== undefined &&
+      rpcRequest.maxFeePerGas !== undefined
+    ) {
+      throw new InvalidInputError(
+        "Transaction cannot have both gasPrice and maxFeePerGas"
+      );
+    }
+
+    if (
+      rpcRequest.gasPrice !== undefined &&
+      rpcRequest.maxPriorityFeePerGas !== undefined
+    ) {
+      throw new InvalidInputError(
+        "Transaction cannot have both gasPrice and maxPriorityFeePerGas"
+      );
+    }
+
+    if (
+      rpcRequest.maxFeePerGas !== undefined &&
+      rpcRequest.maxPriorityFeePerGas !== undefined &&
+      rpcRequest.maxPriorityFeePerGas.gt(rpcRequest.maxFeePerGas)
+    ) {
+      throw new InvalidInputError(
+        `maxPriorityFeePerGas (${rpcRequest.maxPriorityFeePerGas.toString()}) is bigger than maxFeePerGas (${rpcRequest.maxFeePerGas.toString()})`
+      );
     }
   }
 
@@ -1653,8 +1634,32 @@ You can use them by running Hardhat Network with 'hardfork' ${ACCESS_LIST_MIN_HA
 
     if (!this._common.gteHardfork(EIP155_MIN_HARDFORK)) {
       throw new InvalidArgumentsError(`Trying to send an EIP-155 transaction, but they are not supported by the current hardfork.  
-      
+
 You can use them by running Hardhat Network with 'hardfork' ${EIP155_MIN_HARDFORK} or later.`);
+    }
+  }
+
+  private _validateRawTransactionHardforkRequirements(rawTx: Buffer) {
+    if (rawTx[0] <= 0x7f && rawTx[0] !== 1 && rawTx[0] !== 2) {
+      throw new InvalidArgumentsError(`Invalid transaction type ${rawTx[0]}.
+
+Your raw transaction is incorrectly formatted, or Hardhat Network doesn't support this transaction type yet.`);
+    }
+
+    if (rawTx[0] === 1 && !this._common.gteHardfork(ACCESS_LIST_MIN_HARDFORK)) {
+      throw new InvalidArgumentsError(
+        `Trying to send an EIP-2930 transaction but they are not supported by the current hard fork.
+
+You can use them by running Hardhat Network with 'hardfork' ${ACCESS_LIST_MIN_HARDFORK} or later.`
+      );
+    }
+
+    if (rawTx[0] === 2 && !this._common.gteHardfork(EIP1559_MIN_HARDFORK)) {
+      throw new InvalidArgumentsError(
+        `Trying to send an EIP-1559 transaction but they are not supported by the current hard fork.
+
+You can use them by running Hardhat Network with 'hardfork' ${EIP1559_MIN_HARDFORK} or later.`
+      );
     }
   }
 }
