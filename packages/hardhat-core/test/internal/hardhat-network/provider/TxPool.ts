@@ -270,22 +270,51 @@ describe("Tx Pool", () => {
               address,
               Account.fromAccountData({ balance: new BN(10).pow(new BN(18)) })
             );
+
             const tx1a = createTestFakeTransaction({
               from: address,
               nonce: 0,
               gasPrice: 20,
             });
+
+            await txPool.addTransaction(tx1a);
+
             const tx1b = createTestFakeTransaction({
               from: address,
               nonce: 0,
               gasPrice: 21,
             });
-            await txPool.addTransaction(tx1a);
 
             await assert.isRejected(
               txPool.addTransaction(tx1b),
               InvalidInputError,
-              `Replacement transaction underpriced. A priority fee of at least 22 is necessary to replace the existing transaction.`
+              `Replacement transaction underpriced. A gasPrice/maxFeePerGas of at least 22 is necessary to replace the existing transaction with nonce 0.`
+            );
+
+            const tx1c = createTestFakeTransaction({
+              from: address,
+              nonce: 0,
+              maxFeePerGas: 21,
+              maxPriorityFeePerGas: 21,
+            });
+
+            await assert.isRejected(
+              txPool.addTransaction(tx1c),
+              InvalidInputError,
+              `Replacement transaction underpriced. A gasPrice/maxFeePerGas of at least 22 is necessary to replace the existing transaction with nonce 0.`
+            );
+
+            const tx1d = createTestFakeTransaction({
+              from: address,
+              nonce: 0,
+              maxFeePerGas: 100000,
+              maxPriorityFeePerGas: 21,
+            });
+
+            await assert.isRejected(
+              txPool.addTransaction(tx1d),
+              InvalidInputError,
+              `Replacement transaction underpriced. A gasPrice/maxPriorityFeePerGas of at least 22 is necessary to replace the existing transaction with nonce 0.`
             );
 
             const pendingTxs = txPool.getPendingTransactions();
@@ -314,7 +343,7 @@ describe("Tx Pool", () => {
             await assert.isRejected(
               txPool.addTransaction(tx2b),
               InvalidInputError,
-              `Replacement transaction underpriced. A priority fee of at least 22 is necessary to replace the existing transaction.`
+              `Replacement transaction underpriced. A gasPrice/maxFeePerGas of at least 22 is necessary to replace the existing transaction with nonce 1`
             );
 
             const queuedTxs = txPool.getQueuedTransactions();

@@ -147,3 +147,10 @@ export interface GatherTracesResult {
   error?: Error;
   consoleLogMessages: string[];
 }
+
+export interface FeeHistory {
+  oldestBlock: BN;
+  baseFeePerGas: BN[];
+  gasUsedRatio: number[];
+  reward?: BN[][];
+}

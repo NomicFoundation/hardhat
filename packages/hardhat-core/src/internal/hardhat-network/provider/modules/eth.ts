@@ -23,6 +23,7 @@ import {
   numberToRpcQuantity,
   rpcAddress,
   rpcData,
+  rpcFloat,
   rpcHash,
   rpcQuantity,
 } from "../../../core/jsonrpc/types/base-types";
@@ -30,6 +31,7 @@ import {
   optionalRpcNewBlockTag,
   OptionalRpcNewBlockTag,
   OptionalRpcOldBlockTag,
+  rpcNewBlockTag,
   RpcNewBlockTag,
   rpcOldBlockTag,
   RpcOldBlockTag,
@@ -82,6 +84,7 @@ import {
 } from "../output";
 
 import { assertHardhatNetworkInvariant } from "../utils/assertions";
+import { optional } from "../../../util/io-ts";
 import { ModulesLogger } from "./logger";
 
 const EIP1559_MIN_HARDFORK = "london";
@@ -297,6 +300,9 @@ export class EthModule {
 
       case "eth_unsubscribe":
         return this._unsubscribeAction(...this._unsubscribeParams(params));
+
+      case "eth_feeHistory":
+        return this._feeHistoryAction(...this._feeHistoryParams(params));
     }
 
     throw new MethodNotFoundError(`Method ${method} not found`);
@@ -1141,12 +1147,90 @@ export class EthModule {
     return this._node.uninstallFilter(filterId, false);
   }
 
+  // eth_unsubscribe
+
   private _unsubscribeParams(params: any[]): [BN] {
     return validateParams(params, rpcQuantity);
   }
 
   private async _unsubscribeAction(filterId: BN): Promise<boolean> {
     return this._node.uninstallFilter(filterId, true);
+  }
+
+  // eth_feeHistory
+
+  private _feeHistoryParams(
+    params: any[]
+  ): [BN, RpcNewBlockTag, number[] | undefined] {
+    const [blockCount, newestBlock, rewardPercentiles] = validateParams(
+      params,
+      rpcQuantity,
+      rpcNewBlockTag,
+      optional(t.array(rpcFloat))
+    );
+
+    if (blockCount.ltn(1)) {
+      throw new InvalidInputError(`blockCount should be at least 1`);
+    }
+
+    if (blockCount.gtn(1024)) {
+      throw new InvalidInputError(`blockCount should be at most 1024`);
+    }
+
+    if (rewardPercentiles !== undefined) {
+      for (const [i, p] of rewardPercentiles.entries()) {
+        if (p < 0 || p > 100) {
+          throw new InvalidInputError(
+            `The reward percentile number ${
+              i + 1
+            } is invalid. It must be a float between 0 and 100, but is ${p} instead.`
+          );
+        }
+
+        if (i !== 0) {
+          const prev = rewardPercentiles[i - 1];
+          if (prev > p) {
+            throw new InvalidInputError(
+              `The reward percentiles should be in non-decreasing order, but the percentile number ${i} is greater than the next one`
+            );
+          }
+        }
+      }
+    }
+
+    return [blockCount, newestBlock, rewardPercentiles];
+  }
+
+  private async _feeHistoryAction(
+    blockCount: BN,
+    newestBlock: RpcNewBlockTag,
+    rewardPercentiles?: number[]
+  ) {
+    if (!this._node.isEip1559Active()) {
+      throw new InvalidInputError(
+        `eth_feeHistory is disabled. It only works with the London hardfork or a later one.`
+      );
+    }
+
+    const resolvedNewestBlock = await this._resolveNewBlockTag(newestBlock);
+
+    const feeHistory = await this._node.getFeeHistory(
+      blockCount,
+      resolvedNewestBlock,
+      rewardPercentiles ?? []
+    );
+
+    const oldestBlock = numberToRpcQuantity(feeHistory.oldestBlock);
+    const baseFeePerGas = feeHistory.baseFeePerGas.map(numberToRpcQuantity);
+    const gasUsedRatio = feeHistory.gasUsedRatio;
+    const reward = feeHistory.reward?.map((rs) => rs.map(numberToRpcQuantity));
+
+    return {
+      oldestBlock,
+      baseFeePerGas,
+      gasUsedRatio,
+      reward,
+    };
   }
 
   // Utility methods

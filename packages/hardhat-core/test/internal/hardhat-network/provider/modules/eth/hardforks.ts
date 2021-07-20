@@ -12,7 +12,10 @@ import {
   numberToRpcQuantity,
   rpcQuantityToBN,
 } from "../../../../../../src/internal/core/jsonrpc/types/base-types";
-import { assertInvalidArgumentsError } from "../../../helpers/assertions";
+import {
+  assertInvalidArgumentsError,
+  assertInvalidInputError,
+} from "../../../helpers/assertions";
 import {
   DEFAULT_ACCOUNTS,
   DEFAULT_ACCOUNTS_ADDRESSES,
@@ -1165,6 +1168,29 @@ describe("Eth module - hardfork dependant tests", function () {
 
           assert.equal(minedTx.type, numberToRpcQuantity(1));
         });
+      });
+    });
+  });
+
+  describe("eth_feeHistory", function () {
+    describe("In a hardfork without EIP-1559", function () {
+      useProviderAndCommon("berlin");
+
+      it("Should be disabled", async function () {
+        await assertInvalidInputError(
+          this.provider,
+          "eth_feeHistory",
+          ["0x1", "latest"],
+          "eth_feeHistory is disabled. It only works with the London hardfork or a later one."
+        );
+      });
+    });
+
+    describe("In a hardfork with EIP-1559", function () {
+      useProviderAndCommon("london");
+
+      it("Should be enabled", async function () {
+        await this.provider.send("eth_feeHistory", ["0x1", "latest"]);
       });
     });
   });
