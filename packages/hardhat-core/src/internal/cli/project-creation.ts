@@ -239,7 +239,6 @@ export async function createProject() {
   let responses: {
     projectRoot: string;
     shouldAddGitIgnore: boolean;
-    shouldAddGitAttributes: boolean;
   };
 
   const useDefaultPromptResponses =
@@ -249,7 +248,6 @@ export async function createProject() {
     responses = {
       projectRoot: process.cwd(),
       shouldAddGitIgnore: true,
-      shouldAddGitAttributes: true,
     };
   } else {
     try {
