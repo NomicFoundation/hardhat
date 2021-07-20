@@ -559,13 +559,13 @@ contract C {
                   from: CALLER,
                   to: contractAddress,
                   data: balanceSelector,
-                  gasLimit: numberToRpcQuantity(gasLimit),
+                  gas: numberToRpcQuantity(gasLimit),
                   gasPrice: numberToRpcQuantity(gasPrice),
                 },
               ]);
 
               assert.isTrue(
-                rpcDataToBN(balanceResult).lt(
+                rpcDataToBN(balanceResult).eq(
                   ethBalance.subn(gasLimit * gasPrice)
                 )
               );
@@ -663,13 +663,13 @@ contract C {
                   to: contractAddress,
                   data: balanceSelector,
                   maxPriorityFeePerGas: numberToRpcQuantity(3),
-                  gasLimit: 500_000,
+                  gas: numberToRpcQuantity(500_000),
                 },
               ]);
 
               // The miner will get the priority fee
               assert.isTrue(
-                rpcDataToBN(balanceResult).lt(ethBalance.subn(500_000 * 3))
+                rpcDataToBN(balanceResult).eq(ethBalance.subn(500_000 * 3))
               );
             });
 
@@ -680,13 +680,13 @@ contract C {
                   to: contractAddress,
                   data: balanceSelector,
                   gasPrice: numberToRpcQuantity(6),
-                  gasLimit: 500_000,
+                  gas: numberToRpcQuantity(500_000),
                 },
               ]);
 
               // The miner will get the gasPrice * gas as a normalized priority fee
               assert.isTrue(
-                rpcDataToBN(balanceResult).lt(ethBalance.subn(500_000 * 6))
+                rpcDataToBN(balanceResult).eq(ethBalance.subn(500_000 * 6))
               );
             });
           });
