@@ -1,5 +1,6 @@
 import { assert } from "chai";
 
+import { BN } from "ethereumjs-util";
 import { workaroundWindowsCiFailures } from "../../../../../../utils/workaround-windows-ci-failures";
 import { setCWD } from "../../../../helpers/cwd";
 import {
@@ -15,10 +16,6 @@ import { RpcBlockOutput } from "../../../../../../../src/internal/hardhat-networ
 
 describe("Eth module", function () {
   PROVIDERS.forEach(({ name, useProvider, isFork }) => {
-    if (isFork) {
-      return;
-    }
-
     workaroundWindowsCiFailures.call(this, { isFork });
 
     describe(`${name} provider`, function () {
@@ -44,11 +41,13 @@ describe("Eth module", function () {
           });
 
           it("Should validate that newestBlock exists", async function () {
+            const block = new BN(10).pow(new BN(10));
+
             await assertInvalidInputError(
               this.provider,
               "eth_feeHistory",
-              [numberToRpcQuantity(1), numberToRpcQuantity(123)],
-              "Received invalid block tag 123. Latest block number is 0"
+              [numberToRpcQuantity(1), numberToRpcQuantity(block)],
+              `Received invalid block tag ${block}`
             );
           });
 
@@ -99,6 +98,8 @@ describe("Eth module", function () {
           });
 
           it("Should give all 0s for empty blocks", async function () {
+            await this.provider.send("evm_mine");
+
             const { reward } = await this.provider.send("eth_feeHistory", [
               numberToRpcQuantity(1),
               "latest",
@@ -109,6 +110,9 @@ describe("Eth module", function () {
           });
 
           it("Should give all 0s for the pending block", async function () {
+            // We first mine an empty block to normalize the forked networks
+            await this.provider.send("evm_mine");
+
             const { reward } = await this.provider.send("eth_feeHistory", [
               numberToRpcQuantity(2),
               "pending",
@@ -211,6 +215,10 @@ describe("Eth module", function () {
 
         describe("Oldest block", function () {
           it("Should compute it based on the newest block and block count", async function () {
+            const firstBlock = rpcQuantityToNumber(
+              await this.provider.send("eth_blockNumber")
+            );
+
             await this.provider.send("evm_mine", []);
             await this.provider.send("evm_mine", []);
             await this.provider.send("evm_mine", []);
@@ -220,7 +228,7 @@ describe("Eth module", function () {
               "latest",
             ]);
 
-            assert.equal(oldestBlock, "0x2");
+            assert.equal(oldestBlock, numberToRpcQuantity(firstBlock + 2));
 
             await this.provider.send("evm_mine", []);
             await this.provider.send("evm_mine", []);
@@ -229,24 +237,36 @@ describe("Eth module", function () {
               oldestBlock: oldestBlock2,
             } = await this.provider.send("eth_feeHistory", [
               numberToRpcQuantity(3),
-              numberToRpcQuantity(4),
+              numberToRpcQuantity(firstBlock + 4),
             ]);
 
-            assert.equal(oldestBlock2, "0x2");
+            assert.equal(oldestBlock2, numberToRpcQuantity(firstBlock + 2));
           });
 
           it("Should cap the oldestBlock in 0", async function () {
+            // To test this in a forked network we should fork from a block < 1024
+            if (isFork) {
+              this.skip();
+            }
+
+            const firstBlock = rpcQuantityToNumber(
+              await this.provider.send("eth_blockNumber")
+            );
+
             const { oldestBlock } = await this.provider.send("eth_feeHistory", [
               numberToRpcQuantity(1024),
               "latest",
             ]);
 
-            assert.equal(oldestBlock, "0x0");
+            assert.equal(oldestBlock, firstBlock);
           });
         });
 
         describe("gasUsedRatio", function () {
           it("Should compute it for mined blocks", async function () {
+            // Mine an empty block to normalize forked networks
+            await this.provider.send("evm_mine");
+
             await this.provider.send("eth_sendTransaction", [
               {
                 from: DEFAULT_ACCOUNTS_ADDRESSES[0],
@@ -271,6 +291,9 @@ describe("Eth module", function () {
           });
 
           it("Should compute the pending block", async function () {
+            // Mine an empty block to normalize forked networks
+            await this.provider.send("evm_mine");
+
             await this.provider.send("evm_setAutomine", [false]);
 
             await this.provider.send("eth_sendTransaction", [
@@ -307,6 +330,23 @@ describe("Eth module", function () {
         });
 
         describe("baseFeePerGas", function () {
+          let firstBlock: number;
+          beforeEach(
+            "Normalize between fork and not forked networks by mining an empty block in the forked ones",
+            async function () {
+              if (isFork) {
+                await this.provider.send("hardhat_setNextBlockBaseFeePerGas", [
+                  numberToRpcQuantity(1_000_000_000),
+                ]);
+                await this.provider.send("evm_mine", []);
+              }
+
+              firstBlock = rpcQuantityToNumber(
+                await this.provider.send("eth_blockNumber")
+              );
+            }
+          );
+
           it("Should return blockCount + 1 entries", async function () {
             await this.provider.send("evm_mine", []);
             await this.provider.send("evm_mine", []);
@@ -316,10 +356,10 @@ describe("Eth module", function () {
               oldestBlock,
             } = await this.provider.send("eth_feeHistory", [
               numberToRpcQuantity(3),
-              numberToRpcQuantity(2),
+              numberToRpcQuantity(firstBlock + 2),
             ]);
 
-            assert.equal(oldestBlock, "0x0");
+            assert.equal(oldestBlock, firstBlock);
             assert.deepEqual(baseFeePerGas, [
               numberToRpcQuantity(1_000_000_000),
               // All of them are empty blocks, so each has 7/8 the base fee of
@@ -339,7 +379,7 @@ describe("Eth module", function () {
               "latest",
             ]);
 
-            assert.equal(oldestBlock, "0x0");
+            assert.equal(oldestBlock, firstBlock);
             assert.deepEqual(baseFeePerGas, [
               numberToRpcQuantity(1_000_000_000),
               numberToRpcQuantity(Math.ceil(1_000_000_000 * (7 / 8) ** 1)),
@@ -355,7 +395,7 @@ describe("Eth module", function () {
               "pending",
             ]);
 
-            assert.equal(oldestBlock, "0x1");
+            assert.equal(oldestBlock, numberToRpcQuantity(firstBlock + 1));
             assert.deepEqual(baseFeePerGas, [
               numberToRpcQuantity(Math.ceil(1_000_000_000 * (7 / 8) ** 1)),
               numberToRpcQuantity(Math.ceil(1_000_000_000 * (7 / 8) ** 2)),
