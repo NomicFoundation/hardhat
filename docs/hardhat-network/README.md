@@ -6,7 +6,7 @@ Hardhat comes built-in with Hardhat Network, a local Ethereum network node desig
 
 ## How does it work?
 
-It runs as either an in-process or stand-alone daemon, servicing JSON-RPC requests.
+It runs as either an in-process or stand-alone daemon, servicing JSON-RPC and WebSocket requests.
 
 It mines a block with each transaction that it receives, in order and with no delay.
 
@@ -16,13 +16,13 @@ It's backed by the `@ethereumjs/vm` EVM implementation, the same one used by gan
 
 By default, if you're using Hardhat, then you're already using Hardhat Network.
 
-When Hardhat executes your tests, scripts or tasks, an in-process Hardhat Network node is started automatically, and all Hardhat plugins (ethers.js, web3.js, Waffle, Truffle, etc) connect directly to this node's provider.
+When Hardhat executes your tests, scripts or tasks, an in-process Hardhat Network node is started automatically, and all of Hardhat's plugins (ethers.js, web3.js, Waffle, Truffle, etc) will connect directly to this node's provider.
 
 There's no need to make any changes to your tests or scripts.
 
 Hardhat Network is simply another network. If you wanted to be explicit, you could run, for example, `npx hardhat run --network hardhat scripts/my-script.js`.
 
-### Running stand-alone to support wallets and other software
+### Running stand-alone in order to support wallets and other software
 
 Alternatively, Hardhat Network can run in a stand-alone fashion so that external clients can connect to it. This could be MetaMask, your Dapp front-end, or a script. To run Hardhat Network in this way, run:
 
@@ -34,7 +34,7 @@ This will start Hardhat Network, and expose it as a JSON-RPC and WebSocket serve
 
 Then, just connect your wallet or application to `http://localhost:8545`.
 
-If you want to connect Hardhat to this node, you only need to run using `--network localhost`.
+If you want to connect Hardhat to this node, you just need to run using `--network localhost`.
 
 ## Why would I want to use it?
 
@@ -101,7 +101,7 @@ Hardhat Network has the ability to copy the state of the mainnet blockchain into
 
 In a local environment forked from mainnet, you can execute transactions to invoke mainnet-deployed contracts, or interact with the network in any other way that you would with mainnet. In addition, you can do anything that supported by a non-forked Hardhat Network: see console logs, get stack traces, or use the default accounts to deploy new contracts.
 
-In actuality, Hardhat Network can be used to fork **any** network, not just mainnet. Even further, Hardhat Network can be used to fork **any EVM-compatible blockchain**, not just Ethereum.
+More generally, Hardhat Network can be used to fork **any** network, not just mainnet. Even further, Hardhat Network can be used to fork **any EVM-compatible blockchain**, not just Ethereum.
 
 There are other things you can do with a forked Hardhat Network. Check [our guide](../guides/mainnet-forking.md) to learn more. <!-- TODO: move that guide to docs/hardhat-network/guides/mainnet-forking.md -->
 
@@ -111,7 +111,7 @@ Hardhat Network can be configured to **automine** blocks, immediately upon recei
 
 You can use one of these modes, both or neither. By default, only the automine mode is enabled.
 
-When automine is disabled, every sent transaction is added to the mempool, which contains all the transactions that could be mined in the future. Hardhat Network's mempool follows the same rules as geth. This means, among other things, that transactions are prioritized by gas price, then arrival time, and that invalid transactions are dropped. Pending transactions can be queried via the `eth_getBlockByNumber` RPC method (with `"pending"` as the block number argument), they can be removed using the `hardhat_dropTransaction` RPC method, and they can be replaced by a new transaction with the same nonce but a gas price 10% higher.
+When automine is disabled, every sent transaction is added to the mempool, which contains all the transactions that could be mined in the future. Hardhat Network's mempool follows the same rules as geth. This means, among other things, that transactions are prioritized by gas price, then arrival time, and that invalid transactions are dropped. Pending transactions can be queried via the `eth_getBlockByNumber` RPC method (with `"pending"` as the block number argument), they can be removed using the `hardhat_dropTransaction` RPC method, and they can be replaced by a new transaction with the same nonce but a gas price 10+% higher.
 
 If neither mining mode is enabled, no new blocks will be mined, but you can manually mine new blocks using the `evm_mine` RPC method. This will generate a new block that will include as many pending transactions as possible.
 
