@@ -22,7 +22,7 @@ plugins.forEach((plugin: any) => {
 
   // Add custom block for external plugins
   if (plugin.author !== "Nomic Labs") {
-    bashDownload += `echo -e "\n::: tip External Plugin\nThis is a third-party plugin. Please report issues in its [Github Repository](${plugin.url})\n:::\n" > tmp.md
+    bashDownload += `echo -e "\n::: tip External Plugin\nThis is a third-party plugin. Please report issues in its [GitHub Repository](${plugin.url})\n:::\n" > tmp.md
 cat ${readmePath} >> tmp.md
 cat tmp.md > ${readmePath}
 `;
