@@ -340,7 +340,7 @@ To customise it, take a look at [the configuration section](/config/README.md#ha
 - `eth_chainId`
 - `eth_coinbase`
 - `eth_estimateGas`
-- `eth_feeHistory`: This method only works if Hardhat Network is running with the London hardfork or a later one.
+- `eth_feeHistory` - Only works if running with the London hardfork or a later one.
 - `eth_gasPrice`
 - `eth_getBalance`
 - `eth_getBlockByHash`
@@ -385,7 +385,7 @@ To customise it, take a look at [the configuration section](/config/README.md#ha
 - `hardhat_setBalance` – Modifies the balance of an account.
 - `hardhat_setCode` – Modifies the code of an account.
 - `hardhat_setLoggingEnabled` – Enable or disable logging in Hardhat Network
-- `hardhat_setMinGasPrice` - change the minimum gas price accepted by the network (in wei). This method can't be used if Hardhat Network is running with the London hardfork or a later one.
+- `hardhat_setMinGasPrice` - Changes the minimum gas price accepted by the network (in wei). This method can't be used if Hardhat Network is running with the London hardfork or a later one.
 - `hardhat_setNonce` – Modifies an account's nonce by overwriting it. Throws an InvalidInputError if nonce is smaller than the current one. The reason for this restriction is to avoid collisions when deploying contracts using the same nonce more than once.
 - `hardhat_setStorageAt` – Writes a single position of an account's storage. The storage position index must not exceed 2^256, and the value to write must be exactly 32 bytes long.
 - `hardhat_stopImpersonatingAccount` – see the [Mainnet Forking guide](../guides/mainnet-forking.md)
