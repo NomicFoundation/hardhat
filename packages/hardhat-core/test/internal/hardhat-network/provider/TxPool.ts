@@ -590,15 +590,32 @@ describe("Tx Pool", () => {
         const address = randomAddress();
         await stateManager.putAccount(
           address,
-          Account.fromAccountData({ nonce: new BN(0), balance: new BN(0) })
+          Account.fromAccountData({
+            nonce: new BN(0),
+            balance: new BN(21000 * 900 + 5 - 1),
+          })
         );
 
         const tx = createTestFakeTransaction({
+          from: address,
+          gasLimit: 21000,
           gasPrice: 900,
           value: 5,
         });
         await assert.isRejected(
           txPool.addTransaction(tx),
+          InvalidInputError,
+          "sender doesn't have enough funds to send tx"
+        );
+
+        const tx2 = createTestFakeTransaction({
+          from: address,
+          maxFeePerGas: 21000,
+          maxPriorityFeePerGas: 0,
+          value: 5,
+        });
+        await assert.isRejected(
+          txPool.addTransaction(tx2),
           InvalidInputError,
           "sender doesn't have enough funds to send tx"
         );
