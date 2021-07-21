@@ -10,6 +10,10 @@ import { useFixture } from "./helpers";
 const hardhatBinary = path.join("node_modules", ".bin", "hardhat");
 
 describe("e2e tests", function () {
+  before(function () {
+    shell.set("-e"); // Ensure that shell failures will induce test failures
+  });
+
   describe("basic-project", function () {
     useFixture("basic-project");
 
@@ -58,22 +62,16 @@ describe("e2e tests", function () {
         // cf. https://github.com/nomiclabs/hardhat/issues/1698
         this.skip();
       }
-      try {
-        shell.exec(`${hardhatBinary}`, {
-          env: {
-            ...process.env,
-            HARDHAT_CREATE_SAMPLE_PROJECT_WITH_DEFAULTS: "true",
-          },
-        });
-        shell.exec(`${hardhatBinary} accounts`);
-        shell.exec(`${hardhatBinary} compile`);
-        shell.exec(`${hardhatBinary} test`);
-        shell.exec("node scripts/sample-script.js");
-      } catch (error) {
-        assert.fail(
-          `error status ${error.status}, message: "${error.message}", stderr: "${error.stderr}", stdout: "${error.stdout}"`
-        );
-      }
+      shell.exec(`${hardhatBinary}`, {
+        env: {
+          ...process.env,
+          HARDHAT_CREATE_SAMPLE_PROJECT_WITH_DEFAULTS: "true",
+        },
+      });
+      shell.exec(`${hardhatBinary} accounts`);
+      shell.exec(`${hardhatBinary} compile`);
+      shell.exec(`${hardhatBinary} test`);
+      shell.exec("node scripts/sample-script.js");
     });
   });
 });
