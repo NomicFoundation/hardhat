@@ -13,8 +13,18 @@ import {
   MethodNotSupportedError,
   ProviderError,
 } from "../../../../src/internal/core/providers/errors";
-import { TransactionParams } from "../../../../src/internal/hardhat-network/provider/node-types";
 import {
+  AccessListBufferItem,
+  AccessListTransactionParams,
+  EIP1559TransactionParams,
+  LegacyTransactionParams,
+  TransactionParams,
+} from "../../../../src/internal/hardhat-network/provider/node-types";
+import {
+  AccessListEIP2930RpcTransactionOutput,
+  EIP1559RpcTransactionOutput,
+  LegacyRpcTransactionOutput,
+  RpcAccessListOutput,
   RpcReceiptOutput,
   RpcTransactionOutput,
 } from "../../../../src/internal/hardhat-network/provider/output";
@@ -197,7 +207,7 @@ export function assertReceiptMatchesGethOne(
   assert.deepEqual(actual.cumulativeGasUsed, gethReceipt.cumulativeGasUsed);
 }
 
-export function assertTransaction(
+function assertTransaction(
   tx: RpcTransactionOutput,
   txHash: string,
   txParams: TransactionParams,
@@ -207,7 +217,6 @@ export function assertTransaction(
 ) {
   assert.equal(tx.from, bufferToHex(txParams.from));
   assertQuantity(tx.gas, txParams.gasLimit);
-  assertQuantity(tx.gasPrice, txParams.gasPrice);
   assert.equal(tx.hash, txHash);
   assert.equal(tx.input, bufferToHex(txParams.data));
   assertQuantity(tx.nonce, txParams.nonce);
@@ -239,6 +248,71 @@ export function assertTransaction(
   assert.isTrue(rpcQuantity.decode(tx.r).isRight());
   assert.isTrue(rpcQuantity.decode(tx.s).isRight());
   assert.isTrue(rpcQuantity.decode(tx.v).isRight());
+}
+
+export function assertLegacyTransaction(
+  tx: LegacyRpcTransactionOutput,
+  txHash: string,
+  txParams: LegacyTransactionParams,
+  blockNumber?: number,
+  blockHash?: string,
+  txIndex?: number
+) {
+  assertTransaction(tx, txHash, txParams, blockNumber, blockHash, txIndex);
+
+  assertQuantity(tx.gasPrice, txParams.gasPrice);
+}
+
+export function assertAccessListTransaction(
+  tx: AccessListEIP2930RpcTransactionOutput,
+  txHash: string,
+  txParams: AccessListTransactionParams,
+  blockNumber?: number,
+  blockHash?: string,
+  txIndex?: number
+) {
+  assertTransaction(tx, txHash, txParams, blockNumber, blockHash, txIndex);
+
+  assert.equal(tx.type, "0x1");
+  assertQuantity(tx.gasPrice, txParams.gasPrice);
+  assertEqualAccessLists(tx.accessList ?? [], txParams.accessList);
+}
+
+export function assertEIP1559Transaction(
+  tx: EIP1559RpcTransactionOutput,
+  txHash: string,
+  txParams: EIP1559TransactionParams,
+  blockNumber?: number,
+  blockHash?: string,
+  txIndex?: number
+) {
+  assertTransaction(tx, txHash, txParams, blockNumber, blockHash, txIndex);
+
+  assert.equal(tx.type, "0x2");
+  assertQuantity(tx.maxFeePerGas, txParams.maxFeePerGas);
+  assertQuantity(tx.maxPriorityFeePerGas, txParams.maxPriorityFeePerGas);
+  assertEqualAccessLists(tx.accessList ?? [], txParams.accessList);
+}
+
+export function assertEqualAccessLists(
+  txAccessList: RpcAccessListOutput,
+  txParamsAccessList: AccessListBufferItem[]
+) {
+  assert.equal(txAccessList.length, txParamsAccessList.length);
+
+  for (const [i, txAccessListItem] of txAccessList.entries()) {
+    const txParamsAccessListItem = txParamsAccessList[i];
+
+    assert.equal(
+      txAccessListItem.address,
+      bufferToHex(txParamsAccessListItem[0])
+    );
+
+    assert.deepEqual(
+      txAccessListItem.storageKeys,
+      txParamsAccessListItem[1].map(bufferToHex)
+    );
+  }
 }
 
 export async function assertLatestBlockNumber(

@@ -1,8 +1,7 @@
-import Common from "@ethereumjs/common";
-import { AccessListEIP2930Transaction } from "@ethereumjs/tx";
+import { FeeMarketEIP1559Transaction } from "@ethereumjs/tx";
 import {
-  AccessListEIP2930TxData,
-  AccessListEIP2930ValuesArray,
+  FeeMarketEIP1559TxData,
+  FeeMarketEIP1559ValuesArray,
   TxOptions,
 } from "@ethereumjs/tx/dist/types";
 import { Address, BN, rlp } from "ethereumjs-util";
@@ -15,15 +14,15 @@ import {
 /* eslint-disable @nomiclabs/only-hardhat-error */
 
 /**
- * This class is the EIP-2930 version of FakeSenderTransaction.
+ * This class is the EIP-1559 version of FakeSenderTransaction.
  */
-export class FakeSenderAccessListEIP2930Transaction extends AccessListEIP2930Transaction {
+export class FakeSenderEIP1559Transaction extends FeeMarketEIP1559Transaction {
   public static fromTxData(
-    _txData: AccessListEIP2930TxData,
+    _txData: FeeMarketEIP1559TxData,
     _opts?: TxOptions
   ): never {
     throw new InternalError(
-      "`fromTxData` is not implemented in FakeSenderAccessListEIP2930Transaction"
+      "`fromTxData` is not implemented in FakeSenderEIP1559Transaction"
     );
   }
 
@@ -32,7 +31,7 @@ export class FakeSenderAccessListEIP2930Transaction extends AccessListEIP2930Tra
     _opts?: TxOptions
   ): never {
     throw new InternalError(
-      "`fromSerializedTx` is not implemented in FakeSenderAccessListEIP2930Transaction"
+      "`fromSerializedTx` is not implemented in FakeSenderEIP1559Transaction"
     );
   }
 
@@ -41,16 +40,16 @@ export class FakeSenderAccessListEIP2930Transaction extends AccessListEIP2930Tra
     _opts?: TxOptions
   ): never {
     throw new InternalError(
-      "`fromRlpSerializedTx` is not implemented in FakeSenderAccessListEIP2930Transaction"
+      "`fromRlpSerializedTx` is not implemented in FakeSenderEIP1559Transaction"
     );
   }
 
   public static fromValuesArray(
-    _values: AccessListEIP2930ValuesArray,
+    _values: FeeMarketEIP1559ValuesArray,
     _opts?: TxOptions
   ): never {
     throw new InternalError(
-      "`fromValuesArray` is not implemented in FakeSenderAccessListEIP2930Transaction"
+      "`fromValuesArray` is not implemented in FakeSenderEIP1559Transaction"
     );
   }
 
@@ -59,9 +58,9 @@ export class FakeSenderAccessListEIP2930Transaction extends AccessListEIP2930Tra
     serialized: Buffer,
     opts?: TxOptions
   ) {
-    if (serialized[0] !== 1) {
+    if (serialized[0] !== 2) {
       throw new InvalidArgumentsError(
-        `Invalid serialized tx input: not an EIP-2930 transaction (wrong tx type, expected: 1, received: ${serialized[0]}`
+        `Invalid serialized tx input: not an EIP-1559 transaction (wrong tx type, expected: 2, received: ${serialized[0]}`
       );
     }
 
@@ -78,19 +77,20 @@ export class FakeSenderAccessListEIP2930Transaction extends AccessListEIP2930Tra
 
   public static fromSenderAndValuesArray(
     sender: Address,
-    values: AccessListEIP2930ValuesArray,
+    values: FeeMarketEIP1559ValuesArray,
     opts: TxOptions = {}
-  ): FakeSenderAccessListEIP2930Transaction {
-    if (values.length !== 8 && values.length !== 11) {
+  ): FakeSenderEIP1559Transaction {
+    if (values.length !== 9 && values.length !== 12) {
       throw new InvalidArgumentsError(
-        "Invalid EIP-2930 transaction. Only expecting 8 values (for unsigned tx) or 11 values (for signed tx)."
+        "Invalid EIP-1559 transaction. Only expecting 9 values (for unsigned tx) or 12 values (for signed tx)."
       );
     }
 
     const [
       chainId,
       nonce,
-      gasPrice,
+      maxPriorityFeePerGas,
+      maxFeePerGas,
       gasLimit,
       to,
       value,
@@ -101,18 +101,19 @@ export class FakeSenderAccessListEIP2930Transaction extends AccessListEIP2930Tra
       s,
     ] = values;
 
-    return new FakeSenderAccessListEIP2930Transaction(
+    return new FakeSenderEIP1559Transaction(
       sender,
       {
         chainId,
         nonce,
-        gasPrice,
+        maxPriorityFeePerGas,
+        maxFeePerGas,
         gasLimit,
         to: to !== undefined && to.length > 0 ? to : undefined,
         value,
         data: data ?? Buffer.from([]),
         accessList: accessList ?? [],
-        v: v !== undefined ? new BN(v) : undefined, // EIP2930 supports v's with value 0 (empty Buffer)
+        v: v !== undefined ? new BN(v) : undefined, // EIP1559 supports v's with value 0 (empty Buffer)
         r: r !== undefined && r.length !== 0 ? new BN(r) : undefined,
         s: s !== undefined && s.length !== 0 ? new BN(s) : undefined,
       },
@@ -120,13 +121,11 @@ export class FakeSenderAccessListEIP2930Transaction extends AccessListEIP2930Tra
     );
   }
 
-  public readonly common: Common;
-
   private readonly _sender: Address;
 
   constructor(
     sender: Address,
-    data: AccessListEIP2930TxData = {},
+    data: FeeMarketEIP1559TxData = {},
     opts?: TxOptions
   ) {
     super(
@@ -139,7 +138,6 @@ export class FakeSenderAccessListEIP2930Transaction extends AccessListEIP2930Tra
       { ...opts, freeze: false }
     );
 
-    this.common = this._getCommon(opts?.common);
     this._sender = sender;
   }
 
@@ -153,31 +151,31 @@ export class FakeSenderAccessListEIP2930Transaction extends AccessListEIP2930Tra
 
   public getSenderPublicKey(): never {
     throw new InternalError(
-      "`getSenderPublicKey` is not implemented in FakeSenderAccessListEIP2930Transaction"
+      "`getSenderPublicKey` is not implemented in FakeSenderEIP1559Transaction"
     );
   }
 
   public _processSignature(_v: number, _r: Buffer, _s: Buffer): never {
     throw new InternalError(
-      "`_processSignature` is not implemented in FakeSenderAccessListEIP2930Transaction"
+      "`_processSignature` is not implemented in FakeSenderEIP1559Transaction"
     );
   }
 
   public sign(_privateKey: Buffer): never {
     throw new InternalError(
-      "`sign` is not implemented in FakeSenderAccessListEIP2930Transaction"
+      "`sign` is not implemented in FakeSenderEIP1559Transaction"
     );
   }
 
   public getMessageToSign(): never {
     throw new InternalError(
-      "`getMessageToSign` is not implemented in FakeSenderAccessListEIP2930Transaction"
+      "`getMessageToSign` is not implemented in FakeSenderEIP1559Transaction"
     );
   }
 
   public getMessageToVerifySignature(): never {
     throw new InternalError(
-      "`getMessageToVerifySignature` is not implemented in FakeSenderAccessListEIP2930Transaction"
+      "`getMessageToVerifySignature` is not implemented in FakeSenderEIP1559Transaction"
     );
   }
 

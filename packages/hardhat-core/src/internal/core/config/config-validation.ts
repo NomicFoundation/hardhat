@@ -10,6 +10,8 @@ import { optional } from "../../util/io-ts";
 import { fromEntries } from "../../util/lang";
 import { HardhatError } from "../errors";
 import { ERRORS } from "../errors-list";
+import { hardforkGte, HardforkName } from "../../util/hardforks";
+import { defaultHardhatNetworkParams } from "./default-config";
 
 function stringify(v: any): string {
   if (typeof v === "function") {
@@ -300,6 +302,22 @@ export function getValidationErrors(config: any): string[] {
             "[{privateKey: string, balance: string}] | HardhatNetworkHDAccountsConfig | undefined"
           )
         );
+      }
+
+      const hardfork =
+        hardhatNetwork.hardfork ?? defaultHardhatNetworkParams.hardfork;
+      if (hardforkGte(hardfork, HardforkName.LONDON)) {
+        if (hardhatNetwork.minGasPrice !== undefined) {
+          errors.push(
+            `Unexpected config HardhatConfig.networks.${HARDHAT_NETWORK_NAME}.minGasPrice found - This field is not valid for networks with EIP-1559. Try an older hardfork or remove it.`
+          );
+        }
+      } else {
+        if (hardhatNetwork.initialBaseFeePerGas !== undefined) {
+          errors.push(
+            `Unexpected config HardhatConfig.networks.${HARDHAT_NETWORK_NAME}.initialBaseFeePerGas found - This field is only valid for networks with EIP-1559. Try a newer hardfork or remove it.`
+          );
+        }
       }
     }
 

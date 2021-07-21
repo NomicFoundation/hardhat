@@ -100,6 +100,11 @@ export class HardhatModule {
 
       case "hardhat_setStorageAt":
         return this._setStorageAtAction(...this._setStorageAtParams(params));
+
+      case "hardhat_setNextBlockBaseFeePerGas":
+        return this._setNextBlockBaseFeePerGasAction(
+          ...this._setNextBlockBaseFeePerGasParams(params)
+        );
     }
 
     throw new MethodNotFoundError(`Method ${method} not found`);
@@ -162,7 +167,11 @@ export class HardhatModule {
 
     const isEmpty = result.block.transactions.length === 0;
     if (isEmpty) {
-      this._logger.printMinedBlockNumber(blockNumber, isEmpty);
+      this._logger.printMinedBlockNumber(
+        blockNumber,
+        isEmpty,
+        result.block.header.baseFeePerGas
+      );
     } else {
       await this._logBlock(result);
       this._logger.printMinedBlockNumber(blockNumber, isEmpty);
@@ -220,6 +229,12 @@ export class HardhatModule {
   private async _setMinGasPriceAction(minGasPrice: BN): Promise<true> {
     if (minGasPrice.lt(new BN(0))) {
       throw new InvalidInputError("Minimum gas price cannot be negative");
+    }
+
+    if (this._node.isEip1559Active()) {
+      throw new InvalidInputError(
+        "hardhat_setMinGasPrice is not support when EIP-1559 is active"
+      );
     }
 
     await this._node.setMinGasPrice(minGasPrice);
@@ -303,6 +318,22 @@ export class HardhatModule {
     value: Buffer
   ) {
     await this._node.setStorageAt(new Address(address), positionIndex, value);
+    return true;
+  }
+
+  // hardhat_setNextBlockBaseFeePerGas
+  private _setNextBlockBaseFeePerGasParams(params: any[]): [BN] {
+    return validateParams(params, rpcQuantity);
+  }
+
+  private _setNextBlockBaseFeePerGasAction(baseFeePerGas: BN) {
+    if (!this._node.isEip1559Active()) {
+      throw new InvalidInputError(
+        "hardhat_setNextBlockBaseFeePerGas is disabled because EIP-1559 is not active"
+      );
+    }
+
+    this._node.setUserProvidedNextBlockBaseFeePerGas(baseFeePerGas);
     return true;
   }
 

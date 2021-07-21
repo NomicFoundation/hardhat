@@ -43,6 +43,7 @@ export interface UseProviderOptions {
   blockGasLimit?: number;
   accounts?: Array<{ privateKey: string; balance: BN }>;
   allowUnlimitedContractSize?: boolean;
+  initialBaseFeePerGas?: number;
 }
 
 export function useProvider({
@@ -57,6 +58,7 @@ export function useProvider({
   blockGasLimit = DEFAULT_BLOCK_GAS_LIMIT,
   accounts = DEFAULT_ACCOUNTS,
   allowUnlimitedContractSize = DEFAULT_ALLOW_UNLIMITED_CONTRACT_SIZE,
+  initialBaseFeePerGas,
 }: UseProviderOptions = {}) {
   beforeEach("Initialize provider", async function () {
     this.logger = new FakeModulesLogger(loggerEnabled);
@@ -66,6 +68,7 @@ export function useProvider({
       chainId,
       networkId,
       blockGasLimit,
+      initialBaseFeePerGas,
       new BN(0), // minGasPrice
       true,
       true,

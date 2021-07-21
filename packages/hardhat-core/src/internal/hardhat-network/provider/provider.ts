@@ -71,6 +71,7 @@ export class HardhatNetworkProvider extends EventEmitter
     private readonly _chainId: number,
     private readonly _networkId: number,
     private readonly _blockGasLimit: number,
+    private readonly _initialBaseFeePerGas: number | undefined,
     private readonly _minGasPrice: BN,
     private readonly _throwOnTransactionFailures: boolean,
     private readonly _throwOnCallFailures: boolean,
@@ -210,31 +211,23 @@ export class HardhatNetworkProvider extends EventEmitter
       return;
     }
 
-    const commonConfig = {
+    const config: NodeConfig = {
       automine: this._automine,
       blockGasLimit: this._blockGasLimit,
       minGasPrice: this._minGasPrice,
       genesisAccounts: this._genesisAccounts,
       allowUnlimitedContractSize: this._allowUnlimitedContractSize,
       tracingConfig: await this._makeTracingConfig(),
-    };
-
-    let config: NodeConfig = {
+      initialBaseFeePerGas: this._initialBaseFeePerGas,
       hardfork: this._hardfork,
       networkName: this._networkName,
       chainId: this._chainId,
       networkId: this._networkId,
       initialDate: this._initialDate,
-      ...commonConfig,
+      forkConfig: this._forkConfig,
+      forkCachePath:
+        this._forkConfig !== undefined ? this._forkCachePath : undefined,
     };
-
-    if (this._forkConfig !== undefined) {
-      config = {
-        forkConfig: this._forkConfig,
-        forkCachePath: this._forkCachePath,
-        ...config,
-      };
-    }
 
     const [common, node] = await HardhatNode.create(config);
 
