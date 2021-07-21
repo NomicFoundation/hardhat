@@ -40,8 +40,8 @@ function replaceLastLine(newLine: string) {
     ansiEscapes.cursorHide +
       ansiEscapes.cursorPrevLine +
       newLine +
-      "\n" +
       ansiEscapes.eraseEndLine +
+      "\n" +
       ansiEscapes.cursorShow
   );
 }
