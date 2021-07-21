@@ -168,13 +168,13 @@ export class AutomaticGasPriceProvider extends ProviderWrapper {
       return this._wrappedProvider.request(args);
     }
 
-    let eip1559Values = await this._getEip1559FeePriceValues();
+    let suggestedEip1559Values = await this._suggestEip1559FeePriceValues();
 
     // eth_feeHistory failed, so we send a legacy one
     if (
       tx.maxFeePerGas === undefined &&
       tx.maxPriorityFeePerGas === undefined &&
-      eip1559Values === undefined
+      suggestedEip1559Values === undefined
     ) {
       tx.gasPrice = numberToRpcQuantity(await this._getGasPrice());
       return this._wrappedProvider.request(args);
@@ -182,10 +182,10 @@ export class AutomaticGasPriceProvider extends ProviderWrapper {
 
     // If eth_feeHistory failed, but the user still wants to send an EIP-1559 tx
     // we use the gasPrice as default values.
-    if (eip1559Values === undefined) {
+    if (suggestedEip1559Values === undefined) {
       const gasPrice = await this._getGasPrice();
 
-      eip1559Values = {
+      suggestedEip1559Values = {
         maxFeePerGas: gasPrice,
         maxPriorityFeePerGas: gasPrice,
       };
@@ -194,12 +194,12 @@ export class AutomaticGasPriceProvider extends ProviderWrapper {
     let maxFeePerGas =
       tx.maxFeePerGas !== undefined
         ? rpcQuantityToBN(tx.maxFeePerGas)
-        : eip1559Values.maxFeePerGas;
+        : suggestedEip1559Values.maxFeePerGas;
 
     const maxPriorityFeePerGas =
       tx.maxPriorityFeePerGas !== undefined
         ? rpcQuantityToBN(tx.maxPriorityFeePerGas)
-        : eip1559Values.maxPriorityFeePerGas;
+        : suggestedEip1559Values.maxPriorityFeePerGas;
 
     if (maxFeePerGas.lt(maxPriorityFeePerGas)) {
       maxFeePerGas = maxFeePerGas.add(maxPriorityFeePerGas);
@@ -219,7 +219,7 @@ export class AutomaticGasPriceProvider extends ProviderWrapper {
     return rpcQuantityToBN(response);
   }
 
-  private async _getEip1559FeePriceValues(): Promise<
+  private async _suggestEip1559FeePriceValues(): Promise<
     | {
         maxFeePerGas: BN;
         maxPriorityFeePerGas: BN;
