@@ -207,8 +207,16 @@ export function applyProviderWrappers(
   }
 
   if (netConfig.gasPrice === undefined || netConfig.gasPrice === "auto") {
-    // Hardhat Network handles this in a more performant way, and we don't
-    // sign txs locally, in a provider, when using it, there's no need for this.
+    // If you use a LocalAccountsProvider or HDWalletProvider, your transactions
+    // are signed locally. This requires having all of their fields available,
+    // including the gasPrice / maxFeePerGas & maxPriorityFeePerGas.
+    //
+    // We never use those providers when using Hardhat Network, but sign within
+    // Hardhat Network itself. This means that we don't need to provide all the
+    // fields, as the missing ones will be resolved there.
+    //
+    // Hardhat Network handles this in a more performant way, so we don't use
+    // the AutomaticGasPriceProvider for it.
     if (isResolvedHttpNetworkConfig(netConfig)) {
       provider = new AutomaticGasPriceProvider(provider);
     }
