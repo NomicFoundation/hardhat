@@ -137,8 +137,9 @@ export class AutomaticGasProvider extends MultipliedGasEstimationProvider {
 }
 
 export class AutomaticGasPriceProvider extends ProviderWrapper {
-  // The amount of blocks you are expected to wait when using EIP-1559.
-  public static readonly EIP1559_BASE_FEE_BLOCKS_PREFERENCE: number = 3;
+  // We pay the max base fee that can be required if the next
+  // EIP1559_BASE_FEE_MAX_FULL_BLOCKS_PREFERENCE are full.
+  public static readonly EIP1559_BASE_FEE_MAX_FULL_BLOCKS_PREFERENCE: number = 3;
 
   // See eth_feeHistory for an explanation of what this means
   public static readonly EIP1559_REWARD_PERCENTILE: number = 0.5;
@@ -247,14 +248,16 @@ export class AutomaticGasPriceProvider extends ProviderWrapper {
           .mul(
             new BN(9).pow(
               new BN(
-                AutomaticGasPriceProvider.EIP1559_BASE_FEE_BLOCKS_PREFERENCE - 1
+                AutomaticGasPriceProvider.EIP1559_BASE_FEE_MAX_FULL_BLOCKS_PREFERENCE -
+                  1
               )
             )
           )
           .div(
             new BN(8).pow(
               new BN(
-                AutomaticGasPriceProvider.EIP1559_BASE_FEE_BLOCKS_PREFERENCE - 1
+                AutomaticGasPriceProvider.EIP1559_BASE_FEE_MAX_FULL_BLOCKS_PREFERENCE -
+                  1
               )
             )
           ),
