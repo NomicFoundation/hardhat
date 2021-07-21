@@ -75,7 +75,16 @@ module.exports = {
       "/": [
         ["/getting-started/", "Getting Started", 1],
         ["/config/", "Configuration", 0],
-        ["/hardhat-network/", "Hardhat Network", 0],
+        {
+          title: "Hardhat Network",
+          url: "/hardhat-network/",
+          collapsable: false,
+          depth: 1,
+          children: [
+            ["/hardhat-network/", "Explanation", 0],
+            ["/hardhat-network/reference/", "Reference", 0],
+          ],
+        },
         {
           title: "Guides",
           url: "/guides/",
