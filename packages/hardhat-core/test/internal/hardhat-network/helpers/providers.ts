@@ -4,7 +4,7 @@ import { ALCHEMY_URL, INFURA_URL } from "../../../setup";
 
 import { useProvider, UseProviderOptions } from "./useProvider";
 
-export const DEFAULT_HARDFORK = "berlin";
+export const DEFAULT_HARDFORK = "london";
 export const DEFAULT_NETWORK_NAME = "TestNet";
 export const DEFAULT_CHAIN_ID = 123;
 export const DEFAULT_NETWORK_ID = 234;

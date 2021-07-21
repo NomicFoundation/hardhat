@@ -118,6 +118,11 @@ export class HardhatBlockchain implements HardhatBlockchainInterface {
     throw new Error("Method not implemented.");
   }
 
+  public async getBaseFee(): Promise<BN> {
+    const latestBlock = await this.getLatestBlock();
+    return latestBlock.header.calcNextBaseFee();
+  }
+
   private _validateBlock(block: Block) {
     const blockNumber = block.header.number.toNumber();
     const parentHash = block.header.parentHash;

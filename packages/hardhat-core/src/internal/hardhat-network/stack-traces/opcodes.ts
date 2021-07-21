@@ -89,8 +89,10 @@ export enum Opcode {
   CHAINID = 0x46,
   SELFBALANCE = 0x47,
 
+  // London opcodes
+  BASEFEE = 0x48,
+
   // Unallocated
-  UNRECOGNIZED_48 = 0x48,
   UNRECOGNIZED_49 = 0x49,
   UNRECOGNIZED_4A = 0x4a,
   UNRECOGNIZED_4B = 0x4b,

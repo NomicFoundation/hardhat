@@ -22,6 +22,7 @@ export function rpcToBlockData(rpcBlock: RpcBlockWithTransactions): BlockData {
       extraData: rpcBlock.extraData,
       mixHash: rpcBlock.mixHash,
       nonce: rpcBlock.nonce,
+      baseFeePerGas: rpcBlock.baseFeePerGas,
     },
     transactions: rpcBlock.transactions.map(rpcToTxData),
     // uncleHeaders are not fetched and set here as provider methods for getting them are not supported

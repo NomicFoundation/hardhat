@@ -1,3 +1,4 @@
+import Common from "@ethereumjs/common";
 import { Transaction, TxData, TxOptions } from "@ethereumjs/tx";
 import { Address } from "ethereumjs-util";
 
@@ -50,13 +51,14 @@ export class ReadOnlyValidTransaction extends Transaction {
     );
   }
 
+  public readonly common: Common;
+
   private readonly _sender: Address;
 
   constructor(sender: Address, data: TxData = {}) {
     super(data, { freeze: false });
 
-    // TODO: remove this as any
-    (this as any).common = this._getCommon();
+    this.common = this._getCommon();
     this._sender = sender;
   }
 
