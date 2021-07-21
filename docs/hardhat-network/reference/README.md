@@ -257,13 +257,13 @@ Remove a transaction from the mempool
 
 #### `hardhat_impersonateAccount`
 
-see the [Mainnet Forking guide](../guides/mainnet-forking.md)
+see the [Mainnet Forking guide](../../guides/mainnet-forking.md)
 
 #### `hardhat_intervalMine`
 
 #### `hardhat_reset`
 
-see the [Mainnet Forking guide](../guides/mainnet-forking.md)
+see the [Mainnet Forking guide](../../guides/mainnet-forking.md)
 
 #### `hardhat_setBalance`
 
@@ -291,7 +291,7 @@ Writes a single position of an account's storage. The storage position index mus
 
 #### `hardhat_stopImpersonatingAccount`
 
-see the [Mainnet Forking guide](../guides/mainnet-forking.md)
+see the [Mainnet Forking guide](../../guides/mainnet-forking.md)
 
 ### Special testing/debugging methods
 

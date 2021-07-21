@@ -115,7 +115,7 @@ When automine is disabled, every sent transaction is added to the mempool, which
 
 If neither mining mode is enabled, no new blocks will be mined, but you can manually mine new blocks using the `evm_mine` RPC method. This will generate a new block that will include as many pending transactions as possible.
 
-For more details on mining modes and mempool behavior, see [the reference documentation](reference/README.md#Mining%20modes). <!-- TODO: ensure this link works -->
+For more details on mining modes and mempool behavior, see [the reference documentation](reference/README.md#mining-modes).
 
 ### Logging
 
@@ -153,7 +153,7 @@ You can get debug traces of already-mined transactions using the `debug_traceTra
 
 If you are using [mainnet forking](https://hardhat.org/guides/mainnet-forking.html) with an archive node, you can get traces of transactions from the remote network even if the node you are using doesn't support `debug_traceTransaction`.
 
-For more details, see [the reference documentation for this method](./reference/README.md#debug_tracetransaction).
+For more details, see [the reference documentation for this method](./reference/README.md#debug-tracetransaction).
 
 ## Why _wouldn't_ I want to use it?
 
