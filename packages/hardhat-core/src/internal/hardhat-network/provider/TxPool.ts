@@ -439,11 +439,12 @@ export class TxPool {
     const senderAccount = await this._stateManager.getAccount(senderAddress);
     const senderBalance = new BN(senderAccount.balance);
 
-    if (tx.getUpfrontCost().gt(senderBalance)) {
+    const maxFee = "gasPrice" in tx ? tx.gasPrice : tx.maxFeePerGas;
+    const txMaxUpfrontCost = tx.gasLimit.mul(maxFee).add(tx.value);
+
+    if (txMaxUpfrontCost.gt(senderBalance)) {
       throw new InvalidInputError(
-        `sender doesn't have enough funds to send tx. The upfront cost is: ${tx
-          .getUpfrontCost()
-          .toString()}` +
+        `sender doesn't have enough funds to send tx. The max upfront cost is: ${txMaxUpfrontCost}` +
           ` and the sender's account only has: ${senderBalance.toString()}`
       );
     }
