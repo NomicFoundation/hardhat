@@ -2,7 +2,7 @@
 
 <!-- TODO: make all RPC method mentions be links to the reference on those methods. -->
 
-Hardhat Runner comes built-in with Hardhat Network, a local Ethereum network node designed for development, akin to Ganache, `geth --devnet`, etc. It allows you to deploy your contracts, run your tests and debug your code.
+Hardhat comes built-in with Hardhat Network, a local Ethereum network node designed for development, akin to Ganache, `geth --devnet`, etc. It allows you to deploy your contracts, run your tests and debug your code.
 
 ## How does it work?
 
@@ -14,9 +14,9 @@ It's backed by the `@ethereumjs/vm` EVM implementation, the same one used by gan
 
 ## How can I use it?
 
-By default, if you're using Hardhat Runner, then you're already using Hardhat Network.
+By default, if you're using Hardhat, then you're already using Hardhat Network.
 
-When Hardhat Runner executes your tests, scripts or tasks, an in-process Hardhat Network node is started automatically, and all Hardhat Runner plugins (ethers.js, web3.js, Waffle, Truffle, etc) connect directly to this node's provider.
+When Hardhat executes your tests, scripts or tasks, an in-process Hardhat Network node is started automatically, and all Hardhat plugins (ethers.js, web3.js, Waffle, Truffle, etc) connect directly to this node's provider.
 
 There's no need to make any changes to your tests or scripts.
 
@@ -34,7 +34,7 @@ This will start Hardhat Network, and expose it as a JSON-RPC and WebSocket serve
 
 Then, just connect your wallet or application to `http://localhost:8545`.
 
-If you want to connect Hardhat Runner to this node, you only need to run using `--network localhost`.
+If you want to connect Hardhat to this node, you only need to run using `--network localhost`.
 
 ## Why would I want to use it?
 
