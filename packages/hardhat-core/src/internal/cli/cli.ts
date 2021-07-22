@@ -88,7 +88,8 @@ async function main() {
     if (
       hardhatArguments.config === undefined &&
       !isCwdInsideProject() &&
-      process.stdout.isTTY === true
+      (process.stdout.isTTY === true ||
+        process.env.HARDHAT_CREATE_SAMPLE_PROJECT_WITH_DEFAULTS !== undefined)
     ) {
       await createProject();
       return;
