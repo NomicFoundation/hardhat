@@ -9,7 +9,7 @@ const hardhatCoreDir = path.join(rootDir, "packages", "hardhat-core");
 const fixtureProjectsDir = path.join(__dirname, "test", "fixture-projects");
 
 if (process.argv[2] !== "npm" && process.argv[2] !== "yarn") {
-  console.error("Usage: node prepare-tests.js <npm|yarn>");
+  console.error("Usage: node run-tests.js <npm|yarn>");
   process.exit(1);
 }
 
