@@ -339,3 +339,6 @@ https://www.usehardhat.com/* https://hardhat.org/:splat 301!
 # BDLR902
 /BDLR902 /errors/buidler-errors.html#BDLR902 302
 /bdlr902 /errors/buidler-errors.html#BDLR902 302
+
+# Hardhat Network doc consolidation
+/docs/guides/mainnet-forking.md /docs/hardhat-network/guides/mainnet-forking.md

@@ -82,6 +82,11 @@ module.exports = {
           depth: 1,
           children: [
             ["/hardhat-network/", "What is it?", 0],
+            [
+              "/hardhat-network/guides/mainnet-forking.md",
+              "Mainnet Forking",
+              0,
+            ],
             ["/hardhat-network/explanation/mining-modes.md", "Mining Modes", 0],
             ["/hardhat-network/reference/", "Reference", 0],
           ],
@@ -99,7 +104,6 @@ module.exports = {
             ["/guides/truffle-migration.md", "Migrating from Truffle", 0],
             ["/guides/deploying.md", "Deploying your contracts", 0],
             ["/guides/scripts.md", "Writing scripts", 0],
-            ["/guides/mainnet-forking.md", "Mainnet forking", 0],
             ["/guides/hardhat-console.md", "Using the Hardhat console", 0],
             ["/guides/create-task.md", "Creating a task", 0],
             ["/guides/ganache-tests.md", "Running tests with Ganache", 0],
