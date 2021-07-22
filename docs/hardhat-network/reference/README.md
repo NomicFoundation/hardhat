@@ -291,7 +291,7 @@ See the [Mainnet Forking guide](../../guides/mainnet-forking.md)
 
 #### `evm_increaseTime`
 
-same as Ganache.
+Same as Ganache.
 
 #### `evm_mine`
 
