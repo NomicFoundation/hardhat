@@ -257,7 +257,7 @@ See the [Mainnet Forking guide](../../guides/mainnet-forking.md)
 
 #### `hardhat_reset`
 
-see the [Mainnet Forking guide](../../guides/mainnet-forking.md)
+See the [Mainnet Forking guide](../../guides/mainnet-forking.md)
 
 #### `hardhat_setBalance`
 
