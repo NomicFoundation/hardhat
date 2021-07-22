@@ -295,7 +295,7 @@ same as Ganache.
 
 #### `evm_mine`
 
-same as Ganache
+Same as Ganache
 
 #### `evm_revert`
 
