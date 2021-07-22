@@ -13,7 +13,7 @@ If neither mining mode is enabled, no new blocks will be mined, but you can manu
 When automine is disabled, every sent transaction is added to the mempool, which contains all the transactions that could be mined in the future. Hardhat Network's mempool follows the same rules as geth. This means, among other things, that:
 
 - Transactions with a higher gas price are included first
-- If two transactions can be included and both have the same gas price, the one that was received first is included first
+- If two transactions can be included and both are offering the miner the same total fees, the one that was received first is included first
 - If a transaction is invalid (for example, its nonce is lower than the nonce of the address that sent it), the transaction is dropped.
 
 You can get the list of pending transactions that will be included in the next block by using the "pending" block tag:
