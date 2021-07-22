@@ -277,7 +277,7 @@ Change the minimum gas price accepted by the network (in wei)
 
 #### `hardhat_setNonce`
 
-Modifies an account's nonce by overwriting it. Throws an InvalidInputError if nonce is smaller than the current one. The reason for this restriction is to avoid collisions when deploying contracts using the same nonce more than once.
+Modifies an account's nonce by overwriting it. Throws an `InvalidInputError` if nonce is smaller than the current one. The reason for this restriction is to avoid collisions when deploying contracts using the same nonce more than once.
 
 #### `hardhat_setStorageAt`
 
