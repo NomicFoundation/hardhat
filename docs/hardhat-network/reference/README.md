@@ -212,7 +212,9 @@ Add information about compiled contracts
 
 Remove a transaction from the mempool
 
+<!-- intentionally undocumented, internal method:
 #### `hardhat_getStackTraceFailuresCount`
+-->
 
 #### `hardhat_impersonateAccount`
 
