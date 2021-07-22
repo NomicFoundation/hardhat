@@ -8,8 +8,6 @@ Developed by [Nomic Labs](https://nomiclabs.io/) and funded by an Ethereum Found
 
 Join our [Hardhat Support Discord server](https://hardhat.org/discord) to stay up to date on new releases, plugins and tutorials.
 
-🚧 **You are looking at the development branch of Hardhat. For the currently released versions of Hardhat and its plugins take a look at this repository's tags.** 🚧
-
 ## Installation
 
 To install Hardhat, go to an empty folder, initialize an `npm` project (i.e. `npm init`), and run
