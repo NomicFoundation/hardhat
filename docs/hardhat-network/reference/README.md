@@ -299,7 +299,7 @@ same as Ganache
 
 #### `evm_revert`
 
-same as Ganache.
+Same as Ganache.
 
 #### `evm_setAutomine`
 
