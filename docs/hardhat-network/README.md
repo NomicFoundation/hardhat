@@ -8,7 +8,7 @@ Hardhat comes built-in with Hardhat Network, a local Ethereum network node desig
 
 It runs as either an in-process or stand-alone daemon, servicing JSON-RPC and WebSocket requests.
 
-It mines a block with each transaction that it receives, in order and with no delay.
+By default, it mines a block with each transaction that it receives, in order and with no delay.
 
 It's backed by the `@ethereumjs/vm` EVM implementation, the same one used by ganache, Remix and Ethereum Studio.
 
