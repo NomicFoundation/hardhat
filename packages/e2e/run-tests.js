@@ -22,6 +22,8 @@ async function main() {
 
   // we run the cleanup both before and after running the tests, just in case
   cleanup(fixtures);
+
+  // build hardhat and install it in each fixture project
   setup(fixtures);
 
   shell.cd(__dirname);
@@ -30,6 +32,9 @@ async function main() {
   cleanup(fixtures);
 }
 
+/**
+ * Build and package hardhat as a tgz file and install it in each fixture project.
+ */
 function setup(fixtures) {
   // cd into packages/hardhat-core
   shell.cd(hardhatCoreDir);
@@ -77,6 +82,9 @@ function setup(fixtures) {
   }
 }
 
+/**
+ * Remove all the unnecessary files
+ */
 function cleanup(fixtures) {
   for (const fixtureDir of fixtures) {
     // remove the package.json we created during the setup
