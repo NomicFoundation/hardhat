@@ -7,6 +7,7 @@
 - petersburg
 - istanbul
 - muirGlacier
+- london
 
 ## Config
 
