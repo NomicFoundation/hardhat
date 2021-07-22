@@ -285,7 +285,7 @@ Writes a single position of an account's storage. The storage position index mus
 
 #### `hardhat_stopImpersonatingAccount`
 
-see the [Mainnet Forking guide](../../guides/mainnet-forking.md)
+See the [Mainnet Forking guide](../../guides/mainnet-forking.md)
 
 ### Special testing/debugging methods
 
