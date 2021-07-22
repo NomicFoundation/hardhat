@@ -59,7 +59,7 @@ describe("e2e tests", function () {
 
     it("should permit successful execution all of the suggested commands", async function () {
       if (os.type() === "Windows_NT") {
-        // cf. https://github.com/nomiclabs/hardhat/issues/1698
+        // See https://github.com/nomiclabs/hardhat/issues/1698
         this.skip();
       }
       shell.exec(`${hardhatBinary}`, {
