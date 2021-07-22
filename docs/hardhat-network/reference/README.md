@@ -14,8 +14,6 @@
 
 ### Mining modes
 
-<!-- TODO: add a link to the explanation of mining modes -->
-
 You can configure the mining behavior under your Hardhat Network settings:
 
 ```js
@@ -44,6 +42,8 @@ networks: {
 
 In this case, a new block will be mined after a random delay of between 3 and 6 seconds. For example, the first block could be mined after 4 seconds, the second block 5.5 seconds after that, and so on.
 
+See also [Mining Modes](../explanation/mining-modes.md).
+
 #### Manual mining
 
 You can disable both mining modes like this:
@@ -60,48 +60,6 @@ networks: {
 ```
 
 This means that no new blocks will be mined by the Hardhat Network, but you can manually mine new blocks using the `evm_mine` RPC method. This will generate a new block that will include as many pending transactions as possible.
-
-### Mempool behavior
-
-When automine is disabled, every sent transaction is added to the mempool, which contains all the transactions that could be mined in the future. Hardhat Network's mempool follows the same rules as geth. This means, among other things, that:
-
-- Transactions with a higher gas price are included first
-- If two transactions can be included and both have the same gas price, the one that was received first is included first
-- If a transaction is invalid (for example, its nonce is lower than the nonce of the address that sent it), the transaction is dropped.
-
-You can get the list of pending transactions that will be included in the next block by using the "pending" block tag:
-
-```js
-const pendingBlock = await network.provider.send("eth_getBlockByNumber", [
-  "pending",
-  false,
-]);
-```
-
-### Removing and replacing transactions
-
-Transactions in the mempool can be removed using the `hardhat_dropTransaction` method:
-
-```js
-const txHash = "0xabc...";
-await network.provider.send("hardhat_dropTransaction", [txHash]);
-```
-
-You can also replace a transaction by sending a new one with the same nonce as the one that it's already in the mempool but with a higher gas price. Keep in mind that, like in Geth, for this to work the new gas price has to be at least 10% higher than the gas price of the current transaction.
-
-### Configuring mining modes using RPC methods
-
-You can change the mining behavior on runtime using two RPC methods: `evm_setAutomine` and `evm_setIntervalMining`. For example, to disable automining:
-
-```js
-await network.provider.send("evm_setAutomine", [false]);
-```
-
-And to enable interval mining:
-
-```js
-await network.provider.send("evm_setIntervalMining", [5000]);
-```
 
 ## `console.log`
 
@@ -340,13 +298,13 @@ same as Ganache.
 
 #### `evm_setAutomine`
 
-Enables or disables, based on the single boolean argument, the automatic mining of new blocks with each new transaction submitted to the network.
+Enables or disables, based on the single boolean argument, the automatic mining of new blocks with each new transaction submitted to the network. See also [Mining Modes](../explanation/mining-modes.md).
 
 #### `evm_setBlockGasLimit`
 
 #### `evm_setIntervalMining`
 
-Enables (with a numeric argument greater than 0) or disables (with a numeric argument equal to 0), the automatic mining of blocks at a regular interval of milliseconds, each of which will include all pending transactions.
+Enables (with a numeric argument greater than 0) or disables (with a numeric argument equal to 0), the automatic mining of blocks at a regular interval of milliseconds, each of which will include all pending transactions. See also [Mining Modes](../explanation/mining-modes.md).
 
 #### `evm_setNextBlockTimestamp`
 

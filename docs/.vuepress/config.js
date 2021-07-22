@@ -81,7 +81,8 @@ module.exports = {
           collapsable: false,
           depth: 1,
           children: [
-            ["/hardhat-network/", "Explanation", 0],
+            ["/hardhat-network/", "What is it?", 0],
+            ["/hardhat-network/explanation/mining-modes.md", "Mining Modes", 0],
             ["/hardhat-network/reference/", "Reference", 0],
           ],
         },
