@@ -155,10 +155,6 @@ If you are using [mainnet forking](../guides/mainnet-forking.html) with an archi
 
 For more details, see [the reference documentation for this method](./reference/README.md#debug-tracetransaction).
 
-## Why _wouldn't_ I want to use it?
-
-Hardhat Network does have a few limitations. Solidity stack traces can only be generated for supported Solidity versions, and contracts compiled with optimizations may cause stack trace line numbers to be offset. For more details, consult [the Reference](./reference/README.md#limitations).
-
 ## Dig deeper
 
 This has been just a high-level explanation of what Hardhat Network is. To dig deeper, see [the Reference documentation](./reference/README.md). <!-- TODO: when they exist, add additional links here to "Guides", "Tutorials" and "Explanations" of more specific things. -->
