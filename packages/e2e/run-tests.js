@@ -80,6 +80,9 @@ function setup(fixtures) {
       shell.exec(`npm install ${hardhatPackagePath} --no-save`);
     }
   }
+
+  // remove the tgz
+  shell.rm("-f", hardhatPackagePath);
 }
 
 /**
