@@ -317,7 +317,7 @@ This method works like `evm_increaseTime`, but takes the exact timestamp that yo
 
 #### `evm_snapshot`
 
-same as Ganache.
+Same as Ganache.
 
 ### Unsupported methods
 
