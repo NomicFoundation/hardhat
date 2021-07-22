@@ -249,7 +249,7 @@ Remove a transaction from the mempool
 
 #### `hardhat_impersonateAccount`
 
-see the [Mainnet Forking guide](../../guides/mainnet-forking.md)
+See the [Mainnet Forking guide](../../guides/mainnet-forking.md)
 
 <!-- intentionally undocumented, internal method:
 #### `hardhat_intervalMine`
