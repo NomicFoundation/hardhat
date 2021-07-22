@@ -53,12 +53,26 @@ function setup(fixtures) {
     path.join(hardhatCoreDir, "package.json")
   );
 
-  let hardhatPackagePath;
+  let hardhatPackageName;
   if (isYarn) {
-    hardhatPackagePath = path.join(hardhatCoreDir, `hardhat-v${version}.tgz`);
+    hardhatPackageName = `hardhat-v${version}.tgz`;
   } else {
-    hardhatPackagePath = path.join(hardhatCoreDir, `hardhat-${version}.tgz`);
+    hardhatPackageName = `hardhat-${version}.tgz`;
   }
+
+  // We rename the tgz file to a unique name because apparently yarn uses the
+  // path to a tgz to cache it, but we don't want it it ever be cached when we
+  // are working on the e2e tests locally.
+  //
+  // To err on the side of safety, we always do this, even if it's only needed
+  // for yarn.
+  const newHardhatPackageName = `hardhat-${Date.now()}.tgz`;
+  shell.mv(
+    path.join(hardhatCoreDir, hardhatPackageName),
+    path.join(hardhatCoreDir, newHardhatPackageName)
+  );
+
+  const hardhatPackagePath = path.join(hardhatCoreDir, newHardhatPackageName);
 
   // for each fixture project, cd into its directory, create
   // a package.json and install hardhat from the tgz file
