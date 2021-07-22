@@ -1,4 +1,4 @@
-# Hardhat Network: An Explanation <!--theoretical, not practical; for studying, not for working-->
+# Hardhat Network <!-- An Explanation: theoretical, not practical; for studying, not for working-->
 
 <!-- TODO: make all RPC method mentions be links to the reference on those methods. -->
 
