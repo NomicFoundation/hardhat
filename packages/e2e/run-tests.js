@@ -61,7 +61,7 @@ function setup(fixtures) {
   }
 
   // We rename the tgz file to a unique name because apparently yarn uses the
-  // path to a tgz to cache it, but we don't want it it ever be cached when we
+  // path to a tgz to cache it, but we don't want it to ever be cached when we
   // are working on the e2e tests locally.
   //
   // To err on the side of safety, we always do this, even if it's only needed
