@@ -273,7 +273,7 @@ Enable or disable logging in Hardhat Network
 
 #### `hardhat_setMinGasPrice`
 
-change the minimum gas price accepted by the network (in wei)
+Change the minimum gas price accepted by the network (in wei)
 
 #### `hardhat_setNonce`
 
