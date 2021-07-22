@@ -34,7 +34,7 @@ const txHash = "0xabc...";
 await network.provider.send("hardhat_dropTransaction", [txHash]);
 ```
 
-You can also replace a transaction by sending a new one with the same nonce as the one that it's already in the mempool but with a higher gas price. Keep in mind that, like in Geth, for this to work the new gas price has to be at least 10% higher than the gas price of the current transaction.
+You can also replace a transaction by sending a new one with the same nonce as the one that it's already in the mempool but with a higher gas price. Keep in mind that, like in Geth, for this to work the new gas/fees prices have to be at least 10% higher than the gas price of the current transaction.
 
 ## Configuring Mining Modes
 
