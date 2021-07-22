@@ -88,7 +88,18 @@ async function main() {
     if (
       hardhatArguments.config === undefined &&
       !isCwdInsideProject() &&
-      process.stdout.isTTY === true
+      // Windows terminal emulators are not actually TTYs, so `stdout.isTTY`
+      // can be false. There are a few emulators that workaround this by setting
+      // aliases to the most common commands, and shims/wraps them with winpty.
+      //
+      // For more information, read this: https://github.com/nodejs/node/issues/3006
+      //
+      // As we don't have a reliable way to detect if we are on a TTY on Windows,
+      // and given that somehow many users think that `npx hardhat init` is a
+      // thing, we can use it to detect their intention to initialize the
+      // project and don't fail if stdout is not a TTY.
+      (process.stdout.isTTY === true ||
+        process.argv[process.argv.length - 1] === "init")
     ) {
       await createProject();
       return;

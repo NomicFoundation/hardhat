@@ -51,6 +51,8 @@ export const ERRORS = {
       title: "You are not inside a Hardhat project",
       description: `You are trying to run Hardhat outside of a Hardhat project.
 
+Try running: npx hardhat init
+
 You can learn how to use Hardhat by reading the [Getting Started guide](../getting-started).`,
       shouldBeReported: false,
     },
