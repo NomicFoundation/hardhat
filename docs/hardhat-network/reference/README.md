@@ -220,7 +220,9 @@ Remove a transaction from the mempool
 
 see the [Mainnet Forking guide](../../guides/mainnet-forking.md)
 
+<!-- intentionally undocumented, internal method:
 #### `hardhat_intervalMine`
+-->
 
 #### `hardhat_reset`
 
