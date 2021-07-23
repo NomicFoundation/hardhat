@@ -296,7 +296,25 @@ Remove a transaction from the mempool
 
 #### `hardhat_impersonateAccount`
 
-See the [Mainnet Forking guide](../guides/mainnet-forking.md)
+Hardhat Network allows you to send transactions impersonating specific account and contract addresses.
+
+To impersonate an account use the this method, passing the address to impersonate as its parameter:
+
+```tsx
+await hre.network.provider.request({
+  method: "hardhat_impersonateAccount",
+  params: ["0x364d6D0333432C3Ac016Ca832fb8594A8cE43Ca6"],
+});
+```
+
+If you are using [`hardhat-ethers`](https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-ethers), call `getSigner` after impersonating the account:
+
+```
+const signer = await ethers.getSigner("0x364d6D0333432C3Ac016Ca832fb8594A8cE43Ca6")
+signer.sendTransaction(...)
+```
+
+Call [`hardhat_stopImpersonatingAccount`](#hardhat-stopimpersonatingaccount) to stop impersonating.
 
 <!-- intentionally undocumented, internal method:
 #### `hardhat_intervalMine`
@@ -310,9 +328,31 @@ See the [Mainnet Forking guide](../guides/mainnet-forking.md)
 
 Modifies the balance of an account.
 
+For example:
+
+```tsx
+await network.provider.send("hardhat_setBalance", [
+  "0x0d2026b3EE6eC71FC6746ADb6311F6d3Ba1C000B",
+  "0x1000",
+]);
+```
+
+This will result in account `0x0d20...000B` having a balance of 4096 wei.
+
 #### `hardhat_setCode`
 
-Modifies the code of an account.
+Modifies the bytecode stored at an account's address.
+
+For example:
+
+```tsx
+await network.provider.send("hardhat_setCode", [
+  "0x0d2026b3EE6eC71FC6746ADb6311F6d3Ba1C000B",
+  "0xa1a2a3...",
+]);
+```
+
+This will result in account `0x0d20...000B` becoming a smart contract with bytecode `a1a2a3....` If that address was already a smart contract, then its code will be replaced by the specified one.
 
 #### `hardhat_setLoggingEnabled`
 
@@ -324,15 +364,61 @@ Change the minimum gas price accepted by the network (in wei)
 
 #### `hardhat_setNonce`
 
-Modifies an account's nonce by overwriting it. Throws an `InvalidInputError` if nonce is smaller than the current one. The reason for this restriction is to avoid collisions when deploying contracts using the same nonce more than once.
+Modifies an account's nonce by overwriting it.
+
+For example:
+
+```tsx
+await network.provider.send("hardhat_setNonce", [
+  "0x0d2026b3EE6eC71FC6746ADb6311F6d3Ba1C000B",
+  "0x21",
+]);
+```
+
+This will result in account `0x0d20...000B` having a nonce of 33.
+
+Throws an `InvalidInputError` if nonce is smaller than the current one. The reason for this restriction is to avoid collisions when deploying contracts using the same nonce more than once.
+
+You can only use this method to increase the nonce of an account; you can't set a lower value than the account's current nonce.
 
 #### `hardhat_setStorageAt`
 
-Writes a single position of an account's storage. The storage position index must not exceed 2^256, and the value to write must be exactly 32 bytes long.
+Writes a single position of an account's storage.
+
+For example:
+
+```tsx
+await network.provider.send("hardhat_setStorageAt", [
+  "0x0d2026b3EE6eC71FC6746ADb6311F6d3Ba1C000B",
+  "0x0",
+  "0x0000000000000000000000000000000000000000000000000000000000000001",
+]);
+```
+
+This will set the contract's first storage position (at index `0x0`) to 1.
+
+The mapping between a smart contract's variables and its storage position is not straightforward except in some very simple cases. For example, if you deploy this contract:
+
+```solidity
+contract Foo {
+  uint public x;
+}
+```
+
+And you set the first storage position to 1 (as shown in the previous snippet), then calling `foo.x()` will return 1.
+
+The storage position index must not exceed 2^256, and the value to write must be exactly 32 bytes long.
 
 #### `hardhat_stopImpersonatingAccount`
 
-See the [Mainnet Forking guide](../guides/mainnet-forking.md)
+Use this method to stop impersonating an account after having previously used [`hardhat_impersonateAccount`](#hardhat-impersonateaccount), like:
+
+```tsx
+await hre.network.provider.request({
+  method: "hardhat_stopImpersonatingAccount",
+  params: ["0x364d6D0333432C3Ac016Ca832fb8594A8cE43Ca6"],
+});
+```
 
 ### Special testing/debugging methods
 
