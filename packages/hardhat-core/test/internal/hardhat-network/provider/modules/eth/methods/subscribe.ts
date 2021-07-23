@@ -1,5 +1,6 @@
 import { assert } from "chai";
 import { zeroAddress } from "ethereumjs-util";
+import { ethers } from "ethers";
 
 import { numberToRpcQuantity } from "../../../../../../../internal/core/jsonrpc/types/base-types";
 import {
@@ -8,6 +9,7 @@ import {
   ProviderMessage,
 } from "../../../../../../../types";
 import { workaroundWindowsCiFailures } from "../../../../../../utils/workaround-windows-ci-failures";
+import { compileLiteral } from "../../../../stack-traces/compilation";
 import { EXAMPLE_CONTRACT } from "../../../../helpers/contracts";
 import { setCWD } from "../../../../helpers/cwd";
 import {
@@ -154,6 +156,52 @@ describe("Eth module", function () {
 
           assert.lengthOf(getResults().notificationsResults, 1);
           assert.lengthOf(getResults().messageResults, 1);
+        });
+
+        it("Supports logs subscribe via topic", async function () {
+          const [
+            ,
+            {
+              contracts: {
+                ["literal.sol"]: { ContractA: contractA },
+              },
+            },
+          ] = await compileLiteral(`
+            //SPDX-License-Identifier: UNLICENSED;
+            pragma solidity 0.8.0;
+            contract ContractA {
+              event TokensMinted(uint amount);
+              function mint(uint amount) public {
+                emit TokensMinted(amount);
+              }
+            }
+          `);
+          const address = await deployContract(
+            this.provider,
+            `0x${contractA.evm.bytecode.object}`,
+            DEFAULT_ACCOUNTS_ADDRESSES[0]
+          );
+
+          const abiEncoder = new ethers.utils.Interface(contractA.abi);
+          const filterId = await this.provider.send("eth_subscribe", [
+            "logs",
+            {
+              address,
+              topic: abiEncoder.getEventTopic("TokensMinted"),
+            },
+          ]);
+
+          const getResults = createFilterResultsGetter(this.provider, filterId);
+
+          await this.provider.send("eth_sendTransaction", [
+            {
+              to: address,
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              data: abiEncoder.encodeFunctionData("mint", [123]),
+            },
+          ]);
+
+          assert.lengthOf(getResults().notificationsResults, 1);
         });
       });
     });
