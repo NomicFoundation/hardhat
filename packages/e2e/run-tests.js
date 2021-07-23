@@ -24,12 +24,21 @@ async function main() {
   cleanup(fixtures);
 
   // build hardhat and install it in each fixture project
-  setup(fixtures);
-
+  const hardhatPackagePath = setup(fixtures);
   shell.cd(__dirname);
-  shell.exec(`mocha --recursive \"test/**/*.ts\"`);
+
+  // we don't throw if the tests fail so that we can cleanup things properly
+  shell.set("+e");
+  const mochaResult = shell.exec(`mocha --recursive \"test/**/*.ts\"`);
+  shell.set("-e");
 
   cleanup(fixtures);
+  // we remove the tgz file because some tests might reinstall the fixture
+  // project dependencies, and that could fail if the tgz file isn't there
+  // anymore
+  shell.rm(hardhatPackagePath);
+
+  process.exit(mochaResult.code);
 }
 
 /**
@@ -95,8 +104,7 @@ function setup(fixtures) {
     }
   }
 
-  // remove the tgz
-  shell.rm("-f", hardhatPackagePath);
+  return hardhatPackagePath;
 }
 
 /**
