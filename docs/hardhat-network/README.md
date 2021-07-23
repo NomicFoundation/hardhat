@@ -99,7 +99,7 @@ You can see an example in the Sample Project. Follow the steps in [Quick Start](
 
 Hardhat Network has the ability to copy the state of the mainnet blockchain into your local environment, including all balances and deployed contracts. This is known as "forking mainnet."
 
-In a local environment forked from mainnet, you can execute transactions to invoke mainnet-deployed contracts, or interact with the network in any other way that you would with mainnet. In addition, you can do anything that supported by a non-forked Hardhat Network: see console logs, get stack traces, or use the default accounts to deploy new contracts.
+In a local environment forked from mainnet, you can execute transactions to invoke mainnet-deployed contracts, or interact with the network in any other way that you would with mainnet. In addition, you can do anything supported by a non-forked Hardhat Network: see console logs, get stack traces, or use the default accounts to deploy new contracts.
 
 More generally, Hardhat Network can be used to fork **any** network, not just mainnet. Even further, Hardhat Network can be used to fork **any EVM-compatible blockchain**, not just Ethereum.
 
