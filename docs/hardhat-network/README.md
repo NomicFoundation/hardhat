@@ -91,7 +91,7 @@ Hardhat Network allows you to print logging messages and contract variables by c
 
 To use it, you simply import `hardhat/console.sol` and call it. It implements the same formatting options that can be found in Node.js' [`console.log`](https://nodejs.org/dist/latest-v12.x/docs/api/console.html#console_console_log_data_args), which in turn uses [`util.format`](https://nodejs.org/dist/latest-v12.x/docs/api/util.html#util_util_format_format_args). For example: `console.log("Changing owner from %s to %s", currentOwner, newOwner)`.
 
-It always works, regardless of the call or transaction failing or being successful. And, because it's implemented in standard Solidity, it works with _any_ tool or library, emitting log entries where it's fully supported -- Hardhat Network and Tenderly -- and falling back gracefully to a no-op everywhere else -- Remix, Waffle, Truffle, etc.
+It always works, regardless of the call or transaction failing or being successful. And, because it's implemented in standard Solidity, it works with _any_ tool or library, emitting log entries where it's fully supported &mdash; Hardhat Network and Tenderly &mdash; and falling back gracefully to a no-op everywhere else &mdash; Remix, Waffle, Truffle, etc &mdash; though it does consume a small amount of gas on live networks.
 
 You can see an example in the Sample Project. Follow the steps in [Quick Start](/getting-started/README.md#quick-start) to try it out. You can also refer to more details in [the reference documentation](./reference/README.md#consolelog).
 
