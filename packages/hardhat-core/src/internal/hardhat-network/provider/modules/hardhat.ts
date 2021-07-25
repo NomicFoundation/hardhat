@@ -5,7 +5,6 @@ import {
   BoundExperimentalHardhatNetworkMessageTraceHook,
   CompilerInput,
   CompilerOutput,
-  HardhatNetworkLoggingConfig,
 } from "../../../../types";
 import {
   bufferToRpcData,
@@ -42,7 +41,6 @@ export class HardhatModule {
     private readonly _setLoggingEnabledCallback: (
       loggingEnabled: boolean
     ) => void,
-    private readonly _setLogMethodsCallback: (logMethods: boolean) => void,
     private readonly _logger: ModulesLogger,
     private readonly _experimentalHardhatNetworkMessageTraceHooks: BoundExperimentalHardhatNetworkMessageTraceHook[] = []
   ) {}
@@ -81,8 +79,6 @@ export class HardhatModule {
           ...this._setLoggingEnabledParams(params)
         );
 
-      case "hardhat_setLogMethods":
-        return this._setLogMethodsAction(...this._setLogMethodsParams(params));
       case "hardhat_setMinGasPrice":
         return this._setMinGasPriceAction(
           ...this._setMinGasPriceParams(params)
@@ -324,11 +320,6 @@ export class HardhatModule {
   }
   private _setLogMethodsParams(params: any[]): [boolean] {
     return validateParams(params, t.boolean);
-  }
-
-  private async _setLogMethodsAction(logMethods: boolean): Promise<true> {
-    this._setLogMethodsCallback(logMethods);
-    return true;
   }
 
   // hardhat_setNextBlockBaseFeePerGas

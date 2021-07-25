@@ -46,7 +46,8 @@ export const defaultHardhatNetworkParams: Omit<
   accounts: defaultHardhatNetworkHdAccountsConfigParams,
   loggingEnabled: false,
   logging: {
-    level: "default"
+    level: "default",
+    omitMethods: [],
   },
   gasMultiplier: DEFAULT_GAS_MULTIPLIER,
   minGasPrice: new BN(0),

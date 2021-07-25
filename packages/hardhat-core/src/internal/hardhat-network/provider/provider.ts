@@ -260,9 +260,6 @@ export class HardhatNetworkProvider extends EventEmitter
       (loggingEnabled: boolean) => {
         this._logger.setEnabled(loggingEnabled);
       },
-      (logMethods: boolean) => {
-        this._logger.setLogMethods(logMethods);
-      },
       this._logger,
       this._experimentalHardhatNetworkMessageTraceHooks
     );

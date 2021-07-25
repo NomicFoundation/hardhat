@@ -61,7 +61,6 @@ export class ModulesLogger {
   private _emptyMinedBlocksRangeStart: number | undefined = undefined;
   private _methodBeingCollapsed?: string;
   private _methodCollapsedCount: number = 0;
-  private _logMethods = true;
 
   constructor(
     private _enabled: boolean,
@@ -80,14 +79,6 @@ export class ModulesLogger {
 
   public setConfig(loggingConfig: HardhatNetworkLoggingConfig) {
     this._loggingConfig = loggingConfig;
-  }
-
-  public shouldLogMethods() {
-    return this._logMethods;
-  }
-
-  public setLogMethods(logMethods: boolean) {
-    this._logMethods = logMethods;
   }
 
   public isLoggedError(err: Error) {
@@ -448,7 +439,10 @@ export class ModulesLogger {
   }
 
   public printMethod(method: string) {
-    if (this._loggingConfig.level === 'minimal') {
+    if (
+      this._loggingConfig.omitMethods &&
+      this._loggingConfig.omitMethods.includes(method)
+    ) {
       return;
     }
 

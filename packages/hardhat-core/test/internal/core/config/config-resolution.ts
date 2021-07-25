@@ -627,6 +627,9 @@ describe("Config resolution", () => {
           throwOnCallFailures: false,
           throwOnTransactionFailures: false,
           loggingEnabled: true,
+          logging: {
+            level: "default",
+          },
           allowUnlimitedContractSize: true,
           blockGasLimit: 567,
           minGasPrice: 10,
