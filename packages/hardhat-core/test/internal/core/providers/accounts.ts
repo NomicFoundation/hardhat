@@ -83,7 +83,7 @@ describe("Local accounts provider", () => {
     );
   });
 
-  it("Should throw when calling sendTransaction without gasPrice", async () => {
+  it("Should throw when calling sendTransaction without gasPrice, maxFeePerGas and maxPriorityFeePerGas", async () => {
     const params = [
       {
         from: privateKeyToAddress(accounts[0]),
@@ -95,8 +95,70 @@ describe("Local accounts provider", () => {
 
     await expectHardhatErrorAsync(
       () => wrapper.request({ method: "eth_sendTransaction", params }),
+      ERRORS.NETWORK.MISSING_FEE_PRICE_FIELDS
+    );
+  });
+
+  it("Should throw when calling sendTransaction with gasPrice and EIP1559 fields", async function () {
+    const params = [
+      {
+        from: privateKeyToAddress(accounts[0]),
+        to: "0x2a97a65d5673a2c61e95ce33cecadf24f654f96d",
+        nonce: numberToRpcQuantity(0x8),
+        gas: numberToRpcQuantity(123),
+        gasPrice: numberToRpcQuantity(1),
+        maxFeePerGas: numberToRpcQuantity(1),
+      },
+    ];
+
+    const params2 = [
+      {
+        ...params[0],
+        maxFeePerGas: undefined,
+        maxPriorityFeePerGas: numberToRpcQuantity(1),
+      },
+    ];
+
+    await expectHardhatErrorAsync(
+      () => wrapper.request({ method: "eth_sendTransaction", params }),
+      ERRORS.NETWORK.INCOMPATIBLE_FEE_PRICE_FIELDS
+    );
+
+    await expectHardhatErrorAsync(
+      () => wrapper.request({ method: "eth_sendTransaction", params: params2 }),
+      ERRORS.NETWORK.INCOMPATIBLE_FEE_PRICE_FIELDS
+    );
+  });
+
+  it("Should throw when only one EIP1559 field is provided", async function () {
+    const params = [
+      {
+        from: privateKeyToAddress(accounts[0]),
+        to: "0x2a97a65d5673a2c61e95ce33cecadf24f654f96d",
+        nonce: numberToRpcQuantity(0x8),
+        gas: numberToRpcQuantity(123),
+        maxFeePerGas: numberToRpcQuantity(1),
+      },
+    ];
+
+    const params2 = [
+      {
+        ...params[0],
+        maxFeePerGas: undefined,
+        maxPriorityFeePerGas: numberToRpcQuantity(1),
+      },
+    ];
+
+    await expectHardhatErrorAsync(
+      () => wrapper.request({ method: "eth_sendTransaction", params }),
       ERRORS.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY,
-      "gasPrice"
+      "maxPriorityFeePerGas"
+    );
+
+    await expectHardhatErrorAsync(
+      () => wrapper.request({ method: "eth_sendTransaction", params: params2 }),
+      ERRORS.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY,
+      "maxFeePerGas"
     );
   });
 
@@ -171,6 +233,30 @@ describe("Local accounts provider", () => {
     });
 
     assert.equal(mock.getNumberOfCalls("eth_getTransactionCount"), 1);
+  });
+
+  it("should send eip1559 txs if the eip1559 fields are present", async () => {
+    const tx = {
+      from: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
+      to: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
+      gas: numberToRpcQuantity(30000),
+      nonce: numberToRpcQuantity(0),
+      value: numberToRpcQuantity(1),
+      chainId: numberToRpcQuantity(MOCK_PROVIDER_CHAIN_ID),
+      maxFeePerGas: numberToRpcQuantity(12),
+      maxPriorityFeePerGas: numberToRpcQuantity(2),
+    };
+    await wrapper.request({
+      method: "eth_sendTransaction",
+      params: [tx],
+    });
+
+    const rawTransaction = toBuffer(
+      mock.getLatestParams("eth_sendRawTransaction")[0]
+    );
+
+    // The tx type is encoded in the first byte, and it must be the EIP-1559 one
+    assert.equal(rawTransaction[0], 2);
   });
 
   it("should send access list transactions", async () => {

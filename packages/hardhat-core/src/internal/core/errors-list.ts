@@ -339,6 +339,27 @@ Please double check your calls' parameters and keep your Ethereum node up to dat
 Please check that you are sending a \`data\` parameter with a JSON string or object conforming to EIP712 TypedData schema.`,
       shouldBeReported: false,
     },
+    INCOMPATIBLE_FEE_PRICE_FIELDS: {
+      number: 114,
+      message:
+        "An incompatible transaction with gasPrice and EIP-1559 fee price fields.",
+      title: "Incompatible fee price parameters",
+      description: `You are trying to send a transaction with a locally managed 
+account, and its parameters are incompatible. You sent both gasPrice, and maxFeePerGas or maxPriorityFeePerGas.  
+
+Please double check your transactions' parameters.`,
+      shouldBeReported: false,
+    },
+    MISSING_FEE_PRICE_FIELDS: {
+      number: 115,
+      message:
+        "Tried to sign a transaction locally, but gasPrice, maxFeePerGas, and maxPriorityFeePerGas were missing.",
+      title: "Missing fee price parameters",
+      description: `You are trying to send a transaction with a locally managed account, and no fee price parameters were provided. You need to send gasPrice, or maxFeePerGas and maxPriorityFeePerGas.  
+
+Please double check your transactions' parameters.`,
+      shouldBeReported: false,
+    },
   },
   TASK_DEFINITIONS: {
     PARAM_AFTER_VARIADIC: {

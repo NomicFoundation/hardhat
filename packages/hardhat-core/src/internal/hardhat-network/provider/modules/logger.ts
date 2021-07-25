@@ -40,8 +40,8 @@ function replaceLastLine(newLine: string) {
     ansiEscapes.cursorHide +
       ansiEscapes.cursorPrevLine +
       newLine +
-      "\n" +
       ansiEscapes.eraseEndLine +
+      "\n" +
       ansiEscapes.cursorShow
   );
 }
@@ -107,6 +107,8 @@ export class ModulesLogger {
       this._logBlockNumber(block);
 
       this._indent(() => {
+        this._logBaseFeePerGas(block);
+
         for (let i = 0; i < block.transactions.length; i++) {
           const tx = block.transactions[i];
           const txGasUsed = results[i].gasUsed.toNumber();
@@ -138,7 +140,11 @@ export class ModulesLogger {
     const isEmpty = result.block.transactions.length === 0;
 
     this._indent(() => {
-      this.logMinedBlockNumber(blockNumber, isEmpty);
+      this.logMinedBlockNumber(
+        blockNumber,
+        isEmpty,
+        block.header.baseFeePerGas
+      );
 
       if (isEmpty) {
         return;
@@ -148,6 +154,8 @@ export class ModulesLogger {
         this._logBlockHash(block);
 
         this._indent(() => {
+          this._logBaseFeePerGas(block);
+
           for (let i = 0; i < block.transactions.length; i++) {
             const tx = block.transactions[i];
             const txGasUsed = results[i].gasUsed.toNumber();
@@ -178,6 +186,8 @@ export class ModulesLogger {
       this._logBlockHash(block);
 
       this._indent(() => {
+        this._logBaseFeePerGas(block);
+
         for (let i = 0; i < block.transactions.length; i++) {
           const tx = block.transactions[i];
           const txGasUsed = results[i].gasUsed.toNumber();
@@ -316,8 +326,22 @@ export class ModulesLogger {
     });
   }
 
-  public logMinedBlockNumber(blockNumber: number, isEmpty: boolean) {
-    this._log(`Mined ${isEmpty ? "empty " : ""}block #${blockNumber}`);
+  public logMinedBlockNumber(
+    blockNumber: number,
+    isEmpty: boolean,
+    baseFeePerGas?: BN
+  ) {
+    if (isEmpty) {
+      this._log(
+        `Mined empty block #${blockNumber}${
+          baseFeePerGas !== undefined ? ` with base fee ${baseFeePerGas}` : ""
+        }`
+      );
+
+      return;
+    }
+
+    this._log(`Mined block #${blockNumber}`);
   }
 
   public logMultipleTransactionsWarning() {
@@ -340,6 +364,12 @@ export class ModulesLogger {
 
   public logEmptyLine() {
     this._log("");
+  }
+
+  private _logBaseFeePerGas(block: Block) {
+    if (block.header.baseFeePerGas !== undefined) {
+      this._log(`Base fee: ${block.header.baseFeePerGas}`);
+    }
   }
 
   public printErrorMessage(errorMessage: string) {
@@ -370,7 +400,11 @@ export class ModulesLogger {
     return true;
   }
 
-  public printMinedBlockNumber(blockNumber: number, isEmpty: boolean) {
+  public printMinedBlockNumber(
+    blockNumber: number,
+    isEmpty: boolean,
+    baseFeePerGas?: BN
+  ) {
     if (this._emptyMinedBlocksRangeStart !== undefined) {
       this._print(
         `Mined empty block range #${this._emptyMinedBlocksRangeStart} to #${blockNumber}`,
@@ -378,7 +412,21 @@ export class ModulesLogger {
       );
     } else {
       this._emptyMinedBlocksRangeStart = blockNumber;
-      this._print(`Mined ${isEmpty ? "empty " : ""}block #${blockNumber}`, {
+
+      if (isEmpty) {
+        this._print(
+          `Mined empty block #${blockNumber}${
+            baseFeePerGas !== undefined ? ` with base fee ${baseFeePerGas}` : ""
+          }`,
+          {
+            collapseMinedBlock: true,
+          }
+        );
+
+        return;
+      }
+
+      this._print(`Mined block #${blockNumber}`, {
         collapseMinedBlock: true,
       });
     }

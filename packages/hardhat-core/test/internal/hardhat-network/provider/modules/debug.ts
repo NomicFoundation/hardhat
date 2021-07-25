@@ -142,6 +142,7 @@ describe("Debug module", function () {
         DEFAULT_CHAIN_ID,
         DEFAULT_NETWORK_ID,
         13000000,
+        undefined,
         new BN(0),
         true,
         true,

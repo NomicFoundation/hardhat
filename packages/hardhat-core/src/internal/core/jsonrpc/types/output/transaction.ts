@@ -11,7 +11,7 @@ export const rpcTransaction = t.type(
     blockNumber: nullable(rpcQuantity),
     from: rpcAddress,
     gas: rpcQuantity,
-    gasPrice: rpcQuantity,
+    gasPrice: rpcQuantity, // NOTE: Its meaning was changed by EIP-1559
     hash: rpcHash,
     input: rpcData,
     nonce: rpcQuantity,
@@ -27,6 +27,10 @@ export const rpcTransaction = t.type(
     type: optional(rpcQuantity),
     chainId: optional(nullable(rpcQuantity)),
     accessList: optional(rpcAccessList),
+
+    // EIP-1559 properties
+    maxFeePerGas: optional(rpcQuantity),
+    maxPriorityFeePerGas: optional(rpcQuantity),
   },
   "RpcTransaction"
 );
