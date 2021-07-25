@@ -25,6 +25,7 @@ const baseBlockResponse = {
   timestamp: rpcQuantity,
   uncles: t.array(rpcHash, "HASH Array"),
   mixHash: optional(rpcHash),
+  baseFeePerGas: optional(rpcQuantity),
 };
 
 export type RpcBlock = t.TypeOf<typeof rpcBlock>;

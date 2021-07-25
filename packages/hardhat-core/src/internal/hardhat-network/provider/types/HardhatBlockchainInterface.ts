@@ -15,4 +15,5 @@ export interface HardhatBlockchainInterface extends BlockchainInterface {
   getTransactionReceipt(
     transactionHash: Buffer
   ): Promise<RpcReceiptOutput | null>;
+  getBaseFee(): Promise<BN>;
 }

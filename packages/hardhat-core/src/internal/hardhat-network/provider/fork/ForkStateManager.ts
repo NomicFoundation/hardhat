@@ -43,7 +43,7 @@ const notSupportedError = (method: string) =>
   new Error(`${method} is not supported when forking from remote network`);
 
 export class ForkStateManager implements EIP2929StateManager {
-  private _state: State = ImmutableMap();
+  private _state: State = ImmutableMap<string, ImmutableRecord<AccountState>>();
   private _initialStateRoot: string = randomHash();
   private _stateRoot: string = this._initialStateRoot;
   private _stateRootToState: Map<string, State> = new Map();
@@ -62,7 +62,7 @@ export class ForkStateManager implements EIP2929StateManager {
     private readonly _jsonRpcClient: JsonRpcClient,
     private readonly _forkBlockNumber: BN
   ) {
-    this._state = ImmutableMap();
+    this._state = ImmutableMap<string, ImmutableRecord<AccountState>>();
 
     this._stateRootToState.set(this._initialStateRoot, this._state);
   }
@@ -251,7 +251,7 @@ export class ForkStateManager implements EIP2929StateManager {
     let account = this._state.get(hexAddress) ?? makeAccountState();
     account = account
       .set("storageCleared", true)
-      .set("storage", ImmutableMap());
+      .set("storage", ImmutableMap<string, string | null>());
     this._state = this._state.set(hexAddress, account);
   }
 
@@ -343,7 +343,7 @@ export class ForkStateManager implements EIP2929StateManager {
       return;
     }
     this._contextChanged = true;
-    this._state = ImmutableMap();
+    this._state = ImmutableMap<string, ImmutableRecord<AccountState>>();
     this._stateRoot = bufferToHex(stateRoot);
     this._stateRootToState.set(this._stateRoot, this._state);
     this._contextBlockNumber = blockNumber;

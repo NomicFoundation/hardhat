@@ -19,6 +19,7 @@ import { FakeSenderAccessListEIP2930Transaction } from "./transactions/FakeSende
 import { FakeSenderTransaction } from "./transactions/FakeSenderTransaction";
 import { bnToHex } from "./utils/bnToHex";
 import { reorganizeTransactionsLists } from "./utils/reorganizeTransactionsLists";
+import { FakeSenderEIP1559Transaction } from "./transactions/FakeSenderEIP1559Transaction";
 
 /* eslint-disable @nomiclabs/only-hardhat-error */
 
@@ -28,7 +29,8 @@ export function serializeTransaction(
   const rlpSerialization = bufferToHex(tx.data.serialize());
   const isFake =
     tx.data instanceof FakeSenderTransaction ||
-    tx.data instanceof FakeSenderAccessListEIP2930Transaction;
+    tx.data instanceof FakeSenderAccessListEIP2930Transaction ||
+    tx.data instanceof FakeSenderEIP1559Transaction;
   return makeSerializedTransaction({
     orderId: tx.orderId,
     fakeFrom: isFake ? tx.data.getSenderAddress().toString() : undefined,
@@ -55,6 +57,12 @@ export function deserializeTransaction(
         serialization,
         { common }
       );
+    } else if (tx.get("txType") === 2) {
+      data = FakeSenderEIP1559Transaction.fromSenderAndRlpSerializedTx(
+        sender,
+        serialization,
+        { common }
+      );
     } else {
       data = FakeSenderTransaction.fromSenderAndRlpSerializedTx(
         sender,
@@ -67,6 +75,7 @@ export function deserializeTransaction(
       common,
     });
   }
+
   return {
     orderId: tx.get("orderId"),
     data,
@@ -205,14 +214,22 @@ export class TxPool {
   public getPendingTransactions(): Map<string, OrderedTransaction[]> {
     const deserializedImmutableMap = this._getPending()
       .filter((txs) => txs.size > 0)
-      .map((txs) => txs.map(this._deserializeTransaction).toJS());
+      .map(
+        (txs) =>
+          txs.map(this._deserializeTransaction).toJS() as OrderedTransaction[]
+      );
+
     return new Map(deserializedImmutableMap.entries());
   }
 
   public getQueuedTransactions(): Map<string, OrderedTransaction[]> {
     const deserializedImmutableMap = this._getQueued()
       .filter((txs) => txs.size > 0)
-      .map((txs) => txs.map(this._deserializeTransaction).toJS());
+      .map(
+        (txs) =>
+          txs.map(this._deserializeTransaction).toJS() as OrderedTransaction[]
+      );
+
     return new Map(deserializedImmutableMap.entries());
   }
 
@@ -422,11 +439,12 @@ export class TxPool {
     const senderAccount = await this._stateManager.getAccount(senderAddress);
     const senderBalance = new BN(senderAccount.balance);
 
-    if (tx.getUpfrontCost().gt(senderBalance)) {
+    const maxFee = "gasPrice" in tx ? tx.gasPrice : tx.maxFeePerGas;
+    const txMaxUpfrontCost = tx.gasLimit.mul(maxFee).add(tx.value);
+
+    if (txMaxUpfrontCost.gt(senderBalance)) {
       throw new InvalidInputError(
-        `sender doesn't have enough funds to send tx. The upfront cost is: ${tx
-          .getUpfrontCost()
-          .toString()}` +
+        `sender doesn't have enough funds to send tx. The max upfront cost is: ${txMaxUpfrontCost}` +
           ` and the sender's account only has: ${senderBalance.toString()}`
       );
     }
@@ -626,17 +644,43 @@ export class TxPool {
 
     const deserializedExistingTx = this._deserializeTransaction(existingTx);
 
-    // TODO remove these "as any"
-    const currentGasPrice = new BN(
-      (deserializedExistingTx.data as any).gasPrice
+    const currentMaxFeePerGas = new BN(
+      "gasPrice" in deserializedExistingTx.data
+        ? deserializedExistingTx.data.gasPrice
+        : deserializedExistingTx.data.maxFeePerGas
     );
-    const newGasPrice = new BN((newTx.data as any).gasPrice);
 
-    const minNewGasPrice = this._getMinNewGasPrice(currentGasPrice);
+    const currentPriorityFeePerGas = new BN(
+      "gasPrice" in deserializedExistingTx.data
+        ? deserializedExistingTx.data.gasPrice
+        : deserializedExistingTx.data.maxPriorityFeePerGas
+    );
 
-    if (newGasPrice.lt(minNewGasPrice)) {
+    const newMaxFeePerGas = new BN(
+      "gasPrice" in newTx.data ? newTx.data.gasPrice : newTx.data.maxFeePerGas
+    );
+
+    const newPriorityFeePerGas = new BN(
+      "gasPrice" in newTx.data
+        ? newTx.data.gasPrice
+        : newTx.data.maxPriorityFeePerGas
+    );
+
+    const minNewMaxFeePerGas = this._getMinNewFeePrice(currentMaxFeePerGas);
+
+    const minNewPriorityFeePerGas = this._getMinNewFeePrice(
+      currentPriorityFeePerGas
+    );
+
+    if (newMaxFeePerGas.lt(minNewMaxFeePerGas)) {
       throw new InvalidInputError(
-        `Replacement transaction underpriced. A gas price of at least ${minNewGasPrice.toString()} is necessary to replace the existing transaction.`
+        `Replacement transaction underpriced. A gasPrice/maxFeePerGas of at least ${minNewMaxFeePerGas.toString()} is necessary to replace the existing transaction with nonce ${newTx.data.nonce.toString()}.`
+      );
+    }
+
+    if (newPriorityFeePerGas.lt(minNewPriorityFeePerGas)) {
+      throw new InvalidInputError(
+        `Replacement transaction underpriced. A gasPrice/maxPriorityFeePerGas of at least ${minNewPriorityFeePerGas.toString()} is necessary to replace the existing transaction with nonce ${newTx.data.nonce.toString()}.`
       );
     }
 
@@ -647,15 +691,15 @@ export class TxPool {
     return newTxs;
   }
 
-  private _getMinNewGasPrice(currentGasPrice: BN): BN {
-    let minNewGasPrice = currentGasPrice.muln(110);
+  private _getMinNewFeePrice(feePrice: BN): BN {
+    let minNewPriorityFee = feePrice.muln(110);
 
-    if (minNewGasPrice.modn(100) === 0) {
-      minNewGasPrice = minNewGasPrice.divn(100);
+    if (minNewPriorityFee.modn(100) === 0) {
+      minNewPriorityFee = minNewPriorityFee.divn(100);
     } else {
-      minNewGasPrice = minNewGasPrice.divn(100).addn(1);
+      minNewPriorityFee = minNewPriorityFee.divn(100).addn(1);
     }
 
-    return minNewGasPrice;
+    return minNewPriorityFee;
   }
 }

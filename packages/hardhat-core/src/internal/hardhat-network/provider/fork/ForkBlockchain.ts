@@ -3,6 +3,7 @@ import Common from "@ethereumjs/common";
 import { TypedTransaction } from "@ethereumjs/tx";
 import { Address, BN } from "ethereumjs-util";
 
+import { FeeMarketEIP1559TxData } from "@ethereumjs/tx/dist/types";
 import { RpcBlockWithTransactions } from "../../../core/jsonrpc/types/output/block";
 import { RpcTransactionReceipt } from "../../../core/jsonrpc/types/output/receipt";
 import { RpcTransaction } from "../../../core/jsonrpc/types/output/transaction";
@@ -14,6 +15,7 @@ import {
   remoteReceiptToRpcReceiptOutput,
   RpcLogOutput,
   RpcReceiptOutput,
+  shouldShowEffectiveGasPriceForHardfork,
   shouldShowTransactionTypeForHardfork,
   toRpcLogOutput,
 } from "../output";
@@ -21,6 +23,7 @@ import { ReadOnlyValidEIP2930Transaction } from "../transactions/ReadOnlyValidEI
 import { ReadOnlyValidTransaction } from "../transactions/ReadOnlyValidTransaction";
 import { HardhatBlockchainInterface } from "../types/HardhatBlockchainInterface";
 
+import { ReadOnlyValidEIP1559Transaction } from "../transactions/ReadOnlyValidEIP1559Transaction";
 import { rpcToBlockData } from "./rpcToBlockData";
 import { rpcToTxData } from "./rpcToTxData";
 
@@ -226,6 +229,11 @@ export class ForkBlockchain implements HardhatBlockchainInterface {
     throw new Error("Method not implemented.");
   }
 
+  public async getBaseFee(): Promise<BN> {
+    const latestBlock = await this.getLatestBlock();
+    return latestBlock.header.calcNextBaseFee();
+  }
+
   private async _getBlockByHash(blockHash: Buffer) {
     const block = this._data.getBlockByHash(blockHash);
     if (block !== undefined) {
@@ -260,6 +268,17 @@ export class ForkBlockchain implements HardhatBlockchainInterface {
       return undefined;
     }
 
+    // We copy the common and set it to London or Berlin if the remote block
+    // had EIP-1559 activated or not. The reason for this is that ethereumjs
+    // throws if we have a base fee for an older hardfork, and set a default
+    // one for London.
+    const common = this._common.copy();
+    if (rpcBlock.baseFeePerGas !== undefined) {
+      common.setHardfork("london");
+    } else {
+      common.setHardfork("berlin");
+    }
+
     // we don't include the transactions to add our own custom tx objects,
     // otherwise they are recreated with upstream classes
     const blockData = rpcToBlockData({
@@ -268,7 +287,7 @@ export class ForkBlockchain implements HardhatBlockchainInterface {
     });
 
     const block = Block.fromBlockData(blockData, {
-      common: this._common,
+      common,
 
       // We use freeze false here because we add the transactions manually
       freeze: false,
@@ -285,6 +304,11 @@ export class ForkBlockchain implements HardhatBlockchainInterface {
         tx = new ReadOnlyValidEIP2930Transaction(
           new Address(transaction.from),
           rpcToTxData(transaction)
+        );
+      } else if (transaction.type.eqn(2)) {
+        tx = new ReadOnlyValidEIP1559Transaction(
+          new Address(transaction.from),
+          rpcToTxData(transaction) as FeeMarketEIP1559TxData
         );
       } else {
         throw new InternalError(`Unknown transaction type ${transaction.type}`);
@@ -365,7 +389,8 @@ export class ForkBlockchain implements HardhatBlockchainInterface {
     const receipt = remoteReceiptToRpcReceiptOutput(
       txReceipt,
       tx!,
-      shouldShowTransactionTypeForHardfork(this._common)
+      shouldShowTransactionTypeForHardfork(this._common),
+      shouldShowEffectiveGasPriceForHardfork(this._common)
     );
 
     this._data.addTransactionReceipt(receipt);

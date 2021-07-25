@@ -53,8 +53,9 @@ describe("HardhatNode", () => {
     blockGasLimit: DEFAULT_BLOCK_GAS_LIMIT,
     minGasPrice: new BN(0),
     genesisAccounts: DEFAULT_ACCOUNTS,
+    initialBaseFeePerGas: 10,
   };
-  const gasPrice = 1;
+  const gasPrice = 20;
   let node: HardhatNode;
   let createTestTransaction: (
     txData: TxData & { from: string }
@@ -281,17 +282,30 @@ describe("HardhatNode", () => {
       });
 
       it("assigns miner rewards", async () => {
+        const gasPriceBN = new BN(1);
+
+        let baseFeePerGas = new BN(0);
+        const pendingBlock = await node.getBlockByNumber("pending");
+        if (pendingBlock.header.baseFeePerGas !== undefined) {
+          baseFeePerGas = pendingBlock.header.baseFeePerGas;
+        }
+
         const miner = node.getCoinbaseAddress();
         const initialMinerBalance = await node.getAccountBalance(miner);
 
         const oneEther = new BN(10).pow(new BN(18));
-        const txFee = 21_000 * gasPrice;
-        const minerReward = oneEther.muln(2).addn(txFee);
+        const txFee = gasPriceBN.add(baseFeePerGas).muln(21_000);
+        const burnedTxFee = baseFeePerGas.muln(21_000);
+
+        // the miner reward is 2 ETH plus the tx fee, minus the part
+        // of the fee that is burned
+        const minerReward = oneEther.muln(2).add(txFee).sub(burnedTxFee);
 
         const tx = createTestTransaction({
           nonce: 0,
           from: DEFAULT_ACCOUNTS_ADDRESSES[0],
           to: EMPTY_ACCOUNT_ADDRESS,
+          gasPrice: gasPriceBN.add(baseFeePerGas),
           gasLimit: 21_000,
           value: 1234,
         });
@@ -381,21 +395,21 @@ describe("HardhatNode", () => {
           from: DEFAULT_ACCOUNTS_ADDRESSES[0],
           to: EMPTY_ACCOUNT_ADDRESS,
           gasLimit: 30_000, // actual gas used is 21_000
-          gasPrice: 2,
+          gasPrice: 40,
         });
         const tx2 = createTestTransaction({
           nonce: 1,
           from: DEFAULT_ACCOUNTS_ADDRESSES[0],
           to: EMPTY_ACCOUNT_ADDRESS,
           gasLimit: 30_000, // actual gas used is 21_000
-          gasPrice: 2,
+          gasPrice: 40,
         });
         const tx3 = createTestTransaction({
           nonce: 0,
           from: DEFAULT_ACCOUNTS_ADDRESSES[1],
           to: EMPTY_ACCOUNT_ADDRESS,
           gasLimit: 21_000,
-          gasPrice: 1,
+          gasPrice: 20,
         });
         await node.sendTransaction(tx1);
         await node.sendTransaction(tx2);
@@ -591,6 +605,12 @@ describe("HardhatNode", () => {
         networkName: "ropsten",
         url: ALCHEMY_URL.replace("mainnet", "ropsten"),
         blockToRun: 9812365, // this block has a EIP-2930 tx
+        chainId: 3,
+      },
+      {
+        networkName: "ropsten",
+        url: ALCHEMY_URL.replace("mainnet", "ropsten"),
+        blockToRun: 10499406, // this block has a EIP-1559 tx
         chainId: 3,
       },
     ];

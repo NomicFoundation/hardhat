@@ -1,4 +1,4 @@
-name: LATEST_DEPENDENCY_VERSIONS
+name: Run the entire test suite with the latest dependency versions
 
 on:
   schedule:
@@ -11,23 +11,13 @@ jobs:
     steps:
       - uses: actions/setup-node@v1
         with:
-          node-version: 10
+          node-version: 12
       - name: install vyper
-        run: docker pull ethereum/vyper:0.1.0b10
+        run: docker pull vyperlang/vyper:0.1.0b10
       - uses: actions/checkout@v2
-      - name: Install node-gyp-cache
-        run: |
-          yarn global add node-gyp-cache
-          yarn config set node_gyp node-gyp-cache
       - name: Delete yarn.lock
         run: "rm yarn.lock"
       - name: Install
         run: yarn
       - name: Run tests
-        env:
-          INFURA_URL: ${{ secrets.INFURA_URL }}
-          ALCHEMY_URL: ${{ secrets.ALCHEMY_URL }}
-          DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI: true
-          NODE_OPTIONS: "--max_old_space_size=4096"
-          FORCE_COLOR: 3
         run: yarn test

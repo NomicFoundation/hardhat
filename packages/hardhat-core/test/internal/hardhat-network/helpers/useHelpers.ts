@@ -17,11 +17,15 @@ interface SendTxOptions {
 declare module "mocha" {
   interface Context {
     sendTx: (options?: SendTxOptions) => Promise<string>;
+    assertLatestBlockTxs: (txs: string[]) => Promise<void>;
     assertPendingTxs: (txs: string[]) => Promise<void>;
     mine: () => Promise<void>;
   }
 }
 
+/**
+ * @deprecated
+ */
 export function useHelpers() {
   beforeEach("Initialize helpers", async function () {
     if (this.provider === undefined) {
@@ -32,7 +36,7 @@ export function useHelpers() {
       from = DEFAULT_ACCOUNTS_ADDRESSES[1],
       to = DEFAULT_ACCOUNTS_ADDRESSES[2],
       gas = 21000,
-      gasPrice = 1,
+      gasPrice = 1e9,
       data,
       nonce,
       value,
@@ -73,5 +77,8 @@ export function useHelpers() {
 
   afterEach("Remove helpers", async function () {
     delete (this as any).sendTx;
+    delete (this as any).assertLatestBlockTxs;
+    delete (this as any).assertPendingTxs;
+    delete (this as any).mine;
   });
 }
