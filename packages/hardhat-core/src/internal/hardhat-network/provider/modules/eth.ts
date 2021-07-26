@@ -1107,12 +1107,15 @@ export class EthModule {
   ): Promise<string> {
     switch (subscribeRequest) {
       case "newHeads":
+        console.log("EthModule._subscribeAction(): newHeads");
         return numberToRpcQuantity(await this._node.newBlockFilter(true));
       case "newPendingTransactions":
+        console.log("EthModule._subscribeAction(): newPendingTransactions");
         return numberToRpcQuantity(
           await this._node.newPendingTransactionFilter(true)
         );
       case "logs":
+        console.log("EthModule._subscribeAction(): logs");
         if (optionalFilterRequest === undefined) {
           throw new InvalidArgumentsError("missing params argument");
         }
