@@ -12,5 +12,5 @@ Try running some of the following tasks:
   npx eslint '**/*.js' --fix
   npx prettier '**/*.{json,sol,md}' --check
   npx prettier '**/*.{json,sol,md}' --write
-  npx solhint '**/*.sol'
-  npx solhint '**/*.sol' --fix
+  npx solhint 'contracts/**/*.sol'
+  npx solhint 'contracts/**/*.sol' --fix
