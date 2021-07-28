@@ -60,101 +60,14 @@ npx hardhat node --fork https://eth-mainnet.alchemyapi.io/v2/<key> --fork-block-
 
 ## Customizing Hardhat Network's behavior
 
-Once you've got local instances of mainnet protocols, setting them in the specific state your tests need is likely the next step. Hardhat Network provides several RPC methods to help you with this.
+Once you've got local instances of mainnet protocols, setting them in the specific state your tests need is likely the next step. Hardhat Network provides several RPC methods to help you with this:
 
-### Impersonating accounts
-
-Hardhat Network allows you to send transactions impersonating specific account and contract addresses.
-
-To impersonate an account use the `hardhat_impersonateAccount` RPC method, passing the address to impersonate as its parameter:
-
-```tsx
-await hre.network.provider.request({
-  method: "hardhat_impersonateAccount",
-  params: ["0x364d6D0333432C3Ac016Ca832fb8594A8cE43Ca6"],
-});
-```
-
-Call `hardhat_stopImpersonatingAccount` to stop impersonating:
-
-```tsx
-await hre.network.provider.request({
-  method: "hardhat_stopImpersonatingAccount",
-  params: ["0x364d6D0333432C3Ac016Ca832fb8594A8cE43Ca6"],
-});
-```
-
-If you are using [`hardhat-ethers`](https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-ethers), call `getSigner` after impersonating the account:
-
-```
-const signer = await ethers.getSigner("0x364d6D0333432C3Ac016Ca832fb8594A8cE43Ca6")
-signer.sendTransaction(...)
-```
-
-### Setting account nonce
-
-This method lets you change the nonce of an account. For example:
-
-```tsx
-await network.provider.send("hardhat_setNonce", [
-  "0x0d2026b3EE6eC71FC6746ADb6311F6d3Ba1C000B",
-  "0x21",
-]);
-```
-
-This will result in account `0x0d20...000B` having a nonce of 33.
-
-You can only use this method to increase the nonce of an account; you can't set a lower value than the account's current nonce.
-
-### Setting account balance
-
-This method lets you change the balance of an account. For example:
-
-```tsx
-await network.provider.send("hardhat_setBalance", [
-  "0x0d2026b3EE6eC71FC6746ADb6311F6d3Ba1C000B",
-  "0x1000",
-]);
-```
-
-This will result in account `0x0d20...000B` having a balance of 4096 wei.
-
-### Setting bytecode of an address
-
-This method lets you set the bytecode of an address. For example:
-
-```tsx
-await network.provider.send("hardhat_setCode", [
-  "0x0d2026b3EE6eC71FC6746ADb6311F6d3Ba1C000B",
-  "0xa1a2a3...",
-]);
-```
-
-This will result in account `0x0d20...000B` becoming a smart contract with bytecode `a1a2a3....` If that address was already a smart contract, then its code will be replaced by the specified one.
-
-### Modifying contract storage
-
-This method lets you modify any position in the storage of a smart contract. For example:
-
-```tsx
-await network.provider.send("hardhat_setStorageAt", [
-  "0x0d2026b3EE6eC71FC6746ADb6311F6d3Ba1C000B",
-  "0x0",
-  "0x0000000000000000000000000000000000000000000000000000000000000001",
-]);
-```
-
-This will set the contract's first storage position (at index `0x0`) to 1.
-
-The mapping between a smart contract's variables and its storage position is not straightforward except in some very simple cases. For example, if you deploy this contract:
-
-```solidity
-contract Foo {
-  uint public x;
-}
-```
-
-And you set the first storage position to 1 (as shown in the previous snippet), then calling `foo.x()` will return 1.
+- [`hardhat_impersonateAccount`](../reference/#hardhat-impersonateaccount)
+- [`hardhat_stopImpersonatingAccount`](../reference/#hardhat-stopimpersonatingaccount)
+- [`hardhat_setNonce`](../reference/#hardhat-setnonce)
+- [`hardhat_setBalance`](../reference/#hardhat-setbalance)
+- [`hardhat_setCode`](../reference/#hardhat-setcode)
+- [`hardhat_setStorageAt`](../reference/#hardhat-setstorageat)
 
 ## Resetting the fork
 
