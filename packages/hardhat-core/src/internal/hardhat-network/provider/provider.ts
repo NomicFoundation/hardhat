@@ -336,11 +336,25 @@ export class HardhatNetworkProvider extends EventEmitter
   private _ethEventListener = (payload: { filterId: BN; result: any }) => {
     const subscription = `0x${payload.filterId.toString(16)}`;
     const result = payload.result;
+    console.log(
+      `HardhatNetworkProvider._ethEventListener(): ${JSON.stringify(
+        { subscription, result },
+        null,
+        "\t"
+      )}`
+    );
     this._emitLegacySubscriptionEvent(subscription, result);
     this._emitEip1193SubscriptionEvent(subscription, result);
   };
 
   private _emitLegacySubscriptionEvent(subscription: string, result: any) {
+    console.log(
+      `HardhatNetworkProvider._emitLegacySubscriptionEvent(): ${JSON.stringify(
+        { subscription, result },
+        null,
+        "\t"
+      )}`
+    );
     this.emit("notifications", {
       subscription,
       result,
@@ -348,6 +362,13 @@ export class HardhatNetworkProvider extends EventEmitter
   }
 
   private _emitEip1193SubscriptionEvent(subscription: string, result: unknown) {
+    console.log(
+      `HardhatNetworkProvider._emitEip1193SubscriptionEvent(): ${JSON.stringify(
+        { subscription, result },
+        null,
+        "\t"
+      )}`
+    );
     const message: EthSubscription = {
       type: "eth_subscription",
       data: {
