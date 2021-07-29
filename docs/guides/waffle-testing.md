@@ -157,7 +157,15 @@ await greeter.connect(addr1).setGreeting("Hallo, Erde!");
 
 ## Migrating an existing Waffle project
 
-If you're starting a project from scratch and looking to use Waffle, you can skip this section. If you're setting up an existing Waffle project to use Hardhat you'll need to migrate the [configuration options](https://ethereum-waffle.readthedocs.io/en/latest/configuration.html) Waffle offers. The following table maps Waffle configurations to their Hardhat equivalents: |Waffle|Hardhat| |---|---| |`sourcesPath`|`paths.sources`| |`targetPath`|`paths.artifacts`| |`solcVersion`|`solc.version` (version number only)| |`compilerOptions.evmVersion`|`solc.evmVersion`| |`compilerOptions.optimizer`|`solc.optimizer`|
+If you're starting a project from scratch and looking to use Waffle, you can skip this section. If you're setting up an existing Waffle project to use Hardhat you'll need to migrate the [configuration options](https://ethereum-waffle.readthedocs.io/en/latest/configuration.html) Waffle offers. The following table maps Waffle configurations to their Hardhat equivalents:
+
+|Waffle|Hardhat|
+|---|---|
+|`sourcesPath`|`paths.sources`|
+|`targetPath`|`paths.artifacts`|
+|`solcVersion`|`solc.version` (version number only)|
+|`compilerOptions.evmVersion`|`solc.evmVersion`|
+|`compilerOptions.optimizer`|`solc.optimizer`|
 
 As an example, this Waffle configuration file:
 
