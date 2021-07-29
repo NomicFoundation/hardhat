@@ -1,3 +1,6 @@
+require("dotenv").config();
+
+require("@nomiclabs/hardhat-etherscan");
 require("@nomiclabs/hardhat-waffle");
 require("hardhat-gas-reporter");
 require("solidity-coverage");
@@ -23,8 +26,17 @@ task("accounts", "Prints the list of accounts", async () => {
  */
 module.exports = {
   solidity: "0.8.4",
+  networks: {
+    ropsten: {
+      url: process.env.ROPSTEN_URL || "",
+      accounts: [process.env.PRIVATE_KEY || `0x${"0".repeat(40)}`],
+    },
+  },
   gasReporter: {
     enabled: process.env.REPORT_GAS !== undefined,
     currency: "USD",
+  },
+  etherscan: {
+    apiKey: process.env.ETHERSCAN_API_KEY,
   },
 };
