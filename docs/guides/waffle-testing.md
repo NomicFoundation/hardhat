@@ -37,7 +37,7 @@ Select `Create a sample project`. This will create some files and install the `@
 
 Look at the `hardhat.config.js` file and you'll see that the Waffle plugin is enabled:
 
-<<< @/../packages/hardhat-core/sample-project/hardhat.config.js{1}
+<<< @/../packages/hardhat-core/sample-projects/basic/hardhat.config.js{1}
 
 ::: tip There's no need for `require("@nomiclabs/hardhat-ethers")`, as `@nomiclabs/hardhat-waffle` already does it. :::
 
@@ -47,7 +47,7 @@ Tests using Waffle are written with [Mocha](https://mochajs.org/) alongside [Cha
 
 Inside the `test` folder you'll find `sample-test.js`. Let's take a look at it, and we'll explain it next:
 
-<<< @/../packages/hardhat-core/sample-project/test/sample-test.js
+<<< @/../packages/hardhat-core/sample-projects/basic/test/sample-test.js
 
 In your terminal, run `npx hardhat test`. You should see the following output:
 
