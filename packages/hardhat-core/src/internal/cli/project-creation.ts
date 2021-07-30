@@ -128,6 +128,9 @@ async function copySampleProject(
 ) {
   const packageRoot = getPackageRoot();
 
+  // first copy the basic project, then, if the advanced project is what was
+  // requested, overlay the advanced files on top of the basic ones.
+
   await fsExtra.ensureDir(projectRoot);
   await fsExtra.copy(
     path.join(packageRoot, "sample-projects", "basic"),
