@@ -155,6 +155,10 @@ main()
   });
 ```
 
+## Type-safe smart contract interactions
+
+If you want to type smart contract interactions (calling methods, reading events), use [`@typechain/hardhat`](https://github.com/ethereum-ts/TypeChain/tree/master/packages/hardhat). It generates typing (d.ts) files based on ABIs and doesn't require almost any configuration when used with Hardhat.
+
 ## Type-safe configuration
 
 One of the advantages of using TypeScript, is that you can have a type-safe configuration, and avoid typos and other common errors.
