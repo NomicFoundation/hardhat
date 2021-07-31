@@ -82,7 +82,7 @@ export class JsonRpcServer implements IJsonRpcServer {
           }
 
           log("JSON-RPC server closed");
-          resolve();
+          resolve("Promise successfully resolved");
         });
       }),
       new Promise((resolve, reject) => {
@@ -95,7 +95,7 @@ export class JsonRpcServer implements IJsonRpcServer {
           }
 
           log("Websocket server closed");
-          resolve();
+          resolve("Promise successfully resolved");
         });
       }),
     ]);
