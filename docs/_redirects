@@ -33,6 +33,8 @@ https://www.usehardhat.com/* https://hardhat.org/:splat 301!
 /tutorial/creating-a-new-buidler-project.html /tutorial/creating-a-new-hardhat-project.html 301
 /tutorial/debugging-with-buidler-evm.html /tutorial/debugging-with-hardhat-network.html 301
 
+## Other redirects
+/guides/create-plugin.html /advanced/building-plugins.html 302
 
 # Buidler errors
 
