@@ -10,6 +10,7 @@ Let's start with the code below. We'll explain it next, but for now paste this i
 
 ```js
 const { expect } = require("chai");
+const { ethers } = require("hardhat");
 
 describe("Token contract", function () {
   it("Deployment should assign the total supply of tokens to the owner", async function () {
@@ -44,12 +45,6 @@ const [owner] = await ethers.getSigners();
 ```
 
 A `Signer` in ethers.js is an object that represents an Ethereum account. It's used to send transactions to contracts and other accounts. Here we're getting a list of the accounts in the node we're connected to, which in this case is **Hardhat Network**, and only keeping the first one.
-
-The `ethers` variable is available in the global scope. If you like your code always being explicit, you can add this line at the top:
-
-```js
-const { ethers } = require("hardhat");
-```
 
 ::: tip
 
@@ -91,6 +86,7 @@ If you need to send a transaction from an account (or `Signer` in ethers.js spea
 
 ```js{18}
 const { expect } = require("chai");
+const { ethers } = require("hardhat");
 
 describe("Transactions", function () {
   it("Should transfer tokens between accounts", async function () {
@@ -116,8 +112,9 @@ describe("Transactions", function () {
 Now that we've covered the basics you'll need for testing your contracts, here's a full test suite for the token with a lot of additional information about Mocha and how to structure your tests. We recommend reading through.
 
 ```js
-// We import Chai to use its asserting functions here.
+// We import Chai to use its asserting functions here, and ethers to use its Signers.
 const { expect } = require("chai");
+const { ethers } = require("hardhat");
 
 // `describe` is a Mocha function that allows you to organize your tests. It's
 // not actually needed, but having your tests organized makes debugging them
