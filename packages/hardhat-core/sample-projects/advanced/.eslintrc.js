@@ -16,6 +16,10 @@ module.exports = {
   },
   overrides: [
     {
+      files: ["hardhat.config.js"],
+      globals: { task: true },
+    },
+    {
       files: ["scripts/**"],
       rules: { "no-process-exit": "off" },
     },
