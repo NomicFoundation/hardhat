@@ -374,6 +374,14 @@ const plugins = [
     description: "Allows changing the current network in Hardhat.",
     tags: ["Testing"],
   },
+  {
+    name: "hardhat-packager",
+    author: "Paul Razvan Berg",
+    authorUrl: "https://github.com/paulrberg",
+    url: "https://github.com/paulrberg/hardhat-packager",
+    description: "Prepare the contract artifacts and the TypeChain bindings for registry deployment.",
+    tags: ["Deployment", "Tasks", "TypeChain"],
+  },
 ];
 
 module.exports = plugins.map((p) => ({
