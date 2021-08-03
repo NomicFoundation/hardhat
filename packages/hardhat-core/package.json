@@ -146,7 +146,7 @@
     "exclude": [
       "**/*.d.ts",
       "dev-build",
-      "sample-project",
+      "sample-projects",
       "test",
       "coverage",
       ".nyc_output",
