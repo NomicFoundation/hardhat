@@ -45,7 +45,7 @@ export default {
   name: "Plugins",
   components: { Layout },
   data() {
-    return { plugins: require("../../plugins.js") };
+    return { plugins: require("../../sorted-plugins.js") };
   },
 };
 </script>

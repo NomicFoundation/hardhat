@@ -742,6 +742,7 @@ describe("Ethers plugin", function () {
         const response = await sig.sendTransaction({
           from: sig.address,
           to: this.env.ethers.constants.AddressZero,
+          gasPrice: 8e9,
         });
         await response.wait();
 
@@ -856,6 +857,7 @@ describe("Ethers plugin", function () {
         const response = await sig.sendTransaction({
           from: sig.address,
           to: this.env.ethers.constants.AddressZero,
+          gasPrice: 8e9,
         });
         await response.wait();
 
