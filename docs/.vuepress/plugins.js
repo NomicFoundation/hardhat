@@ -379,7 +379,8 @@ const plugins = [
     author: "Paul Razvan Berg",
     authorUrl: "https://github.com/paulrberg",
     url: "https://github.com/paulrberg/hardhat-packager",
-    description: "Prepare the contract artifacts and the TypeChain bindings for registry deployment.",
+    description:
+      "Prepare the contract artifacts and the TypeChain bindings for registry deployment.",
     tags: ["Deployment", "Tasks", "TypeChain"],
   },
 ];
