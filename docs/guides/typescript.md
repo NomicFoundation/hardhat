@@ -157,7 +157,7 @@ main()
 
 ## Type-safe smart contract interactions
 
-If you want to type smart contract interactions (calling methods, reading events), use [`@typechain/hardhat`](https://github.com/ethereum-ts/TypeChain/tree/master/packages/hardhat). It generates typing (d.ts) files based on ABIs and doesn't require almost any configuration when used with Hardhat.
+If you want to type-check smart contract interactions (calling methods, reading events), use [`@typechain/hardhat`](https://github.com/ethereum-ts/TypeChain/tree/master/packages/hardhat). It generates typing files (`*.d.ts`) based on ABI's, and it requires little to no configuration when used with Hardhat.
 
 ## Type-safe configuration
 
