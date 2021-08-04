@@ -43,7 +43,7 @@ function printWarningAboutNodeJsVersionIfNeceesary(packageJson: PackageJson) {
   if (!semver.satisfies(process.version, requirement)) {
     console.warn(
       chalk.yellow(
-        `You are using an version of Node.js that is not supported by Hardhat, and it may work incorrectly, or not work at all.
+        `You are using a version of Node.js that is not supported by Hardhat, and it may work incorrectly, or not work at all.
 
 Please, upgrade your Node.js version.
 
