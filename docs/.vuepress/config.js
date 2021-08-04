@@ -129,6 +129,7 @@ module.exports = {
           title: "Reference",
           collapsable: false,
           children: [
+            ["/reference/stability-guarantees.html", "Stability guarantees", 0],
             ["/reference/solidity-support.html", "Solidity support", 0],
           ],
         },
