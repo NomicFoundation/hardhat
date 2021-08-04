@@ -4,8 +4,8 @@ Hardhat doesn't follow semver strictly, but it still aims to be a stable and eas
 
 Those breaking changes are part of these categories:
 
-- Dropping support for unmaintained Node.js versions
 - Changing the default config of Hardhat Network
+- Dropping support for unmaintained Node.js versions
 
 ## Hardhat Network default config
 
@@ -23,4 +23,4 @@ We recommend running Hardhat using the current LTS Node.js version. You can lear
 
 In general, there's no need to avoid them. Using Hardhat with any actively maintained Node.js version means that you'd be running with defaults that closely resemble Ethereum Mainnet.
 
-If you want to play extra-safe, and make sure your project will continue running years down the road using the same Node.js version, please, install Hardhat using a [tilde range](https://docs.npmjs.com/cli/v7/using-npm/semver#tilde-ranges-123-12-1).
+If you want to play extra-safe, and make sure your project will continue running years down the road using the same Node.js version, please install Hardhat using a [tilde range](https://docs.npmjs.com/cli/v7/using-npm/semver#tilde-ranges-123-12-1).
