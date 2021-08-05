@@ -134,7 +134,10 @@ describe("Debug module", function () {
         blockNumber: 11954000,
       };
 
-      const logger = new ModulesLogger(false, { level: "default" });
+      const logger = new ModulesLogger(false, {
+        level: "default",
+        omitMethods: [],
+      });
 
       const hardhatNetworkProvider = new HardhatNetworkProvider(
         DEFAULT_HARDFORK,

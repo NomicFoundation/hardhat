@@ -61,6 +61,7 @@ export class ModulesLogger {
   private _emptyMinedBlocksRangeStart: number | undefined = undefined;
   private _methodBeingCollapsed?: string;
   private _methodCollapsedCount: number = 0;
+  private _lastLineIsConsoleLog = false;
 
   constructor(
     private _enabled: boolean,
@@ -69,6 +70,10 @@ export class ModulesLogger {
     private _replaceLastLine = replaceLastLine
   ) {
     console.log("Log Level: ", this._loggingConfig.level);
+    console.log(
+      "Logging Omit Methods: ",
+      this._loggingConfig.omitMethods?.join(",")
+    );
   }
 
   public isEnabled() {
@@ -441,10 +446,7 @@ export class ModulesLogger {
   }
 
   public printMethod(method: string) {
-    if (
-      this._loggingConfig.omitMethods &&
-      this._loggingConfig.omitMethods.includes(method)
-    ) {
+    if (this._loggingConfig.omitMethods.includes(method)) {
       return;
     }
 
@@ -599,7 +601,7 @@ export class ModulesLogger {
     }
     const formattedMessage = this._format(msg, printOptions);
 
-    if (printOptions.replaceLastLine === true) {
+    if (printOptions.replaceLastLine === true && !this._lastLineIsConsoleLog) {
       this._replaceLastLine(formattedMessage);
     } else {
       this._printLine(formattedMessage);
@@ -746,10 +748,10 @@ export class ModulesLogger {
     // messages. The difference is how.
     // If we have a logger, we should use that, so that logs are printed in
     // order. If we don't, we just print the messages here.
-    if (!this._enabled) {
-      for (const msg of messages) {
-        this._printLine(msg);
-      }
+    // Also printing directly here if log level is `minimal`
+    if (!this._enabled || this._loggingConfig.level === "minimal") {
+      messages.forEach((msg) => this._printLine(`console.log: ${msg}`));
+      this._lastLineIsConsoleLog = true;
       return;
     }
 
