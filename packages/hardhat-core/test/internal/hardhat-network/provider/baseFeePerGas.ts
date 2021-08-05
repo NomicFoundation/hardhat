@@ -7,6 +7,8 @@ import {
   rpcQuantityToBN,
 } from "../../../../src/internal/core/jsonrpc/types/base-types";
 import { EthereumProvider } from "../../../../src/types";
+import { makeForkClient } from "../../../../src/internal/hardhat-network/provider/utils/makeForkClient";
+import { ALCHEMY_URL } from "../../../setup";
 
 async function getLatestBaseFeePerGas(provider: EthereumProvider) {
   const block = await provider.send("eth_getBlockByNumber", ["latest", false]);
@@ -95,20 +97,29 @@ describe("Block's baseFeePerGas", function () {
 
             describe("Without an initialBaseFeePerGas config value", function () {
               describe("When forking from an EIP-1559 network", function () {
-                useProvider({});
-
-                it("Should use the same base fee as the one remote networks's next block", async function () {
-                  await this.provider.send("evm_mine");
-                  // TODO: Implement once we have access to an EIP-1559 network
-                  // await assertLatestBaseFeePerGas(this.provider, ???);
+                before(async function () {
+                  if (ALCHEMY_URL === undefined || ALCHEMY_URL === "") {
+                    this.skip();
+                    return;
+                  }
                 });
-              });
-
-              describe("When forking from a non-EIP1559 network", function () {
                 useProvider({});
-                it("should use the initial base fee from the EIP (i.e. 1gwei)", async function () {
-                  await mineBlockWithValueTransferTxs(this.provider, 0);
-                  await assertLatestBaseFeePerGas(this.provider, 1_000_000_000);
+
+                it("Should use the same base fee as the one remote networks's forked block", async function () {
+                  const blockNumber = await this.provider.send(
+                    "eth_blockNumber"
+                  );
+                  const { forkClient } = await makeForkClient({
+                    jsonRpcUrl: ALCHEMY_URL!,
+                  });
+
+                  const remoteLatestBlockBaseFeePerGas = await forkClient.getBlockByNumber(
+                    rpcQuantityToBN(blockNumber)
+                  );
+                  await assertLatestBaseFeePerGas(
+                    this.provider,
+                    remoteLatestBlockBaseFeePerGas!.baseFeePerGas!.toNumber()
+                  );
                 });
               });
             });
