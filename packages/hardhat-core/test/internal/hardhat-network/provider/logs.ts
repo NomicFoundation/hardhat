@@ -470,15 +470,15 @@ describe("Provider logs", function () {
           await this.provider.send("evm_setBlockGasLimit", [
             numberToRpcQuantity(45000),
           ]);
-          await this.sendTx({ gasPrice: 10e9 });
-          await this.sendTx({ gasPrice: 10e9 });
-          await this.sendTx({ gasPrice: 10e9 });
+          await this.sendTx({ gasPrice: 1000e9 });
+          await this.sendTx({ gasPrice: 1000e9 });
+          await this.sendTx({ gasPrice: 1000e9 });
 
           await this.provider.send("evm_setAutomine", [true]);
 
           this.logger.reset();
 
-          await this.sendTx({ gasPrice: 10e9 });
+          await this.sendTx({ gasPrice: 1000e9 });
 
           assert.lengthOf(this.logger.lines, 40);
           assert.equal(
@@ -533,15 +533,15 @@ describe("Provider logs", function () {
           await this.provider.send("evm_setBlockGasLimit", [
             numberToRpcQuantity(45000),
           ]);
-          await this.sendTx({ nonce: 1, gasPrice: 10e9 });
-          await this.sendTx({ nonce: 2, gasPrice: 10e9 });
-          await this.sendTx({ nonce: 3, gasPrice: 10e9 });
+          await this.sendTx({ nonce: 1, gasPrice: 1000e9 });
+          await this.sendTx({ nonce: 2, gasPrice: 1000e9 });
+          await this.sendTx({ nonce: 3, gasPrice: 1000e9 });
 
           await this.provider.send("evm_setAutomine", [true]);
 
           this.logger.reset();
 
-          await this.sendTx({ nonce: 0, gasPrice: 10e9 });
+          await this.sendTx({ nonce: 0, gasPrice: 1000e9 });
 
           assert.lengthOf(this.logger.lines, 40);
           assert.equal(
