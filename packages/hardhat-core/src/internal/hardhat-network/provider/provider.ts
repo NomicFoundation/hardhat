@@ -49,7 +49,6 @@ const log = debug("hardhat:core:hardhat-network:provider");
 const PRIVATE_RPC_METHODS = new Set([
   "hardhat_getStackTraceFailuresCount",
   "hardhat_setLoggingEnabled",
-  "hardhat_setLogMethods",
 ]);
 
 /* eslint-disable @nomiclabs/only-hardhat-error */

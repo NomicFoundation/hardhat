@@ -219,6 +219,7 @@ export class HardhatModule {
     this._setLoggingEnabledCallback(loggingEnabled);
     return true;
   }
+
   // hardhat_setMinGasPrice
 
   private _setMinGasPriceParams(params: any[]): [BN] {
@@ -317,9 +318,7 @@ export class HardhatModule {
     value: Buffer
   ) {
     await this._node.setStorageAt(new Address(address), positionIndex, value);
-  }
-  private _setLogMethodsParams(params: any[]): [boolean] {
-    return validateParams(params, t.boolean);
+    return true;
   }
 
   // hardhat_setNextBlockBaseFeePerGas

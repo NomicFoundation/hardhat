@@ -72,7 +72,7 @@ export class ModulesLogger {
     console.log("Log Level: ", this._loggingConfig.level);
     console.log(
       "Logging Omit Methods: ",
-      this._loggingConfig.omitMethods?.join(",")
+      this._loggingConfig.omitMethods?.join(", ")
     );
   }
 
@@ -446,9 +446,7 @@ export class ModulesLogger {
   }
 
   public printMethod(method: string) {
-    if (this._loggingConfig.omitMethods.includes(method)) {
-      return;
-    }
+    if (this._loggingConfig.omitMethods.includes(method)) return;
 
     if (this._shouldCollapseMethod(method)) {
       this._methodCollapsedCount += 1;
@@ -520,9 +518,7 @@ export class ModulesLogger {
   }
 
   private _log(msg: string, printOptions: PrintOptions = {}) {
-    if (this._loggingConfig.level === "minimal") {
-      return;
-    }
+    if (this._loggingConfig.level === "minimal") return;
 
     if (printOptions.collapsePrintedMethod !== true) {
       this._stopCollapsingMethod();
