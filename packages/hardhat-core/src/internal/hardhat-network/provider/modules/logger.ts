@@ -67,7 +67,9 @@ export class ModulesLogger {
     private _loggingConfig: HardhatNetworkLoggingConfig,
     private _printLine = printLine,
     private _replaceLastLine = replaceLastLine
-  ) {}
+  ) {
+    console.log("Log Level: ", this._loggingConfig.level);
+  }
 
   public isEnabled() {
     return this._enabled;
@@ -516,6 +518,10 @@ export class ModulesLogger {
   }
 
   private _log(msg: string, printOptions: PrintOptions = {}) {
+    if (this._loggingConfig.level === "minimal") {
+      return;
+    }
+
     if (printOptions.collapsePrintedMethod !== true) {
       this._stopCollapsingMethod();
     }
@@ -760,6 +766,8 @@ export class ModulesLogger {
   }
 
   private _logWithTitle(title: string, message: string) {
+    if (this._loggingConfig.level === "minimal") return;
+
     title = this._indentSingleLine(title);
 
     // We always use the max title length we've seen. Otherwise the value move
