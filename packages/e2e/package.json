@@ -11,9 +11,10 @@
     "lint": "yarn prettier --check && yarn eslint",
     "lint:fix": "yarn prettier --write && yarn eslint --fix",
     "prettier": "prettier \"**/*.{js,md,json}\"",
-    "eslint": "eslint prepare-tests.js 'test/**/*.ts'",
-    "pretest": "node prepare-tests.js",
-    "test": "mocha --recursive \"test/**/*.ts\" --exit",
+    "eslint": "eslint run-tests.js 'test/**/*.ts'",
+    "test:npm": "node run-tests.js npm",
+    "test:yarn": "node run-tests.js yarn",
+    "test": "npm run test:npm && npm run test:yarn",
     "build": "tsc --build .",
     "clean": "rimraf dist"
   },

@@ -305,9 +305,11 @@ To run a subtask, or any task whatsoever, you can use the `run` function. It tak
 This is an example of a task running a subtask:
 
 ```js
-task("hello-world", "Prints a hello world message").setAction(async () => {
-  await run("print", { message: "Hello, World!" });
-});
+task("hello-world", "Prints a hello world message").setAction(
+  async (taskArgs, hre) => {
+    await hre.run("print", { message: "Hello, World!" });
+  }
+);
 
 subtask("print", "Prints a message")
   .addParam("message", "The message to print")
