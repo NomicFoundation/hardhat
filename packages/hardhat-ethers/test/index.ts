@@ -707,6 +707,34 @@ describe("Ethers plugin", function () {
   describe("hardhat", function () {
     useEnvironment("hardhat-project", "hardhat");
 
+    describe("contract events", function () {
+      it("should be detected", async function () {
+        const Greeter = await this.env.ethers.getContractFactory("Greeter");
+        const deployedGreeter: ethers.Contract = await Greeter.deploy();
+
+        // at the time of this writing, ethers' default polling interval is
+        // 4000 ms. here we turn it down in order to speed up this test.
+        // see also
+        // https://github.com/ethers-io/ethers.js/issues/615#issuecomment-848991047
+        const provider = deployedGreeter.provider as EthersProviderWrapper;
+        provider.pollingInterval = 100;
+
+        let eventEmitted = false;
+        deployedGreeter.on("GreetingUpdated", () => {
+          eventEmitted = true;
+        });
+
+        await deployedGreeter.functions.setGreeting("Hola");
+
+        // wait for 1.5 polling intervals for the event to fire
+        await new Promise((resolve) =>
+          setTimeout(resolve, provider.pollingInterval * 1.5)
+        );
+
+        assert.equal(eventEmitted, true);
+      });
+    });
+
     describe("hardhat_reset", function () {
       it("should return the correct block number after a hardhat_reset", async function () {
         let blockNumber = await this.env.ethers.provider.getBlockNumber();
