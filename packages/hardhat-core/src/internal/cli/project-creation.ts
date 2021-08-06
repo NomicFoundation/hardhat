@@ -142,6 +142,7 @@ async function copySampleProject(
       path.join(packageRoot, "sample-projects", "advanced"),
       projectRoot
     );
+    await fsExtra.remove(path.join(projectRoot, "scripts", "sample-script.js"));
   }
 
   // This is just in case we have been using the sample project for dev/testing

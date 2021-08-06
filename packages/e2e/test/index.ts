@@ -96,10 +96,11 @@ describe("e2e tests", function () {
 
       for (const suggestedCommand of [
         // This list should be kept reasonably in sync with
-        // hardhat-core/sample-projects/basic/README.txt
+        // hardhat-core/sample-projects/advanced/README.txt
         `${hardhatBinary} compile`,
         `${hardhatBinary} test`,
-        "node scripts/sample-script.js",
+        `${hardhatBinary} run scripts/deploy.js`,
+        "node scripts/deploy.js",
         "REPORT_GAS=true npx hardhat test",
         `${hardhatBinary} coverage`,
         "npx eslint '**/*.js'",
