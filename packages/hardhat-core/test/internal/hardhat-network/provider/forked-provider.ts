@@ -50,8 +50,6 @@ const UniswapFactoryAbi = fsExtra.readJsonSync(
 
 const WETH_DEPOSIT_SELECTOR = "0xd0e30db0";
 
-const MAX_FEE_PER_GAS = 1000e9;
-
 describe("Forked provider", function () {
   FORKED_PROVIDERS.forEach(({ rpcProvider, useProvider }) => {
     workaroundWindowsCiFailures.call(this, { isFork: true });
@@ -62,6 +60,11 @@ describe("Forked provider", function () {
 
       const getForkBlockNumber = async () =>
         retrieveForkBlockNumber(this.ctx.hardhatNetworkProvider);
+
+      let gasPrice: string;
+      beforeEach(async function () {
+        gasPrice = await this.provider.send("eth_gasPrice");
+      });
 
       describe("eth_blockNumber", () => {
         it("returns the current block number", async function () {
@@ -151,7 +154,7 @@ describe("Forked provider", function () {
                   data: WETH_DEPOSIT_SELECTOR,
                   value: numberToRpcQuantity(123),
                   gas: numberToRpcQuantity(50000),
-                  maxFeePerGas: numberToRpcQuantity(MAX_FEE_PER_GAS),
+                  maxFeePerGas: gasPrice,
                 },
               ]);
               const balance = await getWrappedBalance();
@@ -181,7 +184,7 @@ describe("Forked provider", function () {
                   to: EMPTY_ACCOUNT_ADDRESS.toString(),
                   value: numberToRpcQuantity(123),
                   gas: numberToRpcQuantity(21000),
-                  maxFeePerGas: numberToRpcQuantity(MAX_FEE_PER_GAS),
+                  maxFeePerGas: gasPrice,
                 },
               ]);
 
@@ -224,7 +227,7 @@ describe("Forked provider", function () {
               to: BITFINEX_WALLET_ADDRESS.toString(),
               value: numberToRpcQuantity(100),
               gas: numberToRpcQuantity(21000),
-              maxFeePerGas: numberToRpcQuantity(MAX_FEE_PER_GAS),
+              maxFeePerGas: gasPrice,
             },
           ]);
           const balance = await this.provider.send("eth_getBalance", [
@@ -253,7 +256,7 @@ describe("Forked provider", function () {
               data: WETH_DEPOSIT_SELECTOR,
               value: numberToRpcQuantity(100),
               gas: numberToRpcQuantity(50000),
-              maxFeePerGas: numberToRpcQuantity(MAX_FEE_PER_GAS),
+              maxFeePerGas: gasPrice,
             },
           ]);
           const balance = await getWrappedBalance();
@@ -274,7 +277,7 @@ describe("Forked provider", function () {
                 to: DEFAULT_ACCOUNTS_ADDRESSES[1],
                 value: numberToRpcQuantity(1),
                 gas: numberToRpcQuantity(21000),
-                maxFeePerGas: numberToRpcQuantity(MAX_FEE_PER_GAS),
+                maxFeePerGas: gasPrice,
               },
             ]
           );
@@ -288,10 +291,7 @@ describe("Forked provider", function () {
           assert.equal(transaction.to, DEFAULT_ACCOUNTS_ADDRESSES[1]);
           assert.equal(transaction.value, numberToRpcQuantity(1));
           assert.equal(transaction.gas, numberToRpcQuantity(21000));
-          assert.equal(
-            transaction.maxFeePerGas,
-            numberToRpcQuantity(MAX_FEE_PER_GAS)
-          );
+          assert.equal(transaction.maxFeePerGas, gasPrice);
         });
 
         it("supports remote transactions", async function () {
@@ -336,7 +336,7 @@ describe("Forked provider", function () {
                 to: DEFAULT_ACCOUNTS_ADDRESSES[1],
                 value: numberToRpcQuantity(1),
                 gas: numberToRpcQuantity(21000),
-                maxFeePerGas: numberToRpcQuantity(MAX_FEE_PER_GAS),
+                maxFeePerGas: gasPrice,
               },
             ]
           );
@@ -395,7 +395,7 @@ describe("Forked provider", function () {
               data: WETH_DEPOSIT_SELECTOR,
               value: numberToRpcQuantity(100),
               gas: numberToRpcQuantity(50000),
-              maxFeePerGas: numberToRpcQuantity(MAX_FEE_PER_GAS),
+              maxFeePerGas: gasPrice,
             },
           ]);
           assert.notEqual(await getWethBalance(), initialBalance);
@@ -422,7 +422,7 @@ describe("Forked provider", function () {
               to: EMPTY_ACCOUNT_ADDRESS.toString(),
               value: oneEtherQuantity,
               gas: numberToRpcQuantity(21000),
-              maxFeePerGas: numberToRpcQuantity(MAX_FEE_PER_GAS),
+              maxFeePerGas: gasPrice,
             },
           ]);
           const balance = await this.provider.send("eth_getBalance", [
@@ -459,7 +459,7 @@ describe("Forked provider", function () {
               from: daiExchangeAddress,
               to: DAI_ADDRESS.toString(),
               gas: numberToRpcQuantity(200_000),
-              maxFeePerGas: numberToRpcQuantity(MAX_FEE_PER_GAS),
+              maxFeePerGas: gasPrice,
               data: transferRawData,
             },
           ]);
@@ -493,7 +493,7 @@ describe("Forked provider", function () {
               to: EMPTY_ACCOUNT_ADDRESS.toString(),
               value: numberToRpcQuantity(100),
               gas: numberToRpcQuantity(21000),
-              maxFeePerGas: numberToRpcQuantity(MAX_FEE_PER_GAS),
+              maxFeePerGas: gasPrice,
             },
             "unknown account",
             InvalidInputError.CODE
