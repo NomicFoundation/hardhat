@@ -1,7 +1,11 @@
 import { assert } from "chai";
 import chalk from "chalk";
 
-import { numberToRpcQuantity } from "../../../../src/internal/core/jsonrpc/types/base-types";
+import { BN } from "ethereumjs-util";
+import {
+  numberToRpcQuantity,
+  rpcQuantityToBN,
+} from "../../../../src/internal/core/jsonrpc/types/base-types";
 import { workaroundWindowsCiFailures } from "../../../utils/workaround-windows-ci-failures";
 import { EXAMPLE_CONTRACT, EXAMPLE_READ_CONTRACT } from "../helpers/contracts";
 import { setCWD } from "../helpers/cwd";
@@ -23,6 +27,15 @@ describe("Provider logs", function () {
       setCWD();
       useProvider();
       useHelpers();
+
+      let gasPrice: BN;
+      beforeEach(async function () {
+        gasPrice = rpcQuantityToBN(
+          await this.provider.send("eth_gasPrice")
+        ).muln(2);
+
+        this.logger.reset();
+      });
 
       describe("automine enabled without pending txs", function () {
         describe("simple rpc methods", function () {
@@ -95,7 +108,7 @@ describe("Provider logs", function () {
 
         describe("eth_sendTransaction", function () {
           it("should print a successful transaction", async function () {
-            await this.sendTx();
+            await this.sendTx({ gasPrice });
 
             assert.lengthOf(this.logger.lines, 8);
             assert.equal(
@@ -117,6 +130,7 @@ describe("Provider logs", function () {
           it("should print an OOG transaction", async function () {
             await this.sendTx({
               to: "0x0000000000000000000000000000000000000001",
+              gasPrice,
             }).catch(() => {}); // ignore failure
 
             assert.lengthOf(this.logger.lines, 11);
@@ -377,6 +391,7 @@ describe("Provider logs", function () {
         it("one pending tx, sent tx at the end of the block", async function () {
           await this.sendTx({
             nonce: 0,
+            gasPrice,
           });
 
           await this.provider.send("evm_setAutomine", [true]);
@@ -385,6 +400,7 @@ describe("Provider logs", function () {
 
           await this.sendTx({
             nonce: 1,
+            gasPrice,
           });
 
           // prettier-ignore
@@ -421,6 +437,7 @@ describe("Provider logs", function () {
         it("one pending tx, sent tx at the start of the block", async function () {
           await this.sendTx({
             nonce: 1,
+            gasPrice,
           });
 
           await this.provider.send("evm_setAutomine", [true]);
@@ -429,6 +446,7 @@ describe("Provider logs", function () {
 
           await this.sendTx({
             nonce: 0,
+            gasPrice,
           });
 
           assert.lengthOf(this.logger.lines, 26);
@@ -470,15 +488,15 @@ describe("Provider logs", function () {
           await this.provider.send("evm_setBlockGasLimit", [
             numberToRpcQuantity(45000),
           ]);
-          await this.sendTx({ gasPrice: 1000e9 });
-          await this.sendTx({ gasPrice: 1000e9 });
-          await this.sendTx({ gasPrice: 1000e9 });
+          await this.sendTx({ gasPrice });
+          await this.sendTx({ gasPrice });
+          await this.sendTx({ gasPrice });
 
           await this.provider.send("evm_setAutomine", [true]);
 
           this.logger.reset();
 
-          await this.sendTx({ gasPrice: 1000e9 });
+          await this.sendTx({ gasPrice });
 
           assert.lengthOf(this.logger.lines, 40);
           assert.equal(
@@ -533,15 +551,15 @@ describe("Provider logs", function () {
           await this.provider.send("evm_setBlockGasLimit", [
             numberToRpcQuantity(45000),
           ]);
-          await this.sendTx({ nonce: 1, gasPrice: 1000e9 });
-          await this.sendTx({ nonce: 2, gasPrice: 1000e9 });
-          await this.sendTx({ nonce: 3, gasPrice: 1000e9 });
+          await this.sendTx({ nonce: 1, gasPrice });
+          await this.sendTx({ nonce: 2, gasPrice });
+          await this.sendTx({ nonce: 3, gasPrice });
 
           await this.provider.send("evm_setAutomine", [true]);
 
           this.logger.reset();
 
-          await this.sendTx({ nonce: 0, gasPrice: 1000e9 });
+          await this.sendTx({ nonce: 0, gasPrice });
 
           assert.lengthOf(this.logger.lines, 40);
           assert.equal(
@@ -600,7 +618,7 @@ describe("Provider logs", function () {
           );
           await this.provider.send("evm_setAutomine", [false]);
 
-          await this.sendTx();
+          await this.sendTx({ gasPrice });
 
           await this.provider.send("evm_setAutomine", [true]);
           this.logger.reset();
@@ -610,6 +628,7 @@ describe("Provider logs", function () {
             gas: 1000000,
             data: EXAMPLE_READ_CONTRACT.selectors.blockGasLimit,
             value: 1,
+            gasPrice,
           }).catch(() => {});
 
           assert.lengthOf(this.logger.lines, 32);
@@ -695,7 +714,7 @@ describe("Provider logs", function () {
         });
 
         it("should print a block with one transaction", async function () {
-          await this.sendTx();
+          await this.sendTx({ gasPrice });
 
           this.logger.reset();
 
@@ -717,8 +736,8 @@ describe("Provider logs", function () {
         });
 
         it("should print a block with two transactions", async function () {
-          await this.sendTx();
-          await this.sendTx();
+          await this.sendTx({ gasPrice });
+          await this.sendTx({ gasPrice });
 
           this.logger.reset();
 
@@ -753,12 +772,13 @@ describe("Provider logs", function () {
           );
           await this.provider.send("evm_setAutomine", [false]);
 
-          await this.sendTx();
+          await this.sendTx({ gasPrice });
           await this.sendTx({
             to: address,
             gas: 1000000,
             data: EXAMPLE_READ_CONTRACT.selectors.blockGasLimit,
             value: 1,
+            gasPrice,
           }).catch(() => {});
 
           this.logger.reset();
@@ -826,7 +846,7 @@ describe("Provider logs", function () {
         });
 
         it("should print a block with one transaction", async function () {
-          await this.sendTx();
+          await this.sendTx({ gasPrice });
 
           this.logger.reset();
 
@@ -849,8 +869,8 @@ describe("Provider logs", function () {
         });
 
         it("should print a block with two transactions", async function () {
-          await this.sendTx();
-          await this.sendTx();
+          await this.sendTx({ gasPrice });
+          await this.sendTx({ gasPrice });
 
           this.logger.reset();
 
@@ -886,12 +906,13 @@ describe("Provider logs", function () {
           );
           await this.provider.send("evm_setAutomine", [false]);
 
-          await this.sendTx();
+          await this.sendTx({ gasPrice });
           await this.sendTx({
             to: address,
             gas: 1000000,
             data: EXAMPLE_READ_CONTRACT.selectors.blockGasLimit,
             value: 1,
+            gasPrice,
           }).catch(() => {});
 
           this.logger.reset();
