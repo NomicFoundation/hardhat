@@ -1,4 +1,6 @@
 import { assert } from "chai";
+import { Block } from "@ethereumjs/block";
+import Common from "@ethereumjs/common";
 
 import { workaroundWindowsCiFailures } from "../../../utils/workaround-windows-ci-failures";
 import { PROVIDERS } from "../helpers/providers";
@@ -9,6 +11,7 @@ import {
 import { EthereumProvider } from "../../../../src/types";
 import { makeForkClient } from "../../../../src/internal/hardhat-network/provider/utils/makeForkClient";
 import { ALCHEMY_URL } from "../../../setup";
+import { rpcToBlockData } from "../../../../src/internal/hardhat-network/provider/fork/rpcToBlockData";
 
 async function getLatestBaseFeePerGas(provider: EthereumProvider) {
   const block = await provider.send("eth_getBlockByNumber", ["latest", false]);
@@ -85,7 +88,7 @@ describe("Block's baseFeePerGas", function () {
             });
           });
         } else {
-          describe("When forking from a remote network the next block must have the right value", function () {
+          describe("When forking from a remote network the forked block must have the right value", function () {
             describe("With an initialBaseFeePerGas config value", function () {
               useProvider({ initialBaseFeePerGas: 123123 });
 
@@ -96,31 +99,59 @@ describe("Block's baseFeePerGas", function () {
             });
 
             describe("Without an initialBaseFeePerGas config value", function () {
-              describe("When forking from an EIP-1559 network", function () {
-                before(async function () {
-                  if (ALCHEMY_URL === undefined || ALCHEMY_URL === "") {
-                    this.skip();
-                    return;
+              useProvider();
+
+              it("Should use the same base fee as the one remote networks's forked block", async function () {
+                if (ALCHEMY_URL === undefined || ALCHEMY_URL === "") {
+                  this.skip();
+                  return;
+                }
+
+                const blockNumber = await this.provider.send("eth_blockNumber");
+                const { forkClient } = await makeForkClient({
+                  jsonRpcUrl: ALCHEMY_URL!,
+                });
+
+                const remoteLatestBlockBaseFeePerGas = await forkClient.getBlockByNumber(
+                  rpcQuantityToBN(blockNumber)
+                );
+                await assertLatestBaseFeePerGas(
+                  this.provider,
+                  remoteLatestBlockBaseFeePerGas!.baseFeePerGas!.toNumber()
+                );
+              });
+
+              it("should compute the next base fee correctly", async function () {
+                const latestBlockRpc = await this.provider.send(
+                  "eth_getBlockByNumber",
+                  ["latest", false]
+                );
+
+                const latestBlockData = rpcToBlockData({
+                  ...latestBlockRpc,
+                  transactions: [],
+                });
+
+                const latestBlock = Block.fromBlockData(
+                  {
+                    header: latestBlockData.header,
+                  },
+                  {
+                    common: new Common({
+                      chain: "mainnet",
+                      hardfork: "london",
+                    }),
                   }
-                });
-                useProvider({});
+                );
 
-                it("Should use the same base fee as the one remote networks's forked block", async function () {
-                  const blockNumber = await this.provider.send(
-                    "eth_blockNumber"
-                  );
-                  const { forkClient } = await makeForkClient({
-                    jsonRpcUrl: ALCHEMY_URL!,
-                  });
+                const expectedNextBaseFee = latestBlock.header.calcNextBaseFee();
 
-                  const remoteLatestBlockBaseFeePerGas = await forkClient.getBlockByNumber(
-                    rpcQuantityToBN(blockNumber)
-                  );
-                  await assertLatestBaseFeePerGas(
-                    this.provider,
-                    remoteLatestBlockBaseFeePerGas!.baseFeePerGas!.toNumber()
-                  );
-                });
+                await this.provider.send("evm_mine");
+
+                await assertLatestBaseFeePerGas(
+                  this.provider,
+                  expectedNextBaseFee.toNumber()
+                );
               });
             });
           });
