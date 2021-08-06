@@ -20,13 +20,15 @@ import { emoji } from "./emoji";
 enum Action {
   CREATE_BASIC_SAMPLE_PROJECT_ACTION = "Create a basic sample project",
   CREATE_ADVANCED_SAMPLE_PROJECT_ACTION = "Create an advanced sample project",
+  CREATE_ADVANCED_TYPESCRIPT_SAMPLE_PROJECT_ACTION = "Create an advanced sample project that uses TypeScript",
   CREATE_EMPTY_HARDHAT_CONFIG_ACTION = "Create an empty hardhat.config.js",
   QUIT_ACTION = "Quit",
 }
 
 type SampleProjectTypeCreationAction =
   | Action.CREATE_BASIC_SAMPLE_PROJECT_ACTION
-  | Action.CREATE_ADVANCED_SAMPLE_PROJECT_ACTION;
+  | Action.CREATE_ADVANCED_SAMPLE_PROJECT_ACTION
+  | Action.CREATE_ADVANCED_TYPESCRIPT_SAMPLE_PROJECT_ACTION;
 
 interface Dependencies {
   [name: string]: string;
@@ -60,11 +62,26 @@ const ADVANCED_SAMPLE_PROJECT_DEPENDENCIES: Dependencies = {
   "solidity-coverage": "^0.7.16",
 };
 
+const ADVANCED_TYPESCRIPT_SAMPLE_PROJECT_DEPENDENCIES: Dependencies = {
+  ...ADVANCED_SAMPLE_PROJECT_DEPENDENCIES,
+  "@typechain/ethers-v5": "^7.0.1",
+  "@typechain/hardhat": "^2.3.0",
+  "@typescript-eslint/eslint-plugin": "^4.29.1",
+  "@typescript-eslint/parser": "^4.29.1",
+  "@types/chai": "^4.2.21",
+  "@types/node": "^16.4.13",
+  "@types/mocha": "^9.0.0",
+  "ts-node": "^10.1.0",
+  typechain: "^5.1.2", // a workaround. see https://github.com/nomiclabs/hardhat/issues/1672#issuecomment-894497156
+  typescript: "^4.3.5",
+};
+
 const SAMPLE_PROJECT_DEPENDENCIES: {
   [K in SampleProjectTypeCreationAction]: Dependencies;
 } = {
   [Action.CREATE_BASIC_SAMPLE_PROJECT_ACTION]: BASIC_SAMPLE_PROJECT_DEPENDENCIES,
   [Action.CREATE_ADVANCED_SAMPLE_PROJECT_ACTION]: ADVANCED_SAMPLE_PROJECT_DEPENDENCIES,
+  [Action.CREATE_ADVANCED_TYPESCRIPT_SAMPLE_PROJECT_ACTION]: ADVANCED_TYPESCRIPT_SAMPLE_PROJECT_DEPENDENCIES,
 };
 
 const TELEMETRY_CONSENT_TIMEOUT = 10000;
@@ -128,8 +145,10 @@ async function copySampleProject(
 ) {
   const packageRoot = getPackageRoot();
 
-  // first copy the basic project, then, if the advanced project is what was
-  // requested, overlay the advanced files on top of the basic ones.
+  // first copy the basic project, then, if an advanced project is what was
+  // requested, overlay the advanced files on top of the basic ones. then, if
+  // the advanced TypeScript project is what was requested, overlay those files
+  // on top of the advanced ones.
 
   await fsExtra.ensureDir(projectRoot);
   await fsExtra.copy(
@@ -137,12 +156,28 @@ async function copySampleProject(
     projectRoot
   );
 
-  if (projectType === Action.CREATE_ADVANCED_SAMPLE_PROJECT_ACTION) {
+  if (
+    projectType === Action.CREATE_ADVANCED_SAMPLE_PROJECT_ACTION ||
+    projectType === Action.CREATE_ADVANCED_TYPESCRIPT_SAMPLE_PROJECT_ACTION
+  ) {
     await fsExtra.copy(
       path.join(packageRoot, "sample-projects", "advanced"),
       projectRoot
     );
-    await fsExtra.remove(path.join(projectRoot, "scripts", "sample-script.js"));
+  }
+
+  if (projectType === Action.CREATE_ADVANCED_TYPESCRIPT_SAMPLE_PROJECT_ACTION) {
+    await fsExtra.copy(
+      path.join(packageRoot, "sample-projects", "advanced-ts"),
+      projectRoot
+    );
+    for (const jsFile of [
+      "hardhat.config.js",
+      path.join("scripts", "deploy.js"),
+      path.join("test", "sample-test.js"),
+    ]) {
+      await fsExtra.remove(jsFile);
+    }
   }
 
   // This is just in case we have been using the sample project for dev/testing
@@ -203,7 +238,14 @@ async function getAction(): Promise<Action> {
     undefined
   ) {
     return Action.CREATE_ADVANCED_SAMPLE_PROJECT_ACTION;
+  } else if (
+    process.env
+      .HARDHAT_CREATE_ADVANCED_TYPESCRIPT_SAMPLE_PROJECT_WITH_DEFAULTS !==
+    undefined
+  ) {
+    return Action.CREATE_ADVANCED_TYPESCRIPT_SAMPLE_PROJECT_ACTION;
   }
+
   const { default: enquirer } = await import("enquirer");
   try {
     const actionResponse = await enquirer.prompt<{ action: string }>([
@@ -291,6 +333,9 @@ export async function createProject() {
     process.env.HARDHAT_CREATE_BASIC_SAMPLE_PROJECT_WITH_DEFAULTS !==
       undefined ||
     process.env.HARDHAT_CREATE_ADVANCED_SAMPLE_PROJECT_WITH_DEFAULTS !==
+      undefined ||
+    process.env
+      .HARDHAT_CREATE_ADVANCED_TYPESCRIPT_SAMPLE_PROJECT_WITH_DEFAULTS !==
       undefined;
 
   if (useDefaultPromptResponses) {
