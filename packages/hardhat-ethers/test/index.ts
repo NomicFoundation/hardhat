@@ -3,6 +3,8 @@ import { ethers } from "ethers";
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import { Artifact } from "hardhat/types";
 
+import { EthersProviderWrapper } from "../src/internal/ethers-provider-wrapper";
+
 import { useEnvironment } from "./helpers";
 
 describe("Ethers plugin", function () {
@@ -631,6 +633,34 @@ describe("Ethers plugin", function () {
             assert.equal(await greeter.functions.greet(), "Hola");
           });
 
+          it("Should be able to detect events", async function () {
+            const greeter = await this.env.ethers.getContractAt(
+              greeterArtifact.abi,
+              deployedGreeter.address
+            );
+
+            // at the time of this writing, ethers' default polling interval is
+            // 4000 ms. here we turn it down in order to speed up this test.
+            // see also
+            // https://github.com/ethers-io/ethers.js/issues/615#issuecomment-848991047
+            const provider = greeter.provider as EthersProviderWrapper;
+            provider.pollingInterval = 100;
+
+            let eventEmitted = false;
+            greeter.on("GreetingUpdated", () => {
+              eventEmitted = true;
+            });
+
+            await greeter.functions.setGreeting("Hola");
+
+            // wait for 1.5 polling intervals for the event to fire
+            await new Promise((resolve) =>
+              setTimeout(resolve, provider.pollingInterval * 1.5)
+            );
+
+            assert.equal(eventEmitted, true);
+          });
+
           describe("with custom signer", function () {
             it("Should return an instance of a contract associated to a custom signer", async function () {
               const contract = await this.env.ethers.getContractAt(
@@ -767,7 +797,7 @@ describe("Ethers plugin", function () {
         let code = await this.env.ethers.provider.getCode(
           receipt.contractAddress
         );
-        assert.lengthOf(code, 1568);
+        assert.lengthOf(code, 1880);
 
         await this.env.ethers.provider.send("hardhat_reset", []);
 
@@ -886,7 +916,7 @@ describe("Ethers plugin", function () {
         let code = await this.env.ethers.provider.getCode(
           receipt.contractAddress
         );
-        assert.lengthOf(code, 1568);
+        assert.lengthOf(code, 1880);
 
         await this.env.ethers.provider.send("evm_revert", [snapshotId]);
 
