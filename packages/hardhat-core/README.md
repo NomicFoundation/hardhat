@@ -1,4 +1,4 @@
-![](https://user-images.githubusercontent.com/176499/96893278-ebc67580-1460-11eb-9530-d5df3a3d65d0.png) [![NPM Package](https://img.shields.io/npm/v/hardhat.svg?style=flat-square)](https://www.npmjs.org/package/hardhat) ![Build Status](https://github.com/nomiclabs/hardhat/workflows/CI/badge.svg)
+![](https://user-images.githubusercontent.com/176499/96893278-ebc67580-1460-11eb-9530-d5df3a3d65d0.png) [![NPM Package](https://img.shields.io/npm/v/hardhat.svg?style=flat-square)](https://www.npmjs.org/package/hardhat)
 
 ---
 
@@ -7,8 +7,6 @@ Hardhat is an Ethereum development environment for professionals. It facilitates
 Developed by [Nomic Labs](https://nomiclabs.io/) and funded by an Ethereum Foundation grant.
 
 Join our [Hardhat Support Discord server](https://hardhat.org/discord) to stay up to date on new releases, plugins and tutorials.
-
-🚧 **You are looking at the development branch of Hardhat. For the currently released versions of Hardhat and its plugins take a look at this repository's tags.** 🚧
 
 ## Installation
 

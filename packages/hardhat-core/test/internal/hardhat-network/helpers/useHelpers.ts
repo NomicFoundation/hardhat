@@ -1,6 +1,10 @@
 import { assert } from "chai";
 
-import { numberToRpcQuantity } from "../../../../src/internal/core/jsonrpc/types/base-types";
+import { BN } from "ethereumjs-util";
+import {
+  numberToRpcQuantity,
+  rpcQuantityToBN,
+} from "../../../../src/internal/core/jsonrpc/types/base-types";
 
 import { DEFAULT_ACCOUNTS_ADDRESSES } from "./providers";
 
@@ -8,7 +12,7 @@ interface SendTxOptions {
   from?: string;
   to?: string;
   gas?: number;
-  gasPrice?: number;
+  gasPrice?: number | BN;
   data?: string;
   nonce?: number;
   value?: number;
@@ -32,21 +36,25 @@ export function useHelpers() {
       throw new Error("useHelpers has to be called after useProvider");
     }
 
-    this.sendTx = ({
+    this.sendTx = async ({
       from = DEFAULT_ACCOUNTS_ADDRESSES[1],
       to = DEFAULT_ACCOUNTS_ADDRESSES[2],
       gas = 21000,
-      gasPrice = 1e9,
+      gasPrice,
       data,
       nonce,
       value,
     }: SendTxOptions = {}) => {
+      const price =
+        gasPrice ??
+        rpcQuantityToBN(await this.provider.send("eth_gasPrice", []));
+
       return this.provider.send("eth_sendTransaction", [
         {
           from,
           to,
           gas: numberToRpcQuantity(gas),
-          gasPrice: numberToRpcQuantity(gasPrice),
+          gasPrice: numberToRpcQuantity(price),
           data,
           nonce: nonce !== undefined ? numberToRpcQuantity(nonce) : undefined,
           value: value !== undefined ? numberToRpcQuantity(value) : undefined,
