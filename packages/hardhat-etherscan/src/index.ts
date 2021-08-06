@@ -207,7 +207,11 @@ If your constructor has no arguments pass an empty array. E.g:
   const matchingCompilerVersions = compilerVersions.filter((version) => {
     return semver.satisfies(version, inferredSolcVersion);
   });
-  if (matchingCompilerVersions.length === 0) {
+  if (
+    matchingCompilerVersions.length === 0 &&
+    // don't error if the bytecode appears to be OVM bytecode, because we can't infer a specific OVM solc version from the bytecode
+    !deployedBytecode.isOvmInferred()
+  ) {
     let configuredCompilersFragment;
     if (compilerVersions.length > 1) {
       configuredCompilersFragment = `your configured compiler versions are: ${compilerVersions.join(
@@ -239,6 +243,25 @@ Possible causes are:
     }
   );
 
+  // Override solc version based on hardhat config if verifying for the OVM. This is used instead of fetching the
+  // full version name from a solc bin JSON file (as is done for EVM solc in src/solc/version.ts) because it's
+  // simpler and avoids a network request we don't need. This is ok because the solc version specified in the OVM
+  // config always equals the full solc version
+  if (deployedBytecode.isOvmInferred()) {
+    // We cast to this custom type here instead of using `extendConfig` to avoid always mutating the HardhatConfig
+    // type. We don't want that type to always contain the `ovm` field, because users only using hardhat-etherscan
+    // without the Optimism plugin should not have that field in their type definitions
+    const configCopy = ({ ...config } as unknown) as {
+      ovm: { solcVersion: string };
+    };
+    const ovmSolcVersion = configCopy?.ovm?.solcVersion;
+    if (!ovmSolcVersion) {
+      const message = `It looks like you are verifying an OVM contract, but do not have an OVM solcVersion specified in the hardhat config.`;
+      throw new NomicLabsHardhatPluginError(pluginName, message);
+    }
+    contractInformation.solcVersion = `v${ovmSolcVersion}`; // Etherscan requires the leading `v` before the version string
+  }
+
   const deployArgumentsEncoded = await encodeArguments(
     contractInformation.contract.abi,
     contractInformation.sourceName,
@@ -246,7 +269,10 @@ Possible causes are:
     constructorArguments
   );
 
-  const solcFullVersion = await getLongVersion(contractInformation.solcVersion);
+  // If OVM, the full version string was already read from the hardhat config. If solc, get the full version string
+  const solcFullVersion = deployedBytecode.isOvmInferred()
+    ? contractInformation.solcVersion
+    : await getLongVersion(contractInformation.solcVersion);
 
   const minimumBuild: Build = await run(TASK_VERIFY_GET_MINIMUM_BUILD, {
     sourceName: contractInformation.sourceName,
@@ -613,7 +639,10 @@ Please make sure that it has been compiled by Hardhat and that it is written in 
           );
         }
 
-        if (!matchingCompilerVersions.includes(buildInfo.solcVersion)) {
+        if (
+          !matchingCompilerVersions.includes(buildInfo.solcVersion) &&
+          !deployedBytecode.isOvmInferred()
+        ) {
           const inferredSolcVersion = deployedBytecode.getInferredSolcVersion();
           let versionDetails;
           if (isVersionRange(inferredSolcVersion)) {
