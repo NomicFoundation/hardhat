@@ -120,10 +120,7 @@ export class VMTracer {
 
           trace = precompileTrace;
         } else {
-          const codeAddress =
-            message._codeAddress !== undefined
-              ? message._codeAddress
-              : message.to;
+          const codeAddress = message.codeAddress;
 
           const code = await this._getContractCode(codeAddress);
 
@@ -137,7 +134,7 @@ export class VMTracer {
             numberOfSubtraces: 0,
             depth: message.depth,
             gasUsed: DUMMY_GAS_USED,
-            codeAddress: message.codeAddress.toBuffer()
+            codeAddress: codeAddress.toBuffer()
           };
 
           trace = callTrace;
