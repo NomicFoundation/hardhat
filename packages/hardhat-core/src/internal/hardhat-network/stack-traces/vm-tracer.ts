@@ -137,6 +137,7 @@ export class VMTracer {
             numberOfSubtraces: 0,
             depth: message.depth,
             gasUsed: DUMMY_GAS_USED,
+            codeAddress: message.codeAddress.toBuffer()
           };
 
           trace = callTrace;
