@@ -10,9 +10,10 @@ import { ERRORS } from "./core/errors-list";
 import { TasksDSL } from "./core/tasks/dsl";
 import { getRequireCachedFiles } from "./util/platform";
 
-export type GlobalWithHardhatContext = NodeJS.Global & {
-  __hardhatContext: HardhatContext;
-};
+export type GlobalWithHardhatContext = NodeJS.Global &
+  typeof globalThis & {
+    __hardhatContext: HardhatContext;
+  };
 
 export class HardhatContext {
   public static isCreated(): boolean {
