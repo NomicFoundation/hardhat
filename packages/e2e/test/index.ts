@@ -134,7 +134,7 @@ describe("e2e tests", function () {
         `${hardhatBinary} compile`,
         `${hardhatBinary} test`,
         `${hardhatBinary} run scripts/deploy.ts`,
-        "ts-node scripts/deploy.ts",
+        "TS_NODE_FILES=true ts-node scripts/deploy.ts",
         "REPORT_GAS=true npx hardhat test",
         `${hardhatBinary} coverage`,
         "npx eslint '**/*.{ts,js}'",

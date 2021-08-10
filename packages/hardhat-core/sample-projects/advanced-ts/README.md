@@ -16,7 +16,7 @@ npx hardhat help
 REPORT_GAS=true npx hardhat test
 npx hardhat coverage
 npx hardhat run scripts/deploy.js
-npx ts-node scripts/deploy.js
+TS_NODE_FILES=true npx ts-node scripts/deploy.js
 npx eslint '**/*.{js,ts}'
 npx eslint '**/*.{js,ts}' --fix
 npx prettier '**/*.{json,sol,md}' --check
