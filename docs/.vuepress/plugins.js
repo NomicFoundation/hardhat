@@ -164,12 +164,12 @@ const plugins = [
     tags: ["explorer", "debugging", "development-tool"],
   },
   {
-    name: "hardhat-typechain",
-    author: "Rahul Sethuram",
-    authorUrl: "https://twitter.com/rhlsthrm",
-    url: "https://github.com/rhlsthrm/hardhat-typechain/tree/master",
-    description: "Generate TypeChain type definitions for smart contracts.",
-    tags: ["Testing", "Tasks"],
+    name: "@typechain/hardhat",
+    author: "Kris Kaczor",
+    authorUrl: "https://github.com/krzkaczor",
+    url: "https://github.com/ethereum-ts/TypeChain/tree/master/packages/hardhat",
+    description: "Automatically generate TypeScript bindings for smart contracts.",
+    tags: ["Tasks", "Testing", "TypeChain"],
   },
   {
     name: "hardhat-spdx-license-identifier",
