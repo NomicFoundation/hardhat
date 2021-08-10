@@ -341,7 +341,7 @@ export class HardhatNetworkProvider extends EventEmitter
   };
 
   private _emitLegacySubscriptionEvent(subscription: string, result: any) {
-    this.emit("notifications", {
+    this.emit("notification", {
       subscription,
       result,
     });
