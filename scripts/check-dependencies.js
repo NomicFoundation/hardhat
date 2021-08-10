@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const semver = require("semver");
 
 // An array of dependencies whose version checks are ignored for all the
 // packages
@@ -13,7 +14,6 @@ const IGNORE_FOR_PACKAGES = {
     "@nomiclabs/hardhat-truffle4",
     "@nomiclabs/hardhat-truffle5",
   ],
-  ethers: ["@nomiclabs/hardhat-etherscan"],
 };
 
 function checkPeerDepedencies(packageJson) {
@@ -45,11 +45,17 @@ function checkPeerDepedencies(packageJson) {
       packageJson.peerDependencies[dependency] !==
       packageJson.devDependencies[dependency]
     ) {
-      console.error(
-        `${packageJson.name} has different versions of ${dependency} as peerDependency and devDependency`
-      );
-
-      success = false;
+      if (
+        !pinnedAndCompatibleRange(
+          packageJson.peerDependencies[dependency],
+          packageJson.devDependencies[dependency]
+        )
+      ) {
+        console.error(
+          `${packageJson.name} has different versions of ${dependency} as peerDependency and devDependency`
+        );
+        success = false;
+      }
     }
   }
 
@@ -155,7 +161,20 @@ function main() {
   const allDependenciesMap = mergeDependenciesMap(dependencyMaps);
 
   for (const dependency of Object.keys(allDependenciesMap)) {
-    if (Object.keys(allDependenciesMap[dependency]).length !== 1) {
+    const versionsCount = Object.keys(allDependenciesMap[dependency]).length;
+
+    if (versionsCount !== 1) {
+      // check if one of the versions is a pinned version,
+      // and check if it satisfies the other one
+      if (versionsCount === 2) {
+        const [version1, version2] = Object.keys(
+          allDependenciesMap[dependency]
+        );
+        if (pinnedAndCompatibleRange(version1, version2)) {
+          continue;
+        }
+      }
+
       console.error(`Incompatible versions of dependency: ${dependency}`);
 
       for (const [spec, packageNames] of Object.entries(
@@ -175,6 +194,25 @@ function main() {
   if (success === false) {
     process.exit(1);
   }
+}
+
+/**
+ * Check if one of the given versions is a pinned version, and if it
+ * satisfies the other one
+ */
+function pinnedAndCompatibleRange(version1, version2) {
+  if (isPinned(version1) && semver.satisfies(version1, version2)) {
+    return true;
+  }
+  if (isPinned(version2) && semver.satisfies(version2, version1)) {
+    return true;
+  }
+
+  return false;
+}
+
+function isPinned(version) {
+  return semver.parse(version) !== null;
 }
 
 main();
