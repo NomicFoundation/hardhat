@@ -28,7 +28,6 @@ import EventEmitter from "events";
 
 import { CompilerInput, CompilerOutput } from "../../../types";
 import {
-  HARDHAT_NETWORK_DEFAULT_GAS_PRICE,
   HARDHAT_NETWORK_DEFAULT_INITIAL_BASE_FEE_PER_GAS,
   HARDHAT_NETWORK_DEFAULT_MAX_PRIORITY_FEE_PER_GAS,
 } from "../../core/config/default-config";
@@ -689,7 +688,15 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   }
 
   public async getGasPrice(): Promise<BN> {
-    return new BN(HARDHAT_NETWORK_DEFAULT_GAS_PRICE);
+    const nextBlockBaseFeePerGas = await this.getNextBlockBaseFeePerGas();
+
+    if (nextBlockBaseFeePerGas === undefined) {
+      // We return a hardcoded value for networks without EIP-1559
+      return new BN(8e9);
+    }
+
+    const suggestedPriorityFeePerGas = new BN(1e9);
+    return nextBlockBaseFeePerGas.add(suggestedPriorityFeePerGas);
   }
 
   public async getMaxPriorityFeePerGas(): Promise<BN> {

@@ -6,7 +6,11 @@ In this guide, we'll show you how to use [Ethers.js](https://docs.ethers.io/), a
 
 Let's see how to use it going through Hardhat's sample project.
 
-::: tip Ethers and Waffle support TypeScript. Learn how to set up Hardhat with TypeScript [here](./typescript.md). :::
+::: tip
+
+Ethers and Waffle support TypeScript. Learn how to set up Hardhat with TypeScript [here](./typescript.md).
+
+:::
 
 ## Setting up
 
@@ -33,13 +37,21 @@ Welcome to Hardhat v2.0.0
 
 Select `Create a sample project`. This will create some files and install the `@nomiclabs/hardhat-ethers`, `@nomiclabs/hardhat-waffle` plugins, and other necessary packages.
 
-::: tip Hardhat will let you know how, but in case you missed it you can install them with `npm install --save-dev @nomiclabs/hardhat-waffle ethereum-waffle chai @nomiclabs/hardhat-ethers ethers` :::
+::: tip
+
+Hardhat will let you know how, but in case you missed it you can install them with `npm install --save-dev @nomiclabs/hardhat-waffle ethereum-waffle chai @nomiclabs/hardhat-ethers ethers`
+
+:::
 
 Look at the `hardhat.config.js` file and you'll see that the Waffle plugin is enabled:
 
 <<< @/../packages/hardhat-core/sample-projects/basic/hardhat.config.js{1}
 
-::: tip There's no need for `require("@nomiclabs/hardhat-ethers")`, as `@nomiclabs/hardhat-waffle` already does it. :::
+::: tip
+
+There's no need for `require("@nomiclabs/hardhat-ethers")`, as `@nomiclabs/hardhat-waffle` already does it.
+
+:::
 
 ## Testing
 
@@ -70,7 +82,11 @@ We are requiring `Chai` which is an assertions library. These asserting function
 
 This is why we're using the `@nomiclabs/hardhat-waffle` plugin, which makes it easier to assert values from Ethereum. Check out [this section](https://ethereum-waffle.readthedocs.io/en/latest/matchers.html) in Waffle's documentation for the entire list of Ethereum-specific matchers.
 
-::: warning Some Waffle matchers return a Promise rather than executing immediately. If you're making a call or sending a transaction, make sure to check Waffle's documentation, and `await` these Promises. Otherwise your tests may pass without waiting for all checks to complete. :::
+::: warning
+
+Some Waffle matchers return a Promise rather than executing immediately. If you're making a call or sending a transaction, make sure to check Waffle's documentation, and `await` these Promises. Otherwise your tests may pass without waiting for all checks to complete.
+
+:::
 
 ```js
 describe("Greeter", function () {
@@ -121,7 +137,11 @@ const [owner, addr1] = await ethers.getSigners();
 
 A `Signer` in Ethers.js is an object that represents an Ethereum account. It's used to send transactions to contracts and other accounts. Here we're getting a list of the accounts in the node we're connected to, which in this case is **Hardhat Network**, and only keeping the first and second ones.
 
-::: tip To learn more about `Signer`, you can look at the [Signers documentation](https://docs.ethers.io/v5/api/signer/#Wallet). :::
+::: tip
+
+To learn more about `Signer`, you can look at the [Signers documentation](https://docs.ethers.io/v5/api/signer/#Wallet).
+
+:::
 
 The `ethers` variable is available in the global scope. If you like your code always being explicit, you can add this line at the top:
 
@@ -206,11 +226,15 @@ const { waffle } = require("hardhat");
 const { deployContract } = waffle;
 ```
 
-::: warning Importing Waffle's functions from `ethereum-waffle`, can lead to multiple problems.
+::: warning
+
+Importing Waffle's functions from `ethereum-waffle`, can lead to multiple problems.
 
 For example, Waffle has a [default gas limit](https://github.com/EthWorks/Waffle/blob/3.0.2/waffle-cli/src/deployContract.ts#L4-L7) of 4 million gas for contract deployment transactions, which is normally too low.
 
-Please, make sure you import them from the `waffle` field of the [Hardhat Runtime Environment]. It is a version of Waffle adapted to work well with Hardhat. :::
+Please, make sure you import them from the `waffle` field of the [Hardhat Runtime Environment]. It is a version of Waffle adapted to work well with Hardhat.
+
+:::
 
 Also, you don't need to call `chai.use`. This initialization is already handled by `@nomiclabs/hardhat-waffle`. Just be sure to include `require("@nomiclabs/hardhat-waffle");` in your Hardhat config.
 
