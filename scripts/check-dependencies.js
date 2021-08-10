@@ -59,6 +59,20 @@ function checkPeerDepedencies(packageJson) {
     }
   }
 
+  // Check that all devDependencies are pinned, except for the
+  // hardhat core package and the hardhat plugins
+  for (const dependency of Object.keys(packageJson.devDependencies || {})) {
+    if (dependency.startsWith("@nomiclabs/") || dependency === "hardhat") {
+      continue;
+    }
+    if (!isPinned(packageJson.devDependencies[dependency])) {
+      console.error(
+        `${packageJson.name} has non-pinned devDependency of ${dependency}`
+      );
+      success = false;
+    }
+  }
+
   return success;
 }
 
