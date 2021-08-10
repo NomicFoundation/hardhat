@@ -165,7 +165,9 @@ export async function extractMatchingContractInformation(
 
   // If this is OVM bytecode, do the required find and replace (see above comments for more info)
   if (deployedBytecode.isOvmInferred()) {
-    runtimeBytecodeSymbols.object.split(ovmFindOpcodes).join(ovmReplaceOpcodes);
+    runtimeBytecodeSymbols.object = runtimeBytecodeSymbols.object
+      .split(ovmFindOpcodes)
+      .join(ovmReplaceOpcodes);
   }
 
   const analyzedBytecode = await compareBytecode(
