@@ -252,7 +252,7 @@ Possible causes are:
     // type. We don't want that type to always contain the `ovm` field, because users only using hardhat-etherscan
     // without the Optimism plugin should not have that field in their type definitions
     const configCopy = ({ ...config } as unknown) as {
-      ovm?: { solcVersion: string };
+      ovm?: { solcVersion?: string };
     };
     const ovmSolcVersion = configCopy.ovm?.solcVersion;
     if (ovmSolcVersion === undefined) {
