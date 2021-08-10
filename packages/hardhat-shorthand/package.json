@@ -53,6 +53,6 @@
   "dependencies": {
     "@fvictorio/tabtab": "^0.0.3",
     "debug": "^4.1.1",
-    "semver": "6.3.0"
+    "semver": "^6.3.0"
   }
 }
