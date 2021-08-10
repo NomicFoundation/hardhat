@@ -383,6 +383,15 @@ const plugins = [
       "Prepare the contract artifacts and the TypeChain bindings for registry deployment.",
     tags: ["Deployment", "Tasks", "TypeChain"],
   },
+  {
+    name: "hardhat-time-n-mine",
+    author: "Gonzalo Petraglia & Alan Verbner",
+    authorUrl: "https://github.com/atixlabs",
+    url: "https://github.com/atixlabs/hardhat-time-n-mine/tree/main",
+    description:
+      "Helper plugin to manipulate blocks timestamp and trigger mining. It can be used from the command line and in the tests.",
+    tags: ["Testing"],
+  },
 ];
 
 module.exports = plugins.map((p) => ({
