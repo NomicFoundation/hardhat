@@ -80,11 +80,11 @@ const networkIDtoEndpoints: NetworkMap = {
     browserURL: "https://ftmscan.com",
   },
   [NetworkID.OPTIMISTIC_ETHEREUM]: {
-    apiURL: "https://api-optimistic.etherscan.io",
+    apiURL: "https://api-optimistic.etherscan.io/api",
     browserURL: "https://optimistic.etherscan.io/",
   },
   [NetworkID.OPTIMISTIC_KOVAN]: {
-    apiURL: "https://api-kovan-optimistic.etherscan.io",
+    apiURL: "https://api-kovan-optimistic.etherscan.io/api",
     browserURL: "https://kovan-optimistic.etherscan.io/",
   },
   [NetworkID.POLYGON]: {
