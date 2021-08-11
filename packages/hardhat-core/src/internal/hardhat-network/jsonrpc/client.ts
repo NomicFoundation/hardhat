@@ -28,7 +28,7 @@ export class JsonRpcClient {
   constructor(
     private _httpProvider: HttpProvider,
     private _networkId: number,
-    private _chainId: number | undefined,
+    private _chainId: number,
     private _latestBlockNumberOnCreation: number,
     private _maxReorg: number,
     private _forkCachePath?: string
@@ -38,7 +38,7 @@ export class JsonRpcClient {
     return this._networkId;
   }
 
-  public getChainId(): number | undefined {
+  public getChainId(): number {
     return this._chainId;
   }
 
