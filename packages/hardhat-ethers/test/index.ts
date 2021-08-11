@@ -1006,4 +1006,23 @@ describe("Ethers plugin", function () {
       assert.lengthOf(signature, signatureSizeInBytes * byteToHex + hexPrefix);
     });
   });
+  describe("ganache via WebSocket", function () {
+    useEnvironment("hardhat-project-websocket");
+    it("should be able to detect events", async function () {
+      const Greeter = await this.env.ethers.getContractFactory("Greeter");
+      const deployedGreeter: ethers.Contract = await Greeter.deploy();
+
+      let emitted = false;
+      deployedGreeter.on("GreetingUpdated", () => {
+        emitted = true;
+      });
+
+      await deployedGreeter.functions.setGreeting("Hola");
+
+      // wait for the event to fire
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      assert.equal(emitted, true);
+    });
+  });
 });
