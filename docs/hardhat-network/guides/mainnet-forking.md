@@ -100,7 +100,7 @@ This will reset Hardhat Network, starting a new instance in the state described 
 
 ## Getting the chainId of the original chain
 
-You can query the original chainId of the network that this fork was forked from:
+You can query the original `chainId` of the network that is being forked:
 
 ```ts
 await network.provider.request({
@@ -109,7 +109,7 @@ await network.provider.request({
 )};
 ```
 
-Returns the chanId of the forked network, or null if this chain is not a fork.
+Returns the `chanId` of the forked network, or null if this chain is not a fork.
 
 ## Troubleshooting
 
