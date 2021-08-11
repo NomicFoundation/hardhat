@@ -34,11 +34,11 @@ This plugin creates no additional tasks.
 
 This plugins adds an `ethers` object to the Hardhat Runtime Environment.
 
-This object has the same API than `ethers.js`, with some extra Hardhat-specific functionality.
+This object has the [same API](https://docs.ethers.io/v5/single-page/) than `ethers.js`, with some extra Hardhat-specific functionality.
 
 ### Provider object
 
-A `provider` field is added to `ethers`, which is an `ethers.providers.Provider` automatically connected to the selected network.
+A `provider` field is added to `ethers`, which is an [`ethers.providers.Provider`](https://docs.ethers.io/v5/single-page/#/v5/api/providers/provider/) automatically connected to the selected network.
 
 ### Helpers
 
@@ -68,9 +68,9 @@ function getSigners() => Promise<ethers.Signer[]>;
 function getSigner(address: string) => Promise<ethers.Signer>;
 ```
 
-The `Contract`s and `ContractFactory`s returned by these helpers are connected to the first signer returned by `getSigners` by default.
+The [`Contract`s](https://docs.ethers.io/v5/single-page/#/v5/api/contract/contract/) and [`ContractFactory`s](https://docs.ethers.io/v5/single-page/#/v5/api/contract/contract-factory/) returned by these helpers are connected to the first [signer](https://docs.ethers.io/v5/single-page/#/v5/api/signer/) returned by `getSigners` by default.
 
-If there is no signer available, `getContractAt` returns read-only contracts.
+If there is no signer available, `getContractAt` returns [read-only](https://docs.ethers.io/v5/single-page/#/v5/api/contract/contract/-%23-Contract--readonly) contracts.
 
 ## Usage
 

@@ -16,10 +16,10 @@
     "ethers.js"
   ],
   "scripts": {
-    "lint": "yarn prettier --check && yarn tslint",
-    "lint:fix": "yarn prettier --write && yarn tslint --fix",
+    "lint": "yarn prettier --check && yarn eslint",
+    "lint:fix": "yarn prettier --write && yarn eslint --fix",
+    "eslint": "eslint 'src/**/*.ts' 'test/**/*.ts'",
     "prettier": "prettier \"**/*.{js,md,json}\"",
-    "tslint": "tslint --config tslint.json --project ./tsconfig.json",
     "test": "mocha --recursive \"test/**/*.ts\" --exit",
     "build": "tsc --build .",
     "clean": "rimraf dist"
@@ -36,7 +36,13 @@
     "@types/fs-extra": "^5.1.0",
     "@types/mocha": "^5.2.6",
     "@types/node": "^10.17.24",
+    "@typescript-eslint/eslint-plugin": "^4.28.0",
+    "@typescript-eslint/parser": "^4.28.0",
     "chai": "^4.2.0",
+    "eslint": "^7.29.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-import": "^2.23.4",
+    "eslint-plugin-prettier": "^3.4.0",
     "ethereum-waffle": "^3.2.0",
     "ethers": "^5.0.0",
     "hardhat": "^2.0.0",
@@ -44,10 +50,6 @@
     "prettier": "2.0.5",
     "rimraf": "^3.0.2",
     "ts-node": "^8.1.0",
-    "tslint-config-prettier": "^1.18.0",
-    "tslint-consistent-codestyle": "^1.15.1",
-    "tslint-plugin-prettier": "^2.0.1",
-    "tslint": "^5.16.0",
     "typescript": "~4.0.3"
   },
   "peerDependencies": {

@@ -1,4 +1,3 @@
-// tslint:disable-next-line: no-implicit-dependencies
 import type {} from "@nomiclabs/hardhat-ethers";
 import { resetHardhatContext } from "hardhat/plugins-testing";
 import { FactoryOptions, HardhatRuntimeEnvironment } from "hardhat/types";

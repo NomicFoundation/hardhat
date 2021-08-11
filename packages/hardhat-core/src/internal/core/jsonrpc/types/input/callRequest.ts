@@ -14,6 +14,8 @@ export const rpcCallRequest = t.type(
     value: optionalOrNullable(rpcQuantity),
     data: optionalOrNullable(rpcData),
     accessList: optionalOrNullable(rpcAccessList),
+    maxFeePerGas: optionalOrNullable(rpcQuantity),
+    maxPriorityFeePerGas: optionalOrNullable(rpcQuantity),
   },
   "RpcCallRequest"
 );

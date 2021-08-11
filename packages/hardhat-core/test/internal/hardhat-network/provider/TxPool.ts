@@ -270,22 +270,51 @@ describe("Tx Pool", () => {
               address,
               Account.fromAccountData({ balance: new BN(10).pow(new BN(18)) })
             );
+
             const tx1a = createTestFakeTransaction({
               from: address,
               nonce: 0,
               gasPrice: 20,
             });
+
+            await txPool.addTransaction(tx1a);
+
             const tx1b = createTestFakeTransaction({
               from: address,
               nonce: 0,
               gasPrice: 21,
             });
-            await txPool.addTransaction(tx1a);
 
             await assert.isRejected(
               txPool.addTransaction(tx1b),
               InvalidInputError,
-              `Replacement transaction underpriced. A gas price of at least 22 is necessary to replace the existing transaction.`
+              `Replacement transaction underpriced. A gasPrice/maxFeePerGas of at least 22 is necessary to replace the existing transaction with nonce 0.`
+            );
+
+            const tx1c = createTestFakeTransaction({
+              from: address,
+              nonce: 0,
+              maxFeePerGas: 21,
+              maxPriorityFeePerGas: 21,
+            });
+
+            await assert.isRejected(
+              txPool.addTransaction(tx1c),
+              InvalidInputError,
+              `Replacement transaction underpriced. A gasPrice/maxFeePerGas of at least 22 is necessary to replace the existing transaction with nonce 0.`
+            );
+
+            const tx1d = createTestFakeTransaction({
+              from: address,
+              nonce: 0,
+              maxFeePerGas: 100000,
+              maxPriorityFeePerGas: 21,
+            });
+
+            await assert.isRejected(
+              txPool.addTransaction(tx1d),
+              InvalidInputError,
+              `Replacement transaction underpriced. A gasPrice/maxPriorityFeePerGas of at least 22 is necessary to replace the existing transaction with nonce 0.`
             );
 
             const pendingTxs = txPool.getPendingTransactions();
@@ -314,7 +343,7 @@ describe("Tx Pool", () => {
             await assert.isRejected(
               txPool.addTransaction(tx2b),
               InvalidInputError,
-              `Replacement transaction underpriced. A gas price of at least 22 is necessary to replace the existing transaction.`
+              `Replacement transaction underpriced. A gasPrice/maxFeePerGas of at least 22 is necessary to replace the existing transaction with nonce 1`
             );
 
             const queuedTxs = txPool.getQueuedTransactions();
@@ -561,15 +590,32 @@ describe("Tx Pool", () => {
         const address = randomAddress();
         await stateManager.putAccount(
           address,
-          Account.fromAccountData({ nonce: new BN(0), balance: new BN(0) })
+          Account.fromAccountData({
+            nonce: new BN(0),
+            balance: new BN(21000 * 900 + 5 - 1),
+          })
         );
 
         const tx = createTestFakeTransaction({
+          from: address,
+          gasLimit: 21000,
           gasPrice: 900,
           value: 5,
         });
         await assert.isRejected(
           txPool.addTransaction(tx),
+          InvalidInputError,
+          "sender doesn't have enough funds to send tx"
+        );
+
+        const tx2 = createTestFakeTransaction({
+          from: address,
+          maxFeePerGas: 21000,
+          maxPriorityFeePerGas: 0,
+          value: 5,
+        });
+        await assert.isRejected(
+          txPool.addTransaction(tx2),
           InvalidInputError,
           "sender doesn't have enough funds to send tx"
         );

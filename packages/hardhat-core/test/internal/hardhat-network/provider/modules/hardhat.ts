@@ -1,9 +1,10 @@
 import { assert } from "chai";
 import { BN } from "ethereumjs-util";
-// tslint:disable-next-line:no-implicit-dependencies
+// eslint-disable-next-line import/no-extraneous-dependencies
 import { ethers } from "ethers";
 import sinon from "sinon";
 
+import { describe } from "mocha";
 import {
   numberToRpcQuantity,
   rpcQuantityToBN,
@@ -23,6 +24,7 @@ import { setCWD } from "../../helpers/cwd";
 import { DEFAULT_ACCOUNTS_ADDRESSES, PROVIDERS } from "../../helpers/providers";
 import { deployContract } from "../../helpers/transactions";
 import { compileLiteral } from "../../stack-traces/compilation";
+import { RpcBlockOutput } from "../../../../../src/internal/hardhat-network/provider/output";
 
 describe("Hardhat module", function () {
   PROVIDERS.forEach(({ name, useProvider, isFork }) => {
@@ -1285,55 +1287,202 @@ describe("Hardhat module", function () {
       });
 
       describe("hardhat_setMinGasPrice", () => {
-        it("makes txs below the new min gas price not minable", async function () {
-          await this.provider.send("evm_setAutomine", [false]);
+        describe("When EIP-1559 is not active", function () {
+          useProvider({ hardfork: "berlin" });
 
-          const tx1Hash = await this.provider.send("eth_sendTransaction", [
-            {
-              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-              to: EMPTY_ACCOUNT_ADDRESS.toString(),
-              gas: numberToRpcQuantity(21_000),
-              gasPrice: numberToRpcQuantity(10),
-            },
+          describe("When automine is disabled", function () {
+            it("makes txs below the new min gas price not minable", async function () {
+              await this.provider.send("evm_setAutomine", [false]);
+
+              const tx1Hash = await this.provider.send("eth_sendTransaction", [
+                {
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                  to: EMPTY_ACCOUNT_ADDRESS.toString(),
+                  gas: numberToRpcQuantity(21_000),
+                  gasPrice: numberToRpcQuantity(10),
+                },
+              ]);
+              const tx2Hash = await this.provider.send("eth_sendTransaction", [
+                {
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                  to: EMPTY_ACCOUNT_ADDRESS.toString(),
+                  gas: numberToRpcQuantity(21_000),
+                  gasPrice: numberToRpcQuantity(20),
+                },
+              ]);
+
+              await this.provider.send("hardhat_setMinGasPrice", [
+                numberToRpcQuantity(15),
+              ]);
+
+              // check the two txs are pending
+              const pendingTransactionsBefore = await this.provider.send(
+                "eth_pendingTransactions"
+              );
+              assert.sameMembers(
+                pendingTransactionsBefore.map((x: any) => x.hash),
+                [tx1Hash, tx2Hash]
+              );
+
+              // check only the second one is mined
+              await this.provider.send("evm_mine");
+              const latestBlock = await this.provider.send(
+                "eth_getBlockByNumber",
+                ["latest", false]
+              );
+              assert.sameMembers(latestBlock.transactions, [tx2Hash]);
+
+              // check the first tx is still pending
+              const pendingTransactionsAfter = await this.provider.send(
+                "eth_pendingTransactions"
+              );
+              assert.sameMembers(
+                pendingTransactionsAfter.map((x: any) => x.hash),
+                [tx1Hash]
+              );
+            });
+          });
+
+          describe("When automine is enabled", function () {
+            it("Should make txs below the min gas price fail", async function () {
+              await this.provider.send("hardhat_setMinGasPrice", [
+                numberToRpcQuantity(20),
+              ]);
+
+              await assertInvalidInputError(
+                this.provider,
+                "eth_sendTransaction",
+                [
+                  {
+                    from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                    to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                    gasPrice: numberToRpcQuantity(10),
+                  },
+                ],
+                "Transaction gas price is 10, which is below the minimum of 20"
+              );
+            });
+          });
+        });
+
+        describe("When EIP-1559 is active", function () {
+          useProvider({ hardfork: "london" });
+
+          it("Should be disabled", async function () {
+            await assertInvalidInputError(
+              this.provider,
+              "hardhat_setMinGasPrice",
+              [numberToRpcQuantity(1)],
+              "hardhat_setMinGasPrice is not support when EIP-1559 is active"
+            );
+          });
+        });
+      });
+
+      describe("hardhat_setNextBlockBaseFeePerGas", function () {
+        it("Should set the baseFee of a single block", async function () {
+          await this.provider.send("hardhat_setNextBlockBaseFeePerGas", [
+            numberToRpcQuantity(10),
           ]);
-          const tx2Hash = await this.provider.send("eth_sendTransaction", [
-            {
-              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
-              to: EMPTY_ACCOUNT_ADDRESS.toString(),
-              gas: numberToRpcQuantity(21_000),
-              gasPrice: numberToRpcQuantity(20),
-            },
-          ]);
 
-          await this.provider.send("hardhat_setMinGasPrice", [
-            numberToRpcQuantity(15),
-          ]);
+          await this.provider.send("evm_mine", []);
 
-          // check the two txs are pending
-          const pendingTransactionsBefore = await this.provider.send(
-            "eth_pendingTransactions"
-          );
-          assert.sameMembers(
-            pendingTransactionsBefore.map((x: any) => x.hash),
-            [tx1Hash, tx2Hash]
+          const block1: RpcBlockOutput = await this.provider.send(
+            "eth_getBlockByNumber",
+            ["latest", false]
           );
 
-          // check only the second one is mined
-          await this.provider.send("evm_mine");
-          const latestBlock = await this.provider.send("eth_getBlockByNumber", [
-            "latest",
-            false,
-          ]);
-          assert.sameMembers(latestBlock.transactions, [tx2Hash]);
+          assert.equal(block1.baseFeePerGas, numberToRpcQuantity(10));
 
-          // check the first tx is still pending
-          const pendingTransactionsAfter = await this.provider.send(
-            "eth_pendingTransactions"
+          await this.provider.send("evm_mine", []);
+
+          const block2: RpcBlockOutput = await this.provider.send(
+            "eth_getBlockByNumber",
+            ["latest", false]
           );
-          assert.sameMembers(
-            pendingTransactionsAfter.map((x: any) => x.hash),
-            [tx1Hash]
-          );
+
+          assert.notEqual(block2.baseFeePerGas, numberToRpcQuantity(10));
+        });
+
+        describe("When automine is enabled", function () {
+          it("Should prevent you from sending transactions with lower maxFeePerGas or gasPrice", async function () {
+            await this.provider.send("hardhat_setNextBlockBaseFeePerGas", [
+              numberToRpcQuantity(10),
+            ]);
+
+            await assertInvalidInputError(
+              this.provider,
+              "eth_sendTransaction",
+              [
+                {
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                  to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                  gasPrice: numberToRpcQuantity(9),
+                },
+              ],
+              "Transaction gasPrice (9) is too low for the next block, which has a baseFeePerGas of 10"
+            );
+
+            await assertInvalidInputError(
+              this.provider,
+              "eth_sendTransaction",
+              [
+                {
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                  to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                  maxFeePerGas: numberToRpcQuantity(8),
+                },
+              ],
+              "Transaction maxFeePerGas (8) is too low for the next block, which has a baseFeePerGas of 10"
+            );
+          });
+        });
+
+        describe("When automine is disabled", function () {
+          it("Should let you send transactions with lower maxFeePerGas or gasPrice, but not mine them", async function () {
+            await this.provider.send("hardhat_setNextBlockBaseFeePerGas", [
+              numberToRpcQuantity(10),
+            ]);
+
+            await this.provider.send("evm_setAutomine", [false]);
+
+            await this.provider.send("eth_sendTransaction", [
+              {
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                gasPrice: numberToRpcQuantity(9),
+              },
+            ]);
+
+            await this.provider.send("eth_sendTransaction", [
+              {
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                maxFeePerGas: numberToRpcQuantity(8),
+              },
+            ]);
+
+            await this.provider.send("evm_mine", []);
+
+            const block: RpcBlockOutput = await this.provider.send(
+              "eth_getBlockByNumber",
+              ["latest", false]
+            );
+
+            assert.lengthOf(block.transactions, 0);
+          });
+        });
+
+        describe("When EIP-1559 is not active", function () {
+          useProvider({ hardfork: "berlin" });
+          it("should be disabled", async function () {
+            await assertInvalidInputError(
+              this.provider,
+              "hardhat_setNextBlockBaseFeePerGas",
+              [numberToRpcQuantity(8)],
+              "hardhat_setNextBlockBaseFeePerGas is disabled because EIP-1559 is not active"
+            );
+          });
         });
       });
     });

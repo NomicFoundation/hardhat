@@ -17,7 +17,7 @@ import {
  * files in this directory.
  */
 describe("Eth module", function () {
-  PROVIDERS.forEach(({ name, useProvider, isFork, isJsonRpc, chainId }) => {
+  PROVIDERS.forEach(({ name, useProvider, isFork, chainId }) => {
     if (isFork) {
       this.timeout(50000);
     }
@@ -66,12 +66,6 @@ describe("Eth module", function () {
       describe("eth_compileSolidity", async function () {
         it("is not supported", async function () {
           await assertNotSupported(this.provider, "eth_compileSolidity");
-        });
-      });
-
-      describe("eth_gasPrice", async function () {
-        it("should return a fixed gas price", async function () {
-          assertQuantity(await this.provider.send("eth_gasPrice"), 8e9);
         });
       });
 

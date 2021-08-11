@@ -1,14 +1,26 @@
 import Common from "@ethereumjs/common";
 import { Transaction } from "@ethereumjs/tx";
 import { assert } from "chai";
-import { BN, bufferToHex, toBuffer, zeroAddress } from "ethereumjs-util";
+import {
+  BN,
+  bufferToHex,
+  setLengthLeft,
+  toBuffer,
+  zeroAddress,
+} from "ethereumjs-util";
 
 import { numberToRpcQuantity } from "../../../../../../../internal/core/jsonrpc/types/base-types";
 import { TransactionParams } from "../../../../../../../internal/hardhat-network/provider/node-types";
-import { RpcTransactionOutput } from "../../../../../../../internal/hardhat-network/provider/output";
+import {
+  AccessListEIP2930RpcTransactionOutput,
+  EIP1559RpcTransactionOutput,
+  LegacyRpcTransactionOutput,
+} from "../../../../../../../internal/hardhat-network/provider/output";
 import { workaroundWindowsCiFailures } from "../../../../../../utils/workaround-windows-ci-failures";
 import {
-  assertTransaction,
+  assertAccessListTransaction,
+  assertEIP1559Transaction,
+  assertLegacyTransaction,
   assertTransactionFailure,
 } from "../../../../helpers/assertions";
 import { setCWD } from "../../../../helpers/cwd";
@@ -25,7 +37,7 @@ import {
 } from "../../../../helpers/transactions";
 
 describe("Eth module", function () {
-  PROVIDERS.forEach(({ name, useProvider, isFork, isJsonRpc, chainId }) => {
+  PROVIDERS.forEach(({ name, useProvider, isFork }) => {
     if (isFork) {
       this.timeout(50000);
     }
@@ -63,7 +75,7 @@ describe("Eth module", function () {
             nonce: new BN(0),
             value: new BN(123),
             gasLimit: new BN(25000),
-            gasPrice: new BN(23912),
+            gasPrice: new BN(10e9),
           };
 
           const txHash = await sendTransactionFromTxParams(
@@ -76,12 +88,12 @@ describe("Eth module", function () {
             false,
           ]);
 
-          const tx: RpcTransactionOutput = await this.provider.send(
+          const tx: LegacyRpcTransactionOutput = await this.provider.send(
             "eth_getTransactionByHash",
             [txHash]
           );
 
-          assertTransaction(
+          assertLegacyTransaction(
             tx,
             txHash,
             txParams1,
@@ -97,7 +109,7 @@ describe("Eth module", function () {
             nonce: new BN(1),
             value: new BN(123),
             gasLimit: new BN(80000),
-            gasPrice: new BN(239),
+            gasPrice: new BN(10e9),
           };
 
           const txHash2 = await sendTransactionFromTxParams(
@@ -110,12 +122,12 @@ describe("Eth module", function () {
             false,
           ]);
 
-          const tx2: RpcTransactionOutput = await this.provider.send(
+          const tx2: LegacyRpcTransactionOutput = await this.provider.send(
             "eth_getTransactionByHash",
             [txHash2]
           );
 
-          assertTransaction(
+          assertLegacyTransaction(
             tx2,
             txHash2,
             txParams2,
@@ -134,7 +146,7 @@ describe("Eth module", function () {
             nonce: new BN(0),
             value: new BN(123),
             gasLimit: new BN(250000),
-            gasPrice: new BN(23912),
+            gasPrice: new BN(10e9),
           };
 
           const txHash = await getSignedTxHash(
@@ -165,7 +177,7 @@ describe("Eth module", function () {
             false,
           ]);
 
-          assertTransaction(
+          assertLegacyTransaction(
             tx,
             txHash,
             txParams,
@@ -189,6 +201,7 @@ describe("Eth module", function () {
               to: address,
               value: "0x16345785d8a0000",
               gas: numberToRpcQuantity(21000),
+              gasPrice: numberToRpcQuantity(10e9),
             },
           ]);
 
@@ -206,7 +219,7 @@ describe("Eth module", function () {
           const tx = new Transaction(
             {
               nonce: "0x00",
-              gasPrice: "0x2",
+              gasPrice: numberToRpcQuantity(10e9),
               gasLimit: "0x55f0",
               to: DEFAULT_ACCOUNTS_ADDRESSES[1],
               value: "0x1",
@@ -235,7 +248,7 @@ describe("Eth module", function () {
           assert.equal(fetchedTx.value, "0x1");
           assert.equal(fetchedTx.nonce, "0x0");
           assert.equal(fetchedTx.gas, "0x55f0");
-          assert.equal(fetchedTx.gasPrice, "0x2");
+          assert.equal(fetchedTx.gasPrice, numberToRpcQuantity(10e9));
           assert.equal(fetchedTx.input, "0xbeef");
 
           // tx.v is padded but fetchedTx.v is not, so we need to do this
@@ -263,7 +276,7 @@ describe("Eth module", function () {
             nonce: new BN(0),
             value: new BN(123),
             gasLimit: new BN(25000),
-            gasPrice: new BN(23912),
+            gasPrice: new BN(10e9),
           };
 
           await this.provider.send("evm_setAutomine", [false]);
@@ -273,12 +286,12 @@ describe("Eth module", function () {
             txParams
           );
 
-          const tx: RpcTransactionOutput = await this.provider.send(
+          const tx: LegacyRpcTransactionOutput = await this.provider.send(
             "eth_getTransactionByHash",
             [txHash]
           );
 
-          assertTransaction(tx, txHash, txParams);
+          assertLegacyTransaction(tx, txHash, txParams);
         });
 
         it("should get an existing transaction from mainnet", async function () {
@@ -318,6 +331,99 @@ describe("Eth module", function () {
           ]);
 
           assert.equal(tx.from, "0xbc3109d75dffaae85ef595902e3bd70fe0643b3b");
+        });
+
+        it("should return access list transactions", async function () {
+          const firstBlock = await getFirstBlock();
+          const txParams: TransactionParams = {
+            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[1]),
+            to: toBuffer(zeroAddress()),
+            data: toBuffer("0x"),
+            nonce: new BN(0),
+            value: new BN(123),
+            gasLimit: new BN(30000),
+            gasPrice: new BN(10e9),
+            accessList: [
+              [
+                toBuffer(zeroAddress()),
+                [
+                  setLengthLeft(Buffer.from([0]), 32),
+                  setLengthLeft(Buffer.from([1]), 32),
+                ],
+              ],
+            ],
+          };
+
+          const txHash = await sendTransactionFromTxParams(
+            this.provider,
+            txParams
+          );
+
+          const tx: AccessListEIP2930RpcTransactionOutput = await this.provider.send(
+            "eth_getTransactionByHash",
+            [txHash]
+          );
+
+          const block = await this.provider.send("eth_getBlockByNumber", [
+            numberToRpcQuantity(firstBlock + 1),
+            false,
+          ]);
+
+          assertAccessListTransaction(
+            tx,
+            txHash,
+            txParams,
+            firstBlock + 1,
+            block.hash,
+            0
+          );
+        });
+
+        it("should return EIP-1559 transactions", async function () {
+          const firstBlock = await getFirstBlock();
+          const txParams: TransactionParams = {
+            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[1]),
+            to: toBuffer(zeroAddress()),
+            data: toBuffer("0x"),
+            nonce: new BN(0),
+            value: new BN(123),
+            gasLimit: new BN(30000),
+            maxFeePerGas: new BN(10e9),
+            maxPriorityFeePerGas: new BN(1e9),
+            accessList: [
+              [
+                toBuffer(zeroAddress()),
+                [
+                  setLengthLeft(Buffer.from([0]), 32),
+                  setLengthLeft(Buffer.from([1]), 32),
+                ],
+              ],
+            ],
+          };
+
+          const txHash = await sendTransactionFromTxParams(
+            this.provider,
+            txParams
+          );
+
+          const tx: EIP1559RpcTransactionOutput = await this.provider.send(
+            "eth_getTransactionByHash",
+            [txHash]
+          );
+
+          const block = await this.provider.send("eth_getBlockByNumber", [
+            numberToRpcQuantity(firstBlock + 1),
+            false,
+          ]);
+
+          assertEIP1559Transaction(
+            tx,
+            txHash,
+            txParams,
+            firstBlock + 1,
+            block.hash,
+            0
+          );
         });
       });
     });

@@ -1,4 +1,5 @@
-import { AccessListEIP2930Transaction, TxData } from "@ethereumjs/tx";
+import Common from "@ethereumjs/common";
+import { AccessListEIP2930Transaction } from "@ethereumjs/tx";
 import {
   AccessListEIP2930TxData,
   AccessListEIP2930ValuesArray,
@@ -11,30 +12,33 @@ import {
   InvalidArgumentsError,
 } from "../../../core/providers/errors";
 
-// tslint:disable only-hardhat-error
+/* eslint-disable @nomiclabs/only-hardhat-error */
 
 /**
  * This class is the EIP-2930 version of FakeSenderTransaction.
  */
 export class FakeSenderAccessListEIP2930Transaction extends AccessListEIP2930Transaction {
   public static fromTxData(
-    txData: AccessListEIP2930TxData,
-    opts?: TxOptions
+    _txData: AccessListEIP2930TxData,
+    _opts?: TxOptions
   ): never {
     throw new InternalError(
       "`fromTxData` is not implemented in FakeSenderAccessListEIP2930Transaction"
     );
   }
 
-  public static fromSerializedTx(serialized: Buffer, opts?: TxOptions): never {
+  public static fromSerializedTx(
+    _serialized: Buffer,
+    _opts?: TxOptions
+  ): never {
     throw new InternalError(
       "`fromSerializedTx` is not implemented in FakeSenderAccessListEIP2930Transaction"
     );
   }
 
   public static fromRlpSerializedTx(
-    serialized: Buffer,
-    opts?: TxOptions
+    _serialized: Buffer,
+    _opts?: TxOptions
   ): never {
     throw new InternalError(
       "`fromRlpSerializedTx` is not implemented in FakeSenderAccessListEIP2930Transaction"
@@ -42,8 +46,8 @@ export class FakeSenderAccessListEIP2930Transaction extends AccessListEIP2930Tra
   }
 
   public static fromValuesArray(
-    values: AccessListEIP2930ValuesArray,
-    opts?: TxOptions
+    _values: AccessListEIP2930ValuesArray,
+    _opts?: TxOptions
   ): never {
     throw new InternalError(
       "`fromValuesArray` is not implemented in FakeSenderAccessListEIP2930Transaction"
@@ -116,9 +120,11 @@ export class FakeSenderAccessListEIP2930Transaction extends AccessListEIP2930Tra
     );
   }
 
+  public readonly common: Common;
+
   private readonly _sender: Address;
 
-  public constructor(
+  constructor(
     sender: Address,
     data: AccessListEIP2930TxData = {},
     opts?: TxOptions
@@ -133,9 +139,7 @@ export class FakeSenderAccessListEIP2930Transaction extends AccessListEIP2930Tra
       { ...opts, freeze: false }
     );
 
-    // TODO: remove this as any
-    (this as any).common = this._getCommon(opts?.common);
-
+    this.common = this._getCommon(opts?.common);
     this._sender = sender;
   }
 
@@ -153,13 +157,13 @@ export class FakeSenderAccessListEIP2930Transaction extends AccessListEIP2930Tra
     );
   }
 
-  public _processSignature(v: number, r: Buffer, s: Buffer): never {
+  public _processSignature(_v: number, _r: Buffer, _s: Buffer): never {
     throw new InternalError(
       "`_processSignature` is not implemented in FakeSenderAccessListEIP2930Transaction"
     );
   }
 
-  public sign(privateKey: Buffer): never {
+  public sign(_privateKey: Buffer): never {
     throw new InternalError(
       "`sign` is not implemented in FakeSenderAccessListEIP2930Transaction"
     );

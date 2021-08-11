@@ -4,45 +4,42 @@
 import { Image } from "./types";
 
 export class HardhatDockerError extends Error {
-  public constructor(public readonly parent?: Error) {
+  constructor(public readonly parent?: Error) {
     super();
     Object.setPrototypeOf(this, HardhatDockerError.prototype);
   }
 }
 
 export class DockerHubConnectionError extends HardhatDockerError {
-  public constructor(public readonly parent?: Error) {
+  constructor(public readonly parent?: Error) {
     super(parent);
     Object.setPrototypeOf(this, DockerHubConnectionError.prototype);
   }
 }
 
 export class DockerNotInstalledError extends HardhatDockerError {
-  public constructor(public readonly parent?: Error) {
+  constructor(public readonly parent?: Error) {
     super(parent);
     Object.setPrototypeOf(this, DockerNotInstalledError.prototype);
   }
 }
 
 export class DockerNotRunningError extends HardhatDockerError {
-  public constructor(public readonly parent?: Error) {
+  constructor(public readonly parent?: Error) {
     super(parent);
     Object.setPrototypeOf(this, DockerNotRunningError.prototype);
   }
 }
 
 export class DockerBadGatewayError extends HardhatDockerError {
-  public constructor(public readonly parent?: Error) {
+  constructor(public readonly parent?: Error) {
     super(parent);
     Object.setPrototypeOf(this, DockerBadGatewayError.prototype);
   }
 }
 
 export class ImageDoesntExistError extends HardhatDockerError {
-  public constructor(
-    public readonly image: Image,
-    public readonly parent?: Error
-  ) {
+  constructor(public readonly image: Image, public readonly parent?: Error) {
     super(parent);
     Object.setPrototypeOf(this, ImageDoesntExistError.prototype);
   }
@@ -57,7 +54,7 @@ export class BindDoesntExistInHostError extends HardhatDockerError {
 }
 
 export class DockerServerError extends HardhatDockerError {
-  public constructor(public readonly parent?: Error) {
+  constructor(public readonly parent?: Error) {
     super(parent);
     Object.setPrototypeOf(this, DockerServerError.prototype);
   }
@@ -80,7 +77,7 @@ export class DockerServerError extends HardhatDockerError {
 }
 
 export class ExecutableNotFoundError extends HardhatDockerError {
-  public constructor(public readonly parent?: Error) {
+  constructor(public readonly parent?: Error) {
     super(parent);
     Object.setPrototypeOf(this, ExecutableNotFoundError.prototype);
   }

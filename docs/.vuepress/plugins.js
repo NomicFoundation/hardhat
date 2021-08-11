@@ -1,3 +1,13 @@
+// This list of plugins is automatically sorted by the numbers of downloads
+// that the plugin got on npm in the last 30 days. Please add yourself to the
+// bottom of the list.
+//
+// If your plugin's `name` is not it's package name, you can add an optional
+// `npmPackage` field.
+//
+// Note that the `url` is an URL to the **branch** the website should get your
+// plugin's the README.md from, not the repository.
+
 const plugins = [
   {
     name: "@nomiclabs/hardhat-ethers",
@@ -126,7 +136,7 @@ const plugins = [
     tags: ["Ethers.js", "hardhat-deploy"],
   },
   {
-    name: "hardhat-upgrades",
+    name: "@openzeppelin/hardhat-upgrades",
     author: "OpenZeppelin",
     authorUrl: "https://openzeppelin.com",
     url:
@@ -288,6 +298,7 @@ const plugins = [
   },
   {
     name: "@eth-optimism/plugins/hardhat/compiler",
+    npmPackage: "@eth-optimism/plugins",
     author: "Optimism",
     authorUrl: "https://github.com/ethereum-optimism",
     url:
@@ -298,6 +309,7 @@ const plugins = [
   },
   {
     name: "@eth-optimism/plugins/hardhat/ethers",
+    npmPackage: "@eth-optimism/plugins",
     author: "Optimism",
     authorUrl: "https://github.com/ethereum-optimism",
     url: "https://github.com/ethereum-optimism/plugins/tree/master",
@@ -306,6 +318,7 @@ const plugins = [
   },
   {
     name: "hardhat-react",
+    npmPackage: "@symfoni/hardhat-react",
     author: "Symfoni",
     authorUrl: "https://github.com/symfoni/",
     url:
@@ -344,6 +357,31 @@ const plugins = [
       "Tasks",
       "Scripts",
     ],
+  },
+  {
+    name: "hardhat-storage-layout",
+    author: "Aurora Labs",
+    authorUrl: "https://github.com/aurora-is-near",
+    url: "https://github.com/aurora-is-near/hardhat-storage-layout/tree/main",
+    description: "Exporting solidity contract storage layout",
+    tags: ["solidity", "storage-layout"],
+  },
+  {
+    name: "hardhat-change-network",
+    author: "David Mihal",
+    authorUrl: "https://github.com/dmihal",
+    url: "https://github.com/dmihal/hardhat-change-network/tree/master",
+    description: "Allows changing the current network in Hardhat.",
+    tags: ["Testing"],
+  },
+  {
+    name: "hardhat-packager",
+    author: "Paul Razvan Berg",
+    authorUrl: "https://github.com/paulrberg",
+    url: "https://github.com/paulrberg/hardhat-packager/tree/main",
+    description:
+      "Prepare the contract artifacts and the TypeChain bindings for registry deployment.",
+    tags: ["Deployment", "Tasks", "TypeChain"],
   },
 ];
 

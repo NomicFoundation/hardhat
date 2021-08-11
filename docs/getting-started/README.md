@@ -51,7 +51,11 @@ Let’s create the sample project and go through these steps to try out the samp
 
 The sample project will ask you to install `hardhat-waffle` and `hardhat-ethers`, which makes Hardhat compatible with tests built with Waffle. You can learn more about it [in this guide](../guides/waffle-testing.md).
 
-::: tip Hardhat will let you know how, but, in case you missed it, you can install them with `npm install --save-dev @nomiclabs/hardhat-waffle ethereum-waffle chai @nomiclabs/hardhat-ethers ethers` :::
+::: tip
+
+Hardhat will let you know how, but, in case you missed it, you can install them with `npm install --save-dev @nomiclabs/hardhat-waffle ethereum-waffle chai @nomiclabs/hardhat-ethers ethers`
+
+:::
 
 ### Running tasks
 
@@ -198,6 +202,6 @@ npx hardhat run scripts/sample-script.js --network localhost
 
 ---
 
-Congrats! You have created a project, ran a Hardhat task, compiled a smart contract, installed a Waffle integration plugin, wrote and ran a test using the Waffle and ethers.js plugins, and deployed a contract.
+Congrats! You have created a project, run a Hardhat task, compiled a smart contract, installed a Waffle integration plugin, written and run a test using the Waffle and ethers.js plugins, and deployed a contract.
 
 For any questions or feedback you may have, you can find us in the [Hardhat Discord server](https://hardhat.org/discord).

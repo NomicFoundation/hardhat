@@ -2,7 +2,7 @@ import {
   ERROR_RANGES,
   ErrorDescriptor,
   ERRORS,
-  getErrorCode
+  getErrorCode,
 } from "../packages/hardhat-core/src/internal/core/errors-list";
 
 let content = `# Hardhat errors

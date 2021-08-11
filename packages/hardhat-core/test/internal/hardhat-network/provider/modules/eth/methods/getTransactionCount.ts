@@ -15,7 +15,7 @@ import {
 import { retrieveForkBlockNumber } from "../../../../helpers/retrieveForkBlockNumber";
 
 describe("Eth module", function () {
-  PROVIDERS.forEach(({ name, useProvider, isFork, isJsonRpc, chainId }) => {
+  PROVIDERS.forEach(({ name, useProvider, isFork }) => {
     if (isFork) {
       this.timeout(50000);
     }
@@ -67,7 +67,7 @@ describe("Eth module", function () {
               to: DEFAULT_ACCOUNTS_ADDRESSES[1],
               value: numberToRpcQuantity(1),
               gas: numberToRpcQuantity(21000),
-              gasPrice: numberToRpcQuantity(1),
+              gasPrice: numberToRpcQuantity(10e9),
             },
           ]);
 
@@ -91,7 +91,7 @@ describe("Eth module", function () {
               to: DEFAULT_ACCOUNTS_ADDRESSES[2],
               value: numberToRpcQuantity(1),
               gas: numberToRpcQuantity(21000),
-              gasPrice: numberToRpcQuantity(1),
+              gasPrice: numberToRpcQuantity(10e9),
             },
           ]);
 
@@ -124,7 +124,7 @@ describe("Eth module", function () {
               to: DEFAULT_ACCOUNTS_ADDRESSES[2],
               value: numberToRpcQuantity(1),
               gas: numberToRpcQuantity(21000),
-              gasPrice: numberToRpcQuantity(1),
+              gasPrice: numberToRpcQuantity(10e9),
             },
           ]);
 

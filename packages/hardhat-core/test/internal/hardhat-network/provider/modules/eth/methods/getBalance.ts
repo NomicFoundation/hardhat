@@ -19,7 +19,7 @@ import {
 import { retrieveForkBlockNumber } from "../../../../helpers/retrieveForkBlockNumber";
 
 describe("Eth module", function () {
-  PROVIDERS.forEach(({ name, useProvider, isFork, isJsonRpc, chainId }) => {
+  PROVIDERS.forEach(({ name, useProvider, isFork }) => {
     if (isFork) {
       this.timeout(50000);
     }
@@ -62,6 +62,7 @@ describe("Eth module", function () {
         });
 
         it("Should return the updated balance after a transaction is made", async function () {
+          const gasPrice = new BN(10e9);
           await assertNodeBalances(this.provider, DEFAULT_ACCOUNTS_BALANCES);
 
           await this.provider.send("eth_sendTransaction", [
@@ -70,12 +71,12 @@ describe("Eth module", function () {
               to: DEFAULT_ACCOUNTS_ADDRESSES[1],
               value: numberToRpcQuantity(1),
               gas: numberToRpcQuantity(21000),
-              gasPrice: numberToRpcQuantity(1),
+              gasPrice: numberToRpcQuantity(gasPrice),
             },
           ]);
 
           await assertNodeBalances(this.provider, [
-            DEFAULT_ACCOUNTS_BALANCES[0].subn(1 + 21000),
+            DEFAULT_ACCOUNTS_BALANCES[0].sub(gasPrice.muln(21000).addn(1)),
             DEFAULT_ACCOUNTS_BALANCES[1].addn(1),
             ...DEFAULT_ACCOUNTS_BALANCES.slice(2),
           ]);
@@ -86,18 +87,24 @@ describe("Eth module", function () {
               to: DEFAULT_ACCOUNTS_ADDRESSES[1],
               value: numberToRpcQuantity(2),
               gas: numberToRpcQuantity(21000),
-              gasPrice: numberToRpcQuantity(2),
+              gasPrice: numberToRpcQuantity(gasPrice.muln(2)),
             },
           ]);
 
           await assertNodeBalances(this.provider, [
-            DEFAULT_ACCOUNTS_BALANCES[0].subn(1 + 21000 + 2 + 21000 * 2),
+            DEFAULT_ACCOUNTS_BALANCES[0].sub(
+              gasPrice
+                .muln(21000)
+                .addn(1)
+                .add(gasPrice.muln(21000).muln(2).addn(2))
+            ),
             DEFAULT_ACCOUNTS_BALANCES[1].addn(1 + 2),
             ...DEFAULT_ACCOUNTS_BALANCES.slice(2),
           ]);
         });
 
         it("Should return the pending balance", async function () {
+          const gasPrice = new BN(10e9);
           await this.provider.send("evm_setAutomine", [false]);
 
           await this.provider.send("eth_sendTransaction", [
@@ -106,14 +113,14 @@ describe("Eth module", function () {
               to: DEFAULT_ACCOUNTS_ADDRESSES[2],
               value: numberToRpcQuantity(1),
               gas: numberToRpcQuantity(21000),
-              gasPrice: numberToRpcQuantity(1),
+              gasPrice: numberToRpcQuantity(gasPrice),
               nonce: numberToRpcQuantity(0),
             },
           ]);
 
           await assertPendingNodeBalances(this.provider, [
             DEFAULT_ACCOUNTS_BALANCES[0],
-            DEFAULT_ACCOUNTS_BALANCES[1].subn(1 + 21000),
+            DEFAULT_ACCOUNTS_BALANCES[1].sub(gasPrice.muln(21000).addn(1)),
             DEFAULT_ACCOUNTS_BALANCES[2].addn(1),
             ...DEFAULT_ACCOUNTS_BALANCES.slice(3),
           ]);
@@ -124,14 +131,19 @@ describe("Eth module", function () {
               to: DEFAULT_ACCOUNTS_ADDRESSES[2],
               value: numberToRpcQuantity(2),
               gas: numberToRpcQuantity(21000),
-              gasPrice: numberToRpcQuantity(2),
+              gasPrice: numberToRpcQuantity(gasPrice.muln(2)),
               nonce: numberToRpcQuantity(1),
             },
           ]);
 
           await assertPendingNodeBalances(this.provider, [
             DEFAULT_ACCOUNTS_BALANCES[0],
-            DEFAULT_ACCOUNTS_BALANCES[1].subn(1 + 21000 + 2 + 21000 * 2),
+            DEFAULT_ACCOUNTS_BALANCES[1].sub(
+              gasPrice
+                .muln(21000)
+                .addn(1)
+                .add(gasPrice.muln(21000).muln(2).addn(2))
+            ),
             DEFAULT_ACCOUNTS_BALANCES[2].addn(1 + 2),
             ...DEFAULT_ACCOUNTS_BALANCES.slice(3),
           ]);

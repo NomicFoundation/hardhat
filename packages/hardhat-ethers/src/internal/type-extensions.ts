@@ -19,6 +19,6 @@ declare module "hardhat/types/runtime" {
   // Removing any of these three types is a breaking change.
   type Libraries = LibrariesT;
   type FactoryOptions = FactoryOptionsT;
-  // tslint:disable-next-line: naming-convention
+  // eslint-disable-next-line @typescript-eslint/naming-convention
   type getContractFactory = typeof getContractFactoryT;
 }
