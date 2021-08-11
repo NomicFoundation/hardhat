@@ -104,6 +104,24 @@ export default {
 };
 ```
 
+You also need to create a [`tsconfig.json`](https://www.typescriptlang.org/docs/handbook/tsconfig-json.html) file. Here's a template you can base yours on:
+
+```json
+{
+  "compilerOptions": {
+    "target": "es2018",
+    "module": "commonjs",
+    "strict": true,
+    "esModuleInterop": true,
+    "outDir": "dist"
+  },
+  "include": ["./scripts", "./test"],
+  "files": ["./hardhat.config.ts"]
+}
+```
+
+You can use different settings, but please make sure your Hardhat config file is included. The easiest way of doing this is by keeping its path in the `files` array.
+
 And that's really all it takes. Now you can write your config, tests, tasks and scripts in TypeScript.
 
 ## Writing tests and scripts in TypeScript
@@ -171,31 +189,7 @@ const config: HardhatUserConfig = {
 export default config;
 ```
 
-## Customizing TypeScript with a `tsconfig.json` file
-
-Hardhat doesn't need a `tsconfig.json` file to work, but you can still create one.
-
-If you don't know what a `tsconfig.json` file is, or you are not sure if you care about it, we recommend you skip this section.
-
-If you are sure you need a `tsconfig.json` file, here's a template to base yours on:
-
-```json
-{
-  "compilerOptions": {
-    "target": "es2018",
-    "module": "commonjs",
-    "strict": true,
-    "esModuleInterop": true,
-    "outDir": "dist"
-  },
-  "include": ["./scripts", "./test"],
-  "files": ["./hardhat.config.ts"]
-}
-```
-
-However you modify it, please make sure your config file is included in your project. The easiest way of doing this is by keeping its path in the `files` array.
-
-### Support for path mappings
+## Support for path mappings
 
 Typescript allows defining custom [path mappings](https://www.typescriptlang.org/docs/handbook/module-resolution.html#path-mapping) via the [`paths`](https://www.typescriptlang.org/tsconfig#paths) configuration option:
 
