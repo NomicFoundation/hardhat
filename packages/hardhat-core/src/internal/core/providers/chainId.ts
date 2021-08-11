@@ -49,14 +49,6 @@ export class ChainIdValidatorProvider extends ProviderWrapperWithChainId {
   }
 }
 
-export async function getNetworkIdFromNetVersion(provider: EIP1193Provider) {
-  const networkIdString = (await provider.request({
-    method: "net_version",
-  })) as string;
-
-  return parseInt(networkIdString, 10);
-}
-
 export async function getChainIdFromEthChainId(
   provider: EIP1193Provider
 ): Promise<number> {
@@ -64,5 +56,19 @@ export async function getChainIdFromEthChainId(
     method: "eth_chainId",
   })) as string;
 
-  return id.startsWith("0x") ? rpcQuantityToNumber(id) : parseInt(id, 10);
+  return rpcQuantityToNumber(id);
+}
+
+export async function getNetworkIdFromNetVersion(
+  provider: EIP1193Provider
+): Promise<number> {
+  const networkId = (await provider.request({
+    method: "net_version",
+  })) as string;
+
+  // There's a node returning this as decimal instead of QUANTITY.
+  // TODO: Document here which node does that
+  return networkId.startsWith("0x")
+    ? rpcQuantityToNumber(networkId)
+    : parseInt(networkId, 10);
 }
