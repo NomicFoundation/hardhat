@@ -99,7 +99,7 @@ describe("e2e tests", function () {
         // hardhat-core/sample-projects/advanced/README.txt
         `${hardhatBinary} compile`,
         `${hardhatBinary} test`,
-        "node scripts/sample-script.js",
+        "node scripts/deploy.js",
         "REPORT_GAS=true npx hardhat test",
         `${hardhatBinary} coverage`,
         "npx eslint '**/*.js'",
