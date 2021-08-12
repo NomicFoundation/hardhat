@@ -1,41 +1,44 @@
-# Hardhat Network
+# Hardhat Network <!-- An Explanation: theoretical, not practical; for studying, not for working-->
 
-Hardhat comes built-in with Hardhat Network, a local Ethereum network designed for development. It allows you to deploy your contracts, run your tests and debug your code.
+<!-- TODO: make all RPC method mentions be links to the reference on those methods. -->
+
+Hardhat comes built-in with Hardhat Network, a local Ethereum network node designed for development, akin to Ganache, `geth --dev`, etc. It allows you to deploy your contracts, run your tests and debug your code.
 
 ## How does it work?
 
-- It mines a block with each transaction that it receives, in order and with no delay.
-- It's backed by the `@ethereumjs/vm` EVM implementation, the same one used by ganache, Remix and Ethereum Studio.
-- It supports the following hardforks:
-  - byzantium
-  - constantinople
-  - petersburg
-  - istanbul
-  - muirGlacier
+It runs as either an in-process or stand-alone daemon, servicing JSON-RPC and WebSocket requests.
+
+By default, it mines a block with each transaction that it receives, in order and with no delay.
+
+It's backed by the `@ethereumjs/vm` EVM implementation, the same one used by ganache, Remix and Ethereum Studio.
 
 ## How can I use it?
 
-- Hardhat will always spin up an instance on startup when `defaultNetwork` is empty or set to `hardhat`. It's the default behavior.
-- It can be used to run tests in the console, and to run scripts and tasks.
-- Plugins (ethers.js, web3.js, Waffle, Truffle, etc) connect directly to its provider.
-- There's no need to make any changes to your tests or scripts.
-- It's simply another network and it can be used with `--network`.
+By default, if you're using Hardhat, then you're already using Hardhat Network.
 
-## Connecting to Hardhat Network from wallets and other software
+When Hardhat executes your tests, scripts or tasks, an in-process Hardhat Network node is started automatically, and all of Hardhat's plugins (ethers.js, web3.js, Waffle, Truffle, etc) will connect directly to this node's provider.
 
-Hardhat Network can run in a standalone fashion so that external clients can connect to it. This could be MetaMask, your Dapp front-end, or a script. To run Hardhat Network in this way, run:
+There's no need to make any changes to your tests or scripts.
+
+Hardhat Network is simply another network. If you wanted to be explicit, you could run, for example, `npx hardhat run --network hardhat scripts/my-script.js`.
+
+### Running stand-alone in order to support wallets and other software
+
+Alternatively, Hardhat Network can run in a stand-alone fashion so that external clients can connect to it. This could be MetaMask, your Dapp front-end, or a script. To run Hardhat Network in this way, run:
 
 ```
 npx hardhat node
 ```
 
-It will start Hardhat Network, and expose it as a JSON-RPC and WebSocket server.
+This will start Hardhat Network, and expose it as a JSON-RPC and WebSocket server.
 
 Then, just connect your wallet or application to `http://localhost:8545`.
 
-If you want to connect Hardhat to this node, you only need to run Hardhat using `--network localhost`.
+If you want to connect Hardhat to this node, you just need to run using `--network localhost`.
 
-## Solidity stack traces
+## Why would I want to use it?
+
+### Solidity stack traces
 
 Hardhat Network has first-class Solidity support. It always knows which smart contracts are being run, what they do exactly and why they fail.
 
@@ -56,9 +59,9 @@ Error: Transaction reverted: function selector was not recognized and there's no
 
 The last two lines correspond to the JavaScript test code that executed a failing transaction. The rest is the Solidity stack trace. This way you know exactly why your tests aren't passing.
 
-## Automatic error messages
+### Automatic error messages
 
-Hardhat Network always knows why your transaction or call failed, and uses this information to make debugging your contracts easier.
+Hardhat Network always knows why your transaction or call failed, and it uses this information to make debugging your contracts easier.
 
 When a transaction fails without a reason, Hardhat Network will create a clear error message in the following cases:
 
@@ -82,164 +85,37 @@ When a transaction fails without a reason, Hardhat Network will create a clear e
 
 - Trying to deploy a contract that exceeds the bytecode size limit imposed by [EIP-170](https://eips.ethereum.org/EIPS/eip-170)
 
-## `console.log`
+### `console.log`
 
-Hardhat Network allows you to print logging messages and contract variables by calling `console.log()` from your Solidity code. You can see an example in the Sample Project. Follow the steps in [Quick Start](/getting-started/README.md#quick-start) to try it out.
+Hardhat Network allows you to print logging messages and contract variables by calling `console.log()` from your Solidity code.
 
-- You can use it in calls and transactions. It works with `view` functions, but not in `pure` ones.
-- It always works, regardless of the call or transaction failing or being successful.
-- To use it you need to import `hardhat/console.sol`.
-- You can call `console.log` with up to 4 parameters in any order of following types:
-  - `uint`
-  - `string`
-  - `bool`
-  - `address`
-- There's also the single parameter API for the types above, and additionally `bytes`, `bytes1`... up to `bytes32`:
-  - `console.logInt(int i)`
-  - `console.logUint(uint i)`
-  - `console.logString(string memory s)`
-  - `console.logBool(bool b)`
-  - `console.logAddress(address a)`
-  - `console.logBytes(bytes memory b)`
-  - `console.logBytes1(bytes1 b)`
-  - `console.logBytes2(bytes2 b)`
-  - ...
-  - `console.logBytes32(bytes32 b)`
-- `console.log` implements the same formatting options that can be found in Node.js' [`console.log`](https://nodejs.org/dist/latest-v12.x/docs/api/console.html#console_console_log_data_args), which in turn uses [`util.format`](https://nodejs.org/dist/latest-v12.x/docs/api/util.html#util_util_format_format_args).
-  - Example: `console.log("Changing owner from %s to %s", currentOwner, newOwner)`
-- It works with any library: ethers.js, web3.js, waffle, truffle-contract, etc.
-- `console.log` is implemented in standard Solidity and then detected in Hardhat Network. This makes its compilation work with any other tools (like Remix, Waffle or Truffle).
-- `console.log` calls can run in other networks, like mainnet, kovan, ropsten, etc. They do nothing in those networks, but do spend a minimal amount of gas.
+To use it, you simply import `hardhat/console.sol` and call it. It implements the same formatting options that can be found in Node.js' [`console.log`](https://nodejs.org/dist/latest-v12.x/docs/api/console.html#console_console_log_data_args), which in turn uses [`util.format`](https://nodejs.org/dist/latest-v12.x/docs/api/util.html#util_util_format_format_args). For example: `console.log("Changing owner from %s to %s", currentOwner, newOwner)`.
 
-## Mainnet forking
+It always works, regardless of the call or transaction failing or being successful. And, because it's implemented in standard Solidity, it works with _any_ tool or library, emitting log entries where it's fully supported &mdash; Hardhat Network and Tenderly &mdash; and falling back gracefully to a no-op everywhere else &mdash; Remix, Waffle, Truffle, etc &mdash; though it does consume a small amount of gas on live networks.
 
-The Hardhat Network is empty by default, except for some accounts with an initial balance. But sometimes it's more useful to have a local network that simulates the state of the mainnet. This is what forking is for.
+You can see an example in the Sample Project. Follow the steps in [Quick Start](/getting-started/README.md#quick-start) to try it out. You can also refer to more details in [the reference documentation](./reference/README.md#consolelog).
 
-To fork from the mainnet you need the URL of a node to connect to. For example, using Alchemy, you can start a local node that forks the mainnet with this command:
+### Mainnet forking
 
-```
-npx hardhat node --fork https://eth-mainnet.alchemyapi.io/v2/<key>
-```
+Hardhat Network has the ability to copy the state of the mainnet blockchain into your local environment, including all balances and deployed contracts. This is known as "forking mainnet."
 
-where you have to replace `<key>` with your Alchemy API key.
+In a local environment forked from mainnet, you can execute transactions to invoke mainnet-deployed contracts, or interact with the network in any other way that you would with mainnet. In addition, you can do anything supported by a non-forked Hardhat Network: see console logs, get stack traces, or use the default accounts to deploy new contracts.
 
-After doing this, you can do anything in your node that you can do with a non-forked Hardhat Network: see console logs, get stack traces or use the default accounts to deploy new contracts.
+More generally, Hardhat Network can be used to fork **any** network, not just mainnet. Even further, Hardhat Network can be used to fork **any EVM-compatible blockchain**, not just Ethereum.
 
-If you want this to be the default behavior, you can do it in your Hardhat config:
+There are other things you can do with a forked Hardhat Network. Check [our guide](guides/mainnet-forking.md) to learn more.
 
-```js
-networks: {
-  hardhat: {
-    forking: {
-      url: "https://eth-mainnet.alchemyapi.io/v2/<key>";
-    }
-  }
-}
-```
+### Mining modes
 
-This means that if you execute a task that uses the Hardhat Network, that task will start a forked node and run on it.
-
-There are other things you can do with a forked Hardhat Network, check [our guide](../guides/mainnet-forking.md) to learn more.
-
-## Mining modes
-
-Hardhat supports two modes for mining transactions:
-
-- **Automine**: each transaction that is sent is automatically included in a new block
-- **Interval mining**: a new block is periodically mined, which includes as many pending transactions as possible
+Hardhat Network can be configured to **automine** blocks, immediately upon receiving each transaction, or it can be configured for **interval mining**, where a new block is mined periodically, incorporating as many pending transactions as possible.
 
 You can use one of these modes, both or neither. By default, only the automine mode is enabled.
 
-### Configuring mining modes
+If neither mining mode is enabled, no new blocks will be mined, but you can manually mine new blocks using the `evm_mine` RPC method. This will generate a new block that will include as many pending transactions as possible.
 
-You can configure the mining behavior under your Hardhat Network settings:
+For more details on mining modes and mempool behavior, see [Mining Modes](explanation/mining-modes.md).
 
-```js
-networks: {
-  hardhat: {
-    mining: {
-      auto: false,
-      interval: 5000
-    }
-  }
-}
-```
-
-In this example, automining is disabled and interval mining is set so that a new block is generated every 5 seconds. You can also configure interval mining to generate a new block after a random delay:
-
-```js
-networks: {
-  hardhat: {
-    mining: {
-      auto: false,
-      interval: [3000, 6000]
-    }
-  }
-}
-```
-
-In this case, a new block will be mined after a random delay of between 3 and 6 seconds. For example, the first block could be mined after 4 seconds, the second block 5.5 seconds after that, and so on.
-
-### Manual mining
-
-You can disable both mining modes like this:
-
-```js
-networks: {
-  hardhat: {
-    mining: {
-      auto: false,
-      interval: 0
-    }
-  }
-}
-```
-
-This means that no new blocks will be mined by the Hardhat Network, but you can manually mine new blocks using the `evm_mine` RPC method. This will generate a new block that will include as many pending transactions as possible.
-
-### Mempool behavior
-
-When automine is disabled, every sent transaction is added to the mempool, which contains all the transactions that could be mined in the future. Hardhat Network's mempool follows the same rules as geth. This means, among other things, that:
-
-- Transactions with a higher gas price are included first
-- If two transactions can be included and both have the same gas price, the one that was received first is included first
-- If a transaction is invalid (for example, its nonce is lower than the nonce of the address that sent it), the transaction is dropped.
-
-You can get the list of pending transactions that will be included in the next block by using the "pending" block tag:
-
-```js
-const pendingBlock = await network.provider.send("eth_getBlockByNumber", [
-  "pending",
-  false,
-]);
-```
-
-### Removing and replacing transactions
-
-Transactions in the mempool can be removed using the `hardhat_dropTransaction` method:
-
-```js
-const txHash = "0xabc...";
-await network.provider.send("hardhat_dropTransaction", [txHash]);
-```
-
-You can also replace a transaction by sending a new one with the same nonce as the one that it's already in the mempool but with a higher gas price. Keep in mind that, like in Geth, for this to work the new gas price has to be at least 10% higher than the gas price of the current transaction.
-
-### Configuring mining modes using RPC methods
-
-You can change the mining behavior on runtime using two RPC methods: `evm_setAutomine` and `evm_setIntervalMining`. For example, to disable automining:
-
-```js
-await network.provider.send("evm_setAutomine", [false]);
-```
-
-And to enable interval mining:
-
-```js
-await network.provider.send("evm_setIntervalMining", [5000]);
-```
-
-## Logging
+### Logging
 
 Hardhat Network uses its tracing infrastructure to offer rich logging that will help you develop and debug smart contracts.
 
@@ -269,164 +145,14 @@ eth_call
 
 This logging is enabled by default when using Hardhat Network's node (i.e. `npx hardhat node`), but disabled when using the in-process Hardhat Network provider. See [Hardhat Network's config](../config/README.md#hardhat-network) to learn more about how to control its logging.
 
-## The `debug_traceTransaction` method
+### The `debug_traceTransaction` method
 
-You can get debug traces of already mined transactions using the `debug_traceTransaction` RPC method. The returned object has a detailed description of the transaction execution, including a list of steps describing each executed opcode and the state of the EVM at that point.
+You can get debug traces of already-mined transactions using the `debug_traceTransaction` RPC method. The returned object has a detailed description of the transaction execution, including a list of steps describing each executed opcode and the state of the EVM at that point.
 
-To get a trace, call this method with the hash of the transaction as its argument:
+If you are using [mainnet forking](guides/mainnet-forking.html) with an archive node, you can get traces of transactions from the remote network even if the node you are using doesn't support `debug_traceTransaction`.
 
-```js
-const trace = await hre.network.provider.send("debug_traceTransaction", [
-  "0x123...",
-]);
-```
+For more details, see [the reference documentation for this method](./reference/README.md#debug-tracetransaction).
 
-You can also selectively disable some properties in the list of steps:
+## Dig deeper
 
-```js
-const trace = await hre.network.provider.send("debug_traceTransaction", [
-  "0x123...",
-  {
-    disableMemory: true,
-    disableStack: true,
-    disableStorage: true,
-  },
-]);
-```
-
-If you are using [mainnet forking](https://hardhat.org/guides/mainnet-forking.html) with an archive node, you can get traces of transactions from the remote network even if the node you are using doesn't support `debug_traceTransaction`.
-
-### Known limitations
-
-- You can't trace transactions that use a hardfork older than [Spurious Dragon](https://ethereum.org/en/history/#spurious-dragon)
-- The last step of a message is not guaranteed to have a correct value in the `gasCost` property
-
-## Hardhat Network initial state
-
-Hardhat Network is initialized by default in this state:
-
-- A brand new blockchain, just with the genesis block.
-- 20 accounts with 10000 ETH each, generated with the mnemonic `"test test test test test test test test test test test junk"`. Their addresses are:
-  - `0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266`
-  - `0x70997970C51812dc3A010C7d01b50e0d17dc79C8`
-  - `0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC`
-  - `0x90F79bf6EB2c4f870365E785982E1f101E93b906`
-  - `0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65`
-  - `0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc`
-  - `0x976EA74026E726554dB657fA54763abd0C3a0aa9`
-  - `0x14dC79964da2C08b23698B3D3cc7Ca32193d9955`
-  - `0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f`
-  - `0xa0Ee7A142d267C1f36714E4a8F75612F20a79720`
-  - `0xBcd4042DE499D14e55001CcbB24a551F3b954096`
-  - `0x71bE63f3384f5fb98995898A86B02Fb2426c5788`
-  - `0xFABB0ac9d68B0B445fB7357272Ff202C5651694a`
-  - `0x1CBd3b2770909D4e10f157cABC84C7264073C9Ec`
-  - `0xdF3e18d64BC6A983f673Ab319CCaE4f1a57C7097`
-  - `0xcd3B766CCDd6AE721141F452C550Ca635964ce71`
-  - `0x2546BcD3c84621e976D8185a91A922aE77ECEc30`
-  - `0xbDA5747bFD65F08deb54cb465eB87D40e51B197E`
-  - `0xdD2FD4581271e230360230F9337D5c0430Bf44C0`
-  - `0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199`
-
-To customise it, take a look at [the configuration section](/config/README.md#hardhat-network).
-
-## JSON-RPC methods support
-
-### Supported methods
-
-- `eth_accounts`
-- `eth_blockNumber`
-- `eth_call`
-- `eth_chainId`
-- `eth_coinbase`
-- `eth_estimateGas`
-- `eth_feeHistory` - Only works if running with the London hardfork or a later one.
-- `eth_gasPrice`
-- `eth_getBalance`
-- `eth_getBlockByHash`
-- `eth_getBlockByNumber`
-- `eth_getBlockTransactionCountByHash`
-- `eth_getBlockTransactionCountByNumber`
-- `eth_getCode`
-- `eth_getFilterChanges`
-- `eth_getFilterLogs`
-- `eth_getLogs`
-- `eth_getStorageAt`
-- `eth_getTransactionByBlockHashAndIndex`
-- `eth_getTransactionByBlockNumberAndIndex`
-- `eth_getTransactionByHash`
-- `eth_getTransactionCount`
-- `eth_getTransactionReceipt`
-- `eth_mining`
-- `eth_newBlockFilter`
-- `eth_newFilter`
-- `eth_newPendingTransactionFilter`
-- `eth_pendingTransactions`
-- `eth_sendRawTransaction`
-- `eth_sendTransaction`
-- `eth_signTypedData_v4`
-- `eth_sign`
-- `eth_subscribe`
-- `eth_syncing`
-- `eth_uninstallFilter`
-- `eth_unsubscribe`
-- `net_listening`
-- `net_peerCount`
-- `net_version`
-- `web3_clientVersion`
-- `web3_sha3`
-
-#### Hardhat network methods
-
-- `hardhat_addCompilationResult` – Add information about compiled contracts
-- `hardhat_dropTransaction` – Remove a transaction from the mempool
-- `hardhat_impersonateAccount` – see the [Mainnet Forking guide](../guides/mainnet-forking.md)
-- `hardhat_reset` – see the [Mainnet Forking guide](../guides/mainnet-forking.md)
-- `hardhat_setBalance` – Modifies the balance of an account.
-- `hardhat_setCode` – Modifies the code of an account.
-- `hardhat_setLoggingEnabled` – Enable or disable logging in Hardhat Network
-- `hardhat_setMinGasPrice` - Changes the minimum gas price accepted by the network (in wei). This method can't be used if Hardhat Network is running with the London hardfork or a later one.
-- `hardhat_setNonce` – Modifies an account's nonce by overwriting it. Throws an InvalidInputError if nonce is smaller than the current one. The reason for this restriction is to avoid collisions when deploying contracts using the same nonce more than once.
-- `hardhat_setStorageAt` – Writes a single position of an account's storage. The storage position index must not exceed 2^256, and the value to write must be exactly 32 bytes long.
-- `hardhat_stopImpersonatingAccount` – see the [Mainnet Forking guide](../guides/mainnet-forking.md)
-- `hardhat_setNextBlockBaseFeePerGas` - Sets the next block's `baseFeePerGas`. This method only works if Hardhat Network is running with the London hardfork or a later one.
-
-#### Special testing/debugging methods
-
-- `evm_increaseTime` – same as Ganache.
-- `evm_mine` – same as Ganache
-- `evm_revert` – same as Ganache.
-- `evm_snapshot` – same as Ganache.
-- `evm_setNextBlockTimestamp` - this method works like `evm_increaseTime`, but takes the exact timestamp that you want in the next block, and increases the time accordingly.
-
-### Unsupported methods
-
-- `eth_compileLLL`
-- `eth_compileSerpent`
-- `eth_compileSolidity`
-- `eth_getCompilers`
-- `eth_getProof`
-- `eth_getUncleByBlockHashAndIndex`
-- `eth_getUncleByBlockNumberAndIndex`
-- `eth_getUncleCountByBlockHash`
-- `eth_getUncleCountByBlockNumber`
-- `eth_getWork`
-- `eth_hashrate`
-- `eth_protocolVersion`
-- `eth_signTransaction`
-- `eth_submitHashrate`
-- `eth_submitWork`
-
-## Limitations
-
-### Supported Solidity versions
-
-Hardhat Network can run any smart contract, but it only understands Solidity 0.5.1 and newer.
-
-If you are compiling with an older version of Solidity, or using another language, you can use Hardhat Network, but Solidity stack traces won't be generated.
-
-### Solidity optimizer support
-
-Hardhat Network can work with smart contracts compiled with optimizations, but this may lead to your stack traces' line numbers being a little off.
-
-We recommend compiling without optimizations when testing and debugging your contracts.
+This has been just a high-level explanation of what Hardhat Network is. To dig deeper, see [the Reference documentation](./reference/README.md). <!-- TODO: when they exist, add additional links here to "Guides", "Tutorials" and "Explanations" of more specific things. -->

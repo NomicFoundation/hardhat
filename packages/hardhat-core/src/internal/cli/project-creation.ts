@@ -164,6 +164,7 @@ async function copySampleProject(
       path.join(packageRoot, "sample-projects", "advanced"),
       projectRoot
     );
+    await fsExtra.remove(path.join(projectRoot, "scripts", "sample-script.js"));
   }
 
   if (projectType === Action.CREATE_ADVANCED_TYPESCRIPT_SAMPLE_PROJECT_ACTION) {

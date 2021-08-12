@@ -58,34 +58,16 @@ If you are using the `node` task, you can also specify a block number with the `
 npx hardhat node --fork https://eth-mainnet.alchemyapi.io/v2/<key> --fork-block-number 11095000
 ```
 
-## Impersonating accounts
+## Customizing Hardhat Network's behavior
 
-Once you've got local instances of mainnet protocols, setting them in the specific state your tests need is likely the next step. To make this easy, Hardhat Network allows you to send transactions impersonating specific accounts and contract addresses.
+Once you've got local instances of mainnet protocols, setting them in the specific state your tests need is likely the next step. Hardhat Network provides several RPC methods to help you with this:
 
-To impersonate an account use the `hardhat_impersonateAccount` RPC method, passing the address to impersonate as its parameter:
-
-```tsx
-await hre.network.provider.request({
-  method: "hardhat_impersonateAccount",
-  params: ["0x364d6D0333432C3Ac016Ca832fb8594A8cE43Ca6"],
-});
-```
-
-Call `hardhat_stopImpersonatingAccount` to stop impersonating:
-
-```tsx
-await hre.network.provider.request({
-  method: "hardhat_stopImpersonatingAccount",
-  params: ["0x364d6D0333432C3Ac016Ca832fb8594A8cE43Ca6"],
-});
-```
-
-If you are using [`hardhat-ethers`](https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-ethers), call `getSigner` after impersonating the account:
-
-```
-const signer = await ethers.provider.getSigner("0x364d6D0333432C3Ac016Ca832fb8594A8cE43Ca6")
-signer.sendTransaction(...)
-```
+- [`hardhat_impersonateAccount`](../reference/#hardhat-impersonateaccount)
+- [`hardhat_stopImpersonatingAccount`](../reference/#hardhat-stopimpersonatingaccount)
+- [`hardhat_setNonce`](../reference/#hardhat-setnonce)
+- [`hardhat_setBalance`](../reference/#hardhat-setbalance)
+- [`hardhat_setCode`](../reference/#hardhat-setcode)
+- [`hardhat_setStorageAt`](../reference/#hardhat-setstorageat)
 
 ## Resetting the fork
 

@@ -15,12 +15,12 @@ These are the versions of Solidity that you can expect to fully work with Hardha
 - Any 0.7.x version
 - Any 0.8.x version up to and including 0.8.4
 
-We recommend against using Hardhat with newer, unsupported versions of Solidity, but if you need to do it, then please read on.
+We recommend against using Hardhat with newer, unsupported versions of Solidity. But if you need to do so; please read on.
 
 ### Using an unsupported version
 
-When running an unsupported version of Solidity, our integration with it may not work, or it may work incorrectly.
+When running an unsupported version of Solidity, our integration may not work or behave incorrectly.
 
-This can mean that Solidity stack traces may stop working, be incorrect, or incomplete. It can also mean that `console.log` may stop working.
+This could mean that Solidity stack traces stop working, are incorrect, or incomplete. It could also mean that `console.log` stops working.
 
-Despite those things possibly breaking, the actual compilation and execution of your smart contracts won't be affected. You can still trust your test results or deploy smart contracts. You will just get less help from Hardhat when doing so.
+Despite these features possibly being affected, the compilation and execution of your smart contracts won't be affected. You can still trust your test results and deploy smart contracts, but Hardhat may be less useful in the process.

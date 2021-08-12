@@ -1,6 +1,7 @@
 /node_modules
 /api
 /.vuepress/dist
+/.vuepress/plugin-downloads.json
 .DS_Store
 /errors/README.md
 wget-readmes.sh

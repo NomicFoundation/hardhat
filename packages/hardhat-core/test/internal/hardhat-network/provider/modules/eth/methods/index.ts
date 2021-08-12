@@ -69,12 +69,6 @@ describe("Eth module", function () {
         });
       });
 
-      describe("eth_gasPrice", async function () {
-        it("should return a fixed gas price", async function () {
-          assertQuantity(await this.provider.send("eth_gasPrice"), 8e9);
-        });
-      });
-
       describe("eth_getCompilers", async function () {
         it("is not supported", async function () {
           await assertNotSupported(this.provider, "eth_getCompilers");
