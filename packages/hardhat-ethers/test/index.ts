@@ -1009,6 +1009,7 @@ describe("Ethers plugin", function () {
   describe("ganache via WebSocket", function () {
     useEnvironment("hardhat-project-websocket");
     it("should be able to detect events", async function () {
+      await this.env.run("compile", { quiet: true });
       const Greeter = await this.env.ethers.getContractFactory("Greeter");
       const deployedGreeter: ethers.Contract = await Greeter.deploy();
 
