@@ -159,6 +159,10 @@ function resolveHardhatNetworkConfig(
       forking.blockNumber = hardhatNetworkConfig?.forking?.blockNumber;
     }
   }
+  const httpHeaders = hardhatNetworkConfig?.forking?.httpHeaders;
+  if (httpHeaders!== undefined && forking !== undefined) {
+    forking.httpHeaders = hardhatNetworkConfig?.forking?.httpHeaders;
+  }
 
   const mining = resolveMiningConfig(hardhatNetworkConfig.mining);
 

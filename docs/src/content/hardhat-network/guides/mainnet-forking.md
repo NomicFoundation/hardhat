@@ -58,6 +58,25 @@ If you are using the `node` task, you can also specify a block number with the `
 npx hardhat node --fork https://eth-mainnet.alchemyapi.io/v2/<key> --fork-block-number 14390000
 ```
 
+## Authorization via HTTP headers
+
+Instead of including your authorization credentials of the full node
+provider in the URL, you can e.g. use bearer token authorization via a
+custom HTTP header.
+
+```js
+networks: {
+  hardhat: {
+    forking: {
+      url: "https://ethnode.example.com",
+      httpHeaders: {
+        "Authorization": "Bearer <key>"
+      }
+    }
+  }
+}
+```
+
 ## Customizing Hardhat Network's behavior
 
 Once you've got local instances of mainnet protocols, setting them in the specific state your tests need is likely the next step. Hardhat Network provides several RPC methods to help you with this:
