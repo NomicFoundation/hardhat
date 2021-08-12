@@ -1020,7 +1020,7 @@ describe("Ethers plugin", function () {
       await deployedGreeter.functions.setGreeting("Hola");
 
       // wait for the event to fire
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       assert.equal(emitted, true);
     });
