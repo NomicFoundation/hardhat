@@ -167,8 +167,10 @@ const plugins = [
     name: "@typechain/hardhat",
     author: "Kris Kaczor",
     authorUrl: "https://github.com/krzkaczor",
-    url: "https://github.com/ethereum-ts/TypeChain/tree/master/packages/hardhat",
-    description: "Automatically generate TypeScript bindings for smart contracts.",
+    url:
+      "https://github.com/ethereum-ts/TypeChain/tree/master/packages/hardhat",
+    description:
+      "Automatically generate TypeScript bindings for smart contracts.",
     tags: ["Tasks", "Testing", "TypeChain"],
   },
   {
