@@ -164,11 +164,12 @@ const plugins = [
     tags: ["explorer", "debugging", "development-tool"],
   },
   {
-    name: "hardhat-typechain",
+    name: "@typechain/hardhat",
     author: "Rahul Sethuram",
     authorUrl: "https://twitter.com/rhlsthrm",
-    url: "https://github.com/rhlsthrm/hardhat-typechain/tree/master",
-    description: "Generate TypeChain type definitions for smart contracts.",
+    url:
+      "https://github.com/ethereum-ts/TypeChain/tree/master/packages/hardhat",
+    description: "Zero-config TypeChain support for Hardhat.",
     tags: ["Testing", "Tasks"],
   },
   {
