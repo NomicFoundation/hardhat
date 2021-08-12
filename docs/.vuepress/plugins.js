@@ -167,7 +167,8 @@ const plugins = [
     name: "@typechain/hardhat",
     author: "Rahul Sethuram",
     authorUrl: "https://twitter.com/rhlsthrm",
-    url: "https://github.com/ethereum-ts/TypeChain/tree/master/packages/hardhat",
+    url:
+      "https://github.com/ethereum-ts/TypeChain/tree/master/packages/hardhat",
     description: "Zero-config TypeChain support for Hardhat.",
     tags: ["Testing", "Tasks"],
   },
