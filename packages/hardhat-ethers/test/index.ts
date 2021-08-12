@@ -1025,4 +1025,27 @@ describe("Ethers plugin", function () {
       assert.equal(emitted, true);
     });
   });
+  describe("Hardhat Network via WebSocket", function () {
+    useEnvironment("hardhat-project-websocket", "hardhat");
+    it("should be able to detect events", async function () {
+      const Greeter = await this.env.ethers.getContractFactory("Greeter");
+      console.log("Deploying contract");
+      const deployedGreeter: ethers.Contract = await Greeter.deploy();
+      console.log("Deployed contract");
+
+      let emitted = false;
+      deployedGreeter.on("GreetingUpdated", () => {
+        emitted = true;
+      });
+
+      console.log("Setting greeting");
+      await deployedGreeter.functions.setGreeting("Hola");
+      console.log("Set greeting");
+
+      // wait for the event to fire
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      assert.equal(emitted, true);
+    });
+  });
 });
