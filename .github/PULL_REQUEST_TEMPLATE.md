@@ -9,9 +9,9 @@ Please:
  - DELETE the items that DON'T make sense for your PR.
 -->
 
-- [ ] (If this PR includes a **documentation change**) This PR's branch was created from the `website` branch, and this PR uses the `website` branch as its base branch.
-- [ ] (If this PR includes a **bug fix**) Relevant tests have been included.
-- [ ] (If this PR includes a **new feature**) The change was previously discussed on an Issue or with someone from the team.
+- [ ] Because this PR includes a **documentation change**, its branch was created from the `website` branch, and this PR uses the `website` branch as its base branch.
+- [ ] Because this PR includes a **bug fix**, relevant tests have been included.
+- [ ] Because this PR includes a **new feature**, the change was previously discussed on an Issue or with someone from the team.
 - [x] I didn't do anything of this.
 
 ---

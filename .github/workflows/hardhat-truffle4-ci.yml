@@ -29,12 +29,12 @@ concurrency:
 
 jobs:
   test_on_windows:
-    name: Test hardhat-truffle4 on Windows with Node 10
+    name: Test hardhat-truffle4 on Windows with Node 12
     runs-on: windows-latest
     steps:
       - uses: actions/setup-node@v1
         with:
-          node-version: 10
+          node-version: 12
       - uses: actions/checkout@v2
       - name: Install
         run: yarn --frozen-lockfile
@@ -44,12 +44,12 @@ jobs:
         run: yarn test
 
   test_on_macos:
-    name: Test hardhat-truffle4 on MacOS with Node 10
+    name: Test hardhat-truffle4 on MacOS with Node 12
     runs-on: macos-latest
     steps:
       - uses: actions/setup-node@v1
         with:
-          node-version: 10
+          node-version: 12
       - uses: actions/checkout@v2
       - name: Install
         run: yarn --frozen-lockfile
@@ -63,7 +63,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: [10, 12, 14, 16]
+        node: [12, 14, 16]
     steps:
       - uses: actions/setup-node@v1
         with:

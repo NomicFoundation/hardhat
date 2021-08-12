@@ -287,6 +287,6 @@ export class HardhatDocker {
   private _imageToRepositoryPath(image: Image): string {
     return image.repository.includes("/")
       ? image.repository
-      : `library/{image.repository}`;
+      : `library/${image.repository}`;
   }
 }

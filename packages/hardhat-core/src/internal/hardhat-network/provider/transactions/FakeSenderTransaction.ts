@@ -1,3 +1,4 @@
+import Common from "@ethereumjs/common";
 import { Transaction, TxData, TxOptions } from "@ethereumjs/tx";
 import { Address, BN, rlp } from "ethereumjs-util";
 
@@ -89,6 +90,8 @@ export class FakeSenderTransaction extends Transaction {
     );
   }
 
+  public readonly common: Common;
+
   private readonly _sender: Address;
 
   constructor(sender: Address, data: TxData = {}, opts?: TxOptions) {
@@ -102,9 +105,7 @@ export class FakeSenderTransaction extends Transaction {
       { ...opts, freeze: false }
     );
 
-    // TODO: remove this as any
-    (this as any).common = this._getCommon(opts?.common);
-
+    this.common = this._getCommon(opts?.common);
     this._sender = sender;
   }
 

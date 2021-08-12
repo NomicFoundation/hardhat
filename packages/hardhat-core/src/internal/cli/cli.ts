@@ -38,12 +38,18 @@ async function printVersionMessage(packageJson: PackageJson) {
   console.log(packageJson.version);
 }
 
-function ensureValidNodeVersion(packageJson: PackageJson) {
+function printWarningAboutNodeJsVersionIfNeceesary(packageJson: PackageJson) {
   const requirement = packageJson.engines.node;
   if (!semver.satisfies(process.version, requirement)) {
-    throw new HardhatError(ERRORS.GENERAL.INVALID_NODE_VERSION, {
-      requirement,
-    });
+    console.warn(
+      chalk.yellow(
+        `You are using a version of Node.js that is not supported by Hardhat, and it may work incorrectly, or not work at all.
+
+Please, upgrade your Node.js version.
+
+To learn more about which versions of Node.js are supported go to https://hardhat.org/nodejs-versions`
+      )
+    );
   }
 }
 
@@ -55,7 +61,7 @@ async function main() {
   try {
     const packageJson = await getPackageJson();
 
-    ensureValidNodeVersion(packageJson);
+    printWarningAboutNodeJsVersionIfNeceesary(packageJson);
 
     const envVariableArguments = getEnvHardhatArguments(
       HARDHAT_PARAM_DEFINITIONS,
@@ -88,7 +94,8 @@ async function main() {
     if (
       hardhatArguments.config === undefined &&
       !isCwdInsideProject() &&
-      process.stdout.isTTY === true
+      (process.stdout.isTTY === true ||
+        process.env.HARDHAT_CREATE_SAMPLE_PROJECT_WITH_DEFAULTS !== undefined)
     ) {
       await createProject();
       return;

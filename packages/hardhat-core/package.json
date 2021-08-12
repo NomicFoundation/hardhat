@@ -1,6 +1,6 @@
 {
   "name": "hardhat",
-  "version": "2.4.3",
+  "version": "2.6.0",
   "author": "Nomic Labs LLC",
   "license": "SEE LICENSE IN LICENSE",
   "homepage": "https://hardhat.org",
@@ -23,7 +23,7 @@
     "hardhat": "internal/cli/cli.js"
   },
   "engines": {
-    "node": ">=8.2.0"
+    "node": "^12.0.0 || ^14.0.0 || >=16.0.0"
   },
   "scripts": {
     "lint": "yarn prettier --check && yarn eslint",
@@ -95,7 +95,7 @@
     "@ethereumjs/blockchain": "^5.4.0",
     "@ethereumjs/common": "^2.4.0",
     "@ethereumjs/tx": "^3.3.0",
-    "@ethereumjs/vm": "^5.5.0",
+    "@ethereumjs/vm": "^5.5.2",
     "@ethersproject/abi": "^5.1.2",
     "@sentry/node": "^5.18.1",
     "@solidity-parser/parser": "^0.11.0",

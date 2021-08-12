@@ -1,7 +1,8 @@
-import { Block } from "@ethereumjs/block";
+import { Block, HeaderData } from "@ethereumjs/block";
 import Common from "@ethereumjs/common";
 import {
   AccessListEIP2930Transaction,
+  FeeMarketEIP1559Transaction,
   Transaction,
   TypedTransaction,
 } from "@ethereumjs/tx";
@@ -26,7 +27,10 @@ import {
 import EventEmitter from "events";
 
 import { CompilerInput, CompilerOutput } from "../../../types";
-import { HARDHAT_NETWORK_DEFAULT_GAS_PRICE } from "../../core/config/default-config";
+import {
+  HARDHAT_NETWORK_DEFAULT_INITIAL_BASE_FEE_PER_GAS,
+  HARDHAT_NETWORK_DEFAULT_MAX_PRIORITY_FEE_PER_GAS,
+} from "../../core/config/default-config";
 import { assertHardhatInvariant, HardhatError } from "../../core/errors";
 import { RpcDebugTracingConfig } from "../../core/jsonrpc/types/input/debugTraceTransaction";
 import {
@@ -37,6 +41,11 @@ import {
 } from "../../core/providers/errors";
 import { Reporter } from "../../sentry/reporter";
 import { getDifferenceInSeconds } from "../../util/date";
+import {
+  getHardforkName,
+  hardforkGte,
+  HardforkName,
+} from "../../util/hardforks";
 import { createModelsAndDecodeBytecodes } from "../stack-traces/compiler-to-model";
 import { ConsoleLogger } from "../stack-traces/consoleLogger";
 import { ContractsIdentifier } from "../stack-traces/contracts-identifier";
@@ -59,6 +68,7 @@ import { VmTraceDecoder } from "../stack-traces/vm-trace-decoder";
 import { VMTracer } from "../stack-traces/vm-tracer";
 
 import "./ethereumjs-workarounds";
+import { rpcQuantityToBN } from "../../core/jsonrpc/types/base-types";
 import { bloomFilter, Filter, filterLogs, LATEST_BLOCK, Type } from "./filter";
 import { ForkBlockchain } from "./fork/ForkBlockchain";
 import { ForkStateManager } from "./fork/ForkStateManager";
@@ -67,9 +77,11 @@ import { HardhatStateManager } from "./HardhatStateManager";
 import {
   CallParams,
   EstimateGasResult,
+  FeeHistory,
   FilterParams,
   GatherTracesResult,
   GenesisAccount,
+  isForkedNodeConfig,
   MineBlockResult,
   NodeConfig,
   RunCallResult,
@@ -87,9 +99,10 @@ import {
 } from "./output";
 import { ReturnData } from "./return-data";
 import { FakeSenderAccessListEIP2930Transaction } from "./transactions/FakeSenderAccessListEIP2930Transaction";
+import { FakeSenderEIP1559Transaction } from "./transactions/FakeSenderEIP1559Transaction";
 import { FakeSenderTransaction } from "./transactions/FakeSenderTransaction";
 import { TxPool } from "./TxPool";
-import { TxPriorityHeap } from "./TxPriorityHeap";
+import { TransactionQueue } from "./TransactionQueue";
 import { HardhatBlockchainInterface } from "./types/HardhatBlockchainInterface";
 import { getCurrentTimestamp } from "./utils/getCurrentTimestamp";
 import { makeCommon } from "./utils/makeCommon";
@@ -125,10 +138,17 @@ export class HardhatNode extends EventEmitter {
     let stateManager: StateManager;
     let blockchain: HardhatBlockchainInterface;
     let initialBlockTimeOffset: BN | undefined;
-
+    let nextBlockBaseFeePerGas: BN | undefined;
     let forkNetworkId: number | undefined;
 
-    if ("forkConfig" in config) {
+    const initialBaseFeePerGasConfig =
+      config.initialBaseFeePerGas !== undefined
+        ? new BN(config.initialBaseFeePerGas)
+        : undefined;
+
+    const hardfork = getHardforkName(config.hardfork);
+
+    if (isForkedNodeConfig(config)) {
       const {
         forkClient,
         forkBlockNumber,
@@ -156,6 +176,24 @@ export class HardhatNode extends EventEmitter {
       initialBlockTimeOffset = new BN(
         getDifferenceInSeconds(new Date(forkBlockTimestamp), new Date())
       );
+
+      // If the hardfork is London or later we need a base fee per gas for the
+      // first local block. If initialBaseFeePerGas config was provided we use
+      // that. Otherwise, what we do depends on the block we forked from. If
+      // it's an EIP-1559 block we don't need to do anything here, as we'll
+      // end up automatically computing the next base fee per gas based on it.
+      if (hardforkGte(hardfork, HardforkName.LONDON)) {
+        if (initialBaseFeePerGasConfig !== undefined) {
+          nextBlockBaseFeePerGas = initialBaseFeePerGasConfig;
+        } else {
+          const latestBlock = await blockchain.getLatestBlock();
+          if (latestBlock.header.baseFeePerGas === undefined) {
+            nextBlockBaseFeePerGas = new BN(
+              HARDHAT_NETWORK_DEFAULT_INITIAL_BASE_FEE_PER_GAS
+            );
+          }
+        }
+      }
     } else {
       const hardhatStateManager = new HardhatStateManager();
       await hardhatStateManager.initializeGenesisAccounts(genesisAccounts);
@@ -164,7 +202,20 @@ export class HardhatNode extends EventEmitter {
       common = makeCommon(config, initialStateRoot);
 
       const hardhatBlockchain = new HardhatBlockchain();
-      await putGenesisBlock(hardhatBlockchain, common);
+
+      const genesisBlockBaseFeePerGas = hardforkGte(
+        hardfork,
+        HardforkName.LONDON
+      )
+        ? initialBaseFeePerGasConfig ??
+          new BN(HARDHAT_NETWORK_DEFAULT_INITIAL_BASE_FEE_PER_GAS)
+        : undefined;
+
+      await putGenesisBlock(
+        hardhatBlockchain,
+        common,
+        genesisBlockBaseFeePerGas
+      );
 
       if (config.initialDate !== undefined) {
         initialBlockTimeOffset = new BN(
@@ -196,7 +247,8 @@ export class HardhatNode extends EventEmitter {
       initialBlockTimeOffset,
       genesisAccounts,
       tracingConfig,
-      forkNetworkId
+      forkNetworkId,
+      nextBlockBaseFeePerGas
     );
 
     return [common, node];
@@ -242,6 +294,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   private readonly _impersonatedAccounts: Set<string> = new Set(); // address
 
   private _nextBlockTimestamp: BN = new BN(0);
+  private _userProvidedNextBlockBaseFeePerGas?: BN;
 
   private _lastFilterId = new BN(0);
   private _filters: Map<string, Filter> = new Map();
@@ -267,11 +320,16 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     private _blockTimeOffsetSeconds: BN = new BN(0),
     genesisAccounts: GenesisAccount[],
     tracingConfig?: TracingConfig,
-    private _forkNetworkId?: number
+    private _forkNetworkId?: number,
+    nextBlockBaseFee?: BN
   ) {
     super();
 
     this._initLocalAccounts(genesisAccounts);
+
+    if (nextBlockBaseFee !== undefined) {
+      this.setUserProvidedNextBlockBaseFeePerGas(nextBlockBaseFee);
+    }
 
     this._vmTracer = new VMTracer(
       this._vm,
@@ -325,7 +383,11 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     if (pk !== undefined) {
       let tx: TypedTransaction;
 
-      if (txParams.accessList !== undefined) {
+      if ("maxFeePerGas" in txParams) {
+        tx = FeeMarketEIP1559Transaction.fromTxData(txParams, {
+          common: this._vm._common,
+        });
+      } else if ("accessList" in txParams) {
         tx = AccessListEIP2930Transaction.fromTxData(txParams, {
           common: this._vm._common,
         });
@@ -401,7 +463,8 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       this.setTimeIncrement(newOffset);
     }
 
-    await this._resetNextBlockTimestamp();
+    this._resetNextBlockTimestamp();
+    this._resetUserProvidedNextBlockBaseFeePerGas();
 
     return result;
   }
@@ -410,14 +473,38 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     call: CallParams,
     blockNumberOrPending: BN | "pending"
   ): Promise<RunCallResult> {
-    const tx = await this._getFakeTransaction({
-      ...call,
-      nonce: await this._getNonce(new Address(call.from), blockNumberOrPending),
-    });
+    let txParams: TransactionParams;
+
+    const nonce = await this._getNonce(
+      new Address(call.from),
+      blockNumberOrPending
+    );
+
+    if (call.gasPrice !== undefined || !this.isEip1559Active()) {
+      txParams = {
+        gasPrice: new BN(0),
+        nonce,
+        ...call,
+      };
+    } else {
+      const maxFeePerGas =
+        call.maxFeePerGas ?? call.maxPriorityFeePerGas ?? new BN(0);
+      const maxPriorityFeePerGas = call.maxPriorityFeePerGas ?? new BN(0);
+
+      txParams = {
+        ...call,
+        nonce,
+        maxFeePerGas,
+        maxPriorityFeePerGas,
+        accessList: call.accessList ?? [],
+      };
+    }
+
+    const tx = await this._getFakeTransaction(txParams);
 
     const result = await this._runInBlockContext(
       blockNumberOrPending,
-      async () => this._runTxAndRevertMutations(tx, blockNumberOrPending)
+      async () => this._runTxAndRevertMutations(tx, blockNumberOrPending, true)
     );
 
     const traces = await this._gatherTraces(result.execResult);
@@ -506,13 +593,48 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   ): Promise<EstimateGasResult> {
     // We get the CallParams and transform it into a TransactionParams to be
     // able to run it.
-    const txParams = {
-      ...callParams,
-      nonce: await this._getNonce(
-        new Address(callParams.from),
-        blockNumberOrPending
-      ),
-    };
+    const nonce = await this._getNonce(
+      new Address(callParams.from),
+      blockNumberOrPending
+    );
+
+    // TODO: This is more complex in Geth, we should make sure we aren't missing
+    //  anything here.
+
+    const feePriceFields = await this._getEstimateGasFeePriceFields(
+      callParams,
+      blockNumberOrPending
+    );
+
+    let txParams: TransactionParams;
+
+    if ("gasPrice" in feePriceFields) {
+      if (callParams.accessList === undefined) {
+        // Legacy tx
+        txParams = {
+          ...callParams,
+          nonce,
+          gasPrice: feePriceFields.gasPrice,
+        };
+      } else {
+        // Access list tx
+        txParams = {
+          ...callParams,
+          nonce,
+          gasPrice: feePriceFields.gasPrice,
+          accessList: callParams.accessList ?? [],
+        };
+      }
+    } else {
+      // EIP-1559 tx
+      txParams = {
+        ...callParams,
+        nonce,
+        maxFeePerGas: feePriceFields.maxFeePerGas,
+        maxPriorityFeePerGas: feePriceFields.maxPriorityFeePerGas,
+        accessList: callParams.accessList ?? [],
+      };
+    }
 
     const tx = await this._getFakeTransaction(txParams);
 
@@ -566,7 +688,19 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   }
 
   public async getGasPrice(): Promise<BN> {
-    return new BN(HARDHAT_NETWORK_DEFAULT_GAS_PRICE);
+    const nextBlockBaseFeePerGas = await this.getNextBlockBaseFeePerGas();
+
+    if (nextBlockBaseFeePerGas === undefined) {
+      // We return a hardcoded value for networks without EIP-1559
+      return new BN(8e9);
+    }
+
+    const suggestedPriorityFeePerGas = new BN(1e9);
+    return nextBlockBaseFeePerGas.add(suggestedPriorityFeePerGas);
+  }
+
+  public async getMaxPriorityFeePerGas(): Promise<BN> {
+    return new BN(HARDHAT_NETWORK_DEFAULT_MAX_PRIORITY_FEE_PER_GAS);
   }
 
   public getCoinbaseAddress(): Address {
@@ -658,6 +792,32 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     this._blockTimeOffsetSeconds = this._blockTimeOffsetSeconds.add(increment);
   }
 
+  public setUserProvidedNextBlockBaseFeePerGas(baseFeePerGas: BN) {
+    this._userProvidedNextBlockBaseFeePerGas = baseFeePerGas;
+  }
+
+  public getUserProvidedNextBlockBaseFeePerGas(): BN | undefined {
+    return this._userProvidedNextBlockBaseFeePerGas;
+  }
+
+  private _resetUserProvidedNextBlockBaseFeePerGas() {
+    this._userProvidedNextBlockBaseFeePerGas = undefined;
+  }
+
+  public async getNextBlockBaseFeePerGas(): Promise<BN | undefined> {
+    if (!this.isEip1559Active()) {
+      return undefined;
+    }
+
+    const userDefined = this.getUserProvidedNextBlockBaseFeePerGas();
+    if (userDefined !== undefined) {
+      return userDefined;
+    }
+
+    const latestBlock = await this.getLatestBlock();
+    return latestBlock.header.calcNextBaseFee();
+  }
+
   public async getPendingTransaction(
     hash: Buffer
   ): Promise<TypedTransaction | undefined> {
@@ -715,6 +875,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       blockTimeOffsetSeconds: this.getTimeIncrement(),
       nextBlockTimestamp: this.getNextBlockTimestamp(),
       irregularStatesByBlockNumber: this._irregularStatesByBlockNumber,
+      userProvidedNextBlockBaseFeePerGas: this.getUserProvidedNextBlockBaseFeePerGas(),
     };
 
     this._irregularStatesByBlockNumber = new Map(
@@ -760,6 +921,14 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     this.setTimeIncrement(newOffset);
     this.setNextBlockTimestamp(snapshot.nextBlockTimestamp);
     this._txPool.revert(snapshot.txPoolSnapshotId);
+
+    if (snapshot.userProvidedNextBlockBaseFeePerGas) {
+      this.setUserProvidedNextBlockBaseFeePerGas(
+        snapshot.userProvidedNextBlockBaseFeePerGas
+      );
+    } else {
+      this._resetUserProvidedNextBlockBaseFeePerGas();
+    }
 
     // We delete this and the following snapshots, as they can only be used
     // once in Ganache
@@ -1064,7 +1233,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         }
 
         for (const tx of block.transactions) {
-          let txWithCommon: Transaction | AccessListEIP2930Transaction;
+          let txWithCommon: TypedTransaction;
           if (tx.type === 0) {
             txWithCommon = new Transaction(tx, {
               common: vm._common,
@@ -1073,9 +1242,16 @@ Hardhat Network's forking functionality only works with blocks from at least spu
             txWithCommon = new AccessListEIP2930Transaction(tx, {
               common: vm._common,
             });
+          } else if (tx.type === 2) {
+            txWithCommon = new FeeMarketEIP1559Transaction(
+              { ...tx, gasPrice: undefined },
+              {
+                common: vm._common,
+              }
+            );
           } else {
             throw new InternalError(
-              "Only legacy and EIP2930 txs are supported"
+              "Only legacy, EIP2930, and EIP1559 txs are supported"
             );
           }
 
@@ -1093,6 +1269,133 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         );
       }
     );
+  }
+
+  public async getFeeHistory(
+    blockCount: BN,
+    newestBlock: BN | "pending",
+    rewardPercentiles: number[]
+  ): Promise<FeeHistory> {
+    const latestBlock = await this.getLatestBlockNumber();
+    const pendingBlockNumber = latestBlock.addn(1);
+
+    const resolvedNewestBlock =
+      newestBlock === "pending" ? pendingBlockNumber : newestBlock;
+
+    const oldestBlock = BN.max(
+      resolvedNewestBlock.sub(blockCount).addn(1),
+      new BN(0)
+    );
+
+    const baseFeePerGas: BN[] = [];
+    const gasUsedRatio: number[] = [];
+    const reward: BN[][] = [];
+
+    const lastBlock = resolvedNewestBlock.addn(1);
+
+    // We get the pending block here, and only if necessary, as it's something
+    // constly to do.
+    let pendingBlock: Block | undefined;
+    if (lastBlock.gte(pendingBlockNumber)) {
+      pendingBlock = await this.getBlockByNumber("pending");
+    }
+
+    for (
+      let blockNumber = oldestBlock;
+      blockNumber.lte(lastBlock);
+      blockNumber = blockNumber.addn(1)
+    ) {
+      if (blockNumber.lt(pendingBlockNumber)) {
+        // We know the block exists
+        const block = (await this.getBlockByNumber(blockNumber))!;
+        baseFeePerGas.push(block.header.baseFeePerGas ?? new BN(0));
+
+        if (blockNumber.lt(lastBlock)) {
+          gasUsedRatio.push(this._getGasUsedRatio(block));
+
+          if (rewardPercentiles.length > 0) {
+            reward.push(await this._getRewards(block, rewardPercentiles));
+          }
+        }
+      } else if (blockNumber.eq(pendingBlockNumber)) {
+        // This can only be run with EIP-1559, so this exists
+        baseFeePerGas.push((await this.getNextBlockBaseFeePerGas())!);
+
+        if (blockNumber.lt(lastBlock)) {
+          gasUsedRatio.push(this._getGasUsedRatio(pendingBlock!));
+
+          if (rewardPercentiles.length > 0) {
+            // We don't compute this for the pending block, as there's no
+            // effective miner fee yet.
+            reward.push(rewardPercentiles.map((_) => new BN(0)));
+          }
+        }
+      } else if (blockNumber.eq(pendingBlockNumber.addn(1))) {
+        baseFeePerGas.push(pendingBlock!.header.calcNextBaseFee());
+      } else {
+        assertHardhatInvariant(false, "This should never happen");
+      }
+    }
+
+    return {
+      oldestBlock,
+      baseFeePerGas,
+      gasUsedRatio,
+      reward: rewardPercentiles.length > 0 ? reward : undefined,
+    };
+  }
+
+  private _getGasUsedRatio(block: Block): number {
+    const FLOATS_PRECISION = 100_000;
+
+    return (
+      block.header.gasUsed
+        .muln(FLOATS_PRECISION)
+        .div(block.header.gasLimit)
+        .toNumber() / FLOATS_PRECISION
+    );
+  }
+
+  private async _getRewards(
+    block: Block,
+    rewardPercentiles: number[]
+  ): Promise<BN[]> {
+    const FLOATS_PRECISION = 100_000;
+
+    if (block.transactions.length === 0) {
+      return rewardPercentiles.map((_) => new BN(0));
+    }
+
+    const receipts = await Promise.all(
+      block.transactions
+        .map((tx) => tx.hash())
+        .map((hash) => this.getTransactionReceipt(hash))
+    );
+
+    const effectiveGasPriceAndGas = receipts
+      .map((r) => ({
+        effectiveGasPrice: rpcQuantityToBN(r?.effectiveGasPrice!),
+        gasUsed: rpcQuantityToBN(r?.gasUsed!),
+      }))
+      .sort((a, b) => a.effectiveGasPrice.cmp(b.effectiveGasPrice));
+
+    return rewardPercentiles.map((p) => {
+      let gasUsed = new BN(0);
+      const targetGas = block.header.gasLimit
+        .muln(Math.ceil(p * FLOATS_PRECISION))
+        .divn(100 * FLOATS_PRECISION);
+
+      for (const values of effectiveGasPriceAndGas) {
+        gasUsed = gasUsed.add(values.gasUsed);
+
+        if (targetGas.lte(gasUsed)) {
+          return values.effectiveGasPrice;
+        }
+      }
+
+      return effectiveGasPriceAndGas[effectiveGasPriceAndGas.length - 1]
+        .effectiveGasPrice;
+    });
   }
 
   private async _addPendingTransaction(tx: TypedTransaction): Promise<string> {
@@ -1194,11 +1497,31 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     }
 
     // validate gas price
-    const txGasPrice = new BN((tx as any).gasPrice); // TODO remove this "as any"
-    if (txGasPrice.lt(this._minGasPrice)) {
+    const txPriorityFee = new BN(
+      "gasPrice" in tx ? tx.gasPrice : tx.maxPriorityFeePerGas
+    );
+    if (txPriorityFee.lt(this._minGasPrice)) {
       throw new InvalidInputError(
-        `Transaction gas price is ${txGasPrice}, which is below the minimum of ${this._minGasPrice}`
+        `Transaction gas price is ${txPriorityFee}, which is below the minimum of ${this._minGasPrice}`
       );
+    }
+
+    // Validate that maxFeePerGas >= next block's baseFee
+    const nextBlockGasFee = await this.getNextBlockBaseFeePerGas();
+    if (nextBlockGasFee !== undefined) {
+      if ("maxFeePerGas" in tx) {
+        if (nextBlockGasFee.gt(tx.maxFeePerGas)) {
+          throw new InvalidInputError(
+            `Transaction maxFeePerGas (${tx.maxFeePerGas}) is too low for the next block, which has a baseFeePerGas of ${nextBlockGasFee}`
+          );
+        }
+      } else {
+        if (nextBlockGasFee.gt(tx.gasPrice)) {
+          throw new InvalidInputError(
+            `Transaction gasPrice (${tx.gasPrice}) is too low for the next block, which has a baseFeePerGas of ${nextBlockGasFee}`
+          );
+        }
+      }
     }
   }
 
@@ -1213,12 +1536,14 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   ): Promise<MineBlockResult> {
     const parentBlock = await this.getLatestBlock();
 
-    const headerData = {
+    const headerData: HeaderData = {
       gasLimit: this.getBlockGasLimit(),
       coinbase: this.getCoinbaseAddress(),
       nonce: "0x0000000000000042",
       timestamp: blockTimestamp,
     };
+
+    headerData.baseFeePerGas = await this.getNextBlockBaseFeePerGas();
 
     const blockBuilder = await this._vm.buildBlock({
       parentBlock,
@@ -1232,9 +1557,12 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       const blockGasLimit = this.getBlockGasLimit();
       const minTxFee = this._getMinimalTransactionFee();
       const pendingTxs = this._txPool.getPendingTransactions();
-      const txHeap = new TxPriorityHeap(pendingTxs);
+      const transactionQueue = new TransactionQueue(
+        pendingTxs,
+        headerData.baseFeePerGas
+      );
 
-      let tx = txHeap.peek();
+      let tx = transactionQueue.getNextTransaction();
 
       const results = [];
       const receipts = [];
@@ -1243,25 +1571,20 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         blockGasLimit.sub(blockBuilder.gasUsed).gte(minTxFee) &&
         tx !== undefined
       ) {
-        if (!this._isTxMinable(tx)) {
-          txHeap.pop();
-          tx = txHeap.peek();
-          continue;
-        }
-
-        if (tx.gasLimit.gt(blockGasLimit.sub(blockBuilder.gasUsed))) {
-          txHeap.pop();
+        if (
+          !this._isTxMinable(tx, headerData.baseFeePerGas) ||
+          tx.gasLimit.gt(blockGasLimit.sub(blockBuilder.gasUsed))
+        ) {
+          transactionQueue.removeLastSenderTransactions();
         } else {
           const txResult = await blockBuilder.addTransaction(tx);
 
           traces.push(await this._gatherTraces(txResult.execResult));
           results.push(txResult);
           receipts.push(txResult.receipt);
-
-          txHeap.shift();
         }
 
-        tx = txHeap.peek();
+        tx = transactionQueue.getNextTransaction();
       }
 
       const block = await blockBuilder.build();
@@ -1293,10 +1616,20 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
   private async _getFakeTransaction(
     txParams: TransactionParams
-  ): Promise<FakeSenderAccessListEIP2930Transaction | FakeSenderTransaction> {
+  ): Promise<
+    | FakeSenderTransaction
+    | FakeSenderAccessListEIP2930Transaction
+    | FakeSenderEIP1559Transaction
+  > {
     const sender = new Address(txParams.from);
 
-    if (txParams.accessList !== undefined) {
+    if ("maxFeePerGas" in txParams && txParams.maxFeePerGas !== undefined) {
+      return new FakeSenderEIP1559Transaction(sender, txParams, {
+        common: this._vm._common,
+      });
+    }
+
+    if ("accessList" in txParams && txParams.accessList !== undefined) {
       return new FakeSenderAccessListEIP2930Transaction(sender, txParams, {
         common: this._vm._common,
       });
@@ -1478,7 +1811,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     return [blockTimestamp, offsetShouldChange, newOffset];
   }
 
-  private async _resetNextBlockTimestamp() {
+  private _resetNextBlockTimestamp() {
     this.setNextBlockTimestamp(new BN(0));
   }
 
@@ -1770,7 +2103,8 @@ Hardhat Network's forking functionality only works with blocks from at least spu
    */
   private async _runTxAndRevertMutations(
     tx: TypedTransaction,
-    blockNumberOrPending: BN | "pending"
+    blockNumberOrPending: BN | "pending",
+    forceBaseFeeZero = false
   ): Promise<EVMResult> {
     const initialStateRoot = await this._stateManager.getStateRoot();
 
@@ -1788,10 +2122,36 @@ Hardhat Network's forking functionality only works with blocks from at least spu
           block !== undefined,
           "Tried to run a tx in the context of a non-existent block"
         );
+
         blockContext = block;
 
         // we don't need to add the tx to the block because runTx doesn't
         // know anything about the txs in the current block
+      }
+
+      // NOTE: This is a workaround of both an @ethereumjs/vm limitation, and
+      //   a bug in Hardhat Network.
+      //
+      // See: https://github.com/nomiclabs/hardhat/issues/1666
+      //
+      // If this VM is running with EIP1559 activated, and the block is not
+      // an EIP1559 one, this will crash, so we create a new one that has
+      // baseFeePerGas = 0.
+      //
+      // We also have an option to force the base fee to be zero,
+      // we don't want to debit any balance nor fail any tx when running an
+      // eth_call. This will make the BASEFEE option also return 0, which
+      // shouldn't. See: https://github.com/nomiclabs/hardhat/issues/1688
+      if (
+        this.isEip1559Active() &&
+        (blockContext.header.baseFeePerGas === undefined || forceBaseFeeZero)
+      ) {
+        blockContext = Block.fromBlockData(blockContext, {
+          freeze: false,
+          common: this._vm._common,
+        });
+
+        (blockContext.header as any).baseFeePerGas = new BN(0);
       }
 
       return await this._vm.runTx({
@@ -1874,9 +2234,20 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     return txReceipt !== undefined;
   }
 
-  private _isTxMinable(tx: TypedTransaction): boolean {
-    const txGasPrice = new BN((tx as any).gasPrice);
-    return txGasPrice.gte(this._minGasPrice);
+  private _isTxMinable(
+    tx: TypedTransaction,
+    nextBlockBaseFeePerGas?: BN
+  ): boolean {
+    const txMaxFee = "gasPrice" in tx ? tx.gasPrice : tx.maxFeePerGas;
+
+    const canPayBaseFee =
+      nextBlockBaseFeePerGas !== undefined
+        ? txMaxFee.gte(nextBlockBaseFeePerGas)
+        : true;
+
+    const atLeastMinGasPrice = txMaxFee.gte(this._minGasPrice);
+
+    return canPayBaseFee && atLeastMinGasPrice;
   }
 
   private async _persistIrregularWorldState(): Promise<void> {
@@ -1884,6 +2255,47 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       (await this.getLatestBlock()).header.number.toString(),
       await this._stateManager.getStateRoot()
     );
+  }
+
+  public isEip1559Active(): boolean {
+    return this._vm._common.gteHardfork("london");
+  }
+
+  private async _getEstimateGasFeePriceFields(
+    callParams: CallParams,
+    blockNumberOrPending: BN | "pending"
+  ): Promise<
+    { gasPrice: BN } | { maxFeePerGas: BN; maxPriorityFeePerGas: BN }
+  > {
+    if (!this.isEip1559Active() || callParams.gasPrice !== undefined) {
+      return { gasPrice: callParams.gasPrice ?? (await this.getGasPrice()) };
+    }
+
+    let maxFeePerGas = callParams.maxFeePerGas;
+    let maxPriorityFeePerGas = callParams.maxPriorityFeePerGas;
+
+    if (maxPriorityFeePerGas === undefined) {
+      maxPriorityFeePerGas = await this.getMaxPriorityFeePerGas();
+
+      if (maxFeePerGas !== undefined && maxFeePerGas.lt(maxPriorityFeePerGas)) {
+        maxPriorityFeePerGas = maxFeePerGas;
+      }
+    }
+
+    if (maxFeePerGas === undefined) {
+      if (blockNumberOrPending === "pending") {
+        const baseFeePerGas = await this.getNextBlockBaseFeePerGas();
+        maxFeePerGas = baseFeePerGas!.muln(2).add(maxPriorityFeePerGas);
+      } else {
+        const block = await this.getBlockByNumber(blockNumberOrPending);
+
+        maxFeePerGas = maxPriorityFeePerGas.add(
+          block!.header.baseFeePerGas ?? new BN(0)
+        );
+      }
+    }
+
+    return { maxFeePerGas, maxPriorityFeePerGas };
   }
 }
 

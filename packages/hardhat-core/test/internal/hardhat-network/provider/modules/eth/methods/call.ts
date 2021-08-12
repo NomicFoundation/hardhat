@@ -1,5 +1,6 @@
 import { assert } from "chai";
 
+import { BN } from "ethereumjs-util";
 import {
   numberToRpcQuantity,
   rpcDataToNumber,
@@ -24,6 +25,11 @@ import {
   deployContract,
   sendTxToZeroAddress,
 } from "../../../../helpers/transactions";
+import { compileLiteral } from "../../../../stack-traces/compilation";
+import {
+  rpcDataToBN,
+  rpcQuantityToBN,
+} from "../../../../../../../src/internal/core/jsonrpc/types/base-types";
 
 describe("Eth module", function () {
   PROVIDERS.forEach(({ name, useProvider, isFork }) => {
@@ -477,7 +483,7 @@ describe("Eth module", function () {
               "eth_getBalance",
               [account, blockNumber]
             );
-            assert.equal(initialBalanceBeforeTx, "0xde0b6b3a7640000");
+            assert.equal(initialBalanceBeforeTx, "0x3635c9adc5dea00000");
 
             await sendTxToZeroAddress(this.provider, account);
 
@@ -485,7 +491,204 @@ describe("Eth module", function () {
               "eth_getBalance",
               [account, blockNumber]
             );
-            assert.equal(initialBalanceAfterTx, "0xde0b6b3a7640000");
+            assert.equal(initialBalanceAfterTx, "0x3635c9adc5dea00000");
+          });
+        });
+
+        describe("Fee price fields", function () {
+          let deploymentBytecode: string;
+          let balanceSelector: string;
+
+          before(async function () {
+            const [_, compilerOutput] = await compileLiteral(`
+contract C {
+  function balance() public view returns (uint) {
+    return msg.sender.balance;
+  }
+}
+`);
+            const contract = compilerOutput.contracts["literal.sol"].C;
+            deploymentBytecode = `0x${contract.evm.bytecode.object}`;
+            balanceSelector = `0x${contract.evm.methodIdentifiers["balance()"]}`;
+          });
+
+          const CALLER = DEFAULT_ACCOUNTS_ADDRESSES[2];
+          let contractAddress: string;
+          let ethBalance: BN;
+
+          function deployContractAndGetEthBalance() {
+            beforeEach(async function () {
+              contractAddress = await deployContract(
+                this.provider,
+                deploymentBytecode
+              );
+
+              ethBalance = rpcQuantityToBN(
+                await this.provider.send("eth_getBalance", [CALLER])
+              );
+              assert.notEqual(ethBalance.toString(), "0");
+            });
+          }
+
+          describe("When running without EIP-1559", function () {
+            useProvider({ hardfork: "berlin" });
+
+            deployContractAndGetEthBalance();
+
+            it("Should default to gasPrice 0", async function () {
+              const balanceResult = await this.provider.send("eth_call", [
+                {
+                  from: CALLER,
+                  to: contractAddress,
+                  data: balanceSelector,
+                },
+              ]);
+
+              assert.equal(
+                rpcDataToBN(balanceResult).toString(),
+                ethBalance.toString()
+              );
+            });
+
+            it("Should use any provided gasPrice", async function () {
+              const gasLimit = 200_000;
+              const gasPrice = 2;
+
+              const balanceResult = await this.provider.send("eth_call", [
+                {
+                  from: CALLER,
+                  to: contractAddress,
+                  data: balanceSelector,
+                  gas: numberToRpcQuantity(gasLimit),
+                  gasPrice: numberToRpcQuantity(gasPrice),
+                },
+              ]);
+
+              assert.isTrue(
+                rpcDataToBN(balanceResult).eq(
+                  ethBalance.subn(gasLimit * gasPrice)
+                )
+              );
+            });
+          });
+
+          describe("When running with EIP-1559", function () {
+            useProvider({ hardfork: "london" });
+
+            deployContractAndGetEthBalance();
+
+            it("Should validate that gasPrice and maxFeePerGas & maxPriorityFeePerGas are not mixed", async function () {
+              await assertInvalidInputError(
+                this.provider,
+                "eth_call",
+                [
+                  {
+                    from: CALLER,
+                    to: contractAddress,
+                    gasPrice: numberToRpcQuantity(1),
+                    maxFeePerGas: numberToRpcQuantity(1),
+                  },
+                ],
+                "Cannot send both gasPrice and maxFeePerGas"
+              );
+
+              await assertInvalidInputError(
+                this.provider,
+                "eth_call",
+                [
+                  {
+                    from: CALLER,
+                    to: contractAddress,
+                    gasPrice: numberToRpcQuantity(1),
+                    maxPriorityFeePerGas: numberToRpcQuantity(1),
+                  },
+                ],
+                "Cannot send both gasPrice and maxPriorityFeePerGas"
+              );
+            });
+
+            it("Should validate that maxFeePerGas >= maxPriorityFeePerGas", async function () {
+              await assertInvalidInputError(
+                this.provider,
+                "eth_call",
+                [
+                  {
+                    from: CALLER,
+                    to: contractAddress,
+                    maxFeePerGas: numberToRpcQuantity(1),
+                    maxPriorityFeePerGas: numberToRpcQuantity(2),
+                  },
+                ],
+                "maxPriorityFeePerGas (2) is bigger than maxFeePerGas (1)"
+              );
+            });
+
+            it("Should default to maxFeePerGas = 0 if nothing provided", async function () {
+              const balanceResult = await this.provider.send("eth_call", [
+                {
+                  from: CALLER,
+                  to: contractAddress,
+                  data: balanceSelector,
+                },
+              ]);
+
+              assert.equal(
+                rpcDataToBN(balanceResult).toString(),
+                ethBalance.toString()
+              );
+            });
+
+            it("Should use maxFeePerGas if provided with a maxPriorityFeePerGas = 0", async function () {
+              const balanceResult = await this.provider.send("eth_call", [
+                {
+                  from: CALLER,
+                  to: contractAddress,
+                  data: balanceSelector,
+                  maxFeePerGas: numberToRpcQuantity(1),
+                },
+              ]);
+
+              // This doesn't change because the baseFeePerGas of block where we
+              // run the eth_call is 0
+              assert.equal(
+                rpcDataToBN(balanceResult).toString(),
+                ethBalance.toString()
+              );
+            });
+
+            it("Should use maxPriorityFeePerGas if provided, with maxFeePerGas = maxPriorityFeePerGas", async function () {
+              const balanceResult = await this.provider.send("eth_call", [
+                {
+                  from: CALLER,
+                  to: contractAddress,
+                  data: balanceSelector,
+                  maxPriorityFeePerGas: numberToRpcQuantity(3),
+                  gas: numberToRpcQuantity(500_000),
+                },
+              ]);
+
+              // The miner will get the priority fee
+              assert.isTrue(
+                rpcDataToBN(balanceResult).eq(ethBalance.subn(500_000 * 3))
+              );
+            });
+
+            it("Should use gasPrice if provided", async function () {
+              const balanceResult = await this.provider.send("eth_call", [
+                {
+                  from: CALLER,
+                  to: contractAddress,
+                  data: balanceSelector,
+                  gasPrice: numberToRpcQuantity(6),
+                  gas: numberToRpcQuantity(500_000),
+                },
+              ]);
+
+              // The miner will get the gasPrice * gas as a normalized priority fee
+              assert.isTrue(
+                rpcDataToBN(balanceResult).eq(ethBalance.subn(500_000 * 6))
+              );
+            });
           });
         });
       });

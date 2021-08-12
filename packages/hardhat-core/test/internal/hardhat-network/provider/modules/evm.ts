@@ -71,7 +71,7 @@ describe("Evm module", function () {
             to: zeroAddress(),
             value: numberToRpcQuantity(1),
             gas: numberToRpcQuantity(21000),
-            gasPrice: numberToRpcQuantity(1),
+            maxFeePerGas: numberToRpcQuantity(1e9),
           };
 
           const firstBlock = await this.provider.send("eth_getBlockByNumber", [
@@ -598,7 +598,7 @@ describe("Evm module", function () {
               from: DEFAULT_ACCOUNTS_ADDRESSES[1],
               to: "0x1111111111111111111111111111111111111111",
               gas: numberToRpcQuantity(100000),
-              gasPrice: numberToRpcQuantity(1),
+              maxFeePerGas: numberToRpcQuantity(1e9),
               nonce: numberToRpcQuantity(1),
             },
           ]);
@@ -610,7 +610,7 @@ describe("Evm module", function () {
               from: DEFAULT_ACCOUNTS_ADDRESSES[1],
               to: "0x1111111111111111111111111111111111111111",
               gas: numberToRpcQuantity(100000),
-              gasPrice: numberToRpcQuantity(1),
+              maxFeePerGas: numberToRpcQuantity(1e9),
               nonce: numberToRpcQuantity(0),
             },
           ]);
@@ -945,7 +945,7 @@ describe("Evm module", function () {
               to: "0x1111111111111111111111111111111111111111",
               value: numberToRpcQuantity(1),
               gas: numberToRpcQuantity(100000),
-              gasPrice: numberToRpcQuantity(1),
+              maxFeePerGas: numberToRpcQuantity(1e9),
               nonce: numberToRpcQuantity(0),
             },
           ]);
@@ -975,7 +975,7 @@ describe("Evm module", function () {
               to: "0x1111111111111111111111111111111111111111",
               value: numberToRpcQuantity(0),
               gas: numberToRpcQuantity(100000),
-              gasPrice: numberToRpcQuantity(1),
+              maxFeePerGas: numberToRpcQuantity(1e9),
               nonce: numberToRpcQuantity(0),
             },
           ]);
@@ -986,7 +986,7 @@ describe("Evm module", function () {
               to: "0x1111111111111111111111111111111111111111",
               value: numberToRpcQuantity(1),
               gas: numberToRpcQuantity(100000),
-              gasPrice: numberToRpcQuantity(1),
+              maxFeePerGas: numberToRpcQuantity(1e9),
               nonce: numberToRpcQuantity(1),
             },
           ]);
@@ -1018,7 +1018,7 @@ describe("Evm module", function () {
               to: "0x1111111111111111111111111111111111111111",
               value: numberToRpcQuantity(0),
               gas: numberToRpcQuantity(100000),
-              gasPrice: numberToRpcQuantity(1),
+              maxFeePerGas: numberToRpcQuantity(1e9),
               nonce: numberToRpcQuantity(0),
             },
           ]);
@@ -1029,7 +1029,7 @@ describe("Evm module", function () {
               to: "0x1111111111111111111111111111111111111111",
               value: numberToRpcQuantity(1),
               gas: numberToRpcQuantity(100000),
-              gasPrice: numberToRpcQuantity(1),
+              maxFeePerGas: numberToRpcQuantity(1e9),
               nonce: numberToRpcQuantity(1),
             },
           ]);
@@ -1123,7 +1123,7 @@ describe("Evm module", function () {
             to: "0x1111111111111111111111111111111111111111",
             value: numberToRpcQuantity(1),
             gas: numberToRpcQuantity(100000),
-            gasPrice: numberToRpcQuantity(1),
+            maxFeePerGas: numberToRpcQuantity(1e9),
             nonce: numberToRpcQuantity(0),
           };
 
@@ -1245,7 +1245,7 @@ describe("Evm module", function () {
             to: "0x1111111111111111111111111111111111111111",
             value: numberToRpcQuantity(1),
             gas: numberToRpcQuantity(100000),
-            gasPrice: numberToRpcQuantity(1),
+            maxFeePerGas: numberToRpcQuantity(1e9),
             nonce: numberToRpcQuantity(0),
           };
 

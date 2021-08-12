@@ -17,6 +17,7 @@ export const HARDHAT_NETWORK_SUPPORTED_HARDFORKS = [
   "istanbul",
   "muirGlacier",
   "berlin",
+  "london",
 ];
 
 export const ARTIFACT_FORMAT_VERSION = "hh-sol-artifact-1";

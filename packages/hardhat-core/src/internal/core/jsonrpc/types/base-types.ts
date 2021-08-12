@@ -43,6 +43,20 @@ export const rpcUnsignedInteger = new t.Type<number>(
   t.identity
 );
 
+export const rpcQuantityAsNumber = new t.Type<BN>(
+  "Integer",
+  BN.isBN,
+  (u, c) => (isInteger(u) ? t.success(new BN(u)) : t.failure(u, c)),
+  t.identity
+);
+
+export const rpcFloat = new t.Type<number>(
+  "Float number",
+  isNumber,
+  (u, c) => (typeof u === "number" ? t.success(u) : t.failure(u, c)),
+  t.identity
+);
+
 // Conversion functions
 
 /**
@@ -131,4 +145,8 @@ function isRpcAddressString(u: unknown): u is string {
 
 function isInteger(num: unknown): num is number {
   return Number.isInteger(num);
+}
+
+function isNumber(num: unknown): num is number {
+  return typeof num === "number";
 }
