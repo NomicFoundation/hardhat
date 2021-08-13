@@ -150,6 +150,7 @@ function resolveHardhatNetworkConfig(
       ? {
           url: hardhatNetworkConfig.forking.url,
           enabled: hardhatNetworkConfig.forking.enabled ?? true,
+          httpHeaders: {},
         }
       : undefined;
 
@@ -159,9 +160,11 @@ function resolveHardhatNetworkConfig(
       forking.blockNumber = hardhatNetworkConfig?.forking?.blockNumber;
     }
   }
-  const httpHeaders = hardhatNetworkConfig?.forking?.httpHeaders;
-  if (httpHeaders !== undefined && forking !== undefined) {
-    forking.httpHeaders = hardhatNetworkConfig?.forking?.httpHeaders;
+  if (
+    forking !== undefined &&
+    hardhatNetworkConfig.forking?.httpHeaders !== undefined
+  ) {
+    forking.httpHeaders = hardhatNetworkConfig.forking.httpHeaders;
   }
 
   const mining = resolveMiningConfig(hardhatNetworkConfig.mining);
