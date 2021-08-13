@@ -160,7 +160,7 @@ function resolveHardhatNetworkConfig(
     }
   }
   const httpHeaders = hardhatNetworkConfig?.forking?.httpHeaders;
-  if (httpHeaders!== undefined && forking !== undefined) {
+  if (httpHeaders !== undefined && forking !== undefined) {
     forking.httpHeaders = hardhatNetworkConfig?.forking?.httpHeaders;
   }
 
