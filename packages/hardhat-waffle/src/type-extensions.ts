@@ -1,5 +1,5 @@
 import "hardhat/types/runtime";
-import { HardhatWaffle } from "./HardhatWaffle";
+import { HardhatWaffle } from "./types";
 
 declare module "hardhat/types/runtime" {
   interface HardhatRuntimeEnvironment {
