@@ -60,9 +60,7 @@ npx hardhat node --fork https://eth-mainnet.alchemyapi.io/v2/<key> --fork-block-
 
 ## Authorization via HTTP headers
 
-Instead of including your authorization credentials of the full node
-provider in the URL, you can e.g. use bearer token authorization via a
-custom HTTP header.
+Instead of including your authorization credentials of the full node provider in the URL, you can e.g. use bearer token authorization via a custom HTTP header.
 
 ```js
 networks: {
