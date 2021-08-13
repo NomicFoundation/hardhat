@@ -60,7 +60,7 @@ npx hardhat node --fork https://eth-mainnet.alchemyapi.io/v2/<key> --fork-block-
 
 ## Custom HTTP headers
 
-You can add extra HTTP headers that will be used in any request made to the forked node. One reason to do this is for authorization: instead of including your credentials in the URL, you can use a bearer token via a custom HTTP header.
+You can add extra HTTP headers that will be used in any request made to the forked node. One reason to do this is for authorization: instead of including your credentials in the URL, you can use a bearer token via a custom HTTP header:
 
 ```js
 networks: {
