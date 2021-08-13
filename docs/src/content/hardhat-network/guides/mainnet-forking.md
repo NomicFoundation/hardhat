@@ -58,9 +58,9 @@ If you are using the `node` task, you can also specify a block number with the `
 npx hardhat node --fork https://eth-mainnet.alchemyapi.io/v2/<key> --fork-block-number 14390000
 ```
 
-## Authorization via HTTP headers
+## Custom HTTP headers
 
-Instead of including your authorization credentials of the full node provider in the URL, you can e.g. use bearer token authorization via a custom HTTP header.
+You can add extra HTTP headers that will be used in any request made to the forked node. One reason to do this is for authorization: instead of including your credentials in the URL, you can use a bearer token via a custom HTTP header.
 
 ```js
 networks: {
