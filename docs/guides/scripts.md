@@ -48,7 +48,7 @@ drwxr-xr-x    3 fzeoli  staff      96 Jul 30 15:27 test
 
 Inside `scripts/` you will find `sample-script.js`. Read through its comments to have a better idea of what it does.
 
-<<< @/../packages/hardhat-core/sample-project/scripts/sample-script.js
+<<< @/../packages/hardhat-core/sample-projects/basic/scripts/sample-script.js
 
 Done? Before running the script with `node` you need to declare `ethers`. This is needed because Hardhat won't be injecting it on the global scope as it does when calling the `run` task.
 

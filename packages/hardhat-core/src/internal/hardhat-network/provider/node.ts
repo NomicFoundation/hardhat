@@ -688,9 +688,15 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   }
 
   public async getGasPrice(): Promise<BN> {
-    // We return a hardcoded value here, even if it might not make sense
-    // after London
-    return new BN(8e9);
+    const nextBlockBaseFeePerGas = await this.getNextBlockBaseFeePerGas();
+
+    if (nextBlockBaseFeePerGas === undefined) {
+      // We return a hardcoded value for networks without EIP-1559
+      return new BN(8e9);
+    }
+
+    const suggestedPriorityFeePerGas = new BN(1e9);
+    return nextBlockBaseFeePerGas.add(suggestedPriorityFeePerGas);
   }
 
   public async getMaxPriorityFeePerGas(): Promise<BN> {

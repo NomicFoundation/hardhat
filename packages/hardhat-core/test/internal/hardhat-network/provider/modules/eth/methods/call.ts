@@ -483,7 +483,7 @@ describe("Eth module", function () {
               "eth_getBalance",
               [account, blockNumber]
             );
-            assert.equal(initialBalanceBeforeTx, "0xde0b6b3a7640000");
+            assert.equal(initialBalanceBeforeTx, "0x3635c9adc5dea00000");
 
             await sendTxToZeroAddress(this.provider, account);
 
@@ -491,7 +491,7 @@ describe("Eth module", function () {
               "eth_getBalance",
               [account, blockNumber]
             );
-            assert.equal(initialBalanceAfterTx, "0xde0b6b3a7640000");
+            assert.equal(initialBalanceAfterTx, "0x3635c9adc5dea00000");
           });
         });
 

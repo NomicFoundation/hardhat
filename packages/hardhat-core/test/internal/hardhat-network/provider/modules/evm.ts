@@ -124,10 +124,23 @@ describe("Evm module", function () {
           );
         });
 
-        it("should expect an actual number as its first param, not a hex string", async function () {
-          await assertInvalidArgumentsError(this.provider, "evm_increaseTime", [
-            numberToRpcQuantity(123),
-          ]);
+        it("should accept a hex string param", async function () {
+          const offset1 = 123;
+          const offset2 = 1000;
+          const totalOffset1 = parseInt(
+            await this.provider.send("evm_increaseTime", [
+              numberToRpcQuantity(offset1),
+            ]),
+            10
+          );
+          const totalOffset2 = parseInt(
+            await this.provider.send("evm_increaseTime", [
+              numberToRpcQuantity(offset2),
+            ]),
+            10
+          );
+          assert.strictEqual(totalOffset1, offset1);
+          assert.strictEqual(totalOffset2, offset1 + offset2);
         });
       });
 
@@ -258,6 +271,22 @@ describe("Evm module", function () {
           timestamp = getCurrentTimestamp();
           // 200 - 1 as we use ceil to round time to seconds
           assert.isTrue(timestamp >= 199);
+        });
+
+        it("should accept a hex string param", async function () {
+          const timestamp = getCurrentTimestamp() + 60;
+
+          await this.provider.send("evm_setNextBlockTimestamp", [
+            numberToRpcQuantity(timestamp),
+          ]);
+          await this.provider.send("evm_mine", []);
+
+          const block: RpcBlockOutput = await this.provider.send(
+            "eth_getBlockByNumber",
+            ["latest", false]
+          );
+
+          assertQuantity(block.timestamp, timestamp);
         });
 
         describe("When the initial date is in the past", function () {
@@ -527,6 +556,24 @@ describe("Evm module", function () {
           assert.equal(logTx2.transactionHash, tx2Hash);
           assert.equal(rpcDataToNumber(logTx1.data), expectedGasLeft);
           assert.equal(rpcDataToNumber(logTx2.data), expectedGasLeft);
+        });
+
+        it("should accept a hex string param", async function () {
+          const blockNumber = rpcQuantityToNumber(
+            await this.provider.send("eth_blockNumber")
+          );
+
+          const timestamp = getCurrentTimestamp() + 60;
+          await this.provider.send("evm_mine", [
+            numberToRpcQuantity(timestamp),
+          ]);
+
+          const block: RpcBlockOutput = await this.provider.send(
+            "eth_getBlockByNumber",
+            [numberToRpcQuantity(blockNumber + 1), false]
+          );
+
+          assertQuantity(block.timestamp, timestamp);
         });
 
         describe("tests using sinon", () => {

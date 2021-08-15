@@ -1,6 +1,6 @@
 {
   "name": "hardhat",
-  "version": "2.5.0",
+  "version": "2.6.0",
   "author": "Nomic Labs LLC",
   "license": "SEE LICENSE IN LICENSE",
   "homepage": "https://hardhat.org",
@@ -40,7 +40,7 @@
   "files": [
     "builtin-tasks/",
     "internal/",
-    "sample-project/",
+    "sample-projects/",
     "src/",
     "types/",
     "utils/",
@@ -146,7 +146,7 @@
     "exclude": [
       "**/*.d.ts",
       "dev-build",
-      "sample-project",
+      "sample-projects",
       "test",
       "coverage",
       ".nyc_output",

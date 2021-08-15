@@ -24,6 +24,10 @@ import { ModulesLogger } from "./logger";
 
 /* eslint-disable @nomiclabs/only-hardhat-error */
 
+// Type to accept decimal or hex-encoded params (for test rpc methods only)
+const rpcQuantityOrNumber = t.union([rpcQuantity, t.number]);
+type RpcQuantityOrNumber = t.TypeOf<typeof rpcQuantityOrNumber>;
+
 export class EvmModule {
   constructor(
     private readonly _node: HardhatNode,
@@ -73,12 +77,12 @@ export class EvmModule {
 
   // evm_setNextBlockTimestamp
 
-  private _setNextBlockTimestampParams(params: any[]): [number] {
-    return validateParams(params, t.number);
+  private _setNextBlockTimestampParams(params: any[]): [RpcQuantityOrNumber] {
+    return validateParams(params, rpcQuantityOrNumber);
   }
 
   private async _setNextBlockTimestampAction(
-    timestamp: number
+    timestamp: RpcQuantityOrNumber
   ): Promise<string> {
     const latestBlock = await this._node.getLatestBlock();
     const increment = new BN(timestamp).sub(
@@ -96,11 +100,13 @@ export class EvmModule {
 
   // evm_increaseTime
 
-  private _increaseTimeParams(params: any[]): [number] {
-    return validateParams(params, t.number);
+  private _increaseTimeParams(params: any[]): [RpcQuantityOrNumber] {
+    return validateParams(params, rpcQuantityOrNumber);
   }
 
-  private async _increaseTimeAction(increment: number): Promise<string> {
+  private async _increaseTimeAction(
+    increment: RpcQuantityOrNumber
+  ): Promise<string> {
     this._node.increaseTime(new BN(increment));
     const totalIncrement = this._node.getTimeIncrement();
     // This RPC call is an exception: it returns a number in decimal
@@ -109,14 +115,14 @@ export class EvmModule {
 
   // evm_mine
 
-  private _mineParams(params: any[]): [number] {
+  private _mineParams(params: any[]): [RpcQuantityOrNumber] {
     if (params.length === 0) {
       params.push(0);
     }
-    return validateParams(params, t.number);
+    return validateParams(params, rpcQuantityOrNumber);
   }
 
-  private async _mineAction(timestamp: number): Promise<string> {
+  private async _mineAction(timestamp: RpcQuantityOrNumber): Promise<string> {
     // if timestamp is specified, make sure it is bigger than previous
     // block's timestamp
     if (timestamp !== 0) {
