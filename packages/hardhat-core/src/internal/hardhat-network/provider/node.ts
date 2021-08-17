@@ -1235,20 +1235,50 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         for (const tx of block.transactions) {
           let txWithCommon: TypedTransaction;
           if (tx.type === 0) {
-            txWithCommon = new Transaction(tx, {
-              common: vm._common,
-            });
-          } else if (tx.type === 1) {
-            txWithCommon = new AccessListEIP2930Transaction(tx, {
-              common: vm._common,
-            });
-          } else if (tx.type === 2) {
-            txWithCommon = new FeeMarketEIP1559Transaction(
-              { ...tx, gasPrice: undefined },
-              {
+            if (tx instanceof FakeSenderTransaction) {
+              txWithCommon = new FakeSenderTransaction(
+                tx.getSenderAddress(),
+                tx,
+                {
+                  common: vm._common,
+                }
+              );
+            } else {
+              txWithCommon = new Transaction(tx, {
                 common: vm._common,
-              }
-            );
+              });
+            }
+          } else if (tx.type === 1) {
+            if (tx instanceof FakeSenderAccessListEIP2930Transaction) {
+              txWithCommon = new FakeSenderAccessListEIP2930Transaction(
+                tx.getSenderAddress(),
+                tx,
+                {
+                  common: vm._common,
+                }
+              );
+            } else {
+              txWithCommon = new AccessListEIP2930Transaction(tx, {
+                common: vm._common,
+              });
+            }
+          } else if (tx.type === 2) {
+            if (tx instanceof FakeSenderEIP1559Transaction) {
+              txWithCommon = new FakeSenderEIP1559Transaction(
+                tx.getSenderAddress(),
+                { ...tx, gasPrice: undefined },
+                {
+                  common: vm._common,
+                }
+              );
+            } else {
+              txWithCommon = new FeeMarketEIP1559Transaction(
+                { ...tx, gasPrice: undefined },
+                {
+                  common: vm._common,
+                }
+              );
+            }
           } else {
             throw new InternalError(
               "Only legacy, EIP2930, and EIP1559 txs are supported"
