@@ -655,7 +655,7 @@ describe("Ethers plugin", function () {
 
             // wait for 1.5 polling intervals for the event to fire
             await new Promise((resolve) =>
-              setTimeout(resolve, provider.pollingInterval * 1.5)
+              setTimeout(resolve, provider.pollingInterval * 2)
             );
 
             assert.equal(eventEmitted, true);
