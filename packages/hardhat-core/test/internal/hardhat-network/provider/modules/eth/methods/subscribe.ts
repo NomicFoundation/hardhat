@@ -1,5 +1,6 @@
 import { assert } from "chai";
 import { zeroAddress } from "ethereumjs-util";
+import WebSocket from "ws";
 
 import { numberToRpcQuantity } from "../../../../../../../internal/core/jsonrpc/types/base-types";
 import {
@@ -28,7 +29,7 @@ describe("Eth module", function () {
       setCWD();
       useProvider();
 
-      describe("eth_subscribe", async function () {
+      describe("eth_subscribe (in-process)", async function () {
         if (name === "JSON-RPC") {
           return;
         }
@@ -154,6 +155,76 @@ describe("Eth module", function () {
 
           assert.lengthOf(getResults().notificationsResults, 1);
           assert.lengthOf(getResults().messageResults, 1);
+        });
+      });
+
+      describe("eth_subscribe (websocket)", function () {
+        let ws: WebSocket;
+
+        beforeEach(function () {
+          if (this.serverInfo !== undefined) {
+            const { address, port } = this.serverInfo;
+            ws = new WebSocket(`ws://${address}:${port}`);
+          } else {
+            this.skip();
+          }
+        });
+
+        it("Supports newHeads subscribe", async function () {
+          // wait until the connection is ready
+          await new Promise((resolve) => ws.on("open", resolve));
+
+          // get the subscription id
+          const subscriptionPromise = new Promise<string>((resolve) => {
+            const listener: any = (message: any) => {
+              const { result } = JSON.parse(message.toString());
+
+              ws.removeListener("message", listener);
+              resolve(result);
+            };
+
+            ws.on("message", listener);
+          });
+
+          ws.send(
+            JSON.stringify({
+              jsonrpc: "2.0",
+              id: 1,
+              method: "eth_subscribe",
+              params: ["newHeads"],
+            })
+          );
+
+          const subscription = await subscriptionPromise;
+
+          // get the new block event
+          const newBlockEventPromise = new Promise<any>((resolve) => {
+            const listener: any = (message: any) => {
+              const parsedMessage = JSON.parse(message.toString());
+
+              ws.removeListener("message", listener);
+              resolve(parsedMessage);
+            };
+
+            ws.on("message", listener);
+          });
+
+          ws.send(
+            JSON.stringify({
+              jsonrpc: "2.0",
+              id: 1,
+              method: "evm_mine",
+              params: [],
+            })
+          );
+
+          const newBlockEvent = await newBlockEventPromise;
+
+          // check new block event values
+          assert.equal(newBlockEvent.method, "eth_subscription");
+          assert.equal(newBlockEvent.params.subscription, subscription);
+
+          ws.close();
         });
       });
     });
