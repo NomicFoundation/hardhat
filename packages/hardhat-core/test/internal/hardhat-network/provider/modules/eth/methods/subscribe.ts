@@ -47,7 +47,7 @@ describe("Eth module", function () {
             }
           };
 
-          ethereumProvider.addListener("notifications", notificationsListener);
+          ethereumProvider.addListener("notification", notificationsListener);
 
           const messageResults: any[] = [];
           const messageListener = (event: ProviderMessage) => {
