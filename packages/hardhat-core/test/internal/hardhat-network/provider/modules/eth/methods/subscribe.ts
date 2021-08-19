@@ -29,7 +29,7 @@ describe("Eth module", function () {
       setCWD();
       useProvider();
 
-      describe("eth_subscribe (in-process)", async function () {
+      describe("eth_subscribe (in-process)", function () {
         if (name === "JSON-RPC") {
           return;
         }
@@ -161,20 +161,92 @@ describe("Eth module", function () {
       describe("eth_subscribe (websocket)", function () {
         let ws: WebSocket;
 
-        beforeEach(function () {
+        beforeEach(async function () {
           if (this.serverInfo !== undefined) {
             const { address, port } = this.serverInfo;
             ws = new WebSocket(`ws://${address}:${port}`);
+
+            // wait until the connection is ready
+            await new Promise((resolve) => ws.on("open", resolve));
           } else {
             this.skip();
           }
         });
 
-        it("Supports newHeads subscribe", async function () {
-          // wait until the connection is ready
-          await new Promise((resolve) => ws.on("open", resolve));
+        afterEach(function () {
+          if (ws !== undefined) {
+            ws.close();
+          }
+        });
 
-          // get the subscription id
+        it("Supports newHeads subscribe", async function () {
+          const subscription = await subscribeTo("newHeads");
+
+          const newBlockEvent = await sendMethodAndReturnEvent(
+            "evm_mine",
+            [],
+            subscription
+          );
+
+          assert.equal(newBlockEvent.method, "eth_subscription");
+          assert.equal(newBlockEvent.params.subscription, subscription);
+        });
+
+        it("Supports newPendingTransactions subscribe", async function () {
+          const subscription = await subscribeTo("newPendingTransactions");
+
+          const { result: accounts } = await sendMethod("eth_accounts");
+
+          const newPendingTransactionEvent = await sendMethodAndReturnEvent(
+            "eth_sendTransaction",
+            [
+              {
+                from: accounts[0],
+                to: accounts[0],
+              },
+            ],
+            subscription
+          );
+
+          assert.equal(newPendingTransactionEvent.method, "eth_subscription");
+          assert.equal(
+            newPendingTransactionEvent.params.subscription,
+            subscription
+          );
+        });
+
+        it("Supports logs subscribe", async function () {
+          const { result: accounts } = await sendMethod("eth_accounts");
+
+          const exampleContract = await deployContractWs(
+            `0x${EXAMPLE_CONTRACT.bytecode.object}`,
+            accounts[0]
+          );
+
+          const subscription = await subscribeTo("newPendingTransactions", {
+            address: exampleContract,
+          });
+
+          const newState =
+            "000000000000000000000000000000000000000000000000000000000000007b";
+
+          const newLogEvent = await sendMethodAndReturnEvent(
+            "eth_sendTransaction",
+            [
+              {
+                from: accounts[0],
+                to: exampleContract,
+                data: EXAMPLE_CONTRACT.selectors.modifiesState + newState,
+              },
+            ],
+            subscription
+          );
+
+          assert.equal(newLogEvent.method, "eth_subscription");
+          assert.equal(newLogEvent.params.subscription, subscription);
+        });
+
+        async function subscribeTo(event: string, ...extraParams: any[]) {
           const subscriptionPromise = new Promise<string>((resolve) => {
             const listener: any = (message: any) => {
               const { result } = JSON.parse(message.toString());
@@ -191,19 +263,68 @@ describe("Eth module", function () {
               jsonrpc: "2.0",
               id: 1,
               method: "eth_subscribe",
-              params: ["newHeads"],
+              params: [event, ...extraParams],
             })
           );
 
           const subscription = await subscriptionPromise;
 
-          // get the new block event
-          const newBlockEventPromise = new Promise<any>((resolve) => {
+          return subscription;
+        }
+
+        /**
+         * Send `method` with `params` and get the result.
+         */
+        async function sendMethod(method: string, params: any = []) {
+          const id = Math.floor(Math.random() * 1_000_000_000);
+
+          const resultPromise = new Promise<any>((resolve) => {
             const listener: any = (message: any) => {
               const parsedMessage = JSON.parse(message.toString());
 
-              ws.removeListener("message", listener);
-              resolve(parsedMessage);
+              if (parsedMessage.id === id) {
+                ws.removeListener("message", listener);
+                resolve(parsedMessage);
+              }
+            };
+
+            ws.on("message", listener);
+          });
+
+          ws.send(
+            JSON.stringify({
+              jsonrpc: "2.0",
+              id,
+              method,
+              params,
+            })
+          );
+
+          const result = await resultPromise;
+
+          return result;
+        }
+
+        /**
+         * Send `method` with `params` and get the first message that corresponds to
+         * the given subscription.
+         */
+        async function sendMethodAndReturnEvent(
+          method: string,
+          params: any = [],
+          subscription: string
+        ) {
+          const eventPromise = new Promise<any>((resolve) => {
+            const listener: any = (message: any) => {
+              const parsedMessage = JSON.parse(message.toString());
+
+              if (
+                subscription !== undefined &&
+                parsedMessage.params?.subscription === subscription
+              ) {
+                ws.removeListener("message", listener);
+                resolve(parsedMessage);
+              }
             };
 
             ws.on("message", listener);
@@ -213,19 +334,33 @@ describe("Eth module", function () {
             JSON.stringify({
               jsonrpc: "2.0",
               id: 1,
-              method: "evm_mine",
-              params: [],
+              method,
+              params,
             })
           );
 
-          const newBlockEvent = await newBlockEventPromise;
+          const event = await eventPromise;
 
-          // check new block event values
-          assert.equal(newBlockEvent.method, "eth_subscription");
-          assert.equal(newBlockEvent.params.subscription, subscription);
+          return event;
+        }
 
-          ws.close();
-        });
+        /**
+         * Helper function to deploy a contract via ws
+         */
+        async function deployContractWs(bytecode: string, from: string) {
+          const { result: txHash } = await sendMethod("eth_sendTransaction", [
+            {
+              from,
+              data: bytecode,
+            },
+          ]);
+
+          const {
+            result: receipt,
+          } = await sendMethod("eth_getTransactionReceipt", [txHash]);
+
+          return receipt.contractAddress;
+        }
       });
     });
   });
