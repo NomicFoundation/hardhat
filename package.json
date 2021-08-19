@@ -5,7 +5,8 @@
   "license": "SEE LICENSE IN EACH PACKAGE'S LICENSE FILE",
   "private": true,
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "docs"
   ],
   "devDependencies": {
     "@changesets/cli": "^2.16.0",
