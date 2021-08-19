@@ -29,7 +29,7 @@ Enable the Truffle 5 plugin on your Hardhat config file by requiring it:
 require("@nomiclabs/hardhat-truffle5");
 
 module.exports = {
-  solidity: "0.7.3",
+  solidity: "0.7.3"
 };
 ```
 
@@ -67,8 +67,8 @@ Let's start with the code below. We'll explain it next, but for now paste this i
 const Greeter = artifacts.require("Greeter");
 
 // Traditional Truffle test
-contract("Greeter", (accounts) => {
-  it("Should return the new greeting once it's changed", async function () {
+contract("Greeter", accounts => {
+  it("Should return the new greeting once it's changed", async function() {
     const greeter = await Greeter.new("Hello, world!");
     assert.equal(await greeter.greet(), "Hello, world!");
 
@@ -79,15 +79,15 @@ contract("Greeter", (accounts) => {
 });
 
 // Vanilla Mocha test. Increased compatibility with tools that integrate Mocha.
-describe("Greeter contract", function () {
+describe("Greeter contract", function() {
   let accounts;
 
-  before(async function () {
+  before(async function() {
     accounts = await web3.eth.getAccounts();
   });
 
-  describe("Deployment", function () {
-    it("Should deploy with the right greeting", async function () {
+  describe("Deployment", function() {
+    it("Should deploy with the right greeting", async function() {
       const greeter = await Greeter.new("Hello, world!");
       assert.equal(await greeter.greet(), "Hello, world!");
 
@@ -137,8 +137,8 @@ To use Web3.js in your tests, an instance of it is available in the global scope
 const Greeter = artifacts.require("Greeter");
 
 // Traditional Truffle test
-contract("Greeter", (accounts) => {
-  it("Should return the new greeting once it's changed", async function () {
+contract("Greeter", accounts => {
+  it("Should return the new greeting once it's changed", async function() {
     const greeter = await Greeter.new("Hello, world!");
     assert.equal(await greeter.greet(), "Hello, world!");
 
@@ -149,15 +149,15 @@ contract("Greeter", (accounts) => {
 });
 
 // Vanilla Mocha test. Increased compatibility with tools that integrate Mocha.
-describe("Greeter contract", function () {
+describe("Greeter contract", function() {
   let accounts;
 
-  before(async function () {
+  before(async function() {
     accounts = await web3.eth.getAccounts();
   });
 
-  describe("Deployment", function () {
-    it("Should deploy with the right greeting", async function () {
+  describe("Deployment", function() {
+    it("Should deploy with the right greeting", async function() {
       const greeter = await Greeter.new("Hello, world!");
       assert.equal(await greeter.greet(), "Hello, world!");
 

@@ -26,7 +26,7 @@ async function main() {
 
 main()
   .then(() => process.exit(0))
-  .catch((error) => {
+  .catch(error => {
     console.error(error);
     process.exit(1);
   });
@@ -69,9 +69,9 @@ module.exports = {
   networks: {
     ropsten: {
       url: `https://eth-ropsten.alchemyapi.io/v2/${ALCHEMY_API_KEY}`,
-      accounts: [`0x${ROPSTEN_PRIVATE_KEY}`],
-    },
-  },
+      accounts: [`0x${ROPSTEN_PRIVATE_KEY}`]
+    }
+  }
 };
 ```
 

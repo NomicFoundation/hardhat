@@ -27,7 +27,7 @@ If you need to customize the Solidity compiler options, then you can do so throu
 
 ```js
 module.exports = {
-  solidity: "0.7.1",
+  solidity: "0.7.1"
 };
 ```
 
@@ -48,10 +48,10 @@ module.exports = {
     settings: {
       optimizer: {
         enabled: true,
-        runs: 1000,
-      },
-    },
-  },
+        runs: 1000
+      }
+    }
+  }
 };
 ```
 
@@ -72,14 +72,14 @@ module.exports = {
   solidity: {
     compilers: [
       {
-        version: "0.5.5",
+        version: "0.5.5"
       },
       {
         version: "0.6.7",
-        settings: {},
-      },
-    ],
-  },
+        settings: {}
+      }
+    ]
+  }
 };
 ```
 

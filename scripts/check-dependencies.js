@@ -11,9 +11,9 @@ const IGNORE_FOR_PACKAGES = {
   "@types/chai": ["@nomiclabs/hardhat-truffle4", "@nomiclabs/hardhat-truffle5"],
   "truffle-contract": [
     "@nomiclabs/hardhat-truffle4",
-    "@nomiclabs/hardhat-truffle5",
+    "@nomiclabs/hardhat-truffle5"
   ],
-  ethers: ["@nomiclabs/hardhat-etherscan"],
+  ethers: ["@nomiclabs/hardhat-etherscan"]
 };
 
 function checkPeerDepedencies(packageJson) {
@@ -124,7 +124,7 @@ function mergeDependenciesMap(dependencyMaps) {
 function getAllPackageJsonPaths() {
   const packageNames = fs.readdirSync(path.join(__dirname, "..", "packages"));
 
-  const packageJsons = packageNames.map((p) =>
+  const packageJsons = packageNames.map(p =>
     path.join(__dirname, "..", "packages", p, "package.json")
   );
 

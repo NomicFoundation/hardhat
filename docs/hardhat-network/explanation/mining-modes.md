@@ -21,7 +21,7 @@ You can get the list of pending transactions that will be included in the next b
 ```js
 const pendingBlock = await network.provider.send("eth_getBlockByNumber", [
   "pending",
-  false,
+  false
 ]);
 ```
 

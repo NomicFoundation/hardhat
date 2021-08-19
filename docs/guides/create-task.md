@@ -140,7 +140,7 @@ require("@nomiclabs/hardhat-web3");
 
 task("balance", "Prints an account's balance")
   .addParam("account", "The account's address")
-  .setAction(async (taskArgs) => {
+  .setAction(async taskArgs => {
     const account = web3.utils.toChecksumAddress(taskArgs.account);
     const balance = await web3.eth.getBalance(account);
 
@@ -168,7 +168,7 @@ Creating a task is done by calling the `task` function. It will return a `TaskDe
 The simplest task you can define is
 
 ```js
-task("hello", "Prints 'Hello, World!'", async function (
+task("hello", "Prints 'Hello, World!'", async function(
   taskArguments,
   hre,
   runSuper
@@ -313,7 +313,7 @@ task("hello-world", "Prints a hello world message").setAction(
 
 subtask("print", "Prints a message")
   .addParam("message", "The message to print")
-  .setAction(async (taskArgs) => {
+  .setAction(async taskArgs => {
     console.log(taskArgs.message);
   });
 ```

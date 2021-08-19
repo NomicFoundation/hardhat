@@ -76,7 +76,7 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
  * @type import('hardhat/config').HardhatUserConfig
  */
 module.exports = {
-  solidity: "0.7.3",
+  solidity: "0.7.3"
 };
 ```
 
@@ -100,7 +100,7 @@ task("accounts", "Prints the list of accounts", async (args, hre) => {
 // Go to https://hardhat.org/config/ to learn more
 
 export default {
-  solidity: "0.7.3",
+  solidity: "0.7.3"
 };
 ```
 
@@ -136,14 +136,14 @@ An example for tests:
 import { ethers } from "hardhat";
 import { Signer } from "ethers";
 
-describe("Token", function () {
+describe("Token", function() {
   let accounts: Signer[];
 
-  beforeEach(async function () {
+  beforeEach(async function() {
     accounts = await ethers.getSigners();
   });
 
-  it("should do something right", async function () {
+  it("should do something right", async function() {
     // Do something with the accounts
   });
 });
@@ -161,13 +161,13 @@ async function main() {
 
   console.log(
     "Accounts:",
-    accounts.map((a) => a.address)
+    accounts.map(a => a.address)
   );
 }
 
 main()
   .then(() => process.exit(0))
-  .catch((error) => {
+  .catch(error => {
     console.error(error);
     process.exit(1);
   });
@@ -200,11 +200,11 @@ Typescript allows defining custom [path mappings](https://www.typescriptlang.org
 ```json5
 {
   compilerOptions: {
-    paths: { "~/*": ["src/*"] },
+    paths: { "~/*": ["src/*"] }
     // ...Other compilerOptions
   },
   include: ["./scripts", "./test"],
-  files: ["./hardhat.config.ts"],
+  files: ["./hardhat.config.ts"]
 }
 ```
 

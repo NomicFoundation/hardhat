@@ -23,7 +23,7 @@ For example, this migration:
 ```js
 const Greeter = artifacts.require("Greeter");
 
-module.exports = function (deployer) {
+module.exports = function(deployer) {
   deployer.deploy(Greeter);
 };
 ```

@@ -80,10 +80,10 @@ await network.provider.request({
     {
       forking: {
         jsonRpcUrl: "https://eth-mainnet.alchemyapi.io/v2/<key>",
-        blockNumber: 11095000,
-      },
-    },
-  ],
+        blockNumber: 11095000
+      }
+    }
+  ]
 });
 ```
 
@@ -92,7 +92,7 @@ You can disable forking by passing empty params:
 ```ts
 await network.provider.request({
   method: "hardhat_reset",
-  params: [],
+  params: []
 });
 ```
 
