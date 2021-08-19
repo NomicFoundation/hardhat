@@ -273,48 +273,50 @@ describe("Eth module", function () {
         });
 
         it("'block' event works", async function () {
-          return new Promise(async (resolve) => {
-            provider.on("block", resolve);
+          const onBlock = new Promise((resolve) =>
+            provider.on("block", resolve)
+          );
 
-            // If we call evm_mine immediately, the event won't be triggered
-            // ideally `.on` would be async and resolve when the subscription is
-            // registered, but that doesn't seem to be possible. So we wait a bit.
-            await sleep(100);
+          // If we call evm_mine immediately, the event won't be triggered
+          // ideally `.on` would be async and resolve when the subscription is
+          // registered, but that doesn't seem to be possible. So we wait a bit.
+          await sleep(100);
+          await provider.send("evm_mine", []);
 
-            await provider.send("evm_mine", []);
-          });
+          return onBlock;
         });
 
         it("'pending' event works", async function () {
-          return new Promise(async (resolve) => {
-            provider.on("pending", resolve);
-            await sleep(100);
+          const onPending = new Promise((resolve) =>
+            provider.on("pending", resolve)
+          );
+          await sleep(100);
 
-            const signer = provider.getSigner();
-
-            await signer.sendTransaction({
-              to: await signer.getAddress(),
-            });
+          const signer = provider.getSigner();
+          await signer.sendTransaction({
+            to: await signer.getAddress(),
           });
+
+          return onPending;
         });
 
         it("contract events work", async function () {
-          return new Promise(async (resolve) => {
-            const signer = provider.getSigner();
+          const signer = provider.getSigner();
+          const Factory = new ethers.ContractFactory(
+            EXAMPLE_CONTRACT.abi,
+            EXAMPLE_CONTRACT.bytecode,
+            signer
+          );
+          const contract = await Factory.deploy();
 
-            const Factory = new ethers.ContractFactory(
-              EXAMPLE_CONTRACT.abi,
-              EXAMPLE_CONTRACT.bytecode,
-              signer
-            );
+          const onContractEvent = new Promise((resolve) =>
+            contract.on("StateModified", resolve)
+          );
+          await sleep(100);
 
-            const contract = await Factory.deploy();
+          await contract.modifiesState(1);
 
-            contract.on("StateModified", resolve);
-            await sleep(100);
-
-            await contract.modifiesState(1);
-          });
+          return onContractEvent;
         });
       });
     });
