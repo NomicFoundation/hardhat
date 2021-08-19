@@ -1,5 +1,6 @@
 import { assert } from "chai";
 import { zeroAddress } from "ethereumjs-util";
+import { ethers } from "ethers";
 import WebSocket from "ws";
 
 import { numberToRpcQuantity } from "../../../../../../../internal/core/jsonrpc/types/base-types";
@@ -15,6 +16,7 @@ import {
   DEFAULT_ACCOUNTS_ADDRESSES,
   PROVIDERS,
 } from "../../../../helpers/providers";
+import { sleep } from "../../../../helpers/sleep";
 import { deployContract } from "../../../../helpers/transactions";
 
 describe("Eth module", function () {
@@ -361,6 +363,66 @@ describe("Eth module", function () {
 
           return receipt.contractAddress;
         }
+      });
+
+      describe("eth_subscribe (ethers.WebSocketProvider)", function () {
+        let provider: ethers.providers.WebSocketProvider;
+
+        beforeEach(async function () {
+          if (this.serverInfo !== undefined) {
+            const { address, port } = this.serverInfo;
+            provider = new ethers.providers.WebSocketProvider(
+              `ws://${address}:${port}`
+            );
+          } else {
+            this.skip();
+          }
+        });
+
+        it("'block' event works", async function () {
+          return new Promise(async (resolve) => {
+            provider.on("block", resolve);
+
+            // If we call evm_mine immediately, the event won't be triggered
+            // ideally `.on` would be async and resolve when the subscription is
+            // registered, but that doesn't seem to be possible. So we wait a bit.
+            await sleep(100);
+
+            await provider.send("evm_mine", []);
+          });
+        });
+
+        it("'pending' event works", async function () {
+          return new Promise(async (resolve) => {
+            provider.on("pending", resolve);
+            await sleep(100);
+
+            const signer = provider.getSigner();
+
+            await signer.sendTransaction({
+              to: await signer.getAddress(),
+            });
+          });
+        });
+
+        it("contract events work", async function () {
+          return new Promise(async (resolve) => {
+            const signer = provider.getSigner();
+
+            const Factory = new ethers.ContractFactory(
+              EXAMPLE_CONTRACT.abi,
+              EXAMPLE_CONTRACT.bytecode,
+              signer
+            );
+
+            const contract = await Factory.deploy();
+
+            contract.on("StateModified", resolve);
+            await sleep(100);
+
+            await contract.modifiesState(1);
+          });
+        });
       });
     });
   });
