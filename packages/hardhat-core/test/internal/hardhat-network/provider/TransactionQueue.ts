@@ -231,6 +231,36 @@ describe(`TxPriorityHeap (tests using seed ${bufferToHex(SEED)})`, () => {
         assert.equal(queue.getNextTransaction(), tx1.data);
       });
 
+      it("Should use the order to sort txs in FIFO mode", function () {
+        const baseFee = new BN(15);
+
+        // Effective miner fee: 96
+        const tx1 = createTestTransaction({ gasPrice: 111 });
+
+        // Effective miner fee: 100
+        const tx2 = createTestTransaction({
+          maxFeePerGas: 120,
+          maxPriorityFeePerGas: 100,
+        });
+
+        // Effective miner fee: 110
+        const tx3 = createTestTransaction({
+          maxFeePerGas: 140,
+          maxPriorityFeePerGas: 110,
+        });
+
+        const txs = [tx1, tx2, tx3];
+        const queue = new TransactionQueue(
+          makeOrderedTxMap(txs),
+          "fifo",
+          baseFee
+        );
+
+        assert.equal(queue.getNextTransaction(), tx1.data);
+        assert.equal(queue.getNextTransaction(), tx2.data);
+        assert.equal(queue.getNextTransaction(), tx3.data);
+      });
+
       it("Should not include transactions from a sender whose next tx was discarded", function () {
         const baseFee = new BN(20);
 
