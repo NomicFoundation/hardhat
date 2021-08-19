@@ -59,7 +59,7 @@ module.exports = {
 
 - `optimizer`: an object with `enabled` and `runs` keys. Default value: `{ enabled: false, runs: 200 }`.
 
-- `evmVersion`: a string controlling the target evm version. One of `homestead`, `tangerineWhistle`, `spuriousDragon`, `byzantium`, `constantinople`, `petersburg`, `istanbul`, and `berlin`. Default value: managed by `solc`.
+- `evmVersion`: a string controlling the target evm version. For example: `istanbul`, `berlin` or `london`. Default value: managed by `solc`.
 
 If any of your contracts have a version pragma that is not satisfied by the compiler version you configured, then Hardhat will throw an error.
 
