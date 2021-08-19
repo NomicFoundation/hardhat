@@ -2,7 +2,7 @@ The Hardhat Network functionality is licensed under the NOMIC LABS DEVELOPER
 LICENSE AGREEMENT as defined below. This includes the source code contained
 in the directories "src/internal/hardhat-network" and "test/internal/hardhat-network"
 as well as the compiled code in the "internal/hardhat-network" directory of the
-"hardhat" NPM package. The contents of the "sample-project/" 
+"hardhat" NPM package. The contents of the "sample-projects/"
 directory is licensed under the The Unlicense as defined below. All other 
 Hardhat code is licensed under the MIT License as defined below.
 

@@ -10,7 +10,7 @@ declare module "mocha" {
 }
 
 export function useFixture(project: string) {
-  beforeEach(`using project "${project}"`, function () {
+  before(`using project "${project}"`, function () {
     const fixturePath = path.join(__dirname, "fixture-projects", project);
 
     const tmpDirContainer = os.tmpdir();
