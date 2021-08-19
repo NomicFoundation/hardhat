@@ -28,7 +28,7 @@ describe("Eth module", function () {
       setCWD();
       useProvider();
 
-      describe("eth_subscribe", async function () {
+      describe("eth_subscribe", function () {
         if (name === "JSON-RPC") {
           return;
         }
@@ -47,7 +47,7 @@ describe("Eth module", function () {
             }
           };
 
-          ethereumProvider.addListener("notifications", notificationsListener);
+          ethereumProvider.addListener("notification", notificationsListener);
 
           const messageResults: any[] = [];
           const messageListener = (event: ProviderMessage) => {

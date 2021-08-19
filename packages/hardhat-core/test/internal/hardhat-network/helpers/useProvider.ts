@@ -28,6 +28,7 @@ declare module "mocha" {
     provider: EthereumProvider;
     hardhatNetworkProvider: HardhatNetworkProvider;
     server?: JsonRpcServer;
+    serverInfo?: { address: string; port: number };
   }
 }
 
@@ -92,7 +93,7 @@ export function useProvider({
         hostname: "localhost",
         provider: this.provider,
       });
-      await this.server.listen();
+      this.serverInfo = await this.server.listen();
 
       this.provider = new BackwardsCompatibilityProviderAdapter(
         this.server.getProvider()
@@ -111,6 +112,7 @@ export function useProvider({
     if (this.server !== undefined) {
       await this.server.close();
       delete this.server;
+      delete this.serverInfo;
     }
   });
 }
