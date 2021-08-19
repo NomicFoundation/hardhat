@@ -54,6 +54,16 @@ describe("Eth module", function () {
           assert.equal(newBlockEvent.params.subscription, subscription);
         });
 
+        it("Supports unsubscribe", async function () {
+          const subscription = await subscribeTo("newHeads");
+          const noSubscriptionPromise = checkNoSubscription(subscription, 100);
+          await sendMethod("eth_unsubscribe", [subscription]);
+
+          await sendMethod("evm_mine", []);
+
+          await noSubscriptionPromise;
+        });
+
         it("Supports newPendingTransactions subscribe", async function () {
           const subscription = await subscribeTo("newPendingTransactions");
 
@@ -204,6 +214,29 @@ describe("Eth module", function () {
           const event = await eventPromise;
 
           return event;
+        }
+
+        function checkNoSubscription(subscription: string, timeout: number) {
+          return new Promise((resolve, reject) => {
+            const listener: any = (message: any) => {
+              const parsedMessage = JSON.parse(message.toString());
+
+              if (
+                subscription !== undefined &&
+                parsedMessage.params?.subscription === subscription
+              ) {
+                ws.removeListener("message", listener);
+                reject();
+              }
+            };
+
+            setTimeout(() => {
+              ws.removeListener("message", listener);
+              resolve();
+            }, timeout);
+
+            ws.on("message", listener);
+          });
         }
 
         /**
