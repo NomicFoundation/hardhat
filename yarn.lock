@@ -1726,7 +1726,7 @@
     ethers "^4.0.0-beta.1"
     source-map-support "^0.5.19"
 
-"@prettier/plugin-pug@^1.8.1":
+"@prettier/plugin-pug@1.16.4":
   version "1.16.4"
   resolved "https://registry.yarnpkg.com/@prettier/plugin-pug/-/plugin-pug-1.16.4.tgz#4219d7065595b2ee7d3ab8ff9907d21f2e038843"
   integrity sha512-ea9FVBIIiwP3nnluoGKqLQREKiRJ1kYcOXdFhzNru/tAsYyS3as9MvxVOJPbrZlq863AW7Rm9ZeHBBVMKhbRYg==

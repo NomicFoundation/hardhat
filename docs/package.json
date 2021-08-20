@@ -9,7 +9,7 @@
     "prettier": "prettier \"**/*.{js,md,json}\""
   },
   "devDependencies": {
-    "@prettier/plugin-pug": "^1.8.1",
+    "@prettier/plugin-pug": "1.16.4",
     "@vuepress/plugin-google-analytics": "^1.4.1",
     "createjs": "^1.0.1",
     "dotenv": "^6.2.0",
