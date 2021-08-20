@@ -112,9 +112,10 @@ describe("Block's baseFeePerGas", function () {
                   jsonRpcUrl: ALCHEMY_URL!,
                 });
 
-                const remoteLatestBlockBaseFeePerGas = await forkClient.getBlockByNumber(
-                  rpcQuantityToBN(blockNumber)
-                );
+                const remoteLatestBlockBaseFeePerGas =
+                  await forkClient.getBlockByNumber(
+                    rpcQuantityToBN(blockNumber)
+                  );
                 await assertLatestBaseFeePerGas(
                   this.provider,
                   remoteLatestBlockBaseFeePerGas!.baseFeePerGas!.toNumber()
@@ -144,7 +145,8 @@ describe("Block's baseFeePerGas", function () {
                   }
                 );
 
-                const expectedNextBaseFee = latestBlock.header.calcNextBaseFee();
+                const expectedNextBaseFee =
+                  latestBlock.header.calcNextBaseFee();
 
                 await this.provider.send("evm_mine");
 

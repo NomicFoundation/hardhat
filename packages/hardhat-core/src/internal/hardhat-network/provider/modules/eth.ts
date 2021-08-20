@@ -421,12 +421,8 @@ export class EthModule {
 
     const callParams = await this._rpcCallRequestToNodeCallParams(callRequest);
 
-    const {
-      estimation,
-      error,
-      trace,
-      consoleLogMessages,
-    } = await this._node.estimateGas(callParams, blockNumberOrPending);
+    const { estimation, error, trace, consoleLogMessages } =
+      await this._node.estimateGas(callParams, blockNumberOrPending);
 
     if (error !== undefined) {
       const code = await this._node.getCodeFromTrace(
@@ -522,10 +518,8 @@ export class EthModule {
     let totalDifficulty: BN | undefined;
 
     if (numberOrPending === "pending") {
-      [
-        block,
-        totalDifficulty,
-      ] = await this._node.getPendingBlockAndTotalDifficulty();
+      [block, totalDifficulty] =
+        await this._node.getPendingBlockAndTotalDifficulty();
     } else {
       block = await this._node.getBlockByNumber(numberOrPending);
       if (block === undefined) {

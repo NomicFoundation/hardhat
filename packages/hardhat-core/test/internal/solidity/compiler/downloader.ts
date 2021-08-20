@@ -327,9 +327,10 @@ describe("Compiler downloader", function () {
         const compilerBin = require.resolve("solc/soljson.js");
         await fsExtra.copy(compilerBin, downloadedPath);
 
-        const compilerPathResult = await mockDownloader.getDownloadedCompilerPath(
-          localCompilerBuild.version
-        );
+        const compilerPathResult =
+          await mockDownloader.getDownloadedCompilerPath(
+            localCompilerBuild.version
+          );
         assert.isDefined(compilerPathResult);
         assert.equal(compilerPathResult!.compilerPath, downloadedPath);
       });

@@ -170,10 +170,11 @@ describe("Eth module", function () {
             false,
           ]);
 
-          const tx: AccessListEIP2930RpcTransactionOutput = await this.provider.send(
-            "eth_getTransactionByBlockHashAndIndex",
-            [block.hash, numberToRpcQuantity(0)]
-          );
+          const tx: AccessListEIP2930RpcTransactionOutput =
+            await this.provider.send("eth_getTransactionByBlockHashAndIndex", [
+              block.hash,
+              numberToRpcQuantity(0),
+            ]);
 
           assertAccessListTransaction(
             tx,

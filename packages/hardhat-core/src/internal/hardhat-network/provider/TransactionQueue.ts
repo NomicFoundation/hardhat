@@ -51,10 +51,8 @@ function decreasingOrderEffectiveMinerFeeComparator(
  * the queue by calling the #removeLastSenderTransactions() method.
  **/
 export class TransactionQueue {
-  private readonly _queuedTransactions: Map<
-    string,
-    OrderedTransaction[]
-  > = new Map();
+  private readonly _queuedTransactions: Map<string, OrderedTransaction[]> =
+    new Map();
 
   private readonly _heap: Heap<OrderedTransaction>;
 

@@ -52,7 +52,7 @@ async function main() {
   await runTests();
 }
 
-main().catch(error => {
+main().catch((error) => {
   console.error(error);
   process.exit(1);
 });

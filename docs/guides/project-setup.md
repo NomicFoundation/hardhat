@@ -30,7 +30,7 @@ If you select _Create an empty hardhat.config.js_, Hardhat will create a `hardha
  * @type import('hardhat/config').HardhatUserConfig
  */
 module.exports = {
-  solidity: "0.7.3"
+  solidity: "0.7.3",
 };
 ```
 

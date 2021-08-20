@@ -149,11 +149,8 @@ export class HardhatNode extends EventEmitter {
     const hardfork = getHardforkName(config.hardfork);
 
     if (isForkedNodeConfig(config)) {
-      const {
-        forkClient,
-        forkBlockNumber,
-        forkBlockTimestamp,
-      } = await makeForkClient(config.forkConfig, config.forkCachePath);
+      const { forkClient, forkBlockNumber, forkBlockTimestamp } =
+        await makeForkClient(config.forkConfig, config.forkCachePath);
       common = await makeForkCommon(config);
 
       forkNetworkId = forkClient.getNetworkId();
@@ -425,14 +422,10 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   }
 
   public async mineBlock(timestamp?: BN): Promise<MineBlockResult> {
-    const [
-      blockTimestamp,
-      offsetShouldChange,
-      newOffset,
-    ] = this._calculateTimestampAndOffset(timestamp);
-    const needsTimestampIncrease = await this._timestampClashesWithPreviousBlockOne(
-      blockTimestamp
-    );
+    const [blockTimestamp, offsetShouldChange, newOffset] =
+      this._calculateTimestampAndOffset(timestamp);
+    const needsTimestampIncrease =
+      await this._timestampClashesWithPreviousBlockOne(blockTimestamp);
     if (needsTimestampIncrease) {
       blockTimestamp.iaddn(1);
     }
@@ -875,7 +868,8 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       blockTimeOffsetSeconds: this.getTimeIncrement(),
       nextBlockTimestamp: this.getNextBlockTimestamp(),
       irregularStatesByBlockNumber: this._irregularStatesByBlockNumber,
-      userProvidedNextBlockBaseFeePerGas: this.getUserProvidedNextBlockBaseFeePerGas(),
+      userProvidedNextBlockBaseFeePerGas:
+        this.getUserProvidedNextBlockBaseFeePerGas(),
     };
 
     this._irregularStatesByBlockNumber = new Map(

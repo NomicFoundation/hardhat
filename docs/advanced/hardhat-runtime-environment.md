@@ -38,8 +38,8 @@ Running test directly with [Mocha](https://www.npmjs.com/package/mocha) instead 
 const hre = require("hardhat");
 const assert = require("assert");
 
-describe("Hardhat Runtime Environment", function() {
-  it("should have a config field", function() {
+describe("Hardhat Runtime Environment", function () {
+  it("should have a config field", function () {
     assert.notEqual(hre.config, undefined);
   });
 });
@@ -60,7 +60,7 @@ You can do this by adding an HRE extender into a queue. This extender is just a 
 For example, adding an instance of [Web3.js](https://web3js.readthedocs.io/en/latest/) to the HRE can be done in this way:
 
 ```js
-extendEnvironment(hre => {
+extendEnvironment((hre) => {
   const Web3 = require("web3");
   hre.Web3 = Web3;
 

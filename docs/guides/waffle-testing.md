@@ -89,8 +89,8 @@ Some Waffle matchers return a Promise rather than executing immediately. If you'
 :::
 
 ```js
-describe("Greeter", function() {
-  it("Should return the new greeting once it's changed", async function() {
+describe("Greeter", function () {
+  it("Should return the new greeting once it's changed", async function () {
     // ...
   });
 });
@@ -190,7 +190,7 @@ Would translate into this Hardhat config:
 module.exports = {
   paths: {
     sources: "./some_custom/contracts_path",
-    artifacts: "../some_custom/build"
+    artifacts: "../some_custom/build",
   },
   solidity: {
     version: "0.4.24", // Note that this only has the version number
@@ -198,10 +198,10 @@ module.exports = {
       evmVersion: "constantinople",
       optimizer: {
         enabled: true,
-        runs: 200
-      }
-    }
-  }
+        runs: 200,
+      },
+    },
+  },
 };
 ```
 
@@ -212,8 +212,8 @@ require("@nomiclabs/hardhat-waffle");
 
 module.exports = {
   paths: {
-    artifacts: "./build"
-  }
+    artifacts: "./build",
+  },
 };
 ```
 

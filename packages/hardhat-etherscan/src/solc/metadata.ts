@@ -122,9 +122,8 @@ export function measureExecutableSectionLength(bytecode: string): number {
     return bytecode.length;
   }
 
-  const runtimeMetadataSectionLength = getSolcMetadataSectionLength(
-    metadataLengthSlice
-  );
+  const runtimeMetadataSectionLength =
+    getSolcMetadataSectionLength(metadataLengthSlice);
 
   return bytecode.length - runtimeMetadataSectionLength * 2;
 }

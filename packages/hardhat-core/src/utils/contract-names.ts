@@ -23,9 +23,10 @@ export function isFullyQualifiedName(name: string): boolean {
  *
  * @param fullyQualifiedName It MUST be a fully qualified name.
  */
-export function parseFullyQualifiedName(
-  fullyQualifiedName: string
-): { sourceName: string; contractName: string } {
+export function parseFullyQualifiedName(fullyQualifiedName: string): {
+  sourceName: string;
+  contractName: string;
+} {
   const { sourceName, contractName } = parseName(fullyQualifiedName);
 
   if (sourceName === undefined) {
@@ -40,9 +41,10 @@ export function parseFullyQualifiedName(
 /**
  * Parses a name, which can be a bare contract name, or a fully qualified name.
  */
-export function parseName(
-  name: string
-): { sourceName?: string; contractName: string } {
+export function parseName(name: string): {
+  sourceName?: string;
+  contractName: string;
+} {
   const parts = name.split(":");
 
   if (parts.length === 1) {

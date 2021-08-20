@@ -86,13 +86,10 @@ describe("Eth module", function () {
 
             assert.isUndefined(reward);
 
-            const {
-              reward: reward2,
-            } = await this.provider.send("eth_feeHistory", [
-              numberToRpcQuantity(1),
-              "latest",
-              [],
-            ]);
+            const { reward: reward2 } = await this.provider.send(
+              "eth_feeHistory",
+              [numberToRpcQuantity(1), "latest", []]
+            );
 
             assert.isUndefined(reward2);
           });
@@ -164,17 +161,14 @@ describe("Eth module", function () {
 
             await this.provider.send("evm_mine", []);
 
-            const {
-              effectiveGasPrice: effectiveGasPrice1,
-            } = await this.provider.send("eth_getTransactionReceipt", [tx1]);
+            const { effectiveGasPrice: effectiveGasPrice1 } =
+              await this.provider.send("eth_getTransactionReceipt", [tx1]);
 
-            const {
-              effectiveGasPrice: effectiveGasPrice2,
-            } = await this.provider.send("eth_getTransactionReceipt", [tx2]);
+            const { effectiveGasPrice: effectiveGasPrice2 } =
+              await this.provider.send("eth_getTransactionReceipt", [tx2]);
 
-            const {
-              effectiveGasPrice: effectiveGasPrice3,
-            } = await this.provider.send("eth_getTransactionReceipt", [tx3]);
+            const { effectiveGasPrice: effectiveGasPrice3 } =
+              await this.provider.send("eth_getTransactionReceipt", [tx3]);
 
             const { reward } = await this.provider.send("eth_feeHistory", [
               numberToRpcQuantity(1),
@@ -233,12 +227,10 @@ describe("Eth module", function () {
             await this.provider.send("evm_mine", []);
             await this.provider.send("evm_mine", []);
 
-            const {
-              oldestBlock: oldestBlock2,
-            } = await this.provider.send("eth_feeHistory", [
-              numberToRpcQuantity(3),
-              numberToRpcQuantity(firstBlock + 4),
-            ]);
+            const { oldestBlock: oldestBlock2 } = await this.provider.send(
+              "eth_feeHistory",
+              [numberToRpcQuantity(3), numberToRpcQuantity(firstBlock + 4)]
+            );
 
             assert.equal(oldestBlock2, numberToRpcQuantity(firstBlock + 2));
           });
@@ -351,13 +343,10 @@ describe("Eth module", function () {
             await this.provider.send("evm_mine", []);
             await this.provider.send("evm_mine", []);
 
-            const {
-              baseFeePerGas,
-              oldestBlock,
-            } = await this.provider.send("eth_feeHistory", [
-              numberToRpcQuantity(3),
-              numberToRpcQuantity(firstBlock + 2),
-            ]);
+            const { baseFeePerGas, oldestBlock } = await this.provider.send(
+              "eth_feeHistory",
+              [numberToRpcQuantity(3), numberToRpcQuantity(firstBlock + 2)]
+            );
 
             assert.equal(oldestBlock, firstBlock);
             assert.deepEqual(baseFeePerGas, [
@@ -371,13 +360,10 @@ describe("Eth module", function () {
           });
 
           it("Should compute it for the pending block", async function () {
-            const {
-              baseFeePerGas,
-              oldestBlock,
-            } = await this.provider.send("eth_feeHistory", [
-              numberToRpcQuantity(1),
-              "latest",
-            ]);
+            const { baseFeePerGas, oldestBlock } = await this.provider.send(
+              "eth_feeHistory",
+              [numberToRpcQuantity(1), "latest"]
+            );
 
             assert.equal(oldestBlock, firstBlock);
             assert.deepEqual(baseFeePerGas, [
@@ -387,13 +373,10 @@ describe("Eth module", function () {
           });
 
           it("Should compute it for the block after the pending one", async function () {
-            const {
-              baseFeePerGas,
-              oldestBlock,
-            } = await this.provider.send("eth_feeHistory", [
-              numberToRpcQuantity(1),
-              "pending",
-            ]);
+            const { baseFeePerGas, oldestBlock } = await this.provider.send(
+              "eth_feeHistory",
+              [numberToRpcQuantity(1), "pending"]
+            );
 
             assert.equal(oldestBlock, numberToRpcQuantity(firstBlock + 1));
             assert.deepEqual(baseFeePerGas, [

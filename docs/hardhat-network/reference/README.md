@@ -178,7 +178,7 @@ To get a trace, call this method with the hash of the transaction as its argumen
 
 ```js
 const trace = await hre.network.provider.send("debug_traceTransaction", [
-  "0x123..."
+  "0x123...",
 ]);
 ```
 
@@ -190,8 +190,8 @@ const trace = await hre.network.provider.send("debug_traceTransaction", [
   {
     disableMemory: true,
     disableStack: true,
-    disableStorage: true
-  }
+    disableStorage: true,
+  },
 ]);
 ```
 
@@ -303,7 +303,7 @@ To impersonate an account use the this method, passing the address to impersonat
 ```tsx
 await hre.network.provider.request({
   method: "hardhat_impersonateAccount",
-  params: ["0x364d6D0333432C3Ac016Ca832fb8594A8cE43Ca6"]
+  params: ["0x364d6D0333432C3Ac016Ca832fb8594A8cE43Ca6"],
 });
 ```
 
@@ -333,7 +333,7 @@ For example:
 ```tsx
 await network.provider.send("hardhat_setBalance", [
   "0x0d2026b3EE6eC71FC6746ADb6311F6d3Ba1C000B",
-  "0x1000"
+  "0x1000",
 ]);
 ```
 
@@ -348,7 +348,7 @@ For example:
 ```tsx
 await network.provider.send("hardhat_setCode", [
   "0x0d2026b3EE6eC71FC6746ADb6311F6d3Ba1C000B",
-  "0xa1a2a3..."
+  "0xa1a2a3...",
 ]);
 ```
 
@@ -371,7 +371,7 @@ For example:
 ```tsx
 await network.provider.send("hardhat_setNonce", [
   "0x0d2026b3EE6eC71FC6746ADb6311F6d3Ba1C000B",
-  "0x21"
+  "0x21",
 ]);
 ```
 
@@ -391,7 +391,7 @@ For example:
 await network.provider.send("hardhat_setStorageAt", [
   "0x0d2026b3EE6eC71FC6746ADb6311F6d3Ba1C000B",
   "0x0",
-  "0x0000000000000000000000000000000000000000000000000000000000000001"
+  "0x0000000000000000000000000000000000000000000000000000000000000001",
 ]);
 ```
 
@@ -416,7 +416,7 @@ Use this method to stop impersonating an account after having previously used [`
 ```tsx
 await hre.network.provider.request({
   method: "hardhat_stopImpersonatingAccount",
-  params: ["0x364d6D0333432C3Ac016Ca832fb8594A8cE43Ca6"]
+  params: ["0x364d6D0333432C3Ac016Ca832fb8594A8cE43Ca6"],
 });
 ```
 
