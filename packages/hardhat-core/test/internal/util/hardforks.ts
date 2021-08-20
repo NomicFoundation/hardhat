@@ -1,5 +1,4 @@
 import Common from "@ethereumjs/common";
-import { hardforks } from "@ethereumjs/common/dist/hardforks";
 import { assert } from "chai";
 import {
   getHardforkName,
@@ -16,12 +15,6 @@ describe("Hardfork utils", function () {
         assert.doesNotThrow(
           () => new Common({ chain: "mainnet", hardfork: name })
         );
-      }
-    });
-
-    it("Has all the hardforks that ethereumjs recognizes", function () {
-      for (const [hf, _] of hardforks) {
-        assert.include(Object.values(HardforkName), hf);
       }
     });
   });
