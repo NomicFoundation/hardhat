@@ -21,7 +21,7 @@ import { bnToHex } from "./utils/bnToHex";
 import { reorganizeTransactionsLists } from "./utils/reorganizeTransactionsLists";
 import { FakeSenderEIP1559Transaction } from "./transactions/FakeSenderEIP1559Transaction";
 
-/* eslint-disable @nomiclabs/only-hardhat-error */
+/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
 export function serializeTransaction(
   tx: OrderedTransaction

@@ -21,7 +21,7 @@ export abstract class ProviderWrapper extends EventEmitterWrapper
     }
 
     if (!Array.isArray(params)) {
-      // eslint-disable-next-line @nomiclabs/only-hardhat-error
+      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
       throw new InvalidInputError(
         "Hardhat Network doesn't support JSON-RPC params sent as an object"
       );

@@ -119,7 +119,7 @@ export const COINBASE_ADDRESS = Address.fromString(
   "0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e"
 );
 
-/* eslint-disable @nomiclabs/only-hardhat-error */
+/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
 export class HardhatNode extends EventEmitter {
   public static async create(

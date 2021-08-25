@@ -67,7 +67,7 @@ export function loadConfigAndTasks(
   } catch (e) {
     analyzeModuleNotFoundError(e, configPath);
 
-    // eslint-disable-next-line @nomiclabs/only-hardhat-error
+    // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
     throw e;
   } finally {
     ctx.setConfigLoadingAsFinished();

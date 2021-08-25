@@ -8,7 +8,7 @@ import {
 } from "@ethereumjs/tx/src/types";
 import { InternalError } from "../../../core/providers/errors";
 
-/* eslint-disable @nomiclabs/only-hardhat-error */
+/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
 /**
  * This class is like `ReadOnlyValidTransaction` but for EIP-1559 transactions.

@@ -230,7 +230,7 @@ async function getAction(): Promise<Action> {
       return Action.QUIT_ACTION;
     }
 
-    // eslint-disable-next-line @nomiclabs/only-hardhat-error
+    // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
     throw e;
   }
 }
@@ -317,7 +317,7 @@ export async function createProject() {
         return;
       }
 
-      // eslint-disable-next-line @nomiclabs/only-hardhat-error
+      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
       throw e;
     }
   }
@@ -488,7 +488,7 @@ async function confirmRecommendedDepsInstallation(
       return false;
     }
 
-    // eslint-disable-next-line @nomiclabs/only-hardhat-error
+    // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
     throw e;
   }
 
