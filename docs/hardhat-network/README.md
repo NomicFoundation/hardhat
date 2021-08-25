@@ -30,6 +30,14 @@ Alternatively, Hardhat Network can run in a stand-alone fashion so that external
 npx hardhat node
 ```
 
+::: warning
+
+Below accounts are same across ALL the users who is or will use Hardhat ever. Don't send the mainnet Ethers on below addresses. Upon close inspection it has been found that users are knowingly or unknowingly sending mainnet Ethers on below addresses and getting scammed. We urge you to be very careful while adding these accounts in any wallet during the testing. Kindly delete the account once testing is done from your wallet. It will safeguard you from mistakenly sending any mainnet Ethers to it.
+
+Do not, we repeat, do not send mainnet Ethers to below test accounts.
+
+:::
+
 This will start Hardhat Network, and expose it as a JSON-RPC and WebSocket server.
 
 Then, just connect your wallet or application to `http://localhost:8545`.
