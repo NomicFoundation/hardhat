@@ -5,7 +5,7 @@ module.exports = {
     sourceType: "module",
   },
   rules: {
-    "@nomiclabs/only-hardhat-error": "off",
+    "@nomiclabs/hardhat-internal-rules/only-hardhat-error": "off",
     "import/no-extraneous-dependencies": [
       "error",
       {

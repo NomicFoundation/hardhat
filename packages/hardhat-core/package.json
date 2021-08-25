@@ -54,7 +54,7 @@
     "console.sol"
   ],
   "devDependencies": {
-    "@nomiclabs/eslint-plugin": "^1.0.0",
+    "@nomiclabs/eslint-plugin-hardhat-internal-rules": "^1.0.0",
     "@types/chai": "^4.2.0",
     "@types/chai-as-promised": "^7.1.3",
     "@types/ci-info": "^2.0.0",
