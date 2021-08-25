@@ -10,8 +10,6 @@ When developing a plugin the main tools available to integrate new functionality
 
 Some examples of things you could achieve by creating a plugin are: running a linter when the `check` task runs, using different compiler versions for different files or generating an UML diagram for your contracts.
 
-Some examples of things you could achieve by creating a plugin are running a linter when the `check` task runs, using different compiler versions for different files or generating an UML diagram for your contracts.
-
 ## Extending the Hardhat Runtime Environment
 
 Let’s go through the process of creating a plugin that adds new functionality to the Hardhat Runtime Environment. By doing this, we make sure our new feature is available everywhere. This means your plugin users can access it from tasks, tests, scripts, and the Hardhat console.
