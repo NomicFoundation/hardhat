@@ -104,12 +104,6 @@ If you take a look at the `hardhat.config.js` file, you will find the definition
 
 To run it, try `npx hardhat accounts`:
 
-::: warning
-
-The account addresses above are deterministic: they are the same for _all_ Hardhat users. Accordingly, the private keys for these addresses are well known, so there are probably bots monitoring these addresses on mainnet, waiting to withdraw any funds sent to them. Therefore, _do not send mainnet Ether to these addresses_. If you add any of these accounts to a wallet (eg Metamask), be very careful to avoid sending any mainnet Ether to it: consider naming the account something like "Hardhat - Unsafe", and be sure to delete the account from your wallet once you've finished testing.
-
-:::
-
 ```
 $ npx hardhat accounts
 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
@@ -133,6 +127,12 @@ $ npx hardhat accounts
 0xdD2FD4581271e230360230F9337D5c0430Bf44C0
 0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199
 ```
+
+::: warning
+
+The account addresses above are deterministic: they are the same for _all_ Hardhat users. Accordingly, the private keys for these addresses are well known, so there are probably bots monitoring these addresses on mainnet, waiting to withdraw any funds sent to them. Therefore, _do not send mainnet Ether to these addresses_. If you add any of these accounts to a wallet (eg Metamask), be very careful to avoid sending any mainnet Ether to it: consider naming the account something like "Hardhat - Unsafe", and be sure to delete the account from your wallet once you've finished testing.
+
+:::
 
 ### Compiling your contracts
 
