@@ -106,8 +106,7 @@ To run it, try `npx hardhat accounts`:
 
 ::: warning
 
-The account addresses above are deterministic: they are the same for *all* Hardhat users. Accordingly, the private keys for these addresses are well known, so there are probably bots monitoring these addresses on mainnet, waiting to withdraw any funds sent to them. Therefore, *do not send mainnet Ether to these addresses*. If you add any of these accounts to a wallet (eg Metamask), be very careful to avoid sending any mainnet Ether to it: consider naming the account something like "Hardhat - Unsafe", and be sure to delete the account from your wallet once you've finished testing.
-
+The account addresses above are deterministic: they are the same for _all_ Hardhat users. Accordingly, the private keys for these addresses are well known, so there are probably bots monitoring these addresses on mainnet, waiting to withdraw any funds sent to them. Therefore, _do not send mainnet Ether to these addresses_. If you add any of these accounts to a wallet (eg Metamask), be very careful to avoid sending any mainnet Ether to it: consider naming the account something like "Hardhat - Unsafe", and be sure to delete the account from your wallet once you've finished testing.
 
 :::
 
