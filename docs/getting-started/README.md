@@ -130,7 +130,7 @@ $ npx hardhat accounts
 
 ::: warning
 
-The account addresses above are deterministic: they are the same for _all_ Hardhat users. Accordingly, the private keys for these addresses are well known, so there are probably bots monitoring these addresses on mainnet, waiting to withdraw any funds sent to them. Therefore, _do not send mainnet Ether to these addresses_. If you add any of these accounts to a wallet (eg Metamask), be very careful to avoid sending any mainnet Ether to it: consider naming the account something like "Hardhat - Unsafe".
+_Do not send mainnet Ether to the addresses above._ Those addresses are deterministic: they are the same for _all_ Hardhat users. Accordingly, the private keys for these addresses are well known, so there are probably bots monitoring those addresses on mainnet, waiting to withdraw any funds sent to them. If you add any of these accounts to a wallet (eg Metamask), be very careful to avoid sending any mainnet Ether to them: consider naming the account something like "Hardhat - Unsafe" in order to prevent any mistakes.
 
 :::
 
