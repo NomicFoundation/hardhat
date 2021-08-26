@@ -130,10 +130,8 @@ export class Contract {
   private _constructor: ContractFunction | undefined;
   private _fallback: ContractFunction | undefined;
   private _receive: ContractFunction | undefined;
-  private readonly _selectorHexToFunction: Map<
-    string,
-    ContractFunction
-  > = new Map();
+  private readonly _selectorHexToFunction: Map<string, ContractFunction> =
+    new Map();
 
   constructor(
     public readonly name: string,

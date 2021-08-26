@@ -13,8 +13,7 @@ const plugins = [
     name: "@nomiclabs/hardhat-ethers",
     author: "Nomic Labs",
     authorUrl: "https://twitter.com/nomiclabs",
-    url:
-      "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-ethers",
+    url: "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-ethers",
     description: "Injects ethers.js into the Hardhat Runtime Environment",
     tags: ["Ethers.js", "Testing", "Tasks", "Scripts"],
   },
@@ -22,8 +21,7 @@ const plugins = [
     name: "@nomiclabs/hardhat-waffle",
     author: "Nomic Labs",
     authorUrl: "https://twitter.com/nomiclabs",
-    url:
-      "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-waffle",
+    url: "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-waffle",
     description:
       "Adds a Waffle-compatible provider to the Hardhat Runtime Environment and automatically initializes the Waffle Chai matchers",
     tags: ["Waffle", "Testing"],
@@ -32,8 +30,7 @@ const plugins = [
     name: "@nomiclabs/hardhat-truffle4",
     author: "Nomic Labs",
     authorUrl: "https://twitter.com/nomiclabs",
-    url:
-      "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-truffle4",
+    url: "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-truffle4",
     description: "Integration with TruffleContract from Truffle 4",
     tags: ["Truffle", "Testing"],
   },
@@ -41,8 +38,7 @@ const plugins = [
     name: "@nomiclabs/hardhat-truffle5",
     author: "Nomic Labs",
     authorUrl: "https://twitter.com/nomiclabs",
-    url:
-      "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-truffle5",
+    url: "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-truffle5",
     description: "Integration with TruffleContract from Truffle 5",
     tags: ["Truffle", "Testing"],
   },
@@ -50,8 +46,7 @@ const plugins = [
     name: "@nomiclabs/hardhat-web3",
     author: "Nomic Labs",
     authorUrl: "https://twitter.com/nomiclabs",
-    url:
-      "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-web3",
+    url: "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-web3",
     description: "Injects Web3 1.x into the Hardhat Runtime Environment",
     tags: ["Web3.js", "Testing", "Tasks", "Scripts"],
   },
@@ -59,8 +54,7 @@ const plugins = [
     name: "@nomiclabs/hardhat-web3-legacy",
     author: "Nomic Labs",
     authorUrl: "https://twitter.com/nomiclabs",
-    url:
-      "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-web3-legacy",
+    url: "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-web3-legacy",
     description: "Injects Web3 0.20.x into the Hardhat Runtime Environment",
     tags: ["Web3.js", "Legacy", "Testing", "Tasks", "Scripts"],
   },
@@ -68,8 +62,7 @@ const plugins = [
     name: "@nomiclabs/hardhat-etherscan",
     author: "Nomic Labs",
     authorUrl: "https://twitter.com/nomiclabs",
-    url:
-      "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-etherscan",
+    url: "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-etherscan",
     description: "Automatically verify contracts on Etherscan",
     tags: ["Etherscan", "Verification"],
   },
@@ -77,8 +70,7 @@ const plugins = [
     name: "@nomiclabs/hardhat-ganache",
     author: "Nomic Labs",
     authorUrl: "https://twitter.com/nomiclabs",
-    url:
-      "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-ganache",
+    url: "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-ganache",
     description: "Hardhat plugin for managing Ganache",
     tags: ["Ganache", "Testing network"],
   },
@@ -86,8 +78,7 @@ const plugins = [
     name: "@nomiclabs/hardhat-solpp",
     author: "Nomic Labs",
     authorUrl: "https://twitter.com/nomiclabs",
-    url:
-      "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-solpp",
+    url: "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-solpp",
     description:
       "Automatically run the solpp preprocessor before each compilation",
     tags: ["Solpp", "Preprocessor"],
@@ -96,8 +87,7 @@ const plugins = [
     name: "@nomiclabs/hardhat-solhint",
     author: "Nomic Labs",
     authorUrl: "https://twitter.com/nomiclabs",
-    url:
-      "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-solhint",
+    url: "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-solhint",
     description: "Easily run solhint to lint your Solidity code",
     tags: ["Solhint", "Linter"],
   },
@@ -105,8 +95,7 @@ const plugins = [
     name: "@nomiclabs/hardhat-vyper",
     author: "Nomic Labs",
     authorUrl: "https://twitter.com/nomiclabs",
-    url:
-      "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-vyper",
+    url: "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-vyper",
     description: "Adds support to compile Vyper smart contracts",
     tags: ["Vyper", "Compiler"],
   },
@@ -139,8 +128,7 @@ const plugins = [
     name: "@openzeppelin/hardhat-upgrades",
     author: "OpenZeppelin",
     authorUrl: "https://openzeppelin.com",
-    url:
-      "https://github.com/OpenZeppelin/openzeppelin-upgrades/tree/master/packages/plugin-hardhat",
+    url: "https://github.com/OpenZeppelin/openzeppelin-upgrades/tree/master/packages/plugin-hardhat",
     description:
       "Hardhat plugin for deploying and managing upgradeable contracts.",
     tags: ["Security", "Upgrades", "OpenZeppelin"],
@@ -167,8 +155,7 @@ const plugins = [
     name: "@typechain/hardhat",
     author: "Rahul Sethuram",
     authorUrl: "https://twitter.com/rhlsthrm",
-    url:
-      "https://github.com/ethereum-ts/TypeChain/tree/master/packages/hardhat",
+    url: "https://github.com/ethereum-ts/TypeChain/tree/master/packages/hardhat",
     description: "Zero-config TypeChain support for Hardhat.",
     tags: ["Testing", "Tasks"],
   },
@@ -176,8 +163,7 @@ const plugins = [
     name: "hardhat-spdx-license-identifier",
     author: "Nick Barry",
     authorUrl: "https://github.com/ItsNickBarry",
-    url:
-      "https://github.com/ItsNickBarry/hardhat-spdx-license-identifier/tree/master",
+    url: "https://github.com/ItsNickBarry/hardhat-spdx-license-identifier/tree/master",
     description:
       "Automatically prepend local Solidity source files with an SPDX License Identifier",
     tags: ["License"],
@@ -211,8 +197,7 @@ const plugins = [
     name: "hardhat-dependency-compiler",
     author: "Nick Barry",
     authorUrl: "https://github.com/ItsNickBarry",
-    url:
-      "https://github.com/ItsNickBarry/hardhat-dependency-compiler/tree/master",
+    url: "https://github.com/ItsNickBarry/hardhat-dependency-compiler/tree/master",
     description: "Compile Solidity sources directly from NPM dependencies",
     tags: ["Compiling", "Dependencies"],
   },
@@ -236,8 +221,7 @@ const plugins = [
     name: "solidity-coverage",
     author: "Chris Gewecke",
     authorUrl: "https://github.com/cgewecke",
-    url:
-      "https://github.com/sc-forks/solidity-coverage/tree/master/HARDHAT_README.md",
+    url: "https://github.com/sc-forks/solidity-coverage/tree/master/HARDHAT_README.md",
     readmeUrl:
       "https://raw.githubusercontent.com/sc-forks/solidity-coverage/master/HARDHAT_README.md",
     description: "Code coverage for Solidity",
@@ -282,8 +266,7 @@ const plugins = [
     name: "hardhat-local-networks-config-plugin",
     author: "Facu Spagnuolo",
     authorUrl: "https://twitter.com/facuspagnuolo",
-    url:
-      "https://github.com/facuspagnuolo/hardhat-local-networks-config-plugin/tree/master",
+    url: "https://github.com/facuspagnuolo/hardhat-local-networks-config-plugin/tree/master",
     description:
       "Allow loading network configs for Hardhat projects in home file",
     tags: ["Networks", "Config"],
@@ -302,8 +285,7 @@ const plugins = [
     npmPackage: "@eth-optimism/plugins",
     author: "Optimism",
     authorUrl: "https://github.com/ethereum-optimism",
-    url:
-      "https://github.com/ethereum-optimism/plugins/tree/master/src/hardhat/compiler",
+    url: "https://github.com/ethereum-optimism/plugins/tree/master/src/hardhat/compiler",
     description:
       "Automatically compiles your Solidity contracts with the OVM compiler.",
     tags: ["Optimism", "Solidity", "Compiler", "OVM"],
@@ -322,8 +304,7 @@ const plugins = [
     npmPackage: "@symfoni/hardhat-react",
     author: "Symfoni",
     authorUrl: "https://github.com/symfoni/",
-    url:
-      "https://github.com/symfoni/symfoni-monorepo/tree/master/packages/hardhat-react",
+    url: "https://github.com/symfoni/symfoni-monorepo/tree/master/packages/hardhat-react",
     description:
       "A Hardhat plugin that generates a React hook component from your smart contracts. Hot reloaded into your React app. Deployed or not deployed. And everything typed and initialized.",
     tags: ["Ethers", "React", "Deploy", "Typechain", "Frontend", "Web3modal"],

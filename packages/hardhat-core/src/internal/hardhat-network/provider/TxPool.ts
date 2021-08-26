@@ -52,11 +52,12 @@ export function deserializeTransaction(
     const serialization = toBuffer(rlpSerialization);
 
     if (tx.get("txType") === 1) {
-      data = FakeSenderAccessListEIP2930Transaction.fromSenderAndRlpSerializedTx(
-        sender,
-        serialization,
-        { common }
-      );
+      data =
+        FakeSenderAccessListEIP2930Transaction.fromSenderAndRlpSerializedTx(
+          sender,
+          serialization,
+          { common }
+        );
     } else if (tx.get("txType") === 2) {
       data = FakeSenderEIP1559Transaction.fromSenderAndRlpSerializedTx(
         sender,
@@ -245,8 +246,8 @@ export class TxPool {
       return this._getNextConfirmedNonce(accountAddress);
     }
 
-    const lastPendingTxNonce = this._deserializeTransaction(lastPendingTx).data
-      .nonce;
+    const lastPendingTxNonce =
+      this._deserializeTransaction(lastPendingTx).data.nonce;
     return lastPendingTxNonce.addn(1);
   }
 

@@ -53,8 +53,10 @@ const PRIVATE_RPC_METHODS = new Set([
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
-export class HardhatNetworkProvider extends EventEmitter
-  implements EIP1193Provider {
+export class HardhatNetworkProvider
+  extends EventEmitter
+  implements EIP1193Provider
+{
   private _common?: Common;
   private _node?: HardhatNode;
   private _ethModule?: EthModule;

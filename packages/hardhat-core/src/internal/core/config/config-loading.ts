@@ -136,7 +136,8 @@ function deepFreezeUserConfig(
  * nothing.
  */
 export function analyzeModuleNotFoundError(error: any, configPath: string) {
-  const stackTraceParser = require("stacktrace-parser") as typeof StackTraceParserT;
+  const stackTraceParser =
+    require("stacktrace-parser") as typeof StackTraceParserT;
 
   if (error.code !== "MODULE_NOT_FOUND") {
     return;

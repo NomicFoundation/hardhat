@@ -251,7 +251,7 @@ Possible causes are:
     // We cast to this custom type here instead of using `extendConfig` to avoid always mutating the HardhatConfig
     // type. We don't want that type to always contain the `ovm` field, because users only using hardhat-etherscan
     // without the Optimism plugin should not have that field in their type definitions
-    const configCopy = ({ ...config } as unknown) as {
+    const configCopy = { ...config } as unknown as {
       ovm?: { solcVersion?: string };
     };
     const ovmSolcVersion = configCopy.ovm?.solcVersion;
@@ -663,9 +663,8 @@ Possible causes are:
           );
         }
 
-        const { sourceName, contractName } = parseFullyQualifiedName(
-          contractFQN
-        );
+        const { sourceName, contractName } =
+          parseFullyQualifiedName(contractFQN);
         contractInformation = await extractMatchingContractInformation(
           sourceName,
           contractName,

@@ -11,13 +11,11 @@ describe("Scripts runner", function () {
   useFixtureProject("project-with-scripts");
 
   it("Should pass params to the script", async function () {
-    const [
-      statusCodeWithScriptParams,
-      statusCodeWithNoParams,
-    ] = await Promise.all([
-      runScript("./params-script.js", ["a", "b", "c"]),
-      runScript("./params-script.js"),
-    ]);
+    const [statusCodeWithScriptParams, statusCodeWithNoParams] =
+      await Promise.all([
+        runScript("./params-script.js", ["a", "b", "c"]),
+        runScript("./params-script.js"),
+      ]);
 
     assert.equal(statusCodeWithScriptParams, 0);
 
@@ -63,16 +61,14 @@ describe("Scripts runner", function () {
     useEnvironment();
 
     it("Should load hardhat/register successfully", async function () {
-      const [
-        statusCodeWithHardhat,
-        statusCodeWithoutHardhat,
-      ] = await Promise.all([
-        runScriptWithHardhat(
-          this.env.hardhatArguments,
-          "./successful-script.js"
-        ),
-        runScript("./successful-script.js"),
-      ]);
+      const [statusCodeWithHardhat, statusCodeWithoutHardhat] =
+        await Promise.all([
+          runScriptWithHardhat(
+            this.env.hardhatArguments,
+            "./successful-script.js"
+          ),
+          runScript("./successful-script.js"),
+        ]);
 
       assert.equal(statusCodeWithHardhat, 0);
 

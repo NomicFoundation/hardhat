@@ -250,9 +250,10 @@ describe("Eth module", function () {
             },
           ]);
 
-          const {
-            result: receipt,
-          } = await sendMethod("eth_getTransactionReceipt", [txHash]);
+          const { result: receipt } = await sendMethod(
+            "eth_getTransactionReceipt",
+            [txHash]
+          );
 
           return receipt.contractAddress;
         }

@@ -13,9 +13,8 @@ import "./type-extensions";
 
 extendEnvironment((hre) => {
   hre.ethers = lazyObject(() => {
-    const {
-      createProviderProxy,
-    } = require("./provider-proxy") as typeof ProviderProxyT;
+    const { createProviderProxy } =
+      require("./provider-proxy") as typeof ProviderProxyT;
 
     const { ethers } = require("ethers") as typeof EthersT;
 

@@ -196,9 +196,8 @@ Remove one of them and review your libraries dictionary before proceeding.`
     if (normalizedLibraries[neededLibrary.sourceName] === undefined) {
       normalizedLibraries[neededLibrary.sourceName] = {};
     }
-    normalizedLibraries[neededLibrary.sourceName][
-      neededLibrary.libName
-    ] = linkedLibraryAddress;
+    normalizedLibraries[neededLibrary.sourceName][neededLibrary.libName] =
+      linkedLibraryAddress;
   }
   return normalizedLibraries;
 }

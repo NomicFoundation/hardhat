@@ -24,12 +24,11 @@ describe("Eth module", function () {
           it("should return the next baseFeePerGas plus 1 gwei", async function () {
             const gasPrice = await this.provider.send("eth_gasPrice");
 
-            const {
-              baseFeePerGas: nextBlockBaseFeePerGas,
-            } = await this.provider.send("eth_getBlockByNumber", [
-              "pending",
-              false,
-            ]);
+            const { baseFeePerGas: nextBlockBaseFeePerGas } =
+              await this.provider.send("eth_getBlockByNumber", [
+                "pending",
+                false,
+              ]);
 
             const expectedGasPrice = rpcQuantityToBN(
               nextBlockBaseFeePerGas

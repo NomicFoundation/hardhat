@@ -90,20 +90,17 @@ export class ErrorInferrer {
         return [
           {
             type: StackTraceEntryType.MISSING_FALLBACK_OR_RECEIVE_ERROR,
-            sourceReference: this._getContractStartWithoutFunctionSourceReference(
-              trace
-            ),
+            sourceReference:
+              this._getContractStartWithoutFunctionSourceReference(trace),
           },
         ];
       }
 
       return [
         {
-          type:
-            StackTraceEntryType.UNRECOGNIZED_FUNCTION_WITHOUT_FALLBACK_ERROR,
-          sourceReference: this._getContractStartWithoutFunctionSourceReference(
-            trace
-          ),
+          type: StackTraceEntryType.UNRECOGNIZED_FUNCTION_WITHOUT_FALLBACK_ERROR,
+          sourceReference:
+            this._getContractStartWithoutFunctionSourceReference(trace),
         },
       ];
     }
@@ -581,7 +578,8 @@ export class ErrorInferrer {
 
       // Sometimes we do fail inside of a function but there's no jump into
       if (lastInstruction.location !== undefined) {
-        const failingFunction = lastInstruction.location.getContainingFunction();
+        const failingFunction =
+          lastInstruction.location.getContainingFunction();
         if (failingFunction !== undefined) {
           return [
             {
@@ -614,9 +612,8 @@ export class ErrorInferrer {
       }
 
       if (this._solidity063MaybeUnmappedRevert(trace)) {
-        const revertFrame = this._solidity063GetFrameForUnmappedRevertBeforeFunction(
-          trace
-        );
+        const revertFrame =
+          this._solidity063GetFrameForUnmappedRevertBeforeFunction(trace);
 
         if (revertFrame !== undefined) {
           return [revertFrame];
@@ -647,9 +644,8 @@ export class ErrorInferrer {
     stacktrace: SolidityStackTrace
   ): SolidityStackTrace | undefined {
     if (this._solidity063MaybeUnmappedRevert(trace)) {
-      const revertFrame = this._solidity063GetFrameForUnmappedRevertWithinFunction(
-        trace
-      );
+      const revertFrame =
+        this._solidity063GetFrameForUnmappedRevertWithinFunction(trace);
 
       if (revertFrame !== undefined) {
         return [...stacktrace, revertFrame];
@@ -728,9 +724,8 @@ export class ErrorInferrer {
     return [
       {
         type: StackTraceEntryType.DIRECT_LIBRARY_CALL_ERROR,
-        sourceReference: this._getContractStartWithoutFunctionSourceReference(
-          trace
-        ),
+        sourceReference:
+          this._getContractStartWithoutFunctionSourceReference(trace),
       },
     ];
   }
@@ -1149,9 +1144,8 @@ export class ErrorInferrer {
   private _solidity063GetFrameForUnmappedRevertBeforeFunction(
     trace: DecodedCallMessageTrace
   ) {
-    let revertFrame = this._solidity063GetFrameForUnmappedRevertWithinFunction(
-      trace
-    );
+    let revertFrame =
+      this._solidity063GetFrameForUnmappedRevertWithinFunction(trace);
 
     if (
       revertFrame === undefined ||
@@ -1202,9 +1196,8 @@ export class ErrorInferrer {
   ): OtherExecutionErrorStackTraceEntry {
     return {
       type: StackTraceEntryType.OTHER_EXECUTION_ERROR,
-      sourceReference: this._getContractStartWithoutFunctionSourceReference(
-        trace
-      ),
+      sourceReference:
+        this._getContractStartWithoutFunctionSourceReference(trace),
     };
   }
 
@@ -1298,13 +1291,14 @@ export class ErrorInferrer {
       // Solidity is smart enough to stop emitting extra instructions after
       // an unconditional revert happens in a constructor. If this is the case
       // we just return a special error.
-      const constructorRevertFrame: UnmappedSolc063RevertErrorStackTraceEntry = {
-        ...this._instructionWithinFunctionToRevertStackTraceEntry(
-          trace,
-          prevInst
-        ),
-        type: StackTraceEntryType.UNMAPPED_SOLC_0_6_3_REVERT_ERROR,
-      };
+      const constructorRevertFrame: UnmappedSolc063RevertErrorStackTraceEntry =
+        {
+          ...this._instructionWithinFunctionToRevertStackTraceEntry(
+            trace,
+            prevInst
+          ),
+          type: StackTraceEntryType.UNMAPPED_SOLC_0_6_3_REVERT_ERROR,
+        };
 
       // When the latest instruction is not within a function we need
       // some default sourceReference to show to the user
@@ -1319,7 +1313,8 @@ export class ErrorInferrer {
         };
 
         if (trace.bytecode.contract.constructorFunction !== undefined) {
-          defaultSourceReference.line = trace.bytecode.contract.constructorFunction.location.getStartingLineNumber();
+          defaultSourceReference.line =
+            trace.bytecode.contract.constructorFunction.location.getStartingLineNumber();
         }
 
         constructorRevertFrame.sourceReference = defaultSourceReference;
@@ -1334,13 +1329,14 @@ export class ErrorInferrer {
     // to be at the last instruction of the runtime bytecode.
     // In this case we just return whatever the last mapped intruction
     // points to.
-    const latestInstructionRevertFrame: UnmappedSolc063RevertErrorStackTraceEntry = {
-      ...this._instructionWithinFunctionToRevertStackTraceEntry(
-        trace,
-        prevInst
-      ),
-      type: StackTraceEntryType.UNMAPPED_SOLC_0_6_3_REVERT_ERROR,
-    };
+    const latestInstructionRevertFrame: UnmappedSolc063RevertErrorStackTraceEntry =
+      {
+        ...this._instructionWithinFunctionToRevertStackTraceEntry(
+          trace,
+          prevInst
+        ),
+        type: StackTraceEntryType.UNMAPPED_SOLC_0_6_3_REVERT_ERROR,
+      };
 
     if (latestInstructionRevertFrame.sourceReference !== undefined) {
       this._solidity063CorrectLineNumber(latestInstructionRevertFrame);
@@ -1430,9 +1426,8 @@ export class ErrorInferrer {
   private _getLastInstructionWithValidLocation(
     trace: DecodedEvmMessageTrace
   ): Instruction | undefined {
-    const lastLocationIndex = this._getLastInstructionWithValidLocationStepIndex(
-      trace
-    );
+    const lastLocationIndex =
+      this._getLastInstructionWithValidLocationStepIndex(trace);
 
     if (lastLocationIndex === undefined) {
       return undefined;
