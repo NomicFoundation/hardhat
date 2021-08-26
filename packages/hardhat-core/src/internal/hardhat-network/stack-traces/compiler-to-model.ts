@@ -237,7 +237,18 @@ function getPublicVariableSelectorFromDeclarationAstNode(
   let nextType = variableDeclaration.typeName;
   while (true) {
     if (nextType.nodeType === "Mapping") {
-      paramTypes.push(toCanonicalAbiType(nextType.keyType.name));
+      const canonicalType = ((keyType) => {
+          switch (keyType.type) {
+            case 'ElementaryTypeName':
+              return toCanonicalAbiType(keyType.name);
+            case 'UserDefinedTypeName':
+              return keyType.namePath;
+            default:
+              return '';
+          }
+      })(nextType.keyType);
+
+      paramTypes.push(canonicalType);
 
       nextType = nextType.valueType;
     } else {
