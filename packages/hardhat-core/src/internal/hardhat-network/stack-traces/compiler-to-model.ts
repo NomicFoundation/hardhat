@@ -239,12 +239,12 @@ function getPublicVariableSelectorFromDeclarationAstNode(
     if (nextType.nodeType === "Mapping") {
       const canonicalType = ((keyType) => {
           switch (keyType.type) {
-            case 'ElementaryTypeName':
+            case "ElementaryTypeName":
               return toCanonicalAbiType(keyType.name);
-            case 'UserDefinedTypeName':
+            case "UserDefinedTypeName":
               return keyType.namePath;
             default:
-              return '';
+              return undefined;
           }
       })(nextType.keyType);
 
