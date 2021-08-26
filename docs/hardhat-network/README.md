@@ -32,7 +32,7 @@ npx hardhat node
 
 ::: warning
 
-Below accounts are same across ALL the users who is or will use Hardhat ever. Don't send the mainnet Ethers on below addresses. Upon close inspection it has been found that users are knowingly or unknowingly sending mainnet Ethers on below addresses and getting scammed. We urge you to be very careful while adding these accounts in any wallet during the testing. Kindly delete the account once testing is done from your wallet. It will safeguard you from mistakenly sending any mainnet Ethers to it.
+The account addresses above are deterministic: they are the same for *all* Hardhat users. Accordingly, the private keys for these addresses are well known, so there are probably bots monitoring these addresses on mainnet, waiting to withdraw any funds sent to them. Therefore, *do not send mainnet Ether to these addresses*. If you add any of these accounts to a wallet (eg Metamask), be very careful to avoid sending any mainnet Ether to it: consider naming the account something like "Hardhat - Unsafe", and be sure to delete the account from your wallet once you've finished testing.
 
 Do not, we repeat, do not send mainnet Ethers to below test accounts.
 
