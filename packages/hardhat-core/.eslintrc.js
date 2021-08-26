@@ -5,6 +5,6 @@ module.exports = {
     sourceType: "module"
   },
   rules: {
-    "@nomiclabs/only-hardhat-error": "error"
+    "@nomiclabs/hardhat-internal-rules/only-hardhat-error": "error"
   }
 };

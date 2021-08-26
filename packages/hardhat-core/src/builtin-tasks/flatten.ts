@@ -46,7 +46,7 @@ function getSortedFiles(dependenciesGraph: DependencyGraph) {
       throw new HardhatError(ERRORS.BUILTIN_TASKS.FLATTEN_CYCLE, error);
     }
 
-    // eslint-disable-next-line @nomiclabs/only-hardhat-error
+    // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
     throw error;
   }
 }

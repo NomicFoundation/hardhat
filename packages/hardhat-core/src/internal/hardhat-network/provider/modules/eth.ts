@@ -91,7 +91,7 @@ const EIP1559_MIN_HARDFORK = "london";
 const ACCESS_LIST_MIN_HARDFORK = "berlin";
 const EIP155_MIN_HARDFORK = "spuriousDragon";
 
-/* eslint-disable @nomiclabs/only-hardhat-error */
+/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 export class EthModule {
   constructor(
     private readonly _common: Common,

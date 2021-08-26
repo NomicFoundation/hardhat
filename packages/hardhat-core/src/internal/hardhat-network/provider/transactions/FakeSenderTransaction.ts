@@ -4,7 +4,7 @@ import { Address, BN, rlp } from "ethereumjs-util";
 
 import { InternalError } from "../../../core/providers/errors";
 
-/* eslint-disable @nomiclabs/only-hardhat-error */
+/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
 /**
  * This class represents a legacy transaction sent by a sender whose private
