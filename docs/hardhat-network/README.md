@@ -30,17 +30,17 @@ Alternatively, Hardhat Network can run in a stand-alone fashion so that external
 npx hardhat node
 ```
 
-::: warning
-
-The account addresses above are deterministic: they are the same for _all_ Hardhat users. Accordingly, the private keys for these addresses are well known, so there are probably bots monitoring these addresses on mainnet, waiting to withdraw any funds sent to them. Therefore, _do not send mainnet Ether to these addresses_. If you add any of these accounts to a wallet (eg Metamask), be very careful to avoid sending any mainnet Ether to it: consider naming the account something like "Hardhat - Unsafe", and be sure to delete the account from your wallet once you've finished testing.
-
-:::
-
 This will start Hardhat Network, and expose it as a JSON-RPC and WebSocket server.
 
 Then, just connect your wallet or application to `http://localhost:8545`.
 
 If you want to connect Hardhat to this node, you just need to run using `--network localhost`.
+
+::: warning
+
+The account addresses and private keys shown in the output of `hardhat node` are deterministic: they are the same for _all_ Hardhat users. Accordingly, those private keys are well known, so there are probably bots monitoring these addresses on mainnet, waiting to withdraw any funds sent to them. Therefore, _do not send mainnet Ether to these addresses_. If you add any of these accounts to a wallet (eg Metamask), be very careful to avoid sending any mainnet Ether to it: consider naming the account something like "Hardhat - Unsafe", and be sure to delete the account from your wallet once you've finished testing.
+
+:::
 
 ## Why would I want to use it?
 
