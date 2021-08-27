@@ -614,10 +614,8 @@ describe("Eth module - hardfork dependant tests", function () {
               serialized,
             ]);
 
-            const pendingRpcTx: EIP1559RpcTransactionOutput = await this.provider.send(
-              "eth_getTransactionByHash",
-              [txHash]
-            );
+            const pendingRpcTx: EIP1559RpcTransactionOutput =
+              await this.provider.send("eth_getTransactionByHash", [txHash]);
 
             assert.equal(
               pendingRpcTx.maxFeePerGas,
@@ -641,10 +639,8 @@ describe("Eth module - hardfork dependant tests", function () {
               "eth_getBlockByNumber",
               ["latest", false]
             );
-            const minedTx: EIP1559RpcTransactionOutput = await this.provider.send(
-              "eth_getTransactionByHash",
-              [txHash]
-            );
+            const minedTx: EIP1559RpcTransactionOutput =
+              await this.provider.send("eth_getTransactionByHash", [txHash]);
 
             const effectiveGasPrice = getEffectiveGasPrice(
               rpcQuantityToBN(block.baseFeePerGas!),

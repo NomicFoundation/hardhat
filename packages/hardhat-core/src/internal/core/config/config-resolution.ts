@@ -268,9 +268,8 @@ function resolveMiningConfig(
 function resolveSolidityConfig(userConfig: HardhatUserConfig): SolidityConfig {
   const userSolidityConfig = userConfig.solidity ?? DEFAULT_SOLC_VERSION;
 
-  const multiSolcConfig: MultiSolcUserConfig = normalizeSolidityConfig(
-    userSolidityConfig
-  );
+  const multiSolcConfig: MultiSolcUserConfig =
+    normalizeSolidityConfig(userSolidityConfig);
 
   const overrides = multiSolcConfig.overrides ?? {};
 

@@ -31,9 +31,10 @@ const HARDFORKS_ORDER: HardforkName[] = [
 ];
 
 export function getHardforkName(name: string): HardforkName {
-  const hardforkName = Object.values(HardforkName)[
-    Object.values<string>(HardforkName).indexOf(name)
-  ];
+  const hardforkName =
+    Object.values(HardforkName)[
+      Object.values<string>(HardforkName).indexOf(name)
+    ];
 
   assertHardhatInvariant(
     hardforkName !== undefined,

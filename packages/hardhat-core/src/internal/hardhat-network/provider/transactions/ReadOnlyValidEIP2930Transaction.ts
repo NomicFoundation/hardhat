@@ -9,7 +9,7 @@ import { Address, BN } from "ethereumjs-util";
 
 import { InternalError } from "../../../core/providers/errors";
 
-/* eslint-disable @nomiclabs/only-hardhat-error */
+/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
 /**
  * This class is like `ReadOnlyValidTransaction` but for

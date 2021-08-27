@@ -3,7 +3,7 @@ import { BN } from "ethereumjs-util";
 import { InternalError } from "../../../core/providers/errors";
 import { SenderTransactions, SerializedTransaction } from "../PoolState";
 
-/* eslint-disable @nomiclabs/only-hardhat-error */
+/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
 /**
  * Move as many transactions as possible from the queued list

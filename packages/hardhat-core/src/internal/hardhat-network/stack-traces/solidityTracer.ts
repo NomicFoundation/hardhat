@@ -62,9 +62,8 @@ export class SolidityTracer {
   private _getCallMessageStackTrace(
     trace: DecodedCallMessageTrace
   ): SolidityStackTrace {
-    const inferredError = this._errorInferrer.inferBeforeTracingCallMessage(
-      trace
-    );
+    const inferredError =
+      this._errorInferrer.inferBeforeTracingCallMessage(trace);
 
     if (inferredError !== undefined) {
       return inferredError;
@@ -123,9 +122,8 @@ export class SolidityTracer {
   private _getCreateMessageStackTrace(
     trace: DecodedCreateMessageTrace
   ): SolidityStackTrace {
-    const inferredError = this._errorInferrer.inferBeforeTracingCreateMessage(
-      trace
-    );
+    const inferredError =
+      this._errorInferrer.inferBeforeTracingCreateMessage(trace);
 
     if (inferredError !== undefined) {
       return inferredError;

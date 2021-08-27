@@ -38,11 +38,11 @@ export async function wrapWithSolidityErrorsCorrection(
     return await f();
   } catch (error) {
     if (error.stackTrace === undefined) {
-      // eslint-disable-next-line @nomiclabs/only-hardhat-error
+      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
       throw error;
     }
 
-    // eslint-disable-next-line @nomiclabs/only-hardhat-error
+    // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
     throw encodeSolidityStackTrace(
       error.message,
       error.stackTrace,

@@ -12,7 +12,7 @@ import {
   InvalidArgumentsError,
 } from "../../../core/providers/errors";
 
-/* eslint-disable @nomiclabs/only-hardhat-error */
+/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
 /**
  * This class is the EIP-2930 version of FakeSenderTransaction.

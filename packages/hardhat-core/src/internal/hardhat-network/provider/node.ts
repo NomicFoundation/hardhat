@@ -119,7 +119,7 @@ export const COINBASE_ADDRESS = Address.fromString(
   "0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e"
 );
 
-/* eslint-disable @nomiclabs/only-hardhat-error */
+/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
 export class HardhatNode extends EventEmitter {
   public static async create(
@@ -149,11 +149,8 @@ export class HardhatNode extends EventEmitter {
     const hardfork = getHardforkName(config.hardfork);
 
     if (isForkedNodeConfig(config)) {
-      const {
-        forkClient,
-        forkBlockNumber,
-        forkBlockTimestamp,
-      } = await makeForkClient(config.forkConfig, config.forkCachePath);
+      const { forkClient, forkBlockNumber, forkBlockTimestamp } =
+        await makeForkClient(config.forkConfig, config.forkCachePath);
       common = await makeForkCommon(config);
 
       forkNetworkId = forkClient.getNetworkId();
@@ -425,14 +422,10 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   }
 
   public async mineBlock(timestamp?: BN): Promise<MineBlockResult> {
-    const [
-      blockTimestamp,
-      offsetShouldChange,
-      newOffset,
-    ] = this._calculateTimestampAndOffset(timestamp);
-    const needsTimestampIncrease = await this._timestampClashesWithPreviousBlockOne(
-      blockTimestamp
-    );
+    const [blockTimestamp, offsetShouldChange, newOffset] =
+      this._calculateTimestampAndOffset(timestamp);
+    const needsTimestampIncrease =
+      await this._timestampClashesWithPreviousBlockOne(blockTimestamp);
     if (needsTimestampIncrease) {
       blockTimestamp.iaddn(1);
     }
@@ -875,7 +868,8 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       blockTimeOffsetSeconds: this.getTimeIncrement(),
       nextBlockTimestamp: this.getNextBlockTimestamp(),
       irregularStatesByBlockNumber: this._irregularStatesByBlockNumber,
-      userProvidedNextBlockBaseFeePerGas: this.getUserProvidedNextBlockBaseFeePerGas(),
+      userProvidedNextBlockBaseFeePerGas:
+        this.getUserProvidedNextBlockBaseFeePerGas(),
     };
 
     this._irregularStatesByBlockNumber = new Map(
@@ -1234,16 +1228,22 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
         for (const tx of block.transactions) {
           let txWithCommon: TypedTransaction;
+          const sender = tx.getSenderAddress();
           if (tx.type === 0) {
-            txWithCommon = new Transaction(tx, {
+            txWithCommon = new FakeSenderTransaction(sender, tx, {
               common: vm._common,
             });
           } else if (tx.type === 1) {
-            txWithCommon = new AccessListEIP2930Transaction(tx, {
-              common: vm._common,
-            });
+            txWithCommon = new FakeSenderAccessListEIP2930Transaction(
+              sender,
+              tx,
+              {
+                common: vm._common,
+              }
+            );
           } else if (tx.type === 2) {
-            txWithCommon = new FeeMarketEIP1559Transaction(
+            txWithCommon = new FakeSenderEIP1559Transaction(
+              sender,
               { ...tx, gasPrice: undefined },
               {
                 common: vm._common,

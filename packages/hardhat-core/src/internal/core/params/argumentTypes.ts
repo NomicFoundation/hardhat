@@ -181,7 +181,7 @@ export const inputFile: CLIArgumentType<string> = {
 
       if (stats.isDirectory()) {
         // This is caught and encapsulated in a hardhat error.
-        // eslint-disable-next-line @nomiclabs/only-hardhat-error
+        // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
         throw new Error(`${strValue} is a directory, not a file`);
       }
     } catch (error) {

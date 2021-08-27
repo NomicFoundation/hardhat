@@ -36,12 +36,8 @@ function logHardhatNetworkAccounts(networkConfig: HardhatNetworkConfig) {
     return;
   }
 
-  const {
-    BN,
-    bufferToHex,
-    privateToAddress,
-    toBuffer,
-  } = require("ethereumjs-util") as typeof EthereumjsUtilT;
+  const { BN, bufferToHex, privateToAddress, toBuffer } =
+    require("ethereumjs-util") as typeof EthereumjsUtilT;
 
   console.log("Accounts");
   console.log("========");

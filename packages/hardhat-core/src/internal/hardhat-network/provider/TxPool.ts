@@ -21,7 +21,7 @@ import { bnToHex } from "./utils/bnToHex";
 import { reorganizeTransactionsLists } from "./utils/reorganizeTransactionsLists";
 import { FakeSenderEIP1559Transaction } from "./transactions/FakeSenderEIP1559Transaction";
 
-/* eslint-disable @nomiclabs/only-hardhat-error */
+/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
 export function serializeTransaction(
   tx: OrderedTransaction
@@ -52,11 +52,12 @@ export function deserializeTransaction(
     const serialization = toBuffer(rlpSerialization);
 
     if (tx.get("txType") === 1) {
-      data = FakeSenderAccessListEIP2930Transaction.fromSenderAndRlpSerializedTx(
-        sender,
-        serialization,
-        { common }
-      );
+      data =
+        FakeSenderAccessListEIP2930Transaction.fromSenderAndRlpSerializedTx(
+          sender,
+          serialization,
+          { common }
+        );
     } else if (tx.get("txType") === 2) {
       data = FakeSenderEIP1559Transaction.fromSenderAndRlpSerializedTx(
         sender,
@@ -245,8 +246,8 @@ export class TxPool {
       return this._getNextConfirmedNonce(accountAddress);
     }
 
-    const lastPendingTxNonce = this._deserializeTransaction(lastPendingTx).data
-      .nonce;
+    const lastPendingTxNonce =
+      this._deserializeTransaction(lastPendingTx).data.nonce;
     return lastPendingTxNonce.addn(1);
   }
 

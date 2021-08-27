@@ -113,15 +113,12 @@ describe("ArgumentsParser", () => {
         "--task-param",
       ];
 
-      const {
-        hardhatArguments,
-        taskName,
-        unparsedCLAs,
-      } = argumentsParser.parseHardhatArguments(
-        HARDHAT_PARAM_DEFINITIONS,
-        envArgs,
-        rawCLAs
-      );
+      const { hardhatArguments, taskName, unparsedCLAs } =
+        argumentsParser.parseHardhatArguments(
+          HARDHAT_PARAM_DEFINITIONS,
+          envArgs,
+          rawCLAs
+        );
       assert.equal(taskName, "compile");
       assert.equal(hardhatArguments.showStackTraces, true);
       assert.equal(hardhatArguments.network, "local");
@@ -139,15 +136,12 @@ describe("ArgumentsParser", () => {
         "local",
       ];
 
-      const {
-        hardhatArguments,
-        taskName,
-        unparsedCLAs,
-      } = argumentsParser.parseHardhatArguments(
-        HARDHAT_PARAM_DEFINITIONS,
-        envArgs,
-        rawCLAs
-      );
+      const { hardhatArguments, taskName, unparsedCLAs } =
+        argumentsParser.parseHardhatArguments(
+          HARDHAT_PARAM_DEFINITIONS,
+          envArgs,
+          rawCLAs
+        );
       assert.equal(taskName, "compile");
       assert.equal(hardhatArguments.showStackTraces, true);
       assert.equal(hardhatArguments.network, "local");

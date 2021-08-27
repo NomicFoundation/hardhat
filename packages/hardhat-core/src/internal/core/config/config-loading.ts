@@ -67,7 +67,7 @@ export function loadConfigAndTasks(
   } catch (e) {
     analyzeModuleNotFoundError(e, configPath);
 
-    // eslint-disable-next-line @nomiclabs/only-hardhat-error
+    // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
     throw e;
   } finally {
     ctx.setConfigLoadingAsFinished();
@@ -136,7 +136,8 @@ function deepFreezeUserConfig(
  * nothing.
  */
 export function analyzeModuleNotFoundError(error: any, configPath: string) {
-  const stackTraceParser = require("stacktrace-parser") as typeof StackTraceParserT;
+  const stackTraceParser =
+    require("stacktrace-parser") as typeof StackTraceParserT;
 
   if (error.code !== "MODULE_NOT_FOUND") {
     return;

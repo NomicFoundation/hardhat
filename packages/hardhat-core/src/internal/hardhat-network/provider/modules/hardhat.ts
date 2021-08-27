@@ -32,7 +32,7 @@ import { ForkConfig, MineBlockResult } from "../node-types";
 
 import { ModulesLogger } from "./logger";
 
-/* eslint-disable @nomiclabs/only-hardhat-error */
+/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
 export class HardhatModule {
   constructor(

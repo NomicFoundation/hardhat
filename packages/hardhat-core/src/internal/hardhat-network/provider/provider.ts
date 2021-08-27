@@ -51,10 +51,12 @@ const PRIVATE_RPC_METHODS = new Set([
   "hardhat_setLoggingEnabled",
 ]);
 
-/* eslint-disable @nomiclabs/only-hardhat-error */
+/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
-export class HardhatNetworkProvider extends EventEmitter
-  implements EIP1193Provider {
+export class HardhatNetworkProvider
+  extends EventEmitter
+  implements EIP1193Provider
+{
   private _common?: Common;
   private _node?: HardhatNode;
   private _ethModule?: EthModule;
@@ -341,7 +343,7 @@ export class HardhatNetworkProvider extends EventEmitter
   };
 
   private _emitLegacySubscriptionEvent(subscription: string, result: any) {
-    this.emit("notifications", {
+    this.emit("notification", {
       subscription,
       result,
     });
