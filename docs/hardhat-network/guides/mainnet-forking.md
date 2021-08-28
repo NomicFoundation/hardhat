@@ -96,7 +96,7 @@ await network.provider.request({
 });
 ```
 
-This will reset Hardhat Network, starting a new instance in the state described [here](../hardhat-network/README.md#hardhat-network-initial-state).
+This will reset Hardhat Network, starting a new instance in the state described [here](../README.md#hardhat-network-initial-state).
 
 ## Troubleshooting
 
