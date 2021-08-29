@@ -61,7 +61,7 @@ export class Artifacts implements IArtifacts {
         });
       }
 
-      return fsExtra.readJson(trueCaseArtifactPath);
+      return await fsExtra.readJson(trueCaseArtifactPath);
     } catch (error) {
       if (
         typeof error.message === "string" &&
