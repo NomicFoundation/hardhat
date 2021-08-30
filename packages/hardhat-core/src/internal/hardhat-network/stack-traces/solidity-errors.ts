@@ -29,7 +29,7 @@ export function getCurrentStack(): NodeJS.CallSite[] {
 }
 
 export async function wrapWithSolidityErrorsCorrection(
-  f: () => any,
+  f: () => Promise<any>,
   stackFramesToRemove: number
 ) {
   const stackTraceAtCall = getCurrentStack().slice(stackFramesToRemove);

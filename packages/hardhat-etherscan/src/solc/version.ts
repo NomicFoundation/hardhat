@@ -41,7 +41,7 @@ export async function getVersions(): Promise<CompilersList> {
       );
     }
 
-    return response.json();
+    return await response.json();
   } catch (error) {
     throw new NomicLabsHardhatPluginError(
       pluginName,
