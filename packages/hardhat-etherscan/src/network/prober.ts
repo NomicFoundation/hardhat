@@ -100,7 +100,7 @@ const networkIDtoEndpoints: NetworkMap = {
   [NetworkID.ARBITRUM_ONE]: {
     apiURL: "https://api.arbiscan.io/api",
     browserURL: "https://arbiscan.io/",
-  }
+  },
 };
 
 export async function getEtherscanEndpoints(
