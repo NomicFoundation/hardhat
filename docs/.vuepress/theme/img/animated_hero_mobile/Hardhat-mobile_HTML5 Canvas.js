@@ -958,7 +958,7 @@ an.makeResponsive = function(isResp, respDim, isScale, scaleType, domContainers,
 				sRatio = Math.max(xRatio, yRatio);				
 			}			
 		}
-		console.log(domContainers)
+		// console.log(domContainers)
 		domContainers[0].width = w * pRatio * sRatio;			
 		domContainers[0].height = h * pRatio * sRatio;
 		domContainers.forEach(function(container) {				
