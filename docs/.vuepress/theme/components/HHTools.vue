@@ -5,8 +5,6 @@
             large: toolDisplayNumber > 4,
             small: toolDisplayNumber <= 3,
         }"
-        @mouseover="onToolAreaHover"
-        @mouseleave="onToolAreaLeave"
     >
         <div class="padded-container">
             <div 
@@ -81,6 +79,7 @@
                 currentTagIndex: 0,
                 tagChangeInterval: null,
                 toolChangeInterval: null,
+                isToolChangeIntervalRunning: true,
                 tagAnimationTimer: 2,
                 toolChangeTimer: 2,
                 toolDisplayNumber: this.$route.query.tools ? this.$route.query.tools : 4,
@@ -134,12 +133,37 @@
             this.toolChangeInterval = setInterval(() => {
                 this.onToolChangeInterval(this);
             }, (((this.tagAnimationTimer * this.toolsData[this.currentTool].tags.length) * 2 ) * 1000));
+
+            if (typeof window !== "undefined") {
+                window.addEventListener('scroll', this.handleScroll);
+            }
         },
         destroyed() {
             clearInterval(this.tagChangeInterval);
             clearInterval(this.toolChangeInterval);
+            if (typeof window !== "undefined") {
+                window.removeEventListener('scroll', this.handleScroll)
+            }
         },
         methods: {
+            handleScroll(event) {
+                let element = document.getElementById('tools');
+                let elementBottomPosition = element.getBoundingClientRect().bottom;
+                console.log(elementBottomPosition);
+                if (elementBottomPosition < 0 && !this.isToolChangeIntervalRunning) {
+                    this.isToolChangeIntervalRunning = true;
+                    setTimeout(() => {
+                        clearInterval(this.tagChangeInterval);
+                        this.toolChangeInterval = setInterval(() => {
+                            this.onToolChangeInterval(this);
+                        }, (((this.tagAnimationTimer * this.toolsData[this.currentTool].tags.length) * 2 ) * 1000));
+
+                        this.tagChangeInterval = setInterval(() => {
+                            this.onTagChangeInterval(this);
+                        }, this.tagAnimationTimer * 1000);
+                    }, 2000);
+                }
+            },
             resetTagCounter() {
                 this.currentTagIndex = 0;
             },
@@ -186,12 +210,9 @@
                 this.currentTool = selectedTool;
             },
             onToolPress(indexOfPressedTool) {
-                this.updateSelectedTool(indexOfPressedTool);
-            },
-            onToolAreaHover() {
-                // console.log('Interval interrumpted');
                 clearInterval(this.toolChangeInterval);
-                // clearInterval(this.tagChangeInterval);
+                this.isToolChangeIntervalRunning = false;
+                this.updateSelectedTool(indexOfPressedTool);
             },
             onToolAreaLeave() {
                 setTimeout(() => {

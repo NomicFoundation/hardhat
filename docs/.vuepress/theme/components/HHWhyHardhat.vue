@@ -228,6 +228,7 @@
     .image-container
         position absolute
         opacity 0.999999
+        background-size: contain;
         &:after
             content ''
             width 100%
@@ -283,16 +284,16 @@
     .image-container
         width 486px
         height 528px
-        background-image url('../img/graphics/Graphic-3@2x_mobile.svg')
+        background-image url('../img/graphics/Graphic-3@2x.svg')
         transform-origin left center
         left 30px
         @media (max-width: 1000px)
-            background-image url('../img/mobile_images/Why Hardhat - 3 Mobile.svg')
+            background-image url('../img/graphics/Graphic-3@2x_mobile.svg')
             position relative
             top 0
             margin-bottom 16px
             transform none
-            height 191px !important
+            height 227px !important
   #tasks
     .image-container
         position absolute
