@@ -7,7 +7,7 @@ module.exports = {
   extends: ["plugin:prettier/recommended"],
   parser: "@typescript-eslint/parser",
   plugins: [
-    "@nomiclabs/eslint-plugin",
+    "@nomiclabs/eslint-plugin-hardhat-internal-rules",
     "eslint-plugin-import",
     "@typescript-eslint",
   ],
@@ -152,9 +152,12 @@ module.exports = {
     "guard-for-in": "error",
     "id-blacklist": "error",
     "id-match": "error",
-    "import/no-extraneous-dependencies": ["error", {
-      devDependencies: false,
-    }],
+    "import/no-extraneous-dependencies": [
+      "error",
+      {
+        devDependencies: false,
+      },
+    ],
     "import/order": [
       "error",
       {
@@ -177,7 +180,8 @@ module.exports = {
     "no-extra-bind": "error",
     "no-new-func": "error",
     "no-new-wrappers": "error",
-    "no-return-await": "error",
+    "no-return-await": "off",
+    "@typescript-eslint/return-await": "error",
     "no-sequences": "error",
     "no-sparse-arrays": "error",
     "no-template-curly-in-string": "error",

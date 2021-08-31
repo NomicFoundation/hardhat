@@ -109,10 +109,8 @@ export class ArgumentsParser {
     taskDefinition: TaskDefinition,
     rawCLAs: string[]
   ): TaskArguments {
-    const {
-      paramArguments,
-      rawPositionalArguments,
-    } = this._parseTaskParamArguments(taskDefinition, rawCLAs);
+    const { paramArguments, rawPositionalArguments } =
+      this._parseTaskParamArguments(taskDefinition, rawCLAs);
 
     const positionalArguments = this._parsePositionalParamArgs(
       rawPositionalArguments,

@@ -5,7 +5,7 @@ enum MiningTimerState {
   RUNNING,
 }
 
-/* eslint-disable @nomiclabs/only-hardhat-error */
+/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
 /**
  * Timer used to periodically call the given mining function.

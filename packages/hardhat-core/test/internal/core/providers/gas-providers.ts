@@ -176,7 +176,7 @@ describe("AutomaticGasPriceProvider", () => {
   });
 
   describe("Default fee price values", function () {
-    describe("When eth_feeHistory is available", function () {
+    describe("When eth_feeHistory is available and EIP1559 is supported", function () {
       const latestBaseFeeInMockedProvider = 80;
 
       beforeEach(function () {
@@ -188,6 +188,10 @@ describe("AutomaticGasPriceProvider", () => {
             ),
           ],
           reward: [["0x4"]],
+        });
+
+        mockedProvider.setReturnValue("eth_getBlockByNumber", {
+          baseFeePerGas: "0x1",
         });
       });
 
@@ -252,7 +256,38 @@ describe("AutomaticGasPriceProvider", () => {
       });
     });
 
+    describe("When eth_feeHistory is available and EIP1559 is not supported", function () {
+      const latestBaseFeeInMockedProvider = 80;
+
+      beforeEach(function () {
+        mockedProvider.setReturnValue("eth_feeHistory", {
+          baseFeePerGas: [
+            numberToRpcQuantity(latestBaseFeeInMockedProvider),
+            numberToRpcQuantity(
+              Math.floor((latestBaseFeeInMockedProvider * 9) / 8)
+            ),
+          ],
+          reward: [["0x4"]],
+        });
+
+        mockedProvider.setReturnValue("eth_getBlockByNumber", {});
+      });
+
+      runTestUseLegacyGasPrice();
+    });
+
     describe("When eth_feeHistory is not available", function () {
+      beforeEach(function () {
+        mockedProvider.setReturnValue("eth_getBlockByNumber", {});
+      });
+
+      runTestUseLegacyGasPrice();
+    });
+
+    /**
+     * Group of tests that expect gasPrice to be used instead of EIP1559 fields
+     */
+    function runTestUseLegacyGasPrice() {
       it("Should use gasPrice when nothing is provided", async function () {
         await provider.request({
           method: "eth_sendTransaction",
@@ -313,7 +348,7 @@ describe("AutomaticGasPriceProvider", () => {
           numberToRpcQuantity(FIXED_GAS_PRICE * 2 + 2)
         );
       });
-    });
+    }
   });
 
   it("Should forward the other calls", async () => {

@@ -66,6 +66,40 @@ describe("Debug module", function () {
           });
         });
 
+        it("Should return the right values for fake sender txs", async function () {
+          const impersonatedAddress =
+            "0xC014BA5EC014ba5ec014Ba5EC014ba5Ec014bA5E";
+
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: impersonatedAddress,
+              value: "0x100",
+            },
+          ]);
+
+          await this.provider.send("hardhat_impersonateAccount", [
+            impersonatedAddress,
+          ]);
+
+          const txHash = await this.provider.send("eth_sendTransaction", [
+            {
+              from: impersonatedAddress,
+              to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+            },
+          ]);
+          const trace: RpcDebugTraceOutput = await this.provider.send(
+            "debug_traceTransaction",
+            [txHash]
+          );
+          assert.deepEqual(trace, {
+            gas: 21000,
+            failed: false,
+            returnValue: "",
+            structLogs: [],
+          });
+        });
+
         it("Should return the right values for successful contract tx", async function () {
           const contractAddress = await deployContract(
             this.provider,

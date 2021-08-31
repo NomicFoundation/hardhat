@@ -61,7 +61,7 @@ export class Artifacts implements IArtifacts {
         });
       }
 
-      return fsExtra.readJson(trueCaseArtifactPath);
+      return await fsExtra.readJson(trueCaseArtifactPath);
     } catch (error) {
       if (
         typeof error.message === "string" &&
@@ -73,7 +73,7 @@ export class Artifacts implements IArtifacts {
         });
       }
 
-      // eslint-disable-next-line @nomiclabs/only-hardhat-error
+      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
       throw error;
     }
   }
@@ -107,7 +107,7 @@ export class Artifacts implements IArtifacts {
         });
       }
 
-      // eslint-disable-next-line @nomiclabs/only-hardhat-error
+      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
       throw error;
     }
   }
@@ -129,9 +129,8 @@ export class Artifacts implements IArtifacts {
   public async getBuildInfo(
     fullyQualifiedName: string
   ): Promise<BuildInfo | undefined> {
-    const artifactPath = this._getArtifactPathFromFullyQualifiedName(
-      fullyQualifiedName
-    );
+    const artifactPath =
+      this._getArtifactPathFromFullyQualifiedName(fullyQualifiedName);
 
     const debugFilePath = this._getDebugFilePath(artifactPath);
     const buildInfoPath = await this._getBuildInfoFromDebugFile(debugFilePath);
@@ -173,9 +172,8 @@ export class Artifacts implements IArtifacts {
       artifact.contractName
     );
 
-    const artifactPath = this._getArtifactPathFromFullyQualifiedName(
-      fullyQualifiedName
-    );
+    const artifactPath =
+      this._getArtifactPathFromFullyQualifiedName(fullyQualifiedName);
 
     await fsExtra.ensureDir(path.dirname(artifactPath));
 
@@ -368,9 +366,8 @@ export class Artifacts implements IArtifacts {
   private _getArtifactPathFromFullyQualifiedName(
     fullyQualifiedName: string
   ): string {
-    const { sourceName, contractName } = parseFullyQualifiedName(
-      fullyQualifiedName
-    );
+    const { sourceName, contractName } =
+      parseFullyQualifiedName(fullyQualifiedName);
 
     return path.join(this._artifactsPath, sourceName, `${contractName}.json`);
   }

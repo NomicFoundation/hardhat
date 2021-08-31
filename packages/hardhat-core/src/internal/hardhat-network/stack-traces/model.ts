@@ -4,7 +4,7 @@ import { AbiHelpers } from "../../util/abi-helpers";
 
 import { Opcode } from "./opcodes";
 
-/* eslint-disable @nomiclabs/only-hardhat-error */
+/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
 export enum JumpType {
   NOT_JUMP,
@@ -130,10 +130,8 @@ export class Contract {
   private _constructor: ContractFunction | undefined;
   private _fallback: ContractFunction | undefined;
   private _receive: ContractFunction | undefined;
-  private readonly _selectorHexToFunction: Map<
-    string,
-    ContractFunction
-  > = new Map();
+  private readonly _selectorHexToFunction: Map<string, ContractFunction> =
+    new Map();
 
   constructor(
     public readonly name: string,

@@ -186,7 +186,7 @@ export class Resolver {
         );
       }
 
-      // eslint-disable-next-line @nomiclabs/only-hardhat-error
+      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
       throw error;
     }
   }
@@ -440,7 +440,7 @@ export class Resolver {
         );
       }
 
-      // eslint-disable-next-line @nomiclabs/only-hardhat-error
+      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
       throw error;
     }
   }

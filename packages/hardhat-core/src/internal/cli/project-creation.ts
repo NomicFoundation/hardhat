@@ -63,8 +63,10 @@ const ADVANCED_SAMPLE_PROJECT_DEPENDENCIES: Dependencies = {
 const SAMPLE_PROJECT_DEPENDENCIES: {
   [K in SampleProjectTypeCreationAction]: Dependencies;
 } = {
-  [Action.CREATE_BASIC_SAMPLE_PROJECT_ACTION]: BASIC_SAMPLE_PROJECT_DEPENDENCIES,
-  [Action.CREATE_ADVANCED_SAMPLE_PROJECT_ACTION]: ADVANCED_SAMPLE_PROJECT_DEPENDENCIES,
+  [Action.CREATE_BASIC_SAMPLE_PROJECT_ACTION]:
+    BASIC_SAMPLE_PROJECT_DEPENDENCIES,
+  [Action.CREATE_ADVANCED_SAMPLE_PROJECT_ACTION]:
+    ADVANCED_SAMPLE_PROJECT_DEPENDENCIES,
 };
 
 const TELEMETRY_CONSENT_TIMEOUT = 10000;
@@ -230,7 +232,7 @@ async function getAction(): Promise<Action> {
       return Action.QUIT_ACTION;
     }
 
-    // eslint-disable-next-line @nomiclabs/only-hardhat-error
+    // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
     throw e;
   }
 }
@@ -317,7 +319,7 @@ export async function createProject() {
         return;
       }
 
-      // eslint-disable-next-line @nomiclabs/only-hardhat-error
+      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
       throw e;
     }
   }
@@ -488,7 +490,7 @@ async function confirmRecommendedDepsInstallation(
       return false;
     }
 
-    // eslint-disable-next-line @nomiclabs/only-hardhat-error
+    // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
     throw e;
   }
 

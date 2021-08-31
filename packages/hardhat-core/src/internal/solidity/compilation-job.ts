@@ -172,9 +172,8 @@ export async function createCompilationJobFromFile(
   solidityConfig: SolidityConfig
 ): Promise<CompilationJob | CompilationJobCreationError> {
   const directDependencies = dependencyGraph.getDependencies(file);
-  const transitiveDependencies = dependencyGraph.getTransitiveDependencies(
-    file
-  );
+  const transitiveDependencies =
+    dependencyGraph.getTransitiveDependencies(file);
 
   const compilerConfig = getCompilerConfigForFile(
     file,

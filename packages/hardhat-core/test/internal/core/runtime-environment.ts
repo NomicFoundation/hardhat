@@ -208,10 +208,8 @@ describe("Environment", () => {
         await env.run(taskName, taskMinimalArgs);
 
         // assertions
-        const [
-          taskWithSpecifiedArgsCall,
-          taskWithDefaultArgsCall,
-        ] = taskActionSpy.getCalls();
+        const [taskWithSpecifiedArgsCall, taskWithDefaultArgsCall] =
+          taskActionSpy.getCalls();
 
         assert.equal(
           taskWithSpecifiedArgsCall.args[0][optParamName],

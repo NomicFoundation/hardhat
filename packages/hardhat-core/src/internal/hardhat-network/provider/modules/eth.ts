@@ -91,7 +91,7 @@ const EIP1559_MIN_HARDFORK = "london";
 const ACCESS_LIST_MIN_HARDFORK = "berlin";
 const EIP155_MIN_HARDFORK = "spuriousDragon";
 
-/* eslint-disable @nomiclabs/only-hardhat-error */
+/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 export class EthModule {
   constructor(
     private readonly _common: Common,
@@ -421,12 +421,8 @@ export class EthModule {
 
     const callParams = await this._rpcCallRequestToNodeCallParams(callRequest);
 
-    const {
-      estimation,
-      error,
-      trace,
-      consoleLogMessages,
-    } = await this._node.estimateGas(callParams, blockNumberOrPending);
+    const { estimation, error, trace, consoleLogMessages } =
+      await this._node.estimateGas(callParams, blockNumberOrPending);
 
     if (error !== undefined) {
       const code = await this._node.getCodeFromTrace(
@@ -522,10 +518,8 @@ export class EthModule {
     let totalDifficulty: BN | undefined;
 
     if (numberOrPending === "pending") {
-      [
-        block,
-        totalDifficulty,
-      ] = await this._node.getPendingBlockAndTotalDifficulty();
+      [block, totalDifficulty] =
+        await this._node.getPendingBlockAndTotalDifficulty();
     } else {
       block = await this._node.getBlockByNumber(numberOrPending);
       if (block === undefined) {

@@ -82,7 +82,7 @@ export async function isLocalSourceName(
       return false;
     }
 
-    // eslint-disable-next-line @nomiclabs/only-hardhat-error
+    // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
     throw error;
   }
 
@@ -212,7 +212,7 @@ async function getPathTrueCase(fromDir: string, p: string): Promise<string> {
       );
     }
 
-    // eslint-disable-next-line @nomiclabs/only-hardhat-error
+    // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
     throw error;
   }
 }

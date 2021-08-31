@@ -78,9 +78,8 @@ export class Parser {
       return internalCacheEntry;
     }
 
-    const solidityFilesCacheEntry = this._solidityFilesCache.getEntry(
-      absolutePath
-    );
+    const solidityFilesCacheEntry =
+      this._solidityFilesCache.getEntry(absolutePath);
 
     if (solidityFilesCacheEntry === undefined) {
       return null;
@@ -97,7 +96,8 @@ export class Parser {
 }
 
 function findImportsWithRegexps(fileContent: string): string[] {
-  const importsRegexp: RegExp = /import\s+(?:(?:"([^;]*)"|'([^;]*)')(?:;|\s+as\s+[^;]*;)|.+from\s+(?:"(.*)"|'(.*)');)/g;
+  const importsRegexp: RegExp =
+    /import\s+(?:(?:"([^;]*)"|'([^;]*)')(?:;|\s+as\s+[^;]*;)|.+from\s+(?:"(.*)"|'(.*)');)/g;
 
   let imports: string[] = [];
   let result: RegExpExecArray | null;
