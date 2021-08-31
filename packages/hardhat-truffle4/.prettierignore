@@ -2,3 +2,4 @@
 /dist
 /test/fixture-projects/**/artifacts
 /test/fixture-projects/**/cache
+CHANGELOG.md
