@@ -145,6 +145,7 @@ export class AutomaticGasPriceProvider extends ProviderWrapper {
   public static readonly EIP1559_REWARD_PERCENTILE: number = 0.5;
 
   private _nodeHasFeeHistory?: boolean;
+  private _nodeSupportsEIP1559?: boolean;
 
   public async request(args: RequestArguments): Promise<unknown> {
     if (args.method !== "eth_sendTransaction") {
@@ -226,7 +227,19 @@ export class AutomaticGasPriceProvider extends ProviderWrapper {
       }
     | undefined
   > {
-    if (this._nodeHasFeeHistory === false) {
+    if (this._nodeSupportsEIP1559 === undefined) {
+      const block = (await this._wrappedProvider.request({
+        method: "eth_getBlockByNumber",
+        params: ["latest", false],
+      })) as any;
+
+      this._nodeSupportsEIP1559 = block.baseFeePerGas !== undefined;
+    }
+
+    if (
+      this._nodeHasFeeHistory === false ||
+      this._nodeSupportsEIP1559 === false
+    ) {
       return;
     }
 
