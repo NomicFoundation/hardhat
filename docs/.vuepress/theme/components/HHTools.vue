@@ -149,7 +149,6 @@
             handleScroll(event) {
                 let element = document.getElementById('tools');
                 let elementBottomPosition = element.getBoundingClientRect().bottom;
-                console.log(elementBottomPosition);
                 if (elementBottomPosition < 0 && !this.isToolChangeIntervalRunning) {
                     this.isToolChangeIntervalRunning = true;
                     setTimeout(() => {
