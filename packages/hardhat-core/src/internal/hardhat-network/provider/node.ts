@@ -2018,8 +2018,14 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
   private async _runInPendingBlockContext<T>(action: () => Promise<T>) {
     const snapshotId = await this.takeSnapshot();
+    const [blockTimestamp] = this._calculateTimestampAndOffset();
+    const needsTimestampIncrease =
+      await this._timestampClashesWithPreviousBlockOne(blockTimestamp);
+    if (needsTimestampIncrease) {
+      blockTimestamp.iaddn(1);
+    }
     try {
-      await this.mineBlock();
+      await this._mineBlockWithPendingTxs(blockTimestamp);
       return await action();
     } finally {
       await this.revertToSnapshot(snapshotId);
