@@ -1372,12 +1372,28 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         .map((hash) => this.getTransactionReceipt(hash))
     );
 
-    const effectiveGasPriceAndGas = receipts
-      .map((r) => ({
-        effectiveGasPrice: rpcQuantityToBN(r?.effectiveGasPrice!),
-        gasUsed: rpcQuantityToBN(r?.gasUsed!),
-      }))
-      .sort((a, b) => a.effectiveGasPrice.cmp(b.effectiveGasPrice));
+    const effectiveGasRewardAndGas = receipts
+      .map((r, i) => {
+        const tx = block.transactions[i];
+        const baseFeePerGas = block.header.baseFeePerGas ?? new BN(0);
+
+        // reward = min(maxPriorityFeePerGas, maxFeePerGas - baseFeePerGas)
+        let effectiveGasReward: BN;
+        if ("maxPriorityFeePerGas" in tx) {
+          effectiveGasReward = tx.maxFeePerGas.sub(baseFeePerGas);
+          if (tx.maxPriorityFeePerGas.lt(effectiveGasReward)) {
+            effectiveGasReward = tx.maxPriorityFeePerGas;
+          }
+        } else {
+          effectiveGasReward = tx.gasPrice.sub(baseFeePerGas);
+        }
+
+        return {
+          effectiveGasReward,
+          gasUsed: rpcQuantityToBN(r?.gasUsed!),
+        };
+      })
+      .sort((a, b) => a.effectiveGasReward.cmp(b.effectiveGasReward));
 
     return rewardPercentiles.map((p) => {
       let gasUsed = new BN(0);
@@ -1385,16 +1401,16 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         .muln(Math.ceil(p * FLOATS_PRECISION))
         .divn(100 * FLOATS_PRECISION);
 
-      for (const values of effectiveGasPriceAndGas) {
+      for (const values of effectiveGasRewardAndGas) {
         gasUsed = gasUsed.add(values.gasUsed);
 
         if (targetGas.lte(gasUsed)) {
-          return values.effectiveGasPrice;
+          return values.effectiveGasReward;
         }
       }
 
-      return effectiveGasPriceAndGas[effectiveGasPriceAndGas.length - 1]
-        .effectiveGasPrice;
+      return effectiveGasRewardAndGas[effectiveGasRewardAndGas.length - 1]
+        .effectiveGasReward;
     });
   }
 
