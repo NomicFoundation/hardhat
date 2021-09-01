@@ -102,6 +102,30 @@ describe("Eth module", function () {
           assert.lengthOf(getResults().messageResults, 3);
         });
 
+        it("Sends newHeads events only on new blocks", async function () {
+          const filterId = await this.provider.send("eth_subscribe", [
+            "newHeads",
+          ]);
+
+          const getResults = createFilterResultsGetter(this.provider, filterId);
+
+          await this.provider.send("evm_mine", []);
+          await this.provider.send("evm_mine", []);
+          await this.provider.send("evm_mine", []);
+          await this.provider.send("eth_getTransactionCount", [
+            "0x407d73d8a49eeb85d32cf465507dd71d507100c1",
+            "pending",
+          ]);
+          await this.provider.send("eth_getBlockByNumber", ["pending", false]);
+
+          assert.isTrue(
+            await this.provider.send("eth_unsubscribe", [filterId])
+          );
+
+          assert.lengthOf(getResults().notificationsResults, 3);
+          assert.lengthOf(getResults().messageResults, 3);
+        });
+
         it("Supports newPendingTransactions subscribe", async function () {
           const filterId = await this.provider.send("eth_subscribe", [
             "newPendingTransactions",
