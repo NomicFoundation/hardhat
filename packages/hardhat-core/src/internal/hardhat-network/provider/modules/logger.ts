@@ -46,7 +46,7 @@ function replaceLastLine(newLine: string) {
         ansiEscapes.cursorShow
     );
   } else {
-    process.stdout.write(newLine+"\n");
+    process.stdout.write(newLine + "\n");
   }
 }
 
