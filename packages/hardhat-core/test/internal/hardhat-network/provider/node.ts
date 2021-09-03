@@ -4,7 +4,8 @@ import { TxData, TypedTransaction } from "@ethereumjs/tx";
 import VM from "@ethereumjs/vm";
 import { AfterBlockEvent, RunBlockOpts } from "@ethereumjs/vm/dist/runBlock";
 import { assert } from "chai";
-import { Address, BN, bufferToHex } from "ethereumjs-util";
+import { Address, BN, bufferToHex, toBuffer } from "ethereumjs-util";
+import { ethers } from "ethers";
 import sinon from "sinon";
 
 import { rpcToBlockData } from "../../../../src/internal/hardhat-network/provider/fork/rpcToBlockData";
@@ -12,6 +13,7 @@ import { HardhatNode } from "../../../../src/internal/hardhat-network/provider/n
 import {
   ForkedNodeConfig,
   NodeConfig,
+  RunCallResult,
 } from "../../../../src/internal/hardhat-network/provider/node-types";
 import { FakeSenderTransaction } from "../../../../src/internal/hardhat-network/provider/transactions/FakeSenderTransaction";
 import { getCurrentTimestamp } from "../../../../src/internal/hardhat-network/provider/utils/getCurrentTimestamp";
@@ -22,6 +24,7 @@ import {
   EMPTY_ACCOUNT_ADDRESS,
   FORK_TESTS_CACHE_PATH,
 } from "../helpers/constants";
+import { expectErrorAsync } from "../../../helpers/errors";
 import {
   DEFAULT_ACCOUNTS,
   DEFAULT_ACCOUNTS_ADDRESSES,
@@ -698,6 +701,110 @@ describe("HardhatNode", () => {
         );
       });
     }
+  });
+
+  it("should run calls in the right hardfork context", async function () {
+    // fork mainnet at the block when EIP-1559 activated (12965000), and try to
+    // run a call that specifies gas limits in EIP-1559 terms, but run that
+    // call one block earlier, and expect that call to fail because it should
+    // have specified gas limits in PRE-EIP-1559 terms.  Then run the same test
+    // again but with a node config that enables London one block early, and
+    // expect the test to pass
+
+    this.timeout(5000);
+
+    // as a test that does forking, we need a remote Alchemy node to fork from:
+    if (ALCHEMY_URL === undefined) {
+      return;
+    }
+    const urlOfNodeToFork = ALCHEMY_URL;
+
+    const eip1559ActivationBlock = 12965000;
+
+    const forkedNodeConfig: ForkedNodeConfig = {
+      automine: true,
+      networkName: "mainnet",
+      chainId: 1,
+      networkId: 1,
+      hardfork: "london",
+      forkConfig: {
+        jsonRpcUrl: urlOfNodeToFork,
+        blockNumber: eip1559ActivationBlock,
+      },
+      forkCachePath: FORK_TESTS_CACHE_PATH,
+      blockGasLimit: 1_000_000,
+      minGasPrice: new BN(0),
+      genesisAccounts: [],
+    };
+
+    const [, regularNode] = await HardhatNode.create(forkedNodeConfig);
+    const [, nodeWithEarlyLondon] = await HardhatNode.create({
+      ...forkedNodeConfig,
+      hardforkActivationBlocks: { 1: { london: eip1559ActivationBlock - 1 } },
+    });
+
+    /** execute a call to method Hello() on contract HelloWorld, deployed to
+     * mainnet years ago, which should return a string, "Hello World". */
+    async function runCall(
+      gasParams: { gasPrice?: BN; maxFeePerGas?: BN },
+      block: number,
+      targetNode: HardhatNode = regularNode
+    ): Promise<string> {
+      const contractInterface = new ethers.utils.Interface(
+        '[{"constant":true,"inputs":[],"name":"Hello","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"pure","type":"function"}]'
+      );
+
+      const callOpts = {
+        to: toBuffer("0xe36613A299bA695aBA8D0c0011FCe95e681f6dD3"),
+        from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
+        value: new BN(0),
+        data: toBuffer(contractInterface.encodeFunctionData("Hello", [])),
+        gasLimit: new BN(1_000_000),
+      };
+
+      function decodeResult(runCallResult: RunCallResult) {
+        return contractInterface.decodeFunctionResult(
+          "Hello",
+          bufferToHex(runCallResult.result.value)
+        )[0];
+      }
+
+      return decodeResult(
+        await targetNode.runCall({ ...callOpts, ...gasParams }, new BN(block))
+      );
+    }
+
+    // some shorthand for code below:
+    const bn0 = new BN(0);
+    const maxFeePerGas = new BN(0);
+    const post1559Block = eip1559ActivationBlock;
+    const pre1559Block = eip1559ActivationBlock - 1;
+
+    // some sanity checks:
+    assert.equal("Hello World", await runCall({ maxFeePerGas }, post1559Block));
+    assert.equal("Hello World", await runCall({ gasPrice: bn0 }, pre1559Block));
+
+    // The following test is expected to pass (expecting an error to be thrown)
+    // because it's using post-EIP-1559 gas semantics with a pre-1559 block;
+    // but, demonstrating #1666, Hardhat Node is running the call in the
+    // context of the hardfork specified in the node's config, causing the call
+    // to execute rather than throw the expected error.  If you change the
+    // forkedNodeConfig above to specify `hardfork: "berlin"` then this test
+    // passes (though the earlier test with maxFeePerGas fails of course).
+    await expectErrorAsync(async () => {
+      await runCall({ maxFeePerGas }, pre1559Block);
+    }, "EIP-1559 not enabled on Common");
+    // }, "Cannot run transaction: EIP 1559 is not activated.");
+
+    // Now run that same test again (use maxFeePerGas, and pre1559Block), but
+    // this time construct the fork node with the instruction to say that
+    // london activated one block earlier, so that then the same call will be
+    // running in a london context. this time it should actually pass rather
+    // than throw.
+    assert.equal(
+      "Hello World",
+      await runCall({ maxFeePerGas }, pre1559Block, nodeWithEarlyLondon)
+    );
   });
 });
 

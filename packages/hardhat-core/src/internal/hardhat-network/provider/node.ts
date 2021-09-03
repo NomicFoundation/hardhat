@@ -27,6 +27,7 @@ import {
 import EventEmitter from "events";
 
 import { CompilerInput, CompilerOutput } from "../../../types";
+import { HARDHAT_NETWORK_SUPPORTED_HARDFORKS } from "../../constants";
 import {
   HARDHAT_NETWORK_DEFAULT_INITIAL_BASE_FEE_PER_GAS,
   HARDHAT_NETWORK_DEFAULT_MAX_PRIORITY_FEE_PER_GAS,
@@ -37,6 +38,7 @@ import {
   InternalError,
   InvalidArgumentsError,
   InvalidInputError,
+  InvalidJsonInputError,
   TransactionExecutionError,
 } from "../../core/providers/errors";
 import { Reporter } from "../../sentry/reporter";
@@ -81,6 +83,7 @@ import {
   FilterParams,
   GatherTracesResult,
   GenesisAccount,
+  HardforkActivationBlocks,
   isForkedNodeConfig,
   MineBlockResult,
   NodeConfig,
@@ -115,6 +118,20 @@ const log = debug("hardhat:core:hardhat-network:node");
 
 const ethSigUtil = require("eth-sig-util");
 
+const mainnetHardforkActivations =
+  require("@ethereumjs/common/dist/chains/mainnet.json").hardforks.reduce(
+    (
+      previousValue: HardforkActivationBlocks,
+      currentValue: { name: string; block: number }
+    ) => {
+      if (!HARDHAT_NETWORK_SUPPORTED_HARDFORKS.includes(currentValue.name)) {
+        return previousValue;
+      }
+      return { ...previousValue, [currentValue.name]: currentValue.block };
+    },
+    {}
+  );
+
 export const COINBASE_ADDRESS = Address.fromString(
   "0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e"
 );
@@ -132,6 +149,8 @@ export class HardhatNode extends EventEmitter {
       allowUnlimitedContractSize,
       tracingConfig,
       minGasPrice,
+      chainId,
+      hardforkActivationBlocks,
     } = config;
 
     let common: Common;
@@ -245,7 +264,11 @@ export class HardhatNode extends EventEmitter {
       genesisAccounts,
       tracingConfig,
       forkNetworkId,
-      nextBlockBaseFeePerGas
+      nextBlockBaseFeePerGas,
+      hardforkActivationBlocks !== undefined &&
+      hardforkActivationBlocks[chainId] !== undefined
+        ? hardforkActivationBlocks[chainId]
+        : undefined
     );
 
     return [common, node];
@@ -318,7 +341,8 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     genesisAccounts: GenesisAccount[],
     tracingConfig?: TracingConfig,
     private _forkNetworkId?: number,
-    nextBlockBaseFee?: BN
+    nextBlockBaseFee?: BN,
+    private readonly _hardforkActivationBlocks: HardforkActivationBlocks = mainnetHardforkActivations
   ) {
     super();
 
@@ -2154,6 +2178,10 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         (blockContext.header as any).baseFeePerGas = new BN(0);
       }
 
+      this._vm._common.setHardfork(
+        this._selectHardforkFromActivations(blockContext!.header.number)
+      );
+
       return await this._vm.runTx({
         block: blockContext,
         tx,
@@ -2296,6 +2324,37 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     }
 
     return { maxFeePerGas, maxPriorityFeePerGas };
+  }
+
+  /** search this._hardforkActivationBlocks for the highest block number that
+   * isn't higher than blockNum, and then return that found block number's
+   * associated hardfork name. */
+  private _selectHardforkFromActivations(
+    blockNum: BN
+  ): typeof HARDHAT_NETWORK_SUPPORTED_HARDFORKS[number] {
+    let highestFound: {
+      hardfork: typeof HARDHAT_NETWORK_SUPPORTED_HARDFORKS[number];
+      block: number;
+    } = { hardfork: "", block: 0 };
+    Object.entries(this._hardforkActivationBlocks).forEach((entry) => {
+      const [hardfork, block] = entry;
+      if (!HARDHAT_NETWORK_SUPPORTED_HARDFORKS.includes(hardfork)) {
+        throw new InvalidInputError(
+          `hardforkActivationBlocks contained unsupported hardfork "${hardfork}"`
+        );
+      }
+      if (block > highestFound.block && new BN(block).lte(blockNum)) {
+        highestFound = { hardfork, block };
+      }
+    });
+    if (highestFound.hardfork === "" && highestFound.block === 0) {
+      throw new InvalidJsonInputError(
+        `No known hardfork for block ${blockNum}. HardhatNode config's hardforkActivationBlocks: ${JSON.stringify(
+          this._hardforkActivationBlocks
+        )}`
+      );
+    }
+    return highestFound.hardfork;
   }
 }
 

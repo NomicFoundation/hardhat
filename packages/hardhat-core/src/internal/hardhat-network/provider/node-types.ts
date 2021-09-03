@@ -3,6 +3,7 @@ import { RunBlockResult } from "@ethereumjs/vm/dist/runBlock";
 import { BN } from "ethereumjs-util";
 
 import { BuildInfo } from "../../../types";
+import { HARDHAT_NETWORK_SUPPORTED_HARDFORKS } from "../../constants";
 import { MessageTrace } from "../stack-traces/message-trace";
 
 import type { ReturnData } from "./return-data";
@@ -14,6 +15,11 @@ export function isForkedNodeConfig(
 ): config is ForkedNodeConfig {
   return "forkConfig" in config && config.forkConfig !== undefined;
 }
+
+export type HardforkActivationBlocks = Record<
+  typeof HARDHAT_NETWORK_SUPPORTED_HARDFORKS[number],
+  number
+>;
 
 interface CommonConfig {
   automine: boolean;
@@ -28,6 +34,9 @@ interface CommonConfig {
   initialDate?: Date;
   tracingConfig?: TracingConfig;
   initialBaseFeePerGas?: number;
+  hardforkActivationBlocks?: {
+    [chainId: number]: HardforkActivationBlocks;
+  };
 }
 
 export type LocalNodeConfig = CommonConfig;

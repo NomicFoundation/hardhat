@@ -38,6 +38,7 @@ import { HardhatNode } from "./node";
 import {
   ForkConfig,
   GenesisAccount,
+  HardforkActivationBlocks,
   IntervalMiningConfig,
   NodeConfig,
   TracingConfig,
@@ -86,7 +87,10 @@ export class HardhatNetworkProvider
     private readonly _initialDate?: Date,
     private readonly _experimentalHardhatNetworkMessageTraceHooks: BoundExperimentalHardhatNetworkMessageTraceHook[] = [],
     private _forkConfig?: ForkConfig,
-    private readonly _forkCachePath?: string
+    private readonly _forkCachePath?: string,
+    private readonly _hardforkActivationBlocks?: {
+      [chainId: number]: HardforkActivationBlocks;
+    }
   ) {
     super();
   }
@@ -222,6 +226,7 @@ export class HardhatNetworkProvider
       tracingConfig: await this._makeTracingConfig(),
       initialBaseFeePerGas: this._initialBaseFeePerGas,
       hardfork: this._hardfork,
+      hardforkActivationBlocks: this._hardforkActivationBlocks,
       networkName: this._networkName,
       chainId: this._chainId,
       networkId: this._networkId,
