@@ -228,20 +228,19 @@ function processModifierDefinitionAstNode(
 }
 
 function canonicalAbiTypeForElementaryOrUserDefinedTypes(keyType: any): any {
-  switch (keyType.type) {
-    case "ElementaryTypeName":
-      return toCanonicalAbiType(keyType.name);
-    case "UserDefinedTypeName":
-      if (isEnumType(keyType)) {
-        return "uint256";
-      }
-      if (isContractType(keyType)) {
-        return "address";
-      }
-      return undefined;
-    default:
-      return undefined;
+  if (isElementaryType(keyType)) {
+    return toCanonicalAbiType(keyType.name);
   }
+
+  if (isEnumType(keyType)) {
+    return "uint256";
+  }
+
+  if (isContractType(keyType)) {
+    return "address";
+  }
+
+  return undefined;
 }
 
 function getPublicVariableSelectorFromDeclarationAstNode(
@@ -542,7 +541,8 @@ function astFunctionDefinitionToSelector(functionDefinition: any): Buffer {
 
 function isContractType(param: any) {
   return (
-    param.typeName?.nodeType === "UserDefinedTypeName" &&
+    (param.typeName?.nodeType === "UserDefinedTypeName" ||
+      param?.nodeType === "UserDefinedTypeName") &&
     param.typeDescriptions?.typeString !== undefined &&
     param.typeDescriptions.typeString.startsWith("contract ")
   );
@@ -550,9 +550,17 @@ function isContractType(param: any) {
 
 function isEnumType(param: any) {
   return (
-    param.typeName?.nodeType === "UserDefinedTypeName" &&
+    (param.typeName?.nodeType === "UserDefinedTypeName" ||
+      param?.nodeType === "UserDefinedTypeName") &&
     param.typeDescriptions?.typeString !== undefined &&
     param.typeDescriptions.typeString.startsWith("enum ")
+  );
+}
+
+function isElementaryType(param: any) {
+  return (
+    param.type === "ElementaryTypeName" ||
+    param.nodeType === "ElementaryTypeName"
   );
 }
 
