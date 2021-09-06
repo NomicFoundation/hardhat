@@ -227,9 +227,29 @@ function processModifierDefinitionAstNode(
   file.addFunction(cf);
 }
 
+function canonicalAbiTypeForElementaryOrUserDefinedTypes(keyType: any): any {
+  if (isElementaryType(keyType)) {
+    return toCanonicalAbiType(keyType.name);
+  }
+
+  if (isEnumType(keyType)) {
+    return "uint256";
+  }
+
+  if (isContractType(keyType)) {
+    return "address";
+  }
+
+  return undefined;
+}
+
 function getPublicVariableSelectorFromDeclarationAstNode(
   variableDeclaration: any
 ) {
+  if (variableDeclaration.functionSelector !== undefined) {
+    return Buffer.from(variableDeclaration.functionSelector, "hex");
+  }
+
   const paramTypes: string[] = [];
 
   // VariableDeclaration nodes for function parameters or state variables will always
@@ -237,7 +257,10 @@ function getPublicVariableSelectorFromDeclarationAstNode(
   let nextType = variableDeclaration.typeName;
   while (true) {
     if (nextType.nodeType === "Mapping") {
-      paramTypes.push(toCanonicalAbiType(nextType.keyType.name));
+      const canonicalType = canonicalAbiTypeForElementaryOrUserDefinedTypes(
+        nextType.keyType
+      );
+      paramTypes.push(canonicalType);
 
       nextType = nextType.valueType;
     } else {
@@ -518,7 +541,8 @@ function astFunctionDefinitionToSelector(functionDefinition: any): Buffer {
 
 function isContractType(param: any) {
   return (
-    param.typeName?.nodeType === "UserDefinedTypeName" &&
+    (param.typeName?.nodeType === "UserDefinedTypeName" ||
+      param?.nodeType === "UserDefinedTypeName") &&
     param.typeDescriptions?.typeString !== undefined &&
     param.typeDescriptions.typeString.startsWith("contract ")
   );
@@ -526,9 +550,17 @@ function isContractType(param: any) {
 
 function isEnumType(param: any) {
   return (
-    param.typeName?.nodeType === "UserDefinedTypeName" &&
+    (param.typeName?.nodeType === "UserDefinedTypeName" ||
+      param?.nodeType === "UserDefinedTypeName") &&
     param.typeDescriptions?.typeString !== undefined &&
     param.typeDescriptions.typeString.startsWith("enum ")
+  );
+}
+
+function isElementaryType(param: any) {
+  return (
+    param.type === "ElementaryTypeName" ||
+    param.nodeType === "ElementaryTypeName"
   );
 }
 
