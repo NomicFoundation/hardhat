@@ -241,6 +241,10 @@ function getTypeName(keyType: any) {
 function getPublicVariableSelectorFromDeclarationAstNode(
   variableDeclaration: any
 ) {
+  if (variableDeclaration.functionSelector !== undefined) {
+    return Buffer.from(variableDeclaration.functionSelector);
+  }
+
   const paramTypes: string[] = [];
 
   // VariableDeclaration nodes for function parameters or state variables will always
