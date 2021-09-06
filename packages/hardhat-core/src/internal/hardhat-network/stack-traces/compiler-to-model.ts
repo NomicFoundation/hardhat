@@ -227,6 +227,23 @@ function processModifierDefinitionAstNode(
   file.addFunction(cf);
 }
 
+function canonicalAbiTypeForElementaryOrUserDefinedTypes(keyType: any): any {
+  switch (keyType.type) {
+    case "ElementaryTypeName":
+      return toCanonicalAbiType(keyType.name);
+    case "UserDefinedTypeName":
+      if (isEnumType(keyType)) {
+        return "uint256";
+      }
+      if (isContractType(keyType)) {
+        return "address";
+      }
+      return undefined;
+    default:
+      return undefined;
+  }
+}
+
 function getPublicVariableSelectorFromDeclarationAstNode(
   variableDeclaration: any
 ) {
@@ -241,11 +258,9 @@ function getPublicVariableSelectorFromDeclarationAstNode(
   let nextType = variableDeclaration.typeName;
   while (true) {
     if (nextType.nodeType === "Mapping") {
-      const canonicalType =
-        nextType.keyType.nodeType === "UserDefinedTypeName"
-          ? "address"
-          : toCanonicalAbiType(nextType.keyType.name);
-
+      const canonicalType = canonicalAbiTypeForElementaryOrUserDefinedTypes(
+        nextType.keyType
+      );
       paramTypes.push(canonicalType);
 
       nextType = nextType.valueType;
