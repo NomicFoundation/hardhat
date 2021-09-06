@@ -597,14 +597,6 @@ function toCanonicalAbiType(type: string): string {
     return "ufixed128x128";
   }
 
-  if (isEnumType(type)) {
-    return "uint256";
-  }
-
-  if (isContractType(type)) {
-    return "address";
-  }
-
   return type;
 }
 
