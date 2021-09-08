@@ -4,18 +4,18 @@ on:
   push:
     branches: [$default-branch]
     paths:
-      - "packages/hardhat-web3-legacy/**/*"
-      - "packages/hardhat-core/**/*"
+      - "packages/hardhat-web3-legacy/**"
+      - "packages/hardhat-core/**"
       - "packages/hardhat-common/**/*"
-      - "config/**/*"
+      - "config/**"
   pull_request:
     branches:
       - "*"
     paths:
-      - "packages/hardhat-web3-legacy/**/*"
-      - "packages/hardhat-core/**/*"
-      - "packages/hardhat-common/**/*"
-      - "config/**/*"
+      - "packages/hardhat-web3-legacy/**"
+      - "packages/hardhat-core/**"
+      - "packages/hardhat-common/**"
+      - "config/**"
 
 defaults:
   run:
