@@ -1,5 +1,11 @@
 # hardhat
 
+## 2.6.4
+
+### Patch Changes
+
+- b62ddf32: Fix a bug in Hardhat Network's solidity source maps processing. Thanks @paulberg!
+
 ## 2.6.3
 
 ### Patch Changes

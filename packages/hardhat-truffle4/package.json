@@ -1,6 +1,6 @@
 {
   "name": "@nomiclabs/hardhat-truffle4",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Truffle 4 Hardhat compatibility plugin",
   "homepage": "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-truffle4",
   "repository": "github:nomiclabs/hardhat",
@@ -61,7 +61,7 @@
   },
   "peerDependencies": {
     "@nomiclabs/hardhat-web3-legacy": "^2.0.0",
-    "hardhat": "^2.0.0",
+    "hardhat": "^2.6.4",
     "web3": "^0.20.0"
   }
 }
