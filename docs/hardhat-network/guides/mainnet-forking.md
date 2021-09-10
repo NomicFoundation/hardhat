@@ -18,7 +18,7 @@ You can also configure Hardhat Network to always do this:
 networks: {
   hardhat: {
     forking: {
-      url: "https://eth-mainnet.alchemyapi.io/v2/<key>";
+      url: "https://eth-mainnet.alchemyapi.io/v2/<key>",
     }
   }
 }
