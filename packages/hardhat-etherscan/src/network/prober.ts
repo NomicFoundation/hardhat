@@ -38,6 +38,8 @@ enum NetworkID {
   POLYGON_MUMBAI = 80001,
   // Arbitrum
   ARBITRUM_ONE = 42161,
+  // Fuse
+  FUSE = 122,
 }
 
 const networkIDtoEndpoints: NetworkMap = {
@@ -100,6 +102,10 @@ const networkIDtoEndpoints: NetworkMap = {
   [NetworkID.ARBITRUM_ONE]: {
     apiURL: "https://api.arbiscan.io/api",
     browserURL: "https://arbiscan.io/",
+  },
+  [NetworkID.FUSE]: {
+    apiURL: "https://explorer.fuse.io/api",
+    browserURL: "https://explorer.fuse.io/",
   },
 };
 
