@@ -49,8 +49,6 @@ describe("e2e tests", function () {
     // executed here cannot fall out of sync with what's actually suggested to
     // the user, but this approach was more expedient.
 
-    useFixture("basic-sample-project");
-
     before(function () {
       if (os.type() === "Windows_NT") {
         // See https://github.com/nomiclabs/hardhat/issues/1698
@@ -59,6 +57,8 @@ describe("e2e tests", function () {
     });
 
     describe("basic sample project", function () {
+      useFixture("basic-sample-project");
+
       before(function () {
         shell.exec(`${hardhatBinary}`, {
           env: {
