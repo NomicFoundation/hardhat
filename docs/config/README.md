@@ -17,7 +17,7 @@ module.exports = {
     hardhat: {
     },
     rinkeby: {
-      url: "https://eth-mainnet.alchemyapi.io/v2/123abc123abc123abc123abc123abcde",
+      url: "https://eth-rinkeby.alchemyapi.io/v2/123abc123abc123abc123abc123abcde",
       accounts: [privateKey1, privateKey2, ...]
     }
   },
