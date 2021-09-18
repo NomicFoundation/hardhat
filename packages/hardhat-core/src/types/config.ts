@@ -18,6 +18,7 @@ import type { BN } from "ethereumjs-util";
 
 export interface NetworksUserConfig {
   hardhat?: HardhatNetworkUserConfig;
+
   [networkName: string]: NetworkUserConfig | undefined;
 }
 
@@ -95,6 +96,7 @@ export interface HttpNetworkUserConfig {
 export interface NetworksConfig {
   hardhat: HardhatNetworkConfig;
   localhost: HttpNetworkConfig;
+
   [networkName: string]: NetworkConfig;
 }
 
@@ -221,6 +223,13 @@ export interface SolidityConfig {
   overrides: Record<string, SolcConfig>;
 }
 
+export interface TypeChainConfig {
+  outDir?: string;
+  target?: string;
+  alwaysGenerateOverloads?: boolean;
+  externalArtifacts?: string[];
+}
+
 // Hardhat config
 
 export interface HardhatUserConfig {
@@ -229,6 +238,7 @@ export interface HardhatUserConfig {
   networks?: NetworksUserConfig;
   solidity?: SolidityUserConfig;
   mocha?: Mocha.MochaOptions;
+  typechain?: TypeChainConfig;
 }
 
 export interface HardhatConfig {
