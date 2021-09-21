@@ -28,8 +28,9 @@ enum NetworkID {
   // Huobi ECO Chain
   HECO = 128,
   HECO_TESTNET = 256,
-  // Fantom mainnet
-  OPERA = 250,
+  // Fantom
+  FANTOM_OPERA = 250,
+  FANTOM_TESTNET = 4002,
   // Optimistim
   OPTIMISTIC_ETHEREUM = 10,
   OPTIMISTIC_KOVAN = 69,
@@ -77,9 +78,13 @@ const networkIDtoEndpoints: NetworkMap = {
     apiURL: "https://api-testnet.hecoinfo.com/api",
     browserURL: "https://testnet.hecoinfo.com",
   },
-  [NetworkID.OPERA]: {
+  [NetworkID.FANTOM_OPERA]: {
     apiURL: "https://api.ftmscan.com/api",
     browserURL: "https://ftmscan.com",
+  },
+  [NetworkID.FANTOM_TESTNET]: {
+    apiURL: "api-testnet.ftmscan.com/api",
+    browserURL: "https://testnet.ftmscan.com",
   },
   [NetworkID.OPTIMISTIC_ETHEREUM]: {
     apiURL: "https://api-optimistic.etherscan.io/api",
