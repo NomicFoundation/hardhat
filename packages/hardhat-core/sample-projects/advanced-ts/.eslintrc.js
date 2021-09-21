@@ -15,12 +15,6 @@ module.exports = {
   parserOptions: {
     ecmaVersion: 12,
   },
-  overrides: [
-    {
-      files: ["scripts/**"],
-      rules: { "no-process-exit": "off" },
-    },
-  ],
   rules: {
     "node/no-unsupported-features/es-syntax": [
       "error",
