@@ -1,0 +1,14 @@
+{
+  "name": "root",
+  "version": "0.0.0",
+  "author": "Nomic Labs LLC",
+  "license": "SEE LICENSE IN EACH PACKAGE'S LICENSE FILE",
+  "private": true,
+  "workspaces": ["packages/*"],
+  "scripts": {
+    "build": "wsrun --exclude-missing --serial build"
+  },
+  "devDependencies": {
+    "wsrun": "^5.2.4"
+  }
+}

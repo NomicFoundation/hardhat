@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "module": "commonjs",
+    "incremental": true,
+    "rootDirs": ["./src", "./test"],
+    "outDir": "./dist",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "strict": true,
+    "esModuleInterop": true
+  },
+  "exclude": ["dist", "node_modules"],
+  "include": ["./test", "./src"]
+}
