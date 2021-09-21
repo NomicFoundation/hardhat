@@ -168,6 +168,11 @@ async function copySampleProject(
       projectRoot
     );
     await fsExtra.remove(path.join(projectRoot, "scripts", "sample-script.js"));
+    await fsExtra.move(
+      path.join(projectRoot, "npmignore"),
+      path.join(projectRoot, ".npmignore"),
+      { overwrite: true }
+    );
   }
 
   if (projectType === Action.CREATE_ADVANCED_TYPESCRIPT_SAMPLE_PROJECT_ACTION) {
@@ -182,6 +187,11 @@ async function copySampleProject(
     ]) {
       await fsExtra.remove(jsFile);
     }
+    await fsExtra.move(
+      path.join(projectRoot, "npmignore"),
+      path.join(projectRoot, ".npmignore"),
+      { overwrite: true }
+    );
   }
 
   // This is just in case we have been using the sample project for dev/testing

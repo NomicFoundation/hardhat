@@ -20,13 +20,6 @@ module.exports = {
       files: ["scripts/**"],
       rules: { "no-process-exit": "off" },
     },
-    {
-      files: ["hardhat.config.ts", "scripts/**", "test/**"],
-      rules: {
-        "node/no-unpublished-import": "off",
-        "node/no-unpublished-require": "off",
-      },
-    },
   ],
   rules: {
     "node/no-unsupported-features/es-syntax": [
