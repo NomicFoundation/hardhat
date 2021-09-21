@@ -21,10 +21,6 @@ module.exports = {
       rules: { "no-process-exit": "off" },
     },
     {
-      files: ["hardhat.config.ts"],
-      globals: { hre: true },
-    },
-    {
       files: ["hardhat.config.ts", "scripts/**", "test/**"],
       rules: {
         "node/no-unpublished-import": "off",
