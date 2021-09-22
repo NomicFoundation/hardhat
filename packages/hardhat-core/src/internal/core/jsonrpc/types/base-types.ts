@@ -80,12 +80,20 @@ export function rpcQuantityToBN(quantity: string): BN {
 }
 
 export function numberToRpcQuantity(n: number | BN): string {
+  return numberToRpcQuantityWithLeadingZeros(n, false);
+}
+
+export function numberToRpcQuantityWithLeadingZeros(
+  n: number | BN,
+  leadingZeros: boolean
+): string {
   assertHardhatInvariant(
     typeof n === "number" || BN.isBN(n),
     "Expected number"
   );
 
-  return `0x${n.toString(16)}`;
+  const s = n.toString(16);
+  return leadingZeros ? `0x${s.length % 2 ? "0" : ""}${s}` : `0x${s}`;
 }
 
 /**
