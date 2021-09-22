@@ -14,3 +14,4 @@
 /test/internal/hardhat-network/stack-traces/compilers
 /test/internal/hardhat-network/stack-traces/test-files/**/artifacts
 /.nyc_output
+CHANGELOG.md
