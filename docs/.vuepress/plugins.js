@@ -393,6 +393,15 @@ const plugins = [
       "Helper plugin to manipulate blocks timestamp and trigger mining. It can be used from the command line and in the tests.",
     tags: ["Testing"],
   },
+  {
+    name: "hardhat-proxy",
+    author: "Jinyang Liu",
+    authorUrl: "https://github.com/jinyang1994",
+    url: "https://github.com/jinyang1994/hardhat-proxy/tree/main",
+    description:
+      "This plugin brings the proxy contract to Hardhat, which allows you to manage the proxy contract in a simple way.",
+    tags: ["Proxy Contract", "Tasks", "Scripts"],
+  },
 ];
 
 module.exports = plugins.map((p) => ({
