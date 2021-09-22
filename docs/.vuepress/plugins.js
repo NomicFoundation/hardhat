@@ -365,6 +365,15 @@ const plugins = [
       "Prepare the contract artifacts and the TypeChain bindings for registry deployment.",
     tags: ["Deployment", "Tasks", "TypeChain"],
   },
+  {
+    name: "hardhat-proxy",
+    author: "Jinyang Liu",
+    authorUrl: "https://github.com/jinyang1994",
+    url: "https://github.com/jinyang1994/hardhat-proxy/tree/main",
+    description:
+      "This plugin brings the proxy contract to Hardhat, which allows you to manage the proxy contract in a simple way.",
+    tags: ["Proxy Contract", "Tasks", "Scripts"],
+  },
 ];
 
 module.exports = plugins.map((p) => ({
