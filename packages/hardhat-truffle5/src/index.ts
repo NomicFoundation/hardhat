@@ -136,9 +136,10 @@ extendEnvironment((env) => {
 
         accounts = normalizeHardhatNetworkAccountsConfig(
           netConfig.accounts
-        ).map((acc) =>
-          toChecksumAddress(bufferToHex(privateToAddress(acc.privateKey)))
-        );
+        ).map((acc) => {
+          const buffer = Buffer.alloc(32, acc.privateKey);
+          return toChecksumAddress(bufferToHex(privateToAddress(buffer)));
+        });
       }
     } else if (accounts === undefined) {
       throw new NomicLabsHardhatPluginError(
