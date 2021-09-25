@@ -130,6 +130,7 @@ extendEnvironment((env) => {
           privateToAddress,
           toChecksumAddress,
           bufferToHex,
+          toBuffer,
         } = require("ethereumjs-util");
 
         const netConfig = env.network.config as HardhatNetworkConfig;
@@ -137,7 +138,7 @@ extendEnvironment((env) => {
         accounts = normalizeHardhatNetworkAccountsConfig(
           netConfig.accounts
         ).map((acc) => {
-          const buffer = Buffer.alloc(32, acc.privateKey);
+          const buffer = toBuffer(acc.privateKey);
           return toChecksumAddress(bufferToHex(privateToAddress(buffer)));
         });
       }
