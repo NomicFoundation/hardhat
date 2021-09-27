@@ -34,7 +34,7 @@ This plugin creates no additional tasks.
 
 This plugins adds an `ethers` object to the Hardhat Runtime Environment.
 
-This object has the [same API](https://docs.ethers.io/v5/single-page/) than `ethers.js`, with some extra Hardhat-specific functionality.
+This object has the [same API](https://docs.ethers.io/v5/single-page/) as `ethers.js`, with some extra Hardhat-specific functionality.
 
 ### Provider object
 
