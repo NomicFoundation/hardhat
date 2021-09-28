@@ -402,6 +402,15 @@ const plugins = [
       "This plugin brings the proxy contract to Hardhat, which allows you to manage the proxy contract in a simple way.",
     tags: ["Proxy Contract", "Tasks", "Scripts"],
   },
+  {
+    name: "hardhat-fund-link",
+    author: "Applied Blockchain",
+    authorUrl: "https://github.com/appliedblockchain",
+    url:
+      "https://github.com/appliedblockchain/chainlink-consumer/tree/master/plugins/fund-link",
+    description: "Transfers Link token amount between accounts.",
+    tags: ["Chainlink", "Link"],
+  },
 ];
 
 module.exports = plugins.map((p) => ({
