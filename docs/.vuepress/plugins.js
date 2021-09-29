@@ -411,6 +411,14 @@ const plugins = [
     description: "Transfers Link token amount between accounts.",
     tags: ["Chainlink", "Link"],
   },
+  {
+    name: "@defi-wonderland/smock",
+    author: "DeFi Wonderland and Optimism PBC",
+    authorUrl: "https://github.com/defi-wonderland",
+    url: "https://github.com/defi-wonderland/smock/tree/main",
+    description: "The Solidity mocking library",
+    tags: ["Testing", "Mocking"],
+  },
 ];
 
 module.exports = plugins.map((p) => ({
