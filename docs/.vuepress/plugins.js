@@ -289,15 +289,6 @@ const plugins = [
     tags: ["Networks", "Config"],
   },
   {
-    name: "@eth-optimism/smock",
-    author: "Optimism",
-    authorUrl: "https://github.com/ethereum-optimism",
-    url: "https://github.com/ethereum-optimism/smock/tree/master",
-    description:
-      "smock is a utility package that can generate mock Solidity contracts written entirely in JavaScript.",
-    tags: ["Testing", "Mocking", "Buidler plugin"],
-  },
-  {
     name: "@eth-optimism/plugins/hardhat/compiler",
     npmPackage: "@eth-optimism/plugins",
     author: "Optimism",
@@ -416,7 +407,7 @@ const plugins = [
     author: "DeFi Wonderland and Optimism PBC",
     authorUrl: "https://github.com/defi-wonderland",
     url: "https://github.com/defi-wonderland/smock/tree/main",
-    description: "The Solidity mocking library",
+    description: "The Solidity mocking library. Smock is a utility package that can generate mock Solidity contracts written entirely in JavaScript.",
     tags: ["Testing", "Mocking"],
   },
 ];
