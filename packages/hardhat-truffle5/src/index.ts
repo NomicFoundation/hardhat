@@ -130,15 +130,17 @@ extendEnvironment((env) => {
           privateToAddress,
           toChecksumAddress,
           bufferToHex,
+          toBuffer,
         } = require("ethereumjs-util");
 
         const netConfig = env.network.config as HardhatNetworkConfig;
 
         accounts = normalizeHardhatNetworkAccountsConfig(
           netConfig.accounts
-        ).map((acc) =>
-          toChecksumAddress(bufferToHex(privateToAddress(acc.privateKey)))
-        );
+        ).map((acc) => {
+          const buffer = toBuffer(acc.privateKey);
+          return toChecksumAddress(bufferToHex(privateToAddress(buffer)));
+        });
       }
     } else if (accounts === undefined) {
       throw new NomicLabsHardhatPluginError(
