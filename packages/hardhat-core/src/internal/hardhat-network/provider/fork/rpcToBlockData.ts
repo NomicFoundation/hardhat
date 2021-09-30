@@ -1,4 +1,5 @@
 import { BlockData } from "@ethereumjs/block";
+import { KECCAK256_RLP_ARRAY } from "ethereumjs-util";
 
 import { RpcBlockWithTransactions } from "../../../core/jsonrpc/types/output/block";
 
@@ -8,7 +9,8 @@ export function rpcToBlockData(rpcBlock: RpcBlockWithTransactions): BlockData {
   return {
     header: {
       parentHash: rpcBlock.parentHash,
-      uncleHash: rpcBlock.sha3Uncles,
+      // We don't implement uncles - set the hash as the hash of an empty array
+      uncleHash: KECCAK256_RLP_ARRAY,
       coinbase: rpcBlock.miner,
       stateRoot: rpcBlock.stateRoot,
       transactionsTrie: rpcBlock.transactionsRoot,

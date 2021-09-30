@@ -1,7 +1,7 @@
 import { Block } from "@ethereumjs/block";
 import Common from "@ethereumjs/common";
 import { assert } from "chai";
-import { BN, bufferToHex, toBuffer, zeros } from "ethereumjs-util";
+import { BN, bufferToHex, rlphash, toBuffer, zeros } from "ethereumjs-util";
 
 import { JsonRpcClient } from "../../../../../src/internal/hardhat-network/jsonrpc/client";
 import { ForkBlockchain } from "../../../../../src/internal/hardhat-network/provider/fork/ForkBlockchain";
@@ -134,6 +134,17 @@ describe("ForkBlockchain", () => {
       await fb.addBlock(block);
       const savedBlock = await fb.getBlock(block.hash());
       assert.equal(savedBlock, block);
+    });
+
+    it("has the correct uncles hash", async () => {
+      // Block 13327133 on mainnet had 1 uncle
+      const block = await fb.getBlock(13327133);
+      if (block === null) {
+        assert.fail("no block returned");
+      }
+      // Compute the expected uncle hash
+      const uncleHash = rlphash(block.uncleHeaders.map((u) => u.serialize()));
+      assert.equal(bufferToHex(block.header.uncleHash), bufferToHex(uncleHash));
     });
   });
 
