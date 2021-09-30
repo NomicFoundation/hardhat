@@ -31,9 +31,8 @@ async function main() {
   });
   shell.set("-e");
 
-  // we remove the tgz file after the tests are run, because some of them might
-  // reinstall the fixture project dependencies, and that would fail if the tgz
-  // file isn't there anymore
+  // Remove the built package. If we don't do this, the hardhat-core directory
+  // will have a new random tgz file in each e2e run.
   shell.rm(hardhatPackagePath);
 
   process.exit(mochaResult.code);
