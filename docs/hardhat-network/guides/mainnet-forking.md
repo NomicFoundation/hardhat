@@ -104,4 +104,8 @@ This will reset Hardhat Network, starting a new instance in the state described 
 
 When using Infura without the archival add-on, you will only have access to the state of the blockchain from recent blocks. To avoid this problem, you can use either a local archive node or a service that provides archival data, like [Alchemy].
 
+### "Error HH109: Network connection timed-out. Please check your internet connection and networks config"
+
+Either the archival node provider you are using is down, or it's very possible that your internet connection is blocking the connection. For example, your VPN or your internet provider is limiting your connection to the archival node provider. Try picking a different WiFi network, changing VPNs, or switching ISPs.
+
 [alchemy]: https://alchemyapi.io/
