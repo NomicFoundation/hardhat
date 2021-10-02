@@ -248,3 +248,4 @@ $ npx hardhat test
 ```
 
 Keep in mind that when you run `npx hardhat test`, your contracts will be compiled if they've changed since the last time you ran your tests.
+And if you want to only test a spesific .js file to save time run ```hardhat test "path/to/file.js"```
