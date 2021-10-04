@@ -1,5 +1,12 @@
 # hardhat
 
+## 2.6.5
+
+### Patch Changes
+
+- e29e14c7: Add Advanced Sample Project that uses TypeScript.
+- a00345ca: Small improvements to the advanced sample project.
+
 ## 2.6.4
 
 ### Patch Changes
