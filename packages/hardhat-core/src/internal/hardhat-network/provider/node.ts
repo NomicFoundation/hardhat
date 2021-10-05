@@ -32,6 +32,7 @@ import {
   HARDHAT_NETWORK_DEFAULT_INITIAL_BASE_FEE_PER_GAS,
   HARDHAT_NETWORK_DEFAULT_MAX_PRIORITY_FEE_PER_GAS,
 } from "../../core/config/default-config";
+import { HardforkActivationHistory } from "../../../types/config";
 import { assertHardhatInvariant, HardhatError } from "../../core/errors";
 import { RpcDebugTracingConfig } from "../../core/jsonrpc/types/input/debugTraceTransaction";
 import {
@@ -83,7 +84,6 @@ import {
   FilterParams,
   GatherTracesResult,
   GenesisAccount,
-  HardforkActivationBlocks,
   isForkedNodeConfig,
   MineBlockResult,
   NodeConfig,
@@ -118,20 +118,6 @@ const log = debug("hardhat:core:hardhat-network:node");
 
 const ethSigUtil = require("eth-sig-util");
 
-const mainnetHardforkActivations =
-  require("@ethereumjs/common/dist/chains/mainnet.json").hardforks.reduce(
-    (
-      previousValue: HardforkActivationBlocks,
-      currentValue: { name: string; block: number }
-    ) => {
-      if (!HARDHAT_NETWORK_SUPPORTED_HARDFORKS.includes(currentValue.name)) {
-        return previousValue;
-      }
-      return { ...previousValue, [currentValue.name]: currentValue.block };
-    },
-    {}
-  );
-
 export const COINBASE_ADDRESS = Address.fromString(
   "0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e"
 );
@@ -149,8 +135,6 @@ export class HardhatNode extends EventEmitter {
       allowUnlimitedContractSize,
       tracingConfig,
       minGasPrice,
-      chainId,
-      hardforkActivationBlocks,
     } = config;
 
     let common: Common;
@@ -159,6 +143,8 @@ export class HardhatNode extends EventEmitter {
     let initialBlockTimeOffset: BN | undefined;
     let nextBlockBaseFeePerGas: BN | undefined;
     let forkNetworkId: number | undefined;
+    let forkBlockNum: number | undefined;
+    let hardforkActivations: HardforkActivationHistory | undefined;
 
     const initialBaseFeePerGasConfig =
       config.initialBaseFeePerGas !== undefined
@@ -173,6 +159,7 @@ export class HardhatNode extends EventEmitter {
       common = await makeForkCommon(config);
 
       forkNetworkId = forkClient.getNetworkId();
+      forkBlockNum = forkBlockNumber.toNumber();
 
       this._validateHardforks(
         config.forkConfig.blockNumber,
@@ -210,6 +197,9 @@ export class HardhatNode extends EventEmitter {
           }
         }
       }
+
+      hardforkActivations =
+        config.forkConfig.hardforkActivationsByChain?.[forkNetworkId];
     } else {
       const hardhatStateManager = new HardhatStateManager();
       await hardhatStateManager.initializeGenesisAccounts(genesisAccounts);
@@ -264,11 +254,9 @@ export class HardhatNode extends EventEmitter {
       genesisAccounts,
       tracingConfig,
       forkNetworkId,
+      forkBlockNum,
       nextBlockBaseFeePerGas,
-      hardforkActivationBlocks !== undefined &&
-      hardforkActivationBlocks[chainId] !== undefined
-        ? hardforkActivationBlocks[chainId]
-        : undefined
+      hardforkActivations
     );
 
     return [common, node];
@@ -341,8 +329,9 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     genesisAccounts: GenesisAccount[],
     tracingConfig?: TracingConfig,
     private _forkNetworkId?: number,
+    private _forkBlockNumber?: number,
     nextBlockBaseFee?: BN,
-    private readonly _hardforkActivationBlocks: HardforkActivationBlocks = mainnetHardforkActivations
+    private readonly _hardforkActivations?: HardforkActivationHistory
   ) {
     super();
 
@@ -2178,9 +2167,15 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         (blockContext.header as any).baseFeePerGas = new BN(0);
       }
 
-      this._vm._common.setHardfork(
-        this._selectHardforkFromActivations(blockContext!.header.number)
-      );
+      if (
+        this._forkBlockNumber !== undefined &&
+        blockContext!.header.number.lt(new BN(this._forkBlockNumber)) &&
+        this._hardforkActivations !== undefined
+      ) {
+        this._vm._common.setHardfork(
+          this._selectHardforkFromActivations(blockContext!.header.number)
+        );
+      }
 
       return await this._vm.runTx({
         block: blockContext,
@@ -2326,35 +2321,43 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     return { maxFeePerGas, maxPriorityFeePerGas };
   }
 
-  /** search this._hardforkActivationBlocks for the highest block number that
-   * isn't higher than blockNum, and then return that found block number's
-   * associated hardfork name. */
   private _selectHardforkFromActivations(
     blockNum: BN
   ): typeof HARDHAT_NETWORK_SUPPORTED_HARDFORKS[number] {
-    let highestFound: {
-      hardfork: typeof HARDHAT_NETWORK_SUPPORTED_HARDFORKS[number];
-      block: number;
-    } = { hardfork: "", block: 0 };
-    Object.entries(this._hardforkActivationBlocks).forEach((entry) => {
-      const [hardfork, block] = entry;
-      if (!HARDHAT_NETWORK_SUPPORTED_HARDFORKS.includes(hardfork)) {
-        throw new InvalidInputError(
-          `hardforkActivationBlocks contained unsupported hardfork "${hardfork}"`
+    if (this._hardforkActivations === undefined) {
+      assertHardhatInvariant(
+        this._hardforkActivations !== undefined,
+        "this._hardforkActivations should exist if _selectHardforkFromActivations() is called"
+      );
+      throw new Error(""); // to satisfy tsc; unreachable; asserted violated.
+    } else {
+      /** search this._hardforkActivations for the highest block number that
+       * isn't higher than blockNum, and then return that found block number's
+       * associated hardfork name. */
+      let highestFound: {
+        hardfork: typeof HARDHAT_NETWORK_SUPPORTED_HARDFORKS[number];
+        block: number;
+      } = { hardfork: "", block: 0 };
+      Object.entries(this._hardforkActivations).forEach((entry) => {
+        const [hardfork, block] = entry;
+        if (!HARDHAT_NETWORK_SUPPORTED_HARDFORKS.includes(hardfork)) {
+          throw new InvalidInputError(
+            `hardforkActivations contained unsupported hardfork "${hardfork}"`
+          );
+        }
+        if (block > highestFound.block && new BN(block).lte(blockNum)) {
+          highestFound = { hardfork, block };
+        }
+      });
+      if (highestFound.hardfork === "" && highestFound.block === 0) {
+        throw new InvalidJsonInputError(
+          `No known hardfork for block ${blockNum}. HardhatNode config's hardforkActivations: ${JSON.stringify(
+            this._hardforkActivations
+          )}`
         );
       }
-      if (block > highestFound.block && new BN(block).lte(blockNum)) {
-        highestFound = { hardfork, block };
-      }
-    });
-    if (highestFound.hardfork === "" && highestFound.block === 0) {
-      throw new InvalidJsonInputError(
-        `No known hardfork for block ${blockNum}. HardhatNode config's hardforkActivationBlocks: ${JSON.stringify(
-          this._hardforkActivationBlocks
-        )}`
-      );
+      return highestFound.hardfork;
     }
-    return highestFound.hardfork;
   }
 }
 

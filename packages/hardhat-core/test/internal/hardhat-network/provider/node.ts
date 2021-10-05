@@ -707,9 +707,7 @@ describe("HardhatNode", () => {
     // fork mainnet at the block when EIP-1559 activated (12965000), and try to
     // run a call that specifies gas limits in EIP-1559 terms, but run that
     // call one block earlier, and expect that call to fail because it should
-    // have specified gas limits in PRE-EIP-1559 terms.  Then run the same test
-    // again but with a node config that enables London one block early, and
-    // expect the test to pass
+    // have specified gas limits in PRE-EIP-1559 terms.
 
     this.timeout(5000);
 
@@ -738,10 +736,15 @@ describe("HardhatNode", () => {
     };
 
     const [, regularNode] = await HardhatNode.create(forkedNodeConfig);
-    const [, nodeWithEarlyLondon] = await HardhatNode.create({
-      ...forkedNodeConfig,
-      hardforkActivationBlocks: { 1: { london: eip1559ActivationBlock - 1 } },
-    });
+
+    const nodeCfgWithActivations = forkedNodeConfig;
+    nodeCfgWithActivations.forkConfig.hardforkActivationsByChain = {
+      1: {
+        berlin: eip1559ActivationBlock - 1000,
+        london: eip1559ActivationBlock,
+      },
+    };
+    const [, nodeWithHFHist] = await HardhatNode.create(nodeCfgWithActivations);
 
     /** execute a call to method Hello() on contract HelloWorld, deployed to
      * mainnet years ago, which should return a string, "Hello World". */
@@ -751,7 +754,17 @@ describe("HardhatNode", () => {
       targetNode: HardhatNode = regularNode
     ): Promise<string> {
       const contractInterface = new ethers.utils.Interface(
-        '[{"constant":true,"inputs":[],"name":"Hello","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"pure","type":"function"}]'
+        JSON.stringify([
+          {
+            constant: true,
+            inputs: [],
+            name: "Hello",
+            outputs: [{ name: "", type: "string" }],
+            payable: false,
+            stateMutability: "pure",
+            type: "function",
+          },
+        ])
       );
 
       const callOpts = {
@@ -775,35 +788,33 @@ describe("HardhatNode", () => {
     }
 
     // some shorthand for code below:
-    const bn0 = new BN(0);
-    const maxFeePerGas = new BN(0);
     const post1559Block = eip1559ActivationBlock;
     const pre1559Block = eip1559ActivationBlock - 1;
+    const pre1559GasOpts = { gasPrice: new BN(0) };
+    const post1559GasOpts = { maxFeePerGas: new BN(0) };
 
     // some sanity checks:
-    assert.equal("Hello World", await runCall({ maxFeePerGas }, post1559Block));
-    assert.equal("Hello World", await runCall({ gasPrice: bn0 }, pre1559Block));
+    assert.equal("Hello World", await runCall(pre1559GasOpts, pre1559Block));
+    assert.equal("Hello World", await runCall(post1559GasOpts, post1559Block));
 
-    // The following test is expected to pass (expecting an error to be thrown)
-    // because it's using post-EIP-1559 gas semantics with a pre-1559 block;
-    // but, demonstrating #1666, Hardhat Node is running the call in the
-    // context of the hardfork specified in the node's config, causing the call
-    // to execute rather than throw the expected error.  If you change the
-    // forkedNodeConfig above to specify `hardfork: "berlin"` then this test
-    // passes (though the earlier test with maxFeePerGas fails of course).
+    // it("should execute with the constructor-specified hardfork, even for blocks predating that hardfork"
+    assert.equal("Hello World", await runCall(post1559GasOpts, pre1559Block));
+
+    // it("should utilize a hardfork history to execute under the HF that was active at the target block"
     await expectErrorAsync(async () => {
-      await runCall({ maxFeePerGas }, pre1559Block);
-    }, "EIP-1559 not enabled on Common");
-    // }, "Cannot run transaction: EIP 1559 is not activated.");
+      await runCall(post1559GasOpts, pre1559Block, nodeWithHFHist);
+    }, "Cannot run transaction: EIP 1559 is not activated.");
 
-    // Now run that same test again (use maxFeePerGas, and pre1559Block), but
-    // this time construct the fork node with the instruction to say that
-    // london activated one block earlier, so that then the same call will be
-    // running in a london context. this time it should actually pass rather
-    // than throw.
+    // it("in the presence of a hardfork history, executes under the hardfork that was active at the target block"
+    // (same checks as the initial sanity checks, but using the node with a HF
+    // history)
     assert.equal(
       "Hello World",
-      await runCall({ maxFeePerGas }, pre1559Block, nodeWithEarlyLondon)
+      await runCall(post1559GasOpts, post1559Block, nodeWithHFHist)
+    );
+    assert.equal(
+      "Hello World",
+      await runCall(pre1559GasOpts, pre1559Block, nodeWithHFHist)
     );
   });
 });

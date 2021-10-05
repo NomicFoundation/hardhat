@@ -69,10 +69,20 @@ export interface HDAccountsUserConfig {
   path?: string;
 }
 
+export type HardforkActivationHistory = Record<
+  string /* hardfork name */,
+  number /* block number */
+>;
+
+export interface HardforkActivationsByChain {
+  [chainId: number]: HardforkActivationHistory;
+}
+
 export interface HardhatNetworkForkingUserConfig {
   enabled?: boolean;
   url: string;
   blockNumber?: number;
+  hardforkActivationsByChain?: HardforkActivationsByChain;
 }
 
 export type HttpNetworkAccountsUserConfig =
@@ -141,6 +151,7 @@ export interface HardhatNetworkForkingConfig {
   enabled: boolean;
   url: string;
   blockNumber?: number;
+  hardforkActivationsByChain?: HardforkActivationsByChain;
 }
 
 export interface HttpNetworkConfig {

@@ -152,6 +152,10 @@ function resolveHardhatNetworkConfig(
   if (blockNumber !== undefined && forking !== undefined) {
     forking.blockNumber = hardhatNetworkConfig?.forking?.blockNumber;
   }
+  const activations = hardhatNetworkConfig?.forking?.hardforkActivationsByChain;
+  if (activations !== undefined && forking !== undefined) {
+    forking.hardforkActivationsByChain = activations;
+  }
 
   const mining = resolveMiningConfig(hardhatNetworkConfig.mining);
 
