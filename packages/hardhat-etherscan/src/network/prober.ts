@@ -38,6 +38,7 @@ enum NetworkID {
   POLYGON_MUMBAI = 80001,
   // Arbitrum
   ARBITRUM_ONE = 42161,
+  ARBITRUM_TESTNET = 421611,
 }
 
 const networkIDtoEndpoints: NetworkMap = {
@@ -100,6 +101,10 @@ const networkIDtoEndpoints: NetworkMap = {
   [NetworkID.ARBITRUM_ONE]: {
     apiURL: "https://api.arbiscan.io/api",
     browserURL: "https://arbiscan.io/",
+  },
+  [NetworkID.ARBITRUM_TESTNET]: {
+    apiURL: "https://api-testnet.arbiscan.io/api",
+    browserURL: "https://testnet.arbiscan.io/",
   },
 };
 
