@@ -30,6 +30,7 @@ enum NetworkID {
   HECO_TESTNET = 256,
   // Fantom mainnet
   OPERA = 250,
+  FTM_TESTNET = 4002,
   // Optimistim
   OPTIMISTIC_ETHEREUM = 10,
   OPTIMISTIC_KOVAN = 69,
@@ -80,6 +81,10 @@ const networkIDtoEndpoints: NetworkMap = {
   [NetworkID.OPERA]: {
     apiURL: "https://api.ftmscan.com/api",
     browserURL: "https://ftmscan.com",
+  },
+  [NetworkID.FTM_TESTNET]: {
+    apiURL: "https://api-testnet.ftmscan.com/api",
+    browserURL: "https://testnet.ftmscan.com",
   },
   [NetworkID.OPTIMISTIC_ETHEREUM]: {
     apiURL: "https://api-optimistic.etherscan.io/api",
