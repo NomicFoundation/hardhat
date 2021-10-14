@@ -1,5 +1,11 @@
 # hardhat
 
+## 2.6.6
+
+### Patch Changes
+
+- 09415141: Work around an issue that broke Hardhat Network when contracts were compiled in the middle of its execution
+
 ## 2.6.5
 
 ### Patch Changes
