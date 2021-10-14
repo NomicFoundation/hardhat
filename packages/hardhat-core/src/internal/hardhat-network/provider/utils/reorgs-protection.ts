@@ -35,6 +35,11 @@ export function getLargestPossibleReorg(networkId: number): number | undefined {
   if (networkId === 100) {
     return 38;
   }
+
+  // arbitrum
+  if (networkId === 42161) {
+    return 15
+  }
 }
 
 export const FALLBACK_MAX_REORG = 30;
