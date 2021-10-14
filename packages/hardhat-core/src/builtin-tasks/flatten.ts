@@ -84,6 +84,23 @@ function getPragma(resolvedFile : ResolvedFile) {
   return match != undefined ? match[0] : ""
 }
 
+function getFileWithoutLicense(resolvedFile : ResolvedFile, license : string) {
+  // clone the original
+  let newResolvedFile = new ResolvedFile(
+    resolvedFile.sourceName,
+    resolvedFile.absolutePath,
+    resolvedFile.content,
+    resolvedFile.contentHash,
+    resolvedFile.lastModificationDate
+  )
+  newResolvedFile.content.rawContent = resolvedFile
+                                      .content
+                                      .rawContent
+                                      .replace(license, "")
+                                      .trim();
+  return newResolvedFile;
+}
+
 subtask(
   TASK_FLATTEN_GET_FLATTENED_SOURCE,
   "Returns all contracts and their dependencies flattened"
