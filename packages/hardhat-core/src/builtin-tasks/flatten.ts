@@ -1,7 +1,4 @@
-import { Exception } from "@sentry/types";
-import { resolve } from "dns";
 import * as fs from "fs";
-import resolve from "resolve";
 
 import { subtask, task, types } from "../internal/core/config/config-env";
 import { HardhatError } from "../internal/core/errors";
