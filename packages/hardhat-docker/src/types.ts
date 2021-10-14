@@ -10,6 +10,7 @@ export interface BindsMap {
 export interface ContainerConfig {
   binds?: BindsMap;
   workingDirectory?: string;
+  networkMode?: string;
 }
 
 export interface ProcessResult {
