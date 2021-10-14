@@ -1,4 +1,7 @@
+import { Exception } from "@sentry/types";
+import { resolve } from "dns";
 import * as fs from "fs";
+import resolve from "resolve";
 
 import { subtask, task, types } from "../internal/core/config/config-env";
 import { HardhatError } from "../internal/core/errors";
@@ -41,7 +44,7 @@ function getSortedFiles(dependenciesGraph: DependencyGraph) {
 
     const sortedNames = [...new Set(withEntries)];
     return sortedNames.map((n) => filesMap[n]);
-  } catch (error) {
+  } catch (error : any) {
     if (error.toString().includes("Error: There is a cycle in the graph.")) {
       throw new HardhatError(ERRORS.BUILTIN_TASKS.FLATTEN_CYCLE, error);
     }
@@ -57,6 +60,29 @@ function getFileWithoutImports(resolvedFile: ResolvedFile) {
   return resolvedFile.content.rawContent
     .replace(IMPORT_SOLIDITY_REGEX, "")
     .trim();
+}
+
+function getFileWithoutLicense(resolvedFile : ResolvedFile, license : string) {
+  // clone the original
+  let newResolvedFile = new ResolvedFile(
+    resolvedFile.sourceName,
+    resolvedFile.absolutePath,
+    resolvedFile.content,
+    resolvedFile.contentHash,
+    resolvedFile.lastModificationDate
+  )
+  newResolvedFile.content.rawContent = resolvedFile
+                                      .content
+                                      .rawContent
+                                      .replace(license, "")
+                                      .trim();
+  return newResolvedFile;
+}
+
+function getLicense(resolvedFile: ResolvedFile) {
+  const LicenseRegex = /\s*\/\/(\s+)SPDX-License-Identifier:(\s+)(\w+)/gm;
+  const match = resolvedFile.content.rawContent.match(LicenseRegex);
+  return match != undefined ? match[0] : ""
 }
 
 subtask(
@@ -80,10 +106,24 @@ subtask(
     flattened += `// Sources flattened with hardhat v${packageJson.version} https://hardhat.org`;
 
     const sortedFiles = getSortedFiles(dependencyGraph);
+    // let licenses : string[] = []
+    let licenseDup = false
+    let license = ""
 
     for (const file of sortedFiles) {
       flattened += `\n\n// File ${file.getVersionedName()}\n`;
-      flattened += `\n${getFileWithoutImports(file)}\n`;
+      license = getLicense(file);
+      if (!licenseDup && license != "") {
+        licenseDup = true;
+        flattened += `\n${getFileWithoutImports(file)}\n`;
+      } else if (licenseDup && license != "") {
+        // remove license if duplicate
+        flattened += `\n${getFileWithoutImports(getFileWithoutLicense(file, license))}\n`;
+      } else {
+        flattened += `\n${getFileWithoutImports(file)}\n`;
+      }
+      // flattened += `\n${getFileWithoutImports(file)}\n`;
+      // licenses.push(getLicense(file))
     }
 
     return flattened.trim();
