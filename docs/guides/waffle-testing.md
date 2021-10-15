@@ -155,6 +155,22 @@ Finally, to execute a contract's method from another account, all you need to do
 await greeter.connect(addr1).setGreeting("Hallo, Erde!");
 ```
 
+### Testing from an unauthorized account
+
+If you'd like to test your contract from a different, but unauthorized account, for example if you expect a transaction failure, then  you can use the [Waffle Chai revert matcher](https://ethereum-waffle.readthedocs.io/en/latest/matchers.html?highlight=revertedwith#revert):
+
+```js
+const [owner, unauthorizedUser] = await ethers.getSigners();
+await expect(
+      greeter.connect(unauthorizedUser).sendTokens()
+    ).to.be.revertedWith("Ownable: caller is not the owner");
+// you can also do this:
+await expect(
+      greeter.connect(unauthorizedUser).sendTokens()
+    ).to.be.reverted;
+```
+
+
 ## Migrating an existing Waffle project
 
 If you're starting a project from scratch and looking to use Waffle, you can skip this section. If you're setting up an existing Waffle project to use Hardhat you'll need to migrate the [configuration options](https://ethereum-waffle.readthedocs.io/en/latest/configuration.html) Waffle offers. The following table maps Waffle configurations to their Hardhat equivalents:

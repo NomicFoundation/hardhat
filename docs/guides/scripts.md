@@ -65,7 +65,7 @@ Now you're ready to run the script:
 
 ```
 $ node scripts/sample-script.js
-Greeter address: 0x5FbDB2315678afecb367f032d93F642f64180aa3
+Greeter deployed to: 0x5FbDB2315678afecb367f032d93F642f64180aa3
 ```
 
 By accessing the [Hardhat Runtime Environment] at the top, you are allowed to run the script in a standalone fashion. Hardhat always runs the compile task when it's invoked via `npx hardhat run`, but in a standalone fashion you may want to call compile manually to make sure everything is compiled. This is done by calling `hre.run('compile')`. Uncomment the following line and re-run the script with `node`:
@@ -76,7 +76,7 @@ await hre.run("compile");
 
 ```
 $ node scripts/sample-script.js
-Greeter address: 0x5FbDB2315678afecb367f032d93F642f64180aa3
+Greeter deployed to: 0x5FbDB2315678afecb367f032d93F642f64180aa3
 ```
 
 ### Hardhat arguments
