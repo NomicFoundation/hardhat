@@ -85,17 +85,4 @@ describe("Flatten task", () => {
       assert.isFalse(flattenedFiles.includes("} from"));
     });
   });
-
-  describe("Same license in all files", function () {
-    useFixtureProject("project-with-license-abicoder");
-
-    it("should contain only one license", async function () {
-      const cFlattened = await this.env.run(
-        TASK_FLATTEN_GET_FLATTENED_SOURCE, {
-        files: ["contracts/Foo.sol"],
-      });
-
-      assert.deepEqual(getContractsOrder(cFlattened), ["C"]);
-    });
-  });
 });
