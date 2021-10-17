@@ -2122,6 +2122,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     const initialStateRoot = await this._stateManager.getStateRoot();
 
     let blockContext: Block | undefined;
+    let originalHardfork: string | undefined;
 
     try {
       if (blockNumberOrPending === "pending") {
@@ -2172,6 +2173,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         blockContext!.header.number.lt(new BN(this._forkBlockNumber)) &&
         this._hardforkActivations !== undefined
       ) {
+        originalHardfork = this._vm._common.hardfork();
         this._vm._common.setHardfork(
           this._selectHardforkFromActivations(blockContext!.header.number)
         );
@@ -2186,6 +2188,9 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       });
     } finally {
       await this._stateManager.setStateRoot(initialStateRoot);
+      if (originalHardfork !== undefined) {
+        this._vm._common.setHardfork(originalHardfork);
+      }
     }
   }
 
