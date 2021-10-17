@@ -1,4 +1,5 @@
 import * as fs from "fs";
+import chalk from "chalk"
 
 import { subtask, task, types } from "../internal/core/config/config-env";
 import { HardhatError } from "../internal/core/errors";
@@ -51,34 +52,35 @@ function getSortedFiles(dependenciesGraph: DependencyGraph) {
   }
 }
 
-function getFileWithoutImports(resolvedFile: ResolvedFile) {
+function getFileWithoutImports(fileContent : string) {
   const IMPORT_SOLIDITY_REGEX = /^\s*import(\s+)[\s\S]*?;\s*$/gm;
 
-  return resolvedFile.content.rawContent
-    .replace(IMPORT_SOLIDITY_REGEX, "")
-    .trim();
-}
-
-function getFileWithoutLicense(resolvedFile : ResolvedFile, license : string) {
-  // clone the original
-  let newResolvedFile = new ResolvedFile(
-    resolvedFile.sourceName,
-    resolvedFile.absolutePath,
-    resolvedFile.content,
-    resolvedFile.contentHash,
-    resolvedFile.lastModificationDate
-  )
-  newResolvedFile.content.rawContent = resolvedFile
-                                      .content
-                                      .rawContent
-                                      .replace(license, "")
-                                      .trim();
-  return newResolvedFile;
+  return fileContent.replace(IMPORT_SOLIDITY_REGEX, "")
+                    .trim();
 }
 
 function getLicense(resolvedFile: ResolvedFile) {
-  const LicenseRegex = /\s*\/\/(\s+)SPDX-License-Identifier:(\s+)(\w+)/gm;
+  const LicenseRegex = /\s*\/\/(\s+)SPDX-License-Identifier:(\s+)([a-zA-Z0-9._-]+)/gm;
   const match = resolvedFile.content.rawContent.match(LicenseRegex);
+  return match != undefined ? match[0] : ""
+}
+
+function combineLicenses(licenses : Map<string, string>) {
+  const licenseNames : string[] = []
+  for (let value of licenses.values()) {
+    licenseNames.push(value.split(":")[1].trim())
+  }
+  const uniqueLicenseNames = [...new Set(licenseNames)];
+  if (uniqueLicenseNames.length == 1) {
+    return "// SPDX-License-Identifier: " + uniqueLicenseNames[0]
+  } else {
+    return "// SPDX-License-Identifier: " + uniqueLicenseNames.join(" AND ")
+  }
+}
+
+function getPragma(resolvedFile : ResolvedFile) {
+  const PragmaRegex = /pragma(\s)([a-zA-Z]+)(\s)([a-zA-Z0-9^.]+);/gm;
+  const match = resolvedFile.content.rawContent.match(PragmaRegex)
   return match != undefined ? match[0] : ""
 }
 
@@ -103,28 +105,56 @@ subtask(
     flattened += `// Sources flattened with hardhat v${packageJson.version} https://hardhat.org`;
 
     const sortedFiles = getSortedFiles(dependencyGraph);
-    // let licenses : string[] = []
-    let licenseDup = false
-    let license = ""
+    let licenses = new Map();
+    let pragmas = new Map();
+
+    for (const file of sortedFiles) {
+      let pragma = getPragma(file);
+      if (pragma != "") { pragmas.set(file.sourceName, pragma); }
+
+      let license = getLicense(file);
+      if (license != "") { licenses.set(file.sourceName, license); }
+    }
+
 
     for (const file of sortedFiles) {
       flattened += `\n\n// File ${file.getVersionedName()}\n`;
-      license = getLicense(file);
-      if (!licenseDup && license != "") {
-        licenseDup = true;
-        flattened += `\n${getFileWithoutImports(file)}\n`;
-      } else if (licenseDup && license != "") {
-        // remove license if duplicate
-        flattened += `\n${getFileWithoutImports(getFileWithoutLicense(file, license))}\n`;
-      } else {
-        flattened += `\n${getFileWithoutImports(file)}\n`;
+
+      if (pragmas.size > 0 && !pragmas.has(file.sourceName)) {
+        console.warn(
+          chalk.yellow(
+            `MISSING PRAGMA: File ${file.getVersionedName()} needs a pragma`
+          )
+        );
       }
-      // flattened += `\n${getFileWithoutImports(file)}\n`;
-      // licenses.push(getLicense(file))
+
+      if (licenses.size > 0 && !licenses.has(file.sourceName)) {
+        console.warn(
+          chalk.yellow(
+            `MISSING LICENSE: File ${file.getVersionedName()} needs a license`
+          )
+        );
+      }
+
+      let newFileContent = file.content.rawContent
+                                        .replace(licenses.has(file.sourceName) ? licenses.get(file.sourceName) : "", "")
+                                        .replace(pragmas.has(file.sourceName) ? pragmas.get(file.sourceName) : "", "")
+      flattened += `\n${getFileWithoutImports(newFileContent)}\n`;
+    }
+
+    if (licenses.size > 0) {
+      let combined = combineLicenses(licenses)
+      flattened = combined + "\n\n" + flattened
+    }
+
+    if (pragmas.size > 0) {
+      // TODO: write a combined pragma and done
+      flattened = Array.from(pragmas.values())[0] + "\n\n" + flattened
     }
 
     return flattened.trim();
   });
+
 
 subtask(TASK_FLATTEN_GET_DEPENDENCY_GRAPH)
   .addOptionalParam("files", undefined, undefined, types.any)
