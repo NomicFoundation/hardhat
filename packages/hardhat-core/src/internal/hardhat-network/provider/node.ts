@@ -39,7 +39,6 @@ import {
   InternalError,
   InvalidArgumentsError,
   InvalidInputError,
-  InvalidJsonInputError,
   TransactionExecutionError,
 } from "../../core/providers/errors";
 import { Reporter } from "../../sentry/reporter";
@@ -2350,7 +2349,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         }
       });
       if (highestFound.hardfork === "" && highestFound.block === 0) {
-        throw new InvalidJsonInputError(
+        throw new InternalError(
           `No known hardfork for block ${blockNum}. HardhatNode config's hardforkActivations: ${JSON.stringify(
             this._hardforkActivations
           )}`
