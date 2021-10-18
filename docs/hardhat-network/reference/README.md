@@ -13,53 +13,90 @@
 
 Default behavior: Hardhat will automatically run in-process when `defaultNetwork` is empty or set to `hardhat`.
 
+### Supported Fields
+
 You can set the following fields on the `hardhat` config:
 
-- `chainId`: The chain ID number used by Hardhat Network's blockchain. Default value: `31337`.
+#### `chainId`
 
-- `from`: The address to use as default sender. If not present the first account of the Hardhat Network is used.
+The chain ID number used by Hardhat Network's blockchain. Default value: `31337`.
 
-- `gas`: Its value should be `"auto"` or a number. If a number is used, it will be the gas limit used by default in every transaction. If `"auto"` is used, the gas limit will be automatically estimated. Default value: the same value as `blockGasLimit`.
+#### `from`
 
-- `gasPrice`: Its value should be `"auto"` or a number. This parameter behaves like `gas`. Default value: `"auto"`.
+The address to use as default sender. If not present the first account of the Hardhat Network is used.
 
-- `gasMultiplier`: A number used to multiply the results of gas estimation to give it some slack due to the uncertainty of the estimation process. Default value: `1`.
+#### `gas`
 
-- `accounts`: This field can be configured as one of these:
+Its value should be `"auto"` or a number. If a number is used, it will be the gas limit used by default in every transaction. If `"auto"` is used, the gas limit will be automatically estimated. Default value: the same value as `blockGasLimit`.
 
-  - An object describing an [HD wallet](#hd-wallet-config). This is the default. It can have any of the following fields:
-    - `mnemonic`: a 12 or 24 word mnemonic phrase as defined by BIP39. Default value: `"test test test test test test test test test test test junk"`
-    - `initialIndex`: The initial index to derive. Default value: `0`.
-    - `path`: The HD parent of all the derived keys. Default value: `"m/44'/60'/0'/0"`.
-    - `count`: The number of accounts to derive. Default value: `20`.
-    - `accountsBalance`: string with the balance (in wei) assigned to every account derived. Default value: `"10000000000000000000000"` (10000 ETH).
-  - An array of the initial accounts that the Hardhat Network will create. Each of them must be an object with `privateKey` and `balance` fields.
+#### `gasPrice`
 
-- `blockGasLimit`: The block gas limit to use in Hardhat Network's blockchain. Default value: `30_000_000`
+Its value should be `"auto"` or a number. This parameter behaves like `gas`. Default value: `"auto"`.
 
-- `minGasPrice`: The minimum gas price accepted by the Hardhat Network. Transactions with a lower gas price are accepted but not mined. Default value: `0`
+#### `gasMultiplier`
 
-- `hardfork`: This setting changes how Hardhat Network works, to mimic Ethereum's mainnet at a given hardfork. It must be one of `"byzantium"`, `"constantinople"`, `"petersburg"`, `"istanbul"`, `"muirGlacier"`, `"berlin"` and `"london"`. Default value: `"london"`
+A number used to multiply the results of gas estimation to give it some slack due to the uncertainty of the estimation process. Default value: `1`.
 
-- `throwOnTransactionFailures`: A boolean that controls if Hardhat Network throws on transaction failures. If this value is `true`, Hardhat Network will throw [combined JavaScript and Solidity stack traces](../hardhat-network/README.md#solidity-stack-traces) on transaction failures. If it is `false`, it will return the failing transaction hash. In both cases the transactions are added into the blockchain. Default value: `true`
-- `throwOnCallFailures`: A boolean that controls if Hardhat Network throws on call failures. If this value is `true`, Hardhat Network will throw [combined JavaScript and Solidity stack traces](../hardhat-network/README.md#solidity-stack-traces) when a call fails. If it is `false`, it will return the call's `return data`, which can contain a revert reason. Default value: `true`
+#### `accounts`
 
-- `loggingEnabled`: A boolean that controls if Hardhat Network logs every request or not. Default value: `false` for the in-process Hardhat Network provider, `true` for the Hardhat Network backed JSON-RPC server (i.e. the `node` task).
+This field can be configured as one of these:
 
-- `initialDate`: An optional string setting the date of the blockchain. Valid values are [Javascript's date time strings](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/parse#Date_Time_String_Format). Default value: the current date and time if not forking another network. When forking another network, the timestamp of the block you forked from, plus one second, is used.
+- An object describing an [HD wallet](#hd-wallet-config). This is the default. It can have any of the following fields:
+  - `mnemonic`: a 12 or 24 word mnemonic phrase as defined by BIP39. Default value: `"test test test test test test test test test test test junk"`
+  - `initialIndex`: The initial index to derive. Default value: `0`.
+  - `path`: The HD parent of all the derived keys. Default value: `"m/44'/60'/0'/0"`.
+  - `count`: The number of accounts to derive. Default value: `20`.
+  - `accountsBalance`: string with the balance (in wei) assigned to every account derived. Default value: `"10000000000000000000000"` (10000 ETH).
+- An array of the initial accounts that the Hardhat Network will create. Each of them must be an object with `privateKey` and `balance` fields.
 
-- `allowUnlimitedContractSize`: An optional boolean that disables the contract size limit imposed by the [EIP 170](https://eips.ethereum.org/EIPS/eip-170). Default value: `false`
+#### `blockGasLimit`
 
-- `forking`: An object that describes the [forking](../guides/mainnet-forking.md) configuration that can have the following fields:
+The block gas limit to use in Hardhat Network's blockchain. Default value: `30_000_000`
 
-  - `url`: a URL that points to a JSON-RPC node with state that you want to fork off. There's no default value for this field. It must be provided for the fork to work.
-  - `blockNumber`: an optional number to pin which block to fork from. If no value is provided, the latest block is used.
-  - `enabled`: an optional boolean to switch on or off the fork functionality. Default value: `true` if `url` is set, `false` otherwise.
-  - `hardforkActivationsByChain`: an optional object whose properties are chain ID's and whose values are objects with properties representing hardfork names and values representing the block numbers at which those named hardforks were activated on their respective chains. For example, the recent Ethereum mainnet hardfork history might be represented as `{ 1: { berlin: 12244000, london: 12965000 } }`.
+#### `minGasPrice`
 
-- `minGasPrice`: The minimum `gasPrice` that a transaction must have. This field must not be present if the `"hardfork"` is `"london"` or a later one. Default value: `"0"`.
+The minimum gas price accepted by the Hardhat Network. Transactions with a lower gas price are accepted but not mined. Default value: `0`
 
-- `initialBaseFeePerGas`: The `baseFeePerGas` of the first block. Note that when forking a remote network, the "first block" is the one immediately after the block you forked from. This field must not be present if the `"hardfork"` is not `"london"` or a later one. Default value: `"1000000000"` if not forking. When forking a remote network, if the remote network uses EIP-1559, the first local block will use the right `baseFeePerGas` according to the EIP, otherwise `"10000000000"` is used.
+#### `hardfork`
+
+This setting changes how Hardhat Network works, to mimic Ethereum's mainnet at a given hardfork. It must be one of `"byzantium"`, `"constantinople"`, `"petersburg"`, `"istanbul"`, `"muirGlacier"`, `"berlin"` and `"london"`. Default value: `"london"`
+
+#### `throwOnTransactionFailures`
+
+A boolean that controls if Hardhat Network throws on transaction failures. If this value is `true`, Hardhat Network will throw [combined JavaScript and Solidity stack traces](../hardhat-network/README.md#solidity-stack-traces) on transaction failures. If it is `false`, it will return the failing transaction hash. In both cases the transactions are added into the blockchain. Default value: `true`
+
+#### `throwOnCallFailures`
+
+A boolean that controls if Hardhat Network throws on call failures. If this value is `true`, Hardhat Network will throw [combined JavaScript and Solidity stack traces](../hardhat-network/README.md#solidity-stack-traces) when a call fails. If it is `false`, it will return the call's `return data`, which can contain a revert reason. Default value: `true`
+
+#### `loggingEnabled`
+
+A boolean that controls if Hardhat Network logs every request or not. Default value: `false` for the in-process Hardhat Network provider, `true` for the Hardhat Network backed JSON-RPC server (i.e. the `node` task).
+
+#### `initialDate`
+
+An optional string setting the date of the blockchain. Valid values are [Javascript's date time strings](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/parse#Date_Time_String_Format). Default value: the current date and time if not forking another network. When forking another network, the timestamp of the block you forked from, plus one second, is used.
+
+#### `allowUnlimitedContractSize`
+
+An optional boolean that disables the contract size limit imposed by the [EIP 170](https://eips.ethereum.org/EIPS/eip-170). Default value: `false`
+
+#### `forking`
+
+An object that describes the [forking](../guides/mainnet-forking.md) configuration that can have the following fields:
+
+- `url`: a URL that points to a JSON-RPC node with state that you want to fork off. There's no default value for this field. It must be provided for the fork to work.
+- `blockNumber`: an optional number to pin which block to fork from. If no value is provided, the latest block is used.
+- `enabled`: an optional boolean to switch on or off the fork functionality. Default value: `true` if `url` is set, `false` otherwise.
+- `hardforkActivationsByChain`: an optional object whose properties are chain ID's and whose values are objects with properties representing hardfork names and values representing the block numbers at which those named hardforks were activated on their respective chains. For example, the recent Ethereum mainnet hardfork history might be represented as `{ 1: { berlin: 12244000, london: 12965000 } }`.
+
+#### `minGasPrice`
+
+The minimum `gasPrice` that a transaction must have. This field must not be present if the `"hardfork"` is `"london"` or a later one. Default value: `"0"`.
+
+#### `initialBaseFeePerGas`
+
+The `baseFeePerGas` of the first block. Note that when forking a remote network, the "first block" is the one immediately after the block you forked from. This field must not be present if the `"hardfork"` is not `"london"` or a later one. Default value: `"1000000000"` if not forking. When forking a remote network, if the remote network uses EIP-1559, the first local block will use the right `baseFeePerGas` according to the EIP, otherwise `"10000000000"` is used.
 
 ### Mining modes
 
