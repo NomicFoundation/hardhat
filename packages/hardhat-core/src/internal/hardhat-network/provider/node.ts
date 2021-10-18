@@ -2350,9 +2350,9 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       });
       if (highestFound.hardfork === "" && highestFound.block === 0) {
         throw new InternalError(
-          `No known hardfork for block ${blockNum}. HardhatNode config's hardforkActivations: ${JSON.stringify(
+          `Could not find a hardfork to run for block ${blockNum}, after having looked for one in the HardhatNode's hardfork activation history, which was: ${JSON.stringify(
             this._hardforkActivations
-          )}`
+          )}. For more information, see https://hardhat.org/hardhat-network/reference/#config`
         );
       }
       return highestFound.hardfork;
