@@ -2345,11 +2345,6 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       } = { hardfork: "", block: 0 };
       Object.entries(this._hardforkActivations).forEach((entry) => {
         const [hardfork, block] = entry;
-        if (!HARDHAT_NETWORK_SUPPORTED_HARDFORKS.includes(hardfork)) {
-          throw new InvalidInputError(
-            `hardforkActivations contained unsupported hardfork "${hardfork}"`
-          );
-        }
         if (block > highestFound.block && new BN(block).lte(blockNum)) {
           highestFound = { hardfork, block };
         }

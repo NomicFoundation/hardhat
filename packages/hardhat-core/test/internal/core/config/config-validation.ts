@@ -1316,5 +1316,47 @@ describe("Config validation", function () {
         });
       });
     });
+
+    describe("Hardfork history usage", function () {
+      it("Should validate good config", function () {
+        validateConfig({
+          networks: {
+            hardhat: {
+              forking: {
+                url: "http://...",
+                enabled: true,
+                // TODO: figure out how to encode the below without errors.
+                // hardforkActivationsByChain: { 1: {} }
+                /*
+                hardforkActivationsByChain: {
+                  1: {
+                    berlin: 12965000 - 1000,
+                    london: 12965000,
+                  },
+                },
+                */
+              },
+            },
+          },
+        });
+      });
+      it("should reject an invalid hardfork name", function () {
+        expectHardhatError(() => {
+          validateConfig({
+            networks: {
+              hardhat: {
+                forking: {
+                  url: "http://...",
+                  enabled: true,
+                  hardforkActivationsByChain: {
+                    1: { bogusHardforkName: 12965000 },
+                  },
+                },
+              },
+            },
+          });
+        }, ERRORS.GENERAL.INVALID_CONFIG);
+      });
+    });
   });
 });
