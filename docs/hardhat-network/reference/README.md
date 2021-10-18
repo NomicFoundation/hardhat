@@ -50,7 +50,7 @@ You can set the following fields on the `hardhat` config:
 
 - `allowUnlimitedContractSize`: An optional boolean that disables the contract size limit imposed by the [EIP 170](https://eips.ethereum.org/EIPS/eip-170). Default value: `false`
 
-- `forking`: An object that describes the [forking](../hardhat-network/README.md#mainnet-forking) configuration that can have the following fields:
+- `forking`: An object that describes the [forking](../guides/mainnet-forking.md) configuration that can have the following fields:
 
   - `url`: a URL that points to a JSON-RPC node with state that you want to fork off. There's no default value for this field. It must be provided for the fork to work.
   - `blockNumber`: an optional number to pin which block to fork from. If no value is provided, the latest block is used.
