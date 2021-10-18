@@ -1325,16 +1325,12 @@ describe("Config validation", function () {
               forking: {
                 url: "http://...",
                 enabled: true,
-                // TODO: figure out how to encode the below without errors.
-                // hardforkActivationsByChain: { 1: {} }
-                /*
                 hardforkActivationsByChain: {
                   1: {
                     berlin: 12965000 - 1000,
                     london: 12965000,
                   },
                 },
-                */
               },
             },
           },

@@ -118,12 +118,32 @@ const HardhatNetworkHDAccountsConfig = t.type({
   ...commonHDAccountsFields,
 });
 
-const HardhatNetworkHardforkHistory = t.record(t.string, t.number);
+const HardhatNetworkHardforkHistory = t.record(
+  t.string,
+  t.number,
+  "HardhatNetworkHardforkHistory"
+);
 
-const HardhatNetworkHardforkHistoryByChain = t.type({
-  chainId: t.number,
-  history: HardhatNetworkHardforkHistory,
-});
+const Integer = new t.Type<number>(
+  "Integer",
+  (num: unknown): num is number => typeof num === "number",
+  (u, c) => {
+    try {
+      return typeof u === "string"
+        ? t.success(parseInt(u, 10))
+        : t.failure(u, c);
+    } catch {
+      return t.failure(u, c);
+    }
+  },
+  t.identity
+);
+
+const HardhatNetworkHardforkHistoryByChain = t.record(
+  Integer,
+  HardhatNetworkHardforkHistory,
+  "HardhatNetworkHardforkHistoryByChain"
+);
 
 const HardhatNetworkForkingConfig = t.type({
   enabled: optional(t.boolean),
