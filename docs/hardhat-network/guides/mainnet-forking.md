@@ -104,4 +104,8 @@ This will reset Hardhat Network, starting a new instance in the state described 
 
 When using Infura without the archival add-on, you will only have access to the state of the blockchain from recent blocks. To avoid this problem, you can use either a local archive node or a service that provides archival data, like [Alchemy].
 
+## See also
+
+For full details on what's supported, see [the Hardhat Network Config Reference](../reference/#config).
+
 [alchemy]: https://alchemyapi.io/
