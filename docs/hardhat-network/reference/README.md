@@ -55,6 +55,7 @@ You can set the following fields on the `hardhat` config:
   - `url`: a URL that points to a JSON-RPC node with state that you want to fork off. There's no default value for this field. It must be provided for the fork to work.
   - `blockNumber`: an optional number to pin which block to fork from. If no value is provided, the latest block is used.
   - `enabled`: an optional boolean to switch on or off the fork functionality. Default value: `true` if `url` is set, `false` otherwise.
+  - `hardforkActivationsByChain`: an optional object whose properties are chain ID's and whose values are objects with properties representing hardfork names and values representing the block numbers at which those named hardforks were activated on their respective chains. For example, the recent Ethereum mainnet hardfork history might be represented as `{ 1: { berlin: 12244000, london: 12965000 } }`.
 
 - `minGasPrice`: The minimum `gasPrice` that a transaction must have. This field must not be present if the `"hardfork"` is `"london"` or a later one. Default value: `"0"`.
 
