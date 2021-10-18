@@ -98,6 +98,34 @@ await network.provider.request({
 
 This will reset Hardhat Network, starting a new instance in the state described [here](../reference/#initial-state).
 
+## Using a custom hardfork history
+
+By default, if you're forking a well-known network, Hardhat Network will automatically choose the right hardfork for the execution your EVM code, based on known histories of public networks. If you're using a different network, you can configure Hardhat Network to know what hardforks to apply to which blocks.
+
+For example, to configure a hardfork activation history for a network with `networkId` 1:
+
+```js
+networks: {
+  hardhat: {
+    forking: {
+      url: "https://your.node/",
+      hardforkActivationsByChain: {
+        1: {
+          berlin: 10000000,
+          london: 20000000,
+        },
+      }
+    }
+  }
+}
+```
+
+The well-known public networks are assumed when Hardhat Network is configured with a well-known chain ID (eg `1` for Ethereum mainnet), eg `networks: { hardhat: { chainId: 1 } }`.
+
+If you're not forking a well-known network, and your config doesn't supply a hardfork history, then your code will be executed using the hardfork specified by the `hardfork` field on the Hardhat Network config, eg `networks: { hardhat: { hardfork: "london" } }`. However, if you try to run on a historical block (prior to `forking.blockNumber`), the hardfork specified in the config will not be assumed, and if you don't also supply a hardfork history then an error will be thrown.
+
+See also [the `forking` entry in the Hardhat Network configuration reference](../reference/#forking).
+
 ## Troubleshooting
 
 ### "Project ID does not have access to archive state"

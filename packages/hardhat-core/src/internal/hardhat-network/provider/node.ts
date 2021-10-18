@@ -2172,10 +2172,18 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         blockContext!.header.number.lt(new BN(this._forkBlockNumber)) &&
         this._hardforkActivations !== undefined
       ) {
-        originalHardfork = this._vm._common.hardfork();
-        this._vm._common.setHardfork(
-          this._selectHardforkFromActivations(blockContext!.header.number)
-        );
+        if (this._hardforkActivations === undefined) {
+          throw new InternalError(
+            `No known hardfork for execution on historical block ${blockContext!.header.number.toString()} (relative to fork block number ${
+              this._forkBlockNumber
+            }). The node was not configured with a hardforkActivationHistory.  See http://hardhat.org/hardhat-network/guides/mainnet-forking.html#using-a-custom-hardfork-history`
+          );
+        } else {
+          originalHardfork = this._vm._common.hardfork();
+          this._vm._common.setHardfork(
+            this._selectHardforkFromActivations(blockContext!.header.number)
+          );
+        }
       }
 
       return await this._vm.runTx({
