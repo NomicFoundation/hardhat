@@ -794,11 +794,13 @@ describe("HardhatNode", () => {
     const post1559GasOpts = { maxFeePerGas: new BN(0) };
 
     // some sanity checks:
-    assert.equal("Hello World", await runCall(pre1559GasOpts, pre1559Block));
     assert.equal("Hello World", await runCall(post1559GasOpts, post1559Block));
-
-    // it("should execute with the constructor-specified hardfork, even for blocks predating that hardfork"
-    assert.equal("Hello World", await runCall(post1559GasOpts, pre1559Block));
+    // we expect this next one to fail, since we're exercising the behavior
+    // when you ask for an old block and DON'T supply a hardfork history
+    // config, in which case we throw an error.
+    await expectErrorAsync(async () => {
+      await runCall(pre1559GasOpts, pre1559Block);
+    }, /No known hardfork for execution on historical block/);
 
     // it("should utilize a hardfork history to execute under the HF that was active at the target block"
     await expectErrorAsync(async () => {

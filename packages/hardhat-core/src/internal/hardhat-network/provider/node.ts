@@ -1267,6 +1267,16 @@ Hardhat Network's forking functionality only works with blocks from at least spu
             );
           }
 
+          if (
+            this._forkBlockNumber !== undefined &&
+            blockNumber < this._forkBlockNumber
+          ) {
+            this._assertHardforkActivations(blockNumber);
+            this._vm._common.setHardfork(
+              this._selectHardforkFromActivations(new BN(blockNumber))
+            );
+          }
+
           const txHash = txWithCommon.hash();
           if (txHash.equals(hash)) {
             const vmDebugTracer = new VMDebugTracer(vm);
@@ -2169,21 +2179,13 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
       if (
         this._forkBlockNumber !== undefined &&
-        blockContext!.header.number.lt(new BN(this._forkBlockNumber)) &&
-        this._hardforkActivations !== undefined
+        blockContext!.header.number.lt(new BN(this._forkBlockNumber))
       ) {
-        if (this._hardforkActivations === undefined) {
-          throw new InternalError(
-            `No known hardfork for execution on historical block ${blockContext!.header.number.toString()} (relative to fork block number ${
-              this._forkBlockNumber
-            }). The node was not configured with a hardforkActivationHistory.  See http://hardhat.org/hardhat-network/guides/mainnet-forking.html#using-a-custom-hardfork-history`
-          );
-        } else {
-          originalHardfork = this._vm._common.hardfork();
-          this._vm._common.setHardfork(
-            this._selectHardforkFromActivations(blockContext!.header.number)
-          );
-        }
+        this._assertHardforkActivations(blockContext!.header.number);
+        originalHardfork = this._vm._common.hardfork();
+        this._vm._common.setHardfork(
+          this._selectHardforkFromActivations(blockContext!.header.number)
+        );
       }
 
       return await this._vm.runTx({
@@ -2364,6 +2366,16 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         );
       }
       return highestFound.hardfork;
+    }
+  }
+
+  private _assertHardforkActivations(blockNumber: BN | number) {
+    if (this._hardforkActivations === undefined) {
+      throw new InternalError(
+        `No known hardfork for execution on historical block ${blockNumber.toString()} (relative to fork block number ${
+          this._forkBlockNumber
+        }). The node was not configured with a hardforkActivationHistory.  See http://hardhat.org/hardhat-network/guides/mainnet-forking.html#using-a-custom-hardfork-history`
+      );
     }
   }
 }
