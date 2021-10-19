@@ -197,8 +197,22 @@ export class HardhatNode extends EventEmitter {
         }
       }
 
-      hardforkActivations =
-        config.forkConfig.hardforkActivationsByChain?.[forkNetworkId];
+      if (config.forkConfig.hardforkActivationsByChain !== undefined) {
+        if (
+          config.forkConfig.hardforkActivationsByChain.hasOwnProperty(
+            forkNetworkId
+          )
+        ) {
+          hardforkActivations =
+            config.forkConfig.hardforkActivationsByChain[forkNetworkId];
+        } else {
+          throw new InternalError(
+            `Network ID ${forkNetworkId} not present in forkConfig.hardforkActivationsByChain ${JSON.stringify(
+              config.forkConfig.hardforkActivationsByChain
+            )}`
+          );
+        }
+      }
     } else {
       const hardhatStateManager = new HardhatStateManager();
       await hardhatStateManager.initializeGenesisAccounts(genesisAccounts);
