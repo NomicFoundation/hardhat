@@ -1285,7 +1285,6 @@ Hardhat Network's forking functionality only works with blocks from at least spu
             this._forkBlockNumber !== undefined &&
             blockNumber < this._forkBlockNumber
           ) {
-            this._assertHardforkActivations(blockNumber);
             this._vm._common.setHardfork(
               this._selectHardforkFromActivations(new BN(blockNumber))
             );
@@ -2195,7 +2194,6 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         this._forkBlockNumber !== undefined &&
         blockContext!.header.number.lt(new BN(this._forkBlockNumber))
       ) {
-        this._assertHardforkActivations(blockContext!.header.number);
         originalHardfork = this._vm._common.hardfork();
         this._vm._common.setHardfork(
           this._selectHardforkFromActivations(blockContext!.header.number)
@@ -2350,37 +2348,31 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   }
 
   private _selectHardforkFromActivations(
-    blockNum: BN
+    blockNumber: BN
   ): typeof HARDHAT_NETWORK_SUPPORTED_HARDFORKS[number] {
-    if (this._hardforkActivations === undefined) {
-      assertHardhatInvariant(
-        this._hardforkActivations !== undefined,
-        "this._hardforkActivations should exist if _selectHardforkFromActivations() is called"
-      );
-      throw new Error(""); // to satisfy tsc; unreachable; asserted violated.
-    } else {
-      /** search this._hardforkActivations for the highest block number that
-       * isn't higher than blockNum, and then return that found block number's
-       * associated hardfork name. */
-      let highestFound: {
-        hardfork: typeof HARDHAT_NETWORK_SUPPORTED_HARDFORKS[number];
-        block: number;
-      } = { hardfork: "", block: 0 };
-      Object.entries(this._hardforkActivations).forEach((entry) => {
-        const [hardfork, block] = entry;
-        if (block > highestFound.block && new BN(block).lte(blockNum)) {
-          highestFound = { hardfork, block };
-        }
-      });
-      if (highestFound.hardfork === "" && highestFound.block === 0) {
-        throw new InternalError(
-          `Could not find a hardfork to run for block ${blockNum}, after having looked for one in the HardhatNode's hardfork activation history, which was: ${JSON.stringify(
-            this._hardforkActivations
-          )}. For more information, see https://hardhat.org/hardhat-network/reference/#config`
-        );
+    /** search this._hardforkActivations for the highest block number that
+     * isn't higher than blockNumber, and then return that found block number's
+     * associated hardfork name. */
+    this._assertHardforkActivations(blockNumber);
+    const activations = this._hardforkActivations!; // yes !, just asserted it.
+    let highestFound: {
+      hardfork: typeof HARDHAT_NETWORK_SUPPORTED_HARDFORKS[number];
+      block: number;
+    } = { hardfork: "", block: 0 };
+    Object.entries(activations).forEach((entry) => {
+      const [hardfork, block] = entry;
+      if (block > highestFound.block && new BN(block).lte(blockNumber)) {
+        highestFound = { hardfork, block };
       }
-      return highestFound.hardfork;
+    });
+    if (highestFound.hardfork === "" && highestFound.block === 0) {
+      throw new InternalError(
+        `Could not find a hardfork to run for block ${blockNumber}, after having looked for one in the HardhatNode's hardfork activation history, which was: ${JSON.stringify(
+          activations
+        )}. For more information, see https://hardhat.org/hardhat-network/reference/#config`
+      );
     }
+    return highestFound.hardfork;
   }
 
   private _assertHardforkActivations(blockNumber: BN | number) {
