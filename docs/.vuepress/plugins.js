@@ -407,7 +407,8 @@ const plugins = [
     author: "DeFi Wonderland and Optimism PBC",
     authorUrl: "https://github.com/defi-wonderland",
     url: "https://github.com/defi-wonderland/smock/tree/main",
-    description: "The Solidity mocking library. Smock is a utility package that can generate mock Solidity contracts written entirely in JavaScript.",
+    description:
+      "The Solidity mocking library. Smock is a utility package that can generate mock Solidity contracts written entirely in JavaScript.",
     tags: ["Testing", "Mocking"],
   },
 ];
