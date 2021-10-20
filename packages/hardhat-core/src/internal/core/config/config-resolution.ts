@@ -35,6 +35,7 @@ import { assertHardhatInvariant } from "../errors";
 import {
   DEFAULT_SOLC_VERSION,
   defaultDefaultNetwork,
+  defaultHardforkActivationsByChain,
   defaultHardhatNetworkHdAccountsConfigParams,
   defaultHardhatNetworkParams,
   defaultHdAccountsConfigParams,
@@ -152,9 +153,11 @@ function resolveHardhatNetworkConfig(
   if (blockNumber !== undefined && forking !== undefined) {
     forking.blockNumber = hardhatNetworkConfig?.forking?.blockNumber;
   }
-  const activations = hardhatNetworkConfig?.forking?.hardforkActivationsByChain;
-  if (activations !== undefined && forking !== undefined) {
-    forking.hardforkActivationsByChain = activations;
+
+  if (forking !== undefined) {
+    forking.hardforkActivationsByChain =
+      hardhatNetworkConfig?.forking?.hardforkActivationsByChain ??
+      defaultHardforkActivationsByChain;
   }
 
   const mining = resolveMiningConfig(hardhatNetworkConfig.mining);

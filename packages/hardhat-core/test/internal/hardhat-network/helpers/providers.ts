@@ -120,10 +120,7 @@ if (ALCHEMY_URL !== undefined) {
       useProvider({
         useJsonRpc: false,
         loggerEnabled: true,
-        forkConfig: {
-          jsonRpcUrl: url,
-          hardforkActivationsByChain: { 1: { london: 1 } },
-        },
+        forkConfig: { jsonRpcUrl: url },
         ...options,
       });
     },
@@ -137,10 +134,7 @@ if (ALCHEMY_URL !== undefined) {
       useProvider({
         useJsonRpc: false,
         loggerEnabled: true,
-        forkConfig: {
-          jsonRpcUrl: url,
-          hardforkActivationsByChain: { 1: { london: 1 } },
-        },
+        forkConfig: { jsonRpcUrl: url },
         mining: {
           auto: false,
           interval: 10000,
@@ -157,10 +151,7 @@ if (ALCHEMY_URL !== undefined) {
       useProvider({
         useJsonRpc: false,
         loggerEnabled: true,
-        forkConfig: {
-          jsonRpcUrl: url,
-          hardforkActivationsByChain: { 1: { london: 1 } },
-        },
+        forkConfig: { jsonRpcUrl: url },
         ...options,
       });
     },
@@ -177,10 +168,7 @@ if (INFURA_URL !== undefined) {
       useProvider({
         useJsonRpc: false,
         loggerEnabled: true,
-        forkConfig: {
-          jsonRpcUrl: url,
-          hardforkActivationsByChain: { 1: { london: 1 } },
-        },
+        forkConfig: { jsonRpcUrl: url },
         ...options,
       });
     },

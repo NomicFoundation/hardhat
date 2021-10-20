@@ -1,6 +1,9 @@
 import { BN } from "ethereumjs-util";
 
-import { HardhatNetworkConfig } from "../../../types";
+import {
+  HardforkActivationsByChain,
+  HardhatNetworkConfig,
+} from "../../../types";
 import { HARDHAT_NETWORK_NAME } from "../../constants";
 
 export const DEFAULT_SOLC_VERSION = "0.7.3";
@@ -71,5 +74,44 @@ export const defaultSolcOutputSelection = {
       "evm.methodIdentifiers",
     ],
     "": ["ast"],
+  },
+};
+
+export const defaultHardforkActivationsByChain: HardforkActivationsByChain = {
+  // mainnet:
+  1: {
+    byzantium: 4370000,
+    constantinople: 7280000,
+    petersburg: 7280000,
+    istanbul: 9069000,
+    muirGlacier: 9200000,
+    berlin: 12244000,
+    london: 12965000,
+  },
+  // ropsten:
+  3: {
+    byzantium: 1700000,
+    constantinople: 4230000,
+    petersburg: 4939394,
+    istanbul: 6485846,
+    muirGlacier: 7117117,
+    berlin: 9812189,
+    london: 10499401,
+  },
+  // rinkeby:
+  4: {
+    byzantium: 1035301,
+    constantinople: 3660663,
+    petersburg: 4321234,
+    istanbul: 5435345,
+    berlin: 8290928,
+    london: 8897988,
+  },
+  // kovan:
+  42: {
+    byzantium: 5067000,
+    constantinople: 9200000,
+    petersburg: 10255201,
+    istanbul: 14111141,
   },
 };
