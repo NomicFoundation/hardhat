@@ -4,7 +4,7 @@
 version: 2
 updates:
   - package-ecosystem: "npm"
-    directory: "/packages/hardhat-core/"
+    directory: "/"
     schedule:
       interval: "daily"
     allow:
