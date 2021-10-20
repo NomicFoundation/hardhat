@@ -149,12 +149,12 @@ function resolveHardhatNetworkConfig(
         }
       : undefined;
 
-  const blockNumber = hardhatNetworkConfig?.forking?.blockNumber;
-  if (blockNumber !== undefined && forking !== undefined) {
-    forking.blockNumber = hardhatNetworkConfig?.forking?.blockNumber;
-  }
-
   if (forking !== undefined) {
+    const blockNumber = hardhatNetworkConfig?.forking?.blockNumber;
+    if (blockNumber !== undefined) {
+      forking.blockNumber = hardhatNetworkConfig?.forking?.blockNumber;
+    }
+
     forking.hardforkActivationsByChain =
       hardhatNetworkConfig?.forking?.hardforkActivationsByChain ??
       defaultHardforkActivationsByChain;
