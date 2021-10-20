@@ -96,7 +96,7 @@ function getCompilersDownloadDir() {
 
 function getCompilerDownloadPath(compilerPath: string) {
   const compilersDir = getCompilersDownloadDir();
-  return path.join(compilersDir, compilerPath);
+  return path.resolve(compilersDir, compilerPath);
 }
 
 export async function downloadSolc(compilerPath: string): Promise<void> {
@@ -111,11 +111,15 @@ export async function downloadSolc(compilerPath: string): Promise<void> {
 }
 
 async function getSolc(compilerPath: string): Promise<any> {
-  await downloadSolc(compilerPath);
-  let absoluteCompilerPath = compilerPath;
-  if (!path.isAbsolute(absoluteCompilerPath)) {
-    absoluteCompilerPath = getCompilerDownloadPath(compilerPath);
+  const isAbsolutePath = path.isAbsolute(compilerPath);
+
+  if (!isAbsolutePath) {
+    await downloadSolc(compilerPath);
   }
+
+  const absoluteCompilerPath = isAbsolutePath
+    ? compilerPath
+    : getCompilerDownloadPath(compilerPath);
 
   return solcWrapper(loadCompilerSources(absoluteCompilerPath));
 }

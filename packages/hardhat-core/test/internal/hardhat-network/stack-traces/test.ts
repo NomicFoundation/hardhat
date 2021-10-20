@@ -772,6 +772,11 @@ describe("Stack traces", function () {
       process.exit(1);
     }
 
+    if (!path.isAbsolute(customSolcPath)) {
+      console.error("HARDHAT_TESTS_SOLC_PATH has to be an absolute path");
+      process.exit(1);
+    }
+
     describe.only(`Use compiler at ${customSolcPath} with version ${customSolcVersion}`, function () {
       const compilerOptions = {
         solidityVersion: customSolcVersion,
