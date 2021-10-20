@@ -131,7 +131,7 @@ If you want to use Truffle Migrations to initialize your tests and call `deploye
 
 ## Using Web3.js
 
-To use Web3.js in your tests, an instance of it is available in the global scope. You can see this in the `describe()` test in `sample-test.js`:
+To use Web3.js in your tests, an instance of it is available in the global scope. You can see this in the `describe()` test in `Greeter.js`:
 
 ```js{20}
 const Greeter = artifacts.require("Greeter");
