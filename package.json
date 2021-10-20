@@ -4,9 +4,11 @@
   "author": "Nomic Labs LLC",
   "license": "SEE LICENSE IN EACH PACKAGE'S LICENSE FILE",
   "private": true,
-  "workspaces": ["packages/*"],
+  "workspaces": ["packages/*", "examples/*"],
   "scripts": {
-    "build": "wsrun --exclude-missing --serial build"
+    "build": "wsrun --exclude-missing --serial build",
+    "lint": "wsrun --exclude-missing --serial lint",
+    "watch": "tsc --build --watch packages/core packages/hardhat-plugin"
   },
   "devDependencies": {
     "wsrun": "^5.2.4"

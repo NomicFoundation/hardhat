@@ -1,0 +1,22 @@
+{
+  "name": "hardhat-ignition-example-simple",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.0.2",
+    "@nomiclabs/hardhat-ignition": "^0.0.1",
+    "@openzeppelin/contracts": "^4.3.2",
+    "@types/chai": "^4.2.22",
+    "@types/mocha": "^9.0.0",
+    "@types/node": "^16.11.1",
+    "chai": "^4.3.4",
+    "ethers": "^5.4.7",
+    "hardhat": "^2.6.4",
+    "ignition": "^0.0.2",
+    "ts-node": "^10.3.0",
+    "typescript": "^4.4.4"
+  },
+  "devDependencies": {
+    "ts-node": "^10.3.0"
+  }
+}

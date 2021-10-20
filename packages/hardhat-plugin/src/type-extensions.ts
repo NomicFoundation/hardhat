@@ -6,10 +6,12 @@ import type { IgnitionWrapper } from "./ignition-wrapper";
 declare module "hardhat/types/config" {
   export interface ProjectPathsUserConfig {
     ignition?: string;
+    deployments?: string;
   }
 
   export interface ProjectPathsConfig {
     ignition: string;
+    deployments: string;
   }
 }
 

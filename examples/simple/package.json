@@ -1,0 +1,13 @@
+{
+  "name": "hardhat-ignition-example-simple-ts",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.0.2",
+    "@nomiclabs/hardhat-ignition": "^0.0.1",
+    "ignition": "^0.0.2"
+  },
+  "devDependencies": {
+    "hardhat": "^2.6.4"
+  }
+}
