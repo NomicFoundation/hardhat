@@ -7,7 +7,10 @@ import {
   FeeMarketEIP1559Transaction,
   Transaction,
 } from "@ethereumjs/tx";
-import { numberToRpcQuantity } from "../../../../../../../internal/core/jsonrpc/types/base-types";
+import {
+  numberToRpcQuantity,
+  rpcQuantityToBN,
+} from "../../../../../../../src/internal/core/jsonrpc/types/base-types";
 import { workaroundWindowsCiFailures } from "../../../../../../utils/workaround-windows-ci-failures";
 import { assertInvalidInputError } from "../../../../helpers/assertions";
 import { EXAMPLE_CONTRACT } from "../../../../helpers/contracts";
@@ -20,7 +23,6 @@ import { retrieveForkBlockNumber } from "../../../../helpers/retrieveForkBlockNu
 import { deployContract } from "../../../../helpers/transactions";
 import { HardhatNode } from "../../../../../../../src/internal/hardhat-network/provider/node";
 import { RpcBlockOutput } from "../../../../../../../src/internal/hardhat-network/provider/output";
-import { rpcQuantityToBN } from "../../../../../../../src/internal/core/jsonrpc/types/base-types";
 
 describe("Eth module", function () {
   PROVIDERS.forEach(({ name, useProvider, isFork }) => {
