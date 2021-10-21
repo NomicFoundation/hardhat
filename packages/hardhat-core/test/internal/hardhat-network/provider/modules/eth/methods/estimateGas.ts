@@ -37,7 +37,7 @@ describe("Eth module", function () {
       const getFirstBlock = async () =>
         isFork ? retrieveForkBlockNumber(this.ctx.hardhatNetworkProvider) : 0;
 
-      describe("eth_estimateGas", async function ()    {
+      describe("eth_estimateGas", async function () {
         it("should estimate the gas for a transfer", async function () {
           const estimation = await this.provider.send("eth_estimateGas", [
             {
