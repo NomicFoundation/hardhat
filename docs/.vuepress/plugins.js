@@ -272,15 +272,6 @@ const plugins = [
     tags: ["Networks", "Config"],
   },
   {
-    name: "@eth-optimism/smock",
-    author: "Optimism",
-    authorUrl: "https://github.com/ethereum-optimism",
-    url: "https://github.com/ethereum-optimism/smock/tree/master",
-    description:
-      "smock is a utility package that can generate mock Solidity contracts written entirely in JavaScript.",
-    tags: ["Testing", "Mocking", "Buidler plugin"],
-  },
-  {
     name: "@eth-optimism/plugins/hardhat/compiler",
     npmPackage: "@eth-optimism/plugins",
     author: "Optimism",
@@ -364,6 +355,42 @@ const plugins = [
     description:
       "Prepare the contract artifacts and the TypeChain bindings for registry deployment.",
     tags: ["Deployment", "Tasks", "TypeChain"],
+  },
+  {
+    name: "hardhat-time-n-mine",
+    author: "Gonzalo Petraglia & Alan Verbner",
+    authorUrl: "https://github.com/atixlabs",
+    url: "https://github.com/atixlabs/hardhat-time-n-mine/tree/main",
+    description:
+      "Helper plugin to manipulate blocks timestamp and trigger mining. It can be used from the command line and in the tests.",
+    tags: ["Testing"],
+  },
+  {
+    name: "hardhat-proxy",
+    author: "Jinyang Liu",
+    authorUrl: "https://github.com/jinyang1994",
+    url: "https://github.com/jinyang1994/hardhat-proxy/tree/main",
+    description:
+      "This plugin brings the proxy contract to Hardhat, which allows you to manage the proxy contract in a simple way.",
+    tags: ["Proxy Contract", "Tasks", "Scripts"],
+  },
+  {
+    name: "hardhat-fund-link",
+    author: "Applied Blockchain",
+    authorUrl: "https://github.com/appliedblockchain",
+    url:
+      "https://github.com/appliedblockchain/chainlink-consumer/tree/master/plugins/fund-link",
+    description: "Transfers Link token amount between accounts.",
+    tags: ["Chainlink", "Link"],
+  },
+  {
+    name: "@defi-wonderland/smock",
+    author: "DeFi Wonderland and Optimism PBC",
+    authorUrl: "https://github.com/defi-wonderland",
+    url: "https://github.com/defi-wonderland/smock/tree/main",
+    description:
+      "The Solidity mocking library. Smock is a utility package that can generate mock Solidity contracts written entirely in JavaScript.",
+    tags: ["Testing", "Mocking"],
   },
 ];
 

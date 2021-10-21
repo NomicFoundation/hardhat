@@ -27,7 +27,17 @@ Hardhat Network is simply another network. If you wanted to be explicit, you cou
 Alternatively, Hardhat Network can run in a stand-alone fashion so that external clients can connect to it. This could be MetaMask, your Dapp front-end, or a script. To run Hardhat Network in this way, run:
 
 ```
-npx hardhat node
+$ npx hardhat node
+Started HTTP and WebSocket JSON-RPC server at http://127.0.0.1:8545/
+
+Accounts
+========
+Account #0: 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266 (10000 ETH)
+Private Key: 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
+
+Account #1: 0x70997970c51812dc3a010c7d01b50e0d17dc79c8 (10000 ETH)
+Private Key: 0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d
+...
 ```
 
 This will start Hardhat Network, and expose it as a JSON-RPC and WebSocket server.
@@ -35,6 +45,12 @@ This will start Hardhat Network, and expose it as a JSON-RPC and WebSocket serve
 Then, just connect your wallet or application to `http://localhost:8545`.
 
 If you want to connect Hardhat to this node, you just need to run using `--network localhost`.
+
+::: warning
+
+_Do not send mainnet Ether to the account addresses shown by `hardhat node`_. Those addresses and private keys are deterministic: they are the same for _all_ Hardhat users. Accordingly, those private keys are well known, so there are probably bots monitoring these addresses on mainnet, waiting to withdraw any funds sent to them. If you add any of those accounts to a wallet (eg Metamask), be very careful to avoid sending any mainnet Ether to them: consider naming the account something like "Hardhat - Unsafe" in order to prevent any mistakes.
+
+:::
 
 ## Why would I want to use it?
 
@@ -91,7 +107,7 @@ Hardhat Network allows you to print logging messages and contract variables by c
 
 To use it, you simply import `hardhat/console.sol` and call it. It implements the same formatting options that can be found in Node.js' [`console.log`](https://nodejs.org/dist/latest-v12.x/docs/api/console.html#console_console_log_data_args), which in turn uses [`util.format`](https://nodejs.org/dist/latest-v12.x/docs/api/util.html#util_util_format_format_args). For example: `console.log("Changing owner from %s to %s", currentOwner, newOwner)`.
 
-It always works, regardless of the call or transaction failing or being successful. And, because it's implemented in standard Solidity, it works with _any_ tool or library, emitting log entries where it's fully supported &mdash; Hardhat Network and Tenderly &mdash; and falling back gracefully to a no-op everywhere else &mdash; Remix, Waffle, Truffle, etc &mdash; though it does consume a small amount of gas on live networks.
+It always works, regardless of the call or transaction failing or being successful. And, because it's implemented in standard Solidity, it works with _any_ tool or library, emitting log entries where it's fully supported &mdash; Hardhat Network, Remix, and Tenderly &mdash; and falling back gracefully to a no-op everywhere else &mdash; Remix, Waffle, Truffle, etc &mdash; though it does consume a small amount of gas on live networks.
 
 You can see an example in the Sample Project. Follow the steps in [Quick Start](/getting-started/README.md#quick-start) to try it out. You can also refer to more details in [the reference documentation](./reference/README.md#consolelog).
 
