@@ -25,6 +25,15 @@ jobs:
         run: yarn --frozen-lockfile
       - name: Build
         run: yarn build
+      - name: Run lint:fix
+        continue-on-error: true
+        run: yarn lint:fix
+      - name: Commit changes if available
+        run: |
+          git config --global user.email "hello@nomiclabs.io"
+          git config --global user.name "Hardhat bot"
+          git checkout .github
+          git diff-index --name-status --exit-code HEAD || (git commit -am "Fixing linter errors" && git push)
       - name: lint
         run: yarn lint
       - name: Check dependency versions
