@@ -21,6 +21,8 @@ jobs:
         with:
           node-version: 12
       - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
       - name: Install
         run: yarn --frozen-lockfile
       - name: Build
