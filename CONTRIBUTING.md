@@ -52,7 +52,7 @@ The linter is always run in the CI, so make sure it passes before pushing code. 
 
 We work on two branches, [`master`](https://github.com/nomiclabs/hardhat/tree/master) and [`development`](https://github.com/nomiclabs/hardhat/tree/development).
 
-The `master` branch is meant to be kept in sync with the latest released version of each package. Only small changes should be based on `master` and use it as the base branch of a PR. This allows as to quickly release any change that gets merged into `master`. Examples of things that should be based on `master` are documentation changes and small bug fixes.
+The `master` branch is meant to be kept in sync with the latest released version of each package. Only small changes should be based on `master` and use it as the base branch of a PR. This allows us to quickly release any change that gets merged into `master`. Examples of things that should be based on `master` are documentation changes and small bug fixes.
 
 The `development` branch is meant to be used for major changes that are ready, but we can't or don't want to release yet. We never release new versions from `development`. When we want to release the changes from `development`, we go through a stricter QA process, merge those changes into `master`, and release from `master`. Examples of things that should be based on `development` are new features and bug fixes that require significant changes to the codebase.
 
