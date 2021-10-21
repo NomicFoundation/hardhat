@@ -5,8 +5,10 @@ import {
   numberToRpcQuantity,
   rpcDataToNumber,
   rpcQuantityToNumber,
-} from "../../../../../../../internal/core/jsonrpc/types/base-types";
-import { getCurrentTimestamp } from "../../../../../../../internal/hardhat-network/provider/utils/getCurrentTimestamp";
+  rpcDataToBN,
+  rpcQuantityToBN,
+} from "../../../../../../../src/internal/core/jsonrpc/types/base-types";
+import { getCurrentTimestamp } from "../../../../../../../src/internal/hardhat-network/provider/utils/getCurrentTimestamp";
 import { workaroundWindowsCiFailures } from "../../../../../../utils/workaround-windows-ci-failures";
 import { assertInvalidInputError } from "../../../../helpers/assertions";
 import {
@@ -26,10 +28,6 @@ import {
   sendTxToZeroAddress,
 } from "../../../../helpers/transactions";
 import { compileLiteral } from "../../../../stack-traces/compilation";
-import {
-  rpcDataToBN,
-  rpcQuantityToBN,
-} from "../../../../../../../src/internal/core/jsonrpc/types/base-types";
 
 describe("Eth module", function () {
   PROVIDERS.forEach(({ name, useProvider, isFork }) => {
