@@ -50,17 +50,20 @@ The linter is always run in the CI, so make sure it passes before pushing code. 
 
 ## Branching
 
-We work on the branch [`master`](https://github.com/nomiclabs/hardhat/tree/master). Versions of the different packages are always tagged and pushed to GitHub. So if you are looking for the latests released version of something, please refer to the tags.
+We work on two branches, [`master`](https://github.com/nomiclabs/hardhat/tree/master) and [`development`](https://github.com/nomiclabs/hardhat/tree/development).
 
-Please, branch from `master` when implementing a new feature or fixing a bug, and use it as the base branch in pull requests.
+The `master` branch is meant to be kept in sync with the latest released version of each package. Only small changes should be based on `master` and use it as the base branch of a PR. This allows as to quickly release any change that gets merged into `master`. Examples of things that should be based on `master` are documentation changes and small bug fixes.
+
+The `development` branch is meant to be used for major changes that are ready, but we can't or don't want to release yet. We never release new versions from `development`. When we want to release the changes from `development`, we go through a stricter QA process, merge those changes into `master`, and release from `master`. Examples of things that should be based on `development` are new features and bug fixes that require significant changes to the codebase.
+
 
 ### Website and documentation branching
 
 If you are modifying the default config, adding a feature, or doing any kind of technical work that should be reflected in the documentation, the documentation change should be contained in the same branch and PR as the change.
 
-If you are working purely on the website or documentation, not as a result of a technical change, you should branch from [`website`](https://github.com/nomiclabs/hardhat/tree/website) and use it as the base branch in your pull request. Anything merged into `website` this way should also be merged into `master`.
+If you are working purely on the website or documentation, not as a result of a technical change, you should branch from [`master`](https://github.com/nomiclabs/hardhat/tree/master) and use it as the base branch in your pull request.
 
-Note that the `website` branch is automatically deployed, so take care when merging into it.
+Note that the `master` branch is automatically deployed, so take care when merging into it.
 
 ## Dependencies
 
