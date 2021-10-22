@@ -1,5 +1,5 @@
 import * as fs from "fs";
-import chalk from "chalk"
+import chalk from "chalk";
 
 import { subtask, task, types } from "../internal/core/config/config-env";
 import { HardhatError } from "../internal/core/errors";
@@ -42,7 +42,7 @@ function getSortedFiles(dependenciesGraph: DependencyGraph) {
 
     const sortedNames = [...new Set(withEntries)];
     return sortedNames.map((n) => filesMap[n]);
-  } catch (error : any) {
+  } catch (error: any) {
     if (error.toString().includes("Error: There is a cycle in the graph.")) {
       throw new HardhatError(ERRORS.BUILTIN_TASKS.FLATTEN_CYCLE, error);
     }
@@ -52,66 +52,65 @@ function getSortedFiles(dependenciesGraph: DependencyGraph) {
   }
 }
 
-function getFileWithoutImports(fileContent : string) {
+function getFileWithoutImports(fileContent: string) {
   const IMPORT_SOLIDITY_REGEX = /^\s*import(\s+)[\s\S]*?;\s*$/gm;
 
-  return fileContent.replace(IMPORT_SOLIDITY_REGEX, "")
-                    .trim();
+  return fileContent.replace(IMPORT_SOLIDITY_REGEX, "").trim();
 }
 
 function getLicense(resolvedFile: ResolvedFile) {
-  const LicenseRegex = /\s*\/\/(\s+)SPDX-License-Identifier:(\s+)([a-zA-Z0-9._-]+)/gm;
+  const LicenseRegex =
+    /\s*\/\/(\s+)SPDX-License-Identifier:(\s+)([a-zA-Z0-9._-]+)/gm;
   const match = resolvedFile.content.rawContent.match(LicenseRegex);
-  return match != undefined ? match[0] : ""
+  return match ? match[0] : "";
 }
 
-function combineLicenses(licenses : Map<string, string>) {
-  const licenseNames : string[] = []
-  for (let value of licenses.values()) {
-    licenseNames.push(value.split(":")[1].trim())
+function combineLicenses(licenses: Map<string, string>) {
+  const licenseNames: string[] = [];
+  for (const value of licenses.values()) {
+    licenseNames.push(value.split(":")[1].trim());
   }
   const uniqueLicenseNames = [...new Set(licenseNames)];
-  if (uniqueLicenseNames.length == 1) {
-    return "// SPDX-License-Identifier: " + uniqueLicenseNames[0]
+  if (uniqueLicenseNames.length === 1) {
+    return `// SPDX-License-Identifier: ${uniqueLicenseNames[0]}`;
   } else {
-    return "// SPDX-License-Identifier: " + uniqueLicenseNames.join(" AND ")
+    return `// SPDX-License-Identifier: ${uniqueLicenseNames.join(" AND ")}`;
   }
 }
 
-function combinePragmas(pragmas : Map<string, string>) {
-  let uniquePragmas = [...new Set(Array.from(pragmas.values()))];
-    
-  for (let value of pragmas.values()) {
-    let name = value.split(" ")[1];
-    let version = value.split(" ")[2];
-    if (["abicoder", "experimental"].includes(name) && version.toLowerCase().includes("v2")) {
+function combinePragmas(pragmas: Map<string, string>) {
+  const uniquePragmas = [...new Set(Array.from(pragmas.values()))];
+
+  for (const value of pragmas.values()) {
+    const name = value.split(" ")[1];
+    const version = value.split(" ")[2];
+    if (
+      ["abicoder", "experimental"].includes(name) &&
+      version.toLowerCase().includes("v2")
+    ) {
       if (uniquePragmas.length > 1) {
         console.warn(
-          chalk.yellow(
-            `INCOMPATIBLE PRAGMA DIRECTIVES: ${value} was used`
-          )
+          chalk.yellow(`INCOMPATIBLE PRAGMA DIRECTIVES: ${value} was used`)
         );
       }
-      return value
+      return value;
     }
   }
 
   // just return a pragma if no abiencoder was found
-  let out = Array.from(pragmas.values())[0];
+  const out = Array.from(pragmas.values())[0];
   if (uniquePragmas.length > 1) {
     console.warn(
-      chalk.yellow(
-        `INCOMPATIBLE PRAGMA DIRECTIVES: ${out} was used`
-      )
+      chalk.yellow(`INCOMPATIBLE PRAGMA DIRECTIVES: ${out} was used`)
     );
   }
-  return out
+  return out;
 }
 
-function getPragma(resolvedFile : ResolvedFile) {
+function getPragma(resolvedFile: ResolvedFile) {
   const PragmaRegex = /pragma(\s)([a-zA-Z]+)(\s)([a-zA-Z0-9^.]+);/gm;
   const match = resolvedFile.content.rawContent.match(PragmaRegex);
-  return match != undefined ? match[0] : ""
+  return match ? match[0] : "";
 }
 
 subtask(
@@ -135,17 +134,20 @@ subtask(
     flattened += `// Sources flattened with hardhat v${packageJson.version} https://hardhat.org`;
 
     const sortedFiles = getSortedFiles(dependencyGraph);
-    let licenses = new Map();
-    let pragmas = new Map();
+    const licenses = new Map();
+    const pragmas = new Map();
 
     for (const file of sortedFiles) {
-      let pragma = getPragma(file);
-      if (pragma != "") { pragmas.set(file.sourceName, pragma); }
+      const pragma = getPragma(file);
+      if (pragma !== "") {
+        pragmas.set(file.sourceName, pragma);
+      }
 
-      let license = getLicense(file);
-      if (license != "") { licenses.set(file.sourceName, license); }
+      const license = getLicense(file);
+      if (license !== "") {
+        licenses.set(file.sourceName, license);
+      }
     }
-
 
     for (const file of sortedFiles) {
       flattened += `\n\n// File ${file.getVersionedName()}\n`;
@@ -166,24 +168,29 @@ subtask(
         );
       }
 
-      let newFileContent = file.content.rawContent
-                                        .replace(licenses.has(file.sourceName) ? licenses.get(file.sourceName) : "", "")
-                                        .replace(pragmas.has(file.sourceName) ? pragmas.get(file.sourceName) : "", "")
+      const newFileContent = file.content.rawContent
+        .replace(
+          licenses.has(file.sourceName) ? licenses.get(file.sourceName) : "",
+          ""
+        )
+        .replace(
+          pragmas.has(file.sourceName) ? pragmas.get(file.sourceName) : "",
+          ""
+        );
       flattened += `\n${getFileWithoutImports(newFileContent)}\n`;
     }
 
     if (licenses.size > 0) {
-      let combined = combineLicenses(licenses)
-      flattened = combined + "\n\n" + flattened
+      const combined = combineLicenses(licenses);
+      flattened = `${combined}\n\n${flattened}`;
     }
 
     if (pragmas.size > 0) {
-      flattened = combinePragmas(pragmas) + "\n\n" + flattened
+      flattened = `${combinePragmas(pragmas)}\n\n${flattened}`;
     }
 
     return flattened.trim();
   });
-
 
 subtask(TASK_FLATTEN_GET_DEPENDENCY_GRAPH)
   .addOptionalParam("files", undefined, undefined, types.any)
