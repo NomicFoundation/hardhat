@@ -1,5 +1,6 @@
 import { EventEmitter } from "events";
 import type { Response } from "node-fetch";
+import HttpsProxyAgent from "https-proxy-agent";
 
 import { EIP1193Provider, RequestArguments } from "../../../types";
 import {
@@ -29,6 +30,7 @@ const TOO_MANY_REQUEST_STATUS = 429;
 
 export class HttpProvider extends EventEmitter implements EIP1193Provider {
   private _nextRequestId = 1;
+  private readonly _proxyAgent: HttpsProxyAgent.HttpsProxyAgent | undefined;
 
   constructor(
     private readonly _url: string,
@@ -37,6 +39,7 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
     private readonly _timeout = 20000
   ) {
     super();
+    this._proxyAgent = this._retrieveProxyAgent();
   }
 
   public get url(): string {
@@ -149,6 +152,7 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
           "Content-Type": "application/json",
           ...this._extraHeaders,
         },
+        ...(this._proxyAgent && { agent: this._proxyAgent }),
       });
 
       if (this._isRateLimitResponse(response)) {
@@ -239,5 +243,22 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
     }
 
     return parsed;
+  }
+
+  private _retrieveProxyAgent(): HttpsProxyAgent.HttpsProxyAgent | undefined {
+    // Check if Proxy is set https
+    if (process.env.HTTPS_PROXY !== undefined) {
+      // Create the proxy from the environment variables
+      const proxy: string = process.env.HTTPS_PROXY;
+      return new HttpsProxyAgent.HttpsProxyAgent(proxy);
+    }
+    // Check if Proxy is set http
+    if (process.env.HTTP_PROXY !== undefined) {
+      // Create the proxy from the environment variables
+      const proxy: string = process.env.HTTP_PROXY;
+      return new HttpsProxyAgent.HttpsProxyAgent(proxy);
+    }
+    // No proxy set
+    return undefined;
   }
 }

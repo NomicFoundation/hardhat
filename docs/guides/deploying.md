@@ -35,6 +35,8 @@ As general rule, you can target any network configured in the `hardhat.config.js
 
 `npx hardhat run --network <your-network> scripts/deploy.js`
 
+If you are behind an HTTP proxy, you may need to set the `HTTP_PROXY` or `HTTPS_PROXY` environment variable to the URL of your proxy.
+
 ### Truffle migrations support
 
 You can use Hardhat alongside Truffle if you want to use its migration system. Your contracts written using Hardhat will just work with Truffle.
