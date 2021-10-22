@@ -51,6 +51,7 @@ describe("Flatten task", () => {
 
       const pragma = getPragma(FooFlattened);
       if (pragma) {
+        assert.equal(pragma.length, 1);
         assert.isTrue(pragma[0].includes("v2"));
       } else {
         assert.fail("should return pragma");
