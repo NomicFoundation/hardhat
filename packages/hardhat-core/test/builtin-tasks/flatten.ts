@@ -11,8 +11,105 @@ function getContractsOrder(flattenedFiles: string) {
   return matches!.map((m: string) => m.replace("contract", "").trim());
 }
 
+function getLicenseCount(flattenedFiles: string) {
+  const LicenseRegex = /\s*\/\/(\s+)SPDX-License-Identifier:(\s+)([a-zA-Z0-9._-\s]+)/gm;
+  const matches = flattenedFiles.match(LicenseRegex)
+  return matches!.length
+}
+
+function getLicense(flattenedFiles: string) {
+  const LicenseRegex = /\s*\/\/(\s+)SPDX-License-Identifier:(\s+)([a-zA-Z0-9._-\s]+)/gm;
+  const matches = flattenedFiles.match(LicenseRegex)
+  if (matches != undefined && matches.length > 0) {
+    return matches[0].trim()
+  } else {
+    return ""
+  }
+}
+
+function getPragma(flattenedFiles : string) {
+  const PragmaRegex = /pragma(\s)([a-zA-Z]+)(\s)([a-zA-Z0-9^.]+);/gm;
+  const matches = flattenedFiles.match(PragmaRegex)
+  return matches
+}
+
 describe("Flatten task", () => {
   useEnvironment();
+
+  describe("Different pragmas", function() {
+    useFixtureProject("project-with-pragma");
+
+    it("should contain pragma v2", async function () {
+      const FooFlattened = await this.env.run(TASK_FLATTEN_GET_FLATTENED_SOURCE, {
+        files: ["contracts/A.sol", "contracts/B.sol"],
+      });
+
+      const pragma = getPragma(FooFlattened);
+      if (pragma) { assert.isTrue(pragma[0].includes("v2")); }
+      else { assert.fail("should return pragma"); }
+    });
+  })
+
+  describe("Only one file has pragma", function () {
+    useFixtureProject("project-with-pragma");
+  
+    it("should contain only one pragma", async function () {
+      const FooFlattened = await this.env.run(TASK_FLATTEN_GET_FLATTENED_SOURCE, {
+        files: ["contracts/Foo.sol", "contracts/Bar.sol"],
+      });
+
+      const pragma = getPragma(FooFlattened)
+      assert.equal(pragma?.length, 1)
+    });
+  });
+
+  describe("Same pragma in all files", function () {
+    useFixtureProject("project-with-pragma");
+  
+    it("should contain only one pragma", async function () {
+      const FooFlattened = await this.env.run(TASK_FLATTEN_GET_FLATTENED_SOURCE, {
+        files: ["contracts/Foo.sol", "contracts/A.sol"],
+      });
+
+      const pragma = getPragma(FooFlattened)
+      assert.equal(pragma?.length, 1)
+    });
+  });
+
+  describe("Same license in all files", function () {
+    useFixtureProject("project-with-license");
+  
+    it("should contain only one license", async function () {
+      const FooFlattened = await this.env.run(TASK_FLATTEN_GET_FLATTENED_SOURCE, {
+        files: ["contracts/Foo.sol"],
+      });
+  
+      assert.equal(getLicenseCount(FooFlattened), 1)
+    });
+  });
+
+  describe("Only one file has license", function () {
+    useFixtureProject("project-with-license");
+  
+    it("should contain only one license", async function () {
+      const FooFlattened = await this.env.run(TASK_FLATTEN_GET_FLATTENED_SOURCE, {
+        files: ["contracts/A.sol"],
+      });
+
+      assert.equal(getLicenseCount(FooFlattened), 1)
+    });
+  });
+
+  describe("Different licenses", function() {
+    useFixtureProject("project-with-license");
+
+    it("should contain only one combined license", async function () {
+      const FooFlattened = await this.env.run(TASK_FLATTEN_GET_FLATTENED_SOURCE, {
+        files: ["contracts/C.sol"],
+      });
+      assert.equal(getLicense(FooFlattened), "// SPDX-License-Identifier: MIT AND MPL-2.0")
+    });
+  })
 
   describe("When there no contracts", function () {
     useFixtureProject("default-config-project");
@@ -86,3 +183,5 @@ describe("Flatten task", () => {
     });
   });
 });
+
+
