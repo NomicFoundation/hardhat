@@ -6,7 +6,7 @@ module.exports = {
       },
     ],
     overrides: {
-      "contracts/Foo.sol": { version: "0.8.5" },
+      "contracts/Foo.sol": { version: "0.8.6" },
     },
   },
 };
