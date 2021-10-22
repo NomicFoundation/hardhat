@@ -78,9 +78,39 @@ function combineLicenses(licenses : Map<string, string>) {
   }
 }
 
+function combinePragmas(pragmas : Map<string, string>) {
+  let uniquePragmas = [...new Set(Array.from(pragmas.values()))];
+    
+  for (let value of pragmas.values()) {
+    let name = value.split(" ")[1];
+    let version = value.split(" ")[2];
+    if (["abicoder", "experimental"].includes(name) && version.toLowerCase().includes("v2")) {
+      if (uniquePragmas.length > 1) {
+        console.warn(
+          chalk.yellow(
+            `INCOMPATIBLE PRAGMA DIRECTIVES: ${value} was used`
+          )
+        );
+      }
+      return value
+    }
+  }
+
+  // just return a pragma if no abiencoder was found
+  let out = Array.from(pragmas.values())[0];
+  if (uniquePragmas.length > 1) {
+    console.warn(
+      chalk.yellow(
+        `INCOMPATIBLE PRAGMA DIRECTIVES: ${out} was used`
+      )
+    );
+  }
+  return out
+}
+
 function getPragma(resolvedFile : ResolvedFile) {
   const PragmaRegex = /pragma(\s)([a-zA-Z]+)(\s)([a-zA-Z0-9^.]+);/gm;
-  const match = resolvedFile.content.rawContent.match(PragmaRegex)
+  const match = resolvedFile.content.rawContent.match(PragmaRegex);
   return match != undefined ? match[0] : ""
 }
 
@@ -165,8 +195,7 @@ subtask(
     }
 
     if (pragmas.size > 0) {
-      // TODO: write a combined pragma and done
-      flattened = Array.from(pragmas.values())[0] + "\n\n" + flattened
+      flattened = combinePragmas(pragmas) + "\n\n" + flattened
     }
 
     return flattened.trim();
