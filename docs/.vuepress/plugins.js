@@ -365,6 +365,14 @@ const plugins = [
       "Prepare the contract artifacts and the TypeChain bindings for registry deployment.",
     tags: ["Deployment", "Tasks", "TypeChain"],
   },
+  {
+    name: "hardhat-secure-signer",
+    author: "Anthony Daniel Martin",
+    authorUrl: "https://github.com/anthonymartin",
+    url: "https://github.com/anthonymartin/hardhat-secure-signer/tree/main",
+    description: "Enhanced hardhat credential security using an interactive prompt and password-encrypted credentials",
+    tags: ["private key", "encryption", "security", "developer experience", "convenience", "ethers", "ether.js", "networks", "config", "hardhat plugin"]
+  }
 ];
 
 module.exports = plugins.map((p) => ({
