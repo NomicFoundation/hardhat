@@ -79,6 +79,11 @@ Private Key: ${privateKey}`;
     console.log(entry);
     console.log();
   }
+
+  if (isDefaultConfig) {
+    printDefaultConfigWarning();
+    console.log();
+  }
 }
 
 subtask(TASK_NODE_GET_PROVIDER)
