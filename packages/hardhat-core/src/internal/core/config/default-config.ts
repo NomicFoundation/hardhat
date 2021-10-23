@@ -69,6 +69,7 @@ export const defaultSolcOutputSelection = {
       "evm.bytecode",
       "evm.deployedBytecode",
       "evm.methodIdentifiers",
+      "metadata",
     ],
     "": ["ast"],
   },

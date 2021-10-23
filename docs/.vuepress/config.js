@@ -24,7 +24,7 @@ module.exports = {
     lastUpdated: true,
     repo: "nomiclabs/hardhat",
     docsDir: "docs",
-    docsBranch: "website",
+    docsBranch: "master",
     editLinkText: "Help us improve this page!",
     editLinks: true,
     sidebarDepth: 1,
