@@ -20,6 +20,7 @@ import {
   JsonRpcServer,
 } from "../types";
 
+import { HARDHAT_NETWORK_MNEMONIC } from "../internal/core/config/default-config";
 import {
   TASK_NODE,
   TASK_NODE_CREATE_SERVER,
@@ -31,16 +32,30 @@ import { watchCompilerOutput } from "./utils/watch";
 
 const log = debug("hardhat:core:tasks:node");
 
+function printDefaultConfigWarning() {
+  console.log(
+    chalk.bold(
+      ">>>> WARNING: These accounts are public. Any funds sent to them WILL BE LOST <<<<"
+    )
+  );
+}
+
 function logHardhatNetworkAccounts(networkConfig: HardhatNetworkConfig) {
-  if (networkConfig.accounts === undefined) {
-    return;
-  }
+  const isDefaultConfig =
+    !Array.isArray(networkConfig.accounts) &&
+    networkConfig.accounts.mnemonic === HARDHAT_NETWORK_MNEMONIC;
 
   const { BN, bufferToHex, privateToAddress, toBuffer } =
     require("ethereumjs-util") as typeof EthereumjsUtilT;
 
   console.log("Accounts");
   console.log("========");
+
+  if (isDefaultConfig) {
+    console.log();
+    printDefaultConfigWarning();
+    console.log();
+  }
 
   const accounts = normalizeHardhatNetworkAccountsConfig(
     networkConfig.accounts
