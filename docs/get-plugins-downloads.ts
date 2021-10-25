@@ -3,7 +3,7 @@ import fetch from "node-fetch";
 
 const plugins = require("./.vuepress/plugins");
 
-async function getLastWeekDownloads(npmPackage: string): Promise<number> {
+async function getLastMonthDownloads(npmPackage: string): Promise<number> {
   const res = await fetch(
     `https://api.npmjs.org/downloads/point/last-month/${npmPackage}`,
     {
@@ -25,9 +25,11 @@ async function getLastWeekDownloads(npmPackage: string): Promise<number> {
 
 async function main() {
   const downloads: Array<{ [plugin: string]: number }> = await Promise.all(
-    plugins.map(async (p: any) => ({
-      [p.name]: await getLastWeekDownloads(p.npmPackage ?? p.name),
-    }))
+    [...plugins.officialPlugins, ...plugins.communityPlugins].map(
+      async (p: any) => ({
+        [p.name]: await getLastMonthDownloads(p.npmPackage ?? p.name),
+      })
+    )
   );
 
   downloads.sort((p1, p2) => Object.values(p2)[0] - Object.values(p1)[0]);
