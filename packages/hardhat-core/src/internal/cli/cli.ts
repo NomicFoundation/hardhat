@@ -121,7 +121,7 @@ async function main() {
     }
 
     if (willRunWithTypescript(hardhatArguments.config)) {
-      loadTsNode();
+      loadTsNode(hardhatArguments.tsconfig);
     }
 
     let taskName = parsedTaskName ?? TASK_HELP;

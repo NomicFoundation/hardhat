@@ -38,7 +38,7 @@ export function isTypescriptSupported() {
   return cachedIsTypescriptSupported;
 }
 
-export function loadTsNode() {
+export function loadTsNode(tsConfigPath?: string) {
   try {
     require.resolve("typescript");
   } catch (error) {
@@ -56,6 +56,10 @@ export function loadTsNode() {
     // eslint-disable-next-line import/no-extraneous-dependencies
     require("ts-node/register/transpile-only");
     return;
+  }
+
+  if (tsConfigPath !== undefined) {
+    process.env.TS_NODE_PROJECT = tsConfigPath;
   }
 
   // See: https://github.com/nomiclabs/hardhat/issues/265
