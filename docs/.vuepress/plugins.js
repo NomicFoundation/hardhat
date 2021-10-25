@@ -266,7 +266,6 @@ module.exports.communityPlugins = [
     name: "hardhat-secure-signer",
     author: "Anthony Daniel Martin",
     authorUrl: "https://github.com/anthonymartin",
-    url: "https://github.com/anthonymartin/hardhat-secure-signer/tree/main",
     description:
       "Enhanced hardhat credential security using an interactive prompt and password-encrypted credentials",
     tags: [
