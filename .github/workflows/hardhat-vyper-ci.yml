@@ -35,10 +35,11 @@ jobs:
       matrix:
         node: [12, 14, 16]
     steps:
-      - uses: actions/setup-node@v1
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node }}
-      - uses: actions/checkout@v2
+          cache: yarn
       - name: install vyper
         run: docker pull vyperlang/vyper:0.1.0b10
       - name: Install
