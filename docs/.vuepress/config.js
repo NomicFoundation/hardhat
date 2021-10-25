@@ -1,7 +1,7 @@
 const defaultSlugify = require("@vuepress/shared-utils/lib/slugify");
 const plugins = require("./sorted-plugins.js");
 
-const pluginsChildren = plugins.map((p) => [
+const officialPlugins = plugins.officialPlugins.map((p) => [
   "/plugins/" + p.normalizedName + ".md",
   p.name,
   0,
@@ -150,7 +150,10 @@ module.exports = {
         {
           title: "Plugins",
           collapsable: false,
-          children: pluginsChildren,
+          children: [
+            ...officialPlugins,
+            ["/plugins/#community-plugins", "Community plugins", 0],
+          ],
         },
       ],
     },

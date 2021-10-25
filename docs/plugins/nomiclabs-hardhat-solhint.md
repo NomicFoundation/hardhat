@@ -1,0 +1,1 @@
+../../packages/hardhat-solhint/README.md

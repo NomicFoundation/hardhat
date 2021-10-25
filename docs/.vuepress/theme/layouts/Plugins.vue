@@ -10,17 +10,45 @@
           to learn how to create your own, and
           <a
             href="https://github.com/nomiclabs/hardhat/blob/master/docs/.vuepress/plugins.js"
-            >send a pull request</a
+          >send a pull request</a
           >
           to get it listed here.
         </p>
         <p>Extend Hardhat's functionality with the plugins below.</p>
-        <!-- Check out the [Using Plugins Guide]() to learn more.</p> -->
+
         <div class="plugins">
-          <div class="plugin" v-for="plugin in plugins">
+          <div class="plugins-list-title">
+            <h2>Official plugins</h2>
+          </div>
+
+          <div class="plugin" v-for="plugin in plugins.officialPlugins">
             <div>
               <span class="name">
                 <a :href="plugin.normalizedName + '.html'">{{ plugin.name }}</a>
+              </span>
+              <span class="separator"> | </span>
+              <span class="author">
+                <a :href="plugin.authorUrl">{{ plugin.author }}</a>
+              </span>
+            </div>
+            <p class="description">{{ plugin.description }}</p>
+            <div class="tags">
+              <div v-for="tag in plugin.tags">{{ tag }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div id="community-plugins"></div>
+        <div class="plugins">
+          <div class="plugins-list-title">
+            <h2>Community plugins</h2>
+            <span>Sorted by npm downloads</span>
+          </div>
+
+          <div class="plugin" v-for="plugin in plugins.communityPlugins">
+            <div>
+              <span class="name">
+                <a :href="'https://www.npmjs.com/package/' + (plugin.npmPackage || plugin.name)">{{ plugin.name }}</a>
               </span>
               <span class="separator"> | </span>
               <span class="author">
@@ -46,17 +74,33 @@ export default {
   components: { Layout },
   data() {
     return { plugins: require("../../sorted-plugins.js") };
-  },
+  }
 };
 </script>
-<style lang="stylus">
+<style lang="stylus" scoped>
+@import "../styles/colors.styl";
+
+#community-plugins
+  margin-bottom 50px
 
 .plugins
+  margin-top 25px
+
+  .plugins-list-title
+    h2
+      border-bottom none
+      display inline-block
+      margin-bottom 0
+      padding-right 0.5rem
+
+    span
+      display inline-block
+      color $lightGrey
+    margin-bottom 2rem
 
   .plugin
     min-height 97px
-    padding 45px 0 15px
-    border-bottom 1px solid rgba(44, 62, 79, 0.15)
+    padding 0 0 35px
 
     .name a
       font-size 1.2em
