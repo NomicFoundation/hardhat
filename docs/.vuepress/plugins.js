@@ -404,11 +404,7 @@ const plugins = [
       "security",
       "developer experience",
       "convenience",
-      "ethers",
-      "ether.js",
-      "networks",
-      "config",
-      "hardhat plugin",
+      "ethers.js"
     ],
   },
 ];
