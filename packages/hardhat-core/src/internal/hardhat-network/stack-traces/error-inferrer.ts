@@ -191,6 +191,25 @@ export class ErrorInferrer {
         return true;
       }
 
+      // look TWO frames ahead to determine if this is a specific occurrence of
+      // a redundant CALLSTACK_ENTRY frame observed when using Solidity 0.8.5:
+      if (
+        frame.type === StackTraceEntryType.CALLSTACK_ENTRY &&
+        i + 2 < stacktrace.length &&
+        stacktrace[i + 2].sourceReference !== undefined &&
+        stacktrace[i + 2].type === StackTraceEntryType.RETURNDATA_SIZE_ERROR
+      ) {
+        // ! below for tsc. we confirmed existence in the enclosing conditional.
+        const thatSrcRef = stacktrace[i + 2].sourceReference!;
+        if (
+          frame.sourceReference.range[0] === thatSrcRef.range[0] &&
+          frame.sourceReference.range[1] === thatSrcRef.range[1] &&
+          frame.sourceReference.line === thatSrcRef.line
+        ) {
+          return false;
+        }
+      }
+
       // constructors contain the whole contract, so we ignore them
       if (
         frame.sourceReference.function === "constructor" &&

@@ -2,7 +2,7 @@ import { assert } from "chai";
 import { zeroAddress } from "ethereumjs-util";
 import { ethers } from "ethers";
 
-import { numberToRpcQuantity } from "../../../../../../../internal/core/jsonrpc/types/base-types";
+import { numberToRpcQuantity } from "../../../../../../../src/internal/core/jsonrpc/types/base-types";
 import {
   EthereumProvider,
   EthSubscription,
