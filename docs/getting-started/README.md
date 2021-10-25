@@ -75,7 +75,7 @@ GLOBAL OPTIONS:
   --max-memory          The maximum amount of memory that Hardhat can use.
   --network             The network to connect to.
   --show-stack-traces   Show stack traces.
-  --tsconfig            Reserved hardhat argument -- Has no effect.
+  --tsconfig            A TypeScript config file.
   --verbose             Enables Hardhat verbose logging
   --version             Shows hardhat's version.
 
