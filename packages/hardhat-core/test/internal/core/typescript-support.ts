@@ -5,7 +5,8 @@ import { TASK_TEST_GET_TEST_FILES } from "../../../src/builtin-tasks/task-names"
 import { resetHardhatContext } from "../../../src/internal/reset";
 import { useEnvironment } from "../../helpers/environment";
 import { useFixtureProject } from "../../helpers/project";
-import { HardhatError } from "../../../src/internal/core/errors";
+import { expectHardhatError } from "../../helpers/errors";
+import { ERRORS } from "../../../src/internal/core/errors-list";
 
 describe("Typescript support", function () {
   describe("strict typescript config", function () {
@@ -73,9 +74,9 @@ describe("tsconfig param", function () {
     });
 
     it("should fail to load hardhat", function () {
-      assert.throws(
+      expectHardhatError(
         () => require("../../../src/internal/lib/hardhat-lib"),
-        HardhatError
+        ERRORS.ARGUMENTS.INVALID_ENV_VAR_VALUE
       );
     });
   });
