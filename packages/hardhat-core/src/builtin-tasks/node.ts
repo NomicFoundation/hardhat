@@ -35,7 +35,12 @@ const log = debug("hardhat:core:tasks:node");
 function printDefaultConfigWarning() {
   console.log(
     chalk.bold(
-      ">>>> WARNING: These accounts are public. Any funds sent to them WILL BE LOST <<<<"
+      "WARNING: These accounts are public. Only use them in Hardhat Network."
+    )
+  );
+  console.log(
+    chalk.bold(
+      "Any sent to them on Mainnet or other live network WILL BE LOST."
     )
   );
 }
