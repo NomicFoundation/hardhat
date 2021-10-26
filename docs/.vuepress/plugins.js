@@ -250,6 +250,7 @@ module.exports.communityPlugins = [
   {
     name: "hardhat-fund-link",
     author: "Applied Blockchain",
+    npmPackage: "@appliedblockchain/chainlink-plugins-fund-link",
     authorUrl: "https://github.com/appliedblockchain",
     description: "Transfers Link token amount between accounts.",
     tags: ["Chainlink", "Link"],
