@@ -5,6 +5,8 @@ import { TASK_TEST_GET_TEST_FILES } from "../../../src/builtin-tasks/task-names"
 import { resetHardhatContext } from "../../../src/internal/reset";
 import { useEnvironment } from "../../helpers/environment";
 import { useFixtureProject } from "../../helpers/project";
+import { expectHardhatError } from "../../helpers/errors";
+import { ERRORS } from "../../../src/internal/core/errors-list";
 
 describe("Typescript support", function () {
   describe("strict typescript config", function () {
@@ -55,6 +57,44 @@ describe("Typescript support", function () {
         await fsExtra.realpath("test/js-test.js"),
         await fsExtra.realpath("test/ts-test.ts"),
       ]);
+    });
+  });
+});
+
+describe("tsconfig param", function () {
+  useFixtureProject("typescript-project");
+  describe("When setting an incorrect tsconfig file", function () {
+    beforeEach(() => {
+      process.env.HARDHAT_TSCONFIG = "non-existent.ts";
+    });
+
+    afterEach(() => {
+      delete process.env.HARDHAT_TSCONFIG;
+      resetHardhatContext();
+    });
+
+    it("should fail to load hardhat", function () {
+      expectHardhatError(
+        () => require("../../../src/internal/lib/hardhat-lib"),
+        ERRORS.ARGUMENTS.INVALID_ENV_VAR_VALUE
+      );
+    });
+  });
+
+  describe("When setting a correct tsconfig file", function () {
+    beforeEach(() => {
+      process.env.HARDHAT_TSCONFIG = "./test/tsconfig.json";
+    });
+
+    afterEach(() => {
+      delete process.env.HARDHAT_TSCONFIG;
+      resetHardhatContext();
+    });
+
+    it("should load hardhat", function () {
+      assert.doesNotThrow(() =>
+        require("../../../src/internal/lib/hardhat-lib")
+      );
     });
   });
 });
