@@ -129,7 +129,7 @@ async function main() {
     const showSolidityConfigWarnings = taskName === TASK_COMPILE;
 
     const ctx = HardhatContext.createHardhatContext();
-    const config = loadConfigAndTasks(hardhatArguments, {
+    const config = await loadConfigAndTasks(hardhatArguments, {
       showSolidityConfigWarnings,
     });
 

@@ -47,7 +47,7 @@ describe("config loading", function () {
 
       it("Should throw the right error", function () {
         expectHardhatError(
-          () => loadConfigAndTasks(),
+          async () => await loadConfigAndTasks(),
           ERRORS.GENERAL.INVALID_CONFIG
         );
       });
@@ -65,8 +65,8 @@ describe("config loading", function () {
       resetHardhatContext();
     });
 
-    it("should accept a relative path from the CWD", function () {
-      const config = loadConfigAndTasks({ config: "config.js" });
+    it("should accept a relative path from the CWD", async function () {
+      const config = await loadConfigAndTasks({ config: "config.js" });
 
       assert.equal(
         config.paths.configFile,
@@ -76,7 +76,7 @@ describe("config loading", function () {
 
     it("should accept an absolute path", async function () {
       const fixtureDir = await getFixtureProjectPath("custom-config-file");
-      const config = loadConfigAndTasks({
+      const config = await loadConfigAndTasks({
         config: path.join(fixtureDir, "config.js"),
       });
 
@@ -114,11 +114,11 @@ describe("config loading", function () {
       resetHardhatContext();
     });
 
-    it("should remove everything from global state after loading", function () {
+    it("should remove everything from global state after loading", async function () {
       const globalAsAny: any = global;
 
       HardhatContext.createHardhatContext();
-      loadConfigAndTasks();
+      await loadConfigAndTasks();
 
       assert.isUndefined(globalAsAny.subtask);
       assert.isUndefined(globalAsAny.task);
@@ -128,13 +128,13 @@ describe("config loading", function () {
       resetHardhatContext();
 
       HardhatContext.createHardhatContext();
-      loadConfigAndTasks();
+      await loadConfigAndTasks();
 
       assert.isUndefined(globalAsAny.subtask);
       assert.isUndefined(globalAsAny.task);
       assert.isUndefined(globalAsAny.types);
       assert.isUndefined(globalAsAny.extendEnvironment);
-      resetHardhatContext();
+      await resetHardhatContext();
     });
   });
 
@@ -150,7 +150,7 @@ describe("config loading", function () {
     });
 
     it("should accept a relative path from the CWD", function () {
-      expectHardhatError(
+      expectHardhatErrorAsync(
         () => loadConfigAndTasks(),
         ERRORS.GENERAL.LIB_IMPORTED_FROM_THE_CONFIG
       );
@@ -168,10 +168,10 @@ describe("config loading", function () {
       resetHardhatContext();
     });
 
-    it("should re-throw the error", function () {
+    it("should re-throw the error", async function () {
       let errorThrown;
       try {
-        loadConfigAndTasks();
+        await loadConfigAndTasks();
       } catch (e) {
         errorThrown = e;
       }
@@ -195,10 +195,10 @@ describe("config loading", function () {
       resetHardhatContext();
     });
 
-    it("should re-throw the error", function () {
+    it("should re-throw the error", async function () {
       let errorThrown;
       try {
-        loadConfigAndTasks();
+        await loadConfigAndTasks();
       } catch (e) {
         errorThrown = e;
       }
@@ -222,10 +222,10 @@ describe("config loading", function () {
       resetHardhatContext();
     });
 
-    it("should re-throw the error", function () {
+    it("should re-throw the error", async function () {
       let errorThrown;
       try {
-        loadConfigAndTasks();
+        await loadConfigAndTasks();
       } catch (e) {
         errorThrown = e;
       }
@@ -250,7 +250,7 @@ describe("config loading", function () {
     });
 
     it("should indicate the plugin and the missing dependency", function () {
-      expectHardhatError(
+      expectHardhatErrorAsync(
         () => loadConfigAndTasks(),
         ERRORS.PLUGINS.MISSING_DEPENDENCIES,
         "Plugin some-plugin requires the following dependencies to be installed: some-dependency"
@@ -270,7 +270,7 @@ describe("config loading", function () {
     });
 
     it("should indicate the plugin and the missing dependencies", function () {
-      expectHardhatError(
+      expectHardhatErrorAsync(
         () => loadConfigAndTasks(),
         ERRORS.PLUGINS.MISSING_DEPENDENCIES,
         "Plugin some-plugin requires the following dependencies to be installed: some-dependency, some-other-dependency"
@@ -290,7 +290,7 @@ describe("config loading", function () {
     });
 
     it("should indicate the buidler plugin", function () {
-      expectHardhatError(
+      expectHardhatErrorAsync(
         () => loadConfigAndTasks(),
         ERRORS.PLUGINS.BUIDLER_PLUGIN,
         `You are using some-buidler-plugin, which is a Buidler plugin. Use the equivalent
@@ -329,7 +329,7 @@ Hardhat plugin instead.`
       // We run this twice to make sure that the cache is cleaned properly
       for (let i = 0; i < 2; i++) {
         HardhatContext.createHardhatContext();
-        loadConfigAndTasks();
+        await loadConfigAndTasks();
         const ctx = HardhatContext.getHardhatContext();
 
         const files = ctx.getFilesLoadedDuringConfig();
@@ -371,8 +371,8 @@ Hardhat plugin instead.`
       resetHardhatContext();
     });
 
-    it("should emit a warning if there's no configured solidity", function () {
-      const config = loadConfigAndTasks(
+    it("should emit a warning if there's no configured solidity", async function () {
+      const config = await loadConfigAndTasks(
         {
           config: "config-without-solidity.js",
         },
@@ -388,8 +388,8 @@ Hardhat plugin instead.`
       assert.equal(config.solidity.compilers[0].version, DEFAULT_SOLC_VERSION);
     });
 
-    it("should emit a warning if the solc version is too new", function () {
-      loadConfigAndTasks(
+    it("should emit a warning if the solc version is too new", async function () {
+      await loadConfigAndTasks(
         {
           config: "unsupported-new-solc.js",
         },
@@ -400,8 +400,8 @@ Hardhat plugin instead.`
       assert.include(consoleWarnStub.args[0][0], "is not fully supported yet");
     });
 
-    it("should emit a warning if there are multiple unsupported versions", function () {
-      loadConfigAndTasks(
+    it("should emit a warning if there are multiple unsupported versions", async function () {
+      await loadConfigAndTasks(
         {
           config: "multiple-unsupported-solc.js",
         },
@@ -412,8 +412,8 @@ Hardhat plugin instead.`
       assert.include(consoleWarnStub.args[0][0], "are not fully supported yet");
     });
 
-    it("should emit a warning if there is an unsupported version in an override", function () {
-      loadConfigAndTasks(
+    it("should emit a warning if there is an unsupported version in an override", async function () {
+      await loadConfigAndTasks(
         {
           config: "unsupported-solc-in-override.js",
         },

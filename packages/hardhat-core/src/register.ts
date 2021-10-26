@@ -39,17 +39,18 @@ if (!HardhatContext.isCreated()) {
     loadTsNode();
   }
 
-  const config = loadConfigAndTasks(hardhatArguments);
-
-  const env = new Environment(
-    config,
-    hardhatArguments,
-    ctx.tasksDSL.getTaskDefinitions(),
-    ctx.extendersManager.getExtenders(),
-    ctx.experimentalHardhatNetworkMessageTraceHooks
-  );
-
-  ctx.setHardhatRuntimeEnvironment(env);
-
-  env.injectToGlobal();
+  // TODO: Implication is this becoming async?
+  loadConfigAndTasks(hardhatArguments).then((config) => {
+    const env = new Environment(
+      config,
+      hardhatArguments,
+      ctx.tasksDSL.getTaskDefinitions(),
+      ctx.extendersManager.getExtenders(),
+      ctx.experimentalHardhatNetworkMessageTraceHooks
+    );
+  
+    ctx.setHardhatRuntimeEnvironment(env);
+  
+    env.injectToGlobal();
+  });
 }

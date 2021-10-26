@@ -19,9 +19,13 @@ import { DEFAULT_SOLC_VERSION } from "./default-config";
 
 const log = debug("hardhat:core:config");
 
-function importCsjOrEsModule(filePath: string): any {
-  const imported = require(filePath);
-  return imported.default !== undefined ? imported.default : imported;
+function importCsjOrEsModule(filePath: string): any | Promise<any> {
+  try {
+    const imported = require(filePath);
+    return imported.default !== undefined ? imported.default : imported;
+  } catch (err) {
+    return import(filePath);
+  }
 }
 
 export function resolveConfigPath(configPath: string | undefined) {
@@ -36,10 +40,10 @@ export function resolveConfigPath(configPath: string | undefined) {
   return configPath;
 }
 
-export function loadConfigAndTasks(
+export async function loadConfigAndTasks(
   hardhatArguments?: Partial<HardhatArguments>,
   { showSolidityConfigWarnings } = { showSolidityConfigWarnings: false }
-): HardhatConfig {
+): Promise<HardhatConfig> {
   let configPath =
     hardhatArguments !== undefined ? hardhatArguments.config : undefined;
 
@@ -63,7 +67,7 @@ export function loadConfigAndTasks(
 
   try {
     require("../tasks/builtin-tasks");
-    userConfig = importCsjOrEsModule(configPath);
+    userConfig = await importCsjOrEsModule(configPath);
   } catch (e) {
     analyzeModuleNotFoundError(e, configPath);
 

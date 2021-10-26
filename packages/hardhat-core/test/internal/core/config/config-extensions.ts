@@ -41,7 +41,7 @@ describe("Config extensions", function () {
     });
 
     it("Should throw the right error when trying to modify the user config", function () {
-      expectHardhatError(
+      expectHardhatErrorAsync(
         () => loadConfigAndTasks(),
         ERRORS.GENERAL.USER_CONFIG_MODIFIED
       );
