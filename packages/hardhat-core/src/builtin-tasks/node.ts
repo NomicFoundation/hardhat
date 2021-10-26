@@ -35,12 +35,12 @@ const log = debug("hardhat:core:tasks:node");
 function printDefaultConfigWarning() {
   console.log(
     chalk.bold(
-      "WARNING: These accounts are public. Only use them in Hardhat Network."
+      "WARNING: These accounts, and their private keys, are publicly known."
     )
   );
   console.log(
     chalk.bold(
-      "Any sent to them on Mainnet or other live network WILL BE LOST."
+      "Any funds sent to them on Mainnet or any other live network WILL BE LOST."
     )
   );
 }
