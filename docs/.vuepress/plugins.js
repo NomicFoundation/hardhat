@@ -274,7 +274,7 @@ module.exports.communityPlugins = [
       "security",
       "developer experience",
       "convenience",
-      "ethers.js"
+      "ethers.js",
     ],
   },
 ];
