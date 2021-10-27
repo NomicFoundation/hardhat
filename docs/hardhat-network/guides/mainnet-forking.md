@@ -102,7 +102,7 @@ This will reset Hardhat Network, starting a new instance in the state described 
 
 By default, if you're forking a well-known network, Hardhat Network will automatically choose the right hardfork for the execution your EVM code, based on known histories of public networks. If you're using a different network, you can configure Hardhat Network to know what hardforks to apply to which blocks.
 
-For example, to configure a hardfork activation history for a network with `networkId` 1:
+For example, to configure a hardfork activation history for a network with `networkId` 99:
 
 ```js
 networks: {
@@ -110,7 +110,7 @@ networks: {
     forking: {
       url: "https://your.node/",
       hardforkActivationsByChain: {
-        1: {
+        99: {
           berlin: 10000000,
           london: 20000000,
         },
