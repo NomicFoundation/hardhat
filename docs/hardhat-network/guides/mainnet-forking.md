@@ -100,7 +100,7 @@ This will reset Hardhat Network, starting a new instance in the state described 
 
 ## Using a custom hardfork history
 
-By default, if you're forking a well-known network, Hardhat Network will automatically choose the right hardfork for the execution of your EVM code, based on known histories of public networks. If you're using a different network, you can configure Hardhat Network to know what hardforks to apply to which blocks.
+If you're forking an unusual network, and if you want to execute EVM code in the context of a historical block retrieved from that network, then you will need to configure Hardhat Network to know which hardforks to apply to which blocks. (If you're forking a well-known network, Hardhat Network will automatically choose the right hardfork for the execution of your EVM code, based on known histories of public networks, so you can safely ignore this section.)
 
 For example, to configure a hardfork activation history for a network with `networkId` 99:
 
@@ -120,9 +120,9 @@ networks: {
 }
 ```
 
-The well-known public networks are assumed when Hardhat Network is configured with a well-known chain ID (eg `1` for Ethereum mainnet), eg `networks: { hardhat: { chainId: 1 } }`.
+In this context, a "historical block" is one whose number is prior to `forking.blockNumber`. If you try to run code in the context of a historical block, _without_ having a hardfork history, then an error will be thrown. The known hardfork histories of public networks are assumed as defaults when Hardhat Network finds a well-known chain ID encoded into the block retrieved from the forked network.
 
-If you're not forking a well-known network, and your config doesn't supply a hardfork history, then your code will be executed using the hardfork specified by the `hardfork` field on the Hardhat Network config, eg `networks: { hardhat: { hardfork: "london" } }`. However, if you try to run on a historical block (prior to `forking.blockNumber`), the hardfork specified in the config will not be assumed, and if you don't also supply a hardfork history then an error will be thrown.
+If you run code in the context of a _non_-historical block, then Hardhat Network will simply use the hardfork specified by the `hardfork` field on its config, eg `networks: { hardhat: { hardfork: "london" } }`, rather than consulting the hardfork history configuration.
 
 See also [the `forking` entry in the Hardhat Network configuration reference](../reference/#forking).
 
