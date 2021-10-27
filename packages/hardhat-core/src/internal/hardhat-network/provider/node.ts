@@ -205,12 +205,6 @@ export class HardhatNode extends EventEmitter {
         ) {
           hardforkActivations =
             config.forkConfig.hardforkActivationsByChain[forkNetworkId];
-        } else {
-          throw new InternalError(
-            `Network ID ${forkNetworkId} not present in forkConfig.hardforkActivationsByChain ${JSON.stringify(
-              config.forkConfig.hardforkActivationsByChain
-            )}`
-          );
         }
       }
     } else {
