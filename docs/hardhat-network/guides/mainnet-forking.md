@@ -102,7 +102,7 @@ This will reset Hardhat Network, starting a new instance in the state described 
 
 If you're forking an unusual network, and if you want to execute EVM code in the context of a historical block retrieved from that network, then you will need to configure Hardhat Network to know which hardforks to apply to which blocks. (If you're forking a well-known network, Hardhat Network will automatically choose the right hardfork for the execution of your EVM code, based on known histories of public networks, so you can safely ignore this section.)
 
-For example, to configure a hardfork activation history for a network with `networkId` 99:
+For example, to configure a hardfork activation history for a network with `chainId` 99:
 
 ```js
 networks: {
