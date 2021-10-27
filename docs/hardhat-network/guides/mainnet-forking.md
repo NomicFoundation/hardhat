@@ -100,7 +100,7 @@ This will reset Hardhat Network, starting a new instance in the state described 
 
 ## Using a custom hardfork history
 
-By default, if you're forking a well-known network, Hardhat Network will automatically choose the right hardfork for the execution your EVM code, based on known histories of public networks. If you're using a different network, you can configure Hardhat Network to know what hardforks to apply to which blocks.
+By default, if you're forking a well-known network, Hardhat Network will automatically choose the right hardfork for the execution of your EVM code, based on known histories of public networks. If you're using a different network, you can configure Hardhat Network to know what hardforks to apply to which blocks.
 
 For example, to configure a hardfork activation history for a network with `networkId` 99:
 
