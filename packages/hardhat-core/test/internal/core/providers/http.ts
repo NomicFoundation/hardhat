@@ -30,13 +30,14 @@ describe("HttpProvider", function () {
   });
 
   describe("Simple Request - HttpProxyAgent", function () {
-    const url = INFURA_URL;
+    const rpcUrl = INFURA_URL;
+
     let env: typeof process.env;
     let proxy: any;
     let proxyPort: number;
     const simpleRequest = {
       method: "eth_getTransactionCount",
-      params: ["0x0000000000000000000000000000000000000000"],
+      params: ["0x0000000000000000000000000000000000000000", "latest"],
     };
 
     before(function (done) {
@@ -47,54 +48,62 @@ describe("HttpProvider", function () {
         done();
       });
     });
+
     describe("Simple Request without PROXY env", function () {
-      it("Request is successfull", async function () {
-        if (url === undefined) {
+      it("Request is successful", async function () {
+        if (rpcUrl === undefined) {
           this.skip();
-          return;
         }
-        const provider = new HttpProvider(url, "Test");
+
+        const provider = new HttpProvider(rpcUrl, "Test");
         assert.isOk(await provider.request(simpleRequest));
       });
     });
+
     describe("Simple Request with HTTPS_PROXY env", function () {
       before(function () {
         // Save the Environment Settings and Set
         env = process.env;
         process.env.HTTPS_PROXY = `http://127.0.0.1:${proxyPort}`;
       });
-      it("Request is successfull", async function () {
-        if (url === undefined) {
+
+      it("Request is successful", async function () {
+        if (rpcUrl === undefined) {
           this.skip();
-          return;
         }
-        const provider = new HttpProvider(url, "Test");
+
+        const provider = new HttpProvider(rpcUrl, "Test");
         assert.isOk(await provider.request(simpleRequest));
       });
+
       after(function () {
         // restoring everything back to the environment
         process.env = env;
       });
     });
+
     describe("Simple Request with HTTP_PROXY env", function () {
       before(function () {
         // Save the Environment Settings and Set
         env = process.env;
         process.env.HTTP_PROXY = `http://127.0.0.1:${proxyPort}`;
       });
-      it("Request is successfull", async function () {
-        if (url === undefined) {
+
+      it("Request is successful", async function () {
+        if (rpcUrl === undefined) {
           this.skip();
-          return;
         }
-        const provider = new HttpProvider(url, "Test");
+
+        const provider = new HttpProvider(rpcUrl, "Test");
         assert.isOk(await provider.request(simpleRequest));
       });
+
       after(function () {
         // restoring everything back to the environment
         process.env = env;
       });
     });
+
     after(function (done) {
       // Shutdown Proxy Server
       proxy.once("close", function () {
