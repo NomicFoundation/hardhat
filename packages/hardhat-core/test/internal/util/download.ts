@@ -1,8 +1,6 @@
 import { assert } from "chai";
 import fsExtra from "fs-extra";
 import path from "path";
-// @ts-ignore
-// eslint-disable-next-line  import/no-extraneous-dependencies
 import Proxy from "proxy";
 
 import { download } from "../../../src/internal/util/download";

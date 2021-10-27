@@ -1,6 +1,4 @@
 import { assert } from "chai";
-// @ts-ignore
-// eslint-disable-next-line  import/no-extraneous-dependencies
 import Proxy from "proxy";
 
 import { HttpProvider } from "../../../../src/internal/core/providers/http";
@@ -56,7 +54,7 @@ describe("HttpProvider", function () {
           return;
         }
         const provider = new HttpProvider(url, "Test");
-       assert.isOk(await provider.request(simpleRequest));
+        assert.isOk(await provider.request(simpleRequest));
       });
     });
     describe("Simple Request with HTTPS_PROXY env", function () {
