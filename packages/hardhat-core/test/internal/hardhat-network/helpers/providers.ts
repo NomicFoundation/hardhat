@@ -35,6 +35,11 @@ export const DEFAULT_ACCOUNTS = [
       "0xe331b6d69882b4cb4ea581d88e0b604039a3de5967688d3dcffdd2270c0fd10b",
     balance: new BN(10).pow(new BN(21)),
   },
+  {
+    privateKey:
+      "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
+    balance: new BN(10).pow(new BN(21)),
+  },
 ];
 export const DEFAULT_ACCOUNTS_ADDRESSES = DEFAULT_ACCOUNTS.map((account) =>
   bufferToHex(privateToAddress(toBuffer(account.privateKey))).toLowerCase()

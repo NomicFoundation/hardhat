@@ -360,6 +360,15 @@ Please double check your transactions' parameters.`,
 Please double check your transactions' parameters.`,
       shouldBeReported: false,
     },
+    PERSONALSIGN_MISSING_ADDRESS_PARAM: {
+      number: 116,
+      message: 'Missing "address" param when calling personal_sign.',
+      title: "Missing `address` param when calling personal_sign.",
+      description: `You called \`personal_sign\` with incorrect parameters.
+
+Please check that you are sending an \`address\` parameter.`,
+      shouldBeReported: false,
+    },
   },
   TASK_DEFINITIONS: {
     PARAM_AFTER_VARIADIC: {
