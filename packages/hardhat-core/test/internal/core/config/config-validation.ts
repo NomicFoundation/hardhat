@@ -257,6 +257,201 @@ describe("Config validation", function () {
         });
       });
 
+      /**
+       * networkConfig.accounts
+          if string => must === "remote"
+          if object => ~
+          if array => 
+            if network === hardhat =>
+              each => isValidHexString(each.privateKey)
+                && isValidBalance?(each.balance)
+            else (network === http) =>
+              each => isValidHexString(each)
+       */
+
+      /**
+       * This describe block will encompass all private key tests
+       * for both Hardhat and HTTP networks
+       */
+      describe("Private key config", function () {
+        describe("HTTP network accounts", function () {
+          it("Should allow an array of valid private keys", function () {
+            validateConfig({
+              networks: {
+                custom: {
+                  url: "http://localhost",
+                  accounts: [
+                    "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                    "0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                  ],
+                },
+              },
+            });
+          });
+
+          it("Should allow valid private keys with missing hex prefix", function () {
+            validateConfig({
+              networks: {
+                custom: {
+                  url: "http://localhost",
+                  accounts: [
+                    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  ],
+                },
+              },
+            });
+          });
+
+          it("Should not allow hex literals", function () {
+            expectHardhatError(
+              () =>
+                validateConfig({
+                  networks: {
+                    custom: {
+                      url: "http://localhost",
+                      accounts: [
+                        0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,
+                      ],
+                    },
+                  },
+                }),
+              ERRORS.GENERAL.INVALID_PRIVATE_KEY
+            );
+          });
+
+          it("Should not allow private keys of incorrect length", function () {
+            expectHardhatError(
+              () =>
+                validateConfig({
+                  networks: {
+                    custom: {
+                      url: "http://localhost",
+                      accounts: ["0xaaaa"],
+                    },
+                  },
+                }),
+              ERRORS.GENERAL.INVALID_PRIVATE_KEY
+            );
+
+            expectHardhatError(
+              () =>
+                validateConfig({
+                  networks: {
+                    custom: {
+                      url: "http://localhost",
+                      accounts: [
+                        "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabb",
+                      ],
+                    },
+                  },
+                }),
+              ERRORS.GENERAL.INVALID_PRIVATE_KEY
+            );
+          });
+        });
+
+        describe("Hardhat Network accounts", function () {
+          it("Should allow an array of account objects with valid private keys", function () {
+            validateConfig({
+              networks: {
+                [HARDHAT_NETWORK_NAME]: {
+                  accounts: [
+                    {
+                      balance: "123",
+                      privateKey:
+                        "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    },
+                    {
+                      balance: "123",
+                      privateKey:
+                        "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                    },
+                    {
+                      balance: "123",
+                      privateKey:
+                        "0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                    },
+                  ],
+                },
+              },
+            });
+          });
+
+          it("Should allow valid private keys with missing hex prefix", function () {
+            validateConfig({
+              networks: {
+                [HARDHAT_NETWORK_NAME]: {
+                  accounts: [
+                    {
+                      balance: "123",
+                      privateKey:
+                        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    },
+                  ],
+                },
+              },
+            });
+          });
+
+          it("Should not allow hex literals", function () {
+            expectHardhatError(
+              () =>
+                validateConfig({
+                  networks: {
+                    [HARDHAT_NETWORK_NAME]: {
+                      accounts: [
+                        {
+                          balance: "123",
+                          privateKey: 0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,
+                        },
+                      ],
+                    },
+                  },
+                }),
+              ERRORS.GENERAL.INVALID_PRIVATE_KEY
+            );
+          });
+
+          it("Should not allow private keys of incorrect length", function () {
+            expectHardhatError(
+              () =>
+                validateConfig({
+                  networks: {
+                    [HARDHAT_NETWORK_NAME]: {
+                      accounts: [
+                        {
+                          balance: "123",
+                          privateKey: "0xaaaa",
+                        },
+                      ],
+                    },
+                  },
+                }),
+              ERRORS.GENERAL.INVALID_PRIVATE_KEY
+            );
+
+            expectHardhatError(
+              () =>
+                validateConfig({
+                  networks: {
+                    [HARDHAT_NETWORK_NAME]: {
+                      accounts: [
+                        {
+                          balance: "123",
+                          privateKey:
+                            "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbb",
+                        },
+                      ],
+                    },
+                  },
+                }),
+              ERRORS.GENERAL.INVALID_PRIVATE_KEY
+            );
+          });
+        });
+      });
+
       describe("Hardhat Network config", function () {
         it("Should fail with invalid types", function () {
           expectHardhatError(
