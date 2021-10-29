@@ -120,7 +120,7 @@ networks: {
 }
 ```
 
-In this context, a "historical block" is one whose number is prior to `forking.blockNumber`. If you try to run code in the context of a historical block, _without_ having a hardfork history, then an error will be thrown. The known hardfork histories of public networks are assumed as defaults when Hardhat Network finds a well-known chain ID encoded into the block retrieved from the forked network.
+In this context, a "historical block" is one whose number is prior to `forking.blockNumber`. If you try to run code in the context of a historical block, _without_ having a hardfork history, then an error will be thrown. The known hardfork histories of most public networks are assumed as defaults.
 
 If you run code in the context of a _non_-historical block, then Hardhat Network will simply use the hardfork specified by the `hardfork` field on its config, eg `networks: { hardhat: { hardfork: "london" } }`, rather than consulting the hardfork history configuration.
 
