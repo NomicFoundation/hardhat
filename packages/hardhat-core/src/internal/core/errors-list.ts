@@ -861,6 +861,16 @@ To start the JSON-RPC server, retry the command without the --network parameter.
 if the URL of the JSON-RPC wasn't set.`,
       shouldBeReported: false,
     },
+    COMPILE_TASK_UNSUPPORTED_SOLC_VERSION: {
+      number: 608,
+      message: `Version %version% is not supported by Hardhat.
+
+The first supported version is %firstSupportedVersion%`,
+      title: "Unsupported solc version",
+      description: `This version of solidity is not supported by Hardhtat.
+Please use a newer, supported version.`,
+      shouldBeReported: true,
+    },
   },
   ARTIFACTS: {
     NOT_FOUND: {
