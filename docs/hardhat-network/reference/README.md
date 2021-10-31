@@ -320,6 +320,10 @@ Call [`hardhat_stopImpersonatingAccount`](#hardhat-stopimpersonatingaccount) to 
 #### `hardhat_intervalMine`
 -->
 
+#### `hardhat_getAutomine`
+
+Get the current status of the automatic mining behavior.
+
 #### `hardhat_reset`
 
 See the [Mainnet Forking guide](../guides/mainnet-forking.md)
