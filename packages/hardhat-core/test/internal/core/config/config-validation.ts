@@ -258,18 +258,6 @@ describe("Config validation", function () {
       });
 
       /**
-       * networkConfig.accounts
-          if string => must === "remote"
-          if object => ~
-          if array => 
-            if network === hardhat =>
-              each => isValidHexString(each.privateKey)
-                && isValidBalance?(each.balance)
-            else (network === http) =>
-              each => isValidHexString(each)
-       */
-
-      /**
        * This describe block will encompass all private key tests
        * for both Hardhat and HTTP networks
        */
@@ -316,7 +304,7 @@ describe("Config validation", function () {
                     },
                   },
                 }),
-              ERRORS.GENERAL.INVALID_PRIVATE_KEY
+              ERRORS.GENERAL.INVALID_CONFIG
             );
           });
 
@@ -331,7 +319,7 @@ describe("Config validation", function () {
                     },
                   },
                 }),
-              ERRORS.GENERAL.INVALID_PRIVATE_KEY
+              ERRORS.GENERAL.INVALID_CONFIG
             );
 
             expectHardhatError(
@@ -346,7 +334,24 @@ describe("Config validation", function () {
                     },
                   },
                 }),
-              ERRORS.GENERAL.INVALID_PRIVATE_KEY
+              ERRORS.GENERAL.INVALID_CONFIG
+            );
+          });
+
+          it("Should not allow invalid private keys", function () {
+            expectHardhatError(
+              () =>
+                validateConfig({
+                  networks: {
+                    custom: {
+                      url: "http://localhost",
+                      accounts: [
+                        "0xgggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg",
+                      ],
+                    },
+                  },
+                }),
+              ERRORS.GENERAL.INVALID_CONFIG
             );
           });
         });
@@ -409,7 +414,7 @@ describe("Config validation", function () {
                     },
                   },
                 }),
-              ERRORS.GENERAL.INVALID_PRIVATE_KEY
+              ERRORS.GENERAL.INVALID_CONFIG
             );
           });
 
@@ -428,7 +433,7 @@ describe("Config validation", function () {
                     },
                   },
                 }),
-              ERRORS.GENERAL.INVALID_PRIVATE_KEY
+              ERRORS.GENERAL.INVALID_CONFIG
             );
 
             expectHardhatError(
@@ -446,7 +451,27 @@ describe("Config validation", function () {
                     },
                   },
                 }),
-              ERRORS.GENERAL.INVALID_PRIVATE_KEY
+              ERRORS.GENERAL.INVALID_CONFIG
+            );
+          });
+
+          it("Should not allow invalid private keys", function () {
+            expectHardhatError(
+              () =>
+                validateConfig({
+                  networks: {
+                    [HARDHAT_NETWORK_NAME]: {
+                      accounts: [
+                        {
+                          balance: "123",
+                          privateKey:
+                            "0xgggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg",
+                        },
+                      ],
+                    },
+                  },
+                }),
+              ERRORS.GENERAL.INVALID_CONFIG
             );
           });
         });

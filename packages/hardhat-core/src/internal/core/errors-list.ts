@@ -201,19 +201,6 @@ Please run: npm install --save-dev typescript`,
 Please run this and try again: \`npm install --save-dev typescript\``,
       shouldBeReported: false,
     },
-    INVALID_PRIVATE_KEY: {
-      number: 15,
-      message: `There's one or more invalid private keys in your config file:
-
-%keys%
-  
-To learn more about Hardhat's configuration, please go to https://hardhat.org/config/`,
-      title: "Invalid private key",
-      description: `You have one or more errors in your config file. 
-      
-Check the error message for details, or go to the [documentation](https://hardhat.org/config/) to learn more.`,
-      shouldBeReported: false,
-    },
   },
   NETWORK: {
     CONFIG_NOT_FOUND: {
