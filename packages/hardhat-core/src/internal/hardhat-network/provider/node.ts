@@ -1103,6 +1103,10 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     this._automine = automine;
   }
 
+  public getAutomine() {
+    return this._automine;
+  }
+
   public async setBlockGasLimit(gasLimit: BN | number) {
     this._txPool.setBlockGasLimit(gasLimit);
     await this._txPool.updatePendingAndQueued();

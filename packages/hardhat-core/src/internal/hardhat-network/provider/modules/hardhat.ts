@@ -66,6 +66,9 @@ export class HardhatModule {
       case "hardhat_intervalMine":
         return this._intervalMineAction(...this._intervalMineParams(params));
 
+      case "hardhat_getAutomine":
+        return this._getAutomine();
+
       case "hardhat_stopImpersonatingAccount":
         return this._stopImpersonatingAction(
           ...this._stopImpersonatingParams(params)
@@ -182,6 +185,12 @@ export class HardhatModule {
     }
 
     return true;
+  }
+
+  // hardhat_getAutomine
+
+  private async _getAutomine(): Promise<boolean> {
+    return this._node.getAutomine();
   }
 
   // hardhat_stopImpersonatingAccount
