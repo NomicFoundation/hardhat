@@ -195,9 +195,7 @@ function resolveHardhatNetworkConfig(
           );
         }
       }
-      if (chainConfig !== undefined) {
-        chains.set(parseInt(chainId, 10), chainConfig);
-      }
+      chains.set(parseInt(chainId, 10), chainConfig);
     }
   }
 
