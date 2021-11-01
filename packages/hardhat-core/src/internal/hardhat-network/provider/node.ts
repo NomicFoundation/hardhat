@@ -501,7 +501,10 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       blockNumberOrPending
     );
 
-    if (call.gasPrice !== undefined || !this.isEip1559Active()) {
+    if (
+      call.gasPrice !== undefined ||
+      !this.isEip1559Active(blockNumberOrPending)
+    ) {
       txParams = {
         gasPrice: new BN(0),
         nonce,
@@ -2197,7 +2200,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       // eth_call. This will make the BASEFEE option also return 0, which
       // shouldn't. See: https://github.com/nomiclabs/hardhat/issues/1688
       if (
-        this.isEip1559Active() &&
+        this.isEip1559Active(blockNumberOrPending) &&
         (blockContext.header.baseFeePerGas === undefined || forceBaseFeeZero)
       ) {
         blockContext = Block.fromBlockData(blockContext, {
@@ -2324,7 +2327,19 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     );
   }
 
-  public isEip1559Active(): boolean {
+  public isEip1559Active(blockNumberOrPending?: BN | "pending"): boolean {
+    const block =
+      blockNumberOrPending !== "pending" ? blockNumberOrPending : undefined;
+    if (
+      block !== undefined &&
+      this._forkBlockNumber !== undefined &&
+      block.lt(new BN(this._forkBlockNumber))
+    ) {
+      return this._vm._common.hardforkGteHardfork(
+        this._selectHardforkFromActivations(block),
+        "london"
+      );
+    }
     return this._vm._common.gteHardfork("london");
   }
 
@@ -2334,7 +2349,10 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   ): Promise<
     { gasPrice: BN } | { maxFeePerGas: BN; maxPriorityFeePerGas: BN }
   > {
-    if (!this.isEip1559Active() || callParams.gasPrice !== undefined) {
+    if (
+      !this.isEip1559Active(blockNumberOrPending) ||
+      callParams.gasPrice !== undefined
+    ) {
       return { gasPrice: callParams.gasPrice ?? (await this.getGasPrice()) };
     }
 
