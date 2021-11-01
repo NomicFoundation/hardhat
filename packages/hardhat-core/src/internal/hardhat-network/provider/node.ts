@@ -28,6 +28,7 @@ import EventEmitter from "events";
 
 import { CompilerInput, CompilerOutput } from "../../../types";
 import { HardforkHistoryConfig } from "../../../types/config";
+import { HARDHAT_NETWORK_SUPPORTED_HARDFORKS } from "../../constants";
 import {
   defaultHardhatNetworkParams,
   HARDHAT_NETWORK_DEFAULT_INITIAL_BASE_FEE_PER_GAS,
@@ -209,6 +210,11 @@ export class HardhatNode extends EventEmitter {
           `No hardfork history configured for chain ID ${forkNetworkId}`
         );
       }
+      hardforkActivations.forEach((block, hardforkName) => {
+        if (!HARDHAT_NETWORK_SUPPORTED_HARDFORKS.includes(hardforkName)) {
+          throw new InternalError(`Unsupported hardfork ${hardforkName}`);
+        }
+      });
     } else {
       const hardhatStateManager = new HardhatStateManager();
       await hardhatStateManager.initializeGenesisAccounts(genesisAccounts);
