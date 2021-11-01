@@ -1287,7 +1287,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
             this._forkBlockNumber !== undefined &&
             blockNumber < this._forkBlockNumber
           ) {
-            this._vm._common.setHardfork(
+            vm._common.setHardfork(
               this._selectHardforkFromActivations(new BN(blockNumber))
             );
           }
