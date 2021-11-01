@@ -3,11 +3,6 @@ import { Context, getFunctionName, ValidationError } from "io-ts/lib";
 import { Reporter } from "io-ts/lib/Reporter";
 
 import {
-  HardhatConfig,
-  HardhatNetworkAccountsUserConfig,
-  HardhatNetworkAccountUserConfig,
-} from "../../../types";
-import {
   HARDHAT_NETWORK_NAME,
   HARDHAT_NETWORK_SUPPORTED_HARDFORKS,
 } from "../../constants";
