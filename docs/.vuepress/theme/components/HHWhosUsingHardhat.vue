@@ -3,7 +3,6 @@
     .padded-container
       h1.section-title Trusted by top teams
     section.banner-container.banner-container-desktop
-
       .marquee-container(v-for="group of desktopUsers")
         .marquee-content
           .marquee    
@@ -136,6 +135,66 @@ import UmaMobileImage from "../img/company_logos/mobile/logo-uma@2x.png";
 import UnlockDesktopImage from "../img/company_logos/2x/logo-unlock@2x.png";
 import UnlockMobileImage from "../img/company_logos/mobile/logo-unlock@2x.png";
 
+// Mainframe
+import MainframeDesktopImage from "../img/company_logos/2x/logo-mainframe@2x.png";
+import MainframeMobileImage from "../img/company_logos/mobile/logo-mainframe@2x.png";
+
+// ChainLink
+import ChainlinkDesktopImage from "../img/company_logos/2x/logo-chainlink@2x.png";
+import ChainlinkMobileImage from "../img/company_logos/mobile/logo-chainlink@2x.png";
+
+// Gnosis
+import GnosisDesktopImage from "../img/company_logos/2x/logo-gnosis@2x.png";
+import GnosisMobileImage from "../img/company_logos/mobile/logo-gnosis@2x.png";
+
+// SushiSwap
+import SushiSwapDesktopImage from "../img/company_logos/2x/logo-sushiswap@2x.png";
+import SushiSwapMobileImage from "../img/company_logos/mobile/logo-sushiswap@2x.png";
+
+// ENS
+import ENSDesktopImage from "../img/company_logos/2x/logo-ens@2x.png";
+import ENSMobileImage from "../img/company_logos/mobile/logo-ens@2x.png";
+
+// Yearn
+import YearnDesktopImage from "../img/company_logos/2x/logo-yearn@2x.png";
+import YearnMobileImage from "../img/company_logos/mobile/logo-yearn@2x.png";
+
+// Reflexer
+import ReflexerDesktopImage from "../img/company_logos/2x/logo-reflexer@2x.png";
+import ReflexerMobileImage from "../img/company_logos/mobile/logo-reflexer@2x.png";
+
+// Dharma
+import DharmaDesktopImage from "../img/company_logos/2x/logo-dharma@2x.png";
+import DharmaMobileImage from "../img/company_logos/mobile/logo-dharma@2x.png";
+
+// 1Inch
+import _1InchDesktopImage from "../img/company_logos/2x/logo-1inch@2x.png";
+import _1InchMobileImage from "../img/company_logos/mobile/logo-1inch@2x.png";
+
+// Uniswap
+import UniswapDesktopImage from "../img/company_logos/2x/logo-uniswap@2x.png";
+import UniswapMobileImage from "../img/company_logos/mobile/logo-uniswap@2x.png";
+
+// Hegic
+import HegicDesktopImage from "../img/company_logos/2x/logo-hegic@2x.png";
+import HegicMobileImage from "../img/company_logos/mobile/logo-hegic@2x.png";
+
+// Augur
+import AugurDesktopImage from "../img/company_logos/2x/logo-augur@2x.png";
+import AugurMobileImage from "../img/company_logos/mobile/logo-augur@2x.png";
+
+// ZkSync
+import ZkSyncDesktopImage from "../img/company_logos/2x/logo-zksync@2x.png";
+import ZkSyncMobileImage from "../img/company_logos/mobile/logo-zksync@2x.png";
+
+// Livepeer
+import LivepeerDesktopImage from "../img/company_logos/2x/logo-livepeer@2x.png";
+import LivepeerMobileImage from "../img/company_logos/mobile/logo-livepeer@2x.png";
+
+// Loopring
+import LoopringDesktopImage from "../img/company_logos/2x/logo-loopring@2x.png";
+import LoopringMobileImage from "../img/company_logos/mobile/logo-loopring@2x.png";
+
 export default {
   name: "HHWhosUsingHardhat",
   data() {
@@ -143,10 +202,11 @@ export default {
     return {
       users: [
         {
-          company: "Decentraland",
-          href: "https://decentraland.org/",
-          desktopImage: DecentralandDesktopImage,
-          mobileImage: DecentralandMobileImage,
+          company: "Lodestar",
+          image_filename: "company_logos/mobile/logo-Lodestar@2x.png",
+          href: "#",
+          desktopImage: LodestarDesktopImage,
+          mobileImage: LodestarMobileImage,
         },
         {
           company: "Connext",
@@ -156,160 +216,11 @@ export default {
           mobileImage: ConnextMobileImage,
         },
         {
-          company: "Aragon One",
-          image_filename: "company_logos/mobile/logo-aone@2x.png",
-          href: "https://aragon.one/",
-          desktopImage: AragonDesktopImage,
-          mobileImage: AragonMobileImage,
-        },
-        {
-          company: "Kyber Network",
-          image_filename: "company_logos/mobile/logo-kyber@2x.png",
-          href: "https://kyber.network/",
-          desktopImage: KyberDesktopImage,
-          mobileImage: KyberMobileImage,
-        },
-        {
-          company: "AAVE",
-          image_filename: "company_logos/mobile/logo-aave@2x.png",
-          href: "#",
-          desktopImage: AaveDesktopImage,
-          mobileImage: AaveMobileImage,
-        },
-        {
-          company: "Synthetix",
-          image_filename: "company_logos/mobile/logo-synthetix@2x.png",
-          href: "#",
-          desktopImage: SynthetixDesktopImage,
-          mobileImage: SynthetixMobileImage,
-        },
-        {
-          company: "PoolTogether",
-          image_filename: "company_logos/mobile/logo-pool@2x.png",
-          href: "#",
-          desktopImage: PoolTogetherDesktopImage,
-          mobileImage: PoolTogetherMobileImage,
-        },
-        {
-          company: "Celer",
-          image_filename: "company_logos/mobile/logo-celer@2x.png",
-          href: "https://www.celer.network/",
-          desktopImage: CelerDesktopImage,
-          mobileImage: CelerMobileImage,
-        },
-        {
-          company: "Skale",
-          image_filename: "company_logos/mobile/logo-skale@2x.png",
-          href: "https://skale.network/",
-          desktopImage: SkaleDesktopImage,
-          mobileImage: SkaleMobileImage,
-        },
-        // SECOND LINE
-        {
           company: "Set",
           image_filename: "company_logos/mobile/logo-set@2x.png",
           href: "#",
           desktopImage: SetDesktopImage,
           mobileImage: SetMobileImage,
-        },
-        {
-          company: "InstaDapp",
-          image_filename: "company_logos/mobile/logo-instadapp@2x.png",
-          href: "#",
-          desktopImage: InstadappDesktopImage,
-          mobileImage: InstadappMobileImage,
-        },
-        {
-          company: "Kleros",
-          image_filename: "company_logos/mobile/logo-kleros@2x.png",
-          href: "#",
-          desktopImage: KlerosDesktopImage,
-          mobileImage: KlerosMobileImage,
-        },
-        {
-          company: "Balancer",
-          image_filename: "company_logos/mobile/logo-Balancer@2x.png",
-          href: "#",
-          desktopImage: BalancerDesktopImage,
-          mobileImage: BalancerMobileImage,
-        },
-        {
-          company: "MyCrypto",
-          image_filename: "company_logos/mobile/logo-mycrypto@2x.png",
-          href: "#",
-          desktopImage: MyCryptoDesktopImage,
-          mobileImage: MyCryptoMobileImage,
-        },
-        {
-          company: "Horizon",
-          image_filename: "company_logos/mobile/logo-horizon@2x.png",
-          href: "#",
-          desktopImage: HorizonDesktopImage,
-          mobileImage: HorizonMobileImage,
-        },
-        {
-          company: "Lodestar",
-          image_filename: "company_logos/mobile/logo-Lodestar@2x.png",
-          href: "#",
-          desktopImage: LodestarDesktopImage,
-          mobileImage: LodestarMobileImage,
-        },
-        {
-          company: "mStable",
-          image_filename: "company_logos/mobile/logo-mstable@2x.png",
-          href: "#",
-          desktopImage: MStableDesktopImage,
-          mobileImage: MStableMobileImage,
-        },
-        {
-          company: "Melon",
-          image_filename: "company_logos/mobile/logo-melon@2x.png",
-          href: "#",
-          desktopImage: MelonDesktopImage,
-          mobileImage: MelonMobileImage,
-        },
-        {
-          company: "Moloch Dao",
-          image_filename: "company_logos/mobile/logo-molochdao@2x.png",
-          href: "#",
-          desktopImage: MolochDesktopImage,
-          mobileImage: MolochMobileImage,
-        },
-        {
-          company: "Celo",
-          image_filename: "company_logos/mobile/logo-celo@2x.png",
-          href: "#",
-          desktopImage: CeloDesktopImage,
-          mobileImage: CeloMobileImage,
-        },
-        // THIRD LINE
-        {
-          company: "UMA",
-          image_filename: "company_logos/mobile/logo-uma@2x.png",
-          href: "#",
-          desktopImage: UmaDesktopImage,
-          mobileImage: UmaMobileImage,
-        },
-        {
-          company: "OpenGSN",
-          image_filename: "company_logos/mobile/logo-OpenGSN@2x.png",
-          href: "#",
-          desktopImage: OpenGSNDesktopImage,
-          mobileImage: OpenGSNMobileImage,
-        },
-        {
-          company: "OpenZeppelin",
-          image_filename: "company_logos/mobile/logo-openzeppelin@2x.png",
-          href: "#",
-          desktopImage: OpenZeppelinDesktopImage,
-          mobileImage: OpenZeppelinMobileImage,
-        },
-        {
-          company: "Optimism",
-          image_filename: "company_logos/mobile/logo-Optimism@2x.png",
-          href: "#",
-          desktopImage: OptimismDesktopImage,
-          mobileImage: OptimismMobileImage,
         },
         {
           company: "Opyn",
@@ -319,6 +230,34 @@ export default {
           mobileImage: OpynMobileImage,
         },
         {
+          company: "Balancer",
+          image_filename: "company_logos/mobile/logo-Balancer@2x.png",
+          href: "#",
+          desktopImage: BalancerDesktopImage,
+          mobileImage: BalancerMobileImage,
+        },
+        {
+          company: "Moloch Dao",
+          image_filename: "company_logos/mobile/logo-molochdao@2x.png",
+          href: "#",
+          desktopImage: MolochDesktopImage,
+          mobileImage: MolochMobileImage,
+        },
+        {
+          company: "Kyber Network",
+          image_filename: "company_logos/mobile/logo-kyber@2x.png",
+          href: "https://kyber.network/",
+          desktopImage: KyberDesktopImage,
+          mobileImage: KyberMobileImage,
+        },
+        {
+          company: "OpenZeppelin",
+          image_filename: "company_logos/mobile/logo-openzeppelin@2x.png",
+          href: "#",
+          desktopImage: OpenZeppelinDesktopImage,
+          mobileImage: OpenZeppelinMobileImage,
+        },
+        {
           company: "PieDao",
           image_filename: "company_logos/mobile/logo-pieado@2x.png",
           href: "#",
@@ -326,11 +265,95 @@ export default {
           mobileImage: PieDaoMobileImage,
         },
         {
+          company: "Optimism",
+          image_filename: "company_logos/mobile/logo-Optimism@2x.png",
+          href: "#",
+          desktopImage: OptimismDesktopImage,
+          mobileImage: OptimismMobileImage,
+        },
+        {
+          company: "Decentraland",
+          href: "https://decentraland.org/",
+          desktopImage: DecentralandDesktopImage,
+          mobileImage: DecentralandMobileImage,
+        },
+        {
+          company: "Aragon One",
+          image_filename: "company_logos/mobile/logo-aone@2x.png",
+          href: "https://aragon.one/",
+          desktopImage: AragonDesktopImage,
+          mobileImage: AragonMobileImage,
+        },
+        {
+          company: "Kleros",
+          image_filename: "company_logos/mobile/logo-kleros@2x.png",
+          href: "#",
+          desktopImage: KlerosDesktopImage,
+          mobileImage: KlerosMobileImage,
+        },
+        {
+          company: "mStable",
+          image_filename: "company_logos/mobile/logo-mstable@2x.png",
+          href: "#",
+          desktopImage: MStableDesktopImage,
+          mobileImage: MStableMobileImage,
+        },
+        {
+          company: "Celo",
+          image_filename: "company_logos/mobile/logo-celo@2x.png",
+          href: "#",
+          desktopImage: CeloDesktopImage,
+          mobileImage: CeloMobileImage,
+        },
+        // SECOND LINE
+        {
+          company: "MyCrypto",
+          image_filename: "company_logos/mobile/logo-mycrypto@2x.png",
+          href: "#",
+          desktopImage: MyCryptoDesktopImage,
+          mobileImage: MyCryptoMobileImage,
+        },
+        {
           company: "POAP",
           image_filename: "company_logos/mobile/logo-poap@2x.png",
           href: "#",
           desktopImage: PoapDesktopImage,
           mobileImage: PoapMobileImage,
+        },
+        // {
+        //   company: "Melon",
+        //   image_filename: "company_logos/mobile/logo-melon@2x.png",
+        //   href: "#",
+        //   desktopImage: MelonDesktopImage,
+        //   mobileImage: MelonMobileImage,
+        // },
+        {
+          company: "AAVE",
+          image_filename: "company_logos/mobile/logo-aave@2x.png",
+          href: "#",
+          desktopImage: AaveDesktopImage,
+          mobileImage: AaveMobileImage,
+        },
+        {
+          company: "OpenGSN",
+          image_filename: "company_logos/mobile/logo-OpenGSN@2x.png",
+          href: "#",
+          desktopImage: OpenGSNDesktopImage,
+          mobileImage: OpenGSNMobileImage,
+        },
+        {
+          company: "Synthetix",
+          image_filename: "company_logos/mobile/logo-synthetix@2x.png",
+          href: "#",
+          desktopImage: SynthetixDesktopImage,
+          mobileImage: SynthetixMobileImage,
+        },
+        {
+          company: "Unlock",
+          image_filename: "company_logos/mobile/logo-unlock@2x.png",
+          href: "#",
+          desktopImage: UnlockDesktopImage,
+          mobileImage: UnlockMobileImage,
         },
         {
           company: "Status",
@@ -340,21 +363,162 @@ export default {
           mobileImage: StatusMobileImage,
         },
         {
-          company: "Unlock",
-          image_filename: "company_logos/mobile/logo-unlock@2x.png",
+          company: "PoolTogether",
+          image_filename: "company_logos/mobile/logo-pool@2x.png",
           href: "#",
-          desktopImage: UnlockDesktopImage,
-          mobileImage: UnlockMobileImage,
+          desktopImage: PoolTogetherDesktopImage,
+          mobileImage: PoolTogetherMobileImage,
+        },
+        {
+          company: "InstaDapp",
+          image_filename: "company_logos/mobile/logo-instadapp@2x.png",
+          href: "#",
+          desktopImage: InstadappDesktopImage,
+          mobileImage: InstadappMobileImage,
+        },
+        // {
+        //   company: "Mainframe",
+        //   image_filename: "company_logos/mobile/logo-mainframe@2x.png",
+        //   href: "#",
+        //   desktopImage: MainframeDesktopImage,
+        //   mobileImage: MainframeMobileImage,
+        // },
+        {
+          company: "Horizon",
+          image_filename: "company_logos/mobile/logo-horizon@2x.png",
+          href: "#",
+          desktopImage: HorizonDesktopImage,
+          mobileImage: HorizonMobileImage,
+        },
+        // {
+        //   company: "Skale",
+        //   image_filename: "company_logos/mobile/logo-skale@2x.png",
+        //   href: "https://skale.network/",
+        //   desktopImage: SkaleDesktopImage,
+        //   mobileImage: SkaleMobileImage,
+        // },
+        // {
+        //   company: "Celer",
+        //   image_filename: "company_logos/mobile/logo-celer@2x.png",
+        //   href: "https://www.celer.network/",
+        //   desktopImage: CelerDesktopImage,
+        //   mobileImage: CelerMobileImage,
+        // },
+        {
+          company: "UMA",
+          image_filename: "company_logos/mobile/logo-uma@2x.png",
+          href: "#",
+          desktopImage: UmaDesktopImage,
+          mobileImage: UmaMobileImage,
+        },
+        // THIRD LINE
+        {
+          company: "Chainlink",
+          image_filename: "company_logos/mobile/logo-chainlink@2x.png",
+          href: "#",
+          desktopImage: ChainlinkDesktopImage,
+          mobileImage: ChainlinkMobileImage,
+        },
+        {
+          company: "Gnosis",
+          image_filename: "company_logos/mobile/logo-gnosis@2x.png",
+          href: "#",
+          desktopImage: GnosisDesktopImage,
+          mobileImage: GnosisMobileImage,
+        },
+        {
+          company: "SushiSwap",
+          image_filename: "company_logos/mobile/logo-sushiswap@2x.png",
+          href: "#",
+          desktopImage: SushiSwapDesktopImage,
+          mobileImage: SushiSwapMobileImage,
+        },
+        {
+          company: "ENS",
+          image_filename: "company_logos/mobile/logo-ens@2x.png",
+          href: "#",
+          desktopImage: ENSDesktopImage,
+          mobileImage: ENSMobileImage,
+        },
+        {
+          company: "Yearn",
+          image_filename: "company_logos/mobile/logo-yearn@2x.png",
+          href: "#",
+          desktopImage: YearnDesktopImage,
+          mobileImage: YearnMobileImage,
+        },
+        {
+          company: "Reflexer",
+          image_filename: "company_logos/mobile/logo-reflexer@2x.png",
+          href: "#",
+          desktopImage: ReflexerDesktopImage,
+          mobileImage: ReflexerMobileImage,
+        },
+                {
+          company: "Uniswap",
+          image_filename: "company_logos/mobile/logo-uniswap@2x.png",
+          href: "#",
+          desktopImage: UniswapDesktopImage,
+          mobileImage: UniswapMobileImage,
+        },
+        {
+          company: "Dharma",
+          image_filename: "company_logos/mobile/logo-dharma@2x.png",
+          href: "#",
+          desktopImage: DharmaDesktopImage,
+          mobileImage: DharmaMobileImage,
+        },
+        {
+          company: "1Inch",
+          image_filename: "company_logos/mobile/logo-1inch@2x.png",
+          href: "#",
+          desktopImage: _1InchDesktopImage,
+          mobileImage: _1InchMobileImage,
+        },
+        {
+          company: "HEGIC",
+          image_filename: "company_logos/mobile/logo-hegic@2x.png",
+          href: "#",
+          desktopImage: HegicDesktopImage,
+          mobileImage: HegicMobileImage,
+        },
+        // {
+        //   company: "Augur",
+        //   image_filename: "company_logos/mobile/logo-augur@2x.png",
+        //   href: "#",
+        //   desktopImage: AugurDesktopImage,
+        //   mobileImage: AugurMobileImage,
+        // },
+        {
+          company: "zkSync",
+          image_filename: "company_logos/mobile/logo-zkSync@2x.png",
+          href: "#",
+          desktopImage: ZkSyncDesktopImage,
+          mobileImage: ZkSyncMobileImage,
+        },
+        {
+          company: "Livepeer",
+          image_filename: "company_logos/mobile/logo-livepeer@2x.png",
+          href: "#",
+          desktopImage: LivepeerDesktopImage,
+          mobileImage: LivepeerMobileImage,
+        },
+        {
+          company: "Loopring",
+          image_filename: "company_logos/mobile/logo-loopring@2x.png",
+          href: "#",
+          desktopImage: LoopringDesktopImage,
+          mobileImage: LoopringMobileImage,
         },
       ],
     };
   },
   computed: {
     desktopUsers() {
-      return splitInChunks(this.users, 10);
+      return splitInChunks(this.users, 15);
     },
     mobileUsers() {
-      return splitInChunks(this.users, 6);
+      return splitInChunks(this.users, 9);
     },
   },
 };
@@ -369,8 +533,10 @@ function splitInChunks(arr, chunkSize) {
 <style lang="stylus" scoped>
 
 #whos-using-hardhat
+  margin-top -140px
   @media (max-width: 1000px)
-    margin-bottom 120px
+    margin-top unset
+    margin-bottom 90px
 
   .section-title
     text-align center
@@ -399,11 +565,12 @@ function splitInChunks(arr, chunkSize) {
     
     .marquee-content
       width: 10000px
-    
     .marquee
-      margin-bottom 50px
+      display: flex;
+      align-items: center;
+      margin-bottom 32px
       padding-left 0
-      height 80px
+      height 72px
       animation-duration 50s
       animation-name marquee
       animation-timing-function linear
@@ -423,6 +590,8 @@ function splitInChunks(arr, chunkSize) {
         max-height 67px
         transition .1s ease-in-out opacity
         display inline-block
+        &[title="HEGIC"]
+          transform scale(1.5)
 
   .banner-container-mobile
     @media screen and (min-width: 760px)

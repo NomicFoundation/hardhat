@@ -1,5 +1,25 @@
 # hardhat
 
+## 2.6.7
+
+### Patch Changes
+
+- c2ab8198: Upgrade @solidity-parser/parser (fixes #1801)
+- 3032c374: Fix `eth_feeHistory` computation (issue #1848)
+
+## 2.6.6
+
+### Patch Changes
+
+- 09415141: Work around an issue that broke Hardhat Network when contracts were compiled in the middle of its execution
+
+## 2.6.5
+
+### Patch Changes
+
+- e29e14c7: Add Advanced Sample Project that uses TypeScript.
+- a00345ca: Small improvements to the advanced sample project.
+
 ## 2.6.4
 
 ### Patch Changes

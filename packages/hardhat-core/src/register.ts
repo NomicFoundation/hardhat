@@ -13,6 +13,9 @@ import {
   disableReplWriterShowProxy,
   isNodeCalledWithoutAScript,
 } from "./internal/util/console";
+import { applyWorkaround } from "./internal/util/antlr-prototype-pollution-workaround";
+
+applyWorkaround();
 
 if (!HardhatContext.isCreated()) {
   require("source-map-support/register");

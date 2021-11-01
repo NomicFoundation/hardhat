@@ -122,8 +122,11 @@ describe("Eth module", function () {
             ]);
           });
 
-          it("Should give the right values for a block with txs", async function () {
+          it("Should give the right values for a block with txs (0 base fee)", async function () {
             await this.provider.send("evm_setAutomine", [false]);
+            await this.provider.send("hardhat_setNextBlockBaseFeePerGas", [
+              "0x0",
+            ]);
 
             const pendingBlock = await this.provider.send(
               "eth_getBlockByNumber",
@@ -191,6 +194,7 @@ describe("Eth module", function () {
               ],
             ]);
 
+            // since the base fee is 0, the effective gas price is equal to the reward
             const expected = [
               [
                 effectiveGasPrice2,
@@ -200,6 +204,88 @@ describe("Eth module", function () {
                 effectiveGasPrice1,
                 effectiveGasPrice3,
                 effectiveGasPrice3,
+              ],
+            ];
+
+            assert.deepEqual(reward, expected);
+          });
+
+          it("Should give the right values for a block with txs (non-zero base fee)", async function () {
+            await this.provider.send("evm_setAutomine", [false]);
+            await this.provider.send("hardhat_setNextBlockBaseFeePerGas", [
+              numberToRpcQuantity(1e9),
+            ]);
+
+            const pendingBlock = await this.provider.send(
+              "eth_getBlockByNumber",
+              ["pending", false]
+            );
+
+            const gasLimit = rpcQuantityToNumber(pendingBlock.gasLimit);
+
+            // reward is 1 gwei
+            await this.provider.send("eth_sendTransaction", [
+              {
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                to: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                gas: numberToRpcQuantity(21000),
+                maxFeePerGas: numberToRpcQuantity(10e9),
+                maxPriorityFeePerGas: numberToRpcQuantity(1e9),
+              },
+            ]);
+
+            // reward is 99 gwei
+            await this.provider.send("eth_sendTransaction", [
+              {
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                to: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                gas: numberToRpcQuantity(21000),
+                gasPrice: numberToRpcQuantity(100e9),
+              },
+            ]);
+
+            // reward is 9 gwei
+            await this.provider.send("eth_sendTransaction", [
+              {
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                to: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                gas: numberToRpcQuantity(21000),
+                gasPrice: numberToRpcQuantity(10e9),
+              },
+            ]);
+
+            await this.provider.send("evm_mine", []);
+
+            const { reward } = await this.provider.send("eth_feeHistory", [
+              numberToRpcQuantity(1),
+              "latest",
+              [
+                // Percentile 0 should give the reward of the first tx
+                0,
+                // Less than the gas of the first tx, so the first one should be used
+                (21000 / gasLimit) * 100 * 0.5,
+                // Exactly the gas of the first one. Should still be used.
+                (21000 / gasLimit) * 100,
+                // More than 1 tx's worth of gas. Should use the second one.
+                (21000 / gasLimit) * 100 * 1.5,
+                // Exactly 2 txs woth of gas. Should still use the 2nd one.
+                (21000 / gasLimit) * 100 * 2,
+                // 3 txs worth of gas, so should use the third one.
+                (21000 / gasLimit) * 100 * 3,
+                // Should use the third one.
+                100,
+              ],
+            ]);
+
+            const expected = [
+              [
+                numberToRpcQuantity(1e9),
+                numberToRpcQuantity(1e9),
+                numberToRpcQuantity(1e9),
+                numberToRpcQuantity(9e9),
+                numberToRpcQuantity(9e9),
+                numberToRpcQuantity(99e9),
+                numberToRpcQuantity(99e9),
               ],
             ];
 

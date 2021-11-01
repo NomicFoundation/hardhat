@@ -159,6 +159,7 @@ export class HardhatDocker {
       HostConfig: {
         AutoRemove: true,
         Binds: this._bindsMapToArray(config.binds),
+        NetworkMode: config.networkMode,
       },
     };
 

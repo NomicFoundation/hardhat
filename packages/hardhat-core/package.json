@@ -1,6 +1,6 @@
 {
   "name": "hardhat",
-  "version": "2.6.4",
+  "version": "2.6.7",
   "author": "Nomic Labs LLC",
   "license": "SEE LICENSE IN LICENSE",
   "homepage": "https://hardhat.org",
@@ -98,7 +98,7 @@
     "@ethereumjs/vm": "^5.5.2",
     "@ethersproject/abi": "^5.1.2",
     "@sentry/node": "^5.18.1",
-    "@solidity-parser/parser": "^0.11.0",
+    "@solidity-parser/parser": "^0.14.0",
     "@types/bn.js": "^5.1.0",
     "@types/lru-cache": "^5.1.0",
     "abort-controller": "^3.0.0",

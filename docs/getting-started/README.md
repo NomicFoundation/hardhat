@@ -128,6 +128,12 @@ $ npx hardhat accounts
 0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199
 ```
 
+::: warning
+
+_Do not send mainnet Ether to the addresses above._ Those addresses are deterministic: they are the same for _all_ Hardhat users. Accordingly, the private keys for these addresses are well known, so there are probably bots monitoring those addresses on mainnet, waiting to withdraw any funds sent to them. If you add any of these accounts to a wallet (eg Metamask), be very careful to avoid sending any mainnet Ether to them: consider naming the account something like "Hardhat - Unsafe" in order to prevent any mistakes.
+
+:::
+
 ### Compiling your contracts
 
 Next, if you take a look at `contracts/`, you should be able to find `Greeter.sol`:

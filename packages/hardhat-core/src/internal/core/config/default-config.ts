@@ -8,7 +8,7 @@ export const DEFAULT_SOLC_VERSION = "0.7.3";
 export const HARDHAT_NETWORK_DEFAULT_GAS_PRICE = "auto";
 export const HARDHAT_NETWORK_DEFAULT_MAX_PRIORITY_FEE_PER_GAS = 1e9;
 export const HARDHAT_NETWORK_DEFAULT_INITIAL_BASE_FEE_PER_GAS = 1e9;
-const HARDHAT_NETWORK_MNEMONIC =
+export const HARDHAT_NETWORK_MNEMONIC =
   "test test test test test test test test test test test junk";
 export const DEFAULT_HARDHAT_NETWORK_BALANCE = "10000000000000000000000";
 
@@ -124,6 +124,7 @@ export const defaultSolcOutputSelection = {
       "evm.bytecode",
       "evm.deployedBytecode",
       "evm.methodIdentifiers",
+      "metadata",
     ],
     "": ["ast"],
   },

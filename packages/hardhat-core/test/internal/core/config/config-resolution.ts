@@ -116,7 +116,7 @@ describe("Config resolution", () => {
                   },
                   outputSelection: {
                     "*": {
-                      "*": ["metadata"],
+                      "*": ["ir"],
                     },
                   },
                 },
@@ -143,7 +143,7 @@ describe("Config resolution", () => {
         const modifiedOutputSelections = cloneDeep(defaultSolcOutputSelection);
 
         modifiedOutputSelections["*"]["*"] = [
-          "metadata",
+          "ir",
           ...modifiedOutputSelections["*"]["*"],
         ];
 

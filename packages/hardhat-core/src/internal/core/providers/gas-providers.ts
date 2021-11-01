@@ -142,7 +142,7 @@ export class AutomaticGasPriceProvider extends ProviderWrapper {
   public static readonly EIP1559_BASE_FEE_MAX_FULL_BLOCKS_PREFERENCE: number = 3;
 
   // See eth_feeHistory for an explanation of what this means
-  public static readonly EIP1559_REWARD_PERCENTILE: number = 0.5;
+  public static readonly EIP1559_REWARD_PERCENTILE: number = 50;
 
   private _nodeHasFeeHistory?: boolean;
   private _nodeSupportsEIP1559?: boolean;

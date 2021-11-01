@@ -25,12 +25,15 @@ import {
 } from "../util/global-dir";
 import { getPackageJson, PackageJson } from "../util/packageInfo";
 
+import { applyWorkaround } from "../util/antlr-prototype-pollution-workaround";
 import { Analytics } from "./analytics";
 import { ArgumentsParser } from "./ArgumentsParser";
 import { enableEmoji } from "./emoji";
 import { confirmTelemetryConsent, createProject } from "./project-creation";
 
 const log = debug("hardhat:core:cli");
+
+applyWorkaround();
 
 const ANALYTICS_SLOW_TASK_THRESHOLD = 300;
 
@@ -98,6 +101,9 @@ async function main() {
         process.env.HARDHAT_CREATE_BASIC_SAMPLE_PROJECT_WITH_DEFAULTS !==
           undefined ||
         process.env.HARDHAT_CREATE_ADVANCED_SAMPLE_PROJECT_WITH_DEFAULTS !==
+          undefined ||
+        process.env
+          .HARDHAT_CREATE_ADVANCED_TYPESCRIPT_SAMPLE_PROJECT_WITH_DEFAULTS !==
           undefined)
     ) {
       await createProject();
