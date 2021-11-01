@@ -74,6 +74,25 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
       }
     }
 
+    if (args.method === "personal_sign") {
+      if (params.length > 0) {
+        const [data, address] = validateParams(params, rpcData, rpcAddress);
+
+        if (data !== undefined) {
+          if (address === undefined) {
+            throw new HardhatError(
+              ERRORS.NETWORK.PERSONALSIGN_MISSING_ADDRESS_PARAM
+            );
+          }
+
+          const privateKey = this._getPrivateKeyForAddress(address);
+          const messageHash = hashPersonalMessage(toBuffer(data));
+          const signature = ecsign(messageHash, privateKey);
+          return toRpcSig(signature.v, signature.r, signature.s);
+        }
+      }
+    }
+
     if (args.method === "eth_signTypedData_v4") {
       const [address, data] = validateParams(params, rpcAddress, t.any);
 
