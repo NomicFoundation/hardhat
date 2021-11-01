@@ -440,7 +440,7 @@ Same as Ganache.
 
 #### `evm_setAutomine`
 
-Enables or disables, based on the single boolean argument, the automatic mining of new blocks with each new transaction submitted to the network. You can use [`hardhat_getAutomine`](#hardhat_getautomine) to get the current value. See also [Mining Modes](../explanation/mining-modes.md).
+Enables or disables, based on the single boolean argument, the automatic mining of new blocks with each new transaction submitted to the network. You can use [`hardhat_getAutomine`](#hardhat-getautomine) to get the current value. See also [Mining Modes](../explanation/mining-modes.md).
 
 #### `evm_setBlockGasLimit`
 
