@@ -24,6 +24,7 @@ import {
   HttpNetworkHDAccountsConfig,
   HttpNetworkUserConfig,
 } from "../../../../src/types";
+import { HardforkName } from "../../../../src/internal/util/hardforks";
 
 describe("Config resolution", () => {
   describe("Default config merging", () => {
@@ -647,6 +648,75 @@ describe("Config resolution", () => {
           ...networkConfig,
           minGasPrice: new BN(10),
           chains: defaultHardhatNetworkParams.chains,
+        });
+      });
+
+      describe("chains", function () {
+        it("should default to default", function () {
+          const resolvedConfig = resolveConfig(__filename, {});
+          assert.deepEqual(
+            Array.from(resolvedConfig.networks.hardhat.chains.entries()),
+            Array.from(defaultHardhatNetworkParams.chains.entries())
+          );
+          for (const chain of Array.from(
+            defaultHardhatNetworkParams.chains.keys()
+          )) {
+            assert.deepEqual(
+              Array.from(
+                resolvedConfig.networks.hardhat.chains
+                  .get(chain)!
+                  .hardforkHistory.entries()
+              ),
+              Array.from(
+                defaultHardhatNetworkParams.chains
+                  .get(chain)!
+                  .hardforkHistory.entries()
+              )
+            );
+          }
+        });
+        describe("mixing defaults and user configs", function () {
+          const userConfig = {
+            networks: {
+              hardhat: { chains: { 1: { hardforkHistory: { london: 999 } } } },
+            },
+          };
+          const resolvedConfig = resolveConfig(__filename, userConfig);
+          it("If the user provides values for a chain that's included in the default, should use the users' values, and ignore the defaults for that chain.", function () {
+            assert.deepEqual(resolvedConfig.networks.hardhat.chains.get(1), {
+              hardforkHistory: new Map([[HardforkName.LONDON, 999]]),
+            });
+            assert.deepEqual(resolvedConfig.networks.hardhat.chains.get(1), {
+              hardforkHistory: new Map(
+                Object.entries(
+                  userConfig.networks.hardhat.chains[1].hardforkHistory
+                ) as [[HardforkName, number]]
+              ),
+            });
+          });
+          it("If they don't provide any value for a default chain, should use the default for that one.", function () {
+            for (const otherChain of Array.from(
+              defaultHardhatNetworkParams.chains.keys()
+            )) {
+              if (otherChain === 1) continue; // don't expect the default there
+              assert.deepEqual(
+                resolvedConfig.networks.hardhat.chains.get(otherChain),
+                defaultHardhatNetworkParams.chains.get(otherChain)
+              );
+            }
+          });
+        });
+        it("If the user provides values for a chain that's not part of the default, should also use those.", function () {
+          const resolvedConfig = resolveConfig(__filename, {
+            networks: {
+              hardhat: {
+                chains: { 999: { hardforkHistory: { london: 1234 } } },
+              },
+            },
+          });
+          assert.deepEqual(resolvedConfig.networks.hardhat.chains.get(999), {
+            hardforkHistory: new Map([[HardforkName.LONDON, 1234]]),
+          });
         });
       });
     });

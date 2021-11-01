@@ -26,10 +26,9 @@ export type NetworkUserConfig =
   | HardhatNetworkUserConfig
   | HttpNetworkUserConfig;
 
-export type HardforkHistoryUserConfig = Record<
-  HardforkName,
-  number /* block number */
->;
+export interface HardforkHistoryUserConfig {
+  [hardforkName: string]: number /* block number */;
+}
 
 export interface HardhatNetworkChainUserConfig {
   hardforkHistory?: HardforkHistoryUserConfig;

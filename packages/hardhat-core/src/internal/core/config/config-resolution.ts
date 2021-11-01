@@ -190,7 +190,7 @@ function resolveHardhatNetworkConfig(
           userChainConfig.hardforkHistory
         )) {
           chainConfig.hardforkHistory.set(
-            HardforkName[name as keyof typeof HardforkName],
+            name as HardforkName,
             block as number
           );
         }
