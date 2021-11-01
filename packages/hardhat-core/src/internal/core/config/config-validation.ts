@@ -411,15 +411,7 @@ export function getValidationErrors(config: any): string[] {
       }
 
       // manual validation of accounts
-      if (typeof accounts === "string" && accounts !== "remote") {
-        errors.push(
-          getPrivateKeyError(
-            accounts,
-            networkName,
-            `Expected "remote", received ${accounts}`
-          )
-        );
-      } else if (Array.isArray(accounts)) {
+      if (Array.isArray(accounts)) {
         accounts.forEach((privateKey) =>
           validatePrivateKey(privateKey, networkName, errors)
         );
@@ -431,6 +423,16 @@ export function getValidationErrors(config: any): string[] {
               `HardhatConfig.networks.${networkName}`,
               accounts,
               "HttpNetworkHDAccountsConfig"
+            )
+          );
+        }
+      } else if (typeof accounts === "string") {
+        if (accounts !== "remote") {
+          errors.push(
+            getPrivateKeyError(
+              accounts,
+              networkName,
+              `Expected "remote", received ${accounts}`
             )
           );
         }

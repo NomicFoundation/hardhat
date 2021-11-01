@@ -1391,7 +1391,13 @@ describe("Config validation", function () {
             gas: 678,
             gasPrice: 123,
             blockGasLimit: 8000,
-            accounts: [{ privateKey: "0xaaaa", balance: "123" }],
+            accounts: [
+              {
+                balance: "123",
+                privateKey:
+                  "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              },
+            ],
             forking: {
               url: "asd",
               blockNumber: 123,
@@ -1407,7 +1413,10 @@ describe("Config validation", function () {
             url: "",
           },
           withPrivateKeys: {
-            accounts: ["0x00", "0x11"],
+            accounts: [
+              "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            ],
             url: "",
           },
           withHdKeys: {
@@ -1427,7 +1436,13 @@ describe("Config validation", function () {
         getValidationErrors({
           networks: {
             [HARDHAT_NETWORK_NAME]: {
-              accounts: [{ privateKey: "0x1111", balance: "0" }],
+              accounts: [
+                {
+                  privateKey:
+                    "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  balance: "0",
+                },
+              ],
             },
           },
         }),
@@ -1437,7 +1452,13 @@ describe("Config validation", function () {
         getValidationErrors({
           networks: {
             [HARDHAT_NETWORK_NAME]: {
-              accounts: [{ privateKey: "0x1111", balance: "1" }],
+              accounts: [
+                {
+                  privateKey:
+                    "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  balance: "1",
+                },
+              ],
             },
           },
         }),
@@ -1447,7 +1468,13 @@ describe("Config validation", function () {
         getValidationErrors({
           networks: {
             [HARDHAT_NETWORK_NAME]: {
-              accounts: [{ privateKey: "0x1111", balance: "100123" }],
+              accounts: [
+                {
+                  privateKey:
+                    "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  balance: "100123",
+                },
+              ],
             },
           },
         }),
@@ -1457,7 +1484,13 @@ describe("Config validation", function () {
         getValidationErrors({
           networks: {
             [HARDHAT_NETWORK_NAME]: {
-              accounts: [{ privateKey: "0x1111", balance: "12300000000123" }],
+              accounts: [
+                {
+                  privateKey:
+                    "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  balance: "12300000000123",
+                },
+              ],
             },
           },
         }),
