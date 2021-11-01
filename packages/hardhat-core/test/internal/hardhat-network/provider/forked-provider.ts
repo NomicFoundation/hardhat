@@ -562,7 +562,7 @@ describe("Forked provider", function () {
             );
 
             assert.equal(daiAfter.toString(), expectedDai.toString());
-            assert.closeTo(ethLost, 0.5, 0.01);
+            assert.closeTo(ethLost, 0.5, 0.02);
           });
         });
       });
