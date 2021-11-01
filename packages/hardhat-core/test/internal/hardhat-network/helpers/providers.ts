@@ -1,7 +1,5 @@
 import { BN, bufferToHex, privateToAddress, toBuffer } from "ethereumjs-util";
 
-import { defaultHardforkActivationsByChain as hardforkActivationsByChain } from "../../../../src/internal/core/config/default-config";
-
 import { ALCHEMY_URL, INFURA_URL } from "../../../setup";
 
 import { useProvider, UseProviderOptions } from "./useProvider";
@@ -122,7 +120,7 @@ if (ALCHEMY_URL !== undefined) {
       useProvider({
         useJsonRpc: false,
         loggerEnabled: true,
-        forkConfig: { jsonRpcUrl: url, hardforkActivationsByChain },
+        forkConfig: { jsonRpcUrl: url },
         ...options,
       });
     },
@@ -136,7 +134,7 @@ if (ALCHEMY_URL !== undefined) {
       useProvider({
         useJsonRpc: false,
         loggerEnabled: true,
-        forkConfig: { jsonRpcUrl: url, hardforkActivationsByChain },
+        forkConfig: { jsonRpcUrl: url },
         mining: {
           auto: false,
           interval: 10000,
@@ -153,7 +151,7 @@ if (ALCHEMY_URL !== undefined) {
       useProvider({
         useJsonRpc: false,
         loggerEnabled: true,
-        forkConfig: { jsonRpcUrl: url, hardforkActivationsByChain },
+        forkConfig: { jsonRpcUrl: url },
         ...options,
       });
     },
@@ -170,7 +168,7 @@ if (INFURA_URL !== undefined) {
       useProvider({
         useJsonRpc: false,
         loggerEnabled: true,
-        forkConfig: { jsonRpcUrl: url, hardforkActivationsByChain },
+        forkConfig: { jsonRpcUrl: url },
         ...options,
       });
     },

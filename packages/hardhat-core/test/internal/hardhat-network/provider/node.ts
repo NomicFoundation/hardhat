@@ -8,6 +8,7 @@ import { Address, BN, bufferToHex, toBuffer } from "ethereumjs-util";
 import { ethers } from "ethers";
 import sinon from "sinon";
 
+import { defaultHardhatNetworkParams } from "../../../../src/internal/core/config/default-config";
 import { rpcToBlockData } from "../../../../src/internal/hardhat-network/provider/fork/rpcToBlockData";
 import { HardhatNode } from "../../../../src/internal/hardhat-network/provider/node";
 import {
@@ -18,6 +19,7 @@ import {
 import { FakeSenderTransaction } from "../../../../src/internal/hardhat-network/provider/transactions/FakeSenderTransaction";
 import { getCurrentTimestamp } from "../../../../src/internal/hardhat-network/provider/utils/getCurrentTimestamp";
 import { makeForkClient } from "../../../../src/internal/hardhat-network/provider/utils/makeForkClient";
+import { HardforkName } from "../../../../src/internal/util/hardforks";
 import { ALCHEMY_URL } from "../../../setup";
 import { assertQuantity } from "../helpers/assertions";
 import {
@@ -57,6 +59,7 @@ describe("HardhatNode", () => {
     minGasPrice: new BN(0),
     genesisAccounts: DEFAULT_ACCOUNTS,
     initialBaseFeePerGas: 10,
+    chains: defaultHardhatNetworkParams.chains,
   };
   const gasPrice = 20;
   let node: HardhatNode;
@@ -652,6 +655,7 @@ describe("HardhatNode", () => {
           blockGasLimit: rpcBlock.gasLimit.toNumber(),
           minGasPrice: new BN(0),
           genesisAccounts: [],
+          chains: defaultHardhatNetworkParams.chains,
         };
 
         const [common, forkedNode] = await HardhatNode.create(forkedNodeConfig);
@@ -709,7 +713,7 @@ describe("HardhatNode", () => {
     // call one block earlier, and expect that call to fail because it should
     // have specified gas limits in PRE-EIP-1559 terms.
 
-    this.timeout(5000);
+    this.timeout(10000);
 
     // as a test that does forking, we need a remote Alchemy node to fork from:
     if (ALCHEMY_URL === undefined) {
@@ -733,18 +737,30 @@ describe("HardhatNode", () => {
       blockGasLimit: 1_000_000,
       minGasPrice: new BN(0),
       genesisAccounts: [],
+      chains: defaultHardhatNetworkParams.chains,
     };
 
     const [, regularNode] = await HardhatNode.create(forkedNodeConfig);
 
-    const nodeCfgWithActivations = forkedNodeConfig;
-    nodeCfgWithActivations.forkConfig.hardforkActivationsByChain = {
-      1: {
-        berlin: eip1559ActivationBlock - 1000,
-        london: eip1559ActivationBlock,
-      },
-    };
-    const [, nodeWithHFHist] = await HardhatNode.create(nodeCfgWithActivations);
+    const nodeCfgWithEarlyLondon = forkedNodeConfig;
+    let earlyLondonMainnetConfig = forkedNodeConfig.chains.get(1);
+    if (earlyLondonMainnetConfig === undefined) {
+      earlyLondonMainnetConfig = { hardforkHistory: new Map() };
+    }
+    earlyLondonMainnetConfig.hardforkHistory.set(
+      HardforkName.LONDON,
+      eip1559ActivationBlock - 1
+    );
+    nodeCfgWithEarlyLondon.chains.set(1, earlyLondonMainnetConfig);
+    const [, nodeWithEarlyLondon] = await HardhatNode.create(
+      nodeCfgWithEarlyLondon
+    );
+
+    const nodeCfgWithoutHFHist = forkedNodeConfig;
+    nodeCfgWithoutHFHist.chains.set(1, { hardforkHistory: new Map() });
+    const [, nodeWithoutHardforkHistory] = await HardhatNode.create(
+      nodeCfgWithoutHFHist
+    );
 
     /** execute a call to method Hello() on contract HelloWorld, deployed to
      * mainnet years ago, which should return a string, "Hello World". */
@@ -789,35 +805,44 @@ describe("HardhatNode", () => {
 
     // some shorthand for code below:
     const post1559Block = eip1559ActivationBlock;
-    const pre1559Block = eip1559ActivationBlock - 1;
+    const blockBefore1559 = eip1559ActivationBlock - 1;
     const pre1559GasOpts = { gasPrice: new BN(0) };
     const post1559GasOpts = { maxFeePerGas: new BN(0) };
 
     // some sanity checks:
     assert.equal("Hello World", await runCall(post1559GasOpts, post1559Block));
-    // we expect this next one to fail, since we're exercising the behavior
-    // when you ask for an old block and DON'T supply a hardfork history
-    // config, in which case we throw an error.
-    await expectErrorAsync(async () => {
-      await runCall(pre1559GasOpts, pre1559Block);
-    }, /No known hardfork for execution on historical block/);
+    assert.equal("Hello World", await runCall(pre1559GasOpts, blockBefore1559));
+    assert.equal(
+      "Hello World",
+      await runCall(post1559GasOpts, blockBefore1559)
+    );
+    assert.equal("Hello World", await runCall(pre1559GasOpts, post1559Block));
 
-    // it("should utilize a hardfork history to execute under the HF that was active at the target block"
+    // it("should respect a custom hardfork history")
+    assert.equal(
+      "Hello World",
+      await runCall(post1559GasOpts, blockBefore1559, nodeWithEarlyLondon)
+    );
     await expectErrorAsync(async () => {
-      await runCall(post1559GasOpts, pre1559Block, nodeWithHFHist);
+      await runCall(post1559GasOpts, blockBefore1559 - 1, nodeWithEarlyLondon);
     }, "Cannot run transaction: EIP 1559 is not activated.");
+    assert.equal(
+      "Hello World",
+      await runCall(post1559GasOpts, post1559Block, nodeWithEarlyLondon)
+    );
+    assert.equal(
+      "Hello World",
+      await runCall(pre1559GasOpts, blockBefore1559, nodeWithEarlyLondon)
+    );
 
-    // it("in the presence of a hardfork history, executes under the hardfork that was active at the target block"
-    // (same checks as the initial sanity checks, but using the node with a HF
-    // history)
-    assert.equal(
-      "Hello World",
-      await runCall(post1559GasOpts, post1559Block, nodeWithHFHist)
-    );
-    assert.equal(
-      "Hello World",
-      await runCall(pre1559GasOpts, pre1559Block, nodeWithHFHist)
-    );
+    // it("should refuse to run on a historical block without a hardfork history")
+    await expectErrorAsync(async () => {
+      await runCall(
+        pre1559GasOpts,
+        blockBefore1559,
+        nodeWithoutHardforkHistory
+      );
+    }, /Could not find a hardfork to run/);
   });
 });
 

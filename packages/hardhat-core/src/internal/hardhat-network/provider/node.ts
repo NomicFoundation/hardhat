@@ -27,12 +27,12 @@ import {
 import EventEmitter from "events";
 
 import { CompilerInput, CompilerOutput } from "../../../types";
-import { HARDHAT_NETWORK_SUPPORTED_HARDFORKS } from "../../constants";
+import { HardforkHistoryConfig } from "../../../types/config";
 import {
+  defaultHardhatNetworkParams,
   HARDHAT_NETWORK_DEFAULT_INITIAL_BASE_FEE_PER_GAS,
   HARDHAT_NETWORK_DEFAULT_MAX_PRIORITY_FEE_PER_GAS,
 } from "../../core/config/default-config";
-import { HardforkActivationHistory } from "../../../types/config";
 import { assertHardhatInvariant, HardhatError } from "../../core/errors";
 import { RpcDebugTracingConfig } from "../../core/jsonrpc/types/input/debugTraceTransaction";
 import {
@@ -143,7 +143,7 @@ export class HardhatNode extends EventEmitter {
     let nextBlockBaseFeePerGas: BN | undefined;
     let forkNetworkId: number | undefined;
     let forkBlockNum: number | undefined;
-    let hardforkActivations: HardforkActivationHistory | undefined;
+    let hardforkActivations: HardforkHistoryConfig = new Map();
 
     const initialBaseFeePerGasConfig =
       config.initialBaseFeePerGas !== undefined
@@ -197,15 +197,17 @@ export class HardhatNode extends EventEmitter {
         }
       }
 
-      if (config.forkConfig.hardforkActivationsByChain !== undefined) {
-        if (
-          config.forkConfig.hardforkActivationsByChain.hasOwnProperty(
+      if (config.chains.has(forkNetworkId)) {
+        hardforkActivations = config.chains.get(forkNetworkId)!.hardforkHistory;
+      } else if (defaultHardhatNetworkParams.chains.has(forkNetworkId)) {
+        hardforkActivations =
+          defaultHardhatNetworkParams.chains.get(
             forkNetworkId
-          )
-        ) {
-          hardforkActivations =
-            config.forkConfig.hardforkActivationsByChain[forkNetworkId];
-        }
+          )!.hardforkHistory;
+      } else {
+        throw new InternalError(
+          `No hardfork history configured for chain ID ${forkNetworkId}`
+        );
       }
     } else {
       const hardhatStateManager = new HardhatStateManager();
@@ -338,7 +340,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     private _forkNetworkId?: number,
     private _forkBlockNumber?: number,
     nextBlockBaseFee?: BN,
-    private readonly _hardforkActivations?: HardforkActivationHistory
+    private readonly _hardforkActivations?: HardforkHistoryConfig
   ) {
     super();
 
@@ -2341,28 +2343,25 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     return { maxFeePerGas, maxPriorityFeePerGas };
   }
 
-  private _selectHardforkFromActivations(
-    blockNumber: BN
-  ): typeof HARDHAT_NETWORK_SUPPORTED_HARDFORKS[number] {
+  private _selectHardforkFromActivations(blockNumber: BN): HardforkName {
     /** search this._hardforkActivations for the highest block number that
      * isn't higher than blockNumber, and then return that found block number's
      * associated hardfork name. */
     this._assertHardforkActivations(blockNumber);
     const activations = this._hardforkActivations!; // yes !, just asserted it.
-    let highestFound: {
-      hardfork: typeof HARDHAT_NETWORK_SUPPORTED_HARDFORKS[number];
-      block: number;
-    } = { hardfork: "", block: 0 };
-    Object.entries(activations).forEach((entry) => {
-      const [hardfork, block] = entry;
-      if (block > highestFound.block && new BN(block).lte(blockNumber)) {
+    let highestFound: { hardfork: HardforkName; block: number } | undefined;
+    activations.forEach((block: number, hardfork: HardforkName) => {
+      if (
+        highestFound === undefined ||
+        (block > highestFound.block && new BN(block).lte(blockNumber))
+      ) {
         highestFound = { hardfork, block };
       }
     });
-    if (highestFound.hardfork === "" && highestFound.block === 0) {
+    if (highestFound === undefined) {
       throw new InternalError(
         `Could not find a hardfork to run for block ${blockNumber}, after having looked for one in the HardhatNode's hardfork activation history, which was: ${JSON.stringify(
-          activations
+          Array.from(activations.entries())
         )}. For more information, see https://hardhat.org/hardhat-network/reference/#config`
       );
     }

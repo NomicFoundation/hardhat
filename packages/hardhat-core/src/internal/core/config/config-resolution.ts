@@ -6,6 +6,8 @@ import path from "path";
 import {
   HardhatConfig,
   HardhatNetworkAccountsConfig,
+  HardhatNetworkChainConfig,
+  HardhatNetworkChainConfigByChainId,
   HardhatNetworkConfig,
   HardhatNetworkForkingConfig,
   HardhatNetworkMiningConfig,
@@ -29,13 +31,13 @@ import {
   SolidityUserConfig,
 } from "../../../types";
 import { HARDHAT_NETWORK_NAME } from "../../constants";
+import { HardforkName } from "../../util/hardforks";
 import { fromEntries } from "../../util/lang";
 import { assertHardhatInvariant } from "../errors";
 
 import {
   DEFAULT_SOLC_VERSION,
   defaultDefaultNetwork,
-  defaultHardforkActivationsByChain,
   defaultHardhatNetworkHdAccountsConfigParams,
   defaultHardhatNetworkParams,
   defaultHdAccountsConfigParams,
@@ -154,10 +156,6 @@ function resolveHardhatNetworkConfig(
     if (blockNumber !== undefined) {
       forking.blockNumber = hardhatNetworkConfig?.forking?.blockNumber;
     }
-
-    forking.hardforkActivationsByChain =
-      hardhatNetworkConfig?.forking?.hardforkActivationsByChain ??
-      defaultHardforkActivationsByChain;
   }
 
   const mining = resolveMiningConfig(hardhatNetworkConfig.mining);
@@ -176,6 +174,33 @@ function resolveHardhatNetworkConfig(
   const initialDate =
     hardhatNetworkConfig.initialDate ?? new Date().toISOString();
 
+  const chains: HardhatNetworkChainConfigByChainId = new Map();
+  defaultHardhatNetworkParams.chains.forEach((defaultChainConfig, chainId) => {
+    chains.set(chainId, defaultChainConfig);
+  });
+  if (hardhatNetworkConfig.chains !== undefined) {
+    for (const [chainId, userChainConfig] of Object.entries(
+      hardhatNetworkConfig.chains
+    )) {
+      const chainConfig: HardhatNetworkChainConfig = {
+        hardforkHistory: new Map(),
+      };
+      if (userChainConfig.hardforkHistory !== undefined) {
+        for (const [name, block] of Object.entries(
+          userChainConfig.hardforkHistory
+        )) {
+          chainConfig.hardforkHistory.set(
+            HardforkName[name as keyof typeof HardforkName],
+            block as number
+          );
+        }
+      }
+      if (chainConfig !== undefined) {
+        chains.set(parseInt(chainId, 10), chainConfig);
+      }
+    }
+  }
+
   const config = {
     ...clonedDefaultHardhatNetworkParams,
     ...hardhatNetworkConfig,
@@ -186,6 +211,7 @@ function resolveHardhatNetworkConfig(
     gas,
     initialDate,
     minGasPrice,
+    chains,
   };
 
   // We do it this way because ts gets lost otherwise

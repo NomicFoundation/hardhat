@@ -2,7 +2,7 @@ import { Block } from "@ethereumjs/block";
 import { RunBlockResult } from "@ethereumjs/vm/dist/runBlock";
 import { BN } from "ethereumjs-util";
 
-import { BuildInfo, HardforkActivationsByChain } from "../../../types";
+import { BuildInfo, HardhatNetworkChainConfigByChainId } from "../../../types";
 import { MessageTrace } from "../stack-traces/message-trace";
 
 import type { ReturnData } from "./return-data";
@@ -28,14 +28,19 @@ interface CommonConfig {
   initialDate?: Date;
   tracingConfig?: TracingConfig;
   initialBaseFeePerGas?: number;
+  chains: HardhatNetworkChainConfigByChainId;
 }
+
+export {
+  HardhatNetworkChainConfigByChainId,
+  HardhatNetworkChainConfig,
+} from "../../../types";
 
 export type LocalNodeConfig = CommonConfig;
 
 export interface ForkConfig {
   jsonRpcUrl: string;
   blockNumber?: number;
-  hardforkActivationsByChain?: HardforkActivationsByChain;
 }
 
 export interface ForkedNodeConfig extends CommonConfig {

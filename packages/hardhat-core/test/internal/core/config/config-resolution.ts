@@ -7,7 +7,6 @@ import sinon from "sinon";
 import { resolveConfig } from "../../../../src/internal/core/config/config-resolution";
 import {
   DEFAULT_SOLC_VERSION,
-  defaultHardforkActivationsByChain,
   defaultHardhatNetworkHdAccountsConfigParams,
   defaultHardhatNetworkParams,
   defaultHdAccountsConfigParams,
@@ -395,7 +394,6 @@ describe("Config resolution", () => {
           assert.deepEqual(config.networks.hardhat.forking, {
             url: "asd",
             enabled: true,
-            hardforkActivationsByChain: defaultHardforkActivationsByChain,
           });
         });
 
@@ -414,7 +412,6 @@ describe("Config resolution", () => {
           assert.deepEqual(config.networks.hardhat.forking, {
             url: "asd",
             enabled: false,
-            hardforkActivationsByChain: defaultHardforkActivationsByChain,
           });
         });
 
@@ -434,7 +431,6 @@ describe("Config resolution", () => {
             url: "asd",
             enabled: true,
             blockNumber: 123,
-            hardforkActivationsByChain: defaultHardforkActivationsByChain,
           });
         });
       });
@@ -640,6 +636,7 @@ describe("Config resolution", () => {
           },
           hardfork: "hola",
           initialDate: "today",
+          chains: {},
         };
 
         const config = resolveConfig(__filename, {
@@ -649,6 +646,7 @@ describe("Config resolution", () => {
         assert.deepEqual(config.networks.hardhat, {
           ...networkConfig,
           minGasPrice: new BN(10),
+          chains: defaultHardhatNetworkParams.chains,
         });
       });
     });

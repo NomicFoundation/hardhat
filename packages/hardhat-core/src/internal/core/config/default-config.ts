@@ -1,9 +1,7 @@
 import { BN } from "ethereumjs-util";
 
-import {
-  HardforkActivationsByChain,
-  HardhatNetworkConfig,
-} from "../../../types";
+import { HardhatNetworkConfig } from "../../../types";
+import { HardforkName } from "../../util/hardforks";
 import { HARDHAT_NETWORK_NAME } from "../../constants";
 
 export const DEFAULT_SOLC_VERSION = "0.7.3";
@@ -50,6 +48,60 @@ export const defaultHardhatNetworkParams: Omit<
   loggingEnabled: false,
   gasMultiplier: DEFAULT_GAS_MULTIPLIER,
   minGasPrice: new BN(0),
+  chains: new Map([
+    [
+      1, // mainnet
+      {
+        hardforkHistory: new Map([
+          [HardforkName.BYZANTIUM, 4370000],
+          [HardforkName.CONSTANTINOPLE, 7280000],
+          [HardforkName.PETERSBURG, 7280000],
+          [HardforkName.ISTANBUL, 9069000],
+          [HardforkName.MUIR_GLACIER, 9200000],
+          [HardforkName.BERLIN, 12244000],
+          [HardforkName.LONDON, 12965000],
+        ]),
+      },
+    ],
+    [
+      3, // ropsten
+      {
+        hardforkHistory: new Map([
+          [HardforkName.BYZANTIUM, 1700000],
+          [HardforkName.CONSTANTINOPLE, 4230000],
+          [HardforkName.PETERSBURG, 4939394],
+          [HardforkName.ISTANBUL, 6485846],
+          [HardforkName.MUIR_GLACIER, 7117117],
+          [HardforkName.BERLIN, 9812189],
+          [HardforkName.LONDON, 10499401],
+        ]),
+      },
+    ],
+    [
+      4, // rinkeby
+      {
+        hardforkHistory: new Map([
+          [HardforkName.BYZANTIUM, 1035301],
+          [HardforkName.CONSTANTINOPLE, 3660663],
+          [HardforkName.PETERSBURG, 4321234],
+          [HardforkName.ISTANBUL, 5435345],
+          [HardforkName.BERLIN, 8290928],
+          [HardforkName.LONDON, 8897988],
+        ]),
+      },
+    ],
+    [
+      42, // kovan
+      {
+        hardforkHistory: new Map([
+          [HardforkName.BYZANTIUM, 5067000],
+          [HardforkName.CONSTANTINOPLE, 9200000],
+          [HardforkName.PETERSBURG, 10255201],
+          [HardforkName.ISTANBUL, 14111141],
+        ]),
+      },
+    ],
+  ]),
 };
 
 export const defaultHttpNetworkParams = {
@@ -74,44 +126,5 @@ export const defaultSolcOutputSelection = {
       "evm.methodIdentifiers",
     ],
     "": ["ast"],
-  },
-};
-
-export const defaultHardforkActivationsByChain: HardforkActivationsByChain = {
-  // mainnet:
-  1: {
-    byzantium: 4370000,
-    constantinople: 7280000,
-    petersburg: 7280000,
-    istanbul: 9069000,
-    muirGlacier: 9200000,
-    berlin: 12244000,
-    london: 12965000,
-  },
-  // ropsten:
-  3: {
-    byzantium: 1700000,
-    constantinople: 4230000,
-    petersburg: 4939394,
-    istanbul: 6485846,
-    muirGlacier: 7117117,
-    berlin: 9812189,
-    london: 10499401,
-  },
-  // rinkeby:
-  4: {
-    byzantium: 1035301,
-    constantinople: 3660663,
-    petersburg: 4321234,
-    istanbul: 5435345,
-    berlin: 8290928,
-    london: 8897988,
-  },
-  // kovan:
-  42: {
-    byzantium: 5067000,
-    constantinople: 9200000,
-    petersburg: 10255201,
-    istanbul: 14111141,
   },
 };

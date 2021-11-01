@@ -11,7 +11,7 @@ import { fromEntries } from "../../util/lang";
 import { HardhatError } from "../errors";
 import { ERRORS } from "../errors-list";
 import { hardforkGte, HardforkName } from "../../util/hardforks";
-import { HardforkActivationHistory } from "../../../types/config";
+import { HardhatNetworkChainUserConfig } from "../../../types/config";
 import { defaultHardhatNetworkParams } from "./default-config";
 
 function stringify(v: any): string {
@@ -118,12 +118,6 @@ const HardhatNetworkHDAccountsConfig = t.type({
   ...commonHDAccountsFields,
 });
 
-const HardhatNetworkHardforkHistory = t.record(
-  t.string,
-  t.number,
-  "HardhatNetworkHardforkHistory"
-);
-
 const Integer = new t.Type<number>(
   "Integer",
   (num: unknown): num is number => typeof num === "number",
@@ -139,18 +133,39 @@ const Integer = new t.Type<number>(
   t.identity
 );
 
-const HardhatNetworkHardforkHistoryByChain = t.record(
-  Integer,
-  HardhatNetworkHardforkHistory,
-  "HardhatNetworkHardforkHistoryByChain"
-);
-
 const HardhatNetworkForkingConfig = t.type({
   enabled: optional(t.boolean),
   url: t.string,
   blockNumber: optional(t.number),
-  hardforkActivationsByChain: optional(HardhatNetworkHardforkHistoryByChain),
 });
+
+function isValidHardforkName(name: string) {
+  return Object.values(HardforkName).includes(name as HardforkName);
+}
+
+const HardforkNameType = new t.Type<HardforkName>(
+  "HardforkName",
+  (name: unknown): name is HardforkName =>
+    typeof name === "string" && isValidHardforkName(name),
+  (u, c) => {
+    return typeof u === "string" && isValidHardforkName(u)
+      ? t.success(u as HardforkName)
+      : t.failure(u, c);
+  },
+  t.identity
+);
+
+const HardhatNetworkHardforkHistory = t.record(
+  HardforkNameType,
+  t.number,
+  "HardhatNetworkHardforkHistory"
+);
+
+const HardhatNetworkChainConfig = t.type({
+  hardforkHistory: HardhatNetworkHardforkHistory,
+});
+
+const HardhatNetworkChainsConfig = t.record(Integer, HardhatNetworkChainConfig);
 
 const commonNetworkConfigFields = {
   chainId: optional(t.number),
@@ -178,6 +193,7 @@ const HardhatNetworkConfig = t.type({
   initialDate: optional(t.string),
   loggingEnabled: optional(t.boolean),
   forking: optional(HardhatNetworkForkingConfig),
+  chains: optional(HardhatNetworkChainsConfig),
 });
 
 const HDAccountsConfig = t.type({
@@ -349,28 +365,27 @@ export function getValidationErrors(config: any): string[] {
         }
       }
 
-      if (
-        hardhatNetwork.forking !== undefined &&
-        hardhatNetwork.forking.hardforkActivationsByChain !== undefined
-      ) {
-        Object.entries(
-          hardhatNetwork.forking.hardforkActivationsByChain
-        ).forEach((chainEntry) => {
-          const [, hardforkHistory] = chainEntry;
-          Object.entries(hardforkHistory as HardforkActivationHistory).forEach(
-            (hardforkEntry) => {
+      if (hardhatNetwork.chains !== undefined) {
+        Object.entries(hardhatNetwork.chains).forEach((chainEntry) => {
+          const [chainId, chainConfig] = chainEntry as [
+            string,
+            HardhatNetworkChainUserConfig
+          ];
+          const { hardforkHistory } = chainConfig;
+          if (hardforkHistory !== undefined) {
+            Object.entries(hardforkHistory).forEach((hardforkEntry) => {
               const [hardforkName] = hardforkEntry;
               if (!HARDHAT_NETWORK_SUPPORTED_HARDFORKS.includes(hardforkName)) {
                 errors.push(
                   getErrorMessage(
-                    `HardhatConfig.networks.${HARDHAT_NETWORK_NAME}.forking.hardforkActivationsByChain`,
+                    `HardhatConfig.networks.${HARDHAT_NETWORK_NAME}.chains[${chainId}].hardforkHistory`,
                     hardforkName,
                     `"${HARDHAT_NETWORK_SUPPORTED_HARDFORKS.join('" | "')}"`
                   )
                 );
               }
-            }
-          );
+            });
+          }
         });
       }
     }

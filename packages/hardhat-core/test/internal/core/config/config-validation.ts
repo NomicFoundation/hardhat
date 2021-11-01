@@ -1322,11 +1322,9 @@ describe("Config validation", function () {
         validateConfig({
           networks: {
             hardhat: {
-              forking: {
-                url: "http://...",
-                enabled: true,
-                hardforkActivationsByChain: {
-                  1: {
+              chains: {
+                1: {
+                  hardforkHistory: {
                     berlin: 12965000 - 1000,
                     london: 12965000,
                   },
@@ -1341,12 +1339,8 @@ describe("Config validation", function () {
           validateConfig({
             networks: {
               hardhat: {
-                forking: {
-                  url: "http://...",
-                  enabled: true,
-                  hardforkActivationsByChain: {
-                    1: { bogusHardforkName: 12965000 },
-                  },
+                chains: {
+                  1: { hardforkHistory: { bogusHardforkName: 12965000 } },
                 },
               },
             },

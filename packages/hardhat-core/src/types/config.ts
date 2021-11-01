@@ -13,6 +13,7 @@
 // trying to augment the config types.
 
 import type { BN } from "ethereumjs-util";
+import { HardforkName } from "../internal/util/hardforks";
 
 // Networks config
 
@@ -24,6 +25,19 @@ export interface NetworksUserConfig {
 export type NetworkUserConfig =
   | HardhatNetworkUserConfig
   | HttpNetworkUserConfig;
+
+export type HardforkHistoryUserConfig = Record<
+  HardforkName,
+  number /* block number */
+>;
+
+export interface HardhatNetworkChainUserConfig {
+  hardforkHistory?: HardforkHistoryUserConfig;
+}
+
+export interface HardhatNetworkChainUserConfigByChainId {
+  [chainId: number]: HardhatNetworkChainUserConfig;
+}
 
 export interface HardhatNetworkUserConfig {
   chainId?: number;
@@ -43,6 +57,7 @@ export interface HardhatNetworkUserConfig {
   initialDate?: string;
   loggingEnabled?: boolean;
   forking?: HardhatNetworkForkingUserConfig;
+  chains?: HardhatNetworkChainUserConfigByChainId;
 }
 
 export type HardhatNetworkAccountsUserConfig =
@@ -69,20 +84,10 @@ export interface HDAccountsUserConfig {
   path?: string;
 }
 
-export type HardforkActivationHistory = Record<
-  string /* hardfork name */,
-  number /* block number */
->;
-
-export interface HardforkActivationsByChain {
-  [chainId: number]: HardforkActivationHistory;
-}
-
 export interface HardhatNetworkForkingUserConfig {
   enabled?: boolean;
   url: string;
   blockNumber?: number;
-  hardforkActivationsByChain?: HardforkActivationsByChain;
 }
 
 export type HttpNetworkAccountsUserConfig =
@@ -110,6 +115,17 @@ export interface NetworksConfig {
 
 export type NetworkConfig = HardhatNetworkConfig | HttpNetworkConfig;
 
+export type HardforkHistoryConfig = Map<HardforkName, /* blockNumber */ number>;
+
+export interface HardhatNetworkChainConfig {
+  hardforkHistory: HardforkHistoryConfig;
+}
+
+export type HardhatNetworkChainConfigByChainId = Map<
+  /* chainId */ number,
+  HardhatNetworkChainConfig
+>;
+
 export interface HardhatNetworkConfig {
   chainId: number;
   from?: string;
@@ -128,6 +144,7 @@ export interface HardhatNetworkConfig {
   initialDate: string;
   loggingEnabled: boolean;
   forking?: HardhatNetworkForkingConfig;
+  chains: HardhatNetworkChainConfigByChainId;
 }
 
 export type HardhatNetworkAccountsConfig =
@@ -151,7 +168,6 @@ export interface HardhatNetworkForkingConfig {
   enabled: boolean;
   url: string;
   blockNumber?: number;
-  hardforkActivationsByChain?: HardforkActivationsByChain;
 }
 
 export interface HttpNetworkConfig {
