@@ -13,7 +13,7 @@
 
 ### Supported Fields
 
-You can set the following fields on the `hardhat` config:
+You can set the following fields on the `networks.hardhat` config:
 
 #### `chainId`
 
