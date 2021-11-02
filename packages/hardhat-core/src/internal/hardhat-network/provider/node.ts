@@ -1236,7 +1236,10 @@ Hardhat Network's forking functionality only works with blocks from at least spu
             "this._forkNetworkId should exist if the blockchain is an instance of ForkBlockchain"
           );
 
-          const common = getCommonForTracing(this._forkNetworkId, blockNumber);
+          const common = this._getCommonForTracing(
+            this._forkNetworkId,
+            blockNumber
+          );
 
           vm = new VM({
             common,
@@ -2417,18 +2420,23 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       );
     }
   }
-}
 
-function getCommonForTracing(networkId: number, blockNumber: number): Common {
-  try {
-    const common = new Common({ chain: networkId });
+  private _getCommonForTracing(networkId: number, blockNumber: number): Common {
+    try {
+      const common = new Common({ chain: networkId });
 
-    common.setHardfork(common.activeHardfork(blockNumber));
+      common.setHardfork(
+        this._forkBlockNumber !== undefined &&
+          blockNumber < this._forkBlockNumber
+          ? this._selectHardforkFromActivations(new BN(blockNumber))
+          : common.activeHardfork(blockNumber)
+      );
 
-    return common;
-  } catch (e) {
-    throw new InternalError(
-      `Network id ${networkId} does not correspond to a network that Hardhat can trace`
-    );
+      return common;
+    } catch (e) {
+      throw new InternalError(
+        `Network id ${networkId} does not correspond to a network that Hardhat can trace`
+      );
+    }
   }
 }
