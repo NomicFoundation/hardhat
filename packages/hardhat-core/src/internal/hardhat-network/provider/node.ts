@@ -1293,9 +1293,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
             this._forkBlockNumber !== undefined &&
             blockNumber < this._forkBlockNumber
           ) {
-            vm._common.setHardfork(
-              this._selectHardforkFromActivations(new BN(blockNumber))
-            );
+            vm._common.setHardfork(this._selectHardfork(new BN(blockNumber)));
           }
 
           const txHash = txWithCommon.hash();
@@ -2220,7 +2218,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       ) {
         originalHardfork = this._vm._common.hardfork();
         this._vm._common.setHardfork(
-          this._selectHardforkFromActivations(blockContext!.header.number)
+          this._selectHardfork(blockContext!.header.number)
         );
       }
 
@@ -2339,7 +2337,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       block.lt(new BN(this._forkBlockNumber))
     ) {
       return this._vm._common.hardforkGteHardfork(
-        this._selectHardforkFromActivations(block),
+        this._selectHardfork(block),
         "london"
       );
     }
@@ -2386,7 +2384,16 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     return { maxFeePerGas, maxPriorityFeePerGas };
   }
 
-  private _selectHardforkFromActivations(blockNumber: BN): HardforkName {
+  private _selectHardfork(
+    blockNumber: BN,
+    defaultName = this._vm._common.hardfork() as HardforkName
+  ): HardforkName {
+    if (
+      this._forkBlockNumber === undefined ||
+      blockNumber.gte(new BN(this._forkBlockNumber))
+    ) {
+      return defaultName;
+    }
     /** search this._hardforkActivations for the highest block number that
      * isn't higher than blockNumber, and then return that found block number's
      * associated hardfork name. */
@@ -2426,10 +2433,10 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       const common = new Common({ chain: networkId });
 
       common.setHardfork(
-        this._forkBlockNumber !== undefined &&
-          blockNumber < this._forkBlockNumber
-          ? this._selectHardforkFromActivations(new BN(blockNumber))
-          : common.activeHardfork(blockNumber)
+        this._selectHardfork(
+          new BN(blockNumber),
+          common.activeHardfork(blockNumber) as HardforkName
+        )
       );
 
       return common;
