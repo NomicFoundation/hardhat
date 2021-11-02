@@ -2,4 +2,4 @@
 "hardhat": patch
 ---
 
-extra tests for privkey validation
+Improve validation of private keys in the Hardhat config
