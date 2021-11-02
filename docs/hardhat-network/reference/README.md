@@ -53,10 +53,6 @@ This field can be configured as one of these:
 
 The block gas limit to use in Hardhat Network's blockchain. Default value: `30_000_000`
 
-#### `minGasPrice`
-
-The minimum gas price accepted by the Hardhat Network. Transactions with a lower gas price are accepted but not mined. Default value: `0`
-
 #### `hardfork`
 
 This setting changes how Hardhat Network works, to mimic Ethereum's mainnet at a given hardfork. It must be one of `"byzantium"`, `"constantinople"`, `"petersburg"`, `"istanbul"`, `"muirGlacier"`, `"berlin"` and `"london"`. Default value: `"london"`
