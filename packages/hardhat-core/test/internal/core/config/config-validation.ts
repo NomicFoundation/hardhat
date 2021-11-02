@@ -399,6 +399,32 @@ describe("Config validation", function () {
             });
           });
 
+          it("Should not allow an array that contains a value that is not an object", function () {
+            expectHardhatError(
+              () =>
+                validateConfig({
+                  networks: {
+                    [HARDHAT_NETWORK_NAME]: {
+                      accounts: [
+                        {
+                          balance: "123",
+                          privateKey:
+                            "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                        },
+                        "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                        {
+                          balance: "123",
+                          privateKey:
+                            "0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                        },
+                      ],
+                    },
+                  },
+                }),
+              ERRORS.GENERAL.INVALID_CONFIG
+            );
+          });
+
           it("Should not allow hex literals", function () {
             expectHardhatError(
               () =>

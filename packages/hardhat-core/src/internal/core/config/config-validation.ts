@@ -53,19 +53,20 @@ function getErrorMessage(path: string, value: any, expectedType: string) {
   )} for ${path} - Expected a value of type ${expectedType}.`;
 }
 
-function getPrivateKeyError(account: any, network: string, message: string) {
-  return `Invalid account: ${account} for network: ${network} - ${message}`;
+function getPrivateKeyError(index: any, network: string, message: string) {
+  return `Invalid account: #${index} for network: ${network} - ${message}`;
 }
 
 function validatePrivateKey(
   privateKey: any,
+  index: number,
   network: string,
   errors: string[]
 ) {
   if (typeof privateKey !== "string") {
     errors.push(
       getPrivateKeyError(
-        privateKey,
+        index,
         network,
         `Expected string, received ${typeof privateKey}`
       )
@@ -80,7 +81,7 @@ function validatePrivateKey(
     if (pkWithPrefix.length < 66) {
       errors.push(
         getPrivateKeyError(
-          privateKey,
+          index,
           network,
           "privateKey too short, expected 32 bytes"
         )
@@ -88,7 +89,7 @@ function validatePrivateKey(
     } else if (pkWithPrefix.length > 66) {
       errors.push(
         getPrivateKeyError(
-          privateKey,
+          index,
           network,
           "privateKey too long, expected 32 bytes"
         )
@@ -96,7 +97,7 @@ function validatePrivateKey(
     } else if (hexString.decode(pkWithPrefix).isLeft()) {
       errors.push(
         getPrivateKeyError(
-          privateKey,
+          index,
           network,
           "invalid hex character(s) found in string"
         )
@@ -304,11 +305,11 @@ export function getValidationErrors(config: any): string[] {
 
       // manual validation of accounts
       if (Array.isArray(accounts)) {
-        for (const account of accounts) {
+        for (const [index, account] of Object.entries(accounts)) {
           if (typeof account !== "object") {
             errors.push(
               getPrivateKeyError(
-                account,
+                index,
                 HARDHAT_NETWORK_NAME,
                 `Expected object, received ${typeof account}`
               )
@@ -318,7 +319,7 @@ export function getValidationErrors(config: any): string[] {
 
           const { privateKey, balance } = account;
 
-          validatePrivateKey(privateKey, HARDHAT_NETWORK_NAME, errors);
+          validatePrivateKey(privateKey, +index, HARDHAT_NETWORK_NAME, errors);
 
           if (typeof balance !== "string") {
             errors.push(
@@ -412,8 +413,8 @@ export function getValidationErrors(config: any): string[] {
 
       // manual validation of accounts
       if (Array.isArray(accounts)) {
-        accounts.forEach((privateKey) =>
-          validatePrivateKey(privateKey, networkName, errors)
+        accounts.forEach((privateKey, index) =>
+          validatePrivateKey(privateKey, index, networkName, errors)
         );
       } else if (typeof accounts === "object") {
         const hdConfigResult = HDAccountsConfig.decode(accounts);
@@ -430,7 +431,7 @@ export function getValidationErrors(config: any): string[] {
         if (accounts !== "remote") {
           errors.push(
             getPrivateKeyError(
-              accounts,
+              0,
               networkName,
               `Expected "remote", received ${accounts}`
             )
