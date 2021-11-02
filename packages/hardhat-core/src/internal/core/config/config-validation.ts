@@ -305,7 +305,7 @@ export function getValidationErrors(config: any): string[] {
 
       // manual validation of accounts
       if (Array.isArray(accounts)) {
-        for (const [index, account] of Object.entries(accounts)) {
+        for (const [index, account] of accounts.entries()) {
           if (typeof account !== "object") {
             errors.push(
               getPrivateKeyError(
@@ -319,7 +319,7 @@ export function getValidationErrors(config: any): string[] {
 
           const { privateKey, balance } = account;
 
-          validatePrivateKey(privateKey, +index, HARDHAT_NETWORK_NAME, errors);
+          validatePrivateKey(privateKey, index, HARDHAT_NETWORK_NAME, errors);
 
           if (typeof balance !== "string") {
             errors.push(
@@ -430,11 +430,7 @@ export function getValidationErrors(config: any): string[] {
       } else if (typeof accounts === "string") {
         if (accounts !== "remote") {
           errors.push(
-            getPrivateKeyError(
-              0,
-              networkName,
-              `Expected "remote", received ${accounts}`
-            )
+            `Invalid 'accounts' entry for network '${networkName}': expected an array of accounts or the string 'remote', but got the string '${accounts}'`
           );
         }
       } else if (accounts !== undefined) {
