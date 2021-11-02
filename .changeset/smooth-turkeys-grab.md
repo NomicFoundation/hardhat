@@ -1,6 +1,5 @@
 ---
 "hardhat": patch
-"docs": patch
 ---
 
 Added support for Solidity 0.8.8
