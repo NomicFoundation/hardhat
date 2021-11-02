@@ -11,8 +11,6 @@
 
 ## Config
 
-Default behavior: Hardhat will automatically run in-process when `defaultNetwork` is empty or set to `hardhat`.
-
 ### Supported Fields
 
 You can set the following fields on the `hardhat` config:
