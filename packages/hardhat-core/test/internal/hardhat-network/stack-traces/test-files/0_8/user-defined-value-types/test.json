@@ -1,0 +1,16 @@
+{
+  "solc": "^0.8.8",
+  "transactions": [
+    {
+      "file": "c.sol",
+      "contract": "C",
+      "imports": ["/../../../../../../../console.sol"]
+    },
+    {
+      "to": 0,
+      "function": "f",
+      "params": [1],
+      "consoleLogs": [["something"]]
+    }
+  ]
+}
