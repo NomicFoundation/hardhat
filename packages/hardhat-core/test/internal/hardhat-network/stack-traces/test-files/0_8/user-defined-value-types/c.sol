@@ -6,7 +6,7 @@ type UFixed is uint256;
 
 contract C {
   function f(UFixed a) public returns (UFixed b) {
-    console.log("something");
+    require(false, "error reason");
     b = a;
   }
 }

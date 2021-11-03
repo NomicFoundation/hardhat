@@ -10,7 +10,20 @@
       "to": 0,
       "function": "f",
       "params": [1],
-      "consoleLogs": [["something"]]
+      "stackTrace": [
+        {
+          "type": "REVERT_ERROR",
+          "sourceReference": {
+            "function": "f",
+            "contract": "C",
+            "file": "c.sol",
+            "line": 9,
+            "range": [164, 194]
+          },
+          "message": "error reason",
+          "isInvalidOpcodeError": false
+        }
+      ]
     }
   ]
 }
