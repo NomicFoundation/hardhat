@@ -282,7 +282,6 @@ module.exports.communityPlugins = [
     name: "xdeployer",
     author: "Pascal Marco Caversaccio",
     authorUrl: "https://github.com/pcaversaccio",
-    url: "https://github.com/pcaversaccio/xdeployer",
     description:
       "Hardhat plugin to deploy your smart contracts across multiple EVM chains with the same deterministic address.",
     tags: ["Deployment", "CREATE2", "Tasks"],
