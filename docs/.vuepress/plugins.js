@@ -378,8 +378,7 @@ const plugins = [
     name: "hardhat-fund-link",
     author: "Applied Blockchain",
     authorUrl: "https://github.com/appliedblockchain",
-    url:
-      "https://github.com/appliedblockchain/chainlink-consumer/tree/master/plugins/fund-link",
+    url: "https://github.com/appliedblockchain/chainlink-consumer/tree/master/plugins/fund-link",
     description: "Transfers Link token amount between accounts.",
     tags: ["Chainlink", "Link"],
   },
@@ -391,6 +390,15 @@ const plugins = [
     description:
       "The Solidity mocking library. Smock is a utility package that can generate mock Solidity contracts written entirely in JavaScript.",
     tags: ["Testing", "Mocking"],
+  },
+  {
+    name: "xdeployer",
+    author: "Pascal Marco Caversaccio",
+    authorUrl: "https://github.com/pcaversaccio",
+    url: "https://github.com/pcaversaccio/xdeployer",
+    description:
+      "Hardhat plugin to deploy your smart contracts across multiple EVM chains with the same deterministic address.",
+    tags: ["Deployment", "CREATE2", "Tasks"],
   },
 ];
 
