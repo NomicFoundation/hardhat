@@ -53,12 +53,12 @@ function getErrorMessage(path: string, value: any, expectedType: string) {
   )} for ${path} - Expected a value of type ${expectedType}.`;
 }
 
-function getPrivateKeyError(index: any, network: string, message: string) {
+function getPrivateKeyError(index: number, network: string, message: string) {
   return `Invalid account: #${index} for network: ${network} - ${message}`;
 }
 
 function validatePrivateKey(
-  privateKey: any,
+  privateKey: unknown,
   index: number,
   network: string,
   errors: string[]
@@ -83,7 +83,7 @@ function validatePrivateKey(
         getPrivateKeyError(
           index,
           network,
-          "privateKey too short, expected 32 bytes"
+          "private key too short, expected 32 bytes"
         )
       );
     } else if (pkWithPrefix.length > 66) {
@@ -91,7 +91,7 @@ function validatePrivateKey(
         getPrivateKeyError(
           index,
           network,
-          "privateKey too long, expected 32 bytes"
+          "private key too long, expected 32 bytes"
         )
       );
     } else if (hexString.decode(pkWithPrefix).isLeft()) {
