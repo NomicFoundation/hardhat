@@ -2,13 +2,15 @@ import { Block } from "@ethereumjs/block";
 import { BlockchainInterface } from "@ethereumjs/blockchain";
 import { BN } from "ethereumjs-util";
 
-import { FilterParams } from "../node-types";
+import { EmptyBlockRange, FilterParams } from "../node-types";
 import { RpcLogOutput, RpcReceiptOutput } from "../output";
 
 export interface HardhatBlockchainInterface extends BlockchainInterface {
   addTransactionReceipts(receipts: RpcReceiptOutput[]): void;
+  addEmptyBlockRange(r: EmptyBlockRange): void;
   deleteLaterBlocks(block: Block): void;
   getBlockByTransactionHash(transactionHash: Buffer): Promise<Block | null>;
+  getEmptyBlockRanges(): EmptyBlockRange[];
   getLatestBlock(): Promise<Block>;
   getLogs(filterParams: FilterParams): Promise<RpcLogOutput[]>;
   getTotalDifficulty(blockHash: Buffer): Promise<BN>;
@@ -16,4 +18,5 @@ export interface HardhatBlockchainInterface extends BlockchainInterface {
     transactionHash: Buffer
   ): Promise<RpcReceiptOutput | null>;
   getBaseFee(): Promise<BN>;
+  setEmptyBlockRanges(r: EmptyBlockRange[]): void;
 }

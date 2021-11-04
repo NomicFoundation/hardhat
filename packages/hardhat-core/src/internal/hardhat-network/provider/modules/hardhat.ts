@@ -108,6 +108,9 @@ export class HardhatModule {
         return this._setNextBlockBaseFeePerGasAction(
           ...this._setNextBlockBaseFeePerGasParams(params)
         );
+
+      case "hardhat_mine":
+        return this._hardhatMineAction(...this._hardhatMineParams(params));
     }
 
     throw new MethodNotFoundError(`Method ${method} not found`);
@@ -344,6 +347,14 @@ export class HardhatModule {
 
     this._node.setUserProvidedNextBlockBaseFeePerGas(baseFeePerGas);
     return true;
+  }
+
+  // hardhat_mine
+  private async _hardhatMineAction(blockCount?: BN, interval?: BN) {
+    await this._node.mineEmptyBlocks(blockCount, interval);
+  }
+  private _hardhatMineParams(params: any[]): [BN, BN] {
+    return validateParams(params, rpcQuantity, rpcQuantity);
   }
 
   private async _logBlock(result: MineBlockResult) {

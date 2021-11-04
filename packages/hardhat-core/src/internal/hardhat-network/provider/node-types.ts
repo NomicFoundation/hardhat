@@ -111,6 +111,12 @@ export interface FilterParams {
   normalizedTopics: Array<Array<Buffer | null> | null>;
 }
 
+export interface EmptyBlockRange {
+  first: BN;
+  last: BN;
+  intervalInSeconds: BN;
+}
+
 export interface Snapshot {
   id: number;
   date: Date;
@@ -121,6 +127,7 @@ export interface Snapshot {
   nextBlockTimestamp: BN;
   irregularStatesByBlockNumber: Map<string, Buffer>;
   userProvidedNextBlockBaseFeePerGas: BN | undefined;
+  emptyBlockRanges: EmptyBlockRange[];
 }
 
 export type SendTransactionResult =

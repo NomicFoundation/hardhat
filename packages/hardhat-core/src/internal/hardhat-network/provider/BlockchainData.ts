@@ -4,7 +4,7 @@ import Bloom from "@ethereumjs/vm/dist/bloom";
 import { BN, bufferToHex } from "ethereumjs-util";
 
 import { bloomFilter, filterLogs } from "./filter";
-import { FilterParams } from "./node-types";
+import { EmptyBlockRange, FilterParams } from "./node-types";
 import { RpcLogOutput, RpcReceiptOutput } from "./output";
 
 export class BlockchainData {
@@ -14,8 +14,17 @@ export class BlockchainData {
   private _transactions: Map<string, TypedTransaction> = new Map();
   private _transactionReceipts: Map<string, RpcReceiptOutput> = new Map();
   private _totalDifficulty: Map<string, BN> = new Map();
+  private _emptyBlockRanges: EmptyBlockRange[] = new Array();
+
+  public addEmptyBlockRange(r: EmptyBlockRange) {
+    this._emptyBlockRanges.push(r);
+  }
 
   public getBlockByNumber(blockNumber: BN) {
+    // TODO: if blockNumber lies within any of empty block ranges
+    // (this._emptyBlockRanges) then construct the requested block, pass it
+    // into this.addBlock, and split that range into two different ranges above
+    // and below the newly-constructed block.
     return this._blocksByNumber.get(blockNumber.toNumber());
   }
 
@@ -25,6 +34,10 @@ export class BlockchainData {
 
   public getBlockByTransactionHash(transactionHash: Buffer) {
     return this._blocksByTransactions.get(bufferToHex(transactionHash));
+  }
+
+  public getEmptyBlockRanges(): EmptyBlockRange[] {
+    return this._emptyBlockRanges;
   }
 
   public getTransaction(transactionHash: Buffer) {
@@ -109,5 +122,9 @@ export class BlockchainData {
 
   public addTransactionReceipt(receipt: RpcReceiptOutput) {
     this._transactionReceipts.set(receipt.transactionHash, receipt);
+  }
+
+  public setEmptyBlockRanges(r: EmptyBlockRange[]) {
+    this._emptyBlockRanges = r;
   }
 }

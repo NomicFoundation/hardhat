@@ -3,7 +3,7 @@ import { TypedTransaction } from "@ethereumjs/tx";
 import { BN, zeros } from "ethereumjs-util";
 
 import { BlockchainData } from "./BlockchainData";
-import { FilterParams } from "./node-types";
+import { FilterParams, EmptyBlockRange } from "./node-types";
 import { RpcLogOutput, RpcReceiptOutput } from "./output";
 import { HardhatBlockchainInterface } from "./types/HardhatBlockchainInterface";
 
@@ -39,6 +39,18 @@ export class HardhatBlockchain implements HardhatBlockchainInterface {
     this._data.addBlock(block, totalDifficulty);
     this._length += 1;
     return block;
+  }
+
+  public addEmptyBlockRange(r: EmptyBlockRange) {
+    this._data.addEmptyBlockRange(r);
+  }
+
+  public getEmptyBlockRanges(): EmptyBlockRange[] {
+    return this._data.getEmptyBlockRanges();
+  }
+
+  public setEmptyBlockRanges(r: EmptyBlockRange[]) {
+    this._data.setEmptyBlockRanges(r);
   }
 
   public async putBlock(block: Block): Promise<void> {

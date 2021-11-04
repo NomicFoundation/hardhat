@@ -10,7 +10,7 @@ import { RpcTransaction } from "../../../core/jsonrpc/types/output/transaction";
 import { InternalError } from "../../../core/providers/errors";
 import { JsonRpcClient } from "../../jsonrpc/client";
 import { BlockchainData } from "../BlockchainData";
-import { FilterParams } from "../node-types";
+import { FilterParams, EmptyBlockRange } from "../node-types";
 import {
   remoteReceiptToRpcReceiptOutput,
   RpcLogOutput,
@@ -80,6 +80,18 @@ export class ForkBlockchain implements HardhatBlockchainInterface {
     const totalDifficulty = await this._computeTotalDifficulty(block);
     this._data.addBlock(block, totalDifficulty);
     return block;
+  }
+
+  public addEmptyBlockRange(r: EmptyBlockRange) {
+    this._data.addEmptyBlockRange(r);
+  }
+
+  public getEmptyBlockRanges(): EmptyBlockRange[] {
+    return this._data.getEmptyBlockRanges();
+  }
+
+  public setEmptyBlockRanges(r: EmptyBlockRange[]) {
+    this._data.setEmptyBlockRanges(r);
   }
 
   public async putBlock(block: Block): Promise<void> {
