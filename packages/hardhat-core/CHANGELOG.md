@@ -1,5 +1,20 @@
 # hardhat
 
+## 2.6.8
+
+### Patch Changes
+
+- f35f3548: Add support for the `personal_sign RPC method to Hardhat Network.
+- 692b9130: Throw an error for solc versions older than 0.4.11
+- 4df2df4d: Add a new `hardhat_getAutomine` JSON-RPC method to Hardhat Network that returns `true` if automining is enabled and `false` if it's not.
+- 91edb2aa: Add support for Solidity 0.8.7.
+- c501e1ec: Added support for Solidity 0.8.6.
+- 4ccd1f72: Enable solc's metadata by default (Thanks @chriseth!)
+- 4f102576: Support Solidity 0.8.9
+- 12158a06: Added support for Solidity 0.8.8
+- 4c7fe24e: Add support for Solidity 0.8.5.
+- d00a1a71: Print a warning in the node task if the default accounts are used.
+
 ## 2.6.7
 
 ### Patch Changes
