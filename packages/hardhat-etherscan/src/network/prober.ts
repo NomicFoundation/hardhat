@@ -40,6 +40,8 @@ enum NetworkID {
   // Arbitrum
   ARBITRUM_ONE = 42161,
   ARBITRUM_TESTNET = 421611,
+  AVALANCHE_MAINNET = 43114,
+  AVALANCHE_FUJI = 43113
 }
 
 const networkIDtoEndpoints: NetworkMap = {
@@ -111,6 +113,14 @@ const networkIDtoEndpoints: NetworkMap = {
     apiURL: "https://api-testnet.arbiscan.io/api",
     browserURL: "https://testnet.arbiscan.io/",
   },
+  [NetworkID.AVALANCHE_MAINNET]: {
+    apiURL: "https://api.snowtrace.io/api",
+    browserURL: "https://snowtrace.io",
+  },
+  [NetworkID.AVALANCHE_FUJI]: {
+    apiURL: "https://api-testnet.snowtrace.io/api",
+    browserURL: "https://testnet.snowtrace.io",
+  }
 };
 
 export async function getEtherscanEndpoints(
