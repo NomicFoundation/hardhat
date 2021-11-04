@@ -1,8 +1,8 @@
 import { assert } from "chai";
 import { zeroAddress } from "ethereumjs-util";
 
-import { numberToRpcQuantity } from "../../../../../../../internal/core/jsonrpc/types/base-types";
-import { randomAddress } from "../../../../../../../internal/hardhat-network/provider/fork/random";
+import { numberToRpcQuantity } from "../../../../../../../src/internal/core/jsonrpc/types/base-types";
+import { randomAddress } from "../../../../../../../src/internal/hardhat-network/provider/fork/random";
 import { workaroundWindowsCiFailures } from "../../../../../../utils/workaround-windows-ci-failures";
 import { assertInvalidInputError } from "../../../../helpers/assertions";
 import { EXAMPLE_CONTRACT } from "../../../../helpers/contracts";

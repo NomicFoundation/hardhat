@@ -4,9 +4,11 @@ import * as path from "path";
 
 import { TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURE_REASONS } from "../../src/builtin-tasks/task-names";
 import { SOLIDITY_FILES_CACHE_FILENAME } from "../../src/internal/constants";
+import { ERRORS } from "../../src/internal/core/errors-list";
 import { globSync } from "../../src/internal/util/glob";
 import { CompilationJobCreationErrorReason } from "../../src/types/builtin-tasks";
 import { useEnvironment } from "../helpers/environment";
+import { expectHardhatErrorAsync } from "../helpers/errors";
 import { useFixtureProject } from "../helpers/project";
 import { mockFile } from "../utils/mock-file";
 
@@ -707,6 +709,40 @@ To learn more, run the command again with --verbose
 Read about compiler configuration at https://hardhat.org/config
 `
       );
+    });
+  });
+
+  describe("old versions of solidity", function () {
+    useFixtureProject("old-solidity-versions");
+
+    describe("project with an old version of solidity", function () {
+      useEnvironment("old-solidity-version.js");
+
+      it("should throw an error", async function () {
+        await expectHardhatErrorAsync(async () => {
+          await this.env.run("compile");
+        }, ERRORS.BUILTIN_TASKS.COMPILE_TASK_UNSUPPORTED_SOLC_VERSION);
+      });
+    });
+
+    describe("project with an old version of solidity (multiple compilers)", function () {
+      useEnvironment("old-solidity-version-multiple-compilers.js");
+
+      it("should throw an error", async function () {
+        await expectHardhatErrorAsync(async () => {
+          await this.env.run("compile");
+        }, ERRORS.BUILTIN_TASKS.COMPILE_TASK_UNSUPPORTED_SOLC_VERSION);
+      });
+    });
+
+    describe("project with an old version of solidity in an override", function () {
+      useEnvironment("old-solidity-version-in-override.js");
+
+      it("should throw an error", async function () {
+        await expectHardhatErrorAsync(async () => {
+          await this.env.run("compile");
+        }, ERRORS.BUILTIN_TASKS.COMPILE_TASK_UNSUPPORTED_SOLC_VERSION);
+      });
     });
   });
 });

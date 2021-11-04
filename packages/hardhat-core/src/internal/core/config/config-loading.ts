@@ -255,7 +255,7 @@ function checkUnsupportedSolidityConfig(resolvedConfig: HardhatConfig) {
           unsupportedVersions.length === 1 ? "is" : "are"
         } not fully supported yet. You can still use Hardhat, but some features, like stack traces, might not work correctly.
 
-Learn more at https://hardhat.org/reference/solidity-support"
+Learn more at https://hardhat.org/reference/solidity-support
 `
       )
     );

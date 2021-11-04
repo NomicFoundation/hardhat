@@ -360,6 +360,15 @@ Please double check your transactions' parameters.`,
 Please double check your transactions' parameters.`,
       shouldBeReported: false,
     },
+    PERSONALSIGN_MISSING_ADDRESS_PARAM: {
+      number: 116,
+      message: 'Missing "address" param when calling personal_sign.',
+      title: "Missing `address` param when calling personal_sign.",
+      description: `You called \`personal_sign\` with incorrect parameters.
+
+Please check that you are sending an \`address\` parameter.`,
+      shouldBeReported: false,
+    },
   },
   TASK_DEFINITIONS: {
     PARAM_AFTER_VARIADIC: {
@@ -860,6 +869,16 @@ To start the JSON-RPC server, retry the command without the --network parameter.
       description: `You passed a block number to fork from, but not a URL. Hardhat cannot fork
 if the URL of the JSON-RPC wasn't set.`,
       shouldBeReported: false,
+    },
+    COMPILE_TASK_UNSUPPORTED_SOLC_VERSION: {
+      number: 608,
+      message: `Version %version% is not supported by Hardhat.
+
+The first supported version is %firstSupportedVersion%`,
+      title: "Unsupported solc version",
+      description: `This version of solidity is not supported by Hardhtat.
+Please use a newer, supported version.`,
+      shouldBeReported: true,
     },
   },
   ARTIFACTS: {

@@ -1,6 +1,6 @@
 import { assert } from "chai";
 
-import { COINBASE_ADDRESS } from "../../../../../../../internal/hardhat-network/provider/node";
+import { COINBASE_ADDRESS } from "../../../../../../../src/internal/hardhat-network/provider/node";
 import { workaroundWindowsCiFailures } from "../../../../../../utils/workaround-windows-ci-failures";
 import {
   assertNotSupported,

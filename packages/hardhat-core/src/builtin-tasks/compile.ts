@@ -99,6 +99,8 @@ function isConsoleLogError(error: any): boolean {
 
 const log = debug("hardhat:core:tasks:compile");
 
+const COMPILE_TASK_FIRST_SOLC_VERSION_SUPPORTED = "0.4.11";
+
 /**
  * Returns a list of absolute paths to all the solidity files in the project.
  * This list doesn't include dependencies, for example solidity files inside
@@ -643,6 +645,18 @@ subtask(TASK_COMPILE_SOLIDITY_COMPILE_SOLC)
       },
       { run }
     ): Promise<{ output: CompilerOutput; solcBuild: SolcBuild }> => {
+      // versions older than 0.4.11 don't work with hardhat
+      // see issue https://github.com/nomiclabs/hardhat/issues/2004
+      if (semver.lt(solcVersion, COMPILE_TASK_FIRST_SOLC_VERSION_SUPPORTED)) {
+        throw new HardhatError(
+          ERRORS.BUILTIN_TASKS.COMPILE_TASK_UNSUPPORTED_SOLC_VERSION,
+          {
+            version: solcVersion,
+            firstSupportedVersion: COMPILE_TASK_FIRST_SOLC_VERSION_SUPPORTED,
+          }
+        );
+      }
+
       const solcBuild: SolcBuild = await run(
         TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD,
         {

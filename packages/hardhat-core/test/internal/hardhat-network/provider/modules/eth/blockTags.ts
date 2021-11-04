@@ -1,7 +1,7 @@
 import { assert } from "chai";
 import { zeroAddress } from "ethereumjs-util";
 
-import { RpcBlockOutput } from "../../../../../../internal/hardhat-network/provider/output";
+import { RpcBlockOutput } from "../../../../../../src/internal/hardhat-network/provider/output";
 import { workaroundWindowsCiFailures } from "../../../../../utils/workaround-windows-ci-failures";
 import {
   assertInvalidArgumentsError,

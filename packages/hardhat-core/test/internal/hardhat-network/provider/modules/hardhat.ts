@@ -176,6 +176,19 @@ describe("Hardhat module", function () {
         });
       });
 
+      describe("hardhat_getAutomine", () => {
+        it("should return automine status true when enabled", async function () {
+          await this.provider.send("evm_setAutomine", [true]);
+          const result = await this.provider.send("hardhat_getAutomine");
+          assert.isTrue(result);
+        });
+        it("should return automine status false when disabled", async function () {
+          await this.provider.send("evm_setAutomine", [false]);
+          const result = await this.provider.send("hardhat_getAutomine");
+          assert.isFalse(result);
+        });
+      });
+
       describe("hardhat_reset", function () {
         before(function () {
           if (ALCHEMY_URL === undefined) {

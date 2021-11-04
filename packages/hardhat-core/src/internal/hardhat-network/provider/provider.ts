@@ -32,6 +32,7 @@ import { EthModule } from "./modules/eth";
 import { EvmModule } from "./modules/evm";
 import { HardhatModule } from "./modules/hardhat";
 import { ModulesLogger } from "./modules/logger";
+import { PersonalModule } from "./modules/personal";
 import { NetModule } from "./modules/net";
 import { Web3Module } from "./modules/web3";
 import { HardhatNode } from "./node";
@@ -65,6 +66,7 @@ export class HardhatNetworkProvider
   private _evmModule?: EvmModule;
   private _hardhatModule?: HardhatModule;
   private _debugModule?: DebugModule;
+  private _personalModule?: PersonalModule;
   private readonly _mutex = new Mutex();
 
   constructor(
@@ -205,6 +207,10 @@ export class HardhatNetworkProvider
       return this._debugModule!.processRequest(method, params);
     }
 
+    if (method.startsWith("personal_")) {
+      return this._personalModule!.processRequest(method, params);
+    }
+
     throw new MethodNotFoundError(`Method ${method} not found`);
   }
 
@@ -265,6 +271,7 @@ export class HardhatNetworkProvider
       this._experimentalHardhatNetworkMessageTraceHooks
     );
     this._debugModule = new DebugModule(node);
+    this._personalModule = new PersonalModule(node);
 
     this._forwardNodeEvents(node);
   }

@@ -737,10 +737,26 @@ const solidityCompilers = [
     solidityVersion: "0.8.4",
     compilerPath: "soljson-v0.8.4+commit.c7e474f2.js",
   },
-  // {
-  //   solidityVersion: "0.8.5",
-  //   compilerPath: "soljson-v0.8.5+commit.a4f2e591.js",
-  // },
+  {
+    solidityVersion: "0.8.5",
+    compilerPath: "soljson-v0.8.5+commit.a4f2e591.js",
+  },
+  {
+    solidityVersion: "0.8.6",
+    compilerPath: "soljson-v0.8.6+commit.11564f7e.js",
+  },
+  {
+    solidityVersion: "0.8.7",
+    compilerPath: "soljson-v0.8.7+commit.e28d00a7.js",
+  },
+  {
+    solidityVersion: "0.8.8",
+    compilerPath: "soljson-v0.8.8+commit.dddeac2f.js",
+  },
+  {
+    solidityVersion: "0.8.9",
+    compilerPath: "soljson-v0.8.9+commit.e5eed63a.js",
+  },
 ];
 
 const solidity05Compilers = solidityCompilers.filter(({ solidityVersion }) =>
@@ -769,6 +785,11 @@ describe("Stack traces", function () {
       console.error(
         "HARDHAT_TESTS_SOLC_VERSION has to be set when using HARDHAT_TESTS_SOLC_PATH"
       );
+      process.exit(1);
+    }
+
+    if (!path.isAbsolute(customSolcPath)) {
+      console.error("HARDHAT_TESTS_SOLC_PATH has to be an absolute path");
       process.exit(1);
     }
 

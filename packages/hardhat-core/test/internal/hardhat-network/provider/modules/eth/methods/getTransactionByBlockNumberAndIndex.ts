@@ -1,13 +1,13 @@
 import { assert } from "chai";
 import { BN, toBuffer, zeroAddress } from "ethereumjs-util";
 
-import { numberToRpcQuantity } from "../../../../../../../internal/core/jsonrpc/types/base-types";
-import { TransactionParams } from "../../../../../../../internal/hardhat-network/provider/node-types";
+import { numberToRpcQuantity } from "../../../../../../../src/internal/core/jsonrpc/types/base-types";
+import { TransactionParams } from "../../../../../../../src/internal/hardhat-network/provider/node-types";
 import {
   EIP1559RpcTransactionOutput,
   LegacyRpcTransactionOutput,
   AccessListEIP2930RpcTransactionOutput,
-} from "../../../../../../../internal/hardhat-network/provider/output";
+} from "../../../../../../../src/internal/hardhat-network/provider/output";
 import { workaroundWindowsCiFailures } from "../../../../../../utils/workaround-windows-ci-failures";
 import {
   assertAccessListTransaction,

@@ -4,8 +4,9 @@ import { BN, bufferToHex, toBuffer, zeroAddress } from "ethereumjs-util";
 import {
   numberToRpcQuantity,
   rpcQuantityToNumber,
-} from "../../../../../../../internal/core/jsonrpc/types/base-types";
-import { InvalidInputError } from "../../../../../../../internal/core/providers/errors";
+  rpcQuantityToBN,
+} from "../../../../../../../src/internal/core/jsonrpc/types/base-types";
+import { InvalidInputError } from "../../../../../../../src/internal/core/providers/errors";
 import { workaroundWindowsCiFailures } from "../../../../../../utils/workaround-windows-ci-failures";
 import {
   assertInvalidInputError,
@@ -31,7 +32,6 @@ import {
   EIP1559RpcTransactionOutput,
   RpcBlockOutput,
 } from "../../../../../../../src/internal/hardhat-network/provider/output";
-import { rpcQuantityToBN } from "../../../../../../../src/internal/core/jsonrpc/types/base-types";
 
 describe("Eth module", function () {
   PROVIDERS.forEach(({ name, useProvider, isFork, isJsonRpc }) => {
