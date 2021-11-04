@@ -3,8 +3,7 @@
   "transactions": [
     {
       "file": "c.sol",
-      "contract": "C",
-      "imports": ["/../../../../../../../console.sol"]
+      "contract": "C"
     },
     {
       "to": 0,
@@ -17,7 +16,7 @@
             "function": "f",
             "contract": "C",
             "file": "c.sol",
-            "line": 9,
+            "line": 7,
             "range": [164, 194]
           },
           "message": "error reason",
