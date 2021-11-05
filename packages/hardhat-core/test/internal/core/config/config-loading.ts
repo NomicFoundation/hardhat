@@ -423,5 +423,35 @@ Hardhat plugin instead.`
       assert.equal(consoleWarnStub.callCount, 1);
       assert.include(consoleWarnStub.args[0][0], "is not fully supported yet");
     });
+
+    it("should emit a warning if there is a remapping in the compiler settings", function () {
+      loadConfigAndTasks(
+        {
+          config: "remapping-in-settings.js",
+        },
+        { showSolidityConfigWarnings: true }
+      );
+
+      assert.equal(consoleWarnStub.callCount, 1);
+      assert.include(
+        consoleWarnStub.args[0][0],
+        "remappings are not currently supported"
+      );
+    });
+
+    it("should emit a warning if there is a remapping in the list of compiler settings", function () {
+      loadConfigAndTasks(
+        {
+          config: "remapping-in-list.js",
+        },
+        { showSolidityConfigWarnings: true }
+      );
+
+      assert.equal(consoleWarnStub.callCount, 1);
+      assert.include(
+        consoleWarnStub.args[0][0],
+        "remappings are not currently supported"
+      );
+    });
   });
 });
