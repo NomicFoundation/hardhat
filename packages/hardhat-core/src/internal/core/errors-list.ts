@@ -571,7 +571,7 @@ Please double check how you invoked Hardhat or ran your task.`,
     },
     MISSING_TASK_ARGUMENT: {
       number: 306,
-      message: "Missing task argument %param%",
+      message: "The '%param%' parameter expects a value, but none was passed.",
       title: "Missing task argument",
       description: `You tried to run a task, but one of its required arguments was missing. 
 

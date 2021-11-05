@@ -36,7 +36,7 @@ if (!HardhatContext.isCreated()) {
   }
 
   if (willRunWithTypescript(hardhatArguments.config)) {
-    loadTsNode();
+    loadTsNode(hardhatArguments.tsconfig);
   }
 
   const config = loadConfigAndTasks(hardhatArguments);
