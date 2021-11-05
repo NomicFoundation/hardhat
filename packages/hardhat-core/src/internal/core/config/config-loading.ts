@@ -242,9 +242,14 @@ function checkUnsupportedRemappings(userConfig: HardhatUserConfig) {
     let remappings: boolean;
     if ("compilers" in userConfig.solidity) {
       remappings =
-        userConfig.solidity.compilers.filter(
-          ({ settings }) => settings?.remappings !== undefined
-        ).length > 0;
+        [
+          ...userConfig.solidity.compilers.filter(
+            ({ settings }) => settings?.remappings !== undefined
+          ),
+          ...Object.values(userConfig.solidity.overrides || {}).filter(
+            ({ settings }) => settings?.remappings !== undefined
+          ),
+        ].length > 0;
     } else {
       remappings = userConfig.solidity.settings?.remappings !== undefined;
     }

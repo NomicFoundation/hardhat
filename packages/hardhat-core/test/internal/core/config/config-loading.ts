@@ -453,5 +453,20 @@ Hardhat plugin instead.`
         "remappings are not currently supported"
       );
     });
+
+    it("should emit a warning if there is a remapping in the list of compiler overrides", function () {
+      loadConfigAndTasks(
+        {
+          config: "remapping-in-override.js",
+        },
+        { showSolidityConfigWarnings: true }
+      );
+
+      assert.equal(consoleWarnStub.callCount, 1);
+      assert.include(
+        consoleWarnStub.args[0][0],
+        "remappings are not currently supported"
+      );
+    });
   });
 });
