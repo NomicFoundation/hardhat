@@ -8,7 +8,7 @@ import type StackTraceParserT from "stacktrace-parser";
 import {
   HardhatArguments,
   HardhatConfig,
-  SolcUserConfig,
+  HardhatUserConfig,
 } from "../../../types";
 import { HardhatContext } from "../../context";
 import { SUPPORTED_SOLIDITY_VERSION_RANGE } from "../../hardhat-network/stack-traces/solidityTracer";
@@ -237,13 +237,13 @@ Learn more about compiler configuration at https://hardhat.org/config"
   }
 }
 
-function checkUnsupportedRemappings(userConfig: any) {
+function checkUnsupportedRemappings(userConfig: HardhatUserConfig) {
   if (typeof userConfig.solidity === "object") {
     let remappings: boolean;
     if ("compilers" in userConfig.solidity) {
       remappings =
         userConfig.solidity.compilers.filter(
-          ({ settings }: SolcUserConfig) => settings?.remappings !== undefined
+          ({ settings }) => settings?.remappings !== undefined
         ).length > 0;
     } else {
       remappings = userConfig.solidity.settings?.remappings !== undefined;
