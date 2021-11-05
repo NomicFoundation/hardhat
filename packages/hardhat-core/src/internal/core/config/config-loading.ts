@@ -5,7 +5,11 @@ import path from "path";
 import semver from "semver";
 import type StackTraceParserT from "stacktrace-parser";
 
-import { HardhatArguments, HardhatConfig } from "../../../types";
+import {
+  HardhatArguments,
+  HardhatConfig,
+  SolcUserConfig,
+} from "../../../types";
 import { HardhatContext } from "../../context";
 import { SUPPORTED_SOLIDITY_VERSION_RANGE } from "../../hardhat-network/stack-traces/solidityTracer";
 import { findClosestPackageJson } from "../../util/packageInfo";
@@ -77,6 +81,7 @@ export function loadConfigAndTasks(
 
   if (showSolidityConfigWarnings) {
     checkMissingSolidityConfig(userConfig);
+    checkUnsupportedRemappings(userConfig);
   }
 
   // To avoid bad practices we remove the previously exported stuff
@@ -223,12 +228,37 @@ function checkMissingSolidityConfig(userConfig: any) {
   if (userConfig.solidity === undefined) {
     console.warn(
       chalk.yellow(
-        `Solidity compiler is not configured. Version ${DEFAULT_SOLC_VERSION} will be used by default. Add a 'solidity' entry to your configuration to supress this warning.
+        `Solidity compiler is not configured. Version ${DEFAULT_SOLC_VERSION} will be used by default. Add a 'solidity' entry to your configuration to suppress this warning.
 
 Learn more about compiler configuration at https://hardhat.org/config"
 `
       )
     );
+  }
+}
+
+function checkUnsupportedRemappings(userConfig: any) {
+  if (typeof userConfig.solidity === "object") {
+    let remappings: boolean;
+    if ("compilers" in userConfig.solidity) {
+      remappings =
+        userConfig.solidity.compilers.filter(
+          ({ settings }: SolcUserConfig) => settings?.remappings !== undefined
+        ).length > 0;
+    } else {
+      remappings = userConfig.solidity.settings?.remappings !== undefined;
+    }
+
+    if (remappings) {
+      console.warn(
+        chalk.yellow(
+          `Solidity remappings are not currently supported; you may experience unexpected compilation results. Remove any 'remappings' fields from your configuration to suppress this warning.
+
+Learn more about compiler configuration at https://hardhat.org/config
+`
+        )
+      );
+    }
   }
 }
 
