@@ -59,3 +59,6 @@ Trying to send 100 tokens to 0xe5904695748fe4a84b40b3fc79de2277660bd1d3
 ```
 
 Check out the [documentation](/hardhat-network/README.md#console-log) to learn more about this feature.
+
+Check out step 6 solution [here](https://github.com/architec/hardhat-tutorial/tree/step-6).
+
