@@ -104,26 +104,14 @@ task("deploy")
   .setAction(async ({ modulesFiles }: { modulesFiles?: string[] }, hre) => {
     await hre.run("compile", { quiet: true });
 
-    let ignitionFiles: string[];
-    if (modulesFiles !== undefined) {
-      ignitionFiles = modulesFiles.map((x) => path.resolve(process.cwd(), x));
-    } else {
-      ignitionFiles = fsExtra
-        .readdirSync(hre.config.paths.ignition)
-        .filter((x) => !x.startsWith("."));
-    }
+    const userModules = await loadUserModules(
+      hre.config.paths.ignition,
+      modulesFiles ?? []
+    );
 
-    const userModules: any[] = [];
-    for (const ignitionFile of ignitionFiles) {
-      const pathToFile = path.resolve(hre.config.paths.ignition, ignitionFile);
-
-      const fileExists = await fsExtra.pathExists(pathToFile);
-      if (!fileExists) {
-        throw new Error(`Module ${pathToFile} doesn't exist`);
-      }
-
-      const userModule = require(pathToFile);
-      userModules.push(userModule.default ?? userModule);
+    if (userModules.length === 0) {
+      console.warn("No Ignition modules found");
+      process.exit(0);
     }
 
     await hre.ignition.deployMany(userModules);
@@ -138,6 +126,11 @@ task("plan")
       hre.config.paths.ignition,
       modulesFiles ?? []
     );
+
+    if (userModules.length === 0) {
+      console.warn("No Ignition modules found");
+      process.exit(0);
+    }
 
     const plan = await hre.ignition.buildPlan(userModules);
 
