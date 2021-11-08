@@ -5,11 +5,7 @@ import path from "path";
 import semver from "semver";
 import type StackTraceParserT from "stacktrace-parser";
 
-import {
-  HardhatArguments,
-  HardhatConfig,
-  HardhatUserConfig,
-} from "../../../types";
+import { HardhatArguments, HardhatConfig } from "../../../types";
 import { HardhatContext } from "../../context";
 import { SUPPORTED_SOLIDITY_VERSION_RANGE } from "../../hardhat-network/stack-traces/solidityTracer";
 import { findClosestPackageJson } from "../../util/packageInfo";
@@ -81,7 +77,6 @@ export function loadConfigAndTasks(
 
   if (showSolidityConfigWarnings) {
     checkMissingSolidityConfig(userConfig);
-    checkUnsupportedRemappings(userConfig);
   }
 
   // To avoid bad practices we remove the previously exported stuff
@@ -97,6 +92,7 @@ export function loadConfigAndTasks(
 
   if (showSolidityConfigWarnings) {
     checkUnsupportedSolidityConfig(resolved);
+    checkUnsupportedRemappings(resolved);
   }
 
   return resolved;
@@ -237,36 +233,6 @@ Learn more about compiler configuration at https://hardhat.org/config"
   }
 }
 
-function checkUnsupportedRemappings(userConfig: HardhatUserConfig) {
-  if (typeof userConfig.solidity === "object") {
-    let remappings: boolean;
-    if ("compilers" in userConfig.solidity) {
-      remappings =
-        [
-          ...userConfig.solidity.compilers.filter(
-            ({ settings }) => settings?.remappings !== undefined
-          ),
-          ...Object.values(userConfig.solidity.overrides || {}).filter(
-            ({ settings }) => settings?.remappings !== undefined
-          ),
-        ].length > 0;
-    } else {
-      remappings = userConfig.solidity.settings?.remappings !== undefined;
-    }
-
-    if (remappings) {
-      console.warn(
-        chalk.yellow(
-          `Solidity remappings are not currently supported; you may experience unexpected compilation results. Remove any 'remappings' fields from your configuration to suppress this warning.
-
-Learn more about compiler configuration at https://hardhat.org/config
-`
-        )
-      );
-    }
-  }
-}
-
 function checkUnsupportedSolidityConfig(resolvedConfig: HardhatConfig) {
   const compilerVersions = resolvedConfig.solidity.compilers.map(
     (x) => x.version
@@ -291,6 +257,27 @@ function checkUnsupportedSolidityConfig(resolvedConfig: HardhatConfig) {
         } not fully supported yet. You can still use Hardhat, but some features, like stack traces, might not work correctly.
 
 Learn more at https://hardhat.org/reference/solidity-support
+`
+      )
+    );
+  }
+}
+
+function checkUnsupportedRemappings({ solidity }: HardhatConfig) {
+  const solcConfigs = [
+    ...solidity.compilers,
+    ...Object.values(solidity.overrides),
+  ];
+  const remappings = solcConfigs.filter(
+    ({ settings }) => settings.remappings !== undefined
+  );
+
+  if (remappings.length > 0) {
+    console.warn(
+      chalk.yellow(
+        `Solidity remappings are not currently supported; you may experience unexpected compilation results. Remove any 'remappings' fields from your configuration to suppress this warning.
+
+Learn more about compiler configuration at https://hardhat.org/config
 `
       )
     );
