@@ -887,7 +887,6 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       irregularStatesByBlockNumber: this._irregularStatesByBlockNumber,
       userProvidedNextBlockBaseFeePerGas:
         this.getUserProvidedNextBlockBaseFeePerGas(),
-      emptyBlockRanges: this._blockchain.getEmptyBlockRanges(),
     };
 
     this._irregularStatesByBlockNumber = new Map(
@@ -923,7 +922,6 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     // Note: There's no need to copy the maps here, as snapshots can only be
     // used once
     this._blockchain.deleteLaterBlocks(snapshot.latestBlock);
-    this._blockchain.setEmptyBlockRanges(snapshot.emptyBlockRanges);
     this._irregularStatesByBlockNumber = snapshot.irregularStatesByBlockNumber;
     const irregularStateOrUndefined = this._irregularStatesByBlockNumber.get(
       (await this.getLatestBlock()).header.number.toString()

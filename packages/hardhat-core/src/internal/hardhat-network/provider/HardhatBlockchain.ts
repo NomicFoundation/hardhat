@@ -45,14 +45,6 @@ export class HardhatBlockchain implements HardhatBlockchainInterface {
     this._data.addEmptyBlockRange(r);
   }
 
-  public getEmptyBlockRanges(): EmptyBlockRange[] {
-    return this._data.getEmptyBlockRanges();
-  }
-
-  public setEmptyBlockRanges(r: EmptyBlockRange[]) {
-    this._data.setEmptyBlockRanges(r);
-  }
-
   public async putBlock(block: Block): Promise<void> {
     await this.addBlock(block);
   }

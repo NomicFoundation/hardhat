@@ -127,7 +127,6 @@ export interface Snapshot {
   nextBlockTimestamp: BN;
   irregularStatesByBlockNumber: Map<string, Buffer>;
   userProvidedNextBlockBaseFeePerGas: BN | undefined;
-  emptyBlockRanges: EmptyBlockRange[];
 }
 
 export type SendTransactionResult =

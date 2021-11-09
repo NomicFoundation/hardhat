@@ -10,7 +10,6 @@ export interface HardhatBlockchainInterface extends BlockchainInterface {
   addEmptyBlockRange(r: EmptyBlockRange): void;
   deleteLaterBlocks(block: Block): void;
   getBlockByTransactionHash(transactionHash: Buffer): Promise<Block | null>;
-  getEmptyBlockRanges(): EmptyBlockRange[];
   getLatestBlock(): Promise<Block>;
   getLogs(filterParams: FilterParams): Promise<RpcLogOutput[]>;
   getTotalDifficulty(blockHash: Buffer): Promise<BN>;
@@ -18,5 +17,4 @@ export interface HardhatBlockchainInterface extends BlockchainInterface {
     transactionHash: Buffer
   ): Promise<RpcReceiptOutput | null>;
   getBaseFee(): Promise<BN>;
-  setEmptyBlockRanges(r: EmptyBlockRange[]): void;
 }
