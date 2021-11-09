@@ -467,14 +467,19 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     intervalInSeconds: BN = new BN(1)
   ) {
     // first mine any pending transactions:
-    while (this._txPool.hasPendingTransactions()) {
+    let blocksMined = 0;
+    while (
+      blockCount.ltn(blocksMined) &&
+      this._txPool.hasPendingTransactions()
+    ) {
       await this.mineBlock();
+      blocksMined += 1;
     }
 
     const latestBlockNumber = await this.getLatestBlockNumber();
     this._blockchain.addEmptyBlockRange({
       first: latestBlockNumber,
-      last: latestBlockNumber.add(blockCount),
+      last: latestBlockNumber.add(blockCount).subn(blocksMined),
       intervalInSeconds,
     });
   }
