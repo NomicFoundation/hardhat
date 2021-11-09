@@ -915,6 +915,21 @@ Please use the fully qualified name of the contract to disambiguate it.`,
 Hardhat's artifact resolution is case sensitive to ensure projects are portable across different operating systems.`,
       shouldBeReported: true,
     },
+    TYPO_SUGGESTION: {
+      number: 703,
+      message: `Artifact for contract "%contractName%" not found, but we found some that were similar:
+
+%similarNames%
+
+Please replace %contractName% for the correct contract name wherever you are trying to read its artifact.
+`,
+      title: "Similar artifacts found",
+      description: `Hardhat has detected that there may be a typo in the given contract name.
+
+Please double check your spelling of the requested contract name.
+`,
+      shouldBeReported: false,
+    },
   },
   PLUGINS: {
     BUIDLER_PLUGIN: {
