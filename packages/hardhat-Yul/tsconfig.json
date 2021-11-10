@@ -1,0 +1,14 @@
+{
+  "extends": "../../config/typescript/tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "allowJs": true,
+    "noImplicitAny": false // Typescript is more fun without the types
+  },
+  "exclude": ["./dist", "./node_modules", "./test/**/hardhat.config.ts"],
+  "references": [
+    {
+      "path": "../hardhat-core/src"
+    }
+  ]
+}

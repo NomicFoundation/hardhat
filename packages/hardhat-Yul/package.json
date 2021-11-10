@@ -1,0 +1,62 @@
+{
+  "name": "@ControlCplusControlV/hardhat-yul",
+  "version": "2.0.1",
+  "description": "Hardhat plugin to develop smart contracts in Yul",
+  "repository": "github:nomiclabs/hardhat",
+  "homepage": "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-vyper",
+  "author": "Nomic Labs LLC",
+  "license": "MIT",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
+  "keywords": [
+    "ethereum",
+    "smart-contracts",
+    "hardhat",
+    "hardhat-plugin",
+    "yul"
+  ],
+  "scripts": {
+    "lint": "yarn prettier --check && yarn eslint",
+    "lint:fix": "yarn prettier --write && yarn eslint --fix",
+    "eslint": "eslint 'src/**/*.ts' 'test/**/*.ts'",
+    "prettier": "prettier \"**/*.{js,md,json}\"",
+    "test": "mocha --recursive \"test/**/*.ts\" --exit",
+    "build": "tsc --build .",
+    "clean": "rimraf dist"
+  },
+  "files": [
+    "dist/src/",
+    "src/",
+    "LICENSE",
+    "README.md"
+  ],
+  "dependencies": {
+    "fs-extra": "^7.0.1",
+    "solpp": "^0.10.1",
+    "glob": "^7.1.3",
+    "@nomiclabs/hardhat-docker": "^2.0.0"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.2.0",
+    "@types/fs-extra": "^5.1.0",
+    "@types/glob": "^7.1.1",
+    "@types/mocha": "^5.2.6",
+    "@types/node": "^10.17.24",
+    "@typescript-eslint/eslint-plugin": "4.29.2",
+    "@typescript-eslint/parser": "4.29.2",
+    "chai": "^4.2.0",
+    "eslint": "^7.29.0",
+    "eslint-config-prettier": "8.3.0",
+    "eslint-plugin-import": "2.24.1",
+    "eslint-plugin-prettier": "3.4.0",
+    "hardhat": "^2.0.0",
+    "mocha": "^7.1.2",
+    "prettier": "2.3.2",
+    "rimraf": "^3.0.2",
+    "ts-node": "^8.1.0",
+    "typescript": "~4.0.3"
+  },
+  "peerDependencies": {
+    "hardhat": "^2.0.0"
+  }
+}
