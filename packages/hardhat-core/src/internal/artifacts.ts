@@ -73,7 +73,7 @@ export class Artifacts implements IArtifacts {
     fullyQualifiedName: string
   ): Promise<BuildInfo | undefined> {
     const artifactPath =
-      this._getArtifactPathFromFullyQualifiedNameSync(fullyQualifiedName);
+      this._formArtifactPathFromFullyQualifiedNameSync(fullyQualifiedName);
 
     const debugFilePath = this._getDebugFilePath(artifactPath);
     const buildInfoPath = await this._getBuildInfoFromDebugFile(debugFilePath);
@@ -116,7 +116,7 @@ export class Artifacts implements IArtifacts {
     );
 
     const artifactPath =
-      this._getArtifactPathFromFullyQualifiedNameSync(fullyQualifiedName);
+      this._formArtifactPathFromFullyQualifiedNameSync(fullyQualifiedName);
 
     await fsExtra.ensureDir(path.dirname(artifactPath));
 
@@ -509,17 +509,20 @@ export class Artifacts implements IArtifacts {
     return mostSimilarNames;
   }
 
-  private _getArtifactPathFromFullyQualifiedNameSync(
+  private _formArtifactPathFromFullyQualifiedNameSync(
     fullyQualifiedName: string
   ): string {
     const { sourceName, contractName } =
       parseFullyQualifiedName(fullyQualifiedName);
 
-    const artifactPath = path.join(
-      this._artifactsPath,
-      sourceName,
-      `${contractName}.json`
-    );
+    return path.join(this._artifactsPath, sourceName, `${contractName}.json`);
+  }
+
+  private _getArtifactPathFromFullyQualifiedNameSync(
+    fullyQualifiedName: string
+  ): string {
+    const artifactPath =
+      this._formArtifactPathFromFullyQualifiedNameSync(fullyQualifiedName);
 
     const trueCaseArtifactPath = this._trueCasePathSync(
       path.relative(this._artifactsPath, artifactPath),
