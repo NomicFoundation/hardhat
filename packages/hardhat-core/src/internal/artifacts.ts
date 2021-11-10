@@ -404,6 +404,13 @@ export class Artifacts implements IArtifacts {
     fullyQualifiedName: string
   ): never {
     const names = this._getAllFullyQualifiedNamesSync();
+
+    if (names.length === 0) {
+      throw new HardhatError(ERRORS.ARTIFACTS.NOT_FOUND, {
+        fullyQualifiedName,
+      });
+    }
+
     const similarNames = this._getSimilarContractNames(
       fullyQualifiedName,
       names
@@ -420,6 +427,13 @@ export class Artifacts implements IArtifacts {
     files: string[]
   ): never {
     const names = this._getAllContractNamesFromFiles(files);
+
+    if (names.length === 0) {
+      throw new HardhatError(ERRORS.ARTIFACTS.NOT_FOUND, {
+        contractName,
+      });
+    }
+
     const similarNames = this._getSimilarContractNames(contractName, names);
 
     if (similarNames.length === 1) {
