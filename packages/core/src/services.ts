@@ -13,7 +13,11 @@ interface TransactionOptions {
 export class ContractsService {
   private _ethersProvider: ethers.providers.Web3Provider;
 
-  constructor(private _providers: Providers, private _txSender: TxSender) {
+  constructor(
+    private _providers: Providers,
+    private _txSender: TxSender,
+    private _options: { pollingInterval: number }
+  ) {
     this._ethersProvider = new ethers.providers.Web3Provider(
       _providers.ethereumProvider
     );
@@ -138,7 +142,7 @@ export class ContractsService {
         txSent = txToSend;
       }
 
-      await sleep(5000);
+      await sleep(this._options.pollingInterval);
     }
 
     return txHash;

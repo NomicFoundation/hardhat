@@ -25,7 +25,6 @@ import { Contract } from "./types";
 export { Binding } from "./bindings";
 export { DeploymentPlan } from "./execution-engine";
 export { buildModule } from "./modules";
-export { ContractsService as IgnitionDeployer } from "./services";
 export {
   AddressLike,
   BindingOutput,
@@ -56,8 +55,11 @@ export class Ignition {
 
   public async deploy(
     userModules: Array<UserModule<any>>,
-    pathToJournal: string | undefined,
-    currentDeploymentResult: DeploymentResult
+    currentDeploymentResult: DeploymentResult,
+    {
+      pathToJournal,
+      txPollingInterval,
+    }: { pathToJournal: string | undefined; txPollingInterval: number }
   ) {
     log(`Start deploy, '${userModules.length}' modules`);
 
@@ -87,6 +89,7 @@ export class Ignition {
       {
         parallelizationLevel: 2,
         loggingEnabled: pathToJournal !== undefined,
+        txPollingInterval,
       }
     );
 

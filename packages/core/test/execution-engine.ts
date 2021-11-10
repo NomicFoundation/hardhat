@@ -8,6 +8,7 @@ import { emptyDeploymentResult, getMockedProviders, inc } from "./helpers";
 const executionEngineOptions = {
   parallelizationLevel: 1,
   loggingEnabled: false,
+  txPollingInterval: 100,
 };
 
 describe("ExecutionEngine", function () {

@@ -1,3 +1,5 @@
+import debug from "debug";
+
 import { InternalBinding } from "./bindings";
 import { TxSender } from "./tx-sender";
 import { Journal } from "./journal";
@@ -14,6 +16,7 @@ import {
 interface ExecutionEngineOptions {
   parallelizationLevel: number;
   loggingEnabled: boolean;
+  txPollingInterval: number;
 }
 
 interface ExecutorPlan {
@@ -24,6 +27,8 @@ type ModulePlan = "already-deployed" | ExecutorPlan[];
 export type DeploymentPlan = Record<string, ModulePlan>;
 
 export class ExecutionEngine {
+  private _log = debug("ignition:execution-engine");
+
   public static buildPlan(dag: DAG, currentDeploymentResult: DeploymentResult) {
     const plan: DeploymentPlan = {};
 
@@ -63,6 +68,7 @@ export class ExecutionEngine {
     const errorsPerModule: Map<string, string[]> = new Map();
     let hasErrors = false;
     for (const ignitionModule of dag.getModules()) {
+      this._log(`Validating module ${ignitionModule.id}`);
       const errors = await this._validateModule(ignitionModule);
       if (errors.length > 0) {
         hasErrors = true;
@@ -93,7 +99,12 @@ export class ExecutionEngine {
 
     // execute each module sequentially
     for (const ignitionModule of dag.getModules()) {
+      this._log(`Begin execution of module ${ignitionModule.id}`);
+
       if (deploymentResult.hasModule(ignitionModule.id)) {
+        this._log(
+          `A previous result for module ${ignitionModule.id} already exists`
+        );
         const previousModuleResult = deploymentResult.getModule(
           ignitionModule.id
         );
@@ -101,6 +112,8 @@ export class ExecutionEngine {
           continue;
         }
       }
+
+      this._log(`Executing module ${ignitionModule.id}`);
       const moduleResult = await this._executeModule(
         ignitionModule,
         deploymentResult
@@ -119,6 +132,9 @@ export class ExecutionEngine {
     const allErrors: string[] = [];
 
     for (const executor of executors) {
+      this._log(
+        `Validating binding ${executor.binding.id} of module ${ignitionModule.id}`
+      );
       const txSender = new TxSender(
         ignitionModule.id,
         executor.binding.id,
@@ -127,7 +143,8 @@ export class ExecutionEngine {
       const services = createServices(
         this._providers,
         txSender,
-        this._options.loggingEnabled
+        this._options.loggingEnabled,
+        this._options.txPollingInterval
       );
 
       const errors = await executor.validate(executor.binding.input, services);
@@ -202,6 +219,10 @@ export class ExecutionEngine {
       }
 
       for (const executor of ignitionModule.getExecutors()) {
+        this._log(
+          `Begin execution of executor ${executor.binding.id} of module ${ignitionModule.id}`
+        );
+
         if (executor.isReady() && runningCount < parallelizationLevel) {
           const dependencies = executor.binding.getDependencies();
           const allDependenciesReady = dependencies.every((d) =>
@@ -224,7 +245,8 @@ export class ExecutionEngine {
             const services = createServices(
               this._providers,
               txSender,
-              this._options.loggingEnabled
+              this._options.loggingEnabled,
+              this._options.txPollingInterval
             );
 
             // eslint-disable-next-line @typescript-eslint/no-floating-promises
@@ -435,11 +457,14 @@ export class ModuleResult {
 function createServices(
   providers: Providers,
   txSender: TxSender,
-  loggingEnabled: boolean
+  loggingEnabled: boolean,
+  txPollingInterval: number
 ): Services {
   const services: Services = {
     artifacts: new ArtifactsService(providers),
-    contracts: new ContractsService(providers, txSender),
+    contracts: new ContractsService(providers, txSender, {
+      pollingInterval: txPollingInterval,
+    }),
     transactions: new TransactionsService(providers),
     logging: new LoggingService({
       enabled: loggingEnabled,

@@ -25,7 +25,11 @@ export class IgnitionWrapper {
     services: any,
     private _ethers: HardhatEthers,
     private _isHardhatNetwork: boolean,
-    private _paths: HardhatPaths
+    private _paths: HardhatPaths,
+    private _deployOptions: {
+      pathToJournal: string | undefined;
+      txPollingInterval: number;
+    }
   ) {
     this._ignition = new Ignition(services, !this._isHardhatNetwork);
   }
@@ -33,18 +37,13 @@ export class IgnitionWrapper {
   public async deploy<T>(
     userModuleOrName: UserModule<T> | string
   ): Promise<Resolved<T>> {
-    const [resolvedOutput] = await this.deployMany([userModuleOrName]);
-    return resolvedOutput;
+    const [, resolvedOutputs] = await this.deployMany([userModuleOrName]);
+    return resolvedOutputs[0];
   }
 
   public async deployMany(
     userModulesOrNames: Array<UserModule<any> | string>
   ): Promise<Array<Resolved<any>>> {
-    const pathToJournal = path.resolve(
-      this._paths.root,
-      "ignition-journal.json"
-    );
-
     const { chainId } = await this._ethers.provider.getNetwork();
 
     const currentDeploymentResult = await this._getDeploymentResult(chainId);
@@ -61,8 +60,8 @@ export class IgnitionWrapper {
 
     const [deploymentResult, moduleOutputs] = await this._ignition.deploy(
       userModules,
-      this._isHardhatNetwork ? undefined : pathToJournal,
-      currentDeploymentResult ?? new DeploymentResult()
+      currentDeploymentResult ?? new DeploymentResult(),
+      this._deployOptions
     );
 
     const moduleHold = deploymentResult.isHold();
@@ -92,7 +91,7 @@ export class IgnitionWrapper {
       resolvedOutputs.push(resolvedOutput);
     }
 
-    return resolvedOutputs;
+    return [deploymentResult, resolvedOutputs];
   }
 
   public async buildPlan(

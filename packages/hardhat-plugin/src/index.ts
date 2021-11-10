@@ -1,16 +1,19 @@
 import "@nomiclabs/hardhat-ethers";
-import debug from "debug";
-import fsExtra from "fs-extra";
-import { extendConfig, extendEnvironment, task } from "hardhat/config";
+import {
+  extendConfig,
+  extendEnvironment,
+  subtask,
+  task,
+  types,
+} from "hardhat/config";
 import { lazyObject } from "hardhat/plugins";
 import { HardhatConfig, HardhatUserConfig } from "hardhat/types";
 import { Providers, UserModule } from "ignition";
 import path from "path";
 
 import { IgnitionWrapper } from "./ignition-wrapper";
+import { loadUserModules } from "./modules";
 import "./type-extensions";
-
-const log = debug("hardhat-ignition:main");
 
 extendConfig(
   (config: HardhatConfig, userConfig: Readonly<HardhatUserConfig>) => {
@@ -90,11 +93,18 @@ extendEnvironment((hre) => {
   };
 
   hre.ignition = lazyObject(() => {
+    const pathToJournal =
+      hre.network.name !== "hardhat"
+        ? path.resolve(hre.config.paths.root, "ignition-journal.json")
+        : undefined;
+    const txPollingInterval = hre.network.name !== "hardhat" ? 5000 : 100;
+
     return new IgnitionWrapper(
       services,
       hre.ethers,
       hre.network.name === "hardhat",
-      hre.config.paths
+      hre.config.paths,
+      { pathToJournal, txPollingInterval }
     );
   });
 });
@@ -109,13 +119,30 @@ task("deploy")
       modulesFiles ?? []
     );
 
-    if (userModules.length === 0) {
-      console.warn("No Ignition modules found");
-      process.exit(0);
-    }
-
-    await hre.ignition.deployMany(userModules);
+    await hre.run("deploy:deploy-modules", {
+      userModules,
+    });
   });
+
+subtask("deploy:deploy-modules")
+  .addParam("userModules", undefined, undefined, types.any)
+  .setAction(
+    async (
+      {
+        userModules,
+      }: { userModules: Array<UserModule<any>>; pathToJournal?: string },
+      hre
+    ) => {
+      if (userModules.length === 0) {
+        console.warn("No Ignition modules found");
+        process.exit(0);
+      }
+
+      const [deploymentResult] = await hre.ignition.deployMany(userModules);
+
+      return deploymentResult;
+    }
+  );
 
 task("plan")
   .addOptionalVariadicPositionalParam("modulesFiles")
@@ -151,40 +178,3 @@ task("plan")
       }
     }
   });
-
-async function loadUserModules(
-  ignitionDirectory: string,
-  modulesFiles: string[]
-): Promise<Array<UserModule<any>>> {
-  log(`Loading user modules from '${ignitionDirectory}'`);
-
-  let ignitionFiles: string[];
-  if (modulesFiles.length === 0) {
-    log("No files passed, reading all module files");
-
-    // load all modules in ignition's directory
-    ignitionFiles = fsExtra
-      .readdirSync(ignitionDirectory)
-      .filter((x) => !x.startsWith("."));
-  } else {
-    log(`Reading '${modulesFiles.length}' selected module files`);
-    ignitionFiles = modulesFiles.map((x) => path.resolve(process.cwd(), x));
-  }
-
-  log(`Loading '${ignitionFiles.length}' module files`);
-  const userModules: any[] = [];
-  for (const ignitionFile of ignitionFiles) {
-    const pathToFile = path.resolve(ignitionDirectory, ignitionFile);
-
-    const fileExists = await fsExtra.pathExists(pathToFile);
-    if (!fileExists) {
-      throw new Error(`Module ${pathToFile} doesn't exist`);
-    }
-
-    log(`Loading module file '${pathToFile}'`);
-    const userModule = require(pathToFile);
-    userModules.push(userModule.default ?? userModule);
-  }
-
-  return userModules;
-}
