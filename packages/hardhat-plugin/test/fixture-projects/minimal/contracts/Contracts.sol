@@ -1,6 +1,15 @@
-contract Foo {}
+contract Foo {
+  bool public isFoo = true;
+  uint public x = 1;
 
-contract Bar {}
+  function inc() public {
+    x++;
+  }
+}
+
+contract Bar {
+  bool public isBar = true;
+}
 
 contract UsesContract {
   address public contractAddress;

@@ -3,6 +3,10 @@ pragma solidity ^0.8.0;
 
 contract Foo {
   uint public x = 10;
+
+  function inc() public {
+    x++;
+  }
 }
 
 contract Bar {

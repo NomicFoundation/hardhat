@@ -1,12 +1,15 @@
 import {
   Bindable,
+  CallBinding,
+  CallOptions,
   ContractBinding,
   ContractOptions,
   InternalBinding,
+  InternalCallBinding,
   InternalContractBinding,
 } from "./bindings";
-import { ContractExecutor, Executor } from "./executors";
-import { Contract } from "./types";
+import { CallExecutor, ContractExecutor, Executor } from "./executors";
+import { Contract, Tx } from "./types";
 
 export class IgnitionModule {
   constructor(public readonly id: string, private _executors: Executor[]) {}
@@ -130,6 +133,11 @@ interface UserContractOptions {
   args?: Array<Bindable<any>>;
 }
 
+interface UserCallOptions {
+  id?: string;
+  args?: Array<Bindable<any>>;
+}
+
 export interface ModuleBuilder {
   getModuleId: () => string;
   addExecutor: (executor: Executor) => void;
@@ -138,6 +146,12 @@ export interface ModuleBuilder {
     contractName: string,
     options?: UserContractOptions
   ) => ContractBinding;
+
+  call: (
+    contract: ContractBinding,
+    method: string,
+    options?: UserCallOptions
+  ) => CallBinding;
 
   useModule: <T>(userModule: UserModule<T>) => T;
 }
@@ -182,6 +196,25 @@ export class ModuleBuilderImpl implements ModuleBuilder {
     });
 
     this.addExecutor(new ContractExecutor(b));
+
+    return b;
+  }
+
+  public call(
+    contract: ContractBinding,
+    method: string,
+    options?: UserCallOptions
+  ): InternalBinding<CallOptions, Tx> {
+    const id =
+      options?.id ?? `${(contract as InternalContractBinding).id}.${method}`;
+    const args = options?.args ?? [];
+    const b = new InternalCallBinding(this.getModuleId(), id, {
+      contract,
+      method,
+      args,
+    });
+
+    this.addExecutor(new CallExecutor(b));
 
     return b;
   }

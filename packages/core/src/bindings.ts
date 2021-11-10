@@ -1,6 +1,6 @@
-import { Contract } from "./types";
+import { Contract, Tx } from "./types";
 
-export type BindingOutput = string | number | Contract;
+export type BindingOutput = string | number | Contract | Tx;
 
 export function serializeBindingOutput(x: BindingOutput) {
   if (typeof x === "string") {
@@ -9,6 +9,8 @@ export function serializeBindingOutput(x: BindingOutput) {
     return { _type: "number", value: x };
   } else if ("address" in x) {
     return { _type: "contract", value: x };
+  } else if ("hash" in x) {
+    return { _type: "tx", value: x };
   }
 
   const exhaustiveCheck: never = x;
@@ -60,11 +62,18 @@ export interface ContractOptions {
   args: Array<Bindable<any>>;
 }
 
+export interface CallOptions {
+  contract: ContractBinding;
+  method: string;
+  args: Array<Bindable<any>>;
+}
+
 export type Bindable<T extends BindingOutput> = T | Binding<unknown, T>;
 
 export type AddressLike = Bindable<string> | Binding<any, Contract>;
 
 export class ContractBinding extends Binding<ContractOptions, Contract> {}
+export class CallBinding extends Binding<CallOptions, Tx> {}
 
 type Unflattened<T> = T[] | Array<Unflattened<T>>;
 
@@ -104,6 +113,32 @@ export class InternalContractBinding extends InternalBinding<
     };
 
     const dependencies = deepFlatten(mapToBindings(this.input.args));
+
+    return dependencies;
+  }
+}
+
+export class InternalCallBinding extends InternalBinding<CallOptions, Tx> {
+  public getDependencies(): InternalBinding[] {
+    const mapToBindings = (x: unknown): Unflattened<InternalBinding> => {
+      if (Array.isArray(x)) {
+        return x.map(mapToBindings);
+      }
+
+      if (InternalBinding.isBinding(x)) {
+        return [x];
+      }
+
+      if (typeof x === "object" && x !== null) {
+        return Object.values(x).map(mapToBindings);
+      }
+
+      return [];
+    };
+
+    const dependencies = deepFlatten(
+      mapToBindings([this.input.contract, ...this.input.args])
+    );
 
     return dependencies;
   }

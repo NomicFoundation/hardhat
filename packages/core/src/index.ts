@@ -69,7 +69,7 @@ export class Ignition {
 
     for (const userModule of userModules) {
       log("Load module '%s'", userModule.id);
-      const moduleOutput = m.useModule(userModule);
+      const moduleOutput = m.useModule(userModule) ?? {};
       moduleOutputs.push(moduleOutput);
     }
 

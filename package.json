@@ -8,6 +8,7 @@
   "scripts": {
     "build": "wsrun --exclude-missing --serial build",
     "lint": "wsrun --exclude-missing --serial lint",
+    "test": "wsrun --exclude-missing --serial test",
     "watch": "tsc --build --watch packages/core packages/hardhat-plugin"
   },
   "devDependencies": {

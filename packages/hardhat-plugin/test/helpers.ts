@@ -22,7 +22,29 @@ export async function waitForPendingTxs(hre: any, expectedCount: number) {
 const sleep = (timeout: number) =>
   new Promise((res) => setTimeout(res, timeout));
 
-type ExpectedBindingResult = "contract";
+export const resultAssertions = {
+  contract: (predicate?: ContractResultPredicate): ExpectedBindingResult => {
+    return {
+      kind: "contract",
+      predicate: predicate ?? (async () => {}),
+    };
+  },
+  transaction: (): ExpectedBindingResult => {
+    return {
+      kind: "transaction",
+    };
+  },
+};
+
+type ContractResultPredicate = (contract: any) => Promise<void>;
+type ExpectedBindingResult =
+  | {
+      kind: "contract";
+      predicate: ContractResultPredicate;
+    }
+  | {
+      kind: "transaction";
+    };
 type ExpectedModuleResult = Record<string, ExpectedBindingResult>;
 type ExpectedDeploymentResult = Record<string, ExpectedModuleResult>;
 
@@ -48,9 +70,19 @@ export async function assertDeploymentResult(
     )) {
       const bindingResult = resultModule.getResult(bindingId);
 
-      if (expectedBindingResult === "contract") {
+      if (expectedBindingResult.kind === "contract") {
         assert.isDefined(bindingResult.address);
         await assertHasCode(hre, bindingResult.address);
+
+        const contract = await hre.ethers.getContractAt(
+          bindingResult.abi,
+          bindingResult.address
+        );
+
+        await expectedBindingResult.predicate(contract);
+      } else if (expectedBindingResult.kind === "transaction") {
+        assert.isDefined(bindingResult.hash);
+        await assertTxMined(hre, bindingResult.hash);
       } else {
         const _exhaustiveCheck: never = expectedBindingResult;
       }
@@ -61,6 +93,13 @@ export async function assertDeploymentResult(
 async function assertHasCode(hre: any, address: string) {
   const code = await hre.network.provider.send("eth_getCode", [address]);
   assert.notEqual(code, "0x");
+}
+
+async function assertTxMined(hre: any, hash: string) {
+  const receipt = await hre.network.provider.send("eth_getTransactionReceipt", [
+    hash,
+  ]);
+  assert.isNotNull(receipt);
 }
 
 export async function deployModules(
