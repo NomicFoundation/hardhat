@@ -2215,6 +2215,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
       if (
         this._forkBlockNumber !== undefined &&
+        this._forkNetworkId !== undefined &&
         blockContext!.header.number.lt(new BN(this._forkBlockNumber))
       ) {
         originalHardfork = this._vm._common.hardfork();
@@ -2222,7 +2223,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
           this._selectHardfork(blockContext!.header.number)
         );
         originalChainId = this._vm._common.chainId();
-        this._vm._common.setChain(blockContext!._common.chainId());
+        this._vm._common.setChain(this._forkNetworkId);
       }
 
       return await this._vm.runTx({
