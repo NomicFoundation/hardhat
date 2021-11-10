@@ -126,12 +126,12 @@ const networkIDtoEndpoints: NetworkMap = {
     browserURL: "https://testnet.snowtrace.io/",
   },
   [NetworkID.MOONRIVER]: {
-      apiURL: "https://api-moonriver.moonscan.io/api",
-      browserURL: "https://moonscan.io",
+    apiURL: "https://api-moonriver.moonscan.io/api",
+    browserURL: "https://moonscan.io",
   },
   [NetworkID.MOONBASE_ALPHA]: {
-      apiURL: "https://api-moonbase.moonscan.io/api",
-      browserURL: "https://moonbase.moonscan.io/",
+    apiURL: "https://api-moonbase.moonscan.io/api",
+    browserURL: "https://moonbase.moonscan.io/",
   },
 };
 
