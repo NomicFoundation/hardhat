@@ -368,6 +368,14 @@ module.exports.officialPlugins = [
     description: "Adds support to compile Vyper smart contracts",
     tags: ["Vyper", "Compiler"],
   },
+    {
+    name: "@ControlCplusControlV/hardhat-Yul",
+    author: "ControlCplusControlV",
+    authorUrl: "https://github.com/controlCplusControlV/",
+    description:
+      "Hardhat plugin to compile the Yul and Yul+ languages into solc compatible artifacts. Works with .yul and .yulp file extensions",
+    tags: ["Deployment", "CREATE2", "Tasks"],
+  },
 ].map((p) => ({
   ...p,
   normalizedName: p.name.split("/").join("-").replace(/^@/, ""),
