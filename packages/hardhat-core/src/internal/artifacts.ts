@@ -51,23 +51,8 @@ export class Artifacts implements IArtifacts {
   }
 
   public readArtifactSync(name: string): Artifact {
-    try {
-      const artifactPath = this._getArtifactPathSync(name);
-      return fsExtra.readJsonSync(artifactPath);
-    } catch (error) {
-      if (
-        typeof error.message === "string" &&
-        error.message.includes("no matching file exists")
-      ) {
-        throw new HardhatError(ERRORS.INTERNAL.WRONG_ARTIFACT_PATH, {
-          contractName: name,
-          artifactPath,
-        });
-      }
-
-      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
-      throw error;
-    }
+    const artifactPath = this._getArtifactPathSync(name);
+    return fsExtra.readJsonSync(artifactPath);
   }
 
   public async artifactExists(name: string): Promise<boolean> {
@@ -347,6 +332,31 @@ export class Artifacts implements IArtifacts {
     }
   }
 
+  /**
+   * Same signature as imported function, but abstracted to handle the only error we consistently care about
+   * and synchronous
+   */
+  private _trueCasePathSync(
+    filePath: string,
+    basePath?: string
+  ): string | null {
+    const { trueCasePathSync } = require("true-case-path");
+
+    try {
+      const result = trueCasePathSync(filePath, basePath);
+      return result;
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        if (error.message.includes("no matching file exists")) {
+          return null;
+        }
+      }
+
+      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+      throw error;
+    }
+  }
+
   private async _getArtifactPathFromFullyQualifiedName(
     fullyQualifiedName: string
   ): Promise<string> {
@@ -502,8 +512,6 @@ export class Artifacts implements IArtifacts {
   private _getArtifactPathFromFullyQualifiedNameSync(
     fullyQualifiedName: string
   ): string {
-    const { trueCasePathSync } = require("true-case-path");
-
     const { sourceName, contractName } =
       parseFullyQualifiedName(fullyQualifiedName);
 
@@ -513,10 +521,14 @@ export class Artifacts implements IArtifacts {
       `${contractName}.json`
     );
 
-    const trueCaseArtifactPath = trueCasePathSync(
+    const trueCaseArtifactPath = this._trueCasePathSync(
       path.relative(this._artifactsPath, artifactPath),
       this._artifactsPath
     );
+
+    if (trueCaseArtifactPath === null) {
+      return this._handleWrongArtifactForFullyQualifiedName(fullyQualifiedName);
+    }
 
     if (artifactPath !== trueCaseArtifactPath) {
       throw new HardhatError(ERRORS.ARTIFACTS.WRONG_CASING, {
