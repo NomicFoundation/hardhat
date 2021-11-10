@@ -351,7 +351,7 @@ export class HardhatModule {
 
   // hardhat_mine
   private async _hardhatMineAction(blockCount?: BN, interval?: BN) {
-    await this._node.mineEmptyBlocks(blockCount, interval);
+    await this._node.mineBlocks(blockCount, interval);
   }
   private _hardhatMineParams(params: any[]): [BN, BN] {
     return validateParams(params, rpcQuantity, rpcQuantity);

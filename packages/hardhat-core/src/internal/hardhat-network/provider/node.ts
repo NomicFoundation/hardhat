@@ -462,7 +462,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     return result;
   }
 
-  public async mineEmptyBlocks(
+  public async mineBlocks(
     blockCount: BN = new BN(1),
     intervalInSeconds: BN = new BN(1)
   ) {
