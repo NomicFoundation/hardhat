@@ -15,7 +15,7 @@ describe("integration tests", function () {
   it("should deploy a contract", async function () {
     // given
     const userModule = buildModule("MyModule", (m) => {
-      const foo = m.contract("Foo");
+      m.contract("Foo");
     });
 
     // when
@@ -34,8 +34,8 @@ describe("integration tests", function () {
   it("should deploy two contracts in parallel", async function () {
     // given
     const userModule = buildModule("MyModule", (m) => {
-      const foo = m.contract("Foo");
-      const bar = m.contract("Bar");
+      m.contract("Foo");
+      m.contract("Bar");
     });
 
     // when
@@ -58,7 +58,7 @@ describe("integration tests", function () {
     // given
     const userModule = buildModule("MyModule", (m) => {
       const foo = m.contract("Foo");
-      const usesContract = m.contract("UsesContract", {
+      m.contract("UsesContract", {
         args: [foo],
       });
     });
