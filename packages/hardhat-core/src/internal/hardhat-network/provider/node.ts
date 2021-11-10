@@ -466,8 +466,9 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     blockCount: BN = new BN(1),
     intervalInSeconds: BN = new BN(1)
   ) {
-    // first mine any pending transactions:
     let blocksMined = 0;
+
+    // first mine any pending transactions:
     while (
       blockCount.ltn(blocksMined) &&
       this._txPool.hasPendingTransactions()
@@ -476,12 +477,20 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       blocksMined += 1;
     }
 
-    const latestBlockNumber = await this.getLatestBlockNumber();
-    this._blockchain.addEmptyBlockRange({
-      first: latestBlockNumber,
-      last: latestBlockNumber.add(blockCount).subn(blocksMined),
-      intervalInSeconds,
-    });
+    if (blockCount.subn(blocksMined).gtn(1)) {
+      // mine a range of INVALID blocks:
+      const latestBlockNumber = await this.getLatestBlockNumber();
+      this._blockchain.addEmptyBlockRange({
+        first: latestBlockNumber,
+        last: latestBlockNumber.add(blockCount).subn(blocksMined),
+        intervalInSeconds,
+      });
+
+      // TODO: finally, mine a VALID block AFTER the range
+    } else {
+      // only one more block is needed. just mine it regularly:
+      await this.mineBlock();
+    }
   }
 
   public async runCall(
