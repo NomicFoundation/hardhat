@@ -134,6 +134,8 @@ export class HardhatNode extends EventEmitter {
       allowUnlimitedContractSize,
       tracingConfig,
       minGasPrice,
+      networkId,
+      chainId,
     } = config;
 
     let common: Common;
@@ -256,6 +258,8 @@ export class HardhatNode extends EventEmitter {
       minGasPrice,
       initialBlockTimeOffset,
       genesisAccounts,
+      networkId,
+      chainId,
       tracingConfig,
       forkNetworkId,
       forkBlockNum,
@@ -331,6 +335,8 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     private _minGasPrice: BN,
     private _blockTimeOffsetSeconds: BN = new BN(0),
     genesisAccounts: GenesisAccount[],
+    private readonly _configNetworkId: number,
+    private readonly _configChainId: number,
     tracingConfig?: TracingConfig,
     private _forkNetworkId?: number,
     private _forkBlockNumber?: number,
@@ -2150,7 +2156,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     const initialStateRoot = await this._stateManager.getStateRoot();
 
     let blockContext: Block | undefined;
-    let originalHardfork: string | undefined;
+    let originalCommon: Common | undefined;
 
     try {
       if (blockNumberOrPending === "pending") {
@@ -2196,10 +2202,16 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         (blockContext.header as any).baseFeePerGas = new BN(0);
       }
 
-      originalHardfork = this._vm._common.hardfork();
-      this._vm._common.setHardfork(
-        this._selectHardfork(blockContext!.header.number)
-      );
+      originalCommon = (this._vm as any)._common;
+      (this._vm as any)._common = new Common({
+        chain: {
+          // eslint-disable-next-line @typescript-eslint/dot-notation
+          ...this._vm._common["_chainParams"],
+          chainId: this._configChainId,
+          networkId: this._configNetworkId,
+        },
+        hardfork: this._selectHardfork(blockContext!.header.number),
+      });
 
       return await this._vm.runTx({
         block: blockContext,
@@ -2210,8 +2222,8 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       });
     } finally {
       await this._stateManager.setStateRoot(initialStateRoot);
-      if (originalHardfork !== undefined) {
-        this._vm._common.setHardfork(originalHardfork);
+      if (originalCommon !== undefined) {
+        (this._vm as any)._common = originalCommon;
       }
     }
   }
