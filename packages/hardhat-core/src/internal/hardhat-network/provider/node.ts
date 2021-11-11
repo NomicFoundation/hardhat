@@ -2421,7 +2421,15 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
   private _getCommonForTracing(networkId: number, blockNumber: number): Common {
     try {
-      const common = new Common({ chain: networkId });
+      const common = new Common({
+        chain: {
+          // eslint-disable-next-line @typescript-eslint/dot-notation
+          ...Common["_getChainParams"]("mainnet"),
+          chainId: networkId,
+          networkId,
+        },
+        hardfork: this._selectHardfork(new BN(blockNumber)),
+      });
 
       common.setHardfork(
         this._selectHardfork(
