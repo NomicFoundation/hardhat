@@ -1289,12 +1289,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
             );
           }
 
-          if (
-            this._forkBlockNumber !== undefined &&
-            blockNumber < this._forkBlockNumber
-          ) {
-            vm._common.setHardfork(this._selectHardfork(new BN(blockNumber)));
-          }
+          vm._common.setHardfork(this._selectHardfork(new BN(blockNumber)));
 
           const txHash = txWithCommon.hash();
           if (txHash.equals(hash)) {
@@ -2212,15 +2207,10 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         (blockContext.header as any).baseFeePerGas = new BN(0);
       }
 
-      if (
-        this._forkBlockNumber !== undefined &&
-        blockContext!.header.number.lt(new BN(this._forkBlockNumber))
-      ) {
-        originalHardfork = this._vm._common.hardfork();
-        this._vm._common.setHardfork(
-          this._selectHardfork(blockContext!.header.number)
-        );
-      }
+      originalHardfork = this._vm._common.hardfork();
+      this._vm._common.setHardfork(
+        this._selectHardfork(blockContext!.header.number)
+      );
 
       return await this._vm.runTx({
         block: blockContext,
@@ -2329,15 +2319,12 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   }
 
   public isEip1559Active(blockNumberOrPending?: BN | "pending"): boolean {
-    const block =
-      blockNumberOrPending !== "pending" ? blockNumberOrPending : undefined;
     if (
-      block !== undefined &&
-      this._forkBlockNumber !== undefined &&
-      block.lt(new BN(this._forkBlockNumber))
+      blockNumberOrPending !== undefined &&
+      blockNumberOrPending !== "pending"
     ) {
       return this._vm._common.hardforkGteHardfork(
-        this._selectHardfork(block),
+        this._selectHardfork(blockNumberOrPending),
         "london"
       );
     }
