@@ -483,13 +483,14 @@ export class Artifacts implements IArtifacts {
     files: string[],
     similarNames: string[]
   ): never {
-    const groupBy = require("lodash/groupBy");
     const outputNames = [];
+    const groups = similarNames.reduce((obj, cur) => {
+      obj[cur] = obj[cur] ? obj[cur] + 1 : 1;
+      return obj;
+    }, {} as { [k: string]: number });
 
-    // groupBy(similarNames) === { Greeter: ['Greeter', 'Greeter'], Greater: ['Greater'] }
-    for (const nameGroup of groupBy(similarNames).entries()) {
-      if (nameGroup.length > 1) {
-        const name = nameGroup[0];
+    for (const [name, occurrances] of Object.entries(groups)) {
+      if (occurrances > 1) {
         for (const file of files) {
           if (path.basename(file) === `${name}.json`) {
             outputNames.push(
@@ -500,7 +501,7 @@ export class Artifacts implements IArtifacts {
         continue;
       }
 
-      outputNames.push(nameGroup[0]);
+      outputNames.push(name);
     }
 
     throw new HardhatError(ERRORS.ARTIFACTS.TYPO_SUGGESTION, {
