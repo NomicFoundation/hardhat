@@ -2401,7 +2401,11 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     }
     const hardforkName = highestFound.hardfork;
     if (!HARDHAT_NETWORK_SUPPORTED_HARDFORKS.includes(hardforkName)) {
-      throw new InternalError(`Unsupported hardfork ${hardforkName}`);
+      throw new InternalError(
+        `Tried to run a call or transaction in the context of a block whose hardfork is "${hardforkName}", but Hardhat Network only supports the following hardforks: ${HARDHAT_NETWORK_SUPPORTED_HARDFORKS.join(
+          ", "
+        )}`
+      );
     }
     return hardforkName;
   }
