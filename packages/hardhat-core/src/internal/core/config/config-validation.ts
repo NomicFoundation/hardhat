@@ -144,7 +144,9 @@ function isValidHardforkName(name: string) {
 }
 
 const HardforkNameType = new t.Type<HardforkName>(
-  "HardforkName",
+  Object.values(HardforkName)
+    .map((v) => `"${v}"`)
+    .join(" | "),
   (name: unknown): name is HardforkName =>
     typeof name === "string" && isValidHardforkName(name),
   (u, c) => {
