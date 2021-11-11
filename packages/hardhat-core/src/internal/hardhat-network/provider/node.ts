@@ -201,10 +201,6 @@ export class HardhatNode extends EventEmitter {
 
       if (config.chains.has(forkNetworkId)) {
         hardforkActivations = config.chains.get(forkNetworkId)!.hardforkHistory;
-      } else {
-        throw new InternalError(
-          `No hardfork history configured for chain ID ${forkNetworkId}`
-        );
       }
     } else {
       const hardhatStateManager = new HardhatStateManager();
