@@ -204,11 +204,6 @@ export class HardhatNode extends EventEmitter {
           `No hardfork history configured for chain ID ${forkNetworkId}`
         );
       }
-      hardforkActivations.forEach((block, hardforkName) => {
-        if (!HARDHAT_NETWORK_SUPPORTED_HARDFORKS.includes(hardforkName)) {
-          throw new InternalError(`Unsupported hardfork ${hardforkName}`);
-        }
-      });
     } else {
       const hardhatStateManager = new HardhatStateManager();
       await hardhatStateManager.initializeGenesisAccounts(genesisAccounts);
