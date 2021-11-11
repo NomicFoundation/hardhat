@@ -74,6 +74,10 @@ class TimelockCallExecutor extends Executor<TimelockCallOptions, string> {
   ): Promise<string[]> {
     return [];
   }
+
+  public getDescription() {
+    return "Deploy contract with multisig and timelock";
+  }
 }
 
 interface TimelockCallOptions {

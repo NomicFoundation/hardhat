@@ -180,6 +180,10 @@ class MultisigAndTimelockExecutor extends Executor<
   public async validate(input: {}, services: Services): Promise<string[]> {
     return [];
   }
+
+  public getDescription() {
+    return "Deploy contract with multisig and timelock";
+  }
 }
 
 class MultisigAndTimelockBinding extends InternalBinding<

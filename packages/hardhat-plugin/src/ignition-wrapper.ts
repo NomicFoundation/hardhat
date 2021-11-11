@@ -213,7 +213,7 @@ export class IgnitionWrapper {
         moduleResult.addResult(bindingId, deserializeBindingOutput(result));
       }
 
-      deploymentResult.addResult(moduleId, moduleResult);
+      deploymentResult.addResult(moduleResult);
     }
 
     return deploymentResult;
