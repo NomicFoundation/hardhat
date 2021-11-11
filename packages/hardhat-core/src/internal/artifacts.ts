@@ -73,7 +73,7 @@ export class Artifacts implements IArtifacts {
     fullyQualifiedName: string
   ): Promise<BuildInfo | undefined> {
     const artifactPath =
-      this._formArtifactPathFromFullyQualifiedNameSync(fullyQualifiedName);
+      this.formArtifactPathFromFullyQualifiedName(fullyQualifiedName);
 
     const debugFilePath = this._getDebugFilePath(artifactPath);
     const buildInfoPath = await this._getBuildInfoFromDebugFile(debugFilePath);
@@ -116,7 +116,7 @@ export class Artifacts implements IArtifacts {
     );
 
     const artifactPath =
-      this._formArtifactPathFromFullyQualifiedNameSync(fullyQualifiedName);
+      this.formArtifactPathFromFullyQualifiedName(fullyQualifiedName);
 
     await fsExtra.ensureDir(path.dirname(artifactPath));
 
@@ -223,6 +223,18 @@ export class Artifacts implements IArtifacts {
     }
   }
 
+  /**
+   * Returns the absolute path to the given artifact
+   */
+  public formArtifactPathFromFullyQualifiedName(
+    fullyQualifiedName: string
+  ): string {
+    const { sourceName, contractName } =
+      parseFullyQualifiedName(fullyQualifiedName);
+
+    return path.join(this._artifactsPath, sourceName, `${contractName}.json`);
+  }
+
   private _getBuildInfoName(
     solcVersion: string,
     solcLongVersion: string,
@@ -250,7 +262,7 @@ export class Artifacts implements IArtifacts {
    */
   private async _getArtifactPath(name: string): Promise<string> {
     if (isFullyQualifiedName(name)) {
-      return this._getArtifactPathFromFullyQualifiedName(name);
+      return this._getValidArtifactPathFromFullyQualifiedName(name);
     }
 
     const files = await this.getArtifactPaths();
@@ -301,7 +313,7 @@ export class Artifacts implements IArtifacts {
    */
   private _getArtifactPathSync(name: string): string {
     if (isFullyQualifiedName(name)) {
-      return this._getArtifactPathFromFullyQualifiedNameSync(name);
+      return this._getValidArtifactPathFromFullyQualifiedNameSync(name);
     }
 
     const files = this._getArtifactPathsSync();
@@ -357,17 +369,27 @@ export class Artifacts implements IArtifacts {
     }
   }
 
-  private async _getArtifactPathFromFullyQualifiedName(
+  /**
+   * DO NOT DELETE OR CHANGE
+   *
+   * use this.formArtifactPathFromFullyQualifiedName instead
+   * @deprecated until typechain migrates to public version
+   * @see https://github.com/dethcrypto/TypeChain/issues/544
+   */
+  private _getArtifactPathFromFullyQualifiedName(
     fullyQualifiedName: string
-  ): Promise<string> {
+  ): string {
     const { sourceName, contractName } =
       parseFullyQualifiedName(fullyQualifiedName);
 
-    const artifactPath = path.join(
-      this._artifactsPath,
-      sourceName,
-      `${contractName}.json`
-    );
+    return path.join(this._artifactsPath, sourceName, `${contractName}.json`);
+  }
+
+  private async _getValidArtifactPathFromFullyQualifiedName(
+    fullyQualifiedName: string
+  ): Promise<string> {
+    const artifactPath =
+      this.formArtifactPathFromFullyQualifiedName(fullyQualifiedName);
 
     const trueCaseArtifactPath = await this._trueCasePath(
       path.relative(this._artifactsPath, artifactPath),
@@ -523,20 +545,11 @@ export class Artifacts implements IArtifacts {
     return mostSimilarNames;
   }
 
-  private _formArtifactPathFromFullyQualifiedNameSync(
-    fullyQualifiedName: string
-  ): string {
-    const { sourceName, contractName } =
-      parseFullyQualifiedName(fullyQualifiedName);
-
-    return path.join(this._artifactsPath, sourceName, `${contractName}.json`);
-  }
-
-  private _getArtifactPathFromFullyQualifiedNameSync(
+  private _getValidArtifactPathFromFullyQualifiedNameSync(
     fullyQualifiedName: string
   ): string {
     const artifactPath =
-      this._formArtifactPathFromFullyQualifiedNameSync(fullyQualifiedName);
+      this.formArtifactPathFromFullyQualifiedName(fullyQualifiedName);
 
     const trueCaseArtifactPath = this._trueCasePathSync(
       path.relative(this._artifactsPath, artifactPath),
