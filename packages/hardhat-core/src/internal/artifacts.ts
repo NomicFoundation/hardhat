@@ -490,13 +490,13 @@ export class Artifacts implements IArtifacts {
     for (const nameGroup of groupBy(similarNames).entries()) {
       if (nameGroup.length > 1) {
         const name = nameGroup[0];
-        const matchingFiles = files.filter(
-          (file) => path.basename(file) === `${name}.json`
-        );
-        const candidates = matchingFiles
-          .map(this._getFullyQualifiedNameFromPath)
-          .map(path.normalize);
-        outputNames.push(...candidates);
+        for (const file of files) {
+          if (path.basename(file) === `${name}.json`) {
+            outputNames.push(
+              path.normalize(this._getFullyQualifiedNameFromPath(file))
+            );
+          }
+        }
         continue;
       }
 
