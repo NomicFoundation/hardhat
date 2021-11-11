@@ -30,7 +30,6 @@ import { CompilerInput, CompilerOutput } from "../../../types";
 import { HardforkHistoryConfig } from "../../../types/config";
 import { HARDHAT_NETWORK_SUPPORTED_HARDFORKS } from "../../constants";
 import {
-  defaultHardhatNetworkParams,
   HARDHAT_NETWORK_DEFAULT_INITIAL_BASE_FEE_PER_GAS,
   HARDHAT_NETWORK_DEFAULT_MAX_PRIORITY_FEE_PER_GAS,
 } from "../../core/config/default-config";
@@ -200,11 +199,6 @@ export class HardhatNode extends EventEmitter {
 
       if (config.chains.has(forkNetworkId)) {
         hardforkActivations = config.chains.get(forkNetworkId)!.hardforkHistory;
-      } else if (defaultHardhatNetworkParams.chains.has(forkNetworkId)) {
-        hardforkActivations =
-          defaultHardhatNetworkParams.chains.get(
-            forkNetworkId
-          )!.hardforkHistory;
       } else {
         throw new InternalError(
           `No hardfork history configured for chain ID ${forkNetworkId}`
