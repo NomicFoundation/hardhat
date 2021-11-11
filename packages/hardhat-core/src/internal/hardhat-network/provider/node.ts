@@ -2388,16 +2388,10 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     blockNumber: BN,
     defaultName = this._vm._common.hardfork() as HardforkName
   ): HardforkName {
-    function assertSupported(n: HardforkName) {
-      if (!HARDHAT_NETWORK_SUPPORTED_HARDFORKS.includes(n)) {
-        throw new InternalError(`Unsupported hardfork ${n}`);
-      }
-    }
     if (
       this._forkBlockNumber === undefined ||
       blockNumber.gte(new BN(this._forkBlockNumber))
     ) {
-      assertSupported(defaultName);
       return defaultName;
     }
     /** search this._hardforkActivations for the highest block number that
@@ -2421,8 +2415,11 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         )}. For more information, see https://hardhat.org/hardhat-network/reference/#config`
       );
     }
-    assertSupported(highestFound.hardfork);
-    return highestFound.hardfork;
+    const hardforkName = highestFound.hardfork;
+    if (!HARDHAT_NETWORK_SUPPORTED_HARDFORKS.includes(hardforkName)) {
+      throw new InternalError(`Unsupported hardfork ${hardforkName}`);
+    }
+    return hardforkName;
   }
 
   private _assertHardforkActivations(blockNumber: BN | number) {
