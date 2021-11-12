@@ -286,6 +286,13 @@ module.exports.communityPlugins = [
       "Hardhat plugin to deploy your smart contracts across multiple EVM chains with the same deterministic address.",
     tags: ["Deployment", "CREATE2", "Tasks"],
   },
+  {
+    name: "hardhat-faucet",
+    author: "Han Lin Yap",
+    authorUrl: "https://github.com/codler",
+    description: "Get coin from faucet",
+    tags: ["Tasks", "Testing"],
+  },
 ];
 
 module.exports.officialPlugins = [
