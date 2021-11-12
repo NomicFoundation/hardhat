@@ -13,7 +13,6 @@
 // trying to augment the config types.
 
 import type { BN } from "ethereumjs-util";
-import { HardforkName } from "../internal/util/hardforks";
 
 // Networks config
 
@@ -114,7 +113,10 @@ export interface NetworksConfig {
 
 export type NetworkConfig = HardhatNetworkConfig | HttpNetworkConfig;
 
-export type HardforkHistoryConfig = Map<HardforkName, /* blockNumber */ number>;
+export type HardforkHistoryConfig = Map<
+  /* hardforkName */ string,
+  /* blockNumber */ number
+>;
 
 export interface HardhatNetworkChainConfig {
   hardforkHistory: HardforkHistoryConfig;

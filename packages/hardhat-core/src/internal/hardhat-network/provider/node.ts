@@ -2371,7 +2371,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   private _selectHardfork(
     blockNumber: BN,
     defaultName = this._vm._common.hardfork() as HardforkName
-  ): HardforkName {
+  ): string {
     if (
       this._forkBlockNumber === undefined ||
       blockNumber.gte(new BN(this._forkBlockNumber))
@@ -2389,8 +2389,8 @@ Hardhat Network's forking functionality only works with blocks from at least spu
      * isn't higher than blockNumber, and then return that found block number's
      * associated hardfork name. */
     const activations = this._hardforkActivations!; // yes !, just asserted it.
-    let highestFound: { hardfork: HardforkName; block: number } | undefined;
-    activations.forEach((block: number, hardfork: HardforkName) => {
+    let highestFound: { hardfork: string; block: number } | undefined;
+    activations.forEach((block: number, hardfork: string) => {
       if (
         highestFound === undefined ||
         (block > highestFound.block && new BN(block).lte(blockNumber))
