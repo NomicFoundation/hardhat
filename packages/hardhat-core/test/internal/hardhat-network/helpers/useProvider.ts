@@ -1,6 +1,6 @@
 import { BN } from "ethereumjs-util";
 
-import { HardhatNetworkChainConfigByChainId } from "../../../../src/types/config";
+import { HardhatNetworkChainsConfig } from "../../../../src/types/config";
 import { defaultHardhatNetworkParams } from "../../../../src/internal/core/config/default-config";
 import { BackwardsCompatibilityProviderAdapter } from "../../../../src/internal/core/providers/backwards-compatibility";
 import { JsonRpcServer } from "../../../../src/internal/hardhat-network/jsonrpc/server";
@@ -47,7 +47,7 @@ export interface UseProviderOptions {
   accounts?: Array<{ privateKey: string; balance: BN }>;
   allowUnlimitedContractSize?: boolean;
   initialBaseFeePerGas?: number;
-  chains?: HardhatNetworkChainConfigByChainId;
+  chains?: HardhatNetworkChainsConfig;
 }
 
 export function useProvider({

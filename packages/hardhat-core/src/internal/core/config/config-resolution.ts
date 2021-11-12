@@ -7,7 +7,7 @@ import {
   HardhatConfig,
   HardhatNetworkAccountsConfig,
   HardhatNetworkChainConfig,
-  HardhatNetworkChainConfigByChainId,
+  HardhatNetworkChainsConfig,
   HardhatNetworkConfig,
   HardhatNetworkForkingConfig,
   HardhatNetworkMiningConfig,
@@ -174,7 +174,7 @@ function resolveHardhatNetworkConfig(
   const initialDate =
     hardhatNetworkConfig.initialDate ?? new Date().toISOString();
 
-  const chains: HardhatNetworkChainConfigByChainId = new Map();
+  const chains: HardhatNetworkChainsConfig = new Map();
   defaultHardhatNetworkParams.chains.forEach((defaultChainConfig, chainId) => {
     chains.set(chainId, defaultChainConfig);
   });
