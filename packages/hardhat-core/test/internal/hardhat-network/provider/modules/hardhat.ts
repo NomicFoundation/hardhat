@@ -189,6 +189,32 @@ describe("Hardhat module", function () {
         });
       });
 
+      describe("hardhat_mine", () => {
+        const getLatestBlockNumber = async () => {
+          return rpcQuantityToNumber(
+            await this.ctx.provider.send("eth_blockNumber")
+          );
+        };
+
+        describe("should increment the block number", async () => {
+          it("when not given any arguments", async () => {
+            const latestBlockNumber = await getLatestBlockNumber();
+            await this.ctx.provider.send("hardhat_mine");
+            assert.equal(await getLatestBlockNumber(), latestBlockNumber + 1);
+          });
+          it("when mining 1000 blocks", async () => {
+            const latestBlockNumber = await getLatestBlockNumber();
+            await this.ctx.provider.send("hardhat_mine", [
+              numberToRpcQuantity(new BN(1000)),
+            ]);
+            assert.equal(
+              await getLatestBlockNumber(),
+              latestBlockNumber + 1000
+            );
+          });
+        });
+      });
+
       describe("hardhat_reset", function () {
         before(function () {
           if (ALCHEMY_URL === undefined) {

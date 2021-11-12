@@ -10,7 +10,7 @@ import { RpcTransaction } from "../../../core/jsonrpc/types/output/transaction";
 import { InternalError } from "../../../core/providers/errors";
 import { JsonRpcClient } from "../../jsonrpc/client";
 import { BlockchainData } from "../BlockchainData";
-import { FilterParams, EmptyBlockRange } from "../node-types";
+import { FilterParams } from "../node-types";
 import {
   remoteReceiptToRpcReceiptOutput,
   RpcLogOutput,
@@ -63,7 +63,11 @@ export class ForkBlockchain implements HardhatBlockchainInterface {
   public async addBlock(block: Block): Promise<Block> {
     const blockNumber = new BN(block.header.number);
     if (!blockNumber.eq(this._latestBlockNumber.addn(1))) {
-      throw new Error("Invalid block number");
+      throw new Error(
+        `Invalid block number ${blockNumber.toNumber()}. Expected ${this._latestBlockNumber
+          .addn(1)
+          .toNumber()}`
+      );
     }
 
     // When forking a network whose consensus is not the classic PoW,
@@ -82,8 +86,9 @@ export class ForkBlockchain implements HardhatBlockchainInterface {
     return block;
   }
 
-  public addEmptyBlockRange(r: EmptyBlockRange) {
-    this._data.addEmptyBlockRange(r);
+  public addBlocks(count: BN, interval: BN) {
+    this._data.addBlocks(this._latestBlockNumber.addn(1), count, interval);
+    this._latestBlockNumber = this._latestBlockNumber.add(count);
   }
 
   public async putBlock(block: Block): Promise<void> {

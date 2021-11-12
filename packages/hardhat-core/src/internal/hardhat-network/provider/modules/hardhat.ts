@@ -26,6 +26,7 @@ import {
   InvalidInputError,
   MethodNotFoundError,
 } from "../../../core/providers/errors";
+import { optional } from "../../../util/io-ts";
 import { MessageTrace } from "../../stack-traces/message-trace";
 import { HardhatNode } from "../node";
 import { ForkConfig, MineBlockResult } from "../node-types";
@@ -366,9 +367,10 @@ export class HardhatModule {
   // hardhat_mine
   private async _hardhatMineAction(blockCount?: BN, interval?: BN) {
     await this._node.mineBlocks(blockCount, interval);
+    return true;
   }
-  private _hardhatMineParams(params: any[]): [BN, BN] {
-    return validateParams(params, rpcQuantity, rpcQuantity);
+  private _hardhatMineParams(params: any[]): [BN | undefined, BN | undefined] {
+    return validateParams(params, optional(rpcQuantity), optional(rpcQuantity));
   }
 
   private async _logBlock(result: MineBlockResult) {

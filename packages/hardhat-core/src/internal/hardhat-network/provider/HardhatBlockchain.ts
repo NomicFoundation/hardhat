@@ -3,7 +3,7 @@ import { TypedTransaction } from "@ethereumjs/tx";
 import { BN, zeros } from "ethereumjs-util";
 
 import { BlockchainData } from "./BlockchainData";
-import { FilterParams, EmptyBlockRange } from "./node-types";
+import { FilterParams } from "./node-types";
 import { RpcLogOutput, RpcReceiptOutput } from "./output";
 import { HardhatBlockchainInterface } from "./types/HardhatBlockchainInterface";
 
@@ -24,11 +24,12 @@ export class HardhatBlockchain implements HardhatBlockchainInterface {
   public async getBlock(
     blockHashOrNumber: Buffer | BN | number
   ): Promise<Block | null> {
-    if (typeof blockHashOrNumber === "number") {
-      return this._data.getBlockByNumber(new BN(blockHashOrNumber)) ?? null;
-    }
-    if (BN.isBN(blockHashOrNumber)) {
-      return this._data.getBlockByNumber(blockHashOrNumber) ?? null;
+    if (typeof blockHashOrNumber === "number" || BN.isBN(blockHashOrNumber)) {
+      const blockNumber =
+        typeof blockHashOrNumber === "number"
+          ? new BN(blockHashOrNumber)
+          : blockHashOrNumber;
+      return this._data.getBlockByNumber(blockNumber) ?? null;
     }
     return this._data.getBlockByHash(blockHashOrNumber) ?? null;
   }
@@ -41,8 +42,9 @@ export class HardhatBlockchain implements HardhatBlockchainInterface {
     return block;
   }
 
-  public addEmptyBlockRange(r: EmptyBlockRange) {
-    this._data.addEmptyBlockRange(r);
+  public async addBlocks(count: BN, interval: BN) {
+    this._data.addBlocks(new BN(this._length), count, interval);
+    this._length = this._length + count.toNumber();
   }
 
   public async putBlock(block: Block): Promise<void> {
@@ -133,7 +135,14 @@ export class HardhatBlockchain implements HardhatBlockchainInterface {
     const parent = this._data.getBlockByNumber(new BN(blockNumber - 1));
 
     if (this._length !== blockNumber) {
-      throw new Error("Invalid block number");
+      throw new Error(
+        `Invalid block number ${blockNumber}. Expected ${this._length}.`
+      );
+    }
+    if (this._data.isBlockInAnEmptyRange(blockNumber)) {
+      // skip validation of parent hash if the subject block hasn't actually
+      // been mined yet.
+      return;
     }
     if (
       (blockNumber === 0 && !parentHash.equals(zeros(32))) ||

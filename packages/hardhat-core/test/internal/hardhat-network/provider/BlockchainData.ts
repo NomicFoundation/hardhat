@@ -1,6 +1,6 @@
 import { Block } from "@ethereumjs/block";
 import { assert } from "chai";
-import { BN } from "ethereumjs-util";
+import { BN, zeros } from "ethereumjs-util";
 
 import { BlockchainData } from "../../../../src/internal/hardhat-network/provider/BlockchainData";
 import {
@@ -173,6 +173,98 @@ describe("BlockchainData", () => {
         }),
         []
       );
+    });
+  });
+
+  describe("getBlockByNumber", () => {
+    describe("creates a block on demand when requested from within an 'empty' range", () => {
+      function assertBlocksEqual(actual: Block | undefined, expected: Block) {
+        // assert.deepEqual(actual, expected); // DOESN'T WORK!
+        // why doesn't deepEqual work here? testing a sampling of the object
+        // for now...
+        if (actual !== undefined) {
+          assert(actual.header.number.eq(expected.header.number));
+          assert.deepEqual(
+            actual.header.parentHash,
+            expected.header.parentHash
+          );
+          assert.deepEqual(actual.header.stateRoot, expected.header.stateRoot);
+          assert.deepEqual(
+            actual.header.transactionsTrie,
+            expected.header.transactionsTrie
+          );
+          assert.deepEqual(actual.header.nonce, expected.header.nonce);
+          assert.deepEqual(actual.transactions, expected.transactions);
+          assert(
+            actual.header.timestamp.eq(expected.header.timestamp),
+            `actual: ${actual.header.timestamp.toNumber()}, expected: ${expected.header.timestamp.toNumber()}`
+          );
+        } else {
+          assert.isDefined(actual);
+        }
+      }
+
+      describe("when the range has an interval of 1 second", () => {
+        beforeEach(() => {
+          bd.addBlock(createBlock(0), new BN(0));
+          bd.addBlocks(new BN(1), new BN(5), new BN(1));
+        });
+
+        it("works at the beginning of an empty range", async () => {
+          const expected = Block.fromBlockData({
+            header: { number: 1, parentHash: zeros(32), timestamp: 1 },
+          });
+          const actual = bd.getBlockByNumber(new BN(1));
+          assertBlocksEqual(actual, expected);
+        });
+
+        it("works in the middle of an empty range", async () => {
+          const expected = Block.fromBlockData({
+            header: { number: 3, parentHash: zeros(32), timestamp: 3 },
+          });
+          const actual = bd.getBlockByNumber(new BN(3));
+          assertBlocksEqual(actual, expected);
+        });
+
+        it("works at the end of an empty range", async () => {
+          const expected = Block.fromBlockData({
+            header: { number: 5, parentHash: zeros(32), timestamp: 5 },
+          });
+          const actual = bd.getBlockByNumber(new BN(5));
+          assertBlocksEqual(actual, expected);
+        });
+      });
+
+      describe("when the range has an interval of 3 seconds", () => {
+        beforeEach(() => {
+          bd.addBlock(createBlock(0), new BN(0));
+          bd.addBlocks(new BN(1), new BN(5), new BN(3));
+        });
+
+        it("works at the beginning of an empty range", async () => {
+          const expected = Block.fromBlockData({
+            header: { number: 1, parentHash: zeros(32), timestamp: 3 },
+          });
+          const actual = bd.getBlockByNumber(new BN(1));
+          assertBlocksEqual(actual, expected);
+        });
+
+        it("works in the middle of an empty range", async () => {
+          const expected = Block.fromBlockData({
+            header: { number: 3, parentHash: zeros(32), timestamp: 9 },
+          });
+          const actual = bd.getBlockByNumber(new BN(3));
+          assertBlocksEqual(actual, expected);
+        });
+
+        it("works at the end of an empty range", async () => {
+          const expected = Block.fromBlockData({
+            header: { number: 5, parentHash: zeros(32), timestamp: 15 },
+          });
+          const actual = bd.getBlockByNumber(new BN(5));
+          assertBlocksEqual(actual, expected);
+        });
+      });
     });
   });
 });

@@ -4,7 +4,7 @@ import Bloom from "@ethereumjs/vm/dist/bloom";
 import { BN, bufferToHex } from "ethereumjs-util";
 
 import { bloomFilter, filterLogs } from "./filter";
-import { EmptyBlockRange, FilterParams } from "./node-types";
+import { FilterParams } from "./node-types";
 import { RpcLogOutput, RpcReceiptOutput } from "./output";
 
 export class BlockchainData {
@@ -14,17 +14,24 @@ export class BlockchainData {
   private _transactions: Map<string, TypedTransaction> = new Map();
   private _transactionReceipts: Map<string, RpcReceiptOutput> = new Map();
   private _totalDifficulty: Map<string, BN> = new Map();
-  private _emptyBlockRanges: EmptyBlockRange[] = new Array();
+  public emptyBlockRanges: Array<{
+    first: BN;
+    last: BN;
+    interval: BN;
+  }> = new Array();
 
-  public addEmptyBlockRange(r: EmptyBlockRange) {
-    this._emptyBlockRanges.push(r);
+  public addBlocks(first: BN, count: BN, interval: BN) {
+    const last = first.add(count).subn(1); // leave room for the capstone block
+    this.emptyBlockRanges.push({ first, last, interval });
+    // add the capstone block
+    this.addBlock(
+      Block.fromBlockData({ header: { number: last.addn(1).toNumber() } }),
+      new BN(0)
+    );
   }
 
   public getBlockByNumber(blockNumber: BN) {
-    // TODO: if blockNumber lies within any of empty block ranges
-    // (this._emptyBlockRanges) then construct the requested block, pass it
-    // into this.addBlock, and split that range into two different ranges above
-    // and below the newly-constructed block.
+    this._createBlockIfInEmptyRange(blockNumber);
     return this._blocksByNumber.get(blockNumber.toNumber());
   }
 
@@ -118,5 +125,67 @@ export class BlockchainData {
 
   public addTransactionReceipt(receipt: RpcReceiptOutput) {
     this._transactionReceipts.set(receipt.transactionHash, receipt);
+  }
+
+  public isBlockInAnEmptyRange(blockNumber: number): boolean {
+    const bnBlockNumber = new BN(blockNumber);
+    return this._findRangeWithBlock(bnBlockNumber) !== -1;
+  }
+
+  private _findRangeWithBlock(blockNumber: BN): number {
+    return this.emptyBlockRanges.findIndex(
+      (range) => range.first.lte(blockNumber) && range.last.gte(blockNumber)
+    );
+  }
+
+  private _createBlockIfInEmptyRange(blockNumber: BN) {
+    // if blockNumber lies within one of the ranges listed in
+    // this.emptyBlockRanges, then that block needs to be created, and that
+    // range needs to be split in two in order to accomodate access to the
+    // given block.
+
+    // determine whether any empty block ranges contain the block number.
+    const rangeIndex = this._findRangeWithBlock(blockNumber);
+    if (rangeIndex !== -1) {
+      // split the empty block range:
+
+      const oldRange = this.emptyBlockRanges[rangeIndex];
+
+      this.emptyBlockRanges.splice(rangeIndex, 1);
+
+      if (!blockNumber.eq(oldRange.first)) {
+        this.emptyBlockRanges.push({
+          first: oldRange.first,
+          last: blockNumber.subn(1),
+          interval: oldRange.interval,
+        });
+      }
+
+      if (!blockNumber.eq(oldRange.last)) {
+        this.emptyBlockRanges.push({
+          first: blockNumber.addn(1),
+          last: oldRange.last,
+          interval: oldRange.interval,
+        });
+      }
+
+      // create the block:
+
+      const previousTimestamp =
+        this.getBlockByNumber(oldRange.first.subn(1))?.header.timestamp ??
+        new BN(0);
+
+      this.addBlock(
+        Block.fromBlockData({
+          header: {
+            number: blockNumber,
+            timestamp: previousTimestamp.add(
+              oldRange.interval.mul(blockNumber.sub(oldRange.first).addn(1))
+            ),
+          },
+        }),
+        new BN(0)
+      );
+    }
   }
 }
