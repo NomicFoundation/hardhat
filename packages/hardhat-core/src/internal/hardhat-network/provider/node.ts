@@ -478,15 +478,15 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     }
 
     if (blockCount.subn(blocksMined).gtn(1)) {
-      // mine a range of INVALID blocks:
-      const latestBlockNumber = await this.getLatestBlockNumber();
-      this._blockchain.addEmptyBlockRange({
-        first: latestBlockNumber,
-        last: latestBlockNumber.add(blockCount).subn(blocksMined),
-        intervalInSeconds,
-      });
+      // "mine" a range of INVALID (empty) blocks:
+      const first = (await this.getLatestBlockNumber()).addn(1);
+      const last = first.add(blockCount).subn(blocksMined);
+      this._blockchain.addEmptyBlockRange({ first, last, intervalInSeconds });
 
-      // TODO: finally, mine a VALID block AFTER the range
+      // finally, mine a VALID block AFTER the range
+      await this._blockchain.addBlock(
+        Block.fromBlockData({ header: { number: last.addn(1).toNumber() } })
+      );
     } else {
       // only one more block is needed. just mine it regularly:
       await this.mineBlock();
