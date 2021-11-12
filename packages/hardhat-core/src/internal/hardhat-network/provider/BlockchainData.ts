@@ -36,10 +36,6 @@ export class BlockchainData {
     return this._blocksByTransactions.get(bufferToHex(transactionHash));
   }
 
-  public getEmptyBlockRanges(): EmptyBlockRange[] {
-    return this._emptyBlockRanges;
-  }
-
   public getTransaction(transactionHash: Buffer) {
     return this._transactions.get(bufferToHex(transactionHash));
   }
@@ -122,9 +118,5 @@ export class BlockchainData {
 
   public addTransactionReceipt(receipt: RpcReceiptOutput) {
     this._transactionReceipts.set(receipt.transactionHash, receipt);
-  }
-
-  public setEmptyBlockRanges(r: EmptyBlockRange[]) {
-    this._emptyBlockRanges = r;
   }
 }
