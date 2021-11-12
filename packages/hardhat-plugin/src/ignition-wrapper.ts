@@ -64,10 +64,24 @@ export class IgnitionWrapper {
       this._deployOptions
     );
 
-    const moduleHold = deploymentResult.isHold();
-    if (moduleHold !== undefined) {
-      const [moduleId, holdReason] = moduleHold;
+    const moduleIdAndHoldReason = deploymentResult.isHold();
+    if (moduleIdAndHoldReason !== undefined) {
+      const [moduleId, holdReason] = moduleIdAndHoldReason;
       throw new Error(`Execution held for module '${moduleId}': ${holdReason}`);
+    }
+
+    const moduleIdAndFailures = deploymentResult.getFailures();
+    if (moduleIdAndFailures !== undefined) {
+      const [moduleId, failures] = moduleIdAndFailures;
+
+      let failuresMessage = "";
+      for (const failure of failures) {
+        failuresMessage += `  - ${failure.message}\n`;
+      }
+
+      throw new Error(
+        `Execution failed for module '${moduleId}':\n\n${failuresMessage}`
+      );
     }
 
     await this._saveDeploymentResult(chainId, deploymentResult);

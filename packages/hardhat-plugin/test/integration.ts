@@ -2,6 +2,7 @@ import { assert } from "chai";
 import { buildModule } from "ignition";
 import {
   assertDeploymentResult,
+  assertRejects,
   deployModules,
   resultAssertions,
 } from "./helpers";
@@ -181,5 +182,19 @@ describe("integration tests", function () {
         "Foo.inc": resultAssertions.transaction(),
       },
     });
+  });
+
+  it("should fail if a call fails", async function () {
+    // given
+    const userModule = buildModule("MyModule", (m) => {
+      const foo = m.contract("Foo");
+
+      m.call(foo, "incByPositiveNumber", {
+        args: [0],
+      });
+    });
+
+    // then
+    await assertRejects(() => deployModules(this.hre, [userModule], [1, 1]));
   });
 });

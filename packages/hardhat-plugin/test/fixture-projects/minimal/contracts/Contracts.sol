@@ -5,6 +5,11 @@ contract Foo {
   function inc() public {
     x++;
   }
+
+  function incByPositiveNumber(uint n) public {
+    require(n > 0, "n must be positive");
+    x += n;
+  }
 }
 
 contract Bar {

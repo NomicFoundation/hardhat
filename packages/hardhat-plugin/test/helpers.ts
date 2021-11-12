@@ -4,8 +4,20 @@ import { DeploymentResult, UserModule } from "ignition";
 /**
  * Wait until there are at least `expectedCount` transactions in the mempool
  */
-export async function waitForPendingTxs(hre: any, expectedCount: number) {
+export async function waitForPendingTxs(
+  hre: any,
+  expectedCount: number,
+  finished: Promise<any>
+) {
+  let stopWaiting = false;
+  finished.finally(() => {
+    stopWaiting = true;
+  });
+
   while (true) {
+    if (stopWaiting) {
+      return;
+    }
     const pendingBlock = await hre.network.provider.send(
       "eth_getBlockByNumber",
       ["pending", false]
@@ -117,14 +129,30 @@ export async function deployModules(
   );
 
   // eslint-disable-next-line @typescript-eslint/no-floating-promises
-  mineBlocks(hre, expectedBlocks);
+  mineBlocks(hre, expectedBlocks, deploymentResultPromise);
 
   return deploymentResultPromise;
 }
 
-async function mineBlocks(hre: any, expectedBlocks: number[]) {
+async function mineBlocks(
+  hre: any,
+  expectedBlocks: number[],
+  finished: Promise<any>
+) {
   for (const expectedPendingTxs of expectedBlocks) {
-    await waitForPendingTxs(hre, expectedPendingTxs);
+    await waitForPendingTxs(hre, expectedPendingTxs, finished);
     await hre.network.provider.send("evm_mine");
   }
+}
+
+export async function assertRejects(fn: () => Promise<any>) {
+  let rejected: boolean;
+  try {
+    await fn();
+    rejected = false;
+  } catch (e) {
+    rejected = true;
+  }
+
+  assert.isTrue(rejected, "Expected function to reject");
 }

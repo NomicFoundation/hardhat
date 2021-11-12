@@ -144,6 +144,7 @@ export class ExecutionEngine {
       const txSender = new TxSender(
         ignitionModule.id,
         executor.binding.id,
+        this._providers.gasProvider,
         this._journal
       );
       const services = createServices(
@@ -240,6 +241,7 @@ export class ExecutionEngine {
             const txSender = new TxSender(
               ignitionModule.id,
               executor.binding.id,
+              this._providers.gasProvider,
               this._journal
             );
             const services = createServices(
@@ -375,6 +377,19 @@ export class DeploymentResult {
     return;
   }
 
+  public getFailures(): [string, Error[]] | undefined {
+    for (const [moduleId, moduleResult] of this._results.entries()) {
+      const failures = moduleResult.getFailures();
+      if (failures.length > 0) {
+        return [moduleId, failures];
+      }
+
+      // TODO assert that only one module has failures
+    }
+
+    return;
+  }
+
   public clone(): DeploymentResult {
     const deploymentResult = new DeploymentResult();
 
@@ -471,6 +486,10 @@ export class ModuleResult {
 
   public getHolds() {
     return [...this._holds.values()];
+  }
+
+  public getFailures(): Error[] {
+    return [...this._failures.values(), ...this._generalFailures];
   }
 
   public count() {

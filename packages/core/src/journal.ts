@@ -178,6 +178,9 @@ export class InMemoryJournal implements Journal {
 
     executorEntries.push(journalEntry);
 
+    moduleEntry.set(executorId, executorEntries);
+    this._journal.set(moduleId, moduleEntry);
+
     return executorEntries.length - 1;
   }
 
