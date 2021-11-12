@@ -2378,10 +2378,16 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     ) {
       return defaultName;
     }
+    if (this._hardforkActivations === undefined) {
+      throw new InternalError(
+        `No known hardfork for execution on historical block ${blockNumber.toString()} (relative to fork block number ${
+          this._forkBlockNumber
+        }). The node was not configured with a hardforkActivationHistory.  See http://hardhat.org/hardhat-network/guides/mainnet-forking.html#using-a-custom-hardfork-history`
+      );
+    }
     /** search this._hardforkActivations for the highest block number that
      * isn't higher than blockNumber, and then return that found block number's
      * associated hardfork name. */
-    this._assertHardforkActivations(blockNumber);
     const activations = this._hardforkActivations!; // yes !, just asserted it.
     let highestFound: { hardfork: HardforkName; block: number } | undefined;
     activations.forEach((block: number, hardfork: HardforkName) => {
@@ -2408,16 +2414,6 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       );
     }
     return hardforkName;
-  }
-
-  private _assertHardforkActivations(blockNumber: BN | number) {
-    if (this._hardforkActivations === undefined) {
-      throw new InternalError(
-        `No known hardfork for execution on historical block ${blockNumber.toString()} (relative to fork block number ${
-          this._forkBlockNumber
-        }). The node was not configured with a hardforkActivationHistory.  See http://hardhat.org/hardhat-network/guides/mainnet-forking.html#using-a-custom-hardfork-history`
-      );
-    }
   }
 
   private _getCommonForTracing(networkId: number, blockNumber: number): Common {
