@@ -78,7 +78,7 @@ function combineLicenses(licenses: Map<string, string>) {
   }
 }
 
-function combinePragmas(pragmas: Map<string, string>) {
+function combinePragmas(pragmas: Map<string, string>, warnings : string[]) {
   const uniquePragmas = [...new Set(Array.from(pragmas.values()))];
 
   for (const value of pragmas.values()) {
@@ -89,9 +89,7 @@ function combinePragmas(pragmas: Map<string, string>) {
       version.toLowerCase().includes("v2")
     ) {
       if (uniquePragmas.length > 1) {
-        console.warn(
-          chalk.yellow(`INCOMPATIBLE PRAGMA DIRECTIVES: ${value} was used`)
-        );
+        warnings.push(`INCOMPATIBLE PRAGMA DIRECTIVES: ${value} was used`);
       }
       return value;
     }
@@ -100,9 +98,7 @@ function combinePragmas(pragmas: Map<string, string>) {
   // just return a pragma if no abiencoder was found
   const out = Array.from(pragmas.values())[0];
   if (uniquePragmas.length > 1) {
-    console.warn(
-      chalk.yellow(`INCOMPATIBLE PRAGMA DIRECTIVES: ${out} was used`)
-    );
+    warnings.push(`INCOMPATIBLE PRAGMA DIRECTIVES: ${out} was used`);
   }
   return out;
 }
@@ -111,23 +107,6 @@ function getPragma(resolvedFile: ResolvedFile) {
   const PragmaRegex = /pragma(\s)([a-zA-Z]+)(\s)([a-zA-Z0-9^.]+);/gm;
   const match = resolvedFile.content.rawContent.match(PragmaRegex);
   return match ? match[0] : "";
-}
-
-function getFileWithoutLicense(resolvedFile : ResolvedFile, license : string) {
-  // clone the original
-  let newResolvedFile = new ResolvedFile(
-    resolvedFile.sourceName,
-    resolvedFile.absolutePath,
-    resolvedFile.content,
-    resolvedFile.contentHash,
-    resolvedFile.lastModificationDate
-  )
-  newResolvedFile.content.rawContent = resolvedFile
-                                      .content
-                                      .rawContent
-                                      .replace(license, "")
-                                      .trim();
-  return newResolvedFile;
 }
 
 subtask(
@@ -144,7 +123,7 @@ subtask(
     let flattened = "";
 
     if (dependencyGraph.getResolvedFiles().length === 0) {
-      return flattened;
+      return [flattened, []];
     }
 
     const packageJson = await getPackageJson();
@@ -153,6 +132,7 @@ subtask(
     const sortedFiles = getSortedFiles(dependencyGraph);
     const licenses = new Map();
     const pragmas = new Map();
+    let warnings : string[] = [];
 
     for (const file of sortedFiles) {
       const pragma = getPragma(file);
@@ -170,19 +150,11 @@ subtask(
       flattened += `\n\n// File ${file.getVersionedName()}\n`;
 
       if (pragmas.size > 0 && !pragmas.has(file.sourceName)) {
-        console.warn(
-          chalk.yellow(
-            `MISSING PRAGMA: File ${file.getVersionedName()} needs a pragma`
-          )
-        );
+        warnings.push(`MISSING PRAGMA: File ${file.getVersionedName()} needs a pragma`);
       }
 
       if (licenses.size > 0 && !licenses.has(file.sourceName)) {
-        console.warn(
-          chalk.yellow(
-            `MISSING LICENSE: File ${file.getVersionedName()} needs a license`
-          )
-        );
+        warnings.push(`MISSING LICENSE: File ${file.getVersionedName()} needs a license`)
       }
 
       const newFileContent = file.content.rawContent
@@ -203,10 +175,10 @@ subtask(
     }
 
     if (pragmas.size > 0) {
-      flattened = `${combinePragmas(pragmas)}\n\n${flattened}`;
+      flattened = `${combinePragmas(pragmas, warnings)}\n\n${flattened}`;
     }
 
-    return flattened.trim();
+    return [flattened.trim(), warnings];
   });
 
 subtask(TASK_FLATTEN_GET_DEPENDENCY_GRAPH)
@@ -240,5 +212,12 @@ task(TASK_FLATTEN, "Flattens and prints contracts and their dependencies")
     types.inputFile
   )
   .setAction(async ({ files }: { files: string[] | undefined }, { run }) => {
-    console.log(await run(TASK_FLATTEN_GET_FLATTENED_SOURCE, { files }));
+    const [flattened, warnings] = await run(TASK_FLATTEN_GET_FLATTENED_SOURCE, {
+      files,
+    });
+    console.log(flattened);
+    // print warnings after the flattened contract
+    for (const warning of warnings) {
+      console.warn(chalk.yellow(warning));
+    }
   });

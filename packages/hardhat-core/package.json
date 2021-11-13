@@ -31,6 +31,7 @@
     "eslint": "eslint 'src/**/*.ts' 'test/**/*.ts'",
     "prettier": "prettier \"**/*.{js,md,json}\"",
     "test": "mocha --recursive \"test/**/*.ts\"",
+    "test-flatten": "mocha --recursive \"test/**/flatten.ts\"",
     "test:except-tracing": "mocha --recursive \"test/**/*.ts\" --invert --grep \"Stack traces\"",
     "test:tracing": "mocha --recursive \"test/internal/hardhat-network/{helpers,stack-traces}/*.ts\"",
     "test:forking": "mocha --recursive \"test/internal/hardhat-network/{helpers,jsonrpc,provider}/*.ts\"",

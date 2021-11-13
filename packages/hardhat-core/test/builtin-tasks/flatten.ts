@@ -42,7 +42,7 @@ describe("Flatten task", () => {
     useFixtureProject("project-with-pragma");
 
     it("should contain pragma v2", async function () {
-      const FooFlattened = await this.env.run(
+      const [FooFlattened, _] = await this.env.run(
         TASK_FLATTEN_GET_FLATTENED_SOURCE,
         {
           files: ["contracts/A.sol", "contracts/B.sol"],
@@ -63,7 +63,7 @@ describe("Flatten task", () => {
     useFixtureProject("project-with-pragma");
 
     it("should contain only one pragma", async function () {
-      const FooFlattened = await this.env.run(
+      const [FooFlattened, _] = await this.env.run(
         TASK_FLATTEN_GET_FLATTENED_SOURCE,
         {
           files: ["contracts/Foo.sol", "contracts/Bar.sol"],
@@ -79,7 +79,7 @@ describe("Flatten task", () => {
     useFixtureProject("project-with-pragma");
 
     it("should contain only one pragma", async function () {
-      const FooFlattened = await this.env.run(
+      const [FooFlattened, _] = await this.env.run(
         TASK_FLATTEN_GET_FLATTENED_SOURCE,
         {
           files: ["contracts/Foo.sol", "contracts/A.sol"],
@@ -95,7 +95,7 @@ describe("Flatten task", () => {
     useFixtureProject("project-with-license");
 
     it("should contain only one license", async function () {
-      const FooFlattened = await this.env.run(
+      const [FooFlattened, _] = await this.env.run(
         TASK_FLATTEN_GET_FLATTENED_SOURCE,
         {
           files: ["contracts/Foo.sol"],
@@ -110,7 +110,7 @@ describe("Flatten task", () => {
     useFixtureProject("project-with-license");
 
     it("should contain only one license", async function () {
-      const FooFlattened = await this.env.run(
+      const [FooFlattened, _] = await this.env.run(
         TASK_FLATTEN_GET_FLATTENED_SOURCE,
         {
           files: ["contracts/A.sol"],
@@ -125,7 +125,7 @@ describe("Flatten task", () => {
     useFixtureProject("project-with-license");
 
     it("should contain only one combined license", async function () {
-      const FooFlattened = await this.env.run(
+      const [FooFlattened, _] = await this.env.run(
         TASK_FLATTEN_GET_FLATTENED_SOURCE,
         {
           files: ["contracts/C.sol"],
@@ -142,9 +142,11 @@ describe("Flatten task", () => {
     useFixtureProject("default-config-project");
 
     it("should return empty string", async function () {
-      const flattenedFiles = await this.env.run(
+      const [flattenedFiles, _] = await this.env.run(
         TASK_FLATTEN_GET_FLATTENED_SOURCE
       );
+
+      console.log("empty string", flattenedFiles);
 
       assert.equal(flattenedFiles.length, 0);
     });
@@ -154,7 +156,7 @@ describe("Flatten task", () => {
     useFixtureProject("contracts-project");
 
     it("should flatten files sorted correctly", async function () {
-      const flattenedFiles = await this.env.run(
+      const [flattenedFiles, _] = await this.env.run(
         TASK_FLATTEN_GET_FLATTENED_SOURCE
       );
       assert.deepEqual(getContractsOrder(flattenedFiles), ["C", "B", "A"]);
@@ -165,7 +167,7 @@ describe("Flatten task", () => {
     useFixtureProject("contracts-nameclash-project");
 
     it("should flatten files sorted correctly with repetition", async function () {
-      const flattenedFiles = await this.env.run(
+      const [flattenedFiles, _] = await this.env.run(
         TASK_FLATTEN_GET_FLATTENED_SOURCE
       );
       assert.deepEqual(getContractsOrder(flattenedFiles), ["C", "B", "A", "C"]);
@@ -176,19 +178,25 @@ describe("Flatten task", () => {
     useFixtureProject("contracts-project");
 
     it("Should accept a list of files, and only flatten those and their dependencies", async function () {
-      const cFlattened = await this.env.run(TASK_FLATTEN_GET_FLATTENED_SOURCE, {
-        files: ["contracts/C.sol"],
-      });
+      const [cFlattened, _w] = await this.env.run(
+        TASK_FLATTEN_GET_FLATTENED_SOURCE,
+        {
+          files: ["contracts/C.sol"],
+        }
+      );
 
       assert.deepEqual(getContractsOrder(cFlattened), ["C"]);
 
-      const bFlattened = await this.env.run(TASK_FLATTEN_GET_FLATTENED_SOURCE, {
-        files: ["contracts/B.sol"],
-      });
+      const [bFlattened, _w2] = await this.env.run(
+        TASK_FLATTEN_GET_FLATTENED_SOURCE,
+        {
+          files: ["contracts/B.sol"],
+        }
+      );
 
       assert.deepEqual(getContractsOrder(bFlattened), ["C", "B"]);
 
-      const baFlattened = await this.env.run(
+      const [baFlattened, _w3] = await this.env.run(
         TASK_FLATTEN_GET_FLATTENED_SOURCE,
         {
           files: ["contracts/B.sol", "contracts/A.sol"],
@@ -203,7 +211,7 @@ describe("Flatten task", () => {
     useFixtureProject("multiline-import-project");
 
     it("should not include multiline imports", async function () {
-      const flattenedFiles = await this.env.run(
+      const [flattenedFiles, _] = await this.env.run(
         TASK_FLATTEN_GET_FLATTENED_SOURCE
       );
       assert.isFalse(flattenedFiles.includes("} from"));
