@@ -78,7 +78,7 @@ This is done by selectively requiring dependencies when needed using `import` or
 
 1. If something is only imported for its type, and NOT its value, use a top-level `import ... from "mod"`
 1. If a module is in the "Essential modules" list below, use a top-level `import ... from "mod"`.
-1. Otherwise, use `await import` or `require` locally in the functions that use it.
+1. Otherwise, use `await import` or `require` locally in the functions that use it:
    1. If the function is sync, use node's `require`
    2. If the function is an async, use `await import`
 
@@ -118,7 +118,7 @@ alias lhh='node --preserve-symlinks $(node -e "console.log(require.resolve(\"har
 
 ### Yalc
 
-If for any reason linking doesn't work for you, you can use [`yalc`](https://github.com/whitecolor/yalc).
+If for any reason linking doesn't work for you, you can use [`yalc`](https://github.com/whitecolor/yalc):
 
 1. Go to `packages/hardhat-core` and run `yalc publish`
 2. Go to some hardhat project and run `yalc add hardhat`
