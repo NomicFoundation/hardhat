@@ -28,6 +28,12 @@ networks: {
 
 By accessing any state that exists on mainnet, Hardhat Network will pull the data and expose it transparently as if it was available locally.
 
+(Note: run hardhat console or hardhat test with localhost network parameter to connect to the forked network:
+
+```
+  npx hardhat console --network localhost
+```
+
 ## Pinning a block
 
 Hardhat Network will by default fork from the latest mainnet block. While this might be practical depending on the context, to set up a test suite that depends on forking we recommend forking from a specific block number.
