@@ -873,7 +873,7 @@ describe("HardhatNode", () => {
         blockBefore1559,
         nodeWithoutHardforkHistory
       );
-    }, /Could not find a hardfork to run/);
+    }, /node was not configured with a hardfork activation history/);
   });
 });
 
