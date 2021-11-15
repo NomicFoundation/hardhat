@@ -82,7 +82,16 @@ An object that describes the [forking](../guides/mainnet-forking.md) configurati
 - `url`: a URL that points to a JSON-RPC node with state that you want to fork off. There's no default value for this field. It must be provided for the fork to work.
 - `blockNumber`: an optional number to pin which block to fork from. If no value is provided, the latest block is used.
 - `enabled`: an optional boolean to switch on or off the fork functionality. Default value: `true` if `url` is set, `false` otherwise.
-- `hardforkActivationsByChain`: an optional object whose properties are chain ID's and whose values are objects with properties representing hardfork names and values representing the block numbers at which those named hardforks were activated on their respective chains. For example, the recent Ethereum mainnet hardfork history might be represented as `{ 1: { berlin: 12244000, london: 12965000 } }`.
+
+#### `chains`
+
+An object that configures chain-specific options. Each key is a number representing a chain ID, and each value is an object configuring the chain with that ID. In the inner object, the following fields are supported:
+
+- `hardforkHistory`: an object whose keys are strings representing hardfork names (eg `"london"`, `"berlin"`) and whose values are numbers specifying the block at which that hardfork was activated.
+
+The default value includes configurations for several well known chains (eg mainnet, chain ID `1`); using this field is only useful when forking unusual networks. The user may override the defaults for some chain ID's while leaving the defaults in place for other chain ID's. Overriding the default for a chain ID will replace the entire configuration for that chain.
+
+For more details, see [Using a custom hardfork history](../guides/mainnet-forking.md#using-a-custom-hardfork-history].
 
 #### `minGasPrice`
 
