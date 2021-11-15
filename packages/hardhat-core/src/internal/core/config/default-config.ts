@@ -50,6 +50,7 @@ export const defaultHardhatNetworkParams: Omit<
   minGasPrice: new BN(0),
   chains: new Map([
     [
+      // block numbers below were taken from https://github.com/ethereumjs/ethereumjs-monorepo/tree/master/packages/common/src/chains
       1, // mainnet
       {
         hardforkHistory: new Map([
