@@ -504,9 +504,7 @@ Please replace "${contractName}" for the correct contract name wherever you are 
       if (occurrences > 1) {
         for (const file of files) {
           if (path.basename(file) === `${name}.json`) {
-            outputNames.push(
-              path.normalize(this._getFullyQualifiedNameFromPath(file))
-            );
+            outputNames.push(this._getFullyQualifiedNameFromPath(file));
           }
         }
         continue;
@@ -590,9 +588,9 @@ Please replace "${contractName}" for the correct contract name wherever you are 
     }
 
     if (matchingFiles.length > 1) {
-      const candidates = matchingFiles
-        .map((file) => this._getFullyQualifiedNameFromPath(file))
-        .map(path.normalize);
+      const candidates = matchingFiles.map((file) =>
+        this._getFullyQualifiedNameFromPath(file)
+      );
 
       throw new HardhatError(ERRORS.ARTIFACTS.MULTIPLE_FOUND, {
         contractName,
