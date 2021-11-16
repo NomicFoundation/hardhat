@@ -20,6 +20,7 @@ import { FakeSenderTransaction } from "../../../../src/internal/hardhat-network/
 import { getCurrentTimestamp } from "../../../../src/internal/hardhat-network/provider/utils/getCurrentTimestamp";
 import { makeForkClient } from "../../../../src/internal/hardhat-network/provider/utils/makeForkClient";
 import { HardforkName } from "../../../../src/internal/util/hardforks";
+import { cloneChainsConfig } from "../../../../src/types";
 import { ALCHEMY_URL } from "../../../setup";
 import { assertQuantity } from "../helpers/assertions";
 import {
@@ -773,7 +774,10 @@ describe("HardhatNode", () => {
 
     const [, regularNode] = await HardhatNode.create(forkedNodeConfig);
 
-    const nodeCfgWithEarlyLondon = forkedNodeConfig;
+    const nodeCfgWithEarlyLondon = {
+      ...forkedNodeConfig,
+      chains: cloneChainsConfig(forkedNodeConfig.chains),
+    };
     let earlyLondonMainnetConfig = forkedNodeConfig.chains.get(1);
     if (earlyLondonMainnetConfig === undefined) {
       earlyLondonMainnetConfig = { hardforkHistory: new Map() };
@@ -787,7 +791,10 @@ describe("HardhatNode", () => {
       nodeCfgWithEarlyLondon
     );
 
-    const nodeCfgWithoutHFHist = forkedNodeConfig;
+    const nodeCfgWithoutHFHist = {
+      ...forkedNodeConfig,
+      chains: cloneChainsConfig(forkedNodeConfig.chains),
+    };
     nodeCfgWithoutHFHist.chains.set(1, { hardforkHistory: new Map() });
     const [, nodeWithoutHardforkHistory] = await HardhatNode.create(
       nodeCfgWithoutHFHist
