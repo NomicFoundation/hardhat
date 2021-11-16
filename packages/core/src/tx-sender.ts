@@ -12,15 +12,14 @@ import { GasProvider, IgnitionSigner } from "./providers";
 export class TxSender {
   private _debug: IDebugger;
 
-  // Index of the last sent tx, or -1 if none was sent yet or
-  // no journal is available
+  // Index of the last sent tx, or -1 if none was sent yet
   private _txIndex = -1;
 
   constructor(
     private _moduleId: string,
     private _executorId: string,
     private _gasProvider: GasProvider,
-    private _journal: Journal | undefined
+    private _journal: Journal
   ) {
     this._debug = debug(`ignition:tx-sender:${_moduleId}:${_executorId}`);
   }
@@ -35,11 +34,6 @@ export class TxSender {
     tx: ethers.providers.TransactionRequest,
     blockNumberWhenSent: number
   ): Promise<[number, string]> {
-    if (this._journal === undefined) {
-      const { hash } = await signer.sendTransaction(tx);
-      return [-1, hash];
-    }
-
     const nextTxIndex = this._txIndex + 1;
     this._debug(`Getting transaction ${nextTxIndex} from journal`);
     const journaledTx = await this._journal.getEntry(
@@ -80,11 +74,6 @@ export class TxSender {
     blockNumberWhenSent: number,
     txIndex: number
   ): Promise<string> {
-    if (this._journal === undefined) {
-      const { hash } = await signer.sendTransaction(tx);
-      return hash;
-    }
-
     const sentTx = await this._send(signer, tx);
     await this._journal.replaceEntry(
       this._moduleId,
