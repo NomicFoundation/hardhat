@@ -1,6 +1,7 @@
+import debug, { IDebugger } from "debug";
 import { ethers } from "ethers";
 import { Journal } from "./journal";
-import { IgnitionSigner } from "./providers";
+import { GasProvider, IgnitionSigner } from "./providers";
 
 /**
  * Sends, replaces and keeps track of transactions.
@@ -9,15 +10,19 @@ import { IgnitionSigner } from "./providers";
  * Each transaction sent from that executor should go through this class.
  */
 export class TxSender {
-  // Index of the last sent tx, or -1 if none was sent yet or
-  // no journal is available
+  private _debug: IDebugger;
+
+  // Index of the last sent tx, or -1 if none was sent yet
   private _txIndex = -1;
 
   constructor(
     private _moduleId: string,
     private _executorId: string,
-    private _journal: Journal | undefined
-  ) {}
+    private _gasProvider: GasProvider,
+    private _journal: Journal
+  ) {
+    this._debug = debug(`ignition:tx-sender:${_moduleId}:${_executorId}`);
+  }
 
   /**
    * Sends `tx` using `signer`.
@@ -29,23 +34,26 @@ export class TxSender {
     tx: ethers.providers.TransactionRequest,
     blockNumberWhenSent: number
   ): Promise<[number, string]> {
-    if (this._journal === undefined) {
-      const { hash } = await signer.sendTransaction(tx);
-      return [-1, hash];
-    }
-
+    const nextTxIndex = this._txIndex + 1;
+    this._debug(`Getting transaction ${nextTxIndex} from journal`);
     const journaledTx = await this._journal.getEntry(
       this._moduleId,
       this._executorId,
-      this._txIndex
+      nextTxIndex
     );
 
     if (journaledTx !== undefined) {
-      this._txIndex += 1;
+      this._debug(`Transaction with index ${nextTxIndex} found in journal`);
+      this._txIndex = nextTxIndex;
       return [this._txIndex, journaledTx.txHash];
     }
 
-    const sentTx = await signer.sendTransaction(tx);
+    this._debug(
+      `Transaction with index ${nextTxIndex} not found in journal, sending`
+    );
+
+    const sentTx = await this._send(signer, tx);
+
     this._txIndex = await this._journal.addEntry(
       this._moduleId,
       this._executorId,
@@ -66,12 +74,7 @@ export class TxSender {
     blockNumberWhenSent: number,
     txIndex: number
   ): Promise<string> {
-    if (this._journal === undefined) {
-      const { hash } = await signer.sendTransaction(tx);
-      return hash;
-    }
-
-    const sentTx = await signer.sendTransaction(tx);
+    const sentTx = await this._send(signer, tx);
     await this._journal.replaceEntry(
       this._moduleId,
       this._executorId,
@@ -80,5 +83,27 @@ export class TxSender {
     );
 
     return sentTx.hash;
+  }
+
+  private async _send(
+    signer: IgnitionSigner,
+    tx: ethers.providers.TransactionRequest
+  ): Promise<ethers.providers.TransactionResponse> {
+    if (tx.gasLimit === undefined) {
+      // TODO if this is implemented with ethers, the execution fails
+      // we should either handle it here, or make it part of the provider's
+      // contract that it shouldn't throw
+      const gasLimit = await this._gasProvider.estimateGasLimit(tx);
+
+      tx.gasLimit = gasLimit;
+    }
+
+    if (tx.gasPrice === undefined) {
+      const gasPrice = await this._gasProvider.estimateGasPrice();
+
+      tx.gasPrice = gasPrice;
+    }
+
+    return signer.sendTransaction(tx);
   }
 }

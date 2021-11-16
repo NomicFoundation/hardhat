@@ -7,7 +7,7 @@
     "build": "tsc",
     "lint": "yarn prettier --check && yarn eslint",
     "lint:fix": "yarn prettier --write && yarn eslint --fix",
-    "eslint": "eslint 'src/**/*.ts' 'test/**/*.ts'",
+    "eslint": "eslint \"src/**/*.ts\" \"test/**/*.ts\"",
     "prettier": "prettier \"**/*.{js,md,json}\"",
     "test": "mocha --recursive \"test/**/*.ts\""
   },
@@ -24,6 +24,7 @@
     "eslint": "^7.32.0",
     "eslint-config-prettier": "8.3.0",
     "eslint-plugin-import": "2.24.2",
+    "eslint-plugin-mocha": "^9.0.0",
     "eslint-plugin-prettier": "4.0.0",
     "hardhat": "^2.0.0",
     "ignition": "^0.0.2",

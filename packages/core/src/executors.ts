@@ -1,3 +1,4 @@
+import debug, { IDebugger } from "debug";
 import { ethers } from "ethers";
 
 import {
@@ -27,8 +28,13 @@ export abstract class Executor<I = unknown, O extends BindingOutput = any> {
   private result?: any;
   private error?: any;
   private holdReason?: string;
+  private _debug: IDebugger;
 
-  constructor(public readonly binding: InternalBinding<I, O>) {}
+  constructor(public readonly binding: InternalBinding<I, O>) {
+    const moduleId = binding.moduleId;
+    const bindingId = binding.id;
+    this._debug = debug(`ignition:executor:${moduleId}:${bindingId}`);
+  }
 
   abstract execute(input: Resolved<I>, services: Services): Promise<O>;
   abstract validate(input: I, services: Services): Promise<string[]>;
@@ -37,16 +43,20 @@ export abstract class Executor<I = unknown, O extends BindingOutput = any> {
   public async run(input: Resolved<I>, services: Services) {
     try {
       services.logging.log(`[${this.binding.id}] Starting`);
+      this._debug("Start running");
       this._setRunning();
       const result = await this.execute(input, services);
+      this._debug("Ended successfully");
       services.logging.log(`[${this.binding.id}] Successful`);
       this._setSuccess(result);
     } catch (e: any) {
       if (e instanceof Hold) {
         services.logging.log(`[${this.binding.id}] Hold: ${e.reason}`);
+        this._debug("Ended with hold");
         this._setHold(e.reason);
       } else {
         services.logging.log(`[${this.binding.id}] Error: ${e.message}`);
+        this._debug("Ended with error");
         this._setFailure(e);
       }
     }

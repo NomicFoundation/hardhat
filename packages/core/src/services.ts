@@ -1,3 +1,4 @@
+import debug from "debug";
 import { ethers, Contract, ContractFactory } from "ethers";
 
 import { TxSender } from "./tx-sender";
@@ -11,6 +12,7 @@ interface TransactionOptions {
 }
 
 export class ContractsService {
+  private _debug = debug("ignition:services:contracts-service");
   private _ethersProvider: ethers.providers.Web3Provider;
 
   constructor(
@@ -28,6 +30,7 @@ export class ContractsService {
     args: any[],
     txOptions?: TransactionOptions
   ): Promise<string> {
+    this._debug("Deploying contract");
     // TODO this assumes the signer is connected
     const signer = await this._providers.signers.getDefaultSigner();
     const Factory = new ContractFactory(artifact.abi, artifact.bytecode);
@@ -44,6 +47,7 @@ export class ContractsService {
     args: any[],
     txOptions?: TransactionOptions
   ): Promise<string> {
+    this._debug("Calling method of contract");
     const signer = await this._providers.signers.getDefaultSigner();
     const contract = new Contract(address, abi);
 
@@ -96,18 +100,10 @@ export class ContractsService {
   ): Promise<string> {
     if (txOptions?.gasLimit !== undefined) {
       tx.gasLimit = ethers.BigNumber.from(txOptions.gasLimit);
-    } else {
-      const gasLimit = await this._providers.gasProvider.estimateGasLimit(tx);
-
-      tx.gasLimit = gasLimit;
     }
 
     if (txOptions?.gasPrice !== undefined) {
       tx.gasPrice = ethers.BigNumber.from(txOptions.gasPrice);
-    } else {
-      const gasPrice = await this._providers.gasProvider.estimateGasPrice();
-
-      tx.gasPrice = gasPrice;
     }
 
     let blockNumberWhenSent = await this._ethersProvider.getBlockNumber();

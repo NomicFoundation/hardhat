@@ -12,6 +12,7 @@ import {
   Services,
   TransactionsService,
 } from "./services";
+import { sleep } from "./utils";
 
 interface ExecutionEngineOptions {
   parallelizationLevel: number;
@@ -27,7 +28,7 @@ type ModulePlan = "already-deployed" | ExecutorPlan[];
 export type DeploymentPlan = Record<string, ModulePlan>;
 
 export class ExecutionEngine {
-  private _log = debug("ignition:execution-engine");
+  private _debug = debug("ignition:execution-engine");
 
   public static buildPlan(dag: DAG, currentDeploymentResult: DeploymentResult) {
     const plan: DeploymentPlan = {};
@@ -61,14 +62,14 @@ export class ExecutionEngine {
     private _options: ExecutionEngineOptions
   ) {}
 
-  public async execute(dag: DAG): Promise<DeploymentResult> {
-    const deploymentResult = this._currentDeploymentResult;
+  public async *execute(dag: DAG) {
+    const deploymentResult = this._currentDeploymentResult.clone();
 
     // validate all modules
     const errorsPerModule: Map<string, string[]> = new Map();
     let hasErrors = false;
     for (const ignitionModule of dag.getModules()) {
-      this._log(`Validating module ${ignitionModule.id}`);
+      this._debug(`Validating module ${ignitionModule.id}`);
       const errors = await this._validateModule(ignitionModule);
       if (errors.length > 0) {
         hasErrors = true;
@@ -99,10 +100,10 @@ export class ExecutionEngine {
 
     // execute each module sequentially
     for (const ignitionModule of dag.getModules()) {
-      this._log(`Begin execution of module ${ignitionModule.id}`);
+      this._debug(`Begin execution of module ${ignitionModule.id}`);
 
       if (deploymentResult.hasModule(ignitionModule.id)) {
-        this._log(
+        this._debug(
           `A previous result for module ${ignitionModule.id} already exists`
         );
         const previousModuleResult = deploymentResult.getModule(
@@ -113,16 +114,21 @@ export class ExecutionEngine {
         }
       }
 
-      this._log(`Executing module ${ignitionModule.id}`);
-      const moduleResult = await this._executeModule(
+      this._debug(`Executing module ${ignitionModule.id}`);
+      const moduleExecutionGenerator = this._executeModule(
         ignitionModule,
         deploymentResult
       );
-
-      deploymentResult.addResult(ignitionModule.id, moduleResult);
+      for await (const moduleResult of moduleExecutionGenerator) {
+        if (moduleResult !== undefined) {
+          deploymentResult.addResult(moduleResult);
+          break;
+        }
+        yield;
+      }
     }
 
-    return deploymentResult;
+    yield deploymentResult;
   }
 
   private async _validateModule(
@@ -132,12 +138,13 @@ export class ExecutionEngine {
     const allErrors: string[] = [];
 
     for (const executor of executors) {
-      this._log(
+      this._debug(
         `Validating binding ${executor.binding.id} of module ${ignitionModule.id}`
       );
       const txSender = new TxSender(
         ignitionModule.id,
         executor.binding.id,
+        this._providers.gasProvider,
         this._journal
       );
       const services = createServices(
@@ -156,22 +163,15 @@ export class ExecutionEngine {
     return allErrors;
   }
 
-  private async _executeModule(
+  private async *_executeModule(
     ignitionModule: IgnitionModule,
     deploymentResult: DeploymentResult
-  ): Promise<ModuleResult> {
+  ) {
     const { parallelizationLevel } = this._options;
     const executors = ignitionModule.getExecutors();
     const moduleResult = new ModuleResult(ignitionModule.id);
 
-    let it = 0;
     while (true) {
-      it++;
-      if (it >= 1800) {
-        moduleResult.addGeneralFailure(new Error("Max iterations reached"));
-        return moduleResult;
-      }
-
       const someFailure = executors.some((e) => e.isFailure());
       const someHold = executors.some((e) => e.isHold());
       let runningCount = executors.filter((e) => e.isRunning()).length;
@@ -215,15 +215,16 @@ export class ExecutionEngine {
           moduleResult.addHold(bindingId, holdReason)
         );
 
-        return moduleResult;
+        yield moduleResult;
       }
 
       for (const executor of ignitionModule.getExecutors()) {
-        this._log(
-          `Begin execution of executor ${executor.binding.id} of module ${ignitionModule.id}`
-        );
+        this._debug(`Check ${ignitionModule.id}/${executor.binding.id}`);
 
         if (executor.isReady() && runningCount < parallelizationLevel) {
+          this._debug(
+            `Check dependencies of ${ignitionModule.id}/${executor.binding.id}`
+          );
           const dependencies = executor.binding.getDependencies();
           const allDependenciesReady = dependencies.every((d) =>
             d.moduleId !== ignitionModule.id
@@ -240,6 +241,7 @@ export class ExecutionEngine {
             const txSender = new TxSender(
               ignitionModule.id,
               executor.binding.id,
+              this._providers.gasProvider,
               this._journal
             );
             const services = createServices(
@@ -249,6 +251,7 @@ export class ExecutionEngine {
               this._options.txPollingInterval
             );
 
+            this._debug(`Start ${ignitionModule.id}/${executor.binding.id}`);
             // eslint-disable-next-line @typescript-eslint/no-floating-promises
             executor.run(resolvedInput, services);
             runningCount++;
@@ -256,16 +259,25 @@ export class ExecutionEngine {
         }
 
         if (!moduleResult.hasResult(executor.binding.id)) {
+          this._debug(
+            `Check result of ${ignitionModule.id}/${executor.binding.id}`
+          );
           if (executor.isSuccess()) {
+            this._debug(
+              `${ignitionModule.id}/${executor.binding.id} finished successfully`
+            );
             moduleResult.addResult(executor.binding.id, executor.getResult());
           }
           if (executor.isHold()) {
+            this._debug(
+              `${ignitionModule.id}/${executor.binding.id} is on hold`
+            );
             moduleResult.addHold(executor.binding.id, executor.getHoldReason());
           }
         }
       }
 
-      await new Promise((res) => setTimeout(res, 100));
+      yield;
     }
   }
 
@@ -324,7 +336,8 @@ export class DeploymentResult {
     return [...this._results.values()];
   }
 
-  public addResult(moduleId: string, moduleResult: ModuleResult) {
+  public addResult(moduleResult: ModuleResult) {
+    const moduleId = moduleResult.moduleId;
     if (this._results.has(moduleId)) {
       throw new Error(`A result for '${moduleId}' already exists`);
     }
@@ -362,6 +375,32 @@ export class DeploymentResult {
     }
 
     return;
+  }
+
+  public getFailures(): [string, Error[]] | undefined {
+    for (const [moduleId, moduleResult] of this._results.entries()) {
+      const failures = moduleResult.getFailures();
+      if (failures.length > 0) {
+        return [moduleId, failures];
+      }
+
+      // TODO assert that only one module has failures
+    }
+
+    return;
+  }
+
+  public clone(): DeploymentResult {
+    const deploymentResult = new DeploymentResult();
+
+    for (const ignitionModule of this.getModules()) {
+      const moduleResult = new ModuleResult(ignitionModule.moduleId);
+      for (const [resultId, result] of ignitionModule.getResults()) {
+        moduleResult.addResult(resultId, result);
+      }
+      deploymentResult.addResult(moduleResult);
+    }
+    return deploymentResult;
   }
 }
 
@@ -449,6 +488,10 @@ export class ModuleResult {
     return [...this._holds.values()];
   }
 
+  public getFailures(): Error[] {
+    return [...this._failures.values(), ...this._generalFailures];
+  }
+
   public count() {
     return [...this._results.values()].length;
   }
@@ -472,4 +515,25 @@ function createServices(
   };
 
   return services;
+}
+
+export class ExecutionManager {
+  constructor(
+    private _engine: ExecutionEngine,
+    private _tickInterval: number
+  ) {}
+
+  public async execute(dag: DAG): Promise<DeploymentResult> {
+    const executionGenerator = this._engine.execute(dag);
+
+    while (true) {
+      const deploymentResultIteration = await executionGenerator.next();
+
+      if (deploymentResultIteration.value !== undefined) {
+        return deploymentResultIteration.value;
+      }
+
+      await sleep(this._tickInterval);
+    }
+  }
 }

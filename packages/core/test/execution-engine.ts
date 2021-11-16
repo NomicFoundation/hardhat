@@ -1,9 +1,15 @@
-import { expect } from "chai";
+import { assert } from "chai";
 
 import { ExecutionEngine } from "../src/execution-engine";
 import { NullJournal } from "../src/journal";
 import { DAG } from "../src/modules";
-import { emptyDeploymentResult, getMockedProviders, inc } from "./helpers";
+import {
+  emptyDeploymentResult,
+  getMockedProviders,
+  inc,
+  runUntil,
+  runUntilReady,
+} from "./helpers";
 
 const executionEngineOptions = {
   parallelizationLevel: 1,
@@ -27,21 +33,22 @@ describe("ExecutionEngine", function () {
     dag.addExecutor(inc1);
 
     // when
-    const deploymentResult = await executionEngine.execute(dag);
+    const executionGenerator = executionEngine.execute(dag);
+    const deploymentResult = await runUntilReady(executionGenerator);
 
     // then
     const resultModules = deploymentResult.getModules();
 
-    expect(resultModules).to.have.length(1);
+    assert.lengthOf(resultModules, 1);
     const [resultModule] = resultModules;
-    expect(resultModule.isSuccess()).to.equal(true);
-    expect(resultModule.count()).to.equal(1);
+    assert.isTrue(resultModule.isSuccess());
+    assert.equal(resultModule.count(), 1);
 
     const bindingResult = resultModule.getResult("inc1");
 
-    expect(bindingResult).to.equal(2);
+    assert.equal(bindingResult, 2);
 
-    expect(inc1.isSuccess()).to.equal(true);
+    assert.isTrue(inc1.isSuccess());
   });
 
   it("should wait for a dependency", async function () {
@@ -55,28 +62,41 @@ describe("ExecutionEngine", function () {
 
     const dag = new DAG();
     const inc1 = inc("MyModule", "inc1", 1);
+    inc1.behavior = "on-demand";
     const incInc1 = inc("MyModule", "incInc1", inc1.binding);
     dag.addExecutor(inc1);
     dag.addExecutor(incInc1);
 
     // when
-    const deploymentResult = await executionEngine.execute(dag);
+    const executionGenerator = executionEngine.execute(dag);
+    await runUntil(executionGenerator, () => {
+      return inc1.isRunning();
+    });
+
+    // then
+    assert.isTrue(incInc1.isReady());
+
+    // when
+    inc1.finish();
+    const deploymentResult = await runUntil(executionGenerator, (result) => {
+      return result !== undefined;
+    });
 
     // then
     const resultModules = deploymentResult.getModules();
 
-    expect(resultModules).to.have.length(1);
-    expect(resultModules[0].isSuccess()).to.equal(true);
-    expect(resultModules[0].count()).to.equal(2);
+    assert.lengthOf(resultModules, 1);
+    assert.isTrue(resultModules[0].isSuccess());
+    assert.equal(resultModules[0].count(), 2);
 
     const inc1Result = resultModules[0].getResult("inc1");
     const incInc1Result = resultModules[0].getResult("incInc1");
 
-    expect(inc1Result).to.equal(2);
-    expect(incInc1Result).to.equal(3);
+    assert.equal(inc1Result, 2);
+    assert.equal(incInc1Result, 3);
 
-    expect(inc1.isSuccess()).to.equal(true);
-    expect(incInc1.isSuccess()).to.equal(true);
+    assert.isTrue(inc1.isSuccess());
+    assert.isTrue(incInc1.isSuccess());
   });
 
   it("should not run an executor if a dependency fails", async function () {
@@ -96,17 +116,18 @@ describe("ExecutionEngine", function () {
     dag.addExecutor(incInc1);
 
     // when
-    const deploymentResult = await executionEngine.execute(dag);
+    const executionGenerator = executionEngine.execute(dag);
+    const deploymentResult = await runUntilReady(executionGenerator);
 
     // then
     const resultModules = deploymentResult.getModules();
 
-    expect(resultModules).to.have.length(1);
-    expect(resultModules[0].isSuccess()).to.equal(false);
-    expect(resultModules[0].isFailure()).to.equal(true);
+    assert.lengthOf(resultModules, 1);
+    assert.isFalse(resultModules[0].isSuccess());
+    assert.isTrue(resultModules[0].isFailure());
 
-    expect(inc1.isFailure()).to.equal(true);
-    expect(incInc1.isReady()).to.equal(true);
+    assert.isTrue(inc1.isFailure());
+    assert.isTrue(incInc1.isReady());
   });
 
   it("should not run an executor if a dependency holds", async function () {
@@ -126,15 +147,19 @@ describe("ExecutionEngine", function () {
     dag.addExecutor(incInc1);
 
     // when
-    const deploymentResult = await executionEngine.execute(dag);
+    const executionGenerator = executionEngine.execute(dag);
+    const deploymentResult = await runUntilReady(executionGenerator);
 
     // then
+    if (deploymentResult === undefined) {
+      assert.fail("Deployment result should be ready");
+    }
     const resultModules = deploymentResult.getModules();
 
-    expect(resultModules).to.have.length(1);
-    expect(resultModules[0].isHold()).to.equal(true);
+    assert.lengthOf(resultModules, 1);
+    assert.isTrue(resultModules[0].isHold());
 
-    expect(inc1.isHold()).to.equal(true);
-    expect(incInc1.isReady()).to.equal(true);
+    assert.isTrue(inc1.isHold());
+    assert.isTrue(incInc1.isReady());
   });
 });

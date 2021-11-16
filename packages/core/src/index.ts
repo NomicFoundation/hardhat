@@ -13,6 +13,7 @@ import {
 import {
   DeploymentResult,
   ExecutionEngine,
+  ExecutionManager,
   ModuleResult,
 } from "./execution-engine";
 import { Executor, Hold } from "./executors";
@@ -93,8 +94,13 @@ export class Ignition {
       }
     );
 
+    const executionManager = new ExecutionManager(
+      engine,
+      txPollingInterval / 5
+    );
+
     log("Execute deployment");
-    const deploymentResult = await engine.execute(dag);
+    const deploymentResult = await executionManager.execute(dag);
 
     return [deploymentResult, moduleOutputs] as const;
   }

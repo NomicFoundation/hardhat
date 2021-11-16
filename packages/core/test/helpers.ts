@@ -92,11 +92,16 @@ class IncreaseNumberBinding extends InternalBinding<Bindable<number>, number> {
 }
 
 class IncreaseNumberExecutor extends Executor<Bindable<number>, number> {
-  public behavior: "default" | "fail" | "hold" = "default";
+  public behavior: "default" | "on-demand" | "fail" | "hold" = "default";
+  public finish: any;
 
   public async execute(input: number): Promise<number> {
     if (this.behavior === "default") {
       return input + 1;
+    } else if (this.behavior === "on-demand") {
+      return new Promise((resolve) => {
+        this.finish = () => resolve(input + 1);
+      });
     } else if (this.behavior === "fail") {
       throw new Error("Fail");
     } else if (this.behavior === "hold") {
@@ -120,4 +125,28 @@ class IncreaseNumberExecutor extends Executor<Bindable<number>, number> {
       return `Increase result of ${(input as any).id}`;
     }
   }
+}
+
+export async function runUntil(
+  generator: AsyncGenerator<any>,
+  condition: (result: DeploymentResult | undefined | void) => boolean,
+  extraTicks = 5
+) {
+  let result: any;
+  while (true) {
+    result = (await generator.next()).value;
+    if (condition(result)) {
+      break;
+    }
+  }
+
+  for (let i = 0; i < extraTicks; i++) {
+    await generator.next();
+  }
+
+  return result;
+}
+
+export async function runUntilReady(generator: AsyncGenerator<any>) {
+  return runUntil(generator, (result) => result !== undefined);
 }

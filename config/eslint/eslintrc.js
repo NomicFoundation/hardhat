@@ -9,6 +9,7 @@ module.exports = {
   plugins: [
     "eslint-plugin-import",
     "@typescript-eslint",
+    "mocha"
   ],
   rules: {
     "@typescript-eslint/adjacent-overload-signatures": "error",
@@ -199,5 +200,7 @@ module.exports = {
       },
     ],
     "use-isnan": "error",
+    "mocha/no-skipped-tests": "error",
+    "mocha/no-exclusive-tests": "error"
   },
 };
