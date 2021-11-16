@@ -432,7 +432,7 @@ export class Artifacts implements IArtifacts {
       default:
         return `We found some that were similar:
 
-${names.join(os.EOL)}
+${names.map((n) => `  * ${n}`).join(os.EOL)}
 
 Please replace "${contractName}" for the correct contract name wherever you are trying to read its artifact.
 `;

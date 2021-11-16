@@ -532,7 +532,9 @@ describe("Artifacts class", function () {
       await artifacts.saveArtifactAndDebugFile(artifact2, "");
       await artifacts.saveArtifactAndDebugFile(artifact3, "");
 
-      const expected = ["Lab", "Lib.sol:Lib", "Lib2.sol:Lib"].join(os.EOL);
+      const expected = ["Lab", "Lib.sol:Lib", "Lib2.sol:Lib"]
+        .map((n) => `  * ${n}`)
+        .join(os.EOL);
 
       await expectHardhatErrorAsync(
         () => artifacts.readArtifact(typo),
@@ -556,7 +558,9 @@ describe("Artifacts class", function () {
       await artifacts.saveArtifactAndDebugFile(artifact2, "");
       await artifacts.saveArtifactAndDebugFile(artifact3, "");
 
-      const expected = ["Lab", "Lib.sol:Lib", "Lib2.sol:Lib"].join(os.EOL);
+      const expected = ["Lab", "Lib.sol:Lib", "Lib2.sol:Lib"]
+        .map((n) => `  * ${n}`)
+        .join(os.EOL);
 
       expectHardhatError(
         () => artifacts.readArtifactSync(typo),
@@ -578,7 +582,7 @@ describe("Artifacts class", function () {
       await expectHardhatErrorAsync(
         () => artifacts.readArtifact(typo),
         ERRORS.ARTIFACTS.NOT_FOUND,
-        "Lib.sol:Lib"
+        /Did you mean "Lib\.sol:Lib"?/
       );
     });
 
@@ -595,7 +599,7 @@ describe("Artifacts class", function () {
       expectHardhatError(
         () => artifacts.readArtifactSync(typo),
         ERRORS.ARTIFACTS.NOT_FOUND,
-        "Lib.sol:Lib"
+        /Did you mean "Lib\.sol:Lib"?/
       );
     });
 
@@ -612,10 +616,14 @@ describe("Artifacts class", function () {
       await artifacts.saveArtifactAndDebugFile(artifact, "");
       await artifacts.saveArtifactAndDebugFile(artifact2, "");
 
+      const expected = ["Lib.sol:Lob", "Lob.sol:Lib"]
+        .map((n) => `  * ${n}`)
+        .join(os.EOL);
+
       await expectHardhatErrorAsync(
         () => artifacts.readArtifact(typo),
         ERRORS.ARTIFACTS.NOT_FOUND,
-        `Lib.sol:Lob${os.EOL}Lob.sol:Lib`
+        expected
       );
     });
 
@@ -632,10 +640,14 @@ describe("Artifacts class", function () {
       await artifacts.saveArtifactAndDebugFile(artifact, "");
       await artifacts.saveArtifactAndDebugFile(artifact2, "");
 
+      const expected = ["Lib.sol:Lob", "Lob.sol:Lib"]
+        .map((n) => `  * ${n}`)
+        .join(os.EOL);
+
       expectHardhatError(
         () => artifacts.readArtifactSync(typo),
         ERRORS.ARTIFACTS.NOT_FOUND,
-        `Lib.sol:Lob${os.EOL}Lob.sol:Lib`
+        expected
       );
     });
 
