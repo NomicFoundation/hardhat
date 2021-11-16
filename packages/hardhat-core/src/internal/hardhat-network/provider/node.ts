@@ -2206,7 +2206,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
           chainId: this._configChainId,
           networkId: this._configNetworkId,
         },
-        hardfork: this._selectHardfork(blockContext!.header.number),
+        hardfork: this._selectHardfork(blockContext.header.number),
       });
 
       return await this._vm.runTx({
