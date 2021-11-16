@@ -24,6 +24,7 @@ import {
   BUILD_INFO_DIR_NAME,
   BUILD_INFO_FORMAT_VERSION,
   DEBUG_FILE_FORMAT_VERSION,
+  EDIT_DISTANCE_THRESHOLD,
 } from "./constants";
 import { HardhatError } from "./core/errors";
 import { ERRORS } from "./core/errors-list";
@@ -427,16 +428,16 @@ export class Artifacts implements IArtifacts {
   ): never {
     const names = this._getAllFullyQualifiedNamesSync();
 
-    if (names.length === 0) {
-      throw new HardhatError(ERRORS.ARTIFACTS.NOT_FOUND, {
-        fullyQualifiedName,
-      });
-    }
-
     const similarNames = this._getSimilarContractNames(
       fullyQualifiedName,
       names
     );
+
+    if (similarNames.length === 0) {
+      throw new HardhatError(ERRORS.ARTIFACTS.NOT_FOUND, {
+        contractName: fullyQualifiedName,
+      });
+    }
 
     throw new HardhatError(ERRORS.ARTIFACTS.TYPO_SUGGESTION, {
       contractName: fullyQualifiedName,
@@ -450,13 +451,13 @@ export class Artifacts implements IArtifacts {
   ): never {
     const names = this._getAllContractNamesFromFiles(files);
 
-    if (names.length === 0) {
+    const similarNames = this._getSimilarContractNames(contractName, names);
+
+    if (similarNames.length === 0) {
       throw new HardhatError(ERRORS.ARTIFACTS.NOT_FOUND, {
         contractName,
       });
     }
-
-    const similarNames = this._getSimilarContractNames(contractName, names);
 
     if (similarNames.length === 1) {
       throw new HardhatError(ERRORS.ARTIFACTS.TYPO_SUGGESTION, {
@@ -524,16 +525,10 @@ export class Artifacts implements IArtifacts {
     givenName: string,
     names: string[]
   ): string[] {
-    let shortestDistance;
+    let shortestDistance = EDIT_DISTANCE_THRESHOLD;
     let mostSimilarNames: string[] = [];
     for (const name of names) {
       const distance = findDistance(givenName, name);
-
-      if (shortestDistance === undefined) {
-        shortestDistance = distance;
-        mostSimilarNames.push(name);
-        continue;
-      }
 
       if (distance < shortestDistance) {
         shortestDistance = distance;

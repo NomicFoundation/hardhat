@@ -639,6 +639,70 @@ describe("Artifacts class", function () {
       );
     });
 
+    it("Should not throw with suggestions if the given contract name is further than EDIT_DISTANCE_THRESHOLD (async)", async function () {
+      const output = COMPILER_OUTPUTS.Lib;
+      const name = "Lib";
+      const typo = "aaaa";
+
+      const artifact = getArtifactFromContractOutput("Lib.sol", name, output);
+
+      const artifacts = new Artifacts(this.tmpDir);
+      await artifacts.saveArtifactAndDebugFile(artifact, "");
+
+      await expectHardhatErrorAsync(
+        () => artifacts.readArtifact(typo),
+        ERRORS.ARTIFACTS.NOT_FOUND
+      );
+    });
+
+    it("Should not throw with suggestions if the given contract name is further than EDIT_DISTANCE_THRESHOLD (sync)", async function () {
+      const output = COMPILER_OUTPUTS.Lib;
+      const name = "Lib";
+      const typo = "aaaa";
+
+      const artifact = getArtifactFromContractOutput("Lib.sol", name, output);
+
+      const artifacts = new Artifacts(this.tmpDir);
+      await artifacts.saveArtifactAndDebugFile(artifact, "");
+
+      expectHardhatError(
+        () => artifacts.readArtifactSync(typo),
+        ERRORS.ARTIFACTS.NOT_FOUND
+      );
+    });
+
+    it("Should not throw with suggestions if the given fully qualified name is further than EDIT_DISTANCE_THRESHOLD (async)", async function () {
+      const output = COMPILER_OUTPUTS.Lib;
+      const name = "Lib";
+      const typo = "Lib.sol:aaaa";
+
+      const artifact = getArtifactFromContractOutput("Lib.sol", name, output);
+
+      const artifacts = new Artifacts(this.tmpDir);
+      await artifacts.saveArtifactAndDebugFile(artifact, "");
+
+      await expectHardhatErrorAsync(
+        () => artifacts.readArtifact(typo),
+        ERRORS.ARTIFACTS.NOT_FOUND
+      );
+    });
+
+    it("Should not throw with suggestions if the given fully qualified name is further than EDIT_DISTANCE_THRESHOLD (sync)", async function () {
+      const output = COMPILER_OUTPUTS.Lib;
+      const name = "Lib";
+      const typo = "Lib.sol:aaaa";
+
+      const artifact = getArtifactFromContractOutput("Lib.sol", name, output);
+
+      const artifacts = new Artifacts(this.tmpDir);
+      await artifacts.saveArtifactAndDebugFile(artifact, "");
+
+      expectHardhatError(
+        () => artifacts.readArtifactSync(typo),
+        ERRORS.ARTIFACTS.NOT_FOUND
+      );
+    });
+
     it("Should be possible to get all the fully qualified names of the artifacts", async function () {
       const artifacts = new Artifacts(this.tmpDir);
       await storeAllArtifacts("source.sol", artifacts);
