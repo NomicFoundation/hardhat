@@ -423,6 +423,22 @@ export class Artifacts implements IArtifacts {
     return paths.map((p) => this._getFullyQualifiedNameFromPath(p)).sort();
   }
 
+  private _formatSuggestions(names: string[], contractName?: string): string {
+    switch (names.length) {
+      case 0:
+        return "";
+      case 1:
+        return `Did you mean "${names[0]}"?`;
+      default:
+        return `We found some that were similar:
+
+${names.join(os.EOL)}
+
+Please replace "${contractName}" for the correct contract name wherever you are trying to read its artifact.
+`;
+    }
+  }
+
   private _handleWrongArtifactForFullyQualifiedName(
     fullyQualifiedName: string
   ): never {
@@ -433,15 +449,9 @@ export class Artifacts implements IArtifacts {
       names
     );
 
-    if (similarNames.length === 0) {
-      throw new HardhatError(ERRORS.ARTIFACTS.NOT_FOUND, {
-        contractName: fullyQualifiedName,
-      });
-    }
-
-    throw new HardhatError(ERRORS.ARTIFACTS.TYPO_SUGGESTION, {
+    throw new HardhatError(ERRORS.ARTIFACTS.NOT_FOUND, {
       contractName: fullyQualifiedName,
-      similarNames: similarNames.join(os.EOL),
+      suggestion: this._formatSuggestions(similarNames),
     });
   }
 
@@ -451,22 +461,19 @@ export class Artifacts implements IArtifacts {
   ): never {
     const names = this._getAllContractNamesFromFiles(files);
 
-    const similarNames = this._getSimilarContractNames(contractName, names);
+    let similarNames = this._getSimilarContractNames(contractName, names);
 
-    if (similarNames.length === 0) {
-      throw new HardhatError(ERRORS.ARTIFACTS.NOT_FOUND, {
-        contractName,
-      });
+    if (similarNames.length > 1) {
+      similarNames = this._filterDuplicatesAsFullyQualifiedNames(
+        files,
+        similarNames
+      );
     }
 
-    if (similarNames.length === 1) {
-      throw new HardhatError(ERRORS.ARTIFACTS.TYPO_SUGGESTION, {
-        contractName,
-        similarNames: similarNames[0],
-      });
-    }
-
-    this._handleMultipleSimilarContractNames(contractName, files, similarNames);
+    throw new HardhatError(ERRORS.ARTIFACTS.NOT_FOUND, {
+      contractName,
+      suggestion: this._formatSuggestions(similarNames, contractName),
+    });
   }
 
   /**
@@ -483,11 +490,10 @@ export class Artifacts implements IArtifacts {
    *   - 'contracts/Meeter.sol:Greeter'
    *   - 'Greater'
    */
-  private _handleMultipleSimilarContractNames(
-    contractName: string,
+  private _filterDuplicatesAsFullyQualifiedNames(
     files: string[],
     similarNames: string[]
-  ): never {
+  ): string[] {
     const outputNames = [];
     const groups = similarNames.reduce((obj, cur) => {
       obj[cur] = obj[cur] ? obj[cur] + 1 : 1;
@@ -509,10 +515,7 @@ export class Artifacts implements IArtifacts {
       outputNames.push(name);
     }
 
-    throw new HardhatError(ERRORS.ARTIFACTS.TYPO_SUGGESTION, {
-      contractName,
-      similarNames: outputNames.join(os.EOL),
-    });
+    return outputNames;
   }
 
   /**

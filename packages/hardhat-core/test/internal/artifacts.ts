@@ -495,8 +495,8 @@ describe("Artifacts class", function () {
 
       await expectHardhatErrorAsync(
         () => artifacts.readArtifact(typo),
-        ERRORS.ARTIFACTS.TYPO_SUGGESTION,
-        "Lib"
+        ERRORS.ARTIFACTS.NOT_FOUND,
+        /Did you mean "Lib"\?$/
       );
     });
 
@@ -512,8 +512,8 @@ describe("Artifacts class", function () {
 
       expectHardhatError(
         () => artifacts.readArtifactSync(typo),
-        ERRORS.ARTIFACTS.TYPO_SUGGESTION,
-        "Lib"
+        ERRORS.ARTIFACTS.NOT_FOUND,
+        /Did you mean "Lib"\?$/
       );
     });
 
@@ -536,7 +536,7 @@ describe("Artifacts class", function () {
 
       await expectHardhatErrorAsync(
         () => artifacts.readArtifact(typo),
-        ERRORS.ARTIFACTS.TYPO_SUGGESTION,
+        ERRORS.ARTIFACTS.NOT_FOUND,
         expected
       );
     });
@@ -560,7 +560,7 @@ describe("Artifacts class", function () {
 
       expectHardhatError(
         () => artifacts.readArtifactSync(typo),
-        ERRORS.ARTIFACTS.TYPO_SUGGESTION,
+        ERRORS.ARTIFACTS.NOT_FOUND,
         expected
       );
     });
@@ -577,7 +577,7 @@ describe("Artifacts class", function () {
 
       await expectHardhatErrorAsync(
         () => artifacts.readArtifact(typo),
-        ERRORS.ARTIFACTS.TYPO_SUGGESTION,
+        ERRORS.ARTIFACTS.NOT_FOUND,
         "Lib.sol:Lib"
       );
     });
@@ -594,7 +594,7 @@ describe("Artifacts class", function () {
 
       expectHardhatError(
         () => artifacts.readArtifactSync(typo),
-        ERRORS.ARTIFACTS.TYPO_SUGGESTION,
+        ERRORS.ARTIFACTS.NOT_FOUND,
         "Lib.sol:Lib"
       );
     });
@@ -614,7 +614,7 @@ describe("Artifacts class", function () {
 
       await expectHardhatErrorAsync(
         () => artifacts.readArtifact(typo),
-        ERRORS.ARTIFACTS.TYPO_SUGGESTION,
+        ERRORS.ARTIFACTS.NOT_FOUND,
         `Lib.sol:Lob${os.EOL}Lob.sol:Lib`
       );
     });
@@ -634,7 +634,7 @@ describe("Artifacts class", function () {
 
       expectHardhatError(
         () => artifacts.readArtifactSync(typo),
-        ERRORS.ARTIFACTS.TYPO_SUGGESTION,
+        ERRORS.ARTIFACTS.NOT_FOUND,
         `Lib.sol:Lob${os.EOL}Lob.sol:Lib`
       );
     });
@@ -651,7 +651,8 @@ describe("Artifacts class", function () {
 
       await expectHardhatErrorAsync(
         () => artifacts.readArtifact(typo),
-        ERRORS.ARTIFACTS.NOT_FOUND
+        ERRORS.ARTIFACTS.NOT_FOUND,
+        /not found\.\s*$/
       );
     });
 
@@ -667,7 +668,8 @@ describe("Artifacts class", function () {
 
       expectHardhatError(
         () => artifacts.readArtifactSync(typo),
-        ERRORS.ARTIFACTS.NOT_FOUND
+        ERRORS.ARTIFACTS.NOT_FOUND,
+        /not found\.\s*$/
       );
     });
 
@@ -683,7 +685,8 @@ describe("Artifacts class", function () {
 
       await expectHardhatErrorAsync(
         () => artifacts.readArtifact(typo),
-        ERRORS.ARTIFACTS.NOT_FOUND
+        ERRORS.ARTIFACTS.NOT_FOUND,
+        /not found\.\s*$/
       );
     });
 
@@ -699,7 +702,8 @@ describe("Artifacts class", function () {
 
       expectHardhatError(
         () => artifacts.readArtifactSync(typo),
-        ERRORS.ARTIFACTS.NOT_FOUND
+        ERRORS.ARTIFACTS.NOT_FOUND,
+        /not found\.\s*$/
       );
     });
 
