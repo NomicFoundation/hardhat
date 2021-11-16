@@ -2378,6 +2378,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     ) {
       return defaultName;
     }
+
     if (this._hardforkActivations.size === 0) {
       throw new InternalError(
         `No known hardfork for execution on historical block ${blockNumber.toString()} (relative to fork block number ${
@@ -2385,6 +2386,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         }). The node was not configured with a hardfork activation history.  See http://hardhat.org/hardhat-network/guides/mainnet-forking.html#using-a-custom-hardfork-history`
       );
     }
+
     /** search this._hardforkActivations for the highest block number that
      * isn't higher than blockNumber, and then return that found block number's
      * associated hardfork name. */
@@ -2403,6 +2405,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         )}. For more information, see https://hardhat.org/hardhat-network/reference/#config`
       );
     }
+
     if (!HARDHAT_NETWORK_SUPPORTED_HARDFORKS.includes(hardfork)) {
       throw new InternalError(
         `Tried to run a call or transaction in the context of a block whose hardfork is "${hardfork}", but Hardhat Network only supports the following hardforks: ${HARDHAT_NETWORK_SUPPORTED_HARDFORKS.join(
@@ -2410,6 +2413,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         )}`
       );
     }
+
     return hardfork;
   }
 
