@@ -740,11 +740,6 @@ describe("HardhatNode", () => {
   });
 
   it("should run calls in the right hardfork context", async function () {
-    // fork mainnet at the block when EIP-1559 activated (12965000), and try to
-    // run a call that specifies gas limits in EIP-1559 terms, but run that
-    // call one block earlier, and expect that call to fail because it should
-    // have specified gas limits in PRE-EIP-1559 terms.
-
     this.timeout(10000);
 
     // as a test that does forking, we need a remote Alchemy node to fork from:
