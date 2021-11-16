@@ -800,19 +800,9 @@ describe("HardhatNode", () => {
       block: number,
       targetNode: HardhatNode = regularNode
     ): Promise<string> {
-      const contractInterface = new ethers.utils.Interface(
-        JSON.stringify([
-          {
-            constant: true,
-            inputs: [],
-            name: "Hello",
-            outputs: [{ name: "", type: "string" }],
-            payable: false,
-            stateMutability: "pure",
-            type: "function",
-          },
-        ])
-      );
+      const contractInterface = new ethers.utils.Interface([
+        "function Hello() public pure returns (string)",
+      ]);
 
       const callOpts = {
         to: toBuffer("0xe36613A299bA695aBA8D0c0011FCe95e681f6dD3"),
