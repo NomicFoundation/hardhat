@@ -43,7 +43,7 @@ enum NetworkID {
   // Avalanche
   AVALANCHE = 43114,
   AVALANCHE_FUJI_TESTNET = 43113,
-  //Moonbeam
+  // Moonbeam
   MOONBASE_ALPHA = 1287,
   MOONRIVER = 1285,
 }
