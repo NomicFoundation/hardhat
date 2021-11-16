@@ -469,14 +469,18 @@ export class Artifacts implements IArtifacts {
   }
 
   /**
-   * cases:
-   *  given: 'Greter'
-   *    'contracts/Greeter.sol:Greeter'
-   *    'contracts/Meeter.sol:Greeter'
-   *    'Greater'
+   * If the project has these contracts:
+   *   - 'contracts/Greeter.sol:Greeter'
+   *   - 'contracts/Meeter.sol:Greeter'
+   *   - 'contracts/Greater.sol:Greater'
+   *  And the user tries to get an artifact with the name 'Greter', then
+   *  the suggestions will be 'Greeter', 'Greeter', and 'Greater'.
    *
-   *  'Greeter', 'Greeter', and 'Greater' are all 1 edit-distance away from 'Greter'
-   *  because user gave contract name here, we want to display fqn's for duplicates in `similarNames`
+   * We don't want to show duplicates here, so we use FQNs for those. The
+   * suggestions will then be:
+   *   - 'contracts/Greeter.sol:Greeter'
+   *   - 'contracts/Meeter.sol:Greeter'
+   *   - 'Greater'
    */
   private _handleMultipleSimilarContractNames(
     contractName: string,
@@ -489,8 +493,8 @@ export class Artifacts implements IArtifacts {
       return obj;
     }, {} as { [k: string]: number });
 
-    for (const [name, occurrances] of Object.entries(groups)) {
-      if (occurrances > 1) {
+    for (const [name, occurrences] of Object.entries(groups)) {
+      if (occurrences > 1) {
         for (const file of files) {
           if (path.basename(file) === `${name}.json`) {
             outputNames.push(

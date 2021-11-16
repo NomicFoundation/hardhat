@@ -921,7 +921,7 @@ Hardhat's artifact resolution is case sensitive to ensure projects are portable 
 
 %similarNames%
 
-Please replace %contractName% for the correct contract name wherever you are trying to read its artifact.
+Please replace "%contractName%" for the correct contract name wherever you are trying to read its artifact.
 `,
       title: "Similar artifacts found",
       description: `Hardhat has detected that there may be a typo in the given contract name.
