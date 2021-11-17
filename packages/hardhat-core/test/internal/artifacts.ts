@@ -582,7 +582,7 @@ describe("Artifacts class", function () {
       await expectHardhatErrorAsync(
         () => artifacts.readArtifact(typo),
         ERRORS.ARTIFACTS.NOT_FOUND,
-        /Did you mean "Lib\.sol:Lib"?/
+        /Did you mean "Lib\.sol:Lib"\?/
       );
     });
 
@@ -599,7 +599,7 @@ describe("Artifacts class", function () {
       expectHardhatError(
         () => artifacts.readArtifactSync(typo),
         ERRORS.ARTIFACTS.NOT_FOUND,
-        /Did you mean "Lib\.sol:Lib"?/
+        /Did you mean "Lib\.sol:Lib"\?/
       );
     });
 
