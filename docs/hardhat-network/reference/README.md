@@ -46,6 +46,10 @@ You can set the following fields on the `hardhat` config:
 
 - `loggingEnabled`: A boolean that controls if Hardhat Network logs every request or not. Default value: `false` for the in-process Hardhat Network provider, `true` for the Hardhat Network backed JSON-RPC server (i.e. the `node` task).
 
+- `logging`: Additional logging options. This is an optional object with the following keys.
+  - `level`: Can bet set to `default` or `minimal`. The `minimal` logging level will only log method names and contracts' console log statements.
+  - `omitMethods`: List of strings which are methods to be omitted. (e.g. `omitMethods: ["eth_blockNumber", "eth_chainId"]`).
+
 - `initialDate`: An optional string setting the date of the blockchain. Valid values are [Javascript's date time strings](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/parse#Date_Time_String_Format). Default value: the current date and time if not forking another network. When forking another network, the timestamp of the block you forked from, plus one second, is used.
 
 - `allowUnlimitedContractSize`: An optional boolean that disables the contract size limit imposed by the [EIP 170](https://eips.ethereum.org/EIPS/eip-170). Default value: `false`

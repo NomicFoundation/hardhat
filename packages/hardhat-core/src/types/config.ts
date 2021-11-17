@@ -42,6 +42,7 @@ export interface HardhatNetworkUserConfig {
   allowUnlimitedContractSize?: boolean;
   initialDate?: string;
   loggingEnabled?: boolean;
+  logging?: HardhatNetworkLoggingUserConfig;
   forking?: HardhatNetworkForkingUserConfig;
 }
 
@@ -117,7 +118,18 @@ export interface HardhatNetworkConfig {
   allowUnlimitedContractSize: boolean;
   initialDate: string;
   loggingEnabled: boolean;
+  logging: HardhatNetworkLoggingConfig;
   forking?: HardhatNetworkForkingConfig;
+}
+
+export interface HardhatNetworkLoggingConfig {
+  level: "default" | "minimal" | "verbose";
+  omitMethods: string[];
+}
+
+export interface HardhatNetworkLoggingUserConfig {
+  level?: "default" | "minimal" | "verbose";
+  omitMethods?: string[];
 }
 
 export type HardhatNetworkAccountsConfig =

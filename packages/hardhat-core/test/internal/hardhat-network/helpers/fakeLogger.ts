@@ -6,6 +6,7 @@ export class FakeModulesLogger extends ModulesLogger {
   constructor(enabled: boolean) {
     super(
       enabled,
+      { level: "default", omitMethods: [] },
       (line) => {
         this.lines.push(line);
       },

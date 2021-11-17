@@ -8,6 +8,7 @@ import {
   HardhatNetworkAccountsConfig,
   HardhatNetworkConfig,
   HardhatNetworkForkingConfig,
+  HardhatNetworkLoggingConfig,
   HardhatNetworkMiningConfig,
   HardhatNetworkMiningUserConfig,
   HardhatNetworkUserConfig,
@@ -169,9 +170,22 @@ function resolveHardhatNetworkConfig(
   const initialDate =
     hardhatNetworkConfig.initialDate ?? new Date().toISOString();
 
+  const logging: HardhatNetworkLoggingConfig =
+    hardhatNetworkConfig.logging === undefined
+      ? clonedDefaultHardhatNetworkParams.logging
+      : {
+          level:
+            hardhatNetworkConfig.logging.level ??
+            clonedDefaultHardhatNetworkParams.logging.level,
+          omitMethods:
+            hardhatNetworkConfig.logging.omitMethods ??
+            clonedDefaultHardhatNetworkParams.logging.omitMethods,
+        };
+
   const config = {
     ...clonedDefaultHardhatNetworkParams,
     ...hardhatNetworkConfig,
+    logging,
     accounts,
     forking,
     mining,
