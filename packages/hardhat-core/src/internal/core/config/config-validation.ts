@@ -11,7 +11,6 @@ import { fromEntries } from "../../util/lang";
 import { HardhatError } from "../errors";
 import { ERRORS } from "../errors-list";
 import { hardforkGte, HardforkName } from "../../util/hardforks";
-import { HardhatNetworkChainUserConfig } from "../../../types/config";
 import { defaultHardhatNetworkParams } from "./default-config";
 
 function stringify(v: any): string {
@@ -365,29 +364,6 @@ export function getValidationErrors(config: any): string[] {
             `Unexpected config HardhatConfig.networks.${HARDHAT_NETWORK_NAME}.initialBaseFeePerGas found - This field is only valid for networks with EIP-1559. Try a newer hardfork or remove it.`
           );
         }
-      }
-
-      if (hardhatNetwork.chains !== undefined) {
-        Object.entries(hardhatNetwork.chains).forEach((chainEntry) => {
-          const [chainId, chainConfig] = chainEntry as [
-            string,
-            HardhatNetworkChainUserConfig
-          ];
-          const { hardforkHistory } = chainConfig;
-          if (hardforkHistory !== undefined) {
-            Object.keys(hardforkHistory).forEach((hardforkName) => {
-              if (!HARDHAT_NETWORK_SUPPORTED_HARDFORKS.includes(hardforkName)) {
-                errors.push(
-                  getErrorMessage(
-                    `HardhatConfig.networks.${HARDHAT_NETWORK_NAME}.chains[${chainId}].hardforkHistory`,
-                    hardforkName,
-                    `"${HARDHAT_NETWORK_SUPPORTED_HARDFORKS.join('" | "')}"`
-                  )
-                );
-              }
-            });
-          }
-        });
       }
     }
 
