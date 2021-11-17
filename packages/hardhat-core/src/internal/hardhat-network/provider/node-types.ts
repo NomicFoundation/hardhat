@@ -31,11 +31,6 @@ interface CommonConfig {
   chains: HardhatNetworkChainsConfig;
 }
 
-export {
-  HardhatNetworkChainsConfig,
-  HardhatNetworkChainConfig,
-} from "../../../types";
-
 export type LocalNodeConfig = CommonConfig;
 
 export interface ForkConfig {

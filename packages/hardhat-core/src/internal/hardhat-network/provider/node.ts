@@ -256,11 +256,11 @@ export class HardhatNode extends EventEmitter {
       genesisAccounts,
       networkId,
       chainId,
+      hardforkActivations,
       tracingConfig,
       forkNetworkId,
       forkBlockNum,
-      nextBlockBaseFeePerGas,
-      hardforkActivations
+      nextBlockBaseFeePerGas
     );
 
     return [common, node];
@@ -333,11 +333,11 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     genesisAccounts: GenesisAccount[],
     private readonly _configNetworkId: number,
     private readonly _configChainId: number,
+    private readonly _hardforkActivations: HardforkHistoryConfig,
     tracingConfig?: TracingConfig,
     private _forkNetworkId?: number,
     private _forkBlockNumber?: number,
-    nextBlockBaseFee?: BN,
-    private readonly _hardforkActivations?: HardforkHistoryConfig
+    nextBlockBaseFee?: BN
   ) {
     super();
 
@@ -2206,7 +2206,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
           chainId: this._configChainId,
           networkId: this._configNetworkId,
         },
-        hardfork: this._selectHardfork(blockContext!.header.number),
+        hardfork: this._selectHardfork(blockContext.header.number),
       });
 
       return await this._vm.runTx({
@@ -2378,42 +2378,43 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     ) {
       return defaultName;
     }
-    if (this._hardforkActivations === undefined) {
+
+    if (this._hardforkActivations.size === 0) {
       throw new InternalError(
         `No known hardfork for execution on historical block ${blockNumber.toString()} (relative to fork block number ${
           this._forkBlockNumber
-        }). The node was not configured with a hardforkActivationHistory.  See http://hardhat.org/hardhat-network/guides/mainnet-forking.html#using-a-custom-hardfork-history`
+        }). The node was not configured with a hardfork activation history.  See http://hardhat.org/hardhat-network/guides/mainnet-forking.html#using-a-custom-hardfork-history`
       );
     }
+
     /** search this._hardforkActivations for the highest block number that
      * isn't higher than blockNumber, and then return that found block number's
      * associated hardfork name. */
-    const activations = this._hardforkActivations!; // yes !, just asserted it.
-    let highestFound: { hardfork: string; block: number } | undefined;
-    activations.forEach((block: number, hardfork: string) => {
-      if (
-        highestFound === undefined ||
-        (block > highestFound.block && new BN(block).lte(blockNumber))
-      ) {
-        highestFound = { hardfork, block };
-      }
-    });
-    if (highestFound === undefined) {
+    const hardforkHistory: Array<[name: string, block: number]> =
+      Array.from(this._hardforkActivations.entries());
+    const [hardfork] = hardforkHistory.reduce(
+      ([highestHardfork, highestBlock], [thisHardfork, thisBlock]) =>
+        thisBlock > highestBlock && new BN(thisBlock).lte(blockNumber)
+          ? [thisHardfork, thisBlock]
+          : [highestHardfork, highestBlock]
+    );
+    if (hardfork === undefined) {
       throw new InternalError(
         `Could not find a hardfork to run for block ${blockNumber}, after having looked for one in the HardhatNode's hardfork activation history, which was: ${JSON.stringify(
-          Array.from(activations.entries())
+          hardforkHistory
         )}. For more information, see https://hardhat.org/hardhat-network/reference/#config`
       );
     }
-    const hardforkName = highestFound.hardfork;
-    if (!HARDHAT_NETWORK_SUPPORTED_HARDFORKS.includes(hardforkName)) {
+
+    if (!HARDHAT_NETWORK_SUPPORTED_HARDFORKS.includes(hardfork)) {
       throw new InternalError(
-        `Tried to run a call or transaction in the context of a block whose hardfork is "${hardforkName}", but Hardhat Network only supports the following hardforks: ${HARDHAT_NETWORK_SUPPORTED_HARDFORKS.join(
+        `Tried to run a call or transaction in the context of a block whose hardfork is "${hardfork}", but Hardhat Network only supports the following hardforks: ${HARDHAT_NETWORK_SUPPORTED_HARDFORKS.join(
           ", "
         )}`
       );
     }
-    return hardforkName;
+
+    return hardfork;
   }
 
   private _getCommonForTracing(networkId: number, blockNumber: number): Common {

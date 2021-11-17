@@ -375,8 +375,7 @@ export function getValidationErrors(config: any): string[] {
           ];
           const { hardforkHistory } = chainConfig;
           if (hardforkHistory !== undefined) {
-            Object.entries(hardforkHistory).forEach((hardforkEntry) => {
-              const [hardforkName] = hardforkEntry;
+            Object.keys(hardforkHistory).forEach((hardforkName) => {
               if (!HARDHAT_NETWORK_SUPPORTED_HARDFORKS.includes(hardforkName)) {
                 errors.push(
                   getErrorMessage(

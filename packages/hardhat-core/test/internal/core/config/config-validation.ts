@@ -1334,6 +1334,22 @@ describe("Config validation", function () {
           },
         });
       });
+      it("Should validate good config with chainId as a string", function () {
+        validateConfig({
+          networks: {
+            hardhat: {
+              chains: {
+                "1": {
+                  hardforkHistory: {
+                    berlin: 12965000 - 1000,
+                    london: 12965000,
+                  },
+                },
+              },
+            },
+          },
+        });
+      });
       it("should reject an invalid hardfork name", function () {
         expectHardhatError(() => {
           validateConfig({

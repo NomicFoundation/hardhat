@@ -174,10 +174,9 @@ function resolveHardhatNetworkConfig(
   const initialDate =
     hardhatNetworkConfig.initialDate ?? new Date().toISOString();
 
-  const chains: HardhatNetworkChainsConfig = new Map();
-  defaultHardhatNetworkParams.chains.forEach((defaultChainConfig, chainId) => {
-    chains.set(chainId, defaultChainConfig);
-  });
+  const chains: HardhatNetworkChainsConfig = new Map(
+    defaultHardhatNetworkParams.chains
+  );
   if (hardhatNetworkConfig.chains !== undefined) {
     for (const [chainId, userChainConfig] of Object.entries(
       hardhatNetworkConfig.chains

@@ -20,6 +20,7 @@ import { FakeSenderTransaction } from "../../../../src/internal/hardhat-network/
 import { getCurrentTimestamp } from "../../../../src/internal/hardhat-network/provider/utils/getCurrentTimestamp";
 import { makeForkClient } from "../../../../src/internal/hardhat-network/provider/utils/makeForkClient";
 import { HardforkName } from "../../../../src/internal/util/hardforks";
+import { cloneChainsConfig } from "../../../../src/types";
 import { ALCHEMY_URL } from "../../../setup";
 import { assertQuantity } from "../helpers/assertions";
 import {
@@ -739,11 +740,6 @@ describe("HardhatNode", () => {
   });
 
   it("should run calls in the right hardfork context", async function () {
-    // fork mainnet at the block when EIP-1559 activated (12965000), and try to
-    // run a call that specifies gas limits in EIP-1559 terms, but run that
-    // call one block earlier, and expect that call to fail because it should
-    // have specified gas limits in PRE-EIP-1559 terms.
-
     this.timeout(10000);
 
     // as a test that does forking, we need a remote Alchemy node to fork from:
@@ -773,7 +769,10 @@ describe("HardhatNode", () => {
 
     const [, regularNode] = await HardhatNode.create(forkedNodeConfig);
 
-    const nodeCfgWithEarlyLondon = forkedNodeConfig;
+    const nodeCfgWithEarlyLondon = {
+      ...forkedNodeConfig,
+      chains: cloneChainsConfig(forkedNodeConfig.chains),
+    };
     let earlyLondonMainnetConfig = forkedNodeConfig.chains.get(1);
     if (earlyLondonMainnetConfig === undefined) {
       earlyLondonMainnetConfig = { hardforkHistory: new Map() };
@@ -787,7 +786,10 @@ describe("HardhatNode", () => {
       nodeCfgWithEarlyLondon
     );
 
-    const nodeCfgWithoutHFHist = forkedNodeConfig;
+    const nodeCfgWithoutHFHist = {
+      ...forkedNodeConfig,
+      chains: cloneChainsConfig(forkedNodeConfig.chains),
+    };
     nodeCfgWithoutHFHist.chains.set(1, { hardforkHistory: new Map() });
     const [, nodeWithoutHardforkHistory] = await HardhatNode.create(
       nodeCfgWithoutHFHist
@@ -800,19 +802,9 @@ describe("HardhatNode", () => {
       block: number,
       targetNode: HardhatNode = regularNode
     ): Promise<string> {
-      const contractInterface = new ethers.utils.Interface(
-        JSON.stringify([
-          {
-            constant: true,
-            inputs: [],
-            name: "Hello",
-            outputs: [{ name: "", type: "string" }],
-            payable: false,
-            stateMutability: "pure",
-            type: "function",
-          },
-        ])
-      );
+      const contractInterface = new ethers.utils.Interface([
+        "function Hello() public pure returns (string)",
+      ]);
 
       const callOpts = {
         to: toBuffer("0xe36613A299bA695aBA8D0c0011FCe95e681f6dD3"),
@@ -873,7 +865,7 @@ describe("HardhatNode", () => {
         blockBefore1559,
         nodeWithoutHardforkHistory
       );
-    }, /Could not find a hardfork to run/);
+    }, /node was not configured with a hardfork activation history/);
   });
 });
 

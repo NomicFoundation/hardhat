@@ -658,22 +658,6 @@ describe("Config resolution", () => {
             Array.from(resolvedConfig.networks.hardhat.chains.entries()),
             Array.from(defaultHardhatNetworkParams.chains.entries())
           );
-          for (const chain of Array.from(
-            defaultHardhatNetworkParams.chains.keys()
-          )) {
-            assert.deepEqual(
-              Array.from(
-                resolvedConfig.networks.hardhat.chains
-                  .get(chain)!
-                  .hardforkHistory.entries()
-              ),
-              Array.from(
-                defaultHardhatNetworkParams.chains
-                  .get(chain)!
-                  .hardforkHistory.entries()
-              )
-            );
-          }
         });
         describe("mixing defaults and user configs", function () {
           const userConfig = {
