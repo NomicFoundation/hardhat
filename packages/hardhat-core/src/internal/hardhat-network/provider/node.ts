@@ -1280,8 +1280,6 @@ Hardhat Network's forking functionality only works with blocks from at least spu
             );
           }
 
-          vm._common.setHardfork(this._selectHardfork(new BN(blockNumber)));
-
           const txHash = txWithCommon.hash();
           if (txHash.equals(hash)) {
             const vmDebugTracer = new VMDebugTracer(vm);
