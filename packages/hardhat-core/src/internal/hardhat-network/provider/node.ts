@@ -2430,13 +2430,6 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         hardfork: this._selectHardfork(new BN(blockNumber)),
       });
 
-      common.setHardfork(
-        this._selectHardfork(
-          new BN(blockNumber),
-          common.activeHardfork(blockNumber) as HardforkName
-        )
-      );
-
       return common;
     } catch (e) {
       throw new InternalError(
