@@ -20,7 +20,10 @@ import { FakeSenderTransaction } from "../../../../src/internal/hardhat-network/
 import { getCurrentTimestamp } from "../../../../src/internal/hardhat-network/provider/utils/getCurrentTimestamp";
 import { makeForkClient } from "../../../../src/internal/hardhat-network/provider/utils/makeForkClient";
 import { HardforkName } from "../../../../src/internal/util/hardforks";
-import { cloneChainsConfig } from "../../../../src/types";
+import {
+  HardhatNetworkChainConfig,
+  HardhatNetworkChainsConfig,
+} from "../../../../src/types";
 import { ALCHEMY_URL } from "../../../setup";
 import { assertQuantity } from "../helpers/assertions";
 import {
@@ -47,6 +50,22 @@ interface ForkedBlock {
   url: string;
   blockToRun: number;
   chainId: number;
+}
+
+export function cloneChainsConfig(
+  source: HardhatNetworkChainsConfig
+): HardhatNetworkChainsConfig {
+  const clone: HardhatNetworkChainsConfig = new Map();
+  source.forEach(
+    (sourceChainConfig: HardhatNetworkChainConfig, chainId: number) => {
+      const clonedChainConfig = { ...sourceChainConfig };
+      clonedChainConfig.hardforkHistory = new Map(
+        sourceChainConfig.hardforkHistory
+      );
+      clone.set(chainId, clonedChainConfig);
+    }
+  );
+  return clone;
 }
 
 describe("HardhatNode", () => {

@@ -125,22 +125,6 @@ export type HardhatNetworkChainsConfig = Map<
   HardhatNetworkChainConfig
 >;
 
-export function cloneChainsConfig(
-  source: HardhatNetworkChainsConfig
-): HardhatNetworkChainsConfig {
-  const clone: HardhatNetworkChainsConfig = new Map();
-  source.forEach(
-    (sourceChainConfig: HardhatNetworkChainConfig, chainId: number) => {
-      const clonedChainConfig = { ...sourceChainConfig };
-      clonedChainConfig.hardforkHistory = new Map(
-        sourceChainConfig.hardforkHistory
-      );
-      clone.set(chainId, clonedChainConfig);
-    }
-  );
-  return clone;
-}
-
 export interface HardhatNetworkConfig {
   chainId: number;
   from?: string;
