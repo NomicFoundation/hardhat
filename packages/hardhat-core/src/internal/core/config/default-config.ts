@@ -99,6 +99,8 @@ export const defaultHardhatNetworkParams: Omit<
           [HardforkName.CONSTANTINOPLE, 9200000],
           [HardforkName.PETERSBURG, 10255201],
           [HardforkName.ISTANBUL, 14111141],
+          [HardforkName.BERLIN, 24770900],
+          [HardforkName.LONDON, 26741100],
         ]),
       },
     ],
