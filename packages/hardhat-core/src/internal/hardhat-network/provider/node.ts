@@ -2366,15 +2366,12 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     return { maxFeePerGas, maxPriorityFeePerGas };
   }
 
-  private _selectHardfork(
-    blockNumber: BN,
-    defaultName = this._vm._common.hardfork() as HardforkName
-  ): string {
+  private _selectHardfork(blockNumber: BN): string {
     if (
       this._forkBlockNumber === undefined ||
       blockNumber.gte(new BN(this._forkBlockNumber))
     ) {
-      return defaultName;
+      return this._vm._common.hardfork() as HardforkName;
     }
 
     if (this._hardforkActivations.size === 0) {
