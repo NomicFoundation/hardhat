@@ -914,6 +914,30 @@ describe("HardhatNode", () => {
       });
     });
 
+    describe("when forking with a weird hardfork activation history", function () {
+      let hardhatNode: HardhatNode;
+      before(async function () {
+        const nodeConfig = {
+          ...baseNodeConfig,
+          chains: new Map([
+            [
+              1,
+              {
+                hardforkHistory: new Map([["london", 100]]),
+              },
+            ],
+          ]),
+        };
+
+        [, hardhatNode] = await HardhatNode.create(nodeConfig);
+      });
+      it("should throw when making a call with a block below the only hardfork activation", async function () {
+        await expectErrorAsync(async () => {
+          await runCall(pre1559GasOpts, 99, hardhatNode);
+        }, /Could not find a hardfork to run for block 99, after having looked for one in the HardhatNode's hardfork activation history/);
+      });
+    });
+
     describe("when forking WITHOUT a hardfork activation history", function () {
       let nodeWithoutHardforkHistory: HardhatNode;
 
