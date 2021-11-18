@@ -2201,8 +2201,8 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         chain: {
           // eslint-disable-next-line @typescript-eslint/dot-notation
           ...this._vm._common["_chainParams"],
-          chainId: this._configChainId,
-          networkId: this._configNetworkId,
+          chainId: this._forkNetworkId ?? this._configChainId,
+          networkId: this._forkNetworkId ?? this._configNetworkId,
         },
         hardfork: this._selectHardfork(blockContext.header.number),
       });
