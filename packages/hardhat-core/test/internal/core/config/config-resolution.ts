@@ -670,13 +670,6 @@ describe("Config resolution", () => {
             assert.deepEqual(resolvedConfig.networks.hardhat.chains.get(1), {
               hardforkHistory: new Map([[HardforkName.LONDON, 999]]),
             });
-            assert.deepEqual(resolvedConfig.networks.hardhat.chains.get(1), {
-              hardforkHistory: new Map(
-                Object.entries(
-                  userConfig.networks.hardhat.chains[1].hardforkHistory
-                ) as [[HardforkName, number]]
-              ),
-            });
           });
           it("If they don't provide any value for a default chain, should use the default for that one.", function () {
             for (const otherChain of Array.from(
