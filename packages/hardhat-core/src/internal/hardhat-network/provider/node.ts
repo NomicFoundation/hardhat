@@ -2391,13 +2391,13 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     const hardforkHistory: Array<[name: string, block: number]> = Array.from(
       this._hardforkActivations.entries()
     );
-    const [hardfork] = hardforkHistory.reduce(
+    const [hardfork, activationBlock] = hardforkHistory.reduce(
       ([highestHardfork, highestBlock], [thisHardfork, thisBlock]) =>
         thisBlock > highestBlock && new BN(thisBlock).lte(blockNumber)
           ? [thisHardfork, thisBlock]
           : [highestHardfork, highestBlock]
     );
-    if (hardfork === undefined) {
+    if (hardfork === undefined || blockNumber.ltn(activationBlock)) {
       throw new InternalError(
         `Could not find a hardfork to run for block ${blockNumber}, after having looked for one in the HardhatNode's hardfork activation history, which was: ${JSON.stringify(
           hardforkHistory
