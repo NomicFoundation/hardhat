@@ -758,25 +758,30 @@ describe("HardhatNode", () => {
     }
   });
 
-  it("should run calls in the right hardfork context", async function () {
+  describe("should run calls in the right hardfork context", async function () {
     this.timeout(10000);
-
-    // as a test that does forking, we need a remote Alchemy node to fork from:
-    if (ALCHEMY_URL === undefined) {
-      return;
-    }
-    const urlOfNodeToFork = ALCHEMY_URL;
+    before(function () {
+      if (ALCHEMY_URL === undefined) {
+        this.skip();
+        return;
+      }
+    });
 
     const eip1559ActivationBlock = 12965000;
+    // some shorthand for code below:
+    const post1559Block = eip1559ActivationBlock;
+    const blockBefore1559 = eip1559ActivationBlock - 1;
+    const pre1559GasOpts = { gasPrice: new BN(0) };
+    const post1559GasOpts = { maxFeePerGas: new BN(0) };
 
-    const forkedNodeConfig: ForkedNodeConfig = {
+    const baseNodeConfig: ForkedNodeConfig = {
       automine: true,
       networkName: "mainnet",
       chainId: 1,
       networkId: 1,
       hardfork: "london",
       forkConfig: {
-        jsonRpcUrl: urlOfNodeToFork,
+        jsonRpcUrl: ALCHEMY_URL!,
         blockNumber: eip1559ActivationBlock,
       },
       forkCachePath: FORK_TESTS_CACHE_PATH,
@@ -786,40 +791,12 @@ describe("HardhatNode", () => {
       chains: defaultHardhatNetworkParams.chains,
     };
 
-    const [, regularNode] = await HardhatNode.create(forkedNodeConfig);
-
-    const nodeCfgWithEarlyLondon = {
-      ...forkedNodeConfig,
-      chains: cloneChainsConfig(forkedNodeConfig.chains),
-    };
-    let earlyLondonMainnetConfig = forkedNodeConfig.chains.get(1);
-    if (earlyLondonMainnetConfig === undefined) {
-      earlyLondonMainnetConfig = { hardforkHistory: new Map() };
-    }
-    earlyLondonMainnetConfig.hardforkHistory.set(
-      HardforkName.LONDON,
-      eip1559ActivationBlock - 1
-    );
-    nodeCfgWithEarlyLondon.chains.set(1, earlyLondonMainnetConfig);
-    const [, nodeWithEarlyLondon] = await HardhatNode.create(
-      nodeCfgWithEarlyLondon
-    );
-
-    const nodeCfgWithoutHFHist = {
-      ...forkedNodeConfig,
-      chains: cloneChainsConfig(forkedNodeConfig.chains),
-    };
-    nodeCfgWithoutHFHist.chains.set(1, { hardforkHistory: new Map() });
-    const [, nodeWithoutHardforkHistory] = await HardhatNode.create(
-      nodeCfgWithoutHFHist
-    );
-
     /** execute a call to method Hello() on contract HelloWorld, deployed to
      * mainnet years ago, which should return a string, "Hello World". */
     async function runCall(
       gasParams: { gasPrice?: BN; maxFeePerGas?: BN },
       block: number,
-      targetNode: HardhatNode = regularNode
+      targetNode: HardhatNode
     ): Promise<string> {
       const contractInterface = new ethers.utils.Interface([
         "function Hello() public pure returns (string)",
@@ -845,46 +822,122 @@ describe("HardhatNode", () => {
       );
     }
 
-    // some shorthand for code below:
-    const post1559Block = eip1559ActivationBlock;
-    const blockBefore1559 = eip1559ActivationBlock - 1;
-    const pre1559GasOpts = { gasPrice: new BN(0) };
-    const post1559GasOpts = { maxFeePerGas: new BN(0) };
+    describe("when forking with a default hardfork activation history", function () {
+      let hardhatNode: HardhatNode;
 
-    // some sanity checks:
-    assert.equal("Hello World", await runCall(post1559GasOpts, post1559Block));
-    assert.equal("Hello World", await runCall(pre1559GasOpts, blockBefore1559));
-    assert.equal(
-      "Hello World",
-      await runCall(post1559GasOpts, blockBefore1559)
-    );
-    assert.equal("Hello World", await runCall(pre1559GasOpts, post1559Block));
+      before(async function () {
+        [, hardhatNode] = await HardhatNode.create(baseNodeConfig);
+      });
 
-    // it("should respect a custom hardfork history")
-    assert.equal(
-      "Hello World",
-      await runCall(post1559GasOpts, blockBefore1559, nodeWithEarlyLondon)
-    );
-    await expectErrorAsync(async () => {
-      await runCall(post1559GasOpts, blockBefore1559 - 1, nodeWithEarlyLondon);
-    }, "Cannot run transaction: EIP 1559 is not activated.");
-    assert.equal(
-      "Hello World",
-      await runCall(post1559GasOpts, post1559Block, nodeWithEarlyLondon)
-    );
-    assert.equal(
-      "Hello World",
-      await runCall(pre1559GasOpts, blockBefore1559, nodeWithEarlyLondon)
-    );
+      it("should accept post-EIP-1559 gas semantics when running in the context of a post-EIP-1559 block", async function () {
+        assert.equal(
+          "Hello World",
+          await runCall(post1559GasOpts, post1559Block, hardhatNode)
+        );
+      });
 
-    // it("should refuse to run on a historical block without a hardfork history")
-    await expectErrorAsync(async () => {
-      await runCall(
-        pre1559GasOpts,
-        blockBefore1559,
-        nodeWithoutHardforkHistory
-      );
-    }, /node was not configured with a hardfork activation history/);
+      it("should accept pre-EIP-1559 gas semantics when running in the context of a pre-EIP-1559 block", async function () {
+        assert.equal(
+          "Hello World",
+          await runCall(pre1559GasOpts, blockBefore1559, hardhatNode)
+        );
+      });
+
+      it("should throw when given post-EIP-1559 gas semantics and when running in the context of a pre-EIP-1559 block", async function () {
+        await expectErrorAsync(async () => {
+          assert.equal(
+            "Hello World",
+            await runCall(post1559GasOpts, blockBefore1559, hardhatNode)
+          );
+        }, "Cannot run transaction: EIP 1559 is not activated.");
+      });
+
+      it("should accept pre-EIP-1559 gas semantics when running in the context of a post-EIP-1559 block", async function () {
+        assert.equal(
+          "Hello World",
+          await runCall(pre1559GasOpts, post1559Block, hardhatNode)
+        );
+      });
+    });
+
+    describe("when forking with a hardfork activation history that indicates London happened one block early", function () {
+      let nodeWithEarlyLondon: HardhatNode;
+
+      before(async function () {
+        const nodeConfig = {
+          ...baseNodeConfig,
+          chains: cloneChainsConfig(baseNodeConfig.chains),
+        };
+
+        const chainConfig = nodeConfig.chains.get(1) ?? {
+          hardforkHistory: new Map(),
+        };
+        chainConfig.hardforkHistory.set(
+          HardforkName.LONDON,
+          eip1559ActivationBlock - 1
+        );
+
+        nodeConfig.chains.set(1, chainConfig);
+
+        [, nodeWithEarlyLondon] = await HardhatNode.create(nodeConfig);
+      });
+
+      it("should accept post-EIP-1559 gas semantics when running in the context of the block of the EIP-1559 activation", async function () {
+        assert.equal(
+          "Hello World",
+          await runCall(post1559GasOpts, blockBefore1559, nodeWithEarlyLondon)
+        );
+      });
+
+      it("should throw when given post-EIP-1559 gas semantics and when running in the context of the block before EIP-1559 activation", async function () {
+        await expectErrorAsync(async () => {
+          await runCall(
+            post1559GasOpts,
+            blockBefore1559 - 1,
+            nodeWithEarlyLondon
+          );
+        }, "Cannot run transaction: EIP 1559 is not activated.");
+      });
+
+      it("should accept post-EIP-1559 gas semantics when running in the context of a block after EIP-1559 activation", async function () {
+        assert.equal(
+          "Hello World",
+          await runCall(post1559GasOpts, post1559Block, nodeWithEarlyLondon)
+        );
+      });
+
+      it("should accept pre-EIP-1559 gas semantics when running in the context of the block of the EIP-1559 activation", async function () {
+        assert.equal(
+          "Hello World",
+          await runCall(pre1559GasOpts, blockBefore1559, nodeWithEarlyLondon)
+        );
+      });
+    });
+
+    describe("when forking WITHOUT a hardfork activation history", function () {
+      let nodeWithoutHardforkHistory: HardhatNode;
+
+      before(async function () {
+        const nodeCfgWithoutHFHist = {
+          ...baseNodeConfig,
+          chains: cloneChainsConfig(baseNodeConfig.chains),
+        };
+        nodeCfgWithoutHFHist.chains.set(1, { hardforkHistory: new Map() });
+        [, nodeWithoutHardforkHistory] = await HardhatNode.create(
+          nodeCfgWithoutHFHist
+        );
+      });
+
+      it("should throw when running in the context of a historical block", async function () {
+        await expectErrorAsync(async () => {
+          await runCall(
+            pre1559GasOpts,
+            blockBefore1559,
+            nodeWithoutHardforkHistory
+          );
+        }, /node was not configured with a hardfork activation history/);
+      });
+    });
   });
 });
 
