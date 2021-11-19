@@ -10,7 +10,7 @@ If you find a bug or want to propose a new feature, please [open an issue](https
 
 Every issue gets automatically assigned to a team member. This person will act as the point of contact between the user that opened the issue and the team.
 
-An issue being assigned does not mean that we are actively working on addressing it, so if you are interested on addressing one add a comment mentioning it.
+An issue being assigned does not mean that we are actively working on addressing it, so if you are interested in addressing one add a comment mentioning it.
 
 ## Project structure
 
