@@ -91,7 +91,7 @@ An object that configures chain-specific options. Each key is a number represent
 
 The default value includes configurations for several well known chains (eg mainnet, chain ID `1`); using this field is only useful when forking unusual networks. The user may override the defaults for some chain ID's while leaving the defaults in place for other chain ID's. Overriding the default for a chain ID will replace the entire configuration for that chain.
 
-For more details, see [Using a custom hardfork history](../guides/mainnet-forking.md#using-a-custom-hardfork-history].
+For more details, see [Using a custom hardfork history](../guides/mainnet-forking.md#using-a-custom-hardfork-history).
 
 #### `minGasPrice`
 
