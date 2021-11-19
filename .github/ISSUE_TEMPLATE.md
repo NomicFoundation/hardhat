@@ -11,6 +11,6 @@ If you are reporting a bug, please include reproduction steps. The best way to d
 
 If you are submitting a feature request, please take the time to clearly describe your use case, and not only your proposed solution.
 
-This issue will be automatically assigned to a Hardhat team member. This person will act as the point of contact between you and the team, but won't necessarily fix it nor address it in any way. An issue being assigned does not mean that it's being worked on. 
+This issue will be automatically assigned to a Hardhat team member. This person will act as the point of contact between you and the team, but won't necessarily fix it nor address it in any way. An issue being assigned does not mean that it's being worked on.
 
 -->
