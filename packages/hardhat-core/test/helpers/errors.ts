@@ -23,15 +23,17 @@ export async function expectErrorAsync(
       return;
     }
 
-    if (typeof errorMessage === "string") {
-      if (err.message !== errorMessage) {
-        notExactMatch.message += `${err.message}"`;
-        throw notExactMatch;
-      }
-    } else {
-      if (errorMessage.exec(err.message) === null) {
-        notRegexpMatch.message += `${err.message}"`;
-        throw notRegexpMatch;
+    if (err instanceof Error) {
+      if (typeof errorMessage === "string") {
+        if (err.message !== errorMessage) {
+          notExactMatch.message += `${err.message}"`;
+          throw notExactMatch;
+        }
+      } else {
+        if (errorMessage.exec(err.message) === null) {
+          notRegexpMatch.message += `${err.message}"`;
+          throw notRegexpMatch;
+        }
       }
     }
 
@@ -48,7 +50,7 @@ export function expectHardhatError(
 ) {
   try {
     f();
-  } catch (error) {
+  } catch (error: any) {
     assert.instanceOf(error, HardhatError);
     assert.equal(error.number, errorDescriptor.number);
     assert.notInclude(
@@ -98,7 +100,7 @@ export async function expectHardhatErrorAsync(
 
   try {
     await f();
-  } catch (err) {
+  } catch (err: any) {
     assert.instanceOf(err, HardhatError);
     assert.equal(err.number, errorDescriptor.number);
     assert.notInclude(

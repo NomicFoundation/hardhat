@@ -85,7 +85,7 @@ export class HardhatDocker {
 
       return res.ok;
     } catch (error) {
-      throw new DockerHubConnectionError(error);
+      throw new DockerHubConnectionError(error as Error);
     }
   }
 
@@ -197,7 +197,7 @@ export class HardhatDocker {
   private async _withCommonErrors<T>(promise: Promise<T>): Promise<T> {
     try {
       return await promise;
-    } catch (error) {
+    } catch (error: any) {
       if (error.code === "ECONNREFUSED") {
         throw new DockerNotRunningError(error);
       }
@@ -258,7 +258,7 @@ export class HardhatDocker {
 
       return json.config.digest;
     } catch (error) {
-      throw new DockerHubConnectionError(error);
+      throw new DockerHubConnectionError(error as Error);
     }
   }
 
@@ -281,7 +281,7 @@ export class HardhatDocker {
 
       return json.token;
     } catch (error) {
-      throw new DockerHubConnectionError(error);
+      throw new DockerHubConnectionError(error as Error);
     }
   }
 

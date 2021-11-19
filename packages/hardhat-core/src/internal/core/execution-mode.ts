@@ -22,7 +22,7 @@ export function isHardhatInstalledLocallyOrLinked(configPath?: string) {
     return (
       fs.realpathSync(resolvedPackageJson) === fs.realpathSync(thisPackageJson)
     );
-  } catch (_) {
+  } catch {
     return false;
   }
 }

@@ -39,7 +39,7 @@
     "@types/chai": "^4.2.0",
     "@types/fs-extra": "^5.1.0",
     "@types/mocha": "^5.2.6",
-    "@types/node": "^10.17.24",
+    "@types/node": "^16.11.9",
     "@typescript-eslint/eslint-plugin": "4.29.2",
     "@typescript-eslint/parser": "4.29.2",
     "chai": "^4.2.0",

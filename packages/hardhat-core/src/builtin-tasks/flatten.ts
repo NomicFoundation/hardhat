@@ -42,8 +42,10 @@ function getSortedFiles(dependenciesGraph: DependencyGraph) {
     const sortedNames = [...new Set(withEntries)];
     return sortedNames.map((n) => filesMap[n]);
   } catch (error) {
-    if (error.toString().includes("Error: There is a cycle in the graph.")) {
-      throw new HardhatError(ERRORS.BUILTIN_TASKS.FLATTEN_CYCLE, error);
+    if (error instanceof Error) {
+      if (error.toString().includes("Error: There is a cycle in the graph.")) {
+        throw new HardhatError(ERRORS.BUILTIN_TASKS.FLATTEN_CYCLE, error);
+      }
     }
 
     // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error

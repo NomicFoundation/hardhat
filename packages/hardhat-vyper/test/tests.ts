@@ -23,7 +23,7 @@ describe("Vyper plugin", async function () {
     it("Should successfully compile the contract", async function () {
       try {
         await this.env.run(TASK_COMPILE);
-      } catch (error) {
+      } catch (error: any) {
         assert.instanceOf(error, NomicLabsHardhatPluginError);
         assert.include("compilation failed", error.message.toLowerCase());
         assert.equal(

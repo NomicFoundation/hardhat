@@ -215,7 +215,7 @@ function readPackageJson(packageName: string): PackageJson | undefined {
     );
 
     return require(packageJsonPath);
-  } catch (error) {
+  } catch {
     return undefined;
   }
 }

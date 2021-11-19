@@ -104,7 +104,7 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
       if (typeof data === "string") {
         try {
           typedMessage = JSON.parse(data);
-        } catch (error) {
+        } catch {
           throw new HardhatError(
             ERRORS.NETWORK.ETHSIGN_TYPED_DATA_V4_INVALID_DATA_PARAM
           );
@@ -219,7 +219,7 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
   private _getPrivateKeyForAddressOrNull(address: Buffer): Buffer | null {
     try {
       return this._getPrivateKeyForAddress(address);
-    } catch (e) {
+    } catch {
       return null;
     }
   }

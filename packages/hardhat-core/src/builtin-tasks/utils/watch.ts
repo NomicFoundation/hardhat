@@ -41,7 +41,9 @@ export async function watchCompilerOutput(
         error
       );
 
-      Reporter.reportError(error);
+      if (error instanceof Error) {
+        Reporter.reportError(error);
+      }
     }
   };
 

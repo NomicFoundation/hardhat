@@ -10,7 +10,7 @@ export function initializeWaffleMatchers(projectRoot: string) {
     const { waffleChai } = require("./waffle-chai");
 
     chai.use(waffleChai);
-  } catch (error) {
+  } catch {
     // If chai isn't installed we just don't initialize the matchers
   }
 }

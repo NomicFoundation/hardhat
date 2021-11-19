@@ -10,7 +10,7 @@ try {
   plugins.communityPlugins.sort(
     (p1, p2) => downloads[p2.name] - downloads[p1.name]
   );
-} catch (e) {
+} catch {
   // we just don't sort here
 }
 
