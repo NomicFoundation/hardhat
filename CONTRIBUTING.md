@@ -6,6 +6,12 @@ This document contains some tips on how to collaborate in this project.
 
 If you find a bug or want to propose a new feature, please [open an issue](https://github.com/nomiclabs/hardhat/issues/new). Pull requests are welcome, but we recommend you discuss it in an issue first, especially for big changes. This will increase the odds that we can accept your PR.
 
+## Issues auto-assignment
+
+Every issue gets automatically assigned to a team member. This person will act as the point of contact between the user that opened the issue and the team.
+
+An issue being assigned does not mean that we are actively working on addressing it, so if you are interested on addressing one add a comment mentioning it.
+
 ## Project structure
 
 This repository is a monorepo handled with [Yarn workspaces](https://classic.yarnpkg.com/en/docs/workspaces/).
