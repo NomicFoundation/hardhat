@@ -90,9 +90,6 @@ export class TxSender {
     tx: ethers.providers.TransactionRequest
   ): Promise<ethers.providers.TransactionResponse> {
     if (tx.gasLimit === undefined) {
-      // TODO if this is implemented with ethers, the execution fails
-      // we should either handle it here, or make it part of the provider's
-      // contract that it shouldn't throw
       const gasLimit = await this._gasProvider.estimateGasLimit(tx);
 
       tx.gasLimit = gasLimit;

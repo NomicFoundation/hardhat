@@ -9,7 +9,8 @@
     "declarationMap": true,
     "sourceMap": true,
     "strict": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "jsx": "react-jsx"
   },
   "exclude": ["dist", "node_modules"],
   "include": ["./test", "./src"]

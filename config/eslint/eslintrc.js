@@ -168,6 +168,7 @@ module.exports = {
     "no-bitwise": "error",
     "no-caller": "error",
     "no-cond-assign": "error",
+    "no-return-assign": ["error", "always"],
     "no-debugger": "error",
     "no-duplicate-case": "error",
     "no-duplicate-imports": "error",

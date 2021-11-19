@@ -8,11 +8,13 @@ import { Providers } from "./providers";
 import {
   ArtifactsService,
   ContractsService,
-  LoggingService,
+  UiService,
   Services,
   TransactionsService,
+  ExecutorUiService,
 } from "./services";
 import { sleep } from "./utils";
+import { UiData } from "./ui/ui-data";
 
 interface ExecutionEngineOptions {
   parallelizationLevel: number;
@@ -58,19 +60,30 @@ export class ExecutionEngine {
   constructor(
     private _providers: Providers,
     private _journal: Journal,
-    private _currentDeploymentResult: DeploymentResult,
+    private _previousDeploymentResult: DeploymentResult,
     private _options: ExecutionEngineOptions
   ) {}
 
   public async *execute(dag: DAG) {
-    const deploymentResult = this._currentDeploymentResult.clone();
+    const deploymentResult = this._previousDeploymentResult.clone();
+
+    const ids: Record<string, string[]> = {};
+    const modules = dag.getSortedModules();
+    modules.forEach((module) => {
+      ids[module.id] = module.getSortedExecutors().map((e) => e.binding.id);
+    });
+
+    const uiService = new UiService({
+      enabled: this._options.loggingEnabled,
+      uiData: new UiData(ids),
+    });
 
     // validate all modules
     const errorsPerModule: Map<string, string[]> = new Map();
     let hasErrors = false;
     for (const ignitionModule of dag.getModules()) {
       this._debug(`Validating module ${ignitionModule.id}`);
-      const errors = await this._validateModule(ignitionModule);
+      const errors = await this._validateModule(ignitionModule, uiService);
       if (errors.length > 0) {
         hasErrors = true;
       }
@@ -117,7 +130,8 @@ export class ExecutionEngine {
       this._debug(`Executing module ${ignitionModule.id}`);
       const moduleExecutionGenerator = this._executeModule(
         ignitionModule,
-        deploymentResult
+        deploymentResult,
+        uiService
       );
       for await (const moduleResult of moduleExecutionGenerator) {
         if (moduleResult !== undefined) {
@@ -132,7 +146,8 @@ export class ExecutionEngine {
   }
 
   private async _validateModule(
-    ignitionModule: IgnitionModule
+    ignitionModule: IgnitionModule,
+    uiService: UiService
   ): Promise<string[]> {
     const executors = ignitionModule.getExecutors();
     const allErrors: string[] = [];
@@ -141,17 +156,10 @@ export class ExecutionEngine {
       this._debug(
         `Validating binding ${executor.binding.id} of module ${ignitionModule.id}`
       );
-      const txSender = new TxSender(
+      const services = this._createServices(
         ignitionModule.id,
         executor.binding.id,
-        this._providers.gasProvider,
-        this._journal
-      );
-      const services = createServices(
-        this._providers,
-        txSender,
-        this._options.loggingEnabled,
-        this._options.txPollingInterval
+        uiService
       );
 
       const errors = await executor.validate(executor.binding.input, services);
@@ -165,7 +173,8 @@ export class ExecutionEngine {
 
   private async *_executeModule(
     ignitionModule: IgnitionModule,
-    deploymentResult: DeploymentResult
+    deploymentResult: DeploymentResult,
+    uiService: UiService
   ) {
     const { parallelizationLevel } = this._options;
     const executors = ignitionModule.getExecutors();
@@ -238,17 +247,10 @@ export class ExecutionEngine {
               deploymentResult,
               moduleResult
             );
-            const txSender = new TxSender(
+            const services = this._createServices(
               ignitionModule.id,
               executor.binding.id,
-              this._providers.gasProvider,
-              this._journal
-            );
-            const services = createServices(
-              this._providers,
-              txSender,
-              this._options.loggingEnabled,
-              this._options.txPollingInterval
+              uiService
             );
 
             this._debug(`Start ${ignitionModule.id}/${executor.binding.id}`);
@@ -315,6 +317,30 @@ export class ExecutionEngine {
     }
 
     return input;
+  }
+
+  private _createServices(
+    moduleId: string,
+    executorId: string,
+    uiService: UiService
+  ): Services {
+    const txSender = new TxSender(
+      moduleId,
+      executorId,
+      this._providers.gasProvider,
+      this._journal
+    );
+
+    const services: Services = {
+      artifacts: new ArtifactsService(this._providers),
+      contracts: new ContractsService(this._providers, txSender, {
+        pollingInterval: this._options.txPollingInterval,
+      }),
+      transactions: new TransactionsService(this._providers),
+      ui: new ExecutorUiService(moduleId, executorId, uiService),
+    };
+
+    return services;
   }
 }
 
@@ -383,8 +409,6 @@ export class DeploymentResult {
       if (failures.length > 0) {
         return [moduleId, failures];
       }
-
-      // TODO assert that only one module has failures
     }
 
     return;
@@ -405,7 +429,6 @@ export class DeploymentResult {
 }
 
 export class ModuleResult {
-  // TODO merge these three into a single map
   private _results = new Map<string, any>();
   private _failures = new Map<string, Error>();
   private _holds = new Map<string, string>();
@@ -495,26 +518,6 @@ export class ModuleResult {
   public count() {
     return [...this._results.values()].length;
   }
-}
-
-function createServices(
-  providers: Providers,
-  txSender: TxSender,
-  loggingEnabled: boolean,
-  txPollingInterval: number
-): Services {
-  const services: Services = {
-    artifacts: new ArtifactsService(providers),
-    contracts: new ContractsService(providers, txSender, {
-      pollingInterval: txPollingInterval,
-    }),
-    transactions: new TransactionsService(providers),
-    logging: new LoggingService({
-      enabled: loggingEnabled,
-    }),
-  };
-
-  return services;
 }
 
 export class ExecutionManager {

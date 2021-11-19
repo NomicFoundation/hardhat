@@ -17,7 +17,7 @@ const executionEngineOptions = {
   txPollingInterval: 100,
 };
 
-describe("ExecutionEngine", function () {
+describe.only("ExecutionEngine", function () {
   it("should run a single module with a single executor", async function () {
     // given
     const executionEngine = new ExecutionEngine(

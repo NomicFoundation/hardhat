@@ -19,7 +19,6 @@ export class IgnitionModule {
   }
 
   public getSortedExecutors(): Executor[] {
-    // TODO awful algorithm, can be optimized
     const dependencies = new Map<string, Set<string>>();
 
     for (const executor of this._executors) {
@@ -95,7 +94,6 @@ export class DAG {
   }
 
   public getSortedModules(): IgnitionModule[] {
-    // TODO awful algorithm, can be optimized
     const added = new Set<string>();
     const ignitionModules = this.getModules();
     const sortedModules: IgnitionModule[] = [];
