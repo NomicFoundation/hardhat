@@ -15,6 +15,7 @@ import {
   getFullyQualifiedName,
   isFullyQualifiedName,
   parseFullyQualifiedName,
+  findDistance,
 } from "../utils/contract-names";
 import { replaceBackslashes } from "../utils/source-names";
 
@@ -23,6 +24,7 @@ import {
   BUILD_INFO_DIR_NAME,
   BUILD_INFO_FORMAT_VERSION,
   DEBUG_FILE_FORMAT_VERSION,
+  EDIT_DISTANCE_THRESHOLD,
 } from "./constants";
 import { HardhatError } from "./core/errors";
 import { ERRORS } from "./core/errors-list";
@@ -45,71 +47,13 @@ export class Artifacts implements IArtifacts {
   }
 
   public async readArtifact(name: string): Promise<Artifact> {
-    const { trueCasePath } = await import("true-case-path");
     const artifactPath = await this._getArtifactPath(name);
-
-    try {
-      const trueCaseArtifactPath = await trueCasePath(
-        path.relative(this._artifactsPath, artifactPath),
-        this._artifactsPath
-      );
-
-      if (artifactPath !== trueCaseArtifactPath) {
-        throw new HardhatError(ERRORS.ARTIFACTS.WRONG_CASING, {
-          correct: trueCaseArtifactPath,
-          incorrect: artifactPath,
-        });
-      }
-
-      return await fsExtra.readJson(trueCaseArtifactPath);
-    } catch (error) {
-      if (
-        typeof error.message === "string" &&
-        error.message.includes("no matching file exists")
-      ) {
-        throw new HardhatError(ERRORS.INTERNAL.WRONG_ARTIFACT_PATH, {
-          contractName: name,
-          artifactPath,
-        });
-      }
-
-      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
-      throw error;
-    }
+    return fsExtra.readJson(artifactPath);
   }
 
   public readArtifactSync(name: string): Artifact {
-    const { trueCasePathSync } = require("true-case-path");
     const artifactPath = this._getArtifactPathSync(name);
-
-    try {
-      const trueCaseArtifactPath = trueCasePathSync(
-        path.relative(this._artifactsPath, artifactPath),
-        this._artifactsPath
-      );
-
-      if (artifactPath !== trueCaseArtifactPath) {
-        throw new HardhatError(ERRORS.ARTIFACTS.WRONG_CASING, {
-          correct: trueCaseArtifactPath,
-          incorrect: artifactPath,
-        });
-      }
-
-      return fsExtra.readJsonSync(trueCaseArtifactPath);
-    } catch (error) {
-      if (
-        typeof error.message === "string" &&
-        error.message.includes("no matching file exists")
-      ) {
-        throw new HardhatError(ERRORS.INTERNAL.WRONG_ARTIFACT_PATH, {
-          contractName: name,
-          artifactPath,
-        });
-      }
-
-      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
-      throw error;
-    }
+    return fsExtra.readJsonSync(artifactPath);
   }
 
   public async artifactExists(name: string): Promise<boolean> {
@@ -130,7 +74,7 @@ export class Artifacts implements IArtifacts {
     fullyQualifiedName: string
   ): Promise<BuildInfo | undefined> {
     const artifactPath =
-      this._getArtifactPathFromFullyQualifiedName(fullyQualifiedName);
+      this.formArtifactPathFromFullyQualifiedName(fullyQualifiedName);
 
     const debugFilePath = this._getDebugFilePath(artifactPath);
     const buildInfoPath = await this._getBuildInfoFromDebugFile(debugFilePath);
@@ -173,7 +117,7 @@ export class Artifacts implements IArtifacts {
     );
 
     const artifactPath =
-      this._getArtifactPathFromFullyQualifiedName(fullyQualifiedName);
+      this.formArtifactPathFromFullyQualifiedName(fullyQualifiedName);
 
     await fsExtra.ensureDir(path.dirname(artifactPath));
 
@@ -280,6 +224,18 @@ export class Artifacts implements IArtifacts {
     }
   }
 
+  /**
+   * Returns the absolute path to the given artifact
+   */
+  public formArtifactPathFromFullyQualifiedName(
+    fullyQualifiedName: string
+  ): string {
+    const { sourceName, contractName } =
+      parseFullyQualifiedName(fullyQualifiedName);
+
+    return path.join(this._artifactsPath, sourceName, `${contractName}.json`);
+  }
+
   private _getBuildInfoName(
     solcVersion: string,
     solcLongVersion: string,
@@ -307,7 +263,7 @@ export class Artifacts implements IArtifacts {
    */
   private async _getArtifactPath(name: string): Promise<string> {
     if (isFullyQualifiedName(name)) {
-      return this._getArtifactPathFromFullyQualifiedName(name);
+      return this._getValidArtifactPathFromFullyQualifiedName(name);
     }
 
     const files = await this.getArtifactPaths();
@@ -346,9 +302,11 @@ export class Artifacts implements IArtifacts {
   }
 
   private _getArtifactPathsSync(): string[] {
-    return globSync(path.join(this._artifactsPath, "**/*.json"), {
+    const paths = globSync(path.join(this._artifactsPath, "**/*.json"), {
       ignore: [this._buildInfosGlob, this._dbgsGlob],
     });
+
+    return paths.sort();
   }
 
   /**
@@ -356,13 +314,69 @@ export class Artifacts implements IArtifacts {
    */
   private _getArtifactPathSync(name: string): string {
     if (isFullyQualifiedName(name)) {
-      return this._getArtifactPathFromFullyQualifiedName(name);
+      return this._getValidArtifactPathFromFullyQualifiedNameSync(name);
     }
 
     const files = this._getArtifactPathsSync();
     return this._getArtifactPathFromFiles(name, files);
   }
 
+  /**
+   * Same signature as imported function, but abstracted to handle the only error we consistently care about
+   */
+  private async _trueCasePath(
+    filePath: string,
+    basePath?: string
+  ): Promise<string | null> {
+    const { trueCasePath } = await import("true-case-path");
+
+    try {
+      const result = await trueCasePath(filePath, basePath);
+      return result;
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        if (error.message.includes("no matching file exists")) {
+          return null;
+        }
+      }
+
+      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+      throw error;
+    }
+  }
+
+  /**
+   * Same signature as imported function, but abstracted to handle the only error we consistently care about
+   * and synchronous
+   */
+  private _trueCasePathSync(
+    filePath: string,
+    basePath?: string
+  ): string | null {
+    const { trueCasePathSync } = require("true-case-path");
+
+    try {
+      const result = trueCasePathSync(filePath, basePath);
+      return result;
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        if (error.message.includes("no matching file exists")) {
+          return null;
+        }
+      }
+
+      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+      throw error;
+    }
+  }
+
+  /**
+   * DO NOT DELETE OR CHANGE
+   *
+   * use this.formArtifactPathFromFullyQualifiedName instead
+   * @deprecated until typechain migrates to public version
+   * @see https://github.com/dethcrypto/TypeChain/issues/544
+   */
   private _getArtifactPathFromFullyQualifiedName(
     fullyQualifiedName: string
   ): string {
@@ -370,6 +384,191 @@ export class Artifacts implements IArtifacts {
       parseFullyQualifiedName(fullyQualifiedName);
 
     return path.join(this._artifactsPath, sourceName, `${contractName}.json`);
+  }
+
+  private async _getValidArtifactPathFromFullyQualifiedName(
+    fullyQualifiedName: string
+  ): Promise<string> {
+    const artifactPath =
+      this.formArtifactPathFromFullyQualifiedName(fullyQualifiedName);
+
+    const trueCaseArtifactPath = await this._trueCasePath(
+      path.relative(this._artifactsPath, artifactPath),
+      this._artifactsPath
+    );
+
+    if (trueCaseArtifactPath === null) {
+      return this._handleWrongArtifactForFullyQualifiedName(fullyQualifiedName);
+    }
+
+    if (artifactPath !== trueCaseArtifactPath) {
+      throw new HardhatError(ERRORS.ARTIFACTS.WRONG_CASING, {
+        correct: trueCaseArtifactPath,
+        incorrect: artifactPath,
+      });
+    }
+
+    return artifactPath;
+  }
+
+  private _getAllContractNamesFromFiles(files: string[]): string[] {
+    return files.map((file) => {
+      const fqn = this._getFullyQualifiedNameFromPath(file);
+      return parseFullyQualifiedName(fqn).contractName;
+    });
+  }
+
+  private _getAllFullyQualifiedNamesSync(): string[] {
+    const paths = this._getArtifactPathsSync();
+    return paths.map((p) => this._getFullyQualifiedNameFromPath(p)).sort();
+  }
+
+  private _formatSuggestions(names: string[], contractName?: string): string {
+    switch (names.length) {
+      case 0:
+        return "";
+      case 1:
+        return `Did you mean "${names[0]}"?`;
+      default:
+        return `We found some that were similar:
+
+${names.map((n) => `  * ${n}`).join(os.EOL)}
+
+Please replace "${contractName}" for the correct contract name wherever you are trying to read its artifact.
+`;
+    }
+  }
+
+  private _handleWrongArtifactForFullyQualifiedName(
+    fullyQualifiedName: string
+  ): never {
+    const names = this._getAllFullyQualifiedNamesSync();
+
+    const similarNames = this._getSimilarContractNames(
+      fullyQualifiedName,
+      names
+    );
+
+    throw new HardhatError(ERRORS.ARTIFACTS.NOT_FOUND, {
+      contractName: fullyQualifiedName,
+      suggestion: this._formatSuggestions(similarNames),
+    });
+  }
+
+  private _handleWrongArtifactForContractName(
+    contractName: string,
+    files: string[]
+  ): never {
+    const names = this._getAllContractNamesFromFiles(files);
+
+    let similarNames = this._getSimilarContractNames(contractName, names);
+
+    if (similarNames.length > 1) {
+      similarNames = this._filterDuplicatesAsFullyQualifiedNames(
+        files,
+        similarNames
+      );
+    }
+
+    throw new HardhatError(ERRORS.ARTIFACTS.NOT_FOUND, {
+      contractName,
+      suggestion: this._formatSuggestions(similarNames, contractName),
+    });
+  }
+
+  /**
+   * If the project has these contracts:
+   *   - 'contracts/Greeter.sol:Greeter'
+   *   - 'contracts/Meeter.sol:Greeter'
+   *   - 'contracts/Greater.sol:Greater'
+   *  And the user tries to get an artifact with the name 'Greter', then
+   *  the suggestions will be 'Greeter', 'Greeter', and 'Greater'.
+   *
+   * We don't want to show duplicates here, so we use FQNs for those. The
+   * suggestions will then be:
+   *   - 'contracts/Greeter.sol:Greeter'
+   *   - 'contracts/Meeter.sol:Greeter'
+   *   - 'Greater'
+   */
+  private _filterDuplicatesAsFullyQualifiedNames(
+    files: string[],
+    similarNames: string[]
+  ): string[] {
+    const outputNames = [];
+    const groups = similarNames.reduce((obj, cur) => {
+      obj[cur] = obj[cur] ? obj[cur] + 1 : 1;
+      return obj;
+    }, {} as { [k: string]: number });
+
+    for (const [name, occurrences] of Object.entries(groups)) {
+      if (occurrences > 1) {
+        for (const file of files) {
+          if (path.basename(file) === `${name}.json`) {
+            outputNames.push(this._getFullyQualifiedNameFromPath(file));
+          }
+        }
+        continue;
+      }
+
+      outputNames.push(name);
+    }
+
+    return outputNames;
+  }
+
+  /**
+   *
+   * @param givenName can be FQN or contract name
+   * @param names MUST match type of givenName (i.e. array of FQN's if givenName is FQN)
+   * @returns
+   */
+  private _getSimilarContractNames(
+    givenName: string,
+    names: string[]
+  ): string[] {
+    let shortestDistance = EDIT_DISTANCE_THRESHOLD;
+    let mostSimilarNames: string[] = [];
+    for (const name of names) {
+      const distance = findDistance(givenName, name);
+
+      if (distance < shortestDistance) {
+        shortestDistance = distance;
+        mostSimilarNames = [name];
+        continue;
+      }
+
+      if (distance === shortestDistance) {
+        mostSimilarNames.push(name);
+        continue;
+      }
+    }
+
+    return mostSimilarNames;
+  }
+
+  private _getValidArtifactPathFromFullyQualifiedNameSync(
+    fullyQualifiedName: string
+  ): string {
+    const artifactPath =
+      this.formArtifactPathFromFullyQualifiedName(fullyQualifiedName);
+
+    const trueCaseArtifactPath = this._trueCasePathSync(
+      path.relative(this._artifactsPath, artifactPath),
+      this._artifactsPath
+    );
+
+    if (trueCaseArtifactPath === null) {
+      return this._handleWrongArtifactForFullyQualifiedName(fullyQualifiedName);
+    }
+
+    if (artifactPath !== trueCaseArtifactPath) {
+      throw new HardhatError(ERRORS.ARTIFACTS.WRONG_CASING, {
+        correct: trueCaseArtifactPath,
+        incorrect: artifactPath,
+      });
+    }
+
+    return artifactPath;
   }
 
   private _getDebugFilePath(artifactPath: string): string {
@@ -385,15 +584,13 @@ export class Artifacts implements IArtifacts {
     });
 
     if (matchingFiles.length === 0) {
-      throw new HardhatError(ERRORS.ARTIFACTS.NOT_FOUND, {
-        contractName,
-      });
+      return this._handleWrongArtifactForContractName(contractName, files);
     }
 
     if (matchingFiles.length > 1) {
-      const candidates = matchingFiles
-        .map((file) => this._getFullyQualifiedNameFromPath(file))
-        .map(path.normalize);
+      const candidates = matchingFiles.map((file) =>
+        this._getFullyQualifiedNameFromPath(file)
+      );
 
       throw new HardhatError(ERRORS.ARTIFACTS.MULTIPLE_FOUND, {
         contractName,
