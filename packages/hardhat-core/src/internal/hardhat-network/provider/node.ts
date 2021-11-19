@@ -2215,10 +2215,10 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         skipBlockGasLimitValidation: true,
       });
     } finally {
-      await this._stateManager.setStateRoot(initialStateRoot);
       if (originalCommon !== undefined) {
         (this._vm as any)._common = originalCommon;
       }
+      await this._stateManager.setStateRoot(initialStateRoot);
     }
   }
 
