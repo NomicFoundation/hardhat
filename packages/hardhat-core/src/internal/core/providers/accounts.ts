@@ -347,7 +347,7 @@ abstract class SenderProvider extends ProviderWrapper {
     return this._wrappedProvider.request(args);
   }
 
-  protected abstract async _getSender(): Promise<string | undefined>;
+  protected abstract _getSender(): Promise<string | undefined>;
 }
 
 export class AutomaticSenderProvider extends SenderProvider {
