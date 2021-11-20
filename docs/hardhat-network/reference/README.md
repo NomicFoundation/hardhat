@@ -109,6 +109,28 @@ networks: {
 
 This means that no new blocks will be mined by the Hardhat Network, but you can manually mine new blocks using the `evm_mine` RPC method. This will generate a new block that will include as many pending transactions as possible.
 
+#### Transaction ordering
+
+Hardhat Network can sort mempool transactions in two different ways. How they are sorted will alter which transactions from the mempool get included in the next block, and in which order.
+
+The first sorting mode, called `"priority"`, mimics Geth's behavior. This means that it prioritizes transactions based on the fees paid to the miner. This is the default sorting mode. 
+
+The second sorted mode, called `"fifo"`, keeps the mempool transactions sorted in the order they arrive.
+
+You can change the sorting mode with:
+
+```js
+networks: {
+  hardhat: {
+    mining: {
+      mempool: {
+        order: "fifo"
+      }
+    }
+  }
+}
+```
+
 ## `console.log`
 
 - You can use it in calls and transactions. It works with `view` functions, but not in `pure` ones.
