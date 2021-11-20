@@ -872,6 +872,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       irregularStatesByBlockNumber: this._irregularStatesByBlockNumber,
       userProvidedNextBlockBaseFeePerGas:
         this.getUserProvidedNextBlockBaseFeePerGas(),
+      coinbase: this.getCoinbaseAddress().toString(),
     };
 
     this._irregularStatesByBlockNumber = new Map(
@@ -925,6 +926,8 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     } else {
       this._resetUserProvidedNextBlockBaseFeePerGas();
     }
+
+    this._coinbase = snapshot.coinbase;
 
     // We delete this and the following snapshots, as they can only be used
     // once in Ganache
@@ -1349,6 +1352,10 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       gasUsedRatio,
       reward: rewardPercentiles.length > 0 ? reward : undefined,
     };
+  }
+
+  public async setCoinbase(coinbase: Address) {
+    this._coinbase = coinbase.toString();
   }
 
   private _getGasUsedRatio(block: Block): number {

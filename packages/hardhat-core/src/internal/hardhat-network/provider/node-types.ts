@@ -126,6 +126,7 @@ export interface Snapshot {
   nextBlockTimestamp: BN;
   irregularStatesByBlockNumber: Map<string, Buffer>;
   userProvidedNextBlockBaseFeePerGas: BN | undefined;
+  coinbase: string;
 }
 
 export type SendTransactionResult =

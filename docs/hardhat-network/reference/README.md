@@ -360,6 +360,20 @@ await network.provider.send("hardhat_setCode", [
 
 This will result in account `0x0d20...000B` becoming a smart contract with bytecode `a1a2a3....` If that address was already a smart contract, then its code will be replaced by the specified one.
 
+#### `hardhat_setCoinbase`
+
+Sets the coinbase address to be used in new blocks.
+
+For example:
+
+```tsx
+await network.provider.send("hardhat_setCoinbase", [
+  "0x0d2026b3EE6eC71FC6746ADb6311F6d3Ba1C000B",
+]);
+```
+
+This will result in account `0x0d20...000B` being used as miner/coinbase in every new block.
+
 #### `hardhat_setLoggingEnabled`
 
 Enable or disable logging in Hardhat Network
