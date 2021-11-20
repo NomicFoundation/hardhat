@@ -292,18 +292,18 @@ export function getRpcReceiptOutputsFromLocalBlockExecution(
 ): RpcReceiptOutput[] {
   const receipts: RpcReceiptOutput[] = [];
 
-  let cumulativeGasUsed = new BN(0);
+  let blockLogIndex = 0;
 
   for (let i = 0; i < runBlockResult.results.length; i += 1) {
     const tx = block.transactions[i];
     const { createdAddress, gasUsed } = runBlockResult.results[i];
     const receipt = runBlockResult.receipts[i];
 
-    cumulativeGasUsed = cumulativeGasUsed.add(new BN(receipt.gasUsed));
-
-    const logs = receipt.logs.map((log, logIndex) =>
-      getRpcLogOutput(log, tx, block, i, logIndex)
-    );
+    const logs = receipt.logs.map((log) => {
+      const result = getRpcLogOutput(log, tx, block, i, blockLogIndex);
+      blockLogIndex += 1;
+      return result;
+    });
 
     const rpcReceipt: RpcReceiptOutput = {
       transactionHash: bufferToRpcData(tx.hash()),
@@ -312,7 +312,7 @@ export function getRpcReceiptOutputsFromLocalBlockExecution(
       blockNumber: numberToRpcQuantity(new BN(block.header.number)),
       from: bufferToRpcData(tx.getSenderAddress().toBuffer()),
       to: tx.to === undefined ? null : bufferToRpcData(tx.to.toBuffer()),
-      cumulativeGasUsed: numberToRpcQuantity(cumulativeGasUsed),
+      cumulativeGasUsed: numberToRpcQuantity(new BN(receipt.gasUsed)),
       gasUsed: numberToRpcQuantity(gasUsed),
       contractAddress:
         createdAddress !== undefined
@@ -395,7 +395,7 @@ export function remoteReceiptToRpcReceiptOutput(
   };
 }
 
-export function toRpcLogOutput(log: RpcLog, index?: number): RpcLogOutput {
+export function toRpcLogOutput(log: RpcLog): RpcLogOutput {
   return {
     removed: false,
     address: bufferToRpcData(log.address),
@@ -403,7 +403,7 @@ export function toRpcLogOutput(log: RpcLog, index?: number): RpcLogOutput {
     blockNumber:
       log.blockNumber !== null ? numberToRpcQuantity(log.blockNumber) : null,
     data: bufferToRpcData(log.data),
-    logIndex: index !== undefined ? numberToRpcQuantity(index) : null,
+    logIndex: log.logIndex !== null ? numberToRpcQuantity(log.logIndex) : null,
     transactionIndex:
       log.transactionIndex !== null
         ? numberToRpcQuantity(log.transactionIndex)

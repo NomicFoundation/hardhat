@@ -459,9 +459,9 @@ describe("JsonRpcClient", () => {
             const logs = await client.getLogs({
               fromBlock: BLOCK_NUMBER_OF_10496585,
               toBlock: BLOCK_NUMBER_OF_10496585,
-              address: toBuffer("0x5acc84a3e955bdd76467d3348077d003f00ffb97"),
+              address: toBuffer("0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"),
             });
-            assert.equal(logs.length, 19);
+            assert.equal(logs.length, 12);
           });
         });
 
