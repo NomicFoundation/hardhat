@@ -2,7 +2,10 @@ import { BN } from "ethereumjs-util";
 
 import { BackwardsCompatibilityProviderAdapter } from "../../../../src/internal/core/providers/backwards-compatibility";
 import { JsonRpcServer } from "../../../../src/internal/hardhat-network/jsonrpc/server";
-import { ForkConfig } from "../../../../src/internal/hardhat-network/provider/node-types";
+import {
+  ForkConfig,
+  MempoolOrder,
+} from "../../../../src/internal/hardhat-network/provider/node-types";
 import { HardhatNetworkProvider } from "../../../../src/internal/hardhat-network/provider/provider";
 import {
   EthereumProvider,
@@ -79,7 +82,7 @@ export function useProvider({
       true,
       mining.auto,
       mining.interval,
-      mempool.order,
+      mempool.order as MempoolOrder,
       this.logger,
       accounts,
       undefined,
