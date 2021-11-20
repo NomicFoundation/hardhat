@@ -2,7 +2,8 @@ import { TypedTransaction } from "@ethereumjs/tx";
 import { BN } from "ethereumjs-util";
 import Heap from "mnemonist/heap";
 
-import { InternalError } from "../../core/providers/errors";
+import { InternalError, InvalidInputError } from "../../core/providers/errors";
+import { MempoolOrder } from "./node-types";
 import { OrderedTransaction } from "./PoolState";
 
 function getEffectiveMinerFee(tx: OrderedTransaction, baseFee?: BN): BN {
@@ -38,6 +39,33 @@ function decreasingOrderEffectiveMinerFeeComparator(
   // in increasing order by orderId.
   return left.orderId - right.orderId;
 }
+
+function decreasingOrderComparator(
+  left: OrderedTransaction,
+  right: OrderedTransaction
+) {
+  return left.orderId - right.orderId;
+}
+
+function getOrderedTransactionHeap(
+  mempoolOrder: MempoolOrder,
+  baseFee?: BN
+): Heap<OrderedTransaction> {
+  switch (mempoolOrder) {
+    case "priority":
+      return new Heap<OrderedTransaction>((a, b) =>
+        decreasingOrderEffectiveMinerFeeComparator(a, b, baseFee)
+      );
+    case "fifo":
+      return new Heap<OrderedTransaction>((a, b) =>
+        decreasingOrderComparator(a, b)
+      );
+    default:
+      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+      throw new InvalidInputError(`Invalid mempool order: ${mempoolOrder}`);
+  }
+}
+
 /**
  * A queue of transactions in the order that they could be mined in the next
  * block.
@@ -67,11 +95,10 @@ export class TransactionQueue {
    */
   constructor(
     pendingTransactions: Map<string, OrderedTransaction[]>,
+    mempoolOrder: MempoolOrder,
     baseFee?: BN
   ) {
-    this._heap = new Heap<OrderedTransaction>((a, b) =>
-      decreasingOrderEffectiveMinerFeeComparator(a, b, baseFee)
-    );
+    this._heap = getOrderedTransactionHeap(mempoolOrder, baseFee);
 
     for (const [address, txList] of pendingTransactions) {
       if (baseFee === undefined && txList.some((tx) => tx.data.type === 2)) {

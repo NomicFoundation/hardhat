@@ -20,6 +20,8 @@ export const HARDHAT_NETWORK_SUPPORTED_HARDFORKS = [
   "london",
 ];
 
+export const HARDHAT_MEMPOOL_SUPPORTED_ORDERS = <const>["fifo", "priority"];
+
 export const ARTIFACT_FORMAT_VERSION = "hh-sol-artifact-1";
 export const DEBUG_FILE_FORMAT_VERSION = "hh-sol-dbg-1";
 export const BUILD_INFO_FORMAT_VERSION = "hh-sol-build-info-1";

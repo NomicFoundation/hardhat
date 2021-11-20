@@ -82,6 +82,7 @@ import {
   GatherTracesResult,
   GenesisAccount,
   isForkedNodeConfig,
+  MempoolOrder,
   MineBlockResult,
   NodeConfig,
   RunCallResult,
@@ -132,6 +133,7 @@ export class HardhatNode extends EventEmitter {
       allowUnlimitedContractSize,
       tracingConfig,
       minGasPrice,
+      mempoolOrder,
     } = config;
 
     let common: Common;
@@ -242,6 +244,7 @@ export class HardhatNode extends EventEmitter {
       automine,
       minGasPrice,
       initialBlockTimeOffset,
+      mempoolOrder,
       genesisAccounts,
       tracingConfig,
       forkNetworkId,
@@ -315,6 +318,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     private _automine: boolean,
     private _minGasPrice: BN,
     private _blockTimeOffsetSeconds: BN = new BN(0),
+    private _mempoolOrder: MempoolOrder,
     genesisAccounts: GenesisAccount[],
     tracingConfig?: TracingConfig,
     private _forkNetworkId?: number,
@@ -1579,6 +1583,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       const pendingTxs = this._txPool.getPendingTransactions();
       const transactionQueue = new TransactionQueue(
         pendingTxs,
+        this._mempoolOrder,
         headerData.baseFeePerGas
       );
 

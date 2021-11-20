@@ -991,6 +991,103 @@ describe("Config validation", function () {
             );
           });
         });
+
+        describe("HardhatNetworkMempoolConfig", function () {
+          it("Should accept a valid Mempool config", function () {
+            validateConfig({
+              networks: {
+                [HARDHAT_NETWORK_NAME]: {
+                  mining: {
+                    auto: true,
+                    interval: 0,
+                  },
+                },
+              },
+            });
+
+            validateConfig({
+              networks: {
+                [HARDHAT_NETWORK_NAME]: {
+                  mining: {
+                    auto: true,
+                    interval: [10, 100],
+                  },
+                },
+              },
+            });
+
+            validateConfig({
+              networks: {
+                [HARDHAT_NETWORK_NAME]: {
+                  mining: {
+                    mempool: {
+                      order: "priority",
+                    },
+                  },
+                },
+              },
+            });
+
+            validateConfig({
+              networks: {
+                [HARDHAT_NETWORK_NAME]: {
+                  mining: {
+                    mempool: {
+                      order: "fifo",
+                    },
+                  },
+                },
+              },
+            });
+          });
+
+          it("Should fail with invalid types", function () {
+            expectHardhatError(
+              () =>
+                validateConfig({
+                  networks: {
+                    [HARDHAT_NETWORK_NAME]: {
+                      mining: {
+                        auto: "not-supported",
+                      },
+                    },
+                  },
+                }),
+              ERRORS.GENERAL.INVALID_CONFIG
+            );
+
+            expectHardhatError(
+              () =>
+                validateConfig({
+                  networks: {
+                    [HARDHAT_NETWORK_NAME]: {
+                      mining: {
+                        auto: true,
+                        interval: "not-supported",
+                      },
+                    },
+                  },
+                }),
+              ERRORS.GENERAL.INVALID_CONFIG
+            );
+
+            expectHardhatError(
+              () =>
+                validateConfig({
+                  networks: {
+                    [HARDHAT_NETWORK_NAME]: {
+                      mining: {
+                        mempool: {
+                          order: "not-supported",
+                        },
+                      },
+                    },
+                  },
+                }),
+              ERRORS.GENERAL.INVALID_CONFIG
+            );
+          });
+        });
       });
 
       describe("HTTP network config", function () {

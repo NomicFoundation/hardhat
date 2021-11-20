@@ -40,6 +40,7 @@ import {
   ForkConfig,
   GenesisAccount,
   IntervalMiningConfig,
+  MempoolOrder,
   NodeConfig,
   TracingConfig,
 } from "./node-types";
@@ -81,6 +82,7 @@ export class HardhatNetworkProvider
     private readonly _throwOnCallFailures: boolean,
     private readonly _automine: boolean,
     private readonly _intervalMining: IntervalMiningConfig,
+    private readonly _mempoolOrder: MempoolOrder,
     private readonly _logger: ModulesLogger,
     private readonly _genesisAccounts: GenesisAccount[] = [],
     private readonly _artifacts?: Artifacts,
@@ -227,6 +229,7 @@ export class HardhatNetworkProvider
       allowUnlimitedContractSize: this._allowUnlimitedContractSize,
       tracingConfig: await this._makeTracingConfig(),
       initialBaseFeePerGas: this._initialBaseFeePerGas,
+      mempoolOrder: this._mempoolOrder,
       hardfork: this._hardfork,
       networkName: this._networkName,
       chainId: this._chainId,
