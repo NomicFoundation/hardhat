@@ -13,12 +13,12 @@
 // trying to augment the config types.
 
 import type { BN } from "ethereumjs-util";
-import { HARDHAT_MEMPOOL_SUPPORTED_ORDERS } from "../internal/constants";
 
 // Networks config
 
 export interface NetworksUserConfig {
   hardhat?: HardhatNetworkUserConfig;
+
   [networkName: string]: NetworkUserConfig | undefined;
 }
 
@@ -96,6 +96,7 @@ export interface HttpNetworkUserConfig {
 export interface NetworksConfig {
   hardhat: HardhatNetworkConfig;
   localhost: HttpNetworkConfig;
+
   [networkName: string]: NetworkConfig;
 }
 
@@ -181,8 +182,7 @@ export interface HardhatNetworkMiningUserConfig {
 }
 
 export interface HardhatNetworkMempoolConfig {
-  // order should be on of `HARDHAT_MEMPOOL_SUPPORTED_ORDERS` entries
-  order: typeof HARDHAT_MEMPOOL_SUPPORTED_ORDERS[number];
+  order: string; // Guaranteed at runtime to be have a valid value
 }
 
 export interface HardhatNetworkMempoolUserConfig {
