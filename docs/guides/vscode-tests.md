@@ -10,7 +10,7 @@ Install Mocha locally by running this:
 npm install --save-dev mocha
 ```
 
-Then, create a file named `.mocharc.json` in your project's root directory with the following contents:
+Create a file named `.mocharc.json` in your project's root directory with the following contents:
 
 ```json
 {
@@ -19,7 +19,9 @@ Then, create a file named `.mocharc.json` in your project's root directory with 
 }
 ```
 
-Finally, you can set a shortcut for this VS Code command `test-explorer.run-test-at-cursor`, and you will be able to run the test you are currently editing with it.
+Install VS Code [Mocha Test Explorer](https://marketplace.visualstudio.com/items?itemName=hbenl.vscode-mocha-test-adapter) plugin
+
+Finally, you can set a [shortcut](https://code.visualstudio.com/docs/getstarted/keybindings) for this VS Code command `test-explorer.run-test-at-cursor`, and you will be able to run the test you are currently editing with it.
 
 ## Running TypeScript test
 
