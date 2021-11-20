@@ -60,6 +60,8 @@ You can set the following fields on the `hardhat` config:
 
 - `initialBaseFeePerGas`: The `baseFeePerGas` of the first block. Note that when forking a remote network, the "first block" is the one immediately after the block you forked from. This field must not be present if the `"hardfork"` is not `"london"` or a later one. Default value: `"1000000000"` if not forking. When forking a remote network, if the remote network uses EIP-1559, the first local block will use the right `baseFeePerGas` according to the EIP, otherwise `"10000000000"` is used.
 
+- `coinbase`: The address used as coinbase in new blocks. Default value: `"0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e"`.
+
 ### Mining modes
 
 You can configure the mining behavior under your Hardhat Network settings:

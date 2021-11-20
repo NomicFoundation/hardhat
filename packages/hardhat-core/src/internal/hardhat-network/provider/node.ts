@@ -116,10 +116,6 @@ const log = debug("hardhat:core:hardhat-network:node");
 
 const ethSigUtil = require("eth-sig-util");
 
-export const COINBASE_ADDRESS = Address.fromString(
-  "0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e"
-);
-
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
 export class HardhatNode extends EventEmitter {
@@ -245,6 +241,7 @@ export class HardhatNode extends EventEmitter {
       minGasPrice,
       initialBlockTimeOffset,
       mempoolOrder,
+      config.coinbase,
       genesisAccounts,
       tracingConfig,
       forkNetworkId,
@@ -319,6 +316,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     private _minGasPrice: BN,
     private _blockTimeOffsetSeconds: BN = new BN(0),
     private _mempoolOrder: MempoolOrder,
+    private _coinbase: string,
     genesisAccounts: GenesisAccount[],
     tracingConfig?: TracingConfig,
     private _forkNetworkId?: number,
@@ -701,7 +699,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   }
 
   public getCoinbaseAddress(): Address {
-    return COINBASE_ADDRESS;
+    return Address.fromString(this._coinbase);
   }
 
   public async getStorageAt(

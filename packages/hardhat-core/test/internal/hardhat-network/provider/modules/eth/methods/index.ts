@@ -1,6 +1,5 @@
 import { assert } from "chai";
 
-import { COINBASE_ADDRESS } from "../../../../../../../src/internal/hardhat-network/provider/node";
 import { workaroundWindowsCiFailures } from "../../../../../../utils/workaround-windows-ci-failures";
 import {
   assertNotSupported,
@@ -11,6 +10,7 @@ import {
   DEFAULT_ACCOUNTS_ADDRESSES,
   PROVIDERS,
 } from "../../../../helpers/providers";
+import { DEFAULT_COINBASE } from "../../../../../../../src/internal/hardhat-network/provider/provider";
 
 /**
  * This file test the methods that are not covered by the other
@@ -43,10 +43,10 @@ describe("Eth module", function () {
       });
 
       describe("eth_coinbase", async function () {
-        it("should return the the hardcoded coinbase address", async function () {
+        it("should return the the default coinbase address", async function () {
           assert.equal(
             await this.provider.send("eth_coinbase"),
-            COINBASE_ADDRESS.toString()
+            DEFAULT_COINBASE
           );
         });
       });

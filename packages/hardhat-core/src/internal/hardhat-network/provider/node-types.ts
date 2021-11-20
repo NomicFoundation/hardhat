@@ -30,6 +30,7 @@ interface CommonConfig {
   tracingConfig?: TracingConfig;
   initialBaseFeePerGas?: number;
   mempoolOrder: MempoolOrder;
+  coinbase: string;
 }
 
 export type LocalNodeConfig = CommonConfig;
