@@ -79,7 +79,12 @@ describe("Compiler bytecode and deployed bytecode matching", () => {
         moreData: 42,
         mysteriousString: "mystery",
       };
-      const mockMetadata = Buffer.from(encode(mockSolcMetadataMapping).buffer);
+      const encoded = encode(mockSolcMetadataMapping);
+      const mockMetadata = Buffer.from(
+        encoded.buffer,
+        encoded.byteOffset,
+        encoded.byteLength
+      );
       const length = Buffer.alloc(2);
       length.writeUInt16BE(mockMetadata.length, 0);
 
