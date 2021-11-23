@@ -49,7 +49,7 @@ describe("Metadata decoder tests", () => {
   ];
 
   for (const mockPayload of mockPayloads) {
-    const mockMetadata = Buffer.from(encode(mockPayload));
+    const mockMetadata = Buffer.from(encode(mockPayload).buffer);
     const length = Buffer.alloc(2);
     length.writeUInt16BE(mockMetadata.length, 0);
 
@@ -74,7 +74,7 @@ describe("Metadata decoder tests", () => {
   );
 
   for (const mockSolcMetadataMapping of mockSolcMetadataMappings) {
-    const mockMetadata = Buffer.from(encode(mockSolcMetadataMapping));
+    const mockMetadata = Buffer.from(encode(mockSolcMetadataMapping).buffer);
     const length = Buffer.alloc(2);
 
     length.writeUInt16BE(mockMetadata.length, 0);

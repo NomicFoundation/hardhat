@@ -172,7 +172,7 @@ export class GanacheService {
       log("Stopping server");
 
       // Stop server and Wait for it
-      await new Promise((resolve, reject) => {
+      await new Promise<void>((resolve, reject) => {
         this._server.close((err: Error) => {
           if (err !== undefined && err !== null) {
             reject(err);
