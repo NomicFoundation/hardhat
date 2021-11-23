@@ -40,10 +40,6 @@ export function createUpdatableTargetProxy<T extends object>(
       );
     },
 
-    enumerate(_) {
-      return [...Reflect.enumerate(targetObject.target)];
-    },
-
     get(_, property, receiver) {
       const result = Reflect.get(targetObject.target, property, receiver);
 
