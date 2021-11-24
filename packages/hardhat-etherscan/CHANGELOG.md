@@ -1,5 +1,12 @@
 # @nomiclabs/hardhat-etherscan
 
+## 2.1.8
+
+### Patch Changes
+
+- 2ae202a2: Add support for verifying contracts in Moonscan
+- 2e5d6aeb: Add support for the Avalanche Mainnet and Fuji chains (thanks @marcelomorgado!)
+
 ## 2.1.7
 
 ### Patch Changes
