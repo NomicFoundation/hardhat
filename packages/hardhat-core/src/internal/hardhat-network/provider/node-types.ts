@@ -30,6 +30,7 @@ interface CommonConfig {
   tracingConfig?: TracingConfig;
   initialBaseFeePerGas?: number;
   mempoolOrder: MempoolOrder;
+  coinbase: string;
 }
 
 export type LocalNodeConfig = CommonConfig;
@@ -125,6 +126,7 @@ export interface Snapshot {
   nextBlockTimestamp: BN;
   irregularStatesByBlockNumber: Map<string, Buffer>;
   userProvidedNextBlockBaseFeePerGas: BN | undefined;
+  coinbase: string;
 }
 
 export type SendTransactionResult =

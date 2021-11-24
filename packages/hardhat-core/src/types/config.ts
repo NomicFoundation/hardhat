@@ -44,6 +44,7 @@ export interface HardhatNetworkUserConfig {
   initialDate?: string;
   loggingEnabled?: boolean;
   forking?: HardhatNetworkForkingUserConfig;
+  coinbase?: string;
 }
 
 export type HardhatNetworkAccountsUserConfig =
@@ -120,6 +121,7 @@ export interface HardhatNetworkConfig {
   initialDate: string;
   loggingEnabled: boolean;
   forking?: HardhatNetworkForkingConfig;
+  coinbase?: string;
 }
 
 export type HardhatNetworkAccountsConfig =

@@ -55,6 +55,8 @@ const PRIVATE_RPC_METHODS = new Set([
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
+export const DEFAULT_COINBASE = "0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e";
+
 export class HardhatNetworkProvider
   extends EventEmitter
   implements EIP1193Provider
@@ -90,7 +92,8 @@ export class HardhatNetworkProvider
     private readonly _initialDate?: Date,
     private readonly _experimentalHardhatNetworkMessageTraceHooks: BoundExperimentalHardhatNetworkMessageTraceHook[] = [],
     private _forkConfig?: ForkConfig,
-    private readonly _forkCachePath?: string
+    private readonly _forkCachePath?: string,
+    private readonly _coinbase = DEFAULT_COINBASE
   ) {
     super();
   }
@@ -238,6 +241,7 @@ export class HardhatNetworkProvider
       forkConfig: this._forkConfig,
       forkCachePath:
         this._forkConfig !== undefined ? this._forkCachePath : undefined,
+      coinbase: this._coinbase,
     };
 
     const [common, node] = await HardhatNode.create(config);

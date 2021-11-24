@@ -51,6 +51,7 @@ export interface UseProviderOptions {
   allowUnlimitedContractSize?: boolean;
   initialBaseFeePerGas?: number;
   mempool?: HardhatNetworkMempoolConfig;
+  coinbase?: string;
 }
 
 export function useProvider({
@@ -67,6 +68,7 @@ export function useProvider({
   allowUnlimitedContractSize = DEFAULT_ALLOW_UNLIMITED_CONTRACT_SIZE,
   initialBaseFeePerGas,
   mempool = DEFAULT_MEMPOOL_CONFIG,
+  coinbase,
 }: UseProviderOptions = {}) {
   beforeEach("Initialize provider", async function () {
     this.logger = new FakeModulesLogger(loggerEnabled);
@@ -89,7 +91,8 @@ export function useProvider({
       allowUnlimitedContractSize,
       undefined,
       undefined,
-      forkConfig
+      forkConfig,
+      coinbase
     );
     this.provider = new BackwardsCompatibilityProviderAdapter(
       this.hardhatNetworkProvider

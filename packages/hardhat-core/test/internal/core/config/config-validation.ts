@@ -1088,6 +1088,58 @@ describe("Config validation", function () {
             );
           });
         });
+
+        describe("Hardhat network's coinbase", function () {
+          it("Should fail if it's not a valid address", function () {
+            expectHardhatError(
+              () =>
+                validateConfig({
+                  networks: {
+                    [HARDHAT_NETWORK_NAME]: {
+                      coinbase: "0x123",
+                    },
+                  },
+                }),
+              ERRORS.GENERAL.INVALID_CONFIG
+            );
+
+            expectHardhatError(
+              () =>
+                validateConfig({
+                  networks: {
+                    [HARDHAT_NETWORK_NAME]: {
+                      coinbase: 123,
+                    },
+                  },
+                }),
+              ERRORS.GENERAL.INVALID_CONFIG
+            );
+
+            expectHardhatError(
+              () =>
+                validateConfig({
+                  networks: {
+                    [HARDHAT_NETWORK_NAME]: {
+                      coinbase: "123",
+                    },
+                  },
+                }),
+              ERRORS.GENERAL.INVALID_CONFIG
+            );
+          });
+
+          it("Should accept an optional address", function () {
+            assert.isEmpty(
+              getValidationErrors({
+                networks: {
+                  [HARDHAT_NETWORK_NAME]: {
+                    coinbase: "   0x0000000000000000000000000000000000000001  ",
+                  },
+                },
+              })
+            );
+          });
+        });
       });
 
       describe("HTTP network config", function () {

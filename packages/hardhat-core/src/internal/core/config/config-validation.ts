@@ -145,6 +145,27 @@ export const hexString = new t.Type<string>(
   t.identity
 );
 
+function isAddress(v: unknown): v is string {
+  if (typeof v !== "string") {
+    return false;
+  }
+
+  const trimmed = v.trim();
+
+  return (
+    trimmed.match(HEX_STRING_REGEX) !== null &&
+    trimmed.startsWith("0x") &&
+    trimmed.length === 42
+  );
+}
+
+export const address = new t.Type<string>(
+  "address",
+  isAddress,
+  (u, c) => (isAddress(u) ? t.success(u) : t.failure(u, c)),
+  t.identity
+);
+
 export const decimalString = new t.Type<string>(
   "decimal string",
   isDecimalString,
@@ -220,6 +241,7 @@ const HardhatNetworkConfig = t.type({
   loggingEnabled: optional(t.boolean),
   forking: optional(HardhatNetworkForkingConfig),
   mining: optional(HardhatNetworkMiningConfig),
+  coinbase: optional(address),
 });
 
 const HDAccountsConfig = t.type({

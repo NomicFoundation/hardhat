@@ -55,6 +55,7 @@ describe("HardhatNode", () => {
     genesisAccounts: DEFAULT_ACCOUNTS,
     initialBaseFeePerGas: 10,
     mempoolOrder: "priority",
+    coinbase: "0x0000000000000000000000000000000000000000",
   };
   const gasPrice = 20;
   let node: HardhatNode;
@@ -715,6 +716,7 @@ describe("HardhatNode", () => {
           minGasPrice: new BN(0),
           genesisAccounts: [],
           mempoolOrder: "priority",
+          coinbase: "0x0000000000000000000000000000000000000000",
         };
 
         const [common, forkedNode] = await HardhatNode.create(forkedNodeConfig);

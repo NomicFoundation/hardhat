@@ -102,7 +102,8 @@ export function createProvider(
         : undefined,
       experimentalHardhatNetworkMessageTraceHooks,
       forkConfig,
-      paths !== undefined ? getForkCacheDirPath(paths) : undefined
+      paths !== undefined ? getForkCacheDirPath(paths) : undefined,
+      hardhatNetConfig.coinbase
     );
   } else {
     const HttpProvider = importProvider<
