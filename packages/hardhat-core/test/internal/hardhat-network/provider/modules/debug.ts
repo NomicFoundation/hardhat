@@ -2,6 +2,7 @@ import { assert } from "chai";
 import { BN } from "ethereumjs-util";
 import _ from "lodash";
 
+import { defaultHardhatNetworkParams } from "../../../../../src/internal/core/config/default-config";
 import { BackwardsCompatibilityProviderAdapter } from "../../../../../src/internal/core/providers/backwards-compatibility";
 import { ModulesLogger } from "../../../../../src/internal/hardhat-network/provider/modules/logger";
 import { ForkConfig } from "../../../../../src/internal/hardhat-network/provider/node-types";
@@ -182,6 +183,7 @@ describe("Debug module", function () {
         true,
         false, // mining.auto
         0, // mining.interval
+        defaultHardhatNetworkParams.chains,
         logger,
         DEFAULT_ACCOUNTS,
         undefined,

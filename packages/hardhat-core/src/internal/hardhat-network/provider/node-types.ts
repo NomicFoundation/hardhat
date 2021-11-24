@@ -2,7 +2,7 @@ import { Block } from "@ethereumjs/block";
 import { RunBlockResult } from "@ethereumjs/vm/dist/runBlock";
 import { BN } from "ethereumjs-util";
 
-import { BuildInfo } from "../../../types";
+import { BuildInfo, HardhatNetworkChainsConfig } from "../../../types";
 import { MessageTrace } from "../stack-traces/message-trace";
 
 import type { ReturnData } from "./return-data";
@@ -28,6 +28,7 @@ interface CommonConfig {
   initialDate?: Date;
   tracingConfig?: TracingConfig;
   initialBaseFeePerGas?: number;
+  chains: HardhatNetworkChainsConfig;
 }
 
 export type LocalNodeConfig = CommonConfig;

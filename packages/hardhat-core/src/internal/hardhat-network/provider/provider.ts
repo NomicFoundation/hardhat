@@ -11,6 +11,7 @@ import type {
   BoundExperimentalHardhatNetworkMessageTraceHook,
   EIP1193Provider,
   EthSubscription,
+  HardhatNetworkChainsConfig,
   RequestArguments,
 } from "../../../types";
 import {
@@ -81,6 +82,7 @@ export class HardhatNetworkProvider
     private readonly _throwOnCallFailures: boolean,
     private readonly _automine: boolean,
     private readonly _intervalMining: IntervalMiningConfig,
+    private readonly _chains: HardhatNetworkChainsConfig,
     private readonly _logger: ModulesLogger,
     private readonly _genesisAccounts: GenesisAccount[] = [],
     private readonly _artifacts?: Artifacts,
@@ -235,6 +237,7 @@ export class HardhatNetworkProvider
       forkConfig: this._forkConfig,
       forkCachePath:
         this._forkConfig !== undefined ? this._forkCachePath : undefined,
+      chains: this._chains,
     };
 
     const [common, node] = await HardhatNode.create(config);

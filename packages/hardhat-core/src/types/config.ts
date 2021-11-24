@@ -25,6 +25,18 @@ export type NetworkUserConfig =
   | HardhatNetworkUserConfig
   | HttpNetworkUserConfig;
 
+export interface HardforkHistoryUserConfig {
+  [hardforkName: string]: number /* block number */;
+}
+
+export interface HardhatNetworkChainUserConfig {
+  hardforkHistory?: HardforkHistoryUserConfig;
+}
+
+export interface HardhatNetworkChainsUserConfig {
+  [chainId: number]: HardhatNetworkChainUserConfig;
+}
+
 export interface HardhatNetworkUserConfig {
   chainId?: number;
   from?: string;
@@ -43,6 +55,7 @@ export interface HardhatNetworkUserConfig {
   initialDate?: string;
   loggingEnabled?: boolean;
   forking?: HardhatNetworkForkingUserConfig;
+  chains?: HardhatNetworkChainsUserConfig;
 }
 
 export type HardhatNetworkAccountsUserConfig =
@@ -100,6 +113,20 @@ export interface NetworksConfig {
 
 export type NetworkConfig = HardhatNetworkConfig | HttpNetworkConfig;
 
+export type HardforkHistoryConfig = Map<
+  /* hardforkName */ string,
+  /* blockNumber */ number
+>;
+
+export interface HardhatNetworkChainConfig {
+  hardforkHistory: HardforkHistoryConfig;
+}
+
+export type HardhatNetworkChainsConfig = Map<
+  /* chainId */ number,
+  HardhatNetworkChainConfig
+>;
+
 export interface HardhatNetworkConfig {
   chainId: number;
   from?: string;
@@ -118,6 +145,7 @@ export interface HardhatNetworkConfig {
   initialDate: string;
   loggingEnabled: boolean;
   forking?: HardhatNetworkForkingConfig;
+  chains: HardhatNetworkChainsConfig;
 }
 
 export type HardhatNetworkAccountsConfig =

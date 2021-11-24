@@ -1,5 +1,7 @@
 import { BN } from "ethereumjs-util";
 
+import { HardhatNetworkChainsConfig } from "../../../../src/types/config";
+import { defaultHardhatNetworkParams } from "../../../../src/internal/core/config/default-config";
 import { BackwardsCompatibilityProviderAdapter } from "../../../../src/internal/core/providers/backwards-compatibility";
 import { JsonRpcServer } from "../../../../src/internal/hardhat-network/jsonrpc/server";
 import { ForkConfig } from "../../../../src/internal/hardhat-network/provider/node-types";
@@ -45,6 +47,7 @@ export interface UseProviderOptions {
   accounts?: Array<{ privateKey: string; balance: BN }>;
   allowUnlimitedContractSize?: boolean;
   initialBaseFeePerGas?: number;
+  chains?: HardhatNetworkChainsConfig;
 }
 
 export function useProvider({
@@ -60,6 +63,7 @@ export function useProvider({
   accounts = DEFAULT_ACCOUNTS,
   allowUnlimitedContractSize = DEFAULT_ALLOW_UNLIMITED_CONTRACT_SIZE,
   initialBaseFeePerGas,
+  chains = defaultHardhatNetworkParams.chains,
 }: UseProviderOptions = {}) {
   beforeEach("Initialize provider", async function () {
     this.logger = new FakeModulesLogger(loggerEnabled);
@@ -75,6 +79,7 @@ export function useProvider({
       true,
       mining.auto,
       mining.interval,
+      chains,
       this.logger,
       accounts,
       undefined,
