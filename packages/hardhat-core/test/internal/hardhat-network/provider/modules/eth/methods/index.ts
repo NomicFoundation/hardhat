@@ -43,7 +43,7 @@ describe("Eth module", function () {
       });
 
       describe("eth_coinbase", async function () {
-        it("should return the the default coinbase address", async function () {
+        it("should return the default coinbase address", async function () {
           assert.equal(
             await this.provider.send("eth_coinbase"),
             DEFAULT_COINBASE
