@@ -1,5 +1,7 @@
 import { BN } from "ethereumjs-util";
 
+import { HardhatNetworkChainsConfig } from "../../../../src/types/config";
+import { defaultHardhatNetworkParams } from "../../../../src/internal/core/config/default-config";
 import { BackwardsCompatibilityProviderAdapter } from "../../../../src/internal/core/providers/backwards-compatibility";
 import { JsonRpcServer } from "../../../../src/internal/hardhat-network/jsonrpc/server";
 import {
@@ -52,6 +54,7 @@ export interface UseProviderOptions {
   initialBaseFeePerGas?: number;
   mempool?: HardhatNetworkMempoolConfig;
   coinbase?: string;
+  chains?: HardhatNetworkChainsConfig;
 }
 
 export function useProvider({
@@ -69,6 +72,7 @@ export function useProvider({
   initialBaseFeePerGas,
   mempool = DEFAULT_MEMPOOL_CONFIG,
   coinbase,
+  chains = defaultHardhatNetworkParams.chains,
 }: UseProviderOptions = {}) {
   beforeEach("Initialize provider", async function () {
     this.logger = new FakeModulesLogger(loggerEnabled);
@@ -85,6 +89,7 @@ export function useProvider({
       mining.auto,
       mining.interval,
       mempool.order as MempoolOrder,
+      chains,
       this.logger,
       accounts,
       undefined,

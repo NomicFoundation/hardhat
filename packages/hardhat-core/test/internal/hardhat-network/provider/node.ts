@@ -4,24 +4,33 @@ import { TxData, TypedTransaction } from "@ethereumjs/tx";
 import VM from "@ethereumjs/vm";
 import { AfterBlockEvent, RunBlockOpts } from "@ethereumjs/vm/dist/runBlock";
 import { assert } from "chai";
-import { Address, BN, bufferToHex } from "ethereumjs-util";
+import { Address, BN, bufferToHex, toBuffer } from "ethereumjs-util";
+import { ethers } from "ethers";
 import sinon from "sinon";
 
+import { defaultHardhatNetworkParams } from "../../../../src/internal/core/config/default-config";
 import { rpcToBlockData } from "../../../../src/internal/hardhat-network/provider/fork/rpcToBlockData";
 import { HardhatNode } from "../../../../src/internal/hardhat-network/provider/node";
 import {
   ForkedNodeConfig,
   NodeConfig,
+  RunCallResult,
 } from "../../../../src/internal/hardhat-network/provider/node-types";
 import { FakeSenderTransaction } from "../../../../src/internal/hardhat-network/provider/transactions/FakeSenderTransaction";
 import { getCurrentTimestamp } from "../../../../src/internal/hardhat-network/provider/utils/getCurrentTimestamp";
 import { makeForkClient } from "../../../../src/internal/hardhat-network/provider/utils/makeForkClient";
+import { HardforkName } from "../../../../src/internal/util/hardforks";
+import {
+  HardhatNetworkChainConfig,
+  HardhatNetworkChainsConfig,
+} from "../../../../src/types";
 import { ALCHEMY_URL } from "../../../setup";
 import { assertQuantity } from "../helpers/assertions";
 import {
   EMPTY_ACCOUNT_ADDRESS,
   FORK_TESTS_CACHE_PATH,
 } from "../helpers/constants";
+import { expectErrorAsync } from "../../../helpers/errors";
 import {
   DEFAULT_ACCOUNTS,
   DEFAULT_ACCOUNTS_ADDRESSES,
@@ -43,6 +52,22 @@ interface ForkedBlock {
   chainId: number;
 }
 
+export function cloneChainsConfig(
+  source: HardhatNetworkChainsConfig
+): HardhatNetworkChainsConfig {
+  const clone: HardhatNetworkChainsConfig = new Map();
+  source.forEach(
+    (sourceChainConfig: HardhatNetworkChainConfig, chainId: number) => {
+      const clonedChainConfig = { ...sourceChainConfig };
+      clonedChainConfig.hardforkHistory = new Map(
+        sourceChainConfig.hardforkHistory
+      );
+      clone.set(chainId, clonedChainConfig);
+    }
+  );
+  return clone;
+}
+
 describe("HardhatNode", () => {
   const config: NodeConfig = {
     automine: false,
@@ -56,6 +81,7 @@ describe("HardhatNode", () => {
     initialBaseFeePerGas: 10,
     mempoolOrder: "priority",
     coinbase: "0x0000000000000000000000000000000000000000",
+    chains: defaultHardhatNetworkParams.chains,
   };
   const gasPrice = 20;
   let node: HardhatNode;
@@ -717,6 +743,7 @@ describe("HardhatNode", () => {
           genesisAccounts: [],
           mempoolOrder: "priority",
           coinbase: "0x0000000000000000000000000000000000000000",
+          chains: defaultHardhatNetworkParams.chains,
         };
 
         const [common, forkedNode] = await HardhatNode.create(forkedNodeConfig);
@@ -766,6 +793,212 @@ describe("HardhatNode", () => {
         );
       });
     }
+  });
+
+  describe("should run calls in the right hardfork context", async function () {
+    this.timeout(10000);
+    before(function () {
+      if (ALCHEMY_URL === undefined) {
+        this.skip();
+        return;
+      }
+    });
+
+    const eip1559ActivationBlock = 12965000;
+    // some shorthand for code below:
+    const post1559Block = eip1559ActivationBlock;
+    const blockBefore1559 = eip1559ActivationBlock - 1;
+    const pre1559GasOpts = { gasPrice: new BN(0) };
+    const post1559GasOpts = { maxFeePerGas: new BN(0) };
+
+    const baseNodeConfig: ForkedNodeConfig = {
+      automine: true,
+      networkName: "mainnet",
+      chainId: 1,
+      networkId: 1,
+      hardfork: "london",
+      forkConfig: {
+        jsonRpcUrl: ALCHEMY_URL!,
+        blockNumber: eip1559ActivationBlock,
+      },
+      forkCachePath: FORK_TESTS_CACHE_PATH,
+      blockGasLimit: 1_000_000,
+      minGasPrice: new BN(0),
+      genesisAccounts: [],
+      chains: defaultHardhatNetworkParams.chains,
+    };
+
+    /** execute a call to method Hello() on contract HelloWorld, deployed to
+     * mainnet years ago, which should return a string, "Hello World". */
+    async function runCall(
+      gasParams: { gasPrice?: BN; maxFeePerGas?: BN },
+      block: number,
+      targetNode: HardhatNode
+    ): Promise<string> {
+      const contractInterface = new ethers.utils.Interface([
+        "function Hello() public pure returns (string)",
+      ]);
+
+      const callOpts = {
+        to: toBuffer("0xe36613A299bA695aBA8D0c0011FCe95e681f6dD3"),
+        from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
+        value: new BN(0),
+        data: toBuffer(contractInterface.encodeFunctionData("Hello", [])),
+        gasLimit: new BN(1_000_000),
+      };
+
+      function decodeResult(runCallResult: RunCallResult) {
+        return contractInterface.decodeFunctionResult(
+          "Hello",
+          bufferToHex(runCallResult.result.value)
+        )[0];
+      }
+
+      return decodeResult(
+        await targetNode.runCall({ ...callOpts, ...gasParams }, new BN(block))
+      );
+    }
+
+    describe("when forking with a default hardfork activation history", function () {
+      let hardhatNode: HardhatNode;
+
+      before(async function () {
+        [, hardhatNode] = await HardhatNode.create(baseNodeConfig);
+      });
+
+      it("should accept post-EIP-1559 gas semantics when running in the context of a post-EIP-1559 block", async function () {
+        assert.equal(
+          "Hello World",
+          await runCall(post1559GasOpts, post1559Block, hardhatNode)
+        );
+      });
+
+      it("should accept pre-EIP-1559 gas semantics when running in the context of a pre-EIP-1559 block", async function () {
+        assert.equal(
+          "Hello World",
+          await runCall(pre1559GasOpts, blockBefore1559, hardhatNode)
+        );
+      });
+
+      it("should throw when given post-EIP-1559 gas semantics and when running in the context of a pre-EIP-1559 block", async function () {
+        await expectErrorAsync(async () => {
+          assert.equal(
+            "Hello World",
+            await runCall(post1559GasOpts, blockBefore1559, hardhatNode)
+          );
+        }, "Cannot run transaction: EIP 1559 is not activated.");
+      });
+
+      it("should accept pre-EIP-1559 gas semantics when running in the context of a post-EIP-1559 block", async function () {
+        assert.equal(
+          "Hello World",
+          await runCall(pre1559GasOpts, post1559Block, hardhatNode)
+        );
+      });
+    });
+
+    describe("when forking with a hardfork activation history that indicates London happened one block early", function () {
+      let nodeWithEarlyLondon: HardhatNode;
+
+      before(async function () {
+        const nodeConfig = {
+          ...baseNodeConfig,
+          chains: cloneChainsConfig(baseNodeConfig.chains),
+        };
+
+        const chainConfig = nodeConfig.chains.get(1) ?? {
+          hardforkHistory: new Map(),
+        };
+        chainConfig.hardforkHistory.set(
+          HardforkName.LONDON,
+          eip1559ActivationBlock - 1
+        );
+
+        nodeConfig.chains.set(1, chainConfig);
+
+        [, nodeWithEarlyLondon] = await HardhatNode.create(nodeConfig);
+      });
+
+      it("should accept post-EIP-1559 gas semantics when running in the context of the block of the EIP-1559 activation", async function () {
+        assert.equal(
+          "Hello World",
+          await runCall(post1559GasOpts, blockBefore1559, nodeWithEarlyLondon)
+        );
+      });
+
+      it("should throw when given post-EIP-1559 gas semantics and when running in the context of the block before EIP-1559 activation", async function () {
+        await expectErrorAsync(async () => {
+          await runCall(
+            post1559GasOpts,
+            blockBefore1559 - 1,
+            nodeWithEarlyLondon
+          );
+        }, "Cannot run transaction: EIP 1559 is not activated.");
+      });
+
+      it("should accept post-EIP-1559 gas semantics when running in the context of a block after EIP-1559 activation", async function () {
+        assert.equal(
+          "Hello World",
+          await runCall(post1559GasOpts, post1559Block, nodeWithEarlyLondon)
+        );
+      });
+
+      it("should accept pre-EIP-1559 gas semantics when running in the context of the block of the EIP-1559 activation", async function () {
+        assert.equal(
+          "Hello World",
+          await runCall(pre1559GasOpts, blockBefore1559, nodeWithEarlyLondon)
+        );
+      });
+    });
+
+    describe("when forking with a weird hardfork activation history", function () {
+      let hardhatNode: HardhatNode;
+      before(async function () {
+        const nodeConfig = {
+          ...baseNodeConfig,
+          chains: new Map([
+            [
+              1,
+              {
+                hardforkHistory: new Map([["london", 100]]),
+              },
+            ],
+          ]),
+        };
+
+        [, hardhatNode] = await HardhatNode.create(nodeConfig);
+      });
+      it("should throw when making a call with a block below the only hardfork activation", async function () {
+        await expectErrorAsync(async () => {
+          await runCall(pre1559GasOpts, 99, hardhatNode);
+        }, /Could not find a hardfork to run for block 99, after having looked for one in the HardhatNode's hardfork activation history/);
+      });
+    });
+
+    describe("when forking WITHOUT a hardfork activation history", function () {
+      let nodeWithoutHardforkHistory: HardhatNode;
+
+      before(async function () {
+        const nodeCfgWithoutHFHist = {
+          ...baseNodeConfig,
+          chains: cloneChainsConfig(baseNodeConfig.chains),
+        };
+        nodeCfgWithoutHFHist.chains.set(1, { hardforkHistory: new Map() });
+        [, nodeWithoutHardforkHistory] = await HardhatNode.create(
+          nodeCfgWithoutHFHist
+        );
+      });
+
+      it("should throw when running in the context of a historical block", async function () {
+        await expectErrorAsync(async () => {
+          await runCall(
+            pre1559GasOpts,
+            blockBefore1559,
+            nodeWithoutHardforkHistory
+          );
+        }, /node was not configured with a hardfork activation history/);
+      });
+    });
   });
 });
 

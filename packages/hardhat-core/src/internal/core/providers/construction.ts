@@ -93,6 +93,7 @@ export function createProvider(
       hardhatNetConfig.mining.interval,
       // This cast is valid because of the config validation and resolution
       hardhatNetConfig.mining.mempool.order as MempoolOrder,
+      hardhatNetConfig.chains,
       new ModulesLogger(hardhatNetConfig.loggingEnabled),
       accounts,
       artifacts,
