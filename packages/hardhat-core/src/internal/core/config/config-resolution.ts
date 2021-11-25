@@ -12,6 +12,8 @@ import {
   HardhatNetworkForkingConfig,
   HardhatNetworkMiningConfig,
   HardhatNetworkMiningUserConfig,
+  HardhatNetworkMempoolConfig,
+  HardhatNetworkMempoolUserConfig,
   HardhatNetworkUserConfig,
   HardhatUserConfig,
   HDAccountsUserConfig,
@@ -258,10 +260,12 @@ function resolveHttpNetworkConfig(
 function resolveMiningConfig(
   userConfig: HardhatNetworkMiningUserConfig | undefined
 ): HardhatNetworkMiningConfig {
+  const mempool = resolveMempoolConfig(userConfig?.mempool);
   if (userConfig === undefined) {
     return {
       auto: true,
       interval: 0,
+      mempool,
     };
   }
 
@@ -271,6 +275,7 @@ function resolveMiningConfig(
     return {
       auto: true,
       interval: 0,
+      mempool,
     };
   }
 
@@ -278,6 +283,7 @@ function resolveMiningConfig(
     return {
       auto: false,
       interval,
+      mempool,
     };
   }
 
@@ -285,6 +291,7 @@ function resolveMiningConfig(
     return {
       auto,
       interval: 0,
+      mempool,
     };
   }
 
@@ -292,7 +299,28 @@ function resolveMiningConfig(
   return {
     auto: auto!,
     interval: interval!,
+    mempool,
   };
+}
+
+function resolveMempoolConfig(
+  userConfig: HardhatNetworkMempoolUserConfig | undefined
+): HardhatNetworkMempoolConfig {
+  if (userConfig === undefined) {
+    return {
+      order: "priority",
+    };
+  }
+
+  if (userConfig.order === undefined) {
+    return {
+      order: "priority",
+    };
+  }
+
+  return {
+    order: userConfig.order,
+  } as HardhatNetworkMempoolConfig;
 }
 
 function resolveSolidityConfig(userConfig: HardhatUserConfig): SolidityConfig {

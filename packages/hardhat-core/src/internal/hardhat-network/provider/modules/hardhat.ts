@@ -108,6 +108,9 @@ export class HardhatModule {
         return this._setNextBlockBaseFeePerGasAction(
           ...this._setNextBlockBaseFeePerGasParams(params)
         );
+
+      case "hardhat_setCoinbase":
+        return this._setCoinbaseAction(...this._setCoinbaseParams(params));
     }
 
     throw new MethodNotFoundError(`Method ${method} not found`);
@@ -343,6 +346,17 @@ export class HardhatModule {
     }
 
     this._node.setUserProvidedNextBlockBaseFeePerGas(baseFeePerGas);
+    return true;
+  }
+
+  // hardhat_setCoinbase
+
+  private _setCoinbaseParams(params: any[]): [Buffer] {
+    return validateParams(params, rpcAddress);
+  }
+
+  private async _setCoinbaseAction(address: Buffer) {
+    await this._node.setCoinbase(new Address(address));
     return true;
   }
 

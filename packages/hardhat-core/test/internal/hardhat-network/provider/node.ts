@@ -79,6 +79,8 @@ describe("HardhatNode", () => {
     minGasPrice: new BN(0),
     genesisAccounts: DEFAULT_ACCOUNTS,
     initialBaseFeePerGas: 10,
+    mempoolOrder: "priority",
+    coinbase: "0x0000000000000000000000000000000000000000",
     chains: defaultHardhatNetworkParams.chains,
   };
   const gasPrice = 20;
@@ -194,6 +196,39 @@ describe("HardhatNode", () => {
         await assertTransactionsWereMined([tx1, tx2]);
         const balance = await node.getAccountBalance(EMPTY_ACCOUNT_ADDRESS);
         assert.equal(balance.toString(), "2468");
+      });
+
+      it("can keep the transaction ordering when mining a block", async () => {
+        [, node] = await HardhatNode.create({
+          ...config,
+          mempoolOrder: "fifo",
+        });
+
+        const tx1 = createTestTransaction({
+          nonce: 0,
+          from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+          to: EMPTY_ACCOUNT_ADDRESS,
+          gasLimit: 21_000,
+          value: 1234,
+          gasPrice: 42,
+        });
+        const tx2 = createTestTransaction({
+          nonce: 0,
+          from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+          to: EMPTY_ACCOUNT_ADDRESS,
+          gasLimit: 21_000,
+          value: 1234,
+          gasPrice: 84,
+        });
+        await node.sendTransaction(tx1);
+        await node.sendTransaction(tx2);
+        await node.mineBlock();
+
+        const txReceipt1 = await node.getTransactionReceipt(tx1.hash());
+        const txReceipt2 = await node.getTransactionReceipt(tx2.hash());
+
+        assert.equal(txReceipt1?.transactionIndex, "0x0");
+        assert.equal(txReceipt2?.transactionIndex, "0x1");
       });
 
       it("can mine a block with two transactions from the same sender", async () => {
@@ -677,7 +712,7 @@ describe("HardhatNode", () => {
       const hardfork = remoteCommon.getHardforkByBlockNumber(blockToRun);
 
       it(`should run a ${networkName} block from ${hardfork} and produce the same results`, async function () {
-        this.timeout(120000);
+        this.timeout(240000);
 
         const forkConfig = {
           jsonRpcUrl: url,
@@ -706,6 +741,8 @@ describe("HardhatNode", () => {
           blockGasLimit: rpcBlock.gasLimit.toNumber(),
           minGasPrice: new BN(0),
           genesisAccounts: [],
+          mempoolOrder: "priority",
+          coinbase: "0x0000000000000000000000000000000000000000",
           chains: defaultHardhatNetworkParams.chains,
         };
 
@@ -789,6 +826,8 @@ describe("HardhatNode", () => {
       minGasPrice: new BN(0),
       genesisAccounts: [],
       chains: defaultHardhatNetworkParams.chains,
+      mempoolOrder: "priority",
+      coinbase: "0x0000000000000000000000000000000000000000",
     };
 
     /** execute a call to method Hello() on contract HelloWorld, deployed to

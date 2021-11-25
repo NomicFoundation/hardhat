@@ -884,7 +884,7 @@ Please use a newer, supported version.`,
   ARTIFACTS: {
     NOT_FOUND: {
       number: 700,
-      message: 'Artifact for contract "%contractName%" not found.',
+      message: 'Artifact for contract "%contractName%" not found. %suggestion%',
       title: "Artifact not found",
       description: `Tried to import a nonexistent artifact.
 

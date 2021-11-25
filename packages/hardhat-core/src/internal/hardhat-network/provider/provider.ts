@@ -41,6 +41,7 @@ import {
   ForkConfig,
   GenesisAccount,
   IntervalMiningConfig,
+  MempoolOrder,
   NodeConfig,
   TracingConfig,
 } from "./node-types";
@@ -54,6 +55,8 @@ const PRIVATE_RPC_METHODS = new Set([
 ]);
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
+
+export const DEFAULT_COINBASE = "0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e";
 
 export class HardhatNetworkProvider
   extends EventEmitter
@@ -82,6 +85,7 @@ export class HardhatNetworkProvider
     private readonly _throwOnCallFailures: boolean,
     private readonly _automine: boolean,
     private readonly _intervalMining: IntervalMiningConfig,
+    private readonly _mempoolOrder: MempoolOrder,
     private readonly _chains: HardhatNetworkChainsConfig,
     private readonly _logger: ModulesLogger,
     private readonly _genesisAccounts: GenesisAccount[] = [],
@@ -90,7 +94,8 @@ export class HardhatNetworkProvider
     private readonly _initialDate?: Date,
     private readonly _experimentalHardhatNetworkMessageTraceHooks: BoundExperimentalHardhatNetworkMessageTraceHook[] = [],
     private _forkConfig?: ForkConfig,
-    private readonly _forkCachePath?: string
+    private readonly _forkCachePath?: string,
+    private readonly _coinbase = DEFAULT_COINBASE
   ) {
     super();
   }
@@ -229,6 +234,7 @@ export class HardhatNetworkProvider
       allowUnlimitedContractSize: this._allowUnlimitedContractSize,
       tracingConfig: await this._makeTracingConfig(),
       initialBaseFeePerGas: this._initialBaseFeePerGas,
+      mempoolOrder: this._mempoolOrder,
       hardfork: this._hardfork,
       networkName: this._networkName,
       chainId: this._chainId,
@@ -237,6 +243,7 @@ export class HardhatNetworkProvider
       forkConfig: this._forkConfig,
       forkCachePath:
         this._forkConfig !== undefined ? this._forkCachePath : undefined,
+      coinbase: this._coinbase,
       chains: this._chains,
     };
 
