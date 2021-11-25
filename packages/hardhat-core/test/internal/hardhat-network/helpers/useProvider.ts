@@ -2,10 +2,14 @@ import { BN } from "ethereumjs-util";
 
 import { BackwardsCompatibilityProviderAdapter } from "../../../../src/internal/core/providers/backwards-compatibility";
 import { JsonRpcServer } from "../../../../src/internal/hardhat-network/jsonrpc/server";
-import { ForkConfig } from "../../../../src/internal/hardhat-network/provider/node-types";
+import {
+  ForkConfig,
+  MempoolOrder,
+} from "../../../../src/internal/hardhat-network/provider/node-types";
 import { HardhatNetworkProvider } from "../../../../src/internal/hardhat-network/provider/provider";
 import {
   EthereumProvider,
+  HardhatNetworkMempoolConfig,
   HardhatNetworkMiningConfig,
 } from "../../../../src/types";
 
@@ -19,6 +23,7 @@ import {
   DEFAULT_MINING_CONFIG,
   DEFAULT_NETWORK_ID,
   DEFAULT_NETWORK_NAME,
+  DEFAULT_MEMPOOL_CONFIG,
   DEFAULT_USE_JSON_RPC,
 } from "./providers";
 
@@ -45,6 +50,8 @@ export interface UseProviderOptions {
   accounts?: Array<{ privateKey: string; balance: BN }>;
   allowUnlimitedContractSize?: boolean;
   initialBaseFeePerGas?: number;
+  mempool?: HardhatNetworkMempoolConfig;
+  coinbase?: string;
 }
 
 export function useProvider({
@@ -60,6 +67,8 @@ export function useProvider({
   accounts = DEFAULT_ACCOUNTS,
   allowUnlimitedContractSize = DEFAULT_ALLOW_UNLIMITED_CONTRACT_SIZE,
   initialBaseFeePerGas,
+  mempool = DEFAULT_MEMPOOL_CONFIG,
+  coinbase,
 }: UseProviderOptions = {}) {
   beforeEach("Initialize provider", async function () {
     this.logger = new FakeModulesLogger(loggerEnabled);
@@ -75,13 +84,15 @@ export function useProvider({
       true,
       mining.auto,
       mining.interval,
+      mempool.order as MempoolOrder,
       this.logger,
       accounts,
       undefined,
       allowUnlimitedContractSize,
       undefined,
       undefined,
-      forkConfig
+      forkConfig,
+      coinbase
     );
     this.provider = new BackwardsCompatibilityProviderAdapter(
       this.hardhatNetworkProvider

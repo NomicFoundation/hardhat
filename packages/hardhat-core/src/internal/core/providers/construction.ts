@@ -13,7 +13,10 @@ import type {
 } from "../../../types";
 import { HARDHAT_NETWORK_NAME } from "../../constants";
 import { ModulesLogger } from "../../hardhat-network/provider/modules/logger";
-import { ForkConfig } from "../../hardhat-network/provider/node-types";
+import {
+  ForkConfig,
+  MempoolOrder,
+} from "../../hardhat-network/provider/node-types";
 import { getForkCacheDirPath } from "../../hardhat-network/provider/utils/disk-cache";
 import { parseDateString } from "../../util/date";
 
@@ -88,6 +91,8 @@ export function createProvider(
       hardhatNetConfig.throwOnCallFailures,
       hardhatNetConfig.mining.auto,
       hardhatNetConfig.mining.interval,
+      // This cast is valid because of the config validation and resolution
+      hardhatNetConfig.mining.mempool.order as MempoolOrder,
       new ModulesLogger(hardhatNetConfig.loggingEnabled),
       accounts,
       artifacts,
@@ -97,7 +102,8 @@ export function createProvider(
         : undefined,
       experimentalHardhatNetworkMessageTraceHooks,
       forkConfig,
-      paths !== undefined ? getForkCacheDirPath(paths) : undefined
+      paths !== undefined ? getForkCacheDirPath(paths) : undefined,
+      hardhatNetConfig.coinbase
     );
   } else {
     const HttpProvider = importProvider<

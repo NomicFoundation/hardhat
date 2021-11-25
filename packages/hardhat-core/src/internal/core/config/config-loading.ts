@@ -92,6 +92,7 @@ export function loadConfigAndTasks(
 
   if (showSolidityConfigWarnings) {
     checkUnsupportedSolidityConfig(resolved);
+    checkUnsupportedRemappings(resolved);
   }
 
   return resolved;
@@ -223,7 +224,7 @@ function checkMissingSolidityConfig(userConfig: any) {
   if (userConfig.solidity === undefined) {
     console.warn(
       chalk.yellow(
-        `Solidity compiler is not configured. Version ${DEFAULT_SOLC_VERSION} will be used by default. Add a 'solidity' entry to your configuration to supress this warning.
+        `Solidity compiler is not configured. Version ${DEFAULT_SOLC_VERSION} will be used by default. Add a 'solidity' entry to your configuration to suppress this warning.
 
 Learn more about compiler configuration at https://hardhat.org/config"
 `
@@ -256,6 +257,27 @@ function checkUnsupportedSolidityConfig(resolvedConfig: HardhatConfig) {
         } not fully supported yet. You can still use Hardhat, but some features, like stack traces, might not work correctly.
 
 Learn more at https://hardhat.org/reference/solidity-support
+`
+      )
+    );
+  }
+}
+
+function checkUnsupportedRemappings({ solidity }: HardhatConfig) {
+  const solcConfigs = [
+    ...solidity.compilers,
+    ...Object.values(solidity.overrides),
+  ];
+  const remappings = solcConfigs.filter(
+    ({ settings }) => settings.remappings !== undefined
+  );
+
+  if (remappings.length > 0) {
+    console.warn(
+      chalk.yellow(
+        `Solidity remappings are not currently supported; you may experience unexpected compilation results. Remove any 'remappings' fields from your configuration to suppress this warning.
+
+Learn more about compiler configuration at https://hardhat.org/config
 `
       )
     );

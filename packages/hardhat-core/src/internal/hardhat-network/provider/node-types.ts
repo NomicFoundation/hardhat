@@ -3,6 +3,7 @@ import { RunBlockResult } from "@ethereumjs/vm/dist/runBlock";
 import { BN } from "ethereumjs-util";
 
 import { BuildInfo } from "../../../types";
+import { HARDHAT_MEMPOOL_SUPPORTED_ORDERS } from "../../constants";
 import { MessageTrace } from "../stack-traces/message-trace";
 
 import type { ReturnData } from "./return-data";
@@ -28,6 +29,8 @@ interface CommonConfig {
   initialDate?: Date;
   tracingConfig?: TracingConfig;
   initialBaseFeePerGas?: number;
+  mempoolOrder: MempoolOrder;
+  coinbase: string;
 }
 
 export type LocalNodeConfig = CommonConfig;
@@ -47,6 +50,8 @@ export interface TracingConfig {
 }
 
 export type IntervalMiningConfig = number | [number, number];
+
+export type MempoolOrder = typeof HARDHAT_MEMPOOL_SUPPORTED_ORDERS[number];
 
 export interface GenesisAccount {
   privateKey: string;
@@ -127,6 +132,7 @@ export interface Snapshot {
   nextBlockTimestamp: BN;
   irregularStatesByBlockNumber: Map<string, Buffer>;
   userProvidedNextBlockBaseFeePerGas: BN | undefined;
+  coinbase: string;
 }
 
 export type SendTransactionResult =

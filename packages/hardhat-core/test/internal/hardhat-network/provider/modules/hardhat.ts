@@ -1485,6 +1485,69 @@ describe("Hardhat module", function () {
           });
         });
       });
+
+      describe("hardhat_setCoinbase", function () {
+        const cb1 = "0x1234567890123456789012345678901234567890";
+        const cb2 = "0x0987654321098765432109876543210987654321";
+
+        it("should set the coinbase for the new blocks", async function () {
+          await this.provider.send("hardhat_setCoinbase", [cb1]);
+          await this.provider.send("evm_mine", []);
+          const block1 = await this.provider.send("eth_getBlockByNumber", [
+            "latest",
+            false,
+          ]);
+          assert.equal(block1.miner, cb1);
+
+          await this.provider.send("hardhat_setCoinbase", [cb2]);
+
+          await this.provider.send("evm_mine", []);
+          const block2 = await this.provider.send("eth_getBlockByNumber", [
+            "latest",
+            false,
+          ]);
+          assert.equal(block2.miner, cb2);
+
+          await this.provider.send("evm_mine", []);
+          const block3 = await this.provider.send("eth_getBlockByNumber", [
+            "latest",
+            false,
+          ]);
+          assert.equal(block3.miner, cb2);
+        });
+
+        it("should be preserved in snapshots", async function () {
+          await this.provider.send("hardhat_setCoinbase", [cb1]);
+
+          const snapshot = await this.provider.send("evm_snapshot");
+
+          await this.provider.send("hardhat_setCoinbase", [cb2]);
+
+          await this.provider.send("evm_mine", []);
+          const block1 = await this.provider.send("eth_getBlockByNumber", [
+            "latest",
+            false,
+          ]);
+          assert.equal(block1.miner, cb2);
+
+          await this.provider.send("evm_revert", [snapshot]);
+
+          await this.provider.send("evm_mine", []);
+          const block1Again = await this.provider.send("eth_getBlockByNumber", [
+            "latest",
+            false,
+          ]);
+          assert.equal(block1Again.miner, cb1);
+        });
+
+        it("should affect eth_coinbase", async function () {
+          await this.provider.send("hardhat_setCoinbase", [cb1]);
+          assert.equal(await this.provider.send("eth_coinbase"), cb1);
+
+          await this.provider.send("hardhat_setCoinbase", [cb2]);
+          assert.equal(await this.provider.send("eth_coinbase"), cb2);
+        });
+      });
     });
   });
 });

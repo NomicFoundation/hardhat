@@ -109,6 +109,9 @@ export class HardhatModule {
           ...this._setNextBlockBaseFeePerGasParams(params)
         );
 
+      case "hardhat_setCoinbase":
+        return this._setCoinbaseAction(...this._setCoinbaseParams(params));
+
       case "hardhat_mine":
         return this._hardhatMineAction(...this._hardhatMineParams(params));
     }
@@ -346,6 +349,17 @@ export class HardhatModule {
     }
 
     this._node.setUserProvidedNextBlockBaseFeePerGas(baseFeePerGas);
+    return true;
+  }
+
+  // hardhat_setCoinbase
+
+  private _setCoinbaseParams(params: any[]): [Buffer] {
+    return validateParams(params, rpcAddress);
+  }
+
+  private async _setCoinbaseAction(address: Buffer) {
+    await this._node.setCoinbase(new Address(address));
     return true;
   }
 

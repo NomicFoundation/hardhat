@@ -179,7 +179,7 @@ function isExplicitRelativePath(sourceName: string): boolean {
 }
 
 /**
- * This function replaces backslashes (\) with slashes (/).
+ * This function replaces backslashes (\\) with slashes (/).
  *
  * Note that a source name must not contain backslashes.
  */

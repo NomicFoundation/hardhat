@@ -40,6 +40,12 @@ enum NetworkID {
   // Arbitrum
   ARBITRUM_ONE = 42161,
   ARBITRUM_TESTNET = 421611,
+  // Avalanche
+  AVALANCHE = 43114,
+  AVALANCHE_FUJI_TESTNET = 43113,
+  // Moonriver
+  MOONRIVER = 1285,
+  MOONBASE_ALPHA = 1287,
 }
 
 const networkIDtoEndpoints: NetworkMap = {
@@ -110,6 +116,22 @@ const networkIDtoEndpoints: NetworkMap = {
   [NetworkID.ARBITRUM_TESTNET]: {
     apiURL: "https://api-testnet.arbiscan.io/api",
     browserURL: "https://testnet.arbiscan.io/",
+  },
+  [NetworkID.AVALANCHE]: {
+    apiURL: "https://api.snowtrace.io/api",
+    browserURL: "https://snowtrace.io/",
+  },
+  [NetworkID.AVALANCHE_FUJI_TESTNET]: {
+    apiURL: "https://api-testnet.snowtrace.io/api",
+    browserURL: "https://testnet.snowtrace.io/",
+  },
+  [NetworkID.MOONRIVER]: {
+    apiURL: "https://api-moonriver.moonscan.io/api",
+    browserURL: "https://moonscan.io",
+  },
+  [NetworkID.MOONBASE_ALPHA]: {
+    apiURL: "https://api-moonbase.moonscan.io/api",
+    browserURL: "https://moonbase.moonscan.io/",
   },
 };
 

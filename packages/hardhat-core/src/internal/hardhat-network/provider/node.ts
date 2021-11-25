@@ -82,6 +82,7 @@ import {
   GatherTracesResult,
   GenesisAccount,
   isForkedNodeConfig,
+  MempoolOrder,
   MineBlockResult,
   NodeConfig,
   RunCallResult,
@@ -115,10 +116,6 @@ const log = debug("hardhat:core:hardhat-network:node");
 
 const ethSigUtil = require("eth-sig-util");
 
-export const COINBASE_ADDRESS = Address.fromString(
-  "0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e"
-);
-
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
 export class HardhatNode extends EventEmitter {
@@ -132,6 +129,7 @@ export class HardhatNode extends EventEmitter {
       allowUnlimitedContractSize,
       tracingConfig,
       minGasPrice,
+      mempoolOrder,
     } = config;
 
     let common: Common;
@@ -242,6 +240,8 @@ export class HardhatNode extends EventEmitter {
       automine,
       minGasPrice,
       initialBlockTimeOffset,
+      mempoolOrder,
+      config.coinbase,
       genesisAccounts,
       tracingConfig,
       forkNetworkId,
@@ -315,6 +315,8 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     private _automine: boolean,
     private _minGasPrice: BN,
     private _blockTimeOffsetSeconds: BN = new BN(0),
+    private _mempoolOrder: MempoolOrder,
+    private _coinbase: string,
     genesisAccounts: GenesisAccount[],
     tracingConfig?: TracingConfig,
     private _forkNetworkId?: number,
@@ -728,7 +730,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   }
 
   public getCoinbaseAddress(): Address {
-    return COINBASE_ADDRESS;
+    return Address.fromString(this._coinbase);
   }
 
   public async getStorageAt(
@@ -901,6 +903,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       irregularStatesByBlockNumber: this._irregularStatesByBlockNumber,
       userProvidedNextBlockBaseFeePerGas:
         this.getUserProvidedNextBlockBaseFeePerGas(),
+      coinbase: this.getCoinbaseAddress().toString(),
     };
 
     this._irregularStatesByBlockNumber = new Map(
@@ -954,6 +957,8 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     } else {
       this._resetUserProvidedNextBlockBaseFeePerGas();
     }
+
+    this._coinbase = snapshot.coinbase;
 
     // We delete this and the following snapshots, as they can only be used
     // once in Ganache
@@ -1380,6 +1385,10 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     };
   }
 
+  public async setCoinbase(coinbase: Address) {
+    this._coinbase = coinbase.toString();
+  }
+
   private _getGasUsedRatio(block: Block): number {
     const FLOATS_PRECISION = 100_000;
 
@@ -1610,6 +1619,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       const pendingTxs = this._txPool.getPendingTransactions();
       const transactionQueue = new TransactionQueue(
         pendingTxs,
+        this._mempoolOrder,
         headerData.baseFeePerGas
       );
 

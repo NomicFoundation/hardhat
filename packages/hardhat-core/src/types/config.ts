@@ -18,6 +18,7 @@ import type { BN } from "ethereumjs-util";
 
 export interface NetworksUserConfig {
   hardhat?: HardhatNetworkUserConfig;
+
   [networkName: string]: NetworkUserConfig | undefined;
 }
 
@@ -43,6 +44,7 @@ export interface HardhatNetworkUserConfig {
   initialDate?: string;
   loggingEnabled?: boolean;
   forking?: HardhatNetworkForkingUserConfig;
+  coinbase?: string;
 }
 
 export type HardhatNetworkAccountsUserConfig =
@@ -95,6 +97,7 @@ export interface HttpNetworkUserConfig {
 export interface NetworksConfig {
   hardhat: HardhatNetworkConfig;
   localhost: HttpNetworkConfig;
+
   [networkName: string]: NetworkConfig;
 }
 
@@ -118,6 +121,7 @@ export interface HardhatNetworkConfig {
   initialDate: string;
   loggingEnabled: boolean;
   forking?: HardhatNetworkForkingConfig;
+  coinbase?: string;
 }
 
 export type HardhatNetworkAccountsConfig =
@@ -170,11 +174,21 @@ export interface HttpNetworkHDAccountsConfig {
 export interface HardhatNetworkMiningConfig {
   auto: boolean;
   interval: number | [number, number];
+  mempool: HardhatNetworkMempoolConfig;
 }
 
 export interface HardhatNetworkMiningUserConfig {
   auto?: boolean;
   interval?: number | [number, number];
+  mempool?: HardhatNetworkMempoolUserConfig;
+}
+
+export interface HardhatNetworkMempoolConfig {
+  order: string; // Guaranteed at runtime to be have a valid value
+}
+
+export interface HardhatNetworkMempoolUserConfig {
+  order?: string;
 }
 
 // Project paths config
