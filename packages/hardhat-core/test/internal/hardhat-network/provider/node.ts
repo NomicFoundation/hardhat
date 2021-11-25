@@ -712,7 +712,7 @@ describe("HardhatNode", () => {
       const hardfork = remoteCommon.getHardforkByBlockNumber(blockToRun);
 
       it(`should run a ${networkName} block from ${hardfork} and produce the same results`, async function () {
-        this.timeout(120000);
+        this.timeout(240000);
 
         const forkConfig = {
           jsonRpcUrl: url,
