@@ -826,6 +826,8 @@ describe("HardhatNode", () => {
       minGasPrice: new BN(0),
       genesisAccounts: [],
       chains: defaultHardhatNetworkParams.chains,
+      mempoolOrder: "priority",
+      coinbase: "0x0000000000000000000000000000000000000000",
     };
 
     /** execute a call to method Hello() on contract HelloWorld, deployed to
