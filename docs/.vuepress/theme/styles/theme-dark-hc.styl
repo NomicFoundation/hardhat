@@ -1,12 +1,12 @@
-.dark-mode {
+.hc-dark-mode {
 
     $stroke = rgba(75, 77, 77, 1);
-    $background = rgba(32, 35, 42, 1);
+    $background = rgba(22, 24, 29, 1);
     $text = rgba(210, 211, 213, 1);
     $text_2 = rgba(155, 159, 168, 1);
     $link = #CBB100;
     $accent = rgba(204, 178, 0, 1);
-    $code-background = rgba(22, 24, 29, 1);
+    $code-background = rgba(32, 35, 42, 1);
     $code-text = rgba(142, 144, 148, 1);
     $sidebar-links = rgba(176, 178, 181, 1);
     $custom-block-background = rgba(229, 230, 231, 1);
@@ -50,6 +50,7 @@
         border-bottom: 1px solid $stroke !important;
         .logo {
             background-image: url('../../theme/img/hardhat_logos/Hardhat-Logo-Dark.svg');
+            
         }
         .dark-mode-toggle {
             filter: invert(1);    
@@ -96,13 +97,6 @@
         h1, h2, h3, h4, h5, h6, p {
             color: $text;
             font-family: 'Chivo';
-            code {
-                background: $code-background;
-                color: $text;
-            }
-            .header-anchor {
-                color: $accent;
-            }
         }
         h2 {
             border-bottom-color: $stroke;

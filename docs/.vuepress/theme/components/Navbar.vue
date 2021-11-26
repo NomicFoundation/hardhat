@@ -43,7 +43,7 @@
               </li>
             </ul>
             <div class="dark-mode-toggle" v-on:click="toggleDarkTheme">
-              <img :src="dmLight" />
+              <img src="../img/icons/dm_light.svg" />
             </div>
           </div>
         </header>
@@ -60,7 +60,6 @@
   import HHTopBar from "./HHTopBar";
 
   import LogoImg from "../img/hardhat_logos/Hardhat-logo.svg";
-  import LogoImgDark from "../img/hardhat_logos/Hardhat-logo.svg";
   import GithubLogo from "../img/assets/social/github.svg";
   import TwitterLogo from "../img/assets/social/twitter.svg";
   import DiscordLogo from "../img/assets/social/discord.svg";
@@ -80,11 +79,15 @@
     return {
       linksWrapMaxWidth: null,
       logoImg: LogoImg,
-      dmLight: DMLight
+      DMLight: DMLight,
+      themeClasses: ['light-mode', 'dark-mode', 'hc-dark-mode'],
+      currentTheme: 0
     };
   },
 
   mounted() {
+    this.currentThemeClass = this.themeClasses[0];
+
     const MOBILE_DESKTOP_BREAKPOINT = 719; // refer to config.styl
     const NAVBAR_VERTICAL_PADDING =
       parseInt(css(this.$el, "paddingLeft")) +
@@ -103,20 +106,34 @@
     window.addEventListener("resize", handleLinksWrapWidth, false);
   },
   methods: {
+    nextTheme() {
+      const body = document.body;
+      if (this.themeClasses.length - 1 == this.currentTheme) {
+        this.currentTheme = 0;
+      } else {
+        this.currentTheme += 1;
+      };
+
+      body.className="";
+      console.log(this.themeClasses[this.currentTheme])
+      body.classList.add(this.themeClasses[this.currentTheme]);
+
+    },
     toggleDarkTheme() {
-    const body = document.body;
-    body.classList.toggle("dark-mode");
-    //If dark mode is selected
-    if (body.classList.contains("dark-mode")) {
-        //Save user preference in storage
-        localStorage.setItem("dark-theme", "true");
-    //If light mode is selected
-    } else {
-        body.classList.remove("dark-mode");
-        setTimeout(function() {
-        localStorage.removeItem("dark-theme");
-        }, 100);
-    }
+      this.nextTheme();
+      // console.log(this.currentThemeClass)
+      // const body = document.body;
+
+      // body.classList.toggle("dark-mode");
+
+      // if (body.classList.contains("dark-mode")) {
+      //     localStorage.setItem("dark-theme", "true");
+      // } else {
+      //     body.classList.remove("dark-mode");
+      //     setTimeout(function() {
+      //     localStorage.removeItem("dark-theme");
+      //     }, 100);
+      // }
     },
     checkUserPreference() {
         //Check Storage on Page load. Keep user preference through sessions

@@ -19,6 +19,9 @@ body
 
 .page
   padding-left $sidebarWidth
+  .extra-class
+    pre
+      border 1px solid transparent;
 
 .navbar
   position fixed
@@ -54,7 +57,8 @@ body
   box-sizing border-box
   border-right 1px solid $borderColor
   overflow-y auto
-
+  .active 
+    font-family 'Chivo'
 .theme-container:not(.custom) .content,
 .theme-container:not(.custom) .content__default
   @extend $wrapper
