@@ -1,5 +1,4 @@
-[![npm](https://img.shields.io/npm/v/@nomiclabs/hardhat-solpp.svg)](https://www.npmjs.com/package/@nomiclabs/hardhat-solpp)
-[![hardhat](https://hardhat.org/buidler-plugin-badge.svg?1)](https://hardhat.org)
+[![npm](https://img.shields.io/npm/v/@nomiclabs/hardhat-solpp.svg)](https://www.npmjs.com/package/@nomiclabs/hardhat-solpp) [![hardhat](https://hardhat.org/buidler-plugin-badge.svg?1)](https://hardhat.org)
 
 # hardhat-solpp
 
@@ -47,4 +46,3 @@ This plugin can by configured by setting a `solpp` entry in `hardhat.config.js`.
 - `noPreprocessor: boolean`: disable preprocessor, false by default.
 - `noFlatten: boolean`: won't flatten contracts, true by default.
 - `tolerant: boolean`: ignore if an imported contract file is missing when flattening, false by default.
-

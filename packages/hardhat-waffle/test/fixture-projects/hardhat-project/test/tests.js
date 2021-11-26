@@ -87,13 +87,15 @@ describe("Internal test suite of hardhat-waffle's test project", function () {
     it("should support the changeEtherBalance matcher with fee enabled", async function () {
       const [sender] = await ethers.getSigners();
       const Contract = await ethers.getContractFactory("Contract");
-      const contract = await Contract.deploy();
+      const contract = await Contract.deploy({
+        gasPrice: 8e9,
+      });
 
       await contract.deployed();
 
       await expect(() =>
         contract.incByValue({ value: 200 })
-      ).to.changeEtherBalance(sender, -355232000000200, { includeFee: true });
+      ).to.changeEtherBalance(sender, -56189212266592, { includeFee: true });
     });
 
     it("should support the changeEtherBalance matcher with multiple accounts", async function () {
@@ -143,6 +145,11 @@ describe("Internal test suite of hardhat-waffle's test project", function () {
     it("should support the properHex matcher", async function () {
       expect("0x70").to.be.properHex(2);
       expect("foobar").not.to.be.properHex(2);
+    });
+
+    it("should support the hexEqual matcher", async function () {
+      expect("0x00012AB").to.hexEqual("0x12ab");
+      expect("0xdeadbeaf").not.to.hexEqual("0x12ab");
     });
   });
 });

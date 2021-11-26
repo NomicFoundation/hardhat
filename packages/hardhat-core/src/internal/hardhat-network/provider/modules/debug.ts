@@ -8,7 +8,7 @@ import { MethodNotFoundError } from "../../../core/providers/errors";
 import { HardhatNode } from "../node";
 import { RpcDebugTraceOutput } from "../output";
 
-// tslint:disable only-hardhat-error
+/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
 export class DebugModule {
   constructor(private readonly _node: HardhatNode) {}

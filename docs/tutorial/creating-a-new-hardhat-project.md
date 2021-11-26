@@ -5,14 +5,16 @@ We'll install **Hardhat** using the npm CLI. The **N**ode.js **p**ackage **m**an
 Open a new terminal and run these commands:
 
 ```
-mkdir hardhat-tutorial 
-cd hardhat-tutorial 
-npm init --yes 
-npm install --save-dev hardhat 
+mkdir hardhat-tutorial
+cd hardhat-tutorial
+npm init --yes
+npm install --save-dev hardhat
 ```
 
 ::: tip
+
 Installing **Hardhat** will install some Ethereum JavaScript dependencies, so be patient.
+
 :::
 
 In the same directory where you installed **Hardhat** run:
@@ -22,7 +24,6 @@ npx hardhat
 ```
 
 Select `Create an empty hardhat.config.js` with your keyboard and hit enter.
-
 
 ```{15}
 $ npx hardhat
@@ -47,16 +48,20 @@ When **Hardhat** is run, it searches for the closest `hardhat.config.js` file st
 
 ## Hardhat's architecture
 
-**Hardhat** is designed around the concepts of **tasks** and **plugins**. The bulk of **Hardhat**'s functionality comes from plugins, which as a developer [you're free to choose](/plugins/) the ones you want to use. 
+**Hardhat** is designed around the concepts of **tasks** and **plugins**. The bulk of **Hardhat**'s functionality comes from plugins, which as a developer [you're free to choose](/plugins/) the ones you want to use.
 
 ### Tasks
-Every time you're running **Hardhat** from the CLI you're running a task. e.g. `npx hardhat compile` is running the `compile` task. To see the currently available tasks in your project, run `npx hardhat`. Feel free to explore any task by running `npx hardhat help [task]`. 
+
+Every time you're running **Hardhat** from the CLI you're running a task. e.g. `npx hardhat compile` is running the `compile` task. To see the currently available tasks in your project, run `npx hardhat`. Feel free to explore any task by running `npx hardhat help [task]`.
 
 ::: tip
+
 You can create your own tasks. Check out the [Creating a task](/guides/create-task.md) guide.
+
 :::
 
 ### Plugins
+
 **Hardhat** is unopinionated in terms of what tools you end up using, but it does come with some built-in defaults. All of which can be overriden. Most of the time the way to use a given tool is by consuming a plugin that integrates it into **Hardhat**.
 
 For this tutorial we are going to use the Ethers.js and Waffle plugins. They'll allow you to interact with Ethereum and to test your contracts. We'll explain how they're used later on. To install them, in your project directory run:

@@ -1,6 +1,6 @@
 {
   "name": "@nomiclabs/hardhat-truffle5",
-  "version": "2.0.0",
+  "version": "2.0.2",
   "description": "Truffle 5 Hardhat compatibility plugin",
   "repository": "github:nomiclabs/hardhat",
   "homepage": "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-truffle5",
@@ -17,8 +17,10 @@
     "truffle-contract"
   ],
   "scripts": {
-    "lint:fix": "prettier --write \"src/**/*.{js,ts}\" \"test/**/*.{js,ts}\" && yarn lint --fix",
-    "lint": "tslint --config tslint.json --project ./tsconfig.json",
+    "lint": "yarn prettier --check && yarn eslint",
+    "lint:fix": "yarn prettier --write && yarn eslint --fix",
+    "eslint": "eslint 'src/**/*.ts' 'test/**/*.ts'",
+    "prettier": "prettier \"**/*.{js,md,json}\"",
     "test": "mocha --recursive \"test/**/*.ts\" --exit",
     "build": "tsc --build .",
     "clean": "rimraf dist"
@@ -33,7 +35,7 @@
     "@nomiclabs/truffle-contract": "^4.2.23",
     "@types/chai": "^4.2.0",
     "chai": "^4.2.0",
-    "ethereumjs-util": "^7.0.10",
+    "ethereumjs-util": "^7.1.0",
     "fs-extra": "^7.0.1"
   },
   "devDependencies": {
@@ -42,22 +44,24 @@
     "@types/glob": "^7.1.1",
     "@types/mocha": "^5.2.6",
     "@types/node": "^10.17.24",
+    "@typescript-eslint/eslint-plugin": "4.29.2",
+    "@typescript-eslint/parser": "4.29.2",
     "chai": "^4.2.0",
-    "hardhat": "^2.0.0",
+    "eslint": "^7.29.0",
+    "eslint-config-prettier": "8.3.0",
+    "eslint-plugin-import": "2.24.1",
+    "eslint-plugin-prettier": "3.4.0",
+    "hardhat": "^2.6.4",
     "mocha": "^7.1.2",
-    "prettier": "2.0.5",
+    "prettier": "2.3.2",
     "rimraf": "^3.0.2",
     "ts-node": "^8.1.0",
-    "tslint-config-prettier": "^1.18.0",
-    "tslint-consistent-codestyle": "^1.15.1",
-    "tslint-plugin-prettier": "^2.0.1",
-    "tslint": "^5.16.0",
     "typescript": "~4.0.3",
     "web3": "^1.0.0-beta.36"
   },
   "peerDependencies": {
     "@nomiclabs/hardhat-web3": "^2.0.0",
-    "hardhat": "^2.0.0",
+    "hardhat": "^2.6.4",
     "web3": "^1.0.0-beta.36"
   }
 }

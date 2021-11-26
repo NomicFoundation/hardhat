@@ -168,12 +168,8 @@ export class HelpPrinter {
       .reduce((a, b) => Math.max(a, b), 0);
 
     for (const name of Object.keys(paramDefinitions).sort()) {
-      const {
-        description,
-        defaultValue,
-        isOptional,
-        isFlag,
-      } = paramDefinitions[name];
+      const { description, defaultValue, isOptional, isFlag } =
+        paramDefinitions[name];
 
       let msg = `  ${ArgumentsParser.paramNameToCLA(name).padEnd(
         paramsNameLength

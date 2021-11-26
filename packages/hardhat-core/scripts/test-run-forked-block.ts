@@ -13,8 +13,6 @@ import { FORK_TESTS_CACHE_PATH } from "../test/internal/hardhat-network/helpers/
 import { DEFAULT_HARDFORK } from "../test/internal/hardhat-network/helpers/providers";
 import { assertEqualBlocks } from "../test/internal/hardhat-network/provider/utils/assertEqualBlocks";
 
-// tslint:disable no-string-literal
-
 async function main(rpcUrl: string, blockNumber: number) {
   const forkConfig: ForkConfig = {
     jsonRpcUrl: rpcUrl,

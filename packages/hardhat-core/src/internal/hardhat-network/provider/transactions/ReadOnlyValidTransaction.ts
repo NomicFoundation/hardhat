@@ -1,9 +1,10 @@
+import Common from "@ethereumjs/common";
 import { Transaction, TxData, TxOptions } from "@ethereumjs/tx";
 import { Address } from "ethereumjs-util";
 
 import { InternalError } from "../../../core/providers/errors";
 
-// tslint:disable only-hardhat-error
+/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
 /**
  * This class represents a transaction that is assumed to be valid.
@@ -20,38 +21,44 @@ import { InternalError } from "../../../core/providers/errors";
  * one.
  */
 export class ReadOnlyValidTransaction extends Transaction {
-  public static fromTxData(txData: TxData, opts?: TxOptions): never {
+  public static fromTxData(_txData: TxData, _opts?: TxOptions): never {
     throw new InternalError(
       "`fromTxData` is not implemented in ReadOnlyValidTransaction"
     );
   }
 
-  public static fromSerializedTx(serialized: Buffer, opts?: TxOptions): never {
+  public static fromSerializedTx(
+    _serialized: Buffer,
+    _opts?: TxOptions
+  ): never {
     throw new InternalError(
       "`fromSerializedTx` is not implemented in ReadOnlyValidTransaction"
     );
   }
 
   public static fromRlpSerializedTx(
-    serialized: Buffer,
-    opts?: TxOptions
+    _serialized: Buffer,
+    _opts?: TxOptions
   ): never {
     throw new InternalError(
       "`fromRlpSerializedTx` is not implemented in ReadOnlyValidTransaction"
     );
   }
 
-  public static fromValuesArray(values: Buffer[], opts?: TxOptions): never {
+  public static fromValuesArray(_values: Buffer[], _opts?: TxOptions): never {
     throw new InternalError(
       "`fromRlpSerializedTx` is not implemented in ReadOnlyValidTransaction"
     );
   }
 
+  public readonly common: Common;
+
   private readonly _sender: Address;
 
-  public constructor(sender: Address, data: TxData = {}) {
+  constructor(sender: Address, data: TxData = {}) {
     super(data, { freeze: false });
 
+    this.common = this._getCommon();
     this._sender = sender;
   }
 
@@ -87,9 +94,9 @@ export class ReadOnlyValidTransaction extends Transaction {
     );
   }
 
-  public validate(stringError?: false): never;
-  public validate(stringError: true): never;
-  public validate(stringError: boolean = false): never {
+  public validate(_stringError?: false): never;
+  public validate(_stringError: true): never;
+  public validate(_stringError: boolean = false): never {
     throw new InternalError(
       "`validate` is not implemented in ReadOnlyValidTransaction"
     );
@@ -125,7 +132,12 @@ export class ReadOnlyValidTransaction extends Transaction {
 const ReadOnlyValidTransactionPrototype: any =
   ReadOnlyValidTransaction.prototype;
 
-ReadOnlyValidTransactionPrototype._validateTxV = function () {};
+ReadOnlyValidTransactionPrototype._validateTxV = function (
+  _v: any,
+  common: any
+) {
+  return this._getCommon(common);
+};
 
 ReadOnlyValidTransactionPrototype._signedTxImplementsEIP155 = function () {
   throw new InternalError(

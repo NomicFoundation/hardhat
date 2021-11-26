@@ -115,7 +115,7 @@ describe("Compiler downloader", function () {
       const downloadPath = path.join(compilersDir, "downloadedCompiler");
 
       const downloader = new CompilerDownloader(compilersDir, {
-        download: async (url, compilerPath) => {
+        download: async () => {
           throw new Error("Expected");
         },
       });
@@ -153,7 +153,7 @@ describe("Compiler downloader", function () {
 
     it("Should throw the right error if the download fails", async function () {
       const downloader = new CompilerDownloader(this.tmpDir, {
-        download: async (url, compilerPath) => {
+        download: async () => {
           throw new Error("Expected");
         },
       });
@@ -327,9 +327,10 @@ describe("Compiler downloader", function () {
         const compilerBin = require.resolve("solc/soljson.js");
         await fsExtra.copy(compilerBin, downloadedPath);
 
-        const compilerPathResult = await mockDownloader.getDownloadedCompilerPath(
-          localCompilerBuild.version
-        );
+        const compilerPathResult =
+          await mockDownloader.getDownloadedCompilerPath(
+            localCompilerBuild.version
+          );
         assert.isDefined(compilerPathResult);
         assert.equal(compilerPathResult!.compilerPath, downloadedPath);
       });

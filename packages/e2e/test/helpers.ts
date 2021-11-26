@@ -10,7 +10,7 @@ declare module "mocha" {
 }
 
 export function useFixture(project: string) {
-  beforeEach(`using project "${project}"`, function () {
+  before(`using project "${project}"`, function () {
     const fixturePath = path.join(__dirname, "fixture-projects", project);
 
     const tmpDirContainer = os.tmpdir();
@@ -22,5 +22,15 @@ export function useFixture(project: string) {
     fsExtra.copySync(fixturePath, this.testDirPath);
 
     shell.cd(this.testDirPath);
+
+    // install hardhat locally
+    const isYarn = process.env.HARDHAT_E2E_IS_YARN === "true";
+    const hardhatPackagePath = process.env.HARDHAT_E2E_PATH_TO_HARDHAT_TGZ;
+
+    if (isYarn) {
+      shell.exec(`yarn add ${hardhatPackagePath}`);
+    } else {
+      shell.exec(`npm install ${hardhatPackagePath}`);
+    }
   });
 }

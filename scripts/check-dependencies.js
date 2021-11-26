@@ -129,6 +129,7 @@ function getAllPackageJsonPaths() {
   );
 
   packageJsons.push(path.join(__dirname, "..", "package.json"));
+  packageJsons.push(path.join(__dirname, "..", "docs", "package.json"));
 
   return packageJsons;
 }

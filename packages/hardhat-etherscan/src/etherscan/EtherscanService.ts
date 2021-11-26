@@ -134,7 +134,7 @@ export default class EtherscanResponse {
 
   public readonly message: string;
 
-  public constructor(response: any) {
+  constructor(response: any) {
     this.status = parseInt(response.status, 10);
     this.message = response.result;
   }

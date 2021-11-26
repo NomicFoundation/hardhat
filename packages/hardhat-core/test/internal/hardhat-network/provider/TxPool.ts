@@ -4,10 +4,7 @@ import { assert } from "chai";
 import { Account, Address, BN, bufferToHex, toBuffer } from "ethereumjs-util";
 
 import { InvalidInputError } from "../../../../src/internal/core/providers/errors";
-import {
-  randomAddress,
-  randomAddressBuffer,
-} from "../../../../src/internal/hardhat-network/provider/fork/random";
+import { randomAddress } from "../../../../src/internal/hardhat-network/provider/fork/random";
 import { TxPool } from "../../../../src/internal/hardhat-network/provider/TxPool";
 import { txMapToArray } from "../../../../src/internal/hardhat-network/provider/utils/txMapToArray";
 import { assertEqualTransactionMaps } from "../helpers/assertEqualTransactionMaps";
@@ -101,7 +98,7 @@ describe("Tx Pool", () => {
           );
         });
 
-        describe("when transaction nonce is equal to account executable nonce", () => {
+        describe("when transaction nonce is equal to account next nonce", () => {
           it("adds the transaction to pending", async () => {
             const tx1 = createTestFakeTransaction({
               from: address,
@@ -177,7 +174,7 @@ describe("Tx Pool", () => {
           });
         });
 
-        describe("when transaction nonce is higher than account executable nonce", () => {
+        describe("when transaction nonce is higher than account next nonce", () => {
           it("queues the transaction", async () => {
             const tx1 = createTestFakeTransaction({
               from: address,
@@ -198,22 +195,162 @@ describe("Tx Pool", () => {
           });
         });
 
-        describe("when transaction nonce is lower than account executable nonce", () => {
+        describe("when transaction nonce is lower than account's nonce", () => {
           it("throws an error", async () => {
-            const tx1 = createTestFakeTransaction({
+            await stateManager.putAccount(
+              address,
+              Account.fromAccountData({ nonce: 1 })
+            );
+            const tx = createTestFakeTransaction({
               from: address,
               nonce: 0,
             });
-            const tx2 = createTestFakeTransaction({
-              from: address,
-              nonce: 0,
-            });
-            await txPool.addTransaction(tx1);
-
             await assert.isRejected(
-              txPool.addTransaction(tx2),
+              txPool.addTransaction(tx),
               Error,
               "Nonce too low"
+            );
+          });
+        });
+
+        describe("when a transaction is replaced", () => {
+          it("should replace a pending transaction", async function () {
+            await stateManager.putAccount(
+              address,
+              Account.fromAccountData({ balance: new BN(10).pow(new BN(18)) })
+            );
+            const tx1a = createTestFakeTransaction({
+              from: address,
+              nonce: 0,
+              gasPrice: 5,
+            });
+            const tx1b = createTestFakeTransaction({
+              from: address,
+              nonce: 0,
+              gasPrice: 10,
+            });
+            await txPool.addTransaction(tx1a);
+            await txPool.addTransaction(tx1b);
+
+            const pendingTxs = txPool.getPendingTransactions();
+            assert.sameDeepMembers(
+              txMapToArray(pendingTxs).map((tx) => tx.raw),
+              [tx1b].map((tx) => tx.raw)
+            );
+          });
+
+          it("should replace a queued transaction", async function () {
+            await stateManager.putAccount(
+              address,
+              Account.fromAccountData({ balance: new BN(10).pow(new BN(18)) })
+            );
+            const tx2a = createTestFakeTransaction({
+              from: address,
+              nonce: 1,
+              gasPrice: 5,
+            });
+            const tx2b = createTestFakeTransaction({
+              from: address,
+              nonce: 1,
+              gasPrice: 10,
+            });
+            await txPool.addTransaction(tx2a);
+            await txPool.addTransaction(tx2b);
+
+            const queuedTxs = txPool.getQueuedTransactions();
+
+            assert.sameDeepMembers(
+              txMapToArray(queuedTxs).map((tx) => tx.raw),
+              [tx2b].map((tx) => tx.raw)
+            );
+          });
+
+          it("should throw if the new gas price is not at least 10% higher (pending tx)", async function () {
+            await stateManager.putAccount(
+              address,
+              Account.fromAccountData({ balance: new BN(10).pow(new BN(18)) })
+            );
+
+            const tx1a = createTestFakeTransaction({
+              from: address,
+              nonce: 0,
+              gasPrice: 20,
+            });
+
+            await txPool.addTransaction(tx1a);
+
+            const tx1b = createTestFakeTransaction({
+              from: address,
+              nonce: 0,
+              gasPrice: 21,
+            });
+
+            await assert.isRejected(
+              txPool.addTransaction(tx1b),
+              InvalidInputError,
+              `Replacement transaction underpriced. A gasPrice/maxFeePerGas of at least 22 is necessary to replace the existing transaction with nonce 0.`
+            );
+
+            const tx1c = createTestFakeTransaction({
+              from: address,
+              nonce: 0,
+              maxFeePerGas: 21,
+              maxPriorityFeePerGas: 21,
+            });
+
+            await assert.isRejected(
+              txPool.addTransaction(tx1c),
+              InvalidInputError,
+              `Replacement transaction underpriced. A gasPrice/maxFeePerGas of at least 22 is necessary to replace the existing transaction with nonce 0.`
+            );
+
+            const tx1d = createTestFakeTransaction({
+              from: address,
+              nonce: 0,
+              maxFeePerGas: 100000,
+              maxPriorityFeePerGas: 21,
+            });
+
+            await assert.isRejected(
+              txPool.addTransaction(tx1d),
+              InvalidInputError,
+              `Replacement transaction underpriced. A gasPrice/maxPriorityFeePerGas of at least 22 is necessary to replace the existing transaction with nonce 0.`
+            );
+
+            const pendingTxs = txPool.getPendingTransactions();
+            assert.sameDeepMembers(
+              txMapToArray(pendingTxs).map((tx) => tx.raw),
+              [tx1a].map((tx) => tx.raw)
+            );
+          });
+
+          it("should throw if the new gas price is not at least 10% higher (queued tx)", async function () {
+            await stateManager.putAccount(
+              address,
+              Account.fromAccountData({ balance: new BN(10).pow(new BN(18)) })
+            );
+            const tx2a = createTestFakeTransaction({
+              from: address,
+              nonce: 1,
+              gasPrice: 20,
+            });
+            const tx2b = createTestFakeTransaction({
+              from: address,
+              nonce: 1,
+              gasPrice: 21,
+            });
+            await txPool.addTransaction(tx2a);
+            await assert.isRejected(
+              txPool.addTransaction(tx2b),
+              InvalidInputError,
+              `Replacement transaction underpriced. A gasPrice/maxFeePerGas of at least 22 is necessary to replace the existing transaction with nonce 1`
+            );
+
+            const queuedTxs = txPool.getQueuedTransactions();
+
+            assert.sameDeepMembers(
+              txMapToArray(queuedTxs).map((tx) => tx.raw),
+              [tx2a].map((tx) => tx.raw)
             );
           });
         });
@@ -374,7 +511,7 @@ describe("Tx Pool", () => {
 
     describe("validation", () => {
       it("rejects if transaction is already pending in the tx pool", async () => {
-        const to = randomAddressBuffer();
+        const to = randomAddress();
         const tx1 = createTestTransaction({ to, gasLimit: 21_000 });
         const tx2 = createTestTransaction({ to, gasLimit: 21_000 });
 
@@ -387,37 +524,6 @@ describe("Tx Pool", () => {
           txPool.addTransaction(signedTx2),
           InvalidInputError,
           `Known transaction: ${bufferToHex(signedTx1.hash())}`
-        );
-      });
-
-      it("rejects if transaction is already queued in the tx pool", async () => {
-        const to = randomAddressBuffer();
-        const tx1 = createTestTransaction({ to, nonce: 1, gasLimit: 21_000 });
-        const tx2 = createTestTransaction({ to, nonce: 1, gasLimit: 21_000 });
-
-        const signedTx1 = tx1.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
-        const signedTx2 = tx2.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
-
-        await txPool.addTransaction(signedTx1);
-
-        await assert.isRejected(
-          txPool.addTransaction(signedTx2),
-          InvalidInputError,
-          `Known transaction: ${bufferToHex(signedTx1.hash())}`
-        );
-      });
-
-      it("rejects if transaction with given nonce is already queued in the tx pool", async () => {
-        const from = randomAddressBuffer();
-        const to = randomAddressBuffer();
-        const tx1 = createTestFakeTransaction({ nonce: 1, from, to });
-        const tx2 = createTestFakeTransaction({ nonce: 1, from, to: from });
-
-        await txPool.addTransaction(tx1);
-        await assert.isRejected(
-          txPool.addTransaction(tx2),
-          InvalidInputError,
-          "Transaction with nonce 1 already exists in transaction pool"
         );
       });
 
@@ -442,18 +548,18 @@ describe("Tx Pool", () => {
 
       it("rejects if transaction's nonce is too low", async () => {
         const address = randomAddress();
-        const tx1 = createTestFakeTransaction({
+        await stateManager.putAccount(
+          address,
+          Account.fromAccountData({ nonce: 1 })
+        );
+
+        const tx = createTestFakeTransaction({
           from: address,
           nonce: 0,
         });
-        const tx2 = createTestFakeTransaction({
-          from: address,
-          nonce: 0,
-        });
-        await txPool.addTransaction(tx1);
 
         await assert.isRejected(
-          txPool.addTransaction(tx2),
+          txPool.addTransaction(tx),
           InvalidInputError,
           "Nonce too low"
         );
@@ -484,15 +590,32 @@ describe("Tx Pool", () => {
         const address = randomAddress();
         await stateManager.putAccount(
           address,
-          Account.fromAccountData({ nonce: new BN(0), balance: new BN(0) })
+          Account.fromAccountData({
+            nonce: new BN(0),
+            balance: new BN(21000 * 900 + 5 - 1),
+          })
         );
 
         const tx = createTestFakeTransaction({
+          from: address,
+          gasLimit: 21000,
           gasPrice: 900,
           value: 5,
         });
         await assert.isRejected(
           txPool.addTransaction(tx),
+          InvalidInputError,
+          "sender doesn't have enough funds to send tx"
+        );
+
+        const tx2 = createTestFakeTransaction({
+          from: address,
+          maxFeePerGas: 21000,
+          maxPriorityFeePerGas: 0,
+          value: 5,
+        });
+        await assert.isRejected(
+          txPool.addTransaction(tx2),
           InvalidInputError,
           "sender doesn't have enough funds to send tx"
         );
@@ -549,7 +672,7 @@ describe("Tx Pool", () => {
     it("returns a transaction from pending based on hash", async () => {
       const tx = createTestFakeTransaction({
         from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-        to: randomAddressBuffer(),
+        to: randomAddress(),
         nonce: 0,
         gasLimit: 21_000,
       });
@@ -564,7 +687,7 @@ describe("Tx Pool", () => {
     it("returns a transaction from queued based on hash", async () => {
       const tx = createTestFakeTransaction({
         from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-        to: randomAddressBuffer(),
+        to: randomAddress(),
         nonce: 2,
         gasLimit: 21_000,
       });
@@ -578,7 +701,7 @@ describe("Tx Pool", () => {
 
     it("returns undefined if transaction is not in pending anymore", async () => {
       const tx = createTestTransaction({
-        to: randomAddressBuffer(),
+        to: randomAddress(),
         nonce: 0,
         gasLimit: 21_000,
       });
@@ -608,7 +731,7 @@ describe("Tx Pool", () => {
 
     it("returns undefined if transaction is not in queued anymore", async () => {
       const tx = createTestTransaction({
-        to: randomAddressBuffer(),
+        to: randomAddress(),
         nonce: 2,
         gasLimit: 21_000,
       });
@@ -637,7 +760,7 @@ describe("Tx Pool", () => {
     });
   });
 
-  describe("getExecutableNonce", () => {
+  describe("getNextPendingNonce", () => {
     const address = randomAddress();
 
     beforeEach(async () => {
@@ -647,7 +770,7 @@ describe("Tx Pool", () => {
       );
     });
 
-    it("returns the current executable nonce", async () => {
+    it("returns the next nonce", async () => {
       const tx1 = createTestFakeTransaction({
         from: address,
         nonce: 0,
@@ -655,7 +778,7 @@ describe("Tx Pool", () => {
 
       await txPool.addTransaction(tx1);
 
-      assert.isTrue((await txPool.getExecutableNonce(address)).eq(new BN(1)));
+      assert.isTrue((await txPool.getNextPendingNonce(address)).eq(new BN(1)));
     });
 
     it("is not affected by queued transactions", async () => {
@@ -671,7 +794,7 @@ describe("Tx Pool", () => {
       await txPool.addTransaction(tx1);
       await txPool.addTransaction(tx2);
 
-      assert.isTrue((await txPool.getExecutableNonce(address)).eq(new BN(1)));
+      assert.isTrue((await txPool.getNextPendingNonce(address)).eq(new BN(1)));
     });
 
     it("returns correct nonce after all queued transactions are moved to pending", async () => {
@@ -692,7 +815,7 @@ describe("Tx Pool", () => {
       await txPool.addTransaction(tx2);
       await txPool.addTransaction(tx3);
 
-      assert.isTrue((await txPool.getExecutableNonce(address)).eq(new BN(3)));
+      assert.isTrue((await txPool.getNextPendingNonce(address)).eq(new BN(3)));
     });
 
     it("returns correct nonce after some queued transactions are moved to pending", async () => {
@@ -706,7 +829,7 @@ describe("Tx Pool", () => {
       await txPool.addTransaction(tx3);
       await txPool.addTransaction(tx4);
 
-      assert.isTrue((await txPool.getExecutableNonce(address)).eq(new BN(3)));
+      assert.isTrue((await txPool.getNextPendingNonce(address)).eq(new BN(3)));
     });
   });
 
@@ -928,7 +1051,7 @@ describe("Tx Pool", () => {
     });
 
     it("handles dropped transactions properly", async () => {
-      const sender = randomAddressBuffer();
+      const sender = randomAddress();
 
       const tx1 = createTestFakeTransaction({
         nonce: 0,

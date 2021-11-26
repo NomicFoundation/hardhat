@@ -1,5 +1,4 @@
-[![npm](https://img.shields.io/npm/v/@nomiclabs/hardhat-ethers.svg)](https://www.npmjs.com/package/@nomiclabs/hardhat-ethers)
-[![hardhat](https://hardhat.org/buidler-plugin-badge.svg?1)](https://hardhat.org)
+[![npm](https://img.shields.io/npm/v/@nomiclabs/hardhat-ethers.svg)](https://www.npmjs.com/package/@nomiclabs/hardhat-ethers) [![hardhat](https://hardhat.org/buidler-plugin-badge.svg?1)](https://hardhat.org)
 
 # hardhat-ethers
 
@@ -35,13 +34,11 @@ This plugin creates no additional tasks.
 
 This plugins adds an `ethers` object to the Hardhat Runtime Environment.
 
-This object has the same API than `ethers.js`, with some extra Hardhat-specific
-functionality.
+This object has the [same API](https://docs.ethers.io/v5/single-page/) as `ethers.js`, with some extra Hardhat-specific functionality.
 
 ### Provider object
 
-A `provider` field is added to `ethers`, which is an `ethers.providers.Provider`
-automatically connected to the selected network.
+A `provider` field is added to `ethers`, which is an [`ethers.providers.Provider`](https://docs.ethers.io/v5/single-page/#/v5/api/providers/provider/) automatically connected to the selected network.
 
 ### Helpers
 
@@ -71,9 +68,9 @@ function getSigners() => Promise<ethers.Signer[]>;
 function getSigner(address: string) => Promise<ethers.Signer>;
 ```
 
-The `Contract`s and `ContractFactory`s returned by these helpers are connected to the first signer returned by `getSigners` by default.
+The [`Contract`s](https://docs.ethers.io/v5/single-page/#/v5/api/contract/contract/) and [`ContractFactory`s](https://docs.ethers.io/v5/single-page/#/v5/api/contract/contract-factory/) returned by these helpers are connected to the first [signer](https://docs.ethers.io/v5/single-page/#/v5/api/signer/) returned by `getSigners` by default.
 
-If there is no signer available, `getContractAt` returns read-only contracts.
+If there is no signer available, `getContractAt` returns [read-only](https://docs.ethers.io/v5/single-page/#/v5/api/contract/contract/-%23-Contract--readonly) contracts.
 
 ## Usage
 
@@ -107,16 +104,21 @@ Read the documentation on the [Hardhat Runtime Environment](https://hardhat.org/
 Some contracts need to be linked with libraries before they are deployed. You can pass the addresses of their libraries to the `getContractFactory` function with an object like this:
 
 ```js
-const contractFactory = await this.env.ethers.getContractFactory(
-  "Example",
-  {
-    libraries: {
-      ExampleLib: "0x..."
-    }
-  }
-);
+const contractFactory = await this.env.ethers.getContractFactory("Example", {
+  libraries: {
+    ExampleLib: "0x...",
+  },
+});
 ```
 
 This allows you to create a contract factory for the `Example` contract and link its `ExampleLib` library references to the address `"0x..."`.
 
 To create a contract factory, all libraries must be linked. An error will be thrown informing you of any missing library.
+
+## Troubleshooting
+
+### Events are not being emitted
+
+Ethers.js polls the network to check if some event was emitted (except when a `WebSocketProvider` is used; see below). This polling is done every 4 seconds. If you have a script or test that is not emitting an event, it's likely that the execution is finishing before the event is detected by the polling mechanism.
+
+If you are connecting to a Hardhat node using a `WebSocketProvider`, events should be emitted immediately. But keep in mind that you'll have to create this provider manually, since Hardhat only supports configuring networks via http. That is, you can't add a `localhost` network with a URL like `ws://localhost:8545`.

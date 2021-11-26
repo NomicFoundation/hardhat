@@ -116,6 +116,8 @@ describe("Base providers wrapping", () => {
         "eth_estimateGas",
         numberToRpcQuantity(123)
       );
+
+      mockedProvider.setReturnValue("eth_gasPrice", numberToRpcQuantity(12));
     });
 
     it("Should wrap with a fixed sender param", async () => {

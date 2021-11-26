@@ -1,4 +1,4 @@
-/* tslint:disable:no-string-literal */ // TODO this is for unit testing priv methods. We shouldn't test these at all?
+/* eslint-disable dot-notation,@typescript-eslint/dot-notation */ // TODO this is for unit testing priv methods. We shouldn't test these at all?
 import { assert } from "chai";
 
 import { ArgumentsParser } from "../../../src/internal/cli/ArgumentsParser";
@@ -113,15 +113,12 @@ describe("ArgumentsParser", () => {
         "--task-param",
       ];
 
-      const {
-        hardhatArguments,
-        taskName,
-        unparsedCLAs,
-      } = argumentsParser.parseHardhatArguments(
-        HARDHAT_PARAM_DEFINITIONS,
-        envArgs,
-        rawCLAs
-      );
+      const { hardhatArguments, taskName, unparsedCLAs } =
+        argumentsParser.parseHardhatArguments(
+          HARDHAT_PARAM_DEFINITIONS,
+          envArgs,
+          rawCLAs
+        );
       assert.equal(taskName, "compile");
       assert.equal(hardhatArguments.showStackTraces, true);
       assert.equal(hardhatArguments.network, "local");
@@ -139,15 +136,12 @@ describe("ArgumentsParser", () => {
         "local",
       ];
 
-      const {
-        hardhatArguments,
-        taskName,
-        unparsedCLAs,
-      } = argumentsParser.parseHardhatArguments(
-        HARDHAT_PARAM_DEFINITIONS,
-        envArgs,
-        rawCLAs
-      );
+      const { hardhatArguments, taskName, unparsedCLAs } =
+        argumentsParser.parseHardhatArguments(
+          HARDHAT_PARAM_DEFINITIONS,
+          envArgs,
+          rawCLAs
+        );
       assert.equal(taskName, "compile");
       assert.equal(hardhatArguments.showStackTraces, true);
       assert.equal(hardhatArguments.network, "local");
@@ -316,7 +310,7 @@ describe("ArgumentsParser", () => {
       );
 
       const rawPositionalArguments: string[] = [];
-      // tslint:disable-next-line:no-string-literal
+      // eslint-disable-next-line dot-notation,@typescript-eslint/dot-notation
       const positionalArguments = argumentsParser["_parsePositionalParamArgs"](
         rawPositionalArguments,
         taskDefinition.positionalParamDefinitions

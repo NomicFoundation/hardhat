@@ -1,0 +1,12 @@
+pragma solidity ^0.8.0;
+
+import "./d.sol";
+
+contract IgnoredC  {
+
+  constructor() public {
+    D d = new D();
+  }
+
+}
+

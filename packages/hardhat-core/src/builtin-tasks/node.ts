@@ -20,6 +20,7 @@ import {
   JsonRpcServer,
 } from "../types";
 
+import { HARDHAT_NETWORK_MNEMONIC } from "../internal/core/config/default-config";
 import {
   TASK_NODE,
   TASK_NODE_CREATE_SERVER,
@@ -31,20 +32,35 @@ import { watchCompilerOutput } from "./utils/watch";
 
 const log = debug("hardhat:core:tasks:node");
 
-function logHardhatNetworkAccounts(networkConfig: HardhatNetworkConfig) {
-  if (networkConfig.accounts === undefined) {
-    return;
-  }
+function printDefaultConfigWarning() {
+  console.log(
+    chalk.bold(
+      "WARNING: These accounts, and their private keys, are publicly known."
+    )
+  );
+  console.log(
+    chalk.bold(
+      "Any funds sent to them on Mainnet or any other live network WILL BE LOST."
+    )
+  );
+}
 
-  const {
-    BN,
-    bufferToHex,
-    privateToAddress,
-    toBuffer,
-  } = require("ethereumjs-util") as typeof EthereumjsUtilT;
+function logHardhatNetworkAccounts(networkConfig: HardhatNetworkConfig) {
+  const isDefaultConfig =
+    !Array.isArray(networkConfig.accounts) &&
+    networkConfig.accounts.mnemonic === HARDHAT_NETWORK_MNEMONIC;
+
+  const { BN, bufferToHex, privateToAddress, toBuffer } =
+    require("ethereumjs-util") as typeof EthereumjsUtilT;
 
   console.log("Accounts");
   console.log("========");
+
+  if (isDefaultConfig) {
+    console.log();
+    printDefaultConfigWarning();
+    console.log();
+  }
 
   const accounts = normalizeHardhatNetworkAccountsConfig(
     networkConfig.accounts
@@ -52,14 +68,26 @@ function logHardhatNetworkAccounts(networkConfig: HardhatNetworkConfig) {
 
   for (const [index, account] of accounts.entries()) {
     const address = bufferToHex(privateToAddress(toBuffer(account.privateKey)));
-    const privateKey = bufferToHex(toBuffer(account.privateKey));
+
     const balance = new BN(account.balance)
       .div(new BN(10).pow(new BN(18)))
       .toString(10);
 
-    console.log(`Account #${index}: ${address} (${balance} ETH)
-Private Key: ${privateKey}
-`);
+    let entry = `Account #${index}: ${address} (${balance} ETH)`;
+
+    if (isDefaultConfig) {
+      const privateKey = bufferToHex(toBuffer(account.privateKey));
+      entry += `
+Private Key: ${privateKey}`;
+    }
+
+    console.log(entry);
+    console.log();
+  }
+
+  if (isDefaultConfig) {
+    printDefaultConfigWarning();
+    console.log();
   }
 }
 
@@ -272,7 +300,7 @@ task(TASK_NODE, "Starts a JSON-RPC server on top of Hardhat Network")
           forkUrl,
         });
 
-        // the default hostname is "localhost" unless we are inside a docker
+        // the default hostname is "127.0.0.1" unless we are inside a docker
         // container, in that case we use "0.0.0.0"
         let hostname: string;
         if (hostnameParam !== undefined) {
@@ -282,7 +310,7 @@ task(TASK_NODE, "Starts a JSON-RPC server on top of Hardhat Network")
           if (insideDocker) {
             hostname = "0.0.0.0";
           } else {
-            hostname = "localhost";
+            hostname = "127.0.0.1";
           }
         }
 

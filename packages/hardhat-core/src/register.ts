@@ -13,9 +13,11 @@ import {
   disableReplWriterShowProxy,
   isNodeCalledWithoutAScript,
 } from "./internal/util/console";
+import { applyWorkaround } from "./internal/util/antlr-prototype-pollution-workaround";
+
+applyWorkaround();
 
 if (!HardhatContext.isCreated()) {
-  // tslint:disable-next-line no-var-requires
   require("source-map-support/register");
 
   const ctx = HardhatContext.createHardhatContext();
@@ -34,7 +36,7 @@ if (!HardhatContext.isCreated()) {
   }
 
   if (willRunWithTypescript(hardhatArguments.config)) {
-    loadTsNode();
+    loadTsNode(hardhatArguments.tsconfig);
   }
 
   const config = loadConfigAndTasks(hardhatArguments);

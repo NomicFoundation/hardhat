@@ -4,7 +4,7 @@ import { numberToRpcQuantity } from "../../../core/jsonrpc/types/base-types";
 import { validateParams } from "../../../core/jsonrpc/types/input/validation";
 import { MethodNotFoundError } from "../../../core/providers/errors";
 
-// tslint:disable only-hardhat-error
+/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
 export class NetModule {
   constructor(private readonly _common: Common) {}
@@ -39,7 +39,7 @@ export class NetModule {
 
   // net_peerCount
 
-  private _peerCountParams(params: any[]): [] {
+  private _peerCountParams(_params: any[]): [] {
     return [];
   }
 
@@ -49,7 +49,7 @@ export class NetModule {
 
   // net_version
 
-  private _versionParams(params: any[]): [] {
+  private _versionParams(_params: any[]): [] {
     return [];
   }
 

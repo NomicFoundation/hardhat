@@ -23,6 +23,7 @@ import {
   numberToRpcQuantity,
   rpcAddress,
   rpcData,
+  rpcFloat,
   rpcHash,
   rpcQuantity,
 } from "../../../core/jsonrpc/types/base-types";
@@ -30,6 +31,7 @@ import {
   optionalRpcNewBlockTag,
   OptionalRpcNewBlockTag,
   OptionalRpcOldBlockTag,
+  rpcNewBlockTag,
   RpcNewBlockTag,
   rpcOldBlockTag,
   RpcOldBlockTag,
@@ -81,12 +83,15 @@ import {
   shouldShowTransactionTypeForHardfork,
 } from "../output";
 
+import { assertHardhatNetworkInvariant } from "../utils/assertions";
+import { optional } from "../../../util/io-ts";
 import { ModulesLogger } from "./logger";
 
+const EIP1559_MIN_HARDFORK = "london";
 const ACCESS_LIST_MIN_HARDFORK = "berlin";
 const EIP155_MIN_HARDFORK = "spuriousDragon";
 
-// tslint:disable only-hardhat-error
+/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 export class EthModule {
   constructor(
     private readonly _common: Common,
@@ -295,6 +300,9 @@ export class EthModule {
 
       case "eth_unsubscribe":
         return this._unsubscribeAction(...this._unsubscribeParams(params));
+
+      case "eth_feeHistory":
+        return this._feeHistoryAction(...this._feeHistoryParams(params));
     }
 
     throw new MethodNotFoundError(`Method ${method} not found`);
@@ -331,7 +339,7 @@ export class EthModule {
     rpcCall: RpcCallRequest,
     blockTag: OptionalRpcNewBlockTag
   ): Promise<string> {
-    this._validateAccessListHardforkRequirement(rpcCall);
+    this._validateTransactionAndCallRequest(rpcCall);
 
     const blockNumberOrPending = await this._resolveNewBlockTag(blockTag);
 
@@ -360,7 +368,7 @@ export class EthModule {
       throw error;
     }
 
-    return bufferToRpcData(returnData);
+    return bufferToRpcData(returnData.value);
   }
 
   // eth_chainId
@@ -402,7 +410,7 @@ export class EthModule {
     callRequest: RpcCallRequest,
     blockTag: OptionalRpcNewBlockTag
   ): Promise<string> {
-    this._validateAccessListHardforkRequirement(callRequest);
+    this._validateTransactionAndCallRequest(callRequest);
 
     // estimateGas behaves differently when there's no blockTag
     // it uses "pending" as default instead of "latest"
@@ -413,12 +421,8 @@ export class EthModule {
 
     const callParams = await this._rpcCallRequestToNodeCallParams(callRequest);
 
-    const {
-      estimation,
-      error,
-      trace,
-      consoleLogMessages,
-    } = await this._node.estimateGas(callParams, blockNumberOrPending);
+    const { estimation, error, trace, consoleLogMessages } =
+      await this._node.estimateGas(callParams, blockNumberOrPending);
 
     if (error !== undefined) {
       const code = await this._node.getCodeFromTrace(
@@ -514,10 +518,8 @@ export class EthModule {
     let totalDifficulty: BN | undefined;
 
     if (numberOrPending === "pending") {
-      [
-        block,
-        totalDifficulty,
-      ] = await this._node.getPendingBlockAndTotalDifficulty();
+      [block, totalDifficulty] =
+        await this._node.getPendingBlockAndTotalDifficulty();
     } else {
       block = await this._node.getBlockByNumber(numberOrPending);
       if (block === undefined) {
@@ -832,7 +834,7 @@ export class EthModule {
     const blockNumberOrPending = await this._resolveNewBlockTag(blockTag);
 
     return numberToRpcQuantity(
-      await this._node.getAccountNonce(
+      await this._node.getNextConfirmedNonce(
         new Address(address),
         blockNumberOrPending
       )
@@ -887,7 +889,7 @@ export class EthModule {
 
   // eth_newBlockFilter
 
-  private _newBlockFilterParams(params: any[]): [] {
+  private _newBlockFilterParams(_params: any[]): [] {
     return [];
   }
 
@@ -910,7 +912,7 @@ export class EthModule {
 
   // eth_newPendingTransactionFilter
 
-  private _newPendingTransactionParams(params: any[]): [] {
+  private _newPendingTransactionParams(_params: any[]): [] {
     return [];
   }
 
@@ -921,7 +923,7 @@ export class EthModule {
 
   // eth_pendingTransactions
 
-  private _pendingTransactionsParams(params: any[]): [] {
+  private _pendingTransactionsParams(_params: any[]): [] {
     return [];
   }
 
@@ -945,13 +947,7 @@ export class EthModule {
   }
 
   private async _sendRawTransactionAction(rawTx: Buffer): Promise<string> {
-    // We validate that the tx is not legacy nor eip-2930 here
-    // because otherwise the catch logic below gets too tricky
-    // This can happen because of an EIP-2718 tx that's not EIP-2930,
-    // which we don't support, or because the input is just completely invalid
-    if (rawTx[0] <= 0x7f && rawTx[0] !== 1) {
-      throw new InvalidArgumentsError(`Invalid transaction`);
-    }
+    this._validateRawTransactionHardforkRequirements(rawTx);
 
     let tx: TypedTransaction;
     try {
@@ -970,19 +966,6 @@ export class EthModule {
       if (error.message.includes("Incompatible EIP155")) {
         throw new InvalidArgumentsError(
           "Trying to send an incompatible EIP-155 transaction, signed for another chain.",
-          error
-        );
-      }
-
-      if (
-        error.message.includes(
-          "Common support for TypedTransactions (EIP-2718) not activated"
-        )
-      ) {
-        throw new InvalidArgumentsError(
-          `Trying to send an EIP-2930 transaction but they are not supported by the current hard fork.
-      
-You can use them by running Hardhat Network with 'hardfork' ${ACCESS_LIST_MIN_HARDFORK} or later.`,
           error
         );
       }
@@ -1034,7 +1017,7 @@ You can use them by running Hardhat Network with 'hardfork' ${ACCESS_LIST_MIN_HA
       );
     }
 
-    this._validateAccessListHardforkRequirement(transactionRequest);
+    this._validateTransactionAndCallRequest(transactionRequest);
 
     const txParams = await this._rpcTransactionRequestToNodeTransactionParams(
       transactionRequest
@@ -1158,12 +1141,90 @@ You can use them by running Hardhat Network with 'hardfork' ${ACCESS_LIST_MIN_HA
     return this._node.uninstallFilter(filterId, false);
   }
 
+  // eth_unsubscribe
+
   private _unsubscribeParams(params: any[]): [BN] {
     return validateParams(params, rpcQuantity);
   }
 
   private async _unsubscribeAction(filterId: BN): Promise<boolean> {
     return this._node.uninstallFilter(filterId, true);
+  }
+
+  // eth_feeHistory
+
+  private _feeHistoryParams(
+    params: any[]
+  ): [BN, RpcNewBlockTag, number[] | undefined] {
+    const [blockCount, newestBlock, rewardPercentiles] = validateParams(
+      params,
+      rpcQuantity,
+      rpcNewBlockTag,
+      optional(t.array(rpcFloat))
+    );
+
+    if (blockCount.ltn(1)) {
+      throw new InvalidInputError(`blockCount should be at least 1`);
+    }
+
+    if (blockCount.gtn(1024)) {
+      throw new InvalidInputError(`blockCount should be at most 1024`);
+    }
+
+    if (rewardPercentiles !== undefined) {
+      for (const [i, p] of rewardPercentiles.entries()) {
+        if (p < 0 || p > 100) {
+          throw new InvalidInputError(
+            `The reward percentile number ${
+              i + 1
+            } is invalid. It must be a float between 0 and 100, but is ${p} instead.`
+          );
+        }
+
+        if (i !== 0) {
+          const prev = rewardPercentiles[i - 1];
+          if (prev > p) {
+            throw new InvalidInputError(
+              `The reward percentiles should be in non-decreasing order, but the percentile number ${i} is greater than the next one`
+            );
+          }
+        }
+      }
+    }
+
+    return [blockCount, newestBlock, rewardPercentiles];
+  }
+
+  private async _feeHistoryAction(
+    blockCount: BN,
+    newestBlock: RpcNewBlockTag,
+    rewardPercentiles?: number[]
+  ) {
+    if (!this._node.isEip1559Active()) {
+      throw new InvalidInputError(
+        `eth_feeHistory is disabled. It only works with the London hardfork or a later one.`
+      );
+    }
+
+    const resolvedNewestBlock = await this._resolveNewBlockTag(newestBlock);
+
+    const feeHistory = await this._node.getFeeHistory(
+      blockCount,
+      resolvedNewestBlock,
+      rewardPercentiles ?? []
+    );
+
+    const oldestBlock = numberToRpcQuantity(feeHistory.oldestBlock);
+    const baseFeePerGas = feeHistory.baseFeePerGas.map(numberToRpcQuantity);
+    const gasUsedRatio = feeHistory.gasUsedRatio;
+    const reward = feeHistory.reward?.map((rs) => rs.map(numberToRpcQuantity));
+
+    return {
+      oldestBlock,
+      baseFeePerGas,
+      gasUsedRatio,
+      reward,
+    };
   }
 
   // Utility methods
@@ -1180,44 +1241,101 @@ You can use them by running Hardhat Network with 'hardfork' ${ACCESS_LIST_MIN_HA
       data: rpcCall.data !== undefined ? rpcCall.data : toBuffer([]),
       gasLimit:
         rpcCall.gas !== undefined ? rpcCall.gas : this._node.getBlockGasLimit(),
-      gasPrice:
-        rpcCall.gasPrice !== undefined
-          ? rpcCall.gasPrice
-          : await this._node.getGasPrice(),
       value: rpcCall.value !== undefined ? rpcCall.value : new BN(0),
-      accessList: this._rpcAccessListToNodeAccessList(rpcCall.accessList),
+      accessList:
+        rpcCall.accessList !== undefined
+          ? this._rpcAccessListToNodeAccessList(rpcCall.accessList)
+          : undefined,
+      gasPrice: rpcCall.gasPrice,
+      maxFeePerGas: rpcCall.maxFeePerGas,
+      maxPriorityFeePerGas: rpcCall.maxPriorityFeePerGas,
     };
   }
 
   private async _rpcTransactionRequestToNodeTransactionParams(
     rpcTx: RpcTransactionRequest
   ): Promise<TransactionParams> {
-    return {
+    const baseParams = {
       to: rpcTx.to,
       from: rpcTx.from,
       gasLimit:
         rpcTx.gas !== undefined ? rpcTx.gas : this._node.getBlockGasLimit(),
-      gasPrice:
-        rpcTx.gasPrice !== undefined
-          ? rpcTx.gasPrice
-          : await this._node.getGasPrice(),
       value: rpcTx.value !== undefined ? rpcTx.value : new BN(0),
       data: rpcTx.data !== undefined ? rpcTx.data : toBuffer([]),
       nonce:
         rpcTx.nonce !== undefined
           ? rpcTx.nonce
-          : await this._node.getAccountExecutableNonce(new Address(rpcTx.from)),
-      accessList: this._rpcAccessListToNodeAccessList(rpcTx.accessList),
+          : await this._node.getAccountNextPendingNonce(
+              new Address(rpcTx.from)
+            ),
+    };
+
+    if (
+      this._node.isEip1559Active() &&
+      (rpcTx.maxFeePerGas !== undefined ||
+        rpcTx.maxPriorityFeePerGas !== undefined ||
+        rpcTx.gasPrice === undefined)
+    ) {
+      const accessList =
+        rpcTx.accessList !== undefined
+          ? this._rpcAccessListToNodeAccessList(rpcTx.accessList)
+          : [];
+
+      if (rpcTx.maxPriorityFeePerGas === undefined) {
+        rpcTx.maxPriorityFeePerGas = await this._node.getMaxPriorityFeePerGas();
+
+        // If you only provide a maxFeePerGas, and the suggested tip is higher
+        // than that, we adjust the tip to make the tx valid
+        if (
+          rpcTx.maxFeePerGas !== undefined &&
+          rpcTx.maxFeePerGas.lt(rpcTx.maxPriorityFeePerGas)
+        ) {
+          rpcTx.maxPriorityFeePerGas = rpcTx.maxFeePerGas;
+        }
+      }
+
+      if (rpcTx.maxFeePerGas === undefined) {
+        const baseFeePerGas = await this._node.getNextBlockBaseFeePerGas();
+
+        assertHardhatNetworkInvariant(
+          baseFeePerGas !== undefined,
+          "EIP-1559 transactions should only be sent if the next block has baseFeePerGas"
+        );
+
+        rpcTx.maxFeePerGas = baseFeePerGas
+          .muln(2)
+          .add(rpcTx.maxPriorityFeePerGas);
+      }
+
+      return {
+        ...baseParams,
+        maxFeePerGas: rpcTx.maxFeePerGas,
+        maxPriorityFeePerGas: rpcTx.maxPriorityFeePerGas,
+        accessList,
+      };
+    }
+
+    const gasPrice = rpcTx.gasPrice ?? (await this._node.getGasPrice());
+
+    // AccessList params
+    if (rpcTx.accessList !== undefined) {
+      return {
+        ...baseParams,
+        gasPrice,
+        accessList: this._rpcAccessListToNodeAccessList(rpcTx.accessList),
+      };
+    }
+
+    // Legacy params
+    return {
+      ...baseParams,
+      gasPrice,
     };
   }
 
   private _rpcAccessListToNodeAccessList(
-    rpcAccessList?: RpcAccessList
-  ): Array<[Buffer, Buffer[]]> | undefined {
-    if (rpcAccessList === undefined) {
-      return undefined;
-    }
-
+    rpcAccessList: RpcAccessList
+  ): Array<[Buffer, Buffer[]]> {
     return rpcAccessList.map((tuple) => [
       tuple.address,
       tuple.storageKeys ?? [],
@@ -1531,10 +1649,21 @@ You can use them by running Hardhat Network with 'hardfork' ${ACCESS_LIST_MIN_HA
     }
   }
 
-  // TODO: Find a better place for this
-  private _validateAccessListHardforkRequirement(
+  private _validateTransactionAndCallRequest(
     rpcRequest: RpcCallRequest | RpcTransactionRequest
   ) {
+    if (
+      (rpcRequest.maxFeePerGas !== undefined ||
+        rpcRequest.maxPriorityFeePerGas !== undefined) &&
+      !this._common.gteHardfork(EIP1559_MIN_HARDFORK)
+    ) {
+      throw new InvalidArgumentsError(`EIP-1559 style fee params (maxFeePerGas or maxPriorityFeePerGas) received but they are not supported by the current hardfork. 
+
+You can use them by running Hardhat Network with 'hardfork' ${EIP1559_MIN_HARDFORK} or later.`);
+    }
+
+    // NOTE: This validation should go after the maxFeePerGas one, as EIP-1559
+    //  also accepts access list.
     if (
       rpcRequest.accessList !== undefined &&
       !this._common.gteHardfork(ACCESS_LIST_MIN_HARDFORK)
@@ -1542,6 +1671,34 @@ You can use them by running Hardhat Network with 'hardfork' ${ACCESS_LIST_MIN_HA
       throw new InvalidArgumentsError(`Access list received but is not supported by the current hardfork. 
       
 You can use them by running Hardhat Network with 'hardfork' ${ACCESS_LIST_MIN_HARDFORK} or later.`);
+    }
+
+    if (
+      rpcRequest.gasPrice !== undefined &&
+      rpcRequest.maxFeePerGas !== undefined
+    ) {
+      throw new InvalidInputError(
+        "Cannot send both gasPrice and maxFeePerGas params"
+      );
+    }
+
+    if (
+      rpcRequest.gasPrice !== undefined &&
+      rpcRequest.maxPriorityFeePerGas !== undefined
+    ) {
+      throw new InvalidInputError(
+        "Cannot send both gasPrice and maxPriorityFeePerGas"
+      );
+    }
+
+    if (
+      rpcRequest.maxFeePerGas !== undefined &&
+      rpcRequest.maxPriorityFeePerGas !== undefined &&
+      rpcRequest.maxPriorityFeePerGas.gt(rpcRequest.maxFeePerGas)
+    ) {
+      throw new InvalidInputError(
+        `maxPriorityFeePerGas (${rpcRequest.maxPriorityFeePerGas.toString()}) is bigger than maxFeePerGas (${rpcRequest.maxFeePerGas.toString()})`
+      );
     }
   }
 
@@ -1554,8 +1711,32 @@ You can use them by running Hardhat Network with 'hardfork' ${ACCESS_LIST_MIN_HA
 
     if (!this._common.gteHardfork(EIP155_MIN_HARDFORK)) {
       throw new InvalidArgumentsError(`Trying to send an EIP-155 transaction, but they are not supported by the current hardfork.  
-      
+
 You can use them by running Hardhat Network with 'hardfork' ${EIP155_MIN_HARDFORK} or later.`);
+    }
+  }
+
+  private _validateRawTransactionHardforkRequirements(rawTx: Buffer) {
+    if (rawTx[0] <= 0x7f && rawTx[0] !== 1 && rawTx[0] !== 2) {
+      throw new InvalidArgumentsError(`Invalid transaction type ${rawTx[0]}.
+
+Your raw transaction is incorrectly formatted, or Hardhat Network doesn't support this transaction type yet.`);
+    }
+
+    if (rawTx[0] === 1 && !this._common.gteHardfork(ACCESS_LIST_MIN_HARDFORK)) {
+      throw new InvalidArgumentsError(
+        `Trying to send an EIP-2930 transaction but they are not supported by the current hard fork.
+
+You can use them by running Hardhat Network with 'hardfork' ${ACCESS_LIST_MIN_HARDFORK} or later.`
+      );
+    }
+
+    if (rawTx[0] === 2 && !this._common.gteHardfork(EIP1559_MIN_HARDFORK)) {
+      throw new InvalidArgumentsError(
+        `Trying to send an EIP-1559 transaction but they are not supported by the current hard fork.
+
+You can use them by running Hardhat Network with 'hardfork' ${EIP1559_MIN_HARDFORK} or later.`
+      );
     }
   }
 }

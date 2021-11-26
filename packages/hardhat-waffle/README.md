@@ -1,5 +1,4 @@
-[![npm](https://img.shields.io/npm/v/@nomiclabs/hardhat-waffle.svg)](https://www.npmjs.com/package/@nomiclabs/hardhat-waffle)
-[![hardhat](https://hardhat.org/buidler-plugin-badge.svg?1)](https://hardhat.org)
+[![npm](https://img.shields.io/npm/v/@nomiclabs/hardhat-waffle.svg)](https://www.npmjs.com/package/@nomiclabs/hardhat-waffle) [![hardhat](https://hardhat.org/buidler-plugin-badge.svg?1)](https://hardhat.org)
 
 # hardhat-waffle
 
@@ -7,11 +6,9 @@
 
 ## What
 
-You can use this plugin to build smart contract tests using Waffle in Hardhat,
-taking advantage of both.
+You can use this plugin to build smart contract tests using Waffle in Hardhat, taking advantage of both.
 
-This plugin adds a Hardhat-ready version of Waffle to the Hardhat Runtime Environment,
-and automatically initializes the [Waffle Chai matchers](https://ethereum-waffle.readthedocs.io/en/latest/matchers.html).
+This plugin adds a Hardhat-ready version of Waffle to the Hardhat Runtime Environment, and automatically initializes the [Waffle Chai matchers](https://ethereum-waffle.readthedocs.io/en/latest/matchers.html).
 
 ## Installation
 
@@ -49,8 +46,7 @@ The `waffle` object has these properties:
 - `createFixtureLoader`
 - `loadFixture`
 
-This plugin depends on [`@nomiclabs/hardhat-ethers`](https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-ethers),
-so it also injects an `ethers` object into the HRE, which is documented [here](https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-ethers#environment-extensions).
+This plugin depends on [`@nomiclabs/hardhat-ethers`](https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-ethers), so it also injects an `ethers` object into the HRE, which is documented [here](https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-ethers#environment-extensions).
 
 ## Usage
 
@@ -71,7 +67,6 @@ const { waffle } = require("hardhat");
 const { deployContract } = waffle;
 ```
 
-Also, you don't need to call `chai.use`.
+Also, you don't need to call `chai.use` in order to use [Waffle's Chai matchers](https://ethereum-waffle.readthedocs.io/en/latest/matchers.html).
 
-Note that by default, Hardhat saves its compilation output into `artifacts/` instead of `build/`. You can either use
-that directory in your tests, or [customize your Hardhat config](https://hardhat.org/config/#path-configuration).
+Note that by default, Hardhat saves its compilation output into `artifacts/` instead of `build/`. You can either use that directory in your tests, or [customize your Hardhat config](https://hardhat.org/config/#path-configuration).

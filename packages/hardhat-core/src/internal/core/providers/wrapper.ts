@@ -3,8 +3,10 @@ import { EventEmitterWrapper } from "../../util/event-emitter";
 
 import { InvalidInputError } from "./errors";
 
-export abstract class ProviderWrapper extends EventEmitterWrapper
-  implements EIP1193Provider {
+export abstract class ProviderWrapper
+  extends EventEmitterWrapper
+  implements EIP1193Provider
+{
   constructor(protected readonly _wrappedProvider: EIP1193Provider) {
     super(_wrappedProvider);
   }
@@ -21,7 +23,7 @@ export abstract class ProviderWrapper extends EventEmitterWrapper
     }
 
     if (!Array.isArray(params)) {
-      // tslint:disable-next-line only-hardhat-error
+      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
       throw new InvalidInputError(
         "Hardhat Network doesn't support JSON-RPC params sent as an object"
       );

@@ -59,7 +59,7 @@ export async function traceTransaction(
   const tx = new Transaction({
     value: 0,
     gasPrice: 1,
-    nonce: await getNextNonce(vm),
+    nonce: await getNextPendingNonce(vm),
     ...txData,
     // If the test didn't define a gasLimit, we assume 4M is enough
     gasLimit: txData.gasLimit ?? 4000000,
@@ -86,7 +86,7 @@ export async function traceTransaction(
   }
 }
 
-async function getNextNonce(vm: VM): Promise<Buffer> {
+async function getNextPendingNonce(vm: VM): Promise<Buffer> {
   const acc = await vm.stateManager.getAccount(new Address(senderAddress));
   return acc.nonce.toBuffer();
 }

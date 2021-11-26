@@ -32,6 +32,7 @@ import { EthModule } from "./modules/eth";
 import { EvmModule } from "./modules/evm";
 import { HardhatModule } from "./modules/hardhat";
 import { ModulesLogger } from "./modules/logger";
+import { PersonalModule } from "./modules/personal";
 import { NetModule } from "./modules/net";
 import { Web3Module } from "./modules/web3";
 import { HardhatNode } from "./node";
@@ -39,6 +40,7 @@ import {
   ForkConfig,
   GenesisAccount,
   IntervalMiningConfig,
+  MempoolOrder,
   NodeConfig,
   TracingConfig,
 } from "./node-types";
@@ -51,10 +53,14 @@ const PRIVATE_RPC_METHODS = new Set([
   "hardhat_setLoggingEnabled",
 ]);
 
-// tslint:disable only-hardhat-error
+/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
-export class HardhatNetworkProvider extends EventEmitter
-  implements EIP1193Provider {
+export const DEFAULT_COINBASE = "0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e";
+
+export class HardhatNetworkProvider
+  extends EventEmitter
+  implements EIP1193Provider
+{
   private _common?: Common;
   private _node?: HardhatNode;
   private _ethModule?: EthModule;
@@ -63,6 +69,7 @@ export class HardhatNetworkProvider extends EventEmitter
   private _evmModule?: EvmModule;
   private _hardhatModule?: HardhatModule;
   private _debugModule?: DebugModule;
+  private _personalModule?: PersonalModule;
   private readonly _mutex = new Mutex();
 
   constructor(
@@ -71,10 +78,13 @@ export class HardhatNetworkProvider extends EventEmitter
     private readonly _chainId: number,
     private readonly _networkId: number,
     private readonly _blockGasLimit: number,
+    private readonly _initialBaseFeePerGas: number | undefined,
+    private readonly _minGasPrice: BN,
     private readonly _throwOnTransactionFailures: boolean,
     private readonly _throwOnCallFailures: boolean,
     private readonly _automine: boolean,
     private readonly _intervalMining: IntervalMiningConfig,
+    private readonly _mempoolOrder: MempoolOrder,
     private readonly _logger: ModulesLogger,
     private readonly _genesisAccounts: GenesisAccount[] = [],
     private readonly _artifacts?: Artifacts,
@@ -82,7 +92,8 @@ export class HardhatNetworkProvider extends EventEmitter
     private readonly _initialDate?: Date,
     private readonly _experimentalHardhatNetworkMessageTraceHooks: BoundExperimentalHardhatNetworkMessageTraceHook[] = [],
     private _forkConfig?: ForkConfig,
-    private readonly _forkCachePath?: string
+    private readonly _forkCachePath?: string,
+    private readonly _coinbase = DEFAULT_COINBASE
   ) {
     super();
   }
@@ -201,6 +212,10 @@ export class HardhatNetworkProvider extends EventEmitter
       return this._debugModule!.processRequest(method, params);
     }
 
+    if (method.startsWith("personal_")) {
+      return this._personalModule!.processRequest(method, params);
+    }
+
     throw new MethodNotFoundError(`Method ${method} not found`);
   }
 
@@ -209,30 +224,25 @@ export class HardhatNetworkProvider extends EventEmitter
       return;
     }
 
-    const commonConfig = {
+    const config: NodeConfig = {
       automine: this._automine,
       blockGasLimit: this._blockGasLimit,
+      minGasPrice: this._minGasPrice,
       genesisAccounts: this._genesisAccounts,
       allowUnlimitedContractSize: this._allowUnlimitedContractSize,
       tracingConfig: await this._makeTracingConfig(),
-    };
-
-    let config: NodeConfig = {
+      initialBaseFeePerGas: this._initialBaseFeePerGas,
+      mempoolOrder: this._mempoolOrder,
       hardfork: this._hardfork,
       networkName: this._networkName,
       chainId: this._chainId,
       networkId: this._networkId,
       initialDate: this._initialDate,
-      ...commonConfig,
+      forkConfig: this._forkConfig,
+      forkCachePath:
+        this._forkConfig !== undefined ? this._forkCachePath : undefined,
+      coinbase: this._coinbase,
     };
-
-    if (this._forkConfig !== undefined) {
-      config = {
-        forkConfig: this._forkConfig,
-        forkCachePath: this._forkCachePath,
-        ...config,
-      };
-    }
 
     const [common, node] = await HardhatNode.create(config);
 
@@ -268,6 +278,7 @@ export class HardhatNetworkProvider extends EventEmitter
       this._experimentalHardhatNetworkMessageTraceHooks
     );
     this._debugModule = new DebugModule(node);
+    this._personalModule = new PersonalModule(node);
 
     this._forwardNodeEvents(node);
   }
@@ -346,7 +357,7 @@ export class HardhatNetworkProvider extends EventEmitter
   };
 
   private _emitLegacySubscriptionEvent(subscription: string, result: any) {
-    this.emit("notifications", {
+    this.emit("notification", {
       subscription,
       result,
     });

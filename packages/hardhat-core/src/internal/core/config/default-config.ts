@@ -1,9 +1,13 @@
+import { BN } from "ethereumjs-util";
+
 import { HardhatNetworkConfig } from "../../../types";
 import { HARDHAT_NETWORK_NAME } from "../../constants";
 
 export const DEFAULT_SOLC_VERSION = "0.7.3";
-export const HARDHAT_NETWORK_DEFAULT_GAS_PRICE = 8e9;
-const HARDHAT_NETWORK_MNEMONIC =
+export const HARDHAT_NETWORK_DEFAULT_GAS_PRICE = "auto";
+export const HARDHAT_NETWORK_DEFAULT_MAX_PRIORITY_FEE_PER_GAS = 1e9;
+export const HARDHAT_NETWORK_DEFAULT_INITIAL_BASE_FEE_PER_GAS = 1e9;
+export const HARDHAT_NETWORK_MNEMONIC =
   "test test test test test test test test test test test junk";
 export const DEFAULT_HARDHAT_NETWORK_BALANCE = "10000000000000000000000";
 
@@ -31,17 +35,24 @@ export const defaultHardhatNetworkParams: Omit<
   HardhatNetworkConfig,
   "gas" | "initialDate"
 > = {
-  hardfork: "berlin",
-  blockGasLimit: 12450000,
+  hardfork: "london",
+  blockGasLimit: 30_000_000,
   gasPrice: HARDHAT_NETWORK_DEFAULT_GAS_PRICE,
   chainId: 31337,
   throwOnTransactionFailures: true,
   throwOnCallFailures: true,
   allowUnlimitedContractSize: false,
-  mining: { auto: true, interval: 0 },
+  mining: {
+    auto: true,
+    interval: 0,
+    mempool: {
+      order: "priority",
+    },
+  },
   accounts: defaultHardhatNetworkHdAccountsConfigParams,
   loggingEnabled: false,
   gasMultiplier: DEFAULT_GAS_MULTIPLIER,
+  minGasPrice: new BN(0),
 };
 
 export const defaultHttpNetworkParams = {
@@ -64,6 +75,7 @@ export const defaultSolcOutputSelection = {
       "evm.bytecode",
       "evm.deployedBytecode",
       "evm.methodIdentifiers",
+      "metadata",
     ],
     "": ["ast"],
   },

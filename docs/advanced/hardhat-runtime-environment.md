@@ -38,8 +38,8 @@ Running test directly with [Mocha](https://www.npmjs.com/package/mocha) instead 
 const hre = require("hardhat");
 const assert = require("assert");
 
-describe("Hardhat Runtime Environment", function() {
-  it("should have a config field", function() {
+describe("Hardhat Runtime Environment", function () {
+  it("should have a config field", function () {
     assert.notEqual(hre.config, undefined);
   });
 });
@@ -55,16 +55,16 @@ Everything gets easier when you use higher-level libraries, like [Ethers.js](htt
 
 Hardhat lets you hook into the HRE construction, and extend it with new functionality. This way, you only have to initialize everything once, and your new features or libraries will be available everywhere the HRE is used.
 
-You can do this by adding a HRE extender into a queue. This extender is just a synchronous function that receives the HRE, and adds fields to it with your new functionality. These new fields will also get [injected into the global scope during runtime](#exporting-globally).
+You can do this by adding an HRE extender into a queue. This extender is just a synchronous function that receives the HRE and adds fields to it with your new functionality. These new fields will also get [injected into the global scope during runtime](#exporting-globally).
 
-For example, adding an instance of [Web3.js](https://web3js.readthedocs.io/en/latest/) to the HRE can be done in this way:
+For example, adding an instance of [Web3.js](https://web3js.readthedocs.io/en/latest/) to the HRE can be done by installing the `web3` package and adding the following to your `hardhat.config.js`:
 
 ```js
-extendEnvironment(hre => {
+extendEnvironment((hre) => {
   const Web3 = require("web3");
   hre.Web3 = Web3;
 
   // hre.network.provider is an EIP1193-compatible provider.
-  hre.web3 = new Web3(new Web3HTTPProviderAdapter(hre.network.provider));
+  hre.web3 = new Web3(hre.network.provider);
 });
 ```

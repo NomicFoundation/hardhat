@@ -7,10 +7,8 @@ export const randomHash = () => {
 
 let next: Buffer | undefined;
 export const randomHashBuffer = () => {
-  const {
-    keccakFromString,
-    keccak256,
-  } = require("ethereumjs-util") as typeof EthereumjsUtilT;
+  const { keccakFromString, keccak256 } =
+    require("ethereumjs-util") as typeof EthereumjsUtilT;
 
   if (next === undefined) {
     next = keccakFromString("seed");

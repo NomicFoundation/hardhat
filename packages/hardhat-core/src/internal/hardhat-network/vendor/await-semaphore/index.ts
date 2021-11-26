@@ -1,7 +1,7 @@
 // Based on: https://github.com/notenoughneon/await-semaphore/blob/f117a6b59324038c9e8ee04c70c328215a727812/index.ts
 // which is distributed under this license: https://github.com/notenoughneon/await-semaphore/blob/f117a6b59324038c9e8ee04c70c328215a727812/LICENSE
 
-// tslint:disable only-hardhat-error
+/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
 export class Semaphore {
   public count: number;
@@ -12,7 +12,7 @@ export class Semaphore {
   }
 
   public acquire() {
-    return new Promise<() => void>((res, rej) => {
+    return new Promise<() => void>((res) => {
       const task = () => {
         let released = false;
         res(() => {

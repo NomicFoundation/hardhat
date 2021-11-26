@@ -14,7 +14,7 @@ import { RpcDebugTracingConfig } from "../../core/jsonrpc/types/input/debugTrace
 import { InvalidInputError } from "../../core/providers/errors";
 import { RpcDebugTraceOutput, RpcStructLog } from "../provider/output";
 
-// tslint:disable only-hardhat-error
+/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
 interface StructLog {
   depth: number;
@@ -395,7 +395,7 @@ export class VMDebugTracer {
       const memSize = inPosition.gt(outPosition) ? inPosition : outPosition;
       const toAddress = new Address(recipientAddressBuffer.slice(-20));
 
-      const constantGas = this._callConstantGas(toAddress);
+      const constantGas = this._callConstantGas();
       const availableGas = step.gasLeft.toNumber() - constantGas;
 
       const [memoryGas] = this._memoryExpansion(memoryLength, memSize);
@@ -451,7 +451,7 @@ export class VMDebugTracer {
     return this._vm._common.param("gasPrices", "sha3Word");
   }
 
-  private _callConstantGas(address: Address): number {
+  private _callConstantGas(): number {
     if (this._vm._common.gteHardfork("berlin")) {
       return this._vm._common.param("gasPrices", "warmstorageread");
     }

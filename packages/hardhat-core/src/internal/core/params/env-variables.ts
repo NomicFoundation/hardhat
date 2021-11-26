@@ -17,9 +17,9 @@ export function paramNameToEnvVariable(paramName: string): string {
     .toUpperCase();
 }
 
-export function getEnvVariablesMap(
-  hardhatArguments: HardhatArguments
-): { [envVar: string]: string } {
+export function getEnvVariablesMap(hardhatArguments: HardhatArguments): {
+  [envVar: string]: string;
+} {
   const values: { [envVar: string]: string } = {};
 
   for (const [name, value] of Object.entries(hardhatArguments)) {

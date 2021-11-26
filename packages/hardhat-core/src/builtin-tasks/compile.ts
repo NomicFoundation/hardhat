@@ -99,6 +99,8 @@ function isConsoleLogError(error: any): boolean {
 
 const log = debug("hardhat:core:tasks:compile");
 
+const COMPILE_TASK_FIRST_SOLC_VERSION_SUPPORTED = "0.4.11";
+
 /**
  * Returns a list of absolute paths to all the solidity files in the project.
  * This list doesn't include dependencies, for example solidity files inside
@@ -490,10 +492,8 @@ subtask(TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD)
         solcVersion
       );
 
-      const {
-        longVersion,
-        platform: desiredPlatform,
-      } = await downloader.getCompilerBuild(solcVersion);
+      const { longVersion, platform: desiredPlatform } =
+        await downloader.getCompilerBuild(solcVersion);
 
       await run(TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_COMPILER_START, {
         solcVersion,
@@ -542,9 +542,8 @@ subtask(TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD)
           forceSolcJs: true,
         });
 
-        const solcjsCompilerPath = await solcJsDownloader.getDownloadedCompilerPath(
-          solcVersion
-        );
+        const solcjsCompilerPath =
+          await solcJsDownloader.getDownloadedCompilerPath(solcVersion);
 
         if (solcjsCompilerPath === undefined) {
           throw new HardhatError(ERRORS.SOLC.CANT_GET_COMPILER, {
@@ -646,6 +645,18 @@ subtask(TASK_COMPILE_SOLIDITY_COMPILE_SOLC)
       },
       { run }
     ): Promise<{ output: CompilerOutput; solcBuild: SolcBuild }> => {
+      // versions older than 0.4.11 don't work with hardhat
+      // see issue https://github.com/nomiclabs/hardhat/issues/2004
+      if (semver.lt(solcVersion, COMPILE_TASK_FIRST_SOLC_VERSION_SUPPORTED)) {
+        throw new HardhatError(
+          ERRORS.BUILTIN_TASKS.COMPILE_TASK_UNSUPPORTED_SOLC_VERSION,
+          {
+            version: solcVersion,
+            firstSupportedVersion: COMPILE_TASK_FIRST_SOLC_VERSION_SUPPORTED,
+          }
+        );
+      }
+
       const solcBuild: SolcBuild = await run(
         TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD,
         {
@@ -866,8 +877,8 @@ subtask(TASK_COMPILE_SOLIDITY_LOG_RUN_COMPILER_START)
       compilationJobs: CompilationJob[];
       compilationJobIndex: number;
     }) => {
-      const solcVersion = compilationJobs[compilationJobIndex].getSolcConfig()
-        .version;
+      const solcVersion =
+        compilationJobs[compilationJobIndex].getSolcConfig().version;
 
       // we log if this is the first job, or if the previous job has a
       // different solc version
@@ -1046,7 +1057,8 @@ subtask(TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURE_REASONS)
       const noCompatibleSolc: CompilationJobCreationError[] = [];
       const incompatibleOverridenSolc: CompilationJobCreationError[] = [];
       const directlyImportsIncompatibleFile: CompilationJobCreationError[] = [];
-      const indirectlyImportsIncompatibleFile: CompilationJobCreationError[] = [];
+      const indirectlyImportsIncompatibleFile: CompilationJobCreationError[] =
+        [];
       const other: CompilationJobCreationError[] = [];
 
       for (const error of errors) {
@@ -1291,13 +1303,11 @@ subtask(TASK_COMPILE_SOLIDITY)
         dependencyGraph.getResolvedFiles()
       );
 
-      const compilationJobsCreationResult: CompilationJobsCreationResult = await run(
-        TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS,
-        {
+      const compilationJobsCreationResult: CompilationJobsCreationResult =
+        await run(TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS, {
           dependencyGraph,
           solidityFilesCache,
-        }
-      );
+        });
 
       await run(TASK_COMPILE_SOLIDITY_HANDLE_COMPILATION_JOBS_FAILURES, {
         compilationJobsCreationErrors: compilationJobsCreationResult.errors,
@@ -1365,12 +1375,9 @@ subtask(TASK_COMPILE_SOLIDITY)
  *
  * This is the task to override to add support for other languages.
  */
-subtask(
-  TASK_COMPILE_GET_COMPILATION_TASKS,
-  async (): Promise<string[]> => {
-    return [TASK_COMPILE_SOLIDITY];
-  }
-);
+subtask(TASK_COMPILE_GET_COMPILATION_TASKS, async (): Promise<string[]> => {
+  return [TASK_COMPILE_SOLIDITY];
+});
 
 /**
  * Main compile task.

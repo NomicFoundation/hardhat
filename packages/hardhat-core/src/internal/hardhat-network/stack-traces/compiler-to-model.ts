@@ -1,3 +1,4 @@
+import debug from "debug";
 import abi from "ethereumjs-abi";
 
 import {
@@ -17,10 +18,13 @@ import {
   ContractFunctionType,
   ContractFunctionVisibility,
   ContractType,
+  CustomError,
   SourceFile,
   SourceLocation,
 } from "./model";
 import { decodeInstructions } from "./source-maps";
+
+const log = debug("hardhat:core:hardhat-network:compiler-to-model");
 
 export function createModelsAndDecodeBytecodes(
   solcVersion: string,
@@ -65,27 +69,33 @@ function createSourcesModelFromAst(
 
     fileIdToSourceFile.set(source.id, file);
 
-    for (const contractNode of source.ast.nodes) {
-      if (contractNode.nodeType !== "ContractDefinition") {
-        continue;
+    for (const node of source.ast.nodes) {
+      if (node.nodeType === "ContractDefinition") {
+        const contractType = contractKindToContractType(node.contractKind);
+
+        if (contractType === undefined) {
+          continue;
+        }
+
+        processContractAstNode(
+          file,
+          node,
+          fileIdToSourceFile,
+          contractType,
+          contractIdToContract,
+          contractIdToLinearizedBaseContractIds
+        );
       }
 
-      const contractType = contractKindToContractType(
-        contractNode.contractKind
-      );
-
-      if (contractType === undefined) {
-        continue;
+      // top-level functions
+      if (node.nodeType === "FunctionDefinition") {
+        processFunctionDefinitionAstNode(
+          node,
+          fileIdToSourceFile,
+          undefined,
+          file
+        );
       }
-
-      processContractAstNode(
-        file,
-        contractNode,
-        fileIdToSourceFile,
-        contractType,
-        contractIdToContract,
-        contractIdToLinearizedBaseContractIds
-      );
     }
   }
 
@@ -151,7 +161,7 @@ function processContractAstNode(
 function processFunctionDefinitionAstNode(
   functionDefinitionNode: any,
   fileIdToSourceFile: Map<number, SourceFile>,
-  contract: Contract,
+  contract: Contract | undefined,
   file: SourceFile
 ) {
   if (functionDefinitionNode.implemented === false) {
@@ -188,7 +198,10 @@ function processFunctionDefinitionAstNode(
     selector
   );
 
-  contract.addLocalFunction(cf);
+  if (contract !== undefined) {
+    contract.addLocalFunction(cf);
+  }
+
   file.addFunction(cf);
 }
 
@@ -214,9 +227,29 @@ function processModifierDefinitionAstNode(
   file.addFunction(cf);
 }
 
+function canonicalAbiTypeForElementaryOrUserDefinedTypes(keyType: any): any {
+  if (isElementaryType(keyType)) {
+    return toCanonicalAbiType(keyType.name);
+  }
+
+  if (isEnumType(keyType)) {
+    return "uint256";
+  }
+
+  if (isContractType(keyType)) {
+    return "address";
+  }
+
+  return undefined;
+}
+
 function getPublicVariableSelectorFromDeclarationAstNode(
   variableDeclaration: any
 ) {
+  if (variableDeclaration.functionSelector !== undefined) {
+    return Buffer.from(variableDeclaration.functionSelector, "hex");
+  }
+
   const paramTypes: string[] = [];
 
   // VariableDeclaration nodes for function parameters or state variables will always
@@ -224,7 +257,10 @@ function getPublicVariableSelectorFromDeclarationAstNode(
   let nextType = variableDeclaration.typeName;
   while (true) {
     if (nextType.nodeType === "Mapping") {
-      paramTypes.push(toCanonicalAbiType(nextType.keyType.name));
+      const canonicalType = canonicalAbiTypeForElementaryOrUserDefinedTypes(
+        nextType.keyType
+      );
+      paramTypes.push(canonicalType);
 
       nextType = nextType.valueType;
     } else {
@@ -305,6 +341,20 @@ function decodeBytecodes(
     const contractFile = contract.location.file.sourceName;
     const contractEvmOutput =
       compilerOutput.contracts[contractFile][contract.name].evm;
+    const contractAbiOutput =
+      compilerOutput.contracts[contractFile][contract.name].abi;
+
+    for (const abiItem of contractAbiOutput) {
+      if (abiItem.type === "error") {
+        const customError = CustomError.fromABI(abiItem.name, abiItem.inputs);
+
+        if (customError !== undefined) {
+          contract.addCustomError(customError);
+        } else {
+          log(`Couldn't build CustomError for error '${abiItem.name}'`);
+        }
+      }
+    }
 
     // This is an abstract contract
     if (contractEvmOutput.bytecode.object === "") {
@@ -435,6 +485,10 @@ function functionDefinitionKindToFunctionType(
     return ContractFunctionType.RECEIVE;
   }
 
+  if (kind === "freeFunction") {
+    return ContractFunctionType.FREE_FUNCTION;
+  }
+
   return ContractFunctionType.FUNCTION;
 }
 
@@ -487,7 +541,8 @@ function astFunctionDefinitionToSelector(functionDefinition: any): Buffer {
 
 function isContractType(param: any) {
   return (
-    param.typeName?.nodeType === "UserDefinedTypeName" &&
+    (param.typeName?.nodeType === "UserDefinedTypeName" ||
+      param?.nodeType === "UserDefinedTypeName") &&
     param.typeDescriptions?.typeString !== undefined &&
     param.typeDescriptions.typeString.startsWith("contract ")
   );
@@ -495,9 +550,17 @@ function isContractType(param: any) {
 
 function isEnumType(param: any) {
   return (
-    param.typeName?.nodeType === "UserDefinedTypeName" &&
+    (param.typeName?.nodeType === "UserDefinedTypeName" ||
+      param?.nodeType === "UserDefinedTypeName") &&
     param.typeDescriptions?.typeString !== undefined &&
     param.typeDescriptions.typeString.startsWith("enum ")
+  );
+}
+
+function isElementaryType(param: any) {
+  return (
+    param.type === "ElementaryTypeName" ||
+    param.nodeType === "ElementaryTypeName"
   );
 }
 
@@ -564,7 +627,7 @@ function correctSelectors(
       const fixedSelector = contract.correctSelector(functionName, selector);
 
       if (!fixedSelector) {
-        // tslint:disable-next-line only-hardhat-error
+        // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
         throw new Error(
           `Failed to compute the selector one or more implementations of ${contract.name}#${functionName}. Hardhat Network can automatically fix this problem if you don't use function overloading.`
         );

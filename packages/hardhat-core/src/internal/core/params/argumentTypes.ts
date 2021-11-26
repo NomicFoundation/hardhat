@@ -181,7 +181,7 @@ export const inputFile: CLIArgumentType<string> = {
 
       if (stats.isDirectory()) {
         // This is caught and encapsulated in a hardhat error.
-        // tslint:disable-next-line only-hardhat-error
+        // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
         throw new Error(`${strValue} is a directory, not a file`);
       }
     } catch (error) {
@@ -264,5 +264,5 @@ export const json: CLIArgumentType<any> = {
 
 export const any: ArgumentType<any> = {
   name: "any",
-  validate(argName: string, argumentValue: any) {},
+  validate(_argName: string, _argumentValue: any) {},
 };

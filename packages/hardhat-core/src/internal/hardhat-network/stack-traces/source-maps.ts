@@ -40,7 +40,7 @@ function uncompressSourcemaps(compressedSourcemap: string): SourceMap[] {
     const hasParts0 = parts[0] !== undefined && parts[0] !== "";
     const hasParts1 = parts[1] !== undefined && parts[1] !== "";
     const hasParts2 = parts[2] !== undefined && parts[2] !== "";
-    const hasParts3 = parts[2] !== undefined && parts[3] !== "";
+    const hasParts3 = parts[3] !== undefined && parts[3] !== "";
 
     const hasEveryPart = hasParts0 && hasParts1 && hasParts2 && hasParts3;
 
