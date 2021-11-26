@@ -141,7 +141,7 @@ export class HardhatDocker {
       im.on("error", reject);
 
       // Not having the data handler causes the process to exit
-      im.on("data", (data) => {});
+      im.on("data", () => {});
     });
   }
 
@@ -159,6 +159,7 @@ export class HardhatDocker {
       HostConfig: {
         AutoRemove: true,
         Binds: this._bindsMapToArray(config.binds),
+        NetworkMode: config.networkMode,
       },
     };
 
@@ -287,6 +288,6 @@ export class HardhatDocker {
   private _imageToRepositoryPath(image: Image): string {
     return image.repository.includes("/")
       ? image.repository
-      : `library/{image.repository}`;
+      : `library/${image.repository}`;
   }
 }

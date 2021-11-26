@@ -46,6 +46,7 @@ export interface CreateMessageTrace extends BaseEvmMessageTrace {
 export interface CallMessageTrace extends BaseEvmMessageTrace {
   calldata: Buffer;
   address: Buffer;
+  codeAddress: Buffer;
 }
 
 export interface DecodedCreateMessageTrace extends CreateMessageTrace {

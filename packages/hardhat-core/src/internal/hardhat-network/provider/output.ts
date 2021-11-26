@@ -1,6 +1,6 @@
 import { Block } from "@ethereumjs/block";
 import Common from "@ethereumjs/common";
-import { AccessListEIP2930Transaction, TypedTransaction } from "@ethereumjs/tx";
+import { TypedTransaction } from "@ethereumjs/tx";
 import { RunBlockResult } from "@ethereumjs/vm/dist/runBlock";
 import { BN, bufferToHex } from "ethereumjs-util";
 
@@ -11,8 +11,10 @@ import {
 } from "../../core/jsonrpc/types/base-types";
 import { RpcLog } from "../../core/jsonrpc/types/output/log";
 import { RpcTransactionReceipt } from "../../core/jsonrpc/types/output/receipt";
+import { assertHardhatNetworkInvariant } from "./utils/assertions";
 
 const FIRST_HARDFORK_WITH_TRANSACTION_TYPE = "berlin";
+const FIRST_HARDFORK_WITH_EIP1559 = "london";
 
 // TODO: These types should be moved to core, and probably inferred by io-ts
 export interface RpcBlockOutput {
@@ -36,14 +38,19 @@ export interface RpcBlockOutput {
   transactions: string[] | RpcTransactionOutput[];
   transactionsRoot: string;
   uncles: string[];
+  baseFeePerGas?: string;
 }
 
-export interface RpcTransactionOutput {
+export type RpcTransactionOutput =
+  | LegacyRpcTransactionOutput
+  | AccessListEIP2930RpcTransactionOutput
+  | EIP1559RpcTransactionOutput;
+
+interface BaseRpcTransactionOutput {
   blockHash: string | null;
   blockNumber: string | null;
   from: string;
   gas: string;
-  gasPrice: string;
   hash: string;
   input: string;
   nonce: string;
@@ -53,13 +60,32 @@ export interface RpcTransactionOutput {
   transactionIndex: string | null;
   v: string;
   value: string;
-
   // Only shown if the local hardfork is at least Berlin, or if the (remote) tx has an access list
   type?: string;
+}
 
-  // Only shown if the tx has an access list
-  accessList?: Array<{ address: string; storageKeys: string[] }>;
-  chainId?: string;
+export interface LegacyRpcTransactionOutput extends BaseRpcTransactionOutput {
+  gasPrice: string;
+}
+
+export type RpcAccessListOutput = Array<{
+  address: string;
+  storageKeys: string[];
+}>;
+
+export interface AccessListEIP2930RpcTransactionOutput
+  extends BaseRpcTransactionOutput {
+  gasPrice: string;
+  accessList?: RpcAccessListOutput;
+  chainId: string;
+}
+
+export interface EIP1559RpcTransactionOutput extends BaseRpcTransactionOutput {
+  gasPrice: string;
+  maxFeePerGas: string;
+  maxPriorityFeePerGas: string;
+  accessList?: RpcAccessListOutput;
+  chainId: string;
 }
 
 export interface RpcReceiptOutput {
@@ -81,8 +107,11 @@ export interface RpcReceiptOutput {
   // Only present before Byzantium
   root?: string;
 
-  // Only shown if the local hardfork is at least Berlin, or if the (remote) tx has an access list
+  // Only shown if the local hardfork is at least Berlin, or if the (remote) is not a legacy one
   type?: string;
+
+  // Only shown if the local hardfork is at least London, or if the (remote) is EIP-1559
+  effectiveGasPrice?: string;
 }
 
 export interface RpcLogOutput {
@@ -117,7 +146,7 @@ export interface RpcDebugTraceOutput {
   structLogs: RpcStructLog[];
 }
 
-// tslint:disable only-hardhat-error
+/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
 export function getRpcBlock(
   block: Block,
@@ -132,7 +161,7 @@ export function getRpcBlock(
       )
     : block.transactions.map((tx) => bufferToRpcData(tx.hash()));
 
-  return {
+  const output: RpcBlockOutput = {
     number: pending ? null : numberToRpcQuantity(new BN(block.header.number)),
     hash: pending ? null : bufferToRpcData(block.hash()),
     parentHash: bufferToRpcData(block.header.parentHash),
@@ -156,6 +185,12 @@ export function getRpcBlock(
     transactions,
     uncles: block.uncleHeaders.map((uh: any) => bufferToRpcData(uh.hash())),
   };
+
+  if (block.header.baseFeePerGas) {
+    output.baseFeePerGas = numberToRpcQuantity(block.header.baseFeePerGas);
+  }
+
+  return output;
 }
 
 export function getRpcTransaction(
@@ -183,7 +218,9 @@ export function getRpcTransaction(
   assertHardhatInvariant(tx.r !== undefined, "tx should be signed");
   assertHardhatInvariant(tx.s !== undefined, "tx should be signed");
 
-  return {
+  const isTypedTransaction = tx.type !== 0;
+
+  const baseOutput = {
     blockHash: block === "pending" ? null : bufferToRpcData(block.hash()),
     blockNumber:
       block === "pending"
@@ -191,7 +228,6 @@ export function getRpcTransaction(
         : numberToRpcQuantity(new BN(block.header.number)),
     from: bufferToRpcData(tx.getSenderAddress().toBuffer()),
     gas: numberToRpcQuantity(new BN(tx.gasLimit)),
-    gasPrice: numberToRpcQuantity(new BN(tx.gasPrice)),
     hash: bufferToRpcData(tx.hash()),
     input: bufferToRpcData(tx.data),
     nonce: numberToRpcQuantity(new BN(tx.nonce)),
@@ -202,21 +238,51 @@ export function getRpcTransaction(
     r: numberToRpcQuantity(new BN(tx.r)),
     s: numberToRpcQuantity(new BN(tx.s)),
     type:
-      showTransactionType || tx instanceof AccessListEIP2930Transaction
+      showTransactionType || isTypedTransaction
         ? numberToRpcQuantity(tx.transactionType)
         : undefined,
     accessList:
-      tx instanceof AccessListEIP2930Transaction
+      "accessList" in tx
         ? tx.accessList.map(([address, storageKeys]) => ({
             address: bufferToHex(address),
             storageKeys: storageKeys.map(bufferToHex),
           }))
         : undefined,
-    chainId:
-      tx instanceof AccessListEIP2930Transaction
-        ? numberToRpcQuantity(tx.chainId)
-        : undefined,
+    chainId: "chainId" in tx ? numberToRpcQuantity(tx.chainId) : undefined,
   };
+
+  if ("maxFeePerGas" in tx) {
+    const effectiveGasPrice =
+      block === "pending"
+        ? tx.maxFeePerGas
+        : getEffectiveGasPrice(tx, block.header.baseFeePerGas!);
+
+    // EIP-1559
+    return {
+      ...baseOutput,
+      gasPrice: numberToRpcQuantity(effectiveGasPrice),
+      chainId: numberToRpcQuantity(tx.chainId),
+      maxFeePerGas: numberToRpcQuantity(tx.maxFeePerGas),
+      maxPriorityFeePerGas: numberToRpcQuantity(tx.maxPriorityFeePerGas),
+    };
+  }
+
+  // Not EIP-1559
+  return {
+    ...baseOutput,
+    gasPrice: numberToRpcQuantity(tx.gasPrice),
+  };
+}
+
+function getEffectiveGasPrice(tx: TypedTransaction, baseFeePerGas: BN) {
+  const maxFeePerGas = "maxFeePerGas" in tx ? tx.maxFeePerGas : tx.gasPrice;
+  const maxPriorityFeePerGas =
+    "maxPriorityFeePerGas" in tx ? tx.maxPriorityFeePerGas : tx.gasPrice;
+
+  // baseFeePerGas + min(maxFeePerGas - baseFeePerGas, maxPriorityFeePerGas)
+  return baseFeePerGas.add(
+    BN.min(maxFeePerGas.sub(baseFeePerGas), maxPriorityFeePerGas)
+  );
 }
 
 export function getRpcReceiptOutputsFromLocalBlockExecution(
@@ -226,18 +292,18 @@ export function getRpcReceiptOutputsFromLocalBlockExecution(
 ): RpcReceiptOutput[] {
   const receipts: RpcReceiptOutput[] = [];
 
-  let cumulativeGasUsed = new BN(0);
+  let blockLogIndex = 0;
 
   for (let i = 0; i < runBlockResult.results.length; i += 1) {
     const tx = block.transactions[i];
     const { createdAddress, gasUsed } = runBlockResult.results[i];
     const receipt = runBlockResult.receipts[i];
 
-    cumulativeGasUsed = cumulativeGasUsed.add(new BN(receipt.gasUsed));
-
-    const logs = receipt.logs.map((log, logIndex) =>
-      getRpcLogOutput(log, tx, block, i, logIndex)
-    );
+    const logs = receipt.logs.map((log) => {
+      const result = getRpcLogOutput(log, tx, block, i, blockLogIndex);
+      blockLogIndex += 1;
+      return result;
+    });
 
     const rpcReceipt: RpcReceiptOutput = {
       transactionHash: bufferToRpcData(tx.hash()),
@@ -246,7 +312,7 @@ export function getRpcReceiptOutputsFromLocalBlockExecution(
       blockNumber: numberToRpcQuantity(new BN(block.header.number)),
       from: bufferToRpcData(tx.getSenderAddress().toBuffer()),
       to: tx.to === undefined ? null : bufferToRpcData(tx.to.toBuffer()),
-      cumulativeGasUsed: numberToRpcQuantity(cumulativeGasUsed),
+      cumulativeGasUsed: numberToRpcQuantity(new BN(receipt.gasUsed)),
       gasUsed: numberToRpcQuantity(gasUsed),
       contractAddress:
         createdAddress !== undefined
@@ -267,6 +333,15 @@ export function getRpcReceiptOutputsFromLocalBlockExecution(
       rpcReceipt.status = numberToRpcQuantity(receipt.status);
     }
 
+    if (block.header.baseFeePerGas !== undefined) {
+      const effectiveGasPrice = getEffectiveGasPrice(
+        tx,
+        block.header.baseFeePerGas
+      );
+
+      rpcReceipt.effectiveGasPrice = numberToRpcQuantity(effectiveGasPrice);
+    }
+
     receipts.push(rpcReceipt);
   }
 
@@ -276,8 +351,18 @@ export function getRpcReceiptOutputsFromLocalBlockExecution(
 export function remoteReceiptToRpcReceiptOutput(
   receipt: RpcTransactionReceipt,
   tx: TypedTransaction,
-  showTransactionType: boolean
+  showTransactionType: boolean,
+  showEffectiveGasPrice: boolean
 ): RpcReceiptOutput {
+  const isTypedTransaction = tx.type !== 0;
+  const effectiveGasPrice =
+    receipt.effectiveGasPrice ?? ("gasPrice" in tx ? tx.gasPrice : undefined);
+
+  assertHardhatNetworkInvariant(
+    effectiveGasPrice !== undefined,
+    "Receipt without effectiveGasPrice nor gasPrice in its tx"
+  );
+
   return {
     blockHash: bufferToRpcData(receipt.blockHash),
     blockNumber: numberToRpcQuantity(receipt.blockNumber),
@@ -300,13 +385,17 @@ export function remoteReceiptToRpcReceiptOutput(
     transactionHash: bufferToRpcData(receipt.transactionHash),
     transactionIndex: numberToRpcQuantity(receipt.transactionIndex),
     type:
-      showTransactionType || tx instanceof AccessListEIP2930Transaction
+      showTransactionType || isTypedTransaction
         ? numberToRpcQuantity(tx.transactionType)
+        : undefined,
+    effectiveGasPrice:
+      showEffectiveGasPrice || tx.type === 2
+        ? numberToRpcQuantity(effectiveGasPrice)
         : undefined,
   };
 }
 
-export function toRpcLogOutput(log: RpcLog, index?: number): RpcLogOutput {
+export function toRpcLogOutput(log: RpcLog): RpcLogOutput {
   return {
     removed: false,
     address: bufferToRpcData(log.address),
@@ -314,7 +403,7 @@ export function toRpcLogOutput(log: RpcLog, index?: number): RpcLogOutput {
     blockNumber:
       log.blockNumber !== null ? numberToRpcQuantity(log.blockNumber) : null,
     data: bufferToRpcData(log.data),
-    logIndex: index !== undefined ? numberToRpcQuantity(index) : null,
+    logIndex: log.logIndex !== null ? numberToRpcQuantity(log.logIndex) : null,
     transactionIndex:
       log.transactionIndex !== null
         ? numberToRpcQuantity(log.transactionIndex)
@@ -355,4 +444,8 @@ function getRpcLogOutput(
 
 export function shouldShowTransactionTypeForHardfork(common: Common) {
   return common.gteHardfork(FIRST_HARDFORK_WITH_TRANSACTION_TYPE);
+}
+
+export function shouldShowEffectiveGasPriceForHardfork(common: Common) {
+  return common.gteHardfork(FIRST_HARDFORK_WITH_EIP1559);
 }

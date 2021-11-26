@@ -52,9 +52,10 @@ export class Anonymizer {
    * Return the anonymized filename and a boolean indicating if the content of
    * the file should be anonymized
    */
-  public anonymizeFilename(
-    filename: string
-  ): { anonymizedFilename: string; anonymizeContent: boolean } {
+  public anonymizeFilename(filename: string): {
+    anonymizedFilename: string;
+    anonymizeContent: boolean;
+  } {
     if (filename === this._configPath) {
       const packageJsonPath = this._getFilePackageJsonPath(filename);
 

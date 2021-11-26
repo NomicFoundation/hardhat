@@ -37,7 +37,7 @@ export function parseJsonResponse(
       if (!isValidJsonResponse(response)) {
         // We are sending the proper error inside the catch part of the statement.
         // We just need to raise anything here.
-        // tslint:disable-next-line only-hardhat-error
+        // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
         throw new Error();
       }
     }
@@ -107,5 +107,5 @@ export function isValidJsonResponse(payload: any) {
 export function isSuccessfulJsonResponse(
   payload: JsonRpcResponse
 ): payload is SuccessfulJsonRpcResponse {
-  return "response" in payload;
+  return "result" in payload;
 }

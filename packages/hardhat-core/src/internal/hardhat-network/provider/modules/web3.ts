@@ -8,7 +8,7 @@ import { validateParams } from "../../../core/jsonrpc/types/input/validation";
 import { MethodNotFoundError } from "../../../core/providers/errors";
 import { getPackageJson } from "../../../util/packageInfo";
 
-// tslint:disable only-hardhat-error
+/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
 export class Web3Module {
   public async processRequest(

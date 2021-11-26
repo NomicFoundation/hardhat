@@ -14,7 +14,7 @@ import {
   PrecompileMessageTrace,
 } from "./message-trace";
 
-// tslint:disable only-hardhat-error
+/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
 const MAX_PRECOMPILE_NUMBER = Object.keys(precompiles).length + 1;
 const DUMMY_RETURN_DATA = Buffer.from([]);
@@ -120,10 +120,7 @@ export class VMTracer {
 
           trace = precompileTrace;
         } else {
-          const codeAddress =
-            message._codeAddress !== undefined
-              ? message._codeAddress
-              : message.to;
+          const codeAddress = message.codeAddress;
 
           const code = await this._getContractCode(codeAddress);
 
@@ -137,6 +134,7 @@ export class VMTracer {
             numberOfSubtraces: 0,
             depth: message.depth,
             gasUsed: DUMMY_GAS_USED,
+            codeAddress: codeAddress.toBuffer(),
           };
 
           trace = callTrace;

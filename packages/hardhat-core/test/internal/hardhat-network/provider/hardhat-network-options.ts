@@ -6,7 +6,7 @@ import {
   dateToTimestampSeconds,
   parseDateString,
 } from "../../../../src/internal/util/date";
-import { HardhatNetworkUserConfig } from "../../../../src/types";
+import { HardhatNetworkConfig } from "../../../../src/types";
 import { useEnvironment } from "../../../helpers/environment";
 import { expectErrorAsync } from "../../../helpers/errors";
 import { useFixtureProject } from "../../../helpers/project";
@@ -73,7 +73,7 @@ describe("Hardhat Network special options", function () {
       );
 
       const hardhatNetworkConfig = this.env.config.networks
-        .hardhat as HardhatNetworkUserConfig;
+        .hardhat as HardhatNetworkConfig;
       const initialDateString = hardhatNetworkConfig.initialDate!;
       const initialDate = dateToTimestampSeconds(
         parseDateString(initialDateString)
@@ -143,6 +143,31 @@ describe("Hardhat Network special options", function () {
           );
         });
       });
+    });
+  });
+
+  describe("coinbase", function () {
+    useFixtureProject("hardhat-network-with-custom-coinbase");
+    useEnvironment();
+
+    it("Should use the 0 address for the genesis block", async function () {
+      const block = await this.env.network.provider.send(
+        "eth_getBlockByNumber",
+        [numberToRpcQuantity(0), false]
+      );
+
+      assert.equal(block.miner, "0x0000000000000000000000000000000000000000");
+    });
+
+    it("Should use the coinbase address for the new blocks", async function () {
+      await this.env.network.provider.send("evm_mine");
+
+      const block = await this.env.network.provider.send(
+        "eth_getBlockByNumber",
+        [numberToRpcQuantity(1), false]
+      );
+
+      assert.equal(block.miner, this.env.config.networks.hardhat.coinbase);
     });
   });
 });

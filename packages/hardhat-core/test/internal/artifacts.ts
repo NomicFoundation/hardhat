@@ -275,12 +275,12 @@ describe("Artifacts class", function () {
 
       assert.deepEqual(storedArtifact, artifact);
 
-      // tslint:disable-next-line no-string-literal
+      // eslint-disable-next-line  dot-notation,@typescript-eslint/dot-notation
       const artifactPath = await artifacts["_getArtifactPath"](
         artifact.contractName
       );
 
-      // tslint:disable-next-line no-string-literal
+      // eslint-disable-next-line  dot-notation,@typescript-eslint/dot-notation
       const debugFilePath = artifacts["_getDebugFilePath"](artifactPath);
 
       assert.isTrue(await fsExtra.pathExists(debugFilePath));
@@ -305,12 +305,12 @@ describe("Artifacts class", function () {
 
       assert.deepEqual(storedArtifact, artifact);
 
-      // tslint:disable-next-line no-string-literal
+      // eslint-disable-next-line  dot-notation,@typescript-eslint/dot-notation
       const artifactPath = await artifacts["_getArtifactPath"](
         artifact.contractName
       );
 
-      // tslint:disable-next-line no-string-literal
+      // eslint-disable-next-line  dot-notation, @typescript-eslint/dot-notation
       const debugFilePath = artifacts["_getDebugFilePath"](artifactPath);
 
       assert.isFalse(await fsExtra.pathExists(debugFilePath));
@@ -483,6 +483,242 @@ describe("Artifacts class", function () {
       );
     });
 
+    it("Should throw with typo suggestions when no artifacts match a given name (async)", async function () {
+      const output = COMPILER_OUTPUTS.Lib;
+      const name = "Lib";
+      const typo = "Lob";
+
+      const artifact = getArtifactFromContractOutput("Lib.sol", name, output);
+
+      const artifacts = new Artifacts(this.tmpDir);
+      await artifacts.saveArtifactAndDebugFile(artifact, "");
+
+      await expectHardhatErrorAsync(
+        () => artifacts.readArtifact(typo),
+        ERRORS.ARTIFACTS.NOT_FOUND,
+        /Did you mean "Lib"\?$/
+      );
+    });
+
+    it("Should throw with typo suggestions when no artifacts match a given name (sync)", async function () {
+      const output = COMPILER_OUTPUTS.Lib;
+      const name = "Lib";
+      const typo = "Lob";
+
+      const artifact = getArtifactFromContractOutput("Lib.sol", name, output);
+
+      const artifacts = new Artifacts(this.tmpDir);
+      await artifacts.saveArtifactAndDebugFile(artifact, "");
+
+      expectHardhatError(
+        () => artifacts.readArtifactSync(typo),
+        ERRORS.ARTIFACTS.NOT_FOUND,
+        /Did you mean "Lib"\?$/
+      );
+    });
+
+    it("Should throw with fully qualified names for identical suggestions (async)", async function () {
+      const output = COMPILER_OUTPUTS.Lib;
+      const name = "Lib";
+      const name3 = "Lab";
+      const typo = "Lob";
+
+      const artifact = getArtifactFromContractOutput("Lib.sol", name, output);
+      const artifact2 = getArtifactFromContractOutput("Lib2.sol", name, output);
+      const artifact3 = getArtifactFromContractOutput("Lab.sol", name3, output);
+
+      const artifacts = new Artifacts(this.tmpDir);
+      await artifacts.saveArtifactAndDebugFile(artifact, "");
+      await artifacts.saveArtifactAndDebugFile(artifact2, "");
+      await artifacts.saveArtifactAndDebugFile(artifact3, "");
+
+      const expected = ["Lab", "Lib.sol:Lib", "Lib2.sol:Lib"]
+        .map((n) => `  * ${n}`)
+        .join(os.EOL);
+
+      await expectHardhatErrorAsync(
+        () => artifacts.readArtifact(typo),
+        ERRORS.ARTIFACTS.NOT_FOUND,
+        expected
+      );
+    });
+
+    it("Should throw with fully qualified names for identical suggestions (sync)", async function () {
+      const output = COMPILER_OUTPUTS.Lib;
+      const name = "Lib";
+      const name3 = "Lab";
+      const typo = "Lob";
+
+      const artifact = getArtifactFromContractOutput("Lib.sol", name, output);
+      const artifact2 = getArtifactFromContractOutput("Lib2.sol", name, output);
+      const artifact3 = getArtifactFromContractOutput("Lab.sol", name3, output);
+
+      const artifacts = new Artifacts(this.tmpDir);
+      await artifacts.saveArtifactAndDebugFile(artifact, "");
+      await artifacts.saveArtifactAndDebugFile(artifact2, "");
+      await artifacts.saveArtifactAndDebugFile(artifact3, "");
+
+      const expected = ["Lab", "Lib.sol:Lib", "Lib2.sol:Lib"]
+        .map((n) => `  * ${n}`)
+        .join(os.EOL);
+
+      expectHardhatError(
+        () => artifacts.readArtifactSync(typo),
+        ERRORS.ARTIFACTS.NOT_FOUND,
+        expected
+      );
+    });
+
+    it("Should throw with typo suggestions when no artifacts match a given fully qualified name (async)", async function () {
+      const output = COMPILER_OUTPUTS.Lib;
+      const name = "Lib";
+      const typo = "Lib.sol:Lob";
+
+      const artifact = getArtifactFromContractOutput("Lib.sol", name, output);
+
+      const artifacts = new Artifacts(this.tmpDir);
+      await artifacts.saveArtifactAndDebugFile(artifact, "");
+
+      await expectHardhatErrorAsync(
+        () => artifacts.readArtifact(typo),
+        ERRORS.ARTIFACTS.NOT_FOUND,
+        /Did you mean "Lib\.sol:Lib"\?/
+      );
+    });
+
+    it("Should throw with typo suggestions when no artifacts match a given fully qualified name (sync)", async function () {
+      const output = COMPILER_OUTPUTS.Lib;
+      const name = "Lib";
+      const typo = "Lib.sol:Lob";
+
+      const artifact = getArtifactFromContractOutput("Lib.sol", name, output);
+
+      const artifacts = new Artifacts(this.tmpDir);
+      await artifacts.saveArtifactAndDebugFile(artifact, "");
+
+      expectHardhatError(
+        () => artifacts.readArtifactSync(typo),
+        ERRORS.ARTIFACTS.NOT_FOUND,
+        /Did you mean "Lib\.sol:Lib"\?/
+      );
+    });
+
+    it("Should throw with multiple typo suggestions if they are the same distance from a given fully qualified name (async)", async function () {
+      const output = COMPILER_OUTPUTS.Lib;
+      const name = "Lob";
+      const name2 = "Lib";
+      const typo = "Lib.sol:Lib";
+
+      const artifact = getArtifactFromContractOutput("Lib.sol", name, output);
+      const artifact2 = getArtifactFromContractOutput("Lob.sol", name2, output);
+
+      const artifacts = new Artifacts(this.tmpDir);
+      await artifacts.saveArtifactAndDebugFile(artifact, "");
+      await artifacts.saveArtifactAndDebugFile(artifact2, "");
+
+      const expected = ["Lib.sol:Lob", "Lob.sol:Lib"]
+        .map((n) => `  * ${n}`)
+        .join(os.EOL);
+
+      await expectHardhatErrorAsync(
+        () => artifacts.readArtifact(typo),
+        ERRORS.ARTIFACTS.NOT_FOUND,
+        expected
+      );
+    });
+
+    it("Should throw with multiple typo suggestions if they are the same distance from a given fully qualified name (sync)", async function () {
+      const output = COMPILER_OUTPUTS.Lib;
+      const name = "Lob";
+      const name2 = "Lib";
+      const typo = "Lib.sol:Lib";
+
+      const artifact = getArtifactFromContractOutput("Lib.sol", name, output);
+      const artifact2 = getArtifactFromContractOutput("Lob.sol", name2, output);
+
+      const artifacts = new Artifacts(this.tmpDir);
+      await artifacts.saveArtifactAndDebugFile(artifact, "");
+      await artifacts.saveArtifactAndDebugFile(artifact2, "");
+
+      const expected = ["Lib.sol:Lob", "Lob.sol:Lib"]
+        .map((n) => `  * ${n}`)
+        .join(os.EOL);
+
+      expectHardhatError(
+        () => artifacts.readArtifactSync(typo),
+        ERRORS.ARTIFACTS.NOT_FOUND,
+        expected
+      );
+    });
+
+    it("Should not throw with suggestions if the given contract name is further than EDIT_DISTANCE_THRESHOLD (async)", async function () {
+      const output = COMPILER_OUTPUTS.Lib;
+      const name = "Lib";
+      const typo = "aaaa";
+
+      const artifact = getArtifactFromContractOutput("Lib.sol", name, output);
+
+      const artifacts = new Artifacts(this.tmpDir);
+      await artifacts.saveArtifactAndDebugFile(artifact, "");
+
+      await expectHardhatErrorAsync(
+        () => artifacts.readArtifact(typo),
+        ERRORS.ARTIFACTS.NOT_FOUND,
+        /not found\.\s*$/
+      );
+    });
+
+    it("Should not throw with suggestions if the given contract name is further than EDIT_DISTANCE_THRESHOLD (sync)", async function () {
+      const output = COMPILER_OUTPUTS.Lib;
+      const name = "Lib";
+      const typo = "aaaa";
+
+      const artifact = getArtifactFromContractOutput("Lib.sol", name, output);
+
+      const artifacts = new Artifacts(this.tmpDir);
+      await artifacts.saveArtifactAndDebugFile(artifact, "");
+
+      expectHardhatError(
+        () => artifacts.readArtifactSync(typo),
+        ERRORS.ARTIFACTS.NOT_FOUND,
+        /not found\.\s*$/
+      );
+    });
+
+    it("Should not throw with suggestions if the given fully qualified name is further than EDIT_DISTANCE_THRESHOLD (async)", async function () {
+      const output = COMPILER_OUTPUTS.Lib;
+      const name = "Lib";
+      const typo = "Lib.sol:aaaa";
+
+      const artifact = getArtifactFromContractOutput("Lib.sol", name, output);
+
+      const artifacts = new Artifacts(this.tmpDir);
+      await artifacts.saveArtifactAndDebugFile(artifact, "");
+
+      await expectHardhatErrorAsync(
+        () => artifacts.readArtifact(typo),
+        ERRORS.ARTIFACTS.NOT_FOUND,
+        /not found\.\s*$/
+      );
+    });
+
+    it("Should not throw with suggestions if the given fully qualified name is further than EDIT_DISTANCE_THRESHOLD (sync)", async function () {
+      const output = COMPILER_OUTPUTS.Lib;
+      const name = "Lib";
+      const typo = "Lib.sol:aaaa";
+
+      const artifact = getArtifactFromContractOutput("Lib.sol", name, output);
+
+      const artifacts = new Artifacts(this.tmpDir);
+      await artifacts.saveArtifactAndDebugFile(artifact, "");
+
+      expectHardhatError(
+        () => artifacts.readArtifactSync(typo),
+        ERRORS.ARTIFACTS.NOT_FOUND,
+        /not found\.\s*$/
+      );
+    });
+
     it("Should be possible to get all the fully qualified names of the artifacts", async function () {
       const artifacts = new Artifacts(this.tmpDir);
       await storeAllArtifacts("source.sol", artifacts);
@@ -502,6 +738,23 @@ describe("Artifacts class", function () {
       expected.sort();
 
       assert.deepEqual(names, expected);
+    });
+
+    it("Should be possible to get an absolute path to an artifact given a fully qualified name", async function () {
+      const name = "Lib";
+      const output = COMPILER_OUTPUTS.Lib;
+
+      const artifact = getArtifactFromContractOutput("Lib.sol", name, output);
+
+      const artifacts = new Artifacts(this.tmpDir);
+      await artifacts.saveArtifactAndDebugFile(artifact, "");
+
+      const fullyQualifiedName = "Lib.sol:Lib";
+      const artifactPath =
+        artifacts.formArtifactPathFromFullyQualifiedName(fullyQualifiedName);
+
+      assert.isTrue(artifactPath.startsWith(this.tmpDir));
+      assert.isTrue(artifactPath.endsWith(".json"));
     });
 
     it("Should be possible to get a build info from a fully qualified name", async function () {

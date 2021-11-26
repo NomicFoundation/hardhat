@@ -1,0 +1,50 @@
+name: hardhat-vyper CI
+
+on:
+  push:
+    branches: [$default-branch]
+    paths:
+      - "packages/hardhat-vyper/**"
+      - "packages/hardhat-docker/**"
+      - "packages/hardhat-core/**"
+      - "packages/hardhat-common/**"
+      - "config/**"
+  pull_request:
+    branches:
+      - "*"
+    paths:
+      - "packages/hardhat-vyper/**"
+      - "packages/hardhat-docker/**"
+      - "packages/hardhat-core/**"
+      - "packages/hardhat-common/**"
+      - "config/**"
+
+defaults:
+  run:
+    working-directory: packages/hardhat-vyper
+
+concurrency:
+  group: ${{github.workflow}}-${{github.ref}}
+  cancel-in-progress: true
+
+jobs:
+  test_on_linux:
+    name: Test hardhat-vyper on Ubuntu with Node ${{ matrix.node }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [12, 14, 16]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node }}
+          cache: yarn
+      - name: install vyper
+        run: docker pull vyperlang/vyper:0.1.0b10
+      - name: Install
+        run: yarn --frozen-lockfile
+      - name: Build
+        run: yarn build
+      - name: Run tests
+        run: yarn test

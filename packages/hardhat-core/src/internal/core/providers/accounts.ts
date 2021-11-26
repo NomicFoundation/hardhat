@@ -1,6 +1,7 @@
 import { BN } from "ethereumjs-util";
 import * as t from "io-ts";
 
+import { FeeMarketEIP1559Transaction } from "@ethereumjs/tx";
 import { EIP1193Provider, RequestArguments } from "../../../types";
 import { HardhatError } from "../errors";
 import { ERRORS } from "../errors-list";
@@ -19,8 +20,6 @@ import { ProviderWrapperWithChainId } from "./chainId";
 import { derivePrivateKeys } from "./util";
 import { ProviderWrapper } from "./wrapper";
 
-// This library's types are wrong, they don't type check
-// tslint:disable-next-line no-var-requires
 const ethSigUtil = require("eth-sig-util");
 
 export interface JsonRpcTransactionData {
@@ -46,13 +45,8 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
   }
 
   public async request(args: RequestArguments): Promise<unknown> {
-    const {
-      ecsign,
-      hashPersonalMessage,
-      toRpcSig,
-      toBuffer,
-      bufferToHex,
-    } = await import("ethereumjs-util");
+    const { ecsign, hashPersonalMessage, toRpcSig, toBuffer, bufferToHex } =
+      await import("ethereumjs-util");
 
     if (
       args.method === "eth_accounts" ||
@@ -80,17 +74,48 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
       }
     }
 
-    if (args.method === "eth_signTypedData") {
+    if (args.method === "personal_sign") {
+      if (params.length > 0) {
+        const [data, address] = validateParams(params, rpcData, rpcAddress);
+
+        if (data !== undefined) {
+          if (address === undefined) {
+            throw new HardhatError(
+              ERRORS.NETWORK.PERSONALSIGN_MISSING_ADDRESS_PARAM
+            );
+          }
+
+          const privateKey = this._getPrivateKeyForAddress(address);
+          const messageHash = hashPersonalMessage(toBuffer(data));
+          const signature = ecsign(messageHash, privateKey);
+          return toRpcSig(signature.v, signature.r, signature.s);
+        }
+      }
+    }
+
+    if (args.method === "eth_signTypedData_v4") {
       const [address, data] = validateParams(params, rpcAddress, t.any);
 
-      if (address !== undefined) {
-        if (data === undefined) {
-          throw new HardhatError(ERRORS.NETWORK.ETHSIGN_MISSING_DATA_PARAM);
-        }
+      if (data === undefined) {
+        throw new HardhatError(ERRORS.NETWORK.ETHSIGN_MISSING_DATA_PARAM);
+      }
 
-        const privateKey = this._getPrivateKeyForAddress(address);
+      let typedMessage = data;
+      if (typeof data === "string") {
+        try {
+          typedMessage = JSON.parse(data);
+        } catch (error) {
+          throw new HardhatError(
+            ERRORS.NETWORK.ETHSIGN_TYPED_DATA_V4_INVALID_DATA_PARAM
+          );
+        }
+      }
+
+      // if we don't manage the address, the method is forwarded
+      const privateKey = this._getPrivateKeyForAddressOrNull(address);
+      if (privateKey !== null) {
         return ethSigUtil.signTypedData_v4(privateKey, {
-          data,
+          data: typedMessage,
         });
       }
     }
@@ -112,10 +137,30 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
         );
       }
 
-      if (txRequest.gasPrice === undefined) {
+      const hasGasPrice = txRequest.gasPrice !== undefined;
+      const hasEip1559Fields =
+        txRequest.maxFeePerGas !== undefined ||
+        txRequest.maxPriorityFeePerGas !== undefined;
+
+      if (!hasGasPrice && !hasEip1559Fields) {
+        throw new HardhatError(ERRORS.NETWORK.MISSING_FEE_PRICE_FIELDS);
+      }
+
+      if (hasGasPrice && hasEip1559Fields) {
+        throw new HardhatError(ERRORS.NETWORK.INCOMPATIBLE_FEE_PRICE_FIELDS);
+      }
+
+      if (hasEip1559Fields && txRequest.maxFeePerGas === undefined) {
         throw new HardhatError(
           ERRORS.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY,
-          { param: "gasPrice" }
+          { param: "maxFeePerGas" }
+        );
+      }
+
+      if (hasEip1559Fields && txRequest.maxPriorityFeePerGas === undefined) {
+        throw new HardhatError(
+          ERRORS.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY,
+          { param: "maxPriorityFeePerGas" }
         );
       }
 
@@ -171,6 +216,14 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
     return pk;
   }
 
+  private _getPrivateKeyForAddressOrNull(address: Buffer): Buffer | null {
+    try {
+      return this._getPrivateKeyForAddress(address);
+    } catch (e) {
+      return null;
+    }
+  }
+
   private async _getNonce(address: Buffer): Promise<BN> {
     const { bufferToHex } = await import("ethereumjs-util");
 
@@ -202,25 +255,33 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
 
     const common =
       chains.names[chainId] !== undefined
-        ? new Common({ chain: chainId, hardfork: "berlin" })
+        ? new Common({ chain: chainId, hardfork: "london" })
         : Common.forCustomChain(
             "mainnet",
             {
               chainId,
               networkId: chainId,
             },
-            "berlin"
+            "london"
           );
 
-    let transaction;
-    if (txData.accessList !== undefined) {
-      // we convert the access list to the type
-      // that AccessListEIP2930Transaction expects
-      const accessList = txData.accessList.map(
-        ({ address, storageKeys }) =>
-          [address, storageKeys] as [Buffer, Buffer[]]
-      );
+    // we convert the access list to the type
+    // that AccessListEIP2930Transaction expects
+    const accessList = txData.accessList?.map(
+      ({ address, storageKeys }) => [address, storageKeys] as [Buffer, Buffer[]]
+    );
 
+    let transaction;
+    if (txData.maxFeePerGas !== undefined) {
+      transaction = FeeMarketEIP1559Transaction.fromTxData(
+        {
+          ...txData,
+          accessList,
+          gasPrice: undefined,
+        },
+        { common }
+      );
+    } else if (accessList !== undefined) {
       transaction = AccessListEIP2930Transaction.fromTxData(
         {
           ...txData,

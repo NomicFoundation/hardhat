@@ -57,7 +57,7 @@ export function lazyObject<T extends object>(objectCreator: () => T): T {
   );
 }
 
-// tslint:disable-next-line ban-types
+// eslint-disable-next-line @typescript-eslint/ban-types
 export function lazyFunction<T extends Function>(functionCreator: () => T): T {
   return createLazyProxy(
     functionCreator,
@@ -89,7 +89,6 @@ function createLazyProxy<ActualT extends GuardT, GuardT extends object>(
 ): ActualT {
   let realTarget: ActualT | undefined;
 
-  // tslint:disable-next-line
   const dummyTarget: ActualT = dummyTargetCreator(getRealTarget) as any;
 
   function getRealTarget(): ActualT {
@@ -183,7 +182,7 @@ function createLazyProxy<ActualT extends GuardT, GuardT extends object>(
       return descriptor;
     },
 
-    getPrototypeOf(target) {
+    getPrototypeOf(_target) {
       return Reflect.getPrototypeOf(getRealTarget());
     },
 
@@ -191,15 +190,15 @@ function createLazyProxy<ActualT extends GuardT, GuardT extends object>(
       return Reflect.has(getRealTarget(), property);
     },
 
-    isExtensible(target) {
+    isExtensible(_target) {
       return Reflect.isExtensible(getRealTarget());
     },
 
-    ownKeys(target) {
+    ownKeys(_target) {
       return Reflect.ownKeys(getRealTarget());
     },
 
-    preventExtensions(target) {
+    preventExtensions(_target) {
       Object.preventExtensions(dummyTarget);
       return Reflect.preventExtensions(getRealTarget());
     },
@@ -218,12 +217,12 @@ function createLazyProxy<ActualT extends GuardT, GuardT extends object>(
   if (dummyTarget instanceof Function) {
     // If dummy target is a function, the actual target must be a function too.
     handler.apply = (target, thisArg: any, argArray?: any) => {
-      // tslint:disable-next-line ban-types
+      // eslint-disable-next-line @typescript-eslint/ban-types
       return Reflect.apply(getRealTarget() as Function, thisArg, argArray);
     };
 
-    handler.construct = (target, argArray: any, newTarget?: any) => {
-      // tslint:disable-next-line ban-types
+    handler.construct = (target, argArray: any, _newTarget?: any) => {
+      // eslint-disable-next-line @typescript-eslint/ban-types
       return Reflect.construct(getRealTarget() as Function, argArray);
     };
   }

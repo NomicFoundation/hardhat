@@ -78,8 +78,8 @@ export const HARDHAT_PARAM_DEFINITIONS: HardhatParamDefinitions = {
   tsconfig: {
     name: "tsconfig",
     defaultValue: undefined,
-    description: "Reserved hardhat argument -- Has no effect.",
-    type: types.string,
+    description: "A TypeScript config file.",
+    type: types.inputFile,
     isOptional: true,
     isFlag: false,
     isVariadic: false,

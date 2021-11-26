@@ -19,9 +19,8 @@ export function createProviderProxy(
 ): EthersProviderWrapper {
   const initialProvider = new EthersProviderWrapper(hardhatProvider);
 
-  const { proxy: providerProxy, setTarget } = createUpdatableTargetProxy(
-    initialProvider
-  );
+  const { proxy: providerProxy, setTarget } =
+    createUpdatableTargetProxy(initialProvider);
 
   hardhatProvider.on(HARDHAT_NETWORK_RESET_EVENT, () => {
     setTarget(new EthersProviderWrapper(hardhatProvider));

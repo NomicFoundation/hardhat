@@ -2,7 +2,9 @@ const { cleanup, ganacheSetup } = require("./ganache-provider");
 
 const { GANACHE_CLI_ARGS } = process.env;
 
-const ganacheCliArgs = (GANACHE_CLI_ARGS !== undefined ? GANACHE_CLI_ARGS : "-d")
+const ganacheCliArgs = (
+  GANACHE_CLI_ARGS !== undefined ? GANACHE_CLI_ARGS : "-d"
+)
   .split(/[\s,]+/)
   .filter((arg) => arg.length > 0);
 

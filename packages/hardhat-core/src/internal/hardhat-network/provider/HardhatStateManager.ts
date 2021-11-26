@@ -23,7 +23,7 @@ const encodeStorageKey = (address: Buffer, position: Buffer): string => {
   return `${address.toString("hex")}${unpadBuffer(position).toString("hex")}`;
 };
 
-/* tslint:disable only-hardhat-error */
+/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
 type State = ImmutableMap<string, ImmutableRecord<AccountState>>;
 
@@ -37,7 +37,7 @@ const notSupportedError = (method: string) =>
   new Error(`${method} is not supported when forking from remote network`);
 
 export class HardhatStateManager implements EIP2929StateManager {
-  private _state: State = ImmutableMap();
+  private _state: State = ImmutableMap<string, ImmutableRecord<AccountState>>();
   private _initialStateRoot: string = randomHash();
   private _stateRoot: string = this._initialStateRoot;
   private _stateRootToState: Map<string, State> = new Map();
@@ -52,7 +52,7 @@ export class HardhatStateManager implements EIP2929StateManager {
   ];
 
   constructor() {
-    this._state = ImmutableMap();
+    this._state = ImmutableMap<string, ImmutableRecord<AccountState>>();
 
     this._stateRootToState.set(this._initialStateRoot, this._state);
   }
@@ -101,7 +101,7 @@ export class HardhatStateManager implements EIP2929StateManager {
     this._putAccount(address, account);
   }
 
-  public touchAccount(address: Address): void {
+  public touchAccount(_address: Address): void {
     // We don't do anything here. See cleanupTouchedAccounts for explanation
   }
 
@@ -180,7 +180,7 @@ export class HardhatStateManager implements EIP2929StateManager {
     let account = this._state.get(hexAddress) ?? makeAccountState();
     account = account
       .set("storageCleared", true)
-      .set("storage", ImmutableMap());
+      .set("storage", ImmutableMap<string, string | null>());
     this._state = this._state.set(hexAddress, account);
   }
 
@@ -216,7 +216,7 @@ export class HardhatStateManager implements EIP2929StateManager {
     this._setStateRoot(stateRoot);
   }
 
-  public async dumpStorage(address: Address): Promise<Record<string, string>> {
+  public async dumpStorage(_address: Address): Promise<Record<string, string>> {
     throw notSupportedError("dumpStorage");
   }
 
@@ -228,7 +228,7 @@ export class HardhatStateManager implements EIP2929StateManager {
     throw notSupportedError("generateCanonicalGenesis");
   }
 
-  public async generateGenesis(initState: any): Promise<void> {
+  public async generateGenesis(_initState: any): Promise<void> {
     throw notSupportedError("generateGenesis");
   }
 
@@ -259,7 +259,7 @@ export class HardhatStateManager implements EIP2929StateManager {
     }
   }
 
-  public accountExists(address: Address): never {
+  public accountExists(_address: Address): never {
     throw new InternalError(
       "Hardhat Network can't fork from networks running a hardfork older than Spurious Dragon"
     );

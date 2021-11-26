@@ -1,12 +1,13 @@
 # Testing with Web3.js & Truffle
 
-Hardhat allows you to use Truffle to test your smart contracts. This mainly means compatibility with the [`@truffle/contract`](https://www.npmjs.com/package/@truffle/contract) package to interact with your smart contracts. 
+Hardhat allows you to use Truffle to test your smart contracts. This mainly means compatibility with the [`@truffle/contract`](https://www.npmjs.com/package/@truffle/contract) package to interact with your smart contracts.
 
-Truffle 4 and Truffle 5 are supported using the `@nomiclabs/hardhat-truffle4` and `@nomiclabs/hardhat-truffle5` plugins respectively. Both work with either Solidity 4+.
+Truffle 4 and Truffle 5 are supported using the `@nomiclabs/hardhat-truffle4` and `@nomiclabs/hardhat-truffle5` plugins respectively.
 
 Let's see how to do this creating a new Hardhat project.
 
 Run these to start:
+
 ```
 mkdir my-project
 cd my-project
@@ -32,7 +33,7 @@ module.exports = {
 };
 ```
 
-Create a folder named `contracts` inside your project. Add a file named `Greeter.sol`, copy and paste the code below:
+Create a folder named `contracts` inside your project. Add a file named `Greeter.sol`, and copy and paste this code:
 
 ```c
 pragma solidity ^0.7.0;
@@ -66,8 +67,8 @@ Let's start with the code below. We'll explain it next, but for now paste this i
 const Greeter = artifacts.require("Greeter");
 
 // Traditional Truffle test
-contract("Greeter", accounts => {
-  it("Should return the new greeting once it's changed", async function() {
+contract("Greeter", (accounts) => {
+  it("Should return the new greeting once it's changed", async function () {
     const greeter = await Greeter.new("Hello, world!");
     assert.equal(await greeter.greet(), "Hello, world!");
 
@@ -78,15 +79,15 @@ contract("Greeter", accounts => {
 });
 
 // Vanilla Mocha test. Increased compatibility with tools that integrate Mocha.
-describe("Greeter contract", function() {
+describe("Greeter contract", function () {
   let accounts;
 
-  before(async function() {
+  before(async function () {
     accounts = await web3.eth.getAccounts();
   });
 
-  describe("Deployment", function() {
-    it("Should deploy with the right greeting", async function() {
+  describe("Deployment", function () {
+    it("Should deploy with the right greeting", async function () {
       const greeter = await Greeter.new("Hello, world!");
       assert.equal(await greeter.greet(), "Hello, world!");
 
@@ -101,15 +102,17 @@ As you can see in the first line, the artifacts object is present in the global 
 
 ```js
 const Greeter = artifacts.require("Greeter");
-````
+```
 
-These examples show two approaches towards testing: 
+These examples show two approaches towards testing:
+
 - Using `contract()`, which is the traditional way to test with Truffle
 - Using `describe()`, which is the traditional way to test using Mocha
 
 Truffle runs its tests with Mocha, but a few tools that integrate Mocha don't expect `contract()` and don't always work well. We recommend using the `describe()` approach.
 
 You can run these tests by running `npx hardhat test`:
+
 ```
 $ npx hardhat test
 
@@ -128,7 +131,7 @@ If you want to use Truffle Migrations to initialize your tests and call `deploye
 
 ## Using Web3.js
 
-To use Web3.js in your tests, an instance of it is available in the global scope. You can see this in the `describe()` test in `sample-test.js`:
+To use Web3.js in your tests, an instance of it is available in the global scope. You can see this in the `describe()` test in `Greeter.js`:
 
 ```js{20}
 const Greeter = artifacts.require("Greeter");
@@ -167,6 +170,4 @@ describe("Greeter contract", function() {
 
 Checkout the plugin's [README file](https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-truffle5) for more information about it.
 
-
-[Hardhat Runtime Environment]: /documentation/#hardhat-runtime-environment-hre
-
+[hardhat runtime environment]: /documentation/#hardhat-runtime-environment-hre

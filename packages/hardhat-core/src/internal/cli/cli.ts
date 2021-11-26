@@ -25,6 +25,7 @@ import {
 } from "../util/global-dir";
 import { getPackageJson, PackageJson } from "../util/packageInfo";
 
+import { applyWorkaround } from "../util/antlr-prototype-pollution-workaround";
 import { Analytics } from "./analytics";
 import { ArgumentsParser } from "./ArgumentsParser";
 import { enableEmoji } from "./emoji";
@@ -32,18 +33,26 @@ import { confirmTelemetryConsent, createProject } from "./project-creation";
 
 const log = debug("hardhat:core:cli");
 
+applyWorkaround();
+
 const ANALYTICS_SLOW_TASK_THRESHOLD = 300;
 
 async function printVersionMessage(packageJson: PackageJson) {
   console.log(packageJson.version);
 }
 
-function ensureValidNodeVersion(packageJson: PackageJson) {
+function printWarningAboutNodeJsVersionIfNeceesary(packageJson: PackageJson) {
   const requirement = packageJson.engines.node;
   if (!semver.satisfies(process.version, requirement)) {
-    throw new HardhatError(ERRORS.GENERAL.INVALID_NODE_VERSION, {
-      requirement,
-    });
+    console.warn(
+      chalk.yellow(
+        `You are using a version of Node.js that is not supported by Hardhat, and it may work incorrectly, or not work at all.
+
+Please, upgrade your Node.js version.
+
+To learn more about which versions of Node.js are supported go to https://hardhat.org/nodejs-versions`
+      )
+    );
   }
 }
 
@@ -55,7 +64,7 @@ async function main() {
   try {
     const packageJson = await getPackageJson();
 
-    ensureValidNodeVersion(packageJson);
+    printWarningAboutNodeJsVersionIfNeceesary(packageJson);
 
     const envVariableArguments = getEnvHardhatArguments(
       HARDHAT_PARAM_DEFINITIONS,
@@ -88,7 +97,14 @@ async function main() {
     if (
       hardhatArguments.config === undefined &&
       !isCwdInsideProject() &&
-      process.stdout.isTTY === true
+      (process.stdout.isTTY === true ||
+        process.env.HARDHAT_CREATE_BASIC_SAMPLE_PROJECT_WITH_DEFAULTS !==
+          undefined ||
+        process.env.HARDHAT_CREATE_ADVANCED_SAMPLE_PROJECT_WITH_DEFAULTS !==
+          undefined ||
+        process.env
+          .HARDHAT_CREATE_ADVANCED_TYPESCRIPT_SAMPLE_PROJECT_WITH_DEFAULTS !==
+          undefined)
     ) {
       await createProject();
       return;
@@ -105,7 +121,7 @@ async function main() {
     }
 
     if (willRunWithTypescript(hardhatArguments.config)) {
-      loadTsNode();
+      loadTsNode(hardhatArguments.tsconfig);
     }
 
     let taskName = parsedTaskName ?? TASK_HELP;
@@ -143,8 +159,7 @@ async function main() {
     const envExtenders = ctx.extendersManager.getExtenders();
     const taskDefinitions = ctx.tasksDSL.getTaskDefinitions();
 
-    // tslint:disable-next-line: prefer-const
-    let [abortAnalytics, hitPromise] = await analytics.sendTaskHit(taskName);
+    const [abortAnalytics, hitPromise] = await analytics.sendTaskHit(taskName);
 
     let taskArguments: TaskArguments;
 
@@ -220,8 +235,8 @@ async function main() {
 
     try {
       Reporter.reportError(error);
-    } catch (error) {
-      log("Couldn't report error to sentry: %O", error);
+    } catch (e) {
+      log("Couldn't report error to sentry: %O", e);
     }
 
     if (showStackTraces) {

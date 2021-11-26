@@ -1,6 +1,7 @@
 # Compiling your contracts
 
-To compile your contracts in your Hardhat project, use the `compile` built-in task:
+To compile your contracts in your Hardhat project, use the built-in `compile` task:
+
 ```
 $ npx hardhat compile
 Compiling...
@@ -9,30 +10,34 @@ Compiled 1 contract successfully
 
 The compiled artifacts will be saved in the `artifacts/` directory by default, or whatever your configured artifacts path is. Look at the [paths configuration section](../config/README.md#path-configuration) to learn how to change it. This directory will be created if it doesn't exist.
 
-After the initial compilation, Hardhat will try to do the least amount of work possible the next time you compile. For example, if you didn't change any file since the last compilation, nothing will be compiled. If you only modified one file, only that file and others affected by it will be recompiled.
+After the initial compilation, Hardhat will try to do the least amount of work possible the next time you compile. For example, if you didn't change any files since the last compilation, nothing will be compiled:
 
 ```
 $ npx hardhat compile
 Nothing to compile
 ```
 
+If you only modified one file, only that file and others affected by it will be recompiled.
+
 To force a compilation you can use the `--force` argument, or run `npx hardhat clean` to clear the cache and delete the artifacts.
 
 ## Configuring the compiler
 
-If you need to customize the Solidity compiler options, then you can do so through the `solidity` config field in your `hardhat.config.js`. The simplest way to use this field is the shorthand for setting the compiler version, which we recommend always doing:
+If you need to customize the Solidity compiler options, then you can do so through the `solidity` field in your `hardhat.config.js`. The simplest way to use this field is via the shorthand for setting the compiler version, which we recommend always doing:
 
 ```js
 module.exports = {
-  solidity: "0.7.1"
-}
+  solidity: "0.7.1",
+};
 ```
 
-We recommend always setting a compiler version to avoid unexpected behavior or compiling errors as new releases of Solidity are published.
+We recommend always setting a compiler version in order to avoid unexpected behavior or compiling errors as new releases of Solidity are published.
 
-:::: warning
+::: warning
+
 Hardhat will automatically download the versions of `solc` that you set up. If you are behind an HTTP proxy, you may need to set the `HTTP_PROXY` or `HTTPS_PROXY` environment variable to the URL of your proxy.
-::::
+
+:::
 
 The expanded usage allows for more control of the compiler:
 
@@ -43,20 +48,20 @@ module.exports = {
     settings: {
       optimizer: {
         enabled: true,
-        runs: 1000
-      }
-    }
-  }
-}
+        runs: 1000,
+      },
+    },
+  },
+};
 ```
 
 `settings` has the same schema as the `settings` entry in the [Input JSON](https://solidity.readthedocs.io/en/v0.7.2/using-the-compiler.html#input-description) that can be passed to the compiler. Some commonly used settings are:
 
 - `optimizer`: an object with `enabled` and `runs` keys. Default value: `{ enabled: false, runs: 200 }`.
 
-- `evmVersion`: a string controlling the target evm version. One of `homestead`, `tangerineWhistle`, `spuriousDragon`, `byzantium`, `constantinople`, `petersburg`, `istanbul`, and `berlin`. Default value: managed by `solc`. 
+- `evmVersion`: a string controlling the target evm version. For example: `istanbul`, `berlin` or `london`. Default value: managed by `solc`.
 
-If any of your contracts has a version pragma that is not satisfied by the compiler version you configured, then Hardhat will throw an error.
+If any of your contracts have a version pragma that is not satisfied by the compiler version you configured, then Hardhat will throw an error.
 
 ### Multiple Solidity versions
 
@@ -67,15 +72,15 @@ module.exports = {
   solidity: {
     compilers: [
       {
-        version: "0.5.5"
+        version: "0.5.5",
       },
       {
         version: "0.6.7",
-        settings: { } 
-      }
-    ]
-  }
-}
+        settings: {},
+      },
+    ],
+  },
+};
 ```
 
 This setup means that a file with a `pragma solidity ^0.5.0` will be compiled with solc 0.5.5 and a file with a `pragma solidity ^0.6.0` will be compiled with solc 0.6.7.
@@ -96,45 +101,47 @@ module.exports = {
 }
 ```
 
-In this case, `contracts/Foo.sol` will be compiled with solc 0.5.5, no matter what's inside the `solidity.compilers` entry. 
+In this case, `contracts/Foo.sol` will be compiled with solc 0.5.5, no matter what's inside the `solidity.compilers` entry.
 
 Keep in mind that:
+
 - Overrides are full compiler configurations, so if you have any additional settings you're using you should set them for the override as well.
 - You have to use forward slashes (`/`) even if you are on Windows.
 
 ## Artifacts
- 
-Compiling with Hardhat generates two files per compiled contract (not each `.sol` file): an artifact and a debug file. 
+
+Compiling with Hardhat generates two files per compiled contract (not each `.sol` file): an artifact and a debug file.
 
 An **artifact** has all the information that is necessary to deploy and interact with the contract. These are compatible with most tools, including Truffle's artifact format. Each artifact consists of a json with the following properties:
 
 - `contractName`: A string with the contract's name.
 
-- `abi`: A [JSON description](https://solidity.readthedocs.io/en/latest/abi-spec.html#abi-json) of the contract's ABI.
+- `abi`: A [JSON description of the contract's ABI](https://solidity.readthedocs.io/en/latest/abi-spec.html#abi-json).
 
-- `bytecode`: A `"0x"`-prefixed hex string of the unlinked deployment bytecode. If the contract is not deployable then, this has the `"0x"` string.
+- `bytecode`: A `"0x"`-prefixed hex string of the unlinked deployment bytecode. If the contract is not deployable, this has the string `"0x"`.
 
-- `deployedBytecode`: A `"0x"`-prefixed hex string of the unlinked runtime/deployed bytecode. If the contract is not deployable then, this has the `"0x"` string.
+- `deployedBytecode`: A `"0x"`-prefixed hex string of the unlinked runtime/deployed bytecode. If the contract is not deployable, this has the string `"0x"`.
 
 - `linkReferences`: The bytecode's link references object [as returned by solc](https://solidity.readthedocs.io/en/latest/using-the-compiler.html). If the contract doesn't need to be linked, this value contains an empty object.
 
 - `deployedLinkReferences`: The deployed bytecode's link references object [as returned by solc](https://solidity.readthedocs.io/en/latest/using-the-compiler.html). If the contract doesn't need to be linked, this value contains an empty object.
 
-
 The **debug file** has all the information that is necessary to reproduce the compilation and to debug the contracts: this includes the original solc input and output, and the solc version used to compile it.
 
 ### Build info files
+
 Hardhat optimizes compilation by compiling the smallest possible set of files at a time. Files that are compiled together have the same solc input and output. Since having this in each debug file would be meaningfully wasteful, this information is deduplicated in build info files that are placed in `artifacts/build-info`. Each contract debug file contains a relative path to its build info file, and each build info file contains the solc input, solc output and the solc version used.
 
-You shouldn't interact with these files directly. 
+You shouldn't interact with these files directly.
 
 ### Reading artifacts
 
 The [HRE] has an `artifacts` object with helper methods. For example, you can get a list with the paths to all artifacts by calling `hre.artifacts.getArtifactPaths()`.
 
-You can also read an artifact using the name of the contract by calling `hre.artifacts.readArtifact("Bar")` and that will give us the content of the artifact for the `Bar` contract. This would only work if there was just one contract `Bar` in the whole project, but calling `hre.artifacts.readArtifact("Foo")`, would throw an error if there were two `Foo` contracts. To disambiguate this case, you would have to use the **Fully Qualified Name** of the contract: `hre.artifacts.readArtifact("contracts/Foo.sol:Foo")`.
+You can also read an artifact using the name of the contract by calling `hre.artifacts.readArtifact("Bar")`, which will return the content of the artifact for the `Bar` contract. This would only work if there was just one contract named `Bar` in the whole project; it would throw an error if there were two. To disambiguate this case, you would have to use the **Fully Qualified Name** of the contract: `hre.artifacts.readArtifact("contracts/Bar.sol:Bar")`.
 
 ### Directory structure
+
 The `artifacts/` directory has a structure that follows the original directory structure of the contracts. For example, if your contracts look like this:
 
 ```
@@ -144,7 +151,7 @@ contracts
 └── Qux.sol
 ```
 
-the structure of your artifact directory then could look like this:
+then the structure of your artifact directory would look like this:
 
 ```
 artifacts
@@ -168,4 +175,4 @@ Two Solidity files can have contracts with the same name, and this structure all
 
 For any help or feedback you may have, you can find us in the [Hardhat Support Discord server](https://hardhat.org/discord).
 
-[HRE]: ../advanced/hardhat-runtime-environment.md
+[hre]: ../advanced/hardhat-runtime-environment.md

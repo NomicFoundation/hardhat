@@ -34,7 +34,7 @@ import {
 
 import { assertEqualBlocks } from "./utils/assertEqualBlocks";
 
-// tslint:disable no-string-literal
+/* eslint-disable @typescript-eslint/dot-notation */
 
 interface ForkedBlock {
   networkName: string;
@@ -51,17 +51,20 @@ describe("HardhatNode", () => {
     chainId: DEFAULT_CHAIN_ID,
     networkId: DEFAULT_NETWORK_ID,
     blockGasLimit: DEFAULT_BLOCK_GAS_LIMIT,
+    minGasPrice: new BN(0),
     genesisAccounts: DEFAULT_ACCOUNTS,
+    initialBaseFeePerGas: 10,
+    mempoolOrder: "priority",
+    coinbase: "0x0000000000000000000000000000000000000000",
   };
-  const gasPrice = 1;
+  const gasPrice = 20;
   let node: HardhatNode;
   let createTestTransaction: (
     txData: TxData & { from: string }
   ) => FakeSenderTransaction;
 
   beforeEach(async () => {
-    let common: Common;
-    [common, node] = await HardhatNode.create(config);
+    [, node] = await HardhatNode.create(config);
     createTestTransaction = (txData) => {
       const tx = new FakeSenderTransaction(Address.fromString(txData.from), {
         gasPrice,
@@ -167,6 +170,39 @@ describe("HardhatNode", () => {
         await assertTransactionsWereMined([tx1, tx2]);
         const balance = await node.getAccountBalance(EMPTY_ACCOUNT_ADDRESS);
         assert.equal(balance.toString(), "2468");
+      });
+
+      it("can keep the transaction ordering when mining a block", async () => {
+        [, node] = await HardhatNode.create({
+          ...config,
+          mempoolOrder: "fifo",
+        });
+
+        const tx1 = createTestTransaction({
+          nonce: 0,
+          from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+          to: EMPTY_ACCOUNT_ADDRESS,
+          gasLimit: 21_000,
+          value: 1234,
+          gasPrice: 42,
+        });
+        const tx2 = createTestTransaction({
+          nonce: 0,
+          from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+          to: EMPTY_ACCOUNT_ADDRESS,
+          gasLimit: 21_000,
+          value: 1234,
+          gasPrice: 84,
+        });
+        await node.sendTransaction(tx1);
+        await node.sendTransaction(tx2);
+        await node.mineBlock();
+
+        const txReceipt1 = await node.getTransactionReceipt(tx1.hash());
+        const txReceipt2 = await node.getTransactionReceipt(tx2.hash());
+
+        assert.equal(txReceipt1?.transactionIndex, "0x0");
+        assert.equal(txReceipt2?.transactionIndex, "0x1");
       });
 
       it("can mine a block with two transactions from the same sender", async () => {
@@ -281,17 +317,30 @@ describe("HardhatNode", () => {
       });
 
       it("assigns miner rewards", async () => {
+        const gasPriceBN = new BN(1);
+
+        let baseFeePerGas = new BN(0);
+        const pendingBlock = await node.getBlockByNumber("pending");
+        if (pendingBlock.header.baseFeePerGas !== undefined) {
+          baseFeePerGas = pendingBlock.header.baseFeePerGas;
+        }
+
         const miner = node.getCoinbaseAddress();
         const initialMinerBalance = await node.getAccountBalance(miner);
 
         const oneEther = new BN(10).pow(new BN(18));
-        const txFee = 21_000 * gasPrice;
-        const minerReward = oneEther.muln(2).addn(txFee);
+        const txFee = gasPriceBN.add(baseFeePerGas).muln(21_000);
+        const burnedTxFee = baseFeePerGas.muln(21_000);
+
+        // the miner reward is 2 ETH plus the tx fee, minus the part
+        // of the fee that is burned
+        const minerReward = oneEther.muln(2).add(txFee).sub(burnedTxFee);
 
         const tx = createTestTransaction({
           nonce: 0,
           from: DEFAULT_ACCOUNTS_ADDRESSES[0],
           to: EMPTY_ACCOUNT_ADDRESS,
+          gasPrice: gasPriceBN.add(baseFeePerGas),
           gasLimit: 21_000,
           value: 1234,
         });
@@ -381,21 +430,21 @@ describe("HardhatNode", () => {
           from: DEFAULT_ACCOUNTS_ADDRESSES[0],
           to: EMPTY_ACCOUNT_ADDRESS,
           gasLimit: 30_000, // actual gas used is 21_000
-          gasPrice: 2,
+          gasPrice: 40,
         });
         const tx2 = createTestTransaction({
           nonce: 1,
           from: DEFAULT_ACCOUNTS_ADDRESSES[0],
           to: EMPTY_ACCOUNT_ADDRESS,
           gasLimit: 30_000, // actual gas used is 21_000
-          gasPrice: 2,
+          gasPrice: 40,
         });
         const tx3 = createTestTransaction({
           nonce: 0,
           from: DEFAULT_ACCOUNTS_ADDRESSES[1],
           to: EMPTY_ACCOUNT_ADDRESS,
           gasLimit: 21_000,
-          gasPrice: 1,
+          gasPrice: 20,
         });
         await node.sendTransaction(tx1);
         await node.sendTransaction(tx2);
@@ -409,6 +458,18 @@ describe("HardhatNode", () => {
 
     describe("timestamp tests", () => {
       let clock: sinon.SinonFakeTimers;
+
+      const assertIncreaseTime = async (expectedTime: number) => {
+        const block = await node.getLatestBlock();
+        const blockTimestamp = block.header.timestamp.toNumber();
+
+        // We check that the time increased at least what we had expected
+        // but allow a little bit of POSITIVE difference(i.e. that the
+        // actual timestamp is a little bit bigger) because time may have ellapsed
+        // We assume that the test CAN NOT have taken more than a second
+        assert.isAtLeast(blockTimestamp, expectedTime);
+        assert.isAtMost(blockTimestamp, expectedTime + 1);
+      };
 
       beforeEach(() => {
         clock = sinon.useFakeTimers(Date.now());
@@ -494,12 +555,31 @@ describe("HardhatNode", () => {
 
       it("mines a block with correct timestamp after time increase", async () => {
         const now = getCurrentTimestamp();
-        node.increaseTime(new BN(30));
+        const delta = 30;
+        node.increaseTime(new BN(delta));
         await node.mineBlock();
 
-        const block = await node.getLatestBlock();
-        const blockTimestamp = block.header.timestamp.toNumber();
-        assert.equal(blockTimestamp, now + 30);
+        await assertIncreaseTime(now + delta);
+      });
+
+      it("mining a block having increaseTime called twice counts both calls", async () => {
+        const now = getCurrentTimestamp();
+        const delta = 30;
+        node.increaseTime(new BN(delta));
+        node.increaseTime(new BN(delta));
+        await node.mineBlock();
+        await assertIncreaseTime(now + delta * 2);
+      });
+
+      it("mining a block having called increaseTime takes into account 'real' passing time", async () => {
+        const now = getCurrentTimestamp();
+        const delta = 30;
+        const elapsedTimeInSeconds = 3;
+        node.increaseTime(new BN(delta));
+        clock.tick(elapsedTimeInSeconds * 1_000);
+        await node.mineBlock();
+
+        await assertIncreaseTime(now + delta + elapsedTimeInSeconds);
       });
 
       describe("when time is increased by 30s", () => {
@@ -593,6 +673,12 @@ describe("HardhatNode", () => {
         blockToRun: 9812365, // this block has a EIP-2930 tx
         chainId: 3,
       },
+      {
+        networkName: "ropsten",
+        url: ALCHEMY_URL.replace("mainnet", "ropsten"),
+        blockToRun: 10499406, // this block has a EIP-1559 tx
+        chainId: 3,
+      },
     ];
 
     for (const { url, blockToRun, networkName, chainId } of forkedBlocks) {
@@ -627,7 +713,10 @@ describe("HardhatNode", () => {
           forkConfig,
           forkCachePath: FORK_TESTS_CACHE_PATH,
           blockGasLimit: rpcBlock.gasLimit.toNumber(),
+          minGasPrice: new BN(0),
           genesisAccounts: [],
+          mempoolOrder: "priority",
+          coinbase: "0x0000000000000000000000000000000000000000",
         };
 
         const [common, forkedNode] = await HardhatNode.create(forkedNodeConfig);

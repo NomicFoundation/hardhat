@@ -1,3 +1,4 @@
+import { BN } from "ethereumjs-util";
 import * as fs from "fs";
 import cloneDeep from "lodash/cloneDeep";
 import path from "path";
@@ -9,6 +10,8 @@ import {
   HardhatNetworkForkingConfig,
   HardhatNetworkMiningConfig,
   HardhatNetworkMiningUserConfig,
+  HardhatNetworkMempoolConfig,
+  HardhatNetworkMempoolUserConfig,
   HardhatNetworkUserConfig,
   HardhatUserConfig,
   HDAccountsUserConfig,
@@ -154,6 +157,11 @@ function resolveHardhatNetworkConfig(
 
   const mining = resolveMiningConfig(hardhatNetworkConfig.mining);
 
+  const minGasPrice = new BN(
+    hardhatNetworkConfig.minGasPrice ??
+      clonedDefaultHardhatNetworkParams.minGasPrice
+  );
+
   const blockGasLimit =
     hardhatNetworkConfig.blockGasLimit ??
     clonedDefaultHardhatNetworkParams.blockGasLimit;
@@ -172,6 +180,7 @@ function resolveHardhatNetworkConfig(
     blockGasLimit,
     gas,
     initialDate,
+    minGasPrice,
   };
 
   // We do it this way because ts gets lost otherwise
@@ -221,10 +230,12 @@ function resolveHttpNetworkConfig(
 function resolveMiningConfig(
   userConfig: HardhatNetworkMiningUserConfig | undefined
 ): HardhatNetworkMiningConfig {
+  const mempool = resolveMempoolConfig(userConfig?.mempool);
   if (userConfig === undefined) {
     return {
       auto: true,
       interval: 0,
+      mempool,
     };
   }
 
@@ -234,6 +245,7 @@ function resolveMiningConfig(
     return {
       auto: true,
       interval: 0,
+      mempool,
     };
   }
 
@@ -241,6 +253,7 @@ function resolveMiningConfig(
     return {
       auto: false,
       interval,
+      mempool,
     };
   }
 
@@ -248,6 +261,7 @@ function resolveMiningConfig(
     return {
       auto,
       interval: 0,
+      mempool,
     };
   }
 
@@ -255,15 +269,35 @@ function resolveMiningConfig(
   return {
     auto: auto!,
     interval: interval!,
+    mempool,
   };
+}
+
+function resolveMempoolConfig(
+  userConfig: HardhatNetworkMempoolUserConfig | undefined
+): HardhatNetworkMempoolConfig {
+  if (userConfig === undefined) {
+    return {
+      order: "priority",
+    };
+  }
+
+  if (userConfig.order === undefined) {
+    return {
+      order: "priority",
+    };
+  }
+
+  return {
+    order: userConfig.order,
+  } as HardhatNetworkMempoolConfig;
 }
 
 function resolveSolidityConfig(userConfig: HardhatUserConfig): SolidityConfig {
   const userSolidityConfig = userConfig.solidity ?? DEFAULT_SOLC_VERSION;
 
-  const multiSolcConfig: MultiSolcUserConfig = normalizeSolidityConfig(
-    userSolidityConfig
-  );
+  const multiSolcConfig: MultiSolcUserConfig =
+    normalizeSolidityConfig(userSolidityConfig);
 
   const overrides = multiSolcConfig.overrides ?? {};
 

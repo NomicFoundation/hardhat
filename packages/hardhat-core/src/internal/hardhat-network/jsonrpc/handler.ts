@@ -18,7 +18,7 @@ import {
   JsonRpcResponse,
 } from "../../util/jsonrpc";
 
-// tslint:disable only-hardhat-error
+/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
 export default class JsonRpcHandler {
   constructor(private readonly _provider: EIP1193Provider) {}
@@ -61,7 +61,7 @@ export default class JsonRpcHandler {
     const listener = (payload: { subscription: string; result: any }) => {
       // Don't attempt to send a message to the websocket if we already know it is closed,
       // or the current websocket connection isn't interested in the particular subscription.
-      if (isClosed || subscriptions.includes(payload.subscription)) {
+      if (isClosed || !subscriptions.includes(payload.subscription)) {
         return;
       }
 
@@ -69,7 +69,7 @@ export default class JsonRpcHandler {
         ws.send(
           JSON.stringify({
             jsonrpc: "2.0",
-            method: "eth_subscribe",
+            method: "eth_subscription",
             params: payload,
           })
         );
@@ -100,7 +100,7 @@ export default class JsonRpcHandler {
           rpcReq.method === "eth_subscribe" &&
           isSuccessfulJsonResponse(rpcResp)
         ) {
-          subscriptions.push(rpcResp.result.id);
+          subscriptions.push(rpcResp.result);
         }
       } catch (error) {
         rpcResp = _handleError(error);

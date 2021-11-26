@@ -1,4 +1,4 @@
-import { BN } from "ethereumjs-util";
+import { Address, BN } from "ethereumjs-util";
 import * as t from "io-ts";
 
 import {
@@ -6,7 +6,13 @@ import {
   CompilerInput,
   CompilerOutput,
 } from "../../../../types";
-import { rpcAddress } from "../../../core/jsonrpc/types/base-types";
+import {
+  bufferToRpcData,
+  rpcAddress,
+  rpcData,
+  rpcHash,
+  rpcQuantity,
+} from "../../../core/jsonrpc/types/base-types";
 import {
   optionalRpcHardhatNetworkConfig,
   RpcHardhatNetworkConfig,
@@ -16,14 +22,17 @@ import {
   rpcCompilerOutput,
 } from "../../../core/jsonrpc/types/input/solc";
 import { validateParams } from "../../../core/jsonrpc/types/input/validation";
-import { MethodNotFoundError } from "../../../core/providers/errors";
+import {
+  InvalidInputError,
+  MethodNotFoundError,
+} from "../../../core/providers/errors";
 import { MessageTrace } from "../../stack-traces/message-trace";
 import { HardhatNode } from "../node";
 import { ForkConfig, MineBlockResult } from "../node-types";
 
 import { ModulesLogger } from "./logger";
 
-// tslint:disable only-hardhat-error
+/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
 export class HardhatModule {
   constructor(
@@ -57,6 +66,9 @@ export class HardhatModule {
       case "hardhat_intervalMine":
         return this._intervalMineAction(...this._intervalMineParams(params));
 
+      case "hardhat_getAutomine":
+        return this._getAutomine();
+
       case "hardhat_stopImpersonatingAccount":
         return this._stopImpersonatingAction(
           ...this._stopImpersonatingParams(params)
@@ -69,6 +81,36 @@ export class HardhatModule {
         return this._setLoggingEnabledAction(
           ...this._setLoggingEnabledParams(params)
         );
+
+      case "hardhat_setMinGasPrice":
+        return this._setMinGasPriceAction(
+          ...this._setMinGasPriceParams(params)
+        );
+
+      case "hardhat_dropTransaction":
+        return this._dropTransactionAction(
+          ...this._dropTransactionParams(params)
+        );
+
+      case "hardhat_setBalance":
+        return this._setBalanceAction(...this._setBalanceParams(params));
+
+      case "hardhat_setCode":
+        return this._setCodeAction(...this._setCodeParams(params));
+
+      case "hardhat_setNonce":
+        return this._setNonceAction(...this._setNonceParams(params));
+
+      case "hardhat_setStorageAt":
+        return this._setStorageAtAction(...this._setStorageAtParams(params));
+
+      case "hardhat_setNextBlockBaseFeePerGas":
+        return this._setNextBlockBaseFeePerGasAction(
+          ...this._setNextBlockBaseFeePerGasParams(params)
+        );
+
+      case "hardhat_setCoinbase":
+        return this._setCoinbaseAction(...this._setCoinbaseParams(params));
     }
 
     throw new MethodNotFoundError(`Method ${method} not found`);
@@ -121,7 +163,7 @@ export class HardhatModule {
 
   // hardhat_intervalMine
 
-  private _intervalMineParams(params: any[]): [] {
+  private _intervalMineParams(_params: any[]): [] {
     return [];
   }
 
@@ -131,7 +173,11 @@ export class HardhatModule {
 
     const isEmpty = result.block.transactions.length === 0;
     if (isEmpty) {
-      this._logger.printMinedBlockNumber(blockNumber, isEmpty);
+      this._logger.printMinedBlockNumber(
+        blockNumber,
+        isEmpty,
+        result.block.header.baseFeePerGas
+      );
     } else {
       await this._logBlock(result);
       this._logger.printMinedBlockNumber(blockNumber, isEmpty);
@@ -142,6 +188,12 @@ export class HardhatModule {
     }
 
     return true;
+  }
+
+  // hardhat_getAutomine
+
+  private async _getAutomine(): Promise<boolean> {
+    return this._node.getAutomine();
   }
 
   // hardhat_stopImpersonatingAccount
@@ -177,6 +229,134 @@ export class HardhatModule {
     loggingEnabled: boolean
   ): Promise<true> {
     this._setLoggingEnabledCallback(loggingEnabled);
+    return true;
+  }
+
+  // hardhat_setMinGasPrice
+
+  private _setMinGasPriceParams(params: any[]): [BN] {
+    return validateParams(params, rpcQuantity);
+  }
+
+  private async _setMinGasPriceAction(minGasPrice: BN): Promise<true> {
+    if (minGasPrice.lt(new BN(0))) {
+      throw new InvalidInputError("Minimum gas price cannot be negative");
+    }
+
+    if (this._node.isEip1559Active()) {
+      throw new InvalidInputError(
+        "hardhat_setMinGasPrice is not support when EIP-1559 is active"
+      );
+    }
+
+    await this._node.setMinGasPrice(minGasPrice);
+    return true;
+  }
+
+  // hardhat_dropTransaction
+
+  private _dropTransactionParams(params: any[]): [Buffer] {
+    return validateParams(params, rpcHash);
+  }
+
+  private async _dropTransactionAction(hash: Buffer): Promise<boolean> {
+    return this._node.dropTransaction(hash);
+  }
+
+  // hardhat_setBalance
+
+  private _setBalanceParams(params: any[]): [Buffer, BN] {
+    return validateParams(params, rpcAddress, rpcQuantity);
+  }
+
+  private async _setBalanceAction(address: Buffer, newBalance: BN) {
+    await this._node.setAccountBalance(new Address(address), newBalance);
+    return true;
+  }
+
+  // hardhat_setCode
+
+  private _setCodeParams(params: any[]): [Buffer, Buffer] {
+    return validateParams(params, rpcAddress, rpcData);
+  }
+
+  private async _setCodeAction(address: Buffer, newCode: Buffer) {
+    await this._node.setAccountCode(new Address(address), newCode);
+    return true;
+  }
+
+  // hardhat_setNonce
+
+  private _setNonceParams(params: any[]): [Buffer, BN] {
+    return validateParams(params, rpcAddress, rpcQuantity);
+  }
+
+  private async _setNonceAction(address: Buffer, newNonce: BN) {
+    await this._node.setNextConfirmedNonce(new Address(address), newNonce);
+    return true;
+  }
+
+  // hardhat_setStorageAt
+
+  private _setStorageAtParams(params: any[]): [Buffer, BN, Buffer] {
+    const [address, positionIndex, value] = validateParams(
+      params,
+      rpcAddress,
+      rpcQuantity,
+      rpcData
+    );
+
+    const MAX_WORD_VALUE = new BN(2).pow(new BN(256));
+    if (positionIndex.gte(MAX_WORD_VALUE)) {
+      throw new InvalidInputError(
+        `Storage key must not be greater than or equal to 2^256. Received ${positionIndex.toString()}.`
+      );
+    }
+
+    if (value.length !== 32) {
+      throw new InvalidInputError(
+        `Storage value must be exactly 32 bytes long. Received ${bufferToRpcData(
+          value
+        )}, which is ${value.length} bytes long.`
+      );
+    }
+
+    return [address, positionIndex, value];
+  }
+
+  private async _setStorageAtAction(
+    address: Buffer,
+    positionIndex: BN,
+    value: Buffer
+  ) {
+    await this._node.setStorageAt(new Address(address), positionIndex, value);
+    return true;
+  }
+
+  // hardhat_setNextBlockBaseFeePerGas
+  private _setNextBlockBaseFeePerGasParams(params: any[]): [BN] {
+    return validateParams(params, rpcQuantity);
+  }
+
+  private _setNextBlockBaseFeePerGasAction(baseFeePerGas: BN) {
+    if (!this._node.isEip1559Active()) {
+      throw new InvalidInputError(
+        "hardhat_setNextBlockBaseFeePerGas is disabled because EIP-1559 is not active"
+      );
+    }
+
+    this._node.setUserProvidedNextBlockBaseFeePerGas(baseFeePerGas);
+    return true;
+  }
+
+  // hardhat_setCoinbase
+
+  private _setCoinbaseParams(params: any[]): [Buffer] {
+    return validateParams(params, rpcAddress);
+  }
+
+  private async _setCoinbaseAction(address: Buffer) {
+    await this._node.setCoinbase(new Address(address));
     return true;
   }
 

@@ -309,3 +309,13 @@ describe("Gas multiplier", function () {
     });
   });
 });
+
+describe("Contract function's accounts derivation", function () {
+  useEnvironment("hardhat-project-with-accounts", "hardhat");
+  it("Should derive the right accounts for hardhat network when contract is used in a test", async function () {
+    // We run a test in the fixture project that validates this
+    const result = await this.env.run("test");
+    assert.equal(result, 0);
+    process.exitCode = 0;
+  });
+});

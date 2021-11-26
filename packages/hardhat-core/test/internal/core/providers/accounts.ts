@@ -83,7 +83,7 @@ describe("Local accounts provider", () => {
     );
   });
 
-  it("Should throw when calling sendTransaction without gasPrice", async () => {
+  it("Should throw when calling sendTransaction without gasPrice, maxFeePerGas and maxPriorityFeePerGas", async () => {
     const params = [
       {
         from: privateKeyToAddress(accounts[0]),
@@ -95,8 +95,70 @@ describe("Local accounts provider", () => {
 
     await expectHardhatErrorAsync(
       () => wrapper.request({ method: "eth_sendTransaction", params }),
+      ERRORS.NETWORK.MISSING_FEE_PRICE_FIELDS
+    );
+  });
+
+  it("Should throw when calling sendTransaction with gasPrice and EIP1559 fields", async function () {
+    const params = [
+      {
+        from: privateKeyToAddress(accounts[0]),
+        to: "0x2a97a65d5673a2c61e95ce33cecadf24f654f96d",
+        nonce: numberToRpcQuantity(0x8),
+        gas: numberToRpcQuantity(123),
+        gasPrice: numberToRpcQuantity(1),
+        maxFeePerGas: numberToRpcQuantity(1),
+      },
+    ];
+
+    const params2 = [
+      {
+        ...params[0],
+        maxFeePerGas: undefined,
+        maxPriorityFeePerGas: numberToRpcQuantity(1),
+      },
+    ];
+
+    await expectHardhatErrorAsync(
+      () => wrapper.request({ method: "eth_sendTransaction", params }),
+      ERRORS.NETWORK.INCOMPATIBLE_FEE_PRICE_FIELDS
+    );
+
+    await expectHardhatErrorAsync(
+      () => wrapper.request({ method: "eth_sendTransaction", params: params2 }),
+      ERRORS.NETWORK.INCOMPATIBLE_FEE_PRICE_FIELDS
+    );
+  });
+
+  it("Should throw when only one EIP1559 field is provided", async function () {
+    const params = [
+      {
+        from: privateKeyToAddress(accounts[0]),
+        to: "0x2a97a65d5673a2c61e95ce33cecadf24f654f96d",
+        nonce: numberToRpcQuantity(0x8),
+        gas: numberToRpcQuantity(123),
+        maxFeePerGas: numberToRpcQuantity(1),
+      },
+    ];
+
+    const params2 = [
+      {
+        ...params[0],
+        maxFeePerGas: undefined,
+        maxPriorityFeePerGas: numberToRpcQuantity(1),
+      },
+    ];
+
+    await expectHardhatErrorAsync(
+      () => wrapper.request({ method: "eth_sendTransaction", params }),
       ERRORS.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY,
-      "gasPrice"
+      "maxPriorityFeePerGas"
+    );
+
+    await expectHardhatErrorAsync(
+      () => wrapper.request({ method: "eth_sendTransaction", params: params2 }),
+      ERRORS.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY,
+      "maxFeePerGas"
     );
   });
 
@@ -171,6 +233,30 @@ describe("Local accounts provider", () => {
     });
 
     assert.equal(mock.getNumberOfCalls("eth_getTransactionCount"), 1);
+  });
+
+  it("should send eip1559 txs if the eip1559 fields are present", async () => {
+    const tx = {
+      from: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
+      to: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
+      gas: numberToRpcQuantity(30000),
+      nonce: numberToRpcQuantity(0),
+      value: numberToRpcQuantity(1),
+      chainId: numberToRpcQuantity(MOCK_PROVIDER_CHAIN_ID),
+      maxFeePerGas: numberToRpcQuantity(12),
+      maxPriorityFeePerGas: numberToRpcQuantity(2),
+    };
+    await wrapper.request({
+      method: "eth_sendTransaction",
+      params: [tx],
+    });
+
+    const rawTransaction = toBuffer(
+      mock.getLatestParams("eth_sendRawTransaction")[0]
+    );
+
+    // The tx type is encoded in the first byte, and it must be the EIP-1559 one
+    assert.equal(rawTransaction[0], 2);
   });
 
   it("should send access list transactions", async () => {
@@ -349,8 +435,202 @@ describe("Local accounts provider", () => {
     });
   });
 
-  describe("eth_signTypedData", () => {
-    // TODO: Test this. Note that it just forwards to/from eth-sign-util
+  describe("eth_signTypedData_v4", () => {
+    it("Should be compatible with EIP-712 example", async () => {
+      // This test was taken from the `eth_signTypedData` example from the
+      // EIP-712 specification.
+      // <https://eips.ethereum.org/EIPS/eip-712#eth_signtypeddata>
+
+      const provider = new LocalAccountsProvider(mock, [
+        // keccak256("cow")
+        "0xc85ef7d79691fe79573b1a7064c19c1a9819ebdbd1faaab1a8ec92344438aaf4",
+      ]);
+
+      const result = await provider.request({
+        method: "eth_signTypedData_v4",
+        params: [
+          "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
+          {
+            types: {
+              EIP712Domain: [
+                { name: "name", type: "string" },
+                { name: "version", type: "string" },
+                { name: "chainId", type: "uint256" },
+                { name: "verifyingContract", type: "address" },
+              ],
+              Person: [
+                { name: "name", type: "string" },
+                { name: "wallet", type: "address" },
+              ],
+              Mail: [
+                { name: "from", type: "Person" },
+                { name: "to", type: "Person" },
+                { name: "contents", type: "string" },
+              ],
+            },
+            primaryType: "Mail",
+            domain: {
+              name: "Ether Mail",
+              version: "1",
+              chainId: 1,
+              verifyingContract: "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC",
+            },
+            message: {
+              from: {
+                name: "Cow",
+                wallet: "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
+              },
+              to: {
+                name: "Bob",
+                wallet: "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB",
+              },
+              contents: "Hello, Bob!",
+            },
+          },
+        ],
+      });
+
+      assert.equal(
+        result,
+        "0x4355c47d63924e8a72e509b65029052eb6c299d53a04e167c5775fd466751c9d07299936d304c153f6443dfa05f40ff007d72911b6f72307f996231605b915621c"
+      );
+    });
+
+    it("Should be compatible with stringified JSON input", async () => {
+      const provider = new LocalAccountsProvider(mock, [
+        // keccak256("cow")
+        "0xc85ef7d79691fe79573b1a7064c19c1a9819ebdbd1faaab1a8ec92344438aaf4",
+      ]);
+
+      const result = await provider.request({
+        method: "eth_signTypedData_v4",
+        params: [
+          "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
+          JSON.stringify({
+            types: {
+              EIP712Domain: [
+                { name: "name", type: "string" },
+                { name: "version", type: "string" },
+                { name: "chainId", type: "uint256" },
+                { name: "verifyingContract", type: "address" },
+              ],
+              Person: [
+                { name: "name", type: "string" },
+                { name: "wallet", type: "address" },
+              ],
+              Mail: [
+                { name: "from", type: "Person" },
+                { name: "to", type: "Person" },
+                { name: "contents", type: "string" },
+              ],
+            },
+            primaryType: "Mail",
+            domain: {
+              name: "Ether Mail",
+              version: "1",
+              chainId: 1,
+              verifyingContract: "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC",
+            },
+            message: {
+              from: {
+                name: "Cow",
+                wallet: "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
+              },
+              to: {
+                name: "Bob",
+                wallet: "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB",
+              },
+              contents: "Hello, Bob!",
+            },
+          }),
+        ],
+      });
+
+      assert.equal(
+        result,
+        "0x4355c47d63924e8a72e509b65029052eb6c299d53a04e167c5775fd466751c9d07299936d304c153f6443dfa05f40ff007d72911b6f72307f996231605b915621c"
+      );
+    });
+
+    it("Should throw if data string input is not JSON", async () => {
+      await expectHardhatErrorAsync(
+        () =>
+          wrapper.request({
+            method: "eth_signTypedData_v4",
+            params: [
+              "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
+              "}thisisnotvalidjson{",
+            ],
+          }),
+        ERRORS.NETWORK.ETHSIGN_TYPED_DATA_V4_INVALID_DATA_PARAM
+      );
+    });
+
+    it("Should throw if no data is given", async () => {
+      await expectHardhatErrorAsync(
+        () =>
+          wrapper.request({
+            method: "eth_signTypedData_v4",
+            params: [privateKeyToAddress(accounts[0])],
+          }),
+        ERRORS.NETWORK.ETHSIGN_MISSING_DATA_PARAM
+      );
+    });
+
+    it("Should just forward if the address isn't one of the local ones", async () => {
+      await wrapper.request({
+        method: "eth_signTypedData_v4",
+        params: ["0x000006d4548a3ac17d72b372ae1e416bf65b8ead", {}],
+      });
+      assert.deepEqual(mock.getLatestParams("eth_signTypedData_v4"), [
+        "0x000006d4548a3ac17d72b372ae1e416bf65b8ead",
+        {},
+      ]);
+    });
+  });
+
+  describe("personal_sign", () => {
+    it("Should be compatible with geth's implementation", async () => {
+      // This test was created by using Geth 1.10.12-unstable and calling personal_sign
+
+      const provider = new LocalAccountsProvider(mock, [
+        "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
+      ]);
+
+      const result = await provider.request({
+        method: "personal_sign",
+        params: [
+          "0x5417aa2a18a44da0675524453ff108c545382f0d7e26605c56bba47c21b5e979",
+          "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+        ],
+      });
+
+      assert.equal(
+        result,
+        "0x9c73dd4937a37eecab3abb54b74b6ec8e500080431d36afedb1726624587ee6710296e10c1194dded7376f13ff03ef6c9e797eb86bae16c20c57776fc69344271c"
+      );
+    });
+
+    it("Should be compatible with metamask's implementation", async () => {
+      // This test was created by using Metamask 10.3.0
+
+      const provider = new LocalAccountsProvider(mock, [
+        "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
+      ]);
+
+      const result = (await provider.request({
+        method: "personal_sign",
+        params: [
+          "0x7699f568ecd7753e6ddf75a42fa4c2cc86cbbdc704c9eb1a6b6d4b9d8b8d1519",
+          "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+        ],
+      })) as string;
+
+      assert.equal(
+        result,
+        "0x2875e4206c9fe3b229291c81f95cc4f421e2f4d3e023f5b4041daa56ab4000977010b47a3c01036ec8a6a0872aec2ab285150f003d01b0d8da60c1cceb9154181c"
+      );
+    });
   });
 });
 

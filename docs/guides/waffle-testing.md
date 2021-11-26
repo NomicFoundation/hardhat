@@ -2,14 +2,14 @@
 
 Writing smart contract tests in Hardhat is done using JavaScript or TypeScript.
 
-In this guide, we'll show you how to use [Ethers.js](https://docs.ethers.io/), a JavaScript library to interact with Ethereum,
-and [Waffle](https://getwaffle.io/) a simple smart contract testing library built on top of it. This is our recommended
-choice for testing.
+In this guide, we'll show you how to use [Ethers.js](https://docs.ethers.io/), a JavaScript library to interact with Ethereum, and [Waffle](https://getwaffle.io/) a simple smart contract testing library built on top of it. This is our recommended choice for testing.
 
 Let's see how to use it going through Hardhat's sample project.
 
 ::: tip
+
 Ethers and Waffle support TypeScript. Learn how to set up Hardhat with TypeScript [here](./typescript.md).
+
 :::
 
 ## Setting up
@@ -38,27 +38,30 @@ Welcome to Hardhat v2.0.0
 Select `Create a sample project`. This will create some files and install the `@nomiclabs/hardhat-ethers`, `@nomiclabs/hardhat-waffle` plugins, and other necessary packages.
 
 ::: tip
+
 Hardhat will let you know how, but in case you missed it you can install them with `npm install --save-dev @nomiclabs/hardhat-waffle ethereum-waffle chai @nomiclabs/hardhat-ethers ethers`
+
 :::
 
 Look at the `hardhat.config.js` file and you'll see that the Waffle plugin is enabled:
 
-<<< @/../packages/hardhat-core/sample-project/hardhat.config.js{1}
+<<< @/../packages/hardhat-core/sample-projects/basic/hardhat.config.js{1}
 
 ::: tip
+
 There's no need for `require("@nomiclabs/hardhat-ethers")`, as `@nomiclabs/hardhat-waffle` already does it.
+
 :::
 
 ## Testing
 
-Tests using Waffle are written with [Mocha](https://mochajs.org/) alongside with [Chai](https://www.chaijs.com/). If you
-haven't heard of them, they are super popular JavaScript testing utilities.
+Tests using Waffle are written with [Mocha](https://mochajs.org/) alongside [Chai](https://www.chaijs.com/). If you haven't heard of them, they are super popular JavaScript testing utilities.
 
-Inside `test` folder you'll find `sample-test.js`. Let's take a look at it, and we'll explain it next:
+Inside the `test` folder you'll find `sample-test.js`. Let's take a look at it, and we'll explain it next:
 
-<<< @/../packages/hardhat-core/sample-project/test/sample-test.js
+<<< @/../packages/hardhat-core/sample-projects/basic/test/sample-test.js
 
-On your terminal run `npx hardhat test`. You should see the following output:
+In your terminal, run `npx hardhat test`. You should see the following output:
 
 ```
 $ npx hardhat test
@@ -80,7 +83,9 @@ We are requiring `Chai` which is an assertions library. These asserting function
 This is why we're using the `@nomiclabs/hardhat-waffle` plugin, which makes it easier to assert values from Ethereum. Check out [this section](https://ethereum-waffle.readthedocs.io/en/latest/matchers.html) in Waffle's documentation for the entire list of Ethereum-specific matchers.
 
 ::: warning
-Some Waffle matchers return a Promise rather than executing immediately. If you're making a call or sending a transaction, make sure to check Waffle's documentation, and `await` these Promises. Otherwise your tests may pass without running all checks.
+
+Some Waffle matchers return a Promise rather than executing immediately. If you're making a call or sending a transaction, make sure to check Waffle's documentation, and `await` these Promises. Otherwise your tests may pass without waiting for all checks to complete.
+
 :::
 
 ```js
@@ -111,14 +116,14 @@ Once the contract is deployed, we can call our contract methods on `greeter` and
 expect(await greeter.greet()).to.equal("Hello, world!");
 ```
 
-Here we're using our `Contract` instance to call a smart contract function in our Solidity code. `greet()` returns the greeter's greeting and we're checking that it's equal to `Hello, world!`, as it should. To do this we're using the Chai matchers `expect`, `to` and `equal`.
+Here we're using our `Contract` instance to call a smart contract function in our Solidity code. `greet()` returns the greeter's greeting, and we're checking that it's equal to `Hello, world!`, as it should be. To do this we're using the Chai matchers `expect`, `to` and `equal`.
 
 ```js
 await greeter.setGreeting("Hola, mundo!");
 expect(await greeter.greet()).to.equal("Hola, mundo!");
 ```
 
-We can modify the state of a contract in the same way we read from it. Calling `setGreeting` will set a new greeting message. After the `Promise` is resolved, we perform another assertion to verify that the greeting effectively changed.
+We can modify the state of a contract in the same way we read from it. Calling `setGreeting` will set a new greeting message. After the `Promise` is resolved, we perform another assertion to verify that the greeting change took effect.
 
 ### Testing from a different account
 
@@ -133,7 +138,9 @@ const [owner, addr1] = await ethers.getSigners();
 A `Signer` in Ethers.js is an object that represents an Ethereum account. It's used to send transactions to contracts and other accounts. Here we're getting a list of the accounts in the node we're connected to, which in this case is **Hardhat Network**, and only keeping the first and second ones.
 
 ::: tip
+
 To learn more about `Signer`, you can look at the [Signers documentation](https://docs.ethers.io/v5/api/signer/#Wallet).
+
 :::
 
 The `ethers` variable is available in the global scope. If you like your code always being explicit, you can add this line at the top:
@@ -151,13 +158,14 @@ await greeter.connect(addr1).setGreeting("Hallo, Erde!");
 ## Migrating an existing Waffle project
 
 If you're starting a project from scratch and looking to use Waffle, you can skip this section. If you're setting up an existing Waffle project to use Hardhat you'll need to migrate the [configuration options](https://ethereum-waffle.readthedocs.io/en/latest/configuration.html) Waffle offers. The following table maps Waffle configurations to their Hardhat equivalents:
-|Waffle|Hardhat|
-|---|---|
-|`sourcesPath`|`paths.sources`|
-|`targetPath`|`paths.artifacts`|
-|`solcVersion`|`solc.version` (version number only)|
-|`compilerOptions.evmVersion`|`solc.evmVersion`|
-|`compilerOptions.optimizer`|`solc.optimizer`|
+
+| Waffle                       | Hardhat                              |
+| ---------------------------- | ------------------------------------ |
+| `sourcesPath`                | `paths.sources`                      |
+| `targetPath`                 | `paths.artifacts`                    |
+| `solcVersion`                | `solc.version` (version number only) |
+| `compilerOptions.evmVersion` | `solc.evmVersion`                    |
+| `compilerOptions.optimizer`  | `solc.optimizer`                     |
 
 As an example, this Waffle configuration file:
 
@@ -227,19 +235,18 @@ const { deployContract } = waffle;
 ```
 
 ::: warning
+
 Importing Waffle's functions from `ethereum-waffle`, can lead to multiple problems.
 
-For example, Waffle has a
-[default gas limit](https://github.com/EthWorks/Waffle/blob/3.0.2/waffle-cli/src/deployContract.ts#L4-L7) of 4 million
-gas for contract deployment transactions, which is normally too low.
+For example, Waffle has a [default gas limit](https://github.com/EthWorks/Waffle/blob/3.0.2/waffle-cli/src/deployContract.ts#L4-L7) of 4 million gas for contract deployment transactions, which is normally too low.
 
-Please, make sure you import them from the `waffle` field of the [Hardhat Runtime Environment]. It is a version
-of Waffle adapted to work well with Hardhat.
+Please, make sure you import them from the `waffle` field of the [Hardhat Runtime Environment]. It is a version of Waffle adapted to work well with Hardhat.
+
 :::
 
 Also, you don't need to call `chai.use`. This initialization is already handled by `@nomiclabs/hardhat-waffle`. Just be sure to include `require("@nomiclabs/hardhat-waffle");` in your Hardhat config.
 
-Finally, instead of initializing a `MockProvider`, just use the plugin's provider like this
+Finally, instead of initializing a `MockProvider`, just use the plugin's provider like this:
 
 ```js
 const { waffle } = require("hardhat");

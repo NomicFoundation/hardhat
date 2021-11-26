@@ -82,7 +82,7 @@ export async function isLocalSourceName(
       return false;
     }
 
-    // tslint:disable-next-line only-hardhat-error
+    // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
     throw error;
   }
 
@@ -179,7 +179,7 @@ function isExplicitRelativePath(sourceName: string): boolean {
 }
 
 /**
- * This function replaces backslashes (\) with slashes (/).
+ * This function replaces backslashes (\\) with slashes (/).
  *
  * Note that a source name must not contain backslashes.
  */
@@ -212,7 +212,7 @@ async function getPathTrueCase(fromDir: string, p: string): Promise<string> {
       );
     }
 
-    // tslint:disable-next-line only-hardhat-error
+    // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
     throw error;
   }
 }

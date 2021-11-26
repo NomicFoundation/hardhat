@@ -9,7 +9,9 @@ We're going to create a simple smart contract that implements a token that can b
 - The token is non-divisible. You can transfer 1, 2, 3 or 37 tokens but not 2.5.
 
 ::: tip
+
 You might have heard about ERC20, which is a token standard in Ethereum. Tokens such as DAI, USDC, MKR and ZRX follow the ERC20 standard which allows them all to be compatible with any software that can deal with ERC20 tokens. **For simplicity's sake the token we're going to build is _not_ an ERC20.**
+
 :::
 
 ## Writing smart contracts
@@ -19,7 +21,9 @@ Start by creating a new directory called `contracts` and create a file inside th
 Paste the code below into the file and take a minute to read the code. It's simple and it's full of comments explaining the basics of Solidity.
 
 ::: tip
+
 To get syntax highlighting you should add Solidity support to your text editor. Just look for Solidity or Ethereum plugins. We recommend using Visual Studio Code or Sublime Text 3.
+
 :::
 
 ```solidity
@@ -33,7 +37,7 @@ contract Token {
     // Some string type variables to identify the token.
     // The `public` modifier makes a variable readable from outside the contract.
     string public name = "My Hardhat Token";
-    string public symbol = "MBT";
+    string public symbol = "MHT";
 
     // The fixed amount of tokens stored in an unsigned integer type variable.
     uint256 public totalSupply = 1000000;
@@ -86,7 +90,9 @@ contract Token {
 ```
 
 ::: tip
+
 `*.sol` is used for Solidity files. We recommend matching the file name to the contract it contains, which is a common practice.
+
 :::
 
 ## Compiling contracts

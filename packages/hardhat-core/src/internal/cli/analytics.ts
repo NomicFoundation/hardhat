@@ -3,7 +3,7 @@ import debug from "debug";
 import fetch from "node-fetch";
 import os from "os";
 import qs from "qs";
-import uuid from "uuid/v4";
+import { v4 as uuid } from "uuid";
 
 import * as builtinTaskNames from "../../builtin-tasks/task-names";
 import { isLocalDev } from "../core/execution-mode";

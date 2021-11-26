@@ -2,25 +2,25 @@
 
 In this guide we will go through the steps of creating a script with Hardhat. For a general overview of using Hardhat refer to the [Getting started guide].
 
-You can write your custom scripts that can use all of Hardhat's functionality. A classic use case is writing a deployment script for your smart contracts.
+You can write your own custom scripts that can use all of Hardhat's functionality. A classic use case is writing a deployment script for your smart contracts.
 
 There are two ways of writing a script that accesses the [Hardhat Runtime Environment].
 
 ::: tip
-Hardhat scripts are useful for simple things that don't take user arguments, and for
-integrating with external tools that aren't well suited for the Hardhat CLI, like a Node.js debugger.
+
+Hardhat scripts are useful for simple things that don't take user arguments, and for integrating with external tools that aren't well suited for the Hardhat CLI, like a Node.js debugger.
 
 If you want to automate more complex things, and receive user arguments, you can learn how to [create your own tasks here](../guides/create-task.md).
+
 :::
 
 ## Hardhat CLI dependant
 
-You can write scripts that access the [Hardhat Runtime Environment]'s properties
-as global variables.
+You can write scripts that access the [Hardhat Runtime Environment]'s properties as global variables.
 
 These scripts must be run through Hardhat: `npx hardhat run script.js`.
 
-This makes it easy to port scripts that were developed for other tools that inject variables into the global state.
+This makes it easy to port scripts that were developed for other tools and that inject variables into the global state.
 
 ## Standalone scripts: using Hardhat as a library
 
@@ -48,7 +48,7 @@ drwxr-xr-x    3 fzeoli  staff      96 Jul 30 15:27 test
 
 Inside `scripts/` you will find `sample-script.js`. Read through its comments to have a better idea of what it does.
 
-<<< @/../packages/hardhat-core/sample-project/scripts/sample-script.js
+<<< @/../packages/hardhat-core/sample-projects/basic/scripts/sample-script.js
 
 Done? Before running the script with `node` you need to declare `ethers`. This is needed because Hardhat won't be injecting it on the global scope as it does when calling the `run` task.
 
@@ -68,7 +68,7 @@ $ node scripts/sample-script.js
 Greeter address: 0x5FbDB2315678afecb367f032d93F642f64180aa3
 ```
 
-By accessing the [Hardhat Runtime Environment] at the top, you are allowed to run the script in a standalone fashion. Hardhat always runs the compile task when running scripts through it. But in a standalone fashion you may want to call compile manually to make sure everything is compiled. This is done by calling `hre.run('compile')`. Uncomment the following line out and re-run the script with `node`:
+By accessing the [Hardhat Runtime Environment] at the top, you are allowed to run the script in a standalone fashion. Hardhat always runs the compile task when it's invoked via `npx hardhat run`, but in a standalone fashion you may want to call compile manually to make sure everything is compiled. This is done by calling `hre.run('compile')`. Uncomment the following line and re-run the script with `node`:
 
 ```js
 await hre.run("compile");
@@ -81,8 +81,7 @@ Greeter address: 0x5FbDB2315678afecb367f032d93F642f64180aa3
 
 ### Hardhat arguments
 
-You can still pass arguments to Hardhat when using it as a library. This is done
-by setting environment variables. These are:
+You can still pass arguments to Hardhat when using it as a library. This is done by setting environment variables. These are:
 
 - `HARDHAT_NETWORK`: Sets the network to connect to.
 

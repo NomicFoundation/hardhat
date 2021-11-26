@@ -9,8 +9,17 @@ import {
 } from "../../../types";
 import { EventEmitterWrapper } from "../../util/event-emitter";
 
-export class BackwardsCompatibilityProviderAdapter extends EventEmitterWrapper
-  implements EthereumProvider {
+/**
+ * Hardhat predates the EIP1193 (Javascript Ethereum Provider) standard. It was
+ * built following a draft of that spec, but then it changed completely. We
+ * still need to support the draft api, but internally we use EIP1193. So we
+ * use BackwardsCompatibilityProviderAdapter to wrap EIP1193 providers before
+ * exposing them to the user.
+ */
+export class BackwardsCompatibilityProviderAdapter
+  extends EventEmitterWrapper
+  implements EthereumProvider
+{
   constructor(private readonly _provider: EIP1193Provider) {
     super(_provider);
     // We bind everything here because some test suits break otherwise
@@ -49,7 +58,7 @@ export class BackwardsCompatibilityProviderAdapter extends EventEmitterWrapper
       });
     } catch (error) {
       if (error.code === undefined) {
-        // tslint:disable-next-line only-hardhat-error
+        // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
         throw error;
       }
 

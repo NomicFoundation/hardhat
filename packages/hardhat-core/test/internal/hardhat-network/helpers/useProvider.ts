@@ -2,10 +2,14 @@ import { BN } from "ethereumjs-util";
 
 import { BackwardsCompatibilityProviderAdapter } from "../../../../src/internal/core/providers/backwards-compatibility";
 import { JsonRpcServer } from "../../../../src/internal/hardhat-network/jsonrpc/server";
-import { ForkConfig } from "../../../../src/internal/hardhat-network/provider/node-types";
+import {
+  ForkConfig,
+  MempoolOrder,
+} from "../../../../src/internal/hardhat-network/provider/node-types";
 import { HardhatNetworkProvider } from "../../../../src/internal/hardhat-network/provider/provider";
 import {
   EthereumProvider,
+  HardhatNetworkMempoolConfig,
   HardhatNetworkMiningConfig,
 } from "../../../../src/types";
 
@@ -19,6 +23,7 @@ import {
   DEFAULT_MINING_CONFIG,
   DEFAULT_NETWORK_ID,
   DEFAULT_NETWORK_NAME,
+  DEFAULT_MEMPOOL_CONFIG,
   DEFAULT_USE_JSON_RPC,
 } from "./providers";
 
@@ -28,6 +33,7 @@ declare module "mocha" {
     provider: EthereumProvider;
     hardhatNetworkProvider: HardhatNetworkProvider;
     server?: JsonRpcServer;
+    serverInfo?: { address: string; port: number };
   }
 }
 
@@ -43,6 +49,9 @@ export interface UseProviderOptions {
   blockGasLimit?: number;
   accounts?: Array<{ privateKey: string; balance: BN }>;
   allowUnlimitedContractSize?: boolean;
+  initialBaseFeePerGas?: number;
+  mempool?: HardhatNetworkMempoolConfig;
+  coinbase?: string;
 }
 
 export function useProvider({
@@ -57,6 +66,9 @@ export function useProvider({
   blockGasLimit = DEFAULT_BLOCK_GAS_LIMIT,
   accounts = DEFAULT_ACCOUNTS,
   allowUnlimitedContractSize = DEFAULT_ALLOW_UNLIMITED_CONTRACT_SIZE,
+  initialBaseFeePerGas,
+  mempool = DEFAULT_MEMPOOL_CONFIG,
+  coinbase,
 }: UseProviderOptions = {}) {
   beforeEach("Initialize provider", async function () {
     this.logger = new FakeModulesLogger(loggerEnabled);
@@ -66,17 +78,21 @@ export function useProvider({
       chainId,
       networkId,
       blockGasLimit,
+      initialBaseFeePerGas,
+      new BN(0), // minGasPrice
       true,
       true,
       mining.auto,
       mining.interval,
+      mempool.order as MempoolOrder,
       this.logger,
       accounts,
       undefined,
       allowUnlimitedContractSize,
       undefined,
       undefined,
-      forkConfig
+      forkConfig,
+      coinbase
     );
     this.provider = new BackwardsCompatibilityProviderAdapter(
       this.hardhatNetworkProvider
@@ -88,7 +104,7 @@ export function useProvider({
         hostname: "localhost",
         provider: this.provider,
       });
-      await this.server.listen();
+      this.serverInfo = await this.server.listen();
 
       this.provider = new BackwardsCompatibilityProviderAdapter(
         this.server.getProvider()
@@ -107,6 +123,7 @@ export function useProvider({
     if (this.server !== undefined) {
       await this.server.close();
       delete this.server;
+      delete this.serverInfo;
     }
   });
 }

@@ -5,7 +5,7 @@ enum MiningTimerState {
   RUNNING,
 }
 
-// tslint:disable only-hardhat-error
+/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
 /**
  * Timer used to periodically call the given mining function.
@@ -100,7 +100,7 @@ export class MiningTimer {
     const blockTime = this._getNextBlockTime();
 
     this._timeout = setTimeout(() => {
-      this._loop(); // tslint:disable-line no-floating-promises
+      this._loop(); // eslint-disable-line @typescript-eslint/no-floating-promises
     }, blockTime);
   }
 

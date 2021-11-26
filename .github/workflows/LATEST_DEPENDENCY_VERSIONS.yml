@@ -1,24 +1,20 @@
-name: LATEST_DEPENDENCY_VERSIONS
+name: Run the entire test suite with the latest dependency versions
 
 on:
   schedule:
-    - cron:  '0 0/8 * * *'
+    - cron: "0 0/8 * * *"
 
 jobs:
   test-without-yarn-lock:
     name: Test without yarn.lock
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-node@v1
+      - uses: actions/setup-node@v2
         with:
-          node-version: 10
+          node-version: 12
       - name: install vyper
-        run: docker pull ethereum/vyper:0.1.0b10
+        run: docker pull vyperlang/vyper:0.1.0b10
       - uses: actions/checkout@v2
-      - name: Install node-gyp-cache
-        run: |
-          yarn global add node-gyp-cache
-          yarn config set node_gyp node-gyp-cache
       - name: Delete yarn.lock
         run: "rm yarn.lock"
       - name: Install

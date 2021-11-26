@@ -16,19 +16,19 @@ export function createUpdatableTargetProxy<T extends object>(
 
   const handler: Required<ProxyHandler<T>> = {
     // these two functions are implemented because of the Required<ProxyHandler> type
-    apply(_, thisArg, argArray) {
+    apply(_, _thisArg, _argArray) {
       throw new Error(
         "cannot be implemented because the target is not a function"
       );
     },
 
-    construct(_, argArray, newTarget) {
+    construct(_, _argArray, _newTarget) {
       throw new Error(
         "cannot be implemented because the target is not a function"
       );
     },
 
-    defineProperty(_, property, descriptor) {
+    defineProperty(_, property, _descriptor) {
       throw new Error(
         `cannot define property ${String(property)} in read-only proxy`
       );
@@ -89,13 +89,13 @@ export function createUpdatableTargetProxy<T extends object>(
       return Reflect.preventExtensions(targetObject.target);
     },
 
-    set(_, property, value, receiver) {
+    set(_, property, _value, _receiver) {
       throw new Error(
         `cannot set property ${String(property)} in read-only proxy`
       );
     },
 
-    setPrototypeOf(_, prototype) {
+    setPrototypeOf(_, _prototype) {
       throw new Error("cannot change the prototype in read-only proxy");
     },
   };

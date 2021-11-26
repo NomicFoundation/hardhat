@@ -7,7 +7,7 @@ import { FilterParams } from "./node-types";
 import { RpcLogOutput, RpcReceiptOutput } from "./output";
 import { HardhatBlockchainInterface } from "./types/HardhatBlockchainInterface";
 
-/* tslint:disable only-hardhat-error */
+/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
 export class HardhatBlockchain implements HardhatBlockchainInterface {
   private readonly _data = new BlockchainData();
@@ -116,6 +116,11 @@ export class HardhatBlockchain implements HardhatBlockchainInterface {
     _onBlock: (block: Block, reorg: boolean) => void | Promise<void>
   ): Promise<number | void> {
     throw new Error("Method not implemented.");
+  }
+
+  public async getBaseFee(): Promise<BN> {
+    const latestBlock = await this.getLatestBlock();
+    return latestBlock.header.calcNextBaseFee();
   }
 
   private _validateBlock(block: Block) {

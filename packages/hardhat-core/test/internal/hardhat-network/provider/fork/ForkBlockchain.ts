@@ -600,13 +600,31 @@ describe("ForkBlockchain", () => {
     });
 
     it("supports remote blocks", async () => {
+      // See results at https://api.etherscan.io/api?module=logs&action=getLogs&fromBlock=10496585&toBlock=10496585&address=0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2
       const logs = await fb.getLogs({
         fromBlock: BLOCK_NUMBER_OF_10496585,
         toBlock: BLOCK_NUMBER_OF_10496585,
-        addresses: [toBuffer("0x5acc84a3e955bdd76467d3348077d003f00ffb97")],
+        addresses: [toBuffer("0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2")],
         normalizedTopics: [],
       });
-      assert.equal(logs.length, 19);
+      assert.equal(logs.length, 12);
+      assert.deepEqual(
+        logs.map((l) => l.logIndex),
+        [
+          "0x1",
+          "0x4",
+          "0xd",
+          "0xe",
+          "0x11",
+          "0x14",
+          "0x1b",
+          "0x1e",
+          "0x29",
+          "0x2a",
+          "0x8b",
+          "0x8c",
+        ]
+      );
     });
 
     it("can fetch both remote and local logs simultaneously", async () => {

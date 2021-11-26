@@ -71,7 +71,7 @@ describe("Evm module", function () {
             to: zeroAddress(),
             value: numberToRpcQuantity(1),
             gas: numberToRpcQuantity(21000),
-            gasPrice: numberToRpcQuantity(1),
+            maxFeePerGas: numberToRpcQuantity(1e9),
           };
 
           const firstBlock = await this.provider.send("eth_getBlockByNumber", [
@@ -124,10 +124,23 @@ describe("Evm module", function () {
           );
         });
 
-        it("should expect an actual number as its first param, not a hex string", async function () {
-          await assertInvalidArgumentsError(this.provider, "evm_increaseTime", [
-            numberToRpcQuantity(123),
-          ]);
+        it("should accept a hex string param", async function () {
+          const offset1 = 123;
+          const offset2 = 1000;
+          const totalOffset1 = parseInt(
+            await this.provider.send("evm_increaseTime", [
+              numberToRpcQuantity(offset1),
+            ]),
+            10
+          );
+          const totalOffset2 = parseInt(
+            await this.provider.send("evm_increaseTime", [
+              numberToRpcQuantity(offset2),
+            ]),
+            10
+          );
+          assert.strictEqual(totalOffset1, offset1);
+          assert.strictEqual(totalOffset2, offset1 + offset2);
         });
       });
 
@@ -228,19 +241,21 @@ describe("Evm module", function () {
           const timestamp = getCurrentTimestamp() + 70;
           await this.provider.send("evm_mine", [timestamp]);
 
-          this.provider
-            .send("evm_setNextBlockTimestamp", [timestamp - 1])
-            .then(function () {
-              assert.fail("should have failed setting next block timestamp");
-            })
-            .catch(function () {});
+          await assertInvalidInputError(
+            this.provider,
+            "evm_setNextBlockTimestamp",
+            [timestamp - 1],
+            `Timestamp ${
+              timestamp - 1
+            } is lower than or equal to previous block's timestamp ${timestamp}`
+          );
 
-          this.provider
-            .send("evm_setNextBlockTimestamp", [timestamp])
-            .then(function () {
-              assert.fail("should have failed setting next block timestamp");
-            })
-            .catch(function () {});
+          await assertInvalidInputError(
+            this.provider,
+            "evm_setNextBlockTimestamp",
+            [timestamp],
+            `Timestamp ${timestamp} is lower than or equal to previous block's timestamp ${timestamp}`
+          );
         });
 
         it("should advance the time offset accordingly to the timestamp", async function () {
@@ -256,6 +271,22 @@ describe("Evm module", function () {
           timestamp = getCurrentTimestamp();
           // 200 - 1 as we use ceil to round time to seconds
           assert.isTrue(timestamp >= 199);
+        });
+
+        it("should accept a hex string param", async function () {
+          const timestamp = getCurrentTimestamp() + 60;
+
+          await this.provider.send("evm_setNextBlockTimestamp", [
+            numberToRpcQuantity(timestamp),
+          ]);
+          await this.provider.send("evm_mine", []);
+
+          const block: RpcBlockOutput = await this.provider.send(
+            "eth_getBlockByNumber",
+            ["latest", false]
+          );
+
+          assertQuantity(block.timestamp, timestamp);
         });
 
         describe("When the initial date is in the past", function () {
@@ -354,6 +385,72 @@ describe("Evm module", function () {
 
           assert.lengthOf(pendingTransactions, 1);
           assert.equal(pendingTransactions[0].hash, tx1Hash);
+        });
+
+        it("pending block works after removing a pending tx (first tx is dropped)", async function () {
+          await this.provider.send("evm_setAutomine", [false]);
+
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              to: EMPTY_ACCOUNT_ADDRESS.toString(),
+              gas: numberToRpcQuantity(30_000),
+              nonce: numberToRpcQuantity(0),
+            },
+          ]);
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              to: EMPTY_ACCOUNT_ADDRESS.toString(),
+              gas: numberToRpcQuantity(21_000),
+              nonce: numberToRpcQuantity(1),
+            },
+          ]);
+
+          // this removes the first transaction
+          await this.provider.send("evm_setBlockGasLimit", [
+            numberToRpcQuantity(25_000),
+          ]);
+
+          const pendingBlock = await this.provider.send(
+            "eth_getBlockByNumber",
+            ["pending", false]
+          );
+
+          assert.lengthOf(pendingBlock.transactions, 0);
+        });
+
+        it("pending block works after removing a pending tx (second tx is dropped)", async function () {
+          await this.provider.send("evm_setAutomine", [false]);
+
+          const tx1Hash = await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              to: EMPTY_ACCOUNT_ADDRESS.toString(),
+              gas: numberToRpcQuantity(21_000),
+              nonce: numberToRpcQuantity(0),
+            },
+          ]);
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+              to: EMPTY_ACCOUNT_ADDRESS.toString(),
+              gas: numberToRpcQuantity(30_000),
+              nonce: numberToRpcQuantity(1),
+            },
+          ]);
+
+          // this removes the second transaction
+          await this.provider.send("evm_setBlockGasLimit", [
+            numberToRpcQuantity(25_000),
+          ]);
+
+          const pendingBlock = await this.provider.send(
+            "eth_getBlockByNumber",
+            ["pending", false]
+          );
+
+          assert.deepEqual(pendingBlock.transactions, [tx1Hash]);
         });
       });
 
@@ -461,6 +558,24 @@ describe("Evm module", function () {
           assert.equal(rpcDataToNumber(logTx2.data), expectedGasLeft);
         });
 
+        it("should accept a hex string param", async function () {
+          const blockNumber = rpcQuantityToNumber(
+            await this.provider.send("eth_blockNumber")
+          );
+
+          const timestamp = getCurrentTimestamp() + 60;
+          await this.provider.send("evm_mine", [
+            numberToRpcQuantity(timestamp),
+          ]);
+
+          const block: RpcBlockOutput = await this.provider.send(
+            "eth_getBlockByNumber",
+            [numberToRpcQuantity(blockNumber + 1), false]
+          );
+
+          assertQuantity(block.timestamp, timestamp);
+        });
+
         describe("tests using sinon", () => {
           let sinonClock: sinon.SinonFakeTimers;
 
@@ -530,7 +645,7 @@ describe("Evm module", function () {
               from: DEFAULT_ACCOUNTS_ADDRESSES[1],
               to: "0x1111111111111111111111111111111111111111",
               gas: numberToRpcQuantity(100000),
-              gasPrice: numberToRpcQuantity(1),
+              maxFeePerGas: numberToRpcQuantity(1e9),
               nonce: numberToRpcQuantity(1),
             },
           ]);
@@ -542,7 +657,7 @@ describe("Evm module", function () {
               from: DEFAULT_ACCOUNTS_ADDRESSES[1],
               to: "0x1111111111111111111111111111111111111111",
               gas: numberToRpcQuantity(100000),
-              gasPrice: numberToRpcQuantity(1),
+              maxFeePerGas: numberToRpcQuantity(1e9),
               nonce: numberToRpcQuantity(0),
             },
           ]);
@@ -877,7 +992,7 @@ describe("Evm module", function () {
               to: "0x1111111111111111111111111111111111111111",
               value: numberToRpcQuantity(1),
               gas: numberToRpcQuantity(100000),
-              gasPrice: numberToRpcQuantity(1),
+              maxFeePerGas: numberToRpcQuantity(1e9),
               nonce: numberToRpcQuantity(0),
             },
           ]);
@@ -907,7 +1022,7 @@ describe("Evm module", function () {
               to: "0x1111111111111111111111111111111111111111",
               value: numberToRpcQuantity(0),
               gas: numberToRpcQuantity(100000),
-              gasPrice: numberToRpcQuantity(1),
+              maxFeePerGas: numberToRpcQuantity(1e9),
               nonce: numberToRpcQuantity(0),
             },
           ]);
@@ -918,7 +1033,7 @@ describe("Evm module", function () {
               to: "0x1111111111111111111111111111111111111111",
               value: numberToRpcQuantity(1),
               gas: numberToRpcQuantity(100000),
-              gasPrice: numberToRpcQuantity(1),
+              maxFeePerGas: numberToRpcQuantity(1e9),
               nonce: numberToRpcQuantity(1),
             },
           ]);
@@ -950,7 +1065,7 @@ describe("Evm module", function () {
               to: "0x1111111111111111111111111111111111111111",
               value: numberToRpcQuantity(0),
               gas: numberToRpcQuantity(100000),
-              gasPrice: numberToRpcQuantity(1),
+              maxFeePerGas: numberToRpcQuantity(1e9),
               nonce: numberToRpcQuantity(0),
             },
           ]);
@@ -961,7 +1076,7 @@ describe("Evm module", function () {
               to: "0x1111111111111111111111111111111111111111",
               value: numberToRpcQuantity(1),
               gas: numberToRpcQuantity(100000),
-              gasPrice: numberToRpcQuantity(1),
+              maxFeePerGas: numberToRpcQuantity(1e9),
               nonce: numberToRpcQuantity(1),
             },
           ]);
@@ -1033,9 +1148,8 @@ describe("Evm module", function () {
           ]);
           assert.isTrue(reverted);
 
-          const pendingTransactions: RpcTransactionOutput[] = await this.provider.send(
-            "eth_pendingTransactions"
-          );
+          const pendingTransactions: RpcTransactionOutput[] =
+            await this.provider.send("eth_pendingTransactions");
           assert.sameDeepMembers(
             pendingTransactions.map((tx) => tx.hash),
             [txHash1, txHash2]
@@ -1055,7 +1169,7 @@ describe("Evm module", function () {
             to: "0x1111111111111111111111111111111111111111",
             value: numberToRpcQuantity(1),
             gas: numberToRpcQuantity(100000),
-            gasPrice: numberToRpcQuantity(1),
+            maxFeePerGas: numberToRpcQuantity(1e9),
             nonce: numberToRpcQuantity(0),
           };
 
@@ -1177,7 +1291,7 @@ describe("Evm module", function () {
             to: "0x1111111111111111111111111111111111111111",
             value: numberToRpcQuantity(1),
             gas: numberToRpcQuantity(100000),
-            gasPrice: numberToRpcQuantity(1),
+            maxFeePerGas: numberToRpcQuantity(1e9),
             nonce: numberToRpcQuantity(0),
           };
 

@@ -13,7 +13,10 @@ import type {
 } from "../../../types";
 import { HARDHAT_NETWORK_NAME } from "../../constants";
 import { ModulesLogger } from "../../hardhat-network/provider/modules/logger";
-import { ForkConfig } from "../../hardhat-network/provider/node-types";
+import {
+  ForkConfig,
+  MempoolOrder,
+} from "../../hardhat-network/provider/node-types";
 import { getForkCacheDirPath } from "../../hardhat-network/provider/utils/disk-cache";
 import { parseDateString } from "../../util/date";
 
@@ -77,15 +80,19 @@ export function createProvider(
     );
 
     eip1193Provider = new HardhatNetworkProvider(
-      hardhatNetConfig.hardfork!,
+      hardhatNetConfig.hardfork,
       HARDHAT_NETWORK_NAME,
-      hardhatNetConfig.chainId!,
-      hardhatNetConfig.chainId!,
-      hardhatNetConfig.blockGasLimit!,
-      hardhatNetConfig.throwOnTransactionFailures!,
-      hardhatNetConfig.throwOnCallFailures!,
+      hardhatNetConfig.chainId,
+      hardhatNetConfig.chainId,
+      hardhatNetConfig.blockGasLimit,
+      hardhatNetConfig.initialBaseFeePerGas,
+      hardhatNetConfig.minGasPrice,
+      hardhatNetConfig.throwOnTransactionFailures,
+      hardhatNetConfig.throwOnCallFailures,
       hardhatNetConfig.mining.auto,
       hardhatNetConfig.mining.interval,
+      // This cast is valid because of the config validation and resolution
+      hardhatNetConfig.mining.mempool.order as MempoolOrder,
       new ModulesLogger(hardhatNetConfig.loggingEnabled),
       accounts,
       artifacts,
@@ -95,7 +102,8 @@ export function createProvider(
         : undefined,
       experimentalHardhatNetworkMessageTraceHooks,
       forkConfig,
-      paths !== undefined ? getForkCacheDirPath(paths) : undefined
+      paths !== undefined ? getForkCacheDirPath(paths) : undefined,
+      hardhatNetConfig.coinbase
     );
   } else {
     const HttpProvider = importProvider<
@@ -205,7 +213,19 @@ export function applyProviderWrappers(
   }
 
   if (netConfig.gasPrice === undefined || netConfig.gasPrice === "auto") {
-    provider = new AutomaticGasPriceProvider(provider);
+    // If you use a LocalAccountsProvider or HDWalletProvider, your transactions
+    // are signed locally. This requires having all of their fields available,
+    // including the gasPrice / maxFeePerGas & maxPriorityFeePerGas.
+    //
+    // We never use those providers when using Hardhat Network, but sign within
+    // Hardhat Network itself. This means that we don't need to provide all the
+    // fields, as the missing ones will be resolved there.
+    //
+    // Hardhat Network handles this in a more performant way, so we don't use
+    // the AutomaticGasPriceProvider for it.
+    if (isResolvedHttpNetworkConfig(netConfig)) {
+      provider = new AutomaticGasPriceProvider(provider);
+    }
   } else {
     provider = new FixedGasPriceProvider(provider, netConfig.gasPrice);
   }

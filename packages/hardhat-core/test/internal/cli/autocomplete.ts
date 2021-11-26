@@ -103,7 +103,7 @@ const coreParams = [
     name: "--max-memory",
   },
   {
-    description: "Reserved hardhat argument -- Has no effect.",
+    description: "A TypeScript config file.",
     name: "--tsconfig",
   },
   verboseParam,

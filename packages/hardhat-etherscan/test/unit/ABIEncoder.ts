@@ -69,14 +69,19 @@ describe("constructor argument validation tests", () => {
     assert.isFalse(Number.isSafeInteger(amount));
     const constructorArguments: any[] = [amount];
 
-    const encodedArguments = await encodeArguments(
+    await encodeArguments(
       abi,
       sourceName,
       contractName,
       constructorArguments
-    ).catch((reason) => {
-      assert.instanceOf(reason, NomicLabsHardhatPluginError);
-    });
+    ).then(
+      () => {
+        assert.fail("Promise should reject");
+      },
+      (reason) => {
+        assert.instanceOf(reason, NomicLabsHardhatPluginError);
+      }
+    );
   });
 
   it("should throw when the argument list is too small", async () => {

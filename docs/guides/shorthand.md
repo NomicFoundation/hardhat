@@ -1,7 +1,6 @@
 # Shorthand (hh) and autocomplete
 
-`hardhat-shorthand` is an NPM package that installs a globally accessible binary
-called `hh` that runs the project's locally installed `hardhat` and supports shell autocompletion for tasks.
+`hardhat-shorthand` is an NPM package that installs a globally accessible binary called `hh` that runs the project's locally installed `hardhat` and supports shell autocompletion for tasks.
 
 ## Installation
 
@@ -34,11 +33,9 @@ To try it out, open a **new** terminal, go to the directory of your Hardhat proj
 
 ## Context
 
-Out of best practice, Hardhat projects use a local installation of the NPM package `hardhat` to make sure everyone working on the project is using the
-same version. This is why you need to use `npx` or npm scripts to run Hardhat.
+Out of best practice, Hardhat projects use a local installation of the NPM package `hardhat` to make sure everyone working on the project is using the same version. This is why you need to use `npx` or npm scripts to run Hardhat.
 
 This approach has the downside of there being no way to provide autocomplete suggestions directly for the `hardhat` command, as well as making the CLI commands longer. These are the two issues that `hh` solves.
-
 
 ## Troubleshooting
 

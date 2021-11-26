@@ -1,8 +1,10 @@
 import { bufferToHex } from "ethereumjs-util";
 
+import { AbiHelpers } from "../../util/abi-helpers";
+
 import { Opcode } from "./opcodes";
 
-// tslint:disable only-hardhat-error
+/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
 export enum JumpType {
   NOT_JUMP,
@@ -23,6 +25,7 @@ export enum ContractFunctionType {
   RECEIVE,
   GETTER,
   MODIFIER,
+  FREE_FUNCTION,
 }
 
 export enum ContractFunctionVisibility {
@@ -122,14 +125,13 @@ export class SourceLocation {
 
 export class Contract {
   public readonly localFunctions: ContractFunction[] = [];
+  public readonly customErrors: CustomError[] = [];
 
   private _constructor: ContractFunction | undefined;
   private _fallback: ContractFunction | undefined;
   private _receive: ContractFunction | undefined;
-  private readonly _selectorHexToFunction: Map<
-    string,
-    ContractFunction
-  > = new Map();
+  private readonly _selectorHexToFunction: Map<string, ContractFunction> =
+    new Map();
 
   constructor(
     public readonly name: string,
@@ -137,15 +139,15 @@ export class Contract {
     public readonly location: SourceLocation
   ) {}
 
-  get constructorFunction(): ContractFunction | undefined {
+  public get constructorFunction(): ContractFunction | undefined {
     return this._constructor;
   }
 
-  get fallback(): ContractFunction | undefined {
+  public get fallback(): ContractFunction | undefined {
     return this._fallback;
   }
 
-  get receive(): ContractFunction | undefined {
+  public get receive(): ContractFunction | undefined {
     return this._receive;
   }
 
@@ -173,6 +175,10 @@ export class Contract {
     }
 
     this.localFunctions.push(func);
+  }
+
+  public addCustomError(customError: CustomError) {
+    this.customErrors.push(customError);
   }
 
   public addNextLinearizedBaseContract(baseContract: Contract) {
@@ -252,15 +258,36 @@ export class ContractFunction {
     public readonly name: string,
     public readonly type: ContractFunctionType,
     public readonly location: SourceLocation,
-    public readonly contract: Contract,
+    public readonly contract?: Contract,
     public readonly visibility?: ContractFunctionVisibility,
     public readonly isPayable?: boolean,
     public selector?: Buffer
   ) {
-    if (!contract.location.contains(location)) {
+    if (contract !== undefined && !contract.location.contains(location)) {
       throw new Error("Incompatible contract and function location");
     }
   }
+}
+
+export class CustomError {
+  /**
+   * Return a CustomError from the given ABI information: the name
+   * of the error and its inputs. Returns undefined if it can't build
+   * the CustomError.
+   */
+  public static fromABI(name: string, inputs: any[]): CustomError | undefined {
+    const selector = AbiHelpers.computeSelector(name, inputs);
+
+    if (selector !== undefined) {
+      return new CustomError(selector, name, inputs);
+    }
+  }
+
+  private constructor(
+    public readonly selector: Buffer,
+    public readonly name: string,
+    public readonly paramTypes: any[]
+  ) {}
 }
 
 export class Instruction {

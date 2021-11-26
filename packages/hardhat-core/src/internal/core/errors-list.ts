@@ -123,7 +123,7 @@ To learn more about Hardhat's configuration, please go to https://hardhat.org/co
       title: "Invalid Hardhat config",
       description: `You have one or more errors in your config file. 
       
-Check the error message for details, or go to [documentation](https://hardhat.org/config/) to learn more.`,
+Check the error message for details, or go to the [documentation](https://hardhat.org/config/) to learn more.`,
       shouldBeReported: false,
     },
     LIB_IMPORTED_FROM_THE_CONFIG: {
@@ -183,7 +183,7 @@ Please install Hardhat locally using npm or Yarn, and try again.`,
       number: 13,
       message: `Your Hardhat project uses typescript, but ts-node is not installed.
       
-Please run: npm install --save-dev ts-node`,
+Please run: npm \`install --save-dev ts-node\``,
       title: "ts-node not installed",
       description: `You are running a Hardhat project that uses typescript, but you haven't installed ts-node.
 
@@ -198,7 +198,7 @@ Please run: npm install --save-dev typescript`,
       title: "typescript not installed",
       description: `You are running a Hardhat project that uses typescript, but it's not installed.
 
-Please run this and try again: npm install --save-dev typescript`,
+Please run this and try again: \`npm install --save-dev typescript\``,
       shouldBeReported: false,
     },
   },
@@ -207,7 +207,7 @@ Please run this and try again: npm install --save-dev typescript`,
       number: 100,
       message: "Network %network% doesn't exist",
       title: "Selected network doesn't exist",
-      description: `You are trying to run Hardhat with a non-existent network. 
+      description: `You are trying to run Hardhat with a nonexistent network.
 
 Read the [documentation](https://hardhat.org/config/#networks-configuration) to learn how to define custom networks.`,
       shouldBeReported: false,
@@ -217,7 +217,7 @@ Read the [documentation](https://hardhat.org/config/#networks-configuration) to 
       message:
         "Hardhat was set to use chain id %configChainId%, but connected to a chain with id %connectionChainId%.",
       title: "Connected to the wrong network",
-      description: `Your config specifies a chain id for the network you are trying to used, but Hardhat detected anotherone. 
+      description: `Your config specifies a chain id for the network you are trying to use, but Hardhat detected a different chain id.
 
 Please make sure you are setting your config correctly.`,
       shouldBeReported: false,
@@ -294,10 +294,10 @@ Please make sure your node is running, and check your internet connection and ne
     },
     NETWORK_TIMEOUT: {
       number: 109,
-      message: `Network connection timed-out.
+      message: `Network connection timed out.
 Please check your internet connection and networks config`,
       title: "Network timeout",
-      description: `One of your JSON-RPC requests timed-out.
+      description: `One of your JSON-RPC requests timed out.
 
 Please make sure your node is running, and check your internet connection and networks config.`,
       shouldBeReported: false,
@@ -314,7 +314,7 @@ Please make sure your node is running, and check your internet connection and ne
     CANT_DERIVE_KEY: {
       number: 111,
       message:
-        "Cannot derive key %path% from mnemonic '%mnemonic%.\nTry using another mnemonic or deriving less keys.",
+        "Cannot derive key %path% from mnemonic '%mnemonic%.\nTry using another mnemonic or deriving fewer keys.",
       title: "Could not derive an HD key",
       description: `One of your HD keys could not be derived. 
 
@@ -329,6 +329,44 @@ Try using another mnemonic or deriving less keys.`,
       description: `One of your calls sent or received an invalid JSON-RPC DATA value. 
 
 Please double check your calls' parameters and keep your Ethereum node up to date.`,
+      shouldBeReported: false,
+    },
+    ETHSIGN_TYPED_DATA_V4_INVALID_DATA_PARAM: {
+      number: 113,
+      message: 'Invalid "data" param when calling eth_signTypedData_v4.',
+      title: "Invalid `data` param when calling eth_signTypedData_v4.",
+      description: `You called \`eth_signTypedData_v4\` with incorrect parameters.
+Please check that you are sending a \`data\` parameter with a JSON string or object conforming to EIP712 TypedData schema.`,
+      shouldBeReported: false,
+    },
+    INCOMPATIBLE_FEE_PRICE_FIELDS: {
+      number: 114,
+      message:
+        "An incompatible transaction with gasPrice and EIP-1559 fee price fields.",
+      title: "Incompatible fee price parameters",
+      description: `You are trying to send a transaction with a locally managed 
+account, and its parameters are incompatible. You sent both gasPrice, and maxFeePerGas or maxPriorityFeePerGas.  
+
+Please double check your transactions' parameters.`,
+      shouldBeReported: false,
+    },
+    MISSING_FEE_PRICE_FIELDS: {
+      number: 115,
+      message:
+        "Tried to sign a transaction locally, but gasPrice, maxFeePerGas, and maxPriorityFeePerGas were missing.",
+      title: "Missing fee price parameters",
+      description: `You are trying to send a transaction with a locally managed account, and no fee price parameters were provided. You need to send gasPrice, or maxFeePerGas and maxPriorityFeePerGas.  
+
+Please double check your transactions' parameters.`,
+      shouldBeReported: false,
+    },
+    PERSONALSIGN_MISSING_ADDRESS_PARAM: {
+      number: 116,
+      message: 'Missing "address" param when calling personal_sign.',
+      title: "Missing `address` param when calling personal_sign.",
+      description: `You called \`personal_sign\` with incorrect parameters.
+
+Please check that you are sending an \`address\` parameter.`,
       shouldBeReported: false,
     },
   },
@@ -430,10 +468,10 @@ Please double check your task definitions.`,
         "Redefinition of task %taskName% failed. Unsupported operation adding mandatory (non optional) param definitions in an overridden task.",
       title: "Attempted to add mandatory params to an overridden task",
       description: `You can't add mandatory (non optional) param definitions in an overridden task.
-The only supported param additions for overridden tasks are flags,
+The only supported param additions for overridden tasks are flags
 and optional params.
 
-Please, double check your task definitions.`,
+Please double check your task definitions.`,
       shouldBeReported: false,
     },
     OVERRIDE_NO_POSITIONAL_PARAMS: {
@@ -442,10 +480,10 @@ Please, double check your task definitions.`,
         "Redefinition of task %taskName% failed. Unsupported operation adding positional param definitions in an overridden task.",
       title: "Attempted to add positional params to an overridden task",
       description: `You can't add positional param definitions in an overridden task.
-The only supported param additions for overridden tasks are flags,
+The only supported param additions for overridden tasks are flags
 and optional params.
 
-Please, double check your task definitions.`,
+Please double check your task definitions.`,
       shouldBeReported: false,
     },
     OVERRIDE_NO_VARIADIC_PARAMS: {
@@ -454,10 +492,10 @@ Please, double check your task definitions.`,
         "Redefinition of task %taskName% failed. Unsupported operation adding variadic param definitions in an overridden task.",
       title: "Attempted to add variadic params to an overridden task",
       description: `You can't add variadic param definitions in an overridden task.
-The only supported param additions for overridden tasks are flags,
+The only supported param additions for overridden tasks are flags
 and optional params.
 
-Please, double check your task definitions.`,
+Please double check your task definitions.`,
       shouldBeReported: false,
     },
     CLI_ARGUMENT_TYPE_REQUIRED: {
@@ -476,7 +514,7 @@ What makes these types special is that they can be represented as strings, so yo
       number: 300,
       message: "Invalid environment variable %varName%'s value: %value%",
       title: "Invalid environment variable value",
-      description: `You are setting one of Hardhat arguments using an environment variable, but it has an incorrect value. 
+      description: `You are setting one of Hardhat's arguments using an environment variable, but it has an incorrect value.
 
 Please double check your environment variables.`,
       shouldBeReported: false,
@@ -485,7 +523,7 @@ Please double check your environment variables.`,
       number: 301,
       message: "Invalid value %value% for argument %name% of type %type%",
       title: "Invalid argument type",
-      description: `One of your Hardhat or task's arguments has an invalid type. 
+      description: `One of your Hardhat or task arguments has an invalid type.
 
 Please double check your arguments.`,
       shouldBeReported: false,
@@ -496,7 +534,7 @@ Please double check your arguments.`,
         "Invalid argument %name%: File %value% doesn't exist or is not a readable file.",
       title: "Invalid file argument",
       description: `One of your tasks expected a file as an argument, but you provided a 
-non-existent or non-readable file. 
+nonexistent or non-readable file.
 
 Please double check your arguments.`,
       shouldBeReported: false,
@@ -505,7 +543,7 @@ Please double check your arguments.`,
       number: 303,
       message: "Unrecognized task %task%",
       title: "Unrecognized task",
-      description: `Tried to run a non-existent task. 
+      description: `Tried to run a nonexistent task.
 
 Please double check the name of the task you are trying to run.`,
       shouldBeReported: false,
@@ -528,16 +566,16 @@ Please double check how you invoked Hardhat.`,
       title: "Unrecognized param",
       description: `Hardhat couldn't recognize one of your tasks' parameters.
        
-Please double check how you invoked Hardhat or run your task.`,
+Please double check how you invoked Hardhat or ran your task.`,
       shouldBeReported: false,
     },
     MISSING_TASK_ARGUMENT: {
       number: 306,
-      message: "Missing task argument %param%",
+      message: "The '%param%' parameter expects a value, but none was passed.",
       title: "Missing task argument",
       description: `You tried to run a task, but one of its required arguments was missing. 
 
-Please double check how you invoked Hardhat or run your task.`,
+Please double check how you invoked Hardhat or ran your task.`,
       shouldBeReported: false,
     },
     MISSING_POSITIONAL_ARG: {
@@ -546,16 +584,16 @@ Please double check how you invoked Hardhat or run your task.`,
       title: "Missing task positional argument",
       description: `You tried to run a task, but one of its required arguments was missing. 
 
-Please double check how you invoked Hardhat or run your task.`,
+Please double check how you invoked Hardhat or ran your task.`,
       shouldBeReported: false,
     },
     UNRECOGNIZED_POSITIONAL_ARG: {
       number: 308,
       message: "Unrecognized positional argument %argument%",
       title: "Unrecognized task positional argument",
-      description: `You tried to run a task with more positional arguments than needed. 
+      description: `You tried to run a task with more positional arguments than expected.
 
-Please double check how you invoked Hardhat or run your task.`,
+Please double check how you invoked Hardhat or ran your task.`,
       shouldBeReported: false,
     },
     REPEATED_PARAM: {
@@ -564,7 +602,7 @@ Please double check how you invoked Hardhat or run your task.`,
       title: "Repeated task parameter",
       description: `You tried to run a task with a repeated parameter. 
 
-Please double check how you invoked Hardhat or run your task.`,
+Please double check how you invoked Hardhat or ran your task.`,
       shouldBeReported: false,
     },
     PARAM_NAME_INVALID_CASING: {
@@ -582,7 +620,7 @@ Please double check how you invoked Hardhat.`,
       title: "Invalid JSON parameter",
       description: `You tried to run a task with an invalid JSON parameter. 
 
-Please double check how you invoked Hardhat or run your task.`,
+Please double check how you invoked Hardhat or ran your task.`,
       shouldBeReported: false,
     },
     RUNNING_SUBTASK_FROM_CLI: {
@@ -600,7 +638,7 @@ This is not supported. Please run the help task to see the available options.`,
       number: 400,
       message: "File %file% doesn't exist.",
       title: "Solidity file not found",
-      description: `Tried to resolve a non-existing Solidity file as an entry-point.`,
+      description: `Tried to resolve a nonexistent Solidity file as an entry-point.`,
       shouldBeReported: false,
     },
     LIBRARY_NOT_INSTALLED: {
@@ -634,7 +672,7 @@ This is disabled for security reasons.`,
       number: 404,
       message: "File %imported%, imported from %from%, not found.",
       title: "Imported file not found",
-      description: `One of your source files imported a non-existing one. 
+      description: `One of your source files imported a nonexistent file.
 
 Please double check your imports.`,
       shouldBeReported: false,
@@ -644,7 +682,7 @@ Please double check your imports.`,
       message:
         "Invalid import %imported% from %from%. Imports must use / instead of \\, even in Windows",
       title: "Invalid import: use / instead of \\",
-      description: `A Solidity file is trying to import another one with its relative path and is using backslashes (\\) insteado of slashes (/).
+      description: `A Solidity file is trying to import another file via relative path and is using backslashes (\\\\) instead of slashes (/).
       
 You must always use slashes (/) in Solidity imports.`,
       shouldBeReported: false,
@@ -654,7 +692,7 @@ You must always use slashes (/) in Solidity imports.`,
       message:
         "Invalid import %imported% from %from%. Hardhat doesn't support imports via %protocol%.",
       title: "Invalid import: trying to use an unsupported protocol",
-      description: `A Solidity file is trying to import another one using an unsupported protocol, like http.
+      description: `A Solidity file is trying to import a file using an unsupported protocol, like http.
       
 You can only import files thar are available locally or installed through npm.`,
       shouldBeReported: false,
@@ -664,9 +702,9 @@ You can only import files thar are available locally or installed through npm.`,
       message:
         "Invalid import %imported% from %from%. Hardhat doesn't support imports with absolute paths.",
       title: "Invalid import: absolute paths unsupported",
-      description: `A Solidity file is trying to import another one using its absolute path.
+      description: `A Solidity file is trying to import a file using its absolute path.
       
-This is not supported, as it would lead to hard to reproduce compilations.`,
+This is not supported, as it would lead to hard-to-reproduce compilations.`,
       shouldBeReported: false,
     },
     INVALID_IMPORT_OUTSIDE_OF_PROJECT: {
@@ -674,7 +712,7 @@ This is not supported, as it would lead to hard to reproduce compilations.`,
       message:
         "Invalid import %imported% from %from%. The file being imported is outside of the project",
       title: "Invalid import: file outside of the project",
-      description: `A Solidity file is trying to import another one that is outside of the project.
+      description: `A Solidity file is trying to import a file that is outside of the project.
       
 This is not supported by Hardhat.`,
       shouldBeReported: false,
@@ -684,7 +722,7 @@ This is not supported by Hardhat.`,
       message:
         "Trying to import %imported% from %from%, but it has an incorrect casing.",
       title: "Invalid import: wrong file casing",
-      description: `A Solidity file is trying to import another one but its source name casing was wrong.
+      description: `A Solidity file is trying to import a file but its source name casing was wrong.
       
 Hardhat's compiler is case sensitive to ensure projects are portable across different operating systems.`,
       shouldBeReported: false,
@@ -746,7 +784,7 @@ Please check your Internet connection.`,
       message:
         "Couldn't download compiler version %remoteVersion%. Checksum verification failed. Please check your connection.",
       title: "Downloaded `solc` checksum verification failed",
-      description: `Downloaded \`solc\` verification failed.. 
+      description: `Downloaded \`solc\` verification failed.
       
 Please check your Internet connection.`,
       shouldBeReported: false,
@@ -775,9 +813,9 @@ Please check Hardhat's output for more details.`,
       number: 601,
       message: "Script %script% doesn't exist.",
       title: "Script doesn't exist",
-      description: `Tried to use \`hardhat run\` to execut a non-existing script.
+      description: `Tried to use \`hardhat run\` to execute a nonexistent script.
       
-Please double check your script's path`,
+Please double check your script's path.`,
       shouldBeReported: false,
     },
     RUN_SCRIPT_ERROR: {
@@ -795,7 +833,7 @@ Please check Hardhat's output for more details.`,
       title: "Flatten detected cyclic dependencies",
       description: `Hardhat flatten doesn't support cyclic dependencies. 
 
-We recommend not using this kind of dependencies.`,
+We recommend not using this kind of dependency.`,
       shouldBeReported: false,
     },
     JSONRPC_SERVER_ERROR: {
@@ -828,19 +866,29 @@ To start the JSON-RPC server, retry the command without the --network parameter.
       number: 607,
       message: `You specified a fork block number but not an URL.`,
       title: "Missing fork URL",
-      description: `You passed a block number to fork from, but not URL. Hardhat cannot fork
-if the URL of the JSON-RPC weren't set.`,
+      description: `You passed a block number to fork from, but not a URL. Hardhat cannot fork
+if the URL of the JSON-RPC wasn't set.`,
       shouldBeReported: false,
+    },
+    COMPILE_TASK_UNSUPPORTED_SOLC_VERSION: {
+      number: 608,
+      message: `Version %version% is not supported by Hardhat.
+
+The first supported version is %firstSupportedVersion%`,
+      title: "Unsupported solc version",
+      description: `This version of solidity is not supported by Hardhtat.
+Please use a newer, supported version.`,
+      shouldBeReported: true,
     },
   },
   ARTIFACTS: {
     NOT_FOUND: {
       number: 700,
-      message: 'Artifact for contract "%contractName%" not found.',
+      message: 'Artifact for contract "%contractName%" not found. %suggestion%',
       title: "Artifact not found",
-      description: `Tried to import a non-existing artifact. 
+      description: `Tried to import a nonexistent artifact.
 
-Please double check that your contracts have been compiled and your artifact's name.`,
+Please double check that your contracts have been compiled and double check your artifact's name.`,
       shouldBeReported: false,
     },
     MULTIPLE_FOUND: {
@@ -957,7 +1005,7 @@ If you aren't overriding compilation-related tasks, please report this as a bug.
       message:
         "Invalid source %name%. The source name uses backslashes (\\) instead of slashes (/).",
       title: "Invalid source name: backslashes",
-      description: `A Solidity source name was invalid because it uses backslashes (\\) instead of slashes (/).
+      description: `A Solidity source name was invalid because it uses backslashes (\\\\) instead of slashes (/).
       
 If you aren't overriding compilation-related tasks, please report this as a bug.`,
       shouldBeReported: true,

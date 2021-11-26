@@ -45,7 +45,7 @@ export async function sendTxToZeroAddress(
     to: zeroAddress(),
     value: numberToRpcQuantity(1),
     gas: numberToRpcQuantity(21000),
-    gasPrice: numberToRpcQuantity(1),
+    gasPrice: numberToRpcQuantity(10e9),
   };
 
   return provider.send("eth_sendTransaction", [burnTxParams]);
@@ -61,8 +61,25 @@ export async function sendTransactionFromTxParams(
     nonce: numberToRpcQuantity(txParams.nonce),
     value: numberToRpcQuantity(txParams.value),
     gas: numberToRpcQuantity(txParams.gasLimit),
-    gasPrice: numberToRpcQuantity(txParams.gasPrice),
   };
+
+  if ("accessList" in txParams) {
+    rpcTxParams.accessList = txParams.accessList.map(
+      ([address, storageKeys]) => ({
+        address: bufferToHex(address),
+        storageKeys: storageKeys.map(bufferToHex),
+      })
+    );
+  }
+
+  if ("gasPrice" in txParams) {
+    rpcTxParams.gasPrice = numberToRpcQuantity(txParams.gasPrice);
+  } else {
+    rpcTxParams.maxFeePerGas = numberToRpcQuantity(txParams.maxFeePerGas);
+    rpcTxParams.maxPriorityFeePerGas = numberToRpcQuantity(
+      txParams.maxPriorityFeePerGas
+    );
+  }
 
   if (txParams.to !== undefined) {
     rpcTxParams.to = bufferToHex(txParams.to!);

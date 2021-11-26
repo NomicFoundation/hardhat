@@ -2,6 +2,6 @@
   "compilerOptions": {
     "target": "es2018",
     "module": "commonjs",
-    "esModuleInterop": true,
+    "esModuleInterop": true
   }
 }
