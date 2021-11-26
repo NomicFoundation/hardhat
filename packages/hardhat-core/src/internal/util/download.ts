@@ -9,6 +9,19 @@ interface FetchOptions {
   agent?: undefined | HttpsProxyAgent.HttpsProxyAgent;
 }
 
+const TEMP_FILE_PREFIX = "tmp-";
+
+function resolveTempFileName(filePath: string): string {
+  const { root, dir, ext, name } = path.parse(filePath);
+
+  return path.format({
+    root,
+    dir,
+    ext,
+    name: `${TEMP_FILE_PREFIX}${name}`,
+  });
+}
+
 export async function download(
   url: string,
   filePath: string,
@@ -43,8 +56,12 @@ export async function download(
   const response = await fetch(url, fetchOptions);
 
   if (response.ok && response.body !== null) {
+    const tmpFilePath = resolveTempFileName(filePath);
+
     await fsExtra.ensureDir(path.dirname(filePath));
-    return streamPipeline(response.body, fs.createWriteStream(filePath));
+    await streamPipeline(response.body, fs.createWriteStream(tmpFilePath));
+
+    return fsExtra.move(tmpFilePath, filePath);
   }
 
   // Consume the response stream and discard its result

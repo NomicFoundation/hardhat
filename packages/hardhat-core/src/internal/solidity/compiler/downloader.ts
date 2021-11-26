@@ -155,13 +155,26 @@ export class CompilerDownloader {
   }
 
   public async getCompilersList(
-    platform: CompilerPlatform
+    platform: CompilerPlatform,
+    pendingRetries: number = 3
   ): Promise<CompilersList> {
     if (!(await this.compilersListExists(platform))) {
       await this.downloadCompilersList(platform);
     }
 
-    return fsExtra.readJson(this.getCompilersListPath(platform));
+    try {
+      return await fsExtra.readJSON(this.getCompilersListPath(platform));
+    } catch (error) {
+      // if parsing throws a syntax error, redownload and parse once more
+      if (!(error instanceof SyntaxError) || pendingRetries === 0) {
+        // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+        throw error;
+      }
+
+      // remove the malformed list and retry
+      await fsExtra.remove(this.getCompilersListPath(platform));
+      return this.getCompilersList(platform, pendingRetries - 1);
+    }
   }
 
   public async getCompilerBuild(version: string): Promise<CompilerBuild> {
