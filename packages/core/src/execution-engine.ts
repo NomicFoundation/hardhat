@@ -67,7 +67,7 @@ export class ExecutionEngine {
   ) {}
 
   public async *execute(dag: DAG, previousDeploymentState: DeploymentState) {
-    const deploymentState = previousDeploymentState.clone();
+    const deploymentState = DeploymentState.clone(previousDeploymentState);
 
     const ids: Record<string, string[]> = {};
     const modules = dag.getSortedModules();

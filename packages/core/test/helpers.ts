@@ -11,8 +11,6 @@ import {
   TransactionsProvider,
 } from "../src/providers";
 
-import { DAG } from "./modules";
-
 export function getMockedProviders(): Providers {
   return {
     artifacts: new MockArtifactsProvider(),
@@ -23,8 +21,8 @@ export function getMockedProviders(): Providers {
   };
 }
 
-export function emptyDeploymentResult(dag: DAG) {
-  return new DeploymentState(dag);
+export function emptyDeploymentResult() {
+  return new DeploymentState();
 }
 
 /**

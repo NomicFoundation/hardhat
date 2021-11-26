@@ -10,7 +10,7 @@ import {
   InternalContractBinding,
   serializeBindingOutput,
 } from "./bindings";
-import { DeploymentState } from "./deployment-state";
+import { BindingState, DeploymentState, ModuleState } from "./deployment-state";
 import { ExecutionEngine, ExecutionManager } from "./execution-engine";
 import { Executor, Hold } from "./executors";
 import { FileJournal, NullJournal } from "./journal";
@@ -25,6 +25,7 @@ export { buildModule } from "./modules";
 export {
   AddressLike,
   BindingOutput,
+  BindingState,
   Contract,
   ContractBinding,
   ContractOptions,
@@ -34,6 +35,7 @@ export {
   InternalBinding,
   InternalContractBinding,
   ModuleBuilder,
+  ModuleState,
   Providers,
   Services,
   UserModule,
@@ -92,7 +94,7 @@ export class Ignition {
     log("Execute deployment");
     const newDeploymentState = await executionManager.execute(
       dag,
-      currentDeploymentState ?? new DeploymentState(dag)
+      currentDeploymentState ?? DeploymentState.fromDAG(dag)
     );
 
     return [newDeploymentState, moduleOutputs] as const;
@@ -119,7 +121,7 @@ export class Ignition {
 
     return ExecutionEngine.buildPlan(
       dag,
-      currentDeploymentState ?? new DeploymentState(dag)
+      currentDeploymentState ?? DeploymentState.fromDAG(dag)
     );
   }
 }

@@ -6,9 +6,12 @@ import {
   Binding,
   DeploymentPlan,
   DeploymentState,
+  ModuleState,
   Ignition,
   serializeBindingOutput,
   UserModule,
+  deserializeBindingOutput,
+  BindingState,
 } from "ignition";
 import path from "path";
 
@@ -216,33 +219,31 @@ export class IgnitionWrapper {
       return;
     }
 
-    return undefined;
+    const deploymentState = new DeploymentState();
+    const moduleResultFiles = fs.readdirSync(deploymentsDirectory);
 
-    // TODO implement something like ModuleState.fromJSON() and
-    // use it to build the deployment state here
+    for (const moduleResultFile of moduleResultFiles) {
+      const moduleId = path.parse(moduleResultFile).name;
+      const serializedModuleResult = JSON.parse(
+        fs
+          .readFileSync(path.join(deploymentsDirectory, moduleResultFile))
+          .toString()
+      );
+      const moduleState = new ModuleState(moduleId);
 
-    // const moduleResultFiles = fs.readdirSync(deploymentsDirectory);
+      for (const [bindingId, result] of Object.entries(
+        serializedModuleResult
+      )) {
+        const bindingState = BindingState.success(
+          deserializeBindingOutput(result)
+        );
+        moduleState.addBinding(bindingId, bindingState);
+      }
 
-    // const deploymentState = new DeploymentState();
-    // for (const moduleResultFile of moduleResultFiles) {
-    //   const moduleId = path.parse(moduleResultFile).name;
-    //   const serializedModuleResult = JSON.parse(
-    //     fs
-    //       .readFileSync(path.join(deploymentsDirectory, moduleResultFile))
-    //       .toString()
-    //   );
-    //   const moduleResult = new ModuleResult(moduleId);
-    //
-    //   for (const [bindingId, result] of Object.entries(
-    //     serializedModuleResult
-    //   )) {
-    //     moduleResult.addResult(bindingId, deserializeBindingOutput(result));
-    //   }
-    //
-    //   deploymentState.addResult(moduleResult);
-    // }
+      deploymentState.addModule(moduleState);
+    }
 
-    // return deploymentState;
+    return deploymentState;
   }
 }
 

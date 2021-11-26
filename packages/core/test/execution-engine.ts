@@ -5,13 +5,7 @@ import { ExecutionEngine } from "../src/execution-engine";
 import { NullJournal } from "../src/journal";
 import { DAG } from "../src/modules";
 
-import {
-  emptyDeploymentResult,
-  getMockedProviders,
-  inc,
-  runUntil,
-  runUntilReady,
-} from "./helpers";
+import { getMockedProviders, inc, runUntil, runUntilReady } from "./helpers";
 
 const executionEngineOptions = {
   parallelizationLevel: 1,
@@ -36,7 +30,7 @@ describe("ExecutionEngine", function () {
     // when
     const executionGenerator = executionEngine.execute(
       dag,
-      emptyDeploymentResult(dag)
+      DeploymentState.fromDAG(dag)
     );
     const deploymentResult = await runUntilReady(executionGenerator);
 
@@ -73,7 +67,7 @@ describe("ExecutionEngine", function () {
     // when
     const executionGenerator = executionEngine.execute(
       dag,
-      emptyDeploymentResult(dag)
+      DeploymentState.fromDAG(dag)
     );
     await runUntil(executionGenerator, () => {
       return inc1.isRunning();
@@ -129,7 +123,7 @@ describe("ExecutionEngine", function () {
     // when
     const executionGenerator = executionEngine.execute(
       dag,
-      emptyDeploymentResult(dag)
+      DeploymentState.fromDAG(dag)
     );
     const deploymentResult = await runUntilReady(executionGenerator);
 
@@ -162,7 +156,7 @@ describe("ExecutionEngine", function () {
     // when
     const executionGenerator = executionEngine.execute(
       dag,
-      emptyDeploymentResult(dag)
+      DeploymentState.fromDAG(dag)
     );
     const deploymentResult = await runUntilReady(executionGenerator);
 

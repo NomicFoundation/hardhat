@@ -4,11 +4,33 @@ import { DAG, IgnitionModule } from "./modules";
 export class DeploymentState {
   private _modules: Map<string, ModuleState> = new Map();
 
-  constructor(private _dag: DAG) {
-    for (const module of _dag.getSortedModules()) {
-      const moduleState = new ModuleState(module.id, module);
-      this._modules.set(module.id, moduleState);
+  public static clone(deploymentState: DeploymentState): DeploymentState {
+    const clonedDeploymentState = new DeploymentState();
+    for (const moduleState of deploymentState.getModules()) {
+      const clonedModuleState = new ModuleState(moduleState.id);
+
+      for (const [bindingId, bindingState] of moduleState.getBindingsStates()) {
+        clonedModuleState.addBinding(bindingId, bindingState);
+      }
+
+      clonedDeploymentState.addModule(clonedModuleState);
     }
+
+    return clonedDeploymentState;
+  }
+
+  public static fromDAG(dag: DAG): DeploymentState {
+    const deploymentState = new DeploymentState();
+    for (const ignitionModule of dag.getSortedModules()) {
+      const moduleState = ModuleState.fromIgnitionModule(ignitionModule);
+      deploymentState.addModule(moduleState);
+    }
+
+    return deploymentState;
+  }
+
+  public addModule(moduleState: ModuleState) {
+    this._modules.set(moduleState.id, moduleState);
   }
 
   public getModule(moduleId: string): ModuleState {
@@ -96,10 +118,6 @@ export class DeploymentState {
     return;
   }
 
-  public clone(): DeploymentState {
-    return new DeploymentState(this._dag);
-  }
-
   private _getBindingState(moduleId: string, bindingId: string) {
     const moduleState = this._getModuleState(moduleId);
 
@@ -147,7 +165,7 @@ export type BindingState =
   | BindingStateHold;
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare -- intentionally naming the variable the same as the type
-const BindingState = {
+export const BindingState = {
   waiting(): BindingState {
     return { _kind: "waiting" };
   },
@@ -168,13 +186,22 @@ const BindingState = {
 export class ModuleState {
   private _bindings = new Map<string, BindingState>();
 
-  constructor(
-    public readonly id: string,
-    private _ignitionModule: IgnitionModule
-  ) {
-    for (const executor of _ignitionModule.getSortedExecutors()) {
-      this._bindings.set(executor.binding.id, BindingState.waiting());
+  public static fromIgnitionModule(
+    ignitionModule: IgnitionModule
+  ): ModuleState {
+    const moduleState = new ModuleState(ignitionModule.id);
+
+    for (const executor of ignitionModule.getSortedExecutors()) {
+      moduleState.addBinding(executor.binding.id, BindingState.waiting());
     }
+
+    return moduleState;
+  }
+
+  constructor(public readonly id: string) {}
+
+  public addBinding(bindingId: string, bindingState: BindingState) {
+    this._bindings.set(bindingId, bindingState);
   }
 
   public getBindingsStates(): Array<[string, BindingState]> {
