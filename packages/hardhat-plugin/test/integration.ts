@@ -1,12 +1,12 @@
 import { assert } from "chai";
 import { buildModule } from "ignition";
+
 import {
   assertDeploymentState,
   assertRejects,
   deployModules,
   resultAssertions,
 } from "./helpers";
-
 import { useEnvironment } from "./useEnvironment";
 
 describe("integration tests", function () {

@@ -1,6 +1,7 @@
 import { expect } from "chai";
 
 import { DAG } from "../src/modules";
+
 import { inc } from "./helpers";
 
 describe("DAG", function () {

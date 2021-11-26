@@ -1,11 +1,11 @@
 import debug from "debug";
 import { ethers, Contract, ContractFactory } from "ethers";
 
-import { TxSender } from "./tx-sender";
 import { IgnitionSigner, Providers } from "./providers";
+import { TxSender } from "./tx-sender";
 import { Artifact } from "./types";
-import { sleep } from "./utils";
 import { ExecutorUiService, UiService } from "./ui/ui-service";
+import { sleep } from "./utils";
 
 export { ExecutorUiService, UiService };
 
