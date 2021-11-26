@@ -18,9 +18,21 @@ This repository is a monorepo handled with [Yarn workspaces](https://classic.yar
 
 There's a folder for each subproject in `packages/`. All of them are plugins, except for `/packages/hardhat-core` which is the main project (i.e. the one that's published as [hardhat](https://npmjs.com/package/hardhat) in npm).
 
+The documentation website and tutorial are in `docs/`. See the [documentation](#Documentation) section. 
+
 ## Installing
 
 To install the project's dependencies, run `yarn` in the root directory of the repository.
+
+## Documentation
+
+To make updates to the hardhat documentation, you can run the website through a local dev server by changing to the `./docs` folder and running:
+
+```shell
+yarn dev
+```
+
+The preview should now be available at [http://localhost:8080/](http://localhost:8080/).
 
 ## Building the projects
 
@@ -155,3 +167,4 @@ When tests are run, Hardhat gets initialized multiple times, and that means unlo
 This problem is normally not present if you are monkey-patching an object that you initialized, but it is when monkey-patching a class, its prototype, or a singleton object initialized by the library itself.
 
 For an example on how to do it properly, please take a look at the `hardhat-truffle5` plugin.
+
