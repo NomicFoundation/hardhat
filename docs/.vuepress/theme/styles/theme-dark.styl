@@ -12,6 +12,22 @@
     $custom-block-background = rgba(229, 230, 231, 1);
     $custom-block-text = rgba(22, 24, 29, 1);
 
+    .sidebar::-webkit-scrollbar {
+        width: 10px;
+        // border-left: 1px solid rgba(255,255,255,0.2);
+    }
+   
+    .sidebar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .sidebar::-webkit-scrollbar-thumb {
+        background-color: rgba(142, 144, 148, 1);
+        /* outline: 1px solid slategrey; */
+        border-radius: 100px;
+
+    }
+
     .top-bar {
         background: rgba(242, 242, 242, 1);
         .top-bar-content {
@@ -58,10 +74,16 @@
             filter: invert(1);
         }
         .algolia-autocomplete {
+            #algolia-search-input {
+                filter: invert(1);
+            }
             .ds-input {
-                background: $code-background;
-                color: $text;
-                border-color: $stroke;
+                // background: $code-background;
+                // color: $text;
+                // border-color: $stroke;
+                &:focus {
+                    border-color: #0857BB
+                }
                 &::placeholder {
                     color: $text;
                 }
@@ -91,18 +113,30 @@
         a {
             color: $link;
         }
-        .language-text {
-            background: $code-background;
-            border: 1px solid rgba(108, 111, 116, 1);
+        hr {
+            border-top-color: $stroke;
+        }
+        .extra-class {
+            pre {
+                background: $code-background;
+                border: 1px solid rgba(108, 111, 116, 1);
+            }
         }
         .custom-block {
-            background: $custom-block-background;
             .custom-block-title, p {
                 color: $custom-block-text;
                 code {
                     background: $text;
                     color: $code-text;
                 }
+            }
+            &.tip {
+                background: $custom-block-background;
+                border-left-color: rgba(66, 185, 131, 1);
+            }
+            &.warning {
+                background: rgba(254, 246, 241, 1);
+                border-left-color: rgba(240, 141, 73, 1);
             }
         }
         ul {
