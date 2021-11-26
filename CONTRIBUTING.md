@@ -3,8 +3,8 @@
 This document contains some tips on how to collaborate in this project.
 
 - [How to contribute to Hardhat](#how-to-contribute-to-hardhat)
-  - [Filing an issue](#filing-an-issue)
-  - [Issues auto-assignment](#issues-auto-assignment)
+  - [Opening an issue](#opening-an-issue)
+    - [Issues auto-assignment](#issues-auto-assignment)
   - [Project structure](#project-structure)
   - [Installing](#installing)
   - [Documentation](#documentation)
@@ -26,11 +26,11 @@ This document contains some tips on how to collaborate in this project.
   - [Common errors](#common-errors)
     - [Monkey-patching dependencies within plugins](#monkey-patching-dependencies-within-plugins)
 
-## Filing an issue
+## Opening an issue
 
 If you find a bug or want to propose a new feature, please [open an issue](https://github.com/nomiclabs/hardhat/issues/new). Pull requests are welcome, but we recommend you discuss it in an issue first, especially for big changes. This will increase the odds that we can accept your PR.
 
-## Issues auto-assignment
+### Issues auto-assignment
 
 Every issue gets automatically assigned to a team member. This person will act as the point of contact between the user that opened the issue and the team.
 
