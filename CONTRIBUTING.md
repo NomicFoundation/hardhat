@@ -2,6 +2,30 @@
 
 This document contains some tips on how to collaborate in this project.
 
+- [How to contribute to Hardhat](#how-to-contribute-to-hardhat)
+  - [Filing an issue](#filing-an-issue)
+  - [Issues auto-assignment](#issues-auto-assignment)
+  - [Project structure](#project-structure)
+  - [Installing](#installing)
+  - [Documentation](#documentation)
+  - [Building the projects](#building-the-projects)
+  - [Testing](#testing)
+    - [Per-package](#per-package)
+    - [Entire project](#entire-project)
+  - [Code formatting](#code-formatting)
+  - [Branching](#branching)
+    - [Website and documentation branching](#website-and-documentation-branching)
+  - [Dependencies](#dependencies)
+  - [Performance and dependencies loading](#performance-and-dependencies-loading)
+    - [Essential modules](#essential-modules)
+  - [Developing locally](#developing-locally)
+    - [Linking](#linking)
+    - [Yalc](#yalc)
+    - [yarn pack](#yarn-pack)
+    - [ndb](#ndb)
+  - [Common errors](#common-errors)
+    - [Monkey-patching dependencies within plugins](#monkey-patching-dependencies-within-plugins)
+
 ## Filing an issue
 
 If you find a bug or want to propose a new feature, please [open an issue](https://github.com/nomiclabs/hardhat/issues/new). Pull requests are welcome, but we recommend you discuss it in an issue first, especially for big changes. This will increase the odds that we can accept your PR.
