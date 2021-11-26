@@ -1,5 +1,6 @@
 import { assert } from "chai";
 
+import { DeploymentState } from "../src/deployment-state";
 import { ExecutionEngine } from "../src/execution-engine";
 import { NullJournal } from "../src/journal";
 import { DAG } from "../src/modules";
@@ -17,13 +18,12 @@ const executionEngineOptions = {
   txPollingInterval: 100,
 };
 
-describe.only("ExecutionEngine", function () {
+describe("ExecutionEngine", function () {
   it("should run a single module with a single executor", async function () {
     // given
     const executionEngine = new ExecutionEngine(
       getMockedProviders(),
       new NullJournal(),
-      emptyDeploymentResult(),
       executionEngineOptions
     );
 
@@ -33,7 +33,10 @@ describe.only("ExecutionEngine", function () {
     dag.addExecutor(inc1);
 
     // when
-    const executionGenerator = executionEngine.execute(dag);
+    const executionGenerator = executionEngine.execute(
+      dag,
+      emptyDeploymentResult(dag)
+    );
     const deploymentResult = await runUntilReady(executionGenerator);
 
     // then
@@ -44,7 +47,7 @@ describe.only("ExecutionEngine", function () {
     assert.isTrue(resultModule.isSuccess());
     assert.equal(resultModule.count(), 1);
 
-    const bindingResult = resultModule.getResult("inc1");
+    const bindingResult = deploymentResult.getBindingResult("MyModule", "inc1");
 
     assert.equal(bindingResult, 2);
 
@@ -56,7 +59,6 @@ describe.only("ExecutionEngine", function () {
     const executionEngine = new ExecutionEngine(
       getMockedProviders(),
       new NullJournal(),
-      emptyDeploymentResult(),
       executionEngineOptions
     );
 
@@ -68,7 +70,10 @@ describe.only("ExecutionEngine", function () {
     dag.addExecutor(incInc1);
 
     // when
-    const executionGenerator = executionEngine.execute(dag);
+    const executionGenerator = executionEngine.execute(
+      dag,
+      emptyDeploymentResult(dag)
+    );
     await runUntil(executionGenerator, () => {
       return inc1.isRunning();
     });
@@ -78,19 +83,25 @@ describe.only("ExecutionEngine", function () {
 
     // when
     inc1.finish();
-    const deploymentResult = await runUntil(executionGenerator, (result) => {
-      return result !== undefined;
-    });
+    const deploymentState: DeploymentState = await runUntil(
+      executionGenerator,
+      (result) => {
+        return result !== undefined;
+      }
+    );
 
     // then
-    const resultModules = deploymentResult.getModules();
+    const resultModules = deploymentState.getModules();
 
     assert.lengthOf(resultModules, 1);
     assert.isTrue(resultModules[0].isSuccess());
     assert.equal(resultModules[0].count(), 2);
 
-    const inc1Result = resultModules[0].getResult("inc1");
-    const incInc1Result = resultModules[0].getResult("incInc1");
+    const inc1Result = deploymentState.getBindingResult("MyModule", "inc1");
+    const incInc1Result = deploymentState.getBindingResult(
+      "MyModule",
+      "incInc1"
+    );
 
     assert.equal(inc1Result, 2);
     assert.equal(incInc1Result, 3);
@@ -104,7 +115,6 @@ describe.only("ExecutionEngine", function () {
     const executionEngine = new ExecutionEngine(
       getMockedProviders(),
       new NullJournal(),
-      emptyDeploymentResult(),
       executionEngineOptions
     );
 
@@ -116,7 +126,10 @@ describe.only("ExecutionEngine", function () {
     dag.addExecutor(incInc1);
 
     // when
-    const executionGenerator = executionEngine.execute(dag);
+    const executionGenerator = executionEngine.execute(
+      dag,
+      emptyDeploymentResult(dag)
+    );
     const deploymentResult = await runUntilReady(executionGenerator);
 
     // then
@@ -135,7 +148,6 @@ describe.only("ExecutionEngine", function () {
     const executionEngine = new ExecutionEngine(
       getMockedProviders(),
       new NullJournal(),
-      emptyDeploymentResult(),
       executionEngineOptions
     );
 
@@ -147,7 +159,10 @@ describe.only("ExecutionEngine", function () {
     dag.addExecutor(incInc1);
 
     // when
-    const executionGenerator = executionEngine.execute(dag);
+    const executionGenerator = executionEngine.execute(
+      dag,
+      emptyDeploymentResult(dag)
+    );
     const deploymentResult = await runUntilReady(executionGenerator);
 
     // then

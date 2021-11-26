@@ -10,12 +10,8 @@ import {
   InternalContractBinding,
   serializeBindingOutput,
 } from "./bindings";
-import {
-  DeploymentResult,
-  ExecutionEngine,
-  ExecutionManager,
-  ModuleResult,
-} from "./execution-engine";
+import { DeploymentState } from "./deployment-state";
+import { ExecutionEngine, ExecutionManager } from "./execution-engine";
 import { Executor, Hold } from "./executors";
 import { FileJournal, NullJournal } from "./journal";
 import { ModuleBuilder, ModuleBuilderImpl, UserModule } from "./modules";
@@ -32,13 +28,12 @@ export {
   Contract,
   ContractBinding,
   ContractOptions,
-  DeploymentResult,
+  DeploymentState,
   Executor,
   Hold,
   InternalBinding,
   InternalContractBinding,
   ModuleBuilder,
-  ModuleResult,
   Providers,
   Services,
   UserModule,
@@ -56,7 +51,7 @@ export class Ignition {
 
   public async deploy(
     userModules: Array<UserModule<any>>,
-    currentDeploymentResult: DeploymentResult,
+    currentDeploymentState: DeploymentState | undefined,
     {
       pathToJournal,
       txPollingInterval,
@@ -83,16 +78,11 @@ export class Ignition {
         ? new FileJournal(pathToJournal)
         : new NullJournal();
 
-    const engine = new ExecutionEngine(
-      this._providers,
-      journal,
-      currentDeploymentResult,
-      {
-        parallelizationLevel: 2,
-        loggingEnabled: pathToJournal !== undefined,
-        txPollingInterval,
-      }
-    );
+    const engine = new ExecutionEngine(this._providers, journal, {
+      parallelizationLevel: 2,
+      loggingEnabled: pathToJournal !== undefined,
+      txPollingInterval,
+    });
 
     const executionManager = new ExecutionManager(
       engine,
@@ -100,14 +90,17 @@ export class Ignition {
     );
 
     log("Execute deployment");
-    const deploymentResult = await executionManager.execute(dag);
+    const newDeploymentState = await executionManager.execute(
+      dag,
+      currentDeploymentState ?? new DeploymentState(dag)
+    );
 
-    return [deploymentResult, moduleOutputs] as const;
+    return [newDeploymentState, moduleOutputs] as const;
   }
 
   public async buildPlan(
     userModules: Array<UserModule<any>>,
-    currentDeploymentResult: DeploymentResult
+    currentDeploymentState: DeploymentState | undefined
   ) {
     log(`Start building plan, '${userModules.length}' modules`);
 
@@ -124,6 +117,9 @@ export class Ignition {
     log("Build DAG");
     const dag = m.buildDAG();
 
-    return ExecutionEngine.buildPlan(dag, currentDeploymentResult);
+    return ExecutionEngine.buildPlan(
+      dag,
+      currentDeploymentState ?? new DeploymentState(dag)
+    );
   }
 }

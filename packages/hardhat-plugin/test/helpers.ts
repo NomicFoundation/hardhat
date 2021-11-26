@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { DeploymentResult, UserModule } from "ignition";
+import { DeploymentState, UserModule } from "ignition";
 
 /**
  * Wait until there are at least `expectedCount` transactions in the mempool
@@ -58,29 +58,29 @@ type ExpectedBindingResult =
       kind: "transaction";
     };
 type ExpectedModuleResult = Record<string, ExpectedBindingResult>;
-type ExpectedDeploymentResult = Record<string, ExpectedModuleResult>;
+type ExpectedDeploymentState = Record<string, ExpectedModuleResult>;
 
-export async function assertDeploymentResult(
+export async function assertDeploymentState(
   hre: any,
-  result: DeploymentResult,
-  expectedResult: ExpectedDeploymentResult
+  result: DeploymentState,
+  expectedResult: ExpectedDeploymentState
 ) {
-  const resultModules = result.getModules();
+  const modulesStates = result.getModules();
   const expectedModules = Object.entries(expectedResult);
 
-  assert.equal(resultModules.length, expectedModules.length);
+  assert.equal(modulesStates.length, expectedModules.length);
 
-  for (const resultModule of resultModules) {
-    const expectedModule = expectedResult[resultModule.moduleId];
+  for (const moduleState of modulesStates) {
+    const expectedModule = expectedResult[moduleState.id];
 
     assert.isDefined(expectedModule);
 
-    assert.equal(resultModule.count(), Object.entries(expectedModule).length);
+    assert.equal(moduleState.count(), Object.entries(expectedModule).length);
 
     for (const [bindingId, expectedBindingResult] of Object.entries(
       expectedModule
     )) {
-      const bindingResult = resultModule.getResult(bindingId);
+      const bindingResult: any = moduleState.getBindingResult(bindingId);
 
       if (expectedBindingResult.kind === "contract") {
         assert.isDefined(bindingResult.address);
@@ -118,10 +118,10 @@ export async function deployModules(
   hre: any,
   userModules: Array<UserModule<any>>,
   expectedBlocks: number[]
-): Promise<DeploymentResult> {
+): Promise<DeploymentState> {
   await hre.run("compile", { quiet: true });
 
-  const deploymentResultPromise: Promise<DeploymentResult> = hre.run(
+  const deploymentStatePromise: Promise<DeploymentState> = hre.run(
     "deploy:deploy-modules",
     {
       userModules,
@@ -129,9 +129,9 @@ export async function deployModules(
   );
 
   // eslint-disable-next-line @typescript-eslint/no-floating-promises
-  mineBlocks(hre, expectedBlocks, deploymentResultPromise);
+  mineBlocks(hre, expectedBlocks, deploymentStatePromise);
 
-  return deploymentResultPromise;
+  return deploymentStatePromise;
 }
 
 async function mineBlocks(

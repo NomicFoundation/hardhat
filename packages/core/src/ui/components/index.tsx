@@ -2,16 +2,24 @@ import React from "react";
 import { Box, Text } from "ink";
 import Spinner from "ink-spinner";
 
-import { UiData, UiExecutor, UiModule } from "../ui-data";
+import {
+  BindingState,
+  DeploymentState,
+  ModuleState,
+} from "../../deployment-state";
 
-export const IgnitionUi = ({ uiData }: { uiData: UiData }) => {
-  const currentModule = uiData.getCurrentModule();
+export const IgnitionUi = ({
+  deploymentState,
+}: {
+  deploymentState: DeploymentState;
+}) => {
+  const currentModule = deploymentState.getCurrentModule();
 
-  const successfulModules = uiData.getSuccessfulModules();
+  const successfulModules = deploymentState.getSuccessfulModules();
 
   return (
     <Box flexDirection="column">
-      <Header uiData={uiData} />
+      <Header deploymentState={deploymentState} />
 
       <Box flexDirection="column" marginLeft={2} marginTop={1}>
         <SuccessfulModules modules={successfulModules} />
@@ -22,23 +30,25 @@ export const IgnitionUi = ({ uiData }: { uiData: UiData }) => {
   );
 };
 
-const Header = ({ uiData }: { uiData: UiData }) => {
+const Header = ({ deploymentState }: { deploymentState: DeploymentState }) => {
+  const successfulModulesCount = deploymentState.getSuccessfulModules().length;
+  const modulesCount = deploymentState.getModules().length;
+
   return (
     <Box>
       <Text bold={true}>
-        {uiData.getDeployedModulesCount()} of {uiData.getModulesCount()} modules
-        deployed
+        {successfulModulesCount} of {modulesCount} modules deployed
       </Text>
     </Box>
   );
 };
 
-const CurrentModule = ({ module }: { module?: UiModule }) => {
+const CurrentModule = ({ module }: { module?: ModuleState }) => {
   if (module === undefined) {
     return null;
   }
 
-  const executors = [...module.executors.values()];
+  const bindingsStates = module.getBindingsStates();
 
   return (
     <Box flexDirection="column">
@@ -48,49 +58,64 @@ const CurrentModule = ({ module }: { module?: UiModule }) => {
         </Text>
       </Box>
       <Box flexDirection="column" marginLeft={4}>
-        {executors.sort(compareExecutors).map((e) => (
-          <Executor key={e.id} executor={e} />
-        ))}
+        {bindingsStates
+          .sort((a, b) => compareBindingsStates(a[1], b[1]))
+          .map(([bindingId, bindingState]) => (
+            <Binding
+              key={bindingId}
+              bindingId={bindingId}
+              bindingState={bindingState}
+            />
+          ))}
       </Box>
     </Box>
   );
 };
 
-function compareExecutors(a: UiExecutor, b: UiExecutor): number {
-  const value = (s: UiExecutor["status"]) => {
+function compareBindingsStates(a: BindingState, b: BindingState): number {
+  const value = (s: BindingState["_kind"]) => {
     if (s === "success" || s === "failure" || s === "hold") {
       return 0;
     }
-    if (s === "executing") {
+    if (s === "running") {
       return 1;
     }
     if (s === "ready") {
       return 2;
     }
+    if (s === "waiting") {
+      return 3;
+    }
     const _exhaustiveCheck: never = s;
     return s;
   };
 
-  const aValue = value(a.status);
-  const bValue = value(b.status);
+  const aValue = value(a._kind);
+  const bValue = value(b._kind);
   return aValue - bValue;
 }
 
-const Executor = ({ executor }: { executor: UiExecutor }) => {
+const Binding = ({
+  bindingId,
+  bindingState,
+}: {
+  bindingId: string;
+  bindingState: BindingState;
+}) => {
   return (
     <Box>
-      {executor.status === "executing" ? (
-        <Text>{executor.id}: Executing</Text>
-      ) : executor.status === "success" ? (
-        <Text color="green">{executor.id}: Executed</Text>
-      ) : executor.status === "ready" ? (
-        <Text color="gray">{executor.id}: Waiting</Text>
+      {bindingState._kind === "running" ? (
+        <Text>{bindingId}: Executing</Text>
+      ) : bindingState._kind === "success" ? (
+        <Text color="green">{bindingId}: Executed</Text>
+      ) : bindingState._kind === "ready" ? (
+        <Text color="gray">{bindingId}: Waiting</Text>
       ) : null}
     </Box>
   );
 };
 
-const SuccessfulModules = ({ modules }: { modules: UiModule[] }) => {
+const SuccessfulModules = ({ modules }: { modules: ModuleState[] }) => {
   if (modules.length === 0) {
     return null;
   }

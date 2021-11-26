@@ -42,20 +42,20 @@ export abstract class Executor<I = unknown, O extends BindingOutput = any> {
 
   public async run(input: Resolved<I>, services: Services) {
     try {
-      services.ui.executorStart();
+      services.ui.render();
       this._debug("Start running");
       this._setRunning();
       const result = await this.execute(input, services);
       this._debug("Ended successfully");
-      services.ui.executorSuccessful();
+      services.ui.render();
       this._setSuccess(result);
     } catch (e: any) {
       if (e instanceof Hold) {
-        services.ui.executorHold(e.reason);
+        services.ui.render();
         this._debug("Ended with hold");
         this._setHold(e.reason);
       } else {
-        services.ui.executorFailure(e.message);
+        services.ui.render();
         this._debug("Ended with error");
         this._setFailure(e);
       }

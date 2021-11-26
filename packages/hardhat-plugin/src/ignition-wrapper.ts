@@ -4,12 +4,9 @@ import fsExtra from "fs-extra";
 import { HardhatConfig, HardhatRuntimeEnvironment } from "hardhat/types";
 import {
   Binding,
-  BindingOutput,
   DeploymentPlan,
-  DeploymentResult,
-  deserializeBindingOutput,
+  DeploymentState,
   Ignition,
-  ModuleResult,
   serializeBindingOutput,
   UserModule,
 } from "ignition";
@@ -46,7 +43,7 @@ export class IgnitionWrapper {
   ): Promise<Array<Resolved<any>>> {
     const { chainId } = await this._ethers.provider.getNetwork();
 
-    const currentDeploymentResult = await this._getDeploymentResult(chainId);
+    const currentDeploymentState = await this._getDeploymentState(chainId);
 
     const userModules: Array<UserModule<any>> = [];
     for (const userModuleOrName of userModulesOrNames) {
@@ -58,19 +55,19 @@ export class IgnitionWrapper {
       userModules.push(userModule);
     }
 
-    const [deploymentResult, moduleOutputs] = await this._ignition.deploy(
+    const [deploymentState, moduleOutputs] = await this._ignition.deploy(
       userModules,
-      currentDeploymentResult ?? new DeploymentResult(),
+      currentDeploymentState,
       this._deployOptions
     );
 
-    const moduleIdAndHoldReason = deploymentResult.isHold();
+    const moduleIdAndHoldReason = deploymentState.isHold();
     if (moduleIdAndHoldReason !== undefined) {
       const [moduleId, holdReason] = moduleIdAndHoldReason;
       throw new Error(`Execution held for module '${moduleId}': ${holdReason}`);
     }
 
-    const moduleIdAndFailures = deploymentResult.getFailures();
+    const moduleIdAndFailures = deploymentState.getFailures();
     if (moduleIdAndFailures !== undefined) {
       const [moduleId, failures] = moduleIdAndFailures;
 
@@ -84,19 +81,24 @@ export class IgnitionWrapper {
       );
     }
 
-    await this._saveDeploymentResult(chainId, deploymentResult);
+    await this._saveDeploymentState(chainId, deploymentState);
 
     const resolvedOutputs: any = [];
     for (const moduleOutput of moduleOutputs) {
       const resolvedOutput: any = {};
       for (const [key, value] of Object.entries<any>(moduleOutput as any)) {
-        const bindingResult = deploymentResult.getBindingResult(
+        const bindingResult = deploymentState.getBindingResult(
           value.moduleId,
           value.id
         )!;
 
-        if (typeof bindingResult === "string") {
+        if (
+          typeof bindingResult === "string" ||
+          typeof bindingResult === "number"
+        ) {
           resolvedOutput[key] = bindingResult;
+        } else if ("hash" in bindingResult) {
+          resolvedOutput[key] = bindingResult.hash;
         } else {
           const { abi, address } = bindingResult;
           resolvedOutput[key] = await this._ethers.getContractAt(abi, address);
@@ -105,7 +107,7 @@ export class IgnitionWrapper {
       resolvedOutputs.push(resolvedOutput);
     }
 
-    return [deploymentResult, resolvedOutputs];
+    return [deploymentState, resolvedOutputs];
   }
 
   public async buildPlan(
@@ -113,7 +115,7 @@ export class IgnitionWrapper {
   ): Promise<DeploymentPlan> {
     const { chainId } = await this._ethers.provider.getNetwork();
 
-    const currentDeploymentResult = await this._getDeploymentResult(chainId);
+    const currentDeploymentState = await this._getDeploymentState(chainId);
 
     const userModules: Array<UserModule<any>> = [];
     for (const userModuleOrName of userModulesOrNames) {
@@ -127,7 +129,7 @@ export class IgnitionWrapper {
 
     const plan = await this._ignition.buildPlan(
       userModules,
-      currentDeploymentResult ?? new DeploymentResult()
+      currentDeploymentState
     );
 
     return plan;
@@ -157,9 +159,9 @@ export class IgnitionWrapper {
     throw new Error(`No module with id ${moduleId}`);
   }
 
-  private async _saveDeploymentResult(
+  private async _saveDeploymentState(
     chainId: number,
-    deploymentResult: DeploymentResult
+    deploymentState: DeploymentState
   ) {
     if (this._isHardhatNetwork) {
       return;
@@ -171,19 +173,24 @@ export class IgnitionWrapper {
     );
     fsExtra.ensureDirSync(deploymentsDirectory);
 
-    const modulesResults = deploymentResult.getModules();
+    const modulesStates = deploymentState.getModules();
 
-    for (const moduleResult of modulesResults) {
+    for (const moduleState of modulesStates) {
       const ignitionModulePath = path.join(
         deploymentsDirectory,
-        `${moduleResult.moduleId}.json`
+        `${moduleState.id}.json`
       );
 
       const serializedModule = JSON.stringify(
-        moduleResult
-          .getResults()
-          .reduce((acc: any, [key, value]: [string, BindingOutput]) => {
-            acc[key] = serializeBindingOutput(value);
+        moduleState
+          .getBindingsStates()
+          .reduce((acc: any, [bindingId, bindingState]) => {
+            if (bindingState._kind !== "success") {
+              throw new Error(
+                "assertion error: only successful modules should be saved"
+              );
+            }
+            acc[bindingId] = serializeBindingOutput(bindingState.result);
             return acc;
           }, {}),
         undefined,
@@ -193,9 +200,9 @@ export class IgnitionWrapper {
     }
   }
 
-  private async _getDeploymentResult(
+  private async _getDeploymentState(
     chainId: number
-  ): Promise<DeploymentResult | undefined> {
+  ): Promise<DeploymentState | undefined> {
     if (this._isHardhatNetwork) {
       return;
     }
@@ -209,28 +216,33 @@ export class IgnitionWrapper {
       return;
     }
 
-    const moduleResultFiles = fs.readdirSync(deploymentsDirectory);
+    return undefined;
 
-    const deploymentResult = new DeploymentResult();
-    for (const moduleResultFile of moduleResultFiles) {
-      const moduleId = path.parse(moduleResultFile).name;
-      const serializedModuleResult = JSON.parse(
-        fs
-          .readFileSync(path.join(deploymentsDirectory, moduleResultFile))
-          .toString()
-      );
-      const moduleResult = new ModuleResult(moduleId);
+    // TODO implement something like ModuleState.fromJSON() and
+    // use it to build the deployment state here
 
-      for (const [bindingId, result] of Object.entries(
-        serializedModuleResult
-      )) {
-        moduleResult.addResult(bindingId, deserializeBindingOutput(result));
-      }
+    // const moduleResultFiles = fs.readdirSync(deploymentsDirectory);
 
-      deploymentResult.addResult(moduleResult);
-    }
+    // const deploymentState = new DeploymentState();
+    // for (const moduleResultFile of moduleResultFiles) {
+    //   const moduleId = path.parse(moduleResultFile).name;
+    //   const serializedModuleResult = JSON.parse(
+    //     fs
+    //       .readFileSync(path.join(deploymentsDirectory, moduleResultFile))
+    //       .toString()
+    //   );
+    //   const moduleResult = new ModuleResult(moduleId);
+    //
+    //   for (const [bindingId, result] of Object.entries(
+    //     serializedModuleResult
+    //   )) {
+    //     moduleResult.addResult(bindingId, deserializeBindingOutput(result));
+    //   }
+    //
+    //   deploymentState.addResult(moduleResult);
+    // }
 
-    return deploymentResult;
+    // return deploymentState;
   }
 }
 

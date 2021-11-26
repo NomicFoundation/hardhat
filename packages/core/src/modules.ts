@@ -14,10 +14,6 @@ import { Contract, Tx } from "./types";
 export class IgnitionModule {
   constructor(public readonly id: string, private _executors: Executor[]) {}
 
-  public getExecutors(): Executor[] {
-    return this._executors;
-  }
-
   public getSortedExecutors(): Executor[] {
     const dependencies = new Map<string, Set<string>>();
 
@@ -26,7 +22,9 @@ export class IgnitionModule {
         dependencies.get(executor.binding.id) ?? new Set();
 
       for (const executorDependency of executor.binding.getDependencies()) {
-        executorDependencies.add(executorDependency.id);
+        if (executorDependency.moduleId === executor.binding.moduleId) {
+          executorDependencies.add(executorDependency.id);
+        }
       }
 
       dependencies.set(executor.binding.id, executorDependencies);
@@ -87,15 +85,9 @@ export class DAG {
     return new IgnitionModule(moduleId, [...executorsMap.values()]);
   }
 
-  public getModules(): IgnitionModule[] {
-    return [...this._modules.entries()].map(
-      ([id, executorsMap]) => new IgnitionModule(id, [...executorsMap.values()])
-    );
-  }
-
   public getSortedModules(): IgnitionModule[] {
     const added = new Set<string>();
-    const ignitionModules = this.getModules();
+    const ignitionModules = this._getModules();
     const sortedModules: IgnitionModule[] = [];
 
     while (added.size < ignitionModules.length) {
@@ -116,13 +108,19 @@ export class DAG {
     return sortedModules;
   }
 
-  private _addDependency(moduleId: string, dependencyId: string) {
-    if (moduleId !== dependencyId) {
+  private _addDependency(moduleId: string, dependencyModuleId: string) {
+    if (moduleId !== dependencyModuleId) {
       const dependencies =
         this._dependencies.get(moduleId) ?? new Set<string>();
-      dependencies.add(dependencyId);
+      dependencies.add(dependencyModuleId);
       this._dependencies.set(moduleId, dependencies);
     }
+  }
+
+  private _getModules(): IgnitionModule[] {
+    return [...this._modules.entries()].map(
+      ([id, executorsMap]) => new IgnitionModule(id, [...executorsMap.values()])
+    );
   }
 }
 

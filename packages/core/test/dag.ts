@@ -41,7 +41,7 @@ describe("DAG", function () {
       dag.addExecutor(inc("MyModule", "inc1", 1));
 
       // when
-      const [ignitionModule] = dag.getModules();
+      const [ignitionModule] = dag.getSortedModules();
       const executors = ignitionModule
         .getSortedExecutors()
         .map((e) => e.binding.id);
@@ -58,7 +58,7 @@ describe("DAG", function () {
       dag.addExecutor(inc1);
 
       // when
-      const [ignitionModule] = dag.getModules();
+      const [ignitionModule] = dag.getSortedModules();
       const executors = ignitionModule
         .getSortedExecutors()
         .map((e) => e.binding.id);
@@ -78,7 +78,7 @@ describe("DAG", function () {
       dag.addExecutor(incInc1);
 
       // when
-      const [ignitionModule] = dag.getModules();
+      const [ignitionModule] = dag.getSortedModules();
       const executors = ignitionModule
         .getSortedExecutors()
         .map((e) => e.binding.id);

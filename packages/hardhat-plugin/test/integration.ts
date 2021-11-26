@@ -1,7 +1,7 @@
 import { assert } from "chai";
 import { buildModule } from "ignition";
 import {
-  assertDeploymentResult,
+  assertDeploymentState,
   assertRejects,
   deployModules,
   resultAssertions,
@@ -23,7 +23,7 @@ describe("integration tests", function () {
     const deploymentResult = await deployModules(this.hre, [userModule], [1]);
 
     // then
-    await assertDeploymentResult(this.hre, deploymentResult, {
+    await assertDeploymentState(this.hre, deploymentResult, {
       MyModule: {
         Foo: resultAssertions.contract(async (foo) => {
           assert.isTrue(await foo.isFoo());
@@ -43,7 +43,7 @@ describe("integration tests", function () {
     const deploymentResult = await deployModules(this.hre, [userModule], [2]);
 
     // then
-    await assertDeploymentResult(this.hre, deploymentResult, {
+    await assertDeploymentState(this.hre, deploymentResult, {
       MyModule: {
         Foo: resultAssertions.contract(async (foo) => {
           assert.isTrue(await foo.isFoo());
@@ -72,18 +72,18 @@ describe("integration tests", function () {
     );
 
     // then
-    await assertDeploymentResult(this.hre, deploymentResult, {
+    await assertDeploymentState(this.hre, deploymentResult, {
       MyModule: {
         Foo: resultAssertions.contract(async (foo) => {
           assert.isTrue(await foo.isFoo());
         }),
         UsesContract: resultAssertions.contract(async (usesContract) => {
           const contractAddress = await usesContract.contractAddress();
-          const fooAddress = deploymentResult
+          const fooResult: any = deploymentResult
             .getModule("MyModule")
-            .getResult("Foo").address;
+            .getBindingResult("Foo");
 
-          assert.equal(contractAddress, fooAddress);
+          assert.equal(contractAddress, fooResult.address);
         }),
       },
     });
@@ -104,7 +104,7 @@ describe("integration tests", function () {
     );
 
     // then
-    await assertDeploymentResult(this.hre, deploymentResult, {
+    await assertDeploymentState(this.hre, deploymentResult, {
       MyModule: {
         Foo: resultAssertions.contract(async (foo) => {
           assert.isTrue(await foo.isFoo());
@@ -133,7 +133,7 @@ describe("integration tests", function () {
     );
 
     // then
-    await assertDeploymentResult(this.hre, deploymentResult, {
+    await assertDeploymentState(this.hre, deploymentResult, {
       MyModule: {
         Foo1: resultAssertions.contract(async (foo) => {
           assert.isTrue(await foo.isFoo());
@@ -171,7 +171,7 @@ describe("integration tests", function () {
     );
 
     // then
-    await assertDeploymentResult(this.hre, deploymentResult, {
+    await assertDeploymentState(this.hre, deploymentResult, {
       MyModule1: {
         Foo: resultAssertions.contract(async (foo) => {
           assert.isTrue(await foo.isFoo());
