@@ -5,17 +5,12 @@
   >
     <div style="position: relative;">
       <HHTopBar />
-      <div style="position: relative;">
+      <div style="position: relative;" class="navigation-bar">
         <header>
           <SidebarButton @toggle-sidebar="$emit('toggle-sidebar')" />
 
           <a href="/" class="home-link">
-            <img
-              class="logo"
-              v-if="$site.themeConfig.logo"
-              :src="logoImg"
-              :alt="$siteTitle"
-            />
+            <div class="logo"></div>
             <span
               ref="siteName"
               class="site-name"
@@ -36,7 +31,7 @@
             <NavLinks class="can-hide" />
 
             <ul class="social-links social-links-non-landing">
-              <li v-for="socialLink of social">
+              <li v-for="socialLink of social" v-bind:key="socialLink.link">
                 <a
                   :href="socialLink.link"
                   :title="socialLink.name"
@@ -47,6 +42,9 @@
                 </a>
               </li>
             </ul>
+            <div class="dark-mode-toggle" v-on:click="toggleDarkTheme">
+              <img :src="dmLight" />
+            </div>
           </div>
         </header>
       </div>
@@ -62,9 +60,12 @@
   import HHTopBar from "./HHTopBar";
 
   import LogoImg from "../img/hardhat_logos/Hardhat-logo.svg";
+  import LogoImgDark from "../img/hardhat_logos/Hardhat-logo.svg";
   import GithubLogo from "../img/assets/social/github.svg";
   import TwitterLogo from "../img/assets/social/twitter.svg";
   import DiscordLogo from "../img/assets/social/discord.svg";
+
+  import DMLight from "../img/icons/dm_light.svg";
 
   export default {
     components: {
@@ -79,6 +80,7 @@
     return {
       linksWrapMaxWidth: null,
       logoImg: LogoImg,
+      dmLight: DMLight
     };
   },
 
@@ -100,7 +102,30 @@
     handleLinksWrapWidth();
     window.addEventListener("resize", handleLinksWrapWidth, false);
   },
-
+  methods: {
+    toggleDarkTheme() {
+    const body = document.body;
+    body.classList.toggle("dark-mode");
+    //If dark mode is selected
+    if (body.classList.contains("dark-mode")) {
+        //Save user preference in storage
+        localStorage.setItem("dark-theme", "true");
+    //If light mode is selected
+    } else {
+        body.classList.remove("dark-mode");
+        setTimeout(function() {
+        localStorage.removeItem("dark-theme");
+        }, 100);
+    }
+    },
+    checkUserPreference() {
+        //Check Storage on Page load. Keep user preference through sessions
+        if (localStorage.getItem("dark-theme")) {
+            document.body.classList.add("dark-mode");
+            document.getElementById('theme-toggle').checked = true;
+        }
+    }
+  },
   computed: {
     algolia() {
       return (
@@ -150,9 +175,16 @@ $navbar-vertical-padding = 0.5rem
 $navbar-horizontal-padding = 2rem
 
 .navbar
+  .logo
+    width: 167px;
+    height: 41px;
+    background-position: center;
+    background-size: cover;
   .router-link-active:after
     width: 100%;
-
+  .dark-mode-toggle
+    display: flex;
+    cursor: pointer;
   .social-links
     list-style none
     justify-content space-evenly

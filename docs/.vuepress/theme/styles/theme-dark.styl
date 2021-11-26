@@ -1,0 +1,153 @@
+.dark-mode {
+
+    $stroke = rgba(75, 77, 77, 1);
+    $background = rgba(32, 35, 42, 1);
+    $text = rgba(210, 211, 213, 1);
+    $text_2 = rgba(155, 159, 168, 1);
+    $link = #CBB100;
+    $accent = rgba(204, 178, 0, 1);
+    $code-background = rgba(22, 24, 29, 1);
+    $code-text = rgba(142, 144, 148, 1);
+    $sidebar-links = rgba(176, 178, 181, 1);
+    $custom-block-background = rgba(229, 230, 231, 1);
+    $custom-block-text = rgba(22, 24, 29, 1);
+
+    .top-bar {
+        background: rgba(242, 242, 242, 1);
+        .top-bar-content {
+            .colored {
+                span {
+                    color: $accent;
+                }
+            }
+            .top-text {
+                a {
+                    color: #040405;
+                    span {
+                        color: inherit;
+                    }
+                }
+            }
+        }
+    }
+    .navbar {
+        border-bottom: 1px solid $stroke !important;
+        .logo {
+            background-image: url('../../theme/img/hardhat_logos/Hardhat-Logo-Dark.svg');
+            
+        }
+        .dark-mode-toggle {
+            filter: invert(1);    
+        }
+        .links {
+            background: inherit;
+            .nav-links {
+                background: inherit;
+                .nav-item {
+                    a {
+                        background: inherit;
+                        color: white !important;
+                        &:after {
+                            background: white;
+                        }
+                    }
+                }
+            }
+        }
+        .social-links {
+            filter: invert(1);
+        }
+        .algolia-autocomplete {
+            .ds-input {
+                background: $code-background;
+                color: $text;
+                border-color: $stroke;
+                &::placeholder {
+                    color: $text;
+                }
+            }
+        }
+    }
+    .sidebar,
+    .navbar,
+    .page {
+        background: $background;
+        h1, h2, h3, h4, h5, h6, p {
+            color: $text;
+            font-family: 'Chivo';
+        }
+        h2 {
+            border-bottom-color: $stroke;
+        }
+    }
+    .page {
+        p, ul li, ol li {
+            font-family: 'ChivoLight';
+            code {
+                background: $code-background;
+                color: $code-text;
+            }
+        }
+        a {
+            color: $link;
+        }
+        .language-text {
+            background: $code-background;
+            border: 1px solid rgba(108, 111, 116, 1);
+        }
+        .custom-block {
+            background: $custom-block-background;
+            .custom-block-title, p {
+                color: $custom-block-text;
+                code {
+                    background: $text;
+                    color: $code-text;
+                }
+            }
+        }
+        ul {
+            li {
+                color: $text;
+                code {
+                    background: $code-background;
+                    color: $code-text;
+                }
+            }
+        }
+        .page-edit {
+            .edit-link {
+                a {
+                    color: $text_2;
+                    font-family: 'ChivoBold';
+                }
+            }
+            .last-updated {
+                .prefix {
+                    color: $text_2;
+                    font-family: 'ChivoBold';
+                }
+            }
+        }
+        .page-nav {
+            .inner {
+                border-top-color: $stroke;    
+                .next, .prev {
+                    font-family: 'ChivoBold';
+                }
+            }
+        }
+    }
+    .sidebar {
+        border-right: 1px solid $stroke;
+        a {
+            color: $sidebar-links;
+            &.active {
+                color: $accent;
+                border-left-color: $accent;
+            }
+        }
+        .sidebar-heading {
+            color: $sidebar-links;
+        }
+    }
+}
