@@ -15,7 +15,7 @@
     "dotenv": "^6.2.0",
     "exports-loader": "^1.1.1",
     "imports-loader": "^1.2.0",
-    "prettier": "~2.4.1",
+    "prettier": "2.4.1",
     "pug": "^3.0.0",
     "pug-plain-loader": "^1.0.0",
     "ts-node": "^8.1.0",

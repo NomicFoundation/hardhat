@@ -69,7 +69,7 @@ const ADVANCED_TYPESCRIPT_SAMPLE_PROJECT_DEPENDENCIES: Dependencies = {
   "@typescript-eslint/eslint-plugin": "^4.29.1",
   "@typescript-eslint/parser": "^4.29.1",
   "@types/chai": "^4.2.21",
-  "@types/node": "^16.11.9",
+  "@types/node": "^12.0.0",
   "@types/mocha": "^9.0.0",
   "ts-node": "^10.1.0",
   typechain: "^5.1.2", // a workaround. see https://github.com/nomiclabs/hardhat/issues/1672#issuecomment-894497156
