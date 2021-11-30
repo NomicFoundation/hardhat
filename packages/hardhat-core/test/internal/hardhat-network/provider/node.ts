@@ -126,9 +126,9 @@ describe("HardhatNode", () => {
 
     describe("basic tests", () => {
       it("can mine an empty block", async () => {
-        const beforeBlock = await node.getLatestBlockNumber();
+        const beforeBlock = node.getLatestBlockNumber();
         await node.mineBlock();
-        const currentBlock = await node.getLatestBlockNumber();
+        const currentBlock = node.getLatestBlockNumber();
         assert.equal(currentBlock.toString(), beforeBlock.addn(1).toString());
       });
 

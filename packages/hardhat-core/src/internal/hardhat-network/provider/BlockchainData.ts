@@ -1,8 +1,13 @@
+import util from "util";
+
 import { Block } from "@ethereumjs/block";
+import Common from "@ethereumjs/common";
 import { TypedTransaction } from "@ethereumjs/tx";
 import Bloom from "@ethereumjs/vm/dist/bloom";
 import { BN, bufferToHex } from "ethereumjs-util";
 
+import { HardhatError } from "../../core/errors";
+import { ERRORS } from "../../core/errors-list";
 import { bloomFilter, filterLogs } from "./filter";
 import { FilterParams } from "./node-types";
 import { RpcLogOutput, RpcReceiptOutput } from "./output";
@@ -20,18 +25,23 @@ export class BlockchainData {
     interval: BN;
   }> = new Array();
 
-  public addBlocks(first: BN, count: BN, interval: BN) {
-    const last = first.add(count).subn(1); // leave room for the capstone block
+  public reserveBlocks(first: BN, count: BN, interval: BN, common: Common) {
+    const last = first.add(count);
     this.emptyBlockRanges.push({ first, last, interval });
-    // add the capstone block
     this.addBlock(
-      Block.fromBlockData({ header: { number: last.addn(1).toNumber() } }),
+      Block.fromBlockData(
+        {
+          header: {
+            number: last.subn(1).toNumber(),
+          },
+        },
+        { common }
+      ),
       new BN(0)
     );
   }
 
   public getBlockByNumber(blockNumber: BN) {
-    this._createBlockIfInEmptyRange(blockNumber);
     return this._blocksByNumber.get(blockNumber.toNumber());
   }
 
@@ -127,65 +137,73 @@ export class BlockchainData {
     this._transactionReceipts.set(receipt.transactionHash, receipt);
   }
 
-  public isBlockInAnEmptyRange(blockNumber: number): boolean {
-    const bnBlockNumber = new BN(blockNumber);
-    return this._findRangeWithBlock(bnBlockNumber) !== -1;
+  public isReservedBlock(blockNumber: BN): boolean {
+    return this._findRangeWithBlock(blockNumber) !== -1;
   }
 
   private _findRangeWithBlock(blockNumber: BN): number {
     return this.emptyBlockRanges.findIndex(
-      (range) => range.first.lte(blockNumber) && range.last.gte(blockNumber)
+      (range) => range.first.lte(blockNumber) && blockNumber.lte(range.last)
     );
   }
 
-  private _createBlockIfInEmptyRange(blockNumber: BN) {
-    // if blockNumber lies within one of the ranges listed in
-    // this.emptyBlockRanges, then that block needs to be created, and that
-    // range needs to be split in two in order to accomodate access to the
-    // given block.
+  public fulfillBlockReservation(blockNumber: BN, common: Common): Block {
+    // number should lie within one of the ranges listed in
+    // this.emptyBlockRanges. in addition to adding the given block, that range
+    // needs to be split in two in order to accomodate access to the given
+    // block.
 
-    // determine whether any empty block ranges contain the block number.
     const rangeIndex = this._findRangeWithBlock(blockNumber);
-    if (rangeIndex !== -1) {
-      // split the empty block range:
-
-      const oldRange = this.emptyBlockRanges[rangeIndex];
-
-      this.emptyBlockRanges.splice(rangeIndex, 1);
-
-      if (!blockNumber.eq(oldRange.first)) {
-        this.emptyBlockRanges.push({
-          first: oldRange.first,
-          last: blockNumber.subn(1),
-          interval: oldRange.interval,
-        });
-      }
-
-      if (!blockNumber.eq(oldRange.last)) {
-        this.emptyBlockRanges.push({
-          first: blockNumber.addn(1),
-          last: oldRange.last,
-          interval: oldRange.interval,
-        });
-      }
-
-      // create the block:
-
-      const previousTimestamp =
-        this.getBlockByNumber(oldRange.first.subn(1))?.header.timestamp ??
-        new BN(0);
-
-      this.addBlock(
-        Block.fromBlockData({
-          header: {
-            number: blockNumber,
-            timestamp: previousTimestamp.add(
-              oldRange.interval.mul(blockNumber.sub(oldRange.first).addn(1))
-            ),
-          },
-        }),
-        new BN(0)
-      );
+    if (rangeIndex === -1) {
+      throw new HardhatError(ERRORS.GENERAL.ASSERTION_ERROR, {
+        message: `Block ${blockNumber.toString()} does not lie within any of the reserved block ranges (${util.inspect(
+          this.emptyBlockRanges
+        )}).`,
+      });
     }
+
+    // split the empty block range:
+
+    const oldRange = this.emptyBlockRanges[rangeIndex];
+
+    this.emptyBlockRanges.splice(rangeIndex, 1);
+
+    if (!blockNumber.eq(oldRange.first)) {
+      this.emptyBlockRanges.push({
+        first: oldRange.first,
+        last: blockNumber.subn(1),
+        interval: oldRange.interval,
+      });
+    }
+
+    if (!blockNumber.eq(oldRange.last)) {
+      this.emptyBlockRanges.push({
+        first: blockNumber.addn(1),
+        last: oldRange.last,
+        interval: oldRange.interval,
+      });
+    }
+
+    // add the block, injecting the appropriate timestamp:
+
+    const previousTimestamp =
+      this.getBlockByNumber(oldRange.first.subn(1))?.header.timestamp ??
+      new BN(0);
+
+    const blockToAdd = Block.fromBlockData(
+      {
+        header: {
+          number: blockNumber,
+          timestamp: previousTimestamp.add(
+            oldRange.interval.mul(blockNumber.sub(oldRange.first).addn(1))
+          ),
+        },
+      },
+      { common }
+    );
+
+    this.addBlock(blockToAdd, new BN(0));
+
+    return blockToAdd;
   }
 }

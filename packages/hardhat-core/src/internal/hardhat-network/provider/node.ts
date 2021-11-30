@@ -468,7 +468,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     let blocksMined = 0;
 
     // first mine any pending transactions:
-    while (count.ltn(blocksMined) && this._txPool.hasPendingTransactions()) {
+    while (count.gtn(blocksMined) && this._txPool.hasPendingTransactions()) {
       await this.mineBlock();
       blocksMined += 1;
     }
@@ -478,8 +478,11 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       // only one more block is needed. just mine it regularly:
       await this.mineBlock();
     } else {
-      // still need multiple more blocks
-      this._blockchain.addBlocks(remainingBlockCount, interval);
+      this._blockchain.reserveBlocks(
+        remainingBlockCount,
+        interval,
+        this._vm._common
+      );
     }
   }
 
@@ -534,7 +537,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     blockNumberOrPending?: BN | "pending"
   ): Promise<BN> {
     if (blockNumberOrPending === undefined) {
-      blockNumberOrPending = await this.getLatestBlockNumber();
+      blockNumberOrPending = this.getLatestBlockNumber();
     }
 
     const account = await this._runInBlockContext(blockNumberOrPending, () =>
@@ -575,11 +578,15 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   }
 
   public async getLatestBlock(): Promise<Block> {
+    if (this._blockchain.isReservedBlock("latest")) {
+      this._blockchain.fulfillBlockReservation("latest", this._vm._common);
+    }
+
     return this._blockchain.getLatestBlock();
   }
 
-  public async getLatestBlockNumber(): Promise<BN> {
-    return new BN((await this.getLatestBlock()).header.number);
+  public getLatestBlockNumber(): BN {
+    return this._blockchain.getLatestBlockNumber();
   }
 
   public async getPendingBlockAndTotalDifficulty(): Promise<[Block, BN]> {
@@ -757,7 +764,12 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       );
     }
 
-    const block = await this._blockchain.getBlock(blockNumberOrPending);
+    const blockNumber = blockNumberOrPending;
+    if (this._blockchain.isReservedBlock(blockNumber)) {
+      this._blockchain.fulfillBlockReservation(blockNumber, this._vm._common);
+    }
+
+    const block = await this._blockchain.getBlock(blockNumber);
     return block ?? undefined;
   }
 
@@ -1304,7 +1316,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     newestBlock: BN | "pending",
     rewardPercentiles: number[]
   ): Promise<FeeHistory> {
-    const latestBlock = await this.getLatestBlockNumber();
+    const latestBlock = this.getLatestBlockNumber();
     const pendingBlockNumber = latestBlock.addn(1);
 
     const resolvedNewestBlock =
@@ -1976,7 +1988,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       return this._runInPendingBlockContext(action);
     }
 
-    if (blockNumberOrPending.eq(await this.getLatestBlockNumber())) {
+    if (blockNumberOrPending.eq(this.getLatestBlockNumber())) {
       return action();
     }
 
@@ -2219,7 +2231,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     filterParams: FilterParams,
     isFilter: boolean
   ): Promise<FilterParams> {
-    const latestBlockNumber = await this.getLatestBlockNumber();
+    const latestBlockNumber = this.getLatestBlockNumber();
     const newFilterParams = { ...filterParams };
 
     if (newFilterParams.fromBlock === LATEST_BLOCK) {
@@ -2301,7 +2313,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
   private async _persistIrregularWorldState(): Promise<void> {
     this._irregularStatesByBlockNumber.set(
-      (await this.getLatestBlock()).header.number.toString(),
+      this.getLatestBlockNumber().toString(),
       await this._stateManager.getStateRoot()
     );
   }

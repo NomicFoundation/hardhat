@@ -39,8 +39,12 @@ export class ForkBlockchain implements HardhatBlockchainInterface {
     private _common: Common
   ) {}
 
+  public getLatestBlockNumber(): BN {
+    return this._latestBlockNumber;
+  }
+
   public async getLatestBlock(): Promise<Block> {
-    const block = await this.getBlock(this._latestBlockNumber);
+    const block = await this.getBlock(this.getLatestBlockNumber());
     if (block === null) {
       throw new Error("Block not found");
     }
@@ -86,9 +90,36 @@ export class ForkBlockchain implements HardhatBlockchainInterface {
     return block;
   }
 
-  public addBlocks(count: BN, interval: BN) {
-    this._data.addBlocks(this._latestBlockNumber.addn(1), count, interval);
+  public reserveBlocks(count: BN, interval: BN, common: Common) {
+    this._data.reserveBlocks(
+      this._latestBlockNumber.addn(1),
+      count,
+      interval,
+      common
+    );
     this._latestBlockNumber = this._latestBlockNumber.add(count);
+  }
+
+  private _resolveBlockNumberOrLatest(numberOrLatest: BN | "latest"): BN {
+    return numberOrLatest === "latest"
+      ? new BN(this._latestBlockNumber)
+      : numberOrLatest;
+  }
+
+  public isReservedBlock(numberOrLatest: BN | "latest"): boolean {
+    return this._data.isReservedBlock(
+      this._resolveBlockNumberOrLatest(numberOrLatest)
+    );
+  }
+
+  public fulfillBlockReservation(
+    numberOrLatest: BN | "latest",
+    common: Common
+  ): Block {
+    return this._data.fulfillBlockReservation(
+      this._resolveBlockNumberOrLatest(numberOrLatest),
+      common
+    );
   }
 
   public async putBlock(block: Block): Promise<void> {

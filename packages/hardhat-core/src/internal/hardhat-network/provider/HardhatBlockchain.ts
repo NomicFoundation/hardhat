@@ -1,4 +1,5 @@
 import { Block } from "@ethereumjs/block";
+import Common from "@ethereumjs/common";
 import { TypedTransaction } from "@ethereumjs/tx";
 import { BN, zeros } from "ethereumjs-util";
 
@@ -13,8 +14,12 @@ export class HardhatBlockchain implements HardhatBlockchainInterface {
   private readonly _data = new BlockchainData();
   private _length = 0;
 
+  public getLatestBlockNumber(): BN {
+    return new BN(this._length - 1);
+  }
+
   public async getLatestBlock(): Promise<Block> {
-    const block = this._data.getBlockByNumber(new BN(this._length - 1));
+    const block = this._data.getBlockByNumber(this.getLatestBlockNumber());
     if (block === undefined) {
       throw new Error("No block available");
     }
@@ -42,9 +47,31 @@ export class HardhatBlockchain implements HardhatBlockchainInterface {
     return block;
   }
 
-  public async addBlocks(count: BN, interval: BN) {
-    this._data.addBlocks(new BN(this._length), count, interval);
+  public async reserveBlocks(count: BN, interval: BN, common: Common) {
+    this._data.reserveBlocks(new BN(this._length), count, interval, common);
     this._length = this._length + count.toNumber();
+  }
+
+  private _resolveBlockNumberOrLatest(numberOrLatest: BN | "latest"): BN {
+    return numberOrLatest === "latest"
+      ? new BN(this._length - 1)
+      : numberOrLatest;
+  }
+
+  public isReservedBlock(numberOrLatest: BN | "latest"): boolean {
+    return this._data.isReservedBlock(
+      this._resolveBlockNumberOrLatest(numberOrLatest)
+    );
+  }
+
+  public fulfillBlockReservation(
+    numberOrLatest: BN | "latest",
+    common: Common
+  ): Block {
+    return this._data.fulfillBlockReservation(
+      this._resolveBlockNumberOrLatest(numberOrLatest),
+      common
+    );
   }
 
   public async putBlock(block: Block): Promise<void> {
@@ -139,7 +166,7 @@ export class HardhatBlockchain implements HardhatBlockchainInterface {
         `Invalid block number ${blockNumber}. Expected ${this._length}.`
       );
     }
-    if (this._data.isBlockInAnEmptyRange(blockNumber)) {
+    if (this._data.isReservedBlock(block.header.number)) {
       // skip validation of parent hash if the subject block hasn't actually
       // been mined yet.
       return;

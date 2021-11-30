@@ -196,6 +196,78 @@ describe("Hardhat module", function () {
           );
         };
 
+        it("should work without any arguments", async () => {
+          await this.ctx.provider.send("hardhat_mine");
+        });
+
+        it("should work with an argument", async () => {
+          await this.ctx.provider.send("hardhat_mine", [
+            numberToRpcQuantity(3),
+          ]);
+        });
+
+        it("should permit the mining of a regular block afterwards", async () => {
+          await this.ctx.provider.send("hardhat_mine", [
+            numberToRpcQuantity(3),
+          ]);
+          await this.ctx.provider.send("evm_mine");
+        });
+
+        describe("should premit the retrieval of a reserved block", function () {
+          const getAndAssertBlock = async (blockNumber: number) => {
+            const block = await this.ctx.provider.send("eth_getBlockByNumber", [
+              numberToRpcQuantity(blockNumber),
+              false,
+            ]);
+            assert.isNotNull(block, `expected block ${blockNumber} to exist`);
+            assert.isDefined(block.number);
+            assert.equal(blockNumber, block.number);
+            assert.equal(
+              "0x0000000000000000000000000000000000000000000000000000000000000000",
+              block.parentHash,
+              `expected block's parent hash to be null, not ${block.parentHash}`
+            );
+          };
+
+          const blockCount = 3_000_000_000;
+          const mineBlocks = async () => {
+            await this.ctx.provider.send("hardhat_mine", [
+              numberToRpcQuantity(blockCount),
+            ]);
+          };
+
+          let previousLatestBlockNumber: number;
+
+          beforeEach(async function () {
+            previousLatestBlockNumber = await getLatestBlockNumber();
+            await mineBlocks();
+          });
+
+          it("works at the beginning of the reservation", async function () {
+            await getAndAssertBlock(previousLatestBlockNumber + 1);
+          });
+
+          it("works in the middle of the reservation", async function () {
+            await getAndAssertBlock(
+              previousLatestBlockNumber + 1 + Math.floor(blockCount / 2)
+            );
+          });
+
+          it("works at the end of the reservation", async function () {
+            await getAndAssertBlock(previousLatestBlockNumber + blockCount);
+          });
+
+          it("works several times over within the reservation", async function () {
+            for (
+              let blockNumber = previousLatestBlockNumber + blockCount;
+              blockNumber > previousLatestBlockNumber;
+              blockNumber = Math.floor(blockNumber / 2)
+            ) {
+              await getAndAssertBlock(blockNumber);
+            }
+          });
+        });
+
         describe("should increment the block number", async () => {
           it("when not given any arguments", async () => {
             const latestBlockNumber = await getLatestBlockNumber();
@@ -205,13 +277,56 @@ describe("Hardhat module", function () {
           it("when mining 1000 blocks", async () => {
             const latestBlockNumber = await getLatestBlockNumber();
             await this.ctx.provider.send("hardhat_mine", [
-              numberToRpcQuantity(new BN(1000)),
+              numberToRpcQuantity(1000),
             ]);
             assert.equal(
               await getLatestBlockNumber(),
               latestBlockNumber + 1000
             );
           });
+        });
+
+        it("should mine transactions in the mempool", async () => {
+          await this.ctx.provider.send("evm_setAutomine", [false]);
+          await this.ctx.provider.send("evm_setBlockGasLimit", [
+            numberToRpcQuantity(21000 * 3),
+          ]);
+          for (let i = 0; i <= 3; i++) {
+            await this.ctx.provider.send("eth_sendTransaction", [
+              {
+                from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                to: "0x1111111111111111111111111111111111111111",
+                gas: numberToRpcQuantity(21000),
+              },
+            ]);
+          }
+          const previousLatestBlockNumber = await getLatestBlockNumber();
+          await this.ctx.provider.send("hardhat_mine", [
+            numberToRpcQuantity(10),
+          ]);
+          for (const expectation of [
+            { block: previousLatestBlockNumber + 1, transactionCount: 3 },
+            { block: previousLatestBlockNumber + 2, transactionCount: 1 },
+            { block: previousLatestBlockNumber + 3, transactionCount: 0 },
+          ]) {
+            const block = await this.ctx.provider.send("eth_getBlockByNumber", [
+              numberToRpcQuantity(expectation.block),
+              false,
+            ]);
+            assert.isDefined(
+              block,
+              `block ${expectation.block} should be defined`
+            );
+            assert.isDefined(
+              block.transactions,
+              `block ${expectation.block} should have transactions`
+            );
+            assert.equal(
+              expectation.transactionCount,
+              block.transactions.length,
+              `expected block ${expectation.block}'s transaction count to be ${expectation.transactionCount}, but it was ${block.transactions.length}`
+            );
+          }
         });
       });
 
