@@ -1,4 +1,5 @@
 import type * as ethers from "ethers";
+import { Artifact } from "hardhat/src/types";
 
 import type { SignerWithAddress } from "../signers";
 
@@ -25,8 +26,17 @@ export interface HardhatEthersHelpers {
   provider: ethers.providers.JsonRpcProvider;
 
   getContractFactory: typeof getContractFactory;
+  getContractFactoryFromArtifact: (
+    artifact: Artifact,
+    signerOrOptions?: ethers.Signer | FactoryOptions
+  ) => Promise<ethers.ContractFactory>;
   getContractAt: (
     nameOrAbi: string | any[],
+    address: string,
+    signer?: ethers.Signer
+  ) => Promise<ethers.Contract>;
+  getContractAtFromArtifact: (
+    artifact: Artifact,
     address: string,
     signer?: ethers.Signer
   ) => Promise<ethers.Contract>;

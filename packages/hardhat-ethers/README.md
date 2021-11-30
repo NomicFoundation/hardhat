@@ -60,8 +60,11 @@ function getContractFactory(name: string, signer: ethers.Signer): Promise<ethers
 
 function getContractFactory(name: string, factoryOptions: FactoryOptions): Promise<ethers.ContractFactory>;
 
+function getContractFactoryFromArtifact(artifact: Artifact, signer?: ethers.Signer): Promise<ethers.ContractFactory>;
 
 function getContractAt(nameOrAbi: string | any[], address: string, signer?: ethers.Signer): Promise<ethers.Contract>;
+
+function getContractAtFromArtifact(artifact: Artifact, address: string, signer?: ethers.Signer): Promise<ethers.Contract>;
 
 function getSigners() => Promise<ethers.Signer[]>;
 
