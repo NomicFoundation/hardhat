@@ -29,16 +29,16 @@ const pendingBlock = await network.provider.send("eth_getBlockByNumber", [
 
 ### Mining transactions in FIFO order
 
-The way Hardhat Network's mempool orders transactions is customizable. By default, they are prioritized following Geth's rules, but you can enable a FIFO mode instead. This mode ensures that transactions are added to blocks in the same order they are sent, and is useful to recreate blocks from other networks.
+The way Hardhat Network's mempool orders transactions is customizable. By default, they are prioritized following Geth's rules, but you can enable a FIFO behavior instead, which ensures that transactions are added to blocks in the same order they are sent, and which is useful to recreate blocks from other networks.
 
-You can enable the FIFO mode in your config with:
+You can enable the FIFO behavior in your config with:
 
-```js
+```json
 networks: {
   hardhat: {
     mining: {
       mempool: {
-        order: "fifo";
+        order: "fifo"
       }
     }
   }
