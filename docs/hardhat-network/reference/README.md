@@ -119,12 +119,12 @@ The second ordering mode, called `"fifo"`, keeps the mempool transactions sorted
 
 You can change the ordering mode with:
 
-```js
+```json
 networks: {
   hardhat: {
     mining: {
       mempool: {
-        order: "fifo";
+        order: "fifo"
       }
     }
   }
