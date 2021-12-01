@@ -382,6 +382,20 @@ Enable or disable logging in Hardhat Network
 
 Change the minimum gas price accepted by the network (in wei)
 
+#### `hardhat_setNextBlockBaseFeePerGas`
+
+Sets the base fee of the next block.
+
+For example:
+
+```tsx
+await network.provider.send("hardhat_setNextBlockBaseFeePerGas", [
+  "0x2540be400", // 10 gwei
+]);
+```
+
+This only affects the next block; the base fee will keep being updated in each subsequent block according to [EIP-1559](https://eips.ethereum.org/EIPS/eip-1559).
+
 #### `hardhat_setNonce`
 
 Modifies an account's nonce by overwriting it.
