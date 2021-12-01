@@ -86,9 +86,11 @@ abstract class MultipliedGasEstimationProvider extends ProviderWrapper {
 
       return numberToRpcQuantity(gas);
     } catch (error) {
-      if (error.message.toLowerCase().includes("execution error")) {
-        const blockGasLimit = await this._getBlockGasLimit();
-        return numberToRpcQuantity(blockGasLimit);
+      if (error instanceof Error) {
+        if (error.message.toLowerCase().includes("execution error")) {
+          const blockGasLimit = await this._getBlockGasLimit();
+          return numberToRpcQuantity(blockGasLimit);
+        }
       }
 
       // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
@@ -277,7 +279,7 @@ export class AutomaticGasPriceProvider extends ProviderWrapper {
 
         maxPriorityFeePerGas: rpcQuantityToBN(response.reward[0][0]),
       };
-    } catch (_error) {
+    } catch {
       this._nodeHasFeeHistory = false;
 
       return undefined;

@@ -35,7 +35,7 @@ export async function runScript(
     childProcess.once("close", (status) => {
       log(`Script ${scriptPath} exited with status code ${status}`);
 
-      resolve(status);
+      resolve(status as number);
     });
     childProcess.once("error", reject);
   });

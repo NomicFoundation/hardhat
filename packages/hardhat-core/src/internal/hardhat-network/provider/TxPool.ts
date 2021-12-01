@@ -332,7 +332,7 @@ export class TxPool {
   private _getSenderAddress(tx: TypedTransaction): Address {
     try {
       return tx.getSenderAddress(); // verifies signature
-    } catch (e) {
+    } catch (e: any) {
       if (!tx.isSigned()) {
         throw new InvalidInputError("Invalid Signature");
       }

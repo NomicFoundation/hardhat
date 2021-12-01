@@ -369,7 +369,7 @@ subtask(TASK_VERIFY_GET_CONSTRUCTOR_ARGUMENTS)
         }
 
         return constructorArguments;
-      } catch (error) {
+      } catch (error: any) {
         throw new NomicLabsHardhatPluginError(
           pluginName,
           `Importing the module for the constructor arguments list failed.
@@ -407,7 +407,7 @@ subtask(TASK_VERIFY_GET_LIBRARIES)
         }
 
         return libraries;
-      } catch (error) {
+      } catch (error: any) {
         throw new NomicLabsHardhatPluginError(
           pluginName,
           `Importing the module for the libraries dictionary failed.

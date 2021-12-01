@@ -22,7 +22,7 @@
     "@types/chai": "^4.2.0",
     "@types/fs-extra": "^5.1.0",
     "@types/mocha": "^5.2.6",
-    "@types/node": "^10.17.24",
+    "@types/node": "^12.0.0",
     "@types/shelljs": "^0.8.6",
     "@typescript-eslint/eslint-plugin": "4.29.2",
     "@typescript-eslint/parser": "4.29.2",
@@ -33,10 +33,10 @@
     "eslint-plugin-prettier": "3.4.0",
     "fs-extra": "^7.0.1",
     "mocha": "^7.1.2",
-    "prettier": "2.3.2",
+    "prettier": "2.4.1",
     "rimraf": "^3.0.2",
     "shelljs": "^0.8.3",
     "ts-node": "^8.1.0",
-    "typescript": "~4.0.3"
+    "typescript": "~4.5.2"
   }
 }

@@ -96,7 +96,7 @@ export class Web3HTTPProviderAdapter {
     try {
       const result = await this._provider.send(request.method, request.params);
       response.result = result;
-    } catch (error) {
+    } catch (error: any) {
       if (error.code === undefined) {
         throw error;
       }

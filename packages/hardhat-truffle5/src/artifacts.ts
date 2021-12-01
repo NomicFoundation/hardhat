@@ -27,7 +27,7 @@ export class TruffleEnvironmentArtifacts {
       if (Contract.binary.includes("__")) {
         return false;
       }
-    } catch (e) {
+    } catch {
       return false;
     }
 

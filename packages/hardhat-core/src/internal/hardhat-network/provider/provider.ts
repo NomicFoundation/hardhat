@@ -164,7 +164,7 @@ export class HardhatNetworkProvider
       this._logger.printFailedMethod(method);
       this._logger.printLogs();
 
-      if (!this._logger.isLoggedError(err)) {
+      if (err instanceof Error && !this._logger.isLoggedError(err)) {
         if (ProviderError.isProviderError(err)) {
           this._logger.printEmptyLine();
           this._logger.printErrorMessage(err.message);

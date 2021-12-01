@@ -268,7 +268,7 @@ describe("Ethers plugin", function () {
           it("should fail to return a contract factory for an interface", async function () {
             try {
               await this.env.ethers.getContractFactory("IGreeter");
-            } catch (reason) {
+            } catch (reason: any) {
               assert.instanceOf(
                 reason,
                 NomicLabsHardhatPluginError,
@@ -322,7 +322,7 @@ describe("Ethers plugin", function () {
                   "contracts/TestContractLib.sol:TestLibrary": library.address,
                 },
               });
-            } catch (reason) {
+            } catch (reason: any) {
               assert.instanceOf(
                 reason,
                 NomicLabsHardhatPluginError,
@@ -383,7 +383,7 @@ describe("Ethers plugin", function () {
                     library2.address,
                 },
               });
-            } catch (reason) {
+            } catch (reason: any) {
               assert.instanceOf(
                 reason,
                 NomicLabsHardhatPluginError,
@@ -414,7 +414,7 @@ describe("Ethers plugin", function () {
           it("should fail to create a contract factory with missing libraries", async function () {
             try {
               await this.env.ethers.getContractFactory("TestContractLib");
-            } catch (reason) {
+            } catch (reason: any) {
               assert.instanceOf(
                 reason,
                 NomicLabsHardhatPluginError,
@@ -445,7 +445,7 @@ describe("Ethers plugin", function () {
               await this.env.ethers.getContractFactory("TestContractLib", {
                 libraries: { TestLibrary: notAnAddress },
               });
-            } catch (reason) {
+            } catch (reason: any) {
               assert.instanceOf(
                 reason,
                 NomicLabsHardhatPluginError,
@@ -478,7 +478,7 @@ describe("Ethers plugin", function () {
               await this.env.ethers.getContractFactory("TestContractLib", {
                 libraries: { TestLibrary: library as any },
               });
-            } catch (reason) {
+            } catch (reason: any) {
               assert.instanceOf(
                 reason,
                 NomicLabsHardhatPluginError,
