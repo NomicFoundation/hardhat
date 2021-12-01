@@ -60,7 +60,7 @@ We work on two branches, [`master`](https://github.com/nomiclabs/hardhat/tree/ma
 
 The `master` branch is meant to be kept in sync with the latest released version of each package. Most pull requests are based on `master`, so when in doubt use this branch.
 
-The development branch is meant to be used for major, risky changes that are ready, but we can't or don't want to release yet. We never release new versions from development. When we want to release the changes from development, we go through a stricter QA process, merge those changes into master, and release from master. Examples of things that should be based on development are new features and bug fixes that require significant changes to the codebase.
+The development branch is meant to be used for major, risky changes that are ready, but we can't or don't want to release yet. We never release new versions from development. When we want to release the changes from development, we go through a stricter QA process, merge those changes into master, and release from master. Examples of things that should be based on development are features that require significant changes to the codebase, or bug fixes that involve a major refactor.
 
 
 ### Website and documentation branching
