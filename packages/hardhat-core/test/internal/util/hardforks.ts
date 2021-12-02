@@ -35,6 +35,7 @@ describe("Hardfork utils", function () {
       assert.equal("byzantium", HardforkName.BYZANTIUM);
       assert.equal("berlin", HardforkName.BERLIN);
       assert.equal("london", HardforkName.LONDON);
+      assert.equal("arrowGlacier", HardforkName.ARROW_GLACIER);
     });
   });
 

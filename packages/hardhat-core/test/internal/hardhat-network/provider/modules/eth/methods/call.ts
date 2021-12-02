@@ -570,124 +570,126 @@ contract C {
             });
           });
 
-          describe("When running with EIP-1559", function () {
-            useProvider({ hardfork: "london" });
+          for (const hardfork of ["london", "arrowGlacier"]) {
+            describe(`When running with EIP-1559 ${hardfork}`, function () {
+              useProvider({ hardfork });
 
-            deployContractAndGetEthBalance();
+              deployContractAndGetEthBalance();
 
-            it("Should validate that gasPrice and maxFeePerGas & maxPriorityFeePerGas are not mixed", async function () {
-              await assertInvalidInputError(
-                this.provider,
-                "eth_call",
-                [
+              it("Should validate that gasPrice and maxFeePerGas & maxPriorityFeePerGas are not mixed", async function () {
+                await assertInvalidInputError(
+                  this.provider,
+                  "eth_call",
+                  [
+                    {
+                      from: CALLER,
+                      to: contractAddress,
+                      gasPrice: numberToRpcQuantity(1),
+                      maxFeePerGas: numberToRpcQuantity(1),
+                    },
+                  ],
+                  "Cannot send both gasPrice and maxFeePerGas"
+                );
+
+                await assertInvalidInputError(
+                  this.provider,
+                  "eth_call",
+                  [
+                    {
+                      from: CALLER,
+                      to: contractAddress,
+                      gasPrice: numberToRpcQuantity(1),
+                      maxPriorityFeePerGas: numberToRpcQuantity(1),
+                    },
+                  ],
+                  "Cannot send both gasPrice and maxPriorityFeePerGas"
+                );
+              });
+
+              it("Should validate that maxFeePerGas >= maxPriorityFeePerGas", async function () {
+                await assertInvalidInputError(
+                  this.provider,
+                  "eth_call",
+                  [
+                    {
+                      from: CALLER,
+                      to: contractAddress,
+                      maxFeePerGas: numberToRpcQuantity(1),
+                      maxPriorityFeePerGas: numberToRpcQuantity(2),
+                    },
+                  ],
+                  "maxPriorityFeePerGas (2) is bigger than maxFeePerGas (1)"
+                );
+              });
+
+              it("Should default to maxFeePerGas = 0 if nothing provided", async function () {
+                const balanceResult = await this.provider.send("eth_call", [
                   {
                     from: CALLER,
                     to: contractAddress,
-                    gasPrice: numberToRpcQuantity(1),
+                    data: balanceSelector,
+                  },
+                ]);
+
+                assert.equal(
+                  rpcDataToBN(balanceResult).toString(),
+                  ethBalance.toString()
+                );
+              });
+
+              it("Should use maxFeePerGas if provided with a maxPriorityFeePerGas = 0", async function () {
+                const balanceResult = await this.provider.send("eth_call", [
+                  {
+                    from: CALLER,
+                    to: contractAddress,
+                    data: balanceSelector,
                     maxFeePerGas: numberToRpcQuantity(1),
                   },
-                ],
-                "Cannot send both gasPrice and maxFeePerGas"
-              );
+                ]);
 
-              await assertInvalidInputError(
-                this.provider,
-                "eth_call",
-                [
+                // This doesn't change because the baseFeePerGas of block where we
+                // run the eth_call is 0
+                assert.equal(
+                  rpcDataToBN(balanceResult).toString(),
+                  ethBalance.toString()
+                );
+              });
+
+              it("Should use maxPriorityFeePerGas if provided, with maxFeePerGas = maxPriorityFeePerGas", async function () {
+                const balanceResult = await this.provider.send("eth_call", [
                   {
                     from: CALLER,
                     to: contractAddress,
-                    gasPrice: numberToRpcQuantity(1),
-                    maxPriorityFeePerGas: numberToRpcQuantity(1),
+                    data: balanceSelector,
+                    maxPriorityFeePerGas: numberToRpcQuantity(3),
+                    gas: numberToRpcQuantity(500_000),
                   },
-                ],
-                "Cannot send both gasPrice and maxPriorityFeePerGas"
-              );
-            });
+                ]);
 
-            it("Should validate that maxFeePerGas >= maxPriorityFeePerGas", async function () {
-              await assertInvalidInputError(
-                this.provider,
-                "eth_call",
-                [
+                // The miner will get the priority fee
+                assert.isTrue(
+                  rpcDataToBN(balanceResult).eq(ethBalance.subn(500_000 * 3))
+                );
+              });
+
+              it("Should use gasPrice if provided", async function () {
+                const balanceResult = await this.provider.send("eth_call", [
                   {
                     from: CALLER,
                     to: contractAddress,
-                    maxFeePerGas: numberToRpcQuantity(1),
-                    maxPriorityFeePerGas: numberToRpcQuantity(2),
+                    data: balanceSelector,
+                    gasPrice: numberToRpcQuantity(6),
+                    gas: numberToRpcQuantity(500_000),
                   },
-                ],
-                "maxPriorityFeePerGas (2) is bigger than maxFeePerGas (1)"
-              );
+                ]);
+
+                // The miner will get the gasPrice * gas as a normalized priority fee
+                assert.isTrue(
+                  rpcDataToBN(balanceResult).eq(ethBalance.subn(500_000 * 6))
+                );
+              });
             });
-
-            it("Should default to maxFeePerGas = 0 if nothing provided", async function () {
-              const balanceResult = await this.provider.send("eth_call", [
-                {
-                  from: CALLER,
-                  to: contractAddress,
-                  data: balanceSelector,
-                },
-              ]);
-
-              assert.equal(
-                rpcDataToBN(balanceResult).toString(),
-                ethBalance.toString()
-              );
-            });
-
-            it("Should use maxFeePerGas if provided with a maxPriorityFeePerGas = 0", async function () {
-              const balanceResult = await this.provider.send("eth_call", [
-                {
-                  from: CALLER,
-                  to: contractAddress,
-                  data: balanceSelector,
-                  maxFeePerGas: numberToRpcQuantity(1),
-                },
-              ]);
-
-              // This doesn't change because the baseFeePerGas of block where we
-              // run the eth_call is 0
-              assert.equal(
-                rpcDataToBN(balanceResult).toString(),
-                ethBalance.toString()
-              );
-            });
-
-            it("Should use maxPriorityFeePerGas if provided, with maxFeePerGas = maxPriorityFeePerGas", async function () {
-              const balanceResult = await this.provider.send("eth_call", [
-                {
-                  from: CALLER,
-                  to: contractAddress,
-                  data: balanceSelector,
-                  maxPriorityFeePerGas: numberToRpcQuantity(3),
-                  gas: numberToRpcQuantity(500_000),
-                },
-              ]);
-
-              // The miner will get the priority fee
-              assert.isTrue(
-                rpcDataToBN(balanceResult).eq(ethBalance.subn(500_000 * 3))
-              );
-            });
-
-            it("Should use gasPrice if provided", async function () {
-              const balanceResult = await this.provider.send("eth_call", [
-                {
-                  from: CALLER,
-                  to: contractAddress,
-                  data: balanceSelector,
-                  gasPrice: numberToRpcQuantity(6),
-                  gas: numberToRpcQuantity(500_000),
-                },
-              ]);
-
-              // The miner will get the gasPrice * gas as a normalized priority fee
-              assert.isTrue(
-                rpcDataToBN(balanceResult).eq(ethBalance.subn(500_000 * 6))
-              );
-            });
-          });
+          }
         });
       });
     });

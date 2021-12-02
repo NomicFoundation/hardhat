@@ -1726,21 +1726,23 @@ describe("Config validation", function () {
           });
         });
 
-        describe("When using London", function () {
-          it("Should throw if minGasPrice is used", function () {
-            expectHardhatError(
-              () =>
-                validateConfig({
-                  networks: {
-                    hardhat: {
-                      hardfork: "london",
-                      minGasPrice: 123,
+        describe("When using London or later", function () {
+          for (const hardfork of ["london", "arrowGlacier"]) {
+            it("Should throw if minGasPrice is used", function () {
+              expectHardhatError(
+                () =>
+                  validateConfig({
+                    networks: {
+                      hardhat: {
+                        hardfork,
+                        minGasPrice: 123,
+                      },
                     },
-                  },
-                }),
-              ERRORS.GENERAL.INVALID_CONFIG
-            );
-          });
+                  }),
+                ERRORS.GENERAL.INVALID_CONFIG
+              );
+            });
+          }
         });
       });
     });

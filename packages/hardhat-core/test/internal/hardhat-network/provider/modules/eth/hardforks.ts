@@ -165,38 +165,40 @@ describe("Eth module - hardfork dependant tests", function () {
       });
 
       describe("In a hardfork with EIP-1559", function () {
-        useProviderAndCommon("london");
+        for (const hardfork of ["london", "arrowGlacier"]) {
+          useProviderAndCommon(hardfork);
 
-        it("Should validate the chain id if sent to eth_sendTransaction using an eip-1559 fields", async function () {
-          const [sender] = await this.provider.send("eth_accounts");
-          await assertInvalidArgumentsError(
-            this.provider,
-            "eth_sendTransaction",
-            [
-              {
-                from: sender,
-                to: sender,
-                chainId: numberToRpcQuantity(1),
-                maxFeePerGas: numberToRpcQuantity(10e9),
-              },
-            ],
-            "Invalid chainId"
-          );
-        });
+          it("Should validate the chain id if sent to eth_sendTransaction using an eip-1559 fields", async function () {
+            const [sender] = await this.provider.send("eth_accounts");
+            await assertInvalidArgumentsError(
+              this.provider,
+              "eth_sendTransaction",
+              [
+                {
+                  from: sender,
+                  to: sender,
+                  chainId: numberToRpcQuantity(1),
+                  maxFeePerGas: numberToRpcQuantity(10e9),
+                },
+              ],
+              "Invalid chainId"
+            );
+          });
 
-        it("Should validate the chain id in eth_sendRawTransaction using an eip-1559 tx", async function () {
-          const signedTx = getSampleSignedEIP1559Tx(
-            new Common({ chain: "mainnet", hardfork: "london" })
-          );
-          const serialized = bufferToRpcData(signedTx.serialize());
+          it("Should validate the chain id in eth_sendRawTransaction using an eip-1559 tx", async function () {
+            const signedTx = getSampleSignedEIP1559Tx(
+              new Common({ chain: "mainnet", hardfork })
+            );
+            const serialized = bufferToRpcData(signedTx.serialize());
 
-          await assertInvalidArgumentsError(
-            this.provider,
-            "eth_sendRawTransaction",
-            [serialized],
-            "Trying to send a raw transaction with an invalid chainId"
-          );
-        });
+            await assertInvalidArgumentsError(
+              this.provider,
+              "eth_sendRawTransaction",
+              [serialized],
+              "Trying to send a raw transaction with an invalid chainId"
+            );
+          });
+        }
       });
     });
 
@@ -252,20 +254,22 @@ describe("Eth module - hardfork dependant tests", function () {
       }
 
       function rejectsSendRawTransactionWithEIP1559Tx() {
-        it("Should reject an eth_sendRawTransaction if the tx uses an EIP-1559 tx", async function () {
-          const londonCommon = this.common.copy();
-          londonCommon.setHardfork("london");
+        for (const hardfork of ["london", "arrowGlacier"]) {
+          it("Should reject an eth_sendRawTransaction if the tx uses an EIP-1559 tx", async function () {
+            const eip1559Common = this.common.copy();
+            eip1559Common.setHardfork(hardfork);
 
-          const signedTx = getSampleSignedEIP1559Tx(londonCommon);
-          const serialized = bufferToRpcData(signedTx.serialize());
+            const signedTx = getSampleSignedEIP1559Tx(eip1559Common);
+            const serialized = bufferToRpcData(signedTx.serialize());
 
-          await assertInvalidArgumentsError(
-            this.provider,
-            "eth_sendRawTransaction",
-            [serialized],
-            "Trying to send an EIP-1559 transaction"
-          );
-        });
+            await assertInvalidArgumentsError(
+              this.provider,
+              "eth_sendRawTransaction",
+              [serialized],
+              "Trying to send an EIP-1559 transaction"
+            );
+          });
+        }
       }
 
       describe("Without EIP155 nor access list", function () {
@@ -334,26 +338,28 @@ describe("Eth module - hardfork dependant tests", function () {
       });
 
       describe("With EIP1559", function () {
-        useProviderAndCommon("london");
+        for (const hardfork of ["london", "arrowGlacier"]) {
+          useProviderAndCommon(hardfork);
 
-        it("Should accept an eth_sendRawTransaction with an EIP-1559 tx", async function () {
-          const signedTx = getSampleSignedEIP1559Tx(this.common);
-          const serialized = bufferToRpcData(signedTx.serialize());
+          it("Should accept an eth_sendRawTransaction with an EIP-1559 tx", async function () {
+            const signedTx = getSampleSignedEIP1559Tx(this.common);
+            const serialized = bufferToRpcData(signedTx.serialize());
 
-          await this.provider.send("eth_sendRawTransaction", [serialized]);
-        });
+            await this.provider.send("eth_sendRawTransaction", [serialized]);
+          });
 
-        it("Should accept an eth_sendTransaction if EIP-1559 fields were provided", async function () {
-          const [sender] = await this.provider.send("eth_accounts");
-          await this.provider.send("eth_sendTransaction", [
-            {
-              from: sender,
-              to: sender,
-              accessList: [],
-              maxFeePerGas: numberToRpcQuantity(10e9),
-            },
-          ]);
-        });
+          it("Should accept an eth_sendTransaction if EIP-1559 fields were provided", async function () {
+            const [sender] = await this.provider.send("eth_accounts");
+            await this.provider.send("eth_sendTransaction", [
+              {
+                from: sender,
+                to: sender,
+                accessList: [],
+                maxFeePerGas: numberToRpcQuantity(10e9),
+              },
+            ]);
+          });
+        }
       });
     });
 
@@ -444,42 +450,46 @@ describe("Eth module - hardfork dependant tests", function () {
       });
 
       describe("Running a hardfork with EIP-1559", function () {
-        useProviderAndCommon("london");
+        for (const hardfork of ["london", "arrowGlacier"]) {
+          useProviderAndCommon(hardfork);
 
-        it("Should accept an eth_call with EIP-1559 fields", async function () {
-          const [sender] = await this.provider.send("eth_accounts");
+          it("Should accept an eth_call with EIP-1559 fields", async function () {
+            const [sender] = await this.provider.send("eth_accounts");
 
-          await this.provider.send("eth_call", [
-            { from: sender, to: sender, maxFeePerGas: "0x1" },
-          ]);
-        });
+            await this.provider.send("eth_call", [
+              { from: sender, to: sender, maxFeePerGas: "0x1" },
+            ]);
+          });
 
-        it("Should accept an eth_estimateGas with EIP-1559 fields", async function () {
-          const [sender] = await this.provider.send("eth_accounts");
+          it("Should accept an eth_estimateGas with EIP-1559 fields", async function () {
+            const [sender] = await this.provider.send("eth_accounts");
 
-          await this.provider.send("eth_estimateGas", [
-            {
-              from: sender,
-              to: sender,
-              maxFeePerGas: numberToRpcQuantity(10e9),
-            },
-          ]);
-        });
+            await this.provider.send("eth_estimateGas", [
+              {
+                from: sender,
+                to: sender,
+                maxFeePerGas: numberToRpcQuantity(10e9),
+              },
+            ]);
+          });
+        }
       });
     });
   });
 
   describe("Block formatting", function () {
     describe("When running EIP-1559", function () {
-      useProviderAndCommon("london");
-      it("Should have a baseFeePerGas field", async function () {
-        const block: RpcBlockOutput = await this.provider.send(
-          "eth_getBlockByNumber",
-          ["latest", false]
-        );
+      for (const hardfork of ["london", "arrowGlacier"]) {
+        useProviderAndCommon(hardfork);
+        it("Should have a baseFeePerGas field", async function () {
+          const block: RpcBlockOutput = await this.provider.send(
+            "eth_getBlockByNumber",
+            ["latest", false]
+          );
 
-        assert.isDefined(block.baseFeePerGas);
-      });
+          assert.isDefined(block.baseFeePerGas);
+        });
+      }
     });
 
     describe("When not running EIP-1559", function () {
@@ -602,58 +612,61 @@ describe("Eth module - hardfork dependant tests", function () {
       });
 
       describe("After London", function () {
-        useProviderAndCommon("london");
+        for (const hardfork of ["london", "arrowGlacier"]) {
+          useProviderAndCommon(hardfork);
 
-        describe("EIP-1559 txs", function () {
-          it("Should include gasPrice, maxBaseFeePerGas and maxPriorityFeePerGas for EIP-1559", async function () {
-            const signedTx = getSampleSignedEIP1559Tx(this.common);
-            const serialized = bufferToRpcData(signedTx.serialize());
+          describe("EIP-1559 txs", function () {
+            it("Should include gasPrice, maxBaseFeePerGas and maxPriorityFeePerGas for EIP-1559", async function () {
+              const signedTx = getSampleSignedEIP1559Tx(this.common);
+              const serialized = bufferToRpcData(signedTx.serialize());
 
-            await this.provider.send("evm_setAutomine", [false]);
-            const txHash = await this.provider.send("eth_sendRawTransaction", [
-              serialized,
-            ]);
+              await this.provider.send("evm_setAutomine", [false]);
+              const txHash = await this.provider.send(
+                "eth_sendRawTransaction",
+                [serialized]
+              );
 
-            const pendingRpcTx: EIP1559RpcTransactionOutput =
-              await this.provider.send("eth_getTransactionByHash", [txHash]);
+              const pendingRpcTx: EIP1559RpcTransactionOutput =
+                await this.provider.send("eth_getTransactionByHash", [txHash]);
 
-            assert.equal(
-              pendingRpcTx.maxFeePerGas,
-              numberToRpcQuantity(signedTx.maxFeePerGas)
-            );
+              assert.equal(
+                pendingRpcTx.maxFeePerGas,
+                numberToRpcQuantity(signedTx.maxFeePerGas)
+              );
 
-            assert.equal(
-              pendingRpcTx.maxPriorityFeePerGas,
-              numberToRpcQuantity(signedTx.maxPriorityFeePerGas)
-            );
+              assert.equal(
+                pendingRpcTx.maxPriorityFeePerGas,
+                numberToRpcQuantity(signedTx.maxPriorityFeePerGas)
+              );
 
-            assert.equal(
-              pendingRpcTx.gasPrice,
-              numberToRpcQuantity(signedTx.maxFeePerGas)
-            );
+              assert.equal(
+                pendingRpcTx.gasPrice,
+                numberToRpcQuantity(signedTx.maxFeePerGas)
+              );
 
-            // Once it gets mined it should have the effective gas price:
-            //  baseFeePerGas + min(maxFeePerGas - baseFeePerGas, maxPriorityFeePerGas)
-            await this.provider.send("evm_mine", []);
-            const block: RpcBlockOutput = await this.provider.send(
-              "eth_getBlockByNumber",
-              ["latest", false]
-            );
-            const minedTx: EIP1559RpcTransactionOutput =
-              await this.provider.send("eth_getTransactionByHash", [txHash]);
+              // Once it gets mined it should have the effective gas price:
+              //  baseFeePerGas + min(maxFeePerGas - baseFeePerGas, maxPriorityFeePerGas)
+              await this.provider.send("evm_mine", []);
+              const block: RpcBlockOutput = await this.provider.send(
+                "eth_getBlockByNumber",
+                ["latest", false]
+              );
+              const minedTx: EIP1559RpcTransactionOutput =
+                await this.provider.send("eth_getTransactionByHash", [txHash]);
 
-            const effectiveGasPrice = getEffectiveGasPrice(
-              rpcQuantityToBN(block.baseFeePerGas!),
-              signedTx.maxFeePerGas,
-              signedTx.maxPriorityFeePerGas
-            );
+              const effectiveGasPrice = getEffectiveGasPrice(
+                rpcQuantityToBN(block.baseFeePerGas!),
+                signedTx.maxFeePerGas,
+                signedTx.maxPriorityFeePerGas
+              );
 
-            assert.equal(
-              minedTx.gasPrice,
-              numberToRpcQuantity(effectiveGasPrice)
-            );
+              assert.equal(
+                minedTx.gasPrice,
+                numberToRpcQuantity(effectiveGasPrice)
+              );
+            });
           });
-        });
+        }
       });
     });
 
@@ -733,118 +746,120 @@ describe("Eth module - hardfork dependant tests", function () {
       });
 
       describe("After london", function () {
-        useProviderAndCommon("london");
+        for (const hardfork of ["london", "arrowGlacier"]) {
+          useProviderAndCommon(hardfork);
 
-        it("should have an effectiveGasPrice field for EIP-1559 txs", async function () {
-          const [sender] = await this.provider.send("eth_accounts");
-          const maxFeePerGas = new BN(10e9);
-          const maxPriorityPerGas = new BN(1e9);
+          it("should have an effectiveGasPrice field for EIP-1559 txs", async function () {
+            const [sender] = await this.provider.send("eth_accounts");
+            const maxFeePerGas = new BN(10e9);
+            const maxPriorityPerGas = new BN(1e9);
 
-          const tx = await this.provider.send("eth_sendTransaction", [
-            {
-              from: sender,
-              to: sender,
-              maxFeePerGas: numberToRpcQuantity(maxFeePerGas),
-              maxPriorityFeePerGas: numberToRpcQuantity(maxPriorityPerGas),
-            },
-          ]);
+            const tx = await this.provider.send("eth_sendTransaction", [
+              {
+                from: sender,
+                to: sender,
+                maxFeePerGas: numberToRpcQuantity(maxFeePerGas),
+                maxPriorityFeePerGas: numberToRpcQuantity(maxPriorityPerGas),
+              },
+            ]);
 
-          const receipt = await this.provider.send(
-            "eth_getTransactionReceipt",
-            [tx]
-          );
+            const receipt = await this.provider.send(
+              "eth_getTransactionReceipt",
+              [tx]
+            );
 
-          const block: RpcBlockOutput = await this.provider.send(
-            "eth_getBlockByNumber",
-            ["latest", false]
-          );
-          const baseFee = rpcQuantityToBN(block.baseFeePerGas!);
+            const block: RpcBlockOutput = await this.provider.send(
+              "eth_getBlockByNumber",
+              ["latest", false]
+            );
+            const baseFee = rpcQuantityToBN(block.baseFeePerGas!);
 
-          const effectiveGasPrice = getEffectiveGasPrice(
-            baseFee,
-            maxFeePerGas,
-            maxPriorityPerGas
-          );
+            const effectiveGasPrice = getEffectiveGasPrice(
+              baseFee,
+              maxFeePerGas,
+              maxPriorityPerGas
+            );
 
-          assert.equal(receipt.type, "0x2");
-          assert.equal(
-            receipt.effectiveGasPrice,
-            numberToRpcQuantity(effectiveGasPrice)
-          );
-        });
+            assert.equal(receipt.type, "0x2");
+            assert.equal(
+              receipt.effectiveGasPrice,
+              numberToRpcQuantity(effectiveGasPrice)
+            );
+          });
 
-        it("should have an effectiveGasPrice field for Access List txs", async function () {
-          const [sender] = await this.provider.send("eth_accounts");
-          const gasPrice = new BN(10e9);
+          it("should have an effectiveGasPrice field for Access List txs", async function () {
+            const [sender] = await this.provider.send("eth_accounts");
+            const gasPrice = new BN(10e9);
 
-          const tx = await this.provider.send("eth_sendTransaction", [
-            {
-              from: sender,
-              to: sender,
-              gasPrice: numberToRpcQuantity(gasPrice),
-              accessList: [],
-            },
-          ]);
+            const tx = await this.provider.send("eth_sendTransaction", [
+              {
+                from: sender,
+                to: sender,
+                gasPrice: numberToRpcQuantity(gasPrice),
+                accessList: [],
+              },
+            ]);
 
-          const receipt = await this.provider.send(
-            "eth_getTransactionReceipt",
-            [tx]
-          );
+            const receipt = await this.provider.send(
+              "eth_getTransactionReceipt",
+              [tx]
+            );
 
-          const block: RpcBlockOutput = await this.provider.send(
-            "eth_getBlockByNumber",
-            ["latest", false]
-          );
-          const baseFee = rpcQuantityToBN(block.baseFeePerGas!);
+            const block: RpcBlockOutput = await this.provider.send(
+              "eth_getBlockByNumber",
+              ["latest", false]
+            );
+            const baseFee = rpcQuantityToBN(block.baseFeePerGas!);
 
-          const effectiveGasPrice = getEffectiveGasPrice(
-            baseFee,
-            gasPrice,
-            gasPrice
-          );
+            const effectiveGasPrice = getEffectiveGasPrice(
+              baseFee,
+              gasPrice,
+              gasPrice
+            );
 
-          assert.equal(receipt.type, "0x1");
-          assert.equal(
-            receipt.effectiveGasPrice,
-            numberToRpcQuantity(effectiveGasPrice)
-          );
-        });
+            assert.equal(receipt.type, "0x1");
+            assert.equal(
+              receipt.effectiveGasPrice,
+              numberToRpcQuantity(effectiveGasPrice)
+            );
+          });
 
-        it("should have an effectiveGasPrice field for legacy txs", async function () {
-          const [sender] = await this.provider.send("eth_accounts");
-          const gasPrice = new BN(10e9);
+          it("should have an effectiveGasPrice field for legacy txs", async function () {
+            const [sender] = await this.provider.send("eth_accounts");
+            const gasPrice = new BN(10e9);
 
-          const tx = await this.provider.send("eth_sendTransaction", [
-            {
-              from: sender,
-              to: sender,
-              gasPrice: numberToRpcQuantity(gasPrice),
-            },
-          ]);
+            const tx = await this.provider.send("eth_sendTransaction", [
+              {
+                from: sender,
+                to: sender,
+                gasPrice: numberToRpcQuantity(gasPrice),
+              },
+            ]);
 
-          const receipt = await this.provider.send(
-            "eth_getTransactionReceipt",
-            [tx]
-          );
+            const receipt = await this.provider.send(
+              "eth_getTransactionReceipt",
+              [tx]
+            );
 
-          const block: RpcBlockOutput = await this.provider.send(
-            "eth_getBlockByNumber",
-            ["latest", false]
-          );
-          const baseFee = rpcQuantityToBN(block.baseFeePerGas!);
+            const block: RpcBlockOutput = await this.provider.send(
+              "eth_getBlockByNumber",
+              ["latest", false]
+            );
+            const baseFee = rpcQuantityToBN(block.baseFeePerGas!);
 
-          const effectiveGasPrice = getEffectiveGasPrice(
-            baseFee,
-            gasPrice,
-            gasPrice
-          );
+            const effectiveGasPrice = getEffectiveGasPrice(
+              baseFee,
+              gasPrice,
+              gasPrice
+            );
 
-          assert.equal(receipt.type, "0x0");
-          assert.equal(
-            receipt.effectiveGasPrice,
-            numberToRpcQuantity(effectiveGasPrice)
-          );
-        });
+            assert.equal(receipt.type, "0x0");
+            assert.equal(
+              receipt.effectiveGasPrice,
+              numberToRpcQuantity(effectiveGasPrice)
+            );
+          });
+        }
       });
     });
   });
@@ -884,36 +899,40 @@ describe("Eth module - hardfork dependant tests", function () {
     });
 
     describe("London hardfork", function () {
-      useProviderAndCommon("london");
+      for (const hardfork of ["london", "arrowGlacier"]) {
+        useProviderAndCommon(hardfork);
 
-      it("should allow sending EIP-1559 txs from impersonated accounts", async function () {
-        // impersonate and add funds to some account
-        const impersonated = "0x462B1B252FC8e9A447807e4494b271844fBCDa10";
-        await this.provider.send("eth_sendTransaction", [
-          {
-            from: DEFAULT_ACCOUNTS_ADDRESSES[0],
-            to: impersonated,
-            value: numberToRpcQuantity(new BN("100000000000000000")),
-          },
-        ]);
-        await this.provider.send("hardhat_impersonateAccount", [impersonated]);
+        it("should allow sending EIP-1559 txs from impersonated accounts", async function () {
+          // impersonate and add funds to some account
+          const impersonated = "0x462B1B252FC8e9A447807e4494b271844fBCDa10";
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: impersonated,
+              value: numberToRpcQuantity(new BN("100000000000000000")),
+            },
+          ]);
+          await this.provider.send("hardhat_impersonateAccount", [
+            impersonated,
+          ]);
 
-        // send tx from impersonated account
-        const txHash = await this.provider.send("eth_sendTransaction", [
-          {
-            from: impersonated,
-            to: impersonated,
-            maxFeePerGas: numberToRpcQuantity(10e9),
-          },
-        ]);
+          // send tx from impersonated account
+          const txHash = await this.provider.send("eth_sendTransaction", [
+            {
+              from: impersonated,
+              to: impersonated,
+              maxFeePerGas: numberToRpcQuantity(10e9),
+            },
+          ]);
 
-        const tx = await this.provider.send("eth_getTransactionByHash", [
-          txHash,
-        ]);
+          const tx = await this.provider.send("eth_getTransactionByHash", [
+            txHash,
+          ]);
 
-        assert.isDefined(tx.accessList);
-        assert.isArray(tx.accessList);
-      });
+          assert.isDefined(tx.accessList);
+          assert.isArray(tx.accessList);
+        });
+      }
     });
   });
 
@@ -1183,11 +1202,13 @@ describe("Eth module - hardfork dependant tests", function () {
     });
 
     describe("In a hardfork with EIP-1559", function () {
-      useProviderAndCommon("london");
+      for (const hardfork of ["london", "arrowGlacier"]) {
+        useProviderAndCommon(hardfork);
 
-      it("Should be enabled", async function () {
-        await this.provider.send("eth_feeHistory", ["0x1", "latest"]);
-      });
+        it("Should be enabled", async function () {
+          await this.provider.send("eth_feeHistory", ["0x1", "latest"]);
+        });
+      }
     });
   });
 });

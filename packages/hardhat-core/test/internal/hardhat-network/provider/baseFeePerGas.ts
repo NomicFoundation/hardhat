@@ -122,39 +122,41 @@ describe("Block's baseFeePerGas", function () {
                 );
               });
 
-              it("should compute the next base fee correctly", async function () {
-                const latestBlockRpc = await this.provider.send(
-                  "eth_getBlockByNumber",
-                  ["latest", false]
-                );
+              for (const hardfork of ["london", "arrowGlacier"]) {
+                it("should compute the next base fee correctly", async function () {
+                  const latestBlockRpc = await this.provider.send(
+                    "eth_getBlockByNumber",
+                    ["latest", false]
+                  );
 
-                const latestBlockData = rpcToBlockData({
-                  ...latestBlockRpc,
-                  transactions: [],
+                  const latestBlockData = rpcToBlockData({
+                    ...latestBlockRpc,
+                    transactions: [],
+                  });
+
+                  const latestBlock = Block.fromBlockData(
+                    {
+                      header: latestBlockData.header,
+                    },
+                    {
+                      common: new Common({
+                        chain: "mainnet",
+                        hardfork,
+                      }),
+                    }
+                  );
+
+                  const expectedNextBaseFee =
+                    latestBlock.header.calcNextBaseFee();
+
+                  await this.provider.send("evm_mine");
+
+                  await assertLatestBaseFeePerGas(
+                    this.provider,
+                    expectedNextBaseFee.toNumber()
+                  );
                 });
-
-                const latestBlock = Block.fromBlockData(
-                  {
-                    header: latestBlockData.header,
-                  },
-                  {
-                    common: new Common({
-                      chain: "mainnet",
-                      hardfork: "london",
-                    }),
-                  }
-                );
-
-                const expectedNextBaseFee =
-                  latestBlock.header.calcNextBaseFee();
-
-                await this.provider.send("evm_mine");
-
-                await assertLatestBaseFeePerGas(
-                  this.provider,
-                  expectedNextBaseFee.toNumber()
-                );
-              });
+              }
             });
           });
         }
