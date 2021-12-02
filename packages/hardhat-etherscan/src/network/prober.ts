@@ -46,6 +46,10 @@ enum NetworkID {
   // Moonriver
   MOONRIVER = 1285,
   MOONBASE_ALPHA = 1287,
+  // xDai
+  XDAI = 100,
+  // Sokol
+  SOKOL = 77,
 }
 
 const networkIDtoEndpoints: NetworkMap = {
@@ -132,6 +136,14 @@ const networkIDtoEndpoints: NetworkMap = {
   [NetworkID.MOONBASE_ALPHA]: {
     apiURL: "https://api-moonbase.moonscan.io/api",
     browserURL: "https://moonbase.moonscan.io/",
+  },
+  [NetworkID.XDAI]: {
+    apiURL: "https://blockscout.com/xdai/mainnet/api",
+    browserURL: "https://blockscout.com/xdai/mainnet",
+  },
+  [NetworkID.SOKOL]: {
+    apiURL: "https://blockscout.com/poa/sokol/api",
+    browserURL: "https://blockscout.com/poa/sokol",
   },
 };
 
