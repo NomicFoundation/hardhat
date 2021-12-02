@@ -1373,7 +1373,7 @@ describe("Hardhat module", function () {
               this.provider,
               "hardhat_setMinGasPrice",
               [numberToRpcQuantity(1)],
-              "hardhat_setMinGasPrice is not support when EIP-1559 is active"
+              "hardhat_setMinGasPrice is not supported when EIP-1559 is active"
             );
           });
         });
