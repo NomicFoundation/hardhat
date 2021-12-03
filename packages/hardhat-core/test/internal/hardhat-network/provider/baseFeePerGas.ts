@@ -123,7 +123,7 @@ describe("Block's baseFeePerGas", function () {
               });
 
               for (const hardfork of ["london", "arrowGlacier"]) {
-                it("should compute the next base fee correctly", async function () {
+                it(`should compute the next base fee correctly when ${hardfork} is activate`, async function () {
                   const latestBlockRpc = await this.provider.send(
                     "eth_getBlockByNumber",
                     ["latest", false]

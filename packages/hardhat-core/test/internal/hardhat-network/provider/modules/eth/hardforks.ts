@@ -168,7 +168,7 @@ describe("Eth module - hardfork dependant tests", function () {
         for (const hardfork of ["london", "arrowGlacier"]) {
           useProviderAndCommon(hardfork);
 
-          it("Should validate the chain id if sent to eth_sendTransaction using an eip-1559 fields", async function () {
+          it(`Should validate the chain id if sent to eth_sendTransaction using eip-1559 fields when ${hardfork} is activated`, async function () {
             const [sender] = await this.provider.send("eth_accounts");
             await assertInvalidArgumentsError(
               this.provider,
@@ -185,7 +185,7 @@ describe("Eth module - hardfork dependant tests", function () {
             );
           });
 
-          it("Should validate the chain id in eth_sendRawTransaction using an eip-1559 tx", async function () {
+          it(`Should validate the chain id in eth_sendRawTransaction using an eip-1559 tx when ${hardfork} is activated`, async function () {
             const signedTx = getSampleSignedEIP1559Tx(
               new Common({ chain: "mainnet", hardfork })
             );
@@ -255,7 +255,7 @@ describe("Eth module - hardfork dependant tests", function () {
 
       function rejectsSendRawTransactionWithEIP1559Tx() {
         for (const hardfork of ["london", "arrowGlacier"]) {
-          it("Should reject an eth_sendRawTransaction if the tx uses an EIP-1559 tx", async function () {
+          it(`Should reject an eth_sendRawTransaction if the tx uses an EIP-1559 tx when ${hardfork} is activated`, async function () {
             const eip1559Common = this.common.copy();
             eip1559Common.setHardfork(hardfork);
 
@@ -341,14 +341,14 @@ describe("Eth module - hardfork dependant tests", function () {
         for (const hardfork of ["london", "arrowGlacier"]) {
           useProviderAndCommon(hardfork);
 
-          it("Should accept an eth_sendRawTransaction with an EIP-1559 tx", async function () {
+          it(`Should accept an eth_sendRawTransaction with an EIP-1559 tx when ${hardfork} is activated`, async function () {
             const signedTx = getSampleSignedEIP1559Tx(this.common);
             const serialized = bufferToRpcData(signedTx.serialize());
 
             await this.provider.send("eth_sendRawTransaction", [serialized]);
           });
 
-          it("Should accept an eth_sendTransaction if EIP-1559 fields were provided", async function () {
+          it(`Should accept an eth_sendTransaction if EIP-1559 fields were provided when ${hardfork} is activated`, async function () {
             const [sender] = await this.provider.send("eth_accounts");
             await this.provider.send("eth_sendTransaction", [
               {
@@ -453,7 +453,7 @@ describe("Eth module - hardfork dependant tests", function () {
         for (const hardfork of ["london", "arrowGlacier"]) {
           useProviderAndCommon(hardfork);
 
-          it("Should accept an eth_call with EIP-1559 fields", async function () {
+          it(`Should accept an eth_call with EIP-1559 fields when ${hardfork} is activated`, async function () {
             const [sender] = await this.provider.send("eth_accounts");
 
             await this.provider.send("eth_call", [
@@ -461,7 +461,7 @@ describe("Eth module - hardfork dependant tests", function () {
             ]);
           });
 
-          it("Should accept an eth_estimateGas with EIP-1559 fields", async function () {
+          it(`Should accept an eth_estimateGas with EIP-1559 fields when ${hardfork} is activated`, async function () {
             const [sender] = await this.provider.send("eth_accounts");
 
             await this.provider.send("eth_estimateGas", [
@@ -481,7 +481,7 @@ describe("Eth module - hardfork dependant tests", function () {
     describe("When running EIP-1559", function () {
       for (const hardfork of ["london", "arrowGlacier"]) {
         useProviderAndCommon(hardfork);
-        it("Should have a baseFeePerGas field", async function () {
+        it(`Should have a baseFeePerGas field when ${hardfork} is activated`, async function () {
           const block: RpcBlockOutput = await this.provider.send(
             "eth_getBlockByNumber",
             ["latest", false]
@@ -615,7 +615,7 @@ describe("Eth module - hardfork dependant tests", function () {
         for (const hardfork of ["london", "arrowGlacier"]) {
           useProviderAndCommon(hardfork);
 
-          describe("EIP-1559 txs", function () {
+          describe(`EIP-1559 txs when ${hardfork} is activated`, function () {
             it("Should include gasPrice, maxBaseFeePerGas and maxPriorityFeePerGas for EIP-1559", async function () {
               const signedTx = getSampleSignedEIP1559Tx(this.common);
               const serialized = bufferToRpcData(signedTx.serialize());
@@ -749,7 +749,7 @@ describe("Eth module - hardfork dependant tests", function () {
         for (const hardfork of ["london", "arrowGlacier"]) {
           useProviderAndCommon(hardfork);
 
-          it("should have an effectiveGasPrice field for EIP-1559 txs", async function () {
+          it(`should have an effectiveGasPrice field for EIP-1559 txs when ${hardfork} is activated`, async function () {
             const [sender] = await this.provider.send("eth_accounts");
             const maxFeePerGas = new BN(10e9);
             const maxPriorityPerGas = new BN(1e9);
@@ -787,7 +787,7 @@ describe("Eth module - hardfork dependant tests", function () {
             );
           });
 
-          it("should have an effectiveGasPrice field for Access List txs", async function () {
+          it(`should have an effectiveGasPrice field for Access List txs when ${hardfork} is activated`, async function () {
             const [sender] = await this.provider.send("eth_accounts");
             const gasPrice = new BN(10e9);
 
@@ -824,7 +824,7 @@ describe("Eth module - hardfork dependant tests", function () {
             );
           });
 
-          it("should have an effectiveGasPrice field for legacy txs", async function () {
+          it(`should have an effectiveGasPrice field for legacy txs when ${hardfork} is activated`, async function () {
             const [sender] = await this.provider.send("eth_accounts");
             const gasPrice = new BN(10e9);
 
@@ -902,7 +902,7 @@ describe("Eth module - hardfork dependant tests", function () {
       for (const hardfork of ["london", "arrowGlacier"]) {
         useProviderAndCommon(hardfork);
 
-        it("should allow sending EIP-1559 txs from impersonated accounts", async function () {
+        it(`should allow sending EIP-1559 txs from impersonated accounts when ${hardfork} is activated`, async function () {
           // impersonate and add funds to some account
           const impersonated = "0x462B1B252FC8e9A447807e4494b271844fBCDa10";
           await this.provider.send("eth_sendTransaction", [
@@ -1205,7 +1205,7 @@ describe("Eth module - hardfork dependant tests", function () {
       for (const hardfork of ["london", "arrowGlacier"]) {
         useProviderAndCommon(hardfork);
 
-        it("Should be enabled", async function () {
+        it(`Should be enabled when ${hardfork} is activated`, async function () {
           await this.provider.send("eth_feeHistory", ["0x1", "latest"]);
         });
       }

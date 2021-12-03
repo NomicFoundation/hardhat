@@ -1728,7 +1728,7 @@ describe("Config validation", function () {
 
         describe("When using London or later", function () {
           for (const hardfork of ["london", "arrowGlacier"]) {
-            it("Should throw if minGasPrice is used", function () {
+            it(`Should throw if minGasPrice is used when ${hardfork} is activated`, function () {
               expectHardhatError(
                 () =>
                   validateConfig({

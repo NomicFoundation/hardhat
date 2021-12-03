@@ -571,7 +571,7 @@ contract C {
           });
 
           for (const hardfork of ["london", "arrowGlacier"]) {
-            describe(`When running with EIP-1559 ${hardfork}`, function () {
+            describe(`When running with EIP-1559 (${hardfork})`, function () {
               useProvider({ hardfork });
 
               deployContractAndGetEthBalance();
