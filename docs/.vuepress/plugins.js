@@ -286,6 +286,14 @@ module.exports.communityPlugins = [
       "Hardhat plugin to deploy your smart contracts across multiple EVM chains with the same deterministic address.",
     tags: ["Deployment", "CREATE2", "Tasks"],
   },
+  {
+    name: "@ControlCplusControlV/hardhat-Yul",
+    author: "ControlCplusControlV",
+    authorUrl: "https://github.com/controlCplusControlV/",
+    description:
+      "Hardhat plugin to compile the Yul and Yul+ languages into solc compatible artifacts. Works with .yul and .yulp file extensions",
+    tags: ["Yul", "Assembly", "Compiler", "Yul+"],
+  },
 ];
 
 module.exports.officialPlugins = [
@@ -367,14 +375,6 @@ module.exports.officialPlugins = [
     authorUrl: "https://twitter.com/nomiclabs",
     description: "Adds support to compile Vyper smart contracts",
     tags: ["Vyper", "Compiler"],
-  },
-    {
-    name: "@ControlCplusControlV/hardhat-Yul",
-    author: "ControlCplusControlV",
-    authorUrl: "https://github.com/controlCplusControlV/",
-    description:
-      "Hardhat plugin to compile the Yul and Yul+ languages into solc compatible artifacts. Works with .yul and .yulp file extensions",
-    tags: ["Yul", "Assembly", "Compiler", "Yul+"],
   },
 ].map((p) => ({
   ...p,
