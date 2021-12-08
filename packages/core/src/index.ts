@@ -5,15 +5,22 @@ import {
   BindingOutput,
   ContractBinding,
   ContractOptions,
-  deserializeBindingOutput,
   InternalBinding,
   InternalContractBinding,
-  serializeBindingOutput,
+  SerializedDeploymentResult,
+  SerializedModuleResult,
 } from "./bindings";
-import { BindingState, DeploymentState, ModuleState } from "./deployment-state";
-import { ExecutionEngine, ExecutionManager } from "./execution-engine";
+import { BindingState, ModuleState } from "./deployment-state";
+import {
+  DeploymentPlan,
+  DeploymentResult,
+  ExecutionEngine,
+  ExecutionManager,
+  GetModuleResult,
+  SaveModuleResult,
+} from "./execution-engine";
 import { Executor, Hold } from "./executors";
-import { FileJournal, NullJournal } from "./journal";
+import { FileJournal, InMemoryJournal } from "./journal";
 import { ModuleBuilder, ModuleBuilderImpl, UserModule } from "./modules";
 import { Providers } from "./providers";
 import { Services } from "./services";
@@ -29,7 +36,7 @@ export {
   Contract,
   ContractBinding,
   ContractOptions,
-  DeploymentState,
+  DeploymentResult,
   Executor,
   Hold,
   InternalBinding,
@@ -39,51 +46,58 @@ export {
   Providers,
   Services,
   UserModule,
-  serializeBindingOutput,
-  deserializeBindingOutput,
+  SerializedModuleResult,
+  SerializedDeploymentResult,
 };
 
 const log = debug("ignition:main");
 
+export interface IgnitionDeployOptions {
+  getModuleResult: GetModuleResult;
+  saveModuleResult: SaveModuleResult;
+  pathToJournal: string | undefined;
+  txPollingInterval: number;
+}
+
 export class Ignition {
-  constructor(
-    private _providers: Providers,
-    private _saveDeployment: boolean
-  ) {}
+  constructor(private _providers: Providers) {}
 
   public async deploy(
     userModules: Array<UserModule<any>>,
-    currentDeploymentState: DeploymentState | undefined,
     {
+      getModuleResult,
+      saveModuleResult,
       pathToJournal,
       txPollingInterval,
-    }: { pathToJournal: string | undefined; txPollingInterval: number }
+    }: IgnitionDeployOptions
   ) {
     log(`Start deploy, '${userModules.length}' modules`);
 
     const m = new ModuleBuilderImpl();
 
-    const moduleOutputs: any[] = [];
+    const moduleOutputs: Record<string, any> = {};
 
     for (const userModule of userModules) {
       log("Load module '%s'", userModule.id);
       const moduleOutput = m.useModule(userModule) ?? {};
-      moduleOutputs.push(moduleOutput);
+      moduleOutputs[userModule.id] = moduleOutput;
     }
 
-    log("Build DAG");
-    const dag = m.buildDAG();
+    log("Build execution graph");
+    const executionGraph = m.buildExecutionGraph();
 
     log("Create journal with path '%s'", pathToJournal);
     const journal =
       pathToJournal !== undefined
         ? new FileJournal(pathToJournal)
-        : new NullJournal();
+        : new InMemoryJournal();
 
     const engine = new ExecutionEngine(this._providers, journal, {
       parallelizationLevel: 2,
       loggingEnabled: pathToJournal !== undefined,
       txPollingInterval,
+      getModuleResult,
+      saveModuleResult,
     });
 
     const executionManager = new ExecutionManager(
@@ -92,18 +106,15 @@ export class Ignition {
     );
 
     log("Execute deployment");
-    const newDeploymentState = await executionManager.execute(
-      dag,
-      currentDeploymentState ?? DeploymentState.fromDAG(dag)
-    );
+    const deploymentResult = await executionManager.execute(executionGraph);
 
-    return [newDeploymentState, moduleOutputs] as const;
+    return [deploymentResult, moduleOutputs] as const;
   }
 
   public async buildPlan(
     userModules: Array<UserModule<any>>,
-    currentDeploymentState: DeploymentState | undefined
-  ) {
+    { getModuleResult }: { getModuleResult: GetModuleResult }
+  ): Promise<DeploymentPlan> {
     log(`Start building plan, '${userModules.length}' modules`);
 
     const m = new ModuleBuilderImpl();
@@ -116,12 +127,9 @@ export class Ignition {
       moduleOutputs.push(moduleOutput);
     }
 
-    log("Build DAG");
-    const dag = m.buildDAG();
+    log("Build ExecutionGraph");
+    const executionGraph = m.buildExecutionGraph();
 
-    return ExecutionEngine.buildPlan(
-      dag,
-      currentDeploymentState ?? DeploymentState.fromDAG(dag)
-    );
+    return ExecutionEngine.buildPlan(executionGraph, { getModuleResult });
   }
 }

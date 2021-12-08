@@ -1,20 +1,9 @@
-import React from "react";
 import { render } from "ink";
+import React from "react";
 
 import { DeploymentState } from "../deployment-state";
+
 import { IgnitionUi } from "./components";
-
-export class ExecutorUiService {
-  constructor(
-    private _moduleId: string,
-    private _executorId: string,
-    private _uiService: UiService
-  ) {}
-
-  public render() {
-    this._uiService.render();
-  }
-}
 
 export class UiService {
   private _enabled: boolean;

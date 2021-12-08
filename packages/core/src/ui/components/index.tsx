@@ -1,6 +1,6 @@
-import React from "react";
 import { Box, Text } from "ink";
 import Spinner from "ink-spinner";
+import React from "react";
 
 import {
   BindingState,
@@ -109,6 +109,8 @@ const Binding = ({
       ) : bindingState._kind === "success" ? (
         <Text color="green">{bindingId}: Executed</Text>
       ) : bindingState._kind === "ready" ? (
+        <Text color="gray">{bindingId}: Ready</Text>
+      ) : bindingState._kind === "waiting" ? (
         <Text color="gray">{bindingId}: Waiting</Text>
       ) : null}
     </Box>

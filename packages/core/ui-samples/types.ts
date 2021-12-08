@@ -1,6 +1,6 @@
-import { UiData } from "../src/ui/ui-data";
+import { DeploymentState } from "../src/deployment-state";
 
-type ExampleTransition = (d: UiData) => void;
+type ExampleTransition = (d: DeploymentState) => void;
 
 export interface Example {
   only?: boolean;

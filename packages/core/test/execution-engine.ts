@@ -1,16 +1,23 @@
 import { assert } from "chai";
 
 import { DeploymentState } from "../src/deployment-state";
-import { ExecutionEngine } from "../src/execution-engine";
-import { NullJournal } from "../src/journal";
-import { DAG } from "../src/modules";
+import {
+  ExecutionEngine,
+  ExecutionEngineOptions,
+} from "../src/execution-engine";
+import { InMemoryJournal } from "../src/journal";
+import { ExecutionGraph } from "../src/modules";
 
 import { getMockedProviders, inc, runUntil, runUntilReady } from "./helpers";
 
-const executionEngineOptions = {
+const executionEngineOptions: ExecutionEngineOptions = {
   parallelizationLevel: 1,
   loggingEnabled: false,
   txPollingInterval: 100,
+  getModuleResult: async () => {
+    return undefined;
+  },
+  saveModuleResult: async () => {},
 };
 
 describe("ExecutionEngine", function () {
@@ -18,20 +25,17 @@ describe("ExecutionEngine", function () {
     // given
     const executionEngine = new ExecutionEngine(
       getMockedProviders(),
-      new NullJournal(),
+      new InMemoryJournal(),
       executionEngineOptions
     );
 
     const inc1 = inc("MyModule", "inc1", 1);
 
-    const dag = new DAG();
-    dag.addExecutor(inc1);
+    const executionGraph = new ExecutionGraph();
+    executionGraph.addExecutor(inc1);
 
     // when
-    const executionGenerator = executionEngine.execute(
-      dag,
-      DeploymentState.fromDAG(dag)
-    );
+    const executionGenerator = executionEngine.execute(executionGraph);
     const deploymentResult = await runUntilReady(executionGenerator);
 
     // then
@@ -53,22 +57,19 @@ describe("ExecutionEngine", function () {
     // given
     const executionEngine = new ExecutionEngine(
       getMockedProviders(),
-      new NullJournal(),
+      new InMemoryJournal(),
       executionEngineOptions
     );
 
-    const dag = new DAG();
+    const executionGraph = new ExecutionGraph();
     const inc1 = inc("MyModule", "inc1", 1);
     inc1.behavior = "on-demand";
     const incInc1 = inc("MyModule", "incInc1", inc1.binding);
-    dag.addExecutor(inc1);
-    dag.addExecutor(incInc1);
+    executionGraph.addExecutor(inc1);
+    executionGraph.addExecutor(incInc1);
 
     // when
-    const executionGenerator = executionEngine.execute(
-      dag,
-      DeploymentState.fromDAG(dag)
-    );
+    const executionGenerator = executionEngine.execute(executionGraph);
     await runUntil(executionGenerator, () => {
       return inc1.isRunning();
     });
@@ -109,22 +110,19 @@ describe("ExecutionEngine", function () {
     // given
     const executionEngine = new ExecutionEngine(
       getMockedProviders(),
-      new NullJournal(),
+      new InMemoryJournal(),
       executionEngineOptions
     );
 
-    const dag = new DAG();
+    const executionGraph = new ExecutionGraph();
     const inc1 = inc("MyModule", "inc1", 1);
     inc1.behavior = "fail";
     const incInc1 = inc("MyModule", "incInc1", inc1.binding);
-    dag.addExecutor(inc1);
-    dag.addExecutor(incInc1);
+    executionGraph.addExecutor(inc1);
+    executionGraph.addExecutor(incInc1);
 
     // when
-    const executionGenerator = executionEngine.execute(
-      dag,
-      DeploymentState.fromDAG(dag)
-    );
+    const executionGenerator = executionEngine.execute(executionGraph);
     const deploymentResult = await runUntilReady(executionGenerator);
 
     // then
@@ -142,22 +140,19 @@ describe("ExecutionEngine", function () {
     // given
     const executionEngine = new ExecutionEngine(
       getMockedProviders(),
-      new NullJournal(),
+      new InMemoryJournal(),
       executionEngineOptions
     );
 
-    const dag = new DAG();
+    const executionGraph = new ExecutionGraph();
     const inc1 = inc("MyModule", "inc1", 1);
     inc1.behavior = "hold";
     const incInc1 = inc("MyModule", "incInc1", inc1.binding);
-    dag.addExecutor(inc1);
-    dag.addExecutor(incInc1);
+    executionGraph.addExecutor(inc1);
+    executionGraph.addExecutor(incInc1);
 
     // when
-    const executionGenerator = executionEngine.execute(
-      dag,
-      DeploymentState.fromDAG(dag)
-    );
+    const executionGenerator = executionEngine.execute(executionGraph);
     const deploymentResult = await runUntilReady(executionGenerator);
 
     // then

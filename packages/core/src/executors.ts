@@ -9,6 +9,7 @@ import {
   InternalContractBinding,
   Resolved,
 } from "./bindings";
+import { BindingState } from "./deployment-state";
 import { Services } from "./services";
 import { Contract, Tx } from "./types";
 
@@ -40,24 +41,28 @@ export abstract class Executor<I = unknown, O extends BindingOutput = any> {
   abstract validate(input: I, services: Services): Promise<string[]>;
   abstract getDescription(): string;
 
-  public async run(input: Resolved<I>, services: Services) {
+  public async run(
+    input: Resolved<I>,
+    services: Services,
+    onStateChange: (newState: BindingState) => void
+  ) {
     try {
-      services.ui.render();
       this._debug("Start running");
       this._setRunning();
+      onStateChange(BindingState.running());
       const result = await this.execute(input, services);
       this._debug("Ended successfully");
-      services.ui.render();
       this._setSuccess(result);
+      onStateChange(BindingState.success(result));
     } catch (e: any) {
       if (e instanceof Hold) {
-        services.ui.render();
         this._debug("Ended with hold");
         this._setHold(e.reason);
+        onStateChange(BindingState.hold(e.reason));
       } else {
-        services.ui.render();
         this._debug("Ended with error");
         this._setFailure(e);
+        onStateChange(BindingState.failure(e));
       }
     }
   }

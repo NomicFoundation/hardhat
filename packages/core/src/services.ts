@@ -4,10 +4,10 @@ import { ethers, Contract, ContractFactory } from "ethers";
 import { IgnitionSigner, Providers } from "./providers";
 import { TxSender } from "./tx-sender";
 import { Artifact } from "./types";
-import { ExecutorUiService, UiService } from "./ui/ui-service";
+import { UiService } from "./ui/ui-service";
 import { sleep } from "./utils";
 
-export { ExecutorUiService, UiService };
+export { UiService };
 
 interface TransactionOptions {
   gasLimit?: ethers.BigNumberish;
@@ -231,5 +231,4 @@ export interface Services {
   contracts: ContractsService;
   artifacts: ArtifactsService;
   transactions: TransactionsService;
-  ui: ExecutorUiService;
 }

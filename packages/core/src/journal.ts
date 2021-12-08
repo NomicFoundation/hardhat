@@ -122,45 +122,6 @@ export class FileJournal implements Journal {
   }
 }
 
-/**
- * Journal implementation that just no-ops for every method.
- * Used when journaling is disabled.
- */
-export class NullJournal implements Journal {
-  private _log: debug.IDebugger = debug("ignition:journal:null-journal");
-
-  public async addEntry(
-    moduleId: string,
-    executorId: string,
-    _journalEntry: JournalEntry
-  ): Promise<number> {
-    this._log(`Adding entry to ${moduleId}/${executorId}`);
-    return -1;
-  }
-
-  public async getEntry(
-    moduleId: string,
-    executorId: string,
-    entryIndex: number
-  ): Promise<JournalEntry | undefined> {
-    this._log(`Getting entry ${entryIndex} from ${moduleId}/${executorId}`);
-    return undefined;
-  }
-
-  public async replaceEntry(
-    moduleId: string,
-    executorId: string,
-    txIndex: number,
-    _entryIndex: JournalEntry
-  ): Promise<void> {
-    this._log(`Replacing entry ${txIndex} from ${moduleId}/${executorId}`);
-  }
-
-  public async delete(moduleId: string): Promise<void> {
-    this._log(`Deleting module ${moduleId}`);
-  }
-}
-
 export class InMemoryJournal implements Journal {
   private _log: debug.IDebugger = debug("ignition:journal:in-memory-journal");
   private _journal: Map<string, Map<string, JournalEntry[]>> = new Map();

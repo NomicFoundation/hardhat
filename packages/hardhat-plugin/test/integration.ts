@@ -79,11 +79,9 @@ describe("integration tests", function () {
         }),
         UsesContract: resultAssertions.contract(async (usesContract) => {
           const contractAddress = await usesContract.contractAddress();
-          const fooResult: any = deploymentResult
-            .getModule("MyModule")
-            .getBindingResult("Foo");
+          const fooResult: any = deploymentResult.MyModule.Foo;
 
-          assert.equal(contractAddress, fooResult.address);
+          assert.equal(contractAddress, fooResult.value.address);
         }),
       },
     });

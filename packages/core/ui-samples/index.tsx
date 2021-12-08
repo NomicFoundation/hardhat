@@ -1,8 +1,12 @@
 import { render, useInput } from "ink";
 import { useRef, useState } from "react";
+import {
+  BindingState,
+  DeploymentState,
+  ModuleState,
+} from "../src/deployment-state";
 
 import { IgnitionUi } from "../src/ui/components";
-import { UiData } from "../src/ui/ui-data";
 
 import { Example } from "./types";
 
@@ -29,8 +33,8 @@ function getExamples(): Example[] {
       MyModule: ["Foo"],
     },
     transitions: [
-      (d) => d.startExecutor("MyModule", "Foo"),
-      (d) => d.finishExecutor("MyModule", "Foo"),
+      (d) => d.setBindingState("MyModule", "Foo", BindingState.running()),
+      (d) => d.setBindingState("MyModule", "Foo", BindingState.success(1)),
     ],
   });
 
@@ -41,11 +45,11 @@ function getExamples(): Example[] {
     },
     transitions: [
       (d) => {
-        d.startExecutor("MyModule", "Foo");
-        d.startExecutor("MyModule", "Bar");
+        d.setBindingState("MyModule", "Foo", BindingState.running());
+        d.setBindingState("MyModule", "Bar", BindingState.running());
       },
-      (d) => d.finishExecutor("MyModule", "Bar"),
-      (d) => d.finishExecutor("MyModule", "Foo"),
+      (d) => d.setBindingState("MyModule", "Bar", BindingState.success(2)),
+      (d) => d.setBindingState("MyModule", "Foo", BindingState.success(1)),
     ],
   });
 
@@ -56,10 +60,30 @@ function getExamples(): Example[] {
       MyOtherModule: ["Bar"],
     },
     transitions: [
-      (d) => d.startExecutor("MyModule", "Foo"),
-      (d) => d.finishExecutor("MyModule", "Foo"),
-      (d) => d.startExecutor("MyOtherModule", "Bar"),
-      (d) => d.finishExecutor("MyOtherModule", "Bar"),
+      (d) => d.setBindingState("MyModule", "Foo", BindingState.running()),
+      (d) => d.setBindingState("MyModule", "Foo", BindingState.success(1)),
+      (d) => d.setBindingState("MyOtherModule", "Bar", BindingState.running()),
+      (d) => d.setBindingState("MyOtherModule", "Bar", BindingState.success(1)),
+    ],
+  });
+
+  examples.push({
+    only: true,
+    description: "Two parallel deploys followed by two parallel calls",
+    initialData: {
+      MyModule: ["Foo", "Bar", "Foo.f", "Bar.b"],
+    },
+    transitions: [
+      (d) => {
+        d.setBindingState("MyModule", "Foo", BindingState.running());
+        d.setBindingState("MyModule", "Bar", BindingState.running());
+      },
+      (d) => d.setBindingState("MyModule", "Bar", BindingState.success(1)),
+      (d) => d.setBindingState("MyModule", "Foo", BindingState.success(1)),
+      (d) => d.setBindingState("MyModule", "Foo.f", BindingState.running()),
+      (d) => d.setBindingState("MyModule", "Bar.b", BindingState.running()),
+      (d) => d.setBindingState("MyModule", "Foo.f", BindingState.success(1)),
+      (d) => d.setBindingState("MyModule", "Bar.b", BindingState.success(1)),
     ],
   });
 
@@ -91,13 +115,21 @@ const ExampleRenderer = ({
   example: Example;
   onFinish: () => void;
 }) => {
-  const uiData = useRef(new UiData(initialData));
+  const deploymentState = new DeploymentState();
+  for (const [moduleId, bindingsIds] of Object.entries(initialData)) {
+    const moduleState = new ModuleState(moduleId);
+    for (const bindingId of bindingsIds) {
+      moduleState.addBinding(bindingId, BindingState.waiting());
+    }
+    deploymentState.addModule(moduleState);
+  }
+  const deploymentStateRef = useRef(deploymentState);
   const [transitionIndex, setTransitionIndex] = useState(0);
 
   useInput((input, key) => {
     if (input === "n") {
       if (transitionIndex < transitions.length) {
-        transitions[transitionIndex](uiData.current);
+        transitions[transitionIndex](deploymentStateRef.current);
         setTransitionIndex(transitionIndex + 1);
       } else {
         onFinish();
@@ -105,7 +137,7 @@ const ExampleRenderer = ({
     }
   });
 
-  return <IgnitionUi uiData={uiData.current} />;
+  return <IgnitionUi deploymentState={deploymentStateRef.current} />;
 };
 
 main();

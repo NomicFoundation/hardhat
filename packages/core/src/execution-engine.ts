@@ -1,9 +1,15 @@
 import debug from "debug";
 
-import { InternalBinding } from "./bindings";
+import {
+  deserializeBindingOutput,
+  InternalBinding,
+  ModuleResult,
+  SerializedDeploymentResult,
+  SerializedModuleResult,
+} from "./bindings";
 import { DeploymentState } from "./deployment-state";
 import { Journal } from "./journal";
-import { DAG, IgnitionModule } from "./modules";
+import { ExecutionGraph, IgnitionModule } from "./modules";
 import { Providers } from "./providers";
 import {
   ArtifactsService,
@@ -11,12 +17,22 @@ import {
   UiService,
   Services,
   TransactionsService,
-  ExecutorUiService,
 } from "./services";
 import { TxSender } from "./tx-sender";
 import { sleep } from "./utils";
 
-interface ExecutionEngineOptions {
+export type GetModuleResult = (
+  moduleId: string
+) => Promise<SerializedModuleResult | undefined>;
+
+export type SaveModuleResult = (
+  moduleId: string,
+  moduleResult: SerializedModuleResult
+) => Promise<void>;
+
+export interface ExecutionEngineOptions {
+  saveModuleResult: SaveModuleResult;
+  getModuleResult: GetModuleResult;
   parallelizationLevel: number;
   loggingEnabled: boolean;
   txPollingInterval: number;
@@ -32,16 +48,17 @@ export type DeploymentPlan = Record<string, ModulePlan>;
 export class ExecutionEngine {
   private _debug = debug("ignition:execution-engine");
 
-  public static buildPlan(
-    dag: DAG,
-    currentDeploymentResult: DeploymentState
-  ): DeploymentPlan {
+  public static async buildPlan(
+    executionGraph: ExecutionGraph,
+    { getModuleResult }: { getModuleResult: GetModuleResult }
+  ): Promise<DeploymentPlan> {
     const plan: DeploymentPlan = {};
 
-    const ignitionModules = dag.getSortedModules();
+    const ignitionModules = executionGraph.getSortedModules();
 
     for (const ignitionModule of ignitionModules) {
-      if (currentDeploymentResult.hasModule(ignitionModule.id)) {
+      const moduleResult = await getModuleResult(ignitionModule.id);
+      if (moduleResult !== undefined) {
         plan[ignitionModule.id] = "already-deployed";
         continue;
       }
@@ -66,14 +83,10 @@ export class ExecutionEngine {
     private _options: ExecutionEngineOptions
   ) {}
 
-  public async *execute(dag: DAG, previousDeploymentState: DeploymentState) {
-    const deploymentState = DeploymentState.clone(previousDeploymentState);
+  public async *execute(executionGraph: ExecutionGraph) {
+    const deploymentState = DeploymentState.fromExecutionGraph(executionGraph);
 
-    const ids: Record<string, string[]> = {};
-    const modules = dag.getSortedModules();
-    modules.forEach((module) => {
-      ids[module.id] = module.getSortedExecutors().map((e) => e.binding.id);
-    });
+    const executionModules = executionGraph.getSortedModules();
 
     const uiService = new UiService({
       enabled: this._options.loggingEnabled,
@@ -83,13 +96,13 @@ export class ExecutionEngine {
     // validate all modules
     const errorsPerModule: Map<string, string[]> = new Map();
     let hasErrors = false;
-    for (const ignitionModule of dag.getSortedModules()) {
-      this._debug(`Validating module ${ignitionModule.id}`);
-      const errors = await this._validateModule(ignitionModule, uiService);
+    for (const executionModule of executionModules) {
+      this._debug(`Validating module ${executionModule.id}`);
+      const errors = await this._validateModule(executionModule);
       if (errors.length > 0) {
         hasErrors = true;
       }
-      errorsPerModule.set(ignitionModule.id, errors);
+      errorsPerModule.set(executionModule.id, errors);
     }
 
     if (hasErrors) {
@@ -114,19 +127,36 @@ export class ExecutionEngine {
     }
 
     // execute each module sequentially
-    for (const ignitionModule of dag.getSortedModules()) {
-      this._debug(`Begin execution of module ${ignitionModule.id}`);
+    for (const executionModule of executionModules) {
+      const serializedModuleResult = await this._options.getModuleResult(
+        executionModule.id
+      );
 
-      if (deploymentState.isModuleSuccess(ignitionModule.id)) {
+      if (serializedModuleResult !== undefined) {
+        const moduleResult: ModuleResult = Object.fromEntries(
+          Object.entries(serializedModuleResult).map(([key, value]) => [
+            key,
+            deserializeBindingOutput(value),
+          ])
+        );
+
+        deploymentState.addModuleResult(executionModule.id, moduleResult);
+
+        continue;
+      }
+
+      this._debug(`Begin execution of module ${executionModule.id}`);
+
+      if (deploymentState.isModuleSuccess(executionModule.id)) {
         this._debug(
-          `The module ${ignitionModule.id} was already successfully deployed`
+          `The module ${executionModule.id} was already successfully deployed`
         );
         continue;
       }
 
-      this._debug(`Executing module ${ignitionModule.id}`);
+      this._debug(`Executing module ${executionModule.id}`);
       const moduleExecutionGenerator = this._executeModule(
-        ignitionModule,
+        executionModule,
         deploymentState,
         uiService
       );
@@ -142,8 +172,7 @@ export class ExecutionEngine {
   }
 
   private async _validateModule(
-    ignitionModule: IgnitionModule,
-    uiService: UiService
+    ignitionModule: IgnitionModule
   ): Promise<string[]> {
     const executors = ignitionModule.getSortedExecutors();
     const allErrors: string[] = [];
@@ -154,8 +183,7 @@ export class ExecutionEngine {
       );
       const services = this._createServices(
         ignitionModule.id,
-        executor.binding.id,
-        uiService
+        executor.binding.id
       );
 
       const errors = await executor.validate(executor.binding.input, services);
@@ -187,38 +215,11 @@ export class ExecutionEngine {
         (someFailure && runningCount === 0) ||
         (someHold && runningCount === 0)
       ) {
-        for (const executor of executors) {
-          if (!moduleState.isBindingDone(executor.binding.id)) {
-            if (executor.isSuccess()) {
-              moduleState.setSuccess(executor.binding.id, executor.getResult());
-            }
-            if (executor.isHold()) {
-              moduleState.setHold(
-                executor.binding.id,
-                executor.getHoldReason()
-              );
-            }
-          }
-        }
-
-        const failures = executors
-          .filter((e) => e.isFailure())
-          .map((e) => [e.binding.id, e.getError()]);
-
-        const holds = executors
-          .filter((e) => e.isHold())
-          .map((e) => [e.binding.id, e.getHoldReason()]);
-
-        if (failures.length === 0 && holds.length === 0) {
+        if (moduleState.isSuccess()) {
+          const moduleResult = moduleState.toModuleResult();
+          await this._options.saveModuleResult(ignitionModule.id, moduleResult);
           await this._journal.delete(ignitionModule.id);
         }
-
-        failures.forEach(([bindingId, failure]) =>
-          moduleState.addFailure(bindingId, failure)
-        );
-        holds.forEach(([bindingId, holdReason]) =>
-          moduleState.setHold(bindingId, holdReason)
-        );
 
         yield moduleState;
       }
@@ -242,33 +243,22 @@ export class ExecutionEngine {
             );
             const services = this._createServices(
               ignitionModule.id,
-              executor.binding.id,
-              uiService
+              executor.binding.id
             );
 
             this._debug(`Start ${ignitionModule.id}/${executor.binding.id}`);
-            moduleState.setRunning(executor.binding.id);
-            // eslint-disable-next-line @typescript-eslint/no-floating-promises
-            executor.run(resolvedInput, services);
-            runningCount++;
-          }
-        }
 
-        if (!moduleState.isBindingDone(executor.binding.id)) {
-          this._debug(
-            `Check result of ${ignitionModule.id}/${executor.binding.id}`
-          );
-          if (executor.isSuccess()) {
-            this._debug(
-              `${ignitionModule.id}/${executor.binding.id} finished successfully`
-            );
-            moduleState.setSuccess(executor.binding.id, executor.getResult());
-          }
-          if (executor.isHold()) {
-            this._debug(
-              `${ignitionModule.id}/${executor.binding.id} is on hold`
-            );
-            moduleState.setHold(executor.binding.id, executor.getHoldReason());
+            // eslint-disable-next-line @typescript-eslint/no-floating-promises
+            executor.run(resolvedInput, services, (newState) => {
+              deploymentState.setBindingState(
+                ignitionModule.id,
+                executor.binding.id,
+                newState
+              );
+
+              uiService.render();
+            });
+            runningCount++;
           }
         }
       }
@@ -299,11 +289,7 @@ export class ExecutionEngine {
     return input;
   }
 
-  private _createServices(
-    moduleId: string,
-    executorId: string,
-    uiService: UiService
-  ): Services {
+  private _createServices(moduleId: string, executorId: string): Services {
     const txSender = new TxSender(
       moduleId,
       executorId,
@@ -317,12 +303,16 @@ export class ExecutionEngine {
         pollingInterval: this._options.txPollingInterval,
       }),
       transactions: new TransactionsService(this._providers),
-      ui: new ExecutorUiService(moduleId, executorId, uiService),
     };
 
     return services;
   }
 }
+
+export type DeploymentResult =
+  | { _kind: "failure"; failures: [string, Error[]] }
+  | { _kind: "hold"; holds: [string, string[]] }
+  | { _kind: "success"; result: SerializedDeploymentResult };
 
 export class ExecutionManager {
   private _debug = debug("ignition:execution-manager");
@@ -332,17 +322,44 @@ export class ExecutionManager {
   ) {}
 
   public async execute(
-    dag: DAG,
-    deploymentState: DeploymentState
-  ): Promise<DeploymentState> {
-    const executionGenerator = this._engine.execute(dag, deploymentState);
+    executionGraph: ExecutionGraph
+  ): Promise<DeploymentResult> {
+    const executionGenerator = this._engine.execute(executionGraph);
 
     while (true) {
       this._debug("Run next execution iteration");
       const deploymentResultIteration = await executionGenerator.next();
 
       if (deploymentResultIteration.value !== undefined) {
-        return deploymentResultIteration.value;
+        const deploymentState = deploymentResultIteration.value;
+
+        const failures = deploymentState.getFailures();
+        if (failures !== undefined && failures.length > 0) {
+          return {
+            _kind: "failure",
+            failures,
+          };
+        }
+
+        const holds = deploymentState.getHolds();
+        if (holds !== undefined && holds.length > 0) {
+          return {
+            _kind: "hold",
+            holds,
+          };
+        }
+
+        const serializedDeploymentResult: SerializedDeploymentResult = {};
+
+        for (const moduleState of deploymentState.getModules()) {
+          serializedDeploymentResult[moduleState.id] =
+            moduleState.toModuleResult();
+        }
+
+        return {
+          _kind: "success",
+          result: serializedDeploymentResult,
+        };
       }
 
       await sleep(this._tickInterval);

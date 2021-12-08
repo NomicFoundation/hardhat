@@ -1,27 +1,19 @@
-import { BindingOutput } from "./bindings";
-import { DAG, IgnitionModule } from "./modules";
+import {
+  BindingOutput,
+  ModuleResult,
+  serializeBindingOutput,
+  SerializedModuleResult,
+} from "./bindings";
+import { ExecutionGraph, IgnitionModule } from "./modules";
 
 export class DeploymentState {
   private _modules: Map<string, ModuleState> = new Map();
 
-  public static clone(deploymentState: DeploymentState): DeploymentState {
-    const clonedDeploymentState = new DeploymentState();
-    for (const moduleState of deploymentState.getModules()) {
-      const clonedModuleState = new ModuleState(moduleState.id);
-
-      for (const [bindingId, bindingState] of moduleState.getBindingsStates()) {
-        clonedModuleState.addBinding(bindingId, bindingState);
-      }
-
-      clonedDeploymentState.addModule(clonedModuleState);
-    }
-
-    return clonedDeploymentState;
-  }
-
-  public static fromDAG(dag: DAG): DeploymentState {
+  public static fromExecutionGraph(
+    executionGraph: ExecutionGraph
+  ): DeploymentState {
     const deploymentState = new DeploymentState();
-    for (const ignitionModule of dag.getSortedModules()) {
+    for (const ignitionModule of executionGraph.getSortedModules()) {
       const moduleState = ModuleState.fromIgnitionModule(ignitionModule);
       deploymentState.addModule(moduleState);
     }
@@ -31,6 +23,20 @@ export class DeploymentState {
 
   public addModule(moduleState: ModuleState) {
     this._modules.set(moduleState.id, moduleState);
+  }
+
+  public addModuleResult(moduleId: string, moduleResult: ModuleResult) {
+    const moduleState = this._modules.get(moduleId);
+
+    if (moduleState === undefined) {
+      throw new Error(
+        `DeploymentState doesn't have module with id '${moduleId}'`
+      );
+    }
+
+    for (const [bindingId, bindingOutput] of Object.entries(moduleResult)) {
+      moduleState.setSuccess(bindingId, bindingOutput);
+    }
   }
 
   public getModule(moduleId: string): ModuleState {
@@ -70,10 +76,6 @@ export class DeploymentState {
     return [...this._modules.values()].filter((m) => m.isSuccess());
   }
 
-  public hasModule(moduleId: string) {
-    return this._modules.has(moduleId);
-  }
-
   public isBindingSuccess(moduleId: string, bindingId: string): boolean {
     const bindingState = this._getBindingState(moduleId, bindingId);
 
@@ -96,7 +98,7 @@ export class DeploymentState {
     return moduleState.isSuccess();
   }
 
-  public isHold(): [string, string[]] | undefined {
+  public getHolds(): [string, string[]] | undefined {
     for (const [moduleId, moduleState] of this._modules.entries()) {
       const holds = moduleState.getHolds();
       if (holds.length > 0) {
@@ -116,6 +118,16 @@ export class DeploymentState {
     }
 
     return;
+  }
+
+  public setBindingState(
+    moduleId: string,
+    bindingId: string,
+    bindingState: BindingState
+  ) {
+    const moduleState = this._getModuleState(moduleId);
+
+    moduleState.setBindingState(bindingId, bindingState);
   }
 
   private _getBindingState(moduleId: string, bindingId: string) {
@@ -172,7 +184,7 @@ export const BindingState = {
   running(): BindingState {
     return { _kind: "running" };
   },
-  success(result: any): BindingState {
+  success(result: BindingOutput): BindingState {
     return { _kind: "success", result };
   },
   failure(error: Error): BindingState {
@@ -184,6 +196,7 @@ export const BindingState = {
 };
 
 export class ModuleState {
+  private _started = false;
   private _bindings = new Map<string, BindingState>();
 
   public static fromIgnitionModule(
@@ -217,7 +230,9 @@ export class ModuleState {
   }
 
   public isRunning(): boolean {
-    return [...this._bindings.values()].some((b) => b._kind === "running");
+    return (
+      !this.isFailure() && !this.isHold() && !this.isSuccess() && this._started
+    );
   }
 
   public isFailure(): boolean {
@@ -231,62 +246,13 @@ export class ModuleState {
     );
   }
 
-  public isBindingDone(bindingId: string): boolean {
-    return (
-      this.isBindingSuccess(bindingId) ||
-      this.isBindingFailure(bindingId) ||
-      this.isBindingHold(bindingId)
-    );
-  }
-
-  public isBindingSuccess(bindingId: string): boolean {
-    const bindingState = this._getBinding(bindingId);
-
-    return bindingState._kind === "success";
-  }
-
-  public isBindingFailure(bindingId: string): boolean {
-    const bindingState = this._getBinding(bindingId);
-
-    return bindingState._kind === "failure";
-  }
-
-  public isBindingHold(bindingId: string): boolean {
-    const bindingState = this._getBinding(bindingId);
-
-    return bindingState._kind === "hold";
+  public setBindingState(bindingId: string, bindingState: BindingState) {
+    this._started = true;
+    this._bindings.set(bindingId, bindingState);
   }
 
   public setSuccess(bindingId: string, result: any) {
-    const bindingState = this._getBinding(bindingId);
-
-    if (bindingState._kind !== "running") {
-      throw new Error("assertion error");
-    }
-
     this._bindings.set(bindingId, BindingState.success(result));
-  }
-
-  public setRunning(bindingId: string) {
-    this._bindings.set(bindingId, BindingState.running());
-  }
-
-  public addFailure(bindingId: string, error: Error) {
-    this._bindings.set(bindingId, BindingState.failure(error));
-  }
-
-  public setHold(bindingId: string, holdReason: string) {
-    this._bindings.set(bindingId, BindingState.hold(holdReason));
-  }
-
-  public getBindingResult(bindingId: string): BindingOutput {
-    const bindingState = this.getBindingState(bindingId);
-
-    if (bindingState._kind !== "success") {
-      throw new Error(`assertion error: ${bindingId} should be successful`);
-    }
-
-    return bindingState.result;
   }
 
   public getBindingState(bindingId: string): BindingState {
@@ -316,6 +282,21 @@ export class ModuleState {
     return this._bindings.size;
   }
 
+  public toModuleResult(): SerializedModuleResult {
+    const moduleResult: SerializedModuleResult = {};
+
+    for (const [bindingId, bindingState] of this._bindings.entries()) {
+      if (bindingState._kind !== "success") {
+        throw new Error(
+          "toModuleResult can only be called in successful modules"
+        );
+      }
+      moduleResult[bindingId] = serializeBindingOutput(bindingState.result);
+    }
+
+    return moduleResult;
+  }
+
   private _getBinding(bindingId: string) {
     const bindingState = this._bindings.get(bindingId);
 
@@ -324,5 +305,23 @@ export class ModuleState {
     }
 
     return bindingState;
+  }
+
+  private _isBindingSuccess(bindingId: string): boolean {
+    const bindingState = this._getBinding(bindingId);
+
+    return bindingState._kind === "success";
+  }
+
+  private _isBindingFailure(bindingId: string): boolean {
+    const bindingState = this._getBinding(bindingId);
+
+    return bindingState._kind === "failure";
+  }
+
+  private _isBindingHold(bindingId: string): boolean {
+    const bindingState = this._getBinding(bindingId);
+
+    return bindingState._kind === "hold";
   }
 }

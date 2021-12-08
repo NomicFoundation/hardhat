@@ -1,5 +1,9 @@
 import { assert } from "chai";
-import { DeploymentState, UserModule } from "ignition";
+import {
+  UserModule,
+  SerializedDeploymentResult,
+  DeploymentResult,
+} from "ignition";
 
 /**
  * Wait until there are at least `expectedCount` transactions in the mempool
@@ -62,39 +66,51 @@ type ExpectedDeploymentState = Record<string, ExpectedModuleResult>;
 
 export async function assertDeploymentState(
   hre: any,
-  result: DeploymentState,
+  result: SerializedDeploymentResult,
   expectedResult: ExpectedDeploymentState
 ) {
-  const modulesStates = result.getModules();
+  const modulesResults = Object.entries(result);
   const expectedModules = Object.entries(expectedResult);
 
-  assert.equal(modulesStates.length, expectedModules.length);
+  assert.equal(modulesResults.length, expectedModules.length);
 
-  for (const moduleState of modulesStates) {
-    const expectedModule = expectedResult[moduleState.id];
+  for (const [moduleId, moduleResult] of modulesResults) {
+    const expectedModule = expectedResult[moduleId];
 
     assert.isDefined(expectedModule);
 
-    assert.equal(moduleState.count(), Object.entries(expectedModule).length);
+    assert.equal(
+      Object.entries(moduleResult).length,
+      Object.entries(expectedModule).length
+    );
 
     for (const [bindingId, expectedBindingResult] of Object.entries(
       expectedModule
     )) {
-      const bindingResult: any = moduleState.getBindingResult(bindingId);
+      const bindingResult = moduleResult[bindingId];
 
       if (expectedBindingResult.kind === "contract") {
-        assert.isDefined(bindingResult.address);
-        await assertHasCode(hre, bindingResult.address);
+        if (bindingResult._kind !== "contract") {
+          assert.fail(
+            `Expected binding result to be a contract, but got ${bindingResult._kind}`
+          );
+        }
+        await assertHasCode(hre, bindingResult.value.address);
 
         const contract = await hre.ethers.getContractAt(
-          bindingResult.abi,
-          bindingResult.address
+          bindingResult.value.abi,
+          bindingResult.value.address
         );
 
         await expectedBindingResult.predicate(contract);
       } else if (expectedBindingResult.kind === "transaction") {
-        assert.isDefined(bindingResult.hash);
-        await assertTxMined(hre, bindingResult.hash);
+        if (bindingResult._kind !== "tx") {
+          assert.fail(
+            `Expected binding result to be a transaction, but got ${bindingResult._kind}`
+          );
+        }
+        assert.isDefined(bindingResult.value.hash);
+        await assertTxMined(hre, bindingResult.value.hash);
       } else {
         const _exhaustiveCheck: never = expectedBindingResult;
       }
@@ -118,10 +134,10 @@ export async function deployModules(
   hre: any,
   userModules: Array<UserModule<any>>,
   expectedBlocks: number[]
-): Promise<DeploymentState> {
+): Promise<SerializedDeploymentResult> {
   await hre.run("compile", { quiet: true });
 
-  const deploymentStatePromise: Promise<DeploymentState> = hre.run(
+  const deploymentResultPromise: Promise<DeploymentResult> = hre.run(
     "deploy:deploy-modules",
     {
       userModules,
@@ -129,9 +145,15 @@ export async function deployModules(
   );
 
   // eslint-disable-next-line @typescript-eslint/no-floating-promises
-  mineBlocks(hre, expectedBlocks, deploymentStatePromise);
+  mineBlocks(hre, expectedBlocks, deploymentResultPromise);
 
-  return deploymentStatePromise;
+  const deploymentResult = await deploymentResultPromise;
+
+  if (deploymentResult._kind !== "success") {
+    assert.fail("Expected deployment result to be successful");
+  }
+
+  return deploymentResult.result;
 }
 
 async function mineBlocks(

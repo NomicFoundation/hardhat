@@ -52,7 +52,7 @@ export class IgnitionModule {
   }
 }
 
-export class DAG {
+export class ExecutionGraph {
   private _modules: Map<string, Map<string, Executor>> = new Map();
   private _dependencies: Map<string, Set<string>> = new Map();
 
@@ -154,7 +154,7 @@ export interface ModuleBuilder {
 
 export class ModuleBuilderImpl implements ModuleBuilder {
   private _currentModuleId: string | undefined;
-  private _dag = new DAG();
+  private _executionGraph = new ExecutionGraph();
   private _executors: Executor[] = [];
   private _knownModules: Map<string, [UserModule<any>, any]> = new Map();
 
@@ -168,8 +168,8 @@ export class ModuleBuilderImpl implements ModuleBuilder {
     return this._currentModuleId;
   }
 
-  public buildDAG(): DAG {
-    return this._dag;
+  public buildExecutionGraph(): ExecutionGraph {
+    return this._executionGraph;
   }
 
   public addExecutor(executor: Executor) {
@@ -177,7 +177,7 @@ export class ModuleBuilderImpl implements ModuleBuilder {
       throw new Error("[ModuleBuilderImpl] Assertion error: no module is set");
     }
 
-    this._dag.addExecutor(executor);
+    this._executionGraph.addExecutor(executor);
   }
 
   public contract(
