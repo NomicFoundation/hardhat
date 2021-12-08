@@ -31,7 +31,7 @@ extendEnvironment((hre) => {
   hre.hi = "Hello, Hardhat!";
 });
 
-task("envtest", (args, hre) => {
+task("envtest", async (args, hre) => {
   console.log(hre.hi);
 });
 

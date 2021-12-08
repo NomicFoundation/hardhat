@@ -172,7 +172,7 @@ describe("config loading", function () {
       let errorThrown;
       try {
         loadConfigAndTasks();
-      } catch (e) {
+      } catch (e: any) {
         errorThrown = e;
       }
 
@@ -199,7 +199,7 @@ describe("config loading", function () {
       let errorThrown;
       try {
         loadConfigAndTasks();
-      } catch (e) {
+      } catch (e: any) {
         errorThrown = e;
       }
 
@@ -226,7 +226,7 @@ describe("config loading", function () {
       let errorThrown;
       try {
         loadConfigAndTasks();
-      } catch (e) {
+      } catch (e: any) {
         errorThrown = e;
       }
 

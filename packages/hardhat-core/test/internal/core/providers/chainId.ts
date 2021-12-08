@@ -96,7 +96,7 @@ describe("ProviderWrapperWithChainId", function () {
 
     try {
       await testProvider.getChainId();
-    } catch (error) {
+    } catch {
       return;
     }
 

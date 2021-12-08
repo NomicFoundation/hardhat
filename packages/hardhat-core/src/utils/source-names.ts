@@ -199,17 +199,19 @@ async function getPathTrueCase(fromDir: string, p: string): Promise<string> {
     const tcp = await trueCasePath(p, fromDir);
     return normalizeSourceName(path.relative(fromDir, tcp));
   } catch (error) {
-    if (
-      typeof error.message === "string" &&
-      error.message.includes("no matching file exists")
-    ) {
-      throw new HardhatError(
-        ERRORS.SOURCE_NAMES.FILE_NOT_FOUND,
-        {
-          name: p,
-        },
-        error
-      );
+    if (error instanceof Error) {
+      if (
+        typeof error.message === "string" &&
+        error.message.includes("no matching file exists")
+      ) {
+        throw new HardhatError(
+          ERRORS.SOURCE_NAMES.FILE_NOT_FOUND,
+          {
+            name: p,
+          },
+          error
+        );
+      }
     }
 
     // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error

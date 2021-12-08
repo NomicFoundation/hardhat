@@ -259,7 +259,7 @@ describe("Compiler downloader", function () {
             try {
               await mockDownloader.getCompilerBuild("non-existent");
               assert.isTrue(downloadCalled);
-            } catch (e) {
+            } catch {
               // We ignore the error here, see next test.
             }
           });

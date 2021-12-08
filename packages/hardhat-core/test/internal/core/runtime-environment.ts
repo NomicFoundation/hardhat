@@ -243,7 +243,7 @@ describe("Environment", () => {
           const argsString = JSON.stringify(taskArguments);
           try {
             await env.run(taskNameToRun, taskArguments);
-          } catch (error) {
+          } catch (error: any) {
             assert.fail(
               error,
               undefined,

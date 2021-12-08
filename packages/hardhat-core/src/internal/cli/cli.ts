@@ -234,7 +234,7 @@ async function main() {
     console.log("");
 
     try {
-      Reporter.reportError(error);
+      Reporter.reportError(error as Error);
     } catch (e) {
       log("Couldn't report error to sentry: %O", e);
     }
