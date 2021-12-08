@@ -14,12 +14,7 @@ import { Contract, Tx } from "./types";
 export class IgnitionModule {
   constructor(public readonly id: string, private _executors: Executor[]) {}
 
-  public getExecutors(): Executor[] {
-    return this._executors;
-  }
-
   public getSortedExecutors(): Executor[] {
-    // TODO awful algorithm, can be optimized
     const dependencies = new Map<string, Set<string>>();
 
     for (const executor of this._executors) {
@@ -27,7 +22,9 @@ export class IgnitionModule {
         dependencies.get(executor.binding.id) ?? new Set();
 
       for (const executorDependency of executor.binding.getDependencies()) {
-        executorDependencies.add(executorDependency.id);
+        if (executorDependency.moduleId === executor.binding.moduleId) {
+          executorDependencies.add(executorDependency.id);
+        }
       }
 
       dependencies.set(executor.binding.id, executorDependencies);
@@ -55,7 +52,7 @@ export class IgnitionModule {
   }
 }
 
-export class DAG {
+export class ExecutionGraph {
   private _modules: Map<string, Map<string, Executor>> = new Map();
   private _dependencies: Map<string, Set<string>> = new Map();
 
@@ -88,16 +85,9 @@ export class DAG {
     return new IgnitionModule(moduleId, [...executorsMap.values()]);
   }
 
-  public getModules(): IgnitionModule[] {
-    return [...this._modules.entries()].map(
-      ([id, executorsMap]) => new IgnitionModule(id, [...executorsMap.values()])
-    );
-  }
-
   public getSortedModules(): IgnitionModule[] {
-    // TODO awful algorithm, can be optimized
     const added = new Set<string>();
-    const ignitionModules = this.getModules();
+    const ignitionModules = this._getModules();
     const sortedModules: IgnitionModule[] = [];
 
     while (added.size < ignitionModules.length) {
@@ -118,13 +108,19 @@ export class DAG {
     return sortedModules;
   }
 
-  private _addDependency(moduleId: string, dependencyId: string) {
-    if (moduleId !== dependencyId) {
+  private _addDependency(moduleId: string, dependencyModuleId: string) {
+    if (moduleId !== dependencyModuleId) {
       const dependencies =
         this._dependencies.get(moduleId) ?? new Set<string>();
-      dependencies.add(dependencyId);
+      dependencies.add(dependencyModuleId);
       this._dependencies.set(moduleId, dependencies);
     }
+  }
+
+  private _getModules(): IgnitionModule[] {
+    return [...this._modules.entries()].map(
+      ([id, executorsMap]) => new IgnitionModule(id, [...executorsMap.values()])
+    );
   }
 }
 
@@ -158,7 +154,7 @@ export interface ModuleBuilder {
 
 export class ModuleBuilderImpl implements ModuleBuilder {
   private _currentModuleId: string | undefined;
-  private _dag = new DAG();
+  private _executionGraph = new ExecutionGraph();
   private _executors: Executor[] = [];
   private _knownModules: Map<string, [UserModule<any>, any]> = new Map();
 
@@ -172,8 +168,8 @@ export class ModuleBuilderImpl implements ModuleBuilder {
     return this._currentModuleId;
   }
 
-  public buildDAG(): DAG {
-    return this._dag;
+  public buildExecutionGraph(): ExecutionGraph {
+    return this._executionGraph;
   }
 
   public addExecutor(executor: Executor) {
@@ -181,7 +177,7 @@ export class ModuleBuilderImpl implements ModuleBuilder {
       throw new Error("[ModuleBuilderImpl] Assertion error: no module is set");
     }
 
-    this._dag.addExecutor(executor);
+    this._executionGraph.addExecutor(executor);
   }
 
   public contract(

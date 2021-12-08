@@ -1,10 +1,13 @@
 import debug from "debug";
 import { ethers, Contract, ContractFactory } from "ethers";
 
-import { TxSender } from "./tx-sender";
 import { IgnitionSigner, Providers } from "./providers";
+import { TxSender } from "./tx-sender";
 import { Artifact } from "./types";
+import { UiService } from "./ui/ui-service";
 import { sleep } from "./utils";
+
+export { UiService };
 
 interface TransactionOptions {
   gasLimit?: ethers.BigNumberish;
@@ -31,7 +34,6 @@ export class ContractsService {
     txOptions?: TransactionOptions
   ): Promise<string> {
     this._debug("Deploying contract");
-    // TODO this assumes the signer is connected
     const signer = await this._providers.signers.getDefaultSigner();
     const Factory = new ContractFactory(artifact.abi, artifact.bytecode);
 
@@ -225,23 +227,8 @@ export class TransactionsService {
   }
 }
 
-export class LoggingService {
-  private _enabled: boolean;
-  constructor({ enabled }: { enabled: boolean }) {
-    this._enabled = enabled;
-  }
-
-  public log(...args: string[]) {
-    if (this._enabled) {
-      // eslint-disable-next-line no-console
-      console.log(...args);
-    }
-  }
-}
-
 export interface Services {
   contracts: ContractsService;
   artifacts: ArtifactsService;
   transactions: TransactionsService;
-  logging: LoggingService;
 }

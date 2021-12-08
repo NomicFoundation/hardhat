@@ -7,9 +7,10 @@
     "build": "tsc",
     "lint": "yarn prettier --check && yarn eslint",
     "lint:fix": "yarn prettier --write && yarn eslint --fix",
-    "eslint": "eslint \"src/**/*.ts\" \"test/**/*.ts\"",
+    "eslint": "eslint \"src/**/*.{ts,tsx}\" \"test/**/*.{ts,tsx}\"",
     "prettier": "prettier \"**/*.{js,md,json}\"",
-    "test": "mocha --recursive \"test/**/*.ts\""
+    "test": "mocha --recursive \"test/**/*.ts\"",
+    "test:debug": "DEBUG='hardhat-ignition:*,ignition:*' yarn test"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.2",

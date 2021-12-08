@@ -7,10 +7,11 @@
     "build": "tsc",
     "lint": "yarn prettier --check && yarn eslint",
     "lint:fix": "yarn prettier --write && yarn eslint --fix",
-    "eslint": "eslint \"src/**/*.ts\" \"test/**/*.ts\"",
+    "eslint": "eslint \"src/**/*.{ts,tsx}\" \"test/**/*.{ts,tsx}\"",
     "prettier": "prettier \"**/*.{js,md,json}\"",
     "test": "mocha --recursive \"test/**/*.ts\"",
-    "test:debug": "DEBUG='ignition:*' mocha --recursive \"test/**/*.ts\""
+    "test:debug": "DEBUG='ignition:*' yarn test",
+    "ui-samples": "TS_NODE_TRANSPILE_ONLY=1 ts-node ui-samples/index.tsx"
   },
   "devDependencies": {
     "@types/chai": "^4.2.22",
@@ -32,11 +33,16 @@
     "prettier": "2.4.1",
     "sinon": "^12.0.1",
     "tmp": "^0.2.1",
+    "ts-node": "^10.4.0",
     "typescript": "^4.4.3"
   },
   "dependencies": {
+    "@types/react": "^17.0.35",
     "debug": "^4.3.2",
     "ethers": "^5.4.7",
-    "fs-extra": "^10.0.0"
+    "fs-extra": "^10.0.0",
+    "ink": "^3.2.0",
+    "ink-spinner": "^4.0.3",
+    "react": "^17.0.2"
   }
 }

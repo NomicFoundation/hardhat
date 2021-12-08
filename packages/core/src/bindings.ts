@@ -4,13 +4,13 @@ export type BindingOutput = string | number | Contract | Tx;
 
 export function serializeBindingOutput(x: BindingOutput) {
   if (typeof x === "string") {
-    return { _type: "string", value: x };
+    return { _kind: "string" as const, value: x };
   } else if (typeof x === "number") {
-    return { _type: "number", value: x };
+    return { _kind: "number" as const, value: x };
   } else if ("address" in x) {
-    return { _type: "contract", value: x };
+    return { _kind: "contract" as const, value: x };
   } else if ("hash" in x) {
-    return { _type: "tx", value: x };
+    return { _kind: "tx" as const, value: x };
   }
 
   const exhaustiveCheck: never = x;
@@ -22,7 +22,7 @@ export function deserializeBindingOutput(x: any) {
     throw new Error("[deserializeBindingOutput] value is null or undefined");
   }
 
-  if (!("_type" in x)) {
+  if (!("_kind" in x)) {
     throw new Error(
       "[deserializeBindingOutput] value was not serialized by Ignition"
     );
@@ -30,6 +30,14 @@ export function deserializeBindingOutput(x: any) {
 
   return x.value;
 }
+
+export type ModuleResult = Record<string, BindingOutput>;
+export type SerializedModuleResult = Record<
+  string,
+  ReturnType<typeof serializeBindingOutput>
+>;
+
+export type SerializedDeploymentResult = Record<string, SerializedModuleResult>;
 
 export abstract class Binding<I = unknown, O extends BindingOutput = any> {
   // dummy variables needed by the type-checker to work correctly when opaque

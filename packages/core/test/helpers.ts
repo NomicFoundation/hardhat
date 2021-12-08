@@ -1,5 +1,5 @@
 import { Bindable, InternalBinding } from "../src/bindings";
-import { DeploymentResult } from "../src/execution-engine";
+import { DeploymentState } from "../src/deployment-state";
 import { Executor, Hold } from "../src/executors";
 import {
   ArtifactsProvider,
@@ -22,7 +22,7 @@ export function getMockedProviders(): Providers {
 }
 
 export function emptyDeploymentResult() {
-  return new DeploymentResult();
+  return new DeploymentState();
 }
 
 /**
@@ -129,7 +129,7 @@ class IncreaseNumberExecutor extends Executor<Bindable<number>, number> {
 
 export async function runUntil(
   generator: AsyncGenerator<any>,
-  condition: (result: DeploymentResult | undefined | void) => boolean,
+  condition: (result: DeploymentState | undefined | void) => boolean,
   extraTicks = 5
 ) {
   let result: any;

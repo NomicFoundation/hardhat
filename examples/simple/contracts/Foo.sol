@@ -8,7 +8,6 @@ contract Foo {
 
   function inc(uint n) public {
     require(n > 0, "n must be positive");
-    console.log("<<<inc>>>");
     x+=n;
   }
 }

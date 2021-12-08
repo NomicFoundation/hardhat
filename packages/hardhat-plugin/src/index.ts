@@ -138,9 +138,11 @@ subtask("deploy:deploy-modules")
         process.exit(0);
       }
 
-      const [deploymentResult] = await hre.ignition.deployMany(userModules);
+      const [serializedDeploymentResult] = await hre.ignition.deployMany(
+        userModules
+      );
 
-      return deploymentResult;
+      return serializedDeploymentResult;
     }
   );
 
