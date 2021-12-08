@@ -141,14 +141,16 @@ export class CompilerDownloader {
         platform: compilerBuild.platform,
       };
     } catch (e) {
-      if (HardhatError.isHardhatError(e)) {
-        throw e;
+      if (e instanceof Error) {
+        if (HardhatError.isHardhatError(e)) {
+          throw e;
+        }
+        console.warn(
+          chalk.yellow(
+            `There was an unexpected problem downloading the compiler: ${e.message}`
+          )
+        );
       }
-      console.warn(
-        chalk.yellow(
-          `There was an unexpected problem downloading the compiler: ${e.message}`
-        )
-      );
     }
   }
 
@@ -168,7 +170,7 @@ export class CompilerDownloader {
     if (await this._versionExists(version, platform)) {
       try {
         return await this._getCompilerBuildByPlatform(version, platform);
-      } catch (e) {
+      } catch {
         log("Couldn't download native compiler, using solcjs instead");
       }
     }
@@ -182,7 +184,7 @@ export class CompilerDownloader {
         getCompilerListURL(platform),
         this.getCompilersListPath(platform)
       );
-    } catch (error) {
+    } catch (error: any) {
       throw new HardhatError(
         ERRORS.SOLC.VERSION_LIST_DOWNLOAD_FAILED,
         {},
@@ -212,7 +214,7 @@ export class CompilerDownloader {
         {
           remoteVersion: compilerBuild.version,
         },
-        error
+        error as Error
       );
     }
   }

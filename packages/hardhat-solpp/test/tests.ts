@@ -14,7 +14,7 @@ export async function expectErrorAsync(
 ) {
   try {
     await f();
-  } catch (err) {
+  } catch (err: any) {
     assert.equal(err.message, errorMessage);
   }
 }

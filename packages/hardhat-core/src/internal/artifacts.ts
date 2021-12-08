@@ -60,7 +60,7 @@ export class Artifacts implements IArtifacts {
     try {
       await this.readArtifact(name);
       return true;
-    } catch (e) {
+    } catch {
       return false;
     }
   }
@@ -333,7 +333,7 @@ export class Artifacts implements IArtifacts {
     try {
       const result = await trueCasePath(filePath, basePath);
       return result;
-    } catch (error: unknown) {
+    } catch (error) {
       if (error instanceof Error) {
         if (error.message.includes("no matching file exists")) {
           return null;
@@ -358,7 +358,7 @@ export class Artifacts implements IArtifacts {
     try {
       const result = trueCasePathSync(filePath, basePath);
       return result;
-    } catch (error: unknown) {
+    } catch (error) {
       if (error instanceof Error) {
         if (error.message.includes("no matching file exists")) {
           return null;

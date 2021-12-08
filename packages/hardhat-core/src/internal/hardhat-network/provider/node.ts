@@ -268,7 +268,7 @@ The hardfork must be at least spuriousDragon, but ${common.hardfork()} was given
       let upstreamCommon: Common;
       try {
         upstreamCommon = new Common({ chain: remoteChainId });
-      } catch (error) {
+      } catch {
         // If ethereumjs doesn't have a common it will throw and we won't have
         // info about the activation block of each hardfork, so we don't run
         // this validation.
@@ -369,7 +369,9 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         error
       );
 
-      Reporter.reportError(error);
+      if (error instanceof Error) {
+        Reporter.reportError(error);
+      }
     }
   }
 
@@ -436,16 +438,21 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     try {
       result = await this._mineBlockWithPendingTxs(blockTimestamp);
     } catch (err) {
-      if (err?.message.includes("sender doesn't have enough funds")) {
-        throw new InvalidInputError(err.message, err);
+      if (err instanceof Error) {
+        if (err?.message.includes("sender doesn't have enough funds")) {
+          throw new InvalidInputError(err.message, err);
+        }
+
+        // Some network errors are HardhatErrors, and can end up here when forking
+        if (HardhatError.isHardhatError(err)) {
+          throw err;
+        }
+
+        throw new TransactionExecutionError(err);
       }
 
-      // Some network errors are HardhatErrors, and can end up here when forking
-      if (HardhatError.isHardhatError(err)) {
-        throw err;
-      }
-
-      throw new TransactionExecutionError(err);
+      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+      throw err;
     }
 
     await this._saveBlockAsSuccessfullyRun(result.block, result.blockResult);
@@ -1508,7 +1515,12 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     try {
       sender = tx.getSenderAddress(); // verifies signature as a side effect
     } catch (e) {
-      throw new InvalidInputError(e.message);
+      if (e instanceof Error) {
+        throw new InvalidInputError(e.message);
+      }
+
+      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+      throw e;
     }
 
     // validate nonce
@@ -2336,7 +2348,7 @@ function getCommonForTracing(networkId: number, blockNumber: number): Common {
     common.setHardfork(common.activeHardfork(blockNumber));
 
     return common;
-  } catch (e) {
+  } catch {
     throw new InternalError(
       `Network id ${networkId} does not correspond to a network that Hardhat can trace`
     );

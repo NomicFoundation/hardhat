@@ -343,7 +343,9 @@ task(TASK_NODE, "Starts a JSON-RPC server on top of Hardhat Network")
             error
           );
 
-          Reporter.reportError(error);
+          if (error instanceof Error) {
+            Reporter.reportError(error);
+          }
         }
 
         await run(TASK_NODE_SERVER_READY, {
@@ -359,13 +361,18 @@ task(TASK_NODE, "Starts a JSON-RPC server on top of Hardhat Network")
           throw error;
         }
 
-        throw new HardhatError(
-          ERRORS.BUILTIN_TASKS.JSONRPC_SERVER_ERROR,
-          {
-            error: error.message,
-          },
-          error
-        );
+        if (error instanceof Error) {
+          throw new HardhatError(
+            ERRORS.BUILTIN_TASKS.JSONRPC_SERVER_ERROR,
+            {
+              error: error.message,
+            },
+            error
+          );
+        }
+
+        // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+        throw error;
       }
     }
   );

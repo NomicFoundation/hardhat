@@ -42,7 +42,7 @@ export async function getVersions(): Promise<CompilersList> {
     }
 
     return await response.json();
-  } catch (error) {
+  } catch (error: any) {
     throw new NomicLabsHardhatPluginError(
       pluginName,
       `Failed to obtain list of solc versions. Reason: ${error.message}`,

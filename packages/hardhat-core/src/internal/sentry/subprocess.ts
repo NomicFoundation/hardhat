@@ -36,7 +36,7 @@ async function main() {
   let event: any;
   try {
     event = JSON.parse(serializedEvent);
-  } catch (error) {
+  } catch {
     log(
       "HARDHAT_SENTRY_EVENT env variable doesn't have a valid JSON, exiting: %o",
       serializedEvent
@@ -62,7 +62,7 @@ async function main() {
         `There was an error anonymizing an event: ${anonymizedEvent.value}`
       );
     }
-  } catch (error) {
+  } catch (error: any) {
     log("Couldn't capture event %o, got error %O", event, error);
     Sentry.captureMessage(
       `There was an error capturing an event: ${error.message}`
