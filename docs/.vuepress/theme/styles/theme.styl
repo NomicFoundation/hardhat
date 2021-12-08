@@ -11,7 +11,7 @@ html, body
   margin 0
 
 body
-  font-family 'ChivoLight', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif
+  font-family -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif
   -webkit-font-smoothing antialiased
   -moz-osx-font-smoothing grayscale
   font-size 16px
@@ -19,6 +19,7 @@ body
 
 .page
   padding-left $sidebarWidth
+  padding-top: 1.5rem;
   .extra-class
     pre
       border 1px solid transparent;
@@ -30,7 +31,7 @@ body
   left 0
   right 0
   height $navbarAndBannerHeight
-  background-color #fff
+  background rgba(252, 252, 241, 1)
   box-sizing border-box
   border-bottom 1px solid $borderColor
   .logo
@@ -57,8 +58,6 @@ body
   box-sizing border-box
   border-right 1px solid $borderColor
   overflow-y auto
-  .active 
-    font-family 'Chivo'
 .theme-container:not(.custom) .content,
 .theme-container:not(.custom) .content__default
   @extend $wrapper
@@ -206,14 +205,14 @@ th, td
   margin 0
   padding 0
   box-sizing border-box
-  font-family: 'ChivoLight', -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
   color $black
   
   *
     margin 0
     padding 0
     box-sizing border-box
-    font-family: 'ChivoLight', -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
     color $black
   
   body
@@ -292,4 +291,14 @@ th, td
 // Hide the external link icon from images
 img + svg.icon.outbound {
   display: none !important;
+}
+
+header {
+  height: 80px;
+  display: flex;
+  align-items: center;
+}
+
+.theme-container:not(.custom) .content__default > h2 {
+  padding-top: 11rem;
 }

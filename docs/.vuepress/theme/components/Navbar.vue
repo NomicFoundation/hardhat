@@ -43,7 +43,7 @@
               </li>
             </ul>
             <div class="dark-mode-toggle" v-on:click="toggleDarkTheme">
-              <img src="../img/icons/dm_light.svg" />
+              <div class="dark-mode-icon" />
             </div>
           </div>
         </header>
@@ -86,7 +86,9 @@
   },
 
   mounted() {
+    const body = document.body;
     this.currentThemeClass = this.themeClasses[0];
+    body.classList.add(this.themeClasses[this.currentTheme]);
 
     const MOBILE_DESKTOP_BREAKPOINT = 719; // refer to config.styl
     const NAVBAR_VERTICAL_PADDING =
@@ -193,23 +195,41 @@ $navbar-horizontal-padding = 2rem
 
 .navbar
   .logo
-    width: 167px;
+    width: 164px;
     height: 41px;
-    background-position: center;
-    background-size: cover;
+    background-position: center left;
+    background-size: contain;
   .router-link-active:after
     width: 100%;
   .dark-mode-toggle
     display: flex;
     cursor: pointer;
+    margin-left: auto;
+    @media (max-width: 1390px)
+      margin-left: 8px;
+    .dark-mode-icon {
+      width: 32px;
+      height: 32px;
+      background-image: url('../../theme/img/icons/dm_light.svg');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      position: relative;
+      top: 16px;
+      @media (max-width: $MQMobile) {
+        top: 0;
+      }
+    }
   .social-links
     list-style none
     justify-content space-evenly
     display flex
     align-items center
-    width 200px
-    padding-left 20px
+    width 116px
+    padding-left 0px
     margin-right 2rem
+    position: relative;
+    top: 2px;
     li
       transition 0.2s ease-in-out opacity
 
@@ -249,18 +269,21 @@ $navbar-horizontal-padding = 2rem
     background-color white
     white-space nowrap
     font-size 1rem
-    position absolute
+    // position absolute
     right $navbar-horizontal-padding
     top 0.6rem
     display flex
+    margin-left: auto;
+    padding: 0 20px 0 0;
+    min-width: 1020px;
+    @media (max-width: 1390px)
+        min-width: unset;
     .search-box
       flex: 0 0 auto
       vertical-align top
 
       @media (min-width: $MQNarrow)
-        margin-right 20px
-    .nav-links
-      flex 1
+        margin-right 40px
 
 @media (max-width: 1240px)
   .navbar

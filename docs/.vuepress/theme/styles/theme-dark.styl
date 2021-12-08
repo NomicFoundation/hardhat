@@ -1,4 +1,5 @@
-.dark-mode {
+.dark-mode,
+.hc-dark-mode {
 
     $stroke = rgba(75, 77, 77, 1);
     $background = rgba(32, 35, 42, 1);
@@ -52,7 +53,9 @@
             background-image: url('../../theme/img/hardhat_logos/Hardhat-Logo-Dark.svg');
         }
         .dark-mode-toggle {
-            filter: invert(1);    
+            .dark-mode-icon {
+                background-image: url('../../theme/img/icons/dm_dark.svg');
+            }   
         }
         .links {
             background: inherit;
@@ -95,10 +98,9 @@
         background: $background;
         h1, h2, h3, h4, h5, h6, p {
             color: $text;
-            font-family: 'Chivo';
             code {
                 background: $code-background;
-                color: $text;
+                color: $code-text;
             }
             .header-anchor {
                 color: $accent;
@@ -110,7 +112,6 @@
     }
     .page {
         p, ul li, ol li {
-            font-family: 'ChivoLight';
             code {
                 background: $code-background;
                 color: $code-text;
@@ -158,22 +159,17 @@
             .edit-link {
                 a {
                     color: $text_2;
-                    font-family: 'ChivoBold';
                 }
             }
             .last-updated {
                 .prefix {
                     color: $text_2;
-                    font-family: 'ChivoBold';
                 }
             }
         }
         .page-nav {
             .inner {
                 border-top-color: $stroke;    
-                .next, .prev {
-                    font-family: 'ChivoBold';
-                }
             }
         }
     }
@@ -188,6 +184,9 @@
         }
         .sidebar-heading {
             color: $sidebar-links;
+        }
+        .nav-links {
+            border-bottom: 1px solid $stroke;
         }
     }
 }

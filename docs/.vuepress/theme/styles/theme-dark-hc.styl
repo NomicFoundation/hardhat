@@ -52,9 +52,6 @@
             background-image: url('../../theme/img/hardhat_logos/Hardhat-Logo-Dark.svg');
             
         }
-        .dark-mode-toggle {
-            filter: invert(1);    
-        }
         .links {
             background: inherit;
             .nav-links {
@@ -96,7 +93,13 @@
         background: $background;
         h1, h2, h3, h4, h5, h6, p {
             color: $text;
-            font-family: 'Chivo';
+            code {
+                background: $code-background;
+                color: $code-text;
+            }
+            .header-anchor {
+                color: $accent;
+            }
         }
         h2 {
             border-bottom-color: $stroke;
@@ -104,7 +107,6 @@
     }
     .page {
         p, ul li, ol li {
-            font-family: 'ChivoLight';
             code {
                 background: $code-background;
                 color: $code-text;
@@ -152,23 +154,18 @@
             .edit-link {
                 a {
                     color: $text_2;
-                    font-family: 'ChivoBold';
                 }
             }
             .last-updated {
                 .prefix {
                     color: $text_2;
-                    font-family: 'ChivoBold';
                 }
             }
         }
         .page-nav {
             .inner {
-                border-top-color: $stroke;    
-                .next, .prev {
-                    font-family: 'ChivoBold';
-                }
-            }
+                border-top-color: $stroke;   
+            } 
         }
     }
     .sidebar {

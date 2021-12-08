@@ -30,7 +30,7 @@ export default {
 <style lang="stylus">
 .sidebar-group
   &:not(.first)
-    margin-top 1em
+    margin-top 2em
   .sidebar-group
     padding-left 0.5em
   &:not(.collapsable)

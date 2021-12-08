@@ -148,14 +148,12 @@ export default {
         &:after
           width 100%
 
-    @media (min-width: $MQNarrow)
+    @media (min-width: 1000px)
       margin-right 20px
-
-
   .nav-item
     position relative
     display inline-block
-    margin-left 1.5rem
+    margin-left 12px
     line-height 2rem
 
     &:first-child
