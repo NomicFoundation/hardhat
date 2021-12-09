@@ -1,5 +1,12 @@
 # hardhat
 
+## 2.7.1
+
+### Patch Changes
+
+- d867073c: Support `arrowGlacier` hardfork
+- 10211542: Fix a bug that prevented Hardhat from working if the compilers list was partially downloaded (issue #1466)
+
 ## 2.7.0
 
 ### Minor Changes
