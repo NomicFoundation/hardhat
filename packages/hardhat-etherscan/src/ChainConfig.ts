@@ -44,7 +44,7 @@ export const chainConfig: ChainConfig = {
       browserURL: "https://bscscan.com",
     },
   },
-  bsc_testnet: {
+  bscTestnet: {
     chainId: 97,
     urls: {
       apiURL: "https://api-testnet.bscscan.com/api",
@@ -58,7 +58,7 @@ export const chainConfig: ChainConfig = {
       browserURL: "https://hecoinfo.com",
     },
   },
-  heco_testnet: {
+  hecoTestnet: {
     chainId: 256,
     urls: {
       apiURL: "https://api-testnet.hecoinfo.com/api",
@@ -72,21 +72,21 @@ export const chainConfig: ChainConfig = {
       browserURL: "https://ftmscan.com",
     },
   },
-  ftm_testnet: {
+  ftmTestnet: {
     chainId: 4002,
     urls: {
       apiURL: "https://api-testnet.ftmscan.com/api",
       browserURL: "https://testnet.ftmscan.com",
     },
   },
-  optimistic_ethereum: {
+  optimisticEthereum: {
     chainId: 10,
     urls: {
       apiURL: "https://api-optimistic.etherscan.io/api",
       browserURL: "https://optimistic.etherscan.io/",
     },
   },
-  optimistic_kovan: {
+  optimisticKovan: {
     chainId: 69,
     urls: {
       apiURL: "https://api-kovan-optimistic.etherscan.io/api",
@@ -100,21 +100,21 @@ export const chainConfig: ChainConfig = {
       browserURL: "https://polygonscan.com",
     },
   },
-  polygon_mumbai: {
+  polygonMumbai: {
     chainId: 80001,
     urls: {
       apiURL: "https://api-testnet.polygonscan.com/api",
       browserURL: "https://mumbai.polygonscan.com/",
     },
   },
-  arbitrum_one: {
+  arbitrumOne: {
     chainId: 42161,
     urls: {
       apiURL: "https://api.arbiscan.io/api",
       browserURL: "https://arbiscan.io/",
     },
   },
-  arbitrum_testnet: {
+  arbitrumTestnet: {
     chainId: 421611,
     urls: {
       apiURL: "https://api-testnet.arbiscan.io/api",
@@ -128,7 +128,7 @@ export const chainConfig: ChainConfig = {
       browserURL: "https://snowtrace.io/",
     },
   },
-  avalanche_fuji_testnet: {
+  avalancheFujiTestnet: {
     chainId: 43113,
     urls: {
       apiURL: "https://api-testnet.snowtrace.io/api",
@@ -142,7 +142,7 @@ export const chainConfig: ChainConfig = {
       browserURL: "https://moonscan.io",
     },
   },
-  moonbase_alpha: {
+  moonbaseAlpha: {
     chainId: 1287,
     urls: {
       apiURL: "https://api-moonbase.moonscan.io/api",

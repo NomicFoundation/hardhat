@@ -8,28 +8,28 @@ export enum Chains {
   kovan = "kovan",
   // binance smart chain
   bsc = "bsc",
-  bsc_testnet = "bsc_testnet",
+  bscTestnet = "bscTestnet",
   // huobi eco chain
   heco = "heco",
-  heco_testnet = "heco_testnet",
+  hecoTestnet = "hecoTestnet",
   // fantom mainnet
   opera = "opera",
-  ftm_testnet = "ftm_testnet",
+  ftmTestnet = "ftmTestnet",
   // optimistim
-  optimistic_ethereum = "optimistic_ethereum",
-  optimistic_kovan = "optimistic_kovan",
+  optimisticEthereum = "optimisticEthereum",
+  optimisticKovan = "optimisticKovan",
   // polygon
   polygon = "polygon",
-  polygon_mumbai = "polygon_mumbai",
+  polygonMumbai = "polygonMumbai",
   // arbitrum
-  arbitrum_one = "arbitrum_one",
-  arbitrum_testnet = "arbitrum_testnet",
+  arbitrumOne = "arbitrumOne",
+  arbitrumTestnet = "arbitrumTestnet",
   // avalanche
   avalanche = "avalanche",
-  avalanche_fuji_testnet = "avalanche_fuji_testnet",
+  avalancheFujiTestnet = "avalancheFujiTestnet",
   // moonriver
   moonriver = "moonriver",
-  moonbase_alpha = "moonbase_alpha",
+  moonbaseAlpha = "moonbaseAlpha",
 }
 
 export type ChainConfig = {
