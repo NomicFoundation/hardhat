@@ -12,10 +12,9 @@ interface FetchOptions {
 const TEMP_FILE_PREFIX = "tmp-";
 
 function resolveTempFileName(filePath: string): string {
-  const { root, dir, ext, name } = path.parse(filePath);
+  const { dir, ext, name } = path.parse(filePath);
 
   return path.format({
-    root,
     dir,
     ext,
     name: `${TEMP_FILE_PREFIX}${name}`,
