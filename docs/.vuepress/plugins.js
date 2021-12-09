@@ -287,7 +287,7 @@ module.exports.communityPlugins = [
     tags: ["Deployment", "CREATE2", "Tasks"],
   },
   {
-    name: "@ControlCplusControlV/hardhat-Yul",
+    name: "@controlcpluscontrolv/hardhat-yul",
     author: "ControlCplusControlV",
     authorUrl: "https://github.com/controlCplusControlV/",
     description:
