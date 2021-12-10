@@ -38,7 +38,16 @@ export function resolveConfigPath(configPath: string | undefined) {
 
 export function loadConfigAndTasks(
   hardhatArguments?: Partial<HardhatArguments>,
-  { showSolidityConfigWarnings } = { showSolidityConfigWarnings: false }
+  {
+    showEmptyWarnings = false,
+    showSolidityConfigWarnings = false,
+  }: {
+    showEmptyWarnings?: boolean;
+    showSolidityConfigWarnings?: boolean;
+  } = {
+    showEmptyWarnings: false,
+    showSolidityConfigWarnings: false,
+  }
 ): HardhatConfig {
   let configPath =
     hardhatArguments !== undefined ? hardhatArguments.config : undefined;
@@ -71,6 +80,10 @@ export function loadConfigAndTasks(
     throw e;
   } finally {
     ctx.setConfigLoadingAsFinished();
+  }
+
+  if (showEmptyWarnings) {
+    checkEmptyConfig(userConfig, { showSolidityConfigWarnings });
   }
 
   validateConfig(userConfig);
@@ -217,6 +230,25 @@ function readPackageJson(packageName: string): PackageJson | undefined {
     return require(packageJsonPath);
   } catch {
     return undefined;
+  }
+}
+
+function checkEmptyConfig(
+  userConfig: any,
+  {
+    showSolidityConfigWarnings = false,
+  }: { showSolidityConfigWarnings: boolean } = {
+    showSolidityConfigWarnings: false,
+  }
+) {
+  if (userConfig === undefined || Object.keys(userConfig).length === 0) {
+    let warning = `Hardhat config is returning an empty config object, check the export from the config file if this is unexpected.\n`;
+
+    if (!showSolidityConfigWarnings) {
+      warning += `Learn more about compiler configuration at https://hardhat.org/config"\n`;
+    }
+
+    console.warn(chalk.yellow(warning));
   }
 }
 
