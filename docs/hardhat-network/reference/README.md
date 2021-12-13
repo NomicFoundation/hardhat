@@ -8,6 +8,7 @@
 - istanbul
 - muirGlacier
 - london
+- arrowGlacier
 
 ## Config
 
@@ -39,7 +40,7 @@ You can set the following fields on the `hardhat` config:
 
 - `minGasPrice`: The minimum gas price accepted by the Hardhat Network. Transactions with a lower gas price are accepted but not mined. Default value: `0`
 
-- `hardfork`: This setting changes how Hardhat Network works, to mimic Ethereum's mainnet at a given hardfork. It must be one of `"byzantium"`, `"constantinople"`, `"petersburg"`, `"istanbul"`, `"muirGlacier"`, `"berlin"` and `"london"`. Default value: `"london"`
+- `hardfork`: This setting changes how Hardhat Network works, to mimic Ethereum's mainnet at a given hardfork. It must be one of `"byzantium"`, `"constantinople"`, `"petersburg"`, `"istanbul"`, `"muirGlacier"`, `"berlin"`, `"london"` and `"arrowGlacier"`. Default value: `"arrowGlacier"`
 
 - `throwOnTransactionFailures`: A boolean that controls if Hardhat Network throws on transaction failures. If this value is `true`, Hardhat Network will throw [combined JavaScript and Solidity stack traces](../hardhat-network/README.md#solidity-stack-traces) on transaction failures. If it is `false`, it will return the failing transaction hash. In both cases the transactions are added into the blockchain. Default value: `true`
 - `throwOnCallFailures`: A boolean that controls if Hardhat Network throws on call failures. If this value is `true`, Hardhat Network will throw [combined JavaScript and Solidity stack traces](../hardhat-network/README.md#solidity-stack-traces) when a call fails. If it is `false`, it will return the call's `return data`, which can contain a revert reason. Default value: `true`
