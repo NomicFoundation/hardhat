@@ -60,11 +60,27 @@ function getContractFactory(name: string, signer: ethers.Signer): Promise<ethers
 
 function getContractFactory(name: string, factoryOptions: FactoryOptions): Promise<ethers.ContractFactory>;
 
-function getContractFactoryFromArtifact(artifact: Artifact, signer?: ethers.Signer): Promise<ethers.ContractFactory>;
+function getContractFactory(abi: any[], bytecode: ethers.utils.BytesLike): Promise<ethers.ContractFactory>;
 
-function getContractAt(nameOrAbi: string | any[], address: string, signer?: ethers.Signer): Promise<ethers.Contract>;
+function getContractFactory(abi: any[], bytecode: ethers.utils.BytesLike, signer: ethers.Signer): Promise<ethers.ContractFactory>;
 
-function getContractAtFromArtifact(artifact: Artifact, address: string, signer?: ethers.Signer): Promise<ethers.Contract>;
+function getContractFactoryFromArtifact(artifact: Artifact): Promise<ethers.ContractFactory>;
+
+function getContractFactoryFromArtifact(artifact: Artifact, signer: ethers.Signer): Promise<ethers.ContractFactory>;
+
+function getContractFactoryFromArtifact(artifact: Artifact, factoryOptions: FactoryOptions): Promise<ethers.ContractFactory>;
+
+function getContractAt(name: string, address: string): Promise<ethers.Contract>;
+
+function getContractAt(name: string, address: string, signer: ethers.Signer): Promise<ethers.Contract>;
+
+function getContractAt(abi: any[], address: string): Promise<ethers.Contract>;
+
+function getContractAt(abi: any[], address: string, signer: ethers.Signer): Promise<ethers.Contract>;
+
+function getContractAtFromArtifact(artifact: Artifact, address: string): Promise<ethers.Contract>;
+
+function getContractAtFromArtifact(artifact: Artifact, address: string, signer: ethers.Signer): Promise<ethers.Contract>;
 
 function getSigners() => Promise<ethers.Signer[]>;
 
