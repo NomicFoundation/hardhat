@@ -1,5 +1,15 @@
 # hardhat
 
+## 2.8.0
+
+### Minor Changes
+
+- 3f212c11: Allow configuration of hardfork activation history, for use with unusual/custom chains/network
+
+### Patch Changes
+
+- ff80e1db: A fix to remove ansi escape characters when logging from hardhat node to file (issue #467).
+
 ## 2.7.1
 
 ### Patch Changes
