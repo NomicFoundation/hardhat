@@ -19,7 +19,7 @@ export class BlockchainData {
   private _transactions: Map<string, TypedTransaction> = new Map();
   private _transactionReceipts: Map<string, RpcReceiptOutput> = new Map();
   private _totalDifficulty: Map<string, BN> = new Map();
-  public emptyBlockRanges: Array<{
+  public blockReservations: Array<{
     first: BN;
     last: BN;
     interval: BN;
@@ -27,7 +27,7 @@ export class BlockchainData {
 
   public reserveBlocks(first: BN, count: BN, interval: BN, common: Common) {
     const last = first.add(count);
-    this.emptyBlockRanges.push({ first, last, interval });
+    this.blockReservations.push({ first, last, interval });
     this.addBlock(
       Block.fromBlockData(
         {
@@ -138,56 +138,57 @@ export class BlockchainData {
   }
 
   public isReservedBlock(blockNumber: BN): boolean {
-    return this._findRangeWithBlock(blockNumber) !== -1;
+    return this._findBlockReservation(blockNumber) !== -1;
   }
 
-  private _findRangeWithBlock(blockNumber: BN): number {
-    return this.emptyBlockRanges.findIndex(
-      (range) => range.first.lte(blockNumber) && blockNumber.lte(range.last)
+  private _findBlockReservation(blockNumber: BN): number {
+    return this.blockReservations.findIndex(
+      (reservation) =>
+        reservation.first.lte(blockNumber) && blockNumber.lte(reservation.last)
     );
   }
 
   public fulfillBlockReservation(blockNumber: BN, common: Common): Block {
-    // number should lie within one of the ranges listed in
-    // this.emptyBlockRanges. in addition to adding the given block, that range
-    // needs to be split in two in order to accomodate access to the given
-    // block.
+    // number should lie within one of the reservations listed in
+    // this.blockReservations. in addition to adding the given block, that
+    // reservation needs to be split in two in order to accomodate access to
+    // the given block.
 
-    const rangeIndex = this._findRangeWithBlock(blockNumber);
-    if (rangeIndex === -1) {
+    const reservationIndex = this._findBlockReservation(blockNumber);
+    if (reservationIndex === -1) {
       throw new HardhatError(ERRORS.GENERAL.ASSERTION_ERROR, {
-        message: `Block ${blockNumber.toString()} does not lie within any of the reserved block ranges (${util.inspect(
-          this.emptyBlockRanges
+        message: `Block ${blockNumber.toString()} does not lie within any of the reservations (${util.inspect(
+          this.blockReservations
         )}).`,
       });
     }
 
-    // split the empty block range:
+    // split the block reservation:
 
-    const oldRange = this.emptyBlockRanges[rangeIndex];
+    const oldReservation = this.blockReservations[reservationIndex];
 
-    this.emptyBlockRanges.splice(rangeIndex, 1);
+    this.blockReservations.splice(reservationIndex, 1);
 
-    if (!blockNumber.eq(oldRange.first)) {
-      this.emptyBlockRanges.push({
-        first: oldRange.first,
+    if (!blockNumber.eq(oldReservation.first)) {
+      this.blockReservations.push({
+        first: oldReservation.first,
         last: blockNumber.subn(1),
-        interval: oldRange.interval,
+        interval: oldReservation.interval,
       });
     }
 
-    if (!blockNumber.eq(oldRange.last)) {
-      this.emptyBlockRanges.push({
+    if (!blockNumber.eq(oldReservation.last)) {
+      this.blockReservations.push({
         first: blockNumber.addn(1),
-        last: oldRange.last,
-        interval: oldRange.interval,
+        last: oldReservation.last,
+        interval: oldReservation.interval,
       });
     }
 
     // add the block, injecting the appropriate timestamp:
 
     const previousTimestamp =
-      this.getBlockByNumber(oldRange.first.subn(1))?.header.timestamp ??
+      this.getBlockByNumber(oldReservation.first.subn(1))?.header.timestamp ??
       new BN(0);
 
     const blockToAdd = Block.fromBlockData(
@@ -195,7 +196,9 @@ export class BlockchainData {
         header: {
           number: blockNumber,
           timestamp: previousTimestamp.add(
-            oldRange.interval.mul(blockNumber.sub(oldRange.first).addn(1))
+            oldReservation.interval.mul(
+              blockNumber.sub(oldReservation.first).addn(1)
+            )
           ),
         },
       },
