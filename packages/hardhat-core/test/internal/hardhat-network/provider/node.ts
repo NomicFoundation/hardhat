@@ -888,7 +888,7 @@ describe("HardhatNode", () => {
             "Hello World",
             await runCall(post1559GasOpts, blockBefore1559, hardhatNode)
           );
-        }, "Cannot run transaction: EIP 1559 is not activated.");
+        }, /Cannot run transaction: EIP 1559 is not activated./);
       });
 
       it("should accept pre-EIP-1559 gas semantics when running in the context of a post-EIP-1559 block", async function () {
@@ -935,7 +935,7 @@ describe("HardhatNode", () => {
             blockBefore1559 - 1,
             nodeWithEarlyLondon
           );
-        }, "Cannot run transaction: EIP 1559 is not activated.");
+        }, /Cannot run transaction: EIP 1559 is not activated./);
       });
 
       it("should accept post-EIP-1559 gas semantics when running in the context of a block after EIP-1559 activation", async function () {
