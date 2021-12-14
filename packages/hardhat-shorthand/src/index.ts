@@ -7,7 +7,7 @@ export async function main() {
     pathToHardhat = require.resolve("hardhat/internal/cli/cli.js", {
       paths: [process.cwd()],
     });
-  } catch (e) {
+  } catch (e: any) {
     if (e.code === "MODULE_NOT_FOUND") {
       console.error(
         "You are not inside a Hardhat project, or Hardhat is not locally installed"

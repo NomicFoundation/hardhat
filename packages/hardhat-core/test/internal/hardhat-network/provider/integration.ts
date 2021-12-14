@@ -21,7 +21,7 @@ describe("Provider integration tests", function () {
             data: artifact.bytecode,
           },
         ]);
-      } catch (error) {
+      } catch (error: any) {
         assert.include(error.stack, "Contract.sol:");
 
         // These exceptions should not have a code property, or Ethereum libs

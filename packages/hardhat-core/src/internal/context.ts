@@ -10,7 +10,7 @@ import { ERRORS } from "./core/errors-list";
 import { TasksDSL } from "./core/tasks/dsl";
 import { getRequireCachedFiles } from "./util/platform";
 
-export type GlobalWithHardhatContext = NodeJS.Global & {
+export type GlobalWithHardhatContext = typeof global & {
   __hardhatContext: HardhatContext;
 };
 

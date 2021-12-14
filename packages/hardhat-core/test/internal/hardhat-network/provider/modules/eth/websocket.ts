@@ -217,7 +217,7 @@ describe("Eth module", function () {
         }
 
         function checkNoSubscription(subscription: string, timeout: number) {
-          return new Promise((resolve, reject) => {
+          return new Promise<void>((resolve, reject) => {
             const listener: any = (message: any) => {
               const parsedMessage = JSON.parse(message.toString());
 

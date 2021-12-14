@@ -35,7 +35,7 @@ export async function main() {
       pathToHardhatPackageJson = require.resolve("hardhat/package.json", {
         paths: [process.cwd()],
       });
-    } catch (e) {
+    } catch {
       // not inside a hardhat project
       return;
     }
@@ -91,7 +91,9 @@ export async function main() {
       );
       return tabtab.log([]);
     } catch (e) {
-      log(e.message);
+      if (e instanceof Error) {
+        log(e.message);
+      }
       return tabtab.log([]);
     }
   }
@@ -134,7 +136,7 @@ function getRequirePathFromCwd(moduleToRequire: string): string | null {
       paths: [process.cwd()],
     });
     return pathToRequire;
-  } catch (e) {
+  } catch {
     return null;
   }
 }

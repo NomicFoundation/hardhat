@@ -185,7 +185,7 @@ async function getCompletionData(): Promise<CompletionData | undefined> {
     process.env.TS_NODE_TRANSPILE_ONLY = "1";
     require("../../register");
     hre = (global as any).hre;
-  } catch (e) {
+  } catch {
     return undefined;
   }
   const filesAfterRequire = Object.keys(require.cache);
@@ -233,7 +233,7 @@ function arePreviousMtimesCorrect(mtimes: Mtimes): boolean {
     return Object.entries(mtimes).every(
       ([file, mtime]) => fs.statSync(file).mtime.valueOf() === mtime
     );
-  } catch (e) {
+  } catch {
     return false;
   }
 }
@@ -264,7 +264,7 @@ async function getCachedCompletionData(
     try {
       const cachedCompletionData = fs.readJsonSync(cachedCompletionDataPath);
       return cachedCompletionData;
-    } catch (e) {
+    } catch {
       // remove the file if it seems invalid
       fs.unlinkSync(cachedCompletionDataPath);
       return undefined;

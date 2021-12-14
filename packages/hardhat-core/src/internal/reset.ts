@@ -29,7 +29,7 @@ export function resetHardhatContext() {
 function unloadModule(path: string) {
   try {
     delete require.cache[require.resolve(path)];
-  } catch (err) {
+  } catch {
     // module wasn't loaded
   }
 }

@@ -35,11 +35,11 @@ describe("Ethers provider wrapper", function () {
     try {
       await realProvider.send("error_please", []);
       assert.fail("Ethers provider should have failed");
-    } catch (err) {
+    } catch (err: any) {
       try {
         await wrapper.send("error_please", []);
         assert.fail("Wrapped provider should have failed");
-      } catch (err2) {
+      } catch (err2: any) {
         assert.deepEqual(err2.message, err.message);
       }
     }

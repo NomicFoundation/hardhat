@@ -16,11 +16,11 @@ section.top-bar
           span <
             |
             |
-        span.top-text 
-          a(:href="postUrl" class="top-bar-link" target="_blank" rel="noopener noreferrer") Join the Hardhat team! Nomic Labs is 
+        span.top-text
+          a(:href="postUrl" class="top-bar-link" target="_blank" rel="noopener noreferrer") Join the Hardhat team! Nomic Labs is #{' '}
             span hiring
         span.colored.reverse.animation-6chars
-          span 
+          span
             |
             | >
           span >
@@ -38,10 +38,10 @@ section.top-bar
             |
             |
         span.top-text
-          a(:href="postUrl" class="top-bar-link" target="_blank" rel="noopener noreferrer") Buidler is now Hardhat: Learn more 
-            span here
+          a(:href="postUrl" class="top-bar-link" target="_blank" rel="noopener noreferrer") Join the Hardhat team! We are #{' '}
+            span hiring
         span.colored.reverse.animation-4chars
-          span 
+          span
             |
             | >
           span >
@@ -176,7 +176,7 @@ export default {
     color white
     font-weight normal
     display inline-block
-    
+
     span
       color white
       text-decoration underline

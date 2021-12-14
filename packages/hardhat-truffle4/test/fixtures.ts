@@ -83,7 +83,7 @@ describe("Truffle fixtures support", function () {
       it("Should load it correctly", async function () {
         try {
           await getTruffleFixtureFunction(this.env.config.paths);
-        } catch (error) {
+        } catch (error: any) {
           assert.include(error.message, "Truffle fixture file");
           assert.include(error.message, "must return a function");
           return;
@@ -111,7 +111,7 @@ describe("Truffle fixtures support", function () {
 
       try {
         await Lib.deployed();
-      } catch (error) {
+      } catch (error: any) {
         assert.equal(
           error.message,
           "Trying to get deployed instance of Lib, but none was set."

@@ -13,7 +13,7 @@ const senderPrivateKey = Buffer.from(
 const senderAddress = privateToAddress(senderPrivateKey);
 
 export async function instantiateVm(): Promise<VM> {
-  const account = Account.fromAccountData({ balance: 1e18 });
+  const account = Account.fromAccountData({ balance: 1e15 });
 
   const vm = new VM({ activatePrecompiles: true });
 

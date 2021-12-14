@@ -104,7 +104,7 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
       if (typeof data === "string") {
         try {
           typedMessage = JSON.parse(data);
-        } catch (error) {
+        } catch {
           throw new HardhatError(
             ERRORS.NETWORK.ETHSIGN_TYPED_DATA_V4_INVALID_DATA_PARAM
           );
@@ -219,7 +219,7 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
   private _getPrivateKeyForAddressOrNull(address: Buffer): Buffer | null {
     try {
       return this._getPrivateKeyForAddress(address);
-    } catch (e) {
+    } catch {
       return null;
     }
   }
@@ -253,6 +253,7 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
       gasLimit: transactionRequest.gas,
     };
 
+    // TODO: consider changing instances of "london" below to ["latest hardfork"]
     const common =
       chains.names[chainId] !== undefined
         ? new Common({ chain: chainId, hardfork: "london" })
@@ -347,7 +348,7 @@ abstract class SenderProvider extends ProviderWrapper {
     return this._wrappedProvider.request(args);
   }
 
-  protected abstract async _getSender(): Promise<string | undefined>;
+  protected abstract _getSender(): Promise<string | undefined>;
 }
 
 export class AutomaticSenderProvider extends SenderProvider {

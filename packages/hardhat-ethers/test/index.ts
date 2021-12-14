@@ -2,6 +2,7 @@ import { assert } from "chai";
 import { ethers } from "ethers";
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import { Artifact } from "hardhat/types";
+import util from "util";
 
 import { EthersProviderWrapper } from "../src/internal/ethers-provider-wrapper";
 
@@ -20,6 +21,84 @@ describe("Ethers plugin", function () {
           "getContractAt",
           ...Object.keys(ethers),
         ]);
+      });
+
+      describe("Custom formatters", function () {
+        const assertBigNumberFormat = function (
+          BigNumber: any,
+          value: string | number,
+          expected: string
+        ) {
+          assert.equal(util.format("%o", BigNumber.from(value)), expected);
+        };
+
+        describe("BigNumber", function () {
+          it("should format zero unaltered", function () {
+            assertBigNumberFormat(
+              this.env.ethers.BigNumber,
+              0,
+              'BigNumber { value: "0" }'
+            );
+          });
+
+          it("should provide human readable versions of positive integers", function () {
+            const BigNumber = this.env.ethers.BigNumber;
+
+            assertBigNumberFormat(BigNumber, 1, 'BigNumber { value: "1" }');
+            assertBigNumberFormat(BigNumber, 999, 'BigNumber { value: "999" }');
+            assertBigNumberFormat(
+              BigNumber,
+              1000,
+              'BigNumber { value: "1000" }'
+            );
+            assertBigNumberFormat(
+              BigNumber,
+              999999,
+              'BigNumber { value: "999999" }'
+            );
+            assertBigNumberFormat(
+              BigNumber,
+              1000000,
+              'BigNumber { value: "1000000" }'
+            );
+            assertBigNumberFormat(
+              BigNumber,
+              "999999999999999999292",
+              'BigNumber { value: "999999999999999999292" }'
+            );
+          });
+
+          it("should provide human readable versions of negative integers", function () {
+            const BigNumber = this.env.ethers.BigNumber;
+
+            assertBigNumberFormat(BigNumber, -1, 'BigNumber { value: "-1" }');
+            assertBigNumberFormat(
+              BigNumber,
+              -999,
+              'BigNumber { value: "-999" }'
+            );
+            assertBigNumberFormat(
+              BigNumber,
+              -1000,
+              'BigNumber { value: "-1000" }'
+            );
+            assertBigNumberFormat(
+              BigNumber,
+              -999999,
+              'BigNumber { value: "-999999" }'
+            );
+            assertBigNumberFormat(
+              BigNumber,
+              -1000000,
+              'BigNumber { value: "-1000000" }'
+            );
+            assertBigNumberFormat(
+              BigNumber,
+              "-999999999999999999292",
+              'BigNumber { value: "-999999999999999999292" }'
+            );
+          });
+        });
       });
     });
 
@@ -189,7 +268,7 @@ describe("Ethers plugin", function () {
           it("should fail to return a contract factory for an interface", async function () {
             try {
               await this.env.ethers.getContractFactory("IGreeter");
-            } catch (reason) {
+            } catch (reason: any) {
               assert.instanceOf(
                 reason,
                 NomicLabsHardhatPluginError,
@@ -243,7 +322,7 @@ describe("Ethers plugin", function () {
                   "contracts/TestContractLib.sol:TestLibrary": library.address,
                 },
               });
-            } catch (reason) {
+            } catch (reason: any) {
               assert.instanceOf(
                 reason,
                 NomicLabsHardhatPluginError,
@@ -304,7 +383,7 @@ describe("Ethers plugin", function () {
                     library2.address,
                 },
               });
-            } catch (reason) {
+            } catch (reason: any) {
               assert.instanceOf(
                 reason,
                 NomicLabsHardhatPluginError,
@@ -335,7 +414,7 @@ describe("Ethers plugin", function () {
           it("should fail to create a contract factory with missing libraries", async function () {
             try {
               await this.env.ethers.getContractFactory("TestContractLib");
-            } catch (reason) {
+            } catch (reason: any) {
               assert.instanceOf(
                 reason,
                 NomicLabsHardhatPluginError,
@@ -366,7 +445,7 @@ describe("Ethers plugin", function () {
               await this.env.ethers.getContractFactory("TestContractLib", {
                 libraries: { TestLibrary: notAnAddress },
               });
-            } catch (reason) {
+            } catch (reason: any) {
               assert.instanceOf(
                 reason,
                 NomicLabsHardhatPluginError,
@@ -399,7 +478,7 @@ describe("Ethers plugin", function () {
               await this.env.ethers.getContractFactory("TestContractLib", {
                 libraries: { TestLibrary: library as any },
               });
-            } catch (reason) {
+            } catch (reason: any) {
               assert.instanceOf(
                 reason,
                 NomicLabsHardhatPluginError,

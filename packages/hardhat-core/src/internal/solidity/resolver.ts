@@ -227,7 +227,7 @@ export class Resolver {
           {
             library: libraryName,
           },
-          error
+          error as Error
         );
       }
     }

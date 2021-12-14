@@ -17,7 +17,7 @@ function getFormatter(formatterName = "stylish") {
       { paths: [solhintPath] }
     );
     return require(formatterPath);
-  } catch (ex) {
+  } catch (ex: any) {
     throw new NomicLabsHardhatPluginError(
       "@nomiclabs/hardhat-solhint",
       `An error occurred loading the solhint formatter ${formatterName}`,
@@ -53,7 +53,7 @@ async function getSolhintConfig(rootDirectory: string) {
   if (await hasConfigFile(rootDirectory)) {
     try {
       solhintConfig = await loadConfig();
-    } catch (err) {
+    } catch (err: any) {
       throw new NomicLabsHardhatPluginError(
         "@nomiclabs/hardhat-solhint",
         "An error occurred when loading your solhint config.",
@@ -66,7 +66,7 @@ async function getSolhintConfig(rootDirectory: string) {
 
   try {
     solhintConfig = applyExtends(solhintConfig);
-  } catch (err) {
+  } catch (err: any) {
     throw new NomicLabsHardhatPluginError(
       "@nomiclabs/hardhat-solhint",
       "An error occurred when processing your solhint config.",

@@ -34,5 +34,5 @@ const childProcess = fork(`${__dirname}/cli`, process.argv.slice(2), {
 });
 
 childProcess.once("close", (status) => {
-  process.exit(status);
+  process.exit(status as number);
 });

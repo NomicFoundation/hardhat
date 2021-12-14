@@ -160,7 +160,7 @@ export class VMTracer {
       if (this._throwErrors) {
         next(error);
       } else {
-        this._lastError = error;
+        this._lastError = error as Error;
         next();
       }
     }
@@ -187,7 +187,7 @@ export class VMTracer {
       if (this._throwErrors) {
         next(error);
       } else {
-        this._lastError = error;
+        this._lastError = error as Error;
         next();
       }
     }
@@ -219,7 +219,7 @@ export class VMTracer {
       if (this._throwErrors) {
         next(error);
       } else {
-        this._lastError = error;
+        this._lastError = error as Error;
         next();
       }
     }

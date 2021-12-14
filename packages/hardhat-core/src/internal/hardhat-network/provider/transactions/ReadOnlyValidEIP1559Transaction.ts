@@ -57,7 +57,7 @@ export class ReadOnlyValidEIP1559Transaction extends FeeMarketEIP1559Transaction
   constructor(sender: Address, data: FeeMarketEIP1559TxData = {}) {
     const fakeCommon = new Common({
       chain: "mainnet",
-      hardfork: "london",
+      hardfork: "london", // TODO: consider chaning this to ["latest hardfork"]
     });
 
     // this class should only be used with txs in a hardfork that

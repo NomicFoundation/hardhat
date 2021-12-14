@@ -196,22 +196,36 @@ describe("Compiler downloader", function () {
 
   describe("Get compilers lists and CompilerBuild", function () {
     let compilersDir: string;
-    let downloadCalled: boolean;
+    let downloadCallCount: number;
+    let successDownloadTry: number;
     let mockDownloader: CompilerDownloader;
 
     beforeEach(async function () {
       compilersDir = this.tmpDir;
 
-      downloadCalled = false;
+      downloadCallCount = 0;
+      successDownloadTry = 0;
 
       mockDownloader = new CompilerDownloader(compilersDir, {
         download: async () => {
-          downloadCalled = true;
-          await saveMockCompilersList();
+          if (downloadCallCount >= successDownloadTry) {
+            await saveMockCompilersList();
+          } else {
+            await saveMalformedCompilersList();
+          }
+
+          downloadCallCount++;
         },
         forceSolcJs: true,
       });
     });
+
+    async function saveMalformedCompilersList() {
+      await fsExtra.outputFile(
+        path.join(compilersDir, CompilerPlatform.WASM, "list.json"),
+        "{ malformed"
+      );
+    }
 
     async function saveMockCompilersList() {
       await fsExtra.outputJSON(
@@ -228,7 +242,7 @@ describe("Compiler downloader", function () {
       describe("getCompilersList", function () {
         it("Doesn't download the list again", async function () {
           await mockDownloader.getCompilersList(CompilerPlatform.WASM);
-          assert.isFalse(downloadCalled);
+          assert.equal(downloadCallCount, 0);
         });
 
         it("Returns the right list", async function () {
@@ -243,7 +257,7 @@ describe("Compiler downloader", function () {
         describe("When the build is in the list", function () {
           it("Doesn't re-download the list", async function () {
             await mockDownloader.getCompilerBuild(localCompilerBuild.version);
-            assert.isFalse(downloadCalled);
+            assert.equal(downloadCallCount, 0);
           });
 
           it("Returns the right build", async function () {
@@ -258,7 +272,7 @@ describe("Compiler downloader", function () {
           it("Downloads the build", async function () {
             try {
               await mockDownloader.getCompilerBuild("non-existent");
-              assert.isTrue(downloadCalled);
+              assert.equal(downloadCallCount, 1);
             } catch (e) {
               // We ignore the error here, see next test.
             }
@@ -278,14 +292,76 @@ describe("Compiler downloader", function () {
       describe("getCompilersList", function () {
         it("Downloads the compilers list", async function () {
           await mockDownloader.getCompilersList(CompilerPlatform.WASM);
-          assert.isTrue(downloadCalled);
+          assert.equal(downloadCallCount, 1);
         });
       });
 
       describe("getCompilerBuild", function () {
         it("Downloads the compilers list", async function () {
           await mockDownloader.getCompilerBuild(localCompilerBuild.version);
-          assert.isTrue(downloadCalled);
+          assert.equal(downloadCallCount, 1);
+        });
+      });
+    });
+
+    describe("When there is but it is malformed", function () {
+      beforeEach(async function () {
+        await saveMalformedCompilersList();
+      });
+
+      describe("getCompilersList", function () {
+        it("Redownloads the compilers list", async function () {
+          await mockDownloader.getCompilersList(CompilerPlatform.WASM);
+          assert.equal(downloadCallCount, 1);
+        });
+      });
+
+      describe("getCompilerBuild", function () {
+        it("Redownloads the compilers list", async function () {
+          await mockDownloader.getCompilerBuild(localCompilerBuild.version);
+          assert.equal(downloadCallCount, 1);
+        });
+      });
+    });
+
+    describe("When downloading fails", function () {
+      describe("getCompilersList", function () {
+        it("retries on a failed download", async function () {
+          successDownloadTry = 1;
+
+          await mockDownloader.getCompilersList(CompilerPlatform.WASM);
+          assert.equal(downloadCallCount, 2);
+        });
+
+        it("errors on too many failed downloads", async function () {
+          successDownloadTry = 999;
+
+          await assert.isRejected(
+            mockDownloader.getCompilersList(CompilerPlatform.WASM),
+            SyntaxError
+          );
+
+          assert.equal(downloadCallCount, 4);
+        });
+      });
+
+      describe("getCompilerBuild", function () {
+        it("retries on a failed download", async function () {
+          successDownloadTry = 1;
+
+          await mockDownloader.getCompilerBuild(localCompilerBuild.version);
+          assert.equal(downloadCallCount, 2);
+        });
+
+        it("errors on too many failed downloads", async function () {
+          successDownloadTry = 999;
+
+          await assert.isRejected(
+            mockDownloader.getCompilersList(CompilerPlatform.WASM),
+            SyntaxError
+          );
+
+          assert.equal(downloadCallCount, 4);
         });
       });
     });

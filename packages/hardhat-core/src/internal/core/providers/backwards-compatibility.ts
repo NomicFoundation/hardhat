@@ -56,7 +56,7 @@ export class BackwardsCompatibilityProviderAdapter
         method: request.method,
         params: request.params,
       });
-    } catch (error) {
+    } catch (error: any) {
       if (error.code === undefined) {
         // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
         throw error;

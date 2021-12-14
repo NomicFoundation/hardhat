@@ -11,12 +11,22 @@ import {
 import type * as ProviderProxyT from "./provider-proxy";
 import "./type-extensions";
 
+const registerCustomInspection = (BigNumber: any) => {
+  const inspectCustomSymbol = Symbol.for("nodejs.util.inspect.custom");
+
+  BigNumber.prototype[inspectCustomSymbol] = function () {
+    return `BigNumber { value: "${this.toString()}" }`;
+  };
+};
+
 extendEnvironment((hre) => {
   hre.ethers = lazyObject(() => {
     const { createProviderProxy } =
       require("./provider-proxy") as typeof ProviderProxyT;
 
     const { ethers } = require("ethers") as typeof EthersT;
+
+    registerCustomInspection(ethers.BigNumber);
 
     const providerProxy = createProviderProxy(hre.network.provider);
 

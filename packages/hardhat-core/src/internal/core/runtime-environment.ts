@@ -266,7 +266,9 @@ export class Environment implements HardhatRuntimeEnvironment {
             values[paramName] = resolvedArgumentValue;
           }
         } catch (error) {
-          errors.push(error);
+          if (HardhatError.isHardhatError(error)) {
+            errors.push(error);
+          }
         }
         return { errors, values };
       },

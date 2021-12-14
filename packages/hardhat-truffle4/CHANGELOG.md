@@ -1,5 +1,11 @@
 # @nomiclabs/hardhat-truffle4
 
+## 2.0.3
+
+### Patch Changes
+
+- d867073c: Support `arrowGlacier` hardfork
+
 ## 2.0.2
 
 ### Patch Changes
