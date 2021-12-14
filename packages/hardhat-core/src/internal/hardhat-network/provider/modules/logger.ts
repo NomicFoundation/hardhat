@@ -35,15 +35,19 @@ function printLine(line: string) {
 }
 
 function replaceLastLine(newLine: string) {
-  process.stdout.write(
-    // eslint-disable-next-line prefer-template
-    ansiEscapes.cursorHide +
-      ansiEscapes.cursorPrevLine +
-      newLine +
-      ansiEscapes.eraseEndLine +
-      "\n" +
-      ansiEscapes.cursorShow
-  );
+  if (process.stdout.isTTY === true) {
+    process.stdout.write(
+      // eslint-disable-next-line prefer-template
+      ansiEscapes.cursorHide +
+        ansiEscapes.cursorPrevLine +
+        newLine +
+        ansiEscapes.eraseEndLine +
+        "\n" +
+        ansiEscapes.cursorShow
+    );
+  } else {
+    process.stdout.write(`${newLine}\n`);
+  }
 }
 
 /**

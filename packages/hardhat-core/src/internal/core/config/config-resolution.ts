@@ -6,6 +6,8 @@ import path from "path";
 import {
   HardhatConfig,
   HardhatNetworkAccountsConfig,
+  HardhatNetworkChainConfig,
+  HardhatNetworkChainsConfig,
   HardhatNetworkConfig,
   HardhatNetworkForkingConfig,
   HardhatNetworkMiningConfig,
@@ -31,6 +33,7 @@ import {
   SolidityUserConfig,
 } from "../../../types";
 import { HARDHAT_NETWORK_NAME } from "../../constants";
+import { HardforkName } from "../../util/hardforks";
 import { fromEntries } from "../../util/lang";
 import { assertHardhatInvariant } from "../errors";
 
@@ -150,9 +153,11 @@ function resolveHardhatNetworkConfig(
         }
       : undefined;
 
-  const blockNumber = hardhatNetworkConfig?.forking?.blockNumber;
-  if (blockNumber !== undefined && forking !== undefined) {
-    forking.blockNumber = hardhatNetworkConfig?.forking?.blockNumber;
+  if (forking !== undefined) {
+    const blockNumber = hardhatNetworkConfig?.forking?.blockNumber;
+    if (blockNumber !== undefined) {
+      forking.blockNumber = hardhatNetworkConfig?.forking?.blockNumber;
+    }
   }
 
   const mining = resolveMiningConfig(hardhatNetworkConfig.mining);
@@ -171,6 +176,30 @@ function resolveHardhatNetworkConfig(
   const initialDate =
     hardhatNetworkConfig.initialDate ?? new Date().toISOString();
 
+  const chains: HardhatNetworkChainsConfig = new Map(
+    defaultHardhatNetworkParams.chains
+  );
+  if (hardhatNetworkConfig.chains !== undefined) {
+    for (const [chainId, userChainConfig] of Object.entries(
+      hardhatNetworkConfig.chains
+    )) {
+      const chainConfig: HardhatNetworkChainConfig = {
+        hardforkHistory: new Map(),
+      };
+      if (userChainConfig.hardforkHistory !== undefined) {
+        for (const [name, block] of Object.entries(
+          userChainConfig.hardforkHistory
+        )) {
+          chainConfig.hardforkHistory.set(
+            name as HardforkName,
+            block as number
+          );
+        }
+      }
+      chains.set(parseInt(chainId, 10), chainConfig);
+    }
+  }
+
   const config = {
     ...clonedDefaultHardhatNetworkParams,
     ...hardhatNetworkConfig,
@@ -181,6 +210,7 @@ function resolveHardhatNetworkConfig(
     gas,
     initialDate,
     minGasPrice,
+    chains,
   };
 
   // We do it this way because ts gets lost otherwise
