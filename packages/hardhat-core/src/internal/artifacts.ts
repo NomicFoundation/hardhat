@@ -36,6 +36,7 @@ const log = debug("hardhat:core:artifacts");
 export class Artifacts implements IArtifacts {
   private _buildInfosGlob: string;
   private _dbgsGlob: string;
+  private _validArtifacts: Array<{ sourceName: string; artifacts: string[] }>;
 
   constructor(private _artifactsPath: string) {
     this._buildInfosGlob = path.join(
@@ -44,6 +45,13 @@ export class Artifacts implements IArtifacts {
       "**/*.json"
     );
     this._dbgsGlob = path.join(this._artifactsPath, "**/*.dbg.json");
+    this._validArtifacts = [];
+  }
+
+  public addValidArtifacts(
+    validArtifacts: Array<{ sourceName: string; artifacts: string[] }>
+  ) {
+    this._validArtifacts.push(...validArtifacts);
   }
 
   public async readArtifact(name: string): Promise<Artifact> {
@@ -171,15 +179,10 @@ export class Artifacts implements IArtifacts {
   /**
    * Remove all artifacts that don't correspond to the current solidity files
    */
-  public async removeObsoleteArtifacts(
-    artifactsEmittedPerFile: Array<{
-      sourceName: string;
-      artifacts: string[];
-    }>
-  ) {
+  public async removeObsoleteArtifacts() {
     const validArtifactsPaths = new Set<string>();
 
-    for (const { sourceName, artifacts } of artifactsEmittedPerFile) {
+    for (const { sourceName, artifacts } of this._validArtifacts) {
       for (const artifactName of artifacts) {
         validArtifactsPaths.add(
           this._getArtifactPathSync(
