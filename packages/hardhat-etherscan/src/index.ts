@@ -303,10 +303,11 @@ Possible causes are:
   );
 
   if (verificationStatus.isVerificationSuccess()) {
-    const contractURL = new URL(
-      `/address/${address}#code`,
-      etherscanAPIEndpoints.browserURL
+    const contractURL = buildContractUrl(
+      etherscanAPIEndpoints.browserURL,
+      address
     );
+
     console.log(
       `Successfully verified full build of contract ${contractInformation.contractName} on Etherscan.
 ${contractURL}`
@@ -746,9 +747,9 @@ subtask(TASK_VERIFY_VERIFY_MINIMUM_BUILD)
         );
 
         if (minimumBuildVerificationStatus.isVerificationSuccess()) {
-          const contractURL = new URL(
-            `/address/${address}#code`,
-            etherscanAPIEndpoints.browserURL
+          const contractURL = buildContractUrl(
+            etherscanAPIEndpoints.browserURL,
+            address
           );
           console.log(
             `Successfully verified contract ${contractInformation.contractName} on Etherscan.
@@ -830,4 +831,10 @@ function isVersionRange(version: string): boolean {
     version === METADATA_ABSENT_VERSION_RANGE ||
     version === METADATA_PRESENT_SOLC_NOT_FOUND_VERSION_RANGE
   );
+}
+
+function buildContractUrl(browserURL: string, contractAddress: string): string {
+  const normalizedBrowserURL = browserURL.trim().replace(/\/$/, "");
+
+  return `${normalizedBrowserURL}/address/${contractAddress}#code`;
 }
