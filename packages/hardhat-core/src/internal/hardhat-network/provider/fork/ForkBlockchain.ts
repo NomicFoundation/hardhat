@@ -272,7 +272,7 @@ export class ForkBlockchain implements HardhatBlockchainInterface {
     // one for London.
     const common = this._common.copy();
     if (rpcBlock.baseFeePerGas !== undefined) {
-      common.setHardfork("london");
+      common.setHardfork("london"); // TODO: consider changing this to "latest hardfork"
     } else {
       common.setHardfork("berlin");
     }
