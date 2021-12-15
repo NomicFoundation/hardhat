@@ -328,6 +328,49 @@ describe("Hardhat module", function () {
             );
           }
         });
+
+        describe("shouldn't break hardhat_reset", function () {
+          const blockCount = 3;
+
+          const mineSomeTxBlocks = async () => {
+            const originalLatestBlockNumber = await getLatestBlockNumber();
+            for (let i = 1; i <= blockCount; i++) {
+              await this.ctx.provider.send("eth_sendTransaction", [
+                {
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                  to: "0x1111111111111111111111111111111111111111",
+                },
+              ]);
+            }
+            assert.equal(
+              originalLatestBlockNumber + blockCount,
+              await getLatestBlockNumber(),
+              `we should have mined ${blockCount} blocks`
+            );
+          };
+
+          const runHardhatMine = async () => {
+            await this.ctx.provider.send("hardhat_mine", [
+              numberToRpcQuantity(blockCount),
+            ]);
+          };
+
+          it("when doing hardhat_mine before hardhat_reset", async function () {
+            await runHardhatMine();
+            await this.provider.send("hardhat_reset");
+            assert.equal(0, await getLatestBlockNumber());
+            await mineSomeTxBlocks();
+            assert.equal(blockCount, await getLatestBlockNumber());
+          });
+
+          it("when doing hardhat_reset before hardhat_mine", async function () {
+            await mineSomeTxBlocks();
+            await this.provider.send("hardhat_reset");
+            assert.equal(0, await getLatestBlockNumber());
+            await runHardhatMine();
+            assert.equal(blockCount, await getLatestBlockNumber());
+          });
+        });
       });
 
       describe("hardhat_reset", function () {
