@@ -294,6 +294,14 @@ module.exports.communityPlugins = [
       "Hardhat plugin to compile the Yul and Yul+ languages into solc compatible artifacts. Works with .yul and .yulp file extensions",
     tags: ["Yul", "Assembly", "Compiler", "Yul+"],
   },
+  {
+    name: "@primitivefi/hardhat-dodoc",
+    author: "Primitive",
+    authorUrl: "https://github.com/primitivefinance/primitive-dodoc",
+    description:
+      "Zero-config Hardhat plugin to generate documentation for all your Solidity contracts.",
+    tags: ["Documentation", "Docs", "Solidity", "NatSpec"],
+  },
 ];
 
 module.exports.officialPlugins = [
