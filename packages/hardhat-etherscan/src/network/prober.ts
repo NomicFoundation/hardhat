@@ -33,12 +33,7 @@ export async function getEtherscanEndpoints(
   if (network === undefined) {
     throw new NomicLabsHardhatPluginError(
       pluginName,
-      `An etherscan endpoint could not be found for this network. ChainID: ${chainID}. The selected network is ${networkName}.
-
-Possible causes are:
-  - The network is not supported by hardhat-etherscan.
-  - The selected network (${networkName}) is wrong.
-  - Faulty hardhat network config.`
+      `Unsupported network ("${networkName}", chainId: ${chainID}).`
     );
   }
 
