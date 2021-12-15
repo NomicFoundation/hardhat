@@ -49,7 +49,7 @@ describe("Etherscan API Key resolution", () => {
 
   describe("provide no api key", () => {
     const expectedBadApiKeyMessage =
-      "Please provide an Etherscan API token via hardhat config.\n  E.g.: { [...], etherscan: { apiKey: 'an API key' }, [...] }\n  or { [...], etherscan: { apiKey: { mainnet: 'an API key' } }, [...] }\n  See https://etherscan.io/apis";
+      /Please provide an Etherscan API token via hardhat config/;
 
     it("should throw if api key root is undefined", () => {
       assert.throws(
@@ -69,14 +69,14 @@ describe("Etherscan API Key resolution", () => {
       assert.throws(
         () =>
           resolveEtherscanApiKey({ apiKey: { rinkeby: undefined } }, "rinkeby"),
-        "Please provide a Block Explorer API token via hardhat config.\n  E.g.: { [...], etherscan: { apiKey: { rinkeby: 'an API key' } }, [...] }"
+        /Please provide an Etherscan API token via hardhat config./
       );
     });
 
     it("should throw if network subkey is empty string", () => {
       assert.throws(
         () => resolveEtherscanApiKey({ apiKey: { rinkeby: "" } }, "rinkeby"),
-        "Please provide a Block Explorer API token via hardhat config.\n  E.g.: { [...], etherscan: { apiKey: { rinkeby: 'an API key' } }, [...] }"
+        /Please provide an Etherscan API token via hardhat config./
       );
     });
 

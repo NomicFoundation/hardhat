@@ -12,13 +12,7 @@ export const resolveEtherscanApiKey = (
   network: string
 ): string => {
   if (etherscan.apiKey === undefined || etherscan.apiKey === "") {
-    throw new NomicLabsHardhatPluginError(
-      pluginName,
-      `Please provide an Etherscan API token via hardhat config.
-  E.g.: { [...], etherscan: { apiKey: 'an API key' }, [...] }
-  or { [...], etherscan: { apiKey: { mainnet: 'an API key' } }, [...] }
-  See https://etherscan.io/apis`
-    );
+    throwMissingApiKeyError(network);
   }
 
   if (typeof etherscan.apiKey === "string") {
@@ -37,12 +31,26 @@ export const resolveEtherscanApiKey = (
   const key = apiKeys[network];
 
   if (key === undefined || key === "") {
-    throw new NomicLabsHardhatPluginError(
-      pluginName,
-      `Please provide a Block Explorer API token via hardhat config.
-  E.g.: { [...], etherscan: { apiKey: { ${network}: 'an API key' } }, [...] }`
-    );
+    throwMissingApiKeyError(network);
   }
 
   return key;
 };
+
+function throwMissingApiKeyError(network: string): never {
+  throw new NomicLabsHardhatPluginError(
+    pluginName,
+    `Please provide an Etherscan API token via hardhat config. For example:
+
+{
+  ...
+  etherscan: {
+    apiKey: {
+      ${network}: 'your API key'
+    }
+  }
+}
+
+See https://etherscan.io/apis`
+  );
+}
