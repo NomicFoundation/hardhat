@@ -298,7 +298,8 @@ module.exports.communityPlugins = [
     name: "@primitivefi/hardhat-dodoc",
     author: "Primitive",
     authorUrl: "https://github.com/primitivefinance/primitive-dodoc",
-    description: "Zero-config Hardhat plugin to generate documentation for all your Solidity contracts.",
+    description:
+      "Zero-config Hardhat plugin to generate documentation for all your Solidity contracts.",
     tags: ["Documentation", "Docs", "Solidity", "NatSpec"],
   },
 ];
