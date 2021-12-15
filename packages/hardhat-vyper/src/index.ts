@@ -1,13 +1,14 @@
 import type { LoDashStatic } from "lodash";
-import debug from "debug";
 import path from "path";
 import fsExtra from "fs-extra";
 import semver from "semver";
 
 import type { Artifacts as ArtifactsImpl } from "hardhat/internal/artifacts";
+import type { Artifacts } from "hardhat/types/artifacts";
 import { glob } from "hardhat/internal/util/glob";
 import { getCompilersDir } from "hardhat/internal/util/global-dir";
 import { localPathToSourceName } from "hardhat/utils/source-names";
+import { getFullyQualifiedName } from "hardhat/utils/contract-names";
 import { TASK_COMPILE_GET_COMPILATION_TASKS } from "hardhat/builtin-tasks/task-names";
 import { extendConfig, subtask, types } from "hardhat/config";
 
@@ -23,23 +24,23 @@ import {
   TASK_COMPILE_VYPER_LOG_DOWNLOAD_COMPILER_END,
   TASK_COMPILE_VYPER_LOG_COMPILATION_RESULT,
 } from "./task-names";
-import { DEFAULT_VYPER_VERSION, DEBUG_NAMESPACE } from "./constants";
+import { DEFAULT_VYPER_VERSION } from "./constants";
 import { VyperFilesCache, getVyperFilesCachePath } from "./cache";
-import { CompilerDownloader } from "./compiler/downloader";
+import Compiler from "./compiler";
+import { CompilerDownloader } from "./downloader";
 import { Parser } from "./parser";
 import { ResolvedFile, Resolver } from "./resolver";
 import {
   assertPluginInvariant,
   deepCamel,
   getArtifactFromVyperOutput,
-  invalidateCacheMissingArtifacts,
+  getLogger,
   normalizeVyperConfig,
   VyperPluginError,
 } from "./util";
-import Compiler from "./compiler";
 import "./type-extensions";
 
-const log = debug(DEBUG_NAMESPACE);
+const log = getLogger("tasks:compile");
 
 extendConfig((config, userConfig) => {
   const userVyperConfig = userConfig.vyper ?? DEFAULT_VYPER_VERSION;
@@ -303,3 +304,39 @@ subtask(TASK_COMPILE_VYPER)
       });
     }
   );
+
+/**
+ * If a file is present in the cache, but some of its artifacts are missing on
+ * disk, we remove it from the cache to force it to be recompiled.
+ */
+async function invalidateCacheMissingArtifacts(
+  vyperFilesCache: VyperFilesCache,
+  artifacts: Artifacts,
+  resolvedFiles: ResolvedFile[]
+): Promise<VyperFilesCache> {
+  for (const file of resolvedFiles) {
+    const cacheEntry = vyperFilesCache.getEntry(file.absolutePath);
+
+    if (cacheEntry === undefined) {
+      continue;
+    }
+
+    const { artifacts: emittedArtifacts } = cacheEntry;
+
+    for (const emittedArtifact of emittedArtifacts) {
+      const artifactExists = await artifacts.artifactExists(
+        getFullyQualifiedName(file.sourceName, emittedArtifact)
+      );
+
+      if (!artifactExists) {
+        log(
+          `Invalidate cache for '${file.absolutePath}' because artifact '${emittedArtifact}' doesn't exist`
+        );
+        vyperFilesCache.removeEntry(file.absolutePath);
+        break;
+      }
+    }
+  }
+
+  return vyperFilesCache;
+}

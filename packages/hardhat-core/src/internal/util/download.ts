@@ -24,9 +24,10 @@ function resolveTempFileName(filePath: string): string {
 export async function download(
   url: string,
   filePath: string,
-  timeoutMillis = 10000
+  timeoutMillis = 10000,
+  outputFormatter?: (downloadOutput: string) => string
 ) {
-  const { pipeline } = await import("stream");
+  const { pipeline, Readable } = await import("stream");
   const { default: fetch } = await import("node-fetch");
   const streamPipeline = util.promisify(pipeline);
   const fetchOptions: FetchOptions = {
@@ -56,11 +57,27 @@ export async function download(
 
   if (response.ok && response.body !== null) {
     const tmpFilePath = resolveTempFileName(filePath);
-
     await fsExtra.ensureDir(path.dirname(filePath));
-    await streamPipeline(response.body, fs.createWriteStream(tmpFilePath));
 
-    return fsExtra.move(tmpFilePath, filePath);
+    if (!outputFormatter) {
+      await streamPipeline(response.body, fs.createWriteStream(tmpFilePath));
+      return fsExtra.move(tmpFilePath, filePath);
+    }
+
+    try {
+      const output = outputFormatter(await response.text());
+      const rs = new Readable();
+      rs._read = () => {
+        rs.push(output);
+        rs.push(null);
+      };
+
+      await streamPipeline(rs, fs.createWriteStream(tmpFilePath));
+      return await fsExtra.move(tmpFilePath, filePath);
+    } catch (e: unknown) {
+      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+      throw new Error(`Failed to format output from download ${url} - ${e}`);
+    }
   }
 
   // Consume the response stream and discard its result
