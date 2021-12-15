@@ -3,7 +3,7 @@ import { chainConfig } from "../../src/ChainConfig";
 
 describe("Chain Config", () => {
   it("should have no duplicate chain ids", () => {
-    const chainIds = Object.values(chainConfig);
+    const chainIds = Object.values(chainConfig).map((config) => config.chainId);
 
     const uniqueIds = [...new Set(chainIds)];
 

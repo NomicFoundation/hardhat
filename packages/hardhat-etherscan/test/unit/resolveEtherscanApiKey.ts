@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import resolveEtherscanApiKey from "../../src/resolveEtherscanApiKey";
+import { resolveEtherscanApiKey } from "../../src/resolveEtherscanApiKey";
 import { EtherscanConfig } from "../../src/types";
 
 describe("Etherscan API Key resolution", () => {

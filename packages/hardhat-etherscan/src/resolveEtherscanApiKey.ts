@@ -7,7 +7,7 @@ const isNetworkKey = (network: string): network is keyof ChainConfig => {
   return network in chainConfig;
 };
 
-const resolveEtherscanApiKey = (
+export const resolveEtherscanApiKey = (
   etherscan: EtherscanConfig,
   network: string
 ): string => {
@@ -46,5 +46,3 @@ const resolveEtherscanApiKey = (
 
   return key;
 };
-
-export default resolveEtherscanApiKey;

@@ -1,43 +1,40 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-
-export enum Chains {
-  mainnet = "mainnet",
-  ropsten = "ropsten",
-  rinkeby = "rinkeby",
-  goerli = "goerli",
-  kovan = "kovan",
+type Chain =
+  | "mainnet"
+  | "ropsten"
+  | "rinkeby"
+  | "goerli"
+  | "kovan"
   // binance smart chain
-  bsc = "bsc",
-  bscTestnet = "bscTestnet",
+  | "bsc"
+  | "bscTestnet"
   // huobi eco chain
-  heco = "heco",
-  hecoTestnet = "hecoTestnet",
+  | "heco"
+  | "hecoTestnet"
   // fantom mainnet
-  opera = "opera",
-  ftmTestnet = "ftmTestnet",
+  | "opera"
+  | "ftmTestnet"
   // optimistim
-  optimisticEthereum = "optimisticEthereum",
-  optimisticKovan = "optimisticKovan",
+  | "optimisticEthereum"
+  | "optimisticKovan"
   // polygon
-  polygon = "polygon",
-  polygonMumbai = "polygonMumbai",
+  | "polygon"
+  | "polygonMumbai"
   // arbitrum
-  arbitrumOne = "arbitrumOne",
-  arbitrumTestnet = "arbitrumTestnet",
+  | "arbitrumOne"
+  | "arbitrumTestnet"
   // avalanche
-  avalanche = "avalanche",
-  avalancheFujiTestnet = "avalancheFujiTestnet",
+  | "avalanche"
+  | "avalancheFujiTestnet"
   // moonriver
-  moonriver = "moonriver",
-  moonbaseAlpha = "moonbaseAlpha",
-}
+  | "moonriver"
+  | "moonbaseAlpha";
 
 export type ChainConfig = {
-  [Network in Chains]: EtherscanChainConfig;
+  [Network in Chain]: EtherscanChainConfig;
 };
 
-export type EtherscanApiKeys = {
-  [Network in keyof ChainConfig]?: string;
+type EtherscanApiKeys = {
+  [Network in Chain]?: string;
 };
 
 export interface EtherscanConfig {
@@ -49,12 +46,12 @@ export interface EtherscanURLs {
   browserURL: string;
 }
 
-export interface EtherscanChainConfig {
+interface EtherscanChainConfig {
   chainId: number;
   urls: EtherscanURLs;
 }
 
 export interface EtherscanNetworkEntry {
-  network: Chains;
+  network: Chain;
   urls: EtherscanURLs;
 }

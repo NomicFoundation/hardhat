@@ -5,7 +5,7 @@ import {
 import { EthereumProvider } from "hardhat/types";
 
 import { pluginName } from "../constants";
-import { EtherscanNetworkEntry, ChainConfig } from "../types";
+import { ChainConfig, EtherscanNetworkEntry } from "../types";
 
 export async function getEtherscanEndpoints(
   provider: EthereumProvider,
@@ -20,30 +20,31 @@ export async function getEtherscanEndpoints(
   }
 
   const chainIdsToNames = new Map(
-    Object.entries(chainConfig).map(([mapName, config]) => [
+    entries(chainConfig).map(([chainName, config]) => [
       config.chainId,
-      mapName,
+      chainName,
     ])
   );
 
   const chainID = parseInt(await provider.send("eth_chainId"), 16);
 
-  const network = chainIdsToNames.get(chainID) as keyof ChainConfig;
+  const network = chainIdsToNames.get(chainID);
 
-  const endpoints = network !== undefined ? chainConfig[network] : undefined;
-
-  if (endpoints === undefined) {
+  if (network === undefined) {
     throw new NomicLabsHardhatPluginError(
       pluginName,
       `An etherscan endpoint could not be found for this network. ChainID: ${chainID}. The selected network is ${networkName}.
 
 Possible causes are:
+  - The network is not supported by hardhat-etherscan.
   - The selected network (${networkName}) is wrong.
   - Faulty hardhat network config.`
     );
   }
 
-  return { network, urls: endpoints.urls };
+  const chainConfigEntry = chainConfig[network];
+
+  return { network, urls: chainConfigEntry.urls };
 }
 
 export async function retrieveContractBytecode(
@@ -66,4 +67,8 @@ The selected network is ${networkName}.`
     );
   }
   return deployedBytecode;
+}
+
+function entries<O>(o: O) {
+  return Object.entries(o) as Array<[keyof O, O[keyof O]]>;
 }

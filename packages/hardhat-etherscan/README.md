@@ -124,11 +124,9 @@ module.exports = {
 
 ### Multiple API keys and alternative block explorers
 
-If your project targets multiple evm sidechains, you many need to verify using the block explorers particular to those chains, and so need to set multiple API keys.
+If your project targets multiple EVM-compatible networks that have different explorers, you'll need to set multiple API keys.
 
-A block explorer API key can be set per chain, hardhat will use the `chainId` of the specified network to determine which block explorer and API key to use.
-
-To configure the API keys for the chains you are using, provide an object with under `etherscan/apiKey` with properties matching the chain:
+To configure the API keys for the chains you are using, provide an object under `etherscan/apiKey` with the identifier of each chain as the key. **This is not necessarily the same name that you are using to define the network**. The snippet below shows the values you should use for each chain:
 
 ```js
 module.exports = {

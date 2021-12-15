@@ -50,7 +50,7 @@ import {
   getEtherscanEndpoints,
   retrieveContractBytecode,
 } from "./network/prober";
-import resolveEtherscanApiKey from "./resolveEtherscanApiKey";
+import { resolveEtherscanApiKey } from "./resolveEtherscanApiKey";
 import {
   Bytecode,
   ContractInformation,
