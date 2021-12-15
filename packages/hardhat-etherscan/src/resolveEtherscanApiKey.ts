@@ -1,4 +1,4 @@
-import { NomicLabsHardhatPluginError } from "hardhat/src/plugins";
+import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import { pluginName } from "./constants";
 import { chainConfig } from "./ChainConfig";
 import { EtherscanConfig, ChainConfig } from "./types";
