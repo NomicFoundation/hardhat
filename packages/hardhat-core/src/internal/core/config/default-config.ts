@@ -119,11 +119,11 @@ export const defaultHttpNetworkParams = {
   gasPrice: "auto" as "auto",
   gasMultiplier: DEFAULT_GAS_MULTIPLIER,
   httpHeaders: {},
-  timeout: 20000,
+  timeout: 40000,
 };
 
 export const defaultMochaOptions: Mocha.MochaOptions = {
-  timeout: 20000,
+  timeout: 40000,
 };
 
 export const defaultSolcOutputSelection = {
