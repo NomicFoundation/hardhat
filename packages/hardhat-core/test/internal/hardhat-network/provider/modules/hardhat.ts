@@ -371,6 +371,58 @@ describe("Hardhat module", function () {
             assert.equal(blockCount, await getLatestBlockNumber());
           });
         });
+
+        describe("shouldn't break snapshots", function () {
+          it("when doing hardhat_mine before a snapshot", async function () {
+            await this.provider.send("hardhat_mine", [numberToRpcQuantity(10)]);
+
+            const latestBlockNumberBeforeSnapshot =
+              await getLatestBlockNumber();
+
+            const snapshotId = await this.provider.send("evm_snapshot");
+
+            await this.provider.send("eth_sendTransaction", [
+              {
+                from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                to: "0x1111111111111111111111111111111111111111",
+              },
+            ]);
+
+            await this.provider.send("evm_revert", [snapshotId]);
+
+            assert.equal(
+              await getLatestBlockNumber(),
+              latestBlockNumberBeforeSnapshot
+            );
+          });
+
+          it("when doing hardhat_mine after a snapshot", async function () {
+            await this.provider.send("eth_sendTransaction", [
+              {
+                from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                to: "0x1111111111111111111111111111111111111111",
+              },
+            ]);
+
+            const latestBlockNumberBeforeSnapshot =
+              await getLatestBlockNumber();
+
+            const snapshotId = await this.provider.send("evm_snapshot");
+
+            await this.provider.send("hardhat_mine", [numberToRpcQuantity(10)]);
+            assert.equal(
+              await getLatestBlockNumber(),
+              latestBlockNumberBeforeSnapshot + 10
+            );
+
+            await this.provider.send("evm_revert", [snapshotId]);
+
+            assert.equal(
+              await getLatestBlockNumber(),
+              latestBlockNumberBeforeSnapshot
+            );
+          });
+        });
       });
 
       describe("hardhat_reset", function () {

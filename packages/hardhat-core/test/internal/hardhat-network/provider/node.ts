@@ -767,6 +767,69 @@ describe("HardhatNode", () => {
       });
     }
   });
+
+  describe("mineBlocks", function () {
+    it("shouldn't break getLatestBlock()", async function () {
+      const previousLatestBlockNumber = node.getLatestBlockNumber();
+      await node.mineBlocks(new BN(10));
+      const latestBlock = await node.getLatestBlock();
+      assert.equal(
+        latestBlock.header.number.toString(),
+        previousLatestBlockNumber.addn(10).toString()
+      );
+    });
+
+    it("shouldn't break getLatestBlockNumber()", async function () {
+      const previousLatestBlockNumber = node.getLatestBlockNumber();
+      await node.mineBlocks(new BN(10));
+      const latestBlockNumber = node.getLatestBlockNumber();
+      assert.equal(
+        latestBlockNumber.toString(),
+        previousLatestBlockNumber.addn(10).toString()
+      );
+    });
+
+    describe("shouldn't break snapshotting", async function () {
+      it("when doing mineBlocks() before a snapshot", async function () {});
+      it("when doing mineBlocks() after a snapshot", async function () {
+        const originalLatestBlockNumber = node.getLatestBlockNumber();
+        await node.sendTransaction(
+          createTestTransaction({
+            from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+            to: Address.fromString(
+              "0x1111111111111111111111111111111111111111"
+            ),
+            gasLimit: 21000,
+          })
+        );
+
+        const latestBlockNumberBeforeSnapshot = node.getLatestBlockNumber();
+        assert.equal(
+          latestBlockNumberBeforeSnapshot.toString(),
+          originalLatestBlockNumber.toString()
+        );
+
+        const snapshotId = await node.takeSnapshot();
+        assert.equal(
+          node.getLatestBlockNumber().toString(),
+          originalLatestBlockNumber.toString()
+        );
+
+        await node.mineBlocks(new BN(10));
+        assert.equal(
+          node.getLatestBlockNumber().toString(),
+          latestBlockNumberBeforeSnapshot.addn(10).toString()
+        );
+
+        await node.revertToSnapshot(snapshotId);
+
+        assert.equal(
+          node.getLatestBlockNumber().toString(),
+          latestBlockNumberBeforeSnapshot.toString()
+        );
+      });
+    });
+  });
 });
 
 async function runBlockAndGetAfterBlockEvent(

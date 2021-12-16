@@ -209,4 +209,28 @@ export class BlockchainData {
 
     return blockToAdd;
   }
+
+  public unreserveBlocksAfter(blockNumber: BN) {
+    // search through block reservations and remove any that include the given
+    // blockNumber
+    for (
+      let b = blockNumber.addn(1);
+      this._findBlockReservation(b) !== -1;
+      b = b.addn(1)
+    ) {
+      // delete the existing reservation, but re-add its first half:
+
+      const reservationIndex = this._findBlockReservation(b);
+
+      const oldReservation = this.blockReservations[reservationIndex];
+
+      this.blockReservations.splice(reservationIndex, 1);
+
+      this.blockReservations.push({
+        first: oldReservation.first,
+        last: b.subn(1),
+        interval: oldReservation.interval,
+      });
+    }
+  }
 }

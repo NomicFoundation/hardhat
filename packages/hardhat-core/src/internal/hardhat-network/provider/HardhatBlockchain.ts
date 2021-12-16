@@ -95,9 +95,15 @@ export class HardhatBlockchain implements HardhatBlockchainInterface {
     if (actual === undefined) {
       throw new Error("Invalid block");
     }
-    const nextBlock = this._data.getBlockByNumber(
-      new BN(actual.header.number).addn(1)
-    );
+
+    const nextBlockNumber = new BN(actual.header.number).addn(1);
+
+    if (this._data.isReservedBlock(nextBlockNumber)) {
+      this._data.unreserveBlocksAfter(nextBlockNumber);
+      this._length = nextBlockNumber.toNumber();
+    }
+
+    const nextBlock = this._data.getBlockByNumber(nextBlockNumber);
     if (nextBlock !== undefined) {
       this._delBlock(nextBlock);
     }
