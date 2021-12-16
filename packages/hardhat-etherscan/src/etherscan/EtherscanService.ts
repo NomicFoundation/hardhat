@@ -129,7 +129,7 @@ Reason: ${etherscanResponse.message}`
   return etherscanResponse;
 }
 
-export default class EtherscanResponse {
+export class EtherscanResponse {
   public readonly status: number;
 
   public readonly message: string;

@@ -20,7 +20,7 @@ import {
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
-export default class JsonRpcHandler {
+export class JsonRpcHandler {
   constructor(private readonly _provider: EIP1193Provider) {}
 
   public handleHttp = async (req: IncomingMessage, res: ServerResponse) => {

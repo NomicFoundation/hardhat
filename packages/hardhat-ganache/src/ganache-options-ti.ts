@@ -50,4 +50,5 @@ export const GanacheOptionsTi = t.iface([], {
 const exportedTypeSuite: t.ITypeSuite = {
   GanacheOptionsTi,
 };
+// eslint-disable-next-line import/no-default-export
 export default exportedTypeSuite;
