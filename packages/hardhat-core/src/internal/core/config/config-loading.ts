@@ -240,6 +240,8 @@ function checkEmptyConfig(
   if (userConfig === undefined || Object.keys(userConfig).length === 0) {
     let warning = `Hardhat config is returning an empty config object, check the export from the config file if this is unexpected.\n`;
 
+    // This 'learn more' section is also printed by the solidity config warning,
+    // so we need to check to avoid printing it twice
     if (!showSolidityConfigWarnings) {
       warning += `\nLearn more about configuring Hardhat at https://hardhat.org/config"\n`;
     }
