@@ -390,6 +390,14 @@ Call [`hardhat_stopImpersonatingAccount`](#hardhat-stopimpersonatingaccount) to 
 
 Returns `true` if automatic mining is enabled, and `false` otherwise. See [Mining Modes](../explanation/mining-modes.md) to learn more.
 
+#### `hardhat_mine`
+
+Sometimes you may want to advance the latest block number of the Hardhat Network by a given amount of blocks. One way to do this would be to call the `evm_mine` RPC method multiple times, but this is too slow if you want to mine thousands of blocks. The `hardhat_mine` method can mine any number of blocks at once, and it works in constant time (it exhibits the same performance no matter how many blocks are mined).
+
+`hardhat_mine` accepts two parameters, both of which are optional. The first paramter is the number of blocks to mine, and defaults to 1. The second parameter is the interval between the timestamps of each block, _in seconds_, and it also defaults to 1.
+
+Note that blocks mined in this way are technically not valid blocks. Specifically, they have an invalid parent hash and state root hash, and the coinbase account will not have been credited with block rewards.
+
 #### `hardhat_reset`
 
 See the [Mainnet Forking guide](../guides/mainnet-forking.md)
