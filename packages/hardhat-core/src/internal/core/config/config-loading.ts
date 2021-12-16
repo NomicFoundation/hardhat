@@ -39,13 +39,13 @@ export function resolveConfigPath(configPath: string | undefined) {
 export function loadConfigAndTasks(
   hardhatArguments?: Partial<HardhatArguments>,
   {
-    showEmptyWarnings = false,
+    showEmptyConfigWarning = false,
     showSolidityConfigWarnings = false,
   }: {
-    showEmptyWarnings?: boolean;
+    showEmptyConfigWarning?: boolean;
     showSolidityConfigWarnings?: boolean;
   } = {
-    showEmptyWarnings: false,
+    showEmptyConfigWarning: false,
     showSolidityConfigWarnings: false,
   }
 ): HardhatConfig {
@@ -82,7 +82,7 @@ export function loadConfigAndTasks(
     ctx.setConfigLoadingAsFinished();
   }
 
-  if (showEmptyWarnings) {
+  if (showEmptyConfigWarning) {
     checkEmptyConfig(userConfig, { showSolidityConfigWarnings });
   }
 

@@ -376,7 +376,7 @@ Hardhat plugin instead.`
         {
           config: "empty-config.js",
         },
-        { showEmptyWarnings: true }
+        { showEmptyConfigWarning: true }
       );
 
       assert.equal(consoleWarnStub.callCount, 1);
