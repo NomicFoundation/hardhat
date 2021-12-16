@@ -235,11 +235,7 @@ function readPackageJson(packageName: string): PackageJson | undefined {
 
 function checkEmptyConfig(
   userConfig: any,
-  {
-    showSolidityConfigWarnings = false,
-  }: { showSolidityConfigWarnings: boolean } = {
-    showSolidityConfigWarnings: false,
-  }
+  { showSolidityConfigWarnings }: { showSolidityConfigWarnings: boolean }
 ) {
   if (userConfig === undefined || Object.keys(userConfig).length === 0) {
     let warning = `Hardhat config is returning an empty config object, check the export from the config file if this is unexpected.\n`;
