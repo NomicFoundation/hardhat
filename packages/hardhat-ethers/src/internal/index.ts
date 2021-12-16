@@ -33,8 +33,6 @@ extendEnvironment((hre) => {
     return {
       ...ethers,
 
-      // The provider wrapper should be removed once this is released
-      // https://github.com/nomiclabs/hardhat/pull/608
       provider: providerProxy,
 
       getSigner: (address: string) => getSigner(hre, address),
