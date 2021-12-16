@@ -241,7 +241,7 @@ function checkEmptyConfig(
     let warning = `Hardhat config is returning an empty config object, check the export from the config file if this is unexpected.\n`;
 
     if (!showSolidityConfigWarnings) {
-      warning += `Learn more about compiler configuration at https://hardhat.org/config"\n`;
+      warning += `\nLearn more about configuring Hardhat at https://hardhat.org/config"\n`;
     }
 
     console.warn(chalk.yellow(warning));
