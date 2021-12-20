@@ -32,7 +32,7 @@ describe("Config extension", () => {
     });
   });
 
-  it("should error on providing unsupported api keys", () => {
+  it("should error on providing unsupported api key", () => {
     assert.throws(() => {
       const resolvedConfig = {} as HardhatConfig;
 
@@ -40,6 +40,23 @@ describe("Config extension", () => {
         etherscan: {
           apiKey: {
             newhotness: "example_token",
+          },
+        },
+      } as any;
+
+      etherscanConfigExtender(resolvedConfig, invalidEtherscanConfig);
+    }, 'Etherscan API token "newhotness" is for an unsupported network');
+  });
+
+  it("should error on providing multiple unsupported api keys", () => {
+    assert.throws(() => {
+      const resolvedConfig = {} as HardhatConfig;
+
+      const invalidEtherscanConfig = {
+        etherscan: {
+          apiKey: {
+            newhotness: "example_token",
+            newhotness2: "example_token",
           },
         },
       } as any;
