@@ -384,6 +384,10 @@ Hardhat plugin instead.`
         consoleWarnStub.args[0][0],
         "Hardhat config is returning an empty config object, check the export from the config file if this is unexpected."
       );
+      assert.include(
+        consoleWarnStub.args[0][0],
+        "Learn more about configuring Hardhat at https://hardhat.org/config"
+      );
     });
 
     it("should emit a warning if there's no configured solidity", function () {

@@ -243,7 +243,7 @@ function checkEmptyConfig(
     // This 'learn more' section is also printed by the solidity config warning,
     // so we need to check to avoid printing it twice
     if (!showSolidityConfigWarnings) {
-      warning += `\nLearn more about configuring Hardhat at https://hardhat.org/config"\n`;
+      warning += `\nLearn more about configuring Hardhat at https://hardhat.org/config\n`;
     }
 
     console.warn(chalk.yellow(warning));
