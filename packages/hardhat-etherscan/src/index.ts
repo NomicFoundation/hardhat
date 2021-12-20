@@ -21,7 +21,6 @@ import {
 } from "hardhat/utils/contract-names";
 import path from "path";
 import semver from "semver";
-
 import { encodeArguments } from "./ABIEncoder";
 import { etherscanConfigExtender } from "./config";
 import {
@@ -591,8 +590,10 @@ See https://etherscan.io/solcversions for more information.`
   }
 );
 
-subtask(TASK_VERIFY_GET_ETHERSCAN_ENDPOINT).setAction(async (_, { network }) =>
-  getEtherscanEndpoints(network.provider, network.name)
+subtask(TASK_VERIFY_GET_ETHERSCAN_ENDPOINT).setAction(
+  async (_, { network }) =>
+    network.config.explorer ??
+    getEtherscanEndpoints(network.provider, network.name)
 );
 
 subtask(TASK_VERIFY_GET_CONTRACT_INFORMATION)

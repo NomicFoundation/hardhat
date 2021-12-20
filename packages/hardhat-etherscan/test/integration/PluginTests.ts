@@ -7,7 +7,6 @@ import type { task as taskT } from "hardhat/config";
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import type { CompilerInput } from "hardhat/types";
 import path from "path";
-
 import {
   TASK_VERIFY_GET_ETHERSCAN_ENDPOINT,
   TASK_VERIFY_GET_MINIMUM_BUILD,
@@ -646,6 +645,33 @@ describe("Plugin integration tests", function () {
                 "The version inferred from the bytecode should be shown."
               );
           });
+      });
+    });
+  });
+  describe("Using a Hardhat project that defines a custom explorer URL", function () {
+    describe("Custom explorer defined", () => {
+      useEnvironment("hardhat-project-custom-explorer", "localhost");
+      it("Custom explorer url should be returned", async function () {
+        const endpoints = await this.env.run(
+          TASK_VERIFY_GET_ETHERSCAN_ENDPOINT
+        );
+        expect(endpoints).to.be.deep.equal({
+          apiURL: "http://localhost:26000/api",
+          browserURL: "http://localhost:26000/",
+        });
+      });
+    });
+
+    describe("Custom explorer not defined", () => {
+      useEnvironment("hardhat-project-without-custom-explorer", "localhost");
+      it("Project without a custom explorer should fail to fetch the endpoint", async function () {
+        const endpoints = await this.env.run(
+          TASK_VERIFY_GET_ETHERSCAN_ENDPOINT
+        );
+        expect(endpoints).to.be.deep.equal({
+          apiURL: "http://localhost:26000/api",
+          browserURL: "http://localhost:26000/",
+        });
       });
     });
   });

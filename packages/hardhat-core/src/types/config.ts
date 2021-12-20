@@ -105,6 +105,7 @@ export interface HttpNetworkUserConfig {
   timeout?: number;
   httpHeaders?: { [name: string]: string };
   accounts?: HttpNetworkAccountsUserConfig;
+  explorer?: HardhatNetworkExplorerConfig;
 }
 
 export interface NetworksConfig {
@@ -130,6 +131,11 @@ export type HardhatNetworkChainsConfig = Map<
   HardhatNetworkChainConfig
 >;
 
+export interface HardhatNetworkExplorerConfig {
+  apiURL: string;
+  browserURL?: string;
+}
+
 export interface HardhatNetworkConfig {
   chainId: number;
   from?: string;
@@ -150,6 +156,7 @@ export interface HardhatNetworkConfig {
   forking?: HardhatNetworkForkingConfig;
   coinbase?: string;
   chains: HardhatNetworkChainsConfig;
+  explorer?: HardhatNetworkExplorerConfig;
 }
 
 export type HardhatNetworkAccountsConfig =
@@ -185,6 +192,7 @@ export interface HttpNetworkConfig {
   timeout: number;
   httpHeaders: { [name: string]: string };
   accounts: HttpNetworkAccountsConfig;
+  explorer?: HardhatNetworkExplorerConfig;
 }
 
 export type HttpNetworkAccountsConfig =
