@@ -24,7 +24,8 @@ export interface CompilerReleaseAsset {
   uploader: any;
   state: string;
   size: number;
-  browserDownloadUrl: string;
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  browser_download_url: string;
 }
 
 interface CompilerRelease {
@@ -36,7 +37,8 @@ interface CompilerRelease {
   prerelease: boolean;
   assets: CompilerReleaseAsset[];
   body: string;
-  tagName: string;
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  tag_name: string;
 }
 
 export type CompilersList = CompilerRelease[];

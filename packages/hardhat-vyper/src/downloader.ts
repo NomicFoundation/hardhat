@@ -5,7 +5,7 @@ import semver from "semver";
 
 import { CompilerReleaseAsset, CompilersList, CompilerPlatform } from "./types";
 import { GITHUB_RELEASES_URL } from "./constants";
-import { VyperPluginError, getLogger, deepCamel } from "./util";
+import { VyperPluginError, getLogger } from "./util";
 
 const log = getLogger("downloader");
 
@@ -15,11 +15,7 @@ async function downloadFile(
 ): Promise<void> {
   const { download } = await import("hardhat/internal/util/download");
   log(`Downloading from ${url} to ${destinationFile}`);
-  await download(url, destinationFile, undefined, (output) => {
-    const parsedOutput = JSON.parse(output);
-    const camelCased = deepCamel(parsedOutput);
-    return JSON.stringify(camelCased);
-  });
+  await download(url, destinationFile, undefined, true);
 }
 
 type DownloadFunction = (url: string, destinationFile: string) => Promise<void>;
@@ -62,11 +58,9 @@ export class CompilerDownloader {
   public async getCompilerAsset(
     version: string
   ): Promise<CompilerReleaseAsset> {
-    await this._ensureCompilersListExists();
-
     const list = await this.getCompilersList();
     const versionRelease = list.find((release) =>
-      semver.eq(release.tagName, version)
+      semver.eq(release.tag_name, version)
     );
 
     if (versionRelease === undefined) {
@@ -144,17 +138,11 @@ export class CompilerDownloader {
 
     try {
       await this._download(
-        compilerAsset.browserDownloadUrl,
+        compilerAsset.browser_download_url,
         downloadedFilePath
       );
     } catch (e: unknown) {
       throw new VyperPluginError("Compiler download failed", e as Error);
-    }
-  }
-
-  private async _ensureCompilersListExists(): Promise<void> {
-    if (!this.compilersListExists) {
-      await this.downloadReleaseList();
     }
   }
 

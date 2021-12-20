@@ -25,9 +25,9 @@ export async function download(
   url: string,
   filePath: string,
   timeoutMillis = 10000,
-  outputFormatter?: (downloadOutput: string) => string
+  overwrite?: boolean
 ) {
-  const { pipeline, Readable } = await import("stream");
+  const { pipeline } = await import("stream");
   const { default: fetch } = await import("node-fetch");
   const streamPipeline = util.promisify(pipeline);
   const fetchOptions: FetchOptions = {
@@ -59,25 +59,8 @@ export async function download(
     const tmpFilePath = resolveTempFileName(filePath);
     await fsExtra.ensureDir(path.dirname(filePath));
 
-    if (!outputFormatter) {
-      await streamPipeline(response.body, fs.createWriteStream(tmpFilePath));
-      return fsExtra.move(tmpFilePath, filePath);
-    }
-
-    try {
-      const output = outputFormatter(await response.text());
-      const rs = new Readable();
-      rs._read = () => {
-        rs.push(output);
-        rs.push(null);
-      };
-
-      await streamPipeline(rs, fs.createWriteStream(tmpFilePath));
-      return await fsExtra.move(tmpFilePath, filePath);
-    } catch (e: unknown) {
-      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
-      throw new Error(`Failed to format output from download ${url} - ${e}`);
-    }
+    await streamPipeline(response.body, fs.createWriteStream(tmpFilePath));
+    return fsExtra.move(tmpFilePath, filePath, { overwrite });
   }
 
   // Consume the response stream and discard its result

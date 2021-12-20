@@ -26,7 +26,7 @@ import {
 } from "./task-names";
 import { DEFAULT_VYPER_VERSION } from "./constants";
 import { VyperFilesCache, getVyperFilesCachePath } from "./cache";
-import Compiler from "./compiler";
+import { Compiler } from "./compiler";
 import { CompilerDownloader } from "./downloader";
 import { Parser } from "./parser";
 import { ResolvedFile, Resolver } from "./resolver";
@@ -103,6 +103,8 @@ subtask(TASK_COMPILE_VYPER_GET_BUILD)
     ): Promise<VyperBuild> => {
       const compilersCache = await getCompilersDir();
       const downloader = new CompilerDownloader(compilersCache);
+
+      await downloader.downloadReleaseList();
 
       const isCompilerDownloaded = await downloader.isCompilerDownloaded(
         vyperVersion

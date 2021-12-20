@@ -1,6 +1,6 @@
 import { exec } from "child_process";
 
-export default class Compiler {
+export class Compiler {
   constructor(private _pathToVyper: string) {}
 
   /**

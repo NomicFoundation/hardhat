@@ -26,9 +26,15 @@ function handleArr(v: any): any {
 export function deepCamel(obj: object): any {
   const { camelCase }: LoDashStatic = require("lodash");
 
-  const newObj: { [k: string]: any } = {};
+  if (Array.isArray(obj)) {
+    return obj.map(handleArr);
+  }
+
+  const newObj: { [k: string]: unknown } = {};
   for (const [k, v] of Object.entries(obj)) {
-    if (Array.isArray(v)) {
+    if (v === null || v === undefined) {
+      newObj[camelCase(k)] = v;
+    } else if (Array.isArray(v)) {
       newObj[camelCase(k)] = v.map(handleArr);
     } else if (typeof v === "object") {
       newObj[camelCase(k)] = deepCamel(v);
