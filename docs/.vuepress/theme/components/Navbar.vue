@@ -42,7 +42,7 @@
                 </a>
               </li>
             </ul>
-            <div class="dark-mode-toggle" v-on:click="toggleDarkTheme">
+            <div class="dark-mode-toggle" v-on:click="nextTheme">
               <div class="dark-mode-icon" />
             </div>
           </div>
@@ -81,7 +81,7 @@
       logoImg: LogoImg,
       DMLight: DMLight,
       themeClasses: ['light-mode', 'dark-mode', 'hc-dark-mode'],
-      currentTheme: 0
+      currentTheme: null
     };
   },
 
@@ -105,31 +105,29 @@
       }
     };
     handleLinksWrapWidth();
+    this.checkUserPreference();
     window.addEventListener("resize", handleLinksWrapWidth, false);
   },
   methods: {
     nextTheme() {
-      const body = document.body;
       if (this.themeClasses.length - 1 == this.currentTheme) {
         this.currentTheme = 0;
       } else {
         this.currentTheme += 1;
       };
 
-      body.className="";
-      console.log(this.themeClasses[this.currentTheme])
-      body.classList.add(this.themeClasses[this.currentTheme]);
-
-    },
-    toggleDarkTheme() {
-      this.nextTheme();
+      document.body.className="";
+      let currentTheme = this.themeClasses[this.currentTheme];
+      document.body.classList.add(currentTheme);
+      localStorage.setItem('currentTheme', this.currentTheme);
     },
     checkUserPreference() {
-        //Check Storage on Page load. Keep user preference through sessions
-        if (localStorage.getItem("dark-theme")) {
-            document.body.classList.add("dark-mode");
-            document.getElementById('theme-toggle').checked = true;
-        }
+      //Check Storage on Page load. Keep user preference through sessions
+      if (localStorage.getItem('currentTheme')) {
+        this.currentTheme = Number.parseInt(localStorage.getItem('currentTheme'));
+        document.body.className="";
+        document.body.classList.add(this.themeClasses[this.currentTheme]);
+      }
     }
   },
   computed: {
