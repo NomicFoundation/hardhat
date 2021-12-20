@@ -45,9 +45,9 @@ export function loadConfigAndTasks(
     showEmptyConfigWarning?: boolean;
     showSolidityConfigWarnings?: boolean;
   } = {
-      showEmptyConfigWarning: false,
-      showSolidityConfigWarnings: false,
-    }
+    showEmptyConfigWarning: false,
+    showSolidityConfigWarnings: false,
+  }
 ): HardhatConfig {
   let configPath =
     hardhatArguments !== undefined ? hardhatArguments.config : undefined;
@@ -282,7 +282,8 @@ function checkUnsupportedSolidityConfig(resolvedConfig: HardhatConfig) {
   if (unsupportedVersions.length > 0) {
     console.warn(
       chalk.yellow(
-        `Solidity ${unsupportedVersions.join(", ")} ${unsupportedVersions.length === 1 ? "is" : "are"
+        `Solidity ${unsupportedVersions.join(", ")} ${
+          unsupportedVersions.length === 1 ? "is" : "are"
         } not fully supported yet. You can still use Hardhat, but some features, like stack traces, might not work correctly.
 
 Learn more at https://hardhat.org/reference/solidity-support
