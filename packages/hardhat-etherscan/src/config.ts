@@ -33,7 +33,9 @@ export const etherscanConfigExtender: ConfigExtender = (
     if (unallowedChains.length > 0) {
       throw new NomicLabsHardhatPluginError(
         pluginName,
-        `Etherscan API token "${unallowedChains[0]}" is for an unsupported network`
+        `Etherscan API token "${unallowedChains[0]}" is for an unsupported network
+
+Learn more at https://hardhat.org/plugins/nomiclabs-hardhat-etherscan.html#multiple-api-keys-and-alternative-block-explorers`
       );
     }
 
