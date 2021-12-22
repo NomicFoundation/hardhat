@@ -40,8 +40,6 @@ export function useFixtureProject(projectName: string) {
 
 function getFixtureProjectPath(projectName: string): string {
   const projectPath = path.join(__dirname, "fixture-projects", projectName);
-  console.log("asdf");
-  console.log(projectPath);
 
   if (!fsExtra.pathExistsSync(projectPath)) {
     throw new Error(`Fixture project ${projectName} doesn't exist`);
@@ -63,26 +61,6 @@ export function useEnvironment(configPath?: string) {
     delete process.env.HARDHAT_CONFIG;
     resetHardhatContext();
   });
-}
-
-export function expectVyperError(f: () => any, errorMessage?: string | RegExp) {
-  try {
-    f();
-  } catch (error: any) {
-    assert.instanceOf(error, VyperPluginError);
-
-    if (typeof errorMessage === "string") {
-      assert.include(error.message, errorMessage);
-    } else if (errorMessage !== undefined) {
-      assert.match(error.message, errorMessage);
-    }
-
-    return;
-  }
-
-  throw new AssertionError(
-    `VyperPluginError expected, but no Error was thrown`
-  );
 }
 
 export async function expectVyperErrorAsync(

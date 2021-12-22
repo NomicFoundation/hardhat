@@ -24,8 +24,7 @@ function resolveTempFileName(filePath: string): string {
 export async function download(
   url: string,
   filePath: string,
-  timeoutMillis = 10000,
-  overwrite?: boolean
+  timeoutMillis = 10000
 ) {
   const { pipeline } = await import("stream");
   const { default: fetch } = await import("node-fetch");
@@ -60,7 +59,7 @@ export async function download(
     await fsExtra.ensureDir(path.dirname(filePath));
 
     await streamPipeline(response.body, fs.createWriteStream(tmpFilePath));
-    return fsExtra.move(tmpFilePath, filePath, { overwrite });
+    return fsExtra.move(tmpFilePath, filePath, { overwrite: true });
   }
 
   // Consume the response stream and discard its result

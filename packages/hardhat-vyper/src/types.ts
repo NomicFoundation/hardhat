@@ -2,12 +2,10 @@ export type VyperUserConfig = string | VyperConfig | MultiVyperConfig;
 
 export interface VyperConfig {
   version: string;
-  // settings?: any;
 }
 
 export interface MultiVyperConfig {
   compilers: VyperConfig[];
-  // overrides?: Record<string, VyperConfig>;
 }
 
 export enum CompilerPlatform {

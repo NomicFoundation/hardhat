@@ -1,4 +1,3 @@
-import type { LoDashStatic } from "lodash";
 import path from "path";
 import fsExtra from "fs-extra";
 import semver from "semver";
@@ -194,7 +193,7 @@ subtask(TASK_COMPILE_VYPER_RUN_BINARY)
       inputPaths: string[];
       vyperPath: string;
     }): Promise<VyperOutput> => {
-      const { mapValues }: LoDashStatic = require("lodash");
+      const { mapValues } = await import("lodash");
       const compiler = new Compiler(vyperPath);
 
       const { version, ...contracts } = await compiler.compile(inputPaths);
@@ -232,7 +231,7 @@ subtask(TASK_COMPILE_VYPER)
           run(TASK_COMPILE_VYPER_READ_FILE, { absolutePath })
       );
 
-      const resolvedFiles = await Promise.all(
+      let resolvedFiles = await Promise.all(
         sourceNames.map(resolver.resolveSourceName)
       );
 
@@ -242,7 +241,13 @@ subtask(TASK_COMPILE_VYPER)
         resolvedFiles
       );
 
-      const { groupBy }: LoDashStatic = require("lodash");
+      resolvedFiles = resolvedFiles.filter((file) =>
+        vyperFilesCache.hasFileChanged(file.absolutePath, file.contentHash, {
+          version: file.content.versionPragma,
+        })
+      );
+
+      const { groupBy } = await import("lodash");
 
       const configuredVersions = config.vyper.compilers.map(
         ({ version }) => version

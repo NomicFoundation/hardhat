@@ -1375,7 +1375,6 @@ subtask(TASK_COMPILE_REMOVE_OBSOLETE_ARTIFACTS, async (_, { artifacts }) => {
   // non-public methods here.
   const artifactsImpl = artifacts as ArtifactsImpl;
   await artifactsImpl.removeObsoleteArtifacts();
-  await artifactsImpl.removeObsoleteBuildInfos();
 });
 
 /**

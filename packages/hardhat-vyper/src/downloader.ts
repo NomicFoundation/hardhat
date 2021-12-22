@@ -15,7 +15,7 @@ async function downloadFile(
 ): Promise<void> {
   const { download } = await import("hardhat/internal/util/download");
   log(`Downloading from ${url} to ${destinationFile}`);
-  await download(url, destinationFile, undefined, true);
+  await download(url, destinationFile, undefined);
 }
 
 type DownloadFunction = (url: string, destinationFile: string) => Promise<void>;

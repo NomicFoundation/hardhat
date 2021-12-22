@@ -199,12 +199,26 @@ export class Artifacts implements IArtifacts {
         await this._removeArtifactFiles(artifactPath);
       }
     }
+
+    await this._removeObsoleteBuildInfos();
+  }
+
+  /**
+   * Returns the absolute path to the given artifact
+   */
+  public formArtifactPathFromFullyQualifiedName(
+    fullyQualifiedName: string
+  ): string {
+    const { sourceName, contractName } =
+      parseFullyQualifiedName(fullyQualifiedName);
+
+    return path.join(this._artifactsPath, sourceName, `${contractName}.json`);
   }
 
   /**
    * Remove all build infos that aren't used by any debug file
    */
-  public async removeObsoleteBuildInfos() {
+  private async _removeObsoleteBuildInfos() {
     const debugFiles = await this.getDebugFilePaths();
 
     const validBuildInfos = new Set<string>();
@@ -225,18 +239,6 @@ export class Artifacts implements IArtifacts {
         await fsExtra.unlink(buildInfoFile);
       }
     }
-  }
-
-  /**
-   * Returns the absolute path to the given artifact
-   */
-  public formArtifactPathFromFullyQualifiedName(
-    fullyQualifiedName: string
-  ): string {
-    const { sourceName, contractName } =
-      parseFullyQualifiedName(fullyQualifiedName);
-
-    return path.join(this._artifactsPath, sourceName, `${contractName}.json`);
   }
 
   private _getBuildInfoName(
