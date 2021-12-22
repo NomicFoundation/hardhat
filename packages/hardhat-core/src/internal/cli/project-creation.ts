@@ -153,6 +153,16 @@ async function copySampleProject(
   // the advanced TypeScript project is what was requested, overlay those files
   // on top of the advanced ones.
 
+  const hasExistingReadme = await fsExtra.pathExists("README.md");
+
+  // save the user's readme the already have one
+  if (hasExistingReadme) {
+    await fsExtra.move(
+      path.join(projectRoot, "README.md"),
+      path.join(projectRoot, "tmp-README.md")
+    );
+  }
+
   await fsExtra.ensureDir(projectRoot);
   await fsExtra.copy(
     path.join(packageRoot, "sample-projects", "basic"),
@@ -198,6 +208,15 @@ async function copySampleProject(
   await removeTempFilesIfPresent(projectRoot);
 
   await fsExtra.remove(path.join(projectRoot, "LICENSE.md"));
+
+  // replace the user's pre-existing readme
+  if (hasExistingReadme) {
+    await fsExtra.move(
+      path.join(projectRoot, "tmp-README.md"),
+      path.join(projectRoot, "README.md"),
+      { overwrite: true }
+    );
+  }
 }
 
 async function addGitIgnore(projectRoot: string) {
@@ -382,6 +401,10 @@ export async function createProject() {
   }
 
   const { projectRoot, shouldAddGitIgnore } = responses;
+
+  const hasExistingReadme = await fsExtra.pathExists(
+    path.join(projectRoot, "README.md")
+  );
 
   await copySampleProject(projectRoot, action);
 
