@@ -1,5 +1,4 @@
 ---
-"@nomiclabs/hardhat-e2e-tests": patch
 "hardhat": patch
 "@nomiclabs/hardhat-vyper": major
 ---
