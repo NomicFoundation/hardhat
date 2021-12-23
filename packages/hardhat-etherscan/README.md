@@ -142,29 +142,29 @@ module.exports = {
         goerli: "YOUR_ETHERSCAN_API_KEY",
         kovan: "YOUR_ETHERSCAN_API_KEY",
         // binance smart chain
-        bsc = "YOUR_BSCSCAN_API_KEY",
-        bscTestnet = "YOUR_BSCSCAN_API_KEY",
+        bsc: "YOUR_BSCSCAN_API_KEY",
+        bscTestnet: "YOUR_BSCSCAN_API_KEY",
         // huobi eco chain
-        heco = "YOUR_HECOINFO_API_KEY",
-        hecoTestnet = "YOUR_HECOINFO_API_KEY",
+        heco: "YOUR_HECOINFO_API_KEY",
+        hecoTestnet: "YOUR_HECOINFO_API_KEY",
         // fantom mainnet
-        opera = "YOUR_FTMSCAN_API_KEY",
-        ftmTestnet = "YOUR_FTMSCAN_API_KEY",
+        opera: "YOUR_FTMSCAN_API_KEY",
+        ftmTestnet: "YOUR_FTMSCAN_API_KEY",
         // optimistim
-        optimisticEthereum = "YOUR_OPTIMISTIC_ETHERSCAN_API_KEY",
-        optimisticKovan = "YOUR_OPTIMISTIC_ETHERSCAN_API_KEY",
+        optimisticEthereum: "YOUR_OPTIMISTIC_ETHERSCAN_API_KEY",
+        optimisticKovan: "YOUR_OPTIMISTIC_ETHERSCAN_API_KEY",
         // polygon
-        polygon = "YOUR_POLYGONSCAN_API_KEY",
-        polygonMumbai = "YOUR_POLYGONSCAN_API_KEY",
+        polygon: "YOUR_POLYGONSCAN_API_KEY",
+        polygonMumbai: "YOUR_POLYGONSCAN_API_KEY",
         // arbitrum
-        arbitrumOne = "YOUR_ARBISCAN_API_KEY",
-        arbitrumTestnet = "YOUR_ARBISCAN_API_KEY",
+        arbitrumOne: "YOUR_ARBISCAN_API_KEY",
+        arbitrumTestnet: "YOUR_ARBISCAN_API_KEY",
         // avalanche
-        avalanche = "YOUR_SNOWTRACE_API_KEY",
-        avalancheFujiTestnet = "YOUR_SNOWTRACE_API_KEY",
+        avalanche: "YOUR_SNOWTRACE_API_KEY",
+        avalancheFujiTestnet: "YOUR_SNOWTRACE_API_KEY",
         // moonriver
-        moonriver = "YOUR_MOONRIVER_MOONSCAN_API_KEY",
-        moonbaseAlpha = "YOUR_MOONRIVER_MOONSCAN_API_KEY",
+        moonriver: "YOUR_MOONRIVER_MOONSCAN_API_KEY",
+        moonbaseAlpha: "YOUR_MOONRIVER_MOONSCAN_API_KEY",
     }
   }
 };
