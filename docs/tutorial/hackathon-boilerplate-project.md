@@ -56,7 +56,7 @@ npx hardhat --network localhost run scripts/deploy.js
 This will deploy the contract to **Hardhat Network**. After this completes run:
 
 ```
-cd hardhat-hackathon-boilerplate/frontend/
+cd frontend/
 npm install
 npm run start
 ```
