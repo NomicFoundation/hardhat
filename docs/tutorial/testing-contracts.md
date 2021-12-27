@@ -20,7 +20,7 @@ describe("Token contract", function () {
     const hardhatToken = await Token.deploy();
 
     const ownerBalance = await hardhatToken.balanceOf(owner.address);
-    expect(await hardhatToken.totalSupply()).to.equal(ownerBalance);
+    expect(await hardhatToken.totalSupply()).to.deep.equal(ownerBalance);
   });
 });
 ```
