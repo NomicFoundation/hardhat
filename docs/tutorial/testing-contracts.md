@@ -78,10 +78,10 @@ Once the contract is deployed, we can call our contract methods on `hardhatToken
 Remember that the owner of the token who gets the entire supply is the account that makes the deployment, and when using the `hardhat-ethers` plugin `ContractFactory` and `Contract` instances are connected to the first signer by default. This means that the account in the `owner` variable executed the deployment, and `balanceOf()` should return the entire supply amount.
 
 ```js
-expect(await hardhatToken.totalSupply()).to.equal(ownerBalance);
+expect(await hardhatToken.totalSupply()).to.deep.equal(ownerBalance);
 ```
 
-Here we're again using our `Contract` instance to call a smart contract function in our Solidity code. `totalSupply()` returns the token's supply amount and we're checking that it's equal to `ownerBalance`, as it should.
+Here we're again using our `Contract` instance to call a smart contract function in our Solidity code. `totalSupply()` returns the token's supply amount and we're checking that it deep equals `ownerBalance`, as it should.
 
 To do this we're using [Chai](https://www.chaijs.com/) which is an assertions library. These asserting functions are called "matchers", and the ones we're using here actually come from [Waffle](https://getwaffle.io/). This is why we're using the `hardhat-waffle` plugin, which makes it easier to assert values from Ethereum. Check out [this section](https://ethereum-waffle.readthedocs.io/en/latest/matchers.html) in Waffle's documentation for the entire list of Ethereum-specific matchers.
 
