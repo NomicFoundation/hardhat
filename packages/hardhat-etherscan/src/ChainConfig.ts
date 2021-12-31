@@ -149,4 +149,18 @@ export const chainConfig: ChainConfig = {
       browserURL: "https://moonbase.moonscan.io/",
     },
   },
+  celo: {
+    chainId: 42220,
+    urls: {
+      apiURL: "https://explorer.celo.org/api",
+      browserURL: "https://explorer.celo.org/",
+    },
+  },
+  celoAlfajores: {
+    chainId: 44787,
+    urls: {
+      apiURL: "https://alfajores-blockscout.celo-testnet.org/api",
+      browserURL: "https://alfajores-blockscout.celo-testnet.org/",
+    },
+  },
 };
