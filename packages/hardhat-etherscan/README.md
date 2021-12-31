@@ -165,6 +165,9 @@ module.exports = {
         // moonriver
         moonriver = "YOUR_MOONRIVER_MOONSCAN_API_KEY",
         moonbaseAlpha = "YOUR_MOONRIVER_MOONSCAN_API_KEY",
+        // Celo
+        celo = "YOUR_CELO_EXPLORER_API_KEY",
+        celoAlfajores = "YOUR_ALFAJORES_EXPLORER_API_KEY",
     }
   }
 };
