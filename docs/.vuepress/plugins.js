@@ -210,6 +210,13 @@ const plugins = [
     tags: ["Documentation", "NatSpec"],
   },
   {
+    name: "@solidstate/hardhat-4byte-uploader",
+    author: "Nick Barry",
+    authorUrl: "https://github.com/ItsNickBarry",
+    description: "Upload local function selectors to the Ethereum Selector Database",
+    tags: ["Bytecode", "ABI"],
+  },
+  {
     name: "hardhat-watcher",
     author: "Xander Deseyn",
     authorUrl: "https://github.com/N1ghtly",
