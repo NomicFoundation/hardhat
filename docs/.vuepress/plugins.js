@@ -217,6 +217,13 @@ const plugins = [
     tags: ["Bytecode", "ABI"],
   },
   {
+    name: "@solidstate/hardhat-test-short-circuit",
+    author: "Nick Barry",
+    authorUrl: "https://github.com/ItsNickBarry",
+    description: "Stop Hardhat test execution on demand and print output from completed tests",
+    tags: ["Testing", "Mocha"],
+  },
+  {
     name: "hardhat-watcher",
     author: "Xander Deseyn",
     authorUrl: "https://github.com/N1ghtly",
