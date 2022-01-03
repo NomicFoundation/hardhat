@@ -9,7 +9,7 @@ import {
 } from "../../../types";
 import { HttpProvider } from "../../core/providers/http";
 
-import JsonRpcHandler from "./handler";
+import { JsonRpcHandler } from "./handler";
 
 const log = debug("hardhat:core:hardhat-network:jsonrpc");
 
@@ -72,7 +72,7 @@ export class JsonRpcServer implements IJsonRpcServer {
 
   public close = async () => {
     await Promise.all([
-      new Promise((resolve, reject) => {
+      new Promise<void>((resolve, reject) => {
         log("Closing JSON-RPC server");
         this._httpServer.close((err) => {
           if (err !== null && err !== undefined) {
@@ -85,7 +85,7 @@ export class JsonRpcServer implements IJsonRpcServer {
           resolve();
         });
       }),
-      new Promise((resolve, reject) => {
+      new Promise<void>((resolve, reject) => {
         log("Closing websocket server");
         this._wsServer.close((err) => {
           if (err !== null && err !== undefined) {

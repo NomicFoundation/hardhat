@@ -4,13 +4,15 @@ Hardhat Network can be configured to **automine** blocks, immediately upon recei
 
 You can use one of these modes, both or neither. By default, only the automine mode is enabled.
 
-When automine is disabled, every sent transaction is added to the mempool, which contains all the transactions that could be mined in the future. Hardhat Network's mempool follows the same rules as geth. This means, among other things, that transactions are prioritized by fees paid to the miner (and then by arrival time), and that invalid transactions are dropped. Pending transactions can be queried via the `eth_getBlockByNumber` RPC method (with `"pending"` as the block number argument), they can be removed using the `hardhat_dropTransaction` RPC method, and they can be replaced by submitting a new transaction with the same nonce but with a 10+% increase in fees paid to the miner.
+When automine is disabled, every sent transaction is added to the mempool, which contains all the transactions that could be mined in the future. By default, Hardhat Network's mempool follows the same rules as Geth. This means, among other things, that transactions are prioritized by fees paid to the miner (and then by arrival time), and that invalid transactions are dropped. In addition to the default mempool behavior, an [alternative FIFO behavior is also available](../reference/README.md#transaction-ordering).
+
+When automine is disabled, pending transactions can be queried via the `eth_getBlockByNumber` RPC method (with `"pending"` as the block number argument), they can be removed using the `hardhat_dropTransaction` RPC method, and they can be replaced by submitting a new transaction with the same nonce but with a 10+% increase in fees paid to the miner.
 
 If neither mining mode is enabled, no new blocks will be mined, but you can manually mine new blocks using the `evm_mine` RPC method. This will generate a new block that will include as many pending transactions as possible.
 
 ## Mempool behavior
 
-When automine is disabled, every sent transaction is added to the mempool, which contains all the transactions that could be mined in the future. Hardhat Network's mempool follows the same rules as geth. This means, among other things, that:
+When automine is disabled, every sent transaction is added to the mempool, which contains all the transactions that could be mined in the future. By default, Hardhat Network's mempool follows the same rules as Geth. This means, among other things, that:
 
 - Transactions with a higher gas price are included first
 - If two transactions can be included and both are offering the miner the same total fees, the one that was received first is included first
@@ -23,6 +25,24 @@ const pendingBlock = await network.provider.send("eth_getBlockByNumber", [
   "pending",
   false,
 ]);
+```
+
+### Mining transactions in FIFO order
+
+The way Hardhat Network's mempool orders transactions is customizable. By default, they are prioritized following Geth's rules, but you can enable a FIFO behavior instead, which ensures that transactions are added to blocks in the same order they are sent, and which is useful to recreate blocks from other networks.
+
+You can enable the FIFO behavior in your config with:
+
+```json
+networks: {
+  hardhat: {
+    mining: {
+      mempool: {
+        order: "fifo"
+      }
+    }
+  }
+}
 ```
 
 ## Removing and replacing transactions

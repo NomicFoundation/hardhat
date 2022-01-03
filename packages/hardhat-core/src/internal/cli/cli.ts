@@ -126,10 +126,13 @@ async function main() {
 
     let taskName = parsedTaskName ?? TASK_HELP;
 
+    const showEmptyConfigWarning = true;
     const showSolidityConfigWarnings = taskName === TASK_COMPILE;
 
     const ctx = HardhatContext.createHardhatContext();
+
     const config = loadConfigAndTasks(hardhatArguments, {
+      showEmptyConfigWarning,
       showSolidityConfigWarnings,
     });
 
@@ -234,7 +237,7 @@ async function main() {
     console.log("");
 
     try {
-      Reporter.reportError(error);
+      Reporter.reportError(error as Error);
     } catch (e) {
       log("Couldn't report error to sentry: %O", e);
     }

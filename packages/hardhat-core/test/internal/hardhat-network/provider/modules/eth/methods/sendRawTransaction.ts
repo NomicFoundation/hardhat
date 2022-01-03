@@ -117,7 +117,7 @@ describe("Eth module", function () {
                 ]);
 
                 assert.fail("Tx should have failed");
-              } catch (e) {
+              } catch (e: any) {
                 assert.notInclude(e.message, "Tx should have failed");
 
                 assert.isDefined(e.data.txHash);

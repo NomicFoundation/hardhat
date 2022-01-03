@@ -39,7 +39,7 @@ export function getHardhatVersion(): string | null {
   try {
     const packageJson = fsExtra.readJsonSync(packageJsonPath);
     return packageJson.version;
-  } catch (e) {
+  } catch {
     return null;
   }
 }

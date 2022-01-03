@@ -41,13 +41,13 @@ export function isTypescriptSupported() {
 export function loadTsNode(tsConfigPath?: string) {
   try {
     require.resolve("typescript");
-  } catch (error) {
+  } catch {
     throw new HardhatError(ERRORS.GENERAL.TYPESCRIPT_NOT_INSTALLED);
   }
 
   try {
     require.resolve("ts-node");
-  } catch (error) {
+  } catch {
     throw new HardhatError(ERRORS.GENERAL.TS_NODE_NOT_INSTALLED);
   }
 

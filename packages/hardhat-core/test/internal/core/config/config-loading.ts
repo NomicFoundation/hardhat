@@ -172,7 +172,7 @@ describe("config loading", function () {
       let errorThrown;
       try {
         loadConfigAndTasks();
-      } catch (e) {
+      } catch (e: any) {
         errorThrown = e;
       }
 
@@ -199,7 +199,7 @@ describe("config loading", function () {
       let errorThrown;
       try {
         loadConfigAndTasks();
-      } catch (e) {
+      } catch (e: any) {
         errorThrown = e;
       }
 
@@ -226,7 +226,7 @@ describe("config loading", function () {
       let errorThrown;
       try {
         loadConfigAndTasks();
-      } catch (e) {
+      } catch (e: any) {
         errorThrown = e;
       }
 
@@ -369,6 +369,25 @@ Hardhat plugin instead.`
     afterEach(function () {
       consoleWarnStub.restore();
       resetHardhatContext();
+    });
+
+    it("should emit a warning if config is the empty object", function () {
+      loadConfigAndTasks(
+        {
+          config: "empty-config.js",
+        },
+        { showEmptyConfigWarning: true }
+      );
+
+      assert.equal(consoleWarnStub.callCount, 1);
+      assert.include(
+        consoleWarnStub.args[0][0],
+        "Hardhat config is returning an empty config object, check the export from the config file if this is unexpected."
+      );
+      assert.include(
+        consoleWarnStub.args[0][0],
+        "Learn more about configuring Hardhat at https://hardhat.org/config"
+      );
     });
 
     it("should emit a warning if there's no configured solidity", function () {

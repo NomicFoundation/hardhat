@@ -43,7 +43,7 @@ export function parseJsonResponse(
     }
 
     return json;
-  } catch (error) {
+  } catch {
     throw new HardhatError(ERRORS.NETWORK.INVALID_JSON_RESPONSE, {
       response: text,
     });

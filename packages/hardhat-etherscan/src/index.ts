@@ -45,11 +45,12 @@ import {
   toCheckStatusRequest,
   toVerifyRequest,
 } from "./etherscan/EtherscanVerifyContractRequest";
+import { chainConfig } from "./ChainConfig";
 import {
-  EtherscanURLs,
   getEtherscanEndpoints,
   retrieveContractBytecode,
 } from "./network/prober";
+import { resolveEtherscanApiKey } from "./resolveEtherscanApiKey";
 import {
   Bytecode,
   ContractInformation,
@@ -63,6 +64,7 @@ import {
 } from "./solc/metadata";
 import { getLongVersion } from "./solc/version";
 import "./type-extensions";
+import { EtherscanNetworkEntry, EtherscanURLs } from "./types";
 
 interface VerificationArgs {
   address: string;
@@ -156,15 +158,6 @@ const verifySubtask: ActionType<VerificationSubtaskArgs> = async (
 ) => {
   const { etherscan } = config;
 
-  if (etherscan.apiKey === undefined || etherscan.apiKey.trim() === "") {
-    throw new NomicLabsHardhatPluginError(
-      pluginName,
-      `Please provide an Etherscan API token via hardhat config.
-E.g.: { [...], etherscan: { apiKey: 'an API key' }, [...] }
-See https://etherscan.io/apis`
-    );
-  }
-
   const { isAddress } = await import("@ethersproject/address");
   if (!isAddress(address)) {
     throw new NomicLabsHardhatPluginError(
@@ -191,8 +184,14 @@ If your constructor has no arguments pass an empty array. E.g:
     TASK_VERIFY_GET_COMPILER_VERSIONS
   );
 
-  const etherscanAPIEndpoints: EtherscanURLs = await run(
-    TASK_VERIFY_GET_ETHERSCAN_ENDPOINT
+  const {
+    network: verificationNetwork,
+    urls: etherscanAPIEndpoints,
+  }: EtherscanNetworkEntry = await run(TASK_VERIFY_GET_ETHERSCAN_ENDPOINT);
+
+  const etherscanAPIKey = resolveEtherscanApiKey(
+    etherscan,
+    verificationNetwork
   );
 
   const deployedBytecodeHex = await retrieveContractBytecode(
@@ -283,10 +282,11 @@ Possible causes are:
     contractInformation,
     etherscanAPIEndpoints,
     address,
-    etherscanAPIKey: etherscan.apiKey,
+    etherscanAPIKey,
     solcFullVersion,
     deployArgumentsEncoded,
   });
+
   if (success) {
     return;
   }
@@ -296,7 +296,7 @@ Possible causes are:
     etherscanAPIEndpoints,
     contractInformation,
     address,
-    etherscan.apiKey,
+    etherscanAPIKey,
     contractInformation.compilerInput,
     solcFullVersion,
     deployArgumentsEncoded
@@ -369,7 +369,7 @@ subtask(TASK_VERIFY_GET_CONSTRUCTOR_ARGUMENTS)
         }
 
         return constructorArguments;
-      } catch (error) {
+      } catch (error: any) {
         throw new NomicLabsHardhatPluginError(
           pluginName,
           `Importing the module for the constructor arguments list failed.
@@ -407,7 +407,7 @@ subtask(TASK_VERIFY_GET_LIBRARIES)
         }
 
         return libraries;
-      } catch (error) {
+      } catch (error: any) {
         throw new NomicLabsHardhatPluginError(
           pluginName,
           `Importing the module for the libraries dictionary failed.
@@ -443,7 +443,7 @@ async function attemptVerification(
   console.log(
     `Successfully submitted source code for contract
 ${contractInformation.sourceName}:${contractInformation.contractName} at ${contractAddress}
-for verification on Etherscan. Waiting for verification result...
+for verification on the block explorer. Waiting for verification result...
 `
   );
 
@@ -592,7 +592,7 @@ See https://etherscan.io/solcversions for more information.`
 );
 
 subtask(TASK_VERIFY_GET_ETHERSCAN_ENDPOINT).setAction(async (_, { network }) =>
-  getEtherscanEndpoints(network.provider, network.name)
+  getEtherscanEndpoints(network.provider, network.name, chainConfig)
 );
 
 subtask(TASK_VERIFY_GET_CONTRACT_INFORMATION)
@@ -729,6 +729,7 @@ subtask(TASK_VERIFY_VERIFY_MINIMUM_BUILD)
         minimumBuild.output.contracts[contractInformation.sourceName][
           contractInformation.contractName
         ].evm.deployedBytecode.object;
+
       const matchedBytecode =
         contractInformation.compilerOutput.contracts[
           contractInformation.sourceName

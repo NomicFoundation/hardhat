@@ -38,14 +38,19 @@ task(TASK_RUN, "Runs a user-defined script after compiling the project")
       try {
         process.exitCode = await runScriptWithHardhat(hardhatArguments, script);
       } catch (error) {
-        throw new HardhatError(
-          ERRORS.BUILTIN_TASKS.RUN_SCRIPT_ERROR,
-          {
-            script,
-            error: error.message,
-          },
-          error
-        );
+        if (error instanceof Error) {
+          throw new HardhatError(
+            ERRORS.BUILTIN_TASKS.RUN_SCRIPT_ERROR,
+            {
+              script,
+              error: error.message,
+            },
+            error
+          );
+        }
+
+        // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+        throw error;
       }
     }
   );

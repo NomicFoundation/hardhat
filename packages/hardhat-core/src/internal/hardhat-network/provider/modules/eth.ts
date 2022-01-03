@@ -959,29 +959,31 @@ export class EthModule {
       // AccessListEIP2930Transaction.fromSerializedTx and Transaction.fromSerializedTx
       // Please keep it updated.
 
-      if (error.message === "invalid remainder") {
-        throw new InvalidArgumentsError("Invalid transaction", error);
-      }
+      if (error instanceof Error) {
+        if (error.message === "invalid remainder") {
+          throw new InvalidArgumentsError("Invalid transaction", error);
+        }
 
-      if (error.message.includes("Incompatible EIP155")) {
-        throw new InvalidArgumentsError(
-          "Trying to send an incompatible EIP-155 transaction, signed for another chain.",
-          error
-        );
-      }
+        if (error.message.includes("Incompatible EIP155")) {
+          throw new InvalidArgumentsError(
+            "Trying to send an incompatible EIP-155 transaction, signed for another chain.",
+            error
+          );
+        }
 
-      if (
-        error.message.includes("TypedTransaction with ID") &&
-        error.message.includes(" unknown")
-      ) {
-        throw new InvalidArgumentsError(`Invalid transaction`, error);
-      }
+        if (
+          error.message.includes("TypedTransaction with ID") &&
+          error.message.includes(" unknown")
+        ) {
+          throw new InvalidArgumentsError(`Invalid transaction`, error);
+        }
 
-      if (error.message.includes("The chain ID does not match")) {
-        throw new InvalidArgumentsError(
-          `Trying to send a raw transaction with an invalid chainId. The expected chainId is ${this._common.chainIdBN()}`,
-          error
-        );
+        if (error.message.includes("The chain ID does not match")) {
+          throw new InvalidArgumentsError(
+            `Trying to send a raw transaction with an invalid chainId. The expected chainId is ${this._common.chainIdBN()}`,
+            error
+          );
+        }
       }
 
       throw error;
@@ -1065,7 +1067,7 @@ export class EthModule {
     if (typeof typedData === "string") {
       try {
         typedMessage = JSON.parse(typedData);
-      } catch (error) {
+      } catch {
         throw new InvalidInputError(
           `The message parameter is an invalid JSON. Either pass a valid JSON or a plain object conforming to EIP712 TypedData schema.`
         );

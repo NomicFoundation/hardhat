@@ -36,7 +36,7 @@ export async function wrapWithSolidityErrorsCorrection(
 
   try {
     return await f();
-  } catch (error) {
+  } catch (error: any) {
     if (error.stackTrace === undefined) {
       // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
       throw error;

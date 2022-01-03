@@ -100,7 +100,7 @@ describe("Eth module", function () {
               method: "eth_signTypedData_v4",
               params: [address, "{an invalid JSON"],
             });
-          } catch (error) {
+          } catch (error: any) {
             assert.include(error.message, "is an invalid JSON");
             return;
           }

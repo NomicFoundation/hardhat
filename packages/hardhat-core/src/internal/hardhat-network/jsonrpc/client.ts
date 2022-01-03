@@ -317,7 +317,7 @@ export class JsonRpcClient {
   ): Promise<any> {
     try {
       return await this._httpProvider.request({ method, params });
-    } catch (err) {
+    } catch (err: any) {
       if (this._shouldRetry(isRetryCall, err)) {
         return this._send(method, params, true);
       }
@@ -429,7 +429,7 @@ export class JsonRpcClient {
           encoding: "utf8",
         }
       );
-    } catch (error) {
+    } catch (error: any) {
       if (error.code === "ENOENT") {
         return undefined;
       }

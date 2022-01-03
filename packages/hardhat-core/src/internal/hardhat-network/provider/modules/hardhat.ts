@@ -249,7 +249,7 @@ export class HardhatModule {
 
     if (this._node.isEip1559Active()) {
       throw new InvalidInputError(
-        "hardhat_setMinGasPrice is not support when EIP-1559 is active"
+        "hardhat_setMinGasPrice is not supported when EIP-1559 is active"
       );
     }
 

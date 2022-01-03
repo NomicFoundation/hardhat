@@ -170,6 +170,7 @@ module.exports = {
         ],
       },
     ],
+    "import/no-default-export": "error",
     "no-bitwise": "error",
     "no-caller": "error",
     "no-cond-assign": "error",

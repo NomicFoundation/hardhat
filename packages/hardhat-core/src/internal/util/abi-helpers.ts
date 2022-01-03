@@ -21,7 +21,7 @@ export class AbiHelpers {
       const selectorHex = abi.Interface.getSighash(fragment);
 
       return Buffer.from(selectorHex.slice(2), "hex");
-    } catch (e) {
+    } catch {
       return;
     }
   }

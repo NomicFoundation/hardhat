@@ -31,7 +31,7 @@ export function inferSolcVersion(bytecode: Buffer): MetadataDescription {
     log(`Metadata decoded: ${util.inspect(metadata.decoded)}`);
     metadataSectionSizeInBytes = metadata.metadataSectionSizeInBytes;
     solcMetadata = metadata.decoded.solc;
-  } catch (error) {
+  } catch {
     // The decoding failed. Unfortunately, our only option is to assume that this bytecode was emitted by an old version.
     // Technically, this bytecode could have been emitted by a compiler for another language altogether.
     // TODO: add detection logic for other compilers if they become relevant?
