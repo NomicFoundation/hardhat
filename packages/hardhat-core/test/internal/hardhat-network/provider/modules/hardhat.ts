@@ -318,6 +318,45 @@ describe("Hardhat module", function () {
               timestampBefore + numberOfBlocksToMine * timestampInterval
             );
           });
+
+          it("with two consecutive hardhat_mine invocations", async () => {
+            const originalLatestBlockNumber = await getLatestBlockNumber();
+            const timestampBefore = rpcQuantityToNumber(
+              (
+                await this.ctx.provider.send("eth_getBlockByNumber", [
+                  numberToRpcQuantity(originalLatestBlockNumber),
+                  false,
+                ])
+              ).timestamp
+            );
+
+            const numberOfBlocksToMine = 20;
+            const timestampInterval = 10;
+
+            await this.ctx.provider.send("hardhat_mine", [
+              numberToRpcQuantity(numberOfBlocksToMine / 2),
+              numberToRpcQuantity(timestampInterval),
+            ]);
+            await this.ctx.provider.send("hardhat_mine", [
+              numberToRpcQuantity(numberOfBlocksToMine / 2),
+              numberToRpcQuantity(timestampInterval),
+            ]);
+
+            const timestampAfter = rpcQuantityToNumber(
+              (
+                await this.ctx.provider.send("eth_getBlockByNumber", [
+                  numberToRpcQuantity(
+                    originalLatestBlockNumber + numberOfBlocksToMine
+                  ),
+                  false,
+                ])
+              ).timestamp
+            );
+            assert.equal(
+              timestampAfter,
+              timestampBefore + numberOfBlocksToMine * timestampInterval
+            );
+          });
         });
 
         it("should mine transactions in the mempool", async () => {
