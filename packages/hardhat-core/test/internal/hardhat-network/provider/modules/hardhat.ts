@@ -190,7 +190,7 @@ describe("Hardhat module", function () {
       });
 
       describe("hardhat_mine", () => {
-        const getLatestBlockNumber = async () => {
+        const getLatestBlockNumber = async (): Promise<number> => {
           return rpcQuantityToNumber(
             await this.ctx.provider.send("eth_blockNumber")
           );
@@ -282,6 +282,40 @@ describe("Hardhat module", function () {
             assert.equal(
               await getLatestBlockNumber(),
               latestBlockNumber + 1000
+            );
+          });
+        });
+
+        describe("should reflect timestamps properly", function () {
+          it("with only one hardhat_mine invocation", async () => {
+            const originalLatestBlockNumber = await getLatestBlockNumber();
+            const timestampBefore = rpcQuantityToNumber(
+              (
+                await this.ctx.provider.send("eth_getBlockByNumber", [
+                  numberToRpcQuantity(originalLatestBlockNumber),
+                  false,
+                ])
+              ).timestamp
+            );
+            const numberOfBlocksToMine = 10;
+            const timestampInterval = 10;
+            await this.ctx.provider.send("hardhat_mine", [
+              numberToRpcQuantity(numberOfBlocksToMine),
+              numberToRpcQuantity(timestampInterval),
+            ]);
+            const timestampAfter = rpcQuantityToNumber(
+              (
+                await this.ctx.provider.send("eth_getBlockByNumber", [
+                  numberToRpcQuantity(
+                    originalLatestBlockNumber + numberOfBlocksToMine
+                  ),
+                  false,
+                ])
+              ).timestamp
+            );
+            assert.equal(
+              timestampAfter,
+              timestampBefore + numberOfBlocksToMine * timestampInterval
             );
           });
         });
