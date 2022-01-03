@@ -163,6 +163,8 @@ export class BlockchainData {
       });
     }
 
+    const timestamp = this._calculateTimestampForReservedBlock(blockNumber);
+
     // split the block reservation:
 
     const oldReservation = this.blockReservations[reservationIndex];
@@ -187,19 +189,11 @@ export class BlockchainData {
 
     // add the block, injecting the appropriate timestamp:
 
-    const previousTimestamp =
-      this.getBlockByNumber(oldReservation.first.subn(1))?.header.timestamp ??
-      new BN(0);
-
     const blockToAdd = Block.fromBlockData(
       {
         header: {
           number: blockNumber,
-          timestamp: previousTimestamp.add(
-            oldReservation.interval.mul(
-              blockNumber.sub(oldReservation.first).addn(1)
-            )
-          ),
+          timestamp,
         },
       },
       { common }
@@ -208,6 +202,30 @@ export class BlockchainData {
     this.addBlock(blockToAdd, new BN(0));
 
     return blockToAdd;
+  }
+
+  private _calculateTimestampForReservedBlock(blockNumber: BN): BN {
+    const reservationIndex = this._findBlockReservation(blockNumber);
+    if (reservationIndex === -1) {
+      throw new HardhatError(ERRORS.GENERAL.ASSERTION_ERROR, {
+        message: `Block ${blockNumber.toString()} does not lie within any of the reservations (${util.inspect(
+          this.blockReservations
+        )}).`,
+      });
+    }
+
+    const reservation = this.blockReservations[reservationIndex];
+
+    const blockNumberBeforeReservation = reservation.first.subn(1);
+
+    const previousTimestamp = this.isReservedBlock(blockNumberBeforeReservation)
+      ? this._calculateTimestampForReservedBlock(blockNumberBeforeReservation)
+      : this.getBlockByNumber(blockNumberBeforeReservation)?.header.timestamp ??
+        new BN(0);
+
+    return previousTimestamp.add(
+      reservation.interval.mul(blockNumber.sub(reservation.first).addn(1))
+    );
   }
 
   public unreserveBlocksAfter(blockNumber: BN) {
