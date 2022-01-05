@@ -65,6 +65,7 @@ import {
 import { getLongVersion } from "./solc/version";
 import "./type-extensions";
 import { EtherscanNetworkEntry, EtherscanURLs } from "./types";
+import { buildContractUrl } from "./util";
 
 interface VerificationArgs {
   address: string;
@@ -303,10 +304,11 @@ Possible causes are:
   );
 
   if (verificationStatus.isVerificationSuccess()) {
-    const contractURL = new URL(
-      `/address/${address}#code`,
-      etherscanAPIEndpoints.browserURL
+    const contractURL = buildContractUrl(
+      etherscanAPIEndpoints.browserURL,
+      address
     );
+
     console.log(
       `Successfully verified full build of contract ${contractInformation.contractName} on Etherscan.
 ${contractURL}`
@@ -747,9 +749,9 @@ subtask(TASK_VERIFY_VERIFY_MINIMUM_BUILD)
         );
 
         if (minimumBuildVerificationStatus.isVerificationSuccess()) {
-          const contractURL = new URL(
-            `/address/${address}#code`,
-            etherscanAPIEndpoints.browserURL
+          const contractURL = buildContractUrl(
+            etherscanAPIEndpoints.browserURL,
+            address
           );
           console.log(
             `Successfully verified contract ${contractInformation.contractName} on Etherscan.

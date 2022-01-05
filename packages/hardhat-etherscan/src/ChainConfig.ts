@@ -149,4 +149,18 @@ export const chainConfig: ChainConfig = {
       browserURL: "https://moonbase.moonscan.io/",
     },
   },
+  xdai: {
+    chainId: 100,
+    urls: {
+      apiURL: "https://blockscout.com/xdai/mainnet/api",
+      browserURL: "https://blockscout.com/xdai/mainnet",
+    },
+  },
+  sokol: {
+    chainId: 77,
+    urls: {
+      apiURL: "https://blockscout.com/poa/sokol/api",
+      browserURL: "https://blockscout.com/poa/sokol",
+    },
+  },
 };
