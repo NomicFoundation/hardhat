@@ -1365,18 +1365,20 @@ describe("Hardhat module", function () {
           });
         });
 
-        describe("When EIP-1559 is active", function () {
-          useProvider({ hardfork: "london" });
+        for (const hardfork of ["london", "arrowGlacier"]) {
+          describe(`When EIP-1559 is active (${hardfork})`, function () {
+            useProvider({ hardfork });
 
-          it("Should be disabled", async function () {
-            await assertInvalidInputError(
-              this.provider,
-              "hardhat_setMinGasPrice",
-              [numberToRpcQuantity(1)],
-              "hardhat_setMinGasPrice is not support when EIP-1559 is active"
-            );
+            it("Should be disabled", async function () {
+              await assertInvalidInputError(
+                this.provider,
+                "hardhat_setMinGasPrice",
+                [numberToRpcQuantity(1)],
+                "hardhat_setMinGasPrice is not supported when EIP-1559 is active"
+              );
+            });
           });
-        });
+        }
       });
 
       describe("hardhat_setNextBlockBaseFeePerGas", function () {

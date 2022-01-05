@@ -27,6 +27,8 @@ import {
 import EventEmitter from "events";
 
 import { CompilerInput, CompilerOutput } from "../../../types";
+import { HardforkHistoryConfig } from "../../../types/config";
+import { HARDHAT_NETWORK_SUPPORTED_HARDFORKS } from "../../constants";
 import {
   HARDHAT_NETWORK_DEFAULT_INITIAL_BASE_FEE_PER_GAS,
   HARDHAT_NETWORK_DEFAULT_MAX_PRIORITY_FEE_PER_GAS,
@@ -130,6 +132,8 @@ export class HardhatNode extends EventEmitter {
       tracingConfig,
       minGasPrice,
       mempoolOrder,
+      networkId,
+      chainId,
     } = config;
 
     let common: Common;
@@ -138,6 +142,8 @@ export class HardhatNode extends EventEmitter {
     let initialBlockTimeOffset: BN | undefined;
     let nextBlockBaseFeePerGas: BN | undefined;
     let forkNetworkId: number | undefined;
+    let forkBlockNum: number | undefined;
+    let hardforkActivations: HardforkHistoryConfig = new Map();
 
     const initialBaseFeePerGasConfig =
       config.initialBaseFeePerGas !== undefined
@@ -152,6 +158,7 @@ export class HardhatNode extends EventEmitter {
       common = await makeForkCommon(config);
 
       forkNetworkId = forkClient.getNetworkId();
+      forkBlockNum = forkBlockNumber.toNumber();
 
       this._validateHardforks(
         config.forkConfig.blockNumber,
@@ -188,6 +195,10 @@ export class HardhatNode extends EventEmitter {
             );
           }
         }
+      }
+
+      if (config.chains.has(forkNetworkId)) {
+        hardforkActivations = config.chains.get(forkNetworkId)!.hardforkHistory;
       }
     } else {
       const hardhatStateManager = new HardhatStateManager();
@@ -243,8 +254,12 @@ export class HardhatNode extends EventEmitter {
       mempoolOrder,
       config.coinbase,
       genesisAccounts,
+      networkId,
+      chainId,
+      hardforkActivations,
       tracingConfig,
       forkNetworkId,
+      forkBlockNum,
       nextBlockBaseFeePerGas
     );
 
@@ -318,8 +333,12 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     private _mempoolOrder: MempoolOrder,
     private _coinbase: string,
     genesisAccounts: GenesisAccount[],
+    private readonly _configNetworkId: number,
+    private readonly _configChainId: number,
+    private readonly _hardforkActivations: HardforkHistoryConfig,
     tracingConfig?: TracingConfig,
     private _forkNetworkId?: number,
+    private _forkBlockNumber?: number,
     nextBlockBaseFee?: BN
   ) {
     super();
@@ -482,7 +501,10 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       blockNumberOrPending
     );
 
-    if (call.gasPrice !== undefined || !this.isEip1559Active()) {
+    if (
+      call.gasPrice !== undefined ||
+      !this.isEip1559Active(blockNumberOrPending)
+    ) {
       txParams = {
         gasPrice: new BN(0),
         nonce,
@@ -1221,7 +1243,10 @@ Hardhat Network's forking functionality only works with blocks from at least spu
             "this._forkNetworkId should exist if the blockchain is an instance of ForkBlockchain"
           );
 
-          const common = getCommonForTracing(this._forkNetworkId, blockNumber);
+          const common = this._getCommonForTracing(
+            this._forkNetworkId,
+            blockNumber
+          );
 
           vm = new VM({
             common,
@@ -2151,6 +2176,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     const initialStateRoot = await this._stateManager.getStateRoot();
 
     let blockContext: Block | undefined;
+    let originalCommon: Common | undefined;
 
     try {
       if (blockNumberOrPending === "pending") {
@@ -2185,7 +2211,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       // eth_call. This will make the BASEFEE option also return 0, which
       // shouldn't. See: https://github.com/nomiclabs/hardhat/issues/1688
       if (
-        this.isEip1559Active() &&
+        this.isEip1559Active(blockNumberOrPending) &&
         (blockContext.header.baseFeePerGas === undefined || forceBaseFeeZero)
       ) {
         blockContext = Block.fromBlockData(blockContext, {
@@ -2196,6 +2222,17 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         (blockContext.header as any).baseFeePerGas = new BN(0);
       }
 
+      originalCommon = (this._vm as any)._common;
+      (this._vm as any)._common = new Common({
+        chain: {
+          // eslint-disable-next-line @typescript-eslint/dot-notation
+          ...this._vm._common["_chainParams"],
+          chainId: this._forkNetworkId ?? this._configChainId,
+          networkId: this._forkNetworkId ?? this._configNetworkId,
+        },
+        hardfork: this._selectHardfork(blockContext.header.number),
+      });
+
       return await this._vm.runTx({
         block: blockContext,
         tx,
@@ -2204,6 +2241,9 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         skipBlockGasLimitValidation: true,
       });
     } finally {
+      if (originalCommon !== undefined) {
+        (this._vm as any)._common = originalCommon;
+      }
       await this._stateManager.setStateRoot(initialStateRoot);
     }
   }
@@ -2299,7 +2339,16 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     );
   }
 
-  public isEip1559Active(): boolean {
+  public isEip1559Active(blockNumberOrPending?: BN | "pending"): boolean {
+    if (
+      blockNumberOrPending !== undefined &&
+      blockNumberOrPending !== "pending"
+    ) {
+      return this._vm._common.hardforkGteHardfork(
+        this._selectHardfork(blockNumberOrPending),
+        "london"
+      );
+    }
     return this._vm._common.gteHardfork("london");
   }
 
@@ -2309,7 +2358,10 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   ): Promise<
     { gasPrice: BN } | { maxFeePerGas: BN; maxPriorityFeePerGas: BN }
   > {
-    if (!this.isEip1559Active() || callParams.gasPrice !== undefined) {
+    if (
+      !this.isEip1559Active(blockNumberOrPending) ||
+      callParams.gasPrice !== undefined
+    ) {
       return { gasPrice: callParams.gasPrice ?? (await this.getGasPrice()) };
     }
 
@@ -2339,18 +2391,71 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
     return { maxFeePerGas, maxPriorityFeePerGas };
   }
-}
 
-function getCommonForTracing(networkId: number, blockNumber: number): Common {
-  try {
-    const common = new Common({ chain: networkId });
+  private _selectHardfork(blockNumber: BN): string {
+    if (
+      this._forkBlockNumber === undefined ||
+      blockNumber.gte(new BN(this._forkBlockNumber))
+    ) {
+      return this._vm._common.hardfork() as HardforkName;
+    }
 
-    common.setHardfork(common.activeHardfork(blockNumber));
+    if (this._hardforkActivations.size === 0) {
+      throw new InternalError(
+        `No known hardfork for execution on historical block ${blockNumber.toString()} (relative to fork block number ${
+          this._forkBlockNumber
+        }). The node was not configured with a hardfork activation history.  See http://hardhat.org/hardhat-network/guides/mainnet-forking.html#using-a-custom-hardfork-history`
+      );
+    }
 
-    return common;
-  } catch {
-    throw new InternalError(
-      `Network id ${networkId} does not correspond to a network that Hardhat can trace`
+    /** search this._hardforkActivations for the highest block number that
+     * isn't higher than blockNumber, and then return that found block number's
+     * associated hardfork name. */
+    const hardforkHistory: Array<[name: string, block: number]> = Array.from(
+      this._hardforkActivations.entries()
     );
+    const [hardfork, activationBlock] = hardforkHistory.reduce(
+      ([highestHardfork, highestBlock], [thisHardfork, thisBlock]) =>
+        thisBlock > highestBlock && new BN(thisBlock).lte(blockNumber)
+          ? [thisHardfork, thisBlock]
+          : [highestHardfork, highestBlock]
+    );
+    if (hardfork === undefined || blockNumber.ltn(activationBlock)) {
+      throw new InternalError(
+        `Could not find a hardfork to run for block ${blockNumber}, after having looked for one in the HardhatNode's hardfork activation history, which was: ${JSON.stringify(
+          hardforkHistory
+        )}. For more information, see https://hardhat.org/hardhat-network/reference/#config`
+      );
+    }
+
+    if (!HARDHAT_NETWORK_SUPPORTED_HARDFORKS.includes(hardfork)) {
+      throw new InternalError(
+        `Tried to run a call or transaction in the context of a block whose hardfork is "${hardfork}", but Hardhat Network only supports the following hardforks: ${HARDHAT_NETWORK_SUPPORTED_HARDFORKS.join(
+          ", "
+        )}`
+      );
+    }
+
+    return hardfork;
+  }
+
+  private _getCommonForTracing(networkId: number, blockNumber: number): Common {
+    try {
+      const common = new Common({
+        chain: {
+          // eslint-disable-next-line @typescript-eslint/dot-notation
+          ...Common["_getChainParams"]("mainnet"),
+          chainId: networkId,
+          networkId,
+        },
+        hardfork: this._selectHardfork(new BN(blockNumber)),
+      });
+
+      return common;
+    } catch {
+      throw new InternalError(
+        `Network id ${networkId} does not correspond to a network that Hardhat can trace`
+      );
+    }
   }
 }

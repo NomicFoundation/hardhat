@@ -126,10 +126,13 @@ async function main() {
 
     let taskName = parsedTaskName ?? TASK_HELP;
 
+    const showEmptyConfigWarning = true;
     const showSolidityConfigWarnings = taskName === TASK_COMPILE;
 
     const ctx = HardhatContext.createHardhatContext();
+
     const config = loadConfigAndTasks(hardhatArguments, {
+      showEmptyConfigWarning,
       showSolidityConfigWarnings,
     });
 

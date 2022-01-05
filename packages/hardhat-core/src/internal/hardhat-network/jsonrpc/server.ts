@@ -9,7 +9,7 @@ import {
 } from "../../../types";
 import { HttpProvider } from "../../core/providers/http";
 
-import JsonRpcHandler from "./handler";
+import { JsonRpcHandler } from "./handler";
 
 const log = debug("hardhat:core:hardhat-network:jsonrpc");
 

@@ -253,6 +253,7 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
       gasLimit: transactionRequest.gas,
     };
 
+    // TODO: consider changing instances of "london" below to ["latest hardfork"]
     const common =
       chains.names[chainId] !== undefined
         ? new Common({ chain: chainId, hardfork: "london" })

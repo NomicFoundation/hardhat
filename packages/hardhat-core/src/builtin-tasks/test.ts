@@ -57,6 +57,8 @@ subtask(TASK_TEST_RUN_MOCHA_TESTS)
       mocha.run(resolve);
     });
 
+    mocha.dispose();
+
     return testFailures;
   });
 

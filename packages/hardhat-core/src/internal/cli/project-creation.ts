@@ -447,7 +447,7 @@ export async function createProject() {
     `\n${emoji("✨ ")}${chalk.cyan("Project created")}${emoji(" ✨")}`
   );
 
-  console.log("See the README.txt file for some example tasks you can run.");
+  console.log("See the README.md file for some example tasks you can run.");
 }
 
 function createConfirmationPrompt(name: string, message: string) {

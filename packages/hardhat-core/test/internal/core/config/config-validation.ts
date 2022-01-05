@@ -1726,22 +1726,72 @@ describe("Config validation", function () {
           });
         });
 
-        describe("When using London", function () {
-          it("Should throw if minGasPrice is used", function () {
-            expectHardhatError(
-              () =>
-                validateConfig({
-                  networks: {
-                    hardhat: {
-                      hardfork: "london",
-                      minGasPrice: 123,
+        describe("When using London or later", function () {
+          for (const hardfork of ["london", "arrowGlacier"]) {
+            it(`Should throw if minGasPrice is used when ${hardfork} is activated`, function () {
+              expectHardhatError(
+                () =>
+                  validateConfig({
+                    networks: {
+                      hardhat: {
+                        hardfork,
+                        minGasPrice: 123,
+                      },
                     },
-                  },
-                }),
-              ERRORS.GENERAL.INVALID_CONFIG
-            );
-          });
+                  }),
+                ERRORS.GENERAL.INVALID_CONFIG
+              );
+            });
+          }
         });
+      });
+    });
+
+    describe("Hardfork history usage", function () {
+      it("Should validate good config", function () {
+        validateConfig({
+          networks: {
+            hardhat: {
+              chains: {
+                1: {
+                  hardforkHistory: {
+                    berlin: 12965000 - 1000,
+                    london: 12965000,
+                  },
+                },
+              },
+            },
+          },
+        });
+      });
+      it("Should validate good config with chainId as a string", function () {
+        validateConfig({
+          networks: {
+            hardhat: {
+              chains: {
+                "1": {
+                  hardforkHistory: {
+                    berlin: 12965000 - 1000,
+                    london: 12965000,
+                  },
+                },
+              },
+            },
+          },
+        });
+      });
+      it("should reject an invalid hardfork name", function () {
+        expectHardhatError(() => {
+          validateConfig({
+            networks: {
+              hardhat: {
+                chains: {
+                  1: { hardforkHistory: { bogusHardforkName: 12965000 } },
+                },
+              },
+            },
+          });
+        }, ERRORS.GENERAL.INVALID_CONFIG);
       });
     });
   });

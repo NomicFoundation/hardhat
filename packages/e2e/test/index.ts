@@ -39,6 +39,33 @@ describe("e2e tests", function () {
       const { code: hhCleanCode2 } = shell.exec(`${hardhatBinary} clean`);
       assert.equal(hhCleanCode2, 0);
     });
+
+    it("should test programmatically", function () {
+      // hh clean
+      const { code: hhCleanCode1 } = shell.exec(`${hardhatBinary} clean`);
+      assert.equal(hhCleanCode1, 0);
+
+      // hh compile
+      const { code: testRunCode, stdout } = shell.exec(
+        `${hardhatBinary} run ./scripts/multi-run-test.js`
+      );
+      assert.equal(testRunCode, 0);
+
+      // check stdout
+
+      // check we get passing runs
+      assert.match(stdout, /1 passing/);
+      // check we get no runs without tests
+      assert.notMatch(
+        stdout,
+        /0 passing/,
+        "A test run occured with 0 tests - potential caching issue"
+      );
+
+      // hh clean
+      const { code: hhCleanCode2 } = shell.exec(`${hardhatBinary} clean`);
+      assert.equal(hhCleanCode2, 0);
+    });
   });
 
   describe("sample projects", function () {

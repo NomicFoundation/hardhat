@@ -11,5 +11,5 @@ jobs:
       - name: "Autoassign issue"
         uses: pozil/auto-assign-issue@v1.1.0
         with:
-          assignees: alcuadrado,fvictorio,morgansliman,feuGeneA
+          assignees: alcuadrado,fvictorio,morgansliman,feuGeneA,kanej
           numOfAssignee: 1
