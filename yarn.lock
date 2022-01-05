@@ -10233,19 +10233,6 @@ merkle-patricia-tree@^2.1.2, merkle-patricia-tree@^2.3.2:
     rlp "^2.0.0"
     semaphore ">=1.0.1"
 
-merkle-patricia-tree@^4.2.0:
-  version "4.2.0"
-  resolved "https://registry.yarnpkg.com/merkle-patricia-tree/-/merkle-patricia-tree-4.2.0.tgz#a204b9041be5c25e8d14f0ff47021de090e811a1"
-  integrity sha512-0sBVXs7z1Q1/kxzWZ3nPnxSPiaHKF/f497UQzt9O7isRcS10tel9jM/4TivF6Jv7V1yFq4bWyoATxbDUOen5vQ==
-  dependencies:
-    "@types/levelup" "^4.3.0"
-    ethereumjs-util "^7.0.10"
-    level-mem "^5.0.1"
-    level-ws "^2.0.0"
-    readable-stream "^3.6.0"
-    rlp "^2.2.4"
-    semaphore-async-await "^1.5.1"
-
 merkle-patricia-tree@^4.2.2:
   version "4.2.2"
   resolved "https://registry.yarnpkg.com/merkle-patricia-tree/-/merkle-patricia-tree-4.2.2.tgz#6dec17855370172458244c2f42c989dd60b773a3"
