@@ -63,6 +63,7 @@ import {
 } from "./solc/metadata";
 import { getLongVersion } from "./solc/version";
 import "./type-extensions";
+import { buildContractUrl } from "./util";
 
 interface VerificationArgs {
   address: string;
@@ -831,10 +832,4 @@ function isVersionRange(version: string): boolean {
     version === METADATA_ABSENT_VERSION_RANGE ||
     version === METADATA_PRESENT_SOLC_NOT_FOUND_VERSION_RANGE
   );
-}
-
-function buildContractUrl(browserURL: string, contractAddress: string): string {
-  const normalizedBrowserURL = browserURL.trim().replace(/\/$/, "");
-
-  return `${normalizedBrowserURL}/address/${contractAddress}#code`;
 }
