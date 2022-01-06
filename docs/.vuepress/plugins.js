@@ -214,7 +214,8 @@ const plugins = [
     author: "Nick Barry",
     authorUrl: "https://github.com/ItsNickBarry",
     url: "https://github.com/solidstate-network/hardhat-4byte-uploader/tree/master",
-    description: "Upload local function selectors to the Ethereum Selector Database",
+    description:
+      "Upload local function selectors to the Ethereum Selector Database",
     tags: ["Bytecode", "ABI"],
   },
   {
@@ -222,7 +223,8 @@ const plugins = [
     author: "Nick Barry",
     authorUrl: "https://github.com/ItsNickBarry",
     url: "https://github.com/solidstate-network/hardhat-test-short-circuit/tree/master",
-    description: "Stop Hardhat test execution on demand and print output from completed tests",
+    description:
+      "Stop Hardhat test execution on demand and print output from completed tests",
     tags: ["Testing", "Mocha"],
   },
   {
@@ -394,8 +396,7 @@ const plugins = [
     name: "hardhat-fund-link",
     author: "Applied Blockchain",
     authorUrl: "https://github.com/appliedblockchain",
-    url:
-      "https://github.com/appliedblockchain/chainlink-consumer/tree/master/plugins/fund-link",
+    url: "https://github.com/appliedblockchain/chainlink-consumer/tree/master/plugins/fund-link",
     description: "Transfers Link token amount between accounts.",
     tags: ["Chainlink", "Link"],
   },
