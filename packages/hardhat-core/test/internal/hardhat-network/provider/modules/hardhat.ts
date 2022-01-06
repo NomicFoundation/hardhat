@@ -287,15 +287,20 @@ describe("Hardhat module", function () {
         });
 
         describe("should reflect timestamps properly", function () {
-          it("with only one hardhat_mine invocation", async () => {
-            const originalLatestBlockNumber = await getLatestBlockNumber();
-            const timestampBefore = rpcQuantityToNumber(
+          const getBlockTimestamp = async (block: number): Promise<number> => {
+            return rpcQuantityToNumber(
               (
                 await this.ctx.provider.send("eth_getBlockByNumber", [
-                  numberToRpcQuantity(originalLatestBlockNumber),
+                  numberToRpcQuantity(block),
                   false,
                 ])
               ).timestamp
+            );
+          };
+          it("with only one hardhat_mine invocation", async () => {
+            const originalLatestBlockNumber = await getLatestBlockNumber();
+            const timestampBefore = await getBlockTimestamp(
+              originalLatestBlockNumber
             );
             const numberOfBlocksToMine = 10;
             const timestampInterval = 10;
@@ -303,15 +308,8 @@ describe("Hardhat module", function () {
               numberToRpcQuantity(numberOfBlocksToMine),
               numberToRpcQuantity(timestampInterval),
             ]);
-            const timestampAfter = rpcQuantityToNumber(
-              (
-                await this.ctx.provider.send("eth_getBlockByNumber", [
-                  numberToRpcQuantity(
-                    originalLatestBlockNumber + numberOfBlocksToMine
-                  ),
-                  false,
-                ])
-              ).timestamp
+            const timestampAfter = await getBlockTimestamp(
+              originalLatestBlockNumber + numberOfBlocksToMine
             );
             assert.equal(
               timestampAfter,
@@ -321,13 +319,8 @@ describe("Hardhat module", function () {
 
           it("with two consecutive hardhat_mine invocations", async () => {
             const originalLatestBlockNumber = await getLatestBlockNumber();
-            const timestampBefore = rpcQuantityToNumber(
-              (
-                await this.ctx.provider.send("eth_getBlockByNumber", [
-                  numberToRpcQuantity(originalLatestBlockNumber),
-                  false,
-                ])
-              ).timestamp
+            const timestampBefore = await getBlockTimestamp(
+              originalLatestBlockNumber
             );
 
             const numberOfBlocksToMine = 20;
@@ -342,15 +335,8 @@ describe("Hardhat module", function () {
               numberToRpcQuantity(timestampInterval),
             ]);
 
-            const timestampAfter = rpcQuantityToNumber(
-              (
-                await this.ctx.provider.send("eth_getBlockByNumber", [
-                  numberToRpcQuantity(
-                    originalLatestBlockNumber + numberOfBlocksToMine
-                  ),
-                  false,
-                ])
-              ).timestamp
+            const timestampAfter = await getBlockTimestamp(
+              originalLatestBlockNumber + numberOfBlocksToMine
             );
             assert.equal(
               timestampAfter,
