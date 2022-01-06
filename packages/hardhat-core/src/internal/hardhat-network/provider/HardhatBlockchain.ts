@@ -47,7 +47,7 @@ export class HardhatBlockchain implements HardhatBlockchainInterface {
     return block;
   }
 
-  public async reserveBlocks(count: BN, interval: BN, common: Common) {
+  public reserveBlocks(count: BN, interval: BN, common: Common) {
     this._data.reserveBlocks(new BN(this._length), count, interval, common);
     this._length = this._length + count.toNumber();
   }
