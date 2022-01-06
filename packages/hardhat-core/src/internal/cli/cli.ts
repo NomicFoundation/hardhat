@@ -94,20 +94,28 @@ async function main() {
 
     showStackTraces = hardhatArguments.showStackTraces;
 
-    if (
-      hardhatArguments.config === undefined &&
-      !isCwdInsideProject() &&
-      (process.stdout.isTTY === true ||
+    if (hardhatArguments.config === undefined && !isCwdInsideProject()) {
+      if (
+        process.stdout.isTTY === true ||
         process.env.HARDHAT_CREATE_BASIC_SAMPLE_PROJECT_WITH_DEFAULTS !==
           undefined ||
         process.env.HARDHAT_CREATE_ADVANCED_SAMPLE_PROJECT_WITH_DEFAULTS !==
           undefined ||
         process.env
           .HARDHAT_CREATE_ADVANCED_TYPESCRIPT_SAMPLE_PROJECT_WITH_DEFAULTS !==
-          undefined)
-    ) {
-      await createProject();
-      return;
+          undefined
+      ) {
+        await createProject();
+        return;
+      }
+
+      // Many terminal emulators in windows fail to run the createProject()
+      // workflow, and don't present themselves as TTYs. If we are in this
+      // situation we throw a special error instructing the user to use WSL or
+      // powershell to initialize the project.
+      if (process.platform === "win32") {
+        throw new HardhatError(ERRORS.GENERAL.NON_LOCAL_INSTALLATION);
+      }
     }
 
     // --version is a special case
