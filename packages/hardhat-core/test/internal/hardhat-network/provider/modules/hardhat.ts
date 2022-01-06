@@ -213,7 +213,7 @@ describe("Hardhat module", function () {
           await this.ctx.provider.send("evm_mine");
         });
 
-        describe("should premit the retrieval of a reserved block", function () {
+        describe("should permit the retrieval of a reserved block", function () {
           const getAndAssertBlock = async (blockNumber: number) => {
             const block = await this.ctx.provider.send("eth_getBlockByNumber", [
               numberToRpcQuantity(blockNumber),
