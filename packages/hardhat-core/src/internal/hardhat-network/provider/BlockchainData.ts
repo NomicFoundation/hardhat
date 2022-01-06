@@ -19,7 +19,7 @@ export class BlockchainData {
   private _transactions: Map<string, TypedTransaction> = new Map();
   private _transactionReceipts: Map<string, RpcReceiptOutput> = new Map();
   private _totalDifficulty: Map<string, BN> = new Map();
-  public blockReservations: Array<{
+  private _blockReservations: Array<{
     first: BN;
     last: BN;
     interval: BN;
@@ -27,7 +27,7 @@ export class BlockchainData {
 
   public reserveBlocks(first: BN, count: BN, interval: BN, common: Common) {
     const last = first.add(count);
-    this.blockReservations.push({ first, last, interval });
+    this._blockReservations.push({ first, last, interval });
     this.addBlock(
       Block.fromBlockData(
         {
@@ -142,7 +142,7 @@ export class BlockchainData {
   }
 
   private _findBlockReservation(blockNumber: BN): number {
-    return this.blockReservations.findIndex(
+    return this._blockReservations.findIndex(
       (reservation) =>
         reservation.first.lte(blockNumber) && blockNumber.lte(reservation.last)
     );
@@ -150,7 +150,7 @@ export class BlockchainData {
 
   public fulfillBlockReservation(blockNumber: BN, common: Common): Block {
     // number should lie within one of the reservations listed in
-    // this.blockReservations. in addition to adding the given block, that
+    // this._blockReservations. in addition to adding the given block, that
     // reservation needs to be split in two in order to accomodate access to
     // the given block.
 
@@ -158,7 +158,7 @@ export class BlockchainData {
     if (reservationIndex === -1) {
       throw new HardhatError(ERRORS.GENERAL.ASSERTION_ERROR, {
         message: `Block ${blockNumber.toString()} does not lie within any of the reservations (${util.inspect(
-          this.blockReservations
+          this._blockReservations
         )}).`,
       });
     }
@@ -167,12 +167,12 @@ export class BlockchainData {
 
     // split the block reservation:
 
-    const oldReservation = this.blockReservations[reservationIndex];
+    const oldReservation = this._blockReservations[reservationIndex];
 
-    this.blockReservations.splice(reservationIndex, 1);
+    this._blockReservations.splice(reservationIndex, 1);
 
     if (!blockNumber.eq(oldReservation.first)) {
-      this.blockReservations.push({
+      this._blockReservations.push({
         first: oldReservation.first,
         last: blockNumber.subn(1),
         interval: oldReservation.interval,
@@ -180,7 +180,7 @@ export class BlockchainData {
     }
 
     if (!blockNumber.eq(oldReservation.last)) {
-      this.blockReservations.push({
+      this._blockReservations.push({
         first: blockNumber.addn(1),
         last: oldReservation.last,
         interval: oldReservation.interval,
@@ -209,12 +209,12 @@ export class BlockchainData {
     if (reservationIndex === -1) {
       throw new HardhatError(ERRORS.GENERAL.ASSERTION_ERROR, {
         message: `Block ${blockNumber.toString()} does not lie within any of the reservations (${util.inspect(
-          this.blockReservations
+          this._blockReservations
         )}).`,
       });
     }
 
-    const reservation = this.blockReservations[reservationIndex];
+    const reservation = this._blockReservations[reservationIndex];
 
     const blockNumberBeforeReservation = reservation.first.subn(1);
 
@@ -240,11 +240,11 @@ export class BlockchainData {
 
       const reservationIndex = this._findBlockReservation(b);
 
-      const oldReservation = this.blockReservations[reservationIndex];
+      const oldReservation = this._blockReservations[reservationIndex];
 
-      this.blockReservations.splice(reservationIndex, 1);
+      this._blockReservations.splice(reservationIndex, 1);
 
-      this.blockReservations.push({
+      this._blockReservations.push({
         first: oldReservation.first,
         last: b.subn(1),
         interval: oldReservation.interval,
