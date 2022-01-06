@@ -29,12 +29,11 @@ export class HardhatBlockchain implements HardhatBlockchainInterface {
   public async getBlock(
     blockHashOrNumber: Buffer | BN | number
   ): Promise<Block | null> {
-    if (typeof blockHashOrNumber === "number" || BN.isBN(blockHashOrNumber)) {
-      const blockNumber =
-        typeof blockHashOrNumber === "number"
-          ? new BN(blockHashOrNumber)
-          : blockHashOrNumber;
-      return this._data.getBlockByNumber(blockNumber) ?? null;
+    if (typeof blockHashOrNumber === "number") {
+      return this._data.getBlockByNumber(new BN(blockHashOrNumber)) ?? null;
+    }
+    if (BN.isBN(blockHashOrNumber)) {
+      return this._data.getBlockByNumber(blockHashOrNumber) ?? null;
     }
     return this._data.getBlockByHash(blockHashOrNumber) ?? null;
   }
