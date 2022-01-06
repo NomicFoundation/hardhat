@@ -1,5 +1,12 @@
 # hardhat
 
+## 2.8.1
+
+### Patch Changes
+
+- 6753b930: Show warning if user doesn't export or exports empty object from Hardhat config file (issue #1490)
+- 0a5ab4f8: Fix running the `test` task multiple times in a script (issue #1720)
+
 ## 2.8.0
 
 ### Minor Changes
