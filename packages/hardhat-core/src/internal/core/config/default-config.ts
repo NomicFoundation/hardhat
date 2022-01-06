@@ -16,6 +16,7 @@ export const defaultDefaultNetwork = HARDHAT_NETWORK_NAME;
 
 export const defaultLocalhostNetworkParams = {
   url: "http://127.0.0.1:8545",
+  timeout: 40000,
 };
 
 export const defaultHdAccountsConfigParams = {
@@ -119,7 +120,7 @@ export const defaultHttpNetworkParams = {
   gasPrice: "auto" as "auto",
   gasMultiplier: DEFAULT_GAS_MULTIPLIER,
   httpHeaders: {},
-  timeout: 40000,
+  timeout: 20000,
 };
 
 export const defaultMochaOptions: Mocha.MochaOptions = {
