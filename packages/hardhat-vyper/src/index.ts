@@ -1,3 +1,4 @@
+import * as os from "os";
 import path from "path";
 import fsExtra from "fs-extra";
 import semver from "semver";
@@ -31,7 +32,6 @@ import { Parser } from "./parser";
 import { ResolvedFile, Resolver } from "./resolver";
 import {
   assertPluginInvariant,
-  deepCamel,
   getArtifactFromVyperOutput,
   getLogger,
   normalizeVyperConfig,
@@ -193,14 +193,13 @@ subtask(TASK_COMPILE_VYPER_RUN_BINARY)
       inputPaths: string[];
       vyperPath: string;
     }): Promise<VyperOutput> => {
-      const { mapValues } = await import("lodash");
       const compiler = new Compiler(vyperPath);
 
       const { version, ...contracts } = await compiler.compile(inputPaths);
 
       return {
         version,
-        ...mapValues(contracts, deepCamel),
+        ...contracts,
       };
     }
   );
@@ -258,6 +257,22 @@ subtask(TASK_COMPILE_VYPER)
       );
 
       for (const [vyperVersion, files] of Object.entries(versionGroups)) {
+        if (vyperVersion === null) {
+          const list = files
+            .map(
+              (file) => `  * ${file.sourceName} (${file.content.versionPragma})`
+            )
+            .join(os.EOL);
+
+          throw new VyperPluginError(
+            `The Vyper version pragma statement in ${
+              files.length > 1 ? "these files" : "this file"
+            } doesn't match any of the configured compilers in your config. Change the pragma or configure additional compiler versions in your hardhat config.
+
+${list}`
+          );
+        }
+
         const vyperBuild: VyperBuild = await run(TASK_COMPILE_VYPER_GET_BUILD, {
           quiet,
           vyperVersion,

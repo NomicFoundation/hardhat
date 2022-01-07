@@ -1,4 +1,3 @@
-import type { LoDashStatic } from "lodash";
 import type { Debugger } from "debug";
 import path from "path";
 
@@ -15,34 +14,6 @@ import { ARTIFACT_FORMAT_VERSION, DEBUG_NAMESPACE } from "./constants";
 export function getLogger(suffix: string): Debugger {
   const debug = require("debug");
   return debug(`${DEBUG_NAMESPACE}:${suffix}`);
-}
-
-function handleArr(v: any): any {
-  if (Array.isArray(v)) return handleArr(v);
-  else if (typeof v === "object") return deepCamel(v);
-  return v;
-}
-
-export function deepCamel(obj: object): any {
-  const { camelCase }: LoDashStatic = require("lodash");
-
-  if (Array.isArray(obj)) {
-    return obj.map(handleArr);
-  }
-
-  const newObj: { [k: string]: unknown } = {};
-  for (const [k, v] of Object.entries(obj)) {
-    if (v === null || v === undefined) {
-      newObj[camelCase(k)] = v;
-    } else if (Array.isArray(v)) {
-      newObj[camelCase(k)] = v.map(handleArr);
-    } else if (typeof v === "object") {
-      newObj[camelCase(k)] = deepCamel(v);
-    } else {
-      newObj[camelCase(k)] = v;
-    }
-  }
-  return newObj;
 }
 
 export class VyperPluginError extends NomicLabsHardhatPluginError {
@@ -84,6 +55,7 @@ function ensureHexPrefix(hex: string) {
   return `${/^0x/i.test(hex) ? "" : "0x"}${hex}`;
 }
 
+/** Vyper contract names are taken from their file names, so we can convert directly */
 function pathToContractName(file: string) {
   const sourceName = path.basename(file);
   return sourceName.substring(0, sourceName.indexOf("."));

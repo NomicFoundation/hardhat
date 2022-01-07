@@ -62,5 +62,5 @@ function parseVersionPragma(fileContent: string): string {
   const versionPragmasRegex: RegExp = /#\s+@version\s+(.+)/g;
 
   const result = versionPragmasRegex.exec(fileContent);
-  return result?.[1] ?? DEFAULT_VYPER_VERSION;
+  return result?.[1] ?? "*";
 }

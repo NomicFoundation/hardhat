@@ -15,7 +15,7 @@ async function downloadFile(
 ): Promise<void> {
   const { download } = await import("hardhat/internal/util/download");
   log(`Downloading from ${url} to ${destinationFile}`);
-  await download(url, destinationFile, undefined);
+  await download(url, destinationFile);
 }
 
 type DownloadFunction = (url: string, destinationFile: string) => Promise<void>;
@@ -111,7 +111,7 @@ export class CompilerDownloader {
       await this._download(GITHUB_RELEASES_URL, this.compilersListPath);
     } catch {
       throw new VyperPluginError(
-        "Failed to download complier list",
+        "Failed to download compiler list",
         undefined,
         true
       );

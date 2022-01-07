@@ -15,26 +15,13 @@ export enum CompilerPlatform {
 }
 
 export interface CompilerReleaseAsset {
-  url: string;
-  id: number;
   name: string;
-  label: string | null;
-  uploader: any;
-  state: string;
-  size: number;
   // eslint-disable-next-line @typescript-eslint/naming-convention
   browser_download_url: string;
 }
 
 interface CompilerRelease {
-  url: string;
-  id: number;
-  author: any;
-  name: string;
-  draft: boolean;
-  prerelease: boolean;
   assets: CompilerReleaseAsset[];
-  body: string;
   // eslint-disable-next-line @typescript-eslint/naming-convention
   tag_name: string;
 }
@@ -79,11 +66,14 @@ export interface VyperOutput {
 
 export interface ContractOutput {
   bytecode: string;
-  bytecodeRuntime: string;
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  bytecode_runtime: string;
   abi: string[];
   layout: any;
-  sourceMap: any;
-  methodIdentifiers: {
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  source_map: any;
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  method_identifiers: {
     [signature: string]: string;
   };
   userdoc: any;

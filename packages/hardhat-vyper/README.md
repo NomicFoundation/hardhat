@@ -64,4 +64,4 @@ There are no additional steps you need to take for this plugin to work.
 
 ### Additional notes
 
-The oldest vyper version supported by this plugin is 0.1.0b16. Versions older than this will not work and will throw an error.
+The oldest vyper version supported by this plugin is 0.2.0. Versions older than this will not work and will throw an error.
