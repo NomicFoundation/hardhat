@@ -302,12 +302,21 @@ module.exports.communityPlugins = [
       "Zero-config Hardhat plugin to generate documentation for all your Solidity contracts.",
     tags: ["Documentation", "Docs", "Solidity", "NatSpec"],
   },
-   {
+  {
     name: "hardhat-output-validator",
     author: "Indeavr",
     authorUrl: "https://github.com/indeavr",
-    description: "Zero-config Hardhat plugin to check the output of the compiler for any problems like missing NatSpec",
-    tags: ["Productivity", "CI", "Compiler", "Docs", "Solidity", "NatSpec", "Build"],
+    description:
+      "Zero-config Hardhat plugin to check the output of the compiler for any problems like missing NatSpec",
+    tags: [
+      "Productivity",
+      "CI",
+      "Compiler",
+      "Docs",
+      "Solidity",
+      "NatSpec",
+      "Build"
+    ],
   },
 ];
 
