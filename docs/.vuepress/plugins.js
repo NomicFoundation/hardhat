@@ -233,6 +233,7 @@ module.exports.communityPlugins = [
   },
   {
     name: "hardhat-time-n-mine",
+    npmPackage: "@atixlabs/hardhat-time-n-mine",
     author: "Gonzalo Petraglia & Alan Verbner",
     authorUrl: "https://github.com/atixlabs",
     description:
