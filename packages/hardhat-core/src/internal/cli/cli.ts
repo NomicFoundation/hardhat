@@ -114,7 +114,7 @@ async function main() {
       // situation we throw a special error instructing the user to use WSL or
       // powershell to initialize the project.
       if (process.platform === "win32") {
-        throw new HardhatError(ERRORS.GENERAL.NON_LOCAL_INSTALLATION);
+        throw new HardhatError(ERRORS.GENERAL.NOT_INSIDE_PROJECT_ON_WINDOWS);
       }
     }
 
