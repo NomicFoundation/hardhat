@@ -6,7 +6,7 @@ import { TypedTransaction } from "@ethereumjs/tx";
 import Bloom from "@ethereumjs/vm/dist/bloom";
 import { BN, bufferToHex } from "ethereumjs-util";
 
-import { HardhatError } from "../../core/errors";
+import { assertHardhatInvariant, HardhatError } from "../../core/errors";
 import { ERRORS } from "../../core/errors-list";
 import { bloomFilter, filterLogs } from "./filter";
 import { FilterParams } from "./node-types";
@@ -149,19 +149,14 @@ export class BlockchainData {
   }
 
   public fulfillBlockReservation(blockNumber: BN, common: Common): Block {
-    // number should lie within one of the reservations listed in
-    // this._blockReservations. in addition to adding the given block, that
-    // reservation needs to be split in two in order to accomodate access to
-    // the given block.
+    // in addition to adding the given block, the reservation needs to be split
+    // in two in order to accomodate access to the given block.
 
     const reservationIndex = this._findBlockReservation(blockNumber);
-    if (reservationIndex === -1) {
-      throw new HardhatError(ERRORS.GENERAL.ASSERTION_ERROR, {
-        message: `Block ${blockNumber.toString()} does not lie within any of the reservations (${util.inspect(
-          this._blockReservations
-        )}).`,
-      });
-    }
+    assertHardhatInvariant(
+      reservationIndex !== -1,
+      `No reservation to fill for block number ${blockNumber}`
+    );
 
     const timestamp = this._calculateTimestampForReservedBlock(blockNumber);
 
