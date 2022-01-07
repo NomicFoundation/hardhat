@@ -57,6 +57,10 @@ subtask(TASK_TEST_RUN_MOCHA_TESTS)
       mocha.run(resolve);
     });
 
+    // [@types/mocha@7.0.2](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/3dce8b667f77c414b123be249d1ea6e98804ea4f/types/mocha/index.d.ts)
+    // is missing the definition of `dispose`, which is actually implemented
+    // https://github.com/mochajs/mocha/blob/v7.2.0/lib/mocha.js#L575
+    // @ts-ignore
     mocha.dispose();
 
     return testFailures;
