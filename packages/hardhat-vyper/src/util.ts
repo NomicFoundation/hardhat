@@ -73,7 +73,7 @@ export function getArtifactFromVyperOutput(
     sourceName,
     abi: output.abi,
     bytecode: ensureHexPrefix(output.bytecode),
-    deployedBytecode: ensureHexPrefix(output.bytecodeRuntime),
+    deployedBytecode: ensureHexPrefix(output.bytecode_runtime),
     linkReferences: {},
     deployedLinkReferences: {},
   };

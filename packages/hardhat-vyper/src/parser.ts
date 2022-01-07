@@ -1,5 +1,4 @@
 import { VyperFilesCache } from "./cache";
-import { DEFAULT_VYPER_VERSION } from "./constants";
 
 interface ParsedData {
   versionPragma: string;
