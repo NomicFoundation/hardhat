@@ -150,7 +150,7 @@ module.exports = {
         // fantom mainnet
         opera: "YOUR_FTMSCAN_API_KEY",
         ftmTestnet: "YOUR_FTMSCAN_API_KEY",
-        // optimistim
+        // optimism
         optimisticEthereum: "YOUR_OPTIMISTIC_ETHERSCAN_API_KEY",
         optimisticKovan: "YOUR_OPTIMISTIC_ETHERSCAN_API_KEY",
         // polygon
