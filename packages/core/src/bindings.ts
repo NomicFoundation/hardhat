@@ -32,10 +32,8 @@ export function deserializeBindingOutput(x: any) {
 }
 
 export type ModuleResult = Record<string, BindingOutput>;
-export type SerializedModuleResult = Record<
-  string,
-  ReturnType<typeof serializeBindingOutput>
->;
+export type SerializedModuleResult = Record<string, SerializedBindingResult>;
+export type SerializedBindingResult = ReturnType<typeof serializeBindingOutput>;
 
 export type SerializedDeploymentResult = Record<string, SerializedModuleResult>;
 

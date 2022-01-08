@@ -7,52 +7,40 @@ import {
   types,
 } from "hardhat/config";
 import { lazyObject } from "hardhat/plugins";
-import { HardhatConfig, HardhatUserConfig } from "hardhat/types";
 import { Providers, UserModule } from "ignition";
 import path from "path";
 
 import { IgnitionWrapper } from "./ignition-wrapper";
-import { loadUserModules } from "./modules";
+import { loadUserModules } from "./user-modules";
 import "./type-extensions";
 
-extendConfig(
-  (config: HardhatConfig, userConfig: Readonly<HardhatUserConfig>) => {
-    const userIgnitionPath = userConfig.paths?.ignition;
-    const userDeploymentsPath = userConfig.paths?.deployments;
+extendConfig((config, userConfig) => {
+  const userIgnitionPath = userConfig.paths?.ignition;
+  const userDeploymentsPath = userConfig.paths?.deployments;
 
-    let ignitionPath: string;
-    if (userIgnitionPath === undefined) {
-      ignitionPath = path.join(config.paths.root, "ignition");
-    } else {
-      if (path.isAbsolute(userIgnitionPath)) {
-        ignitionPath = userIgnitionPath;
-      } else {
-        ignitionPath = path.normalize(
-          path.join(config.paths.root, userIgnitionPath)
-        );
-      }
-    }
-
-    let deploymentsPath: string;
-    if (userDeploymentsPath === undefined) {
-      deploymentsPath = path.join(config.paths.root, "deployments");
-    } else {
-      if (path.isAbsolute(userDeploymentsPath)) {
-        deploymentsPath = userDeploymentsPath;
-      } else {
-        deploymentsPath = path.normalize(
-          path.join(config.paths.root, userDeploymentsPath)
-        );
-      }
-    }
-
-    config.paths.ignition = ignitionPath;
-    config.paths.deployments = deploymentsPath;
+  let ignitionPath: string;
+  if (userIgnitionPath === undefined) {
+    ignitionPath = path.join(config.paths.root, "ignition");
+  } else {
+    ignitionPath = path.resolve(config.paths.root, userIgnitionPath);
   }
-);
 
+  let deploymentsPath: string;
+  if (userDeploymentsPath === undefined) {
+    deploymentsPath = path.join(config.paths.root, "deployments");
+  } else {
+    deploymentsPath = path.resolve(config.paths.root, userDeploymentsPath);
+  }
+
+  config.paths.ignition = ignitionPath;
+  config.paths.deployments = deploymentsPath;
+});
+
+/**
+ * Add an `ignition` object to the HRE.
+ */
 extendEnvironment((hre) => {
-  const services: Providers = {
+  const providers: Providers = {
     artifacts: {
       getArtifact: (name: string) => hre.artifacts.readArtifact(name),
       hasArtifact: (name: string) => hre.artifacts.artifactExists(name),
@@ -93,36 +81,48 @@ extendEnvironment((hre) => {
   };
 
   hre.ignition = lazyObject(() => {
-    const pathToJournal =
-      hre.network.name !== "hardhat"
-        ? path.resolve(hre.config.paths.root, "ignition-journal.json")
-        : undefined;
-    const txPollingInterval = hre.network.name !== "hardhat" ? 5000 : 100;
+    const isHardhatNetwork = hre.network.name === "hardhat";
+
+    const pathToJournal = isHardhatNetwork
+      ? undefined
+      : path.resolve(hre.config.paths.root, "ignition-journal.json");
+    const txPollingInterval = isHardhatNetwork ? 100 : 5000;
 
     return new IgnitionWrapper(
-      services,
+      providers,
       hre.ethers,
-      hre.network.name === "hardhat",
+      isHardhatNetwork,
       hre.config.paths,
       { pathToJournal, txPollingInterval }
     );
   });
 });
 
+/**
+ * Deploy the given user modules. If none is passed, all modules under
+ * the `paths.ignition` directory are deployed.
+ */
 task("deploy")
-  .addOptionalVariadicPositionalParam("modulesFiles")
-  .setAction(async ({ modulesFiles }: { modulesFiles?: string[] }, hre) => {
-    await hre.run("compile", { quiet: true });
+  .addOptionalVariadicPositionalParam("userModulesPaths")
+  .setAction(
+    async ({ userModulesPaths }: { userModulesPaths: string[] }, hre) => {
+      await hre.run("compile", { quiet: true });
 
-    const userModules = await loadUserModules(
-      hre.config.paths.ignition,
-      modulesFiles ?? []
-    );
+      const userModules = await loadUserModules(
+        hre.config.paths.ignition,
+        userModulesPaths
+      );
 
-    await hre.run("deploy:deploy-modules", {
-      userModules,
-    });
-  });
+      if (userModules.length === 0) {
+        console.warn("No Ignition modules found");
+        process.exit(0);
+      }
+
+      await hre.run("deploy:deploy-modules", {
+        userModules,
+      });
+    }
+  );
 
 subtask("deploy:deploy-modules")
   .addParam("userModules", undefined, undefined, types.any)
@@ -133,11 +133,9 @@ subtask("deploy:deploy-modules")
       }: { userModules: Array<UserModule<any>>; pathToJournal?: string },
       hre
     ) => {
-      if (userModules.length === 0) {
-        console.warn("No Ignition modules found");
-        process.exit(0);
-      }
-
+      // we ignore the module outputs because they are not relevant when
+      // the deployment is done via a task (as opposed to a deployment
+      // done with `hre.ignition.deploy`)
       const [serializedDeploymentResult] = await hre.ignition.deployMany(
         userModules
       );
@@ -146,37 +144,42 @@ subtask("deploy:deploy-modules")
     }
   );
 
+/**
+ * Build and show the deployment plan for the given user modules.
+ */
 task("plan")
-  .addOptionalVariadicPositionalParam("modulesFiles")
-  .setAction(async ({ modulesFiles }: { modulesFiles?: string[] }, hre) => {
-    await hre.run("compile", { quiet: true });
+  .addOptionalVariadicPositionalParam("userModulesPaths")
+  .setAction(
+    async ({ userModulesPaths }: { userModulesPaths: string[] }, hre) => {
+      await hre.run("compile", { quiet: true });
 
-    const userModules = await loadUserModules(
-      hre.config.paths.ignition,
-      modulesFiles ?? []
-    );
+      const userModules = await loadUserModules(
+        hre.config.paths.ignition,
+        userModulesPaths
+      );
 
-    if (userModules.length === 0) {
-      console.warn("No Ignition modules found");
-      process.exit(0);
-    }
-
-    const plan = await hre.ignition.buildPlan(userModules);
-
-    let first = true;
-    for (const [moduleId, modulePlan] of Object.entries(plan)) {
-      if (first) {
-        first = false;
-      } else {
-        console.log();
+      if (userModules.length === 0) {
+        console.warn("No Ignition modules found");
+        process.exit(0);
       }
-      console.log(`- Module ${moduleId}`);
-      if (modulePlan === "already-deployed") {
-        console.log("    Already deployed");
-      } else {
-        for (const step of modulePlan) {
-          console.log(`    ${step.id}: ${step.description}`);
+
+      const plan = await hre.ignition.buildPlan(userModules);
+
+      let first = true;
+      for (const [moduleId, modulePlan] of Object.entries(plan)) {
+        if (first) {
+          first = false;
+        } else {
+          console.log();
+        }
+        console.log(`- Module ${moduleId}`);
+        if (modulePlan === "already-deployed") {
+          console.log("    Already deployed");
+        } else {
+          for (const step of modulePlan) {
+            console.log(`    ${step.id}: ${step.description}`);
+          }
         }
       }
     }
-  });
+  );

@@ -1,42 +1,10 @@
 import { assert } from "chai";
 import {
   UserModule,
+  SerializedBindingResult,
   SerializedDeploymentResult,
   DeploymentResult,
 } from "ignition";
-
-/**
- * Wait until there are at least `expectedCount` transactions in the mempool
- */
-export async function waitForPendingTxs(
-  hre: any,
-  expectedCount: number,
-  finished: Promise<any>
-) {
-  let stopWaiting = false;
-  finished.finally(() => {
-    stopWaiting = true;
-  });
-
-  while (true) {
-    if (stopWaiting) {
-      return;
-    }
-    const pendingBlock = await hre.network.provider.send(
-      "eth_getBlockByNumber",
-      ["pending", false]
-    );
-
-    if (pendingBlock.transactions.length >= expectedCount) {
-      return;
-    }
-
-    await sleep(100);
-  }
-}
-
-const sleep = (timeout: number) =>
-  new Promise((res) => setTimeout(res, timeout));
 
 export const resultAssertions = {
   contract: (predicate?: ContractResultPredicate): ExpectedBindingResult => {
@@ -64,6 +32,14 @@ type ExpectedBindingResult =
 type ExpectedModuleResult = Record<string, ExpectedBindingResult>;
 type ExpectedDeploymentState = Record<string, ExpectedModuleResult>;
 
+/**
+ * Check that the given deployment result matches some conditions.
+ *
+ * `expectedResult` is an object with expected modules results, which have
+ * expected bindings results. These bindings results assert that that the
+ * result of each binding is of the correct type, and it can also run
+ * some custom predicate logic on the result to further verify it.
+ */
 export async function assertDeploymentState(
   hre: any,
   result: SerializedDeploymentResult,
@@ -72,35 +48,30 @@ export async function assertDeploymentState(
   const modulesResults = Object.entries(result);
   const expectedModules = Object.entries(expectedResult);
 
-  assert.equal(modulesResults.length, expectedModules.length);
+  assert.equal(
+    modulesResults.length,
+    expectedModules.length,
+    "Expected result and actual result have a different number of modules"
+  );
 
   for (const [moduleId, moduleResult] of modulesResults) {
     const expectedModule = expectedResult[moduleId];
 
-    assert.isDefined(expectedModule);
+    assert.isDefined(
+      expectedModule,
+      `Module ${moduleId} is not part of the expected result`
+    );
 
     assert.equal(
       Object.entries(moduleResult).length,
       Object.entries(expectedModule).length
     );
 
-    for (const [bindingId, expectedBindingResult] of Object.entries(
-      expectedModule
-    )) {
-      const bindingResult = moduleResult[bindingId];
+    for (const [bindingId, bindingResult] of Object.entries(moduleResult)) {
+      const expectedBindingResult = expectedModule[bindingId];
 
       if (expectedBindingResult.kind === "contract") {
-        if (bindingResult._kind !== "contract") {
-          assert.fail(
-            `Expected binding result to be a contract, but got ${bindingResult._kind}`
-          );
-        }
-        await assertHasCode(hre, bindingResult.value.address);
-
-        const contract = await hre.ethers.getContractAt(
-          bindingResult.value.abi,
-          bindingResult.value.address
-        );
+        const contract = await assertContract(hre, bindingResult);
 
         await expectedBindingResult.predicate(contract);
       } else if (expectedBindingResult.kind === "transaction") {
@@ -130,6 +101,12 @@ async function assertTxMined(hre: any, hash: string) {
   assert.isNotNull(receipt);
 }
 
+/**
+ * Deploy all the modules in `userModules`.
+ *
+ * Assert that `expectedBlocks.length` blocks are mined, and that
+ * each mined block has `expectedBlocks[i]` transactions.
+ */
 export async function deployModules(
   hre: any,
   userModules: Array<UserModule<any>>,
@@ -167,14 +144,55 @@ async function mineBlocks(
   }
 }
 
-export async function assertRejects(fn: () => Promise<any>) {
-  let rejected: boolean;
-  try {
-    await fn();
-    rejected = false;
-  } catch (e) {
-    rejected = true;
+const sleep = (timeout: number) =>
+  new Promise((res) => setTimeout(res, timeout));
+
+/**
+ * Wait until there are at least `expectedCount` transactions in the mempool
+ */
+async function waitForPendingTxs(
+  hre: any,
+  expectedCount: number,
+  finished: Promise<any>
+) {
+  let stopWaiting = false;
+  finished.finally(() => {
+    stopWaiting = true;
+  });
+
+  while (true) {
+    if (stopWaiting) {
+      return;
+    }
+    const pendingBlock = await hre.network.provider.send(
+      "eth_getBlockByNumber",
+      ["pending", false]
+    );
+
+    if (pendingBlock.transactions.length >= expectedCount) {
+      return;
+    }
+
+    await sleep(50);
+  }
+}
+
+async function assertContract(
+  hre: any,
+  bindingResult: SerializedBindingResult
+) {
+  if (bindingResult._kind !== "contract") {
+    assert.fail(
+      `Expected binding result to be a contract, but got ${bindingResult._kind}`
+    );
   }
 
-  assert.isTrue(rejected, "Expected function to reject");
+  await assertHasCode(hre, bindingResult.value.address);
+
+  const contract = await hre.ethers.getContractAt(
+    bindingResult.value.abi,
+    bindingResult.value.address
+  );
+
+  return contract;
 }

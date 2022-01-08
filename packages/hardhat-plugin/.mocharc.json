@@ -1,3 +1,4 @@
 {
-  "require": "ts-node/register/transpile-only"
+  "require": "ts-node/register/transpile-only",
+  "file": "./test/setup.ts"
 }

@@ -76,7 +76,7 @@ class TimelockCallExecutor extends Executor<TimelockCallOptions, string> {
   }
 
   public getDescription() {
-    return "Deploy contract with multisig and timelock";
+    return "Deploy contract with timelock";
   }
 }
 

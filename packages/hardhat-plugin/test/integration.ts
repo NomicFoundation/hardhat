@@ -3,14 +3,12 @@ import { buildModule } from "ignition";
 
 import {
   assertDeploymentState,
-  assertRejects,
   deployModules,
   resultAssertions,
 } from "./helpers";
 import { useEnvironment } from "./useEnvironment";
 
 describe("integration tests", function () {
-  this.timeout(20000);
   useEnvironment("minimal");
 
   it("should deploy a contract", async function () {
@@ -193,6 +191,6 @@ describe("integration tests", function () {
     });
 
     // then
-    await assertRejects(() => deployModules(this.hre, [userModule], [1, 1]));
+    await assert.isRejected(deployModules(this.hre, [userModule], [1, 1]));
   });
 });

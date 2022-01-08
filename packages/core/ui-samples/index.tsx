@@ -68,7 +68,6 @@ function getExamples(): Example[] {
   });
 
   examples.push({
-    only: true,
     description: "Two parallel deploys followed by two parallel calls",
     initialData: {
       MyModule: ["Foo", "Bar", "Foo.f", "Bar.b"],

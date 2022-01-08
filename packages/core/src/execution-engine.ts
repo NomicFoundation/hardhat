@@ -1,4 +1,4 @@
-import debug from "debug";
+import setupDebug from "debug";
 
 import {
   deserializeBindingOutput,
@@ -21,18 +21,15 @@ import {
 import { TxSender } from "./tx-sender";
 import { sleep } from "./utils";
 
-export type GetModuleResult = (
-  moduleId: string
-) => Promise<SerializedModuleResult | undefined>;
-
-export type SaveModuleResult = (
-  moduleId: string,
-  moduleResult: SerializedModuleResult
-) => Promise<void>;
+export interface IgnitionModulesResults {
+  load: (moduleId: string) => Promise<SerializedModuleResult | undefined>;
+  save: (
+    moduleId: string,
+    moduleResult: SerializedModuleResult
+  ) => Promise<void>;
+}
 
 export interface ExecutionEngineOptions {
-  saveModuleResult: SaveModuleResult;
-  getModuleResult: GetModuleResult;
   parallelizationLevel: number;
   loggingEnabled: boolean;
   txPollingInterval: number;
@@ -46,18 +43,18 @@ type ModulePlan = "already-deployed" | ExecutorPlan[];
 export type DeploymentPlan = Record<string, ModulePlan>;
 
 export class ExecutionEngine {
-  private _debug = debug("ignition:execution-engine");
+  private _debug = setupDebug("ignition:execution-engine");
 
   public static async buildPlan(
     executionGraph: ExecutionGraph,
-    { getModuleResult }: { getModuleResult: GetModuleResult }
+    modulesResults: IgnitionModulesResults
   ): Promise<DeploymentPlan> {
     const plan: DeploymentPlan = {};
 
     const ignitionModules = executionGraph.getSortedModules();
 
     for (const ignitionModule of ignitionModules) {
-      const moduleResult = await getModuleResult(ignitionModule.id);
+      const moduleResult = await modulesResults.load(ignitionModule.id);
       if (moduleResult !== undefined) {
         plan[ignitionModule.id] = "already-deployed";
         continue;
@@ -80,6 +77,7 @@ export class ExecutionEngine {
   constructor(
     private _providers: Providers,
     private _journal: Journal,
+    private _modulesResults: IgnitionModulesResults,
     private _options: ExecutionEngineOptions
   ) {}
 
@@ -128,7 +126,7 @@ export class ExecutionEngine {
 
     // execute each module sequentially
     for (const executionModule of executionModules) {
-      const serializedModuleResult = await this._options.getModuleResult(
+      const serializedModuleResult = await this._modulesResults.load(
         executionModule.id
       );
 
@@ -217,7 +215,7 @@ export class ExecutionEngine {
       ) {
         if (moduleState.isSuccess()) {
           const moduleResult = moduleState.toModuleResult();
-          await this._options.saveModuleResult(ignitionModule.id, moduleResult);
+          await this._modulesResults.save(ignitionModule.id, moduleResult);
           await this._journal.delete(ignitionModule.id);
         }
 
@@ -315,7 +313,7 @@ export type DeploymentResult =
   | { _kind: "success"; result: SerializedDeploymentResult };
 
 export class ExecutionManager {
-  private _debug = debug("ignition:execution-manager");
+  private _debug = setupDebug("ignition:execution-manager");
   constructor(
     private _engine: ExecutionEngine,
     private _tickInterval: number

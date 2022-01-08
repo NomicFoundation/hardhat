@@ -1,4 +1,4 @@
-import debug from "debug";
+import setupDebug from "debug";
 import { ethers, Contract, ContractFactory } from "ethers";
 
 import { IgnitionSigner, Providers } from "./providers";
@@ -15,7 +15,7 @@ interface TransactionOptions {
 }
 
 export class ContractsService {
-  private _debug = debug("ignition:services:contracts-service");
+  private _debug = setupDebug("ignition:services:contracts-service");
   private _ethersProvider: ethers.providers.Web3Provider;
 
   constructor(

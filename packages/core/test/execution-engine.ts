@@ -4,20 +4,24 @@ import { DeploymentState } from "../src/deployment-state";
 import {
   ExecutionEngine,
   ExecutionEngineOptions,
+  IgnitionModulesResults,
 } from "../src/execution-engine";
 import { InMemoryJournal } from "../src/journal";
 import { ExecutionGraph } from "../src/modules";
 
 import { getMockedProviders, inc, runUntil, runUntilReady } from "./helpers";
 
+const mockModulesResults: IgnitionModulesResults = {
+  load: async () => {
+    return undefined;
+  },
+  save: async () => {},
+};
+
 const executionEngineOptions: ExecutionEngineOptions = {
   parallelizationLevel: 1,
   loggingEnabled: false,
   txPollingInterval: 100,
-  getModuleResult: async () => {
-    return undefined;
-  },
-  saveModuleResult: async () => {},
 };
 
 describe("ExecutionEngine", function () {
@@ -26,6 +30,7 @@ describe("ExecutionEngine", function () {
     const executionEngine = new ExecutionEngine(
       getMockedProviders(),
       new InMemoryJournal(),
+      mockModulesResults,
       executionEngineOptions
     );
 
@@ -58,6 +63,7 @@ describe("ExecutionEngine", function () {
     const executionEngine = new ExecutionEngine(
       getMockedProviders(),
       new InMemoryJournal(),
+      mockModulesResults,
       executionEngineOptions
     );
 
@@ -111,6 +117,7 @@ describe("ExecutionEngine", function () {
     const executionEngine = new ExecutionEngine(
       getMockedProviders(),
       new InMemoryJournal(),
+      mockModulesResults,
       executionEngineOptions
     );
 
@@ -141,6 +148,7 @@ describe("ExecutionEngine", function () {
     const executionEngine = new ExecutionEngine(
       getMockedProviders(),
       new InMemoryJournal(),
+      mockModulesResults,
       executionEngineOptions
     );
 

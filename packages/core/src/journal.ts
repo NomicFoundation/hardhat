@@ -1,4 +1,4 @@
-import debug from "debug";
+import setupDebug, { IDebugger } from "debug";
 import fsExtra from "fs-extra";
 
 export interface JournalEntry {
@@ -32,7 +32,7 @@ export interface Journal {
 }
 
 export class FileJournal implements Journal {
-  private _log: debug.IDebugger = debug("ignition:journal:file-journal");
+  private _log: IDebugger = setupDebug("ignition:journal:file-journal");
 
   constructor(private _path: string) {}
 
@@ -123,7 +123,9 @@ export class FileJournal implements Journal {
 }
 
 export class InMemoryJournal implements Journal {
-  private _log: debug.IDebugger = debug("ignition:journal:in-memory-journal");
+  private _log: debug.IDebugger = setupDebug(
+    "ignition:journal:in-memory-journal"
+  );
   private _journal: Map<string, Map<string, JournalEntry[]>> = new Map();
 
   public async addEntry(

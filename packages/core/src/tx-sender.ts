@@ -1,4 +1,4 @@
-import debug, { IDebugger } from "debug";
+import setupDebug, { IDebugger } from "debug";
 import { ethers } from "ethers";
 
 import { Journal } from "./journal";
@@ -22,7 +22,7 @@ export class TxSender {
     private _gasProvider: GasProvider,
     private _journal: Journal
   ) {
-    this._debug = debug(`ignition:tx-sender:${_moduleId}:${_executorId}`);
+    this._debug = setupDebug(`ignition:tx-sender:${_moduleId}:${_executorId}`);
   }
 
   /**

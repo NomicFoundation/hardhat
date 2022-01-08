@@ -8,27 +8,31 @@ import {
   UserModule,
   IgnitionDeployOptions,
   SerializedModuleResult,
+  Providers,
 } from "ignition";
 import path from "path";
+
+import { getAllUserModules } from "./user-modules";
 
 type HardhatEthers = HardhatRuntimeEnvironment["ethers"];
 type HardhatPaths = HardhatConfig["paths"];
 
 export class IgnitionWrapper {
   private _ignition: Ignition;
-  private _chainId: number | undefined;
+  private _cachedChainId: number | undefined;
 
   constructor(
-    services: any,
+    providers: Providers,
     private _ethers: HardhatEthers,
     private _isHardhatNetwork: boolean,
     private _paths: HardhatPaths,
-    private _deployOptions: {
-      pathToJournal: string | undefined;
-      txPollingInterval: number;
-    }
+    private _deployOptions: IgnitionDeployOptions
   ) {
-    this._ignition = new Ignition(services);
+    this._ignition = new Ignition(providers, {
+      load: (moduleId) => this._getModuleResult(moduleId),
+      save: (moduleId, moduleResult) =>
+        this._saveModuleResult(moduleId, moduleResult),
+    });
   }
 
   public async deploy<T>(
@@ -38,9 +42,12 @@ export class IgnitionWrapper {
     return resolvedOutputs[0];
   }
 
-  public async deployMany(
-    userModulesOrNames: Array<UserModule<any> | string>
-  ): Promise<Array<Resolved<any>>> {
+  /**
+   * Deploys all the given modules. Returns the deployment result, and an
+   * array with the resolved outputs that corresponds to each module in
+   * the input.
+   */
+  public async deployMany(userModulesOrNames: Array<UserModule<any> | string>) {
     const userModules: Array<UserModule<any>> = [];
     for (const userModuleOrName of userModulesOrNames) {
       const userModule: UserModule<any> =
@@ -51,16 +58,9 @@ export class IgnitionWrapper {
       userModules.push(userModule);
     }
 
-    const deployOptions: IgnitionDeployOptions = {
-      ...this._deployOptions,
-      getModuleResult: (moduleId) => this._getModuleResult(moduleId),
-      saveModuleResult: (moduleId, moduleResult) =>
-        this._saveModuleResult(moduleId, moduleResult),
-    };
-
     const [deploymentResult, moduleOutputs] = await this._ignition.deploy(
       userModules,
-      deployOptions
+      this._deployOptions
     );
 
     if (deploymentResult._kind === "hold") {
@@ -81,10 +81,10 @@ export class IgnitionWrapper {
       );
     }
 
-    const resolvedOutputs: any = [];
-    for (const moduleOutput of Object.values(moduleOutputs)) {
+    const resolvedOutputPerModule: Record<string, any> = {};
+    for (const [moduleId, moduleOutput] of Object.entries(moduleOutputs)) {
       const resolvedOutput: any = {};
-      for (const [key, value] of Object.entries<any>(moduleOutput as any)) {
+      for (const [key, value] of Object.entries<any>(moduleOutput)) {
         const serializedBindingResult =
           deploymentResult.result[value.moduleId][value.id];
 
@@ -100,10 +100,14 @@ export class IgnitionWrapper {
           resolvedOutput[key] = await this._ethers.getContractAt(abi, address);
         }
       }
-      resolvedOutputs.push(resolvedOutput);
+      resolvedOutputPerModule[moduleId] = resolvedOutput;
     }
 
-    return [deploymentResult, resolvedOutputs];
+    const resolvedOutputs = userModules.map(
+      (x) => resolvedOutputPerModule[x.id]
+    );
+
+    return [deploymentResult, resolvedOutputs] as const;
   }
 
   public async buildPlan(
@@ -119,27 +123,26 @@ export class IgnitionWrapper {
       userModules.push(userModule);
     }
 
-    const plan = await this._ignition.buildPlan(userModules, {
-      getModuleResult: (moduleId) => this._getModuleResult(moduleId),
-    });
+    const plan = await this._ignition.buildPlan(userModules);
 
     return plan;
   }
 
   private async _getModule<T>(moduleId: string): Promise<UserModule<T>> {
-    const ignitionFiles = fsExtra
-      .readdirSync(this._paths.ignition)
-      .filter((x) => !x.startsWith("."));
+    const userModulesPaths = getAllUserModules(this._paths.ignition);
 
-    for (const ignitionFile of ignitionFiles) {
-      const pathToFile = path.resolve(this._paths.ignition, ignitionFile);
+    for (const userModulePath of userModulesPaths) {
+      const resolveUserModulePath = path.resolve(
+        this._paths.ignition,
+        userModulePath
+      );
 
-      const fileExists = await fsExtra.pathExists(pathToFile);
+      const fileExists = await fsExtra.pathExists(resolveUserModulePath);
       if (!fileExists) {
-        throw new Error(`Module ${pathToFile} doesn't exist`);
+        throw new Error(`Module ${resolveUserModulePath} doesn't exist`);
       }
 
-      const userModule = require(pathToFile);
+      const userModule = require(resolveUserModulePath);
       const userModuleContent = userModule.default ?? userModule;
 
       if (userModuleContent.id === moduleId) {
@@ -147,7 +150,7 @@ export class IgnitionWrapper {
       }
     }
 
-    throw new Error(`No module with id ${moduleId}`);
+    throw new Error(`No module found with id ${moduleId}`);
   }
 
   private async _getModuleResult(
@@ -157,14 +160,11 @@ export class IgnitionWrapper {
       return;
     }
 
-    if (this._chainId === undefined) {
-      const { chainId } = await this._ethers.provider.getNetwork();
-      this._chainId = chainId;
-    }
+    const chainId = await this._getChainId();
 
     const moduleResultPath = path.join(
       this._paths.deployments,
-      String(this._chainId),
+      String(chainId),
       `${moduleId}.json`
     );
 
@@ -185,14 +185,11 @@ export class IgnitionWrapper {
       return;
     }
 
-    if (this._chainId === undefined) {
-      const { chainId } = await this._ethers.provider.getNetwork();
-      this._chainId = chainId;
-    }
+    const chainId = await this._getChainId();
 
     const deploymentsDirectory = path.join(
       this._paths.deployments,
-      String(this._chainId)
+      String(chainId)
     );
     fsExtra.ensureDirSync(deploymentsDirectory);
 
@@ -204,6 +201,15 @@ export class IgnitionWrapper {
     await fsExtra.writeJson(moduleResultPath, serializedModuleResult, {
       spaces: 2,
     });
+  }
+
+  private async _getChainId(): Promise<number> {
+    if (this._cachedChainId === undefined) {
+      const { chainId } = await this._ethers.provider.getNetwork();
+      this._cachedChainId = chainId;
+    }
+
+    return this._cachedChainId;
   }
 }
 

@@ -1,4 +1,4 @@
-import debug, { IDebugger } from "debug";
+import setupDebug, { IDebugger } from "debug";
 import { ethers } from "ethers";
 
 import {
@@ -34,7 +34,7 @@ export abstract class Executor<I = unknown, O extends BindingOutput = any> {
   constructor(public readonly binding: InternalBinding<I, O>) {
     const moduleId = binding.moduleId;
     const bindingId = binding.id;
-    this._debug = debug(`ignition:executor:${moduleId}:${bindingId}`);
+    this._debug = setupDebug(`ignition:executor:${moduleId}:${bindingId}`);
   }
 
   abstract execute(input: Resolved<I>, services: Services): Promise<O>;
