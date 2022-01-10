@@ -19,6 +19,10 @@ body
 
 .page
   padding-left $sidebarWidth
+  padding-top: 1.5rem;
+  .extra-class
+    pre
+      border 1px solid transparent;
 
 .navbar
   position fixed
@@ -27,10 +31,11 @@ body
   left 0
   right 0
   height $navbarAndBannerHeight
-  background-color #fff
+  background rgba(252, 252, 241, 1)
   box-sizing border-box
   border-bottom 1px solid $borderColor
-
+  .logo
+    background-image: url('../../theme/img/hardhat_logos/Hardhat-logo.svg');
 .sidebar-mask
   position fixed
   z-index 9
@@ -53,7 +58,6 @@ body
   box-sizing border-box
   border-right 1px solid $borderColor
   overflow-y auto
-
 .theme-container:not(.custom) .content,
 .theme-container:not(.custom) .content__default
   @extend $wrapper
@@ -123,9 +127,9 @@ h1
   font-size 2.2rem
 
 h2
-  font-size 1.65rem
-  padding-bottom .3rem
-  border-bottom 1px solid $borderColor
+  border-bottom: 1px solid $borderColor;
+  padding-bottom: 16px;
+  margin-bottom: -14px;
 
 h3
   font-size 1.35rem
@@ -201,14 +205,14 @@ th, td
   margin 0
   padding 0
   box-sizing border-box
-  font-family: 'ChivoLight', -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
   color $black
   
   *
     margin 0
     padding 0
     box-sizing border-box
-    font-family: 'ChivoLight', -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
     color $black
   
   body
@@ -287,4 +291,14 @@ th, td
 // Hide the external link icon from images
 img + svg.icon.outbound {
   display: none !important;
+}
+
+header {
+  height: 80px;
+  display: flex;
+  align-items: center;
+}
+
+.theme-container:not(.custom) .content__default > h2 {
+  padding-top: 11rem;
 }
