@@ -30,6 +30,7 @@ import { HardhatError } from "./core/errors";
 import { ERRORS } from "./core/errors-list";
 import { glob, globSync } from "./util/glob";
 import { createNonCryptographicHashBasedIdentifier } from "./util/hash";
+import { writeJson } from "./util/write-json";
 
 const log = debug("hardhat:core:artifacts");
 
@@ -130,7 +131,7 @@ export class Artifacts implements IArtifacts {
     await fsExtra.ensureDir(path.dirname(artifactPath));
 
     // write artifact
-    await fsExtra.writeJSON(artifactPath, artifact, {
+    await writeJson(artifactPath, artifact, {
       spaces: 2,
     });
 
@@ -142,7 +143,7 @@ export class Artifacts implements IArtifacts {
     const debugFilePath = this._getDebugFilePath(artifactPath);
     const debugFile = this._createDebugFile(artifactPath, pathToBuildInfo);
 
-    await fsExtra.writeJSON(debugFilePath, debugFile, {
+    await writeJson(debugFilePath, debugFile, {
       spaces: 2,
     });
   }
@@ -171,7 +172,8 @@ export class Artifacts implements IArtifacts {
     );
 
     const buildInfoPath = path.join(buildInfoDir, `${buildInfoName}.json`);
-    await fsExtra.writeJson(buildInfoPath, buildInfo, { spaces: 2 });
+
+    await writeJson(buildInfoPath, buildInfo, { spaces: 2 });
 
     return buildInfoPath;
   }
