@@ -121,6 +121,7 @@
     "https-proxy-agent": "^5.0.0",
     "immutable": "^4.0.0-rc.12",
     "io-ts": "1.10.4",
+    "json-stream-stringify": "^2.0.4",
     "lodash": "^4.17.11",
     "merkle-patricia-tree": "^4.2.2",
     "mnemonist": "^0.38.0",
