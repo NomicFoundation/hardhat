@@ -26,7 +26,7 @@ export class BlockchainData {
   }> = new Array();
 
   public reserveBlocks(first: BN, count: BN, interval: BN, common: Common) {
-    const last = first.add(count);
+    const last = first.add(count.subn(1));
     this._blockReservations.push({ first, last, interval });
     this.addBlock(
       Block.fromBlockData(
