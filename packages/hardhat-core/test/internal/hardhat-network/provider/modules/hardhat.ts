@@ -268,6 +268,20 @@ describe("Hardhat module", function () {
           });
         });
 
+        it("should not mine too many blocks", async () => {
+          const blocksToMine = 5;
+          const latestBlockNumber = await getLatestBlockNumber();
+          await this.ctx.provider.send("hardhat_mine", [
+            numberToRpcQuantity(blocksToMine),
+          ]);
+          assert.isNull(
+            await this.ctx.provider.send("eth_getBlockByNumber", [
+              numberToRpcQuantity(latestBlockNumber + blocksToMine + 1),
+              false,
+            ])
+          );
+        });
+
         describe("should increment the block number", async () => {
           it("when not given any arguments", async () => {
             const latestBlockNumber = await getLatestBlockNumber();
