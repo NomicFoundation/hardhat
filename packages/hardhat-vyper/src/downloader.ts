@@ -3,7 +3,12 @@ import path from "path";
 import fsExtra from "fs-extra";
 import semver from "semver";
 
-import { CompilerReleaseAsset, CompilersList, CompilerPlatform } from "./types";
+import {
+  CompilerReleaseAsset,
+  CompilersList,
+  CompilerPlatform,
+  CompilerRelease,
+} from "./types";
 import { GITHUB_RELEASES_URL } from "./constants";
 import { VyperPluginError, getLogger } from "./util";
 
@@ -27,6 +32,7 @@ interface CompilerDownloaderOptions {
 export class CompilerDownloader {
   private readonly _download: DownloadFunction;
   private readonly _platform: CompilerPlatform;
+  public compilersList: CompilersList = [];
 
   constructor(
     private readonly _compilersDir: string,
@@ -37,7 +43,7 @@ export class CompilerDownloader {
   }
 
   public get compilersListExists(): boolean {
-    return fsExtra.pathExistsSync(this.compilersListPath);
+    return this._fileExists(this.compilersListPath);
   }
 
   public get downloadsDir(): string {
@@ -48,23 +54,32 @@ export class CompilerDownloader {
     return path.join(this.downloadsDir, "list.json");
   }
 
-  public async isCompilerDownloaded(version: string): Promise<boolean> {
-    const compilerAsset = await this.getCompilerAsset(version);
-    const downloadedFilePath = this._getDownloadedFilePath(compilerAsset);
+  public async initCompilersList(): Promise<void> {
+    if (!this.compilersListExists) {
+      try {
+        await this._downloadCompilersList();
+      } catch {
+        log("Error downloading compilers list");
+        return;
+      }
+    }
 
-    return this._fileExists(downloadedFilePath);
+    this.compilersList = this._getCompilersListFromDisk();
   }
 
   public async getCompilerAsset(
     version: string
   ): Promise<CompilerReleaseAsset> {
-    const list = await this.getCompilersList();
-    const versionRelease = list.find((release) =>
-      semver.eq(release.tag_name, version)
-    );
+    let versionRelease = this._findVersionRelease(version);
 
     if (versionRelease === undefined) {
-      throw new VyperPluginError(`Unsupported vyper version: ${version}`);
+      await this._downloadCompilersList();
+      await this.initCompilersList();
+      versionRelease = this._findVersionRelease(version);
+
+      if (versionRelease === undefined) {
+        throw new VyperPluginError(`Unsupported vyper version: ${version}`);
+      }
     }
 
     const compilerAsset = versionRelease.assets.find((asset) =>
@@ -84,11 +99,10 @@ export class CompilerDownloader {
     version: string
   ): Promise<string | undefined> {
     try {
-      const compilerAsset = await this.getCompilerAsset(version);
-
-      const downloadedFilePath = this._getDownloadedFilePath(compilerAsset);
+      const downloadedFilePath = this._getDownloadedFilePath(version);
 
       if (!this._fileExists(downloadedFilePath)) {
+        const compilerAsset = await this.getCompilerAsset(version);
         await this._downloadCompiler(compilerAsset, downloadedFilePath);
       }
 
@@ -98,15 +112,25 @@ export class CompilerDownloader {
 
       return downloadedFilePath;
     } catch (e: unknown) {
-      throw new VyperPluginError(
-        "An unexpected error occurred",
-        e as Error,
-        true
-      );
+      if (VyperPluginError.isNomicLabsHardhatPluginError(e)) {
+        throw e;
+      } else {
+        throw new VyperPluginError(
+          "An unexpected error occurred",
+          e as Error,
+          true
+        );
+      }
     }
   }
 
-  public async downloadReleaseList(): Promise<void> {
+  private _findVersionRelease(version: string): CompilerRelease | undefined {
+    return this.compilersList.find((release) =>
+      semver.eq(release.tag_name, version)
+    );
+  }
+
+  private async _downloadCompilersList(): Promise<void> {
     try {
       await this._download(GITHUB_RELEASES_URL, this.compilersListPath);
     } catch {
@@ -118,8 +142,8 @@ export class CompilerDownloader {
     }
   }
 
-  public async getCompilersList(): Promise<CompilersList> {
-    return fsExtra.readJson(this.compilersListPath);
+  private _getCompilersListFromDisk(): CompilersList {
+    return fsExtra.readJSONSync(this.compilersListPath);
   }
 
   private get _isUnix(): boolean {
@@ -146,8 +170,8 @@ export class CompilerDownloader {
     }
   }
 
-  private _getDownloadedFilePath(compilerAsset: CompilerReleaseAsset): string {
-    return path.join(this.downloadsDir, compilerAsset.name);
+  private _getDownloadedFilePath(version: string): string {
+    return path.join(this.downloadsDir, version);
   }
 
   private _fileExists(filepath: string): boolean {

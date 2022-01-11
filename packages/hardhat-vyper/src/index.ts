@@ -103,17 +103,10 @@ subtask(TASK_COMPILE_VYPER_GET_BUILD)
       const compilersCache = await getCompilersDir();
       const downloader = new CompilerDownloader(compilersCache);
 
-      await downloader.downloadReleaseList();
-
-      const isCompilerDownloaded = await downloader.isCompilerDownloaded(
-        vyperVersion
-      );
-
-      const { name } = await downloader.getCompilerAsset(vyperVersion);
+      await downloader.initCompilersList();
 
       await run(TASK_COMPILE_VYPER_LOG_DOWNLOAD_COMPILER_START, {
         vyperVersion,
-        isCompilerDownloaded,
         quiet,
       });
 
@@ -125,45 +118,34 @@ subtask(TASK_COMPILE_VYPER_GET_BUILD)
 
       await run(TASK_COMPILE_VYPER_LOG_DOWNLOAD_COMPILER_END, {
         vyperVersion,
-        isCompilerDownloaded,
         quiet,
       });
 
-      return { compilerPath, name, version: vyperVersion };
+      return { compilerPath, version: vyperVersion };
     }
   );
 
 subtask(TASK_COMPILE_VYPER_LOG_DOWNLOAD_COMPILER_START)
-  .addParam("isCompilerDownloaded", undefined, undefined, types.boolean)
   .addParam("quiet", undefined, undefined, types.boolean)
   .addParam("vyperVersion", undefined, undefined, types.string)
   .setAction(
     async ({
-      isCompilerDownloaded,
       quiet,
       vyperVersion,
     }: {
-      isCompilerDownloaded: boolean;
       quiet: boolean;
       vyperVersion: string;
     }) => {
-      if (isCompilerDownloaded || quiet) return;
+      if (quiet) return;
 
       console.log(`Downloading compiler ${vyperVersion}`);
     }
   );
 
 subtask(TASK_COMPILE_VYPER_LOG_DOWNLOAD_COMPILER_END)
-  .addParam("isCompilerDownloaded", undefined, undefined, types.boolean)
   .addParam("quiet", undefined, undefined, types.boolean)
   .addParam("vyperVersion", undefined, undefined, types.string)
-  .setAction(
-    async ({}: {
-      isCompilerDownloaded: boolean;
-      quiet: boolean;
-      vyperVersion: string;
-    }) => {}
-  );
+  .setAction(async ({}: { quiet: boolean; vyperVersion: string }) => {});
 
 subtask(TASK_COMPILE_VYPER_LOG_COMPILATION_RESULT)
   .addParam("versionGroups", undefined, undefined, types.any)

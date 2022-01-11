@@ -20,7 +20,7 @@ export interface CompilerReleaseAsset {
   browser_download_url: string;
 }
 
-interface CompilerRelease {
+export interface CompilerRelease {
   assets: CompilerReleaseAsset[];
   // eslint-disable-next-line @typescript-eslint/naming-convention
   tag_name: string;
@@ -30,7 +30,6 @@ export type CompilersList = CompilerRelease[];
 
 export interface VyperBuild {
   version: string;
-  name: string;
   compilerPath: string;
 }
 
