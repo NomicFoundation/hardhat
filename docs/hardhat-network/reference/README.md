@@ -30,7 +30,7 @@ Its value should be `"auto"` or a number. If a number is used, it will be the ga
 
 #### `gasPrice`
 
-Its value should be `"auto"` or a number. This parameter behaves like `gas`. Default value: `"auto"`.
+Its value should be `"auto"` or a number (in wei). This parameter behaves like `gas`. Default value: `"auto"`.
 
 #### `gasMultiplier`
 
