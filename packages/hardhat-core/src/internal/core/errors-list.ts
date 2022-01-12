@@ -201,6 +201,21 @@ Please run: npm install --save-dev typescript`,
 Please run this and try again: \`npm install --save-dev typescript\``,
       shouldBeReported: false,
     },
+    NOT_INSIDE_PROJECT_ON_WINDOWS: {
+      number: 15,
+      message: `You are not inside a project and Hardhat failed to initialize a new one.
+
+If you were trying to create a new project, please try again using Windows Subsystem for Linux (WSL) or PowerShell.
+`,
+      title:
+        "You are not inside a Hardhat project and Hardhat failed to initialize a new one",
+      description: `You are trying to run Hardhat outside of a Hardhat project, and we couldn't initialize one.
+
+If you were trying to create a new project, please try again using Windows Subsystem for Linux (WSL) or PowerShell.
+
+You can learn how to use Hardhat by reading the [Getting Started guide](../getting-started).`,
+      shouldBeReported: false,
+    },
   },
   NETWORK: {
     CONFIG_NOT_FOUND: {

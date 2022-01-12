@@ -15,7 +15,7 @@ Then, create a file named `.mocharc.json` in your project's root directory with 
 ```json
 {
   "require": "hardhat/register",
-  "timeout": 20000
+  "timeout": 40000
 }
 ```
 

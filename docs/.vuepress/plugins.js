@@ -233,6 +233,7 @@ module.exports.communityPlugins = [
   },
   {
     name: "hardhat-time-n-mine",
+    npmPackage: "@atixlabs/hardhat-time-n-mine",
     author: "Gonzalo Petraglia & Alan Verbner",
     authorUrl: "https://github.com/atixlabs",
     description:
@@ -317,6 +318,14 @@ module.exports.communityPlugins = [
       "NatSpec",
       "Build"
     ],
+  },
+  {
+    name: "@ericxstone/hardhat-blockscout-verify",
+    author: "ericxstone",
+    authorUrl: "https://github.com/ericxstone",
+    description:
+      "Hardhat plugin for solidity contract verification on Blockscout block explorer.",
+    tags: ["Blockscout", "Deployment", "Solidity", "Verification"],
   },
 ];
 

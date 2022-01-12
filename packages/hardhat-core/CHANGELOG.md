@@ -1,5 +1,11 @@
 # hardhat
 
+## 2.8.2
+
+### Patch Changes
+
+- 2794fc00: Show a special error when project initialization fails on windows
+
 ## 2.8.1
 
 ### Patch Changes
