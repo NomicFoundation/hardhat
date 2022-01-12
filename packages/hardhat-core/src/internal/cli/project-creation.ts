@@ -423,10 +423,6 @@ export async function createProject() {
 
   const { projectRoot, shouldAddGitIgnore } = responses;
 
-  const hasExistingReadme = await fsExtra.pathExists(
-    path.join(projectRoot, "README.md")
-  );
-
   await copySampleProject(projectRoot, action);
 
   if (shouldAddGitIgnore) {
