@@ -239,11 +239,13 @@ export class BlockchainData {
 
       this._blockReservations.splice(reservationIndex, 1);
 
-      this._blockReservations.push({
-        first: oldReservation.first,
-        last: b.subn(1),
-        interval: oldReservation.interval,
-      });
+      if (b > oldReservation.first) {
+        this._blockReservations.push({
+          first: oldReservation.first,
+          last: b.subn(1),
+          interval: oldReservation.interval,
+        });
+      }
     }
   }
 }
