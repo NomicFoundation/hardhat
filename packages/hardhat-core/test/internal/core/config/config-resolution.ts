@@ -746,8 +746,8 @@ describe("Config resolution", () => {
           assert.isDefined(config.networks.localhost);
 
           assert.deepEqual(config.networks.localhost, {
-            ...defaultLocalhostNetworkParams,
             ...defaultHttpNetworkParams,
+            ...defaultLocalhostNetworkParams,
           });
         });
 
