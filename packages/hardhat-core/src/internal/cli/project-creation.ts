@@ -142,6 +142,44 @@ async function printWelcomeMessage() {
   );
 }
 
+async function checkForDuplicates(
+  dest: string,
+  projectType: SampleProjectTypeCreationAction
+): Promise<void> {
+  const { intersection, union } = await import("lodash");
+
+  const packageRoot = getPackageRoot();
+
+  const srcPath = path.join(packageRoot, "sample-projects");
+  const destFiles = fsExtra.readdirSync(dest);
+  let srcFiles: string[] = fsExtra.readdirSync(path.join(srcPath, "basic"));
+
+  switch (projectType) {
+    case Action.CREATE_ADVANCED_SAMPLE_PROJECT_ACTION:
+      srcFiles = union(
+        srcFiles,
+        fsExtra.readdirSync(path.join(srcPath, "advanced"))
+      );
+      break;
+    case Action.CREATE_ADVANCED_TYPESCRIPT_SAMPLE_PROJECT_ACTION:
+      srcFiles = union(
+        srcFiles,
+        fsExtra.readdirSync(path.join(srcPath, "advanced")),
+        fsExtra.readdirSync(path.join(srcPath, "advanced-ts"))
+      );
+      break;
+  }
+
+  const duplicates = intersection(srcFiles, destFiles);
+
+  if (duplicates.length > 0) {
+    throw new HardhatError(ERRORS.GENERAL.CONFLICTING_FILES, {
+      dest,
+      conflicts: duplicates.map((n) => `  ${n}`).join(os.EOL),
+    });
+  }
+}
+
 async function copySampleProject(
   projectRoot: string,
   projectType: SampleProjectTypeCreationAction
@@ -153,15 +191,7 @@ async function copySampleProject(
   // the advanced TypeScript project is what was requested, overlay those files
   // on top of the advanced ones.
 
-  const hasExistingReadme = await fsExtra.pathExists("README.md");
-
-  // save the user's readme the already have one
-  if (hasExistingReadme) {
-    await fsExtra.move(
-      path.join(projectRoot, "README.md"),
-      path.join(projectRoot, "tmp-README.md")
-    );
-  }
+  await checkForDuplicates(projectRoot, projectType);
 
   await fsExtra.ensureDir(projectRoot);
   await fsExtra.copy(
@@ -208,15 +238,6 @@ async function copySampleProject(
   await removeTempFilesIfPresent(projectRoot);
 
   await fsExtra.remove(path.join(projectRoot, "LICENSE.md"));
-
-  // replace the user's pre-existing readme
-  if (hasExistingReadme) {
-    await fsExtra.move(
-      path.join(projectRoot, "tmp-README.md"),
-      path.join(projectRoot, "README.md"),
-      { overwrite: true }
-    );
-  }
 }
 
 async function addGitIgnore(projectRoot: string) {
