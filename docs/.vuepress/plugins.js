@@ -316,7 +316,7 @@ module.exports.communityPlugins = [
       "Docs",
       "Solidity",
       "NatSpec",
-      "Build"
+      "Build",
     ],
   },
   {
