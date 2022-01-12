@@ -303,6 +303,14 @@ module.exports.communityPlugins = [
       "Zero-config Hardhat plugin to generate documentation for all your Solidity contracts.",
     tags: ["Documentation", "Docs", "Solidity", "NatSpec"],
   },
+  {
+    name: "@ericxstone/hardhat-blockscout-verify",
+    author: "ericxstone",
+    authorUrl: "https://github.com/ericxstone",
+    description:
+      "Hardhat plugin for solidity contract verification on Blockscout block explorer.",
+    tags: ["Blockscout", "Deployment", "Solidity", "Verification"],
+  },
 ];
 
 module.exports.officialPlugins = [
