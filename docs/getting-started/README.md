@@ -43,6 +43,8 @@ Welcome to Hardhat v2.0.8
 
 ? What do you want to do? …
 ❯ Create a sample project
+  Create an advanced sample project
+  Create an advanced sample project that uses TypeScrip
   Create an empty hardhat.config.js
   Quit
 ```
