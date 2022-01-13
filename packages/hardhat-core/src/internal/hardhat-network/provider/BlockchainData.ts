@@ -12,6 +12,12 @@ import { bloomFilter, filterLogs } from "./filter";
 import { FilterParams } from "./node-types";
 import { RpcLogOutput, RpcReceiptOutput } from "./output";
 
+interface Reservation {
+  first: BN;
+  last: BN;
+  interval: BN;
+}
+
 export class BlockchainData {
   private _blocksByNumber: Map<number, Block> = new Map();
   private _blocksByHash: Map<string, Block> = new Map();
@@ -19,20 +25,17 @@ export class BlockchainData {
   private _transactions: Map<string, TypedTransaction> = new Map();
   private _transactionReceipts: Map<string, RpcReceiptOutput> = new Map();
   private _totalDifficulty: Map<string, BN> = new Map();
-  private _blockReservations: Array<{
-    first: BN;
-    last: BN;
-    interval: BN;
-  }> = new Array();
+  private _blockReservations: Reservation[] = new Array();
 
   public reserveBlocks(first: BN, count: BN, interval: BN, common: Common) {
     const last = first.add(count.subn(1));
     this._blockReservations.push({ first, last, interval });
+    // add the capstone block for subsequent blocks to refer to:
     this.addBlock(
       Block.fromBlockData(
         {
           header: {
-            number: last.subn(1).toNumber(),
+            number: last.toNumber(),
           },
         },
         { common }
@@ -148,6 +151,32 @@ export class BlockchainData {
     );
   }
 
+  private _removeReservation(index: number): {
+    reservation: Reservation;
+    common: Common;
+  } {
+    assertHardhatInvariant(
+      index in this._blockReservations,
+      `Reservation ${index} does not exist in ${JSON.stringify(
+        this._blockReservations
+      )}`
+    );
+    const reservation = this._blockReservations[index];
+
+    this._blockReservations.splice(index, 1);
+
+    const capstoneBlock = this.getBlockByNumber(reservation.last);
+    assertHardhatInvariant(
+      capstoneBlock !== undefined,
+      `Reservation ${index}, ${JSON.stringify(
+        reservation
+      )}, does not have a capstone block`
+    );
+
+    this.removeBlock(capstoneBlock);
+    return { reservation, common: capstoneBlock._common };
+  }
+
   public fulfillBlockReservation(blockNumber: BN, common: Common): Block {
     // in addition to adding the given block, the reservation needs to be split
     // in two in order to accomodate access to the given block.
@@ -162,24 +191,25 @@ export class BlockchainData {
 
     // split the block reservation:
 
-    const oldReservation = this._blockReservations[reservationIndex];
-
-    this._blockReservations.splice(reservationIndex, 1);
+    const { reservation: oldReservation, common: oldReservationsCommon } =
+      this._removeReservation(reservationIndex);
 
     if (!blockNumber.eq(oldReservation.first)) {
-      this._blockReservations.push({
-        first: oldReservation.first,
-        last: blockNumber.subn(1),
-        interval: oldReservation.interval,
-      });
+      this.reserveBlocks(
+        oldReservation.first,
+        blockNumber.subn(1),
+        oldReservation.interval,
+        oldReservationsCommon
+      );
     }
 
     if (!blockNumber.eq(oldReservation.last)) {
-      this._blockReservations.push({
-        first: blockNumber.addn(1),
-        last: oldReservation.last,
-        interval: oldReservation.interval,
-      });
+      this.reserveBlocks(
+        blockNumber.addn(1),
+        oldReservation.last,
+        oldReservation.interval,
+        oldReservationsCommon
+      );
     }
 
     // add the block, injecting the appropriate timestamp:
@@ -231,20 +261,21 @@ export class BlockchainData {
       this._findBlockReservation(b) !== -1;
       b = b.addn(1)
     ) {
-      // delete the existing reservation, but re-add its first half:
+      // delete the existing reservation, but re-add its first half if
+      // necessary
 
       const reservationIndex = this._findBlockReservation(b);
 
-      const oldReservation = this._blockReservations[reservationIndex];
-
-      this._blockReservations.splice(reservationIndex, 1);
+      const { reservation: oldReservation, common: oldReservationsCommon } =
+        this._removeReservation(reservationIndex);
 
       if (b > oldReservation.first) {
-        this._blockReservations.push({
-          first: oldReservation.first,
-          last: b.subn(1),
-          interval: oldReservation.interval,
-        });
+        this.reserveBlocks(
+          oldReservation.first,
+          b.subn(1),
+          oldReservation.interval,
+          oldReservationsCommon
+        );
       }
     }
   }
