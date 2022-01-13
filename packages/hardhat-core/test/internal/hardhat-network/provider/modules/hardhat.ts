@@ -494,6 +494,24 @@ describe("Hardhat module", function () {
               await getLatestBlockNumber(),
               latestBlockNumberBeforeSnapshot
             );
+
+            for (const i of [1, 2, 9, 10, 11]) {
+              const blockThatShouldntExist = await this.provider.send(
+                "eth_getBlockByNumber",
+                [
+                  numberToRpcQuantity(latestBlockNumberBeforeSnapshot + i),
+                  false,
+                ]
+              );
+              assert.isNull(
+                blockThatShouldntExist,
+                `expected block number ${
+                  latestBlockNumberBeforeSnapshot + i
+                } to be null, but successfully retrieved block ${JSON.stringify(
+                  blockThatShouldntExist
+                )}`
+              );
+            }
           });
         });
       });
