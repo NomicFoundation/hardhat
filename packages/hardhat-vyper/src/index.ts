@@ -1,7 +1,7 @@
 import * as os from "os";
 import path from "path";
 import fsExtra from "fs-extra";
-import semver from "semver";
+import semver, { valid } from "semver";
 
 import type { Artifacts as ArtifactsImpl } from "hardhat/internal/artifacts";
 import type { Artifacts } from "hardhat/types/artifacts";
@@ -226,7 +226,7 @@ subtask(TASK_COMPILE_VYPER)
           run(TASK_COMPILE_VYPER_READ_FILE, { absolutePath })
       );
 
-      let resolvedFiles = await Promise.all(
+      const resolvedFiles = await Promise.all(
         sourceNames.map(resolver.resolveSourceName)
       );
 
@@ -236,28 +236,41 @@ subtask(TASK_COMPILE_VYPER)
         resolvedFiles
       );
 
-      resolvedFiles = resolvedFiles.filter((file) =>
-        vyperFilesCache.hasFileChanged(file.absolutePath, file.contentHash, {
-          version: file.content.versionPragma,
-        })
-      );
-
-      const { groupBy } = await import("lodash");
-
       const configuredVersions = config.vyper.compilers.map(
         ({ version }) => version
       );
 
-      // check if there are files that don't match any configured compiler
-      // version
-      const unmatchedFiles = resolvedFiles.filter((file) => {
-        return (
-          semver.maxSatisfying(
-            configuredVersions,
-            file.content.versionPragma
-          ) === null
+      const versionGroups: Record<string, ResolvedFile[]> = {};
+      const unmatchedFiles: ResolvedFile[] = [];
+
+      for (const file of resolvedFiles) {
+        const hasChanged = vyperFilesCache.hasFileChanged(
+          file.absolutePath,
+          file.contentHash,
+          { version: file.content.versionPragma }
         );
-      });
+
+        if (!hasChanged) continue;
+
+        const maxSatisfyingVersion = semver.maxSatisfying(
+          configuredVersions,
+          file.content.versionPragma
+        );
+
+        // check if there are files that don't match any configured compiler
+        // version
+        if (maxSatisfyingVersion === null) {
+          unmatchedFiles.push(file);
+          continue;
+        }
+
+        if (versionGroups[maxSatisfyingVersion] === undefined) {
+          versionGroups[maxSatisfyingVersion] = [file];
+          continue;
+        }
+
+        versionGroups[maxSatisfyingVersion].push(file);
+      }
 
       if (unmatchedFiles.length > 0) {
         const list = unmatchedFiles
@@ -274,10 +287,6 @@ subtask(TASK_COMPILE_VYPER)
 ${list}`
         );
       }
-
-      const versionGroups = groupBy(resolvedFiles, (file: ResolvedFile) =>
-        semver.maxSatisfying(configuredVersions, file.content.versionPragma)
-      );
 
       for (const [vyperVersion, files] of Object.entries(versionGroups)) {
         const vyperBuild: VyperBuild = await run(TASK_COMPILE_VYPER_GET_BUILD, {
