@@ -82,4 +82,15 @@ describe("Vyper plugin", function () {
       );
     });
   });
+
+  describe("project with file that cannot be compiled", function () {
+    useFixtureProject("unmatched-compiler-version");
+    useEnvironment();
+
+    it("should throw an error", async function () {
+      await expectVyperErrorAsync(async () => {
+        await this.env.run(TASK_COMPILE);
+      }, "The Vyper version pragma statement in this file doesn't match any of the configured compilers in your config.");
+    });
+  });
 });

@@ -234,27 +234,38 @@ subtask(TASK_COMPILE_VYPER)
         ({ version }) => version
       );
 
+      // check if there are files that don't match any configured compiler
+      // version
+      const unmatchedFiles = resolvedFiles.filter((file) => {
+        return (
+          semver.maxSatisfying(
+            configuredVersions,
+            file.content.versionPragma
+          ) === null
+        );
+      });
+
+      if (unmatchedFiles.length > 0) {
+        const list = unmatchedFiles
+          .map(
+            (file) => `  * ${file.sourceName} (${file.content.versionPragma})`
+          )
+          .join(os.EOL);
+
+        throw new VyperPluginError(
+          `The Vyper version pragma statement in ${
+            unmatchedFiles.length > 1 ? "these files" : "this file"
+          } doesn't match any of the configured compilers in your config. Change the pragma or configure additional compiler versions in your hardhat config.
+
+${list}`
+        );
+      }
+
       const versionGroups = groupBy(resolvedFiles, (file: ResolvedFile) =>
         semver.maxSatisfying(configuredVersions, file.content.versionPragma)
       );
 
       for (const [vyperVersion, files] of Object.entries(versionGroups)) {
-        if (vyperVersion === null) {
-          const list = files
-            .map(
-              (file) => `  * ${file.sourceName} (${file.content.versionPragma})`
-            )
-            .join(os.EOL);
-
-          throw new VyperPluginError(
-            `The Vyper version pragma statement in ${
-              files.length > 1 ? "these files" : "this file"
-            } doesn't match any of the configured compilers in your config. Change the pragma or configure additional compiler versions in your hardhat config.
-
-${list}`
-          );
-        }
-
         const vyperBuild: VyperBuild = await run(TASK_COMPILE_VYPER_GET_BUILD, {
           quiet,
           vyperVersion,
