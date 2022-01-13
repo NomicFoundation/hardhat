@@ -98,7 +98,7 @@ export class HardhatBlockchain implements HardhatBlockchainInterface {
     const nextBlockNumber = new BN(actual.header.number).addn(1);
 
     if (this._data.isReservedBlock(nextBlockNumber)) {
-      this._data.unreserveBlocksAfter(nextBlockNumber);
+      this._data.unreserveBlocksAfter(nextBlockNumber.subn(1));
       this._length = nextBlockNumber.toNumber();
     }
 
