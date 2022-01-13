@@ -54,14 +54,11 @@ export class CompilerDownloader {
     return path.join(this.downloadsDir, "list.json");
   }
 
-  public async initCompilersList(): Promise<void> {
-    if (!this.compilersListExists) {
-      try {
-        await this._downloadCompilersList();
-      } catch {
-        log("Error downloading compilers list");
-        return;
-      }
+  public async initCompilersList(
+    { forceDownload } = { forceDownload: true }
+  ): Promise<void> {
+    if (forceDownload || !this.compilersListExists) {
+      await this._downloadCompilersList();
     }
 
     this.compilersList = this._getCompilersListFromDisk();
@@ -73,8 +70,7 @@ export class CompilerDownloader {
     let versionRelease = this._findVersionRelease(version);
 
     if (versionRelease === undefined) {
-      await this._downloadCompilersList();
-      await this.initCompilersList();
+      await this.initCompilersList({ forceDownload: true });
       versionRelease = this._findVersionRelease(version);
 
       if (versionRelease === undefined) {
