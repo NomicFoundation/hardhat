@@ -5,8 +5,8 @@
   "license": "SEE LICENSE IN LICENSE",
   "homepage": "https://hardhat.org",
   "repository": "github:nomiclabs/hardhat",
-  "main": "internal/lib/hardhat-lib.js",
-  "types": "internal/lib/hardhat-lib.d.ts",
+  "main": "dist/internal/lib/hardhat-lib.js",
+  "types": "dist/internal/lib/hardhat-lib.d.ts",
   "description": "Hardhat is an extensible developer tool that helps smart contract developers increase productivity by reliably bringing together the tools they want.",
   "keywords": [
     "ethereum",
@@ -20,7 +20,7 @@
     "solidity"
   ],
   "bin": {
-    "hardhat": "internal/cli/cli.js"
+    "hardhat": "dist/internal/cli/cli.js"
   },
   "engines": {
     "node": "^12.0.0 || ^14.0.0 || >=16.0.0"
@@ -40,7 +40,7 @@
   },
   "files": [
     "builtin-tasks/",
-    "internal/",
+    "dist/internal/",
     "sample-projects/",
     "src/",
     "types/",
