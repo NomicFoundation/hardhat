@@ -1,0 +1,1 @@
+{"version":3,"file":"web3.d.ts","sourceRoot":"","sources":["../../../../../src/internal/hardhat-network/provider/modules/web3.ts"],"names":[],"mappings":"AAYA,qBAAa,UAAU;IACR,cAAc,CACzB,MAAM,EAAE,MAAM,EACd,MAAM,GAAE,GAAG,EAAO,GACjB,OAAO,CAAC,GAAG,CAAC;IAcf,OAAO,CAAC,oBAAoB;YAId,oBAAoB;IAQlC,OAAO,CAAC,WAAW;YAIL,WAAW;CAG1B"}
