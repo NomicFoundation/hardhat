@@ -19,5 +19,18 @@ export async function writeJson(file: string, object: object, options: Options) 
     };
     const f = createWriteStream(file, fsOptions);
 
+    jsonStream.once('error', () => console.log('Error in json-string-stream'));
     jsonStream.pipe(f);
+
+    return new Promise((resolve, reject) => {
+        f.on('finish', () => {
+            f.close(err => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(file);
+                }
+            });
+        });
+    });
 }
