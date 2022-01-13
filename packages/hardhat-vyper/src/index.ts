@@ -1,7 +1,7 @@
 import * as os from "os";
 import path from "path";
 import fsExtra from "fs-extra";
-import semver, { valid } from "semver";
+import semver from "semver";
 
 import type { Artifacts as ArtifactsImpl } from "hardhat/internal/artifacts";
 import type { Artifacts } from "hardhat/types/artifacts";
