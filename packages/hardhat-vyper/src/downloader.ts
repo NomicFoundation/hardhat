@@ -54,6 +54,10 @@ export class CompilerDownloader {
     return path.join(this.downloadsDir, "list.json");
   }
 
+  public isCompilerDownloaded(version: string): boolean {
+    return this._fileExists(this._getDownloadedFilePath(version));
+  }
+
   public async initCompilersList(
     { forceDownload } = { forceDownload: true }
   ): Promise<void> {

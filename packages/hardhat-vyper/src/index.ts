@@ -105,8 +105,11 @@ subtask(TASK_COMPILE_VYPER_GET_BUILD)
 
       await downloader.initCompilersList();
 
+      const isDownloaded = downloader.isCompilerDownloaded(vyperVersion);
+
       await run(TASK_COMPILE_VYPER_LOG_DOWNLOAD_COMPILER_START, {
         vyperVersion,
+        isDownloaded,
         quiet,
       });
 
@@ -118,6 +121,7 @@ subtask(TASK_COMPILE_VYPER_GET_BUILD)
 
       await run(TASK_COMPILE_VYPER_LOG_DOWNLOAD_COMPILER_END, {
         vyperVersion,
+        isDownloaded,
         quiet,
       });
 
@@ -127,16 +131,19 @@ subtask(TASK_COMPILE_VYPER_GET_BUILD)
 
 subtask(TASK_COMPILE_VYPER_LOG_DOWNLOAD_COMPILER_START)
   .addParam("quiet", undefined, undefined, types.boolean)
+  .addParam("isDownloaded", undefined, undefined, types.boolean)
   .addParam("vyperVersion", undefined, undefined, types.string)
   .setAction(
     async ({
       quiet,
+      isDownloaded,
       vyperVersion,
     }: {
       quiet: boolean;
+      isDownloaded: boolean;
       vyperVersion: string;
     }) => {
-      if (quiet) return;
+      if (isDownloaded || quiet) return;
 
       console.log(`Downloading compiler ${vyperVersion}`);
     }
@@ -144,8 +151,15 @@ subtask(TASK_COMPILE_VYPER_LOG_DOWNLOAD_COMPILER_START)
 
 subtask(TASK_COMPILE_VYPER_LOG_DOWNLOAD_COMPILER_END)
   .addParam("quiet", undefined, undefined, types.boolean)
+  .addParam("isDownloaded", undefined, undefined, types.boolean)
   .addParam("vyperVersion", undefined, undefined, types.string)
-  .setAction(async ({}: { quiet: boolean; vyperVersion: string }) => {});
+  .setAction(
+    async ({}: {
+      quiet: boolean;
+      isDownloaded: boolean;
+      vyperVersion: string;
+    }) => {}
+  );
 
 subtask(TASK_COMPILE_VYPER_LOG_COMPILATION_RESULT)
   .addParam("versionGroups", undefined, undefined, types.any)
