@@ -177,6 +177,10 @@ export class BlockchainData {
     return { reservation, common: capstoneBlock._common };
   }
 
+  public cancelBlockReservation(blockNumber: BN) {
+    this._removeReservation(this._findBlockReservation(blockNumber));
+  }
+
   public fulfillBlockReservation(blockNumber: BN, common: Common): Block {
     // in addition to adding the given block, the reservation needs to be split
     // in two in order to accomodate access to the given block.

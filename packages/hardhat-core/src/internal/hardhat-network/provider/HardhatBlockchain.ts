@@ -82,7 +82,7 @@ export class HardhatBlockchain implements HardhatBlockchainInterface {
     if (block === undefined) {
       throw new Error("Block not found");
     }
-    this._delBlock(block);
+    this._delBlock(block.header.number.toNumber());
   }
 
   public async delBlock(blockHash: Buffer) {
@@ -95,17 +95,7 @@ export class HardhatBlockchain implements HardhatBlockchainInterface {
       throw new Error("Invalid block");
     }
 
-    const nextBlockNumber = new BN(actual.header.number).addn(1);
-
-    if (this._data.isReservedBlock(nextBlockNumber)) {
-      this._data.unreserveBlocksAfter(nextBlockNumber.subn(1));
-      this._length = nextBlockNumber.toNumber();
-    }
-
-    const nextBlock = this._data.getBlockByNumber(nextBlockNumber);
-    if (nextBlock !== undefined) {
-      this._delBlock(nextBlock);
-    }
+    this._delBlock(actual.header.number.toNumber() + 1);
   }
 
   public async getTotalDifficulty(blockHash: Buffer): Promise<BN> {
@@ -198,12 +188,16 @@ export class HardhatBlockchain implements HardhatBlockchainInterface {
     return parentTD.add(difficulty);
   }
 
-  private _delBlock(block: Block): void {
-    const blockNumber = block.header.number.toNumber();
+  private _delBlock(blockNumber: number): void {
     for (let i = blockNumber; i < this._length; i++) {
-      const current = this._data.getBlockByNumber(new BN(i));
-      if (current !== undefined) {
-        this._data.removeBlock(current);
+      const bni = new BN(i);
+      if (this._data.isReservedBlock(bni)) {
+        this._data.cancelBlockReservation(bni);
+      } else {
+        const current = this._data.getBlockByNumber(bni);
+        if (current !== undefined) {
+          this._data.removeBlock(current);
+        }
       }
     }
     this._length = blockNumber;
