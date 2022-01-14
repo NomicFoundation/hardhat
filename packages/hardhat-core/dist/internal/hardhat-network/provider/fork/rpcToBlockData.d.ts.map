@@ -1,1 +1,0 @@
-{"version":3,"file":"rpcToBlockData.d.ts","sourceRoot":"","sources":["../../../../../src/internal/hardhat-network/provider/fork/rpcToBlockData.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,SAAS,EAAE,MAAM,mBAAmB,CAAC;AAE9C,OAAO,EAAE,wBAAwB,EAAE,MAAM,0CAA0C,CAAC;AAIpF,wBAAgB,cAAc,CAAC,QAAQ,EAAE,wBAAwB,GAAG,SAAS,CAuB5E"}

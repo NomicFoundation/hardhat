@@ -1,1 +1,0 @@
-{"version":3,"file":"extenders.js","sourceRoot":"","sources":["../../../../src/internal/core/config/extenders.ts"],"names":[],"mappings":";;;AAEA,MAAa,eAAe;IAA5B;QACmB,eAAU,GAA0B,EAAE,CAAC;IAS1D,CAAC;IAPQ,GAAG,CAAC,QAA6B;QACtC,IAAI,CAAC,UAAU,CAAC,IAAI,CAAC,QAAQ,CAAC,CAAC;IACjC,CAAC;IAEM,YAAY;QACjB,OAAO,IAAI,CAAC,UAAU,CAAC;IACzB,CAAC;CACF;AAVD,0CAUC"}

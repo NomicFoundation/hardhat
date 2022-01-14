@@ -1,1 +1,0 @@
-{"version":3,"file":"makeStateTrie.d.ts","sourceRoot":"","sources":["../../../../../src/internal/hardhat-network/provider/utils/makeStateTrie.ts"],"names":[],"mappings":"AACA,OAAO,EAAE,UAAU,IAAI,IAAI,EAAE,MAAM,sBAAsB,CAAC;AAE1D,OAAO,EAAE,cAAc,EAAE,MAAM,eAAe,CAAC;AAI/C,wBAAsB,aAAa,CAAC,eAAe,EAAE,cAAc,EAAE,iBAiBpE"}
