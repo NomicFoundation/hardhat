@@ -1,5 +1,8 @@
 import { assert } from "chai";
-import { recoverTypedSignature, SignTypedDataVersion } from "@metamask/eth-sig-util";
+import {
+  recoverTypedSignature,
+  SignTypedDataVersion,
+} from "@metamask/eth-sig-util";
 
 import { workaroundWindowsCiFailures } from "../../../../../../utils/workaround-windows-ci-failures";
 import { setCWD } from "../../../../helpers/cwd";
@@ -61,10 +64,10 @@ describe("Eth module", function () {
         const [address] = DEFAULT_ACCOUNTS_ADDRESSES;
 
         it("should sign a message", async function () {
-          const signature = await this.provider.request({
+          const signature = (await this.provider.request({
             method: "eth_signTypedData_v4",
             params: [address, typedMessage],
-          }) as string;
+          })) as string;
 
           const recoveredAddress = recoverTypedSignature({
             signature,
@@ -75,10 +78,10 @@ describe("Eth module", function () {
         });
 
         it("should sign a message that is JSON stringified", async function () {
-          const signature = await this.provider.request({
+          const signature = (await this.provider.request({
             method: "eth_signTypedData_v4",
             params: [address, JSON.stringify(typedMessage)],
-          }) as string;
+          })) as string;
 
           const recoveredAddress = recoverTypedSignature({
             signature,

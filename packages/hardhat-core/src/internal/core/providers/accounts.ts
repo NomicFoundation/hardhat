@@ -114,7 +114,7 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
       const privateKey = this._getPrivateKeyForAddressOrNull(address);
       if (privateKey !== null) {
         return ethSigUtil.signTypedData({
-          privateKey, 
+          privateKey,
           version: SignTypedDataVersion.V4,
           data: typedMessage,
         });

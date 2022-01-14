@@ -879,7 +879,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     const privateKey = this._getLocalAccountPrivateKey(address);
 
     return ethSigUtil.signTypedData({
-      privateKey, 
+      privateKey,
       version: SignTypedDataVersion.V4,
       data: typedData,
     });
