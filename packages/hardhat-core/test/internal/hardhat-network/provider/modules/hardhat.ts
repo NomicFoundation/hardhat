@@ -311,6 +311,7 @@ describe("Hardhat module", function () {
               ).timestamp
             );
           };
+
           it("with only one hardhat_mine invocation", async () => {
             const originalLatestBlockNumber = await getLatestBlockNumber();
             const timestampBefore = await getBlockTimestamp(
