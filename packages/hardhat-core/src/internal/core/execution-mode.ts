@@ -11,7 +11,7 @@ import { getPackageJsonPath } from "../util/packageInfo";
  */
 export function isHardhatInstalledLocallyOrLinked(configPath?: string) {
   try {
-    const resolvedPackageJson = require.resolve("hardhat/package.json", {
+    const resolvedPackageJson = require.resolve("@dzejkop/hardhat/package.json", {
       paths: [configPath ?? process.cwd()],
     });
 
