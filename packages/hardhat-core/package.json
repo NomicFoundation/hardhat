@@ -1,10 +1,10 @@
 {
-  "name": "hardhat",
+  "name": "@dzejkop/hardhat",
   "version": "2.8.2",
   "author": "Nomic Labs LLC",
   "license": "SEE LICENSE IN LICENSE",
   "homepage": "https://hardhat.org",
-  "repository": "github:nomiclabs/hardhat",
+  "repository": "github:Dzejkop/hardhat",
   "main": "internal/lib/hardhat-lib.js",
   "types": "internal/lib/hardhat-lib.d.ts",
   "description": "Hardhat is an extensible developer tool that helps smart contract developers increase productivity by reliably bringing together the tools they want.",

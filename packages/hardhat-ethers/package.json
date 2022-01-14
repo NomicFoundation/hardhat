@@ -1,5 +1,5 @@
 {
-  "name": "@nomiclabs/hardhat-ethers",
+  "name": "@dzejkop/hardhat-ethers",
   "version": "2.0.4",
   "description": "Hardhat plugin for ethers",
   "homepage": "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-ethers",
