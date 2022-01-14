@@ -386,7 +386,7 @@ describe("Hardhat module", function () {
               numberToRpcQuantity(expectation.block),
               false,
             ]);
-            assert.isDefined(
+            assert.isNotNull(
               block,
               `block ${expectation.block} should be defined`
             );
