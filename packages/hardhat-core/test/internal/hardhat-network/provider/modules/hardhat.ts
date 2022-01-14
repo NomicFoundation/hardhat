@@ -508,6 +508,40 @@ describe("Hardhat module", function () {
               );
             }
           });
+
+          it("when doing _mine and then a regular tx and then a revert", async function () {
+            const latestBlockNumberBeforeSnapshot =
+              await getLatestBlockNumber();
+
+            const snapshotId = await this.provider.send("evm_snapshot");
+
+            await this.provider.send("hardhat_mine", [numberToRpcQuantity(10)]);
+            assert.equal(
+              await getLatestBlockNumber(),
+              latestBlockNumberBeforeSnapshot + 10
+            );
+
+            await this.provider.send("eth_sendTransaction", [
+              {
+                from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                to: "0x1111111111111111111111111111111111111111",
+              },
+            ]);
+
+            await this.provider.send("evm_revert", [snapshotId]);
+
+            assert.equal(
+              await getLatestBlockNumber(),
+              latestBlockNumberBeforeSnapshot
+            );
+
+            assert.isNull(
+              await this.provider.send("eth_getBlockByNumber", [
+                numberToRpcQuantity(latestBlockNumberBeforeSnapshot + 10),
+                false,
+              ])
+            );
+          });
         });
       });
 
