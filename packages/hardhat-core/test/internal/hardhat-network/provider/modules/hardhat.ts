@@ -189,28 +189,24 @@ describe("Hardhat module", function () {
         });
       });
 
-      describe("hardhat_mine", () => {
+      describe("hardhat_mine", function () {
         const getLatestBlockNumber = async (): Promise<number> => {
           return rpcQuantityToNumber(
             await this.ctx.provider.send("eth_blockNumber")
           );
         };
 
-        it("should work without any arguments", async () => {
-          await this.ctx.provider.send("hardhat_mine");
+        it("should work without any arguments", async function () {
+          await this.provider.send("hardhat_mine");
         });
 
-        it("should work with an argument", async () => {
-          await this.ctx.provider.send("hardhat_mine", [
-            numberToRpcQuantity(3),
-          ]);
+        it("should work with an argument", async function () {
+          await this.provider.send("hardhat_mine", [numberToRpcQuantity(3)]);
         });
 
-        it("should permit the mining of a regular block afterwards", async () => {
-          await this.ctx.provider.send("hardhat_mine", [
-            numberToRpcQuantity(3),
-          ]);
-          await this.ctx.provider.send("evm_mine");
+        it("should permit the mining of a regular block afterwards", async function () {
+          await this.provider.send("hardhat_mine", [numberToRpcQuantity(3)]);
+          await this.provider.send("evm_mine");
         });
 
         describe("should permit the retrieval of a reserved block", function () {
@@ -268,29 +264,29 @@ describe("Hardhat module", function () {
           });
         });
 
-        it("should not mine too many blocks", async () => {
+        it("should not mine too many blocks", async function () {
           const blocksToMine = 5;
           const latestBlockNumber = await getLatestBlockNumber();
-          await this.ctx.provider.send("hardhat_mine", [
+          await this.provider.send("hardhat_mine", [
             numberToRpcQuantity(blocksToMine),
           ]);
           assert.isNull(
-            await this.ctx.provider.send("eth_getBlockByNumber", [
+            await this.provider.send("eth_getBlockByNumber", [
               numberToRpcQuantity(latestBlockNumber + blocksToMine + 1),
               false,
             ])
           );
         });
 
-        describe("should increment the block number", async () => {
-          it("when not given any arguments", async () => {
+        describe("should increment the block number", async function () {
+          it("when not given any arguments", async function () {
             const latestBlockNumber = await getLatestBlockNumber();
-            await this.ctx.provider.send("hardhat_mine");
+            await this.provider.send("hardhat_mine");
             assert.equal(await getLatestBlockNumber(), latestBlockNumber + 1);
           });
-          it("when mining 1000 blocks", async () => {
+          it("when mining 1000 blocks", async function () {
             const latestBlockNumber = await getLatestBlockNumber();
-            await this.ctx.provider.send("hardhat_mine", [
+            await this.provider.send("hardhat_mine", [
               numberToRpcQuantity(1000),
             ]);
             assert.equal(
@@ -312,14 +308,14 @@ describe("Hardhat module", function () {
             );
           };
 
-          it("with only one hardhat_mine invocation", async () => {
+          it("with only one hardhat_mine invocation", async function () {
             const originalLatestBlockNumber = await getLatestBlockNumber();
             const timestampBefore = await getBlockTimestamp(
               originalLatestBlockNumber
             );
             const numberOfBlocksToMine = 10;
             const timestampInterval = 10;
-            await this.ctx.provider.send("hardhat_mine", [
+            await this.provider.send("hardhat_mine", [
               numberToRpcQuantity(numberOfBlocksToMine),
               numberToRpcQuantity(timestampInterval),
             ]);
@@ -332,7 +328,7 @@ describe("Hardhat module", function () {
             );
           });
 
-          it("with two consecutive hardhat_mine invocations", async () => {
+          it("with two consecutive hardhat_mine invocations", async function () {
             const originalLatestBlockNumber = await getLatestBlockNumber();
             const timestampBefore = await getBlockTimestamp(
               originalLatestBlockNumber
@@ -341,11 +337,11 @@ describe("Hardhat module", function () {
             const numberOfBlocksToMine = 20;
             const timestampInterval = 10;
 
-            await this.ctx.provider.send("hardhat_mine", [
+            await this.provider.send("hardhat_mine", [
               numberToRpcQuantity(numberOfBlocksToMine / 2),
               numberToRpcQuantity(timestampInterval),
             ]);
-            await this.ctx.provider.send("hardhat_mine", [
+            await this.provider.send("hardhat_mine", [
               numberToRpcQuantity(numberOfBlocksToMine / 2),
               numberToRpcQuantity(timestampInterval),
             ]);
@@ -360,13 +356,13 @@ describe("Hardhat module", function () {
           });
         });
 
-        it("should mine transactions in the mempool", async () => {
-          await this.ctx.provider.send("evm_setAutomine", [false]);
-          await this.ctx.provider.send("evm_setBlockGasLimit", [
+        it("should mine transactions in the mempool", async function () {
+          await this.provider.send("evm_setAutomine", [false]);
+          await this.provider.send("evm_setBlockGasLimit", [
             numberToRpcQuantity(21000 * 3),
           ]);
           for (let i = 0; i <= 3; i++) {
-            await this.ctx.provider.send("eth_sendTransaction", [
+            await this.provider.send("eth_sendTransaction", [
               {
                 from: DEFAULT_ACCOUNTS_ADDRESSES[1],
                 to: "0x1111111111111111111111111111111111111111",
@@ -375,15 +371,13 @@ describe("Hardhat module", function () {
             ]);
           }
           const previousLatestBlockNumber = await getLatestBlockNumber();
-          await this.ctx.provider.send("hardhat_mine", [
-            numberToRpcQuantity(10),
-          ]);
+          await this.provider.send("hardhat_mine", [numberToRpcQuantity(10)]);
           for (const expectation of [
             { block: previousLatestBlockNumber + 1, transactionCount: 3 },
             { block: previousLatestBlockNumber + 2, transactionCount: 1 },
             { block: previousLatestBlockNumber + 3, transactionCount: 0 },
           ]) {
-            const block = await this.ctx.provider.send("eth_getBlockByNumber", [
+            const block = await this.provider.send("eth_getBlockByNumber", [
               numberToRpcQuantity(expectation.block),
               false,
             ]);
