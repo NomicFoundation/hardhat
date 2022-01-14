@@ -12,7 +12,7 @@ import { EVMResult, ExecResult } from "@ethereumjs/vm/dist/evm/evm";
 import { ERROR } from "@ethereumjs/vm/dist/exceptions";
 import { RunBlockResult } from "@ethereumjs/vm/dist/runBlock";
 import { DefaultStateManager, StateManager } from "@ethereumjs/vm/dist/state";
-import ethSigUtil, { SignTypedDataVersion } from "@metamask/eth-sig-util";
+import { SignTypedDataVersion, signTypedData } from "@metamask/eth-sig-util";
 import chalk from "chalk";
 import debug from "debug";
 import {
@@ -878,7 +878,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   ): Promise<string> {
     const privateKey = this._getLocalAccountPrivateKey(address);
 
-    return ethSigUtil.signTypedData({
+    return signTypedData({
       privateKey,
       version: SignTypedDataVersion.V4,
       data: typedData,

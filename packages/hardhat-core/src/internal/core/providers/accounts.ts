@@ -1,7 +1,7 @@
 import { BN } from "ethereumjs-util";
 import * as t from "io-ts";
 
-import ethSigUtil, { SignTypedDataVersion } from "@metamask/eth-sig-util";
+import { SignTypedDataVersion, signTypedData } from "@metamask/eth-sig-util";
 import { FeeMarketEIP1559Transaction } from "@ethereumjs/tx";
 import { EIP1193Provider, RequestArguments } from "../../../types";
 import { HardhatError } from "../errors";
@@ -113,7 +113,7 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
       // if we don't manage the address, the method is forwarded
       const privateKey = this._getPrivateKeyForAddressOrNull(address);
       if (privateKey !== null) {
-        return ethSigUtil.signTypedData({
+        return signTypedData({
           privateKey,
           version: SignTypedDataVersion.V4,
           data: typedMessage,
