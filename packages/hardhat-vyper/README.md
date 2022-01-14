@@ -58,6 +58,19 @@ module.exports = {
 };
 ```
 
+You can also configure multiple versions of the Vyper compiler:
+
+```js
+module.exports = {
+  vyper: {
+    compilers: [
+      { version: "0.2.1" },
+      { version: "0.3.0" },
+    ],
+  },
+};
+```
+
 ## Usage
 
 There are no additional steps you need to take for this plugin to work.
