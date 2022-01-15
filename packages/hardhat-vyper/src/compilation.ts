@@ -9,6 +9,7 @@ import {
   ProcessResult,
 } from "@nomiclabs/hardhat-docker";
 import fsExtra from "fs-extra";
+import { emoji } from "hardhat/internal/cli/emoji";
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import { Artifact, Artifacts, ProjectPathsConfig } from "hardhat/types";
 import { localPathToSourceName } from "hardhat/utils/source-names";
@@ -51,12 +52,12 @@ export async function compile(
     const pathFromCWD = path.relative(process.cwd(), file);
     const pathFromSources = path.relative(paths.sources, file);
 
-    if (await isAlreadyCompiled(file, paths, vyperVersion, files)) {
-      console.log(pathFromCWD, "is already compiled");
+    if (await isAlreadyCompiled(file, paths, vyperVersion)) {
+      console.log(`${emoji("✓ ")}${pathFromCWD} is already compiled`);
       continue;
     }
 
-    console.log("Compiling", pathFromCWD);
+    console.log(`${emoji("⌛ ")}Compiling ${pathFromCWD}`);
 
     const processResult = await handleCommonErrors(
       compileWithDocker(file, docker, dockerImage, paths)
@@ -91,8 +92,7 @@ export async function compile(
 async function isAlreadyCompiled(
   sourceFile: string,
   paths: ProjectPathsConfig,
-  vyperVersion: string,
-  sources: string[]
+  vyperVersion: string
 ) {
   const lastVyperVersionUsed = await getLastVyperVersionUsed(paths);
   if (lastVyperVersionUsed !== vyperVersion) {
@@ -100,16 +100,19 @@ async function isAlreadyCompiled(
   }
 
   const contractName = pathToContractName(sourceFile);
-  const artifactPath = path.join(paths.artifacts, `${contractName}.json`);
+  const sourceName = path.relative(paths.root, sourceFile);
+  const artifactPath = path.join(
+    paths.artifacts,
+    sourceName,
+    `${contractName}.json`
+  );
+
   if (!(await fsExtra.pathExists(artifactPath))) {
     return false;
   }
 
+  const lastSourcesCtime = (await fsExtra.stat(sourceFile)).ctimeMs;
   const artifactCtime = (await fsExtra.stat(artifactPath)).ctimeMs;
-
-  const stats = await Promise.all(sources.map((f) => fsExtra.stat(f)));
-
-  const lastSourcesCtime = Math.max(...stats.map((s) => s.ctimeMs));
 
   return lastSourcesCtime < artifactCtime;
 }
