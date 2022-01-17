@@ -544,12 +544,17 @@ describe("Hardhat module", function () {
           });
 
           it("when doing _mine twice", async function () {
+            const latestBlockNumberBeforeSnapshot =
+              await getLatestBlockNumber();
             const snapshotId = await this.provider.send("evm_snapshot");
             await this.provider.send("hardhat_mine", ["0x5"]);
             await this.provider.send("hardhat_mine", ["0x5"]);
             await this.provider.send("evm_revert", [snapshotId]);
             assert.isNull(
-              await this.provider.send("eth_getBlockByNumber", ["0x8", false])
+              await this.provider.send("eth_getBlockByNumber", [
+                numberToRpcQuantity(latestBlockNumberBeforeSnapshot + 8),
+                false,
+              ])
             );
           });
         });

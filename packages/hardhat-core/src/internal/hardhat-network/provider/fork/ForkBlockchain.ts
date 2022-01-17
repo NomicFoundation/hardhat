@@ -54,6 +54,16 @@ export class ForkBlockchain implements HardhatBlockchainInterface {
   public async getBlock(
     blockHashOrNumber: Buffer | number | BN
   ): Promise<Block | null> {
+    if (
+      (typeof blockHashOrNumber === "number" || BN.isBN(blockHashOrNumber)) &&
+      this._data.isReservedBlock(new BN(blockHashOrNumber))
+    ) {
+      this._data.fulfillBlockReservation(
+        new BN(blockHashOrNumber),
+        this._common
+      );
+    }
+
     let block: Block | undefined;
     if (Buffer.isBuffer(blockHashOrNumber)) {
       block = await this._getBlockByHash(blockHashOrNumber);
@@ -100,28 +110,6 @@ export class ForkBlockchain implements HardhatBlockchainInterface {
     this._latestBlockNumber = this._latestBlockNumber.add(count);
   }
 
-  private _resolveBlockNumberOrLatest(numberOrLatest: BN | "latest"): BN {
-    return numberOrLatest === "latest"
-      ? new BN(this._latestBlockNumber)
-      : numberOrLatest;
-  }
-
-  public isReservedBlock(numberOrLatest: BN | "latest"): boolean {
-    return this._data.isReservedBlock(
-      this._resolveBlockNumberOrLatest(numberOrLatest)
-    );
-  }
-
-  public fulfillBlockReservation(
-    numberOrLatest: BN | "latest",
-    common: Common
-  ): Block {
-    return this._data.fulfillBlockReservation(
-      this._resolveBlockNumberOrLatest(numberOrLatest),
-      common
-    );
-  }
-
   public async putBlock(block: Block): Promise<void> {
     await this.addBlock(block);
   }
@@ -131,7 +119,7 @@ export class ForkBlockchain implements HardhatBlockchainInterface {
     if (block === undefined) {
       throw new Error("Block not found");
     }
-    this._delBlock(block);
+    this._delBlock(block.header.number);
   }
 
   public async delBlock(blockHash: Buffer) {
@@ -149,10 +137,8 @@ export class ForkBlockchain implements HardhatBlockchainInterface {
     if (this._forkBlockNumber.gte(nextBlockNumber)) {
       throw new Error("Cannot delete remote block");
     }
-    const nextBlock = this._data.getBlockByNumber(nextBlockNumber);
-    if (nextBlock !== undefined) {
-      return this._delBlock(nextBlock);
-    }
+
+    this._delBlock(nextBlockNumber);
   }
 
   public async getTotalDifficulty(blockHash: Buffer): Promise<BN> {
@@ -380,20 +366,23 @@ export class ForkBlockchain implements HardhatBlockchainInterface {
     return parentTD.add(difficulty);
   }
 
-  private _delBlock(block: Block): void {
-    if (new BN(block.header.number).lte(this._forkBlockNumber)) {
+  private _delBlock(blockNumber: BN): void {
+    if (blockNumber.lte(this._forkBlockNumber)) {
       throw new Error("Cannot delete remote block");
     }
 
-    const blockNumber = block.header.number.toNumber();
-    for (let i = blockNumber; this._latestBlockNumber.gten(i); i++) {
-      const current = this._data.getBlockByNumber(new BN(i));
-      if (current !== undefined) {
-        this._data.removeBlock(current);
+    for (let i = blockNumber; i.lte(this._latestBlockNumber); i = i.addn(1)) {
+      if (this._data.isReservedBlock(i)) {
+        this._data.cancelBlockReservation(i);
+      } else {
+        const current = this._data.getBlockByNumber(i);
+        if (current !== undefined) {
+          this._data.removeBlock(current);
+        }
       }
     }
 
-    this._latestBlockNumber = new BN(blockNumber).subn(1);
+    this._latestBlockNumber = blockNumber.subn(1);
   }
 
   private _processRemoteTransaction(rpcTransaction: RpcTransaction | null) {
