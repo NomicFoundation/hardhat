@@ -1,5 +1,12 @@
 # hardhat
 
+## 2.8.3
+
+### Patch Changes
+
+- 9b1de8e0: Full rework of vyper plugin (#2082, #1364, #1338, #1335, #1258)
+- e2eb07cc: Use 40s as the default value for mocha's timeout and for the localhost network's timeout (#1549).
+
 ## 2.8.2
 
 ### Patch Changes
