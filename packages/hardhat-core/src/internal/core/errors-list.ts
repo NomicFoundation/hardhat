@@ -140,7 +140,7 @@ To learn more about how to access the Hardhat Runtime Environment from different
 The most common source of errors is trying to import the Hardhat Runtime Environment from your config or a file imported from it.
 This is not possible, as Hardhat can't be initialized while its config is being defined.
 
-You may also have accidentally imported \`hardhat\' instead of \`hardhat/config\`.
+You may also have accidentally imported \`hardhat\` instead of \`hardhat/config\`.
 
 Please make sure your config file is correct.
 
@@ -183,11 +183,11 @@ Please install Hardhat locally using npm or Yarn, and try again.`,
       number: 13,
       message: `Your Hardhat project uses typescript, but ts-node is not installed.
       
-Please run: npm \`install --save-dev ts-node\``,
+Please run: npm install --save-dev ts-node`,
       title: "ts-node not installed",
       description: `You are running a Hardhat project that uses typescript, but you haven't installed ts-node.
 
-Please run this and try again: npm install --save-dev ts-node`,
+Please run this and try again: \`npm install --save-dev ts-node\``,
       shouldBeReported: false,
     },
     TYPESCRIPT_NOT_INSTALLED: {
