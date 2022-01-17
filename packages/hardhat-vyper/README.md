@@ -63,10 +63,7 @@ You can also configure multiple versions of the Vyper compiler:
 ```js
 module.exports = {
   vyper: {
-    compilers: [
-      { version: "0.2.1" },
-      { version: "0.3.0" },
-    ],
+    compilers: [{ version: "0.2.1" }, { version: "0.3.0" }],
   },
 };
 ```
