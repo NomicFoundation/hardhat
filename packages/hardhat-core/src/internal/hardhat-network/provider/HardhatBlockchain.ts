@@ -72,12 +72,6 @@ export class HardhatBlockchain implements HardhatBlockchainInterface {
     this._length = this._length + count.toNumber();
   }
 
-  private _resolveBlockNumberOrLatest(numberOrLatest: BN | "latest"): BN {
-    return numberOrLatest === "latest"
-      ? new BN(this._length - 1)
-      : numberOrLatest;
-  }
-
   public async putBlock(block: Block): Promise<void> {
     await this.addBlock(block);
   }

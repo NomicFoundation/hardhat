@@ -256,31 +256,4 @@ export class BlockchainData {
       reservation.interval.mul(blockNumber.sub(reservation.first).addn(1))
     );
   }
-
-  public unreserveBlocksAfter(blockNumber: BN) {
-    // search through block reservations and remove any that include the given
-    // blockNumber
-    for (
-      let b = blockNumber.addn(1);
-      this._findBlockReservation(b) !== -1;
-      b = b.addn(1)
-    ) {
-      // delete the existing reservation, but re-add its first half if
-      // necessary
-
-      const reservationIndex = this._findBlockReservation(b);
-
-      const { reservation: oldReservation, common: oldReservationsCommon } =
-        this._removeReservation(reservationIndex);
-
-      if (b > oldReservation.first) {
-        this.reserveBlocks(
-          oldReservation.first,
-          b.subn(1),
-          oldReservation.interval,
-          oldReservationsCommon
-        );
-      }
-    }
-  }
 }
