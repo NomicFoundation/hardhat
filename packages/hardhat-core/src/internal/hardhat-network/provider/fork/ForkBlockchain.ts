@@ -90,12 +90,12 @@ export class ForkBlockchain implements HardhatBlockchainInterface {
     return block;
   }
 
-  public reserveBlocks(count: BN, interval: BN, common: Common) {
+  public reserveBlocks(count: BN, interval: BN) {
     this._data.reserveBlocks(
       this._latestBlockNumber.addn(1),
       count,
       interval,
-      common
+      this._common
     );
     this._latestBlockNumber = this._latestBlockNumber.add(count);
   }

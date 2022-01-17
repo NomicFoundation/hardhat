@@ -14,12 +14,18 @@ export class HardhatBlockchain implements HardhatBlockchainInterface {
   private readonly _data = new BlockchainData();
   private _length = 0;
 
+  constructor(private _common: Common) {}
+
   public getLatestBlockNumber(): BN {
     return new BN(this._length - 1);
   }
 
   public async getLatestBlock(): Promise<Block> {
-    const block = this._data.getBlockByNumber(this.getLatestBlockNumber());
+    const blockNumber = this.getLatestBlockNumber();
+    if (this._data.isReservedBlock(blockNumber)) {
+      this._data.fulfillBlockReservation(blockNumber, this._common);
+    }
+    const block = this._data.getBlockByNumber(blockNumber);
     if (block === undefined) {
       throw new Error("No block available");
     }
@@ -29,6 +35,16 @@ export class HardhatBlockchain implements HardhatBlockchainInterface {
   public async getBlock(
     blockHashOrNumber: Buffer | BN | number
   ): Promise<Block | null> {
+    if (
+      (typeof blockHashOrNumber === "number" || BN.isBN(blockHashOrNumber)) &&
+      this._data.isReservedBlock(new BN(blockHashOrNumber))
+    ) {
+      this._data.fulfillBlockReservation(
+        new BN(blockHashOrNumber),
+        this._common
+      );
+    }
+
     if (typeof blockHashOrNumber === "number") {
       return this._data.getBlockByNumber(new BN(blockHashOrNumber)) ?? null;
     }
@@ -46,8 +62,13 @@ export class HardhatBlockchain implements HardhatBlockchainInterface {
     return block;
   }
 
-  public reserveBlocks(count: BN, interval: BN, common: Common) {
-    this._data.reserveBlocks(new BN(this._length), count, interval, common);
+  public reserveBlocks(count: BN, interval: BN) {
+    this._data.reserveBlocks(
+      new BN(this._length),
+      count,
+      interval,
+      this._common
+    );
     this._length = this._length + count.toNumber();
   }
 
@@ -55,22 +76,6 @@ export class HardhatBlockchain implements HardhatBlockchainInterface {
     return numberOrLatest === "latest"
       ? new BN(this._length - 1)
       : numberOrLatest;
-  }
-
-  public isReservedBlock(numberOrLatest: BN | "latest"): boolean {
-    return this._data.isReservedBlock(
-      this._resolveBlockNumberOrLatest(numberOrLatest)
-    );
-  }
-
-  public fulfillBlockReservation(
-    numberOrLatest: BN | "latest",
-    common: Common
-  ): Block {
-    return this._data.fulfillBlockReservation(
-      this._resolveBlockNumberOrLatest(numberOrLatest),
-      common
-    );
   }
 
   public async putBlock(block: Block): Promise<void> {

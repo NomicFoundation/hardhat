@@ -207,7 +207,7 @@ export class HardhatNode extends EventEmitter {
       const initialStateRoot = await hardhatStateManager.getStateRoot();
       common = makeCommon(config, initialStateRoot);
 
-      const hardhatBlockchain = new HardhatBlockchain();
+      const hardhatBlockchain = new HardhatBlockchain(common);
 
       const genesisBlockBaseFeePerGas = hardforkGte(
         hardfork,
@@ -504,11 +504,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       // only one more block is needed. just mine it regularly:
       await this.mineBlock();
     } else {
-      this._blockchain.reserveBlocks(
-        remainingBlockCount,
-        interval,
-        this._vm._common
-      );
+      this._blockchain.reserveBlocks(remainingBlockCount, interval);
     }
   }
 
@@ -607,10 +603,6 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   }
 
   public async getLatestBlock(): Promise<Block> {
-    if (this._blockchain.isReservedBlock("latest")) {
-      this._blockchain.fulfillBlockReservation("latest", this._vm._common);
-    }
-
     return this._blockchain.getLatestBlock();
   }
 
@@ -793,12 +785,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       );
     }
 
-    const blockNumber = blockNumberOrPending;
-    if (this._blockchain.isReservedBlock(blockNumber)) {
-      this._blockchain.fulfillBlockReservation(blockNumber, this._vm._common);
-    }
-
-    const block = await this._blockchain.getBlock(blockNumber);
+    const block = await this._blockchain.getBlock(blockNumberOrPending);
     return block ?? undefined;
   }
 
