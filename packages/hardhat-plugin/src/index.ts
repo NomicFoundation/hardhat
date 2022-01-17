@@ -105,7 +105,7 @@ extendEnvironment((hre) => {
 task("deploy")
   .addOptionalVariadicPositionalParam("userModulesPaths")
   .setAction(
-    async ({ userModulesPaths }: { userModulesPaths: string[] }, hre) => {
+    async ({ userModulesPaths = [] }: { userModulesPaths: string[] }, hre) => {
       await hre.run("compile", { quiet: true });
 
       const userModules = await loadUserModules(
@@ -150,7 +150,7 @@ subtask("deploy:deploy-modules")
 task("plan")
   .addOptionalVariadicPositionalParam("userModulesPaths")
   .setAction(
-    async ({ userModulesPaths }: { userModulesPaths: string[] }, hre) => {
+    async ({ userModulesPaths = [] }: { userModulesPaths: string[] }, hre) => {
       await hre.run("compile", { quiet: true });
 
       const userModules = await loadUserModules(
