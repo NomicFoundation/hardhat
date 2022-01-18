@@ -327,6 +327,13 @@ module.exports.communityPlugins = [
       "Hardhat plugin for solidity contract verification on Blockscout block explorer.",
     tags: ["Blockscout", "Deployment", "Solidity", "Verification"],
   },
+  {
+    name: "@georacle/hardhat-georacle",
+    author: "Georacle",
+    authorUrl: "https://georacle.io",
+    description: "Hardhat plugin for deploying Georacle contracts.",
+    tags: ["Deployment", "Solidity", "Oracle"],
+  },
 ];
 
 module.exports.officialPlugins = [
