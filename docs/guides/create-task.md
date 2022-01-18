@@ -238,6 +238,22 @@ task("hello", "Prints a greeting'")
 
 And would be run with `npx hardhat hello --greeting Hola`.
 
+### Defining multiple parameters
+
+In a single Hardhat task, you can also pass multiple parameters with values (eg `--parameter-one parameterOneValue --parameter-two parameterTwoValue --parameter-three parameterThreeValue` and so on.
+
+accepting multiple parameter like `firstname lastname age` in a single task will look like this:
+
+```js
+task("personalDetail", "Prints the firstname lastname and the age of a person'")
+  .addOptionalParam("firstname", "The firstname to print", "Stone")
+  .addOptionalParam("lastname", "The lastname to print", "Ponnappa")
+  .addOptionalParam("age", "The age to print", "19")
+  .setAction(async ({ firstname, lastname, age }) => console.log(firstname + lastname + age));
+```
+
+And would be run with `npx hardhat personalDetail --firstname Kazantzis --lastname Anderson --age 23`.
+
 #### Positional parameters restrictions
 
 Positional and variadic parameters don't have to be named, and have the usual restrictions of a programming language:
