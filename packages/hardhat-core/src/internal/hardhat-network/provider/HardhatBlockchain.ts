@@ -3,55 +3,25 @@ import Common from "@ethereumjs/common";
 import { TypedTransaction } from "@ethereumjs/tx";
 import { BN, zeros } from "ethereumjs-util";
 
-import { BlockchainData } from "./BlockchainData";
+import { BlockchainBase } from "./BlockchainBase";
 import { FilterParams } from "./node-types";
-import { RpcLogOutput, RpcReceiptOutput } from "./output";
+import { RpcLogOutput } from "./output";
 import { HardhatBlockchainInterface } from "./types/HardhatBlockchainInterface";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
-export class HardhatBlockchain implements HardhatBlockchainInterface {
-  private readonly _data = new BlockchainData();
+export class HardhatBlockchain
+  extends BlockchainBase
+  implements HardhatBlockchainInterface
+{
   private _length = 0;
 
-  constructor(private _common: Common) {}
+  constructor(common: Common) {
+    super(common);
+  }
 
   public getLatestBlockNumber(): BN {
     return new BN(this._length - 1);
-  }
-
-  public async getLatestBlock(): Promise<Block> {
-    const blockNumber = this.getLatestBlockNumber();
-    if (this._data.isReservedBlock(blockNumber)) {
-      this._data.fulfillBlockReservation(blockNumber, this._common);
-    }
-    const block = this._data.getBlockByNumber(blockNumber);
-    if (block === undefined) {
-      throw new Error("No block available");
-    }
-    return block;
-  }
-
-  public async getBlock(
-    blockHashOrNumber: Buffer | BN | number
-  ): Promise<Block | null> {
-    if (
-      (typeof blockHashOrNumber === "number" || BN.isBN(blockHashOrNumber)) &&
-      this._data.isReservedBlock(new BN(blockHashOrNumber))
-    ) {
-      this._data.fulfillBlockReservation(
-        new BN(blockHashOrNumber),
-        this._common
-      );
-    }
-
-    if (typeof blockHashOrNumber === "number") {
-      return this._data.getBlockByNumber(new BN(blockHashOrNumber)) ?? null;
-    }
-    if (BN.isBN(blockHashOrNumber)) {
-      return this._data.getBlockByNumber(blockHashOrNumber) ?? null;
-    }
-    return this._data.getBlockByHash(blockHashOrNumber) ?? null;
   }
 
   public async addBlock(block: Block): Promise<Block> {
@@ -63,29 +33,8 @@ export class HardhatBlockchain implements HardhatBlockchainInterface {
   }
 
   public reserveBlocks(count: BN, interval: BN) {
-    this._data.reserveBlocks(
-      new BN(this._length),
-      count,
-      interval,
-      this._common
-    );
+    super.reserveBlocks(count, interval);
     this._length = this._length + count.toNumber();
-  }
-
-  public async putBlock(block: Block): Promise<void> {
-    await this.addBlock(block);
-  }
-
-  public deleteBlock(blockHash: Buffer) {
-    const block = this._data.getBlockByHash(blockHash);
-    if (block === undefined) {
-      throw new Error("Block not found");
-    }
-    this._delBlock(block.header.number.toNumber());
-  }
-
-  public async delBlock(blockHash: Buffer) {
-    this.deleteBlock(blockHash);
   }
 
   public deleteLaterBlocks(block: Block): void {
@@ -94,7 +43,7 @@ export class HardhatBlockchain implements HardhatBlockchainInterface {
       throw new Error("Invalid block");
     }
 
-    this._delBlock(actual.header.number.toNumber() + 1);
+    this._delBlock(actual.header.number.addn(1));
   }
 
   public async getTotalDifficulty(blockHash: Buffer): Promise<BN> {
@@ -111,12 +60,6 @@ export class HardhatBlockchain implements HardhatBlockchainInterface {
     return this.getLocalTransaction(transactionHash);
   }
 
-  public getLocalTransaction(
-    transactionHash: Buffer
-  ): TypedTransaction | undefined {
-    return this._data.getTransaction(transactionHash);
-  }
-
   public async getBlockByTransactionHash(
     transactionHash: Buffer
   ): Promise<Block | null> {
@@ -128,26 +71,8 @@ export class HardhatBlockchain implements HardhatBlockchainInterface {
     return this._data.getTransactionReceipt(transactionHash) ?? null;
   }
 
-  public addTransactionReceipts(receipts: RpcReceiptOutput[]) {
-    for (const receipt of receipts) {
-      this._data.addTransactionReceipt(receipt);
-    }
-  }
-
   public async getLogs(filterParams: FilterParams): Promise<RpcLogOutput[]> {
     return this._data.getLogs(filterParams);
-  }
-
-  public iterator(
-    _name: string,
-    _onBlock: (block: Block, reorg: boolean) => void | Promise<void>
-  ): Promise<number | void> {
-    throw new Error("Method not implemented.");
-  }
-
-  public async getBaseFee(): Promise<BN> {
-    const latestBlock = await this.getLatestBlock();
-    return latestBlock.header.calcNextBaseFee();
   }
 
   private _validateBlock(block: Block) {
@@ -187,18 +112,8 @@ export class HardhatBlockchain implements HardhatBlockchainInterface {
     return parentTD.add(difficulty);
   }
 
-  private _delBlock(blockNumber: number): void {
-    for (let i = blockNumber; i < this._length; i++) {
-      const bni = new BN(i);
-      if (this._data.isReservedBlock(bni)) {
-        this._data.cancelBlockReservation(bni);
-      } else {
-        const current = this._data.getBlockByNumber(bni);
-        if (current !== undefined) {
-          this._data.removeBlock(current);
-        }
-      }
-    }
-    this._length = blockNumber;
+  protected _delBlock(blockNumber: BN): void {
+    super._delBlock(blockNumber);
+    this._length = blockNumber.toNumber();
   }
 }

@@ -42,7 +42,7 @@ describe("HardhatBlockchain", () => {
       await assert.isRejected(
         blockchain.getLatestBlock(),
         Error,
-        "No block available"
+        "Block not found"
       );
     });
   });

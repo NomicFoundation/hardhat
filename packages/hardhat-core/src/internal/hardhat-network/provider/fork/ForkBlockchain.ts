@@ -9,7 +9,7 @@ import { RpcTransactionReceipt } from "../../../core/jsonrpc/types/output/receip
 import { RpcTransaction } from "../../../core/jsonrpc/types/output/transaction";
 import { InternalError } from "../../../core/providers/errors";
 import { JsonRpcClient } from "../../jsonrpc/client";
-import { BlockchainData } from "../BlockchainData";
+import { BlockchainBase } from "../BlockchainBase";
 import { FilterParams } from "../node-types";
 import {
   remoteReceiptToRpcReceiptOutput,
@@ -29,26 +29,22 @@ import { rpcToTxData } from "./rpcToTxData";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
-export class ForkBlockchain implements HardhatBlockchainInterface {
-  private _data = new BlockchainData();
+export class ForkBlockchain
+  extends BlockchainBase
+  implements HardhatBlockchainInterface
+{
   private _latestBlockNumber = this._forkBlockNumber;
 
   constructor(
     private _jsonRpcClient: JsonRpcClient,
     private _forkBlockNumber: BN,
-    private _common: Common
-  ) {}
+    common: Common
+  ) {
+    super(common);
+  }
 
   public getLatestBlockNumber(): BN {
     return this._latestBlockNumber;
-  }
-
-  public async getLatestBlock(): Promise<Block> {
-    const block = await this.getBlock(this.getLatestBlockNumber());
-    if (block === null) {
-      throw new Error("Block not found");
-    }
-    return block;
   }
 
   public async getBlock(
@@ -101,29 +97,8 @@ export class ForkBlockchain implements HardhatBlockchainInterface {
   }
 
   public reserveBlocks(count: BN, interval: BN) {
-    this._data.reserveBlocks(
-      this._latestBlockNumber.addn(1),
-      count,
-      interval,
-      this._common
-    );
+    super.reserveBlocks(count, interval);
     this._latestBlockNumber = this._latestBlockNumber.add(count);
-  }
-
-  public async putBlock(block: Block): Promise<void> {
-    await this.addBlock(block);
-  }
-
-  public deleteBlock(blockHash: Buffer) {
-    const block = this._data.getBlockByHash(blockHash);
-    if (block === undefined) {
-      throw new Error("Block not found");
-    }
-    this._delBlock(block.header.number);
-  }
-
-  public async delBlock(blockHash: Buffer) {
-    this.deleteBlock(blockHash);
   }
 
   public deleteLaterBlocks(block: Block): void {
@@ -170,12 +145,6 @@ export class ForkBlockchain implements HardhatBlockchainInterface {
     return tx;
   }
 
-  public getLocalTransaction(
-    transactionHash: Buffer
-  ): TypedTransaction | undefined {
-    return this._data.getTransaction(transactionHash);
-  }
-
   public async getBlockByTransactionHash(
     transactionHash: Buffer
   ): Promise<Block | null> {
@@ -211,12 +180,6 @@ export class ForkBlockchain implements HardhatBlockchainInterface {
     return null;
   }
 
-  public addTransactionReceipts(receipts: RpcReceiptOutput[]) {
-    for (const receipt of receipts) {
-      this._data.addTransactionReceipt(receipt);
-    }
-  }
-
   public getForkBlockNumber() {
     return this._forkBlockNumber;
   }
@@ -244,18 +207,6 @@ export class ForkBlockchain implements HardhatBlockchainInterface {
       return remoteLogs.map(toRpcLogOutput).concat(localLogs);
     }
     return this._data.getLogs(filterParams);
-  }
-
-  public iterator(
-    _name: string,
-    _onBlock: (block: Block, reorg: boolean) => void | Promise<void>
-  ): Promise<number | void> {
-    throw new Error("Method not implemented.");
-  }
-
-  public async getBaseFee(): Promise<BN> {
-    const latestBlock = await this.getLatestBlock();
-    return latestBlock.header.calcNextBaseFee();
   }
 
   private async _getBlockByHash(blockHash: Buffer) {
@@ -366,22 +317,11 @@ export class ForkBlockchain implements HardhatBlockchainInterface {
     return parentTD.add(difficulty);
   }
 
-  private _delBlock(blockNumber: BN): void {
+  protected _delBlock(blockNumber: BN): void {
     if (blockNumber.lte(this._forkBlockNumber)) {
       throw new Error("Cannot delete remote block");
     }
-
-    for (let i = blockNumber; i.lte(this._latestBlockNumber); i = i.addn(1)) {
-      if (this._data.isReservedBlock(i)) {
-        this._data.cancelBlockReservation(i);
-      } else {
-        const current = this._data.getBlockByNumber(i);
-        if (current !== undefined) {
-          this._data.removeBlock(current);
-        }
-      }
-    }
-
+    super._delBlock(blockNumber);
     this._latestBlockNumber = blockNumber.subn(1);
   }
 
