@@ -19,6 +19,8 @@ The Hardhat Runtime Environment (HRE) is configured through a queue of extension
 For example, adding the following to `hardhat.config.js`:
 
 ```js
+import { extendEnvironment } from "hardhat/config";
+
 extendEnvironment((hre) => {
   hre.hi = "Hello, Hardhat!";
 });
