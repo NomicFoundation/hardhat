@@ -1,5 +1,5 @@
 import type * as ethers from "ethers";
-import { Artifact } from "hardhat/src/types";
+import { Artifact } from "hardhat/types";
 
 import type { SignerWithAddress } from "../signers";
 
