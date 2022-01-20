@@ -21,6 +21,7 @@ enum Action {
   CREATE_BASIC_SAMPLE_PROJECT_ACTION = "Create a basic sample project",
   CREATE_ADVANCED_SAMPLE_PROJECT_ACTION = "Create an advanced sample project",
   CREATE_ADVANCED_TYPESCRIPT_SAMPLE_PROJECT_ACTION = "Create an advanced sample project that uses TypeScript",
+  CREATE_ADVANCED_TYPESCRIPT_WITH_REACTJS_SAMPLE_PROJECT_ACTION = "Create an advanced sample project that uses TypeScript and ReactJS",
   CREATE_EMPTY_HARDHAT_CONFIG_ACTION = "Create an empty hardhat.config.js",
   QUIT_ACTION = "Quit",
 }
@@ -28,10 +29,15 @@ enum Action {
 type SampleProjectTypeCreationAction =
   | Action.CREATE_BASIC_SAMPLE_PROJECT_ACTION
   | Action.CREATE_ADVANCED_SAMPLE_PROJECT_ACTION
-  | Action.CREATE_ADVANCED_TYPESCRIPT_SAMPLE_PROJECT_ACTION;
+  | Action.CREATE_ADVANCED_TYPESCRIPT_SAMPLE_PROJECT_ACTION
+  | Action.CREATE_ADVANCED_TYPESCRIPT_WITH_REACTJS_SAMPLE_PROJECT_ACTION
 
 interface Dependencies {
   [name: string]: string;
+}
+
+interface NPMScripts {
+  [name: string]: string
 }
 
 const HARDHAT_PACKAGE_NAME = "hardhat";
@@ -76,6 +82,37 @@ const ADVANCED_TYPESCRIPT_SAMPLE_PROJECT_DEPENDENCIES: Dependencies = {
   typescript: "^4.5.2",
 };
 
+const ADVANCED_TYPESCRIPT_WITH_REACTJS_SAMPLE_PROJECT_DEPENDENCIES: Dependencies = {
+  ...ADVANCED_TYPESCRIPT_SAMPLE_PROJECT_DEPENDENCIES,
+  "@babel/core": "^7.16.7",
+  "@babel/preset-env": "^7.16.8",
+  "@babel/preset-react": "^7.16.7",
+  "@babel/preset-typescript": "^7.16.7",
+  "@pmmmwh/react-refresh-webpack-plugin": "^0.5.4",
+  "@types/react": "^17.0.38",
+  "@types/react-dom": "^17.0.11",
+  "css-loader": "^6.5.1",
+  "ethers": "^5.5.3",
+  "html-webpack-plugin": "^5.5.0",
+  "react-refresh": "^0.11.0",
+  "webpack": "^5.66.0",
+  "webpack-cli": "^4.9.1",
+  "webpack-dev-server": "^4.7.3",
+  "webpack-merge": "^5.8.0",
+  "style-loader": "^3.3.1",
+
+}
+
+const ADVANCED_TYPESCRIPT_WITH_REACTJS_SAMPLE_PROJECT_NON_DEV_DEPENDENCIES: Dependencies = {
+  "react": "^17.0.2",
+  "react-dom": "^17.0.2"
+}
+
+const ADVANCED_TYPESCRIPT_WITH_REACTJS_SAMPLE_PROJECT_NPM_SCRIPTS: NPMScripts ={
+  "start": "webpack server --config webpack/webpack.config.js --env env=dev",
+  "build": "webpack server --config webpack/webpack.config.js --env env=prod"
+}
+
 const SAMPLE_PROJECT_DEPENDENCIES: {
   [K in SampleProjectTypeCreationAction]: Dependencies;
 } = {
@@ -85,7 +122,21 @@ const SAMPLE_PROJECT_DEPENDENCIES: {
     ADVANCED_SAMPLE_PROJECT_DEPENDENCIES,
   [Action.CREATE_ADVANCED_TYPESCRIPT_SAMPLE_PROJECT_ACTION]:
     ADVANCED_TYPESCRIPT_SAMPLE_PROJECT_DEPENDENCIES,
+  [Action.CREATE_ADVANCED_TYPESCRIPT_WITH_REACTJS_SAMPLE_PROJECT_ACTION]: ADVANCED_TYPESCRIPT_WITH_REACTJS_SAMPLE_PROJECT_DEPENDENCIES,
 };
+
+
+const SAMPLE_PROJECT_NON_DEV_DEPENDENCIES: {
+  [K in SampleProjectTypeCreationAction]: Dependencies;
+} = {
+  [Action.CREATE_ADVANCED_TYPESCRIPT_WITH_REACTJS_SAMPLE_PROJECT_ACTION]: ADVANCED_TYPESCRIPT_WITH_REACTJS_SAMPLE_PROJECT_NON_DEV_DEPENDENCIES
+};
+
+const SAMPLE_PROJECT_NPM_SCRIPTS: {
+  [K in SampleProjectTypeCreationAction]:NPMScripts
+} = {
+  [Action.CREATE_ADVANCED_TYPESCRIPT_WITH_REACTJS_SAMPLE_PROJECT_ACTION]: ADVANCED_TYPESCRIPT_WITH_REACTJS_SAMPLE_PROJECT_NPM_SCRIPTS
+}
 
 const TELEMETRY_CONSENT_TIMEOUT = 10000;
 
@@ -161,7 +212,8 @@ async function copySampleProject(
 
   if (
     projectType === Action.CREATE_ADVANCED_SAMPLE_PROJECT_ACTION ||
-    projectType === Action.CREATE_ADVANCED_TYPESCRIPT_SAMPLE_PROJECT_ACTION
+    projectType === Action.CREATE_ADVANCED_TYPESCRIPT_SAMPLE_PROJECT_ACTION ||
+    projectType === Action.CREATE_ADVANCED_TYPESCRIPT_WITH_REACTJS_SAMPLE_PROJECT_ACTION
   ) {
     await fsExtra.copy(
       path.join(packageRoot, "sample-projects", "advanced"),
@@ -175,7 +227,8 @@ async function copySampleProject(
     );
   }
 
-  if (projectType === Action.CREATE_ADVANCED_TYPESCRIPT_SAMPLE_PROJECT_ACTION) {
+  if (projectType === Action.CREATE_ADVANCED_TYPESCRIPT_SAMPLE_PROJECT_ACTION ||
+    projectType === Action.CREATE_ADVANCED_TYPESCRIPT_WITH_REACTJS_SAMPLE_PROJECT_ACTION) {
     await fsExtra.copy(
       path.join(packageRoot, "sample-projects", "advanced-ts"),
       projectRoot
@@ -184,6 +237,23 @@ async function copySampleProject(
       "hardhat.config.js",
       path.join("scripts", "deploy.js"),
       path.join("test", "sample-test.js"),
+    ]) {
+      await fsExtra.remove(jsFile);
+    }
+    await fsExtra.move(
+      path.join(projectRoot, "npmignore"),
+      path.join(projectRoot, ".npmignore"),
+      { overwrite: true }
+    );
+  }
+
+  if (projectType === Action.CREATE_ADVANCED_TYPESCRIPT_WITH_REACTJS_SAMPLE_PROJECT_ACTION) {
+    await fsExtra.copy(
+      path.join(packageRoot, "sample-projects", "react"),
+      projectRoot
+    );
+    for (const jsFile of [
+      "tsconfig.json",
     ]) {
       await fsExtra.remove(jsFile);
     }
@@ -509,13 +579,14 @@ async function isYarnProject() {
   return fsExtra.pathExists("yarn.lock");
 }
 
-async function installRecommendedDependencies(dependencies: Dependencies) {
+async function installRecommendedDependencies(dependencies: Dependencies, nonDev: boolean = false) {
   console.log("");
 
   // The reason we don't quote the dependencies here is because they are going
   // to be used in child_process.sapwn, which doesn't require escaping string,
   // and can actually fail if you do.
-  const installCmd = await getRecommendedDependenciesInstallationCommand(
+  let dependencyCommand = nonDev? getRecommendedNonDevDependenciesInstallCommand: getRecommendedDependenciesInstallationCommand;
+  const installCmd = await dependencyCommand(
     dependencies,
     false
   );
@@ -624,6 +695,15 @@ async function getRecommendedDependenciesInstallationCommand(
   }
 
   return ["npm", "install", "--save-dev", ...deps];
+}
+
+async function getRecommendedNonDevDependenciesInstallCommand(dependencies: Dependencies, quoteDependencies: boolean): Promise<string[]> {
+  const deps = Object.entries(dependencies).map(([name, version]) => quoteDependencies ? `"${name}@${version}`: `${name}@${version}`);
+  if (await isYarnProject()) {
+    return ["yarn", "add", ...deps];
+  }
+
+  return ["npm", "install", ...deps];
 }
 
 async function getDependencies(projectType: SampleProjectTypeCreationAction) {

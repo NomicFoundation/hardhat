@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "es2018",
+    "module": "commonjs",
+    "strict": true,
+    "esModuleInterop": true,
+    "outDir": "build",
+    "declaration": true,
+    "jsx": "react-jsx",
+    "isolatedModules": true,
+    "resolveJsonModule": true
+  },
+  "include": ["./scripts", "./test", "./typechain", "./web"],
+  "files": ["./hardhat.config.ts"]
+}
