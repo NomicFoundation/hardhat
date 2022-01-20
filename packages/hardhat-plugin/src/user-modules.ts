@@ -11,6 +11,11 @@ export async function loadUserModules(
 ): Promise<Array<UserModule<any>>> {
   debug(`Loading user modules from '${userModulesDirectory}'`);
 
+  if (!fsExtra.existsSync(userModulesDirectory)) {
+    console.warn(`Directory ${userModulesDirectory} not found.`);
+    process.exit(0);
+  }
+
   let resolvedUserModulesPaths: string[];
   if (userModulesFiles.length === 0) {
     debug("No files passed, reading all module files");
