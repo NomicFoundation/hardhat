@@ -2,4 +2,4 @@
 "@nomiclabs/hardhat-etherscan": patch
 ---
 
-Adds moonbeam as a supported network
+Add support for the Moonbeam network
