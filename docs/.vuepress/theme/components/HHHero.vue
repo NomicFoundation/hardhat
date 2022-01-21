@@ -134,7 +134,6 @@ header
         display block
         font-size 32px
         color #0A0A0A
-        font-family 'ChivoLight'
         @media (max-width: 1000px)
           font-size 25px
           margin-bottom 12px
