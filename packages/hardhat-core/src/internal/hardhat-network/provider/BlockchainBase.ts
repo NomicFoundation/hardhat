@@ -101,7 +101,7 @@ export abstract class BlockchainBase {
       i = i.addn(1)
     ) {
       if (this._data.isReservedBlock(i)) {
-        this._data.cancelBlockReservation(i);
+        this._data.cancelReservationWithBlock(i);
       } else {
         const current = this._data.getBlockByNumber(i);
         if (current !== undefined) {
