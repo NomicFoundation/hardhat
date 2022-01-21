@@ -265,21 +265,6 @@ module.exports.communityPlugins = [
     tags: ["Testing", "Mocking"],
   },
   {
-    name: "hardhat-secure-signer",
-    author: "Anthony Daniel Martin",
-    authorUrl: "https://github.com/anthonymartin",
-    description:
-      "Enhanced hardhat credential security using an interactive prompt and password-encrypted credentials",
-    tags: [
-      "private key",
-      "encryption",
-      "security",
-      "developer experience",
-      "convenience",
-      "ethers.js",
-    ],
-  },
-  {
     name: "xdeployer",
     author: "Pascal Marco Caversaccio",
     authorUrl: "https://github.com/pcaversaccio",
