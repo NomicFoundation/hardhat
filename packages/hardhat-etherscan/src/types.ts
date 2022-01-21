@@ -25,7 +25,8 @@ type Chain =
   // avalanche
   | "avalanche"
   | "avalancheFujiTestnet"
-  // moonriver
+  // moonbeam
+  | "moonbeam"
   | "moonriver"
   | "moonbaseAlpha"
   // xdai
