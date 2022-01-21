@@ -54,18 +54,25 @@ interface FactoryOptions {
   libraries?: Libraries;
 }
 
-function getContractFactory(name: string): Promise<ethers.ContractFactory>;
-
-function getContractFactory(name: string, signer: ethers.Signer): Promise<ethers.ContractFactory>;
+function getContractFactory(name: string, signer?: ethers.Signer): Promise<ethers.ContractFactory>;
 
 function getContractFactory(name: string, factoryOptions: FactoryOptions): Promise<ethers.ContractFactory>;
 
+function getContractFactory(abi: any[], bytecode: ethers.utils.BytesLike, signer?: ethers.Signer): Promise<ethers.ContractFactory>;
 
-function getContractAt(nameOrAbi: string | any[], address: string, signer?: ethers.Signer): Promise<ethers.Contract>;
+function getContractAt(name: string, address: string, signer?: ethers.Signer): Promise<ethers.Contract>;
+
+function getContractAt(abi: any[], address: string, signer?: ethers.Signer): Promise<ethers.Contract>;
 
 function getSigners() => Promise<ethers.Signer[]>;
 
 function getSigner(address: string) => Promise<ethers.Signer>;
+
+function getContractFactoryFromArtifact(artifact: Artifact, signer?: ethers.Signer): Promise<ethers.ContractFactory>;
+
+function getContractFactoryFromArtifact(artifact: Artifact, factoryOptions: FactoryOptions): Promise<ethers.ContractFactory>;
+
+function getContractAtFromArtifact(artifact: Artifact, address: string, signer?: ethers.Signer): Promise<ethers.Contract>;
 ```
 
 The [`Contract`s](https://docs.ethers.io/v5/single-page/#/v5/api/contract/contract/) and [`ContractFactory`s](https://docs.ethers.io/v5/single-page/#/v5/api/contract/contract-factory/) returned by these helpers are connected to the first [signer](https://docs.ethers.io/v5/single-page/#/v5/api/signer/) returned by `getSigners` by default.

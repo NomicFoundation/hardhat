@@ -10,13 +10,11 @@ This plugin adds support for Vyper to Hardhat. Once installed, Vyper contracts c
 
 This plugin generates the same artifact format as the built-in Solidity compiler, so that it can be used in conjunction with all other plugins.
 
-The Vyper compiler is run using the [official Docker images](https://hub.docker.com/r/vyperlang/vyper).
+The Vyper compiler is run using the [official binary releases](https://github.com/vyperlang/vyper/releases).
 
 ## Installation
 
-First, you have to install Docker Desktop by following its [Get Started guide](https://www.docker.com/get-started).
-
-Then, you need to install the plugin by running
+First, you need to install the plugin by running
 
 ```bash
 npm install --save-dev @nomiclabs/hardhat-vyper
@@ -48,14 +46,24 @@ This plugin does not extend the Hardhat Runtime Environment.
 
 ## Configuration
 
-This plugin adds an optional `vyper` entry to Hardhat's config, which lets you specify the Vyper version to use. If no version is given, the [latest one on Docker Hub](https://hub.docker.com/r/vyperlang/vyper/tags) will be used.
+This plugin adds an optional `vyper` entry to Hardhat's config, which lets you specify the Vyper version to use.
 
 This is an example of how to set it:
 
 ```js
 module.exports = {
   vyper: {
-    version: "0.1.0b10",
+    version: "0.3.0",
+  },
+};
+```
+
+You can also configure multiple versions of the Vyper compiler:
+
+```js
+module.exports = {
+  vyper: {
+    compilers: [{ version: "0.2.1" }, { version: "0.3.0" }],
   },
 };
 ```
@@ -63,3 +71,7 @@ module.exports = {
 ## Usage
 
 There are no additional steps you need to take for this plugin to work.
+
+### Additional notes
+
+The oldest vyper version supported by this plugin is 0.2.0. Versions older than this will not work and will throw an error.

@@ -1,6 +1,6 @@
 {
   "name": "hardhat",
-  "version": "2.8.0",
+  "version": "2.8.3",
   "author": "Nomic Labs LLC",
   "license": "SEE LICENSE IN LICENSE",
   "homepage": "https://hardhat.org",
@@ -122,7 +122,7 @@
     "immutable": "^4.0.0-rc.12",
     "io-ts": "1.10.4",
     "lodash": "^4.17.11",
-    "merkle-patricia-tree": "^4.2.0",
+    "merkle-patricia-tree": "^4.2.2",
     "mnemonist": "^0.38.0",
     "mocha": "^7.2.0",
     "node-fetch": "^2.6.0",

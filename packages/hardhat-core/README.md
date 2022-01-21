@@ -42,6 +42,6 @@ Go to [CONTRIBUTING.md](./CONTRIBUTING.md) to learn about how to set up Hardhat'
 
 [Follow Hardhat on Twitter.](https://twitter.com/HardhatHQ)
 
-## Happy buidling!
+## Happy building!
 
 👷‍♀️👷‍♂️👷‍♀️👷‍♂️👷‍♀️👷‍♂️👷‍♀️👷‍♂️👷‍♀️👷‍♂️👷‍♀️👷‍♂️👷‍♀️👷‍♂️

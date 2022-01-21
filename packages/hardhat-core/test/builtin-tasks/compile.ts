@@ -91,7 +91,7 @@ describe("compile task", function () {
 
       assert.equal(
         reasons,
-        `The Solidity version pragma statement in these files don't match any of the configured compilers in your config. Change the pragma or configure additional compiler versions in your hardhat config.
+        `The Solidity version pragma statement in these files doesn't match any of the configured compilers in your config. Change the pragma or configure additional compiler versions in your hardhat config.
 
   * contracts/Foo.sol (^0.5.0)
 
@@ -133,7 +133,7 @@ Read about compiler configuration at https://hardhat.org/config
 
       assert.equal(
         reasons,
-        `The Solidity version pragma statement in these files don't match any of the configured compilers in your config. Change the pragma or configure additional compiler versions in your hardhat config.
+        `The Solidity version pragma statement in these files doesn't match any of the configured compilers in your config. Change the pragma or configure additional compiler versions in your hardhat config.
 
   * contracts/Foo.sol (^0.5.0)
   * contracts/Bar.sol (^0.5.1)
@@ -688,7 +688,7 @@ Read about compiler configuration at https://hardhat.org/config
 
   * contracts/Foo1.sol (^0.5.0)
 
-The Solidity version pragma statement in these files don't match any of the configured compilers in your config. Change the pragma or configure additional compiler versions in your hardhat config.
+The Solidity version pragma statement in these files doesn't match any of the configured compilers in your config. Change the pragma or configure additional compiler versions in your hardhat config.
 
   * contracts/Foo2.sol (^0.5.0)
 

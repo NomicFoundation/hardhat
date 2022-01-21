@@ -38,7 +38,16 @@ export function resolveConfigPath(configPath: string | undefined) {
 
 export function loadConfigAndTasks(
   hardhatArguments?: Partial<HardhatArguments>,
-  { showSolidityConfigWarnings } = { showSolidityConfigWarnings: false }
+  {
+    showEmptyConfigWarning = false,
+    showSolidityConfigWarnings = false,
+  }: {
+    showEmptyConfigWarning?: boolean;
+    showSolidityConfigWarnings?: boolean;
+  } = {
+    showEmptyConfigWarning: false,
+    showSolidityConfigWarnings: false,
+  }
 ): HardhatConfig {
   let configPath =
     hardhatArguments !== undefined ? hardhatArguments.config : undefined;
@@ -71,6 +80,10 @@ export function loadConfigAndTasks(
     throw e;
   } finally {
     ctx.setConfigLoadingAsFinished();
+  }
+
+  if (showEmptyConfigWarning) {
+    checkEmptyConfig(userConfig, { showSolidityConfigWarnings });
   }
 
   validateConfig(userConfig);
@@ -220,13 +233,30 @@ function readPackageJson(packageName: string): PackageJson | undefined {
   }
 }
 
+function checkEmptyConfig(
+  userConfig: any,
+  { showSolidityConfigWarnings }: { showSolidityConfigWarnings: boolean }
+) {
+  if (userConfig === undefined || Object.keys(userConfig).length === 0) {
+    let warning = `Hardhat config is returning an empty config object, check the export from the config file if this is unexpected.\n`;
+
+    // This 'learn more' section is also printed by the solidity config warning,
+    // so we need to check to avoid printing it twice
+    if (!showSolidityConfigWarnings) {
+      warning += `\nLearn more about configuring Hardhat at https://hardhat.org/config\n`;
+    }
+
+    console.warn(chalk.yellow(warning));
+  }
+}
+
 function checkMissingSolidityConfig(userConfig: any) {
   if (userConfig.solidity === undefined) {
     console.warn(
       chalk.yellow(
         `Solidity compiler is not configured. Version ${DEFAULT_SOLC_VERSION} will be used by default. Add a 'solidity' entry to your configuration to suppress this warning.
 
-Learn more about compiler configuration at https://hardhat.org/config"
+Learn more about compiler configuration at https://hardhat.org/config
 `
       )
     );

@@ -1,5 +1,15 @@
 # @nomiclabs/hardhat-etherscan
 
+## 3.0.0
+
+### Major Changes
+
+- e04944c6: Support multiple api keys in `hardhat-etherscan` to allow for verification against multiple networks (issue #1448)
+
+### Patch Changes
+
+- ed221fa8: Add support for xDai and Sokol networks
+
 ## 2.1.8
 
 ### Patch Changes
