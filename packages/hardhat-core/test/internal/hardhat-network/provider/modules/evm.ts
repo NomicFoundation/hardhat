@@ -145,6 +145,22 @@ describe("Evm module", function () {
       });
 
       describe("evm_setNextBlockTimestamp", async function () {
+        for (const { description, prepare } of [
+          {
+            description: "without any special preparation",
+            prepare: () => {
+              /* no-op */
+            },
+          },
+          {
+            description: "with hardhat_mine executed beforehand",
+            prepare: async () => {
+              await this.ctx.provider.send("hardhat_mine", ["0x4", "0x2"]);
+            },
+          },
+        ]) {
+          describe(description, function () {
+            beforeEach(async () => await prepare());
         it("should set next block timestamp and the next EMPTY block will be mined with that timestamp", async function () {
           const timestamp = getCurrentTimestamp() + 60;
 
@@ -323,6 +339,8 @@ describe("Evm module", function () {
             assertQuantity(latestBlock2.timestamp, timestamp - 500);
           });
         });
+          });
+        }
       });
 
       describe("evm_setBlockGasLimit", () => {
