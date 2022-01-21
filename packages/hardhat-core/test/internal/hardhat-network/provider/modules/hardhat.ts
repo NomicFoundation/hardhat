@@ -250,12 +250,12 @@ describe("Hardhat module", function () {
           });
 
           it("works at the end of the reservation", async function () {
-            await getAndAssertBlock(previousLatestBlockNumber + blockCount);
+            await getAndAssertBlock(previousLatestBlockNumber + blockCount - 1);
           });
 
           it("works several times over within the reservation", async function () {
             for (
-              let blockNumber = previousLatestBlockNumber + blockCount;
+              let blockNumber = previousLatestBlockNumber + blockCount - 1;
               blockNumber > previousLatestBlockNumber;
               blockNumber = Math.floor(blockNumber / 2)
             ) {
@@ -320,11 +320,11 @@ describe("Hardhat module", function () {
               numberToRpcQuantity(timestampInterval),
             ]);
             const timestampAfter = await getBlockTimestamp(
-              originalLatestBlockNumber + numberOfBlocksToMine
+              originalLatestBlockNumber + numberOfBlocksToMine - 1
             );
             assert.equal(
               timestampAfter,
-              timestampBefore + numberOfBlocksToMine * timestampInterval
+              timestampBefore + (numberOfBlocksToMine - 1) * timestampInterval
             );
           });
 
@@ -347,11 +347,11 @@ describe("Hardhat module", function () {
             ]);
 
             const timestampAfter = await getBlockTimestamp(
-              originalLatestBlockNumber + numberOfBlocksToMine
+              originalLatestBlockNumber + numberOfBlocksToMine - 1
             );
             assert.equal(
               timestampAfter,
-              timestampBefore + numberOfBlocksToMine * timestampInterval
+              timestampBefore + (numberOfBlocksToMine - 1) * timestampInterval
             );
           });
         });

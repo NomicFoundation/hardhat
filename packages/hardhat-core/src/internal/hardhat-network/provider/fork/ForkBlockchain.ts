@@ -54,10 +54,7 @@ export class ForkBlockchain
       (typeof blockHashOrNumber === "number" || BN.isBN(blockHashOrNumber)) &&
       this._data.isReservedBlock(new BN(blockHashOrNumber))
     ) {
-      this._data.fulfillBlockReservation(
-        new BN(blockHashOrNumber),
-        this._common
-      );
+      this._data.fulfillBlockReservation(new BN(blockHashOrNumber));
     }
 
     let block: Block | undefined;

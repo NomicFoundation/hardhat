@@ -27,21 +27,18 @@ export class BlockchainData {
   private _totalDifficulty: Map<string, BN> = new Map();
   private _blockReservations: Reservation[] = new Array();
 
-  public reserveBlocks(first: BN, count: BN, interval: BN, common: Common) {
-    const last = first.add(count.subn(1));
-    this._blockReservations.push({ first, last, interval });
-    // add the capstone block for subsequent blocks to refer to:
-    this.addBlock(
-      Block.fromBlockData(
-        {
-          header: {
-            number: last.toNumber(),
-          },
-        },
-        { common }
-      ),
-      new BN(0)
-    );
+  constructor(private _common: Common) {}
+
+  public reserveBlocks(first: BN, count: BN, interval: BN) {
+    const reservation: Reservation = {
+      first,
+      last: first.add(count.subn(1)),
+      interval,
+    };
+    this._blockReservations.push(reservation);
+    // fulfill the reservation for the final block, so that the parentHash of
+    // the subsequent will have a valid reference:
+    this.fulfillBlockReservation(reservation.last);
   }
 
   public getBlockByNumber(blockNumber: BN) {
@@ -151,10 +148,7 @@ export class BlockchainData {
     );
   }
 
-  private _removeReservation(index: number): {
-    reservation: Reservation;
-    common: Common;
-  } {
+  private _removeReservation(index: number): Reservation {
     assertHardhatInvariant(
       index in this._blockReservations,
       `Reservation ${index} does not exist in ${JSON.stringify(
@@ -165,23 +159,14 @@ export class BlockchainData {
 
     this._blockReservations.splice(index, 1);
 
-    const capstoneBlock = this.getBlockByNumber(reservation.last);
-    assertHardhatInvariant(
-      capstoneBlock !== undefined,
-      `Reservation ${index}, ${JSON.stringify(
-        reservation
-      )}, does not have a capstone block`
-    );
-
-    this.removeBlock(capstoneBlock);
-    return { reservation, common: capstoneBlock._common };
+    return reservation;
   }
 
   public cancelBlockReservation(blockNumber: BN) {
     this._removeReservation(this._findBlockReservation(blockNumber));
   }
 
-  public fulfillBlockReservation(blockNumber: BN, common: Common): Block {
+  public fulfillBlockReservation(blockNumber: BN) {
     // in addition to adding the given block, the reservation needs to be split
     // in two in order to accomodate access to the given block.
 
@@ -191,46 +176,33 @@ export class BlockchainData {
       `No reservation to fill for block number ${blockNumber}`
     );
 
+    // capture the timestamp before removing the reservation:
     const timestamp = this._calculateTimestampForReservedBlock(blockNumber);
 
     // split the block reservation:
-
-    const { reservation: oldReservation, common: oldReservationsCommon } =
-      this._removeReservation(reservationIndex);
+    const oldReservation = this._removeReservation(reservationIndex);
 
     if (!blockNumber.eq(oldReservation.first)) {
-      this.reserveBlocks(
-        oldReservation.first,
-        blockNumber.subn(1),
-        oldReservation.interval,
-        oldReservationsCommon
-      );
+      this._blockReservations.push({
+        ...oldReservation,
+        last: blockNumber.subn(1),
+      });
     }
 
     if (!blockNumber.eq(oldReservation.last)) {
-      this.reserveBlocks(
-        blockNumber.addn(1),
-        oldReservation.last,
-        oldReservation.interval,
-        oldReservationsCommon
-      );
+      this._blockReservations.push({
+        ...oldReservation,
+        first: blockNumber.addn(1),
+      });
     }
 
-    // add the block, injecting the appropriate timestamp:
-
-    const blockToAdd = Block.fromBlockData(
-      {
-        header: {
-          number: blockNumber,
-          timestamp,
-        },
-      },
-      { common }
+    this.addBlock(
+      Block.fromBlockData(
+        { header: { number: blockNumber, timestamp } },
+        { common: this._common }
+      ),
+      new BN(0)
     );
-
-    this.addBlock(blockToAdd, new BN(0));
-
-    return blockToAdd;
   }
 
   private _calculateTimestampForReservedBlock(blockNumber: BN): BN {

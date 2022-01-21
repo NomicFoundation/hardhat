@@ -9,9 +9,11 @@ import { RpcReceiptOutput } from "./output";
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
 export abstract class BlockchainBase {
-  protected readonly _data = new BlockchainData();
+  protected readonly _data: BlockchainData;
 
-  constructor(protected _common: Common) {}
+  constructor(protected _common: Common) {
+    this._data = new BlockchainData(_common);
+  }
 
   public abstract addBlock(block: Block): Promise<Block>;
 
@@ -45,10 +47,7 @@ export abstract class BlockchainBase {
       (typeof blockHashOrNumber === "number" || BN.isBN(blockHashOrNumber)) &&
       this._data.isReservedBlock(new BN(blockHashOrNumber))
     ) {
-      this._data.fulfillBlockReservation(
-        new BN(blockHashOrNumber),
-        this._common
-      );
+      this._data.fulfillBlockReservation(new BN(blockHashOrNumber));
     }
 
     if (typeof blockHashOrNumber === "number") {
@@ -91,8 +90,7 @@ export abstract class BlockchainBase {
     this._data.reserveBlocks(
       this.getLatestBlockNumber().addn(1),
       count,
-      interval,
-      this._common
+      interval
     );
   }
 

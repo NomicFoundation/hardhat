@@ -1,4 +1,5 @@
 import { Block } from "@ethereumjs/block";
+import Common from "@ethereumjs/common";
 import { assert } from "chai";
 import { BN } from "ethereumjs-util";
 
@@ -17,7 +18,7 @@ describe("BlockchainData", () => {
   }
 
   beforeEach(() => {
-    bd = new BlockchainData();
+    bd = new BlockchainData(new Common({ chain: "mainnet" }));
   });
 
   describe("addBlock", () => {
