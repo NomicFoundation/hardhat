@@ -379,6 +379,13 @@ module.exports.communityPlugins = [
     description: "Hardhat plugin for Uniswap V3 deployment",
     tags: ["uniswap", "testing", "local deployment"],
   },
+  {
+    name: "hardhat-deploy-tenderly",
+    author: "Ronan Sandford",
+    authorUrl: "https://github.com/wighawag",
+    description: "A plugin to push contracts to tenderly",
+    tags: ["Deployment", "Testing", "Tenderly", "Verification"],
+  },
 ];
 
 module.exports.officialPlugins = [
