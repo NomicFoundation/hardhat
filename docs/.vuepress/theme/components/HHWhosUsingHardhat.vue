@@ -307,6 +307,14 @@ export default {
         },
         // SECOND LINE
         {
+          company: "Celo",
+          image_filename: "company_logos/mobile/logo-celo@2x.png",
+          href: "#",
+          desktopImage: CeloDesktopImage,
+          mobileImage: CeloMobileImage,
+        },
+        // SECOND LINE
+        {
           company: "MyCrypto",
           image_filename: "company_logos/mobile/logo-mycrypto@2x.png",
           href: "#",

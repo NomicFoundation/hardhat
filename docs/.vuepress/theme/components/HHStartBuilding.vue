@@ -24,96 +24,98 @@ export default {
 <style lang="stylus" scoped>
 
 #start-building
-  position relative
-  overflow hidden
-  justify-content center
-  max-height 810px
-  height 100%
-  width 100vw
-  min-height 615px
-  display flex
-  flex-direction column
-  @media (max-width: 1000px)
-    height 615px
-  @media (min-width: 1000px)
-    min-height 51vw
-
-  .background
-    position absolute
-    z-index -1
-    width 100%
-    height 100%
-    background-image url('../img/textures/CTA-background-gradient.svg')
-    background-position center
-    background-repeat no-repeat
-    background-size cover
-    @media (max-width: 580px)
-      background-image url('../img/textures/CTA-Background-gradient-mobile.svg')
-    @media (min-width: 1900px)
-      background-image url('../img/textures/CTA-background-gradient-1920.svg')
-
-    .sb-graphic
-      width inherit
-      height inherit
-      position inherit
-      background-repeat no-repeat
-
-      &.background-texture-mb
-        background-image url('../img/textures/mobile_texture_bricks.svg')
-        background-position center
-        position relative
-        right -32vw
-
-      &.left-graphic
-        background-image url('../img/textures/Texture_bricks-L.svg')
-        z-index 100
-        top 0
-        width 835px
-        height 863px
-        left -100px
-        background-position left center
-
-      &.right-graphic
-        top 0
-        width 835px
-        height 863px
-        background-image url('../img/textures/Texture_bricks-R.svg')
-        z-index 100
-        right 0
-        // transform rotate(180deg)
-        background-position right center
-        opacity .5
-
-  .cta-container
+    position relative
+    overflow hidden
+    justify-content center
+    height 945px
+    width 100vw
     display flex
     flex-direction column
-    text-align center
     justify-content center
-    align-items center
-
-    h2
-      font-size 45px
-      margin-bottom 24px
-      font-family 'ChivoBold'
-      width 700px
-      font-weight 100
-      @media screen and (max-width: 1000px)
-        font-size 28px
-        width 80%
-        max-width 513px
-        padding 0 20px
-
-    p
-      font-size 24px
-      line-height 40px
-      margin-bottom 48px
-      padding 0 20px
-      @media screen and (max-width: 1000px)
-        font-size 20px
-        line-height 31px
-        margin-bottom 50px
-        max-width 513px
-
-    .cta-link
-      padding 20px 30px
+    z-index -1
+    top -180px
+    @media (max-width: 1000px)
+        height 650px
+        top 0
+        margin-bottom 110px
+    @media (min-width: 1000px)
+        // min-height 1030px
+    .background
+        position absolute
+        z-index -1
+        width 100%
+        height 100%
+        background-image url('../img/textures/CTA-background-gradient.svg')
+        background-position center
+        background-repeat no-repeat
+        background-size cover
+        @media (max-width: 580px)
+            width 100%
+            background-size cover
+            height 100%
+            background-image url('../img/textures/CTA-Background-gradient-mobile.svg')
+        @media (min-width: 1900px)
+            background-image url('../img/textures/CTA-background-gradient-1920.svg')
+        .sb-graphic
+            width inherit
+            height inherit
+            position inherit
+            background-repeat no-repeat
+            &.background-texture-mb
+                background-image url('../img/textures/mobile_texture_bricks.svg')
+                background-position center
+                position relative
+                right -32vw
+            &.left-graphic
+                background-image url('../img/textures/Texture_bricks-L.svg')
+                z-index 100
+                top 140px
+                width 835px
+                height 863px
+                left 0
+                background-position left center
+            &.right-graphic
+                top 140px
+                width 835px
+                height 863px
+                background-image url('../img/textures/Texture_bricks-R.svg')
+                z-index 100
+                right 0
+                // transform rotate(180deg)
+                background-position right center
+    .cta-container
+        display flex
+        flex-direction column
+        text-align center
+        justify-content center
+        align-items center
+        position relative
+        top 88px
+        margin-top 124px
+        @media screen and (max-width: 1000px)
+            margin-top -30px
+        h2
+            font-size 45px
+            margin-bottom 32px
+            font-family 'ChivoBold'
+            width 700px
+            font-weight 100
+            @media screen and (max-width: 1000px)
+                font-size 39px
+                width 100%
+                padding 0 24px
+                margin-bottom 24px
+        p
+            font-size 24px
+            line-height 40px
+            margin-bottom 64px
+            padding 0 20px
+            @media screen and (max-width: 1000px)
+                font-size 20px
+                line-height 31px
+                margin-bottom 50px
+                max-width 513px
+        .cta-link
+            padding 12px 28px
+            line-height 24px
 </style>

@@ -168,4 +168,8 @@ export default {
 
 <style src="prismjs/themes/prism-tomorrow.css"></style>
 <style lang="stylus" src="../styles/theme.styl"></style>
-<style lang="stylus" scoped></style>
+<style lang="stylus" scoped>
+  #topRow
+    position relative
+    z-index 1000
+</style>

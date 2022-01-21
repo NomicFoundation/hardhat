@@ -5,12 +5,30 @@
         li
           router-link(to="/" active-class="highlighted" exact) Home
         li(v-for="navLink of navLinks.slice(1)")
-          a(:href="navLink.link") {{navLink.text}}
-          //router-link(:to="navLink.link" v-else active-class="highlighted" :exact="navLink.link === '/'") {{navLink.text}}
-
+          div(:id="navLink.text")
+            a(
+              v-if="navLink.text == 'Tools'"
+              @click="toggleToolDropdown" 
+              :class="isToolDropdownOpen ? 'dropdown-open' : ''") {{navLink.text}}
+            a(
+              v-else
+            ) {{navLink.text}}
+            #tools-dropdown-wrapper(v-if="navLink.text == 'Tools'")
+                .tools-dropdown
+                  div.tools-item-wrapper(v-for="tool of tools")
+                    .tools-item(:id="tool")
+                        .dropdown-tool-image
+                        .dropdown-tool-title
+                            span.hardhat Hardhat
+                            span.name {{tool.charAt(0).toUpperCase() + tool.slice(1)}}
       ul.social-links
         li(v-for="socialLink of social")
-          a(:href="socialLink.link" :title="socialLink.name" target="_blank" rel="noopener noreferrer")
+          a(
+            :href="socialLink.link" 
+            :title="socialLink.name" 
+            target="_blank" 
+            rel="noopener noreferrer"
+          )
             img(:src="socialLink.img")
 
   section.navbar
@@ -24,7 +42,7 @@
           div
           div
           div
-      .navbar-mobile-wrapper
+      .navbar-mobile-wrapper.hidden
         .navbar-mobile.hidden
           +nav('')
 </template>
@@ -36,6 +54,16 @@ import DiscordLogo from "../img/assets/social/discord.svg";
 
 export default {
   name: "HHNavbar",
+  data() {
+    return {
+      isToolDropdownOpen: false,
+    } 
+  },
+  methods: {
+    toggleToolDropdown() {
+      this.isToolDropdownOpen = !this.isToolDropdownOpen
+    }
+  },
   computed: {
     social() {
       const { repo } = this.$site.themeConfig;
@@ -60,6 +88,9 @@ export default {
     navLinks() {
       return this.$site.themeConfig.nav;
     },
+    tools() {
+      return ['runner','ignition','network','solidity']
+    }
   },
   mounted() {
     const menuToggler = this.$el.querySelector("#nav-icon3");
@@ -69,13 +100,17 @@ export default {
     menuToggler.addEventListener("click", (e) => {
       if (mobileMenuContainer.classList.contains("hidden")) {
         mobileMenuWrapper.style.pointerEvents = "all";
+        mobileMenuWrapper.style.background = "white";
         mobileMenuContainer.classList.remove("hidden");
+        mobileMenuWrapper.classList.remove("hidden");
         menuToggler.classList.add("open");
         document.querySelector("html").style.overflowY = "hidden";
       } else {
         menuToggler.classList.remove("open");
         mobileMenuWrapper.style.pointerEvents = "none";
+        mobileMenuWrapper.style.background = "none";
         mobileMenuContainer.classList.add("hidden");
+        mobileMenuWrapper.classList.add("hidden");
         document.querySelector("html").style.overflowY = "auto";
       }
     });
@@ -107,7 +142,7 @@ export default {
 
     margin 0 auto
     @media (max-width: 1000px)
-      padding 1rem 20px
+      padding 1rem 0
 
     .logo
       background-image url('../img/hardhat_logos/Hardhat-logo.svg')
@@ -118,8 +153,10 @@ export default {
       position relative
       top 0.4rem
       margin-left 0 !important
+      left -24px
       @media (max-width: 1000px)
         height 40px
+        left 0
       @media (max-width: 1000px) and (min-width: 720px)
         left calc(-128px + 56px)
 
@@ -165,13 +202,20 @@ export default {
                 width 100%
 
       ul.social-links
-        margin-left 20px
+        margin-left 44px
         list-style none
-        justify-content space-evenly
         display flex
         align-items center
-        width 150px
-
+        justify-content unset 
+        @media screen and (max-width: 1000px)
+          width 150px
+          justify-content space-evenly
+          li
+            margin-right 0
+        li
+          margin-right 15px
+          &:last-child
+            margin-right 0
         li
           transition 0.2s ease-in-out opacity
           display inline-block
@@ -193,21 +237,26 @@ export default {
       justify-content center
       cursor pointer
       position relative
+      width 48px
+      height 48px
+      #nav-icon3
+        // width inherit
+        // height inherit
       @media (max-width: 1000px) and (min-width: 720px)
         left calc(142px - 56px)
 
     .navbar-mobile-wrapper
-      overflow hidden
+      overflow auto
       position absolute
       width 100vw
-      height calc(100vh - 105px - 40px)
+      height calc(100vh - 80px - 40px)
       left 0
-      top 100px
+      top 80px
       pointer-events none
-
+      overflow hidden
       .navbar-mobile.hidden
         nav
-          left 50px !important
+          left 20px !important
           opacity 0
 
       .navbar-mobile
@@ -220,6 +269,8 @@ export default {
         opacity 1
         width 100vw
         transition .5s ease-in-out left
+        background white
+        overflow-y scroll
         @media screen and (max-height: 400px)
           nav
             li
@@ -259,14 +310,14 @@ export default {
               margin 0
               text-align center
               position relative
-              top -20px
+              // top -20px
 
             .social-links
               margin 0
               flex-direction row
               width 100%
               padding 0 70px
-
+              margin-top 40px
               img
                 width 30px
                 height 30px
@@ -274,9 +325,8 @@ export default {
         nav
           max-width unset
           display block
-          height 100%
           padding 20px
-
+          padding-top 64px
           ul
             display flex
             flex-direction column
@@ -295,14 +345,14 @@ export default {
 
 #nav-icon3
   top: 4px;
-  width: 60px;
-  height: 45px;
+  width: 28px;
+  height: 28px;
   position: relative;
   margin: 0 auto;
   -webkit-transform: rotate(0deg);
   -moz-transform: rotate(0deg);
   -o-transform: rotate(0deg);
-  transform: rotate(0deg) scale(.5);
+  transform: rotate(0deg);
   -webkit-transition: .5s ease-in-out;
   -moz-transition: .5s ease-in-out;
   -o-transition: .5s ease-in-out;
@@ -337,11 +387,11 @@ export default {
 
 
 #nav-icon3 div:nth-child(2)
-  top: 18px;
+  top: 8px;
 
 
 #nav-icon3 div:nth-child(3)
-  top: 36px;
+  top: 16px;
 
 
 #nav-icon3.open div:nth-child(2)
@@ -351,11 +401,133 @@ export default {
 #nav-icon3.open div:nth-child(1)
   transform: rotate(45deg);
   width: 100%;
-  top: 16px;
+  top: 8px;
 
 
 #nav-icon3.open div:nth-child(3)
   transform: rotate(-45deg);
   width: 100%;
-  top: 16px;
+  top: 8px;
+
+.navbar-mobile
+  #Tools
+    a
+      margin-bottom 20px
+      transition ease-in-out 0.2s all
+      &.dropdown-open
+        margin-bottom 0
+        & + #tools-dropdown-wrapper
+          max-height 200px
+          margin-bottom 20px
+          opacity 1
+    #tools-dropdown-wrapper
+      max-height 0
+      overflow hidden
+      margin-bottom 0px
+      transition ease-in-out 0.2s all
+      opacity 0
+      .dropdown-tool-title
+        line-height 40px
+        span
+          font-size 15px
+          font-family 'Chivo'
+          &.hardhat
+            color #6E6F70
+            margin-right 8px
+
+.desktop-nav
+  #Tools
+    position relative
+    a:hover + #tools-dropdown-wrapper,
+    & #tools-dropdown-wrapper:hover
+      pointer-events all !important
+      top 0
+      opacity 1
+      filter drop-shadow(0px 6px 50px rgba(0,0,0,0.1)) blur(0px)
+      transform scale(1)
+      z-index 100
+    a
+      position relative
+      z-index 1
+      &:hover 
+        &:after
+          display none
+    #tools-dropdown-wrapper
+      position absolute
+      z-index 0
+      top 10px
+      left -170px
+      width 492px
+      height 200px
+      opacity 0
+      pointer-events none
+      transition ease-in-out 0.2s all
+      filter drop-shadow(0px 6px 50px rgba(0,0,0,0.1)) blur(5px)
+      .tools-dropdown
+        position relative
+        top 56px
+        width inherit
+        height 168px
+        padding 24px 48px
+        border-radius 4px
+        background white
+        flex-wrap wrap
+        justify-content space-between
+        display flex
+        .tools-item-wrapper
+          display flex
+          align-items center
+        &:before
+          content ''
+          position absolute
+          width 12px
+          height 12px
+          background white
+          left calc(50% - 15px)
+          top -6px
+          transform rotate(45deg)
+        .tools-item
+          display flex
+          align-items center
+          cursor pointer
+          &:hover
+            .dropdown-tool-title
+              &:after
+                width 100%
+          .dropdown-tool-image
+            transition inherit
+            width 42px
+            height 42px
+            background-size 42px
+            background-position center
+            background-repeat no-repeat
+            border-radius 8px
+            margin-right 8px
+          &#runner .dropdown-tool-image
+            background-image url(../img/tool_icons/Hardhat-Runner.svg)
+          &#network .dropdown-tool-image
+              background-image url(../img/tool_icons/Hardhat-Network.svg)
+          &#ignition .dropdown-tool-image
+              background-image url(../img/tool_icons/Hardhat-Ignition.svg)
+          &#solidity .dropdown-tool-image
+              background-image url(../img/tool_icons/Hardhat-Solidity.svg)
+          .dropdown-tool-title 
+            position relative
+            &:after
+              position absolute
+              content ''
+              bottom 8px
+              left 0
+              width 0
+              height 1px 
+              background #6E6F70
+              transition ease-in-out 0.3s width
+            span
+              font-family 'Chivo'
+              font-size 15px
+              font-weight 500
+              &.hardhat
+                color #6E6F70
+                margin-right 4px
+
 </style>

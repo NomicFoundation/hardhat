@@ -17,6 +17,7 @@ module.exports = {
     nav: [
       { text: "Home", link: "/" },
       // { text: "Hardhat Network", link: "/hardhat-network/" },
+      { text: "Tools", link: "/tools/" },
       { text: "Plugins", link: "/plugins/" },
       { text: "Documentation", link: "/getting-started/" },
       { text: "Tutorial", link: "/tutorial/" },
