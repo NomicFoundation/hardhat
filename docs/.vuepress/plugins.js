@@ -312,6 +312,73 @@ module.exports.communityPlugins = [
       "Hardhat plugin for solidity contract verification on Blockscout block explorer.",
     tags: ["Blockscout", "Deployment", "Solidity", "Verification"],
   },
+  {
+    name: "@georacle/hardhat-georacle",
+    author: "Georacle",
+    authorUrl: "https://georacle.io",
+    description:
+      "A Hardhat plugin for integrating smart contracts with Georacle.",
+    tags: ["Georacle", "oracle", "geospatial"],
+  },
+  {
+    name: "@muzamint/hardhat-etherspot",
+    author: "muzamint",
+    authorUrl: "https://github.com/muzamint",
+    description: "Hardhat TypeScript plugin for Etherspot",
+    tags: ["smart contract wallet"],
+  },
+  {
+    name: "hardhat-multibaas-plugin",
+    author: "Curvegrid",
+    authorUrl: "https://www.curvegrid.com/",
+    description: "Integrate MultiBaas into Hardhat's workflow!",
+    tags: ["middleware", "ethereum", "OMG"],
+  },
+  {
+    name: "@mangrovedao/hardhat-test-solidity",
+    author: "Mangrove",
+    authorUrl: "https://mangrove.exchange/",
+    description: "Hardhat plugin for writing tests in solidity",
+    tags: ["solidity tests"],
+  },
+  {
+    name: "@reef-defi/hardhat-reef",
+    author: "Reef Chain",
+    authorUrl: "https://reef.io/",
+    description:
+      "Hardhat Reef plugin for interacting with contracts on the Reef chain",
+    tags: ["Reef Chain"],
+  },
+  {
+    name: "hardhat-diamond-abi",
+    author: "Project Sophon",
+    authorUrl: "https://github.com/projectsophon",
+    description:
+      "Hardhat plugin to combine multiple ABIs into a Diamond ABI artifact",
+    tags: ["diamond standard"],
+  },
+  {
+    name: "@idle-finance/hardhat-proposals-plugin",
+    author: "Idle Finance",
+    authorUrl: "https://idle.finance/",
+    description: "A Hardhat plugin for working with on-chain proposals",
+    tags: ["governance", "proposals", "simulation"],
+  },
+  {
+    name: "@shardlabs/starknet-hardhat-plugin",
+    author: "Shard Labs",
+    authorUrl: "https://shardlabs.io/",
+    description:
+      "A plugin for integrating Starknet tools into Hardhat projects",
+    tags: ["starknet", "cairo", "layer two"],
+  },
+  {
+    name: "uniswap-v3-deploy-plugin",
+    author: "Uniswap",
+    authorUrl: "https://uniswap.org/",
+    description: "Hardhat plugin for Uniswap V3 deployment",
+    tags: ["uniswap", "testing", "local deployment"],
+  },
 ];
 
 module.exports.officialPlugins = [
