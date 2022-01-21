@@ -1,13 +1,16 @@
 <template lang="pug">
 div
-  HHWhyHardhat
-  HHStartBuilding
-  HHWhosUsingHardhat
-  HHTestimonials
-  HHBuiltBy
+  main
+    HHTools
+    HHWhyHardhat
+    HHStartBuilding
+    HHWhosUsingHardhat
+    HHTestimonials
+    HHBuiltBy
 </template>
 
 <script>
+import HHTools from "./HHTools";
 import HHWhyHardhat from "./HHWhyHardhat";
 import HHStartBuilding from "./HHStartBuilding";
 import HHWhosUsingHardhat from "./HHWhosUsingHardhat";
@@ -22,6 +25,7 @@ export default {
     HHWhosUsingHardhat,
     HHTestimonials,
     HHBuiltBy,
+    HHTools
   },
 };
 </script>
