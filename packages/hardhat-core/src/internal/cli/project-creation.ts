@@ -522,6 +522,10 @@ export async function createProject() {
           }
         }
 
+        // Inject scripts
+        if(action in SAMPLE_PROJECT_NPM_SCRIPTS){
+          await writeScripts(SAMPLE_PROJECT_NPM_SCRIPTS[action]);
+        }
       
       }
     }
