@@ -586,7 +586,7 @@ async function installRecommendedDependencies(dependencies: Dependencies, nonDev
   // to be used in child_process.sapwn, which doesn't require escaping string,
   // and can actually fail if you do.
   let dependencyCommand = nonDev? getRecommendedNonDevDependenciesInstallCommand: getRecommendedDependenciesInstallationCommand;
-  const installCmd = await dependencyCommand(
+  let installCmd = await dependencyCommand(
     dependencies,
     false
   );
