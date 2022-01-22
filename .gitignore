@@ -4,6 +4,7 @@ myproject
 /node_modules
 /.idea
 *.tsbuildinfo
+.yarn
 
 # VS Code workspace config
 workspace.code-workspace

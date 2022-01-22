@@ -30,6 +30,12 @@ export async function getPackageJson(): Promise<PackageJson> {
   return fsExtra.readJSON(path.join(root, "package.json"));
 }
 
+
+export async function writePackageJson(packageJson: PackageJson): Promise<void>{
+  const root = getPackageRoot();
+  fsExtra.writeJSON(path.join(root, "package.json"), packageJson);
+}
+
 export function getHardhatVersion(): string | null {
   const packageJsonPath = findClosestPackageJson(__filename);
 
