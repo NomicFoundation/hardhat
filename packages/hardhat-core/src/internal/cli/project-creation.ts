@@ -126,15 +126,11 @@ const SAMPLE_PROJECT_DEPENDENCIES: {
 };
 
 
-const SAMPLE_PROJECT_NON_DEV_DEPENDENCIES: {
-  [K in SampleProjectTypeCreationAction]: Dependencies;
-} = {
+const SAMPLE_PROJECT_NON_DEV_DEPENDENCIES: Record<string, Dependencies> = {
   [Action.CREATE_ADVANCED_TYPESCRIPT_WITH_REACTJS_SAMPLE_PROJECT_ACTION]: ADVANCED_TYPESCRIPT_WITH_REACTJS_SAMPLE_PROJECT_NON_DEV_DEPENDENCIES
 };
 
-const SAMPLE_PROJECT_NPM_SCRIPTS: {
-  [K in SampleProjectTypeCreationAction]:NPMScripts
-} = {
+const SAMPLE_PROJECT_NPM_SCRIPTS: Record<string, NPMScripts> = {
   [Action.CREATE_ADVANCED_TYPESCRIPT_WITH_REACTJS_SAMPLE_PROJECT_ACTION]: ADVANCED_TYPESCRIPT_WITH_REACTJS_SAMPLE_PROJECT_NPM_SCRIPTS
 }
 
@@ -328,7 +324,11 @@ async function getAction(): Promise<Action> {
     undefined
   ) {
     return Action.CREATE_ADVANCED_TYPESCRIPT_SAMPLE_PROJECT_ACTION;
-  }
+  } else if (process.env
+    .HARDHAT_CREATE_ADVANCED_TYPESCRIPT_WITH_REACTJS_SAMPLE_PROJECT_ACTION !==
+    undefined){
+      return Action.CREATE_ADVANCED_TYPESCRIPT_WITH_REACTJS_SAMPLE_PROJECT_ACTION;
+    }
 
   const { default: enquirer } = await import("enquirer");
   try {
@@ -420,6 +420,9 @@ export async function createProject() {
       undefined ||
     process.env
       .HARDHAT_CREATE_ADVANCED_TYPESCRIPT_SAMPLE_PROJECT_WITH_DEFAULTS !==
+      undefined ||
+    process.env
+      .HARDHAT_CREATE_ADVANCED_TYPESCRIPT_WITH_REACTJS_SAMPLE_PROJECT_ACTION !==
       undefined;
 
   if (useDefaultPromptResponses) {
@@ -494,7 +497,7 @@ export async function createProject() {
         (await confirmRecommendedDepsInstallation(dependenciesToInstall));
       if (shouldInstall) {
         const installed = await installRecommendedDependencies(
-          dependenciesToInstall
+          dependenciesToInstall,
         );
 
         if (!installed) {
@@ -504,6 +507,20 @@ export async function createProject() {
         }
 
         shouldShowInstallationInstructions = !installed;
+
+        // Injecting code to install non-dev dependencies
+        if (action in SAMPLE_PROJECT_NON_DEV_DEPENDENCIES){
+          const nonDevInstalled = await installRecommendedDependencies(
+            SAMPLE_PROJECT_NON_DEV_DEPENDENCIES[action],
+            true
+          );
+
+          if (!nonDevInstalled) {
+            console.warn(
+              chalk.red("Failed to install the sample project's dependencies")
+            );
+          }
+        }
       }
     }
   }
