@@ -13,7 +13,7 @@ import {
   writeTelemetryConsent,
 } from "../util/global-dir";
 import { fromEntries } from "../util/lang";
-import { getPackageJson, getPackageRoot } from "../util/packageInfo";
+import { getPackageJson, getPackageRoot, writePackageJson } from "../util/packageInfo";
 
 import { emoji } from "./emoji";
 
@@ -521,6 +521,8 @@ export async function createProject() {
             );
           }
         }
+
+      
       }
     }
   }
@@ -728,4 +730,13 @@ async function getDependencies(projectType: SampleProjectTypeCreationAction) {
     [HARDHAT_PACKAGE_NAME]: `^${(await getPackageJson()).version}`,
     ...SAMPLE_PROJECT_DEPENDENCIES[projectType],
   };
+}
+
+async function writeScripts(scripts: NPMScripts): Promise<void>{
+  let packageJson = await getPackageJson();
+  if(packageJson.scripts === undefined){
+    packageJson.scripts = {}
+  }
+  packageJson.scripts = {...packageJson.scripts, ...scripts};
+  await writePackageJson(packageJson);
 }
