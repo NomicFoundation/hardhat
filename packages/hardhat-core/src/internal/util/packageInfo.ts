@@ -18,6 +18,7 @@ export interface PackageJson {
   engines: {
     node: string;
   };
+  scripts?: Record<string, string>;
 }
 
 export function findClosestPackageJson(file: string): string | null {
