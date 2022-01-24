@@ -11,7 +11,7 @@ exports.chainConfig = {
         },
     },
     harmony: {
-        chainId: 1,
+        chainId: 1666600000,
         urls: {
             apiURL: "https://harmony-etherscan-api.netlify.app/",
             browserURL: "https://explorer.harmony.one",
