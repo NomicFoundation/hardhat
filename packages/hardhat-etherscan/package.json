@@ -27,7 +27,7 @@
     "test": "mocha --recursive \"test/**/*.ts\" --exit",
     "build": "tsc --build .",
     "clean": "rimraf dist",
-    "prepare": "npm run build"
+    "prepare": "yarn build"
   },
   "files": [
     "dist/src/",

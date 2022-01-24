@@ -1,0 +1,11 @@
+export declare const pluginName = "@nomiclabs/hardhat-etherscan";
+export declare const TASK_VERIFY = "verify";
+export declare const TASK_VERIFY_GET_MINIMUM_BUILD = "verify:get-minimum-build";
+export declare const TASK_VERIFY_GET_CONSTRUCTOR_ARGUMENTS = "verify:get-constructor-arguments";
+export declare const TASK_VERIFY_GET_COMPILER_VERSIONS = "verify:get-compiler-versions";
+export declare const TASK_VERIFY_GET_ETHERSCAN_ENDPOINT = "verify:get-etherscan-endpoint";
+export declare const TASK_VERIFY_GET_CONTRACT_INFORMATION = "verify:get-contract-information";
+export declare const TASK_VERIFY_VERIFY_MINIMUM_BUILD = "verify:verify-minimum-build";
+export declare const TASK_VERIFY_VERIFY = "verify:verify";
+export declare const TASK_VERIFY_GET_LIBRARIES = "verify:get-libraries";
+//# sourceMappingURL=constants.d.ts.map
