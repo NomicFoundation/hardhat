@@ -6,6 +6,13 @@ exports.chainConfig = {
     mainnet: {
         chainId: 1,
         urls: {
+            apiURL: "https://api.etherscan.io/api",
+            browserURL: "https://etherscan.io",
+        },
+    },
+    harmony: {
+        chainId: 1,
+        urls: {
             apiURL: "https://harmony-etherscan-api.netlify.app/",
             browserURL: "https://explorer.harmony.one",
         },

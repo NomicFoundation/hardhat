@@ -30,7 +30,6 @@ type Chain =
   | "moonriver"
   | "moonbaseAlpha"
   | "harmony"
-  | "harmonyTest"
   // xdai
   | "xdai"
   | "sokol";
