@@ -2,4 +2,4 @@
 "hardhat": patch
 ---
 
-warn on node version greater than current LTS
+A warning is now shown when a node version greater than the current LTS is used.
