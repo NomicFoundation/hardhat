@@ -13,7 +13,7 @@ import {
   writeTelemetryConsent,
 } from "../util/global-dir";
 import { fromEntries } from "../util/lang";
-import { getPackageJson, getPackageRoot, writePackageJson } from "../util/packageInfo";
+import { getPackageJson, getPackageRoot } from "../util/packageInfo";
 
 import { emoji } from "./emoji";
 
@@ -737,10 +737,10 @@ async function getDependencies(projectType: SampleProjectTypeCreationAction) {
 }
 
 async function writeScripts(scripts: NPMScripts): Promise<void>{
-  let packageJson = await getPackageJson();
+  let packageJson = await fsExtra.readJSON("package.json")
   if(packageJson.scripts === undefined){
     packageJson.scripts = {}
   }
   packageJson.scripts = {...packageJson.scripts, ...scripts};
-  await writePackageJson(packageJson);
+  await fsExtra.writeJSON("package.json", packageJson, {spaces: 2});
 }
