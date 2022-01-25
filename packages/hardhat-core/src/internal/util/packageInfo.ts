@@ -31,10 +31,6 @@ export async function getPackageJson(): Promise<PackageJson> {
 }
 
 
-export async function writePackageJson(packageJson: PackageJson): Promise<void>{
-  const root = getPackageRoot();
-  await fsExtra.writeJSON(path.join(root, "package.json"), packageJson);
-}
 
 export function getHardhatVersion(): string | null {
   const packageJsonPath = findClosestPackageJson(__filename);
