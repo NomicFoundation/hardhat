@@ -221,6 +221,13 @@ export class JsonRpcClient {
     };
   }
 
+  // for weirdo chains where totalDifficulty isn't included with the block
+  private dummyTotalDifficultyField(method: string, rawResult: any) {
+    if (method.startsWith("eth_getBlock") && rawResult && rawResult.difficulty !== undefined && rawResult.totalDifficulty === undefined) {
+      rawResult.totalDifficulty = "0x0";
+    }
+  }
+
   private async _perform<T>(
     method: string,
     params: any[],
@@ -247,6 +254,7 @@ export class JsonRpcClient {
     }
 
     const rawResult = await this._send(method, params);
+    this.dummyTotalDifficultyField(method, rawResult);
     const decodedResult = decodeJsonRpcResponse(rawResult, tType);
 
     const blockNumber = getMaxAffectedBlockNumber(decodedResult);
@@ -294,9 +302,10 @@ export class JsonRpcClient {
     }
 
     const rawResults = await this._sendBatch(batch);
-    const decodedResults = rawResults.map((result, i) =>
-      decodeJsonRpcResponse(result, batch[i].tType)
-    );
+    const decodedResults = rawResults.map((result, i) => {
+      this.dummyTotalDifficultyField(batch[i].method, result);
+      return decodeJsonRpcResponse(result, batch[i].tType);
+    });
 
     const blockNumber = getMaxAffectedBlockNumber(decodedResults);
     if (this._canBeCached(blockNumber)) {
