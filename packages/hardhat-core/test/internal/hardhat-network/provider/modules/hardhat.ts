@@ -354,6 +354,44 @@ describe("Hardhat module", function () {
               timestampBefore + (numberOfBlocksToMine - 1) * timestampInterval
             );
           });
+
+          it("when there are transactions in the mempool", async function () {
+            // Arrange: put a transaction into the mempool
+            await this.provider.send("evm_setAutomine", [false]);
+            for (let i = 0; i < 5; i++) {
+              await this.provider.send("eth_sendTransaction", [
+                {
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                  to: "0x1111111111111111111111111111111111111111",
+                  nonce: numberToRpcQuantity(i),
+                },
+              ]);
+            }
+
+            const originalLatestBlockNumber = await getLatestBlockNumber();
+            const originalLatestBlockTimestamp = await getBlockTimestamp(
+              originalLatestBlockNumber
+            );
+
+            // Act:
+            const blocksToMine = 10;
+            const interval = 10;
+            await this.provider.send("hardhat_mine", [
+              numberToRpcQuantity(blocksToMine),
+              numberToRpcQuantity(interval),
+            ]);
+
+            // Assert:
+            for (let i = 1; i <= blocksToMine; i++) {
+              const blockNumber = originalLatestBlockNumber + i;
+              const expectedTimestamp =
+                originalLatestBlockTimestamp + i * interval;
+              assert.equal(
+                await getBlockTimestamp(blockNumber),
+                expectedTimestamp
+              );
+            }
+          });
         });
 
         it("should mine transactions in the mempool", async function () {
