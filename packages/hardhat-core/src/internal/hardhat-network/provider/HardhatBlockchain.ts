@@ -32,8 +32,8 @@ export class HardhatBlockchain
     return block;
   }
 
-  public reserveBlocks(count: BN, interval: BN) {
-    super.reserveBlocks(count, interval);
+  public reserveBlocks(count: BN, interval: BN, stateRoot: Buffer) {
+    super.reserveBlocks(count, interval, stateRoot);
     this._length = this._length + count.toNumber();
   }
 

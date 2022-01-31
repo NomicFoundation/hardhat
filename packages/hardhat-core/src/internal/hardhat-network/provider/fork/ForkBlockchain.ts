@@ -57,7 +57,7 @@ export class ForkBlockchain
       this._data.fulfillBlockReservation(new BN(blockHashOrNumber));
     }
 
-    let block: Block | undefined;
+    let block: Block | undefined | null;
     if (Buffer.isBuffer(blockHashOrNumber)) {
       block = await this._getBlockByHash(blockHashOrNumber);
       return block ?? null;
@@ -93,8 +93,8 @@ export class ForkBlockchain
     return block;
   }
 
-  public reserveBlocks(count: BN, interval: BN) {
-    super.reserveBlocks(count, interval);
+  public reserveBlocks(count: BN, interval: BN, stateRoot: Buffer) {
+    super.reserveBlocks(count, interval, stateRoot);
     this._latestBlockNumber = this._latestBlockNumber.add(count);
   }
 
@@ -219,8 +219,8 @@ export class ForkBlockchain
     if (blockNumber.gt(this._latestBlockNumber)) {
       return undefined;
     }
-    const block = this._data.getBlockByNumber(blockNumber);
-    if (block !== undefined) {
+    const block = await super.getBlock(blockNumber);
+    if (block !== null) {
       return block;
     }
     const rpcBlock = await this._jsonRpcClient.getBlockByNumber(

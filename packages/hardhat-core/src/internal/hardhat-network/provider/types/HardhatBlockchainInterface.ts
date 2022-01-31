@@ -8,7 +8,7 @@ import { RpcLogOutput, RpcReceiptOutput } from "../output";
 export interface HardhatBlockchainInterface extends BlockchainInterface {
   addBlock(block: Block): Promise<Block>;
   addTransactionReceipts(receipts: RpcReceiptOutput[]): void;
-  reserveBlocks(count: BN, interval: BN): void;
+  reserveBlocks(count: BN, interval: BN, stateRoot: Buffer): void;
   deleteLaterBlocks(block: Block): void;
   getBlockByTransactionHash(transactionHash: Buffer): Promise<Block | null>;
   getLatestBlock(): Promise<Block>;

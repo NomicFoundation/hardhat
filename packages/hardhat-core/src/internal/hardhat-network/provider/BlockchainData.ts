@@ -16,6 +16,7 @@ interface Reservation {
   first: BN;
   last: BN;
   interval: BN;
+  stateRoot: Buffer;
 }
 
 export class BlockchainData {
@@ -29,11 +30,12 @@ export class BlockchainData {
 
   constructor(private _common: Common) {}
 
-  public reserveBlocks(first: BN, count: BN, interval: BN) {
+  public reserveBlocks(first: BN, count: BN, interval: BN, stateRoot: Buffer) {
     const reservation: Reservation = {
       first,
       last: first.add(count.subn(1)),
       interval,
+      stateRoot,
     };
     this._blockReservations.push(reservation);
     // fulfill the reservation for the final block, so that the parentHash of
@@ -198,7 +200,13 @@ export class BlockchainData {
 
     this.addBlock(
       Block.fromBlockData(
-        { header: { number: blockNumber, timestamp } },
+        {
+          header: {
+            number: blockNumber,
+            stateRoot: oldReservation.stateRoot,
+            timestamp,
+          },
+        },
         { common: this._common }
       ),
       new BN(0)
