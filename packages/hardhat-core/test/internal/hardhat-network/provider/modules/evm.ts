@@ -148,9 +148,7 @@ describe("Evm module", function () {
         for (const { description, prepare } of [
           {
             description: "without any special preparation",
-            prepare: () => {
-              /* no-op */
-            },
+            prepare: () => {},
           },
           {
             description: "with hardhat_mine executed beforehand",
@@ -160,7 +158,7 @@ describe("Evm module", function () {
           },
         ]) {
           describe(description, function () {
-            beforeEach(async () => prepare());
+            beforeEach(prepare);
             it("should set next block timestamp and the next EMPTY block will be mined with that timestamp", async function () {
               const timestamp = getCurrentTimestamp() + 60;
 
