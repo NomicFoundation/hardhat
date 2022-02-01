@@ -227,10 +227,17 @@ export class BlockchainData {
 
     const blockNumberBeforeReservation = reservation.first.subn(1);
 
+    const blockBeforeReservation = this.getBlockByNumber(
+      blockNumberBeforeReservation
+    );
+    assertHardhatInvariant(
+      blockBeforeReservation !== undefined,
+      `Reservation after block ${blockNumberBeforeReservation.toString()} cannot be created because that block does not exist`
+    );
+
     const previousTimestamp = this.isReservedBlock(blockNumberBeforeReservation)
       ? this._calculateTimestampForReservedBlock(blockNumberBeforeReservation)
-      : this.getBlockByNumber(blockNumberBeforeReservation)?.header.timestamp ??
-        new BN(0);
+      : blockBeforeReservation.header.timestamp;
 
     return previousTimestamp.add(
       reservation.interval.mul(blockNumber.sub(reservation.first).addn(1))
