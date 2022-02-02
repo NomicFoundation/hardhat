@@ -413,6 +413,66 @@ describe("Hardhat module", function () {
               );
             }
           });
+
+          describe("when evm_setNextBlockTimestamp is used", function () {
+            it("should work when 1 block is mined", async function () {
+              const originalLatestBlockNumber = await getLatestBlockNumber();
+              const originalLatestBlockTimestamp = await getBlockTimestamp(
+                originalLatestBlockNumber
+              );
+
+              await this.provider.send("evm_setNextBlockTimestamp", [
+                numberToRpcQuantity(originalLatestBlockTimestamp + 3600),
+              ]);
+              await this.provider.send("hardhat_mine", [
+                numberToRpcQuantity(1),
+              ]);
+
+              const timestampAfter = await getBlockTimestamp(
+                originalLatestBlockNumber + 1
+              );
+              assert.equal(timestampAfter, originalLatestBlockTimestamp + 3600);
+            });
+
+            it("should work when 10 blocks are mined", async function () {
+              const originalLatestBlockNumber = await getLatestBlockNumber();
+              const originalLatestBlockTimestamp = await getBlockTimestamp(
+                originalLatestBlockNumber
+              );
+
+              await this.provider.send("evm_setNextBlockTimestamp", [
+                numberToRpcQuantity(originalLatestBlockTimestamp + 3600),
+              ]);
+              const blocksToMine = 10;
+              const interval = 60;
+              await this.provider.send("hardhat_mine", [
+                numberToRpcQuantity(blocksToMine),
+                numberToRpcQuantity(interval),
+              ]);
+
+              const timestampFirstMinedBlock = await getBlockTimestamp(
+                originalLatestBlockNumber + 1
+              );
+              assert.equal(
+                timestampFirstMinedBlock,
+                originalLatestBlockTimestamp + 3600
+              );
+
+              // check that the rest of the blocks respect the interval
+              for (let i = 2; i <= blocksToMine; i++) {
+                const blockNumber = originalLatestBlockNumber + i;
+                const expectedTimestamp =
+                  originalLatestBlockTimestamp + 3600 + i * interval;
+                assert.equal(
+                  await getBlockTimestamp(blockNumber),
+                  expectedTimestamp
+                );
+              }
+            });
+
+            it("should work when 1 block is mined and there are pending txs", async function () {});
+            it("should work when 10 blocks are mined and there are pending txs", async function () {});
+          });
         });
 
         it("should mine transactions in the mempool", async function () {
