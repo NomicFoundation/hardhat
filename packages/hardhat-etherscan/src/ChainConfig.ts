@@ -135,11 +135,18 @@ export const chainConfig: ChainConfig = {
       browserURL: "https://testnet.snowtrace.io/",
     },
   },
+  moonbeam: {
+    chainId: 1284,
+    urls: {
+      apiURL: "https://api-moonbeam.moonscan.io/api",
+      browserURL: "https://moonbeam.moonscan.io",
+    },
+  },
   moonriver: {
     chainId: 1285,
     urls: {
       apiURL: "https://api-moonriver.moonscan.io/api",
-      browserURL: "https://moonscan.io",
+      browserURL: "https://moonriver.moonscan.io",
     },
   },
   moonbaseAlpha: {
@@ -147,6 +154,20 @@ export const chainConfig: ChainConfig = {
     urls: {
       apiURL: "https://api-moonbase.moonscan.io/api",
       browserURL: "https://moonbase.moonscan.io/",
+    },
+  },
+  xdai: {
+    chainId: 100,
+    urls: {
+      apiURL: "https://blockscout.com/xdai/mainnet/api",
+      browserURL: "https://blockscout.com/xdai/mainnet",
+    },
+  },
+  sokol: {
+    chainId: 77,
+    urls: {
+      apiURL: "https://blockscout.com/poa/sokol/api",
+      browserURL: "https://blockscout.com/poa/sokol",
     },
   },
 };

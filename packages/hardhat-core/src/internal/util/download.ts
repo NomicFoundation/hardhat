@@ -56,11 +56,10 @@ export async function download(
 
   if (response.ok && response.body !== null) {
     const tmpFilePath = resolveTempFileName(filePath);
-
     await fsExtra.ensureDir(path.dirname(filePath));
-    await streamPipeline(response.body, fs.createWriteStream(tmpFilePath));
 
-    return fsExtra.move(tmpFilePath, filePath);
+    await streamPipeline(response.body, fs.createWriteStream(tmpFilePath));
+    return fsExtra.move(tmpFilePath, filePath, { overwrite: true });
   }
 
   // Consume the response stream and discard its result

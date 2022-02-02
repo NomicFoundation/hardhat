@@ -100,8 +100,8 @@ a.sidebar-link
     color $accentColor
   &.active
     font-weight 600
-    color $accentColor
-    border-left-color $accentColor
+    color rgba(204, 178, 0, 1)
+    border-left-color rgba(204, 178, 0, 1)
   .sidebar-group &
     padding-left 2rem
   .sidebar-sub-headers &

@@ -93,7 +93,7 @@ function resolveOpenGroupIndex(route, items) {
   .nav-links
     display none
     border-bottom 1px solid $borderColor
-    padding 0.5rem 0 0.75rem 0
+    padding 1rem 0 1.25rem 0
 
     a
       font-weight 600
@@ -105,35 +105,39 @@ function resolveOpenGroupIndex(route, items) {
       padding 0.5rem 0 0.5rem 1.5rem
 
   .sidebar-links
-    padding 1.5rem 0
-
+    padding 2rem 0
     a
       @media (min-width: $MQMobileNarrow)
-        padding-left 2rem
+        padding-left 26px
+  .sidebar-sub-header
+    a
+      @media (min-width: $MQMobileNarrow)
+        padding-left 46px
 
   .sidebar-group-items
     a
       @media (min-width: $MQMobileNarrow)
-        padding-left 2.4rem
+        padding-left 56px
 
 
 @media (min-width: $MQMobileNarrow)
   .sidebar
 
     .sidebar-links
-      padding 1rem 0
+      padding 2rem 0
 
       li > .sidebar-group > .sidebar-heading
-        padding-left 2.2rem
+        padding-left 32px
+        font-family 'ChivoBold'
 
 @media (max-width: $MQMobileNarrow)
   .sidebar
   .sidebar-links
-    padding 1rem 0
+    padding 2rem 0
 
     > li > .sidebar-group > .sidebar-heading
       a
-        padding-left 2.2rem
+        padding-left 32px
 
   .sidebar-group-items
     a
@@ -152,7 +156,7 @@ function resolveOpenGroupIndex(route, items) {
         top calc(1rem - 2px)
 
       a
-        color $textColor !important
+        color $textColor;
 
       a:hover
         color $accentColor !important
@@ -163,5 +167,5 @@ function resolveOpenGroupIndex(route, items) {
 
 
     .sidebar-links
-      padding 1rem 0
+      padding 2rem 0
 </style>

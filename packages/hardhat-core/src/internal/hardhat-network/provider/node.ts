@@ -11,7 +11,8 @@ import Bloom from "@ethereumjs/vm/dist/bloom";
 import { EVMResult, ExecResult } from "@ethereumjs/vm/dist/evm/evm";
 import { ERROR } from "@ethereumjs/vm/dist/exceptions";
 import { RunBlockResult } from "@ethereumjs/vm/dist/runBlock";
-import { StateManager } from "@ethereumjs/vm/dist/state";
+import { DefaultStateManager, StateManager } from "@ethereumjs/vm/dist/state";
+import { SignTypedDataVersion, signTypedData } from "@metamask/eth-sig-util";
 import chalk from "chalk";
 import debug from "debug";
 import {
@@ -75,7 +76,6 @@ import { bloomFilter, Filter, filterLogs, LATEST_BLOCK, Type } from "./filter";
 import { ForkBlockchain } from "./fork/ForkBlockchain";
 import { ForkStateManager } from "./fork/ForkStateManager";
 import { HardhatBlockchain } from "./HardhatBlockchain";
-import { HardhatStateManager } from "./HardhatStateManager";
 import {
   CallParams,
   EstimateGasResult,
@@ -110,13 +110,12 @@ import { HardhatBlockchainInterface } from "./types/HardhatBlockchainInterface";
 import { getCurrentTimestamp } from "./utils/getCurrentTimestamp";
 import { makeCommon } from "./utils/makeCommon";
 import { makeForkClient } from "./utils/makeForkClient";
+import { makeStateTrie } from "./utils/makeStateTrie";
 import { makeForkCommon } from "./utils/makeForkCommon";
 import { putGenesisBlock } from "./utils/putGenesisBlock";
 import { txMapToArray } from "./utils/txMapToArray";
 
 const log = debug("hardhat:core:hardhat-network:node");
-
-const ethSigUtil = require("eth-sig-util");
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
@@ -201,11 +200,13 @@ export class HardhatNode extends EventEmitter {
         hardforkActivations = config.chains.get(forkNetworkId)!.hardforkHistory;
       }
     } else {
-      const hardhatStateManager = new HardhatStateManager();
-      await hardhatStateManager.initializeGenesisAccounts(genesisAccounts);
+      const stateTrie = await makeStateTrie(genesisAccounts);
+      common = makeCommon(config, stateTrie);
 
-      const initialStateRoot = await hardhatStateManager.getStateRoot();
-      common = makeCommon(config, initialStateRoot);
+      stateManager = new DefaultStateManager({
+        common,
+        trie: stateTrie,
+      });
 
       const hardhatBlockchain = new HardhatBlockchain(common);
 
@@ -230,7 +231,6 @@ export class HardhatNode extends EventEmitter {
       }
 
       blockchain = hardhatBlockchain;
-      stateManager = hardhatStateManager;
     }
 
     const txPool = new TxPool(stateManager, new BN(blockGasLimit), common);
@@ -907,7 +907,9 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   ): Promise<string> {
     const privateKey = this._getLocalAccountPrivateKey(address);
 
-    return ethSigUtil.signTypedData_v4(privateKey, {
+    return signTypedData({
+      privateKey,
+      version: SignTypedDataVersion.V4,
       data: typedData,
     });
   }

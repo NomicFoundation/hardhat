@@ -1,6 +1,6 @@
 {
   "name": "@nomiclabs/hardhat-etherscan",
-  "version": "2.1.8",
+  "version": "3.0.0",
   "description": "Hardhat plugin for verifying contracts on etherscan",
   "repository": "github:nomiclabs/hardhat",
   "homepage": "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-etherscan",

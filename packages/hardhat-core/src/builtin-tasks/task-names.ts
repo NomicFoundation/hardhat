@@ -58,6 +58,8 @@ export const TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURE_REASONS =
   "compile:solidity:get-compilation-jobs-failure-reasons";
 export const TASK_COMPILE_SOLIDITY_LOG_COMPILATION_RESULT =
   "compile:solidity:log:compilation-result";
+export const TASK_COMPILE_REMOVE_OBSOLETE_ARTIFACTS =
+  "compile:remove-obsolete-artifacts";
 
 export const TASK_CONSOLE = "console";
 

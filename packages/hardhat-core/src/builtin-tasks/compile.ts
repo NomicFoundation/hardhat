@@ -72,6 +72,7 @@ import {
   TASK_COMPILE_SOLIDITY_READ_FILE,
   TASK_COMPILE_SOLIDITY_RUN_SOLC,
   TASK_COMPILE_SOLIDITY_RUN_SOLCJS,
+  TASK_COMPILE_REMOVE_OBSOLETE_ARTIFACTS,
 } from "./task-names";
 import {
   getSolidityFilesCachePath,
@@ -1112,7 +1113,7 @@ subtask(TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURE_REASONS)
       }
 
       if (noCompatibleSolc.length > 0) {
-        errorMessage += `The Solidity version pragma statement in these files don't match any of the configured compilers in your config. Change the pragma or configure additional compiler versions in your hardhat config.
+        errorMessage += `The Solidity version pragma statement in these files doesn't match any of the configured compilers in your config. Change the pragma or configure additional compiler versions in your hardhat config.
 
 `;
 
@@ -1257,7 +1258,7 @@ subtask(TASK_COMPILE_SOLIDITY_LOG_COMPILATION_RESULT)
   .setAction(
     async ({ compilationJobs }: { compilationJobs: CompilationJob[] }) => {
       if (compilationJobs.length > 0) {
-        console.log("Compilation finished successfully");
+        console.log("Solidity compilation finished successfully");
       }
     }
   );
@@ -1358,8 +1359,7 @@ subtask(TASK_COMPILE_SOLIDITY)
       // We know this is the actual implementation, so we use some
       // non-public methods here.
       const artifactsImpl = artifacts as ArtifactsImpl;
-      await artifactsImpl.removeObsoleteArtifacts(allArtifactsEmittedPerFile);
-      await artifactsImpl.removeObsoleteBuildInfos();
+      artifactsImpl.addValidArtifacts(allArtifactsEmittedPerFile);
 
       await solidityFilesCache.writeToFile(solidityFilesCachePath);
 
@@ -1369,6 +1369,13 @@ subtask(TASK_COMPILE_SOLIDITY)
       });
     }
   );
+
+subtask(TASK_COMPILE_REMOVE_OBSOLETE_ARTIFACTS, async (_, { artifacts }) => {
+  // We know this is the actual implementation, so we use some
+  // non-public methods here.
+  const artifactsImpl = artifacts as ArtifactsImpl;
+  await artifactsImpl.removeObsoleteArtifacts();
+});
 
 /**
  * Returns a list of compilation tasks.
@@ -1396,6 +1403,8 @@ task(TASK_COMPILE, "Compiles the entire project, building all artifacts")
     for (const compilationTask of compilationTasks) {
       await run(compilationTask, compilationArgs);
     }
+
+    await run(TASK_COMPILE_REMOVE_OBSOLETE_ARTIFACTS);
   });
 
 /**
