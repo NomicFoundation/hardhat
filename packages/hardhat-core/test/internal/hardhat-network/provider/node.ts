@@ -817,7 +817,31 @@ describe("HardhatNode", () => {
     });
 
     describe("shouldn't break snapshotting", async function () {
-      it("when doing mineBlocks() before a snapshot", async function () {});
+      it("when doing mineBlocks() before a snapshot", async function () {
+        await node.mineBlocks(new BN(10));
+
+        const latestBlockNumberBeforeSnapshot = node.getLatestBlockNumber();
+
+        const snapshotId = await node.takeSnapshot();
+        await node.sendTransaction(
+          createTestTransaction({
+            from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+            to: Address.fromString(
+              "0x1111111111111111111111111111111111111111"
+            ),
+            gasLimit: 21000,
+          })
+        );
+        await node.mineBlocks(new BN(1));
+
+        await node.revertToSnapshot(snapshotId);
+
+        assert.equal(
+          node.getLatestBlockNumber().toString(),
+          latestBlockNumberBeforeSnapshot.toString()
+        );
+      });
+
       it("when doing mineBlocks() after a snapshot", async function () {
         const originalLatestBlockNumber = node.getLatestBlockNumber();
         await node.sendTransaction(
