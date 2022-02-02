@@ -1,4 +1,4 @@
-declare type Chain = "mainnet" | "ropsten" | "rinkeby" | "goerli" | "kovan" | "bsc" | "bscTestnet" | "heco" | "hecoTestnet" | "opera" | "ftmTestnet" | "optimisticEthereum" | "optimisticKovan" | "polygon" | "polygonMumbai" | "arbitrumOne" | "arbitrumTestnet" | "avalanche" | "avalancheFujiTestnet" | "moonbeam" | "moonriver" | "moonbaseAlpha" | "harmony" | "xdai" | "sokol";
+declare type Chain = "mainnet" | "ropsten" | "rinkeby" | "goerli" | "kovan" | "bsc" | "bscTestnet" | "heco" | "hecoTestnet" | "opera" | "ftmTestnet" | "optimisticEthereum" | "optimisticKovan" | "polygon" | "polygonMumbai" | "arbitrumOne" | "arbitrumTestnet" | "avalanche" | "avalancheFujiTestnet" | "moonbeam" | "moonriver" | "moonbaseAlpha" | "harmony" | "harmonyTest" | "xdai" | "sokol";
 export declare type ChainConfig = {
     [Network in Chain]: EtherscanChainConfig;
 };

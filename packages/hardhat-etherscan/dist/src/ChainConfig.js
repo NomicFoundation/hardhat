@@ -17,6 +17,13 @@ exports.chainConfig = {
             browserURL: "https://explorer.harmony.one",
         },
     },
+    harmonyTest: {
+        chainId: 1666700000,
+        urls: {
+            apiURL: "https://harmony-contract-verification.herokuapp.com/verify?network=testnet",
+            browserURL: "https://explorer.pops.one",
+        },
+    },
     ropsten: {
         chainId: 3,
         urls: {
