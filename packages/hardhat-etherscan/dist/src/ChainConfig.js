@@ -13,7 +13,7 @@ exports.chainConfig = {
     harmony: {
         chainId: 1666600000,
         urls: {
-            apiURL: "https://harmony-etherscan-api.netlify.app/api/verify",
+            apiURL: "https://harmony-contract-verification.herokuapp.com/verify",
             browserURL: "https://explorer.harmony.one",
         },
     },
