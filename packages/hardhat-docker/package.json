@@ -51,6 +51,6 @@
   "dependencies": {
     "fs-extra": "^7.0.1",
     "dockerode": "^2.5.8",
-    "node-fetch": "^2.6.0"
+    "node-fetch": "^2.6.7"
   }
 }
