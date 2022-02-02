@@ -1,5 +1,11 @@
 # @nomiclabs/hardhat-ethers
 
+## 2.0.5
+
+### Patch Changes
+
+- 1de2a228: Fix an issue that was causing typescript projects to also compile Hardhat's source (#2260).
+
 ## 2.0.4
 
 ### Patch Changes
