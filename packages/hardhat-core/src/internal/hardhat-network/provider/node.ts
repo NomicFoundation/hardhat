@@ -521,7 +521,6 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         await this.mineBlock(await nextTimestamp());
         blocksMined += 1;
       }
-      return;
     } else {
       // otherwise, we reserve a range and mine the last one
       this._blockchain.reserveBlocks(
