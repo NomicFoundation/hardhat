@@ -601,6 +601,56 @@ describe("Hardhat module", function () {
           }
         });
 
+        it("should work when the mempool is not emptied after mining all blocks", async function () {
+          // Arrange: put some transactions into the mempool and
+          // set the block gas limit so that only 3 txs are mined per block
+          await this.provider.send("evm_setAutomine", [false]);
+          await this.provider.send("evm_setBlockGasLimit", [
+            numberToRpcQuantity(21000 * 3),
+          ]);
+          for (let i = 0; i < 10; i++) {
+            await this.provider.send("eth_sendTransaction", [
+              {
+                from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                to: "0x1111111111111111111111111111111111111111",
+                gas: numberToRpcQuantity(21000),
+              },
+            ]);
+          }
+
+          // Act:
+          const previousLatestBlockNumber = await getLatestBlockNumber();
+          await this.provider.send("hardhat_mine", [numberToRpcQuantity(3)]);
+
+          // Assert:
+          const latestBlockNumber = await getLatestBlockNumber();
+          assert.equal(latestBlockNumber, previousLatestBlockNumber + 3);
+
+          for (const expectation of [
+            { block: previousLatestBlockNumber + 1, transactionCount: 3 },
+            { block: previousLatestBlockNumber + 2, transactionCount: 3 },
+            { block: previousLatestBlockNumber + 3, transactionCount: 3 },
+          ]) {
+            const block = await this.provider.send("eth_getBlockByNumber", [
+              numberToRpcQuantity(expectation.block),
+              false,
+            ]);
+            assert.isNotNull(
+              block,
+              `block ${expectation.block} should be defined`
+            );
+            assert.isDefined(
+              block.transactions,
+              `block ${expectation.block} should have transactions`
+            );
+            assert.equal(
+              expectation.transactionCount,
+              block.transactions.length,
+              `expected block ${expectation.block}'s transaction count to be ${expectation.transactionCount}, but it was ${block.transactions.length}`
+            );
+          }
+        });
+
         describe("shouldn't break hardhat_reset", function () {
           const mineSomeTxBlocks = async (blockCount: number) => {
             const originalLatestBlockNumber = await getLatestBlockNumber();

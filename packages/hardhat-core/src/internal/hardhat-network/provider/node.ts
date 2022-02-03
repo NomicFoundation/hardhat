@@ -508,6 +508,11 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       blocksMined += 1;
     }
 
+    // if all necessary blocks were mined, return
+    if (count.eqn(blocksMined)) {
+      return;
+    }
+
     const remainingBlockCount = count.subn(blocksMined);
     if (remainingBlockCount.lten(2)) {
       // we only need to mine 1 or 2 more blocks, so just mine them normally:
