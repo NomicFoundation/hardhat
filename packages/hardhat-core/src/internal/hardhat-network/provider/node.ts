@@ -491,36 +491,39 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   }
 
   public async mineBlocks(count: BN = new BN(1), interval: BN = new BN(1)) {
-    let blocksMined = 0;
+    if (count.eqn(0)) {
+      // nothing to do
+      return;
+    }
 
+    let blocksMined = 0;
     const nextTimestamp = async () =>
       (await this.getLatestBlock()).header.timestamp.add(interval);
 
-    // first mine a block if a next block timestamp was set
-    if (!this.getNextBlockTimestamp().eqn(0)) {
-      await this.mineBlock(this.getNextBlockTimestamp());
-      blocksMined += 1;
-    }
+    // we always mine the first block, and we use the nextBlockTimestamp if it's
+    // set
+    const nextBlockTimestamp = this.getNextBlockTimestamp().eqn(0)
+      ? await nextTimestamp()
+      : this.getNextBlockTimestamp();
+    await this.mineBlock(nextBlockTimestamp);
+    blocksMined += 1;
 
-    // then mine any pending transactions
+    // then we mine any pending transactions
     while (count.gtn(blocksMined) && this._txPool.hasPendingTransactions()) {
       await this.mineBlock(await nextTimestamp());
       blocksMined += 1;
     }
 
-    // if all necessary blocks were mined, return
-    if (count.eqn(blocksMined)) {
-      return;
-    }
-
     const remainingBlockCount = count.subn(blocksMined);
-    if (remainingBlockCount.lten(2)) {
-      // we only need to mine 1 or 2 more blocks, so just mine them normally:
-      await this.mineBlock(await nextTimestamp());
-      if (remainingBlockCount.eqn(2)) {
+    // if there are few blocks left to mine, we just mine them
+    if (remainingBlockCount.lten(5)) {
+      while (count.gtn(blocksMined)) {
         await this.mineBlock(await nextTimestamp());
+        blocksMined += 1;
       }
+      return;
     } else {
+      // otherwise, we reserve a range and mine the last one
       this._blockchain.reserveBlocks(
         remainingBlockCount.subn(1),
         interval,

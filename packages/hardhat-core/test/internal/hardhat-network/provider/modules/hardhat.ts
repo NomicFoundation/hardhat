@@ -258,7 +258,8 @@ describe("Hardhat module", function () {
           });
 
           it("works at the beginning of the reservation", async function () {
-            await getAndAssertBlock(previousLatestBlockNumber + 1);
+            // the first one is always mined, so we check the second one
+            await getAndAssertBlock(previousLatestBlockNumber + 2);
           });
 
           it("works in the middle of the reservation", async function () {
@@ -268,13 +269,15 @@ describe("Hardhat module", function () {
           });
 
           it("works at the end of the reservation", async function () {
+            // the last one is always mined, so we check the second-to-last one
             await getAndAssertBlock(previousLatestBlockNumber + blockCount - 1);
           });
 
           it("works several times over within the reservation", async function () {
+            // check several blocks in the [FIRST + 1, LAST - 1] range
             for (
               let blockNumber = previousLatestBlockNumber + blockCount - 1;
-              blockNumber > previousLatestBlockNumber;
+              blockNumber > previousLatestBlockNumber + 1;
               blockNumber = Math.floor(blockNumber / 2)
             ) {
               await getAndAssertBlock(blockNumber);
