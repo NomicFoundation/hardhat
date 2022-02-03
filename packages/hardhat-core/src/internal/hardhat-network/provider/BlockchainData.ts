@@ -38,9 +38,6 @@ export class BlockchainData {
       stateRoot,
     };
     this._blockReservations.push(reservation);
-    // fulfill the reservation for the final block, so that the parentHash of
-    // the subsequent will have a valid reference:
-    this.fulfillBlockReservation(reservation.last);
   }
 
   public getBlockByNumber(blockNumber: BN) {

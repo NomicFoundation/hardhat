@@ -209,6 +209,24 @@ describe("Hardhat module", function () {
           await this.provider.send("evm_mine");
         });
 
+        it("should be able to get by hash the parent block of the last block", async function () {
+          await this.provider.send("hardhat_mine", [numberToRpcQuantity(3)]);
+
+          const latestBlock = await this.provider.send("eth_getBlockByNumber", [
+            "latest",
+            false,
+          ]);
+
+          console.log(latestBlock.parentHash);
+
+          const parentOfLatestBlock = await this.provider.send(
+            "eth_getBlockByHash",
+            [latestBlock.parentHash, false]
+          );
+
+          assert.isNotNull(parentOfLatestBlock);
+        });
+
         describe("should permit the retrieval of a reserved block", function () {
           const getAndAssertBlock = async (blockNumber: number) => {
             const block = await this.ctx.provider.send("eth_getBlockByNumber", [
