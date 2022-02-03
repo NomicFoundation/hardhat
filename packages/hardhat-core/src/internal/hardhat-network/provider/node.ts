@@ -496,7 +496,13 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     const nextTimestamp = async () =>
       (await this.getLatestBlock()).header.timestamp.add(interval);
 
-    // first mine any pending transactions:
+    // first mine a block if a next block timestamp was set
+    if (!this.getNextBlockTimestamp().eqn(0)) {
+      await this.mineBlock(this.getNextBlockTimestamp());
+      blocksMined += 1;
+    }
+
+    // then mine any pending transactions
     while (count.gtn(blocksMined) && this._txPool.hasPendingTransactions()) {
       await this.mineBlock(await nextTimestamp());
       blocksMined += 1;

@@ -462,7 +462,7 @@ describe("Hardhat module", function () {
               for (let i = 2; i <= blocksToMine; i++) {
                 const blockNumber = originalLatestBlockNumber + i;
                 const expectedTimestamp =
-                  originalLatestBlockTimestamp + 3600 + i * interval;
+                  originalLatestBlockTimestamp + 3600 + (i - 1) * interval;
                 assert.equal(
                   await getBlockTimestamp(blockNumber),
                   expectedTimestamp
@@ -470,8 +470,87 @@ describe("Hardhat module", function () {
               }
             });
 
-            it("should work when 1 block is mined and there are pending txs", async function () {});
-            it("should work when 10 blocks are mined and there are pending txs", async function () {});
+            it("should work when 1 block is mined and there are pending txs", async function () {
+              // Arrange: put a tx in the mempool
+              await this.provider.send("evm_setAutomine", [false]);
+              await this.provider.send("eth_sendTransaction", [
+                {
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                  to: "0x1111111111111111111111111111111111111111",
+                },
+              ]);
+
+              // Act: set the next timestamp and mine 1 block
+              const originalLatestBlockNumber = await getLatestBlockNumber();
+              const originalLatestBlockTimestamp = await getBlockTimestamp(
+                originalLatestBlockNumber
+              );
+              await this.provider.send("evm_setNextBlockTimestamp", [
+                numberToRpcQuantity(originalLatestBlockTimestamp + 3600),
+              ]);
+              await this.provider.send("hardhat_mine", [
+                numberToRpcQuantity(1),
+              ]);
+
+              // Assert: check that the chosen timestamp was used
+              const latestBlockNumber = await getLatestBlockNumber();
+              assert.equal(latestBlockNumber, originalLatestBlockNumber + 1);
+              const timestampAfter = await getBlockTimestamp(latestBlockNumber);
+              assert.equal(timestampAfter, originalLatestBlockTimestamp + 3600);
+            });
+
+            it("should work when 10 blocks are mined and there are pending txs", async function () {
+              // Arrange: put a tx in the mempool
+              await this.provider.send("evm_setAutomine", [false]);
+              await this.provider.send("eth_sendTransaction", [
+                {
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                  to: "0x1111111111111111111111111111111111111111",
+                },
+              ]);
+
+              // Act: set the next timestamp and mine 10 blocks
+              const originalLatestBlockNumber = await getLatestBlockNumber();
+              const originalLatestBlockTimestamp = await getBlockTimestamp(
+                originalLatestBlockNumber
+              );
+              await this.provider.send("evm_setNextBlockTimestamp", [
+                numberToRpcQuantity(originalLatestBlockTimestamp + 3600),
+              ]);
+              const blocksToMine = 10;
+              const interval = 60;
+              await this.provider.send("hardhat_mine", [
+                numberToRpcQuantity(blocksToMine),
+                numberToRpcQuantity(interval),
+              ]);
+
+              // Assert: check that the chosen timestamp was used for the first
+              // mined block
+              const latestBlockNumber = await getLatestBlockNumber();
+              assert.equal(
+                latestBlockNumber,
+                originalLatestBlockNumber + blocksToMine
+              );
+              const timestampFirstBlock = await getBlockTimestamp(
+                originalLatestBlockNumber + 1
+              );
+              assert.equal(
+                timestampFirstBlock,
+                originalLatestBlockTimestamp + 3600
+              );
+
+              // Assert: check that the interval was properly used for the
+              // subsequent blocks
+              for (let i = 2; i <= blocksToMine; i++) {
+                const blockNumber = originalLatestBlockNumber + i;
+                const expectedTimestamp =
+                  originalLatestBlockTimestamp + 3600 + (i - 1) * interval;
+                assert.equal(
+                  await getBlockTimestamp(blockNumber),
+                  expectedTimestamp
+                );
+              }
+            });
           });
         });
 
@@ -482,7 +561,7 @@ describe("Hardhat module", function () {
           await this.provider.send("evm_setBlockGasLimit", [
             numberToRpcQuantity(21000 * 3),
           ]);
-          for (let i = 0; i <= 3; i++) {
+          for (let i = 0; i < 4; i++) {
             await this.provider.send("eth_sendTransaction", [
               {
                 from: DEFAULT_ACCOUNTS_ADDRESSES[1],
