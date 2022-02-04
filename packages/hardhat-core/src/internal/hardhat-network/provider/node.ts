@@ -503,7 +503,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     // we always mine the first block, and we use the nextBlockTimestamp if it's
     // set
     const nextBlockTimestamp = this.getNextBlockTimestamp().eqn(0)
-      ? await nextTimestamp()
+      ? undefined
       : this.getNextBlockTimestamp();
     await this.mineBlock(nextBlockTimestamp);
     blocksMined += 1;

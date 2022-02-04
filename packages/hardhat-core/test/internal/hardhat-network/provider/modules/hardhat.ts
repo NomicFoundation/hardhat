@@ -336,11 +336,24 @@ describe("Hardhat module", function () {
             );
           };
 
+          const assertTimestampIncrease = async (
+            block: number,
+            expectedDifference: number
+          ) => {
+            const timestampPreviousBlock = await getBlockTimestamp(block - 1);
+            const timestampBlock = await getBlockTimestamp(block);
+
+            const timestampDifference = timestampBlock - timestampPreviousBlock;
+
+            assert.equal(
+              timestampDifference,
+              expectedDifference,
+              `Expected block ${block} to have a timestamp increase of ${expectedDifference}, but got ${timestampDifference} instead`
+            );
+          };
+
           it("with only one hardhat_mine invocation", async function () {
             const originalLatestBlockNumber = await getLatestBlockNumber();
-            const timestampBefore = await getBlockTimestamp(
-              originalLatestBlockNumber
-            );
             const numberOfBlocksToMine = 10;
             const timestampInterval = 3600;
             await this.provider.send("hardhat_mine", [
@@ -348,26 +361,23 @@ describe("Hardhat module", function () {
               numberToRpcQuantity(timestampInterval),
             ]);
 
+            // Assert: first mined block is not affected by the interval
+            await assertTimestampIncrease(originalLatestBlockNumber + 1, 1);
+
             for (const offset of [
-              1, // next block
+              2, // first block affected by the interval
               numberOfBlocksToMine - 1, // second to last block
               numberOfBlocksToMine, // last block
             ]) {
-              const blockTimestamp = await getBlockTimestamp(
-                originalLatestBlockNumber + offset
-              );
-              assert.equal(
-                blockTimestamp,
-                timestampBefore + offset * timestampInterval
+              await assertTimestampIncrease(
+                originalLatestBlockNumber + offset,
+                timestampInterval
               );
             }
           });
 
           it("with two consecutive hardhat_mine invocations", async function () {
             const originalLatestBlockNumber = await getLatestBlockNumber();
-            const timestampBefore = await getBlockTimestamp(
-              originalLatestBlockNumber
-            );
 
             const numberOfBlocksToMine = 20;
             const timestampInterval = 10;
@@ -381,20 +391,70 @@ describe("Hardhat module", function () {
               numberToRpcQuantity(timestampInterval),
             ]);
 
+            // Assert: first mined block in each group is not affected by the
+            // interval
+            await assertTimestampIncrease(originalLatestBlockNumber + 1, 1);
+            await assertTimestampIncrease(
+              originalLatestBlockNumber + numberOfBlocksToMine / 2 + 1,
+              1
+            );
+
             for (const offset of [
-              1, // next block
+              2, // first block affected by the interval in the first group
               numberOfBlocksToMine / 2, // last block of first group
-              numberOfBlocksToMine / 2 + 1, // first block of second group
+              numberOfBlocksToMine / 2 + 2, // first block affected by the interval in the second group
               numberOfBlocksToMine, // last block
             ]) {
-              const blockTimestamp = await getBlockTimestamp(
-                originalLatestBlockNumber + offset
-              );
-              assert.equal(
-                blockTimestamp,
-                timestampBefore + offset * timestampInterval
+              await assertTimestampIncrease(
+                originalLatestBlockNumber + offset,
+                timestampInterval
               );
             }
+          });
+
+          it("with two consecutive hardhat_mine invocations with different intervals", async function () {
+            const originalLatestBlockNumber = await getLatestBlockNumber();
+
+            const numberOfBlocksToMine = 20;
+            const timestampInterval1 = 50;
+            const timestampInterval2 = 100;
+
+            await this.provider.send("hardhat_mine", [
+              numberToRpcQuantity(numberOfBlocksToMine / 2),
+              numberToRpcQuantity(timestampInterval1),
+            ]);
+            await this.provider.send("hardhat_mine", [
+              numberToRpcQuantity(numberOfBlocksToMine / 2),
+              numberToRpcQuantity(timestampInterval2),
+            ]);
+
+            // Assert: first mined block in each group is not affected by the
+            // interval
+            await assertTimestampIncrease(originalLatestBlockNumber + 1, 1);
+            await assertTimestampIncrease(
+              originalLatestBlockNumber + numberOfBlocksToMine / 2 + 1,
+              1
+            );
+
+            // Assert: the proper interval values are used in the first group
+            await assertTimestampIncrease(
+              originalLatestBlockNumber + 2,
+              timestampInterval1
+            );
+            await assertTimestampIncrease(
+              originalLatestBlockNumber + numberOfBlocksToMine / 2,
+              timestampInterval1
+            );
+
+            // Assert: the proper interval values are used in the second group
+            await assertTimestampIncrease(
+              originalLatestBlockNumber + numberOfBlocksToMine / 2 + 2,
+              timestampInterval2
+            );
+            await assertTimestampIncrease(
+              originalLatestBlockNumber + numberOfBlocksToMine,
+              timestampInterval2
+            );
           });
 
           it("when there are transactions in the mempool", async function () {
@@ -411,9 +471,6 @@ describe("Hardhat module", function () {
             }
 
             const originalLatestBlockNumber = await getLatestBlockNumber();
-            const originalLatestBlockTimestamp = await getBlockTimestamp(
-              originalLatestBlockNumber
-            );
 
             // Act:
             const blocksToMine = 10;
@@ -423,14 +480,15 @@ describe("Hardhat module", function () {
               numberToRpcQuantity(interval),
             ]);
 
-            // Assert:
-            for (let i = 1; i <= blocksToMine; i++) {
-              const blockNumber = originalLatestBlockNumber + i;
-              const expectedTimestamp =
-                originalLatestBlockTimestamp + i * interval;
-              assert.equal(
-                await getBlockTimestamp(blockNumber),
-                expectedTimestamp
+            // Assert: first mined block is not affected by the interval
+            await assertTimestampIncrease(originalLatestBlockNumber + 1, 1);
+
+            // Assert: all blocks affected by the interval value
+            // have the correct timestamp
+            for (let i = 2; i <= blocksToMine; i++) {
+              await assertTimestampIncrease(
+                originalLatestBlockNumber + i,
+                interval
               );
             }
           });
