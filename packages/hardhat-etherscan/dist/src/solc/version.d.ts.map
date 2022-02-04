@@ -1,1 +1,0 @@
-{"version":3,"file":"version.d.ts","sourceRoot":"","sources":["../../../src/solc/version.ts"],"names":[],"mappings":"AAOA,MAAM,WAAW,aAAa;IAC5B,QAAQ,EAAE;QACR,CAAC,OAAO,EAAE,MAAM,GAAG,MAAM,CAAC;KAC3B,CAAC;IACF,aAAa,EAAE,MAAM,CAAC;CACvB;AAGD,wBAAsB,cAAc,CAAC,YAAY,EAAE,MAAM,GAAG,OAAO,CAAC,MAAM,CAAC,CAY1E;AAED,wBAAsB,WAAW,IAAI,OAAO,CAAC,aAAa,CAAC,CAsB1D"}
