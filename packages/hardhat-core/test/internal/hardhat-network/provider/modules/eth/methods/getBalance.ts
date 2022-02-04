@@ -11,6 +11,7 @@ import {
 } from "../../../../helpers/assertions";
 import { EMPTY_ACCOUNT_ADDRESS } from "../../../../helpers/constants";
 import { setCWD } from "../../../../helpers/cwd";
+import { getPendingBaseFeePerGas } from "../../../../helpers/getPendingBaseFeePerGas";
 import {
   DEFAULT_ACCOUNTS_ADDRESSES,
   DEFAULT_ACCOUNTS_BALANCES,
@@ -62,7 +63,7 @@ describe("Eth module", function () {
         });
 
         it("Should return the updated balance after a transaction is made", async function () {
-          const gasPrice = new BN(10e9);
+          const gasPrice = new BN(await getPendingBaseFeePerGas(this.provider));
           await assertNodeBalances(this.provider, DEFAULT_ACCOUNTS_BALANCES);
 
           await this.provider.send("eth_sendTransaction", [
@@ -104,7 +105,7 @@ describe("Eth module", function () {
         });
 
         it("Should return the pending balance", async function () {
-          const gasPrice = new BN(10e9);
+          const gasPrice = new BN(await getPendingBaseFeePerGas(this.provider));
           await this.provider.send("evm_setAutomine", [false]);
 
           await this.provider.send("eth_sendTransaction", [

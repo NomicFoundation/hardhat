@@ -15,6 +15,7 @@ import {
 } from "../../../../helpers/assertions";
 import { EXAMPLE_REVERT_CONTRACT } from "../../../../helpers/contracts";
 import { setCWD } from "../../../../helpers/cwd";
+import { getPendingBaseFeePerGas } from "../../../../helpers/getPendingBaseFeePerGas";
 import {
   DEFAULT_ACCOUNTS_ADDRESSES,
   DEFAULT_ACCOUNTS_BALANCES,
@@ -67,7 +68,9 @@ describe("Eth module", function () {
                 from: zeroAddress(),
                 to: DEFAULT_ACCOUNTS_ADDRESSES[0],
                 gas: numberToRpcQuantity(21000),
-                gasPrice: numberToRpcQuantity(10e9),
+                gasPrice: numberToRpcQuantity(
+                  await getPendingBaseFeePerGas(this.provider)
+                ),
               },
               "unknown account",
               InvalidInputError.CODE
@@ -89,7 +92,9 @@ describe("Eth module", function () {
               {
                 from: DEFAULT_ACCOUNTS_ADDRESSES[0],
                 gas: numberToRpcQuantity(21000),
-                gasPrice: numberToRpcQuantity(10e9),
+                gasPrice: numberToRpcQuantity(
+                  await getPendingBaseFeePerGas(this.provider)
+                ),
               },
               "contract creation without any data provided",
               InvalidInputError.CODE
@@ -101,7 +106,9 @@ describe("Eth module", function () {
                 from: DEFAULT_ACCOUNTS_ADDRESSES[0],
                 data: "0x",
                 gas: numberToRpcQuantity(21000),
-                gasPrice: numberToRpcQuantity(10e9),
+                gasPrice: numberToRpcQuantity(
+                  await getPendingBaseFeePerGas(this.provider)
+                ),
               },
               "contract creation without any data provided",
               InvalidInputError.CODE
@@ -115,8 +122,12 @@ describe("Eth module", function () {
                 to: DEFAULT_ACCOUNTS_ADDRESSES[1],
                 value: numberToRpcQuantity(1),
                 gas: numberToRpcQuantity(21000),
-                maxFeePerGas: numberToRpcQuantity(10e9),
-                maxPriorityFeePerGas: numberToRpcQuantity(10e9),
+                maxFeePerGas: numberToRpcQuantity(
+                  await getPendingBaseFeePerGas(this.provider)
+                ),
+                maxPriorityFeePerGas: numberToRpcQuantity(
+                  await getPendingBaseFeePerGas(this.provider)
+                ),
               },
             ]);
 
@@ -131,7 +142,9 @@ describe("Eth module", function () {
                 to: DEFAULT_ACCOUNTS_ADDRESSES[1],
                 value: numberToRpcQuantity(1),
                 gas: numberToRpcQuantity(21000),
-                gasPrice: numberToRpcQuantity(10e9),
+                gasPrice: numberToRpcQuantity(
+                  await getPendingBaseFeePerGas(this.provider)
+                ),
                 maxFeePerGas: numberToRpcQuantity(10),
                 maxPriorityFeePerGas: numberToRpcQuantity(10),
               },
@@ -216,7 +229,9 @@ describe("Eth module", function () {
                 to: DEFAULT_ACCOUNTS_ADDRESSES[1],
                 value: numberToRpcQuantity(1),
                 gas: numberToRpcQuantity(21000),
-                gasPrice: numberToRpcQuantity(10e9),
+                gasPrice: numberToRpcQuantity(
+                  await getPendingBaseFeePerGas(this.provider)
+                ),
               },
             ]);
 
@@ -426,7 +441,9 @@ describe("Eth module", function () {
                       from: DEFAULT_ACCOUNTS_ADDRESSES[1],
                       to: DEFAULT_ACCOUNTS_ADDRESSES[2],
                       gas: numberToRpcQuantity(21000),
-                      gasPrice: numberToRpcQuantity(10e9),
+                      gasPrice: numberToRpcQuantity(
+                        await getPendingBaseFeePerGas(this.provider)
+                      ),
                       value: wholeAccountBalance,
                     },
                   ],
@@ -487,7 +504,7 @@ describe("Eth module", function () {
               });
 
               it("Should throw if the sender doesn't have enough balance as a result of mining pending transactions first", async function () {
-                const gasPrice = new BN(10e9);
+                const gasPrice = await getPendingBaseFeePerGas(this.provider);
 
                 const sendTransaction = async (
                   nonce: number,
@@ -644,12 +661,13 @@ describe("Eth module", function () {
           });
 
           it("Should replace pending transactions", async function () {
+            const gasPrice = await getPendingBaseFeePerGas(this.provider);
             const txHash1 = await this.provider.send("eth_sendTransaction", [
               {
                 from: DEFAULT_ACCOUNTS_ADDRESSES[1],
                 to: DEFAULT_ACCOUNTS_ADDRESSES[2],
                 nonce: numberToRpcQuantity(0),
-                gasPrice: numberToRpcQuantity(20e9),
+                gasPrice: numberToRpcQuantity(gasPrice),
               },
             ]);
             let tx1 = await this.provider.send("eth_getTransactionByHash", [
@@ -662,7 +680,7 @@ describe("Eth module", function () {
                 from: DEFAULT_ACCOUNTS_ADDRESSES[1],
                 to: DEFAULT_ACCOUNTS_ADDRESSES[2],
                 nonce: numberToRpcQuantity(0),
-                gasPrice: numberToRpcQuantity(30e9),
+                gasPrice: numberToRpcQuantity(gasPrice.muln(2)),
               },
             ]);
             tx1 = await this.provider.send("eth_getTransactionByHash", [
@@ -730,12 +748,13 @@ describe("Eth module", function () {
           });
 
           it("Should throw an error if the replacement gasPrice, maxFeePerGas or maxPriorityFeePerGas are too low", async function () {
+            const baseFeePerGas = await getPendingBaseFeePerGas(this.provider);
             const txHash1 = await this.provider.send("eth_sendTransaction", [
               {
                 from: DEFAULT_ACCOUNTS_ADDRESSES[1],
                 to: DEFAULT_ACCOUNTS_ADDRESSES[2],
                 nonce: numberToRpcQuantity(0),
-                gasPrice: numberToRpcQuantity(20e9),
+                gasPrice: numberToRpcQuantity(baseFeePerGas),
               },
             ]);
 
@@ -752,10 +771,10 @@ describe("Eth module", function () {
                   from: DEFAULT_ACCOUNTS_ADDRESSES[1],
                   to: DEFAULT_ACCOUNTS_ADDRESSES[2],
                   nonce: numberToRpcQuantity(0),
-                  gasPrice: numberToRpcQuantity(21e9),
+                  gasPrice: numberToRpcQuantity(baseFeePerGas.addn(1)),
                 },
               ],
-              "Replacement transaction underpriced. A gasPrice/maxFeePerGas of at least 22000000000 is necessary to replace the existing transaction with nonce 0."
+              "Replacement transaction underpriced."
             );
 
             await assertInvalidInputError(
@@ -766,10 +785,10 @@ describe("Eth module", function () {
                   from: DEFAULT_ACCOUNTS_ADDRESSES[1],
                   to: DEFAULT_ACCOUNTS_ADDRESSES[2],
                   nonce: numberToRpcQuantity(0),
-                  maxFeePerGas: numberToRpcQuantity(21e9),
+                  maxFeePerGas: numberToRpcQuantity(baseFeePerGas.addn(1)),
                 },
               ],
-              "Replacement transaction underpriced. A gasPrice/maxFeePerGas of at least 22000000000 is necessary to replace the existing transaction with nonce 0."
+              "Replacement transaction underpriced."
             );
 
             await assertInvalidInputError(
@@ -780,10 +799,12 @@ describe("Eth module", function () {
                   from: DEFAULT_ACCOUNTS_ADDRESSES[1],
                   to: DEFAULT_ACCOUNTS_ADDRESSES[2],
                   nonce: numberToRpcQuantity(0),
-                  maxPriorityFeePerGas: numberToRpcQuantity(21e9),
+                  maxPriorityFeePerGas: numberToRpcQuantity(
+                    baseFeePerGas.addn(1)
+                  ),
                 },
               ],
-              "Replacement transaction underpriced. A gasPrice/maxPriorityFeePerGas of at least 22000000000 is necessary to replace the existing transaction with nonce 0."
+              "Replacement transaction underpriced."
             );
 
             // check that original tx was not replaced
@@ -931,7 +952,9 @@ describe("Eth module", function () {
                   from: DEFAULT_ACCOUNTS_ADDRESSES[0],
                   to: "0x0000000000000000000000000000000000000001",
                   gas: numberToRpcQuantity(21000), // Address 1 is a precompile, so this will OOG
-                  gasPrice: numberToRpcQuantity(10e9),
+                  gasPrice: numberToRpcQuantity(
+                    await getPendingBaseFeePerGas(this.provider)
+                  ),
                 },
               ]);
 

@@ -9,7 +9,10 @@ import {
   zeroAddress,
 } from "ethereumjs-util";
 
-import { numberToRpcQuantity } from "../../../../../../../src/internal/core/jsonrpc/types/base-types";
+import {
+  numberToRpcQuantity,
+  rpcQuantityToBN,
+} from "../../../../../../../src/internal/core/jsonrpc/types/base-types";
 import { TransactionParams } from "../../../../../../../src/internal/hardhat-network/provider/node-types";
 import {
   AccessListEIP2930RpcTransactionOutput,
@@ -24,6 +27,7 @@ import {
   assertTransactionFailure,
 } from "../../../../helpers/assertions";
 import { setCWD } from "../../../../helpers/cwd";
+import { getPendingBaseFeePerGas } from "../../../../helpers/getPendingBaseFeePerGas";
 import {
   DEFAULT_ACCOUNTS_ADDRESSES,
   DEFAULT_CHAIN_ID,
@@ -75,7 +79,7 @@ describe("Eth module", function () {
             nonce: new BN(0),
             value: new BN(123),
             gasLimit: new BN(25000),
-            gasPrice: new BN(10e9),
+            gasPrice: new BN(await getPendingBaseFeePerGas(this.provider)),
           };
 
           const txHash = await sendTransactionFromTxParams(
@@ -109,7 +113,7 @@ describe("Eth module", function () {
             nonce: new BN(1),
             value: new BN(123),
             gasLimit: new BN(80000),
-            gasPrice: new BN(10e9),
+            gasPrice: new BN(await getPendingBaseFeePerGas(this.provider)),
           };
 
           const txHash2 = await sendTransactionFromTxParams(
@@ -146,7 +150,7 @@ describe("Eth module", function () {
             nonce: new BN(0),
             value: new BN(123),
             gasLimit: new BN(250000),
-            gasPrice: new BN(10e9),
+            gasPrice: new BN(await getPendingBaseFeePerGas(this.provider)),
           };
 
           const txHash = await getSignedTxHash(
@@ -201,7 +205,9 @@ describe("Eth module", function () {
               to: address,
               value: "0x16345785d8a0000",
               gas: numberToRpcQuantity(21000),
-              gasPrice: numberToRpcQuantity(10e9),
+              gasPrice: numberToRpcQuantity(
+                await getPendingBaseFeePerGas(this.provider)
+              ),
             },
           ]);
 
@@ -216,19 +222,18 @@ describe("Eth module", function () {
             "muirGlacier"
           );
 
-          const tx = new Transaction(
-            {
-              nonce: "0x00",
-              gasPrice: numberToRpcQuantity(10e9),
-              gasLimit: "0x55f0",
-              to: DEFAULT_ACCOUNTS_ADDRESSES[1],
-              value: "0x1",
-              data: "0xbeef",
-            },
-            {
-              common,
-            }
-          );
+          const txParams = {
+            nonce: "0x0",
+            gasPrice: numberToRpcQuantity(
+              await getPendingBaseFeePerGas(this.provider)
+            ),
+            gasLimit: "0x55f0",
+            to: DEFAULT_ACCOUNTS_ADDRESSES[1],
+            value: "0x1",
+            data: "0xbeef",
+          };
+
+          const tx = new Transaction(txParams, { common });
 
           const signedTx = tx.sign(privateKey);
 
@@ -245,11 +250,23 @@ describe("Eth module", function () {
 
           assert.equal(fetchedTx.from, address);
           assert.equal(fetchedTx.to, DEFAULT_ACCOUNTS_ADDRESSES[1]);
-          assert.equal(fetchedTx.value, "0x1");
-          assert.equal(fetchedTx.nonce, "0x0");
-          assert.equal(fetchedTx.gas, "0x55f0");
-          assert.equal(fetchedTx.gasPrice, numberToRpcQuantity(10e9));
-          assert.equal(fetchedTx.input, "0xbeef");
+          assert(
+            rpcQuantityToBN(fetchedTx.value).eq(rpcQuantityToBN(txParams.value))
+          );
+          assert(
+            rpcQuantityToBN(fetchedTx.nonce).eq(rpcQuantityToBN(txParams.nonce))
+          );
+          assert(
+            rpcQuantityToBN(fetchedTx.gas).eq(
+              rpcQuantityToBN(txParams.gasLimit)
+            )
+          );
+          assert(
+            rpcQuantityToBN(fetchedTx.gasPrice).eq(
+              rpcQuantityToBN(txParams.gasPrice)
+            )
+          );
+          assert.equal(fetchedTx.input, txParams.data);
 
           // tx.v is padded but fetchedTx.v is not, so we need to do this
           const fetchedTxV = new BN(toBuffer(fetchedTx.v));
@@ -276,7 +293,7 @@ describe("Eth module", function () {
             nonce: new BN(0),
             value: new BN(123),
             gasLimit: new BN(25000),
-            gasPrice: new BN(10e9),
+            gasPrice: new BN(await getPendingBaseFeePerGas(this.provider)),
           };
 
           await this.provider.send("evm_setAutomine", [false]);
@@ -342,7 +359,7 @@ describe("Eth module", function () {
             nonce: new BN(0),
             value: new BN(123),
             gasLimit: new BN(30000),
-            gasPrice: new BN(10e9),
+            gasPrice: new BN(await getPendingBaseFeePerGas(this.provider)),
             accessList: [
               [
                 toBuffer(zeroAddress()),
@@ -379,6 +396,7 @@ describe("Eth module", function () {
 
         it("should return EIP-1559 transactions", async function () {
           const firstBlock = await getFirstBlock();
+          const maxFeePerGas = await getPendingBaseFeePerGas(this.provider);
           const txParams: TransactionParams = {
             from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[1]),
             to: toBuffer(zeroAddress()),
@@ -386,8 +404,8 @@ describe("Eth module", function () {
             nonce: new BN(0),
             value: new BN(123),
             gasLimit: new BN(30000),
-            maxFeePerGas: new BN(10e9),
-            maxPriorityFeePerGas: new BN(1e9),
+            maxFeePerGas,
+            maxPriorityFeePerGas: maxFeePerGas.divn(2),
             accessList: [
               [
                 toBuffer(zeroAddress()),

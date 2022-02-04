@@ -15,6 +15,7 @@ import { workaroundWindowsCiFailures } from "../../../../../../utils/workaround-
 import { assertInvalidInputError } from "../../../../helpers/assertions";
 import { EXAMPLE_CONTRACT } from "../../../../helpers/contracts";
 import { setCWD } from "../../../../helpers/cwd";
+import { getPendingBaseFeePerGas } from "../../../../helpers/getPendingBaseFeePerGas";
 import {
   DEFAULT_ACCOUNTS_ADDRESSES,
   PROVIDERS,
@@ -236,11 +237,13 @@ describe("Eth module", function () {
               });
 
               it("Should use a gasPrice if provided", async function () {
+                const gasPrice = await getPendingBaseFeePerGas(this.provider);
+
                 await this.provider.send("eth_estimateGas", [
                   {
                     from: DEFAULT_ACCOUNTS_ADDRESSES[0],
                     to: DEFAULT_ACCOUNTS_ADDRESSES[1],
-                    gasPrice: numberToRpcQuantity(ONE_GWEI.muln(10)),
+                    gasPrice: numberToRpcQuantity(gasPrice),
                   },
                 ]);
 
@@ -251,16 +254,21 @@ describe("Eth module", function () {
                 assert.isTrue("gasPrice" in firstArg);
 
                 const tx: Transaction | AccessListEIP2930Transaction = firstArg;
-                assert.isTrue(tx.gasPrice.eq(ONE_GWEI.muln(10)));
+                assert.isTrue(tx.gasPrice.eq(gasPrice));
               });
 
               it("Should use the maxFeePerGas and maxPriorityFeePerGas if provided", async function () {
+                const maxFeePerGas = await getPendingBaseFeePerGas(
+                  this.provider
+                );
                 await this.provider.send("eth_estimateGas", [
                   {
                     from: DEFAULT_ACCOUNTS_ADDRESSES[0],
                     to: DEFAULT_ACCOUNTS_ADDRESSES[1],
-                    maxFeePerGas: numberToRpcQuantity(ONE_GWEI.muln(10)),
-                    maxPriorityFeePerGas: numberToRpcQuantity(ONE_GWEI.muln(5)),
+                    maxFeePerGas: numberToRpcQuantity(maxFeePerGas),
+                    maxPriorityFeePerGas: numberToRpcQuantity(
+                      maxFeePerGas.divn(2)
+                    ),
                   },
                 ]);
 
@@ -271,8 +279,8 @@ describe("Eth module", function () {
                 assert.isTrue("maxFeePerGas" in firstArg);
 
                 const tx: FeeMarketEIP1559Transaction = firstArg;
-                assert.isTrue(tx.maxFeePerGas.eq(ONE_GWEI.muln(10)));
-                assert.isTrue(tx.maxPriorityFeePerGas.eq(ONE_GWEI.muln(5)));
+                assert.isTrue(tx.maxFeePerGas.eq(maxFeePerGas));
+                assert.isTrue(tx.maxPriorityFeePerGas.eq(maxFeePerGas.divn(2)));
               });
 
               it("should use the default maxPriorityFeePerGas, 1gwei", async function () {
@@ -280,7 +288,9 @@ describe("Eth module", function () {
                   {
                     from: DEFAULT_ACCOUNTS_ADDRESSES[0],
                     to: DEFAULT_ACCOUNTS_ADDRESSES[1],
-                    maxFeePerGas: numberToRpcQuantity(ONE_GWEI.muln(10)),
+                    maxFeePerGas: numberToRpcQuantity(
+                      await getPendingBaseFeePerGas(this.provider)
+                    ),
                   },
                 ]);
 
@@ -291,7 +301,11 @@ describe("Eth module", function () {
                 assert.isTrue("maxFeePerGas" in firstArg);
 
                 const tx: FeeMarketEIP1559Transaction = firstArg;
-                assert.isTrue(tx.maxFeePerGas.eq(ONE_GWEI.muln(10)));
+                assert.isTrue(
+                  tx.maxFeePerGas.eq(
+                    await getPendingBaseFeePerGas(this.provider)
+                  )
+                );
                 assert.isTrue(tx.maxPriorityFeePerGas.eq(ONE_GWEI));
               });
 
