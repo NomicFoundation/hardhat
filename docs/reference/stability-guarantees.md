@@ -15,7 +15,7 @@ We will only introduce these changes when a hardfork activates on Mainnet. This 
 
 ## Node.js versions support
 
-Hardhat supports every currently maintained Node.js version, up to two months after its end-of-life. After that period of time, we will stop testing against it, and print a warning when trying to use it. At that point, we will release a new minor version.
+Hardhat supports every currently maintained LTS Node.js version, up to two months after its end-of-life. After that period of time, we will stop testing against it, and print a warning when trying to use it. At that point, we will release a new minor version.
 
 We recommend running Hardhat using the current LTS Node.js version. You can learn about it [here](https://nodejs.org/en/about/releases/).
 
