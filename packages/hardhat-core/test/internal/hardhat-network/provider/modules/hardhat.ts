@@ -197,20 +197,43 @@ describe("Hardhat module", function () {
         };
 
         it("should work without any arguments", async function () {
+          const previousBlockNumber = await getLatestBlockNumber();
+
           await this.provider.send("hardhat_mine");
+
+          const blockNumber = await getLatestBlockNumber();
+          assert.equal(blockNumber - previousBlockNumber, 1);
         });
 
-        it("should work with an argument", async function () {
-          await this.provider.send("hardhat_mine", [numberToRpcQuantity(3)]);
-        });
+        for (const minedBlocks of [1, 2, 3, 4, 5, 10, 100, 1_000_000_000]) {
+          it(`should work with ${minedBlocks} mined blocks`, async function () {
+            const previousBlockNumber = await getLatestBlockNumber();
+
+            await this.provider.send("hardhat_mine", [
+              numberToRpcQuantity(minedBlocks),
+            ]);
+
+            const blockNumber = await getLatestBlockNumber();
+            assert.equal(blockNumber - previousBlockNumber, minedBlocks);
+          });
+        }
 
         it("should permit the mining of a regular block afterwards", async function () {
-          await this.provider.send("hardhat_mine", [numberToRpcQuantity(3)]);
+          const previousBlockNumber = await getLatestBlockNumber();
+
+          await this.provider.send("hardhat_mine", [
+            numberToRpcQuantity(1_000_000_000),
+          ]);
           await this.provider.send("evm_mine");
+
+          const blockNumber = await getLatestBlockNumber();
+          assert.equal(blockNumber - previousBlockNumber, 1_000_000_001);
         });
 
         it("should be able to get by hash the parent block of the last block", async function () {
-          await this.provider.send("hardhat_mine", [numberToRpcQuantity(3)]);
+          await this.provider.send("hardhat_mine", [
+            numberToRpcQuantity(1_000_000_000),
+          ]);
 
           const latestBlock = await this.provider.send("eth_getBlockByNumber", [
             "latest",
@@ -286,7 +309,7 @@ describe("Hardhat module", function () {
         });
 
         it("should not mine too many blocks", async function () {
-          const blocksToMine = 5;
+          const blocksToMine = 1_000_000_000;
           const latestBlockNumber = await getLatestBlockNumber();
           await this.provider.send("hardhat_mine", [
             numberToRpcQuantity(blocksToMine),
@@ -474,7 +497,7 @@ describe("Hardhat module", function () {
 
             // Act:
             const blocksToMine = 10;
-            const interval = 10;
+            const interval = 60;
             await this.provider.send("hardhat_mine", [
               numberToRpcQuantity(blocksToMine),
               numberToRpcQuantity(interval),
@@ -539,6 +562,53 @@ describe("Hardhat module", function () {
 
               // check that the rest of the blocks respect the interval
               for (let i = 2; i <= blocksToMine; i++) {
+                const blockNumber = originalLatestBlockNumber + i;
+                const expectedTimestamp =
+                  originalLatestBlockTimestamp + 3600 + (i - 1) * interval;
+                assert.equal(
+                  await getBlockTimestamp(blockNumber),
+                  expectedTimestamp
+                );
+              }
+            });
+
+            it("should work when 1 billion blocks are mined", async function () {
+              const originalLatestBlockNumber = await getLatestBlockNumber();
+              const originalLatestBlockTimestamp = await getBlockTimestamp(
+                originalLatestBlockNumber
+              );
+
+              await this.provider.send("evm_setNextBlockTimestamp", [
+                numberToRpcQuantity(originalLatestBlockTimestamp + 3600),
+              ]);
+              const blocksToMine = 1_000_000_000;
+              const interval = 60;
+              await this.provider.send("hardhat_mine", [
+                numberToRpcQuantity(blocksToMine),
+                numberToRpcQuantity(interval),
+              ]);
+
+              const timestampFirstMinedBlock = await getBlockTimestamp(
+                originalLatestBlockNumber + 1
+              );
+              assert.equal(
+                timestampFirstMinedBlock,
+                originalLatestBlockTimestamp + 3600
+              );
+
+              // check that the first blocks respect the interval
+              for (let i = 2; i <= 20; i++) {
+                const blockNumber = originalLatestBlockNumber + i;
+                const expectedTimestamp =
+                  originalLatestBlockTimestamp + 3600 + (i - 1) * interval;
+                assert.equal(
+                  await getBlockTimestamp(blockNumber),
+                  expectedTimestamp
+                );
+              }
+
+              // check that the last blocks respect the interval
+              for (let i = blocksToMine - 20; i <= blocksToMine; i++) {
                 const blockNumber = originalLatestBlockNumber + i;
                 const expectedTimestamp =
                   originalLatestBlockTimestamp + 3600 + (i - 1) * interval;
@@ -630,6 +700,69 @@ describe("Hardhat module", function () {
                 );
               }
             });
+
+            it("should work when 1 billion blocks are mined and there are pending txs", async function () {
+              // Arrange: put a tx in the mempool
+              await this.provider.send("evm_setAutomine", [false]);
+              await this.provider.send("eth_sendTransaction", [
+                {
+                  from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                  to: "0x1111111111111111111111111111111111111111",
+                },
+              ]);
+
+              // Act: set the next timestamp and mine 1 billion blocks
+              const originalLatestBlockNumber = await getLatestBlockNumber();
+              const originalLatestBlockTimestamp = await getBlockTimestamp(
+                originalLatestBlockNumber
+              );
+              await this.provider.send("evm_setNextBlockTimestamp", [
+                numberToRpcQuantity(originalLatestBlockTimestamp + 3600),
+              ]);
+              const blocksToMine = 1_000_000_000;
+              const interval = 60;
+              await this.provider.send("hardhat_mine", [
+                numberToRpcQuantity(blocksToMine),
+                numberToRpcQuantity(interval),
+              ]);
+
+              // Assert: check that the chosen timestamp was used for the first
+              // mined block
+              const latestBlockNumber = await getLatestBlockNumber();
+              assert.equal(
+                latestBlockNumber,
+                originalLatestBlockNumber + blocksToMine
+              );
+              const timestampFirstBlock = await getBlockTimestamp(
+                originalLatestBlockNumber + 1
+              );
+              assert.equal(
+                timestampFirstBlock,
+                originalLatestBlockTimestamp + 3600
+              );
+
+              // Assert: check that the first blocks respect the interval
+              for (let i = 2; i <= 20; i++) {
+                const blockNumber = originalLatestBlockNumber + i;
+                const expectedTimestamp =
+                  originalLatestBlockTimestamp + 3600 + (i - 1) * interval;
+                assert.equal(
+                  await getBlockTimestamp(blockNumber),
+                  expectedTimestamp
+                );
+              }
+
+              // Assert: check that the last blocks respect the interval
+              for (let i = blocksToMine - 20; i <= blocksToMine; i++) {
+                const blockNumber = originalLatestBlockNumber + i;
+                const expectedTimestamp =
+                  originalLatestBlockTimestamp + 3600 + (i - 1) * interval;
+                assert.equal(
+                  await getBlockTimestamp(blockNumber),
+                  expectedTimestamp
+                );
+              }
+            });
           });
         });
 
@@ -652,13 +785,20 @@ describe("Hardhat module", function () {
 
           // Act:
           const previousLatestBlockNumber = await getLatestBlockNumber();
-          await this.provider.send("hardhat_mine", [numberToRpcQuantity(10)]);
+          await this.provider.send("hardhat_mine", [
+            numberToRpcQuantity(1_000_000_000),
+          ]);
 
           // Assert:
           for (const expectation of [
             { block: previousLatestBlockNumber + 1, transactionCount: 3 },
             { block: previousLatestBlockNumber + 2, transactionCount: 1 },
             { block: previousLatestBlockNumber + 3, transactionCount: 0 },
+            { block: previousLatestBlockNumber + 4, transactionCount: 0 },
+            {
+              block: previousLatestBlockNumber + 1_000_000_000,
+              transactionCount: 0,
+            },
           ]) {
             const block = await this.provider.send("eth_getBlockByNumber", [
               numberToRpcQuantity(expectation.block),
@@ -755,7 +895,7 @@ describe("Hardhat module", function () {
           };
 
           it("when doing hardhat_mine before hardhat_reset", async function () {
-            await runHardhatMine(5);
+            await runHardhatMine(1_000_000_000);
             await this.provider.send("hardhat_reset");
             assert.equal(await getLatestBlockNumber(), 0);
             await mineSomeTxBlocks(3);
@@ -766,8 +906,8 @@ describe("Hardhat module", function () {
             await mineSomeTxBlocks(3);
             await this.provider.send("hardhat_reset");
             assert.equal(await getLatestBlockNumber(), 0);
-            await runHardhatMine(5);
-            assert.equal(await getLatestBlockNumber(), 5);
+            await runHardhatMine(1_000_000_000);
+            assert.equal(await getLatestBlockNumber(), 1_000_000_000);
           });
         });
 
@@ -838,7 +978,10 @@ describe("Hardhat module", function () {
               latestBlockNumberBeforeSnapshot
             );
 
-            for (const i of [1, 2, 9, 10, 11]) {
+            for (const i of [
+              1, 2, 9, 10, 100, 500, 1000, 1_000_000, 999_999_999,
+              1_000_000_000, 1_000_000_001,
+            ]) {
               await assertBlockDoesntExist(latestBlockNumberBeforeSnapshot + i);
             }
           });
@@ -849,10 +992,12 @@ describe("Hardhat module", function () {
 
             const snapshotId = await this.provider.send("evm_snapshot");
 
-            await this.provider.send("hardhat_mine", [numberToRpcQuantity(10)]);
+            await this.provider.send("hardhat_mine", [
+              numberToRpcQuantity(1_000_000_000),
+            ]);
             assert.equal(
               await getLatestBlockNumber(),
-              latestBlockNumberBeforeSnapshot + 10
+              latestBlockNumberBeforeSnapshot + 1_000_000_000
             );
 
             await this.provider.send("eth_sendTransaction", [
@@ -869,7 +1014,10 @@ describe("Hardhat module", function () {
               latestBlockNumberBeforeSnapshot
             );
 
-            for (const i of [1, 2, 9, 10, 11]) {
+            for (const i of [
+              1, 2, 9, 10, 100, 500, 1000, 1_000_000, 999_999_999,
+              1_000_000_000, 1_000_000_001,
+            ]) {
               await assertBlockDoesntExist(latestBlockNumberBeforeSnapshot + i);
             }
           });
@@ -878,11 +1026,18 @@ describe("Hardhat module", function () {
             const latestBlockNumberBeforeSnapshot =
               await getLatestBlockNumber();
             const snapshotId = await this.provider.send("evm_snapshot");
-            await this.provider.send("hardhat_mine", ["0x5"]);
-            await this.provider.send("hardhat_mine", ["0x5"]);
+            await this.provider.send("hardhat_mine", [
+              numberToRpcQuantity(1_000_000_000),
+            ]);
+            await this.provider.send("hardhat_mine", [
+              numberToRpcQuantity(1_000_000_000),
+            ]);
             await this.provider.send("evm_revert", [snapshotId]);
 
-            for (const i of [1, 2, 9, 10, 11]) {
+            for (const i of [
+              1, 2, 9, 10, 100, 500, 1000, 1_000_000, 999_999_999,
+              1_000_000_000, 1_000_000_001,
+            ]) {
               await assertBlockDoesntExist(latestBlockNumberBeforeSnapshot + i);
             }
           });
