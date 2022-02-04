@@ -206,5 +206,8 @@ module.exports = {
       },
     ],
     "use-isnan": "error",
+    "no-restricted-imports": ["error", {
+      patterns: ["hardhat/src", "@nomiclabs/*/src"]
+    }],
   },
 };
