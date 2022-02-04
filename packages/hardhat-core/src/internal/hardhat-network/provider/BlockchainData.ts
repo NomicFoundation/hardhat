@@ -6,8 +6,7 @@ import { TypedTransaction } from "@ethereumjs/tx";
 import Bloom from "@ethereumjs/vm/dist/bloom";
 import { BN, bufferToHex } from "ethereumjs-util";
 
-import { assertHardhatInvariant, HardhatError } from "../../core/errors";
-import { ERRORS } from "../../core/errors-list";
+import { assertHardhatInvariant } from "../../core/errors";
 import { bloomFilter, filterLogs } from "./filter";
 import { FilterParams } from "./node-types";
 import { RpcLogOutput, RpcReceiptOutput } from "./output";
@@ -212,13 +211,13 @@ export class BlockchainData {
 
   private _calculateTimestampForReservedBlock(blockNumber: BN): BN {
     const reservationIndex = this._findBlockReservation(blockNumber);
-    if (reservationIndex === -1) {
-      throw new HardhatError(ERRORS.GENERAL.ASSERTION_ERROR, {
-        message: `Block ${blockNumber.toString()} does not lie within any of the reservations (${util.inspect(
-          this._blockReservations
-        )}).`,
-      });
-    }
+
+    assertHardhatInvariant(
+      reservationIndex !== -1,
+      `Block ${blockNumber.toString()} does not lie within any of the reservations (${util.inspect(
+        this._blockReservations
+      )}).`
+    );
 
     const reservation = this._blockReservations[reservationIndex];
 
