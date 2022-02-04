@@ -91,18 +91,18 @@ export abstract class BlockchainBase {
   }
 
   protected _delBlock(blockNumber: BN): void {
-    for (
-      let i = blockNumber;
-      i.lte(this.getLatestBlockNumber());
-      i = i.addn(1)
-    ) {
+    let i = blockNumber;
+
+    while (i.lte(this.getLatestBlockNumber())) {
       if (this._data.isReservedBlock(i)) {
-        this._data.cancelReservationWithBlock(i);
+        const reservation = this._data.cancelReservationWithBlock(i);
+        i = reservation.last.addn(1);
       } else {
         const current = this._data.getBlockByNumber(i);
         if (current !== undefined) {
           this._data.removeBlock(current);
         }
+        i = i.addn(1);
       }
     }
   }

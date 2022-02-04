@@ -160,8 +160,11 @@ export class BlockchainData {
     return reservation;
   }
 
-  public cancelReservationWithBlock(blockNumber: BN) {
-    this._removeReservation(this._findBlockReservation(blockNumber));
+  /**
+   * Cancel and return the reservation that has block `blockNumber`
+   */
+  public cancelReservationWithBlock(blockNumber: BN): Reservation {
+    return this._removeReservation(this._findBlockReservation(blockNumber));
   }
 
   public fulfillBlockReservation(blockNumber: BN) {

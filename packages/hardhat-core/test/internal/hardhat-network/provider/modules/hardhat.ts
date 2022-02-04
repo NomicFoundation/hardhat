@@ -786,7 +786,9 @@ describe("Hardhat module", function () {
           };
 
           it("when doing hardhat_mine before a snapshot", async function () {
-            await this.provider.send("hardhat_mine", [numberToRpcQuantity(10)]);
+            await this.provider.send("hardhat_mine", [
+              numberToRpcQuantity(1_000_000_000),
+            ]);
 
             const latestBlockNumberBeforeSnapshot =
               await getLatestBlockNumber();
@@ -821,10 +823,12 @@ describe("Hardhat module", function () {
 
             const snapshotId = await this.provider.send("evm_snapshot");
 
-            await this.provider.send("hardhat_mine", [numberToRpcQuantity(10)]);
+            await this.provider.send("hardhat_mine", [
+              numberToRpcQuantity(1_000_000_000),
+            ]);
             assert.equal(
               await getLatestBlockNumber(),
-              latestBlockNumberBeforeSnapshot + 10
+              latestBlockNumberBeforeSnapshot + 1_000_000_000
             );
 
             await this.provider.send("evm_revert", [snapshotId]);
