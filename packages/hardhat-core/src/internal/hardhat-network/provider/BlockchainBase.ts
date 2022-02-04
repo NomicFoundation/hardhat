@@ -35,11 +35,6 @@ export abstract class BlockchainBase {
     this._delBlock(block.header.number);
   }
 
-  public async getBaseFee(): Promise<BN> {
-    const latestBlock = await this.getLatestBlock();
-    return latestBlock.header.calcNextBaseFee();
-  }
-
   public async getBlock(
     blockHashOrNumber: Buffer | BN | number
   ): Promise<Block | null> {
