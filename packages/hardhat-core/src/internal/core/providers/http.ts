@@ -1,5 +1,5 @@
 import { EventEmitter } from "events";
-import type { Response } from "node-fetch";
+import { fetch, Response } from "undici";
 
 import { EIP1193Provider, RequestArguments } from "../../../types";
 import {
@@ -134,8 +134,6 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
     request: JsonRpcRequest | JsonRpcRequest[],
     retryNumber = 0
   ): Promise<JsonRpcResponse | JsonRpcResponse[]> {
-    const { default: fetch } = await import("node-fetch");
-
     try {
       const response = await fetch(this._url, {
         method: "POST",
