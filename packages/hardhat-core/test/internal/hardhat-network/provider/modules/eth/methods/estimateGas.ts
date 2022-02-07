@@ -306,7 +306,10 @@ describe("Eth module", function () {
                     await getPendingBaseFeePerGas(this.provider)
                   )
                 );
-                assert.isTrue(tx.maxPriorityFeePerGas.eq(ONE_GWEI));
+                assert.isTrue(
+                  tx.maxPriorityFeePerGas.eq(ONE_GWEI),
+                  `expected to get a maxPriorityFeePerGas of ${ONE_GWEI.toString()}, but got ${tx.maxPriorityFeePerGas.toString()}`
+                );
               });
 
               it("should cap the maxPriorityFeePerGas with maxFeePerGas", async function () {
