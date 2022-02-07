@@ -1,5 +1,5 @@
 import { EventEmitter } from "events";
-import { fetch, Response } from "undici";
+import { Dispatcher, Pool } from "undici";
 
 import { EIP1193Provider, RequestArguments } from "../../../types";
 import {
@@ -29,6 +29,8 @@ const TOO_MANY_REQUEST_STATUS = 429;
 
 export class HttpProvider extends EventEmitter implements EIP1193Provider {
   private _nextRequestId = 1;
+  private _client: Pool;
+  private _path: string;
 
   constructor(
     private readonly _url: string,
@@ -37,6 +39,9 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
     private readonly _timeout = 20000
   ) {
     super();
+    const url = new URL(this._url);
+    this._path = url.pathname;
+    this._client = new Pool(url.toString().replace(url.pathname, ""));
   }
 
   public get url(): string {
@@ -135,11 +140,12 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
     retryNumber = 0
   ): Promise<JsonRpcResponse | JsonRpcResponse[]> {
     try {
-      const response = await fetch(this._url, {
+      const response = await this._client.request({
         method: "POST",
+        path: this._path,
         body: JSON.stringify(request),
-        redirect: "follow",
-        timeout:
+        maxRedirections: 10,
+        headersTimeout:
           process.env.DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI !== undefined
             ? 0
             : this._timeout,
@@ -152,7 +158,7 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
       if (this._isRateLimitResponse(response)) {
         // Consume the response stream and discard its result
         // See: https://github.com/node-fetch/node-fetch/issues/83
-        const _discarded = await response.text();
+        const _discarded = await response.body.text();
 
         const seconds = this._getRetryAfterSeconds(response);
         if (seconds !== undefined && this._shouldRetry(retryNumber, seconds)) {
@@ -168,7 +174,7 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
         );
       }
 
-      return parseJsonResponse(await response.text());
+      return parseJsonResponse(await response.body.text());
     } catch (error: any) {
       if (error.code === "ECONNREFUSED") {
         throw new HardhatError(
@@ -220,12 +226,14 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
     return true;
   }
 
-  private _isRateLimitResponse(response: Response) {
-    return response.status === TOO_MANY_REQUEST_STATUS;
+  private _isRateLimitResponse(response: Dispatcher.ResponseData) {
+    return response.statusCode === TOO_MANY_REQUEST_STATUS;
   }
 
-  private _getRetryAfterSeconds(response: Response): number | undefined {
-    const header = response.headers.get("Retry-After");
+  private _getRetryAfterSeconds(
+    response: Dispatcher.ResponseData
+  ): number | undefined {
+    const header = response.headers["retry-after"] ?? undefined;
 
     if (header === undefined || header === null) {
       return undefined;
