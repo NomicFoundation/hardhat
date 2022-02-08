@@ -177,14 +177,14 @@ export class HardhatModule {
 
     const isEmpty = result.block.transactions.length === 0;
     if (isEmpty) {
-      this._logger.printMinedBlockNumber(
+      this._logger.printIntervalMinedBlockNumber(
         blockNumber,
         isEmpty,
         result.block.header.baseFeePerGas
       );
     } else {
-      await this._logBlock(result);
-      this._logger.printMinedBlockNumber(blockNumber, isEmpty);
+      await this._logBlock(result, { isIntervalMined: true });
+      this._logger.printIntervalMinedBlockNumber(blockNumber, isEmpty);
       const printedSomething = this._logger.printLogs();
       if (printedSomething) {
         this._logger.printEmptyLine();
@@ -366,14 +366,29 @@ export class HardhatModule {
 
   // hardhat_mine
   private async _hardhatMineAction(blockCount?: BN, interval?: BN) {
-    await this._node.mineBlocks(blockCount, interval);
+    const results = await this._node.mineBlocks(blockCount, interval);
+
+    for (const [i, result] of results.entries()) {
+      await this._logHardhatMinedBlock(result);
+
+      // print an empty line after logging blocks with txs,
+      // unless it's the last logged block
+      const isEmpty = result.block.transactions.length === 0;
+      if (!isEmpty && i + 1 < results.length) {
+        this._logger.logEmptyLine();
+      }
+    }
+
     return true;
   }
   private _hardhatMineParams(params: any[]): [BN | undefined, BN | undefined] {
     return validateParams(params, optional(rpcQuantity), optional(rpcQuantity));
   }
 
-  private async _logBlock(result: MineBlockResult) {
+  private async _logBlock(
+    result: MineBlockResult,
+    { isIntervalMined }: { isIntervalMined: boolean }
+  ) {
     const { block, traces } = result;
 
     const codes: Buffer[] = [];
@@ -386,7 +401,11 @@ export class HardhatModule {
       codes.push(code);
     }
 
-    this._logger.logIntervalMinedBlock(result, codes);
+    if (isIntervalMined) {
+      this._logger.logIntervalMinedBlock(result, codes);
+    } else {
+      this._logger.logMinedBlock(result, codes);
+    }
 
     for (const txTrace of traces) {
       await this._runHardhatNetworkMessageTraceHooks(txTrace.trace, false);
@@ -403,6 +422,20 @@ export class HardhatModule {
 
     for (const hook of this._experimentalHardhatNetworkMessageTraceHooks) {
       await hook(trace, isCall);
+    }
+  }
+
+  private async _logHardhatMinedBlock(result: MineBlockResult) {
+    const isEmpty = result.block.transactions.length === 0;
+    const blockNumber = result.block.header.number.toNumber();
+
+    if (isEmpty) {
+      this._logger.logEmptyHardhatMinedBlock(
+        blockNumber,
+        result.block.header.baseFeePerGas
+      );
+    } else {
+      await this._logBlock(result, { isIntervalMined: false });
     }
   }
 }

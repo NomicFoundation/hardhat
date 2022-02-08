@@ -490,13 +490,24 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     return result;
   }
 
-  public async mineBlocks(count: BN = new BN(1), interval: BN = new BN(1)) {
+  /**
+   * Mines `count` blocks with a difference of `interval` seconds between their
+   * timestamps.
+   *
+   * Returns an array with the results of the blocks that were really mined (the
+   * ones that were reserved are not included).
+   */
+  public async mineBlocks(
+    count: BN = new BN(1),
+    interval: BN = new BN(1)
+  ): Promise<MineBlockResult[]> {
     if (count.eqn(0)) {
       // nothing to do
-      return;
+      return [];
     }
 
     let blocksMined = 0;
+    const blockResults: MineBlockResult[] = [];
     const nextTimestamp = async () =>
       (await this.getLatestBlock()).header.timestamp.add(interval);
 
@@ -505,20 +516,27 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     const nextBlockTimestamp = this.getNextBlockTimestamp().eqn(0)
       ? undefined
       : this.getNextBlockTimestamp();
-    await this.mineBlock(nextBlockTimestamp);
+    blockResults.push(await this.mineBlock(nextBlockTimestamp));
     blocksMined += 1;
 
     // then we mine any pending transactions
     while (count.gtn(blocksMined) && this._txPool.hasPendingTransactions()) {
-      await this.mineBlock(await nextTimestamp());
+      blockResults.push(await this.mineBlock(await nextTimestamp()));
+      blocksMined += 1;
+    }
+
+    // If there is at least one remaining block, we mine one. This makes the
+    // output of `hh node` work properly.
+    if (count.gtn(blocksMined)) {
+      blockResults.push(await this.mineBlock(await nextTimestamp()));
       blocksMined += 1;
     }
 
     const remainingBlockCount = count.subn(blocksMined);
-    // if there are few blocks left to mine, we just mine them
     if (remainingBlockCount.lten(5)) {
+      // if there are few blocks left to mine, we just mine them
       while (count.gtn(blocksMined)) {
-        await this.mineBlock(await nextTimestamp());
+        blockResults.push(await this.mineBlock(await nextTimestamp()));
         blocksMined += 1;
       }
     } else {
@@ -528,8 +546,10 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         interval,
         await this._stateManager.getStateRoot()
       );
-      await this.mineBlock(await nextTimestamp());
+      blockResults.push(await this.mineBlock(await nextTimestamp()));
     }
+
+    return blockResults;
   }
 
   public async runCall(

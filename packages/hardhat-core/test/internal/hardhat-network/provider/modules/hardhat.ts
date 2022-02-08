@@ -253,8 +253,6 @@ describe("Hardhat module", function () {
             false,
           ]);
 
-          console.log(latestBlock.parentHash);
-
           const parentOfLatestBlock = await this.provider.send(
             "eth_getBlockByHash",
             [latestBlock.parentHash, false]
@@ -272,11 +270,29 @@ describe("Hardhat module", function () {
             assert.isNotNull(block, `expected block ${blockNumber} to exist`);
             assert.isDefined(block.number);
             assert.equal(blockNumber, block.number);
-            assert.equal(
-              "0x0000000000000000000000000000000000000000000000000000000000000000",
-              block.parentHash,
-              `expected block's parent hash to be null, not ${block.parentHash}`
-            );
+
+            const parentHash = block.parentHash;
+
+            // the parent hash has to be zero, or a valid block hash
+            if (
+              parentHash !==
+              "0x0000000000000000000000000000000000000000000000000000000000000000"
+            ) {
+              const parentBlock = await this.ctx.provider.send(
+                "eth_getBlockByHash",
+                [parentHash, false]
+              );
+
+              assert.isNotNull(
+                parentBlock,
+                `expected block with hash ${parentHash} to exist`
+              );
+              assert.isDefined(parentBlock.number);
+              assert.equal(
+                rpcQuantityToNumber(parentBlock.number),
+                rpcQuantityToNumber(block.number) - 1
+              );
+            }
           };
 
           const blockCount = 3_000_000_000;
@@ -294,26 +310,31 @@ describe("Hardhat module", function () {
           });
 
           it("works at the beginning of the reservation", async function () {
-            // the first one is always mined, so we check the second one
+            await getAndAssertBlock(previousLatestBlockNumber + 1);
             await getAndAssertBlock(previousLatestBlockNumber + 2);
           });
 
           it("works in the middle of the reservation", async function () {
             await getAndAssertBlock(
-              previousLatestBlockNumber + 1 + Math.floor(blockCount / 2)
+              previousLatestBlockNumber + Math.floor(blockCount / 2) - 1
+            );
+            await getAndAssertBlock(
+              previousLatestBlockNumber + Math.floor(blockCount / 2)
+            );
+            await getAndAssertBlock(
+              previousLatestBlockNumber + Math.floor(blockCount / 2) + 1
             );
           });
 
           it("works at the end of the reservation", async function () {
-            // the last one is always mined, so we check the second-to-last one
             await getAndAssertBlock(previousLatestBlockNumber + blockCount - 1);
+            await getAndAssertBlock(previousLatestBlockNumber + blockCount);
           });
 
           it("works several times over within the reservation", async function () {
-            // check several blocks in the [FIRST + 1, LAST - 1] range
             for (
-              let blockNumber = previousLatestBlockNumber + blockCount - 1;
-              blockNumber > previousLatestBlockNumber + 1;
+              let blockNumber = previousLatestBlockNumber + blockCount;
+              blockNumber > previousLatestBlockNumber;
               blockNumber = Math.floor(blockNumber / 2)
             ) {
               await getAndAssertBlock(blockNumber);
