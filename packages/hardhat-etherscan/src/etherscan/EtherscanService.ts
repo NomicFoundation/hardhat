@@ -1,5 +1,6 @@
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
-import type { Response } from "node-fetch-with-proxy";
+import type { Response } from "node-fetch";
+import HttpsProxyAgent from 'https-proxy-agent';
 
 import { pluginName } from "../constants";
 
@@ -25,7 +26,10 @@ export async function verifyContract(
     method: "post",
     body: parameters,
   };
-
+  if (process.env.HTTP_PROXY) {
+    //@ts-ignore
+    requestDetails.agent = new HttpsProxyAgent(process.env.HTTP_PROXY);
+  }
   let response: Response;
   try {
     response = await fetch(url, requestDetails);
