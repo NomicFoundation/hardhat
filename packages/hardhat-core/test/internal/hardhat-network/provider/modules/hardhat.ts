@@ -205,7 +205,7 @@ describe("Hardhat module", function () {
           assert.equal(blockNumber - previousBlockNumber, 1);
         });
 
-        for (const minedBlocks of [1, 2, 3, 4, 5, 10, 100, 1_000_000_000]) {
+        for (const minedBlocks of [0, 1, 2, 3, 4, 5, 10, 100, 1_000_000_000]) {
           it(`should work with ${minedBlocks} mined blocks`, async function () {
             const previousBlockNumber = await getLatestBlockNumber();
 
