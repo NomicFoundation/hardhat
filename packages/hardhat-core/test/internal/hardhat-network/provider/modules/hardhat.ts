@@ -196,6 +196,19 @@ describe("Hardhat module", function () {
           );
         };
 
+        const assertBlockDoesntExist = async (blockNumber: number) => {
+          const blockThatShouldntExist = await this.ctx.provider.send(
+            "eth_getBlockByNumber",
+            [numberToRpcQuantity(blockNumber), false]
+          );
+          assert.isNull(
+            blockThatShouldntExist,
+            `expected block number ${blockNumber} to be null, but successfully retrieved block ${JSON.stringify(
+              blockThatShouldntExist
+            )}`
+          );
+        };
+
         it("should work without any arguments", async function () {
           const previousBlockNumber = await getLatestBlockNumber();
 
@@ -898,6 +911,9 @@ describe("Hardhat module", function () {
             await runHardhatMine(1_000_000_000);
             await this.provider.send("hardhat_reset");
             assert.equal(await getLatestBlockNumber(), 0);
+            await assertBlockDoesntExist(1);
+            await assertBlockDoesntExist(2);
+            await assertBlockDoesntExist(1_000_000_000);
             await mineSomeTxBlocks(3);
             assert.equal(await getLatestBlockNumber(), 3);
           });
@@ -912,19 +928,6 @@ describe("Hardhat module", function () {
         });
 
         describe("shouldn't break snapshots", function () {
-          const assertBlockDoesntExist = async (blockNumber: number) => {
-            const blockThatShouldntExist = await this.ctx.provider.send(
-              "eth_getBlockByNumber",
-              [numberToRpcQuantity(blockNumber), false]
-            );
-            assert.isNull(
-              blockThatShouldntExist,
-              `expected block number ${blockNumber} to be null, but successfully retrieved block ${JSON.stringify(
-                blockThatShouldntExist
-              )}`
-            );
-          };
-
           it("when doing hardhat_mine before a snapshot", async function () {
             await this.provider.send("hardhat_mine", [
               numberToRpcQuantity(1_000_000_000),
