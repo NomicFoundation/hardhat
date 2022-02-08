@@ -2,9 +2,9 @@ name: Issue/PR autoassignment
 
 on:
   issues:
-    types: [ opened ]
+    types: [opened]
   pull_request:
-    types: [ opened ]
+    types: [opened]
 
 jobs:
   auto-assign:
