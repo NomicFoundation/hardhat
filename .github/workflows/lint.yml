@@ -29,4 +29,16 @@ jobs:
       - name: lint
         run: yarn lint
       - name: Check dependency versions
-        run: node scripts/check-dependencies.js
+        run: node scripts/check-dependencies.js && false
+      - name: Notify failures
+          if: failure()
+          id: slack
+          uses: slackapi/slack-github-action@v1.18.0
+          with:
+            payload: |
+              {
+                "workflow_name": ${{ github.workflow }},
+                "run_url": ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+              }
+          env:
+            SLACK_WEBHOOK_URL: ${{ secrets.GH_ACTION_NOTIFICATIONS_SLACK_WEBHOOK_URL }}
