@@ -284,13 +284,15 @@ describe("Eth module", function () {
               });
 
               it("should use the default maxPriorityFeePerGas, 1gwei", async function () {
+                const maxFeePerGas = BN.max(
+                  await getPendingBaseFeePerGas(this.provider),
+                  ONE_GWEI.muln(10)
+                );
                 await this.provider.send("eth_estimateGas", [
                   {
                     from: DEFAULT_ACCOUNTS_ADDRESSES[0],
                     to: DEFAULT_ACCOUNTS_ADDRESSES[1],
-                    maxFeePerGas: numberToRpcQuantity(
-                      await getPendingBaseFeePerGas(this.provider)
-                    ),
+                    maxFeePerGas: numberToRpcQuantity(maxFeePerGas),
                   },
                 ]);
 
@@ -301,11 +303,7 @@ describe("Eth module", function () {
                 assert.isTrue("maxFeePerGas" in firstArg);
 
                 const tx: FeeMarketEIP1559Transaction = firstArg;
-                assert.isTrue(
-                  tx.maxFeePerGas.eq(
-                    await getPendingBaseFeePerGas(this.provider)
-                  )
-                );
+                assert.isTrue(tx.maxFeePerGas.eq(maxFeePerGas));
                 assert.isTrue(
                   tx.maxPriorityFeePerGas.eq(ONE_GWEI),
                   `expected to get a maxPriorityFeePerGas of ${ONE_GWEI.toString()}, but got ${tx.maxPriorityFeePerGas.toString()}`
