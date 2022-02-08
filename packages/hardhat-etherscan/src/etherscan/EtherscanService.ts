@@ -1,5 +1,5 @@
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
-import type { Response } from "node-fetch";
+import type { Response } from "node-fetch-with-proxy";
 
 import { pluginName } from "../constants";
 
