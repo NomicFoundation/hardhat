@@ -468,6 +468,13 @@ module.exports.officialPlugins = [
     description: "Adds support to compile Vyper smart contracts",
     tags: ["Vyper", "Compiler"],
   },
+  {
+     name: "@mindjolt/hardhat-network-settings",
+     author: "Jam City",
+     authorUrl: "https://github.com/mindjolt/hardhat-network-settings",
+     description: "A plugin for per-network settings",
+     tags: ["Deployment", "Testing", "Settings"],
+   },
 ].map((p) => ({
   ...p,
   normalizedName: p.name.split("/").join("-").replace(/^@/, ""),
