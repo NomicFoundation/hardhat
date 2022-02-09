@@ -244,6 +244,10 @@ describe("autocomplete", function () {
           description: "Don't compile before running this task",
           name: "--no-compile",
         },
+        {
+          description: "Run tests in parallel",
+          name: "--parallel",
+        },
       ]);
     });
 
