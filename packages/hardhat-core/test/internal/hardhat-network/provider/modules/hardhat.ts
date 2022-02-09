@@ -604,6 +604,11 @@ describe("Hardhat module", function () {
                   expectedTimestamp
                 );
               }
+
+              // check that there weren't too many blocks mined
+              await assertBlockDoesntExist(
+                originalLatestBlockNumber + blocksToMine + 1
+              );
             });
 
             it("should work when 1 billion blocks are mined", async function () {
@@ -651,6 +656,11 @@ describe("Hardhat module", function () {
                   expectedTimestamp
                 );
               }
+
+              // check that there weren't too many blocks mined
+              await assertBlockDoesntExist(
+                originalLatestBlockNumber + blocksToMine + 1
+              );
             });
 
             it("should work when 1 block is mined and there are pending txs", async function () {
@@ -662,6 +672,7 @@ describe("Hardhat module", function () {
                   to: "0x1111111111111111111111111111111111111111",
                 },
               ]);
+              const blocksToMine = 1;
 
               // Act: set the next timestamp and mine 1 block
               const originalLatestBlockNumber = await getLatestBlockNumber();
@@ -672,14 +683,22 @@ describe("Hardhat module", function () {
                 numberToRpcQuantity(originalLatestBlockTimestamp + 3600),
               ]);
               await this.provider.send("hardhat_mine", [
-                numberToRpcQuantity(1),
+                numberToRpcQuantity(blocksToMine),
               ]);
 
               // Assert: check that the chosen timestamp was used
               const latestBlockNumber = await getLatestBlockNumber();
-              assert.equal(latestBlockNumber, originalLatestBlockNumber + 1);
+              assert.equal(
+                latestBlockNumber,
+                originalLatestBlockNumber + blocksToMine
+              );
               const timestampAfter = await getBlockTimestamp(latestBlockNumber);
               assert.equal(timestampAfter, originalLatestBlockTimestamp + 3600);
+
+              // Assert: check that there weren't too many blocks mined
+              await assertBlockDoesntExist(
+                originalLatestBlockNumber + blocksToMine + 1
+              );
             });
 
             it("should work when 10 blocks are mined and there are pending txs", async function () {
@@ -733,6 +752,11 @@ describe("Hardhat module", function () {
                   expectedTimestamp
                 );
               }
+
+              // Assert: check that there weren't too many blocks mined
+              await assertBlockDoesntExist(
+                originalLatestBlockNumber + blocksToMine + 1
+              );
             });
 
             it("should work when 1 billion blocks are mined and there are pending txs", async function () {
@@ -796,6 +820,11 @@ describe("Hardhat module", function () {
                   expectedTimestamp
                 );
               }
+
+              // check that there weren't too many blocks mined
+              await assertBlockDoesntExist(
+                originalLatestBlockNumber + blocksToMine + 1
+              );
             });
           });
         });
@@ -852,6 +881,11 @@ describe("Hardhat module", function () {
               `expected block ${expectation.block}'s transaction count to be ${expectation.transactionCount}, but it was ${block.transactions.length}`
             );
           }
+
+          // Assert: check that there weren't too many blocks mined
+          await assertBlockDoesntExist(
+            previousLatestBlockNumber + 1_000_000_000 + 1
+          );
         });
 
         it("should work when the mempool is not emptied after mining all blocks", async function () {
@@ -902,6 +936,11 @@ describe("Hardhat module", function () {
               `expected block ${expectation.block}'s transaction count to be ${expectation.transactionCount}, but it was ${block.transactions.length}`
             );
           }
+
+          // Assert: check that there weren't too many blocks mined
+          await assertBlockDoesntExist(
+            previousLatestBlockNumber + 1_000_000_000 + 1
+          );
         });
 
         describe("shouldn't break hardhat_reset", function () {
