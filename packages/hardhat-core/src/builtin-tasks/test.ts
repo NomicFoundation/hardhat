@@ -43,24 +43,43 @@ subtask(TASK_TEST_GET_TEST_FILES)
 subtask(TASK_TEST_SETUP_TEST_ENVIRONMENT, async () => {});
 
 subtask(TASK_TEST_RUN_MOCHA_TESTS)
+  .addFlag("parallel", "Run tests in parallel")
   .addOptionalVariadicPositionalParam(
     "testFiles",
     "An optional list of files to test",
     []
   )
-  .setAction(async ({ testFiles }: { testFiles: string[] }, { config }) => {
-    const { default: Mocha } = await import("mocha");
-    const mocha = new Mocha(config.mocha);
-    testFiles.forEach((file) => mocha.addFile(file));
+  .setAction(
+    async (
+      { parallel, testFiles }: { parallel: boolean; testFiles: string[] },
+      { config }
+    ) => {
+      const { default: Mocha } = await import("mocha");
 
-    const testFailures = await new Promise<number>((resolve) => {
-      mocha.run(resolve);
-    });
+      const mochaConfig = { ...config.mocha };
 
-    mocha.dispose();
+      if (parallel) {
+        mochaConfig.parallel = true;
 
-    return testFailures;
-  });
+        const mochaRequire = mochaConfig.require ?? [];
+        if (!mochaRequire.includes("hardhat/register")) {
+          mochaRequire.push("hardhat/register");
+        }
+        mochaConfig.require = mochaRequire;
+      }
+
+      const mocha = new Mocha(mochaConfig);
+      testFiles.forEach((file) => mocha.addFile(file));
+
+      const testFailures = await new Promise<number>((resolve) => {
+        mocha.run(resolve);
+      });
+
+      mocha.dispose();
+
+      return testFailures;
+    }
+  );
 
 subtask(TASK_TEST_RUN_SHOW_FORK_RECOMMENDATIONS).setAction(
   async (_, { config, network }) => {
@@ -80,14 +99,17 @@ task(TASK_TEST, "Runs mocha tests")
     []
   )
   .addFlag("noCompile", "Don't compile before running this task")
+  .addFlag("parallel", "Run tests in parallel")
   .setAction(
     async (
       {
         testFiles,
         noCompile,
+        parallel,
       }: {
         testFiles: string[];
         noCompile: boolean;
+        parallel: boolean;
       },
       { run, network }
     ) => {
@@ -103,6 +125,7 @@ task(TASK_TEST, "Runs mocha tests")
 
       const testFailures = await run(TASK_TEST_RUN_MOCHA_TESTS, {
         testFiles: files,
+        parallel,
       });
 
       if (network.name === HARDHAT_NETWORK_NAME) {
