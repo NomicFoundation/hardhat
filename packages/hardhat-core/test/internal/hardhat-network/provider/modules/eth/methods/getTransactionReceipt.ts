@@ -180,7 +180,7 @@ describe("Eth module", function () {
             nonce: new BN(0),
             value: new BN(123),
             gasLimit: new BN(250000),
-            gasPrice: new BN(await getPendingBaseFeePerGas(this.provider)),
+            gasPrice: await getPendingBaseFeePerGas(this.provider),
           };
 
           const txHash = await getSignedTxHash(

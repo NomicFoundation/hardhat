@@ -762,9 +762,7 @@ describe("Eth module - hardfork dependant tests", function () {
 
           it(`should have an effectiveGasPrice field for EIP-1559 txs when ${hardfork} is activated`, async function () {
             const [sender] = await this.provider.send("eth_accounts");
-            const maxFeePerGas = new BN(
-              await getPendingBaseFeePerGas(this.provider)
-            );
+            const maxFeePerGas = await getPendingBaseFeePerGas(this.provider);
             const maxPriorityPerGas = maxFeePerGas.divn(2);
 
             const tx = await this.provider.send("eth_sendTransaction", [
@@ -802,10 +800,7 @@ describe("Eth module - hardfork dependant tests", function () {
 
           it(`should have an effectiveGasPrice field for Access List txs when ${hardfork} is activated`, async function () {
             const [sender] = await this.provider.send("eth_accounts");
-            const gasPrice = new BN(
-              await getPendingBaseFeePerGas(this.provider)
-            );
-
+            const gasPrice = await getPendingBaseFeePerGas(this.provider);
             const tx = await this.provider.send("eth_sendTransaction", [
               {
                 from: sender,
@@ -841,10 +836,7 @@ describe("Eth module - hardfork dependant tests", function () {
 
           it(`should have an effectiveGasPrice field for legacy txs when ${hardfork} is activated`, async function () {
             const [sender] = await this.provider.send("eth_accounts");
-            const gasPrice = new BN(
-              await getPendingBaseFeePerGas(this.provider)
-            );
-
+            const gasPrice = await getPendingBaseFeePerGas(this.provider);
             const tx = await this.provider.send("eth_sendTransaction", [
               {
                 from: sender,

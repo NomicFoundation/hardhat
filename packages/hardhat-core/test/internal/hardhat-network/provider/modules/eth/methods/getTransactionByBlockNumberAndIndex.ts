@@ -76,7 +76,7 @@ describe("Eth module", function () {
             nonce: new BN(0),
             value: new BN(123),
             gasLimit: new BN(25000),
-            gasPrice: new BN(await getPendingBaseFeePerGas(this.provider)),
+            gasPrice: await getPendingBaseFeePerGas(this.provider),
           };
 
           const txHash = await sendTransactionFromTxParams(
@@ -110,7 +110,7 @@ describe("Eth module", function () {
             nonce: new BN(1),
             value: new BN(123),
             gasLimit: new BN(80000),
-            gasPrice: new BN(await getPendingBaseFeePerGas(this.provider)),
+            gasPrice: await getPendingBaseFeePerGas(this.provider),
           };
 
           const txHash2 = await sendTransactionFromTxParams(
@@ -147,7 +147,7 @@ describe("Eth module", function () {
             nonce: new BN(0),
             value: new BN(123),
             gasLimit: new BN(30000),
-            gasPrice: new BN(await getPendingBaseFeePerGas(this.provider)),
+            gasPrice: await getPendingBaseFeePerGas(this.provider),
             accessList: [
               [
                 toBuffer(zeroAddress()),
@@ -251,7 +251,7 @@ describe("Eth module", function () {
             nonce: new BN(0),
             value: new BN(123),
             gasLimit: new BN(25000),
-            gasPrice: new BN(await getPendingBaseFeePerGas(this.provider)),
+            gasPrice: await getPendingBaseFeePerGas(this.provider),
           };
 
           const txHash = await sendTransactionFromTxParams(
@@ -278,7 +278,7 @@ describe("Eth module", function () {
             nonce: new BN(2),
             value: new BN(123),
             gasLimit: new BN(80000),
-            gasPrice: new BN(await getPendingBaseFeePerGas(this.provider)),
+            gasPrice: await getPendingBaseFeePerGas(this.provider),
           };
 
           const txHash2 = await sendTransactionFromTxParams(
