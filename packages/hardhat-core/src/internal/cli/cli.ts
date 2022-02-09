@@ -41,14 +41,14 @@ async function printVersionMessage(packageJson: PackageJson) {
   console.log(packageJson.version);
 }
 
-function printWarningAboutNodeJsVersionIfNeceesary(packageJson: PackageJson) {
+function printWarningAboutNodeJsVersionIfNecessary(packageJson: PackageJson) {
   const requirement = packageJson.engines.node;
   if (!semver.satisfies(process.version, requirement)) {
     console.warn(
       chalk.yellow(
         `You are using a version of Node.js that is not supported by Hardhat, and it may work incorrectly, or not work at all.
 
-Please, upgrade your Node.js version.
+Please, make sure you are using a supported version of Node.js.
 
 To learn more about which versions of Node.js are supported go to https://hardhat.org/nodejs-versions`
       )
@@ -64,7 +64,7 @@ async function main() {
   try {
     const packageJson = await getPackageJson();
 
-    printWarningAboutNodeJsVersionIfNeceesary(packageJson);
+    printWarningAboutNodeJsVersionIfNecessary(packageJson);
 
     const envVariableArguments = getEnvHardhatArguments(
       HARDHAT_PARAM_DEFINITIONS,
