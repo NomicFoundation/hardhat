@@ -16,6 +16,7 @@ import {
   assertInvalidArgumentsError,
   assertInvalidInputError,
 } from "../../../helpers/assertions";
+import { getPendingBaseFeePerGas } from "../../../helpers/getPendingBaseFeePerGas";
 import {
   DEFAULT_ACCOUNTS,
   DEFAULT_ACCOUNTS_ADDRESSES,
@@ -178,7 +179,9 @@ describe("Eth module - hardfork dependant tests", function () {
                   from: sender,
                   to: sender,
                   chainId: numberToRpcQuantity(1),
-                  maxFeePerGas: numberToRpcQuantity(10e9),
+                  maxFeePerGas: numberToRpcQuantity(
+                    await getPendingBaseFeePerGas(this.provider)
+                  ),
                 },
               ],
               "Invalid chainId"
@@ -228,7 +231,9 @@ describe("Eth module - hardfork dependant tests", function () {
                 from: sender,
                 to: sender,
                 accessList: [],
-                maxFeePerGas: numberToRpcQuantity(10e9),
+                maxFeePerGas: numberToRpcQuantity(
+                  await getPendingBaseFeePerGas(this.provider)
+                ),
               },
             ],
             "EIP-1559 style fee params (maxFeePerGas or maxPriorityFeePerGas) received but they are not supported by the current hardfork"
@@ -355,7 +360,9 @@ describe("Eth module - hardfork dependant tests", function () {
                 from: sender,
                 to: sender,
                 accessList: [],
-                maxFeePerGas: numberToRpcQuantity(10e9),
+                maxFeePerGas: numberToRpcQuantity(
+                  await getPendingBaseFeePerGas(this.provider)
+                ),
               },
             ]);
           });
@@ -443,7 +450,9 @@ describe("Eth module - hardfork dependant tests", function () {
             {
               from: sender,
               to: sender,
-              maxFeePerGas: numberToRpcQuantity(10e9),
+              maxFeePerGas: numberToRpcQuantity(
+                await getPendingBaseFeePerGas(this.provider)
+              ),
             },
           ]);
         });
@@ -468,7 +477,9 @@ describe("Eth module - hardfork dependant tests", function () {
               {
                 from: sender,
                 to: sender,
-                maxFeePerGas: numberToRpcQuantity(10e9),
+                maxFeePerGas: numberToRpcQuantity(
+                  await getPendingBaseFeePerGas(this.provider)
+                ),
               },
             ]);
           });
@@ -751,8 +762,8 @@ describe("Eth module - hardfork dependant tests", function () {
 
           it(`should have an effectiveGasPrice field for EIP-1559 txs when ${hardfork} is activated`, async function () {
             const [sender] = await this.provider.send("eth_accounts");
-            const maxFeePerGas = new BN(10e9);
-            const maxPriorityPerGas = new BN(1e9);
+            const maxFeePerGas = await getPendingBaseFeePerGas(this.provider);
+            const maxPriorityPerGas = maxFeePerGas.divn(2);
 
             const tx = await this.provider.send("eth_sendTransaction", [
               {
@@ -789,8 +800,7 @@ describe("Eth module - hardfork dependant tests", function () {
 
           it(`should have an effectiveGasPrice field for Access List txs when ${hardfork} is activated`, async function () {
             const [sender] = await this.provider.send("eth_accounts");
-            const gasPrice = new BN(10e9);
-
+            const gasPrice = await getPendingBaseFeePerGas(this.provider);
             const tx = await this.provider.send("eth_sendTransaction", [
               {
                 from: sender,
@@ -826,8 +836,7 @@ describe("Eth module - hardfork dependant tests", function () {
 
           it(`should have an effectiveGasPrice field for legacy txs when ${hardfork} is activated`, async function () {
             const [sender] = await this.provider.send("eth_accounts");
-            const gasPrice = new BN(10e9);
-
+            const gasPrice = await getPendingBaseFeePerGas(this.provider);
             const tx = await this.provider.send("eth_sendTransaction", [
               {
                 from: sender,
@@ -921,7 +930,9 @@ describe("Eth module - hardfork dependant tests", function () {
             {
               from: impersonated,
               to: impersonated,
-              maxFeePerGas: numberToRpcQuantity(10e9),
+              maxFeePerGas: numberToRpcQuantity(
+                await getPendingBaseFeePerGas(this.provider)
+              ),
             },
           ]);
 
