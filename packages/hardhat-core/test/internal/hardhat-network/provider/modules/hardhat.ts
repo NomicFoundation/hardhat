@@ -24,6 +24,7 @@ import { setCWD } from "../../helpers/cwd";
 import { DEFAULT_ACCOUNTS_ADDRESSES, PROVIDERS } from "../../helpers/providers";
 import { deployContract } from "../../helpers/transactions";
 import { compileLiteral } from "../../stack-traces/compilation";
+import { getPendingBaseFeePerGas } from "../../helpers/getPendingBaseFeePerGas";
 import { RpcBlockOutput } from "../../../../../src/internal/hardhat-network/provider/output";
 
 describe("Hardhat module", function () {
@@ -504,8 +505,10 @@ describe("Hardhat module", function () {
           const notYetExistingAccount =
             "0x1234567890123456789012345678901234567890";
           const amountToBeSent = new BN(10);
-          const gasRequired = new BN("48000000000000000");
-          const balanceRequired = amountToBeSent.add(gasRequired);
+          const cost = new BN("21000000000000" /* 21k gwei in wei*/).mul(
+            await getPendingBaseFeePerGas(this.provider)
+          );
+          const balanceRequired = amountToBeSent.add(cost);
           await this.provider.send("hardhat_setBalance", [
             notYetExistingAccount,
             numberToRpcQuantity(balanceRequired),

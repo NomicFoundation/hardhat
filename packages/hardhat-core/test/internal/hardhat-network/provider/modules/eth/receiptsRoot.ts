@@ -8,6 +8,7 @@ import {
   PROVIDERS,
 } from "../../../helpers/providers";
 import { retrieveForkBlockNumber } from "../../../helpers/retrieveForkBlockNumber";
+import { getPendingBaseFeePerGas } from "../../../helpers/getPendingBaseFeePerGas";
 
 describe("Eth module", function () {
   PROVIDERS.forEach(({ name, useProvider, isFork }) => {
@@ -37,7 +38,9 @@ describe("Eth module", function () {
               from: DEFAULT_ACCOUNTS_ADDRESSES[0],
               to: DEFAULT_ACCOUNTS_ADDRESSES[0],
               gas: numberToRpcQuantity(21000),
-              gasPrice: numberToRpcQuantity(10e9),
+              gasPrice: numberToRpcQuantity(
+                await getPendingBaseFeePerGas(this.provider)
+              ),
             },
           ]);
 
@@ -59,7 +62,9 @@ describe("Eth module", function () {
               from: DEFAULT_ACCOUNTS_ADDRESSES[0],
               to: DEFAULT_ACCOUNTS_ADDRESSES[0],
               gas: numberToRpcQuantity(21000),
-              gasPrice: numberToRpcQuantity(10e9),
+              gasPrice: numberToRpcQuantity(
+                await getPendingBaseFeePerGas(this.provider)
+              ),
             },
           ]);
           await this.provider.send("eth_sendTransaction", [
@@ -67,7 +72,9 @@ describe("Eth module", function () {
               from: DEFAULT_ACCOUNTS_ADDRESSES[0],
               to: DEFAULT_ACCOUNTS_ADDRESSES[0],
               gas: numberToRpcQuantity(21000),
-              gasPrice: numberToRpcQuantity(10e9),
+              gasPrice: numberToRpcQuantity(
+                await getPendingBaseFeePerGas(this.provider)
+              ),
             },
           ]);
           await this.provider.send("evm_mine", []);

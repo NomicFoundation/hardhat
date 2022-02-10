@@ -56,9 +56,9 @@ export default {};
     background-repeat no-repeat
     background-size contain
     background-position center
-    background-image url('../img/logos/NomicLabs-logo.svg')
-    width 264px
-    height 69px
+    background-image url('../img/logos/NomicFoundation.svg')
+    width 340px
+    height 90px
     margin auto 0
     @media (max-width: 1000px)
       margin 0 auto
