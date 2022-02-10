@@ -46,6 +46,7 @@ This field can be configured as one of these:
   - `path`: The HD parent of all the derived keys. Default value: `"m/44'/60'/0'/0"`.
   - `count`: The number of accounts to derive. Default value: `20`.
   - `accountsBalance`: string with the balance (in wei) assigned to every account derived. Default value: `"10000000000000000000000"` (10000 ETH).
+  - `passphrase`: The passphrase for the wallet. Default value: empty string.
 - An array of the initial accounts that the Hardhat Network will create. Each of them must be an object with `privateKey` and `balance` fields.
 
 #### `blockGasLimit`

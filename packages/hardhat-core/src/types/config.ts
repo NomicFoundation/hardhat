@@ -75,6 +75,7 @@ export interface HardhatNetworkHDAccountsUserConfig {
   count?: number;
   path?: string;
   accountsBalance?: string;
+  passphrase?: string;
 }
 
 export interface HDAccountsUserConfig {
@@ -167,6 +168,7 @@ export interface HardhatNetworkHDAccountsConfig {
   count: number;
   path: string;
   accountsBalance: string;
+  passphrase?: string;
 }
 
 export interface HardhatNetworkForkingConfig {
@@ -197,6 +199,7 @@ export interface HttpNetworkHDAccountsConfig {
   initialIndex: number;
   count: number;
   path: string;
+  passphrase?: string;
 }
 
 export interface HardhatNetworkMiningConfig {

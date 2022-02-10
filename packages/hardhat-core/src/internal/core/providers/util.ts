@@ -13,7 +13,8 @@ export function derivePrivateKeys(
   mnemonic: string,
   hdpath: string,
   initialIndex: number,
-  count: number
+  count: number,
+  passphrase: string = ""
 ): Buffer[] {
   if (hdpath.match(HD_PATH_REGEX) === null) {
     throw new HardhatError(ERRORS.NETWORK.INVALID_HD_PATH, { path: hdpath });
@@ -28,7 +29,8 @@ export function derivePrivateKeys(
   for (let i = initialIndex; i < initialIndex + count; i++) {
     const privateKey = deriveKeyFromMnemonicAndPath(
       mnemonic,
-      hdpath + i.toString()
+      hdpath + i.toString(),
+      passphrase
     );
 
     if (privateKey === undefined) {

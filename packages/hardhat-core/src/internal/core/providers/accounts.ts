@@ -307,13 +307,15 @@ export class HDWalletProvider extends LocalAccountsProvider {
     mnemonic: string,
     hdpath: string = "m/44'/60'/0'/0/",
     initialIndex: number = 0,
-    count: number = 10
+    count: number = 10,
+    passphrase: string = ""
   ) {
     const privateKeys = derivePrivateKeys(
       mnemonic,
       hdpath,
       initialIndex,
-      count
+      count,
+      passphrase
     );
 
     const { bufferToHex } = require("ethereumjs-util");
