@@ -241,7 +241,7 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
   private _getRetryAfterSeconds(
     response: Dispatcher.ResponseData
   ): number | undefined {
-    const header = response.headers["retry-after"] ?? undefined;
+    const header = response.headers["retry-after"];
 
     if (header === undefined || header === null) {
       return undefined;
