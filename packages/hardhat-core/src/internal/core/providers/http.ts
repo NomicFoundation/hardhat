@@ -41,7 +41,15 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
     super();
     const url = new URL(this._url);
     this._path = url.pathname;
-    this._client = new Pool(url.toString().replace(url.pathname, ""));
+    try {
+      this._client = new Pool(url.origin);
+    } catch (e) {
+      if (e instanceof TypeError && e.message === "Invalid URL") {
+        e.message += ` ${url.origin}`;
+      }
+      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+      throw e;
+    }
   }
 
   public get url(): string {
