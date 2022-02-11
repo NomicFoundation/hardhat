@@ -404,12 +404,20 @@ subtask(TASK_COMPILE_SOLIDITY_COMPILE_JOBS)
       }
 
       /**
+       * I'm not super proud of this, but we have to download the list before the compilers,
+       * otherwise the next downloads fail with a race condition.
+       *
+       * :)
+       */
+      const compilersCache = await getCompilersDir();
+      const downloader = new CompilerDownloader(compilersCache);
+      await downloader.downloadCompilersList();
+
+      /**
        * This is a pretty hacky solution to avoid a major refactor and/or breaking changes.
        * The hack is the fact that we're just pre-downloading all of the necessary compilers
        * before actually running the job, so all the later code assumes the compiler is already
        * downloaded because if it wasn't then parallel compilation will break.
-       *
-       * :)
        */
       await chunkedPromiseAll(
         versionList.map((solcVersion) => {
