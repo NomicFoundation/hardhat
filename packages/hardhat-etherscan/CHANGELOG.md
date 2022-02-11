@@ -1,5 +1,11 @@
 # @nomiclabs/hardhat-etherscan
 
+## 3.0.1
+
+### Patch Changes
+
+- c4fcf19d: Add support for the Moonbeam network
+
 ## 3.0.0
 
 ### Major Changes

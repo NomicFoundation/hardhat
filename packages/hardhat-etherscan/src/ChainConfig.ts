@@ -135,11 +135,18 @@ export const chainConfig: ChainConfig = {
       browserURL: "https://testnet.snowtrace.io/",
     },
   },
+  moonbeam: {
+    chainId: 1284,
+    urls: {
+      apiURL: "https://api-moonbeam.moonscan.io/api",
+      browserURL: "https://moonbeam.moonscan.io",
+    },
+  },
   moonriver: {
     chainId: 1285,
     urls: {
       apiURL: "https://api-moonriver.moonscan.io/api",
-      browserURL: "https://moonscan.io",
+      browserURL: "https://moonriver.moonscan.io",
     },
   },
   moonbaseAlpha: {

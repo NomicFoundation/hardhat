@@ -80,7 +80,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
   }
 
   /**
-   * Adds a paramater to the task's definition.
+   * Adds a parameter to the task's definition.
    *
    * @remarks This will throw if the `name` is already used by this task or
    * by Hardhat's global parameters.
@@ -151,7 +151,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
   }
 
   /**
-   * Adds an optional paramater to the task's definition.
+   * Adds an optional parameter to the task's definition.
    *
    * @see addParam.
    *
@@ -170,7 +170,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
   }
 
   /**
-   * Adds a boolean paramater or flag to the task's definition.
+   * Adds a boolean parameter or flag to the task's definition.
    *
    * Flags are params with default value set to `false`, and that don't expect
    * values to be set in the CLI. A normal boolean param must be called with
@@ -197,7 +197,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
   }
 
   /**
-   * Adds a positional paramater to the task's definition.
+   * Adds a positional parameter to the task's definition.
    *
    * @remarks This will throw if the `name` is already used by this task or
    * by Hardhat's global parameters.
@@ -275,7 +275,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
   }
 
   /**
-   * Adds an optional positional paramater to the task's definition.
+   * Adds an optional positional parameter to the task's definition.
    *
    * @see addPositionalParam.
    *
@@ -294,7 +294,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
   }
 
   /**
-   * Adds a variadic positional paramater to the task's definition. Variadic
+   * Adds a variadic positional parameter to the task's definition. Variadic
    * positional params act as `...rest` parameters in JavaScript.
    *
    * @param name The parameter's name.
@@ -371,7 +371,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
   }
 
   /**
-   * Adds a positional paramater to the task's definition.
+   * Adds a positional parameter to the task's definition.
    *
    * This will check if the `name` is already used and
    * if the parameter is being added after a varidic argument.
@@ -397,7 +397,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
   }
 
   /**
-   * Adds a positional paramater to the task's definition.
+   * Adds a positional parameter to the task's definition.
    *
    * @param definition the param's definition
    */

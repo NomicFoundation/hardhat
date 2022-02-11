@@ -12,6 +12,7 @@ import { EVMResult, ExecResult } from "@ethereumjs/vm/dist/evm/evm";
 import { ERROR } from "@ethereumjs/vm/dist/exceptions";
 import { RunBlockResult } from "@ethereumjs/vm/dist/runBlock";
 import { DefaultStateManager, StateManager } from "@ethereumjs/vm/dist/state";
+import { SignTypedDataVersion, signTypedData } from "@metamask/eth-sig-util";
 import chalk from "chalk";
 import debug from "debug";
 import {
@@ -115,8 +116,6 @@ import { putGenesisBlock } from "./utils/putGenesisBlock";
 import { txMapToArray } from "./utils/txMapToArray";
 
 const log = debug("hardhat:core:hardhat-network:node");
-
-const ethSigUtil = require("eth-sig-util");
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
@@ -879,7 +878,9 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   ): Promise<string> {
     const privateKey = this._getLocalAccountPrivateKey(address);
 
-    return ethSigUtil.signTypedData_v4(privateKey, {
+    return signTypedData({
+      privateKey,
+      version: SignTypedDataVersion.V4,
       data: typedData,
     });
   }

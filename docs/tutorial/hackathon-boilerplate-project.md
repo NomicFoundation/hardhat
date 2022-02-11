@@ -22,7 +22,7 @@ In the root of the repo you'll find the **Hardhat** project we put together thro
 
 ### Frontend app
 
-In `frontend/` you'll find a simple app that allows the user to do two things:
+In `frontend` you'll find a simple app that allows the user to do two things:
 
 - Check the connected wallet's balance
 - Send tokens to an address
@@ -42,7 +42,7 @@ It's a separate npm project and it was created using `create-react-app`, so this
 First clone the repository, and then to get the contracts deployed:
 
 ```
-cd hardhat-hackathon-boilerplate/
+cd hardhat-hackathon-boilerplate
 npm install
 npx hardhat node
 ```
@@ -56,7 +56,7 @@ npx hardhat --network localhost run scripts/deploy.js
 This will deploy the contract to **Hardhat Network**. After this completes run:
 
 ```
-cd hardhat-hackathon-boilerplate/frontend/
+cd frontend
 npm install
 npm run start
 ```
