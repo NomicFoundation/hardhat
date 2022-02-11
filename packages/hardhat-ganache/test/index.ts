@@ -18,7 +18,17 @@ describe("Ganache plugin with empty configs", function () {
 
     // Iterate over all default options and assert equality
     for (const [key, value] of Object.entries(defaultOptions)) {
-      assert.equal(options[key], value);
+      if (
+        typeof value === 'object' &&
+        !Array.isArray(value) &&
+        value !== null
+      ) {
+        for (const [deepKey, deepValue] of Object.entries(value)) {
+          assert.equal(options[key][deepKey], deepValue);
+        }
+      } else {
+        assert.equal(options[key], value);
+      }
     }
   });
 
@@ -68,7 +78,17 @@ describe("Ganache plugin with custom configs", function () {
 
     // Iterate over all custom options and assert equality
     for (const [key, value] of Object.entries(customOptions)) {
-      assert.equal(options[key], value);
+      if (
+        typeof value === 'object' &&
+        !Array.isArray(value) &&
+        value !== null
+      ) {
+        for (const [deepKey, deepValue] of Object.entries(value)) {
+          assert.equal(options[key][deepKey], deepValue);
+        }
+      } else {
+        assert.equal(options[key], value);
+      }
     }
   });
 
@@ -86,7 +106,17 @@ describe("Ganache plugin with custom configs", function () {
 
     // Iterate over all custom options and assert equality
     for (const [key, value] of Object.entries(mergedOptions)) {
-      assert.equal(options[key], value);
+      if (
+        typeof value === 'object' &&
+        !Array.isArray(value) &&
+        value !== null
+      ) {
+        for (const [deepKey, deepValue] of Object.entries(value)) {
+          assert.equal(options[key][deepKey], deepValue);
+        }
+      } else {
+        assert.equal(options[key], value);
+      }
     }
   });
 

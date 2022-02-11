@@ -1,48 +1,106 @@
 import debug from "debug";
 import { NomicLabsHardhatPluginError } from "hardhat/internal/core/errors";
 import { URL } from "url";
+import Ganache from "ganache";
 
 const log = debug("hardhat:plugin:ganache-service");
 
 declare interface GanacheOptions {
-  url: string;
-  keepAliveTimeout?: number;
-  accountKeysPath?: string; // Translates to: account_keys_path
-  accounts?: object[];
-  allowUnlimitedContractSize?: boolean;
-  blockTime?: number;
-  dbPath?: string; // Translates to: db_path
-  debug?: boolean;
-  defaultBalanceEther?: number; // Translates to: default_balance_ether
-  fork?: string | object;
-  forkBlockNumber?: string | number; // Translates to: fork_block_number
-  gasLimit?: number;
-  gasPrice?: string | number;
-  hardfork?:
-    | "byzantium"
-    | "constantinople"
-    | "petersburg"
-    | "istanbul"
-    | "muirGlacier";
-  hdPath?: string; // Translates to: hd_path
-  hostname?: string;
-  locked?: boolean;
-  logger?: {
-    log(msg: string): void;
-  };
-  mnemonic?: string;
-  networkId?: number;
+  chain?: {
+    allowUnlimitedContractSize?: boolean;
+    asyncRequestProcessing?: boolean;
+    chainId?: number;
+    networkId?: number;
+    time?: string;
+    hardfork?:
+      | "chainstart"
+      | "homestead"
+      | "dao"
+      | "tangerineWhistle"
+      | "spuriousDragon"
+      | "byzantium"
+      | "constantinople"
+      | "petersburg"
+      | "istanbul"
+      | "muirGlacier"
+      | "berlin"
+      | "london"
+      | "arrowGlacier"
+      | "shanghai"
+      | "merge";
+    vmErrorsOnRPCResponse?: boolean;
+  },
+  database?: {
+    db?: string | object;
+    dbPath?: string;
+  },
+  logging?: {
+    debug?: boolean;
+    logger(msg: string): void;
+    verbose?: boolean;
+    quiet?: boolean;
+  },
+  miner: {
+    blockTime?: number;
+    defaultGasPrice?: string | number;
+    difficulty?: string | number;
+    blockGasLimit?: string | number;
+    defaultTransactionGasLimit?: "estimate" | string | number;
+    callGasLimit?: string | number;
+    instamine?: "eager" | "strict";
+    coinbase?: string | number;
+    extraData?: string;
+    priceBump?: string | number;
+  },
+  wallet?: {
+    totalAccounts?: number;
+    accounts?: {
+      balance: string | number;
+      secretKey: string;
+    }[],
+    deterministic?: boolean;
+    seed?: string;
+    mnemonic?: string;
+    unlockedAccounts?: string[] | number[],
+    lock?: boolean;
+    passphrase?: string;
+    accountKeysPath?: string | number;
+    defaultBalance?: number;
+    hdPath?: string;
+  },
+  fork?: {
+    url?: string;
+    network?: 
+      | "mainnet"
+      | "ropsten"
+      | "kovan"
+      | "rinkeby"
+      | "goerli"
+      | "görli";
+    blockNumber?: number;
+    preLatestConfirmations?: number;
+    username?: string;
+    password?: string;
+    jwt?: string;
+    userAgent?: string;
+    origin?: string;
+    requestsPerSecond?: number;
+    disableCache?: boolean;
+    deleteCache?: boolean;
+    headers?: {
+      name: string;
+      value: string;
+    }[];
+  },
+  ws?: boolean,
+  wsBinary?: "auto" | boolean;
+  rpcEndpoint?: string;
   port?: number;
-  seed?: any;
-  time?: any; // Date
-  totalAccounts?: number; // Translates to: total_accounts
-  unlockedAccounts?: string[]; // Translates to: unlocked_accounts
-  verbose?: boolean;
-  vmErrorsOnRPCResponse?: boolean;
-  ws?: boolean;
+  hostname?: string;
+  url: string;
 }
 
-const DEFAULT_PORT = 7545;
+const DEFAULT_PORT = 8545;
 
 export class GanacheService {
   public static error?: Error;
@@ -51,23 +109,23 @@ export class GanacheService {
   public static getDefaultOptions(): GanacheOptions {
     return {
       url: `http://127.0.0.1:${DEFAULT_PORT}`,
-      gasPrice: 20000000000,
-      gasLimit: 6721975,
-      defaultBalanceEther: 100,
-      totalAccounts: 10,
-      hardfork: "muirGlacier",
-      allowUnlimitedContractSize: false,
-      locked: false,
-      hdPath: "m/44'/60'/0'/0/",
-      keepAliveTimeout: 5000,
+      miner: {
+        defaultGasPrice: 20000000000,
+        defaultTransactionGasLimit: 6721975,
+      },
+      wallet: {
+        defaultBalance: 100,
+        totalAccounts: 10,
+        lock: false,
+        hdPath: "m/44'/60'/0'/0/",
+      },
+      chain: {
+        allowUnlimitedContractSize: false,
+      }
     };
   }
 
   public static async create(options: any): Promise<GanacheService> {
-    // We use this weird way of importing this library here as a workaround
-    // to this issue https://github.com/trufflesuite/ganache-core/issues/465
-    const Ganache = (() => require)()("ganache-core");
-
     // Get and initialize option validator
     const { default: optionsSchema } = await import("./ganache-options-ti");
     const { createCheckers } = await import("ts-interface-checker");
@@ -221,12 +279,12 @@ export class GanacheService {
     }
 
     // Test for unsupported commands
-    if (options.accounts !== undefined) {
-      throw new NomicLabsHardhatPluginError(
-        "@nomiclabs/hardhat-ganache",
-        "Config: ganache.accounts unsupported for this network"
-      );
-    }
+    // if (options.wallet && options.wallet.accounts !== undefined) {
+    //   throw new NomicLabsHardhatPluginError(
+    //     "@nomiclabs/hardhat-ganache",
+    //     "Config: ganache.accounts unsupported for this network"
+    //   );
+    // }
 
     // Transform needed options to Ganache core server (not using SnakeCase lib for performance)
     validatedOptions.hostname = url.hostname;

@@ -4,47 +4,116 @@
 import * as t from "ts-interface-checker";
 
 export const GanacheOptionsTi = t.iface([], {
-  url: "string",
-  keepAliveTimeout: t.opt("number"),
-  accountKeysPath: t.opt("string"),
-  accounts: t.opt(t.array("object")),
-  allowUnlimitedContractSize: t.opt("boolean"),
-  blockTime: t.opt("number"),
-  dbPath: t.opt("string"),
-  debug: t.opt("boolean"),
-  defaultBalanceEther: t.opt("number"),
-  fork: t.opt(t.union("string", "object")),
-  forkBlockNumber: t.opt(t.union("string", "number")),
-  gasLimit: t.opt("number"),
-  gasPrice: t.opt(t.union("string", "number")),
-  hardfork: t.opt(
-    t.union(
-      t.lit("byzantium"),
-      t.lit("constantinople"),
-      t.lit("petersburg"),
-      t.lit("istanbul"),
-      t.lit("muirGlacier")
-    )
-  ),
-  hdPath: t.opt("string"),
-  hostname: t.opt("string"),
-  locked: t.opt("boolean"),
-  logger: t.opt(
+  chain: t.opt(
     t.iface([], {
-      log: t.func("void", t.param("msg", "string")),
+      allowUnlimitedContractSize: t.opt("boolean"),
+      asyncRequestProcessing: t.opt("boolean"),
+      chainId: t.opt("number"),
+      networkId: t.opt("number"),
+      time: t.opt("string"),
+      hardfork: t.opt(
+        t.union(
+          t.lit("chainstart"),
+          t.lit("homestead"),
+          t.lit("dao"),
+          t.lit("tangerineWhistle"),
+          t.lit("spuriousDragon"),
+          t.lit("byzantium"),
+          t.lit("constantinople"),
+          t.lit("petersburg"),
+          t.lit("istanbul"),
+          t.lit("muirGlacier"),
+          t.lit("berlin"),
+          t.lit("london"),
+          t.lit("arrowGlacier"),
+          t.lit("shanghai"),
+          t.lit("merge")
+        )
+      ),
+      vmErrorsOnRPCResponse: t.opt("boolean"),
     })
   ),
-  mnemonic: t.opt("string"),
-  network_id: t.opt("number"),
-  networkId: t.opt("number"),
-  port: t.opt("number"),
-  seed: t.opt("any"),
-  time: t.opt("any"),
-  totalAccounts: t.opt("number"),
-  unlockedAccounts: t.opt(t.array("string")),
-  verbose: t.opt("boolean"),
-  vmErrorsOnRPCResponse: t.opt("boolean"),
+  database: t.opt(
+    t.iface([], {
+      db: t.opt(t.union("string", "object")),
+      dbPath: t.opt("string"),
+    })
+  ),
+  logging: t.opt(
+    t.iface([], {
+      debug: t.opt("boolean"),
+      logger: t.func("void", t.param("msg", "string")),
+      verbose: t.opt("boolean"),
+      quiet: t.opt("boolean"),
+    })
+  ),
+  miner: t.opt(
+    t.iface([], {
+      blockTime: t.opt("number"),
+      defaultGasPrice: t.opt(t.union("string", "number")),
+      difficulty: t.opt(t.union("string", "number")),
+      blockGasLimit: t.opt(t.union("string", "number")),
+      defaultTransactionGasLimit: t.opt(t.union(t.lit("estimate"), "string", "number")),
+      callGasLimit: t.opt(t.union("string", "number")),
+      instamine: t.opt(t.union(t.lit("eager"), t.lit("strict"))),
+      coinbase: t.opt(t.union("string", "number")),
+      extraData: t.opt("string"),
+      priceBump: t.opt(t.union("string", "number")),
+    })
+  ),
+  wallet: t.opt(
+    t.iface([], {
+      totalAccounts: t.opt("number"),
+      accounts: t.opt(t.array(t.iface([], {
+        balance: t.opt(t.union("string", "number")),
+        secretKey: t.opt("string"), 
+      }))),
+      deterministic: t.opt("boolean"),
+      seed: t.opt("string"),
+      mnemonic: t.opt("string"),
+      unlockedAccounts:  t.opt(t.array(t.union("string", "number"))),
+      lock: t.opt("boolean"),
+      passphrase: t.opt("string"),
+      accountKeysPath: t.opt(t.union("string", "number")),
+      defaultBalance: t.opt("number"),
+      hdPath: t.opt("string")
+    })
+  ),
+  fork: t.opt(
+    t.iface([], {
+      url: t.opt("string"),
+      network: t.opt(
+        t.union(
+          t.lit("mainnet"),
+          t.lit("ropsten"),
+          t.lit("kovan"),
+          t.lit("rinkeby"),
+          t.lit("goerli"),
+          t.lit("görli"),
+        )
+      ),
+      blockNumber: t.opt("number"),
+      preLatestConfirmations: t.opt("number"),
+      username: t.opt("string"),
+      password: t.opt("string"),
+      jwt: t.opt("string"),
+      userAgent: t.opt("string"),
+      origin: t.opt("string"),
+      requestsPerSecond: t.opt("number"),
+      disableCache: t.opt("boolean"),
+      deleteCache: t.opt("boolean"),
+      headers: t.opt(t.array(t.iface([], {
+        name: t.opt("string"),
+        value: t.opt("string"), 
+      }))),
+    })
+  ),
   ws: t.opt("boolean"),
+  wsBinary: t.opt(t.union(t.lit("auto"), "boolean")),
+  rpcEndpoint: t.opt("string"),
+  port: t.opt("number"),
+  hostname: t.opt("string"),
+  url: t.opt("string"),
 });
 
 const exportedTypeSuite: t.ITypeSuite = {
