@@ -45,7 +45,7 @@ describe("Compiler List download with proxy", function () {
     before(function () {
       // Save the Environment Settings and Set
       env = process.env;
-      process.env.HTTPS_PROXY = `http://127.0.0.1:${proxyPort}`;
+      process.env.HTTPS_PROXY = `https://127.0.0.1:${proxyPort}`;
     });
 
     it("Should call download with the right params", async function () {
