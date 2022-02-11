@@ -33,7 +33,7 @@ describe("e2e tests", function () {
       assert.isTrue(fsExtra.existsSync(artifactsDir));
 
       // check stdout
-      assert.match(stdout, /Solidity compilation finished successfully/);
+      assert.match(stdout, /Compiled \d+ Solidity files? successfully/);
 
       // hh clean
       const { code: hhCleanCode2 } = shell.exec(`${hardhatBinary} clean`);
