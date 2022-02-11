@@ -1,3 +1,4 @@
+import os from "os";
 import chalk from "chalk";
 import { exec } from "child_process";
 import debug from "debug";
@@ -26,6 +27,7 @@ import {
 import { DependencyGraph } from "../internal/solidity/dependencyGraph";
 import { Parser } from "../internal/solidity/parse";
 import { ResolvedFile, Resolver } from "../internal/solidity/resolver";
+import { chunkedPromiseAll } from "../internal/util/chunked-promise-all";
 import { glob } from "../internal/util/glob";
 import { getCompilersDir } from "../internal/util/global-dir";
 import { pluralize } from "../internal/util/strings";
@@ -88,6 +90,18 @@ type ArtifactsEmittedPerJob = Array<{
   compilationJob: CompilationJob;
   artifactsEmittedPerFile: ArtifactsEmittedPerFile;
 }>;
+
+interface CompilationSuccess {
+  artifactsEmittedPerFile: ArtifactsEmittedPerFile;
+  compilationJob: taskTypes.CompilationJob;
+  input: CompilerInput;
+  output: CompilerOutput;
+  solcBuild: any;
+}
+
+interface CompilationFailure {
+  errors: any;
+}
 
 function isConsoleLogError(error: any): boolean {
   return (
@@ -379,37 +393,65 @@ subtask(TASK_COMPILE_SOLIDITY_COMPILE_JOBS)
         return { artifactsEmittedPerJob: [] };
       }
 
-      // sort compilation jobs by compiler version
-      const sortedCompilationJobs = compilationJobs
-        .slice()
-        .sort((job1, job2) => {
-          return semver.compare(
-            job1.getSolcConfig().version,
-            job2.getSolcConfig().version
-          );
-        });
+      log(`Compiling ${compilationJobs.length} jobs`);
 
-      log(`Compiling ${sortedCompilationJobs.length} jobs`);
-
-      const artifactsEmittedPerJob: ArtifactsEmittedPerJob = [];
-      for (let i = 0; i < sortedCompilationJobs.length; i++) {
-        const compilationJob = sortedCompilationJobs[i];
-
-        const { artifactsEmittedPerFile } = await run(
-          TASK_COMPILE_SOLIDITY_COMPILE_JOB,
-          {
-            compilationJob,
-            compilationJobs: sortedCompilationJobs,
-            compilationJobIndex: i,
-            quiet,
-          }
-        );
-
-        artifactsEmittedPerJob.push({
-          compilationJob,
-          artifactsEmittedPerFile,
-        });
+      const versionList: string[] = [];
+      for (const job of compilationJobs) {
+        const version = job.getSolcConfig().version;
+        if (!versionList.includes(version)) {
+          versionList.push(version);
+        }
       }
+
+      /**
+       * This is a pretty hacky solution to avoid a major refactor and/or breaking changes.
+       * The hack is the fact that we're just pre-downloading all of the necessary compilers
+       * before actually running the job, so all the later code assumes the compiler is already
+       * downloaded because if it wasn't then parallel compilation will break.
+       *
+       * :)
+       */
+      await chunkedPromiseAll(
+        versionList.map((solcVersion) => {
+          return () =>
+            run(TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD, { solcVersion });
+        }),
+        os.cpus().length
+      );
+
+      const results = await chunkedPromiseAll<
+        CompilationSuccess | CompilationFailure
+      >(
+        compilationJobs.map((compilationJob, compilationJobIndex) => {
+          return () =>
+            run(TASK_COMPILE_SOLIDITY_COMPILE_JOB, {
+              compilationJob,
+              compilationJobs,
+              compilationJobIndex,
+              quiet,
+            });
+        }),
+        os.cpus().length
+      );
+
+      const { compilationSuccesses, compilationFailures } =
+        filterCompilationResults(results);
+
+      if (compilationFailures.length > 0) {
+        for (const { errors } of compilationFailures) {
+          console.log(errors);
+        }
+
+        throw new HardhatError(ERRORS.BUILTIN_TASKS.COMPILE_FAILURE);
+      }
+
+      const artifactsEmittedPerJob: ArtifactsEmittedPerJob =
+        compilationSuccesses.map(
+          ({ compilationJob, artifactsEmittedPerFile }) => ({
+            compilationJob,
+            artifactsEmittedPerFile,
+          })
+        );
 
       return { artifactsEmittedPerJob };
     }
@@ -1500,4 +1542,28 @@ function getFormattedInternalCompilerErrorMessage(error: {
   // We trim any final `:`, as we found some at the end of the error messages,
   // and then trim just in case a blank space was left
   return `${error.type}: ${error.message}`.replace(/[:\s]*$/g, "").trim();
+}
+
+/**
+ * This function really just exists to aggregate compilation errors
+ * in a type-safe way.
+ */
+function filterCompilationResults(
+  input: Array<CompilationSuccess | CompilationFailure | Error>
+): {
+  compilationSuccesses: CompilationSuccess[];
+  compilationFailures: CompilationFailure[];
+} {
+  const compilationSuccesses: CompilationSuccess[] = [];
+  const compilationFailures: CompilationFailure[] = [];
+  for (const value of input) {
+    if (value instanceof Error) {
+      compilationFailures.push({ errors: value });
+    } else if ("errors" in value) {
+      compilationFailures.push(value);
+    } else {
+      compilationSuccesses.push(value);
+    }
+  }
+  return { compilationSuccesses, compilationFailures };
 }
