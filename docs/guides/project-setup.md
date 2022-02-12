@@ -19,6 +19,8 @@ Welcome to Hardhat v2.0.0
 
 ? What do you want to do? …
 ❯ Create a sample project
+  Create an advanced sample project
+  Create an advanced sample project that uses TypeScript
   Create an empty hardhat.config.js
   Quit
 ```
