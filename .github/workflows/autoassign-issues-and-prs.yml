@@ -12,7 +12,7 @@ jobs:
     steps:
       - name: "Autoassign issue/PR"
         if: ${{ !contains(fromJson('["alcuadrado","fvictorio","morgansliman","feuGeneA","kanej"]'), github.event.issue.user.login || github.event.pull_request.user.login) }}
-        uses: pozil/auto-assign-issue@cf0dddf9c33ad096975198b22d05870d8016176c
+        uses: pozil/auto-assign-issue@v1.4.0
         with:
           assignees: alcuadrado,fvictorio,morgansliman,feuGeneA,kanej
           numOfAssignee: 1
