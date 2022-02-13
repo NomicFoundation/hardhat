@@ -25,6 +25,9 @@ type Chain =
   // avalanche
   | "avalanche"
   | "avalancheFujiTestnet"
+  // aurora
+  | "aurora"
+  | "auroraTestnet"
   // moonbeam
   | "moonbeam"
   | "moonriver"

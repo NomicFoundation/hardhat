@@ -162,6 +162,9 @@ module.exports = {
         // avalanche
         avalanche: "YOUR_SNOWTRACE_API_KEY",
         avalancheFujiTestnet: "YOUR_SNOWTRACE_API_KEY",
+        // aurora
+        aurora: "YOUR_AURORASCAN_API_KEY",
+        auroraTestnet: "YOUR_AURORASCAN_API_KEY",
         // moonbeam
         moonbeam: "YOUR_MOONBEAM_MOONSCAN_API_KEY"
         moonriver: "YOUR_MOONRIVER_MOONSCAN_API_KEY",
