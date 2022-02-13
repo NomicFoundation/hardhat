@@ -171,6 +171,7 @@ module.exports = {
         xdai: "api-key",
         sokol: "api-key",
         aurora: "api-key",
+        auroraTestnet: "api-key",
     }
   }
 };
