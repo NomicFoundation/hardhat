@@ -170,6 +170,7 @@ module.exports = {
         // to specify one; any string placeholder will work
         xdai: "api-key",
         sokol: "api-key",
+        aurora: "api-key",
     }
   }
 };
