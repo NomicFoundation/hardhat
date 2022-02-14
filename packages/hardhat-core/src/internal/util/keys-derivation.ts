@@ -4,7 +4,7 @@ import type { HDKey as HDKeyT } from "ethereum-cryptography/hdkey";
 export function deriveKeyFromMnemonicAndPath(
   mnemonic: string,
   hdPath: string,
-  passphrase: string = ""
+  passphrase: string
 ): Buffer | undefined {
   const {
     mnemonicToSeedSync,
