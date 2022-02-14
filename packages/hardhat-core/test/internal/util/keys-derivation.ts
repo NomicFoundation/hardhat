@@ -14,7 +14,7 @@ describe("Keys derivation", function () {
         "atom exist unusual amazing find assault penalty wall curve lunar promote cattle";
       const path = "m/123/123'";
 
-      const derivedPk = deriveKeyFromMnemonicAndPath(mnemonic, path);
+      const derivedPk = deriveKeyFromMnemonicAndPath(mnemonic, path, "");
       const address = bufferToHex(privateToAddress(derivedPk!));
 
       assert.equal(
