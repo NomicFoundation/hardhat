@@ -59,7 +59,8 @@ export function normalizeHardhatNetworkAccountsConfig(
     accountsConfig.mnemonic,
     accountsConfig.path,
     accountsConfig.initialIndex,
-    accountsConfig.count
+    accountsConfig.count,
+    accountsConfig.passphrase
   ).map((pk) => ({
     privateKey: bufferToHex(pk),
     balance: accountsConfig.accountsBalance ?? DEFAULT_HARDHAT_NETWORK_BALANCE,
