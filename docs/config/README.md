@@ -94,6 +94,8 @@ To use an HD Wallet with Hardhat you should set your network's `accounts` field 
 
 - `count`: The number of accounts to derive. Default value: `20`.
 
+- `passphrase`: The passphrase for the wallet. Default value: empty string.
+
 ### Default networks object
 
 ```js
