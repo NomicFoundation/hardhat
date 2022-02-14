@@ -398,6 +398,8 @@ Sometimes you may want to advance the latest block number of the Hardhat Network
 
 Note that blocks mined via this method (except for the final one) are technically not valid blocks. Specifically, they have an invalid parent hash and state root hash, the coinbase account will not have been credited with block rewards, and the `baseFeePerGas` will be incorrect. (The final block in a sequence produced by `hardhat_mine` will always be fully valid.)
 
+Also note that blocks created via `hardhat_mine` will not trigger any new-block events. This includes filters created via `eth_newBlockFilter`, as well as WebSocket subscriptions to new-block events.
+
 #### `hardhat_reset`
 
 See the [Mainnet Forking guide](../guides/mainnet-forking.md)
