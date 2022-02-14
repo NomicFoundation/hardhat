@@ -14,7 +14,7 @@ export function derivePrivateKeys(
   hdpath: string,
   initialIndex: number,
   count: number,
-  passphrase: string = ""
+  passphrase: string
 ): Buffer[] {
   if (hdpath.match(HD_PATH_REGEX) === null) {
     throw new HardhatError(ERRORS.NETWORK.INVALID_HD_PATH, { path: hdpath });
