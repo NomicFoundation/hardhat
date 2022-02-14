@@ -397,9 +397,22 @@ subtask(TASK_COMPILE_SOLIDITY_COMPILE_JOBS)
 
       const versionList: string[] = [];
       for (const job of compilationJobs) {
-        const version = job.getSolcConfig().version;
-        if (!versionList.includes(version)) {
-          versionList.push(version);
+        const solcVersion = job.getSolcConfig().version;
+
+        // versions older than 0.4.11 don't work with hardhat
+        // see issue https://github.com/nomiclabs/hardhat/issues/2004
+        if (semver.lt(solcVersion, COMPILE_TASK_FIRST_SOLC_VERSION_SUPPORTED)) {
+          throw new HardhatError(
+            ERRORS.BUILTIN_TASKS.COMPILE_TASK_UNSUPPORTED_SOLC_VERSION,
+            {
+              version: solcVersion,
+              firstSupportedVersion: COMPILE_TASK_FIRST_SOLC_VERSION_SUPPORTED,
+            }
+          );
+        }
+
+        if (!versionList.includes(solcVersion)) {
+          versionList.push(solcVersion);
         }
       }
 
@@ -696,18 +709,6 @@ subtask(TASK_COMPILE_SOLIDITY_COMPILE_SOLC)
       },
       { run }
     ): Promise<{ output: CompilerOutput; solcBuild: SolcBuild }> => {
-      // versions older than 0.4.11 don't work with hardhat
-      // see issue https://github.com/nomiclabs/hardhat/issues/2004
-      if (semver.lt(solcVersion, COMPILE_TASK_FIRST_SOLC_VERSION_SUPPORTED)) {
-        throw new HardhatError(
-          ERRORS.BUILTIN_TASKS.COMPILE_TASK_UNSUPPORTED_SOLC_VERSION,
-          {
-            version: solcVersion,
-            firstSupportedVersion: COMPILE_TASK_FIRST_SOLC_VERSION_SUPPORTED,
-          }
-        );
-      }
-
       const solcBuild: SolcBuild = await run(
         TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD,
         {
