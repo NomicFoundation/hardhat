@@ -473,6 +473,7 @@ describe("Config resolution", () => {
             accountsBalance: "12312",
             count: 1,
             initialIndex: 2,
+            passphrase: "",
           });
         });
 
