@@ -432,13 +432,22 @@ subtask(TASK_COMPILE_SOLIDITY_COMPILE_JOBS)
        * before actually running the job, so all the later code assumes the compiler is already
        * downloaded because if it wasn't then parallel compilation will break.
        */
-      await chunkedPromiseAll(
+      const downloadResults = await chunkedPromiseAll(
         versionList.map((solcVersion) => {
           return () =>
-            run(TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD, { solcVersion });
+            run(TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD, {
+              solcVersion,
+              quiet: false,
+            });
         }),
         os.cpus().length
       );
+
+      for (const downloadResult of downloadResults) {
+        if (HardhatError.isHardhatError(downloadResult)) {
+          throw downloadResult;
+        }
+      }
 
       const results = await chunkedPromiseAll<
         CompilationSuccess | CompilationFailure
@@ -460,7 +469,17 @@ subtask(TASK_COMPILE_SOLIDITY_COMPILE_JOBS)
 
       if (compilationFailures.length > 0) {
         for (const { errors } of compilationFailures) {
-          console.log(errors);
+          for (const error of errors) {
+            if (error.severity === "error") {
+              const errorMessage =
+                getFormattedInternalCompilerErrorMessage(error) ??
+                error.formattedMessage;
+
+              console.error(chalk.red(errorMessage));
+            } else {
+              console.warn(chalk.yellow(error.formattedMessage));
+            }
+          }
         }
 
         throw new HardhatError(ERRORS.BUILTIN_TASKS.COMPILE_FAILURE);
@@ -1272,7 +1291,12 @@ subtask(TASK_COMPILE_SOLIDITY_LOG_COMPILATION_RESULT)
   .addParam("quiet", undefined, undefined, types.boolean)
   .setAction(
     async ({ compilationJobs }: { compilationJobs: CompilationJob[] }) => {
-      const count = compilationJobs.length;
+      let count = 0;
+      for (const job of compilationJobs) {
+        count += job
+          .getResolvedFiles()
+          .filter((file) => job.emitsArtifacts(file)).length;
+      }
 
       if (count > 0) {
         console.log(

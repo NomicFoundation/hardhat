@@ -13,7 +13,9 @@ export async function chunkedPromiseAll<T>(
 
   while (running.length > 0) {
     const withIndexes = running.map((p, i) =>
-      p.then((r) => [r, i] as [T, number]).catch((e) => [e, i] as [T, number])
+      p
+        .then((r) => [r, i] as [T, number])
+        .catch((e) => [e, i] as [Error, number])
     );
 
     const [result, index] = await Promise.race(withIndexes);
@@ -29,7 +31,7 @@ export async function chunkedPromiseAll<T>(
         1,
         started
           .then((r) => [r, index] as [T, number])
-          .catch((e) => [e, index] as [T, number])
+          .catch((e) => [e, index] as [Error, number])
       );
     } else {
       running.splice(index, 1);
