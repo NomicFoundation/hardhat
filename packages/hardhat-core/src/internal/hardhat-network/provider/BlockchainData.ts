@@ -1,5 +1,3 @@
-import util from "util";
-
 import { Block } from "@ethereumjs/block";
 import Common from "@ethereumjs/common";
 import { TypedTransaction } from "@ethereumjs/tx";
