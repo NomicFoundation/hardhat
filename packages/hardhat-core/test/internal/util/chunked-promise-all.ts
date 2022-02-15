@@ -1,4 +1,5 @@
 import { assert } from "chai";
+import sinon from "sinon";
 
 import { chunkedPromiseAll } from "../../../src/internal/util/chunked-promise-all";
 
@@ -71,6 +72,70 @@ describe("chunked promise all", () => {
     it("should include an error in the results array when the number of promises given exceeds chunkSize", async () => {
       const results = await chunkedPromiseAll(promises, 2);
       assert.includeMembers(results, expected);
+    });
+  });
+
+  describe("each function is only called once", function () {
+    it("1 promise, chunk size of 4", async function () {
+      const p1 = sinon.spy(() => Promise.resolve(1));
+
+      const results = await chunkedPromiseAll([p1], 4);
+
+      assert.includeMembers(results, [1]);
+
+      assert.isTrue(p1.calledOnce);
+    });
+
+    it("2 promises, chunk size of 4", async function () {
+      const p1 = sinon.spy(() => Promise.resolve(1));
+      const p2 = sinon.spy(() => Promise.resolve(2));
+
+      const results = await chunkedPromiseAll([p1, p2], 4);
+
+      assert.includeMembers(results, [1, 2]);
+
+      assert.isTrue(p1.calledOnce);
+      assert.isTrue(p2.calledOnce);
+    });
+
+    it("4 promises, chunk size of 4", async function () {
+      const ps = [1, 2, 3, 4].map((x) => sinon.spy(() => Promise.resolve(x)));
+
+      const results = await chunkedPromiseAll(ps, 4);
+
+      assert.includeMembers(results, [1, 2, 3, 4]);
+
+      for (const p of ps) {
+        assert.isTrue(p.calledOnce);
+      }
+    });
+
+    it("5 promises, chunk size of 4", async function () {
+      const ps = [1, 2, 3, 4, 5].map((x) =>
+        sinon.spy(() => Promise.resolve(x))
+      );
+
+      const results = await chunkedPromiseAll(ps, 4);
+
+      assert.includeMembers(results, [1, 2, 3, 4, 5]);
+
+      for (const p of ps) {
+        assert.isTrue(p.calledOnce);
+      }
+    });
+
+    it("8 promises, chunk size of 4", async function () {
+      const ps = [1, 2, 3, 4, 5, 6, 7, 8].map((x) =>
+        sinon.spy(() => Promise.resolve(x))
+      );
+
+      const results = await chunkedPromiseAll(ps, 4);
+
+      assert.includeMembers(results, [1, 2, 3, 4, 5, 6, 7, 8]);
+
+      for (const p of ps) {
+        assert.isTrue(p.calledOnce);
+      }
     });
   });
 });
