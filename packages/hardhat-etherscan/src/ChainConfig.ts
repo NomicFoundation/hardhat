@@ -1,4 +1,4 @@
-import { ChainConfig, EtherscanConfig} from "./types";
+import { ChainConfig, EtherscanConfig } from "./types";
 
 // See https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md#list-of-chain-ids
 const chainConfig: ChainConfig = {
@@ -201,8 +201,8 @@ const chainConfig: ChainConfig = {
 };
 
 export const getChainConfig = (config: EtherscanConfig) => {
-    return {
-      ...chainConfig,
-      ...config.extendChainConfig
-    };
-}
+  return {
+    ...chainConfig,
+    ...config.extendChainConfig,
+  };
+};

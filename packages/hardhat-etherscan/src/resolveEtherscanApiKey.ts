@@ -1,7 +1,7 @@
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import { pluginName } from "./constants";
 import { getChainConfig } from "./ChainConfig";
-import { EtherscanConfig, ChainConfig } from "./types";
+import { EtherscanConfig} from "./types";
 
 const isNetworkKey = (network: string, config: EtherscanConfig): boolean => {
   return network in getChainConfig(config);

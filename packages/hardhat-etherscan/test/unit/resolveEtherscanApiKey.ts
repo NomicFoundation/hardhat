@@ -67,7 +67,7 @@ describe("Etherscan API Key resolution", () => {
     it("should throw if network subkey is undefined", () => {
       assert.throws(
         () =>
-        // @ts-expect-error
+          // @ts-expect-error
           resolveEtherscanApiKey({ apiKey: { rinkeby: undefined } }, "rinkeby"),
         /Please provide an Etherscan API token via hardhat config./
       );
@@ -89,20 +89,23 @@ describe("Etherscan API Key resolution", () => {
 
     it("should resolve custom network", () => {
       assert.equal(
-        resolveEtherscanApiKey({ apiKey: { localhost: "testtoken" }, 
-          extendChainConfig: {
-            localhost: {
-              chainId: 31337,
-              urls: {
-                apiURL: "https://localhost/api",
-                browserURL: "https://localhost",
+        resolveEtherscanApiKey(
+          {
+            apiKey: { localhost: "testtoken" },
+            extendChainConfig: {
+              localhost: {
+                chainId: 31337,
+                urls: {
+                  apiURL: "https://localhost/api",
+                  browserURL: "https://localhost",
+                },
               },
-            }
-          }} 
-        , "localhost"),
+            },
+          },
+          "localhost"
+        ),
         "testtoken"
       );
     });
-  
   });
 });

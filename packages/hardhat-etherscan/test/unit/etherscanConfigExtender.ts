@@ -68,16 +68,18 @@ describe("Config extension", () => {
   it("should provide custom network", () => {
     const resolvedConfig = {} as HardhatConfig;
     etherscanConfigExtender(resolvedConfig, {
-      etherscan: { apiKey: { localhost: "example_token" }, 
-            extendChainConfig: {
-              localhost: {
-                chainId: 31337,
-                urls: {
-                  apiURL: "https://localhost/api",
-                  browserURL: "https://localhost",
-                },
-              }
-            } },
+      etherscan: {
+        apiKey: { localhost: "example_token" },
+        extendChainConfig: {
+          localhost: {
+            chainId: 31337,
+            urls: {
+              apiURL: "https://localhost/api",
+              browserURL: "https://localhost",
+            },
+          },
+        },
+      },
     });
   });
 
@@ -85,18 +87,19 @@ describe("Config extension", () => {
     assert.throws(() => {
       const resolvedConfig = {} as HardhatConfig;
       etherscanConfigExtender(resolvedConfig, {
-        etherscan: { apiKey: { wrong_network: "example_token" }, 
-              extendChainConfig: {
-                localhost: {
-                  chainId: 31337,
-                  urls: {
-                    apiURL: "https://localhost/api",
-                    browserURL: "https://localhost",
-                  },
-                }
-              } },
+        etherscan: {
+          apiKey: { wrong_network: "example_token" },
+          extendChainConfig: {
+            localhost: {
+              chainId: 31337,
+              urls: {
+                apiURL: "https://localhost/api",
+                browserURL: "https://localhost",
+              },
+            },
+          },
+        },
       });
     });
   });
-
 });

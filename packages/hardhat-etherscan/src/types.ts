@@ -1,14 +1,14 @@
-export type ChainConfig = {
-  [chain : string]: EtherscanChainConfig;
-};
+export interface ChainConfig {
+  [chain: string]: EtherscanChainConfig;
+}
 
-type EtherscanApiKeys = {
-  [chain : string]: string;
-};
+interface EtherscanApiKeys {
+  [chain: string]: string;
+}
 
 export interface EtherscanConfig {
   apiKey?: string | EtherscanApiKeys;
-  extendChainConfig? : { [chain: string] : EtherscanChainConfig }
+  extendChainConfig?: { [chain: string]: EtherscanChainConfig };
 }
 
 export interface EtherscanURLs {

@@ -176,7 +176,7 @@ module.exports = {
         aurora: "api-key",
         auroraTestnet: "api-key",
     },
-    // If hardhat doesn't know about the chain's explorer api you can add it here 
+    // If hardhat doesn't know about the chain's explorer api you can add it here
     extendChainConfig: {
       localhost: {
           chainId: 31337,

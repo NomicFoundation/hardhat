@@ -593,8 +593,13 @@ See https://etherscan.io/solcversions for more information.`
   }
 );
 
-subtask(TASK_VERIFY_GET_ETHERSCAN_ENDPOINT).setAction(async (_, { network, config }) =>
-  getEtherscanEndpoints(network.provider, network.name, getChainConfig(config.etherscan))
+subtask(TASK_VERIFY_GET_ETHERSCAN_ENDPOINT).setAction(
+  async (_, { network, config }) =>
+    getEtherscanEndpoints(
+      network.provider,
+      network.name,
+      getChainConfig(config.etherscan)
+    )
 );
 
 subtask(TASK_VERIFY_GET_CONTRACT_INFORMATION)
