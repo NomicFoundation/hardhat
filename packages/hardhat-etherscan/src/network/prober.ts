@@ -22,7 +22,7 @@ export async function getEtherscanEndpoints(
   const chainIdsToNames = new Map(
     entries(chainConfig).map(([chainName, config]) => [
       config.chainId,
-      chainName,
+      chainName.toString(),
     ])
   );
 

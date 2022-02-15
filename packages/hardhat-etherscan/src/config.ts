@@ -1,6 +1,6 @@
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import { ConfigExtender } from "hardhat/types";
-import { chainConfig } from "./ChainConfig";
+import { getChainConfig } from "./ChainConfig";
 import { EtherscanConfig } from "./types";
 import { pluginName } from "./constants";
 
@@ -13,7 +13,7 @@ const verifyAllowedChains = (etherscanConfig: EtherscanConfig): string[] => {
     return [];
   }
 
-  const allowed = Object.keys(chainConfig);
+  const allowed = Object.keys(getChainConfig(etherscanConfig));
   const actual = Object.keys(etherscanConfig.apiKey);
 
   return actual.filter((chain: string) => !allowed.includes(chain));

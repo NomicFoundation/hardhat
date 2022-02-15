@@ -1,10 +1,10 @@
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import { pluginName } from "./constants";
-import { chainConfig } from "./ChainConfig";
+import { getChainConfig } from "./ChainConfig";
 import { EtherscanConfig, ChainConfig } from "./types";
 
-const isNetworkKey = (network: string): network is keyof ChainConfig => {
-  return network in chainConfig;
+const isNetworkKey = (network: string, config: EtherscanConfig): boolean => {
+  return network in getChainConfig(config);
 };
 
 export const resolveEtherscanApiKey = (
@@ -21,7 +21,7 @@ export const resolveEtherscanApiKey = (
 
   const apiKeys = etherscan.apiKey;
 
-  if (!isNetworkKey(network)) {
+  if (!isNetworkKey(network, etherscan)) {
     throw new NomicLabsHardhatPluginError(
       pluginName,
       `Unrecognized network: ${network}`
