@@ -95,11 +95,7 @@ export class HardhatBlockchain
         `Invalid block number ${blockNumber}. Expected ${this._length}.`
       );
     }
-    if (this._data.isReservedBlock(block.header.number)) {
-      // skip validation of parent hash if the subject block hasn't actually
-      // been mined yet.
-      return;
-    }
+
     if (
       (blockNumber === 0 && !parentHash.equals(zeros(32))) ||
       (blockNumber > 0 &&
