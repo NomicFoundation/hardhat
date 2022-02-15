@@ -154,9 +154,7 @@ export class BlockchainData {
   private _removeReservation(index: number): Reservation {
     assertHardhatInvariant(
       index in this._blockReservations,
-      `Reservation ${index} does not exist in ${JSON.stringify(
-        this._blockReservations
-      )}`
+      `Reservation ${index} does not exist`
     );
     const reservation = this._blockReservations[index];
 
@@ -222,9 +220,7 @@ export class BlockchainData {
 
     assertHardhatInvariant(
       reservationIndex !== -1,
-      `Block ${blockNumber.toString()} does not lie within any of the reservations (${util.inspect(
-        this._blockReservations
-      )}).`
+      `Block ${blockNumber.toString()} does not lie within any of the reservations.`
     );
 
     const reservation = this._blockReservations[reservationIndex];
