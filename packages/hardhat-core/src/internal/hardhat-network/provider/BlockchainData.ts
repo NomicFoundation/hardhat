@@ -117,6 +117,11 @@ export class BlockchainData {
     }
   }
 
+  /**
+   * WARNING: this method can leave the blockchain in an invalid state where
+   * there are gaps between blocks. Ideally we should have a method that removes
+   * the given block and all the following blocks.
+   */
   public removeBlock(block: Block) {
     const blockHash = bufferToHex(block.hash());
     const blockNumber = new BN(block.header.number).toNumber();
@@ -151,6 +156,11 @@ export class BlockchainData {
     );
   }
 
+  /**
+   * WARNING: this method only removes the given reservation and can result in
+   * gaps in the reservations array. Ideally we should have a method that
+   * removes the given reservation and all the following reservations.
+   */
   private _removeReservation(index: number): Reservation {
     assertHardhatInvariant(
       index in this._blockReservations,
