@@ -14,6 +14,7 @@ interface Reservation {
   last: BN;
   interval: BN;
   previousBlockStateRoot: Buffer;
+  previousBlockTotalDifficulty: BN
 }
 
 export class BlockchainData {
@@ -31,13 +32,15 @@ export class BlockchainData {
     first: BN,
     count: BN,
     interval: BN,
-    previousBlockStateRoot: Buffer
+    previousBlockStateRoot: Buffer,
+    previousBlockTotalDifficulty: BN
   ) {
     const reservation: Reservation = {
       first,
       last: first.add(count.subn(1)),
       interval,
       previousBlockStateRoot,
+      previousBlockTotalDifficulty,
     };
     this._blockReservations.push(reservation);
   }
@@ -219,7 +222,7 @@ export class BlockchainData {
         },
         { common: this._common }
       ),
-      new BN(0)
+      oldReservation.previousBlockTotalDifficulty
     );
   }
 

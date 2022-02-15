@@ -35,9 +35,15 @@ export class HardhatBlockchain
   public reserveBlocks(
     count: BN,
     interval: BN,
-    previousBlockStateRoot: Buffer
+    previousBlockStateRoot: Buffer,
+    previousBlockTotalDifficulty: BN
   ) {
-    super.reserveBlocks(count, interval, previousBlockStateRoot);
+    super.reserveBlocks(
+      count,
+      interval,
+      previousBlockStateRoot,
+      previousBlockTotalDifficulty
+    );
     this._length = this._length + count.toNumber();
   }
 

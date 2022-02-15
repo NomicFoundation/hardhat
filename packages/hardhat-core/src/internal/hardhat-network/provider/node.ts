@@ -541,11 +541,14 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       }
     } else {
       // otherwise, we reserve a range and mine the last one
+      const latestBlock = await this.getLatestBlock();
       this._blockchain.reserveBlocks(
         remainingBlockCount.subn(1),
         interval,
-        await this._stateManager.getStateRoot()
+        await this._stateManager.getStateRoot(),
+        await this.getBlockTotalDifficulty(latestBlock)
       );
+
       blockResults.push(await this.mineBlock(await nextTimestamp()));
     }
 

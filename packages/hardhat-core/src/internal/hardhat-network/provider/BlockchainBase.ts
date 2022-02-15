@@ -84,13 +84,15 @@ export abstract class BlockchainBase {
   public reserveBlocks(
     count: BN,
     interval: BN,
-    previousBlockStateRoot: Buffer
+    previousBlockStateRoot: Buffer,
+    previousBlockTotalDifficulty: BN
   ) {
     this._data.reserveBlocks(
       this.getLatestBlockNumber().addn(1),
       count,
       interval,
-      previousBlockStateRoot
+      previousBlockStateRoot,
+      previousBlockTotalDifficulty
     );
   }
 
