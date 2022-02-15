@@ -45,13 +45,13 @@ describe("Compiler List download with proxy", function () {
     before(function () {
       // Save the Environment Settings and Set
       env = process.env;
-      process.env.HTTPS_PROXY = `https://127.0.0.1:${proxyPort}`;
+      process.env.HTTPS_PROXY = `http://127.0.0.1:${proxyPort}`;
     });
 
     it("Should call download with the right params", async function () {
       const compilersDir = this.tmpDir;
       const downloadPath = path.join(compilersDir, "downloadedCompilerProxy");
-      const expectedUrl = `https://solc-bin.ethereum.org/wasm/list.json`;
+      const expectedUrl = `http://solc-bin.ethereum.org/wasm/list.json`;
 
       // download the file
       await download(expectedUrl, downloadPath);
@@ -75,7 +75,7 @@ describe("Compiler List download with proxy", function () {
     it("Should call download with the right params", async function () {
       const compilersDir = this.tmpDir;
       const downloadPath = path.join(compilersDir, "downloadedCompilerProxy");
-      const expectedUrl = `https://solc-bin.ethereum.org/wasm/list.json`;
+      const expectedUrl = `http://solc-bin.ethereum.org/wasm/list.json`;
 
       // download the file
       await download(expectedUrl, downloadPath);
