@@ -248,6 +248,14 @@ describe("autocomplete", function () {
           description: "Run tests in parallel",
           name: "--parallel",
         },
+        {
+          description: "Stop running tests after the first test failure",
+          name: "--bail",
+        },
+        {
+          description: "Only run tests matching the given regexp",
+          name: "--grep",
+        },
       ]);
     });
 
