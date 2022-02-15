@@ -909,6 +909,23 @@ describe("Config validation", function () {
               },
             });
 
+            hdConfig = {
+              mnemonic: "asd",
+              accountsBalance: "123",
+              count: 123,
+              initialIndex: 1,
+              path: "m/1/2",
+              passphrase: "this is a secret",
+            };
+
+            validateConfig({
+              networks: {
+                [HARDHAT_NETWORK_NAME]: {
+                  accounts: hdConfig,
+                },
+              },
+            });
+
             validateConfig({
               networks: {
                 [HARDHAT_NETWORK_NAME]: {

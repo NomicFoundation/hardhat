@@ -12,6 +12,7 @@ import {
   DEFAULT_ACCOUNTS_ADDRESSES,
   DEFAULT_BLOCK_GAS_LIMIT,
 } from "./providers";
+import { getPendingBaseFeePerGas } from "./getPendingBaseFeePerGas";
 import { retrieveCommon } from "./retrieveCommon";
 
 export async function deployContract(
@@ -45,7 +46,7 @@ export async function sendTxToZeroAddress(
     to: zeroAddress(),
     value: numberToRpcQuantity(1),
     gas: numberToRpcQuantity(21000),
-    gasPrice: numberToRpcQuantity(10e9),
+    gasPrice: numberToRpcQuantity(await getPendingBaseFeePerGas(provider)),
   };
 
   return provider.send("eth_sendTransaction", [burnTxParams]);
