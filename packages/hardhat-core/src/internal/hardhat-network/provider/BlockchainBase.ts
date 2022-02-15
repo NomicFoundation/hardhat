@@ -81,12 +81,16 @@ export abstract class BlockchainBase {
     await this.addBlock(block);
   }
 
-  public reserveBlocks(count: BN, interval: BN, stateRoot: Buffer) {
+  public reserveBlocks(
+    count: BN,
+    interval: BN,
+    previousBlockStateRoot: Buffer
+  ) {
     this._data.reserveBlocks(
       this.getLatestBlockNumber().addn(1),
       count,
       interval,
-      stateRoot
+      previousBlockStateRoot
     );
   }
 

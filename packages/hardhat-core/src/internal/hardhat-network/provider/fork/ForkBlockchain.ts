@@ -93,8 +93,12 @@ export class ForkBlockchain
     return block;
   }
 
-  public reserveBlocks(count: BN, interval: BN, stateRoot: Buffer) {
-    super.reserveBlocks(count, interval, stateRoot);
+  public reserveBlocks(
+    count: BN,
+    interval: BN,
+    previousBlockStateRoot: Buffer
+  ) {
+    super.reserveBlocks(count, interval, previousBlockStateRoot);
     this._latestBlockNumber = this._latestBlockNumber.add(count);
   }
 
