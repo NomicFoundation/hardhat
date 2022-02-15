@@ -21,5 +21,5 @@ export async function putGenesisBlock(
     },
     { common }
   );
-  await blockchain.addBlock(genesisBlock);
+  await blockchain.putBlock(genesisBlock);
 }
