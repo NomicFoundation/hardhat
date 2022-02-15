@@ -13,25 +13,25 @@ describe("chunked promise all", () => {
         new Promise((resolve) => {
           setTimeout(() => {
             resolve(1);
-          }, 4000);
+          }, 400);
         }),
       () =>
         new Promise((resolve) => {
           setTimeout(() => {
             resolve(2);
-          }, 1000);
+          }, 100);
         }),
       () =>
         new Promise((resolve) => {
           setTimeout(() => {
             resolve(3);
-          }, 2000);
+          }, 200);
         }),
       () =>
         new Promise((resolve) => {
           setTimeout(() => {
             resolve(4);
-          }, 3000);
+          }, 300);
         }),
     ];
 
@@ -58,7 +58,7 @@ describe("chunked promise all", () => {
         return new Promise((_, reject) => {
           setTimeout(() => {
             reject(e);
-          }, 4000);
+          }, 400);
         });
       });
       expected.splice(0, 1, e);
