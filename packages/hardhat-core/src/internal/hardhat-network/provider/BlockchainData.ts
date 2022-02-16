@@ -14,7 +14,7 @@ interface Reservation {
   last: BN;
   interval: BN;
   previousBlockStateRoot: Buffer;
-  previousBlockTotalDifficulty: BN
+  previousBlockTotalDifficulty: BN;
 }
 
 export class BlockchainData {
