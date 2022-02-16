@@ -6,16 +6,14 @@
 export async function chunkedPromiseAll<T>(
   promises: Array<() => Promise<T>>,
   chunkSize: number = 4
-): Promise<Array<T | Error>> {
+): Promise<T[]> {
   const queue = [...promises];
   const running = queue.splice(0, chunkSize).map((p) => p());
   const results = [];
 
   while (running.length > 0) {
     const withIndexes = running.map((p, i) =>
-      p
-        .then((r) => [r, i] as [T, number])
-        .catch((e) => [e, i] as [Error, number])
+      p.then((r) => [r, i] as [T, number])
     );
 
     const [result, index] = await Promise.race(withIndexes);
@@ -29,9 +27,7 @@ export async function chunkedPromiseAll<T>(
       withIndexes.splice(
         index,
         1,
-        started
-          .then((r) => [r, index] as [T, number])
-          .catch((e) => [e, index] as [Error, number])
+        started.then((r) => [r, index] as [T, number])
       );
     } else {
       running.splice(index, 1);

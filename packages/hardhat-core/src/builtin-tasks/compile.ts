@@ -432,7 +432,7 @@ subtask(TASK_COMPILE_SOLIDITY_COMPILE_JOBS)
        * before actually running the job, so all the later code assumes the compiler is already
        * downloaded because if it wasn't then parallel compilation will break.
        */
-      const downloadResults = await chunkedPromiseAll(
+      await chunkedPromiseAll(
         versionList.map((solcVersion) => {
           return () =>
             run(TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD, {
@@ -442,12 +442,6 @@ subtask(TASK_COMPILE_SOLIDITY_COMPILE_JOBS)
         }),
         os.cpus().length
       );
-
-      for (const downloadResult of downloadResults) {
-        if (HardhatError.isHardhatError(downloadResult)) {
-          throw downloadResult;
-        }
-      }
 
       const results = await chunkedPromiseAll<
         CompilationSuccess | CompilationFailure
