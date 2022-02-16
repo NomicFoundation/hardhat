@@ -506,51 +506,59 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       return [];
     }
 
-    let blocksMined = 0;
     const mineBlockResults: MineBlockResult[] = [];
-    const nextTimestamp = async () =>
-      (await this.getLatestBlock()).header.timestamp.add(interval);
 
-    // we always mine the first block, and we use the nextBlockTimestamp if it's
-    // set
-    const nextBlockTimestamp = this.getNextBlockTimestamp().eqn(0)
-      ? undefined
-      : this.getNextBlockTimestamp();
-    mineBlockResults.push(await this.mineBlock(nextBlockTimestamp));
-    blocksMined += 1;
+    // we always mine the first block, and we don't apply the interval for it
+    mineBlockResults.push(await this.mineBlock());
+
+    // helper function to mine a block with a timstamp that respects the
+    // interval
+    const mineBlock = async () => {
+      const nextTimestamp = (await this.getLatestBlock()).header.timestamp.add(
+        interval
+      );
+      mineBlockResults.push(await this.mineBlock(nextTimestamp));
+    };
 
     // then we mine any pending transactions
-    while (count.gtn(blocksMined) && this._txPool.hasPendingTransactions()) {
-      mineBlockResults.push(await this.mineBlock(await nextTimestamp()));
-      blocksMined += 1;
+    while (
+      count.gtn(mineBlockResults.length) &&
+      this._txPool.hasPendingTransactions()
+    ) {
+      await mineBlock();
     }
 
-    // If there is at least one remaining block, we mine one. This makes the
-    // output of `hh node` work properly.
-    if (count.gtn(blocksMined)) {
-      mineBlockResults.push(await this.mineBlock(await nextTimestamp()));
-      blocksMined += 1;
+    // If there is at least one remaining block, we mine one. This way, we
+    // guarantee that there's an empty block immediately before and after the
+    // reservation. This makes the logging easier to get right.
+    if (count.gtn(mineBlockResults.length)) {
+      await mineBlock();
     }
 
-    const remainingBlockCount = count.subn(blocksMined);
+    const remainingBlockCount = count.subn(mineBlockResults.length);
+
+    // There should be at least 2 blocks left for the reservation to work,
+    // because we always mine a block after it. But here we use a bigger
+    // number to err on the safer side.
     if (remainingBlockCount.lten(5)) {
       // if there are few blocks left to mine, we just mine them
-      while (count.gtn(blocksMined)) {
-        mineBlockResults.push(await this.mineBlock(await nextTimestamp()));
-        blocksMined += 1;
+      while (count.gtn(mineBlockResults.length)) {
+        await mineBlock();
       }
-    } else {
-      // otherwise, we reserve a range and mine the last one
-      const latestBlock = await this.getLatestBlock();
-      this._blockchain.reserveBlocks(
-        remainingBlockCount.subn(1),
-        interval,
-        await this._stateManager.getStateRoot(),
-        await this.getBlockTotalDifficulty(latestBlock)
-      );
 
-      mineBlockResults.push(await this.mineBlock(await nextTimestamp()));
+      return mineBlockResults;
     }
+
+    // otherwise, we reserve a range and mine the last one
+    const latestBlock = await this.getLatestBlock();
+    this._blockchain.reserveBlocks(
+      remainingBlockCount.subn(1),
+      interval,
+      await this._stateManager.getStateRoot(),
+      await this.getBlockTotalDifficulty(latestBlock)
+    );
+
+    await mineBlock();
 
     return mineBlockResults;
   }
