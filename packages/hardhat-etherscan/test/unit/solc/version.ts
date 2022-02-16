@@ -1,21 +1,34 @@
 import { assert, expect } from "chai";
 import { HardhatPluginError } from "hardhat/plugins";
-import nock from "nock";
+import {
+  Dispatcher,
+  getGlobalDispatcher,
+  MockAgent,
+  setGlobalDispatcher,
+} from "undici";
 
 import { getLongVersion } from "../../../src/solc/version";
 
 describe("solc version retrieval unit tests", function () {
+  let realGlobalDispatcher: Dispatcher;
+  const mockAgent = new MockAgent();
   before(function () {
-    nock.disableNetConnect();
+    mockAgent.disableNetConnect();
+    realGlobalDispatcher = getGlobalDispatcher();
+    setGlobalDispatcher(mockAgent);
   });
 
   after(function () {
-    nock.enableNetConnect();
+    setGlobalDispatcher(realGlobalDispatcher);
   });
 
   it("solc version with commit is returned", async () => {
-    nock("https://solc-bin.ethereum.org")
-      .get("/bin/list.json")
+    const client = mockAgent.get("https://solc-bin.ethereum.org");
+    client
+      .intercept({
+        path: "/bin/list.json",
+        method: "GET",
+      })
       .reply(200, {
         releases: {
           "0.5.1": "soljson-v0.5.1-commitsomething.js",
@@ -27,7 +40,8 @@ describe("solc version retrieval unit tests", function () {
   });
 
   it("an exception is thrown if there was an error sending request", async () => {
-    nock("https://solc-bin.ethereum.org").get("/bin/list.json").reply(404);
+    const client = mockAgent.get("https://solc-bin.ethereum.org");
+    client.intercept({ path: "/bin/list.json", method: "GET" }).reply(404, {});
 
     return getLongVersion("0.5.1")
       .then(() => assert.fail("Should fail when response has status 404."))
@@ -40,8 +54,12 @@ describe("solc version retrieval unit tests", function () {
   });
 
   it("an exception is thrown if the specified version doesn't exist", async () => {
-    nock("https://solc-bin.ethereum.org")
-      .get("/bin/list.json")
+    const client = mockAgent.get("https://solc-bin.ethereum.org");
+    client
+      .intercept({
+        path: "/bin/list.json",
+        method: "GET",
+      })
       .reply(200, {
         releases: {
           "0.5.2": "soljson-v0.5.2-commitsomething.js",
