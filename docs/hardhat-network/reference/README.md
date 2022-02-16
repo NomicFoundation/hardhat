@@ -396,6 +396,14 @@ Sometimes you may want to advance the latest block number of the Hardhat Network
 
 `hardhat_mine` accepts two parameters, both of which are optional. The first parameter is the number of blocks to mine, and defaults to 1. The second parameter is the interval between the timestamps of each block, _in seconds_, and it also defaults to 1. (The interval is applied only to blocks mined in the given method invocation, not to blocks mined afterwards.)
 
+```js
+// mine 256 blocks
+await hre.network.provider.send("hardhat_mine", ["0x100"]);
+
+// mine 1000 blocks with an interval of 1 minute
+await hre.network.provider.send("hardhat_mine", ["0x3e8", "0x3c"]);
+```
+
 Note that blocks mined via this method (except for the final one) are technically not valid blocks. Specifically, they have an invalid parent hash and state root hash, the coinbase account will not have been credited with block rewards, and the `baseFeePerGas` will be incorrect. (The final block in a sequence produced by `hardhat_mine` will always be fully valid.)
 
 Also note that blocks created via `hardhat_mine` will not trigger any new-block events. This includes filters created via `eth_newBlockFilter`, as well as WebSocket subscriptions to new-block events.
