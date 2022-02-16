@@ -1105,6 +1105,60 @@ describe("Hardhat module", function () {
             }
           });
         });
+
+        describe("difficulty and totalDifficulty", function () {
+          const getBlockDifficulty = async (blockNumber: number) => {
+            const block = await this.ctx.provider.send("eth_getBlockByNumber", [
+              numberToRpcQuantity(blockNumber),
+              false,
+            ]);
+
+            return {
+              difficulty: rpcQuantityToBN(block.difficulty),
+              totalDifficulty: rpcQuantityToBN(block.totalDifficulty),
+            };
+          };
+
+          it("reserved blocks should have a difficulty of 0", async function () {
+            const previousBlockNumber = await getLatestBlockNumber();
+
+            await this.provider.send("hardhat_mine", [numberToRpcQuantity(20)]);
+
+            // we get a block from the middle of the reservation to
+            // be sure that it's a reserved block
+            const middleBlockDifficulty = await getBlockDifficulty(
+              previousBlockNumber + 10
+            );
+
+            assert.isTrue(middleBlockDifficulty.difficulty.eqn(0));
+          });
+
+          it("reserved blocks should have consistent difficulty values", async function () {
+            const previousBlockNumber = await getLatestBlockNumber();
+
+            await this.provider.send("hardhat_mine", [numberToRpcQuantity(20)]);
+
+            let previousBlockDifficulty = await getBlockDifficulty(
+              previousBlockNumber
+            );
+
+            for (let i = 1; i <= 20; i++) {
+              const blockDifficulty = await getBlockDifficulty(
+                previousBlockNumber + i
+              );
+
+              assert.isTrue(
+                blockDifficulty.totalDifficulty.eq(
+                  previousBlockDifficulty.totalDifficulty.add(
+                    blockDifficulty.difficulty
+                  )
+                )
+              );
+
+              previousBlockDifficulty = blockDifficulty;
+            }
+          });
+        });
       });
 
       describe("hardhat_reset", function () {
