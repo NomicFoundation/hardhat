@@ -3,7 +3,7 @@ import sinon from "sinon";
 
 import { chunkedPromiseAll } from "../../../src/internal/util/chunked-promise-all";
 
-describe("chunked promise all", () => {
+describe.only("chunked promise all", () => {
   let promises: Array<() => Promise<unknown>>;
   let expected: Array<number | Error>;
 
@@ -51,7 +51,7 @@ describe("chunked promise all", () => {
   });
 
   describe("error handling", () => {
-    beforeEach(function () {
+    it("should throw if an error is thrown within a function", async () => {
       const e = new Error("test");
 
       promises.splice(0, 1, () => {
@@ -61,17 +61,8 @@ describe("chunked promise all", () => {
           }, 400);
         });
       });
-      expected.splice(0, 1, e);
-    });
 
-    it("should include an error in the results array", async () => {
-      const results = await chunkedPromiseAll(promises);
-      assert.includeMembers(results, expected);
-    });
-
-    it("should include an error in the results array when the number of promises given exceeds chunkSize", async () => {
-      const results = await chunkedPromiseAll(promises, 2);
-      assert.includeMembers(results, expected);
+      await assert.isRejected(chunkedPromiseAll(promises));
     });
   });
 
