@@ -1,5 +1,9 @@
-import {expect, AssertionError} from 'chai';
+import {expect, AssertionError, use} from 'chai';
 import {BigNumber} from 'ethers';
+
+import { bnChai } from "../../../src/chai/matchers/bnChai";
+
+use(bnChai);
 
 describe('UNIT: BigNumber matchers', () => {
   function checkAll(
@@ -117,6 +121,7 @@ describe('UNIT: BigNumber matchers', () => {
     });
   });
 
+  /*
   describe('within', () => {
     it('.to.be.within', () => {
       expect(BigNumber.from(100)).to.be.within(BigNumber.from(99), BigNumber.from(101));
@@ -138,6 +143,7 @@ describe('UNIT: BigNumber matchers', () => {
       );
     });
   });
+  */
 
   describe('closeTo', () => {
     it('.to.be.closeTo', () => {
