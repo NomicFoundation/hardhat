@@ -190,7 +190,8 @@ export function applyProviderWrappers(
         accounts.mnemonic,
         accounts.path,
         accounts.initialIndex,
-        accounts.count
+        accounts.count,
+        accounts.passphrase
       );
     }
 

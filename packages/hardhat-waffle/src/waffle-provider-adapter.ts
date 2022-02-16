@@ -1,6 +1,8 @@
 import { providers, Wallet } from "ethers";
 import { normalizeHardhatNetworkAccountsConfig } from "hardhat/internal/core/providers/util";
 import { HardhatNetworkConfig, Network } from "hardhat/types";
+import { NomicLabsHardhatPluginError } from "hardhat/plugins";
+import { pluginName } from "./constants";
 
 // This class is an extension of hardhat-ethers' wrapper.
 // TODO: Export hardhat-ether's wrapper so this can be implemented like a normal
@@ -12,8 +14,11 @@ export class WaffleMockProviderAdapter extends providers.JsonRpcProvider {
 
   public getWallets() {
     if (this._hardhatNetwork.name !== "hardhat") {
-      throw new Error(`This method only works with Hardhat Network.
-You can use \`await hre.ethers.getSigners()\` in other networks.`);
+      throw new NomicLabsHardhatPluginError(
+        pluginName,
+        `This method only works with Hardhat Network.
+You can use \`await hre.ethers.getSigners()\` in other networks.`
+      );
     }
 
     const networkConfig = this._hardhatNetwork.config as HardhatNetworkConfig;

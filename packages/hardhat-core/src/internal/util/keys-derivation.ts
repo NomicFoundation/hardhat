@@ -3,14 +3,15 @@ import type { HDKey as HDKeyT } from "ethereum-cryptography/hdkey";
 
 export function deriveKeyFromMnemonicAndPath(
   mnemonic: string,
-  hdPath: string
+  hdPath: string,
+  passphrase: string
 ): Buffer | undefined {
   const {
     mnemonicToSeedSync,
   }: {
     mnemonicToSeedSync: typeof mnemonicToSeedSyncT;
   } = require("ethereum-cryptography/bip39");
-  const seed = mnemonicToSeedSync(mnemonic);
+  const seed = mnemonicToSeedSync(mnemonic, passphrase);
 
   const {
     HDKey,

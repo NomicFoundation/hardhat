@@ -653,6 +653,15 @@ describe("hdwallet provider", () => {
     assert.equal(response[0], "0x4f3e91d2cacd82fffd1f33a0d26d4078401986e9");
   });
 
+  it("should generate a valid address with passphrase", async () => {
+    const passphrase = "this is a secret";
+    wrapper = new HDWalletProvider(mock, mnemonic, hdpath, 0, 10, passphrase);
+    const response = (await wrapper.request({
+      method: "eth_accounts",
+    })) as string[];
+    assert.equal(response[0], "0x6955b833d195e49c07fc56fbf0ec387325facb87");
+  });
+
   it("should generate a valid address when given a different index", async () => {
     wrapper = new HDWalletProvider(mock, mnemonic, hdpath, 1);
     const response = (await wrapper.request({
