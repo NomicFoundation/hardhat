@@ -31,6 +31,7 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
   private _nextRequestId = 1;
   private _client: Pool;
   private _path: string;
+  private _authHeader: string | undefined;
 
   constructor(
     private readonly _url: string,
@@ -41,6 +42,13 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
     super();
     const url = new URL(this._url);
     this._path = url.pathname;
+    this._authHeader =
+      url.username === ""
+        ? undefined
+        : `Basic ${Buffer.from(
+            `${url.username}:${url.password}`,
+            "utf-8"
+          ).toString("base64")}`;
     try {
       this._client = new Pool(url.origin);
     } catch (e) {
@@ -159,11 +167,13 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
             : this._timeout,
         headers: {
           "Content-Type": "application/json",
+          Authorization: this._authHeader,
           ...this._extraHeaders,
         },
       });
 
       if (this._isRateLimitResponse(response)) {
+        response.body.destroy();
         const seconds = this._getRetryAfterSeconds(response);
         if (seconds !== undefined && this._shouldRetry(retryNumber, seconds)) {
           return await this._retry(request, seconds, retryNumber);
