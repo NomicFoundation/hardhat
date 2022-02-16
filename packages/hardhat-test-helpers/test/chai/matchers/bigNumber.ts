@@ -1,5 +1,6 @@
 import {expect, AssertionError, use} from 'chai';
 import {BigNumber} from 'ethers';
+import BN from "bn.js";
 
 import { bnChai } from "../../../src/chai/matchers/bnChai";
 
@@ -9,14 +10,21 @@ describe('UNIT: BigNumber matchers', () => {
   function checkAll(
     actual: number,
     expected: number,
-    test: (actual: number | string | BigNumber, expected: number | string | BigNumber) => void
+    test: (actual: number | string | BigNumber | BN, expected: number | string | BigNumber | BN) => void
   ) {
     test(actual, expected);
     test(BigNumber.from(actual), expected);
     test(BigNumber.from(actual), expected.toString());
     test(BigNumber.from(actual), BigNumber.from(expected));
+    test(BigNumber.from(actual), new BN(expected));
     test(actual, BigNumber.from(expected));
+    test(actual, new BN(expected));
     test(actual.toString(), BigNumber.from(expected));
+    test(actual.toString(), new BN(expected));
+    test(new BN(actual), expected);
+    test(new BN(actual), expected.toString());
+    test(new BN(actual), BigNumber.from(expected));
+    test(new BN(actual), new BN(expected));
   }
 
   describe('equal', () => {

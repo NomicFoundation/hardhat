@@ -1,4 +1,5 @@
 import {BigNumber} from 'ethers';
+import { BN } from "bn.js";
 
 export function supportBigNumber(
   Assertion: Chai.AssertionStatic,
@@ -51,13 +52,31 @@ function overwriteBigNumberFunction(
       _super.apply(this, [actual.toNumber()]);
       return;
     }
-    if (BigNumber.isBigNumber(expected) || BigNumber.isBigNumber(actual)) {
+    if (BigNumber.isBigNumber(expected) || BigNumber.isBigNumber(actual) || BN.isBN(expected) || BN.isBN(actual)) {
+      const expectedAsBigNumber = (() => {
+        if (BigNumber.isBigNumber(expected)) {
+          return expected;
+        } else if (BN.isBN(expected)) {
+          return BigNumber.from(expected.toString());
+        } else {
+          return BigNumber.from(expected)
+        }
+      })();
+      const actualAsBigNumber = (() => {
+        if (BigNumber.isBigNumber(actual)) {
+          return actual;
+        } else if (BN.isBN(actual)) {
+          return BigNumber.from(actual.toString());
+        } else {
+          return BigNumber.from(actual)
+        }
+      })();
       this.assert(
-        BigNumber.from(expected)[functionName](actual),
-        `Expected "${expected}" to be ${readableName} ${actual}`,
-        `Expected "${expected}" NOT to be ${readableName} ${actual}`,
-        expected,
-        actual
+        BigNumber.from(expectedAsBigNumber)[functionName](actualAsBigNumber),
+        `Expected "${expectedAsBigNumber}" to be ${readableName} ${actualAsBigNumber}`,
+        `Expected "${expectedAsBigNumber}" NOT to be ${readableName} ${actualAsBigNumber}`,
+        expectedAsBigNumber,
+        actualAsBigNumber
       );
     } else {
       _super.apply(this, args);
