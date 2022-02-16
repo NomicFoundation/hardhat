@@ -366,15 +366,15 @@ export class HardhatModule {
 
   // hardhat_mine
   private async _hardhatMineAction(blockCount?: BN, interval?: BN) {
-    const results = await this._node.mineBlocks(blockCount, interval);
+    const mineBlockResults = await this._node.mineBlocks(blockCount, interval);
 
-    for (const [i, result] of results.entries()) {
+    for (const [i, result] of mineBlockResults.entries()) {
       await this._logHardhatMinedBlock(result);
 
       // print an empty line after logging blocks with txs,
       // unless it's the last logged block
       const isEmpty = result.block.transactions.length === 0;
-      if (!isEmpty && i + 1 < results.length) {
+      if (!isEmpty && i + 1 < mineBlockResults.length) {
         this._logger.logEmptyLine();
       }
     }

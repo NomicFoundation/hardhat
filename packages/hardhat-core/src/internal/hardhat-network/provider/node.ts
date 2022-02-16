@@ -507,7 +507,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     }
 
     let blocksMined = 0;
-    const blockResults: MineBlockResult[] = [];
+    const mineBlockResults: MineBlockResult[] = [];
     const nextTimestamp = async () =>
       (await this.getLatestBlock()).header.timestamp.add(interval);
 
@@ -516,19 +516,19 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     const nextBlockTimestamp = this.getNextBlockTimestamp().eqn(0)
       ? undefined
       : this.getNextBlockTimestamp();
-    blockResults.push(await this.mineBlock(nextBlockTimestamp));
+    mineBlockResults.push(await this.mineBlock(nextBlockTimestamp));
     blocksMined += 1;
 
     // then we mine any pending transactions
     while (count.gtn(blocksMined) && this._txPool.hasPendingTransactions()) {
-      blockResults.push(await this.mineBlock(await nextTimestamp()));
+      mineBlockResults.push(await this.mineBlock(await nextTimestamp()));
       blocksMined += 1;
     }
 
     // If there is at least one remaining block, we mine one. This makes the
     // output of `hh node` work properly.
     if (count.gtn(blocksMined)) {
-      blockResults.push(await this.mineBlock(await nextTimestamp()));
+      mineBlockResults.push(await this.mineBlock(await nextTimestamp()));
       blocksMined += 1;
     }
 
@@ -536,7 +536,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     if (remainingBlockCount.lten(5)) {
       // if there are few blocks left to mine, we just mine them
       while (count.gtn(blocksMined)) {
-        blockResults.push(await this.mineBlock(await nextTimestamp()));
+        mineBlockResults.push(await this.mineBlock(await nextTimestamp()));
         blocksMined += 1;
       }
     } else {
@@ -549,10 +549,10 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         await this.getBlockTotalDifficulty(latestBlock)
       );
 
-      blockResults.push(await this.mineBlock(await nextTimestamp()));
+      mineBlockResults.push(await this.mineBlock(await nextTimestamp()));
     }
 
-    return blockResults;
+    return mineBlockResults;
   }
 
   public async runCall(
