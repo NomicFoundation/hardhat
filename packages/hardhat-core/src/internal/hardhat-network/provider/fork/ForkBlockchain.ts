@@ -303,27 +303,6 @@ export class ForkBlockchain
     return block;
   }
 
-  private async _computeTotalDifficulty(block: Block): Promise<BN> {
-    const difficulty = new BN(block.header.difficulty);
-    const blockNumber = new BN(block.header.number);
-    if (blockNumber.eqn(0)) {
-      return difficulty;
-    }
-
-    const parentBlock =
-      this._data.getBlockByNumber(blockNumber.subn(1)) ??
-      (await this.getBlock(blockNumber.subn(1)));
-    if (parentBlock === null) {
-      throw new Error("Block not found");
-    }
-    const parentHash = parentBlock.hash();
-    const parentTD = this._data.getTotalDifficulty(parentHash);
-    if (parentTD === undefined) {
-      throw new Error("This should never happen");
-    }
-    return parentTD.add(difficulty);
-  }
-
   protected _delBlock(blockNumber: BN): void {
     if (blockNumber.lte(this._forkBlockNumber)) {
       throw new Error("Cannot delete remote block");

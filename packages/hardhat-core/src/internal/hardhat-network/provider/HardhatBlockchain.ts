@@ -26,7 +26,7 @@ export class HardhatBlockchain
 
   public async addBlock(block: Block): Promise<Block> {
     this._validateBlock(block);
-    const totalDifficulty = this._computeTotalDifficulty(block);
+    const totalDifficulty = await this._computeTotalDifficulty(block);
     this._data.addBlock(block, totalDifficulty);
     this._length += 1;
     return block;
@@ -104,18 +104,6 @@ export class HardhatBlockchain
     ) {
       throw new Error("Invalid parent hash");
     }
-  }
-
-  private _computeTotalDifficulty(block: Block): BN {
-    const difficulty = new BN(block.header.difficulty);
-    if (block.header.parentHash.equals(zeros(32))) {
-      return difficulty;
-    }
-    const parentTD = this._data.getTotalDifficulty(block.header.parentHash);
-    if (parentTD === undefined) {
-      throw new Error("This should never happen");
-    }
-    return parentTD.add(difficulty);
   }
 
   protected _delBlock(blockNumber: BN): void {

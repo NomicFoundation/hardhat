@@ -3,6 +3,7 @@ import Common from "@ethereumjs/common";
 import { TypedTransaction } from "@ethereumjs/tx";
 import { BN } from "ethereumjs-util";
 
+import { assertHardhatInvariant } from "../../core/errors";
 import { BlockchainData } from "./BlockchainData";
 import { RpcReceiptOutput } from "./output";
 
@@ -111,5 +112,26 @@ export abstract class BlockchainBase {
         i = i.addn(1);
       }
     }
+  }
+
+  protected async _computeTotalDifficulty(block: Block): Promise<BN> {
+    const difficulty = block.header.difficulty;
+    const blockNumber = block.header.number;
+
+    if (blockNumber.eqn(0)) {
+      return difficulty;
+    }
+
+    const parentBlock = await this.getBlock(blockNumber.subn(1));
+    assertHardhatInvariant(parentBlock !== null, "Parent block should exist");
+
+    const parentHash = parentBlock.hash();
+    const parentTD = this._data.getTotalDifficulty(parentHash);
+    assertHardhatInvariant(
+      parentTD !== undefined,
+      "Parent block should have total difficulty"
+    );
+
+    return parentTD.add(difficulty);
   }
 }
