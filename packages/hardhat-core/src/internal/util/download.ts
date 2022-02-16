@@ -40,7 +40,11 @@ export async function download(
   const response = await request(url, {
     dispatcher,
     headersTimeout: timeoutMillis,
+    maxRedirections: 10,
     method: "GET",
+    headers: {
+      "User-Agent": "hardhat",
+    },
   });
 
   if (
