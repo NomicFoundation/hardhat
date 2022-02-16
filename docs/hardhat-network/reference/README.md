@@ -548,7 +548,9 @@ This method works like `evm_increaseTime`, but takes the exact timestamp that yo
 
 #### `evm_snapshot`
 
-Same as Ganache.
+Same as [Ganache](https://github.com/trufflesuite/ganache/blob/ef1858d5d6f27e4baeb75cccd57fb3dc77a45ae8/src/chains/ethereum/ethereum/RPC-METHODS.md#evm_snapshot).
+
+Snapshot the state of the blockchain at the current block. Takes no parameters. Returns the id of the snapshot that was created. A snapshot can only be reverted once. After a successful `evm_revert`, the same snapshot id cannot be used again. Consider creating a new snapshot after each `evm_revert` if you need to revert to the same point multiple times.
 
 ### Unsupported methods
 

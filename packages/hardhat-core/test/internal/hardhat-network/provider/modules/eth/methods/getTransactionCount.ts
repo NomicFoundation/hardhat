@@ -8,6 +8,7 @@ import {
   assertQuantity,
 } from "../../../../helpers/assertions";
 import { setCWD } from "../../../../helpers/cwd";
+import { getPendingBaseFeePerGas } from "../../../../helpers/getPendingBaseFeePerGas";
 import {
   DEFAULT_ACCOUNTS_ADDRESSES,
   PROVIDERS,
@@ -67,7 +68,9 @@ describe("Eth module", function () {
               to: DEFAULT_ACCOUNTS_ADDRESSES[1],
               value: numberToRpcQuantity(1),
               gas: numberToRpcQuantity(21000),
-              gasPrice: numberToRpcQuantity(10e9),
+              gasPrice: numberToRpcQuantity(
+                await getPendingBaseFeePerGas(this.provider)
+              ),
             },
           ]);
 
@@ -91,7 +94,9 @@ describe("Eth module", function () {
               to: DEFAULT_ACCOUNTS_ADDRESSES[2],
               value: numberToRpcQuantity(1),
               gas: numberToRpcQuantity(21000),
-              gasPrice: numberToRpcQuantity(10e9),
+              gasPrice: numberToRpcQuantity(
+                await getPendingBaseFeePerGas(this.provider)
+              ),
             },
           ]);
 
@@ -124,7 +129,9 @@ describe("Eth module", function () {
               to: DEFAULT_ACCOUNTS_ADDRESSES[2],
               value: numberToRpcQuantity(1),
               gas: numberToRpcQuantity(21000),
-              gasPrice: numberToRpcQuantity(10e9),
+              gasPrice: numberToRpcQuantity(
+                await getPendingBaseFeePerGas(this.provider)
+              ),
             },
           ]);
 
