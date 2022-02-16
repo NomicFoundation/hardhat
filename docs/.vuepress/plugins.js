@@ -379,6 +379,13 @@ module.exports.communityPlugins = [
     description: "Hardhat plugin for Uniswap V3 deployment",
     tags: ["uniswap", "testing", "local deployment"],
   },
+   {
+    name: "@unlock-protocol/hardhat-plugin",
+    author: "Unlock Inc",
+    authorUrl: "http://unlock-protocol.com/",
+    description: "Hardhat plugin for Unlock Protocol deployments.",
+    tags: ["unlock", "nft", "memberships", "udt", "testing", "deployment"],
+  },
   {
     name: "hardhat-deploy-tenderly",
     author: "Ronan Sandford",
