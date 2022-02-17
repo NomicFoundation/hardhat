@@ -12,19 +12,33 @@ describe('UNIT: BigNumber matchers', () => {
     expected: number,
     test: (actual: number | string | BigNumber | BN, expected: number | string | BigNumber | BN) => void
   ) {
-    test(actual, expected);
-    test(BigNumber.from(actual), expected);
-    test(BigNumber.from(actual), expected.toString());
-    test(BigNumber.from(actual), BigNumber.from(expected));
-    test(BigNumber.from(actual), new BN(expected));
-    test(actual, BigNumber.from(expected));
-    test(actual, new BN(expected));
-    test(actual.toString(), BigNumber.from(expected));
-    test(actual.toString(), new BN(expected));
-    test(new BN(actual), expected);
-    test(new BN(actual), expected.toString());
-    test(new BN(actual), BigNumber.from(expected));
-    test(new BN(actual), new BN(expected));
+    const conversions = [
+      (n: number) => n,
+      (n: number) => n.toString(),
+      (n: number) => BigNumber.from(n),
+      (n: number) => new BN(n),
+    ];
+    for (const convertActual of conversions) {
+      for (const convertExpected of conversions) {
+        const convertedActual = convertActual(actual);
+        const convertedExpected = convertExpected(expected);
+        // a few particular combinations of types don't work:
+        if (
+          typeof convertedActual === "string" &&
+          !BigNumber.isBigNumber(convertedExpected) &&
+          !BN.isBN(convertedExpected)
+        ) {
+          continue;
+        }
+        if (
+          typeof convertedActual === "number" &&
+          typeof convertedExpected === "string"
+        ) {
+          continue;
+        }
+        test(convertedActual, convertedExpected);
+      }
+    }
   }
 
   describe('equal', () => {
