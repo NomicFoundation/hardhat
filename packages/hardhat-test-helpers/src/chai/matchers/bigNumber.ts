@@ -118,13 +118,16 @@ function overwriteBigNumberCloseTo(_super: (...args: any[]) => any, chaiUtils: C
   return function (this: Chai.AssertionStatic, ...args: any[]) {
     const [actual, delta] = args;
     const expected = chaiUtils.flag(this, 'object');
-    if (BigNumber.isBigNumber(expected) || BigNumber.isBigNumber(actual) || BigNumber.isBigNumber(delta)) {
+    if (isBigNumber(expected) || isBigNumber(actual) || isBigNumber(delta)) {
+      const expectedAsBigNumber = normalizeToBigNumber(expected);
+      const actualAsBigNumber = normalizeToBigNumber(actual);
+      const deltaAsBigNumber = normalizeToBigNumber(delta);
       this.assert(
-        BigNumber.from(expected).sub(actual).abs().lte(delta),
-        `Expected "${expected}" to be within ${delta} of ${actual}`,
-        `Expected "${expected}" NOT to be within ${delta} of ${actual}`,
-        `A number between ${actual.sub(delta)} and ${actual.sub(delta)}`,
-        expected
+        BigNumber.from(expectedAsBigNumber).sub(actualAsBigNumber).abs().lte(deltaAsBigNumber),
+        `Expected "${expectedAsBigNumber}" to be within ${deltaAsBigNumber} of ${actualAsBigNumber}`,
+        `Expected "${expectedAsBigNumber}" NOT to be within ${deltaAsBigNumber} of ${actualAsBigNumber}`,
+        `A number between ${actualAsBigNumber.sub(deltaAsBigNumber)} and ${actualAsBigNumber.sub(deltaAsBigNumber)}`,
+        expectedAsBigNumber
       );
     } else {
       _super.apply(this, args);
