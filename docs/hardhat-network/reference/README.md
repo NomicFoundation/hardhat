@@ -406,7 +406,7 @@ await hre.network.provider.send("hardhat_mine", ["0x3e8", "0x3c"]);
 
 Note that most blocks mined via this method (all except for the final one) may not technically be valid blocks. Specifically, they have an invalid parent hash, the coinbase account will not have been credited with block rewards, and the `baseFeePerGas` will be incorrect. (The final block in a sequence produced by `hardhat_mine` will always be fully valid.)
 
-Also note that blocks created via `hardhat_mine` will not trigger any new-block events. This includes filters created via `eth_newBlockFilter`, as well as WebSocket subscriptions to new-block events.
+Also note that blocks created via `hardhat_mine` may not trigger new-block events, such as filters created via `eth_newBlockFilter` and WebSocket subscriptions to new-block events.
 
 #### `hardhat_reset`
 
