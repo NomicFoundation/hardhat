@@ -129,7 +129,6 @@ describe('UNIT: BigNumber matchers', () => {
     });
   });
 
-  /*
   describe('within', () => {
     it('.to.be.within', () => {
       expect(BigNumber.from(100)).to.be.within(BigNumber.from(99), BigNumber.from(101));
@@ -151,7 +150,6 @@ describe('UNIT: BigNumber matchers', () => {
       );
     });
   });
-  */
 
   describe('closeTo', () => {
     it('.to.be.closeTo', () => {

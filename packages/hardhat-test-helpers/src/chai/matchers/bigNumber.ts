@@ -1,5 +1,5 @@
 import {BigNumber} from 'ethers';
-import { BN } from "bn.js";
+import BN from "bn.js";
 
 export function supportBigNumber(
   Assertion: Chai.AssertionStatic,
@@ -37,6 +37,22 @@ type Methods = 'eq' | 'gt' | 'lt' | 'gte' | 'lte';
 function override(method: Methods, name: string, utils: Chai.ChaiUtils) {
   return (_super: (...args: any[]) => any) =>
     overwriteBigNumberFunction(method, name, _super, utils);
+}
+
+function normalizeToBigNumber(source: BigNumber | BN | number | string): BigNumber {
+  if (BigNumber.isBigNumber(source)) {
+    return source;
+  } else if (BN.isBN(source)) {
+    return BigNumber.from(source.toString());
+  } else if (typeof source === "string" || typeof source === "number") {
+    return BigNumber.from(source)
+  } else {
+    throw new Error(`cannot convert ${typeof source} to BigNumber`);
+  }
+}
+
+function isBigNumber(source: any): boolean {
+  return BigNumber.isBigNumber(source) || BN.isBN(source);
 }
 
 function overwriteBigNumberFunction(
@@ -92,13 +108,16 @@ function overwriteBigNumberWithin(_super: (...args: any[]) => any, chaiUtils: Ch
   return function (this: Chai.AssertionStatic, ...args: any[]) {
     const [start, finish] = args;
     const expected = chaiUtils.flag(this, 'object');
-    if (BigNumber.isBigNumber(expected) || BigNumber.isBigNumber(start) || BigNumber.isBigNumber(finish)) {
+    if (isBigNumber(expected) || isBigNumber(start) || isBigNumber(finish)) {
+      const expectedAsBigNumber = normalizeToBigNumber(expected);
+      const startAsBigNumber = normalizeToBigNumber(start);
+      const finishAsBigNumber = normalizeToBigNumber(finish);
       this.assert(
-        BigNumber.from(start).lte(expected) && BigNumber.from(finish).gte(expected),
-        `Expected "${expected}" to be within [${[start, finish]}]`,
-        `Expected "${expected}" NOT to be within [${[start, finish]}]`,
-        [start, finish],
-        expected
+        BigNumber.from(startAsBigNumber).lte(expectedAsBigNumber) && BigNumber.from(finishAsBigNumber).gte(expectedAsBigNumber),
+        `Expected "${expectedAsBigNumber}" to be within [${[startAsBigNumber, finishAsBigNumber]}]`,
+        `Expected "${expectedAsBigNumber}" NOT to be within [${[startAsBigNumber, finishAsBigNumber]}]`,
+        [startAsBigNumber, finishAsBigNumber],
+        expectedAsBigNumber
       );
     } else {
       _super.apply(this, args);

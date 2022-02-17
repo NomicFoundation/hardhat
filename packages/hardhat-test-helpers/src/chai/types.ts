@@ -29,6 +29,10 @@ declare namespace Chai {
     calledOnContractWith(contract: any, parameters: any[]): void;
   }
 
+  interface NumericComparison {
+    within(start: any, finish: any, message?: string): Assertion;
+  }
+
   interface NumberComparer {
     (value: any, message?: string): Assertion;
   }
