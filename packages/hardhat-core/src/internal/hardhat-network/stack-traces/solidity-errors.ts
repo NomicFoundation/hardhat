@@ -123,15 +123,8 @@ function encodeStackTraceEntry(
     case StackTraceEntryType.CALL_FAILED_ERROR:
     case StackTraceEntryType.DIRECT_LIBRARY_CALL_ERROR:
     case StackTraceEntryType.UNMAPPED_SOLC_0_6_3_REVERT_ERROR:
-      return sourceReferenceToSolidityCallsite(stackTraceEntry.sourceReference);
-
     case StackTraceEntryType.UNRECOGNIZED_CREATE_CALLSTACK_ENTRY:
-      return new SolidityCallSite(
-        undefined,
-        UNRECOGNIZED_CONTRACT_NAME,
-        CONSTRUCTOR_FUNCTION_NAME,
-        undefined
-      );
+      break;
 
     case StackTraceEntryType.UNRECOGNIZED_CONTRACT_CALLSTACK_ENTRY:
       return new SolidityCallSite(
@@ -150,12 +143,7 @@ function encodeStackTraceEntry(
       );
 
     case StackTraceEntryType.UNRECOGNIZED_CREATE_ERROR:
-      return new SolidityCallSite(
-        undefined,
-        UNRECOGNIZED_CONTRACT_NAME,
-        CONSTRUCTOR_FUNCTION_NAME,
-        undefined
-      );
+      break;
 
     case StackTraceEntryType.UNRECOGNIZED_CONTRACT_ERROR:
       return new SolidityCallSite(
@@ -173,19 +161,6 @@ function encodeStackTraceEntry(
         undefined
       );
     case StackTraceEntryType.CONTRACT_CALL_RUN_OUT_OF_GAS_ERROR:
-      if (stackTraceEntry.sourceReference !== undefined) {
-        return sourceReferenceToSolidityCallsite(
-          stackTraceEntry.sourceReference
-        );
-      }
-
-      return new SolidityCallSite(
-        undefined,
-        UNRECOGNIZED_CONTRACT_NAME,
-        UNKNOWN_FUNCTION_NAME,
-        undefined
-      );
-
     case StackTraceEntryType.OTHER_EXECUTION_ERROR:
     case StackTraceEntryType.CONTRACT_TOO_LARGE_ERROR:
       if (stackTraceEntry.sourceReference === undefined) {
@@ -196,8 +171,17 @@ function encodeStackTraceEntry(
           undefined
         );
       }
+  }
 
-      return sourceReferenceToSolidityCallsite(stackTraceEntry.sourceReference);
+  if (stackTraceEntry.sourceReference) {
+    return sourceReferenceToSolidityCallsite(stackTraceEntry.sourceReference);
+  } else {
+    return new SolidityCallSite(
+      undefined,
+      UNRECOGNIZED_CONTRACT_NAME,
+      UNKNOWN_FUNCTION_NAME,
+      undefined
+    );
   }
 }
 
@@ -271,7 +255,12 @@ function getMessageFromLastStackTraceEntry(
       }
 
       if (!stackTraceEntry.message.isEmpty()) {
-        return `VM Exception while processing transaction: reverted with an unrecognized custom error`;
+        const selector = stackTraceEntry.message.getSelector();
+        let errorMessage = `VM Exception while processing transaction: reverted with an unrecognized custom error`;
+        if (selector !== undefined) {
+          errorMessage += ` with selector ${selector}`;
+        }
+        return errorMessage;
       }
 
       if (stackTraceEntry.isInvalidOpcodeError) {
