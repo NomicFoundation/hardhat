@@ -124,7 +124,15 @@ function encodeStackTraceEntry(
     case StackTraceEntryType.DIRECT_LIBRARY_CALL_ERROR:
     case StackTraceEntryType.UNMAPPED_SOLC_0_6_3_REVERT_ERROR:
     case StackTraceEntryType.CONTRACT_TOO_LARGE_ERROR:
-      return sourceReferenceToSolidityCallsite(stackTraceEntry.sourceReference);
+      if (stackTraceEntry.sourceReference) {
+        return sourceReferenceToSolidityCallsite(stackTraceEntry.sourceReference);
+      }
+      return new SolidityCallSite(
+        undefined,
+        UNRECOGNIZED_CONTRACT_NAME,
+        UNKNOWN_FUNCTION_NAME,
+        undefined
+      );
 
     case StackTraceEntryType.UNRECOGNIZED_CREATE_CALLSTACK_ENTRY:
       return new SolidityCallSite(
