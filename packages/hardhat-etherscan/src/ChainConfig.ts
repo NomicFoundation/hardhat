@@ -180,7 +180,7 @@ export const chainConfig: ChainConfig = {
   auroraTestnet: {
     chainId: 1313161555,
     urls: {
-      apiURL: "https://api-testnet.aurora.dev/api",
+      apiURL: "https://api-testnet.aurorascan.dev/api",
       browserURL: "https://testnet.aurorascan.dev",
     },
   },
