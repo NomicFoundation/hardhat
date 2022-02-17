@@ -129,70 +129,65 @@ describe('UNIT: BigNumber matchers', () => {
     });
   });
 
+  function checkAllWith3Args(
+    a: number,
+    b: number,
+    c: number,
+    test: (
+      a: number | string | BigNumber | BN,
+      b: number | string | BigNumber | BN,
+      c: number | string | BigNumber | BN
+    ) => void
+  ) {
+    const conversions = [
+      (n: number) => n,
+      (n: number) => BigNumber.from(n),
+      (n: number) => new BN(n),
+    ];
+    for (const convertA of conversions) {
+      for (const convertB of conversions) {
+        for (const convertC of conversions) {
+          test(convertA(a), convertB(b), convertC(c));
+        }
+      }
+    }
+  }
+
   describe('within', () => {
     it('.to.be.within', () => {
-      expect(BigNumber.from(100)).to.be.within(BigNumber.from(99), BigNumber.from(101));
+      checkAllWith3Args(100, 99, 101, (a, b, c) => expect(a).to.be.within(b, c));
     });
 
     it('.not.to.be.within', () => {
-      expect(BigNumber.from(100)).not.to.be.within(BigNumber.from(101), BigNumber.from(102));
-      expect(BigNumber.from(100)).not.to.be.within(BigNumber.from(98), BigNumber.from(99));
+      checkAllWith3Args(100, 101, 102, (a, b, c) => expect(a).not.to.be.within(b, c));
+      checkAllWith3Args(100, 98, 99, (a, b, c) => expect(a).not.to.be.within(b, c));
     });
 
     it('expect to throw on error', () => {
-      expect(() => expect(BigNumber.from(100)).to.be.within(BigNumber.from(80), BigNumber.from(90))).to.throw(
-        AssertionError,
-        'Expected "100" to be within [80,90]'
-      );
-      expect(() => expect(BigNumber.from(100)).not.to.be.within(BigNumber.from(99), BigNumber.from(101))).to.throw(
-        AssertionError,
-        'Expected "100" NOT to be within [99,101]'
-      );
+      expect(
+        () => checkAllWith3Args(100, 80, 90, (a, b, c) => expect(a).to.be.within(b, c))
+      ).to.throw(AssertionError, "expected 100 to be within 80..90");
+      expect(
+        () => checkAllWith3Args(100, 99, 101, (a, b, c) => expect(a).not.to.be.within(b, c))
+      ).to.throw(AssertionError, "expected 100 to not be within 99..101");
     });
   });
 
   describe('closeTo', () => {
-    function checkAllCloseTo(
-      actual: number,
-      expected: number,
-      delta: number,
-      test: (
-        actual: number | string | BigNumber | BN,
-        expected: number | string | BigNumber | BN,
-        delta: number | string | BigNumber | BN
-      ) => void
-    ) {
-      const conversions = [
-        (n: number) => n,
-        (n: number) => BigNumber.from(n),
-        (n: number) => new BN(n),
-      ];
-      for (const convertActual of conversions) {
-        for (const convertExpected of conversions) {
-          for (const convertDelta of conversions) {
-            test(
-              convertActual(actual),
-              convertExpected(expected),
-              convertDelta(delta)
-            );
-          }
-        }
-      }
-    }
     it('.to.be.closeTo', () => {
-      checkAllCloseTo(100, 101, 10, (a, e, d) => expect(a).to.be.closeTo(e, d));
+      checkAllWith3Args(100, 101, 10, (a, b, c) => expect(a).to.be.closeTo(b, c));
     });
 
     it('.not.to.be.closeTo', () => {
-      checkAllCloseTo(100, 111, 10, (a, e, d) => expect(a).to.not.be.closeTo(e, d));
+      checkAllWith3Args(100, 111, 10, (a, b, c) => expect(a).to.not.be.closeTo(b, c));
     });
 
     it('expect to throw on error', () => {
       expect(
-        () => checkAllCloseTo(100, 111, 10, (a, e, d) => expect(a).to.be.closeTo(e, d))
+        () => checkAllWith3Args(100, 111, 10, (a, b, c) => expect(a).to.be.closeTo(b, c))
       ).to.throw(AssertionError, "expected 100 to be close to 111 +/- 10");
       expect(
-        () => checkAllCloseTo(100, 101, 10, (a, e, d) => expect(a).not.to.be.closeTo(e, d))
+        () => checkAllWith3Args(100, 101, 10, (a, b, c) => expect(a).not.to.be.closeTo(b, c))
       ).to.throw(AssertionError, "expected 100 not to be close to 101");
     });
   });
