@@ -68,25 +68,9 @@ function overwriteBigNumberFunction(
       _super.apply(this, [actual.toNumber()]);
       return;
     }
-    if (BigNumber.isBigNumber(expected) || BigNumber.isBigNumber(actual) || BN.isBN(expected) || BN.isBN(actual)) {
-      const expectedAsBigNumber = (() => {
-        if (BigNumber.isBigNumber(expected)) {
-          return expected;
-        } else if (BN.isBN(expected)) {
-          return BigNumber.from(expected.toString());
-        } else {
-          return BigNumber.from(expected)
-        }
-      })();
-      const actualAsBigNumber = (() => {
-        if (BigNumber.isBigNumber(actual)) {
-          return actual;
-        } else if (BN.isBN(actual)) {
-          return BigNumber.from(actual.toString());
-        } else {
-          return BigNumber.from(actual)
-        }
-      })();
+    if (isBigNumber(expected) || isBigNumber(actual)) {
+      const expectedAsBigNumber = normalizeToBigNumber(expected);
+      const actualAsBigNumber = normalizeToBigNumber(actual);
       this.assert(
         BigNumber.from(expectedAsBigNumber)[functionName](actualAsBigNumber),
         `Expected "${expectedAsBigNumber}" to be ${readableName} ${actualAsBigNumber}`,
