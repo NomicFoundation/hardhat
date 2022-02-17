@@ -134,9 +134,9 @@ describe('UNIT: BigNumber matchers', () => {
     b: number,
     c: number,
     test: (
-      a: number | string | BigNumber | BN,
-      b: number | string | BigNumber | BN,
-      c: number | string | BigNumber | BN
+      a: number | BigNumber | BN,
+      b: number | BigNumber | BN,
+      c: number | BigNumber | BN
     ) => void
   ) {
     const conversions = [
