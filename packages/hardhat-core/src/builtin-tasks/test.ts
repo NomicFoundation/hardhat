@@ -118,7 +118,7 @@ task(TASK_TEST, "Runs mocha tests")
   .addFlag("noCompile", "Don't compile before running this task")
   .addFlag("parallel", "Run tests in parallel")
   .addFlag("bail", "Stop running tests after the first test failure")
-  .addOptionalParam("grep", "Only run tests matching the given regexp")
+  .addOptionalParam("grep", "Only run tests matching the given string or regexp")
   .setAction(
     async (
       {
