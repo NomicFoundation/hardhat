@@ -8,9 +8,11 @@ describe("test suite 2", function () {
 
     // send a tx to increase the block number
     const [a] = await network.provider.send("eth_accounts");
-    await network.provider.send("eth_sendTransaction", [{
-      from: a,
-      to: a,
-    }])
+    await network.provider.send("eth_sendTransaction", [
+      {
+        from: a,
+        to: a,
+      },
+    ]);
   });
 });

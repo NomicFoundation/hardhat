@@ -1,5 +1,3 @@
-import type { Response } from "node-fetch";
-
 import { EventEmitter } from "events";
 import { Dispatcher, Pool } from "undici";
 
