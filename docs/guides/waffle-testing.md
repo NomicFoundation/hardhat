@@ -137,7 +137,7 @@ Most of the time, running your tests serially or in parallel should produce the 
 
 - In serial mode, all the test files share the same instance of the [Hardhat Runtime Environment](/advanced/hardhat-runtime-environment.html), but in parallel mode each test file will have its own fresh instance. For example, if one test file deploys a contract, then that deployment won't exist when running the other test files.
 - The `.only` modifier doesn't work in parallel mode. As an alternative, you can use [`--grep`](https://mochajs.org/#-grep-regexp-g-regexp) to run specific tests.
-- The duration of individual tests might be different, because parallel mode uses more system resources. There's a chance that some tests start timing out for that reason. You can increase the tests timeout if you run into this problem.
+- Because parallel mode uses more system resources, the duration of individual tests might be longer, so there's a chance that some tests start timing out for that reason. If you run into this problem, you can increase the tests timeout in the [Mocha section of your Hardhat config](/config/#mocha-configuration) or using [`this.timeout()`](https://mochajs.org/#timeouts) in your tests.
 - The order in which tests are executed is non-deterministic.
 
 There are some other limitations related to parallel mode. You can read more about them in [Mocha's docs](https://mochajs.org/#parallel-tests). And if you are running into some issue when using parallel mode, you can check their [Troubleshooting parallel mode](https://mochajs.org/#troubleshooting-parallel-mode) section.
