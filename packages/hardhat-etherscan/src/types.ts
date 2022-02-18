@@ -31,7 +31,10 @@ type Chain =
   | "moonbaseAlpha"
   // xdai
   | "xdai"
-  | "sokol";
+  | "sokol"
+  // aurora
+  | "aurora"
+  | "auroraTestnet";
 
 export type ChainConfig = {
   [Network in Chain]: EtherscanChainConfig;
