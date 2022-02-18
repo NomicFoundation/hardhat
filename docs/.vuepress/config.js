@@ -101,6 +101,7 @@ module.exports = {
             ["/guides/compile-contracts.md", "Compiling your contracts", 0],
             ["/guides/waffle-testing.md", "Testing with ethers.js & Waffle", 0],
             ["/guides/truffle-testing.md", "Testing with Web3.js & Truffle", 0],
+            ["/guides/parallel-tests.md", "Running tests in parallel", 0],
             ["/guides/truffle-migration.md", "Migrating from Truffle", 0],
             ["/guides/deploying.md", "Deploying your contracts", 0],
             ["/guides/scripts.md", "Writing scripts", 0],
