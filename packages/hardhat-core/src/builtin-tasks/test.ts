@@ -58,12 +58,7 @@ subtask(TASK_TEST_RUN_MOCHA_TESTS)
   )
   .setAction(
     async (
-      {
-        bail,
-        parallel,
-        testFiles,
-        grep,
-      }: {
+      taskArgs: {
         bail: boolean;
         parallel: boolean;
         testFiles: string[];
@@ -75,13 +70,17 @@ subtask(TASK_TEST_RUN_MOCHA_TESTS)
 
       const mochaConfig: MochaOptions = {
         ...config.mocha,
-        bail,
-        grep,
+        grep: taskArgs.grep,
       };
 
-      if (parallel) {
+      if (taskArgs.bail) {
+        mochaConfig.bail = true;
+      }
+      if (taskArgs.parallel) {
         mochaConfig.parallel = true;
+      }
 
+      if (mochaConfig.parallel === true) {
         const mochaRequire = mochaConfig.require ?? [];
         if (!mochaRequire.includes("hardhat/register")) {
           mochaRequire.push("hardhat/register");
@@ -90,7 +89,7 @@ subtask(TASK_TEST_RUN_MOCHA_TESTS)
       }
 
       const mocha = new Mocha(mochaConfig);
-      testFiles.forEach((file) => mocha.addFile(file));
+      taskArgs.testFiles.forEach((file) => mocha.addFile(file));
 
       const testFailures = await new Promise<number>((resolve) => {
         mocha.run(resolve);
