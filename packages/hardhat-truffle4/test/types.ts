@@ -1,4 +1,4 @@
-import { artifacts } from "hardhat";
+import { Artifacts } from "hardhat/types/artifacts";
 
 type Dummy = unknown;
 
@@ -10,10 +10,10 @@ type Equals<X, Y> = (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y
   ? true
   : false;
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
-type Assert<_ extends true> = void;
+declare function assert<A>(a: A): void;
+declare const dummyArtifacts: Artifacts;
 
-// assert Artifacts can be extended
+// end of test helpers
 
 declare module "hardhat/types/artifacts" {
   export interface Artifacts {
@@ -21,12 +21,11 @@ declare module "hardhat/types/artifacts" {
   }
 }
 
-const ierc20Artifact = artifacts.require("IERC20");
-const unknownArtifact = artifacts.require("UnknownArtifact");
+// doesn't get called, only typechecks
+export function test() {
+  const ierc20Artifact = dummyArtifacts.require("IERC20");
+  const unknownArtifact = dummyArtifacts.require("UnknownArtifact");
 
-export type AssertIERC20TypeIsNotAny = Assert<
-  Equals<IERC20Contract, typeof ierc20Artifact>
->;
-export type AssertUnknownArtifactTypeIsAny = Assert<
-  Equals<any, typeof unknownArtifact>
->;
+  assert<Equals<IERC20Contract, typeof ierc20Artifact>>(true);
+  assert<Equals<any, typeof unknownArtifact>>(true);
+}
