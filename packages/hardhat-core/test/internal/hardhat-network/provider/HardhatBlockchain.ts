@@ -1,4 +1,5 @@
 import { Block } from "@ethereumjs/block";
+import Common from "@ethereumjs/common";
 import { assert } from "chai";
 import { BN, BufferLike, zeros } from "ethereumjs-util";
 
@@ -25,7 +26,7 @@ describe("HardhatBlockchain", () => {
   }
 
   beforeEach(() => {
-    blockchain = new HardhatBlockchain();
+    blockchain = new HardhatBlockchain(new Common({ chain: "mainnet" }));
     blocks = [];
   });
 
@@ -41,7 +42,7 @@ describe("HardhatBlockchain", () => {
       await assert.isRejected(
         blockchain.getLatestBlock(),
         Error,
-        "No block available"
+        "Block not found"
       );
     });
   });

@@ -152,9 +152,9 @@ describe("HardhatNode", () => {
 
     describe("basic tests", () => {
       it("can mine an empty block", async () => {
-        const beforeBlock = await node.getLatestBlockNumber();
+        const beforeBlock = node.getLatestBlockNumber();
         await node.mineBlock();
-        const currentBlock = await node.getLatestBlockNumber();
+        const currentBlock = node.getLatestBlockNumber();
         assert.equal(currentBlock.toString(), beforeBlock.addn(1).toString());
       });
 
@@ -795,6 +795,124 @@ describe("HardhatNode", () => {
     }
   });
 
+  describe("mineBlocks", function () {
+    it("shouldn't break getLatestBlock()", async function () {
+      const previousLatestBlockNumber = node.getLatestBlockNumber();
+      await node.mineBlocks(new BN(10));
+      const latestBlock = await node.getLatestBlock();
+      assert.equal(
+        latestBlock.header.number.toString(),
+        previousLatestBlockNumber.addn(10).toString()
+      );
+    });
+
+    it("shouldn't break getLatestBlockNumber()", async function () {
+      const previousLatestBlockNumber = node.getLatestBlockNumber();
+      await node.mineBlocks(new BN(10));
+      const latestBlockNumber = node.getLatestBlockNumber();
+      assert.equal(
+        latestBlockNumber.toString(),
+        previousLatestBlockNumber.addn(10).toString()
+      );
+    });
+
+    describe("shouldn't break snapshotting", async function () {
+      it("when doing mineBlocks() before a snapshot", async function () {
+        await node.mineBlocks(new BN(10));
+
+        const latestBlockNumberBeforeSnapshot = node.getLatestBlockNumber();
+
+        const snapshotId = await node.takeSnapshot();
+        await node.sendTransaction(
+          createTestTransaction({
+            from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+            to: Address.fromString(
+              "0x1111111111111111111111111111111111111111"
+            ),
+            gasLimit: 21000,
+          })
+        );
+        await node.mineBlocks(new BN(1));
+
+        await node.revertToSnapshot(snapshotId);
+
+        assert.equal(
+          node.getLatestBlockNumber().toString(),
+          latestBlockNumberBeforeSnapshot.toString()
+        );
+      });
+
+      it("when doing mineBlocks() after a snapshot", async function () {
+        const originalLatestBlockNumber = node.getLatestBlockNumber();
+        await node.sendTransaction(
+          createTestTransaction({
+            from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+            to: Address.fromString(
+              "0x1111111111111111111111111111111111111111"
+            ),
+            gasLimit: 21000,
+          })
+        );
+
+        const latestBlockNumberBeforeSnapshot = node.getLatestBlockNumber();
+        assert.equal(
+          latestBlockNumberBeforeSnapshot.toString(),
+          originalLatestBlockNumber.toString()
+        );
+
+        const snapshotId = await node.takeSnapshot();
+        assert.equal(
+          node.getLatestBlockNumber().toString(),
+          originalLatestBlockNumber.toString()
+        );
+
+        await node.mineBlocks(new BN(10));
+        assert.equal(
+          node.getLatestBlockNumber().toString(),
+          latestBlockNumberBeforeSnapshot.addn(10).toString()
+        );
+
+        await node.revertToSnapshot(snapshotId);
+
+        assert.equal(
+          node.getLatestBlockNumber().toString(),
+          latestBlockNumberBeforeSnapshot.toString()
+        );
+      });
+    });
+  });
+
+  /** execute a call to method Hello() on contract HelloWorld, deployed to
+   * mainnet years ago, which should return a string, "Hello World". */
+  async function runCall(
+    gasParams: { gasPrice?: BN; maxFeePerGas?: BN },
+    block: number,
+    targetNode: HardhatNode
+  ): Promise<string> {
+    const contractInterface = new ethers.utils.Interface([
+      "function Hello() public pure returns (string)",
+    ]);
+
+    const callOpts = {
+      to: toBuffer("0xe36613A299bA695aBA8D0c0011FCe95e681f6dD3"),
+      from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
+      value: new BN(0),
+      data: toBuffer(contractInterface.encodeFunctionData("Hello", [])),
+      gasLimit: new BN(1_000_000),
+    };
+
+    function decodeResult(runCallResult: RunCallResult) {
+      return contractInterface.decodeFunctionResult(
+        "Hello",
+        bufferToHex(runCallResult.result.value)
+      )[0];
+    }
+
+    return decodeResult(
+      await targetNode.runCall({ ...callOpts, ...gasParams }, new BN(block))
+    );
+  }
+
   describe("should run calls in the right hardfork context", async function () {
     this.timeout(10000);
     before(function () {
@@ -829,37 +947,6 @@ describe("HardhatNode", () => {
       mempoolOrder: "priority",
       coinbase: "0x0000000000000000000000000000000000000000",
     };
-
-    /** execute a call to method Hello() on contract HelloWorld, deployed to
-     * mainnet years ago, which should return a string, "Hello World". */
-    async function runCall(
-      gasParams: { gasPrice?: BN; maxFeePerGas?: BN },
-      block: number,
-      targetNode: HardhatNode
-    ): Promise<string> {
-      const contractInterface = new ethers.utils.Interface([
-        "function Hello() public pure returns (string)",
-      ]);
-
-      const callOpts = {
-        to: toBuffer("0xe36613A299bA695aBA8D0c0011FCe95e681f6dD3"),
-        from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
-        value: new BN(0),
-        data: toBuffer(contractInterface.encodeFunctionData("Hello", [])),
-        gasLimit: new BN(1_000_000),
-      };
-
-      function decodeResult(runCallResult: RunCallResult) {
-        return contractInterface.decodeFunctionResult(
-          "Hello",
-          bufferToHex(runCallResult.result.value)
-        )[0];
-      }
-
-      return decodeResult(
-        await targetNode.runCall({ ...callOpts, ...gasParams }, new BN(block))
-      );
-    }
 
     describe("when forking with a default hardfork activation history", function () {
       let hardhatNode: HardhatNode;
@@ -1001,6 +1088,45 @@ describe("HardhatNode", () => {
         }, /node was not configured with a hardfork activation history/);
       });
     });
+  });
+
+  it("should support a historical call in the context of a block added via mineBlocks()", async function () {
+    if (ALCHEMY_URL === undefined) {
+      this.skip();
+      return;
+    }
+    const nodeConfig: ForkedNodeConfig = {
+      automine: true,
+      networkName: "mainnet",
+      chainId: 1,
+      networkId: 1,
+      hardfork: "london",
+      forkConfig: {
+        jsonRpcUrl: ALCHEMY_URL,
+        blockNumber: 12965000, // eip1559ActivationBlock
+      },
+      forkCachePath: FORK_TESTS_CACHE_PATH,
+      blockGasLimit: 1_000_000,
+      minGasPrice: new BN(0),
+      genesisAccounts: [],
+      chains: defaultHardhatNetworkParams.chains,
+      mempoolOrder: "priority",
+      coinbase: "0x0000000000000000000000000000000000000000",
+    };
+    const [, hardhatNode] = await HardhatNode.create(nodeConfig);
+
+    const oldLatestBlockNumber = hardhatNode.getLatestBlockNumber();
+
+    await hardhatNode.mineBlocks(new BN(100));
+
+    assert.equal(
+      "Hello World",
+      await runCall(
+        { maxFeePerGas: new BN(0) },
+        oldLatestBlockNumber.addn(50).toNumber(),
+        hardhatNode
+      )
+    );
   });
 });
 
