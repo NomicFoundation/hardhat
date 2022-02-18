@@ -135,7 +135,7 @@ $ npx hardhat test --parallel
 
 Most of the time, running your tests serially or in parallel should produce the same results, but there are some scenarios where tests run in parallel will behave differently:
 
-- In serial mode, all the test files share the same instance of the [Hardhat Runtime Environment](/advanced/hardhat-runtime-environment.html), but in parallel mode each test file will have its own fresh instance. For example, if one test file deploys a contract, then that contract won't exist in the other test files.
+- In serial mode, all the test files share the same instance of the [Hardhat Runtime Environment](/advanced/hardhat-runtime-environment.html), but in parallel mode each test file will have its own fresh instance. For example, if one test file deploys a contract, then that deployment won't exist when running the other test files.
 - The `.only` modifier doesn't work in parallel mode. You can use [`--grep`](https://mochajs.org/#-grep-regexp-g-regexp) to run specific tests.
 - The duration of individual tests might be different, because parallel mode uses more system resources. There's a chance that some tests start timing out for that reason. You can increase the tests timeout if you run into this problem.
 - The order in which tests are executed is non-deterministic.
