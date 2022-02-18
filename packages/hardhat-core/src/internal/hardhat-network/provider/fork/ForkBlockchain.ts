@@ -9,7 +9,7 @@ import { RpcTransactionReceipt } from "../../../core/jsonrpc/types/output/receip
 import { RpcTransaction } from "../../../core/jsonrpc/types/output/transaction";
 import { InternalError } from "../../../core/providers/errors";
 import { JsonRpcClient } from "../../jsonrpc/client";
-import { BlockchainData } from "../BlockchainData";
+import { BlockchainBase } from "../BlockchainBase";
 import { FilterParams } from "../node-types";
 import {
   remoteReceiptToRpcReceiptOutput,
@@ -29,28 +29,35 @@ import { rpcToTxData } from "./rpcToTxData";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
-export class ForkBlockchain implements HardhatBlockchainInterface {
-  private _data = new BlockchainData();
+export class ForkBlockchain
+  extends BlockchainBase
+  implements HardhatBlockchainInterface
+{
   private _latestBlockNumber = this._forkBlockNumber;
 
   constructor(
     private _jsonRpcClient: JsonRpcClient,
     private _forkBlockNumber: BN,
-    private _common: Common
-  ) {}
+    common: Common
+  ) {
+    super(common);
+  }
 
-  public async getLatestBlock(): Promise<Block> {
-    const block = await this.getBlock(this._latestBlockNumber);
-    if (block === null) {
-      throw new Error("Block not found");
-    }
-    return block;
+  public getLatestBlockNumber(): BN {
+    return this._latestBlockNumber;
   }
 
   public async getBlock(
     blockHashOrNumber: Buffer | number | BN
   ): Promise<Block | null> {
-    let block: Block | undefined;
+    if (
+      (typeof blockHashOrNumber === "number" || BN.isBN(blockHashOrNumber)) &&
+      this._data.isReservedBlock(new BN(blockHashOrNumber))
+    ) {
+      this._data.fulfillBlockReservation(new BN(blockHashOrNumber));
+    }
+
+    let block: Block | undefined | null;
     if (Buffer.isBuffer(blockHashOrNumber)) {
       block = await this._getBlockByHash(blockHashOrNumber);
       return block ?? null;
@@ -63,7 +70,11 @@ export class ForkBlockchain implements HardhatBlockchainInterface {
   public async addBlock(block: Block): Promise<Block> {
     const blockNumber = new BN(block.header.number);
     if (!blockNumber.eq(this._latestBlockNumber.addn(1))) {
-      throw new Error("Invalid block number");
+      throw new Error(
+        `Invalid block number ${blockNumber.toNumber()}. Expected ${this._latestBlockNumber
+          .addn(1)
+          .toNumber()}`
+      );
     }
 
     // When forking a network whose consensus is not the classic PoW,
@@ -82,20 +93,19 @@ export class ForkBlockchain implements HardhatBlockchainInterface {
     return block;
   }
 
-  public async putBlock(block: Block): Promise<void> {
-    await this.addBlock(block);
-  }
-
-  public deleteBlock(blockHash: Buffer) {
-    const block = this._data.getBlockByHash(blockHash);
-    if (block === undefined) {
-      throw new Error("Block not found");
-    }
-    this._delBlock(block);
-  }
-
-  public async delBlock(blockHash: Buffer) {
-    this.deleteBlock(blockHash);
+  public reserveBlocks(
+    count: BN,
+    interval: BN,
+    previousBlockStateRoot: Buffer,
+    previousBlockTotalDifficulty: BN
+  ) {
+    super.reserveBlocks(
+      count,
+      interval,
+      previousBlockStateRoot,
+      previousBlockTotalDifficulty
+    );
+    this._latestBlockNumber = this._latestBlockNumber.add(count);
   }
 
   public deleteLaterBlocks(block: Block): void {
@@ -109,10 +119,8 @@ export class ForkBlockchain implements HardhatBlockchainInterface {
     if (this._forkBlockNumber.gte(nextBlockNumber)) {
       throw new Error("Cannot delete remote block");
     }
-    const nextBlock = this._data.getBlockByNumber(nextBlockNumber);
-    if (nextBlock !== undefined) {
-      return this._delBlock(nextBlock);
-    }
+
+    this._delBlock(nextBlockNumber);
   }
 
   public async getTotalDifficulty(blockHash: Buffer): Promise<BN> {
@@ -142,12 +150,6 @@ export class ForkBlockchain implements HardhatBlockchainInterface {
       return this._processRemoteTransaction(remote);
     }
     return tx;
-  }
-
-  public getLocalTransaction(
-    transactionHash: Buffer
-  ): TypedTransaction | undefined {
-    return this._data.getTransaction(transactionHash);
   }
 
   public async getBlockByTransactionHash(
@@ -185,12 +187,6 @@ export class ForkBlockchain implements HardhatBlockchainInterface {
     return null;
   }
 
-  public addTransactionReceipts(receipts: RpcReceiptOutput[]) {
-    for (const receipt of receipts) {
-      this._data.addTransactionReceipt(receipt);
-    }
-  }
-
   public getForkBlockNumber() {
     return this._forkBlockNumber;
   }
@@ -220,18 +216,6 @@ export class ForkBlockchain implements HardhatBlockchainInterface {
     return this._data.getLogs(filterParams);
   }
 
-  public iterator(
-    _name: string,
-    _onBlock: (block: Block, reorg: boolean) => void | Promise<void>
-  ): Promise<number | void> {
-    throw new Error("Method not implemented.");
-  }
-
-  public async getBaseFee(): Promise<BN> {
-    const latestBlock = await this.getLatestBlock();
-    return latestBlock.header.calcNextBaseFee();
-  }
-
   private async _getBlockByHash(blockHash: Buffer) {
     const block = this._data.getBlockByHash(blockHash);
     if (block !== undefined) {
@@ -245,8 +229,8 @@ export class ForkBlockchain implements HardhatBlockchainInterface {
     if (blockNumber.gt(this._latestBlockNumber)) {
       return undefined;
     }
-    const block = this._data.getBlockByNumber(blockNumber);
-    if (block !== undefined) {
+    const block = await super.getBlock(blockNumber);
+    if (block !== null) {
       return block;
     }
     const rpcBlock = await this._jsonRpcClient.getBlockByNumber(
@@ -319,41 +303,12 @@ export class ForkBlockchain implements HardhatBlockchainInterface {
     return block;
   }
 
-  private async _computeTotalDifficulty(block: Block): Promise<BN> {
-    const difficulty = new BN(block.header.difficulty);
-    const blockNumber = new BN(block.header.number);
-    if (blockNumber.eqn(0)) {
-      return difficulty;
-    }
-
-    const parentBlock =
-      this._data.getBlockByNumber(blockNumber.subn(1)) ??
-      (await this.getBlock(blockNumber.subn(1)));
-    if (parentBlock === null) {
-      throw new Error("Block not found");
-    }
-    const parentHash = parentBlock.hash();
-    const parentTD = this._data.getTotalDifficulty(parentHash);
-    if (parentTD === undefined) {
-      throw new Error("This should never happen");
-    }
-    return parentTD.add(difficulty);
-  }
-
-  private _delBlock(block: Block): void {
-    if (new BN(block.header.number).lte(this._forkBlockNumber)) {
+  protected _delBlock(blockNumber: BN): void {
+    if (blockNumber.lte(this._forkBlockNumber)) {
       throw new Error("Cannot delete remote block");
     }
-
-    const blockNumber = block.header.number.toNumber();
-    for (let i = blockNumber; this._latestBlockNumber.gten(i); i++) {
-      const current = this._data.getBlockByNumber(new BN(i));
-      if (current !== undefined) {
-        this._data.removeBlock(current);
-      }
-    }
-
-    this._latestBlockNumber = new BN(blockNumber).subn(1);
+    super._delBlock(blockNumber);
+    this._latestBlockNumber = blockNumber.subn(1);
   }
 
   private _processRemoteTransaction(rpcTransaction: RpcTransaction | null) {

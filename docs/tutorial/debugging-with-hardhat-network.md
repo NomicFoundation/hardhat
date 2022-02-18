@@ -4,7 +4,7 @@
 
 ## Solidity `console.log`
 
-When running your contracts and tests on **Hardhat Network** you can print logging messages and contract variables calling `console.log()` from your Solidity code. To use it you have to import **Hardhat**'s`console.log` from your contract code.
+When running your contracts and tests on **Hardhat Network** you can print logging messages and contract variables calling `console.log()` from your Solidity code. To use it you have to import `hardhat/console.sol` from your contract code.
 
 This is what it looks like:
 

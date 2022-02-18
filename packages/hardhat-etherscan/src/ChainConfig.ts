@@ -170,4 +170,18 @@ export const chainConfig: ChainConfig = {
       browserURL: "https://blockscout.com/poa/sokol",
     },
   },
+  aurora: {
+    chainId: 1313161554,
+    urls: {
+      apiURL: "https://api.aurorascan.dev/api",
+      browserURL: "https://aurorascan.dev/",
+    },
+  },
+  auroraTestnet: {
+    chainId: 1313161555,
+    urls: {
+      apiURL: "https://api-testnet.aurorascan.dev/api",
+      browserURL: "https://testnet.aurorascan.dev",
+    },
+  },
 };
