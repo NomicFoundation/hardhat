@@ -46,7 +46,10 @@ subtask(TASK_TEST_SETUP_TEST_ENVIRONMENT, async () => {});
 subtask(TASK_TEST_RUN_MOCHA_TESTS)
   .addFlag("parallel", "Run tests in parallel")
   .addFlag("bail", "Stop running tests after the first test failure")
-  .addOptionalParam("grep", "Only run tests matching the given string or regexp")
+  .addOptionalParam(
+    "grep",
+    "Only run tests matching the given string or regexp"
+  )
   .addOptionalVariadicPositionalParam(
     "testFiles",
     "An optional list of files to test",
@@ -118,7 +121,10 @@ task(TASK_TEST, "Runs mocha tests")
   .addFlag("noCompile", "Don't compile before running this task")
   .addFlag("parallel", "Run tests in parallel")
   .addFlag("bail", "Stop running tests after the first test failure")
-  .addOptionalParam("grep", "Only run tests matching the given string or regexp")
+  .addOptionalParam(
+    "grep",
+    "Only run tests matching the given string or regexp"
+  )
   .setAction(
     async (
       {
