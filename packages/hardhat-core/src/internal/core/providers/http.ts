@@ -1,5 +1,6 @@
-import { EventEmitter } from "events";
 import type { Response } from "node-fetch";
+
+import { EventEmitter } from "events";
 
 import { EIP1193Provider, RequestArguments } from "../../../types";
 import {
