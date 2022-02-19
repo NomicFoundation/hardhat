@@ -1,5 +1,6 @@
 import {expect, AssertionError, use} from 'chai';
-import {BigNumber} from 'ethers';
+import { BigNumber as BigNumberEthers } from 'ethers';
+import { BigNumber as BigNumberJs } from "bignumber.js";
 import BN from "bn.js";
 
 import { bnChai } from "../../../src/chai/matchers/bnChai";
@@ -10,13 +11,17 @@ describe('UNIT: BigNumber matchers', () => {
   function checkAll(
     actual: number,
     expected: number,
-    test: (actual: number | string | BigNumber | BN, expected: number | string | BigNumber | BN) => void
+    test: (
+      actual: number | string | BigNumberEthers | BigNumberJs | BN,
+      expected: number | string | BigNumberEthers | BigNumberJs | BN
+    ) => void
   ) {
     const conversions = [
       (n: number) => n,
       (n: number) => n.toString(),
-      (n: number) => BigNumber.from(n),
+      (n: number) => BigNumberEthers.from(n),
       (n: number) => new BN(n),
+      (n: number) => new BigNumberJs(n),
     ];
     for (const convertActual of conversions) {
       for (const convertExpected of conversions) {
@@ -25,8 +30,9 @@ describe('UNIT: BigNumber matchers', () => {
         // a few particular combinations of types don't work:
         if (
           typeof convertedActual === "string" &&
-          !BigNumber.isBigNumber(convertedExpected) &&
-          !BN.isBN(convertedExpected)
+          !BigNumberEthers.isBigNumber(convertedExpected) &&
+          !BN.isBN(convertedExpected) &&
+          !BigNumberJs.isBigNumber(convertedExpected)
         ) {
           continue;
         }
@@ -59,7 +65,7 @@ describe('UNIT: BigNumber matchers', () => {
     });
 
     it('throws proper message on error', () => {
-      expect(() => expect(BigNumber.from(10)).to.equal(11)).to.throw(AssertionError, 'Expected "10" to be equal 11');
+      expect(() => expect(BigNumberEthers.from(10)).to.equal(11)).to.throw(AssertionError, 'Expected "10" to be equal 11');
     });
   });
 
@@ -148,14 +154,15 @@ describe('UNIT: BigNumber matchers', () => {
     b: number,
     c: number,
     test: (
-      a: number | BigNumber | BN,
-      b: number | BigNumber | BN,
-      c: number | BigNumber | BN
+      a: number | BigNumberEthers | BigNumberJs | BN,
+      b: number | BigNumberEthers | BigNumberJs | BN,
+      c: number | BigNumberEthers | BigNumberJs | BN
     ) => void
   ) {
     const conversions = [
       (n: number) => n,
-      (n: number) => BigNumber.from(n),
+      (n: number) => BigNumberEthers.from(n),
+      (n: number) => new BigNumberJs(n),
       (n: number) => new BN(n),
     ];
     for (const convertA of conversions) {

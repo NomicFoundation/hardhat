@@ -58,6 +58,7 @@
     "hardhat": "^2.0.0"
   },
   "dependencies": {
+    "bignumber.js": "^9.0.2",
     "bn.js": "^5.2.0",
     "ethers": "^5.0.0"
   }
