@@ -120,8 +120,7 @@ module.exports.communityPlugins = [
     name: "hardhat-gas-trackooor",
     author: "d3or",
     authorUrl: "https://github.com/d3or",
-    description:
-      "Simple plugin to track gas on the transaction level.",
+    description: "Simple plugin to track gas on the transaction level.",
     tags: ["Testing", "Gas", "Hardhat plugin"],
   },
   {
