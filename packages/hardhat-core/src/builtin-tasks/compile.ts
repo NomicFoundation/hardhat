@@ -27,7 +27,6 @@ import {
 import { DependencyGraph } from "../internal/solidity/dependencyGraph";
 import { Parser } from "../internal/solidity/parse";
 import { ResolvedFile, Resolver } from "../internal/solidity/resolver";
-import { chunkedPromiseAll } from "../internal/util/chunked-promise-all";
 import { glob } from "../internal/util/glob";
 import { getCompilersDir } from "../internal/util/global-dir";
 import { pluralize } from "../internal/util/strings";
@@ -393,25 +392,30 @@ subtask(TASK_COMPILE_SOLIDITY_COMPILE_JOBS)
         return { artifactsEmittedPerJob: [] };
       }
 
+      const { default: pMap } = await import("p-map");
+
       log(`Compiling ${compilationJobs.length} jobs`);
 
       const versionList: string[] = [];
       for (const job of compilationJobs) {
         const solcVersion = job.getSolcConfig().version;
 
-        // versions older than 0.4.11 don't work with hardhat
-        // see issue https://github.com/nomiclabs/hardhat/issues/2004
-        if (semver.lt(solcVersion, COMPILE_TASK_FIRST_SOLC_VERSION_SUPPORTED)) {
-          throw new HardhatError(
-            ERRORS.BUILTIN_TASKS.COMPILE_TASK_UNSUPPORTED_SOLC_VERSION,
-            {
-              version: solcVersion,
-              firstSupportedVersion: COMPILE_TASK_FIRST_SOLC_VERSION_SUPPORTED,
-            }
-          );
-        }
-
         if (!versionList.includes(solcVersion)) {
+          // versions older than 0.4.11 don't work with hardhat
+          // see issue https://github.com/nomiclabs/hardhat/issues/2004
+          if (
+            semver.lt(solcVersion, COMPILE_TASK_FIRST_SOLC_VERSION_SUPPORTED)
+          ) {
+            throw new HardhatError(
+              ERRORS.BUILTIN_TASKS.COMPILE_TASK_UNSUPPORTED_SOLC_VERSION,
+              {
+                version: solcVersion,
+                firstSupportedVersion:
+                  COMPILE_TASK_FIRST_SOLC_VERSION_SUPPORTED,
+              }
+            );
+          }
+
           versionList.push(solcVersion);
         }
       }
@@ -426,36 +430,41 @@ subtask(TASK_COMPILE_SOLIDITY_COMPILE_JOBS)
       const downloader = new CompilerDownloader(compilersCache);
       await downloader.downloadCompilersList();
 
+      const options = { concurrency: os.cpus().length, stopOnError: false };
       /**
        * This is a pretty hacky solution to avoid a major refactor and/or breaking changes.
        * The hack is the fact that we're just pre-downloading all of the necessary compilers
        * before actually running the job, so all the later code assumes the compiler is already
        * downloaded because if it wasn't then parallel compilation will break.
        */
-      await chunkedPromiseAll(
-        versionList.map((solcVersion) => {
-          return () =>
-            run(TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD, {
-              solcVersion,
-              quiet: false,
-            });
-        }),
-        os.cpus().length
+      const downloadResults = await pMap(
+        versionList,
+        (solcVersion) => {
+          return run(TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD, {
+            solcVersion,
+            quiet: false,
+          });
+        },
+        options
       );
 
-      const results = await chunkedPromiseAll<
-        CompilationSuccess | CompilationFailure
-      >(
-        compilationJobs.map((compilationJob, compilationJobIndex) => {
-          return () =>
-            run(TASK_COMPILE_SOLIDITY_COMPILE_JOB, {
-              compilationJob,
-              compilationJobs,
-              compilationJobIndex,
-              quiet,
-            });
-        }),
-        os.cpus().length
+      if (downloadResults instanceof Error) {
+        // AggregateError of HardhatErrors
+        // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+        throw downloadResults;
+      }
+
+      const results = await pMap(
+        compilationJobs,
+        (compilationJob, compilationJobIndex) => {
+          return run(TASK_COMPILE_SOLIDITY_COMPILE_JOB, {
+            compilationJob,
+            compilationJobs,
+            compilationJobIndex,
+            quiet,
+          });
+        },
+        options
       );
 
       const { compilationSuccesses, compilationFailures } =
