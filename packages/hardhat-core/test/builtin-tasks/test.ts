@@ -38,7 +38,7 @@ describe("test task", function () {
     describe("with the default config", function () {
       useEnvironment();
 
-      it("should fail in serial mode because the HRE is shared between test files", async function () {
+      it("should fail in serial mode", async function () {
         await this.env.run("test", {
           noCompile: true,
         });
@@ -47,7 +47,7 @@ describe("test task", function () {
         (process as any).exitCode = undefined;
       });
 
-      it("should pass in parallel mode because the HRE is not shared between test files", async function () {
+      it("should pass in parallel mode", async function () {
         await this.env.run("test", {
           noCompile: true,
           parallel: true,
