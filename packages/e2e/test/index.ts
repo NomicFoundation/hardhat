@@ -66,6 +66,24 @@ describe("e2e tests", function () {
       const { code: hhCleanCode2 } = shell.exec(`${hardhatBinary} clean`);
       assert.equal(hhCleanCode2, 0);
     });
+
+    it("the test task should accept test files", async function () {
+      // hh clean
+      const { code: hhCleanCode1 } = shell.exec(`${hardhatBinary} clean`);
+      assert.equal(hhCleanCode1, 0);
+
+      // hh test without ./
+      const { code: testRunCode1 } = shell.exec(
+        `${hardhatBinary} test test/simple.js`
+      );
+      assert.equal(testRunCode1, 0);
+
+      // hh test with ./
+      const { code: testRunCode2 } = shell.exec(
+        `${hardhatBinary} test ./test/simple.js`
+      );
+      assert.equal(testRunCode2, 0);
+    });
   });
 
   describe("sample projects", function () {
