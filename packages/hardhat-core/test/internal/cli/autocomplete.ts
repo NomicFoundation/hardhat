@@ -253,7 +253,7 @@ describe("autocomplete", function () {
           name: "--bail",
         },
         {
-          description: "Only run tests matching the given regexp",
+          description: "Only run tests matching the given string or regexp",
           name: "--grep",
         },
       ]);
