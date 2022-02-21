@@ -28,13 +28,19 @@ The address to use as default sender. If not present the first account of the Ha
 
 Its value should be `"auto"` or a number. If a number is used, it will be the gas limit used by default in every transaction. If `"auto"` is used, the gas limit will be automatically estimated. Default value: the same value as `blockGasLimit`.
 
+Note that when using `ethers` this value will not be applied.
+
 #### `gasPrice`
 
 Its value should be `"auto"` or a number (in wei). This parameter behaves like `gas`. Default value: `"auto"`.
 
+Note when when using `ethers` this value will not be applied.
+
 #### `gasMultiplier`
 
 A number used to multiply the results of gas estimation to give it some slack due to the uncertainty of the estimation process. Default value: `1`.
+
+Note that when using `ethers` this value will not be applied.
 
 #### `accounts`
 
