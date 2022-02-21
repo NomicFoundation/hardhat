@@ -34,7 +34,7 @@ Note that when using `ethers` this value will not be applied.
 
 Its value should be `"auto"` or a number (in wei). This parameter behaves like `gas`. Default value: `"auto"`.
 
-Note when when using `ethers` this value will not be applied.
+Note that when using `ethers` this value will not be applied.
 
 #### `gasMultiplier`
 
