@@ -779,7 +779,8 @@ export class ErrorInferrer {
     func: ContractFunction
   ): SourceReference {
     return {
-      file: func.location.file,
+      sourceName: func.location.file.sourceName,
+      sourceContent: func.location.file.content,
       contract: trace.bytecode.contract.name,
       function: func.name,
       line: func.location.getStartingLineNumber(),
@@ -837,7 +838,8 @@ export class ErrorInferrer {
   ): SourceReference {
     const location = trace.bytecode.contract.location;
     return {
-      file: location.file,
+      sourceName: location.file.sourceName,
+      sourceContent: location.file.content,
       contract: trace.bytecode.contract.name,
       line: location.getStartingLineNumber(),
       range: [location.offset, location.offset + location.length],
@@ -882,7 +884,8 @@ export class ErrorInferrer {
     }
 
     return {
-      file: func.location.file,
+      sourceName: func.location.file.sourceName,
+      sourceContent: func.location.file.content,
       contract: trace.bytecode.contract.name,
       function: FALLBACK_FUNCTION_NAME,
       line: func.location.getStartingLineNumber(),
@@ -931,7 +934,8 @@ export class ErrorInferrer {
         : contract.location.getStartingLineNumber();
 
     return {
-      file: contract.location.file,
+      sourceName: contract.location.file.sourceName,
+      sourceContent: contract.location.file.content,
       contract: contract.name,
       function: CONSTRUCTOR_FUNCTION_NAME,
       line,
@@ -1182,7 +1186,8 @@ export class ErrorInferrer {
             sourceReference: {
               contract: trace.bytecode.contract.name,
               function: FALLBACK_FUNCTION_NAME,
-              file: location.file,
+              sourceName: location.file.sourceName,
+              sourceContent: location.file.content,
               line: location.getStartingLineNumber(),
               range: [location.offset, location.offset + location.length],
             },
@@ -1198,7 +1203,8 @@ export class ErrorInferrer {
           sourceReference: {
             contract: trace.bytecode.contract.name,
             function: RECEIVE_FUNCTION_NAME,
-            file: location.file,
+            sourceName: location.file.sourceName,
+            sourceContent: location.file.content,
             line: location.getStartingLineNumber(),
             range: [location.offset, location.offset + location.length],
           },
@@ -1326,7 +1332,8 @@ export class ErrorInferrer {
         const defaultSourceReference: SourceReference = {
           function: CONSTRUCTOR_FUNCTION_NAME,
           contract: trace.bytecode.contract.name,
-          file: location.file,
+          sourceName: location.file.sourceName,
+          sourceContent: location.file.content,
           line: location.getStartingLineNumber(),
           range: [location.offset, location.offset + location.length],
         };
@@ -1398,9 +1405,7 @@ export class ErrorInferrer {
   private _solidity063CorrectLineNumber(
     revertFrame: UnmappedSolc063RevertErrorStackTraceEntry
   ) {
-    const file = revertFrame.sourceReference.file;
-
-    const lines = file.content.split("\n");
+    const lines = revertFrame.sourceReference.sourceContent.split("\n");
 
     const currentLine = lines[revertFrame.sourceReference.line - 1];
 
@@ -1689,7 +1694,8 @@ export function instructionToCallstackStackTraceEntry(
       type: StackTraceEntryType.INTERNAL_FUNCTION_CALLSTACK_ENTRY,
       pc: inst.pc,
       sourceReference: {
-        file: bytecode.contract.location.file,
+        sourceName: bytecode.contract.location.file.sourceName,
+        sourceContent: bytecode.contract.location.file.content,
         contract: bytecode.contract.name,
         function: undefined,
         line: bytecode.contract.location.getStartingLineNumber(),
@@ -1716,7 +1722,8 @@ export function instructionToCallstackStackTraceEntry(
     sourceReference: {
       function: undefined,
       contract: bytecode.contract.name,
-      file: inst.location!.file,
+      sourceName: inst.location!.file.sourceName,
+      sourceContent: inst.location!.file.content,
       line: inst.location!.getStartingLineNumber(),
       range: [
         inst.location!.offset,
@@ -1757,7 +1764,8 @@ function sourceLocationToSourceReference(
       func.type === ContractFunctionType.FREE_FUNCTION
         ? undefined
         : bytecode.contract.name,
-    file: func.location.file,
+    sourceName: func.location.file.sourceName,
+    sourceContent: func.location.file.content,
     line: location.getStartingLineNumber(),
     range: [location.offset, location.offset + location.length],
   };
