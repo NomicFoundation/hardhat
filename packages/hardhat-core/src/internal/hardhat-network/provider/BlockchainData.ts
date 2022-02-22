@@ -1,11 +1,21 @@
 import { Block } from "@ethereumjs/block";
+import Common from "@ethereumjs/common";
 import { TypedTransaction } from "@ethereumjs/tx";
 import Bloom from "@ethereumjs/vm/dist/bloom";
 import { BN, bufferToHex } from "ethereumjs-util";
 
+import { assertHardhatInvariant } from "../../core/errors";
 import { bloomFilter, filterLogs } from "./filter";
 import { FilterParams } from "./node-types";
 import { RpcLogOutput, RpcReceiptOutput } from "./output";
+
+interface Reservation {
+  first: BN;
+  last: BN;
+  interval: BN;
+  previousBlockStateRoot: Buffer;
+  previousBlockTotalDifficulty: BN;
+}
 
 export class BlockchainData {
   private _blocksByNumber: Map<number, Block> = new Map();
@@ -14,6 +24,26 @@ export class BlockchainData {
   private _transactions: Map<string, TypedTransaction> = new Map();
   private _transactionReceipts: Map<string, RpcReceiptOutput> = new Map();
   private _totalDifficulty: Map<string, BN> = new Map();
+  private _blockReservations: Reservation[] = new Array();
+
+  constructor(private _common: Common) {}
+
+  public reserveBlocks(
+    first: BN,
+    count: BN,
+    interval: BN,
+    previousBlockStateRoot: Buffer,
+    previousBlockTotalDifficulty: BN
+  ) {
+    const reservation: Reservation = {
+      first,
+      last: first.add(count.subn(1)),
+      interval,
+      previousBlockStateRoot,
+      previousBlockTotalDifficulty,
+    };
+    this._blockReservations.push(reservation);
+  }
 
   public getBlockByNumber(blockNumber: BN) {
     return this._blocksByNumber.get(blockNumber.toNumber());
@@ -88,6 +118,11 @@ export class BlockchainData {
     }
   }
 
+  /**
+   * WARNING: this method can leave the blockchain in an invalid state where
+   * there are gaps between blocks. Ideally we should have a method that removes
+   * the given block and all the following blocks.
+   */
   public removeBlock(block: Block) {
     const blockHash = bufferToHex(block.hash());
     const blockNumber = new BN(block.header.number).toNumber();
@@ -109,5 +144,114 @@ export class BlockchainData {
 
   public addTransactionReceipt(receipt: RpcReceiptOutput) {
     this._transactionReceipts.set(receipt.transactionHash, receipt);
+  }
+
+  public isReservedBlock(blockNumber: BN): boolean {
+    return this._findBlockReservation(blockNumber) !== -1;
+  }
+
+  private _findBlockReservation(blockNumber: BN): number {
+    return this._blockReservations.findIndex(
+      (reservation) =>
+        reservation.first.lte(blockNumber) && blockNumber.lte(reservation.last)
+    );
+  }
+
+  /**
+   * WARNING: this method only removes the given reservation and can result in
+   * gaps in the reservations array. Ideally we should have a method that
+   * removes the given reservation and all the following reservations.
+   */
+  private _removeReservation(index: number): Reservation {
+    assertHardhatInvariant(
+      index in this._blockReservations,
+      `Reservation ${index} does not exist`
+    );
+    const reservation = this._blockReservations[index];
+
+    this._blockReservations.splice(index, 1);
+
+    return reservation;
+  }
+
+  /**
+   * Cancel and return the reservation that has block `blockNumber`
+   */
+  public cancelReservationWithBlock(blockNumber: BN): Reservation {
+    return this._removeReservation(this._findBlockReservation(blockNumber));
+  }
+
+  public fulfillBlockReservation(blockNumber: BN) {
+    // in addition to adding the given block, the reservation needs to be split
+    // in two in order to accomodate access to the given block.
+
+    const reservationIndex = this._findBlockReservation(blockNumber);
+    assertHardhatInvariant(
+      reservationIndex !== -1,
+      `No reservation to fill for block number ${blockNumber}`
+    );
+
+    // capture the timestamp before removing the reservation:
+    const timestamp = this._calculateTimestampForReservedBlock(blockNumber);
+
+    // split the block reservation:
+    const oldReservation = this._removeReservation(reservationIndex);
+
+    if (!blockNumber.eq(oldReservation.first)) {
+      this._blockReservations.push({
+        ...oldReservation,
+        last: blockNumber.subn(1),
+      });
+    }
+
+    if (!blockNumber.eq(oldReservation.last)) {
+      this._blockReservations.push({
+        ...oldReservation,
+        first: blockNumber.addn(1),
+      });
+    }
+
+    this.addBlock(
+      Block.fromBlockData(
+        {
+          header: {
+            number: blockNumber,
+            stateRoot: oldReservation.previousBlockStateRoot,
+            timestamp,
+          },
+        },
+        { common: this._common }
+      ),
+      oldReservation.previousBlockTotalDifficulty
+    );
+  }
+
+  private _calculateTimestampForReservedBlock(blockNumber: BN): BN {
+    const reservationIndex = this._findBlockReservation(blockNumber);
+
+    assertHardhatInvariant(
+      reservationIndex !== -1,
+      `Block ${blockNumber.toString()} does not lie within any of the reservations.`
+    );
+
+    const reservation = this._blockReservations[reservationIndex];
+
+    const blockNumberBeforeReservation = reservation.first.subn(1);
+
+    const blockBeforeReservation = this.getBlockByNumber(
+      blockNumberBeforeReservation
+    );
+    assertHardhatInvariant(
+      blockBeforeReservation !== undefined,
+      `Reservation after block ${blockNumberBeforeReservation.toString()} cannot be created because that block does not exist`
+    );
+
+    const previousTimestamp = this.isReservedBlock(blockNumberBeforeReservation)
+      ? this._calculateTimestampForReservedBlock(blockNumberBeforeReservation)
+      : blockBeforeReservation.header.timestamp;
+
+    return previousTimestamp.add(
+      reservation.interval.mul(blockNumber.sub(reservation.first).addn(1))
+    );
   }
 }

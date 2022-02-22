@@ -84,6 +84,7 @@ describe("Base providers wrapping", () => {
           initialIndex: 3,
           count: 2,
           path: defaultHdAccountsConfigParams.path,
+          passphrase: "",
         },
         url: "",
       });

@@ -4,7 +4,7 @@
 
 Hardhat is an Ethereum development environment for professionals. It facilitates performing frequent tasks, such as running tests, automatically checking code for mistakes or interacting with a smart contract. Check out the [plugin list](https://hardhat.org/plugins/) to use it with your existing tools.
 
-Developed by [Nomic Labs](https://nomiclabs.io/) and funded by an Ethereum Foundation grant.
+Built by the [Nomic Foundation](https://nomic.foundation/) for the Ethereum community.
 
 Join our [Hardhat Support Discord server](https://hardhat.org/discord) to stay up to date on new releases, plugins and tutorials.
 

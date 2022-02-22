@@ -2,8 +2,7 @@ name: Lint
 
 on:
   push:
-    branches:
-      - master
+    branches: [$default-branch, pre-release-testing-branch]
   pull_request:
     branches:
       - "*"

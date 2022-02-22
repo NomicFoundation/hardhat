@@ -190,6 +190,7 @@ const commonHDAccountsFields = {
 const HardhatNetworkHDAccountsConfig = t.type({
   mnemonic: optional(t.string),
   accountsBalance: optional(decimalString),
+  passphrase: optional(t.string),
   ...commonHDAccountsFields,
 });
 
@@ -293,6 +294,7 @@ const HardhatNetworkConfig = t.type({
 
 const HDAccountsConfig = t.type({
   mnemonic: t.string,
+  passphrase: optional(t.string),
   ...commonHDAccountsFields,
 });
 
