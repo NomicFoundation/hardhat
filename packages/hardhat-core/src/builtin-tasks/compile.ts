@@ -466,7 +466,12 @@ subtask(TASK_COMPILE_SOLIDITY_COMPILE_JOBS)
         }
 
         for (const error of e) {
-          if (error.formattedMessage.trim() !== "InternalCompilerError:") {
+          if (
+            !HardhatError.isHardhatErrorType(
+              error,
+              ERRORS.BUILTIN_TASKS.COMPILE_FAILURE
+            )
+          ) {
             // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
             throw error;
           }
