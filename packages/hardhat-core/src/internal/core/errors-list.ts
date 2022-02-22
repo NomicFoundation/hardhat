@@ -222,7 +222,7 @@ You can learn how to use Hardhat by reading the [Getting Started guide](../getti
 
 %conflicts%
 
-Either try using a new directory name, or remove the files listed above.`,
+Either try using a new directory, or remove the files listed above.`,
       title: "conflicting files during project creation",
       description: `You are trying to create a new hardhat project, but there are existing files that would be overwritten by the creation process.
 
