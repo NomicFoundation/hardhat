@@ -400,6 +400,13 @@ module.exports.communityPlugins = [
     description: "A plugin to push contracts to tenderly",
     tags: ["Deployment", "Testing", "Tenderly", "Verification"],
   },
+  {
+    name: "hardhat-laika",
+    author: "Laika Blockchain Lab",
+    authorUrl: "https://github.com/laika-lab/hardhat-laika",
+    description: "Hardhat plugin to sync your compiled contract with Laika",
+    tags: ["Tasks", "Laika"],
+  },
 ];
 
 module.exports.officialPlugins = [
