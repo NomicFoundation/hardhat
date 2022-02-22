@@ -426,21 +426,16 @@ subtask(TASK_COMPILE_SOLIDITY_COMPILE_JOBS)
        * before actually running the job, so all the later code assumes the compiler is already
        * downloaded because if it wasn't then parallel compilation will break.
        */
-      try {
-        await pMap(
-          versionList,
-          (solcVersion) => {
-            return run(TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD, {
-              solcVersion,
-              quiet: false,
-            });
-          },
-          pMapOptions
-        );
-      } catch (e) {
-        // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
-        throw e;
-      }
+      await pMap(
+        versionList,
+        (solcVersion) => {
+          return run(TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD, {
+            solcVersion,
+            quiet: false,
+          });
+        },
+        pMapOptions
+      );
 
       try {
         const results = await pMap(
