@@ -398,7 +398,7 @@ module.exports.communityPlugins = [
     author: "Laika Blockchain Lab",
     authorUrl: "https://github.com/laika-lab/hardhat-laika",
     description: "Hardhat plugin to sync your compiled contract with Laika",
-    tags: ["Tasks", "Laika", "Buidler plugin"],
+    tags: ["Tasks", "Laika"],
   },
 ];
 
