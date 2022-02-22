@@ -38,7 +38,7 @@ import { ModulesLogger } from "./logger";
 export class HardhatModule {
   constructor(
     private readonly _node: HardhatNode,
-    private readonly _resetCallback: (forkConfig?: ForkConfig) => Promise<void>,
+    private readonly _resetCallback: (networkConfig?: RpcHardhatNetworkConfig ) => Promise<void>,
     private readonly _setLoggingEnabledCallback: (
       loggingEnabled: boolean
     ) => void,
@@ -219,7 +219,7 @@ export class HardhatModule {
   private async _resetAction(
     networkConfig?: RpcHardhatNetworkConfig
   ): Promise<true> {
-    await this._resetCallback(networkConfig?.forking);
+    await this._resetCallback(networkConfig);
     return true;
   }
 

@@ -45,6 +45,7 @@ import {
   NodeConfig,
   TracingConfig,
 } from "./node-types";
+import { RpcHardhatNetworkConfig } from "../../core/jsonrpc/types/input/hardhat-network";
 
 const log = debug("hardhat:core:hardhat-network:provider");
 
@@ -76,7 +77,7 @@ export class HardhatNetworkProvider
   constructor(
     private readonly _hardfork: string,
     private readonly _networkName: string,
-    private readonly _chainId: number,
+    private _chainId: number,
     private readonly _networkId: number,
     private readonly _blockGasLimit: number,
     private readonly _initialBaseFeePerGas: number | undefined,
@@ -273,7 +274,7 @@ export class HardhatNetworkProvider
     );
     this._hardhatModule = new HardhatModule(
       node,
-      (forkConfig?: ForkConfig) => this._reset(miningTimer, forkConfig),
+      (networkConfig?: RpcHardhatNetworkConfig) => this._reset(miningTimer, networkConfig),
       (loggingEnabled: boolean) => {
         this._logger.setEnabled(loggingEnabled);
       },
@@ -332,8 +333,15 @@ export class HardhatNetworkProvider
     return miningTimer;
   }
 
-  private async _reset(miningTimer: MiningTimer, forkConfig?: ForkConfig) {
-    this._forkConfig = forkConfig;
+  private async _reset(miningTimer: MiningTimer, newtworkConfig?: RpcHardhatNetworkConfig) {
+    if(newtworkConfig?.forking) {
+      this._forkConfig = newtworkConfig.forking;
+    }
+
+    if(newtworkConfig?.chainId) {
+      this._chainId = newtworkConfig.chainId;
+    }
+
     if (this._node !== undefined) {
       this._stopForwardingNodeEvents(this._node);
     }

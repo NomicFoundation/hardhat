@@ -94,14 +94,17 @@ Private Key: ${privateKey}`;
 subtask(TASK_NODE_GET_PROVIDER)
   .addOptionalParam("forkUrl", undefined, undefined, types.string)
   .addOptionalParam("forkBlockNumber", undefined, undefined, types.int)
+  .addOptionalParam("chainid", undefined, 31337, types.int)
   .setAction(
     async (
       {
         forkBlockNumber: forkBlockNumberParam,
         forkUrl: forkUrlParam,
+        chainid: chainIdParam,
       }: {
         forkBlockNumber?: number;
         forkUrl?: string;
+        chainid?: number;
       },
       { artifacts, config, network }
     ): Promise<EthereumProvider> => {
@@ -123,9 +126,11 @@ subtask(TASK_NODE_GET_PROVIDER)
 
       const forkUrlConfig = hardhatNetworkConfig.forking?.url;
       const forkBlockNumberConfig = hardhatNetworkConfig.forking?.blockNumber;
+      const chainIdConfig = hardhatNetworkConfig.chainId;
 
       const forkUrl = forkUrlParam ?? forkUrlConfig;
       const forkBlockNumber = forkBlockNumberParam ?? forkBlockNumberConfig;
+      const chainId = chainIdParam ?? chainIdConfig;
 
       // we throw an error if the user specified a forkBlockNumber but not a
       // forkUrl
@@ -149,6 +154,19 @@ subtask(TASK_NODE_GET_PROVIDER)
                 jsonRpcUrl: forkUrl,
                 blockNumber: forkBlockNumber,
               },
+            },
+          ],
+        });
+      }
+
+      // if the chainId is different to the one in the configuration,
+      // we use hardhat_reset to set the chainId
+      if(chainId !== chainIdConfig) {
+        await provider.request({
+          method: "hardhat_reset",
+          params: [
+            {
+              chainId
             },
           ],
         });
@@ -258,6 +276,12 @@ task(TASK_NODE, "Starts a JSON-RPC server on top of Hardhat Network")
     types.int
   )
   .addOptionalParam(
+    "chainid",
+    "The chainId to which to bind to for connection",
+    31337,
+    types.int
+  )
+  .addOptionalParam(
     "fork",
     "The URL of the JSON-RPC server to fork from",
     undefined,
@@ -276,11 +300,13 @@ task(TASK_NODE, "Starts a JSON-RPC server on top of Hardhat Network")
         fork: forkUrl,
         hostname: hostnameParam,
         port,
+        chainid,
       }: {
         forkBlockNumber?: number;
         fork?: string;
         hostname?: string;
         port: number;
+        chainid: number;
       },
       { config, hardhatArguments, network, run }
     ) => {
@@ -298,6 +324,7 @@ task(TASK_NODE, "Starts a JSON-RPC server on top of Hardhat Network")
         const provider: EthereumProvider = await run(TASK_NODE_GET_PROVIDER, {
           forkBlockNumber,
           forkUrl,
+          chainid
         });
 
         // the default hostname is "127.0.0.1" unless we are inside a docker

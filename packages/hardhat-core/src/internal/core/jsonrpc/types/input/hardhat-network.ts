@@ -18,6 +18,7 @@ export type RpcForkConfig = t.TypeOf<typeof rpcForkConfig>;
 export const rpcHardhatNetworkConfig = t.type(
   {
     forking: optional(rpcForkConfig),
+    chainId: t.number,
   },
   "HardhatNetworkConfig"
 );
