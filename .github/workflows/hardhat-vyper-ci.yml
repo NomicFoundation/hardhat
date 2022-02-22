@@ -5,7 +5,6 @@ on:
     branches: [$default-branch, pre-release-testing-branch]
     paths:
       - "packages/hardhat-vyper/**"
-      - "packages/hardhat-docker/**"
       - "packages/hardhat-core/**"
       - "packages/hardhat-common/**"
       - "config/**"
@@ -14,7 +13,6 @@ on:
       - "*"
     paths:
       - "packages/hardhat-vyper/**"
-      - "packages/hardhat-docker/**"
       - "packages/hardhat-core/**"
       - "packages/hardhat-common/**"
       - "config/**"
@@ -40,8 +38,6 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           cache: yarn
-      - name: install vyper
-        run: docker pull vyperlang/vyper:0.1.0b10
       - name: Install
         run: yarn --frozen-lockfile
       - name: Build

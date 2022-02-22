@@ -28,7 +28,11 @@ subtask(TASK_TEST_GET_TEST_FILES)
   )
   .setAction(async ({ testFiles }: { testFiles: string[] }, { config }) => {
     if (testFiles.length !== 0) {
-      return testFiles;
+      const testFilesAbsolutePaths = testFiles.map((x) =>
+        path.resolve(process.cwd(), x)
+      );
+
+      return testFilesAbsolutePaths;
     }
 
     const jsFiles = await glob(path.join(config.paths.tests, "**/*.js"));
