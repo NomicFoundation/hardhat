@@ -143,7 +143,7 @@ async function printWelcomeMessage() {
 }
 
 async function checkForDuplicates(
-  dest: string,
+  projectRoot: string,
   projectType: SampleProjectTypeCreationAction
 ): Promise<void> {
   const { intersection, union } = await import("lodash");
@@ -151,7 +151,7 @@ async function checkForDuplicates(
   const packageRoot = getPackageRoot();
 
   const srcPath = path.join(packageRoot, "sample-projects");
-  const destFiles = fsExtra.readdirSync(dest);
+  const destFiles = fsExtra.readdirSync(projectRoot);
   let srcFiles: string[] = fsExtra.readdirSync(path.join(srcPath, "basic"));
 
   switch (projectType) {
@@ -174,7 +174,7 @@ async function checkForDuplicates(
 
   if (duplicates.length > 0) {
     throw new HardhatError(ERRORS.GENERAL.CONFLICTING_FILES, {
-      dest,
+      dest: projectRoot,
       conflicts: duplicates.map((n) => `  ${n}`).join(os.EOL),
     });
   }
