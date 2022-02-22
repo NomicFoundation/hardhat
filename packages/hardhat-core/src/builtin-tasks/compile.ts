@@ -5,6 +5,7 @@ import debug from "debug";
 import fsExtra from "fs-extra";
 import path from "path";
 import semver from "semver";
+import AggregateError from "aggregate-error";
 
 import {
   Artifacts as ArtifactsImpl,
@@ -89,18 +90,6 @@ type ArtifactsEmittedPerJob = Array<{
   compilationJob: CompilationJob;
   artifactsEmittedPerFile: ArtifactsEmittedPerFile;
 }>;
-
-interface CompilationSuccess {
-  artifactsEmittedPerFile: ArtifactsEmittedPerFile;
-  compilationJob: taskTypes.CompilationJob;
-  input: CompilerInput;
-  output: CompilerOutput;
-  solcBuild: any;
-}
-
-interface CompilationFailure {
-  errors: any;
-}
 
 function isConsoleLogError(error: any): boolean {
   return (
@@ -430,73 +419,67 @@ subtask(TASK_COMPILE_SOLIDITY_COMPILE_JOBS)
       const downloader = new CompilerDownloader(compilersCache);
       await downloader.downloadCompilersList();
 
-      const options = { concurrency: os.cpus().length, stopOnError: false };
+      const pMapOptions = { concurrency: os.cpus().length, stopOnError: false };
       /**
        * This is a pretty hacky solution to avoid a major refactor and/or breaking changes.
        * The hack is the fact that we're just pre-downloading all of the necessary compilers
        * before actually running the job, so all the later code assumes the compiler is already
        * downloaded because if it wasn't then parallel compilation will break.
        */
-      const downloadResults = await pMap(
-        versionList,
-        (solcVersion) => {
-          return run(TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD, {
-            solcVersion,
-            quiet: false,
-          });
-        },
-        options
-      );
-
-      if (downloadResults instanceof Error) {
-        // AggregateError of HardhatErrors
+      try {
+        await pMap(
+          versionList,
+          (solcVersion) => {
+            return run(TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD, {
+              solcVersion,
+              quiet: false,
+            });
+          },
+          pMapOptions
+        );
+      } catch (e) {
         // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
-        throw downloadResults;
+        throw e;
       }
 
-      const results = await pMap(
-        compilationJobs,
-        (compilationJob, compilationJobIndex) => {
-          return run(TASK_COMPILE_SOLIDITY_COMPILE_JOB, {
-            compilationJob,
-            compilationJobs,
-            compilationJobIndex,
-            quiet,
-          });
-        },
-        options
-      );
+      try {
+        const results = await pMap(
+          compilationJobs,
+          (compilationJob, compilationJobIndex) => {
+            return run(TASK_COMPILE_SOLIDITY_COMPILE_JOB, {
+              compilationJob,
+              compilationJobs,
+              compilationJobIndex,
+              quiet,
+            });
+          },
+          pMapOptions
+        );
 
-      const { compilationSuccesses, compilationFailures } =
-        filterCompilationResults(results);
-
-      if (compilationFailures.length > 0) {
-        for (const { errors } of compilationFailures) {
-          for (const error of errors) {
-            if (error.severity === "error") {
-              const errorMessage =
-                getFormattedInternalCompilerErrorMessage(error) ??
-                error.formattedMessage;
-
-              console.error(chalk.red(errorMessage));
-            } else {
-              console.warn(chalk.yellow(error.formattedMessage));
-            }
-          }
-        }
-
-        throw new HardhatError(ERRORS.BUILTIN_TASKS.COMPILE_FAILURE);
-      }
-
-      const artifactsEmittedPerJob: ArtifactsEmittedPerJob =
-        compilationSuccesses.map(
+        const artifactsEmittedPerJob: ArtifactsEmittedPerJob = results.map(
           ({ compilationJob, artifactsEmittedPerFile }) => ({
             compilationJob,
             artifactsEmittedPerFile,
           })
         );
 
-      return { artifactsEmittedPerJob };
+        return { artifactsEmittedPerJob };
+      } catch (e) {
+        if (!(e instanceof AggregateError)) {
+          // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+          throw e;
+        }
+
+        for (const error of e) {
+          if (error.formattedMessage.trim() !== "InternalCompilerError:") {
+            // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+            throw error;
+          }
+        }
+
+        // error is an aggregate error, and all errors are compilation failures
+        throw new HardhatError(ERRORS.BUILTIN_TASKS.COMPILE_FAILURE);
+      }
     }
   );
 
@@ -995,7 +978,13 @@ subtask(TASK_COMPILE_SOLIDITY_COMPILE_JOB)
         emitsArtifacts: boolean;
       },
       { run }
-    ): Promise<CompilationSuccess | CompilationFailure> => {
+    ): Promise<{
+      artifactsEmittedPerFile: ArtifactsEmittedPerFile;
+      compilationJob: taskTypes.CompilationJob;
+      input: CompilerInput;
+      output: CompilerOutput;
+      solcBuild: any;
+    }> => {
       log(
         `Compiling job with version '${compilationJob.getSolcConfig().version}'`
       );
@@ -1546,28 +1535,4 @@ function getFormattedInternalCompilerErrorMessage(error: {
   // We trim any final `:`, as we found some at the end of the error messages,
   // and then trim just in case a blank space was left
   return `${error.type}: ${error.message}`.replace(/[:\s]*$/g, "").trim();
-}
-
-/**
- * This function really just exists to aggregate compilation errors
- * in a type-safe way.
- */
-function filterCompilationResults(
-  input: Array<CompilationSuccess | CompilationFailure | Error>
-): {
-  compilationSuccesses: CompilationSuccess[];
-  compilationFailures: CompilationFailure[];
-} {
-  const compilationSuccesses: CompilationSuccess[] = [];
-  const compilationFailures: CompilationFailure[] = [];
-  for (const value of input) {
-    if (value instanceof Error) {
-      compilationFailures.push({ errors: value });
-    } else if ("errors" in value) {
-      compilationFailures.push(value);
-    } else {
-      compilationSuccesses.push(value);
-    }
-  }
-  return { compilationSuccesses, compilationFailures };
 }
