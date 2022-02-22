@@ -470,7 +470,7 @@ subtask(TASK_COMPILE_SOLIDITY_COMPILE_JOBS)
           throw e;
         }
 
-        for (const error of e) {
+        for (const error of e.errors) {
           if (error.formattedMessage.trim() !== "InternalCompilerError:") {
             // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
             throw error;
@@ -1004,11 +1004,7 @@ subtask(TASK_COMPILE_SOLIDITY_COMPILE_JOB)
         compilationJobIndex,
       });
 
-      if (hasCompilationErrors(output)) {
-        return {
-          errors: output.errors,
-        };
-      }
+      await run(TASK_COMPILE_SOLIDITY_CHECK_ERRORS, { output, quiet });
 
       let artifactsEmittedPerFile = [];
       if (emitsArtifacts) {
