@@ -29,7 +29,7 @@ const TOO_MANY_REQUEST_STATUS = 429;
 
 export class HttpProvider extends EventEmitter implements EIP1193Provider {
   private _nextRequestId = 1;
-  private _client: Pool;
+  private _dispatcher: Dispatcher;
   private _path: string;
   private _authHeader: string | undefined;
 
@@ -38,7 +38,7 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
     private readonly _networkName: string,
     private readonly _extraHeaders: { [name: string]: string } = {},
     private readonly _timeout = 20000,
-    client: Pool | undefined = undefined
+    client: Dispatcher | undefined = undefined
   ) {
     super();
     const url = new URL(this._url);
@@ -51,7 +51,7 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
             "utf-8"
           ).toString("base64")}`;
     try {
-      this._client = client ?? new Pool(url.origin);
+      this._dispatcher = client ?? new Pool(url.origin);
     } catch (e) {
       if (e instanceof TypeError && e.message === "Invalid URL") {
         e.message += ` ${url.origin}`;
@@ -157,7 +157,7 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
     retryNumber = 0
   ): Promise<JsonRpcResponse | JsonRpcResponse[]> {
     try {
-      const response = await this._client.request({
+      const response = await this._dispatcher.request({
         method: "POST",
         path: this._path,
         body: JSON.stringify(request),
