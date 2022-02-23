@@ -5,18 +5,20 @@ import { HttpProvider } from "../../../../src/internal/core/providers/http";
 import { SuccessfulJsonRpcResponse } from "../../../../src/internal/util/jsonrpc";
 import { ALCHEMY_URL } from "../../../setup";
 
+function makeMockPool(url: string): MockPool {
+  const agent = new MockAgent({
+    // as advised by https://undici.nodejs.org/#/docs/best-practices/writing-tests
+    keepAliveTimeout: 10, // milliseconds
+    keepAliveMaxTimeout: 10, // milliseconds
+  });
+  agent.disableNetConnect();
+  return new MockPool(url, { agent });
+}
+
 describe("HttpProvider", function () {
   const url = "http://some.node";
   const networkName = "NetworkName";
-  const mockPool = (() => {
-    const agent = new MockAgent({
-      // as advised by https://undici.nodejs.org/#/docs/best-practices/writing-tests
-      keepAliveTimeout: 10, // milliseconds
-      keepAliveMaxTimeout: 10, // milliseconds
-    });
-    agent.disableNetConnect();
-    return new MockPool(url, { agent });
-  })();
+  const mockPool = makeMockPool(url);
 
   describe("request()", function () {
     it("should call mock pool's request()", async function () {
