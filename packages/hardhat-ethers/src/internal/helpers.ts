@@ -1,13 +1,13 @@
 import type { ethers } from "ethers";
+import type { SignerWithAddress } from "../signers";
+import type { FactoryOptions, Libraries } from "../types";
+
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import {
   Artifact,
   HardhatRuntimeEnvironment,
   NetworkConfig,
 } from "hardhat/types";
-
-import type { SignerWithAddress } from "../signers";
-import type { FactoryOptions, Libraries } from "../types";
 
 interface Link {
   sourceName: string;

@@ -1,4 +1,6 @@
 import type EthersT from "ethers";
+import type * as ProviderProxyT from "./provider-proxy";
+
 import { extendEnvironment } from "hardhat/config";
 import { lazyObject } from "hardhat/plugins";
 
@@ -10,7 +12,6 @@ import {
   getSigner,
   getSigners,
 } from "./helpers";
-import type * as ProviderProxyT from "./provider-proxy";
 import "./type-extensions";
 
 const registerCustomInspection = (BigNumber: any) => {

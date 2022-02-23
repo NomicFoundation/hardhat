@@ -162,6 +162,7 @@ module.exports = {
       "error",
       {
         groups: [
+          "type",
           "object",
           ["builtin", "external"],
           "parent",

@@ -1,6 +1,7 @@
+import type EthereumjsUtilT from "ethereumjs-util";
+
 import chalk from "chalk";
 import debug from "debug";
-import type EthereumjsUtilT from "ethereumjs-util";
 import fsExtra from "fs-extra";
 
 import { HARDHAT_NETWORK_NAME } from "../internal/constants";

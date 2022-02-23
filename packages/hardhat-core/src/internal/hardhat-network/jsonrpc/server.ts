@@ -1,7 +1,8 @@
+import type WsT from "ws";
+
 import debug from "debug";
 import http, { Server } from "http";
 import { AddressInfo } from "net";
-import type WsT from "ws";
 
 import {
   EIP1193Provider,

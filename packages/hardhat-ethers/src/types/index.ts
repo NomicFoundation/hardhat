@@ -1,7 +1,7 @@
 import type * as ethers from "ethers";
-import { Artifact } from "hardhat/types";
-
 import type { SignerWithAddress } from "../signers";
+
+import { Artifact } from "hardhat/types";
 
 export interface Libraries {
   [libraryName: string]: string;
