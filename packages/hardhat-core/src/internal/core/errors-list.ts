@@ -216,6 +216,19 @@ If you were trying to create a new project, please try again using Windows Subsy
 You can learn how to use Hardhat by reading the [Getting Started guide](../getting-started).`,
       shouldBeReported: false,
     },
+    CONFLICTING_FILES: {
+      number: 16,
+      message: `The directory %dest% contains files that could conflict:
+
+%conflicts%
+
+Either try using a new directory, or remove the files listed above.`,
+      title: "conflicting files during project creation",
+      description: `You are trying to create a new hardhat project, but there are existing files that would be overwritten by the creation process.
+
+Either try using a new directory name, or remove the conflicting files.`,
+      shouldBeReported: false,
+    },
   },
   NETWORK: {
     CONFIG_NOT_FOUND: {
