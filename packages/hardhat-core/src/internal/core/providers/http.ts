@@ -37,7 +37,8 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
     private readonly _url: string,
     private readonly _networkName: string,
     private readonly _extraHeaders: { [name: string]: string } = {},
-    private readonly _timeout = 20000
+    private readonly _timeout = 20000,
+    client: Pool | undefined = undefined
   ) {
     super();
     const url = new URL(this._url);
@@ -50,7 +51,7 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
             "utf-8"
           ).toString("base64")}`;
     try {
-      this._client = new Pool(url.origin);
+      this._client = client ?? new Pool(url.origin);
     } catch (e) {
       if (e instanceof TypeError && e.message === "Invalid URL") {
         e.message += ` ${url.origin}`;
