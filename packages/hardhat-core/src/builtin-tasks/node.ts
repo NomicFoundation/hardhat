@@ -161,12 +161,12 @@ subtask(TASK_NODE_GET_PROVIDER)
 
       // if the chainId is different to the one in the configuration,
       // we use hardhat_reset to set the chainId
-      if(chainId !== chainIdConfig) {
+      if (chainId !== chainIdConfig) {
         await provider.request({
           method: "hardhat_reset",
           params: [
             {
-              chainId
+              chainId,
             },
           ],
         });
@@ -324,7 +324,7 @@ task(TASK_NODE, "Starts a JSON-RPC server on top of Hardhat Network")
         const provider: EthereumProvider = await run(TASK_NODE_GET_PROVIDER, {
           forkBlockNumber,
           forkUrl,
-          chainid
+          chainid,
         });
 
         // the default hostname is "127.0.0.1" unless we are inside a docker

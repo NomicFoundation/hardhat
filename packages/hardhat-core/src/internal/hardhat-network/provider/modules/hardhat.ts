@@ -38,7 +38,9 @@ import { ModulesLogger } from "./logger";
 export class HardhatModule {
   constructor(
     private readonly _node: HardhatNode,
-    private readonly _resetCallback: (networkConfig?: RpcHardhatNetworkConfig ) => Promise<void>,
+    private readonly _resetCallback: (
+      networkConfig?: RpcHardhatNetworkConfig
+    ) => Promise<void>,
     private readonly _setLoggingEnabledCallback: (
       loggingEnabled: boolean
     ) => void,

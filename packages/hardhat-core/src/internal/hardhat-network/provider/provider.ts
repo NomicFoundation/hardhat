@@ -27,6 +27,7 @@ import {
 import { FIRST_SOLC_VERSION_SUPPORTED } from "../stack-traces/solidityTracer";
 import { Mutex } from "../vendor/await-semaphore";
 
+import { RpcHardhatNetworkConfig } from "../../core/jsonrpc/types/input/hardhat-network";
 import { MiningTimer } from "./MiningTimer";
 import { DebugModule } from "./modules/debug";
 import { EthModule } from "./modules/eth";
@@ -45,7 +46,6 @@ import {
   NodeConfig,
   TracingConfig,
 } from "./node-types";
-import { RpcHardhatNetworkConfig } from "../../core/jsonrpc/types/input/hardhat-network";
 
 const log = debug("hardhat:core:hardhat-network:provider");
 
@@ -274,7 +274,8 @@ export class HardhatNetworkProvider
     );
     this._hardhatModule = new HardhatModule(
       node,
-      (networkConfig?: RpcHardhatNetworkConfig) => this._reset(miningTimer, networkConfig),
+      (networkConfig?: RpcHardhatNetworkConfig) =>
+        this._reset(miningTimer, networkConfig),
       (loggingEnabled: boolean) => {
         this._logger.setEnabled(loggingEnabled);
       },
@@ -333,12 +334,15 @@ export class HardhatNetworkProvider
     return miningTimer;
   }
 
-  private async _reset(miningTimer: MiningTimer, newtworkConfig?: RpcHardhatNetworkConfig) {
-    if(newtworkConfig?.forking) {
+  private async _reset(
+    miningTimer: MiningTimer,
+    newtworkConfig?: RpcHardhatNetworkConfig
+  ) {
+    if (newtworkConfig?.forking) {
       this._forkConfig = newtworkConfig.forking;
     }
 
-    if(newtworkConfig?.chainId) {
+    if (newtworkConfig?.chainId) {
       this._chainId = newtworkConfig.chainId;
     }
 
