@@ -2,4 +2,4 @@
 "hardhat": patch
 ---
 
-preserve user's readme on project creation (#1942)
+Preserve any existing user's README when initializing a project (#1942)
