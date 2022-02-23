@@ -24,7 +24,7 @@ export async function download(
   const { getGlobalDispatcher, ProxyAgent, request } = await import("undici");
   const streamPipeline = util.promisify(pipeline);
 
-  const dispatcher = (() => {
+  function chooseDispatcher() {
     if (process.env.HTTPS_PROXY !== undefined) {
       return new ProxyAgent(process.env.HTTPS_PROXY);
     }
@@ -34,11 +34,11 @@ export async function download(
     }
 
     return getGlobalDispatcher();
-  })();
+  }
 
   // Fetch the url
   const response = await request(url, {
-    dispatcher,
+    dispatcher: chooseDispatcher(),
     headersTimeout: timeoutMillis,
     maxRedirections: 10,
     method: "GET",
