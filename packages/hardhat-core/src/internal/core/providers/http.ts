@@ -174,7 +174,7 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
       });
 
       if (this._isRateLimitResponse(response)) {
-        response.body.destroy();
+        await response.body.text();
         const seconds = this._getRetryAfterSeconds(response);
         if (seconds !== undefined && this._shouldRetry(retryNumber, seconds)) {
           return await this._retry(request, seconds, retryNumber);
