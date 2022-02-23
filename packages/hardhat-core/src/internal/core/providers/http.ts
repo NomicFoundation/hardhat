@@ -174,6 +174,12 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
       });
 
       if (this._isRateLimitResponse(response)) {
+        // "The Fetch Standard allows users to skip consuming the response body
+        // by relying on garbage collection to release connection resources.
+        // Undici does not do the same. Therefore, it is important to always
+        // either consume or cancel the response body."
+        // https://undici.nodejs.org/#/?id=garbage-collection
+        // It's not clear how to "cancel", so we'll just consume:
         await response.body.text();
         const seconds = this._getRetryAfterSeconds(response);
         if (seconds !== undefined && this._shouldRetry(retryNumber, seconds)) {
