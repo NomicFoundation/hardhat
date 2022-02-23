@@ -23,17 +23,20 @@ describe("HttpProvider", function () {
   const networkName = "NetworkName";
   const mockPool = makeMockPool(url);
 
+  const successResponse: SuccessfulJsonRpcResponse = {
+    jsonrpc: "2.0",
+    id: 1,
+    result: "whatever",
+  };
+
   describe("request()", function () {
     it("should call mock pool's request()", async function () {
-      const response: SuccessfulJsonRpcResponse = {
-        jsonrpc: "2.0",
-        id: 1,
-        result: "whatever",
-      };
-      mockPool.intercept({ method: "POST", path: "/" }).reply(200, response);
+      mockPool
+        .intercept({ method: "POST", path: "/" })
+        .reply(200, successResponse);
       const provider = new HttpProvider(url, networkName, {}, 20000, mockPool);
       const result = await provider.request({ method: "net_version" });
-      assert.equal(result, response.result);
+      assert.equal(result, successResponse.result);
     });
 
     it("should throw upon receiving a rate-limit response that lacks a retry-after header", async function () {
@@ -44,6 +47,17 @@ describe("HttpProvider", function () {
       await expectErrorAsync(async () => {
         await provider.request({ method: "net_version" });
       }, `Too Many Requests error received from ${new URL(url).hostname}`);
+    });
+    it("should retry upon receiving a rate-limit response that includes a retry-after header", async function () {
+      mockPool
+        .intercept({ method: "POST", path: "/" })
+        .reply(200, successResponse);
+      mockPool
+        .intercept({ method: "POST", path: "/" })
+        .reply(TOO_MANY_REQUEST_STATUS, { headers: { "retry-after": "1" } });
+      const provider = new HttpProvider(url, networkName, {}, 20000, mockPool);
+      const result = await provider.request({ method: "net_version" });
+      assert.equal(result, successResponse.result);
     });
   });
 });
