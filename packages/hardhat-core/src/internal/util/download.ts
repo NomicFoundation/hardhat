@@ -51,11 +51,7 @@ export async function download(
     },
   });
 
-  if (
-    response.statusCode >= 200 &&
-    response.statusCode <= 299 &&
-    response.body !== null
-  ) {
+  if (response.statusCode >= 200 && response.statusCode <= 299) {
     const tmpFilePath = resolveTempFileName(filePath);
     await fsExtra.ensureDir(path.dirname(filePath));
 
