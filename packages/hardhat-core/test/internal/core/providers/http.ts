@@ -14,6 +14,7 @@ function makeMockPool(url: string): MockPool {
     keepAliveTimeout: 10, // milliseconds
     keepAliveMaxTimeout: 10, // milliseconds
   });
+  // throw when requests are not matched in a MockAgent intercept
   agent.disableNetConnect();
   return new MockPool(url, { agent });
 }
