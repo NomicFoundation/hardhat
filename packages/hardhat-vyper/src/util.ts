@@ -1,14 +1,15 @@
 import type { Debugger } from "debug";
-import path from "path";
-
 import type { Artifact } from "hardhat/types/artifacts";
-import { NomicLabsHardhatPluginError } from "hardhat/plugins";
-
 import type {
   VyperUserConfig,
   MultiVyperConfig,
   ContractOutput,
 } from "./types";
+
+import path from "path";
+
+import { NomicLabsHardhatPluginError } from "hardhat/plugins";
+
 import { ARTIFACT_FORMAT_VERSION, DEBUG_NAMESPACE } from "./constants";
 
 export function getLogger(suffix: string): Debugger {

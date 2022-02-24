@@ -1,5 +1,6 @@
-import debug from "debug";
 import type { LoDashStatic } from "lodash";
+
+import debug from "debug";
 import semver from "semver";
 
 import { SolcConfig, SolidityConfig } from "../../types";

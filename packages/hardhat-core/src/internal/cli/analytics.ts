@@ -1,8 +1,8 @@
 import AbortController from "abort-controller";
 import debug from "debug";
-import fetch from "node-fetch";
 import os from "os";
 import qs from "qs";
+import { request } from "undici";
 import { v4 as uuid } from "uuid";
 
 import * as builtinTaskNames from "../../builtin-tasks/task-names";
@@ -171,7 +171,7 @@ export class Analytics {
 
     log(`Hit payload: ${JSON.stringify(hit)}`);
 
-    const hitPromise = fetch(googleAnalyticsUrl, {
+    const hitPromise = request(googleAnalyticsUrl, {
       body: hitPayload,
       method: "POST",
       signal: controller.signal,
