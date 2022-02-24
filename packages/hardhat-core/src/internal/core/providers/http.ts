@@ -13,6 +13,7 @@ import {
   parseJsonResponse,
   SuccessfulJsonRpcResponse,
 } from "../../util/jsonrpc";
+import { getHardhatVersion } from "../../util/packageInfo";
 import { HardhatError } from "../errors";
 import { ERRORS } from "../errors-list";
 
@@ -26,6 +27,8 @@ const MAX_RETRIES = 6;
 const MAX_RETRY_AWAIT_SECONDS = 5;
 
 const TOO_MANY_REQUEST_STATUS = 429;
+
+const hardhatVersion = getHardhatVersion();
 
 export class HttpProvider extends EventEmitter implements EIP1193Provider {
   private _nextRequestId = 1;
@@ -168,6 +171,7 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
             : this._timeout,
         headers: {
           "Content-Type": "application/json",
+          "User-Agent": `hardhat ${hardhatVersion}`,
           Authorization: this._authHeader,
           ...this._extraHeaders,
         },
