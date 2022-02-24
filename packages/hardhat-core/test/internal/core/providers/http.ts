@@ -22,7 +22,6 @@ function makeMockPool(url: string): MockPool {
 describe("HttpProvider", function () {
   const url = "http://some.node";
   const networkName = "NetworkName";
-  const mockPool = makeMockPool(url);
 
   const successResponse: SuccessfulJsonRpcResponse = {
     jsonrpc: "2.0",
@@ -32,6 +31,7 @@ describe("HttpProvider", function () {
 
   describe("request()", function () {
     it("should call mock pool's request()", async function () {
+      const mockPool = makeMockPool(url);
       mockPool
         .intercept({ method: "POST", path: "/" })
         .reply(200, successResponse);
@@ -41,6 +41,7 @@ describe("HttpProvider", function () {
     });
 
     it("should throw upon receiving a rate-limit response that lacks a retry-after header", async function () {
+      const mockPool = makeMockPool(url);
       mockPool
         .intercept({ method: "POST", path: "/" })
         .reply(TOO_MANY_REQUEST_STATUS, {});
@@ -50,6 +51,7 @@ describe("HttpProvider", function () {
       }, `Too Many Requests error received from ${new URL(url).hostname}`);
     });
     it("should retry upon receiving a rate-limit response that includes a retry-after header", async function () {
+      const mockPool = makeMockPool(url);
       mockPool
         .intercept({ method: "POST", path: "/" })
         .reply(200, successResponse);
