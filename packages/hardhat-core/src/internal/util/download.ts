@@ -3,7 +3,11 @@ import fsExtra from "fs-extra";
 import path from "path";
 import util from "util";
 
+import { getHardhatVersion } from "./packageInfo";
+
 const TEMP_FILE_PREFIX = "tmp-";
+
+const hardhatVersion = getHardhatVersion();
 
 function resolveTempFileName(filePath: string): string {
   const { dir, ext, name } = path.parse(filePath);
@@ -43,7 +47,7 @@ export async function download(
     maxRedirections: 10,
     method: "GET",
     headers: {
-      "User-Agent": "hardhat",
+      "User-Agent": `hardhat ${hardhatVersion}`,
     },
   });
 
