@@ -1,6 +1,19 @@
 import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
 import chalk from "chalk";
+import { setGlobalDispatcher, Agent } from "undici";
+
+function undiciSetup() {
+  // https://undici.nodejs.org/#/docs/best-practices/writing-tests
+  const agent = new Agent({
+    keepAliveTimeout: 10, // milliseconds
+    keepAliveMaxTimeout: 10, // milliseconds
+  });
+
+  setGlobalDispatcher(agent);
+}
+
+undiciSetup();
 
 chai.use(chaiAsPromised);
 
