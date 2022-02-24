@@ -33,7 +33,6 @@
     "@types/fs-extra": "^5.1.0",
     "@types/mocha": "^9.1.0",
     "@types/node": "^12.0.0",
-    "@types/node-fetch": "^2.3.7",
     "@typescript-eslint/eslint-plugin": "4.29.2",
     "@typescript-eslint/parser": "4.29.2",
     "chai": "^4.2.0",
@@ -51,6 +50,6 @@
   "dependencies": {
     "dockerode": "^2.5.8",
     "fs-extra": "^7.0.1",
-    "node-fetch": "^2.6.0"
+    "undici": "^4.14.1"
   }
 }

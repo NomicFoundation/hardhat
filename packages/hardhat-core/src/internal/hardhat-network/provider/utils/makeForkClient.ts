@@ -19,7 +19,8 @@ import {
 // TODO: This is a temporarily measure.
 //  We must investigate why this timeouts so much. Apparently
 //  node-fetch doesn't handle timeouts so well. The option was
-//  removed in its new major version.
+//  removed in its new major version. UPDATE: we aren't even using node-fetch
+//  anymore, so this really should be revisited.
 const FORK_HTTP_TIMEOUT = 35000;
 
 export async function makeForkClient(
