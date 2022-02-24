@@ -23,6 +23,7 @@ export const defaultHdAccountsConfigParams = {
   initialIndex: 0,
   count: 20,
   path: "m/44'/60'/0'/0",
+  passphrase: "",
 };
 
 export const defaultHardhatNetworkHdAccountsConfigParams = {

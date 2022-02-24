@@ -11,6 +11,7 @@ import type {
   NetworkConfig,
   ProjectPathsConfig,
 } from "../../../types";
+
 import { HARDHAT_NETWORK_NAME } from "../../constants";
 import { ModulesLogger } from "../../hardhat-network/provider/modules/logger";
 import {
@@ -190,7 +191,8 @@ export function applyProviderWrappers(
         accounts.mnemonic,
         accounts.path,
         accounts.initialIndex,
-        accounts.count
+        accounts.count,
+        accounts.passphrase
       );
     }
 

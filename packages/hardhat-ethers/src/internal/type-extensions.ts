@@ -1,12 +1,12 @@
 import type { ethers } from "ethers";
-import "hardhat/types/runtime";
-
 import type {
   FactoryOptions as FactoryOptionsT,
   getContractFactory as getContractFactoryT,
   HardhatEthersHelpers,
   Libraries as LibrariesT,
 } from "../types";
+
+import "hardhat/types/runtime";
 
 declare module "hardhat/types/runtime" {
   interface HardhatRuntimeEnvironment {

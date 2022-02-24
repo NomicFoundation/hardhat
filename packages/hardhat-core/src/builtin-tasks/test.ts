@@ -1,3 +1,5 @@
+import type { MochaOptions } from "mocha";
+
 import chalk from "chalk";
 import path from "path";
 
@@ -26,7 +28,11 @@ subtask(TASK_TEST_GET_TEST_FILES)
   )
   .setAction(async ({ testFiles }: { testFiles: string[] }, { config }) => {
     if (testFiles.length !== 0) {
-      return testFiles;
+      const testFilesAbsolutePaths = testFiles.map((x) =>
+        path.resolve(process.cwd(), x)
+      );
+
+      return testFilesAbsolutePaths;
     }
 
     const jsFiles = await glob(path.join(config.paths.tests, "**/*.js"));
@@ -43,24 +49,61 @@ subtask(TASK_TEST_GET_TEST_FILES)
 subtask(TASK_TEST_SETUP_TEST_ENVIRONMENT, async () => {});
 
 subtask(TASK_TEST_RUN_MOCHA_TESTS)
+  .addFlag("parallel", "Run tests in parallel")
+  .addFlag("bail", "Stop running tests after the first test failure")
+  .addOptionalParam(
+    "grep",
+    "Only run tests matching the given string or regexp"
+  )
   .addOptionalVariadicPositionalParam(
     "testFiles",
     "An optional list of files to test",
     []
   )
-  .setAction(async ({ testFiles }: { testFiles: string[] }, { config }) => {
-    const { default: Mocha } = await import("mocha");
-    const mocha = new Mocha(config.mocha);
-    testFiles.forEach((file) => mocha.addFile(file));
+  .setAction(
+    async (
+      taskArgs: {
+        bail: boolean;
+        parallel: boolean;
+        testFiles: string[];
+        grep?: string;
+      },
+      { config }
+    ) => {
+      const { default: Mocha } = await import("mocha");
 
-    const testFailures = await new Promise<number>((resolve) => {
-      mocha.run(resolve);
-    });
+      const mochaConfig: MochaOptions = {
+        ...config.mocha,
+        grep: taskArgs.grep,
+      };
 
-    mocha.dispose();
+      if (taskArgs.bail) {
+        mochaConfig.bail = true;
+      }
+      if (taskArgs.parallel) {
+        mochaConfig.parallel = true;
+      }
 
-    return testFailures;
-  });
+      if (mochaConfig.parallel === true) {
+        const mochaRequire = mochaConfig.require ?? [];
+        if (!mochaRequire.includes("hardhat/register")) {
+          mochaRequire.push("hardhat/register");
+        }
+        mochaConfig.require = mochaRequire;
+      }
+
+      const mocha = new Mocha(mochaConfig);
+      taskArgs.testFiles.forEach((file) => mocha.addFile(file));
+
+      const testFailures = await new Promise<number>((resolve) => {
+        mocha.run(resolve);
+      });
+
+      mocha.dispose();
+
+      return testFailures;
+    }
+  );
 
 subtask(TASK_TEST_RUN_SHOW_FORK_RECOMMENDATIONS).setAction(
   async (_, { config, network }) => {
@@ -80,14 +123,26 @@ task(TASK_TEST, "Runs mocha tests")
     []
   )
   .addFlag("noCompile", "Don't compile before running this task")
+  .addFlag("parallel", "Run tests in parallel")
+  .addFlag("bail", "Stop running tests after the first test failure")
+  .addOptionalParam(
+    "grep",
+    "Only run tests matching the given string or regexp"
+  )
   .setAction(
     async (
       {
         testFiles,
         noCompile,
+        parallel,
+        bail,
+        grep,
       }: {
         testFiles: string[];
         noCompile: boolean;
+        parallel: boolean;
+        bail: boolean;
+        grep?: string;
       },
       { run, network }
     ) => {
@@ -103,6 +158,9 @@ task(TASK_TEST, "Runs mocha tests")
 
       const testFailures = await run(TASK_TEST_RUN_MOCHA_TESTS, {
         testFiles: files,
+        parallel,
+        bail,
+        grep,
       });
 
       if (network.name === HARDHAT_NETWORK_NAME) {

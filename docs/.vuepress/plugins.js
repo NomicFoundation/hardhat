@@ -117,6 +117,13 @@ module.exports.communityPlugins = [
     tags: ["Testing", "Coverage", "Hardhat plugin"],
   },
   {
+    name: "hardhat-gas-trackooor",
+    author: "d3or",
+    authorUrl: "https://github.com/d3or",
+    description: "Simple plugin to track gas on the transaction level.",
+    tags: ["Testing", "Gas", "Hardhat plugin"],
+  },
+  {
     name: "hardhat-gas-reporter",
     author: "Chris Gewecke",
     authorUrl: "https://github.com/cgewecke",
@@ -380,11 +387,25 @@ module.exports.communityPlugins = [
     tags: ["uniswap", "testing", "local deployment"],
   },
   {
+    name: "@unlock-protocol/hardhat-plugin",
+    author: "Unlock Inc",
+    authorUrl: "http://unlock-protocol.com/",
+    description: "Hardhat plugin for Unlock Protocol deployments.",
+    tags: ["unlock", "nft", "memberships", "udt", "testing", "deployment"],
+  },
+  {
     name: "hardhat-deploy-tenderly",
     author: "Ronan Sandford",
     authorUrl: "https://github.com/wighawag",
     description: "A plugin to push contracts to tenderly",
     tags: ["Deployment", "Testing", "Tenderly", "Verification"],
+  },
+  {
+    name: "hardhat-laika",
+    author: "Laika Blockchain Lab",
+    authorUrl: "https://github.com/laika-lab/hardhat-laika",
+    description: "Hardhat plugin to sync your compiled contract with Laika",
+    tags: ["Tasks", "Laika"],
   },
 ];
 

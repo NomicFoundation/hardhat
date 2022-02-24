@@ -34,17 +34,9 @@ All tests are written using [mocha](https://mochajs.org) and [chai](https://www.
 
 You can run a package's tests by executing `yarn test` inside its folder.
 
-_Note_: for package [hardhat-vyper](./packages/hardhat-vyper) case, a running instance of Docker Desktop is required, with `vyperlang/vyper` image pulled. To install it, run:
-
-```
-docker pull vyperlang/vyper:0.1.0b10
-```
-
 ### Entire project
 
 You can run all the tests at once by running `yarn test` from the root folder.
-
-For the case of package [hardhat-vyper](./packages/hardhat-vyper), an `vyperlang/vyper` docker instance installed is required (see previous section for details). _Exception_ of this requirement is if running on a Windows local machine, in this case we skip it by default since Win 10 Pro version would be also required.
 
 ## Code formatting
 

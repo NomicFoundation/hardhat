@@ -325,7 +325,7 @@ export class EthModule {
   }
 
   private async _blockNumberAction(): Promise<string> {
-    const blockNumber = await this._node.getLatestBlockNumber();
+    const blockNumber = this._node.getLatestBlockNumber();
     return numberToRpcQuantity(blockNumber);
   }
 
@@ -1405,7 +1405,7 @@ export class EthModule {
     }
 
     if (block === undefined) {
-      const latestBlock = await this._node.getLatestBlockNumber();
+      const latestBlock = this._node.getLatestBlockNumber();
 
       throw new InvalidInputError(
         `Received invalid block tag ${this._newBlockTagToString(

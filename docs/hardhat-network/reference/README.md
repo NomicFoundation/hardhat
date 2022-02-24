@@ -30,7 +30,7 @@ Its value should be `"auto"` or a number. If a number is used, it will be the ga
 
 #### `gasPrice`
 
-Its value should be `"auto"` or a number. This parameter behaves like `gas`. Default value: `"auto"`.
+Its value should be `"auto"` or a number (in wei). This parameter behaves like `gas`. Default value: `"auto"`.
 
 #### `gasMultiplier`
 
@@ -46,6 +46,7 @@ This field can be configured as one of these:
   - `path`: The HD parent of all the derived keys. Default value: `"m/44'/60'/0'/0"`.
   - `count`: The number of accounts to derive. Default value: `20`.
   - `accountsBalance`: string with the balance (in wei) assigned to every account derived. Default value: `"10000000000000000000000"` (10000 ETH).
+  - `passphrase`: The passphrase for the wallet. Default value: empty string.
 - An array of the initial accounts that the Hardhat Network will create. Each of them must be an object with `privateKey` and `balance` fields.
 
 #### `blockGasLimit`
@@ -390,6 +391,24 @@ Call [`hardhat_stopImpersonatingAccount`](#hardhat-stopimpersonatingaccount) to 
 
 Returns `true` if automatic mining is enabled, and `false` otherwise. See [Mining Modes](../explanation/mining-modes.md) to learn more.
 
+#### `hardhat_mine`
+
+Sometimes you may want to advance the latest block number of the Hardhat Network by a large number of blocks. One way to do this would be to call the `evm_mine` RPC method multiple times, but this is too slow if you want to mine thousands of blocks. The `hardhat_mine` method can mine any number of blocks at once, in constant time. (It exhibits the same performance no matter how many blocks are mined.)
+
+`hardhat_mine` accepts two parameters, both of which are optional. The first parameter is the number of blocks to mine, and defaults to 1. The second parameter is the interval between the timestamps of each block, _in seconds_, and it also defaults to 1. (The interval is applied only to blocks mined in the given method invocation, not to blocks mined afterwards.)
+
+```js
+// mine 256 blocks
+await hre.network.provider.send("hardhat_mine", ["0x100"]);
+
+// mine 1000 blocks with an interval of 1 minute
+await hre.network.provider.send("hardhat_mine", ["0x3e8", "0x3c"]);
+```
+
+Note that most blocks mined via this method (all except for the final one) may not technically be valid blocks. Specifically, they have an invalid parent hash, the coinbase account will not have been credited with block rewards, and the `baseFeePerGas` will be incorrect. (The final block in a sequence produced by `hardhat_mine` will always be fully valid.)
+
+Also note that blocks created via `hardhat_mine` may not trigger new-block events, such as filters created via `eth_newBlockFilter` and WebSocket subscriptions to new-block events.
+
 #### `hardhat_reset`
 
 See the [Mainnet Forking guide](../guides/mainnet-forking.md)
@@ -548,7 +567,9 @@ This method works like `evm_increaseTime`, but takes the exact timestamp that yo
 
 #### `evm_snapshot`
 
-Same as Ganache.
+Same as [Ganache](https://github.com/trufflesuite/ganache/blob/ef1858d5d6f27e4baeb75cccd57fb3dc77a45ae8/src/chains/ethereum/ethereum/RPC-METHODS.md#evm_snapshot).
+
+Snapshot the state of the blockchain at the current block. Takes no parameters. Returns the id of the snapshot that was created. A snapshot can only be reverted once. After a successful `evm_revert`, the same snapshot id cannot be used again. Consider creating a new snapshot after each `evm_revert` if you need to revert to the same point multiple times.
 
 ### Unsupported methods
 

@@ -1,11 +1,12 @@
+import type { task as taskT } from "hardhat/config";
+import type { CompilerInput } from "hardhat/types";
+
 import { assert, expect } from "chai";
 import {
   TASK_COMPILE,
   TASK_COMPILE_SOLIDITY_GET_COMPILER_INPUT,
 } from "hardhat/builtin-tasks/task-names";
-import type { task as taskT } from "hardhat/config";
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
-import type { CompilerInput } from "hardhat/types";
 import path from "path";
 
 import {

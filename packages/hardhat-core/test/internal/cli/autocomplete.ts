@@ -244,6 +244,18 @@ describe("autocomplete", function () {
           description: "Don't compile before running this task",
           name: "--no-compile",
         },
+        {
+          description: "Run tests in parallel",
+          name: "--parallel",
+        },
+        {
+          description: "Stop running tests after the first test failure",
+          name: "--bail",
+        },
+        {
+          description: "Only run tests matching the given string or regexp",
+          name: "--grep",
+        },
       ]);
     });
 
