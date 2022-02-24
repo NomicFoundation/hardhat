@@ -52,15 +52,22 @@ describe("HttpProvider", function () {
     });
     it("should retry upon receiving a rate-limit response that includes a retry-after header", async function () {
       const mockPool = makeMockPool(url);
+      let tooManyRequestsReturned = false;
+      mockPool.intercept({ method: "POST", path: "/" }).reply(() => {
+        tooManyRequestsReturned = true;
+        return {
+          statusCode: TOO_MANY_REQUEST_STATUS,
+          data: "",
+          responseOptions: { headers: { "retry-after": "1" } },
+        };
+      });
       mockPool
         .intercept({ method: "POST", path: "/" })
         .reply(200, successResponse);
-      mockPool
-        .intercept({ method: "POST", path: "/" })
-        .reply(TOO_MANY_REQUEST_STATUS, { headers: { "retry-after": "1" } });
       const provider = new HttpProvider(url, networkName, {}, 20000, mockPool);
       const result = await provider.request({ method: "net_version" });
       assert.equal(result, successResponse.result);
+      assert(tooManyRequestsReturned);
     });
   });
 });
