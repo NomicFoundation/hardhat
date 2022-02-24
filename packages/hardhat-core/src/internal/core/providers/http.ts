@@ -13,6 +13,7 @@ import {
   parseJsonResponse,
   SuccessfulJsonRpcResponse,
 } from "../../util/jsonrpc";
+import { getHardhatVersion } from "../../util/packageInfo";
 import { HardhatError } from "../errors";
 import { ERRORS } from "../errors-list";
 
@@ -27,9 +28,11 @@ const MAX_RETRY_AWAIT_SECONDS = 5;
 
 const TOO_MANY_REQUEST_STATUS = 429;
 
+const hardhatVersion = getHardhatVersion();
+
 export class HttpProvider extends EventEmitter implements EIP1193Provider {
   private _nextRequestId = 1;
-  private _client: Pool;
+  private _dispatcher: Dispatcher;
   private _path: string;
   private _authHeader: string | undefined;
 
@@ -37,7 +40,8 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
     private readonly _url: string,
     private readonly _networkName: string,
     private readonly _extraHeaders: { [name: string]: string } = {},
-    private readonly _timeout = 20000
+    private readonly _timeout = 20000,
+    client: Dispatcher | undefined = undefined
   ) {
     super();
     const url = new URL(this._url);
@@ -50,7 +54,7 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
             "utf-8"
           ).toString("base64")}`;
     try {
-      this._client = new Pool(url.origin);
+      this._dispatcher = client ?? new Pool(url.origin);
     } catch (e) {
       if (e instanceof TypeError && e.message === "Invalid URL") {
         e.message += ` ${url.origin}`;
@@ -156,7 +160,7 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
     retryNumber = 0
   ): Promise<JsonRpcResponse | JsonRpcResponse[]> {
     try {
-      const response = await this._client.request({
+      const response = await this._dispatcher.request({
         method: "POST",
         path: this._path,
         body: JSON.stringify(request),
@@ -167,13 +171,20 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
             : this._timeout,
         headers: {
           "Content-Type": "application/json",
+          "User-Agent": `hardhat ${hardhatVersion}`,
           Authorization: this._authHeader,
           ...this._extraHeaders,
         },
       });
 
       if (this._isRateLimitResponse(response)) {
-        response.body.destroy();
+        // "The Fetch Standard allows users to skip consuming the response body
+        // by relying on garbage collection to release connection resources.
+        // Undici does not do the same. Therefore, it is important to always
+        // either consume or cancel the response body."
+        // https://undici.nodejs.org/#/?id=garbage-collection
+        // It's not clear how to "cancel", so we'll just consume:
+        await response.body.text();
         const seconds = this._getRetryAfterSeconds(response);
         if (seconds !== undefined && this._shouldRetry(retryNumber, seconds)) {
           return await this._retry(request, seconds, retryNumber);
