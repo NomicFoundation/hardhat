@@ -40,19 +40,21 @@ function override(method: Methods, name: string, utils: Chai.ChaiUtils) {
     overwriteBigNumberFunction(method, name, _super, utils);
 }
 
-function normalizeToBigNumber(
+function normalizeToBigInt(
   source: bigint | BigNumberEthers | BigNumberJs | BN | number | string
-): BigNumberEthers {
-  if (typeof source === "bigint") {
-    return BigNumberEthers.from(source);
-  } else if (source instanceof BigNumberEthers) {
-    return BigNumberEthers.from(source);
+): bigint {
+  if (source instanceof BigNumberEthers) {
+    return BigInt(source.toString());
   } else if (source instanceof BN) {
-    return BigNumberEthers.from(source.toString());
+    return BigInt(source.toString());
   } else if (source instanceof BigNumberJs) {
-    return BigNumberEthers.from(source.toString(10));
-  } else if (typeof source === "string" || typeof source === "number") {
-    return BigNumberEthers.from(source)
+    return BigInt(source.toString(10));
+  } else if (
+    typeof source === "string" ||
+    typeof source === "number" ||
+    typeof source === "bigint"
+  ) {
+    return BigInt(source)
   } else {
     throw new Error(`cannot convert ${typeof source} to BigNumber`);
   }
@@ -78,15 +80,30 @@ function overwriteBigNumberFunction(
       _super.apply(this, [actual.toNumber()]);
       return;
     }
+    function compare(method: Methods, lhs: bigint, rhs: bigint): boolean {
+      if (method === "eq") {
+        return lhs === rhs;
+      } else if (method === "gt") {
+        return lhs > rhs;
+      } else if (method === "lt") {
+        return lhs < rhs;
+      } else if (method === "gte") {
+        return lhs >= rhs;
+      } else if (method === "lte") {
+        return lhs <= rhs;
+      } else {
+        throw new Error(`Unknown comparison operation ${method}`);
+      }
+    }
     if (isBigNumber(expected) || isBigNumber(actual)) {
-      const expectedAsBigNumber = normalizeToBigNumber(expected);
-      const actualAsBigNumber = normalizeToBigNumber(actual);
+      const expectedAsBigInt = normalizeToBigInt(expected);
+      const actualAsBigInt = normalizeToBigInt(actual);
       this.assert(
-        BigNumberEthers.from(expectedAsBigNumber)[functionName](actualAsBigNumber),
-        `Expected "${expectedAsBigNumber}" to be ${readableName} ${actualAsBigNumber}`,
-        `Expected "${expectedAsBigNumber}" NOT to be ${readableName} ${actualAsBigNumber}`,
-        expectedAsBigNumber,
-        actualAsBigNumber
+        compare(functionName, expectedAsBigInt, actualAsBigInt),
+        `Expected "${expectedAsBigInt}" to be ${readableName} ${actualAsBigInt}`,
+        `Expected "${expectedAsBigInt}" NOT to be ${readableName} ${actualAsBigInt}`,
+        expectedAsBigInt,
+        actualAsBigInt
       );
     } else {
       _super.apply(this, args);
@@ -103,15 +120,15 @@ function overwriteBigNumberWithin(_super: (...args: any[]) => any, chaiUtils: Ch
     const [start, finish] = args;
     const expected = chaiUtils.flag(this, 'object');
     if (isBigNumber(expected) || isBigNumber(start) || isBigNumber(finish)) {
-      const expectedAsBigNumber = normalizeToBigNumber(expected);
-      const startAsBigNumber = normalizeToBigNumber(start);
-      const finishAsBigNumber = normalizeToBigNumber(finish);
+      const expectedAsBigInt = normalizeToBigInt(expected);
+      const startAsBigInt = normalizeToBigInt(start);
+      const finishAsBigInt = normalizeToBigInt(finish);
       this.assert(
-        BigNumberEthers.from(startAsBigNumber).lte(expectedAsBigNumber) && BigNumberEthers.from(finishAsBigNumber).gte(expectedAsBigNumber),
-        `Expected "${expectedAsBigNumber}" to be within [${[startAsBigNumber, finishAsBigNumber]}]`,
-        `Expected "${expectedAsBigNumber}" NOT to be within [${[startAsBigNumber, finishAsBigNumber]}]`,
-        [startAsBigNumber, finishAsBigNumber],
-        expectedAsBigNumber
+        startAsBigInt <= expectedAsBigInt && finishAsBigInt >= expectedAsBigInt,
+        `Expected "${expectedAsBigInt}" to be within [${[startAsBigInt, finishAsBigInt]}]`,
+        `Expected "${expectedAsBigInt}" NOT to be within [${[startAsBigInt, finishAsBigInt]}]`,
+        [startAsBigInt, finishAsBigInt],
+        expectedAsBigInt
       );
     } else {
       _super.apply(this, args);
@@ -129,15 +146,18 @@ function overwriteBigNumberCloseTo(_super: (...args: any[]) => any, chaiUtils: C
     const [actual, delta] = args;
     const expected = chaiUtils.flag(this, 'object');
     if (isBigNumber(expected) || isBigNumber(actual) || isBigNumber(delta)) {
-      const expectedAsBigNumber = normalizeToBigNumber(expected);
-      const actualAsBigNumber = normalizeToBigNumber(actual);
-      const deltaAsBigNumber = normalizeToBigNumber(delta);
+      const expectedAsBigInt = normalizeToBigInt(expected);
+      const actualAsBigInt = normalizeToBigInt(actual);
+      const deltaAsBigInt = normalizeToBigInt(delta);
+      function abs(i: bigint): bigint {
+        return i < 0 ? BigInt(-1) * i : i;
+      }
       this.assert(
-        BigNumberEthers.from(expectedAsBigNumber).sub(actualAsBigNumber).abs().lte(deltaAsBigNumber),
-        `Expected "${expectedAsBigNumber}" to be within ${deltaAsBigNumber} of ${actualAsBigNumber}`,
-        `Expected "${expectedAsBigNumber}" NOT to be within ${deltaAsBigNumber} of ${actualAsBigNumber}`,
-        `A number between ${actualAsBigNumber.sub(deltaAsBigNumber)} and ${actualAsBigNumber.sub(deltaAsBigNumber)}`,
-        expectedAsBigNumber
+        abs(expectedAsBigInt - actualAsBigInt) <= deltaAsBigInt,
+        `Expected "${expectedAsBigInt}" to be within ${deltaAsBigInt} of ${actualAsBigInt}`,
+        `Expected "${expectedAsBigInt}" NOT to be within ${deltaAsBigInt} of ${actualAsBigInt}`,
+        `A number between ${actualAsBigInt - deltaAsBigInt} and ${actualAsBigInt + deltaAsBigInt}`,
+        expectedAsBigInt
       );
     } else {
       _super.apply(this, args);
