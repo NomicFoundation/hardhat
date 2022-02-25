@@ -22,6 +22,8 @@ export interface JsonRpcServerConfig {
 }
 
 export class JsonRpcServer implements IJsonRpcServer {
+  public static defaultNetworkName = "json-rpc";
+
   private _config: JsonRpcServerConfig;
   private _httpServer: Server;
   private _wsServer: WsT.Server;
@@ -42,10 +44,19 @@ export class JsonRpcServer implements IJsonRpcServer {
     this._wsServer.on("connection", handler.handleWs);
   }
 
-  public getProvider = (name = "json-rpc"): EIP1193Provider => {
+  public getProvider = (
+    name = JsonRpcServer.defaultNetworkName,
+    keepAliveTimeoutMs?: number
+  ): EIP1193Provider => {
     const { address, port } = this._httpServer.address() as AddressInfo; // TCP sockets return AddressInfo
 
-    return new HttpProvider(`http://${address}:${port}/`, name);
+    return new HttpProvider(
+      `http://${address}:${port}/`,
+      name,
+      {},
+      HttpProvider.defaultTimeout,
+      keepAliveTimeoutMs
+    );
   };
 
   public listen = (): Promise<{ address: string; port: number }> => {

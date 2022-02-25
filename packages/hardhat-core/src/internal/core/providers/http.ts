@@ -31,6 +31,8 @@ const TOO_MANY_REQUEST_STATUS = 429;
 const hardhatVersion = getHardhatVersion();
 
 export class HttpProvider extends EventEmitter implements EIP1193Provider {
+  public static defaultTimeout = 20000;
+
   private _nextRequestId = 1;
   private _dispatcher: Dispatcher;
   private _path: string;
@@ -40,8 +42,9 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
     private readonly _url: string,
     private readonly _networkName: string,
     private readonly _extraHeaders: { [name: string]: string } = {},
-    private readonly _timeout = 20000,
-    client: Dispatcher | undefined = undefined
+    private readonly _timeout = HttpProvider.defaultTimeout,
+    _keepAliveTimeoutMs?: number,
+    client?: Dispatcher
   ) {
     super();
     const url = new URL(this._url);
@@ -54,7 +57,12 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
             "utf-8"
           ).toString("base64")}`;
     try {
-      this._dispatcher = client ?? new Pool(url.origin);
+      this._dispatcher =
+        client ??
+        new Pool(url.origin, {
+          keepAliveTimeout: _keepAliveTimeoutMs,
+          keepAliveMaxTimeout: _keepAliveTimeoutMs,
+        });
     } catch (e) {
       if (e instanceof TypeError && e.message === "Invalid URL") {
         e.message += ` ${url.origin}`;

@@ -35,7 +35,14 @@ describe("HttpProvider", function () {
       mockPool
         .intercept({ method: "POST", path: "/" })
         .reply(200, successResponse);
-      const provider = new HttpProvider(url, networkName, {}, 20000, mockPool);
+      const provider = new HttpProvider(
+        url,
+        networkName,
+        {},
+        HttpProvider.defaultTimeout,
+        undefined,
+        mockPool
+      );
       const result = await provider.request({ method: "net_version" });
       assert.equal(result, successResponse.result);
     });
@@ -45,7 +52,14 @@ describe("HttpProvider", function () {
       mockPool
         .intercept({ method: "POST", path: "/" })
         .reply(TOO_MANY_REQUEST_STATUS, {});
-      const provider = new HttpProvider(url, networkName, {}, 20000, mockPool);
+      const provider = new HttpProvider(
+        url,
+        networkName,
+        {},
+        HttpProvider.defaultTimeout,
+        undefined,
+        mockPool
+      );
       await expectErrorAsync(async () => {
         await provider.request({ method: "net_version" });
       }, `Too Many Requests error received from ${new URL(url).hostname}`);
@@ -64,7 +78,14 @@ describe("HttpProvider", function () {
       mockPool
         .intercept({ method: "POST", path: "/" })
         .reply(200, successResponse);
-      const provider = new HttpProvider(url, networkName, {}, 20000, mockPool);
+      const provider = new HttpProvider(
+        url,
+        networkName,
+        {},
+        HttpProvider.defaultTimeout,
+        undefined,
+        mockPool
+      );
       const result = await provider.request({ method: "net_version" });
       assert.equal(result, successResponse.result);
       assert(tooManyRequestsReturned);

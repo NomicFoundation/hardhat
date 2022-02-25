@@ -112,7 +112,7 @@ export function useProvider({
       this.serverInfo = await this.server.listen();
 
       this.provider = new BackwardsCompatibilityProviderAdapter(
-        this.server.getProvider()
+        this.server.getProvider(JsonRpcServer.defaultNetworkName, 10)
       );
     }
   });
