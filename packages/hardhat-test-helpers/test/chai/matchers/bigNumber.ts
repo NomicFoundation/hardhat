@@ -12,13 +12,14 @@ describe('UNIT: BigNumber matchers', () => {
     actual: number,
     expected: number,
     test: (
-      actual: number | string | BigNumberEthers | BigNumberJs | BN,
-      expected: number | string | BigNumberEthers | BigNumberJs | BN
+      actual: number | string | bigint | BigNumberEthers | BigNumberJs | BN,
+      expected: number | string | bigint | BigNumberEthers | BigNumberJs | BN
     ) => void
   ) {
     const conversions = [
       (n: number) => n,
       (n: number) => n.toString(),
+      (n: number) => BigInt(n),
       (n: number) => BigNumberEthers.from(n),
       (n: number) => new BN(n),
       (n: number) => new BigNumberJs(n),
@@ -154,13 +155,14 @@ describe('UNIT: BigNumber matchers', () => {
     b: number,
     c: number,
     test: (
-      a: number | BigNumberEthers | BigNumberJs | BN,
-      b: number | BigNumberEthers | BigNumberJs | BN,
-      c: number | BigNumberEthers | BigNumberJs | BN
+      a: number | bigint | BigNumberEthers | BigNumberJs | BN,
+      b: number | bigint | BigNumberEthers | BigNumberJs | BN,
+      c: number | bigint | BigNumberEthers | BigNumberJs | BN
     ) => void
   ) {
     const conversions = [
       (n: number) => n,
+      (n: number) => BigInt(n),
       (n: number) => BigNumberEthers.from(n),
       (n: number) => new BigNumberJs(n),
       (n: number) => new BN(n),

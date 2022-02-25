@@ -41,9 +41,11 @@ function override(method: Methods, name: string, utils: Chai.ChaiUtils) {
 }
 
 function normalizeToBigNumber(
-  source: BigNumberEthers | BigNumberJs | BN | number | string
+  source: bigint | BigNumberEthers | BigNumberJs | BN | number | string
 ): BigNumberEthers {
-  if (source instanceof BigNumberEthers) {
+  if (typeof source === "bigint") {
+    return BigNumberEthers.from(source);
+  } else if (source instanceof BigNumberEthers) {
     return BigNumberEthers.from(source);
   } else if (source instanceof BN) {
     return BigNumberEthers.from(source.toString());
@@ -57,7 +59,8 @@ function normalizeToBigNumber(
 }
 
 function isBigNumber(source: any): boolean {
-  return BigNumberEthers.isBigNumber(source) ||
+  return typeof source === "bigint" ||
+    BigNumberEthers.isBigNumber(source) ||
     BN.isBN(source) ||
     BigNumberJs.isBigNumber(source);
 }
