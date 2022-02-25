@@ -96,14 +96,14 @@ function overwriteBigNumberFunction(
       }
     }
     if (isBigNumber(expectedFlag) || isBigNumber(actualArg)) {
-      const expectedAsBigInt = normalizeToBigInt(expectedFlag);
-      const actualAsBigInt = normalizeToBigInt(actualArg);
+      const expected = normalizeToBigInt(expectedFlag);
+      const actual = normalizeToBigInt(actualArg);
       this.assert(
-        compare(functionName, expectedAsBigInt, actualAsBigInt),
-        `Expected "${expectedAsBigInt}" to be ${readableName} ${actualAsBigInt}`,
-        `Expected "${expectedAsBigInt}" NOT to be ${readableName} ${actualAsBigInt}`,
-        expectedAsBigInt,
-        actualAsBigInt
+        compare(functionName, expected, actual),
+        `Expected "${expected}" to be ${readableName} ${actual}`,
+        `Expected "${expected}" NOT to be ${readableName} ${actual}`,
+        expected,
+        actual
       );
     } else {
       _super.apply(this, args);
@@ -120,15 +120,15 @@ function overwriteBigNumberWithin(_super: (...args: any[]) => any, chaiUtils: Ch
     const [startArg, finishArg] = args;
     const expectedFlag = chaiUtils.flag(this, 'object');
     if (isBigNumber(expectedFlag) || isBigNumber(startArg) || isBigNumber(finishArg)) {
-      const expectedAsBigInt = normalizeToBigInt(expectedFlag);
-      const startAsBigInt = normalizeToBigInt(startArg);
-      const finishAsBigInt = normalizeToBigInt(finishArg);
+      const expected = normalizeToBigInt(expectedFlag);
+      const start = normalizeToBigInt(startArg);
+      const finish = normalizeToBigInt(finishArg);
       this.assert(
-        startAsBigInt <= expectedAsBigInt && finishAsBigInt >= expectedAsBigInt,
-        `Expected "${expectedAsBigInt}" to be within [${[startAsBigInt, finishAsBigInt]}]`,
-        `Expected "${expectedAsBigInt}" NOT to be within [${[startAsBigInt, finishAsBigInt]}]`,
-        [startAsBigInt, finishAsBigInt],
-        expectedAsBigInt
+        start <= expected && finish >= expected,
+        `Expected "${expected}" to be within [${[start, finish]}]`,
+        `Expected "${expected}" NOT to be within [${[start, finish]}]`,
+        [start, finish],
+        expected
       );
     } else {
       _super.apply(this, args);
@@ -146,18 +146,18 @@ function overwriteBigNumberCloseTo(_super: (...args: any[]) => any, chaiUtils: C
     const [actualArg, deltaArg] = args;
     const expectedFlag = chaiUtils.flag(this, 'object');
     if (isBigNumber(expectedFlag) || isBigNumber(actualArg) || isBigNumber(deltaArg)) {
-      const expectedAsBigInt = normalizeToBigInt(expectedFlag);
-      const actualAsBigInt = normalizeToBigInt(actualArg);
-      const deltaAsBigInt = normalizeToBigInt(deltaArg);
+      const expected = normalizeToBigInt(expectedFlag);
+      const actual = normalizeToBigInt(actualArg);
+      const delta = normalizeToBigInt(deltaArg);
       function abs(i: bigint): bigint {
         return i < 0 ? BigInt(-1) * i : i;
       }
       this.assert(
-        abs(expectedAsBigInt - actualAsBigInt) <= deltaAsBigInt,
-        `Expected "${expectedAsBigInt}" to be within ${deltaAsBigInt} of ${actualAsBigInt}`,
-        `Expected "${expectedAsBigInt}" NOT to be within ${deltaAsBigInt} of ${actualAsBigInt}`,
-        `A number between ${actualAsBigInt - deltaAsBigInt} and ${actualAsBigInt + deltaAsBigInt}`,
-        expectedAsBigInt
+        abs(expected - actual) <= delta,
+        `Expected "${expected}" to be within ${delta} of ${actual}`,
+        `Expected "${expected}" NOT to be within ${delta} of ${actual}`,
+        `A number between ${actual - delta} and ${actual + delta}`,
+        expected
       );
     } else {
       _super.apply(this, args);
