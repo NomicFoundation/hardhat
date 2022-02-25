@@ -74,10 +74,10 @@ function overwriteBigNumberFunction(
   chaiUtils: Chai.ChaiUtils
 ) {
   return function (this: Chai.AssertionStatic, ...args: any[]) {
-    const [actual] = args;
-    const expected = chaiUtils.flag(this, 'object');
-    if (chaiUtils.flag(this, 'doLength') && BigNumberEthers.isBigNumber(actual)) {
-      _super.apply(this, [actual.toNumber()]);
+    const [actualArg] = args;
+    const expectedFlag = chaiUtils.flag(this, 'object');
+    if (chaiUtils.flag(this, 'doLength') && BigNumberEthers.isBigNumber(actualArg)) {
+      _super.apply(this, [actualArg.toNumber()]);
       return;
     }
     function compare(method: Methods, lhs: bigint, rhs: bigint): boolean {
@@ -95,9 +95,9 @@ function overwriteBigNumberFunction(
         throw new Error(`Unknown comparison operation ${method}`);
       }
     }
-    if (isBigNumber(expected) || isBigNumber(actual)) {
-      const expectedAsBigInt = normalizeToBigInt(expected);
-      const actualAsBigInt = normalizeToBigInt(actual);
+    if (isBigNumber(expectedFlag) || isBigNumber(actualArg)) {
+      const expectedAsBigInt = normalizeToBigInt(expectedFlag);
+      const actualAsBigInt = normalizeToBigInt(actualArg);
       this.assert(
         compare(functionName, expectedAsBigInt, actualAsBigInt),
         `Expected "${expectedAsBigInt}" to be ${readableName} ${actualAsBigInt}`,
@@ -117,12 +117,12 @@ function overrideWithin(utils: Chai.ChaiUtils) {
 
 function overwriteBigNumberWithin(_super: (...args: any[]) => any, chaiUtils: Chai.ChaiUtils) {
   return function (this: Chai.AssertionStatic, ...args: any[]) {
-    const [start, finish] = args;
-    const expected = chaiUtils.flag(this, 'object');
-    if (isBigNumber(expected) || isBigNumber(start) || isBigNumber(finish)) {
-      const expectedAsBigInt = normalizeToBigInt(expected);
-      const startAsBigInt = normalizeToBigInt(start);
-      const finishAsBigInt = normalizeToBigInt(finish);
+    const [startArg, finishArg] = args;
+    const expectedFlag = chaiUtils.flag(this, 'object');
+    if (isBigNumber(expectedFlag) || isBigNumber(startArg) || isBigNumber(finishArg)) {
+      const expectedAsBigInt = normalizeToBigInt(expectedFlag);
+      const startAsBigInt = normalizeToBigInt(startArg);
+      const finishAsBigInt = normalizeToBigInt(finishArg);
       this.assert(
         startAsBigInt <= expectedAsBigInt && finishAsBigInt >= expectedAsBigInt,
         `Expected "${expectedAsBigInt}" to be within [${[startAsBigInt, finishAsBigInt]}]`,
@@ -143,12 +143,12 @@ function overrideCloseTo(utils: Chai.ChaiUtils) {
 
 function overwriteBigNumberCloseTo(_super: (...args: any[]) => any, chaiUtils: Chai.ChaiUtils) {
   return function (this: Chai.AssertionStatic, ...args: any[]) {
-    const [actual, delta] = args;
-    const expected = chaiUtils.flag(this, 'object');
-    if (isBigNumber(expected) || isBigNumber(actual) || isBigNumber(delta)) {
-      const expectedAsBigInt = normalizeToBigInt(expected);
-      const actualAsBigInt = normalizeToBigInt(actual);
-      const deltaAsBigInt = normalizeToBigInt(delta);
+    const [actualArg, deltaArg] = args;
+    const expectedFlag = chaiUtils.flag(this, 'object');
+    if (isBigNumber(expectedFlag) || isBigNumber(actualArg) || isBigNumber(deltaArg)) {
+      const expectedAsBigInt = normalizeToBigInt(expectedFlag);
+      const actualAsBigInt = normalizeToBigInt(actualArg);
+      const deltaAsBigInt = normalizeToBigInt(deltaArg);
       function abs(i: bigint): bigint {
         return i < 0 ? BigInt(-1) * i : i;
       }
