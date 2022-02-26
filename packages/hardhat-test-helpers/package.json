@@ -42,7 +42,6 @@
     "@types/node": "^12.0.0",
     "@typescript-eslint/eslint-plugin": "4.29.2",
     "@typescript-eslint/parser": "4.29.2",
-    "chai": "^4.2.0",
     "eslint": "^7.29.0",
     "eslint-config-prettier": "8.3.0",
     "eslint-plugin-import": "2.24.1",
@@ -60,6 +59,7 @@
   "dependencies": {
     "bignumber.js": "^9.0.2",
     "bn.js": "^5.2.0",
+    "chai": "^4.2.0",
     "ethers": "^5.0.0"
   }
 }
