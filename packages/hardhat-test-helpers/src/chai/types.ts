@@ -5,7 +5,10 @@
 // I cannot get ethers types to work for some reason
 
 declare namespace Chai {
-  interface Assertion extends LanguageChains, NumericComparison, TypeComparison {
+  interface Assertion
+    extends LanguageChains,
+      NumericComparison,
+      TypeComparison {
     reverted: AsyncAssertion;
     revertedWith(reason: string): AsyncAssertion;
     emit(contract: any, eventName: string): EmitAssertion;
@@ -21,10 +24,22 @@ declare namespace Chai {
      * @deprecated Use `changeEtherBalances()` instead.
      */
     changeBalances(accounts: any[], balances: any[]): AsyncAssertion;
-    changeEtherBalance(account: any, balance: any, options?: any): AsyncAssertion;
-    changeEtherBalances(accounts: any[], balances: any[], options?: any): AsyncAssertion;
+    changeEtherBalance(
+      account: any,
+      balance: any,
+      options?: any
+    ): AsyncAssertion;
+    changeEtherBalances(
+      accounts: any[],
+      balances: any[],
+      options?: any
+    ): AsyncAssertion;
     changeTokenBalance(token: any, account: any, balance: any): AsyncAssertion;
-    changeTokenBalances(token: any, accounts: any[], balances: any[]): AsyncAssertion;
+    changeTokenBalances(
+      token: any,
+      accounts: any[],
+      balances: any[]
+    ): AsyncAssertion;
     calledOnContract(contract: any): void;
     calledOnContractWith(contract: any, parameters: any[]): void;
   }
