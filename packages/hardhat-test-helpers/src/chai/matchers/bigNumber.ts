@@ -1,4 +1,4 @@
-import { BigNumber as BigNumberEthers } from 'ethers';
+import { BigNumber as BigNumberEthers } from "ethers";
 import { BigNumber as BigNumberJs } from "bignumber.js";
 import BN from "bn.js";
 
@@ -6,34 +6,34 @@ export function supportBigNumber(
   Assertion: Chai.AssertionStatic,
   utils: Chai.ChaiUtils
 ) {
-  Assertion.overwriteMethod('equals', override('eq', 'equal', utils));
-  Assertion.overwriteMethod('equal', override('eq', 'equal', utils));
-  Assertion.overwriteMethod('eq', override('eq', 'equal', utils));
+  Assertion.overwriteMethod("equals", override("eq", "equal", utils));
+  Assertion.overwriteMethod("equal", override("eq", "equal", utils));
+  Assertion.overwriteMethod("eq", override("eq", "equal", utils));
 
-  Assertion.overwriteMethod('above', override('gt', 'above', utils));
-  Assertion.overwriteMethod('gt', override('gt', 'greater than', utils));
+  Assertion.overwriteMethod("above", override("gt", "above", utils));
+  Assertion.overwriteMethod("gt", override("gt", "greater than", utils));
 
-  Assertion.overwriteMethod('below', override('lt', 'below', utils));
-  Assertion.overwriteMethod('lt', override('lt', 'less than', utils));
+  Assertion.overwriteMethod("below", override("lt", "below", utils));
+  Assertion.overwriteMethod("lt", override("lt", "less than", utils));
 
-  Assertion.overwriteMethod('least', override('gte', 'at least', utils));
+  Assertion.overwriteMethod("least", override("gte", "at least", utils));
   Assertion.overwriteMethod(
-    'gte',
-    override('gte', 'greater than or equal', utils)
+    "gte",
+    override("gte", "greater than or equal", utils)
   );
 
-  Assertion.overwriteMethod('most', override('lte', 'at most', utils));
+  Assertion.overwriteMethod("most", override("lte", "at most", utils));
   Assertion.overwriteMethod(
-    'lte',
-    override('lte', 'less than or equal', utils)
+    "lte",
+    override("lte", "less than or equal", utils)
   );
 
-  Assertion.overwriteMethod('within', overrideWithin(utils));
+  Assertion.overwriteMethod("within", overrideWithin(utils));
 
-  Assertion.overwriteMethod('closeTo', overrideCloseTo(utils));
+  Assertion.overwriteMethod("closeTo", overrideCloseTo(utils));
 }
 
-type Methods = 'eq' | 'gt' | 'lt' | 'gte' | 'lte';
+type Methods = "eq" | "gt" | "lt" | "gte" | "lte";
 
 function override(method: Methods, name: string, utils: Chai.ChaiUtils) {
   return (_super: (...args: any[]) => any) =>
@@ -54,17 +54,19 @@ function normalizeToBigInt(
     typeof source === "number" ||
     typeof source === "bigint"
   ) {
-    return BigInt(source)
+    return BigInt(source);
   } else {
     throw new Error(`cannot convert ${typeof source} to BigNumber`);
   }
 }
 
 function isBigNumber(source: any): boolean {
-  return typeof source === "bigint" ||
+  return (
+    typeof source === "bigint" ||
     BigNumberEthers.isBigNumber(source) ||
     BN.isBN(source) ||
-    BigNumberJs.isBigNumber(source);
+    BigNumberJs.isBigNumber(source)
+  );
 }
 
 function overwriteBigNumberFunction(
@@ -75,8 +77,11 @@ function overwriteBigNumberFunction(
 ) {
   return function (this: Chai.AssertionStatic, ...args: any[]) {
     const [actualArg] = args;
-    const expectedFlag = chaiUtils.flag(this, 'object');
-    if (chaiUtils.flag(this, 'doLength') && BigNumberEthers.isBigNumber(actualArg)) {
+    const expectedFlag = chaiUtils.flag(this, "object");
+    if (
+      chaiUtils.flag(this, "doLength") &&
+      BigNumberEthers.isBigNumber(actualArg)
+    ) {
       _super.apply(this, [actualArg.toNumber()]);
       return;
     }
@@ -112,14 +117,22 @@ function overwriteBigNumberFunction(
 }
 
 function overrideWithin(utils: Chai.ChaiUtils) {
-  return (_super: (...args: any[]) => any) => overwriteBigNumberWithin(_super, utils);
+  return (_super: (...args: any[]) => any) =>
+    overwriteBigNumberWithin(_super, utils);
 }
 
-function overwriteBigNumberWithin(_super: (...args: any[]) => any, chaiUtils: Chai.ChaiUtils) {
+function overwriteBigNumberWithin(
+  _super: (...args: any[]) => any,
+  chaiUtils: Chai.ChaiUtils
+) {
   return function (this: Chai.AssertionStatic, ...args: any[]) {
     const [startArg, finishArg] = args;
-    const expectedFlag = chaiUtils.flag(this, 'object');
-    if (isBigNumber(expectedFlag) || isBigNumber(startArg) || isBigNumber(finishArg)) {
+    const expectedFlag = chaiUtils.flag(this, "object");
+    if (
+      isBigNumber(expectedFlag) ||
+      isBigNumber(startArg) ||
+      isBigNumber(finishArg)
+    ) {
       const expected = normalizeToBigInt(expectedFlag);
       const start = normalizeToBigInt(startArg);
       const finish = normalizeToBigInt(finishArg);
@@ -141,11 +154,18 @@ function overrideCloseTo(utils: Chai.ChaiUtils) {
     overwriteBigNumberCloseTo(_super, utils);
 }
 
-function overwriteBigNumberCloseTo(_super: (...args: any[]) => any, chaiUtils: Chai.ChaiUtils) {
+function overwriteBigNumberCloseTo(
+  _super: (...args: any[]) => any,
+  chaiUtils: Chai.ChaiUtils
+) {
   return function (this: Chai.AssertionStatic, ...args: any[]) {
     const [actualArg, deltaArg] = args;
-    const expectedFlag = chaiUtils.flag(this, 'object');
-    if (isBigNumber(expectedFlag) || isBigNumber(actualArg) || isBigNumber(deltaArg)) {
+    const expectedFlag = chaiUtils.flag(this, "object");
+    if (
+      isBigNumber(expectedFlag) ||
+      isBigNumber(actualArg) ||
+      isBigNumber(deltaArg)
+    ) {
       const expected = normalizeToBigInt(expectedFlag);
       const actual = normalizeToBigInt(actualArg);
       const delta = normalizeToBigInt(deltaArg);

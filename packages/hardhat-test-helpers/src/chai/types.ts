@@ -48,13 +48,9 @@ declare namespace Chai {
     within(start: any, finish: any, message?: string): Assertion;
   }
 
-  interface NumberComparer {
-    (value: any, message?: string): Assertion;
-  }
+  type NumberComparer = (value: any, message?: string) => Assertion;
 
-  interface CloseTo {
-    (expected: any, delta: any, message?: string): Assertion;
-  }
+  type CloseTo = (expected: any, delta: any, message?: string) => Assertion;
 
   interface AsyncAssertion extends Assertion, Promise<void> {}
 
