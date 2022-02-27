@@ -115,6 +115,10 @@ export class HardhatModule {
 
       case "hardhat_mine":
         return this._hardhatMineAction(...this._hardhatMineParams(params));
+      case "hardhat_dumpState":
+        return this._dumpStateAction(...this._dumpStateParams(params));
+      case "hardhat_importState":
+        return this._importStateAction(...this._importStateParams(params));
     }
 
     throw new MethodNotFoundError(`Method ${method} not found`);
@@ -383,6 +387,24 @@ export class HardhatModule {
   }
   private _hardhatMineParams(params: any[]): [BN | undefined, BN | undefined] {
     return validateParams(params, optional(rpcQuantity), optional(rpcQuantity));
+  }
+
+  // hardhat_dumpState
+  private _dumpStateParams(params: any[]): [] {
+    return validateParams(params);
+  }
+
+  private async _dumpStateAction() {
+    return this._node.dumpState();
+  }
+
+  // hardhat_importState
+  private _importStateParams(params: any[]): [Buffer] {
+    return validateParams(params, rpcData);
+  }
+
+  private async _importStateAction(buf: Buffer) {
+    return this._node.loadState(buf);
   }
 
   private async _logBlock(
