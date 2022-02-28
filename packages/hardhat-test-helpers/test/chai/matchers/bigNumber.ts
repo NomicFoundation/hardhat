@@ -48,21 +48,52 @@ describe("UNIT: BigNumber matchers", () => {
     }
   }
 
+  function typestr(
+    n: number | bigint | string | BN | BigNumberEthers | BigNumberJs
+  ): string {
+    if (typeof n === "object") {
+      if (n instanceof BN) {
+        return "BN";
+      } else if (n instanceof BigNumberEthers) {
+        return "ethers.BigNumber";
+      } else if (n instanceof BigNumberJs) {
+        return "bignumber.js";
+      }
+    }
+    return typeof n;
+  }
+
   describe("equal", () => {
-    it(".to.equal", () => {
-      checkAll(10, 10, (a, b) => expect(a).to.equal(b));
+    describe(".to.equal", () => {
+      checkAll(10, 10, (a, b) => {
+        it(`should work with ${typestr(a)} and ${typestr(b)}`, function () {
+          expect(a).to.equal(b);
+        });
+      });
     });
 
-    it(".to.eq", () => {
-      checkAll(10, 10, (a, b) => expect(a).to.eq(b));
+    describe(".to.eq", () => {
+      checkAll(10, 10, (a, b) => {
+        it(`should work with ${typestr(a)} and ${typestr(b)}`, function () {
+          expect(a).to.eq(b);
+        });
+      });
     });
 
-    it(".not.to.equal", () => {
-      checkAll(10, 11, (a, b) => expect(a).not.to.equal(b));
+    describe(".not.to.equal", () => {
+      checkAll(10, 11, (a, b) => {
+        it(`should work with ${typestr(a)} and ${typestr(b)}`, function () {
+          expect(a).not.to.equal(b);
+        });
+      });
     });
 
-    it(".not.to.eq", () => {
-      checkAll(10, 11, (a, b) => expect(a).not.to.eq(b));
+    describe(".not.to.eq", () => {
+      checkAll(10, 11, (a, b) => {
+        it(`should work with ${typestr(a)} and ${typestr(b)}`, function () {
+          expect(a).not.to.eq(b);
+        });
+      });
     });
 
     it("throws proper message on error", () => {
@@ -74,82 +105,214 @@ describe("UNIT: BigNumber matchers", () => {
   });
 
   describe("above", () => {
-    it(".to.be.above", () => {
-      checkAll(10, 9, (a, b) => expect(a).to.be.above(b));
+    describe(".to.be.above", () => {
+      checkAll(10, 9, (a, b) => {
+        it(`should work with ${typestr(a)} and ${typestr(b)}`, function () {
+          expect(a).to.be.above(b);
+        });
+      });
     });
 
-    it(".to.be.gt", () => {
-      checkAll(10, 9, (a, b) => expect(a).to.be.gt(b));
+    describe(".to.be.gt", () => {
+      checkAll(10, 9, (a, b) => {
+        it(`should work with ${typestr(a)} and ${typestr(b)}`, function () {
+          expect(a).to.be.gt(b);
+        });
+      });
     });
 
-    it(".not.to.be.above", () => {
-      checkAll(10, 10, (a, b) => expect(a).not.to.be.above(b));
-      checkAll(10, 11, (a, b) => expect(a).not.to.be.above(b));
+    describe(".not.to.be.above", () => {
+      checkAll(10, 10, (a, b) => {
+        it(`should work with 10,10 and with ${typestr(a)} and ${typestr(
+          b
+        )}`, function () {
+          expect(a).not.to.be.above(b);
+        });
+      });
+      checkAll(10, 11, (a, b) => {
+        it(`should work with 10,11 and with ${typestr(a)} and ${typestr(
+          b
+        )}`, function () {
+          expect(a).not.to.be.above(b);
+        });
+      });
     });
 
-    it(".not.to.be.gt", () => {
-      checkAll(10, 10, (a, b) => expect(a).not.to.be.gt(b));
-      checkAll(10, 11, (a, b) => expect(a).not.to.be.gt(b));
+    describe(".not.to.be.gt", () => {
+      checkAll(10, 10, (a, b) => {
+        it(`should work with 10,10 and with ${typestr(a)} and ${typestr(
+          b
+        )}`, function () {
+          expect(a).not.to.be.gt(b);
+        });
+      });
+      checkAll(10, 11, (a, b) => {
+        it(`should work with 10,11 and with ${typestr(a)} and ${typestr(
+          b
+        )}`, function () {
+          expect(a).not.to.be.gt(b);
+        });
+      });
     });
   });
 
   describe("below", () => {
-    it(".to.be.below", () => {
-      checkAll(10, 11, (a, b) => expect(a).to.be.below(b));
+    describe(".to.be.below", () => {
+      checkAll(10, 11, (a, b) => {
+        it(`should work with ${typestr(a)} and ${typestr(b)}`, function () {
+          expect(a).to.be.below(b);
+        });
+      });
     });
 
-    it(".to.be.lt", () => {
-      checkAll(10, 11, (a, b) => expect(a).to.be.lt(b));
+    describe(".to.be.lt", () => {
+      checkAll(10, 11, (a, b) => {
+        it(`should work with ${typestr(a)} and ${typestr(b)}`, function () {
+          expect(a).to.be.lt(b);
+        });
+      });
     });
 
-    it(".not.to.be.below", () => {
-      checkAll(10, 10, (a, b) => expect(a).not.to.be.below(b));
-      checkAll(10, 9, (a, b) => expect(a).not.to.be.below(b));
+    describe(".not.to.be.below", () => {
+      checkAll(10, 10, (a, b) => {
+        it(`should work with 10,10 and with ${typestr(a)} and ${typestr(
+          b
+        )}`, function () {
+          expect(a).not.to.be.below(b);
+        });
+      });
+      checkAll(10, 9, (a, b) => {
+        it(`should work with 10,9 and with ${typestr(a)} and ${typestr(
+          b
+        )}`, function () {
+          expect(a).not.to.be.below(b);
+        });
+      });
     });
 
-    it(".not.to.be.lt", () => {
-      checkAll(10, 10, (a, b) => expect(a).not.to.be.lt(b));
-      checkAll(10, 9, (a, b) => expect(a).not.to.be.lt(b));
+    describe(".not.to.be.lt", () => {
+      checkAll(10, 10, (a, b) => {
+        it(`should work with 10,10 and with ${typestr(a)} and ${typestr(
+          b
+        )}`, function () {
+          expect(a).not.to.be.lt(b);
+        });
+      });
+      checkAll(10, 9, (a, b) => {
+        it(`should work with 10,9 and with ${typestr(a)} and ${typestr(
+          b
+        )}`, function () {
+          expect(a).not.to.be.lt(b);
+        });
+      });
     });
   });
 
   describe("at least", () => {
-    it(".to.be.at.least", () => {
-      checkAll(10, 10, (a, b) => expect(a).to.be.at.least(b));
-      checkAll(10, 9, (a, b) => expect(a).to.be.at.least(b));
+    describe(".to.be.at.least", () => {
+      checkAll(10, 10, (a, b) => {
+        it(`should work with 10,10 and with ${typestr(a)} and ${typestr(
+          b
+        )}`, function () {
+          expect(a).to.be.at.least(b);
+        });
+      });
+      checkAll(10, 9, (a, b) => {
+        it(`should work with 10,9 and with ${typestr(a)} and ${typestr(
+          b
+        )}`, function () {
+          expect(a).to.be.at.least(b);
+        });
+      });
     });
 
-    it(".to.be.gte", () => {
-      checkAll(10, 10, (a, b) => expect(a).to.be.gte(b));
-      checkAll(10, 9, (a, b) => expect(a).to.be.gte(b));
+    describe(".to.be.gte", () => {
+      checkAll(10, 10, (a, b) => {
+        it(`should work with 10,10 and with ${typestr(a)} and ${typestr(
+          b
+        )}`, function () {
+          expect(a).to.be.gte(b);
+        });
+      });
+      checkAll(10, 9, (a, b) => {
+        it(`should work with 10,9 and with ${typestr(a)} and ${typestr(
+          b
+        )}`, function () {
+          expect(a).to.be.gte(b);
+        });
+      });
     });
 
-    it(".not.to.be.at.least", () => {
-      checkAll(10, 11, (a, b) => expect(a).not.to.be.at.least(b));
+    describe(".not.to.be.at.least", () => {
+      checkAll(10, 11, (a, b) => {
+        it(`should work with ${typestr(a)} and ${typestr(b)}`, function () {
+          expect(a).not.to.be.at.least(b);
+        });
+      });
     });
 
-    it(".not.to.be.gte", () => {
-      checkAll(10, 11, (a, b) => expect(a).not.to.be.gte(b));
+    describe(".not.to.be.gte", () => {
+      checkAll(10, 11, (a, b) => {
+        it(`should work with ${typestr(a)} and ${typestr(b)}`, function () {
+          expect(a).not.to.be.gte(b);
+        });
+      });
     });
   });
 
   describe("at most", () => {
-    it(".to.be.at.most", () => {
-      checkAll(10, 10, (a, b) => expect(a).to.be.at.most(b));
-      checkAll(10, 11, (a, b) => expect(a).to.be.at.most(b));
+    describe(".to.be.at.most", () => {
+      checkAll(10, 10, (a, b) => {
+        it(`should work with 10,10 and with ${typestr(a)} and ${typestr(
+          b
+        )}`, function () {
+          expect(a).to.be.at.most(b);
+        });
+      });
+      checkAll(10, 11, (a, b) => {
+        it(`should work with 10,11 and with ${typestr(a)} and ${typestr(
+          b
+        )}`, function () {
+          expect(a).to.be.at.most(b);
+        });
+      });
     });
 
-    it(".to.be.lte", () => {
-      checkAll(10, 10, (a, b) => expect(a).to.be.lte(b));
-      checkAll(10, 11, (a, b) => expect(a).to.be.lte(b));
+    describe(".to.be.lte", () => {
+      checkAll(10, 10, (a, b) => {
+        it(`should work with 10,10 and with ${typestr(a)} and ${typestr(
+          b
+        )}`, function () {
+          expect(a).to.be.lte(b);
+        });
+      });
+      checkAll(10, 11, (a, b) => {
+        it(`should work with 10,11 and with ${typestr(a)} and ${typestr(
+          b
+        )}`, function () {
+          expect(a).to.be.lte(b);
+        });
+      });
     });
 
-    it(".not.to.be.at.most", () => {
-      checkAll(10, 9, (a, b) => expect(a).not.to.be.at.most(b));
+    describe(".not.to.be.at.most", () => {
+      checkAll(10, 9, (a, b) => {
+        it(`should work with 10,9 and with ${typestr(a)} and ${typestr(
+          b
+        )}`, function () {
+          expect(a).not.to.be.at.most(b);
+        });
+      });
     });
 
-    it(".not.to.be.lte", () => {
-      checkAll(10, 9, (a, b) => expect(a).not.to.be.lte(b));
+    describe(".not.to.be.lte", () => {
+      checkAll(10, 9, (a, b) => {
+        it(`should work with 10,9 and with ${typestr(a)} and ${typestr(
+          b
+        )}`, function () {
+          expect(a).not.to.be.lte(b);
+        });
+      });
     });
   });
 
@@ -180,19 +343,31 @@ describe("UNIT: BigNumber matchers", () => {
   }
 
   describe("within", () => {
-    it(".to.be.within", () => {
-      checkAllWith3Args(100, 99, 101, (a, b, c) =>
-        expect(a).to.be.within(b, c)
-      );
+    describe(".to.be.within", () => {
+      checkAllWith3Args(100, 99, 101, (a, b, c) => {
+        it(`should work with ${typestr(a)}, ${typestr(b)} and ${typestr(
+          c
+        )}`, function () {
+          expect(a).to.be.within(b, c);
+        });
+      });
     });
 
-    it(".not.to.be.within", () => {
-      checkAllWith3Args(100, 101, 102, (a, b, c) =>
-        expect(a).not.to.be.within(b, c)
-      );
-      checkAllWith3Args(100, 98, 99, (a, b, c) =>
-        expect(a).not.to.be.within(b, c)
-      );
+    describe(".not.to.be.within", () => {
+      checkAllWith3Args(100, 101, 102, (a, b, c) => {
+        it(`should work with ${typestr(a)}, ${typestr(b)} and ${typestr(
+          c
+        )}`, function () {
+          expect(a).not.to.be.within(b, c);
+        });
+      });
+      checkAllWith3Args(100, 98, 99, (a, b, c) => {
+        it(`should work with ${typestr(a)}, ${typestr(b)} and ${typestr(
+          c
+        )}`, function () {
+          expect(a).not.to.be.within(b, c);
+        });
+      });
     });
 
     it("expect to throw on error", () => {
@@ -210,16 +385,24 @@ describe("UNIT: BigNumber matchers", () => {
   });
 
   describe("closeTo", () => {
-    it(".to.be.closeTo", () => {
-      checkAllWith3Args(100, 101, 10, (a, b, c) =>
-        expect(a).to.be.closeTo(b, c)
-      );
+    describe(".to.be.closeTo", () => {
+      checkAllWith3Args(100, 101, 10, (a, b, c) => {
+        it(`should work with ${typestr(a)}, ${typestr(b)} and ${typestr(
+          c
+        )}`, function () {
+          expect(a).to.be.closeTo(b, c);
+        });
+      });
     });
 
-    it(".not.to.be.closeTo", () => {
-      checkAllWith3Args(100, 111, 10, (a, b, c) =>
-        expect(a).to.not.be.closeTo(b, c)
-      );
+    describe(".not.to.be.closeTo", () => {
+      checkAllWith3Args(100, 111, 10, (a, b, c) => {
+        it(`should work with ${typestr(a)}, ${typestr(b)} and ${typestr(
+          c
+        )}`, function () {
+          expect(a).to.not.be.closeTo(b, c);
+        });
+      });
     });
 
     it("expect to throw on error", () => {
