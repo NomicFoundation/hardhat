@@ -137,6 +137,7 @@ export class HardhatNode extends EventEmitter {
 
     let common: Common;
     let stateManager: StateManager;
+    
     let blockchain: HardhatBlockchainInterface;
     let initialBlockTimeOffset: BN | undefined;
     let nextBlockBaseFeePerGas: BN | undefined;
