@@ -1,31 +1,23 @@
 {
   "name": "docs",
-  "version": "0.0.1",
+  "version": "0.1.0",
+  "private": true,
   "scripts": {
-    "dev": "vuepress dev .",
-    "build": "NODE_ENV=production vuepress build .",
-    "lint": "yarn prettier --check",
-    "lint:fix": "yarn prettier --write",
-    "prettier": "prettier \"**/*.{js,md,json}\""
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "next": "12.1.0",
+    "react": "17.0.2",
+    "react-dom": "17.0.2"
   },
   "devDependencies": {
-    "@prettier/plugin-pug": "1.16.4",
-    "@vuepress/plugin-google-analytics": "^1.4.1",
-    "createjs": "^1.0.1",
-    "dotenv": "^6.2.0",
-    "exports-loader": "^1.1.1",
-    "imports-loader": "^1.2.0",
-    "prettier": "2.4.1",
-    "pug": "^3.0.0",
-    "pug-plain-loader": "^1.0.0",
-    "ts-node": "^8.1.0",
-    "typescript": "~4.5.2",
-    "vue-carousel": "^0.18.0",
-    "vuepress": "^1.4.1",
-    "vuepress-plugin-container": "^2.1.3"
-  },
-  "private": true,
-  "dependencies": {
-    "undici": "^4.14.1"
+    "@types/node": "17.0.21",
+    "@types/react": "17.0.39",
+    "eslint": "8.10.0",
+    "eslint-config-next": "12.1.0",
+    "typescript": "4.5.5"
   }
 }
