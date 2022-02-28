@@ -1,6 +1,6 @@
 # Initial app todo:
 
-- [ ] Init Next project with eslint & prettier
+- [x] Init Next project with eslint & prettier
 - [ ] Add styling solution
 - [ ] Storybook
 - [ ] Configure content blocks mapping
