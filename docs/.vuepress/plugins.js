@@ -407,6 +407,13 @@ module.exports.communityPlugins = [
     description: "Hardhat plugin to sync your compiled contract with Laika",
     tags: ["Tasks", "Laika"],
   },
+  {
+    name: "hardhat-network-metadata",
+    author: "Focal Labs Inc.",
+    authorUrl: "https://github.com/krruzic/hardhat-network-metadata",
+    description: "Hardhat plugin to allow adding any extra data to your network configuration",
+    tags: ["Metadata", "Testing", "Tasks", "Config"],
+  },
 ];
 
 module.exports.officialPlugins = [
