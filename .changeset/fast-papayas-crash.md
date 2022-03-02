@@ -1,5 +1,4 @@
 ---
-"@nomiclabs/hardhat-ethers": patch
 "@nomiclabs/hardhat-etherscan": patch
 ---
 
