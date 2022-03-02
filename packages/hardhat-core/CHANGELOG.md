@@ -1,5 +1,23 @@
 # hardhat
 
+## 2.9.0
+
+### Minor Changes
+
+- bf017963: Add a new RPC method, `hardhat_mine`, which supports the mining of multiple blocks in a single call (#1112)
+- 345ebab7: The `test` task now supports a `--parallel` flag to run tests in parallel. There are also two other new flags: `--bail`, to stop the execution after the first test failure, and `--grep`, to filter which tests should be run.
+
+  To support running tests in parallel, the version of `mocha` used by Hardhat was upgraded to its latest version. This should be a mostly backward-compatible change, but there could be some edge cases where this breaks existing tests.
+
+### Patch Changes
+
+- 04f4b3a4: Added support for BIP39 passphrases (thanks @zhuqicn!)
+- dda96346: Solidity files are now compiled in parallel
+- ce06e238: Preserve any existing user's README when initializing a project (#1942)
+- caecc59b: The test task now works correctly when a test file starts with `./` (fixes #2220).
+- 87c50af1: A warning is now shown when a node version greater than the current LTS is used.
+- b18e043b: Improved the performance of requests to remote RPC nodes by the use of connection pooling.
+
 ## 2.8.4
 
 ### Patch Changes
