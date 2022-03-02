@@ -10,13 +10,13 @@ export function supportBigNumber(
   Assertion.overwriteMethod("equal", override("eq", "equal", utils));
   Assertion.overwriteMethod("eq", override("eq", "equal", utils));
 
-  Assertion.overwriteMethod("above", override("gt", "above", utils));
-  Assertion.overwriteMethod("gt", override("gt", "greater than", utils));
+  Assertion.overwriteMethod("above", override("gt", "be above", utils));
+  Assertion.overwriteMethod("gt", override("gt", "be greater than", utils));
 
-  Assertion.overwriteMethod("below", override("lt", "below", utils));
-  Assertion.overwriteMethod("lt", override("lt", "less than", utils));
+  Assertion.overwriteMethod("below", override("lt", "be below", utils));
+  Assertion.overwriteMethod("lt", override("lt", "be less than", utils));
 
-  Assertion.overwriteMethod("least", override("gte", "at least", utils));
+  Assertion.overwriteMethod("least", override("gte", "be at least", utils));
   Assertion.overwriteMethod(
     "gte",
     override("gte", "greater than or equal", utils)
@@ -105,8 +105,8 @@ function overwriteBigNumberFunction(
       const actual = normalizeToBigInt(actualArg);
       this.assert(
         compare(functionName, expected, actual),
-        `Expected "${expected}" to be ${readableName} ${actual}`,
-        `Expected "${expected}" NOT to be ${readableName} ${actual}`,
+        `expected ${expected} to ${readableName} ${actual}`,
+        `expected ${expected} NOT to ${readableName} ${actual}`,
         expected,
         actual
       );
@@ -138,8 +138,8 @@ function overwriteBigNumberWithin(
       const finish = normalizeToBigInt(finishArg);
       this.assert(
         start <= expected && finish >= expected,
-        `Expected "${expected}" to be within [${[start, finish]}]`,
-        `Expected "${expected}" NOT to be within [${[start, finish]}]`,
+        `expected ${expected} to be within ${start}..${finish}`,
+        `expected ${expected} to not be within ${start}..${finish}`,
         [start, finish],
         expected
       );
@@ -174,8 +174,8 @@ function overwriteBigNumberCloseTo(
       }
       this.assert(
         abs(expected - actual) <= delta,
-        `Expected "${expected}" to be within ${delta} of ${actual}`,
-        `Expected "${expected}" NOT to be within ${delta} of ${actual}`,
+        `expected ${expected} to be close to ${actual}`,
+        `expected ${expected} not to be close to ${actual}`,
         `A number between ${actual - delta} and ${actual + delta}`,
         expected
       );

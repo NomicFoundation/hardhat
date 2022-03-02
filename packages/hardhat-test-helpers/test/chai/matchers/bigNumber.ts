@@ -70,11 +70,15 @@ describe("UNIT: BigNumber matchers", () => {
           expect(a).to.equal(b);
         });
       });
-      it("throws proper message on error", () => {
-        expect(() => expect(BigNumberEthers.from(10)).to.equal(11)).to.throw(
-          AssertionError,
-          'Expected "10" to be equal 11'
-        );
+      describe("should throw the proper message on failure", () => {
+        checkAll(10, 11, (a, b) => {
+          it(`with ${typestr(a)} and ${typestr(b)}`, function () {
+            expect(() => expect(a).to.equal(b)).to.throw(
+              AssertionError,
+              "expected 10 to equal 11"
+            );
+          });
+        });
       });
     });
 
@@ -350,12 +354,17 @@ describe("UNIT: BigNumber matchers", () => {
           expect(a).to.be.within(b, c);
         });
       });
-      it("expect to throw on error", () => {
-        expect(() =>
-          checkAllWith3Args(100, 80, 90, (a, b, c) =>
-            expect(a).to.be.within(b, c)
-          )
-        ).to.throw(AssertionError, "expected 100 to be within 80..90");
+      describe("should throw the proper message on failure", () => {
+        checkAllWith3Args(100, 80, 90, (a, b, c) => {
+          it(`with ${typestr(a)}, ${typestr(b)} and ${typestr(
+            c
+          )}`, function () {
+            expect(() => expect(a).to.be.within(b, c)).to.throw(
+              AssertionError,
+              "expected 100 to be within 80..90"
+            );
+          });
+        });
       });
     });
 
@@ -374,12 +383,17 @@ describe("UNIT: BigNumber matchers", () => {
           expect(a).not.to.be.within(b, c);
         });
       });
-      it("expect to throw on error", () => {
-        expect(() =>
-          checkAllWith3Args(100, 99, 101, (a, b, c) =>
-            expect(a).not.to.be.within(b, c)
-          )
-        ).to.throw(AssertionError, "expected 100 to not be within 99..101");
+      describe("should throw the proper message on failure", () => {
+        checkAllWith3Args(100, 99, 101, (a, b, c) => {
+          it(`with ${typestr(a)}, ${typestr(b)} and ${typestr(
+            c
+          )}`, function () {
+            expect(() => expect(a).not.to.be.within(b, c)).to.throw(
+              AssertionError,
+              "expected 100 to not be within 99..101"
+            );
+          });
+        });
       });
     });
   });
@@ -393,12 +407,17 @@ describe("UNIT: BigNumber matchers", () => {
           expect(a).to.be.closeTo(b, c);
         });
       });
-      it("expect to throw on error", () => {
-        expect(() =>
-          checkAllWith3Args(100, 111, 10, (a, b, c) =>
-            expect(a).to.be.closeTo(b, c)
-          )
-        ).to.throw(AssertionError, "expected 100 to be close to 111 +/- 10");
+      describe("should throw the proper message on failure", () => {
+        checkAllWith3Args(100, 111, 10, (a, b, c) => {
+          it(`with ${typestr(a)}, ${typestr(b)} and ${typestr(
+            c
+          )}`, function () {
+            expect(() => expect(a).to.be.closeTo(b, c)).to.throw(
+              AssertionError,
+              "expected 100 to be close to 111"
+            );
+          });
+        });
       });
     });
 
@@ -410,12 +429,17 @@ describe("UNIT: BigNumber matchers", () => {
           expect(a).to.not.be.closeTo(b, c);
         });
       });
-      it("expect to throw on error", () => {
-        expect(() =>
-          checkAllWith3Args(100, 101, 10, (a, b, c) =>
-            expect(a).not.to.be.closeTo(b, c)
-          )
-        ).to.throw(AssertionError, "expected 100 not to be close to 101");
+      describe("should throw the proper message on failure", () => {
+        checkAllWith3Args(100, 101, 10, (a, b, c) => {
+          it(`with ${typestr(a)}, ${typestr(b)} and ${typestr(
+            c
+          )}`, function () {
+            expect(() => expect(a).not.to.be.closeTo(b, c)).to.throw(
+              AssertionError,
+              "expected 100 not to be close to 101"
+            );
+          });
+        });
       });
     });
   });
