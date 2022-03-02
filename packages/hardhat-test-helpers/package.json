@@ -58,7 +58,7 @@
   },
   "dependencies": {
     "bignumber.js": "^9.0.2",
-    "bn.js": "^5.2.0",
+    "bn.js": "^5.1.0",
     "chai": "^4.2.0",
     "ethers": "^5.0.0"
   }
