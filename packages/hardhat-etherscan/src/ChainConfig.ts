@@ -198,4 +198,25 @@ export const chainConfig: ChainConfig = {
       browserURL: "https://testnet.aurorascan.dev",
     },
   },
+  cronos: {
+    chainId: 25,
+    urls: {
+      apiURL: "https://api.cronoscan.com/api",
+      browserURL: "https://cronoscan.com/",
+    },
+  },
+  bttc: {
+    chainId: 199,
+    urls: {
+      apiURL: "https://api.bttcscan.com/api",
+      browserURL: "https://bttcscan.com/",
+    },
+  },
+  bttcTestnet: {
+    chainId: 1028,
+    urls: {
+      apiURL: "https://api-testnet.bttcscan.com/api",
+      browserURL: "https://testnet.bttcscan.com/",
+    },
+  },
 };

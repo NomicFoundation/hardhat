@@ -169,12 +169,18 @@ module.exports = {
         // harmony
         harmony: "YOUR_HARMONY_API_KEY",
         harmonyTest: "YOUR_HARMONY_API_KEY",
+        // aurora 
+        aurora: "YOUR_AURORASCAN_API_KEY",
+        auroraTestnet: "YOUR_AURORASCAN_API_KEY",
+        // cronos 
+        cronos: "YOUR_CRONOSCAN_API_KEY",
+        // bttc
+        bttc: "YOUR_BTTCSCAN_API_KEY",
+        bttcTestnet: "YOUR_BTTCSCAN_API_KEY",
         // xdai and sokol don't need an API key, but you still need
         // to specify one; any string placeholder will work
         xdai: "api-key",
         sokol: "api-key",
-        aurora: "api-key",
-        auroraTestnet: "api-key",
     }
   }
 };

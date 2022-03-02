@@ -29,6 +29,7 @@ type Chain =
   | "moonbeam"
   | "moonriver"
   | "moonbaseAlpha"
+  // harmony
   | "harmony"
   | "harmonyTest"
   // xdai
@@ -36,7 +37,12 @@ type Chain =
   | "sokol"
   // aurora
   | "aurora"
-  | "auroraTestnet";
+  | "auroraTestnet"
+  // cronos
+  | "cronos"
+  // bttc
+  | "bttc"
+  | "bttcTestnet";
 
 export type ChainConfig = {
   [Network in Chain]: EtherscanChainConfig;
