@@ -1,7 +1,7 @@
 # Initial app todo:
 
 - [x] Init Next project with eslint & prettier
-- [ ] Add styling solution
+- [x] Add styling solution
 - [ ] Storybook
 - [ ] Configure content blocks mapping
 - [ ] Dynamic pages

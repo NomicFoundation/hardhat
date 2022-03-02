@@ -15,7 +15,7 @@ const media = {
   lg: `@media screen and (min-width: ${breakpoints.lg}px)`,
 };
 
-export const theme = {
+export const appTheme = {
   colors: {
     accent: "green",
   },
@@ -23,16 +23,17 @@ export const theme = {
   breakpoints,
 };
 
-const theming = createTheming(theme);
+const theming = createTheming(appTheme);
 
 export const ThemeProvider = ({
   children,
-}: React.PropsWithChildren<{}>): JSX.Element => (
-  <theming.ThemeProvider theme={theme}>{children}</theming.ThemeProvider>
+  theme: themeProp,
+}: React.PropsWithChildren<{theme: {}}>): JSX.Element => (
+  <theming.ThemeProvider theme={themeProp}>{children}</theming.ThemeProvider>
 );
 
 interface ThemeSelect {
-  (tm: typeof theme): string;
+  (tm: typeof appTheme): string;
 }
 
 export const tm = (cb: ThemeSelect) => () =>
