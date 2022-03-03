@@ -14,7 +14,7 @@ const numberToBigNumberConversions = [
   (n: number) => new BigNumberJs(n),
 ];
 
-describe("BigNumber matchers", () => {
+describe("BigNumber matchers", function () {
   function typestr(
     n: number | bigint | string | BN | BigNumberEthers | BigNumberJs
   ): string {
@@ -196,7 +196,7 @@ describe("BigNumber matchers", () => {
       negativeFailureOperands,
       negativeFailureMessage,
     } of testCases) {
-      describe(`.to.${operator}`, () => {
+      describe(`.to.${operator}`, function () {
         checkAll(
           positiveSuccessOperands[0],
           positiveSuccessOperands[1],
@@ -206,7 +206,7 @@ describe("BigNumber matchers", () => {
             });
           }
         );
-        describe("should throw the proper message on failure", () => {
+        describe("should throw the proper message on failure", function () {
           checkAll(
             positiveFailureOperands[0],
             positiveFailureOperands[1],
@@ -248,7 +248,7 @@ describe("BigNumber matchers", () => {
             });
           }
         );
-        describe("should throw the proper message on failure", () => {
+        describe("should throw the proper message on failure", function () {
           checkAll(
             negativeFailureOperands[0],
             negativeFailureOperands[1],
@@ -287,8 +287,8 @@ describe("BigNumber matchers", () => {
       }
     }
 
-    describe("within", () => {
-      describe(".to.be.within", () => {
+    describe("within", function () {
+      describe(".to.be.within", function () {
         checkAll(100, 99, 101, (a, b, c) => {
           it(`should work with ${typestr(a)}, ${typestr(b)} and ${typestr(
             c
@@ -296,7 +296,7 @@ describe("BigNumber matchers", () => {
             expect(a).to.be.within(b, c);
           });
         });
-        describe("should throw the proper message on failure", () => {
+        describe("should throw the proper message on failure", function () {
           checkAll(100, 80, 90, (a, b, c) => {
             it(`with ${typestr(a)}, ${typestr(b)} and ${typestr(
               c
@@ -310,7 +310,7 @@ describe("BigNumber matchers", () => {
         });
       });
 
-      describe(".not.to.be.within", () => {
+      describe(".not.to.be.within", function () {
         checkAll(100, 101, 102, (a, b, c) => {
           it(`should work with ${typestr(a)}, ${typestr(b)} and ${typestr(
             c
@@ -325,7 +325,7 @@ describe("BigNumber matchers", () => {
             expect(a).not.to.be.within(b, c);
           });
         });
-        describe("should throw the proper message on failure", () => {
+        describe("should throw the proper message on failure", function () {
           checkAll(100, 99, 101, (a, b, c) => {
             it(`with ${typestr(a)}, ${typestr(b)} and ${typestr(
               c
@@ -340,8 +340,8 @@ describe("BigNumber matchers", () => {
       });
     });
 
-    describe("closeTo", () => {
-      describe(".to.be.closeTo", () => {
+    describe("closeTo", function () {
+      describe(".to.be.closeTo", function () {
         checkAll(100, 101, 10, (a, b, c) => {
           it(`should work with ${typestr(a)}, ${typestr(b)} and ${typestr(
             c
@@ -349,7 +349,7 @@ describe("BigNumber matchers", () => {
             expect(a).to.be.closeTo(b, c);
           });
         });
-        describe("should throw the proper message on failure", () => {
+        describe("should throw the proper message on failure", function () {
           checkAll(100, 111, 10, (a, b, c) => {
             it(`with ${typestr(a)}, ${typestr(b)} and ${typestr(
               c
@@ -363,7 +363,7 @@ describe("BigNumber matchers", () => {
         });
       });
 
-      describe(".not.to.be.closeTo", () => {
+      describe(".not.to.be.closeTo", function () {
         checkAll(100, 111, 10, (a, b, c) => {
           it(`should work with ${typestr(a)}, ${typestr(b)} and ${typestr(
             c
@@ -371,7 +371,7 @@ describe("BigNumber matchers", () => {
             expect(a).to.not.be.closeTo(b, c);
           });
         });
-        describe("should throw the proper message on failure", () => {
+        describe("should throw the proper message on failure", function () {
           checkAll(100, 101, 10, (a, b, c) => {
             it(`with ${typestr(a)}, ${typestr(b)} and ${typestr(
               c
