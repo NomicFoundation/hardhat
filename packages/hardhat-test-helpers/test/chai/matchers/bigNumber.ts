@@ -4,6 +4,7 @@ import { BigNumber as BigNumberJs } from "bignumber.js";
 import BN from "bn.js";
 
 import { bnChai } from "../../../src/chai/matchers/bnChai";
+import { SupportedNumber } from "../../../src/chai/matchers/bigNumber";
 
 use(bnChai);
 
@@ -15,9 +16,7 @@ const numberToBigNumberConversions = [
 ];
 
 describe("BigNumber matchers", function () {
-  function typestr(
-    n: number | bigint | string | BN | BigNumberEthers | BigNumberJs
-  ): string {
+  function typestr(n: string | SupportedNumber): string {
     if (typeof n === "object") {
       if (n instanceof BN) {
         return "BN";
@@ -35,8 +34,8 @@ describe("BigNumber matchers", function () {
       actual: number,
       expected: number,
       test: (
-        actual: number | string | bigint | BigNumberEthers | BigNumberJs | BN,
-        expected: number | string | bigint | BigNumberEthers | BigNumberJs | BN
+        actual: string | SupportedNumber,
+        expected: string | SupportedNumber
       ) => void
     ) {
       const conversions = [
@@ -283,11 +282,7 @@ describe("BigNumber matchers", function () {
       a: number,
       b: number,
       c: number,
-      test: (
-        a: number | bigint | BigNumberEthers | BigNumberJs | BN,
-        b: number | bigint | BigNumberEthers | BigNumberJs | BN,
-        c: number | bigint | BigNumberEthers | BigNumberJs | BN
-      ) => void
+      test: (a: SupportedNumber, b: SupportedNumber, c: SupportedNumber) => void
     ) {
       const conversions = [(n: number) => n, ...numberToBigNumberConversions];
       for (const convertA of conversions) {

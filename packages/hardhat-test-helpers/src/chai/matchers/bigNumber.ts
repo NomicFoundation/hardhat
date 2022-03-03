@@ -15,6 +15,13 @@ import { BigNumber as BigNumberEthers } from "ethers";
 import { BigNumber as BigNumberJs } from "bignumber.js";
 import BN from "bn.js";
 
+export type SupportedNumber =
+  | number
+  | bigint
+  | BN
+  | BigNumberEthers
+  | BigNumberJs;
+
 export function supportBigNumber(
   Assertion: Chai.AssertionStatic,
   utils: Chai.ChaiUtils
@@ -61,9 +68,7 @@ function override(
     overwriteBigNumberFunction(method, name, negativeName, _super, utils);
 }
 
-function normalize(
-  source: bigint | BigNumberEthers | BigNumberJs | BN | number | string
-): bigint {
+function normalize(source: SupportedNumber | string): bigint {
   if (source instanceof BigNumberEthers) {
     return BigInt(source.toString());
   } else if (source instanceof BN) {
