@@ -48,7 +48,7 @@ function override(
     overwriteBigNumberFunction(method, name, negativeName, _super, utils);
 }
 
-function normalizeToBigInt(
+function normalize(
   source: bigint | BigNumberEthers | BigNumberJs | BN | number | string
 ): bigint {
   if (source instanceof BigNumberEthers) {
@@ -110,8 +110,8 @@ function overwriteBigNumberFunction(
       }
     }
     if (isBigNumber(expectedFlag) || isBigNumber(actualArg)) {
-      const expected = normalizeToBigInt(expectedFlag);
-      const actual = normalizeToBigInt(actualArg);
+      const expected = normalize(expectedFlag);
+      const actual = normalize(actualArg);
       this.assert(
         compare(functionName, expected, actual),
         `expected ${expected} to ${readableName} ${actual}`,
@@ -142,9 +142,9 @@ function overwriteBigNumberWithin(
       isBigNumber(startArg) ||
       isBigNumber(finishArg)
     ) {
-      const expected = normalizeToBigInt(expectedFlag);
-      const start = normalizeToBigInt(startArg);
-      const finish = normalizeToBigInt(finishArg);
+      const expected = normalize(expectedFlag);
+      const start = normalize(startArg);
+      const finish = normalize(finishArg);
       this.assert(
         start <= expected && finish >= expected,
         `expected ${expected} to be within ${start}..${finish}`,
@@ -175,9 +175,9 @@ function overwriteBigNumberCloseTo(
       isBigNumber(actualArg) ||
       isBigNumber(deltaArg)
     ) {
-      const expected = normalizeToBigInt(expectedFlag);
-      const actual = normalizeToBigInt(actualArg);
-      const delta = normalizeToBigInt(deltaArg);
+      const expected = normalize(expectedFlag);
+      const actual = normalize(actualArg);
+      const delta = normalize(deltaArg);
       function abs(i: bigint): bigint {
         return i < 0 ? BigInt(-1) * i : i;
       }
