@@ -59,6 +59,10 @@ export function supportBigNumber(
     "lte",
     override("lte", "be at most", "be above", utils)
   );
+  Assertion.overwriteMethod(
+    "lessThanOrEqual",
+    override("lte", "be at most", "be above", utils)
+  );
 
   Assertion.overwriteMethod("within", overrideWithin(utils));
 

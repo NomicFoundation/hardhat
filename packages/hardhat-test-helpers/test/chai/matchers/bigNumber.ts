@@ -81,7 +81,8 @@ describe("BigNumber matchers", function () {
         | "least"
         | "most"
         | "gte"
-        | "lte";
+        | "lte"
+        | "lessThanOrEqual";
       positiveSuccessOperands: [number, number];
       positiveFailureOperands: [number, number];
       positiveFailureMessage: string;
@@ -192,6 +193,8 @@ describe("BigNumber matchers", function () {
       { operator: "most", ...atMostTestCase2 },
       { operator: "lte", ...atMostTestCase1 },
       { operator: "lte", ...atMostTestCase2 },
+      { operator: "lessThanOrEqual", ...atMostTestCase1 },
+      { operator: "lessThanOrEqual", ...atMostTestCase2 },
     ];
     for (const {
       operator,
