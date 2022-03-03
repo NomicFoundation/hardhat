@@ -1,3 +1,16 @@
+// TODO: consider adding support for the following Chai.Assert properties.
+// Might any of these come "for free" due to supporting other methods? At the
+// very least get them tested.
+//   isAbove
+//   isAtLeast
+//   isBelow
+//   isAtMost
+//   isAt
+//   isNumber
+//   isNotNumber
+//   closeTo
+//   approximately
+
 import { BigNumber as BigNumberEthers } from "ethers";
 import { BigNumber as BigNumberJs } from "bignumber.js";
 import BN from "bn.js";
@@ -91,6 +104,10 @@ function overwriteBigNumberFunction(
       chaiUtils.flag(this, "doLength") &&
       BigNumberEthers.isBigNumber(actualArg)
     ) {
+      // TODO: consider whether we really need this case (support for eg
+      // `expect('foo').to.have.length.of.at.least(BigInt(2));`, and if so then
+      // get it tested and generalize it to work with all the different
+      // BigNumbers.
       _super.apply(this, [actualArg.toNumber()]);
       return;
     }
