@@ -287,103 +287,97 @@ describe("BigNumber matchers", function () {
       }
     }
 
-    describe("within", function () {
-      describe(".to.be.within", function () {
-        checkAll(100, 99, 101, (a, b, c) => {
+    interface TestCase {
+      operator: "within" | "closeTo";
+      positiveSuccessOperands: [number, number, number];
+      positiveFailureOperands: [number, number, number];
+      positiveFailureMessage: string;
+      negativeSuccessOperands: [number, number, number];
+      negativeFailureOperands: [number, number, number];
+      negativeFailureMessage: string;
+    }
+    const withinPartialTestCase: Omit<TestCase, "negativeSuccessOperands"> = {
+      operator: "within",
+      positiveSuccessOperands: [100, 99, 101],
+      positiveFailureOperands: [100, 80, 90],
+      positiveFailureMessage: "expected 100 to be within 80..90",
+      negativeFailureOperands: [100, 99, 101],
+      negativeFailureMessage: "expected 100 to not be within 99..101",
+    };
+    const withinTestCase1: TestCase = {
+      ...withinPartialTestCase,
+      negativeSuccessOperands: [100, 101, 102],
+    };
+    const withinTestCase2: TestCase = {
+      ...withinPartialTestCase,
+      negativeSuccessOperands: [100, 98, 99],
+    };
+    const closeToTestCase: TestCase = {
+      operator: "closeTo",
+      positiveSuccessOperands: [101, 101, 10],
+      positiveFailureOperands: [100, 111, 10],
+      positiveFailureMessage: "expected 100 to be close to 111",
+      negativeSuccessOperands: [100, 111, 10],
+      negativeFailureOperands: [100, 101, 10],
+      negativeFailureMessage: "expected 100 not to be close to 101"
+    };
+    const testCases: TestCase[] = [
+      withinTestCase1,
+      withinTestCase2,
+      closeToTestCase,
+    ];
+    for (const {
+      operator,
+      positiveSuccessOperands,
+      positiveFailureOperands,
+      positiveFailureMessage,
+      negativeSuccessOperands,
+      negativeFailureOperands,
+      negativeFailureMessage,
+    } of testCases) {
+      describe(`.to.be.${operator}`, function () {
+        checkAll(positiveSuccessOperands[0], positiveSuccessOperands[1], positiveSuccessOperands[2], (a, b, c) => {
           it(`should work with ${typestr(a)}, ${typestr(b)} and ${typestr(
             c
           )}`, function () {
-            expect(a).to.be.within(b, c);
+            expect(a).to.be[operator](b, c);
           });
         });
         describe("should throw the proper message on failure", function () {
-          checkAll(100, 80, 90, (a, b, c) => {
+          checkAll(positiveFailureOperands[0], positiveFailureOperands[1], positiveFailureOperands[2], (a, b, c) => {
             it(`with ${typestr(a)}, ${typestr(b)} and ${typestr(
               c
             )}`, function () {
-              expect(() => expect(a).to.be.within(b, c)).to.throw(
+              expect(() => expect(a).to.be[operator](b, c)).to.throw(
                 AssertionError,
-                "expected 100 to be within 80..90"
+                positiveFailureMessage
               );
             });
           });
         });
       });
 
-      describe(".not.to.be.within", function () {
-        checkAll(100, 101, 102, (a, b, c) => {
+      describe(`.not.to.be.${operator}`, function () {
+        checkAll(negativeSuccessOperands[0], negativeSuccessOperands[1], negativeSuccessOperands[2], (a, b, c) => {
           it(`should work with ${typestr(a)}, ${typestr(b)} and ${typestr(
             c
           )}`, function () {
-            expect(a).not.to.be.within(b, c);
-          });
-        });
-        checkAll(100, 98, 99, (a, b, c) => {
-          it(`should work with ${typestr(a)}, ${typestr(b)} and ${typestr(
-            c
-          )}`, function () {
-            expect(a).not.to.be.within(b, c);
+            expect(a).not.to.be[operator](b, c);
           });
         });
         describe("should throw the proper message on failure", function () {
-          checkAll(100, 99, 101, (a, b, c) => {
+          checkAll(negativeFailureOperands[0], negativeFailureOperands[1], negativeFailureOperands[2], (a, b, c) => {
             it(`with ${typestr(a)}, ${typestr(b)} and ${typestr(
               c
             )}`, function () {
-              expect(() => expect(a).not.to.be.within(b, c)).to.throw(
+              expect(() => expect(a).not.to.be[operator](b, c)).to.throw(
                 AssertionError,
-                "expected 100 to not be within 99..101"
+                negativeFailureMessage
               );
             });
           });
         });
       });
-    });
-
-    describe("closeTo", function () {
-      describe(".to.be.closeTo", function () {
-        checkAll(100, 101, 10, (a, b, c) => {
-          it(`should work with ${typestr(a)}, ${typestr(b)} and ${typestr(
-            c
-          )}`, function () {
-            expect(a).to.be.closeTo(b, c);
-          });
-        });
-        describe("should throw the proper message on failure", function () {
-          checkAll(100, 111, 10, (a, b, c) => {
-            it(`with ${typestr(a)}, ${typestr(b)} and ${typestr(
-              c
-            )}`, function () {
-              expect(() => expect(a).to.be.closeTo(b, c)).to.throw(
-                AssertionError,
-                "expected 100 to be close to 111"
-              );
-            });
-          });
-        });
-      });
-
-      describe(".not.to.be.closeTo", function () {
-        checkAll(100, 111, 10, (a, b, c) => {
-          it(`should work with ${typestr(a)}, ${typestr(b)} and ${typestr(
-            c
-          )}`, function () {
-            expect(a).to.not.be.closeTo(b, c);
-          });
-        });
-        describe("should throw the proper message on failure", function () {
-          checkAll(100, 101, 10, (a, b, c) => {
-            it(`with ${typestr(a)}, ${typestr(b)} and ${typestr(
-              c
-            )}`, function () {
-              expect(() => expect(a).not.to.be.closeTo(b, c)).to.throw(
-                AssertionError,
-                "expected 100 not to be close to 101"
-              );
-            });
-          });
-        });
-      });
-    });
+    }
   });
 });
