@@ -67,34 +67,169 @@ describe("BigNumber matchers", () => {
     return typeof n;
   }
 
-  describe("equal", () => {
-    describe(".to.equal", () => {
-      checkAll(10, 10, (a, b) => {
-        it(`should work with ${typestr(a)} and ${typestr(b)}`, function () {
-          expect(a).to.equal(b);
-        });
-      });
-      describe("should throw the proper message on failure", () => {
-        checkAll(10, 11, (a, b) => {
-          it(`with ${typestr(a)} and ${typestr(b)}`, function () {
-            expect(() => expect(a).to.equal(b)).to.throw(
-              AssertionError,
-              "expected 10 to equal 11"
-            );
+  interface TestCase {
+    operator:
+      | "equal"
+      | "eq"
+      | "above"
+      | "below"
+      | "gt"
+      | "lt"
+      | "least"
+      | "most"
+      | "gte"
+      | "lte";
+    positiveSuccessOperands: [number, number];
+    positiveFailureOperands: [number, number];
+    positiveFailureMessage: string;
+    negativeSuccessOperands: [number, number];
+    negativeFailureOperands: [number, number];
+    negativeFailureMessage: string;
+  }
+  const equalsTestCase: Omit<TestCase, "operator"> = {
+    positiveSuccessOperands: [10, 10],
+    positiveFailureOperands: [10, 11],
+    positiveFailureMessage: "expected 10 to equal 11",
+    negativeSuccessOperands: [11, 10],
+    negativeFailureOperands: [10, 10],
+    negativeFailureMessage: "expected 10 to not equal 10",
+  };
+  const abovePartialTestCase: Omit<
+    TestCase,
+    "operator" | "negativeSuccessOperands"
+  > = {
+    positiveSuccessOperands: [10, 9],
+    positiveFailureOperands: [10, 10],
+    positiveFailureMessage: "expected 10 to be above 10",
+    negativeFailureOperands: [11, 10],
+    negativeFailureMessage: "expected 11 to be at most 10",
+  };
+  const aboveTestCase1: Omit<TestCase, "operator"> = {
+    ...abovePartialTestCase,
+    negativeSuccessOperands: [10, 10],
+  };
+  const aboveTestCase2: Omit<TestCase, "operator"> = {
+    ...abovePartialTestCase,
+    negativeSuccessOperands: [10, 11],
+  };
+  const belowPartialTestCase: Omit<
+    TestCase,
+    "operator" | "negativeSuccessOperands"
+  > = {
+    positiveSuccessOperands: [10, 11],
+    positiveFailureOperands: [11, 10],
+    positiveFailureMessage: "expected 11 to be below 10",
+    negativeFailureOperands: [10, 11],
+    negativeFailureMessage: "expected 10 to be at least 11",
+  };
+  const belowTestCase1: Omit<TestCase, "operator"> = {
+    ...belowPartialTestCase,
+    negativeSuccessOperands: [10, 10],
+  };
+  const belowTestCase2: Omit<TestCase, "operator"> = {
+    ...belowPartialTestCase,
+    negativeSuccessOperands: [10, 9],
+  };
+  const atLeastPartialTestCase: Omit<
+    TestCase,
+    "operator" | "positiveSuccessOperands"
+  > = {
+    positiveFailureOperands: [10, 11],
+    positiveFailureMessage: "expected 10 to be at least 11",
+    negativeSuccessOperands: [10, 11],
+    negativeFailureOperands: [11, 10],
+    negativeFailureMessage: "expected 11 to be below 10",
+  };
+  const atLeastTestCase1: Omit<TestCase, "operator"> = {
+    ...atLeastPartialTestCase,
+    positiveSuccessOperands: [10, 10],
+  };
+  const atLeastTestCase2: Omit<TestCase, "operator"> = {
+    ...atLeastPartialTestCase,
+    positiveSuccessOperands: [10, 9],
+  };
+  const atMostPartialTestCase: Omit<
+    TestCase,
+    "operator" | "positiveSuccessOperands"
+  > = {
+    positiveFailureOperands: [11, 10],
+    positiveFailureMessage: "expected 11 to be at most 10",
+    negativeSuccessOperands: [10, 9],
+    negativeFailureOperands: [10, 11],
+    negativeFailureMessage: "expected 10 to be above 11",
+  };
+  const atMostTestCase1: Omit<TestCase, "operator"> = {
+    ...atMostPartialTestCase,
+    positiveSuccessOperands: [10, 10],
+  };
+  const atMostTestCase2: Omit<TestCase, "operator"> = {
+    ...atMostPartialTestCase,
+    positiveSuccessOperands: [10, 11],
+  };
+  const testCases: TestCase[] = [
+    { operator: "equal", ...equalsTestCase },
+    { operator: "eq", ...equalsTestCase },
+    { operator: "above", ...aboveTestCase1 },
+    { operator: "above", ...aboveTestCase2 },
+    { operator: "gt", ...aboveTestCase1 },
+    { operator: "gt", ...aboveTestCase2 },
+    { operator: "below", ...belowTestCase1 },
+    { operator: "below", ...belowTestCase2 },
+    { operator: "lt", ...belowTestCase1 },
+    { operator: "lt", ...belowTestCase2 },
+    { operator: "least", ...atLeastTestCase1 },
+    { operator: "least", ...atLeastTestCase2 },
+    { operator: "gte", ...atLeastTestCase1 },
+    { operator: "gte", ...atLeastTestCase2 },
+    { operator: "most", ...atMostTestCase1 },
+    { operator: "most", ...atMostTestCase2 },
+    { operator: "lte", ...atMostTestCase1 },
+    { operator: "lte", ...atMostTestCase2 },
+  ];
+  for (const {
+    operator,
+    positiveSuccessOperands,
+    positiveFailureOperands,
+    positiveFailureMessage,
+    negativeSuccessOperands,
+    negativeFailureOperands,
+    negativeFailureMessage,
+  } of testCases) {
+    describe(`.to.${operator}`, () => {
+      checkAll(
+        positiveSuccessOperands[0],
+        positiveSuccessOperands[1],
+        (a, b) => {
+          it(`should work with ${typestr(a)} and ${typestr(b)}`, function () {
+            expect(a).to[operator](b);
           });
-        });
+        }
+      );
+      describe("should throw the proper message on failure", () => {
+        checkAll(
+          positiveFailureOperands[0],
+          positiveFailureOperands[1],
+          (a, b) => {
+            it(`with ${typestr(a)} and ${typestr(b)}`, function () {
+              expect(() => expect(a).to[operator](b)).to.throw(
+                AssertionError,
+                positiveFailureMessage
+              );
+            });
+          }
+        );
       });
       describe("should throw when comparing to a non-integral floating point literal", function () {
         for (const convert of numberToBigNumberConversions) {
           const converted = convert(1);
           it(`with float vs ${typestr(converted)}`, function () {
-            expect(() => expect(1.1).to.equal(converted)).to.throw(
+            expect(() => expect(1.1).to[operator](converted)).to.throw(
               RangeError,
               "The number 1.1 cannot be converted to a BigInt because it is not an integer"
             );
           });
           it(`with ${typestr(converted)} vs float`, function () {
-            expect(() => expect(converted).to.equal(1.1)).to.throw(
+            expect(() => expect(converted).to[operator](1.1)).to.throw(
               RangeError,
               "The number 1.1 cannot be converted to a BigInt because it is not an integer"
             );
@@ -102,433 +237,32 @@ describe("BigNumber matchers", () => {
         }
       });
     });
-
-    describe(".to.eq", () => {
-      checkAll(10, 10, (a, b) => {
-        it(`should work with ${typestr(a)} and ${typestr(b)}`, function () {
-          expect(a).to.eq(b);
-        });
-      });
-      describe("should throw the proper message on failure", function () {
-        checkAll(10, 11, (a, b) => {
-          it(`with ${typestr(a)} and ${typestr(b)}`, function () {
-            expect(() => expect(a).to.eq(b)).to.throw(
-              AssertionError,
-              "expected 10 to equal 11"
-            );
+    describe(`.not.to.${operator}`, function () {
+      checkAll(
+        negativeSuccessOperands[0],
+        negativeSuccessOperands[1],
+        (a, b) => {
+          it(`should work with ${typestr(a)} and ${typestr(b)}`, function () {
+            expect(a).not.to[operator](b);
           });
-        });
+        }
+      );
+      describe("should throw the proper message on failure", () => {
+        checkAll(
+          negativeFailureOperands[0],
+          negativeFailureOperands[1],
+          (a, b) => {
+            it(`with ${typestr(a)} and ${typestr(b)}`, function () {
+              expect(() => expect(a).not.to[operator](b)).to.throw(
+                AssertionError,
+                negativeFailureMessage
+              );
+            });
+          }
+        );
       });
     });
-
-    describe(".not.to.equal", () => {
-      checkAll(10, 11, (a, b) => {
-        it(`should work with ${typestr(a)} and ${typestr(b)}`, function () {
-          expect(a).not.to.equal(b);
-        });
-      });
-      describe("should throw the proper message on failure", function () {
-        checkAll(10, 10, (a, b) => {
-          it(`with ${typestr(a)} and ${typestr(b)}`, function () {
-            expect(() => expect(a).not.to.equal(b)).to.throw(
-              AssertionError,
-              "expected 10 to not equal 10"
-            );
-          });
-        });
-      });
-    });
-
-    describe(".not.to.eq", () => {
-      checkAll(10, 11, (a, b) => {
-        it(`should work with ${typestr(a)} and ${typestr(b)}`, function () {
-          expect(a).not.to.eq(b);
-        });
-      });
-      describe("should throw the proper message on failure", function () {
-        checkAll(10, 10, (a, b) => {
-          it(`with ${typestr(a)} and ${typestr(b)}`, function () {
-            expect(() => expect(a).not.to.eq(b)).to.throw(
-              AssertionError,
-              "expected 10 to not equal 10"
-            );
-          });
-        });
-      });
-    });
-  });
-
-  describe("above", () => {
-    describe(".to.be.above", () => {
-      checkAll(10, 9, (a, b) => {
-        it(`should work with ${typestr(a)} and ${typestr(b)}`, function () {
-          expect(a).to.be.above(b);
-        });
-      });
-      describe("should throw the proper message on failure", function () {
-        checkAll(10, 10, (a, b) => {
-          it(`with ${typestr(a)} and ${typestr(b)}`, function () {
-            expect(() => expect(a).to.be.above(b)).to.throw(
-              AssertionError,
-              "expected 10 to be above 10"
-            );
-          });
-        });
-      });
-    });
-
-    describe(".to.be.gt", () => {
-      checkAll(10, 9, (a, b) => {
-        it(`should work with ${typestr(a)} and ${typestr(b)}`, function () {
-          expect(a).to.be.gt(b);
-        });
-      });
-      describe("should throw the proper message on failure", function () {
-        checkAll(10, 10, (a, b) => {
-          it(`with ${typestr(a)} and ${typestr(b)}`, function () {
-            expect(() => expect(a).to.be.gt(b)).to.throw(
-              AssertionError,
-              "expected 10 to be above 10"
-            );
-          });
-        });
-      });
-    });
-
-    describe(".not.to.be.above", () => {
-      checkAll(10, 10, (a, b) => {
-        it(`should work with 10,10 and with ${typestr(a)} and ${typestr(
-          b
-        )}`, function () {
-          expect(a).not.to.be.above(b);
-        });
-      });
-      checkAll(10, 11, (a, b) => {
-        it(`should work with 10,11 and with ${typestr(a)} and ${typestr(
-          b
-        )}`, function () {
-          expect(a).not.to.be.above(b);
-        });
-      });
-      describe("should throw the proper message on failure", function () {
-        checkAll(11, 10, (a, b) => {
-          it(`with ${typestr(a)} and ${typestr(b)}`, function () {
-            expect(() => expect(a).not.to.be.above(b)).to.throw(
-              AssertionError,
-              "expected 11 to be at most 10"
-            );
-          });
-        });
-      });
-    });
-
-    describe(".not.to.be.gt", () => {
-      checkAll(10, 10, (a, b) => {
-        it(`should work with 10,10 and with ${typestr(a)} and ${typestr(
-          b
-        )}`, function () {
-          expect(a).not.to.be.gt(b);
-        });
-      });
-      checkAll(10, 11, (a, b) => {
-        it(`should work with 10,11 and with ${typestr(a)} and ${typestr(
-          b
-        )}`, function () {
-          expect(a).not.to.be.gt(b);
-        });
-      });
-      describe("should throw the proper message on failure", function () {
-        checkAll(11, 10, (a, b) => {
-          it(`with ${typestr(a)} and ${typestr(b)}`, function () {
-            expect(() => expect(a).not.to.be.gt(b)).to.throw(
-              AssertionError,
-              "expected 11 to be at most 10"
-            );
-          });
-        });
-      });
-    });
-  });
-
-  describe("below", () => {
-    describe(".to.be.below", () => {
-      checkAll(10, 11, (a, b) => {
-        it(`should work with ${typestr(a)} and ${typestr(b)}`, function () {
-          expect(a).to.be.below(b);
-        });
-      });
-      describe("should throw the proper message on failure", function () {
-        checkAll(11, 10, (a, b) => {
-          it(`with ${typestr(a)} and ${typestr(b)}`, function () {
-            expect(() => expect(a).to.be.below(b)).to.throw(
-              AssertionError,
-              "expected 11 to be below 10"
-            );
-          });
-        });
-      });
-    });
-
-    describe(".to.be.lt", () => {
-      checkAll(10, 11, (a, b) => {
-        it(`should work with ${typestr(a)} and ${typestr(b)}`, function () {
-          expect(a).to.be.lt(b);
-        });
-      });
-      describe("should throw the proper message on failure", function () {
-        checkAll(11, 10, (a, b) => {
-          it(`with ${typestr(a)} and ${typestr(b)}`, function () {
-            expect(() => expect(a).to.be.lt(b)).to.throw(
-              AssertionError,
-              "expected 11 to be below 10"
-            );
-          });
-        });
-      });
-    });
-
-    describe(".not.to.be.below", () => {
-      checkAll(10, 10, (a, b) => {
-        it(`should work with 10,10 and with ${typestr(a)} and ${typestr(
-          b
-        )}`, function () {
-          expect(a).not.to.be.below(b);
-        });
-      });
-      checkAll(10, 9, (a, b) => {
-        it(`should work with 10,9 and with ${typestr(a)} and ${typestr(
-          b
-        )}`, function () {
-          expect(a).not.to.be.below(b);
-        });
-      });
-      describe("should throw the proper message on failure", function () {
-        checkAll(10, 11, (a, b) => {
-          it(`with ${typestr(a)} and ${typestr(b)}`, function () {
-            expect(() => expect(a).not.to.be.below(b)).to.throw(
-              AssertionError,
-              "expected 10 to be at least 11"
-            );
-          });
-        });
-      });
-    });
-
-    describe(".not.to.be.lt", () => {
-      checkAll(10, 10, (a, b) => {
-        it(`should work with 10,10 and with ${typestr(a)} and ${typestr(
-          b
-        )}`, function () {
-          expect(a).not.to.be.lt(b);
-        });
-      });
-      checkAll(10, 9, (a, b) => {
-        it(`should work with 10,9 and with ${typestr(a)} and ${typestr(
-          b
-        )}`, function () {
-          expect(a).not.to.be.lt(b);
-        });
-      });
-      describe("should throw the proper message on failure", function () {
-        checkAll(10, 11, (a, b) => {
-          it(`with ${typestr(a)} and ${typestr(b)}`, function () {
-            expect(() => expect(a).not.to.be.lt(b)).to.throw(
-              AssertionError,
-              "expected 10 to be at least 11"
-            );
-          });
-        });
-      });
-    });
-  });
-
-  describe("at least", () => {
-    describe(".to.be.at.least", () => {
-      checkAll(10, 10, (a, b) => {
-        it(`should work with 10,10 and with ${typestr(a)} and ${typestr(
-          b
-        )}`, function () {
-          expect(a).to.be.at.least(b);
-        });
-      });
-      checkAll(10, 9, (a, b) => {
-        it(`should work with 10,9 and with ${typestr(a)} and ${typestr(
-          b
-        )}`, function () {
-          expect(a).to.be.at.least(b);
-        });
-      });
-      describe("should throw the proper message on failure", function () {
-        checkAll(10, 11, (a, b) => {
-          it(`with ${typestr(a)} and ${typestr(b)}`, function () {
-            expect(() => expect(a).to.be.at.least(b)).to.throw(
-              AssertionError,
-              "expected 10 to be at least 11"
-            );
-          });
-        });
-      });
-    });
-
-    describe(".to.be.gte", () => {
-      checkAll(10, 10, (a, b) => {
-        it(`should work with 10,10 and with ${typestr(a)} and ${typestr(
-          b
-        )}`, function () {
-          expect(a).to.be.gte(b);
-        });
-      });
-      checkAll(10, 9, (a, b) => {
-        it(`should work with 10,9 and with ${typestr(a)} and ${typestr(
-          b
-        )}`, function () {
-          expect(a).to.be.gte(b);
-        });
-      });
-      describe("should throw the proper message on failure", function () {
-        checkAll(10, 11, (a, b) => {
-          it(`with ${typestr(a)} and ${typestr(b)}`, function () {
-            expect(() => expect(a).to.be.gte(b)).to.throw(
-              AssertionError,
-              "expected 10 to be at least 11"
-            );
-          });
-        });
-      });
-    });
-
-    describe(".not.to.be.at.least", () => {
-      checkAll(10, 11, (a, b) => {
-        it(`should work with ${typestr(a)} and ${typestr(b)}`, function () {
-          expect(a).not.to.be.at.least(b);
-        });
-      });
-      describe("should throw the proper message on failure", function () {
-        checkAll(11, 10, (a, b) => {
-          it(`with ${typestr(a)} and ${typestr(b)}`, function () {
-            expect(() => expect(a).not.to.be.at.least(b)).to.throw(
-              AssertionError,
-              "expected 11 to be below 10"
-            );
-          });
-        });
-      });
-    });
-
-    describe(".not.to.be.gte", () => {
-      checkAll(10, 11, (a, b) => {
-        it(`should work with ${typestr(a)} and ${typestr(b)}`, function () {
-          expect(a).not.to.be.gte(b);
-        });
-      });
-      describe("should throw the proper message on failure", function () {
-        checkAll(11, 10, (a, b) => {
-          it(`with ${typestr(a)} and ${typestr(b)}`, function () {
-            expect(() => expect(a).not.to.be.gte(b)).to.throw(
-              AssertionError,
-              "expected 11 to be below 10"
-            );
-          });
-        });
-      });
-    });
-  });
-
-  describe("at most", () => {
-    describe(".to.be.at.most", () => {
-      checkAll(10, 10, (a, b) => {
-        it(`should work with 10,10 and with ${typestr(a)} and ${typestr(
-          b
-        )}`, function () {
-          expect(a).to.be.at.most(b);
-        });
-      });
-      checkAll(10, 11, (a, b) => {
-        it(`should work with 10,11 and with ${typestr(a)} and ${typestr(
-          b
-        )}`, function () {
-          expect(a).to.be.at.most(b);
-        });
-      });
-      describe("should throw the proper message on failure", function () {
-        checkAll(11, 10, (a, b) => {
-          it(`with ${typestr(a)} and ${typestr(b)}`, function () {
-            expect(() => expect(a).to.be.at.most(b)).to.throw(
-              AssertionError,
-              "expected 11 to be at most 10"
-            );
-          });
-        });
-      });
-    });
-
-    describe(".to.be.lte", () => {
-      checkAll(10, 10, (a, b) => {
-        it(`should work with 10,10 and with ${typestr(a)} and ${typestr(
-          b
-        )}`, function () {
-          expect(a).to.be.lte(b);
-        });
-      });
-      checkAll(10, 11, (a, b) => {
-        it(`should work with 10,11 and with ${typestr(a)} and ${typestr(
-          b
-        )}`, function () {
-          expect(a).to.be.lte(b);
-        });
-      });
-      describe("should throw the proper message on failure", function () {
-        checkAll(11, 10, (a, b) => {
-          it(`with ${typestr(a)} and ${typestr(b)}`, function () {
-            expect(() => expect(a).to.be.lte(b)).to.throw(
-              AssertionError,
-              "expected 11 to be at most 10"
-            );
-          });
-        });
-      });
-    });
-
-    describe(".not.to.be.at.most", () => {
-      checkAll(10, 9, (a, b) => {
-        it(`should work with 10,9 and with ${typestr(a)} and ${typestr(
-          b
-        )}`, function () {
-          expect(a).not.to.be.at.most(b);
-        });
-      });
-      describe("should throw the proper message on failure", function () {
-        checkAll(10, 11, (a, b) => {
-          it(`with ${typestr(a)} and ${typestr(b)}`, function () {
-            expect(() => expect(a).not.to.be.at.most(b)).to.throw(
-              AssertionError,
-              "expected 10 to be above 11"
-            );
-          });
-        });
-      });
-    });
-
-    describe(".not.to.be.lte", () => {
-      checkAll(10, 9, (a, b) => {
-        it(`should work with 10,9 and with ${typestr(a)} and ${typestr(
-          b
-        )}`, function () {
-          expect(a).not.to.be.lte(b);
-        });
-      });
-      describe("should throw the proper message on failure", function () {
-        checkAll(10, 11, (a, b) => {
-          it(`with ${typestr(a)} and ${typestr(b)}`, function () {
-            expect(() => expect(a).not.to.be.lte(b)).to.throw(
-              AssertionError,
-              "expected 10 to be above 11"
-            );
-          });
-        });
-      });
-    });
-  });
+  }
 
   function checkAllWith3Args(
     a: number,
