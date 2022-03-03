@@ -30,6 +30,7 @@ describe("BigNumber matchers", () => {
     return typeof n;
   }
 
+  describe("with two arguments", function () {
   function checkAll(
     actual: number,
     expected: number,
@@ -263,6 +264,7 @@ describe("BigNumber matchers", () => {
       });
     });
   }
+  });
 
   function checkAllWith3Args(
     a: number,
