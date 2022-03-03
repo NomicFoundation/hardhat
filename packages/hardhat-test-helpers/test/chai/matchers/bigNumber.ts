@@ -82,6 +82,7 @@ describe("BigNumber matchers", function () {
         | "most"
         | "gte"
         | "lte"
+        | "greaterThanOrEqual"
         | "lessThanOrEqual";
       positiveSuccessOperands: [number, number];
       positiveFailureOperands: [number, number];
@@ -189,6 +190,8 @@ describe("BigNumber matchers", function () {
       { operator: "least", ...atLeastTestCase2 },
       { operator: "gte", ...atLeastTestCase1 },
       { operator: "gte", ...atLeastTestCase2 },
+      { operator: "greaterThanOrEqual", ...atLeastTestCase1 },
+      { operator: "greaterThanOrEqual", ...atLeastTestCase2 },
       { operator: "most", ...atMostTestCase1 },
       { operator: "most", ...atMostTestCase2 },
       { operator: "lte", ...atMostTestCase1 },

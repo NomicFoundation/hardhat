@@ -50,6 +50,10 @@ export function supportBigNumber(
     "gte",
     override("gte", "be at least", "be below", utils)
   );
+  Assertion.overwriteMethod(
+    "greaterThanOrEqual",
+    override("gte", "be at least", "be below", utils)
+  );
 
   Assertion.overwriteMethod(
     "most",
