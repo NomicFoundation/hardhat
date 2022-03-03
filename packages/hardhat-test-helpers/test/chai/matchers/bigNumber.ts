@@ -267,123 +267,123 @@ describe("BigNumber matchers", () => {
   });
 
   describe("with three arguments", function () {
-  function checkAllWith3Args(
-    a: number,
-    b: number,
-    c: number,
-    test: (
-      a: number | bigint | BigNumberEthers | BigNumberJs | BN,
-      b: number | bigint | BigNumberEthers | BigNumberJs | BN,
-      c: number | bigint | BigNumberEthers | BigNumberJs | BN
-    ) => void
-  ) {
-    const conversions = [(n: number) => n, ...numberToBigNumberConversions];
-    for (const convertA of conversions) {
-      for (const convertB of conversions) {
-        for (const convertC of conversions) {
-          test(convertA(a), convertB(b), convertC(c));
+    function checkAllWith3Args(
+      a: number,
+      b: number,
+      c: number,
+      test: (
+        a: number | bigint | BigNumberEthers | BigNumberJs | BN,
+        b: number | bigint | BigNumberEthers | BigNumberJs | BN,
+        c: number | bigint | BigNumberEthers | BigNumberJs | BN
+      ) => void
+    ) {
+      const conversions = [(n: number) => n, ...numberToBigNumberConversions];
+      for (const convertA of conversions) {
+        for (const convertB of conversions) {
+          for (const convertC of conversions) {
+            test(convertA(a), convertB(b), convertC(c));
+          }
         }
       }
     }
-  }
 
-  describe("within", () => {
-    describe(".to.be.within", () => {
-      checkAllWith3Args(100, 99, 101, (a, b, c) => {
-        it(`should work with ${typestr(a)}, ${typestr(b)} and ${typestr(
-          c
-        )}`, function () {
-          expect(a).to.be.within(b, c);
-        });
-      });
-      describe("should throw the proper message on failure", () => {
-        checkAllWith3Args(100, 80, 90, (a, b, c) => {
-          it(`with ${typestr(a)}, ${typestr(b)} and ${typestr(
-            c
-          )}`, function () {
-            expect(() => expect(a).to.be.within(b, c)).to.throw(
-              AssertionError,
-              "expected 100 to be within 80..90"
-            );
-          });
-        });
-      });
-    });
-
-    describe(".not.to.be.within", () => {
-      checkAllWith3Args(100, 101, 102, (a, b, c) => {
-        it(`should work with ${typestr(a)}, ${typestr(b)} and ${typestr(
-          c
-        )}`, function () {
-          expect(a).not.to.be.within(b, c);
-        });
-      });
-      checkAllWith3Args(100, 98, 99, (a, b, c) => {
-        it(`should work with ${typestr(a)}, ${typestr(b)} and ${typestr(
-          c
-        )}`, function () {
-          expect(a).not.to.be.within(b, c);
-        });
-      });
-      describe("should throw the proper message on failure", () => {
+    describe("within", () => {
+      describe(".to.be.within", () => {
         checkAllWith3Args(100, 99, 101, (a, b, c) => {
-          it(`with ${typestr(a)}, ${typestr(b)} and ${typestr(
+          it(`should work with ${typestr(a)}, ${typestr(b)} and ${typestr(
             c
           )}`, function () {
-            expect(() => expect(a).not.to.be.within(b, c)).to.throw(
-              AssertionError,
-              "expected 100 to not be within 99..101"
-            );
+            expect(a).to.be.within(b, c);
+          });
+        });
+        describe("should throw the proper message on failure", () => {
+          checkAllWith3Args(100, 80, 90, (a, b, c) => {
+            it(`with ${typestr(a)}, ${typestr(b)} and ${typestr(
+              c
+            )}`, function () {
+              expect(() => expect(a).to.be.within(b, c)).to.throw(
+                AssertionError,
+                "expected 100 to be within 80..90"
+              );
+            });
+          });
+        });
+      });
+
+      describe(".not.to.be.within", () => {
+        checkAllWith3Args(100, 101, 102, (a, b, c) => {
+          it(`should work with ${typestr(a)}, ${typestr(b)} and ${typestr(
+            c
+          )}`, function () {
+            expect(a).not.to.be.within(b, c);
+          });
+        });
+        checkAllWith3Args(100, 98, 99, (a, b, c) => {
+          it(`should work with ${typestr(a)}, ${typestr(b)} and ${typestr(
+            c
+          )}`, function () {
+            expect(a).not.to.be.within(b, c);
+          });
+        });
+        describe("should throw the proper message on failure", () => {
+          checkAllWith3Args(100, 99, 101, (a, b, c) => {
+            it(`with ${typestr(a)}, ${typestr(b)} and ${typestr(
+              c
+            )}`, function () {
+              expect(() => expect(a).not.to.be.within(b, c)).to.throw(
+                AssertionError,
+                "expected 100 to not be within 99..101"
+              );
+            });
           });
         });
       });
     });
-  });
 
-  describe("closeTo", () => {
-    describe(".to.be.closeTo", () => {
-      checkAllWith3Args(100, 101, 10, (a, b, c) => {
-        it(`should work with ${typestr(a)}, ${typestr(b)} and ${typestr(
-          c
-        )}`, function () {
-          expect(a).to.be.closeTo(b, c);
-        });
-      });
-      describe("should throw the proper message on failure", () => {
-        checkAllWith3Args(100, 111, 10, (a, b, c) => {
-          it(`with ${typestr(a)}, ${typestr(b)} and ${typestr(
-            c
-          )}`, function () {
-            expect(() => expect(a).to.be.closeTo(b, c)).to.throw(
-              AssertionError,
-              "expected 100 to be close to 111"
-            );
-          });
-        });
-      });
-    });
-
-    describe(".not.to.be.closeTo", () => {
-      checkAllWith3Args(100, 111, 10, (a, b, c) => {
-        it(`should work with ${typestr(a)}, ${typestr(b)} and ${typestr(
-          c
-        )}`, function () {
-          expect(a).to.not.be.closeTo(b, c);
-        });
-      });
-      describe("should throw the proper message on failure", () => {
+    describe("closeTo", () => {
+      describe(".to.be.closeTo", () => {
         checkAllWith3Args(100, 101, 10, (a, b, c) => {
-          it(`with ${typestr(a)}, ${typestr(b)} and ${typestr(
+          it(`should work with ${typestr(a)}, ${typestr(b)} and ${typestr(
             c
           )}`, function () {
-            expect(() => expect(a).not.to.be.closeTo(b, c)).to.throw(
-              AssertionError,
-              "expected 100 not to be close to 101"
-            );
+            expect(a).to.be.closeTo(b, c);
+          });
+        });
+        describe("should throw the proper message on failure", () => {
+          checkAllWith3Args(100, 111, 10, (a, b, c) => {
+            it(`with ${typestr(a)}, ${typestr(b)} and ${typestr(
+              c
+            )}`, function () {
+              expect(() => expect(a).to.be.closeTo(b, c)).to.throw(
+                AssertionError,
+                "expected 100 to be close to 111"
+              );
+            });
+          });
+        });
+      });
+
+      describe(".not.to.be.closeTo", () => {
+        checkAllWith3Args(100, 111, 10, (a, b, c) => {
+          it(`should work with ${typestr(a)}, ${typestr(b)} and ${typestr(
+            c
+          )}`, function () {
+            expect(a).to.not.be.closeTo(b, c);
+          });
+        });
+        describe("should throw the proper message on failure", () => {
+          checkAllWith3Args(100, 101, 10, (a, b, c) => {
+            it(`with ${typestr(a)}, ${typestr(b)} and ${typestr(
+              c
+            )}`, function () {
+              expect(() => expect(a).not.to.be.closeTo(b, c)).to.throw(
+                AssertionError,
+                "expected 100 not to be close to 101"
+              );
+            });
           });
         });
       });
     });
-  });
   });
 });
