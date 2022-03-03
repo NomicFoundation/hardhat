@@ -266,6 +266,7 @@ describe("BigNumber matchers", () => {
     }
   });
 
+  describe("with three arguments", function () {
   function checkAllWith3Args(
     a: number,
     b: number,
@@ -383,5 +384,6 @@ describe("BigNumber matchers", () => {
         });
       });
     });
+  });
   });
 });
