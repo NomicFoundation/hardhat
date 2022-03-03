@@ -15,6 +15,21 @@ const numberToBigNumberConversions = [
 ];
 
 describe("BigNumber matchers", () => {
+  function typestr(
+    n: number | bigint | string | BN | BigNumberEthers | BigNumberJs
+  ): string {
+    if (typeof n === "object") {
+      if (n instanceof BN) {
+        return "BN";
+      } else if (n instanceof BigNumberEthers) {
+        return "ethers.BigNumber";
+      } else if (n instanceof BigNumberJs) {
+        return "bignumber.js";
+      }
+    }
+    return typeof n;
+  }
+
   function checkAll(
     actual: number,
     expected: number,
@@ -50,21 +65,6 @@ describe("BigNumber matchers", () => {
         test(convertedActual, convertedExpected);
       }
     }
-  }
-
-  function typestr(
-    n: number | bigint | string | BN | BigNumberEthers | BigNumberJs
-  ): string {
-    if (typeof n === "object") {
-      if (n instanceof BN) {
-        return "BN";
-      } else if (n instanceof BigNumberEthers) {
-        return "ethers.BigNumber";
-      } else if (n instanceof BigNumberJs) {
-        return "bignumber.js";
-      }
-    }
-    return typeof n;
   }
 
   interface TestCase {
