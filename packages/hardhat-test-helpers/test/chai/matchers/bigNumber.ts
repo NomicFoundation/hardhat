@@ -7,6 +7,13 @@ import { bnChai } from "../../../src/chai/matchers/bnChai";
 
 use(bnChai);
 
+const numberToBigNumberConversions = [
+  (n: number) => BigInt(n),
+  (n: number) => BigNumberEthers.from(n),
+  (n: number) => new BN(n),
+  (n: number) => new BigNumberJs(n),
+];
+
 describe("BigNumber matchers", () => {
   function checkAll(
     actual: number,
@@ -19,10 +26,7 @@ describe("BigNumber matchers", () => {
     const conversions = [
       (n: number) => n,
       (n: number) => n.toString(),
-      (n: number) => BigInt(n),
-      (n: number) => BigNumberEthers.from(n),
-      (n: number) => new BN(n),
-      (n: number) => new BigNumberJs(n),
+      ...numberToBigNumberConversions,
     ];
     for (const convertActual of conversions) {
       for (const convertExpected of conversions) {
@@ -79,6 +83,23 @@ describe("BigNumber matchers", () => {
             );
           });
         });
+      });
+      describe("should throw when comparing to a non-integral floating point literal", function () {
+        for (const convert of numberToBigNumberConversions) {
+          const converted = convert(1);
+          it(`with float vs ${typestr(converted)}`, function () {
+            expect(() => expect(1.1).to.equal(converted)).to.throw(
+              RangeError,
+              "The number 1.1 cannot be converted to a BigInt because it is not an integer"
+            );
+          });
+          it(`with ${typestr(converted)} vs float`, function () {
+            expect(() => expect(converted).to.equal(1.1)).to.throw(
+              RangeError,
+              "The number 1.1 cannot be converted to a BigInt because it is not an integer"
+            );
+          });
+        }
       });
     });
 
@@ -519,13 +540,7 @@ describe("BigNumber matchers", () => {
       c: number | bigint | BigNumberEthers | BigNumberJs | BN
     ) => void
   ) {
-    const conversions = [
-      (n: number) => n,
-      (n: number) => BigInt(n),
-      (n: number) => BigNumberEthers.from(n),
-      (n: number) => new BigNumberJs(n),
-      (n: number) => new BN(n),
-    ];
+    const conversions = [(n: number) => n, ...numberToBigNumberConversions];
     for (const convertA of conversions) {
       for (const convertB of conversions) {
         for (const convertC of conversions) {
