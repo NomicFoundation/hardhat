@@ -24,6 +24,10 @@ export function supportBigNumber(
     "gt",
     override("gt", "be above", "be at most", utils)
   );
+  Assertion.overwriteMethod(
+    "greaterThan",
+    override("gt", "be above", "be at most", utils)
+  );
 
   Assertion.overwriteMethod(
     "below",
