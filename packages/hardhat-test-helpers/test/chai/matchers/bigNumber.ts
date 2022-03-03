@@ -319,7 +319,7 @@ describe("BigNumber matchers", function () {
       positiveFailureMessage: "expected 100 to be close to 111",
       negativeSuccessOperands: [100, 111, 10],
       negativeFailureOperands: [100, 101, 10],
-      negativeFailureMessage: "expected 100 not to be close to 101"
+      negativeFailureMessage: "expected 100 not to be close to 101",
     };
     const testCases: TestCase[] = [
       withinTestCase1,
@@ -336,46 +336,66 @@ describe("BigNumber matchers", function () {
       negativeFailureMessage,
     } of testCases) {
       describe(`.to.be.${operator}`, function () {
-        checkAll(positiveSuccessOperands[0], positiveSuccessOperands[1], positiveSuccessOperands[2], (a, b, c) => {
-          it(`should work with ${typestr(a)}, ${typestr(b)} and ${typestr(
-            c
-          )}`, function () {
-            expect(a).to.be[operator](b, c);
-          });
-        });
-        describe("should throw the proper message on failure", function () {
-          checkAll(positiveFailureOperands[0], positiveFailureOperands[1], positiveFailureOperands[2], (a, b, c) => {
-            it(`with ${typestr(a)}, ${typestr(b)} and ${typestr(
+        checkAll(
+          positiveSuccessOperands[0],
+          positiveSuccessOperands[1],
+          positiveSuccessOperands[2],
+          (a, b, c) => {
+            it(`should work with ${typestr(a)}, ${typestr(b)} and ${typestr(
               c
             )}`, function () {
-              expect(() => expect(a).to.be[operator](b, c)).to.throw(
-                AssertionError,
-                positiveFailureMessage
-              );
+              expect(a).to.be[operator](b, c);
             });
-          });
+          }
+        );
+        describe("should throw the proper message on failure", function () {
+          checkAll(
+            positiveFailureOperands[0],
+            positiveFailureOperands[1],
+            positiveFailureOperands[2],
+            (a, b, c) => {
+              it(`with ${typestr(a)}, ${typestr(b)} and ${typestr(
+                c
+              )}`, function () {
+                expect(() => expect(a).to.be[operator](b, c)).to.throw(
+                  AssertionError,
+                  positiveFailureMessage
+                );
+              });
+            }
+          );
         });
       });
 
       describe(`.not.to.be.${operator}`, function () {
-        checkAll(negativeSuccessOperands[0], negativeSuccessOperands[1], negativeSuccessOperands[2], (a, b, c) => {
-          it(`should work with ${typestr(a)}, ${typestr(b)} and ${typestr(
-            c
-          )}`, function () {
-            expect(a).not.to.be[operator](b, c);
-          });
-        });
-        describe("should throw the proper message on failure", function () {
-          checkAll(negativeFailureOperands[0], negativeFailureOperands[1], negativeFailureOperands[2], (a, b, c) => {
-            it(`with ${typestr(a)}, ${typestr(b)} and ${typestr(
+        checkAll(
+          negativeSuccessOperands[0],
+          negativeSuccessOperands[1],
+          negativeSuccessOperands[2],
+          (a, b, c) => {
+            it(`should work with ${typestr(a)}, ${typestr(b)} and ${typestr(
               c
             )}`, function () {
-              expect(() => expect(a).not.to.be[operator](b, c)).to.throw(
-                AssertionError,
-                negativeFailureMessage
-              );
+              expect(a).not.to.be[operator](b, c);
             });
-          });
+          }
+        );
+        describe("should throw the proper message on failure", function () {
+          checkAll(
+            negativeFailureOperands[0],
+            negativeFailureOperands[1],
+            negativeFailureOperands[2],
+            (a, b, c) => {
+              it(`with ${typestr(a)}, ${typestr(b)} and ${typestr(
+                c
+              )}`, function () {
+                expect(() => expect(a).not.to.be[operator](b, c)).to.throw(
+                  AssertionError,
+                  negativeFailureMessage
+                );
+              });
+            }
+          );
         });
       });
     }
