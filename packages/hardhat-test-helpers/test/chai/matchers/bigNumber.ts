@@ -273,6 +273,23 @@ describe("BigNumber matchers", function () {
             }
           );
         });
+        describe("should throw when comparing to a non-integral floating point literal", function () {
+          for (const convert of numberToBigNumberConversions) {
+            const converted = convert(1);
+            it(`with float vs ${typestr(converted)}`, function () {
+              expect(() => expect(1.1).not.to[operator](converted)).to.throw(
+                RangeError,
+                "The number 1.1 cannot be converted to a BigInt because it is not an integer"
+              );
+            });
+            it(`with ${typestr(converted)} vs float`, function () {
+              expect(() => expect(converted).not.to[operator](1.1)).to.throw(
+                RangeError,
+                "The number 1.1 cannot be converted to a BigInt because it is not an integer"
+              );
+            });
+          }
+        });
       });
     }
   });
@@ -372,6 +389,32 @@ describe("BigNumber matchers", function () {
             }
           );
         });
+        describe("should throw when comparing to a non-integral floating point literal", function () {
+          for (const convertA of numberToBigNumberConversions) {
+            for (const convertB of numberToBigNumberConversions) {
+              const a = convertA(1);
+              const b = convertB(1);
+              it(`with float, ${typestr(a)}, ${typestr(a)}`, function () {
+                expect(() => expect(1.1).to[operator](a, b)).to.throw(
+                  RangeError,
+                  "The number 1.1 cannot be converted to a BigInt because it is not an integer"
+                );
+              });
+              it(`with ${typestr(a)}, float, ${typestr(b)}`, function () {
+                expect(() => expect(a).to[operator](1.1, b)).to.throw(
+                  RangeError,
+                  "The number 1.1 cannot be converted to a BigInt because it is not an integer"
+                );
+              });
+              it(`with ${typestr(a)}, ${typestr(b)}, float`, function () {
+                expect(() => expect(a).to[operator](b, 1.1)).to.throw(
+                  RangeError,
+                  "The number 1.1 cannot be converted to a BigInt because it is not an integer"
+                );
+              });
+            }
+          }
+        });
       });
 
       describe(`.not.to.be.${operator}`, function () {
@@ -403,6 +446,32 @@ describe("BigNumber matchers", function () {
               });
             }
           );
+        });
+        describe("should throw when comparing to a non-integral floating point literal", function () {
+          for (const convertA of numberToBigNumberConversions) {
+            for (const convertB of numberToBigNumberConversions) {
+              const a = convertA(1);
+              const b = convertB(1);
+              it(`with float, ${typestr(a)}, ${typestr(a)}`, function () {
+                expect(() => expect(1.1).not.to[operator](a, b)).to.throw(
+                  RangeError,
+                  "The number 1.1 cannot be converted to a BigInt because it is not an integer"
+                );
+              });
+              it(`with ${typestr(a)}, float, ${typestr(b)}`, function () {
+                expect(() => expect(a).not.to[operator](1.1, b)).to.throw(
+                  RangeError,
+                  "The number 1.1 cannot be converted to a BigInt because it is not an integer"
+                );
+              });
+              it(`with ${typestr(a)}, ${typestr(b)}, float`, function () {
+                expect(() => expect(a).not.to[operator](b, 1.1)).to.throw(
+                  RangeError,
+                  "The number 1.1 cannot be converted to a BigInt because it is not an integer"
+                );
+              });
+            }
+          }
         });
       });
     }
