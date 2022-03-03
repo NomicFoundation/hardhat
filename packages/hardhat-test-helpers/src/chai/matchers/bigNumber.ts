@@ -37,6 +37,10 @@ export function supportBigNumber(
     "lt",
     override("lt", "be below", "be at least", utils)
   );
+  Assertion.overwriteMethod(
+    "lessThan",
+    override("lt", "be below", "be at least", utils)
+  );
 
   Assertion.overwriteMethod(
     "least",

@@ -77,6 +77,7 @@ describe("BigNumber matchers", function () {
         | "gt"
         | "lt"
         | "greaterThan"
+        | "lessThan"
         | "least"
         | "most"
         | "gte"
@@ -181,6 +182,8 @@ describe("BigNumber matchers", function () {
       { operator: "below", ...belowTestCase2 },
       { operator: "lt", ...belowTestCase1 },
       { operator: "lt", ...belowTestCase2 },
+      { operator: "lessThan", ...belowTestCase1 },
+      { operator: "lessThan", ...belowTestCase2 },
       { operator: "least", ...atLeastTestCase1 },
       { operator: "least", ...atLeastTestCase2 },
       { operator: "gte", ...atLeastTestCase1 },
