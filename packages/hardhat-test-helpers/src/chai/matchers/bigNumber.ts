@@ -6,67 +6,30 @@ export function supportBigNumber(
   Assertion: Chai.AssertionStatic,
   utils: Chai.ChaiUtils
 ) {
-  Assertion.overwriteMethod(
-    "equals",
-    override("eq", "equal", "not equal", utils)
-  );
-  Assertion.overwriteMethod(
-    "equal",
-    override("eq", "equal", "not equal", utils)
-  );
-  Assertion.overwriteMethod("eq", override("eq", "equal", "not equal", utils));
+  const equalsFunction = override("eq", "equal", "not equal", utils);
+  Assertion.overwriteMethod("equals", equalsFunction);
+  Assertion.overwriteMethod("equal", equalsFunction);
+  Assertion.overwriteMethod("eq", equalsFunction);
 
-  Assertion.overwriteMethod(
-    "above",
-    override("gt", "be above", "be at most", utils)
-  );
-  Assertion.overwriteMethod(
-    "gt",
-    override("gt", "be above", "be at most", utils)
-  );
-  Assertion.overwriteMethod(
-    "greaterThan",
-    override("gt", "be above", "be at most", utils)
-  );
+  const gtFunction = override("gt", "be above", "be at most", utils);
+  Assertion.overwriteMethod("above", gtFunction);
+  Assertion.overwriteMethod("gt", gtFunction);
+  Assertion.overwriteMethod("greaterThan", gtFunction);
 
-  Assertion.overwriteMethod(
-    "below",
-    override("lt", "be below", "be at least", utils)
-  );
-  Assertion.overwriteMethod(
-    "lt",
-    override("lt", "be below", "be at least", utils)
-  );
-  Assertion.overwriteMethod(
-    "lessThan",
-    override("lt", "be below", "be at least", utils)
-  );
+  const ltFunction = override("lt", "be below", "be at least", utils);
+  Assertion.overwriteMethod("below", ltFunction);
+  Assertion.overwriteMethod("lt", ltFunction);
+  Assertion.overwriteMethod("lessThan", ltFunction);
 
-  Assertion.overwriteMethod(
-    "least",
-    override("gte", "be at least", "be below", utils)
-  );
-  Assertion.overwriteMethod(
-    "gte",
-    override("gte", "be at least", "be below", utils)
-  );
-  Assertion.overwriteMethod(
-    "greaterThanOrEqual",
-    override("gte", "be at least", "be below", utils)
-  );
+  const gteFunction = override("gte", "be at least", "be below", utils);
+  Assertion.overwriteMethod("least", gteFunction);
+  Assertion.overwriteMethod("gte", gteFunction);
+  Assertion.overwriteMethod("greaterThanOrEqual", gteFunction);
 
-  Assertion.overwriteMethod(
-    "most",
-    override("lte", "be at most", "be above", utils)
-  );
-  Assertion.overwriteMethod(
-    "lte",
-    override("lte", "be at most", "be above", utils)
-  );
-  Assertion.overwriteMethod(
-    "lessThanOrEqual",
-    override("lte", "be at most", "be above", utils)
-  );
+  const lteFunction = override("lte", "be at most", "be above", utils);
+  Assertion.overwriteMethod("most", lteFunction);
+  Assertion.overwriteMethod("lte", lteFunction);
+  Assertion.overwriteMethod("lessThanOrEqual", lteFunction);
 
   Assertion.overwriteMethod("within", overrideWithin(utils));
 
