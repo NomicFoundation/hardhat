@@ -267,7 +267,7 @@ describe("BigNumber matchers", () => {
   });
 
   describe("with three arguments", function () {
-    function checkAllWith3Args(
+    function checkAll(
       a: number,
       b: number,
       c: number,
@@ -289,7 +289,7 @@ describe("BigNumber matchers", () => {
 
     describe("within", () => {
       describe(".to.be.within", () => {
-        checkAllWith3Args(100, 99, 101, (a, b, c) => {
+        checkAll(100, 99, 101, (a, b, c) => {
           it(`should work with ${typestr(a)}, ${typestr(b)} and ${typestr(
             c
           )}`, function () {
@@ -297,7 +297,7 @@ describe("BigNumber matchers", () => {
           });
         });
         describe("should throw the proper message on failure", () => {
-          checkAllWith3Args(100, 80, 90, (a, b, c) => {
+          checkAll(100, 80, 90, (a, b, c) => {
             it(`with ${typestr(a)}, ${typestr(b)} and ${typestr(
               c
             )}`, function () {
@@ -311,14 +311,14 @@ describe("BigNumber matchers", () => {
       });
 
       describe(".not.to.be.within", () => {
-        checkAllWith3Args(100, 101, 102, (a, b, c) => {
+        checkAll(100, 101, 102, (a, b, c) => {
           it(`should work with ${typestr(a)}, ${typestr(b)} and ${typestr(
             c
           )}`, function () {
             expect(a).not.to.be.within(b, c);
           });
         });
-        checkAllWith3Args(100, 98, 99, (a, b, c) => {
+        checkAll(100, 98, 99, (a, b, c) => {
           it(`should work with ${typestr(a)}, ${typestr(b)} and ${typestr(
             c
           )}`, function () {
@@ -326,7 +326,7 @@ describe("BigNumber matchers", () => {
           });
         });
         describe("should throw the proper message on failure", () => {
-          checkAllWith3Args(100, 99, 101, (a, b, c) => {
+          checkAll(100, 99, 101, (a, b, c) => {
             it(`with ${typestr(a)}, ${typestr(b)} and ${typestr(
               c
             )}`, function () {
@@ -342,7 +342,7 @@ describe("BigNumber matchers", () => {
 
     describe("closeTo", () => {
       describe(".to.be.closeTo", () => {
-        checkAllWith3Args(100, 101, 10, (a, b, c) => {
+        checkAll(100, 101, 10, (a, b, c) => {
           it(`should work with ${typestr(a)}, ${typestr(b)} and ${typestr(
             c
           )}`, function () {
@@ -350,7 +350,7 @@ describe("BigNumber matchers", () => {
           });
         });
         describe("should throw the proper message on failure", () => {
-          checkAllWith3Args(100, 111, 10, (a, b, c) => {
+          checkAll(100, 111, 10, (a, b, c) => {
             it(`with ${typestr(a)}, ${typestr(b)} and ${typestr(
               c
             )}`, function () {
@@ -364,7 +364,7 @@ describe("BigNumber matchers", () => {
       });
 
       describe(".not.to.be.closeTo", () => {
-        checkAllWith3Args(100, 111, 10, (a, b, c) => {
+        checkAll(100, 111, 10, (a, b, c) => {
           it(`should work with ${typestr(a)}, ${typestr(b)} and ${typestr(
             c
           )}`, function () {
@@ -372,7 +372,7 @@ describe("BigNumber matchers", () => {
           });
         });
         describe("should throw the proper message on failure", () => {
-          checkAllWith3Args(100, 101, 10, (a, b, c) => {
+          checkAll(100, 101, 10, (a, b, c) => {
             it(`with ${typestr(a)}, ${typestr(b)} and ${typestr(
               c
             )}`, function () {
