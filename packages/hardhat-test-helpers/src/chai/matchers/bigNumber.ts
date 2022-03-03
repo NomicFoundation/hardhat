@@ -6,26 +6,50 @@ export function supportBigNumber(
   Assertion: Chai.AssertionStatic,
   utils: Chai.ChaiUtils
 ) {
-  Assertion.overwriteMethod("equals", override("eq", "equal", utils));
-  Assertion.overwriteMethod("equal", override("eq", "equal", utils));
-  Assertion.overwriteMethod("eq", override("eq", "equal", utils));
-
-  Assertion.overwriteMethod("above", override("gt", "be above", utils));
-  Assertion.overwriteMethod("gt", override("gt", "be greater than", utils));
-
-  Assertion.overwriteMethod("below", override("lt", "be below", utils));
-  Assertion.overwriteMethod("lt", override("lt", "be less than", utils));
-
-  Assertion.overwriteMethod("least", override("gte", "be at least", utils));
   Assertion.overwriteMethod(
-    "gte",
-    override("gte", "greater than or equal", utils)
+    "equals",
+    override("eq", "equal", "not equal", utils)
+  );
+  Assertion.overwriteMethod(
+    "equal",
+    override("eq", "equal", "not equal", utils)
+  );
+  Assertion.overwriteMethod("eq", override("eq", "equal", "not equal", utils));
+
+  Assertion.overwriteMethod(
+    "above",
+    override("gt", "be above", "be at most", utils)
+  );
+  Assertion.overwriteMethod(
+    "gt",
+    override("gt", "be above", "be at most", utils)
   );
 
-  Assertion.overwriteMethod("most", override("lte", "at most", utils));
+  Assertion.overwriteMethod(
+    "below",
+    override("lt", "be below", "be at least", utils)
+  );
+  Assertion.overwriteMethod(
+    "lt",
+    override("lt", "be below", "be at least", utils)
+  );
+
+  Assertion.overwriteMethod(
+    "least",
+    override("gte", "be at least", "be below", utils)
+  );
+  Assertion.overwriteMethod(
+    "gte",
+    override("gte", "be at least", "be below", utils)
+  );
+
+  Assertion.overwriteMethod(
+    "most",
+    override("lte", "be at most", "be above", utils)
+  );
   Assertion.overwriteMethod(
     "lte",
-    override("lte", "less than or equal", utils)
+    override("lte", "be at most", "be above", utils)
   );
 
   Assertion.overwriteMethod("within", overrideWithin(utils));
@@ -35,9 +59,14 @@ export function supportBigNumber(
 
 type Methods = "eq" | "gt" | "lt" | "gte" | "lte";
 
-function override(method: Methods, name: string, utils: Chai.ChaiUtils) {
+function override(
+  method: Methods,
+  name: string,
+  negativeName: string,
+  utils: Chai.ChaiUtils
+) {
   return (_super: (...args: any[]) => any) =>
-    overwriteBigNumberFunction(method, name, _super, utils);
+    overwriteBigNumberFunction(method, name, negativeName, _super, utils);
 }
 
 function normalizeToBigInt(
@@ -72,6 +101,7 @@ function isBigNumber(source: any): boolean {
 function overwriteBigNumberFunction(
   functionName: Methods,
   readableName: string,
+  readableNegativeName: string,
   _super: (...args: any[]) => any,
   chaiUtils: Chai.ChaiUtils
 ) {
@@ -106,7 +136,7 @@ function overwriteBigNumberFunction(
       this.assert(
         compare(functionName, expected, actual),
         `expected ${expected} to ${readableName} ${actual}`,
-        `expected ${expected} NOT to ${readableName} ${actual}`,
+        `expected ${expected} to ${readableNegativeName} ${actual}`,
         expected,
         actual
       );

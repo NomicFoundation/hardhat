@@ -7,7 +7,7 @@ import { bnChai } from "../../../src/chai/matchers/bnChai";
 
 use(bnChai);
 
-describe("UNIT: BigNumber matchers", () => {
+describe("BigNumber matchers", () => {
   function checkAll(
     actual: number,
     expected: number,
@@ -88,6 +88,16 @@ describe("UNIT: BigNumber matchers", () => {
           expect(a).to.eq(b);
         });
       });
+      describe("should throw the proper message on failure", function () {
+        checkAll(10, 11, (a, b) => {
+          it(`with ${typestr(a)} and ${typestr(b)}`, function () {
+            expect(() => expect(a).to.eq(b)).to.throw(
+              AssertionError,
+              "expected 10 to equal 11"
+            );
+          });
+        });
+      });
     });
 
     describe(".not.to.equal", () => {
@@ -96,12 +106,32 @@ describe("UNIT: BigNumber matchers", () => {
           expect(a).not.to.equal(b);
         });
       });
+      describe("should throw the proper message on failure", function () {
+        checkAll(10, 10, (a, b) => {
+          it(`with ${typestr(a)} and ${typestr(b)}`, function () {
+            expect(() => expect(a).not.to.equal(b)).to.throw(
+              AssertionError,
+              "expected 10 to not equal 10"
+            );
+          });
+        });
+      });
     });
 
     describe(".not.to.eq", () => {
       checkAll(10, 11, (a, b) => {
         it(`should work with ${typestr(a)} and ${typestr(b)}`, function () {
           expect(a).not.to.eq(b);
+        });
+      });
+      describe("should throw the proper message on failure", function () {
+        checkAll(10, 10, (a, b) => {
+          it(`with ${typestr(a)} and ${typestr(b)}`, function () {
+            expect(() => expect(a).not.to.eq(b)).to.throw(
+              AssertionError,
+              "expected 10 to not equal 10"
+            );
+          });
         });
       });
     });
@@ -114,12 +144,32 @@ describe("UNIT: BigNumber matchers", () => {
           expect(a).to.be.above(b);
         });
       });
+      describe("should throw the proper message on failure", function () {
+        checkAll(10, 10, (a, b) => {
+          it(`with ${typestr(a)} and ${typestr(b)}`, function () {
+            expect(() => expect(a).to.be.above(b)).to.throw(
+              AssertionError,
+              "expected 10 to be above 10"
+            );
+          });
+        });
+      });
     });
 
     describe(".to.be.gt", () => {
       checkAll(10, 9, (a, b) => {
         it(`should work with ${typestr(a)} and ${typestr(b)}`, function () {
           expect(a).to.be.gt(b);
+        });
+      });
+      describe("should throw the proper message on failure", function () {
+        checkAll(10, 10, (a, b) => {
+          it(`with ${typestr(a)} and ${typestr(b)}`, function () {
+            expect(() => expect(a).to.be.gt(b)).to.throw(
+              AssertionError,
+              "expected 10 to be above 10"
+            );
+          });
         });
       });
     });
@@ -139,6 +189,16 @@ describe("UNIT: BigNumber matchers", () => {
           expect(a).not.to.be.above(b);
         });
       });
+      describe("should throw the proper message on failure", function () {
+        checkAll(11, 10, (a, b) => {
+          it(`with ${typestr(a)} and ${typestr(b)}`, function () {
+            expect(() => expect(a).not.to.be.above(b)).to.throw(
+              AssertionError,
+              "expected 11 to be at most 10"
+            );
+          });
+        });
+      });
     });
 
     describe(".not.to.be.gt", () => {
@@ -156,6 +216,16 @@ describe("UNIT: BigNumber matchers", () => {
           expect(a).not.to.be.gt(b);
         });
       });
+      describe("should throw the proper message on failure", function () {
+        checkAll(11, 10, (a, b) => {
+          it(`with ${typestr(a)} and ${typestr(b)}`, function () {
+            expect(() => expect(a).not.to.be.gt(b)).to.throw(
+              AssertionError,
+              "expected 11 to be at most 10"
+            );
+          });
+        });
+      });
     });
   });
 
@@ -166,12 +236,32 @@ describe("UNIT: BigNumber matchers", () => {
           expect(a).to.be.below(b);
         });
       });
+      describe("should throw the proper message on failure", function () {
+        checkAll(11, 10, (a, b) => {
+          it(`with ${typestr(a)} and ${typestr(b)}`, function () {
+            expect(() => expect(a).to.be.below(b)).to.throw(
+              AssertionError,
+              "expected 11 to be below 10"
+            );
+          });
+        });
+      });
     });
 
     describe(".to.be.lt", () => {
       checkAll(10, 11, (a, b) => {
         it(`should work with ${typestr(a)} and ${typestr(b)}`, function () {
           expect(a).to.be.lt(b);
+        });
+      });
+      describe("should throw the proper message on failure", function () {
+        checkAll(11, 10, (a, b) => {
+          it(`with ${typestr(a)} and ${typestr(b)}`, function () {
+            expect(() => expect(a).to.be.lt(b)).to.throw(
+              AssertionError,
+              "expected 11 to be below 10"
+            );
+          });
         });
       });
     });
@@ -191,6 +281,16 @@ describe("UNIT: BigNumber matchers", () => {
           expect(a).not.to.be.below(b);
         });
       });
+      describe("should throw the proper message on failure", function () {
+        checkAll(10, 11, (a, b) => {
+          it(`with ${typestr(a)} and ${typestr(b)}`, function () {
+            expect(() => expect(a).not.to.be.below(b)).to.throw(
+              AssertionError,
+              "expected 10 to be at least 11"
+            );
+          });
+        });
+      });
     });
 
     describe(".not.to.be.lt", () => {
@@ -206,6 +306,16 @@ describe("UNIT: BigNumber matchers", () => {
           b
         )}`, function () {
           expect(a).not.to.be.lt(b);
+        });
+      });
+      describe("should throw the proper message on failure", function () {
+        checkAll(10, 11, (a, b) => {
+          it(`with ${typestr(a)} and ${typestr(b)}`, function () {
+            expect(() => expect(a).not.to.be.lt(b)).to.throw(
+              AssertionError,
+              "expected 10 to be at least 11"
+            );
+          });
         });
       });
     });
@@ -227,6 +337,16 @@ describe("UNIT: BigNumber matchers", () => {
           expect(a).to.be.at.least(b);
         });
       });
+      describe("should throw the proper message on failure", function () {
+        checkAll(10, 11, (a, b) => {
+          it(`with ${typestr(a)} and ${typestr(b)}`, function () {
+            expect(() => expect(a).to.be.at.least(b)).to.throw(
+              AssertionError,
+              "expected 10 to be at least 11"
+            );
+          });
+        });
+      });
     });
 
     describe(".to.be.gte", () => {
@@ -244,6 +364,16 @@ describe("UNIT: BigNumber matchers", () => {
           expect(a).to.be.gte(b);
         });
       });
+      describe("should throw the proper message on failure", function () {
+        checkAll(10, 11, (a, b) => {
+          it(`with ${typestr(a)} and ${typestr(b)}`, function () {
+            expect(() => expect(a).to.be.gte(b)).to.throw(
+              AssertionError,
+              "expected 10 to be at least 11"
+            );
+          });
+        });
+      });
     });
 
     describe(".not.to.be.at.least", () => {
@@ -252,12 +382,32 @@ describe("UNIT: BigNumber matchers", () => {
           expect(a).not.to.be.at.least(b);
         });
       });
+      describe("should throw the proper message on failure", function () {
+        checkAll(11, 10, (a, b) => {
+          it(`with ${typestr(a)} and ${typestr(b)}`, function () {
+            expect(() => expect(a).not.to.be.at.least(b)).to.throw(
+              AssertionError,
+              "expected 11 to be below 10"
+            );
+          });
+        });
+      });
     });
 
     describe(".not.to.be.gte", () => {
       checkAll(10, 11, (a, b) => {
         it(`should work with ${typestr(a)} and ${typestr(b)}`, function () {
           expect(a).not.to.be.gte(b);
+        });
+      });
+      describe("should throw the proper message on failure", function () {
+        checkAll(11, 10, (a, b) => {
+          it(`with ${typestr(a)} and ${typestr(b)}`, function () {
+            expect(() => expect(a).not.to.be.gte(b)).to.throw(
+              AssertionError,
+              "expected 11 to be below 10"
+            );
+          });
         });
       });
     });
@@ -279,6 +429,16 @@ describe("UNIT: BigNumber matchers", () => {
           expect(a).to.be.at.most(b);
         });
       });
+      describe("should throw the proper message on failure", function () {
+        checkAll(11, 10, (a, b) => {
+          it(`with ${typestr(a)} and ${typestr(b)}`, function () {
+            expect(() => expect(a).to.be.at.most(b)).to.throw(
+              AssertionError,
+              "expected 11 to be at most 10"
+            );
+          });
+        });
+      });
     });
 
     describe(".to.be.lte", () => {
@@ -296,6 +456,16 @@ describe("UNIT: BigNumber matchers", () => {
           expect(a).to.be.lte(b);
         });
       });
+      describe("should throw the proper message on failure", function () {
+        checkAll(11, 10, (a, b) => {
+          it(`with ${typestr(a)} and ${typestr(b)}`, function () {
+            expect(() => expect(a).to.be.lte(b)).to.throw(
+              AssertionError,
+              "expected 11 to be at most 10"
+            );
+          });
+        });
+      });
     });
 
     describe(".not.to.be.at.most", () => {
@@ -306,6 +476,16 @@ describe("UNIT: BigNumber matchers", () => {
           expect(a).not.to.be.at.most(b);
         });
       });
+      describe("should throw the proper message on failure", function () {
+        checkAll(10, 11, (a, b) => {
+          it(`with ${typestr(a)} and ${typestr(b)}`, function () {
+            expect(() => expect(a).not.to.be.at.most(b)).to.throw(
+              AssertionError,
+              "expected 10 to be above 11"
+            );
+          });
+        });
+      });
     });
 
     describe(".not.to.be.lte", () => {
@@ -314,6 +494,16 @@ describe("UNIT: BigNumber matchers", () => {
           b
         )}`, function () {
           expect(a).not.to.be.lte(b);
+        });
+      });
+      describe("should throw the proper message on failure", function () {
+        checkAll(10, 11, (a, b) => {
+          it(`with ${typestr(a)} and ${typestr(b)}`, function () {
+            expect(() => expect(a).not.to.be.lte(b)).to.throw(
+              AssertionError,
+              "expected 10 to be above 11"
+            );
+          });
         });
       });
     });
