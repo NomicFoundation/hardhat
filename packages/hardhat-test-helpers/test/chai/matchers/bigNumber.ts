@@ -67,231 +67,238 @@ describe("BigNumber matchers", function () {
       }
     }
 
-    interface TestCase {
-      operator:
-        | "equal"
-        | "eq"
-        | "above"
-        | "below"
-        | "gt"
-        | "lt"
-        | "greaterThan"
-        | "lessThan"
-        | "least"
-        | "most"
-        | "gte"
-        | "lte"
-        | "greaterThanOrEqual"
-        | "lessThanOrEqual";
-      positiveSuccessOperands: [number, number];
-      positiveFailureOperands: [number, number];
-      positiveFailureMessage: string;
-      negativeSuccessOperands: [number, number];
-      negativeFailureOperands: [number, number];
-      negativeFailureMessage: string;
+    const operators = [
+      "equals",
+      "equal",
+      "eq",
+      "above",
+      "below",
+      "gt",
+      "lt",
+      "greaterThan",
+      "lessThan",
+      "least",
+      "most",
+      "gte",
+      "lte",
+      "greaterThanOrEqual",
+      "lessThanOrEqual",
+    ] as const;
+    type Operator = typeof operators[number];
+
+    interface SuccessCase {
+      operator: Operator;
+      operands: [number, number];
     }
-    const equalsTestCase: Omit<TestCase, "operator"> = {
-      positiveSuccessOperands: [10, 10],
-      positiveFailureOperands: [10, 11],
-      positiveFailureMessage: "expected 10 to equal 11",
-      negativeSuccessOperands: [11, 10],
-      negativeFailureOperands: [10, 10],
-      negativeFailureMessage: "expected 10 to not equal 10",
-    };
-    const abovePartialTestCase: Omit<
-      TestCase,
-      "operator" | "negativeSuccessOperands"
-    > = {
-      positiveSuccessOperands: [10, 9],
-      positiveFailureOperands: [10, 10],
-      positiveFailureMessage: "expected 10 to be above 10",
-      negativeFailureOperands: [11, 10],
-      negativeFailureMessage: "expected 11 to be at most 10",
-    };
-    const aboveTestCase1: Omit<TestCase, "operator"> = {
-      ...abovePartialTestCase,
-      negativeSuccessOperands: [10, 10],
-    };
-    const aboveTestCase2: Omit<TestCase, "operator"> = {
-      ...abovePartialTestCase,
-      negativeSuccessOperands: [10, 11],
-    };
-    const belowPartialTestCase: Omit<
-      TestCase,
-      "operator" | "negativeSuccessOperands"
-    > = {
-      positiveSuccessOperands: [10, 11],
-      positiveFailureOperands: [11, 10],
-      positiveFailureMessage: "expected 11 to be below 10",
-      negativeFailureOperands: [10, 11],
-      negativeFailureMessage: "expected 10 to be at least 11",
-    };
-    const belowTestCase1: Omit<TestCase, "operator"> = {
-      ...belowPartialTestCase,
-      negativeSuccessOperands: [10, 10],
-    };
-    const belowTestCase2: Omit<TestCase, "operator"> = {
-      ...belowPartialTestCase,
-      negativeSuccessOperands: [10, 9],
-    };
-    const atLeastPartialTestCase: Omit<
-      TestCase,
-      "operator" | "positiveSuccessOperands"
-    > = {
-      positiveFailureOperands: [10, 11],
-      positiveFailureMessage: "expected 10 to be at least 11",
-      negativeSuccessOperands: [10, 11],
-      negativeFailureOperands: [11, 10],
-      negativeFailureMessage: "expected 11 to be below 10",
-    };
-    const atLeastTestCase1: Omit<TestCase, "operator"> = {
-      ...atLeastPartialTestCase,
-      positiveSuccessOperands: [10, 10],
-    };
-    const atLeastTestCase2: Omit<TestCase, "operator"> = {
-      ...atLeastPartialTestCase,
-      positiveSuccessOperands: [10, 9],
-    };
-    const atMostPartialTestCase: Omit<
-      TestCase,
-      "operator" | "positiveSuccessOperands"
-    > = {
-      positiveFailureOperands: [11, 10],
-      positiveFailureMessage: "expected 11 to be at most 10",
-      negativeSuccessOperands: [10, 9],
-      negativeFailureOperands: [10, 11],
-      negativeFailureMessage: "expected 10 to be above 11",
-    };
-    const atMostTestCase1: Omit<TestCase, "operator"> = {
-      ...atMostPartialTestCase,
-      positiveSuccessOperands: [10, 10],
-    };
-    const atMostTestCase2: Omit<TestCase, "operator"> = {
-      ...atMostPartialTestCase,
-      positiveSuccessOperands: [10, 11],
-    };
-    const testCases: TestCase[] = [
-      { operator: "equal", ...equalsTestCase },
-      { operator: "eq", ...equalsTestCase },
-      { operator: "above", ...aboveTestCase1 },
-      { operator: "above", ...aboveTestCase2 },
-      { operator: "gt", ...aboveTestCase1 },
-      { operator: "gt", ...aboveTestCase2 },
-      { operator: "greaterThan", ...aboveTestCase1 },
-      { operator: "greaterThan", ...aboveTestCase2 },
-      { operator: "below", ...belowTestCase1 },
-      { operator: "below", ...belowTestCase2 },
-      { operator: "lt", ...belowTestCase1 },
-      { operator: "lt", ...belowTestCase2 },
-      { operator: "lessThan", ...belowTestCase1 },
-      { operator: "lessThan", ...belowTestCase2 },
-      { operator: "least", ...atLeastTestCase1 },
-      { operator: "least", ...atLeastTestCase2 },
-      { operator: "gte", ...atLeastTestCase1 },
-      { operator: "gte", ...atLeastTestCase2 },
-      { operator: "greaterThanOrEqual", ...atLeastTestCase1 },
-      { operator: "greaterThanOrEqual", ...atLeastTestCase2 },
-      { operator: "most", ...atMostTestCase1 },
-      { operator: "most", ...atMostTestCase2 },
-      { operator: "lte", ...atMostTestCase1 },
-      { operator: "lte", ...atMostTestCase2 },
-      { operator: "lessThanOrEqual", ...atMostTestCase1 },
-      { operator: "lessThanOrEqual", ...atMostTestCase2 },
+
+    interface FailureCase extends SuccessCase {
+      msg: string;
+    }
+
+    const positiveSuccessCases: SuccessCase[] = [
+      { operands: [10, 10], operator: "eq" },
+      { operands: [10, 10], operator: "equal" },
+      { operands: [10, 10], operator: "equals" },
+      { operands: [10, 9], operator: "above" },
+      { operands: [10, 9], operator: "gt" },
+      { operands: [10, 9], operator: "greaterThan" },
+      { operands: [10, 11], operator: "below" },
+      { operands: [10, 11], operator: "lt" },
+      { operands: [10, 11], operator: "lessThan" },
+      { operands: [10, 10], operator: "least" },
+      { operands: [10, 10], operator: "gte" },
+      { operands: [10, 10], operator: "greaterThanOrEqual" },
+      { operands: [10, 9], operator: "least" },
+      { operands: [10, 9], operator: "gte" },
+      { operands: [10, 9], operator: "greaterThanOrEqual" },
+      { operands: [10, 10], operator: "most" },
+      { operands: [10, 10], operator: "lte" },
+      { operands: [10, 10], operator: "lessThanOrEqual" },
+      { operands: [10, 11], operator: "most" },
+      { operands: [10, 11], operator: "lte" },
+      { operands: [10, 11], operator: "lessThanOrEqual" },
     ];
-    for (const {
-      operator,
-      positiveSuccessOperands,
-      positiveFailureOperands,
-      positiveFailureMessage,
-      negativeSuccessOperands,
-      negativeFailureOperands,
-      negativeFailureMessage,
-    } of testCases) {
+    for (const { operator, operands } of positiveSuccessCases) {
       describe(`.to.${operator}`, function () {
-        checkAll(
-          positiveSuccessOperands[0],
-          positiveSuccessOperands[1],
-          (a, b) => {
-            it(`should work with ${typestr(a)} and ${typestr(b)}`, function () {
-              expect(a).to[operator](b);
-            });
-          }
-        );
-        describe("should throw the proper message on failure", function () {
-          checkAll(
-            positiveFailureOperands[0],
-            positiveFailureOperands[1],
-            (a, b) => {
-              it(`with ${typestr(a)} and ${typestr(b)}`, function () {
-                expect(() => expect(a).to[operator](b)).to.throw(
-                  AssertionError,
-                  positiveFailureMessage
-                );
-              });
-            }
-          );
-        });
-        describe("should throw when comparing to a non-integral floating point literal", function () {
-          for (const convert of numberToBigNumberConversions) {
-            const converted = convert(1);
-            it(`with float vs ${typestr(converted)}`, function () {
-              expect(() => expect(1.1).to[operator](converted)).to.throw(
-                RangeError,
-                "The number 1.1 cannot be converted to a BigInt because it is not an integer"
-              );
-            });
-            it(`with ${typestr(converted)} vs float`, function () {
-              expect(() => expect(converted).to[operator](1.1)).to.throw(
-                RangeError,
-                "The number 1.1 cannot be converted to a BigInt because it is not an integer"
-              );
-            });
-          }
-        });
-      });
-      describe(`.not.to.${operator}`, function () {
-        checkAll(
-          negativeSuccessOperands[0],
-          negativeSuccessOperands[1],
-          (a, b) => {
-            it(`should work with ${typestr(a)} and ${typestr(b)}`, function () {
-              expect(a).not.to[operator](b);
-            });
-          }
-        );
-        describe("should throw the proper message on failure", function () {
-          checkAll(
-            negativeFailureOperands[0],
-            negativeFailureOperands[1],
-            (a, b) => {
-              it(`with ${typestr(a)} and ${typestr(b)}`, function () {
-                expect(() => expect(a).not.to[operator](b)).to.throw(
-                  AssertionError,
-                  negativeFailureMessage
-                );
-              });
-            }
-          );
-        });
-        describe("should throw when comparing to a non-integral floating point literal", function () {
-          for (const convert of numberToBigNumberConversions) {
-            const converted = convert(1);
-            it(`with float vs ${typestr(converted)}`, function () {
-              expect(() => expect(1.1).not.to[operator](converted)).to.throw(
-                RangeError,
-                "The number 1.1 cannot be converted to a BigInt because it is not an integer"
-              );
-            });
-            it(`with ${typestr(converted)} vs float`, function () {
-              expect(() => expect(converted).not.to[operator](1.1)).to.throw(
-                RangeError,
-                "The number 1.1 cannot be converted to a BigInt because it is not an integer"
-              );
-            });
-          }
+        checkAll(operands[0], operands[1], (a, b) => {
+          it(`should work with ${typestr(a)} and ${typestr(b)}`, function () {
+            expect(a).to[operator](b);
+          });
         });
       });
     }
+
+    const eqPositiveFailureCase: Omit<FailureCase, "operator"> = {
+      operands: [10, 11],
+      msg: "expected 10 to equal 11",
+    };
+    const gtPositiveFailureCase: Omit<FailureCase, "operator"> = {
+      operands: [10, 10],
+      msg: "expected 10 to be above 10",
+    };
+    const ltPositiveFailureCase: Omit<FailureCase, "operator"> = {
+      operands: [11, 10],
+      msg: "expected 11 to be below 10",
+    };
+    const gtePositiveFailureCase: Omit<FailureCase, "operator"> = {
+      operands: [10, 11],
+      msg: "expected 10 to be at least 11",
+    };
+    const ltePositiveFailureCase: Omit<FailureCase, "operator"> = {
+      operands: [11, 10],
+      msg: "expected 11 to be at most 10",
+    };
+    const positiveFailureCases: FailureCase[] = [
+      { ...eqPositiveFailureCase, operator: "eq" },
+      { ...eqPositiveFailureCase, operator: "equal" },
+      { ...eqPositiveFailureCase, operator: "equals" },
+      { ...gtPositiveFailureCase, operator: "above" },
+      { ...gtPositiveFailureCase, operator: "gt" },
+      { ...gtPositiveFailureCase, operator: "greaterThan" },
+      { ...ltPositiveFailureCase, operator: "below" },
+      { ...ltPositiveFailureCase, operator: "lt" },
+      { ...ltPositiveFailureCase, operator: "lessThan" },
+      { ...gtePositiveFailureCase, operator: "least" },
+      { ...gtePositiveFailureCase, operator: "gte" },
+      { ...gtePositiveFailureCase, operator: "greaterThanOrEqual" },
+      { ...ltePositiveFailureCase, operator: "most" },
+      { ...ltePositiveFailureCase, operator: "lte" },
+      { ...ltePositiveFailureCase, operator: "lessThanOrEqual" },
+    ];
+    for (const { operator, operands, msg } of positiveFailureCases) {
+      describe(`.to.${operator} should throw the proper message on failure`, function () {
+        checkAll(operands[0], operands[1], (a, b) => {
+          it(`with ${typestr(a)} and ${typestr(b)}`, function () {
+            expect(() => expect(a).to[operator](b)).to.throw(
+              AssertionError,
+              msg
+            );
+          });
+        });
+      });
+    }
+
+    const negativeSuccessCases: SuccessCase[] = [
+      { operands: [11, 10], operator: "eq" },
+      { operands: [11, 10], operator: "equal" },
+      { operands: [11, 10], operator: "equals" },
+      { operands: [10, 10], operator: "above" },
+      { operands: [10, 10], operator: "gt" },
+      { operands: [10, 10], operator: "greaterThan" },
+      { operands: [10, 10], operator: "below" },
+      { operands: [10, 10], operator: "lt" },
+      { operands: [10, 10], operator: "lessThan" },
+      { operands: [10, 9], operator: "below" },
+      { operands: [10, 9], operator: "lt" },
+      { operands: [10, 9], operator: "lessThan" },
+      { operands: [10, 11], operator: "least" },
+      { operands: [10, 11], operator: "gte" },
+      { operands: [10, 11], operator: "greaterThanOrEqual" },
+      { operands: [10, 9], operator: "most" },
+      { operands: [10, 9], operator: "lte" },
+      { operands: [10, 9], operator: "lessThanOrEqual" },
+    ];
+    for (const { operator, operands } of negativeSuccessCases) {
+      describe(`.not.to.${operator}`, function () {
+        checkAll(operands[0], operands[1], (a, b) => {
+          it(`should work with ${typestr(a)} and ${typestr(b)}`, function () {
+            expect(a).not.to[operator](b);
+          });
+        });
+      });
+    }
+
+    const gtNegativeFailureCase: Omit<FailureCase, "operator"> = {
+      operands: [11, 10],
+      msg: "expected 11 to be at most 10",
+    };
+    const eqNegativeFailureCase: Omit<FailureCase, "operator"> = {
+      operands: [10, 10],
+      msg: "expected 10 to not equal 10",
+    };
+    const ltNegativeFailureCase: Omit<FailureCase, "operator"> = {
+      operands: [10, 11],
+      msg: "expected 10 to be at least 11",
+    };
+    const gteNegativeFailureCase: Omit<FailureCase, "operator"> = {
+      operands: [11, 10],
+      msg: "expected 11 to be below 10",
+    };
+    const lteNegativeFailureCase: Omit<FailureCase, "operator"> = {
+      operands: [10, 11],
+      msg: "expected 10 to be above 11",
+    };
+    const negativeFailureCases: FailureCase[] = [
+      { ...eqNegativeFailureCase, operator: "eq" },
+      { ...eqNegativeFailureCase, operator: "equal" },
+      { ...eqNegativeFailureCase, operator: "equals" },
+      { ...gtNegativeFailureCase, operator: "above" },
+      { ...gtNegativeFailureCase, operator: "gt" },
+      { ...gtNegativeFailureCase, operator: "greaterThan" },
+      { ...ltNegativeFailureCase, operator: "below" },
+      { ...ltNegativeFailureCase, operator: "lt" },
+      { ...ltNegativeFailureCase, operator: "lessThan" },
+      { ...gteNegativeFailureCase, operator: "least" },
+      { ...gteNegativeFailureCase, operator: "gte" },
+      { ...gteNegativeFailureCase, operator: "greaterThanOrEqual" },
+      { ...lteNegativeFailureCase, operator: "most" },
+      { ...lteNegativeFailureCase, operator: "lte" },
+      { ...lteNegativeFailureCase, operator: "lessThanOrEqual" },
+    ];
+    for (const { operator, operands, msg } of negativeFailureCases) {
+      describe("should throw the proper message on failure", function () {
+        checkAll(operands[0], operands[1], (a, b) => {
+          it(`with ${typestr(a)} and ${typestr(b)}`, function () {
+            expect(() => expect(a).not.to[operator](b)).to.throw(
+              AssertionError,
+              msg
+            );
+          });
+        });
+      });
+    }
+
+    operators.forEach((operator: Operator) => {
+      describe("should throw when comparing to a non-integral floating point literal", function () {
+        for (const convert of numberToBigNumberConversions) {
+          const converted = convert(1);
+          const msg =
+            "The number 1.1 cannot be converted to a BigInt because it is not an integer";
+          it(`with .to.${operator} comparing float vs ${typestr(
+            converted
+          )}`, function () {
+            expect(() => expect(1.1).to[operator](converted)).to.throw(
+              RangeError,
+              msg
+            );
+          });
+          it(`with .to.${operator} comparing ${typestr(
+            converted
+          )} vs float`, function () {
+            expect(() => expect(converted).to[operator](1.1)).to.throw(
+              RangeError,
+              msg
+            );
+          });
+          it(`with .not.to.${operator} comparing float vs ${typestr(
+            converted
+          )}`, function () {
+            expect(() => expect(1.1).not.to[operator](converted)).to.throw(
+              RangeError,
+              msg
+            );
+          });
+          it(`with .not.to.${operator} comparing ${typestr(
+            converted
+          )} vs float`, function () {
+            expect(() => expect(converted).not.to[operator](1.1)).to.throw(
+              RangeError,
+              msg
+            );
+          });
+        }
+      });
+    });
   });
 
   describe("with three arguments", function () {
@@ -311,169 +318,156 @@ describe("BigNumber matchers", function () {
       }
     }
 
-    interface TestCase {
-      operator: "within" | "closeTo";
-      positiveSuccessOperands: [number, number, number];
-      positiveFailureOperands: [number, number, number];
-      positiveFailureMessage: string;
-      negativeSuccessOperands: [number, number, number];
-      negativeFailureOperands: [number, number, number];
-      negativeFailureMessage: string;
+    const operators = ["within", "closeTo"] as const;
+    type Operator = typeof operators[number];
+
+    interface SuccessCase {
+      operator: Operator;
+      operands: [number, number, number];
     }
-    const withinPartialTestCase: Omit<TestCase, "negativeSuccessOperands"> = {
-      operator: "within",
-      positiveSuccessOperands: [100, 99, 101],
-      positiveFailureOperands: [100, 80, 90],
-      positiveFailureMessage: "expected 100 to be within 80..90",
-      negativeFailureOperands: [100, 99, 101],
-      negativeFailureMessage: "expected 100 to not be within 99..101",
-    };
-    const withinTestCase1: TestCase = {
-      ...withinPartialTestCase,
-      negativeSuccessOperands: [100, 101, 102],
-    };
-    const withinTestCase2: TestCase = {
-      ...withinPartialTestCase,
-      negativeSuccessOperands: [100, 98, 99],
-    };
-    const closeToTestCase: TestCase = {
-      operator: "closeTo",
-      positiveSuccessOperands: [101, 101, 10],
-      positiveFailureOperands: [100, 111, 10],
-      positiveFailureMessage: "expected 100 to be close to 111",
-      negativeSuccessOperands: [100, 111, 10],
-      negativeFailureOperands: [100, 101, 10],
-      negativeFailureMessage: "expected 100 not to be close to 101",
-    };
-    const testCases: TestCase[] = [
-      withinTestCase1,
-      withinTestCase2,
-      closeToTestCase,
+
+    interface FailureCase extends SuccessCase {
+      msg: string;
+    }
+
+    const positiveSuccessCases: SuccessCase[] = [
+      { operator: "within", operands: [100, 99, 101] },
+      { operator: "closeTo", operands: [101, 101, 10] },
     ];
-    for (const {
-      operator,
-      positiveSuccessOperands,
-      positiveFailureOperands,
-      positiveFailureMessage,
-      negativeSuccessOperands,
-      negativeFailureOperands,
-      negativeFailureMessage,
-    } of testCases) {
+    for (const { operator, operands } of positiveSuccessCases) {
       describe(`.to.be.${operator}`, function () {
-        checkAll(
-          positiveSuccessOperands[0],
-          positiveSuccessOperands[1],
-          positiveSuccessOperands[2],
-          (a, b, c) => {
-            it(`should work with ${typestr(a)}, ${typestr(b)} and ${typestr(
-              c
-            )}`, function () {
-              expect(a).to.be[operator](b, c);
-            });
-          }
-        );
-        describe("should throw the proper message on failure", function () {
-          checkAll(
-            positiveFailureOperands[0],
-            positiveFailureOperands[1],
-            positiveFailureOperands[2],
-            (a, b, c) => {
-              it(`with ${typestr(a)}, ${typestr(b)} and ${typestr(
-                c
-              )}`, function () {
-                expect(() => expect(a).to.be[operator](b, c)).to.throw(
-                  AssertionError,
-                  positiveFailureMessage
-                );
-              });
-            }
-          );
+        checkAll(operands[0], operands[1], operands[2], (a, b, c) => {
+          it(`should work with ${typestr(a)}, ${typestr(b)} and ${typestr(
+            c
+          )}`, function () {
+            expect(a).to.be[operator](b, c);
+          });
         });
-        describe("should throw when comparing to a non-integral floating point literal", function () {
-          for (const convertA of numberToBigNumberConversions) {
-            for (const convertB of numberToBigNumberConversions) {
-              const a = convertA(1);
-              const b = convertB(1);
+      });
+    }
+
+    const positiveFailureCases: FailureCase[] = [
+      {
+        operator: "within",
+        operands: [100, 80, 90],
+        msg: "expected 100 to be within 80..90",
+      },
+      {
+        operator: "closeTo",
+        operands: [100, 111, 10],
+        msg: "expected 100 to be close to 111",
+      },
+    ];
+    for (const { operator, operands, msg } of positiveFailureCases) {
+      describe(`.to.be.${operator} should throw the proper message on failure`, function () {
+        checkAll(operands[0], operands[1], operands[2], (a, b, c) => {
+          it(`with ${typestr(a)}, ${typestr(b)} and ${typestr(
+            c
+          )}`, function () {
+            expect(() => expect(a).to.be[operator](b, c)).to.throw(
+              AssertionError,
+              msg
+            );
+          });
+        });
+      });
+    }
+
+    const negativeSuccessCases: SuccessCase[] = [
+      { operator: "within", operands: [100, 101, 102] },
+      { operator: "within", operands: [100, 98, 99] },
+      { operator: "closeTo", operands: [100, 111, 10] },
+    ];
+    for (const { operator, operands } of negativeSuccessCases) {
+      describe(`.not.to.be.${operator}`, function () {
+        checkAll(operands[0], operands[1], operands[2], (a, b, c) => {
+          it(`should work with ${typestr(a)}, ${typestr(b)} and ${typestr(
+            c
+          )}`, function () {
+            expect(a).not.to.be[operator](b, c);
+          });
+        });
+      });
+    }
+
+    const negativeFailureCases: FailureCase[] = [
+      {
+        operator: "within",
+        operands: [100, 99, 101],
+        msg: "expected 100 to not be within 99..101",
+      },
+      {
+        operator: "closeTo",
+        operands: [100, 101, 10],
+        msg: "expected 100 not to be close to 101",
+      },
+    ];
+    for (const { operator, operands, msg } of negativeFailureCases) {
+      describe(`.not.to.be.${operator} should throw the proper message on failure`, function () {
+        checkAll(operands[0], operands[1], operands[2], (a, b, c) => {
+          it(`with ${typestr(a)}, ${typestr(b)} and ${typestr(
+            c
+          )}`, function () {
+            expect(() => expect(a).not.to.be[operator](b, c)).to.throw(
+              AssertionError,
+              msg
+            );
+          });
+        });
+      });
+    }
+
+    operators.forEach((operator: Operator) => {
+      describe(`should throw when comparing to a non-integral floating point literal`, function () {
+        for (const convertA of numberToBigNumberConversions) {
+          for (const convertB of numberToBigNumberConversions) {
+            const a = convertA(1);
+            const b = convertB(1);
+            const msg =
+              "The number 1.1 cannot be converted to a BigInt because it is not an integer";
+            describe(`with .to.${operator}`, function () {
               it(`with float, ${typestr(a)}, ${typestr(a)}`, function () {
                 expect(() => expect(1.1).to[operator](a, b)).to.throw(
                   RangeError,
-                  "The number 1.1 cannot be converted to a BigInt because it is not an integer"
+                  msg
                 );
               });
               it(`with ${typestr(a)}, float, ${typestr(b)}`, function () {
                 expect(() => expect(a).to[operator](1.1, b)).to.throw(
                   RangeError,
-                  "The number 1.1 cannot be converted to a BigInt because it is not an integer"
+                  msg
                 );
               });
               it(`with ${typestr(a)}, ${typestr(b)}, float`, function () {
                 expect(() => expect(a).to[operator](b, 1.1)).to.throw(
                   RangeError,
-                  "The number 1.1 cannot be converted to a BigInt because it is not an integer"
+                  msg
                 );
               });
-            }
-          }
-        });
-      });
-
-      describe(`.not.to.be.${operator}`, function () {
-        checkAll(
-          negativeSuccessOperands[0],
-          negativeSuccessOperands[1],
-          negativeSuccessOperands[2],
-          (a, b, c) => {
-            it(`should work with ${typestr(a)}, ${typestr(b)} and ${typestr(
-              c
-            )}`, function () {
-              expect(a).not.to.be[operator](b, c);
             });
-          }
-        );
-        describe("should throw the proper message on failure", function () {
-          checkAll(
-            negativeFailureOperands[0],
-            negativeFailureOperands[1],
-            negativeFailureOperands[2],
-            (a, b, c) => {
-              it(`with ${typestr(a)}, ${typestr(b)} and ${typestr(
-                c
-              )}`, function () {
-                expect(() => expect(a).not.to.be[operator](b, c)).to.throw(
-                  AssertionError,
-                  negativeFailureMessage
-                );
-              });
-            }
-          );
-        });
-        describe("should throw when comparing to a non-integral floating point literal", function () {
-          for (const convertA of numberToBigNumberConversions) {
-            for (const convertB of numberToBigNumberConversions) {
-              const a = convertA(1);
-              const b = convertB(1);
+            describe(`with not.to.${operator}`, function () {
               it(`with float, ${typestr(a)}, ${typestr(a)}`, function () {
                 expect(() => expect(1.1).not.to[operator](a, b)).to.throw(
                   RangeError,
-                  "The number 1.1 cannot be converted to a BigInt because it is not an integer"
+                  msg
                 );
               });
               it(`with ${typestr(a)}, float, ${typestr(b)}`, function () {
                 expect(() => expect(a).not.to[operator](1.1, b)).to.throw(
                   RangeError,
-                  "The number 1.1 cannot be converted to a BigInt because it is not an integer"
+                  msg
                 );
               });
               it(`with ${typestr(a)}, ${typestr(b)}, float`, function () {
                 expect(() => expect(a).not.to[operator](b, 1.1)).to.throw(
                   RangeError,
-                  "The number 1.1 cannot be converted to a BigInt because it is not an integer"
+                  msg
                 );
               });
-            }
+            });
           }
-        });
+        }
       });
-    }
+    });
   });
 });
