@@ -411,7 +411,8 @@ module.exports.communityPlugins = [
     name: "hardhat-network-metadata",
     author: "Focal Labs Inc.",
     authorUrl: "https://github.com/krruzic/hardhat-network-metadata",
-    description: "Hardhat plugin to allow adding any extra data to your network configuration",
+    description:
+      "Hardhat plugin to allow adding any extra data to your network configuration",
     tags: ["Metadata", "Testing", "Tasks", "Config"],
   },
 ];
