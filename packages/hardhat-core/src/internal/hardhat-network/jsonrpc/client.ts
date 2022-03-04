@@ -244,7 +244,7 @@ export class JsonRpcClient {
         gasUsedRatio: t.array(t.number),
         reward: optional(t.array(t.array(rpcQuantity))),
       }),
-      (res) => res.oldestBlock.add(blockCount)
+      (res) => res.oldestBlock.addn(res.baseFeePerGas.length)
     );
   }
 
