@@ -58,6 +58,14 @@ export function supportBigNumber(
 
 type Methods = "eq" | "gt" | "lt" | "gte" | "lte";
 
+function throwIfUnsafe(i: number) {
+  if (typeof i === "number" && !Number.isSafeInteger(i)) {
+    throw new RangeError(
+      `Cannot compare to unsafe integer ${i}. Consider using BigInt(${i}) instead. For more details, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isSafeInteger`
+    );
+  }
+}
+
 function override(
   method: Methods,
   name: string,
@@ -134,6 +142,8 @@ function overwriteBigNumberFunction(
     if (isBigNumber(expectedFlag) || isBigNumber(actualArg)) {
       const expected = normalize(expectedFlag);
       const actual = normalize(actualArg);
+      throwIfUnsafe(expectedFlag);
+      throwIfUnsafe(actualArg);
       this.assert(
         compare(functionName, expected, actual),
         `expected ${expected} to ${readableName} ${actual}`,
@@ -167,6 +177,9 @@ function overwriteBigNumberWithin(
       const expected = normalize(expectedFlag);
       const start = normalize(startArg);
       const finish = normalize(finishArg);
+      throwIfUnsafe(expectedFlag);
+      throwIfUnsafe(startArg);
+      throwIfUnsafe(finishArg);
       this.assert(
         start <= expected && finish >= expected,
         `expected ${expected} to be within ${start}..${finish}`,
@@ -200,6 +213,9 @@ function overwriteBigNumberCloseTo(
       const expected = normalize(expectedFlag);
       const actual = normalize(actualArg);
       const delta = normalize(deltaArg);
+      throwIfUnsafe(expectedFlag);
+      throwIfUnsafe(actualArg);
+      throwIfUnsafe(deltaArg);
       function abs(i: bigint): bigint {
         return i < 0 ? BigInt(-1) * i : i;
       }

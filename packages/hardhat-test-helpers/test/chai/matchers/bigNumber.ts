@@ -298,6 +298,39 @@ describe("BigNumber matchers", function () {
           });
         }
       });
+
+      describe("should throw when comparing to an unsafe integer", function () {
+        const unsafeInt = 1e16;
+        const msg = `Cannot compare to unsafe integer ${unsafeInt}. Consider using BigInt(${unsafeInt}) instead. For more details, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isSafeInteger`;
+
+        describe(`when using .to.${operator}`, function () {
+          it("with an unsafe int as the first param", function () {
+            expect(() => expect(unsafeInt).to[operator](BigInt(1))).to.throw(
+              RangeError,
+              msg
+            );
+          });
+          it("with an unsafe int as the second param", function () {
+            expect(() => expect(BigInt(1)).to[operator](unsafeInt)).to.throw(
+              RangeError,
+              msg
+            );
+          });
+        });
+
+        describe(`when using .not.to.${operator}`, function () {
+          it("with an unsafe int as the first param", function () {
+            expect(() =>
+              expect(unsafeInt).not.to[operator](BigInt(1))
+            ).to.throw(RangeError, msg);
+          });
+          it("with an unsafe int as the second param", function () {
+            expect(() =>
+              expect(BigInt(1)).not.to[operator](unsafeInt)
+            ).to.throw(RangeError, msg);
+          });
+        });
+      });
     });
   });
 
@@ -467,6 +500,47 @@ describe("BigNumber matchers", function () {
             });
           }
         }
+      });
+
+      describe("should throw when comparing to an unsafe integer", function () {
+        const unsafeInt = 1e16;
+        const msg = `Cannot compare to unsafe integer ${unsafeInt}. Consider using BigInt(${unsafeInt}) instead. For more details, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isSafeInteger`;
+
+        describe(`when using .to.${operator}`, function () {
+          it("with an unsafe int as the first param", function () {
+            expect(() =>
+              expect(unsafeInt).to[operator](BigInt(1), BigInt(1))
+            ).to.throw(RangeError, msg);
+          });
+          it("with an unsafe int as the second param", function () {
+            expect(() =>
+              expect(BigInt(1)).to[operator](unsafeInt, BigInt(1))
+            ).to.throw(RangeError, msg);
+          });
+          it("with an unsafe int as the third param", function () {
+            expect(() =>
+              expect(BigInt(1)).to[operator](BigInt(1), unsafeInt)
+            ).to.throw(RangeError, msg);
+          });
+        });
+
+        describe(`when using not.to.${operator}`, function () {
+          it("with an unsafe int as the first param", function () {
+            expect(() =>
+              expect(unsafeInt).not.to[operator](BigInt(1), BigInt(1))
+            ).to.throw(RangeError, msg);
+          });
+          it("with an unsafe int as the second param", function () {
+            expect(() =>
+              expect(BigInt(1)).not.to[operator](unsafeInt, BigInt(1))
+            ).to.throw(RangeError, msg);
+          });
+          it("with an unsafe int as the third param", function () {
+            expect(() =>
+              expect(BigInt(1)).not.to[operator](BigInt(1), unsafeInt)
+            ).to.throw(RangeError, msg);
+          });
+        });
       });
     });
   });
