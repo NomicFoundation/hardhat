@@ -1,5 +1,11 @@
 # hardhat
 
+## 2.9.1
+
+### Patch Changes
+
+- 69a6434e: Fix a bug that made Hardhat Network hang when connecting MetaMask (#2380)
+
 ## 2.9.0
 
 ### Minor Changes
