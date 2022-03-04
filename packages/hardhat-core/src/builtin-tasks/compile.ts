@@ -425,24 +425,22 @@ subtask(TASK_COMPILE_SOLIDITY_COMPILE_JOBS)
 
       const pMapOptions = { concurrency: os.cpus().length, stopOnError: false };
       try {
-        const results = await pMap(
+        const artifactsEmittedPerJob: ArtifactsEmittedPerJob = await pMap(
           compilationJobs,
-          (compilationJob, compilationJobIndex) => {
-            return run(TASK_COMPILE_SOLIDITY_COMPILE_JOB, {
+          async (compilationJob, compilationJobIndex) => {
+            const result = await run(TASK_COMPILE_SOLIDITY_COMPILE_JOB, {
               compilationJob,
               compilationJobs,
               compilationJobIndex,
               quiet,
             });
+
+            return {
+              compilationJob: result.compilationJob,
+              artifactsEmittedPerFile: result.artifactsEmittedPerFile,
+            };
           },
           pMapOptions
-        );
-
-        const artifactsEmittedPerJob: ArtifactsEmittedPerJob = results.map(
-          ({ compilationJob, artifactsEmittedPerFile }) => ({
-            compilationJob,
-            artifactsEmittedPerFile,
-          })
         );
 
         return { artifactsEmittedPerJob };
