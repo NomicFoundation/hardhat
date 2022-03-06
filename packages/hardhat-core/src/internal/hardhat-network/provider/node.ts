@@ -1053,7 +1053,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   public async dumpState(): Promise<Buffer> {
     const state: SerializableNodeState = {
       storage: await this._stateManager.dumpState(),
-      minTimestamp: this.getNextBlockTimestamp().toNumber(),
+      minTimestamp: (await this.getLatestBlock()).header.timestamp.toNumber(),
     };
 
     // TODO: would be way better to utilize streaming here
