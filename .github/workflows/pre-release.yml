@@ -1,4 +1,4 @@
-name: Lint
+name: Pre-release tests
 
 on:
   push:
