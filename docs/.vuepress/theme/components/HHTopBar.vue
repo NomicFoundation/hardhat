@@ -17,7 +17,7 @@ section.top-bar
             |
             |
         span.top-text
-          a(:href="postUrl" class="top-bar-link" target="_blank" rel="noopener noreferrer") Join the Hardhat team! Nomic Labs is #{' '}
+          a(:href="postUrl" class="top-bar-link" target="_blank" rel="noopener noreferrer") Join the Hardhat team! Nomic Foundation is #{' '}
             span hiring
         span.colored.reverse.animation-6chars
           span
