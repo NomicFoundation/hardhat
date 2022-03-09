@@ -11,16 +11,42 @@
 //   closeTo
 //   approximately
 
-import { BigNumber as BigNumberEthers } from "ethers";
-import { BigNumber as BigNumberJs } from "bignumber.js";
-import BN from "bn.js";
+import { BigNumber as EthersBigNumberType } from "ethers";
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { BigNumber as BigNumberJsType } from "bignumber.js";
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { default as BNType } from "bn.js";
 
-export type SupportedNumber =
-  | number
-  | bigint
-  | BN
-  | BigNumberEthers
-  | BigNumberJs;
+function isBN(n: any) {
+  try {
+    // eslint-disable-next-line import/no-extraneous-dependencies
+    const BN: typeof BNType = require("bn.js");
+    return n instanceof BN && BN.isBN(n);
+  } catch (e) {
+    return false;
+  }
+}
+
+function isEthersBigNumber(n: any) {
+  try {
+    // eslint-disable-next-line import/no-extraneous-dependencies
+    const BigNumber: typeof EthersBigNumberType =
+      require("ethers").ethers.BigNumber;
+    return n instanceof BigNumber && BigNumber.isBigNumber(n);
+  } catch (e) {
+    return false;
+  }
+}
+
+function isBigNumberJsBigNumber(n: any) {
+  try {
+    // eslint-disable-next-line import/no-extraneous-dependencies
+    const BigNumber: typeof BigNumberJsType = require("bignumber.js").BigNumber;
+    return n instanceof BigNumber && BigNumber.isBigNumber(n);
+  } catch (e) {
+    return false;
+  }
+}
 
 export function supportBigNumber(
   Assertion: Chai.AssertionStatic,
@@ -76,12 +102,20 @@ function override(
     overwriteBigNumberFunction(method, name, negativeName, _super, utils);
 }
 
-function normalize(source: SupportedNumber | string): bigint {
-  if (source instanceof BigNumberEthers) {
+function normalize(
+  source:
+    | number
+    | bigint
+    | typeof BNType
+    | typeof EthersBigNumberType
+    | typeof BigNumberJsType
+    | string
+): bigint {
+  if (isEthersBigNumber(source)) {
     return BigInt(source.toString());
-  } else if (source instanceof BN) {
+  } else if (isBN(source)) {
     return BigInt(source.toString());
-  } else if (source instanceof BigNumberJs) {
+  } else if (isBigNumberJsBigNumber(source)) {
     return BigInt(source.toString(10));
   } else if (
     typeof source === "string" ||
@@ -97,9 +131,9 @@ function normalize(source: SupportedNumber | string): bigint {
 function isBigNumber(source: any): boolean {
   return (
     typeof source === "bigint" ||
-    BigNumberEthers.isBigNumber(source) ||
-    BN.isBN(source) ||
-    BigNumberJs.isBigNumber(source)
+    isEthersBigNumber(source) ||
+    isBN(source) ||
+    isBigNumberJsBigNumber(source)
   );
 }
 
@@ -113,10 +147,7 @@ function overwriteBigNumberFunction(
   return function (this: Chai.AssertionStatic, ...args: any[]) {
     const [actualArg] = args;
     const expectedFlag = chaiUtils.flag(this, "object");
-    if (
-      chaiUtils.flag(this, "doLength") &&
-      BigNumberEthers.isBigNumber(actualArg)
-    ) {
+    if (chaiUtils.flag(this, "doLength") && isEthersBigNumber(actualArg)) {
       // TODO: consider whether we really need this case (support for eg
       // `expect('foo').to.have.length.of.at.least(BigInt(2));`, and if so then
       // get it tested and generalize it to work with all the different

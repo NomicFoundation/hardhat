@@ -4,7 +4,8 @@ import { BigNumber as BigNumberJs } from "bignumber.js";
 import BN from "bn.js";
 
 import { bnChai } from "../../../src/chai/matchers/bnChai";
-import { SupportedNumber } from "../../../src/chai/matchers/bigNumber";
+
+type SupportedNumber = number | bigint | BN | BigNumberEthers | BigNumberJs;
 
 use(bnChai);
 
