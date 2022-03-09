@@ -13,14 +13,18 @@
 
 import { BigNumber as BigNumberEthers } from "ethers";
 import { BigNumber as BigNumberJs } from "bignumber.js";
-import BN from "bn.js";
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { default as BNType } from "bn.js";
 
-export type SupportedNumber =
-  | number
-  | bigint
-  | BN
-  | BigNumberEthers
-  | BigNumberJs;
+function isBN(n: any) {
+  try {
+    // eslint-disable-next-line import/no-extraneous-dependencies
+    const BN: typeof BNType = require("bn.js");
+    return n instanceof BN && BN.isBN(n);
+  } catch (e) {
+    return false;
+  }
+}
 
 export function supportBigNumber(
   Assertion: Chai.AssertionStatic,
@@ -76,10 +80,18 @@ function override(
     overwriteBigNumberFunction(method, name, negativeName, _super, utils);
 }
 
-function normalize(source: SupportedNumber | string): bigint {
+function normalize(
+  source:
+    | number
+    | bigint
+    | typeof BNType
+    | BigNumberEthers
+    | BigNumberJs
+    | string
+): bigint {
   if (source instanceof BigNumberEthers) {
     return BigInt(source.toString());
-  } else if (source instanceof BN) {
+  } else if (isBN(source)) {
     return BigInt(source.toString());
   } else if (source instanceof BigNumberJs) {
     return BigInt(source.toString(10));
@@ -98,7 +110,7 @@ function isBigNumber(source: any): boolean {
   return (
     typeof source === "bigint" ||
     BigNumberEthers.isBigNumber(source) ||
-    BN.isBN(source) ||
+    isBN(source) ||
     BigNumberJs.isBigNumber(source)
   );
 }
