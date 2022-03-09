@@ -563,7 +563,8 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       remainingBlockCount.subn(1),
       interval,
       await this._stateManager.getStateRoot(),
-      await this.getBlockTotalDifficulty(latestBlock)
+      await this.getBlockTotalDifficulty(latestBlock),
+      (await this.getLatestBlock()).header.baseFeePerGas
     );
 
     await mineBlock();

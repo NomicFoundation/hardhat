@@ -830,6 +830,43 @@ describe("Hardhat module", function () {
           });
         });
 
+        describe("base fee per gas", function () {
+          const getBlockBaseFeePerGas = async (block: number): Promise<BN> => {
+            return rpcQuantityToBN(
+              (
+                await this.ctx.provider.send("eth_getBlockByNumber", [
+                  numberToRpcQuantity(block),
+                  false,
+                ])
+              ).baseFeePerGas
+            );
+          };
+
+          it("shouldn't increase if the blocks are empty", async function () {
+            // the main reason for this test is that solidity-coverage sets the
+            // initial base fee per gas to 1, and hardhat_mine shouldn't mess
+            // with that
+
+            const originalLatestBlockNumber = await getLatestBlockNumber();
+
+            await this.provider.send("hardhat_setNextBlockBaseFeePerGas", [
+              numberToRpcQuantity(1),
+            ]);
+
+            const blocksToMine = 20;
+            await this.provider.send("hardhat_mine", [
+              numberToRpcQuantity(blocksToMine),
+            ]);
+
+            for (let i = 1; i <= blocksToMine; i++) {
+              const blockBaseFeePerGas = await getBlockBaseFeePerGas(
+                originalLatestBlockNumber + i
+              );
+              assert.isTrue(blockBaseFeePerGas.eqn(1));
+            }
+          });
+        });
+
         it("should mine transactions in the mempool", async function () {
           // Arrange: put some transactions into the mempool and
           // set the block gas limit so that only 3 txs are mined per block
