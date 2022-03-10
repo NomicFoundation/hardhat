@@ -158,7 +158,7 @@ subtask(TASK_NODE_GET_PROVIDER)
       // enable logging
       await provider.request({
         method: "hardhat_setLoggingEnabled",
-        params: [true],
+        params: [hardhatNetworkConfig.loggingEnabled ?? true],
       });
 
       return provider;
