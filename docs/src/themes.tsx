@@ -17,6 +17,7 @@ const media = {
 
 export const appTheme = {
   colors: {
+    primary: "#FFF100",
     accent: "green",
   },
   media,
@@ -28,7 +29,7 @@ const theming = createTheming(appTheme);
 export const ThemeProvider = ({
   children,
   theme: themeProp,
-}: React.PropsWithChildren<{theme: {}}>): JSX.Element => (
+}: React.PropsWithChildren<{ theme: {} }>): JSX.Element => (
   <theming.ThemeProvider theme={themeProp}>{children}</theming.ThemeProvider>
 );
 
