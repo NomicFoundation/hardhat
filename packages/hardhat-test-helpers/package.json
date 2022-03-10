@@ -42,6 +42,7 @@
     "@types/node": "^12.0.0",
     "@typescript-eslint/eslint-plugin": "4.29.2",
     "@typescript-eslint/parser": "4.29.2",
+    "bignumber.js": "^9.0.2",
     "bn.js": "^5.1.0",
     "eslint": "^7.29.0",
     "eslint-config-prettier": "8.3.0",
@@ -59,7 +60,6 @@
     "hardhat": "^2.0.0"
   },
   "dependencies": {
-    "bignumber.js": "^9.0.2",
     "chai": "^4.2.0"
   }
 }

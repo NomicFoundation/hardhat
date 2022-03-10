@@ -12,7 +12,8 @@
 //   approximately
 
 import { BigNumber as EthersBigNumberType } from "ethers";
-import { BigNumber as BigNumberJs } from "bignumber.js";
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { BigNumber as BigNumberJsType } from "bignumber.js";
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { default as BNType } from "bn.js";
 
@@ -31,6 +32,16 @@ function isEthersBigNumber(n: any) {
     // eslint-disable-next-line import/no-extraneous-dependencies
     const BigNumber: typeof EthersBigNumberType =
       require("ethers").ethers.BigNumber;
+    return n instanceof BigNumber && BigNumber.isBigNumber(n);
+  } catch (e) {
+    return false;
+  }
+}
+
+function isBigNumberJsBigNumber(n: any) {
+  try {
+    // eslint-disable-next-line import/no-extraneous-dependencies
+    const BigNumber: typeof BigNumberJsType = require("bignumber.js").BigNumber;
     return n instanceof BigNumber && BigNumber.isBigNumber(n);
   } catch (e) {
     return false;
@@ -97,14 +108,14 @@ function normalize(
     | bigint
     | typeof BNType
     | typeof EthersBigNumberType
-    | BigNumberJs
+    | typeof BigNumberJsType
     | string
 ): bigint {
   if (isEthersBigNumber(source)) {
     return BigInt(source.toString());
   } else if (isBN(source)) {
     return BigInt(source.toString());
-  } else if (source instanceof BigNumberJs) {
+  } else if (isBigNumberJsBigNumber(source)) {
     return BigInt(source.toString(10));
   } else if (
     typeof source === "string" ||
@@ -122,7 +133,7 @@ function isBigNumber(source: any): boolean {
     typeof source === "bigint" ||
     isEthersBigNumber(source) ||
     isBN(source) ||
-    BigNumberJs.isBigNumber(source)
+    isBigNumberJsBigNumber(source)
   );
 }
 
