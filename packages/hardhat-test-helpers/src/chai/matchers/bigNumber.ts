@@ -11,7 +11,7 @@
 //   closeTo
 //   approximately
 
-import { BigNumber as BigNumberEthers } from "ethers";
+import { BigNumber as EthersBigNumberType } from "ethers";
 import { BigNumber as BigNumberJs } from "bignumber.js";
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { default as BNType } from "bn.js";
@@ -21,6 +21,17 @@ function isBN(n: any) {
     // eslint-disable-next-line import/no-extraneous-dependencies
     const BN: typeof BNType = require("bn.js");
     return n instanceof BN && BN.isBN(n);
+  } catch (e) {
+    return false;
+  }
+}
+
+function isEthersBigNumber(n: any) {
+  try {
+    // eslint-disable-next-line import/no-extraneous-dependencies
+    const BigNumber: typeof EthersBigNumberType =
+      require("ethers").ethers.BigNumber;
+    return n instanceof BigNumber && BigNumber.isBigNumber(n);
   } catch (e) {
     return false;
   }
@@ -85,11 +96,11 @@ function normalize(
     | number
     | bigint
     | typeof BNType
-    | BigNumberEthers
+    | typeof EthersBigNumberType
     | BigNumberJs
     | string
 ): bigint {
-  if (source instanceof BigNumberEthers) {
+  if (isEthersBigNumber(source)) {
     return BigInt(source.toString());
   } else if (isBN(source)) {
     return BigInt(source.toString());
@@ -109,7 +120,7 @@ function normalize(
 function isBigNumber(source: any): boolean {
   return (
     typeof source === "bigint" ||
-    BigNumberEthers.isBigNumber(source) ||
+    isEthersBigNumber(source) ||
     isBN(source) ||
     BigNumberJs.isBigNumber(source)
   );
@@ -125,10 +136,7 @@ function overwriteBigNumberFunction(
   return function (this: Chai.AssertionStatic, ...args: any[]) {
     const [actualArg] = args;
     const expectedFlag = chaiUtils.flag(this, "object");
-    if (
-      chaiUtils.flag(this, "doLength") &&
-      BigNumberEthers.isBigNumber(actualArg)
-    ) {
+    if (chaiUtils.flag(this, "doLength") && isEthersBigNumber(actualArg)) {
       // TODO: consider whether we really need this case (support for eg
       // `expect('foo').to.have.length.of.at.least(BigInt(2));`, and if so then
       // get it tested and generalize it to work with all the different
