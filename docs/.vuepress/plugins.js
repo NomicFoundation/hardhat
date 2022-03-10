@@ -497,6 +497,13 @@ module.exports.officialPlugins = [
     description: "Adds support to compile Vyper smart contracts",
     tags: ["Vyper", "Compiler"],
   },
+  {
+    name: "hardhat-exposed",
+    author: "Francisco Giordano",
+    authorUrl: "https://github.com/frangio",
+    description: "Automatically expose internal Solidity functions for testing",
+    tags: ["Solidity", "Testing"],
+  },
 ].map((p) => ({
   ...p,
   normalizedName: p.name.split("/").join("-").replace(/^@/, ""),
