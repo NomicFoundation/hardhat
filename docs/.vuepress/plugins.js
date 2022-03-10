@@ -415,6 +415,13 @@ module.exports.communityPlugins = [
       "Hardhat plugin to allow adding any extra data to your network configuration",
     tags: ["Metadata", "Testing", "Tasks", "Config"],
   },
+  {
+    name: "hardhat-exposed",
+    author: "Francisco Giordano",
+    authorUrl: "https://github.com/frangio",
+    description: "Automatically expose internal Solidity functions for testing",
+    tags: ["Solidity", "Testing"],
+  },
 ];
 
 module.exports.officialPlugins = [
