@@ -649,6 +649,25 @@ describe("HardhatNode", () => {
     });
   });
 
+  describe("state dump and load", function () {
+    const timestamp = new BN(2234567890);
+    it("saves and loads while returning to the same state", async () => {
+      node.setNextBlockTimestamp(timestamp);
+      const state = await node.dumpState();
+      // create a new node and restore to it
+      const [_, newNode] = await HardhatNode.create(config);
+
+      await newNode.loadState(state);
+
+      // checking block timestamp is enough to ensure the state was loaded
+      assert.equal(
+        node.getNextBlockTimestamp().toString(),
+        timestamp.toString(),
+        "dump/load cycle unsuccessful"
+      );
+    });
+  });
+
   describe("full block", function () {
     if (ALCHEMY_URL === undefined) {
       return;

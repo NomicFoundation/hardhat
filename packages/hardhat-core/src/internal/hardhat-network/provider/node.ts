@@ -1,3 +1,6 @@
+import { deflate, inflate } from "zlib";
+import { promisify } from "util";
+
 import { Block, HeaderData } from "@ethereumjs/block";
 import Common from "@ethereumjs/common";
 import {
@@ -11,7 +14,6 @@ import Bloom from "@ethereumjs/vm/dist/bloom";
 import { EVMResult, ExecResult } from "@ethereumjs/vm/dist/evm/evm";
 import { ERROR } from "@ethereumjs/vm/dist/exceptions";
 import { RunBlockResult } from "@ethereumjs/vm/dist/runBlock";
-import { DefaultStateManager, StateManager } from "@ethereumjs/vm/dist/state";
 import { SignTypedDataVersion, signTypedData } from "@metamask/eth-sig-util";
 import chalk from "chalk";
 import debug from "debug";
@@ -26,6 +28,8 @@ import {
   toBuffer,
 } from "ethereumjs-util";
 import EventEmitter from "events";
+
+import { Map as ImmutableMap } from "immutable";
 
 import { CompilerInput, CompilerOutput } from "../../../types";
 import { HardforkHistoryConfig } from "../../../types/config";
@@ -114,6 +118,12 @@ import { makeStateTrie } from "./utils/makeStateTrie";
 import { makeForkCommon } from "./utils/makeForkCommon";
 import { putGenesisBlock } from "./utils/putGenesisBlock";
 import { txMapToArray } from "./utils/txMapToArray";
+import { SerializableNodeState } from "./types/SerializableNodeState";
+import { PersistableStateManager } from "./types/PersistableStateInterface";
+import { PersistableDefaultStateManager } from "./PersistableDefaultStateManager";
+
+const deflatePromise = promisify(deflate);
+const inflatePromise = promisify(inflate);
 
 const log = debug("hardhat:core:hardhat-network:node");
 
@@ -136,7 +146,7 @@ export class HardhatNode extends EventEmitter {
     } = config;
 
     let common: Common;
-    let stateManager: StateManager;
+    let stateManager: PersistableStateManager;
     let blockchain: HardhatBlockchainInterface;
     let initialBlockTimeOffset: BN | undefined;
     let nextBlockBaseFeePerGas: BN | undefined;
@@ -203,7 +213,7 @@ export class HardhatNode extends EventEmitter {
       const stateTrie = await makeStateTrie(genesisAccounts);
       common = makeCommon(config, stateTrie);
 
-      stateManager = new DefaultStateManager({
+      stateManager = new PersistableDefaultStateManager({
         common,
         trie: stateTrie,
       });
@@ -324,7 +334,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
   private constructor(
     private readonly _vm: VM,
-    private readonly _stateManager: StateManager,
+    private readonly _stateManager: PersistableStateManager,
     private readonly _blockchain: HardhatBlockchainInterface,
     private readonly _txPool: TxPool,
     private _automine: boolean,
@@ -1036,6 +1046,40 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     // We delete this and the following snapshots, as they can only be used
     // once in Ganache
     this._snapshots.splice(snapshotIndex);
+
+    return true;
+  }
+
+  public async dumpState(): Promise<Buffer> {
+    const state: SerializableNodeState = {
+      storage: await this._stateManager.dumpState(),
+      minTimestamp: this.getNextBlockTimestamp().toNumber(),
+    };
+
+    // TODO: would be way better to utilize streaming here
+    return deflatePromise(Buffer.from(JSON.stringify(state)));
+  }
+
+  public async loadState(rawState: Buffer): Promise<boolean> {
+    // TODO: would be way better to utilize streaming here
+    const deflatedState = await inflatePromise(rawState);
+
+    const state: SerializableNodeState = JSON.parse(
+      deflatedState.toString("utf8")
+    );
+
+    await this._stateManager.loadState(
+      ImmutableMap(state.storage) as ImmutableMap<string, any>
+    );
+
+    this._nextBlockTimestamp = BN.max(
+      this._nextBlockTimestamp,
+      new BN(state.minTimestamp)
+    );
+
+    // this has not been needed in testing for my tools, but it might be the right thing to do anyway.
+    // LMK if this should be called after importing new state
+    // await node._persistIrregularWorldState();
 
     return true;
   }

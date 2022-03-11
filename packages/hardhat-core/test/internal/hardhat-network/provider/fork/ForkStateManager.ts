@@ -10,6 +10,7 @@ import {
 } from "ethereumjs-util";
 import sinon from "sinon";
 
+import { Map as ImmutableMap } from "immutable";
 import { JsonRpcClient } from "../../../../../src/internal/hardhat-network/jsonrpc/client";
 import { ForkStateManager } from "../../../../../src/internal/hardhat-network/provider/fork/ForkStateManager";
 import {
@@ -830,6 +831,114 @@ describe("ForkStateManager", () => {
           DAI_TOTAL_SUPPLY_STORAGE_POSITION
         );
         assert.equal(bufferToHex(fsmValue), "0xfeedface");
+      });
+    });
+  });
+
+  describe.only("dumpState", () => {
+    it("has correct data when empty", async () => {
+      assert.equal(await fsm.dumpState(), ImmutableMap());
+    });
+
+    describe("when state is not empty", () => {
+      const address = randomAddress();
+      const code = toBuffer("0xb16b00b1e5");
+      const codeHash = keccak256(code);
+
+      const storageAddress = randomHashBuffer();
+      const storageData = randomHashBuffer();
+
+      beforeEach(async () => {
+        await fsm.putContractCode(address, code);
+        await fsm.putAccount(
+          address,
+          Account.fromAccountData({
+            nonce: new BN(1),
+            balance: new BN(2),
+            codeHash,
+          })
+        );
+
+        await fsm.putContractStorage(address, storageAddress, storageData);
+      });
+
+      it("has correct data when populated", async () => {
+        const dumpedState = await fsm.dumpState();
+        assert.deepEqual(dumpedState.get(address.toString()), {
+          code: `0x${code.toString("hex")}`,
+          balance: "0x02",
+          nonce: "0x01",
+          storage: {
+            [`0x${storageAddress.toString("hex")}`]: `0x${storageData.toString(
+              "hex"
+            )}`,
+          },
+          storageCleared: false,
+        });
+      });
+    });
+  });
+
+  describe("loadState", () => {
+    const address = randomAddress();
+    const code = toBuffer("0xb16b00b1e5");
+    const codeHash = keccak256(code);
+
+    const importedState = ImmutableMap({
+      [address.toString()]: {
+        nonce: "1",
+        code,
+        balance: "100",
+      },
+    });
+
+    it("imports from fresh state", async () => {
+      await fsm.loadState(importedState);
+
+      const accountState = await fsm.getAccount(address);
+
+      assert.equal(accountState.nonce.toString(), "1");
+      assert.equal(accountState.codeHash, codeHash);
+      assert.equal(accountState.balance.toString(), "100");
+    });
+
+    describe("when state already exists", () => {
+      const preservedAddress = randomAddress();
+
+      before(async () => {
+        // put an account which is used for checking that data is preserved
+        await fsm.putAccount(
+          preservedAddress,
+          Account.fromAccountData({
+            balance: new BN(100),
+          })
+        );
+
+        // put an account which will be overwritten
+        await fsm.putAccount(
+          address,
+          Account.fromAccountData({
+            nonce: new BN(1),
+            balance: new BN(2),
+            codeHash,
+          })
+        );
+      });
+
+      it("overrides existing, conflicting state", async () => {
+        await fsm.loadState(importedState);
+
+        const accountState = await fsm.getAccount(address);
+
+        assert.equal(accountState.nonce.toString(), "1");
+        assert.equal(accountState.codeHash, codeHash);
+        assert.equal(accountState.balance.toString(), "100");
+      });
+
+      it("preserves existing state", async () => {
+        const accountData = await fsm.getAccount(preservedAddress);
+
+        assert.equal(accountData.balance, new BN(100));
       });
     });
   });

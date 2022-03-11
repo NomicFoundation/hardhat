@@ -18,6 +18,8 @@ import { JsonRpcClient } from "../../jsonrpc/client";
 import { GenesisAccount } from "../node-types";
 import { makeAccount } from "../utils/makeAccount";
 
+import { PersistableStateManager } from "../types/PersistableStateInterface";
+
 import {
   AccountState,
   makeAccountState,
@@ -42,7 +44,9 @@ const notCheckpointedError = (method: string) =>
 const notSupportedError = (method: string) =>
   new Error(`${method} is not supported when forking from remote network`);
 
-export class ForkStateManager implements EIP2929StateManager {
+export class ForkStateManager
+  implements EIP2929StateManager, PersistableStateManager
+{
   private _state: State = ImmutableMap<string, ImmutableRecord<AccountState>>();
   private _initialStateRoot: string = randomHash();
   private _stateRoot: string = this._initialStateRoot;
@@ -425,6 +429,33 @@ export class ForkStateManager implements EIP2929StateManager {
 
   public clearWarmedAccounts(): void {
     return DefaultStateManager.prototype.clearWarmedAccounts.call(this);
+  }
+
+  public async dumpState(): Promise<ImmutableMap<string, any>> {
+    return this._state.map((v) => {
+      const json: any = v.toJSON();
+      json.storage = json.storage.toJSON();
+
+      return json;
+    });
+  }
+
+  public async loadState(state: ImmutableMap<string, any>): Promise<void> {
+    for (const [account, record] of state.entries()) {
+      let storage = ImmutableMap<string, string | null>();
+      Object.entries(record.storage).forEach(([k, v]) => {
+        storage = storage.set(k, v as string);
+      });
+
+      const r = makeAccountState()
+        .set("nonce", record.nonce)
+        .set("balance", record.balance)
+        .set("storage", storage)
+        .set("code", record.code)
+        .set("storageCleared", record.storageCleared);
+
+      this._state = this._state.set(account, r);
+    }
   }
 
   private _putAccount(address: Address, account: Account): void {
