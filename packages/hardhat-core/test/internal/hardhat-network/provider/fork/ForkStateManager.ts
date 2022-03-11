@@ -835,7 +835,7 @@ describe("ForkStateManager", () => {
     });
   });
 
-  describe.only("dumpState", () => {
+  describe("dumpState", () => {
     it("has correct data when empty", async () => {
       assert.equal(await fsm.dumpState(), ImmutableMap());
     });
