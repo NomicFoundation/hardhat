@@ -119,7 +119,7 @@ import { makeForkCommon } from "./utils/makeForkCommon";
 import { putGenesisBlock } from "./utils/putGenesisBlock";
 import { txMapToArray } from "./utils/txMapToArray";
 import { SerializableNodeState } from "./types/SerializableNodeState";
-import { PersistableStateManager } from "./types/PersistableStateInterface";
+import { PersistableStateManager } from "./types/PersistableStateManager";
 import { PersistableDefaultStateManager } from "./PersistableDefaultStateManager";
 
 const deflatePromise = promisify(deflate);

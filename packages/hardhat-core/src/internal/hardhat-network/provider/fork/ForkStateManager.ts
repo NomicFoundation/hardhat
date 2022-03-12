@@ -18,7 +18,7 @@ import { JsonRpcClient } from "../../jsonrpc/client";
 import { GenesisAccount } from "../node-types";
 import { makeAccount } from "../utils/makeAccount";
 
-import { PersistableStateManager } from "../types/PersistableStateInterface";
+import { PersistableStateManager } from "../types/PersistableStateManager";
 
 import {
   AccountState,
@@ -442,7 +442,7 @@ export class ForkStateManager
 
   public async loadState(state: ImmutableMap<string, any>): Promise<void> {
     for (const [account, record] of state.entries()) {
-      let storage = ImmutableMap<string, string | null>();
+      let storage = new Map<string, string | null>();
       Object.entries(record.storage).forEach(([k, v]) => {
         storage = storage.set(k, v as string);
       });
@@ -450,7 +450,7 @@ export class ForkStateManager
       const r = makeAccountState()
         .set("nonce", record.nonce)
         .set("balance", record.balance)
-        .set("storage", storage)
+        .set("storage", ImmutableMap(storage))
         .set("code", record.code)
         .set("storageCleared", record.storageCleared);
 

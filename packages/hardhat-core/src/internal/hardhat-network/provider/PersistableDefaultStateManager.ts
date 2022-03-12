@@ -3,13 +3,16 @@ import { DefaultStateManager } from "@ethereumjs/vm/dist/state";
 import { Map as ImmutableMap } from "immutable";
 
 import { CheckpointTrie, SecureTrie as Trie } from "merkle-patricia-tree";
-import { PersistableStateManager } from "./types/PersistableStateInterface";
+import { PersistableStateManager } from "./types/PersistableStateManager";
 
 export class PersistableDefaultStateManager
   extends DefaultStateManager
   implements PersistableStateManager
 {
   public async dumpState(): Promise<ImmutableMap<string, any>> {
+    // needed to ensure latest state root
+    await this.getStateRoot();
+
     const storage = new Map();
     storage.set("db", await trieDbDump(this._trie));
     storage.set("merkle", await trieDump(this._trie));

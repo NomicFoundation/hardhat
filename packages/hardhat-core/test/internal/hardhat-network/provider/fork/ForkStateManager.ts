@@ -3,6 +3,7 @@ import {
   Account,
   BN,
   bufferToHex,
+  intToHex,
   keccak256,
   KECCAK256_NULL,
   toBuffer,
@@ -15,6 +16,7 @@ import { JsonRpcClient } from "../../../../../src/internal/hardhat-network/jsonr
 import { ForkStateManager } from "../../../../../src/internal/hardhat-network/provider/fork/ForkStateManager";
 import {
   randomAddress,
+  randomHash,
   randomHashBuffer,
 } from "../../../../../src/internal/hardhat-network/provider/fork/random";
 import { makeForkClient } from "../../../../../src/internal/hardhat-network/provider/utils/makeForkClient";
@@ -876,6 +878,16 @@ describe("ForkStateManager", () => {
           storageCleared: false,
         });
       });
+
+      it("can be loaded to restore state", async () => {
+        const dumpedState = await fsm.dumpState();
+        const newFsm = new ForkStateManager(client, forkBlockNumber);
+
+        await newFsm.loadState(dumpedState);
+
+        const account = await newFsm.getAccount(address);
+        assert.equal(account.balance.toNumber(), 2);
+      });
     });
   });
 
@@ -884,28 +896,40 @@ describe("ForkStateManager", () => {
     const code = toBuffer("0xb16b00b1e5");
     const codeHash = keccak256(code);
 
-    const importedState = ImmutableMap({
+    const testStorageKey = randomHash();
+
+    const importedStateWithStorage = ImmutableMap({
       [address.toString()]: {
-        nonce: "1",
+        nonce: intToHex(1),
         code,
-        balance: "100",
+        balance: intToHex(100),
+        storage: {
+          [testStorageKey]: testStorageKey,
+        },
       },
     });
 
     it("imports from fresh state", async () => {
-      await fsm.loadState(importedState);
+      await fsm.loadState(importedStateWithStorage);
 
       const accountState = await fsm.getAccount(address);
 
       assert.equal(accountState.nonce.toString(), "1");
-      assert.equal(accountState.codeHash, codeHash);
+      assert.equal(bufferToHex(accountState.codeHash), bufferToHex(codeHash));
       assert.equal(accountState.balance.toString(), "100");
+
+      const storageState = await fsm.getContractStorage(
+        address,
+        toBuffer(testStorageKey)
+      );
+
+      assert.equal(bufferToHex(storageState), testStorageKey);
     });
 
     describe("when state already exists", () => {
       const preservedAddress = randomAddress();
 
-      before(async () => {
+      beforeEach(async () => {
         // put an account which is used for checking that data is preserved
         await fsm.putAccount(
           preservedAddress,
@@ -923,22 +947,22 @@ describe("ForkStateManager", () => {
             codeHash,
           })
         );
+
+        await fsm.loadState(importedStateWithStorage);
       });
 
       it("overrides existing, conflicting state", async () => {
-        await fsm.loadState(importedState);
-
         const accountState = await fsm.getAccount(address);
 
         assert.equal(accountState.nonce.toString(), "1");
-        assert.equal(accountState.codeHash, codeHash);
+        assert.equal(bufferToHex(accountState.codeHash), bufferToHex(codeHash));
         assert.equal(accountState.balance.toString(), "100");
       });
 
       it("preserves existing state", async () => {
         const accountData = await fsm.getAccount(preservedAddress);
 
-        assert.equal(accountData.balance, new BN(100));
+        assert.equal(accountData.balance.toNumber(), 100);
       });
     });
   });
