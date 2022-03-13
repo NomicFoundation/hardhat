@@ -41,8 +41,8 @@ import {
   DEFAULT_NETWORK_NAME,
 } from "../helpers/providers";
 
-import { assertEqualBlocks } from "./utils/assertEqualBlocks";
 import { randomAddress } from "../../../../src/internal/hardhat-network/provider/fork/random";
+import { assertEqualBlocks } from "./utils/assertEqualBlocks";
 
 /* eslint-disable @typescript-eslint/dot-notation */
 
