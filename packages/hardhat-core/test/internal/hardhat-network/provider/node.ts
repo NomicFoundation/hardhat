@@ -42,6 +42,7 @@ import {
 } from "../helpers/providers";
 
 import { assertEqualBlocks } from "./utils/assertEqualBlocks";
+import { randomAddress } from "../../../../src/internal/hardhat-network/provider/fork/random";
 
 /* eslint-disable @typescript-eslint/dot-notation */
 
@@ -653,6 +654,11 @@ describe("HardhatNode", () => {
     const timestamp = new BN(2234567890);
     it("saves and loads while returning to the same state", async () => {
       node.setNextBlockTimestamp(timestamp);
+
+      // set some irregular state
+      const irregularBalanceAddress = randomAddress();
+      await node.setAccountBalance(irregularBalanceAddress, new BN(1234));
+
       const state = await node.dumpState();
       // create a new node and restore to it
       const [_, newNode] = await HardhatNode.create(config);
@@ -664,6 +670,12 @@ describe("HardhatNode", () => {
         node.getNextBlockTimestamp().toString(),
         timestamp.toString(),
         "dump/load cycle unsuccessful"
+      );
+
+      // irregular state should be preserved
+      assert.equal(
+        (await node.getAccountBalance(irregularBalanceAddress)).toNumber(),
+        1234
       );
     });
   });
