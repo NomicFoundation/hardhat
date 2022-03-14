@@ -132,4 +132,4 @@ If you are connecting to a Hardhat node using a `WebSocketProvider`, events shou
 
 ### Gas transaction parameters in `hardhat.config` are not used
 
-When using this plugin, the `gas`, `gasPrice` and `gasMultiplier` parameters from your `hardhat.config` are not automatically applied to transactions. In order to provide such values to your transactions, specify them as overrides on the transaction itself.
+When using this plugin, the `gas`, `gasPrice` and `gasMultiplier` parameters from your `hardhat.config` are not automatically applied to transactions. In order to provide such values to your transactions, specify them as [overrides](https://docs.ethers.io/v5/single-page/#/v5/api/contract/contract/-%23-contract-functionsSend) on the transaction itself.
