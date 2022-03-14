@@ -6,6 +6,8 @@ You can run your tests in parallel by using the `--parallel` flag:
 $ npx hardhat test --parallel
 ```
 
+Alternatively, use `parallel: true` in the `mocha` section of `hardhat.config`, which will enable parallelism for plugins that don't have a `--parallel` flag, like `solidity-coverage`.
+
 Most of the time, running your tests serially or in parallel should produce the same results, but there are some scenarios where tests run in parallel will behave differently:
 
 - In serial mode all the test files share the same instance of the [Hardhat Runtime Environment](/advanced/hardhat-runtime-environment.html), but in parallel mode this is not always the case. Mocha uses a pool of workers to execute the tests, and each worker starts with its own instance of the HRE. This means that if one test file deploys a contract, then that deployment will exist in some of the other test files and it won't in others.
