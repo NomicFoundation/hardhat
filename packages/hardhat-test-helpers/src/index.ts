@@ -1,1 +1,1 @@
-export * from "./setupContracts";
+export * from "./loadFixture";
