@@ -1,31 +1,119 @@
-import { BN, toBuffer } from "ethereumjs-util";
-import { resetHardhatContext } from "hardhat/plugins-testing";
-import { HardhatRuntimeEnvironment } from "hardhat/types";
-import path from "path";
+import { assert } from "chai";
+import { BN } from "ethereumjs-util";
+import { ethers } from "ethers";
 
-declare module "mocha" {
-  interface Context {
-    hre: HardhatRuntimeEnvironment;
-  }
-}
+import { mine } from "../src";
+import { NumberLike } from "../src/types";
+import { useEnvironment, rpcQuantityToNumber } from "./test-utils";
 
-export function useEnvironment(
-  fixtureProjectName: string,
-  networkName = "hardhat"
-) {
-  beforeEach("Loading hardhat environment", function () {
-    process.chdir(path.join(__dirname, "fixture-projects", fixtureProjectName));
-    process.env.HARDHAT_NETWORK = networkName;
+describe("helpers", function () {
+  useEnvironment("simple");
 
-    this.hre = require("hardhat");
+  const getBlockNumber = async () => {
+    const blockNumber = await this.ctx.hre.network.provider.send(
+      "eth_blockNumber"
+    );
+
+    return rpcQuantityToNumber(blockNumber);
+  };
+
+  const getBlockTimestamp = async (blockNumber = "latest") => {
+    const block = await this.ctx.hre.network.provider.send(
+      "eth_getBlockByNumber",
+      [blockNumber, false]
+    );
+
+    return rpcQuantityToNumber(block.timestamp);
+  };
+
+  describe("mine", function () {
+    it("should mine a single block by default", async function () {
+      const blockNumberBefore = await getBlockNumber();
+
+      await mine();
+
+      assert.equal(await getBlockNumber(), blockNumberBefore + 1);
+    });
+
+    it("should mine the given number of blocks", async function () {
+      const blockNumberBefore = await getBlockNumber();
+
+      await mine(100);
+
+      assert.equal(await getBlockNumber(), blockNumberBefore + 100);
+    });
+
+    it("should accept an interval", async function () {
+      const blockNumberBefore = await getBlockNumber();
+      const blockTimestampBefore = await getBlockTimestamp();
+
+      await mine(100, {
+        interval: 600,
+      });
+
+      assert.equal(await getBlockNumber(), blockNumberBefore + 100);
+      assert.equal(
+        await getBlockTimestamp(),
+        blockTimestampBefore + 1 + 99 * 600
+      );
+    });
+
+    describe("accepted parameter types for blocks", function () {
+      const blocksExamples: Array<[string, NumberLike, number]> = [
+        ["number", 100, 100],
+        ["bigint", BigInt(100), 100],
+        ["hex encoded", "0x64", 100],
+        ["hex encoded with leading zeros", "0x0A", 10],
+        ["ethers's bignumber instances", ethers.BigNumber.from(100), 100],
+        ["bn.js instances", new BN(100), 100],
+      ];
+
+      for (const [type, value, expectedMinedBlocks] of blocksExamples) {
+        it(`should accept blocks of type ${type}`, async function () {
+          const blockNumberBefore = await getBlockNumber();
+          await mine(value);
+          assert.equal(
+            await getBlockNumber(),
+            blockNumberBefore + expectedMinedBlocks
+          );
+        });
+      }
+
+      it("should not accept strings that are not 0x-prefixed", async function () {
+        await assert.isRejected(mine("3"));
+      });
+    });
+
+    describe("accepted parameter types for interval", function () {
+      const intervalExamples: Array<[string, NumberLike, number]> = [
+        ["number", 60, 60],
+        ["bigint", BigInt(60), 60],
+        ["hex encoded", "0x3c", 60],
+        ["hex encoded with leading zeros", "0x0A", 10],
+        ["ethers's bignumber instances", ethers.BigNumber.from(60), 60],
+        ["bn.js instances", new BN(60), 60],
+      ];
+
+      for (const [type, value, expectedInterval] of intervalExamples) {
+        it(`should accept intervals of type ${type}`, async function () {
+          const blockTimestampBefore = await getBlockTimestamp();
+          await mine(100, {
+            interval: value,
+          });
+          assert.equal(
+            await getBlockTimestamp(),
+            blockTimestampBefore + 1 + 99 * expectedInterval
+          );
+        });
+      }
+
+      it("should not accept strings that are not 0x-prefixed", async function () {
+        await assert.isRejected(
+          mine(100, {
+            interval: "3",
+          })
+        );
+      });
+    });
   });
-
-  afterEach("Resetting hardhat", function () {
-    resetHardhatContext();
-  });
-}
-
-export function rpcQuantityToNumber(quantity: string): number {
-  const buffer = toBuffer(quantity);
-  return new BN(buffer).toNumber();
-}
+});

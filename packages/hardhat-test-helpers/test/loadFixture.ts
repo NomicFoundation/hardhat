@@ -1,7 +1,7 @@
 import { assert } from "chai";
 
 import { loadFixture } from "../src/loadFixture";
-import { useEnvironment, rpcQuantityToNumber } from "./helpers";
+import { useEnvironment, rpcQuantityToNumber } from "./test-utils";
 
 describe("loadFixture", function () {
   useEnvironment("simple");
