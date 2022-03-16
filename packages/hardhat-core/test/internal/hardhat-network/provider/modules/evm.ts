@@ -128,6 +128,12 @@ describe("Evm module", function () {
         });
 
         it("should accept a hex string param", async function () {
+          const originalOffset = parseInt(
+            await this.provider.send("evm_increaseTime", [
+              numberToRpcQuantity(0),
+            ]),
+            10
+          );
           const offset1 = 123;
           const offset2 = 1000;
           const totalOffset1 = parseInt(
@@ -142,8 +148,8 @@ describe("Evm module", function () {
             ]),
             10
           );
-          assert.strictEqual(totalOffset1, offset1);
-          assert.strictEqual(totalOffset2, offset1 + offset2);
+          assert.strictEqual(totalOffset1, originalOffset + offset1);
+          assert.strictEqual(totalOffset2, originalOffset + offset1 + offset2);
         });
       });
 
