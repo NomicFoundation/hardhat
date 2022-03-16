@@ -7,7 +7,7 @@ on:
     types: [closed]
 
 jobs:
-  my-action:
+  close-linear-issue:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -15,7 +15,6 @@ jobs:
           repository: "NomicFoundation/github-linear-bridge"
           path: ".github/github-linear-bridge"
           ref: "main"
-          token: ${{ secrets.AUTOMATION_HELPER_PAT }}
       - uses: actions/setup-node@v1
         with:
           node-version: 14
