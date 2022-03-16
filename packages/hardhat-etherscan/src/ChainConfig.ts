@@ -198,4 +198,18 @@ export const chainConfig: ChainConfig = {
       browserURL: "https://testnet.aurorascan.dev",
     },
   },
+  metisStardust: {
+    chainId: 588,
+    urls: {
+      apiURL: "https://stardust-explorer.metis.io/api",
+      browserURL: "https://stardust-explorer.metis.io",
+    },
+  },
+  metisAndromeda: {
+    chainId: 1088,
+    urls: {
+      apiURL: "https://andromeda-explorer.metis.io/api",
+      browserURL: "https://andromeda-explorer.metis.io",
+    },
+  },
 };

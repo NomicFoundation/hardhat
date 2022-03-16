@@ -175,6 +175,9 @@ module.exports = {
         sokol: "api-key",
         aurora: "api-key",
         auroraTestnet: "api-key",
+        // metis
+        metisStardust: "api-key",
+        metisAndromeda: "api-key",
     }
   }
 };
