@@ -74,7 +74,7 @@ subtask(TASK_TEST_RUN_MOCHA_TESTS)
 
       const mochaConfig: MochaOptions = { ...config.mocha };
 
-      if (taskArgs.grep) {
+      if (taskArgs.grep !== undefined) {
         mochaConfig.grep = taskArgs.grep;
       }
       if (taskArgs.bail) {
