@@ -98,9 +98,9 @@ function normalize(
   source:
     | number
     | bigint
-    | typeof BNType
-    | typeof EthersBigNumberType
-    | typeof BigNumberJsType
+    | BNType
+    | EthersBigNumberType
+    | BigNumberJsType
     | string
 ): bigint {
   if (isEthersBigNumber(source)) {
