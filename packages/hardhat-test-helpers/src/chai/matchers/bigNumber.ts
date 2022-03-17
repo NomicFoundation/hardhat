@@ -212,7 +212,7 @@ function overwriteBigNumberWithin(
       throwIfUnsafe(startArg);
       throwIfUnsafe(finishArg);
       this.assert(
-        start <= expected && finish >= expected,
+        start <= expected && expected <= finish,
         `expected ${expected} to be within ${start}..${finish}`,
         `expected ${expected} to not be within ${start}..${finish}`,
         [start, finish],
