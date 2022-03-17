@@ -3,7 +3,7 @@ import { BigNumber as BigNumberEthers } from "ethers";
 import { BigNumber as BigNumberJs } from "bignumber.js";
 import BN from "bn.js";
 
-import { bnChai } from "../../../src/chai/matchers/bnChai";
+import { bnChai } from "../../../src";
 
 type SupportedNumber = number | bigint | BN | BigNumberEthers | BigNumberJs;
 
