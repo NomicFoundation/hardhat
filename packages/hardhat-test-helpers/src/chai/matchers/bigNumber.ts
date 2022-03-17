@@ -171,10 +171,10 @@ function overwriteBigNumberFunction(
       }
     }
     if (isBigNumber(expectedFlag) || isBigNumber(actualArg)) {
-      const expected = normalize(expectedFlag);
-      const actual = normalize(actualArg);
       throwIfUnsafe(expectedFlag);
       throwIfUnsafe(actualArg);
+      const expected = normalize(expectedFlag);
+      const actual = normalize(actualArg);
       this.assert(
         compare(functionName, expected, actual),
         `expected ${expected} to ${readableName} ${actual}`,
