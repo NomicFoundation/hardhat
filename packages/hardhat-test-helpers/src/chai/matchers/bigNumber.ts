@@ -125,7 +125,7 @@ function normalize(
     // haven't thrown; return the value:
     return toReturn;
   } else {
-    throw new Error(`cannot convert ${typeof source} to BigNumber`);
+    throw new Error(`cannot convert ${typeof source} to BigInt`);
   }
 }
 
