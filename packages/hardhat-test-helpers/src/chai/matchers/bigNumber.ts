@@ -252,8 +252,8 @@ function overwriteBigNumberCloseTo(
       }
       this.assert(
         abs(expected - actual) <= delta,
-        `expected ${expected} to be close to ${actual}`,
-        `expected ${expected} not to be close to ${actual}`,
+        `expected ${expected} to be close to ${actual} +/- ${delta}`,
+        `expected ${expected} not to be close to ${actual} +/- ${delta}`,
         `A number between ${actual - delta} and ${actual + delta}`,
         expected
       );

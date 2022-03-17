@@ -389,7 +389,7 @@ describe("BigNumber matchers", function () {
       {
         operator: "closeTo",
         operands: [100, 111, 10],
-        msg: "expected 100 to be close to 111",
+        msg: "expected 100 to be close to 111 +/- 10",
       },
     ];
     for (const { operator, operands, msg } of positiveFailureCases) {
