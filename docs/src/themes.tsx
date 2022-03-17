@@ -1,12 +1,12 @@
-import React from "react";
-import { createTheming } from "@callstack/react-theme-provider";
+import React from 'react';
+import { createTheming } from '@callstack/react-theme-provider';
 
-export { styled } from "linaria/react";
+export { styled } from 'linaria/react';
 
 const breakpoints = {
-  sm: 576,
-  md: 768,
-  lg: 1140,
+  sm: 360,
+  md: 412,
+  lg: 1440,
 };
 
 const media = {
@@ -17,8 +17,16 @@ const media = {
 
 export const appTheme = {
   colors: {
-    primary: "#FFF100",
-    accent: "green",
+    neutral0: '#FFFFFF',
+    neutral100: '#F2F2F2',
+    neutral400: '#C4C4C4',
+    neutral500: '#4B4D4D',
+    neutral600: '#6E6F70',
+    neutral700: '#9B9FA8',
+    neutral900: '#0A0A0A',
+    accent600: '#FFF04D',
+    accent900: '#EDCF00',
+    accentBackground: 'linear-gradient(256.6deg, #FFF100 0%, #FFF100 100%)',
   },
   media,
   breakpoints,
@@ -26,10 +34,12 @@ export const appTheme = {
 
 const theming = createTheming(appTheme);
 
+type Theme = typeof appTheme;
+
 export const ThemeProvider = ({
   children,
   theme: themeProp,
-}: React.PropsWithChildren<{ theme: {} }>): JSX.Element => (
+}: React.PropsWithChildren<{ theme: Theme }>): JSX.Element => (
   <theming.ThemeProvider theme={themeProp}>{children}</theming.ThemeProvider>
 );
 
@@ -37,5 +47,4 @@ interface ThemeSelect {
   (tm: typeof appTheme): string;
 }
 
-export const tm = (cb: ThemeSelect) => () =>
-  ((fn) => fn(theming.useTheme()))(cb);
+export const tm = (cb: ThemeSelect) => () => ((fn) => fn(theming.useTheme()))(cb);
