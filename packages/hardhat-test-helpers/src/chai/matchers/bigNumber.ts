@@ -84,14 +84,6 @@ export function supportBigNumber(
 
 type Methods = "eq" | "gt" | "lt" | "gte" | "lte";
 
-function throwIfUnsafe(i: number) {
-  if (typeof i === "number" && !Number.isSafeInteger(i)) {
-    throw new RangeError(
-      `Cannot compare to unsafe integer ${i}. Consider using BigInt(${i}) instead. For more details, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isSafeInteger`
-    );
-  }
-}
-
 function override(
   method: Methods,
   name: string,
@@ -122,7 +114,16 @@ function normalize(
     typeof source === "number" ||
     typeof source === "bigint"
   ) {
-    return BigInt(source);
+    // first construct a BigInt, to allow it to throw if there's a fractional value:
+    const toReturn = BigInt(source);
+    // then check the source for integer safety:
+    if (typeof source === "number" && !Number.isSafeInteger(source)) {
+      throw new RangeError(
+        `Cannot compare to unsafe integer ${source}. Consider using BigInt(${source}) instead. For more details, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isSafeInteger`
+      );
+    }
+    // haven't thrown; return the value:
+    return toReturn;
   } else {
     throw new Error(`cannot convert ${typeof source} to BigNumber`);
   }
@@ -173,8 +174,6 @@ function overwriteBigNumberFunction(
     if (isBigNumber(expectedFlag) || isBigNumber(actualArg)) {
       const expected = normalize(expectedFlag);
       const actual = normalize(actualArg);
-      throwIfUnsafe(expectedFlag);
-      throwIfUnsafe(actualArg);
       this.assert(
         compare(functionName, expected, actual),
         `expected ${expected} to ${readableName} ${actual}`,
@@ -208,9 +207,6 @@ function overwriteBigNumberWithin(
       const expected = normalize(expectedFlag);
       const start = normalize(startArg);
       const finish = normalize(finishArg);
-      throwIfUnsafe(expectedFlag);
-      throwIfUnsafe(startArg);
-      throwIfUnsafe(finishArg);
       this.assert(
         start <= expected && expected <= finish,
         `expected ${expected} to be within ${start}..${finish}`,
@@ -244,9 +240,6 @@ function overwriteBigNumberCloseTo(
       const expected = normalize(expectedFlag);
       const actual = normalize(actualArg);
       const delta = normalize(deltaArg);
-      throwIfUnsafe(expectedFlag);
-      throwIfUnsafe(actualArg);
-      throwIfUnsafe(deltaArg);
       function abs(i: bigint): bigint {
         return i < 0 ? BigInt(-1) * i : i;
       }
