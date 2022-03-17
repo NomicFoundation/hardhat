@@ -11,11 +11,11 @@
 //   closeTo
 //   approximately
 
-import { BigNumber as EthersBigNumberType } from "ethers";
+import type { BigNumber as EthersBigNumberType } from "ethers";
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { BigNumber as BigNumberJsType } from "bignumber.js";
+import type { BigNumber as BigNumberJsType } from "bignumber.js";
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { default as BNType } from "bn.js";
+import type { default as BNType } from "bn.js";
 
 function isBN(n: any) {
   try {
