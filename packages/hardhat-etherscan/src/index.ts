@@ -230,9 +230,6 @@ Possible causes are:
     throw new NomicLabsHardhatPluginError(pluginName, message);
   }
 
-  // Make sure that contract artifacts are up-to-date.
-  await run(TASK_COMPILE);
-
   const contractInformation: ExtendedContractInformation = await run(
     TASK_VERIFY_GET_CONTRACT_INFORMATION,
     {
