@@ -72,11 +72,11 @@ subtask(TASK_TEST_RUN_MOCHA_TESTS)
     ) => {
       const { default: Mocha } = await import("mocha");
 
-      const mochaConfig: MochaOptions = {
-        ...config.mocha,
-        grep: taskArgs.grep,
-      };
+      const mochaConfig: MochaOptions = { ...config.mocha };
 
+      if (taskArgs.grep !== undefined) {
+        mochaConfig.grep = taskArgs.grep;
+      }
       if (taskArgs.bail) {
         mochaConfig.bail = true;
       }
