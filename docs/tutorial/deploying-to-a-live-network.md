@@ -95,4 +95,4 @@ Finally, run:
 npx hardhat run scripts/deploy.js --network ropsten
 ```
 
-If everything went well, you should see the deployed contract address.
+If everything went well, you should see the deployed contract address. To verify the deployment, go to https://ropsten.etherscan.io/ and search for the contract address (sometimes called Token address). Also, your Ropsten ETH should be slightly decreased as a result of the transaction.
