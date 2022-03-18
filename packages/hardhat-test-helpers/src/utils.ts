@@ -17,7 +17,7 @@ async function checkIfHardhatNetwork(
   }
 }
 
-async function getHardhatProvider(): Promise<EIP1193Provider> {
+export async function getHardhatProvider(): Promise<EIP1193Provider> {
   try {
     const hre = await import("hardhat");
 
@@ -43,7 +43,7 @@ async function getHardhatProvider(): Promise<EIP1193Provider> {
   }
 }
 
-function toRpcQuantity(x: NumberLike): string {
+export function toRpcQuantity(x: NumberLike): string {
   let hex: string;
   if (typeof x === "number" || typeof x === "bigint") {
     hex = `0x${x.toString(16)}`;
@@ -65,21 +65,4 @@ function toRpcQuantity(x: NumberLike): string {
   }
 
   return hex.startsWith("0x") ? hex.replace("0x0", "0x") : `0x${hex}`;
-}
-
-export async function mine(
-  blocks: NumberLike = 1,
-  options: { interval?: NumberLike } = {}
-): Promise<void> {
-  const provider = await getHardhatProvider();
-
-  const interval = options.interval ?? 1;
-
-  const blocksHex = toRpcQuantity(blocks);
-  const intervalHex = toRpcQuantity(interval);
-
-  await provider.request({
-    method: "hardhat_mine",
-    params: [blocksHex, intervalHex],
-  });
 }

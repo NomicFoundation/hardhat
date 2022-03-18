@@ -1,3 +1,4 @@
 export * from "./loadFixture";
 
-export * from "./helpers";
+export { mine } from "./helpers/mine";
+export { takeSnapshot } from "./helpers/takeSnapshot";

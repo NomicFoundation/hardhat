@@ -2,7 +2,7 @@ import { assert } from "chai";
 import { BN } from "ethereumjs-util";
 import { ethers } from "ethers";
 
-import { mine } from "../src";
+import * as hh from "../src";
 import { NumberLike } from "../src/types";
 import { useEnvironment, rpcQuantityToNumber } from "./test-utils";
 
@@ -30,7 +30,7 @@ describe("helpers", function () {
     it("should mine a single block by default", async function () {
       const blockNumberBefore = await getBlockNumber();
 
-      await mine();
+      await hh.mine();
 
       assert.equal(await getBlockNumber(), blockNumberBefore + 1);
     });
@@ -38,7 +38,7 @@ describe("helpers", function () {
     it("should mine the given number of blocks", async function () {
       const blockNumberBefore = await getBlockNumber();
 
-      await mine(100);
+      await hh.mine(100);
 
       assert.equal(await getBlockNumber(), blockNumberBefore + 100);
     });
@@ -47,7 +47,7 @@ describe("helpers", function () {
       const blockNumberBefore = await getBlockNumber();
       const blockTimestampBefore = await getBlockTimestamp();
 
-      await mine(100, {
+      await hh.mine(100, {
         interval: 600,
       });
 
@@ -71,7 +71,7 @@ describe("helpers", function () {
       for (const [type, value, expectedMinedBlocks] of blocksExamples) {
         it(`should accept blocks of type ${type}`, async function () {
           const blockNumberBefore = await getBlockNumber();
-          await mine(value);
+          await hh.mine(value);
           assert.equal(
             await getBlockNumber(),
             blockNumberBefore + expectedMinedBlocks
@@ -80,7 +80,7 @@ describe("helpers", function () {
       }
 
       it("should not accept strings that are not 0x-prefixed", async function () {
-        await assert.isRejected(mine("3"));
+        await assert.isRejected(hh.mine("3"));
       });
     });
 
@@ -97,7 +97,7 @@ describe("helpers", function () {
       for (const [type, value, expectedInterval] of intervalExamples) {
         it(`should accept intervals of type ${type}`, async function () {
           const blockTimestampBefore = await getBlockTimestamp();
-          await mine(100, {
+          await hh.mine(100, {
             interval: value,
           });
           assert.equal(
@@ -109,11 +109,53 @@ describe("helpers", function () {
 
       it("should not accept strings that are not 0x-prefixed", async function () {
         await assert.isRejected(
-          mine(100, {
+          hh.mine(100, {
             interval: "3",
           })
         );
       });
+    });
+  });
+
+  describe("takeSnapshot", function () {
+    it("should take a snapshot", async function () {
+      const blockNumberBefore = await getBlockNumber();
+
+      const snapshot = await hh.takeSnapshot();
+
+      await hh.mine();
+      assert.equal(await getBlockNumber(), blockNumberBefore + 1);
+
+      await snapshot.restore();
+      assert.equal(await getBlockNumber(), blockNumberBefore);
+    });
+
+    it("revert can be called more than once", async function () {
+      const blockNumberBefore = await getBlockNumber();
+
+      const snapshot = await hh.takeSnapshot();
+
+      await hh.mine();
+      assert.equal(await getBlockNumber(), blockNumberBefore + 1);
+
+      await snapshot.restore();
+      assert.equal(await getBlockNumber(), blockNumberBefore);
+
+      await hh.mine();
+      await hh.mine();
+      assert.equal(await getBlockNumber(), blockNumberBefore + 2);
+
+      await snapshot.restore();
+      assert.equal(await getBlockNumber(), blockNumberBefore);
+    });
+
+    it("should throw if an invalid snapshot is restored", async function () {
+      const snapshot1 = await hh.takeSnapshot();
+      const snapshot2 = await hh.takeSnapshot();
+
+      await snapshot1.restore();
+
+      await assert.isRejected(snapshot2.restore());
     });
   });
 });
