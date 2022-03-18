@@ -46,6 +46,7 @@ export async function getHardhatProvider(): Promise<EIP1193Provider> {
 export function toRpcQuantity(x: NumberLike): string {
   let hex: string;
   if (typeof x === "number" || typeof x === "bigint") {
+    // TODO: check that number is safe
     hex = `0x${x.toString(16)}`;
   } else if (typeof x === "string") {
     if (!x.startsWith("0x")) {
