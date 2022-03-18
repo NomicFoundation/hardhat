@@ -20,8 +20,8 @@ export class PersistableDefaultStateManager
     return ImmutableMap(storage);
   }
   public async loadState(state: ImmutableMap<string, any>): Promise<void> {
-    await trieDbImport(this._trie, state.get("db"));
-    await trieImport(this._trie, state.get("merkle"));
+    await trieDbLoad(this._trie, state.get("db"));
+    await trieLoad(this._trie, state.get("merkle"));
   }
 }
 
@@ -57,7 +57,7 @@ function trieDump(trie: Trie): Promise<Array<[string, string]>> {
   });
 }
 
-async function trieDbImport(
+async function trieDbLoad(
   trie: Trie,
   data: Array<[string, string]>
 ): Promise<void> {
@@ -69,7 +69,7 @@ async function trieDbImport(
   }
 }
 
-async function trieImport(
+async function trieLoad(
   trie: Trie,
   data: Array<[string, string]>
 ): Promise<void> {

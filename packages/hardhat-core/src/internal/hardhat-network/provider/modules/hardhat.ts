@@ -117,8 +117,8 @@ export class HardhatModule {
         return this._hardhatMineAction(...this._hardhatMineParams(params));
       case "hardhat_dumpState":
         return this._dumpStateAction(...this._dumpStateParams(params));
-      case "hardhat_importState":
-        return this._importStateAction(...this._importStateParams(params));
+      case "hardhat_loadState":
+        return this._loadStateAction(...this._loadStateParams(params));
     }
 
     throw new MethodNotFoundError(`Method ${method} not found`);
@@ -398,12 +398,12 @@ export class HardhatModule {
     return this._node.dumpState();
   }
 
-  // hardhat_importState
-  private _importStateParams(params: any[]): [Buffer] {
+  // hardhat_loadState
+  private _loadStateParams(params: any[]): [Buffer] {
     return validateParams(params, rpcData);
   }
 
-  private async _importStateAction(buf: Buffer) {
+  private async _loadStateAction(buf: Buffer) {
     return this._node.loadState(buf);
   }
 

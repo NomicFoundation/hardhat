@@ -898,7 +898,7 @@ describe("ForkStateManager", () => {
 
     const testStorageKey = randomHash();
 
-    const importedStateWithStorage = ImmutableMap({
+    const loadedStateWithStorage = ImmutableMap({
       [address.toString()]: {
         nonce: intToHex(1),
         code,
@@ -910,7 +910,7 @@ describe("ForkStateManager", () => {
     });
 
     it("imports from fresh state", async () => {
-      await fsm.loadState(importedStateWithStorage);
+      await fsm.loadState(loadedStateWithStorage);
 
       const accountState = await fsm.getAccount(address);
 
@@ -948,7 +948,7 @@ describe("ForkStateManager", () => {
           })
         );
 
-        await fsm.loadState(importedStateWithStorage);
+        await fsm.loadState(loadedStateWithStorage);
       });
 
       it("overrides existing, conflicting state", async () => {
