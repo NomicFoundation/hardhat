@@ -7,6 +7,9 @@ import Hamburger from './ui/Hamburger';
 import MobileMenu from './ui/MobileMenu';
 import Menu from './ui/DesktopMenu';
 import useWindowSize from '../hooks/useWindowSize';
+import Link from 'next/link';
+
+const { media, breakpoints } = appTheme;
 
 const Navigation = styled.nav<{ isMobileMenuOpen: boolean }>`
   position: sticky;
@@ -26,7 +29,7 @@ const Navigation = styled.nav<{ isMobileMenuOpen: boolean }>`
   ${tm(({ media }) => media.lg)} {
     padding: 240px 24px;
   }
-  @media screen and (min-width: ${appTheme.breakpoints.lg}px) {
+  ${media.lg} {
     padding: 24px 240px;
   }
 `;
@@ -45,7 +48,7 @@ const ControlsContainer = styled.section`
   }
 `;
 
-const LogoContainer = styled.button`
+const LogoContainer = styled.a`
   display: flex;
   justify-content: center;
   align-items: center;
@@ -62,7 +65,7 @@ const LandingNavigation: FC = () => {
   const router = useRouter();
   const [isMobileMenuOpen, setMobileMenuState] = useState(false);
   const windowSize = useWindowSize();
-  const isDesktop = appTheme.breakpoints.lg <= windowSize.width;
+  const isDesktop = breakpoints.lg <= windowSize.width;
 
   useEffect(() => {
     const body = document.querySelector('body');
@@ -85,9 +88,12 @@ const LandingNavigation: FC = () => {
       }}
     >
       <ControlsContainer>
-        <LogoContainer onClick={() => router.push('/')}>
-          <HardhatLogo />
-        </LogoContainer>
+        <Link href={'/'} passHref>
+          <LogoContainer>
+            <HardhatLogo />
+          </LogoContainer>
+        </Link>
+
         {!isDesktop ? (
           <Hamburger isOpen={isMobileMenuOpen} onClick={() => setMobileMenuState(!isMobileMenuOpen)} />
         ) : (

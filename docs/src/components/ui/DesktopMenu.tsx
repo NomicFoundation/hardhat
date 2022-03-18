@@ -3,7 +3,9 @@ import { styled } from 'linaria/react';
 import { tm } from '../../themes';
 import { useRouter } from 'next/router';
 import { MenuProps, MenuItemType, SocialsItem } from './types';
-import { defaultMenuItemsList, defaultSocialsItems } from './default-props';
+import { defaultSocialsItems } from './default-props';
+import { defaultMenuItemsList } from '../../config';
+import Link from 'next/link';
 
 const MenuContainer = styled.section`
   user-select: none;
@@ -29,7 +31,7 @@ const MenuItem = styled.li`
   }
 `;
 
-const MenuButton = styled.button`
+const MenuButton = styled.a`
   text-transform: uppercase;
   text-align: center;
   border: none;
@@ -106,14 +108,9 @@ const Menu = (props: MenuProps) => {
           return (
             <>
               <MenuItem key={menuItem.label}>
-                <MenuButton
-                  data-current={router.pathname === menuItem.href}
-                  onClick={() => {
-                    router.push(menuItem.href);
-                  }}
-                >
-                  {menuItem.label}
-                </MenuButton>
+                <Link href={menuItem.href} passHref>
+                  <MenuButton data-current={router.pathname === menuItem.href}>{menuItem.label}</MenuButton>
+                </Link>
               </MenuItem>
             </>
           );

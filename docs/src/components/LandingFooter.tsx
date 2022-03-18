@@ -2,8 +2,7 @@ import { styled } from 'linaria/react';
 import React from 'react';
 import EthereumFoundationLogo from '../assets/ethereum-foundation-logo';
 import { appTheme, tm } from '../themes';
-
-type Props = {};
+const { media } = appTheme;
 
 const Footer = styled.footer`
   box-sizing: border-box;
@@ -12,7 +11,7 @@ const Footer = styled.footer`
   flex-direction: column;
   align-items: center;
   background-color: ${tm(({ colors }) => colors.neutral900)};
-  @media screen and (min-width: ${appTheme.breakpoints.lg}px) {
+  ${media.lg} {
     padding: 64px 24px 40px;
   }
 `;
@@ -21,7 +20,7 @@ const SupportedBy = styled.section`
   display: flex;
   flex-direction: column;
   align-items: center;
-  @media screen and (min-width: ${appTheme.breakpoints.lg}px) {
+  ${media.lg} {
     flex-direction: row;
   }
 `;
@@ -35,7 +34,7 @@ const Subtitle = styled.h2`
   letter-spacing: 0em;
   text-align: center;
   margin-bottom: 16px;
-  @media screen and (min-width: ${appTheme.breakpoints.lg}px) {
+  ${media.lg} {
     margin-bottom: unset;
     margin-right: 24px;
   }
@@ -60,14 +59,14 @@ const Legal = styled.section`
     transform: translateX(-50%);
     background-color: ${tm(({ colors }) => colors.neutral500)};
   }
-  @media screen and (min-width: ${appTheme.breakpoints.lg}px) {
+  ${media.lg} {
     font-size: 15px;
     line-height: 24px;
     margin-top: 96px;
   }
 `;
 
-const LandingFooter = (props: Props) => {
+const LandingFooter = () => {
   return (
     <Footer>
       <SupportedBy>

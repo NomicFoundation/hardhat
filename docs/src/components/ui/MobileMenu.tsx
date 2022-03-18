@@ -4,7 +4,9 @@ import { tm } from '../../themes';
 import { useRouter } from 'next/router';
 
 import { MenuItemType, MenuProps, SocialsItem } from './types';
-import { defaultMenuItemsList, defaultSocialsItems } from './default-props';
+import { defaultSocialsItems } from './default-props';
+import { defaultMenuItemsList } from '../../config';
+import Link from 'next/link';
 
 const MobileMenuContainer = styled.section`
   position: fixed;
@@ -56,7 +58,7 @@ const MobileMenuItem = styled.li`
   }
 `;
 
-const MobileMenuButton = styled.button`
+const MobileMenuButton = styled.a`
   text-transform: uppercase;
   text-align: center;
   border: none;
@@ -90,7 +92,7 @@ const MobileMenuSubItem = styled.li`
   }
 `;
 
-const MobileMenuSubItemButton = styled.button`
+const MobileMenuSubItemButton = styled.a`
   text-align: center;
   border: none;
   color: ${tm(({ colors }) => colors.neutral900)};
@@ -137,27 +139,21 @@ const MobileMenu = (props: MenuProps) => {
           return (
             <Fragment key={menuItem.label}>
               <MobileMenuItem>
-                <MobileMenuButton
-                  onClick={() => {
-                    router.push(menuItem.href);
-                  }}
-                >
-                  {menuItem.label}
-                </MobileMenuButton>
+                <Link href={menuItem.href} passHref>
+                  <MobileMenuButton>{menuItem.label}</MobileMenuButton>
+                </Link>
               </MobileMenuItem>
               {menuItem.subItems && menuItem.subItems.length > 0 && (
                 <MobileMenuSubContainer itemsCount={menuItem.subItems.length}>
                   {menuItem.subItems.map((subItem: MenuItemType) => {
                     return (
                       <MobileMenuSubItem key={subItem.label}>
-                        <MobileMenuSubItemButton
-                          onClick={() => {
-                            router.push(subItem.href);
-                          }}
-                        >
-                          {subItem.prefix && <span className="prefix">{subItem.prefix}</span>}
-                          <span>{subItem.label}</span>
-                        </MobileMenuSubItemButton>
+                        <Link href={subItem.href} passHref>
+                          <MobileMenuSubItemButton>
+                            {subItem.prefix && <span className="prefix">{subItem.prefix}</span>}
+                            <span>{subItem.label}</span>
+                          </MobileMenuSubItemButton>
+                        </Link>
                       </MobileMenuSubItem>
                     );
                   })}
