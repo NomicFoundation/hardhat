@@ -1,10 +1,10 @@
 import { getHardhatProvider } from "../utils";
 
-interface Snapshot {
+export interface SnapshotRestorer {
   restore(): Promise<void>;
 }
 
-export async function takeSnapshot(): Promise<Snapshot> {
+export async function takeSnapshot(): Promise<SnapshotRestorer> {
   const provider = await getHardhatProvider();
 
   let snapshotId = await provider.request({

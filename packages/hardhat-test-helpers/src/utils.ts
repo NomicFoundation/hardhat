@@ -1,6 +1,6 @@
-import { EIP1193Provider } from "hardhat/types";
+import type { EIP1193Provider } from "hardhat/types";
 
-import { NumberLike } from "./types";
+import type { NumberLike } from "./types";
 
 async function checkIfHardhatNetwork(
   provider: EIP1193Provider

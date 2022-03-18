@@ -1,7 +1,9 @@
+import type { SnapshotRestorer } from "./helpers/takeSnapshot";
+
 type Fixture<T> = () => Promise<T>;
 
 interface Snapshot<T> {
-  id: string;
+  restorer: SnapshotRestorer;
   fixture: Fixture<T>;
   data: T;
 }
@@ -11,29 +13,18 @@ const snapshots: Array<Snapshot<any>> = [];
 export async function loadFixture<T>(fixture: Fixture<T>): Promise<T> {
   const snapshot = snapshots.find((s) => s.fixture === fixture);
 
-  const hre = require("hardhat");
-  const provider = hre.network.provider;
+  const { takeSnapshot } = await import("./helpers/takeSnapshot");
 
   if (snapshot !== undefined) {
-    await provider.request({
-      method: "evm_revert",
-      params: [snapshot.id],
-    });
-    snapshot.id = (await provider.request({
-      method: "evm_snapshot",
-      params: [],
-    })) as string;
+    await snapshot.restorer.restore();
 
     return snapshot.data;
   } else {
     const data = await fixture();
-    const id = (await provider.request({
-      method: "evm_snapshot",
-      params: [],
-    })) as string;
+    const restorer = await takeSnapshot();
 
     snapshots.push({
-      id,
+      restorer,
       fixture,
       data,
     });
