@@ -909,7 +909,7 @@ describe("ForkStateManager", () => {
       },
     });
 
-    it("imports from fresh state", async () => {
+    it("loads from fresh state", async () => {
       await fsm.loadState(loadedStateWithStorage);
 
       const accountState = await fsm.getAccount(address);
