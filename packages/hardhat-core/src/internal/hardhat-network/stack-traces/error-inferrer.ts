@@ -86,17 +86,13 @@ export class ErrorInferrer {
     }
 
     if (this._isMissingFunctionAndFallbackError(trace, calledFunction)) {
-      if (this._emptyCalldataAndNoReceive(trace)) {
-        return [
-          {
-            type: StackTraceEntryType.MISSING_FALLBACK_OR_RECEIVE_ERROR,
-            sourceReference:
-              this._getContractStartWithoutFunctionSourceReference(trace),
-          },
-        ];
-      }
-
-      return [
+      return this._emptyCalldataAndNoReceive(trace) ? [
+        {
+          type: StackTraceEntryType.MISSING_FALLBACK_OR_RECEIVE_ERROR,
+          sourceReference:
+            this._getContractStartWithoutFunctionSourceReference(trace),
+        },
+      ] : [
         {
           type: StackTraceEntryType.UNRECOGNIZED_FUNCTION_WITHOUT_FALLBACK_ERROR,
           sourceReference:
@@ -106,17 +102,13 @@ export class ErrorInferrer {
     }
 
     if (this._isFallbackNotPayableError(trace, calledFunction)) {
-      if (this._emptyCalldataAndNoReceive(trace)) {
-        return [
-          {
-            type: StackTraceEntryType.FALLBACK_NOT_PAYABLE_AND_NO_RECEIVE_ERROR,
-            sourceReference: this._getFallbackStartSourceReference(trace),
-            value: trace.value,
-          },
-        ];
-      }
-
-      return [
+      return this._emptyCalldataAndNoReceive(trace) ? [
+        {
+          type: StackTraceEntryType.FALLBACK_NOT_PAYABLE_AND_NO_RECEIVE_ERROR,
+          sourceReference: this._getFallbackStartSourceReference(trace),
+          value: trace.value,
+        },
+      ] : [
         {
           type: StackTraceEntryType.FALLBACK_NOT_PAYABLE_ERROR,
           sourceReference: this._getFallbackStartSourceReference(trace),
