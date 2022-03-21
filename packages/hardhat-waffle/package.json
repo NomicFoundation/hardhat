@@ -3,7 +3,7 @@
   "version": "2.0.3",
   "description": "Hardhat plugin to test smart contracts with Waffle",
   "homepage": "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-waffle",
-  "repository": "github:Dzejkop/hardhat",
+  "repository": "github:nomiclabs/hardhat",
   "author": "Nomic Labs LLC",
   "license": "MIT",
   "main": "dist/src/index.js",
