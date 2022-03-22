@@ -67,3 +67,14 @@ export function toRpcQuantity(x: NumberLike): string {
 
   return hex.startsWith("0x") ? hex.replace("0x0", "0x") : `0x${hex}`;
 }
+
+export function assertValidAddress(hexAddress: string): void {
+  if (
+    typeof hexAddress !== "string" ||
+    !/^0x[0-9a-fA-F]{40}$/.test(hexAddress)
+  ) {
+    throw new Error(
+      `[hardhat-test-helpers] ${hexAddress} is not a valid hex address`
+    );
+  }
+}
