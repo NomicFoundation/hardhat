@@ -1,4 +1,4 @@
-import { NumberLike } from "../types";
+import type { NumberLike } from "../types";
 import { getHardhatProvider, toRpcQuantity } from "../utils";
 
 export async function setBlockGasLimit(
