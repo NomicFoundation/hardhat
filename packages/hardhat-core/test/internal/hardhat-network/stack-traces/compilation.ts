@@ -15,11 +15,22 @@ interface SolcSourceFileToContents {
   [filename: string]: { content: string };
 }
 
+
+/**
+ * 
+ * getSolcSourceFileMapping
+ * @param {string[]} sources 
+ * @return {SolcSourceFileToContents}
+ * @note Previously realpathSync.native was unavailable on case-insensitive file systems 
+ * 
+ * requires typescript@^4.5.0 
+ * 
+ */
 function getSolcSourceFileMapping(sources: string[]): SolcSourceFileToContents {
   return Object.assign(
     {},
     ...sources.map((s) => ({
-      [path.basename(s)]: { content: fs.readFileSync(s, "utf8") },
+      [path.basename(s)]: { content: fs.realpathSync.native(s, "utf8") },
     }))
   );
 }

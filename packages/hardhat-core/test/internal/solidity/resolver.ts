@@ -2,7 +2,7 @@ import { assert } from "chai";
 import * as fsExtra from "fs-extra";
 import path from "path";
 import slash from "slash";
-
+import * as fs from 'fs';
 import { TASK_COMPILE } from "../../../src/builtin-tasks/task-names";
 import { ERRORS } from "../../../src/internal/core/errors-list";
 import { Parser } from "../../../src/internal/solidity/parse";
@@ -27,6 +27,8 @@ function assertResolvedFilePartiallyEquals(
     assert.deepEqual(actual[typedKey], expected[typedKey]);
   }
 }
+
+const realpathSync = fs.realpathSync.native ?? fs.realpathSync;
 
 const buildContent = (rawContent: string) => ({
   rawContent,

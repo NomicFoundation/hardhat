@@ -97,7 +97,8 @@ subtask(TASK_FLATTEN_GET_DEPENDENCY_GRAPH)
     const sourcePaths: string[] =
       files === undefined
         ? await run(TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS)
-        : files.map((f) => fs.realpathSync(f));
+        /** @note realpathSync.native */
+        : files.map((f) => fs.realpathSync.native(f));
 
     const sourceNames: string[] = await run(
       TASK_COMPILE_SOLIDITY_GET_SOURCE_NAMES,

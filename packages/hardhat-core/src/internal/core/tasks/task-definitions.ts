@@ -583,7 +583,7 @@ export class OverriddenTaskDefinition implements TaskDefinition {
   }
 
   /**
-   * Retrieves, if defined, the description of the overriden task,
+   * Retrieves, if defined, the description of the overridden task,
    * otherwise retrieves the description of the parent task.
    */
   public get description() {
@@ -595,7 +595,7 @@ export class OverriddenTaskDefinition implements TaskDefinition {
   }
 
   /**
-   * Retrieves, if defined, the action of the overriden task,
+   * Retrieves, if defined, the action of the overridden task,
    * otherwise retrieves the action of the parent task.
    */
   public get action() {

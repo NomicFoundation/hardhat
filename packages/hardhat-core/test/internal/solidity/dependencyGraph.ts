@@ -56,7 +56,7 @@ describe("Dependency Graph", function () {
     let loop2: ResolvedFile;
 
     before("Mock some resolved files", function () {
-      projectRoot = fs.realpathSync(".");
+      projectRoot = fs.realpathSync.native(".");
 
       fileWithoutDependencies = new ResolvedFile(
         "contracts/WD.sol",

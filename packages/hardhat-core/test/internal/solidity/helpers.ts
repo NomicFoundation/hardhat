@@ -10,7 +10,7 @@ import {
 } from "../../../src/internal/solidity/resolver";
 import * as taskTypes from "../../../src/types/builtin-tasks";
 
-const projectRoot = fs.realpathSync(".");
+const projectRoot = fs.realpathSync.native(".");
 
 export class MockFile {
   public readonly sourceName: string;

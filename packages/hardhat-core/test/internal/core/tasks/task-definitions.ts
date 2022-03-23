@@ -992,10 +992,10 @@ describe("OverriddenTaskDefinition", () => {
 
   describe("Param definitions can be added only in compatible cases", () => {
     it("should add a flag param if addFlag is called", () => {
-      overriddenTask.addFlag("flagParam", "flag in overriden task");
+      overriddenTask.addFlag("flagParam", "flag in overridden task");
       assertParamDefinition(overriddenTask.paramDefinitions.flagParam, {
         name: "flagParam",
-        description: "flag in overriden task",
+        description: "flag in overridden task",
         defaultValue: false,
         type: types.boolean,
         isOptional: true,

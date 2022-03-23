@@ -426,7 +426,7 @@ export function resolveProjectPaths(
   userConfigPath: string,
   userPaths: ProjectPathsUserConfig = {}
 ): ProjectPathsConfig {
-  const configFile = fs.realpathSync(userConfigPath);
+  const configFile = fs.realpathSync.native(userConfigPath);
   const configDir = path.dirname(configFile);
 
   const root = resolvePathFrom(configDir, "", userPaths.root);

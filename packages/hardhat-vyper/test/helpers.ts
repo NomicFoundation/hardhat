@@ -45,7 +45,7 @@ function getFixtureProjectPath(projectName: string): string {
     throw new Error(`Fixture project ${projectName} doesn't exist`);
   }
 
-  return fsExtra.realpathSync(projectPath);
+  return fsExtra.realpathSync.native(projectPath);
 }
 
 export function useEnvironment(configPath?: string) {

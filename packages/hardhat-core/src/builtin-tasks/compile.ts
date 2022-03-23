@@ -292,7 +292,7 @@ subtask(TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS)
  * Receives a list of compilation jobs and returns a new list where some of
  * the compilation jobs might've been removed.
  *
- * This task can be overriden to change the way the cache is used, or to use
+ * This task can be overridden to change the way the cache is used, or to use
  * a different approach to filtering out compilation jobs.
  */
 subtask(TASK_COMPILE_SOLIDITY_FILTER_COMPILATION_JOBS)
@@ -673,7 +673,7 @@ subtask(TASK_COMPILE_SOLIDITY_RUN_SOLC)
  * solc binary or, if that's not possible, using solcjs. Returns the generated
  * output.
  *
- * This task can be overriden to change how solc is obtained or used.
+ * This task can be overridden to change how solc is obtained or used.
  */
 subtask(TASK_COMPILE_SOLIDITY_COMPILE_SOLC)
   .addParam("input", undefined, undefined, types.any)
@@ -905,7 +905,7 @@ subtask(TASK_COMPILE_SOLIDITY_GET_ARTIFACT_FROM_COMPILATION_OUTPUT)
   );
 
 /**
- * Prints a message before running soljs with some input.
+ * Prints a message before running solcjs with some input.
  */
 subtask(TASK_COMPILE_SOLIDITY_LOG_RUN_COMPILER_START)
   .addParam("compilationJob", undefined, undefined, types.any)
@@ -1019,7 +1019,7 @@ subtask(TASK_COMPILE_SOLIDITY_COMPILE_JOB)
  * Receives a list of CompilationJobsFailure and throws an error if it's not
  * empty.
  *
- * This task could be overriden to avoid interrupting the compilation if
+ * This task could be overridden to avoid interrupting the compilation if
  * there's some part of the project that can't be compiled.
  */
 subtask(TASK_COMPILE_SOLIDITY_HANDLE_COMPILATION_JOBS_FAILURES)
@@ -1113,7 +1113,7 @@ subtask(TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURE_REASONS)
           const { versionPragmas } = error.file.content;
           const versionsRange = versionPragmas.join(" ");
 
-          log(`File ${sourceName} has an incompatible overriden compiler`);
+          log(`File ${sourceName} has an incompatible overridden compiler`);
 
           errorMessage += `  * ${sourceName} (${versionsRange})\n`;
         }
