@@ -22,3 +22,8 @@ export type MenuProps = {
   isOpen?: boolean;
   socialsItems: Array<SocialsItem>;
 };
+
+export type CTAType = {
+  title: string;
+  url: string;
+};
