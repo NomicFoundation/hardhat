@@ -5,14 +5,12 @@ import { tm } from "../../themes";
 type Props = {};
 
 const Container = styled.button`
-  /* color: ${tm(({ colors }) => colors.accent)};
-  background-color: darkcyan; */
   padding: 26px;
 `;
 
 const H1 = styled.h1`
   padding: 16px;
-  color: ${tm(({ colors }) => colors.accent)};
+  color: ${tm(({ colors }) => colors.neutral900)};
   background-color: darkcyan;
 `;
 
