@@ -7,6 +7,7 @@ import {
   FeeMarketEIP1559ValuesArray,
 } from "@ethereumjs/tx/src/types";
 import { InternalError } from "../../../core/providers/errors";
+import { LONDON_EIPS } from "../../../util/hardforks";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
@@ -63,28 +64,7 @@ export class ReadOnlyValidEIP1559Transaction extends FeeMarketEIP1559Transaction
     // this class should only be used with txs in a hardfork that
     // supports EIP-1559
     (fakeCommon as any).isActivatedEIP = (eip: number) => {
-      // This list was constructed by analysing which calls ethereumjs does
-      // to Common#isActivatedEIP and filtering this for London.
-      switch (eip) {
-        case 1559:
-        case 2537:
-        case 2565:
-        case 2718:
-        case 2929:
-        case 2930:
-        case 3541:
-          return true;
-        case 3540:
-        case 3607:
-        case 3670:
-        case 3860:
-        case 4399:
-          return false;
-      }
-
-      throw new Error(
-        "Expected `isActivatedEIP` to only be called with 2930 or 1559"
-      );
+      return LONDON_EIPS.has(eip);
     };
 
     // this class should only be used with EIP-1559 txs,
