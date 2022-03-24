@@ -10,7 +10,7 @@ export const BERLIN_EIPS = new Set([
   // Byzantium
   100, 140, 196, 197, 198, 211, 214, 649, 658,
   // Constantinople
-  101, 105, 123, 145,
+  1014, 1052, 1234, 145,
   // Istanbul
   1108, 1344, 152, 1884, 2028, 2200,
   // Muir Glacier
