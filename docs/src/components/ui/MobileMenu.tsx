@@ -122,6 +122,10 @@ const SocialLink = styled.a`
     cursor: pointer;
     fill: ${tm(({ colors }) => colors.neutral600)};
   }
+  &:focus svg {
+    cursor: pointer;
+    opacity: 0.5;
+  }
 `;
 
 const SocialLinksItem = styled.li`
@@ -131,7 +135,6 @@ const SocialLinksItem = styled.li`
 
 const MobileMenu = (props: MenuProps) => {
   const { menuItems, isOpen, socialsItems } = props;
-  const router = useRouter();
   return (
     <MobileMenuContainer data-open={isOpen}>
       <MobileMenuList>

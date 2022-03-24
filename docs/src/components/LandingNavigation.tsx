@@ -26,9 +26,6 @@ const Navigation = styled.nav<{ isMobileMenuOpen: boolean }>`
   transition: all ease-in-out 0.5s;
   background-color: ${tm(({ colors }) => colors.neutral0)};
   z-index: 10;
-  ${tm(({ media }) => media.lg)} {
-    padding: 240px 24px;
-  }
   ${media.lg} {
     padding: 24px 240px;
   }
@@ -62,7 +59,6 @@ const LogoContainer = styled.a`
 `;
 
 const LandingNavigation: FC = () => {
-  const router = useRouter();
   const [isMobileMenuOpen, setMobileMenuState] = useState(false);
   const windowSize = useWindowSize();
   const isDesktop = breakpoints.lg <= windowSize.width;
