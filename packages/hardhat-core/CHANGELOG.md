@@ -1,5 +1,13 @@
 # hardhat
 
+## 2.9.2
+
+### Patch Changes
+
+- 8fda4036: - Fix a bug that would override mocha grep options within the test task
+- dd0dc168: Fix a bug in Hardhat Network that prevented the forking functionality from working (#2528)
+- 6ff1cb03: Fixed bug (#2352) preventing the disabling of node task logging via hardhat.config.
+
 ## 2.9.1
 
 ### Patch Changes
