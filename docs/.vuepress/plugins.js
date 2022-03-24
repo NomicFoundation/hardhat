@@ -422,6 +422,13 @@ module.exports.communityPlugins = [
     description: "Automatically expose internal Solidity functions for testing",
     tags: ["Solidity", "Testing"],
   },
+  {
+    name: "hardhat-hethers",
+    author: "LimeChain",
+    authorUrl: "https://github.com/LimeChain/hardhat-hethers",
+    description: "Injects hethers into the Hardhat Runtime Environment",
+    tags: ["Hedera", "hethers"],
+  },
 ];
 
 module.exports.officialPlugins = [
