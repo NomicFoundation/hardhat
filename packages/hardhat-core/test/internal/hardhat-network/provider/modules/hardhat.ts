@@ -141,7 +141,7 @@ describe("Hardhat module", function () {
           );
         });
 
-        it.only("lets you impresonate a contract", async function () {
+        it("lets you impresonate a contract", async function () {
           const contract = await deployContract(
             this.provider,
             "0x7f410000000000000000000000000000000000000000000000000000000000000060005260016000f3"
