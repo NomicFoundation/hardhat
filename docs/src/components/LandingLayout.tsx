@@ -4,6 +4,7 @@ import SEO from './SEO';
 import LandingNavigation from './LandingNavigation';
 import LandingFooter from './LandingFooter';
 import Banner from './ui/Banner';
+import { tm } from '../themes';
 
 const Container = styled.div`
   position: relative;
@@ -11,12 +12,11 @@ const Container = styled.div`
   flex-direction: column;
   justify-content: flex-start;
   main {
-    padding-top: 96px;
     flex: 1 1 auto;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
-    background-color: aqua;
+    background-color: ${tm(({ colors }) => colors.neutral0)};
   }
   height: 100vh;
   min-width: 320px;
