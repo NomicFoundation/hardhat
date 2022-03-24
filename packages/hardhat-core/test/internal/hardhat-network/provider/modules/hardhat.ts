@@ -140,6 +140,34 @@ describe("Hardhat module", function () {
             impersonatedAddress
           );
         });
+
+        it("lets you impresonate a contract", async function () {
+          const contract = await deployContract(
+            this.provider,
+            "0x7f410000000000000000000000000000000000000000000000000000000000000060005260016000f3"
+          );
+
+          const funds = "0x10000000000000000000000000";
+          await this.provider.send("hardhat_setBalance", [contract, funds]);
+
+          await this.provider.send("hardhat_impersonateAccount", [contract]);
+
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from: contract,
+              to: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              value: "0x100",
+            },
+          ]);
+
+          const code = await this.provider.send("eth_getCode", [contract]);
+          assert.notEqual(code, "0x");
+
+          const balance = await this.provider.send("eth_getBalance", [
+            contract,
+          ]);
+          assert.notEqual(balance, funds);
+        });
       });
 
       describe("hardhat_stopImpersonatingAccount", function () {
