@@ -30,6 +30,537 @@ describe("BigNumber matchers", function () {
     return typeof n;
   }
 
+  describe("length", function () {
+    const lengthFunctions: Array<
+      keyof Chai.Assertion & ("length" | "lengthOf")
+    > = ["length", "lengthOf"];
+
+    interface SuccessCase {
+      obj: object;
+      len: number;
+    }
+
+    const positiveSuccessCases: SuccessCase[] = [
+      { obj: [1, 2, 3], len: 3 },
+      {
+        obj: new Map([
+          [1, 2],
+          [3, 4],
+        ]),
+        len: 2,
+      },
+      { obj: new Set([1, 2, 3]), len: 3 },
+    ];
+    describe("positive, successful assertions", function () {
+      for (const { obj, len } of positiveSuccessCases) {
+        for (const convert of [
+          (n: number) => n,
+          ...numberToBigNumberConversions,
+        ]) {
+          const length = convert(len);
+          describe(`with object ${obj.toString()} and with length operand of type ${typestr(
+            length
+          )}`, function () {
+            for (const lenFunc of lengthFunctions) {
+              it(`.to.have.${lenFunc} should work`, function () {
+                expect(obj).to.have[lenFunc](length);
+              });
+            }
+          });
+        }
+      }
+    });
+
+    const negativeSuccessCases: SuccessCase[] = [
+      { obj: [1, 2, 3], len: 2 },
+      {
+        obj: new Map([
+          [1, 2],
+          [3, 4],
+        ]),
+        len: 3,
+      },
+      { obj: new Set([1, 2, 3]), len: 4 },
+    ];
+    describe("negative, successful assertions", function () {
+      for (const { obj, len } of negativeSuccessCases) {
+        for (const convert of [
+          (n: number) => n,
+          ...numberToBigNumberConversions,
+        ]) {
+          const length = convert(len);
+          describe(`with object ${obj.toString()} and with length operand of type ${typestr(
+            length
+          )}`, function () {
+            for (const lenFunc of lengthFunctions) {
+              it(`should work with .not.to.have.${lenFunc}`, function () {
+                expect(obj).not.to.have[lenFunc](length);
+              });
+            }
+          });
+        }
+      }
+    });
+
+    interface FailureCase extends SuccessCase {
+      msg: string;
+    }
+
+    const positiveFailureCases: FailureCase[] = [
+      {
+        obj: [1, 2, 3],
+        len: 2,
+        msg: "expected [ 1, 2, 3 ] to have a length of 2 but got 3",
+      },
+      {
+        obj: new Set([1, 2, 3]),
+        len: 2,
+        msg: "expected {} to have a size of 2 but got 3",
+      },
+      {
+        obj: new Map([
+          [1, 2],
+          [3, 4],
+        ]),
+        len: 3,
+        msg: "expected {} to have a size of 3 but got 2",
+      },
+    ];
+    describe("positive, failing assertions should throw the proper error message", function () {
+      for (const { obj, len, msg } of positiveFailureCases) {
+        for (const convert of [
+          (n: number) => n,
+          ...numberToBigNumberConversions,
+        ]) {
+          const length = convert(len);
+          describe(`with object ${obj.toString()} and with operand of type ${typestr(
+            length
+          )}`, function () {
+            for (const lenFunc of lengthFunctions) {
+              it(`should work with .to.have.${lenFunc}`, function () {
+                expect(() => expect(obj).to.have[lenFunc](length)).to.throw(
+                  AssertionError,
+                  msg
+                );
+              });
+            }
+          });
+        }
+      }
+    });
+
+    const operators = [
+      "above",
+      "below",
+      "gt",
+      "lt",
+      "greaterThan",
+      "lessThan",
+      "least",
+      "most",
+      "gte",
+      "lte",
+      "greaterThanOrEqual",
+      "lessThanOrEqual",
+    ] as const;
+    type Operator = typeof operators[number];
+
+    interface SuccessCaseWithOperator extends SuccessCase {
+      operator: Operator;
+    }
+
+    const positiveSuccessCasesWithOperator: SuccessCaseWithOperator[] = [
+      { operator: "lt", len: 4, obj: [1, 2, 3] },
+      { operator: "lt", len: 4, obj: new Set([1, 2, 3]) },
+      {
+        operator: "lt",
+        len: 4,
+        obj: new Map([
+          [1, 2],
+          [3, 4],
+          [5, 6],
+        ]),
+      },
+      { operator: "above", len: 2, obj: [1, 2, 3] },
+      { operator: "above", len: 2, obj: new Set([1, 2, 3]) },
+      {
+        operator: "above",
+        len: 2,
+        obj: new Map([
+          [1, 2],
+          [3, 4],
+          [5, 6],
+        ]),
+      },
+      { operator: "gt", len: 2, obj: [1, 2, 3] },
+      { operator: "gt", len: 2, obj: new Set([1, 2, 3]) },
+      {
+        operator: "gt",
+        len: 2,
+        obj: new Map([
+          [1, 2],
+          [3, 4],
+          [5, 6],
+        ]),
+      },
+      { operator: "greaterThan", len: 2, obj: [1, 2, 3] },
+      { operator: "greaterThan", len: 2, obj: new Set([1, 2, 3]) },
+      {
+        operator: "greaterThan",
+        len: 2,
+        obj: new Map([
+          [1, 2],
+          [3, 4],
+          [5, 6],
+        ]),
+      },
+      { operator: "least", len: 3, obj: [1, 2, 3] },
+      { operator: "least", len: 3, obj: new Set([1, 2, 3]) },
+      {
+        operator: "least",
+        len: 3,
+        obj: new Map([
+          [1, 2],
+          [3, 4],
+          [5, 6],
+        ]),
+      },
+      { operator: "most", len: 3, obj: [1, 2, 3] },
+      { operator: "most", len: 3, obj: new Set([1, 2, 3]) },
+      {
+        operator: "most",
+        len: 3,
+        obj: new Map([
+          [1, 2],
+          [3, 4],
+          [5, 6],
+        ]),
+      },
+      { operator: "gte", len: 3, obj: [1, 2, 3] },
+      { operator: "gte", len: 3, obj: new Set([1, 2, 3]) },
+      {
+        operator: "gte",
+        len: 3,
+        obj: new Map([
+          [1, 2],
+          [3, 4],
+          [5, 6],
+        ]),
+      },
+      { operator: "lte", len: 3, obj: [1, 2, 3] },
+      { operator: "lte", len: 3, obj: new Set([1, 2, 3]) },
+      {
+        operator: "lte",
+        len: 3,
+        obj: new Map([
+          [1, 2],
+          [3, 4],
+          [5, 6],
+        ]),
+      },
+      { operator: "greaterThanOrEqual", len: 3, obj: [1, 2, 3] },
+      { operator: "greaterThanOrEqual", len: 3, obj: new Set([1, 2, 3]) },
+      {
+        operator: "greaterThanOrEqual",
+        len: 3,
+        obj: new Map([
+          [1, 2],
+          [3, 4],
+          [5, 6],
+        ]),
+      },
+      { operator: "lessThanOrEqual", len: 3, obj: [1, 2, 3] },
+      { operator: "lessThanOrEqual", len: 3, obj: new Set([1, 2, 3]) },
+      {
+        operator: "lessThanOrEqual",
+        len: 3,
+        obj: new Map([
+          [1, 2],
+          [3, 4],
+          [5, 6],
+        ]),
+      },
+    ];
+    describe("positive, successful assertions chained off of length", function () {
+      for (const { obj, operator, len } of positiveSuccessCasesWithOperator) {
+        describe(`with object ${obj} and operator "${operator}"`, function () {
+          for (const convert of [
+            (n: number) => n,
+            ...numberToBigNumberConversions,
+          ]) {
+            const length = convert(len);
+            describe(`with an operand of type ${typestr(length)}`, function () {
+              for (const lenFunc of lengthFunctions) {
+                it(`should work with .to.have.${lenFunc}.${operator}`, function () {
+                  expect(obj).to.have[lenFunc][operator](length);
+                });
+              }
+            });
+          }
+        });
+      }
+    });
+
+    const negativeSuccessCasesWithOperator: SuccessCaseWithOperator[] = [
+      { operator: "above", len: 3, obj: [1, 2, 3] },
+      { operator: "above", len: 3, obj: new Set([1, 2, 3]) },
+      {
+        operator: "above",
+        len: 3,
+        obj: new Map([
+          [1, 2],
+          [3, 4],
+          [5, 6],
+        ]),
+      },
+      { operator: "below", len: 3, obj: [1, 2, 3] },
+      { operator: "below", len: 3, obj: new Set([1, 2, 3]) },
+      {
+        operator: "below",
+        len: 3,
+        obj: new Map([
+          [1, 2],
+          [3, 4],
+          [5, 6],
+        ]),
+      },
+      { operator: "gt", len: 3, obj: [1, 2, 3] },
+      { operator: "gt", len: 3, obj: new Set([1, 2, 3]) },
+      {
+        operator: "gt",
+        len: 3,
+        obj: new Map([
+          [1, 2],
+          [3, 4],
+          [5, 6],
+        ]),
+      },
+      { operator: "lt", len: 3, obj: [1, 2, 3] },
+      { operator: "lt", len: 3, obj: new Set([1, 2, 3]) },
+      {
+        operator: "lt",
+        len: 3,
+        obj: new Map([
+          [1, 2],
+          [3, 4],
+          [5, 6],
+        ]),
+      },
+      { operator: "greaterThan", len: 3, obj: [1, 2, 3] },
+      { operator: "greaterThan", len: 3, obj: new Set([1, 2, 3]) },
+      {
+        operator: "greaterThan",
+        len: 3,
+        obj: new Map([
+          [1, 2],
+          [3, 4],
+          [5, 6],
+        ]),
+      },
+      { operator: "lessThan", len: 3, obj: [1, 2, 3] },
+      { operator: "lessThan", len: 3, obj: new Set([1, 2, 3]) },
+      {
+        operator: "lessThan",
+        len: 3,
+        obj: new Map([
+          [1, 2],
+          [3, 4],
+          [5, 6],
+        ]),
+      },
+      { operator: "least", len: 4, obj: [1, 2, 3] },
+      { operator: "least", len: 4, obj: new Set([1, 2, 3]) },
+      {
+        operator: "least",
+        len: 4,
+        obj: new Map([
+          [1, 2],
+          [3, 4],
+          [5, 6],
+        ]),
+      },
+      { operator: "most", len: 2, obj: [1, 2, 3] },
+      { operator: "most", len: 2, obj: new Set([1, 2, 3]) },
+      {
+        operator: "most",
+        len: 2,
+        obj: new Map([
+          [1, 2],
+          [3, 4],
+          [5, 6],
+        ]),
+      },
+      { operator: "gte", len: 4, obj: [1, 2, 3] },
+      { operator: "gte", len: 4, obj: new Set([1, 2, 3]) },
+      {
+        operator: "gte",
+        len: 4,
+        obj: new Map([
+          [1, 2],
+          [3, 4],
+          [5, 6],
+        ]),
+      },
+      { operator: "lte", len: 2, obj: [1, 2, 3] },
+      { operator: "lte", len: 2, obj: new Set([1, 2, 3]) },
+      {
+        operator: "lte",
+        len: 2,
+        obj: new Map([
+          [1, 2],
+          [3, 4],
+          [5, 6],
+        ]),
+      },
+      { operator: "greaterThanOrEqual", len: 4, obj: [1, 2, 3] },
+      { operator: "greaterThanOrEqual", len: 4, obj: new Set([1, 2, 3]) },
+      {
+        operator: "greaterThanOrEqual",
+        len: 4,
+        obj: new Map([
+          [1, 2],
+          [3, 4],
+          [5, 6],
+        ]),
+      },
+      { operator: "lessThanOrEqual", len: 2, obj: [1, 2, 3] },
+      { operator: "lessThanOrEqual", len: 2, obj: new Set([1, 2, 3]) },
+      {
+        operator: "lessThanOrEqual",
+        len: 2,
+        obj: new Map([
+          [1, 2],
+          [3, 4],
+          [5, 6],
+        ]),
+      },
+    ];
+    describe("negative, successful assertions chained off of length", function () {
+      for (const { obj, operator, len } of negativeSuccessCasesWithOperator) {
+        describe(`with object ${obj} and operator "${operator}"`, function () {
+          for (const convert of [
+            (n: number) => n,
+            ...numberToBigNumberConversions,
+          ]) {
+            const length = convert(len);
+            describe(`with an operand of type ${typestr(length)}`, function () {
+              for (const lenFunc of lengthFunctions) {
+                it(`should work with .not.to.have.${lenFunc}.${operator}`, function () {
+                  expect(obj).not.to.have[lenFunc][operator](length);
+                });
+              }
+            });
+          }
+        });
+      }
+    });
+
+    interface FailureCaseWithOperator extends SuccessCaseWithOperator {
+      msg: string;
+    }
+
+    const positiveFailureCasesWithOperator: FailureCaseWithOperator[] = [
+      {
+        obj: [1, 2, 3],
+        operator: "above",
+        len: 3,
+        msg: "expected [ 1, 2, 3 ] to have a length above 3 but got 3",
+      },
+      {
+        obj: [1, 2, 3],
+        operator: "below",
+        len: 3,
+        msg: "expected [ 1, 2, 3 ] to have a length below 3 but got 3",
+      },
+      {
+        obj: [1, 2, 3],
+        operator: "gt",
+        len: 3,
+        msg: "expected [ 1, 2, 3 ] to have a length above 3 but got 3",
+      },
+      {
+        obj: [1, 2, 3],
+        operator: "lt",
+        len: 3,
+        msg: "expected [ 1, 2, 3 ] to have a length below 3 but got 3",
+      },
+      {
+        obj: [1, 2, 3],
+        operator: "greaterThan",
+        len: 3,
+        msg: "expected [ 1, 2, 3 ] to have a length above 3 but got 3",
+      },
+      {
+        obj: [1, 2, 3],
+        operator: "lessThan",
+        len: 3,
+        msg: "expected [ 1, 2, 3 ] to have a length below 3 but got 3",
+      },
+      {
+        obj: [1, 2, 3],
+        operator: "least",
+        len: 4,
+        msg: "expected [ 1, 2, 3 ] to have a length at least 4 but got 3",
+      },
+      {
+        obj: [1, 2, 3],
+        operator: "most",
+        len: 2,
+        msg: "expected [ 1, 2, 3 ] to have a length at most 2 but got 3",
+      },
+      {
+        obj: [1, 2, 3],
+        operator: "gte",
+        len: 4,
+        msg: "expected [ 1, 2, 3 ] to have a length at least 4 but got 3",
+      },
+      {
+        obj: [1, 2, 3],
+        operator: "lte",
+        len: 2,
+        msg: "expected [ 1, 2, 3 ] to have a length at most 2 but got 3",
+      },
+      {
+        obj: [1, 2, 3],
+        operator: "greaterThanOrEqual",
+        len: 4,
+        msg: "expected [ 1, 2, 3 ] to have a length at least 4 but got 3",
+      },
+      {
+        obj: [1, 2, 3],
+        operator: "lessThanOrEqual",
+        len: 2,
+        msg: "expected [ 1, 2, 3 ] to have a length at most 2 but got 3",
+      },
+    ];
+    describe("positive, failing assertions chained off of length should throw the proper error message", function () {
+      for (const {
+        obj,
+        operator,
+        len,
+        msg,
+      } of positiveFailureCasesWithOperator) {
+        describe(`with object ${obj} and operator "${operator}"`, function () {
+          for (const convert of [
+            (n: number) => n,
+            ...numberToBigNumberConversions,
+          ]) {
+            const length = convert(len);
+            describe(`with an operand of type ${typestr(length)}`, function () {
+              for (const lenFunc of lengthFunctions) {
+                it(`should work with .to.have.${lenFunc}.${operator}`, function () {
+                  expect(() =>
+                    expect(obj).to.have[lenFunc][operator](length)
+                  ).to.throw(AssertionError, msg);
+                });
+              }
+            });
+          }
+        });
+      }
+    });
+  });
+
   describe("with two arguments", function () {
     function checkAll(
       actual: number,

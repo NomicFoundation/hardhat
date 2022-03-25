@@ -77,9 +77,45 @@ export function supportBigNumber(
   Assertion.overwriteMethod("lte", lteFunction);
   Assertion.overwriteMethod("lessThanOrEqual", lteFunction);
 
+  Assertion.overwriteChainableMethod(...createLengthOverride("length"));
+  Assertion.overwriteChainableMethod(...createLengthOverride("lengthOf"));
+
   Assertion.overwriteMethod("within", overrideWithin(utils));
 
   Assertion.overwriteMethod("closeTo", overrideCloseTo(utils));
+}
+
+function createLengthOverride(
+  method: string
+): [string, (...args: any[]) => any, (...args: any[]) => any] {
+  return [
+    method,
+    function (_super: any) {
+      return function (this: Chai.AssertionPrototype, value: any) {
+        const actual = this._obj;
+        if (isBigNumber(value)) {
+          const sizeOrLength =
+            actual instanceof Map || actual instanceof Set ? "size" : "length";
+          const actualLength = normalize(actual[sizeOrLength]);
+          const expectedLength = normalize(value);
+          this.assert(
+            actualLength === expectedLength,
+            `expected #{this} to have a ${sizeOrLength} of ${expectedLength.toString()} but got ${actualLength.toString()}`,
+            `expected #{this} not to have a ${sizeOrLength} of ${expectedLength.toString()} but got ${actualLength.toString()}`,
+            actualLength.toString(),
+            expectedLength.toString()
+          );
+        } else {
+          _super.apply(this, arguments);
+        }
+      };
+    },
+    function (_super: any) {
+      return function (this: any) {
+        _super.apply(this, arguments);
+      };
+    } as any,
+  ];
 }
 
 type Methods = "eq" | "gt" | "lt" | "gte" | "lte";
@@ -148,14 +184,6 @@ function overwriteBigNumberFunction(
   return function (this: Chai.AssertionStatic, ...args: any[]) {
     const [actualArg] = args;
     const expectedFlag = chaiUtils.flag(this, "object");
-    if (chaiUtils.flag(this, "doLength") && isEthersBigNumber(actualArg)) {
-      // TODO: consider whether we really need this case (support for eg
-      // `expect('foo').to.have.length.of.at.least(BigInt(2));`, and if so then
-      // get it tested and generalize it to work with all the different
-      // BigNumbers.
-      _super.apply(this, [actualArg.toNumber()]);
-      return;
-    }
     function compare(method: Methods, lhs: bigint, rhs: bigint): boolean {
       if (method === "eq") {
         return lhs === rhs;
@@ -171,7 +199,28 @@ function overwriteBigNumberFunction(
         throw new Error(`Unknown comparison operation ${method}`);
       }
     }
-    if (isBigNumber(expectedFlag) || isBigNumber(actualArg)) {
+    if (chaiUtils.flag(this, "doLength") && isBigNumber(actualArg)) {
+      const sizeOrLength =
+        expectedFlag instanceof Map || expectedFlag instanceof Set
+          ? "size"
+          : "length";
+      if (expectedFlag[sizeOrLength] === undefined) {
+        _super.apply(this, args);
+        return;
+      }
+      const expected = normalize(expectedFlag[sizeOrLength]);
+      const actual = normalize(actualArg);
+      this.assert(
+        compare(functionName, expected, actual),
+        `expected #{this} to have a ${sizeOrLength} ${readableName.replace(
+          "be ",
+          ""
+        )} ${actual.toString()} but got ${expected}`,
+        `expected #{this} to have a ${sizeOrLength} ${readableNegativeName} ${actual.toString()}`,
+        expected,
+        actual
+      );
+    } else if (isBigNumber(expectedFlag) || isBigNumber(actualArg)) {
       const expected = normalize(expectedFlag);
       const actual = normalize(actualArg);
       this.assert(

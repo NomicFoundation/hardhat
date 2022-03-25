@@ -13,4 +13,9 @@ declare namespace Chai {
     // eslint-disable-next-line
     (expected: any, delta: any, message?: string): Assertion;
   }
+
+  interface Length extends Assertion {
+    // eslint-disable-next-line
+    (length: any, message?: string): Assertion;
+  }
 }
