@@ -4,7 +4,7 @@ import { ethers } from "ethers";
 
 import * as hh from "../../src";
 import { NumberLike } from "../../src/types";
-import { useEnvironment, rpcQuantityToNumber } from "../test-utils";
+import { useEnvironment } from "../test-utils";
 
 describe("getStorageAt", function () {
   useEnvironment("simple");

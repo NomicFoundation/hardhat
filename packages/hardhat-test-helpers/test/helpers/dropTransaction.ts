@@ -1,7 +1,7 @@
 import { assert } from "chai";
 
 import * as hh from "../../src";
-import { useEnvironment, rpcQuantityToNumber } from "../test-utils";
+import { useEnvironment } from "../test-utils";
 
 describe("dropTransaction", function () {
   useEnvironment("simple");
