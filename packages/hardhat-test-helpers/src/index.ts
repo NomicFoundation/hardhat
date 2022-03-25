@@ -1,6 +1,7 @@
 export * from "./loadFixture";
 
 export { mine } from "./helpers/mine";
+export { dropTransaction } from "./helpers/dropTransaction";
 export { getStorageAt } from "./helpers/getStorageAt";
 export { impersonateAccount } from "./helpers/impersonateAccount";
 export { setBalance } from "./helpers/setBalance";
