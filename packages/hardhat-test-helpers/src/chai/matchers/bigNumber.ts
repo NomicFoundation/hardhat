@@ -178,8 +178,8 @@ function overwriteBigNumberFunction(
         compare(functionName, expected, actual),
         `expected ${expected} to ${readableName} ${actual}`,
         `expected ${expected} to ${readableNegativeName} ${actual}`,
-        expected,
-        actual
+        actual,
+        expected
       );
     } else {
       _super.apply(this, args);
@@ -211,8 +211,8 @@ function overwriteBigNumberWithin(
         start <= expected && expected <= finish,
         `expected ${expected} to be within ${start}..${finish}`,
         `expected ${expected} to not be within ${start}..${finish}`,
-        [start, finish],
-        expected
+        expected,
+        [start, finish]
       );
     } else {
       _super.apply(this, args);
@@ -247,8 +247,8 @@ function overwriteBigNumberCloseTo(
         abs(expected - actual) <= delta,
         `expected ${expected} to be close to ${actual} +/- ${delta}`,
         `expected ${expected} not to be close to ${actual} +/- ${delta}`,
-        `A number between ${actual - delta} and ${actual + delta}`,
-        expected
+        expected,
+        `A number between ${actual - delta} and ${actual + delta}`
       );
     } else {
       _super.apply(this, args);
