@@ -1,6 +1,7 @@
 export * from "./loadFixture";
 
 export { mine } from "./helpers/mine";
+export { getStorageAt } from "./helpers/getStorageAt";
 export { setBalance } from "./helpers/setBalance";
 export { setBlockGasLimit } from "./helpers/setBlockGasLimit";
 export { setCode } from "./helpers/setCode";
