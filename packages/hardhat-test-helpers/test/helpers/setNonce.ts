@@ -27,7 +27,7 @@ describe("setNonce", function () {
   });
 
   it("should allow setting the nonce of a used address", async function () {
-    await hh.setBalance(account, 1000000000000000000000000);
+    await hh.setBalance(account, "0xaaaaaaaaaaaaaaaaaaaaaa");
     await hh.mine();
     await this.hre.network.provider.send("hardhat_impersonateAccount", [
       account,
