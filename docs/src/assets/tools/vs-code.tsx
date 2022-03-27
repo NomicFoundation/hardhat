@@ -1,17 +1,59 @@
-import * as React from 'react';
-import { SVGProps, memo } from 'react';
+import * as React from "react";
+import { SVGProps, memo } from "react";
 
 const VSCodeIcon = (props: SVGProps<SVGSVGElement>) => (
-  <svg width={42} height={42} viewBox="0 0 42 42" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+  <svg
+    width={42}
+    height={42}
+    viewBox="0 0 42 42"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
     <path
       d="M5.25 38.501L5.25 3.50098L26.9643 3.50098L33.25 10.3862L33.25 38.501L5.25 38.501Z"
       fill="url(#paint0_linear_4295_86668)"
     />
-    <rect x={13.4175} y={7.00098} width={24.5} height={7} rx={0.583333} fill="url(#paint1_linear_4295_86668)" />
-    <rect x={4.08374} y={16.3347} width={24.5} height={7} rx={0.583333} fill="url(#paint2_linear_4295_86668)" />
-    <rect x={13.9993} y={26.2502} width={14} height={7} rx={0.583333} fill="url(#paint3_linear_4295_86668)" />
-    <rect x={29.7493} y={26.2502} width={7} height={7} rx={0.583333} fill="url(#paint4_linear_4295_86668)" />
-    <rect x={29.7493} y={16.3347} width={7} height={7} rx={0.583333} fill="url(#paint5_linear_4295_86668)" />
+    <rect
+      x={13.4175}
+      y={7.00098}
+      width={24.5}
+      height={7}
+      rx={0.583333}
+      fill="url(#paint1_linear_4295_86668)"
+    />
+    <rect
+      x={4.08374}
+      y={16.3347}
+      width={24.5}
+      height={7}
+      rx={0.583333}
+      fill="url(#paint2_linear_4295_86668)"
+    />
+    <rect
+      x={13.9993}
+      y={26.2502}
+      width={14}
+      height={7}
+      rx={0.583333}
+      fill="url(#paint3_linear_4295_86668)"
+    />
+    <rect
+      x={29.7493}
+      y={26.2502}
+      width={7}
+      height={7}
+      rx={0.583333}
+      fill="url(#paint4_linear_4295_86668)"
+    />
+    <rect
+      x={29.7493}
+      y={16.3347}
+      width={7}
+      height={7}
+      rx={0.583333}
+      fill="url(#paint5_linear_4295_86668)"
+    />
     <defs>
       <linearGradient
         id="paint0_linear_4295_86668"

@@ -2,7 +2,7 @@ import React from "react";
 import { styled } from "linaria/react";
 import { tm } from "../../themes";
 
-type Props = {};
+interface Props {}
 
 const Container = styled.button`
   padding: 26px;

@@ -1,6 +1,7 @@
-import React from 'react';
-import { styled } from 'linaria/react';
-import { appTheme, tm } from '../themes';
+import React from "react";
+import { styled } from "linaria/react";
+import { appTheme, tm } from "../themes";
+
 const { media } = appTheme;
 
 const Container = styled.section`

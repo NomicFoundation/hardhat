@@ -1,28 +1,28 @@
-import React from 'react';
-import Section from '../Section';
-import CTA from '../ui/CTA';
-import { styled } from 'linaria/react';
-import { appTheme } from '../../themes';
-import Images from '../../assets/images';
-import useWindowSize from '../../hooks/useWindowSize';
+import React from "react";
+import { styled } from "linaria/react";
+import Section from "../Section";
+import CTA from "../ui/CTA";
+import { appTheme } from "../../themes";
+import Images from "../../assets/images";
+import useWindowSize from "../../hooks/useWindowSize";
 
 const { media, breakpoints } = appTheme;
 const { HeroPetsImage, HeroGraphicsImage } = Images;
 
 const content = {
-  title: 'Ethereum development environment for professionals',
-  tagline: 'Flexible. Extensible. Fast.',
+  title: "Ethereum development environment for professionals",
+  tagline: "Flexible. Extensible. Fast.",
   cta: {
-    title: 'Get started',
+    title: "Get started",
     // TODO: switch to page reference later
-    url: 'https://hardhat.org/getting-started/',
+    url: "https://hardhat.org/getting-started/",
   },
   heroImage: {},
 };
 
-type Props = {
+interface Props {
   content: typeof content;
-};
+}
 
 const Container = styled.section`
   width: 100%;

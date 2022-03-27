@@ -1,10 +1,10 @@
-import React from 'react';
-import { styled } from 'linaria/react';
-import SEO from './SEO';
-import LandingNavigation from './LandingNavigation';
-import LandingFooter from './LandingFooter';
-import Banner from './ui/Banner';
-import { tm } from '../themes';
+import React from "react";
+import { styled } from "linaria/react";
+import SEO from "./SEO";
+import LandingNavigation from "./LandingNavigation";
+import LandingFooter from "./LandingFooter";
+import Banner from "./ui/Banner";
+import { tm } from "../themes";
 
 const Container = styled.div`
   position: relative;

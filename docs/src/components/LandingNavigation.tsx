@@ -1,13 +1,13 @@
-import React, { FC, useEffect, useState } from 'react';
-import { styled } from 'linaria/react';
-import { appTheme, tm } from '../themes';
-import HardhatLogo from '../assets/hardhat-logo';
-import { useRouter } from 'next/router';
-import Hamburger from './ui/Hamburger';
-import MobileMenu from './ui/MobileMenu';
-import Menu from './ui/DesktopMenu';
-import useWindowSize from '../hooks/useWindowSize';
-import Link from 'next/link';
+import React, { FC, useEffect, useState } from "react";
+import { styled } from "linaria/react";
+import { useRouter } from "next/router";
+import Link from "next/link";
+import { appTheme, tm } from "../themes";
+import HardhatLogo from "../assets/hardhat-logo";
+import Hamburger from "./ui/Hamburger";
+import MobileMenu from "./ui/MobileMenu";
+import Menu from "./ui/DesktopMenu";
+import useWindowSize from "../hooks/useWindowSize";
 
 const { media, breakpoints } = appTheme;
 
@@ -64,15 +64,15 @@ const LandingNavigation: FC = () => {
   const isDesktop = breakpoints.lg <= windowSize.width;
 
   useEffect(() => {
-    const body = document.querySelector('body');
+    const body = document.querySelector("body");
     if (!body) return;
 
     if (isMobileMenuOpen) {
       // Disable scroll
-      body.style.overflow = 'hidden';
+      body.style.overflow = "hidden";
     } else {
       // Enable scroll
-      body.style.overflow = 'auto';
+      body.style.overflow = "auto";
     }
   }, [isMobileMenuOpen]);
 
@@ -84,14 +84,17 @@ const LandingNavigation: FC = () => {
       }}
     >
       <ControlsContainer>
-        <Link href={'/'} passHref>
+        <Link href="/" passHref>
           <LogoContainer>
             <HardhatLogo />
           </LogoContainer>
         </Link>
 
         {!isDesktop ? (
-          <Hamburger isOpen={isMobileMenuOpen} onClick={() => setMobileMenuState(!isMobileMenuOpen)} />
+          <Hamburger
+            isOpen={isMobileMenuOpen}
+            onClick={() => setMobileMenuState(!isMobileMenuOpen)}
+          />
         ) : (
           <Menu />
         )}

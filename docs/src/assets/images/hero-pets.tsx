@@ -1,5 +1,5 @@
-import * as React from 'react';
-import { SVGProps, memo } from 'react';
+import * as React from "react";
+import { SVGProps, memo } from "react";
 
 const HeroPetsImage = (props: SVGProps<SVGSVGElement>) => (
   <svg
@@ -12,19 +12,42 @@ const HeroPetsImage = (props: SVGProps<SVGSVGElement>) => (
     {...props}
   >
     <g clipPath="url(#clip0_3311_229812)" filter="url(#filter0_d_3311_229812)">
-      <rect width={320} height={289} transform="translate(0 0.673218)" fill="white" />
+      <rect
+        width={320}
+        height={289}
+        transform="translate(0 0.673218)"
+        fill="white"
+      />
       <g clipPath="url(#clip1_3311_229812)">
-        <path d="M160.027 214.64V1.17311L70.0273 157.357L160.027 214.64Z" fill="white" />
-        <path d="M160.027 214.64V1.17311L70.0273 157.357L160.027 214.64Z" fill="url(#paint0_linear_3311_229812)" />
-        <path d="M160.028 1.1731L250.028 157.357L160.028 214.64V1.1731Z" fill="white" />
+        <path
+          d="M160.027 214.64V1.17311L70.0273 157.357L160.027 214.64Z"
+          fill="white"
+        />
+        <path
+          d="M160.027 214.64V1.17311L70.0273 157.357L160.027 214.64Z"
+          fill="url(#paint0_linear_3311_229812)"
+        />
+        <path
+          d="M160.028 1.1731L250.028 157.357L160.028 214.64V1.1731Z"
+          fill="white"
+        />
         <path
           d="M160.028 1.1731L250.028 157.357L160.028 214.64V1.1731Z"
           fill="url(#paint1_linear_3311_229812)"
           fillOpacity={0.6}
         />
-        <path d="M160.176 307.275V233.285L70.0273 175.854L160.176 307.275Z" fill="white" />
-        <path d="M160.176 307.275V233.285L70.0273 175.854L160.176 307.275Z" fill="url(#paint2_linear_3311_229812)" />
-        <path d="M160.028 307.275V233.285L250.028 175.854L160.028 307.275Z" fill="white" />
+        <path
+          d="M160.176 307.275V233.285L70.0273 175.854L160.176 307.275Z"
+          fill="white"
+        />
+        <path
+          d="M160.176 307.275V233.285L70.0273 175.854L160.176 307.275Z"
+          fill="url(#paint2_linear_3311_229812)"
+        />
+        <path
+          d="M160.028 307.275V233.285L250.028 175.854L160.028 307.275Z"
+          fill="white"
+        />
         <path
           d="M160.028 307.275V233.285L250.028 175.854L160.028 307.275Z"
           fill="url(#paint3_linear_3311_229812)"
@@ -32,7 +55,13 @@ const HeroPetsImage = (props: SVGProps<SVGSVGElement>) => (
         />
       </g>
       <g clipPath="url(#clip2_3311_229812)">
-        <rect x={-43.5} y={73.1732} width={407} height={216.5} fill="url(#pattern0)" />
+        <rect
+          x={-43.5}
+          y={73.1732}
+          width={407}
+          height={216.5}
+          fill="url(#pattern0)"
+        />
       </g>
     </g>
     <defs>
@@ -54,12 +83,32 @@ const HeroPetsImage = (props: SVGProps<SVGSVGElement>) => (
         />
         <feOffset dy={20} />
         <feGaussianBlur stdDeviation={10} />
-        <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.05 0" />
-        <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_3311_229812" />
-        <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_3311_229812" result="shape" />
+        <feColorMatrix
+          type="matrix"
+          values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.05 0"
+        />
+        <feBlend
+          mode="normal"
+          in2="BackgroundImageFix"
+          result="effect1_dropShadow_3311_229812"
+        />
+        <feBlend
+          mode="normal"
+          in="SourceGraphic"
+          in2="effect1_dropShadow_3311_229812"
+          result="shape"
+        />
       </filter>
-      <pattern id="pattern0" patternContentUnits="objectBoundingBox" width={1} height={1}>
-        <use xlinkHref="#image0_3311_229812" transform="scale(0.0012285 0.00230947)" />
+      <pattern
+        id="pattern0"
+        patternContentUnits="objectBoundingBox"
+        width={1}
+        height={1}
+      >
+        <use
+          xlinkHref="#image0_3311_229812"
+          transform="scale(0.0012285 0.00230947)"
+        />
       </pattern>
       <linearGradient
         id="paint0_linear_3311_229812"
@@ -106,13 +155,28 @@ const HeroPetsImage = (props: SVGProps<SVGSVGElement>) => (
         <stop offset={1} stopColor="#FBFCDB" />
       </linearGradient>
       <clipPath id="clip0_3311_229812">
-        <rect width={320} height={289} fill="white" transform="translate(0 0.673218)" />
+        <rect
+          width={320}
+          height={289}
+          fill="white"
+          transform="translate(0 0.673218)"
+        />
       </clipPath>
       <clipPath id="clip1_3311_229812">
-        <rect width={180} height={306.102} fill="white" transform="translate(70.0273 1.17311)" />
+        <rect
+          width={180}
+          height={306.102}
+          fill="white"
+          transform="translate(70.0273 1.17311)"
+        />
       </clipPath>
       <clipPath id="clip2_3311_229812">
-        <rect width={320} height={216.5} fill="white" transform="translate(0 73.1732)" />
+        <rect
+          width={320}
+          height={216.5}
+          fill="white"
+          transform="translate(0 73.1732)"
+        />
       </clipPath>
       <image
         id="image0_3311_229812"

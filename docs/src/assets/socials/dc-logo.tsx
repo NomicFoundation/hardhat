@@ -1,8 +1,15 @@
-import * as React from 'react';
-import { SVGProps, memo } from 'react';
+import * as React from "react";
+import { SVGProps, memo } from "react";
 
 const DiscordLogo = (props: SVGProps<SVGSVGElement>) => (
-  <svg width={40} height={40} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+  <svg
+    width={40}
+    height={40}
+    viewBox="0 0 40 40"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
     <path
       d="M17.3923 19.5455C16.5706 19.5455 15.9219 20.2663 15.9219 21.1457C15.9219 22.025 16.585 22.7458 17.3923 22.7458C18.214 22.7458 18.8627 22.025 18.8627 21.1457C18.8771 20.2663 18.214 19.5455 17.3923 19.5455ZM22.654 19.5455C21.8323 19.5455 21.1836 20.2663 21.1836 21.1457C21.1836 22.025 21.8467 22.7458 22.654 22.7458C23.4757 22.7458 24.1244 22.025 24.1244 21.1457C24.1244 20.2663 23.4757 19.5455 22.654 19.5455Z"
       fill="#0A0A0A"

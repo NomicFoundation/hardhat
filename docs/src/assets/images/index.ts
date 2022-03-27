@@ -1,5 +1,5 @@
-import HeroPetsImage from './hero-pets';
-import HeroGraphicsImage from './hero-graphics';
+import HeroPetsImage from "./hero-pets";
+import HeroGraphicsImage from "./hero-graphics";
 
 const Images = {
   HeroPetsImage,

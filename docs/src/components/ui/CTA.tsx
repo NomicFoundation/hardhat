@@ -1,6 +1,6 @@
-import React from 'react';
-import { styled } from 'linaria/react';
-import { tm } from '../../themes';
+import React from "react";
+import { styled } from "linaria/react";
+import { tm } from "../../themes";
 
 const A = styled.a`
   display: inline-flex;

@@ -1,7 +1,8 @@
-import { styled } from 'linaria/react';
-import React from 'react';
-import EthereumFoundationLogo from '../assets/ethereum-foundation-logo';
-import { appTheme, tm } from '../themes';
+import { styled } from "linaria/react";
+import React from "react";
+import EthereumFoundationLogo from "../assets/ethereum-foundation-logo";
+import { appTheme, tm } from "../themes";
+
 const { media } = appTheme;
 
 const Footer = styled.footer`
@@ -50,7 +51,7 @@ const Legal = styled.section`
   text-align: center;
   color: ${tm(({ colors }) => colors.neutral700)};
   &:before {
-    content: ' ';
+    content: " ";
     height: 1px;
     width: 186px;
     position: absolute;

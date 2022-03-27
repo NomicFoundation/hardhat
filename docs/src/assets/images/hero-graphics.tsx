@@ -1,5 +1,5 @@
-import * as React from 'react';
-import { SVGProps, memo } from 'react';
+import * as React from "react";
+import { SVGProps, memo } from "react";
 
 const HeroGraphicsImage = (props: SVGProps<SVGSVGElement>) => (
   <svg
@@ -14,11 +14,27 @@ const HeroGraphicsImage = (props: SVGProps<SVGSVGElement>) => (
     <rect width={579} height={693.5} fill="url(#pattern0)" />
     <rect width={579} height={693.5} fill="url(#pattern1)" />
     <defs>
-      <pattern id="pattern0" patternContentUnits="objectBoundingBox" width={1} height={1}>
-        <use xlinkHref="#image0_4547_51366" transform="scale(0.000863558 0.000720981)" />
+      <pattern
+        id="pattern0"
+        patternContentUnits="objectBoundingBox"
+        width={1}
+        height={1}
+      >
+        <use
+          xlinkHref="#image0_4547_51366"
+          transform="scale(0.000863558 0.000720981)"
+        />
       </pattern>
-      <pattern id="pattern1" patternContentUnits="objectBoundingBox" width={1} height={1}>
-        <use xlinkHref="#image1_4547_51366" transform="translate(0.0851799 -0.0188409) scale(0.00200593 0.00167474)" />
+      <pattern
+        id="pattern1"
+        patternContentUnits="objectBoundingBox"
+        width={1}
+        height={1}
+      >
+        <use
+          xlinkHref="#image1_4547_51366"
+          transform="translate(0.0851799 -0.0188409) scale(0.00200593 0.00167474)"
+        />
       </pattern>
       <image
         id="image0_4547_51366"
