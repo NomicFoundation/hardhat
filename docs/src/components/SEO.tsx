@@ -1,11 +1,11 @@
 import React from "react";
 import Head from "next/head";
 
-type Props = {
+interface Props {
   seo: {
     title: string;
   };
-};
+}
 
 const SEO = ({ seo }: Props) => {
   return (

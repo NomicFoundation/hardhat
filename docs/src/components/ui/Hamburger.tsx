@@ -1,19 +1,19 @@
-import React, { FC } from 'react';
-import { styled } from 'linaria/react';
-import { tm } from '../../themes';
-import { css } from 'linaria';
+import React, { FC } from "react";
+import { styled } from "linaria/react";
+import { css } from "linaria";
+import { tm } from "../../themes";
 
-type HamburgerProps = {
+interface HamburgerProps {
   isOpen: boolean;
   onClick: () => void;
-};
+}
 
-type HamburgerLinePosition = 'top' | 'mid' | 'bot';
+type HamburgerLinePosition = "top" | "mid" | "bot";
 
-type HamburgerLineProps = {
+interface HamburgerLineProps {
   isOpen: boolean;
   position: HamburgerLinePosition;
-};
+}
 
 const HamburgerContainer = styled.button`
   width: 44px;
@@ -37,18 +37,18 @@ const HamburgerLine = styled.div`
   transform-origin: left;
   user-select: none;
   transition: all 0.25s ease-in-out;
-  &[data-open='true'] {
-    &[data-position='top'] {
+  &[data-open="true"] {
+    &[data-position="top"] {
       transform: rotate(45deg) translate(1px, -5px);
     }
-    &[data-position='mid'] {
+    &[data-position="mid"] {
       opacity: 0;
     }
-    &[data-position='bot'] {
+    &[data-position="bot"] {
       transform: rotate(-45deg) translate(1px, 5px);
     }
   }
-  &[data-position='mid'] {
+  &[data-position="mid"] {
     width: 19px;
     transition: all 0.1s ease-out;
   }

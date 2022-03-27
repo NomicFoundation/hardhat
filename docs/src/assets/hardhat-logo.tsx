@@ -1,5 +1,5 @@
-import * as React from "react"
-import { SVGProps, memo } from "react"
+import * as React from "react";
+import { SVGProps, memo } from "react";
 
 const HardhatLogo = (props: SVGProps<SVGSVGElement>) => (
   <svg
@@ -111,6 +111,6 @@ const HardhatLogo = (props: SVGProps<SVGSVGElement>) => (
       </radialGradient>
     </defs>
   </svg>
-)
+);
 
-export default memo(HardhatLogo)
+export default memo(HardhatLogo);

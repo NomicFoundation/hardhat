@@ -1,20 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { styled } from 'linaria/react';
-import { appTheme, tm } from '../../themes';
-import useWindowSize from '../../hooks/useWindowSize';
+import React, { useState, useEffect } from "react";
+import { styled } from "linaria/react";
+import { appTheme, tm } from "../../themes";
+import useWindowSize from "../../hooks/useWindowSize";
 
 const content = {
-  text: 'Join the Hardhat team! Nomic Labs is hiring',
-  href: 'https://www.notion.so/Nomic-Foundation-jobs-991b37c547554f75b89a95f437fd5056',
+  text: "Join the Hardhat team! Nomic Labs is hiring",
+  href: "https://www.notion.so/Nomic-Foundation-jobs-991b37c547554f75b89a95f437fd5056",
 };
 
 type BannerProps = React.PropsWithChildren<{
   content: typeof content;
 }>;
 
-type DefaultBannerProps = {
+interface DefaultBannerProps {
   content: typeof content;
-};
+}
 
 const BannerContainer = styled.section`
   position: absolute;
@@ -63,24 +63,36 @@ const BracesContainer = styled.div`
 
 const Brace = styled.div`
   display: inline;
-  &[data-highlighted='true'] {
+  &[data-highlighted="true"] {
     color: ${tm(({ colors }) => colors.neutral900)};
     transition: color ease-out 0.5s;
   }
 `;
 
-const BracesAnimation: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
+const BracesAnimation: React.FC<React.PropsWithChildren<{}>> = ({
+  children,
+}) => {
   const [animationCounter, setAnimationCounter] = useState(0);
   const [isAnimationPlaying, setAnimationState] = useState(true);
 
   const windowSize = useWindowSize();
   const { breakpoints } = appTheme;
-  const bracesCount = windowSize.width >= breakpoints.lg ? 6 : windowSize.width > breakpoints.sm ? 3 : 2;
+  const bracesCount =
+    windowSize.width >= breakpoints.lg
+      ? 6
+      : windowSize.width > breakpoints.sm
+      ? 3
+      : 2;
   const bracesString = Array(bracesCount)
-    .fill('>')
+    .fill(">")
     .map((brace: string, index: number) => {
       return (
-        <Brace key={index} data-highlighted={isAnimationPlaying && index === animationCounter % bracesCount}>
+        <Brace
+          key={index}
+          data-highlighted={
+            isAnimationPlaying && index === animationCounter % bracesCount
+          }
+        >
           {brace}
         </Brace>
       );
@@ -114,7 +126,7 @@ const BracesAnimation: React.FC<React.PropsWithChildren<{}>> = ({ children }) =>
 const DefaultBanner = ({ content }: DefaultBannerProps) => {
   return (
     <BracesAnimation>
-      {content.text.split(' ').map((word: string, index: number) => (
+      {content.text.split(" ").map((word: string, index: number) => (
         <span key={`${word}-${index}`}>{word}</span>
       ))}
     </BracesAnimation>
@@ -125,7 +137,9 @@ const Banner = (props: BannerProps) => {
   const { children, content } = props;
   return (
     <a target="_blank" rel="noreferrer" href={content.href}>
-      <BannerContainer>{Array.isArray(children) && children[0]({ content })}</BannerContainer>
+      <BannerContainer>
+        {Array.isArray(children) && children[0]({ content })}
+      </BannerContainer>
     </a>
   );
 };

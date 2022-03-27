@@ -1,47 +1,47 @@
-import React, { useState } from 'react';
-import Section from '../Section';
-import { appTheme, tm } from '../../themes';
-import useWindowSize from '../../hooks/useWindowSize';
-import { Tools } from '../../config';
-import ToolsIcons from '../../assets/tools';
-import { styled } from 'linaria/react';
+import React, { useState } from "react";
+import { styled } from "linaria/react";
+import Section from "../Section";
+import { appTheme, tm } from "../../themes";
+import useWindowSize from "../../hooks/useWindowSize";
+import { Tools } from "../../config";
+import ToolsIcons from "../../assets/tools";
 
 const { media, breakpoints } = appTheme;
 const { RunnerIcon, IgnitionIcon, NetworkIcon, VSCodeIcon } = ToolsIcons;
 
 const content = {
-  title: 'Tools',
+  title: "Tools",
   tools: [
     {
       name: Tools.RUNNER,
-      title: 'Runner',
-      prefix: 'Hardhat',
+      title: "Runner",
+      prefix: "Hardhat",
       Icon: RunnerIcon,
     },
     {
       name: Tools.IGNITION,
-      title: 'Ignition',
-      prefix: 'Hardhat',
+      title: "Ignition",
+      prefix: "Hardhat",
       Icon: IgnitionIcon,
     },
     {
       name: Tools.NETWORK,
-      title: 'Network',
-      prefix: 'Hardhat',
+      title: "Network",
+      prefix: "Hardhat",
       Icon: NetworkIcon,
     },
     {
       name: Tools.VS_CODE,
-      title: 'VS Code',
-      prefix: 'Hardhat',
+      title: "VS Code",
+      prefix: "Hardhat",
       Icon: VSCodeIcon,
     },
   ],
 };
 
-type Props = {
+interface Props {
   content: typeof content;
-};
+}
 
 const Block = styled.section`
   display: flex;

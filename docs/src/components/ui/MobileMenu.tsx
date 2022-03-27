@@ -1,12 +1,12 @@
-import React, { Fragment } from 'react';
-import { styled } from 'linaria/react';
-import { tm } from '../../themes';
-import { useRouter } from 'next/router';
+import React, { Fragment } from "react";
+import { styled } from "linaria/react";
+import { useRouter } from "next/router";
+import Link from "next/link";
+import { tm } from "../../themes";
 
-import { MenuItemType, MenuProps, SocialsItem } from './types';
-import { defaultSocialsItems } from './default-props';
-import { defaultMenuItemsList } from '../../config';
-import Link from 'next/link';
+import { MenuItemType, MenuProps, SocialsItem } from "./types";
+import { defaultSocialsItems } from "./default-props";
+import { defaultMenuItemsList } from "../../config";
 
 const MobileMenuContainer = styled.section`
   position: fixed;
@@ -28,7 +28,7 @@ const MobileMenuContainer = styled.section`
   &::-webkit-scrollbar {
     display: none;
   }
-  &[data-open='true'] {
+  &[data-open="true"] {
     right: 0px;
     opacity: 1;
   }
@@ -153,7 +153,9 @@ const MobileMenu = (props: MenuProps) => {
                       <MobileMenuSubItem key={subItem.label}>
                         <Link href={subItem.href} passHref>
                           <MobileMenuSubItemButton>
-                            {subItem.prefix && <span className="prefix">{subItem.prefix}</span>}
+                            {subItem.prefix && (
+                              <span className="prefix">{subItem.prefix}</span>
+                            )}
                             <span>{subItem.label}</span>
                           </MobileMenuSubItemButton>
                         </Link>
@@ -184,4 +186,7 @@ const MobileMenu = (props: MenuProps) => {
 
 export default React.memo(MobileMenu);
 
-MobileMenu.defaultProps = { menuItems: defaultMenuItemsList, socialsItems: defaultSocialsItems };
+MobileMenu.defaultProps = {
+  menuItems: defaultMenuItemsList,
+  socialsItems: defaultSocialsItems,
+};

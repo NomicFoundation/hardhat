@@ -1,12 +1,25 @@
-import * as React from 'react';
-import { SVGProps, memo } from 'react';
+import * as React from "react";
+import { SVGProps, memo } from "react";
 
 const IgnitionIcon = (props: SVGProps<SVGSVGElement>) => (
-  <svg width={42} height={42} viewBox="0 0 42 42" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
-    <rect x={10} y={20} width={23} height={22} fill="url(#paint0_linear_2791_14068)" />
+  <svg
+    width={42}
+    height={42}
+    viewBox="0 0 42 42"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <rect
+      x={10}
+      y={20}
+      width={23}
+      height={22}
+      fill="url(#paint0_linear_2791_14068)"
+    />
     <g
       style={{
-        mixBlendMode: 'multiply',
+        mixBlendMode: "multiply",
       }}
     >
       <path

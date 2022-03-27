@@ -7,7 +7,8 @@
 - [ ] Dynamic pages
 - [ ] Documentation pages
 - [ ] Add linaria theme
-- [ ] CI on github actions
+- [x] CI on github actions
+- [ ] incorporate CI checks into general workflow
 - [ ] CD to vercel
 - [ ] Setup Dev & Prod environments
 - [ ] Configure auto deploy on pushing to main branch

@@ -1,28 +1,29 @@
-import React, { SVGProps } from 'react';
-import { styled } from 'linaria/react';
-import { CTAType } from './types';
-import CTA from './CTA';
-import useWindowSize from '../../hooks/useWindowSize';
-import { appTheme, tm } from '../../themes';
-import Image from 'next/image';
+import React, { SVGProps } from "react";
+import { styled } from "linaria/react";
+import Image from "next/image";
+import { CTAType } from "./types";
+import CTA from "./CTA";
+import useWindowSize from "../../hooks/useWindowSize";
+import { appTheme, tm } from "../../themes";
+
 const { breakpoints, media } = appTheme;
 
-type ArticleType = {
+interface ArticleType {
   title: string;
   text: string;
-};
+}
 
-type ContentProps = {
+interface ContentProps {
   getImgPath: (props: { isDesktop: boolean }) => StaticImageData;
   cta: CTAType;
   articleOne: ArticleType;
   articleTwo: ArticleType;
-};
+}
 
-type Props = {
+interface Props {
   content: ContentProps;
   isReversed?: boolean;
-};
+}
 
 const Container = styled.section`
   width: 100%;
@@ -30,10 +31,10 @@ const Container = styled.section`
   display: flex;
   flex-direction: column;
   padding: 24px;
-  &[data-desktop='true'] {
+  &[data-desktop="true"] {
     flex-direction: row;
   }
-  &[data-desktop='true'][data-reverse='true'] {
+  &[data-desktop="true"][data-reverse="true"] {
     flex-direction: row-reverse;
   }
 `;
@@ -95,7 +96,7 @@ const FeatureCard = ({ content, isReversed = false }: Props) => {
   return (
     <Container data-desktop={isDesktop} data-reverse={isReversed}>
       <ImageContainer>
-        <Image src={getImgPath({ isDesktop })} alt={''} quality={100} />
+        <Image src={getImgPath({ isDesktop })} alt="" quality={100} />
       </ImageContainer>
       <ContentContainer>
         <Article {...articleOne} />

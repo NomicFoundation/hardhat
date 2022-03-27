@@ -1,11 +1,32 @@
-import * as React from 'react';
-import { SVGProps, memo } from 'react';
+import * as React from "react";
+import { SVGProps, memo } from "react";
 
 const RunnerIcon = (props: SVGProps<SVGSVGElement>) => (
-  <svg width={42} height={42} viewBox="0 0 42 42" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+  <svg
+    width={42}
+    height={42}
+    viewBox="0 0 42 42"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
     <g clipPath="url(#clip0_2572_132866)">
-      <rect x={3} y={24} width={18} height={14.25} rx={0.75} fill="url(#paint0_linear_2572_132866)" />
-      <rect x={4.5} y={6.75} width={30.75} height={18} rx={0.75} fill="url(#paint1_linear_2572_132866)" />
+      <rect
+        x={3}
+        y={24}
+        width={18}
+        height={14.25}
+        rx={0.75}
+        fill="url(#paint0_linear_2572_132866)"
+      />
+      <rect
+        x={4.5}
+        y={6.75}
+        width={30.75}
+        height={18}
+        rx={0.75}
+        fill="url(#paint1_linear_2572_132866)"
+      />
       <path
         d="M20.4904 14.799C20.4904 14.2217 21.1154 13.8608 21.6154 14.1495L41.8654 25.8409C42.3654 26.1295 42.3654 26.8512 41.8654 27.1399L21.6154 38.8312C21.1154 39.1199 20.4904 38.7591 20.4904 38.1817L20.4904 14.799Z"
         fill="url(#paint2_linear_2572_132866)"

@@ -1,11 +1,11 @@
-import React from 'react';
-import { styled } from 'linaria/react';
-import { tm } from '../../themes';
-import { useRouter } from 'next/router';
-import { MenuProps, MenuItemType, SocialsItem } from './types';
-import { defaultSocialsItems } from './default-props';
-import { defaultMenuItemsList } from '../../config';
-import Link from 'next/link';
+import React from "react";
+import { styled } from "linaria/react";
+import { useRouter } from "next/router";
+import Link from "next/link";
+import { tm } from "../../themes";
+import { MenuProps, MenuItemType, SocialsItem } from "./types";
+import { defaultSocialsItems } from "./default-props";
+import { defaultMenuItemsList } from "../../config";
 
 const MenuContainer = styled.section`
   user-select: none;
@@ -47,7 +47,7 @@ const MenuButton = styled.a`
     position: absolute;
     bottom: -8px;
     left: 0;
-    content: ' ';
+    content: " ";
     width: 0px;
     height: 1px;
     background-color: ${tm(({ colors }) => colors.neutral900)};
@@ -58,7 +58,7 @@ const MenuButton = styled.a`
       width: 100%;
     }
   }
-  &[data-current='true'] {
+  &[data-current="true"] {
     &:after {
       width: 100%;
     }
@@ -110,13 +110,13 @@ const Menu = (props: MenuProps) => {
       <MenuList>
         {menuItems.map((menuItem: MenuItemType) => {
           return (
-            <>
-              <MenuItem key={menuItem.label}>
-                <Link href={menuItem.href} passHref>
-                  <MenuButton data-current={router.pathname === menuItem.href}>{menuItem.label}</MenuButton>
-                </Link>
-              </MenuItem>
-            </>
+            <MenuItem key={menuItem.label}>
+              <Link href={menuItem.href} passHref>
+                <MenuButton data-current={router.pathname === menuItem.href}>
+                  {menuItem.label}
+                </MenuButton>
+              </Link>
+            </MenuItem>
           );
         })}
       </MenuList>
@@ -138,4 +138,7 @@ const Menu = (props: MenuProps) => {
 
 export default React.memo(Menu);
 
-Menu.defaultProps = { menuItems: defaultMenuItemsList, socialsItems: defaultSocialsItems };
+Menu.defaultProps = {
+  menuItems: defaultMenuItemsList,
+  socialsItems: defaultSocialsItems,
+};
