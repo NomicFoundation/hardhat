@@ -199,8 +199,9 @@ module.exports.communityPlugins = [
     name: "hardhat-tracer",
     author: "Soham Zemse",
     authorUrl: "https://github.com/zemse/",
-    description: "See emitted events during your hardhat tests in the console",
-    tags: ["Events", "Logs", "Trace", "Console", "Testing"],
+    description:
+      "See internal transactions, events and storage operations during your hardhat tests in the console",
+    tags: ["EVM", "Events", "Logs", "Trace", "Console", "Testing"],
   },
   {
     name: "hardhat-circom",
