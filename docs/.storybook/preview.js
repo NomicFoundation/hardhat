@@ -2,6 +2,8 @@ import React from "react";
 import { ThemeProvider, appTheme } from "../src/themes";
 import { withThemes } from '@react-theming/storybook-addon';
 
+import "../src/styles/globals.css"
+
 export const parameters = {
   actions: { argTypesRegex: "^on[A-Z].*" },
   controls: {

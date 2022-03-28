@@ -112,7 +112,7 @@ const Menu = (props: MenuProps) => {
           return (
             <MenuItem key={menuItem.label}>
               <Link href={menuItem.href} passHref>
-                <MenuButton data-current={router.pathname === menuItem.href}>
+                <MenuButton data-current={router?.pathname === menuItem.href}>
                   {menuItem.label}
                 </MenuButton>
               </Link>
