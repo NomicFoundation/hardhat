@@ -225,10 +225,18 @@ function overwriteBigNumberFunction(
       const actual = normalize(actualArg);
       this.assert(
         compare(functionName, expected, actual),
-        `expected ${expected} to ${readableName} ${actual}`,
-        `expected ${expected} to ${readableNegativeName} ${actual}`,
-        actual,
-        expected
+        `expected ${expected} to ${readableName} ${actual}. The numerical values of the given "${typestr(
+          expectedFlag
+        ).toString()}" and "${typestr(
+          actualArg
+        ).toString()}" inputs were compared, and they differed.`,
+        `expected ${expected} to ${readableNegativeName} ${actual}. The numerical values of the given "${typestr(
+          expectedFlag
+        ).toString()}" and "${typestr(
+          actualArg
+        ).toString()}" inputs were compared, and they differed.`,
+        actual.toString(),
+        expected.toString()
       );
     } else {
       _super.apply(this, args);
@@ -303,4 +311,19 @@ function overwriteBigNumberCloseTo(
       _super.apply(this, args);
     }
   };
+}
+
+function typestr(
+  n: string | bigint | BNType | EthersBigNumberType | BigNumberJsType
+): string {
+  if (typeof n === "object") {
+    if (isBN(n)) {
+      return "BN";
+    } else if (isEthersBigNumber(n)) {
+      return "ethers.BigNumber";
+    } else if (isBigNumberJsBigNumber(n)) {
+      return "bignumber.js";
+    }
+  }
+  return typeof n;
 }
