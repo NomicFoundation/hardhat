@@ -1,23 +1,23 @@
-name: hardhat-test-helpers CI
+name: hardhat-chai-matchers CI
 
 on:
   push:
     branches: [$default-branch]
     paths:
-      - "packages/hardhat-test-helpers/**"
+      - "packages/hardhat-chai-matchers/**"
       - "packages/hardhat-common/**"
       - "config/**"
   pull_request:
     branches:
       - "*"
     paths:
-      - "packages/hardhat-test-helpers/**"
+      - "packages/hardhat-chai-matchers/**"
       - "packages/hardhat-common/**"
       - "config/**"
 
 defaults:
   run:
-    working-directory: packages/hardhat-test-helpers
+    working-directory: packages/hardhat-chai-matchers
 
 concurrency:
   group: ${{github.workflow}}-${{github.ref}}
@@ -25,7 +25,7 @@ concurrency:
 
 jobs:
   test_on_windows:
-    name: Test hardhat-test-helpers on Windows with Node 12
+    name: Test hardhat-chai-matchers on Windows with Node 12
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
@@ -43,7 +43,7 @@ jobs:
         run: yarn test
 
   test_on_macos:
-    name: Test hardhat-test-helpers on MacOS with Node 12
+    name: Test hardhat-chai-matchers on MacOS with Node 12
     runs-on: macos-latest
     # disable until actions/virtual-environments#4896 is fixed
     if: ${{ false }}
@@ -63,7 +63,7 @@ jobs:
         run: yarn test
 
   test_on_linux:
-    name: Test hardhat-test-helpers on Ubuntu with Node ${{ matrix.node }}
+    name: Test hardhat-chai-matchers on Ubuntu with Node ${{ matrix.node }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
