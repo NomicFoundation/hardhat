@@ -7,7 +7,7 @@ import {
   EIP2929StateManager,
   StateManager,
 } from "@ethereumjs/vm/dist/state/interface";
-import { Address, BN, setLengthLeft, toBuffer } from "ethereumjs-util";
+import { Address, BN, setLengthLeft } from "ethereumjs-util";
 
 import { assertHardhatInvariant } from "../../core/errors";
 import { RpcDebugTracingConfig } from "../../core/jsonrpc/types/input/debugTraceTransaction";
@@ -22,18 +22,18 @@ interface StructLog {
   gasCost: number;
   op: string;
   pc: number;
-  memory: string[];
-  stack: string[];
-  storage: Record<string, string>;
+  memory: Buffer;
+  stack: BN[];
+  storage: Record<string, Buffer>;
   memSize: number;
   error?: object;
 }
 
-type Storage = Record<string, string>;
+type Storage = Record<string, Buffer>;
 
 interface DebugMessage {
   structLogs: Array<StructLog | DebugMessage>;
-  to: string;
+  to: Address;
   result?: EVMResult;
 }
 
@@ -44,8 +44,6 @@ function isStructLog(
 ): message is StructLog {
   return message !== undefined && !("structLogs" in message);
 }
-
-const EMPTY_MEMORY_WORD = "0".repeat(64);
 
 export class VMDebugTracer {
   private _lastTrace?: RpcDebugTraceOutput;
@@ -118,7 +116,7 @@ export class VMDebugTracer {
   private async _beforeMessageHandler(message: Message, next: any) {
     const debugMessage: DebugMessage = {
       structLogs: [],
-      to: message.to?.toString() ?? "",
+      to: message.to ?? "",
     };
 
     if (this._messages.length > 0) {
@@ -165,25 +163,8 @@ export class VMDebugTracer {
       topLevelMessage.to
     );
 
-    const rpcStructLogs: RpcStructLog[] = flattenDeep(nestedStructLogs).map(
-      (structLog) => {
-        const rpcStructLog: RpcStructLog = structLog;
-
-        // geth doesn't return this value
-        delete rpcStructLog.memSize;
-
-        if (this._config?.disableMemory === true) {
-          delete rpcStructLog.memory;
-        }
-        if (this._config?.disableStack === true) {
-          delete rpcStructLog.stack;
-        }
-        if (this._config?.disableStorage === true) {
-          delete rpcStructLog.storage;
-        }
-
-        return rpcStructLog;
-      }
+    const rpcStructLogs = flattenDeep(nestedStructLogs).map((v) =>
+      this._structLogToRpcStructLog(v)
     );
 
     // geth does this for some reason
@@ -201,12 +182,55 @@ export class VMDebugTracer {
     next();
   }
 
+  private _structLogToRpcStructLog(structLog: StructLog): RpcStructLog {
+    const rpcStructLog: RpcStructLog = {
+      depth: structLog.depth,
+      gas: structLog.gas,
+      gasCost: structLog.gasCost,
+      op: structLog.op,
+      pc: structLog.pc,
+      error: structLog.error,
+    };
+    if (this._config?.disableMemory !== true) {
+      rpcStructLog.memory = this._memoryToRpcMemory(structLog.memory);
+    }
+    if (this._config?.disableStack !== true) {
+      rpcStructLog.stack = structLog.stack.map((el: BN) =>
+        el.toString("hex").padStart(64, "0")
+      );
+    }
+    if (this._config?.disableStorage !== true) {
+      rpcStructLog.storage = this._storageToRpcStorage(structLog.storage);
+    }
+
+    return rpcStructLog;
+  }
+
+  private _memoryToRpcMemory(memory: Buffer): string[] {
+    const slices = Buffer.from(memory)
+      .toString("hex")
+      .match(/.{1,64}/g);
+    const result = slices === null ? [] : [...slices];
+    return result;
+  }
+
+  private _storageToRpcStorage(
+    storage: Record<string, Buffer>
+  ): Record<string, string> {
+    const storageRpc: Record<string, string> = {};
+    for (const [key, value] of Object.entries(storage)) {
+      storageRpc[key] = value.toString("hex");
+    }
+    return storageRpc;
+  }
+
   private async _messageToNestedStructLogs(
     message: DebugMessage,
-    address: string
+    address: Address
   ): Promise<NestedStructLogs> {
     const nestedStructLogs: NestedStructLogs = [];
 
+    // TODO .entries() expands memory
     for (const [i, messageOrStructLog] of message.structLogs.entries()) {
       if (isStructLog(messageOrStructLog)) {
         const structLog: StructLog = messageOrStructLog;
@@ -214,12 +238,12 @@ export class VMDebugTracer {
         nestedStructLogs.push(structLog);
 
         // update the storage of the current address
-        const addressStorage = this._addressToStorage[address] ?? {};
+        const addressStorage = this._addressToStorage[address.toString()] ?? {};
         structLog.storage = {
           ...addressStorage,
           ...structLog.storage,
         };
-        this._addressToStorage[address] = {
+        this._addressToStorage[address.toString()] = {
           ...structLog.storage,
         };
 
@@ -228,9 +252,10 @@ export class VMDebugTracer {
         // the memory to reflect this
         if (structLog.memSize > structLog.memory.length) {
           const wordsToAdd = structLog.memSize - structLog.memory.length;
-          for (let k = 0; k < wordsToAdd; k++) {
-            structLog.memory.push(EMPTY_MEMORY_WORD);
-          }
+          structLog.memory = Buffer.concat([
+            structLog.memory,
+            Buffer.alloc(wordsToAdd * 32),
+          ]);
         }
 
         if (i === 0) {
@@ -258,9 +283,11 @@ export class VMDebugTracer {
         if (structLog.op !== "REVERT") {
           const memoryLengthDifference =
             structLog.memory.length - previousStructLog.memory.length;
-          for (let k = 0; k < memoryLengthDifference; k++) {
-            previousStructLog.memory.push(EMPTY_MEMORY_WORD);
-          }
+
+          previousStructLog.memory = Buffer.concat([
+            previousStructLog.memory,
+            Buffer.alloc(memoryLengthDifference * 32),
+          ]);
         }
       } else {
         const subMessage: DebugMessage = messageOrStructLog;
@@ -286,26 +313,8 @@ export class VMDebugTracer {
     return nestedStructLogs;
   }
 
-  private _getMemory(step: InterpreterStep): string[] {
-    const memory = Buffer.from(step.memory)
-      .toString("hex")
-      .match(/.{1,64}/g);
-
-    const result = memory === null ? [] : [...memory];
-
-    return result;
-  }
-
-  private _getStack(step: InterpreterStep): string[] {
-    const stack = step.stack
-      .slice()
-      .map((el: BN) => el.toString("hex").padStart(64, "0"));
-    return stack;
-  }
-
   private async _stepToStructLog(step: InterpreterStep): Promise<StructLog> {
-    const memory = this._getMemory(step);
-    const stack = this._getStack(step);
+    let { memory } = step;
 
     let gasCost = step.opcode.fee;
 
@@ -316,35 +325,34 @@ export class VMDebugTracer {
 
     if (step.opcode.name === "SLOAD") {
       const address = step.address;
-      const [keyBuffer] = this._getFromStack(stack, 1);
+      const [keyBuffer] = this._getFromStack(step.stack, 1);
       const key: Buffer = setLengthLeft(keyBuffer, 32);
 
       const storageValue = await this._getContractStorage(address, key);
 
-      storage[toWord(key)] = toWord(storageValue);
+      storage[toHexWord(key)] = toBufferWord(storageValue);
     } else if (step.opcode.name === "SSTORE") {
-      const [keyBuffer, valueBuffer] = this._getFromStack(stack, 2);
-      const key = toWord(keyBuffer);
-      const storageValue = toWord(valueBuffer);
+      const [keyBuffer, valueBuffer] = this._getFromStack(step.stack, 2);
+
+      const key = toHexWord(keyBuffer);
+      const storageValue = toBufferWord(valueBuffer);
 
       storage[key] = storageValue;
     } else if (step.opcode.name === "REVERT") {
-      const [offsetBuffer, lengthBuffer] = this._getFromStack(stack, 2);
+      const [offsetBuffer, lengthBuffer] = this._getFromStack(step.stack, 2);
       const length = new BN(lengthBuffer);
       const offset = new BN(offsetBuffer);
 
       const [gasIncrease, addedWords] = this._memoryExpansion(
-        memory.length,
+        step.memory.length,
         length.add(offset)
       );
 
       gasCost += gasIncrease;
 
-      for (let i = 0; i < addedWords; i++) {
-        memory.push(EMPTY_MEMORY_WORD);
-      }
+      memory = Buffer.concat([step.memory, Buffer.alloc(addedWords * 32)]);
     } else if (step.opcode.name === "CREATE2") {
-      const [, , memoryUsedBuffer] = this._getFromStack(stack, 3);
+      const [, , memoryUsedBuffer] = this._getFromStack(step.stack, 3);
       const memoryUsed = new BN(memoryUsedBuffer);
       const sha3ExtraCost = divUp(memoryUsed, 32)
         .muln(this._sha3WordGas())
@@ -366,7 +374,7 @@ export class VMDebugTracer {
         inSizeBuffer,
         outBuffer,
         outSizeBuffer,
-      ] = this._getFromStack(stack, 6);
+      ] = this._getFromStack(step.stack, 6);
 
       // CALL has 7 parameters
       if (step.opcode.name === "CALL") {
@@ -378,7 +386,7 @@ export class VMDebugTracer {
           inSizeBuffer,
           outBuffer,
           outSizeBuffer,
-        ] = this._getFromStack(stack, 7);
+        ] = this._getFromStack(step.stack, 7);
       }
 
       const callCost = new BN(callCostBuffer);
@@ -430,7 +438,7 @@ export class VMDebugTracer {
       gas: step.gasLeft.toNumber(),
       gasCost,
       depth: step.depth + 1,
-      stack,
+      stack: step.stack.slice(), // shallow copy, because it's mutated by VM in next steps in msg
       memory,
       storage,
       memSize: step.memoryWordCount.toNumber(),
@@ -572,12 +580,11 @@ export class VMDebugTracer {
     return [0, 0];
   }
 
-  private _getFromStack(stack: string[], count: number): Buffer[] {
+  private _getFromStack(stack: BN[], count: number): Buffer[] {
     return stack
       .slice(-count)
       .reverse()
-      .map((value) => `0x${value}`)
-      .map(toBuffer);
+      .map((value) => toBufferWord(value.toBuffer()));
   }
 
   private _memoryFee(words: BN): BN {
@@ -602,6 +609,10 @@ function divUp(x: BN, y: number | BN): BN {
   return result;
 }
 
-function toWord(b: Buffer): string {
+function toHexWord(b: Buffer): string {
   return b.toString("hex").padStart(64, "0");
+}
+
+function toBufferWord(b: Buffer): Buffer {
+  return b.length < 32 ? Buffer.concat([Buffer.alloc(32 - b.length), b]) : b;
 }
