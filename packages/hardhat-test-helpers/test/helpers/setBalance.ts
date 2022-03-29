@@ -20,7 +20,6 @@ describe("setBalance", function () {
 
   it("should allow setting the balance of a given address", async function () {
     await hh.setBalance(recipient, 1234567);
-    await hh.mine();
 
     assert.equal(await getBalance(recipient), 1234567);
   });
@@ -38,7 +37,6 @@ describe("setBalance", function () {
     for (const [type, value, expectedBalance] of balanceExamples) {
       it(`should accept balance of type ${type}`, async function () {
         await hh.setBalance(recipient, value);
-        await hh.mine();
 
         assert.equal(await getBalance(recipient), expectedBalance);
       });

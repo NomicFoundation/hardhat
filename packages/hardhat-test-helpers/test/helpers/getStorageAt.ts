@@ -3,7 +3,7 @@ import { BN } from "ethereumjs-util";
 import { ethers } from "ethers";
 
 import * as hh from "../../src";
-import { NumberLike } from "../../src/types";
+import { BlockTag, NumberLike } from "../../src/types";
 import { useEnvironment } from "../test-utils";
 
 describe("getStorageAt", function () {
@@ -14,7 +14,6 @@ describe("getStorageAt", function () {
 
   it("should get the storage of a given address", async function () {
     await hh.setStorageAt(account, "0x1", code);
-    await hh.mine();
 
     assert.equal(await hh.getStorageAt(account, "0x1"), code);
   });
@@ -32,9 +31,31 @@ describe("getStorageAt", function () {
     for (const [type, value, expectedIndex] of indexExamples) {
       it(`should accept index of type ${type}`, async function () {
         await hh.setStorageAt(account, value, code);
-        await hh.mine();
 
         assert.equal(await hh.getStorageAt(account, expectedIndex), code);
+      });
+    }
+  });
+
+  describe("accepted parameter types for block", function () {
+    const blockExamples: Array<[string, NumberLike | BlockTag]> = [
+      ["number", 1],
+      ["bigint", BigInt(1)],
+      ["hex encoded", "0x1"],
+      ["hex encoded with leading zeros", "0x01"],
+      ["ethers's bignumber instances", ethers.BigNumber.from(1)],
+      ["bn.js instances", new BN(1)],
+      ["block tag latest", "latest"],
+      ["block tag earliest", "earliest"],
+      ["block tag pending", "pending"],
+    ];
+
+    for (const [type, value] of blockExamples) {
+      it(`should accept block of type ${type}`, async function () {
+        await hh.setStorageAt(account, 1, code);
+        await hh.mine();
+
+        await assert.isFulfilled(hh.getStorageAt(account, 1, value));
       });
     }
   });

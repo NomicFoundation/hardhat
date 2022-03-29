@@ -1,14 +1,12 @@
 import { getHardhatProvider, assertValidAddress } from "../utils";
 
-export async function stopImpersonatingAccount(
-  hexAddress: string
-): Promise<void> {
+export async function stopImpersonatingAccount(address: string): Promise<void> {
   const provider = await getHardhatProvider();
 
-  assertValidAddress(hexAddress);
+  assertValidAddress(address);
 
   await provider.request({
     method: "hardhat_stopImpersonatingAccount",
-    params: [hexAddress],
+    params: [address],
   });
 }

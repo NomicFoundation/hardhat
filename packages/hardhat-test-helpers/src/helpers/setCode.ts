@@ -4,14 +4,14 @@ import {
   assertHexString,
 } from "../utils";
 
-export async function setCode(hexAddress: string, code: string): Promise<void> {
+export async function setCode(address: string, code: string): Promise<void> {
   const provider = await getHardhatProvider();
 
-  assertValidAddress(hexAddress);
+  assertValidAddress(address);
   assertHexString(code);
 
   await provider.request({
     method: "hardhat_setCode",
-    params: [hexAddress, code],
+    params: [address, code],
   });
 }

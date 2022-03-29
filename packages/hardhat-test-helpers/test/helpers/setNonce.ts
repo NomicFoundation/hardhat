@@ -21,14 +21,12 @@ describe("setNonce", function () {
 
   it("should allow setting the nonce of an unused address", async function () {
     await hh.setNonce(account, 5);
-    await hh.mine();
 
     assert.equal(await getNonce(account), 5);
   });
 
   it("should allow setting the nonce of a used address", async function () {
     await hh.setBalance(account, "0xaaaaaaaaaaaaaaaaaaaaaa");
-    await hh.mine();
     await this.hre.network.provider.send("hardhat_impersonateAccount", [
       account,
     ]);
@@ -43,14 +41,12 @@ describe("setNonce", function () {
 
     assert.equal(await getNonce(account), 1);
     await hh.setNonce(account, 5);
-    await hh.mine();
 
     assert.equal(await getNonce(account), 5);
   });
 
   it("should not allow setting a nonce smaller than the current nonce", async function () {
     await hh.setNonce(account, 5);
-    await hh.mine();
 
     assert.equal(await getNonce(account), 5);
     await assert.isRejected(hh.setNonce(account, 1));
@@ -69,7 +65,6 @@ describe("setNonce", function () {
     for (const [type, value, expectedNonce] of nonceExamples) {
       it(`should accept balance of type ${type}`, async function () {
         await hh.setNonce(account, value);
-        await hh.mine();
 
         assert.equal(await getNonce(account), expectedNonce);
       });

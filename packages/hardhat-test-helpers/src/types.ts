@@ -13,3 +13,5 @@ export type NumberLike =
   | string
   | EthersBigNumberLike
   | BNLike;
+
+export type BlockTag = "latest" | "earliest" | "pending";

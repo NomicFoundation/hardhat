@@ -18,7 +18,6 @@ describe("setCoinbase", function () {
 
   it("should allow setting the coinbase", async function () {
     await hh.setCoinbase(newCoinbase);
-    await hh.mine();
 
     assert.equal(await getCoinbase(), newCoinbase);
   });

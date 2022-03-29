@@ -30,7 +30,6 @@ describe("setStorageAt", function () {
 
   it("should allow setting the data at a specific storage index of a given address", async function () {
     await hh.setStorageAt(account, "0x1", code);
-    await hh.mine();
 
     assert.equal(await getStorageAt(account, "0x1"), code);
   });
@@ -48,14 +47,15 @@ describe("setStorageAt", function () {
     for (const [type, value, expectedIndex] of indexExamples) {
       it(`should accept index of type ${type}`, async function () {
         await hh.setStorageAt(account, value, code);
-        await hh.mine();
 
         assert.equal(await getStorageAt(account, expectedIndex), code);
       });
     }
 
-    it("should not accept data that is not 64 bytes long", async function () {
-      await assert.isRejected(hh.setStorageAt(account, "0x1", "0xbeef"));
+    it("should accept data that is not 64 bytes long", async function () {
+      await hh.setStorageAt(account, "0x1", "0xbeef");
+
+      assert.equal(await getStorageAt(account, "0x1"), code);
     });
   });
 });

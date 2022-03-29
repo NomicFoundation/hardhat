@@ -68,13 +68,10 @@ export function toRpcQuantity(x: NumberLike): string {
   return hex.startsWith("0x") ? hex.replace("0x0", "0x") : `0x${hex}`;
 }
 
-export function assertValidAddress(hexAddress: string): void {
-  if (
-    typeof hexAddress !== "string" ||
-    !/^0x[0-9a-fA-F]{40}$/.test(hexAddress)
-  ) {
+export function assertValidAddress(address: string): void {
+  if (typeof address !== "string" || !/^0x[0-9a-fA-F]{40}$/.test(address)) {
     throw new Error(
-      `[hardhat-test-helpers] ${hexAddress} is not a valid hex address`
+      `[hardhat-test-helpers] ${address} is not a valid hex address`
     );
   }
 }
@@ -83,6 +80,15 @@ export function assertHexString(hexString: string): void {
   if (typeof hexString !== "string" || !/^0x[0-9a-fA-F]+$/.test(hexString)) {
     throw new Error(
       `[hardhat-test-helpers] ${hexString} is not a valid hex string`
+    );
+  }
+}
+
+export function assertTxHash(hexString: string): void {
+  assertHexString(hexString);
+  if (hexString.length !== 66) {
+    throw new Error(
+      `[hardhat-test-helpers] ${hexString} is not a valid transaction hash`
     );
   }
 }

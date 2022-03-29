@@ -18,7 +18,6 @@ describe("stopImpersonatingAccount", function () {
 
   it("should stop impersonating the address being impersonated", async function () {
     await hh.setBalance(account, "0xaaaaaaaaaaaaaaaaaaaaaa");
-    await hh.mine();
     // ensure we're not already impersonating
     await assert.isRejected(
       this.hre.network.provider.send("eth_sendTransaction", [
@@ -37,7 +36,6 @@ describe("stopImpersonatingAccount", function () {
         value: "0x1",
       },
     ]);
-    await hh.mine();
 
     assert.equal(await getBalance(recipient), 1);
 

@@ -12,7 +12,6 @@ describe("dropTransaction", function () {
     await this.hre.network.provider.send("evm_setAutomine", [false]);
     await hh.setBalance(account, "0xaaaaaaaaaaaaaaaaaaaaaa");
     await hh.impersonateAccount(account);
-    await hh.mine();
     const txHash = await this.hre.network.provider.send("eth_sendTransaction", [
       {
         from: account,
@@ -32,5 +31,19 @@ describe("dropTransaction", function () {
       "eth_pendingTransactions"
     );
     assert.equal(pendingTxs.length, 0);
+  });
+
+  describe("invalid parameters for txHash", function () {
+    const txHashExamples: Array<[string, string]> = [
+      ["non-prefixed hex string", "beef"],
+      ["hex string of incorrect length", "0xbeef"],
+      ["non-hex string", "test"],
+    ];
+
+    for (const [type, value] of txHashExamples) {
+      it(`should not accept txHash of type ${type}`, async function () {
+        await assert.isRejected(hh.dropTransaction(value));
+      });
+    }
   });
 });

@@ -18,7 +18,6 @@ describe("setCode", function () {
 
   it("should allow setting the code of a given address", async function () {
     await hh.setCode(recipient, "0xa1a2a3");
-    await hh.mine();
 
     assert.equal(await getCode(recipient), "0xa1a2a3");
   });

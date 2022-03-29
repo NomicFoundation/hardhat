@@ -1,4 +1,4 @@
-import type { NumberLike } from "../types";
+import type { NumberLike, BlockTag } from "../types";
 import {
   getHardhatProvider,
   assertValidAddress,
@@ -6,18 +6,29 @@ import {
 } from "../utils";
 
 export async function getStorageAt(
-  hexAddress: string,
+  address: string,
   index: NumberLike,
-  block = "latest"
+  block: NumberLike | BlockTag = "latest"
 ): Promise<string> {
   const provider = await getHardhatProvider();
 
-  assertValidAddress(hexAddress);
-  const hexIndex = toRpcQuantity(index);
+  assertValidAddress(address);
+  const indexParam = toRpcQuantity(index);
+
+  let blockParam: NumberLike | BlockTag;
+  switch (block) {
+    case "latest":
+    case "earliest":
+    case "pending":
+      blockParam = block;
+      break;
+    default:
+      blockParam = toRpcQuantity(block);
+  }
 
   const data = await provider.request({
     method: "eth_getStorageAt",
-    params: [hexAddress, hexIndex, block],
+    params: [address, indexParam, blockParam],
   });
 
   return data as string;

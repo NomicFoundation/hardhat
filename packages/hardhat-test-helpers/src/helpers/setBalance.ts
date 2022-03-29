@@ -6,16 +6,16 @@ import {
 } from "../utils";
 
 export async function setBalance(
-  hexAddress: string,
+  address: string,
   balance: NumberLike
 ): Promise<void> {
   const provider = await getHardhatProvider();
 
-  assertValidAddress(hexAddress);
+  assertValidAddress(address);
   const balanceHex = toRpcQuantity(balance);
 
   await provider.request({
     method: "hardhat_setBalance",
-    params: [hexAddress, balanceHex],
+    params: [address, balanceHex],
   });
 }

@@ -6,16 +6,16 @@ import {
 } from "../utils";
 
 export async function setNonce(
-  hexAddress: string,
+  address: string,
   nonce: NumberLike
 ): Promise<void> {
   const provider = await getHardhatProvider();
 
-  assertValidAddress(hexAddress);
+  assertValidAddress(address);
   const nonceHex = toRpcQuantity(nonce);
 
   await provider.request({
     method: "hardhat_setNonce",
-    params: [hexAddress, nonceHex],
+    params: [address, nonceHex],
   });
 }
