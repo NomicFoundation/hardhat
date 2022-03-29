@@ -5,23 +5,13 @@ import CTA from "../ui/CTA";
 import { appTheme } from "../../themes";
 import Images from "../../assets/images";
 import useWindowSize from "../../hooks/useWindowSize";
+import defaultProps from "../ui/default-props";
 
+const { defaultHeroBlockContent } = defaultProps;
 const { media, breakpoints } = appTheme;
 const { HeroPetsImage, HeroGraphicsImage } = Images;
-
-const content = {
-  title: "Ethereum development environment for professionals",
-  tagline: "Flexible. Extensible. Fast.",
-  cta: {
-    title: "Get started",
-    // TODO: switch to page reference later
-    url: "https://hardhat.org/getting-started/",
-  },
-  heroImage: {},
-};
-
 interface Props {
-  content: typeof content;
+  content: typeof defaultHeroBlockContent;
 }
 
 const Container = styled.section`
@@ -99,5 +89,3 @@ const HeroBlock = ({ content }: Props) => {
 };
 
 export default HeroBlock;
-
-HeroBlock.defaultProps = { content };

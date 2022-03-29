@@ -1,6 +1,6 @@
 import React from "react";
 import { styled } from "linaria/react";
-import { appTheme, tm } from "../themes";
+import { appTheme } from "../themes";
 
 const { media } = appTheme;
 

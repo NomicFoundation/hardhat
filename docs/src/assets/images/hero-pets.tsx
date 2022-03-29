@@ -3,8 +3,6 @@ import { SVGProps, memo } from "react";
 
 const HeroPetsImage = (props: SVGProps<SVGSVGElement>) => (
   <svg
-    width={320}
-    height={330}
     viewBox="0 0 320 330"
     fill="none"
     xmlns="http://www.w3.org/2000/svg"

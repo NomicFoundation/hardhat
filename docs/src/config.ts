@@ -1,4 +1,4 @@
-import { MenuItemType } from "./components/ui/types";
+import { MenuItemType, SocialsEnum } from "./components/ui/types";
 
 export const defaultMenuItemsList: MenuItemType[] = [
   {
@@ -45,9 +45,11 @@ export const defaultMenuItemsList: MenuItemType[] = [
   },
 ];
 
-export enum Tools {
-  RUNNER = "RUNNER",
-  IGNITION = "IGNITION",
-  NETWORK = "NETWORK",
-  VS_CODE = "VS_CODE",
-}
+export const SOCIALS_LINKS = {
+  [SocialsEnum.GITHUB]: "https://github.com/NomicFoundation/hardhat",
+  [SocialsEnum.TWITTER]: "https://twitter.com/HardhatHQ",
+  [SocialsEnum.DISCORD]: "https://discord.com/invite/TETZs2KK4k",
+};
+
+export const BANNER_LINK =
+  "https://www.notion.so/Nomic-Foundation-jobs-991b37c547554f75b89a95f437fd5056";

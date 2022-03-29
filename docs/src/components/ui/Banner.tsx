@@ -1,20 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { styled } from "linaria/react";
 import { appTheme, tm } from "../../themes";
-import useWindowSize from "../../hooks/useWindowSize";
+import useWindowSize, { WindowSizeState } from "../../hooks/useWindowSize";
+import { BannerProps, DefaultBannerProps } from "./types";
 
-const content = {
-  text: "Join the Hardhat team! Nomic Labs is hiring",
-  href: "https://www.notion.so/Nomic-Foundation-jobs-991b37c547554f75b89a95f437fd5056",
-};
-
-type BannerProps = React.PropsWithChildren<{
-  content: typeof content;
-}>;
-
-interface DefaultBannerProps {
-  content: typeof content;
-}
+const { media, breakpoints } = appTheme;
 
 const BannerContainer = styled.section`
   position: absolute;
@@ -32,13 +22,11 @@ const BannerContainer = styled.section`
   background-color: ${tm(({ colors }) => colors.neutral900)};
   color: ${tm(({ colors }) => colors.neutral0)};
   font-size: 13px;
-  font-style: normal;
   font-weight: 400;
   line-height: 15px;
   letter-spacing: 0.03em;
-  &:hover {
-    cursor: pointer;
-  }
+  white-space: nowrap;
+  cursor: pointer;
   & span {
     margin-right: 2px;
   }
@@ -46,7 +34,12 @@ const BannerContainer = styled.section`
     text-decoration: underline;
     margin-right: unset;
   }
+  ${media.lg} {
+    font-size: 18px;
+    line-height: 12px;
+  }
 `;
+
 const BracesContainer = styled.div`
   display: flex;
   flex-wrap: nowrap;
@@ -61,58 +54,55 @@ const BracesContainer = styled.div`
   }
 `;
 
-const Brace = styled.div`
+const Brace = styled.div<{
+  fullAnimationDuration: number;
+  braceNumber: number;
+}>`
   display: inline;
-  &[data-highlighted="true"] {
-    color: ${tm(({ colors }) => colors.neutral900)};
-    transition: color ease-out 0.5s;
+  animation: highlight ease-out ${(props) => `${props.fullAnimationDuration}s`};
+  animation-iteration-count: 3;
+  animation-delay: ${(props) => `${props.braceNumber * 0.5}s`};
+  @keyframes highlight {
+    0%,
+    100% {
+      color: ${tm(({ colors }) => colors.accent900)};
+    }
+
+    10% {
+      color: ${tm(({ colors }) => colors.neutral900)};
+    }
+
+    20% {
+      color: ${tm(({ colors }) => colors.accent900)};
+    }
   }
 `;
+
+const getBracesCount = (windowSize: WindowSizeState) => {
+  if (windowSize.width >= breakpoints.lg) return 6;
+  if (windowSize.width >= breakpoints.sm) return 3;
+  return 2;
+};
 
 const BracesAnimation: React.FC<React.PropsWithChildren<{}>> = ({
   children,
 }) => {
-  const [animationCounter, setAnimationCounter] = useState(0);
-  const [isAnimationPlaying, setAnimationState] = useState(true);
-
   const windowSize = useWindowSize();
-  const { breakpoints } = appTheme;
-  const bracesCount =
-    windowSize.width >= breakpoints.lg
-      ? 6
-      : windowSize.width > breakpoints.sm
-      ? 3
-      : 2;
+  const bracesCount = getBracesCount(windowSize);
+
   const bracesString = Array(bracesCount)
     .fill(">")
     .map((brace: string, index: number) => {
       return (
         <Brace
-          key={index}
-          data-highlighted={
-            isAnimationPlaying && index === animationCounter % bracesCount
-          }
+          key={Math.random()}
+          fullAnimationDuration={bracesCount * 0.5}
+          braceNumber={index + 1}
         >
           {brace}
         </Brace>
       );
     });
-
-  useEffect(() => {
-    const interval = setInterval(
-      () =>
-        setAnimationCounter((currentCounter) => {
-          if (currentCounter + 1 - bracesCount * 3 >= 0) {
-            setAnimationState(false);
-            clearInterval(interval);
-          }
-          return currentCounter + 1;
-        }),
-      300
-    );
-
-    return () => clearInterval(interval);
-  }, [bracesCount]);
 
   return (
     <BracesContainer>
@@ -123,27 +113,16 @@ const BracesAnimation: React.FC<React.PropsWithChildren<{}>> = ({
   );
 };
 
-const DefaultBanner = ({ content }: DefaultBannerProps) => {
-  return (
-    <BracesAnimation>
-      {content.text.split(" ").map((word: string, index: number) => (
-        <span key={`${word}-${index}`}>{word}</span>
-      ))}
-    </BracesAnimation>
-  );
+export const DefaultBanner = ({ content }: DefaultBannerProps) => {
+  return <BracesAnimation>{content.text}</BracesAnimation>;
 };
 
-const Banner = (props: BannerProps) => {
-  const { children, content } = props;
+const Banner = ({ content, renderContent }: BannerProps) => {
   return (
     <a target="_blank" rel="noreferrer" href={content.href}>
-      <BannerContainer>
-        {Array.isArray(children) && children[0]({ content })}
-      </BannerContainer>
+      <BannerContainer>{renderContent({ content })}</BannerContainer>
     </a>
   );
 };
 
-export default React.memo(Banner);
-
-Banner.defaultProps = { content, children: [DefaultBanner] };
+export default Banner;

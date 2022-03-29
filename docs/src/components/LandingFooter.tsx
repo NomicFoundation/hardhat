@@ -6,7 +6,6 @@ import { appTheme, tm } from "../themes";
 const { media } = appTheme;
 
 const Footer = styled.footer`
-  box-sizing: border-box;
   padding: 80px 24px 120px;
   display: flex;
   flex-direction: column;

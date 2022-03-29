@@ -1,4 +1,4 @@
-import React, { SVGProps } from "react";
+import React from "react";
 import { styled } from "linaria/react";
 import Image from "next/image";
 import { CTAType } from "./types";
@@ -6,7 +6,7 @@ import CTA from "./CTA";
 import useWindowSize from "../../hooks/useWindowSize";
 import { appTheme, tm } from "../../themes";
 
-const { breakpoints, media } = appTheme;
+const { breakpoints } = appTheme;
 
 interface ArticleType {
   title: string;

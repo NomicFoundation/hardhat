@@ -1,17 +1,18 @@
 import React, { Fragment } from "react";
 import { styled } from "linaria/react";
-import { useRouter } from "next/router";
 import Link from "next/link";
-import { tm } from "../../themes";
-
 import { MenuItemType, MenuProps, SocialsItem } from "./types";
-import { defaultSocialsItems } from "./default-props";
+import defaultProps from "./default-props";
 import { defaultMenuItemsList } from "../../config";
+import { appTheme, tm } from "../../themes";
 
-const MobileMenuContainer = styled.section`
+const { defaultSocialsItems } = defaultProps;
+const { media } = appTheme;
+
+const MobileMenuContainer = styled.section<{ isOpen: boolean }>`
   position: fixed;
   top: 40px;
-  right: -110vw;
+  right: ${(props) => (props.isOpen ? "0px" : "-120vw")};
   user-select: none;
   width: 100%;
   z-index: -1;
@@ -23,14 +24,14 @@ const MobileMenuContainer = styled.section`
   justify-content: space-evenly;
   transition: all ease-in-out 0.5s;
   background-color: ${tm(({ colors }) => colors.neutral0)};
-  opacity: 0.8;
+  opacity: ${(props) => (props.isOpen ? "1" : "0.8")};
   overflow-y: scroll;
+  visibility: ${(props) => (props.isOpen ? "visible" : "hidden")};
   &::-webkit-scrollbar {
     display: none;
   }
-  &[data-open="true"] {
-    right: 0px;
-    opacity: 1;
+  ${media.lg} {
+    display: none;
   }
 `;
 
@@ -68,8 +69,8 @@ const MobileMenuButton = styled.a`
   line-height: 24px;
   letter-spacing: 0.07em;
   text-align: center;
+  cursor: pointer;
   &:hover {
-    cursor: pointer;
     color: ${tm(({ colors }) => colors.neutral600)};
   }
 `;
@@ -101,6 +102,7 @@ const MobileMenuSubItemButton = styled.a`
   line-height: 24px;
   letter-spacing: 0.04em;
   text-align: center;
+  cursor: pointer;
   & .prefix {
     margin-right: 4px;
     color: ${tm(({ colors }) => colors.neutral600)};
@@ -109,7 +111,6 @@ const MobileMenuSubItemButton = styled.a`
     margin-bottom: unset;
   }
   &:hover {
-    cursor: pointer;
     opacity: 0.8;
   }
 `;
@@ -133,10 +134,9 @@ const SocialLinksItem = styled.li`
   height: 40px;
 `;
 
-const MobileMenu = (props: MenuProps) => {
-  const { menuItems, isOpen, socialsItems } = props;
+const MobileMenu = ({ menuItems, isOpen = false, socialsItems }: MenuProps) => {
   return (
-    <MobileMenuContainer data-open={isOpen}>
+    <MobileMenuContainer isOpen={isOpen}>
       <MobileMenuList>
         {menuItems.map((menuItem: MenuItemType) => {
           return (
@@ -153,7 +153,7 @@ const MobileMenu = (props: MenuProps) => {
                       <MobileMenuSubItem key={subItem.label}>
                         <Link href={subItem.href} passHref>
                           <MobileMenuSubItemButton>
-                            {subItem.prefix && (
+                            {Boolean(subItem.prefix) && (
                               <span className="prefix">{subItem.prefix}</span>
                             )}
                             <span>{subItem.label}</span>
@@ -184,7 +184,7 @@ const MobileMenu = (props: MenuProps) => {
   );
 };
 
-export default React.memo(MobileMenu);
+export default MobileMenu;
 
 MobileMenu.defaultProps = {
   menuItems: defaultMenuItemsList,
