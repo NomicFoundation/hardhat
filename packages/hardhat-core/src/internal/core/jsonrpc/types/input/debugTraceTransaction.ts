@@ -8,6 +8,7 @@ export const rpcDebugTracingConfig = optionalOrNullable(
       disableStorage: optionalOrNullable(t.boolean),
       disableMemory: optionalOrNullable(t.boolean),
       disableStack: optionalOrNullable(t.boolean),
+      opcodes: optionalOrNullable(t.array(t.string)),
     },
     "RpcDebugTracingConfig"
   )

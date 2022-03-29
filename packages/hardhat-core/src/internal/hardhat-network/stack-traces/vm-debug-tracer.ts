@@ -163,9 +163,12 @@ export class VMDebugTracer {
       topLevelMessage.to
     );
 
-    const rpcStructLogs = flattenDeep(nestedStructLogs).map((v) =>
-      this._structLogToRpcStructLog(v)
-    );
+    const rpcStructLogs = flattenDeep(nestedStructLogs)
+      .filter(
+        (structLog) =>
+          !this._config?.opcodes || this._config.opcodes.includes(structLog.op)
+      )
+      .map((v) => this._structLogToRpcStructLog(v));
 
     // geth does this for some reason
     if (result.execResult.exceptionError?.error === "out of gas") {
