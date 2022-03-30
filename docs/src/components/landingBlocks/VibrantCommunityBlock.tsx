@@ -6,6 +6,7 @@ import VibrantCommunityImage from "../../assets/images/vibrant_community.png";
 
 import { appTheme, tm } from "../../themes";
 import CTA from "../ui/CTA";
+import Section from "../Section";
 import defaultProps from "../ui/default-props";
 
 const { media } = appTheme;
@@ -14,7 +15,7 @@ interface Props {
   content: typeof defaultProps.defaultVibrantCommunityBlockContent;
 }
 
-const Section = styled.section`
+const CardWrapper = styled.section`
   margin: 0 24px;
   ${media.lg} {
     margin: 0 75px 0 85px;
@@ -103,21 +104,23 @@ const ButtonWrapper = styled.div`
 
 const VibrantCommunityBlock = ({ content }: Props) => {
   return (
-    <Section>
-      <Container>
-        <Wrapper>
-          <Title>{content.title}</Title>
-          <Text>{content.text}</Text>
-          <ButtonWrapper>
-            <CTA href={content.cta.url} secondary>
-              {content.cta.title}
-            </CTA>
-          </ButtonWrapper>
-        </Wrapper>
-        <ImageContainer>
-          <Image src={VibrantCommunityImage} alt="Vibrant community image" />
-        </ImageContainer>
-      </Container>
+    <Section clearPadding>
+      <CardWrapper>
+        <Container>
+          <Wrapper>
+            <Title>{content.title}</Title>
+            <Text>{content.text}</Text>
+            <ButtonWrapper>
+              <CTA href={content.cta.url} secondary>
+                {content.cta.title}
+              </CTA>
+            </ButtonWrapper>
+          </Wrapper>
+          <ImageContainer>
+            <Image src={VibrantCommunityImage} alt="Vibrant community image" />
+          </ImageContainer>
+        </Container>
+      </CardWrapper>
     </Section>
   );
 };

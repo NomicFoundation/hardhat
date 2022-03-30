@@ -55,12 +55,17 @@ const defaultVibrantCommunityBlockContent = {
   },
 };
 
+const defaultTrustedTeamsBlockContent = {
+  title: "Trusted by top teams",
+};
+
 const defaultProps = {
   defaultSocialsItems,
   defaultBannerContent,
   defaultHeroBlockContent,
   defaultCTAContent,
   defaultVibrantCommunityBlockContent,
+  defaultTrustedTeamsBlockContent,
 };
 
 export default defaultProps;

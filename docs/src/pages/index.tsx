@@ -15,6 +15,7 @@ import ExtensibleImageDesktop from "../assets/feature-cards/Desktop/ExtensibleIm
 import ExtensibleImageMobile from "../assets/feature-cards/Mobile/ExtensibleImage.png";
 import FastIterationImageDesktop from "../assets/feature-cards/Desktop/FastIterationImage.png";
 import FastIterationImageMobile from "../assets/feature-cards/Mobile/FastIterationImage.png";
+import TrustedTeamsBlock from "../components/landingBlocks/TrustedTeamsBlock";
 
 const { defaultHeroBlockContent, defaultCTAContent } = defaultProps;
 // import ToolsBlock from '../components/landingBlocks/ToolsBlock';
@@ -100,11 +101,13 @@ const Home: NextPage = () => {
         <FeatureCard content={FeatureCards.featureCardFour} />
       </WhyHardhatBlock>
       <CTABlock content={defaultCTAContent} />
+      <TrustedTeamsBlock
+        content={defaultProps.defaultTrustedTeamsBlockContent}
+      />
     </>
   );
 };
 
 /* @ts-ignore */
 Home.layout = "landing";
-
 export default Home;
