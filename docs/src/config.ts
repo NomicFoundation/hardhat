@@ -5,39 +5,42 @@ export const defaultMenuItemsList: MenuItemType[] = [
     label: "Home",
     href: "/",
   },
-  {
-    label: "Tools",
-    href: "/tools",
-    subItems: [
-      {
-        prefix: "Hardhat",
-        label: "Runner",
-        href: "/tools/runner",
-      },
-      {
-        prefix: "Hardhat",
-        label: "Ignition",
-        href: "/tools/ignition",
-      },
-      {
-        prefix: "Hardhat",
-        label: "Network",
-        href: "/tools/network",
-      },
-      {
-        prefix: "Hardhat",
-        label: "Solidity",
-        href: "/tools/solidity",
-      },
-    ],
-  },
+  /**
+   * We don't have this section yet
+   */
+  // {
+  //   label: "Tools",
+  //   href: "/tools",
+  //   subItems: [
+  //     {
+  //       prefix: "Hardhat",
+  //       label: "Runner",
+  //       href: "/tools/runner",
+  //     },
+  //     {
+  //       prefix: "Hardhat",
+  //       label: "Ignition",
+  //       href: "/tools/ignition",
+  //     },
+  //     {
+  //       prefix: "Hardhat",
+  //       label: "Network",
+  //       href: "/tools/network",
+  //     },
+  //     {
+  //       prefix: "Hardhat",
+  //       label: "Solidity",
+  //       href: "/tools/solidity",
+  //     },
+  //   ],
+  // },
   {
     label: "Plugins",
     href: "/plugins",
   },
   {
     label: "Documents",
-    href: "/documents",
+    href: "/getting-started",
   },
   {
     label: "Tutorial",

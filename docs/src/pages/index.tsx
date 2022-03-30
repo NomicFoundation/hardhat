@@ -1,5 +1,4 @@
 import type { NextPage } from "next";
-import LandingLayout from "../components/LandingLayout";
 import HeroBlock from "../components/landingBlocks/HeroBlock";
 import FeatureCard from "../components/ui/FeatureCard";
 import CTABlock from "../components/landingBlocks/CTABlock";
@@ -86,13 +85,7 @@ export const FeatureCards = {
 
 const Home: NextPage = () => {
   return (
-    <LandingLayout
-      seo={{
-        title: "Hardhat",
-        description:
-          "Ethereum development environment for professionals by Nomic Foundation",
-      }}
-    >
+    <>
       <HeroBlock content={defaultHeroBlockContent} />
       <WhyHardhatBlock content={defaultWhyHardhatContent} />
       <VibrantCommunityBlock
@@ -107,8 +100,11 @@ const Home: NextPage = () => {
         <FeatureCard content={FeatureCards.featureCardFour} />
       </WhyHardhatBlock>
       <CTABlock content={defaultCTAContent} />
-    </LandingLayout>
+    </>
   );
 };
+
+/* @ts-ignore */
+Home.layout = "landing";
 
 export default Home;

@@ -10,7 +10,7 @@ module.exports = {
   ],
   framework: "@storybook/react",
   webpackFinal: async (baseConfig) => {
-    return nextConfig.webpack(baseConfig, {});
+    return nextConfig.linariaConfig.webpack(baseConfig, {});
   },
   typescript: {
     check: false,

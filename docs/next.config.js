@@ -2,7 +2,17 @@
 const path = require("path");
 const withLinaria = require("next-linaria");
 
-const nextConfig = withLinaria({
+const withMDX = require("@next/mdx")({
+  extension: /\.mdx?$/,
+  options: {
+    remarkPlugins: [],
+    rehypePlugins: [],
+    // If you use `MDXProvider`, uncomment the following line.
+    providerImportSource: "@mdx-js/react",
+  },
+});
+
+const linariaConfig = withLinaria({
   reactStrictMode: true,
   future: {
     webpack5: true,
@@ -18,6 +28,10 @@ const nextConfig = withLinaria({
         ? ".next/cache/.linaria-cache"
         : ".linaria-cache",
   },
+  pageExtensions: ["ts", "tsx", "js", "jsx", "md", "mdx"],
 });
+
+const nextConfig = withMDX(linariaConfig);
+nextConfig.linariaConfig = linariaConfig;
 
 module.exports = nextConfig;
