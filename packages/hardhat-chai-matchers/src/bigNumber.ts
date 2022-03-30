@@ -11,42 +11,11 @@
 //   closeTo
 //   approximately
 
-import type { BigNumber as EthersBigNumberType } from "ethers";
-// eslint-disable-next-line import/no-extraneous-dependencies
-import type { BigNumber as BigNumberJsType } from "bignumber.js";
-// eslint-disable-next-line import/no-extraneous-dependencies
-import type { default as BNType } from "bn.js";
-
-function isBN(n: any) {
-  try {
-    // eslint-disable-next-line import/no-extraneous-dependencies
-    const BN: typeof BNType = require("bn.js");
-    return BN.isBN(n);
-  } catch (e) {
-    return false;
-  }
-}
-
-function isEthersBigNumber(n: any) {
-  try {
-    // eslint-disable-next-line import/no-extraneous-dependencies
-    const BigNumber: typeof EthersBigNumberType =
-      require("ethers").ethers.BigNumber;
-    return BigNumber.isBigNumber(n);
-  } catch (e) {
-    return false;
-  }
-}
-
-function isBigNumberJsBigNumber(n: any) {
-  try {
-    // eslint-disable-next-line import/no-extraneous-dependencies
-    const BigNumber: typeof BigNumberJsType = require("bignumber.js").BigNumber;
-    return n instanceof BigNumber && BigNumber.isBigNumber(n);
-  } catch (e) {
-    return false;
-  }
-}
+import {
+  formatNumberType,
+  isBigNumber,
+  normalizeToBigInt,
+} from "hardhat/common/bigInt";
 
 export function supportBigNumber(
   Assertion: Chai.AssertionStatic,
@@ -96,8 +65,8 @@ function createLengthOverride(
         if (isBigNumber(value)) {
           const sizeOrLength =
             actual instanceof Map || actual instanceof Set ? "size" : "length";
-          const actualLength = normalize(actual[sizeOrLength]);
-          const expectedLength = normalize(value);
+          const actualLength = normalizeToBigInt(actual[sizeOrLength]);
+          const expectedLength = normalizeToBigInt(value);
           this.assert(
             actualLength === expectedLength,
             `expected #{this} to have a ${sizeOrLength} of ${expectedLength.toString()} but got ${actualLength.toString()}`,
@@ -128,50 +97,6 @@ function override(
 ) {
   return (_super: (...args: any[]) => any) =>
     overwriteBigNumberFunction(method, name, negativeName, _super, utils);
-}
-
-function normalize(
-  source:
-    | number
-    | bigint
-    | BNType
-    | EthersBigNumberType
-    | BigNumberJsType
-    | string
-): bigint {
-  if (
-    isEthersBigNumber(source) ||
-    isBN(source) ||
-    isBigNumberJsBigNumber(source)
-  ) {
-    return BigInt(source.toString());
-  } else if (
-    typeof source === "string" ||
-    typeof source === "number" ||
-    typeof source === "bigint"
-  ) {
-    // first construct a BigInt, to allow it to throw if there's a fractional value:
-    const toReturn = BigInt(source);
-    // then check the source for integer safety:
-    if (typeof source === "number" && !Number.isSafeInteger(source)) {
-      throw new RangeError(
-        `Cannot compare to unsafe integer ${source}. Consider using BigInt(${source}) instead. For more details, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isSafeInteger`
-      );
-    }
-    // haven't thrown; return the value:
-    return toReturn;
-  } else {
-    throw new Error(`cannot convert ${typeof source} to BigInt`);
-  }
-}
-
-function isBigNumber(source: any): boolean {
-  return (
-    typeof source === "bigint" ||
-    isEthersBigNumber(source) ||
-    isBN(source) ||
-    isBigNumberJsBigNumber(source)
-  );
 }
 
 function overwriteBigNumberFunction(
@@ -208,8 +133,8 @@ function overwriteBigNumberFunction(
         _super.apply(this, args);
         return;
       }
-      const expected = normalize(expectedFlag[sizeOrLength]);
-      const actual = normalize(actualArg);
+      const expected = normalizeToBigInt(expectedFlag[sizeOrLength]);
+      const actual = normalizeToBigInt(actualArg);
       this.assert(
         compare(functionName, expected, actual),
         `expected #{this} to have a ${sizeOrLength} ${readableName.replace(
@@ -221,18 +146,18 @@ function overwriteBigNumberFunction(
         actual
       );
     } else if (isBigNumber(expectedFlag) || isBigNumber(actualArg)) {
-      const expected = normalize(expectedFlag);
-      const actual = normalize(actualArg);
+      const expected = normalizeToBigInt(expectedFlag);
+      const actual = normalizeToBigInt(actualArg);
       this.assert(
         compare(functionName, expected, actual),
-        `expected ${expected} to ${readableName} ${actual}. The numerical values of the given "${typestr(
+        `expected ${expected} to ${readableName} ${actual}. The numerical values of the given "${formatNumberType(
           expectedFlag
-        ).toString()}" and "${typestr(
+        ).toString()}" and "${formatNumberType(
           actualArg
         ).toString()}" inputs were compared, and they differed.`,
-        `expected ${expected} to ${readableNegativeName} ${actual}. The numerical values of the given "${typestr(
+        `expected ${expected} to ${readableNegativeName} ${actual}. The numerical values of the given "${formatNumberType(
           expectedFlag
-        ).toString()}" and "${typestr(
+        ).toString()}" and "${formatNumberType(
           actualArg
         ).toString()}" inputs were compared, and they differed.`,
         actual.toString(),
@@ -261,9 +186,9 @@ function overwriteBigNumberWithin(
       isBigNumber(startArg) ||
       isBigNumber(finishArg)
     ) {
-      const expected = normalize(expectedFlag);
-      const start = normalize(startArg);
-      const finish = normalize(finishArg);
+      const expected = normalizeToBigInt(expectedFlag);
+      const start = normalizeToBigInt(startArg);
+      const finish = normalizeToBigInt(finishArg);
       this.assert(
         start <= expected && expected <= finish,
         `expected ${expected} to be within ${start}..${finish}`,
@@ -294,9 +219,9 @@ function overwriteBigNumberCloseTo(
       isBigNumber(actualArg) ||
       isBigNumber(deltaArg)
     ) {
-      const expected = normalize(expectedFlag);
-      const actual = normalize(actualArg);
-      const delta = normalize(deltaArg);
+      const expected = normalizeToBigInt(expectedFlag);
+      const actual = normalizeToBigInt(actualArg);
+      const delta = normalizeToBigInt(deltaArg);
       function abs(i: bigint): bigint {
         return i < 0 ? BigInt(-1) * i : i;
       }
@@ -311,19 +236,4 @@ function overwriteBigNumberCloseTo(
       _super.apply(this, args);
     }
   };
-}
-
-function typestr(
-  n: string | bigint | BNType | EthersBigNumberType | BigNumberJsType
-): string {
-  if (typeof n === "object") {
-    if (isBN(n)) {
-      return "BN";
-    } else if (isEthersBigNumber(n)) {
-      return "ethers.BigNumber";
-    } else if (isBigNumberJsBigNumber(n)) {
-      return "bignumber.js";
-    }
-  }
-  return typeof n;
 }

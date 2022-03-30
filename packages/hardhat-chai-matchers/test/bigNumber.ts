@@ -833,7 +833,7 @@ describe("BigNumber matchers", function () {
 
       describe("should throw when comparing to an unsafe integer", function () {
         const unsafeInt = 1e16;
-        const msg = `Cannot compare to unsafe integer ${unsafeInt}. Consider using BigInt(${unsafeInt}) instead. For more details, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isSafeInteger`;
+        const msg = `Cannot convert unsafe integer ${unsafeInt} to BigInt. Consider using BigInt(${unsafeInt}) instead. For more details, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isSafeInteger`;
 
         describe(`when using .to.${operator}`, function () {
           it("with an unsafe int as the first param", function () {
@@ -1036,7 +1036,7 @@ describe("BigNumber matchers", function () {
 
       describe("should throw when comparing to an unsafe integer", function () {
         const unsafeInt = 1e16;
-        const msg = `Cannot compare to unsafe integer ${unsafeInt}. Consider using BigInt(${unsafeInt}) instead. For more details, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isSafeInteger`;
+        const msg = `Cannot convert unsafe integer ${unsafeInt} to BigInt. Consider using BigInt(${unsafeInt}) instead. For more details, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isSafeInteger`;
 
         describe(`when using .to.${operator}`, function () {
           it("with an unsafe int as the first param", function () {
