@@ -11,6 +11,7 @@ const SEO = ({ seo }: Props) => {
   return (
     <Head>
       <title>{seo.title}</title>
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
     </Head>
   );
 };
