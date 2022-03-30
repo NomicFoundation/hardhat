@@ -36,10 +36,20 @@ const defaultHeroBlockContent = {
   },
 };
 
+const defaultCTAContent = {
+  title: "Hardhat is next- generation Ethereum tooling",
+  subtitle: "Experience the new way of building Ethereum software.",
+  cta: {
+    title: "Get started",
+    url: "/getting-started",
+  },
+};
+
 const defaultProps = {
   defaultSocialsItems,
   defaultBannerContent,
   defaultHeroBlockContent,
+  defaultCTAContent,
 };
 
 export default defaultProps;
