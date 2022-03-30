@@ -9,11 +9,13 @@ const Container = styled.section`
   box-sizing: border-box;
   position: relative;
   padding: 0 24px;
+  max-width: 960px;
   ${media.lg} {
-    padding: 0px 240px;
+    padding: 0px;
   }
   &.clear-padding {
     padding: unset;
+    max-width: unset;
   }
 `;
 

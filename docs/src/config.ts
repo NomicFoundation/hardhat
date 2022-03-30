@@ -45,6 +45,13 @@ export const defaultMenuItemsList: MenuItemType[] = [
   },
 ];
 
+export enum Tools {
+  RUNNER = "RUNNER",
+  IGNITION = "IGNITION",
+  NETWORK = "NETWORK",
+  VS_CODE = "VS_CODE",
+}
+
 export const SOCIALS_LINKS = {
   [SocialsEnum.GITHUB]: "https://github.com/NomicFoundation/hardhat",
   [SocialsEnum.TWITTER]: "https://twitter.com/HardhatHQ",

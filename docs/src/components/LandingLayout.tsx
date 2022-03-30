@@ -15,12 +15,15 @@ const Container = styled.div`
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
+  align-items: center;
   main {
     flex: 1 1 auto;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
+    align-items: center;
     background-color: ${tm(({ colors }) => colors.neutral0)};
+    width: 100%;
   }
   height: 100vh;
   min-width: 320px;
@@ -29,6 +32,7 @@ const Container = styled.div`
 type Props = React.PropsWithChildren<{
   seo: {
     title: string;
+    description: string;
   };
 }>;
 

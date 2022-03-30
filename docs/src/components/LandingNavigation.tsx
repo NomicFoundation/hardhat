@@ -16,7 +16,7 @@ const Navigation = styled.nav`
   left: 0px;
   width: 100%;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   height: 96px;
   box-sizing: border-box;
@@ -25,7 +25,7 @@ const Navigation = styled.nav`
   background-color: ${tm(({ colors }) => colors.neutral0)};
   z-index: 10;
   ${media.lg} {
-    padding: 24px 240px;
+    padding: 24px 0px;
   }
 `;
 
@@ -36,8 +36,8 @@ const ControlsContainer = styled.section`
   justify-content: space-between;
   align-items: center;
   background-color: ${tm(({ colors }) => colors.neutral0)};
-  padding: 4px 8px;
   box-sizing: border-box;
+  max-width: 960px;
   cursor: pointer;
 `;
 

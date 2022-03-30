@@ -95,7 +95,7 @@ const BracesAnimation: React.FC<React.PropsWithChildren<{}>> = ({
     .map((brace: string, index: number) => {
       return (
         <Brace
-          key={Math.random()}
+          key={index}
           fullAnimationDuration={bracesCount * 0.5}
           braceNumber={index + 1}
         >

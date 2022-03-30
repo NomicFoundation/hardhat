@@ -22,7 +22,7 @@ module.exports = {
     "arrow-body-style": "off",
     "react/jsx-props-no-spreading": "off",
     "react/require-default-props": "off",
-    "react/no-array-index-key": "warn",
+    "react/no-array-index-key": "off",
     "import/no-extraneous-dependencies": "off",
   },
 };

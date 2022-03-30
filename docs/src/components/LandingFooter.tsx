@@ -7,6 +7,7 @@ const { media } = appTheme;
 
 const Footer = styled.footer`
   padding: 80px 24px 120px;
+  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;

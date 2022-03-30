@@ -1,37 +1,17 @@
 import React from "react";
 import { styled } from "linaria/react";
 import Section from "../Section";
-// import FeatureCard from '../ui/FeatureCard';
-import SolidityImageDesktop from "../../assets/feature-cards/Desktop/SolidityImage.png";
-import SolidityImageMobile from "../../assets/feature-cards/Mobile/SolidityImage.png";
 import { tm, appTheme } from "../../themes";
 
 const { media } = appTheme;
 
 export const defaultWhyHardhatContent = {
   title: "Why hardhat",
-  featureCardOne: {
-    getImgPath: (props: { isDesktop: boolean }) => {
-      return props.isDesktop ? SolidityImageDesktop : SolidityImageMobile;
-    },
-    cta: {
-      url: "/hardhat-network/#console-log",
-      title: "Get started with Solidity console.log",
-    },
-    articleOne: {
-      title: "Run Solidity locally",
-      text: "Easily deploy your contracts, run tests and debug Solidity code without dealing with live environments. Hardhat Network is a local Ethereum network designed for development.",
-    },
-    articleTwo: {
-      title: "Debugging-first ",
-      text: "Hardhat is the best choice for Solidity debugging. You get Solidity stack traces, console.log and explicit error messages when transactions fail.",
-    },
-  },
 };
 
-interface Props {
+type Props = React.PropsWithChildren<{
   content: typeof defaultWhyHardhatContent;
-}
+}>;
 
 const Container = styled.section`
   width: 100%;
@@ -41,6 +21,7 @@ const Container = styled.section`
   border-top: 1px solid ${tm(({ colors }) => colors.neutral400)};
   border-left: 1px solid ${tm(({ colors }) => colors.neutral400)};
   padding-top: 52px;
+  margin-top: 130px;
   ${media.lg} {
     border-left: unset;
   }
@@ -65,12 +46,38 @@ const Title = styled.h2`
   }
 `;
 
-const WhyHardhatBlock = ({ content }: Props) => {
+const TopBrackets = styled.div`
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  width: 100%;
+  height: 32px;
+  border-left: 1px solid ${tm(({ colors }) => colors.neutral400)};
+  border-right: 1px solid ${tm(({ colors }) => colors.neutral400)};
+  ${media.lg} {
+    height: 36px;
+  }
+`;
+const BottomBrackets = styled.div`
+  position: absolute;
+  left: 0px;
+  bottom: 0px;
+  width: 32px;
+  height: 32px;
+  border-bottom: 1px solid ${tm(({ colors }) => colors.neutral400)};
+  ${media.lg} {
+    display: none;
+  }
+`;
+
+const WhyHardhatBlock = ({ content, children }: Props) => {
   return (
     <Section>
       <Container>
+        <TopBrackets />
         <Title>{content.title}</Title>
-        {/* <FeatureCard content={content.featureCardOne} isReversed={true} /> */}
+        {children}
+        <BottomBrackets />
       </Container>
     </Section>
   );
