@@ -45,11 +45,22 @@ const defaultCTAContent = {
   },
 };
 
+const defaultVibrantCommunityBlockContent = {
+  title: "Vibrant community",
+  text: "Great tech attracts great people. Join the Hardhat community to find answers to your problems and contribute to the plugin ecosystem.",
+  cta: {
+    title: "Join the Hardhat Discord",
+    // TODO: switch to page reference later
+    url: "https://hardhat.org/getting-started/",
+  },
+};
+
 const defaultProps = {
   defaultSocialsItems,
   defaultBannerContent,
   defaultHeroBlockContent,
   defaultCTAContent,
+  defaultVibrantCommunityBlockContent,
 };
 
 export default defaultProps;

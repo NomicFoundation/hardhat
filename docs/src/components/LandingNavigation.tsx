@@ -12,8 +12,8 @@ const { media } = appTheme;
 const Navigation = styled.nav`
   position: sticky;
   margin-top: 40px;
-  top: 0px;
-  left: 0px;
+  top: 0;
+  left: 0;
   width: 100%;
   display: flex;
   justify-content: center;
@@ -25,7 +25,7 @@ const Navigation = styled.nav`
   background-color: ${tm(({ colors }) => colors.neutral0)};
   z-index: 10;
   ${media.lg} {
-    padding: 24px 0px;
+    padding: 24px 0;
   }
 `;
 

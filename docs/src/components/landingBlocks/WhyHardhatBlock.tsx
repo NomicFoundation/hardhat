@@ -48,8 +48,8 @@ const Title = styled.h2`
 
 const TopBrackets = styled.div`
   position: absolute;
-  top: 0px;
-  left: 0px;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 32px;
   border-left: 1px solid ${tm(({ colors }) => colors.neutral400)};
@@ -60,8 +60,8 @@ const TopBrackets = styled.div`
 `;
 const BottomBrackets = styled.div`
   position: absolute;
-  left: 0px;
-  bottom: 0px;
+  left: 0;
+  bottom: 0;
   width: 32px;
   height: 32px;
   border-bottom: 1px solid ${tm(({ colors }) => colors.neutral400)};

@@ -40,7 +40,6 @@ const HamburgerLine = styled.div<{ isOpen: boolean }>`
       isOpen ? "rotate(45deg) translate(1px, -5px)" : "none"};
   }
   &.mid {
-    opacity: 0;
     opacity: ${({ isOpen }: { isOpen: boolean }) => (isOpen ? "0" : "1")};
   }
   &.bot {

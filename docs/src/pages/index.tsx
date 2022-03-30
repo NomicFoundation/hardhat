@@ -7,6 +7,7 @@ import WhyHardhatBlock, {
   defaultWhyHardhatContent,
 } from "../components/landingBlocks/WhyHardhatBlock";
 import defaultProps from "../components/ui/default-props";
+import VibrantCommunityBlock from "../components/landingBlocks/VibrantCommunityBlock";
 import SolidityImageDesktop from "../assets/feature-cards/Desktop/SolidityImage.png";
 import SolidityImageMobile from "../assets/feature-cards/Mobile/SolidityImage.png";
 import FlexibilityImageDesktop from "../assets/feature-cards/Desktop/FlexibilityImage.png";
@@ -93,6 +94,10 @@ const Home: NextPage = () => {
       }}
     >
       <HeroBlock content={defaultHeroBlockContent} />
+      <WhyHardhatBlock content={defaultWhyHardhatContent} />
+      <VibrantCommunityBlock
+        content={defaultProps.defaultVibrantCommunityBlockContent}
+      />
       {/* Required confirmation from customers */}
       {/* <ToolsBlock /> */}
       <WhyHardhatBlock content={defaultWhyHardhatContent}>

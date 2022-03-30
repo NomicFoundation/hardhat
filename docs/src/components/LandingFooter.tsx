@@ -32,7 +32,7 @@ const Subtitle = styled.h2`
   font-style: normal;
   font-weight: 400;
   line-height: 40px;
-  letter-spacing: 0em;
+  letter-spacing: 0;
   text-align: center;
   margin-bottom: 16px;
   ${media.lg} {
@@ -47,7 +47,7 @@ const Legal = styled.section`
   position: relative;
   font-size: 12px;
   line-height: 12px;
-  letter-spacing: 0em;
+  letter-spacing: 0;
   text-align: center;
   color: ${tm(({ colors }) => colors.neutral700)};
   &:before {
@@ -55,7 +55,7 @@ const Legal = styled.section`
     height: 1px;
     width: 186px;
     position: absolute;
-    top: 0px;
+    top: 0;
     left: 50%;
     transform: translateX(-50%);
     background-color: ${tm(({ colors }) => colors.neutral500)};

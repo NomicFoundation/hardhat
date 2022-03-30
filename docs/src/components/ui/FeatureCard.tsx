@@ -34,7 +34,7 @@ const Container = styled.section`
   padding: 24px;
   &[data-desktop="true"] {
     flex-direction: row;
-    padding: 0px;
+    padding: 0;
     margin-bottom: 128px;
   }
   &[data-desktop="true"][data-reverse="true"] {
@@ -68,7 +68,7 @@ const ContentContainer = styled.div`
 `;
 
 const Title = styled.h3`
-  font-family: ChivoBold;
+  font-family: ChivoBold, sans-serif;
   font-size: 28px;
   line-height: 32px;
   letter-spacing: -0.01em;
@@ -82,15 +82,15 @@ const Title = styled.h3`
 `;
 
 const Text = styled.h3`
-  font-family: ChivoLight;
+  font-family: ChivoLight, sans-serif;
   font-size: 18px;
   line-height: 28px;
-  letter-spacing: 0em;
+  letter-spacing: 0;
   color: ${tm(({ colors }) => colors.neutral600)};
   ${media.lg} {
     font-size: 18px;
     line-height: 28px;
-    letter-spacing: 0em;
+    letter-spacing: 0;
   }
 `;
 

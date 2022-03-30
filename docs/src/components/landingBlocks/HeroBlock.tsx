@@ -38,7 +38,7 @@ const Block = styled.div`
     &:first-child {
       width: 60%;
     }
-    padding: 0px;
+    padding: 0;
     & svg {
       position: relative;
       right: -10%;
@@ -47,7 +47,7 @@ const Block = styled.div`
 `;
 
 const TagLine = styled.span`
-  font-family: ChivoLight;
+  font-family: ChivoLight, sans-serif;
   margin-bottom: 24px;
   font-size: 22px;
   line-height: 32px;
@@ -56,7 +56,7 @@ const TagLine = styled.span`
   ${media.lg} {
     font-size: 32px;
     line-height: 32px;
-    letter-spacing: 0em;
+    letter-spacing: 0;
     text-align: left;
     margin-top: 32px;
   }
@@ -71,7 +71,7 @@ const Title = styled.h1`
     margin-bottom: 64px;
     font-size: 72px;
     line-height: 72px;
-    letter-spacing: 0em;
+    letter-spacing: 0;
   }
 `;
 

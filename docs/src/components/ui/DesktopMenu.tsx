@@ -31,7 +31,7 @@ const MenuList = styled.ul`
 
 const MenuItem = styled.li`
   margin-left: 32px;
-  padding: 8px 0px;
+  padding: 8px 0;
   &:first-child {
     margin-left: unset;
   }
@@ -46,7 +46,6 @@ const MenuButton = styled.a`
   font-size: 15px;
   line-height: 15px;
   letter-spacing: 0.07em;
-  text-align: center;
   position: relative;
   cursor: pointer;
   &:after {
@@ -55,7 +54,7 @@ const MenuButton = styled.a`
     bottom: -8px;
     left: 0;
     content: " ";
-    width: 0px;
+    width: 0;
     height: 1px;
     background-color: ${tm(({ colors }) => colors.neutral900)};
   }

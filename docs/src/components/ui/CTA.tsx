@@ -13,7 +13,7 @@ const A = styled.a`
   width: fit-content;
   font-size: 12px;
   line-height: 24px;
-  letter-spacing: 0em;
+  letter-spacing: 0;
   white-space: nowrap;
   text-align: center;
   color: ${tm(({ colors }) => colors.neutral900)};
@@ -26,17 +26,35 @@ const A = styled.a`
   ${media.lg} {
     font-size: 15px;
     line-height: 24px;
-    letter-spacing: 0em;
+    letter-spacing: 0;
     text-align: center;
     padding: 12px 28px;
   }
+
+  &[data-secondary="true"] {
+    width: 100%;
+    padding: 12px 0;
+    border: 1px solid ${tm(({ colors }) => colors.neutral700)};
+    text-align: center;
+    background: transparent;
+    transition: 0.3s;
+
+    &:hover {
+      border-color: ${tm(({ colors }) => colors.neutral100)};
+      background-color: ${tm(({ colors }) => colors.neutral100)};
+    }
+  }
 `;
 
-type Props = React.PropsWithChildren<{ href: string; variant?: string }>;
+type Props = React.PropsWithChildren<{
+  href: string;
+  variant?: string;
+  secondary?: boolean;
+}>;
 
-const CTA = ({ children, href, variant = "" }: Props) => {
+const CTA = ({ children, href, variant = "", secondary = false }: Props) => {
   return (
-    <A className={variant} href={href}>
+    <A className={variant} href={href} data-secondary={secondary}>
       {children}
     </A>
   );

@@ -44,10 +44,10 @@ const StyledBackground = styled.div`
 
 const TextureBrickWrapper = styled.div`
   position: absolute;
-  right: 0px;
+  right: 0;
   &.left {
     transform: scaleX(-1);
-    left: 0px;
+    left: 0;
     right: auto;
   }
 `;
@@ -60,7 +60,7 @@ const ContentBlock = styled.section`
 `;
 
 const Title = styled.h1`
-  font-family: ChivoBold;
+  font-family: ChivoBold, sans-serif;
   font-size: 39px;
   line-height: 41px;
   letter-spacing: -0.01em;
@@ -69,15 +69,15 @@ const Title = styled.h1`
   ${media.lg} {
     font-size: 45px;
     line-height: 50px;
-    letter-spacing: 0em;
+    letter-spacing: 0;
   }
 `;
 
 const Subtitle = styled.p`
-  font-family: ChivoLight;
+  font-family: ChivoLight, sans-serif;
   font-size: 20px;
   line-height: 31px;
-  letter-spacing: 0em;
+  letter-spacing: 0;
   text-align: center;
   margin-top: 24px;
   margin-bottom: 48px;

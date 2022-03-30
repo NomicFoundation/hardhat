@@ -19,6 +19,7 @@ module.exports = {
         namedComponents: ["arrow-function", "function-declaration"],
       },
     ],
+    "no-shadow": "off",
     "arrow-body-style": "off",
     "react/jsx-props-no-spreading": "off",
     "react/require-default-props": "off",

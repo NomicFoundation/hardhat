@@ -68,7 +68,6 @@ const MobileMenuButton = styled.a`
   font-size: 28px;
   line-height: 24px;
   letter-spacing: 0.07em;
-  text-align: center;
   cursor: pointer;
   &:hover {
     color: ${tm(({ colors }) => colors.neutral600)};
@@ -101,7 +100,6 @@ const MobileMenuSubItemButton = styled.a`
   background-color: transparent;
   line-height: 24px;
   letter-spacing: 0.04em;
-  text-align: center;
   cursor: pointer;
   & .prefix {
     margin-right: 4px;

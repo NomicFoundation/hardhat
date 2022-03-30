@@ -11,7 +11,7 @@ const Container = styled.section`
   padding: 0 24px;
   max-width: 960px;
   ${media.lg} {
-    padding: 0px;
+    padding: 0;
   }
   &.clear-padding {
     padding: unset;
