@@ -6,11 +6,6 @@
 //   isBelow
 //   isAtMost
 //   isAt
-//   isNumber
-//   isNotNumber
-//   closeTo
-//   approximately
-
 import { AssertionError } from "chai";
 import {
   formatNumberType,
