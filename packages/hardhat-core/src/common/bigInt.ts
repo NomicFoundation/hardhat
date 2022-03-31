@@ -62,8 +62,8 @@ function isBN(n: any) {
 
 function isEthersBigNumber(n: any) {
   try {
-    // eslint-disable-next-line import/no-extraneous-dependencies
     const BigNumber: typeof EthersBigNumberType =
+      // eslint-disable-next-line import/no-extraneous-dependencies
       require("ethers").ethers.BigNumber;
     return BigNumber.isBigNumber(n);
   } catch (e) {
