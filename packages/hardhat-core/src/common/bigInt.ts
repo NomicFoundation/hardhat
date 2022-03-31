@@ -20,17 +20,21 @@ export function normalizeToBigInt(
     typeof source === "number" ||
     typeof source === "bigint"
   ) {
-    // first construct a BigInt, to allow it to throw if there's a fractional value:
-    const toReturn = BigInt(source);
-    // then check the source for integer safety:
-    if (typeof source === "number" && !Number.isSafeInteger(source)) {
-      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
-      throw new RangeError(
-        `Cannot convert unsafe integer ${source} to BigInt. Consider using BigInt(${source}) instead. For more details, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isSafeInteger`
-      );
+    if (typeof source === "number") {
+      if (!Number.isInteger(source)) {
+        // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+        throw new RangeError(
+          `The number ${source} cannot be converted to a BigInt because it is not an integer`
+        );
+      }
+      if (!Number.isSafeInteger(source)) {
+        // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+        throw new RangeError(
+          `Cannot convert unsafe integer ${source} to BigInt. Consider using BigInt(${source}) instead. For more details, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isSafeInteger`
+        );
+      }
     }
-    // haven't thrown; return the value:
-    return toReturn;
+    return BigInt(source);
   } else {
     // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
     throw new Error(`cannot convert ${typeof source} to BigInt`);
