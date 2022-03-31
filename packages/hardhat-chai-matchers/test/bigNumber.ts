@@ -1,13 +1,11 @@
-import { expect, AssertionError, use } from "chai";
+import { expect, AssertionError } from "chai";
 import { BigNumber as BigNumberEthers } from "ethers";
 import { BigNumber as BigNumberJs } from "bignumber.js";
 import BN from "bn.js";
 
-import { bnChai } from "../src";
+import "../src";
 
 type SupportedNumber = number | bigint | BN | BigNumberEthers | BigNumberJs;
-
-use(bnChai);
 
 const numberToBigNumberConversions = [
   (n: number) => BigInt(n),
