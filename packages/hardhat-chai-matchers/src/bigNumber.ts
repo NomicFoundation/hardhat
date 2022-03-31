@@ -11,6 +11,7 @@
 //   closeTo
 //   approximately
 
+import { AssertionError } from "chai";
 import {
   formatNumberType,
   isBigNumber,
@@ -52,6 +53,7 @@ export function supportBigNumber(
   Assertion.overwriteMethod("within", overrideWithin(utils));
 
   Assertion.overwriteMethod("closeTo", overrideCloseTo(utils));
+  Assertion.overwriteMethod("approximately", overrideCloseTo(utils));
 }
 
 function createLengthOverride(
@@ -219,6 +221,11 @@ function overwriteBigNumberCloseTo(
       isBigNumber(actualArg) ||
       isBigNumber(deltaArg)
     ) {
+      if (deltaArg === undefined) {
+        throw new AssertionError(
+          "the arguments to closeTo or approximately must be numbers, and a delta is required"
+        );
+      }
       const expected = normalizeToBigInt(expectedFlag);
       const actual = normalizeToBigInt(actualArg);
       const delta = normalizeToBigInt(deltaArg);

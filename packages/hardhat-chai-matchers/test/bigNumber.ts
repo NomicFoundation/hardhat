@@ -881,7 +881,7 @@ describe("BigNumber matchers", function () {
       }
     }
 
-    const operators = ["within", "closeTo"] as const;
+    const operators = ["within", "closeTo", "approximately"] as const;
     type Operator = typeof operators[number];
 
     interface SuccessCase {
@@ -896,6 +896,7 @@ describe("BigNumber matchers", function () {
     const positiveSuccessCases: SuccessCase[] = [
       { operator: "within", operands: [100, 99, 101] },
       { operator: "closeTo", operands: [101, 101, 10] },
+      { operator: "approximately", operands: [101, 101, 10] },
     ];
     for (const { operator, operands } of positiveSuccessCases) {
       describe(`.to.be.${operator}`, function () {
@@ -920,6 +921,11 @@ describe("BigNumber matchers", function () {
         operands: [100, 111, 10],
         msg: "expected 100 to be close to 111 +/- 10",
       },
+      {
+        operator: "approximately",
+        operands: [100, 111, 10],
+        msg: "expected 100 to be close to 111 +/- 10",
+      },
     ];
     for (const { operator, operands, msg } of positiveFailureCases) {
       describe(`.to.be.${operator} should throw the proper message on failure`, function () {
@@ -936,10 +942,33 @@ describe("BigNumber matchers", function () {
       });
     }
 
+    const closeToAndApproximately: Operator[] = ["closeTo", "approximately"];
+    for (const closeToOrApproximately of closeToAndApproximately) {
+      describe(`${closeToOrApproximately} with an undefined delta argument`, function () {
+        for (const convert of [
+          (n: number) => n,
+          ...numberToBigNumberConversions,
+        ]) {
+          const one = convert(1);
+          it(`with a ${typestr(
+            one
+          )} actual should throw a helpful error message`, function () {
+            expect(() =>
+              expect(one).to.be[closeToOrApproximately](100, undefined)
+            ).to.throw(
+              AssertionError,
+              "the arguments to closeTo or approximately must be numbers, and a delta is required"
+            );
+          });
+        }
+      });
+    }
+
     const negativeSuccessCases: SuccessCase[] = [
       { operator: "within", operands: [100, 101, 102] },
       { operator: "within", operands: [100, 98, 99] },
       { operator: "closeTo", operands: [100, 111, 10] },
+      { operator: "approximately", operands: [100, 111, 10] },
     ];
     for (const { operator, operands } of negativeSuccessCases) {
       describe(`.not.to.be.${operator}`, function () {
@@ -961,6 +990,11 @@ describe("BigNumber matchers", function () {
       },
       {
         operator: "closeTo",
+        operands: [100, 101, 10],
+        msg: "expected 100 not to be close to 101 +/- 10",
+      },
+      {
+        operator: "approximately",
         operands: [100, 101, 10],
         msg: "expected 100 not to be close to 101 +/- 10",
       },
