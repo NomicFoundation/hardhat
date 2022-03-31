@@ -71,7 +71,7 @@ function isBigNumberJsBigNumber(n: any) {
   try {
     // eslint-disable-next-line import/no-extraneous-dependencies
     const BigNumber: typeof BigNumberJsType = require("bignumber.js").BigNumber;
-    return n instanceof BigNumber && BigNumber.isBigNumber(n);
+    return BigNumber.isBigNumber(n);
   } catch (e) {
     return false;
   }
