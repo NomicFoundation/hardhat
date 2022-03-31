@@ -59,6 +59,10 @@ const defaultTrustedTeamsBlockContent = {
   title: "Trusted by top teams",
 };
 
+const defaultBuiltByBlockContent = {
+  title: "Built by",
+};
+
 const defaultProps = {
   defaultSocialsItems,
   defaultBannerContent,
@@ -66,6 +70,7 @@ const defaultProps = {
   defaultCTAContent,
   defaultVibrantCommunityBlockContent,
   defaultTrustedTeamsBlockContent,
+  defaultBuiltByBlockContent,
 };
 
 export default defaultProps;

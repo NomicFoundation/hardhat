@@ -121,7 +121,7 @@ const createLogosRows = (rowsAmount: number) => {
     ).map((logo) => <img src={logo.img.src} alt={logo.alt} key={logo.alt} />);
 
     logosRows.push(
-      <LogosRowContainer>
+      <LogosRowContainer key={i + rowsAmount}>
         <LogosSubrowContainer
           data-reverted={i % 2 !== 0}
           className={rowsAmount === 3 && i === 2 ? "changed-speed" : ""}
