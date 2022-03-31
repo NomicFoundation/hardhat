@@ -365,6 +365,11 @@ export class EthModule {
     await this._runHardhatNetworkMessageTraceHooks(trace, true);
 
     if (error !== undefined && this._throwOnCallFailures) {
+      const callReturnData = trace?.returnData.toString("hex");
+      // TODO: decide if we should return "0x" when the return data is empty,
+      // or omit the field entirely as geth does
+      (error as any).returnData = `0x${callReturnData}`;
+
       throw error;
     }
 
@@ -437,6 +442,11 @@ export class EthModule {
         consoleLogMessages,
         error
       );
+
+      const callReturnData = trace?.returnData.toString("hex");
+      // TODO: decide if we should return "0x" when the return data is empty,
+      // or omit the field entirely as geth does
+      (error as any).returnData = `0x${callReturnData}`;
 
       throw error;
     }
@@ -1512,12 +1522,15 @@ export class EthModule {
       result = [result];
     }
 
-    try {
-      await this._handleMineBlockResults(result, tx);
-    } catch (e) {
-      // This is a temporary solution until we improve our internal errors
-      // We need this to be able to return the transaction hash in the JSON-RPC
-      // response when the transaction fails
+    const trace = await this._handleMineBlockResults(result, tx);
+
+    if (trace.error !== undefined && this._throwOnTransactionFailures) {
+      const e = trace.error;
+
+      const returnData = trace.trace?.returnData.toString("hex") ?? "";
+      // TODO: decide if we should return "0x" when the return data is empty,
+      // or omit the field entirely as geth does
+      (e as any).returnData = `0x${returnData}`;
       (e as any).transactionHash = bufferToRpcData(tx.hash());
 
       throw e;
@@ -1526,10 +1539,13 @@ export class EthModule {
     return bufferToRpcData(tx.hash());
   }
 
+  /**
+   * Returns the trace of the sent tx
+   */
   private async _handleMineBlockResults(
     results: MineBlockResult[],
     sentTx: TypedTransaction
-  ) {
+  ): Promise<GatherTracesResult> {
     const singleTransactionMined =
       results.length === 1 && results[0].block.transactions.length === 1;
 
@@ -1540,10 +1556,7 @@ export class EthModule {
       const trace = results[0].traces[0];
       await this._logSingleTransaction(tx, block, txGasUsed, trace);
 
-      const txError = trace.error;
-      if (txError !== undefined && this._throwOnTransactionFailures) {
-        throw txError;
-      }
+      return trace;
     } else {
       // this happens when automine is enabled, a tx is sent, and there are
       // pending txs in the mempool
@@ -1575,10 +1588,7 @@ export class EthModule {
         );
       }
 
-      const sentTxError = sentTxTrace.error;
-      if (sentTxError !== undefined && this._throwOnTransactionFailures) {
-        throw sentTxError;
-      }
+      return sentTxTrace;
     }
   }
 
