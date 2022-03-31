@@ -77,6 +77,7 @@
     "@typescript-eslint/parser": "4.29.2",
     "bignumber.js": "^9.0.2",
     "bn.js": "^5.1.0",
+    "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "eslint": "^7.29.0",
     "eslint-config-prettier": "8.3.0",
