@@ -9,6 +9,10 @@ https://hardhat-lime.vercel.app/
 
 https://hardhat-storybook.netlify.app/
 
+## Adding content
+
+Website content is located in `*.md` files withing `src/pages` folder. It's written in Markdown syntax. Folders structure in `pages` is reflected on the website.
+
 ## Development
 
 This website is a SSG application based on Next.js. To learn more about Next.js, take a look at the following resources:
