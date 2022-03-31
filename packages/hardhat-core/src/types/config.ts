@@ -283,6 +283,7 @@ export interface HardhatConfig {
   networks: NetworksConfig;
   solidity: SolidityConfig;
   mocha: Mocha.MochaOptions;
+  userConfig: HardhatUserConfig;
 }
 
 // Plugins config functionality

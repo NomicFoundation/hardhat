@@ -109,7 +109,7 @@ export function loadConfigAndTasks(
     checkUnsupportedRemappings(resolved);
   }
 
-  return resolved;
+  return { ...resolved, userConfig: frozenUserConfig };
 }
 
 function deepFreezeUserConfig(
