@@ -36,6 +36,7 @@
     "README.md"
   ],
   "devDependencies": {
+    "@ethereum-waffle/provider": "^3.4.4",
     "@types/bn.js": "^5.1.0",
     "@types/chai": "^4.2.0",
     "@types/mocha": "^9.0.0",
