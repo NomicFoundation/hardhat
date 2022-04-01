@@ -1377,7 +1377,7 @@
 
 "@mdx-js/loader@^2.1.0":
   version "2.1.0"
-  resolved "https://registry.npmjs.org/@mdx-js/loader/-/loader-2.1.0.tgz"
+  resolved "https://registry.yarnpkg.com/@mdx-js/loader/-/loader-2.1.0.tgz#cbcc234c9607fa2d1dd46ffb0234560e6662f080"
   integrity sha512-r2CqhmBELQUoUxiWDh8SnlD7QTRNULgXE26gmmlD/uE0HWM7CG8iw6F3ZfvVr5p9y2z4MHWsOHbaJEuNCa8i3Q==
   dependencies:
     "@mdx-js/mdx" "^2.0.0"
@@ -2685,6 +2685,13 @@
   version "1.0.2"
   resolved "https://registry.npmjs.org/@types/mdurl/-/mdurl-1.0.2.tgz"
   integrity sha512-eC4U9MlIcu2q0KQmXszyn5Akca/0jrQmwDRgpAMJai7qBWq4amIQhZyNau4VYGtCeALvW1/NtjzJJ567aZxfKA==
+
+"@types/mdx-js__react@^1.5.5":
+  version "1.5.5"
+  resolved "https://registry.yarnpkg.com/@types/mdx-js__react/-/mdx-js__react-1.5.5.tgz#fa6daa1a28336d77b6cf071aacc7e497600de9ee"
+  integrity sha512-k8pnaP6JXVlQh18HgL5X6sYFNC/qZnzO7R2+HsmwrwUd+JnnsU0d9lyyT0RQrHg1anxDU36S98TI/fsGtmYqqg==
+  dependencies:
+    "@types/react" "*"
 
 "@types/mdx@^2.0.0":
   version "2.0.1"

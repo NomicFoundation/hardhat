@@ -118,6 +118,7 @@ const createLogosRows = (rowsAmount: number) => {
     const rowImages = TrustedTeamsLogos.slice(
       i * logosInRowAmount,
       (i + 1) * logosInRowAmount
+      // eslint-disable-next-line
     ).map((logo) => <img src={logo.img.src} alt={logo.alt} key={logo.alt} />);
 
     logosRows.push(

@@ -1,6 +1,6 @@
 import React from "react";
 import { styled } from "linaria/react";
-
+import Image from "next/image";
 import NomicFoundationLogo from "../../assets/images/nomic-foundation-logo.png";
 
 import Section from "../Section";
@@ -44,7 +44,11 @@ const BuiltByBlock = ({ content }: Props) => {
     <Section>
       <Container>
         <Title>{content.title}</Title>
-        <img src={NomicFoundationLogo.src} alt="Nomic Foundation logo" />
+        <Image
+          src={NomicFoundationLogo}
+          alt="Nomic Foundation logo"
+          quality={100}
+        />
       </Container>
     </Section>
   );
