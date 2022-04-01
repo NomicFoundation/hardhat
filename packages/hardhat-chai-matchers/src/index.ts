@@ -1,5 +1,5 @@
 import { use } from "chai";
 
-import { bnChai } from "./bnChai";
+import { hardhatChaiMatchers } from "./hardhatChaiMatchers";
 
-use(bnChai);
+use(hardhatChaiMatchers);
