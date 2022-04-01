@@ -17,7 +17,7 @@ export async function waitForPendingTransaction(
   } else {
     ({ hash } = tx);
   }
-  if (!hash) {
+  if (hash === undefined) {
     throw new Error(`${tx} is not a valid transaction`);
   }
   return provider.waitForTransaction(hash);
