@@ -139,7 +139,7 @@ In this case, a new block will be mined after a random delay of between 3 and 6 
 networks: {
   hardhat: {
     mining: {
-      timeFlow: false
+      timeFlow: false;
     }
   }
 }
