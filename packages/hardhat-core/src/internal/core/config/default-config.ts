@@ -51,6 +51,7 @@ export const defaultHardhatNetworkParams: Omit<
     mempool: {
       order: "priority",
     },
+    timeFlow: true,
   },
   accounts: defaultHardhatNetworkHdAccountsConfigParams,
   loggingEnabled: false,

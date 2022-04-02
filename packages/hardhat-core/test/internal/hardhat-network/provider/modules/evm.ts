@@ -923,6 +923,61 @@ describe("Evm module", function () {
         });
       });
 
+      describe("evm_setTimeFlow", () => {
+        const getBlockTimestamp = async () => {
+          return rpcQuantityToNumber(
+            (
+              await this.ctx.provider.send("eth_getBlockByNumber", [
+                "latest",
+                false,
+              ])
+            ).timestamp
+          );
+        };
+
+        const sendTransaction = async () => {
+          return this.ctx.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: "0x1111111111111111111111111111111111111111",
+              value: numberToRpcQuantity(1),
+            },
+          ]);
+        };
+
+        it("should allow disabling the time flow", async function () {
+          await this.provider.send("evm_setTimeFlow", [false]);
+          const previousTimestamp = await getBlockTimestamp();
+          await sendTransaction();
+          const currentTimestamp = await getBlockTimestamp();
+          assert.equal(currentTimestamp, previousTimestamp);
+        });
+
+        it("should allow re-enabling the time flow", async function () {
+          await this.provider.send("evm_setTimeFlow", [false]);
+          await this.provider.send("evm_setTimeFlow", [true]);
+          const previousTimestamp = await getBlockTimestamp();
+          await sendTransaction();
+          const currentTimestamp = await getBlockTimestamp();
+          assert.equal(currentTimestamp, previousTimestamp + 1);
+        });
+
+        it("should advance the time offset accordingly to the timestamp", async function () {
+          await this.provider.send("evm_setTimeFlow", [false]);
+          const t0 = await getBlockTimestamp();
+          await this.provider.send("evm_mine", [t0 + 10]);
+          const t1 = await getBlockTimestamp();
+          await this.provider.send("evm_mine", []);
+          const t2 = await getBlockTimestamp();
+          await this.provider.send("evm_setNextBlockTimestamp", [t2 + 5]);
+          await sendTransaction();
+          const t3 = await getBlockTimestamp();
+          assert.equal(t1, t0 + 10);
+          assert.equal(t2, t1);
+          assert.equal(t3, t2 + 5);
+        });
+      });
+
       describe("evm_snapshot", async function () {
         it("returns the snapshot id starting at 1", async function () {
           const id1: string = await this.provider.send("evm_snapshot", []);

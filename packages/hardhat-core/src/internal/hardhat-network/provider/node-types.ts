@@ -18,6 +18,7 @@ export function isForkedNodeConfig(
 
 interface CommonConfig {
   automine: boolean;
+  timeFlow: boolean;
   blockGasLimit: number;
   chainId: number;
   genesisAccounts: GenesisAccount[];

@@ -70,6 +70,9 @@ export class HardhatModule {
       case "hardhat_getAutomine":
         return this._getAutomine();
 
+      case "hardhat_getTimeFlow":
+        return this._getTimeFlow();
+
       case "hardhat_stopImpersonatingAccount":
         return this._stopImpersonatingAction(
           ...this._stopImpersonatingParams(params)
@@ -198,6 +201,12 @@ export class HardhatModule {
 
   private async _getAutomine(): Promise<boolean> {
     return this._node.getAutomine();
+  }
+
+  // hardhat_getTimeFlow
+
+  private async _getTimeFlow(): Promise<boolean> {
+    return this._node.getTimeFlow();
   }
 
   // hardhat_stopImpersonatingAccount

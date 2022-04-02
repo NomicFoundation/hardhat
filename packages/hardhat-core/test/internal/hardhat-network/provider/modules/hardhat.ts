@@ -218,6 +218,19 @@ describe("Hardhat module", function () {
         });
       });
 
+      describe("hardhat_getTimeFlow", () => {
+        it("should return timeflow status true when enabled", async function () {
+          await this.provider.send("evm_setTimeFlow", [true]);
+          const result = await this.provider.send("hardhat_getTimeFlow");
+          assert.isTrue(result);
+        });
+        it("should return timeflow status false when disabled", async function () {
+          await this.provider.send("evm_setTimeFlow", [false]);
+          const result = await this.provider.send("hardhat_getTimeFlow");
+          assert.isFalse(result);
+        });
+      });
+
       describe("hardhat_mine", function () {
         const getLatestBlockNumber = async (): Promise<number> => {
           return rpcQuantityToNumber(

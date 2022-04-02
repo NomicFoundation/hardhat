@@ -266,16 +266,20 @@ function resolveMiningConfig(
       auto: true,
       interval: 0,
       mempool,
+      timeFlow: true,
     };
   }
 
   const { auto, interval } = userConfig;
+  const timeFlow =
+    userConfig.timeFlow === undefined ? true : userConfig.timeFlow;
 
   if (auto === undefined && interval === undefined) {
     return {
       auto: true,
       interval: 0,
       mempool,
+      timeFlow,
     };
   }
 
@@ -284,6 +288,7 @@ function resolveMiningConfig(
       auto: false,
       interval,
       mempool,
+      timeFlow,
     };
   }
 
@@ -292,6 +297,7 @@ function resolveMiningConfig(
       auto,
       interval: 0,
       mempool,
+      timeFlow,
     };
   }
 
@@ -300,6 +306,7 @@ function resolveMiningConfig(
     auto: auto!,
     interval: interval!,
     mempool,
+    timeFlow,
   };
 }
 

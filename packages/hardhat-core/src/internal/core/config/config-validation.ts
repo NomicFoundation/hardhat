@@ -229,6 +229,7 @@ const HardhatNetworkMiningConfig = t.type({
   auto: optional(t.boolean),
   interval: optional(t.union([t.number, t.tuple([t.number, t.number])])),
   mempool: optional(HardhatNetworkMempoolConfig),
+  timeFlow: optional(t.boolean),
 });
 
 function isValidHardforkName(name: string) {

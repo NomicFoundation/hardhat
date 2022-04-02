@@ -71,6 +71,7 @@ export function cloneChainsConfig(
 describe("HardhatNode", () => {
   const config: NodeConfig = {
     automine: false,
+    timeFlow: true,
     hardfork: DEFAULT_HARDFORK,
     networkName: DEFAULT_NETWORK_NAME,
     chainId: DEFAULT_CHAIN_ID,
@@ -542,7 +543,82 @@ describe("HardhatNode", () => {
         assert.equal(thirdBlockTimestamp, secondBlockTimestamp + 1);
       });
 
+      it("assigns the same timestamp to each new block mined when time flow is disabled", async () => {
+        const firstBlock = await node.getLatestBlock();
+        const firstBlockTimestamp = firstBlock.header.timestamp.toNumber();
+
+        node.setTimeFlow(false);
+
+        await node.mineBlock();
+        const secondBlock = await node.getLatestBlock();
+        const secondBlockTimestamp = secondBlock.header.timestamp.toNumber();
+
+        await node.mineBlock();
+        const thirdBlock = await node.getLatestBlock();
+        const thirdBlockTimestamp = thirdBlock.header.timestamp.toNumber();
+
+        assert.equal(secondBlockTimestamp, firstBlockTimestamp);
+        assert.equal(thirdBlockTimestamp, secondBlockTimestamp);
+      });
+
+      it("assigns an incremented timestamp after time flow is re-enabled", async () => {
+        const firstBlock = await node.getLatestBlock();
+        const firstBlockTimestamp = firstBlock.header.timestamp.toNumber();
+
+        node.setTimeFlow(false);
+
+        await node.mineBlock();
+        const secondBlock = await node.getLatestBlock();
+        const secondBlockTimestamp = secondBlock.header.timestamp.toNumber();
+
+        node.setTimeFlow(true);
+
+        await node.mineBlock();
+        const thirdBlock = await node.getLatestBlock();
+        const thirdBlockTimestamp = thirdBlock.header.timestamp.toNumber();
+
+        assert.equal(secondBlockTimestamp, firstBlockTimestamp);
+        assert.equal(thirdBlockTimestamp, secondBlockTimestamp + 1);
+      });
+
+      it("assigns a timestamp relative to last mined block after time flow is re-enabled", async () => {
+        const firstBlock = await node.getLatestBlock();
+        const firstBlockTimestamp = firstBlock.header.timestamp.toNumber();
+
+        node.setTimeFlow(false);
+
+        clock.tick(3_000);
+
+        await node.mineBlock();
+        const secondBlock = await node.getLatestBlock();
+        const secondBlockTimestamp = secondBlock.header.timestamp.toNumber();
+
+        clock.tick(3_000);
+
+        node.setTimeFlow(true);
+
+        await node.mineBlock();
+        const thirdBlock = await node.getLatestBlock();
+        const thirdBlockTimestamp = thirdBlock.header.timestamp.toNumber();
+
+        assert.equal(secondBlockTimestamp, firstBlockTimestamp);
+        assert.equal(thirdBlockTimestamp, secondBlockTimestamp + 3);
+      });
+
       it("mines a block with a preset timestamp", async () => {
+        const now = getCurrentTimestamp();
+        const timestamp = new BN(now).addn(30);
+        node.setNextBlockTimestamp(timestamp);
+        await node.mineBlock();
+
+        const block = await node.getLatestBlock();
+        const blockTimestamp = block.header.timestamp.toNumber();
+        assert.equal(blockTimestamp, timestamp.toNumber());
+      });
+
+      it("mines a block with a preset timestamp when time flow is disabled", async () => {
+        node.setTimeFlow(false);
+
         const now = getCurrentTimestamp();
         const timestamp = new BN(now).addn(30);
         node.setNextBlockTimestamp(timestamp);
@@ -565,6 +641,26 @@ describe("HardhatNode", () => {
         const block = await node.getLatestBlock();
         const blockTimestamp = block.header.timestamp.toNumber();
         assert.equal(blockTimestamp, timestamp.toNumber() + 3);
+      });
+
+      it("mines the next block with the same timestamp after a block with preset timestamp when time flow is disabled", async () => {
+        node.setTimeFlow(false);
+
+        const now = getCurrentTimestamp();
+        const timestamp = new BN(now).addn(30);
+        node.setNextBlockTimestamp(timestamp);
+        await node.mineBlock();
+
+        const block2 = await node.getLatestBlock();
+        const blockTimestamp2 = block2.header.timestamp.toNumber();
+        assert.equal(blockTimestamp2, timestamp.toNumber());
+
+        clock.tick(3_000);
+        await node.mineBlock();
+
+        const block = await node.getLatestBlock();
+        const blockTimestamp = block.header.timestamp.toNumber();
+        assert.equal(blockTimestamp, timestamp.toNumber());
       });
 
       it("mines a block with the timestamp passed as a parameter irrespective of the preset timestamp", async () => {
@@ -732,6 +828,7 @@ describe("HardhatNode", () => {
 
         const forkedNodeConfig: ForkedNodeConfig = {
           automine: true,
+          timeFlow: true,
           networkName: "mainnet",
           chainId,
           networkId: 1,
@@ -931,6 +1028,7 @@ describe("HardhatNode", () => {
 
     const baseNodeConfig: ForkedNodeConfig = {
       automine: true,
+      timeFlow: true,
       networkName: "mainnet",
       chainId: 1,
       networkId: 1,
@@ -1097,6 +1195,7 @@ describe("HardhatNode", () => {
     }
     const nodeConfig: ForkedNodeConfig = {
       automine: true,
+      timeFlow: true,
       networkName: "mainnet",
       chainId: 1,
       networkId: 1,

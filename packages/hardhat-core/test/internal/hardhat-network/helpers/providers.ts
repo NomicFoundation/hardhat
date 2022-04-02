@@ -23,6 +23,7 @@ export const DEFAULT_MINING_CONFIG: HardhatNetworkMiningConfig = {
   auto: true,
   interval: 0,
   mempool: DEFAULT_MEMPOOL_CONFIG,
+  timeFlow: true,
 };
 
 // Assumptions:
@@ -93,6 +94,7 @@ export const INTERVAL_MINING_PROVIDERS = [
           auto: false,
           interval: 10000,
           mempool: DEFAULT_MEMPOOL_CONFIG,
+          timeFlow: true,
         },
         ...options,
       });
@@ -110,6 +112,7 @@ export const INTERVAL_MINING_PROVIDERS = [
           auto: false,
           interval: 10000,
           mempool: DEFAULT_MEMPOOL_CONFIG,
+          timeFlow: true,
         },
         ...options,
       });
@@ -155,6 +158,7 @@ if (ALCHEMY_URL !== undefined) {
           auto: false,
           interval: 10000,
           mempool: DEFAULT_MEMPOOL_CONFIG,
+          timeFlow: true,
         },
         ...options,
       });

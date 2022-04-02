@@ -135,6 +135,18 @@ networks: {
 
 In this case, a new block will be mined after a random delay of between 3 and 6 seconds. For example, the first block could be mined after 4 seconds, the second block 5.5 seconds after that, and so on.
 
+```js
+networks: {
+  hardhat: {
+    mining: {
+      timeFlow: false
+    }
+  }
+}
+```
+
+In this case, automining is enabled and all blocks will be mined with the same timestamp. This can be useful for time based testing where block timestamp is increased manually (via `evm_mine` and `evm_setNextBlockTimestamp`), and to emulate blockchains with sub-second block creation time. Note that `evm_increaseTime` won't have any effect if time flow is disabled.
+
 See also [Mining Modes](../explanation/mining-modes.md).
 
 #### Manual mining
@@ -409,6 +421,10 @@ Note that most blocks mined via this method (all except for the final one) may n
 
 Also note that blocks created via `hardhat_mine` may not trigger new-block events, such as filters created via `eth_newBlockFilter` and WebSocket subscriptions to new-block events.
 
+#### `hardhat_getTimeFlow`
+
+Returns `true` if time passing is enabled, and `false` otherwise.
+
 #### `hardhat_reset`
 
 See the [Mainnet Forking guide](../guides/mainnet-forking.md)
@@ -554,6 +570,10 @@ Same as Ganache.
 #### `evm_setAutomine`
 
 Enables or disables, based on the single boolean argument, the automatic mining of new blocks with each new transaction submitted to the network. You can use [`hardhat_getAutomine`](#hardhat-getautomine) to get the current value. See also [Mining Modes](../explanation/mining-modes.md).
+
+#### `evm_setTimeFlow`
+
+Enables or disables, based on the single boolean argument, the automatic block timestamp increment with each new mined block. You can use [`hardhat_getTimeFlow`](#hardhat-gettimeflow) to get the current value.
 
 #### `evm_setBlockGasLimit`
 

@@ -1056,6 +1056,16 @@ describe("Config validation", function () {
                 },
               },
             });
+
+            validateConfig({
+              networks: {
+                [HARDHAT_NETWORK_NAME]: {
+                  mining: {
+                    timeFlow: true,
+                  },
+                },
+              },
+            });
           });
 
           it("Should fail with invalid types", function () {
@@ -1097,6 +1107,20 @@ describe("Config validation", function () {
                         mempool: {
                           order: "not-supported",
                         },
+                      },
+                    },
+                  },
+                }),
+              ERRORS.GENERAL.INVALID_CONFIG
+            );
+
+            expectHardhatError(
+              () =>
+                validateConfig({
+                  networks: {
+                    [HARDHAT_NETWORK_NAME]: {
+                      mining: {
+                        timeFlow: "not-supported",
                       },
                     },
                   },

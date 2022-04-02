@@ -207,12 +207,14 @@ export interface HardhatNetworkMiningConfig {
   auto: boolean;
   interval: number | [number, number];
   mempool: HardhatNetworkMempoolConfig;
+  timeFlow: boolean;
 }
 
 export interface HardhatNetworkMiningUserConfig {
   auto?: boolean;
   interval?: number | [number, number];
   mempool?: HardhatNetworkMempoolUserConfig;
+  timeFlow?: boolean;
 }
 
 export interface HardhatNetworkMempoolConfig {

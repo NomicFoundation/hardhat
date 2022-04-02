@@ -73,3 +73,9 @@ And to enable interval mining:
 ```js
 await network.provider.send("evm_setIntervalMining", [5000]);
 ```
+
+You can also pause (and resume) the time passing, and mine all blocks with the same timestamp, with:
+
+```js
+await network.provider.send("evm_setTimeFlow", [false]);
+```

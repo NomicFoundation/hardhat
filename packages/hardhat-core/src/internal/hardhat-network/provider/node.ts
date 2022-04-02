@@ -126,6 +126,7 @@ export class HardhatNode extends EventEmitter {
   ): Promise<[Common, HardhatNode]> {
     const {
       automine,
+      timeFlow,
       genesisAccounts,
       blockGasLimit,
       allowUnlimitedContractSize,
@@ -255,6 +256,7 @@ export class HardhatNode extends EventEmitter {
       blockchain,
       txPool,
       automine,
+      timeFlow,
       minGasPrice,
       initialBlockTimeOffset,
       mempoolOrder,
@@ -335,6 +337,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     private readonly _blockchain: HardhatBlockchainInterface,
     private readonly _txPool: TxPool,
     private _automine: boolean,
+    private _timeFlow: boolean,
     private _minGasPrice: BN,
     private _blockTimeOffsetSeconds: BN = new BN(0),
     private _mempoolOrder: MempoolOrder,
@@ -454,9 +457,10 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
   public async mineBlock(timestamp?: BN): Promise<MineBlockResult> {
     const [blockTimestamp, offsetShouldChange, newOffset] =
-      this._calculateTimestampAndOffset(timestamp);
-    const needsTimestampIncrease =
-      await this._timestampClashesWithPreviousBlockOne(blockTimestamp);
+      await this._calculateTimestampAndOffset(timestamp);
+    const needsTimestampIncrease = this._timeFlow
+      ? await this._timestampClashesWithPreviousBlockOne(blockTimestamp)
+      : false;
     if (needsTimestampIncrease) {
       blockTimestamp.iaddn(1);
     }
@@ -1224,6 +1228,14 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     return this._automine;
   }
 
+  public setTimeFlow(timeFlow: boolean) {
+    this._timeFlow = timeFlow;
+  }
+
+  public getTimeFlow() {
+    return this._timeFlow;
+  }
+
   public async setBlockGasLimit(gasLimit: BN | number) {
     this._txPool.setBlockGasLimit(gasLimit);
     await this._txPool.updatePendingAndQueued();
@@ -1972,7 +1984,9 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     );
   }
 
-  private _calculateTimestampAndOffset(timestamp?: BN): [BN, boolean, BN] {
+  private async _calculateTimestampAndOffset(
+    timestamp?: BN
+  ): Promise<[BN, boolean, BN]> {
     let blockTimestamp: BN;
     let offsetShouldChange: boolean;
     let newOffset: BN = new BN(0);
@@ -1983,8 +1997,14 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     // time offset + real time as the timestamp.
     if (timestamp === undefined || timestamp.eqn(0)) {
       if (this.getNextBlockTimestamp().eqn(0)) {
-        blockTimestamp = currentTimestamp.add(this.getTimeIncrement());
-        offsetShouldChange = false;
+        if (this._timeFlow) {
+          blockTimestamp = currentTimestamp.add(this.getTimeIncrement());
+          offsetShouldChange = false;
+        } else {
+          const latestBlock = await this.getLatestBlock();
+          blockTimestamp = new BN(latestBlock.header.timestamp);
+          offsetShouldChange = true;
+        }
       } else {
         blockTimestamp = this.getNextBlockTimestamp();
         offsetShouldChange = true;

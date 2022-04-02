@@ -88,6 +88,7 @@ export function useProvider({
       true,
       mining.auto,
       mining.interval,
+      mining.timeFlow,
       mempool.order as MempoolOrder,
       chains,
       this.logger,

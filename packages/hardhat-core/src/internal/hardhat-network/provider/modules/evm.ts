@@ -61,6 +61,9 @@ export class EvmModule {
       case "evm_setAutomine":
         return this._setAutomineAction(...this._setAutomineParams(params));
 
+      case "evm_setTimeFlow":
+        return this._setTimeFlowAction(...this._setTimeFlowParams(params));
+
       case "evm_setIntervalMining":
         return this._setIntervalMiningAction(
           ...this._setIntervalMiningParams(params)
@@ -173,6 +176,17 @@ export class EvmModule {
 
   private async _setAutomineAction(automine: boolean): Promise<true> {
     this._node.setAutomine(automine);
+    return true;
+  }
+
+  // evm_setTimeFlow
+
+  private _setTimeFlowParams(params: any[]): [boolean] {
+    return validateParams(params, t.boolean);
+  }
+
+  private async _setTimeFlowAction(timeflow: boolean): Promise<true> {
+    this._node.setTimeFlow(timeflow);
     return true;
   }
 

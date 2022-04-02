@@ -507,6 +507,7 @@ describe("Config resolution", () => {
             mempool: {
               order: "priority",
             },
+            timeFlow: true,
           });
         });
 
@@ -527,6 +528,7 @@ describe("Config resolution", () => {
             mempool: {
               order: "priority",
             },
+            timeFlow: true,
           });
         });
 
@@ -547,6 +549,28 @@ describe("Config resolution", () => {
             mempool: {
               order: "priority",
             },
+            timeFlow: true,
+          });
+        });
+
+        it("should allow configuring only timeFlow", function () {
+          const config = resolveConfig(__filename, {
+            networks: {
+              hardhat: {
+                mining: {
+                  timeFlow: false,
+                },
+              },
+            },
+          });
+
+          assert.deepEqual(config.networks.hardhat.mining, {
+            auto: true,
+            interval: 0,
+            mempool: {
+              order: "priority",
+            },
+            timeFlow: false,
           });
         });
 
@@ -568,6 +592,7 @@ describe("Config resolution", () => {
             mempool: {
               order: "priority",
             },
+            timeFlow: true,
           });
         });
 
@@ -588,6 +613,7 @@ describe("Config resolution", () => {
             mempool: {
               order: "priority",
             },
+            timeFlow: true,
           });
         });
 
@@ -610,6 +636,7 @@ describe("Config resolution", () => {
             mempool: {
               order: "fifo",
             },
+            timeFlow: true,
           });
         });
       });
@@ -675,6 +702,7 @@ describe("Config resolution", () => {
             mempool: {
               order: "priority",
             },
+            timeFlow: false,
           },
           hardfork: "hola",
           initialDate: "today",

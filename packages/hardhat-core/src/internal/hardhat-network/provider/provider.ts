@@ -86,6 +86,7 @@ export class HardhatNetworkProvider
     private readonly _throwOnCallFailures: boolean,
     private readonly _automine: boolean,
     private readonly _intervalMining: IntervalMiningConfig,
+    private readonly _timeFlow: boolean,
     private readonly _mempoolOrder: MempoolOrder,
     private readonly _chains: HardhatNetworkChainsConfig,
     private readonly _logger: ModulesLogger,
@@ -229,6 +230,7 @@ export class HardhatNetworkProvider
 
     const config: NodeConfig = {
       automine: this._automine,
+      timeFlow: this._timeFlow,
       blockGasLimit: this._blockGasLimit,
       minGasPrice: this._minGasPrice,
       genesisAccounts: this._genesisAccounts,

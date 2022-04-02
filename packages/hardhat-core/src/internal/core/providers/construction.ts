@@ -92,6 +92,7 @@ export function createProvider(
       hardhatNetConfig.throwOnCallFailures,
       hardhatNetConfig.mining.auto,
       hardhatNetConfig.mining.interval,
+      hardhatNetConfig.mining.timeFlow,
       // This cast is valid because of the config validation and resolution
       hardhatNetConfig.mining.mempool.order as MempoolOrder,
       hardhatNetConfig.chains,
