@@ -242,8 +242,8 @@ const _handleError = (error: any): JsonRpcResponse => {
   if (error.transactionHash !== undefined) {
     txHash = error.transactionHash;
   }
-  if (error.returnData !== undefined) {
-    returnData = error.returnData;
+  if (error.data !== undefined) {
+    returnData = error.data;
   }
 
   // In case of non-hardhat error, treat it as internal and associate the appropriate error code.

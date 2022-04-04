@@ -368,7 +368,7 @@ export class EthModule {
       const callReturnData = trace?.returnData.toString("hex");
       // TODO: decide if we should return "0x" when the return data is empty,
       // or omit the field entirely as geth does
-      (error as any).returnData = `0x${callReturnData}`;
+      (error as any).data = `0x${callReturnData}`;
 
       throw error;
     }
@@ -446,7 +446,7 @@ export class EthModule {
       const callReturnData = trace?.returnData.toString("hex");
       // TODO: decide if we should return "0x" when the return data is empty,
       // or omit the field entirely as geth does
-      (error as any).returnData = `0x${callReturnData}`;
+      (error as any).data = `0x${callReturnData}`;
 
       throw error;
     }
@@ -1530,7 +1530,7 @@ export class EthModule {
       const returnData = trace.trace?.returnData.toString("hex") ?? "";
       // TODO: decide if we should return "0x" when the return data is empty,
       // or omit the field entirely as geth does
-      (e as any).returnData = `0x${returnData}`;
+      (e as any).data = `0x${returnData}`;
       (e as any).transactionHash = bufferToRpcData(tx.hash());
 
       throw e;
