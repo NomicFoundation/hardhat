@@ -1,17 +1,35 @@
 import { expect, AssertionError } from "chai";
 import { BigNumber, Contract, ContractFactory, Signer, ethers } from "ethers";
 import { MockProvider } from "@ethereum-waffle/provider";
-import { EVENTS_ABI, EVENTS_BYTECODE } from "./contracts/Events";
+
+import { compileLiteral } from "../../hardhat-core/test/internal/hardhat-network/stack-traces/compilation";
+import { CompilerOutputContract } from "../../hardhat-core/types";
+
+import { EVENTS_SOURCE } from "./contracts/Events";
 
 describe("INTEGRATION: Events", () => {
   const [wallet] = new MockProvider().getWallets();
   let factory: ContractFactory;
   let events: Contract;
+  let contract: CompilerOutputContract;
+
+  before(async () => {
+    const [_, compilerOutput] = await compileLiteral(
+      EVENTS_SOURCE,
+      {
+        solidityVersion: "0.6.0",
+        compilerPath: "soljson-v0.6.0+commit.26b70077.js",
+        runs: 1,
+      },
+      "events.sol"
+    );
+    contract = compilerOutput.contracts["events.sol"].Events;
+  });
 
   beforeEach(async () => {
     factory = new ContractFactory(
-      EVENTS_ABI,
-      EVENTS_BYTECODE,
+      contract.abi,
+      contract.evm.bytecode,
       wallet as Signer
     );
     events = await factory.deploy();
