@@ -35,7 +35,7 @@ const BannerContainer = styled.section`
     margin-right: unset;
   }
   ${media.lg} {
-    font-size: 18px;
+    font-size: 15px;
     line-height: 12px;
   }
 `;
@@ -43,7 +43,8 @@ const BannerContainer = styled.section`
 const BracesContainer = styled.div`
   display: flex;
   flex-wrap: nowrap;
-  & > div {
+  align-items: baseline;
+  & > .braces {
     color: ${tm(({ colors }) => colors.accent900)};
     display: inline;
     transition: color ease-out 0.5s;
@@ -51,6 +52,11 @@ const BracesContainer = styled.div`
   }
   & .reversed {
     transform: rotate(180deg);
+  }
+  & .text {
+    ${media.lg} {
+      padding: 0px 16px;
+    }
   }
 `;
 
@@ -107,7 +113,7 @@ const BracesAnimation: React.FC<React.PropsWithChildren<{}>> = ({
   return (
     <BracesContainer>
       <div className="braces reversed">{bracesString}</div>
-      {children}
+      <div className="text">{children}</div>
       <div className="braces">{bracesString}</div>
     </BracesContainer>
   );

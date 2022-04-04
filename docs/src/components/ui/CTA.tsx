@@ -17,7 +17,7 @@ const A = styled.a`
   white-space: nowrap;
   text-align: center;
   color: ${tm(({ colors }) => colors.neutral900)};
-  background: ${tm(({ colors }) => colors.accentBackground)};
+  background: ${tm(({ colors }) => colors.accent800)};
   transition: all ease-out 0.3s;
   &:hover {
     filter: drop-shadow(0px 1px 2px rgba(10, 10, 10, 0.1))

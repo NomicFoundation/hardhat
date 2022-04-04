@@ -17,7 +17,7 @@ const HamburgerContainer = styled.button`
   padding: 8px;
   border: none;
   border-radius: 4px;
-  background-color: ${tm(({ colors }) => colors.neutral0)};
+  background-color: ${tm(({ colors }) => colors.transparent)};
   cursor: pointer;
   ${media.lg} {
     display: none;

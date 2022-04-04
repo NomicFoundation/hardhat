@@ -24,7 +24,7 @@ const CTABlockStyled = styled.section`
   padding: 64px 16px;
   height: 724px;
   overflow: hidden;
-  background: ${tm(({ colors }) => colors.neutralBackground)};
+  background-color: ${tm(({ colors }) => colors.neutral0)};
   position: relative;
   margin: 48px 0;
   ${media.lg} {
@@ -37,7 +37,10 @@ const StyledBackground = styled.div`
   position: absolute;
   left: 0;
   top: 0;
-  background: ${tm(({ colors }) => colors.textureBackground)};
+  background: ${tm(
+    ({ colors }) =>
+      `linear-gradient(254.24deg, ${colors.complementary600} 0%, ${colors.accent100} 100%, ${colors.accent100} 100%)`
+  )};
   height: 100%;
   width: 100%;
 `;

@@ -14,7 +14,7 @@ const MenuContainer = styled.section`
   user-select: none;
   width: 607px;
   display: none;
-  background-color: ${tm(({ colors }) => colors.neutral0)};
+  background-color: ${tm(({ colors }) => colors.transparent)};
   ${media.lg} {
     display: flex;
     align-items: center;
@@ -42,7 +42,7 @@ const MenuButton = styled.a`
   text-align: center;
   border: none;
   color: ${tm(({ colors }) => colors.neutral900)};
-  background-color: ${tm(({ colors }) => colors.neutral0)};
+  background-color: ${tm(({ colors }) => colors.transparent)};
   font-size: 15px;
   line-height: 15px;
   letter-spacing: 0.07em;

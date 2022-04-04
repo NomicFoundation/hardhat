@@ -4,13 +4,12 @@ import Link from "next/link";
 import { appTheme, tm } from "../themes";
 import HardhatLogo from "../assets/hardhat-logo";
 import Hamburger from "./ui/Hamburger";
-import MobileMenu from "./ui/MobileMenu";
 import Menu from "./ui/DesktopMenu";
 
 const { media } = appTheme;
 
-const Navigation = styled.nav`
-  position: sticky;
+const NavigationStyled = styled.nav`
+  position: relative;
   margin-top: 40px;
   top: 0;
   left: 0;
@@ -22,10 +21,10 @@ const Navigation = styled.nav`
   box-sizing: border-box;
   padding: 32px 24px;
   transition: all ease-in-out 0.5s;
-  background-color: ${tm(({ colors }) => colors.neutral0)};
+  background-color: ${tm(({ colors }) => colors.neutral200)};
   z-index: 10;
   ${media.lg} {
-    padding: 24px 0;
+    padding: 24px;
   }
 `;
 
@@ -37,7 +36,6 @@ const ControlsContainer = styled.section`
   align-items: center;
   background-color: ${tm(({ colors }) => colors.transparent)};
   box-sizing: border-box;
-  max-width: 960px;
   cursor: pointer;
 `;
 
@@ -52,24 +50,24 @@ const LogoContainer = styled.a`
   cursor: pointer;
 `;
 
-const LandingNavigation: FC = () => {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+const Navigation: FC = () => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
     const body = document.querySelector("body");
     if (!body) return;
 
-    if (isMobileMenuOpen) {
+    if (isSidebarOpen) {
       // Disable scroll
       body.style.overflow = "hidden";
     } else {
       // Enable scroll
       body.style.overflow = "auto";
     }
-  }, [isMobileMenuOpen]);
+  }, [isSidebarOpen]);
 
   return (
-    <Navigation>
+    <NavigationStyled>
       <ControlsContainer>
         <Link href="/" passHref>
           <LogoContainer>
@@ -77,15 +75,14 @@ const LandingNavigation: FC = () => {
           </LogoContainer>
         </Link>
         <Hamburger
-          isOpen={isMobileMenuOpen}
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          isOpen={isSidebarOpen}
+          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
         />
         <Menu />
+        <div>Theme</div>
       </ControlsContainer>
-
-      <MobileMenu isOpen={isMobileMenuOpen} />
-    </Navigation>
+    </NavigationStyled>
   );
 };
 
-export default LandingNavigation;
+export default Navigation;
