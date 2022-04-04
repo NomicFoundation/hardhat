@@ -1,5 +1,5 @@
 import {expect, AssertionError} from 'chai';
-import {BigNumber, Contract, ContractFactory, ethers} from 'ethers';
+import { BigNumber, Contract, ContractFactory, Signer, ethers } from "ethers";
 import {MockProvider} from '@ethereum-waffle/provider';
 import {EVENTS_ABI, EVENTS_BYTECODE} from '../contracts/Events';
 
@@ -9,7 +9,11 @@ describe('INTEGRATION: Events', () => {
   let events: Contract;
 
   beforeEach(async () => {
-    factory = new ContractFactory(EVENTS_ABI, EVENTS_BYTECODE, wallet);
+    factory = new ContractFactory(
+      EVENTS_ABI,
+      EVENTS_BYTECODE,
+      wallet as Signer
+    );
     events = await factory.deploy();
   });
 
