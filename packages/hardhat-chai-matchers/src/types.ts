@@ -1,5 +1,9 @@
 // eslint-disable-next-line @typescript-eslint/no-namespace, @typescript-eslint/no-unused-vars
 declare namespace Chai {
+  interface Assertion extends LanguageChains, NumericComparison, TypeComparison {
+    emit(contract: any, eventName: string): EmitAssertion;
+  }
+
   interface NumericComparison {
     within(start: any, finish: any, message?: string): Assertion;
   }
@@ -17,5 +21,11 @@ declare namespace Chai {
   interface Length extends Assertion {
     // eslint-disable-next-line
     (length: any, message?: string): Assertion;
+  }
+
+  interface AsyncAssertion extends Assertion, Promise<void> {}
+
+  interface EmitAssertion extends AsyncAssertion {
+    withArgs(...args: any[]): AsyncAssertion;
   }
 }
