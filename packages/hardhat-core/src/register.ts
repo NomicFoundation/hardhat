@@ -39,14 +39,15 @@ if (!HardhatContext.isCreated()) {
     loadTsNode(hardhatArguments.tsconfig);
   }
 
-  const config = loadConfigAndTasks(hardhatArguments);
+  const { resolvedConfig, userConfig } = loadConfigAndTasks(hardhatArguments);
 
   const env = new Environment(
-    config,
+    resolvedConfig,
     hardhatArguments,
     ctx.tasksDSL.getTaskDefinitions(),
     ctx.extendersManager.getExtenders(),
-    ctx.experimentalHardhatNetworkMessageTraceHooks
+    ctx.experimentalHardhatNetworkMessageTraceHooks,
+    userConfig
   );
 
   ctx.setHardhatRuntimeEnvironment(env);

@@ -104,7 +104,7 @@ subtask(TASK_NODE_GET_PROVIDER)
         forkBlockNumber?: number;
         forkUrl?: string;
       },
-      { artifacts, config, network }
+      { artifacts, config, network, userConfig }
     ): Promise<EthereumProvider> => {
       let provider = network.provider;
 
@@ -156,7 +156,7 @@ subtask(TASK_NODE_GET_PROVIDER)
       }
 
       const hardhatNetworkUserConfig =
-        config.userConfig.networks?.[HARDHAT_NETWORK_NAME] ?? {};
+        userConfig.networks?.[HARDHAT_NETWORK_NAME] ?? {};
 
       // enable logging
       await provider.request({
