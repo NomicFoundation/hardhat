@@ -37,14 +37,15 @@ if (HardhatContext.isCreated()) {
     debug.enable("hardhat*");
   }
 
-  const config = loadConfigAndTasks(hardhatArguments);
+  const { resolvedConfig, userConfig } = loadConfigAndTasks(hardhatArguments);
 
   env = new Environment(
-    config,
+    resolvedConfig,
     hardhatArguments,
     ctx.tasksDSL.getTaskDefinitions(),
     ctx.extendersManager.getExtenders(),
-    ctx.experimentalHardhatNetworkMessageTraceHooks
+    ctx.experimentalHardhatNetworkMessageTraceHooks,
+    userConfig
   );
 
   ctx.setHardhatRuntimeEnvironment(env);

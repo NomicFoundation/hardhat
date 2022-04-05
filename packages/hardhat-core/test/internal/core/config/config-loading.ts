@@ -66,22 +66,22 @@ describe("config loading", function () {
     });
 
     it("should accept a relative path from the CWD", function () {
-      const config = loadConfigAndTasks({ config: "config.js" });
+      const { resolvedConfig } = loadConfigAndTasks({ config: "config.js" });
 
       assert.equal(
-        config.paths.configFile,
+        resolvedConfig.paths.configFile,
         path.normalize(path.join(process.cwd(), "config.js"))
       );
     });
 
     it("should accept an absolute path", async function () {
       const fixtureDir = await getFixtureProjectPath("custom-config-file");
-      const config = loadConfigAndTasks({
+      const { resolvedConfig } = loadConfigAndTasks({
         config: path.join(fixtureDir, "config.js"),
       });
 
       assert.equal(
-        config.paths.configFile,
+        resolvedConfig.paths.configFile,
         path.normalize(path.join(process.cwd(), "config.js"))
       );
     });
@@ -391,7 +391,7 @@ Hardhat plugin instead.`
     });
 
     it("should emit a warning if there's no configured solidity", function () {
-      const config = loadConfigAndTasks(
+      const { resolvedConfig } = loadConfigAndTasks(
         {
           config: "config-without-solidity.js",
         },
@@ -403,8 +403,11 @@ Hardhat plugin instead.`
         consoleWarnStub.args[0][0],
         "Solidity compiler is not configured"
       );
-      assert.equal(config.solidity.compilers.length, 1);
-      assert.equal(config.solidity.compilers[0].version, DEFAULT_SOLC_VERSION);
+      assert.equal(resolvedConfig.solidity.compilers.length, 1);
+      assert.equal(
+        resolvedConfig.solidity.compilers[0].version,
+        DEFAULT_SOLC_VERSION
+      );
     });
 
     it("should emit a warning if the solc version is too new", function () {
