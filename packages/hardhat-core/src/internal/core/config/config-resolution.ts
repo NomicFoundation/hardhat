@@ -66,7 +66,6 @@ export function resolveConfig(
 
   return {
     ...userConfig,
-    userConfig,
     defaultNetwork: userConfig.defaultNetwork ?? defaultDefaultNetwork,
     paths: resolveProjectPaths(userConfigPath, userConfig.paths),
     networks: resolveNetworksConfig(userConfig.networks),
