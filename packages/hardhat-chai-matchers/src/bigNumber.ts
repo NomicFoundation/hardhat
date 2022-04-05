@@ -1,11 +1,3 @@
-// TODO: consider adding support for the following Chai.Assert properties.
-// Might any of these come "for free" due to supporting other methods? At the
-// very least get them tested.
-//   isAbove
-//   isAtLeast
-//   isBelow
-//   isAtMost
-//   isAt
 import { AssertionError } from "chai";
 import {
   formatNumberType,
