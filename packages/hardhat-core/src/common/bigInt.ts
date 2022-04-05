@@ -30,7 +30,7 @@ export function normalizeToBigInt(
       if (!Number.isSafeInteger(source)) {
         // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
         throw new RangeError(
-          `Cannot convert unsafe integer ${source} to BigInt. Consider using BigInt(${source}) instead. For more details, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isSafeInteger`
+          `Cannot convert unsafe integer ${source} to BigInt. Consider using ${source}n instead. For more details, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isSafeInteger`
         );
       }
     }
