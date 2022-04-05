@@ -58,7 +58,7 @@ export class Environment implements HardhatRuntimeEnvironment {
     public readonly tasks: TasksMap,
     extenders: EnvironmentExtender[] = [],
     experimentalHardhatNetworkMessageTraceHooks: ExperimentalHardhatNetworkMessageTraceHook[] = [],
-    public readonly userConfig: HardhatUserConfig
+    public readonly userConfig: HardhatUserConfig = {}
   ) {
     log("Creating HardhatRuntimeEnvironment");
 
