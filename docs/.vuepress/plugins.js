@@ -36,6 +36,14 @@ module.exports.communityPlugins = [
     tags: ["Security", "Upgrades", "OpenZeppelin"],
   },
   {
+    name: "hardhat-forta",
+    author: "Forta",
+    authorUrl: "https://forta.org/",
+    description:
+      "Quickly add security and operational alerting for your project using Forta: a decentralized monitoring network for Web3 systems.",
+    tags: ["Security", "Monitoring", "Alerting", "Forta"],
+  },
+  {
     name: "@tenderly/hardhat-tenderly",
     author: "Tenderly",
     authorUrl: "https://tenderly.co/",
@@ -199,8 +207,9 @@ module.exports.communityPlugins = [
     name: "hardhat-tracer",
     author: "Soham Zemse",
     authorUrl: "https://github.com/zemse/",
-    description: "See emitted events during your hardhat tests in the console",
-    tags: ["Events", "Logs", "Trace", "Console", "Testing"],
+    description:
+      "See internal transactions, events and storage operations during your hardhat tests in the console",
+    tags: ["EVM", "Events", "Logs", "Trace", "Console", "Testing"],
   },
   {
     name: "hardhat-circom",
