@@ -36,6 +36,14 @@ module.exports.communityPlugins = [
     tags: ["Security", "Upgrades", "OpenZeppelin"],
   },
   {
+    name: "hardhat-forta",
+    author: "Forta",
+    authorUrl: "https://forta.org/",
+    description:
+      "Quickly add security and operational alerting for your project using Forta: a decentralized monitoring network for Web3 systems.",
+    tags: ["Security", "Monitoring", "Alerting", "Forta"],
+  },
+  {
     name: "@tenderly/hardhat-tenderly",
     author: "Tenderly",
     authorUrl: "https://tenderly.co/",
@@ -117,6 +125,13 @@ module.exports.communityPlugins = [
     tags: ["Testing", "Coverage", "Hardhat plugin"],
   },
   {
+    name: "hardhat-gas-trackooor",
+    author: "d3or",
+    authorUrl: "https://github.com/d3or",
+    description: "Simple plugin to track gas on the transaction level.",
+    tags: ["Testing", "Gas", "Hardhat plugin"],
+  },
+  {
     name: "hardhat-gas-reporter",
     author: "Chris Gewecke",
     authorUrl: "https://github.com/cgewecke",
@@ -192,8 +207,9 @@ module.exports.communityPlugins = [
     name: "hardhat-tracer",
     author: "Soham Zemse",
     authorUrl: "https://github.com/zemse/",
-    description: "See emitted events during your hardhat tests in the console",
-    tags: ["Events", "Logs", "Trace", "Console", "Testing"],
+    description:
+      "See internal transactions, events and storage operations during your hardhat tests in the console",
+    tags: ["EVM", "Events", "Logs", "Trace", "Console", "Testing"],
   },
   {
     name: "hardhat-circom",
@@ -392,6 +408,28 @@ module.exports.communityPlugins = [
     authorUrl: "https://github.com/wighawag",
     description: "A plugin to push contracts to tenderly",
     tags: ["Deployment", "Testing", "Tenderly", "Verification"],
+  },
+  {
+    name: "hardhat-laika",
+    author: "Laika Blockchain Lab",
+    authorUrl: "https://github.com/laika-lab/hardhat-laika",
+    description: "Hardhat plugin to sync your compiled contract with Laika",
+    tags: ["Tasks", "Laika"],
+  },
+  {
+    name: "hardhat-network-metadata",
+    author: "Focal Labs Inc.",
+    authorUrl: "https://github.com/krruzic/hardhat-network-metadata",
+    description:
+      "Hardhat plugin to allow adding any extra data to your network configuration",
+    tags: ["Metadata", "Testing", "Tasks", "Config"],
+  },
+  {
+    name: "hardhat-exposed",
+    author: "Francisco Giordano",
+    authorUrl: "https://github.com/frangio",
+    description: "Automatically expose internal Solidity functions for testing",
+    tags: ["Solidity", "Testing"],
   },
 ];
 

@@ -29,19 +29,19 @@ export async function getLongVersion(shortVersion: string): Promise<string> {
 
 export async function getVersions(): Promise<CompilersList> {
   try {
-    const { default: fetch } = await import("node-fetch");
+    const { request } = await import("undici");
     // It would be better to query an etherscan API to get this list but there's no such API yet.
-    const response = await fetch(COMPILERS_LIST_URL);
+    const response = await request(COMPILERS_LIST_URL, { method: "GET" });
 
-    if (!response.ok) {
-      const responseText = await response.text();
+    if (!(response.statusCode >= 200 && response.statusCode <= 299)) {
+      const responseText = await response.body.text();
       throw new NomicLabsHardhatPluginError(
         pluginName,
-        `HTTP response is not ok. Status code: ${response.status} Response text: ${responseText}`
+        `HTTP response is not ok. Status code: ${response.statusCode} Response text: ${responseText}`
       );
     }
 
-    return await response.json();
+    return (await response.body.json()) as CompilersList;
   } catch (error: any) {
     throw new NomicLabsHardhatPluginError(
       pluginName,

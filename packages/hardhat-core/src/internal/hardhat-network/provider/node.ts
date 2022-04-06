@@ -72,6 +72,7 @@ import { VMTracer } from "../stack-traces/vm-tracer";
 
 import "./ethereumjs-workarounds";
 import { rpcQuantityToBN } from "../../core/jsonrpc/types/base-types";
+import { JsonRpcClient } from "../jsonrpc/client";
 import { bloomFilter, Filter, filterLogs, LATEST_BLOCK, Type } from "./filter";
 import { ForkBlockchain } from "./fork/ForkBlockchain";
 import { ForkStateManager } from "./fork/ForkStateManager";
@@ -150,10 +151,15 @@ export class HardhatNode extends EventEmitter {
         : undefined;
 
     const hardfork = getHardforkName(config.hardfork);
+    let forkClient: JsonRpcClient | undefined;
 
     if (isForkedNodeConfig(config)) {
-      const { forkClient, forkBlockNumber, forkBlockTimestamp } =
-        await makeForkClient(config.forkConfig, config.forkCachePath);
+      const {
+        forkClient: _forkClient,
+        forkBlockNumber,
+        forkBlockTimestamp,
+      } = await makeForkClient(config.forkConfig, config.forkCachePath);
+      forkClient = _forkClient;
       common = await makeForkCommon(config);
 
       forkNetworkId = forkClient.getNetworkId();
@@ -260,7 +266,8 @@ export class HardhatNode extends EventEmitter {
       tracingConfig,
       forkNetworkId,
       forkBlockNum,
-      nextBlockBaseFeePerGas
+      nextBlockBaseFeePerGas,
+      forkClient
     );
 
     return [common, node];
@@ -339,7 +346,8 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     tracingConfig?: TracingConfig,
     private _forkNetworkId?: number,
     private _forkBlockNumber?: number,
-    nextBlockBaseFee?: BN
+    nextBlockBaseFee?: BN,
+    private _forkClient?: JsonRpcClient
   ) {
     super();
 
@@ -1403,21 +1411,61 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       new BN(0)
     );
 
+    // This is part of a temporary fix to https://github.com/NomicFoundation/hardhat/issues/2380
+    const rangeIncludesRemoteBlocks =
+      this._forkBlockNumber !== undefined &&
+      oldestBlock.lten(this._forkBlockNumber);
+
     const baseFeePerGas: BN[] = [];
     const gasUsedRatio: number[] = [];
     const reward: BN[][] = [];
 
     const lastBlock = resolvedNewestBlock.addn(1);
 
+    // This is part of a temporary fix to https://github.com/NomicFoundation/hardhat/issues/2380
+    if (rangeIncludesRemoteBlocks) {
+      try {
+        const lastRemoteBlock = BN.min(
+          new BN(this._forkBlockNumber!),
+          lastBlock
+        );
+
+        const remoteBlockCount = lastRemoteBlock.sub(oldestBlock).addn(1);
+
+        const remoteValues = await this._forkClient!.getFeeHistory(
+          remoteBlockCount,
+          lastRemoteBlock,
+          rewardPercentiles
+        );
+
+        baseFeePerGas.push(...remoteValues.baseFeePerGas);
+        gasUsedRatio.push(...remoteValues.gasUsedRatio);
+        if (remoteValues.reward !== undefined) {
+          reward.push(...remoteValues.reward);
+        }
+      } catch (e) {
+        // TODO: we can return less blocks here still be compliant with the spec
+        throw new InternalError(
+          "Remote node did not answer to eth_feeHistory correctly",
+          e instanceof Error ? e : undefined
+        );
+      }
+    }
+
     // We get the pending block here, and only if necessary, as it's something
-    // constly to do.
+    // costly to do.
     let pendingBlock: Block | undefined;
     if (lastBlock.gte(pendingBlockNumber)) {
       pendingBlock = await this.getBlockByNumber("pending");
     }
 
+    // This is part of a temporary fix to https://github.com/NomicFoundation/hardhat/issues/2380
+    const firstLocalBlock = !rangeIncludesRemoteBlocks
+      ? oldestBlock
+      : BN.min(new BN(this._forkBlockNumber!), lastBlock).addn(1);
+
     for (
-      let blockNumber = oldestBlock;
+      let blockNumber = firstLocalBlock; // This is part of a temporary fix to https://github.com/NomicFoundation/hardhat/issues/2380
       blockNumber.lte(lastBlock);
       blockNumber = blockNumber.addn(1)
     ) {

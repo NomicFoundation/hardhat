@@ -795,7 +795,7 @@ describe("BigNumber matchers", function () {
         for (const convert of numberToBigNumberConversions) {
           const converted = convert(1);
           const msg =
-            "HH16: The input value cannot be normalized to a BigInt: 1.1 is not an integer";
+            "HH17: The input value cannot be normalized to a BigInt: 1.1 is not an integer";
           it(`with .to.${operator} comparing float vs ${typestr(
             converted
           )}`, function () {
@@ -833,7 +833,7 @@ describe("BigNumber matchers", function () {
 
       describe("should throw when comparing to an unsafe integer", function () {
         const unsafeInt = 1e16;
-        const msg = `HH16: The input value cannot be normalized to a BigInt: Integer 10000000000000000 is unsafe. Consider using ${unsafeInt}n instead. For more details, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isSafeInteger`;
+        const msg = `HH17: The input value cannot be normalized to a BigInt: Integer 10000000000000000 is unsafe. Consider using ${unsafeInt}n instead. For more details, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isSafeInteger`;
 
         describe(`when using .to.${operator}`, function () {
           it("with an unsafe int as the first param", function () {
@@ -1023,7 +1023,7 @@ describe("BigNumber matchers", function () {
             const a = convertA(1);
             const b = convertB(1);
             const msg =
-              "HH16: The input value cannot be normalized to a BigInt: 1.1 is not an integer";
+              "HH17: The input value cannot be normalized to a BigInt: 1.1 is not an integer";
             describe(`with .to.${operator}`, function () {
               it(`with float, ${typestr(a)}, ${typestr(a)}`, function () {
                 expect(() => expect(1.1).to[operator](a, b)).to.throw(
@@ -1070,7 +1070,7 @@ describe("BigNumber matchers", function () {
 
       describe("should throw when comparing to an unsafe integer", function () {
         const unsafeInt = 1e16;
-        const msg = `HH16: The input value cannot be normalized to a BigInt: Integer 10000000000000000 is unsafe. Consider using ${unsafeInt}n instead. For more details, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isSafeInteger`;
+        const msg = `HH17: The input value cannot be normalized to a BigInt: Integer 10000000000000000 is unsafe. Consider using ${unsafeInt}n instead. For more details, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isSafeInteger`;
 
         describe(`when using .to.${operator}`, function () {
           it("with an unsafe int as the first param", function () {

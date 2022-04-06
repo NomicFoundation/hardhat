@@ -1,15 +1,13 @@
 import fs from "fs";
 import fsExtra from "fs-extra";
-import HttpsProxyAgent from "https-proxy-agent";
 import path from "path";
 import util from "util";
 
-interface FetchOptions {
-  timeout: number;
-  agent?: undefined | HttpsProxyAgent.HttpsProxyAgent;
-}
+import { getHardhatVersion } from "./packageInfo";
 
 const TEMP_FILE_PREFIX = "tmp-";
+
+const hardhatVersion = getHardhatVersion();
 
 function resolveTempFileName(filePath: string): string {
   const { dir, ext, name } = path.parse(filePath);
@@ -27,34 +25,33 @@ export async function download(
   timeoutMillis = 10000
 ) {
   const { pipeline } = await import("stream");
-  const { default: fetch } = await import("node-fetch");
+  const { getGlobalDispatcher, ProxyAgent, request } = await import("undici");
   const streamPipeline = util.promisify(pipeline);
-  const fetchOptions: FetchOptions = {
-    timeout: timeoutMillis,
-    agent: undefined,
-  };
 
-  // Check if Proxy is set https
-  if (process.env.HTTPS_PROXY !== undefined) {
-    // Create the proxy from the environment variables
-    const proxy: string = process.env.HTTPS_PROXY;
-    fetchOptions.agent = new HttpsProxyAgent.HttpsProxyAgent(proxy);
-  }
+  function chooseDispatcher() {
+    if (process.env.HTTPS_PROXY !== undefined) {
+      return new ProxyAgent(process.env.HTTPS_PROXY);
+    }
 
-  // Check if Proxy is set http and `fetchOptions.agent` was not already set for https
-  if (
-    process.env.HTTP_PROXY !== undefined &&
-    fetchOptions.agent === undefined
-  ) {
-    // Create the proxy from the environment variables
-    const proxy: string = process.env.HTTP_PROXY;
-    fetchOptions.agent = new HttpsProxyAgent.HttpsProxyAgent(proxy);
+    if (process.env.HTTP_PROXY !== undefined) {
+      return new ProxyAgent(process.env.HTTP_PROXY);
+    }
+
+    return getGlobalDispatcher();
   }
 
   // Fetch the url
-  const response = await fetch(url, fetchOptions);
+  const response = await request(url, {
+    dispatcher: chooseDispatcher(),
+    headersTimeout: timeoutMillis,
+    maxRedirections: 10,
+    method: "GET",
+    headers: {
+      "User-Agent": `hardhat ${hardhatVersion}`,
+    },
+  });
 
-  if (response.ok && response.body !== null) {
+  if (response.statusCode >= 200 && response.statusCode <= 299) {
     const tmpFilePath = resolveTempFileName(filePath);
     await fsExtra.ensureDir(path.dirname(filePath));
 
@@ -62,12 +59,10 @@ export async function download(
     return fsExtra.move(tmpFilePath, filePath, { overwrite: true });
   }
 
-  // Consume the response stream and discard its result
-  // See: https://github.com/node-fetch/node-fetch/issues/83
-  const _discarded = await response.arrayBuffer();
-
   // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
   throw new Error(
-    `Failed to download ${url} - ${response.statusText} received`
+    `Failed to download ${url} - ${
+      response.statusCode
+    } received. ${await response.body.text()}`
   );
 }

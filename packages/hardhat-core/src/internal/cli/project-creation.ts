@@ -142,6 +142,44 @@ async function printWelcomeMessage() {
   );
 }
 
+async function checkForDuplicates(
+  projectRoot: string,
+  projectType: SampleProjectTypeCreationAction
+): Promise<void> {
+  const { intersection, union } = await import("lodash");
+
+  const packageRoot = getPackageRoot();
+
+  const srcPath = path.join(packageRoot, "sample-projects");
+  const destFiles = fsExtra.readdirSync(projectRoot);
+  let srcFiles: string[] = fsExtra.readdirSync(path.join(srcPath, "basic"));
+
+  switch (projectType) {
+    case Action.CREATE_ADVANCED_SAMPLE_PROJECT_ACTION:
+      srcFiles = union(
+        srcFiles,
+        fsExtra.readdirSync(path.join(srcPath, "advanced"))
+      );
+      break;
+    case Action.CREATE_ADVANCED_TYPESCRIPT_SAMPLE_PROJECT_ACTION:
+      srcFiles = union(
+        srcFiles,
+        fsExtra.readdirSync(path.join(srcPath, "advanced")),
+        fsExtra.readdirSync(path.join(srcPath, "advanced-ts"))
+      );
+      break;
+  }
+
+  const duplicates = intersection(srcFiles, destFiles);
+
+  if (duplicates.length > 0) {
+    throw new HardhatError(ERRORS.GENERAL.CONFLICTING_FILES, {
+      dest: projectRoot,
+      conflicts: duplicates.map((n) => `  ${n}`).join(os.EOL),
+    });
+  }
+}
+
 async function copySampleProject(
   projectRoot: string,
   projectType: SampleProjectTypeCreationAction
@@ -152,6 +190,8 @@ async function copySampleProject(
   // requested, overlay the advanced files on top of the basic ones. then, if
   // the advanced TypeScript project is what was requested, overlay those files
   // on top of the advanced ones.
+
+  await checkForDuplicates(projectRoot, projectType);
 
   await fsExtra.ensureDir(projectRoot);
   await fsExtra.copy(

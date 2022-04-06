@@ -216,8 +216,21 @@ If you were trying to create a new project, please try again using Windows Subsy
 You can learn how to use Hardhat by reading the [Getting Started guide](../getting-started).`,
       shouldBeReported: false,
     },
-    INVALID_BIG_NUMBER: {
+    CONFLICTING_FILES: {
       number: 16,
+      message: `The directory %dest% contains files that could conflict:
+
+%conflicts%
+
+Either try using a new directory, or remove the files listed above.`,
+      title: "conflicting files during project creation",
+      description: `You are trying to create a new hardhat project, but there are existing files that would be overwritten by the creation process.
+
+Either try using a new directory name, or remove the conflicting files.`,
+      shouldBeReported: false,
+    },
+    INVALID_BIG_NUMBER: {
+      number: 17,
       message: "The input value cannot be normalized to a BigInt: %message%",
       title: "Invalid big number",
       description:

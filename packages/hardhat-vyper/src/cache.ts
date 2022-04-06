@@ -1,11 +1,11 @@
 import type { LoDashStatic } from "lodash";
+import type { ProjectPathsConfig } from "hardhat/types/config";
+import type { VyperConfig } from "./types";
+
 import path from "path";
 import fsExtra from "fs-extra";
 import * as t from "io-ts";
 
-import type { ProjectPathsConfig } from "hardhat/types/config";
-
-import type { VyperConfig } from "./types";
 import { CACHE_FORMAT_VERSION, VYPER_FILES_CACHE_FILENAME } from "./constants";
 import { getLogger } from "./util";
 

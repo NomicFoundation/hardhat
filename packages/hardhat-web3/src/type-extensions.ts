@@ -1,5 +1,6 @@
-import "hardhat/types/runtime";
 import type Web3 from "web3";
+
+import "hardhat/types/runtime";
 
 declare module "hardhat/types/runtime" {
   interface HardhatRuntimeEnvironment {
