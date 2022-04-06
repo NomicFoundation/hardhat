@@ -5,8 +5,8 @@ import { useEnvironment, rpcQuantityToNumber } from "../test-utils";
 
 describe("stopImpersonatingAccount", function () {
   useEnvironment("simple");
-  const account = "0x000000000000000000000000000000000000beef";
-  const recipient = "0x000000000000000000000000000000000000beee";
+  const account = "0x000000000000000000000000000000000000bEEF";
+  const recipient = "0x000000000000000000000000000000000000BEEe";
 
   const getBalance = async (address: string) => {
     const balance = await this.ctx.hre.network.provider.send("eth_getBalance", [

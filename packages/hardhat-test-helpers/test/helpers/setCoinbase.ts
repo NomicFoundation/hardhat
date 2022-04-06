@@ -5,7 +5,7 @@ import { useEnvironment } from "../test-utils";
 
 describe("setCoinbase", function () {
   useEnvironment("simple");
-  const newCoinbase = "0x000000000000000000000000000000000000beef";
+  const newCoinbase = "0x000000000000000000000000000000000000bEEF";
 
   const getCoinbase = async () => {
     const coinbase = await this.ctx.hre.network.provider.send(
@@ -19,7 +19,10 @@ describe("setCoinbase", function () {
   it("should allow setting the coinbase", async function () {
     await hh.setCoinbase(newCoinbase);
 
-    assert.equal(await getCoinbase(), newCoinbase);
+    assert.equal(
+      (await getCoinbase()).toLowerCase(),
+      newCoinbase.toLowerCase()
+    );
   });
 
   describe("invalid parameter types for coinbase", function () {

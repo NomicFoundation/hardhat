@@ -8,7 +8,7 @@ import { useEnvironment, rpcQuantityToNumber } from "../test-utils";
 
 describe("setBalance", function () {
   useEnvironment("simple");
-  const recipient = "0x000000000000000000000000000000000000beef";
+  const recipient = "0x000000000000000000000000000000000000bEEF";
 
   const getBalance = async (address: string) => {
     const balance = await this.ctx.hre.network.provider.send("eth_getBalance", [

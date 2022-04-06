@@ -8,7 +8,7 @@ import { useEnvironment, rpcQuantityToNumber } from "../test-utils";
 
 describe("setNonce", function () {
   useEnvironment("simple");
-  const account = "0x000000000000000000000000000000000000beef";
+  const account = "0x000000000000000000000000000000000000bEEF";
 
   const getNonce = async (address: string) => {
     const nonce = await this.ctx.hre.network.provider.send(
@@ -33,7 +33,7 @@ describe("setNonce", function () {
     await this.hre.network.provider.send("eth_sendTransaction", [
       {
         from: account,
-        to: "0x000000000000000000000000000000000000beee",
+        to: "0x000000000000000000000000000000000000BEEe",
         value: "0x1",
       },
     ]);

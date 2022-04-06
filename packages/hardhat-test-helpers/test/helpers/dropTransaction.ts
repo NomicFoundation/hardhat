@@ -5,8 +5,8 @@ import { useEnvironment } from "../test-utils";
 
 describe("dropTransaction", function () {
   useEnvironment("simple");
-  const account = "0x000000000000000000000000000000000000beef";
-  const recipient = "0x000000000000000000000000000000000000beee";
+  const account = "0x000000000000000000000000000000000000bEEF";
+  const recipient = "0x000000000000000000000000000000000000BEEe";
 
   it("should drop a given transaction from the mempool", async function () {
     await this.hre.network.provider.send("evm_setAutomine", [false]);

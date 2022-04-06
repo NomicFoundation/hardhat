@@ -9,7 +9,7 @@ import { useEnvironment } from "../test-utils";
 
 describe("setStorageAt", function () {
   useEnvironment("simple");
-  const account = "0x000000000000000000000000000000000000beef";
+  const account = "0x000000000000000000000000000000000000bEEF";
   const code =
     "0x000000000000000000000000000000000000000000000000000000000000beef";
 

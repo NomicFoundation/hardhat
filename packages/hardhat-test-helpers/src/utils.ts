@@ -1,3 +1,5 @@
+import { isValidChecksumAddress } from "ethereumjs-util";
+
 import type { EIP1193Provider } from "hardhat/types";
 
 import type { NumberLike } from "./types";
@@ -69,7 +71,8 @@ export function toRpcQuantity(x: NumberLike): string {
 }
 
 export function assertValidAddress(address: string): void {
-  if (typeof address !== "string" || !/^0x[0-9a-fA-F]{40}$/.test(address)) {
+  const hasChecksum = address !== address.toLowerCase();
+  if (!hasChecksum || !isValidChecksumAddress(address)) {
     throw new Error(
       `[hardhat-test-helpers] ${address} is not a valid hex address`
     );

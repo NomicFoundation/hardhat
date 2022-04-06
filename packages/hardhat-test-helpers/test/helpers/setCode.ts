@@ -5,7 +5,7 @@ import { useEnvironment } from "../test-utils";
 
 describe("setCode", function () {
   useEnvironment("simple");
-  const recipient = "0x000000000000000000000000000000000000beef";
+  const recipient = "0x000000000000000000000000000000000000bEEF";
 
   const getCode = async (address: string, block = "latest") => {
     const code = await this.ctx.hre.network.provider.send("eth_getCode", [
