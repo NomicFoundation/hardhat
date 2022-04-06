@@ -7,12 +7,12 @@ import VibrantCommunityImage from "../../assets/images/vibrant_community.png";
 import { appTheme, tm } from "../../themes";
 import CTA from "../ui/CTA";
 import Section from "../Section";
-import defaultProps from "../ui/default-props";
+import homepageContent from "../../content/home";
 
 const { media } = appTheme;
 
 interface Props {
-  content: typeof defaultProps.defaultVibrantCommunityBlockContent;
+  content: typeof homepageContent.vibrantCommunityBlockContent;
 }
 
 const CardWrapper = styled.section`

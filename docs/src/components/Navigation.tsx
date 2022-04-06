@@ -5,6 +5,7 @@ import { appTheme, tm } from "../themes";
 import HardhatLogo from "../assets/hardhat-logo";
 import Hamburger from "./ui/Hamburger";
 import Menu from "./ui/DesktopMenu";
+import { menuItemsList, socialsItems } from "../config";
 
 const { media } = appTheme;
 
@@ -78,7 +79,7 @@ const Navigation: FC = () => {
           isOpen={isSidebarOpen}
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
         />
-        <Menu />
+        <Menu menuItems={menuItemsList} socialsItems={socialsItems} />
         <div>Theme</div>
       </ControlsContainer>
     </NavigationStyled>

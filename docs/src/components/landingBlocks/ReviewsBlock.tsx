@@ -5,13 +5,13 @@ import { styled } from "linaria/react";
 import CarouselArrowLeft from "../../assets/images/carrusel-arrow-left.png";
 
 import Section from "../Section";
-import defaultProps from "../ui/default-props";
 import { appTheme, tm } from "../../themes";
+import homepageContent from "../../content/home";
 
 const { media } = appTheme;
 
 interface Props {
-  content: typeof defaultProps.defaultReviewsBlockContent;
+  content: typeof homepageContent.reviewsBlockContent;
 }
 
 const SliderWrapper = styled.div`

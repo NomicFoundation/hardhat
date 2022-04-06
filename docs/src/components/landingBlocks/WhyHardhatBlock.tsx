@@ -2,15 +2,12 @@ import React from "react";
 import { styled } from "linaria/react";
 import Section from "../Section";
 import { tm, appTheme } from "../../themes";
+import homepageContent from "../../content/home";
 
 const { media } = appTheme;
 
-export const defaultWhyHardhatContent = {
-  title: "Why hardhat",
-};
-
 type Props = React.PropsWithChildren<{
-  content: typeof defaultWhyHardhatContent;
+  content: typeof homepageContent.whyHardhatContent;
 }>;
 
 const Container = styled.section`

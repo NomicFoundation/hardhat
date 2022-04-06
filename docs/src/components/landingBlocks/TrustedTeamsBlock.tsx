@@ -5,10 +5,10 @@ import TrustedTeamsLogos from "./TrustedTeamsBlock.model";
 
 import { appTheme, tm } from "../../themes";
 import Section from "../Section";
-import defaultProps from "../ui/default-props";
+import homepageContent from "../../content/home";
 
 interface Props {
-  content: typeof defaultProps.defaultTrustedTeamsBlockContent;
+  content: typeof homepageContent.trustedTeamsBlockContent;
 }
 
 const { media } = appTheme;

@@ -1,80 +1,147 @@
-import React from "react";
-import { styled } from "linaria/react";
+import React, { useEffect, useState } from "react";
+
 import Section from "../Section";
-import { appTheme, tm } from "../../themes";
 import { Tools } from "../ui/types";
-import ToolsIcons from "../../assets/tools";
+import ToolsBlockStyled from "./ToolsBlock.styled";
+import homepageContent from "../../content/home";
 
-const { media } = appTheme;
-const { RunnerIcon, IgnitionIcon, NetworkIcon, VSCodeIcon } = ToolsIcons;
+const {
+  Container,
+  ButtonContainer,
+  ButtonNameContainer,
+  ButtonCompanyName,
+  ButtonToolName,
+  ButtonsContainer,
+  DescriptionContainer,
+  DescriptionHeaderContainer,
+  DescriptionTitle,
+  DescriptionMottoContainer,
+  DescriptionTitleTool,
+  DescriptionText,
+  ToolsIconsBlock,
+  IconsBlockTitle,
+  DescriptionLink,
+} = ToolsBlockStyled;
 
-const defaultContent = {
-  title: "Tools",
-  tools: [
-    {
-      name: Tools.RUNNER,
-      title: "Runner",
-      prefix: "Hardhat",
-      Icon: RunnerIcon,
-    },
-    {
-      name: Tools.IGNITION,
-      title: "Ignition",
-      prefix: "Hardhat",
-      Icon: IgnitionIcon,
-    },
-    {
-      name: Tools.NETWORK,
-      title: "Network",
-      prefix: "Hardhat",
-      Icon: NetworkIcon,
-    },
-    {
-      name: Tools.VS_CODE,
-      title: "VS Code",
-      prefix: "Hardhat",
-      Icon: VSCodeIcon,
-    },
-  ],
+interface BlockProps {
+  content: typeof homepageContent.toolsBlockContent;
+}
+
+interface ToolProps {
+  content: typeof homepageContent.toolsBlockContent.infoItems[0] | undefined;
+  companyName: string;
+}
+
+const ToolDescription = ({ content, companyName }: ToolProps) => {
+  const [currentMotto, setCurrentMotto] = useState(
+    (content && content.mottos[0]) || ""
+  );
+  const [currentMottoClassname, setCurrentMottoClassname] = useState("runner");
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (currentMotto && content) {
+        let currentIndex = content.mottos.findIndex(
+          (item) => item === currentMotto
+        );
+        if (currentIndex + 1 === content.mottos.length) {
+          currentIndex = 0;
+        } else {
+          currentIndex += 1;
+        }
+        setCurrentMotto(content.mottos[currentIndex]);
+      }
+    }, 2000);
+    return () => {
+      clearTimeout(timer);
+    };
+    // eslint-disable-next-line
+  }, [currentMotto]);
+
+  useEffect(() => {
+    if (content) {
+      setCurrentMotto(content.mottos[0]);
+      switch (content.value) {
+        case Tools.RUNNER: {
+          setCurrentMottoClassname("runner");
+          break;
+        }
+        case Tools.NETWORK: {
+          setCurrentMottoClassname("network");
+          break;
+        }
+        case Tools.IGNITION: {
+          setCurrentMottoClassname("ignition");
+          break;
+        }
+        case Tools.VS_CODE: {
+          setCurrentMottoClassname("vscode");
+          break;
+        }
+        default: {
+          setCurrentMottoClassname("runner");
+        }
+      }
+    }
+  }, [content]);
+
+  return content ? (
+    <DescriptionContainer>
+      <DescriptionHeaderContainer>
+        <DescriptionTitle>
+          {companyName}
+          <DescriptionTitleTool>{` ${content.title}`}</DescriptionTitleTool>
+        </DescriptionTitle>
+        <DescriptionMottoContainer className={currentMottoClassname}>
+          <span># {currentMotto}</span>
+        </DescriptionMottoContainer>
+      </DescriptionHeaderContainer>
+      <div>
+        <DescriptionText>{content.description}</DescriptionText>
+        <DescriptionLink>
+          <DescriptionLink href={content.link}>Learn more </DescriptionLink>
+        </DescriptionLink>
+      </div>
+    </DescriptionContainer>
+  ) : null;
 };
 
-const Block = styled.section`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  ${media.lg} {
-    flex-direction: row;
-  }
-`;
+const ToolsBlock = ({ content }: BlockProps) => {
+  const [selectedTool, setSelectedTool] = useState(Tools.RUNNER);
 
-const MobileDivider = styled.div`
-  height: 32px;
-  width: 100%;
-  border: 1px solid ${tm(({ colors }) => colors.neutral400)};
-  position: absolute;
-`;
-
-const TopDivider = styled(MobileDivider)`
-  border-left: unset;
-  border-bottom: unset;
-`;
-
-const BotDivider = styled(MobileDivider)`
-  border-left: unset;
-  border-bottom: unset;
-`;
-
-const ToolsBlock = () => {
   return (
     <Section>
-      <Block>
-        <TopDivider />
-        <BotDivider />
-      </Block>
+      <Container>
+        <ToolsIconsBlock>
+          <IconsBlockTitle>{content.title}</IconsBlockTitle>
+          <ButtonsContainer>
+            {content.infoItems.map((button) => (
+              <ButtonContainer
+                onClick={() => setSelectedTool(button.value)}
+                key={button.value}
+                className={selectedTool === button.value ? "active" : ""}
+              >
+                <button.icon
+                  className={selectedTool === button.value ? "active" : ""}
+                />
+                <ButtonNameContainer>
+                  <ButtonCompanyName>{content.companyName}</ButtonCompanyName>
+                  <br />
+                  <ButtonToolName>{button.title}</ButtonToolName>
+                </ButtonNameContainer>
+              </ButtonContainer>
+            ))}
+          </ButtonsContainer>
+        </ToolsIconsBlock>
+        <ToolDescription
+          content={content.infoItems.find(
+            (item) => item.value === selectedTool
+          )}
+          companyName={content.companyName}
+        />
+      </Container>
     </Section>
   );
 };
 
 export default ToolsBlock;
-
-ToolsBlock.defaultProps = { content: defaultContent };

@@ -1,11 +1,11 @@
 import React from "react";
 import HeroBlock from "./HeroBlock";
-import defaultProps from "../ui/default-props";
+import homepageContent from "../../content/home";
 
-const { defaultHeroBlockContent } = defaultProps;
+const { heroBlockContent } = homepageContent;
 
 export default {
   title: "Landing Blocks/Hero",
 };
 
-export const Default = () => <HeroBlock content={defaultHeroBlockContent} />;
+export const Default = () => <HeroBlock content={heroBlockContent} />;

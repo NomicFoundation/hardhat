@@ -1,14 +1,14 @@
 import React from "react";
 
-import defaultProps from "../ui/default-props";
 import VibrantCommunityBlock from "./VibrantCommunityBlock";
-
-const { defaultVibrantCommunityBlockContent } = defaultProps;
+import homepageContent from "../../content/home";
 
 export default {
   title: "Landing Blocks/Vibrant community",
 };
 
 export const Default = () => (
-  <VibrantCommunityBlock content={defaultVibrantCommunityBlockContent} />
+  <VibrantCommunityBlock
+    content={homepageContent.vibrantCommunityBlockContent}
+  />
 );

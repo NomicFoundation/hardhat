@@ -35,6 +35,11 @@ export const appTheme = {
     cardBoxShadow: "#0A0A0A14",
     sliderButtonShadow: "rgba(0, 0, 0, 0.102)",
     sliderButtonHoverShadow: "hsl(0deg 0% 83% / 50%)",
+    toolsBlockBorder: "#d4d4d4",
+    mottoRunnerBackground: "#F8F4CB",
+    mottoNetworkBackground: "#f6edd1",
+    mottoIgnitionBackground: "#f3ecf3",
+    mottoVscodeBackground: "#f0e7fb",
     textureBackground:
       "linear-gradient(254.24deg, #E9DEFA 0%, #FBFCDB 100%, #FBFCDB 100%);",
     neutralBackground:

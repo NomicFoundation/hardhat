@@ -1,12 +1,12 @@
 import React from "react";
 
 import BuiltByBlock from "./BuiltByBlock";
-import defaultProps from "../ui/default-props";
+import homepageContent from "../../content/home";
 
 export default {
   title: "Landing Blocks/Built by",
 };
 
 export const Default = () => (
-  <BuiltByBlock content={defaultProps.defaultBuiltByBlockContent} />
+  <BuiltByBlock content={homepageContent.builtByBlockContent} />
 );

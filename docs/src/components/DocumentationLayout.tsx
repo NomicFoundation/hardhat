@@ -4,11 +4,10 @@ import SEO from "./SEO";
 import Navigation from "./Navigation";
 import Banner, { DefaultBanner } from "./ui/Banner";
 import { tm, appTheme } from "../themes";
-import defaultProps from "./ui/default-props";
 import { DefaultBannerProps } from "./ui/types";
 import { ISeo } from "./types";
+import { bannerContent } from "../config";
 
-const { defaultBannerContent } = defaultProps;
 const { media } = appTheme;
 
 const Container = styled.div`
@@ -35,8 +34,8 @@ const Sidebar = styled.aside`
   border-right: 1px solid ${tm(({ colors }) => colors.neutral400)};
   width: 366px;
   position: fixed;
-  left: 0px;
-  top: 0px;
+  left: 0;
+  top: 0;
   height: 100vh;
   display: none;
   ${media.lg} {
@@ -71,7 +70,7 @@ const DocumentationLayout = ({ children, seo }: Props) => {
   return (
     <Container>
       <Banner
-        content={defaultBannerContent}
+        content={bannerContent}
         renderContent={({ content }: DefaultBannerProps) => (
           <DefaultBanner content={content} />
         )}

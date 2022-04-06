@@ -5,10 +5,10 @@ import NomicFoundationLogo from "../../assets/images/nomic-foundation-logo.png";
 
 import Section from "../Section";
 import { appTheme } from "../../themes";
-import defaultProps from "../ui/default-props";
+import homepageContent from "../../content/home";
 
 interface Props {
-  content: typeof defaultProps.defaultBuiltByBlockContent;
+  content: typeof homepageContent.builtByBlockContent;
 }
 
 const { media } = appTheme;

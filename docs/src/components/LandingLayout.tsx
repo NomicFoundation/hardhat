@@ -1,14 +1,13 @@
 import React from "react";
 import { styled } from "linaria/react";
+
 import SEO from "./SEO";
 import LandingNavigation from "./LandingNavigation";
 import LandingFooter from "./LandingFooter";
 import Banner, { DefaultBanner } from "./ui/Banner";
 import { tm } from "../themes";
-import defaultProps from "./ui/default-props";
 import { DefaultBannerProps } from "./ui/types";
-
-const { defaultBannerContent } = defaultProps;
+import { bannerContent } from "../config";
 
 const Container = styled.div`
   position: relative;
@@ -40,7 +39,7 @@ const LandingLayout = ({ children, seo }: Props) => {
   return (
     <Container>
       <Banner
-        content={defaultBannerContent}
+        content={bannerContent}
         renderContent={({ content }: DefaultBannerProps) => (
           <DefaultBanner content={content} />
         )}

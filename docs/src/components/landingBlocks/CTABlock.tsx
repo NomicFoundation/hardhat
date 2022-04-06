@@ -5,14 +5,13 @@ import useWindowSize from "../../hooks/useWindowSize";
 import Images from "../../assets/images";
 import CTA from "../ui/CTA";
 import Section from "../Section";
-import defaultProps from "../ui/default-props";
+import homepageContent from "../../content/home";
 
-const { defaultCTAContent } = defaultProps;
 const { TextureBrick } = Images;
 const { media, breakpoints } = appTheme;
 
 interface Props {
-  content: typeof defaultCTAContent;
+  content: typeof homepageContent.getStartedHardhat;
 }
 
 const CTABlockStyled = styled.section`

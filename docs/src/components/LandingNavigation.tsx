@@ -6,6 +6,7 @@ import HardhatLogo from "../assets/hardhat-logo";
 import Hamburger from "./ui/Hamburger";
 import MobileMenu from "./ui/MobileMenu";
 import Menu from "./ui/DesktopMenu";
+import { menuItemsList, socialsItems } from "../config";
 
 const { media } = appTheme;
 
@@ -80,10 +81,14 @@ const LandingNavigation: FC = () => {
           isOpen={isMobileMenuOpen}
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         />
-        <Menu />
+        <Menu menuItems={menuItemsList} socialsItems={socialsItems} />
       </ControlsContainer>
 
-      <MobileMenu isOpen={isMobileMenuOpen} />
+      <MobileMenu
+        menuItems={menuItemsList}
+        socialsItems={socialsItems}
+        isOpen={isMobileMenuOpen}
+      />
     </Navigation>
   );
 };
