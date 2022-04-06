@@ -10,7 +10,7 @@ import {
  *
  * @param address The address to retrieve storage from
  * @param index The position in storage
- * @param block The block number, or one of "latest", "earliest", or "pending"
+ * @param block The block number, or one of `"latest"`, `"earliest"`, or `"pending"`. Defaults to `"latest"`.
  * @returns string containing the hexadecimal code retrieved
  */
 export async function getStorageAt(

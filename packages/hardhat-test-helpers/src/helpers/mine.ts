@@ -5,7 +5,7 @@ import { getHardhatProvider, toRpcQuantity } from "../utils";
  * Mines a specified number of blocks at a given interval
  *
  * @param blocks Number of blocks to mine
- * @param options Interval to wait between blocks
+ * @param options.interval Configures the interval (in seconds) between the timestamps of each mined block. Defaults to 1.
  */
 export async function mine(
   blocks: NumberLike = 1,
