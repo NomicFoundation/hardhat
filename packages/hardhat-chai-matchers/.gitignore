@@ -1,30 +1,19 @@
-# node modules
+# Node modules
 /node_modules
 
-# vuepress
-/docs/.vuepress/dist/
-
-# Tests compilation output
+# Compilation output
 /build-test/
-
-# Code coverage artifacts
-/coverage
-/.nyc_output
-
-# TSC prod output. This has to be in sync with the to directories in ./src, and with npm script clean
-
+/dist
+/internal
+/types
 /*.js
 /*.js.map
 /*.d.ts
 /*.d.ts.map
-/builtin-tasks
-/common
-/internal
-/types
-/utils
 
-test/internal/hardhat-network/provider/.hardhat_node_test_cache/
-!.eslintrc.js
+# Code coverage artifacts
+/coverage
+/.nyc_output
 
 # Below is Github's node gitignore template,
 # ignoring the node_modules part, as it'd ignore every node_modules, and we have some for testing
@@ -109,3 +98,5 @@ typings/
 
 # DynamoDB Local files
 .dynamodb/
+
+!.eslintrc.js

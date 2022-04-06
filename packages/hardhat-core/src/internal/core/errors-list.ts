@@ -229,6 +229,14 @@ Either try using a new directory, or remove the files listed above.`,
 Either try using a new directory name, or remove the conflicting files.`,
       shouldBeReported: false,
     },
+    INVALID_BIG_NUMBER: {
+      number: 17,
+      message: "The input value cannot be normalized to a BigInt: %message%",
+      title: "Invalid big number",
+      description:
+        "Hardhat attempted to convert the input value to a BigInt, but no known conversion method was applicable to the given value.",
+      shouldBeReported: false,
+    },
   },
   NETWORK: {
     CONFIG_NOT_FOUND: {
