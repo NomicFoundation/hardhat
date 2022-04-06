@@ -39,23 +39,13 @@ async function checkIfHardhatNetwork(
 }
 
 export async function getHardhatProvider(): Promise<EIP1193Provider> {
-  try {
-    const hre = await import("hardhat");
+  const hre = await import("hardhat");
 
-    const provider = hre.network.provider;
+  const provider = hre.network.provider;
 
-    await checkIfHardhatNetwork(provider, hre.network.name);
+  await checkIfHardhatNetwork(provider, hre.network.name);
 
-    return hre.network.provider;
-  } catch (e: any) {
-    if (e.code === "MODULE_NOT_FOUND") {
-      throw new Error(
-        "[hardhat-test-helpers] These helpers can only be used inside a hardhat project"
-      );
-    }
-
-    throw e;
-  }
+  return hre.network.provider;
 }
 
 export function toRpcQuantity(x: NumberLike): string {
