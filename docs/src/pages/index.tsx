@@ -19,6 +19,7 @@ import defaultProps from "../components/ui/default-props";
 import VibrantCommunityBlock from "../components/landingBlocks/VibrantCommunityBlock";
 import TrustedTeamsBlock from "../components/landingBlocks/TrustedTeamsBlock";
 import BuiltByBlock from "../components/landingBlocks/BuiltByBlock";
+import ReviewsBlock from "../components/landingBlocks/ReviewsBlock";
 
 const { defaultHeroBlockContent, defaultCTAContent } = defaultProps;
 // import ToolsBlock from '../components/landingBlocks/ToolsBlock';
@@ -106,6 +107,7 @@ const Home: NextPage = () => {
       <TrustedTeamsBlock
         content={defaultProps.defaultTrustedTeamsBlockContent}
       />
+      <ReviewsBlock content={defaultProps.defaultReviewsBlockContent} />
       <BuiltByBlock content={defaultProps.defaultBuiltByBlockContent} />
     </>
   );

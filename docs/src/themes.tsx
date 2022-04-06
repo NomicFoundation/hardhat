@@ -31,7 +31,14 @@ export const appTheme = {
     accent800: "#FFF100",
     accent900: "#EDCF00",
     complementary600: "#E9DEFA",
+    accentBackground: "linear-gradient(256.6deg, #FFF100 0%, #FFF100 100%)",
     cardBoxShadow: "#0A0A0A14",
+    sliderButtonShadow: "rgba(0, 0, 0, 0.102)",
+    sliderButtonHoverShadow: "hsl(0deg 0% 83% / 50%)",
+    textureBackground:
+      "linear-gradient(254.24deg, #E9DEFA 0%, #FBFCDB 100%, #FBFCDB 100%);",
+    neutralBackground:
+      "linear-gradient(180deg, #FFFFFF 7.96%, rgba(255, 255, 255, 0.484844) 18.71%, rgba(255, 255, 255, 0) 28.83%, rgba(255, 255, 255, 0) 68.82%, #FFFFFF 91.43%);",
   },
   media,
   breakpoints,
