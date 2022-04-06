@@ -5,6 +5,12 @@ import {
   toRpcQuantity,
 } from "../utils";
 
+/**
+ * Modifies an account's nonce by overwriting it
+ *
+ * @param address The address whose nonce is to be changed
+ * @param nonce The new nonce
+ */
 export async function setNonce(
   address: string,
   nonce: NumberLike

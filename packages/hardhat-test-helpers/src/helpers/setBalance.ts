@@ -5,6 +5,12 @@ import {
   toRpcQuantity,
 } from "../utils";
 
+/**
+ * Sets a given balance for the given address
+ *
+ * @param address The address whose balance will be edited
+ * @param balance The new balance to set for the given address
+ */
 export async function setBalance(
   address: string,
   balance: NumberLike

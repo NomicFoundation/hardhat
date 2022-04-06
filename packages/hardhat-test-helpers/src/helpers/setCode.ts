@@ -4,6 +4,12 @@ import {
   assertHexString,
 } from "../utils";
 
+/**
+ * Modifies the bytecode stored at an account's address
+ *
+ * @param address The address where the given code should be stored
+ * @param code The code to store
+ */
 export async function setCode(address: string, code: string): Promise<void> {
   const provider = await getHardhatProvider();
 

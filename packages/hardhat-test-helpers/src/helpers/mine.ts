@@ -1,6 +1,12 @@
 import type { NumberLike } from "../types";
 import { getHardhatProvider, toRpcQuantity } from "../utils";
 
+/**
+ * Mines a specified number of blocks at a given interval
+ *
+ * @param blocks Number of blocks to mine
+ * @param options Interval to wait between blocks
+ */
 export async function mine(
   blocks: NumberLike = 1,
   options: { interval?: NumberLike } = {}
