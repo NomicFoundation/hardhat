@@ -6,19 +6,33 @@ import type { NumberLike } from "./types";
 
 let cachedIsHardhatNetwork: boolean;
 async function checkIfHardhatNetwork(
-  provider: EIP1193Provider
+  provider: EIP1193Provider,
+  networkName: string
 ): Promise<boolean> {
-  if (cachedIsHardhatNetwork !== undefined) return cachedIsHardhatNetwork;
+  let version: string | undefined;
+  if (cachedIsHardhatNetwork === undefined) {
+    try {
+      version = (await provider.request({
+        method: "web3_clientVersion",
+      })) as string;
 
-  try {
-    // we call a method that only exists in the hardhat network
-    const version = (await provider.request({
-      method: "web3_clientVersion",
-    })) as string;
+      cachedIsHardhatNetwork = version
+        .toLowerCase()
+        .startsWith("hardhatnetwork");
+    } catch (e) {
+      cachedIsHardhatNetwork = false;
+    }
+  }
 
-    cachedIsHardhatNetwork = version.toLowerCase().startsWith("hardhatnetwork");
-  } catch (e) {
-    cachedIsHardhatNetwork = false;
+  if (!cachedIsHardhatNetwork) {
+    let errorMessage: string = ``;
+    if (version === undefined) {
+      errorMessage = `[hardhat-test-helpers] This helper can only be used in the Hardhat Network. You are connected to '${networkName}'.`;
+    } else {
+      errorMessage = `[hardhat-test-helpers] This helper can only be used in the Hardhat Network. You are connected to '${networkName}', whose identifier is '${version}'`;
+    }
+
+    throw new Error(errorMessage);
   }
 
   return cachedIsHardhatNetwork;
@@ -30,13 +44,7 @@ export async function getHardhatProvider(): Promise<EIP1193Provider> {
 
     const provider = hre.network.provider;
 
-    const isHardhatNetwork = await checkIfHardhatNetwork(provider);
-
-    if (!isHardhatNetwork) {
-      throw new Error(
-        "[hardhat-test-helpers] This helper can only be used on the hardhat network"
-      );
-    }
+    await checkIfHardhatNetwork(provider, hre.network.name);
 
     return hre.network.provider;
   } catch (e: any) {
