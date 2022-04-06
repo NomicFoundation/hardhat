@@ -4,19 +4,24 @@ import type { EIP1193Provider } from "hardhat/types";
 
 import type { NumberLike } from "./types";
 
+let cachedProvider: boolean;
 async function checkIfHardhatNetwork(
   provider: EIP1193Provider
 ): Promise<boolean> {
+  if (cachedProvider !== undefined) return cachedProvider;
+
   try {
     // we call a method that only exists in the hardhat network
-    await provider.request({
-      method: "hardhat_getAutomine",
-    });
+    const version = (await provider.request({
+      method: "web3_clientVersion",
+    })) as string;
 
-    return true;
+    cachedProvider = version.toLowerCase().startsWith("hardhatnetwork");
   } catch (e) {
-    return false;
+    cachedProvider = false;
   }
+
+  return cachedProvider;
 }
 
 export async function getHardhatProvider(): Promise<EIP1193Provider> {
