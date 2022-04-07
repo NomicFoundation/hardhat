@@ -1,14 +1,14 @@
 import React from "react";
 import { styled } from "linaria/react";
 import Image from "next/image";
+
 import NomicFoundationLogo from "../../assets/images/nomic-foundation-logo.png";
 
 import Section from "../Section";
 import { appTheme } from "../../themes";
-import homepageContent from "../../content/home";
 
 interface Props {
-  content: typeof homepageContent.builtByBlockContent;
+  content: { title: string };
 }
 
 const { media } = appTheme;

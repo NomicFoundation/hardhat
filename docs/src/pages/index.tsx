@@ -2,7 +2,7 @@ import type { NextPage } from "next";
 
 import HeroBlock from "../components/landingBlocks/HeroBlock";
 import FeatureCard from "../components/ui/FeatureCard";
-import GetStartedHardhat from "../components/landingBlocks/CTABlock";
+import GetStartedBlock from "../components/landingBlocks/GetStartedBlock";
 import WhyHardhatBlock from "../components/landingBlocks/WhyHardhatBlock";
 import VibrantCommunityBlock from "../components/landingBlocks/VibrantCommunityBlock";
 import TrustedTeamsBlock from "../components/landingBlocks/TrustedTeamsBlock";
@@ -35,7 +35,7 @@ const Home: NextPage = () => {
       <VibrantCommunityBlock
         content={homepageContent.vibrantCommunityBlockContent}
       />
-      <GetStartedHardhat content={homepageContent.getStartedHardhat} />
+      <GetStartedBlock content={homepageContent.getStartedBlockContent} />
       <TrustedTeamsBlock content={homepageContent.trustedTeamsBlockContent} />
       <ReviewsBlock content={homepageContent.reviewsBlockContent} />
       <BuiltByBlock content={homepageContent.builtByBlockContent} />

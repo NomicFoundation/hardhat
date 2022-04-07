@@ -6,12 +6,18 @@ import CarouselArrowLeft from "../../assets/images/carrusel-arrow-left.png";
 
 import Section from "../Section";
 import { appTheme, tm } from "../../themes";
-import homepageContent from "../../content/home";
 
 const { media } = appTheme;
 
 interface Props {
-  content: typeof homepageContent.reviewsBlockContent;
+  content: Array<{
+    name: string;
+    position: string;
+    personImage: StaticImageData;
+    companyImage: StaticImageData;
+    alt: string;
+    comment: string;
+  }>;
 }
 
 const SliderWrapper = styled.div`

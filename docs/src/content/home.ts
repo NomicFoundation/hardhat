@@ -100,7 +100,7 @@ const heroBlockContent = {
   },
 };
 
-const getStartedHardhat = {
+const getStartedBlockContent = {
   title: "Hardhat is next- generation Ethereum tooling",
   subtitle: "Experience the new way of building Ethereum software.",
   cta: {
@@ -221,7 +221,7 @@ const homepageContent = {
   whyHardhatContent,
   featureCardsContent,
   heroBlockContent,
-  getStartedHardhat,
+  getStartedBlockContent,
   vibrantCommunityBlockContent,
   trustedTeamsBlockContent,
   builtByBlockContent,

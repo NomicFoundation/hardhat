@@ -5,12 +5,17 @@ import CTA from "../ui/CTA";
 import { appTheme } from "../../themes";
 import Images from "../../assets/images";
 import useWindowSize from "../../hooks/useWindowSize";
-import homepageContent from "../../content/home";
+import { CTAType } from "../ui/types";
 
 const { media, breakpoints } = appTheme;
 const { HeroPetsImage, HeroGraphicsImage } = Images;
+
 interface Props {
-  content: typeof homepageContent.heroBlockContent;
+  content: {
+    title: string;
+    tagline: string;
+    cta: CTAType;
+  };
 }
 
 const Container = styled.section`
