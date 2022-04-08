@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { styled } from "linaria/react";
 import SEO from "./SEO";
 import Navigation from "./Navigation";
@@ -6,7 +6,14 @@ import Banner, { DefaultBanner } from "./ui/Banner";
 import { tm, appTheme } from "../themes";
 import { DefaultBannerProps } from "./ui/types";
 import { ISeo } from "./types";
-import { bannerContent } from "../config";
+import Sidebar from "./Sidebar";
+import {
+  DocumentationSidebarStructure,
+  menuItemsList,
+  socialsItems,
+  bannerContent,
+} from "../config";
+import MobileSidebarMenu from "./MobileSidebarMenu";
 
 const { media } = appTheme;
 
@@ -29,17 +36,46 @@ const Container = styled.div`
   min-width: 320px;
 `;
 
-const Sidebar = styled.aside`
+const SidebarMask = styled.div`
+  display: flex;
   flex-direction: column;
   border-right: 1px solid ${tm(({ colors }) => colors.neutral400)};
+`;
+const MobileSidebarMenuMask = styled.div`
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  width: 100%;
+  left: -100%;
+  top: 0px;
+  transition: all 0.25s ease-in-out;
+  border-right: 1px solid ${tm(({ colors }) => colors.neutral400)};
+  &[data-open="true"] {
+    left: 0px;
+  }
+`;
+
+const SidebarContainer = styled.aside`
+  flex-direction: column;
   width: 366px;
   position: fixed;
-  left: 0;
-  top: 0;
-  height: 100vh;
-  display: none;
-  ${media.lg} {
+  left: 0px;
+  top: 136px;
+  height: 85vh;
+  display: flex;
+  overflow-y: scroll;
+  z-index: 1;
+  ${SidebarMask} {
+    display: none;
+    ${media.md} {
+      display: flex;
+    }
+  }
+  ${MobileSidebarMenuMask} {
     display: flex;
+    ${media.md} {
+      display: none;
+    }
   }
 `;
 
@@ -51,7 +87,7 @@ const View = styled.section`
   width: 100%;
   height: 85vh;
   overflow-y: scroll;
-  ${media.lg} {
+  ${media.md} {
     padding-left: 366px;
   }
 `;
@@ -67,6 +103,33 @@ type Props = React.PropsWithChildren<{
 }>;
 
 const DocumentationLayout = ({ children, seo }: Props) => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    const body = document.querySelector("body");
+    if (!body) return;
+
+    if (isSidebarOpen) {
+      // Disable scroll
+      body.style.overflow = "hidden";
+    } else {
+      // Enable scroll
+      body.style.overflow = "auto";
+    }
+  }, [isSidebarOpen]);
+
+  useEffect(() => {
+    const listener = () => {
+      if (isSidebarOpen) {
+        setIsSidebarOpen(false);
+      }
+    };
+
+    document.addEventListener("click", listener);
+
+    return () => document.removeEventListener("click", listener);
+  }, [isSidebarOpen]);
+
   return (
     <Container>
       <Banner
@@ -75,11 +138,29 @@ const DocumentationLayout = ({ children, seo }: Props) => {
           <DefaultBanner content={content} />
         )}
       />
-      <Navigation />
+      <Navigation
+        isSidebarOpen={isSidebarOpen}
+        onSidebarOpen={setIsSidebarOpen}
+      />
       <SEO seo={seo} />
 
       <main>
-        <Sidebar />
+        <SidebarContainer
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
+        >
+          <SidebarMask>
+            <Sidebar elementsList={DocumentationSidebarStructure} />
+          </SidebarMask>
+          <MobileSidebarMenuMask data-open={isSidebarOpen}>
+            <MobileSidebarMenu
+              menuItems={menuItemsList}
+              socialsItems={socialsItems}
+              sidebarElementsList={DocumentationSidebarStructure}
+            />
+          </MobileSidebarMenuMask>
+        </SidebarContainer>
         <View>
           <Content>{children}</Content>
         </View>

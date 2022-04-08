@@ -21,6 +21,7 @@ export interface MenuProps {
   menuItems: MenuItemType[];
   isOpen?: boolean;
   socialsItems: SocialsItem[];
+  isDocumentation?: boolean;
 }
 
 export interface CTAType {

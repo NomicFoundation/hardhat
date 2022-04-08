@@ -7,11 +7,16 @@ import { appTheme, tm } from "../../themes";
 
 const { media } = appTheme;
 
-const MenuContainer = styled.section`
+const MenuContainer = styled.section<{ isDocumentation: boolean }>`
   user-select: none;
   width: 607px;
   display: none;
   background-color: ${tm(({ colors }) => colors.transparent)};
+  ${media.md} {
+    display: ${(props) => (props.isDocumentation ? "flex" : "none")};
+    align-items: center;
+    justify-content: space-evenly;
+  }
   ${media.lg} {
     display: flex;
     align-items: center;
@@ -103,11 +108,15 @@ const SocialLinksItem = styled.li`
   }
 `;
 
-const Menu = ({ menuItems, socialsItems }: MenuProps) => {
+const Menu = ({
+  menuItems,
+  socialsItems,
+  isDocumentation = false,
+}: MenuProps) => {
   const router = useRouter();
 
   return (
-    <MenuContainer>
+    <MenuContainer isDocumentation={isDocumentation}>
       <MenuList>
         {menuItems.map((menuItem: MenuItemType) => {
           return (
