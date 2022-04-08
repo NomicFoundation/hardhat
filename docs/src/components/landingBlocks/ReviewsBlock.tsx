@@ -2,8 +2,6 @@ import React from "react";
 import { Carousel } from "react-responsive-carousel";
 import { styled } from "linaria/react";
 
-import CarouselArrowLeft from "../../assets/images/carrusel-arrow-left.png";
-
 import Section from "../Section";
 import { appTheme, tm } from "../../themes";
 
@@ -13,8 +11,8 @@ interface Props {
   content: Array<{
     name: string;
     position: string;
-    personImage: StaticImageData;
-    companyImage: StaticImageData;
+    personImage: string;
+    companyImage: string;
     alt: string;
     comment: string;
   }>;
@@ -240,7 +238,10 @@ const ReviewsBlock = ({ content }: Props) => {
                 className="right"
               >
                 {/* eslint-disable-next-line */}
-                <img src={CarouselArrowLeft.src} alt="Carousel next button" />
+                <img
+                  src="/static/images/carousel-arrow-left.png"
+                  alt="Carousel next button"
+                />
               </SliderArrow>
             )
           }
@@ -252,7 +253,10 @@ const ReviewsBlock = ({ content }: Props) => {
                 className="left"
               >
                 {/* eslint-disable-next-line */}
-                <img src={CarouselArrowLeft.src} alt="Carousel next button" />
+                <img
+                  src="/static/images/carrusel-arrow-left.png"
+                  alt="Carousel next button"
+                />
               </SliderArrow>
             )
           }
@@ -261,14 +265,14 @@ const ReviewsBlock = ({ content }: Props) => {
             <SlideContainer key={item.name}>
               <ImageWithCaptionContainer>
                 <PersonImage
-                  style={{ backgroundImage: `url(${item.personImage.src})` }}
+                  style={{ backgroundImage: `url(${item.personImage})` }}
                 />
                 <PersonCaption>
                   <p>{item.name},</p>
                   <p> {item.position}</p>
                   <CompanyLogo
                     style={{
-                      backgroundImage: `url(${item.companyImage.src})`,
+                      backgroundImage: `url(${item.companyImage})`,
                     }}
                   />
                 </PersonCaption>
