@@ -517,7 +517,7 @@ module.exports.officialPlugins = [
     name: "hardhat-sourcify",
     author: "Zoey T",
     authorUrl: "https://twitter.com/zzzzoey_t",
-    description: "A plugin for submit code to souricfy",
+    description: "A plugin for submitting code to souricfy",
     tags: ["Souricify", "Verification"],
   }
 ].map((p) => ({
