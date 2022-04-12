@@ -118,7 +118,7 @@ const createLogosRows = (rowsAmount: number) => {
       i * logosInRowAmount,
       (i + 1) * logosInRowAmount
       // eslint-disable-next-line
-    ).map((logo) => <img src={logo.img.src} alt={logo.alt} key={logo.alt} />);
+    ).map((logo) => <img src={logo.img} alt={logo.alt} key={logo.alt} />);
 
     logosRows.push(
       <LogosRowContainer key={i + rowsAmount}>

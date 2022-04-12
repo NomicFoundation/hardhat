@@ -3,7 +3,7 @@ import { styled } from "linaria/react";
 import Section from "../Section";
 import CTA from "../ui/CTA";
 import { appTheme } from "../../themes";
-import Images from "../../assets/images";
+import Images from "../../../public/images";
 import useWindowSize from "../../hooks/useWindowSize";
 import { CTAType } from "../ui/types";
 

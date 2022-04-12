@@ -1,8 +1,10 @@
 import React from "react";
-import { ThemeProvider, appTheme } from "../src/themes";
-import { withThemes } from '@react-theming/storybook-addon';
+import { withThemes } from "@react-theming/storybook-addon";
+import * as NextImage from "next/image";
 
-import "../src/styles/globals.css"
+import "../src/styles/globals.css";
+
+import { ThemeProvider, appTheme } from "../src/themes";
 
 export const parameters = {
   actions: { argTypesRegex: "^on[A-Z].*" },
@@ -12,7 +14,14 @@ export const parameters = {
       date: /Date$/,
     },
   },
-}
+};
+
+const OriginalNextImage = NextImage.default;
+
+Object.defineProperty(NextImage, "default", {
+  configurable: true,
+  value: (props) => <OriginalNextImage {...props} unoptimized />,
+});
 
 const themingDecorator = withThemes(ThemeProvider, [appTheme]);
 export const decorators = [themingDecorator];

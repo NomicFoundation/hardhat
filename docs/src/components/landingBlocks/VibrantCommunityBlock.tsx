@@ -1,8 +1,6 @@
 import React from "react";
-import Image from "next/image";
 import { styled } from "linaria/react";
-
-import VibrantCommunityImage from "../../assets/images/vibrant_community.png";
+import Image from "next/image";
 
 import { appTheme, tm } from "../../themes";
 import CTA from "../ui/CTA";
@@ -12,7 +10,7 @@ import { CTAType } from "../ui/types";
 const { media } = appTheme;
 
 interface Props {
-  content: { title: string; text: string; cta: CTAType };
+  content: { title: string; text: string; imageUrl: string; cta: CTAType };
 }
 
 const CardWrapper = styled.section`
@@ -46,14 +44,29 @@ const Wrapper = styled.div`
 `;
 
 const ImageContainer = styled.div`
-  width: 346px;
-  left: calc(50% - 346px / 2);
+  width: 320px;
+  height: 100%;
+  max-height: 251px;
+  left: calc(50% - 320px / 2);
   top: -20.5px;
   position: absolute;
+
+  & > img {
+    width: 100%;
+  }
+
+  ${media.sm} {
+    width: 346px;
+  }
+
   ${media.lg} {
     margin-top: 43px;
     width: 530px;
-    position: initial;
+    max-height: none;
+    height: 366px;
+    position: relative;
+    top: 0;
+    left: 0;
   }
 `;
 
@@ -111,13 +124,17 @@ const VibrantCommunityBlock = ({ content }: Props) => {
             <Title>{content.title}</Title>
             <Text>{content.text}</Text>
             <ButtonWrapper>
-              <CTA href={content.cta.url} secondary>
+              <CTA href={content.cta.url} variant="secondary">
                 {content.cta.title}
               </CTA>
             </ButtonWrapper>
           </Wrapper>
           <ImageContainer>
-            <Image src={VibrantCommunityImage} alt="Vibrant community image" />
+            <Image
+              src={content.imageUrl}
+              layout="fill"
+              alt="Vibrant community image"
+            />
           </ImageContainer>
         </Container>
       </CardWrapper>

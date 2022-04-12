@@ -1,8 +1,7 @@
 import React from "react";
+import Image from "next/image";
 import { Carousel } from "react-responsive-carousel";
 import { styled } from "linaria/react";
-
-import CarouselArrowLeft from "../../assets/images/carrusel-arrow-left.png";
 
 import Section from "../Section";
 import { appTheme, tm } from "../../themes";
@@ -13,8 +12,8 @@ interface Props {
   content: Array<{
     name: string;
     position: string;
-    personImage: StaticImageData;
-    companyImage: StaticImageData;
+    personImage: string;
+    companyImage: string;
     alt: string;
     comment: string;
   }>;
@@ -182,20 +181,18 @@ const SliderArrow = styled.button`
   cursor: pointer;
   transition: all 0.2s ease-in-out;
 
+  & > span {
+    top: 2px;
+    right: 2px;
+  }
+
   &.right {
     right: -20px;
     transform: rotate(180deg);
-    & > img {
-      margin-top: 5px;
-    }
   }
 
   &.left {
     left: -20px;
-
-    & > img {
-      margin-top: 2px;
-    }
   }
 
   ${media.lg} {
@@ -239,8 +236,12 @@ const ReviewsBlock = ({ content }: Props) => {
                 title={label}
                 className="right"
               >
-                {/* eslint-disable-next-line */}
-                <img src={CarouselArrowLeft.src} alt="Carousel next button" />
+                <Image
+                  src="/images/carrusel-arrow-left.png"
+                  width={11}
+                  height={19}
+                  alt="Carousel next button"
+                />
               </SliderArrow>
             )
           }
@@ -251,8 +252,12 @@ const ReviewsBlock = ({ content }: Props) => {
                 title={label}
                 className="left"
               >
-                {/* eslint-disable-next-line */}
-                <img src={CarouselArrowLeft.src} alt="Carousel next button" />
+                <Image
+                  src="/images/carrusel-arrow-left.png"
+                  width={11}
+                  height={19}
+                  alt="Carousel next button"
+                />
               </SliderArrow>
             )
           }
@@ -261,14 +266,14 @@ const ReviewsBlock = ({ content }: Props) => {
             <SlideContainer key={item.name}>
               <ImageWithCaptionContainer>
                 <PersonImage
-                  style={{ backgroundImage: `url(${item.personImage.src})` }}
+                  style={{ backgroundImage: `url(${item.personImage})` }}
                 />
                 <PersonCaption>
                   <p>{item.name},</p>
                   <p> {item.position}</p>
                   <CompanyLogo
                     style={{
-                      backgroundImage: `url(${item.companyImage.src})`,
+                      backgroundImage: `url(${item.companyImage})`,
                     }}
                   />
                 </PersonCaption>

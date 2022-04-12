@@ -6,6 +6,7 @@ export default {
 };
 
 export const Primary = () => <CTA href="/">primary button</CTA>;
+
 export const Secondary = () => (
   <CTA href="/" variant="secondary">
     secondary button

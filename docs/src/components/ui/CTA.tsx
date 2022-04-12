@@ -31,7 +31,7 @@ const A = styled.a`
     padding: 12px 28px;
   }
 
-  &[data-secondary="true"] {
+  &.secondary {
     width: 100%;
     padding: 12px 0;
     border: 1px solid ${tm(({ colors }) => colors.neutral700)};
@@ -49,12 +49,11 @@ const A = styled.a`
 type Props = React.PropsWithChildren<{
   href: string;
   variant?: string;
-  secondary?: boolean;
 }>;
 
-const CTA = ({ children, href, variant = "", secondary = false }: Props) => {
+const CTA = ({ children, href, variant = "" }: Props) => {
   return (
-    <A className={variant} href={href} data-secondary={secondary}>
+    <A className={variant} href={href}>
       {children}
     </A>
   );
