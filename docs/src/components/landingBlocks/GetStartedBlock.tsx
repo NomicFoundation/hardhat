@@ -49,6 +49,25 @@ const StyledBackground = styled.div`
   width: 100%;
 `;
 
+const StyledTopGradient = styled.div`
+  width: 100%;
+  height: 50%;
+  top: 0;
+  left: 0;
+  position: absolute;
+  background: ${tm(({ colors }) => colors.getStartedTopBackground)};
+`;
+
+const StyledBottomGradient = styled.div`
+  width: 100%;
+  height: 50%;
+  bottom: 0;
+  left: 0;
+  position: absolute;
+  background: ${tm(({ colors }) => colors.getStartedBottomBackground)};
+  transform: rotate(180deg);
+`;
+
 const TextureBrickWrapper = styled.div`
   position: absolute;
   right: 0;
@@ -109,6 +128,8 @@ const Background = () => {
       <TextureBrickWrapper>
         <TextureBrick />
       </TextureBrickWrapper>
+      <StyledTopGradient />
+      <StyledBottomGradient />
     </StyledBackground>
   );
 };

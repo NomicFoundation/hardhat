@@ -44,6 +44,10 @@ export const appTheme = {
     mottoNetworkBackground: "#f6edd1",
     mottoIgnitionBackground: "#f3ecf3",
     mottoVscodeBackground: "#f0e7fb",
+    getStartedTopBackground:
+      "linear-gradient(180deg, #ffffff 3.12%, rgba(255, 255, 255, 0) 67.71%)",
+    getStartedBottomBackground:
+      "linear-gradient(180deg, #ffffff 0%, rgba(255, 255, 255, 0) 55.73%)",
     textureBackground:
       "linear-gradient(254.24deg, #E9DEFA 0%, #FBFCDB 100%, #FBFCDB 100%);",
     neutralBackground:

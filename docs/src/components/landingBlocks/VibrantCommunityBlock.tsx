@@ -15,8 +15,9 @@ interface Props {
 
 const CardWrapper = styled.section`
   margin: 0 24px;
+
   ${media.lg} {
-    margin: 0 75px 0 85px;
+    margin: 0 75px 50px 85px;
   }
 `;
 
