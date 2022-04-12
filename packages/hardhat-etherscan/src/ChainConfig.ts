@@ -198,4 +198,11 @@ export const chainConfig: ChainConfig = {
       browserURL: "https://testnet.aurorascan.dev",
     },
   },
+  luksoL14: {
+    chainId: 22,
+    urls: {
+      apiURL: "https://blockscout.com/lukso/l14/api",
+      browserURL: "https://blockscout.com/lukso/l14",
+    },
+  },
 };
