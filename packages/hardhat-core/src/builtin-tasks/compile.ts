@@ -590,6 +590,8 @@ subtask(TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD)
             log("Native solc binary doesn't work, using solcjs instead");
             nativeBinaryFailed = true;
           }
+        } else {
+          platform = CompilerPlatform.WASM;
         }
       }
 
