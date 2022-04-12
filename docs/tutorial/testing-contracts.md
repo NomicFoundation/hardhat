@@ -143,12 +143,18 @@ describe("Token contract", function () {
   let addr2;
   let addrs;
 
-  // `beforeEach` will run before each test, re-deploying the contract every
-  // time. It receives a callback, which can be async.
-  beforeEach(async function () {
-    // Get the ContractFactory and Signers here.
-    Token = await ethers.getContractFactory("Token");
+  // `before` will run once before all tests in the suite. It receives a
+  // callback, which can be async.
+  before(async () => {
+    // Get the signers here.
     [owner, addr1, addr2, ...addrs] = await ethers.getSigners();
+  });
+
+  // `beforeEach` will run before each test, re-deploying the contract every
+  // time.
+  beforeEach(async function () {
+    // Get the ContractFactory here.
+    Token = await ethers.getContractFactory("Token");
 
     // To deploy our contract, we just have to call Token.deploy() and await
     // for it to be deployed(), which happens once its transaction has been
