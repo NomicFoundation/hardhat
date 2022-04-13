@@ -5,6 +5,7 @@ declare namespace Chai {
       NumericComparison,
       TypeComparison {
     emit(contract: any, eventName: string): EmitAssertion;
+    reverted: AsyncAssertion;
   }
 
   interface NumericComparison {
