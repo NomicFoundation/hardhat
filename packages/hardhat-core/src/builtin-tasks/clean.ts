@@ -17,5 +17,6 @@ task(TASK_CLEAN, "Clears the cache and deletes all artifacts")
       return run(TASK_CLEAN_GLOBAL);
     }
     await fsExtra.emptyDir(config.paths.cache);
+    await fsExtra.emptyDir(config.paths.upgradeCache);
     await fsExtra.remove(config.paths.artifacts);
   });

@@ -439,6 +439,7 @@ export function resolveProjectPaths(
     cache: resolvePathFrom(root, "cache", userPaths.cache),
     artifacts: resolvePathFrom(root, "artifacts", userPaths.artifacts),
     tests: resolvePathFrom(root, "test", userPaths.tests),
+    upgradeCache: resolvePathFrom(root, ".openzeppelin", userPaths.upgradeCache),
   };
 }
 

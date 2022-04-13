@@ -231,6 +231,7 @@ export interface ProjectPathsUserConfig {
   artifacts?: string;
   sources?: string;
   tests?: string;
+  upgradeCache?: string;
 }
 
 export interface ProjectPathsConfig {
@@ -240,6 +241,7 @@ export interface ProjectPathsConfig {
   artifacts: string;
   sources: string;
   tests: string;
+  upgradeCache: string;
 }
 
 // Solidity config
