@@ -1,4 +1,4 @@
-import { isValidChecksumAddress } from "ethereumjs-util";
+import { isValidChecksumAddress, BN } from "ethereumjs-util";
 
 import type { EIP1193Provider } from "hardhat/types";
 
@@ -97,6 +97,33 @@ export function assertTxHash(hexString: string): void {
   if (hexString.length !== 66) {
     throw new Error(
       `[hardhat-test-helpers] ${hexString} is not a valid transaction hash`
+    );
+  }
+}
+
+export function assertValidTargetBlock(target: BN, latest: BN): void {
+  if (!target.gt(latest)) {
+    throw new Error(
+      `[hardhat-test-helpers] Requested target block ${target} is not greater than current block height.`
+    );
+  }
+}
+
+/**
+ * @param n expected to be the return value of `toRPCQuantity`
+ */
+export function assertPositiveNumber(n: string): void {
+  if (/-/.test(n)) {
+    throw new Error(
+      `[hardhat-test-helpers] Invalid input ${n} - number must be positive.`
+    );
+  }
+}
+
+export function assertLargerThan(a: number, b: number, type: string): void {
+  if (a <= b) {
+    throw new Error(
+      `[hardhat-test-helpers] Invalid ${type} ${a} is not larger than current ${type} ${b}`
     );
   }
 }
