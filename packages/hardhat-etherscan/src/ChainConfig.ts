@@ -198,4 +198,18 @@ export const chainConfig: ChainConfig = {
       browserURL: "https://testnet.aurorascan.dev",
     },
   },
+  oneledger: {
+    chainId: 311752642,
+    urls: {
+      apiURL: "https://mainnet-explorer.oneledger.network/api",
+      browserURL: "https://mainnet-explorer.oneledger.network",
+    },
+  },
+  frankenstein: {
+    chainId: 4216137055,
+    urls: {
+      apiURL: "https://frankenstein-explorer.oneledger.network/api",
+      browserURL: "https://frankenstein-explorer.oneledger.network",
+    },
+  },
 };
