@@ -1,4 +1,4 @@
-import util from "util";
+import { InspectOptions } from "util";
 
 import { HardhatError } from "../core/errors";
 import { ERRORS } from "../core/errors-list";
@@ -36,9 +36,14 @@ export function lazyObject<T extends object>(objectCreator: () => T): T {
   return createLazyProxy(
     objectCreator,
     (getRealTarget) => ({
-      [inspect]() {
+      [inspect](
+        depth: number,
+        options: InspectOptions,
+        inspectFn: (object: any, options: InspectOptions) => string
+      ) {
         const realTarget = getRealTarget();
-        return util.inspect(realTarget);
+        const newOptions = { ...options, depth };
+        return inspectFn(realTarget, newOptions);
       },
     }),
     (object) => {
@@ -64,9 +69,14 @@ export function lazyFunction<T extends Function>(functionCreator: () => T): T {
     (getRealTarget) => {
       function dummyTarget() {}
 
-      (dummyTarget as any)[inspect] = function () {
+      (dummyTarget as any)[inspect] = function (
+        depth: number,
+        options: InspectOptions,
+        inspectFn: (object: any, options: InspectOptions) => string
+      ) {
         const realTarget = getRealTarget();
-        return util.inspect(realTarget);
+        const newOptions = { ...options, depth };
+        return inspectFn(realTarget, newOptions);
       };
 
       return dummyTarget;
