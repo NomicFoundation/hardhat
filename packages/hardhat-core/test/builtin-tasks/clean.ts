@@ -11,6 +11,7 @@ function assertCleanBehavior() {
 
     const cacheContents = fsExtra.readdirSync("./cache");
     assert.isTrue(cacheContents.length === 0);
+    assert.isFalse(fsExtra.existsSync("./.openzeppelin"));
     assert.isFalse(fsExtra.existsSync("./artifacts"));
   });
 }
@@ -19,30 +20,34 @@ describe("Clean task", () => {
   useFixtureProject("default-config-project");
   useEnvironment();
 
-  describe("When cache and artifact dirs don't exist", function () {
+  describe("When cache and artifact and .openzeppelin dirs don't exist", function () {
     beforeEach(() => {
       fsExtra.removeSync("cache");
+      fsExtra.removeSync(".openzeppelin");
       fsExtra.removeSync("artifacts");
     });
 
     assertCleanBehavior();
   });
 
-  describe("When cache and artifact are empty dirs", function () {
+  describe("When cache and artifact and .openzeppelin are empty dirs", function () {
     beforeEach(() => {
       fsExtra.emptyDirSync("./cache");
+      fsExtra.emptyDirSync("./.openzeppelin");
       fsExtra.emptyDirSync("./artifacts");
     });
 
     assertCleanBehavior();
   });
 
-  describe("When cache and artifact dirs aren't empty", function () {
+  describe("When cache and artifact and .openzeppelin dirs aren't empty", function () {
     beforeEach(() => {
       fsExtra.emptyDirSync("./cache");
       fsExtra.emptyDirSync("./artifacts");
+      fsExtra.emptyDirSync("./.openzeppelin");
       fsExtra.writeFileSync("./cache/a", "");
       fsExtra.writeFileSync("./artifacts/a", "");
+      fsExtra.writeFileSync("./.openzeppelin/a", "");
     });
 
     assertCleanBehavior();
