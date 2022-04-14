@@ -19,7 +19,7 @@ export async function advanceBlockTo(blockNumber: NumberLike): Promise<void> {
   const blockRPC = toRpcQuantity(blockNumber);
   const latestHeight = await latestBlock();
 
-  assertLargerThan(parseInt(blockRPC, 16), latestHeight, "blockNumber");
+  assertLargerThan(parseInt(blockRPC, 16), latestHeight, "block number");
 
   const blockParam = toRpcQuantity(parseInt(blockRPC, 16) - latestHeight);
 
