@@ -1,6 +1,9 @@
 import { assert } from "chai";
+import { BN } from "ethereumjs-util";
+import { ethers } from "ethers";
 
 import * as hh from "../../../src";
+import { NumberLike } from "../../../src/types";
 import { useEnvironment } from "../../test-utils";
 
 describe("time#advanceBlock", function () {
@@ -17,7 +20,33 @@ describe("time#advanceBlock", function () {
     assert.equal(initialHeight + 3, endHeight);
   });
 
+  it("should throw if given zero", async function () {
+    await assert.isRejected(hh.time.advanceBlock(0));
+  });
+
   it("should throw if given a negative number", async function () {
     await assert.isRejected(hh.time.advanceBlock(-1));
+  });
+
+  describe("accepted parameter types for blocks number", function () {
+    const nonceExamples: Array<[string, NumberLike]> = [
+      ["number", 1],
+      ["bigint", BigInt(1)],
+      ["hex encoded", "0x1"],
+      ["hex encoded with leading zeros", "0x01"],
+      ["ethers's bignumber instances", ethers.BigNumber.from(1)],
+      ["bn.js instances", new BN(1)],
+    ];
+
+    for (const [type, value] of nonceExamples) {
+      it(`should accept an argument of type ${type}`, async function () {
+        const initialHeight = await hh.time.latestBlock();
+        const newHeight = await hh.time.advanceBlock(value);
+        const endHeight = await hh.time.latestBlock();
+
+        assert.equal(newHeight, endHeight);
+        assert.equal(initialHeight + 1, endHeight);
+      });
+    }
   });
 });

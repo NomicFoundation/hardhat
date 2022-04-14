@@ -32,7 +32,7 @@ describe("time#setNextBlockTimestamp", function () {
 
   it("should set the next block to the given timestamp [Date]", async function () {
     const initialHeight = await hh.time.latestBlock();
-    const newTimestamp = (await hh.time.latest()) + 10000;
+    const newTimestamp = (await hh.time.latest()) + 10_000;
 
     // multiply by 1000 because Date accepts Epoch millis
     await hh.time.setNextBlockTimestamp(new Date(newTimestamp * 1000));
@@ -43,6 +43,12 @@ describe("time#setNextBlockTimestamp", function () {
 
     assert.equal(initialHeight + 1, endHeight);
     assert.equal(newTimestamp, endTimestamp);
+  });
+
+  it("should throw if given a timestamp that is equal to the current block timestamp", async function () {
+    const initialTimestamp = await hh.time.latest();
+
+    await assert.isRejected(hh.time.setNextBlockTimestamp(initialTimestamp));
   });
 
   it("should throw if given a timestamp that is less than the current block timestamp", async function () {
