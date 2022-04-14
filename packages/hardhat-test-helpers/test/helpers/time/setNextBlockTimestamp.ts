@@ -18,7 +18,7 @@ describe("time#setNextBlockTimestamp", function () {
 
   it("should set the next block to the given timestamp [epoch seconds]", async function () {
     const initialHeight = await hh.time.latestBlock();
-    const newTimestamp = (await hh.time.latest()) + 10000;
+    const newTimestamp = (await hh.time.latest()) + 10_000;
 
     await hh.time.setNextBlockTimestamp(newTimestamp);
     await hh.mine();

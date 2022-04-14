@@ -19,20 +19,20 @@ export async function setNextBlockTimestamp(
 ): Promise<void> {
   const provider = await getHardhatProvider();
 
-  const timestampRPC = toRpcQuantity(
+  const timestampRpc = toRpcQuantity(
     timestamp instanceof Date ? millis(timestamp.valueOf()) : timestamp
   );
 
-  const latestTimestamp = await latest();
+  const latestTimestampRpc = toRpcQuantity(await latest());
 
-  assertLargerThan(parseInt(timestampRPC, 16), latestTimestamp, "timestamp");
-
-  const amountParam = toRpcQuantity(
-    parseInt(timestampRPC, 16) - latestTimestamp
+  assertLargerThan(
+    BigInt(timestampRpc),
+    BigInt(latestTimestampRpc),
+    "timestamp"
   );
 
   await provider.request({
-    method: "evm_increaseTime",
-    params: [amountParam],
+    method: "evm_setNextBlockTimestamp",
+    params: [timestampRpc],
   });
 }

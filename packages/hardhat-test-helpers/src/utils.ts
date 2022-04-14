@@ -120,7 +120,13 @@ export function assertPositiveNumber(n: string): void {
   }
 }
 
-export function assertLargerThan(a: number, b: number, type: string): void {
+export function assertLargerThan(a: BigInt, b: BigInt, type: string): void;
+export function assertLargerThan(a: number, b: number, type: string): void;
+export function assertLargerThan(
+  a: number | BigInt,
+  b: number | BigInt,
+  type: string
+): void {
   if (a <= b) {
     throw new Error(
       `[hardhat-test-helpers] Invalid ${type} ${a} is not larger than current ${type} ${b}`
