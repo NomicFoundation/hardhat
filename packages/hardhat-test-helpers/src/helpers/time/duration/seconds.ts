@@ -1,6 +1,6 @@
 /**
  * Converts seconds into seconds (noop)
  */
-export function seconds(n: number = 1): number {
+export function seconds(n: number): number {
   return n;
 }
