@@ -4,6 +4,7 @@ import {
   getHardhatProvider,
   toRpcQuantity,
   assertLargerThan,
+  toBigInt,
 } from "../../utils";
 
 import { latestBlock } from "./latestBlock";
@@ -16,12 +17,15 @@ import { latestBlock } from "./latestBlock";
 export async function advanceBlockTo(blockNumber: NumberLike): Promise<void> {
   const provider = await getHardhatProvider();
 
-  const blockRPC = toRpcQuantity(blockNumber);
-  const latestHeight = await latestBlock();
+  const normalizedBlockNumber = toBigInt(blockNumber);
+  const latestHeight = BigInt(await latestBlock());
 
-  assertLargerThan(parseInt(blockRPC, 16), latestHeight, "block number");
+  assertLargerThan(normalizedBlockNumber, latestHeight, "block number");
 
-  const blockParam = toRpcQuantity(parseInt(blockRPC, 16) - latestHeight);
+  const blockParam = normalizedBlockNumber - latestHeight;
 
-  await provider.request({ method: "hardhat_mine", params: [blockParam] });
+  await provider.request({
+    method: "hardhat_mine",
+    params: [toRpcQuantity(blockParam)],
+  });
 }

@@ -4,6 +4,7 @@ import {
   getHardhatProvider,
   assertPositiveNumber,
   toRpcQuantity,
+  toBigInt,
 } from "../../utils";
 
 import { latestBlock } from "./latestBlock";
@@ -19,10 +20,13 @@ export async function advanceBlock(
 ): Promise<number> {
   const provider = await getHardhatProvider();
 
-  const blocksParam = toRpcQuantity(numberOfBlocks);
+  const blocksParam = toBigInt(numberOfBlocks);
   assertPositiveNumber(blocksParam);
 
-  await provider.request({ method: "hardhat_mine", params: [blocksParam] });
+  await provider.request({
+    method: "hardhat_mine",
+    params: [toRpcQuantity(blocksParam)],
+  });
 
   return latestBlock();
 }

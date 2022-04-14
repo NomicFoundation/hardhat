@@ -48,6 +48,10 @@ export async function getHardhatProvider(): Promise<EIP1193Provider> {
   return hre.network.provider;
 }
 
+export function toBigInt(x: NumberLike): bigint {
+  return BigInt(toRpcQuantity(x));
+}
+
 export function toRpcQuantity(x: NumberLike): string {
   let hex: string;
   if (typeof x === "number" || typeof x === "bigint") {
@@ -109,22 +113,19 @@ export function assertValidTargetBlock(target: BN, latest: BN): void {
   }
 }
 
-/**
- * @param n expected to be the return value of `toRPCQuantity`
- */
-export function assertPositiveNumber(n: string): void {
-  if (/-/.test(n)) {
+export function assertPositiveNumber(n: bigint): void {
+  if (n <= BigInt(0)) {
     throw new Error(
       `[hardhat-test-helpers] Invalid input ${n} - number must be positive.`
     );
   }
 }
 
-export function assertLargerThan(a: BigInt, b: BigInt, type: string): void;
+export function assertLargerThan(a: bigint, b: bigint, type: string): void;
 export function assertLargerThan(a: number, b: number, type: string): void;
 export function assertLargerThan(
-  a: number | BigInt,
-  b: number | BigInt,
+  a: number | bigint,
+  b: number | bigint,
   type: string
 ): void {
   if (a <= b) {

@@ -4,7 +4,9 @@ import {
   getHardhatProvider,
   toRpcQuantity,
   assertLargerThan,
+  toBigInt,
 } from "../../utils";
+import { mine } from "../mine";
 
 import { latest } from "./latest";
 
@@ -16,14 +18,16 @@ import { latest } from "./latest";
 export async function increaseTo(timestamp: NumberLike): Promise<void> {
   const provider = await getHardhatProvider();
 
-  const timestampParam = toRpcQuantity(timestamp);
+  const normalizedTimestamp = toBigInt(timestamp);
 
-  const latestTimestamp = await latest();
+  const latestTimestamp = BigInt(await latest());
 
-  assertLargerThan(parseInt(timestampParam, 16), latestTimestamp, "timestamp");
+  assertLargerThan(normalizedTimestamp, latestTimestamp, "timestamp");
 
   await provider.request({
-    method: "evm_mine",
-    params: [timestampParam],
+    method: "evm_setNextBlockTimestamp",
+    params: [toRpcQuantity(normalizedTimestamp)],
   });
+
+  await mine();
 }

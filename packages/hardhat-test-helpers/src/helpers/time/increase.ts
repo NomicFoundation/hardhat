@@ -4,7 +4,9 @@ import {
   getHardhatProvider,
   toRpcQuantity,
   assertPositiveNumber,
+  toBigInt,
 } from "../../utils";
+import { mine } from "../mine";
 
 import { latest } from "./latest";
 
@@ -17,17 +19,19 @@ import { latest } from "./latest";
 export async function increase(amountInSeconds: NumberLike): Promise<number> {
   const provider = await getHardhatProvider();
 
-  const amountRPC = toRpcQuantity(amountInSeconds);
-  assertPositiveNumber(amountRPC);
+  const normalizedAmount = toBigInt(amountInSeconds);
+  assertPositiveNumber(normalizedAmount);
 
-  const latestTimestamp = await latest();
+  const latestTimestamp = BigInt(await latest());
 
-  const amountParam = toRpcQuantity(parseInt(amountRPC, 16) + latestTimestamp);
+  const targetTimestamp = latestTimestamp + normalizedAmount;
 
   await provider.request({
-    method: "evm_mine",
-    params: [amountParam],
+    method: "evm_setNextBlockTimestamp",
+    params: [toRpcQuantity(targetTimestamp)],
   });
 
-  return parseInt(amountParam, 16);
+  await mine();
+
+  return latest();
 }
