@@ -1,4 +1,4 @@
-import { isValidChecksumAddress } from "ethereumjs-util";
+import { isValidChecksumAddress, BN } from "ethereumjs-util";
 
 import type { EIP1193Provider } from "hardhat/types";
 
@@ -46,6 +46,10 @@ export async function getHardhatProvider(): Promise<EIP1193Provider> {
   await checkIfHardhatNetwork(provider, hre.network.name);
 
   return hre.network.provider;
+}
+
+export function toBigInt(x: NumberLike): bigint {
+  return BigInt(toRpcQuantity(x));
 }
 
 export function toRpcQuantity(x: NumberLike): string {
@@ -97,6 +101,36 @@ export function assertTxHash(hexString: string): void {
   if (hexString.length !== 66) {
     throw new Error(
       `[hardhat-test-helpers] ${hexString} is not a valid transaction hash`
+    );
+  }
+}
+
+export function assertValidTargetBlock(target: BN, latest: BN): void {
+  if (!target.gt(latest)) {
+    throw new Error(
+      `[hardhat-test-helpers] Requested target block ${target} is not greater than current block height.`
+    );
+  }
+}
+
+export function assertPositiveNumber(n: bigint): void {
+  if (n <= BigInt(0)) {
+    throw new Error(
+      `[hardhat-test-helpers] Invalid input ${n} - number must be positive.`
+    );
+  }
+}
+
+export function assertLargerThan(a: bigint, b: bigint, type: string): void;
+export function assertLargerThan(a: number, b: number, type: string): void;
+export function assertLargerThan(
+  a: number | bigint,
+  b: number | bigint,
+  type: string
+): void {
+  if (a <= b) {
+    throw new Error(
+      `[hardhat-test-helpers] Invalid ${type} ${a} is not larger than current ${type} ${b}`
     );
   }
 }

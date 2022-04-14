@@ -1,4 +1,5 @@
 export * from "./loadFixture";
+export * as time from "./helpers/time";
 
 export { mine } from "./helpers/mine";
 export { dropTransaction } from "./helpers/dropTransaction";
