@@ -1,8 +1,8 @@
-import { isValidChecksumAddress, BN } from "ethereumjs-util";
-
 import type { EIP1193Provider } from "hardhat/types";
 
 import type { NumberLike } from "./types";
+
+import { isValidChecksumAddress, BN } from "ethereumjs-util";
 
 let cachedIsHardhatNetwork: boolean;
 async function checkIfHardhatNetwork(
