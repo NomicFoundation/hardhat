@@ -1,8 +1,8 @@
-import { weeks } from "./weeks";
+import { days } from "./days";
 
 /**
  * Converts years into seconds
  */
 export function years(n: number): number {
-  return weeks(n) * 52;
+  return days(n) * 365;
 }

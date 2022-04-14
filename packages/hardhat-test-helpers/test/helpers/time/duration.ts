@@ -28,6 +28,6 @@ describe("time#duration", function () {
   });
 
   it("should convert years to seconds", async function () {
-    assert.equal(hh.time.duration.years(1), 31449600);
+    assert.equal(hh.time.duration.years(1), 31536000);
   });
 });
