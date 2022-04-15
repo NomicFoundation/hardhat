@@ -663,7 +663,7 @@ Please double check how you invoked Hardhat or ran your task.`,
       number: 312,
       title: "Subtask run from the command line",
       message: "Trying to run the %name% subtask from the CLI",
-      description: `You tried to run an subtask from the command line.
+      description: `You tried to run a subtask from the command line.
       
 This is not supported. Please run the help task to see the available options.`,
       shouldBeReported: false,
