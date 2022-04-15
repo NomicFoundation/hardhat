@@ -16,6 +16,12 @@ To install Hardhat, go to an empty folder, initialize an `npm` project (i.e. `np
 npm install --save-dev hardhat
 ```
 
+If you prefer yarn (i.e `yarn init`) then run
+
+```
+yarn add --dev hardhat
+```
+
 Once it's installed, just run this command and follow its instructions:
 
 ```
