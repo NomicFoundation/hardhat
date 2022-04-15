@@ -68,7 +68,7 @@ Please upgrade your version of Node.js and try again.`,
       number: 3,
       message: "%operation% is not supported in Hardhat.",
       title: "Unsupported operation",
-      description: `You are tying to perform an unsupported operation. 
+      description: `You are trying to perform an unsupported operation. 
 
 Unless you are creating a task or plugin, this is probably a bug. 
 
@@ -730,7 +730,7 @@ You must always use slashes (/) in Solidity imports.`,
       title: "Invalid import: trying to use an unsupported protocol",
       description: `A Solidity file is trying to import a file using an unsupported protocol, like http.
       
-You can only import files thar are available locally or installed through npm.`,
+You can only import files that are available locally or installed through npm.`,
       shouldBeReported: false,
     },
     INVALID_IMPORT_ABSOLUTE_PATH: {
