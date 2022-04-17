@@ -1,8 +1,8 @@
 {
-  "name": "@nomiclabs/hardhat-test-helpers",
+  "name": "@nomiclabs/hardhat-network-helpers",
   "version": "0.0.1",
   "description": "Hardhat utils for testing",
-  "homepage": "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-test-helpers",
+  "homepage": "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-network-helpers",
   "repository": "github:nomiclabs/hardhat",
   "author": "Nomic Labs LLC",
   "license": "MIT",

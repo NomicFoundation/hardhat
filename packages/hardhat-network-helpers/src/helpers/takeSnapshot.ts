@@ -32,7 +32,7 @@ export async function takeSnapshot(): Promise<SnapshotRestorer> {
         // TODO better error message, and maybe a link to an explanation about
         // what's going on
         throw new Error(
-          "[hardhat-test-helpers] Trying to restore an invalid snapshot."
+          "[hardhat-network-helpers] Trying to restore an invalid snapshot."
         );
       }
 

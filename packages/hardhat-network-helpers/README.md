@@ -1,3 +1,3 @@
-[![npm](https://img.shields.io/npm/v/@nomiclabs/hardhat-test-helpers.svg)](https://www.npmjs.com/package/@nomiclabs/hardhat-test-helpers)
+[![npm](https://img.shields.io/npm/v/@nomiclabs/hardhat-network-helpers.svg)](https://www.npmjs.com/package/@nomiclabs/hardhat-network-helpers)
 
-# hardhat-test-helpers
+# hardhat-network-helpers
