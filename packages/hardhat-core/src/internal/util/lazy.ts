@@ -1,4 +1,4 @@
-import { InspectOptions } from "util";
+import util, { InspectOptions } from "util";
 
 import { HardhatError } from "../core/errors";
 import { ERRORS } from "../core/errors-list";
@@ -39,7 +39,10 @@ export function lazyObject<T extends object>(objectCreator: () => T): T {
       [inspect](
         depth: number,
         options: InspectOptions,
-        inspectFn: (object: any, options: InspectOptions) => string
+        inspectFn: (
+          object: any,
+          options: InspectOptions
+        ) => string = util.inspect
       ) {
         const realTarget = getRealTarget();
         const newOptions = { ...options, depth };
@@ -72,7 +75,10 @@ export function lazyFunction<T extends Function>(functionCreator: () => T): T {
       (dummyTarget as any)[inspect] = function (
         depth: number,
         options: InspectOptions,
-        inspectFn: (object: any, options: InspectOptions) => string
+        inspectFn: (
+          object: any,
+          options: InspectOptions
+        ) => string = util.inspect
       ) {
         const realTarget = getRealTarget();
         const newOptions = { ...options, depth };
