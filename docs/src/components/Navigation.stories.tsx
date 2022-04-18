@@ -27,7 +27,6 @@ export const SidebarMenu = () => (
 
 export const Navigation = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
   return (
     <DocumentationNavigation
       isSidebarOpen={isSidebarOpen}

@@ -37,7 +37,7 @@ type Props = React.PropsWithChildren<{
 
 const LandingLayout = ({ children, seo }: Props) => {
   return (
-    <Container>
+    <Container className="landing">
       <Banner
         content={bannerContent}
         renderContent={({ content }: DefaultBannerProps) => (

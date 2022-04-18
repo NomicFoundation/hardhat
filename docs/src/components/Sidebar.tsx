@@ -3,9 +3,10 @@ import { useRouter } from "next/router";
 import Link from "next/link";
 
 import { styled } from "linaria/react";
-import { tm } from "../themes";
+import { appTheme, tm, tmDark, tmHCDark, tmSelectors } from "../themes";
 import { IDocumentationSidebarStructure } from "./types";
 
+const { media } = appTheme;
 interface Props {
   elementsList: IDocumentationSidebarStructure;
 }
@@ -22,6 +23,17 @@ const Container = styled.ul`
   font-size: 15px;
   line-height: 28px;
   letter-spacing: 0em;
+  ${tmSelectors.hcDark} {
+    color: ${tmHCDark(({ colors }) => colors.neutral800)};
+  }
+  ${tmSelectors.dark} {
+    color: ${tmDark(({ colors }) => colors.neutral800)};
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      color: ${tmDark(({ colors }) => colors.neutral800)};
+    }
+  }
 `;
 
 const SidebarLinkWrapper = styled.div`
@@ -38,7 +50,7 @@ const SidebarItem = styled.li`
   display: flex;
   flex-direction: column;
   & ${SidebarLinkWrapper} {
-    border-left: 4px solid transparent;
+    border-left: 4px solid ${tm(({ colors }) => colors.transparent)};
     padding: 4px 28px;
     &[data-active="true"] {
       font-family: ChivoBold;

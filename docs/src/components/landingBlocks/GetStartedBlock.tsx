@@ -1,6 +1,5 @@
 import React from "react";
 import { styled } from "linaria/react";
-
 import { appTheme, tm } from "../../themes";
 import useWindowSize from "../../hooks/useWindowSize";
 import Images from "../../../public/images";

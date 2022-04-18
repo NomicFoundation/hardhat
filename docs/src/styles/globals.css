@@ -17,20 +17,20 @@ a {
 }
 
 @font-face {
-  font-family: 'ChivoLight';
-  src: url('../assets/fonts/Chivo-Light.ttf');
+  font-family: "ChivoLight";
+  src: url("../assets/fonts/Chivo-Light.ttf");
   font-weight: 400;
   font-style: normal;
 }
 @font-face {
-  font-family: 'ChivoRegular';
-  src: url('../assets/fonts/Chivo-Regular.ttf');
+  font-family: "ChivoRegular";
+  src: url("../assets/fonts/Chivo-Regular.ttf");
   font-weight: 400;
   font-style: normal;
 }
 @font-face {
-  font-family: 'ChivoBold';
-  src: url('../assets/fonts/Chivo-Bold.ttf');
+  font-family: "ChivoBold";
+  src: url("../assets/fonts/Chivo-Bold.ttf");
   font-weight: 400;
   font-style: normal;
 }

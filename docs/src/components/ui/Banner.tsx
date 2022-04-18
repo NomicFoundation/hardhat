@@ -1,6 +1,6 @@
 import React from "react";
 import { styled } from "linaria/react";
-import { appTheme, tm } from "../../themes";
+import { appTheme, tm, tmDark, tmHCDark, tmSelectors } from "../../themes";
 import useWindowSize, { WindowSizeState } from "../../hooks/useWindowSize";
 import { BannerProps, DefaultBannerProps } from "./types";
 
@@ -38,6 +38,22 @@ const BannerContainer = styled.section`
     font-size: 15px;
     line-height: 12px;
   }
+  :not(.landing &) {
+    ${tmSelectors.hcDark} {
+      background-color: ${tmHCDark(({ colors }) => colors.neutral900)};
+      color: ${tmHCDark(({ colors }) => colors.neutral0)};
+    }
+    ${tmSelectors.dark} {
+      background-color: ${tmDark(({ colors }) => colors.neutral900)};
+      color: ${tmDark(({ colors }) => colors.neutral0)};
+    }
+    ${media.mqDark} {
+      ${tmSelectors.auto} {
+        background-color: ${tmDark(({ colors }) => colors.neutral900)};
+        color: ${tmDark(({ colors }) => colors.neutral0)};
+      }
+    }
+  }
 `;
 
 const BracesContainer = styled.div`
@@ -69,17 +85,12 @@ const Brace = styled.div<{
   animation-iteration-count: 3;
   animation-delay: ${(props) => `${props.braceNumber * 0.5}s`};
   @keyframes highlight {
-    0%,
-    100% {
-      color: ${tm(({ colors }) => colors.accent900)};
-    }
-
     10% {
-      color: ${tm(({ colors }) => colors.neutral900)};
+      opacity: 0;
     }
 
     20% {
-      color: ${tm(({ colors }) => colors.accent900)};
+      opacity: 1;
     }
   }
 `;

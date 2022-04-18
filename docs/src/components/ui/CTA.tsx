@@ -36,7 +36,7 @@ const A = styled.a`
     padding: 12px 0;
     border: 1px solid ${tm(({ colors }) => colors.neutral700)};
     text-align: center;
-    background: transparent;
+    background: ${tm(({ colors }) => colors.transparent)};
     transition: 0.3s;
 
     &:hover {

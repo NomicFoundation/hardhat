@@ -3,9 +3,9 @@ import { styled } from "linaria/react";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import { MenuProps, MenuItemType, SocialsItem } from "./types";
-import { appTheme, tm } from "../../themes";
+import { appTheme, tm, tmDark, tmHCDark } from "../../themes";
 
-const { media } = appTheme;
+const { media, tmSelectors } = appTheme;
 
 const MenuContainer = styled.section<{ isDocumentation: boolean }>`
   user-select: none;
@@ -70,6 +70,28 @@ const MenuButton = styled.a`
       width: 100%;
     }
   }
+  :not(.landing &) {
+    ${tmSelectors.hcDark} {
+      color: ${tmHCDark(({ colors }) => colors.neutral900)};
+      &:after {
+        background-color: ${tmHCDark(({ colors }) => colors.neutral900)};
+      }
+    }
+    ${tmSelectors.dark} {
+      color: ${tmDark(({ colors }) => colors.neutral900)};
+      &:after {
+        background-color: ${tmDark(({ colors }) => colors.neutral900)};
+      }
+    }
+    ${media.mqDark} {
+      ${tmSelectors.auto} {
+        color: ${tmDark(({ colors }) => colors.neutral900)};
+      }
+      &:after {
+        background-color: ${tmDark(({ colors }) => colors.neutral900)};
+      }
+    }
+  }
 `;
 
 const MenuSocialsList = styled.ul`
@@ -85,8 +107,21 @@ const MenuSocialsList = styled.ul`
 const SocialLink = styled.a`
   display: flex;
   align-items: center;
-  & svg {
-    fill: ${tm(({ colors }) => colors.neutral900)};
+  :not(.landing &) {
+    & svg {
+      fill: ${tm(({ colors }) => colors.neutral900)};
+      ${tmSelectors.hcDark} {
+        fill: ${tmHCDark(({ colors }) => colors.neutral900)};
+      }
+      ${tmSelectors.dark} {
+        fill: ${tmDark(({ colors }) => colors.neutral900)};
+      }
+      ${media.mqDark} {
+        ${tmSelectors.auto} {
+          fill: ${tmDark(({ colors }) => colors.neutral900)};
+        }
+      }
+    }
   }
   &:hover svg {
     cursor: pointer;

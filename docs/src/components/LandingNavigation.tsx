@@ -39,7 +39,6 @@ const ControlsContainer = styled.section`
   background-color: ${tm(({ colors }) => colors.transparent)};
   box-sizing: border-box;
   max-width: 960px;
-  cursor: pointer;
 `;
 
 const LogoContainer = styled.a`
