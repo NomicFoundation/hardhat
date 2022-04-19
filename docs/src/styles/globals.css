@@ -18,19 +18,22 @@ a {
 
 @font-face {
   font-family: "ChivoLight";
-  src: url("../assets/fonts/Chivo-Light.ttf");
+  src: url("/fonts/Chivo-Light.woff2") format("woff2"),
+    url("/fonts/Chivo-Light.ttf") format("ttf");
   font-weight: 400;
   font-style: normal;
 }
 @font-face {
   font-family: "ChivoRegular";
-  src: url("../assets/fonts/Chivo-Regular.ttf");
+  src: url("/fonts/Chivo-Regular.woff2") format("woff2"),
+    url("/fonts/Chivo-Regular.ttf") format("ttf");
   font-weight: 400;
   font-style: normal;
 }
 @font-face {
   font-family: "ChivoBold";
-  src: url("../assets/fonts/Chivo-Bold.ttf");
+  src: url("/fonts/Chivo-Bold.woff2") format("woff2"),
+    url("/fonts/Chivo-Bold.ttf") format("ttf");
   font-weight: 400;
   font-style: normal;
 }

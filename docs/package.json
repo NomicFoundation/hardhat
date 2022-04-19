@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:test": "ANALYZE=true next build",
     "start": "next start",
     "lint": "eslint src -f unix",
     "storybook": "start-storybook -p 6006 --ci",
@@ -24,6 +25,7 @@
   "devDependencies": {
     "@babel/core": "^7.17.5",
     "@babel/preset-env": "^7.16.11",
+    "@next/bundle-analyzer": "^12.1.5",
     "@react-theming/storybook-addon": "^1.1.5",
     "@storybook/addon-actions": "^6.4.19",
     "@storybook/addon-essentials": "^6.4.19",
@@ -46,6 +48,7 @@
     "eslint-plugin-prettier": "^4.0.0",
     "eslint-plugin-react-hooks": "^4.3.0",
     "eslint-plugin-storybook": "^0.5.7",
+    "next-compose-plugins": "^2.2.1",
     "prettier": "^2.5.1",
     "typescript": "4.5.5"
   }
