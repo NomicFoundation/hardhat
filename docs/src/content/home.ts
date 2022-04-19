@@ -131,7 +131,7 @@ const reviewsBlockContent = [
     name: "Justin J. Moses",
     position: "CTO  at  SYNTHETIX",
     personImage: "/images/justin.jpg",
-    companyImage: "static/images/trustedTeamsLogos/synthetix.png",
+    companyImage: "/images/trustedTeamsLogos/synthetix.png",
     alt: "Synthetix logo",
     comment:
       '"Tired of battling other testing frameworks, I tried Hardhat on a whim one afternoon to see just how hard it might be to port Synthetix over to it. After fifteen minutes I had one of our specs running nearly 10x faster that what I’d become used to; from that moment I was hooked. Since then, we’ve integrated coverage, supported multiple versions of solc and even set up legacy testing through injection - all without having to wait for features to be added by the Hardhat team. It’s been built using its own extensible task system, dogfooding its own plugin architecture. Fast test turnarounds, extensible architecture and solidity stack traces - my dream of smart contract TDD has become a lot more real!"',
