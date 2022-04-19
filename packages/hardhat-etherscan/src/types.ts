@@ -13,7 +13,7 @@ type Chain =
   // fantom mainnet
   | "opera"
   | "ftmTestnet"
-  // optimistim
+  // optimistic
   | "optimisticEthereum"
   | "optimisticKovan"
   // polygon
