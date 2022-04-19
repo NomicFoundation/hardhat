@@ -172,6 +172,7 @@ module.exports = {
         // xdai and sokol don't need an API key, but you still need
         // to specify one; any string placeholder will work
         xdai: "api-key",
+        astar: "api-key",
         sokol: "api-key",
         aurora: "api-key",
         auroraTestnet: "api-key",

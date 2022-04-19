@@ -177,6 +177,13 @@ export const chainConfig: ChainConfig = {
       browserURL: "https://blockscout.com/xdai/mainnet",
     },
   },
+  astar: {
+    chainId: 592,
+    urls: {
+      apiURL: "https://blockscout.com/astar/api",
+      browserURL: "https://blockscout.com/astar",
+    },
+  },
   sokol: {
     chainId: 77,
     urls: {

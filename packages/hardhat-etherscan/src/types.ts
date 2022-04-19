@@ -33,6 +33,7 @@ type Chain =
   | "harmonyTest"
   // xdai
   | "xdai"
+  | "astar"
   | "sokol"
   // aurora
   | "aurora"
