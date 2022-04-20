@@ -3,13 +3,11 @@ import { styled } from "linaria/react";
 import Image from "next/image";
 
 import Section from "../Section";
-import { appTheme } from "../../themes";
+import { media } from "../../themes";
 
 interface Props {
   content: { title: string; imageUrl: string };
 }
-
-const { media } = appTheme;
 
 const Container = styled.div`
   margin-bottom: 234px;

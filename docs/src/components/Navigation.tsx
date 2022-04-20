@@ -2,20 +2,19 @@ import React, { FC, useContext } from "react";
 import { styled } from "linaria/react";
 import Link from "next/link";
 import {
-  appTheme,
+  media,
   ThemeContext,
   ThemesEnum,
   tm,
   tmDark,
   tmHCDark,
+  tmSelectors,
 } from "../themes";
 import HardhatLogo from "../assets/hardhat-logo";
 import Hamburger from "./ui/Hamburger";
 import Menu from "./ui/DesktopMenu";
 import { menuItemsList, socialsItems } from "../config";
 import ThemeSwitcher from "../assets/icons/theme-switcher";
-
-const { media, tmSelectors } = appTheme;
 
 interface Props {
   isSidebarOpen: boolean;

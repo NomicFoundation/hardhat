@@ -3,10 +3,9 @@ import { useRouter } from "next/router";
 import Link from "next/link";
 
 import { styled } from "linaria/react";
-import { appTheme, tm, tmDark, tmHCDark, tmSelectors } from "../themes";
+import { media, tm, tmDark, tmHCDark, tmSelectors } from "../themes";
 import { IDocumentationSidebarStructure } from "./types";
 
-const { media } = appTheme;
 interface Props {
   elementsList: IDocumentationSidebarStructure;
 }

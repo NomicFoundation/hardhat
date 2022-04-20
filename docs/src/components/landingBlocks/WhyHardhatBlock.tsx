@@ -2,9 +2,7 @@ import React from "react";
 import { styled } from "linaria/react";
 
 import Section from "../Section";
-import { tm, appTheme } from "../../themes";
-
-const { media } = appTheme;
+import { media, tm } from "../../themes";
 
 type Props = React.PropsWithChildren<{
   content: { title: string };

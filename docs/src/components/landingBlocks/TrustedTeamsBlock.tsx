@@ -3,14 +3,12 @@ import { styled } from "linaria/react";
 
 import TrustedTeamsLogos from "./TrustedTeamsBlock.model";
 
-import { appTheme, tm } from "../../themes";
+import { media, tm } from "../../themes";
 import Section from "../Section";
 
 interface Props {
   content: { title: string };
 }
-
-const { media } = appTheme;
 
 const Container = styled.section`
   width: 100%;

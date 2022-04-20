@@ -1,8 +1,6 @@
 import React from "react";
 import { styled } from "linaria/react";
-import { tm, appTheme } from "../../themes";
-
-const { media } = appTheme;
+import { media, tm } from "../../themes";
 
 const A = styled.a`
   display: inline-flex;

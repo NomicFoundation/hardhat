@@ -1,8 +1,6 @@
 import React from "react";
 import { styled } from "linaria/react";
-import { appTheme } from "../themes";
-
-const { media } = appTheme;
+import { media } from "../themes";
 
 const Container = styled.section`
   width: 100%;

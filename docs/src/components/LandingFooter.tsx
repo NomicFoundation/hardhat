@@ -1,9 +1,7 @@
 import { styled } from "linaria/react";
 import React from "react";
 import EthereumFoundationLogo from "../assets/ethereum-foundation-logo";
-import { appTheme, tm } from "../themes";
-
-const { media } = appTheme;
+import { media, tm } from "../themes";
 
 const Footer = styled.footer`
   padding: 80px 24px 120px;

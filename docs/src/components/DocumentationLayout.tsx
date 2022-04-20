@@ -3,7 +3,7 @@ import { styled } from "linaria/react";
 import SEO from "./SEO";
 import Navigation from "./Navigation";
 import Banner, { DefaultBanner } from "./ui/Banner";
-import { tm, appTheme, tmSelectors, tmHCDark, tmDark } from "../themes";
+import { tm, tmSelectors, tmHCDark, tmDark, media } from "../themes";
 import { DefaultBannerProps } from "./ui/types";
 import { ISeo } from "./types";
 import Sidebar from "./Sidebar";
@@ -14,8 +14,6 @@ import {
   bannerContent,
 } from "../config";
 import MobileSidebarMenu from "./MobileSidebarMenu";
-
-const { media } = appTheme;
 
 const Container = styled.div`
   position: relative;
@@ -87,6 +85,17 @@ const MobileSidebarMenuMask = styled.div`
       border-right: ${tmDark(({ colors }) => colors.neutral400)};
     }
   }
+  ${tmSelectors.hcDark} {
+    border-right: ${tmHCDark(({ colors }) => colors.neutral400)};
+  }
+  ${tmSelectors.dark} {
+    border-right: ${tmDark(({ colors }) => colors.neutral400)};
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      border-right: ${tmDark(({ colors }) => colors.neutral400)};
+    }
+  }
 `;
 
 const SidebarContainer = styled.aside`
@@ -130,6 +139,8 @@ const Content = styled.section`
   flex-direction: column;
   width: 100%;
   max-width: 774px;
+  padding-left: 34px;
+  color: ${tm(({ colors }) => colors.neutral900)};
   padding: 0 40px 0 34px;
 
   & h2:not(:first-of-type) {

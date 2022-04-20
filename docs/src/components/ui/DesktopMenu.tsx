@@ -3,9 +3,7 @@ import { styled } from "linaria/react";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import { MenuProps, MenuItemType, SocialsItem } from "./types";
-import { appTheme, tm, tmDark, tmHCDark } from "../../themes";
-
-const { media, tmSelectors } = appTheme;
+import { media, tm, tmDark, tmHCDark, tmSelectors } from "../../themes";
 
 const MenuContainer = styled.section<{ isDocumentation: boolean }>`
   user-select: none;
