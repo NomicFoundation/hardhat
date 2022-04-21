@@ -365,9 +365,7 @@ export class EthModule {
     await this._runHardhatNetworkMessageTraceHooks(trace, true);
 
     if (error !== undefined && this._throwOnCallFailures) {
-      const callReturnData = trace?.returnData.toString("hex");
-      // TODO: decide if we should return "0x" when the return data is empty,
-      // or omit the field entirely as geth does
+      const callReturnData = trace?.returnData.toString("hex") ?? "";
       (error as any).data = `0x${callReturnData}`;
 
       throw error;
@@ -443,9 +441,7 @@ export class EthModule {
         error
       );
 
-      const callReturnData = trace?.returnData.toString("hex");
-      // TODO: decide if we should return "0x" when the return data is empty,
-      // or omit the field entirely as geth does
+      const callReturnData = trace?.returnData.toString("hex") ?? "";
       (error as any).data = `0x${callReturnData}`;
 
       throw error;
@@ -989,8 +985,9 @@ export class EthModule {
         }
 
         if (error.message.includes("The chain ID does not match")) {
+          const chainId = this._common.chainIdBN().toString();
           throw new InvalidArgumentsError(
-            `Trying to send a raw transaction with an invalid chainId. The expected chainId is ${this._common.chainIdBN()}`,
+            `Trying to send a raw transaction with an invalid chainId. The expected chainId is ${chainId}`,
             error
           );
         }
@@ -1025,7 +1022,7 @@ export class EthModule {
       !transactionRequest.chainId.eq(expectedChainId)
     ) {
       throw new InvalidArgumentsError(
-        `Invalid chainId ${transactionRequest.chainId.toString()} provided, expected ${expectedChainId} instead.`
+        `Invalid chainId ${transactionRequest.chainId.toString()} provided, expected ${expectedChainId.toString()} instead.`
       );
     }
 
@@ -1528,8 +1525,6 @@ export class EthModule {
       const e = trace.error;
 
       const returnData = trace.trace?.returnData.toString("hex") ?? "";
-      // TODO: decide if we should return "0x" when the return data is empty,
-      // or omit the field entirely as geth does
       (e as any).data = `0x${returnData}`;
       (e as any).transactionHash = bufferToRpcData(tx.hash());
 

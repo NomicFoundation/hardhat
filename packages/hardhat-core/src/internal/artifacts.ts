@@ -429,6 +429,9 @@ export class Artifacts implements IArtifacts {
   }
 
   private _formatSuggestions(names: string[], contractName?: string): string {
+    if (contractName === undefined) {
+      return "";
+    }
     switch (names.length) {
       case 0:
         return "";

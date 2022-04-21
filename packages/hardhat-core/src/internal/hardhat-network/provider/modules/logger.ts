@@ -331,7 +331,9 @@ export class ModulesLogger {
     if (isEmpty) {
       this._log(
         `Mined empty block #${blockNumber}${
-          baseFeePerGas !== undefined ? ` with base fee ${baseFeePerGas}` : ""
+          baseFeePerGas !== undefined
+            ? ` with base fee ${baseFeePerGas.toString()}`
+            : ""
         }`
       );
 
@@ -365,7 +367,7 @@ export class ModulesLogger {
 
   private _logBaseFeePerGas(block: Block) {
     if (block.header.baseFeePerGas !== undefined) {
-      this._log(`Base fee: ${block.header.baseFeePerGas}`);
+      this._log(`Base fee: ${block.header.baseFeePerGas.toString()}`);
     }
   }
 
@@ -413,7 +415,9 @@ export class ModulesLogger {
       if (isEmpty) {
         this._print(
           `Mined empty block #${blockNumber}${
-            baseFeePerGas !== undefined ? ` with base fee ${baseFeePerGas}` : ""
+            baseFeePerGas !== undefined
+              ? ` with base fee ${baseFeePerGas.toString()}`
+              : ""
           }`,
           {
             collapseIntervalMinedBlock: true,
@@ -441,7 +445,9 @@ export class ModulesLogger {
 
         this._log(
           `Mined empty block #${blockNumber}${
-            baseFeePerGas !== undefined ? ` with base fee ${baseFeePerGas}` : ""
+            baseFeePerGas !== undefined
+              ? ` with base fee ${baseFeePerGas.toString()}`
+              : ""
           }`,
           {
             collapseHardhatMinedBlock: true,

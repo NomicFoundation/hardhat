@@ -62,7 +62,9 @@ function getOrderedTransactionHeap(
       );
     default:
       // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
-      throw new InvalidInputError(`Invalid mempool order: ${mempoolOrder}`);
+      throw new InvalidInputError(
+        `Invalid mempool order: ${mempoolOrder as any}`
+      );
   }
 }
 
