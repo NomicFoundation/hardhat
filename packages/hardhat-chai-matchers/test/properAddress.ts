@@ -2,29 +2,19 @@ import { expect, AssertionError } from "chai";
 
 import "../src";
 
+/* eslint-disable @typescript-eslint/no-unused-expressions */
+
 describe("Proper address", () => {
   it("Expect to be proper address", async () => {
-    expect(
-      () =>
-        expect("0x28FAA621c3348823D6c6548981a19716bcDc740e").to.be.properAddress
-    ).to.not.throw();
-    expect(
-      () =>
-        expect("0x846C66cf71C43f80403B51fE3906B3599D63336f").to.be.properAddress
-    ).to.not.throw();
+    expect("0x28FAA621c3348823D6c6548981a19716bcDc740e").to.be.properAddress;
+    expect("0x846C66cf71C43f80403B51fE3906B3599D63336f").to.be.properAddress;
   });
 
   it("Expect not to be proper address", async () => {
-    expect(
-      () =>
-        expect("0x28FAA621c3348823D6c6548981a19716bcDc740").to.not.be
-          .properAddress
-    ).to.not.throw();
-    expect(
-      () =>
-        expect("0x846C66cf71C43f80403B51fE3906B3599D63336g").to.not.be
-          .properAddress
-    ).to.not.throw();
+    expect("28FAA621c3348823D6c6548981a19716bcDc740e").not.to.be.properAddress;
+    expect("0x28FAA621c3348823D6c6548981a19716bcDc740").to.not.be.properAddress;
+    expect("0x846C66cf71C43f80403B51fE3906B3599D63336g").to.not.be
+      .properAddress;
   });
 
   it("Expect to throw if invalid address", async () => {
