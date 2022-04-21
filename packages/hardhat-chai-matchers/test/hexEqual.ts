@@ -1,5 +1,7 @@
 import { AssertionError, expect } from "chai";
 
+import "../src";
+
 describe("UNIT: hexEqual", () => {
   it("0xAB equals 0xab", () => {
     expect("0xAB").to.hexEqual("0xab");
@@ -58,6 +60,20 @@ describe("UNIT: hexEqual", () => {
     expect(() => expect("").to.hexEqual("0x0")).to.throw(
       AssertionError,
       'Expected "" to be a hex string equal to "0x0", but "" is not a valid hex string'
+    );
+  });
+
+  it("correct error when strings are not equal", async function () {
+    expect(() => expect("0xa").to.hexEqual("0xb")).to.throw(
+      AssertionError,
+      'Expected "0xa" to be a hex string equal to "0xb"'
+    );
+  });
+
+  it("correct error when strings are equal but expected not to", async function () {
+    expect(() => expect("0xa").not.to.hexEqual("0xa")).to.throw(
+      AssertionError,
+      'Expected "0xa" not to be a hex string equal to "0xa", but it was'
     );
   });
 });
