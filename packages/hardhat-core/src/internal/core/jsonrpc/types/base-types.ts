@@ -57,7 +57,7 @@ function validateStorageSlot(u: unknown, c: t.Context): t.Validation<BN> {
     return t.failure(
       u,
       c,
-      `Storage slot argument must have a length of 66 (32 bytes), but '${u}' has a length of ${u.length}`
+      `Storage slot argument must have a length of 66 ("0x" + 32 bytes), but '${u}' has a length of ${u.length}`
     );
   }
 

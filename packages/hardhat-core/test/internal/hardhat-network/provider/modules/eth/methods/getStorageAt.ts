@@ -284,7 +284,7 @@ describe("Eth module", function () {
               this.provider,
               "eth_getStorageAt",
               ["0x0101010101010101010101010101010101010101", "0x0"],
-              "Storage slot argument must have a length of 66 (32 bytes), but '0x0' has a length of 3"
+              `Storage slot argument must have a length of 66 ("0x" + 32 bytes), but '0x0' has a length of 3`
             );
           });
 
@@ -296,7 +296,7 @@ describe("Eth module", function () {
                 "0x0101010101010101010101010101010101010101",
                 "0x00000000000000000000000000000000000000000000000000000000000000000",
               ],
-              "Storage slot argument must have a length of 66 (32 bytes), but '0x00000000000000000000000000000000000000000000000000000000000000000' has a length of 67"
+              `Storage slot argument must have a length of 66 ("0x" + 32 bytes), but '0x00000000000000000000000000000000000000000000000000000000000000000' has a length of 67`
             );
           });
         });
