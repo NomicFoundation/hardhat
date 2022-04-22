@@ -5,6 +5,7 @@ module.exports = {
     sourceType: "module",
   },
   rules: {
+    "@typescript-eslint/restrict-template-expressions": "off",
     "import/no-extraneous-dependencies": [
       "error",
       {

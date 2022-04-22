@@ -70,7 +70,9 @@ export function toRpcQuantity(x: NumberLike): string {
     hex = x.toString(16);
   } else {
     throw new Error(
-      `[hardhat-network-helpers] ${x} cannot be converted to an RPC quantity`
+      `[hardhat-network-helpers] ${
+        x as any
+      } cannot be converted to an RPC quantity`
     );
   }
 
