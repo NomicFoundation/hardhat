@@ -1,5 +1,11 @@
 # hardhat
 
+## 2.9.3
+
+### Patch Changes
+
+- 74a12d7b: Fixed a bug preventing loggingEnabled from working properly and exposed userConfig field in HRE
+
 ## 2.9.2
 
 ### Patch Changes
