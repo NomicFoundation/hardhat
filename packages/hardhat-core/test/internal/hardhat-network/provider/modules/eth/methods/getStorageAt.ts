@@ -244,6 +244,7 @@ describe("Eth module", function () {
 
         describe("validation", function () {
           it("should accept valid storage slot arguments", async function () {
+            // 0x010101... is almost surely an empty account
             assert.strictEqual(
               await this.provider.send("eth_getStorageAt", [
                 "0x0101010101010101010101010101010101010101",
@@ -252,6 +253,7 @@ describe("Eth module", function () {
               "0x0000000000000000000000000000000000000000000000000000000000000000"
             );
 
+            // check that it also works with some random storage slot
             assert.strictEqual(
               await this.provider.send("eth_getStorageAt", [
                 "0x0101010101010101010101010101010101010101",
