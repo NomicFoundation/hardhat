@@ -3,6 +3,7 @@ import type { EIP1193Provider } from "hardhat/types";
 import type { NumberLike } from "./types";
 
 import { isValidChecksumAddress, BN } from "ethereumjs-util";
+import { HardhatNetworkHelpersError, OnlyHardhatNetworkError } from "./errors";
 
 let cachedIsHardhatNetwork: boolean;
 async function checkIfHardhatNetwork(
@@ -25,14 +26,7 @@ async function checkIfHardhatNetwork(
   }
 
   if (!cachedIsHardhatNetwork) {
-    let errorMessage: string = ``;
-    if (version === undefined) {
-      errorMessage = `[hardhat-network-helpers] This helper can only be used in the Hardhat Network. You are connected to '${networkName}'.`;
-    } else {
-      errorMessage = `[hardhat-network-helpers] This helper can only be used in the Hardhat Network. You are connected to '${networkName}', whose identifier is '${version}'`;
-    }
-
-    throw new Error(errorMessage);
+    throw new OnlyHardhatNetworkError(networkName, version);
   }
 
   return cachedIsHardhatNetwork;
@@ -59,8 +53,8 @@ export function toRpcQuantity(x: NumberLike): string {
     hex = `0x${x.toString(16)}`;
   } else if (typeof x === "string") {
     if (!x.startsWith("0x")) {
-      throw new Error(
-        "[hardhat-network-helpers] Only 0x-prefixed hex-encoded strings are accepted"
+      throw new HardhatNetworkHelpersError(
+        "Only 0x-prefixed hex-encoded strings are accepted"
       );
     }
     hex = x;
@@ -69,8 +63,8 @@ export function toRpcQuantity(x: NumberLike): string {
   } else if ("toString" in x) {
     hex = x.toString(16);
   } else {
-    throw new Error(
-      `[hardhat-network-helpers] ${x} cannot be converted to an RPC quantity`
+    throw new HardhatNetworkHelpersError(
+      `${x as any} cannot be converted to an RPC quantity`
     );
   }
 
@@ -82,16 +76,16 @@ export function toRpcQuantity(x: NumberLike): string {
 export function assertValidAddress(address: string): void {
   const hasChecksum = address !== address.toLowerCase();
   if (!hasChecksum || !isValidChecksumAddress(address)) {
-    throw new Error(
-      `[hardhat-network-helpers] ${address} is not a valid hex address`
+    throw new HardhatNetworkHelpersError(
+      `${address} is not a valid hex address`
     );
   }
 }
 
 export function assertHexString(hexString: string): void {
   if (typeof hexString !== "string" || !/^0x[0-9a-fA-F]+$/.test(hexString)) {
-    throw new Error(
-      `[hardhat-network-helpers] ${hexString} is not a valid hex string`
+    throw new HardhatNetworkHelpersError(
+      `${hexString} is not a valid hex string`
     );
   }
 }
@@ -99,24 +93,24 @@ export function assertHexString(hexString: string): void {
 export function assertTxHash(hexString: string): void {
   assertHexString(hexString);
   if (hexString.length !== 66) {
-    throw new Error(
-      `[hardhat-network-helpers] ${hexString} is not a valid transaction hash`
+    throw new HardhatNetworkHelpersError(
+      `${hexString} is not a valid transaction hash`
     );
   }
 }
 
 export function assertValidTargetBlock(target: BN, latest: BN): void {
   if (!target.gt(latest)) {
-    throw new Error(
-      `[hardhat-network-helpers] Requested target block ${target} is not greater than current block height.`
+    throw new HardhatNetworkHelpersError(
+      `Requested target block ${target} is not greater than current block height.`
     );
   }
 }
 
 export function assertPositiveNumber(n: bigint): void {
   if (n <= BigInt(0)) {
-    throw new Error(
-      `[hardhat-network-helpers] Invalid input ${n} - number must be positive.`
+    throw new HardhatNetworkHelpersError(
+      `Invalid input ${n} - number must be positive.`
     );
   }
 }
@@ -129,8 +123,8 @@ export function assertLargerThan(
   type: string
 ): void {
   if (a <= b) {
-    throw new Error(
-      `[hardhat-network-helpers] Invalid ${type} ${a} is not larger than current ${type} ${b}`
+    throw new HardhatNetworkHelpersError(
+      `Invalid ${type} ${a} is not larger than current ${type} ${b}`
     );
   }
 }
