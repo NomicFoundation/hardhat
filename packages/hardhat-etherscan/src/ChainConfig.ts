@@ -198,4 +198,11 @@ export const chainConfig: ChainConfig = {
       browserURL: "https://testnet.aurorascan.dev",
     },
   },
+  bttc: {
+    chainId: 199,
+    urls: {
+      apiURL: "https://api.bttcscan.com/api",
+      browserURL: "https://bttcscan.com",
+    },
+  },
 };
