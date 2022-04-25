@@ -31,6 +31,7 @@ export const tmSelectors = {
 };
 
 export const lightPalette = {
+  name: "Light",
   transparent: "transparent",
   neutral0: "#FFFFFF",
   neutral100: "#F2F2F2",
@@ -71,6 +72,7 @@ export const lightPalette = {
 };
 
 export const darkPalette = {
+  name: "Dark",
   transparent: "transparent",
   neutral0: "#20232A",
   neutral100: "#F2F2F2",
@@ -111,6 +113,7 @@ export const darkPalette = {
 } as Palette;
 
 export const hcDarkPalette = {
+  name: "Dark HC",
   transparent: "transparent",
   neutral0: "#16181D",
   neutral100: "#F2F2F2",
@@ -177,7 +180,7 @@ export const getNextTheme = (currentTheme: ThemesEnum): ThemesEnum => {
   return nextTheme;
 };
 
-const theming = createTheming(appTheme);
+export const theming = createTheming(appTheme);
 
 interface IThemeContext {
   theme: ThemesEnum;
