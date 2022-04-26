@@ -1,38 +1,27 @@
 import { expect, AssertionError } from "chai";
-import { BigNumber, Contract, ContractFactory, Signer, ethers } from "ethers";
-import { MockProvider } from "@ethereum-waffle/provider";
+import { BigNumber, Contract, ContractFactory, ethers } from "ethers";
 
-import { compileLiteral } from "../../hardhat-core/test/internal/hardhat-network/stack-traces/compilation";
-import { CompilerOutputContract } from "../../hardhat-core/types";
-
-import { EVENTS_SOURCE } from "./contracts/Events";
+import { useEnvironment, useEnvironmentWithNode } from "./helpers";
 
 describe("INTEGRATION: Events", () => {
-  const [wallet] = new MockProvider().getWallets();
   let factory: ContractFactory;
   let events: Contract;
-  let contract: CompilerOutputContract;
 
-  before(async () => {
-    const [_, compilerOutput] = await compileLiteral(
-      EVENTS_SOURCE,
-      {
-        solidityVersion: "0.6.0",
-        compilerPath: "soljson-v0.6.0+commit.26b70077.js",
-        runs: 1,
-      },
-      "events.sol"
-    );
-    contract = compilerOutput.contracts["events.sol"].Events;
+  describe("with the in-process hardhat network", function () {
+    useEnvironment("hardhat-project");
+
+    runTests();
   });
 
-  beforeEach(async () => {
-    factory = new ContractFactory(
-      contract.abi,
-      contract.evm.bytecode,
-      wallet as Signer
-    );
-    events = await factory.deploy();
+  describe("connected to a hardhat node", function () {
+    useEnvironmentWithNode("hardhat-project");
+
+    runTests();
+  });
+
+  function runTests() { describe("run all the tests", function () {
+  beforeEach(async function () {
+    events = await (await this.hre.ethers.getContractFactory("Events")).deploy();
   });
 
   it("Emit one: success", async () => {
@@ -324,4 +313,5 @@ describe("INTEGRATION: Events", () => {
     const tx = await events.emitOne();
     await expect(tx.hash).to.emit(events, "One");
   });
+  });}
 });
