@@ -3,7 +3,14 @@ import { styled } from "linaria/react";
 import SEO from "./SEO";
 import Navigation from "./Navigation";
 import Banner, { DefaultBanner } from "./ui/Banner";
-import { tm, tmSelectors, tmHCDark, tmDark, media } from "../themes";
+import {
+  tm,
+  tmSelectors,
+  tmHCDark,
+  tmDark,
+  media,
+  ThemeProvider,
+} from "../themes";
 import { DefaultBannerProps } from "./ui/types";
 import { ISeo } from "./types";
 import Sidebar from "./Sidebar";
@@ -98,16 +105,20 @@ const MobileSidebarMenuMask = styled.div`
   }
 `;
 
-const SidebarContainer = styled.aside`
+const SidebarContainer = styled.aside<{ isSidebarOpen: boolean }>`
   flex-direction: column;
   width: 366px;
   position: fixed;
-  left: 0;
   top: 136px;
+  left: ${(props) => (props.isSidebarOpen ? "0px" : "-120vw")};
   height: 85vh;
   display: flex;
   overflow-y: scroll;
+  transition: all ease-out 0.25s;
   z-index: 1;
+  ${media.md} {
+    left: 0;
+  }
   ${SidebarMask} {
     display: none;
     ${media.md} {
@@ -201,41 +212,44 @@ const DocumentationLayout = ({ children, seo }: Props) => {
   }, [isSidebarOpen]);
 
   return (
-    <Container>
-      <Banner
-        content={bannerContent}
-        renderContent={({ content }: DefaultBannerProps) => (
-          <DefaultBanner content={content} />
-        )}
-      />
-      <Navigation
-        isSidebarOpen={isSidebarOpen}
-        onSidebarOpen={setIsSidebarOpen}
-      />
-      <SEO seo={seo} />
+    <ThemeProvider>
+      <Container>
+        <Banner
+          content={bannerContent}
+          renderContent={({ content }: DefaultBannerProps) => (
+            <DefaultBanner content={content} />
+          )}
+        />
+        <Navigation
+          isSidebarOpen={isSidebarOpen}
+          onSidebarOpen={setIsSidebarOpen}
+        />
+        <SEO seo={seo} />
 
-      <main>
-        <SidebarContainer
-          onClick={(e) => {
-            e.stopPropagation();
-          }}
-        >
-          <SidebarMask>
-            <Sidebar elementsList={DocumentationSidebarStructure} />
-          </SidebarMask>
-          <MobileSidebarMenuMask data-open={isSidebarOpen}>
-            <MobileSidebarMenu
-              menuItems={menuItemsList}
-              socialsItems={socialsItems}
-              sidebarElementsList={DocumentationSidebarStructure}
-            />
-          </MobileSidebarMenuMask>
-        </SidebarContainer>
-        <View>
-          <Content>{children}</Content>
-        </View>
-      </main>
-    </Container>
+        <main>
+          <SidebarContainer
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+            isSidebarOpen={isSidebarOpen}
+          >
+            <SidebarMask>
+              <Sidebar elementsList={DocumentationSidebarStructure} />
+            </SidebarMask>
+            <MobileSidebarMenuMask data-open={isSidebarOpen}>
+              <MobileSidebarMenu
+                menuItems={menuItemsList}
+                socialsItems={socialsItems}
+                sidebarElementsList={DocumentationSidebarStructure}
+              />
+            </MobileSidebarMenuMask>
+          </SidebarContainer>
+          <View>
+            <Content>{children}</Content>
+          </View>
+        </main>
+      </Container>
+    </ThemeProvider>
   );
 };
 

@@ -10,10 +10,11 @@ import BuiltByBlock from "../components/landingBlocks/BuiltByBlock";
 import ReviewsBlock from "../components/landingBlocks/ReviewsBlock";
 import ToolsBlock from "../components/landingBlocks/ToolsBlock";
 import homepageContent from "../content/home";
+import LandingLayout from "../components/LandingLayout";
 
 const Home: NextPage = () => {
   return (
-    <>
+    <LandingLayout seo={{ title: "Hardhat", description: "Hardhat" }}>
       <HeroBlock content={homepageContent.heroBlockContent} />
       <ToolsBlock content={homepageContent.toolsBlockContent} />
       <WhyHardhatBlock content={homepageContent.whyHardhatContent}>
@@ -39,10 +40,8 @@ const Home: NextPage = () => {
       <TrustedTeamsBlock content={homepageContent.trustedTeamsBlockContent} />
       <ReviewsBlock content={homepageContent.reviewsBlockContent} />
       <BuiltByBlock content={homepageContent.builtByBlockContent} />
-    </>
+    </LandingLayout>
   );
 };
 
-/* @ts-ignore */
-Home.layout = "landing";
 export default Home;

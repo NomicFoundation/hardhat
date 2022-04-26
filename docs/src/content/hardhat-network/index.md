@@ -46,7 +46,7 @@ Then, just connect your wallet or application to `http://localhost:8545`.
 
 If you want to connect Hardhat to this node, you just need to run using `--network localhost`.
 
-::: warning
+:::warning
 
 _Do not send mainnet Ether to the account addresses shown by `hardhat node`_. Those addresses and private keys are deterministic: they are the same for _all_ Hardhat users. Accordingly, those private keys are well known, so there are probably bots monitoring these addresses on mainnet, waiting to withdraw any funds sent to them. If you add any of those accounts to a wallet (eg Metamask), be very careful to avoid sending any mainnet Ether to them: consider naming the account something like "Hardhat - Unsafe" in order to prevent any mistakes.
 

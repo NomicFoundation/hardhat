@@ -6,7 +6,7 @@ You can write your own custom scripts that can use all of Hardhat's functionalit
 
 There are two ways of writing a script that accesses the [Hardhat Runtime Environment].
 
-::: tip
+:::tip
 
 Hardhat scripts are useful for simple things that don't take user arguments, and for integrating with external tools that aren't well suited for the Hardhat CLI, like a Node.js debugger.
 

@@ -51,7 +51,7 @@ The `ethers` variable is available in the global scope. If you like your code al
 const { ethers } = require("hardhat");
 ```
 
-::: tip
+:::tip
 
 To learn more about `Signer`, you can look at the [Signers documentation](https://docs.ethers.io/v5/api/signer/).
 

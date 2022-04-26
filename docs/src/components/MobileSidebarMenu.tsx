@@ -2,7 +2,7 @@ import React, { FC } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { styled } from "linaria/react";
-import { tm } from "../themes";
+import { media, tm, tmDark, tmHCDark, tmSelectors } from "../themes";
 import Sidebar from "./Sidebar";
 import {
   menuItemsList,
@@ -21,6 +21,17 @@ const MobileSidebarContainer = styled.section`
   display: flex;
   flex-direction: column;
   background-color: ${tm(({ colors }) => colors.neutral0)};
+  ${tmSelectors.hcDark} {
+    background-color: ${tmHCDark(({ colors }) => colors.neutral0)};
+  }
+  ${tmSelectors.dark} {
+    background-color: ${tmDark(({ colors }) => colors.neutral0)};
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      background-color: ${tmDark(({ colors }) => colors.neutral0)};
+    }
+  }
 `;
 
 const MobileNavigationContainer = styled.ul`
@@ -28,7 +39,22 @@ const MobileNavigationContainer = styled.ul`
   display: flex;
   flex-direction: column;
   padding: 16px 0;
+  color: ${tm(({ colors }) => colors.neutral800)};
   border-bottom: 1px solid ${tm(({ colors }) => colors.neutral400)};
+  ${tmSelectors.hcDark} {
+    border-bottom: ${tmHCDark(({ colors }) => colors.neutral400)};
+    color: ${tmHCDark(({ colors }) => colors.neutral800)};
+  }
+  ${tmSelectors.dark} {
+    border-bottom: ${tmDark(({ colors }) => colors.neutral400)};
+    color: ${tmDark(({ colors }) => colors.neutral800)};
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      border-bottom: ${tmDark(({ colors }) => colors.neutral400)};
+      color: ${tmDark(({ colors }) => colors.neutral800)};
+    }
+  }
 `;
 
 const MenuItem = styled.li`
@@ -48,11 +74,33 @@ const MenuItem = styled.li`
       width: 0;
       height: 2px;
       background-color: ${tm(({ colors }) => colors.accent700)};
+      ${tmSelectors.hcDark} {
+        background-color: ${tmHCDark(({ colors }) => colors.accent700)};
+      }
+      ${tmSelectors.dark} {
+        background-color: ${tmDark(({ colors }) => colors.accent700)};
+      }
+      ${media.mqDark} {
+        ${tmSelectors.auto} {
+          background-color: ${tmDark(({ colors }) => colors.accent700)};
+        }
+      }
     }
   }
   &[data-current="true"] {
     & > a {
       color: ${tm(({ colors }) => colors.accent700)};
+      ${tmSelectors.hcDark} {
+        color: ${tmHCDark(({ colors }) => colors.accent700)};
+      }
+      ${tmSelectors.dark} {
+        color: ${tmDark(({ colors }) => colors.accent700)};
+      }
+      ${media.mqDark} {
+        ${tmSelectors.auto} {
+          color: ${tmDark(({ colors }) => colors.accent700)};
+        }
+      }
       &:after {
         width: 100%;
       }
@@ -60,9 +108,20 @@ const MenuItem = styled.li`
   }
   & > svg {
     margin-left: 4px;
+    stroke: ${tmDark(({ colors }) => colors.neutral800)};
+    ${tmSelectors.hcDark} {
+      stroke: ${tmHCDark(({ colors }) => colors.neutral800)};
+    }
+    ${tmSelectors.dark} {
+      stroke: ${tmDark(({ colors }) => colors.neutral800)};
+    }
+    ${media.mqDark} {
+      ${tmSelectors.auto} {
+        stroke: ${tmDark(({ colors }) => colors.neutral800)};
+      }
+    }
   }
 `;
-// ExternalLinkIcon
 
 const MobileSidebarMenu: FC<Props> = ({
   sidebarElementsList,
@@ -78,7 +137,7 @@ const MobileSidebarMenu: FC<Props> = ({
           return (
             <MenuItem
               key={menuItem.label}
-              data-current={router?.pathname === menuItem.href}
+              data-current={router?.asPath === menuItem.href}
             >
               <Link href={menuItem.href}>{menuItem.label}</Link>
             </MenuItem>

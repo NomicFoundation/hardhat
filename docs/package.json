@@ -13,14 +13,18 @@
   },
   "dependencies": {
     "@callstack/react-theme-provider": "^3.0.7",
-    "@mdx-js/loader": "^2.1.0",
-    "@next/mdx": "^12.1.1",
+    "glob": "^8.0.1",
+    "gray-matter": "^4.0.3",
+    "hastscript": "^7.0.2",
     "linaria": "^2.3.1",
     "next": "12.1.0",
     "next-linaria": "^0.11.0",
+    "next-mdx-remote": "^4.0.2",
     "react": "17.0.2",
     "react-dom": "17.0.2",
-    "react-responsive-carousel": "^3.2.23"
+    "react-responsive-carousel": "^3.2.23",
+    "remark-directive": "^2.0.1",
+    "unist-util-visit": "^4.1.0"
   },
   "devDependencies": {
     "@babel/core": "^7.17.5",
@@ -48,6 +52,7 @@
     "eslint-plugin-prettier": "^4.0.0",
     "eslint-plugin-react-hooks": "^4.3.0",
     "eslint-plugin-storybook": "^0.5.7",
+    "next-remote-watch": "^1.0.0",
     "next-compose-plugins": "^2.2.1",
     "prettier": "^2.5.1",
     "typescript": "4.5.5"

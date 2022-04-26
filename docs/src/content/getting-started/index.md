@@ -1,3 +1,12 @@
+---
+title: Overview
+description:
+anchors:
+  - overview
+  - installation
+  - quick-start
+---
+
 ## Overview
 
 Hardhat is a development environment to compile, deploy, test, and debug your Ethereum software. It helps developers manage and automate the recurring tasks that are inherent to the process of building smart contracts and dApps, as well as easily introducing more functionality around this workflow. This means compiling, running and testing smart contracts at the very core.
@@ -53,7 +62,7 @@ Let’s create the sample project and go through these steps to try out the samp
 
 The sample project will ask you to install `hardhat-waffle` and `hardhat-ethers`, which makes Hardhat compatible with tests built with Waffle. You can learn more about it [in this guide](../guides/waffle-testing.md).
 
-::: tip
+:::tip
 
 Hardhat will let you know how, but, in case you missed it, you can install them with `npm install --save-dev @nomiclabs/hardhat-waffle ethereum-waffle chai @nomiclabs/hardhat-ethers ethers`
 
@@ -130,7 +139,7 @@ $ npx hardhat accounts
 0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199
 ```
 
-::: warning
+:::warning
 
 _Do not send mainnet Ether to the addresses above._ Those addresses are deterministic: they are the same for _all_ Hardhat users. Accordingly, the private keys for these addresses are well known, so there are probably bots monitoring those addresses on mainnet, waiting to withdraw any funds sent to them. If you add any of these accounts to a wallet (eg Metamask), be very careful to avoid sending any mainnet Ether to them: consider naming the account something like "Hardhat - Unsafe" in order to prevent any mistakes.
 

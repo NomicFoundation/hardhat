@@ -53,6 +53,25 @@ const StyledH2 = styled.h2`
   }
 `;
 
+const StyledH3 = styled.h3`
+  font-size: 1.35rem;
+  margin-top: 32px;
+  font-family: ChivoRegular, sans-serif;
+  ${tmSelectors.dark} {
+    color: ${tmDark(({ colors }) => colors.neutral800)};
+  }
+
+  ${tmSelectors.hcDark} {
+    color: ${tmHCDark(({ colors }) => colors.neutral800)};
+  }
+
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      color: ${tmDark(({ colors }) => colors.neutral800)};
+    }
+  }
+`;
+
 const H2 = ({ children }: Props) => {
   return (
     <StyledH2>
@@ -62,8 +81,13 @@ const H2 = ({ children }: Props) => {
   );
 };
 
+const H3 = ({ children }: Props) => {
+  return <StyledH3>{children}</StyledH3>;
+};
+
 const Title = {
   H2,
+  H3,
 };
 
 export default Title;

@@ -11,7 +11,7 @@ module.exports = {
   staticDirs: ["../public"],
   framework: "@storybook/react",
   webpackFinal: async (baseConfig) => {
-    return nextConfig.linariaConfig.webpack(baseConfig, {});
+    return nextConfig.webpack(baseConfig, {});
   },
   typescript: {
     check: false,

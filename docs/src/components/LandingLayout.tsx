@@ -5,7 +5,7 @@ import SEO from "./SEO";
 import LandingNavigation from "./LandingNavigation";
 import LandingFooter from "./LandingFooter";
 import Banner, { DefaultBanner } from "./ui/Banner";
-import { tm } from "../themes";
+import { ThemeProvider, tm } from "../themes";
 import { DefaultBannerProps } from "./ui/types";
 import { bannerContent } from "../config";
 
@@ -37,18 +37,20 @@ type Props = React.PropsWithChildren<{
 
 const LandingLayout = ({ children, seo }: Props) => {
   return (
-    <Container className="landing">
-      <Banner
-        content={bannerContent}
-        renderContent={({ content }: DefaultBannerProps) => (
-          <DefaultBanner content={content} />
-        )}
-      />
-      <LandingNavigation />
-      <SEO seo={seo} />
-      <main>{children}</main>
-      <LandingFooter />
-    </Container>
+    <ThemeProvider>
+      <Container className="landing">
+        <Banner
+          content={bannerContent}
+          renderContent={({ content }: DefaultBannerProps) => (
+            <DefaultBanner content={content} />
+          )}
+        />
+        <LandingNavigation />
+        <SEO seo={seo} />
+        <main>{children}</main>
+        <LandingFooter />
+      </Container>
+    </ThemeProvider>
   );
 };
 

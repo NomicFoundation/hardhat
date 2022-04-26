@@ -17,18 +17,19 @@ const StyledCode = styled.code`
   color: ${tm(({ colors }) => colors.codeColor)};
 
   ${tmSelectors.dark} {
-    background-color: ${tmDark(({ colors }) => colors.neutral200)};
+    background-color: ${tmDark(({ colors }) => colors.codeBlockBackground)};
+
     color: ${tmDark(({ colors }) => colors.codeColor)};
   }
 
   ${tmSelectors.hcDark} {
-    background-color: ${tmHCDark(({ colors }) => colors.neutral200)};
+    background-color: ${tmHCDark(({ colors }) => colors.codeBackground)};
     color: ${tmHCDark(({ colors }) => colors.codeColor)};
   }
 
   ${media.mqDark} {
     ${tmSelectors.auto} {
-      background-color: ${tmDark(({ colors }) => colors.neutral200)};
+      background-color: ${tmDark(({ colors }) => colors.codeBlockBackground)};
       color: ${tmDark(({ colors }) => colors.codeColor)};
     }
   }
@@ -40,6 +41,7 @@ const StyledPre = styled.pre`
   background-color: ${tm(({ colors }) => colors.codeBlockBackground)};
   border-radius: 6px;
   overflow: auto;
+  border: 1px solid ${tmHCDark(({ colors }) => colors.transparent)};
 
   & code {
     padding: 0;
@@ -52,18 +54,19 @@ const StyledPre = styled.pre`
   }
 
   ${tmSelectors.dark} {
-    background-color: ${tmDark(({ colors }) => colors.neutral200)};
+    background-color: ${tmDark(({ colors }) => colors.codeBlockBackground)};
     color: ${tmDark(({ colors }) => colors.codeColor)};
+    border: 1px solid ${tmDark(({ colors }) => colors.codeBlockBorder)};
   }
 
   ${tmSelectors.hcDark} {
-    background-color: ${tmHCDark(({ colors }) => colors.neutral200)};
+    background-color: ${tmHCDark(({ colors }) => colors.codeBlockBackground)};
     border: 1px solid ${tmHCDark(({ colors }) => colors.codeBlockBorder)};
   }
 
   ${media.mqDark} {
     ${tmSelectors.auto} {
-      background-color: ${tmDark(({ colors }) => colors.neutral200)};
+      background-color: ${tmDark(({ colors }) => colors.codeBlockBackground)};
       border: 1px solid ${tmDark(({ colors }) => colors.codeBlockBorder)};
     }
   }

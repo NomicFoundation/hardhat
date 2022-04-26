@@ -48,6 +48,12 @@ export const lightPalette = {
   accent800: "#FFF100",
   accent900: "#EDCF00",
   border: "#4B4D4D",
+  tipBorderColor: "#42B983",
+  tipBackgroundColor: "#F3F5F7",
+  warningColorTitle: "#F08D49",
+  warningColorText: "#0A0A0A",
+  warningBorderColor: "#F08D49",
+  warningBackgroundColor: "#FEF6F1",
   codeBackground: "rgba(27,31,35,.05)",
   codeColor: "#4A4D54",
   codeBlockBackground: "#282c34",
@@ -89,9 +95,15 @@ export const darkPalette = {
   accent800: "#FFF100",
   accent900: "#EDCF00",
   border: "#4B4D4D",
+  tipBorderColor: "#246648",
+  tipBackgroundColor: "#282C34",
+  warningColorTitle: "#9F5D30",
+  warningColorText: "#D2D3D5",
+  warningBorderColor: "#9F5D30",
+  warningBackgroundColor: "#282C34",
   codeBackground: "#20232A",
   codeColor: "#8e9094",
-  codeBlockBackground: "#20232A",
+  codeBlockBackground: "#16181D",
   codeBlockBorder: "#6c6f74",
   complementary600: "#E9DEFA",
   cardBoxShadow: "#0A0A0A14",
@@ -130,6 +142,12 @@ export const hcDarkPalette = {
   accent800: "#FFF100",
   accent900: "#EDCF00",
   border: "#4B4D4D",
+  tipBorderColor: "#246648",
+  tipBackgroundColor: "#282C34",
+  warningColorTitle: "#9F5D30",
+  warningColorText: "#D2D3D5",
+  warningBorderColor: "#9F5D30",
+  warningBackgroundColor: "#282C34",
   codeBackground: "#20232a",
   codeColor: "#8e9094",
   codeBlockBackground: "#20232a",
@@ -217,6 +235,7 @@ export const ThemeProvider = ({
 
   return (
     <ThemeContext.Provider value={initialContext}>
+      {/* @ts-ignore */}
       <theming.ThemeProvider theme={appTheme}>{children}</theming.ThemeProvider>
     </ThemeContext.Provider>
   );

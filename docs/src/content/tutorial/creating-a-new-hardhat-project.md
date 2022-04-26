@@ -11,7 +11,7 @@ npm init --yes
 npm install --save-dev hardhat
 ```
 
-::: tip
+:::tip
 
 Installing **Hardhat** will install some Ethereum JavaScript dependencies, so be patient.
 
@@ -54,7 +54,7 @@ When **Hardhat** is run, it searches for the closest `hardhat.config.js` file st
 
 Every time you're running **Hardhat** from the CLI you're running a task. e.g. `npx hardhat compile` is running the `compile` task. To see the currently available tasks in your project, run `npx hardhat`. Feel free to explore any task by running `npx hardhat help [task]`.
 
-::: tip
+:::tip
 
 You can create your own tasks. Check out the [Creating a task](/guides/create-task.md) guide.
 
