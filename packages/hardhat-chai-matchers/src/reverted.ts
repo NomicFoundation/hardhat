@@ -6,7 +6,7 @@ import { HardhatChaiMatchersDecodingError } from "./errors";
 const ERROR_STRING_PREFIX = "0x08c379a0";
 
 export function supportReverted(Assertion: Chai.AssertionStatic) {
-  Assertion.addProperty("reverted", function () {
+  Assertion.addProperty("reverted", function (this: any) {
     const subject: unknown = this._obj;
 
     // Check if the received value can be linked to a transaction, and then
@@ -30,9 +30,7 @@ export function supportReverted(Assertion: Chai.AssertionStatic) {
           this.assert(
             receipt.status === 0,
             "Expected transaction to be reverted",
-            "Expected transaction NOT to be reverted",
-            "Transaction that reverted",
-            "Transaction that didn't revert"
+            "Expected transaction NOT to be reverted"
           );
         });
       } else if (isTransactionReceipt(value)) {
@@ -41,9 +39,7 @@ export function supportReverted(Assertion: Chai.AssertionStatic) {
         this.assert(
           receipt.status === 0,
           "Expected transaction to be reverted",
-          "Expected transaction NOT to be reverted",
-          "Transaction that reverted",
-          "Transaction that didn't revert"
+          "Expected transaction NOT to be reverted"
         );
       } else {
         // If the subject of the assertion is not connected to a transaction
@@ -52,13 +48,7 @@ export function supportReverted(Assertion: Chai.AssertionStatic) {
         // assertions will pass instead of always throwing a validation error.
         // This allows users to do things like:
         //   `expect(c.callStatic.f()).to.not.be.reverted
-        this.assert(
-          false,
-          "Expected transaction to be reverted",
-          "Expected transaction NOT to be reverted",
-          "Transaction that reverted",
-          "Transaction that didn't revert"
-        );
+        this.assert(false, "Expected transaction to be reverted");
       }
     };
 
@@ -67,45 +57,89 @@ export function supportReverted(Assertion: Chai.AssertionStatic) {
         throw new AssertionError("Expected an Error object");
       }
 
-      this.assert(
-        true,
-        "Expected transaction to be reverted",
-        "Expected transaction NOT to be reverted",
-        "Transaction that reverted",
-        "Transaction that didn't revert"
-      );
+      this.assert(true, null, "Expected transaction NOT to be reverted");
     };
 
     // we use `Promise.resolve(subject)` so we can process both values and
     // promises of values in the same way
     const derivedPromise = Promise.resolve(subject).then(onSuccess, onError);
 
-    (this as any).then = derivedPromise.then.bind(derivedPromise);
-    (this as any).catch = derivedPromise.catch.bind(derivedPromise);
+    this.then = derivedPromise.then.bind(derivedPromise);
+    this.catch = derivedPromise.catch.bind(derivedPromise);
 
     return this;
   });
 
-  Assertion.addMethod("revertedWith", function (expectedReason: unknown) {
-    // validate expected reason
-    if (typeof expectedReason !== "string") {
-      const rejection = Promise.reject(
-        new AssertionError("Expected a string as the expected reason string")
+  Assertion.addMethod(
+    "revertedWith",
+    function (this: any, expectedReason: unknown) {
+      // validate expected reason
+      if (typeof expectedReason !== "string") {
+        const rejection = Promise.reject(
+          new AssertionError("Expected a string as the expected reason string")
+        );
+
+        this.then = rejection.then.bind(rejection);
+        this.catch = rejection.catch.bind(rejection);
+
+        return this;
+      }
+
+      const onSuccess = () => {
+        this.assert(
+          false,
+          `Expected transaction to be reverted with reason '${expectedReason}', but it didn't revert`
+        );
+      };
+
+      const onError = (error: any) => {
+        if (!(error instanceof Error)) {
+          throw new AssertionError("Expected an Error object");
+        }
+
+        const returnData = getReturnDataFromError(error);
+
+        const decodedReturnData = decodeReturnData(returnData);
+
+        if (decodedReturnData === null) {
+          this.assert(
+            false,
+            `Expected transaction to be reverted with reason '${expectedReason}', but it reverted with an unknown reason`
+          );
+        } else if (decodedReturnData.kind === "Empty") {
+          this.assert(
+            false,
+            `Expected transaction to be reverted with reason '${expectedReason}', but it reverted without a reason string`
+          );
+          return;
+        } else if (decodedReturnData.kind === "Error") {
+          this.assert(
+            decodedReturnData.reason === expectedReason,
+            `Expected transaction to be reverted with reason '${expectedReason}', but it reverted with reason '${decodedReturnData.reason}'`,
+            `Expected transaction NOT to be reverted with reason '${expectedReason}', but it did`
+          );
+        } else {
+          const _exhaustiveCheck: never = decodedReturnData;
+        }
+      };
+
+      const derivedPromise = Promise.resolve(this._obj).then(
+        onSuccess,
+        onError
       );
 
-      (this as any).then = rejection.then.bind(rejection);
-      (this as any).catch = rejection.catch.bind(rejection);
+      this.then = derivedPromise.then.bind(derivedPromise);
+      this.catch = derivedPromise.catch.bind(derivedPromise);
 
       return this;
     }
+  );
 
+  Assertion.addMethod("revertedWithoutReasonString", function (this: any) {
     const onSuccess = () => {
       this.assert(
         false,
-        `Expected transaction to be reverted with reason '${expectedReason}', but it didn't revert`,
-        "Expected transaction NOT to be reverted",
-        `Transaction that reverts with reason '${expectedReason}'`,
-        "Transaction that didn't revert"
+        `Expected transaction to be reverted without a reason string, but it didn't revert`
       );
     };
 
@@ -114,56 +148,63 @@ export function supportReverted(Assertion: Chai.AssertionStatic) {
         throw new AssertionError("Expected an Error object");
       }
 
-      // get return data from object
-      const errorData = (error as any).data;
-      const returnData =
-        typeof errorData === "string" ? errorData : errorData.data;
-
-      if (returnData === undefined || typeof returnData !== "string") {
-        throw new AssertionError(
-          "Expected Error object to contain return data"
-        );
-      }
-
+      const returnData = getReturnDataFromError(error);
       const decodedReturnData = decodeReturnData(returnData);
 
       if (decodedReturnData === null) {
         this.assert(
           false,
-          `Expected transaction to be reverted with reason '${expectedReason}', but it reverted with an unknown reason'`,
-          // added just for the types, can't happen because the condition is always false
-          "<this message should never be shown, please open an issue if it is>",
-          `Transaction that reverted with reason '${expectedReason}'`,
-          `Transaction that reverted with an unknown reason`
+          `Expected transaction to be reverted without a reason string, but it reverted with an unknown reason`
         );
-        return;
+      } else if (decodedReturnData.kind === "Error") {
+        this.assert(
+          false,
+          `Expected transaction to be reverted without a reason string, but it reverted with reason '${decodedReturnData.reason}'`
+        );
+      } else if (decodedReturnData.kind === "Empty") {
+        this.assert(
+          true,
+          null,
+          "Expected transaction NOT to be reverted without a reason string, but it did"
+        );
+      } else {
+        const _exhaustiveCheck: never = decodedReturnData;
       }
-
-      this.assert(
-        decodedReturnData.reason === expectedReason,
-        `Expected transaction to be reverted with reason '${expectedReason}', but it reverted with reason '${decodedReturnData.reason}'`,
-        `Expected transaction NOT to be reverted with reason '${expectedReason}', but it did`,
-        `Transaction that reverted with reason '${expectedReason}'`,
-        `Transaction that reverted with reason '${decodedReturnData.reason}'`
-      );
     };
 
     const derivedPromise = Promise.resolve(this._obj).then(onSuccess, onError);
 
-    (this as any).then = derivedPromise.then.bind(derivedPromise);
-    (this as any).catch = derivedPromise.catch.bind(derivedPromise);
+    this.then = derivedPromise.then.bind(derivedPromise);
+    this.catch = derivedPromise.catch.bind(derivedPromise);
 
     return this;
   });
 }
 
-interface DecodedReturnData {
-  kind: "Error";
-  reason: string;
+function getReturnDataFromError(error: any): string {
+  const errorData = (error as any).data;
+  const returnData = typeof errorData === "string" ? errorData : errorData.data;
+
+  if (returnData === undefined || typeof returnData !== "string") {
+    throw new AssertionError("Expected Error object to contain return data");
+  }
+
+  return returnData;
 }
 
+type DecodedReturnData =
+  | {
+      kind: "Error";
+      reason: string;
+    }
+  | {
+      kind: "Empty";
+    };
+
 function decodeReturnData(returnData: string): DecodedReturnData | null {
-  if (returnData.startsWith(ERROR_STRING_PREFIX)) {
+  if (returnData === "0x") {
+    return { kind: "Empty" };
+  } else if (returnData.startsWith(ERROR_STRING_PREFIX)) {
     const encodedReason = returnData.slice(ERROR_STRING_PREFIX.length);
     let reason: string;
     try {
