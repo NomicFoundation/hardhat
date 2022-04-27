@@ -438,6 +438,13 @@ module.exports.communityPlugins = [
     description: "Injects hethers into the Hardhat Runtime Environment",
     tags: ["Hedera", "hethers"],
   },
+  {
+    name: "hardhat-sourcify",
+    author: "Zoey T",
+    authorUrl: "https://twitter.com/zzzzoey_t",
+    description: "A plugin for submitting code to souricfy",
+    tags: ["Sourcify", "Verification"],
+  },
 ];
 
 module.exports.officialPlugins = [
