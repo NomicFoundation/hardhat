@@ -453,6 +453,14 @@ module.exports.communityPlugins = [
       "Hardhat made awesome with a flexible CLI to help run tests, scripts, deploy Mock contracts and more.",
     tags: ["CLI", "Testing", "Tasks", "Config"],
   },
+  {
+    name: "hardhat-test-utils",
+    author: "Naveen Sahu",
+    authorUrl: "https://twitter.com/heyNvN",
+    description:
+      "Handy set of utilities for testing contracts in Hardhat projects",
+    tags: ["testing", "solidity"],
+  },
 ];
 
 module.exports.officialPlugins = [
@@ -535,6 +543,7 @@ module.exports.officialPlugins = [
     description: "Adds support to compile Vyper smart contracts",
     tags: ["Vyper", "Compiler"],
   },
+  // Don't add community plugins here. They should be placed in the other array.
 ].map((p) => ({
   ...p,
   normalizedName: p.name.split("/").join("-").replace(/^@/, ""),
