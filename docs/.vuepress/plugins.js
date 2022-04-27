@@ -431,6 +431,13 @@ module.exports.communityPlugins = [
     description: "Automatically expose internal Solidity functions for testing",
     tags: ["Solidity", "Testing"],
   },
+  {
+    name: "hardhat-sourcify",
+    author: "Zoey T",
+    authorUrl: "https://twitter.com/zzzzoey_t",
+    description: "A plugin for submitting code to souricfy",
+    tags: ["Sourcify", "Verification"],
+  },
 ];
 
 module.exports.officialPlugins = [
@@ -513,13 +520,6 @@ module.exports.officialPlugins = [
     description: "Adds support to compile Vyper smart contracts",
     tags: ["Vyper", "Compiler"],
   },
-  {
-    name: "hardhat-sourcify",
-    author: "Zoey T",
-    authorUrl: "https://twitter.com/zzzzoey_t",
-    description: "A plugin for submitting code to souricfy",
-    tags: ["Sourcify", "Verification"],
-  }
 ].map((p) => ({
   ...p,
   normalizedName: p.name.split("/").join("-").replace(/^@/, ""),
