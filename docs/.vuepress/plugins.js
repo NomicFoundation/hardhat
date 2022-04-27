@@ -432,6 +432,28 @@ module.exports.communityPlugins = [
     tags: ["Solidity", "Testing"],
   },
   {
+    name: "hardhat-hethers",
+    author: "LimeChain",
+    authorUrl: "https://github.com/LimeChain/hardhat-hethers",
+    description: "Injects hethers into the Hardhat Runtime Environment",
+    tags: ["Hedera", "hethers"],
+  },
+  {
+    name: "hardhat-sourcify",
+    author: "Zoey T",
+    authorUrl: "https://twitter.com/zzzzoey_t",
+    description: "A plugin for submitting code to Sourcify",
+    tags: ["Sourcify", "Verification"],
+  },
+  {
+    name: "hardhat-awesome-cli",
+    author: "Marc-Aurele Besner",
+    authorUrl: "https://github.com/marc-aurele-besner",
+    description:
+      "Hardhat made awesome with a flexible CLI to help run tests, scripts, deploy Mock contracts and more.",
+    tags: ["CLI", "Testing", "Tasks", "Config"],
+  },
+  {
     name: "hardhat-test-utils",
     author: "Naveen Sahu",
     authorUrl: "https://twitter.com/heyNvN",
