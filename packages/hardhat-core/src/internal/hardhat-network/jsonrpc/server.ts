@@ -1,9 +1,9 @@
+import type { Client as ClientT } from "undici";
 import type WsT from "ws";
 
 import debug from "debug";
 import http, { Server } from "http";
 import { AddressInfo } from "net";
-import { Client } from "undici";
 
 import {
   EIP1193Provider,
@@ -44,6 +44,7 @@ export class JsonRpcServer implements IJsonRpcServer {
   }
 
   public getProvider = (name = "json-rpc"): EIP1193Provider => {
+    const { Client } = require("undici") as { Client: typeof ClientT };
     const { address, port } = this._httpServer.address() as AddressInfo;
 
     const dispatcher = new Client(`http://${address}:${port}/`, {
