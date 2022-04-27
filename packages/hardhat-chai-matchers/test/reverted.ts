@@ -263,7 +263,7 @@ describe("INTEGRATION: Reverted", function () {
         );
       });
 
-      it("a gas estimation that succeeds", async function () {
+      it("a gas estimation that reverts", async function () {
         await expect(matchers.estimateGas.revertsWithoutReasonString()).to.be
           .reverted;
         await expectAssertionError(
@@ -273,7 +273,7 @@ describe("INTEGRATION: Reverted", function () {
         );
       });
 
-      it("a static call of a write method that succeeds", async function () {
+      it("a static call of a write method that reverts", async function () {
         await expect(matchers.callStatic.revertsWithoutReasonString()).to.be
           .reverted;
         await expectAssertionError(
