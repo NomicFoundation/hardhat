@@ -449,7 +449,8 @@ module.exports.communityPlugins = [
     name: "hardhat-awesome-cli",
     author: "Marc-Aurele Besner",
     authorUrl: "https://github.com/marc-aurele-besner",
-    description: "Hardhat made awesome with a flexible CLI to help run tests, scripts, deploy Mock contracts and more.",
+    description:
+      "Hardhat made awesome with a flexible CLI to help run tests, scripts, deploy Mock contracts and more.",
     tags: ["CLI", "Testing", "Tasks", "Config"],
   },
 ];
