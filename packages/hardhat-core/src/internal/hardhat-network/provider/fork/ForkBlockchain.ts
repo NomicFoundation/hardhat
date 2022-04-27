@@ -97,13 +97,15 @@ export class ForkBlockchain
     count: BN,
     interval: BN,
     previousBlockStateRoot: Buffer,
-    previousBlockTotalDifficulty: BN
+    previousBlockTotalDifficulty: BN,
+    previousBlockBaseFeePerGas: BN | undefined
   ) {
     super.reserveBlocks(
       count,
       interval,
       previousBlockStateRoot,
-      previousBlockTotalDifficulty
+      previousBlockTotalDifficulty,
+      previousBlockBaseFeePerGas
     );
     this._latestBlockNumber = this._latestBlockNumber.add(count);
   }
