@@ -431,6 +431,13 @@ module.exports.communityPlugins = [
     description: "Automatically expose internal Solidity functions for testing",
     tags: ["Solidity", "Testing"],
   },
+  {
+    name: "hardhat-test-utils",
+    author: "Naveen Sahu",
+    authorUrl: "https://twitter.com/heyNvN",
+    description: "Handy set of utilities for testing contracts in Hardhat projects",
+    tags: ["testing", "solidity"],
+  },
 ];
 
 module.exports.officialPlugins = [
@@ -513,13 +520,7 @@ module.exports.officialPlugins = [
     description: "Adds support to compile Vyper smart contracts",
     tags: ["Vyper", "Compiler"],
   },
-  {
-    name: "hardhat-test-utils",
-    author: "Naveen Sahu",
-    authorUrl: "https://twitter.com/heyNvN",
-    description: "Handy set of utilities for testing contracts in Hardhat projects",
-    tags: ["testing", "solidity"],
-  },
+  // Don't add community plugins here. They should be placed in the other array.
 ].map((p) => ({
   ...p,
   normalizedName: p.name.split("/").join("-").replace(/^@/, ""),
