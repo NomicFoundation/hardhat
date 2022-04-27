@@ -457,7 +457,8 @@ module.exports.communityPlugins = [
     name: "hardhat-test-utils",
     author: "Naveen Sahu",
     authorUrl: "https://twitter.com/heyNvN",
-    description: "Handy set of utilities for testing contracts in Hardhat projects",
+    description:
+      "Handy set of utilities for testing contracts in Hardhat projects",
     tags: ["testing", "solidity"],
   },
 ];
