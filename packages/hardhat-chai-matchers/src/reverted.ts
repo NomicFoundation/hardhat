@@ -6,7 +6,7 @@ import { HardhatChaiMatchersDecodingError } from "./errors";
 const ERROR_STRING_PREFIX = "0x08c379a0";
 
 export function supportReverted(Assertion: Chai.AssertionStatic) {
-  Assertion.addProperty("reverted", function (this: any) {
+  Assertion.addProperty("reverted", function () {
     const subject: unknown = this._obj;
 
     // Check if the received value can be linked to a transaction, and then
@@ -30,7 +30,9 @@ export function supportReverted(Assertion: Chai.AssertionStatic) {
           this.assert(
             receipt.status === 0,
             "Expected transaction to be reverted",
-            "Expected transaction NOT to be reverted"
+            "Expected transaction NOT to be reverted",
+            "Transaction that reverted",
+            "Transaction that didn't revert"
           );
         });
       } else if (isTransactionReceipt(value)) {
@@ -39,7 +41,9 @@ export function supportReverted(Assertion: Chai.AssertionStatic) {
         this.assert(
           receipt.status === 0,
           "Expected transaction to be reverted",
-          "Expected transaction NOT to be reverted"
+          "Expected transaction NOT to be reverted",
+          "Transaction that reverted",
+          "Transaction that didn't revert"
         );
       } else {
         // If the subject of the assertion is not connected to a transaction
@@ -51,7 +55,9 @@ export function supportReverted(Assertion: Chai.AssertionStatic) {
         this.assert(
           false,
           "Expected transaction to be reverted",
-          "Expected transaction NOT to be reverted"
+          "Expected transaction NOT to be reverted",
+          "Transaction that reverted",
+          "Transaction that didn't revert"
         );
       }
     };
@@ -64,7 +70,9 @@ export function supportReverted(Assertion: Chai.AssertionStatic) {
       this.assert(
         true,
         "Expected transaction to be reverted",
-        "Expected transaction NOT to be reverted"
+        "Expected transaction NOT to be reverted",
+        "Transaction that reverted",
+        "Transaction that didn't revert"
       );
     };
 
@@ -72,8 +80,8 @@ export function supportReverted(Assertion: Chai.AssertionStatic) {
     // promises of values in the same way
     const derivedPromise = Promise.resolve(subject).then(onSuccess, onError);
 
-    this.then = derivedPromise.then.bind(derivedPromise);
-    this.catch = derivedPromise.catch.bind(derivedPromise);
+    (this as any).then = derivedPromise.then.bind(derivedPromise);
+    (this as any).catch = derivedPromise.catch.bind(derivedPromise);
 
     return this;
   });
@@ -96,8 +104,8 @@ export function supportReverted(Assertion: Chai.AssertionStatic) {
         false,
         `Expected transaction to be reverted with reason '${expectedReason}', but it didn't revert`,
         "Expected transaction NOT to be reverted",
-        "Transaction that didn't revert",
-        `Transaction that reverts with reason '${expectedReason}'`
+        `Transaction that reverts with reason '${expectedReason}'`,
+        "Transaction that didn't revert"
       );
     };
 
@@ -125,7 +133,8 @@ export function supportReverted(Assertion: Chai.AssertionStatic) {
           `Expected transaction to be reverted with reason '${expectedReason}', but it reverted with an unknown reason'`,
           // added just for the types, can't happen because the condition is always false
           "<this message should never be shown, please open an issue if it is>",
-          `Transaction reverted with reason '${expectedReason}'`
+          `Transaction that reverted with reason '${expectedReason}'`,
+          `Transaction that reverted with an unknown reason`
         );
         return;
       }
@@ -134,7 +143,8 @@ export function supportReverted(Assertion: Chai.AssertionStatic) {
         decodedReturnData.reason === expectedReason,
         `Expected transaction to be reverted with reason '${expectedReason}', but it reverted with reason '${decodedReturnData.reason}'`,
         `Expected transaction NOT to be reverted with reason '${expectedReason}', but it did`,
-        `Transaction reverted with reason '${expectedReason}'`
+        `Transaction that reverted with reason '${expectedReason}'`,
+        `Transaction that reverted with reason '${decodedReturnData.reason}'`
       );
     };
 
