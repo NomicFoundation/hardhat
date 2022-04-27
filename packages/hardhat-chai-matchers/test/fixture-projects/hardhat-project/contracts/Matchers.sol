@@ -13,6 +13,15 @@ contract Matchers {
     return x;
   }
 
+  function revertsWith(string memory reason) public {
+    x++;
+    require(false, reason);
+  }
+
+  function revertsWithView(string memory reason) public pure {
+    require(false, reason);
+  }
+
   function revertsWithoutReasonString() public {
     x++;
     require(false);

@@ -1,4 +1,9 @@
+import { defaultAbiCoder as abi } from "@ethersproject/abi";
 import { AssertionError } from "chai";
+import { HardhatChaiMatchersDecodingError } from "./errors";
+
+// method id of 'Error(string)'
+const ERROR_STRING_PREFIX = "0x08c379a0";
 
 export function supportReverted(Assertion: Chai.AssertionStatic) {
   Assertion.addProperty("reverted", function (this: any) {
@@ -72,6 +77,98 @@ export function supportReverted(Assertion: Chai.AssertionStatic) {
 
     return this;
   });
+
+  Assertion.addMethod("revertedWith", function (expectedReason: unknown) {
+    // validate expected reason
+    if (typeof expectedReason !== "string") {
+      const rejection = Promise.reject(
+        new AssertionError("Expected a string as the expected reason string")
+      );
+
+      (this as any).then = rejection.then.bind(rejection);
+      (this as any).catch = rejection.catch.bind(rejection);
+
+      return this;
+    }
+
+    const onSuccess = () => {
+      this.assert(
+        false,
+        `Expected transaction to be reverted with reason '${expectedReason}', but it didn't revert`,
+        "Expected transaction NOT to be reverted",
+        "Transaction that didn't revert",
+        `Transaction that reverts with reason '${expectedReason}'`
+      );
+    };
+
+    const onError = (error: any) => {
+      if (!(error instanceof Error)) {
+        throw new AssertionError("Expected an Error object");
+      }
+
+      // get return data from object
+      const errorData = (error as any).data;
+      const returnData =
+        typeof errorData === "string" ? errorData : errorData.data;
+
+      if (returnData === undefined || typeof returnData !== "string") {
+        throw new AssertionError(
+          "Expected Error object to contain return data"
+        );
+      }
+
+      const decodedReturnData = decodeReturnData(returnData);
+
+      if (decodedReturnData === null) {
+        this.assert(
+          false,
+          `Expected transaction to be reverted with reason '${expectedReason}', but it reverted with an unknown reason'`,
+          // added just for the types, can't happen because the condition is always false
+          "<this message should never be shown, please open an issue if it is>",
+          `Transaction reverted with reason '${expectedReason}'`
+        );
+        return;
+      }
+
+      this.assert(
+        decodedReturnData.reason === expectedReason,
+        `Expected transaction to be reverted with reason '${expectedReason}', but it reverted with reason '${decodedReturnData.reason}'`,
+        `Expected transaction NOT to be reverted with reason '${expectedReason}', but it did`,
+        `Transaction reverted with reason '${expectedReason}'`
+      );
+    };
+
+    const derivedPromise = Promise.resolve(this._obj).then(onSuccess, onError);
+
+    (this as any).then = derivedPromise.then.bind(derivedPromise);
+    (this as any).catch = derivedPromise.catch.bind(derivedPromise);
+
+    return this;
+  });
+}
+
+interface DecodedReturnData {
+  kind: "Error";
+  reason: string;
+}
+
+function decodeReturnData(returnData: string): DecodedReturnData | null {
+  if (returnData.startsWith(ERROR_STRING_PREFIX)) {
+    const encodedReason = returnData.slice(ERROR_STRING_PREFIX.length);
+    let reason: string;
+    try {
+      reason = abi.decode(["string"], `0x${encodedReason}`)[0];
+    } catch (e: any) {
+      throw new HardhatChaiMatchersDecodingError(encodedReason, "string", e);
+    }
+
+    return {
+      kind: "Error",
+      reason,
+    };
+  }
+
+  return null;
 }
 
 async function getTransactionReceipt(hash: string) {
