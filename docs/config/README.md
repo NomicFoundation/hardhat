@@ -99,7 +99,6 @@ To use an HD Wallet with Hardhat you should set your network's `accounts` field 
 For example:
 
 ```js
-
 const accounts = {
   mnemonic: "test test test test test test test test test test test junk",
   path: "m/44'/60'/0'/0",
