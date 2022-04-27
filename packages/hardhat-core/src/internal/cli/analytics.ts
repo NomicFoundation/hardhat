@@ -1,8 +1,9 @@
+import type { request as RequestT } from "undici";
+
 import AbortController from "abort-controller";
 import debug from "debug";
 import os from "os";
 import qs from "qs";
-import { request } from "undici";
 import { v4 as uuid } from "uuid";
 
 import * as builtinTaskNames from "../../builtin-tasks/task-names";
@@ -157,6 +158,8 @@ export class Analytics {
   }
 
   private _sendHit(hit: RawAnalytics): [AbortAnalytics, Promise<void>] {
+    const { request } = require("undici") as { request: typeof RequestT };
+
     log(`Sending hit for ${hit.dp}`);
 
     const controller = new AbortController();

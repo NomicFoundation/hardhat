@@ -432,6 +432,13 @@ module.exports.communityPlugins = [
     tags: ["Solidity", "Testing"],
   },
   {
+    name: "hardhat-hethers",
+    author: "LimeChain",
+    authorUrl: "https://github.com/LimeChain/hardhat-hethers",
+    description: "Injects hethers into the Hardhat Runtime Environment",
+    tags: ["Hedera", "hethers"],
+  },
+  {
     name: "hardhat-sourcify",
     author: "Zoey T",
     authorUrl: "https://twitter.com/zzzzoey_t",
