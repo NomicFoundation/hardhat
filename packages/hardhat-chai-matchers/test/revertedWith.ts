@@ -101,6 +101,10 @@ describe("INTEGRATION: Reverted with", function () {
           "Expected transaction to be reverted with reason 'some reason', but it reverted with reason 'another reason'"
         );
         await expectAssertionError(
+          expect(matchers.panicAssert()).to.be.revertedWith("some reason"),
+          "Expected transaction to be reverted with reason 'some reason', but it reverted with panic code 0x01 (Assertion error)"
+        );
+        await expectAssertionError(
           expect(matchers.revertsWith("some reason")).to.not.be.revertedWith(
             "some reason"
           ),
@@ -121,6 +125,10 @@ describe("INTEGRATION: Reverted with", function () {
             "some reason"
           ),
           "Expected transaction to be reverted with reason 'some reason', but it reverted with reason 'another reason'"
+        );
+        await expectAssertionError(
+          expect(matchers.panicAssertView()).to.be.revertedWith("some reason"),
+          "Expected transaction to be reverted with reason 'some reason', but it reverted with panic code 0x01 (Assertion error)"
         );
         await expectAssertionError(
           expect(
@@ -145,6 +153,12 @@ describe("INTEGRATION: Reverted with", function () {
           "Expected transaction to be reverted with reason 'some reason', but it reverted with reason 'another reason'"
         );
         await expectAssertionError(
+          expect(matchers.estimateGas.panicAssert()).to.be.revertedWith(
+            "some reason"
+          ),
+          "Expected transaction to be reverted with reason 'some reason', but it reverted with panic code 0x01 (Assertion error)"
+        );
+        await expectAssertionError(
           expect(
             matchers.estimateGas.revertsWith("some reason")
           ).to.not.be.revertedWith("some reason"),
@@ -165,6 +179,12 @@ describe("INTEGRATION: Reverted with", function () {
             matchers.callStatic.revertsWith("another reason")
           ).to.be.revertedWith("some reason"),
           "Expected transaction to be reverted with reason 'some reason', but it reverted with reason 'another reason'"
+        );
+        await expectAssertionError(
+          expect(matchers.callStatic.panicAssert()).to.be.revertedWith(
+            "some reason"
+          ),
+          "Expected transaction to be reverted with reason 'some reason', but it reverted with panic code 0x01 (Assertion error)"
         );
         await expectAssertionError(
           expect(

@@ -1,9 +1,15 @@
 import { defaultAbiCoder as abi } from "@ethersproject/abi";
 import { AssertionError } from "chai";
+import type { BigNumber } from "ethers";
+
 import { HardhatChaiMatchersDecodingError } from "./errors";
+import { panicErrorCodeToReason } from "./panic";
 
 // method id of 'Error(string)'
 const ERROR_STRING_PREFIX = "0x08c379a0";
+
+// method id of 'Panic(uint256)'
+const PANIC_CODE_PREFIX = "0x4e487b71";
 
 export function supportReverted(Assertion: Chai.AssertionStatic) {
   Assertion.addProperty("reverted", function (this: any) {
@@ -118,6 +124,115 @@ export function supportReverted(Assertion: Chai.AssertionStatic) {
             `Expected transaction to be reverted with reason '${expectedReason}', but it reverted with reason '${decodedReturnData.reason}'`,
             `Expected transaction NOT to be reverted with reason '${expectedReason}', but it did`
           );
+        } else if (decodedReturnData.kind === "Panic") {
+          this.assert(
+            false,
+            `Expected transaction to be reverted with reason '${expectedReason}', but it reverted with panic code ${decodedReturnData.code.toHexString()} (${
+              decodedReturnData.description
+            })`
+          );
+        } else {
+          const _exhaustiveCheck: never = decodedReturnData;
+        }
+      };
+
+      const derivedPromise = Promise.resolve(this._obj).then(
+        onSuccess,
+        onError
+      );
+
+      this.then = derivedPromise.then.bind(derivedPromise);
+      this.catch = derivedPromise.catch.bind(derivedPromise);
+
+      return this;
+    }
+  );
+
+  Assertion.addMethod(
+    "revertedWithPanic",
+    function (this: any, expectedCode: unknown) {
+      const ethers = require("ethers");
+
+      // validate expected code
+      if (
+        expectedCode !== undefined &&
+        typeof expectedCode !== "number" &&
+        !ethers.BigNumber.isBigNumber(expectedCode)
+      ) {
+        const rejection = Promise.reject(
+          new AssertionError(
+            "Expected a number or BigNumber as the expected panic code"
+          )
+        );
+
+        this.then = rejection.then.bind(rejection);
+        this.catch = rejection.catch.bind(rejection);
+
+        return this;
+      }
+
+      const code: number | undefined = expectedCode as any;
+
+      let description: string | undefined;
+      let formattedPanicCode: string;
+      if (code === undefined) {
+        formattedPanicCode = "some panic code";
+      } else {
+        const codeBN = ethers.BigNumber.from(code);
+        description = panicErrorCodeToReason(codeBN);
+        formattedPanicCode = `panic code ${codeBN.toHexString()} (${description})`;
+      }
+
+      const onSuccess = () => {
+        this.assert(
+          false,
+          `Expected transaction to be reverted with ${formattedPanicCode}, but it didn't revert`
+        );
+      };
+
+      const onError = (error: any) => {
+        if (!(error instanceof Error)) {
+          throw new AssertionError("Expected an Error object");
+        }
+
+        const returnData = getReturnDataFromError(error);
+
+        const decodedReturnData = decodeReturnData(returnData);
+
+        if (decodedReturnData === null) {
+          this.assert(
+            false,
+            `Expected transaction to be reverted with ${formattedPanicCode}, but it reverted with an unknown reason`
+          );
+        } else if (decodedReturnData.kind === "Empty") {
+          this.assert(
+            false,
+            `Expected transaction to be reverted with ${formattedPanicCode}, but it reverted without a reason string`
+          );
+          return;
+        } else if (decodedReturnData.kind === "Error") {
+          this.assert(
+            false,
+            `Expected transaction to be reverted with ${formattedPanicCode}, but it reverted with reason '${decodedReturnData.reason}'`
+          );
+        } else if (decodedReturnData.kind === "Panic") {
+          if (code !== undefined) {
+            this.assert(
+              decodedReturnData.code.eq(code),
+              `Expected transaction to be reverted with ${formattedPanicCode}, but it reverted with panic code ${decodedReturnData.code.toHexString()} (${
+                decodedReturnData.description
+              })`,
+              `Expected transaction NOT to be reverted with ${formattedPanicCode}, but it did`
+            );
+          } else {
+            this.assert(
+              true,
+              null,
+              `Expected transaction NOT to be reverted with ${formattedPanicCode}, but it reverted with panic code ${decodedReturnData.code.toHexString()} (${
+                decodedReturnData.description
+              })`
+            );
+          }
         } else {
           const _exhaustiveCheck: never = decodedReturnData;
         }
@@ -167,6 +282,13 @@ export function supportReverted(Assertion: Chai.AssertionStatic) {
           null,
           "Expected transaction NOT to be reverted without a reason string, but it did"
         );
+      } else if (decodedReturnData.kind === "Panic") {
+        this.assert(
+          false,
+          `Expected transaction to be reverted without a reason string, but it reverted with panic code ${decodedReturnData.code.toHexString()} (${
+            decodedReturnData.description
+          })`
+        );
       } else {
         const _exhaustiveCheck: never = decodedReturnData;
       }
@@ -183,6 +305,11 @@ export function supportReverted(Assertion: Chai.AssertionStatic) {
 
 function getReturnDataFromError(error: any): string {
   const errorData = (error as any).data;
+
+  if (errorData === undefined) {
+    throw new AssertionError("Expected Error object to contain return data");
+  }
+
   const returnData = typeof errorData === "string" ? errorData : errorData.data;
 
   if (returnData === undefined || typeof returnData !== "string") {
@@ -199,6 +326,11 @@ type DecodedReturnData =
     }
   | {
       kind: "Empty";
+    }
+  | {
+      kind: "Panic";
+      code: BigNumber;
+      description: string;
     };
 
 function decodeReturnData(returnData: string): DecodedReturnData | null {
@@ -216,6 +348,22 @@ function decodeReturnData(returnData: string): DecodedReturnData | null {
     return {
       kind: "Error",
       reason,
+    };
+  } else if (returnData.startsWith(PANIC_CODE_PREFIX)) {
+    const encodedReason = returnData.slice(PANIC_CODE_PREFIX.length);
+    let code: BigNumber;
+    try {
+      code = abi.decode(["uint256"], `0x${encodedReason}`)[0];
+    } catch (e: any) {
+      throw new HardhatChaiMatchersDecodingError(encodedReason, "uint256", e);
+    }
+
+    const description = panicErrorCodeToReason(code) ?? "unknown panic code";
+
+    return {
+      kind: "Panic",
+      code,
+      description,
     };
   }
 

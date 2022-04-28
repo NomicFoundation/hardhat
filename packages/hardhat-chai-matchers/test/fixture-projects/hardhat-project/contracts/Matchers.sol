@@ -30,4 +30,22 @@ contract Matchers {
   function revertsWithoutReasonStringView() public pure {
     require(false);
   }
+
+  function panicAssert() public {
+    x++;
+    assert(false);
+  }
+
+  function panicAssertView() public {
+    x++;
+    assert(false);
+  }
+
+  function panicUnderflow(uint n) public {
+    n--;
+  }
+
+  function panicUnderflowView(uint n) public pure {
+    n--;
+  }
 }
