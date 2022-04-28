@@ -1,6 +1,7 @@
+import type { BigNumber } from "ethers";
+
 import { defaultAbiCoder as abi } from "@ethersproject/abi";
 import { AssertionError } from "chai";
-import type { BigNumber } from "ethers";
 
 import { HardhatChaiMatchersDecodingError } from "./errors";
 import { panicErrorCodeToReason } from "./panic";
@@ -183,7 +184,7 @@ export function supportReverted(Assertion: Chai.AssertionStatic) {
         formattedPanicCode = "some panic code";
       } else {
         const codeBN = ethers.BigNumber.from(code);
-        description = panicErrorCodeToReason(codeBN);
+        description = panicErrorCodeToReason(codeBN) ?? "unknown panic code";
         formattedPanicCode = `panic code ${codeBN.toHexString()} (${description})`;
       }
 
