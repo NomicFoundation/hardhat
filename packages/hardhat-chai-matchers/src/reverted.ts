@@ -63,6 +63,10 @@ export function supportReverted(Assertion: Chai.AssertionStatic) {
         throw new AssertionError("Expected an Error object");
       }
 
+      if (!isRevertError(error)) {
+        return Promise.reject(error);
+      }
+
       this.assert(true, null, "Expected transaction NOT to be reverted");
     };
 
@@ -301,6 +305,15 @@ export function supportReverted(Assertion: Chai.AssertionStatic) {
 
     return this;
   });
+}
+
+function isRevertError(error: any): boolean {
+  try {
+    getReturnDataFromError(error);
+    return true;
+  } catch (e) {
+    return false;
+  }
 }
 
 function getReturnDataFromError(error: any): string {
