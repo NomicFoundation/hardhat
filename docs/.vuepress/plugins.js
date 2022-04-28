@@ -460,7 +460,7 @@ module.exports.communityPlugins = [
     description:
       "Handy set of utilities for testing contracts in Hardhat projects",
     tags: ["testing", "solidity"],
-  },
+  }
 ];
 
 module.exports.officialPlugins = [
