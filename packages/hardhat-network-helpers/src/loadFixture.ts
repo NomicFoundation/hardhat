@@ -1,5 +1,7 @@
 import type { SnapshotRestorer } from "./helpers/takeSnapshot";
 
+import { FixtureSnapshotError, InvalidSnapshotError } from "./errors";
+
 type Fixture<T> = () => Promise<T>;
 
 interface Snapshot<T> {
@@ -29,7 +31,15 @@ export async function loadFixture<T>(fixture: Fixture<T>): Promise<T> {
   const { takeSnapshot } = await import("./helpers/takeSnapshot");
 
   if (snapshot !== undefined) {
-    await snapshot.restorer.restore();
+    try {
+      await snapshot.restorer.restore();
+    } catch (e) {
+      if (e instanceof InvalidSnapshotError) {
+        throw new FixtureSnapshotError(e);
+      }
+
+      throw e;
+    }
 
     return snapshot.data;
   } else {

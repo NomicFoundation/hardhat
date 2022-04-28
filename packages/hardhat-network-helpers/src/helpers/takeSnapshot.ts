@@ -1,3 +1,4 @@
+import { InvalidSnapshotError } from "../errors";
 import { getHardhatProvider } from "../utils";
 
 export interface SnapshotRestorer {
@@ -29,11 +30,7 @@ export async function takeSnapshot(): Promise<SnapshotRestorer> {
       });
 
       if (!reverted) {
-        // TODO better error message, and maybe a link to an explanation about
-        // what's going on
-        throw new Error(
-          "[hardhat-network-helpers] Trying to restore an invalid snapshot."
-        );
+        throw new InvalidSnapshotError();
       }
 
       // re-take the snapshot so that `restore` can be called again
