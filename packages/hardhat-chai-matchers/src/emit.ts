@@ -1,5 +1,22 @@
-import { Contract, providers, utils } from "ethers";
-import { waitForPendingTransaction } from "./misc/transaction";
+import { Contract, providers, Transaction, utils } from "ethers";
+
+async function waitForPendingTransaction(
+  tx: Promise<Transaction> | Transaction | string,
+  provider: providers.Provider
+) {
+  let hash: string | undefined;
+  if (tx instanceof Promise) {
+    ({ hash } = await tx);
+  } else if (typeof tx === "string") {
+    hash = tx;
+  } else {
+    ({ hash } = tx);
+  }
+  if (hash === undefined) {
+    throw new Error(`${JSON.stringify(tx)} is not a valid transaction`);
+  }
+  return provider.waitForTransaction(hash);
+}
 
 export function supportEmit(Assertion: Chai.AssertionStatic) {
   const filterLogsWithTopics = (
