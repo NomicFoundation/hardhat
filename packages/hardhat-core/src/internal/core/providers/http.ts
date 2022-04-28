@@ -175,7 +175,7 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
             : this._timeout,
         headers: {
           "Content-Type": "application/json",
-          "User-Agent": `hardhat ${hardhatVersion}`,
+          "User-Agent": `hardhat ${hardhatVersion ?? "(unknown version)"}`,
           Authorization: this._authHeader,
           ...this._extraHeaders,
         },

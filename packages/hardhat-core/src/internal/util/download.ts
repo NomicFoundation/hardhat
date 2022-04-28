@@ -47,7 +47,7 @@ export async function download(
     maxRedirections: 10,
     method: "GET",
     headers: {
-      "User-Agent": `hardhat ${hardhatVersion}`,
+      "User-Agent": `hardhat ${hardhatVersion ?? "(unknown version)"}`,
     },
   });
 
