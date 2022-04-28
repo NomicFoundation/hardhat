@@ -110,7 +110,7 @@ function overwriteBigNumberFunction(
       } else if (method === "lte") {
         return lhs <= rhs;
       } else {
-        throw new Error(`Unknown comparison operation ${method}`);
+        throw new Error(`Unknown comparison operation ${method as any}`);
       }
     }
     if (chaiUtils.flag(this, "doLength") && isBigNumber(actualArg)) {

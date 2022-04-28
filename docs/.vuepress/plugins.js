@@ -431,6 +431,36 @@ module.exports.communityPlugins = [
     description: "Automatically expose internal Solidity functions for testing",
     tags: ["Solidity", "Testing"],
   },
+  {
+    name: "hardhat-hethers",
+    author: "LimeChain",
+    authorUrl: "https://github.com/LimeChain/hardhat-hethers",
+    description: "Injects hethers into the Hardhat Runtime Environment",
+    tags: ["Hedera", "hethers"],
+  },
+  {
+    name: "hardhat-sourcify",
+    author: "Zoey T",
+    authorUrl: "https://twitter.com/zzzzoey_t",
+    description: "A plugin for submitting code to Sourcify",
+    tags: ["Sourcify", "Verification"],
+  },
+  {
+    name: "hardhat-awesome-cli",
+    author: "Marc-Aurele Besner",
+    authorUrl: "https://github.com/marc-aurele-besner",
+    description:
+      "Hardhat made awesome with a flexible CLI to help run tests, scripts, deploy Mock contracts and more.",
+    tags: ["CLI", "Testing", "Tasks", "Config"],
+  },
+  {
+    name: "hardhat-test-utils",
+    author: "Naveen Sahu",
+    authorUrl: "https://twitter.com/heyNvN",
+    description:
+      "Handy set of utilities for testing contracts in Hardhat projects",
+    tags: ["testing", "solidity"],
+  },
 ];
 
 module.exports.officialPlugins = [
@@ -513,6 +543,7 @@ module.exports.officialPlugins = [
     description: "Adds support to compile Vyper smart contracts",
     tags: ["Vyper", "Compiler"],
   },
+  // Don't add community plugins here. They should be placed in the other array.
 ].map((p) => ({
   ...p,
   normalizedName: p.name.split("/").join("-").replace(/^@/, ""),
