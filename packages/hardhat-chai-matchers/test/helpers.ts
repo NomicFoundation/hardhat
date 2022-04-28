@@ -62,6 +62,12 @@ export function useEnvironmentWithNode(fixtureProjectName: string) {
       }
     );
 
+    // start hardhat connected to the node
+    process.env.HARDHAT_NETWORK = "localhost";
+
+    this.hre = require("hardhat");
+    await this.hre.run("compile", { quiet: true });
+
     // wait until the node is ready
     return new Promise((resolve) => {
       this.hhNodeProcess.stdout.on("data", (data: any) => {
@@ -75,19 +81,10 @@ export function useEnvironmentWithNode(fixtureProjectName: string) {
     });
   });
 
-  beforeEach("start hardhat connected to the node", async function () {
-    process.env.HARDHAT_NETWORK = "localhost";
-
-    this.hre = require("hardhat");
-    await this.hre.run("compile", { quiet: true });
-  });
-
-  afterEach(async function () {
-    resetHardhatContext();
-    delete process.env.HARDHAT_NETWORK;
-  });
-
   after(async function () {
+    resetHardhatContext();
+
+    delete process.env.HARDHAT_NETWORK;
     delete process.env.HARDHAT_NODE_PORT;
 
     this.hhNodeProcess.kill();
