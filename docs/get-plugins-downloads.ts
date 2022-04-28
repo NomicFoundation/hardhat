@@ -1,12 +1,13 @@
 import fs from "fs";
-import fetch from "node-fetch";
+import { request } from "undici";
 
 const plugins = require("./.vuepress/plugins");
 
 async function getLastMonthDownloads(npmPackage: string): Promise<number> {
-  const res = await fetch(
+  const res = await request(
     `https://api.npmjs.org/downloads/point/last-month/${npmPackage}`,
     {
+      method: "GET",
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
@@ -14,11 +15,11 @@ async function getLastMonthDownloads(npmPackage: string): Promise<number> {
     }
   );
 
-  if (res.status === 404) {
+  if (res.statusCode === 404) {
     return 0;
   }
 
-  const json = await res.json();
+  const json = await res.body.json() as { downloads: number };
 
   return json.downloads;
 }

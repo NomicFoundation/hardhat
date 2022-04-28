@@ -19,7 +19,7 @@ Copy and paste these commands in a terminal:
 ```
 sudo apt update
 sudo apt install curl git
-curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
+curl -sL https://deb.nodesource.com/setup_16.x | sudo -E bash -
 sudo apt install nodejs
 ```
 
@@ -30,23 +30,23 @@ Make sure you have `git` installed. Otherwise, follow [these instructions](https
 There are multiple ways of installing Node.js on MacOS. We will be using [Node Version Manager (nvm)](http://github.com/creationix/nvm). Copy and paste these commands in a terminal:
 
 ```
-curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.35.2/install.sh | bash
-nvm install 12
-nvm use 12
-nvm alias default 12
+curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.39.1/install.sh | bash
+nvm install 16
+nvm use 16
+nvm alias default 16
 npm install npm --global # Upgrade npm to the latest version
 ```
 
 ### Windows
 
-Installing Node.js on Windows requires a few manual steps. We'll install git, Node.js 12.x and npm. Download and run these:
+Installing Node.js on Windows requires a few manual steps. We'll install git, Node.js 16.x and npm. Download and run these:
 
 1. [Git's installer for Windows](https://git-scm.com/download/win)
-2. `node-v12.XX.XX-x64.msi` from [here](https://nodejs.org/dist/latest-v12.x)
+2. `node-v16.XX.XX-x64.msi` from [here](https://nodejs.org/dist/latest-v16.x)
 
 ## Upgrading your Node.js installation
 
-If your version of Node.js is older than `12.0` follow the instructions below to upgrade.
+If your version of Node.js is older than `16.0` follow the instructions below to upgrade.
 
 ### Linux
 
@@ -58,12 +58,12 @@ If your version of Node.js is older than `12.0` follow the instructions below to
 
 ### MacOS
 
-You can change your Node.js version using [nvm](http://github.com/creationix/nvm). To upgrade to Node.js `12.x` run these in a terminal:
+You can change your Node.js version using [nvm](http://github.com/creationix/nvm). To upgrade to Node.js `16.x` run these in a terminal:
 
 ```
-nvm install 12
-nvm use 12
-nvm alias default 12
+nvm install 16
+nvm use 16
+nvm alias default 16
 npm install npm --global # Upgrade npm to the latest version
 ```
 

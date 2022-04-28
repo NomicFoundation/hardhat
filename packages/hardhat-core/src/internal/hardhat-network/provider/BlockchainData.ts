@@ -15,6 +15,7 @@ interface Reservation {
   interval: BN;
   previousBlockStateRoot: Buffer;
   previousBlockTotalDifficulty: BN;
+  previousBlockBaseFeePerGas: BN | undefined;
 }
 
 export class BlockchainData {
@@ -33,7 +34,8 @@ export class BlockchainData {
     count: BN,
     interval: BN,
     previousBlockStateRoot: Buffer,
-    previousBlockTotalDifficulty: BN
+    previousBlockTotalDifficulty: BN,
+    previousBlockBaseFeePerGas: BN | undefined
   ) {
     const reservation: Reservation = {
       first,
@@ -41,6 +43,7 @@ export class BlockchainData {
       interval,
       previousBlockStateRoot,
       previousBlockTotalDifficulty,
+      previousBlockBaseFeePerGas,
     };
     this._blockReservations.push(reservation);
   }
@@ -188,7 +191,7 @@ export class BlockchainData {
     const reservationIndex = this._findBlockReservation(blockNumber);
     assertHardhatInvariant(
       reservationIndex !== -1,
-      `No reservation to fill for block number ${blockNumber}`
+      `No reservation to fill for block number ${blockNumber.toString()}`
     );
 
     // capture the timestamp before removing the reservation:
@@ -217,6 +220,7 @@ export class BlockchainData {
           header: {
             number: blockNumber,
             stateRoot: oldReservation.previousBlockStateRoot,
+            baseFeePerGas: oldReservation.previousBlockBaseFeePerGas,
             timestamp,
           },
         },

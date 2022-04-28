@@ -1,7 +1,9 @@
+import type { Client as ClientT } from "undici";
+import type WsT from "ws";
+
 import debug from "debug";
 import http, { Server } from "http";
 import { AddressInfo } from "net";
-import type WsT from "ws";
 
 import {
   EIP1193Provider,
@@ -42,9 +44,21 @@ export class JsonRpcServer implements IJsonRpcServer {
   }
 
   public getProvider = (name = "json-rpc"): EIP1193Provider => {
-    const { address, port } = this._httpServer.address() as AddressInfo; // TCP sockets return AddressInfo
+    const { Client } = require("undici") as { Client: typeof ClientT };
+    const { address, port } = this._httpServer.address() as AddressInfo;
 
-    return new HttpProvider(`http://${address}:${port}/`, name);
+    const dispatcher = new Client(`http://${address}:${port}/`, {
+      keepAliveTimeout: 10,
+      keepAliveMaxTimeout: 10,
+    });
+
+    return new HttpProvider(
+      `http://${address}:${port}/`,
+      name,
+      {},
+      20000,
+      dispatcher
+    );
   };
 
   public listen = (): Promise<{ address: string; port: number }> => {

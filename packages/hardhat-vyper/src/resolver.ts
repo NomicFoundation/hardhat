@@ -1,3 +1,5 @@
+import type { FileContent, ResolvedFile as IResolvedFile } from "./types";
+
 import path from "path";
 import fsExtra from "fs-extra";
 
@@ -10,7 +12,6 @@ import { createNonCryptographicHashBasedIdentifier } from "hardhat/internal/util
 import { HardhatError } from "hardhat/internal/core/errors";
 import { ERRORS } from "hardhat/internal/core/errors-list";
 
-import type { FileContent, ResolvedFile as IResolvedFile } from "./types";
 import { VyperPluginError } from "./util";
 import { Parser } from "./parser";
 

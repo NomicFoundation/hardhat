@@ -1,5 +1,11 @@
 # @nomiclabs/hardhat-truffle5
 
+## 2.0.5
+
+### Patch Changes
+
+- 01d675df: Add support for artifacts type extensibility
+
 ## 2.0.4
 
 ### Patch Changes

@@ -4,6 +4,9 @@ import type { BigNumber as BigNumberJsType } from "bignumber.js";
 // eslint-disable-next-line import/no-extraneous-dependencies
 import type { default as BNType } from "bn.js";
 
+import { HardhatError } from "../internal/core/errors";
+import { ERRORS } from "../internal/core/errors-list";
+
 export function normalizeToBigInt(
   source:
     | number
@@ -13,31 +16,37 @@ export function normalizeToBigInt(
     | BigNumberJsType
     | string
 ): bigint {
-  if (isBigNumber(source)) {
-    return BigInt(source.toString());
-  } else if (
-    typeof source === "string" ||
-    typeof source === "number" ||
-    typeof source === "bigint"
-  ) {
-    if (typeof source === "number") {
+  switch (typeof source) {
+    case "object":
+      if (isBigNumber(source)) {
+        return BigInt(source.toString());
+      } else {
+        throw new HardhatError(ERRORS.GENERAL.INVALID_BIG_NUMBER, {
+          message: `Value ${JSON.stringify(
+            source
+          )} is of type "object" but is not an instanceof one of the known big number object types.`,
+        });
+      }
+    case "number":
       if (!Number.isInteger(source)) {
-        // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
-        throw new RangeError(
-          `The number ${source} cannot be converted to a BigInt because it is not an integer`
-        );
+        throw new HardhatError(ERRORS.GENERAL.INVALID_BIG_NUMBER, {
+          message: `${source} is not an integer`,
+        });
       }
       if (!Number.isSafeInteger(source)) {
-        // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
-        throw new RangeError(
-          `Cannot convert unsafe integer ${source} to BigInt. Consider using BigInt(${source}) instead. For more details, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isSafeInteger`
-        );
+        throw new HardhatError(ERRORS.GENERAL.INVALID_BIG_NUMBER, {
+          message: `Integer ${source} is unsafe. Consider using ${source}n instead. For more details, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isSafeInteger`,
+        });
       }
-    }
-    return BigInt(source);
-  } else {
-    // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
-    throw new Error(`cannot convert ${typeof source} to BigInt`);
+    // `break;` intentionally omitted. fallthrough desired.
+    case "string":
+    case "bigint":
+      return BigInt(source);
+    default:
+      const _exhaustiveCheck: never = source;
+      throw new HardhatError(ERRORS.GENERAL.INVALID_BIG_NUMBER, {
+        message: `Unsupported type ${typeof source}`,
+      });
   }
 }
 

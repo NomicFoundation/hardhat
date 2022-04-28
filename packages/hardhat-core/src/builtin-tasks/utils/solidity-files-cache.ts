@@ -1,11 +1,12 @@
+import type { LoDashStatic } from "lodash";
+import type { ProjectPathsConfig, SolcConfig } from "../../types";
+
 import debug from "debug";
 import fsExtra from "fs-extra";
 import * as t from "io-ts";
-import type { LoDashStatic } from "lodash";
 import * as path from "path";
 
 import { SOLIDITY_FILES_CACHE_FILENAME } from "../../internal/constants";
-import type { ProjectPathsConfig, SolcConfig } from "../../types";
 
 const log = debug("hardhat:core:tasks:compile:cache");
 

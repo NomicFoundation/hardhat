@@ -1,10 +1,12 @@
+import type { Artifacts as ArtifactsImpl } from "hardhat/internal/artifacts";
+import type { Artifacts } from "hardhat/types/artifacts";
+import type { VyperOutput, VyperBuild } from "./types";
+
 import * as os from "os";
 import path from "path";
 import fsExtra from "fs-extra";
 import semver from "semver";
 
-import type { Artifacts as ArtifactsImpl } from "hardhat/internal/artifacts";
-import type { Artifacts } from "hardhat/types/artifacts";
 import { glob } from "hardhat/internal/util/glob";
 import { getCompilersDir } from "hardhat/internal/util/global-dir";
 import { localPathToSourceName } from "hardhat/utils/source-names";
@@ -12,7 +14,6 @@ import { getFullyQualifiedName } from "hardhat/utils/contract-names";
 import { TASK_COMPILE_GET_COMPILATION_TASKS } from "hardhat/builtin-tasks/task-names";
 import { extendConfig, subtask, types } from "hardhat/config";
 
-import type { VyperOutput, VyperBuild } from "./types";
 import {
   TASK_COMPILE_VYPER,
   TASK_COMPILE_VYPER_RUN_BINARY,

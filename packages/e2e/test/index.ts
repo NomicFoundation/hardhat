@@ -33,7 +33,7 @@ describe("e2e tests", function () {
       assert.isTrue(fsExtra.existsSync(artifactsDir));
 
       // check stdout
-      assert.match(stdout, /Solidity compilation finished successfully/);
+      assert.match(stdout, /Compiled \d+ Solidity files? successfully/);
 
       // hh clean
       const { code: hhCleanCode2 } = shell.exec(`${hardhatBinary} clean`);
@@ -54,13 +54,50 @@ describe("e2e tests", function () {
       // check stdout
 
       // check we get passing runs
-      assert.match(stdout, /1 passing/);
+      assert.match(stdout, /2 passing/);
       // check we get no runs without tests
       assert.notMatch(
         stdout,
         /0 passing/,
         "A test run occured with 0 tests - potential caching issue"
       );
+
+      // hh clean
+      const { code: hhCleanCode2 } = shell.exec(`${hardhatBinary} clean`);
+      assert.equal(hhCleanCode2, 0);
+    });
+
+    it("the test task should accept test files", async function () {
+      // hh clean
+      const { code: hhCleanCode1 } = shell.exec(`${hardhatBinary} clean`);
+      assert.equal(hhCleanCode1, 0);
+
+      // hh test without ./
+      const { code: testRunCode1 } = shell.exec(
+        `${hardhatBinary} test test/simple.js`
+      );
+      assert.equal(testRunCode1, 0);
+
+      // hh test with ./
+      const { code: testRunCode2 } = shell.exec(
+        `${hardhatBinary} test ./test/simple.js`
+      );
+      assert.equal(testRunCode2, 0);
+    });
+
+    it("should run tests in parallel", function () {
+      // hh clean
+      const { code: hhCleanCode1 } = shell.exec(`${hardhatBinary} clean`);
+      assert.equal(hhCleanCode1, 0);
+
+      // hh test --parallel
+      const { code: hhCompileCode, stdout } = shell.exec(
+        `${hardhatBinary} test --parallel`
+      );
+      assert.equal(hhCompileCode, 0);
+
+      // check we get passing runs
+      assert.match(stdout, /2 passing/);
 
       // hh clean
       const { code: hhCleanCode2 } = shell.exec(`${hardhatBinary} clean`);

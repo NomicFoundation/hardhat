@@ -2,7 +2,7 @@ name: Hardhat Network Forking Functionality CI
 
 on:
   push:
-    branches: [$default-branch]
+    branches: [$default-branch, pre-release-testing-branch]
     paths:
       - "packages/hardhat-core/**"
       - "packages/hardhat-common/**"

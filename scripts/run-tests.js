@@ -17,18 +17,10 @@ shell.exec("yarn build");
 
 // ** check for packages to be ignored ** //
 
-// only run Vyper tests in Linux CI environment,
-// and ignore if using a Windows machine (since Docker Desktop is required, only available windows Pro)
-const shouldIgnoreVyperTests = (isGithubActions && !isLinux) || isWindows;
-
 // Solpp tests don't work in Windows
 const shouldIgnoreSolppTests = isWindows;
 
 const ignoredPackagesList = [];
-
-if (shouldIgnoreVyperTests) {
-  ignoredPackagesList.push("--exclude @nomiclabs/hardhat-vyper");
-}
 
 if (shouldIgnoreSolppTests) {
   ignoredPackagesList.push("--exclude @nomiclabs/hardhat-solpp");

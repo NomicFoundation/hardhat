@@ -1,6 +1,6 @@
 {
   "name": "@nomiclabs/hardhat-waffle",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "Hardhat plugin to test smart contracts with Waffle",
   "homepage": "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-waffle",
   "repository": "github:nomiclabs/hardhat",
@@ -34,7 +34,7 @@
     "@nomiclabs/hardhat-ethers": "^2.0.0",
     "@types/chai": "^4.2.0",
     "@types/fs-extra": "^5.1.0",
-    "@types/mocha": "^9.0.0",
+    "@types/mocha": "^9.1.0",
     "@types/node": "^12.0.0",
     "@typescript-eslint/eslint-plugin": "4.29.2",
     "@typescript-eslint/parser": "4.29.2",
@@ -46,7 +46,7 @@
     "ethereum-waffle": "^3.2.0",
     "ethers": "^5.0.0",
     "hardhat": "^2.0.0",
-    "mocha": "^7.2.0",
+    "mocha": "^9.2.0",
     "prettier": "2.4.1",
     "rimraf": "^3.0.2",
     "ts-node": "^8.1.0",
@@ -54,12 +54,12 @@
   },
   "peerDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.0",
-    "ethers": "^5.0.0",
     "ethereum-waffle": "^3.2.0",
+    "ethers": "^5.0.0",
     "hardhat": "^2.0.0"
   },
   "dependencies": {
-    "@types/web3": "1.0.19",
-    "@types/sinon-chai": "^3.2.3"
+    "@types/sinon-chai": "^3.2.3",
+    "@types/web3": "1.0.19"
   }
 }
