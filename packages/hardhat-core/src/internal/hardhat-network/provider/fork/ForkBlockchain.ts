@@ -97,13 +97,15 @@ export class ForkBlockchain
     count: BN,
     interval: BN,
     previousBlockStateRoot: Buffer,
-    previousBlockTotalDifficulty: BN
+    previousBlockTotalDifficulty: BN,
+    previousBlockBaseFeePerGas: BN | undefined
   ) {
     super.reserveBlocks(
       count,
       interval,
       previousBlockStateRoot,
-      previousBlockTotalDifficulty
+      previousBlockTotalDifficulty,
+      previousBlockBaseFeePerGas
     );
     this._latestBlockNumber = this._latestBlockNumber.add(count);
   }
@@ -293,7 +295,9 @@ export class ForkBlockchain
           rpcToTxData(transaction) as FeeMarketEIP1559TxData
         );
       } else {
-        throw new InternalError(`Unknown transaction type ${transaction.type}`);
+        throw new InternalError(
+          `Unknown transaction type ${transaction.type.toString()}`
+        );
       }
 
       block.transactions.push(tx);

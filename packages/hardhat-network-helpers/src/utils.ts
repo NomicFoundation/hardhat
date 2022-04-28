@@ -102,7 +102,7 @@ export function assertTxHash(hexString: string): void {
 export function assertValidTargetBlock(target: BN, latest: BN): void {
   if (!target.gt(latest)) {
     throw new HardhatNetworkHelpersError(
-      `Requested target block ${target} is not greater than current block height.`
+      `Requested target block ${target.toString()} is not greater than current block height.`
     );
   }
 }

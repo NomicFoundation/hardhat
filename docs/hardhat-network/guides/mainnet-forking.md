@@ -46,7 +46,7 @@ networks: {
   hardhat: {
     forking: {
       url: "https://eth-mainnet.alchemyapi.io/v2/<key>",
-      blockNumber: 11095000
+      blockNumber: 14390000
     }
   }
 }
@@ -55,7 +55,7 @@ networks: {
 If you are using the `node` task, you can also specify a block number with the `--fork-block-number` flag:
 
 ```
-npx hardhat node --fork https://eth-mainnet.alchemyapi.io/v2/<key> --fork-block-number 11095000
+npx hardhat node --fork https://eth-mainnet.alchemyapi.io/v2/<key> --fork-block-number 14390000
 ```
 
 ## Customizing Hardhat Network's behavior
@@ -80,7 +80,7 @@ await network.provider.request({
     {
       forking: {
         jsonRpcUrl: "https://eth-mainnet.alchemyapi.io/v2/<key>",
-        blockNumber: 11095000,
+        blockNumber: 14390000,
       },
     },
   ],

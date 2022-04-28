@@ -235,9 +235,15 @@ const _readWsRequest = (msg: string): JsonRpcRequest => {
 };
 
 const _handleError = (error: any): JsonRpcResponse => {
+  // extract the relevant fields from the error before wrapping it
   let txHash: string | undefined;
+  let returnData: string | undefined;
+
   if (error.transactionHash !== undefined) {
     txHash = error.transactionHash;
+  }
+  if (error.data !== undefined) {
+    returnData = error.data;
   }
 
   // In case of non-hardhat error, treat it as internal and associate the appropriate error code.
@@ -254,10 +260,16 @@ const _handleError = (error: any): JsonRpcResponse => {
     },
   };
 
+  response.error.data = {
+    message: error.message,
+  };
+
   if (txHash !== undefined) {
-    response.error.data = {
-      txHash,
-    };
+    response.error.data.txHash = txHash;
+  }
+
+  if (returnData !== undefined) {
+    response.error.data.data = returnData;
   }
 
   return response;
