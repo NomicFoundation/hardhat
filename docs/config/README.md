@@ -104,20 +104,19 @@ const accounts = {
   path: "m/44'/60'/0'/0",
   initialIndex: 0,
   count: 20,
-  passphrase: ""
+  passphrase: "",
 };
 
 module.exports = {
   defaultNetwork: "rinkeby",
   networks: {
-    hardhat: {
-    },
+    hardhat: {},
     rinkeby: {
       url: "https://eth-rinkeby.alchemyapi.io/v2/123abc123abc123abc123abc123abcde",
-      accounts
-    }
-  }
-}
+      accounts,
+    },
+  },
+};
 ```
 
 ### Default networks object
