@@ -4,9 +4,9 @@ import {
   runFailedAsserts,
   useEnvironment,
   useEnvironmentWithNode,
-} from "./helpers";
+} from "../helpers";
 
-import "../src";
+import "../../src";
 
 describe("INTEGRATION: Reverted", function () {
   describe("with the in-process hardhat network", function () {
@@ -81,13 +81,13 @@ describe("INTEGRATION: Reverted", function () {
       });
 
       it("invalid string", async function () {
-        await expectAssertionError(
-          expect("0x123").to.be.reverted,
+        await expect(expect("0x123").to.be.reverted).to.be.rejectedWith(
+          TypeError,
           "Expected a valid transaction hash, but got '0x123'"
         );
 
-        await expectAssertionError(
-          expect("0x123").to.not.be.reverted,
+        await expect(expect("0x123").to.not.be.reverted).to.be.rejectedWith(
+          TypeError,
           "Expected a valid transaction hash, but got '0x123'"
         );
       });
@@ -113,13 +113,17 @@ describe("INTEGRATION: Reverted", function () {
       });
 
       it("promise of an invalid string", async function () {
-        await expectAssertionError(
-          expect(Promise.resolve("0x123")).to.be.reverted,
+        await expect(
+          expect(Promise.resolve("0x123")).to.be.reverted
+        ).to.be.rejectedWith(
+          TypeError,
           "Expected a valid transaction hash, but got '0x123'"
         );
 
-        await expectAssertionError(
-          expect(Promise.resolve("0x123")).to.not.be.reverted,
+        await expect(
+          expect(Promise.resolve("0x123")).to.not.be.reverted
+        ).to.be.rejectedWith(
+          TypeError,
           "Expected a valid transaction hash, but got '0x123'"
         );
       });

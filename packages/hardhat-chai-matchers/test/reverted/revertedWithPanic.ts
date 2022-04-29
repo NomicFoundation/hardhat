@@ -1,13 +1,13 @@
 import { AssertionError, expect } from "chai";
 
-import "../src";
-import { PANIC_CODES } from "../src/panic";
+import "../../src";
+import { PANIC_CODES } from "../../src/reverted/panic";
 import {
   runSuccessfulAsserts,
   runFailedAsserts,
   useEnvironment,
   useEnvironmentWithNode,
-} from "./helpers";
+} from "../helpers";
 
 describe("INTEGRATION: Reverted with panic", function () {
   describe("with the in-process hardhat network", function () {
@@ -253,9 +253,34 @@ describe("INTEGRATION: Reverted with panic", function () {
       it("non-number as expectation", async function () {
         const { hash } = await mineSuccessfulTransaction(this.hre);
 
-        await expectAssertionError(
-          expect(hash).to.be.revertedWithPanic("10" as any),
+        expect(() =>
+          // @ts-expect-error
+          expect(hash).to.be.revertedWithPanic("10")
+        ).to.throw(
+          TypeError,
           "Expected a number or BigNumber as the expected panic code"
+        );
+      });
+
+      it("errors that are not related to a reverted transaction", async function () {
+        // use an address that almost surely doesn't have balance
+        const randomPrivateKey =
+          "0xc5c587cc6e48e9692aee0bf07474118e6d830c11905f7ec7ff32c09c99eba5f9";
+        const signer = new this.hre.ethers.Wallet(
+          randomPrivateKey,
+          this.hre.ethers.provider
+        );
+
+        // this transaction will fail because of lack of funds, not because of a
+        // revert
+        await expect(
+          expect(
+            matchers.connect(signer).revertsWithoutReasonString({
+              gasLimit: 1_000_000,
+            })
+          ).to.not.be.reverted
+        ).to.be.eventually.rejectedWith(
+          "sender doesn't have enough funds to send tx"
         );
       });
     });
