@@ -143,14 +143,17 @@ describe(".to.emit (contract events)", () => {
             .withArgs(string1);
         });
 
-        it.skip("Should fail when the input argument doesn't match the event argument", async function () {
+        it("Should fail when the input argument doesn't match the event argument", async function () {
+          // this error message is terrible. should improve the implementation.
           await expect(
             expect(contract.emitIndexedString(string1))
               .to.emit(contract, "WithIndexedStringArg")
               .withArgs(string2)
           ).to.be.eventually.rejectedWith(
             AssertionError,
-            `expected '${string1}' to equal '${string2}'`
+            `expected '${ethers.utils.keccak256(
+              string1Bytes
+            )}' to be one of [ Array(2) ]`
           );
         });
 
