@@ -54,7 +54,7 @@ contract Events {
       );
   }
 
-  function doNotEmit() pure public {
-  }
+  function doNotEmit() public {}
 
+  function doNotEmitPure() pure public {}
 }

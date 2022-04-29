@@ -26,6 +26,31 @@ describe(".to.emit (contract events)", () => {
       ).deploy();
     });
 
+    it("Should fail when expecting an event that's not in the contract", async function () {
+      await expect(
+        expect(events.doNotEmit()).to.emit(events, "NonexistentEvent")
+      ).to.be.eventually.rejectedWith(
+        AssertionError,
+        "Expected event \"NonexistentEvent\" to be emitted, but it doesn't exist in the contract. Please make sure you've compiled its latest version before running the test."
+      );
+    });
+
+    it("Should fail when expecting an event that's not in the contract to NOT be emitted", async function () {
+      await expect(
+        expect(events.doNotEmit()).not.to.emit(events, "NonexistentEvent")
+      ).to.be.eventually.rejectedWith(
+        AssertionError,
+        "WARNING: Expected event \"NonexistentEvent\" NOT to be emitted. The event wasn't emitted because it doesn't exist in the contract. Please make sure you've compiled its latest version before running the test."
+      );
+    });
+
+    it.skip("Does fail with a terrible error message when expecting an event from a pure function", async function () {
+      await expect(events.doNotEmitPure()).not.to.emit(
+        events,
+        "NonexistentEvent"
+      );
+    });
+
     it("Emit one: success", async () => {
       await expect(events.emitOne()).to.emit(events, "One");
     });
@@ -86,27 +111,6 @@ describe(".to.emit (contract events)", () => {
 
     it("Do not emit two: success", async () => {
       await expect(events.emitTwo()).to.not.emit(events, "One");
-    });
-
-    it("Emit nonexistent event: fail", async () => {
-      await expect(
-        expect(events.emitOne()).to.emit(events, "Three")
-      ).to.be.eventually.rejectedWith(
-        AssertionError,
-        'Expected event "Three" to be emitted, but it doesn\'t exist in the contract. ' +
-          "Please make sure you've compiled its latest version before running the test."
-      );
-    });
-
-    it("Negate emit nonexistent event: fail", async () => {
-      await expect(
-        expect(events.emitOne()).not.to.emit(events, "Three")
-      ).to.be.eventually.rejectedWith(
-        AssertionError,
-        'WARNING: Expected event "Three" NOT to be emitted. The event wasn\'t emitted because ' +
-          "it doesn't exist in the contract. Please make sure you've compiled its latest version " +
-          "before running the test."
-      );
     });
 
     it("Emit both: success (two expects)", async () => {
