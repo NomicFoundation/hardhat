@@ -98,8 +98,13 @@ function overwriteBigNumberFunction(
   chaiUtils: Chai.ChaiUtils
 ) {
   return function (this: Chai.AssertionStatic, ...args: any[]) {
-    const [actualArg] = args;
+    const [actualArg, message] = args;
     const expectedFlag = chaiUtils.flag(this, "object");
+
+    if (message !== undefined) {
+      chaiUtils.flag(this, "message", message);
+    }
+
     function compare(method: Methods, lhs: bigint, rhs: bigint): boolean {
       if (method === "eq") {
         return lhs === rhs;

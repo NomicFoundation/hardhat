@@ -1168,4 +1168,40 @@ describe("BigNumber matchers", function () {
       });
     });
   });
+
+  it("custom message is preserved", function () {
+    // normal numbers
+    expect(() => expect(1).to.equal(2, "custom message")).to.throw(
+      AssertionError,
+      "custom message"
+    );
+
+    // number and bigint
+    expect(() => expect(1).to.equal(BigInt(2), "custom message")).to.throw(
+      AssertionError,
+      "custom message"
+    );
+
+    // number and ethers bignumber
+    expect(() =>
+      expect(1).to.equal(BigNumberEthers.from(2), "custom message")
+    ).to.throw(AssertionError, "custom message");
+
+    // same but for deep comparisons
+    expect(() => expect([1]).to.equal([2], "custom message")).to.throw(
+      AssertionError,
+      "custom message"
+    );
+
+    // number and bigint
+    expect(() => expect([1]).to.equal([BigInt(2)], "custom message")).to.throw(
+      AssertionError,
+      "custom message"
+    );
+
+    // number and ethers bignumber
+    expect(() =>
+      expect([1]).to.equal([BigNumberEthers.from(2)], "custom message")
+    ).to.throw(AssertionError, "custom message");
+  });
 });
