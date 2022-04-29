@@ -44,13 +44,6 @@ describe(".to.emit (contract events)", () => {
       );
     });
 
-    it.skip("Does fail with a terrible error message when expecting an event from a pure function", async function () {
-      await expect(contract.doNotEmitPure()).not.to.emit(
-        contract,
-        "NonexistentEvent"
-      );
-    });
-
     it("Should detect events without arguments", async function () {
       await expect(contract.emitWithoutArgs()).to.emit(contract, "WithoutArgs");
     });
