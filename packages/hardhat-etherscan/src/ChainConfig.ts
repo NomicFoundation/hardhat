@@ -198,4 +198,11 @@ export const chainConfig: ChainConfig = {
       browserURL: "https://testnet.aurorascan.dev",
     },
   },
+  clv: {
+    chainId: 1024,
+    urls: {
+        apiURL: "https://api.clvscan.com/api",
+        browserURL: "https://clvscan.com",
+    },
+  },
 };
