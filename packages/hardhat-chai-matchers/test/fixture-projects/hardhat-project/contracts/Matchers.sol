@@ -7,8 +7,13 @@ contract Matchers {
 
   AnotherContract anotherContract;
 
+  struct Pair { uint a; uint b; }
+
   error SomeCustomError();
   error AnotherCustomError();
+  error CustomErrorWithUint(uint);
+  error CustomErrorWithUintAndString(uint, string);
+  error CustomErrorWithPair(Pair);
 
   constructor () {
     anotherContract = new AnotherContract();
@@ -79,6 +84,33 @@ contract Matchers {
 
   function revertWithAnotherContractCustomErrorView() public view {
     anotherContract.revertWithYetAnotherCustomErrorView();
+  }
+
+  function revertWithCustomErrorWithUint(uint n) public {
+    x++;
+    revert CustomErrorWithUint(n);
+  }
+
+  function revertWithCustomErrorWithUintView(uint n) public pure {
+    revert CustomErrorWithUint(n);
+  }
+
+  function revertWithCustomErrorWithUintAndString(uint n, string memory s) public {
+    x++;
+    revert CustomErrorWithUintAndString(n, s);
+  }
+
+  function revertWithCustomErrorWithUintAndStringView(uint n, string memory s) public pure {
+    revert CustomErrorWithUintAndString(n, s);
+  }
+
+  function revertWithCustomErrorWithPair(uint a, uint b) public {
+    x++;
+    revert CustomErrorWithPair(Pair(a, b));
+  }
+
+  function revertWithCustomErrorWithPairView(uint a, uint b) public pure {
+    revert CustomErrorWithPair(Pair(a, b));
   }
 }
 

@@ -165,6 +165,75 @@ describe("INTEGRATION: Reverted with custom error", function () {
       });
     });
 
+    describe("with args", function () {
+      it("should work with one argument", async function () {
+        await expect(matchers.revertWithCustomErrorWithUint(1))
+          .to.be.revertedWithCustomError(matchers, "CustomErrorWithUint")
+          .withArgs(1);
+
+        await expectAssertionError(
+          expect(matchers.revertWithCustomErrorWithUint(1))
+            .to.be.revertedWithCustomError(matchers, "CustomErrorWithUint")
+            .withArgs(2),
+          "expected 1 to equal 2"
+        );
+      });
+
+      it("should work with two arguments", async function () {
+        await expect(matchers.revertWithCustomErrorWithUintAndString(1, "foo"))
+          .to.be.revertedWithCustomError(
+            matchers,
+            "CustomErrorWithUintAndString"
+          )
+          .withArgs(1, "foo");
+
+        await expectAssertionError(
+          expect(matchers.revertWithCustomErrorWithUintAndString(1, "foo"))
+            .to.be.revertedWithCustomError(
+              matchers,
+              "CustomErrorWithUintAndString"
+            )
+            .withArgs(2, "foo"),
+          "expected 1 to equal 2"
+        );
+
+        await expectAssertionError(
+          expect(matchers.revertWithCustomErrorWithUintAndString(1, "foo"))
+            .to.be.revertedWithCustomError(
+              matchers,
+              "CustomErrorWithUintAndString"
+            )
+            .withArgs(1, "bar"),
+          "expected 'foo' to equal 'bar'"
+        );
+      });
+
+      // skipped until .deep.equal works with big numbers
+      it.skip("should work with nested arguments", async function () {
+        await expect(matchers.revertWithCustomErrorWithPair(1, 2))
+          .to.be.revertedWithCustomError(matchers, "CustomErrorWithPair")
+          .withArgs([1, 2]);
+
+        await expectAssertionError(
+          expect(matchers.revertWithCustomErrorWithUint(1, 2))
+            .to.be.revertedWithCustomError(matchers, "CustomErrorWithPair")
+            .withArgs([3, 2]),
+          "expected 1 to equal 3"
+        );
+      });
+
+      it("should fail if withArgs is called on its own", async function () {
+        expect(() =>
+          expect(matchers.revertWithCustomErrorWithUint(1))
+            // @ts-expect-error
+            .withArgs(1)
+        ).to.throw(
+          Error,
+          "withArgs called without a previous revertedWithCustomError assertion"
+        );
+      });
+    });
+
     describe("invalid values", function () {
       it("non-errors as subject", async function () {
         await expectAssertionError(

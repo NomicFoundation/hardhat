@@ -12,7 +12,7 @@ declare namespace Chai {
     revertedWithCustomError(
       contract: { interface: any },
       customErrorName: string
-    ): AsyncAssertion;
+    ): CustomErrorAssertion;
     hexEqual(other: string): void;
     properPrivateKey: void;
     properAddress: void;
@@ -50,6 +50,10 @@ declare namespace Chai {
   interface AsyncAssertion extends Assertion, Promise<void> {}
 
   interface EmitAssertion extends AsyncAssertion {
+    withArgs(...args: any[]): AsyncAssertion;
+  }
+
+  interface CustomErrorAssertion extends AsyncAssertion {
     withArgs(...args: any[]): AsyncAssertion;
   }
 }

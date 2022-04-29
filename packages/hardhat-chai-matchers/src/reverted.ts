@@ -12,7 +12,19 @@ const ERROR_STRING_PREFIX = "0x08c379a0";
 // method id of 'Panic(uint256)'
 const PANIC_CODE_PREFIX = "0x4e487b71";
 
-export function supportReverted(Assertion: Chai.AssertionStatic) {
+const CUSTOM_ERROR_ASSERTION_CALLED = "customErrorAssertionCalled";
+const CUSTOM_ERROR_ASSERTION_DATA = "customErrorAssertionData";
+
+interface CustomErrorAssertionData {
+  contractInterface: any;
+  returnData: string;
+  customError: CustomError;
+}
+
+export function supportReverted(
+  Assertion: Chai.AssertionStatic,
+  utils: Chai.ChaiUtils
+) {
   Assertion.addProperty("reverted", function (this: any) {
     const subject: unknown = this._obj;
 
@@ -394,6 +406,17 @@ export function supportReverted(Assertion: Chai.AssertionStatic) {
           );
         } else if (decodedReturnData.kind === "Custom") {
           if (decodedReturnData.id === expectedCustomError.id) {
+            const customErrorAssertionData: CustomErrorAssertionData = {
+              contractInterface: iface,
+              customError: expectedCustomError,
+              returnData,
+            };
+            utils.flag(
+              this,
+              CUSTOM_ERROR_ASSERTION_DATA,
+              customErrorAssertionData
+            );
+
             this.assert(
               true,
               null,
@@ -427,12 +450,61 @@ export function supportReverted(Assertion: Chai.AssertionStatic) {
         onError
       );
 
+      utils.flag(this, CUSTOM_ERROR_ASSERTION_CALLED, true);
+      this.promise = derivedPromise;
+
       this.then = derivedPromise.then.bind(derivedPromise);
       this.catch = derivedPromise.catch.bind(derivedPromise);
 
       return this;
     }
   );
+
+  Assertion.addMethod("withArgs", function (this: any, ...expectedArgs: any[]) {
+    if (utils.flag(this, CUSTOM_ERROR_ASSERTION_CALLED) !== true) {
+      throw new Error(
+        "withArgs called without a previous revertedWithCustomError assertion"
+      );
+    }
+
+    const derivedPromise = this.promise.then(() => {
+      const customErrorAssertionData: CustomErrorAssertionData = utils.flag(
+        this,
+        CUSTOM_ERROR_ASSERTION_DATA
+      );
+
+      if (customErrorAssertionData === undefined) {
+        throw new Error(
+          "[.withArgs] should never happen, please submit an issue"
+        );
+      }
+
+      const { contractInterface, customError, returnData } =
+        customErrorAssertionData;
+
+      const errorFragment = contractInterface.errors[customError.signature];
+      const actualArgs = contractInterface.decodeErrorResult(
+        errorFragment,
+        returnData
+      );
+
+      // TODO temporary solution until `.to.deep.equal` works correctly with big
+      // numbers
+      new Assertion(actualArgs).to.have.same.length(
+        expectedArgs.length,
+        `Expected ${expectedArgs.length} args but got ${actualArgs.length}`
+      );
+
+      for (const [i, actualArg] of Object.entries(actualArgs) as any) {
+        new Assertion(actualArg).to.equal(expectedArgs[i]);
+      }
+    });
+
+    this.then = derivedPromise.then.bind(derivedPromise);
+    this.catch = derivedPromise.catch.bind(derivedPromise);
+
+    return this;
+  });
 }
 
 function isRevertError(error: any): boolean {
@@ -554,6 +626,7 @@ function isValidTransactionHash(x: string): boolean {
 interface CustomError {
   name: string;
   id: string;
+  signature: string;
 }
 
 function findCustomErrorByName(
@@ -576,6 +649,7 @@ function findCustomErrorByName(
   return {
     id: customErrorId,
     name,
+    signature: customErrorSignature,
   };
 }
 
@@ -593,5 +667,6 @@ function findCustomErrorById(iface: any, id: string): CustomError | undefined {
   return {
     id,
     name: customErrorEntry[1].name,
+    signature: customErrorEntry[0],
   };
 }
