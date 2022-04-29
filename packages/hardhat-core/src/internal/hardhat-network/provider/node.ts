@@ -1676,7 +1676,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     const nextPendingNonce = await this._txPool.getNextPendingNonce(sender);
     const txNonce = new BN(tx.nonce);
 
-    const expectedNonceMsg = `Expected nonce to be ${nextPendingNonce} but got ${txNonce}.`;
+    const expectedNonceMsg = `Expected nonce to be ${nextPendingNonce.toString()} but got ${txNonce.toString()}.`;
     if (txNonce.gt(nextPendingNonce)) {
       throw new InvalidInputError(
         `Nonce too high. ${expectedNonceMsg} Note that transactions can't be queued when automining.`
@@ -1692,7 +1692,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     );
     if (txPriorityFee.lt(this._minGasPrice)) {
       throw new InvalidInputError(
-        `Transaction gas price is ${txPriorityFee}, which is below the minimum of ${this._minGasPrice}`
+        `Transaction gas price is ${txPriorityFee.toString()}, which is below the minimum of ${this._minGasPrice.toString()}`
       );
     }
 
@@ -1702,13 +1702,13 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       if ("maxFeePerGas" in tx) {
         if (nextBlockGasFee.gt(tx.maxFeePerGas)) {
           throw new InvalidInputError(
-            `Transaction maxFeePerGas (${tx.maxFeePerGas}) is too low for the next block, which has a baseFeePerGas of ${nextBlockGasFee}`
+            `Transaction maxFeePerGas (${tx.maxFeePerGas.toString()}) is too low for the next block, which has a baseFeePerGas of ${nextBlockGasFee.toString()}`
           );
         }
       } else {
         if (nextBlockGasFee.gt(tx.gasPrice)) {
           throw new InvalidInputError(
-            `Transaction gasPrice (${tx.gasPrice}) is too low for the next block, which has a baseFeePerGas of ${nextBlockGasFee}`
+            `Transaction gasPrice (${tx.gasPrice.toString()}) is too low for the next block, which has a baseFeePerGas of ${nextBlockGasFee.toString()}`
           );
         }
       }
@@ -2126,7 +2126,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     if (block === undefined) {
       // TODO handle this better
       throw new Error(
-        `Block with number ${blockNumberOrPending} doesn't exist. This should never happen.`
+        `Block with number ${blockNumberOrPending.toString()} doesn't exist. This should never happen.`
       );
     }
 
@@ -2546,7 +2546,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     );
     if (hardfork === undefined || blockNumber.ltn(activationBlock)) {
       throw new InternalError(
-        `Could not find a hardfork to run for block ${blockNumber}, after having looked for one in the HardhatNode's hardfork activation history, which was: ${JSON.stringify(
+        `Could not find a hardfork to run for block ${blockNumber.toString()}, after having looked for one in the HardhatNode's hardfork activation history, which was: ${JSON.stringify(
           hardforkHistory
         )}. For more information, see https://hardhat.org/hardhat-network/reference/#config`
       );
