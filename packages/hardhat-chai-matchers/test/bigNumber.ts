@@ -864,6 +864,64 @@ describe("BigNumber matchers", function () {
         });
       });
     });
+
+    describe("deep equal", async function () {
+      checkAll(1, 1, (a, b) => {
+        it(`should work with ${typestr(a)} and ${typestr(b)}`, function () {
+          // successful assertions
+          expect([a]).to.deep.equal([b]);
+          expect([[a], [a]]).to.deep.equal([[b], [b]]);
+          expect({ x: a }).to.deep.equal({ x: b });
+          expect({ x: { y: a } }).to.deep.equal({ x: { y: b } });
+          expect({ x: [a] }).to.deep.equal({ x: [b] });
+
+          // failed assertions
+          expect(() => expect([a]).to.not.deep.equal([b])).to.throw(
+            AssertionError
+          );
+          expect(() =>
+            expect([[a], [a]]).to.not.deep.equal([[b], [b]])
+          ).to.throw(AssertionError);
+          expect(() => expect({ x: a }).to.not.deep.equal({ x: b })).to.throw(
+            AssertionError
+          );
+          expect(() =>
+            expect({ x: { y: a } }).to.not.deep.equal({ x: { y: b } })
+          ).to.throw(AssertionError);
+          expect(() =>
+            expect({ x: [a] }).to.not.deep.equal({ x: [b] })
+          ).to.throw(AssertionError);
+        });
+      });
+
+      checkAll(1, 2, (a, b) => {
+        it(`should work with ${typestr(a)} and ${typestr(
+          b
+        )} (negative)`, function () {
+          // successful assertions
+          expect([a]).to.not.deep.equal([b]);
+          expect([[a], [a]]).to.not.deep.equal([[b], [b]]);
+          expect({ x: a }).to.not.deep.equal({ x: b });
+          expect({ x: { y: a } }).to.not.deep.equal({ x: { y: b } });
+          expect({ x: [a] }).to.not.deep.equal({ x: [b] });
+
+          // failed assertions
+          expect(() => expect([a]).to.deep.equal([b])).to.throw(AssertionError);
+          expect(() => expect([[a], [a]]).to.deep.equal([[b], [b]])).to.throw(
+            AssertionError
+          );
+          expect(() => expect({ x: a }).to.deep.equal({ x: b })).to.throw(
+            AssertionError
+          );
+          expect(() =>
+            expect({ x: { y: a } }).to.deep.equal({ x: { y: b } })
+          ).to.throw(AssertionError);
+          expect(() => expect({ x: [a] }).to.deep.equal({ x: [b] })).to.throw(
+            AssertionError
+          );
+        });
+      });
+    });
   });
 
   describe("with three arguments", function () {
