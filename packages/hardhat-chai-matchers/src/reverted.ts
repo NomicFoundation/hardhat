@@ -136,6 +136,11 @@ export function supportReverted(Assertion: Chai.AssertionStatic) {
               decodedReturnData.description
             })`
           );
+        } else if (decodedReturnData.kind === "Custom") {
+          this.assert(
+            false,
+            `Expected transaction to be reverted with reason '${expectedReason}', but it reverted with a custom error`
+          );
         } else {
           const _exhaustiveCheck: never = decodedReturnData;
         }
@@ -238,6 +243,11 @@ export function supportReverted(Assertion: Chai.AssertionStatic) {
               })`
             );
           }
+        } else if (decodedReturnData.kind === "Custom") {
+          this.assert(
+            false,
+            `Expected transaction to be reverted with ${formattedPanicCode}, but it reverted with a custom error`
+          );
         } else {
           const _exhaustiveCheck: never = decodedReturnData;
         }
@@ -294,6 +304,11 @@ export function supportReverted(Assertion: Chai.AssertionStatic) {
             decodedReturnData.description
           })`
         );
+      } else if (decodedReturnData.kind === "Custom") {
+        this.assert(
+          false,
+          `Expected transaction to be reverted without a reason string, but it reverted with a custom error`
+        );
       } else {
         const _exhaustiveCheck: never = decodedReturnData;
       }
@@ -306,6 +321,118 @@ export function supportReverted(Assertion: Chai.AssertionStatic) {
 
     return this;
   });
+
+  Assertion.addMethod(
+    "revertedWithCustomError",
+    function (this: any, contract: any, expectedCustomErrorName: string) {
+      // check the case where users forget to pass the contract as the first
+      // argument
+      if (typeof contract === "string" || contract?.interface === undefined) {
+        throw new Error(
+          "The first argument of .revertedWithCustomError has to be the contract that defines the custom error"
+        );
+      }
+
+      // validate custom error name
+      if (typeof expectedCustomErrorName !== "string") {
+        throw new AssertionError(
+          "Expected a string as the expected custom error name"
+        );
+      }
+
+      const iface: any = contract.interface;
+
+      const expectedCustomError = findCustomErrorByName(
+        iface,
+        expectedCustomErrorName
+      );
+
+      // check that interface contains the given custom error
+      if (expectedCustomError === undefined) {
+        throw new Error(
+          `The given contract doesn't have a custom error named ${expectedCustomErrorName}`
+        );
+      }
+
+      const onSuccess = () => {
+        this.assert(
+          false,
+          `Expected transaction to be reverted with custom error '${expectedCustomErrorName}', but it didn't revert`
+        );
+      };
+
+      const onError = (error: any) => {
+        if (!(error instanceof Error)) {
+          throw new AssertionError("Expected an Error object");
+        }
+
+        const returnData = getReturnDataFromError(error);
+        const decodedReturnData = decodeReturnData(returnData);
+
+        if (decodedReturnData === null) {
+          this.assert(
+            false,
+            `Expected transaction to be reverted with custom error '${expectedCustomErrorName}', but it reverted with an unknown reason`
+          );
+        } else if (decodedReturnData.kind === "Empty") {
+          this.assert(
+            false,
+            `Expected transaction to be reverted with custom error '${expectedCustomErrorName}', but it reverted without a reason string`
+          );
+          return;
+        } else if (decodedReturnData.kind === "Error") {
+          this.assert(
+            false,
+            `Expected transaction to be reverted with custom error '${expectedCustomErrorName}', but it reverted with reason '${decodedReturnData.reason}'`
+          );
+        } else if (decodedReturnData.kind === "Panic") {
+          this.assert(
+            false,
+            `Expected transaction to be reverted with custom error '${expectedCustomErrorName}', but it reverted with panic code ${decodedReturnData.code.toHexString()} (${
+              decodedReturnData.description
+            })`
+          );
+        } else if (decodedReturnData.kind === "Custom") {
+          if (decodedReturnData.id === expectedCustomError.id) {
+            this.assert(
+              true,
+              null,
+              `Expected transaction NOT to be reverted with custom error '${expectedCustomErrorName}', but it did`
+            );
+          } else {
+            const actualCustomError = findCustomErrorById(
+              iface,
+              decodedReturnData.id
+            );
+
+            if (actualCustomError === undefined) {
+              this.assert(
+                false,
+                `Expected transaction to be reverted with custom error '${expectedCustomErrorName}', but it reverted with a different custom error`
+              );
+            } else {
+              this.assert(
+                false,
+                `Expected transaction to be reverted with custom error '${expectedCustomErrorName}', but it reverted with custom error '${actualCustomError.name}'`
+              );
+            }
+          }
+        } else {
+          const _exhaustiveCheck: never = decodedReturnData;
+        }
+      };
+
+      const derivedPromise = Promise.resolve(this._obj).then(
+        onSuccess,
+        onError
+      );
+
+      this.then = derivedPromise.then.bind(derivedPromise);
+      this.catch = derivedPromise.catch.bind(derivedPromise);
+
+      return this;
+    }
+  );
 }
 
 function isRevertError(error: any): boolean {
@@ -345,9 +472,14 @@ type DecodedReturnData =
       kind: "Panic";
       code: BigNumber;
       description: string;
+    }
+  | {
+      kind: "Custom";
+      id: string;
+      data: string;
     };
 
-function decodeReturnData(returnData: string): DecodedReturnData | null {
+function decodeReturnData(returnData: string): DecodedReturnData {
   if (returnData === "0x") {
     return { kind: "Empty" };
   } else if (returnData.startsWith(ERROR_STRING_PREFIX)) {
@@ -381,7 +513,11 @@ function decodeReturnData(returnData: string): DecodedReturnData | null {
     };
   }
 
-  return null;
+  return {
+    kind: "Custom",
+    id: returnData.slice(0, 10),
+    data: `0x${returnData.slice(10)}`,
+  };
 }
 
 async function getTransactionReceipt(hash: string) {
@@ -413,4 +549,49 @@ function isTransactionReceipt(x: unknown): x is { status: number } {
 
 function isValidTransactionHash(x: string): boolean {
   return /0x[0-9a-fA-F]{64}/.test(x);
+}
+
+interface CustomError {
+  name: string;
+  id: string;
+}
+
+function findCustomErrorByName(
+  iface: any,
+  name: string
+): CustomError | undefined {
+  const ethers = require("ethers");
+
+  const customErrorEntry = Object.entries(iface.errors).find(
+    ([, fragment]: any) => fragment.name === name
+  );
+
+  if (customErrorEntry === undefined) {
+    return undefined;
+  }
+
+  const [customErrorSignature] = customErrorEntry;
+  const customErrorId = ethers.utils.id(customErrorSignature).slice(0, 10);
+
+  return {
+    id: customErrorId,
+    name,
+  };
+}
+
+function findCustomErrorById(iface: any, id: string): CustomError | undefined {
+  const ethers = require("ethers");
+
+  const customErrorEntry: any = Object.entries(iface.errors).find(
+    ([signature]: any) => ethers.utils.id(signature).slice(0, 10) === id
+  );
+
+  if (customErrorEntry === undefined) {
+    return undefined;
+  }
+
+  return {
+    id,
+    name: customErrorEntry[1].name,
+  };
 }

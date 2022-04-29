@@ -5,8 +5,17 @@ pragma solidity ^0.8.0;
 contract Matchers {
   uint x;
 
+  AnotherContract anotherContract;
+
+  error SomeCustomError();
+  error AnotherCustomError();
+
+  constructor () {
+    anotherContract = new AnotherContract();
+  }
+
   function succeeds() public {
-    x++;
+    x++; // just to avoid compiler warnings
   }
 
   function succeedsView() public view returns (uint) {
@@ -43,9 +52,47 @@ contract Matchers {
 
   function panicUnderflow(uint n) public {
     n--;
+    x++;
   }
 
   function panicUnderflowView(uint n) public pure {
     n--;
+  }
+
+  function revertWithSomeCustomError() public {
+    x++;
+    revert SomeCustomError();
+  }
+
+  function revertWithSomeCustomErrorView() public pure {
+    revert SomeCustomError();
+  }
+
+  function revertWithAnotherCustomErrorView() public pure {
+    revert AnotherCustomError();
+  }
+
+  function revertWithAnotherContractCustomError() public {
+    x++;
+    anotherContract.revertWithYetAnotherCustomError();
+  }
+
+  function revertWithAnotherContractCustomErrorView() public view {
+    anotherContract.revertWithYetAnotherCustomErrorView();
+  }
+}
+
+contract AnotherContract {
+  uint x;
+
+  error YetAnotherCustomError();
+
+  function revertWithYetAnotherCustomError() public {
+    x++;
+    revert YetAnotherCustomError();
+  }
+
+  function revertWithYetAnotherCustomErrorView() public pure {
+    revert YetAnotherCustomError();
   }
 }

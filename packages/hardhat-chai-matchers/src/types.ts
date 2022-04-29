@@ -9,6 +9,10 @@ declare namespace Chai {
     revertedWith(reason: string): AsyncAssertion;
     revertedWithoutReasonString(): AsyncAssertion;
     revertedWithPanic(code?: number): AsyncAssertion;
+    revertedWithCustomError(
+      contract: { interface: any },
+      customErrorName: string
+    ): AsyncAssertion;
     hexEqual(other: string): void;
     properPrivateKey: void;
     properAddress: void;
