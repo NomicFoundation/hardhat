@@ -215,6 +215,48 @@ describe(".to.emit (contract events)", () => {
       });
     });
 
+    describe("With one call that emits two separate events", function () {
+      it("Should successfully catch each event independently", async function () {
+        await expect(contract.emitUintAndString(1, "a string")).to.emit(
+          contract,
+          "WithUintArg"
+        );
+        await expect(contract.emitUintAndString(1, "a string")).to.emit(
+          contract,
+          "WithStringArg"
+        );
+      });
+      describe("When detecting two events from one call (chaining)", async function () {
+        it("Should succeed when both expected events are indeed emitted", async function () {
+          await expect(contract.emitUintAndString(1, "a string"))
+            .to.emit(contract, "WithUintArg")
+            .and.to.emit(contract, "WithStringArg");
+        });
+        describe("When one of the expected events is emitted and the other is not", function () {
+          it("Should fail when the first expected event is emitted but the second is not", async function () {
+            await expect(
+              expect(contract.emitUint(1))
+                .to.emit(contract, "WithUintArg")
+                .and.to.emit(contract, "WithStringArg")
+            ).to.be.eventually.rejectedWith(
+              AssertionError,
+              'Expected event "WithStringArg" to be emitted, but it wasn\'t'
+            );
+          });
+          it.skip("Should fail when the second expected event is emitted but the first is not", async function () {
+            await expect(
+              expect(contract.emitUint(1))
+                .to.emit(contract, "WithStringArg")
+                .and.to.emit(contract, "WithUintArg")
+            ).to.be.eventually.rejectedWith(
+              AssertionError,
+              'Expected event "WithStringArg" to be emitted, but it wasn\'t'
+            );
+          });
+        });
+      });
+    });
+
     it("Emit index: success", async () => {
       const bytes = ethers.utils.hexlify(ethers.utils.toUtf8Bytes("Three"));
       const hash = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("Three"));

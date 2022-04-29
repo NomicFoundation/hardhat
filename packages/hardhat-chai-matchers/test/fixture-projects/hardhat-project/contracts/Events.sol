@@ -88,4 +88,9 @@ contract Events {
   function emitIndexedBytes(bytes memory b) public {
     emit WithIndexedBytesArg(b);
   }
+
+  function emitUintAndString(uint u, string memory s) public {
+    emit WithStringArg(s);
+    emit WithUintArg(u);
+  }
 }
