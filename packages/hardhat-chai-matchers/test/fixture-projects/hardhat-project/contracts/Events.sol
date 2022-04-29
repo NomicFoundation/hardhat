@@ -3,6 +3,11 @@ pragma solidity ^0.8.0;
 
 contract Events {
   event WithoutArgs();
+  event WithUintArg(uint u);
+  event WithStringArg(string s);
+  event WithIndexedStringArg(string indexed s);
+  event WithBytesArg(bytes b);
+  event WithIndexedBytesArg(bytes indexed b);
   event One(uint value, string msg, bytes32 encoded);
   event Two(uint indexed value, string msg);
   event Index(string indexed msgHashed, string msg, bytes bmsg, bytes indexed bmsgHash, bytes32 indexed encoded);
@@ -62,5 +67,25 @@ contract Events {
 
   function emitWithoutArgs() public {
     emit WithoutArgs();
+  }
+
+  function emitUint(uint u) public {
+    emit WithUintArg(u);
+  }
+
+  function emitString(string memory s) public {
+    emit WithStringArg(s);
+  }
+
+  function emitIndexedString(string memory s) public {
+    emit WithIndexedStringArg(s);
+  }
+
+  function emitBytes(bytes memory b) public {
+    emit WithBytesArg(b);
+  }
+
+  function emitIndexedBytes(bytes memory b) public {
+    emit WithIndexedBytesArg(b);
   }
 }
