@@ -3,7 +3,7 @@ import { BigNumber, Contract, ContractFactory, ethers } from "ethers";
 
 import { useEnvironment, useEnvironmentWithNode } from "./helpers";
 
-describe("INTEGRATION: Events", () => {
+describe(".to.emit (contract events)", () => {
   let factory: ContractFactory;
   let events: Contract;
 
