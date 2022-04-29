@@ -80,7 +80,35 @@ export function supportReverted(
         return Promise.reject(error);
       }
 
-      this.assert(true, null, "Expected transaction NOT to be reverted");
+      const returnData = getReturnDataFromError(error);
+
+      const decodedReturnData = decodeReturnData(returnData);
+
+      if (
+        decodedReturnData === null ||
+        decodedReturnData.kind === "Empty" ||
+        decodedReturnData.kind === "Custom"
+      ) {
+        // in the negated case, if we can't decode the reason, we just indicate
+        // that the transaction didn't revert
+        this.assert(true, null, `Expected transaction NOT to be reverted`);
+      } else if (decodedReturnData.kind === "Error") {
+        this.assert(
+          true,
+          null,
+          `Expected transaction NOT to be reverted, but it reverted with reason '${decodedReturnData.reason}'`
+        );
+      } else if (decodedReturnData.kind === "Panic") {
+        this.assert(
+          true,
+          null,
+          `Expected transaction NOT to be reverted, but it reverted with panic code ${decodedReturnData.code.toHexString()} (${
+            decodedReturnData.description
+          })`
+        );
+      } else {
+        const _exhaustiveCheck: never = decodedReturnData;
+      }
     };
 
     // we use `Promise.resolve(subject)` so we can process both values and
@@ -134,7 +162,6 @@ export function supportReverted(
             false,
             `Expected transaction to be reverted with reason '${expectedReason}', but it reverted without a reason string`
           );
-          return;
         } else if (decodedReturnData.kind === "Error") {
           this.assert(
             decodedReturnData.reason === expectedReason,
@@ -231,7 +258,6 @@ export function supportReverted(
             false,
             `Expected transaction to be reverted with ${formattedPanicCode}, but it reverted without a reason string`
           );
-          return;
         } else if (decodedReturnData.kind === "Error") {
           this.assert(
             false,
@@ -391,7 +417,6 @@ export function supportReverted(
             false,
             `Expected transaction to be reverted with custom error '${expectedCustomErrorName}', but it reverted without a reason string`
           );
-          return;
         } else if (decodedReturnData.kind === "Error") {
           this.assert(
             false,

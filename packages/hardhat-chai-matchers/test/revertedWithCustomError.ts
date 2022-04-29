@@ -1,5 +1,10 @@
 import { AssertionError, expect } from "chai";
-import { useEnvironment, useEnvironmentWithNode } from "./helpers";
+import {
+  runSuccessfulAsserts,
+  runFailedAsserts,
+  useEnvironment,
+  useEnvironmentWithNode,
+} from "./helpers";
 
 import "../src";
 
@@ -43,81 +48,148 @@ describe("INTEGRATION: Reverted with custom error", function () {
     };
 
     describe("calling a method that succeeds", function () {
-      assertAllTransactionsKinds({
-        method: "succeeds",
-        args: [],
-        successfulAssert: (x) =>
-          expect(x).to.not.be.revertedWithCustomError(
-            matchers,
-            "SomeCustomError"
-          ),
-        failedAssert: (x) =>
-          expect(x).to.be.revertedWithCustomError(matchers, "SomeCustomError"),
-        failedAssertReason:
-          "Expected transaction to be reverted with custom error 'SomeCustomError', but it didn't revert",
+      it("successful asserts", async function () {
+        await runSuccessfulAsserts({
+          matchers,
+          method: "succeeds",
+          successfulAssert: (x) =>
+            expect(x).not.to.be.revertedWithCustomError(
+              matchers,
+              "SomeCustomError"
+            ),
+        });
+      });
+
+      it("failed asserts", async function () {
+        await runFailedAsserts({
+          matchers,
+          method: "succeeds",
+          failedAssert: (x) =>
+            expect(x).to.be.revertedWithCustomError(
+              matchers,
+              "SomeCustomError"
+            ),
+          failedAssertReason:
+            "Expected transaction to be reverted with custom error 'SomeCustomError', but it didn't revert",
+        });
       });
     });
 
     describe("calling a method that reverts without a reason string", function () {
-      assertAllTransactionsKinds({
-        method: "revertsWithoutReasonString",
-        args: [],
-        successfulAssert: (x) =>
-          expect(x).to.not.be.revertedWithCustomError(
-            matchers,
-            "SomeCustomError"
-          ),
-        failedAssert: (x) =>
-          expect(x).to.be.revertedWithCustomError(matchers, "SomeCustomError"),
-        failedAssertReason:
-          "Expected transaction to be reverted with custom error 'SomeCustomError', but it reverted without a reason string",
+      it("successful asserts", async function () {
+        await runSuccessfulAsserts({
+          matchers,
+          method: "revertsWithoutReasonString",
+          successfulAssert: (x) =>
+            expect(x).to.not.be.revertedWithCustomError(
+              matchers,
+              "SomeCustomError"
+            ),
+        });
+      });
+
+      it("failed asserts", async function () {
+        await runFailedAsserts({
+          matchers,
+          method: "revertsWithoutReasonString",
+          failedAssert: (x) =>
+            expect(x).to.be.revertedWithCustomError(
+              matchers,
+              "SomeCustomError"
+            ),
+          failedAssertReason:
+            "Expected transaction to be reverted with custom error 'SomeCustomError', but it reverted without a reason string",
+        });
       });
     });
 
     describe("calling a method that reverts with a reason string", function () {
-      assertAllTransactionsKinds({
-        method: "revertsWith",
-        args: ["some reason"],
-        successfulAssert: (x) =>
-          expect(x).to.not.be.revertedWithCustomError(
-            matchers,
-            "SomeCustomError"
-          ),
-        failedAssert: (x) =>
-          expect(x).to.be.revertedWithCustomError(matchers, "SomeCustomError"),
-        failedAssertReason:
-          "Expected transaction to be reverted with custom error 'SomeCustomError', but it reverted with reason 'some reason'",
+      it("successful asserts", async function () {
+        await runSuccessfulAsserts({
+          matchers,
+          method: "revertsWith",
+          args: ["some reason"],
+          successfulAssert: (x) =>
+            expect(x).to.not.be.revertedWithCustomError(
+              matchers,
+              "SomeCustomError"
+            ),
+        });
+      });
+
+      it("failed asserts", async function () {
+        await runFailedAsserts({
+          matchers,
+          method: "revertsWith",
+          args: ["some reason"],
+          failedAssert: (x) =>
+            expect(x).to.be.revertedWithCustomError(
+              matchers,
+              "SomeCustomError"
+            ),
+          failedAssertReason:
+            "Expected transaction to be reverted with custom error 'SomeCustomError', but it reverted with reason 'some reason'",
+        });
       });
     });
 
     describe("calling a method that reverts with a panic code", function () {
-      assertAllTransactionsKinds({
-        method: "panicAssert",
-        args: [],
-        successfulAssert: (x) =>
-          expect(x).to.not.be.revertedWithCustomError(
-            matchers,
-            "SomeCustomError"
-          ),
-        failedAssert: (x) =>
-          expect(x).to.be.revertedWithCustomError(matchers, "SomeCustomError"),
-        failedAssertReason:
-          "Expected transaction to be reverted with custom error 'SomeCustomError', but it reverted with panic code 0x01 (Assertion error)",
+      it("successful asserts", async function () {
+        await runSuccessfulAsserts({
+          matchers,
+          method: "panicAssert",
+          successfulAssert: (x) =>
+            expect(x).to.not.be.revertedWithCustomError(
+              matchers,
+              "SomeCustomError"
+            ),
+        });
+      });
+
+      it("failed asserts", async function () {
+        await runFailedAsserts({
+          matchers,
+          method: "panicAssert",
+          failedAssert: (x) =>
+            expect(x).to.be.revertedWithCustomError(
+              matchers,
+              "SomeCustomError"
+            ),
+          failedAssertReason:
+            "Expected transaction to be reverted with custom error 'SomeCustomError', but it reverted with panic code 0x01 (Assertion error)",
+        });
       });
     });
 
     describe("calling a method that reverts with a custom error", function () {
-      describe("reverts with the same custom error", function () {
-        assertAllTransactionsKinds({
+      it("successful asserts", async function () {
+        await runSuccessfulAsserts({
+          matchers,
           method: "revertWithSomeCustomError",
-          args: [],
           successfulAssert: (x) =>
             expect(x).to.be.revertedWithCustomError(
               matchers,
               "SomeCustomError"
             ),
+        });
+
+        await runSuccessfulAsserts({
+          matchers,
+          method: "revertWithAnotherCustomError",
+          successfulAssert: (x) =>
+            expect(x).to.not.be.revertedWithCustomError(
+              matchers,
+              "SomeCustomError"
+            ),
+        });
+      });
+
+      it("failed asserts: expected custom error not to match", async function () {
+        await runFailedAsserts({
+          matchers,
+          method: "revertWithSomeCustomError",
           failedAssert: (x) =>
-            expect(x).not.to.be.revertedWithCustomError(
+            expect(x).to.not.be.revertedWithCustomError(
               matchers,
               "SomeCustomError"
             ),
@@ -126,34 +198,24 @@ describe("INTEGRATION: Reverted with custom error", function () {
         });
       });
 
-      describe("reverts with another custom error of the same contract", function () {
-        assertAllTransactionsKinds({
-          method: "revertWithSomeCustomError",
-          args: [],
-          successfulAssert: (x) =>
-            expect(x).to.not.be.revertedWithCustomError(
-              matchers,
-              "AnotherCustomError"
-            ),
+      it("failed asserts: reverts with another custom error of the same contract", async function () {
+        await runFailedAsserts({
+          matchers,
+          method: "revertWithAnotherCustomError",
           failedAssert: (x) =>
             expect(x).to.be.revertedWithCustomError(
               matchers,
-              "AnotherCustomError"
+              "SomeCustomError"
             ),
           failedAssertReason:
-            "Expected transaction to be reverted with custom error 'AnotherCustomError', but it reverted with custom error 'SomeCustomError'",
+            "Expected transaction to be reverted with custom error 'SomeCustomError', but it reverted with custom error 'AnotherCustomError'",
         });
       });
 
-      describe("reverts with another custom error of another contract", function () {
-        assertAllTransactionsKinds({
+      it("failed asserts: reverts with another custom error of another contract", async function () {
+        await runFailedAsserts({
+          matchers,
           method: "revertWithAnotherContractCustomError",
-          args: [],
-          successfulAssert: (x) =>
-            expect(x).to.not.be.revertedWithCustomError(
-              matchers,
-              "SomeCustomError"
-            ),
           failedAssert: (x) =>
             expect(x).to.be.revertedWithCustomError(
               matchers,
@@ -262,55 +324,5 @@ describe("INTEGRATION: Reverted with custom error", function () {
         );
       });
     });
-
-    function assertAllTransactionsKinds({
-      method,
-      args,
-      successfulAssert,
-      failedAssert,
-      failedAssertReason,
-    }: {
-      method: string;
-      args: any[];
-      successfulAssert: (x: any) => Promise<void>;
-      failedAssert: (x: any) => Promise<void>;
-      failedAssertReason: string;
-    }) {
-      it("when a transaction is sent", async function () {
-        await successfulAssert(matchers[method](...args));
-
-        await expectAssertionError(
-          failedAssert(matchers[method](...args)),
-          failedAssertReason
-        );
-      });
-
-      it("when the method is a view method", async function () {
-        await successfulAssert(matchers[`${method}View`](...args));
-
-        await expectAssertionError(
-          failedAssert(matchers[`${method}View`](...args)),
-          failedAssertReason
-        );
-      });
-
-      it("when a gas estimation is done", async function () {
-        await successfulAssert(matchers.estimateGas[method](...args));
-
-        await expectAssertionError(
-          failedAssert(matchers.estimateGas[method](...args)),
-          failedAssertReason
-        );
-      });
-
-      it("when the method is called statically", async function () {
-        await successfulAssert(matchers.callStatic[method](...args));
-
-        await expectAssertionError(
-          failedAssert(matchers.callStatic[method](...args)),
-          failedAssertReason
-        );
-      });
-    }
   }
 });

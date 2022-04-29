@@ -1,5 +1,10 @@
 import { AssertionError, expect } from "chai";
-import { useEnvironment, useEnvironmentWithNode } from "./helpers";
+import {
+  runSuccessfulAsserts,
+  runFailedAsserts,
+  useEnvironment,
+  useEnvironmentWithNode,
+} from "./helpers";
 
 import "../src";
 
@@ -19,6 +24,7 @@ describe("INTEGRATION: Reverted with", function () {
   function runTests() {
     // deploy Matchers contract before each test
     let matchers: any;
+
     beforeEach("deploy matchers contract", async function () {
       const Matchers = await this.hre.ethers.getContractFactory("Matchers");
       matchers = await Matchers.deploy();
@@ -41,157 +47,128 @@ describe("INTEGRATION: Reverted with", function () {
       return tx;
     };
 
-    describe("calling a contract method that succeeds", function () {
-      it("a write method that succeeds", async function () {
-        await expectAssertionError(
-          expect(matchers.succeeds()).to.be.revertedWith("some reason"),
-          "Expected transaction to be reverted with reason 'some reason', but it didn't revert"
-        );
-        await expect(matchers.succeeds()).to.not.be.revertedWith("some reason");
+    describe("calling a method that succeeds", function () {
+      it("successful asserts", async function () {
+        await runSuccessfulAsserts({
+          matchers,
+          method: "succeeds",
+          successfulAssert: (x) =>
+            expect(x).not.to.be.revertedWith("some reason"),
+        });
       });
 
-      it("a view method that succeeds", async function () {
-        await expectAssertionError(
-          expect(matchers.succeedsView()).to.be.revertedWith("some reason"),
-          "Expected transaction to be reverted with reason 'some reason', but it didn't revert"
-        );
-        await expect(matchers.succeedsView()).to.not.be.revertedWith(
-          "some reason"
-        );
-      });
-
-      it("a gas estimation that succeeds", async function () {
-        await expectAssertionError(
-          expect(matchers.estimateGas.succeeds()).to.be.revertedWith(
-            "some reason"
-          ),
-          "Expected transaction to be reverted with reason 'some reason', but it didn't revert"
-        );
-        await expect(matchers.estimateGas.succeeds()).to.not.be.revertedWith(
-          "some reason"
-        );
-      });
-
-      it("a static call of a write method that succeeds", async function () {
-        await expectAssertionError(
-          expect(matchers.callStatic.succeeds()).to.be.revertedWith(
-            "some reason"
-          ),
-          "Expected transaction to be reverted with reason 'some reason', but it didn't revert"
-        );
-        await expect(matchers.callStatic.succeeds()).to.not.be.revertedWith(
-          "some reason"
-        );
+      it("failed asserts", async function () {
+        await runFailedAsserts({
+          matchers,
+          method: "succeeds",
+          failedAssert: (x) => expect(x).to.be.revertedWith("some reason"),
+          failedAssertReason:
+            "Expected transaction to be reverted with reason 'some reason', but it didn't revert",
+        });
       });
     });
 
-    describe("calling a contract method that reverts", function () {
-      it("a write method that reverts", async function () {
-        await expect(matchers.revertsWith("some reason")).to.be.revertedWith(
-          "some reason"
-        );
-        await expect(
-          matchers.revertsWith("some reason")
-        ).to.not.be.revertedWith("another reason");
-
-        await expectAssertionError(
-          expect(matchers.revertsWith("another reason")).to.be.revertedWith(
-            "some reason"
-          ),
-          "Expected transaction to be reverted with reason 'some reason', but it reverted with reason 'another reason'"
-        );
-        await expectAssertionError(
-          expect(matchers.panicAssert()).to.be.revertedWith("some reason"),
-          "Expected transaction to be reverted with reason 'some reason', but it reverted with panic code 0x01 (Assertion error)"
-        );
-        await expectAssertionError(
-          expect(matchers.revertsWith("some reason")).to.not.be.revertedWith(
-            "some reason"
-          ),
-          "Expected transaction NOT to be reverted with reason 'some reason', but it did"
-        );
+    describe("calling a method that reverts without a reason string", function () {
+      it("successful asserts", async function () {
+        await runSuccessfulAsserts({
+          matchers,
+          method: "revertsWithoutReasonString",
+          successfulAssert: (x) =>
+            expect(x).to.not.be.revertedWith("some reason"),
+        });
       });
 
-      it("a view method that reverts", async function () {
-        await expect(
-          matchers.revertsWithView("some reason")
-        ).to.be.revertedWith("some reason");
-        await expect(
-          matchers.revertsWithView("some reason")
-        ).to.not.be.revertedWith("another reason");
+      it("failed asserts", async function () {
+        await runFailedAsserts({
+          matchers,
+          method: "revertsWithoutReasonString",
+          failedAssert: (x) => expect(x).to.be.revertedWith("some reason"),
+          failedAssertReason:
+            "Expected transaction to be reverted with reason 'some reason', but it reverted without a reason string",
+        });
+      });
+    });
 
-        await expectAssertionError(
-          expect(matchers.revertsWithView("another reason")).to.be.revertedWith(
-            "some reason"
-          ),
-          "Expected transaction to be reverted with reason 'some reason', but it reverted with reason 'another reason'"
-        );
-        await expectAssertionError(
-          expect(matchers.panicAssertView()).to.be.revertedWith("some reason"),
-          "Expected transaction to be reverted with reason 'some reason', but it reverted with panic code 0x01 (Assertion error)"
-        );
-        await expectAssertionError(
-          expect(
-            matchers.revertsWithView("some reason")
-          ).to.not.be.revertedWith("some reason"),
-          "Expected transaction NOT to be reverted with reason 'some reason', but it did"
-        );
+    describe("calling a method that reverts with a reason string", function () {
+      it("successful asserts", async function () {
+        await runSuccessfulAsserts({
+          matchers,
+          method: "revertsWith",
+          args: ["some reason"],
+          successfulAssert: (x) => expect(x).to.be.revertedWith("some reason"),
+        });
+
+        await runSuccessfulAsserts({
+          matchers,
+          method: "revertsWith",
+          args: ["some reason"],
+          successfulAssert: (x) =>
+            expect(x).to.not.be.revertedWith("another reason"),
+        });
       });
 
-      it("a gas estimation that reverts", async function () {
-        await expect(
-          matchers.estimateGas.revertsWith("some reason")
-        ).to.be.revertedWith("some reason");
-        await expect(
-          matchers.estimateGas.revertsWith("some reason")
-        ).to.not.be.revertedWith("another reason");
-
-        await expectAssertionError(
-          expect(
-            matchers.estimateGas.revertsWith("another reason")
-          ).to.be.revertedWith("some reason"),
-          "Expected transaction to be reverted with reason 'some reason', but it reverted with reason 'another reason'"
-        );
-        await expectAssertionError(
-          expect(matchers.estimateGas.panicAssert()).to.be.revertedWith(
-            "some reason"
-          ),
-          "Expected transaction to be reverted with reason 'some reason', but it reverted with panic code 0x01 (Assertion error)"
-        );
-        await expectAssertionError(
-          expect(
-            matchers.estimateGas.revertsWith("some reason")
-          ).to.not.be.revertedWith("some reason"),
-          "Expected transaction NOT to be reverted with reason 'some reason', but it did"
-        );
+      it("failed asserts: expected reason not to match", async function () {
+        await runFailedAsserts({
+          matchers,
+          method: "revertsWith",
+          args: ["some reason"],
+          failedAssert: (x) => expect(x).to.not.be.revertedWith("some reason"),
+          failedAssertReason:
+            "Expected transaction NOT to be reverted with reason 'some reason', but it did",
+        });
       });
 
-      it("a static call of a write method that reverts", async function () {
-        await expect(
-          matchers.callStatic.revertsWith("some reason")
-        ).to.be.revertedWith("some reason");
-        await expect(
-          matchers.callStatic.revertsWith("some reason")
-        ).to.not.be.revertedWith("another reason");
+      it("failed asserts: expected a different reason", async function () {
+        await runFailedAsserts({
+          matchers,
+          method: "revertsWith",
+          args: ["another reason"],
+          failedAssert: (x) => expect(x).to.be.revertedWith("some reason"),
+          failedAssertReason:
+            "Expected transaction to be reverted with reason 'some reason', but it reverted with reason 'another reason'",
+        });
+      });
+    });
 
-        await expectAssertionError(
-          expect(
-            matchers.callStatic.revertsWith("another reason")
-          ).to.be.revertedWith("some reason"),
-          "Expected transaction to be reverted with reason 'some reason', but it reverted with reason 'another reason'"
-        );
-        await expectAssertionError(
-          expect(matchers.callStatic.panicAssert()).to.be.revertedWith(
-            "some reason"
-          ),
-          "Expected transaction to be reverted with reason 'some reason', but it reverted with panic code 0x01 (Assertion error)"
-        );
-        await expectAssertionError(
-          expect(
-            matchers.callStatic.revertsWith("some reason")
-          ).to.not.be.revertedWith("some reason"),
-          "Expected transaction NOT to be reverted with reason 'some reason', but it did"
-        );
+    describe("calling a method that reverts with a panic code", function () {
+      it("successful asserts", async function () {
+        await runSuccessfulAsserts({
+          matchers,
+          method: "panicAssert",
+          successfulAssert: (x) =>
+            expect(x).to.not.be.revertedWith("some reason"),
+        });
+      });
+
+      it("failed asserts", async function () {
+        await runFailedAsserts({
+          matchers,
+          method: "panicAssert",
+          failedAssert: (x) => expect(x).to.be.revertedWith("some reason"),
+          failedAssertReason:
+            "Expected transaction to be reverted with reason 'some reason', but it reverted with panic code 0x01 (Assertion error)",
+        });
+      });
+    });
+
+    describe("calling a method that reverts with a custom error", function () {
+      it("successful asserts", async function () {
+        await runSuccessfulAsserts({
+          matchers,
+          method: "revertWithSomeCustomError",
+          successfulAssert: (x) =>
+            expect(x).to.not.be.revertedWith("some reason"),
+        });
+      });
+
+      it("failed asserts", async function () {
+        await runFailedAsserts({
+          matchers,
+          method: "revertWithSomeCustomError",
+          failedAssert: (x) => expect(x).to.be.revertedWith("some reason"),
+          failedAssertReason:
+            "Expected transaction to be reverted with reason 'some reason', but it reverted with a custom error",
+        });
       });
     });
 

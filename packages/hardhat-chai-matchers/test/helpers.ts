@@ -1,3 +1,4 @@
+import { expect } from "chai";
 import { fork } from "child_process";
 import getPort from "get-port";
 import { resetHardhatContext } from "hardhat/plugins-testing";
@@ -92,4 +93,48 @@ export function useEnvironmentWithNode(fixtureProjectName: string) {
       this.hhNodeProcess.on("exit", resolve);
     });
   });
+}
+
+export async function runSuccessfulAsserts({
+  matchers,
+  method,
+  args = [],
+  successfulAssert,
+}: {
+  matchers: any;
+  method: string;
+  args?: any[];
+  successfulAssert: (x: any) => Promise<void>;
+}) {
+  await successfulAssert(matchers[method](...args));
+  await successfulAssert(matchers[`${method}View`](...args));
+  await successfulAssert(matchers.estimateGas[method](...args));
+  await successfulAssert(matchers.callStatic[method](...args));
+}
+
+export async function runFailedAsserts({
+  matchers,
+  method,
+  args = [],
+  failedAssert,
+  failedAssertReason,
+}: {
+  matchers: any;
+  method: string;
+  args?: any[];
+  failedAssert: (x: any) => Promise<void>;
+  failedAssertReason: string;
+}) {
+  await expect(failedAssert(matchers[method](...args))).to.be.rejectedWith(
+    failedAssertReason
+  );
+  await expect(
+    failedAssert(matchers[`${method}View`](...args))
+  ).to.be.rejectedWith(failedAssertReason);
+  await expect(
+    failedAssert(matchers.estimateGas[method](...args))
+  ).to.be.rejectedWith(failedAssertReason);
+  await expect(
+    failedAssert(matchers.callStatic[method](...args))
+  ).to.be.rejectedWith(failedAssertReason);
 }

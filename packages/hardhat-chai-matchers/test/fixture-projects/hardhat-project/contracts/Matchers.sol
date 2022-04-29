@@ -73,6 +73,11 @@ contract Matchers {
     revert SomeCustomError();
   }
 
+  function revertWithAnotherCustomError() public {
+    x++;
+    revert AnotherCustomError();
+  }
+
   function revertWithAnotherCustomErrorView() public pure {
     revert AnotherCustomError();
   }
