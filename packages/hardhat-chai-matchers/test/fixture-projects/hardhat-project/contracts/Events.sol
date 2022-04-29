@@ -58,8 +58,6 @@ contract Events {
 
   function doNotEmit() public {}
 
-  function doNotEmitPure() pure public {}
-
   function emitWithoutArgs() public {
     emit WithoutArgs();
   }
