@@ -20,7 +20,6 @@ describe("INTEGRATION: Events", () => {
   });
 
   function runTests() {
-    describe("run all the tests", function () {
       beforeEach(async function () {
         events = await (
           await this.hre.ethers.getContractFactory("Events")
@@ -321,6 +320,5 @@ describe("INTEGRATION: Events", () => {
         const tx = await events.emitOne();
         await expect(tx.hash).to.emit(events, "One");
       });
-    });
   }
 });
