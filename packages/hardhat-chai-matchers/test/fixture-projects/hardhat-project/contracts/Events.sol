@@ -1,6 +1,8 @@
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
 contract Events {
+  event WithoutArgs();
   event One(uint value, string msg, bytes32 encoded);
   event Two(uint indexed value, string msg);
   event Index(string indexed msgHashed, string msg, bytes bmsg, bytes indexed bmsgHash, bytes32 indexed encoded);
@@ -57,4 +59,8 @@ contract Events {
   function doNotEmit() public {}
 
   function doNotEmitPure() pure public {}
+
+  function emitWithoutArgs() public {
+    emit WithoutArgs();
+  }
 }

@@ -51,16 +51,25 @@ describe(".to.emit (contract events)", () => {
       );
     });
 
-    it("Emit one: success", async () => {
-      await expect(contract.emitOne()).to.emit(contract, "One");
+    it("Should detect events without arguments", async function () {
+      await expect(contract.emitWithoutArgs()).to.emit(contract, "WithoutArgs");
     });
 
-    it("Emit one: fail", async () => {
+    it("Should fail when expecting an event that wasn't emitted", async function () {
       await expect(
-        expect(contract.emitOne()).to.emit(contract, "Two")
+        expect(contract.doNotEmit()).to.emit(contract, "WithoutArgs")
       ).to.be.eventually.rejectedWith(
         AssertionError,
-        'Expected event "Two" to be emitted, but it wasn\'t'
+        'Expected event "WithoutArgs" to be emitted, but it wasn\'t'
+      );
+    });
+
+    it("Should fail when expecting a specific event NOT to be emitted but it WAS", async function () {
+      await expect(
+        expect(contract.emitWithoutArgs()).to.not.emit(contract, "WithoutArgs")
+      ).to.be.eventually.rejectedWith(
+        AssertionError,
+        'Expected event "WithoutArgs" NOT to be emitted, but it was'
       );
     });
 
@@ -68,15 +77,6 @@ describe(".to.emit (contract events)", () => {
       await expect(contract.emitTwo())
         .to.emit(contract, "Two")
         .withArgs(2, "Two");
-    });
-
-    it("Emit two: fail", async () => {
-      await expect(
-        expect(contract.emitTwo()).to.emit(contract, "One")
-      ).to.be.eventually.rejectedWith(
-        AssertionError,
-        'Expected event "One" to be emitted, but it wasn\'t'
-      );
     });
 
     it("Emit index: success", async () => {
@@ -100,19 +100,6 @@ describe(".to.emit (contract events)", () => {
           bytes,
           "0x00cfbbaf7ddb3a1476767101c12a0162e241fbad2a0162e2410cfbbaf7162123"
         );
-    });
-
-    it("Do not emit one: fail", async () => {
-      await expect(
-        expect(contract.emitOne()).to.not.emit(contract, "One")
-      ).to.be.eventually.rejectedWith(
-        AssertionError,
-        'Expected event "One" NOT to be emitted, but it was'
-      );
-    });
-
-    it("Do not emit two: success", async () => {
-      await expect(contract.emitTwo()).to.not.emit(contract, "One");
     });
 
     it("Emit both: success (two expects)", async () => {
