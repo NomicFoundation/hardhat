@@ -155,6 +155,9 @@ function overwriteBigNumberFunction(
         }
       };
 
+      // "ssfi" stands for "start stack function indicator", it's a chai concept
+      // used to control which frames are included in the stack trace
+      // this pattern here was taken from chai's implementation of .deep.equal
       const prevLockSsfi = chaiUtils.flag(this, "lockSsfi");
       chaiUtils.flag(this, "lockSsfi", true);
       this.assert(
