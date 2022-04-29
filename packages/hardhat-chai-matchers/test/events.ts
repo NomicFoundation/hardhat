@@ -5,7 +5,7 @@ import { useEnvironment, useEnvironmentWithNode } from "./helpers";
 
 describe(".to.emit (contract events)", () => {
   let factory: ContractFactory;
-  let events: Contract;
+  let contract: Contract;
 
   describe("with the in-process hardhat network", function () {
     useEnvironment("hardhat-project");
@@ -21,14 +21,14 @@ describe(".to.emit (contract events)", () => {
 
   function runTests() {
     beforeEach(async function () {
-      events = await (
+      contract = await (
         await this.hre.ethers.getContractFactory("Events")
       ).deploy();
     });
 
     it("Should fail when expecting an event that's not in the contract", async function () {
       await expect(
-        expect(events.doNotEmit()).to.emit(events, "NonexistentEvent")
+        expect(contract.doNotEmit()).to.emit(contract, "NonexistentEvent")
       ).to.be.eventually.rejectedWith(
         AssertionError,
         "Expected event \"NonexistentEvent\" to be emitted, but it doesn't exist in the contract. Please make sure you've compiled its latest version before running the test."
@@ -37,7 +37,7 @@ describe(".to.emit (contract events)", () => {
 
     it("Should fail when expecting an event that's not in the contract to NOT be emitted", async function () {
       await expect(
-        expect(events.doNotEmit()).not.to.emit(events, "NonexistentEvent")
+        expect(contract.doNotEmit()).not.to.emit(contract, "NonexistentEvent")
       ).to.be.eventually.rejectedWith(
         AssertionError,
         "WARNING: Expected event \"NonexistentEvent\" NOT to be emitted. The event wasn't emitted because it doesn't exist in the contract. Please make sure you've compiled its latest version before running the test."
@@ -45,19 +45,19 @@ describe(".to.emit (contract events)", () => {
     });
 
     it.skip("Does fail with a terrible error message when expecting an event from a pure function", async function () {
-      await expect(events.doNotEmitPure()).not.to.emit(
-        events,
+      await expect(contract.doNotEmitPure()).not.to.emit(
+        contract,
         "NonexistentEvent"
       );
     });
 
     it("Emit one: success", async () => {
-      await expect(events.emitOne()).to.emit(events, "One");
+      await expect(contract.emitOne()).to.emit(contract, "One");
     });
 
     it("Emit one: fail", async () => {
       await expect(
-        expect(events.emitOne()).to.emit(events, "Two")
+        expect(contract.emitOne()).to.emit(contract, "Two")
       ).to.be.eventually.rejectedWith(
         AssertionError,
         'Expected event "Two" to be emitted, but it wasn\'t'
@@ -65,12 +65,14 @@ describe(".to.emit (contract events)", () => {
     });
 
     it("Emit two: success", async () => {
-      await expect(events.emitTwo()).to.emit(events, "Two").withArgs(2, "Two");
+      await expect(contract.emitTwo())
+        .to.emit(contract, "Two")
+        .withArgs(2, "Two");
     });
 
     it("Emit two: fail", async () => {
       await expect(
-        expect(events.emitTwo()).to.emit(events, "One")
+        expect(contract.emitTwo()).to.emit(contract, "One")
       ).to.be.eventually.rejectedWith(
         AssertionError,
         'Expected event "One" to be emitted, but it wasn\'t'
@@ -80,8 +82,8 @@ describe(".to.emit (contract events)", () => {
     it("Emit index: success", async () => {
       const bytes = ethers.utils.hexlify(ethers.utils.toUtf8Bytes("Three"));
       const hash = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("Three"));
-      await expect(events.emitIndex())
-        .to.emit(events, "Index")
+      await expect(contract.emitIndex())
+        .to.emit(contract, "Index")
         .withArgs(
           hash,
           "Three",
@@ -89,8 +91,8 @@ describe(".to.emit (contract events)", () => {
           hash,
           "0x00cfbbaf7ddb3a1476767101c12a0162e241fbad2a0162e2410cfbbaf7162123"
         );
-      await expect(events.emitIndex())
-        .to.emit(events, "Index")
+      await expect(contract.emitIndex())
+        .to.emit(contract, "Index")
         .withArgs(
           "Three",
           "Three",
@@ -102,7 +104,7 @@ describe(".to.emit (contract events)", () => {
 
     it("Do not emit one: fail", async () => {
       await expect(
-        expect(events.emitOne()).to.not.emit(events, "One")
+        expect(contract.emitOne()).to.not.emit(contract, "One")
       ).to.be.eventually.rejectedWith(
         AssertionError,
         'Expected event "One" NOT to be emitted, but it was'
@@ -110,34 +112,34 @@ describe(".to.emit (contract events)", () => {
     });
 
     it("Do not emit two: success", async () => {
-      await expect(events.emitTwo()).to.not.emit(events, "One");
+      await expect(contract.emitTwo()).to.not.emit(contract, "One");
     });
 
     it("Emit both: success (two expects)", async () => {
-      await expect(events.emitBoth())
-        .to.emit(events, "One")
+      await expect(contract.emitBoth())
+        .to.emit(contract, "One")
         .withArgs(
           1,
           "One",
           "0x0000000000000000000000000000000000000000000000000000000000000001"
         );
-      await expect(events.emitBoth()).to.emit(events, "Two");
+      await expect(contract.emitBoth()).to.emit(contract, "Two");
     });
 
     it('Emit both: success (one expect with two "to" prepositions)', async () => {
-      await expect(events.emitBoth())
-        .to.emit(events, "One")
+      await expect(contract.emitBoth())
+        .to.emit(contract, "One")
         .withArgs(
           1,
           "One",
           "0x0000000000000000000000000000000000000000000000000000000000000001"
         )
-        .and.to.emit(events, "Two");
+        .and.to.emit(contract, "Two");
     });
 
     it("Event with proper args", async () => {
-      await expect(events.emitOne())
-        .to.emit(events, "One")
+      await expect(contract.emitOne())
+        .to.emit(contract, "One")
         .withArgs(
           1,
           "One",
@@ -146,8 +148,8 @@ describe(".to.emit (contract events)", () => {
     });
 
     it("Event with proper args from nested", async () => {
-      await expect(events.emitNested())
-        .to.emit(events, "One")
+      await expect(contract.emitNested())
+        .to.emit(contract, "One")
         .withArgs(
           1,
           "One",
@@ -157,7 +159,7 @@ describe(".to.emit (contract events)", () => {
 
     it("Event with not enough args", async () => {
       await expect(
-        expect(events.emitOne()).to.emit(events, "One").withArgs(1)
+        expect(contract.emitOne()).to.emit(contract, "One").withArgs(1)
       ).to.be.eventually.rejectedWith(
         AssertionError,
         'Expected "One" event to have 1 argument(s), but it has 3'
@@ -166,7 +168,7 @@ describe(".to.emit (contract events)", () => {
 
     it("Event with too many args", async () => {
       await expect(
-        expect(events.emitOne()).to.emit(events, "One").withArgs(1, 2, 3, 4)
+        expect(contract.emitOne()).to.emit(contract, "One").withArgs(1, 2, 3, 4)
       ).to.be.eventually.rejectedWith(
         AssertionError,
         'Expected "One" event to have 4 argument(s), but it has 3'
@@ -175,8 +177,8 @@ describe(".to.emit (contract events)", () => {
 
     it("Event with one different arg (integer)", async () => {
       await expect(
-        expect(events.emitOne())
-          .to.emit(events, "One")
+        expect(contract.emitOne())
+          .to.emit(contract, "One")
           .withArgs(
             2,
             "One",
@@ -187,8 +189,8 @@ describe(".to.emit (contract events)", () => {
 
     it("Event with one different arg (string)", async () => {
       await expect(
-        expect(events.emitOne())
-          .to.emit(events, "One")
+        expect(contract.emitOne())
+          .to.emit(contract, "One")
           .withArgs(
             1,
             "Two",
@@ -202,8 +204,8 @@ describe(".to.emit (contract events)", () => {
 
     it("Event with one different arg (string) #2", async () => {
       await expect(
-        expect(events.emitOne())
-          .to.emit(events, "One")
+        expect(contract.emitOne())
+          .to.emit(contract, "One")
           .withArgs(
             1,
             "One",
@@ -217,8 +219,8 @@ describe(".to.emit (contract events)", () => {
     });
 
     it("Event with array of BigNumbers and bytes32 types", async () => {
-      await expect(events.emitArrays())
-        .to.emit(events, "Arrays")
+      await expect(contract.emitArrays())
+        .to.emit(contract, "Arrays")
         .withArgs(
           [1, 2, 3],
           [
@@ -229,8 +231,8 @@ describe(".to.emit (contract events)", () => {
     });
 
     it("Event with array of BigNumbers providing bignumbers to the matcher", async () => {
-      await expect(events.emitArrays())
-        .to.emit(events, "Arrays")
+      await expect(contract.emitArrays())
+        .to.emit(contract, "Arrays")
         .withArgs(
           [BigNumber.from(1), 2, BigNumber.from(3)],
           [
@@ -242,8 +244,8 @@ describe(".to.emit (contract events)", () => {
 
     it("Event with one different arg within array (bytes32)", async () => {
       await expect(
-        expect(events.emitArrays())
-          .to.emit(events, "Arrays")
+        expect(contract.emitArrays())
+          .to.emit(contract, "Arrays")
           .withArgs(
             [BigNumber.from(1), 2, BigNumber.from(3)],
             [
@@ -260,8 +262,8 @@ describe(".to.emit (contract events)", () => {
 
     it("Event with one different arg within array (BigNumber)", async () => {
       await expect(
-        expect(events.emitArrays())
-          .to.emit(events, "Arrays")
+        expect(contract.emitArrays())
+          .to.emit(contract, "Arrays")
           .withArgs(
             [0, 2, 3],
             [
@@ -278,20 +280,20 @@ describe(".to.emit (contract events)", () => {
 
     it.skip("Event emitted in one contract but not in the other", async () => {
       const differentEvents = await factory.deploy();
-      await expect(events.emitOne())
-        .to.emit(events, "One")
+      await expect(contract.emitOne())
+        .to.emit(contract, "One")
         .and.not.to.emit(differentEvents, "One");
     });
 
     it("Emit event multiple times with different args", async () => {
-      await expect(events.emitOneMultipleTimes())
-        .to.emit(events, "One")
+      await expect(contract.emitOneMultipleTimes())
+        .to.emit(contract, "One")
         .withArgs(
           1,
           "One",
           "0x00cfbbaf7ddb3a1476767101c12a0162e241fbad2a0162e2410cfbbaf7162123"
         )
-        .and.to.emit(events, "One")
+        .and.to.emit(contract, "One")
         .withArgs(
           1,
           "DifferentKindOfOne",
@@ -301,8 +303,8 @@ describe(".to.emit (contract events)", () => {
 
     it("Event args not found among multiple emitted events", async () => {
       await expect(
-        expect(events.emitOneMultipleTimes())
-          .to.emit(events, "One")
+        expect(contract.emitOneMultipleTimes())
+          .to.emit(contract, "One")
           .withArgs(1, 2, 3, 4)
       ).to.be.eventually.rejectedWith(
         AssertionError,
@@ -311,13 +313,13 @@ describe(".to.emit (contract events)", () => {
     });
 
     it("With executed transaction", async () => {
-      const tx = await events.emitOne();
-      await expect(tx).to.emit(events, "One");
+      const tx = await contract.emitOne();
+      await expect(tx).to.emit(contract, "One");
     });
 
     it("With transaction hash", async () => {
-      const tx = await events.emitOne();
-      await expect(tx.hash).to.emit(events, "One");
+      const tx = await contract.emitOne();
+      await expect(tx.hash).to.emit(contract, "One");
     });
   }
 });
