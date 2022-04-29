@@ -1,9 +1,11 @@
 import { AssertionError } from "chai";
+import deepEqual from "deep-eql";
 import {
   formatNumberType,
   isBigNumber,
   normalizeToBigInt,
 } from "hardhat/common/bigInt";
+import util from "util";
 
 export function supportBigNumber(
   Assertion: Chai.AssertionStatic,
@@ -96,8 +98,13 @@ function overwriteBigNumberFunction(
   chaiUtils: Chai.ChaiUtils
 ) {
   return function (this: Chai.AssertionStatic, ...args: any[]) {
-    const [actualArg] = args;
+    const [actualArg, message] = args;
     const expectedFlag = chaiUtils.flag(this, "object");
+
+    if (message !== undefined) {
+      chaiUtils.flag(this, "message", message);
+    }
+
     function compare(method: Methods, lhs: bigint, rhs: bigint): boolean {
       if (method === "eq") {
         return lhs === rhs;
@@ -134,6 +141,36 @@ function overwriteBigNumberFunction(
         expected,
         actual
       );
+    } else if (functionName === "eq" && chaiUtils.flag(this, "deep")) {
+      // this is close enough to what chai itself does, except we compare
+      // numbers after normalizing them
+      const comparator = (a: any, b: any): boolean | null => {
+        try {
+          const normalizedA = normalizeToBigInt(a);
+          const normalizedB = normalizeToBigInt(b);
+          return normalizedA === normalizedB;
+        } catch (e) {
+          // use default comparator
+          return null;
+        }
+      };
+
+      // "ssfi" stands for "start stack function indicator", it's a chai concept
+      // used to control which frames are included in the stack trace
+      // this pattern here was taken from chai's implementation of .deep.equal
+      const prevLockSsfi = chaiUtils.flag(this, "lockSsfi");
+      chaiUtils.flag(this, "lockSsfi", true);
+      this.assert(
+        deepEqual(actualArg, expectedFlag, { comparator }),
+        `expected ${util.inspect(expectedFlag)} to deeply equal ${util.inspect(
+          actualArg
+        )}`,
+        `expected ${util.inspect(
+          expectedFlag
+        )} to not deeply equal ${util.inspect(actualArg)}`,
+        null
+      );
+      chaiUtils.flag(this, "lockSsfi", prevLockSsfi);
     } else if (isBigNumber(expectedFlag) || isBigNumber(actualArg)) {
       const expected = normalizeToBigInt(expectedFlag);
       const actual = normalizeToBigInt(actualArg);

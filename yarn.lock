@@ -5763,6 +5763,13 @@ deep-eql@^3.0.1:
   dependencies:
     type-detect "^4.0.0"
 
+deep-eql@^4.0.1:
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/deep-eql/-/deep-eql-4.0.1.tgz#2b65bc89491d193780c452edee2144a91bb0a445"
+  integrity sha512-D/Oxqobjr+kxaHsgiQBZq9b6iAWdEj5W/JdJm8deNduAPc9CwXQ3BJJCuEqlrPXcy45iOMkGPZ0T81Dnz7UDCA==
+  dependencies:
+    type-detect "^4.0.0"
+
 deep-equal@^1.0.1, deep-equal@~1.1.1:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/deep-equal/-/deep-equal-1.1.1.tgz#b5c98c942ceffaf7cb051e24e1434a25a2e6076a"
