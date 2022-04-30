@@ -31,10 +31,6 @@ describe("INTEGRATION: Reverted with", function () {
     });
 
     // helpers
-    const expectAssertionError = async (x: Promise<void>, message: string) => {
-      return expect(x).to.be.eventually.rejectedWith(AssertionError, message);
-    };
-
     const mineSuccessfulTransaction = async (hre: any) => {
       await hre.network.provider.send("evm_setAutomine", [false]);
 
@@ -174,10 +170,9 @@ describe("INTEGRATION: Reverted with", function () {
 
     describe("invalid values", function () {
       it("non-errors as subject", async function () {
-        await expectAssertionError(
-          expect(Promise.reject({})).to.be.revertedWith("some reason"),
-          "Expected an Error object"
-        );
+        await expect(
+          expect(Promise.reject({})).to.be.revertedWith("some reason")
+        ).to.be.rejectedWith(AssertionError, "Expected an Error object");
       });
 
       it("non-string as expectation", async function () {

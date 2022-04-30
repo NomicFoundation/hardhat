@@ -95,6 +95,16 @@ export function useEnvironmentWithNode(fixtureProjectName: string) {
   });
 }
 
+/**
+ * Call `method` as:
+ *   - A write transaction
+ *   - A view method
+ *   - A gas estimation
+ *   - A static call
+ * And run the `successfulAssert` function with the result of each of these
+ * calls. Since we expect this assertion to be successful, we just await its
+ * result; if any of them fails, an error will be thrown.
+ */
 export async function runSuccessfulAsserts({
   matchers,
   method,
@@ -112,6 +122,10 @@ export async function runSuccessfulAsserts({
   await successfulAssert(matchers.callStatic[method](...args));
 }
 
+/**
+ * Similar to runSuccessfulAsserts, but check that the result of the assertion
+ * is an AssertionError with the given reason.
+ */
 export async function runFailedAsserts({
   matchers,
   method,

@@ -81,6 +81,7 @@ export function supportRevertedWithCustomError(
           );
         } else if (decodedReturnData.kind === "Custom") {
           if (decodedReturnData.id === expectedCustomError.id) {
+            // add flag with the data needed for .withArgs
             const customErrorAssertionData: CustomErrorAssertionData = {
               contractInterface: iface,
               customError: expectedCustomError,
@@ -98,6 +99,8 @@ export function supportRevertedWithCustomError(
               `Expected transaction NOT to be reverted with custom error '${expectedCustomErrorName}', but it did`
             );
           } else {
+            // try to decode the actual custom error
+            // this will only work when the error comes from the given contract
             const actualCustomError = findCustomErrorById(
               iface,
               decodedReturnData.id
@@ -125,6 +128,7 @@ export function supportRevertedWithCustomError(
         onError
       );
 
+      // needed for .withArgs
       utils.flag(this, CUSTOM_ERROR_ASSERTION_CALLED, true);
       this.promise = derivedPromise;
 
@@ -150,7 +154,7 @@ export function supportRevertedWithCustomError(
 
       if (customErrorAssertionData === undefined) {
         throw new Error(
-          "[.withArgs] should never happen, please submit an issue"
+          "[.withArgs] should never happen, please submit an issue to the Hardhat repository"
         );
       }
 

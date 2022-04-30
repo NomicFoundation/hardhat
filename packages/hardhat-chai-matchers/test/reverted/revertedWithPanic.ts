@@ -31,10 +31,6 @@ describe("INTEGRATION: Reverted with panic", function () {
     });
 
     // helpers
-    const expectAssertionError = async (x: Promise<void>, message: string) => {
-      return expect(x).to.be.eventually.rejectedWith(AssertionError, message);
-    };
-
     const mineSuccessfulTransaction = async (hre: any) => {
       await hre.network.provider.send("evm_setAutomine", [false]);
 
@@ -244,10 +240,9 @@ describe("INTEGRATION: Reverted with panic", function () {
 
     describe("invalid values", function () {
       it("non-errors as subject", async function () {
-        await expectAssertionError(
-          expect(Promise.reject({})).to.be.revertedWithPanic(1),
-          "Expected an Error object"
-        );
+        await expect(
+          expect(Promise.reject({})).to.be.revertedWithPanic(1)
+        ).to.be.rejectedWith(AssertionError, "Expected an Error object");
       });
 
       it("non-number as expectation", async function () {

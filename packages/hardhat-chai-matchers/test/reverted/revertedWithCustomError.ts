@@ -31,10 +31,6 @@ describe("INTEGRATION: Reverted with custom error", function () {
     });
 
     // helpers
-    const expectAssertionError = async (x: Promise<void>, message: string) => {
-      return expect(x).to.be.eventually.rejectedWith(AssertionError, message);
-    };
-
     const mineSuccessfulTransaction = async (hre: any) => {
       await hre.network.provider.send("evm_setAutomine", [false]);
 
@@ -233,12 +229,11 @@ describe("INTEGRATION: Reverted with custom error", function () {
           .to.be.revertedWithCustomError(matchers, "CustomErrorWithUint")
           .withArgs(1);
 
-        await expectAssertionError(
+        await expect(
           expect(matchers.revertWithCustomErrorWithUint(1))
             .to.be.revertedWithCustomError(matchers, "CustomErrorWithUint")
-            .withArgs(2),
-          "expected 1 to equal 2"
-        );
+            .withArgs(2)
+        ).to.be.rejectedWith(AssertionError, "expected 1 to equal 2");
       });
 
       it("should work with two arguments", async function () {
@@ -249,25 +244,23 @@ describe("INTEGRATION: Reverted with custom error", function () {
           )
           .withArgs(1, "foo");
 
-        await expectAssertionError(
+        await expect(
           expect(matchers.revertWithCustomErrorWithUintAndString(1, "foo"))
             .to.be.revertedWithCustomError(
               matchers,
               "CustomErrorWithUintAndString"
             )
-            .withArgs(2, "foo"),
-          "expected 1 to equal 2"
-        );
+            .withArgs(2, "foo")
+        ).to.be.rejectedWith(AssertionError, "expected 1 to equal 2");
 
-        await expectAssertionError(
+        await expect(
           expect(matchers.revertWithCustomErrorWithUintAndString(1, "foo"))
             .to.be.revertedWithCustomError(
               matchers,
               "CustomErrorWithUintAndString"
             )
-            .withArgs(1, "bar"),
-          "expected 'foo' to equal 'bar'"
-        );
+            .withArgs(1, "bar")
+        ).to.be.rejectedWith(AssertionError, "expected 'foo' to equal 'bar'");
       });
 
       // skipped until .deep.equal works with big numbers
@@ -276,12 +269,11 @@ describe("INTEGRATION: Reverted with custom error", function () {
           .to.be.revertedWithCustomError(matchers, "CustomErrorWithPair")
           .withArgs([1, 2]);
 
-        await expectAssertionError(
+        await expect(
           expect(matchers.revertWithCustomErrorWithUint(1, 2))
             .to.be.revertedWithCustomError(matchers, "CustomErrorWithPair")
-            .withArgs([3, 2]),
-          "expected 1 to equal 3"
-        );
+            .withArgs([3, 2])
+        ).to.be.rejectedWith(AssertionError, "expected 1 to equal 3");
       });
 
       it("should fail if withArgs is called on its own", async function () {
@@ -298,10 +290,9 @@ describe("INTEGRATION: Reverted with custom error", function () {
 
     describe("invalid values", function () {
       it("non-errors as subject", async function () {
-        await expectAssertionError(
-          expect(Promise.reject({})).to.be.revertedWith("some reason"),
-          "Expected an Error object"
-        );
+        await expect(
+          expect(Promise.reject({})).to.be.revertedWith("some reason")
+        ).to.be.rejectedWith(AssertionError, "Expected an Error object");
       });
 
       it("non-string as expectation", async function () {

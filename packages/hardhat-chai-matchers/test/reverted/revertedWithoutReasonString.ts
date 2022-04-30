@@ -30,10 +30,6 @@ describe("INTEGRATION: Reverted without reason string", function () {
     });
 
     // helpers
-    const expectAssertionError = async (x: Promise<void>, message: string) => {
-      return expect(x).to.be.eventually.rejectedWith(AssertionError, message);
-    };
-
     describe("calling a method that succeeds", function () {
       it("successful asserts", async function () {
         await runSuccessfulAsserts({
@@ -146,10 +142,9 @@ describe("INTEGRATION: Reverted without reason string", function () {
 
     describe("invalid values", function () {
       it("non-errors as subject", async function () {
-        await expectAssertionError(
-          expect(Promise.reject({})).to.be.revertedWithoutReasonString(),
-          "Expected an Error object"
-        );
+        await expect(
+          expect(Promise.reject({})).to.be.revertedWithoutReasonString()
+        ).to.be.rejectedWith(AssertionError, "Expected an Error object");
       });
 
       it("errors that are not related to a reverted transaction", async function () {

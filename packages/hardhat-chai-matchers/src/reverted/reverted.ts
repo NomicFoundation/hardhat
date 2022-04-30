@@ -8,7 +8,7 @@ export function supportReverted(Assertion: Chai.AssertionStatic) {
     // get the receipt of that transaction and check its status.
     //
     // If the value doesn't correspond to a transaction, then the `reverted`
-    // assertions is false.
+    // assertion is false.
     const onSuccess = (value: unknown) => {
       if (isTransactionResponse(value) || typeof value === "string") {
         const hash = typeof value === "string" ? value : value.hash;
@@ -40,7 +40,7 @@ export function supportReverted(Assertion: Chai.AssertionStatic) {
         // Since we use `false` here, this means that `.not.to.be.reverted`
         // assertions will pass instead of always throwing a validation error.
         // This allows users to do things like:
-        //   `expect(c.callStatic.f()).to.not.be.reverted
+        //   `expect(c.callStatic.f()).to.not.be.reverted`
         this.assert(false, "Expected transaction to be reverted");
       }
     };

@@ -12,6 +12,12 @@ const ERROR_STRING_PREFIX = "0x08c379a0";
 // method id of 'Panic(uint256)'
 const PANIC_CODE_PREFIX = "0x4e487b71";
 
+/**
+ * Try to obtain the return data of a transaction from the given value.
+ *
+ * If the value is an error but it doesn't have data, we assume it's not related
+ * to a reverted transaction and we re-throw it.
+ */
 export function getReturnDataFromError(error: any): string {
   if (!(error instanceof Error)) {
     throw new AssertionError("Expected an Error object");
