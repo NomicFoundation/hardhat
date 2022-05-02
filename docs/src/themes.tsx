@@ -48,6 +48,7 @@ export const lightPalette = {
   accent800: "#FFF100",
   accent900: "#EDCF00",
   border: "#4B4D4D",
+  tableBorder: "#DFE2E5",
   tipBorderColor: "#42B983",
   tipBackgroundColor: "#F3F5F7",
   warningColorTitle: "#F08D49",
@@ -75,6 +76,7 @@ export const lightPalette = {
     "linear-gradient(254.24deg, #E9DEFA 0%, #FBFCDB 100%, #FBFCDB 100%);",
   neutralBackground:
     "linear-gradient(180deg, #FFFFFF 7.96%, rgba(255, 255, 255, 0.484844) 18.71%, rgba(255, 255, 255, 0) 28.83%, rgba(255, 255, 255, 0) 68.82%, #FFFFFF 91.43%);",
+  link: "#CCB200",
 };
 
 export const darkPalette = {
@@ -95,6 +97,7 @@ export const darkPalette = {
   accent800: "#FFF100",
   accent900: "#EDCF00",
   border: "#4B4D4D",
+  tableBorder: "#DFE2E5",
   tipBorderColor: "#246648",
   tipBackgroundColor: "#282C34",
   warningColorTitle: "#9F5D30",
@@ -122,6 +125,7 @@ export const darkPalette = {
     "linear-gradient(254.24deg, #E9DEFA 0%, #FBFCDB 100%, #FBFCDB 100%);",
   neutralBackground:
     "linear-gradient(180deg, #FFFFFF 7.96%, rgba(255, 255, 255, 0.484844) 18.71%, rgba(255, 255, 255, 0) 28.83%, rgba(255, 255, 255, 0) 68.82%, #FFFFFF 91.43%);",
+  link: "#CCB200",
 } as Palette;
 
 export const hcDarkPalette = {
@@ -142,6 +146,7 @@ export const hcDarkPalette = {
   accent800: "#FFF100",
   accent900: "#EDCF00",
   border: "#4B4D4D",
+  tableBorder: "#DFE2E5",
   tipBorderColor: "#246648",
   tipBackgroundColor: "#282C34",
   warningColorTitle: "#9F5D30",
@@ -169,6 +174,7 @@ export const hcDarkPalette = {
     "linear-gradient(254.24deg, #E9DEFA 0%, #FBFCDB 100%, #FBFCDB 100%);",
   neutralBackground:
     "linear-gradient(180deg, #FFFFFF 7.96%, rgba(255, 255, 255, 0.484844) 18.71%, rgba(255, 255, 255, 0) 28.83%, rgba(255, 255, 255, 0) 68.82%, #FFFFFF 91.43%);",
+  link: "#CCB200",
 } as Palette;
 
 type Palette = typeof lightPalette;

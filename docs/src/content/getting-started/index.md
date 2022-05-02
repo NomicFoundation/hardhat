@@ -1,10 +1,6 @@
 ---
 title: Overview
 description:
-anchors:
-  - overview
-  - installation
-  - quick-start
 ---
 
 ## Overview

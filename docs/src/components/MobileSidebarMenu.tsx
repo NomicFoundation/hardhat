@@ -4,15 +4,12 @@ import { useRouter } from "next/router";
 import { styled } from "linaria/react";
 import { media, tm, tmDark, tmHCDark, tmSelectors } from "../themes";
 import Sidebar from "./Sidebar";
-import {
-  menuItemsList,
-  DocumentationSidebarStructure,
-  socialsItems as defaultSocialItems,
-} from "../config";
+import { menuItemsList, socialsItems as defaultSocialItems } from "../config";
 import ExternalLinkIcon from "../assets/icons/external-link-icon";
+import { IDocumentationSidebarStructure } from "./types";
 
 interface Props {
-  sidebarElementsList: typeof DocumentationSidebarStructure;
+  sidebarElementsList: IDocumentationSidebarStructure;
   menuItems: typeof menuItemsList;
   socialsItems: typeof defaultSocialItems;
 }

@@ -12,7 +12,6 @@ module.exports = {
     "prettier",
   ],
   rules: {
-    "1react-hooks/rules-of-hooks": "off",
     "react/function-component-definition": [
       "error",
       {
@@ -26,5 +25,6 @@ module.exports = {
     "react/no-array-index-key": "off",
     "import/no-extraneous-dependencies": "off",
     "react/no-danger": "off",
+    "no-console": ["error", { allow: ["warn", "error"] }]
   },
 };

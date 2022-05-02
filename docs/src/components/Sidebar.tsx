@@ -90,7 +90,7 @@ const Sidebar = ({ elementsList }: Props) => {
   const router = useRouter();
   return (
     <Container>
-      {elementsList.map((sidebarItem) => {
+      {elementsList?.map((sidebarItem) => {
         const isLinkActive: boolean =
           Boolean(sidebarItem.href) && router?.pathname === sidebarItem.href;
         return (

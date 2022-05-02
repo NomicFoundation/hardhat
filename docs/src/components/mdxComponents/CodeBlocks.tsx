@@ -1,20 +1,28 @@
 import React from "react";
 import { styled } from "linaria/react";
-import { NextComponentType } from "next";
-import { appTheme, tm, tmDark, tmHCDark, tmSelectors } from "../../themes";
+import { media, tm, tmDark, tmHCDark, tmSelectors } from "../../themes";
 
-const { media } = appTheme;
+interface Props {
+  children: string | JSX.Element[] | JSX.Element;
+}
 
 const StyledCode = styled.code`
   padding: 4px 8px;
   background-color: ${tm(({ colors }) => colors.codeBackground)};
   border-radius: 3px;
-  font-size: 14px;
+  font-size: 13.6px;
   font-family: ChivoLight, sans-serif;
   font-weight: 600;
   line-height: 1.7;
   letter-spacing: 2px;
   color: ${tm(({ colors }) => colors.codeColor)};
+
+  h3 & {
+    font-size: inherit;
+    font-family: inherit;
+    font-weight: inherit;
+    line-height: inherit;
+  }
 
   ${tmSelectors.dark} {
     background-color: ${tmDark(({ colors }) => colors.codeBlockBackground)};
@@ -36,7 +44,7 @@ const StyledCode = styled.code`
 `;
 
 const StyledPre = styled.pre`
-  margin-top: 16px;
+  margin: 16px 0;
   padding: 20px 24px;
   background-color: ${tm(({ colors }) => colors.codeBlockBackground)};
   border-radius: 6px;
@@ -45,7 +53,7 @@ const StyledPre = styled.pre`
 
   & code {
     padding: 0;
-    color: ${tm(({ colors }) => colors.neutral0)};
+    color: ${tm(({ colors }) => colors.codeColor)};
     line-height: 1.4;
     font-size: 14px;
     font-family: Menlo, sans-serif;
@@ -55,28 +63,36 @@ const StyledPre = styled.pre`
 
   ${tmSelectors.dark} {
     background-color: ${tmDark(({ colors }) => colors.codeBlockBackground)};
-    color: ${tmDark(({ colors }) => colors.codeColor)};
     border: 1px solid ${tmDark(({ colors }) => colors.codeBlockBorder)};
+    & code {
+      color: ${tmDark(({ colors }) => colors.codeColor)};
+    }
   }
 
   ${tmSelectors.hcDark} {
     background-color: ${tmHCDark(({ colors }) => colors.codeBlockBackground)};
     border: 1px solid ${tmHCDark(({ colors }) => colors.codeBlockBorder)};
+    & code {
+      color: ${tmHCDark(({ colors }) => colors.codeColor)};
+    }
   }
 
   ${media.mqDark} {
     ${tmSelectors.auto} {
       background-color: ${tmDark(({ colors }) => colors.codeBlockBackground)};
       border: 1px solid ${tmDark(({ colors }) => colors.codeBlockBorder)};
+      & code {
+        color: ${tmDark(({ colors }) => colors.codeColor)};
+      }
     }
   }
 `;
 
-const Code: NextComponentType = ({ children }) => {
-  return <StyledCode>{children}</StyledCode>;
+const Code = ({ children }: Props) => {
+  return <StyledCode lang="js">{children}</StyledCode>;
 };
 
-const Pre: NextComponentType = ({ children }) => {
+const Pre = ({ children }: Props) => {
   return <StyledPre>{children}</StyledPre>;
 };
 
