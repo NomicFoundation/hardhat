@@ -50,7 +50,6 @@ export function supportReverted(Assertion: Chai.AssertionStatic) {
       const decodedReturnData = decodeReturnData(returnData);
 
       if (
-        decodedReturnData === null ||
         decodedReturnData.kind === "Empty" ||
         decodedReturnData.kind === "Custom"
       ) {

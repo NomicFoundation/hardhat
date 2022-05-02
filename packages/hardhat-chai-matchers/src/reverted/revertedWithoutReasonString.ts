@@ -15,12 +15,7 @@ export function supportRevertedWithoutReasonString(
       const returnData = getReturnDataFromError(error);
       const decodedReturnData = decodeReturnData(returnData);
 
-      if (decodedReturnData === null) {
-        this.assert(
-          false,
-          `Expected transaction to be reverted without a reason string, but it reverted with an unknown reason`
-        );
-      } else if (decodedReturnData.kind === "Error") {
+      if (decodedReturnData.kind === "Error") {
         this.assert(
           false,
           `Expected transaction to be reverted without a reason string, but it reverted with reason '${decodedReturnData.reason}'`

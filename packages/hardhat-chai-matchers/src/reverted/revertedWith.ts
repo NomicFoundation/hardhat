@@ -20,12 +20,7 @@ export function supportRevertedWith(Assertion: Chai.AssertionStatic) {
         const returnData = getReturnDataFromError(error);
         const decodedReturnData = decodeReturnData(returnData);
 
-        if (decodedReturnData === null) {
-          this.assert(
-            false,
-            `Expected transaction to be reverted with reason '${expectedReason}', but it reverted with an unknown reason`
-          );
-        } else if (decodedReturnData.kind === "Empty") {
+        if (decodedReturnData.kind === "Empty") {
           this.assert(
             false,
             `Expected transaction to be reverted with reason '${expectedReason}', but it reverted without a reason string`
