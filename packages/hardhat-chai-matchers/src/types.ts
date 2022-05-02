@@ -9,6 +9,11 @@ declare namespace Chai {
     hexEqual(other: string): void;
     properPrivateKey: void;
     properAddress: void;
+    changeEtherBalance(
+      account: any,
+      balance: any,
+      options?: any
+    ): AsyncAssertion;
   }
 
   interface NumericComparison {
