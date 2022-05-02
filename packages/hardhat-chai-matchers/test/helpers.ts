@@ -1,4 +1,4 @@
-import { expect } from "chai";
+import { AssertionError, expect } from "chai";
 import { fork } from "child_process";
 import getPort from "get-port";
 import { resetHardhatContext } from "hardhat/plugins-testing";
@@ -140,15 +140,16 @@ export async function runFailedAsserts({
   failedAssertReason: string;
 }) {
   await expect(failedAssert(matchers[method](...args))).to.be.rejectedWith(
+    AssertionError,
     failedAssertReason
   );
   await expect(
     failedAssert(matchers[`${method}View`](...args))
-  ).to.be.rejectedWith(failedAssertReason);
+  ).to.be.rejectedWith(AssertionError, failedAssertReason);
   await expect(
     failedAssert(matchers.estimateGas[method](...args))
-  ).to.be.rejectedWith(failedAssertReason);
+  ).to.be.rejectedWith(AssertionError, failedAssertReason);
   await expect(
     failedAssert(matchers.callStatic[method](...args))
-  ).to.be.rejectedWith(failedAssertReason);
+  ).to.be.rejectedWith(AssertionError, failedAssertReason);
 }
