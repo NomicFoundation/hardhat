@@ -2,6 +2,8 @@ import type { NextPage, GetStaticProps, GetStaticPaths } from "next";
 import { MDXRemote } from "next-mdx-remote";
 
 import {
+  getCommitDate,
+  getEditLink,
   getLayout,
   getMDPaths,
   prepareMdContent,
@@ -56,6 +58,8 @@ interface IDocPage {
   layout: IDocumentationSidebarStructure;
   prev: IFooterNavigation;
   next: IFooterNavigation;
+  lastEditDate: string;
+  editLink: string;
 }
 
 const DocPage: NextPage<IDocPage> = ({
@@ -64,6 +68,8 @@ const DocPage: NextPage<IDocPage> = ({
   layout,
   prev,
   next,
+  lastEditDate,
+  editLink,
 }): JSX.Element => {
   return (
     <DocumentationLayout
@@ -72,7 +78,7 @@ const DocPage: NextPage<IDocPage> = ({
         description: frontMatter.seoDescription,
       }}
       sidebarLayout={layout}
-      footerNavigation={{ prev, next }}
+      footerNavigation={{ prev, next, lastEditDate, editLink }}
     >
       {/* @ts-ignore */}
       <MDXRemote {...mdxSource} components={components} />
@@ -87,6 +93,8 @@ export const getStaticProps: GetStaticProps = async (props) => {
   // @ts-ignore
   const fullName = withIndexFile(params.docPath, params.isIndex);
   const { source, fileName } = readMDFileFromPathOrIndex(fullName);
+  const lastEditDate = getCommitDate(fileName);
+  const editLink = getEditLink(fileName);
 
   const { mdxSource, data, seoTitle, seoDescription } = await prepareMdContent(
     source
@@ -104,6 +112,8 @@ export const getStaticProps: GetStaticProps = async (props) => {
       layout,
       next,
       prev,
+      lastEditDate,
+      editLink,
     },
   };
 };

@@ -1,6 +1,7 @@
 import path from "path";
 import glob from "glob";
 import fs from "fs";
+import { execSync } from "child_process";
 import matter from "gray-matter";
 import remarkDirective from "remark-directive";
 import { serialize } from "next-mdx-remote/serialize";
@@ -8,7 +9,7 @@ import { visit } from "unist-util-visit";
 import { h } from "hastscript";
 import remarkGfm from "remark-gfm";
 import remarkUnwrapImages from "remark-unwrap-images";
-import { DOCS_PATH, TEMP_PATH } from "../config";
+import { DOCS_PATH, REPO_URL, TEMP_PATH } from "../config";
 
 export const newLineDividerRegEx = /\r\n|\n/;
 
@@ -237,4 +238,16 @@ export const getLayout = (fileName: string) => {
   const fileNameKey = fileName.replace(DOCS_PATH, "");
   const { layout, prev = null, next = null } = layoutsMap[fileNameKey];
   return { layout: layoutConfigs[layout], prev, next };
+};
+
+export const getCommitDate = (fileName: string): string => {
+  const output = execSync(
+    `git log -1 --pretty="format:%cI" ${fileName}`
+  ).toString();
+  return output;
+};
+
+export const getEditLink = (fileName: string): string => {
+  // https://github.com/NomicFoundation/hardhat/edit/master/docs/hardhat-network/guides/mainnet-forking.md
+  return fileName.replace(DOCS_PATH, REPO_URL);
 };
