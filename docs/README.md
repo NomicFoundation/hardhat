@@ -12,6 +12,13 @@ https://hardhat-storybook.netlify.app/
 
 Website content is located in `*.md` files withing `src/pages` folder. It's written in Markdown syntax. Folders structure in `pages` is reflected on the website.
 
+### Redirects
+
+Redirects allow you to redirect an incoming request path to a different destination path. Redirects settings are located in `redirects.config.js` file. It exports array of objects. Each object represents a single redirect option.
+We utilize [NextJS Redirects](https://nextjs.org/docs/api-reference/next.config.js/redirects) API for that.
+
+
+
 ## Development
 
 This website is a SSG application based on Next.js. To learn more about Next.js, take a look at the following resources:
