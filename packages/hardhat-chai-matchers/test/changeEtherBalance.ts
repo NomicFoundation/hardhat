@@ -1,6 +1,6 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect, AssertionError } from "chai";
-import { BigNumber, Contract, ethers } from "ethers";
+import { BigNumber, Contract } from "ethers";
 
 import { useEnvironment, useEnvironmentWithNode } from "./helpers";
 
@@ -152,6 +152,12 @@ describe("INTEGRATION: changeEtherBalance matcher", function () {
             AssertionError,
             `Expected "${sender.address}" to not change balance by -200 wei`
           );
+        });
+
+        it("Should pass when given zero value tx", async () => {
+          await expect(() =>
+            sender.sendTransaction({ to: receiver.address, value: 0 })
+          ).to.changeEtherBalance(sender, 0);
         });
       });
 

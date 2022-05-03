@@ -14,6 +14,11 @@ declare namespace Chai {
       balance: any,
       options?: any
     ): AsyncAssertion;
+    changeEtherBalances(
+      accounts: any[],
+      balances: any[],
+      options?: any
+    ): AsyncAssertion;
   }
 
   interface NumericComparison {
