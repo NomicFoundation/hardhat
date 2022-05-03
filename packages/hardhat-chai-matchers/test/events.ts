@@ -222,6 +222,56 @@ describe(".to.emit (contract events)", () => {
             .withArgs(ethers.utils.keccak256(string1Bytes));
         });
       });
+
+      const string1Bytes32 = ethers.utils.zeroPad(string1Bytes, 32);
+      const string2Bytes32 = ethers.utils.zeroPad(string2Bytes, 32);
+      describe("with a bytes32 argument", function () {
+        it("Should match the argument", async function () {
+          await expect(contract.emitBytes32(string1Bytes32))
+            .to.emit(contract, "WithBytes32Arg")
+            .withArgs(string1Bytes32);
+        });
+
+        it("Should fail when the input argument doesn't match the event argument", async function () {
+          await expect(
+            expect(contract.emitBytes32(string2Bytes32))
+              .to.emit(contract, "WithBytes32Arg")
+              .withArgs(string1Bytes32)
+          ).to.be.eventually.rejectedWith(
+            AssertionError,
+            `expected '${ethers.utils.hexlify(
+              string2Bytes32
+            )}' to equal '${ethers.utils.hexlify(string1Bytes32)}'`
+          );
+        });
+      });
+
+      describe("with an indexed bytes32 argument", function () {
+        it("Should match the argument", async function () {
+          await expect(contract.emitIndexedBytes32(string1Bytes32))
+            .to.emit(contract, "WithIndexedBytes32Arg")
+            .withArgs(string1Bytes32);
+        });
+
+        it("Should fail when the input argument doesn't match the event argument", async function () {
+          await expect(
+            expect(contract.emitIndexedBytes32(string2Bytes32))
+              .to.emit(contract, "WithIndexedBytes32Arg")
+              .withArgs(string1Bytes32)
+          ).to.be.eventually.rejectedWith(
+            AssertionError,
+            `expected '${ethers.utils.hexlify(
+              string2Bytes32
+            )}' to equal '${ethers.utils.hexlify(string1Bytes32)}'`
+          );
+        });
+
+        it("Should match the event argument with a hash value", async function () {
+          await expect(contract.emitIndexedBytes32(string1Bytes32))
+            .to.emit(contract, "WithIndexedBytes32Arg")
+            .withArgs(string1Bytes32);
+        });
+      });
     });
 
     describe("With one call that emits two separate events", function () {
@@ -264,29 +314,6 @@ describe(".to.emit (contract events)", () => {
           });
         });
       });
-    });
-
-    it("Emit index: success", async () => {
-      const bytes = ethers.utils.hexlify(ethers.utils.toUtf8Bytes("Three"));
-      const hash = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("Three"));
-      await expect(contract.emitIndex())
-        .to.emit(contract, "Index")
-        .withArgs(
-          hash,
-          "Three",
-          bytes,
-          hash,
-          "0x00cfbbaf7ddb3a1476767101c12a0162e241fbad2a0162e2410cfbbaf7162123"
-        );
-      await expect(contract.emitIndex())
-        .to.emit(contract, "Index")
-        .withArgs(
-          "Three",
-          "Three",
-          bytes,
-          bytes,
-          "0x00cfbbaf7ddb3a1476767101c12a0162e241fbad2a0162e2410cfbbaf7162123"
-        );
     });
 
     it("Emit both: success (two expects)", async () => {

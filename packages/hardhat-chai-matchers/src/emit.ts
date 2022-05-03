@@ -99,7 +99,11 @@ export function supportEmit(Assertion: Chai.AssertionStatic) {
       actualArgs.length
     );
     for (let index = 0; index < expectedArgs.length; index++) {
-      if (
+      if (expectedArgs[index] instanceof Uint8Array) {
+        new Assertion(actualArgs[index]).equal(
+          utils.hexlify(expectedArgs[index])
+        );
+      } else if (
         expectedArgs[index]?.length !== undefined &&
         typeof expectedArgs[index] !== "string"
       ) {
