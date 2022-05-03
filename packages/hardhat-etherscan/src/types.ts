@@ -46,8 +46,20 @@ type EtherscanApiKeys = {
   [Network in Chain]?: string;
 };
 
+export interface CustomChain {
+  network: string;
+  chainId: number;
+  urls: EtherscanURLs;
+}
+
+export interface EtherscanUserConfig {
+  apiKey?: string | EtherscanApiKeys;
+  customChains?: CustomChain[];
+}
+
 export interface EtherscanConfig {
   apiKey?: string | EtherscanApiKeys;
+  customChains: CustomChain[];
 }
 
 export interface EtherscanURLs {
@@ -61,6 +73,6 @@ interface EtherscanChainConfig {
 }
 
 export interface EtherscanNetworkEntry {
-  network: Chain;
+  network: string;
   urls: EtherscanURLs;
 }

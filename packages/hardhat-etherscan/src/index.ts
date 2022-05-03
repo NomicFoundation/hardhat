@@ -191,7 +191,7 @@ If your constructor has no arguments pass an empty array. E.g:
   }: EtherscanNetworkEntry = await run(TASK_VERIFY_GET_ETHERSCAN_ENDPOINT);
 
   const etherscanAPIKey = resolveEtherscanApiKey(
-    etherscan,
+    etherscan.apiKey,
     verificationNetwork
   );
 
@@ -593,8 +593,14 @@ See https://etherscan.io/solcversions for more information.`
   }
 );
 
-subtask(TASK_VERIFY_GET_ETHERSCAN_ENDPOINT).setAction(async (_, { network }) =>
-  getEtherscanEndpoints(network.provider, network.name, chainConfig)
+subtask(TASK_VERIFY_GET_ETHERSCAN_ENDPOINT).setAction(
+  async (_, { config, network }) =>
+    getEtherscanEndpoints(
+      network.provider,
+      network.name,
+      chainConfig,
+      config.etherscan.customChains
+    )
 );
 
 subtask(TASK_VERIFY_GET_CONTRACT_INFORMATION)

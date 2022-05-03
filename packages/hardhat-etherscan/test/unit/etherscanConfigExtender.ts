@@ -7,7 +7,10 @@ describe("Config extension", () => {
     const resolvedConfig = {} as HardhatConfig;
     etherscanConfigExtender(resolvedConfig, {});
 
-    assert.deepStrictEqual(resolvedConfig.etherscan, { apiKey: "" });
+    assert.deepStrictEqual(resolvedConfig.etherscan, {
+      apiKey: "",
+      customChains: [],
+    });
   });
 
   it("copy across a string api key", () => {
@@ -18,6 +21,7 @@ describe("Config extension", () => {
 
     assert.deepStrictEqual(resolvedConfig.etherscan, {
       apiKey: "example_token",
+      customChains: [],
     });
   });
 
@@ -29,6 +33,40 @@ describe("Config extension", () => {
 
     assert.deepStrictEqual(resolvedConfig.etherscan, {
       apiKey: { ropsten: "example_token" },
+      customChains: [],
+    });
+  });
+
+  it("should accept custom chains", async function () {
+    const resolvedConfig = {} as HardhatConfig;
+    etherscanConfigExtender(resolvedConfig, {
+      etherscan: {
+        apiKey: { ropsten: "example_token" },
+        customChains: [
+          {
+            network: "My Chain",
+            chainId: 12345,
+            urls: {
+              apiURL: "https://mychainscan.io/api",
+              browserURL: "https://mychainscan.io",
+            },
+          },
+        ],
+      },
+    });
+
+    assert.deepStrictEqual(resolvedConfig.etherscan, {
+      apiKey: { ropsten: "example_token" },
+      customChains: [
+        {
+          network: "My Chain",
+          chainId: 12345,
+          urls: {
+            apiURL: "https://mychainscan.io/api",
+            browserURL: "https://mychainscan.io",
+          },
+        },
+      ],
     });
   });
 
