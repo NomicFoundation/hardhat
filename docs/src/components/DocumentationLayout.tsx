@@ -153,8 +153,6 @@ const Content = styled.section`
   max-width: 774px;
   padding-left: 34px;
   color: ${tm(({ colors }) => colors.neutral900)};
-  padding: 0 40px 0 34px;
-
   & h2:not(:first-of-type) {
     padding-top: 80px;
   }

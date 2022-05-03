@@ -11,6 +11,8 @@ import remarkGfm from "remark-gfm";
 import remarkUnwrapImages from "remark-unwrap-images";
 import { DOCS_PATH, REPO_URL, TEMP_PATH } from "../config";
 
+const rehypePrism = require("@mapbox/rehype-prism");
+
 export const newLineDividerRegEx = /\r\n|\n/;
 
 export const withIndexURL = (pathname: string): string[] => {
@@ -29,12 +31,13 @@ export const withIndexFile = (docPath: string[], isIndex: boolean): string => {
   return mdFilePath;
 };
 
-export const withCodeElementWrapper = (content: string) =>
-  `
-   \`\`\`
-    ${content}
-    \`\`\`
-  `;
+export const withCodeElementWrapper = (
+  content: string,
+  extension: string = ""
+) =>
+  `\`\`\`${extension}
+${content}
+  \`\`\``;
 
 export const getEntriesInfo = (
   line: string
@@ -84,6 +87,10 @@ export const readFileContent = (pathname: string) => {
   }
 };
 
+export const getFileExtensionFromPathname = (pathname: string) => {
+  return pathname.substring(pathname.lastIndexOf(".") + 1);
+};
+
 export const withInsertedCodeFromLinks = (content: string) => {
   return content
     .split(newLineDividerRegEx)
@@ -93,9 +100,10 @@ export const withInsertedCodeFromLinks = (content: string) => {
       const { pathname, rowsNumbers } = getEntriesInfo(line);
 
       const fileContent = readFileContent(pathname);
+      const fileExtension = getFileExtensionFromPathname(pathname);
 
       const contentFromRange = getContentFromRange(fileContent, rowsNumbers);
-      return withCodeElementWrapper(contentFromRange);
+      return withCodeElementWrapper(contentFromRange, fileExtension);
     })
     .join("\n");
 };
@@ -146,6 +154,29 @@ function createCustomNodes() {
   };
 }
 
+function addLanguageAndHighlightedLinesToCodeBlocks() {
+  // @ts-ignore
+  return (tree) => {
+    visit(tree, (node) => {
+      if (node.type === "code") {
+        // eslint-disable-next-line
+        const data = node.data || (node.data = {});
+        const [lang, highlightedLines] = !node.lang
+          ? ["", ""]
+          : node.lang.replace("}", "").split("{");
+
+        // @ts-ignore
+        data.hProperties = {
+          lang,
+          highlightedLines,
+        };
+        // eslint-disable-next-line
+        node.lang = lang;
+      }
+    });
+  };
+}
+
 export const generateTitleFromContent = (content: string) => {
   return content.split(newLineDividerRegEx)[0].replace(/[#]*/g, "").trim();
 };
@@ -175,12 +206,13 @@ export const prepareMdContent = async (source: string) => {
   const mdxSource = await serialize(formattedContent, {
     mdxOptions: {
       remarkPlugins: [
+        addLanguageAndHighlightedLinesToCodeBlocks,
         remarkGfm,
         remarkDirective,
         createCustomNodes,
         remarkUnwrapImages,
       ],
-      rehypePlugins: [],
+      rehypePlugins: [rehypePrism],
     },
   });
 

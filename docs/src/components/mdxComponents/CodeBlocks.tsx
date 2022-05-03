@@ -2,7 +2,13 @@ import React from "react";
 import { styled } from "linaria/react";
 import { media, tm, tmDark, tmHCDark, tmSelectors } from "../../themes";
 
-interface Props {
+interface CodeProps {
+  children: string | JSX.Element[] | JSX.Element;
+  lang?: string;
+  highlightedLines?: string;
+}
+
+interface PreProps {
   children: string | JSX.Element[] | JSX.Element;
 }
 
@@ -14,8 +20,13 @@ const StyledCode = styled.code`
   font-family: ChivoLight, sans-serif;
   font-weight: 600;
   line-height: 1.7;
-  letter-spacing: 2px;
   color: ${tm(({ colors }) => colors.codeColor)};
+
+  &[data-language=""] {
+    font-family: source-code-pro, Menlo, Monaco, Consolas, Courier New,
+      monospace;
+    font-weight: normal;
+  }
 
   h3 & {
     font-size: inherit;
@@ -53,19 +64,18 @@ const StyledPre = styled.pre`
 
   & code {
     padding: 0;
-    color: ${tm(({ colors }) => colors.codeColor)};
+    color: ${tm(({ colors }) => colors.preCodeColor)};
     line-height: 1.4;
-    font-size: 14px;
-    font-family: Menlo, sans-serif;
+    font-size: 0.85em;
+    font-family: "Menlo", sans-serif;
     font-weight: 300;
-    letter-spacing: 2px;
   }
 
   ${tmSelectors.dark} {
     background-color: ${tmDark(({ colors }) => colors.codeBlockBackground)};
     border: 1px solid ${tmDark(({ colors }) => colors.codeBlockBorder)};
     & code {
-      color: ${tmDark(({ colors }) => colors.codeColor)};
+      color: ${tmDark(({ colors }) => colors.preCodeColor)};
     }
   }
 
@@ -73,7 +83,7 @@ const StyledPre = styled.pre`
     background-color: ${tmHCDark(({ colors }) => colors.codeBlockBackground)};
     border: 1px solid ${tmHCDark(({ colors }) => colors.codeBlockBorder)};
     & code {
-      color: ${tmHCDark(({ colors }) => colors.codeColor)};
+      color: ${tmHCDark(({ colors }) => colors.preCodeColor)};
     }
   }
 
@@ -82,17 +92,25 @@ const StyledPre = styled.pre`
       background-color: ${tmDark(({ colors }) => colors.codeBlockBackground)};
       border: 1px solid ${tmDark(({ colors }) => colors.codeBlockBorder)};
       & code {
-        color: ${tmDark(({ colors }) => colors.codeColor)};
+        color: ${tmDark(({ colors }) => colors.preCodeColor)};
       }
     }
   }
 `;
 
-const Code = ({ children }: Props) => {
-  return <StyledCode lang="js">{children}</StyledCode>;
+const Code = ({ children, lang, highlightedLines }: CodeProps) => {
+  return (
+    <StyledCode
+      lang={lang ?? ""}
+      data-language={lang ?? ""}
+      data-line={highlightedLines ?? ""}
+    >
+      {children}
+    </StyledCode>
+  );
 };
 
-const Pre = ({ children }: Props) => {
+const Pre = ({ children }: PreProps) => {
   return <StyledPre>{children}</StyledPre>;
 };
 

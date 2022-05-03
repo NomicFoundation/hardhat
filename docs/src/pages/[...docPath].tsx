@@ -1,6 +1,5 @@
 import type { NextPage, GetStaticProps, GetStaticPaths } from "next";
 import { MDXRemote } from "next-mdx-remote";
-
 import {
   getCommitDate,
   getEditLink,
