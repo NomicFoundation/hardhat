@@ -180,6 +180,32 @@ module.exports = {
 };
 ```
 
+### Adding support for other networks
+
+If the chain you are using is not in the list, you can manually add the necessary information to verify your contracts on it. For this you need three things: the chain id of the network, the URL of the verification endpoint, and the URL of the explorer.
+
+For example, if Rinkeby wasn't supported, you could add it like this:
+
+```
+etherscan: {
+  apiKey: {
+    rinkeby: "<rinkeby-api-key>"
+  },
+  customChains: [
+    {
+      network: "rinkeby",
+      chainId: 4,
+      urls: {
+        apiURL: "https://api-rinkeby.etherscan.io/api",
+        browserURL: "https://rinkeby.etherscan.io"
+      }
+    }
+  ]
+}
+```
+
+Keep in mind that the name you are giving to the network in `customChains` is the same one that has to be used in the `apiKey` object.
+
 ### Using programmatically
 
 To call the verification task from within a Hardhat task or script, use the `"verify:verify"` subtask. Assuming the same contract as [above](#complex-arguments), you can run the subtask like this:
