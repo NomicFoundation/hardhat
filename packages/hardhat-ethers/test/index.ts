@@ -705,6 +705,15 @@ describe("Ethers plugin", function () {
             );
           });
 
+          it("Should throw if no code is found at the provided address", async function () {
+            assert.throws(async () => {
+              await this.env.ethers.getContractAt(
+                "Greeter",
+                "0x0000000000000000000000000000000000000000"
+              );
+            });
+          });
+
           it("Should return an instance of an interface", async function () {
             const contract = await this.env.ethers.getContractAt(
               "IGreeter",
