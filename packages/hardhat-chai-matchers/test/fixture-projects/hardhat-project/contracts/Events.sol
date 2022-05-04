@@ -23,11 +23,6 @@ contract Events {
       emit One(1, "DifferentKindOfOne", 0x0000000000000000000000000000000000000000000000000000000000000001);
   }
 
-  function emitBoth() public {
-      emit One(1, "One", 0x0000000000000000000000000000000000000000000000000000000000000001);
-      emit Two(2, "Two");
-  }
-
   function _emitInternal() internal {
     emit One(1, "One", 0x00cFBbaF7DDB3a1476767101c12a0162e241fbAD2a0162e2410cFBbaF7162123);
   }

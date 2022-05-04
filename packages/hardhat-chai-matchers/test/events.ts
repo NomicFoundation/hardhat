@@ -313,30 +313,74 @@ describe(".to.emit (contract events)", () => {
             );
           });
         });
+        describe("When specifying .withArgs()", async function () {
+          it("Should pass when expecting the correct args from the first event", async function () {
+            await expect(contract.emitUintAndString(1, "a string"))
+              .to.emit(contract, "WithUintArg")
+              .withArgs(1)
+              .and.to.emit(contract, "WithStringArg");
+          });
+          it("Should pass when expecting the correct args from the second event", async function () {
+            await expect(contract.emitUintAndString(1, "a string"))
+              .to.emit(contract, "WithUintArg")
+              .and.to.emit(contract, "WithStringArg")
+              .withArgs("a string");
+          });
+          it("Should pass when expecting the correct args from both events", async function () {
+            await expect(contract.emitUintAndString(1, "a string"))
+              .to.emit(contract, "WithUintArg")
+              .withArgs(1)
+              .and.to.emit(contract, "WithStringArg")
+              .withArgs("a string");
+          });
+          it.skip("Should fail when expecting the wrong argument value for the first event", async function () {
+            await expect(
+              expect(contract.emitUintAndString(1, "a string"))
+                .to.emit(contract, "WithUintArg")
+                .withArgs(2)
+                .and.to.emit(contract, "WithStringArg")
+            ).to.be.eventually.rejectedWith(
+              AssertionError,
+              "expected 1 to equal 2"
+            );
+          });
+          it("Should fail when expecting the wrong argument value for the second event", async function () {
+            await expect(
+              expect(contract.emitUintAndString(1, "a string"))
+                .to.emit(contract, "WithUintArg")
+                .and.to.emit(contract, "WithStringArg")
+                .withArgs("a different string")
+            ).to.be.eventually.rejectedWith(
+              AssertionError,
+              "expected 'a string' to equal 'a different string'"
+            );
+          });
+          it.skip("Should fail when expecting too many arguments from the first event", async function () {
+            await expect(
+              expect(contract.emitUintAndString(1, "a string"))
+                .to.emit(contract, "WithUintArg")
+                .withArgs(1, 2)
+                .and.to.emit(contract, "WithStringArg")
+            ).to.be.eventually.rejectedWith(
+              AssertionError,
+              'Expected "WithUintArg" event to have 2 argument(s), but it has 1'
+            );
+          });
+          it("Should fail when expecting too many arguments from the second event", async function () {
+            await expect(
+              expect(contract.emitUintAndString(1, "a string"))
+                .to.emit(contract, "WithUintArg")
+                .and.to.emit(contract, "WithStringArg")
+                .withArgs("a different string", "yet another string")
+            ).to.be.eventually.rejectedWith(
+              AssertionError,
+              'Expected "WithStringArg" event to have 2 argument(s), but it has 1'
+            );
+          });
+        });
       });
     });
 
-    it("Emit both: success (two expects)", async () => {
-      await expect(contract.emitBoth())
-        .to.emit(contract, "One")
-        .withArgs(
-          1,
-          "One",
-          "0x0000000000000000000000000000000000000000000000000000000000000001"
-        );
-      await expect(contract.emitBoth()).to.emit(contract, "Two");
-    });
-
-    it('Emit both: success (one expect with two "to" prepositions)', async () => {
-      await expect(contract.emitBoth())
-        .to.emit(contract, "One")
-        .withArgs(
-          1,
-          "One",
-          "0x0000000000000000000000000000000000000000000000000000000000000001"
-        )
-        .and.to.emit(contract, "Two");
-    });
 
     it("Event with proper args from nested", async () => {
       await expect(contract.emitNested())
