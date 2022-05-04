@@ -705,7 +705,7 @@ describe("Ethers plugin", function () {
             );
           });
 
-          it("Should fail to return a contract if no code is found at  given address", async function () {
+          it("Should fail to return a contract if no code is found at given address", async function () {
             try {
               await this.env.ethers.getContractAt(
                 "Greeter",
