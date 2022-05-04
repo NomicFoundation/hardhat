@@ -295,6 +295,14 @@ export async function getContractAt(
   address: string,
   signer?: ethers.Signer
 ) {
+  if ((await hre.ethers.provider.getCode(address)) === "0x") {
+    console.log("0x found");
+    throw new NomicLabsHardhatPluginError(
+      pluginName,
+      `You are trying to get a contract at an address, but no contract code is deployed at address: ${address}`
+    );
+  }
+
   if (typeof nameOrAbi === "string") {
     const artifact = await hre.artifacts.readArtifact(nameOrAbi);
 

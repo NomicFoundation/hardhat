@@ -705,13 +705,26 @@ describe("Ethers plugin", function () {
             );
           });
 
-          it("Should throw if no code is found at the provided address", async function () {
-            assert.throws(async () => {
+          it("Should fail to return a contract if no code is found at  given address", async function () {
+            try {
               await this.env.ethers.getContractAt(
                 "Greeter",
                 "0x0000000000000000000000000000000000000000"
               );
-            });
+            } catch (reason: any) {
+              assert.instanceOf(
+                reason,
+                NomicLabsHardhatPluginError,
+                "getContractAt should fail with a hardhat plugin error"
+              );
+              assert.isTrue(
+                reason.message.includes(
+                  "but no contract code is deployed at address"
+                ),
+                "getContractAt should report that the provided address is not a contract"
+              );
+              return;
+            }
           });
 
           it("Should return an instance of an interface", async function () {
