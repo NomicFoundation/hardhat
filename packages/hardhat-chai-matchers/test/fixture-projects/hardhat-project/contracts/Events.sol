@@ -4,7 +4,9 @@ pragma solidity ^0.8.0;
 contract Events {
   event WithoutArgs();
   event WithUintArg(uint u);
+  event WithTwoUintArgs(uint u, uint v);
   event WithStringArg(string s);
+  event WithTwoStringArgs(string s, string t);
   event WithIndexedStringArg(string indexed s);
   event WithBytesArg(bytes b);
   event WithIndexedBytesArg(bytes indexed b);
@@ -54,6 +56,10 @@ contract Events {
     emit WithUintArg(u);
   }
 
+  function emitTwoUints(uint u, uint v) public {
+    emit WithTwoUintArgs(u, v);
+  }
+
   function emitString(string memory s) public {
     emit WithStringArg(s);
   }
@@ -81,5 +87,10 @@ contract Events {
   function emitUintAndString(uint u, string memory s) public {
     emit WithStringArg(s);
     emit WithUintArg(u);
+  }
+
+  function emitTwoUintsAndTwoStrings(uint u, uint v, string memory s, string memory t) public {
+    emit WithTwoUintArgs(u, v);
+    emit WithTwoStringArgs(s, t);
   }
 }

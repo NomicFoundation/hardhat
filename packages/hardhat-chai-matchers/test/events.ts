@@ -272,6 +272,58 @@ describe(".to.emit (contract events)", () => {
             .withArgs(string1Bytes32);
         });
       });
+
+      describe("with multiple arguments", function () {
+        it("Should successfully match the arguments", async function () {
+          await expect(contract.emitTwoUints(1, 2))
+            .to.emit(contract, "WithTwoUintArgs")
+            .withArgs(1, 2);
+        });
+
+        it("Should fail when the first argument isn't matched", async function () {
+          await expect(
+            expect(contract.emitTwoUints(1, 2))
+              .to.emit(contract, "WithTwoUintArgs")
+              .withArgs(2, 2)
+          ).to.be.eventually.rejectedWith(
+            AssertionError,
+            "expected 1 to equal 2"
+          );
+        });
+
+        it("Should fail when the second argument isn't matched", async function () {
+          await expect(
+            expect(contract.emitTwoUints(1, 2))
+              .to.emit(contract, "WithTwoUintArgs")
+              .withArgs(1, 1)
+          ).to.be.eventually.rejectedWith(
+            AssertionError,
+            "expected 2 to equal 1"
+          );
+        });
+
+        it("Should fail when too many arguments are supplied", async function () {
+          await expect(
+            expect(contract.emitTwoUints(1, 2))
+              .to.emit(contract, "WithTwoUintArgs")
+              .withArgs(1, 2, 3, 4)
+          ).to.be.eventually.rejectedWith(
+            AssertionError,
+            'Expected "WithTwoUintArgs" event to have 4 argument(s), but it has 2'
+          );
+        });
+
+        it("Should fail when too few arguments are supplied", async function () {
+          await expect(
+            expect(contract.emitTwoUints(1, 2))
+              .to.emit(contract, "WithTwoUintArgs")
+              .withArgs(1)
+          ).to.be.eventually.rejectedWith(
+            AssertionError,
+            'Expected "WithTwoUintArgs" event to have 1 argument(s), but it has 2'
+          );
+        });
+      });
     });
 
     describe("With one call that emits two separate events", function () {
@@ -326,7 +378,7 @@ describe(".to.emit (contract events)", () => {
               .and.to.emit(contract, "WithStringArg")
               .withArgs("a string");
           });
-          it("Should pass when expecting the correct args from both events", async function () {
+          it.skip("Should pass when expecting the correct args from both events", async function () {
             await expect(contract.emitUintAndString(1, "a string"))
               .to.emit(contract, "WithUintArg")
               .withArgs(1)
@@ -366,7 +418,7 @@ describe(".to.emit (contract events)", () => {
               'Expected "WithUintArg" event to have 2 argument(s), but it has 1'
             );
           });
-          it("Should fail when expecting too many arguments from the second event", async function () {
+          it.skip("Should fail when expecting too many arguments from the second event", async function () {
             await expect(
               expect(contract.emitUintAndString(1, "a string"))
                 .to.emit(contract, "WithUintArg")
@@ -377,10 +429,45 @@ describe(".to.emit (contract events)", () => {
               'Expected "WithStringArg" event to have 2 argument(s), but it has 1'
             );
           });
+          it.skip("Should fail when expecting too few arguments from the first event", async function () {
+            await expect(
+              expect(
+                contract.emitTwoUintsAndTwoStrings(
+                  1,
+                  2,
+                  "a string",
+                  "another string"
+                )
+              )
+                .to.emit(contract, "WithTwoUintArgs")
+                .withArgs(1)
+                .and.to.emit(contract, "WithTwoStringArgs")
+            ).to.be.eventually.rejectedWith(
+              AssertionError,
+              'Expected "WithTwoUintArgs" event to have 1 argument(s), but it has 2'
+            );
+          });
+          it("Should fail when expecting too few arguments from the second event", async function () {
+            await expect(
+              expect(
+                contract.emitTwoUintsAndTwoStrings(
+                  1,
+                  2,
+                  "a string",
+                  "another string"
+                )
+              )
+                .to.emit(contract, "WithTwoUintArgs")
+                .and.to.emit(contract, "WithTwoStringArgs")
+                .withArgs("a string")
+            ).to.be.eventually.rejectedWith(
+              AssertionError,
+              'Expected "WithTwoStringArgs" event to have 1 argument(s), but it has 2'
+            );
+          });
         });
       });
     });
-
 
     it("Event with proper args from nested", async () => {
       await expect(contract.emitNested())
@@ -390,15 +477,6 @@ describe(".to.emit (contract events)", () => {
           "One",
           "0x00cfbbaf7ddb3a1476767101c12a0162e241fbad2a0162e2410cfbbaf7162123"
         );
-    });
-
-    it("Event with not enough args", async () => {
-      await expect(
-        expect(contract.emitOne()).to.emit(contract, "One").withArgs(1)
-      ).to.be.eventually.rejectedWith(
-        AssertionError,
-        'Expected "One" event to have 1 argument(s), but it has 3'
-      );
     });
 
     it("Event with array of BigNumbers and bytes32 types", async () => {
