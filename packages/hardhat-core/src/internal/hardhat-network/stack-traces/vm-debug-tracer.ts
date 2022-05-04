@@ -326,7 +326,7 @@ export class VMDebugTracer {
       gasCost = step.opcode.dynamicFee!.toNumber();
     } else if (step.opcode.name === "CALLCODE") {
       // finding an existing tx that uses CALLCODE or compiling a contract
-      // so that it uses tihs opcode is hard,
+      // so that it uses this opcode is hard,
       // so we just throw
       throw new InvalidInputError(
         "Transactions that use CALLCODE are not supported by Hardhat's debug_traceTransaction"
