@@ -56,6 +56,11 @@ contract Events {
     emit WithUintArg(u);
   }
 
+  function emitUintTwice(uint u, uint v) public {
+    emit WithUintArg(u);
+    emit WithUintArg(v);
+  }
+
   function emitTwoUints(uint u, uint v) public {
     emit WithTwoUintArgs(u, v);
   }

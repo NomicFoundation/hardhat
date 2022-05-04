@@ -466,6 +466,42 @@ describe(".to.emit (contract events)", () => {
             );
           });
         });
+
+        describe("With a contract that emits the same event twice but with different arguments", function () {
+          it("Should pass when expectations are met", async function () {
+            await expect(contract.emitUintTwice(1, 2))
+              .to.emit(contract, "WithUintArg")
+              .withArgs(1)
+              .and.to.emit(contract, "WithUintArg")
+              .withArgs(2);
+          });
+
+          it.skip("Should fail when the first event's argument is not matched", async function () {
+            await expect(
+              expect(contract.emitUintTwice(1, 2))
+                .to.emit(contract, "WithUintArg")
+                .withArgs(2)
+                .and.to.emit(contract, "WithUintArg")
+                .withArgs(2)
+            ).to.be.eventually.rejectedWith(
+              AssertionError,
+              "Expected 2 to equal 1"
+            );
+          });
+
+          it.skip("Should fail when the second event's argument is not matched", async function () {
+            await expect(
+              expect(contract.emitUintTwice(1, 2))
+                .to.emit(contract, "WithUintArg")
+                .withArgs(1)
+                .and.to.emit(contract, "WithUintArg")
+                .withArgs(1)
+            ).to.be.eventually.rejectedWith(
+              AssertionError,
+              "Expected 1 to equal 2"
+            );
+          });
+        });
       });
     });
 
@@ -544,22 +580,6 @@ describe(".to.emit (contract events)", () => {
       await expect(contract.emitOne())
         .to.emit(contract, "One")
         .and.not.to.emit(differentEvents, "One");
-    });
-
-    it("Emit event multiple times with different args", async () => {
-      await expect(contract.emitOneMultipleTimes())
-        .to.emit(contract, "One")
-        .withArgs(
-          1,
-          "One",
-          "0x00cfbbaf7ddb3a1476767101c12a0162e241fbad2a0162e2410cfbbaf7162123"
-        )
-        .and.to.emit(contract, "One")
-        .withArgs(
-          1,
-          "DifferentKindOfOne",
-          "0x0000000000000000000000000000000000000000000000000000000000000001"
-        );
     });
 
     it("Event args not found among multiple emitted events", async () => {
