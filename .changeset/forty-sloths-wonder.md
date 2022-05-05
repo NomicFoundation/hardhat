@@ -5,4 +5,4 @@
 "@nomiclabs/hardhat-truffle5": patch
 ---
 
-Upgrade ethereumjs dependencies and use their new functionality.
+Upgrade ethereumjs dependencies.
