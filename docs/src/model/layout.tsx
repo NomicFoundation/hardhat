@@ -8,92 +8,24 @@ import {
   parseMdFile,
   readMDFileFromPathOrIndex,
 } from "./markdown";
+import { DirInfoConfigKeys, DOCS_PATH, TEMP_PATH } from "../config";
+import { getPluginsSubitems } from "./plugins";
+
 import {
-  DirInfoConfigKeys,
-  DOCS_PATH,
-  LayoutsConfigKeys,
-  TEMP_PATH,
-} from "../config";
-
-export enum SectionType {
-  SINGLE = "single",
-  GROUP = "group",
-  HIDDEN = "hidden",
-  PLUGINS = "plugins",
-}
-
-type OrderType =
-  | string
-  | {
-      href: string;
-      title: string;
-    };
-
-interface DirInfo {
-  [DirInfoConfigKeys.SECTION_TYPE]: SectionType;
-  [DirInfoConfigKeys.SECTION_TITLE]: string;
-  [DirInfoConfigKeys.ORDER]: OrderType[];
-}
-
-interface Layout {
-  [LayoutsConfigKeys.TITLE]: string;
-  [LayoutsConfigKeys.FOLDERS]: string[];
-  layoutKey?: string;
-}
-
-interface LayoutsInfo {
-  [layoutKey: string]: Layout;
-}
-
-interface FolderWithFiles {
-  path: string;
-  files: string[];
-}
-
-interface FolderInfo {
-  path: string;
-  files: Array<{ file: string; href: string }>;
-  [DirInfoConfigKeys.SECTION_TYPE]: SectionType;
-}
-
-interface FolderType {
-  [DirInfoConfigKeys.SECTION_TYPE]: SectionType;
-  [DirInfoConfigKeys.SECTION_TITLE]: string;
-  [DirInfoConfigKeys.ORDER]: OrderType[];
-  path: string;
-}
-
-type FoldersConfig = Array<{
-  path: string;
-  folder: string;
-  config: {
-    [key: string]: any;
-  };
-}>;
-
-interface TocSubitem {
-  label: string;
-  href: string;
-  type?: SectionType;
-  next?: TocSubitem;
-  prev?: TocSubitem;
-}
-
-interface TocItem {
-  label: string;
-  type: SectionType;
-  href?: string;
-  children?: TocSubitem[];
-  // next?: TocSubitem;
-  // prev?: TocSubitem;
-}
-
-interface FlatTocItem {
-  label: string;
-  href: string;
-  next?: TocSubitem;
-  prev?: TocSubitem;
-}
+  SectionType,
+  OrderType,
+  DirInfo,
+  Layout,
+  LayoutsInfo,
+  FolderWithFiles,
+  FolderInfo,
+  FolderType,
+  FoldersConfig,
+  TocSubitem,
+  TocItem,
+  FlatTocItem,
+  InfoFiles,
+} from "./types";
 
 const toCapitalCase = (str: string): string => {
   // @ts-ignore
@@ -119,8 +51,6 @@ const getLayoutsInfo = (): LayoutsInfo => {
   const yamlData = yaml.load(yamlText) as LayoutsInfo;
   return yamlData;
 };
-
-type InfoFiles = Array<{ path: string }>;
 
 export const getDirInfoFiles = (): InfoFiles =>
   glob
@@ -187,6 +117,27 @@ const matchFoldersToLayouts = (
     }
     const fld = folders.find((f) => f.path === path);
     const fldInfo = foldersInfo.find((f) => f.folder === path);
+    if (
+      fldInfo &&
+      fldInfo.config[DirInfoConfigKeys.SECTION_TYPE] === SectionType.PLUGINS
+    ) {
+      const virtualFiles = fldInfo?.config?.order?.map((file: string | {}) => {
+        if (typeof file === "object") {
+          return file;
+        }
+        return {
+          file,
+          href: file,
+        };
+      });
+
+      return {
+        path,
+        files: virtualFiles,
+        layout: lt,
+        [DirInfoConfigKeys.SECTION_TYPE]: SectionType.PLUGINS,
+      };
+    }
     const files =
       fld?.files?.map((file) => ({ file, href: getHrefByFile(file) })) || null;
     return {
@@ -200,10 +151,7 @@ const matchFoldersToLayouts = (
   });
 };
 
-const getSubitems = (
-  path: string,
-  order: Array<{ title: string; href: string } | string>
-): TocSubitem[] => {
+const getSubitems = (path: string, order: OrderType[]): TocSubitem[] => {
   const items = order.map((item) => {
     if (typeof item === "object") {
       return {
@@ -257,7 +205,7 @@ const generatePluginsSection = (folder: FolderType) => {
     label:
       folder[DirInfoConfigKeys.SECTION_TITLE] || toCapitalCase(folder.path),
     type: folder[DirInfoConfigKeys.SECTION_TYPE],
-    children: undefined,
+    children: getPluginsSubitems(folder.path, folder.order),
   };
 
   return tocItem;
@@ -319,6 +267,24 @@ const getItemByHref =
       next: last.next,
     };
   };
+
+const getPluginsItems = (
+  layoutNavigations: FlatTocItem[],
+  folder: FolderInfo & {
+    layout: Layout;
+  }
+): Array<FlatTocItem & { file: string }> => {
+  const pluginItems = layoutNavigations.filter(({ href }) =>
+    /\/plugins/.test(href)
+  );
+
+  return pluginItems.map((item) => ({
+    ...item,
+    file: item.label,
+    folder: folder.path,
+    layout: folder.layout.layoutKey,
+  }));
+};
 
 const getLayoutToc = (
   layout: Layout,
@@ -407,21 +373,29 @@ export const createLayouts = () => {
 
   const layoutsMap = foldersWithLayouts
     .map((folder) =>
-      folder.files?.map((fileEntry) => {
-        // @ts-ignore
-        const { prev, next } = getNavigation(
-          `/${fileEntry.href}`,
-          folder[DirInfoConfigKeys.SECTION_TYPE] === SectionType.HIDDEN
-        );
-        return {
-          file: fileEntry.file,
-          href: fileEntry.href,
-          folder: folder.path,
-          layout: folder.layout.layoutKey,
-          prev,
-          next,
-        };
-      })
+      folder.files
+        ?.map((fileEntry) => {
+          if (folder[DirInfoConfigKeys.SECTION_TYPE] === SectionType.PLUGINS) {
+            const pluginItems = getPluginsItems(layoutNavigations, folder);
+            return pluginItems;
+          }
+          // @ts-ignore
+          const { prev, next } = getNavigation(
+            `/${fileEntry.href}`,
+            folder[DirInfoConfigKeys.SECTION_TYPE] === SectionType.HIDDEN
+          );
+          return [
+            {
+              file: fileEntry.file,
+              href: fileEntry.href,
+              folder: folder.path,
+              layout: folder.layout.layoutKey,
+              prev,
+              next,
+            },
+          ];
+        })
+        .flat()
     )
     .filter(Boolean)
     .flat()

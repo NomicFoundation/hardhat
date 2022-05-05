@@ -42,6 +42,9 @@ const linariaConfig = withLinaria({
         : ".linaria-cache",
   },
   pageExtensions: ["ts", "tsx", "js", "jsx", "md", "mdx"],
+  images: {
+    domains: ["img.shields.io", "hardhat.org"],
+  },
 });
 
 module.exports = linariaConfig;

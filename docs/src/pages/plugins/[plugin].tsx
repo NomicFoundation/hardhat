@@ -1,24 +1,16 @@
 import type { NextPage, GetStaticProps, GetStaticPaths } from "next";
 import { MDXRemoteSerializeResult } from "next-mdx-remote";
-
-import {
-  getCommitDate,
-  getEditLink,
-  getLayout,
-  getMDPaths,
-  prepareMdContent,
-  readMDFileFromPathOrIndex,
-  withIndexFile,
-} from "../model/markdown";
-import DocumentationLayout from "../components/DocumentationLayout";
-import { createLayouts } from "../model/layout";
+import DocumentationLayout from "../../components/DocumentationLayout";
 import {
   IDocumentationSidebarStructure,
   IFooterNavigation,
-} from "../components/types";
-import { IFrontMatter } from "../model/types";
+} from "../../components/types";
+import { createLayouts } from "../../model/layout";
+import { getLayout, prepareMdContent } from "../../model/markdown";
+import { getPluginMDSource, getPluginsPaths } from "../../model/plugins";
+import { IFrontMatter } from "../../model/types";
 
-interface IDocPage {
+interface Props {
   mdxSource: MDXRemoteSerializeResult;
   frontMatter: IFrontMatter;
   layout: IDocumentationSidebarStructure;
@@ -28,10 +20,10 @@ interface IDocPage {
   editLink: string;
 }
 
-const DocPage: NextPage<IDocPage> = ({
+const PluginPage: NextPage<Props> = ({
   mdxSource,
-  frontMatter,
   layout,
+  frontMatter,
   prev,
   next,
   lastEditDate,
@@ -39,31 +31,29 @@ const DocPage: NextPage<IDocPage> = ({
 }): JSX.Element => {
   return (
     <DocumentationLayout
+      mdxSource={mdxSource}
       seo={{
         title: frontMatter.seoTitle,
         description: frontMatter.seoDescription,
       }}
       sidebarLayout={layout}
       footerNavigation={{ prev, next, lastEditDate, editLink }}
-      mdxSource={mdxSource}
     />
   );
 };
 
-export default DocPage;
+export default PluginPage;
 
 export const getStaticProps: GetStaticProps = async (props) => {
-  const { params } = props;
-  // @ts-ignore
-  const fullName = withIndexFile(params.docPath, params.isIndex);
-  const { source, fileName } = readMDFileFromPathOrIndex(fullName);
-  const lastEditDate = getCommitDate(fileName);
-  const editLink = getEditLink(fileName);
+  const pluginSlug = props?.params?.plugin as string;
+  const pluginName = pluginSlug?.replace(/nomiclabs-/, "@nomiclabs/");
+
+  const source = getPluginMDSource(pluginSlug);
 
   const { mdxSource, data, seoTitle, seoDescription } = await prepareMdContent(
     source
   );
-  const { layout, next, prev } = getLayout(fileName);
+  const { layout, next, prev } = getLayout(pluginName);
 
   return {
     props: {
@@ -76,15 +66,12 @@ export const getStaticProps: GetStaticProps = async (props) => {
       layout,
       next,
       prev,
-      lastEditDate,
-      editLink,
     },
   };
 };
-
 export const getStaticPaths: GetStaticPaths = async () => {
-  const paths = getMDPaths();
   createLayouts();
+  const paths = getPluginsPaths();
 
   return {
     paths,

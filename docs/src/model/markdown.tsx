@@ -2,6 +2,7 @@ import path from "path";
 import glob from "glob";
 import fs from "fs";
 import { execSync } from "child_process";
+import { MDXRemoteSerializeResult } from "next-mdx-remote";
 import matter from "gray-matter";
 import remarkDirective from "remark-directive";
 import { serialize } from "next-mdx-remote/serialize";
@@ -9,9 +10,12 @@ import { visit } from "unist-util-visit";
 import { h } from "hastscript";
 import remarkGfm from "remark-gfm";
 import remarkUnwrapImages from "remark-unwrap-images";
+// @ts-ignore
+import rehypePrism from "@mapbox/rehype-prism";
+
 import { DOCS_PATH, REPO_URL, TEMP_PATH } from "../config";
 
-const rehypePrism = require("@mapbox/rehype-prism");
+// const rehypePrism = require("@mapbox/rehype-prism");
 
 export const newLineDividerRegEx = /\r\n|\n/;
 
@@ -23,6 +27,7 @@ export const withIndexURL = (pathname: string): string[] => {
   return docPath;
 };
 
+// TODO: check do we need `isIndex`
 export const withIndexFile = (docPath: string[], isIndex: boolean): string => {
   const mdFilePath = path.join(
     DOCS_PATH,
@@ -201,7 +206,16 @@ export const parseMdFile = (source: string) => {
   };
 };
 
-export const prepareMdContent = async (source: string) => {
+export const prepareMdContent = async (
+  source: string
+): Promise<{
+  mdxSource: MDXRemoteSerializeResult;
+  data: {
+    [key: string]: any;
+  };
+  seoTitle: string;
+  seoDescription: string;
+}> => {
   const { formattedContent, ...props } = parseMdFile(source);
   const mdxSource = await serialize(formattedContent, {
     mdxOptions: {

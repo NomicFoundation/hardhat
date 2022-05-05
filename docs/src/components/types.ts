@@ -28,3 +28,8 @@ export interface FooterNavigation {
 
 // TODO: Check do we need this type for UI components. If not - remove it.
 export type IDocumentationSidebarStructure = IDocumentationSidebarSection[];
+
+export interface IFooterNavigation {
+  href: string;
+  label: string;
+}

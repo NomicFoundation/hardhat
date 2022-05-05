@@ -92,6 +92,7 @@ const Tip: NextComponentType = ({ children }) => {
     </StyledAdmonition>
   );
 };
+
 const Warning: NextComponentType = ({ children }) => {
   return (
     <StyledAdmonition className="warning">

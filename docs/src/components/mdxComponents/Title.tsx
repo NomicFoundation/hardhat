@@ -212,7 +212,7 @@ const buildIdFromChildren = function getId(
   return getId(children.props.children);
 };
 
-const H1 = ({ children }: Props) => {
+const H1 = ({ children }: Props): JSX.Element => {
   return (
     <StyledH1 id={buildIdFromChildren(children)}>
       <a href={`#${buildIdFromChildren(children)}`}>

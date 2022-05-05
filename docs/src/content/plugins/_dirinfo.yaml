@@ -1,1 +1,15 @@
 section-type: plugins
+order:
+  - "@nomiclabs/hardhat-ethers"
+  - "@nomiclabs/hardhat-waffle"
+  - "@nomiclabs/hardhat-etherscan"
+  - "@nomiclabs/hardhat-web3"
+  - "@nomiclabs/hardhat-truffle5"
+  - "@nomiclabs/hardhat-solhint"
+  - "@nomiclabs/hardhat-ganache"
+  - "@nomiclabs/hardhat-solpp"
+  - "@nomiclabs/hardhat-vyper"
+  - "@nomiclabs/hardhat-web3-legacy"
+  - "@nomiclabs/hardhat-truffle4"
+  - title: Community plugins
+    href: /plugins/#community-plugins
