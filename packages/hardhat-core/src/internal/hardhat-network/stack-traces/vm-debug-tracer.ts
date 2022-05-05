@@ -223,16 +223,6 @@ export class VMDebugTracer {
           ...structLog.storage,
         };
 
-        // sometimes the memSize has the correct value
-        // for the memory length, in those cases we increase
-        // the memory to reflect this
-        if (structLog.memSize > structLog.memory.length) {
-          const wordsToAdd = structLog.memSize - structLog.memory.length;
-          for (let k = 0; k < wordsToAdd; k++) {
-            structLog.memory.push(EMPTY_MEMORY_WORD);
-          }
-        }
-
         if (i === 0) {
           continue;
         }
