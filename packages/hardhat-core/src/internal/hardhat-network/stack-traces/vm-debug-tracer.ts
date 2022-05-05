@@ -3,6 +3,10 @@ import VM from "@ethereumjs/vm";
 import { EVMResult } from "@ethereumjs/vm/dist/evm/evm";
 import { InterpreterStep } from "@ethereumjs/vm/dist/evm/interpreter";
 import Message from "@ethereumjs/vm/dist/evm/message";
+import {
+  EIP2929StateManager,
+  StateManager,
+} from "@ethereumjs/vm/dist/state/interface";
 import { Address, BN, setLengthLeft, toBuffer } from "ethereumjs-util";
 
 import { assertHardhatInvariant } from "../../core/errors";
@@ -219,6 +223,16 @@ export class VMDebugTracer {
           ...structLog.storage,
         };
 
+        // sometimes the memSize has the correct value
+        // for the memory length, in those cases we increase
+        // the memory to reflect this
+        if (structLog.memSize > structLog.memory.length) {
+          const wordsToAdd = structLog.memSize - structLog.memory.length;
+          for (let k = 0; k < wordsToAdd; k++) {
+            structLog.memory.push(EMPTY_MEMORY_WORD);
+          }
+        }
+
         if (i === 0) {
           continue;
         }
@@ -315,15 +329,86 @@ export class VMDebugTracer {
 
       storage[key] = storageValue;
     } else if (step.opcode.name === "REVERT") {
-      gasCost = step.opcode.dynamicFee!.toNumber();
+      const [offsetBuffer, lengthBuffer] = this._getFromStack(stack, 2);
+      const length = new BN(lengthBuffer);
+      const offset = new BN(offsetBuffer);
+
+      const [gasIncrease, addedWords] = this._memoryExpansion(
+        memory.length,
+        length.add(offset)
+      );
+
+      gasCost += gasIncrease;
+
+      for (let i = 0; i < addedWords; i++) {
+        memory.push(EMPTY_MEMORY_WORD);
+      }
     } else if (step.opcode.name === "CREATE2") {
-      gasCost = step.opcode.dynamicFee!.toNumber();
+      const [, , memoryUsedBuffer] = this._getFromStack(stack, 3);
+      const memoryUsed = new BN(memoryUsedBuffer);
+      const sha3ExtraCost = divUp(memoryUsed, 32)
+        .muln(this._sha3WordGas())
+        .toNumber();
+      gasCost += sha3ExtraCost;
     } else if (
       step.opcode.name === "CALL" ||
       step.opcode.name === "STATICCALL" ||
       step.opcode.name === "DELEGATECALL"
     ) {
-      gasCost = step.opcode.dynamicFee!.toNumber();
+      // this is a port of what geth does to compute the
+      // gasCost of a *CALL step, with some simplifications
+      // because we don't support pre-spuriousDragon hardforks
+      let valueBuffer = Buffer.from([]);
+      let [
+        callCostBuffer,
+        recipientAddressBuffer,
+        inBuffer,
+        inSizeBuffer,
+        outBuffer,
+        outSizeBuffer,
+      ] = this._getFromStack(stack, 6);
+
+      // CALL has 7 parameters
+      if (step.opcode.name === "CALL") {
+        [
+          callCostBuffer,
+          recipientAddressBuffer,
+          valueBuffer,
+          inBuffer,
+          inSizeBuffer,
+          outBuffer,
+          outSizeBuffer,
+        ] = this._getFromStack(stack, 7);
+      }
+
+      const callCost = new BN(callCostBuffer);
+
+      const value = new BN(valueBuffer);
+
+      const memoryLength = memory.length;
+      const inBN = new BN(inBuffer);
+      const inSizeBN = new BN(inSizeBuffer);
+      const inPosition = inSizeBN.isZero() ? inSizeBN : inBN.add(inSizeBN);
+      const outBN = new BN(outBuffer);
+      const outSizeBN = new BN(outSizeBuffer);
+      const outPosition = outSizeBN.isZero() ? outSizeBN : outBN.add(outSizeBN);
+      const memSize = inPosition.gt(outPosition) ? inPosition : outPosition;
+      const toAddress = new Address(recipientAddressBuffer.slice(-20));
+
+      const constantGas = this._callConstantGas();
+      const availableGas = step.gasLeft.toNumber() - constantGas;
+
+      const [memoryGas] = this._memoryExpansion(memoryLength, memSize);
+
+      const dynamicGas = await this._callDynamicGas(
+        toAddress,
+        value,
+        availableGas,
+        memoryGas,
+        callCost
+      );
+
+      gasCost = constantGas + dynamicGas;
     } else if (step.opcode.name === "CALLCODE") {
       // finding an existing tx that uses CALLCODE or compiling a contract
       // so that it uses this opcode is hard,
@@ -358,12 +443,133 @@ export class VMDebugTracer {
     return structLog;
   }
 
+  private _memoryGas(): number {
+    return this._vm._common.param("gasPrices", "memory");
+  }
+
+  private _sha3WordGas(): number {
+    return this._vm._common.param("gasPrices", "sha3Word");
+  }
+
+  private _callConstantGas(): number {
+    if (this._vm._common.gteHardfork("berlin")) {
+      return this._vm._common.param("gasPrices", "warmstorageread");
+    }
+
+    return this._vm._common.param("gasPrices", "call");
+  }
+
+  private _callNewAccountGas(): number {
+    return this._vm._common.param("gasPrices", "callNewAccount");
+  }
+
+  private _callValueTransferGas(): number {
+    return this._vm._common.param("gasPrices", "callValueTransfer");
+  }
+
+  private _quadCoeffDiv(): number {
+    return this._vm._common.param("gasPrices", "quadCoeffDiv");
+  }
+
+  private _isAddressEmpty(address: Address): Promise<boolean> {
+    return this._vm.stateManager.accountIsEmpty(address);
+  }
+
   private _getContractStorage(address: Address, key: Buffer): Promise<Buffer> {
     return this._vm.stateManager.getContractStorage(address, key);
   }
 
   private _getContractCode(address: Address): Promise<Buffer> {
     return this._vm.stateManager.getContractCode(address);
+  }
+
+  private async _callDynamicGas(
+    address: Address,
+    value: BN,
+    availableGas: number,
+    memoryGas: number,
+    callCost: BN
+  ): Promise<number> {
+    // The available gas is reduced when the address is cold
+    if (this._vm._common.gteHardfork("berlin")) {
+      const stateManager = this._vm.stateManager as
+        | StateManager
+        | EIP2929StateManager;
+
+      assertHardhatInvariant(
+        "isWarmedAddress" in stateManager,
+        "The VM should have an EIP2929StateManger when berlin is enabled"
+      );
+
+      const isWarmed = stateManager.isWarmedAddress(address.toBuffer());
+
+      const coldCost =
+        this._vm._common.param("gasPrices", "coldaccountaccess") -
+        this._vm._common.param("gasPrices", "warmstorageread");
+
+      // This comment is copied verbatim from geth:
+      // The WarmStorageReadCostEIP2929 (100) is already deducted in the form of a constant cost, so
+      // the cost to charge for cold access, if any, is Cold - Warm
+      if (!isWarmed) {
+        availableGas -= coldCost;
+      }
+    }
+
+    let gas = 0;
+
+    const transfersValue = !value.isZero();
+    const addressIsEmpty = await this._isAddressEmpty(address);
+
+    if (transfersValue && addressIsEmpty) {
+      gas += this._callNewAccountGas();
+    }
+
+    if (transfersValue) {
+      gas += this._callValueTransferGas();
+    }
+
+    gas += memoryGas;
+
+    gas += this._callGas(availableGas, gas, callCost);
+
+    return gas;
+  }
+
+  private _callGas(availableGas: number, base: number, callCost: BN): number {
+    availableGas -= base;
+
+    const gas = availableGas - Math.floor(availableGas / 64);
+
+    if (callCost.gtn(gas)) {
+      return gas;
+    }
+
+    return callCost.toNumber();
+  }
+
+  /**
+   * Returns the increase in gas and the number of added words
+   */
+  private _memoryExpansion(
+    currentWords: number,
+    newSize: BN
+  ): [number, number] {
+    const currentSize = new BN(currentWords).muln(32);
+    const currentWordsLength = currentSize.addn(31).divn(32);
+    const newWordsLength = newSize.addn(31).divn(32);
+
+    const wordsDiff = newWordsLength.sub(currentWordsLength);
+
+    if (newSize.gt(currentSize)) {
+      const newTotalFee = this._memoryFee(newWordsLength);
+      const currentTotalFee = this._memoryFee(currentWordsLength);
+
+      const fee = newTotalFee.sub(currentTotalFee);
+
+      return [fee.toNumber(), wordsDiff.toNumber()];
+    }
+
+    return [0, 0];
   }
 
   private _getFromStack(stack: string[], count: number): Buffer[] {
@@ -373,6 +579,27 @@ export class VMDebugTracer {
       .map((value) => `0x${value}`)
       .map(toBuffer);
   }
+
+  private _memoryFee(words: BN): BN {
+    const square = words.mul(words);
+    const linCoef = words.muln(this._memoryGas());
+    const quadCoef = square.divn(this._quadCoeffDiv());
+    const newTotalFee = linCoef.add(quadCoef);
+
+    return newTotalFee;
+  }
+}
+
+function divUp(x: BN, y: number | BN): BN {
+  y = new BN(y);
+
+  let result = x.div(y);
+
+  if (!x.mod(y).eqn(0)) {
+    result = result.addn(1);
+  }
+
+  return result;
 }
 
 function toWord(b: Buffer): string {
