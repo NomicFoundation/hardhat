@@ -8,7 +8,7 @@ const Container = styled.section`
   position: relative;
   padding: 0 24px;
   max-width: 960px;
-  ${media.lg} {
+  ${media.md} {
     padding: 0;
   }
   &.clear-padding {

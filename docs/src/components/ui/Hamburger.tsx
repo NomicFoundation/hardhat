@@ -18,7 +18,7 @@ const HamburgerContainer = styled.button`
   border-radius: 4px;
   background-color: ${tm(({ colors }) => colors.transparent)};
   cursor: pointer;
-  ${media.lg} {
+  ${media.md} {
     display: none;
   }
 `;
@@ -45,15 +45,17 @@ const HamburgerLine = styled.div<{ isOpen: boolean }>`
     transform: ${({ isOpen }: { isOpen: boolean }) =>
       isOpen ? "rotate(-45deg) translate(1px, 5px)" : "none"};
   }
-  ${tmSelectors.hcDark} {
-    background-color: ${tmHCDark(({ colors }) => colors.neutral900)};
-  }
-  ${tmSelectors.dark} {
-    background-color: ${tmDark(({ colors }) => colors.neutral900)};
-  }
-  ${media.mqDark} {
-    ${tmSelectors.auto} {
+  :not(.landing &) {
+    ${tmSelectors.hcDark} {
+      background-color: ${tmHCDark(({ colors }) => colors.neutral900)};
+    }
+    ${tmSelectors.dark} {
       background-color: ${tmDark(({ colors }) => colors.neutral900)};
+    }
+    ${media.mqDark} {
+      ${tmSelectors.auto} {
+        background-color: ${tmDark(({ colors }) => colors.neutral900)};
+      }
     }
   }
 `;

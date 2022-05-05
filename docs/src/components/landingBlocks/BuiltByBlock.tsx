@@ -3,7 +3,7 @@ import { styled } from "linaria/react";
 import Image from "next/image";
 
 import Section from "../Section";
-import { media } from "../../themes";
+import { media, tm } from "../../themes";
 
 interface Props {
   content: { title: string; imageUrl: string };
@@ -13,7 +13,7 @@ const Container = styled.div`
   margin-bottom: 234px;
   text-align: center;
 
-  ${media.lg} {
+  ${media.md} {
     margin-bottom: 195px;
     display: flex;
     justify-content: center;
@@ -27,9 +27,10 @@ const Title = styled.h2`
   line-height: 40px;
   font-weight: 400;
   font-family: ChivoLight, sans-serif;
+  color: ${tm(({ colors }) => colors.neutral900)};
 
-  ${media.lg} {
-    margin-right: 12px;
+  ${media.md} {
+    margin-right: 22px;
     margin-top: 10px;
     font-size: 24px;
   }

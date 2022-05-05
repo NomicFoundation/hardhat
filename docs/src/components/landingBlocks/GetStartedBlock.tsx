@@ -7,7 +7,7 @@ import CTA from "../ui/CTA";
 import Section from "../Section";
 import { CTAType } from "../ui/types";
 
-const { TextureBrick } = Images;
+const { TextureBrick, TextureBrickL } = Images;
 
 interface Props {
   content: {
@@ -29,7 +29,7 @@ const GetStartedBlockStyled = styled.section`
   background-color: ${tm(({ colors }) => colors.neutral0)};
   position: relative;
   margin: 48px 0;
-  ${media.lg} {
+  ${media.md} {
     margin: unset;
     height: 792px;
   }
@@ -70,7 +70,6 @@ const TextureBrickWrapper = styled.div`
   position: absolute;
   right: 0;
   &.left {
-    transform: scaleX(-1);
     left: 0;
     right: auto;
   }
@@ -81,16 +80,18 @@ const ContentBlock = styled.section`
   flex-direction: column;
   align-items: center;
   z-index: 1;
+  color: ${tm(({ colors }) => colors.neutral900)};
 `;
 
 const Title = styled.h1`
   font-family: ChivoBold, sans-serif;
+  font-weight: normal;
   font-size: 39px;
   line-height: 41px;
   letter-spacing: -0.01em;
   text-align: center;
   max-width: 642px;
-  ${media.lg} {
+  ${media.md} {
     font-size: 45px;
     line-height: 50px;
     letter-spacing: 0;
@@ -105,7 +106,7 @@ const Subtitle = styled.p`
   text-align: center;
   margin-top: 24px;
   margin-bottom: 48px;
-  ${media.lg} {
+  ${media.md} {
     font-size: 24px;
     line-height: 40px;
     margin-top: 32px;
@@ -113,14 +114,19 @@ const Subtitle = styled.p`
   }
 `;
 
+const CTAWrapper = styled.div`
+  filter: drop-shadow(0px 1px 2px rgba(10, 10, 10, 0.1))
+    drop-shadow(0px 8px 30px rgba(184, 113, 255, 0.1));
+`;
+
 const Background = () => {
   const windowSize = useWindowSize();
-  const isDesktop = breakpoints.lg <= windowSize.width;
+  const isDesktop = breakpoints.md <= windowSize.width;
   return (
     <StyledBackground>
       {isDesktop && (
         <TextureBrickWrapper className="left">
-          <TextureBrick />
+          <TextureBrickL />
         </TextureBrickWrapper>
       )}
       <TextureBrickWrapper>
@@ -140,7 +146,9 @@ const GetStartedBlock = ({ content }: Props) => {
         <ContentBlock>
           <Title>{content.title}</Title>
           <Subtitle>{content.subtitle}</Subtitle>
-          <CTA href={content.cta.url}>{content.cta.title}</CTA>
+          <CTAWrapper>
+            <CTA href={content.cta.url}>{content.cta.title}</CTA>
+          </CTAWrapper>
         </ContentBlock>
       </GetStartedBlockStyled>
     </Section>

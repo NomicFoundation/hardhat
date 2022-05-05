@@ -2,7 +2,7 @@ import React from "react";
 import { styled } from "linaria/react";
 import Section from "../Section";
 import CTA from "../ui/CTA";
-import { breakpoints, media } from "../../themes";
+import { breakpoints, media, tm } from "../../themes";
 import Images from "../../../public/images";
 import useWindowSize from "../../hooks/useWindowSize";
 import { CTAType } from "../ui/types";
@@ -22,7 +22,8 @@ const Container = styled.section`
   display: flex;
   flex-direction: column;
   margin-top: 40px;
-  ${media.lg} {
+  color: ${tm(({ colors }) => colors.neutral900)};
+  ${media.md} {
     flex-direction: row;
     justify-content: space-between;
   }
@@ -36,7 +37,7 @@ const Block = styled.div`
   & svg {
     margin: 0 auto;
   }
-  ${media.lg} {
+  ${media.md} {
     width: 40%;
     &:first-child {
       width: 60%;
@@ -56,7 +57,7 @@ const TagLine = styled.span`
   line-height: 32px;
   letter-spacing: -0.02em;
   text-align: left;
-  ${media.lg} {
+  ${media.md} {
     font-size: 32px;
     line-height: 32px;
     letter-spacing: 0;
@@ -70,7 +71,9 @@ const Title = styled.h1`
   font-size: 40px;
   line-height: 45px;
   letter-spacing: -0.01em;
-  ${media.lg} {
+  font-family: ChivoBold;
+  font-weight: normal;
+  ${media.md} {
     margin-bottom: 64px;
     font-size: 72px;
     line-height: 72px;
@@ -80,7 +83,7 @@ const Title = styled.h1`
 
 const HeroBlock = ({ content }: Props) => {
   const windowSize = useWindowSize();
-  const isDesktop = breakpoints.lg <= windowSize.width;
+  const isDesktop = breakpoints.md <= windowSize.width;
   return (
     <Section>
       <Container>

@@ -13,10 +13,9 @@ const MobileMenuContainer = styled.section<{ isOpen: boolean }>`
   z-index: -1;
   height: max(100vh, 655px);
   display: flex;
-  padding: 240px 112px 100px;
+  padding: 144px 112px 0;
   flex-direction: column;
   align-items: center;
-  justify-content: space-evenly;
   transition: all ease-in-out 0.5s;
   background-color: ${tm(({ colors }) => colors.neutral0)};
   opacity: ${(props) => (props.isOpen ? "1" : "0.8")};
@@ -25,7 +24,7 @@ const MobileMenuContainer = styled.section<{ isOpen: boolean }>`
   &::-webkit-scrollbar {
     display: none;
   }
-  ${media.lg} {
+  ${media.md} {
     display: none;
   }
 `;
@@ -43,7 +42,7 @@ const MobileMenuSocialsList = styled.ul`
   display: flex;
   align-items: center;
   list-style-type: none;
-  margin-top: 44px;
+  margin-top: 144px;
   justify-content: space-evenly;
 `;
 

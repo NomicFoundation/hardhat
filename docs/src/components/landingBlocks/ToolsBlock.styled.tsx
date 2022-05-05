@@ -2,11 +2,10 @@ import { styled } from "linaria/react";
 import { media, tm } from "../../themes";
 
 const Container = styled.div`
-  margin-top: 70px;
+  margin-top: 240px;
   display: flex;
   flex-direction: column;
   position: relative;
-
   &:before {
     width: 100%;
     height: 32px;
@@ -30,8 +29,9 @@ const Container = styled.div`
     transform: rotate(180deg);
   }
 
-  ${media.lg} {
+  ${media.md} {
     flex-direction: row;
+    margin-top: 200px;
 
     &:before {
       width: 36px;
@@ -80,7 +80,7 @@ const ToolsIconsBlock = styled.div`
     transform: translateY(0) rotate(225deg);
   }
 
-  ${media.lg} {
+  ${media.md} {
     width: 50%;
     padding: 40px;
 
@@ -114,7 +114,7 @@ const IconsBlockTitle = styled.h2`
 `;
 
 const ButtonsContainer = styled.div`
-  height: 236px;
+  height: 208px;
   display: grid;
   grid-template-columns: 1fr 1fr;
   grid-row-gap: 12px;
@@ -133,22 +133,37 @@ const ButtonContainer = styled.div`
   align-items: center;
   white-space: nowrap;
   cursor: pointer;
+  transition: all 0.1s ease-in-out;
 
   &.active {
     box-shadow: 6px -2px 10px #eee3ff, -6px 2px 10px #fbfcdb;
   }
 
   & svg {
-    width: 42px;
-    height: 42px;
-    transition-duration: 0.1s;
+    width: 48px;
+    height: 48px;
+    transition: all 0.1s ease-in-out;
     border-radius: 8px;
+    padding: 8px;
     box-shadow: 0 1px 2px ${tm(({ colors }) => colors.sliderButtonHoverShadow)};
 
     &.active {
-      width: 50px;
-      height: 50px;
+      width: 56px;
+      height: 56px;
       box-shadow: none;
+      padding: 0;
+    }
+  }
+
+  ${media.md} {
+    & svg {
+      width: 72px;
+      height: 72px;
+      &.active {
+        width: 72px;
+        height: 72px;
+        padding: 0;
+      }
     }
   }
 `;
@@ -174,11 +189,12 @@ const ButtonToolName = styled.span`
 `;
 
 const DescriptionContainer = styled.div`
-  margin-top: 40px;
+  margin-top: 52px;
   padding: 0 24px;
 
-  ${media.lg} {
+  ${media.md} {
     width: 50%;
+    padding: 0 50px;
   }
 `;
 
@@ -190,7 +206,7 @@ const DescriptionHeaderContainer = styled.div`
   font-family: ChivoLight, sans-serif;
   font-weight: 600;
 
-  ${media.lg} {
+  ${media.md} {
     flex-direction: row;
   }
 `;
@@ -235,7 +251,7 @@ const DescriptionMottoContainer = styled.div`
     background-color: ${tm(({ colors }) => colors.mottoVscodeBackground)};
   }
 
-  ${media.lg} {
+  ${media.md} {
     margin-left: 24px;
   }
 `;
@@ -243,7 +259,7 @@ const DescriptionMottoContainer = styled.div`
 const DescriptionText = styled.p`
   margin-bottom: 24px;
   width: 100%;
-  font-size: 18px;
+  font-size: 15px;
   line-height: 28px;
   font-family: ChivoLight, sans-serif;
   color: ${tm(({ colors }) => colors.neutral600)};

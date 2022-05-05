@@ -29,19 +29,60 @@ const Container = styled.section`
   position: relative;
   display: flex;
   flex-direction: column;
-  padding: 24px;
-  &[data-desktop="true"] {
+  padding: 24px 0 24px 24px;
+  overflow: hidden;
+  ${media.md} {
+    overflow: visible;
     flex-direction: row;
     padding: 0;
     margin-bottom: 128px;
-  }
-  &[data-desktop="true"][data-reverse="true"] {
-    flex-direction: row-reverse;
+    &[data-reverse="true"] {
+      flex-direction: row-reverse;
+    }
   }
 `;
 
 const ImageContainer = styled.div`
   margin-bottom: 16px;
+  position: relative;
+  width: 100%;
+  padding-top: 65%;
+  ${media.md} {
+    padding-top: unset;
+  }
+`;
+
+const ImageWrapper = styled.div`
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  transform: translate(-50%, -50%);
+  height: 300px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  & > span {
+    transform: scale(1.5);
+  }
+
+  ${media.md} {
+    width: 116%;
+    top: 0;
+    right: -16%;
+    left: unset;
+    height: auto;
+    transform: translateX(-10%);
+    & > span {
+      transform: none;
+    }
+
+    &[data-reverse="true"] {
+      left: 20%;
+      right: unset;
+    }
+  }
 `;
 
 const ArticleStyled = styled.article`
@@ -50,7 +91,7 @@ const ArticleStyled = styled.article`
   display: flex;
   flex-direction: column;
   padding: unset;
-  ${media.lg} {
+  ${media.md} {
     padding: 32px 0;
     margin-bottom: unset;
   }
@@ -60,32 +101,37 @@ const ContentContainer = styled.div`
   width: 100%;
   display: flex;
   flex-direction: column;
-  &[data-desktop="true"][data-reverse="false"] {
-    margin-left: 24px;
+  margin-top: 16px;
+  ${media.md} {
+    margin-top: unset;
+    &[data-reverse="false"] {
+      margin-left: 46px;
+    }
   }
 `;
 
 const Title = styled.h3`
   font-family: ChivoBold, sans-serif;
+  font-weight: normal;
   font-size: 28px;
   line-height: 32px;
   letter-spacing: -0.01em;
-  margin-bottom: 16px;
+  margin-bottom: 24px;
   color: ${tm(({ colors }) => colors.neutral900)};
-  ${media.lg} {
+  ${media.md} {
     font-size: 42px;
     line-height: 45px;
     letter-spacing: 0.5px;
   }
 `;
 
-const Text = styled.h3`
+const Text = styled.p`
   font-family: ChivoLight, sans-serif;
   font-size: 18px;
   line-height: 28px;
   letter-spacing: 0;
   color: ${tm(({ colors }) => colors.neutral600)};
-  ${media.lg} {
+  ${media.md} {
     font-size: 18px;
     line-height: 28px;
     letter-spacing: 0;
@@ -103,7 +149,7 @@ const Article = ({ title, text }: ArticleType) => {
 
 const CTAWrapper = styled.div`
   margin-top: 8px;
-  ${media.lg} {
+  ${media.md} {
     margin-top: 40px;
   }
 `;
@@ -111,14 +157,16 @@ const CTAWrapper = styled.div`
 const FeatureCard = ({ content, isReversed = false }: Props) => {
   const { mobileImg, desktopImg, cta, articleOne, articleTwo } = content;
   const windowSize = useWindowSize();
-  const isDesktop = breakpoints.lg <= windowSize.width;
+  const isDesktop = breakpoints.md <= windowSize.width;
   const imgPath = isDesktop ? desktopImg : mobileImg;
   return (
-    <Container data-desktop={isDesktop} data-reverse={isReversed}>
+    <Container data-reverse={isReversed}>
       <ImageContainer>
-        <Image src={imgPath} alt="Feature card picture" quality={100} />
+        <ImageWrapper data-reverse={isReversed}>
+          <Image src={imgPath} alt="Feature card picture" quality={100} />
+        </ImageWrapper>
       </ImageContainer>
-      <ContentContainer data-desktop={isDesktop} data-reverse={isReversed}>
+      <ContentContainer data-reverse={isReversed}>
         <Article {...articleOne} />
         <Article {...articleTwo} />
         <CTAWrapper>

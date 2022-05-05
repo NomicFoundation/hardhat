@@ -37,7 +37,7 @@ const NavigationStyled = styled.nav`
   background-color: ${tm(({ colors }) => colors.neutral200)};
   border-bottom: 1px solid ${tm(({ colors }) => colors.transparent)};
   z-index: 10;
-  ${media.lg} {
+  ${media.md} {
     padding: 24px;
   }
 
@@ -102,28 +102,30 @@ const HamburgerWrapper = styled.div`
 `;
 
 const ThemeButton = styled.button`
+  font-size: 15px;
+  line-height: 13px;
   display: flex;
-  justify-content: center;
+  justify-content: flex-end;
   align-items: center;
   background-color: ${tm(({ colors }) => colors.transparent)};
   color: ${tm(({ colors }) => colors.neutral900)};
   border: none;
   cursor: pointer;
   transform-origin: center;
-  min-width: 40px;
+  min-width: 64px;
   transition: transform ease-in-out 0.25s;
   &:hover {
     opacity: 0.8;
   }
   ${tmSelectors.hcDark} {
-    color: ${tmHCDark(({ colors }) => colors.neutral900)};
+    color: ${tmHCDark(({ colors }) => colors.autoThemeButton)};
   }
   ${tmSelectors.dark} {
-    color: ${tmDark(({ colors }) => colors.neutral900)};
+    color: ${tmDark(({ colors }) => colors.autoThemeButton)};
   }
   ${media.mqDark} {
     ${tmSelectors.auto} {
-      color: ${tmDark(({ colors }) => colors.neutral900)};
+      color: ${tmDark(({ colors }) => colors.autoThemeButton)};
     }
   }
 `;
@@ -133,6 +135,11 @@ const ThemeIconWrapper = styled.div`
   &[data-theme="DARK"],
   &[data-theme="HC_DARK"] {
     transform: scaleX(-1);
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      transform: scaleX(-1);
+    }
   }
 `;
 
@@ -163,13 +170,10 @@ const Navigation: FC<Props> = ({ isSidebarOpen, onSidebarOpen }) => {
           socialsItems={socialsItems}
         />
         <ThemeButton onClick={() => changeTheme()}>
-          {theme === ThemesEnum.AUTO ? (
-            "AUTO"
-          ) : (
-            <ThemeIconWrapper data-theme={theme}>
-              <ThemeSwitcher />
-            </ThemeIconWrapper>
-          )}
+          {theme === ThemesEnum.AUTO && "Auto "}
+          <ThemeIconWrapper data-theme={theme}>
+            <ThemeSwitcher />
+          </ThemeIconWrapper>
         </ThemeButton>
       </ControlsContainer>
     </NavigationStyled>

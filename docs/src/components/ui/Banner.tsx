@@ -39,7 +39,7 @@ const BannerContainer = styled.section`
     text-decoration: underline;
     margin-right: unset;
   }
-  ${media.lg} {
+  ${media.md} {
     font-size: 15px;
     line-height: 12px;
   }
@@ -75,7 +75,7 @@ const BracesContainer = styled.div`
     transform: rotate(180deg);
   }
   & .text {
-    ${media.lg} {
+    ${media.md} {
       padding: 0px 16px;
     }
   }
@@ -101,7 +101,7 @@ const Brace = styled.div<{
 `;
 
 const getBracesCount = (windowSize: WindowSizeState) => {
-  if (windowSize.width >= breakpoints.lg) return 6;
+  if (windowSize.width >= breakpoints.md) return 6;
   if (windowSize.width >= breakpoints.sm) return 3;
   return 2;
 };

@@ -23,7 +23,7 @@ const Navigation = styled.nav`
   transition: all ease-in-out 0.5s;
   background-color: ${tm(({ colors }) => colors.neutral0)};
   z-index: 10;
-  ${media.lg} {
+  ${media.md} {
     padding: 24px 0;
   }
 `;

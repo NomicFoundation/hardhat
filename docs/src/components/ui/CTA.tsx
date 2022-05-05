@@ -21,7 +21,7 @@ const A = styled.a`
     filter: drop-shadow(0px 1px 2px rgba(10, 10, 10, 0.1))
       drop-shadow(0px 8px 30px rgba(184, 113, 255, 0.1));
   }
-  ${media.lg} {
+  ${media.md} {
     font-size: 15px;
     line-height: 24px;
     letter-spacing: 0;

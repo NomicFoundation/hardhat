@@ -29,35 +29,32 @@ export const menuItemsList: MenuItemType[] = [
     label: "Home",
     href: "/",
   },
-  /**
-   * We don't have this section yet
-   */
-  // {
-  //   label: "Tools",
-  //   href: "/tools",
-  //   subItems: [
-  //     {
-  //       prefix: "Hardhat",
-  //       label: "Runner",
-  //       href: "/tools/runner",
-  //     },
-  //     {
-  //       prefix: "Hardhat",
-  //       label: "Ignition",
-  //       href: "/tools/ignition",
-  //     },
-  //     {
-  //       prefix: "Hardhat",
-  //       label: "Network",
-  //       href: "/tools/network",
-  //     },
-  //     {
-  //       prefix: "Hardhat",
-  //       label: "Solidity",
-  //       href: "/tools/solidity",
-  //     },
-  //   ],
-  // },
+  {
+    label: "Tools",
+    href: "/#tools",
+    subItems: [
+      {
+        prefix: "Hardhat",
+        label: "Runner",
+        href: "/tools/runner",
+      },
+      {
+        prefix: "Hardhat",
+        label: "Ignition",
+        href: "/tools/ignition",
+      },
+      {
+        prefix: "Hardhat",
+        label: "Network",
+        href: "/tools/network",
+      },
+      {
+        prefix: "Hardhat",
+        label: "Solidity",
+        href: "/tools/solidity",
+      },
+    ],
+  },
   {
     label: "Plugins",
     href: "/plugins",

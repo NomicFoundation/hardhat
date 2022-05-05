@@ -5,6 +5,7 @@ import { styled } from "linaria/react";
 
 import Section from "../Section";
 import { media, tm } from "../../themes";
+import CarouselArrow from "../../assets/icons/carousel-arrow";
 
 interface Props {
   content: Array<{
@@ -19,26 +20,29 @@ interface Props {
 
 const SliderWrapper = styled.div`
   margin-bottom: 240px;
+  padding: 0 24px;
 
-  ${media.lg} {
+  ${media.md} {
+    padding: 0;
+
     & .carousel:before,
     .carousel:after {
       content: "";
       border: 0.1rem solid #d4d4d4;
-      width: 5rem;
+      width: 36px;
       position: absolute;
       top: 0;
       min-height: 480px;
     }
 
     & .carousel:after {
-      left: 0;
-      border-right: none;
+      right: 0;
+      border-left: none;
     }
 
     & .carousel:before {
-      right: 0;
-      border-left: none;
+      left: 0;
+      border-right: none;
     }
   }
 
@@ -80,8 +84,8 @@ const SliderWrapper = styled.div`
 const SlideContainer = styled.div`
   display: flex;
   flex-direction: column;
-  ${media.lg} {
-    padding: 25px;
+  ${media.md} {
+    padding: 100px 82px;
     height: 490px;
     flex-direction: row;
   }
@@ -93,22 +97,27 @@ const ImageWithCaptionContainer = styled.div`
   justify-content: center;
   width: 100%;
 
-  ${media.lg} {
-    width: 30%;
+  ${media.md} {
+    width: 29%;
     align-items: center;
-    padding: 20px 10px 0;
+    padding: 0 10px;
     flex-direction: column;
+    margin: 0 40px 0 0;
   }
 `;
 
 const PersonImage = styled.div`
+  min-height: 110px;
+  min-width: 110px;
   width: 110px;
   height: 110px;
   background-size: 110px;
   background-repeat: no-repeat;
   border-radius: 100px;
 
-  ${media.lg} {
+  ${media.md} {
+    min-height: 150px;
+    min-width: 150px;
     width: 150px;
     height: 150px;
     background-size: 150px;
@@ -120,13 +129,15 @@ const PersonCaption = styled.div`
   margin-left: 30px;
   text-align: left;
   font-family: ChivoRegular, sans-serif;
-  font-weight: 400;
+  font-weight: normal;
   font-size: 15px;
   line-height: 24px;
+  color: ${tm(({ colors }) => colors.neutral900)};
 
-  ${media.lg} {
+  ${media.md} {
     margin-left: 0;
     text-align: center;
+    margin-top: 24px;
 
     & > p {
       display: inline;
@@ -134,32 +145,22 @@ const PersonCaption = styled.div`
 
     & > img {
       display: block;
-      margin: 16px auto 0;
+      margin: 10px auto;
+      max-height: 40px;
+      max-width: 100px;
     }
-  }
-`;
-
-const CompanyLogo = styled.div`
-  width: 100%;
-  height: 100%;
-  background-repeat: no-repeat;
-  background-size: contain;
-
-  ${media.lg} {
-    min-height: 30px;
-    background-position: center;
   }
 `;
 
 const CommentContainer = styled.p`
   text-align: left;
-  font-family: ChivoRegular, sans-serif;
+  font-family: ChivoLight, sans-serif;
   font-weight: 400;
   font-size: 15px;
   line-height: 28px;
   color: ${tm(({ colors }) => colors.neutral600)};
 
-  ${media.lg} {
+  ${media.md} {
     width: 70%;
     padding: 24px;
     align-self: center;
@@ -168,8 +169,11 @@ const CommentContainer = styled.p`
 
 const SliderArrow = styled.button`
   position: absolute;
-  width: 34px;
-  height: 34px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   top: 30px;
   z-index: 1;
   background-color: ${tm(({ colors }) => colors.neutral0)};
@@ -186,17 +190,26 @@ const SliderArrow = styled.button`
 
   &.right {
     right: -20px;
-    transform: rotate(180deg);
+    transform: scaleX(-1);
   }
 
   &.left {
     left: -20px;
   }
 
-  ${media.lg} {
+  & > svg {
+    width: 4px;
+    height: 8px;
+  }
+
+  ${media.md} {
     width: 48px;
     height: 48px;
     top: 210px;
+    & > svg {
+      width: 8px;
+      height: 17px;
+    }
 
     &:hover {
       top: 205px;
@@ -218,6 +231,15 @@ const SliderArrow = styled.button`
   }
 `;
 
+const NamePositionBlock = styled.div`
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 12px;
+  ${media.md} {
+    align-items: center;
+  }
+`;
+
 const ReviewsBlock = ({ content }: Props) => {
   return (
     <Section>
@@ -234,12 +256,7 @@ const ReviewsBlock = ({ content }: Props) => {
                 title={label}
                 className="right"
               >
-                <Image
-                  src="/images/carrusel-arrow-left.png"
-                  width={11}
-                  height={19}
-                  alt="Carousel next button"
-                />
+                <CarouselArrow />
               </SliderArrow>
             )
           }
@@ -250,12 +267,7 @@ const ReviewsBlock = ({ content }: Props) => {
                 title={label}
                 className="left"
               >
-                <Image
-                  src="/images/carrusel-arrow-left.png"
-                  width={11}
-                  height={19}
-                  alt="Carousel next button"
-                />
+                <CarouselArrow />
               </SliderArrow>
             )
           }
@@ -267,12 +279,16 @@ const ReviewsBlock = ({ content }: Props) => {
                   style={{ backgroundImage: `url(${item.personImage})` }}
                 />
                 <PersonCaption>
-                  <p>{item.name},</p>
-                  <p> {item.position}</p>
-                  <CompanyLogo
-                    style={{
-                      backgroundImage: `url(${item.companyImage})`,
-                    }}
+                  <NamePositionBlock>
+                    <p>{item.name},</p>
+                    <p> {item.position}</p>
+                  </NamePositionBlock>
+
+                  <Image
+                    src={item.companyImage}
+                    alt="company-logo"
+                    width={100}
+                    height={40}
                   />
                 </PersonCaption>
               </ImageWithCaptionContainer>

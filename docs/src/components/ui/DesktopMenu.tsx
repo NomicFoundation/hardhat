@@ -15,7 +15,7 @@ const MenuContainer = styled.section<{ isDocumentation: boolean }>`
     align-items: center;
     justify-content: space-evenly;
   }
-  ${media.lg} {
+  ${media.md} {
     display: flex;
     align-items: center;
     justify-content: space-evenly;
@@ -23,7 +23,6 @@ const MenuContainer = styled.section<{ isDocumentation: boolean }>`
 `;
 
 const MenuList = styled.ul`
-  width: 486px;
   display: flex;
   list-style-type: none;
   align-items: center;

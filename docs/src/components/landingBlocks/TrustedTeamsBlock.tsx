@@ -27,9 +27,10 @@ const Title = styled.h2`
   font-weight: 400;
   letter-spacing: -0.01em;
   font-family: ChivoBold, sans-serif;
+  font-weight: normal;
   color: ${tm(({ colors }) => colors.neutral900)};
 
-  ${media.lg} {
+  ${media.md} {
     margin-bottom: 88px;
     font-size: 45px;
     line-height: 50px;
@@ -50,7 +51,7 @@ const LogosRowContainer = styled.div`
     display: none;
   }
 
-  ${media.lg} {
+  ${media.md} {
     &:nth-child(-n + 3) {
       display: initial;
     }
@@ -79,7 +80,7 @@ const LogosSubrowContainer = styled.div`
     animation-duration: 32s;
   }
 
-  ${media.lg} {
+  ${media.md} {
     height: 67px;
     margin-bottom: 32px;
   }
@@ -90,7 +91,7 @@ const LogosSubrowContainer = styled.div`
     max-height: 67px;
     height: 41px;
 
-    ${media.lg} {
+    ${media.md} {
       height: initial;
       margin: 0 50px;
     }

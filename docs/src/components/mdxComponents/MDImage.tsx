@@ -8,7 +8,6 @@ interface Props {
 }
 
 const ImageContainer = styled.div`
-  display: inline;
   max-width: 100%;
   position: relative;
   height: auto;
@@ -32,6 +31,7 @@ const MDImage = ({ src, alt }: Props) => {
         blurDataURL={src}
         width="100%"
         height="100%"
+        quality={100}
         layout="responsive"
         objectFit="contain"
       />
