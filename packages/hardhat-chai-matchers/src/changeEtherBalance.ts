@@ -1,4 +1,5 @@
 import { BigNumber, BigNumberish, providers } from "ethers";
+import { BlockchainData } from "hardhat/src/internal/hardhat-network/provider/BlockchainData";
 import { ensure } from "./calledOnContract/utils";
 import { Account, getAddressOf } from "./misc/account";
 import { BalanceChangeOptions } from "./misc/balance";
@@ -55,6 +56,14 @@ export async function getBalanceChange(
 
   const txReceipt = await txResponse.wait();
   const txBlockNumber = txReceipt.blockNumber;
+
+  const block = await account.provider.getBlock(txReceipt.blockHash);
+
+  ensure(
+    block.transactions.length === 1,
+    Error,
+    "Multiple transactions found in block"
+  );
 
   const balanceAfter = await account.provider.getBalance(
     getAddressOf(account),

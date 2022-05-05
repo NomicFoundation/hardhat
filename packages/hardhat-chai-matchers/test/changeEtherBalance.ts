@@ -48,6 +48,23 @@ describe("INTEGRATION: changeEtherBalance matcher", function () {
           ).to.changeEtherBalance(sender, "-200");
         });
 
+        it("Should fail when block contains more than one transaction", async function () {
+          await this.hre.network.provider.send("evm_setAutomine", [false]);
+          await sender.sendTransaction({ to: receiver.address, value: 200 });
+          await this.hre.network.provider.send("evm_setAutomine", [true]);
+          await expect(
+            expect(() =>
+              sender.sendTransaction({
+                to: receiver.address,
+                value: 200,
+              })
+            ).to.changeEtherBalance(sender, -200, { includeFee: true })
+          ).to.be.eventually.rejectedWith(
+            Error,
+            "Multiple transactions found in block"
+          );
+        });
+
         it("Should pass when expected balance change is passed as int and is equal to an actual", async () => {
           await expect(() =>
             sender.sendTransaction({
