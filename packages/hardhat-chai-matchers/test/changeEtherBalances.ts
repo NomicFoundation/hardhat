@@ -1,6 +1,6 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect, AssertionError } from "chai";
-import { Contract } from "ethers";
+import { BigNumber, Contract } from "ethers";
 
 import { useEnvironment, useEnvironmentWithNode } from "./helpers";
 
@@ -69,6 +69,45 @@ describe("INTEGRATION: changeEtherBalances matcher", function () {
               value: 200,
             })
           ).to.changeEtherBalances([sender, receiver], ["-200", 200]);
+        });
+
+        it("Should pass when given addresses as strings", async () => {
+          await expect(() =>
+            sender.sendTransaction({
+              to: receiver.address,
+              gasPrice: 1,
+              value: 200,
+            })
+          ).to.changeEtherBalances(
+            [sender.address, receiver.address],
+            ["-200", 200]
+          );
+        });
+
+        it("Should pass when given native BigInt", async () => {
+          await expect(() =>
+            sender.sendTransaction({
+              to: receiver.address,
+              gasPrice: 1,
+              value: 200,
+            })
+          ).to.changeEtherBalances(
+            [sender, receiver],
+            [BigInt("-200"), BigInt(200)]
+          );
+        });
+
+        it("Should pass when given ethers BigNumber", async () => {
+          await expect(() =>
+            sender.sendTransaction({
+              to: receiver.address,
+              gasPrice: 1,
+              value: 200,
+            })
+          ).to.changeEtherBalances(
+            [sender, receiver],
+            [BigNumber.from("-200"), BigNumber.from(200)]
+          );
         });
 
         it("Should take into account transaction fee (legacy tx)", async () => {

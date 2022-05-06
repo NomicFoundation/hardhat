@@ -1,23 +1,29 @@
-import { ensure } from "../calledOnContract/utils";
+import { BigNumber } from "ethers";
 import { Account, getAddressOf } from "./account";
 
 export interface BalanceChangeOptions {
   includeFee?: boolean;
 }
 
-export function getAddresses(accounts: Account[]) {
+export function getAddresses(accounts: Array<Account | string>) {
   return Promise.all(accounts.map((account) => getAddressOf(account)));
 }
 
-export async function getBalances(accounts: Account[], blockNumber?: number) {
+export async function getBalances(
+  accounts: Array<Account | string>,
+  blockNumber?: number
+) {
+  const hre = await import("hardhat");
+  const provider = hre.ethers.provider;
+
   return Promise.all(
-    accounts.map((account) => {
-      ensure(account.provider !== undefined, TypeError, "Provider not found");
-      if (blockNumber !== undefined) {
-        return account.provider.getBalance(getAddressOf(account), blockNumber);
-      } else {
-        return account.provider.getBalance(getAddressOf(account));
-      }
+    accounts.map(async (account) => {
+      const address = await getAddressOf(account);
+      const result = await provider.send("eth_getBalance", [
+        address,
+        `0x${blockNumber?.toString(16) ?? 0}`,
+      ]);
+      return BigNumber.from(result);
     })
   );
 }

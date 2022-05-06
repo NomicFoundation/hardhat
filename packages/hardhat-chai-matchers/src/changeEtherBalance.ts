@@ -1,5 +1,4 @@
 import { BigNumber, BigNumberish, providers } from "ethers";
-import { BlockchainData } from "hardhat/src/internal/hardhat-network/provider/BlockchainData";
 import { ensure } from "./calledOnContract/utils";
 import { Account, getAddressOf } from "./misc/account";
 import { BalanceChangeOptions } from "./misc/balance";
@@ -9,7 +8,7 @@ export function supportChangeEtherBalance(Assertion: Chai.AssertionStatic) {
     "changeEtherBalance",
     function (
       this: any,
-      account: Account,
+      account: Account | string,
       balanceChange: BigNumberish,
       options: BalanceChangeOptions
     ) {
@@ -41,10 +40,11 @@ export async function getBalanceChange(
     | (() =>
         | Promise<providers.TransactionResponse>
         | providers.TransactionResponse),
-  account: Account,
+  account: Account | string,
   options?: BalanceChangeOptions
 ) {
-  ensure(account.provider !== undefined, TypeError, "Provider not found");
+  const hre = await import("hardhat");
+  const provider = hre.network.provider;
 
   let txResponse: providers.TransactionResponse;
 
@@ -57,7 +57,10 @@ export async function getBalanceChange(
   const txReceipt = await txResponse.wait();
   const txBlockNumber = txReceipt.blockNumber;
 
-  const block = await account.provider.getBlock(txReceipt.blockHash);
+  const block = await provider.send("eth_getBlockByHash", [
+    txReceipt.blockHash,
+    false,
+  ]);
 
   ensure(
     block.transactions.length === 1,
@@ -65,25 +68,25 @@ export async function getBalanceChange(
     "Multiple transactions found in block"
   );
 
-  const balanceAfter = await account.provider.getBalance(
-    getAddressOf(account),
-    txBlockNumber
-  );
-  const balanceBefore = await account.provider.getBalance(
-    getAddressOf(account),
-    txBlockNumber - 1
-  );
+  const address = await getAddressOf(account);
 
-  if (
-    options?.includeFee !== true &&
-    (await getAddressOf(account)) === txResponse.from
-  ) {
+  const balanceAfter = await provider.send("eth_getBalance", [
+    address,
+    `0x${txBlockNumber.toString(16)}`,
+  ]);
+
+  const balanceBefore = await provider.send("eth_getBalance", [
+    address,
+    `0x${(txBlockNumber - 1).toString(16)}`,
+  ]);
+
+  if (options?.includeFee !== true && address === txResponse.from) {
     const gasPrice = txResponse.gasPrice ?? txReceipt.effectiveGasPrice;
     const gasUsed = txReceipt.gasUsed;
     const txFee = gasPrice.mul(gasUsed);
 
-    return balanceAfter.add(txFee).sub(balanceBefore);
+    return BigNumber.from(balanceAfter).add(txFee).sub(balanceBefore);
   } else {
-    return balanceAfter.sub(balanceBefore);
+    return BigNumber.from(balanceAfter).sub(balanceBefore);
   }
 }

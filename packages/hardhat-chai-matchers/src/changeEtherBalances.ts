@@ -11,7 +11,7 @@ export function supportChangeEtherBalances(Assertion: Chai.AssertionStatic) {
     "changeEtherBalances",
     function (
       this: any,
-      accounts: Account[],
+      accounts: Array<Account | string>,
       balanceChanges: BigNumberish[],
       options: BalanceChangeOptions
     ) {
@@ -46,7 +46,7 @@ export async function getBalanceChanges(
     | (() =>
         | Promise<providers.TransactionResponse>
         | providers.TransactionResponse),
-  accounts: Account[],
+  accounts: Array<Account | string>,
   options: BalanceChangeOptions
 ) {
   let txResponse: providers.TransactionResponse;
@@ -71,7 +71,7 @@ export async function getBalanceChanges(
 }
 
 async function getTxFees(
-  accounts: Account[],
+  accounts: Array<Account | string>,
   txResponse: providers.TransactionResponse,
   options: BalanceChangeOptions
 ) {

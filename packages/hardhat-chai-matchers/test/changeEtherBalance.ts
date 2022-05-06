@@ -65,6 +65,33 @@ describe("INTEGRATION: changeEtherBalance matcher", function () {
           );
         });
 
+        it("Should pass when given an address as a string", async () => {
+          await expect(() =>
+            sender.sendTransaction({
+              to: receiver.address,
+              value: 200,
+            })
+          ).to.changeEtherBalance(sender.address, "-200");
+        });
+
+        it("Should pass when given a native bigint", async () => {
+          await expect(() =>
+            sender.sendTransaction({
+              to: receiver.address,
+              value: 200,
+            })
+          ).to.changeEtherBalance(sender, BigInt("-200"));
+        });
+
+        it("Should pass when given an ethers BigNumber", async () => {
+          await expect(() =>
+            sender.sendTransaction({
+              to: receiver.address,
+              value: 200,
+            })
+          ).to.changeEtherBalance(sender, BigNumber.from("-200"));
+        });
+
         it("Should pass when expected balance change is passed as int and is equal to an actual", async () => {
           await expect(() =>
             sender.sendTransaction({
