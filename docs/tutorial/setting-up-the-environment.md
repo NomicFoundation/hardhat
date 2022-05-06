@@ -44,9 +44,29 @@ Installing Node.js on Windows requires a few manual steps. We'll install git, No
 1. [Git's installer for Windows](https://git-scm.com/download/win)
 2. `node-v16.XX.XX-x64.msi` from [here](https://nodejs.org/dist/latest-v16.x)
 
+<br>
+
+Or if you use Windows 11 you can use build in Windows Package Manager [Winget](https://github.com/microsoft/winget-cli)  
+<br> 
+It works on Windows 10 last update too
+<br>
+1. To install Git use next command: <br>
+winget install -e --id Git.Git
+2. To install Node.js
+
+```
+winget install OpenJS.NodeJS
+# or for LTS
+winget install OpenJS.NodeJS.LTS
+
+```
+
+
 ## Upgrading your Node.js installation
 
 If your version of Node.js is older than `16.0` follow the instructions below to upgrade.
+
+
 
 ### Linux
 
