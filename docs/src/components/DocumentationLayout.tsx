@@ -41,6 +41,9 @@ const Container = styled.div`
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+    Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  -webkit-font-smoothing: antialiased;
   main {
     flex: 1 1 auto;
     display: flex;
@@ -163,7 +166,8 @@ const Content = styled.section`
   flex-direction: column;
   width: 100%;
   max-width: 774px;
-  padding-left: 34px;
+  padding: 0 34px;
+
   color: ${tm(({ colors }) => colors.neutral900)};
   & h2:not(:first-of-type) {
     padding-top: 80px;
@@ -292,15 +296,15 @@ const DocumentationLayout = ({
             <Content>
               {/* @ts-ignore */}
               <MDXRemote {...mdxSource} components={components} />
-              {footerNavigation ? (
-                <DocumentationFooter
-                  next={footerNavigation.next}
-                  prev={footerNavigation.prev}
-                  lastEditDate={footerNavigation.lastEditDate}
-                  editLink={footerNavigation.editLink}
-                />
-              ) : null}
             </Content>
+            {footerNavigation ? (
+              <DocumentationFooter
+                next={footerNavigation.next}
+                prev={footerNavigation.prev}
+                lastEditDate={footerNavigation.lastEditDate}
+                editLink={footerNavigation.editLink}
+              />
+            ) : null}
           </View>
         </main>
       </Container>

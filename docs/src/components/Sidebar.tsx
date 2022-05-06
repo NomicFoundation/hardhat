@@ -17,7 +17,6 @@ const Container = styled.ul`
   flex-direction: column;
   list-style-type: none;
   color: ${tm(({ colors }) => colors.neutral800)};
-  font-family: ChivoRegular;
   font-weight: 400;
   font-size: 15px;
   line-height: 28px;
@@ -52,7 +51,6 @@ const SidebarItem = styled.li`
     border-left: 4px solid ${tm(({ colors }) => colors.transparent)};
     padding: 4px 28px;
     &[data-active="true"] {
-      font-family: ChivoBold;
       border-color: ${tm(({ colors }) => colors.accent700)};
     }
   }
@@ -62,7 +60,7 @@ const SidebarItem = styled.li`
 `;
 
 const SidebarHeading = styled.p`
-  font-family: ChivoBold;
+  font-weight: 700;
   font-size: 17px;
   line-height: 25px;
   padding: 4px 32px;
@@ -73,13 +71,8 @@ const SidebarSubLinksList = styled.ul`
   flex-direction: column;
   line-height: 28px;
   list-style-type: none;
-  font-family: ChivoLight;
   & ${SidebarLinkWrapper} {
     padding: 0.5px 16px 0.5px 64px;
-    &[data-active="true"] {
-      font-family: ChivoRegular;
-      font-weight: 500;
-    }
     &[data-anchor="true"] {
       border-left: none;
     }
@@ -92,7 +85,8 @@ const Sidebar = ({ elementsList }: Props) => {
     <Container>
       {elementsList?.map((sidebarItem) => {
         const isLinkActive: boolean =
-          Boolean(sidebarItem.href) && router?.pathname === sidebarItem.href;
+          sidebarItem.href !== undefined &&
+          router?.asPath.indexOf(sidebarItem.href) > -1;
         return (
           <SidebarItem key={sidebarItem.label} className={sidebarItem.type}>
             {sidebarItem.href !== undefined ? (
@@ -108,7 +102,10 @@ const Sidebar = ({ elementsList }: Props) => {
             {sidebarItem?.children && (
               <SidebarSubLinksList>
                 {sidebarItem.children.map((subItem) => {
-                  const isSubLinkActive = router?.asPath === subItem.href;
+                  const isSubLinkActive =
+                    router?.asPath.replace(/\//g, "") ===
+                    subItem.href.replace(/\//g, "");
+
                   const isAnchor = subItem.href.includes("#");
                   return (
                     <li key={subItem.label}>

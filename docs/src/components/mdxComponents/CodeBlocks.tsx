@@ -17,8 +17,7 @@ const StyledCode = styled.code`
   background-color: ${tm(({ colors }) => colors.codeBackground)};
   border-radius: 3px;
   font-size: 13.6px;
-  font-family: ChivoLight, sans-serif;
-  font-weight: 600;
+  font-weight: 400;
   line-height: 1.7;
   color: ${tm(({ colors }) => colors.codeColor)};
 

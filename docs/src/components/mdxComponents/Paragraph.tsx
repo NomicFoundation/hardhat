@@ -11,20 +11,19 @@ const StyledP = styled.p`
   margin: 16px 0;
   line-height: 1.7;
   font-size: 16px;
-  font-family: ChivoLight, sans-serif;
   color: ${tm(({ colors }) => colors.neutral800)};
 
   ${tmSelectors.dark} {
-    color: ${tmDark(({ colors }) => colors.neutral700)};
+    color: ${tmDark(({ colors }) => colors.neutral800)};
   }
 
   ${tmSelectors.hcDark} {
-    color: ${tmHCDark(({ colors }) => colors.neutral700)};
+    color: ${tmHCDark(({ colors }) => colors.neutral800)};
   }
 
   ${media.mqDark} {
     ${tmSelectors.auto} {
-      color: ${tmDark(({ colors }) => colors.neutral700)};
+      color: ${tmDark(({ colors }) => colors.neutral800)};
     }
   }
 `;

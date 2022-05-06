@@ -24,6 +24,10 @@ const ImageContainer = styled.div`
   & span {
     padding: 0 !important;
   }
+
+  span & div {
+    width: 120px !important;
+  }
 `;
 
 const isShellBadge = (src: string): boolean => /img\.shields\.io/.test(src);

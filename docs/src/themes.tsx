@@ -77,6 +77,7 @@ export const lightPalette = {
     "linear-gradient(180deg, #FFFFFF 7.96%, rgba(255, 255, 255, 0.484844) 18.71%, rgba(255, 255, 255, 0) 28.83%, rgba(255, 255, 255, 0) 68.82%, #FFFFFF 91.43%);",
   link: "#CCB200",
   autoThemeButton: "#6C6F74",
+  editPageColor: "#C4C4C4",
 };
 
 export const darkPalette = {
@@ -89,7 +90,7 @@ export const darkPalette = {
   neutral500: "#4B4D4D",
   neutral600: "#6E6F70",
   neutral700: "#9B9FA8",
-  neutral800: "#B0B2B5",
+  neutral800: "#D2D3D5",
   neutral900: "#FFFFFF",
   accent100: "#FBFCDB",
   accent600: "#FFF04D",
@@ -128,6 +129,7 @@ export const darkPalette = {
     "linear-gradient(180deg, #FFFFFF 7.96%, rgba(255, 255, 255, 0.484844) 18.71%, rgba(255, 255, 255, 0) 28.83%, rgba(255, 255, 255, 0) 68.82%, #FFFFFF 91.43%);",
   link: "#CCB200",
   autoThemeButton: "#6C6F74",
+  editPageColor: "#D2D3D5",
 } as Palette;
 
 export const hcDarkPalette = {
@@ -179,6 +181,7 @@ export const hcDarkPalette = {
     "linear-gradient(180deg, #FFFFFF 7.96%, rgba(255, 255, 255, 0.484844) 18.71%, rgba(255, 255, 255, 0) 28.83%, rgba(255, 255, 255, 0) 68.82%, #FFFFFF 91.43%);",
   link: "#CCB200",
   autoThemeButton: "#6C6F74",
+  editPageColor: "#B0B2B5",
 } as Palette;
 
 type Palette = typeof lightPalette;
