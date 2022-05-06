@@ -183,7 +183,11 @@ function addLanguageAndHighlightedLinesToCodeBlocks() {
 }
 
 export const generateTitleFromContent = (content: string) => {
-  return content.split(newLineDividerRegEx)[0].replace(/[#]*/g, "").trim();
+  return content
+    .split(newLineDividerRegEx)
+    .filter((line) => line.startsWith("#"))[0]
+    .replace(/[#]*/g, "")
+    .trim();
 };
 
 export const parseMdFile = (source: string) => {

@@ -43,6 +43,7 @@ const linariaConfig = withLinaria({
   },
   pageExtensions: ["ts", "tsx", "js", "jsx", "md", "mdx"],
   images: {
+    dangerouslyAllowSVG: true,
     domains: ["img.shields.io", "hardhat.org"],
   },
 });

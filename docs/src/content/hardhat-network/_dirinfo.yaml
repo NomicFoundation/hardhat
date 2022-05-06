@@ -5,4 +5,5 @@ order:
     title: What is it?
   - /guides/mainnet-forking
   - /explanation/mining-modes
-  - /reference
+  - href: /reference
+    title: Reference
