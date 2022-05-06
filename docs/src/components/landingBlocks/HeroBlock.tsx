@@ -3,11 +3,8 @@ import { styled } from "linaria/react";
 import Section from "../Section";
 import CTA from "../ui/CTA";
 import { breakpoints, media, tm } from "../../themes";
-import Images from "../../../public/images";
 import useWindowSize from "../../hooks/useWindowSize";
 import { CTAType } from "../ui/types";
-
-const { HeroPetsImage, HeroGraphicsImage } = Images;
 
 interface Props {
   content: {
@@ -92,7 +89,37 @@ const HeroBlock = ({ content }: Props) => {
           <Title>{content.title}</Title>
           <CTA href={content.cta.url}>{content.cta.title}</CTA>
         </Block>
-        <Block>{isDesktop ? <HeroGraphicsImage /> : <HeroPetsImage />}</Block>
+        <Block>
+          {isDesktop ? (
+            <div
+              style={{
+                fontSize: 48,
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                height: "100%",
+                width: "100%",
+                textAlign: "center",
+              }}
+            >
+              DESKTOP ANIMATION MOCK
+            </div>
+          ) : (
+            <div
+              style={{
+                fontSize: 48,
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                height: "100%",
+                width: "100%",
+                textAlign: "center",
+              }}
+            >
+              MOBILE ANIMATION MOCK
+            </div>
+          )}
+        </Block>
       </Container>
     </Section>
   );
