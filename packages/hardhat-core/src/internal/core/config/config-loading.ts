@@ -6,7 +6,11 @@ import fsExtra from "fs-extra";
 import path from "path";
 import semver from "semver";
 
-import { HardhatArguments, HardhatConfig } from "../../../types";
+import {
+  HardhatArguments,
+  HardhatConfig,
+  HardhatUserConfig,
+} from "../../../types";
 import { HardhatContext } from "../../context";
 import { SUPPORTED_SOLIDITY_VERSION_RANGE } from "../../hardhat-network/stack-traces/solidityTracer";
 import { findClosestPackageJson } from "../../util/packageInfo";
@@ -49,7 +53,7 @@ export function loadConfigAndTasks(
     showEmptyConfigWarning: false,
     showSolidityConfigWarnings: false,
   }
-): HardhatConfig {
+): { resolvedConfig: HardhatConfig; userConfig: HardhatUserConfig } {
   let configPath =
     hardhatArguments !== undefined ? hardhatArguments.config : undefined;
 
@@ -109,7 +113,7 @@ export function loadConfigAndTasks(
     checkUnsupportedRemappings(resolved);
   }
 
-  return resolved;
+  return { resolvedConfig: resolved, userConfig: frozenUserConfig };
 }
 
 function deepFreezeUserConfig(

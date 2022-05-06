@@ -28,13 +28,19 @@ The address to use as default sender. If not present the first account of the Ha
 
 Its value should be `"auto"` or a number. If a number is used, it will be the gas limit used by default in every transaction. If `"auto"` is used, the gas limit will be automatically estimated. Default value: the same value as `blockGasLimit`.
 
+Note that when using `ethers` this value will not be applied.
+
 #### `gasPrice`
 
 Its value should be `"auto"` or a number (in wei). This parameter behaves like `gas`. Default value: `"auto"`.
 
+Note that when using `ethers` this value will not be applied.
+
 #### `gasMultiplier`
 
 A number used to multiply the results of gas estimation to give it some slack due to the uncertainty of the estimation process. Default value: `1`.
+
+Note that when using `ethers` this value will not be applied.
 
 #### `accounts`
 
@@ -59,11 +65,11 @@ This setting changes how Hardhat Network works, to mimic Ethereum's mainnet at a
 
 #### `throwOnTransactionFailures`
 
-A boolean that controls if Hardhat Network throws on transaction failures. If this value is `true`, Hardhat Network will throw [combined JavaScript and Solidity stack traces](../hardhat-network/README.md#solidity-stack-traces) on transaction failures. If it is `false`, it will return the failing transaction hash. In both cases the transactions are added into the blockchain. Default value: `true`
+A boolean that controls if Hardhat Network throws on transaction failures. If this value is `true`, Hardhat Network will throw [combined JavaScript and Solidity stack traces](../README.md#solidity-stack-traces) on transaction failures. If it is `false`, it will return the failing transaction hash. In both cases the transactions are added into the blockchain. Default value: `true`
 
 #### `throwOnCallFailures`
 
-A boolean that controls if Hardhat Network throws on call failures. If this value is `true`, Hardhat Network will throw [combined JavaScript and Solidity stack traces](../hardhat-network/README.md#solidity-stack-traces) when a call fails. If it is `false`, it will return the call's `return data`, which can contain a revert reason. Default value: `true`
+A boolean that controls if Hardhat Network throws on call failures. If this value is `true`, Hardhat Network will throw [combined JavaScript and Solidity stack traces](../README.md#solidity-stack-traces) when a call fails. If it is `false`, it will return the call's `return data`, which can contain a revert reason. Default value: `true`
 
 #### `loggingEnabled`
 

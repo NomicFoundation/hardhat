@@ -104,6 +104,8 @@ const log = debug("hardhat:core:tasks:compile");
 
 const COMPILE_TASK_FIRST_SOLC_VERSION_SUPPORTED = "0.4.11";
 
+const DEFAULT_CONCURRENCY_LEVEL = Math.max(os.cpus().length - 1, 1);
+
 /**
  * Returns a list of absolute paths to all the solidity files in the project.
  * This list doesn't include dependencies, for example solidity files inside
@@ -364,14 +366,17 @@ subtask(TASK_COMPILE_SOLIDITY_LOG_NOTHING_TO_COMPILE)
 subtask(TASK_COMPILE_SOLIDITY_COMPILE_JOBS)
   .addParam("compilationJobs", undefined, undefined, types.any)
   .addParam("quiet", undefined, undefined, types.boolean)
+  .addParam("concurrency", undefined, DEFAULT_CONCURRENCY_LEVEL, types.int)
   .setAction(
     async (
       {
         compilationJobs,
         quiet,
+        concurrency,
       }: {
         compilationJobs: CompilationJob[];
         quiet: boolean;
+        concurrency: number;
       },
       { run }
     ): Promise<{ artifactsEmittedPerJob: ArtifactsEmittedPerJob }> => {
@@ -380,8 +385,6 @@ subtask(TASK_COMPILE_SOLIDITY_COMPILE_JOBS)
         await run(TASK_COMPILE_SOLIDITY_LOG_NOTHING_TO_COMPILE, { quiet });
         return { artifactsEmittedPerJob: [] };
       }
-
-      const { default: pMap } = await import("p-map");
 
       log(`Compiling ${compilationJobs.length} jobs`);
 
@@ -423,26 +426,25 @@ subtask(TASK_COMPILE_SOLIDITY_COMPILE_JOBS)
         });
       }
 
-      const pMapOptions = { concurrency: os.cpus().length, stopOnError: false };
+      const { default: pMap } = await import("p-map");
+      const pMapOptions = { concurrency, stopOnError: false };
       try {
-        const results = await pMap(
+        const artifactsEmittedPerJob: ArtifactsEmittedPerJob = await pMap(
           compilationJobs,
-          (compilationJob, compilationJobIndex) => {
-            return run(TASK_COMPILE_SOLIDITY_COMPILE_JOB, {
+          async (compilationJob, compilationJobIndex) => {
+            const result = await run(TASK_COMPILE_SOLIDITY_COMPILE_JOB, {
               compilationJob,
               compilationJobs,
               compilationJobIndex,
               quiet,
             });
+
+            return {
+              compilationJob: result.compilationJob,
+              artifactsEmittedPerFile: result.artifactsEmittedPerFile,
+            };
           },
           pMapOptions
-        );
-
-        const artifactsEmittedPerJob: ArtifactsEmittedPerJob = results.map(
-          ({ compilationJob, artifactsEmittedPerFile }) => ({
-            compilationJob,
-            artifactsEmittedPerFile,
-          })
         );
 
         return { artifactsEmittedPerJob };
@@ -590,6 +592,8 @@ subtask(TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD)
             log("Native solc binary doesn't work, using solcjs instead");
             nativeBinaryFailed = true;
           }
+        } else {
+          platform = CompilerPlatform.WASM;
         }
       }
 
@@ -1290,9 +1294,14 @@ subtask(TASK_COMPILE_SOLIDITY_LOG_COMPILATION_RESULT)
 subtask(TASK_COMPILE_SOLIDITY)
   .addParam("force", undefined, undefined, types.boolean)
   .addParam("quiet", undefined, undefined, types.boolean)
+  .addParam("concurrency", undefined, DEFAULT_CONCURRENCY_LEVEL, types.int)
   .setAction(
     async (
-      { force, quiet }: { force: boolean; quiet: boolean },
+      {
+        force,
+        quiet,
+        concurrency,
+      }: { force: boolean; quiet: boolean; concurrency: number },
       { artifacts, config, run }
     ) => {
       const sourcePaths: string[] = await run(
@@ -1351,6 +1360,7 @@ subtask(TASK_COMPILE_SOLIDITY)
         {
           compilationJobs: mergedCompilationJobs,
           quiet,
+          concurrency,
         }
       );
 
@@ -1413,6 +1423,12 @@ subtask(TASK_COMPILE_GET_COMPILATION_TASKS, async (): Promise<string[]> => {
 task(TASK_COMPILE, "Compiles the entire project, building all artifacts")
   .addFlag("force", "Force compilation ignoring cache")
   .addFlag("quiet", "Makes the compilation process less verbose")
+  .addParam(
+    "concurrency",
+    "Number of compilation jobs executed in parallel. Defaults to the number of CPU cores - 1",
+    DEFAULT_CONCURRENCY_LEVEL,
+    types.int
+  )
   .setAction(async (compilationArgs: any, { run }) => {
     const compilationTasks: string[] = await run(
       TASK_COMPILE_GET_COMPILATION_TASKS

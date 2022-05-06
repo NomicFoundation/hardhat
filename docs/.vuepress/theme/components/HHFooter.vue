@@ -7,7 +7,7 @@ footer
     .separator
       
     .legal
-      a Copyright 2020 Nomic Labs LLC | 
+      a Copyright 2022 Nomic Foundation | 
       a(href="/privacy-policy.html") Privacy Policy
 </template>
 

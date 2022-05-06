@@ -36,6 +36,14 @@ module.exports.communityPlugins = [
     tags: ["Security", "Upgrades", "OpenZeppelin"],
   },
   {
+    name: "hardhat-forta",
+    author: "Forta",
+    authorUrl: "https://forta.org/",
+    description:
+      "Quickly add security and operational alerting for your project using Forta: a decentralized monitoring network for Web3 systems.",
+    tags: ["Security", "Monitoring", "Alerting", "Forta"],
+  },
+  {
     name: "@tenderly/hardhat-tenderly",
     author: "Tenderly",
     authorUrl: "https://tenderly.co/",
@@ -199,8 +207,9 @@ module.exports.communityPlugins = [
     name: "hardhat-tracer",
     author: "Soham Zemse",
     authorUrl: "https://github.com/zemse/",
-    description: "See emitted events during your hardhat tests in the console",
-    tags: ["Events", "Logs", "Trace", "Console", "Testing"],
+    description:
+      "See internal transactions, events and storage operations during your hardhat tests in the console",
+    tags: ["EVM", "Events", "Logs", "Trace", "Console", "Testing"],
   },
   {
     name: "hardhat-circom",
@@ -407,6 +416,51 @@ module.exports.communityPlugins = [
     description: "Hardhat plugin to sync your compiled contract with Laika",
     tags: ["Tasks", "Laika"],
   },
+  {
+    name: "hardhat-network-metadata",
+    author: "Focal Labs Inc.",
+    authorUrl: "https://github.com/krruzic/hardhat-network-metadata",
+    description:
+      "Hardhat plugin to allow adding any extra data to your network configuration",
+    tags: ["Metadata", "Testing", "Tasks", "Config"],
+  },
+  {
+    name: "hardhat-exposed",
+    author: "Francisco Giordano",
+    authorUrl: "https://github.com/frangio",
+    description: "Automatically expose internal Solidity functions for testing",
+    tags: ["Solidity", "Testing"],
+  },
+  {
+    name: "hardhat-hethers",
+    author: "LimeChain",
+    authorUrl: "https://github.com/LimeChain/hardhat-hethers",
+    description: "Injects hethers into the Hardhat Runtime Environment",
+    tags: ["Hedera", "hethers"],
+  },
+  {
+    name: "hardhat-sourcify",
+    author: "Zoey T",
+    authorUrl: "https://twitter.com/zzzzoey_t",
+    description: "A plugin for submitting code to Sourcify",
+    tags: ["Sourcify", "Verification"],
+  },
+  {
+    name: "hardhat-awesome-cli",
+    author: "Marc-Aurele Besner",
+    authorUrl: "https://github.com/marc-aurele-besner",
+    description:
+      "Hardhat made awesome with a flexible CLI to help run tests, scripts, deploy Mock contracts and more.",
+    tags: ["CLI", "Testing", "Tasks", "Config"],
+  },
+  {
+    name: "hardhat-test-utils",
+    author: "Naveen Sahu",
+    authorUrl: "https://twitter.com/heyNvN",
+    description:
+      "Handy set of utilities for testing contracts in Hardhat projects",
+    tags: ["testing", "solidity"],
+  },
 ];
 
 module.exports.officialPlugins = [
@@ -489,6 +543,7 @@ module.exports.officialPlugins = [
     description: "Adds support to compile Vyper smart contracts",
     tags: ["Vyper", "Compiler"],
   },
+  // Don't add community plugins here. They should be placed in the other array.
 ].map((p) => ({
   ...p,
   normalizedName: p.name.split("/").join("-").replace(/^@/, ""),
