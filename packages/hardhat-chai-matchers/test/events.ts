@@ -276,6 +276,60 @@ describe(".to.emit (contract events)", () => {
         });
       });
 
+      describe("with a uint array argument", function () {
+        it("Should succeed when expectations are met", async function () {
+          await expect(contract.emitUintArray(1, 2))
+            .to.emit(contract, "WithUintArray")
+            .withArgs([1, 2]);
+        });
+
+        it("Should succeed when expectations are met with BigNumber", async function () {
+          await expect(contract.emitUintArray(1, 2))
+            .to.emit(contract, "WithUintArray")
+            .withArgs([BigNumber.from(1), BigNumber.from(2)]);
+        });
+
+        it("Should fail when expectations are not met", async function () {
+          await expect(
+            expect(contract.emitUintArray(1, 2))
+              .to.emit(contract, "WithUintArray")
+              .withArgs([3, 4])
+          ).to.be.eventually.rejectedWith(
+            AssertionError,
+            "expected 1 to equal 3"
+          );
+        });
+      });
+
+      describe("with a bytes32 array argument", function () {
+        it("Should succeed when expectations are met", async function () {
+          await expect(
+            contract.emitBytes32Array(
+              `0x${"aa".repeat(32)}`,
+              `0x${"bb".repeat(32)}`
+            )
+          )
+            .to.emit(contract, "WithBytes32Array")
+            .withArgs([`0x${"aa".repeat(32)}`, `0x${"bb".repeat(32)}`]);
+        });
+
+        it("Should fail when expectations are not met", async function () {
+          await expect(
+            expect(
+              contract.emitBytes32Array(
+                `0x${"aa".repeat(32)}`,
+                `0x${"bb".repeat(32)}`
+              )
+            )
+              .to.emit(contract, "WithBytes32Array")
+              .withArgs([`0x${"cc".repeat(32)}`, `0x${"dd".repeat(32)}`])
+          ).to.be.eventually.rejectedWith(
+            AssertionError,
+            `expected '0x${"aa".repeat(32)}' to equal '0x${"cc".repeat(32)}'`
+          );
+        });
+      });
+
       describe("with multiple arguments", function () {
         it("Should successfully match the arguments", async function () {
           await expect(contract.emitTwoUints(1, 2))
@@ -563,66 +617,6 @@ describe(".to.emit (contract events)", () => {
           );
         });
       });
-    });
-
-    it("Event with array of BigNumbers and bytes32 types", async () => {
-      await expect(contract.emitArrays())
-        .to.emit(contract, "Arrays")
-        .withArgs(
-          [1, 2, 3],
-          [
-            "0x00cfbbaf7ddb3a1476767101c12a0162e241fbad2a0162e2410cfbbaf7162123",
-            "0x00cfbbaf7ddb3a1476767101c12a0162e241fbad2a0162e2410cfbbaf7162124",
-          ]
-        );
-    });
-
-    it("Event with array of BigNumbers providing bignumbers to the matcher", async () => {
-      await expect(contract.emitArrays())
-        .to.emit(contract, "Arrays")
-        .withArgs(
-          [BigNumber.from(1), 2, BigNumber.from(3)],
-          [
-            "0x00cfbbaf7ddb3a1476767101c12a0162e241fbad2a0162e2410cfbbaf7162123",
-            "0x00cfbbaf7ddb3a1476767101c12a0162e241fbad2a0162e2410cfbbaf7162124",
-          ]
-        );
-    });
-
-    it("Event with one different arg within array (bytes32)", async () => {
-      await expect(
-        expect(contract.emitArrays())
-          .to.emit(contract, "Arrays")
-          .withArgs(
-            [BigNumber.from(1), 2, BigNumber.from(3)],
-            [
-              "0x00cfbbaf7ddb3a1476767101c12a0162e241fbad2a0162e2410cfbbaf7162121",
-              "0x00cfbbaf7ddb3a1476767101c12a0162e241fbad2a0162e2410cfbbaf7162124",
-            ]
-          )
-      ).to.be.eventually.rejectedWith(
-        AssertionError,
-        "expected '0x00cfbbaf7ddb3a1476767101c12a0162e241fbad2a0162e2410cfbbaf7162123' " +
-          "to equal '0x00cfbbaf7ddb3a1476767101c12a0162e241fbad2a0162e2410cfbbaf7162121'"
-      );
-    });
-
-    it("Event with one different arg within array (BigNumber)", async () => {
-      await expect(
-        expect(contract.emitArrays())
-          .to.emit(contract, "Arrays")
-          .withArgs(
-            [0, 2, 3],
-            [
-              "0x00cfbbaf7ddb3a1476767101c12a0162e241fbad2a0162e2410cfbbaf7162123",
-              "0x00cfbbaf7ddb3a1476767101c12a0162e241fbad2a0162e2410cfbbaf7162124",
-            ]
-          )
-      ).to.be.eventually.rejectedWith(
-        AssertionError,
-        // eslint-disable-next-line no-useless-escape
-        "expected 1 to equal 0"
-      );
     });
 
     it("With executed transaction", async () => {

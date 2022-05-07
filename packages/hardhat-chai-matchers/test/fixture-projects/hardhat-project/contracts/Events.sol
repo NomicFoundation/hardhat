@@ -14,24 +14,11 @@ contract Events {
   event WithIndexedBytesArg(bytes indexed b);
   event WithBytes32Arg(bytes32 b);
   event WithIndexedBytes32Arg(bytes32 indexed b);
-  event Arrays(uint256[3] value, bytes32[2] encoded);
+  event WithUintArray(uint[2] a);
+  event WithBytes32Array(bytes32[2] a);
 
   constructor (AnotherContract c) {
     anotherContract = c;
-  }
-
-  function emitArrays() public {
-      emit Arrays(
-          [
-          uint256(1),
-          uint256(2),
-          uint256(3)
-          ],
-          [
-          bytes32(0x00cFBbaF7DDB3a1476767101c12a0162e241fbAD2a0162e2410cFBbaF7162123),
-          bytes32(0x00cFBbaF7DDB3a1476767101c12a0162e241fbAD2a0162e2410cFBbaF7162124)
-          ]
-      );
   }
 
   function doNotEmit() public {}
@@ -85,6 +72,14 @@ contract Events {
   function emitTwoUintsAndTwoStrings(uint u, uint v, string memory s, string memory t) public {
     emit WithTwoUintArgs(u, v);
     emit WithTwoStringArgs(s, t);
+  }
+
+  function emitUintArray(uint u, uint v) public {
+    emit WithUintArray([u, v]);
+  }
+
+  function emitBytes32Array(bytes32 b, bytes32 c) public {
+    emit WithBytes32Array([b, c]);
   }
 
   function emitNestedUintFromSameContract(uint u) public {
