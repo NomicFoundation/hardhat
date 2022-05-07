@@ -14,21 +14,10 @@ contract Events {
   event WithIndexedBytesArg(bytes indexed b);
   event WithBytes32Arg(bytes32 b);
   event WithIndexedBytes32Arg(bytes32 indexed b);
-  event One(uint value, string msg, bytes32 encoded);
   event Arrays(uint256[3] value, bytes32[2] encoded);
 
   constructor (AnotherContract c) {
     anotherContract = c;
-  }
-
-  function emitOne() public {
-      emit One(1, "One", 0x00cFBbaF7DDB3a1476767101c12a0162e241fbAD2a0162e2410cFBbaF7162123);
-  }
-
-  function emitOneMultipleTimes() public {
-      emit One(1, "One", 0x00cFBbaF7DDB3a1476767101c12a0162e241fbAD2a0162e2410cFBbaF7162123);
-      emit One(1, "One", 0x00cFBbaF7DDB3a1476767101c12a0162e241fbAD2a0162e2410cFBbaF7162123);
-      emit One(1, "DifferentKindOfOne", 0x0000000000000000000000000000000000000000000000000000000000000001);
   }
 
   function emitArrays() public {

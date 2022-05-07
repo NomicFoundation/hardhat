@@ -1,10 +1,9 @@
 import { expect, AssertionError } from "chai";
-import { BigNumber, Contract, ContractFactory, ethers } from "ethers";
+import { BigNumber, Contract, ethers } from "ethers";
 
 import { useEnvironment, useEnvironmentWithNode } from "./helpers";
 
 describe(".to.emit (contract events)", () => {
-  let factory: ContractFactory;
   let contract: Contract;
   let otherContract: Contract;
 
@@ -347,6 +346,11 @@ describe(".to.emit (contract events)", () => {
             .to.emit(contract, "WithUintArg")
             .and.to.emit(contract, "WithStringArg");
         });
+        it.skip("Should succeed when the expected event is emitted and the unexpected event is not", async function () {
+          await expect(contract.emitWithoutArgs())
+            .to.emit(contract, "WithoutArgs")
+            .and.not.to.emit(otherContract, "WithUintArg");
+        });
         describe("When one of the expected events is emitted and the other is not", function () {
           it("Should fail when the first expected event is emitted but the second is not", async function () {
             await expect(
@@ -505,6 +509,17 @@ describe(".to.emit (contract events)", () => {
               "Expected 1 to equal 2"
             );
           });
+
+          it("Should fail when none of the emitted events match the given argument", async function () {
+            await expect(
+              expect(contract.emitUintTwice(1, 2))
+                .to.emit(contract, "WithUintArg")
+                .withArgs(3)
+            ).to.be.eventually.rejectedWith(
+              AssertionError,
+              'Specified args not emitted in any of 2 emitted "WithUintArg" events'
+            );
+          });
         });
       });
     });
@@ -610,32 +625,14 @@ describe(".to.emit (contract events)", () => {
       );
     });
 
-    it.skip("Event emitted in one contract but not in the other", async () => {
-      const differentEvents = await factory.deploy();
-      await expect(contract.emitOne())
-        .to.emit(contract, "One")
-        .and.not.to.emit(differentEvents, "One");
-    });
-
-    it("Event args not found among multiple emitted events", async () => {
-      await expect(
-        expect(contract.emitOneMultipleTimes())
-          .to.emit(contract, "One")
-          .withArgs(1, 2, 3, 4)
-      ).to.be.eventually.rejectedWith(
-        AssertionError,
-        'Specified args not emitted in any of 3 emitted "One" events'
-      );
-    });
-
     it("With executed transaction", async () => {
-      const tx = await contract.emitOne();
-      await expect(tx).to.emit(contract, "One");
+      const tx = await contract.emitWithoutArgs();
+      await expect(tx).to.emit(contract, "WithoutArgs");
     });
 
     it("With transaction hash", async () => {
-      const tx = await contract.emitOne();
-      await expect(tx.hash).to.emit(contract, "One");
+      const tx = await contract.emitWithoutArgs();
+      await expect(tx.hash).to.emit(contract, "WithoutArgs");
     });
   }
 });
