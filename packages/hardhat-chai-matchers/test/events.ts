@@ -459,7 +459,7 @@ describe(".to.emit (contract events)", () => {
               .and.to.emit(contract, "WithStringArg")
               .withArgs("a string");
           });
-          it.skip("Should pass when expecting the correct args from both events", async function () {
+          it("Should pass when expecting the correct args from both events", async function () {
             await expect(contract.emitUintAndString(1, "a string"))
               .to.emit(contract, "WithUintArg")
               .withArgs(1)
@@ -499,7 +499,7 @@ describe(".to.emit (contract events)", () => {
               'Expected "WithUintArg" event to have 2 argument(s), but it has 1'
             );
           });
-          it.skip("Should fail when expecting too many arguments from the second event", async function () {
+          it("Should fail when expecting too many arguments from the second event", async function () {
             await expect(
               expect(contract.emitUintAndString(1, "a string"))
                 .to.emit(contract, "WithUintArg")
