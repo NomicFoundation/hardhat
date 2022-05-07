@@ -4,6 +4,8 @@ pragma solidity ^0.8.0;
 contract Events {
   AnotherContract anotherContract;
 
+  struct Struct { uint u; uint v; }
+
   event WithoutArgs();
   event WithUintArg(uint u);
   event WithTwoUintArgs(uint u, uint v);
@@ -13,6 +15,7 @@ contract Events {
   event WithBytesArg(bytes b);
   event WithIndexedBytesArg(bytes indexed b);
   event WithBytes32Arg(bytes32 b);
+  event WithStructArg(Struct s);
   event WithIndexedBytes32Arg(bytes32 indexed b);
   event WithUintArray(uint[2] a);
   event WithBytes32Array(bytes32[2] a);
@@ -72,6 +75,10 @@ contract Events {
   function emitTwoUintsAndTwoStrings(uint u, uint v, string memory s, string memory t) public {
     emit WithTwoUintArgs(u, v);
     emit WithTwoStringArgs(s, t);
+  }
+
+  function emitStruct(uint u, uint v) public {
+    emit WithStructArg(Struct(u, v));
   }
 
   function emitUintArray(uint u, uint v) public {

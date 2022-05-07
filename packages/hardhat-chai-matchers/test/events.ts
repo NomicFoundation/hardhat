@@ -330,6 +330,25 @@ describe(".to.emit (contract events)", () => {
         });
       });
 
+      describe("with a struct argument", function () {
+        it("Should succeed when expectations are met", async function () {
+          await expect(contract.emitStruct(1, 2))
+            .to.emit(contract, "WithStructArg")
+            .withArgs([1, 2]);
+        });
+
+        it("Should fail when expectations are not met", async function () {
+          await expect(
+            expect(contract.emitStruct(1, 2))
+              .to.emit(contract, "WithStructArg")
+              .withArgs([3, 4])
+          ).to.be.eventually.rejectedWith(
+            AssertionError,
+            "expected 1 to equal 3"
+          );
+        });
+      });
+
       describe("with multiple arguments", function () {
         it("Should successfully match the arguments", async function () {
           await expect(contract.emitTwoUints(1, 2))
