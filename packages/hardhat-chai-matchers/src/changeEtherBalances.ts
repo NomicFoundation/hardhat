@@ -25,11 +25,40 @@ export function supportChangeEtherBalances(Assertion: Chai.AssertionStatic) {
           actualChanges.every((change, ind) =>
             change.eq(BigNumber.from(balanceChanges[ind]))
           ),
-          `Expected ${accountAddresses} to change balance by ${balanceChanges} wei, ` +
-            `but it has changed by ${actualChanges} wei`,
-          `Expected ${accountAddresses} to not change balance by ${balanceChanges} wei,`,
-          balanceChanges.map((balanceChange) => balanceChange.toString()),
-          actualChanges.map((actualChange) => actualChange.toString())
+          () => {
+            const lines: string[] = [];
+            actualChanges.forEach((change, i) => {
+              if (!change.eq(BigNumber.from(balanceChanges[i]))) {
+                lines.push(
+                  `Expected ${accountAddresses[i]} (address #${i} in the list) to change balance by ${balanceChanges[i]} wei, but it has changed by ${change} wei`
+                );
+              }
+            });
+            return lines.join("\n");
+          },
+          () => {
+            const lines: string[] = [];
+            actualChanges.forEach((change, i) => {
+              if (change.eq(BigNumber.from(balanceChanges[i]))) {
+                lines.push(
+                  `Expected ${accountAddresses[i]} (address #${i} in the list) not to change balance by ${balanceChanges[i]} wei`
+                );
+              }
+            });
+            return lines.join("\n");
+          },
+          balanceChanges.map(
+            (balanceChange, i) =>
+              `${
+                accountAddresses[i]
+              } balance changed by ${balanceChange.toString()} wei`
+          ),
+          actualChanges.map(
+            (actualChange, i) =>
+              `${
+                accountAddresses[i]
+              } balance changed by ${actualChange.toString()} wei`
+          )
         );
       });
       this.then = derivedPromise.then.bind(derivedPromise);
@@ -43,6 +72,7 @@ export function supportChangeEtherBalances(Assertion: Chai.AssertionStatic) {
 export async function getBalanceChanges(
   transaction:
     | providers.TransactionResponse
+    | Promise<providers.TransactionResponse>
     | (() =>
         | Promise<providers.TransactionResponse>
         | providers.TransactionResponse),
@@ -54,7 +84,7 @@ export async function getBalanceChanges(
   if (typeof transaction === "function") {
     txResponse = await transaction();
   } else {
-    txResponse = transaction;
+    txResponse = await transaction;
   }
 
   const txReceipt = await txResponse.wait();

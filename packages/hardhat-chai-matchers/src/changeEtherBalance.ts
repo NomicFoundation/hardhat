@@ -37,6 +37,7 @@ export function supportChangeEtherBalance(Assertion: Chai.AssertionStatic) {
 export async function getBalanceChange(
   transaction:
     | providers.TransactionResponse
+    | Promise<providers.TransactionResponse>
     | (() =>
         | Promise<providers.TransactionResponse>
         | providers.TransactionResponse),
@@ -51,7 +52,7 @@ export async function getBalanceChange(
   if (typeof transaction === "function") {
     txResponse = await transaction();
   } else {
-    txResponse = transaction;
+    txResponse = await transaction;
   }
 
   const txReceipt = await txResponse.wait();
