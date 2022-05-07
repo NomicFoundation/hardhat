@@ -2,6 +2,8 @@
 pragma solidity ^0.8.0;
 
 contract Events {
+  AnotherContract anotherContract;
+
   event WithoutArgs();
   event WithUintArg(uint u);
   event WithTwoUintArgs(uint u, uint v);
@@ -15,6 +17,10 @@ contract Events {
   event One(uint value, string msg, bytes32 encoded);
   event Arrays(uint256[3] value, bytes32[2] encoded);
 
+  constructor (AnotherContract c) {
+    anotherContract = c;
+  }
+
   function emitOne() public {
       emit One(1, "One", 0x00cFBbaF7DDB3a1476767101c12a0162e241fbAD2a0162e2410cFBbaF7162123);
   }
@@ -23,13 +29,6 @@ contract Events {
       emit One(1, "One", 0x00cFBbaF7DDB3a1476767101c12a0162e241fbAD2a0162e2410cFBbaF7162123);
       emit One(1, "One", 0x00cFBbaF7DDB3a1476767101c12a0162e241fbAD2a0162e2410cFBbaF7162123);
       emit One(1, "DifferentKindOfOne", 0x0000000000000000000000000000000000000000000000000000000000000001);
-  }
-
-  function _emitInternal() internal {
-    emit One(1, "One", 0x00cFBbaF7DDB3a1476767101c12a0162e241fbAD2a0162e2410cFBbaF7162123);
-  }
-  function emitNested() public {
-    _emitInternal();
   }
 
   function emitArrays() public {
@@ -97,5 +96,21 @@ contract Events {
   function emitTwoUintsAndTwoStrings(uint u, uint v, string memory s, string memory t) public {
     emit WithTwoUintArgs(u, v);
     emit WithTwoStringArgs(s, t);
+  }
+
+  function emitNestedUintFromSameContract(uint u) public {
+    emitUint(u);
+  }
+
+  function emitNestedUintFromAnotherContract(uint u) public {
+    anotherContract.emitUint(u);
+  }
+}
+
+contract AnotherContract {
+  event WithUintArg(uint u);
+
+  function emitUint(uint u) public {
+    emit WithUintArg(u);
   }
 }

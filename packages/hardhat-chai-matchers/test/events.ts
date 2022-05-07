@@ -6,6 +6,7 @@ import { useEnvironment, useEnvironmentWithNode } from "./helpers";
 describe(".to.emit (contract events)", () => {
   let factory: ContractFactory;
   let contract: Contract;
+  let otherContract: Contract;
 
   describe("with the in-process hardhat network", function () {
     useEnvironment("hardhat-project");
@@ -21,9 +22,12 @@ describe(".to.emit (contract events)", () => {
 
   function runTests() {
     beforeEach(async function () {
+      otherContract = await (
+        await this.hre.ethers.getContractFactory("AnotherContract")
+      ).deploy();
       contract = await (
         await this.hre.ethers.getContractFactory("Events")
-      ).deploy();
+      ).deploy(otherContract.address);
     });
 
     it("Should fail when expecting an event that's not in the contract", async function () {
@@ -505,14 +509,45 @@ describe(".to.emit (contract events)", () => {
       });
     });
 
-    it("Event with proper args from nested", async () => {
-      await expect(contract.emitNested())
-        .to.emit(contract, "One")
-        .withArgs(
-          1,
-          "One",
-          "0x00cfbbaf7ddb3a1476767101c12a0162e241fbad2a0162e2410cfbbaf7162123"
-        );
+    describe("When nested events are emitted", function () {
+      describe("With the nested event emitted from the same contract", function () {
+        it("Should pass when the expected event is emitted", async function () {
+          await expect(contract.emitNestedUintFromSameContract(1))
+            .to.emit(contract, "WithUintArg")
+            .withArgs(1);
+        });
+
+        it("Should fail when the expected event is emitted", async function () {
+          await expect(
+            expect(contract.emitNestedUintFromSameContract(1)).to.emit(
+              contract,
+              "WithStringArg"
+            )
+          ).to.be.eventually.rejectedWith(
+            AssertionError,
+            'Expected event "WithStringArg" to be emitted, but it wasn\'t'
+          );
+        });
+      });
+
+      describe("With the nested event emitted from a different contract", function () {
+        it("Should pass when the expected event is emitted", async function () {
+          await expect(contract.emitNestedUintFromAnotherContract(1))
+            .to.emit(otherContract, "WithUintArg")
+            .withArgs(1);
+        });
+
+        it("Should pass when the expected event is emitted", async function () {
+          await expect(
+            expect(contract.emitNestedUintFromAnotherContract(1))
+              .not.to.emit(otherContract, "WithUintArg")
+              .withArgs(1)
+          ).to.be.eventually.rejectedWith(
+            AssertionError,
+            'Expected event "WithUintArg" NOT to be emitted, but it was'
+          );
+        });
+      });
     });
 
     it("Event with array of BigNumbers and bytes32 types", async () => {
