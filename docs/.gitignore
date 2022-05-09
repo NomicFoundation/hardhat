@@ -15,9 +15,13 @@
 # vscode
 /.vscode
 
-# production
+# build
 /build
 /storybook-static
+/temp/sidebarConfig.json
+/temp/plugin-downloads.json
+/public/sitemap-0.xml
+/public/sitemap*.xml
 
 # misc
 .DS_Store

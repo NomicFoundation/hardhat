@@ -62,7 +62,7 @@ const HamburgerLine = styled.div<{ isOpen: boolean }>`
 
 const Hamburger = ({ onClick, isOpen }: HamburgerProps) => {
   return (
-    <HamburgerContainer onClick={() => onClick()}>
+    <HamburgerContainer onClick={() => onClick()} aria-label="navigation-menu">
       <HamburgerLine isOpen={isOpen} className="top" />
       <HamburgerLine isOpen={isOpen} className="mid" />
       <HamburgerLine isOpen={isOpen} className="bot" />

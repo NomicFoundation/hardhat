@@ -22,6 +22,7 @@ a {
     url("/fonts/Chivo-Light.ttf") format("ttf");
   font-weight: 400;
   font-style: normal;
+  font-display: swap;
 }
 @font-face {
   font-family: "ChivoRegular";
@@ -29,6 +30,7 @@ a {
     url("/fonts/Chivo-Regular.ttf") format("ttf");
   font-weight: 400;
   font-style: normal;
+  font-display: swap;
 }
 @font-face {
   font-family: "ChivoBold";
@@ -36,4 +38,5 @@ a {
     url("/fonts/Chivo-Bold.ttf") format("ttf");
   font-weight: 400;
   font-style: normal;
+  font-display: swap;
 }

@@ -99,11 +99,7 @@ const StyledPre = styled.pre`
 
 const Code = ({ children, lang, highlightedLines }: CodeProps) => {
   return (
-    <StyledCode
-      lang={lang ?? ""}
-      data-language={lang ?? ""}
-      data-line={highlightedLines ?? ""}
-    >
+    <StyledCode data-language={lang ?? ""} data-line={highlightedLines ?? ""}>
       {children}
     </StyledCode>
   );

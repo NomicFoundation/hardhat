@@ -165,7 +165,12 @@ const MobileMenu = ({ menuItems, isOpen = false, socialsItems }: MenuProps) => {
           const { Icon } = social;
           return (
             <SocialLinksItem key={social.name}>
-              <SocialLink target="_blank" rel="noreferrer" href={social.href}>
+              <SocialLink
+                target="_blank"
+                rel="noreferrer"
+                href={social.href}
+                aria-label={social.name}
+              >
                 <Icon />
               </SocialLink>
             </SocialLinksItem>

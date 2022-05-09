@@ -48,4 +48,5 @@ const linariaConfig = withLinaria({
   },
 });
 
-module.exports = linariaConfig;
+module.exports = withPlugins([linariaConfig, withBundleAnalyzer]);
+module.exports.linariaConfig = linariaConfig;
