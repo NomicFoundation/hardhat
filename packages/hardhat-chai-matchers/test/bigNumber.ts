@@ -878,30 +878,30 @@ describe("BigNumber matchers", function () {
           // failed assertions
           expect(() => expect([a]).to.not.deep.equal([b])).to.throw(
             AssertionError,
-            // [\s\S]* is used here instead of .* so that newlines are included
-            /expected \[[\s\S]*\] to not deeply equal \[[\s\S]*\]/
+            // the 's' modifier is used to make . match newlines too
+            /expected \[.*\] to not deeply equal \[.*\]/s
           );
           expect(() =>
             expect([[a], [a]]).to.not.deep.equal([[b], [b]])
           ).to.throw(
             AssertionError,
-            /expected \[[\s\S]*\] to not deeply equal \[[\s\S]*\]/
+            /expected \[.*\] to not deeply equal \[.*\]/s
           );
           expect(() => expect({ x: a }).to.not.deep.equal({ x: b })).to.throw(
             AssertionError,
-            /expected \{[\s\S]*\} to not deeply equal \{[\s\S]*\}/
+            /expected \{.*\} to not deeply equal \{.*\}/s
           );
           expect(() =>
             expect({ x: { y: a } }).to.not.deep.equal({ x: { y: b } })
           ).to.throw(
             AssertionError,
-            /expected \{[\s\S]*\} to not deeply equal \{[\s\S]*\}/
+            /expected \{.*\} to not deeply equal \{.*\}/s
           );
           expect(() =>
             expect({ x: [a] }).to.not.deep.equal({ x: [b] })
           ).to.throw(
             AssertionError,
-            /expected \{[\s\S]*\} to not deeply equal \{[\s\S]*\}/
+            /expected \{.*\} to not deeply equal \{.*\}/s
           );
         });
       });
@@ -920,26 +920,23 @@ describe("BigNumber matchers", function () {
           // failed assertions
           expect(() => expect([a]).to.deep.equal([b])).to.throw(
             AssertionError,
-            // [\s\S]* is used here instead of .* so that newlines are included
-            /expected \[[\s\S]*\] to deeply equal \[[\s\S]*\]/
+            // the 's' modifier is used to make . match newlines too
+            /expected \[.*\] to deeply equal \[.*\]/s
           );
           expect(() => expect([[a], [a]]).to.deep.equal([[b], [b]])).to.throw(
             AssertionError,
-            /expected \[[\s\S]*\] to deeply equal \[[\s\S]*\]/
+            /expected \[.*\] to deeply equal \[.*\]/s
           );
           expect(() => expect({ x: a }).to.deep.equal({ x: b })).to.throw(
             AssertionError,
-            /expected \{[\s\S]*\} to deeply equal \{[\s\S]*\}/
+            /expected \{.*\} to deeply equal \{.*\}/s
           );
           expect(() =>
             expect({ x: { y: a } }).to.deep.equal({ x: { y: b } })
-          ).to.throw(
-            AssertionError,
-            /expected \{[\s\S]*\} to deeply equal \{[\s\S]*\}/
-          );
+          ).to.throw(AssertionError, /expected \{.*\} to deeply equal \{.*\}/s);
           expect(() => expect({ x: [a] }).to.deep.equal({ x: [b] })).to.throw(
             AssertionError,
-            /expected \{[\s\S]*\} to deeply equal \{[\s\S]*\}/
+            /expected \{.*\} to deeply equal \{.*\}/s
           );
         });
       });
