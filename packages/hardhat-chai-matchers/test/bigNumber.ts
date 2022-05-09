@@ -876,6 +876,13 @@ describe("BigNumber matchers", function () {
           expect({ x: [a] }).to.deep.equal({ x: [b] });
 
           // failed assertions
+
+          // We are not checking the content of the arrays/objects because
+          // it depends on the type of the numbers (plain numbers, native
+          // bigints, ethers's BigNumbers)
+          // Ideally the output would be normalized and we could check the
+          // actual content more easily.
+
           expect(() => expect([a]).to.not.deep.equal([b])).to.throw(
             AssertionError,
             // the 's' modifier is used to make . match newlines too
