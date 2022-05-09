@@ -162,7 +162,7 @@ function overwriteBigNumberFunction(
       chaiUtils.flag(this, "lockSsfi", true);
       this.assert(
         deepEqual(actualArg, expectedFlag, { comparator }),
-        `Expected ${util.inspect(expectedFlag)} to deeply equal ${util.inspect(
+        `expected ${util.inspect(expectedFlag)} to deeply equal ${util.inspect(
           actualArg
         )}`,
         `expected ${util.inspect(
