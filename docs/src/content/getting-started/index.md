@@ -19,9 +19,27 @@ Hardhat is used through a local installation in your project. This way your envi
 
 To install it, you need to create an npm project by going to an empty folder, running `npm init`, and following its instructions. Once your project is ready, you should run
 
+::::tabsgroup{options=npm,yarn type=npm/yarn}
+
+:::tab{value=npm}
+
 ```
 npm install --save-dev hardhat
 ```
+
+:::
+
+<!-- It is just an example of using Tabs. Should be removed or corrected -->
+
+:::tab{value=yarn}
+
+```
+yarn add --dev hardhat
+```
+
+:::
+
+::::
 
 To use your local installation of Hardhat, you need to use `npx` to run it (i.e. `npx hardhat`).
 
@@ -32,6 +50,10 @@ This guide will explore the basics of creating a Hardhat project.
 A barebones installation with no plugins allows you to create your own tasks, compile your Solidity code, run your tests and run Hardhat Network, a local development network you can deploy your contracts to.
 
 To create your Hardhat project run `npx hardhat` in your project folder:
+
+::::tabsgroup{options=npm,yarn type=npm/yarn}
+
+:::tab{value=npm}
 
 ```
 $ npx hardhat
@@ -53,6 +75,37 @@ Welcome to Hardhat v2.0.8
   Create an empty hardhat.config.js
   Quit
 ```
+
+:::
+
+<!-- It is just an example of using Tabs. Should be removed or corrected -->
+
+:::tab{value=yarn}
+
+```
+$ yarn hardhat
+888    888                      888 888               888
+888    888                      888 888               888
+888    888                      888 888               888
+8888888888  8888b.  888d888 .d88888 88888b.   8888b.  888888
+888    888     "88b 888P"  d88" 888 888 "88b     "88b 888
+888    888 .d888888 888    888  888 888  888 .d888888 888
+888    888 888  888 888    Y88b 888 888  888 888  888 Y88b.
+888    888 "Y888888 888     "Y88888 888  888 "Y888888  "Y888
+
+Welcome to Hardhat v2.0.8
+
+? What do you want to do? …
+❯ Create a sample project
+  Create an advanced sample project
+  Create an advanced sample project that uses TypeScript
+  Create an empty hardhat.config.js
+  Quit
+```
+
+:::
+
+::::
 
 Let’s create the sample project and go through these steps to try out the sample task and compile, test and deploy the sample contract.
 
