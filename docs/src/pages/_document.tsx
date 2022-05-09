@@ -1,6 +1,8 @@
 /* eslint-disable react/no-danger */
 import { Html, Head, Main, NextScript } from "next/document";
 
+const MeasurementID = process.env.MEASUREMENT_ID;
+
 export default function Document() {
   return (
     <Html lang="en">
@@ -25,6 +27,21 @@ export default function Document() {
           as="font"
           type="font/woff2"
           crossOrigin="true"
+        />
+        <script
+          async
+          src={`https://www.googletagmanager.com/gtag/js?id=${MeasurementID}`}
+        />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '${MeasurementID}');
+
+            `,
+          }}
         />
       </Head>
       <body>
