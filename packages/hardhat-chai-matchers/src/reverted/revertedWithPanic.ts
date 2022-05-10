@@ -1,20 +1,23 @@
+import { BigNumber } from "ethers";
+import { normalizeToBigInt } from "hardhat/common";
 import { panicErrorCodeToReason } from "./panic";
 import { decodeReturnData, getReturnDataFromError } from "./utils";
 
 export function supportRevertedWithPanic(Assertion: Chai.AssertionStatic) {
   Assertion.addMethod(
     "revertedWithPanic",
-    function (this: any, expectedCode: unknown) {
+    function (this: any, expectedCodeArg: any) {
       const ethers = require("ethers");
 
-      // validate expected code
-      if (
-        expectedCode !== undefined &&
-        typeof expectedCode !== "number" &&
-        !ethers.BigNumber.isBigNumber(expectedCode)
-      ) {
+      let expectedCode: BigNumber | undefined;
+      try {
+        if (expectedCodeArg !== undefined) {
+          const normalizedCode = normalizeToBigInt(expectedCodeArg);
+          expectedCode = BigNumber.from(normalizedCode);
+        }
+      } catch {
         throw new TypeError(
-          "Expected a number or BigNumber as the expected panic code"
+          `Expected a number-like value as the expected panic code, but got '${expectedCodeArg}'`
         );
       }
 

@@ -1,4 +1,5 @@
 import { AssertionError, expect } from "chai";
+import { BigNumber } from "ethers";
 import { ProviderError } from "hardhat/internal/core/providers/errors";
 
 import "../../src";
@@ -239,6 +240,42 @@ describe("INTEGRATION: Reverted with panic", function () {
       });
     });
 
+    describe("accepted panic code values", function () {
+      it("number", async function () {
+        await runSuccessfulAsserts({
+          matchers,
+          method: "succeeds",
+          successfulAssert: (x) => expect(x).not.to.be.revertedWithPanic(1),
+        });
+      });
+
+      it("bigint", async function () {
+        await runSuccessfulAsserts({
+          matchers,
+          method: "succeeds",
+          successfulAssert: (x) =>
+            expect(x).not.to.be.revertedWithPanic(BigInt(1)),
+        });
+      });
+
+      it("string", async function () {
+        await runSuccessfulAsserts({
+          matchers,
+          method: "succeeds",
+          successfulAssert: (x) => expect(x).not.to.be.revertedWithPanic("1"),
+        });
+      });
+
+      it("ethers's BigNumber", async function () {
+        await runSuccessfulAsserts({
+          matchers,
+          method: "succeeds",
+          successfulAssert: (x) =>
+            expect(x).not.to.be.revertedWithPanic(BigNumber.from(1)),
+        });
+      });
+    });
+
     describe("invalid values", function () {
       it("non-errors as subject", async function () {
         await expect(
@@ -249,12 +286,9 @@ describe("INTEGRATION: Reverted with panic", function () {
       it("non-number as expectation", async function () {
         const { hash } = await mineSuccessfulTransaction(this.hre);
 
-        expect(() =>
-          // @ts-expect-error
-          expect(hash).to.be.revertedWithPanic("10")
-        ).to.throw(
+        expect(() => expect(hash).to.be.revertedWithPanic("invalid")).to.throw(
           TypeError,
-          "Expected a number or BigNumber as the expected panic code"
+          "Expected a number-like value as the expected panic code, but got 'invalid'"
         );
       });
 

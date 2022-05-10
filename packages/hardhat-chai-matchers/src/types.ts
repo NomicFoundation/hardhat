@@ -8,7 +8,7 @@ declare namespace Chai {
     reverted: AsyncAssertion;
     revertedWith(reason: string): AsyncAssertion;
     revertedWithoutReasonString(): AsyncAssertion;
-    revertedWithPanic(code?: number): AsyncAssertion;
+    revertedWithPanic(code?: any): AsyncAssertion;
     revertedWithCustomError(
       contract: { interface: any },
       customErrorName: string
