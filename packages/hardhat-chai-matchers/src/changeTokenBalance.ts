@@ -28,9 +28,9 @@ export function supportChangeTokenBalance(Assertion: Chai.AssertionStatic) {
       ]).then(([actualChange, address, tokenDescription]) => {
         this.assert(
           actualChange.eq(BigNumber.from(balanceChange)),
-          `Expected "${address}" to change its balance of ${tokenDescription} by ${balanceChange}, ` +
-            `but it has changed by ${actualChange}`,
-          `Expected "${address}" to not change its balance of ${tokenDescription} by ${balanceChange}, but it did`,
+          `Expected "${address}" to change its balance of ${tokenDescription} by ${balanceChange.toString()}, ` +
+            `but it has changed by ${actualChange.toString()}`,
+          `Expected "${address}" to not change its balance of ${tokenDescription} by ${balanceChange.toString()}, but it did`,
           balanceChange,
           actualChange
         );
@@ -75,9 +75,16 @@ export function supportChangeTokenBalance(Assertion: Chai.AssertionStatic) {
           actualChanges.every((change, ind) =>
             change.eq(BigNumber.from(balanceChanges[ind]))
           ),
-          `Expected ${addresses} to change their balance of ${tokenDescription} by ${balanceChanges}, ` +
-            `but it has changed by ${actualChanges}`,
-          `Expected ${addresses} to not change their balance of ${tokenDescription} by ${balanceChanges}, but they did`,
+          `Expected ${
+            addresses as any
+          } to change their balance of ${tokenDescription} by ${
+            balanceChanges as any
+          }, ` + `but it has changed by ${actualChanges as any}`,
+          `Expected ${
+            addresses as any
+          } to not change their balance of ${tokenDescription} by ${
+            balanceChanges as any
+          }, but they did`,
           balanceChanges.map((balanceChange) => balanceChange.toString()),
           actualChanges.map((actualChange) => actualChange.toString())
         );
