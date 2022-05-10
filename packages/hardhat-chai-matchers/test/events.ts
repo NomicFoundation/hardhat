@@ -283,7 +283,7 @@ describe(".to.emit (contract events)", () => {
         it("Should succeed when expectations are met with BigNumber", async function () {
           await expect(contract.emitUintArray(1, 2))
             .to.emit(contract, "WithUintArray")
-            .withArgs([BigNumber.from(1), BigNumber.from(2)]);
+            .withArgs([BigInt(1), BigNumber.from(2)]);
         });
 
         it("Should fail when expectations are not met", async function () {
