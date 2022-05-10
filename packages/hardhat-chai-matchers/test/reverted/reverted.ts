@@ -151,21 +151,21 @@ describe("INTEGRATION: Reverted", function () {
       });
 
       it("promise of a TxResponse of a successful transaction", async function () {
-        const tx = await mineSuccessfulTransaction(this.hre);
+        const txPromise = mineSuccessfulTransaction(this.hre);
 
         await expectAssertionError(
-          expect(Promise.resolve(tx)).to.be.reverted,
+          expect(txPromise).to.be.reverted,
           "Expected transaction to be reverted"
         );
-        await expect(Promise.resolve(tx)).to.not.be.reverted;
+        await expect(txPromise).to.not.be.reverted;
       });
 
       it("promise of a TxResponse of a reverted transaction", async function () {
-        const tx = await mineRevertedTransaction(this.hre);
+        const txPromise = mineRevertedTransaction(this.hre);
 
-        await expect(Promise.resolve(tx)).to.be.reverted;
+        await expect(txPromise).to.be.reverted;
         await expectAssertionError(
-          expect(Promise.resolve(tx)).to.not.be.reverted,
+          expect(txPromise).to.not.be.reverted,
           "Expected transaction NOT to be reverted"
         );
       });
@@ -198,24 +198,24 @@ describe("INTEGRATION: Reverted", function () {
 
       it("promise of a TxReceipt of a successful transaction", async function () {
         const tx = await mineSuccessfulTransaction(this.hre);
-        const receipt = await tx.wait();
+        const receiptPromise = tx.wait();
 
         await expectAssertionError(
-          expect(Promise.resolve(receipt)).to.be.reverted,
+          expect(receiptPromise).to.be.reverted,
           "Expected transaction to be reverted"
         );
-        await expect(Promise.resolve(receipt)).to.not.be.reverted;
+        await expect(receiptPromise).to.not.be.reverted;
       });
 
       it("promise of a TxReceipt of a reverted transaction", async function () {
         const tx = await mineRevertedTransaction(this.hre);
-        const receipt = await this.hre.ethers.provider.waitForTransaction(
+        const receiptPromise = this.hre.ethers.provider.waitForTransaction(
           tx.hash
         ); // tx.wait rejects, so we use provider.waitForTransaction
 
-        await expect(Promise.resolve(receipt)).to.be.reverted;
+        await expect(receiptPromise).to.be.reverted;
         await expectAssertionError(
-          expect(Promise.resolve(receipt)).to.not.be.reverted,
+          expect(receiptPromise).to.not.be.reverted,
           "Expected transaction NOT to be reverted"
         );
       });
