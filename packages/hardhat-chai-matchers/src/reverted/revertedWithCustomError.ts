@@ -1,4 +1,3 @@
-import { AssertionError } from "chai";
 import { decodeReturnData, getReturnDataFromError } from "./utils";
 
 const CUSTOM_ERROR_ASSERTION_CALLED = "customErrorAssertionCalled";
@@ -41,8 +40,8 @@ export function supportRevertedWithCustomError(
 
       // check that interface contains the given custom error
       if (expectedCustomError === undefined) {
-        throw new AssertionError(
-          `The given contract doesn't have a custom error named ${expectedCustomErrorName}`
+        throw new Error(
+          `The given contract doesn't have a custom error named '${expectedCustomErrorName}'`
         );
       }
 

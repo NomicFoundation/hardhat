@@ -320,6 +320,17 @@ describe("INTEGRATION: Reverted with custom error", function () {
         );
       });
 
+      it("the contract doesn't have a custom error with that name", async function () {
+        expect(() =>
+          expect(
+            matchers.revertWithSomeCustomError()
+          ).to.be.revertedWithCustomError(matchers, "SomeCustmError")
+        ).to.throw(
+          Error,
+          "The given contract doesn't have a custom error named 'SomeCustmError'"
+        );
+      });
+
       it("errors that are not related to a reverted transaction", async function () {
         // use an address that almost surely doesn't have balance
         const randomPrivateKey =
