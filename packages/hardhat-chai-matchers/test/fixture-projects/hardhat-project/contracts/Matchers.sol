@@ -5,7 +5,7 @@ pragma solidity ^0.8.0;
 contract Matchers {
   uint x;
 
-  AnotherContract anotherContract;
+  AnotherMatchersContract anotherContract;
 
   struct Pair { uint a; uint b; }
 
@@ -16,7 +16,7 @@ contract Matchers {
   error CustomErrorWithPair(Pair);
 
   constructor () {
-    anotherContract = new AnotherContract();
+    anotherContract = new AnotherMatchersContract();
   }
 
   function succeeds() public {
@@ -109,7 +109,7 @@ contract Matchers {
   }
 }
 
-contract AnotherContract {
+contract AnotherMatchersContract {
   uint x;
 
   error YetAnotherCustomError();
