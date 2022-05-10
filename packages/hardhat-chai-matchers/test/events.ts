@@ -635,6 +635,17 @@ describe(".to.emit (contract events)", () => {
             'Expected event "WithUintArg" NOT to be emitted, but it was'
           );
         });
+
+        it("Should fail when the expected event is emitted but not by the contract that was passed", async function () {
+          await expect(
+            expect(contract.emitNestedUintFromAnotherContract(1))
+              .to.emit(contract, "WithUintArg")
+              .withArgs(1)
+          ).to.be.eventually.rejectedWith(
+            AssertionError,
+            'Expected event "WithUintArg" to be emitted, but it wasn\'t'
+          );
+        });
       });
     });
 
