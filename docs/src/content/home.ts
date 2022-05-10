@@ -11,6 +11,7 @@ import ExtensibleImageDesktop from "../assets/feature-cards/Desktop/ExtensibleIm
 import FastIterationImageMobile from "../assets/feature-cards/Mobile/FastIterationImage.svg";
 import FastIterationImageDesktop from "../assets/feature-cards/Desktop/FastIterationImage.png";
 import { Tools } from "../components/ui/types";
+import reviewsBlock from "../assets/homepage-assets/reviews-block";
 
 const whyHardhatContent = {
   title: "Why hardhat",
@@ -121,7 +122,7 @@ const reviewsBlockContent = [
   {
     name: "Victor Tran",
     position: "CTO  at  Kyber",
-    personImage: "/images/victor.png",
+    personImage: reviewsBlock.victor,
     companyImage: "/images/reveiws-logo/kyber.svg",
     alt: "Kyber logo",
     comment:
@@ -130,7 +131,7 @@ const reviewsBlockContent = [
   {
     name: "Justin J. Moses",
     position: "CTO  at  SYNTHETIX",
-    personImage: "/images/justin.jpg",
+    personImage: reviewsBlock.justin,
     companyImage: "/images/reveiws-logo/synthetix.svg",
     alt: "Synthetix logo",
     comment:
@@ -139,7 +140,7 @@ const reviewsBlockContent = [
   {
     name: "Brett Sun",
     position: "CTO  at  Aragon One",
-    personImage: "/images/brett.jpg",
+    personImage: reviewsBlock.brett,
     companyImage: "/images/reveiws-logo/aone.svg",
     alt: "Aragone One logo",
     comment:
@@ -148,7 +149,7 @@ const reviewsBlockContent = [
   {
     name: "Rahul Sethuram",
     position: "CTO  at  Connext Network",
-    personImage: "/images/rahul.png",
+    personImage: reviewsBlock.rahul,
     companyImage: "/images/reveiws-logo/connext.svg",
     alt: "Connext logo",
     comment:
@@ -157,7 +158,7 @@ const reviewsBlockContent = [
   {
     name: "Esteban Ordano",
     position: "CTO  at  Decentraland",
-    personImage: "/images/esteban.png",
+    personImage: reviewsBlock.esteban,
     companyImage: "/images/reveiws-logo/decentraland.svg",
     alt: "Decentraland logo",
     comment:

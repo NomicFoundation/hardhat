@@ -1,7 +1,8 @@
 import React, { useMemo } from "react";
 import { styled } from "linaria/react";
+import Image from "next/image";
 
-import TrustedTeamsLogos from "./TrustedTeamsBlock.model";
+import TrustedTeamsLogos from "../../assets/trustedTeamsLogos/logos";
 
 import { media, tm } from "../../themes";
 import Section from "../Section";
@@ -85,11 +86,10 @@ const LogosSubrowContainer = styled.div`
     margin-bottom: 32px;
   }
 
-  & img {
+  .image-wrapper {
     width: 100%;
     margin: 0 20px;
-    max-height: 67px;
-    height: 41px;
+    height: 67px;
 
     ${media.md} {
       height: initial;
@@ -117,7 +117,11 @@ const createLogosRows = (rowsAmount: number) => {
       i * logosInRowAmount,
       (i + 1) * logosInRowAmount
       // eslint-disable-next-line
-    ).map((logo) => <img src={logo.img} alt={logo.alt} key={logo.alt} />);
+    ).map((logo) => (
+      <div className="image-wrapper" key={logo.alt}>
+        <Image src={logo.img} alt={logo.alt} title={logo.alt} />
+      </div>
+    ));
 
     logosRows.push(
       <LogosRowContainer key={i + rowsAmount}>

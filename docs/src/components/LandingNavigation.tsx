@@ -1,8 +1,10 @@
 import React, { FC, useEffect, useState } from "react";
 import { styled } from "linaria/react";
 import Link from "next/link";
+import Image from "next/image";
+
 import { media, tm } from "../themes";
-import HardhatLogo from "../assets/hardhat-logo";
+import logo from "../assets/hardhat-logo.svg";
 import Hamburger from "./ui/Hamburger";
 import MobileMenu from "./ui/MobileMenu";
 import DesktopMenu from "./ui/DesktopMenu";
@@ -70,8 +72,8 @@ const LandingNavigation: FC = () => {
     <Navigation>
       <ControlsContainer>
         <Link href="/" passHref>
-          <LogoContainer>
-            <HardhatLogo />
+          <LogoContainer aria-label="home page">
+            <Image src={logo} alt="logo" />
           </LogoContainer>
         </Link>
         <Hamburger

@@ -1,13 +1,14 @@
 import React from "react";
 import { styled } from "linaria/react";
+import Image from "next/image";
+
 import { breakpoints, media, tm } from "../../themes";
 import useWindowSize from "../../hooks/useWindowSize";
-import Images from "../../../public/images";
 import CTA from "../ui/CTA";
 import Section from "../Section";
 import { CTAType } from "../ui/types";
-
-const { TextureBrick, TextureBrickL } = Images;
+import bl from "../../assets/get-started/bl.svg";
+import br from "../../assets/get-started/br.svg";
 
 interface Props {
   content: {
@@ -126,11 +127,11 @@ const Background = () => {
     <StyledBackground>
       {isDesktop && (
         <TextureBrickWrapper className="left">
-          <TextureBrickL />
+          <Image src={bl} alt="decorations" />
         </TextureBrickWrapper>
       )}
       <TextureBrickWrapper>
-        <TextureBrick />
+        <Image src={br} alt="decorations" />
       </TextureBrickWrapper>
       <StyledTopGradient />
       <StyledBottomGradient />
