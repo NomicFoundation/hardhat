@@ -77,7 +77,7 @@ export async function getBalanceChanges(
         | Promise<providers.TransactionResponse>
         | providers.TransactionResponse),
   accounts: Array<Account | string>,
-  options: BalanceChangeOptions
+  options?: BalanceChangeOptions
 ) {
   let txResponse: providers.TransactionResponse;
 
@@ -103,7 +103,7 @@ export async function getBalanceChanges(
 async function getTxFees(
   accounts: Array<Account | string>,
   txResponse: providers.TransactionResponse,
-  options: BalanceChangeOptions
+  options?: BalanceChangeOptions
 ) {
   return Promise.all(
     accounts.map(async (account) => {
