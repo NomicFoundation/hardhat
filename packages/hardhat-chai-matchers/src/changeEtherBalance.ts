@@ -19,9 +19,9 @@ export function supportChangeEtherBalance(Assertion: Chai.AssertionStatic) {
       ]).then(([actualChange, address]) => {
         this.assert(
           actualChange.eq(BigNumber.from(balanceChange)),
-          `Expected "${address}" to change balance by ${balanceChange} wei, ` +
-            `but it has changed by ${actualChange} wei`,
-          `Expected "${address}" to not change balance by ${balanceChange} wei, but it did`,
+          `Expected "${address}" to change balance by ${balanceChange.toString()} wei, ` +
+            `but it has changed by ${actualChange.toString()} wei`,
+          `Expected "${address}" to not change balance by ${balanceChange.toString()} wei, but it did`,
           balanceChange,
           actualChange
         );

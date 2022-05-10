@@ -30,7 +30,11 @@ export function supportChangeEtherBalances(Assertion: Chai.AssertionStatic) {
             actualChanges.forEach((change, i) => {
               if (!change.eq(BigNumber.from(balanceChanges[i]))) {
                 lines.push(
-                  `Expected ${accountAddresses[i]} (address #${i} in the list) to change balance by ${balanceChanges[i]} wei, but it has changed by ${change} wei`
+                  `Expected ${
+                    accountAddresses[i]
+                  } (address #${i} in the list) to change balance by ${balanceChanges[
+                    i
+                  ].toString()} wei, but it has changed by ${change.toString()} wei`
                 );
               }
             });
@@ -41,7 +45,11 @@ export function supportChangeEtherBalances(Assertion: Chai.AssertionStatic) {
             actualChanges.forEach((change, i) => {
               if (change.eq(BigNumber.from(balanceChanges[i]))) {
                 lines.push(
-                  `Expected ${accountAddresses[i]} (address #${i} in the list) not to change balance by ${balanceChanges[i]} wei`
+                  `Expected ${
+                    accountAddresses[i]
+                  } (address #${i} in the list) not to change balance by ${balanceChanges[
+                    i
+                  ].toString()} wei`
                 );
               }
             });
