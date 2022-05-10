@@ -229,7 +229,7 @@ describe("INTEGRATION: changeEtherBalance matcher", function () {
           await expect(() =>
             sender.sendTransaction({
               to: receiver.address,
-              maxFeePerGas: 1,
+              maxFeePerGas: 2,
               maxPriorityFeePerGas: 1,
               value: 200,
             })
@@ -240,7 +240,7 @@ describe("INTEGRATION: changeEtherBalance matcher", function () {
           await expect(() =>
             sender.sendTransaction({
               to: receiver.address,
-              maxFeePerGas: 1,
+              maxFeePerGas: 2,
               maxPriorityFeePerGas: 1,
               value: 200,
             })
@@ -251,7 +251,7 @@ describe("INTEGRATION: changeEtherBalance matcher", function () {
           await expect(() =>
             sender.sendTransaction({
               to: receiver.address,
-              maxFeePerGas: 1,
+              maxFeePerGas: 2,
               maxPriorityFeePerGas: 1,
               value: 200,
             })
@@ -264,7 +264,7 @@ describe("INTEGRATION: changeEtherBalance matcher", function () {
           await expect(() =>
             sender.sendTransaction({
               to: receiver.address,
-              maxFeePerGas: 1,
+              maxFeePerGas: 2,
               maxPriorityFeePerGas: 1,
               value: 200,
             })
@@ -275,7 +275,7 @@ describe("INTEGRATION: changeEtherBalance matcher", function () {
           await expect(() =>
             sender.sendTransaction({
               to: receiver.address,
-              maxFeePerGas: 1,
+              maxFeePerGas: 2,
               maxPriorityFeePerGas: 1,
               value: 200,
             })
@@ -286,7 +286,7 @@ describe("INTEGRATION: changeEtherBalance matcher", function () {
           await expect(() =>
             sender.sendTransaction({
               to: receiver.address,
-              maxFeePerGas: 1,
+              maxFeePerGas: 2,
               maxPriorityFeePerGas: 1,
               value: 200,
             })
@@ -297,7 +297,7 @@ describe("INTEGRATION: changeEtherBalance matcher", function () {
           await expect(() =>
             sender.sendTransaction({
               to: receiver.address,
-              maxFeePerGas: 1,
+              maxFeePerGas: 2,
               maxPriorityFeePerGas: 1,
               value: 200,
             })
@@ -309,7 +309,7 @@ describe("INTEGRATION: changeEtherBalance matcher", function () {
             expect(() =>
               sender.sendTransaction({
                 to: receiver.address,
-                maxFeePerGas: 1,
+                maxFeePerGas: 2,
                 maxPriorityFeePerGas: 1,
                 value: 200,
               })
@@ -329,7 +329,7 @@ describe("INTEGRATION: changeEtherBalance matcher", function () {
             expect(() =>
               sender.sendTransaction({
                 to: receiver.address,
-                maxFeePerGas: 1,
+                maxFeePerGas: 2,
                 maxPriorityFeePerGas: 1,
                 value: 200,
               })
@@ -345,7 +345,7 @@ describe("INTEGRATION: changeEtherBalance matcher", function () {
             expect(() =>
               sender.sendTransaction({
                 to: receiver.address,
-                maxFeePerGas: 1,
+                maxFeePerGas: 2,
                 maxPriorityFeePerGas: 1,
                 value: 200,
               })
@@ -362,7 +362,7 @@ describe("INTEGRATION: changeEtherBalance matcher", function () {
           await expect(async () =>
             sender.sendTransaction({
               to: contract.address,
-              maxFeePerGas: 1,
+              maxFeePerGas: 2,
               maxPriorityFeePerGas: 1,
               value: 200,
             })
@@ -372,7 +372,7 @@ describe("INTEGRATION: changeEtherBalance matcher", function () {
         it("Should take into account transaction fee", async function () {
           const tx = {
             to: contract.address,
-            maxFeePerGas: 1,
+            maxFeePerGas: 2,
             maxPriorityFeePerGas: 1,
             value: 200,
           };
@@ -392,7 +392,7 @@ describe("INTEGRATION: changeEtherBalance matcher", function () {
           await expect(async () =>
             contract.returnHalf({
               value: 200,
-              maxFeePerGas: 1,
+              maxFeePerGas: 2,
               maxPriorityFeePerGas: 1,
             })
           ).to.changeEtherBalance(sender, -100);
