@@ -1,4 +1,6 @@
 import { AssertionError, expect } from "chai";
+import { ProviderError } from "hardhat/internal/core/providers/errors";
+
 import {
   runSuccessfulAsserts,
   runFailedAsserts,
@@ -165,6 +167,7 @@ describe("INTEGRATION: Reverted without reason string", function () {
             })
           ).to.not.be.reverted
         ).to.be.eventually.rejectedWith(
+          ProviderError,
           "sender doesn't have enough funds to send tx"
         );
       });
