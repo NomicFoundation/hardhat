@@ -50,8 +50,7 @@ contract Matchers {
     assert(false);
   }
 
-  function panicAssertView() public {
-    x++;
+  function panicAssertView() public pure {
     assert(false);
   }
 
