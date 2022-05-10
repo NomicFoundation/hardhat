@@ -10,7 +10,7 @@ export function supportChangeEtherBalance(Assertion: Chai.AssertionStatic) {
       this: any,
       account: Account | string,
       balanceChange: BigNumberish,
-      options: BalanceChangeOptions
+      options?: BalanceChangeOptions
     ) {
       const subject = this._obj;
       const derivedPromise = Promise.all([
