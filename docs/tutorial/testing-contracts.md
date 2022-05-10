@@ -89,7 +89,7 @@ To do this we're using [Chai](https://www.chaijs.com/) which is an assertions li
 
 If you need to send a transaction from an account (or `Signer` in ethers.js speak) other than the default one to test your code, you can use the `connect()` method in your ethers.js `Contract` to connect it to a different account. Like this:
 
-```js{18}
+```js{16}
 const { expect } = require("chai");
 
 describe("Transactions", function() {
