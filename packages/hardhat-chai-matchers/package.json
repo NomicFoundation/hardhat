@@ -36,7 +36,6 @@
     "README.md"
   ],
   "devDependencies": {
-    "@ethereum-waffle/provider": "^3.4.4",
     "@nomiclabs/hardhat-ethers": "^2.0.0",
     "@types/bn.js": "^5.1.0",
     "@types/chai": "^4.2.0",
