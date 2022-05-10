@@ -5,6 +5,8 @@ import { supportReverted } from "./reverted";
 import { supportHexEqual } from "./hexEqual";
 import { supportProperAddress } from "./properAddress";
 import { supportProperPrivateKey } from "./properPrivateKey";
+import { supportChangeEtherBalance } from "./changeEtherBalance";
+import { supportChangeEtherBalances } from "./changeEtherBalances";
 
 export function hardhatChaiMatchers(
   chai: Chai.ChaiStatic,
@@ -16,4 +18,6 @@ export function hardhatChaiMatchers(
   supportHexEqual(chai.Assertion);
   supportProperAddress(chai.Assertion);
   supportProperPrivateKey(chai.Assertion);
+  supportChangeEtherBalance(chai.Assertion);
+  supportChangeEtherBalances(chai.Assertion);
 }
