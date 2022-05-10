@@ -4,7 +4,7 @@ import { useRouter } from "next/router";
 import { MDXRemote, MDXRemoteSerializeResult } from "next-mdx-remote";
 
 import SEO from "./SEO";
-import Navigation from "./Navigation";
+import DocsNavigation from "./DocsNavigation";
 import Banner, { DefaultBanner } from "./ui/Banner";
 import {
   tm,
@@ -275,7 +275,7 @@ const DocumentationLayout = ({
             <DefaultBanner content={content} />
           )}
         />
-        <Navigation
+        <DocsNavigation
           isSidebarOpen={isSidebarOpen}
           onSidebarOpen={setIsSidebarOpen}
         />

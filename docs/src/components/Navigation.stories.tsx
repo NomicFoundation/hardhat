@@ -3,7 +3,7 @@ import { menuItemsList, socialsItems } from "../config";
 import DocumentationSidebarStructure from "./Navigation.mocks.json";
 import MobileSidebarMenu from "./MobileSidebarMenu";
 
-import DocumentationNavigation from "./Navigation";
+import DocumentationNavigation from "./DocsNavigation";
 import Sidebar from "./Sidebar";
 import { IDocumentationSidebarStructure } from "./types";
 

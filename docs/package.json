@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@callstack/react-theme-provider": "^3.0.7",
+    "@docsearch/react": "3",
     "@mapbox/rehype-prism": "^0.8.0",
     "glob": "^8.0.1",
     "gray-matter": "^4.0.3",

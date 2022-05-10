@@ -3,7 +3,7 @@ import { styled } from "linaria/react";
 import { useRouter } from "next/router";
 
 import SEO from "./SEO";
-import Navigation from "./Navigation";
+import DocsNavigation from "./DocsNavigation";
 import Banner, { DefaultBanner } from "./ui/Banner";
 import {
   tm,
@@ -16,12 +16,7 @@ import {
 import { DefaultBannerProps } from "./ui/types";
 import { IDocumentationSidebarStructure, ISeo } from "./types";
 import { bannerContent, menuItemsList, socialsItems } from "../config";
-import {
-  MobileSidebarMenuMask,
-  SidebarContainer,
-  SidebarMask,
-} from "./DocumentationLayout";
-import Sidebar from "./Sidebar";
+import { MobileSidebarMenuMask, SidebarContainer } from "./DocumentationLayout";
 import MobileSidebarMenu from "./MobileSidebarMenu";
 
 const Container = styled.div`
@@ -150,7 +145,7 @@ const PluginsLayout = ({ children, seo, sidebarLayout }: Props) => {
             <DefaultBanner content={content} />
           )}
         />
-        <Navigation
+        <DocsNavigation
           isSidebarOpen={isSidebarOpen}
           onSidebarOpen={setIsSidebarOpen}
         />
