@@ -70,15 +70,12 @@ describe(".to.emit (contract events)", () => {
     });
 
     describe(".withArgs", function () {
-      it.skip("Should fail when used with .not.", async function () {
-        await expect(
+      it("Should fail when used with .not.", async function () {
+        expect(() =>
           expect(contract.emitUint(1))
             .not.to.emit(contract, "WithUintArg")
             .withArgs(1)
-        ).to.be.eventually.rejectedWith(
-          AssertionError,
-          "Do not combine .not. with .withArgs()"
-        );
+        ).to.throw(Error, "Do not combine .not. with .withArgs()");
       });
 
       describe("with a uint argument", function () {

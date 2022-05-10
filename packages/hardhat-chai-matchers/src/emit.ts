@@ -136,6 +136,9 @@ export function supportEmit(Assertion: Chai.AssertionStatic) {
   };
 
   Assertion.addMethod("withArgs", function (this: any, ...expectedArgs: any[]) {
+    if (this.__flags.negate) {
+      throw new Error("Do not combine .not. with .withArgs()");
+    }
     const derivedPromise = this.promise.then(() => {
       tryAssertArgsArraysEqual(this, expectedArgs, this.logs);
     });
