@@ -605,7 +605,7 @@ describe(".to.emit (contract events)", () => {
             .withArgs(1);
         });
 
-        it("Should fail when the expected event is emitted", async function () {
+        it("Should fail when the expected event is not emitted", async function () {
           await expect(
             expect(contract.emitNestedUintFromSameContract(1)).to.emit(
               contract,
