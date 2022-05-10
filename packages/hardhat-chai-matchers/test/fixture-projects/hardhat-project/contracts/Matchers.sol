@@ -36,12 +36,12 @@ contract Matchers {
     require(false, reason);
   }
 
-  function revertsWithoutReasonString() public {
+  function revertsWithoutReason() public {
     x++;
     require(false);
   }
 
-  function revertsWithoutReasonStringView() public pure {
+  function revertsWithoutReasonView() public pure {
     require(false);
   }
 

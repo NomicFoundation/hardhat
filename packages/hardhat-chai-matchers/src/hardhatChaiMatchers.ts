@@ -9,7 +9,7 @@ import { supportReverted } from "./reverted/reverted";
 import { supportRevertedWith } from "./reverted/revertedWith";
 import { supportRevertedWithCustomError } from "./reverted/revertedWithCustomError";
 import { supportRevertedWithPanic } from "./reverted/revertedWithPanic";
-import { supportRevertedWithoutReasonString } from "./reverted/revertedWithoutReasonString";
+import { supportRevertedWithoutReason } from "./reverted/revertedWithoutReason";
 
 export function hardhatChaiMatchers(
   chai: Chai.ChaiStatic,
@@ -26,5 +26,5 @@ export function hardhatChaiMatchers(
   supportRevertedWith(chai.Assertion);
   supportRevertedWithCustomError(chai.Assertion, utils);
   supportRevertedWithPanic(chai.Assertion);
-  supportRevertedWithoutReasonString(chai.Assertion);
+  supportRevertedWithoutReason(chai.Assertion);
 }

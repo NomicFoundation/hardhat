@@ -51,7 +51,7 @@ describe("INTEGRATION: Reverted", function () {
     const mineRevertedTransaction = async (hre: any) => {
       await hre.network.provider.send("evm_setAutomine", [false]);
 
-      const tx = await matchers.revertsWithoutReasonString({
+      const tx = await matchers.revertsWithoutReason({
         gasLimit: 1_000_000,
       });
 
@@ -244,11 +244,11 @@ describe("INTEGRATION: Reverted", function () {
       });
     });
 
-    describe("calling a method that reverts without a reason string", function () {
+    describe("calling a method that reverts without a reason", function () {
       it("successful asserts", async function () {
         await runSuccessfulAsserts({
           matchers,
-          method: "revertsWithoutReasonString",
+          method: "revertsWithoutReason",
           args: [],
           successfulAssert: (x) => expect(x).to.be.reverted,
         });
@@ -257,7 +257,7 @@ describe("INTEGRATION: Reverted", function () {
       it("failed asserts", async function () {
         await runFailedAsserts({
           matchers,
-          method: "revertsWithoutReasonString",
+          method: "revertsWithoutReason",
           args: [],
           failedAssert: (x) => expect(x).not.to.be.reverted,
           failedAssertReason: "Expected transaction NOT to be reverted",
@@ -351,7 +351,7 @@ describe("INTEGRATION: Reverted", function () {
         // revert
         await expect(
           expect(
-            matchers.connect(signer).revertsWithoutReasonString({
+            matchers.connect(signer).revertsWithoutReason({
               gasLimit: 1_000_000,
             })
           ).to.not.be.reverted

@@ -47,7 +47,7 @@ export function supportRevertedWithPanic(Assertion: Chai.AssertionStatic) {
         if (decodedReturnData.kind === "Empty") {
           this.assert(
             false,
-            `Expected transaction to be reverted with ${formattedPanicCode}, but it reverted without a reason string`
+            `Expected transaction to be reverted with ${formattedPanicCode}, but it reverted without a reason`
           );
         } else if (decodedReturnData.kind === "Error") {
           this.assert(

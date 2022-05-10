@@ -73,11 +73,11 @@ describe("INTEGRATION: Reverted with custom error", function () {
       });
     });
 
-    describe("calling a method that reverts without a reason string", function () {
+    describe("calling a method that reverts without a reason", function () {
       it("successful asserts", async function () {
         await runSuccessfulAsserts({
           matchers,
-          method: "revertsWithoutReasonString",
+          method: "revertsWithoutReason",
           successfulAssert: (x) =>
             expect(x).to.not.be.revertedWithCustomError(
               matchers,
@@ -89,14 +89,14 @@ describe("INTEGRATION: Reverted with custom error", function () {
       it("failed asserts", async function () {
         await runFailedAsserts({
           matchers,
-          method: "revertsWithoutReasonString",
+          method: "revertsWithoutReason",
           failedAssert: (x) =>
             expect(x).to.be.revertedWithCustomError(
               matchers,
               "SomeCustomError"
             ),
           failedAssertReason:
-            "Expected transaction to be reverted with custom error 'SomeCustomError', but it reverted without a reason string",
+            "Expected transaction to be reverted with custom error 'SomeCustomError', but it reverted without a reason",
         });
       });
     });
@@ -347,7 +347,7 @@ describe("INTEGRATION: Reverted with custom error", function () {
         // revert
         await expect(
           expect(
-            matchers.connect(signer).revertsWithoutReasonString({
+            matchers.connect(signer).revertsWithoutReason({
               gasLimit: 1_000_000,
             })
           ).to.not.be.revertedWithCustomError(matchers, "SomeCustomError")
