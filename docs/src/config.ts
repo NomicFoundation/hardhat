@@ -19,6 +19,7 @@ export const bannerContent = {
 };
 
 export const DOCS_PATH = path.join(process.cwd(), "src/content/");
+export const PLUGINS_PATH = path.join(process.cwd(), "src/content/plugins");
 export const TEMP_PATH = path.join(process.cwd(), "temp/");
 // TODO: change this to "https://github.com/NomicFoundation/hardhat/edit/master/docs/src/content/" before publishing to production
 export const REPO_URL =

@@ -91,7 +91,6 @@ const StyledH2 = styled.h2`
 `;
 
 const StyledH3 = styled.h3`
-  font-size: 1.35rem;
   margin-top: 32px;
   font-weight: 600;
   font-size: 21.6px;

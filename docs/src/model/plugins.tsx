@@ -1,7 +1,8 @@
 import path from "path";
-
+import { request } from "undici";
 import { getSidebarConfig, readFileContent } from "./markdown";
-import { OrderType, SectionType, TocItem, TocSubitem } from "./types";
+import { IPlugin, OrderType, SectionType, TocItem, TocSubitem } from "./types";
+import plugins from "../content/plugins/plugins";
 
 /**
  * NOTE: here we assumes that "Plugins" menu items only belongs to ${PLUGINS_LAYOUT} layout.
@@ -77,3 +78,71 @@ export const getPluginMDSource = (pluginSlug: string) => {
   const source = readFileContent(readmeFilename).toString();
   return source;
 };
+
+export const sortPluginsByDownloads = (downloadsD: {
+  [key: string]: number;
+}) => {
+  try {
+    plugins.officialPlugins.sort(
+      (p1: IPlugin, p2: IPlugin) => downloadsD[p2.name] - downloadsD[p1.name]
+    );
+
+    plugins.communityPlugins.sort(
+      (p1: IPlugin, p2: IPlugin) => downloadsD[p2.name] - downloadsD[p1.name]
+    );
+  } catch {
+    // we just don't sort here
+  }
+};
+
+const getLastMonthDownloads = async (npmPackage: string): Promise<number> => {
+  const res = await request(
+    `https://api.npmjs.org/downloads/point/last-month/${npmPackage}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+    }
+  );
+
+  if (res.statusCode === 404) {
+    return 0;
+  }
+
+  const json = (await res.body.json()) as { downloads: number };
+
+  return json.downloads;
+};
+
+export const generatePluginsDownloads = async (pluginsD: typeof plugins) => {
+  const downloads: Array<{ [plugin: string]: number }> = await Promise.all(
+    [...pluginsD.officialPlugins, ...pluginsD.communityPlugins].map(
+      async (p: any) => ({
+        [p.name]: await getLastMonthDownloads(p.npmPackage ?? p.name),
+      })
+    )
+  );
+
+  downloads.sort((p1, p2) => Object.values(p2)[0] - Object.values(p1)[0]);
+
+  const result = Object.assign({}, ...downloads);
+  return result;
+};
+
+export const addNormalizedName = (pluginsList: IPlugin[]) => {
+  return pluginsList.map((p) => ({
+    ...p,
+    normalizedName: p.name.split("/").join("-").replace(/^@/, ""),
+  }));
+};
+
+export const getPlugins = async () => {
+  const generatedPluginsDownloads = await generatePluginsDownloads(plugins);
+  sortPluginsByDownloads(generatedPluginsDownloads);
+  plugins.officialPlugins = addNormalizedName(plugins.officialPlugins);
+  return plugins;
+};
+
+export type PluginsList = typeof plugins;

@@ -29,6 +29,7 @@
     "remark-directive": "^2.0.1",
     "remark-gfm": "^3.0.1",
     "remark-unwrap-images": "^3.0.1",
+    "undici": "^5.1.1",
     "unist-util-visit": "^4.1.0"
   },
   "devDependencies": {

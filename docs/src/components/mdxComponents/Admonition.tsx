@@ -12,12 +12,13 @@ const StyledAdmonition = styled.div`
   background-color: ${tm(({ colors }) => colors.tipBackgroundColor)};
   border-left: 0.5rem solid ${tm(({ colors }) => colors.tipBorderColor)};
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 400;
   line-height: 1.7;
   letter-spacing: 2px;
   color: ${tm(({ colors }) => colors.neutral800)};
   & .title {
     font-size: 16px;
+    font-weight: 700;
   }
   &.warning {
     & .title {

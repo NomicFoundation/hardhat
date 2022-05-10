@@ -186,7 +186,7 @@ export const generateTitleFromContent = (content: string) => {
   return content
     .split(newLineDividerRegEx)
     .filter((line) => line.startsWith("#"))[0]
-    .replace(/[#]*/g, "")
+    ?.replace(/[#]*/g, "")
     .trim();
 };
 
@@ -243,7 +243,10 @@ export const prepareMdContent = async (
 export const getMDFiles = (): string[] =>
   glob
     .sync(`${DOCS_PATH}**/*.md`)
-    .filter((pathname) => /\.mdx?$/.test(pathname))
+    .filter(
+      (pathname) =>
+        /\.mdx?$/.test(pathname) && !pathname.includes("plugins/index.md")
+    )
     .map((pathname) => pathname.replace(DOCS_PATH, ""));
 
 export const getPathParamsByFile = (pathname: string): string[] => {

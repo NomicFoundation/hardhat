@@ -17,18 +17,6 @@ interface Props {
 const MobileSidebarContainer = styled.section`
   display: flex;
   flex-direction: column;
-  background-color: ${tm(({ colors }) => colors.neutral0)};
-  ${tmSelectors.hcDark} {
-    background-color: ${tmHCDark(({ colors }) => colors.neutral0)};
-  }
-  ${tmSelectors.dark} {
-    background-color: ${tmDark(({ colors }) => colors.neutral0)};
-  }
-  ${media.mqDark} {
-    ${tmSelectors.auto} {
-      background-color: ${tmDark(({ colors }) => colors.neutral0)};
-    }
-  }
 `;
 
 const MobileNavigationContainer = styled.ul`
