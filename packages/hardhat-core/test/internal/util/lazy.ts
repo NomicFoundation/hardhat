@@ -1,5 +1,6 @@
 import { assert } from "chai";
 
+import { inspect } from "util";
 import { ERRORS } from "../../../src/internal/core/errors-list";
 import { lazyFunction, lazyObject } from "../../../src/internal/util/lazy";
 import { expectHardhatError } from "../../helpers/errors";
@@ -202,6 +203,28 @@ describe("lazy module", () => {
       const obj = lazyObject(() => Object.create(null));
       expectHardhatError(() => obj.asd, ERRORS.GENERAL.UNSUPPORTED_OPERATION);
     });
+
+    it("should inspect up to the appropriate depth", () => {
+      const realObj = { b: 3, c: { d: { e: 4 } } };
+      const lazyObj = lazyObject(() => realObj);
+      const depth = 1;
+      assert.equal(inspect(realObj, { depth }), inspect(lazyObj, { depth }));
+    });
+
+    it("should support inspecting circular objects", () => {
+      class Foo {
+        public val: any;
+        constructor(baz: any) {
+          this.val = baz;
+        }
+      }
+      const myLazyObj: any = {};
+      myLazyObj.foo = lazyObject(() => new Foo(myLazyObj));
+      // The custom inspect will not pick up on the circularity,
+      // but it should at least stop at the default depth (2)
+      // instead of recursing infinitely.
+      assert.equal("{ foo: Foo { val: { foo: [Foo] } } }", inspect(myLazyObj));
+    });
   });
 });
 
@@ -225,5 +248,20 @@ describe("lazy import", () => {
     );
 
     assert.deepEqual(new lazyC(), { a: 1, b: 2 });
+  });
+
+  it("should inspect up to the appropriate depth", () => {
+    class RealClass {
+      public a: number;
+      public b: number;
+      constructor() {
+        this.a = 1;
+        this.b = 2;
+      }
+    }
+    (RealClass as any).dummyProperty = { b: 3, c: { d: { e: 4 } } };
+    const lazyC = lazyFunction(() => RealClass);
+    const depth = 1;
+    assert.equal(inspect(RealClass, { depth }), inspect(lazyC, { depth }));
   });
 });

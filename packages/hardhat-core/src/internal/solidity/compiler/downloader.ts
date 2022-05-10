@@ -178,7 +178,7 @@ export class CompilerDownloader {
   }
 
   public async getCompilerBuild(version: string): Promise<CompilerBuild> {
-    const platform = this._getCurrentPlarform();
+    const platform = this._getCurrentPlatform();
 
     if (await this._versionExists(version, platform)) {
       try {
@@ -191,7 +191,9 @@ export class CompilerDownloader {
     return this._getCompilerBuildByPlatform(version, CompilerPlatform.WASM);
   }
 
-  public async downloadCompilersList(platform: CompilerPlatform) {
+  public async downloadCompilersList(
+    platform: CompilerPlatform = this._getCurrentPlatform()
+  ) {
     try {
       await this._download(
         getCompilerListURL(platform),
@@ -295,7 +297,7 @@ export class CompilerDownloader {
     return fsExtra.pathExists(filePath);
   }
 
-  private _getCurrentPlarform(): CompilerPlatform {
+  private _getCurrentPlatform(): CompilerPlatform {
     if (this._forceSolcJs) {
       return CompilerPlatform.WASM;
     }

@@ -1,5 +1,6 @@
-import debug from "debug";
 import type { LoDashStatic } from "lodash";
+
+import debug from "debug";
 import semver from "semver";
 
 import { SolcConfig, SolidityConfig } from "../../types";
@@ -152,7 +153,9 @@ export async function createCompilationJobsFromConnectedComponent(
 
     if (isCompilationJobCreationError(compilationJobOrError)) {
       log(
-        `'${file.absolutePath}' couldn't be compiled. Reason: '${compilationJobOrError}'`
+        `'${file.absolutePath}' couldn't be compiled. Reason: '${
+          compilationJobOrError as any
+        }'`
       );
       errors.push(compilationJobOrError);
       continue;

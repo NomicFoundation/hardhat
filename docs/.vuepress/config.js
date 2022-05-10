@@ -9,7 +9,7 @@ const officialPlugins = plugins.officialPlugins.map((p) => [
 
 module.exports = {
   title:
-    "Hardhat | Ethereum development environment for professionals by Nomic Labs",
+    "Hardhat | Ethereum development environment for professionals by Nomic Foundation",
   description:
     "Hardhat is an Ethereum development environment. Compile your contracts and run them on a development network. Get Solidity stack traces, console.log and more.",
   themeConfig: {
@@ -101,6 +101,7 @@ module.exports = {
             ["/guides/compile-contracts.md", "Compiling your contracts", 0],
             ["/guides/waffle-testing.md", "Testing with ethers.js & Waffle", 0],
             ["/guides/truffle-testing.md", "Testing with Web3.js & Truffle", 0],
+            ["/guides/parallel-tests.md", "Running tests in parallel", 0],
             ["/guides/truffle-migration.md", "Migrating from Truffle", 0],
             ["/guides/deploying.md", "Deploying your contracts", 0],
             ["/guides/scripts.md", "Writing scripts", 0],
@@ -225,7 +226,7 @@ module.exports = {
       {
         property: "og:title",
         content:
-          "Ethereum development environment for professionals by Nomic Labs",
+          "Ethereum development environment for professionals by Nomic Foundation",
       },
     ],
     [

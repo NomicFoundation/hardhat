@@ -29,6 +29,8 @@ type Chain =
   | "moonbeam"
   | "moonriver"
   | "moonbaseAlpha"
+  | "harmony"
+  | "harmonyTest"
   // xdai
   | "xdai"
   | "sokol"

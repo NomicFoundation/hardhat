@@ -1,3 +1,4 @@
+import { AssertionError } from "chai";
 import { Contract, providers, Transaction, utils } from "ethers";
 
 async function waitForPendingTransaction(
@@ -19,19 +20,6 @@ async function waitForPendingTransaction(
 }
 
 export function supportEmit(Assertion: Chai.AssertionStatic) {
-  const filterLogsWithTopics = (
-    logs: providers.Log[],
-    topic: any,
-    contractAddress: string
-  ) =>
-    logs
-      .filter((log) => log.topics.includes(topic))
-      .filter(
-        (log) =>
-          log.address &&
-          log.address.toLowerCase() === contractAddress.toLowerCase()
-      );
-
   Assertion.addMethod(
     "emit",
     function (this: any, contract: Contract, eventName: string) {
@@ -48,25 +36,19 @@ export function supportEmit(Assertion: Chai.AssertionStatic) {
         }
 
         if (eventFragment === undefined) {
-          const isNegated = this.__flags.negate === true;
-
-          this.assert(
-            isNegated,
-            `Expected event "${eventName}" to be emitted, but it doesn't` +
-              " exist in the contract. Please make sure you've compiled" +
-              " its latest version before running the test.",
-            `WARNING: Expected event "${eventName}" NOT to be emitted.` +
-              " The event wasn't emitted because it doesn't" +
-              " exist in the contract. Please make sure you've compiled" +
-              " its latest version before running the test.",
-            eventName,
-            ""
+          throw new AssertionError(
+            `Event "${eventName}" doesn't exist in the contract`
           );
-          return;
         }
 
         const topic = contract.interface.getEventTopic(eventFragment);
-        this.logs = filterLogsWithTopics(receipt.logs, topic, contract.address);
+        this.logs = receipt.logs
+          .filter((log) => log.topics.includes(topic))
+          .filter(
+            (log) =>
+              log.address.toLowerCase() === contract.address.toLowerCase()
+          );
+
         this.assert(
           this.logs.length > 0,
           `Expected event "${eventName}" to be emitted, but it wasn't`,
@@ -100,7 +82,9 @@ export function supportEmit(Assertion: Chai.AssertionStatic) {
     );
     for (let index = 0; index < expectedArgs.length; index++) {
       if (expectedArgs[index] instanceof Uint8Array) {
-        new Assertion(actualArgs[index]).equal(utils.hexlify(expectedArgs[index]));
+        new Assertion(actualArgs[index]).equal(
+          utils.hexlify(expectedArgs[index])
+        );
       } else if (
         expectedArgs[index]?.length !== undefined &&
         typeof expectedArgs[index] !== "string"

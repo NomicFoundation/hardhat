@@ -3,6 +3,8 @@ import { BigNumber as BigNumberEthers } from "ethers";
 import { BigNumber as BigNumberJs } from "bignumber.js";
 import BN from "bn.js";
 
+import { HardhatError } from "hardhat/internal/core/errors";
+
 import "../src";
 
 type SupportedNumber = number | bigint | BN | BigNumberEthers | BigNumberJs;
@@ -793,12 +795,12 @@ describe("BigNumber matchers", function () {
         for (const convert of numberToBigNumberConversions) {
           const converted = convert(1);
           const msg =
-            "The number 1.1 cannot be converted to a BigInt because it is not an integer";
+            "HH17: The input value cannot be normalized to a BigInt: 1.1 is not an integer";
           it(`with .to.${operator} comparing float vs ${typestr(
             converted
           )}`, function () {
             expect(() => expect(1.1).to[operator](converted)).to.throw(
-              RangeError,
+              HardhatError,
               msg
             );
           });
@@ -806,7 +808,7 @@ describe("BigNumber matchers", function () {
             converted
           )} vs float`, function () {
             expect(() => expect(converted).to[operator](1.1)).to.throw(
-              RangeError,
+              HardhatError,
               msg
             );
           });
@@ -814,7 +816,7 @@ describe("BigNumber matchers", function () {
             converted
           )}`, function () {
             expect(() => expect(1.1).not.to[operator](converted)).to.throw(
-              RangeError,
+              HardhatError,
               msg
             );
           });
@@ -822,7 +824,7 @@ describe("BigNumber matchers", function () {
             converted
           )} vs float`, function () {
             expect(() => expect(converted).not.to[operator](1.1)).to.throw(
-              RangeError,
+              HardhatError,
               msg
             );
           });
@@ -831,18 +833,18 @@ describe("BigNumber matchers", function () {
 
       describe("should throw when comparing to an unsafe integer", function () {
         const unsafeInt = 1e16;
-        const msg = `Cannot convert unsafe integer ${unsafeInt} to BigInt. Consider using BigInt(${unsafeInt}) instead. For more details, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isSafeInteger`;
+        const msg = `HH17: The input value cannot be normalized to a BigInt: Integer 10000000000000000 is unsafe. Consider using ${unsafeInt}n instead. For more details, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isSafeInteger`;
 
         describe(`when using .to.${operator}`, function () {
           it("with an unsafe int as the first param", function () {
             expect(() => expect(unsafeInt).to[operator](BigInt(1))).to.throw(
-              RangeError,
+              HardhatError,
               msg
             );
           });
           it("with an unsafe int as the second param", function () {
             expect(() => expect(BigInt(1)).to[operator](unsafeInt)).to.throw(
-              RangeError,
+              HardhatError,
               msg
             );
           });
@@ -852,12 +854,12 @@ describe("BigNumber matchers", function () {
           it("with an unsafe int as the first param", function () {
             expect(() =>
               expect(unsafeInt).not.to[operator](BigInt(1))
-            ).to.throw(RangeError, msg);
+            ).to.throw(HardhatError, msg);
           });
           it("with an unsafe int as the second param", function () {
             expect(() =>
               expect(BigInt(1)).not.to[operator](unsafeInt)
-            ).to.throw(RangeError, msg);
+            ).to.throw(HardhatError, msg);
           });
         });
       });
@@ -1021,23 +1023,23 @@ describe("BigNumber matchers", function () {
             const a = convertA(1);
             const b = convertB(1);
             const msg =
-              "The number 1.1 cannot be converted to a BigInt because it is not an integer";
+              "HH17: The input value cannot be normalized to a BigInt: 1.1 is not an integer";
             describe(`with .to.${operator}`, function () {
               it(`with float, ${typestr(a)}, ${typestr(a)}`, function () {
                 expect(() => expect(1.1).to[operator](a, b)).to.throw(
-                  RangeError,
+                  HardhatError,
                   msg
                 );
               });
               it(`with ${typestr(a)}, float, ${typestr(b)}`, function () {
                 expect(() => expect(a).to[operator](1.1, b)).to.throw(
-                  RangeError,
+                  HardhatError,
                   msg
                 );
               });
               it(`with ${typestr(a)}, ${typestr(b)}, float`, function () {
                 expect(() => expect(a).to[operator](b, 1.1)).to.throw(
-                  RangeError,
+                  HardhatError,
                   msg
                 );
               });
@@ -1045,19 +1047,19 @@ describe("BigNumber matchers", function () {
             describe(`with not.to.${operator}`, function () {
               it(`with float, ${typestr(a)}, ${typestr(a)}`, function () {
                 expect(() => expect(1.1).not.to[operator](a, b)).to.throw(
-                  RangeError,
+                  HardhatError,
                   msg
                 );
               });
               it(`with ${typestr(a)}, float, ${typestr(b)}`, function () {
                 expect(() => expect(a).not.to[operator](1.1, b)).to.throw(
-                  RangeError,
+                  HardhatError,
                   msg
                 );
               });
               it(`with ${typestr(a)}, ${typestr(b)}, float`, function () {
                 expect(() => expect(a).not.to[operator](b, 1.1)).to.throw(
-                  RangeError,
+                  HardhatError,
                   msg
                 );
               });
@@ -1068,23 +1070,23 @@ describe("BigNumber matchers", function () {
 
       describe("should throw when comparing to an unsafe integer", function () {
         const unsafeInt = 1e16;
-        const msg = `Cannot convert unsafe integer ${unsafeInt} to BigInt. Consider using BigInt(${unsafeInt}) instead. For more details, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isSafeInteger`;
+        const msg = `HH17: The input value cannot be normalized to a BigInt: Integer 10000000000000000 is unsafe. Consider using ${unsafeInt}n instead. For more details, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isSafeInteger`;
 
         describe(`when using .to.${operator}`, function () {
           it("with an unsafe int as the first param", function () {
             expect(() =>
               expect(unsafeInt).to[operator](BigInt(1), BigInt(1))
-            ).to.throw(RangeError, msg);
+            ).to.throw(HardhatError, msg);
           });
           it("with an unsafe int as the second param", function () {
             expect(() =>
               expect(BigInt(1)).to[operator](unsafeInt, BigInt(1))
-            ).to.throw(RangeError, msg);
+            ).to.throw(HardhatError, msg);
           });
           it("with an unsafe int as the third param", function () {
             expect(() =>
               expect(BigInt(1)).to[operator](BigInt(1), unsafeInt)
-            ).to.throw(RangeError, msg);
+            ).to.throw(HardhatError, msg);
           });
         });
 
@@ -1092,17 +1094,17 @@ describe("BigNumber matchers", function () {
           it("with an unsafe int as the first param", function () {
             expect(() =>
               expect(unsafeInt).not.to[operator](BigInt(1), BigInt(1))
-            ).to.throw(RangeError, msg);
+            ).to.throw(HardhatError, msg);
           });
           it("with an unsafe int as the second param", function () {
             expect(() =>
               expect(BigInt(1)).not.to[operator](unsafeInt, BigInt(1))
-            ).to.throw(RangeError, msg);
+            ).to.throw(HardhatError, msg);
           });
           it("with an unsafe int as the third param", function () {
             expect(() =>
               expect(BigInt(1)).not.to[operator](BigInt(1), unsafeInt)
-            ).to.throw(RangeError, msg);
+            ).to.throw(HardhatError, msg);
           });
         });
       });

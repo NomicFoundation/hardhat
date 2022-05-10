@@ -186,7 +186,7 @@ export function getRpcBlock(
     uncles: block.uncleHeaders.map((uh: any) => bufferToRpcData(uh.hash())),
   };
 
-  if (block.header.baseFeePerGas) {
+  if (block.header.baseFeePerGas !== undefined) {
     output.baseFeePerGas = numberToRpcQuantity(block.header.baseFeePerGas);
   }
 

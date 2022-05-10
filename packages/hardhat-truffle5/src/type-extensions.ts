@@ -4,7 +4,7 @@ import "hardhat/types/runtime";
 
 declare module "hardhat/types/artifacts" {
   export interface Artifacts {
-    require: (name: string) => any;
+    require(name: string): any;
   }
 }
 

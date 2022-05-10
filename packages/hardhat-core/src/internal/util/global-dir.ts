@@ -1,5 +1,6 @@
-import debug from "debug";
 import type envPathsT from "env-paths";
+
+import debug from "debug";
 import fs from "fs-extra";
 import os from "os";
 import path from "path";

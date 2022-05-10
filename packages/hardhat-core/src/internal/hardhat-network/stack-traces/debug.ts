@@ -182,7 +182,7 @@ function flattenSourceReference(sourceReference?: SourceReference) {
 
   return {
     ...sourceReference,
-    file: sourceReference.file.sourceName,
+    file: sourceReference.sourceName,
   };
 }
 

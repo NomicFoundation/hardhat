@@ -8,6 +8,7 @@ import {
 import { Address, BN } from "ethereumjs-util";
 
 import { InternalError } from "../../../core/providers/errors";
+import { BERLIN_EIPS } from "../../../util/hardforks";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
@@ -64,11 +65,7 @@ export class ReadOnlyValidEIP2930Transaction extends AccessListEIP2930Transactio
     // this class should only be used with txs in a hardfork that
     // supports EIP-2930
     (fakeCommon as any).isActivatedEIP = (eip: number) => {
-      if (eip === 2930) {
-        return true;
-      }
-
-      throw new Error("Expected `isActivatedEIP` to only be called with 2930");
+      return BERLIN_EIPS.has(eip);
     };
 
     // this class should only be used with EIP-2930 txs,
