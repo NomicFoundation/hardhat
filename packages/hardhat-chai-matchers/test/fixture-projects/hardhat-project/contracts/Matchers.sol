@@ -54,15 +54,6 @@ contract Matchers {
     assert(false);
   }
 
-  function panicUnderflow(uint n) public {
-    n--;
-    x++;
-  }
-
-  function panicUnderflowView(uint n) public pure {
-    n--;
-  }
-
   function revertWithSomeCustomError() public {
     x++;
     revert SomeCustomError();
