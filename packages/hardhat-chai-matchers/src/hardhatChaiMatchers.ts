@@ -1,4 +1,3 @@
-import "./types";
 import { supportBigNumber } from "./bigNumber";
 import { supportEmit } from "./emit";
 import { supportHexEqual } from "./hexEqual";
