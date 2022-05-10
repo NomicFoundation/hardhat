@@ -6,6 +6,13 @@ declare namespace Chai {
       TypeComparison {
     emit(contract: any, eventName: string): EmitAssertion;
     reverted: AsyncAssertion;
+    revertedWith(reason: string): AsyncAssertion;
+    revertedWithoutReasonString(): AsyncAssertion;
+    revertedWithPanic(code?: any): AsyncAssertion;
+    revertedWithCustomError(
+      contract: { interface: any },
+      customErrorName: string
+    ): CustomErrorAssertion;
     hexEqual(other: string): void;
     properPrivateKey: void;
     properAddress: void;
@@ -43,6 +50,10 @@ declare namespace Chai {
   interface AsyncAssertion extends Assertion, Promise<void> {}
 
   interface EmitAssertion extends AsyncAssertion {
+    withArgs(...args: any[]): AsyncAssertion;
+  }
+
+  interface CustomErrorAssertion extends AsyncAssertion {
     withArgs(...args: any[]): AsyncAssertion;
   }
 }
