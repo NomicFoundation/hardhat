@@ -90,7 +90,7 @@ export function supportRevertedWithCustomError(
             this.assert(
               true,
               null,
-              `Expected transaction NOT to be reverted with custom error '${expectedCustomErrorName}', but it did`
+              `Expected transaction NOT to be reverted with custom error '${expectedCustomErrorName}', but it was`
             );
           } else {
             // try to decode the actual custom error

@@ -24,7 +24,7 @@ export function supportRevertedWithoutReasonString(
         this.assert(
           true,
           null,
-          "Expected transaction NOT to be reverted without a reason string, but it did"
+          "Expected transaction NOT to be reverted without a reason string, but it was"
         );
       } else if (decodedReturnData.kind === "Panic") {
         this.assert(

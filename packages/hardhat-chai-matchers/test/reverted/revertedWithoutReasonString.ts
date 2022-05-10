@@ -72,7 +72,7 @@ describe("INTEGRATION: Reverted without reason string", function () {
           failedAssert: (x) =>
             expect(x).to.not.be.revertedWithoutReasonString(),
           failedAssertReason:
-            "Expected transaction NOT to be reverted without a reason string, but it did",
+            "Expected transaction NOT to be reverted without a reason string, but it was",
         });
       });
     });

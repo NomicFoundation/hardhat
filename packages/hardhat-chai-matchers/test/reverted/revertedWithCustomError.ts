@@ -192,7 +192,7 @@ describe("INTEGRATION: Reverted with custom error", function () {
               "SomeCustomError"
             ),
           failedAssertReason:
-            "Expected transaction NOT to be reverted with custom error 'SomeCustomError', but it did",
+            "Expected transaction NOT to be reverted with custom error 'SomeCustomError', but it was",
         });
       });
 

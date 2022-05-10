@@ -112,7 +112,7 @@ describe("INTEGRATION: Reverted with", function () {
           args: ["some reason"],
           failedAssert: (x) => expect(x).to.not.be.revertedWith("some reason"),
           failedAssertReason:
-            "Expected transaction NOT to be reverted with reason 'some reason', but it did",
+            "Expected transaction NOT to be reverted with reason 'some reason', but it was",
         });
       });
 

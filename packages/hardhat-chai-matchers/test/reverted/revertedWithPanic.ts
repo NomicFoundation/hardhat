@@ -187,7 +187,7 @@ describe("INTEGRATION: Reverted with panic", function () {
           failedAssert: (x) =>
             expect(x).to.not.be.revertedWithPanic(PANIC_CODES.ASSERTION_ERROR),
           failedAssertReason:
-            "Expected transaction NOT to be reverted with panic code 0x01 (Assertion error), but it did",
+            "Expected transaction NOT to be reverted with panic code 0x01 (Assertion error), but it was",
         });
 
         await runFailedAsserts({

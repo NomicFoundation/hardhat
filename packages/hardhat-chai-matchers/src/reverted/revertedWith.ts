@@ -29,7 +29,7 @@ export function supportRevertedWith(Assertion: Chai.AssertionStatic) {
           this.assert(
             decodedReturnData.reason === expectedReason,
             `Expected transaction to be reverted with reason '${expectedReason}', but it reverted with reason '${decodedReturnData.reason}'`,
-            `Expected transaction NOT to be reverted with reason '${expectedReason}', but it did`
+            `Expected transaction NOT to be reverted with reason '${expectedReason}', but it was`
           );
         } else if (decodedReturnData.kind === "Panic") {
           this.assert(

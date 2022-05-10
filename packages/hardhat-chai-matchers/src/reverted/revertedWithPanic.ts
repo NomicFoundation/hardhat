@@ -58,7 +58,7 @@ export function supportRevertedWithPanic(Assertion: Chai.AssertionStatic) {
               `Expected transaction to be reverted with ${formattedPanicCode}, but it reverted with panic code ${decodedReturnData.code.toHexString()} (${
                 decodedReturnData.description
               })`,
-              `Expected transaction NOT to be reverted with ${formattedPanicCode}, but it did`
+              `Expected transaction NOT to be reverted with ${formattedPanicCode}, but it was`
             );
           } else {
             this.assert(
