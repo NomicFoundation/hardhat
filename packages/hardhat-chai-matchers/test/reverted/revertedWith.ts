@@ -205,7 +205,7 @@ describe("INTEGRATION: Reverted with", function () {
             matchers.connect(signer).revertsWithoutReasonString({
               gasLimit: 1_000_000,
             })
-          ).to.not.be.reverted
+          ).to.not.be.revertedWith("some reason")
         ).to.be.eventually.rejectedWith(
           ProviderError,
           "sender doesn't have enough funds to send tx"

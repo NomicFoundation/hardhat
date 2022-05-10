@@ -274,7 +274,7 @@ describe("INTEGRATION: Reverted with panic", function () {
             matchers.connect(signer).revertsWithoutReasonString({
               gasLimit: 1_000_000,
             })
-          ).to.not.be.reverted
+          ).to.not.be.revertedWithPanic()
         ).to.be.eventually.rejectedWith(
           ProviderError,
           "sender doesn't have enough funds to send tx"

@@ -293,7 +293,10 @@ describe("INTEGRATION: Reverted with custom error", function () {
     describe("invalid values", function () {
       it("non-errors as subject", async function () {
         await expect(
-          expect(Promise.reject({})).to.be.revertedWith("some reason")
+          expect(Promise.reject({})).to.be.revertedWithCustomError(
+            matchers,
+            "SomeCustomError"
+          )
         ).to.be.rejectedWith(AssertionError, "Expected an Error object");
       });
 
@@ -347,7 +350,7 @@ describe("INTEGRATION: Reverted with custom error", function () {
             matchers.connect(signer).revertsWithoutReasonString({
               gasLimit: 1_000_000,
             })
-          ).to.not.be.reverted
+          ).to.not.be.revertedWithCustomError(matchers, "SomeCustomError")
         ).to.be.eventually.rejectedWith(
           ProviderError,
           "sender doesn't have enough funds to send tx"

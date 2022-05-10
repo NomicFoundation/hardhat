@@ -127,7 +127,7 @@ describe("INTEGRATION: Reverted without reason string", function () {
           matchers,
           method: "revertWithSomeCustomError",
           successfulAssert: (x) =>
-            expect(x).to.not.be.revertedWith("some reason"),
+            expect(x).to.not.be.revertedWithoutReasonString(),
         });
       });
 
@@ -135,9 +135,9 @@ describe("INTEGRATION: Reverted without reason string", function () {
         await runFailedAsserts({
           matchers,
           method: "revertWithSomeCustomError",
-          failedAssert: (x) => expect(x).to.be.revertedWith("some reason"),
+          failedAssert: (x) => expect(x).to.be.revertedWithoutReasonString(),
           failedAssertReason:
-            "Expected transaction to be reverted with reason 'some reason', but it reverted with a custom error",
+            "Expected transaction to be reverted without a reason string, but it reverted with a custom error",
         });
       });
     });
@@ -165,7 +165,7 @@ describe("INTEGRATION: Reverted without reason string", function () {
             matchers.connect(signer).revertsWithoutReasonString({
               gasLimit: 1_000_000,
             })
-          ).to.not.be.reverted
+          ).to.not.be.revertedWithoutReasonString()
         ).to.be.eventually.rejectedWith(
           ProviderError,
           "sender doesn't have enough funds to send tx"
