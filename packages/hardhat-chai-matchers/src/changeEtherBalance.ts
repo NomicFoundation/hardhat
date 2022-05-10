@@ -82,7 +82,7 @@ export async function getBalanceChange(
   ]);
 
   if (options?.includeFee !== true && address === txResponse.from) {
-    const gasPrice = txResponse.gasPrice ?? txReceipt.effectiveGasPrice;
+    const gasPrice = txReceipt.effectiveGasPrice ?? txResponse.gasPrice;
     const gasUsed = txReceipt.gasUsed;
     const txFee = gasPrice.mul(gasUsed);
 
