@@ -13,7 +13,7 @@ export function supportChangeEtherBalances(Assertion: Chai.AssertionStatic) {
       this: any,
       accounts: Array<Account | string>,
       balanceChanges: BigNumberish[],
-      options: BalanceChangeOptions
+      options?: BalanceChangeOptions
     ) {
       const subject = this._obj;
 
