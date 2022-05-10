@@ -34,7 +34,7 @@ describe(".to.emit (contract events)", () => {
         expect(contract.doNotEmit()).to.emit(contract, "NonexistentEvent")
       ).to.be.eventually.rejectedWith(
         AssertionError,
-        "Expected event \"NonexistentEvent\" to be emitted, but it doesn't exist in the contract. Please make sure you've compiled its latest version before running the test."
+        "Event \"NonexistentEvent\" doesn't exist in the contract"
       );
     });
 
@@ -43,7 +43,7 @@ describe(".to.emit (contract events)", () => {
         expect(contract.doNotEmit()).not.to.emit(contract, "NonexistentEvent")
       ).to.be.eventually.rejectedWith(
         AssertionError,
-        "WARNING: Expected event \"NonexistentEvent\" NOT to be emitted. The event wasn't emitted because it doesn't exist in the contract. Please make sure you've compiled its latest version before running the test."
+        "Event \"NonexistentEvent\" doesn't exist in the contract"
       );
     });
 

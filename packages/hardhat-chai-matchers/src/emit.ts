@@ -1,3 +1,4 @@
+import { AssertionError } from "chai";
 import { Contract, providers, Transaction, utils } from "ethers";
 
 async function waitForPendingTransaction(
@@ -46,21 +47,9 @@ export function supportEmit(Assertion: Chai.AssertionStatic) {
         }
 
         if (eventFragment === undefined) {
-          const isNegated = this.__flags.negate === true;
-
-          this.assert(
-            isNegated,
-            `Expected event "${eventName}" to be emitted, but it doesn't` +
-              " exist in the contract. Please make sure you've compiled" +
-              " its latest version before running the test.",
-            `WARNING: Expected event "${eventName}" NOT to be emitted.` +
-              " The event wasn't emitted because it doesn't" +
-              " exist in the contract. Please make sure you've compiled" +
-              " its latest version before running the test.",
-            eventName,
-            ""
+          throw new AssertionError(
+            `Event "${eventName}" doesn't exist in the contract`
           );
-          return;
         }
 
         const topic = contract.interface.getEventTopic(eventFragment);
