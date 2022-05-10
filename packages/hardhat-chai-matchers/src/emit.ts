@@ -20,17 +20,6 @@ async function waitForPendingTransaction(
 }
 
 export function supportEmit(Assertion: Chai.AssertionStatic) {
-  const filterLogsWithTopics = (
-    logs: providers.Log[],
-    topic: any,
-    contractAddress: string
-  ) =>
-    logs
-      .filter((log) => log.topics.includes(topic))
-      .filter(
-        (log) => log.address.toLowerCase() === contractAddress.toLowerCase()
-      );
-
   Assertion.addMethod(
     "emit",
     function (this: any, contract: Contract, eventName: string) {
@@ -53,7 +42,13 @@ export function supportEmit(Assertion: Chai.AssertionStatic) {
         }
 
         const topic = contract.interface.getEventTopic(eventFragment);
-        this.logs = filterLogsWithTopics(receipt.logs, topic, contract.address);
+        this.logs = receipt.logs
+          .filter((log) => log.topics.includes(topic))
+          .filter(
+            (log) =>
+              log.address.toLowerCase() === contract.address.toLowerCase()
+          );
+
         this.assert(
           this.logs.length > 0,
           `Expected event "${eventName}" to be emitted, but it wasn't`,
