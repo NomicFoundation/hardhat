@@ -27,9 +27,7 @@ export function supportEmit(Assertion: Chai.AssertionStatic) {
     logs
       .filter((log) => log.topics.includes(topic))
       .filter(
-        (log) =>
-          log.address &&
-          log.address.toLowerCase() === contractAddress.toLowerCase()
+        (log) => log.address.toLowerCase() === contractAddress.toLowerCase()
       );
 
   Assertion.addMethod(

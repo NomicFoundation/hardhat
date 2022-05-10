@@ -135,6 +135,9 @@ module.exports = {
     "@typescript-eslint/strict-boolean-expressions": [
       "error",
       {
+        allowString: false,
+        allowNumber: false,
+        allowNullableObject: false,
         allowAny: true,
       },
     ],

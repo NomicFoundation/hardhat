@@ -501,7 +501,7 @@ Please replace "${contractName}" for the correct contract name wherever you are 
   ): string[] {
     const outputNames = [];
     const groups = similarNames.reduce((obj, cur) => {
-      obj[cur] = obj[cur] ? obj[cur] + 1 : 1;
+      obj[cur] = obj[cur] === 0 ? 1 : obj[cur] + 1;
       return obj;
     }, {} as { [k: string]: number });
 
