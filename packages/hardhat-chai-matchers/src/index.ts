@@ -1,5 +1,7 @@
 import { use } from "chai";
+import chaiAsPromised from "chai-as-promised";
 
-import { bnChai } from "./bnChai";
+import { hardhatChaiMatchers } from "./hardhatChaiMatchers";
 
-use(bnChai);
+use(hardhatChaiMatchers);
+use(chaiAsPromised);

@@ -1032,7 +1032,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     this.setNextBlockTimestamp(snapshot.nextBlockTimestamp);
     this._txPool.revert(snapshot.txPoolSnapshotId);
 
-    if (snapshot.userProvidedNextBlockBaseFeePerGas) {
+    if (snapshot.userProvidedNextBlockBaseFeePerGas !== undefined) {
       this.setUserProvidedNextBlockBaseFeePerGas(
         snapshot.userProvidedNextBlockBaseFeePerGas
       );
