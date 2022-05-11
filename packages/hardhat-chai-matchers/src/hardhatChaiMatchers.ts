@@ -6,6 +6,7 @@ import { supportProperAddress } from "./properAddress";
 import { supportProperPrivateKey } from "./properPrivateKey";
 import { supportChangeEtherBalance } from "./changeEtherBalance";
 import { supportChangeEtherBalances } from "./changeEtherBalances";
+import { supportChangeTokenBalance } from "./changeTokenBalance";
 import { supportReverted } from "./reverted/reverted";
 import { supportRevertedWith } from "./reverted/revertedWith";
 import { supportRevertedWithCustomError } from "./reverted/revertedWithCustomError";
@@ -23,6 +24,7 @@ export function hardhatChaiMatchers(
   supportProperPrivateKey(chai.Assertion);
   supportChangeEtherBalance(chai.Assertion);
   supportChangeEtherBalances(chai.Assertion);
+  supportChangeTokenBalance(chai.Assertion);
   supportReverted(chai.Assertion);
   supportRevertedWith(chai.Assertion);
   supportRevertedWithCustomError(chai.Assertion, utils);
