@@ -25,6 +25,7 @@ concurrency:
 
 jobs:
   test_on_windows:
+    if: ${{ false }}
     name: Test hardhat-chai-matchers on Windows with Node 12
     runs-on: windows-latest
     steps:
@@ -63,6 +64,7 @@ jobs:
         run: yarn test
 
   test_on_linux:
+    if: ${{ false }}
     name: Test hardhat-chai-matchers on Ubuntu with Node ${{ matrix.node }}
     runs-on: ubuntu-latest
     strategy:
