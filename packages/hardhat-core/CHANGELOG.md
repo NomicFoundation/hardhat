@@ -1,5 +1,21 @@
 # hardhat
 
+## 2.9.4
+
+### Patch Changes
+
+- 1de87072: Fix passing options and depth when inspecting a lazyObject or lazyFunction
+- 7403ec1d: Stop publishing tsconfig.json files
+- b9f997cb: Upgraded ethereumjs dependencies (thanks @LogvinovLeon!).
+- 58aa161a: Expand the `data` object returned by the JSON-RPC response when a transaction or call reverts. Now it also includes the `message` and `data` fields. The `message` is the same message that is part of the response, and it's included to make things work better with ethers.js. The `data` field includes the return data of the transaction. These fields are included in the responses of the `eth_sendTransaction`, `eth_sendRawTransaction`, `eth_call` and `eth_estimateGas` methods when they revert.
+- 78876d64: Fix a bug preventing to run the solcjs compiler.
+- 1929e177: Fix a bug when formatting optional params in the help messages.
+- 4238a921: Fixed a problem with `hardhat_mine` when used with `solidity-coverage`.
+- 32cc90bf: Allow --version flag to be used when not in a Hardhat project directory
+- b5273ce1: - Fixed a potential OOM error during parallel compilation
+  - Added a `--concurrency` param to the compile task
+- 97eb5820: The `CustomError` class is now exported in `hardhat/common`
+
 ## 2.9.3
 
 ### Patch Changes

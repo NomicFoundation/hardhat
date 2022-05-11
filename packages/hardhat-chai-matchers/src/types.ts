@@ -28,6 +28,12 @@ declare namespace Chai {
       balances: any[],
       options?: any
     ): AsyncAssertion;
+    changeTokenBalance(token: any, account: any, balance: any): AsyncAssertion;
+    changeTokenBalances(
+      token: any,
+      account: any[],
+      balance: any[]
+    ): AsyncAssertion;
   }
 
   interface NumericComparison {

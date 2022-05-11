@@ -1,5 +1,11 @@
 # @nomiclabs/hardhat-ethers
 
+## 2.0.6
+
+### Patch Changes
+
+- 7403ec1d: Stop publishing tsconfig.json files
+
 ## 2.0.5
 
 ### Patch Changes
