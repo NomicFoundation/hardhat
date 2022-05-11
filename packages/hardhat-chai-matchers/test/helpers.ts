@@ -48,6 +48,10 @@ export function useEnvironmentWithNode(fixtureProjectName: string) {
 
   // we start a shared node in a `before` hook to make tests run faster
   before("start a hardhat node", async function () {
+    if (process.env.CI !== undefined) {
+      this.skip();
+    }
+
     process.chdir(fixtureProjectDir);
 
     // this env var will be used both by the script that starts the hh node and
@@ -83,6 +87,10 @@ export function useEnvironmentWithNode(fixtureProjectName: string) {
   });
 
   after(async function () {
+    if (process.env.CI !== undefined) {
+      return;
+    }
+
     resetHardhatContext();
 
     delete process.env.HARDHAT_NETWORK;
