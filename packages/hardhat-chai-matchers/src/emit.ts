@@ -128,13 +128,18 @@ function assertArgsArraysEqual(
         actualArgs[index].hash !== undefined &&
         actualArgs[index]._isIndexed === true
       ) {
+        new Assertion(actualArgs[index].hash).to.not.equal(
+          expectedArgs[index],
+          "The actual value was an indexed and hashed value of the event argument. The expected value provided to the assertion should be the actual event argument (the pre-image of the hash). You provided the hash itself. Please supply the the actual event argument (the pre-image of the hash) instead."
+        );
         const expectedArgBytes = utils.isHexString(expectedArgs[index])
           ? utils.arrayify(expectedArgs[index])
           : utils.toUtf8Bytes(expectedArgs[index]);
-        new Assertion(actualArgs[index].hash).to.be.oneOf([
-          expectedArgs[index],
-          utils.keccak256(expectedArgBytes),
-        ]);
+        const expectedHash = utils.keccak256(expectedArgBytes);
+        new Assertion(actualArgs[index].hash).to.equal(
+          expectedHash,
+          `The actual value was an indexed and hashed value of the event argument. The expected value provided to the assertion was hashed to produce ${expectedHash}. The actual hash and the expected hash did not match`
+        );
       } else {
         new Assertion(actualArgs[index]).equal(expectedArgs[index]);
       }
