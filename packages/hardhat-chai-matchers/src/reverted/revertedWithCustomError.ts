@@ -1,7 +1,6 @@
 import { decodeReturnData, getReturnDataFromError } from "./utils";
 
-const CUSTOM_ERROR_ASSERTION_CALLED = "customErrorAssertionCalled";
-const CUSTOM_ERROR_ASSERTION_DATA = "customErrorAssertionData";
+export const REVERTED_WITH_CUSTOM_ERROR_CALLED = "customErrorAssertionCalled";
 
 interface CustomErrorAssertionData {
   contractInterface: any;
@@ -81,11 +80,7 @@ export function supportRevertedWithCustomError(
               customError: expectedCustomError,
               returnData,
             };
-            utils.flag(
-              this,
-              CUSTOM_ERROR_ASSERTION_DATA,
-              customErrorAssertionData
-            );
+            this.customErrorData = customErrorAssertionData;
 
             this.assert(
               true,
@@ -123,7 +118,7 @@ export function supportRevertedWithCustomError(
       );
 
       // needed for .withArgs
-      utils.flag(this, CUSTOM_ERROR_ASSERTION_CALLED, true);
+      utils.flag(this, REVERTED_WITH_CUSTOM_ERROR_CALLED, true);
       this.promise = derivedPromise;
 
       this.then = derivedPromise.then.bind(derivedPromise);
@@ -132,52 +127,42 @@ export function supportRevertedWithCustomError(
       return this;
     }
   );
+}
 
-  Assertion.addMethod("withArgs", function (this: any, ...expectedArgs: any[]) {
-    if (utils.flag(this, CUSTOM_ERROR_ASSERTION_CALLED) !== true) {
-      throw new Error(
-        "withArgs called without a previous revertedWithCustomError assertion"
-      );
-    }
+export async function revertedWithCustomErrorWithArgs(
+  context: any,
+  Assertion: Chai.AssertionStatic,
+  utils: Chai.ChaiUtils,
+  expectedArgs: any[]
+) {
+  const customErrorAssertionData: CustomErrorAssertionData =
+    context.customErrorData;
 
-    const derivedPromise = this.promise.then(() => {
-      const customErrorAssertionData: CustomErrorAssertionData = utils.flag(
-        this,
-        CUSTOM_ERROR_ASSERTION_DATA
-      );
+  if (customErrorAssertionData === undefined) {
+    throw new Error(
+      "[.withArgs] should never happen, please submit an issue to the Hardhat repository"
+    );
+  }
 
-      if (customErrorAssertionData === undefined) {
-        throw new Error(
-          "[.withArgs] should never happen, please submit an issue to the Hardhat repository"
-        );
-      }
+  const { contractInterface, customError, returnData } =
+    customErrorAssertionData;
 
-      const { contractInterface, customError, returnData } =
-        customErrorAssertionData;
+  const errorFragment = contractInterface.errors[customError.signature];
+  const actualArgs = contractInterface.decodeErrorResult(
+    errorFragment,
+    returnData
+  );
 
-      const errorFragment = contractInterface.errors[customError.signature];
-      const actualArgs = contractInterface.decodeErrorResult(
-        errorFragment,
-        returnData
-      );
+  // TODO temporary solution until `.to.deep.equal` works correctly with big
+  // numbers
+  new Assertion(actualArgs).to.have.same.length(
+    expectedArgs.length,
+    `Expected ${expectedArgs.length} args but got ${actualArgs.length}`
+  );
 
-      // TODO temporary solution until `.to.deep.equal` works correctly with big
-      // numbers
-      new Assertion(actualArgs).to.have.same.length(
-        expectedArgs.length,
-        `Expected ${expectedArgs.length} args but got ${actualArgs.length}`
-      );
-
-      for (const [i, actualArg] of Object.entries(actualArgs) as any) {
-        new Assertion(actualArg).to.equal(expectedArgs[i]);
-      }
-    });
-
-    this.then = derivedPromise.then.bind(derivedPromise);
-    this.catch = derivedPromise.catch.bind(derivedPromise);
-
-    return this;
-  });
+  for (const [i, actualArg] of Object.entries(actualArgs) as any) {
+    new Assertion(actualArg).to.equal(expectedArgs[i]);
+  }
 }
 
 interface CustomError {

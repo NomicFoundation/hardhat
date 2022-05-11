@@ -3,6 +3,8 @@ import { BigNumber, Contract, ethers } from "ethers";
 
 import { useEnvironment, useEnvironmentWithNode } from "./helpers";
 
+import "../src";
+
 describe(".to.emit (contract events)", () => {
   let contract: Contract;
   let otherContract: Contract;
@@ -76,6 +78,17 @@ describe(".to.emit (contract events)", () => {
             .not.to.emit(contract, "WithUintArg")
             .withArgs(1)
         ).to.throw(Error, "Do not combine .not. with .withArgs()");
+      });
+
+      it("should fail if withArgs is called on its own", async function () {
+        expect(() =>
+          expect(contract.emitUint(1))
+            // @ts-expect-error
+            .withArgs(1)
+        ).to.throw(
+          Error,
+          "withArgs called without a previous .emit or .revertedWithCustomError assertion"
+        );
       });
 
       describe("with a uint argument", function () {
@@ -620,17 +633,6 @@ describe(".to.emit (contract events)", () => {
           await expect(contract.emitNestedUintFromAnotherContract(1))
             .to.emit(otherContract, "WithUintArg")
             .withArgs(1);
-        });
-
-        it("Should pass when the expected event is emitted", async function () {
-          await expect(
-            expect(contract.emitNestedUintFromAnotherContract(1))
-              .not.to.emit(otherContract, "WithUintArg")
-              .withArgs(1)
-          ).to.be.eventually.rejectedWith(
-            AssertionError,
-            'Expected event "WithUintArg" NOT to be emitted, but it was'
-          );
         });
 
         it("Should fail when the expected event is emitted but not by the contract that was passed", async function () {

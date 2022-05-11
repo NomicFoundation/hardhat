@@ -5,6 +5,8 @@ pragma solidity ^0.8.0;
 contract Matchers {
   uint x;
 
+  event SomeEvent();
+
   AnotherMatchersContract anotherContract;
 
   struct Pair { uint a; uint b; }

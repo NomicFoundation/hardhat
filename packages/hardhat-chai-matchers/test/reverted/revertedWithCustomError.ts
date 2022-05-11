@@ -278,6 +278,14 @@ describe("INTEGRATION: Reverted with custom error", function () {
         ).to.be.rejectedWith(AssertionError, "expected 1 to equal 3");
       });
 
+      it("Should fail when used with .not.", async function () {
+        expect(() =>
+          expect(matchers.revertWithSomeCustomError())
+            .to.not.be.revertedWithCustomError(matchers, "SomeCustomError")
+            .withArgs(1)
+        ).to.throw(Error, "Do not combine .not. with .withArgs()");
+      });
+
       it("should fail if withArgs is called on its own", async function () {
         expect(() =>
           expect(matchers.revertWithCustomErrorWithUint(1))
@@ -285,7 +293,19 @@ describe("INTEGRATION: Reverted with custom error", function () {
             .withArgs(1)
         ).to.throw(
           Error,
-          "withArgs called without a previous revertedWithCustomError assertion"
+          "withArgs called without a previous .emit or .revertedWithCustomError assertion"
+        );
+      });
+
+      it("should fail if both emit and revertedWithCustomError are called", async function () {
+        expect(() =>
+          expect(matchers.revertWithSomeCustomError())
+            .to.emit(matchers, "SomeEvent")
+            .and.to.be.revertedWithCustomError(matchers, "SomeCustomError")
+            .withArgs(1)
+        ).to.throw(
+          Error,
+          "withArgs called with both .emit and .revertedWithCustomError, these assertions cannot be combined"
         );
       });
     });

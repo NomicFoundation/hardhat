@@ -10,13 +10,14 @@ import { supportRevertedWith } from "./reverted/revertedWith";
 import { supportRevertedWithCustomError } from "./reverted/revertedWithCustomError";
 import { supportRevertedWithPanic } from "./reverted/revertedWithPanic";
 import { supportRevertedWithoutReason } from "./reverted/revertedWithoutReason";
+import { supportWithArgs } from "./withArgs";
 
 export function hardhatChaiMatchers(
   chai: Chai.ChaiStatic,
   utils: Chai.ChaiUtils
 ) {
   supportBigNumber(chai.Assertion, utils);
-  supportEmit(chai.Assertion);
+  supportEmit(chai.Assertion, utils);
   supportHexEqual(chai.Assertion);
   supportProperAddress(chai.Assertion);
   supportProperPrivateKey(chai.Assertion);
@@ -27,4 +28,5 @@ export function hardhatChaiMatchers(
   supportRevertedWithCustomError(chai.Assertion, utils);
   supportRevertedWithPanic(chai.Assertion);
   supportRevertedWithoutReason(chai.Assertion);
+  supportWithArgs(chai.Assertion, utils);
 }
