@@ -140,6 +140,34 @@ describe("Hardhat module", function () {
             impersonatedAddress
           );
         });
+
+        it("lets you impresonate a contract", async function () {
+          const contract = await deployContract(
+            this.provider,
+            "0x7f410000000000000000000000000000000000000000000000000000000000000060005260016000f3"
+          );
+
+          const funds = "0x10000000000000000000000000";
+          await this.provider.send("hardhat_setBalance", [contract, funds]);
+
+          await this.provider.send("hardhat_impersonateAccount", [contract]);
+
+          await this.provider.send("eth_sendTransaction", [
+            {
+              from: contract,
+              to: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              value: "0x100",
+            },
+          ]);
+
+          const code = await this.provider.send("eth_getCode", [contract]);
+          assert.notEqual(code, "0x");
+
+          const balance = await this.provider.send("eth_getBalance", [
+            contract,
+          ]);
+          assert.notEqual(balance, funds);
+        });
       });
 
       describe("hardhat_stopImpersonatingAccount", function () {
@@ -827,6 +855,43 @@ describe("Hardhat module", function () {
                 originalLatestBlockNumber + blocksToMine + 1
               );
             });
+          });
+        });
+
+        describe("base fee per gas", function () {
+          const getBlockBaseFeePerGas = async (block: number): Promise<BN> => {
+            return rpcQuantityToBN(
+              (
+                await this.ctx.provider.send("eth_getBlockByNumber", [
+                  numberToRpcQuantity(block),
+                  false,
+                ])
+              ).baseFeePerGas
+            );
+          };
+
+          it("shouldn't increase if the blocks are empty", async function () {
+            // the main reason for this test is that solidity-coverage sets the
+            // initial base fee per gas to 1, and hardhat_mine shouldn't mess
+            // with that
+
+            const originalLatestBlockNumber = await getLatestBlockNumber();
+
+            await this.provider.send("hardhat_setNextBlockBaseFeePerGas", [
+              numberToRpcQuantity(1),
+            ]);
+
+            const blocksToMine = 20;
+            await this.provider.send("hardhat_mine", [
+              numberToRpcQuantity(blocksToMine),
+            ]);
+
+            for (let i = 1; i <= blocksToMine; i++) {
+              const blockBaseFeePerGas = await getBlockBaseFeePerGas(
+                originalLatestBlockNumber + i
+              );
+              assert.isTrue(blockBaseFeePerGas.eqn(1));
+            }
           });
         });
 

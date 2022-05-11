@@ -428,7 +428,7 @@ export class Artifacts implements IArtifacts {
     return paths.map((p) => this._getFullyQualifiedNameFromPath(p)).sort();
   }
 
-  private _formatSuggestions(names: string[], contractName?: string): string {
+  private _formatSuggestions(names: string[], contractName: string): string {
     switch (names.length) {
       case 0:
         return "";
@@ -456,7 +456,7 @@ Please replace "${contractName}" for the correct contract name wherever you are 
 
     throw new HardhatError(ERRORS.ARTIFACTS.NOT_FOUND, {
       contractName: fullyQualifiedName,
-      suggestion: this._formatSuggestions(similarNames),
+      suggestion: this._formatSuggestions(similarNames, fullyQualifiedName),
     });
   }
 
@@ -501,7 +501,7 @@ Please replace "${contractName}" for the correct contract name wherever you are 
   ): string[] {
     const outputNames = [];
     const groups = similarNames.reduce((obj, cur) => {
-      obj[cur] = obj[cur] ? obj[cur] + 1 : 1;
+      obj[cur] = obj[cur] === 0 ? 1 : obj[cur] + 1;
       return obj;
     }, {} as { [k: string]: number });
 

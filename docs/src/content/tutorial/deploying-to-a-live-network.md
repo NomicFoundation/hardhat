@@ -77,7 +77,13 @@ module.exports = {
 
 We're using [Alchemy](https://www.alchemyapi.io), but pointing `url` to any Ethereum node or gateway would work. Go grab your `ALCHEMY_API_KEY` and come back.
 
-To deploy on Ropsten you need to send ropsten-ETH into the address that's going to be making the deployment. You can get some ETH for testnets from a faucet, a service that distributes testing-ETH for free. [Here's the one for Ropsten](https://faucet.ropsten.be/), you'll have to change Metamask's network to Ropsten before transacting.
+To deploy on Ropsten you need to send ropsten-ETH into the address that's going to be making the deployment. You can get some ETH for testnets from a faucet, a service that distributes testing-ETH for free. Here's some for Ropsten:
+
+- [Portland State Ropsten Ethereum (rETH) faucet](https://ropsten.oregonctf.org/eth)
+- [Ropsten testnet faucet](https://faucet.egorfine.com/)
+- [MetaMask Ether Faucet](https://faucet.metamask.io/)
+
+You'll have to change Metamask's network to Ropsten before transacting.
 
 :::tip
 

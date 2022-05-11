@@ -47,7 +47,7 @@ const BASIC_SAMPLE_PROJECT_DEPENDENCIES: Dependencies = {
 const ADVANCED_SAMPLE_PROJECT_DEPENDENCIES: Dependencies = {
   ...BASIC_SAMPLE_PROJECT_DEPENDENCIES,
   "@nomiclabs/hardhat-etherscan": "^3.0.0",
-  dotenv: "^10.0.0",
+  dotenv: "^16.0.0",
   eslint: "^7.29.0",
   "eslint-config-prettier": "^8.3.0",
   "eslint-config-standard": "^16.0.3",

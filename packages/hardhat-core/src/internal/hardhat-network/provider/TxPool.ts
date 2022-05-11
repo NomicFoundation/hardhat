@@ -445,7 +445,7 @@ export class TxPool {
 
     if (txMaxUpfrontCost.gt(senderBalance)) {
       throw new InvalidInputError(
-        `sender doesn't have enough funds to send tx. The max upfront cost is: ${txMaxUpfrontCost}` +
+        `sender doesn't have enough funds to send tx. The max upfront cost is: ${txMaxUpfrontCost.toString()}` +
           ` and the sender's account only has: ${senderBalance.toString()}`
       );
     }
@@ -461,7 +461,7 @@ export class TxPool {
 
     if (gasLimit.lt(baseFee)) {
       throw new InvalidInputError(
-        `Transaction requires at least ${baseFee} gas but got ${gasLimit}`
+        `Transaction requires at least ${baseFee.toString()} gas but got ${gasLimit.toString()}`
       );
     }
 
@@ -469,7 +469,7 @@ export class TxPool {
 
     if (gasLimit.gt(blockGasLimit)) {
       throw new InvalidInputError(
-        `Transaction gas limit is ${gasLimit} and exceeds block gas limit of ${blockGasLimit}`
+        `Transaction gas limit is ${gasLimit.toString()} and exceeds block gas limit of ${blockGasLimit.toString()}`
       );
     }
   }

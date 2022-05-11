@@ -127,7 +127,7 @@ const { expect } = require("chai");
 // The callback must define the tests of that section. This callback can't be
 // an async function.
 describe("Token contract", function () {
-  // Mocha has four functions that let you hook into the the test runner's
+  // Mocha has four functions that let you hook into the test runner's
   // lifecyle. These are: `before`, `beforeEach`, `after`, `afterEach`.
 
   // They're very useful to setup the environment for tests, and to clean it

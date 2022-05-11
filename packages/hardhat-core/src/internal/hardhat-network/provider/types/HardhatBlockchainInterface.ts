@@ -11,7 +11,8 @@ export interface HardhatBlockchainInterface extends BlockchainInterface {
     count: BN,
     interval: BN,
     previousBlockStateRoot: Buffer,
-    previousBlockTotalDifficulty: BN
+    previousBlockTotalDifficulty: BN,
+    previousBlockBaseFeePerGas: BN | undefined
   ): void;
   deleteLaterBlocks(block: Block): void;
   getBlockByTransactionHash(transactionHash: Buffer): Promise<Block | null>;
