@@ -157,23 +157,29 @@ describe(".to.emit (contract events)", () => {
         });
 
         it("Should fail when the input argument doesn't match the event argument", async function () {
-          // this error message is terrible. should improve the implementation.
           await expect(
             expect(contract.emitIndexedString(string1))
               .to.emit(contract, "WithIndexedStringArg")
               .withArgs(string2)
           ).to.be.eventually.rejectedWith(
             AssertionError,
-            `expected '${ethers.utils.keccak256(
+            `The actual value was an indexed and hashed value of the event argument. The expected value provided to the assertion was hashed to produce ${ethers.utils.keccak256(
+              string2Bytes
+            )}. The actual hash and the expected hash did not match: expected '${ethers.utils.keccak256(
               string1Bytes
-            )}' to be one of [ Array(2) ]`
+            )}' to equal '${ethers.utils.keccak256(string2Bytes)}'`
           );
         });
 
         it("Should match the event argument with a hash value", async function () {
-          await expect(contract.emitIndexedString(string1))
-            .to.emit(contract, "WithIndexedStringArg")
-            .withArgs(ethers.utils.keccak256(string1Bytes));
+          await expect(
+            expect(contract.emitIndexedString(string1))
+              .to.emit(contract, "WithIndexedStringArg")
+              .withArgs(ethers.utils.keccak256(string1Bytes))
+          ).to.be.eventually.rejectedWith(
+            AssertionError,
+            "The actual value was an indexed and hashed value of the event argument. The expected value provided to the assertion should be the actual event argument (the pre-image of the hash). You provided the hash itself. Please supply the the actual event argument (the pre-image of the hash) instead."
+          );
         });
 
         it("Should fail when trying to match the event argument with an incorrect hash value", async function () {
@@ -185,7 +191,11 @@ describe(".to.emit (contract events)", () => {
               .withArgs(incorrectHash)
           ).to.be.eventually.rejectedWith(
             AssertionError,
-            `expected '${expectedHash}' to be one of [ Array(2) ]`
+            `The actual value was an indexed and hashed value of the event argument. The expected value provided to the assertion was hashed to produce ${ethers.utils.keccak256(
+              incorrectHash
+            )}. The actual hash and the expected hash did not match: expected '${expectedHash}' to equal '${ethers.utils.keccak256(
+              incorrectHash
+            )}'`
           );
         });
       });
@@ -223,16 +233,23 @@ describe(".to.emit (contract events)", () => {
               .withArgs(string1Bytes)
           ).to.be.eventually.rejectedWith(
             AssertionError,
-            `expected '${ethers.utils.keccak256(
+            `The actual value was an indexed and hashed value of the event argument. The expected value provided to the assertion was hashed to produce ${ethers.utils.keccak256(
+              string1Bytes
+            )}. The actual hash and the expected hash did not match: expected '${ethers.utils.keccak256(
               string2Bytes
-            )}' to be one of [ Array(2) ]`
+            )}' to equal '${ethers.utils.keccak256(string1Bytes)}'`
           );
         });
 
         it("Should match the event argument with a hash value", async function () {
-          await expect(contract.emitIndexedBytes(string1Bytes))
-            .to.emit(contract, "WithIndexedBytesArg")
-            .withArgs(ethers.utils.keccak256(string1Bytes));
+          await expect(
+            expect(contract.emitIndexedBytes(string1Bytes))
+              .to.emit(contract, "WithIndexedBytesArg")
+              .withArgs(ethers.utils.keccak256(string1Bytes))
+          ).to.be.eventually.rejectedWith(
+            AssertionError,
+            "The actual value was an indexed and hashed value of the event argument. The expected value provided to the assertion should be the actual event argument (the pre-image of the hash). You provided the hash itself. Please supply the the actual event argument (the pre-image of the hash) instead."
+          );
         });
       });
 
