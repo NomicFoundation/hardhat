@@ -1,4 +1,5 @@
 import { AssertionError, expect } from "chai";
+import { BigNumber } from "ethers";
 import { ProviderError } from "hardhat/internal/core/providers/errors";
 
 import {
@@ -329,6 +330,20 @@ describe("INTEGRATION: Reverted with custom error", function () {
           Error,
           "withArgs called with both .emit and .revertedWithCustomError, these assertions cannot be combined"
         );
+      });
+
+      it("should work with bigints and bignumbers", async function () {
+        await expect(matchers.revertWithCustomErrorWithUint(1))
+          .to.be.revertedWithCustomError(matchers, "CustomErrorWithUint")
+          .withArgs(BigInt(1));
+
+        await expect(matchers.revertWithCustomErrorWithUint(1))
+          .to.be.revertedWithCustomError(matchers, "CustomErrorWithUint")
+          .withArgs(BigNumber.from(1));
+
+        await expect(matchers.revertWithCustomErrorWithPair(1, 2))
+          .to.be.revertedWithCustomError(matchers, "CustomErrorWithPair")
+          .withArgs([BigInt(1), BigNumber.from(2)]);
       });
     });
 
