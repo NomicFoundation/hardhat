@@ -1,11 +1,21 @@
+import type {
+  providers,
+  utils as EthersUtils,
+  Contract,
+  Transaction,
+} from "ethers";
+
 import { AssertionError } from "chai";
-import { Contract, providers, Transaction, utils } from "ethers";
+
+type EventFragment = EthersUtils.EventFragment;
+type Interface = EthersUtils.Interface;
+type Provider = providers.Provider;
 
 export const EMIT_CALLED = "emitAssertionCalled";
 
 async function waitForPendingTransaction(
   tx: Promise<Transaction> | Transaction | string,
-  provider: providers.Provider
+  provider: Provider
 ) {
   let hash: string | undefined;
   if (tx instanceof Promise) {
@@ -29,11 +39,12 @@ export function supportEmit(
     "emit",
     function (this: any, contract: Contract, eventName: string) {
       const tx = this._obj;
+
       const derivedPromise = waitForPendingTransaction(
         tx,
         contract.provider
       ).then((receipt: providers.TransactionReceipt) => {
-        let eventFragment: utils.EventFragment | undefined;
+        let eventFragment: EventFragment | undefined;
         try {
           eventFragment = contract.interface.getEvent(eventName);
         } catch (e) {
@@ -87,7 +98,9 @@ function assertArgsArraysEqual(
   expectedArgs: any[],
   log: any
 ) {
-  const actualArgs = (context.contract.interface as utils.Interface).parseLog(
+  const { utils } = require("ethers");
+
+  const actualArgs = (context.contract.interface as Interface).parseLog(
     log
   ).args;
   context.assert(

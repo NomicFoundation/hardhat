@@ -1,5 +1,7 @@
-import { BigNumber } from "ethers";
+import type { BigNumber } from "ethers";
+
 import { normalizeToBigInt } from "hardhat/common";
+
 import { panicErrorCodeToReason } from "./panic";
 import { decodeReturnData, getReturnDataFromError } from "./utils";
 
@@ -13,7 +15,7 @@ export function supportRevertedWithPanic(Assertion: Chai.AssertionStatic) {
       try {
         if (expectedCodeArg !== undefined) {
           const normalizedCode = normalizeToBigInt(expectedCodeArg);
-          expectedCode = BigNumber.from(normalizedCode);
+          expectedCode = ethers.BigNumber.from(normalizedCode);
         }
       } catch {
         throw new TypeError(

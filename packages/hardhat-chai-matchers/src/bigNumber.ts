@@ -1,5 +1,4 @@
 import { AssertionError } from "chai";
-import deepEqual from "deep-eql";
 import {
   formatNumberType,
   isBigNumber,
@@ -142,6 +141,7 @@ function overwriteBigNumberFunction(
         actual
       );
     } else if (functionName === "eq" && chaiUtils.flag(this, "deep")) {
+      const deepEqual = require("deep-eql");
       // this is close enough to what chai itself does, except we compare
       // numbers after normalizing them
       const comparator = (a: any, b: any): boolean | null => {

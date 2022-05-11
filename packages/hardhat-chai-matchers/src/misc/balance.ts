@@ -1,4 +1,3 @@
-import { BigNumber } from "ethers";
 import { Account, getAddressOf } from "./account";
 
 export interface BalanceChangeOptions {
@@ -13,6 +12,7 @@ export async function getBalances(
   accounts: Array<Account | string>,
   blockNumber?: number
 ) {
+  const { BigNumber } = await import("ethers");
   const hre = await import("hardhat");
   const provider = hre.ethers.provider;
 
