@@ -2,19 +2,19 @@
 
 - [x] Init Next project with eslint & prettier
 - [x] Add styling solution
-- [ ] Storybook
-- [ ] Configure content blocks mapping
-- [ ] Dynamic pages
-- [ ] Documentation pages
-- [ ] Add linaria theme
+- [x] Storybook
+- [x] Configure content blocks mapping
+- [x] Dynamic pages
+- [x] Documentation pages
+- [x] Add linaria theme
 - [x] CI on github actions
 - [ ] incorporate CI checks into general workflow
-- [ ] CD to vercel
+- [x] CD to vercel
 - [ ] Setup Dev & Prod environments
-- [ ] Configure auto deploy on pushing to main branch
-- [ ] Onboard Senior developer
-- [ ] Build sitemap
+- [x] Configure auto deploy on pushing to main branch
+- [x] Onboard Senior developer
+- [x] Build sitemap
 - [ ] Setup testing (jest + testing-library)
-- [ ] Add Markdown renderer
-- [ ] Setup props for Storybook components
-- [ ] Define major styles for hover, focus etc
+- [x] Add Markdown renderer
+- [x] Setup props for Storybook components
+- [x] Define major styles for hover, focus etc

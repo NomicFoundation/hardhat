@@ -20,7 +20,8 @@ import { rpcTransactionReceipt } from "../../core/jsonrpc/types/output/receipt";
 import { rpcTransaction } from "../../core/jsonrpc/types/output/transaction";
 import { HttpProvider } from "../../core/providers/http";
 import { createNonCryptographicHashBasedIdentifier } from "../../util/hash";
-import { nullable } from "../../util/io-ts";
+import { nullable, optional } from "../../util/io-ts";
+import { FeeHistory } from "../provider/node-types";
 
 export class JsonRpcClient {
   private _cache: Map<string, any> = new Map();
@@ -219,6 +220,32 @@ export class JsonRpcClient {
       transactionCount: results[1],
       balance: results[2],
     };
+  }
+
+  // This is part of a temporary fix to https://github.com/NomicFoundation/hardhat/issues/2380
+  // This method caches each request instead of caching each block's fee info individually, which is not ideal
+  public async getFeeHistory(
+    blockCount: BN,
+    newestBlock: BN | "pending",
+    rewardPercentiles: number[]
+  ): Promise<FeeHistory> {
+    return this._perform(
+      "eth_feeHistory",
+      [
+        numberToRpcQuantity(blockCount),
+        newestBlock === "pending"
+          ? "pending"
+          : numberToRpcQuantity(newestBlock),
+        rewardPercentiles,
+      ],
+      t.type({
+        oldestBlock: rpcQuantity,
+        baseFeePerGas: t.array(rpcQuantity),
+        gasUsedRatio: t.array(t.number),
+        reward: optional(t.array(t.array(rpcQuantity))),
+      }),
+      (res) => res.oldestBlock.addn(res.baseFeePerGas.length)
+    );
   }
 
   private async _perform<T>(

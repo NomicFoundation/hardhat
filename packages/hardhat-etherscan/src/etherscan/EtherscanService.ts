@@ -24,6 +24,7 @@ export async function verifyContract(
   const method: Dispatcher.HttpMethod = "POST";
   const requestDetails = {
     method,
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: parameters.toString(),
   };
 
