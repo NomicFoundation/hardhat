@@ -1,6 +1,8 @@
 import { expect, AssertionError } from "chai";
 import { BigNumber, Contract, ethers } from "ethers";
 
+import { anyUint, anyValue } from "../src/withArgs";
+
 import { useEnvironment, useEnvironmentWithNode } from "./helpers";
 
 import "../src";
@@ -425,6 +427,59 @@ describe(".to.emit (contract events)", () => {
             AssertionError,
             'Expected "WithTwoUintArgs" event to have 1 argument(s), but it has 2'
           );
+        });
+
+        describe("Should handle argument predicates", function () {
+          it("Should pass when a predicate argument returns true", async function () {
+            await expect(contract.emitTwoUints(1, 2))
+              .to.emit(contract, "WithTwoUintArgs")
+              .withArgs(anyValue, anyUint);
+          });
+
+          it("Should fail when a predicate argument returns false", async function () {
+            await expect(
+              expect(contract.emitTwoUints(1, 2))
+                .to.emit(contract, "WithTwoUintArgs")
+                .withArgs(1, () => false)
+            ).to.be.eventually.rejectedWith(
+              AssertionError,
+              "The predicate for event argument #2 returned false"
+            );
+          });
+
+          it("Should fail when a predicate argument throws an error", async function () {
+            await expect(
+              expect(contract.emitTwoUints(1, 2))
+                .to.emit(contract, "WithTwoUintArgs")
+                .withArgs(() => {
+                  throw new Error("user-defined error");
+                }, "foo")
+            ).to.be.rejectedWith(Error, "user-defined error");
+          });
+
+          describe("with predicate anyUint", function () {
+            it("Should fail when the event argument is a string", async function () {
+              await expect(
+                expect(contract.emitString("a string"))
+                  .to.emit(contract, "WithStringArg")
+                  .withArgs(anyUint)
+              ).to.be.rejectedWith(
+                AssertionError,
+                "The predicate for event argument #1 threw an AssertionError: anyUint expected its argument to be an integer, but its type was 'string'"
+              );
+            });
+
+            it("Should fail when the event argument is negative", async function () {
+              await expect(
+                expect(contract.emitInt(-1))
+                  .to.emit(contract, "WithIntArg")
+                  .withArgs(anyUint)
+              ).to.be.rejectedWith(
+                AssertionError,
+                "The predicate for event argument #1 threw an AssertionError: anyUint expected its argument to be an unsigned integer, but it was negative, with value -1"
+              );
+            });
+          });
         });
       });
     });
