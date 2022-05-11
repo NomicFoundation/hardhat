@@ -26,7 +26,6 @@ export interface FooterNavigation {
   editLink: string;
 }
 
-// TODO: Check do we need this type for UI components. If not - remove it.
 export type IDocumentationSidebarStructure = IDocumentationSidebarSection[];
 
 export interface IFooterNavigation {

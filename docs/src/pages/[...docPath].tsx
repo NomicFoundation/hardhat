@@ -55,7 +55,7 @@ export default DocPage;
 export const getStaticProps: GetStaticProps = async (props) => {
   const { params } = props;
   // @ts-ignore
-  const fullName = withIndexFile(params.docPath, params.isIndex);
+  const fullName = withIndexFile(params.docPath);
   const { source, fileName } = readMDFileFromPathOrIndex(fullName);
   const lastEditDate = getCommitDate(fileName);
   const editLink = getEditLink(fileName);

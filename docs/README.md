@@ -1,63 +1,61 @@
 # Hardhat documentation website
 
-This is an NextJS based application for Hardhat documentation website. This app is utilizing SSG for creating pages on the build step. It's developed with keeping the best practices in mind including accessability, SEO and Performance optimizations, scalability.
+This is a NextJS-based application for the Hardhat documentation website. This app is utilizing SSG for creating pages on the build step. It's developed keeping the best practices in mind including accessibility, SEO and Performance optimizations, and scalability
 
 The app mainly provides pages of two types:
 
 - landing pages (see home page)
 - documentation pages (see documentation section)
 
-Landing pages are composed from reusable blocks and separate content files. Blocks are full width React Components that can be stacked to compose a page. Blocks output a content passed to them via props.
+Landing pages are composed of reusable blocks and separate content files. Blocks are full-width React Components that can be stacked to compose a page. Blocks output content passed to them via props.
 
-Documentation pages are generated from markdown files located in the `src/content` folder. This folder has nesting structure which is mapped to the pages URLs on the website.
+Documentation pages are generated from markdown files located in the `src/content` folder. This folder has a nesting structure that is mapped to the page URLs on the website.
 
-It's assumed that the app will be hosted on Vercel platform with is highly optimized for SSG apps.
+It's assumed that the app will be hosted on the Vercel platform with is highly optimized for SSG apps.
 
-We consider two directions of the follow up application growing:
+We consider two directions of the follow-up application growing:
 
 - by creating and editing new content.
 - by adding new features to the app.
 
-The first one can be provided by working with human friendly file formats located in the content folder (\*.md and yaml). Only minimal tech knowledge are needed for that. The second way requires developers efforts.
+The first one can be provided by working with human-friendly file formats located in the content folder (MD and YAML). Only minimal tech knowledge is needed for that. The second way requires developers' efforts.
 
 ## Preview
 
 https://hardhat-lime.vercel.app/
 
-## Storybook
-
-https://hardhat-storybook.netlify.app/
-
 ## Adding content
 
 Website content is located in `*.md` files withing `src/content` folder. It's written in Markdown syntax. Folders structure in `content` is reflected on the website.
 
-In order to tune pages behavior and appearance with also use optional `*.yaml` files with additional configurations.
+To tune pages, behavior and appearance also use optional `*.yaml` files with additional configurations.
+
+To preview content locally, launch the app with `yarn dev` and open http://localhost:3000 in your browser. See details in [Development](#development) section.
 
 ### Layouts
 
-All content is organized by an hierarchy levels and the top level entries are layouts. Layout represents a set of folders and provides a navigation withing them. Currently a folder should belong to one of the layouts. In therms of UI layout is equal to a sidebar navigation menu with two level items. Layouts settings can be found in the `src/content/layouts.yaml` file. It contains all layouts (currently "documentation" and "tutorial"). Each layout can have the following settings:
+All content is organized by hierarchy levels and the top-level entries are layouts. The layout represents a set of folders and provides navigation within them. Currently, a folder should belong to one of the layouts. In terms of UI, the layout is equal to a sidebar navigation menu with two-level items. Layouts settings can be found in the `src/content/layouts.yaml` file. It contains all layouts (currently "documentation" and "tutorial"). Each layout can have the following settings:
 
 - title (optional)
-- folders - the list of folders should be included into this layout
+- folders - the list of folders should be included in this layout
 
 ### Folders
 
-The next level is a folder. It can contain nesting folders and `*.md` files. Each `*.md` file represents a single documentation page. Folders usually are represented in a sidebar as a group of items with a common title - each item in this group opens a separate file in the folder. Folders can be nested but it's only affect pages path on website, sidebar navigation is always of two levels. To configure folders we're using `_dirinfo.yaml` files which can contain the following settings:
+The next level is a folder. It can contain nesting folders and `*.md` files. Each `*.md` file represents a single documentation page. Folders usually are represented in a sidebar as a group of items with a common title - each item in this group opens a separate file in the folder. Folders can be nested but it only affects the page's path on the website, sidebar navigation is always of two levels. To configure folders we're using `_dirinfo.yaml` files which can contain the following settings:
 
-**section-title**: the title of a group in sidebar. It's optional, if skipped the folder name will be used.
+**section-title**: the title of a group in the sidebar. It's optional, if skipped the folder name will be used.
 
-**section-type**: this settings controls appearance of the group in sidebar. It can be:
+**section-type**: this setting controls the appearance of the group in the sidebar. It can be:
 
-- group - regular group with a title and list of items
+- group - a regular group with a title and list of items
 - single - good for groups with a single item
-- hidden - the folder won't be shown in sidebar but when you open a page from this group sidebar is present.
-- plugins - the "special" group with is generated not from the `*.md` files located in content folder, but from README.md files from plugin packages
+- hidden - the folder won't be shown in the sidebar but when you open a page from this group sidebar is present.
+- plugins - the "special" group with is generated not from the `*.md` files located in the content folder, but from README.md files from plugin packages
 
-**order**: an array of item in the order they should appear in the sidebar group. This is optional but if it's not specified the order will be based on file names. This array can contain two type of items:
+**order**: an array of items in the order they should appear in the sidebar group. This is optional but if it's not specified the order will be based on file names. This array can contain two types of items:
 
-- simple href strings (which the same as a path to a file without file extension. e.g. `/explanation/mining-modes`). Note it shouldn't contain the group folder name in the path. In this case the title of the item will be generated automatically and will be the same as a page title.
-- objects with `href` and `title` keys. In this case href can be any valid relative link. Title specifies the title of that item in sidebar. Note: this allows to specify anchor links e.g. `"#quick-start"` or a "index" links - `/`.
+- simple href strings (which are the same as a path to a file without a file extension. e.g. `/explanation/mining-modes`). Note it shouldn't contain the group folder name in the path. In this case, the title of the item will be generated automatically and will be the same as a page title.
+- objects with `href` and `title` keys. In this case, href can be any valid relative link. The title specifies the title of that item in the sidebar. Note: this allows to specify anchor links e.g. `"#quick-start"` or a "index" links - `/`.
 
 ### MD Files
 
@@ -70,14 +68,13 @@ All documentation content is represented by `*.md` files with Markdown syntax. B
 
 <!-- (// TODO: add md syntax examples) -->
 
-
 ### Redirects
 
-Redirects allow you to redirect an incoming request path to a different destination path. Redirects settings are located in `redirects.config.js` file. It exports array of objects. Each object represents a single redirect option. We utilize [NextJS Redirects](https://nextjs.org/docs/api-reference/next.config.js/redirects) API for that.
+Redirects allow you to redirect an incoming request path to a different destination path. Redirects settings are located in `redirects.config.js` file. It exports an array of objects. Each object represents a single redirect option. We utilize [NextJS Redirects](https://nextjs.org/docs/api-reference/next.config.js/redirects) API for that.
 
 ## Development
 
-This website is a SSG application based on Next.js. To learn more about Next.js, take a look at the following resources:
+This website is an SSG application based on Next.js. To learn more about Next.js, take a look at the following resources:
 
 - [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
 - [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
@@ -99,13 +96,67 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 You can start editing the page by modifying `src/pages/...`. The page auto-updates as you edit the file.
 
+### Folders structure
+
+When developing the application you might need these main
+
+- src/components - React Components for rendering pages
+- src/components/landingBlocks - "Building blocks" for creating landing pages
+- src/components/mdxComponents - Components used to render markdown content
+- src/components/ui - common UI components
+- src/hooks - common React hooks
+- src/model - business logic files
+- src/pages - NextJS pages. `[...docPath].tsx` means multiple pages will be generated. Page routes are based on the relative paths
+- src/styles - global CSS styles
+- src/config.ts - keep main information about the app.
+- public/ - static files
+- .storybook/ - Storybook settings
+- next.config.js - NextJS config
+- redirects.config.js - Custom redirects
+
+## Storybook
+
+You can use Storybook to develop components in isolation. Launch it via `yarn storybook` and open http://localhost:6006/ You will see a list of components in the left-side sidebar. When you edit component's code and save it, the Storybook is auto-updating it.
+
+Each component can be exposed with different states (stories) independently by passing props you need. You can find component stories settings in `Component.stories.ts` files.
+
+We also deploy updated storybook on each build. You can find it on https://hardhat-storybook.netlify.app/
+
 ## Content generating tech details
 
-There two relatively independent processes on the build step:
+There are two relatively independent processes in the build step:
 
-1. Generating pages itself. We get pages paths directly from the files located in the content folder. Their paths are mapped to the page routes. Layout settings doesn't affect to pages existence.
-2. Generating layouts and mapping layouts to pages. For that we're checking which folders belongs to what layout and assigning that layout to a page
+1. Generating pages themselves. We get page paths directly from the files located in the content folder. Their paths are mapped to the page routes. Layout settings don't affect to page's existence.
+2. Generating layouts and mapping layouts to pages. For that, we're checking which folders belong to what layout and assigning that layout to a page
 
-Page paths are generated in the `getStaticPaths` functions in files of the `page` folder. The result of these functions is array of pages paths. Page pros are generated with the `getStaticProps` function which is executed once per a page with a page path passed as an argument and returns all required page props.
+Page paths are generated in the `getStaticPaths` functions in files of the `page` folder. The result of these functions is an array of page paths. Page pros are generated with the `getStaticProps` function which is executed once per page with a page path passed as an argument and returns all required page props.
 
-Execution of `getStaticPaths` and  `getStaticProps` is handled by NextJS on a build step and it runs them in isolation (means we can't share a common calculated parameters withing them). In order to optimize a building time we store an intermediate config in a temporary file on the `getStaticPaths` execution and read it from  `getStaticProps` functions. It contains layout settings and a map of pages with a specific props.
+Execution of `getStaticPaths` and `getStaticProps` is handled by NextJS on a build step and it runs them in isolation (which means we can't share common calculated parameters within them). To optimize a building time we store an intermediate config in a temporary file on the `getStaticPaths` execution and read it from `getStaticProps` functions. It contains layout settings and a map of pages with specific props.
+
+## Styling
+
+We utilize [Linaria](https://github.com/callstack/linaria) for styling components. It has the "Styled Components" syntax but generates css without runtime with works fine with SSG sites.
+
+## Theming
+
+The documentation section is Themable. A user can switch between light, dark and high contrast themes for their convenience. There is also an "Auto" setting when theme is selected based on a user system settings.
+
+Theming solution provides abilities to switch themes, keep the selected value in user's local storage, seamlessly keep selected page on navigating and page refreshing.
+
+We manage themes by applying a CSS class to the HTML body. Each component has special selectors in its CSS to reflect change color depending on selected theme. To support themes, components should provide styles for all app themes (add selectors and specify colors).
+
+Landing pages don't support themes.
+
+## Creating new landings
+
+Landing pages contains special "blocks" see src/components/landingBlocks. To create a new landing page start from copying `/pages/index.tsx` and `src/content/home.ts`. You can create another page by reodering existing blocks and passing another content to them. If necessary create new landing blocks.
+
+## CI/CD
+
+We use two CI/CD providers:
+
+- Github actions for launching code checks
+- Vercel to deploy app
+
+Each branch triggers own process on CI/CD so you can see a code check details on Github and preview the current branch on Vercel.
+

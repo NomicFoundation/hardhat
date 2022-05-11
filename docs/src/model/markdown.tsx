@@ -15,8 +15,6 @@ import rehypePrism from "@mapbox/rehype-prism";
 
 import { DOCS_PATH, REPO_URL, TEMP_PATH } from "../config";
 
-// const rehypePrism = require("@mapbox/rehype-prism");
-
 export const newLineDividerRegEx = /\r\n|\n/;
 
 export const withIndexURL = (pathname: string): string[] => {
@@ -27,12 +25,8 @@ export const withIndexURL = (pathname: string): string[] => {
   return docPath;
 };
 
-// TODO: check do we need `isIndex`
-export const withIndexFile = (docPath: string[], isIndex: boolean): string => {
-  const mdFilePath = path.join(
-    DOCS_PATH,
-    `${docPath.join("/")}${isIndex ? "/index" : ""}.md`
-  );
+export const withIndexFile = (docPath: string[]): string => {
+  const mdFilePath = path.join(DOCS_PATH, `${docPath.join("/")}.md`);
   return mdFilePath;
 };
 
@@ -195,7 +189,7 @@ export const parseMdFile = (source: string) => {
   const formattedContent = withoutComments(withInsertedCodeFromLinks(content));
 
   const tocTitle = data.title ?? generateTitleFromContent(formattedContent);
-  const seoTitle = [tocTitle, "Hardhat"].filter(Boolean).join(" | ");
+  const seoTitle = tocTitle || "Hardhat";
   const seoDescription =
     data.title ||
     "Ethereum development environment for professionals by Nomic Foundation";

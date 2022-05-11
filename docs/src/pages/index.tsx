@@ -14,7 +14,13 @@ import LandingLayout from "../components/LandingLayout";
 
 const Home: NextPage = () => {
   return (
-    <LandingLayout seo={{ title: "Hardhat", description: "Hardhat" }}>
+    <LandingLayout
+      seo={{
+        title: "Hardhat",
+        description:
+          "Hardhat is an Ethereum development environment. Compile your contracts and run them on a development network. Get Solidity stack traces, console.log and more.",
+      }}
+    >
       <HeroBlock content={homepageContent.heroBlockContent} />
       <ToolsBlock content={homepageContent.toolsBlockContent} />
       <WhyHardhatBlock content={homepageContent.whyHardhatContent}>
