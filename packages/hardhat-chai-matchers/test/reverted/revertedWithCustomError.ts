@@ -265,17 +265,39 @@ describe("INTEGRATION: Reverted with custom error", function () {
         ).to.be.rejectedWith(AssertionError, "expected 'foo' to equal 'bar'");
       });
 
-      // skipped until .deep.equal works with big numbers
-      it.skip("should work with nested arguments", async function () {
+      it("should check the length of the args", async function () {
+        await expect(
+          expect(matchers.revertWithCustomErrorWithUintAndString(1, "s"))
+            .to.be.revertedWithCustomError(
+              matchers,
+              "CustomErrorWithUintAndString"
+            )
+            .withArgs(1)
+        ).to.be.rejectedWith(AssertionError, "expected 1 args but got 2");
+
+        await expect(
+          expect(matchers.revertWithCustomErrorWithUintAndString(1, "s"))
+            .to.be.revertedWithCustomError(
+              matchers,
+              "CustomErrorWithUintAndString"
+            )
+            .withArgs(1, "s", 3)
+        ).to.be.rejectedWith(AssertionError, "expected 3 args but got 2");
+      });
+
+      it("should work with nested arguments", async function () {
         await expect(matchers.revertWithCustomErrorWithPair(1, 2))
           .to.be.revertedWithCustomError(matchers, "CustomErrorWithPair")
           .withArgs([1, 2]);
 
         await expect(
-          expect(matchers.revertWithCustomErrorWithUint(1, 2))
+          expect(matchers.revertWithCustomErrorWithPair(1, 2))
             .to.be.revertedWithCustomError(matchers, "CustomErrorWithPair")
             .withArgs([3, 2])
-        ).to.be.rejectedWith(AssertionError, "expected 1 to equal 3");
+        ).to.be.rejectedWith(
+          AssertionError,
+          /expected \[.*\] to deeply equal \[ 3, 2 \]/s
+        );
       });
 
       it("Should fail when used with .not.", async function () {

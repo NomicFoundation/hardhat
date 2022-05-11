@@ -153,15 +153,20 @@ export async function revertedWithCustomErrorWithArgs(
     returnData
   );
 
-  // TODO temporary solution until `.to.deep.equal` works correctly with big
-  // numbers
   new Assertion(actualArgs).to.have.same.length(
     expectedArgs.length,
-    `Expected ${expectedArgs.length} args but got ${actualArgs.length}`
+    `expected ${expectedArgs.length} args but got ${actualArgs.length}`
   );
 
   for (const [i, actualArg] of Object.entries(actualArgs) as any) {
-    new Assertion(actualArg).to.equal(expectedArgs[i]);
+    const expectedArg = expectedArgs[i];
+    if (Array.isArray(expectedArg)) {
+      // we use [...x] here to convert the array-like values used by ethers to
+      // represent structs into proper arrays
+      new Assertion([...actualArg]).to.deep.equal([...expectedArg]);
+    } else {
+      new Assertion(actualArg).to.equal(expectedArg);
+    }
   }
 }
 
