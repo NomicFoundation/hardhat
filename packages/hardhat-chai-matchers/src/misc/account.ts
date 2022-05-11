@@ -1,10 +1,12 @@
+import type { Contract, Signer, Wallet } from "ethers";
+
 import assert from "assert";
-import { Contract, Signer, Wallet } from "ethers";
 
 export type Account = Signer | Contract;
 
 export function isAccount(account: Account): account is Contract | Wallet {
-  return account instanceof Contract || account instanceof Wallet;
+  const ethers = require("ethers");
+  return account instanceof ethers.Contract || account instanceof ethers.Wallet;
 }
 
 export async function getAddressOf(account: Account | string) {

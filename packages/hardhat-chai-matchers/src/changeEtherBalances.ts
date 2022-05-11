@@ -1,4 +1,5 @@
-import { BigNumber, BigNumberish, providers } from "ethers";
+import type { BigNumberish, providers } from "ethers";
+
 import { getAddressOf, Account } from "./misc/account";
 import {
   BalanceChangeOptions,
@@ -15,6 +16,7 @@ export function supportChangeEtherBalances(Assertion: Chai.AssertionStatic) {
       balanceChanges: BigNumberish[],
       options?: BalanceChangeOptions
     ) {
+      const { BigNumber } = require("ethers");
       const subject = this._obj;
 
       const derivedPromise = Promise.all([

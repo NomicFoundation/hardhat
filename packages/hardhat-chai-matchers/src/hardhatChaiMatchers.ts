@@ -1,4 +1,3 @@
-import "./types";
 import { supportBigNumber } from "./bigNumber";
 import { supportEmit } from "./emit";
 import { supportHexEqual } from "./hexEqual";
@@ -11,14 +10,15 @@ import { supportReverted } from "./reverted/reverted";
 import { supportRevertedWith } from "./reverted/revertedWith";
 import { supportRevertedWithCustomError } from "./reverted/revertedWithCustomError";
 import { supportRevertedWithPanic } from "./reverted/revertedWithPanic";
-import { supportRevertedWithoutReasonString } from "./reverted/revertedWithoutReasonString";
+import { supportRevertedWithoutReason } from "./reverted/revertedWithoutReason";
+import { supportWithArgs } from "./withArgs";
 
 export function hardhatChaiMatchers(
   chai: Chai.ChaiStatic,
   utils: Chai.ChaiUtils
 ) {
   supportBigNumber(chai.Assertion, utils);
-  supportEmit(chai.Assertion);
+  supportEmit(chai.Assertion, utils);
   supportHexEqual(chai.Assertion);
   supportProperAddress(chai.Assertion);
   supportProperPrivateKey(chai.Assertion);
@@ -29,5 +29,6 @@ export function hardhatChaiMatchers(
   supportRevertedWith(chai.Assertion);
   supportRevertedWithCustomError(chai.Assertion, utils);
   supportRevertedWithPanic(chai.Assertion);
-  supportRevertedWithoutReasonString(chai.Assertion);
+  supportRevertedWithoutReason(chai.Assertion);
+  supportWithArgs(chai.Assertion, utils);
 }

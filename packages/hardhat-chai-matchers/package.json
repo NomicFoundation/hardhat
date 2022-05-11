@@ -1,13 +1,16 @@
 {
-  "name": "@nomiclabs/hardhat-chai-matchers",
+  "name": "@nomicfoundation/hardhat-chai-matchers",
   "version": "0.0.1",
   "description": "Hardhat utils for testing",
-  "homepage": "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-chai-matchers",
-  "repository": "github:nomiclabs/hardhat",
+  "homepage": "https://github.com/nomicfoundation/hardhat/tree/master/packages/hardhat-chai-matchers",
+  "repository": "github:nomicfoundation/hardhat",
   "author": "Nomic Labs LLC",
   "license": "MIT",
-  "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
+  "exports": {
+    ".": "./dist/src/index.js",
+    "./panic": "./dist/src/reverted/panic.js"
+  },
   "keywords": [
     "ethereum",
     "smart-contracts",
@@ -20,6 +23,7 @@
     "eslint": "eslint 'src/**/*.ts' 'test/**/*.ts'",
     "prettier": "prettier \"**/*.{js,md,json}\"",
     "test": "mocha --recursive \"test/**/*.ts\" --exit --reporter dot",
+    "test:ci": "yarn test && node scripts/check-subpath-exports.js",
     "build": "tsc --build .",
     "clean": "rimraf dist internal types *.{d.ts,js}{,.map} build-test tsconfig.tsbuildinfo"
   },
@@ -52,7 +56,7 @@
     "eslint-plugin-prettier": "3.4.0",
     "ethers": "^5.0.0",
     "get-port": "^5.1.1",
-    "hardhat": "^2.0.0",
+    "hardhat": "^2.9.4",
     "mocha": "^9.2.0",
     "prettier": "2.4.1",
     "rimraf": "^3.0.2",
@@ -63,11 +67,12 @@
     "@nomiclabs/hardhat-ethers": "^2.0.0",
     "chai": "^4.2.0",
     "ethers": "^5.0.0",
-    "hardhat": "^2.0.0"
+    "hardhat": "^2.9.4"
   },
   "dependencies": {
     "@ethersproject/abi": "^5.1.2",
     "@types/chai-as-promised": "^7.1.3",
-    "chai-as-promised": "^7.1.1"
+    "chai-as-promised": "^7.1.1",
+    "deep-eql": "^4.0.1"
   }
 }

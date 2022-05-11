@@ -1,6 +1,5 @@
 import type { BigNumber } from "ethers";
 
-import { defaultAbiCoder as abi } from "@ethersproject/abi";
 import { AssertionError } from "chai";
 
 import { HardhatChaiMatchersDecodingError } from "../errors";
@@ -58,6 +57,7 @@ type DecodedReturnData =
     };
 
 export function decodeReturnData(returnData: string): DecodedReturnData {
+  const { defaultAbiCoder: abi } = require("@ethersproject/abi");
   if (returnData === "0x") {
     return { kind: "Empty" };
   } else if (returnData.startsWith(ERROR_STRING_PREFIX)) {

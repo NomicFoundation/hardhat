@@ -1,13 +1,11 @@
 import { decodeReturnData, getReturnDataFromError } from "./utils";
 
-export function supportRevertedWithoutReasonString(
-  Assertion: Chai.AssertionStatic
-) {
-  Assertion.addMethod("revertedWithoutReasonString", function (this: any) {
+export function supportRevertedWithoutReason(Assertion: Chai.AssertionStatic) {
+  Assertion.addMethod("revertedWithoutReason", function (this: any) {
     const onSuccess = () => {
       this.assert(
         false,
-        `Expected transaction to be reverted without a reason string, but it didn't revert`
+        `Expected transaction to be reverted without a reason, but it didn't revert`
       );
     };
 
@@ -18,25 +16,25 @@ export function supportRevertedWithoutReasonString(
       if (decodedReturnData.kind === "Error") {
         this.assert(
           false,
-          `Expected transaction to be reverted without a reason string, but it reverted with reason '${decodedReturnData.reason}'`
+          `Expected transaction to be reverted without a reason, but it reverted with reason '${decodedReturnData.reason}'`
         );
       } else if (decodedReturnData.kind === "Empty") {
         this.assert(
           true,
           null,
-          "Expected transaction NOT to be reverted without a reason string, but it was"
+          "Expected transaction NOT to be reverted without a reason, but it was"
         );
       } else if (decodedReturnData.kind === "Panic") {
         this.assert(
           false,
-          `Expected transaction to be reverted without a reason string, but it reverted with panic code ${decodedReturnData.code.toHexString()} (${
+          `Expected transaction to be reverted without a reason, but it reverted with panic code ${decodedReturnData.code.toHexString()} (${
             decodedReturnData.description
           })`
         );
       } else if (decodedReturnData.kind === "Custom") {
         this.assert(
           false,
-          `Expected transaction to be reverted without a reason string, but it reverted with a custom error`
+          `Expected transaction to be reverted without a reason, but it reverted with a custom error`
         );
       } else {
         const _exhaustiveCheck: never = decodedReturnData;

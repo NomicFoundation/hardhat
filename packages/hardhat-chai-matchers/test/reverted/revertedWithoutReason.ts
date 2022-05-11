@@ -10,7 +10,7 @@ import {
 
 import "../../src";
 
-describe("INTEGRATION: Reverted without reason string", function () {
+describe("INTEGRATION: Reverted without reason", function () {
   describe("with the in-process hardhat network", function () {
     useEnvironment("hardhat-project");
 
@@ -37,8 +37,7 @@ describe("INTEGRATION: Reverted without reason string", function () {
         await runSuccessfulAsserts({
           matchers,
           method: "succeeds",
-          successfulAssert: (x) =>
-            expect(x).not.to.be.revertedWithoutReasonString(),
+          successfulAssert: (x) => expect(x).not.to.be.revertedWithoutReason(),
         });
       });
 
@@ -46,45 +45,42 @@ describe("INTEGRATION: Reverted without reason string", function () {
         await runFailedAsserts({
           matchers,
           method: "succeeds",
-          failedAssert: (x) => expect(x).to.be.revertedWithoutReasonString(),
+          failedAssert: (x) => expect(x).to.be.revertedWithoutReason(),
           failedAssertReason:
-            "Expected transaction to be reverted without a reason string, but it didn't revert",
+            "Expected transaction to be reverted without a reason, but it didn't revert",
         });
       });
     });
 
-    describe("calling a method that reverts without a reason string", function () {
+    describe("calling a method that reverts without a reason", function () {
       it("successful asserts", async function () {
         await runSuccessfulAsserts({
           matchers,
-          method: "revertsWithoutReasonString",
+          method: "revertsWithoutReason",
           args: [],
-          successfulAssert: (x) =>
-            expect(x).to.be.revertedWithoutReasonString(),
+          successfulAssert: (x) => expect(x).to.be.revertedWithoutReason(),
         });
       });
 
       it("failed asserts", async function () {
         await runFailedAsserts({
           matchers,
-          method: "revertsWithoutReasonString",
+          method: "revertsWithoutReason",
           args: [],
-          failedAssert: (x) =>
-            expect(x).to.not.be.revertedWithoutReasonString(),
+          failedAssert: (x) => expect(x).to.not.be.revertedWithoutReason(),
           failedAssertReason:
-            "Expected transaction NOT to be reverted without a reason string, but it was",
+            "Expected transaction NOT to be reverted without a reason, but it was",
         });
       });
     });
 
-    describe("calling a method that reverts with a reason string", function () {
+    describe("calling a method that reverts with a reason", function () {
       it("successful asserts", async function () {
         await runSuccessfulAsserts({
           matchers,
           method: "revertsWith",
           args: ["some reason"],
-          successfulAssert: (x) =>
-            expect(x).to.not.be.revertedWithoutReasonString(),
+          successfulAssert: (x) => expect(x).to.not.be.revertedWithoutReason(),
         });
       });
 
@@ -93,9 +89,9 @@ describe("INTEGRATION: Reverted without reason string", function () {
           matchers,
           method: "revertsWith",
           args: ["some reason"],
-          failedAssert: (x) => expect(x).to.be.revertedWithoutReasonString(),
+          failedAssert: (x) => expect(x).to.be.revertedWithoutReason(),
           failedAssertReason:
-            "Expected transaction to be reverted without a reason string, but it reverted with reason 'some reason'",
+            "Expected transaction to be reverted without a reason, but it reverted with reason 'some reason'",
         });
       });
     });
@@ -105,8 +101,7 @@ describe("INTEGRATION: Reverted without reason string", function () {
         await runSuccessfulAsserts({
           matchers,
           method: "panicAssert",
-          successfulAssert: (x) =>
-            expect(x).to.not.be.revertedWithoutReasonString(),
+          successfulAssert: (x) => expect(x).to.not.be.revertedWithoutReason(),
         });
       });
 
@@ -114,9 +109,9 @@ describe("INTEGRATION: Reverted without reason string", function () {
         await runFailedAsserts({
           matchers,
           method: "panicAssert",
-          failedAssert: (x) => expect(x).to.be.revertedWithoutReasonString(),
+          failedAssert: (x) => expect(x).to.be.revertedWithoutReason(),
           failedAssertReason:
-            "Expected transaction to be reverted without a reason string, but it reverted with panic code 0x01 (Assertion error)",
+            "Expected transaction to be reverted without a reason, but it reverted with panic code 0x01 (Assertion error)",
         });
       });
     });
@@ -126,8 +121,7 @@ describe("INTEGRATION: Reverted without reason string", function () {
         await runSuccessfulAsserts({
           matchers,
           method: "revertWithSomeCustomError",
-          successfulAssert: (x) =>
-            expect(x).to.not.be.revertedWithoutReasonString(),
+          successfulAssert: (x) => expect(x).to.not.be.revertedWithoutReason(),
         });
       });
 
@@ -135,9 +129,9 @@ describe("INTEGRATION: Reverted without reason string", function () {
         await runFailedAsserts({
           matchers,
           method: "revertWithSomeCustomError",
-          failedAssert: (x) => expect(x).to.be.revertedWithoutReasonString(),
+          failedAssert: (x) => expect(x).to.be.revertedWithoutReason(),
           failedAssertReason:
-            "Expected transaction to be reverted without a reason string, but it reverted with a custom error",
+            "Expected transaction to be reverted without a reason, but it reverted with a custom error",
         });
       });
     });
@@ -145,7 +139,7 @@ describe("INTEGRATION: Reverted without reason string", function () {
     describe("invalid values", function () {
       it("non-errors as subject", async function () {
         await expect(
-          expect(Promise.reject({})).to.be.revertedWithoutReasonString()
+          expect(Promise.reject({})).to.be.revertedWithoutReason()
         ).to.be.rejectedWith(AssertionError, "Expected an Error object");
       });
 
@@ -162,10 +156,10 @@ describe("INTEGRATION: Reverted without reason string", function () {
         // revert
         await expect(
           expect(
-            matchers.connect(signer).revertsWithoutReasonString({
+            matchers.connect(signer).revertsWithoutReason({
               gasLimit: 1_000_000,
             })
-          ).to.not.be.revertedWithoutReasonString()
+          ).to.not.be.revertedWithoutReason()
         ).to.be.eventually.rejectedWith(
           ProviderError,
           "sender doesn't have enough funds to send tx"

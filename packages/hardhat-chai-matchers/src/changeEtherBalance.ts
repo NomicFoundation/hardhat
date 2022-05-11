@@ -1,4 +1,5 @@
-import { BigNumber, BigNumberish, providers } from "ethers";
+import type { BigNumberish, providers } from "ethers";
+
 import { ensure } from "./calledOnContract/utils";
 import { Account, getAddressOf } from "./misc/account";
 import { BalanceChangeOptions } from "./misc/balance";
@@ -12,7 +13,9 @@ export function supportChangeEtherBalance(Assertion: Chai.AssertionStatic) {
       balanceChange: BigNumberish,
       options?: BalanceChangeOptions
     ) {
+      const { BigNumber } = require("ethers");
       const subject = this._obj;
+
       const derivedPromise = Promise.all([
         getBalanceChange(subject, account, options),
         getAddressOf(account),
@@ -44,6 +47,7 @@ export async function getBalanceChange(
   account: Account | string,
   options?: BalanceChangeOptions
 ) {
+  const { BigNumber } = await import("ethers");
   const hre = await import("hardhat");
   const provider = hre.network.provider;
 

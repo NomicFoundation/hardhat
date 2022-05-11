@@ -18,7 +18,7 @@ declare module "mocha" {
  * Starts a HRE with the in-process hardhat network.
  */
 export function useEnvironment(fixtureProjectName: string) {
-  beforeEach("start hardhat in-process", async function () {
+  before("start hardhat in-process", async function () {
     process.chdir(
       path.resolve(__dirname, "fixture-projects", fixtureProjectName)
     );
@@ -29,7 +29,7 @@ export function useEnvironment(fixtureProjectName: string) {
     await this.hre.run("compile", { quiet: true });
   });
 
-  afterEach(async function () {
+  after(async function () {
     resetHardhatContext();
     delete process.env.HARDHAT_NETWORK;
   });

@@ -23,7 +23,7 @@ export function supportRevertedWith(Assertion: Chai.AssertionStatic) {
         if (decodedReturnData.kind === "Empty") {
           this.assert(
             false,
-            `Expected transaction to be reverted with reason '${expectedReason}', but it reverted without a reason string`
+            `Expected transaction to be reverted with reason '${expectedReason}', but it reverted without a reason`
           );
         } else if (decodedReturnData.kind === "Error") {
           this.assert(
