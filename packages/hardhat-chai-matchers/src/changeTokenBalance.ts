@@ -1,11 +1,12 @@
-import { BigNumber, BigNumberish, Contract, providers } from "ethers";
+import type EthersT from "ethers";
+
 import { ensure } from "./calledOnContract/utils";
 import { Account, getAddressOf } from "./misc/account";
 
-type TransactionResponse = providers.TransactionResponse;
+type TransactionResponse = EthersT.providers.TransactionResponse;
 
-interface Token extends Contract {
-  balanceOf(address: string, overrides?: any): Promise<BigNumber>;
+interface Token extends EthersT.Contract {
+  balanceOf(address: string, overrides?: any): Promise<EthersT.BigNumber>;
 }
 
 export function supportChangeTokenBalance(Assertion: Chai.AssertionStatic) {
@@ -15,8 +16,9 @@ export function supportChangeTokenBalance(Assertion: Chai.AssertionStatic) {
       this: any,
       token: Token,
       account: Account | string,
-      balanceChange: BigNumberish
+      balanceChange: EthersT.BigNumberish
     ) {
+      const ethers = require("ethers") as typeof EthersT;
       const subject = this._obj;
 
       checkToken(token, "changeTokenBalance");
@@ -27,7 +29,7 @@ export function supportChangeTokenBalance(Assertion: Chai.AssertionStatic) {
         getTokenDescription(token),
       ]).then(([actualChange, address, tokenDescription]) => {
         this.assert(
-          actualChange.eq(BigNumber.from(balanceChange)),
+          actualChange.eq(ethers.BigNumber.from(balanceChange)),
           `Expected "${address}" to change its balance of ${tokenDescription} by ${balanceChange.toString()}, ` +
             `but it has changed by ${actualChange.toString()}`,
           `Expected "${address}" to not change its balance of ${tokenDescription} by ${balanceChange.toString()}, but it did`,
@@ -49,8 +51,9 @@ export function supportChangeTokenBalance(Assertion: Chai.AssertionStatic) {
       this: any,
       token: Token,
       accounts: Array<Account | string>,
-      balanceChanges: BigNumberish[]
+      balanceChanges: EthersT.BigNumberish[]
     ) {
+      const ethers = require("ethers") as typeof EthersT;
       const subject = this._obj;
 
       checkToken(token, "changeTokenBalances");
@@ -73,7 +76,7 @@ export function supportChangeTokenBalance(Assertion: Chai.AssertionStatic) {
       ]).then(([actualChanges, addresses, tokenDescription]) => {
         this.assert(
           actualChanges.every((change, ind) =>
-            change.eq(BigNumber.from(balanceChanges[ind]))
+            change.eq(ethers.BigNumber.from(balanceChanges[ind]))
           ),
           `Expected ${
             addresses as any
@@ -117,6 +120,7 @@ export async function getBalanceChange(
   token: Token,
   account: Account | string
 ) {
+  const ethers = require("ethers") as typeof EthersT;
   const hre = await import("hardhat");
   const provider = hre.network.provider;
 
@@ -152,7 +156,7 @@ export async function getBalanceChange(
     blockTag: txBlockNumber - 1,
   });
 
-  return BigNumber.from(balanceAfter).sub(balanceBefore);
+  return ethers.BigNumber.from(balanceAfter).sub(balanceBefore);
 }
 
 let tokenDescriptionsCache: Record<string, string> = {};
