@@ -277,7 +277,7 @@ describe("Eth module", function () {
               this.provider,
               "eth_getStorageAt",
               ["0x0101010101010101010101010101010101010101", "0xABCDEFG"],
-              "Storage slot argument must be a valid hexadecimal, got '0xABCDEFG'"
+              "Storage slot argument must be a valid hexadecimal prefixed with \"0x\", got '0xABCDEFG'"
             );
           });
 

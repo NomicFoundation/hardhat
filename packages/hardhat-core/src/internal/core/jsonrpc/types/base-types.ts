@@ -41,7 +41,7 @@ function validateStorageSlot(u: unknown, c: t.Context): t.Validation<BN> {
     return t.failure(
       u,
       c,
-      `Storage slot argument must be a string, got '${u}'`
+      `Storage slot argument must be a string, got '${u as any}'`
     );
   }
 
