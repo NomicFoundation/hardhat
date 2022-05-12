@@ -1,5 +1,12 @@
 # hardhat
 
+## 2.9.5
+
+### Patch Changes
+
+- e42ef24d: Fixed a publish problem in 2.9.4
+- 81e28117: Make `eth_getStorageAt` spec-compliant. This means that the storage slot argument **must** have a length of 32 bytes (a hex-encoded string of length 66).
+
 ## 2.9.4
 
 ### Patch Changes
