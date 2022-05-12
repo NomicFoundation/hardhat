@@ -39,6 +39,7 @@
   },
   "files": [
     "builtin-tasks/",
+    "common/",
     "internal/",
     "sample-projects/",
     "src/",
