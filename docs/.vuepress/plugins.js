@@ -461,6 +461,13 @@ module.exports.communityPlugins = [
       "Handy set of utilities for testing contracts in Hardhat projects",
     tags: ["testing", "solidity"],
   },
+  {
+    name: "hardhat-ens-mock",
+    author: "DefiCake",
+    authorUrl: "https://github.com/DefiCake",
+    description: "Overrides ENS ownership in hardhat network to allow orchestration superpowers",
+    tags: ["ENS", "Testing", "Orchestration", "Productivity"],
+  },
 ];
 
 module.exports.officialPlugins = [
