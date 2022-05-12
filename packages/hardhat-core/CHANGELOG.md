@@ -1,5 +1,17 @@
 # hardhat
 
+## 2.9.4
+
+### Patch Changes
+
+- 1de87072: Fix passing options and depth when inspecting a lazyObject or lazyFunction
+- 7403ec1d: Stop publishing tsconfig.json files
+- 78876d64: Fix a bug preventing to run the solcjs compiler.
+- 1929e177: Fix a bug when formatting optional params in the help messages.
+- 4238a921: Fixed a problem with `hardhat_mine` when used with `solidity-coverage`.
+- b5273ce1: - Fixed a potential OOM error during parallel compilation
+  - Added a `--concurrency` param to the compile task
+
 ## 2.9.3
 
 ### Patch Changes
