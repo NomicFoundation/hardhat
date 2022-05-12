@@ -7,6 +7,7 @@ import sinon from "sinon";
 import { describe } from "mocha";
 import {
   numberToRpcQuantity,
+  numberToRpcStorageSlot,
   rpcQuantityToBN,
   rpcQuantityToNumber,
 } from "../../../../../src/internal/core/jsonrpc/types/base-types";
@@ -2068,7 +2069,7 @@ describe("Hardhat module", function () {
 
           const resultingStorageValue = await this.provider.send(
             "eth_getStorageAt",
-            [DEFAULT_ACCOUNTS_ADDRESSES[0], numberToRpcQuantity(0), "latest"]
+            [DEFAULT_ACCOUNTS_ADDRESSES[0], numberToRpcStorageSlot(0), "latest"]
           );
 
           assert.equal(resultingStorageValue, targetStorageValue);
@@ -2169,7 +2170,7 @@ describe("Hardhat module", function () {
           assert.equal(
             await this.provider.send("eth_getStorageAt", [
               DEFAULT_ACCOUNTS_ADDRESSES[0],
-              numberToRpcQuantity(0),
+              numberToRpcStorageSlot(0),
               currentBlockNumber,
             ]),
             targetStorageValue
