@@ -198,4 +198,25 @@ export const chainConfig: ChainConfig = {
       browserURL: "https://testnet.aurorascan.dev",
     },
   },
+  gather: {
+    chainId: 192837465,
+    urls: {
+      apiURL: "https://explorer.gather.network/api",
+      browserURL: "https://explorer.gather.network",
+    },
+  },
+  gatherTestnet: {
+    chainId: 356256156,
+    urls: {
+      apiURL: "https://testnet-explorer.gather.network/api",
+      browserURL: "https://testnet-explorer.gather.network",
+    },
+  },
+  gatherDevnet: {
+    chainId: 486217935,
+    urls: {
+      apiURL: "https://devnet-explorer.gather.network/api",
+      browserURL: "https://devnet-explorer.gather.network",
+    },
+  },
 };

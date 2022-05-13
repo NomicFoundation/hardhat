@@ -175,6 +175,9 @@ module.exports = {
         sokol: "api-key",
         aurora: "api-key",
         auroraTestnet: "api-key",
+        gather: "api-key",
+        gatherTestnet: "api-key",
+        gatherDevnet: "api-key",
     }
   }
 };
