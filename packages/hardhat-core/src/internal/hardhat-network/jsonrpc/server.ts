@@ -45,7 +45,13 @@ export class JsonRpcServer implements IJsonRpcServer {
 
   public getProvider = (name = "json-rpc"): EIP1193Provider => {
     const { Client } = require("undici") as { Client: typeof ClientT };
-    const { address, port } = this._httpServer.address() as AddressInfo;
+
+    const addressInfo = this._httpServer.address() as AddressInfo;
+    // Node v18's HTTP server returns the IPv6 loopback address of "::1", but
+    // undici doesn't like that:
+    const address =
+      addressInfo.address === "::1" ? "localhost" : addressInfo.address;
+    const port = addressInfo.port;
 
     const dispatcher = new Client(`http://${address}:${port}/`, {
       keepAliveTimeout: 10,

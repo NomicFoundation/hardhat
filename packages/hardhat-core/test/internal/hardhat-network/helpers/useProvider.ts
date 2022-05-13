@@ -110,6 +110,11 @@ export function useProvider({
         provider: this.provider,
       });
       this.serverInfo = await this.server.listen();
+      // Node v18's HTTP server returns the IPv6 loopback address of "::1", but
+      // undici doesn't like that:
+      if (this.serverInfo.address === "::1") {
+        this.serverInfo.address = "localhost";
+      }
 
       this.provider = new BackwardsCompatibilityProviderAdapter(
         this.server.getProvider()
