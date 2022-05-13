@@ -461,6 +461,14 @@ module.exports.communityPlugins = [
       "Handy set of utilities for testing contracts in Hardhat projects",
     tags: ["testing", "solidity"],
   },
+  {
+    name: "hardhat-contract-dumper",
+    author: "Karuzzzo",
+    authorUrl: "https://github.com/Karuzzzo",
+    description:
+      "Parses storage slots in deployed contract addresses.",
+    tags: ["testing", "solidity", "security", "ethereum"],
+  },
 ];
 
 module.exports.officialPlugins = [
