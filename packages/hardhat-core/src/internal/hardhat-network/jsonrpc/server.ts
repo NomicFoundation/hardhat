@@ -50,7 +50,7 @@ export class JsonRpcServer implements IJsonRpcServer {
     // Node v18's HTTP server returns the IPv6 loopback address of "::1", but
     // undici doesn't like that:
     const address =
-      addressInfo.address === "::1" ? "localhost" : addressInfo.address;
+      addressInfo.address === "::1" ? "127.0.0.1" : addressInfo.address;
     const port = addressInfo.port;
 
     const dispatcher = new Client(`http://${address}:${port}/`, {

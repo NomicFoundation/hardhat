@@ -106,14 +106,14 @@ export function useProvider({
     if (useJsonRpc) {
       this.server = new JsonRpcServer({
         port: 0,
-        hostname: "localhost",
+        hostname: "127.0.0.1",
         provider: this.provider,
       });
       this.serverInfo = await this.server.listen();
       // Node v18's HTTP server returns the IPv6 loopback address of "::1", but
       // undici doesn't like that:
       if (this.serverInfo.address === "::1") {
-        this.serverInfo.address = "localhost";
+        this.serverInfo.address = "127.0.0.1";
       }
 
       this.provider = new BackwardsCompatibilityProviderAdapter(
