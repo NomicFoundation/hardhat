@@ -22,9 +22,6 @@
   "bin": {
     "hardhat": "internal/cli/cli.js"
   },
-  "engines": {
-    "node": "^12.0.0 || ^14.0.0 || ^16.0.0"
-  },
   "scripts": {
     "lint": "yarn prettier --check && yarn eslint",
     "lint:fix": "yarn prettier --write && yarn eslint --fix",
