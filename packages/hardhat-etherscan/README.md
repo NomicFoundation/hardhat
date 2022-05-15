@@ -175,6 +175,9 @@ module.exports = {
         sokol: "api-key",
         aurora: "api-key",
         auroraTestnet: "api-key",
+        // cronos
+        cronos: "YOUR_CRONOSCAN_API_KEY",
+        cronosTestnet: "YOUR_CRONOSCAN_API_KEY",
     }
   }
 };
