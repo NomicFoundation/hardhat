@@ -2,6 +2,7 @@ name: Comment on lint failure
 
 on:
   pull_request_target:
+    types: [opened]
     branches:
       - $default-branch
 
