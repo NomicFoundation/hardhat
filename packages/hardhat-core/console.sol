@@ -14,7 +14,7 @@ library console {
 	}
 
 	function log() internal view {
-		_sendLogPayload(abi.encodeWithSignature("log()"));
+		_sendLogPayload(abi.encodeWithSignature("log(string)", ""));
 	}
 
 	function logInt(int p0) internal view {
