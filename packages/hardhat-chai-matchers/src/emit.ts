@@ -40,37 +40,38 @@ export function supportEmit(
     function (this: any, contract: Contract, eventName: string) {
       const tx = this._obj;
 
-      const derivedPromise = waitForPendingTransaction(
-        tx,
-        contract.provider
-      ).then((receipt: providers.TransactionReceipt) => {
-        let eventFragment: EventFragment | undefined;
-        try {
-          eventFragment = contract.interface.getEvent(eventName);
-        } catch (e) {
-          // ignore error
-        }
+      const promise = this.then === undefined ? Promise.resolve() : this;
 
-        if (eventFragment === undefined) {
-          throw new AssertionError(
-            `Event "${eventName}" doesn't exist in the contract`
+      const derivedPromise = promise
+        .then(() => waitForPendingTransaction(tx, contract.provider))
+        .then((receipt: providers.TransactionReceipt) => {
+          let eventFragment: EventFragment | undefined;
+          try {
+            eventFragment = contract.interface.getEvent(eventName);
+          } catch (e) {
+            // ignore error
+          }
+
+          if (eventFragment === undefined) {
+            throw new AssertionError(
+              `Event "${eventName}" doesn't exist in the contract`
+            );
+          }
+
+          const topic = contract.interface.getEventTopic(eventFragment);
+          this.logs = receipt.logs
+            .filter((log) => log.topics.includes(topic))
+            .filter(
+              (log) =>
+                log.address.toLowerCase() === contract.address.toLowerCase()
+            );
+
+          this.assert(
+            this.logs.length > 0,
+            `Expected event "${eventName}" to be emitted, but it wasn't`,
+            `Expected event "${eventName}" NOT to be emitted, but it was`
           );
-        }
-
-        const topic = contract.interface.getEventTopic(eventFragment);
-        this.logs = receipt.logs
-          .filter((log) => log.topics.includes(topic))
-          .filter(
-            (log) =>
-              log.address.toLowerCase() === contract.address.toLowerCase()
-          );
-
-        this.assert(
-          this.logs.length > 0,
-          `Expected event "${eventName}" to be emitted, but it wasn't`,
-          `Expected event "${eventName}" NOT to be emitted, but it was`
-        );
-      });
+        });
 
       chaiUtils.flag(this, EMIT_CALLED, true);
 

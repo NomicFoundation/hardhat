@@ -462,7 +462,7 @@ describe(".to.emit (contract events)", () => {
               'Expected event "WithStringArg" to be emitted, but it wasn\'t'
             );
           });
-          it.skip("Should fail when the second expected event is emitted but the first is not", async function () {
+          it("Should fail when the second expected event is emitted but the first is not", async function () {
             await expect(
               expect(contract.emitUint(1))
                 .to.emit(contract, "WithStringArg")
