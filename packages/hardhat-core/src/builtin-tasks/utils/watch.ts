@@ -1,4 +1,5 @@
 import chalk from "chalk";
+import { FSWatcher } from "chokidar";
 import debug from "debug";
 import fsExtra from "fs-extra";
 import * as path from "path";
@@ -9,10 +10,12 @@ import { EIP1193Provider, ProjectPathsConfig } from "../../types";
 
 const log = debug("hardhat:core:compilation-watcher");
 
+export type Watcher = FSWatcher;
+
 export async function watchCompilerOutput(
   provider: EIP1193Provider,
   paths: ProjectPathsConfig
-) {
+): Promise<Watcher> {
   const chokidar = await import("chokidar");
 
   const buildInfoDir = path.join(paths.artifacts, BUILD_INFO_DIR_NAME);
@@ -49,7 +52,7 @@ export async function watchCompilerOutput(
 
   log(`Watching changes on '${buildInfoDir}'`);
 
-  chokidar
+  return chokidar
     .watch(buildInfoDir, {
       ignoreInitial: true,
       awaitWriteFinish: {

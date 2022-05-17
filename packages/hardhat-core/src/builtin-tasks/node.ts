@@ -29,7 +29,7 @@ import {
   TASK_NODE_SERVER_CREATED,
   TASK_NODE_SERVER_READY,
 } from "./task-names";
-import { watchCompilerOutput } from "./utils/watch";
+import { watchCompilerOutput, Watcher } from "./utils/watch";
 
 const log = debug("hardhat:core:tasks:node");
 
@@ -333,8 +333,9 @@ task(TASK_NODE, "Starts a JSON-RPC server on top of Hardhat Network")
 
         const { port: actualPort, address } = await server.listen();
 
+        let watcher: Watcher | undefined;
         try {
-          await watchCompilerOutput(provider, config.paths);
+          watcher = await watchCompilerOutput(provider, config.paths);
         } catch (error) {
           console.warn(
             chalk.yellow(
@@ -360,6 +361,7 @@ task(TASK_NODE, "Starts a JSON-RPC server on top of Hardhat Network")
         });
 
         await server.waitUntilClosed();
+        await watcher?.close();
       } catch (error) {
         if (HardhatError.isHardhatError(error)) {
           throw error;
