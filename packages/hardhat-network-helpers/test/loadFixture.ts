@@ -1,5 +1,6 @@
 import { assert } from "chai";
 
+import { FixtureSnapshotError } from "../src/errors";
 import { loadFixture } from "../src/loadFixture";
 import { useEnvironment, rpcQuantityToNumber } from "./test-utils";
 
@@ -72,7 +73,7 @@ describe("loadFixture", function () {
     assert.equal(await loadFixture(mineBlockFixture), 123);
   });
 
-  it("multiple fixtures can be used", async function () {
+  it("should throw the right error when an invalid snapshot is reverted", async function () {
     async function mineBlockFixture() {
       await mineBlock();
     }
@@ -81,10 +82,12 @@ describe("loadFixture", function () {
       await mineBlock();
     }
 
-    const blockNumberBefore = await getBlockNumber();
     await loadFixture(mineBlockFixture);
     await loadFixture(mineTwoBlocksFixture);
-
-    assert.equal(await getBlockNumber(), blockNumberBefore + 3);
+    await loadFixture(mineBlockFixture);
+    await assert.isRejected(
+      loadFixture(mineTwoBlocksFixture),
+      FixtureSnapshotError
+    );
   });
 });

@@ -101,7 +101,7 @@ export async function getVerificationStatus(
       pluginName,
       `Failure during etherscan status polling. The verification may still succeed but
 should be checked manually.
-Endpoint URL: ${urlWithQuery}
+Endpoint URL: ${urlWithQuery.toString()}
 Reason: ${error.message}`,
       error
     );

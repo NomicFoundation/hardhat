@@ -191,7 +191,7 @@ export class BlockchainData {
     const reservationIndex = this._findBlockReservation(blockNumber);
     assertHardhatInvariant(
       reservationIndex !== -1,
-      `No reservation to fill for block number ${blockNumber}`
+      `No reservation to fill for block number ${blockNumber.toString()}`
     );
 
     // capture the timestamp before removing the reservation:

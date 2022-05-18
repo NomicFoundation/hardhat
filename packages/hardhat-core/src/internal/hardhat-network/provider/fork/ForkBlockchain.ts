@@ -295,7 +295,9 @@ export class ForkBlockchain
           rpcToTxData(transaction) as FeeMarketEIP1559TxData
         );
       } else {
-        throw new InternalError(`Unknown transaction type ${transaction.type}`);
+        throw new InternalError(
+          `Unknown transaction type ${transaction.type.toString()}`
+        );
       }
 
       block.transactions.push(tx);
