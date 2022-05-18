@@ -43,11 +43,11 @@ const Wrapper = styled.div`
 `;
 
 const ImageContainer = styled.div`
-  width: 116%;
+  width: 110%;
   height: 100%;
   position: absolute;
   height: auto;
-  transform: translateX(-7%);
+  transform: translateX(-4%);
   top: -16px;
   & .img {
     position: relative !important;

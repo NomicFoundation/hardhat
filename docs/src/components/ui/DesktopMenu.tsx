@@ -7,6 +7,7 @@ import { media, tm, tmDark, tmHCDark, tmSelectors } from "../../themes";
 import Searching from "../Searching";
 
 const MenuContainer = styled.section<{ isDocumentation: boolean }>`
+  font-family: ChivoRegular;
   user-select: none;
   width: 607px;
   display: none;
@@ -38,10 +39,11 @@ const MenuItem = styled.li`
 `;
 
 const MenuButton = styled.a`
+  --text-color: ${tm(({ colors }) => colors.neutral900)};
   text-transform: uppercase;
   text-align: center;
   border: none;
-  color: ${tm(({ colors }) => colors.neutral900)};
+  color: var(--text-color);
   background-color: ${tm(({ colors }) => colors.transparent)};
   font-size: 15px;
   line-height: 15px;
@@ -56,7 +58,7 @@ const MenuButton = styled.a`
     content: " ";
     width: 0;
     height: 1px;
-    background-color: ${tm(({ colors }) => colors.neutral900)};
+    background-color: var(--text-color);
   }
   &:hover {
     &:after {
@@ -70,30 +72,21 @@ const MenuButton = styled.a`
   }
   :not(.landing &) {
     ${tmSelectors.hcDark} {
-      color: ${tmHCDark(({ colors }) => colors.neutral900)};
-      &:after {
-        background-color: ${tmHCDark(({ colors }) => colors.neutral900)};
-      }
+      --text-color: ${tmHCDark(({ colors }) => colors.neutral900)};
     }
     ${tmSelectors.dark} {
-      color: ${tmDark(({ colors }) => colors.neutral900)};
-      &:after {
-        background-color: ${tmDark(({ colors }) => colors.neutral900)};
-      }
+      --text-color: ${tmDark(({ colors }) => colors.neutral900)};
     }
     ${media.mqDark} {
       ${tmSelectors.auto} {
-        color: ${tmDark(({ colors }) => colors.neutral900)};
-      }
-      &:after {
-        background-color: ${tmDark(({ colors }) => colors.neutral900)};
+        --text-color: ${tmDark(({ colors }) => colors.neutral900)};
       }
     }
   }
 `;
 
 const MenuSocialsList = styled.ul`
-  width: 80px;
+  min-width: 80px;
   display: flex;
   height: 32px;
   align-items: center;
@@ -157,10 +150,14 @@ const DesktopMenu = ({
           </MenuItem>
         ) : null}
         {menuItems.map((menuItem: MenuItemType) => {
+          const isSelected =
+            menuItem.href === "/"
+              ? router?.asPath === menuItem.href
+              : router?.asPath.includes(menuItem.href);
           return (
             <MenuItem key={menuItem.label}>
               <Link href={menuItem.href} passHref>
-                <MenuButton data-current={router?.asPath === menuItem.href}>
+                <MenuButton data-current={isSelected}>
                   {menuItem.label}
                 </MenuButton>
               </Link>

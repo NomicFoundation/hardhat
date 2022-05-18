@@ -1,4 +1,6 @@
+import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
+import { toolRegExp } from "../../config";
 
 import Section from "../Section";
 import { Tools } from "../ui/types";
@@ -129,9 +131,17 @@ const ToolDescription = ({ content, companyName }: ToolProps) => {
 
 const ToolsBlock = ({ content }: BlockProps) => {
   const [selectedTool, setSelectedTool] = useState(Tools.RUNNER);
+  const router = useRouter();
+
+  useEffect(() => {
+    const queryTool = toolRegExp.exec(router.asPath);
+    if (!queryTool) return;
+    const tool = queryTool[0].replace("tool=", "") as Tools;
+    setSelectedTool(tool);
+  }, [router.asPath]);
 
   return (
-    <Section>
+    <Section id="tools">
       <Container>
         <ToolsIconsBlock>
           <IconsBlockTitle>{content.title}</IconsBlockTitle>

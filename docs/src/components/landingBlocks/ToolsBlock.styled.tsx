@@ -56,6 +56,7 @@ const Container = styled.div`
 
 const ToolsIconsBlock = styled.div`
   position: relative;
+  padding-bottom: 40px;
 
   &:before {
     position: absolute;
@@ -142,7 +143,7 @@ const ButtonContainer = styled.div`
   & svg {
     width: 48px;
     height: 48px;
-    transition: all 0.1s ease-in-out;
+    transition: all 0.1s linear;
     border-radius: 8px;
     padding: 8px;
     box-shadow: 0 1px 2px ${tm(({ colors }) => colors.sliderButtonHoverShadow)};
@@ -150,7 +151,7 @@ const ButtonContainer = styled.div`
     &.active {
       width: 56px;
       height: 56px;
-      box-shadow: none;
+      box-shadow: 0 1px 2px ${tm(({ colors }) => colors.transparent)};
       padding: 0;
     }
   }

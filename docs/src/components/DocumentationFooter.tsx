@@ -36,24 +36,24 @@ const PageEdit = styled.div`
   padding-bottom: 16px;
   font-weight: 700;
   line-height: 150%;
-  border-bottom: 1px solid ${tm(({ colors }) => colors.editPageColor)};
+  border-bottom: 1px solid ${tm(({ colors }) => colors.neutral400)};
   color: ${tm(({ colors }) => colors.editPageColor)};
   stroke: ${tm(({ colors }) => colors.editPageColor)};
   ${tmSelectors.hcDark} {
     stroke: ${tmHCDark(({ colors }) => colors.editPageColor)};
     color: ${tmHCDark(({ colors }) => colors.editPageColor)};
-    border-color: ${tmHCDark(({ colors }) => colors.editPageColor)};
+    border-color: ${tmHCDark(({ colors }) => colors.neutral400)};
   }
   ${tmSelectors.dark} {
     stroke: ${tmDark(({ colors }) => colors.editPageColor)};
     color: ${tmDark(({ colors }) => colors.editPageColor)};
-    border-color: ${tmDark(({ colors }) => colors.editPageColor)};
+    border-color: ${tmDark(({ colors }) => colors.neutral400)};
   }
   ${media.mqDark} {
     ${tmSelectors.auto} {
       stroke: ${tmDark(({ colors }) => colors.editPageColor)};
       color: ${tmDark(({ colors }) => colors.editPageColor)};
-      border-color: ${tmDark(({ colors }) => colors.editPageColor)};
+      border-color: ${tmDark(({ colors }) => colors.neutral400)};
     }
   }
 `;

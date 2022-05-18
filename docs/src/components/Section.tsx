@@ -19,11 +19,21 @@ const Container = styled.section`
 
 type Props = React.PropsWithChildren<{
   clearPadding?: boolean;
+  id?: string | number;
 }>;
 
-const Section = ({ children, clearPadding = false }: Props) => {
+const Section = ({ children, clearPadding = false, id }: Props) => {
+  const containerProps = {
+    // eslint-disable-next-line
+    [id ? "id" : ""]: id,
+  };
+  delete containerProps[""];
+
   return (
-    <Container className={clearPadding ? "clear-padding" : ""}>
+    <Container
+      className={clearPadding ? "clear-padding" : ""}
+      {...containerProps}
+    >
       {children}
     </Container>
   );

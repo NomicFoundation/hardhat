@@ -13,6 +13,7 @@ import {
   tmSelectors,
 } from "../themes";
 import logo from "../assets/hardhat-logo.svg";
+import darkLogo from "../assets/hardhat-logo-dark.svg";
 import Hamburger from "./ui/Hamburger";
 import DesktopMenu from "./ui/DesktopMenu";
 import { menuItemsList, socialsItems } from "../config";
@@ -25,9 +26,6 @@ interface Props {
 
 const NavigationStyled = styled.nav`
   position: relative;
-  margin-top: 40px;
-  top: 0;
-  left: 0;
   width: 100%;
   display: flex;
   justify-content: center;
@@ -78,16 +76,32 @@ const LogoContainer = styled.a`
   background-color: ${tm(({ colors }) => colors.transparent)};
   border: none;
   cursor: pointer;
-  & path.letter {
-    ${tmSelectors.hcDark} {
-      fill: ${tmHCDark(({ colors }) => colors.neutral900)};
+  & .dark-logo {
+    display: none;
+  }
+  ${tmSelectors.hcDark} {
+    & .dark-logo {
+      display: inline;
     }
-    ${tmSelectors.dark} {
-      fill: ${tmDark(({ colors }) => colors.neutral900)};
+    & .light-logo {
+      display: none;
     }
-    ${media.mqDark} {
-      ${tmSelectors.auto} {
-        fill: ${tmDark(({ colors }) => colors.neutral900)};
+  }
+  ${tmSelectors.dark} {
+    & .dark-logo {
+      display: inline;
+    }
+    & .light-logo {
+      display: none;
+    }
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      & .dark-logo {
+        display: inline;
+      }
+      & .light-logo {
+        display: none;
       }
     }
   }
@@ -161,7 +175,12 @@ const DocsNavigation: FC<Props> = ({ isSidebarOpen, onSidebarOpen }) => {
 
           <Link href="/" passHref>
             <LogoContainer aria-label="home page">
-              <Image src={logo} alt="logo" />
+              <span className="light-logo">
+                <Image src={logo} alt="logo" />
+              </span>
+              <span className="dark-logo">
+                <Image src={darkLogo} alt="logo" />
+              </span>
             </LogoContainer>
           </Link>
         </HamburgerLogoWrapper>

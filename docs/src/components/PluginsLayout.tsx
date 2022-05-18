@@ -18,6 +18,7 @@ import { IDocumentationSidebarStructure, ISeo } from "./types";
 import { bannerContent, menuItemsList, socialsItems } from "../config";
 import { MobileSidebarMenuMask, SidebarContainer } from "./DocumentationLayout";
 import MobileSidebarMenu from "./MobileSidebarMenu";
+import { Header } from "./LandingLayout";
 
 const Container = styled.div`
   position: relative;
@@ -29,6 +30,7 @@ const Container = styled.div`
     Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
   -webkit-font-smoothing: antialiased;
   main {
+    padding-top: 136px;
     flex: 1 1 auto;
     display: flex;
     justify-content: flex-start;
@@ -48,6 +50,12 @@ const Container = styled.div`
         background-color: ${tmDark(({ colors }) => colors.neutral0)};
       }
     }
+
+    ${media.md} {
+      & aside {
+        display: none;
+      }
+    }
   }
   height: 100vh;
   min-width: 320px;
@@ -61,9 +69,6 @@ const View = styled.section`
   width: 100%;
   height: calc(100vh - 136px);
   overflow-y: scroll;
-  ${media.md} {
-    padding-left: 366px;
-  }
 `;
 const Content = styled.section`
   display: flex;
@@ -139,16 +144,19 @@ const PluginsLayout = ({ children, seo, sidebarLayout }: Props) => {
   return (
     <ThemeProvider>
       <Container>
-        <Banner
-          content={bannerContent}
-          renderContent={({ content }: DefaultBannerProps) => (
-            <DefaultBanner content={content} />
-          )}
-        />
-        <DocsNavigation
-          isSidebarOpen={isSidebarOpen}
-          onSidebarOpen={setIsSidebarOpen}
-        />
+        <Header>
+          <Banner
+            content={bannerContent}
+            renderContent={({ content }: DefaultBannerProps) => (
+              <DefaultBanner content={content} />
+            )}
+          />
+          <DocsNavigation
+            isSidebarOpen={isSidebarOpen}
+            onSidebarOpen={setIsSidebarOpen}
+          />
+        </Header>
+
         <SEO seo={seo} />
 
         <main>

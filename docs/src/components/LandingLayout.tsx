@@ -16,6 +16,7 @@ const Container = styled.div`
   justify-content: flex-start;
   align-items: center;
   main {
+    padding-top: 136px;
     flex: 1 1 auto;
     display: flex;
     flex-direction: column;
@@ -35,17 +36,30 @@ type Props = React.PropsWithChildren<{
   };
 }>;
 
+export const Header = styled.header`
+  position: fixed;
+  width: 100%;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  z-index: 199;
+`;
+
 const LandingLayout = ({ children, seo }: Props) => {
   return (
     <ThemeProvider>
       <Container className="landing">
-        <Banner
-          content={bannerContent}
-          renderContent={({ content }: DefaultBannerProps) => (
-            <DefaultBanner content={content} />
-          )}
-        />
-        <LandingNavigation />
+        <Header>
+          <Banner
+            content={bannerContent}
+            renderContent={({ content }: DefaultBannerProps) => (
+              <DefaultBanner content={content} />
+            )}
+          />
+          <LandingNavigation />
+        </Header>
+
         <SEO seo={seo} />
         <main>{children}</main>
         <LandingFooter />

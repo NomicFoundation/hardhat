@@ -3,6 +3,7 @@ body {
   padding: 0;
   margin: 0;
   font-family: ChivoRegular;
+  scroll-behavior: smooth;
 }
 
 a {

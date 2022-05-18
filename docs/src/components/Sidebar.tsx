@@ -74,7 +74,7 @@ const SidebarSubLinksList = styled.ul`
   & ${SidebarLinkWrapper} {
     padding: 0.5px 16px 0.5px 64px;
     &[data-anchor="true"] {
-      border-left: none;
+      border-left: 4px solid ${tm(({ colors }) => colors.transparent)};
     }
   }
 `;
