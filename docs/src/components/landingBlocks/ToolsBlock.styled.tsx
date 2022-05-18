@@ -2,7 +2,7 @@ import { styled } from "linaria/react";
 import { media, tm } from "../../themes";
 
 const Container = styled.div`
-  margin-top: 240px;
+  margin-top: 300px;
   display: flex;
   flex-direction: column;
   position: relative;
@@ -31,7 +31,7 @@ const Container = styled.div`
 
   ${media.md} {
     flex-direction: row;
-    margin-top: 200px;
+    margin-top: 250px;
 
     &:before {
       width: 36px;

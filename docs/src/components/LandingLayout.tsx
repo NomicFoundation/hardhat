@@ -16,6 +16,7 @@ const Container = styled.div`
   justify-content: flex-start;
   align-items: center;
   main {
+    overflow-x: hidden;
     padding-top: 136px;
     flex: 1 1 auto;
     display: flex;
@@ -25,7 +26,6 @@ const Container = styled.div`
     background-color: ${tm(({ colors }) => colors.neutral0)};
     width: 100%;
   }
-  height: 100vh;
   min-width: 320px;
 `;
 
@@ -61,8 +61,10 @@ const LandingLayout = ({ children, seo }: Props) => {
         </Header>
 
         <SEO seo={seo} />
-        <main>{children}</main>
-        <LandingFooter />
+        <main>
+          {children}
+          <LandingFooter />
+        </main>
       </Container>
     </ThemeProvider>
   );

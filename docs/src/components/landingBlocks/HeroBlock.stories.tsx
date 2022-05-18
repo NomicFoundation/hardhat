@@ -8,4 +8,6 @@ export default {
   title: "Landing Blocks/Hero",
 };
 
-export const Default = () => <HeroBlock content={heroBlockContent} />;
+export const Default = () => {
+  return <HeroBlock content={heroBlockContent} />;
+};

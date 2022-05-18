@@ -41,7 +41,6 @@ const MDImage = ({ src, alt }: Props) => {
         className="md-img"
         src={src}
         alt={alt}
-        placeholder="blur"
         blurDataURL={src}
         width="100%"
         height="100%"

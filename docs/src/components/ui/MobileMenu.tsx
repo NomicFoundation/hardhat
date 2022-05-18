@@ -42,7 +42,7 @@ const MobileMenuSocialsList = styled.ul`
   display: flex;
   align-items: center;
   list-style-type: none;
-  margin-top: 144px;
+  margin-top: 32px;
   justify-content: space-evenly;
 `;
 
