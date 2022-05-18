@@ -8,7 +8,7 @@ This section contains a list of all the possible errors you may encounter when u
 
 You are trying to run Buidler outside of a Buidler project.
 
-You can learn hoy to use Buidler by reading the [Getting Started guide](../README.md).
+You can learn how to use Buidler by reading the [Getting Started guide](../README.md).
 
 ### BDLR2: Unsupported Node.js
 
