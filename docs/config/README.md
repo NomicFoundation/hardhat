@@ -96,6 +96,28 @@ To use an HD Wallet with Hardhat you should set your network's `accounts` field 
 
 - `passphrase`: The passphrase for the wallet. Default value: empty string.
 
+For example:
+
+```js
+const accounts = {
+  mnemonic: "test test test test test test test test test test test junk",
+  path: "m/44'/60'/0'/0",
+  initialIndex: 0,
+  count: 20,
+  passphrase: "",
+};
+module.exports = {
+  defaultNetwork: "rinkeby",
+  networks: {
+    hardhat: {},
+    rinkeby: {
+      url: "https://eth-rinkeby.alchemyapi.io/v2/123abc123abc123abc123abc123abcde",
+      accounts,
+    },
+  },
+};
+```
+
 ### Default networks object
 
 ```js
