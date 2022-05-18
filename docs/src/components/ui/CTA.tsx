@@ -42,16 +42,29 @@ const A = styled.a`
       background-color: ${tm(({ colors }) => colors.secondaryCTAHover)};
     }
   }
+
+  &.full-padding {
+    padding: 12px 28px;
+  }
 `;
 
 type Props = React.PropsWithChildren<{
   href: string;
   variant?: string;
+  onClick?: () => void;
 }>;
 
-const CTA = ({ children, href, variant = "" }: Props) => {
+const CTA = ({ children, href, variant = "", onClick }: Props) => {
   return (
-    <A className={variant} href={href}>
+    <A
+      className={variant}
+      href={href}
+      onClick={(event) => {
+        if (!onClick) return;
+        event.preventDefault();
+        onClick();
+      }}
+    >
       {children}
     </A>
   );

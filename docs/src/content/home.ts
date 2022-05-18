@@ -209,6 +209,12 @@ const toolsBlockContent = {
   ],
 };
 
+const cookiePopUp = {
+  title: "We value your privacy",
+  text: "We use cookies to enhace your browsing experience, serve personalized adds or content, and analyze our traffic. By clicking “Acept All”, you consent to our use of cookies.",
+  readMoreHref: "/",
+};
+
 const homepageContent = {
   whyHardhatContent,
   featureCardsContent,
@@ -219,6 +225,7 @@ const homepageContent = {
   builtByBlockContent,
   reviewsBlockContent,
   toolsBlockContent,
+  cookiePopUp,
 };
 
 export default homepageContent;
