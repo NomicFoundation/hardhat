@@ -117,7 +117,7 @@ export function useProvider({
       }
 
       this.provider = new BackwardsCompatibilityProviderAdapter(
-        this.server.getProvider()
+        (this.server as any)._getProvider()
       );
     }
   });

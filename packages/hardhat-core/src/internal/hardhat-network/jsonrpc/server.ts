@@ -43,30 +43,6 @@ export class JsonRpcServer implements IJsonRpcServer {
     this._wsServer.on("connection", handler.handleWs);
   }
 
-  public getProvider = (name = "json-rpc"): EIP1193Provider => {
-    const { Client } = require("undici") as { Client: typeof ClientT };
-
-    const addressInfo = this._httpServer.address() as AddressInfo;
-    // Node v18's HTTP server returns the IPv6 loopback address of "::1", but
-    // undici doesn't like that:
-    const address =
-      addressInfo.address === "::1" ? "127.0.0.1" : addressInfo.address;
-    const port = addressInfo.port;
-
-    const dispatcher = new Client(`http://${address}:${port}/`, {
-      keepAliveTimeout: 10,
-      keepAliveMaxTimeout: 10,
-    });
-
-    return new HttpProvider(
-      `http://${address}:${port}/`,
-      name,
-      {},
-      20000,
-      dispatcher
-    );
-  };
-
   public listen = (): Promise<{ address: string; port: number }> => {
     return new Promise((resolve) => {
       log(`Starting JSON-RPC server on port ${this._config.port}`);
@@ -119,5 +95,30 @@ export class JsonRpcServer implements IJsonRpcServer {
         });
       }),
     ]);
+  };
+
+  // this method is only meant to be used by tests
+  private _getProvider = (name = "json-rpc"): EIP1193Provider => {
+    const { Client } = require("undici") as { Client: typeof ClientT };
+
+    const addressInfo = this._httpServer.address() as AddressInfo;
+    // Node v18's HTTP server returns the IPv6 loopback address of "::1", but
+    // undici doesn't like that:
+    const address =
+      addressInfo.address === "::1" ? "127.0.0.1" : addressInfo.address;
+    const port = addressInfo.port;
+
+    const dispatcher = new Client(`http://${address}:${port}/`, {
+      keepAliveTimeout: 10,
+      keepAliveMaxTimeout: 10,
+    });
+
+    return new HttpProvider(
+      `http://${address}:${port}/`,
+      name,
+      {},
+      20000,
+      dispatcher
+    );
   };
 }
