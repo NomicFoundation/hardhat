@@ -7,6 +7,9 @@
   "references": [
     {
       "path": "../hardhat-core/src"
+    },
+    {
+      "path": "../hardhat-ethers"
     }
   ]
 }

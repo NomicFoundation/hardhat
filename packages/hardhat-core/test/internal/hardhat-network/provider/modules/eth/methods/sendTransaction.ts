@@ -30,13 +30,15 @@ import {
   sendTxToZeroAddress,
 } from "../../../../helpers/transactions";
 import { useHelpers } from "../../../../helpers/useHelpers";
+import { compileLiteral } from "../../../../stack-traces/compilation";
 import {
   EIP1559RpcTransactionOutput,
   RpcBlockOutput,
 } from "../../../../../../../src/internal/hardhat-network/provider/output";
+import { EthereumProvider } from "../../../../../../../src/types";
 
 describe("Eth module", function () {
-  PROVIDERS.forEach(({ name, useProvider, isFork, isJsonRpc }) => {
+  PROVIDERS.forEach(({ name, useProvider, isFork, isJsonRpc, chainId }) => {
     if (isFork) {
       this.timeout(50000);
     }
@@ -1036,6 +1038,49 @@ describe("Eth module", function () {
           ]);
 
           assert.isTrue(new BN(toBuffer(balanceAfter)).isZero());
+        });
+
+        it("should use the proper chain ID", async function () {
+          if (!isFork) {
+            this.skip();
+          }
+
+          // arrange: deploy a contract that will emit the chain ID:
+          const [_, compilerOutput] = await compileLiteral(`
+            contract ChainIdEmitter {
+              event ChainId(uint i);
+              function emitChainId() public {
+                uint chainId;
+                assembly { chainId := chainid() }
+                emit ChainId(chainId);
+              }
+            }
+          `);
+          const contractAddress = await deployContract(
+            this.provider,
+            `0x${compilerOutput.contracts["literal.sol"].ChainIdEmitter.evm.bytecode.object}`
+          );
+
+          async function getChainIdFromContract(
+            provider: EthereumProvider
+          ): Promise<number> {
+            const txHash = await provider.send("eth_sendTransaction", [
+              {
+                from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                to: contractAddress,
+                data: "0x68df392f", // abi-encoded "emitChainId()"
+              },
+            ]);
+            const receipt = await provider.send("eth_getTransactionReceipt", [
+              txHash,
+            ]);
+            return rpcQuantityToNumber(
+              receipt.logs[0].data.replace(/0x0*/, "0x")
+            );
+          }
+
+          // assert:
+          assert.equal(await getChainIdFromContract(this.provider), chainId);
         });
       });
 

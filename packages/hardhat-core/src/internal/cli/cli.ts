@@ -94,6 +94,12 @@ async function main() {
 
     showStackTraces = hardhatArguments.showStackTraces;
 
+    // --version is a special case
+    if (hardhatArguments.version) {
+      await printVersionMessage(packageJson);
+      return;
+    }
+
     if (hardhatArguments.config === undefined && !isCwdInsideProject()) {
       if (
         process.stdout.isTTY === true ||
@@ -116,12 +122,6 @@ async function main() {
       if (process.platform === "win32") {
         throw new HardhatError(ERRORS.GENERAL.NOT_INSIDE_PROJECT_ON_WINDOWS);
       }
-    }
-
-    // --version is a special case
-    if (hardhatArguments.version) {
-      await printVersionMessage(packageJson);
-      return;
     }
 
     if (!isHardhatInstalledLocallyOrLinked()) {
