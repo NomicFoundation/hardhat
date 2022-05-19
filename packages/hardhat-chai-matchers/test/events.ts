@@ -493,7 +493,7 @@ describe(".to.emit (contract events)", () => {
               .and.to.emit(contract, "WithStringArg")
               .withArgs("a string");
           });
-          it.skip("Should fail when expecting the wrong argument value for the first event", async function () {
+          it("Should fail when expecting the wrong argument value for the first event", async function () {
             await expect(
               expect(contract.emitUintAndString(1, "a string"))
                 .to.emit(contract, "WithUintArg")
