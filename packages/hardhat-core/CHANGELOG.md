@@ -1,5 +1,12 @@
 # hardhat
 
+## 2.9.6
+
+### Patch Changes
+
+- fde08e0c: Updates `node` task to terminate when the server closes.
+- 736e850a: Fixed an issue that was preventing compilation from working on Windows (#2712)
+
 ## 2.9.5
 
 ### Patch Changes
