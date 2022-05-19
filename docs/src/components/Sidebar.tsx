@@ -34,7 +34,7 @@ const Container = styled.ul`
   }
 `;
 
-const SidebarLinkWrapper = styled.div`
+const SidebarLinkWrapper = styled.a`
   cursor: pointer;
   &:hover {
     color: ${tm(({ colors }) => colors.accent700)};
