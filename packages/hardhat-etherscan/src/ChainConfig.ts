@@ -54,7 +54,7 @@ export const chainConfig: ChainConfig = {
   sepolia: {
     chainId: 11155111,
     urls: {
-      apiURL: "https://api-sepolia.etherscan.io",
+      apiURL: "https://api-sepolia.etherscan.io/api",
       browserURL: "https://sepolia.etherscan.io",
     },
   },
