@@ -4,6 +4,7 @@ import type {
   Contract,
   Transaction,
 } from "ethers";
+import util from "util";
 
 import { AssertionError } from "chai";
 
@@ -168,7 +169,11 @@ const tryAssertArgsArraysEqual = (
   }
   context.assert(
     false,
-    `Specified args not emitted in any of ${context.logs.length} emitted "${context.eventName}" events`,
+    `The specified arguments (${util.inspect(
+      expectedArgs
+    )}) were not included in any of the ${context.logs.length} emitted "${
+      context.eventName
+    }" events`,
     "Do not combine .not. with .withArgs()"
   );
 };

@@ -584,29 +584,29 @@ describe(".to.emit (contract events)", () => {
               .withArgs(2);
           });
 
-          it.skip("Should fail when the first event's argument is not matched", async function () {
+          it("Should fail when the first event's argument is not matched", async function () {
             await expect(
               expect(contract.emitUintTwice(1, 2))
                 .to.emit(contract, "WithUintArg")
-                .withArgs(2)
+                .withArgs(3)
                 .and.to.emit(contract, "WithUintArg")
                 .withArgs(2)
             ).to.be.eventually.rejectedWith(
               AssertionError,
-              "Expected 2 to equal 1"
+              'The specified arguments ([ 3 ]) were not included in any of the 2 emitted "WithUintArg" events'
             );
           });
 
-          it.skip("Should fail when the second event's argument is not matched", async function () {
+          it("Should fail when the second event's argument is not matched", async function () {
             await expect(
               expect(contract.emitUintTwice(1, 2))
                 .to.emit(contract, "WithUintArg")
                 .withArgs(1)
                 .and.to.emit(contract, "WithUintArg")
-                .withArgs(1)
+                .withArgs(3)
             ).to.be.eventually.rejectedWith(
               AssertionError,
-              "Expected 1 to equal 2"
+              'The specified arguments ([ 3 ]) were not included in any of the 2 emitted "WithUintArg" events'
             );
           });
 
@@ -617,7 +617,7 @@ describe(".to.emit (contract events)", () => {
                 .withArgs(3)
             ).to.be.eventually.rejectedWith(
               AssertionError,
-              'Specified args not emitted in any of 2 emitted "WithUintArg" events'
+              'The specified arguments ([ 3 ]) were not included in any of the 2 emitted "WithUintArg" events'
             );
           });
         });
