@@ -81,7 +81,7 @@ Please use block number ${lastSafeBlock} or wait for the block to get ${
   const cacheToDiskEnabled =
     forkConfig.blockNumber !== undefined &&
     forkCachePath !== undefined &&
-    actualMaxReorg !== undefined;
+    forkConfig.blockNumber <= lastSafeBlock;
 
   const forkClient = new JsonRpcClient(
     provider,
