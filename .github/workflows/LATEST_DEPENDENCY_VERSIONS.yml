@@ -25,6 +25,7 @@ jobs:
         env:
           DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI: true
           FORCE_COLOR: 3
+          NO_FAST_EXIT: true
         run: yarn test
       - name: Notify failures
         if: failure()
