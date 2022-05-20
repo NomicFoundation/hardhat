@@ -72,6 +72,8 @@ export function supportEmit(
             `Expected event "${eventName}" to be emitted, but it wasn't`,
             `Expected event "${eventName}" NOT to be emitted, but it was`
           );
+          chaiUtils.flag(this, "eventName", eventName);
+          chaiUtils.flag(this, "contract", contract);
         });
 
       chaiUtils.flag(this, EMIT_CALLED, true);
@@ -79,8 +81,6 @@ export function supportEmit(
       this.then = derivedPromise.then.bind(derivedPromise);
       this.catch = derivedPromise.catch.bind(derivedPromise);
       this.promise = derivedPromise;
-      this.contract = contract;
-      this.eventName = eventName;
       return this;
     }
   );
@@ -89,26 +89,35 @@ export function supportEmit(
 export async function emitWithArgs(
   context: any,
   Assertion: Chai.AssertionStatic,
+  chaiUtils: Chai.ChaiUtils,
   expectedArgs: any[]
 ) {
-  tryAssertArgsArraysEqual(context, Assertion, expectedArgs, context.logs);
+  tryAssertArgsArraysEqual(
+    context,
+    Assertion,
+    chaiUtils,
+    expectedArgs,
+    context.logs
+  );
 }
 
 function assertArgsArraysEqual(
   context: any,
   Assertion: Chai.AssertionStatic,
+  chaiUtils: Chai.ChaiUtils,
   expectedArgs: any[],
   log: any
 ) {
   const { utils } = require("ethers");
 
-  const actualArgs = (context.contract.interface as Interface).parseLog(
-    log
-  ).args;
+  const actualArgs = (
+    chaiUtils.flag(context, "contract").interface as Interface
+  ).parseLog(log).args;
   context.assert(
     actualArgs.length === expectedArgs.length,
-    `Expected "${context.eventName}" event to have ${expectedArgs.length} argument(s), ` +
-      `but it has ${actualArgs.length}`,
+    `Expected "${chaiUtils.flag(context, "eventName")}" event to have ${
+      expectedArgs.length
+    } argument(s), but it has ${actualArgs.length}`,
     "Do not combine .not. with .withArgs()",
     expectedArgs.length,
     actualArgs.length
@@ -152,17 +161,30 @@ function assertArgsArraysEqual(
 const tryAssertArgsArraysEqual = (
   context: any,
   Assertion: Chai.AssertionStatic,
+  chaiUtils: Chai.ChaiUtils,
   expectedArgs: any[],
   logs: any[]
 ) => {
   if (logs.length === 1)
-    return assertArgsArraysEqual(context, Assertion, expectedArgs, logs[0]);
+    return assertArgsArraysEqual(
+      context,
+      Assertion,
+      chaiUtils,
+      expectedArgs,
+      logs[0]
+    );
   for (const index in logs) {
     if (index === undefined) {
       break;
     } else {
       try {
-        assertArgsArraysEqual(context, Assertion, expectedArgs, logs[index]);
+        assertArgsArraysEqual(
+          context,
+          Assertion,
+          chaiUtils,
+          expectedArgs,
+          logs[index]
+        );
         return;
       } catch {}
     }
@@ -171,9 +193,9 @@ const tryAssertArgsArraysEqual = (
     false,
     `The specified arguments (${util.inspect(
       expectedArgs
-    )}) were not included in any of the ${context.logs.length} emitted "${
-      context.eventName
-    }" events`,
+    )}) were not included in any of the ${
+      context.logs.length
+    } emitted "${chaiUtils.flag(context, "eventName")}" events`,
     "Do not combine .not. with .withArgs()"
   );
 };
