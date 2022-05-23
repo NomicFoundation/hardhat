@@ -163,7 +163,7 @@ export async function revertedWithCustomErrorWithArgs(
   for (const [i, actualArg] of Object.entries(actualArgs) as any) {
     const expectedArg = expectedArgs[i];
     if (typeof expectedArg === "function") {
-      const errorPrefix = `The user-defined predicate for custom error argument #${
+      const errorPrefix = `The predicate for custom error argument #${
         parseInt(i, 10) + 1
       }`;
       try {
