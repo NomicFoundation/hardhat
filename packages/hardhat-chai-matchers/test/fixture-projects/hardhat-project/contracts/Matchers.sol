@@ -98,7 +98,7 @@ contract Matchers {
     revert CustomErrorWithInt(i);
   }
 
-  function revertWithCustomErrorWithIntView(int i) public {
+  function revertWithCustomErrorWithIntView(int i) public pure {
     revert CustomErrorWithInt(i);
   }
 
