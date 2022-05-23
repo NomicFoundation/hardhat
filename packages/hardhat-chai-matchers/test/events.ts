@@ -130,6 +130,10 @@ describe(".to.emit (contract events)", () => {
         ethers.utils.toUtf8Bytes(string2)
       );
 
+      function hash(s: string): string {
+        return ethers.utils.keccak256(s);
+      }
+
       describe("with a string argument", function () {
         it("Should match the argument", async function () {
           await expect(contract.emitString("string"))
@@ -163,11 +167,11 @@ describe(".to.emit (contract events)", () => {
               .withArgs(string2)
           ).to.be.eventually.rejectedWith(
             AssertionError,
-            `The actual value was an indexed and hashed value of the event argument. The expected value provided to the assertion was hashed to produce ${ethers.utils.keccak256(
+            `The actual value was an indexed and hashed value of the event argument. The expected value provided to the assertion was hashed to produce ${hash(
               string2Bytes
-            )}. The actual hash and the expected hash did not match: expected '${ethers.utils.keccak256(
+            )}. The actual hash and the expected hash did not match: expected '${hash(
               string1Bytes
-            )}' to equal '${ethers.utils.keccak256(string2Bytes)}'`
+            )}' to equal '${hash(string2Bytes)}'`
           );
         });
 
@@ -175,7 +179,7 @@ describe(".to.emit (contract events)", () => {
           await expect(
             expect(contract.emitIndexedString(string1))
               .to.emit(contract, "WithIndexedStringArg")
-              .withArgs(ethers.utils.keccak256(string1Bytes))
+              .withArgs(hash(string1Bytes))
           ).to.be.eventually.rejectedWith(
             AssertionError,
             "The actual value was an indexed and hashed value of the event argument. The expected value provided to the assertion should be the actual event argument (the pre-image of the hash). You provided the hash itself. Please supply the the actual event argument (the pre-image of the hash) instead."
@@ -183,17 +187,17 @@ describe(".to.emit (contract events)", () => {
         });
 
         it("Should fail when trying to match the event argument with an incorrect hash value", async function () {
-          const expectedHash = ethers.utils.keccak256(string1Bytes);
-          const incorrectHash = ethers.utils.keccak256(string2Bytes);
+          const expectedHash = hash(string1Bytes);
+          const incorrectHash = hash(string2Bytes);
           await expect(
             expect(contract.emitIndexedString(string1))
               .to.emit(contract, "WithIndexedStringArg")
               .withArgs(incorrectHash)
           ).to.be.eventually.rejectedWith(
             AssertionError,
-            `The actual value was an indexed and hashed value of the event argument. The expected value provided to the assertion was hashed to produce ${ethers.utils.keccak256(
+            `The actual value was an indexed and hashed value of the event argument. The expected value provided to the assertion was hashed to produce ${hash(
               incorrectHash
-            )}. The actual hash and the expected hash did not match: expected '${expectedHash}' to equal '${ethers.utils.keccak256(
+            )}. The actual hash and the expected hash did not match: expected '${expectedHash}' to equal '${hash(
               incorrectHash
             )}'`
           );
@@ -233,11 +237,11 @@ describe(".to.emit (contract events)", () => {
               .withArgs(string1Bytes)
           ).to.be.eventually.rejectedWith(
             AssertionError,
-            `The actual value was an indexed and hashed value of the event argument. The expected value provided to the assertion was hashed to produce ${ethers.utils.keccak256(
+            `The actual value was an indexed and hashed value of the event argument. The expected value provided to the assertion was hashed to produce ${hash(
               string1Bytes
-            )}. The actual hash and the expected hash did not match: expected '${ethers.utils.keccak256(
+            )}. The actual hash and the expected hash did not match: expected '${hash(
               string2Bytes
-            )}' to equal '${ethers.utils.keccak256(string1Bytes)}'`
+            )}' to equal '${hash(string1Bytes)}'`
           );
         });
 
@@ -245,7 +249,7 @@ describe(".to.emit (contract events)", () => {
           await expect(
             expect(contract.emitIndexedBytes(string1Bytes))
               .to.emit(contract, "WithIndexedBytesArg")
-              .withArgs(ethers.utils.keccak256(string1Bytes))
+              .withArgs(hash(string1Bytes))
           ).to.be.eventually.rejectedWith(
             AssertionError,
             "The actual value was an indexed and hashed value of the event argument. The expected value provided to the assertion should be the actual event argument (the pre-image of the hash). You provided the hash itself. Please supply the the actual event argument (the pre-image of the hash) instead."
