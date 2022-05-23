@@ -2,6 +2,7 @@ import type { NumberLike, BlockTag } from "../types";
 import {
   getHardhatProvider,
   assertValidAddress,
+  toPaddedRpcQuantity,
   toRpcQuantity,
 } from "../utils";
 
@@ -21,7 +22,7 @@ export async function getStorageAt(
   const provider = await getHardhatProvider();
 
   assertValidAddress(address);
-  const indexParam = toRpcQuantity(index);
+  const indexParam = toPaddedRpcQuantity(index, 32);
 
   let blockParam: NumberLike | BlockTag;
   switch (block) {

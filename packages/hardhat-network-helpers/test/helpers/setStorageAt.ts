@@ -3,7 +3,7 @@ import { BN } from "ethereumjs-util";
 import { ethers } from "ethers";
 
 import * as hh from "../../src";
-import { toRpcQuantity } from "../../src/utils";
+import { toPaddedRpcQuantity } from "../../src/utils";
 import { NumberLike } from "../../src/types";
 import { useEnvironment } from "../test-utils";
 
@@ -18,7 +18,7 @@ describe("setStorageAt", function () {
     index: NumberLike,
     block = "latest"
   ) => {
-    const hexIndex = toRpcQuantity(index);
+    const hexIndex = toPaddedRpcQuantity(index, 32);
     const data = await this.ctx.hre.network.provider.send("eth_getStorageAt", [
       address,
       hexIndex,
