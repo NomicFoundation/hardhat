@@ -245,7 +245,8 @@ describe("INTEGRATION: Reverted", function () {
     });
 
     describe("calling a method that reverts without a reason", function () {
-      it("successful asserts", async function () {
+      // depends on a bug being fixed on ethers.js
+      it.skip("successful asserts", async function () {
         await runSuccessfulAsserts({
           matchers,
           method: "revertsWithoutReason",
@@ -254,7 +255,8 @@ describe("INTEGRATION: Reverted", function () {
         });
       });
 
-      it("failed asserts", async function () {
+      // depends on a bug being fixed on ethers.js
+      it.skip("failed asserts", async function () {
         await runFailedAsserts({
           matchers,
           method: "revertsWithoutReason",
