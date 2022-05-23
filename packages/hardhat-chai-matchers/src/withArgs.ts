@@ -8,10 +8,22 @@ import {
   REVERTED_WITH_CUSTOM_ERROR_CALLED,
 } from "./reverted/revertedWithCustomError";
 
+/**
+ * A predicate for use with .withArgs(...), to induce chai to accept any value
+ * as a positive match with the argument.
+ *
+ * Example: expect(contract.emitInt()).to.emit(contract, "Int").withArgs(anyValue)
+ */
 export function anyValue(): boolean {
   return true;
 }
 
+/**
+ * A predicate for use with .withArgs(...), to induce chai to accept any
+ * unsigned integer as a positive match with the argument.
+ *
+ * Example: expect(contract.emitUint()).to.emit(contract, "Uint").withArgs(anyUint)
+ */
 export function anyUint(i: any): boolean {
   if (typeof i === "number") {
     if (i < 0) {
