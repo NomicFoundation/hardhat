@@ -113,11 +113,10 @@ function assertArgsArraysEqual(
   const actualArgs = (
     chaiUtils.flag(context, "contract").interface as Interface
   ).parseLog(log).args;
+  const eventName = chaiUtils.flag(context, "eventName");
   context.assert(
     actualArgs.length === expectedArgs.length,
-    `Expected "${chaiUtils.flag(context, "eventName")}" event to have ${
-      expectedArgs.length
-    } argument(s), but it has ${actualArgs.length}`,
+    `Expected "${eventName}" event to have ${expectedArgs.length} argument(s), but it has ${actualArgs.length}`,
     "Do not combine .not. with .withArgs()",
     expectedArgs.length,
     actualArgs.length
@@ -189,13 +188,14 @@ const tryAssertArgsArraysEqual = (
       } catch {}
     }
   }
+  const eventName = chaiUtils.flag(context, "eventName");
   context.assert(
     false,
     `The specified arguments (${util.inspect(
       expectedArgs
     )}) were not included in any of the ${
       context.logs.length
-    } emitted "${chaiUtils.flag(context, "eventName")}" events`,
+    } emitted "${eventName}" events`,
     "Do not combine .not. with .withArgs()"
   );
 };
