@@ -8,3 +8,10 @@ const assert = require("assert");
 const { PANIC_CODES } = require("@nomicfoundation/hardhat-chai-matchers/panic");
 
 assert(PANIC_CODES !== undefined);
+
+const {
+  anyUint,
+  anyValue,
+} = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
+assert(anyUint !== undefined);
+assert(anyValue !== undefined);

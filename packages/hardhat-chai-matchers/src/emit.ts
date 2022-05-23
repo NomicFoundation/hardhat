@@ -112,7 +112,27 @@ function assertArgsArraysEqual(
     actualArgs.length
   );
   for (let index = 0; index < expectedArgs.length; index++) {
-    if (expectedArgs[index] instanceof Uint8Array) {
+    if (typeof expectedArgs[index] === "function") {
+      const errorPrefix = `The predicate for event argument #${index + 1}`;
+      try {
+        context.assert(
+          expectedArgs[index](actualArgs[index]),
+          `${errorPrefix} returned false`
+          // no need for a negated message, since we disallow mixing .not. with
+          // .withArgs
+        );
+      } catch (e) {
+        if (e instanceof AssertionError) {
+          context.assert(
+            false,
+            `${errorPrefix} threw an AssertionError: ${e.message}`
+            // no need for a negated message, since we disallow mixing .not. with
+            // .withArgs
+          );
+        }
+        throw e;
+      }
+    } else if (expectedArgs[index] instanceof Uint8Array) {
       new Assertion(actualArgs[index]).equal(
         utils.hexlify(expectedArgs[index])
       );

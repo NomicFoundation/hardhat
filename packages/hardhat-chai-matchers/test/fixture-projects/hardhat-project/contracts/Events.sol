@@ -8,6 +8,7 @@ contract Events {
 
   event WithoutArgs();
   event WithUintArg(uint u);
+  event WithIntArg(int i);
   event WithTwoUintArgs(uint u, uint v);
   event WithStringArg(string s);
   event WithTwoStringArgs(string s, string t);
@@ -32,6 +33,10 @@ contract Events {
 
   function emitUint(uint u) public {
     emit WithUintArg(u);
+  }
+
+  function emitInt(int i) public {
+    emit WithIntArg(i);
   }
 
   function emitUintTwice(uint u, uint v) public {
