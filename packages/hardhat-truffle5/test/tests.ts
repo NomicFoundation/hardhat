@@ -195,7 +195,7 @@ describe("Test contracts compilation", function () {
 
     assert.include(
       sources,
-      fs.realpathSync(
+      fs.realpathSync.native(
         path.join(process.cwd(), "contracts", "fromContracts.sol")
       )
     );
@@ -206,7 +206,7 @@ describe("Test contracts compilation", function () {
 
     assert.include(
       sources,
-      fs.realpathSync(path.join(process.cwd(), "test", "fromTest.sol"))
+      fs.realpathSync.native(path.join(process.cwd(), "test", "fromTest.sol"))
     );
   });
 
@@ -215,7 +215,7 @@ describe("Test contracts compilation", function () {
 
     assert.notInclude(
       sources,
-      fs.realpathSync(path.join(process.cwd(), "test", "shouldBeIgnored.txt"))
+      fs.realpathSync.native(path.join(process.cwd(), "test", "shouldBeIgnored.txt"))
     );
   });
 

@@ -20,7 +20,7 @@ export function isHardhatInstalledLocallyOrLinked(configPath?: string) {
     // We need to get the realpaths here, as hardhat may be linked and
     // running with `node --preserve-symlinks`
     return (
-      fs.realpathSync(resolvedPackageJson) === fs.realpathSync(thisPackageJson)
+      fs.realpathSync.native(resolvedPackageJson) === fs.realpathSync.native(thisPackageJson)
     );
   } catch {
     return false;
