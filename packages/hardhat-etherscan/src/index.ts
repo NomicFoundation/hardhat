@@ -19,7 +19,7 @@ import {
   isFullyQualifiedName,
   parseFullyQualifiedName,
 } from "hardhat/utils/contract-names";
-import path from "path";
+import path from 'node:path';
 import semver from "semver";
 
 import { encodeArguments } from "./ABIEncoder";

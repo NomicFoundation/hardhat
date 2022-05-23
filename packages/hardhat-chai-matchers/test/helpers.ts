@@ -3,7 +3,7 @@ import { fork } from "child_process";
 import getPort from "get-port";
 import { resetHardhatContext } from "hardhat/plugins-testing";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import path from "path";
+import path from 'node:path';
 
 // we assume that all the fixture projects use the hardhat-ethers plugin
 import "@nomiclabs/hardhat-ethers/internal/type-extensions";

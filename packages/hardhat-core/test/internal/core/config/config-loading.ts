@@ -1,6 +1,6 @@
 import { assert } from "chai";
 import fsExtra from "fs-extra";
-import path from "path";
+import path from 'node:path';
 import sinon from "sinon";
 
 import { TASK_CLEAN } from "../../../../src/builtin-tasks/task-names";

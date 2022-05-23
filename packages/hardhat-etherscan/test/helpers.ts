@@ -2,7 +2,7 @@ import type {} from "@nomiclabs/hardhat-ethers";
 
 import { resetHardhatContext } from "hardhat/plugins-testing";
 import { FactoryOptions, HardhatRuntimeEnvironment } from "hardhat/types";
-import path from "path";
+import path from 'node:path';
 
 declare module "mocha" {
   interface Context {

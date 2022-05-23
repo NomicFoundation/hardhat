@@ -3,7 +3,7 @@ import chalk from "chalk";
 import { exec } from "child_process";
 import debug from "debug";
 import fsExtra from "fs-extra";
-import path from "path";
+import path from 'node:path';
 import semver from "semver";
 import AggregateError from "aggregate-error";
 

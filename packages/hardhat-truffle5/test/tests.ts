@@ -2,7 +2,7 @@ import { assert } from "chai";
 import * as fs from "fs";
 import { TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS } from "hardhat/builtin-tasks/task-names";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import path from "path";
+import path from 'node:path';
 
 import { DEFAULT_GAS_MULTIPLIER } from "../src/constants";
 import { TruffleContract, TruffleContractInstance } from "../src/types";

@@ -1,7 +1,7 @@
 import { Address, BN, bufferToHex } from "ethereumjs-util";
 import fsExtra from "fs-extra";
 import * as t from "io-ts";
-import path from "path";
+import path from 'node:path';
 
 import {
   numberToRpcQuantity,

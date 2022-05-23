@@ -1,6 +1,6 @@
 import findup from "find-up";
 import fsExtra from "fs-extra";
-import path from "path";
+import path from 'node:path';
 
 export function getPackageJsonPath(): string {
   return findClosestPackageJson(__filename)!;

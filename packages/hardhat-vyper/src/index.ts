@@ -3,7 +3,7 @@ import type { Artifacts } from "hardhat/types/artifacts";
 import type { VyperOutput, VyperBuild } from "./types";
 
 import * as os from "os";
-import path from "path";
+import path from 'node:path';
 import fsExtra from "fs-extra";
 import semver from "semver";
 

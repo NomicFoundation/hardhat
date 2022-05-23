@@ -1,6 +1,6 @@
 // This file only exists to workaround this: https://github.com/EthWorks/Waffle/issues/281
 
-import path from "path";
+import path from 'node:path';
 
 /// <reference types="chai" />
 

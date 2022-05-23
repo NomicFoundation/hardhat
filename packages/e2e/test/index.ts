@@ -2,7 +2,7 @@ import os from "os";
 
 import { assert } from "chai";
 import fsExtra from "fs-extra";
-import path from "path";
+import path from 'node:path';
 import shell from "shelljs";
 
 import { useFixture } from "./helpers";

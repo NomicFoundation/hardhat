@@ -1,6 +1,6 @@
 import type { FileContent, ResolvedFile as IResolvedFile } from "./types";
 
-import path from "path";
+import path from 'node:path';
 import fsExtra from "fs-extra";
 
 import {

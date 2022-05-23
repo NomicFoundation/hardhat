@@ -1,7 +1,7 @@
 import { BN } from "ethereumjs-util";
 import * as fs from "fs";
 import cloneDeep from "lodash/cloneDeep";
-import path from "path";
+import path from 'node:path';
 
 import {
   HardhatConfig,

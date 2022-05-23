@@ -2,7 +2,7 @@ import chalk from "chalk";
 import debug from "debug";
 import fsExtra from "fs-extra";
 import os from "os";
-import path from "path";
+import path from 'node:path';
 
 import { HardhatError } from "../../core/errors";
 import { ERRORS } from "../../core/errors-list";

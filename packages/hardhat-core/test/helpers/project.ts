@@ -1,5 +1,5 @@
 import * as fsExtra from "fs-extra";
-import path from "path";
+import path from 'node:path';
 
 /**
  * This helper adds mocha hooks to run the tests inside one of the projects

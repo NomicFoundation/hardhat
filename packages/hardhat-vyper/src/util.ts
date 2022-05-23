@@ -6,7 +6,7 @@ import type {
   ContractOutput,
 } from "./types";
 
-import path from "path";
+import path from 'node:path';
 
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 

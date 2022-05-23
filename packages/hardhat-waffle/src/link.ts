@@ -1,4 +1,4 @@
-import path from "path";
+import path from 'node:path';
 
 export function getLinkFunction() {
   const wafflePath = require.resolve("ethereum-waffle");

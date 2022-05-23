@@ -1,5 +1,5 @@
 import debug from "debug";
-import path from "path";
+import path from 'node:path';
 
 import { HardhatArguments } from "../../types";
 import { isRunningHardhatCoreTests } from "../core/execution-mode";

@@ -1,6 +1,6 @@
 import fs from "fs";
 import fsExtra from "fs-extra";
-import path from "path";
+import path from 'node:path';
 import util from "util";
 
 import { getHardhatVersion } from "./packageInfo";

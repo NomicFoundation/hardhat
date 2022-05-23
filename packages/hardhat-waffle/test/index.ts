@@ -2,7 +2,7 @@ import { assert } from "chai";
 import { normalizeHardhatNetworkAccountsConfig } from "hardhat/internal/core/providers/util";
 import { HARDHAT_NETWORK_NAME } from "hardhat/plugins";
 import { HardhatNetworkConfig } from "hardhat/types";
-import path from "path";
+import path from 'node:path';
 
 import { useEnvironment } from "./helpers";
 

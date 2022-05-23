@@ -1,6 +1,6 @@
 import { assert, AssertionError } from "chai";
 import * as fsExtra from "fs-extra";
-import path from "path";
+import path from 'node:path';
 
 import { resetHardhatContext } from "hardhat/plugins-testing";
 import { HardhatRuntimeEnvironment } from "hardhat/types";

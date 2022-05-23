@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import path from "path";
+import path from 'node:path';
 
 import { ERRORS } from "../../src/internal/core/errors-list";
 import {

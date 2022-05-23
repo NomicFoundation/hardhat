@@ -1,6 +1,6 @@
 // reused from ethers.js
 import { Address, BN, toBuffer } from "ethereumjs-util";
-import path from "path";
+import path from 'node:path';
 
 export const DAI_ADDRESS = Address.fromString(
   "0x6b175474e89094c44da98b954eedeac495271d0f"

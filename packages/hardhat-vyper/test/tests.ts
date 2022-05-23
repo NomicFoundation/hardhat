@@ -1,6 +1,6 @@
 import { assert } from "chai";
 import * as fsExtra from "fs-extra";
-import path from "path";
+import path from 'node:path';
 
 import { TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
 

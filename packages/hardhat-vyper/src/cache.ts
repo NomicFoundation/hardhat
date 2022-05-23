@@ -2,7 +2,7 @@ import type { LoDashStatic } from "lodash";
 import type { ProjectPathsConfig } from "hardhat/types/config";
 import type { VyperConfig } from "./types";
 
-import path from "path";
+import path from 'node:path';
 import fsExtra from "fs-extra";
 import * as t from "io-ts";
 

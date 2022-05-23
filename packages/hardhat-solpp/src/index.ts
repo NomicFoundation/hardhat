@@ -2,7 +2,7 @@ import fsExtra from "fs-extra";
 import { TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS } from "hardhat/builtin-tasks/task-names";
 import { extendConfig, subtask } from "hardhat/config";
 import { HardhatConfig } from "hardhat/types";
-import path from "path";
+import path from 'node:path';
 
 import "./type-extensions";
 import { SolppConfig } from "./types";

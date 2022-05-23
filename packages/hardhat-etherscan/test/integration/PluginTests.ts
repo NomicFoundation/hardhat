@@ -7,7 +7,7 @@ import {
   TASK_COMPILE_SOLIDITY_GET_COMPILER_INPUT,
 } from "hardhat/builtin-tasks/task-names";
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
-import path from "path";
+import path from 'node:path';
 
 import {
   TASK_VERIFY_GET_ETHERSCAN_ENDPOINT,

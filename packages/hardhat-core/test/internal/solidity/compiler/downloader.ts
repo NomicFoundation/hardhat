@@ -1,6 +1,6 @@
 import { assert } from "chai";
 import fsExtra from "fs-extra";
-import path from "path";
+import path from 'node:path';
 
 import { ERRORS } from "../../../../src/internal/core/errors-list";
 import {

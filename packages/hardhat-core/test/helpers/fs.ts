@@ -1,6 +1,6 @@
 import fsExtra from "fs-extra";
 import * as os from "os";
-import path from "path";
+import path from 'node:path';
 
 declare module "mocha" {
   interface Context {

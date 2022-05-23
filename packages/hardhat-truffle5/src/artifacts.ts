@@ -1,7 +1,7 @@
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import { Artifacts } from "hardhat/types";
 import { isFullyQualifiedName } from "hardhat/utils/contract-names";
-import path from "path";
+import path from 'node:path';
 
 import { LazyTruffleContractProvisioner } from "./provisioner";
 import { TruffleContract, TruffleContractInstance } from "./types";

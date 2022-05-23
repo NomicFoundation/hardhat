@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import fsExtra from "fs-extra";
-import path from "path";
+import path from 'node:path';
 
 import { DependencyGraph } from "../../../src/internal/solidity/dependencyGraph";
 import { Parser } from "../../../src/internal/solidity/parse";

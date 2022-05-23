@@ -2,7 +2,7 @@ import VM from "@ethereumjs/vm";
 import { assert } from "chai";
 import { BN, toBuffer } from "ethereumjs-util";
 import fs from "fs";
-import path from "path";
+import path from 'node:path';
 import semver from "semver";
 
 import { ReturnData } from "../../../../src/internal/hardhat-network/provider/return-data";

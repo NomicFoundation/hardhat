@@ -1,4 +1,4 @@
-import path from "path";
+import path from 'node:path';
 
 import { HardhatError } from "../internal/core/errors";
 import { ERRORS } from "../internal/core/errors-list";

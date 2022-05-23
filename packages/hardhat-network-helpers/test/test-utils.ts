@@ -1,7 +1,7 @@
 import { BN, toBuffer } from "ethereumjs-util";
 import { resetHardhatContext } from "hardhat/plugins-testing";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import path from "path";
+import path from 'node:path';
 
 declare module "mocha" {
   interface Context {

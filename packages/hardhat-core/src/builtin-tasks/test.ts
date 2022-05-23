@@ -1,7 +1,7 @@
 import type { MochaOptions } from "mocha";
 
 import chalk from "chalk";
-import path from "path";
+import path from 'node:path';
 
 import { HARDHAT_NETWORK_NAME } from "../internal/constants";
 import { subtask, task } from "../internal/core/config/config-env";

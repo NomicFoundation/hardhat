@@ -1,7 +1,7 @@
 import chalk from "chalk";
 import fsExtra from "fs-extra";
 import os from "os";
-import path from "path";
+import path from 'node:path';
 
 import { HARDHAT_NAME } from "../constants";
 import { DEFAULT_SOLC_VERSION } from "../core/config/default-config";

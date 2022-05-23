@@ -1,7 +1,7 @@
 import type { Contract, providers, Signer } from "ethers";
 import type { HardhatRuntimeEnvironment } from "hardhat/types";
 
-import path from "path";
+import path from 'node:path';
 
 export function getDeployMockContract() {
   const wafflePath = require.resolve("ethereum-waffle");
