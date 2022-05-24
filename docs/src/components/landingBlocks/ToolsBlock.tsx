@@ -24,29 +24,26 @@ const {
   DescriptionLink,
 } = ToolsBlockStyled;
 
+interface InfoItem {
+  icon: React.FC<any>;
+  title: string;
+  value: Tools;
+  mottos: string[];
+  description: string;
+  link: string;
+}
 interface BlockProps {
   content: {
     title: string;
     companyName: string;
-    infoItems: Array<{
-      icon: React.MemoExoticComponent<
-        (props: React.SVGProps<SVGSVGElement>) => JSX.Element
-      >;
-      title: string;
-      value: Tools;
-      mottos: string[];
-      description: string;
-      link: string;
-    }>;
+    infoItems: InfoItem[];
   };
 }
 
 interface ToolProps {
   content:
     | {
-        icon: React.MemoExoticComponent<
-          (props: React.SVGProps<SVGSVGElement>) => JSX.Element
-        >;
+        icon: React.FC<any>;
         title: string;
         value: Tools;
         mottos: string[];
@@ -99,7 +96,7 @@ const ToolDescription = ({ content, companyName }: ToolProps) => {
           setCurrentMottoClassname("ignition");
           break;
         }
-        case Tools.VS_CODE: {
+        case Tools.SOLIDITY: {
           setCurrentMottoClassname("vscode");
           break;
         }

@@ -1,4 +1,4 @@
-import VSCodeIcon from "../assets/tools/vs-code";
+import SolidityIcon from "../assets/tools/solidity";
 import RunnerIcon from "../assets/tools/runner";
 import IgnitionIcon from "../assets/tools/ignition";
 import NetworkIcon from "../assets/tools/network";
@@ -198,9 +198,9 @@ const toolsBlockContent = {
       link: "/",
     },
     {
-      icon: VSCodeIcon,
-      title: "VS code",
-      value: Tools.VS_CODE,
+      icon: SolidityIcon,
+      title: "Solidity",
+      value: Tools.SOLIDITY,
       mottos: ["code", "refactor"],
       description:
         "Visual Studio Code extension for Solidity editing assistance. Code navigation, refactoring and type-smart suggestions.",
