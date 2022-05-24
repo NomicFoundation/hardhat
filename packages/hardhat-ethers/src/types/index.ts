@@ -11,6 +11,11 @@ export interface FactoryOptions {
   signer?: ethers.Signer;
   libraries?: Libraries;
 }
+export interface DeployOptions {
+  signer?: ethers.Signer;
+  args?: any[];
+  libraries?: Libraries;
+}
 
 export declare function getContractFactory(
   name: string,
@@ -42,4 +47,8 @@ export interface HardhatEthersHelpers {
   ) => Promise<ethers.Contract>;
   getSigner: (address: string) => Promise<SignerWithAddress>;
   getSigners: () => Promise<SignerWithAddress[]>;
+  deployContract: (
+    name: string,
+    signerOrOptions?: ethers.Signer | DeployOptions
+  ) => Promise<ethers.Contract>;
 }

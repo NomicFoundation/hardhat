@@ -11,6 +11,7 @@ import {
   getContractFactoryFromArtifact,
   getSigner,
   getSigners,
+  deployContract,
 } from "./helpers";
 import "./type-extensions";
 
@@ -49,6 +50,7 @@ extendEnvironment((hre) => {
       ),
       getContractAt: getContractAt.bind(null, hre),
       getContractAtFromArtifact: getContractAtFromArtifact.bind(null, hre),
+      deployContract: deployContract.bind(null, hre),
     };
   });
 });
