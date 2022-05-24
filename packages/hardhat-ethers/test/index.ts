@@ -911,6 +911,89 @@ describe("Ethers plugin", function () {
           });
         });
       });
+
+      describe("deployContract", function () {
+        it("should deploy and return a contract with default signer", async function () {
+          const contract = await this.env.ethers.deployContract("Greeter");
+
+          assert.containsAllKeys(contract.interface.functions, [
+            "setGreeting(string)",
+            "greet()",
+          ]);
+
+          assert.equal(
+            await contract.signer.getAddress(),
+            await signers[0].getAddress()
+          );
+        });
+
+        it("should deploy and return a contract with custom signer passed directly", async function () {
+          const contract = await this.env.ethers.deployContract(
+            "Greeter",
+            signers[1]
+          );
+
+          assert.containsAllKeys(contract.interface.functions, [
+            "setGreeting(string)",
+            "greet()",
+          ]);
+
+          assert.equal(
+            await contract.signer.getAddress(),
+            await signers[1].getAddress()
+          );
+        });
+
+        it("should deploy and return a contract with custom signer passed as an option", async function () {
+          const contract = await this.env.ethers.deployContract("Greeter", {
+            signer: signers[1],
+          });
+
+          assert.containsAllKeys(contract.interface.functions, [
+            "setGreeting(string)",
+            "greet()",
+          ]);
+
+          assert.equal(
+            await contract.signer.getAddress(),
+            await signers[1].getAddress()
+          );
+        });
+
+        it("should deploy with args and return a contract", async function () {
+          const contract = await this.env.ethers.deployContract(
+            "GreeterWithConstructorArg",
+            { args: ["Hello"] }
+          );
+
+          assert.containsAllKeys(contract.interface.functions, [
+            "setGreeting(string)",
+            "greet()",
+          ]);
+
+          assert.equal(
+            await contract.signer.getAddress(),
+            await signers[0].getAddress()
+          );
+        });
+
+        it("should deploy with args and return a contract with custom signer as an option", async function () {
+          const contract = await this.env.ethers.deployContract(
+            "GreeterWithConstructorArg",
+            { args: ["Hello"], signer: signers[1] }
+          );
+
+          assert.containsAllKeys(contract.interface.functions, [
+            "setGreeting(string)",
+            "greet()",
+          ]);
+
+          assert.equal(
+            await contract.signer.getAddress(),
+            await signers[1].getAddress()
+          );
+        });
+      });
     });
   });
 
