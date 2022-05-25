@@ -42,7 +42,7 @@ const MobileMenuSocialsList = styled.ul`
   display: flex;
   align-items: center;
   list-style-type: none;
-  margin-top: 144px;
+  margin-top: 32px;
   justify-content: space-evenly;
 `;
 
@@ -126,14 +126,19 @@ const SocialLinksItem = styled.li`
   height: 40px;
 `;
 
-const MobileMenu = ({ menuItems, isOpen = false, socialsItems }: MenuProps) => {
+const MobileMenu = ({
+  menuItems,
+  isOpen = false,
+  socialsItems,
+  closeMobileMenu,
+}: MenuProps & { closeMobileMenu: () => void }) => {
   return (
     <MobileMenuContainer isOpen={isOpen}>
       <MobileMenuList>
         {menuItems.map((menuItem: MenuItemType) => {
           return (
             <Fragment key={menuItem.label}>
-              <MobileMenuItem>
+              <MobileMenuItem onClick={() => closeMobileMenu()}>
                 <Link href={menuItem.href} passHref>
                   <MobileMenuButton>{menuItem.label}</MobileMenuButton>
                 </Link>
@@ -142,8 +147,18 @@ const MobileMenu = ({ menuItems, isOpen = false, socialsItems }: MenuProps) => {
                 <MobileMenuSubContainer itemsCount={menuItem.subItems.length}>
                   {menuItem.subItems.map((subItem: MenuItemType) => {
                     return (
-                      <MobileMenuSubItem key={subItem.label}>
-                        <Link href={subItem.href} passHref>
+                      <MobileMenuSubItem
+                        key={subItem.label}
+                        onClick={() => {
+                          closeMobileMenu();
+                        }}
+                      >
+                        <Link
+                          href={subItem.href}
+                          passHref
+                          scroll={false}
+                          prefetch={false}
+                        >
                           <MobileMenuSubItemButton>
                             {Boolean(subItem.prefix) && (
                               <span className="prefix">{subItem.prefix}</span>

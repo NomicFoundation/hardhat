@@ -2,9 +2,10 @@ import React from "react";
 import { styled } from "linaria/react";
 import Section from "../Section";
 import CTA from "../ui/CTA";
-import { breakpoints, media, tm } from "../../themes";
-import useWindowSize from "../../hooks/useWindowSize";
+import { media, tm } from "../../themes";
 import { CTAType } from "../ui/types";
+import DesktopAnimation from "../DesktopAnimation";
+import MobileAnimation from "../MobileAnimation";
 
 interface Props {
   content: {
@@ -30,7 +31,11 @@ const Block = styled.div`
   width: 100%;
   display: flex;
   flex-direction: column;
-  padding: 40px 0 24px;
+  padding: 0 0 24px;
+  min-height: 100px;
+  &.content {
+    z-index: 1;
+  }
   & svg {
     margin: 0 auto;
   }
@@ -40,10 +45,7 @@ const Block = styled.div`
       width: 60%;
     }
     padding: 0;
-    & svg {
-      position: relative;
-      right: -10%;
-    }
+    position: relative;
   }
 `;
 
@@ -79,46 +81,17 @@ const Title = styled.h1`
 `;
 
 const HeroBlock = ({ content }: Props) => {
-  const windowSize = useWindowSize();
-  const isDesktop = breakpoints.md <= windowSize.width;
   return (
     <Section>
       <Container>
-        <Block>
+        <Block className="content">
           <TagLine>{content.tagline}</TagLine>
           <Title>{content.title}</Title>
           <CTA href={content.cta.url}>{content.cta.title}</CTA>
         </Block>
         <Block>
-          {isDesktop ? (
-            <div
-              style={{
-                fontSize: 48,
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                height: "100%",
-                width: "100%",
-                textAlign: "center",
-              }}
-            >
-              DESKTOP ANIMATION MOCK
-            </div>
-          ) : (
-            <div
-              style={{
-                fontSize: 48,
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                height: "100%",
-                width: "100%",
-                textAlign: "center",
-              }}
-            >
-              MOBILE ANIMATION MOCK
-            </div>
-          )}
+          <DesktopAnimation />
+          <MobileAnimation />
         </Block>
       </Container>
     </Section>

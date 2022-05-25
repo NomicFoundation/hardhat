@@ -13,10 +13,13 @@ import {
   tmSelectors,
 } from "../themes";
 import logo from "../assets/hardhat-logo.svg";
+import darkLogo from "../assets/hardhat-logo-dark.svg";
 import Hamburger from "./ui/Hamburger";
 import DesktopMenu from "./ui/DesktopMenu";
 import { menuItemsList, socialsItems } from "../config";
-import ThemeSwitcher from "../assets/icons/theme-switcher";
+import ThemeSwitcher from "../assets/icons/theme-switcher.svg";
+import ThemeSwitcherDark from "../assets/icons/theme-switcher-dark.svg";
+import ThemeSwitcherHCDark from "../assets/icons/theme-switcher-hc-dark.svg";
 
 interface Props {
   isSidebarOpen: boolean;
@@ -25,9 +28,6 @@ interface Props {
 
 const NavigationStyled = styled.nav`
   position: relative;
-  margin-top: 40px;
-  top: 0;
-  left: 0;
   width: 100%;
   display: flex;
   justify-content: center;
@@ -78,16 +78,32 @@ const LogoContainer = styled.a`
   background-color: ${tm(({ colors }) => colors.transparent)};
   border: none;
   cursor: pointer;
-  & path.letter {
-    ${tmSelectors.hcDark} {
-      fill: ${tmHCDark(({ colors }) => colors.neutral900)};
+  & .dark-logo {
+    display: none;
+  }
+  ${tmSelectors.hcDark} {
+    & .dark-logo {
+      display: inline;
     }
-    ${tmSelectors.dark} {
-      fill: ${tmDark(({ colors }) => colors.neutral900)};
+    & .light-logo {
+      display: none;
     }
-    ${media.mqDark} {
-      ${tmSelectors.auto} {
-        fill: ${tmDark(({ colors }) => colors.neutral900)};
+  }
+  ${tmSelectors.dark} {
+    & .dark-logo {
+      display: inline;
+    }
+    & .light-logo {
+      display: none;
+    }
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      & .dark-logo {
+        display: inline;
+      }
+      & .light-logo {
+        display: none;
       }
     }
   }
@@ -114,7 +130,7 @@ const ThemeButton = styled.button`
   border: none;
   cursor: pointer;
   transform-origin: center;
-  min-width: 64px;
+  min-width: 45px;
   transition: transform ease-in-out 0.25s;
   &:hover {
     opacity: 0.8;
@@ -134,13 +150,40 @@ const ThemeButton = styled.button`
 
 const ThemeIconWrapper = styled.div`
   transition: transform ease-in-out 0.25s;
-  &[data-theme="DARK"],
-  &[data-theme="HC_DARK"] {
-    transform: scaleX(-1);
+  & > span {
+    display: none;
+  }
+  & > .theme-switcher {
+    position: relative;
+    bottom: -3px;
+  }
+  & > .light {
+    display: inline;
+  }
+  ${tmSelectors.hcDark} {
+    & > .light {
+      display: none;
+    }
+    & > .hc-dark {
+      display: inline;
+    }
+  }
+  ${tmSelectors.dark} {
+    & > .light {
+      display: none;
+    }
+    & > .dark {
+      display: inline;
+    }
   }
   ${media.mqDark} {
     ${tmSelectors.auto} {
-      transform: scaleX(-1);
+      & > .light {
+        display: none;
+      }
+      & > .dark {
+        display: inline;
+      }
     }
   }
 `;
@@ -161,7 +204,12 @@ const DocsNavigation: FC<Props> = ({ isSidebarOpen, onSidebarOpen }) => {
 
           <Link href="/" passHref>
             <LogoContainer aria-label="home page">
-              <Image src={logo} alt="logo" />
+              <span className="light-logo">
+                <Image src={logo} alt="logo" />
+              </span>
+              <span className="dark-logo">
+                <Image src={darkLogo} alt="logo" />
+              </span>
             </LogoContainer>
           </Link>
         </HamburgerLogoWrapper>
@@ -172,9 +220,22 @@ const DocsNavigation: FC<Props> = ({ isSidebarOpen, onSidebarOpen }) => {
           socialsItems={socialsItems}
         />
         <ThemeButton onClick={changeTheme} aria-label="change color theme">
-          {theme === ThemesEnum.AUTO && "Auto "}
-          <ThemeIconWrapper data-theme={theme}>
-            <ThemeSwitcher />
+          {theme === ThemesEnum.AUTO && "A"}
+          <ThemeIconWrapper>
+            <span className="light theme-switcher">
+              <Image src={ThemeSwitcher} alt="theme-switcher" />
+            </span>
+            <span className="dark theme-switcher">
+              <Image src={ThemeSwitcherDark} alt="theme-switcher" />
+            </span>
+            <span className="hc-dark theme-switcher">
+              <Image
+                src={ThemeSwitcherHCDark}
+                alt="theme-switcher"
+                width={32}
+                height={32}
+              />
+            </span>
           </ThemeIconWrapper>
         </ThemeButton>
       </ControlsContainer>

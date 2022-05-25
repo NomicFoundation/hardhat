@@ -10,7 +10,7 @@ export default {
 export const Code = () => <CodeBlocks.Code>console.log(1)</CodeBlocks.Code>;
 
 export const Pre = () => (
-  <CodeBlocks.Pre>
+  <CodeBlocks.Pre className="">
     <code>
       {`
     $ npx hardhat

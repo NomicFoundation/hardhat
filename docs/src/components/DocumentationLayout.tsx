@@ -36,6 +36,7 @@ import MDImage from "./mdxComponents/MDImage";
 import OrderedList from "./mdxComponents/OrderedList";
 import TabsGroup from "./mdxComponents/TabsGroup";
 import Tab from "./mdxComponents/Tab";
+import { Header } from "./LandingLayout";
 
 const Container = styled.div`
   position: relative;
@@ -47,6 +48,7 @@ const Container = styled.div`
     Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
   -webkit-font-smoothing: antialiased;
   main {
+    padding-top: 136px;
     flex: 1 1 auto;
     display: flex;
     justify-content: flex-start;
@@ -158,10 +160,12 @@ const View = styled.section`
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: space-between;
   padding-top: 24px;
   width: 100%;
   height: calc(100vh - 136px);
   overflow-y: scroll;
+  scroll-behavior: smooth;
   ${media.md} {
     padding-left: 366px;
   }
@@ -269,16 +273,19 @@ const DocumentationLayout = ({
   return (
     <ThemeProvider>
       <Container>
-        <Banner
-          content={bannerContent}
-          renderContent={({ content }: DefaultBannerProps) => (
-            <DefaultBanner content={content} />
-          )}
-        />
-        <DocsNavigation
-          isSidebarOpen={isSidebarOpen}
-          onSidebarOpen={setIsSidebarOpen}
-        />
+        <Header>
+          <Banner
+            content={bannerContent}
+            renderContent={({ content }: DefaultBannerProps) => (
+              <DefaultBanner content={content} />
+            )}
+          />
+          <DocsNavigation
+            isSidebarOpen={isSidebarOpen}
+            onSidebarOpen={setIsSidebarOpen}
+          />
+        </Header>
+
         <SEO seo={seo} />
 
         <main>

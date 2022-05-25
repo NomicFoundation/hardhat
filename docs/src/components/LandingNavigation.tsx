@@ -11,10 +11,6 @@ import DesktopMenu from "./ui/DesktopMenu";
 import { menuItemsList, socialsItems } from "../config";
 
 const Navigation = styled.nav`
-  position: sticky;
-  margin-top: 40px;
-  top: 0;
-  left: 0;
   width: 100%;
   display: flex;
   justify-content: center;
@@ -87,6 +83,7 @@ const LandingNavigation: FC = () => {
         menuItems={menuItemsList}
         socialsItems={socialsItems}
         isOpen={isMobileMenuOpen}
+        closeMobileMenu={() => setIsMobileMenuOpen(false)}
       />
     </Navigation>
   );

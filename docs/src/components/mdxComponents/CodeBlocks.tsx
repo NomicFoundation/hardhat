@@ -4,12 +4,11 @@ import { media, tm, tmDark, tmHCDark, tmSelectors } from "../../themes";
 
 interface CodeProps {
   children: string | JSX.Element[] | JSX.Element;
-  lang?: string;
-  highlightedLines?: string;
 }
 
 interface PreProps {
-  children: string | JSX.Element[] | JSX.Element;
+  children: React.ReactElement;
+  className: string;
 }
 
 const StyledCode = styled.code`
@@ -54,13 +53,14 @@ const StyledCode = styled.code`
 `;
 
 const StyledPre = styled.pre`
+  --remark-highlight-color: ${tm(({ colors }) => colors.codeLineHighlight)};
+
   margin: 16px 0;
   padding: 20px 24px;
   background-color: ${tm(({ colors }) => colors.codeBlockBackground)};
   border-radius: 6px;
   overflow: auto;
   border: 1px solid ${tmHCDark(({ colors }) => colors.transparent)};
-
   & code {
     padding: 0;
     color: ${tm(({ colors }) => colors.preCodeColor)};
@@ -68,6 +68,29 @@ const StyledPre = styled.pre`
     font-size: 0.85em;
     font-family: "Menlo", sans-serif;
     font-weight: 300;
+  }
+
+  & .remark-highlight-code-line {
+    display: block;
+    width: 100%;
+    background-color: var(--remark-highlight-color);
+    position: relative;
+    &::after {
+      content: " ";
+      width: 1.2em;
+      position: absolute;
+      top: 0;
+      right: -1.2em;
+      background-color: var(--remark-highlight-color);
+    }
+    &::before {
+      content: " ";
+      width: 1.2em;
+      position: absolute;
+      top: 0;
+      left: -1.2em;
+      background-color: var(--remark-highlight-color);
+    }
   }
 
   ${tmSelectors.dark} {
@@ -97,16 +120,12 @@ const StyledPre = styled.pre`
   }
 `;
 
-const Code = ({ children, lang, highlightedLines }: CodeProps) => {
-  return (
-    <StyledCode data-language={lang ?? ""} data-line={highlightedLines ?? ""}>
-      {children}
-    </StyledCode>
-  );
+const Code = ({ children }: CodeProps) => {
+  return <StyledCode>{children}</StyledCode>;
 };
 
-const Pre = ({ children }: PreProps) => {
-  return <StyledPre>{children}</StyledPre>;
+const Pre = ({ children, className }: PreProps) => {
+  return <StyledPre className={className}>{children}</StyledPre>;
 };
 
 const CodeBlocks = {

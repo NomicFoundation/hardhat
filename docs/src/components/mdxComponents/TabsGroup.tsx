@@ -1,12 +1,11 @@
-import React, { useContext } from "react";
+import React, { useContext, useMemo } from "react";
 import { styled } from "linaria/react";
 import { media, tm, tmDark, tmHCDark, tmSelectors } from "../../themes";
-import { GlobalTabsContext } from "../../global-tabs";
+import { generateTabsGroupType, GlobalTabsContext } from "../../global-tabs";
 
 interface ITabsGroup {
   children: React.ReactNode[];
   options: string;
-  type: string;
 }
 
 const StyledTabButton = styled.div<{ value: string }>`
@@ -27,7 +26,6 @@ const StyledTabButton = styled.div<{ value: string }>`
     background-color: ${tm(({ colors }) => colors.tabBackgroundSelected)};
     color: ${tm(({ colors }) => colors.neutral400)};
   }
-  ///
   ${tmSelectors.dark} {
     color: ${tmDark(({ colors }) => colors.neutral600)};
     background-color: ${tmDark(({ colors }) => colors.tabBackground)};
@@ -95,8 +93,9 @@ const StyledTabsGroup = styled.div<{ selectedTab: string }>`
   position: relative;
 `;
 
-const TabsGroup = ({ children, options, type }: ITabsGroup) => {
+const TabsGroup = ({ children, options }: ITabsGroup) => {
   const { tabsState, changeTab } = useContext(GlobalTabsContext);
+  const type = useMemo(() => generateTabsGroupType(options), [options]);
   const selectedTab = tabsState[type];
 
   const childrenWithProps = React.Children.map(children, (child) => {

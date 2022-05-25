@@ -1,4 +1,6 @@
+import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
+import { toolRegExp } from "../../config";
 
 import Section from "../Section";
 import { Tools } from "../ui/types";
@@ -22,29 +24,26 @@ const {
   DescriptionLink,
 } = ToolsBlockStyled;
 
+interface InfoItem {
+  icon: React.FC<any>;
+  title: string;
+  value: Tools;
+  mottos: string[];
+  description: string;
+  link: string;
+}
 interface BlockProps {
   content: {
     title: string;
     companyName: string;
-    infoItems: Array<{
-      icon: React.MemoExoticComponent<
-        (props: React.SVGProps<SVGSVGElement>) => JSX.Element
-      >;
-      title: string;
-      value: Tools;
-      mottos: string[];
-      description: string;
-      link: string;
-    }>;
+    infoItems: InfoItem[];
   };
 }
 
 interface ToolProps {
   content:
     | {
-        icon: React.MemoExoticComponent<
-          (props: React.SVGProps<SVGSVGElement>) => JSX.Element
-        >;
+        icon: React.FC<any>;
         title: string;
         value: Tools;
         mottos: string[];
@@ -97,7 +96,7 @@ const ToolDescription = ({ content, companyName }: ToolProps) => {
           setCurrentMottoClassname("ignition");
           break;
         }
-        case Tools.VS_CODE: {
+        case Tools.SOLIDITY: {
           setCurrentMottoClassname("vscode");
           break;
         }
@@ -129,9 +128,17 @@ const ToolDescription = ({ content, companyName }: ToolProps) => {
 
 const ToolsBlock = ({ content }: BlockProps) => {
   const [selectedTool, setSelectedTool] = useState(Tools.RUNNER);
+  const router = useRouter();
+
+  useEffect(() => {
+    const queryTool = toolRegExp.exec(router.asPath);
+    if (!queryTool) return;
+    const tool = queryTool[0].replace("tool=", "") as Tools;
+    setSelectedTool(tool);
+  }, [router.asPath]);
 
   return (
-    <Section>
+    <Section id="tools">
       <Container>
         <ToolsIconsBlock>
           <IconsBlockTitle>{content.title}</IconsBlockTitle>

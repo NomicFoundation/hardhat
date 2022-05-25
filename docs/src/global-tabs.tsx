@@ -21,6 +21,10 @@ export const GlobalTabsContext = React.createContext<ITabsContext>({
   changeTab: () => {},
 });
 
+export const generateTabsGroupType = (options: string): string => {
+  return options.split(",").sort().join("/");
+};
+
 export const TabsProvider = ({
   children,
 }: React.PropsWithChildren<{}>): JSX.Element => {

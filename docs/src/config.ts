@@ -3,6 +3,14 @@ import { MenuItemType, SocialsEnum } from "./components/ui/types";
 import GitHubLogo from "./assets/socials/gh-logo";
 import TwitterLogo from "./assets/socials/tw-logo";
 import DiscordLogo from "./assets/socials/dc-logo";
+import SolidityIcon from "./assets/tools/solidity";
+import RunnerIcon from "./assets/tools/runner";
+import IgnitionIcon from "./assets/tools/ignition";
+import NetworkIcon from "./assets/tools/network";
+import RunnerIconDark from "./assets/tools/runner-dark";
+import IgnitionIconDark from "./assets/tools/ignition-dark";
+import NetworkIconDark from "./assets/tools/network-dark";
+import SolidityIconDark from "./assets/tools/solidity-dark";
 
 export const SOCIALS_LINKS = {
   [SocialsEnum.GITHUB]: "https://github.com/NomicFoundation/hardhat",
@@ -25,6 +33,9 @@ export const TEMP_PATH = path.join(process.cwd(), "temp/");
 export const REPO_URL =
   "https://github.com/NomicFoundation/hardhat/edit/master/docs/";
 
+// Regular expression to find tool in query string.
+export const toolRegExp = /tool=[A-Z_]+/;
+
 export const menuItemsList: MenuItemType[] = [
   {
     label: "Home",
@@ -37,22 +48,30 @@ export const menuItemsList: MenuItemType[] = [
       {
         prefix: "Hardhat",
         label: "Runner",
-        href: "/tools/runner",
+        href: "/?tool=RUNNER#tools",
+        icon: RunnerIcon,
+        iconDark: RunnerIconDark,
       },
       {
         prefix: "Hardhat",
         label: "Ignition",
-        href: "/tools/ignition",
+        href: "/?tool=IGNITION#tools",
+        icon: IgnitionIcon,
+        iconDark: IgnitionIconDark,
       },
       {
         prefix: "Hardhat",
         label: "Network",
-        href: "/tools/network",
+        href: "/?tool=NETWORK#tools",
+        icon: NetworkIcon,
+        iconDark: NetworkIconDark,
       },
       {
         prefix: "Hardhat",
         label: "Solidity",
-        href: "/tools/solidity",
+        href: "/?tool=SOLIDITY#tools",
+        icon: SolidityIcon,
+        iconDark: SolidityIconDark,
       },
     ],
   },
@@ -74,7 +93,7 @@ export enum Tools {
   RUNNER = "RUNNER",
   IGNITION = "IGNITION",
   NETWORK = "NETWORK",
-  VS_CODE = "VS_CODE",
+  SOLIDITY = "SOLIDITY",
 }
 
 export const socialsItems = [

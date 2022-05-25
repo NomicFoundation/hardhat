@@ -13,6 +13,11 @@ export const Desktop = () => (
   <DesktopMenu socialsItems={socialsItems} menuItems={menuItemsList} />
 );
 export const Mobile = () => (
-  <MobileMenu socialsItems={socialsItems} isOpen menuItems={menuItemsList} />
+  <MobileMenu
+    socialsItems={socialsItems}
+    isOpen
+    menuItems={menuItemsList}
+    closeMobileMenu={() => {}}
+  />
 );
 export const Navigation = () => <LandingNavigation />;

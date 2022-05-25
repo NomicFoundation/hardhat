@@ -55,10 +55,6 @@ const SliderWrapper = styled.div`
     overflow: hidden;
     margin: auto;
     width: 100%;
-    -webkit-transition: height 0.15s ease-in;
-    -moz-transition: height 0.15s ease-in;
-    -ms-transition: height 0.15s ease-in;
-    -o-transition: height 0.15s ease-in;
     transition: height 0.15s ease-in;
   }
 
@@ -247,6 +243,7 @@ const ReviewsBlock = ({ content }: Props) => {
           showStatus={false}
           showThumbs={false}
           infiniteLoop
+          transitionTime={800}
           renderArrowNext={(clickHandler, hasNext, label) =>
             hasNext && (
               <SliderArrow

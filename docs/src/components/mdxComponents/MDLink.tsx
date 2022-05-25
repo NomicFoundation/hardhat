@@ -52,21 +52,38 @@ const getPathFromHref = (href: string) => {
   return pathname.startsWith("/") ? pathname : `/${pathname}`;
 };
 
+const renderLinkByType = ({
+  children,
+  href,
+  isExternalLink,
+  isAnchor,
+}: Props & { isExternalLink: boolean; isAnchor: boolean }) => {
+  if (isExternalLink) {
+    return (
+      <a href={href} target="_blank" rel="noreferrer">
+        {children}
+      </a>
+    );
+  }
+  if (isAnchor) {
+    return <a href={href}>{children}</a>;
+  }
+
+  return (
+    <Link href={getPathFromHref(href.replace(/\.md$/, ""))}>
+      {/* eslint-disable-next-line */}
+      <a>{children}</a>
+    </Link>
+  );
+};
+
 const MDLink = ({ children, href }: Props) => {
   const isExternalLink = href.startsWith("http");
+  const isAnchor = href.startsWith("#");
 
   return (
     <StyledMdLinkContainer>
-      {isExternalLink ? (
-        <a href={href} target="_blank" rel="noreferrer">
-          {children}
-        </a>
-      ) : (
-        <Link href={getPathFromHref(href.replace(/\.md$/, ""))}>
-          {/* eslint-disable-next-line */}
-          <a>{children}</a>
-        </Link>
-      )}
+      {renderLinkByType({ href, children, isAnchor, isExternalLink })}
       {isExternalLink && <ExternalLinkIcon />}
     </StyledMdLinkContainer>
   );

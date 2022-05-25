@@ -1,4 +1,4 @@
-import VSCodeIcon from "../assets/tools/vs-code";
+import SolidityIcon from "../assets/tools/solidity";
 import RunnerIcon from "../assets/tools/runner";
 import IgnitionIcon from "../assets/tools/ignition";
 import NetworkIcon from "../assets/tools/network";
@@ -198,15 +198,21 @@ const toolsBlockContent = {
       link: "/",
     },
     {
-      icon: VSCodeIcon,
-      title: "VS code",
-      value: Tools.VS_CODE,
+      icon: SolidityIcon,
+      title: "Solidity",
+      value: Tools.SOLIDITY,
       mottos: ["code", "refactor"],
       description:
         "Visual Studio Code extension for Solidity editing assistance. Code navigation, refactoring and type-smart suggestions.",
       link: "/",
     },
   ],
+};
+
+const cookiePopUp = {
+  title: "We value your privacy",
+  text: "We use cookies to enhace your browsing experience, serve personalized adds or content, and analyze our traffic. By clicking “Acept All”, you consent to our use of cookies.",
+  readMoreHref: "/",
 };
 
 const homepageContent = {
@@ -219,6 +225,7 @@ const homepageContent = {
   builtByBlockContent,
   reviewsBlockContent,
   toolsBlockContent,
+  cookiePopUp,
 };
 
 export default homepageContent;

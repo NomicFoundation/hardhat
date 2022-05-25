@@ -10,8 +10,8 @@ import { visit } from "unist-util-visit";
 import { h } from "hastscript";
 import remarkGfm from "remark-gfm";
 import remarkUnwrapImages from "remark-unwrap-images";
-// @ts-ignore
-import rehypePrism from "@mapbox/rehype-prism";
+import rehypePrism from "rehype-prism";
+import remarkPrism from "remark-prism";
 
 import { DOCS_PATH, REPO_URL, TEMP_PATH } from "../config";
 
@@ -32,9 +32,10 @@ export const withIndexFile = (docPath: string[]): string => {
 
 export const withCodeElementWrapper = (
   content: string,
-  extension: string = ""
+  extension: string = "",
+  highlightedLinesNumbers: string = ""
 ) =>
-  `\`\`\`${extension}
+  `\`\`\`${extension}${highlightedLinesNumbers}
 ${content}
   \`\`\``;
 
@@ -42,40 +43,20 @@ export const getEntriesInfo = (
   line: string
 ): {
   pathname: string;
-  rowsNumbers: [number, number] | null;
+  highlightedLinesNumbers: string;
 } => {
-  const rowsNumbers: [number, number] | null = line.includes("{")
-    ? (line
-        .substring(line.indexOf("{"))
-        .replace(/[{}]/g, "")
-        .split("-")
-        .map((lineNumberString) => Number(lineNumberString)) as [
-        number,
-        number
-      ])
-    : null;
+  const highlightedLinesNumbers: string | null = line.includes("{")
+    ? line.substring(line.indexOf("{")).replace(/[{}]/g, "")
+    : "";
 
   const pathname = (
-    rowsNumbers ? line.substring(0, line.indexOf("{")) : line
+    highlightedLinesNumbers ? line.substring(0, line.indexOf("{")) : line
   ).replace("<<< @/", "");
 
   return {
     pathname,
-    rowsNumbers,
+    highlightedLinesNumbers,
   };
-};
-
-export const getContentFromRange = (
-  content: string,
-  rowsNumbers: [number, number] | null
-) => {
-  const linesArray = content.split(newLineDividerRegEx);
-  const [startLineNumber, endLineNumber] = rowsNumbers || [
-    0,
-    linesArray.length,
-  ];
-
-  return linesArray.slice(startLineNumber, endLineNumber).join("\n");
 };
 
 export const readFileContent = (pathname: string) => {
@@ -96,13 +77,16 @@ export const withInsertedCodeFromLinks = (content: string) => {
     .map((line: string) => {
       if (!line.startsWith("<<<")) return line;
 
-      const { pathname, rowsNumbers } = getEntriesInfo(line);
+      const { pathname, highlightedLinesNumbers } = getEntriesInfo(line);
 
       const fileContent = readFileContent(pathname);
       const fileExtension = getFileExtensionFromPathname(pathname);
 
-      const contentFromRange = getContentFromRange(fileContent, rowsNumbers);
-      return withCodeElementWrapper(contentFromRange, fileExtension);
+      return withCodeElementWrapper(
+        fileContent,
+        fileExtension,
+        highlightedLinesNumbers
+      );
     })
     .join("\n");
 };
@@ -153,29 +137,6 @@ function createCustomNodes() {
   };
 }
 
-function addLanguageAndHighlightedLinesToCodeBlocks() {
-  // @ts-ignore
-  return (tree) => {
-    visit(tree, (node) => {
-      if (node.type === "code") {
-        // eslint-disable-next-line
-        const data = node.data || (node.data = {});
-        const [lang, highlightedLines] = !node.lang
-          ? ["", ""]
-          : node.lang.replace("}", "").split("{");
-
-        // @ts-ignore
-        data.hProperties = {
-          lang,
-          highlightedLines,
-        };
-        // eslint-disable-next-line
-        node.lang = lang;
-      }
-    });
-  };
-}
-
 export const generateTitleFromContent = (content: string) => {
   return content
     .split(newLineDividerRegEx)
@@ -218,13 +179,16 @@ export const prepareMdContent = async (
   const mdxSource = await serialize(formattedContent, {
     mdxOptions: {
       remarkPlugins: [
-        addLanguageAndHighlightedLinesToCodeBlocks,
         remarkGfm,
+        remarkPrism,
         remarkDirective,
         createCustomNodes,
         remarkUnwrapImages,
       ],
-      rehypePlugins: [rehypePrism],
+
+      rehypePlugins: [
+        [rehypePrism, { plugins: ["line-highlight", "show-language"] }],
+      ],
     },
   });
 

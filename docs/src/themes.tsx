@@ -10,12 +10,14 @@ export enum ThemesEnum {
   AUTO = "AUTO",
 }
 export const breakpoints = {
+  xxs: 320,
   xs: 360,
   sm: 412,
   md: 1000,
 };
 
 export const media = {
+  xxs: `@media screen and (min-width: ${breakpoints.xxs}px)`,
   xs: `@media screen and (min-width: ${breakpoints.xs}px)`,
   sm: `@media screen and (min-width: ${breakpoints.sm}px)`,
   md: `@media screen and (min-width: ${breakpoints.md}px)`,
@@ -41,11 +43,13 @@ export const lightPalette = {
   neutral800: "#16181D",
   neutral900: "#0A0A0A",
   accent100: "#FBFCDB",
+  accent200: "#FFF787",
   accent600: "#FFF04D",
   accent700: "#CCB200",
   accent800: "#FFF100",
   accent900: "#EDCF00",
   border: "#4B4D4D",
+  secondaryCTAHover: "#4F00A30D",
   tableBorder: "#DFE2E5",
   tipBorderColor: "#42B983",
   tipBackgroundColor: "#F3F5F7",
@@ -55,6 +59,7 @@ export const lightPalette = {
   warningBackgroundColor: "#FEF6F1",
   codeBackground: "rgba(27,31,35,.05)",
   codeColor: "#4A4D54",
+  codeLineHighlight: "#000000a8",
   preCodeColor: "#FFFFFF",
   codeBlockBackground: "#282c34",
   codeBlockBorder: "#282c34",
@@ -78,11 +83,13 @@ export const lightPalette = {
   link: "#CCB200",
   autoThemeButton: "#6C6F74",
   searchShadow: "#16181D90",
-  editPageColor: "#C4C4C4",
+  editPageColor: "#484E5E",
   tagBackground: "#E5E6E7",
   tabBackground: "#FBFBFB",
   tabBackgroundHover: "#48484d",
   tabBackgroundSelected: "#282C34",
+  cookiePopUpBackground: "#FBFAEF",
+  cookieTextColor: "#4B4B59",
 };
 
 export const darkPalette = {
@@ -103,6 +110,7 @@ export const darkPalette = {
   accent800: "#FFF100",
   accent900: "#EDCF00",
   border: "#4B4D4D",
+  secondaryCTAHover: "#4F00A30D",
   tableBorder: "#DFE2E5",
   tipBorderColor: "#246648",
   tipBackgroundColor: "#282C34",
@@ -112,6 +120,7 @@ export const darkPalette = {
   warningBackgroundColor: "#282C34",
   codeBackground: "#20232A",
   codeColor: "#8e9094",
+  codeLineHighlight: "#000000a8",
   preCodeColor: "#8e9094",
   codeBlockBackground: "#16181D",
   codeBlockBorder: "#6c6f74",
@@ -140,6 +149,8 @@ export const darkPalette = {
   tabBackground: "#181A1F",
   tabBackgroundHover: "#282C34",
   tabBackgroundSelected: "#E5E6E7",
+  cookiePopUpBackground: "#FBFAEF",
+  cookieTextColor: "#4B4B59",
 } as Palette;
 
 export const hcDarkPalette = {
@@ -160,6 +171,7 @@ export const hcDarkPalette = {
   accent800: "#FFF100",
   accent900: "#EDCF00",
   border: "#4B4D4D",
+  secondaryCTAHover: "#4F00A30D",
   tableBorder: "#DFE2E5",
   tipBorderColor: "#246648",
   tipBackgroundColor: "#282C34",
@@ -169,6 +181,7 @@ export const hcDarkPalette = {
   warningBackgroundColor: "#282C34",
   codeBackground: "#20232a",
   codeColor: "#8e9094",
+  codeLineHighlight: "#000000a8",
   preCodeColor: "#8e9094",
   codeBlockBackground: "#20232a",
   codeBlockBorder: "#6c6f74",
@@ -197,6 +210,8 @@ export const hcDarkPalette = {
   tabBackground: "#282C34",
   tabBackgroundHover: "#181A1F",
   tabBackgroundSelected: "#E5E6E7",
+  cookiePopUpBackground: "#FBFAEF",
+  cookieTextColor: "#4B4B59",
 } as Palette;
 
 type Palette = typeof lightPalette;
@@ -257,7 +272,8 @@ export const ThemeProvider = ({
   );
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem("theme") as ThemesEnum;
+    const savedTheme =
+      (localStorage.getItem("theme") as ThemesEnum) || ThemesEnum.AUTO;
     setTheme(savedTheme);
   }, []);
 

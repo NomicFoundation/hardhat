@@ -19,7 +19,7 @@ Hardhat is used through a local installation in your project. This way your envi
 
 To install it, you need to create an npm project by going to an empty folder, running `npm init`, and following its instructions. Once your project is ready, you should run
 
-::::tabsgroup{options=npm,yarn type=npm/yarn}
+::::tabsgroup{options=npm,yarn}
 
 :::tab{value=npm}
 
@@ -51,7 +51,7 @@ A barebones installation with no plugins allows you to create your own tasks, co
 
 To create your Hardhat project run `npx hardhat` in your project folder:
 
-::::tabsgroup{options=npm,yarn type=npm/yarn}
+::::tabsgroup{options=npm,yarn}
 
 :::tab{value=npm}
 

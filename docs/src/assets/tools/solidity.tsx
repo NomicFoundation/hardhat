@@ -1,7 +1,7 @@
 import * as React from "react";
-import { SVGProps, memo } from "react";
+import { SVGProps } from "react";
 
-const VSCodeIcon = (props: SVGProps<SVGSVGElement>) => (
+const SolidityIcon = (props: SVGProps<SVGSVGElement>) => (
   <svg
     width={42}
     height={42}
@@ -11,16 +11,16 @@ const VSCodeIcon = (props: SVGProps<SVGSVGElement>) => (
     {...props}
   >
     <path
-      d="M5.25 38.501L5.25 3.50098L26.9643 3.50098L33.25 10.3862L33.25 38.501L5.25 38.501Z"
-      fill="url(#paint0_linear_4295_86668)"
+      d="M5.25012 38.501L5.25012 3.50098L26.9644 3.50098L33.2501 10.3862L33.2501 38.501L5.25012 38.501Z"
+      fill="url(#paint0_linear_5562_8694)"
     />
     <rect
-      x={13.4175}
+      x={13.4174}
       y={7.00098}
       width={24.5}
       height={7}
       rx={0.583333}
-      fill="url(#paint1_linear_4295_86668)"
+      fill="url(#paint1_linear_5562_8694)"
     />
     <rect
       x={4.08374}
@@ -28,7 +28,7 @@ const VSCodeIcon = (props: SVGProps<SVGSVGElement>) => (
       width={24.5}
       height={7}
       rx={0.583333}
-      fill="url(#paint2_linear_4295_86668)"
+      fill="url(#paint2_linear_5562_8694)"
     />
     <rect
       x={13.9993}
@@ -36,7 +36,7 @@ const VSCodeIcon = (props: SVGProps<SVGSVGElement>) => (
       width={14}
       height={7}
       rx={0.583333}
-      fill="url(#paint3_linear_4295_86668)"
+      fill="url(#paint3_linear_5562_8694)"
     />
     <rect
       x={29.7493}
@@ -44,7 +44,7 @@ const VSCodeIcon = (props: SVGProps<SVGSVGElement>) => (
       width={7}
       height={7}
       rx={0.583333}
-      fill="url(#paint4_linear_4295_86668)"
+      fill="url(#paint4_linear_5562_8694)"
     />
     <rect
       x={29.7493}
@@ -52,14 +52,14 @@ const VSCodeIcon = (props: SVGProps<SVGSVGElement>) => (
       width={7}
       height={7}
       rx={0.583333}
-      fill="url(#paint5_linear_4295_86668)"
+      fill="url(#paint5_linear_5562_8694)"
     />
     <defs>
       <linearGradient
-        id="paint0_linear_4295_86668"
-        x1={21.2917}
+        id="paint0_linear_5562_8694"
+        x1={21.2918}
         y1={-9.91569}
-        x2={22.2034}
+        x2={22.2036}
         y2={59.2127}
         gradientUnits="userSpaceOnUse"
       >
@@ -68,10 +68,10 @@ const VSCodeIcon = (props: SVGProps<SVGSVGElement>) => (
         <stop offset={1} stopColor="#FBFCDB" />
       </linearGradient>
       <linearGradient
-        id="paint1_linear_4295_86668"
-        x1={37.9175}
+        id="paint1_linear_5562_8694"
+        x1={37.9174}
         y1={9.04264}
-        x2={18.3206}
+        x2={18.3204}
         y2={18.9919}
         gradientUnits="userSpaceOnUse"
       >
@@ -79,7 +79,7 @@ const VSCodeIcon = (props: SVGProps<SVGSVGElement>) => (
         <stop offset={1} stopColor="#23004E" />
       </linearGradient>
       <linearGradient
-        id="paint2_linear_4295_86668"
+        id="paint2_linear_5562_8694"
         x1={28.5837}
         y1={18.668}
         x2={8.98683}
@@ -90,7 +90,7 @@ const VSCodeIcon = (props: SVGProps<SVGSVGElement>) => (
         <stop offset={1} stopColor="#23004E" />
       </linearGradient>
       <linearGradient
-        id="paint3_linear_4295_86668"
+        id="paint3_linear_5562_8694"
         x1={27.9993}
         y1={28.5836}
         x2={14.6753}
@@ -101,7 +101,7 @@ const VSCodeIcon = (props: SVGProps<SVGSVGElement>) => (
         <stop offset={1} stopColor="#23004E" />
       </linearGradient>
       <linearGradient
-        id="paint4_linear_4295_86668"
+        id="paint4_linear_5562_8694"
         x1={41.1243}
         y1={30.6253}
         x2={35.5884}
@@ -112,7 +112,7 @@ const VSCodeIcon = (props: SVGProps<SVGSVGElement>) => (
         <stop offset={0.884186} stopColor="#EDCF00" />
       </linearGradient>
       <linearGradient
-        id="paint5_linear_4295_86668"
+        id="paint5_linear_5562_8694"
         x1={41.1243}
         y1={20.7097}
         x2={35.5884}
@@ -126,4 +126,4 @@ const VSCodeIcon = (props: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-export default memo(VSCodeIcon);
+export default SolidityIcon;
