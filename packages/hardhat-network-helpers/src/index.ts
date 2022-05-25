@@ -2,6 +2,7 @@ export * from "./loadFixture";
 export * as time from "./helpers/time";
 
 export { mine } from "./helpers/mine";
+export { mineUpTo } from "./helpers/mineUpTo";
 export { dropTransaction } from "./helpers/dropTransaction";
 export { getStorageAt } from "./helpers/getStorageAt";
 export { impersonateAccount } from "./helpers/impersonateAccount";

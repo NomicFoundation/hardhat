@@ -1,3 +1,5 @@
+declare module "deep-eql";
+
 // eslint-disable-next-line @typescript-eslint/no-namespace, @typescript-eslint/no-unused-vars
 declare namespace Chai {
   interface Assertion
@@ -7,7 +9,7 @@ declare namespace Chai {
     emit(contract: any, eventName: string): EmitAssertion;
     reverted: AsyncAssertion;
     revertedWith(reason: string): AsyncAssertion;
-    revertedWithoutReasonString(): AsyncAssertion;
+    revertedWithoutReason(): AsyncAssertion;
     revertedWithPanic(code?: any): AsyncAssertion;
     revertedWithCustomError(
       contract: { interface: any },
@@ -25,6 +27,12 @@ declare namespace Chai {
       accounts: any[],
       balances: any[],
       options?: any
+    ): AsyncAssertion;
+    changeTokenBalance(token: any, account: any, balance: any): AsyncAssertion;
+    changeTokenBalances(
+      token: any,
+      account: any[],
+      balance: any[]
     ): AsyncAssertion;
   }
 

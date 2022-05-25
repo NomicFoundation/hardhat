@@ -1,7 +1,11 @@
 import { expect, AssertionError } from "chai";
 import { BigNumber, Contract, ethers } from "ethers";
 
+import { anyUint, anyValue } from "../src/withArgs";
+
 import { useEnvironment, useEnvironmentWithNode } from "./helpers";
+
+import "../src";
 
 describe(".to.emit (contract events)", () => {
   let contract: Contract;
@@ -70,14 +74,22 @@ describe(".to.emit (contract events)", () => {
     });
 
     describe(".withArgs", function () {
-      it.skip("Should fail when used with .not.", async function () {
-        await expect(
+      it("Should fail when used with .not.", async function () {
+        expect(() =>
           expect(contract.emitUint(1))
             .not.to.emit(contract, "WithUintArg")
             .withArgs(1)
-        ).to.be.eventually.rejectedWith(
-          AssertionError,
-          "Do not combine .not. with .withArgs()"
+        ).to.throw(Error, "Do not combine .not. with .withArgs()");
+      });
+
+      it("should fail if withArgs is called on its own", async function () {
+        expect(() =>
+          expect(contract.emitUint(1))
+            // @ts-expect-error
+            .withArgs(1)
+        ).to.throw(
+          Error,
+          "withArgs called without a previous .emit or .revertedWithCustomError assertion"
         );
       });
 
@@ -147,23 +159,29 @@ describe(".to.emit (contract events)", () => {
         });
 
         it("Should fail when the input argument doesn't match the event argument", async function () {
-          // this error message is terrible. should improve the implementation.
           await expect(
             expect(contract.emitIndexedString(string1))
               .to.emit(contract, "WithIndexedStringArg")
               .withArgs(string2)
           ).to.be.eventually.rejectedWith(
             AssertionError,
-            `expected '${ethers.utils.keccak256(
+            `The actual value was an indexed and hashed value of the event argument. The expected value provided to the assertion was hashed to produce ${ethers.utils.keccak256(
+              string2Bytes
+            )}. The actual hash and the expected hash did not match: expected '${ethers.utils.keccak256(
               string1Bytes
-            )}' to be one of [ Array(2) ]`
+            )}' to equal '${ethers.utils.keccak256(string2Bytes)}'`
           );
         });
 
         it("Should match the event argument with a hash value", async function () {
-          await expect(contract.emitIndexedString(string1))
-            .to.emit(contract, "WithIndexedStringArg")
-            .withArgs(ethers.utils.keccak256(string1Bytes));
+          await expect(
+            expect(contract.emitIndexedString(string1))
+              .to.emit(contract, "WithIndexedStringArg")
+              .withArgs(ethers.utils.keccak256(string1Bytes))
+          ).to.be.eventually.rejectedWith(
+            AssertionError,
+            "The actual value was an indexed and hashed value of the event argument. The expected value provided to the assertion should be the actual event argument (the pre-image of the hash). You provided the hash itself. Please supply the the actual event argument (the pre-image of the hash) instead."
+          );
         });
 
         it("Should fail when trying to match the event argument with an incorrect hash value", async function () {
@@ -175,7 +193,11 @@ describe(".to.emit (contract events)", () => {
               .withArgs(incorrectHash)
           ).to.be.eventually.rejectedWith(
             AssertionError,
-            `expected '${expectedHash}' to be one of [ Array(2) ]`
+            `The actual value was an indexed and hashed value of the event argument. The expected value provided to the assertion was hashed to produce ${ethers.utils.keccak256(
+              incorrectHash
+            )}. The actual hash and the expected hash did not match: expected '${expectedHash}' to equal '${ethers.utils.keccak256(
+              incorrectHash
+            )}'`
           );
         });
       });
@@ -213,16 +235,23 @@ describe(".to.emit (contract events)", () => {
               .withArgs(string1Bytes)
           ).to.be.eventually.rejectedWith(
             AssertionError,
-            `expected '${ethers.utils.keccak256(
+            `The actual value was an indexed and hashed value of the event argument. The expected value provided to the assertion was hashed to produce ${ethers.utils.keccak256(
+              string1Bytes
+            )}. The actual hash and the expected hash did not match: expected '${ethers.utils.keccak256(
               string2Bytes
-            )}' to be one of [ Array(2) ]`
+            )}' to equal '${ethers.utils.keccak256(string1Bytes)}'`
           );
         });
 
         it("Should match the event argument with a hash value", async function () {
-          await expect(contract.emitIndexedBytes(string1Bytes))
-            .to.emit(contract, "WithIndexedBytesArg")
-            .withArgs(ethers.utils.keccak256(string1Bytes));
+          await expect(
+            expect(contract.emitIndexedBytes(string1Bytes))
+              .to.emit(contract, "WithIndexedBytesArg")
+              .withArgs(ethers.utils.keccak256(string1Bytes))
+          ).to.be.eventually.rejectedWith(
+            AssertionError,
+            "The actual value was an indexed and hashed value of the event argument. The expected value provided to the assertion should be the actual event argument (the pre-image of the hash). You provided the hash itself. Please supply the the actual event argument (the pre-image of the hash) instead."
+          );
         });
       });
 
@@ -286,7 +315,7 @@ describe(".to.emit (contract events)", () => {
         it("Should succeed when expectations are met with BigNumber", async function () {
           await expect(contract.emitUintArray(1, 2))
             .to.emit(contract, "WithUintArray")
-            .withArgs([BigNumber.from(1), BigNumber.from(2)]);
+            .withArgs([BigInt(1), BigNumber.from(2)]);
         });
 
         it("Should fail when expectations are not met", async function () {
@@ -398,6 +427,59 @@ describe(".to.emit (contract events)", () => {
             AssertionError,
             'Expected "WithTwoUintArgs" event to have 1 argument(s), but it has 2'
           );
+        });
+
+        describe("Should handle argument predicates", function () {
+          it("Should pass when a predicate argument returns true", async function () {
+            await expect(contract.emitTwoUints(1, 2))
+              .to.emit(contract, "WithTwoUintArgs")
+              .withArgs(anyValue, anyUint);
+          });
+
+          it("Should fail when a predicate argument returns false", async function () {
+            await expect(
+              expect(contract.emitTwoUints(1, 2))
+                .to.emit(contract, "WithTwoUintArgs")
+                .withArgs(1, () => false)
+            ).to.be.eventually.rejectedWith(
+              AssertionError,
+              "The predicate for event argument #2 returned false"
+            );
+          });
+
+          it("Should fail when a predicate argument throws an error", async function () {
+            await expect(
+              expect(contract.emitTwoUints(1, 2))
+                .to.emit(contract, "WithTwoUintArgs")
+                .withArgs(() => {
+                  throw new Error("user-defined error");
+                }, "foo")
+            ).to.be.rejectedWith(Error, "user-defined error");
+          });
+
+          describe("with predicate anyUint", function () {
+            it("Should fail when the event argument is a string", async function () {
+              await expect(
+                expect(contract.emitString("a string"))
+                  .to.emit(contract, "WithStringArg")
+                  .withArgs(anyUint)
+              ).to.be.rejectedWith(
+                AssertionError,
+                "The predicate for event argument #1 threw an AssertionError: anyUint expected its argument to be an integer, but its type was 'string'"
+              );
+            });
+
+            it("Should fail when the event argument is negative", async function () {
+              await expect(
+                expect(contract.emitInt(-1))
+                  .to.emit(contract, "WithIntArg")
+                  .withArgs(anyUint)
+              ).to.be.rejectedWith(
+                AssertionError,
+                "The predicate for event argument #1 threw an AssertionError: anyUint expected its argument to be an unsigned integer, but it was negative, with value -1"
+              );
+            });
+          });
         });
       });
     });
@@ -623,17 +705,6 @@ describe(".to.emit (contract events)", () => {
           await expect(contract.emitNestedUintFromAnotherContract(1))
             .to.emit(otherContract, "WithUintArg")
             .withArgs(1);
-        });
-
-        it("Should pass when the expected event is emitted", async function () {
-          await expect(
-            expect(contract.emitNestedUintFromAnotherContract(1))
-              .not.to.emit(otherContract, "WithUintArg")
-              .withArgs(1)
-          ).to.be.eventually.rejectedWith(
-            AssertionError,
-            'Expected event "WithUintArg" NOT to be emitted, but it was'
-          );
         });
 
         it("Should fail when the expected event is emitted but not by the contract that was passed", async function () {

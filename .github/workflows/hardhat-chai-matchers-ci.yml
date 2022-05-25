@@ -40,7 +40,7 @@ jobs:
       - name: Run tests
         env:
           FORCE_COLOR: 3
-        run: yarn test
+        run: yarn test:ci
 
   test_on_macos:
     name: Test hardhat-chai-matchers on MacOS with Node 12
@@ -60,7 +60,7 @@ jobs:
       - name: Run tests
         env:
           FORCE_COLOR: 3
-        run: yarn test
+        run: yarn test:ci
 
   test_on_linux:
     name: Test hardhat-chai-matchers on Ubuntu with Node ${{ matrix.node }}
@@ -81,4 +81,4 @@ jobs:
       - name: Run tests
         env:
           FORCE_COLOR: 3
-        run: yarn test
+        run: yarn test:ci

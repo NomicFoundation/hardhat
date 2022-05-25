@@ -5,18 +5,21 @@ pragma solidity ^0.8.0;
 contract Matchers {
   uint x;
 
-  AnotherContract anotherContract;
+  event SomeEvent();
+
+  AnotherMatchersContract anotherContract;
 
   struct Pair { uint a; uint b; }
 
   error SomeCustomError();
   error AnotherCustomError();
+  error CustomErrorWithInt(int);
   error CustomErrorWithUint(uint);
   error CustomErrorWithUintAndString(uint, string);
   error CustomErrorWithPair(Pair);
 
   constructor () {
-    anotherContract = new AnotherContract();
+    anotherContract = new AnotherMatchersContract();
   }
 
   function succeeds() public {
@@ -36,12 +39,12 @@ contract Matchers {
     require(false, reason);
   }
 
-  function revertsWithoutReasonString() public {
+  function revertsWithoutReason() public {
     x++;
     require(false);
   }
 
-  function revertsWithoutReasonStringView() public pure {
+  function revertsWithoutReasonView() public pure {
     require(false);
   }
 
@@ -90,6 +93,15 @@ contract Matchers {
     revert CustomErrorWithUint(n);
   }
 
+  function revertWithCustomErrorWithInt(int i) public {
+    x++;
+    revert CustomErrorWithInt(i);
+  }
+
+  function revertWithCustomErrorWithIntView(int i) public pure {
+    revert CustomErrorWithInt(i);
+  }
+
   function revertWithCustomErrorWithUintAndString(uint n, string memory s) public {
     x++;
     revert CustomErrorWithUintAndString(n, s);
@@ -109,7 +121,7 @@ contract Matchers {
   }
 }
 
-contract AnotherContract {
+contract AnotherMatchersContract {
   uint x;
 
   error YetAnotherCustomError();

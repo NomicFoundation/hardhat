@@ -81,17 +81,17 @@ describe("INTEGRATION: Reverted with panic", function () {
       });
     });
 
-    describe("calling a method that reverts without a reason string", function () {
+    describe("calling a method that reverts without a reason", function () {
       it("successful asserts", async function () {
         await runSuccessfulAsserts({
           matchers,
-          method: "revertsWithoutReasonString",
+          method: "revertsWithoutReason",
           successfulAssert: (x) => expect(x).to.not.be.revertedWithPanic(),
         });
 
         await runSuccessfulAsserts({
           matchers,
-          method: "revertsWithoutReasonString",
+          method: "revertsWithoutReason",
           successfulAssert: (x) =>
             expect(x).to.not.be.revertedWithPanic(PANIC_CODES.ASSERTION_ERROR),
         });
@@ -100,19 +100,19 @@ describe("INTEGRATION: Reverted with panic", function () {
       it("failed asserts", async function () {
         await runFailedAsserts({
           matchers,
-          method: "revertsWithoutReasonString",
+          method: "revertsWithoutReason",
           failedAssert: (x) => expect(x).to.be.revertedWithPanic(),
           failedAssertReason:
-            "Expected transaction to be reverted with some panic code, but it reverted without a reason string",
+            "Expected transaction to be reverted with some panic code, but it reverted without a reason",
         });
 
         await runFailedAsserts({
           matchers,
-          method: "revertsWithoutReasonString",
+          method: "revertsWithoutReason",
           failedAssert: (x) =>
             expect(x).to.be.revertedWithPanic(PANIC_CODES.ASSERTION_ERROR),
           failedAssertReason:
-            "Expected transaction to be reverted with panic code 0x01 (Assertion error), but it reverted without a reason string",
+            "Expected transaction to be reverted with panic code 0x01 (Assertion error), but it reverted without a reason",
         });
       });
     });
@@ -305,7 +305,7 @@ describe("INTEGRATION: Reverted with panic", function () {
         // revert
         await expect(
           expect(
-            matchers.connect(signer).revertsWithoutReasonString({
+            matchers.connect(signer).revertsWithoutReason({
               gasLimit: 1_000_000,
             })
           ).to.not.be.revertedWithPanic()

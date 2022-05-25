@@ -1,8 +1,8 @@
+import type { BN } from "ethereumjs-util";
 import type { EIP1193Provider } from "hardhat/types";
 
 import type { NumberLike } from "./types";
 
-import { isValidChecksumAddress, BN } from "ethereumjs-util";
 import { HardhatNetworkHelpersError, OnlyHardhatNetworkError } from "./errors";
 
 let cachedIsHardhatNetwork: boolean;
@@ -74,6 +74,7 @@ export function toRpcQuantity(x: NumberLike): string {
 }
 
 export function assertValidAddress(address: string): void {
+  const { isValidChecksumAddress } = require("ethereumjs-util");
   const hasChecksum = address !== address.toLowerCase();
   if (!hasChecksum || !isValidChecksumAddress(address)) {
     throw new HardhatNetworkHelpersError(
