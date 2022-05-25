@@ -2,6 +2,7 @@ import { supportBigNumber } from "./bigNumber";
 import { supportEmit } from "./emit";
 import { supportHexEqual } from "./hexEqual";
 import { supportProperAddress } from "./properAddress";
+import { supportProperHex } from "./properHex";
 import { supportProperPrivateKey } from "./properPrivateKey";
 import { supportChangeEtherBalance } from "./changeEtherBalance";
 import { supportChangeEtherBalances } from "./changeEtherBalances";
@@ -21,6 +22,7 @@ export function hardhatChaiMatchers(
   supportEmit(chai.Assertion, utils);
   supportHexEqual(chai.Assertion);
   supportProperAddress(chai.Assertion);
+  supportProperHex(chai.Assertion);
   supportProperPrivateKey(chai.Assertion);
   supportChangeEtherBalance(chai.Assertion);
   supportChangeEtherBalances(chai.Assertion);

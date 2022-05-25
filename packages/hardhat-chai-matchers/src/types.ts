@@ -18,6 +18,7 @@ declare namespace Chai {
     hexEqual(other: string): void;
     properPrivateKey: void;
     properAddress: void;
+    properHex(length: number): void;
     changeEtherBalance(
       account: any,
       balance: any,
