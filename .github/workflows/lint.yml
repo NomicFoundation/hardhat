@@ -21,6 +21,9 @@ jobs:
         with:
           node-version: 12
           cache: yarn
+          cache-dependency-path: |
+            yarn.lock
+            docs/yarn.lock
       - name: Install
         run: yarn --frozen-lockfile
       - name: Build
@@ -29,3 +32,9 @@ jobs:
         run: yarn lint
       - name: Check dependency versions
         run: node scripts/check-dependencies.js
+      - name: Install website
+        working-directory: docs/
+        run: yarn
+      - name: Lint website
+        working-directory: docs/
+        run: yarn lint
