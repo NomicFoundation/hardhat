@@ -25,5 +25,7 @@ jobs:
         run: cd docs && yarn
       - name: lint
         run: cd docs && yarn lint
+      - name: Build
+        run: cd docs && yarn build
       - name: Storybook
         run: cd docs && yarn build-storybook
