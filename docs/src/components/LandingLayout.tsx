@@ -15,6 +15,7 @@ const Container = styled.div`
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
+  -webkit-font-smoothing: antialiased;
   main {
     overflow-x: hidden;
     padding-top: 136px;

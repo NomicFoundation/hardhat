@@ -152,7 +152,7 @@ const DocumentationFooter = ({ next, prev, lastEditDate, editLink }: Props) => {
         )}
       </PageEdit>
       <PageNavigation>
-        {prev?.href !== undefined ? (
+        {prev !== false && prev?.href !== undefined ? (
           <PageNavigationLinkWrapper>
             <Link href={prev.href}>
               {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
@@ -165,7 +165,7 @@ const DocumentationFooter = ({ next, prev, lastEditDate, editLink }: Props) => {
         ) : (
           <div />
         )}
-        {next?.href !== undefined ? (
+        {next !== false && next?.href !== undefined ? (
           <PageNavigationLinkWrapper>
             <Link href={next.href}>
               {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}

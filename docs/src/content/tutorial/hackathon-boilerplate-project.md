@@ -86,7 +86,7 @@ Transferred 1 ETH and 100 tokens to 0x0987a41e73e69f60c5071ce3c8f7e730f9a60f90
 
 In the terminal where you ran `npx hardhat node` you should also see:
 
-```{10-11}
+```markup{10-11}
 eth_sendTransaction
   Contract call:       Token#transfer
   Transaction:         0x460526d98b86f7886cd0f218d6618c96d27de7c745462ff8141973253e89b7d4

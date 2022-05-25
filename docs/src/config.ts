@@ -21,8 +21,11 @@ export const SOCIALS_LINKS = {
 export const BANNER_LINK =
   "https://www.notion.so/Nomic-Foundation-jobs-991b37c547554f75b89a95f437fd5056";
 
+export const PRIVACY_POLICY_PATH = "/privacy-policy";
+
 export const bannerContent = {
   text: "Join the Hardhat team! Nomic Labs is hiring",
+  shortText: "Join the Hardhat team! We are hiring",
   href: BANNER_LINK,
 };
 

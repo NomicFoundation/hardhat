@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next-remote-watch ./src/content",
     "dev:debug": "NODE_OPTIONS='--inspect' next dev",
     "build": "next build",
     "postbuild": "next-sitemap",

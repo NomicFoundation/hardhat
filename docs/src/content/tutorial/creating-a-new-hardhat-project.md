@@ -25,7 +25,7 @@ npx hardhat
 
 Select `Create an empty hardhat.config.js` with your keyboard and hit enter.
 
-```{15}
+```markup{15}
 $ npx hardhat
 888    888                      888 888               888
 888    888                      888 888               888
@@ -72,7 +72,7 @@ npm install --save-dev @nomiclabs/hardhat-ethers ethers @nomiclabs/hardhat-waffl
 
 Add the highlighted line to your `hardhat.config.js` so that it looks like this:
 
-```js {1}
+```js{1}
 require("@nomiclabs/hardhat-waffle");
 
 /**

@@ -42,6 +42,7 @@ export enum Tools {
 
 interface DefaultBannerContent {
   text: string;
+  shortText: string;
   href: string;
 }
 export interface BannerProps {

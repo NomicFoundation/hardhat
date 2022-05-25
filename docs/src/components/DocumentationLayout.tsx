@@ -176,11 +176,7 @@ const Content = styled.section`
   width: 100%;
   max-width: 774px;
   padding: 0 34px;
-
   color: ${tm(({ colors }) => colors.neutral900)};
-  & h2:not(:first-of-type) {
-    padding-top: 80px;
-  }
 
   & h2 + p {
     margin-top: 32px;

@@ -19,6 +19,7 @@ const StyledCode = styled.code`
   font-weight: 400;
   line-height: 1.7;
   color: ${tm(({ colors }) => colors.codeColor)};
+  letter-spacing: 0.05em;
 
   &[data-language=""] {
     font-family: source-code-pro, Menlo, Monaco, Consolas, Courier New,
@@ -26,7 +27,11 @@ const StyledCode = styled.code`
     font-weight: normal;
   }
 
-  h3 & {
+  h1 &,
+  h2 &,
+  h3 &,
+  h4 &,
+  h5 & {
     font-size: inherit;
     font-family: inherit;
     font-weight: inherit;
@@ -35,7 +40,6 @@ const StyledCode = styled.code`
 
   ${tmSelectors.dark} {
     background-color: ${tmDark(({ colors }) => colors.codeBlockBackground)};
-
     color: ${tmDark(({ colors }) => colors.codeColor)};
   }
 
@@ -53,8 +57,6 @@ const StyledCode = styled.code`
 `;
 
 const StyledPre = styled.pre`
-  --remark-highlight-color: ${tm(({ colors }) => colors.codeLineHighlight)};
-
   margin: 16px 0;
   padding: 20px 24px;
   background-color: ${tm(({ colors }) => colors.codeBlockBackground)};
@@ -72,8 +74,8 @@ const StyledPre = styled.pre`
 
   & .remark-highlight-code-line {
     display: block;
-    width: 100%;
-    background-color: var(--remark-highlight-color);
+    min-width: 100%;
+    background-color: ${tm(({ colors }) => colors.codeLineHighlight)};
     position: relative;
     &::after {
       content: " ";
@@ -81,7 +83,7 @@ const StyledPre = styled.pre`
       position: absolute;
       top: 0;
       right: -1.2em;
-      background-color: var(--remark-highlight-color);
+      background-color: ${tm(({ colors }) => colors.codeLineHighlight)};
     }
     &::before {
       content: " ";
@@ -89,7 +91,7 @@ const StyledPre = styled.pre`
       position: absolute;
       top: 0;
       left: -1.2em;
-      background-color: var(--remark-highlight-color);
+      background-color: ${tm(({ colors }) => colors.codeLineHighlight)};
     }
   }
 
@@ -120,8 +122,20 @@ const StyledPre = styled.pre`
   }
 `;
 
+const ContentWrapper = styled.span`
+  position: relative;
+  width: max-content;
+  pre > code & {
+    display: block;
+  }
+`;
+
 const Code = ({ children }: CodeProps) => {
-  return <StyledCode>{children}</StyledCode>;
+  return (
+    <StyledCode>
+      <ContentWrapper>{children}</ContentWrapper>
+    </StyledCode>
+  );
 };
 
 const Pre = ({ children, className }: PreProps) => {

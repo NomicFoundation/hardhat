@@ -9773,7 +9773,7 @@ parse-entities@^2.0.0:
 
 parse-entities@^4.0.0:
   version "4.0.0"
-  resolved "https://registry.npmjs.org/parse-entities/-/parse-entities-4.0.0.tgz"
+  resolved "https://registry.yarnpkg.com/parse-entities/-/parse-entities-4.0.0.tgz#f67c856d4e3fe19b1a445c3fabe78dcdc1053eeb"
   integrity sha512-5nk9Fn03x3rEhGaX1FU6IDwG/k+GxLXlFAkgrbM1asuAFl3BhdQWvASaIsmwWypRNcZKHPYnIuOSfIWEyEQnPQ==
   dependencies:
     "@types/unist" "^2.0.0"
