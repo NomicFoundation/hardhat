@@ -34,7 +34,7 @@ const Subtitle = styled.h2`
   letter-spacing: 0;
   text-align: center;
   margin-bottom: 16px;
-  font-family: ChivoLight;
+  font-family: ChivoLight, sans-serif;
   ${media.md} {
     margin-bottom: unset;
     margin-right: 24px;

@@ -127,3 +127,9 @@ export enum LayoutsConfigKeys {
   TITLE = "title",
   FOLDERS = "folders",
 }
+
+export const GDPR = {
+  title: "We value your privacy",
+  text: "We use cookies to enhance your browsing experience, serve personalized adds or content, and analyze our traffic. By clicking “Accept All”, you consent to our use of cookies.",
+  readMoreHref: "/",
+};

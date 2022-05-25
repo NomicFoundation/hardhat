@@ -70,7 +70,7 @@ const Title = styled.h1`
   font-size: 40px;
   line-height: 45px;
   letter-spacing: -0.01em;
-  font-family: ChivoBold;
+  font-family: ChivoBold, sans-serif;
   font-weight: normal;
   ${media.md} {
     margin-bottom: 64px;

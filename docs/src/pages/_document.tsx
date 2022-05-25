@@ -1,7 +1,7 @@
 /* eslint-disable react/no-danger */
 import { Html, Head, Main, NextScript } from "next/document";
 
-const MeasurementID = process.env.MEASUREMENT_ID;
+const MeasurementID = process.env.NEXT_PUBLIC_MEASUREMENT_ID;
 
 export default function Document() {
   return (
@@ -27,10 +27,6 @@ export default function Document() {
           as="font"
           type="font/woff2"
           crossOrigin="true"
-        />
-        <script
-          async
-          src={`https://www.googletagmanager.com/gtag/js?id=${MeasurementID}`}
         />
         <script
           dangerouslySetInnerHTML={{

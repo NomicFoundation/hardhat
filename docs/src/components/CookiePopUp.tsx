@@ -1,7 +1,6 @@
 import React from "react";
 import { styled } from "linaria/react";
 import { media, tm, tmDark, tmHCDark, tmSelectors } from "../themes";
-import homepageContent from "../content/home";
 import CTA from "./ui/CTA";
 
 const Container = styled.section`
@@ -10,8 +9,9 @@ const Container = styled.section`
   bottom: 24px;
   right: 0px;
   width: auto;
-  padding: 60px 50px 40px;
+  padding: 16px 20px;
   border-radius: 4px;
+  margin: 0px 24px;
   background-color: ${tm(({ colors }) => colors.cookiePopUpBackground)};
   box-shadow: 0px 6px 50px ${tm(({ colors }) => colors.cookieShadow)};
   filter: drop-shadow(
@@ -19,10 +19,11 @@ const Container = styled.section`
   );
   display: flex;
   flex-direction: column;
-  margin: 0px 24px;
-  max-width: 630px;
+  max-width: 332px;
   ${media.md} {
-    width: 630px;
+    width: 332spx;
+    margin: 0px 24px;
+    left: unset;
   }
   ${tmSelectors.dark} {
     background-color: ${tmDark(({ colors }) => colors.cookiePopUpBackground)};
@@ -41,7 +42,7 @@ const Container = styled.section`
 
 const Title = styled.h3`
   font-weight: 400;
-  font-size: 20px;
+  font-size: 12px;
   line-height: 24px;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -63,11 +64,11 @@ const Title = styled.h3`
 `;
 
 const Text = styled.p`
-  font-family: ChivoLight;
+  font-family: ChivoLight, sans-serif;
   margin-top: 16px;
   font-weight: 400;
-  font-size: 16px;
-  line-height: 28px;
+  font-size: 12px;
+  line-height: 140%;
   color: ${tm(({ colors }) => colors.cookieTextColor)};
 
   ${tmSelectors.dark} {
@@ -87,7 +88,7 @@ const Text = styled.p`
 
 const ButtonsContainer = styled.div`
   display: flex;
-  margin-top: 32px;
+  margin-top: 16px;
 
   & .secondary {
     ${tmSelectors.dark} {
@@ -107,13 +108,18 @@ const ButtonsContainer = styled.div`
 `;
 
 const CTAWrapper = styled.div`
+  & > button {
+    font-size: 10px;
+    padding: 10px 12px;
+    height: 32px;
+  }
   &:first-child {
-    margin-right: 32px;
+    margin-right: 16px;
   }
 `;
 
 const ReadMoreLink = styled.a`
-  font-family: ChivoRegular;
+  font-family: ChivoRegular, sans-serif;
   color: ${tm(({ colors }) => colors.neutral900)};
   font-weight: 800;
   margin-left: 6px;
@@ -137,40 +143,35 @@ const ReadMoreLink = styled.a`
 `;
 
 interface Props {
-  content: typeof homepageContent.cookiePopUp;
-  closePopUp: () => void;
+  title: string;
+  text: string;
+  readMoreHref: string;
+  onAccept: () => void;
+  onReject: () => void;
 }
 
-const CookiePopUp = ({ content, closePopUp }: Props) => {
+const CookiePopUp = ({
+  title,
+  text,
+  readMoreHref,
+  onAccept,
+  onReject,
+}: Props) => {
   return (
     <Container>
-      <Title>{content.title}</Title>
+      <Title>{title}</Title>
       <Text>
-        {content.text}
-        <ReadMoreLink href={content.readMoreHref}>Read More</ReadMoreLink>
+        {text}
+        <ReadMoreLink href={readMoreHref}>Read More</ReadMoreLink>
       </Text>
       <ButtonsContainer>
         <CTAWrapper>
-          <CTA
-            href=""
-            variant="secondary full-padding"
-            onClick={() => {
-              closePopUp();
-            }}
-          >
+          <CTA variant="secondary" onClick={onReject}>
             Reject all
           </CTA>
         </CTAWrapper>
         <CTAWrapper>
-          <CTA
-            variant="full-padding"
-            href=""
-            onClick={() => {
-              closePopUp();
-            }}
-          >
-            Accept all
-          </CTA>
+          <CTA onClick={onAccept}>Accept all</CTA>
         </CTAWrapper>
       </ButtonsContainer>
     </Container>

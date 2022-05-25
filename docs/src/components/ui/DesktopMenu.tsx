@@ -7,7 +7,7 @@ import { media, tm, tmDark, tmHCDark, tmSelectors } from "../../themes";
 import Searching from "../Searching";
 
 const MenuContainer = styled.section<{ isDocumentation: boolean }>`
-  font-family: ChivoRegular;
+  font-family: ChivoRegular, sans-serif;
   user-select: none;
   width: 607px;
   display: none;
@@ -43,7 +43,7 @@ const MenuButton = styled.a`
   text-transform: uppercase;
   text-align: center;
   border: none;
-  color: ${tmDark(({ colors }) => colors.neutral900)};
+  color: ${tm(({ colors }) => colors.neutral900)};
   background-color: ${tm(({ colors }) => colors.transparent)};
   font-size: 15px;
   line-height: 15px;

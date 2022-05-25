@@ -37,6 +37,7 @@ import OrderedList from "./mdxComponents/OrderedList";
 import TabsGroup from "./mdxComponents/TabsGroup";
 import Tab from "./mdxComponents/Tab";
 import { Header } from "./LandingLayout";
+import GDPRNotice from "./GDPRNotice";
 
 const Container = styled.div`
   position: relative;
@@ -318,6 +319,7 @@ const DocumentationLayout = ({
           </View>
         </main>
       </Container>
+      <GDPRNotice />
     </ThemeProvider>
   );
 };
