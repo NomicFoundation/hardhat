@@ -517,7 +517,7 @@ describe(".to.emit (contract events)", () => {
               'Expected event "WithStringArg" to be emitted, but it wasn\'t'
             );
           });
-          it.skip("Should fail when the second expected event is emitted but the first is not", async function () {
+          it("Should fail when the second expected event is emitted but the first is not", async function () {
             await expect(
               expect(contract.emitUint(1))
                 .to.emit(contract, "WithStringArg")
@@ -548,7 +548,7 @@ describe(".to.emit (contract events)", () => {
               .and.to.emit(contract, "WithStringArg")
               .withArgs("a string");
           });
-          it.skip("Should fail when expecting the wrong argument value for the first event", async function () {
+          it("Should fail when expecting the wrong argument value for the first event", async function () {
             await expect(
               expect(contract.emitUintAndString(1, "a string"))
                 .to.emit(contract, "WithUintArg")
@@ -570,7 +570,7 @@ describe(".to.emit (contract events)", () => {
               "expected 'a string' to equal 'a different string'"
             );
           });
-          it.skip("Should fail when expecting too many arguments from the first event", async function () {
+          it("Should fail when expecting too many arguments from the first event", async function () {
             await expect(
               expect(contract.emitUintAndString(1, "a string"))
                 .to.emit(contract, "WithUintArg")
@@ -592,7 +592,7 @@ describe(".to.emit (contract events)", () => {
               'Expected "WithStringArg" event to have 2 argument(s), but it has 1'
             );
           });
-          it.skip("Should fail when expecting too few arguments from the first event", async function () {
+          it("Should fail when expecting too few arguments from the first event", async function () {
             await expect(
               expect(
                 contract.emitTwoUintsAndTwoStrings(
@@ -639,29 +639,29 @@ describe(".to.emit (contract events)", () => {
               .withArgs(2);
           });
 
-          it.skip("Should fail when the first event's argument is not matched", async function () {
+          it("Should fail when the first event's argument is not matched", async function () {
             await expect(
               expect(contract.emitUintTwice(1, 2))
                 .to.emit(contract, "WithUintArg")
-                .withArgs(2)
+                .withArgs(3)
                 .and.to.emit(contract, "WithUintArg")
                 .withArgs(2)
             ).to.be.eventually.rejectedWith(
               AssertionError,
-              "Expected 2 to equal 1"
+              'The specified arguments ([ 3 ]) were not included in any of the 2 emitted "WithUintArg" events'
             );
           });
 
-          it.skip("Should fail when the second event's argument is not matched", async function () {
+          it("Should fail when the second event's argument is not matched", async function () {
             await expect(
               expect(contract.emitUintTwice(1, 2))
                 .to.emit(contract, "WithUintArg")
                 .withArgs(1)
                 .and.to.emit(contract, "WithUintArg")
-                .withArgs(1)
+                .withArgs(3)
             ).to.be.eventually.rejectedWith(
               AssertionError,
-              "Expected 1 to equal 2"
+              'The specified arguments ([ 3 ]) were not included in any of the 2 emitted "WithUintArg" events'
             );
           });
 
@@ -672,7 +672,7 @@ describe(".to.emit (contract events)", () => {
                 .withArgs(3)
             ).to.be.eventually.rejectedWith(
               AssertionError,
-              'Specified args not emitted in any of 2 emitted "WithUintArg" events'
+              'The specified arguments ([ 3 ]) were not included in any of the 2 emitted "WithUintArg" events'
             );
           });
         });

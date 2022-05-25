@@ -70,9 +70,11 @@ export function supportWithArgs(
       );
     }
 
-    const derivedPromise = this.promise.then(() => {
+    const promise = this.then === undefined ? Promise.resolve() : this;
+
+    const derivedPromise = promise.then(() => {
       if (emitCalled) {
-        return emitWithArgs(this, Assertion, expectedArgs);
+        return emitWithArgs(this, Assertion, utils, expectedArgs);
       } else {
         return revertedWithCustomErrorWithArgs(
           this,
