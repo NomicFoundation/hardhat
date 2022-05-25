@@ -17,7 +17,7 @@ const StyledCode = styled.code`
   border-radius: 3px;
   font-size: 13.6px;
   font-weight: 400;
-  line-height: 1.7;
+  line-height: 1;
   color: ${tm(({ colors }) => colors.codeColor)};
   letter-spacing: 0.05em;
 

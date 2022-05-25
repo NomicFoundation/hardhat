@@ -239,7 +239,6 @@ const DropdownItem = styled.a`
 `;
 
 const ButtonNameContainer = styled.div`
-  --text-color: ${tm(({ colors }) => colors.neutral900)};
   display: flex;
   align-items: center;
   margin-left: 12px;

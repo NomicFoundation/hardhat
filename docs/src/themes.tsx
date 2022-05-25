@@ -13,14 +13,18 @@ export const breakpoints = {
   xxs: 320,
   xs: 360,
   sm: 412,
+  smd: 592,
   md: 1000,
+  lg: 1200,
 };
 
 export const media = {
   xxs: `@media screen and (min-width: ${breakpoints.xxs}px)`,
   xs: `@media screen and (min-width: ${breakpoints.xs}px)`,
   sm: `@media screen and (min-width: ${breakpoints.sm}px)`,
+  smd: `@media screen and (min-width: ${breakpoints.smd}px)`,
   md: `@media screen and (min-width: ${breakpoints.md}px)`,
+  lg: `@media screen and (min-width: ${breakpoints.lg}px)`,
   mqDark: "@media (prefers-color-scheme: dark)",
 };
 

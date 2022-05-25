@@ -39,6 +39,9 @@ const Block = styled.div`
   & svg {
     margin: 0 auto;
   }
+  &.animation-container {
+    height: calc(100vh - 700px);
+  }
   ${media.md} {
     width: 40%;
     &:first-child {
@@ -46,6 +49,9 @@ const Block = styled.div`
     }
     padding: 0;
     position: relative;
+    &.animation-container {
+      height: auto;
+    }
   }
 `;
 
@@ -89,7 +95,7 @@ const HeroBlock = ({ content }: Props) => {
           <Title>{content.title}</Title>
           <CTA href={content.cta.url}>{content.cta.title}</CTA>
         </Block>
-        <Block>
+        <Block className="animation-container">
           <DesktopAnimation />
           <MobileAnimation />
         </Block>

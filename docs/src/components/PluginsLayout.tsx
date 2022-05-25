@@ -172,6 +172,7 @@ const PluginsLayout = ({ children, seo, sidebarLayout }: Props) => {
                 menuItems={menuItemsList}
                 socialsItems={socialsItems}
                 sidebarElementsList={sidebarLayout}
+                closeSidebar={() => setIsSidebarOpen(false)}
               />
             </MobileSidebarMenuMask>
           </SidebarContainer>

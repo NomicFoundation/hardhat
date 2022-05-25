@@ -1,4 +1,4 @@
-import React, { FC } from "react";
+import React, { FC, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { styled } from "linaria/react";
@@ -7,11 +7,13 @@ import Sidebar from "./Sidebar";
 import { menuItemsList, socialsItems as defaultSocialItems } from "../config";
 import ExternalLinkIcon from "../assets/icons/external-link-icon";
 import { IDocumentationSidebarStructure } from "./types";
+import { SocialsEnum } from "./ui/types";
 
 interface Props {
   sidebarElementsList: IDocumentationSidebarStructure;
   menuItems: typeof menuItemsList;
   socialsItems: typeof defaultSocialItems;
+  closeSidebar: () => void;
 }
 
 const MobileSidebarContainer = styled.section`
@@ -27,16 +29,16 @@ const MobileNavigationContainer = styled.ul`
   color: ${tm(({ colors }) => colors.neutral800)};
   border-bottom: 1px solid ${tm(({ colors }) => colors.neutral400)};
   ${tmSelectors.hcDark} {
-    border-bottom: ${tmHCDark(({ colors }) => colors.neutral400)};
+    border-bottom: 1px solid ${tmHCDark(({ colors }) => colors.neutral400)};
     color: ${tmHCDark(({ colors }) => colors.neutral800)};
   }
   ${tmSelectors.dark} {
-    border-bottom: ${tmDark(({ colors }) => colors.neutral400)};
+    border-bottom: 1px solid ${tmDark(({ colors }) => colors.neutral400)};
     color: ${tmDark(({ colors }) => colors.neutral800)};
   }
   ${media.mqDark} {
     ${tmSelectors.auto} {
-      border-bottom: ${tmDark(({ colors }) => colors.neutral400)};
+      border-bottom: 1px solid ${tmDark(({ colors }) => colors.neutral400)};
       color: ${tmDark(({ colors }) => colors.neutral800)};
     }
   }
@@ -48,6 +50,20 @@ const MenuItem = styled.li`
   align-items: center;
   font-size: 18px;
   text-transform: capitalize;
+  &:hover {
+    color: ${tm(({ colors }) => colors.accent700)};
+    ${tmSelectors.hcDark} {
+      color: ${tmHCDark(({ colors }) => colors.accent700)};
+    }
+    ${tmSelectors.dark} {
+      color: ${tmDark(({ colors }) => colors.accent700)};
+    }
+    ${media.mqDark} {
+      ${tmSelectors.auto} {
+        color: ${tmDark(({ colors }) => colors.accent700)};
+      }
+    }
+  }
   & > a {
     position: relative;
     &:after {
@@ -108,12 +124,31 @@ const MenuItem = styled.li`
   }
 `;
 
+const SocialItem = ({ name, href }: { name: SocialsEnum; href: string }) => {
+  return (
+    <MenuItem key={name}>
+      <a target="_blank" rel="noreferrer" href={href}>
+        {name.toLowerCase()}
+      </a>
+      <ExternalLinkIcon />
+    </MenuItem>
+  );
+};
+
 const MobileSidebarMenu: FC<Props> = ({
   sidebarElementsList,
   menuItems,
   socialsItems,
+  closeSidebar,
 }) => {
   const router = useRouter();
+  const gitHubSocial = socialsItems.find(
+    (socialsItem) => socialsItem.name === SocialsEnum.GITHUB
+  );
+
+  useEffect(() => {
+    closeSidebar();
+  }, [router.asPath, closeSidebar]);
 
   return (
     <MobileSidebarContainer>
@@ -128,16 +163,7 @@ const MobileSidebarMenu: FC<Props> = ({
             </MenuItem>
           );
         })}
-        {socialsItems.map((socialItem) => {
-          return (
-            <MenuItem key={socialItem.name}>
-              <a target="_blank" rel="noreferrer" href={socialItem.href}>
-                {socialItem.name.toLowerCase()}
-              </a>
-              <ExternalLinkIcon />
-            </MenuItem>
-          );
-        })}
+        {gitHubSocial && <SocialItem {...gitHubSocial} />}
       </MobileNavigationContainer>
       <Sidebar elementsList={sidebarElementsList} />
     </MobileSidebarContainer>

@@ -22,6 +22,12 @@ const AnimationContainer = styled.section`
   ${media.xxs} {
     transform: translateX(-50%) scale(0.85);
   }
+  ${media.sm} {
+    transform: translateX(-50%) scale(1.2);
+  }
+  ${media.smd} {
+    transform: translateX(-50%) scale(1.7);
+  }
   ${media.md} {
     display: none;
   }

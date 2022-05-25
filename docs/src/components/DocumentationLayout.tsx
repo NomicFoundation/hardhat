@@ -300,6 +300,7 @@ const DocumentationLayout = ({
                 menuItems={menuItemsList}
                 socialsItems={socialsItems}
                 sidebarElementsList={sidebarLayout}
+                closeSidebar={() => setIsSidebarOpen(false)}
               />
             </MobileSidebarMenuMask>
           </SidebarContainer>
