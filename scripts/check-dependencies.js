@@ -14,6 +14,15 @@ const IGNORE_FOR_PACKAGES = {
     "@nomiclabs/hardhat-truffle5",
   ],
   ethers: ["@nomiclabs/hardhat-etherscan"],
+  ["@types/node"]: ["docs"],
+  ["@typescript-eslint/eslint-plugin"]: ["docs"],
+  ["@typescript-eslint/parser"]: ["docs"],
+  eslint: ["docs"],
+  ["eslint-config-prettier"]: ["docs"],
+  ["eslint-plugin-prettier"]: ["docs"],
+  ["typescript"]: ["docs"],
+  ["glob"]: ["docs"],
+  ["undici"]: ["docs"],
 };
 
 function checkPeerDepedencies(packageJson) {
