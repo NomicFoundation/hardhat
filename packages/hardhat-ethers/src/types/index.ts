@@ -11,10 +11,8 @@ export interface FactoryOptions {
   signer?: ethers.Signer;
   libraries?: Libraries;
 }
-export interface DeployOptions {
-  signer?: ethers.Signer;
+export interface DeployOptions extends FactoryOptions {
   args?: any[];
-  libraries?: Libraries;
 }
 
 export declare function getContractFactory(

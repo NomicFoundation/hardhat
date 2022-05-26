@@ -326,22 +326,10 @@ export async function deployContract(
   name: string,
   signerOrOptions?: ethers.Signer | DeployOptions
 ): Promise<ethers.Contract> {
-  let libraries: Libraries = {};
-  let signer: ethers.Signer | undefined;
-  let args: any[] = [];
-
-  if (isFactoryOptions(signerOrOptions)) {
-    signer = signerOrOptions.signer;
-    libraries = signerOrOptions.libraries ?? {};
-    args = signerOrOptions.args ?? [];
-  } else {
-    signer = signerOrOptions;
-  }
-
-  const factory = await getContractFactory(hre, name, {
-    libraries,
-    signer,
-  });
+  const factory = await getContractFactory(hre, name, signerOrOptions);
+  const args = isFactoryOptions(signerOrOptions)
+    ? signerOrOptions.args ?? []
+    : [];
   return factory.deploy(...args);
 }
 
