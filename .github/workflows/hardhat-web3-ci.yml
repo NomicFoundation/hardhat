@@ -30,13 +30,26 @@ jobs:
     name: Test hardhat-web3 on Windows with Node 12
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@v3
+      - name: Use Node.js LTS
+        uses: actions/setup-node@v2
         with:
           node-version: 16
-          cache: yarn
-      - name: Install
-        run: yarn --frozen-lockfile
+
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+
+      - uses: actions/cache@v3
+        id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+      - name: Install project dependencies
+        run: yarn --prefer-offline --frozen-lockfile
+        id: install
       - name: Build
         run: yarn build
       - name: Run tests
@@ -48,13 +61,26 @@ jobs:
     # disable until actions/virtual-environments#4896 is fixed
     if: ${{ false }}
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@v3
+      - name: Use Node.js LTS
+        uses: actions/setup-node@v2
         with:
           node-version: 16
-          cache: yarn
-      - name: Install
-        run: yarn --frozen-lockfile
+
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+
+      - uses: actions/cache@v3
+        id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+      - name: Install project dependencies
+        run: yarn --prefer-offline --frozen-lockfile
+        id: install
       - name: Build
         run: yarn build
       - name: Run tests
@@ -65,7 +91,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: [12, 14, 16]
+        node: [ 14, 16]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
@@ -73,7 +99,7 @@ jobs:
           node-version: ${{ matrix.node }}
           cache: yarn
       - name: Install
-        run: yarn --frozen-lockfile
+        run: yarn --prefer-offline --frozen-lockfile
       - name: Build
         run: yarn build
       - name: Run tests

@@ -24,7 +24,7 @@ jobs:
           node-version: 16
           cache: yarn
       - name: Install
-        run: yarn --frozen-lockfile
+        run: yarn --prefer-offline --frozen-lockfile
       - name: Build
         run: yarn build
       - name: lint
