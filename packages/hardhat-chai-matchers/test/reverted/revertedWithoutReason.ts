@@ -53,6 +53,7 @@ describe("INTEGRATION: Reverted without reason", function () {
     });
 
     // depends on a bug being fixed on ethers.js
+    // see https://linear.app/nomic-foundation/issue/HH-725
     describe.skip("calling a method that reverts without a reason", function () {
       it("successful asserts", async function () {
         await runSuccessfulAsserts({

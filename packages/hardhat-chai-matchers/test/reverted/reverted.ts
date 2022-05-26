@@ -246,6 +246,7 @@ describe("INTEGRATION: Reverted", function () {
 
     describe("calling a method that reverts without a reason", function () {
       // depends on a bug being fixed on ethers.js
+      // see https://linear.app/nomic-foundation/issue/HH-725
       it.skip("successful asserts", async function () {
         await runSuccessfulAsserts({
           matchers,
@@ -256,6 +257,7 @@ describe("INTEGRATION: Reverted", function () {
       });
 
       // depends on a bug being fixed on ethers.js
+      // see https://linear.app/nomic-foundation/issue/HH-725
       it.skip("failed asserts", async function () {
         await runFailedAsserts({
           matchers,
