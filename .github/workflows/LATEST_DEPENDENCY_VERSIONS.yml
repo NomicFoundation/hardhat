@@ -13,7 +13,7 @@ jobs:
         system: ["ubuntu-latest", "windows-latest"]
     runs-on: ${{ matrix.system }}
     steps:
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v3
         with:
           node-version: 16
       - uses: actions/checkout@v2
