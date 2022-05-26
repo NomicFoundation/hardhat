@@ -9,7 +9,8 @@
   "types": "dist/src/index.d.ts",
   "exports": {
     ".": "./dist/src/index.js",
-    "./panic": "./dist/src/reverted/panic.js"
+    "./panic": "./dist/src/reverted/panic.js",
+    "./withArgs": "./dist/src/withArgs.js"
   },
   "keywords": [
     "ethereum",

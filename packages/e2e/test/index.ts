@@ -236,10 +236,9 @@ describe("e2e tests", function () {
       const { code, stderr } = shell.exec(`${hardhatBinary} compile`);
       shell.set("-e");
       assert.equal(code, 1);
-      assert.match(
-        stderr,
-        /^Error HH1: You are not inside a Hardhat project\.\n/
-      );
+      // This is a loose match to check HH1 and HH15
+      assert.match(stderr, /You are not inside/);
+      assert.match(stderr, /HH15?/);
     });
   });
 });

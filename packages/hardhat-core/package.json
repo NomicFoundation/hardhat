@@ -1,6 +1,6 @@
 {
   "name": "hardhat",
-  "version": "2.9.5",
+  "version": "2.9.6",
   "author": "Nomic Labs LLC",
   "license": "MIT",
   "homepage": "https://hardhat.org",
@@ -124,7 +124,7 @@
     "find-up": "^2.1.0",
     "fp-ts": "1.19.3",
     "fs-extra": "^7.0.1",
-    "glob": "^7.1.3",
+    "glob": "7.2.0",
     "immutable": "^4.0.0-rc.12",
     "io-ts": "1.10.4",
     "lodash": "^4.17.11",

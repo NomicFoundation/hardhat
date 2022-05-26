@@ -13,6 +13,7 @@ contract Matchers {
 
   error SomeCustomError();
   error AnotherCustomError();
+  error CustomErrorWithInt(int);
   error CustomErrorWithUint(uint);
   error CustomErrorWithUintAndString(uint, string);
   error CustomErrorWithPair(Pair);
@@ -90,6 +91,15 @@ contract Matchers {
 
   function revertWithCustomErrorWithUintView(uint n) public pure {
     revert CustomErrorWithUint(n);
+  }
+
+  function revertWithCustomErrorWithInt(int i) public {
+    x++;
+    revert CustomErrorWithInt(i);
+  }
+
+  function revertWithCustomErrorWithIntView(int i) public pure {
+    revert CustomErrorWithInt(i);
   }
 
   function revertWithCustomErrorWithUintAndString(uint n, string memory s) public {
