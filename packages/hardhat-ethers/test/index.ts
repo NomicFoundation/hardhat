@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { ethers } from "ethers";
+import { ethers, Signer } from "ethers";
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import { Artifact } from "hardhat/types";
 import util from "util";
@@ -916,15 +916,7 @@ describe("Ethers plugin", function () {
         it("should deploy and return a contract with default signer", async function () {
           const contract = await this.env.ethers.deployContract("Greeter");
 
-          assert.containsAllKeys(contract.interface.functions, [
-            "setGreeting(string)",
-            "greet()",
-          ]);
-
-          assert.equal(
-            await contract.signer.getAddress(),
-            await signers[0].getAddress()
-          );
+          await assertContract(contract, signers[0]);
         });
 
         it("should deploy and return a contract with custom signer passed directly", async function () {
@@ -933,15 +925,7 @@ describe("Ethers plugin", function () {
             signers[1]
           );
 
-          assert.containsAllKeys(contract.interface.functions, [
-            "setGreeting(string)",
-            "greet()",
-          ]);
-
-          assert.equal(
-            await contract.signer.getAddress(),
-            await signers[1].getAddress()
-          );
+          await assertContract(contract, signers[1]);
         });
 
         it("should deploy and return a contract with custom signer passed as an option", async function () {
@@ -949,15 +933,7 @@ describe("Ethers plugin", function () {
             signer: signers[1],
           });
 
-          assert.containsAllKeys(contract.interface.functions, [
-            "setGreeting(string)",
-            "greet()",
-          ]);
-
-          assert.equal(
-            await contract.signer.getAddress(),
-            await signers[1].getAddress()
-          );
+          await assertContract(contract, signers[1]);
         });
 
         it("should deploy with args and return a contract", async function () {
@@ -966,15 +942,8 @@ describe("Ethers plugin", function () {
             { args: ["Hello"] }
           );
 
-          assert.containsAllKeys(contract.interface.functions, [
-            "setGreeting(string)",
-            "greet()",
-          ]);
-
-          assert.equal(
-            await contract.signer.getAddress(),
-            await signers[0].getAddress()
-          );
+          assert(await contract.greet(), "Hello");
+          await assertContract(contract, signers[0]);
         });
 
         it("should deploy with args and return a contract with custom signer as an option", async function () {
@@ -983,6 +952,14 @@ describe("Ethers plugin", function () {
             { args: ["Hello"], signer: signers[1] }
           );
 
+          assert(await contract.greet(), "Hello");
+          await assertContract(contract, signers[1]);
+        });
+
+        async function assertContract(
+          contract: ethers.Contract,
+          signer: Signer
+        ) {
           assert.containsAllKeys(contract.interface.functions, [
             "setGreeting(string)",
             "greet()",
@@ -990,9 +967,9 @@ describe("Ethers plugin", function () {
 
           assert.equal(
             await contract.signer.getAddress(),
-            await signers[1].getAddress()
+            await signer.getAddress()
           );
-        });
+        }
       });
     });
   });
