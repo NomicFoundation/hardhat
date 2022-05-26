@@ -99,7 +99,7 @@ To use an HD Wallet with Hardhat you should set your network's `accounts` field 
 For example:
 
 ```js
-const accounts = {
+const hardwareWalletAccounts = {
   mnemonic: "test test test test test test test test test test test junk",
   path: "m/44'/60'/0'/0",
   initialIndex: 0,
@@ -112,7 +112,7 @@ module.exports = {
     hardhat: {},
     rinkeby: {
       url: "https://eth-rinkeby.alchemyapi.io/v2/123abc123abc123abc123abc123abcde",
-      accounts,
+      accounts: hardwareWalletAccounts,
     },
   },
 };
