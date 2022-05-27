@@ -124,7 +124,7 @@ const StyledPre = styled.pre`
 
 const ContentWrapper = styled.span`
   position: relative;
-  width: max-content;
+  width: max(max-content, 100%);
   pre > code & {
     display: block;
   }

@@ -134,7 +134,7 @@ const Plugins: NextPage<IPluginsPage> = ({ mdxSource, sortedPlugins }) => {
             <PluginSnippet
               key={plugin.name}
               {...plugin}
-              href={`/plugins/${plugin.normalizedName}`}
+              href={`/plugins/${plugin.normalizedName || ""}`}
             />
           );
         })}

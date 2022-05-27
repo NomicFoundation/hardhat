@@ -58,7 +58,7 @@ const MenuButton = styled.a`
     content: " ";
     width: 0;
     height: 1px;
-    background-color: ${tmDark(({ colors }) => colors.neutral900)};
+    background-color: ${tm(({ colors }) => colors.neutral900)};
   }
   &:hover {
     &:after {

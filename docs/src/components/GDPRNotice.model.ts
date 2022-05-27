@@ -1,5 +1,5 @@
 /* eslint-disable import/prefer-default-export */
-const MeasurementID = process.env.NEXT_PUBLIC_MEASUREMENT_ID;
+const MeasurementID = process.env.NEXT_PUBLIC_MEASUREMENT_ID as string;
 
 export const loadAnalyticsScript = () => {
   const existingScript = document.querySelector("#google-tag-manager");
