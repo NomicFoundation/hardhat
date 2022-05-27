@@ -1,5 +1,17 @@
 # @nomiclabs/hardhat-etherscan
 
+## 3.0.3
+
+### Patch Changes
+
+- 3a037da2: Added `Content-Type` header to `hardhat-etherscan`'s request for verifying contracts, in order to fix [#2437](https://github.com/NomicFoundation/hardhat/issues/2437).
+
+## 3.0.2
+
+### Patch Changes
+
+- 3c2cb707: Add support for the Aurora network to `@nomiclabs/hardhat-etherscan` (thanks @baboobhaiya!)
+
 ## 3.0.1
 
 ### Patch Changes

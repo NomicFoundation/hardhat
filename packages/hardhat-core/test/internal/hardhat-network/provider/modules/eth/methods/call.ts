@@ -1,6 +1,7 @@
 import { assert } from "chai";
-
 import { BN } from "ethereumjs-util";
+import { Client } from "undici";
+
 import {
   numberToRpcQuantity,
   rpcDataToNumber,
@@ -15,6 +16,7 @@ import {
   EXAMPLE_BLOCKHASH_CONTRACT,
   EXAMPLE_CONTRACT,
   EXAMPLE_READ_CONTRACT,
+  EXAMPLE_REVERT_CONTRACT,
 } from "../../../../helpers/contracts";
 import { setCWD } from "../../../../helpers/cwd";
 import {
@@ -28,9 +30,10 @@ import {
   sendTxToZeroAddress,
 } from "../../../../helpers/transactions";
 import { compileLiteral } from "../../../../stack-traces/compilation";
+import { EthereumProvider } from "../../../../../../../src/types";
 
 describe("Eth module", function () {
-  PROVIDERS.forEach(({ name, useProvider, isFork }) => {
+  PROVIDERS.forEach(({ name, useProvider, isFork, chainId }) => {
     if (isFork) {
       this.timeout(50000);
     }
@@ -690,6 +693,164 @@ contract C {
               });
             });
           }
+        });
+
+        it("should use the proper chain ID", async function () {
+          if (!isFork) {
+            this.skip();
+          }
+
+          const [_, compilerOutput] = await compileLiteral(`
+            contract ChainIdGetter {
+              event ChainId(uint i);
+              function getChainId() public returns (uint chainId) {
+                assembly { chainId := chainid() }
+              }
+            }
+          `);
+          const contractAddress = await deployContract(
+            this.provider,
+            `0x${compilerOutput.contracts["literal.sol"].ChainIdGetter.evm.bytecode.object}`
+          );
+
+          async function getChainIdFromContract(
+            provider: EthereumProvider
+          ): Promise<number> {
+            return rpcQuantityToNumber(
+              (
+                await provider.send("eth_call", [
+                  {
+                    to: contractAddress,
+                    data: "0x3408e470", // abi-encoded "getChainId()"
+                  },
+                ])
+              ).replace(/0x0*/, "0x")
+            );
+          }
+
+          assert.equal(await getChainIdFromContract(this.provider), chainId);
+        });
+
+        describe("http JSON-RPC response", function () {
+          let client: Client;
+
+          // send the transaction using an http client, otherwise the wrapped
+          // provider will intercept the response and throw an error
+          async function call({ from, to, data }: any) {
+            return client
+              .request({
+                method: "POST",
+                path: "/",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  jsonrpc: "2.0",
+                  id: 1,
+                  method: "eth_call",
+                  params: [
+                    {
+                      from,
+                      to,
+                      data,
+                    },
+                  ],
+                }),
+              })
+              .then((x) => x.body.json());
+          }
+
+          beforeEach(function () {
+            if (this.serverInfo === undefined || isFork) {
+              this.skip();
+            }
+
+            const url = `http://${this.serverInfo.address}:${this.serverInfo.port}`;
+            client = new Client(url, {
+              keepAliveTimeout: 10,
+              keepAliveMaxTimeout: 10,
+            });
+          });
+
+          it("Should return the data of a call that reverts without a reason string", async function () {
+            const contractAddress = await deployContract(
+              this.provider,
+              `0x${EXAMPLE_REVERT_CONTRACT.bytecode.object}`
+            );
+
+            const response = await call({
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: contractAddress,
+              data: `${EXAMPLE_REVERT_CONTRACT.selectors.reverts}`,
+            });
+
+            assert.isDefined(response.error?.data);
+            assert.equal(response.error.message, response.error.data.message);
+            assert.equal(response.error.data.data, "0x");
+          });
+
+          it("Should return the data of a call that reverts with a reason string", async function () {
+            const contractAddress = await deployContract(
+              this.provider,
+              `0x${EXAMPLE_REVERT_CONTRACT.bytecode.object}`
+            );
+
+            const response = await call({
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: contractAddress,
+              data: `${EXAMPLE_REVERT_CONTRACT.selectors.revertsWithReasonString}`,
+            });
+
+            assert.isDefined(response.error?.data);
+            assert.equal(response.error.message, response.error.data.message);
+            assert.equal(
+              response.error.data.data,
+              // Error(string) encoded with value "a reason"
+              "0x08c379a0000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000086120726561736f6e000000000000000000000000000000000000000000000000"
+            );
+          });
+
+          it("Should return the data of a call that panics", async function () {
+            const contractAddress = await deployContract(
+              this.provider,
+              `0x${EXAMPLE_REVERT_CONTRACT.bytecode.object}`
+            );
+
+            const response = await call({
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: contractAddress,
+              data: `${EXAMPLE_REVERT_CONTRACT.selectors.panics}`,
+            });
+
+            assert.isDefined(response.error?.data);
+            assert.equal(response.error.message, response.error.data.message);
+            assert.equal(
+              response.error.data.data,
+              // Panic(uint256) encoded with value 0x32 (out-of-bounds array access)
+              "0x4e487b710000000000000000000000000000000000000000000000000000000000000032"
+            );
+          });
+
+          it("Should return the data of a call that reverts with a custom error", async function () {
+            const contractAddress = await deployContract(
+              this.provider,
+              `0x${EXAMPLE_REVERT_CONTRACT.bytecode.object}`
+            );
+
+            const response = await call({
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: contractAddress,
+              data: `${EXAMPLE_REVERT_CONTRACT.selectors.customError}`,
+            });
+
+            assert.isDefined(response.error?.data);
+            assert.equal(response.error.message, response.error.data.message);
+            assert.equal(
+              response.error.data.data,
+              // MyCustomError() encoded
+              "0x4e7254d6"
+            );
+          });
         });
       });
     });

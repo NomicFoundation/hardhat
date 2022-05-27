@@ -1,6 +1,6 @@
 {
   "name": "@nomiclabs/hardhat-waffle",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "Hardhat plugin to test smart contracts with Waffle",
   "homepage": "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-waffle",
   "repository": "github:nomiclabs/hardhat",

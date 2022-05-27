@@ -20,7 +20,7 @@ export function weiToHumanReadableString(wei: BN | number): string {
   }
 
   if (wei.lt(new BN(10).pow(new BN(5)))) {
-    return `${wei} wei`;
+    return `${wei.toString()} wei`;
   }
 
   if (wei.lt(new BN(10).pow(new BN(14)))) {

@@ -24,6 +24,7 @@ export async function verifyContract(
   const method: Dispatcher.HttpMethod = "POST";
   const requestDetails = {
     method,
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: parameters.toString(),
   };
 
@@ -100,7 +101,7 @@ export async function getVerificationStatus(
       pluginName,
       `Failure during etherscan status polling. The verification may still succeed but
 should be checked manually.
-Endpoint URL: ${urlWithQuery}
+Endpoint URL: ${urlWithQuery.toString()}
 Reason: ${error.message}`,
       error
     );

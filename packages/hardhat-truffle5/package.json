@@ -1,6 +1,6 @@
 {
   "name": "@nomiclabs/hardhat-truffle5",
-  "version": "2.0.4",
+  "version": "2.0.6",
   "description": "Truffle 5 Hardhat compatibility plugin",
   "repository": "github:nomiclabs/hardhat",
   "homepage": "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-truffle5",
@@ -35,7 +35,7 @@
     "@nomiclabs/truffle-contract": "^4.2.23",
     "@types/chai": "^4.2.0",
     "chai": "^4.2.0",
-    "ethereumjs-util": "^7.1.3",
+    "ethereumjs-util": "^7.1.4",
     "fs-extra": "^7.0.1"
   },
   "devDependencies": {

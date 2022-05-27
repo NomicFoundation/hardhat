@@ -1,6 +1,7 @@
 /node_modules
 /build-test
 /builtin-tasks
+/common
 /internal
 /types
 /utils

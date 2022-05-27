@@ -1,0 +1,44 @@
+name: Comment on lint failure
+
+on:
+  pull_request_target:
+    types: [opened]
+    branches:
+      - $default-branch
+
+concurrency:
+  group: ${{github.workflow}}-${{github.ref}}
+  cancel-in-progress: true
+
+jobs:
+  comment_on_lint_failure:
+    name: Comment on lint failure
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+        with:
+          ref: "refs/pull/${{ github.event.number }}/merge"
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 12
+          cache: yarn
+      - name: Install
+        run: yarn --frozen-lockfile
+      - name: Build
+        run: yarn build
+      - name: lint
+        run: yarn lint
+      - name: Check dependency versions
+        run: node scripts/check-dependencies.js
+      - uses: actions/github-script@v6
+        name: Comment on failure
+        if: ${{ failure() }}
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: "Thanks for submitting this PR!\nUnfortunately, it has some linter errors, so we can't merge it yet. Can you please fix them?\nRunning yarn `lint:fix` in the root of the repository may fix them automatically."
+            })
