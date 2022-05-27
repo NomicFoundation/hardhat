@@ -143,16 +143,16 @@ const ButtonContainer = styled.div`
   & svg {
     width: 48px;
     height: 48px;
-    transition: all 0.1s linear;
+    transition: all 0.2s ease-out;
     border-radius: 8px;
     padding: 8px;
     box-shadow: 0 1px 2px ${tm(({ colors }) => colors.sliderButtonHoverShadow)};
 
     &.active {
-      width: 56px;
-      height: 56px;
+      transform-origin: center;
+      transform: scale(1.15);
       box-shadow: 0 1px 2px ${tm(({ colors }) => colors.transparent)};
-      padding: 0;
+      padding: 0px;
     }
   }
 
@@ -163,7 +163,8 @@ const ButtonContainer = styled.div`
       &.active {
         width: 72px;
         height: 72px;
-        padding: 0;
+        padding: 0px;
+        transform: scale(1);
       }
     }
   }

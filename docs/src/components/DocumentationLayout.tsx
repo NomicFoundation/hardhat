@@ -293,7 +293,10 @@ const DocumentationLayout = ({
             isSidebarOpen={isSidebarOpen}
           >
             <SidebarMask>
-              <Sidebar elementsList={sidebarLayout} />
+              <Sidebar
+                elementsList={sidebarLayout}
+                closeSidebar={() => setIsSidebarOpen(false)}
+              />
             </SidebarMask>
             <MobileSidebarMenuMask data-open={isSidebarOpen}>
               <MobileSidebarMenu

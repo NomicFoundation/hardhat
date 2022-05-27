@@ -1,4 +1,4 @@
-import React, { FC, useEffect } from "react";
+import React, { FC } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { styled } from "linaria/react";
@@ -146,10 +146,6 @@ const MobileSidebarMenu: FC<Props> = ({
     (socialsItem) => socialsItem.name === SocialsEnum.GITHUB
   );
 
-  useEffect(() => {
-    closeSidebar();
-  }, [router.asPath, closeSidebar]);
-
   return (
     <MobileSidebarContainer>
       <MobileNavigationContainer>
@@ -158,6 +154,7 @@ const MobileSidebarMenu: FC<Props> = ({
             <MenuItem
               key={menuItem.label}
               data-current={router?.asPath === menuItem.href}
+              onClick={closeSidebar}
             >
               <Link href={menuItem.href}>{menuItem.label}</Link>
             </MenuItem>
@@ -165,7 +162,7 @@ const MobileSidebarMenu: FC<Props> = ({
         })}
         {gitHubSocial && <SocialItem {...gitHubSocial} />}
       </MobileNavigationContainer>
-      <Sidebar elementsList={sidebarElementsList} />
+      <Sidebar elementsList={sidebarElementsList} closeSidebar={closeSidebar} />
     </MobileSidebarContainer>
   );
 };

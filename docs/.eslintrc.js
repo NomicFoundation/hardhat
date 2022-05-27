@@ -24,7 +24,8 @@ module.exports = {
     "react/require-default-props": "off",
     "react/no-array-index-key": "off",
     "import/no-extraneous-dependencies": "off",
+    "@typescript-eslint/strict-boolean-expressions": "off",
     "react/no-danger": "off",
-    "no-console": ["error", { allow: ["warn", "error"] }]
+    "no-console": ["error", { allow: ["warn", "error"] }],
   },
 };

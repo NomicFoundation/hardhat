@@ -8,6 +8,7 @@ import { IDocumentationSidebarStructure } from "./types";
 
 interface Props {
   elementsList: IDocumentationSidebarStructure;
+  closeSidebar?: () => void;
 }
 
 const Container = styled.ul`
@@ -79,7 +80,7 @@ const SidebarSubLinksList = styled.ul`
   }
 `;
 
-const Sidebar = ({ elementsList }: Props) => {
+const Sidebar = ({ elementsList, closeSidebar }: Props) => {
   const router = useRouter();
   return (
     <Container>
@@ -88,7 +89,11 @@ const Sidebar = ({ elementsList }: Props) => {
           sidebarItem.href !== undefined &&
           router?.asPath.indexOf(sidebarItem.href) > -1;
         return (
-          <SidebarItem key={sidebarItem.label} className={sidebarItem.type}>
+          <SidebarItem
+            key={sidebarItem.label}
+            className={sidebarItem.type}
+            onClick={closeSidebar}
+          >
             {sidebarItem.href !== undefined ? (
               <Link passHref href={sidebarItem.href}>
                 <SidebarLinkWrapper data-active={isLinkActive}>
@@ -108,7 +113,8 @@ const Sidebar = ({ elementsList }: Props) => {
 
                   const isAnchor = subItem.href.includes("#");
                   return (
-                    <li key={subItem.label}>
+                    // eslint-disable-next-line
+                    <li key={subItem.label} onClick={closeSidebar}>
                       <Link passHref href={subItem.href}>
                         <SidebarLinkWrapper
                           data-active={isSubLinkActive}

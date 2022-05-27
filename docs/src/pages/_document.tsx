@@ -1,7 +1,7 @@
 /* eslint-disable react/no-danger */
 import { Html, Head, Main, NextScript } from "next/document";
 
-const MeasurementID = process.env.NEXT_PUBLIC_MEASUREMENT_ID;
+const MeasurementID = process.env.NEXT_PUBLIC_MEASUREMENT_ID as string;
 
 export default function Document() {
   return (

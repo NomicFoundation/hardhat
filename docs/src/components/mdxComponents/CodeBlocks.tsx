@@ -68,7 +68,7 @@ const StyledPre = styled.pre`
     color: ${tm(({ colors }) => colors.preCodeColor)};
     line-height: 1.4;
     font-size: 0.85em;
-    font-family: "Menlo", sans-serif;
+    font-family: "Menlo", monospace;
     font-weight: 300;
   }
 
@@ -125,6 +125,7 @@ const StyledPre = styled.pre`
 const ContentWrapper = styled.span`
   position: relative;
   width: max-content;
+  min-width: 100%;
   pre > code & {
     display: block;
   }
