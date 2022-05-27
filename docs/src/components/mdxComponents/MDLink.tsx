@@ -14,29 +14,51 @@ const StyledMdLinkContainer = styled.span`
     color: ${tm(({ colors }) => colors.link)};
   }
   margin: 0 2px;
-  display: inline-flex;
-  align-items: center;
   cursor: pointer;
   &:hover {
     text-decoration: underline;
   }
 
+  & > a {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  & .hardhat-badge + svg {
+    margin-left: -30px;
+  }
+
   & code {
     color: ${tm(({ colors }) => colors.link)};
   }
-
   & svg {
     margin-left: 2px;
     stroke: ${tmDark(({ colors }) => colors.neutral800)};
-    ${tmSelectors.hcDark} {
+  }
+
+  ${tmSelectors.hcDark} {
+    & svg {
       stroke: ${tmHCDark(({ colors }) => colors.neutral800)};
     }
-    ${tmSelectors.dark} {
+    & code {
+      color: ${tm(({ colors }) => colors.link)};
+    }
+  }
+  ${tmSelectors.dark} {
+    & svg {
       stroke: ${tmDark(({ colors }) => colors.neutral800)};
     }
-    ${media.mqDark} {
-      ${tmSelectors.auto} {
+    & code {
+      color: ${tm(({ colors }) => colors.link)};
+    }
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      & svg {
         stroke: ${tmDark(({ colors }) => colors.neutral800)};
+      }
+      & code {
+        color: ${tm(({ colors }) => colors.link)};
       }
     }
   }
@@ -62,6 +84,7 @@ const renderLinkByType = ({
     return (
       <a href={href} target="_blank" rel="noreferrer">
         {children}
+        <ExternalLinkIcon />
       </a>
     );
   }
@@ -84,7 +107,6 @@ const MDLink = ({ children, href }: Props) => {
   return (
     <StyledMdLinkContainer>
       {renderLinkByType({ href, children, isAnchor, isExternalLink })}
-      {isExternalLink && <ExternalLinkIcon />}
     </StyledMdLinkContainer>
   );
 };

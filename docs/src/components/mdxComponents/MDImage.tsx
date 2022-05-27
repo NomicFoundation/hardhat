@@ -33,15 +33,25 @@ const ImageContainer = styled.div`
 const isShellBadge = (src: string): boolean => /img\.shields\.io/.test(src);
 const isHardhatBadge = (alt: string): boolean => alt === "hardhat";
 
+const calcImgWidth = ({ isShellBdg, isHardhatBdg }) => {
+  if (isHardhatBdg) return "140px";
+  if (isShellBdg) return "80px";
+  return null;
+};
+
 const MDImage = ({ src, alt }: Props) => {
-  const isBadge = isShellBadge(src) || isHardhatBadge(alt);
+  const isHardhatBdg = isHardhatBadge(alt);
+  const isShellBdg = isShellBadge(src);
+
   return (
-    <ImageContainer width={isBadge ? "80px" : null}>
+    <ImageContainer
+      width={calcImgWidth({ isHardhatBdg, isShellBdg })}
+      className={isHardhatBdg ? "hardhat-badge" : null}
+    >
       <Image
         className="md-img"
         src={src}
         alt={alt}
-        blurDataURL={src}
         width="100%"
         height="100%"
         quality={100}

@@ -8,6 +8,7 @@ import Banner, { DefaultBanner } from "./ui/Banner";
 import { ThemeProvider, tm } from "../themes";
 import { DefaultBannerProps } from "./ui/types";
 import { bannerContent } from "../config";
+import GDPRNotice from "./GDPRNotice";
 
 const Container = styled.div`
   position: relative;
@@ -15,6 +16,7 @@ const Container = styled.div`
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
+  -webkit-font-smoothing: antialiased;
   main {
     overflow-x: hidden;
     padding-top: 136px;
@@ -66,6 +68,7 @@ const LandingLayout = ({ children, seo }: Props) => {
           <LandingFooter />
         </main>
       </Container>
+      <GDPRNotice />
     </ThemeProvider>
   );
 };

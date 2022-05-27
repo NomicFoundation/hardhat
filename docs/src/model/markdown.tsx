@@ -34,10 +34,14 @@ export const withCodeElementWrapper = (
   content: string,
   extension: string = "",
   highlightedLinesNumbers: string = ""
-) =>
-  `\`\`\`${extension}${highlightedLinesNumbers}
+) => {
+  const stringNumbersEntity =
+    highlightedLinesNumbers.length > 0 ? `{${highlightedLinesNumbers}}` : "";
+
+  return `\`\`\`${extension ?? "markup"}${stringNumbersEntity}
 ${content}
   \`\`\``;
+};
 
 export const getEntriesInfo = (
   line: string
@@ -136,6 +140,18 @@ function createCustomNodes() {
     });
   };
 }
+/** @type {import('unified').Plugin<[], import('mdast').Root>} */
+function setDefaultLang() {
+  // @ts-ignore
+  return (tree) => {
+    visit(tree, (node) => {
+      if (node.type === "code" && !node.lang) {
+        // eslint-disable-next-line
+        node.lang = "markup";
+      }
+    });
+  };
+}
 
 export const generateTitleFromContent = (content: string) => {
   return content
@@ -180,14 +196,20 @@ export const prepareMdContent = async (
     mdxOptions: {
       remarkPlugins: [
         remarkGfm,
-        remarkPrism,
         remarkDirective,
         createCustomNodes,
         remarkUnwrapImages,
+        setDefaultLang,
+        remarkPrism,
       ],
 
       rehypePlugins: [
-        [rehypePrism, { plugins: ["line-highlight", "show-language"] }],
+        [
+          rehypePrism,
+          {
+            plugins: ["line-highlight"],
+          },
+        ],
       ],
     },
   });

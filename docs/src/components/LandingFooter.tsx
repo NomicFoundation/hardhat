@@ -1,7 +1,9 @@
 import { styled } from "linaria/react";
 import React from "react";
+import Link from "next/link";
 import EthereumFoundationLogo from "../assets/ethereum-foundation-logo";
 import { media, tm } from "../themes";
+import { PRIVACY_POLICY_PATH } from "../config";
 
 const Footer = styled.footer`
   padding: 80px 24px 120px;
@@ -32,7 +34,7 @@ const Subtitle = styled.h2`
   letter-spacing: 0;
   text-align: center;
   margin-bottom: 16px;
-  font-family: ChivoLight;
+  font-family: ChivoLight, sans-serif;
   ${media.md} {
     margin-bottom: unset;
     margin-right: 24px;
@@ -66,6 +68,14 @@ const Legal = styled.section`
   }
 `;
 
+const PrivacyPolicyLink = styled.a`
+  cursor: pointer;
+  margin-left: 4px;
+  &:hover {
+    opacity: 0.8;
+  }
+`;
+
 const LandingFooter = () => {
   return (
     <Footer>
@@ -73,7 +83,12 @@ const LandingFooter = () => {
         <Subtitle>Supported by</Subtitle>
         <EthereumFoundationLogo />
       </SupportedBy>
-      <Legal>Copyright 2021 Nomic Labs LLC</Legal>
+      <Legal>
+        Copyright 2021 Nomic Labs LLC |
+        <Link href={PRIVACY_POLICY_PATH} passHref>
+          <PrivacyPolicyLink>Privacy Policy</PrivacyPolicyLink>
+        </Link>
+      </Legal>
     </Footer>
   );
 };

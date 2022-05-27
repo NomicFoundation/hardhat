@@ -12,7 +12,7 @@ import useWindowSize, { WindowSizeState } from "../../hooks/useWindowSize";
 import { BannerProps, DefaultBannerProps } from "./types";
 
 const BannerContainer = styled.section`
-  font-family: ChivoRegular;
+  font-family: ChivoRegular, sans-serif;
   user-select: none;
   z-index: 100;
   width: 100%;
@@ -32,10 +32,6 @@ const BannerContainer = styled.section`
   cursor: pointer;
   & span {
     margin-right: 2px;
-  }
-  & span:last-child {
-    text-decoration: underline;
-    margin-right: unset;
   }
   ${media.md} {
     font-size: 15px;
@@ -95,7 +91,7 @@ const Brace = styled.div<{
     20% {
       opacity: 1;
     }
-  }
+  } ;
 `;
 
 const getBracesCount = (windowSize: WindowSizeState) => {
@@ -134,7 +130,13 @@ const BracesAnimation: React.FC<React.PropsWithChildren<{}>> = ({
 };
 
 export const DefaultBanner = ({ content }: DefaultBannerProps) => {
-  return <BracesAnimation>{content.text}</BracesAnimation>;
+  const windowSize = useWindowSize();
+  const isDesktop = breakpoints.md <= windowSize.width;
+  return isDesktop ? (
+    <BracesAnimation>{content.text}</BracesAnimation>
+  ) : (
+    <BracesAnimation>{content.shortText}</BracesAnimation>
+  );
 };
 
 const Banner = ({ content, renderContent }: BannerProps) => {

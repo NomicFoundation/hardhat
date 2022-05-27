@@ -14,7 +14,6 @@ const StyledAdmonition = styled.div`
   font-size: 14px;
   font-weight: 400;
   line-height: 1.7;
-  letter-spacing: 2px;
   color: ${tm(({ colors }) => colors.neutral800)};
   & .title {
     font-size: 16px;

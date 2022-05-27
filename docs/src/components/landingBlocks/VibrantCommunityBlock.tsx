@@ -139,7 +139,7 @@ const VibrantCommunityBlock = ({ content }: Props) => {
             <Title>{content.title}</Title>
             <Text>{content.text}</Text>
             <ButtonWrapper>
-              <CTA href={content.cta.url} variant="secondary">
+              <CTA href={content.cta.url} variant="secondary full-padding">
                 {content.cta.title}
               </CTA>
             </ButtonWrapper>

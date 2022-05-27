@@ -46,9 +46,14 @@ const ImageContainer = styled.div`
   margin-bottom: 16px;
   position: relative;
   width: 100%;
-  padding-top: 65%;
+  padding-top: 55%;
+  overflow: hidden;
+  ${media.sm} {
+    padding-top: 55%;
+  }
   ${media.md} {
     padding-top: unset;
+    overflow: visible;
   }
 `;
 

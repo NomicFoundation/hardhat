@@ -29,10 +29,6 @@ export default function Document() {
           crossOrigin="true"
         />
         <script
-          async
-          src={`https://www.googletagmanager.com/gtag/js?id=${MeasurementID}`}
-        />
-        <script
           dangerouslySetInnerHTML={{
             __html: `
               window.dataLayer = window.dataLayer || [];

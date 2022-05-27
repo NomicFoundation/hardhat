@@ -37,6 +37,7 @@ import OrderedList from "./mdxComponents/OrderedList";
 import TabsGroup from "./mdxComponents/TabsGroup";
 import Tab from "./mdxComponents/Tab";
 import { Header } from "./LandingLayout";
+import GDPRNotice from "./GDPRNotice";
 
 const Container = styled.div`
   position: relative;
@@ -176,11 +177,7 @@ const Content = styled.section`
   width: 100%;
   max-width: 774px;
   padding: 0 34px;
-
   color: ${tm(({ colors }) => colors.neutral900)};
-  & h2:not(:first-of-type) {
-    padding-top: 80px;
-  }
 
   & h2 + p {
     margin-top: 32px;
@@ -303,6 +300,7 @@ const DocumentationLayout = ({
                 menuItems={menuItemsList}
                 socialsItems={socialsItems}
                 sidebarElementsList={sidebarLayout}
+                closeSidebar={() => setIsSidebarOpen(false)}
               />
             </MobileSidebarMenuMask>
           </SidebarContainer>
@@ -322,6 +320,7 @@ const DocumentationLayout = ({
           </View>
         </main>
       </Container>
+      <GDPRNotice />
     </ThemeProvider>
   );
 };

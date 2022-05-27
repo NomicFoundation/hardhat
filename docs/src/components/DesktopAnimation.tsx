@@ -19,7 +19,12 @@ const AnimationContainer = styled.section`
   position: absolute;
   ${media.md} {
     display: block;
+    left: -72px;
   }
+  ${media.lg} {
+    left: 0px;
+  }
+
   & > .bounce {
     & > span {
       position: absolute;

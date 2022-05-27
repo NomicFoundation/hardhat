@@ -20,8 +20,8 @@ export interface NavOption {
 }
 
 export interface FooterNavigation {
-  next?: NavOption;
-  prev?: NavOption;
+  next?: NavOption | false;
+  prev?: NavOption | false;
   lastEditDate: string;
   editLink: string;
 }

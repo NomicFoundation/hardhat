@@ -7,7 +7,7 @@ import { media, tm, tmDark, tmHCDark, tmSelectors } from "../../themes";
 import Searching from "../Searching";
 
 const MenuContainer = styled.section<{ isDocumentation: boolean }>`
-  font-family: ChivoRegular;
+  font-family: ChivoRegular, sans-serif;
   user-select: none;
   width: 607px;
   display: none;
@@ -40,11 +40,10 @@ const MenuItem = styled.li`
 `;
 
 const MenuButton = styled.a`
-  --text-color: ${tm(({ colors }) => colors.neutral900)};
   text-transform: uppercase;
   text-align: center;
   border: none;
-  color: var(--text-color);
+  color: ${tm(({ colors }) => colors.neutral900)};
   background-color: ${tm(({ colors }) => colors.transparent)};
   font-size: 15px;
   line-height: 15px;
@@ -59,7 +58,7 @@ const MenuButton = styled.a`
     content: " ";
     width: 0;
     height: 1px;
-    background-color: var(--text-color);
+    background-color: ${tmDark(({ colors }) => colors.neutral900)};
   }
   &:hover {
     &:after {
@@ -73,14 +72,23 @@ const MenuButton = styled.a`
   }
   :not(.landing &) {
     ${tmSelectors.hcDark} {
-      --text-color: ${tmHCDark(({ colors }) => colors.neutral900)};
+      color: ${tmHCDark(({ colors }) => colors.neutral900)};
+      &:after {
+        background-color: ${tmHCDark(({ colors }) => colors.neutral900)};
+      }
     }
     ${tmSelectors.dark} {
-      --text-color: ${tmDark(({ colors }) => colors.neutral900)};
+      color: ${tmDark(({ colors }) => colors.neutral900)};
+      &:after {
+        background-color: ${tmDark(({ colors }) => colors.neutral900)};
+      }
     }
     ${media.mqDark} {
       ${tmSelectors.auto} {
-        --text-color: ${tmDark(({ colors }) => colors.neutral900)};
+        color: ${tmDark(({ colors }) => colors.neutral900)};
+        &:after {
+          background-color: ${tmDark(({ colors }) => colors.neutral900)};
+        }
       }
     }
   }
@@ -231,12 +239,11 @@ const DropdownItem = styled.a`
 `;
 
 const ButtonNameContainer = styled.div`
-  --text-color: ${tm(({ colors }) => colors.neutral900)};
   display: flex;
   align-items: center;
   margin-left: 12px;
   position: relative;
-  color: var(--text-color);
+  color: ${tm(({ colors }) => colors.neutral900)};
   &:after {
     transition: all ease-in-out 0.2s;
     position: absolute;
@@ -245,21 +252,30 @@ const ButtonNameContainer = styled.div`
     content: " ";
     width: 0;
     height: 1px;
-    background-color: var(--text-color);
+    background-color: ${tm(({ colors }) => colors.neutral900)};
   }
   ${DropdownItem}:hover > &:after {
     width: 100%;
   }
   :not(.landing &) {
     ${tmSelectors.hcDark} {
-      --text-color: ${tmHCDark(({ colors }) => colors.neutral900)};
+      color: ${tmHCDark(({ colors }) => colors.neutral900)};
+      &:after {
+        background-color: ${tmHCDark(({ colors }) => colors.neutral900)};
+      }
     }
     ${tmSelectors.dark} {
-      --text-color: ${tmDark(({ colors }) => colors.neutral900)};
+      color: ${tmDark(({ colors }) => colors.neutral900)};
+      &:after {
+        background-color: ${tmDark(({ colors }) => colors.neutral900)};
+      }
     }
     ${media.mqDark} {
       ${tmSelectors.auto} {
-        --text-color: ${tmDark(({ colors }) => colors.neutral900)};
+        color: ${tmDark(({ colors }) => colors.neutral900)};
+        &:after {
+          background-color: ${tmDark(({ colors }) => colors.neutral900)};
+        }
       }
     }
   }
