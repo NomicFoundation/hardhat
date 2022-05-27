@@ -461,6 +461,13 @@ module.exports.communityPlugins = [
       "Handy set of utilities for testing contracts in Hardhat projects",
     tags: ["testing", "solidity"],
   },
+  {
+    name: "@0xweb/hardhat",
+    author: "Alex Kit",
+    authorUrl: "https://github.com/tenbits",
+    description: "Generate 0xWeb classes for contracts to easily communicate with the blockchain.",
+    tags: ["dApp-Client", "Class-Generation", "Testing"],
+  },
 ];
 
 module.exports.officialPlugins = [
