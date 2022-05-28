@@ -15,7 +15,6 @@ import {
   createProvider,
   isHDAccountsConfig,
 } from "../../../../src/internal/core/providers/construction";
-import { GANACHE_GAS_MULTIPLIER } from "../../../../src/internal/core/providers/gas-providers";
 import { expectHardhatErrorAsync } from "../../../helpers/errors";
 
 import { MockedProvider } from "./mocks";
@@ -265,33 +264,6 @@ describe("Base providers wrapping", () => {
         () => provider.request({ method: "eth_getAccounts", params: [] }),
         ERRORS.NETWORK.INVALID_GLOBAL_CHAIN_ID
       );
-    });
-  });
-
-  describe("Ganache multiplier provider", () => {
-    it("Should wrap with a ganache multiplier provider", async () => {
-      mockedProvider.setReturnValue(
-        "eth_estimateGas",
-        numberToRpcQuantity(123)
-      );
-      mockedProvider.setReturnValue(
-        "web3_clientVersion",
-        "EthereumJS TestRPC/v2.5.5/ethereum-js"
-      );
-
-      const provider = applyProviderWrappers(mockedProvider, {
-        url: "",
-      });
-
-      const estimation = (await provider.request({
-        method: "eth_estimateGas",
-        params: [
-          { to: "0xa2b6816c50d49101901d93f5302a3a57e0a1281b", value: 1 },
-        ],
-      })) as string;
-
-      const gas = rpcQuantityToNumber(estimation);
-      assert.equal(gas, Math.floor(123 * GANACHE_GAS_MULTIPLIER));
     });
   });
 });
