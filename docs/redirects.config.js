@@ -88,7 +88,7 @@ module.exports = customRedirects;
 
 function loadErrorRedirects() {
   try {
-    return require(path.jon(__dirname, "temp/error-redirects.json"));
+    return require(path.join(__dirname, "temp/error-redirects.json"));
   } catch (e) {
     return [];
   }
