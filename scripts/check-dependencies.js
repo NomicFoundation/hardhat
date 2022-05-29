@@ -23,6 +23,7 @@ const IGNORE_FOR_PACKAGES = {
   ["typescript"]: ["docs"],
   ["glob"]: ["docs"],
   ["undici"]: ["docs"],
+  ["ts-node"]: ["docs"],
 };
 
 function checkPeerDepedencies(packageJson) {
