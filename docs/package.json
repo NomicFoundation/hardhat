@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "prebuild": "ts-node --transpileOnly --skipProject scripts/prepare-error-list.ts",
     "dev": "next-remote-watch ./src/content",
     "dev:debug": "NODE_OPTIONS='--inspect' next dev",
     "build": "next build",
@@ -31,6 +32,7 @@
     "remark-gfm": "^3.0.1",
     "remark-prism": "^1.3.6",
     "remark-unwrap-images": "^3.0.1",
+    "ts-node": "^10.8.0",
     "undici": "^5.1.1",
     "unist-util-visit": "^4.1.0"
   },

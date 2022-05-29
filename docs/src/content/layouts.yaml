@@ -7,10 +7,10 @@ documentation:
     - guides
     - advanced
     - troubleshooting
-    - errors
     - reference
     - plugins
     - metamask-issue
+    - errors
 
 tutorial:
   title: tutorial

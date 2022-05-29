@@ -3,3 +3,5 @@ section-title: Troubleshooting
 order:
   - /verbose-logging
   - /common-problems
+  - href: /../errors
+    title: Error codes
