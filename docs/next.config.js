@@ -17,9 +17,12 @@ const linariaConfig = withLinaria({
          * e.g. https://hardhat.org/hardhat-network/explanation/mining-modes.html becomes
          * https://hardhat.org/hardhat-network/explanation/mining-modes
          *
-         * We need this to keep the links of the pervious version workable
+         * We need this to keep the links of the pervious version workable.
+         * 
+         * The only exception is the privacy-policy.html file, which we host in
+         * public/
          */
-        source: "/:slug*.html",
+        source: "/:slug((?!privacy-policy).*).html",
         destination: "/:slug*",
         permanent: true,
       },
