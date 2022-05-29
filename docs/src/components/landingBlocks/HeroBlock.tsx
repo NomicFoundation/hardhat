@@ -25,7 +25,7 @@ const Container = styled.section`
   ${media.md} {
     flex-direction: row;
     justify-content: space-between;
-    margin-bottom: 240px;
+    margin-bottom: 280px;
   }
 `;
 
