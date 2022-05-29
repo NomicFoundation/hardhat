@@ -26,6 +26,9 @@ const AnimationContainer = styled.section`
   }
 
   & > .bounce {
+    background-color: transparent;
+    height: 100%;
+    width: 100%;
     & > span {
       position: absolute;
     }
@@ -37,6 +40,7 @@ const AnimationContainer = styled.section`
     z-index: 1;
   }
   & .back-texture {
+    z-index: 0;
     top: -100px;
     left: 50px;
   }

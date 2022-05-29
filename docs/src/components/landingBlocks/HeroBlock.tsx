@@ -21,9 +21,11 @@ const Container = styled.section`
   flex-direction: column;
   margin-top: 40px;
   color: ${tm(({ colors }) => colors.neutral900)};
+  margin-bottom: 300px;
   ${media.md} {
     flex-direction: row;
     justify-content: space-between;
+    margin-bottom: 280px;
   }
 `;
 

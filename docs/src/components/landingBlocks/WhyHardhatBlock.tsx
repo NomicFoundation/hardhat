@@ -15,10 +15,8 @@ const Container = styled.section`
   flex-direction: column;
   border-left: 1px solid ${tm(({ colors }) => colors.neutral400)};
   padding-top: 52px;
-  margin-top: 162px;
   ${media.md} {
     border-left: unset;
-    margin-top: 200px;
     border-top: 1px solid ${tm(({ colors }) => colors.neutral400)};
   }
 `;
