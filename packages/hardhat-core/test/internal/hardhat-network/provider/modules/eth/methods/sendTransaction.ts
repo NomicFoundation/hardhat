@@ -1041,10 +1041,6 @@ describe("Eth module", function () {
         });
 
         it("should use the proper chain ID", async function () {
-          if (!isFork) {
-            this.skip();
-          }
-
           // arrange: deploy a contract that will emit the chain ID:
           const [_, compilerOutput] = await compileLiteral(`
             contract ChainIdEmitter {
