@@ -6,7 +6,7 @@
   "access": "public",
   "baseBranch": "master",
   "updateInternalDependencies": "minor",
-  "ignore": ["docs", "@nomiclabs/common", "@nomiclabs/hardhat-e2e-tests"],
+  "ignore": ["@nomiclabs/common", "@nomiclabs/hardhat-e2e-tests"],
   "___experimentalUnsafeOptions_WILL_CHANGE_IN_PATCH": {
     "onlyUpdatePeerDependentsWhenOutOfRange": true
   }
