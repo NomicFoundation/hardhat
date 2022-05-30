@@ -696,10 +696,6 @@ contract C {
         });
 
         it("should use the proper chain ID", async function () {
-          if (!isFork) {
-            this.skip();
-          }
-
           const [_, compilerOutput] = await compileLiteral(`
             contract ChainIdGetter {
               event ChainId(uint i);

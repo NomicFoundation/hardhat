@@ -22,7 +22,11 @@ export function getReturnDataFromError(error: any): string {
     throw new AssertionError("Expected an Error object");
   }
 
-  const errorData = (error as any).data;
+  // cast to any again so we don't have to cast it every time we access
+  // some property that doesn't exist on Error
+  error = error as any;
+
+  const errorData = error.data ?? error.error?.data;
 
   if (errorData === undefined) {
     throw error;
