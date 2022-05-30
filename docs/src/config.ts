@@ -25,7 +25,7 @@ export const BANNER_LINK =
 export const PRIVACY_POLICY_PATH = "/privacy-policy.html";
 
 export const bannerContent = {
-  text: "Join the Hardhat team! Nomic Labs is hiring",
+  text: "Join the Hardhat team! Nomic Foundation is hiring",
   shortText: "Join the Hardhat team! We are hiring",
   href: BANNER_LINK,
 };

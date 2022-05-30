@@ -67,7 +67,9 @@ export const getPluginsPaths = (): Array<{ params: { plugin: string } }> => {
 };
 
 const getPluginReadmeFilename = (pluginSlug: string): string => {
-  const folderName = pluginSlug.replace(/nomiclabs-/, "");
+  const folderName = pluginSlug
+    .replace(/nomiclabs-/, "")
+    .replace(/nomicfoundation-/, "");
   const rootPath = process.cwd().toString();
   const filename = path.join(rootPath, "../packages/", folderName, "README.md");
   return filename;
