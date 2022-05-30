@@ -11,6 +11,8 @@ documentation:
     - plugins
     - metamask-issue
     - errors
+    - chai-matchers
+    - network-helpers
 
 tutorial:
   title: tutorial
