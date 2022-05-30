@@ -1,5 +1,11 @@
 # hardhat
 
+## 2.9.7
+
+### Patch Changes
+
+- 73beb279b: Fixed `block.chainid` returning 0 in view functions
+
 ## 2.9.6
 
 ### Patch Changes
