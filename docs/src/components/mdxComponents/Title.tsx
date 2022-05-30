@@ -4,7 +4,7 @@ import { media, tm, tmDark, tmHCDark, tmSelectors } from "../../themes";
 import MDLink from "./MDLink";
 
 interface Props {
-  children: ReactElement;
+  children: ReactElement | string;
 }
 
 const StyledH1 = styled.h1`
@@ -234,7 +234,7 @@ const H2 = ({ children }: Props) => {
 };
 
 const H3 = ({ children }: Props) => {
-  if (children.type === MDLink) {
+  if (typeof children !== "string" && children.type === MDLink) {
     return (
       <StyledH3 id={children.props.href.replace(/^#/g, "")}>
         <span className="hash">#</span>
