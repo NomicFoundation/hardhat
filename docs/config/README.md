@@ -84,7 +84,7 @@ This kind of network is configured with objects with the following fields:
 
 ### HD Wallet config
 
-To use an HD Wallet with Hardhat you should set your network's `accounts` field to an object with the following fields:
+To use an [HD Wallet](https://github.com/ethereumbook/ethereumbook/blob/develop/05wallets.asciidoc#hd_wallets) with Hardhat you should set your network's `accounts` field to an object with the following fields:
 
 - `mnemonic`: A required string with the mnemonic phrase of the wallet.
 
@@ -95,6 +95,25 @@ To use an HD Wallet with Hardhat you should set your network's `accounts` field 
 - `count`: The number of accounts to derive. Default value: `20`.
 
 - `passphrase`: The passphrase for the wallet. Default value: empty string.
+
+For example:
+
+```js
+module.exports = {
+  networks: {
+    rinkeby: {
+      url: "...",
+      accounts: {
+        mnemonic: "test test test test test test test test test test test junk",
+        path: "m/44'/60'/0'/0",
+        initialIndex: 0,
+        count: 20,
+        passphrase: "",
+      },
+    },
+  },
+};
+```
 
 ### Default networks object
 
