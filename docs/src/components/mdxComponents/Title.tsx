@@ -236,7 +236,7 @@ const H2 = ({ children }: Props) => {
 const H3 = ({ children }: Props) => {
   if (children.type === MDLink) {
     return (
-      <StyledH3 id={children.props.href.replace(/^\#/g, "")}>
+      <StyledH3 id={children.props.href.replace(/^#/g, "")}>
         <span className="hash">#</span>
         {children}
       </StyledH3>
