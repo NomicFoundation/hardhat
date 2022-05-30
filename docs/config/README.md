@@ -84,7 +84,7 @@ This kind of network is configured with objects with the following fields:
 
 ### HD Wallet config
 
-To use an HD Wallet with Hardhat you should set your network's `accounts` field to an object with the following fields:
+To use an [HD Wallet](https://github.com/ethereumbook/ethereumbook/blob/develop/05wallets.asciidoc#hd_wallets) with Hardhat you should set your network's `accounts` field to an object with the following fields:
 
 - `mnemonic`: A required string with the mnemonic phrase of the wallet.
 
@@ -99,21 +99,17 @@ To use an HD Wallet with Hardhat you should set your network's `accounts` field 
 For example:
 
 ```js
-const hardwareWalletAccounts = {
-  mnemonic: "test test test test test test test test test test test junk",
-  path: "m/44'/60'/0'/0",
-  initialIndex: 0,
-  count: 20,
-  passphrase: "",
-};
-
 module.exports = {
-  defaultNetwork: "rinkeby",
   networks: {
-    hardhat: {},
     rinkeby: {
-      url: "https://eth-rinkeby.alchemyapi.io/v2/123abc123abc123abc123abc123abcde",
-      accounts: hardwareWalletAccounts,
+      url: "...",
+      accounts: {
+        mnemonic: "test test test test test test test test test test test junk",
+        path: "m/44'/60'/0'/0",
+        initialIndex: 0,
+        count: 20,
+        passphrase: "",
+      },
     },
   },
 };
