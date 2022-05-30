@@ -84,7 +84,7 @@ const LandingFooter = () => {
         <EthereumFoundationLogo />
       </SupportedBy>
       <Legal>
-        Copyright 2021 Nomic Labs LLC |
+        Copyright 2022 Nomic Labs LLC |
         <Link href={PRIVACY_POLICY_PATH} passHref>
           <PrivacyPolicyLink>Privacy Policy</PrivacyPolicyLink>
         </Link>
