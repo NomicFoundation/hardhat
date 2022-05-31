@@ -27,7 +27,7 @@ const customRedirects = [
   },
   {
     source: "/console-log",
-    destination: "/hardhat-network/#console-log",
+    destination: "/hardhat-network/#console.log",
     permanent: false
   },
   {
@@ -55,7 +55,7 @@ const customRedirects = [
   },
   {
     source: "/docs/guides/buidler-console",
-    destination: "/docs/guides/hardhat-console",
+    destination: "/guides/hardhat-console",
     permanent: false
   },
   {
