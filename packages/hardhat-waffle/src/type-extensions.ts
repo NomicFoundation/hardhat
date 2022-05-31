@@ -8,6 +8,7 @@ import type {
 } from "ethereum-waffle";
 import type { ContractJSON } from "ethereum-waffle/dist/esm/ContractJSON";
 import type { Contract, providers, Signer } from "ethers";
+
 import "hardhat/types/runtime";
 
 declare module "hardhat/types/runtime" {

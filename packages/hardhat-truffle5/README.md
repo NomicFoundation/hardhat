@@ -42,4 +42,4 @@ An instance of [`TruffleEnvironmentArtifacts`](https://github.com/nomiclabs/hard
 
 There are no additional steps you need to take for this plugin to work. Install it, run `npx hardhat test` and your Truffle tests should run with no need to make any modifications.
 
-Take a look at the [testing guide](https://hardhat.org/guides/testing) for a tutorial using it.
+Take a look at the [testing guide](https://hardhat.org/guides/truffle-testing.html) for a tutorial using it.

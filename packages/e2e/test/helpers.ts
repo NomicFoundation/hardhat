@@ -27,6 +27,12 @@ export function useFixture(project: string) {
     const isYarn = process.env.HARDHAT_E2E_IS_YARN === "true";
     const hardhatPackagePath = process.env.HARDHAT_E2E_PATH_TO_HARDHAT_TGZ;
 
+    if (hardhatPackagePath === undefined || hardhatPackagePath === "") {
+      throw new Error(
+        "Undefined or empty environment variable: HARDHAT_E2E_PATH_TO_HARDHAT_TGZ"
+      );
+    }
+
     if (isYarn) {
       shell.exec(`yarn add ${hardhatPackagePath}`);
     } else {

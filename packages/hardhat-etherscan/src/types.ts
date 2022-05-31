@@ -4,6 +4,7 @@ type Chain =
   | "rinkeby"
   | "goerli"
   | "kovan"
+  | "sepolia"
   // binance smart chain
   | "bsc"
   | "bscTestnet"
@@ -29,9 +30,14 @@ type Chain =
   | "moonbeam"
   | "moonriver"
   | "moonbaseAlpha"
+  | "harmony"
+  | "harmonyTest"
   // xdai
   | "xdai"
-  | "sokol";
+  | "sokol"
+  // aurora
+  | "aurora"
+  | "auroraTestnet";
 
 export type ChainConfig = {
   [Network in Chain]: EtherscanChainConfig;

@@ -1,4 +1,7 @@
+import Common from "@ethereumjs/common";
+import { TransactionFactory } from "@ethereumjs/tx";
 import { assert } from "chai";
+import { Client } from "undici";
 
 import { workaroundWindowsCiFailures } from "../../../../../../utils/workaround-windows-ci-failures";
 import {
@@ -6,8 +9,14 @@ import {
   assertInvalidInputError,
   assertReceiptMatchesGethOne,
 } from "../../../../helpers/assertions";
+import { EXAMPLE_REVERT_CONTRACT } from "../../../../helpers/contracts";
 import { setCWD } from "../../../../helpers/cwd";
-import { PROVIDERS } from "../../../../helpers/providers";
+import {
+  PROVIDERS,
+  DEFAULT_ACCOUNTS,
+  DEFAULT_ACCOUNTS_ADDRESSES,
+} from "../../../../helpers/providers";
+import { deployContract } from "../../../../helpers/transactions";
 import { RpcTransactionOutput } from "../../../../../../../src/internal/hardhat-network/provider/output";
 
 describe("Eth module", function () {
@@ -166,6 +175,171 @@ describe("Eth module", function () {
 
               assert.equal(tx.blockNumber, null);
             });
+          });
+        });
+
+        describe("http JSON-RPC response", function () {
+          useProvider();
+
+          let client: Client;
+          let common: Common;
+
+          // send the transaction using an http client, otherwise the wrapped
+          // provider will intercept the response and throw an error
+          //
+          // this method uses the first default account, and it assumes that
+          // that account sent a tx before, so it uses a nonce of 1
+          async function sendRawTransaction({ to, data }: any) {
+            const tx = TransactionFactory.fromTxData(
+              {
+                to,
+                data,
+                nonce: 1,
+                gasLimit: 1_000_000,
+                gasPrice: 10_000_000_000,
+              },
+              { common }
+            ).sign(pk);
+
+            const rawTx = `0x${tx.serialize().toString("hex")}`;
+            return client
+              .request({
+                method: "POST",
+                path: "/",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  jsonrpc: "2.0",
+                  id: 1,
+                  method: "eth_sendRawTransaction",
+                  params: [rawTx],
+                }),
+              })
+              .then((x) => x.body.json());
+          }
+
+          beforeEach(async function () {
+            if (this.serverInfo === undefined || isFork) {
+              this.skip();
+            }
+
+            const url = `http://${this.serverInfo.address}:${this.serverInfo.port}`;
+            client = new Client(url, {
+              keepAliveTimeout: 10,
+              keepAliveMaxTimeout: 10,
+            });
+
+            // eslint-disable-next-line dot-notation,@typescript-eslint/dot-notation
+            await this.hardhatNetworkProvider["_init"]();
+            // eslint-disable-next-line dot-notation,@typescript-eslint/dot-notation
+            common = this.hardhatNetworkProvider["_common"]!;
+          });
+
+          const pk = Buffer.from(
+            DEFAULT_ACCOUNTS[0].privateKey.slice(2),
+            "hex"
+          );
+
+          it("Should return the hash of the transaction that reverts", async function () {
+            const contractAddress = await deployContract(
+              this.provider,
+              `0x${EXAMPLE_REVERT_CONTRACT.bytecode.object}`
+            );
+
+            const response = await sendRawTransaction({
+              to: contractAddress,
+              data: `${EXAMPLE_REVERT_CONTRACT.selectors.reverts}`,
+            });
+
+            const txHash = response.error?.data?.txHash;
+            assert.isDefined(txHash);
+
+            const receipt = await this.provider.send(
+              "eth_getTransactionReceipt",
+              [txHash]
+            );
+
+            assert.equal(receipt.from, DEFAULT_ACCOUNTS_ADDRESSES[0]);
+            assert.equal(receipt.to, contractAddress);
+            assert.equal(receipt.status, "0x0");
+          });
+
+          it("Should return the data of a transaction that reverts without a reason string", async function () {
+            const contractAddress = await deployContract(
+              this.provider,
+              `0x${EXAMPLE_REVERT_CONTRACT.bytecode.object}`
+            );
+
+            const response = await sendRawTransaction({
+              to: contractAddress,
+              data: `${EXAMPLE_REVERT_CONTRACT.selectors.reverts}`,
+            });
+
+            assert.isDefined(response.error?.data);
+            assert.equal(response.error.message, response.error.data.message);
+            assert.equal(response.error.data.data, "0x");
+          });
+
+          it("Should return the data of a transaction that reverts with a reason string", async function () {
+            const contractAddress = await deployContract(
+              this.provider,
+              `0x${EXAMPLE_REVERT_CONTRACT.bytecode.object}`
+            );
+
+            const response = await sendRawTransaction({
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              to: contractAddress,
+              data: `${EXAMPLE_REVERT_CONTRACT.selectors.revertsWithReasonString}`,
+            });
+
+            assert.isDefined(response.error?.data);
+            assert.equal(response.error.message, response.error.data.message);
+            assert.equal(
+              response.error.data.data,
+              // Error(string) encoded with value "a reason"
+              "0x08c379a0000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000086120726561736f6e000000000000000000000000000000000000000000000000"
+            );
+          });
+
+          it("Should return the data of a transaction that panics", async function () {
+            const contractAddress = await deployContract(
+              this.provider,
+              `0x${EXAMPLE_REVERT_CONTRACT.bytecode.object}`
+            );
+
+            const response = await sendRawTransaction({
+              to: contractAddress,
+              data: `${EXAMPLE_REVERT_CONTRACT.selectors.panics}`,
+            });
+
+            assert.isDefined(response.error?.data);
+            assert.equal(response.error.message, response.error.data.message);
+            assert.equal(
+              response.error.data.data,
+              // Panic(uint256) encoded with value 0x32 (out-of-bounds array access)
+              "0x4e487b710000000000000000000000000000000000000000000000000000000000000032"
+            );
+          });
+
+          it("Should return the data of a transaction that reverts with a custom error", async function () {
+            const contractAddress = await deployContract(
+              this.provider,
+              `0x${EXAMPLE_REVERT_CONTRACT.bytecode.object}`
+            );
+
+            const response = await sendRawTransaction({
+              to: contractAddress,
+              data: `${EXAMPLE_REVERT_CONTRACT.selectors.customError}`,
+            });
+
+            assert.isDefined(response.error?.data);
+            assert.equal(response.error.message, response.error.data.message);
+            assert.equal(
+              response.error.data.data,
+              // MyCustomError() encoded
+              "0x4e7254d6"
+            );
           });
         });
       });

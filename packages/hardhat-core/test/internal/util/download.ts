@@ -51,7 +51,7 @@ describe("Compiler List download with proxy", function () {
     it("Should call download with the right params", async function () {
       const compilersDir = this.tmpDir;
       const downloadPath = path.join(compilersDir, "downloadedCompilerProxy");
-      const expectedUrl = `https://solc-bin.ethereum.org/wasm/list.json`;
+      const expectedUrl = `http://solc-bin.ethereum.org/wasm/list.json`;
 
       // download the file
       await download(expectedUrl, downloadPath);
@@ -75,7 +75,7 @@ describe("Compiler List download with proxy", function () {
     it("Should call download with the right params", async function () {
       const compilersDir = this.tmpDir;
       const downloadPath = path.join(compilersDir, "downloadedCompilerProxy");
-      const expectedUrl = `https://solc-bin.ethereum.org/wasm/list.json`;
+      const expectedUrl = `http://solc-bin.ethereum.org/wasm/list.json`;
 
       // download the file
       await download(expectedUrl, downloadPath);

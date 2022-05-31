@@ -76,14 +76,18 @@ export class HardhatDocker {
     const imageEndpoint = `https://registry.hub.docker.com/v2/repositories/${repositoryPath}/tags/${image.tag}/`;
 
     try {
-      const { default: fetch } = await import("node-fetch");
-      const res = await fetch(imageEndpoint);
+      const { request } = await import("undici");
+      const res = await request(imageEndpoint, { method: "GET" });
 
-      // Consume the response stream and discard its result
-      // See: https://github.com/node-fetch/node-fetch/issues/83
-      const _discarded = await res.text();
+      // "The Fetch Standard allows users to skip consuming the response body
+      // by relying on garbage collection to release connection resources.
+      // Undici does not do the same. Therefore, it is important to always
+      // either consume or cancel the response body."
+      // https://undici.nodejs.org/#/?id=garbage-collection
+      // It's not clear how to "destroy", so we'll just consume:
+      const _discarded = await res.body.text();
 
-      return res.ok;
+      return res.statusCode >= 200 && res.statusCode <= 299;
     } catch (error) {
       throw new DockerHubConnectionError(error as Error);
     }
@@ -240,21 +244,22 @@ export class HardhatDocker {
     )}/manifests/${image.tag}`;
 
     try {
-      const { default: fetch } = await import("node-fetch");
-      const res = await fetch(endpoint, {
+      const { request } = await import("undici");
+      const res = await request(endpoint, {
+        method: "GET",
         headers: {
           Accept: "application/vnd.docker.distribution.manifest.v2+json",
           Authorization: `Bearer ${token}`,
         },
       });
 
-      if (!res.ok) {
+      if (!(res.statusCode >= 200 && res.statusCode <= 299)) {
         throw new Error(
-          `Docker Registry manifest request not successful ${await res.text()}`
+          `Docker Registry manifest request not successful ${await res.body.text()}`
         );
       }
 
-      const json = await res.json();
+      const json = (await res.body.json()) as { config: { digest: string } };
 
       return json.config.digest;
     } catch (error) {
@@ -268,16 +273,16 @@ export class HardhatDocker {
     )}:pull&service=registry.docker.io`;
 
     try {
-      const { default: fetch } = await import("node-fetch");
-      const res = await fetch(endpoint);
+      const { request } = await import("undici");
+      const res = await request(endpoint, { method: "GET" });
 
-      if (!res.ok) {
+      if (!(res.statusCode >= 200 && res.statusCode <= 299)) {
         throw new Error(
-          `Docker Registry auth request not successful ${await res.text()}`
+          `Docker Registry auth request not successful ${await res.body.text()}`
         );
       }
 
-      const json = await res.json();
+      const json = (await res.body.json()) as { token: string };
 
       return json.token;
     } catch (error) {
