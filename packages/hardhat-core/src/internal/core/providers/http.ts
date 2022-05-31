@@ -1,5 +1,6 @@
+import type { Dispatcher, Pool as PoolT } from "undici";
+
 import { EventEmitter } from "events";
-import { Dispatcher, Pool } from "undici";
 
 import { EIP1193Provider, RequestArguments } from "../../../types";
 import {
@@ -44,6 +45,9 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
     client: Dispatcher | undefined = undefined
   ) {
     super();
+
+    const { Pool } = require("undici") as { Pool: typeof PoolT };
+
     const url = new URL(this._url);
     this._path = url.pathname;
     this._authHeader =
@@ -171,7 +175,7 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
             : this._timeout,
         headers: {
           "Content-Type": "application/json",
-          "User-Agent": `hardhat ${hardhatVersion}`,
+          "User-Agent": `hardhat ${hardhatVersion ?? "(unknown version)"}`,
           Authorization: this._authHeader,
           ...this._extraHeaders,
         },

@@ -1,5 +1,55 @@
 # hardhat
 
+## 2.9.7
+
+### Patch Changes
+
+- 73beb279b: Fixed `block.chainid` returning 0 in view functions
+
+## 2.9.6
+
+### Patch Changes
+
+- fde08e0c: Updates `node` task to terminate when the server closes.
+- 736e850a: Fixed an issue that was preventing compilation from working on Windows (#2712)
+
+## 2.9.5
+
+### Patch Changes
+
+- e42ef24d: Fixed a publish problem in 2.9.4
+- 81e28117: Make `eth_getStorageAt` spec-compliant. This means that the storage slot argument **must** have a length of 32 bytes (a hex-encoded string of length 66).
+
+## 2.9.4
+
+### Patch Changes
+
+- 1de87072: Fix passing options and depth when inspecting a lazyObject or lazyFunction
+- 7403ec1d: Stop publishing tsconfig.json files
+- b9f997cb: Upgraded ethereumjs dependencies (thanks @LogvinovLeon!).
+- 58aa161a: Expand the `data` object returned by the JSON-RPC response when a transaction or call reverts. Now it also includes the `message` and `data` fields. The `message` is the same message that is part of the response, and it's included to make things work better with ethers.js. The `data` field includes the return data of the transaction. These fields are included in the responses of the `eth_sendTransaction`, `eth_sendRawTransaction`, `eth_call` and `eth_estimateGas` methods when they revert.
+- 78876d64: Fix a bug preventing to run the solcjs compiler.
+- 1929e177: Fix a bug when formatting optional params in the help messages.
+- 4238a921: Fixed a problem with `hardhat_mine` when used with `solidity-coverage`.
+- 32cc90bf: Allow --version flag to be used when not in a Hardhat project directory
+- b5273ce1: - Fixed a potential OOM error during parallel compilation
+  - Added a `--concurrency` param to the compile task
+- 97eb5820: The `CustomError` class is now exported in `hardhat/common`
+
+## 2.9.3
+
+### Patch Changes
+
+- 74a12d7b: Fixed a bug preventing loggingEnabled from working properly and exposed userConfig field in HRE
+
+## 2.9.2
+
+### Patch Changes
+
+- 8fda4036: - Fix a bug that would override mocha grep options within the test task
+- dd0dc168: Fix a bug in Hardhat Network that prevented the forking functionality from working (#2528)
+- 6ff1cb03: Fixed bug (#2352) preventing the disabling of node task logging via hardhat.config.
+
 ## 2.9.1
 
 ### Patch Changes

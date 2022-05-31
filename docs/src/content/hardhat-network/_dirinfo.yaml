@@ -1,0 +1,9 @@
+section-type: group
+section-title: Hardhat Network
+order:
+  - href: /
+    title: What is it?
+  - /guides/mainnet-forking
+  - /explanation/mining-modes
+  - href: /reference
+    title: Reference

@@ -94,6 +94,12 @@ async function main() {
 
     showStackTraces = hardhatArguments.showStackTraces;
 
+    // --version is a special case
+    if (hardhatArguments.version) {
+      await printVersionMessage(packageJson);
+      return;
+    }
+
     if (hardhatArguments.config === undefined && !isCwdInsideProject()) {
       if (
         process.stdout.isTTY === true ||
@@ -118,12 +124,6 @@ async function main() {
       }
     }
 
-    // --version is a special case
-    if (hardhatArguments.version) {
-      await printVersionMessage(packageJson);
-      return;
-    }
-
     if (!isHardhatInstalledLocallyOrLinked()) {
       throw new HardhatError(ERRORS.GENERAL.NON_LOCAL_INSTALLATION);
     }
@@ -139,10 +139,13 @@ async function main() {
 
     const ctx = HardhatContext.createHardhatContext();
 
-    const config = loadConfigAndTasks(hardhatArguments, {
-      showEmptyConfigWarning,
-      showSolidityConfigWarnings,
-    });
+    const { resolvedConfig, userConfig } = loadConfigAndTasks(
+      hardhatArguments,
+      {
+        showEmptyConfigWarning,
+        showSolidityConfigWarnings,
+      }
+    );
 
     let telemetryConsent: boolean | undefined = hasConsentedTelemetry();
 
@@ -162,7 +165,7 @@ async function main() {
 
     const analytics = await Analytics.getInstance(telemetryConsent);
 
-    Reporter.setConfigPath(config.paths.configFile);
+    Reporter.setConfigPath(resolvedConfig.paths.configFile);
     if (telemetryConsent === true) {
       Reporter.setEnabled(true);
     }
@@ -200,11 +203,12 @@ async function main() {
     }
 
     const env = new Environment(
-      config,
+      resolvedConfig,
       hardhatArguments,
       taskDefinitions,
       envExtenders,
-      ctx.experimentalHardhatNetworkMessageTraceHooks
+      ctx.experimentalHardhatNetworkMessageTraceHooks,
+      userConfig
     );
 
     ctx.setHardhatRuntimeEnvironment(env);

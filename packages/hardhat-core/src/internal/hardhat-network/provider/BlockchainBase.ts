@@ -86,14 +86,16 @@ export abstract class BlockchainBase {
     count: BN,
     interval: BN,
     previousBlockStateRoot: Buffer,
-    previousBlockTotalDifficulty: BN
+    previousBlockTotalDifficulty: BN,
+    previousBlockBaseFeePerGas: BN | undefined
   ) {
     this._data.reserveBlocks(
       this.getLatestBlockNumber().addn(1),
       count,
       interval,
       previousBlockStateRoot,
-      previousBlockTotalDifficulty
+      previousBlockTotalDifficulty,
+      previousBlockBaseFeePerGas
     );
   }
 

@@ -26,6 +26,7 @@ import {
   rpcFloat,
   rpcHash,
   rpcQuantity,
+  rpcStorageSlot,
 } from "../../../core/jsonrpc/types/base-types";
 import {
   optionalRpcNewBlockTag,
@@ -365,6 +366,9 @@ export class EthModule {
     await this._runHardhatNetworkMessageTraceHooks(trace, true);
 
     if (error !== undefined && this._throwOnCallFailures) {
+      const callReturnData = trace?.returnData.toString("hex") ?? "";
+      (error as any).data = `0x${callReturnData}`;
+
       throw error;
     }
 
@@ -437,6 +441,9 @@ export class EthModule {
         consoleLogMessages,
         error
       );
+
+      const callReturnData = trace?.returnData.toString("hex") ?? "";
+      (error as any).data = `0x${callReturnData}`;
 
       throw error;
     }
@@ -688,7 +695,7 @@ export class EthModule {
     return validateParams(
       params,
       rpcAddress,
-      rpcQuantity,
+      rpcStorageSlot,
       optionalRpcNewBlockTag
     );
   }
@@ -979,8 +986,9 @@ export class EthModule {
         }
 
         if (error.message.includes("The chain ID does not match")) {
+          const chainId = this._common.chainIdBN().toString();
           throw new InvalidArgumentsError(
-            `Trying to send a raw transaction with an invalid chainId. The expected chainId is ${this._common.chainIdBN()}`,
+            `Trying to send a raw transaction with an invalid chainId. The expected chainId is ${chainId}`,
             error
           );
         }
@@ -1015,7 +1023,7 @@ export class EthModule {
       !transactionRequest.chainId.eq(expectedChainId)
     ) {
       throw new InvalidArgumentsError(
-        `Invalid chainId ${transactionRequest.chainId.toString()} provided, expected ${expectedChainId} instead.`
+        `Invalid chainId ${transactionRequest.chainId.toString()} provided, expected ${expectedChainId.toString()} instead.`
       );
     }
 
@@ -1512,12 +1520,13 @@ export class EthModule {
       result = [result];
     }
 
-    try {
-      await this._handleMineBlockResults(result, tx);
-    } catch (e) {
-      // This is a temporary solution until we improve our internal errors
-      // We need this to be able to return the transaction hash in the JSON-RPC
-      // response when the transaction fails
+    const trace = await this._handleMineBlockResults(result, tx);
+
+    if (trace.error !== undefined && this._throwOnTransactionFailures) {
+      const e = trace.error;
+
+      const returnData = trace.trace?.returnData.toString("hex") ?? "";
+      (e as any).data = `0x${returnData}`;
       (e as any).transactionHash = bufferToRpcData(tx.hash());
 
       throw e;
@@ -1526,10 +1535,13 @@ export class EthModule {
     return bufferToRpcData(tx.hash());
   }
 
+  /**
+   * Returns the trace of the sent tx
+   */
   private async _handleMineBlockResults(
     results: MineBlockResult[],
     sentTx: TypedTransaction
-  ) {
+  ): Promise<GatherTracesResult> {
     const singleTransactionMined =
       results.length === 1 && results[0].block.transactions.length === 1;
 
@@ -1540,10 +1552,7 @@ export class EthModule {
       const trace = results[0].traces[0];
       await this._logSingleTransaction(tx, block, txGasUsed, trace);
 
-      const txError = trace.error;
-      if (txError !== undefined && this._throwOnTransactionFailures) {
-        throw txError;
-      }
+      return trace;
     } else {
       // this happens when automine is enabled, a tx is sent, and there are
       // pending txs in the mempool
@@ -1575,10 +1584,7 @@ export class EthModule {
         );
       }
 
-      const sentTxError = sentTxTrace.error;
-      if (sentTxError !== undefined && this._throwOnTransactionFailures) {
-        throw sentTxError;
-      }
+      return sentTxTrace;
     }
   }
 

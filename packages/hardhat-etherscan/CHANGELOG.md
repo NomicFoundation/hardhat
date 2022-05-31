@@ -1,5 +1,11 @@
 # @nomiclabs/hardhat-etherscan
 
+## 3.0.4
+
+### Patch Changes
+
+- e3dcfde4a: Add support for Sepolia (Thanks @pcaversaccio!)
+
 ## 3.0.3
 
 ### Patch Changes
