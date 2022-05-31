@@ -268,7 +268,7 @@ export class ForkStateManager implements EIP2929StateManager {
     this._stateCheckpoints.pop();
 
     const storageMap = this._accessedStorage.pop();
-    if (storageMap) {
+    if (storageMap !== undefined) {
       (DefaultStateManager.prototype as any)._accessedStorageMerge.call(
         this,
         this._accessedStorage,
@@ -285,7 +285,7 @@ export class ForkStateManager implements EIP2929StateManager {
     await this.setStateRoot(toBuffer(checkpointedRoot));
 
     const lastItem = this._accessedStorage.pop();
-    if (lastItem) {
+    if (lastItem !== undefined) {
       this._accessedStorageReverted.push(lastItem);
     }
   }
