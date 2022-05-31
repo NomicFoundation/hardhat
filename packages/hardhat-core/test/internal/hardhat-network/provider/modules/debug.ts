@@ -71,6 +71,10 @@ describe("Debug module", function () {
           const impersonatedAddress =
             "0xC014BA5EC014ba5ec014Ba5EC014ba5Ec014bA5E";
 
+          await this.provider.send("hardhat_setNextBlockBaseFeePerGas", [
+            "0x0",
+          ]);
+
           await this.provider.send("eth_sendTransaction", [
             {
               from: DEFAULT_ACCOUNTS_ADDRESSES[0],

@@ -223,16 +223,6 @@ export class VMDebugTracer {
           ...structLog.storage,
         };
 
-        // sometimes the memSize has the correct value
-        // for the memory length, in those cases we increase
-        // the memory to reflect this
-        if (structLog.memSize > structLog.memory.length) {
-          const wordsToAdd = structLog.memSize - structLog.memory.length;
-          for (let k = 0; k < wordsToAdd; k++) {
-            structLog.memory.push(EMPTY_MEMORY_WORD);
-          }
-        }
-
         if (i === 0) {
           continue;
         }
@@ -411,7 +401,7 @@ export class VMDebugTracer {
       gasCost = constantGas + dynamicGas;
     } else if (step.opcode.name === "CALLCODE") {
       // finding an existing tx that uses CALLCODE or compiling a contract
-      // so that it uses tihs opcode is hard,
+      // so that it uses this opcode is hard,
       // so we just throw
       throw new InvalidInputError(
         "Transactions that use CALLCODE are not supported by Hardhat's debug_traceTransaction"

@@ -20,10 +20,6 @@ describe("time#advanceBlock", function () {
     assert.equal(initialHeight + 3, endHeight);
   });
 
-  it("should throw if given zero", async function () {
-    await assert.isRejected(hh.time.advanceBlock(0));
-  });
-
   it("should throw if given a negative number", async function () {
     await assert.isRejected(hh.time.advanceBlock(-1));
   });

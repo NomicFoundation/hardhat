@@ -4,6 +4,7 @@ type Chain =
   | "rinkeby"
   | "goerli"
   | "kovan"
+  | "sepolia"
   // binance smart chain
   | "bsc"
   | "bscTestnet"

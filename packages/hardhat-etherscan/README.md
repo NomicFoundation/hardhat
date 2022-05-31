@@ -141,6 +141,7 @@ module.exports = {
         rinkeby: "YOUR_ETHERSCAN_API_KEY",
         goerli: "YOUR_ETHERSCAN_API_KEY",
         kovan: "YOUR_ETHERSCAN_API_KEY",
+        sepolia: "YOUR_ETHERSCAN_API_KEY",
         // binance smart chain
         bsc: "YOUR_BSCSCAN_API_KEY",
         bscTestnet: "YOUR_BSCSCAN_API_KEY",

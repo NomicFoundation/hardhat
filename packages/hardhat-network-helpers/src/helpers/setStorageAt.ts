@@ -3,6 +3,7 @@ import {
   getHardhatProvider,
   assertValidAddress,
   toRpcQuantity,
+  toPaddedRpcQuantity,
 } from "../utils";
 
 /**
@@ -10,18 +11,18 @@ import {
  *
  * @param address The address where the code should be stored
  * @param index The index in storage
- * @param code The code to store
+ * @param value The value to store
  */
 export async function setStorageAt(
   address: string,
   index: NumberLike,
-  code: NumberLike
+  value: NumberLike
 ): Promise<void> {
   const provider = await getHardhatProvider();
 
   assertValidAddress(address);
   const indexParam = toRpcQuantity(index);
-  const codeParam = `0x${toRpcQuantity(code).slice(2).padStart(64, "0")}`;
+  const codeParam = toPaddedRpcQuantity(value, 32);
 
   await provider.request({
     method: "hardhat_setStorageAt",
