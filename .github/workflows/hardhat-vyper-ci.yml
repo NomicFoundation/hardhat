@@ -2,7 +2,7 @@ name: hardhat-vyper CI
 
 on:
   push:
-    branches: [$default-branch, pre-release-testing-branch]
+    branches: [$default-branch]
     paths:
       - "packages/hardhat-vyper/**"
       - "packages/hardhat-core/**"
