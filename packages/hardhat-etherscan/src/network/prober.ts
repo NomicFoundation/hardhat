@@ -29,7 +29,7 @@ export async function getEtherscanEndpoints(
 
   const chainID = parseInt(await provider.send("eth_chainId"), 16);
 
-  const networkInCustomChains = customChains
+  const networkInCustomChains = [...customChains]
     .reverse() // the last entry wins
     .find((customChain) => customChain.chainId === chainID);
 
