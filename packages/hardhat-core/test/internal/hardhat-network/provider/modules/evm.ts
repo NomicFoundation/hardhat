@@ -1383,6 +1383,7 @@ describe("Evm module", function () {
           });
 
           afterEach(async function () {
+            await this.provider.send("evm_setIntervalMining", [0]);
             sinonClock.restore();
           });
 
@@ -1405,7 +1406,7 @@ describe("Evm module", function () {
               rpcQuantityToNumber(firstBlock.timestamp) + 100
             );
 
-            sinonClock.tick(20 * 1000);
+            await sinonClock.tickAsync(20 * 1000);
 
             await this.provider.send("evm_revert", [snapshotId]);
             const afterRevertBlock = await mineEmptyBlock();
@@ -1419,10 +1420,6 @@ describe("Evm module", function () {
           });
 
           describe("when interval mining is enabled", () => {
-            afterEach(async function () {
-              await this.provider.send("evm_setIntervalMining", [0]);
-            });
-
             it("should handle race condition", async function () {
               const interval = 5000;
               const initialBlock = await getBlockNumber();
