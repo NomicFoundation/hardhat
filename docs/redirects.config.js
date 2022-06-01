@@ -46,29 +46,6 @@ const customRedirects = [
     permanent: false
   },
 
-  // Hardhat migration
-  { source: "/buidler-evm", destination: "/hardhat-network", permanent: false },
-  {
-    source: "/advanced/buidler-runtime-environment",
-    destination: "/advanced/hardhat-runtime-environment",
-    permanent: false
-  },
-  {
-    source: "/docs/guides/buidler-console",
-    destination: "/guides/hardhat-console",
-    permanent: false
-  },
-  {
-    source: "/tutorial/creating-a-new-buidler-project",
-    destination: "/tutorial/creating-a-new-hardhat-project",
-    permanent: false
-  },
-  {
-    source: "/tutorial/debugging-with-buidler-evm",
-    destination: "/tutorial/debugging-with-hardhat-network",
-    permanent: false
-  },
-
   // Other redirects
   {
     source: "/guides/create-plugin",
