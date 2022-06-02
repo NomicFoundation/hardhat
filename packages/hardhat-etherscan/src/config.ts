@@ -25,9 +25,13 @@ const verifyAllowedChains = (etherscanConfig: EtherscanConfig) => {
   if (invalidNetwork !== undefined) {
     throw new NomicLabsHardhatPluginError(
       pluginName,
-      `Etherscan API token "${invalidNetwork}" is for an unsupported network
+      `You set an Etherscan API token for the network "${invalidNetwork}" but the plugin doesn't support it, or it's spelled incorrectly.
 
-Learn more at https://hardhat.org/plugins/nomiclabs-hardhat-etherscan.html#multiple-api-keys-and-alternative-block-explorers`
+To see the list of supported networks, run this command:
+
+  npx hardhat verify --list-networks
+
+Learn more at https://hardhat.org/verify-multiple-networks`
     );
   }
 };
