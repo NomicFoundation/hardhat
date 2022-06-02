@@ -83,7 +83,7 @@ describe("Config extension", () => {
       } as any;
 
       etherscanConfigExtender(resolvedConfig, invalidEtherscanConfig);
-    }, 'Etherscan API token "newhotness" is for an unsupported network');
+    }, "You set an Etherscan API token for the network \"newhotness\" but the plugin doesn't support it, or it's spelled incorrectly.");
   });
 
   it("should error on providing multiple unsupported api keys", () => {
@@ -100,6 +100,6 @@ describe("Config extension", () => {
       } as any;
 
       etherscanConfigExtender(resolvedConfig, invalidEtherscanConfig);
-    }, 'Etherscan API token "newhotness" is for an unsupported network');
+    }, "You set an Etherscan API token for the network \"newhotness\" but the plugin doesn't support it, or it's spelled incorrectly.");
   });
 });
