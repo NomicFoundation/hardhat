@@ -3,7 +3,7 @@ import { styled } from "linaria/react";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import { MenuProps, MenuItemType, SocialsItem } from "./types";
-import { media, tm, tmDark, tmHCDark, tmSelectors } from "../../themes";
+import { media, tm, tmDark, tmSelectors } from "../../themes";
 import Searching from "../Searching";
 
 const MenuContainer = styled.section<{ isDocumentation: boolean }>`
@@ -70,25 +70,18 @@ const MenuButton = styled.a`
       width: 100%;
     }
   }
-  :not(.landing &) {
-    ${tmSelectors.hcDark} {
-      color: ${tmHCDark(({ colors }) => colors.neutral900)};
-      &:after {
-        background-color: ${tmHCDark(({ colors }) => colors.neutral900)};
-      }
+
+  ${tmSelectors.dark} {
+    color: ${tmDark(({ colors }) => colors.neutral900)};
+    &:after {
+      background-color: ${tmDark(({ colors }) => colors.neutral900)};
     }
-    ${tmSelectors.dark} {
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
       color: ${tmDark(({ colors }) => colors.neutral900)};
       &:after {
         background-color: ${tmDark(({ colors }) => colors.neutral900)};
-      }
-    }
-    ${media.mqDark} {
-      ${tmSelectors.auto} {
-        color: ${tmDark(({ colors }) => colors.neutral900)};
-        &:after {
-          background-color: ${tmDark(({ colors }) => colors.neutral900)};
-        }
       }
     }
   }
@@ -107,19 +100,14 @@ const MenuSocialsList = styled.ul`
 const SocialLink = styled.a`
   display: flex;
   align-items: center;
-  :not(.landing &) {
-    & svg {
-      fill: ${tm(({ colors }) => colors.neutral900)};
-      ${tmSelectors.hcDark} {
-        fill: ${tmHCDark(({ colors }) => colors.neutral900)};
-      }
-      ${tmSelectors.dark} {
+  & svg {
+    fill: ${tm(({ colors }) => colors.neutral900)};
+    ${tmSelectors.dark} {
+      fill: ${tmDark(({ colors }) => colors.neutral900)};
+    }
+    ${media.mqDark} {
+      ${tmSelectors.auto} {
         fill: ${tmDark(({ colors }) => colors.neutral900)};
-      }
-      ${media.mqDark} {
-        ${tmSelectors.auto} {
-          fill: ${tmDark(({ colors }) => colors.neutral900)};
-        }
       }
     }
   }
@@ -184,17 +172,13 @@ const MenuItemDropdown = styled.div`
     height: 16px;
     background-color: inherit;
   }
-  :not(.landing &) {
-    ${tmSelectors.hcDark} {
-      background-color: ${tmHCDark(({ colors }) => colors.neutral0)};
-    }
-    ${tmSelectors.dark} {
+
+  ${tmSelectors.dark} {
+    background-color: ${tmDark(({ colors }) => colors.neutral0)};
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
       background-color: ${tmDark(({ colors }) => colors.neutral0)};
-    }
-    ${media.mqDark} {
-      ${tmSelectors.auto} {
-        background-color: ${tmDark(({ colors }) => colors.neutral0)};
-      }
     }
   }
 `;
@@ -208,31 +192,22 @@ const DropdownItem = styled.a`
   .icon.dark {
     display: none;
   }
-  :not(.landing &) {
-    ${tmSelectors.hcDark} {
+
+  ${tmSelectors.dark} {
+    .light {
+      display: none;
+    }
+    .dark {
+      display: inline;
+    }
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
       .light {
         display: none;
       }
       .dark {
         display: inline;
-      }
-    }
-    ${tmSelectors.dark} {
-      .light {
-        display: none;
-      }
-      .dark {
-        display: inline;
-      }
-    }
-    ${media.mqDark} {
-      ${tmSelectors.auto} {
-        .light {
-          display: none;
-        }
-        .dark {
-          display: inline;
-        }
       }
     }
   }
@@ -257,25 +232,18 @@ const ButtonNameContainer = styled.div`
   ${DropdownItem}:hover > &:after {
     width: 100%;
   }
-  :not(.landing &) {
-    ${tmSelectors.hcDark} {
-      color: ${tmHCDark(({ colors }) => colors.neutral900)};
-      &:after {
-        background-color: ${tmHCDark(({ colors }) => colors.neutral900)};
-      }
+
+  ${tmSelectors.dark} {
+    color: ${tmDark(({ colors }) => colors.neutral900)};
+    &:after {
+      background-color: ${tmDark(({ colors }) => colors.neutral900)};
     }
-    ${tmSelectors.dark} {
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
       color: ${tmDark(({ colors }) => colors.neutral900)};
       &:after {
         background-color: ${tmDark(({ colors }) => colors.neutral900)};
-      }
-    }
-    ${media.mqDark} {
-      ${tmSelectors.auto} {
-        color: ${tmDark(({ colors }) => colors.neutral900)};
-        &:after {
-          background-color: ${tmDark(({ colors }) => colors.neutral900)};
-        }
       }
     }
   }

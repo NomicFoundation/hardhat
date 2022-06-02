@@ -4,7 +4,7 @@ import { styled } from "linaria/react";
 import { CTAType } from "./types";
 import CTA from "./CTA";
 import useWindowSize from "../../hooks/useWindowSize";
-import { breakpoints, media, tm } from "../../themes";
+import { breakpoints, media, tm, tmDark, tmSelectors } from "../../themes";
 
 interface ArticleType {
   title: string;
@@ -128,6 +128,14 @@ const Title = styled.h3`
     line-height: 45px;
     letter-spacing: 0.5px;
   }
+  ${tmSelectors.dark} {
+    color: ${tmDark(({ colors }) => colors.neutral900)};
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      color: ${tmDark(({ colors }) => colors.neutral900)};
+    }
+  }
 `;
 
 const Text = styled.p`
@@ -141,6 +149,21 @@ const Text = styled.p`
     line-height: 28px;
     letter-spacing: 0;
   }
+  ${tmSelectors.dark} {
+    color: ${tmDark(({ colors }) => colors.neutral600)};
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      color: ${tmDark(({ colors }) => colors.neutral600)};
+    }
+  }
+`;
+
+const CTAWrapper = styled.div`
+  margin-top: 8px;
+  ${media.md} {
+    margin-top: 40px;
+  }
 `;
 
 const Article = ({ title, text }: ArticleType) => {
@@ -151,13 +174,6 @@ const Article = ({ title, text }: ArticleType) => {
     </ArticleStyled>
   );
 };
-
-const CTAWrapper = styled.div`
-  margin-top: 8px;
-  ${media.md} {
-    margin-top: 40px;
-  }
-`;
 
 const FeatureCard = ({ content, isReversed = false }: Props) => {
   const { mobileImg, desktopImg, cta, articleOne, articleTwo } = content;

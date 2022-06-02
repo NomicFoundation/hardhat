@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { styled } from "linaria/react";
-import { media, tm, tmDark, tmHCDark, tmSelectors } from "../themes";
+import { media, tm, tmDark, tmSelectors } from "../themes";
 import ExternalLinkIcon from "../assets/icons/external-link-icon";
 import FooterArrow from "../assets/icons/footer-arrow";
 import { FooterNavigation } from "./types";
@@ -39,11 +39,7 @@ const PageEdit = styled.div`
   border-bottom: 1px solid ${tm(({ colors }) => colors.neutral400)};
   color: ${tm(({ colors }) => colors.editPageColor)};
   stroke: ${tm(({ colors }) => colors.editPageColor)};
-  ${tmSelectors.hcDark} {
-    stroke: ${tmHCDark(({ colors }) => colors.editPageColor)};
-    color: ${tmHCDark(({ colors }) => colors.editPageColor)};
-    border-color: ${tmHCDark(({ colors }) => colors.neutral400)};
-  }
+
   ${tmSelectors.dark} {
     stroke: ${tmDark(({ colors }) => colors.editPageColor)};
     color: ${tmDark(({ colors }) => colors.editPageColor)};
@@ -79,9 +75,6 @@ const PageNavigationLinkWrapper = styled.div`
   }
   font-weight: 700;
   color: ${tm(({ colors }) => colors.accent700)};
-  ${tmSelectors.hcDark} {
-    color: ${tmHCDark(({ colors }) => colors.accent700)};
-  }
   ${tmSelectors.dark} {
     color: ${tmDark(({ colors }) => colors.accent700)};
   }

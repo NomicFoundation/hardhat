@@ -1,6 +1,6 @@
 import React from "react";
 import { styled } from "linaria/react";
-import { media, tm, tmDark, tmHCDark, tmSelectors } from "../../themes";
+import { media, tm, tmDark, tmSelectors } from "../../themes";
 
 interface Props {
   children: string;
@@ -12,10 +12,6 @@ const StyledHorizontalRule = styled.ul`
 
   ${tmSelectors.dark} {
     border-top: 1px solid ${tmDark(({ colors }) => colors.neutral400)};
-  }
-
-  ${tmSelectors.hcDark} {
-    border-top: 1px solid ${tmHCDark(({ colors }) => colors.neutral400)};
   }
 
   ${media.mqDark} {

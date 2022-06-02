@@ -5,14 +5,7 @@ import { useRouter } from "next/router";
 import SEO from "./SEO";
 import DocsNavigation from "./DocsNavigation";
 import Banner, { DefaultBanner } from "./ui/Banner";
-import {
-  tm,
-  tmSelectors,
-  tmHCDark,
-  tmDark,
-  media,
-  ThemeProvider,
-} from "../themes";
+import { tm, tmSelectors, tmDark, media, ThemeProvider } from "../themes";
 import { DefaultBannerProps } from "./ui/types";
 import { IDocumentationSidebarStructure, ISeo } from "./types";
 import { bannerContent, menuItemsList, socialsItems } from "../config";
@@ -39,9 +32,7 @@ const Container = styled.div`
     width: 100%;
     position: relative;
     transition: background-color ease-in-out 0.25s;
-    ${tmSelectors.hcDark} {
-      background-color: ${tmHCDark(({ colors }) => colors.neutral0)};
-    }
+
     ${tmSelectors.dark} {
       background-color: ${tmDark(({ colors }) => colors.neutral0)};
     }
@@ -86,10 +77,6 @@ const Content = styled.section`
   }
 
   color: ${tm(({ colors }) => colors.neutral900)};
-
-  ${tmSelectors.hcDark} {
-    color: ${tmHCDark(({ colors }) => colors.neutral900)};
-  }
 
   ${tmSelectors.dark} {
     color: ${tmDark(({ colors }) => colors.neutral900)};

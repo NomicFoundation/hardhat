@@ -10,7 +10,7 @@ import sheHead from "../assets/animation/desktop/she-head.svg";
 import heEyesOpen from "../assets/animation/desktop/he-eyes_open.svg";
 import sheEyesOpen from "../assets/animation/desktop/she-eyes_open.svg";
 import shadow from "../assets/animation/desktop/shadow.svg";
-import { media } from "../themes";
+import { media, tmSelectors } from "../themes";
 
 const AnimationContainer = styled.section`
   display: none;
@@ -43,10 +43,26 @@ const AnimationContainer = styled.section`
     z-index: 0;
     top: -100px;
     left: 50px;
+    ${tmSelectors.dark} {
+      filter: invert(0.5);
+    }
+    ${media.mqDark} {
+      ${tmSelectors.auto} {
+        filter: invert(0.5);
+      }
+    }
   }
 
   & .back-reflect {
     z-index: 0;
+    ${tmSelectors.dark} {
+      filter: brightness(0.1);
+    }
+    ${media.mqDark} {
+      ${tmSelectors.auto} {
+        filter: brightness(0.1);
+      }
+    }
   }
 
   & .mascots-ethereum-logo {
@@ -79,6 +95,15 @@ const AnimationContainer = styled.section`
     bottom: 30px;
     left: 220px;
     animation: shadowSpread 8s linear infinite;
+    z-index: 0;
+    ${tmSelectors.dark} {
+      filter: brightness(0.15);
+    }
+    ${media.mqDark} {
+      ${tmSelectors.auto} {
+        filter: brightness(0.15);
+      }
+    }
   }
   @keyframes bounce {
     0% {

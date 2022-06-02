@@ -2,7 +2,7 @@ import React, { FC } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { styled } from "linaria/react";
-import { media, tm, tmDark, tmHCDark, tmSelectors } from "../themes";
+import { media, tm, tmDark, tmSelectors } from "../themes";
 import Sidebar from "./Sidebar";
 import { menuItemsList, socialsItems as defaultSocialItems } from "../config";
 import ExternalLinkIcon from "../assets/icons/external-link-icon";
@@ -28,10 +28,6 @@ const MobileNavigationContainer = styled.ul`
   padding: 16px 0;
   color: ${tm(({ colors }) => colors.neutral800)};
   border-bottom: 1px solid ${tm(({ colors }) => colors.neutral400)};
-  ${tmSelectors.hcDark} {
-    border-bottom: 1px solid ${tmHCDark(({ colors }) => colors.neutral400)};
-    color: ${tmHCDark(({ colors }) => colors.neutral800)};
-  }
   ${tmSelectors.dark} {
     border-bottom: 1px solid ${tmDark(({ colors }) => colors.neutral400)};
     color: ${tmDark(({ colors }) => colors.neutral800)};
@@ -52,9 +48,7 @@ const MenuItem = styled.li`
   text-transform: capitalize;
   &:hover {
     color: ${tm(({ colors }) => colors.accent700)};
-    ${tmSelectors.hcDark} {
-      color: ${tmHCDark(({ colors }) => colors.accent700)};
-    }
+
     ${tmSelectors.dark} {
       color: ${tmDark(({ colors }) => colors.accent700)};
     }
@@ -75,9 +69,7 @@ const MenuItem = styled.li`
       width: 0;
       height: 2px;
       background-color: ${tm(({ colors }) => colors.accent700)};
-      ${tmSelectors.hcDark} {
-        background-color: ${tmHCDark(({ colors }) => colors.accent700)};
-      }
+
       ${tmSelectors.dark} {
         background-color: ${tmDark(({ colors }) => colors.accent700)};
       }
@@ -91,9 +83,7 @@ const MenuItem = styled.li`
   &[data-current="true"] {
     & > a {
       color: ${tm(({ colors }) => colors.accent700)};
-      ${tmSelectors.hcDark} {
-        color: ${tmHCDark(({ colors }) => colors.accent700)};
-      }
+
       ${tmSelectors.dark} {
         color: ${tmDark(({ colors }) => colors.accent700)};
       }
@@ -110,9 +100,7 @@ const MenuItem = styled.li`
   & > svg {
     margin-left: 4px;
     stroke: ${tmDark(({ colors }) => colors.neutral800)};
-    ${tmSelectors.hcDark} {
-      stroke: ${tmHCDark(({ colors }) => colors.neutral800)};
-    }
+
     ${tmSelectors.dark} {
       stroke: ${tmDark(({ colors }) => colors.neutral800)};
     }

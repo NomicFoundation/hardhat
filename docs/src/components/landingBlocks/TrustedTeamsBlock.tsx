@@ -4,7 +4,7 @@ import Image from "next/image";
 
 import TrustedTeamsLogos from "../../assets/trustedTeamsLogos/logos";
 
-import { media, tm } from "../../themes";
+import { media, tm, tmDark, tmSelectors } from "../../themes";
 import Section from "../Section";
 
 interface Props {
@@ -17,6 +17,9 @@ const Container = styled.section`
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  ${media.md} {
+    margin-top: 40px;
+  }
 `;
 
 const Title = styled.h2`
@@ -30,6 +33,14 @@ const Title = styled.h2`
   font-family: ChivoBold, sans-serif;
   font-weight: normal;
   color: ${tm(({ colors }) => colors.neutral900)};
+  ${tmSelectors.dark} {
+    color: ${tmDark(({ colors }) => colors.neutral900)};
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      color: ${tmDark(({ colors }) => colors.neutral900)};
+    }
+  }
 
   ${media.md} {
     margin-bottom: 88px;

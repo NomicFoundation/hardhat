@@ -2,7 +2,7 @@ import React from "react";
 import { styled } from "linaria/react";
 import Section from "../Section";
 import CTA from "../ui/CTA";
-import { media, tm } from "../../themes";
+import { media, tm, tmDark, tmSelectors } from "../../themes";
 import { CTAType } from "../ui/types";
 import DesktopAnimation from "../DesktopAnimation";
 import MobileAnimation from "../MobileAnimation";
@@ -26,6 +26,15 @@ const Container = styled.section`
     flex-direction: row;
     justify-content: space-between;
     margin-bottom: 280px;
+  }
+  ${tmSelectors.dark} {
+    color: ${tmDark(({ colors }) => colors.neutral900)};
+  }
+
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      color: ${tmDark(({ colors }) => colors.neutral900)};
+    }
   }
 `;
 

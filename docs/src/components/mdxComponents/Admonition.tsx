@@ -1,7 +1,7 @@
 import React from "react";
 import { styled } from "linaria/react";
 import { NextComponentType } from "next";
-import { tm, tmDark, tmHCDark, tmSelectors, media } from "../../themes";
+import { tm, tmDark, tmSelectors, media } from "../../themes";
 
 const StyledAdmonition = styled.div`
   display: flex;
@@ -42,23 +42,6 @@ const StyledAdmonition = styled.div`
       }
       border-color: ${tmDark(({ colors }) => colors.warningBorderColor)};
       background-color: ${tmDark(
-        ({ colors }) => colors.warningBackgroundColor
-      )};
-    }
-  }
-
-  ${tmSelectors.hcDark} {
-    background-color: ${tmHCDark(({ colors }) => colors.tipBackgroundColor)};
-    color: ${tmHCDark(({ colors }) => colors.neutral900)};
-    &.warning {
-      & .title {
-        color: ${tmHCDark(({ colors }) => colors.warningColorTitle)};
-      }
-      & p {
-        color: ${tmHCDark(({ colors }) => colors.warningColorText)};
-      }
-      border-color: ${tmHCDark(({ colors }) => colors.warningBorderColor)};
-      background-color: ${tmHCDark(
         ({ colors }) => colors.warningBackgroundColor
       )};
     }

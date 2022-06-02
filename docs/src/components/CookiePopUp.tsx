@@ -1,6 +1,6 @@
 import React from "react";
 import { styled } from "linaria/react";
-import { media, tm, tmDark, tmHCDark, tmSelectors } from "../themes";
+import { media, tm, tmDark, tmSelectors } from "../themes";
 import CTA from "./ui/CTA";
 
 const Container = styled.section`
@@ -28,11 +28,6 @@ const Container = styled.section`
   ${tmSelectors.dark} {
     background-color: ${tmDark(({ colors }) => colors.cookiePopUpBackground)};
   }
-
-  ${tmSelectors.hcDark} {
-    background-color: ${tmHCDark(({ colors }) => colors.cookiePopUpBackground)};
-  }
-
   ${media.mqDark} {
     ${tmSelectors.auto} {
       background-color: ${tmDark(({ colors }) => colors.cookiePopUpBackground)};
@@ -50,10 +45,6 @@ const Title = styled.h3`
   mix-blend-mode: normal;
   ${tmSelectors.dark} {
     color: ${tmDark(({ colors }) => colors.neutral900)};
-  }
-
-  ${tmSelectors.hcDark} {
-    color: ${tmHCDark(({ colors }) => colors.neutral900)};
   }
 
   ${media.mqDark} {
@@ -75,10 +66,6 @@ const Text = styled.p`
     color: ${tmDark(({ colors }) => colors.cookieTextColor)};
   }
 
-  ${tmSelectors.hcDark} {
-    color: ${tmHCDark(({ colors }) => colors.cookieTextColor)};
-  }
-
   ${media.mqDark} {
     ${tmSelectors.auto} {
       color: ${tmDark(({ colors }) => colors.cookieTextColor)};
@@ -93,10 +80,6 @@ const ButtonsContainer = styled.div`
   & .secondary {
     ${tmSelectors.dark} {
       color: ${tmDark(({ colors }) => colors.cookieTextColor)};
-    }
-
-    ${tmSelectors.hcDark} {
-      color: ${tmHCDark(({ colors }) => colors.cookieTextColor)};
     }
 
     ${media.mqDark} {
@@ -130,11 +113,6 @@ const ReadMoreLink = styled.a`
   ${tmSelectors.dark} {
     color: ${tmDark(({ colors }) => colors.neutral900)};
   }
-
-  ${tmSelectors.hcDark} {
-    color: ${tmHCDark(({ colors }) => colors.neutral900)};
-  }
-
   ${media.mqDark} {
     ${tmSelectors.auto} {
       color: ${tmDark(({ colors }) => colors.neutral900)};

@@ -6,14 +6,7 @@ import { MDXRemote, MDXRemoteSerializeResult } from "next-mdx-remote";
 import SEO from "./SEO";
 import DocsNavigation from "./DocsNavigation";
 import Banner, { DefaultBanner } from "./ui/Banner";
-import {
-  tm,
-  tmSelectors,
-  tmHCDark,
-  tmDark,
-  media,
-  ThemeProvider,
-} from "../themes";
+import { tm, tmSelectors, tmDark, media, ThemeProvider } from "../themes";
 import { DefaultBannerProps } from "./ui/types";
 import {
   FooterNavigation,
@@ -58,9 +51,7 @@ const Container = styled.div`
     width: 100%;
     position: relative;
     transition: background-color ease-in-out 0.25s;
-    ${tmSelectors.hcDark} {
-      background-color: ${tmHCDark(({ colors }) => colors.neutral0)};
-    }
+
     ${tmSelectors.dark} {
       background-color: ${tmDark(({ colors }) => colors.neutral0)};
     }
@@ -111,10 +102,6 @@ export const SidebarContainer = styled.aside<{ isSidebarOpen: boolean }>`
   }
   :not(&[data-no-border="true"]) {
     border-right: 1px solid ${tm(({ colors }) => colors.neutral400)};
-    ${tmSelectors.hcDark} {
-      border-right: 1px solid ${tmHCDark(({ colors }) => colors.border)};
-      background-color: ${tmHCDark(({ colors }) => colors.neutral0)};
-    }
     ${tmSelectors.dark} {
       border-right: 1px solid ${tmDark(({ colors }) => colors.border)};
       background-color: ${tmDark(({ colors }) => colors.neutral0)};
@@ -127,9 +114,6 @@ export const SidebarContainer = styled.aside<{ isSidebarOpen: boolean }>`
     }
   }
 
-  ${tmSelectors.hcDark} {
-    background-color: ${tmHCDark(({ colors }) => colors.neutral0)};
-  }
   ${tmSelectors.dark} {
     background-color: ${tmDark(({ colors }) => colors.neutral0)};
   }
@@ -184,10 +168,6 @@ const Content = styled.section`
   }
 
   color: ${tm(({ colors }) => colors.neutral900)};
-
-  ${tmSelectors.hcDark} {
-    color: ${tmHCDark(({ colors }) => colors.neutral900)};
-  }
 
   ${tmSelectors.dark} {
     color: ${tmDark(({ colors }) => colors.neutral900)};

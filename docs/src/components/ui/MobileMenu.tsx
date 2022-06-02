@@ -2,7 +2,7 @@ import React, { Fragment } from "react";
 import { styled } from "linaria/react";
 import Link from "next/link";
 import { MenuItemType, MenuProps, SocialsItem } from "./types";
-import { media, tm } from "../../themes";
+import { media, tm, tmDark, tmSelectors } from "../../themes";
 
 const MobileMenuContainer = styled.section<{ isOpen: boolean }>`
   position: fixed;
@@ -26,6 +26,14 @@ const MobileMenuContainer = styled.section<{ isOpen: boolean }>`
   }
   ${media.md} {
     display: none;
+  }
+  ${tmSelectors.dark} {
+    background-color: ${tmDark(({ colors }) => colors.neutral0)};
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      background-color: ${tmDark(({ colors }) => colors.neutral0)};
+    }
   }
 `;
 
@@ -65,6 +73,23 @@ const MobileMenuButton = styled.a`
   cursor: pointer;
   &:hover {
     color: ${tm(({ colors }) => colors.neutral600)};
+  }
+
+  ${tmSelectors.dark} {
+    background-color: ${tmDark(({ colors }) => colors.neutral0)};
+    color: ${tmDark(({ colors }) => colors.neutral900)};
+    &:hover {
+      color: ${tmDark(({ colors }) => colors.neutral600)};
+    }
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      background-color: ${tmDark(({ colors }) => colors.neutral0)};
+      color: ${tmDark(({ colors }) => colors.neutral900)};
+      &:hover {
+        color: ${tmDark(({ colors }) => colors.neutral600)};
+      }
+    }
   }
 `;
 
@@ -118,6 +143,26 @@ const SocialLink = styled.a`
   &:focus svg {
     cursor: pointer;
     opacity: 0.5;
+  }
+  ${tmSelectors.dark} {
+    & svg {
+      fill: ${tmDark(({ colors }) => colors.neutral900)};
+    }
+    &:hover svg {
+      cursor: pointer;
+      fill: ${tmDark(({ colors }) => colors.neutral600)};
+    }
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      & svg {
+        fill: ${tmDark(({ colors }) => colors.neutral900)};
+      }
+      &:hover svg {
+        cursor: pointer;
+        fill: ${tmDark(({ colors }) => colors.neutral600)};
+      }
+    }
   }
 `;
 

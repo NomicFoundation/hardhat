@@ -1,5 +1,5 @@
 import { styled } from "linaria/react";
-import { media, tm } from "../../themes";
+import { media, tm, tmDark, tmSelectors } from "../../themes";
 
 const Container = styled.div`
   margin-bottom: 162px;
@@ -12,9 +12,17 @@ const Container = styled.div`
     top: -32px;
     content: "";
     position: absolute;
-    background: ${tm(({ colors }) => colors.neutral0)};
+    background: ${tm(({ colors }) => colors.transparent)};
     border-top: 1px solid ${tm(({ colors }) => colors.toolsBlockBorder)};
-    border-right: 1px solid #d4d4d4;
+    border-right: 1px solid ${tm(({ colors }) => colors.toolsBlockBorder)};
+    ${tmSelectors.dark} {
+      border-color: ${tmDark(({ colors }) => colors.toolsBlockBorder)};
+    }
+    ${media.mqDark} {
+      ${tmSelectors.auto} {
+        border-color: ${tmDark(({ colors }) => colors.toolsBlockBorder)};
+      }
+    }
   }
 
   &:after {
@@ -27,6 +35,14 @@ const Container = styled.div`
     border-top: 1px solid ${tm(({ colors }) => colors.toolsBlockBorder)};
     border-right: 1px solid ${tm(({ colors }) => colors.toolsBlockBorder)};
     transform: rotate(180deg);
+    ${tmSelectors.dark} {
+      border-color: ${tmDark(({ colors }) => colors.toolsBlockBorder)};
+    }
+    ${media.mqDark} {
+      ${tmSelectors.auto} {
+        border-color: ${tmDark(({ colors }) => colors.toolsBlockBorder)};
+      }
+    }
   }
 
   ${media.md} {
@@ -40,6 +56,14 @@ const Container = styled.div`
       border-bottom: 1px solid ${tm(({ colors }) => colors.toolsBlockBorder)};
       border-right: none;
       top: 0;
+      ${tmSelectors.dark} {
+        border-color: ${tmDark(({ colors }) => colors.toolsBlockBorder)};
+      }
+      ${media.mqDark} {
+        ${tmSelectors.auto} {
+          border-color: ${tmDark(({ colors }) => colors.toolsBlockBorder)};
+        }
+      }
     }
 
     &:after {
@@ -50,6 +74,14 @@ const Container = styled.div`
       border-left: 1px solid ${tm(({ colors }) => colors.toolsBlockBorder)};
       border-bottom: 1px solid ${tm(({ colors }) => colors.toolsBlockBorder)};
       border-right: none;
+      ${tmSelectors.dark} {
+        border-color: ${tmDark(({ colors }) => colors.toolsBlockBorder)};
+      }
+      ${media.mqDark} {
+        ${tmSelectors.auto} {
+          border-color: ${tmDark(({ colors }) => colors.toolsBlockBorder)};
+        }
+      }
     }
   }
 `;
@@ -66,6 +98,14 @@ const ToolsIconsBlock = styled.div`
     left: calc(50% - 86px);
     bottom: 0;
     background: ${tm(({ colors }) => colors.toolsBlockBorder)};
+    ${tmSelectors.dark} {
+      border-color: ${tmDark(({ colors }) => colors.toolsBlockBorder)};
+    }
+    ${media.mqDark} {
+      ${tmSelectors.auto} {
+        border-color: ${tmDark(({ colors }) => colors.toolsBlockBorder)};
+      }
+    }
   }
 
   &:after {
@@ -79,6 +119,14 @@ const ToolsIconsBlock = styled.div`
     border-top: 1px solid ${tm(({ colors }) => colors.toolsBlockBorder)};
     border-left: 1px solid ${tm(({ colors }) => colors.toolsBlockBorder)};
     transform: translateY(0) rotate(225deg);
+    ${tmSelectors.dark} {
+      border-color: ${tmDark(({ colors }) => colors.toolsBlockBorder)};
+    }
+    ${media.mqDark} {
+      ${tmSelectors.auto} {
+        border-color: ${tmDark(({ colors }) => colors.toolsBlockBorder)};
+      }
+    }
   }
 
   ${media.md} {
@@ -92,6 +140,14 @@ const ToolsIconsBlock = styled.div`
       height: 232px;
       width: 1px;
       background: ${tm(({ colors }) => colors.toolsBlockBorder)};
+      ${tmSelectors.dark} {
+        border-color: ${tmDark(({ colors }) => colors.toolsBlockBorder)};
+      }
+      ${media.mqDark} {
+        ${tmSelectors.auto} {
+          border-color: ${tmDark(({ colors }) => colors.toolsBlockBorder)};
+        }
+      }
     }
 
     &:after {
@@ -112,6 +168,14 @@ const IconsBlockTitle = styled.h2`
   letter-spacing: 4px;
   text-transform: uppercase;
   color: ${tm(({ colors }) => colors.neutral900)};
+  ${tmSelectors.dark} {
+    color: ${tmDark(({ colors }) => colors.neutral900)};
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      color: ${tmDark(({ colors }) => colors.neutral900)};
+    }
+  }
 `;
 
 const ButtonsContainer = styled.div`
@@ -179,15 +243,31 @@ const ButtonCompanyName = styled.span`
   font-family: ChivoLight, sans-serif;
   color: ${tm(({ colors }) => colors.neutral600)};
   font-weight: 800;
+  ${tmSelectors.dark} {
+    color: ${tmDark(({ colors }) => colors.neutral600)};
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      color: ${tmDark(({ colors }) => colors.neutral600)};
+    }
+  }
 `;
 
 const ButtonToolName = styled.span`
   height: 24px;
   font-size: 15px;
   font-family: ChivoLight, sans-serif;
-  color: #0a0a0a;
+  color: ${tm(({ colors }) => colors.neutral900)};
   line-height: 24px;
   font-weight: 800;
+  ${tmSelectors.dark} {
+    color: ${tmDark(({ colors }) => colors.neutral900)};
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      color: ${tmDark(({ colors }) => colors.neutral900)};
+    }
+  }
 `;
 
 const DescriptionContainer = styled.div`
@@ -219,10 +299,26 @@ const DescriptionTitle = styled.h3`
   white-space: nowrap;
   line-height: 32px;
   color: ${tm(({ colors }) => colors.neutral600)};
+  ${tmSelectors.dark} {
+    color: ${tmDark(({ colors }) => colors.neutral600)};
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      color: ${tmDark(({ colors }) => colors.neutral600)};
+    }
+  }
 `;
 
 const DescriptionTitleTool = styled.span`
   color: ${tm(({ colors }) => colors.neutral900)};
+  ${tmSelectors.dark} {
+    color: ${tmDark(({ colors }) => colors.neutral900)};
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      color: ${tmDark(({ colors }) => colors.neutral900)};
+    }
+  }
 `;
 
 const DescriptionMottoContainer = styled.div`
@@ -236,6 +332,14 @@ const DescriptionMottoContainer = styled.div`
   font-weight: 600;
   color: ${tm(({ colors }) => colors.neutral600)};
   border-radius: 8px 0;
+  ${tmSelectors.dark} {
+    color: ${tmDark(({ colors }) => colors.neutral600)};
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      color: ${tmDark(({ colors }) => colors.neutral600)};
+    }
+  }
 
   &.runner {
     background-color: ${tm(({ colors }) => colors.mottoRunnerBackground)};
@@ -265,6 +369,14 @@ const DescriptionText = styled.p`
   line-height: 28px;
   font-family: ChivoLight, sans-serif;
   color: ${tm(({ colors }) => colors.neutral600)};
+  ${tmSelectors.dark} {
+    color: ${tmDark(({ colors }) => colors.neutral600)};
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      color: ${tmDark(({ colors }) => colors.neutral600)};
+    }
+  }
 `;
 
 const DescriptionLink = styled.a`
@@ -272,6 +384,14 @@ const DescriptionLink = styled.a`
   font-size: 15px;
   font-weight: 500;
   color: ${tm(({ colors }) => colors.neutral600)};
+  ${tmSelectors.dark} {
+    color: ${tmDark(({ colors }) => colors.neutral600)};
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      color: ${tmDark(({ colors }) => colors.neutral600)};
+    }
+  }
 
   &:after {
     content: "";
@@ -279,12 +399,20 @@ const DescriptionLink = styled.a`
     width: 7px;
     height: 7px;
     background: #fff;
-    border-top: 1px solid #6e6f70;
-    border-left: 1px solid #6e6f70;
+    border-top: 1px solid ${tm(({ colors }) => colors.neutral600)};
+    border-left: 1px solid ${tm(({ colors }) => colors.neutral600)};
     right: -18px;
     top: calc(50% - 3px);
     transform: rotate(135deg);
     transition: all 0.1s ease-in-out;
+    ${tmSelectors.dark} {
+      border-color: ${tmDark(({ colors }) => colors.neutral600)};
+    }
+    ${media.mqDark} {
+      ${tmSelectors.auto} {
+        border-color: ${tmDark(({ colors }) => colors.neutral600)};
+      }
+    }
   }
 `;
 

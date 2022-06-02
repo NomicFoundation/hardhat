@@ -9,7 +9,6 @@ import {
   ThemesEnum,
   tm,
   tmDark,
-  tmHCDark,
   tmSelectors,
 } from "../themes";
 import logo from "../assets/hardhat-logo.svg";
@@ -19,7 +18,6 @@ import DesktopMenu from "./ui/DesktopMenu";
 import { menuItemsList, socialsItems } from "../config";
 import ThemeSwitcher from "../assets/icons/theme-switcher.svg";
 import ThemeSwitcherDark from "../assets/icons/theme-switcher-dark.svg";
-import ThemeSwitcherHCDark from "../assets/icons/theme-switcher-hc-dark.svg";
 
 interface Props {
   isSidebarOpen: boolean;
@@ -43,10 +41,6 @@ const NavigationStyled = styled.nav`
     padding: 24px;
   }
 
-  ${tmSelectors.hcDark} {
-    background-color: ${tmHCDark(({ colors }) => colors.neutral200)};
-    border-bottom: 1px solid ${tmHCDark(({ colors }) => colors.border)};
-  }
   ${tmSelectors.dark} {
     background-color: ${tmDark(({ colors }) => colors.neutral200)};
     border-bottom: 1px solid ${tmDark(({ colors }) => colors.border)};
@@ -80,14 +74,6 @@ const LogoContainer = styled.a`
   cursor: pointer;
   & .dark-logo {
     display: none;
-  }
-  ${tmSelectors.hcDark} {
-    & .dark-logo {
-      display: inline;
-    }
-    & .light-logo {
-      display: none;
-    }
   }
   ${tmSelectors.dark} {
     & .dark-logo {
@@ -135,9 +121,6 @@ const ThemeButton = styled.button`
   &:hover {
     opacity: 0.8;
   }
-  ${tmSelectors.hcDark} {
-    color: ${tmHCDark(({ colors }) => colors.autoThemeButton)};
-  }
   ${tmSelectors.dark} {
     color: ${tmDark(({ colors }) => colors.autoThemeButton)};
   }
@@ -159,14 +142,6 @@ const ThemeIconWrapper = styled.div`
   }
   & > .light {
     display: inline;
-  }
-  ${tmSelectors.hcDark} {
-    & > .light {
-      display: none;
-    }
-    & > .hc-dark {
-      display: inline;
-    }
   }
   ${tmSelectors.dark} {
     & > .light {
@@ -227,14 +202,6 @@ const DocsNavigation: FC<Props> = ({ isSidebarOpen, onSidebarOpen }) => {
             </span>
             <span className="dark theme-switcher">
               <Image src={ThemeSwitcherDark} alt="theme-switcher" />
-            </span>
-            <span className="hc-dark theme-switcher">
-              <Image
-                src={ThemeSwitcherHCDark}
-                alt="theme-switcher"
-                width={32}
-                height={32}
-              />
             </span>
           </ThemeIconWrapper>
         </ThemeButton>

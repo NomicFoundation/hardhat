@@ -2,7 +2,7 @@ import React from "react";
 import { styled } from "linaria/react";
 import Image from "next/image";
 
-import { media, tm } from "../../themes";
+import { media, tm, tmDark, tmSelectors } from "../../themes";
 import CTA from "../ui/CTA";
 import Section from "../Section";
 import { CTAType } from "../ui/types";
@@ -31,6 +31,14 @@ const Container = styled.div`
     justify-content: center;
   }
   box-shadow: 0 6px 50px ${tm(({ colors }) => colors.cardBoxShadow)};
+  ${tmSelectors.dark} {
+    box-shadow: 0 6px 50px ${tmDark(({ colors }) => colors.cardBoxShadow)};
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      box-shadow: 0 6px 50px ${tmDark(({ colors }) => colors.cardBoxShadow)};
+    }
+  }
 `;
 
 const Wrapper = styled.div`
@@ -83,6 +91,14 @@ const Title = styled.h2`
     margin-top: 0px;
     text-align: left;
   }
+  ${tmSelectors.dark} {
+    color: ${tmDark(({ colors }) => colors.neutral900)};
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      color: ${tm(({ colors }) => colors.neutral900)};
+    }
+  }
 `;
 
 const Text = styled.p`
@@ -97,6 +113,14 @@ const Text = styled.p`
   ${media.md} {
     margin: 0 0 82px;
     text-align: left;
+  }
+  ${tmSelectors.dark} {
+    color: ${tmDark(({ colors }) => colors.neutral600)};
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      color: ${tm(({ colors }) => colors.neutral600)};
+    }
   }
 `;
 
@@ -115,6 +139,14 @@ const ButtonWrapper = styled.div`
 
   ${media.md} {
     align-self: start;
+  }
+  ${tmSelectors.dark} {
+    color: ${tmDark(({ colors }) => colors.neutral900)};
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      color: ${tm(({ colors }) => colors.neutral900)};
+    }
   }
 `;
 

@@ -6,7 +6,6 @@ export { styled } from "linaria/react";
 export enum ThemesEnum {
   LIGHT = "LIGHT",
   DARK = "DARK",
-  HC_DARK = "HC_DARK",
   AUTO = "AUTO",
 }
 export const breakpoints = {
@@ -30,7 +29,6 @@ export const media = {
 
 export const tmSelectors = {
   dark: "body.DARK &",
-  hcDark: "body.HC_DARK &",
   auto: "body.AUTO &",
 };
 
@@ -70,7 +68,7 @@ export const lightPalette = {
   complementary600: "#E9DEFA",
   cardBoxShadow: "#0A0A0A14",
   sliderButtonShadow: "rgba(0, 0, 0, 0.102)",
-  sliderButtonHoverShadow: "hsl(0deg 0% 83% / 50%)",
+  sliderButtonHoverShadow: "#d4d4d480",
   toolsBlockBorder: "#d4d4d4",
   mottoRunnerBackground: "#F8F4CB",
   mottoNetworkBackground: "#f6edd1",
@@ -101,69 +99,6 @@ export const lightPalette = {
 export const darkPalette = {
   name: "Dark",
   transparent: "transparent",
-  neutral0: "#20232A",
-  neutral100: "#F2F2F2",
-  neutral200: "#20232A",
-  neutral400: "#4B4D4D",
-  neutral500: "#4B4D4D",
-  neutral600: "#6E6F70",
-  neutral700: "#9B9FA8",
-  neutral800: "#D2D3D5",
-  neutral900: "#FFFFFF",
-  accent100: "#FBFCDB",
-  accent600: "#FFF04D",
-  accent700: "#CCB200",
-  accent800: "#FFF100",
-  accent900: "#EDCF00",
-  border: "#4B4D4D",
-  secondaryCTAHover: "#4F00A30D",
-  tableBorder: "#DFE2E5",
-  tipBorderColor: "#246648",
-  tipBackgroundColor: "#282C34",
-  warningColorTitle: "#9F5D30",
-  warningColorText: "#D2D3D5",
-  warningBorderColor: "#9F5D30",
-  warningBackgroundColor: "#282C34",
-  codeBackground: "#20232A",
-  codeColor: "#FFFFFF",
-  codeLineHighlight: "#000000a8",
-  preCodeColor: "#FFFFFF",
-  codeBlockBackground: "#16181D",
-  codeBlockBorder: "#6c6f74",
-  complementary600: "#E9DEFA",
-  cardBoxShadow: "#0A0A0A14",
-  sliderButtonShadow: "rgba(0, 0, 0, 0.102)",
-  sliderButtonHoverShadow: "hsl(0deg 0% 83% / 50%)",
-  toolsBlockBorder: "#d4d4d4",
-  mottoRunnerBackground: "#F8F4CB",
-  mottoNetworkBackground: "#f6edd1",
-  mottoIgnitionBackground: "#f3ecf3",
-  mottoVscodeBackground: "#f0e7fb",
-  getStartedTopBackground:
-    "linear-gradient(180deg, #ffffff 3.12%, rgba(255, 255, 255, 0) 67.71%)",
-  getStartedBottomBackground:
-    "linear-gradient(180deg, #ffffff 0%, rgba(255, 255, 255, 0) 55.73%)",
-  textureBackground:
-    "linear-gradient(254.24deg, #E9DEFA 0%, #FBFCDB 100%, #FBFCDB 100%);",
-  neutralBackground:
-    "linear-gradient(180deg, #FFFFFF 7.96%, rgba(255, 255, 255, 0.484844) 18.71%, rgba(255, 255, 255, 0) 28.83%, rgba(255, 255, 255, 0) 68.82%, #FFFFFF 91.43%);",
-  link: "#CCB200",
-  autoThemeButton: "#6C6F74",
-  searchShadow: "#B0B2B590",
-  editPageColor: "#D2D3D5",
-  tagBackground: "#16181D",
-  tabBackground: "#181A1F",
-  tabBackgroundHover: "#282C34",
-  tabBackgroundSelected: "#E5E6E7",
-  cookiePopUpBackground: "#20232A",
-  cookieTextColor: "#D2D3D5",
-  cookieShadow: "#0A0A0A14",
-  cookieDropShadow: "#0A0B0D69",
-} as Palette;
-
-export const hcDarkPalette = {
-  name: "Dark HC",
-  transparent: "transparent",
   neutral0: "#16181D",
   neutral100: "#F2F2F2",
   neutral200: "#16181D",
@@ -173,13 +108,14 @@ export const hcDarkPalette = {
   neutral700: "#9B9FA8",
   neutral800: "#B0B2B5",
   neutral900: "#FFFFFF",
-  accent100: "#FBFCDB",
+  accent100: "#24241f",
+  accent200: "#FFF787",
   accent600: "#FFF04D",
   accent700: "#CCB200",
   accent800: "#FFF100",
   accent900: "#EDCF00",
   border: "#4B4D4D",
-  secondaryCTAHover: "#4F00A30D",
+  secondaryCTAHover: "#b497d3fb",
   tableBorder: "#DFE2E5",
   tipBorderColor: "#246648",
   tipBackgroundColor: "#282C34",
@@ -193,19 +129,19 @@ export const hcDarkPalette = {
   preCodeColor: "#FFFFFF",
   codeBlockBackground: "#20232a",
   codeBlockBorder: "#6c6f74",
-  complementary600: "#E9DEFA",
-  cardBoxShadow: "#0A0A0A14",
+  complementary600: "#232125",
+  cardBoxShadow: "#FFFFFF14",
   sliderButtonShadow: "rgba(0, 0, 0, 0.102)",
-  sliderButtonHoverShadow: "hsl(0deg 0% 83% / 50%)",
+  sliderButtonHoverShadow: "#d4d4d480",
   toolsBlockBorder: "#d4d4d4",
   mottoRunnerBackground: "#F8F4CB",
   mottoNetworkBackground: "#f6edd1",
   mottoIgnitionBackground: "#f3ecf3",
   mottoVscodeBackground: "#f0e7fb",
   getStartedTopBackground:
-    "linear-gradient(180deg, #ffffff 3.12%, rgba(255, 255, 255, 0) 67.71%)",
+    "linear-gradient(180deg, #0A0A0A 3.12%, rgba(255, 255, 255, 0) 67.71%)",
   getStartedBottomBackground:
-    "linear-gradient(180deg, #ffffff 0%, rgba(255, 255, 255, 0) 55.73%)",
+    "linear-gradient(180deg, #0A0A0A 0%, rgba(255, 255, 255, 0) 55.73%)",
   textureBackground:
     "linear-gradient(254.24deg, #E9DEFA 0%, #FBFCDB 100%, #FBFCDB 100%);",
   neutralBackground:
@@ -232,9 +168,6 @@ export const appTheme = {
   },
   dark: {
     colors: darkPalette,
-  },
-  hcDark: {
-    colors: hcDarkPalette,
   },
   media,
   breakpoints,
@@ -302,6 +235,3 @@ export const tm = (cb: ThemeSelect<{ colors: Palette }>) => () =>
 
 export const tmDark = (cb: ThemeSelect<{ colors: Palette }>) => () =>
   ((fn) => fn(theming.useTheme().dark))(cb);
-
-export const tmHCDark = (cb: ThemeSelect<{ colors: Palette }>) => () =>
-  ((fn) => fn(theming.useTheme().hcDark))(cb);

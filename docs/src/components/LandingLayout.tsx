@@ -5,7 +5,7 @@ import SEO from "./SEO";
 import LandingNavigation from "./LandingNavigation";
 import LandingFooter from "./LandingFooter";
 import Banner, { DefaultBanner } from "./ui/Banner";
-import { ThemeProvider, tm } from "../themes";
+import { media, ThemeProvider, tm, tmDark, tmSelectors } from "../themes";
 import { DefaultBannerProps } from "./ui/types";
 import { bannerContent } from "../config";
 import GDPRNotice from "./GDPRNotice";
@@ -17,6 +17,7 @@ const Container = styled.div`
   justify-content: flex-start;
   align-items: center;
   -webkit-font-smoothing: antialiased;
+  background-color: ${tm(({ colors }) => colors.neutral0)};
   main {
     overflow-x: hidden;
     padding-top: 136px;
@@ -25,10 +26,17 @@ const Container = styled.div`
     flex-direction: column;
     justify-content: flex-start;
     align-items: center;
-    background-color: ${tm(({ colors }) => colors.neutral0)};
     width: 100%;
   }
   min-width: 320px;
+  ${tmSelectors.dark} {
+    background-color: ${tmDark(({ colors }) => colors.neutral0)};
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      background-color: ${tmDark(({ colors }) => colors.neutral0)};
+    }
+  }
 `;
 
 type Props = React.PropsWithChildren<{

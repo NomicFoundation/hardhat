@@ -1,7 +1,7 @@
 import React, { ReactElement } from "react";
 import { styled } from "linaria/react";
 import Link from "next/link";
-import { media, tm, tmDark, tmHCDark, tmSelectors } from "../../themes";
+import { media, tm, tmDark, tmSelectors } from "../../themes";
 import ExternalLinkIcon from "../../assets/icons/external-link-icon";
 
 interface Props {
@@ -36,14 +36,6 @@ const StyledMdLinkContainer = styled.span`
     stroke: ${tmDark(({ colors }) => colors.neutral800)};
   }
 
-  ${tmSelectors.hcDark} {
-    & svg {
-      stroke: ${tmHCDark(({ colors }) => colors.neutral800)};
-    }
-    & code {
-      color: ${tm(({ colors }) => colors.link)};
-    }
-  }
   ${tmSelectors.dark} {
     & svg {
       stroke: ${tmDark(({ colors }) => colors.neutral800)};

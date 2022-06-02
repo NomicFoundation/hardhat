@@ -1,6 +1,6 @@
 import React, { useContext, useMemo } from "react";
 import { styled } from "linaria/react";
-import { media, tm, tmDark, tmHCDark, tmSelectors } from "../../themes";
+import { media, tm, tmDark, tmSelectors } from "../../themes";
 import { generateTabsGroupType, GlobalTabsContext } from "../../global-tabs";
 
 interface ITabsGroup {
@@ -36,21 +36,6 @@ const StyledTabButton = styled.div<{ value: string }>`
     &[data-selected="true"] {
       background-color: ${tmDark(({ colors }) => colors.tabBackgroundSelected)};
       color: ${tmDark(({ colors }) => colors.neutral400)};
-    }
-  }
-
-  ${tmSelectors.hcDark} {
-    color: ${tmHCDark(({ colors }) => colors.neutral600)};
-    background-color: ${tmHCDark(({ colors }) => colors.tabBackground)};
-    &:hover {
-      background-color: ${tmHCDark(({ colors }) => colors.tabBackgroundHover)};
-      color: ${tmHCDark(({ colors }) => colors.neutral400)};
-    }
-    &[data-selected="true"] {
-      background-color: ${tmHCDark(
-        ({ colors }) => colors.tabBackgroundSelected
-      )};
-      color: ${tmHCDark(({ colors }) => colors.neutral400)};
     }
   }
 

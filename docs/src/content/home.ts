@@ -116,6 +116,7 @@ const trustedTeamsBlockContent = {
 const builtByBlockContent = {
   title: "Built by",
   imageUrl: "/images/nomic-foundation-logo.svg",
+  imageDarkUrl: "/images/nomic-foundation-logo-dark.svg",
 };
 
 const reviewsBlockContent = [
