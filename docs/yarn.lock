@@ -1707,6 +1707,11 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
+"@nomiclabs/eslint-plugin-hardhat-internal-rules@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@nomiclabs/eslint-plugin-hardhat-internal-rules/-/eslint-plugin-hardhat-internal-rules-1.0.0.tgz#9bf1146c3028f8c2e2b25e54522ec0eae32ed8de"
+  integrity sha512-eIAUr8iRs5lNKajUerC2Nbqmk2SBiH7xPco6c33jY6nsCZ+01Z/cRhG9BAla70G8+xeeGki2ni2iWUFy8iOZfw==
+
 "@npmcli/fs@^1.0.0":
   version "1.1.1"
   resolved "https://registry.npmjs.org/@npmcli/fs/-/fs-1.1.1.tgz"
