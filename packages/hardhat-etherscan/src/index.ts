@@ -65,10 +65,10 @@ import {
 import { getLongVersion } from "./solc/version";
 import "./type-extensions";
 import { EtherscanNetworkEntry, EtherscanURLs } from "./types";
-import { buildContractUrl } from "./util";
+import { buildContractUrl, printSupportedNetworks } from "./util";
 
 interface VerificationArgs {
-  address: string;
+  address?: string;
   // constructor args given as positional params
   constructorArgsParams: string[];
   // Filename of constructor arguments module
@@ -77,6 +77,9 @@ interface VerificationArgs {
   contract?: string;
   // Filename of libraries module
   libraries?: string;
+
+  // --list-networks flag
+  listNetworks: boolean;
 }
 
 interface VerificationSubtaskArgs {
@@ -130,9 +133,22 @@ const verify: ActionType<VerificationArgs> = async (
     constructorArgs: constructorArgsModule,
     contract,
     libraries: librariesModule,
+    listNetworks,
   },
-  { run }
+  { config, run }
 ) => {
+  if (listNetworks) {
+    await printSupportedNetworks(config.etherscan.customChains);
+    return;
+  }
+
+  if (address === undefined) {
+    throw new NomicLabsHardhatPluginError(
+      pluginName,
+      "You didn’t provide any address. Please re-run the 'verify' task with the address of the contract you want to verify."
+    );
+  }
+
   const constructorArguments: any[] = await run(
     TASK_VERIFY_GET_CONSTRUCTOR_ARGUMENTS,
     {
@@ -790,7 +806,10 @@ subtask(TASK_VERIFY_GET_MINIMUM_BUILD)
   .setAction(getMinimumBuild);
 
 task(TASK_VERIFY, "Verifies contract on Etherscan")
-  .addPositionalParam("address", "Address of the smart contract to verify")
+  .addOptionalPositionalParam(
+    "address",
+    "Address of the smart contract to verify"
+  )
   .addOptionalParam(
     "constructorArgs",
     "File path to a javascript module that exports the list of arguments.",
@@ -816,6 +835,7 @@ task(TASK_VERIFY, "Verifies contract on Etherscan")
     "Contract constructor arguments. Ignored if the --constructor-args option is used.",
     []
   )
+  .addFlag("listNetworks", "Print the list of supported networks")
   .setAction(verify);
 
 subtask(TASK_VERIFY_VERIFY)
