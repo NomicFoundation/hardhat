@@ -118,10 +118,6 @@
       {
         "label": "Building plugins",
         "href": "/advanced/building-plugins"
-      },
-      {
-        "label": "Migrating a Buidler plugin",
-        "href": "/advanced/migrating-buidler-plugin"
       }
     ]
   },
@@ -136,10 +132,6 @@
       {
         "label": "Common problems",
         "href": "/troubleshooting/common-problems"
-      },
-      {
-        "label": "Error codes",
-        "href": "/errors/buidler-errors"
       }
     ]
   },
@@ -156,11 +148,6 @@
         "href": "/reference/solidity-support"
       }
     ]
-  },
-  {
-    "label": "Buidler documentation",
-    "href": "/buidler-documentation",
-    "type": "single"
   },
   {
     "label": "Plugins",
