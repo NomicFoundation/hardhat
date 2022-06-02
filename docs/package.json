@@ -40,7 +40,6 @@
     "@babel/core": "^7.17.5",
     "@babel/preset-env": "^7.16.11",
     "@next/bundle-analyzer": "^12.1.5",
-    "@nomiclabs/eslint-plugin-hardhat-internal-rules": "^1.0.0",
     "@react-theming/storybook-addon": "^1.1.5",
     "@storybook/addon-actions": "^6.4.19",
     "@storybook/addon-essentials": "^6.4.19",
