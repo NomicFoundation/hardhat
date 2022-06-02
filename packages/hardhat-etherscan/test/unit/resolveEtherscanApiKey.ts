@@ -48,6 +48,7 @@ describe("Etherscan API Key resolution", () => {
 
     it("should throw if network subkey is undefined", () => {
       assert.throws(
+        // @ts-expect-error
         () => resolveEtherscanApiKey({ rinkeby: undefined }, "rinkeby"),
         /Please provide an Etherscan API token via hardhat config./
       );
