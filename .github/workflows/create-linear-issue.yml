@@ -26,4 +26,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
           LINEAR_TEAM_ID: ${{ secrets.LINEAR_TEAM_ID }}
-          MAINTAINERS: alcuadrado;fvictorio;feuGeneA;morgansliman
+          MAINTAINERS: fvictorio;feuGeneA;morgansliman
