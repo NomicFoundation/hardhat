@@ -50,6 +50,6 @@
   "dependencies": {
     "dockerode": "^2.5.8",
     "fs-extra": "^7.0.1",
-    "undici": "^4.14.1"
+    "undici": "^5.4.0"
   }
 }

@@ -391,11 +391,11 @@ const communityPlugins: IPlugin[] = [
     tags: ["starknet", "cairo", "layer two"],
   },
   {
-    name: "uniswap-v3-deploy-plugin",
-    author: "Uniswap",
+    name: "@uniswap/hardhat-v3-deploy",
+    author: "Uniswap Labs",
     authorUrl: "https://uniswap.org/",
     description: "Hardhat plugin for Uniswap V3 deployment",
-    tags: ["uniswap", "testing", "local deployment"],
+    tags: ["uniswap", "testing", "deployment", "local"],
   },
   {
     name: "@unlock-protocol/hardhat-plugin",
@@ -470,6 +470,13 @@ const communityPlugins: IPlugin[] = [
     description:
       "Generate 0xWeb classes for contracts to easily communicate with the blockchain.",
     tags: ["dApp-Client", "Class-Generation", "Testing"],
+  },
+  {
+    name: "jest-environment-hardhat",
+    author: "Uniswap Labs",
+    authorUrl: "https://uniswap.org/",
+    description: "A jest environment with hardhat built in.",
+    tags: ["uniswap", "testing", "jest", "node"],
   },
 ];
 
