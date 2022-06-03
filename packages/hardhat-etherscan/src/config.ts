@@ -1,3 +1,5 @@
+import type LodashT from "lodash";
+
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import { ConfigExtender } from "hardhat/types";
 import { chainConfig } from "./ChainConfig";
@@ -46,7 +48,8 @@ export const etherscanConfigExtender: ConfigExtender = (
   };
 
   if (config.etherscan !== undefined) {
-    const customConfig = config.etherscan;
+    const { cloneDeep } = require("lodash") as typeof LodashT;
+    const customConfig = cloneDeep(config.etherscan);
 
     resolvedConfig.etherscan = { ...defaultConfig, ...customConfig };
   } else {
