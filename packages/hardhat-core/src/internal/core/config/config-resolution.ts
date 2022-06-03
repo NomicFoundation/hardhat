@@ -159,12 +159,11 @@ function resolveHardhatNetworkConfig(
     if (blockNumber !== undefined) {
       forking.blockNumber = hardhatNetworkConfig?.forking?.blockNumber;
     }
-  }
-  if (
-    forking !== undefined &&
-    hardhatNetworkConfig.forking?.httpHeaders !== undefined
-  ) {
-    forking.httpHeaders = hardhatNetworkConfig.forking.httpHeaders;
+
+    const httpHeaders = hardhatNetworkConfig.forking?.httpHeaders;
+    if (httpHeaders !== undefined) {
+      forking.httpHeaders = httpHeaders;
+    }
   }
 
   const mining = resolveMiningConfig(hardhatNetworkConfig.mining);
