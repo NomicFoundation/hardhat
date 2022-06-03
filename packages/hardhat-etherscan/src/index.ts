@@ -23,7 +23,7 @@ import path from "path";
 import semver from "semver";
 
 import { encodeArguments } from "./ABIEncoder";
-import { etherscanConfigExtender } from "./config";
+import { etherscanConfigExtender, verifyAllowedChains } from "./config";
 import {
   pluginName,
   TASK_VERIFY,
@@ -148,6 +148,8 @@ const verify: ActionType<VerificationArgs> = async (
       "You didn’t provide any address. Please re-run the 'verify' task with the address of the contract you want to verify."
     );
   }
+
+  verifyAllowedChains(config.etherscan);
 
   const constructorArguments: any[] = await run(
     TASK_VERIFY_GET_CONSTRUCTOR_ARGUMENTS,

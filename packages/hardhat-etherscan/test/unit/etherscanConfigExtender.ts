@@ -69,37 +69,4 @@ describe("Config extension", () => {
       ],
     });
   });
-
-  it("should error on providing unsupported api key", () => {
-    assert.throws(() => {
-      const resolvedConfig = {} as HardhatConfig;
-
-      const invalidEtherscanConfig = {
-        etherscan: {
-          apiKey: {
-            newhotness: "example_token",
-          },
-        },
-      } as any;
-
-      etherscanConfigExtender(resolvedConfig, invalidEtherscanConfig);
-    }, "You set an Etherscan API token for the network \"newhotness\" but the plugin doesn't support it, or it's spelled incorrectly.");
-  });
-
-  it("should error on providing multiple unsupported api keys", () => {
-    assert.throws(() => {
-      const resolvedConfig = {} as HardhatConfig;
-
-      const invalidEtherscanConfig = {
-        etherscan: {
-          apiKey: {
-            newhotness: "example_token",
-            newhotness2: "example_token",
-          },
-        },
-      } as any;
-
-      etherscanConfigExtender(resolvedConfig, invalidEtherscanConfig);
-    }, "You set an Etherscan API token for the network \"newhotness\" but the plugin doesn't support it, or it's spelled incorrectly.");
-  });
 });

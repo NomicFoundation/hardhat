@@ -4,7 +4,7 @@ import { chainConfig } from "./ChainConfig";
 import { EtherscanConfig } from "./types";
 import { pluginName } from "./constants";
 
-const verifyAllowedChains = (etherscanConfig: EtherscanConfig) => {
+export const verifyAllowedChains = (etherscanConfig: EtherscanConfig) => {
   if (
     etherscanConfig.apiKey === null ||
     etherscanConfig.apiKey === undefined ||
@@ -49,8 +49,6 @@ export const etherscanConfigExtender: ConfigExtender = (
     const customConfig = config.etherscan;
 
     resolvedConfig.etherscan = { ...defaultConfig, ...customConfig };
-
-    verifyAllowedChains(resolvedConfig.etherscan);
   } else {
     resolvedConfig.etherscan = defaultConfig;
   }
