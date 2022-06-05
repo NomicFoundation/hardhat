@@ -939,17 +939,29 @@ describe("Ethers plugin", function () {
         it("should deploy with args and return a contract", async function () {
           const contract = await this.env.ethers.deployContract(
             "GreeterWithConstructorArg",
-            { args: ["Hello"] }
+            ["Hello"]
           );
 
           await assertContract(contract, signers[0]);
           assert(await contract.greet(), "Hello");
         });
 
+        it("should deploy with args and return a contract with custom signer", async function () {
+          const contract = await this.env.ethers.deployContract(
+            "GreeterWithConstructorArg",
+            ["Hello"],
+            signers[1]
+          );
+
+          await assertContract(contract, signers[1]);
+          assert(await contract.greet(), "Hello");
+        });
+
         it("should deploy with args and return a contract with custom signer as an option", async function () {
           const contract = await this.env.ethers.deployContract(
             "GreeterWithConstructorArg",
-            { args: ["Hello"], signer: signers[1] }
+            ["Hello"],
+            { signer: signers[1] }
           );
 
           await assertContract(contract, signers[1]);

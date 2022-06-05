@@ -1,6 +1,6 @@
 import type { ethers } from "ethers";
 import type { SignerWithAddress } from "../signers";
-import type { DeployOptions, FactoryOptions, Libraries } from "../types";
+import type { FactoryOptions, Libraries } from "../types";
 
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import {
@@ -324,12 +324,29 @@ export async function getContractAt(
 export async function deployContract(
   hre: HardhatRuntimeEnvironment,
   name: string,
-  signerOrOptions?: ethers.Signer | DeployOptions
+  args?: any[],
+  signerOrOptions?: ethers.Signer | FactoryOptions
+): Promise<ethers.Contract>;
+
+export async function deployContract(
+  hre: HardhatRuntimeEnvironment,
+  name: string,
+  signerOrOptions?: ethers.Signer | FactoryOptions
+): Promise<ethers.Contract>;
+
+export async function deployContract(
+  hre: HardhatRuntimeEnvironment,
+  name: string,
+  argsOrSignerOrOptions?: any[] | ethers.Signer | FactoryOptions,
+  signerOrOptions?: ethers.Signer | FactoryOptions
 ): Promise<ethers.Contract> {
+  let args = [];
+  if (Array.isArray(argsOrSignerOrOptions)) {
+    args = argsOrSignerOrOptions;
+  } else {
+    signerOrOptions = argsOrSignerOrOptions;
+  }
   const factory = await getContractFactory(hre, name, signerOrOptions);
-  const args = isFactoryOptions(signerOrOptions)
-    ? signerOrOptions.args ?? []
-    : [];
   return factory.deploy(...args);
 }
 

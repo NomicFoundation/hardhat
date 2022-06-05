@@ -50,7 +50,7 @@ extendEnvironment((hre) => {
       ),
       getContractAt: getContractAt.bind(null, hre),
       getContractAtFromArtifact: getContractAtFromArtifact.bind(null, hre),
-      deployContract: deployContract.bind(null, hre),
+      deployContract: deployContract.bind(null, hre) as any,
     };
   });
 });

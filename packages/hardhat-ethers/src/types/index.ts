@@ -11,9 +11,6 @@ export interface FactoryOptions {
   signer?: ethers.Signer;
   libraries?: Libraries;
 }
-export interface DeployOptions extends FactoryOptions {
-  args?: any[];
-}
 
 export declare function getContractFactory(
   name: string,
@@ -24,6 +21,17 @@ export declare function getContractFactory(
   bytecode: ethers.utils.BytesLike,
   signer?: ethers.Signer
 ): Promise<ethers.ContractFactory>;
+
+export declare function deployContract(
+  name: string,
+  signerOrOptions?: ethers.Signer | FactoryOptions
+): Promise<ethers.Contract>;
+
+export declare function deployContract(
+  name: string,
+  args: any[],
+  signerOrOptions?: ethers.Signer | FactoryOptions
+): Promise<ethers.Contract>;
 
 export interface HardhatEthersHelpers {
   provider: ethers.providers.JsonRpcProvider;
@@ -45,8 +53,5 @@ export interface HardhatEthersHelpers {
   ) => Promise<ethers.Contract>;
   getSigner: (address: string) => Promise<SignerWithAddress>;
   getSigners: () => Promise<SignerWithAddress[]>;
-  deployContract: (
-    name: string,
-    signerOrOptions?: ethers.Signer | DeployOptions
-  ) => Promise<ethers.Contract>;
+  deployContract: typeof deployContract;
 }
