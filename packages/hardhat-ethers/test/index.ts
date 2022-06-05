@@ -942,8 +942,8 @@ describe("Ethers plugin", function () {
             { args: ["Hello"] }
           );
 
-          assert(await contract.greet(), "Hello");
           await assertContract(contract, signers[0]);
+          assert(await contract.greet(), "Hello");
         });
 
         it("should deploy with args and return a contract with custom signer as an option", async function () {
@@ -952,8 +952,8 @@ describe("Ethers plugin", function () {
             { args: ["Hello"], signer: signers[1] }
           );
 
-          assert(await contract.greet(), "Hello");
           await assertContract(contract, signers[1]);
+          assert(await contract.greet(), "Hello");
         });
 
         async function assertContract(
