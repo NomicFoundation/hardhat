@@ -1,3 +1,4 @@
+import React from "react";
 import path from "path";
 import glob from "glob";
 import fs from "fs";
@@ -153,6 +154,36 @@ function setDefaultLang() {
   };
 }
 
+function checkTabs() {
+  // @ts-ignore
+  return (tree) => {
+    visit(tree, (node) => {
+      if (node.type === "containerDirective" && node.name === "tabsgroup") {
+        node.children?.forEach(
+          (
+            child: React.ReactElement & {
+              data: {
+                hName: string;
+                hProperties: { value: string };
+              };
+            }
+          ) => {
+            if (
+              !node.attributes.options
+                .split(",")
+                .includes(child.data.hProperties.value)
+            ) {
+              throw new Error(
+                `Value "${child.data.hProperties.value}" is not provided in TabsGroups options.`
+              );
+            }
+          }
+        );
+      }
+    });
+  };
+}
+
 export const generateTitleFromContent = (content: string) => {
   return content
     .split(newLineDividerRegEx)
@@ -192,27 +223,33 @@ export const prepareMdContent = async (
   seoDescription: string;
 }> => {
   const { formattedContent, ...props } = parseMdFile(source);
-  const mdxSource = await serialize(formattedContent, {
-    mdxOptions: {
-      remarkPlugins: [
-        remarkGfm,
-        remarkDirective,
-        createCustomNodes,
-        remarkUnwrapImages,
-        setDefaultLang,
-        remarkPrism,
-      ],
-
-      rehypePlugins: [
-        [
-          rehypePrism,
-          {
-            plugins: ["line-highlight"],
-          },
+  let mdxSource: MDXRemoteSerializeResult<Record<string, unknown>>;
+  try {
+    mdxSource = await serialize(formattedContent, {
+      mdxOptions: {
+        remarkPlugins: [
+          remarkGfm,
+          remarkDirective,
+          createCustomNodes,
+          remarkUnwrapImages,
+          setDefaultLang,
+          remarkPrism,
+          checkTabs,
         ],
-      ],
-    },
-  });
+
+        rehypePlugins: [
+          [
+            rehypePrism,
+            {
+              plugins: ["line-highlight"],
+            },
+          ],
+        ],
+      },
+    });
+  } catch (error: unknown) {
+    throw new Error(error as string);
+  }
 
   return {
     mdxSource,
