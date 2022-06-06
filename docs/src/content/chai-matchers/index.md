@@ -36,16 +36,16 @@ Also note that the first argument to `emit()` is the contract which emits the ev
 Solidity events can contain arguments, and you can assert the presence of certain argument values in an event that was emitted. For example, to assert that an event emits a certain unsigned integer value:
 
 ```js
-await expect(contract.call()).to.emit(contract, "Uint").withArgs(3)
+await expect(contract.call()).to.emit(contract, "Uint").withArgs(3);
 ```
 
 Sometimes you may want to assert the value of the second argument of an event, but you want to permit any value for the first argument. This is easy with `withArgs` because it supports not just specific values but also _predicates_. For example, to skip checking the first argument but assert the value of the second:
 
 ```js
-const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs")
+const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 await expect(contract.call())
   .to.emit(contract, "TwoUints")
-  .withArgs(anyValue, 3)
+  .withArgs(anyValue, 3);
 ```
 
 Predicates are simply functions that, when called, indicate whether the value should be considered successfully matched or not. The function will receive the value as its input, but it need not use it. For example, the `anyValue` predicate is simply `() => true`.
@@ -53,7 +53,9 @@ Predicates are simply functions that, when called, indicate whether the value sh
 This package provides the predicates `anyValue` and `anyUint`, but you can easily create your own:
 
 ```js
-function isEven(x: BigNumber): boolean { return x.mod(2).isZero(); }
+function isEven(x: BigNumber): boolean {
+  return x.mod(2).isZero();
+}
 
 await expect(contract.emitUint(2)).to.emit(contract, "Uint").withArgs(isEven);
 ```
@@ -65,13 +67,13 @@ You can also easily write tests that assert whether a contract call reverted (or
 The most simple case asserts that a revert happened:
 
 ```js
-await expect(contract.call()).to.be.reverted
+await expect(contract.call()).to.be.reverted;
 ```
 
 Or, conversely, that one didn't:
 
 ```js
-await expect(contract.call()).not.to.be.reverted
+await expect(contract.call()).not.to.be.reverted;
 ```
 
 A revert may also include some error data, such as a string, a [panic code](https://docs.soliditylang.org/en/v0.8.14/control-structures.html#panic-via-assert-and-error-via-require), or a [custom error](https://docs.soliditylang.org/en/v0.8.14/contracts.html#errors-and-the-revert-statement), and this package provides matchers for all of them.
@@ -79,20 +81,22 @@ A revert may also include some error data, such as a string, a [panic code](http
 The `revertedWith` matcher allows you to assert that a revert's error data does or doesn't match a specific string:
 
 ```js
-await expect(contract.call()).to.be.revertedWith("Some revert message")
-await expect(contract.call()).not.to.be.revertedWith("Another revert message")
+await expect(contract.call()).to.be.revertedWith("Some revert message");
+await expect(contract.call()).not.to.be.revertedWith("Another revert message");
 ```
 
 The `revertedWithPanic` matcher allows you to assert that a revert did or didn't occurr with a specific [panic code](https://docs.soliditylang.org/en/v0.8.14/control-structures.html#panic-via-assert-and-error-via-require). You can match a panic code via its integer value (including via hexadecimal notation, such as `0x12`) or via the `PANIC_CODES` dictionary exported from this package:
 
 ```js
-const { PANIC_CODES } = require("@nomicfoundation/hardhat-chai-matchers/panic")
+const { PANIC_CODES } = require("@nomicfoundation/hardhat-chai-matchers/panic");
 
-await expect(contract.divideBy(0))
-  .to.be.revertedWithPanic(PANIC_CODES.DIVISION_BY_ZERO)
+await expect(contract.divideBy(0)).to.be.revertedWithPanic(
+  PANIC_CODES.DIVISION_BY_ZERO
+);
 
-await expect(contract.divideBy(1))
-  .not.to.be.revertedWithPanic(PANIC_CODES.DIVISION_BY_ZERO)
+await expect(contract.divideBy(1)).not.to.be.revertedWithPanic(
+  PANIC_CODES.DIVISION_BY_ZERO
+);
 ```
 
 You can omit the panic code in order to assert that the transaction reverted with _any_ panic code.
@@ -100,8 +104,10 @@ You can omit the panic code in order to assert that the transaction reverted wit
 The `revertedWithCustomError` matcher allows you to assert that a transaction reverted with a specific [custom error](https://docs.soliditylang.org/en/v0.8.14/contracts.html#errors-and-the-revert-statement):
 
 ```js
-await expect(contract.call())
-  .to.be.revertedWithCustomError(contract, "SomeCustomError")
+await expect(contract.call()).to.be.revertedWithCustomError(
+  contract,
+  "SomeCustomError"
+);
 ```
 
 Just as with events, the first argument to this matcher must specify the the contract that defines the custom error. If you're expecting an error from a nested call to a different contract, then you'll need to pass that different contract as the first argument.
@@ -111,13 +117,13 @@ Further, just as events can have arguments, so too can custom error objects, and
 ```js
 await expect(contract.call())
   .to.be.revertedWithCustomError(contract, "SomeCustomError")
-  .withArgs(anyValue, "some error data string")
+  .withArgs(anyValue, "some error data string");
 ```
 
 Finally, you can assert that a call reverted without any error data (neither a reason string, nor a panic code, nor a custom error):
 
 ```js
-await expect(contract.call()).to.be.revertedWithoutReason()
+await expect(contract.call()).to.be.revertedWithoutReason();
 ```
 
 ### Big Numbers
@@ -127,7 +133,7 @@ Working with Ethereum smart contracts in JavaScript can be annoying due Ethereum
 This package enhances the standard numerical equality matchers (`equal`, `above`, `within`, etc) such that you can seamlessly mix and match contract return values with regular `Number`s. For example:
 
 ```js
-expect(await token.balanceOf(someAddress)).to.equal(1)
+expect(await token.balanceOf(someAddress)).to.equal(1);
 ```
 
 These matchers support not just [ethers' `BigNumber`](https://docs.ethers.io/v5/single-page/#/v5/api/utils/bignumber/) and the native JavaScript `Number`, but also [`BigInt`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt), [bn.js](https://github.com/indutny/bn.js/), and [bignumber.js](https://github.com/MikeMcl/bignumber.js/).
@@ -137,23 +143,28 @@ These matchers support not just [ethers' `BigNumber`](https://docs.ethers.io/v5/
 Often times, a transaction you're testing will be expected to have some effect on a wallet's balance, either its balance of Ether or its balance of some ERC-20 token. Another set of matchers allows you to verify that a transaction resulted in such a balance change:
 
 ```js
-await expect(
-  () => sender.sendTransaction({ to: someAddress, value: 200 })
-).to.changeEtherBalance(sender, "-200")
+await expect(() =>
+  sender.sendTransaction({ to: someAddress, value: 200 })
+).to.changeEtherBalance(sender, "-200");
 
-await expect(token.transfer(account, 1))
-  .to.changeTokenBalance(token, account, 1)
+await expect(token.transfer(account, 1)).to.changeTokenBalance(
+  token,
+  account,
+  1
+);
 ```
 
 Further, you can also check these conditions for multiple addresses at the same time:
 
 ```js
-await expect(
-  () => sender.sendTransaction({ to: receiver, value: 200 })
-).to.changeEtherBalances([sender, receiver], [-200, 200])
+await expect(() =>
+  sender.sendTransaction({ to: receiver, value: 200 })
+).to.changeEtherBalances([sender, receiver], [-200, 200]);
 
-await expect(token.transferFrom(sender, receiver, 1))
-  .to.changeTokenBalances([sender, receiver], [-1, 1])
+await expect(token.transferFrom(sender, receiver, 1)).to.changeTokenBalances(
+  [sender, receiver],
+  [-1, 1]
+);
 ```
 
 ### Miscellaneous String Checks
@@ -175,8 +186,8 @@ expect("0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266").to.be.a.properAddress;
 The `properPrivateKey` matcher asserts that the given string is a hexadecimal value of the proper length:
 
 ```js
-expect("0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80")
-  .to.be.a.properPrivateKey;
+expect("0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80").to
+  .be.a.properPrivateKey;
 ```
 
 Finally, the `hexEqual` matcher accepts two hexadecimal strings and compares their numerical values, regardless of leading zeroes or upper/lower case digits:
@@ -184,7 +195,6 @@ Finally, the `hexEqual` matcher accepts two hexadecimal strings and compares the
 ```js
 expect("0x00012AB").to.hexEqual("0x12ab");
 ```
-
 
 ## Dig Deeper
 
