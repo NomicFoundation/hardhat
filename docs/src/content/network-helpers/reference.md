@@ -1,5 +1,11 @@
 # Reference
 
+:::warning
+
+This package is in beta. While we don't expect major changes to its API, some details could change.
+
+:::
+
 This is the reference for the Hardhat Network Helpers library. This library contains utility functions to interact with the Hardhat Network in an easier and safer way.
 
 ## Mining blocks

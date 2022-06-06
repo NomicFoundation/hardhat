@@ -1,6 +1,10 @@
-# Chai Matchers <!-- An Explanation: theoretical, not practical; for studying, not for working-->
+# Chai Matchers
 
-<!-- What is it? -->
+:::warning
+
+This package is in beta. While we don't expect major changes to its API, some details could change.
+
+:::
 
 [@nomicfoundation/hardhat-chai-matchers](https://www.npmjs.com/package/@nomicfoundation/hardhat-chai-matchers) adds Ethereum-specific capabilities to the [Chai](https://www.chaijs.com/) assertion library, making your smart contract tests easy to write and read.
 
@@ -8,26 +12,25 @@ Among other things, you can assert that a contract fired certain events, or that
 
 ## Installation
 
+::::tabsgroup{options=npm,yarn}
 
-   ::::tabsgroup{options=npm,yarn}
+:::tab{value=npm}
 
-   :::tab{value=npm}
+```bash
+npm install @nomicfoundation/hardhat-chai-matchers@beta
+```
 
-   ```bash
-   npm install @nomicfoundation/hardhat-chai-matchers@beta
-   ```
+:::
 
-   :::
+:::tab{value=yarn}
 
-   :::tab{value=yarn}
+```bash
+yarn add @nomicfoundation/hardhat-chai-matchers@beta
+```
 
-   ```bash
-   yarn add @nomicfoundation/hardhat-chai-matchers@beta
-   ```
+:::
 
-   :::
-
-   ::::
+::::
 
 ## How can I use it?
 

@@ -1,8 +1,10 @@
-# Network Helpers <!-- An Explanation: theoretical, not practica; for studying, not for working -->
+# Network Helpers
 
-<!-- What is it? -->
-<!-- How can I use it? -->
-<!-- Why would I want to use it? -->
+:::warning
+
+This package is in beta. While we don't expect major changes to its API, some details could change.
+
+:::
 
 [@nomicfoundation/hardhat-network-helpers](https://www.npmjs.com/package/@nomicfoundation/hardhat-network-helpers) provides convenience functions for working with [Hardhat Network](/hardhat-network).
 
@@ -12,25 +14,25 @@ This package provides convenience functions for quick and easy interaction with 
 
 ## Installation
 
-   ::::tabsgroup{options=npm,yarn}
+::::tabsgroup{options=npm,yarn}
 
-   :::tab{value=npm}
+:::tab{value=npm}
 
-   ```bash
-   npm install @nomicfoundation/hardhat-network-helpers@beta
-   ```
+```bash
+npm install @nomicfoundation/hardhat-network-helpers@beta
+```
 
-   :::
+:::
 
-   :::tab{value=yarn}
+:::tab{value=yarn}
 
-   ```bash
-   yarn add @nomicfoundation/hardhat-network-helpers@beta
-   ```
+```bash
+yarn add @nomicfoundation/hardhat-network-helpers@beta
+```
 
-   :::
+:::
 
-   ::::
+::::
 
 ## Usage
 
