@@ -6,97 +6,95 @@ This page explains how to migrate from Waffle to Hardhat Chai Matchers, and the 
 
 The `@nomicfoundation/hardhat-chai-matchers` plugin is meant to be a drop-in replacement for the `@nomiclabs/hardhat-waffle` plugin. To migrate, follow these instructions:
 
-
 1. Uninstall the `@nomiclabs/hardhat-waffle` and `ethereum-waffle` packages:
 
-    ::::tabsgroup{options=npm,yarn}
+   ::::tabsgroup{options=npm,yarn}
 
-    :::tab{value=npm}
+   :::tab{value=npm}
 
-    ```
-    npm uninstall @nomiclabs/hardhat-waffle ethereum-waffle
-    ```
+   ```
+   npm uninstall @nomiclabs/hardhat-waffle ethereum-waffle
+   ```
 
-    :::
+   :::
 
-    :::tab{value=yarn}
+   :::tab{value=yarn}
 
-    ```
-    yarn remove @nomiclabs/hardhat-waffle ethereum-waffle
-    ```
+   ```
+   yarn remove @nomiclabs/hardhat-waffle ethereum-waffle
+   ```
 
-    :::
+   :::
 
-    ::::
+   ::::
 
 2. Then install the Hardhat Chai Matchers plugin:
 
-    ::::tabsgroup{options=npm,yarn}
+   ::::tabsgroup{options=npm,yarn}
 
-    :::tab{value=npm}
+   :::tab{value=npm}
 
-    ```
-    npm install @nomicfoundation/hardhat-chai-matchers
-    ```
+   ```
+   npm install @nomicfoundation/hardhat-chai-matchers
+   ```
 
-    :::
+   :::
 
-    :::tab{value=yarn}
+   :::tab{value=yarn}
 
-    ```
-    yarn add @nomicfoundation/hardhat-chai-matchers
-    ```
+   ```
+   yarn add @nomicfoundation/hardhat-chai-matchers
+   ```
 
-    :::
+   :::
 
-    ::::
+   ::::
 
-3. In your Hardhat config, import the Hardhat Chai Matchers plugin and remove
-   the `hardhat-waffle` one:
+3. In your Hardhat config, import the Hardhat Chai Matchers plugin and remove the `hardhat-waffle` one:
 
-    ::::tabsgroup{options=TypeScript,JavaScript}
+   ::::tabsgroup{options=TypeScript,JavaScript}
 
-    :::tab{value=TypeScript}
+   :::tab{value=TypeScript}
 
-    ```diff
-    - import "@nomiclabs/hardhat-waffle";
-    + import "@nomicfoundation/hardhat-chai-matchers";
-    ```
+   ```diff
+   - import "@nomiclabs/hardhat-waffle";
+   + import "@nomicfoundation/hardhat-chai-matchers";
+   ```
 
-    :::
+   :::
 
-    :::tab{value=JavaScript}
+   :::tab{value=JavaScript}
 
-    ```diff
-    - require("@nomiclabs/hardhat-waffle");
-    + require("@nomicfoundation/hardhat-chai-matchers");
-    ```
+   ```diff
+   - require("@nomiclabs/hardhat-waffle");
+   + require("@nomicfoundation/hardhat-chai-matchers");
+   ```
 
-    :::
+   :::
 
-    ::::
+   ::::
 
 4. If you were not importing the `@nomiclabs/hardhat-ethers` plugin explicitly (because the Hardhat Waffle plugin already imported it), then add it to your config:
 
-    ::::tabsgroup{options=TypeScript,JavaScript}
+   ::::tabsgroup{options=TypeScript,JavaScript}
 
-    :::tab{value=TypeScript}
+   :::tab{value=TypeScript}
 
-    ```ts
-    import "@nomiclabs/hardhat-ethers";
-    ```
+   ```ts
+   import "@nomiclabs/hardhat-ethers";
+   ```
 
-    :::
+   :::
 
-    :::tab{value=JavaScript}
+   :::tab{value=JavaScript}
 
-    ```js
-    require("@nomiclabs/hardhat-ethers");
-    ```
+   ```js
+   require("@nomiclabs/hardhat-ethers");
+   ```
 
-    :::
+   :::
 
-    ::::
+   ::::
 
 ## Why migrate?
 
