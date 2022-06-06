@@ -110,7 +110,7 @@ await expect(contract.call()).to.be.revertedWithCustomError(
 );
 ```
 
-Just as with events, the first argument to this matcher must specify the the contract that defines the custom error. If you're expecting an error from a nested call to a different contract, then you'll need to pass that different contract as the first argument.
+Just as with events, the first argument to this matcher must specify the contract that defines the custom error. If you're expecting an error from a nested call to a different contract, then you'll need to pass that different contract as the first argument.
 
 Further, just as events can have arguments, so too can custom error objects, and, just as with events, you can assert the values of these arguments. To do this, use the same `.withArgs()` matcher, and the same predicate system:
 
