@@ -6,6 +6,29 @@
 
 Among other things, you can assert that a contract fired certain events, or that it exhibited a specific revert, or that a transaction resulted in specific changes to a wallet's Ether or token balance.
 
+## Installation
+
+
+   ::::tabsgroup{options=npm,yarn}
+
+   :::tab{value=npm}
+
+   ```bash
+   npm install @nomicfoundation/hardhat-chai-matchers@beta
+   ```
+
+   :::
+
+   :::tab{value=yarn}
+
+   ```bash
+   yarn add @nomicfoundation/hardhat-chai-matchers@beta
+   ```
+
+   :::
+
+   ::::
+
 ## How can I use it?
 
 Simply `require("@nomicfoundation/hardhat-chai-matchers")` in your Hardhat config and then the assertions will be available in your code.
