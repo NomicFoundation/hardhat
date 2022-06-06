@@ -1,1 +1,6 @@
-section-type: hidden
+section-type: group
+section-title: Hardhat Network Helpers
+order:
+  - href: /
+    title: What is it?
+  - /reference

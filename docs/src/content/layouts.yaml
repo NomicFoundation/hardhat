@@ -8,11 +8,11 @@ documentation:
     - advanced
     - troubleshooting
     - reference
+    - chai-matchers
+    - network-helpers
     - plugins
     - metamask-issue
     - errors
-    - chai-matchers
-    - network-helpers
 
 tutorial:
   title: tutorial
