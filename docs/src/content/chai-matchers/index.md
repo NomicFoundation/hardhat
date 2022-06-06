@@ -8,7 +8,7 @@ Among other things, you can assert that a contract fired certain events, or that
 
 ## How can I use it?
 
-Simply `require("@nomicfoundation/hardhat-chai-matchers")` and then the assertions will be available in your code.
+Simply `require("@nomicfoundation/hardhat-chai-matchers")` in your Hardhat config and then the assertions will be available in your code.
 
 A few other helpers, such as argument predicates and panic code constants, must be imported explicitly. These are discussed below.
 
