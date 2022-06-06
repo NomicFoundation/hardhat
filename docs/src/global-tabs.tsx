@@ -4,7 +4,7 @@ type TabType = string;
 
 interface ISelectedTabsState {
   "npm/yarn": string;
-  "js/ts": string;
+  "TypeScript/JavaScript": string;
   [key: TabType]: string;
 }
 
@@ -16,7 +16,7 @@ interface ITabsContext {
 export const GlobalTabsContext = React.createContext<ITabsContext>({
   tabsState: {
     "npm/yarn": "npm",
-    "js/ts": "js",
+    "TypeScript/JavaScript": "TypeScript",
   },
   changeTab: () => {},
 });
@@ -30,7 +30,7 @@ export const TabsProvider = ({
 }: React.PropsWithChildren<{}>): JSX.Element => {
   const [tabsState, setTabsState] = useState<ISelectedTabsState>({
     "npm/yarn": "npm",
-    "js/ts": "js",
+    "TypeScript/JavaScript": "TypeScript",
   });
 
   const changeTab = useCallback(
