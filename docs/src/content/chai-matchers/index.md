@@ -35,8 +35,11 @@ Also note that the first argument to `emit()` is the contract which emits the ev
 
 Solidity events can contain arguments, and you can assert the presence of certain argument values in an event that was emitted. For example, to assert that an event emits a certain unsigned integer value:
 
+<!-- prettier-ignore -->
 ```js
-await expect(contract.call()).to.emit(contract, "Uint").withArgs(3);
+await expect(contract.call())
+  .to.emit(contract, "Uint")
+  .withArgs(3);
 ```
 
 Sometimes you may want to assert the value of the second argument of an event, but you want to permit any value for the first argument. This is easy with `withArgs` because it supports not just specific values but also _predicates_. For example, to skip checking the first argument but assert the value of the second:
@@ -52,12 +55,15 @@ Predicates are simply functions that, when called, indicate whether the value sh
 
 This package provides the predicates `anyValue` and `anyUint`, but you can easily create your own:
 
+<!-- prettier-ignore -->
 ```js
 function isEven(x: BigNumber): boolean {
   return x.mod(2).isZero();
 }
 
-await expect(contract.emitUint(2)).to.emit(contract, "Uint").withArgs(isEven);
+await expect(contract.emitUint(2))
+  .to.emit(contract, "Uint")
+  .withArgs(isEven);
 ```
 
 ### Reverts
