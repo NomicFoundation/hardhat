@@ -22,7 +22,7 @@ export const GlobalTabsContext = React.createContext<ITabsContext>({
 });
 
 export const generateTabsGroupType = (options: string): string => {
-  return options.split(",").sort().join("/");
+  return options.split(",").join("/");
 };
 
 export const TabsProvider = ({
