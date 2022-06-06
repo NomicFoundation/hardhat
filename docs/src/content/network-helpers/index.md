@@ -4,49 +4,10 @@
 <!-- How can I use it? -->
 <!-- Why would I want to use it? -->
 
-[@nomicfoundation/hardhat-network-helpers](https://www.npmjs.com/package/@nomicfoundation/hardhat-network-helpers) provides convenience functions for working with Hardhat Network.
+[@nomicfoundation/hardhat-network-helpers](https://www.npmjs.com/package/@nomicfoundation/hardhat-network-helpers) provides convenience functions for working with [Hardhat Network](/hardhat-network).
 
-Hardhat Network exposes its custom functionality primarily through its JSON-RPC API. See the extensive set of methods available in [its reference documentation](../hardhat-network/reference#hardhat-network-methods). However, for easy-to-read tests and short scripts, interfacing with the JSON-RPC API produces noisy code with extensive conversions of both input and output data.
+Hardhat Network exposes its custom functionality primarily through its JSON-RPC API. See the extensive set of methods available in [its reference documentation](../hardhat-network/reference#hardhat-network-methods). However, for easy-to-read tests and short scripts, interfacing with the JSON-RPC API is too noisy, requiring a verbose syntax and extensive conversions of both input and output data.
 
-This package provides convenience functions for quick and easy interaction with Hardhat Network.
+This package provides convenience functions for quick and easy interaction with Hardhat Network. Facilities include the ability to mine blocks up to a certain timestamp or block number, the ability to manipulate attributes of accounts (balance, code, nonce, storage), the ability to impersonate specific accounts, and the ability to take and restore snapshots.
 
-## Mining Blocks
-
-<!--
-mine()
-mineUpTo()
--->
-
-## Manipulating Accounts
-
-<!--
-setBalance()
-setCode()
-setNonce()
-setStorageAt()
-getStorageAt()
-impersonateAccount()
-stopImpersonatingAccount()
--->
-
-## Time Helpers
-
-<!--
-latest()
-latestBlock()
-increase()
-increaseTo()
-setNextBlockTimestamp()
--->
-
-## Snapshots
-
-<!-- takeSnapshot() -->
-
-## Fixtures
-
-<!-- loadFixture() -->
-
-## Dig Deeper
-
-For a full listing of all of the helpers provided by this package, see [the reference documentation](./reference).
+For a full listing of all of the helpers provided by this package, see [the reference documentation](/network-helpers/reference).
