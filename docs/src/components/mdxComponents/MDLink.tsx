@@ -1,9 +1,9 @@
 import React, { ReactElement } from "react";
 import { styled } from "linaria/react";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import { media, tm, tmDark, tmHCDark, tmSelectors } from "../../themes";
 import ExternalLinkIcon from "../../assets/icons/external-link-icon";
-import { useRouter } from "next/router";
 
 interface Props {
   children: string | ReactElement;
