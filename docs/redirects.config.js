@@ -57,6 +57,16 @@ const customRedirects = [
     destination: "/hardhat-network/guides/mainnet-forking",
     permanent: false
   },
+  {
+    source: "/verify-custom-networks",
+    destination: "/plugins/nomiclabs-hardhat-etherscan#adding-support-for-other-networks",
+    permanent: false
+  },
+  {
+    source: "/verify-multiple-networks",
+    destination: "plugins/nomiclabs-hardhat-etherscan.html#multiple-api-keys-and-alternative-block-explorers",
+    permanent: false
+  },
   ...loadErrorRedirects()
 ];
 
