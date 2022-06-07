@@ -83,7 +83,7 @@ const getAbsoluteHrefFromRelativePath = (href: string, currentHref: string) => {
 
   const newSegments = ["", ...baseSegments, ...hrefSegments];
 
-  return newSegments.join("/");
+  return newSegments.join("/").replace("/index", "");
 };
 
 const renderLinkByType = ({
