@@ -53,7 +53,7 @@ export class GanacheService {
       url: `http://127.0.0.1:${DEFAULT_PORT}`,
       gasPrice: 20000000000,
       gasLimit: 6721975,
-      defaultBalanceEther: 100,
+      defaultBalanceEther: 1000,
       totalAccounts: 10,
       hardfork: "muirGlacier",
       allowUnlimitedContractSize: false,
@@ -66,7 +66,7 @@ export class GanacheService {
   public static async create(options: any): Promise<GanacheService> {
     // We use this weird way of importing this library here as a workaround
     // to this issue https://github.com/trufflesuite/ganache-core/issues/465
-    const Ganache = (() => require)()("ganache-core");
+    const Ganache = (() => require)()("ganache");
 
     // Get and initialize option validator
     const { default: optionsSchema } = await import("./ganache-options-ti");

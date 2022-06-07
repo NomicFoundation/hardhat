@@ -190,7 +190,7 @@ describe("Ethers plugin", function () {
           const [sig] = await this.env.ethers.getSigners();
           assert.equal(
             (await sig.getBalance()).toString(),
-            "100000000000000000000"
+            "1000000000000000000000"
           );
         });
 
@@ -247,7 +247,7 @@ describe("Ethers plugin", function () {
 
           const gasPrice = await sig.getGasPrice();
 
-          assert.equal(gasPrice.toString(), "20000000000");
+          assert.equal(gasPrice.toString(), "2000000000");
         });
 
         it("should check and populate a transaction", async function () {
