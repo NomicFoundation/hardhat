@@ -3,6 +3,7 @@ import { styled } from "linaria/react";
 import Link from "next/link";
 import { media, tm, tmDark, tmHCDark, tmSelectors } from "../../themes";
 import ExternalLinkIcon from "../../assets/icons/external-link-icon";
+import { useRouter } from "next/router";
 
 interface Props {
   children: string | ReactElement;
@@ -64,14 +65,25 @@ const StyledMdLinkContainer = styled.span`
   }
 `;
 
-const getPathFromHref = (href: string) => {
-  const pathname = href
-    .split("/")
-    .filter((hrefPart: string) => ![".", ".."].includes(hrefPart))
-    .join("/")
-    .toLowerCase();
+const getAbsoluteHrefFromRelativePath = (href: string, currentHref: string) => {
+  const pathSegments = currentHref.split("/");
+  const hrefSegments = href.split("/").filter((segment) => segment !== ".");
 
-  return pathname.startsWith("/") ? pathname : `/${pathname}`;
+  const pathSegmentsCount = pathSegments.length;
+  const upperLevelsCount = hrefSegments.filter(
+    (segment) => segment === ".."
+  ).length;
+
+  const baseSegmentsCount = Math.max(
+    pathSegmentsCount - 1 - upperLevelsCount,
+    0
+  );
+
+  const baseSegments = pathSegments.slice(0, baseSegmentsCount);
+
+  const newSegments = ["", ...baseSegments, ...hrefSegments];
+
+  return newSegments.join("/");
 };
 
 const renderLinkByType = ({
@@ -79,7 +91,14 @@ const renderLinkByType = ({
   href,
   isExternalLink,
   isAnchor,
-}: Props & { isExternalLink: boolean; isAnchor: boolean }) => {
+  isAbsoluteLink,
+  currentHref,
+}: Props & {
+  isExternalLink: boolean;
+  isAnchor: boolean;
+  isAbsoluteLink: boolean;
+  currentHref: string;
+}) => {
   if (isExternalLink) {
     return (
       <a href={href} target="_blank" rel="noreferrer">
@@ -91,9 +110,17 @@ const renderLinkByType = ({
   if (isAnchor) {
     return <a href={href}>{children}</a>;
   }
+  if (isAbsoluteLink) {
+    return (
+      <Link href={href}>
+        {/* eslint-disable-next-line */}
+        <a>{children}</a>
+      </Link>
+    );
+  }
 
   return (
-    <Link href={getPathFromHref(href.replace(/\.md$/, ""))}>
+    <Link href={getAbsoluteHrefFromRelativePath(href, currentHref)}>
       {/* eslint-disable-next-line */}
       <a>{children}</a>
     </Link>
@@ -101,12 +128,21 @@ const renderLinkByType = ({
 };
 
 const MDLink = ({ children, href }: Props) => {
+  const router = useRouter();
   const isExternalLink = href.startsWith("http");
+  const isAbsoluteLink = href.startsWith("/");
   const isAnchor = href.startsWith("#");
 
   return (
     <StyledMdLinkContainer>
-      {renderLinkByType({ href, children, isAnchor, isExternalLink })}
+      {renderLinkByType({
+        href: href.replace(/\.mdx?$/, ""),
+        children,
+        isAnchor,
+        isExternalLink,
+        isAbsoluteLink,
+        currentHref: router.asPath,
+      })}
     </StyledMdLinkContainer>
   );
 };
