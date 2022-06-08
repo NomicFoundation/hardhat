@@ -248,6 +248,15 @@ export class JsonRpcClient {
     );
   }
 
+  public async getLatestBlockNumber(): Promise<BN> {
+    return this._perform(
+      "eth_blockNumber",
+      [],
+      rpcQuantity,
+      (blockNumber) => blockNumber
+    );
+  }
+
   private async _perform<T>(
     method: string,
     params: any[],

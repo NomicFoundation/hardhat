@@ -1,5 +1,18 @@
 # hardhat
 
+## 2.9.8
+
+### Patch Changes
+
+- 5bd775a8b: Added support for HTTP headers in the forking config (thanks @TimDaub!)
+- 3770a5bbc: Expose a missing method in the Artifacts interface
+
+## 2.9.7
+
+### Patch Changes
+
+- 73beb279b: Fixed `block.chainid` returning 0 in view functions
+
 ## 2.9.6
 
 ### Patch Changes

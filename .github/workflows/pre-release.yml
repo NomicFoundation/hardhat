@@ -1,0 +1,36 @@
+name: Pre-release tests
+
+on:
+  push:
+    branches: [pre-release-testing-branch]
+
+env:
+  RUN_ETHERSCAN_TESTS: yes
+  ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
+  WALLET_PRIVATE_KEY: ${{ secrets.ETHERSCAN_RINKEBY_PRIVATE_KEY }}
+  TESTNET_NETWORK_URL: ${{ secrets.ETHERSCAN_RINKEBY_RPC_URL }}
+
+concurrency:
+  group: ${{github.workflow}}-${{github.ref}}
+  cancel-in-progress: true
+
+jobs:
+  pre_release_checks:
+    name: Pre-release checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 12
+          cache: yarn
+      - name: Install
+        run: yarn --frozen-lockfile
+      - name: Build
+        run: yarn build
+      - name: lint
+        run: yarn lint
+      - name: test
+        run: yarn test
+      - name: Check dependency versions
+        run: node scripts/check-dependencies.js

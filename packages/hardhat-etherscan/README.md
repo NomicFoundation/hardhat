@@ -126,7 +126,7 @@ module.exports = {
 
 If your project targets multiple EVM-compatible networks that have different explorers, you'll need to set multiple API keys.
 
-To configure the API keys for the chains you are using, provide an object under `etherscan/apiKey` with the identifier of each chain as the key. **This is not necessarily the same name that you are using to define the network**. The snippet below shows the values you should use for each chain:
+To configure the API keys for the chains you are using, provide an object under `etherscan/apiKey` with the identifier of each chain as the key. **This is not necessarily the same name that you are using to define the network**. For example, if you are going to verify contracts in Ethereum mainnet, Optimism and Arbitrum, your config would look like this:
 
 ```js
 module.exports = {
@@ -137,49 +137,42 @@ module.exports = {
   etherscan: {
     apiKey: {
         mainnet: "YOUR_ETHERSCAN_API_KEY",
-        ropsten: "YOUR_ETHERSCAN_API_KEY",
-        rinkeby: "YOUR_ETHERSCAN_API_KEY",
-        goerli: "YOUR_ETHERSCAN_API_KEY",
-        kovan: "YOUR_ETHERSCAN_API_KEY",
-        sepolia: "YOUR_ETHERSCAN_API_KEY",
-        // binance smart chain
-        bsc: "YOUR_BSCSCAN_API_KEY",
-        bscTestnet: "YOUR_BSCSCAN_API_KEY",
-        // huobi eco chain
-        heco: "YOUR_HECOINFO_API_KEY",
-        hecoTestnet: "YOUR_HECOINFO_API_KEY",
-        // fantom mainnet
-        opera: "YOUR_FTMSCAN_API_KEY",
-        ftmTestnet: "YOUR_FTMSCAN_API_KEY",
-        // optimism
         optimisticEthereum: "YOUR_OPTIMISTIC_ETHERSCAN_API_KEY",
-        optimisticKovan: "YOUR_OPTIMISTIC_ETHERSCAN_API_KEY",
-        // polygon
-        polygon: "YOUR_POLYGONSCAN_API_KEY",
-        polygonMumbai: "YOUR_POLYGONSCAN_API_KEY",
-        // arbitrum
         arbitrumOne: "YOUR_ARBISCAN_API_KEY",
-        arbitrumTestnet: "YOUR_ARBISCAN_API_KEY",
-        // avalanche
-        avalanche: "YOUR_SNOWTRACE_API_KEY",
-        avalancheFujiTestnet: "YOUR_SNOWTRACE_API_KEY",
-        // moonbeam
-        moonbeam: "YOUR_MOONBEAM_MOONSCAN_API_KEY"
-        moonriver: "YOUR_MOONRIVER_MOONSCAN_API_KEY",
-        moonbaseAlpha: "YOUR_MOONBEAM_MOONSCAN_API_KEY",
-        // harmony
-        harmony: "YOUR_HARMONY_API_KEY",
-        harmonyTest: "YOUR_HARMONY_API_KEY",
-        // xdai and sokol don't need an API key, but you still need
-        // to specify one; any string placeholder will work
-        xdai: "api-key",
-        sokol: "api-key",
-        aurora: "api-key",
-        auroraTestnet: "api-key",
     }
   }
 };
 ```
+
+To see the full list of supported networks, run `npx hardhat verify --list-networks`. The identifiers shown there are the ones that should be used as keys in the `apiKey` object.
+
+### Adding support for other networks
+
+If the chain you are using is not in the list, you can manually add the necessary information to verify your contracts on it. For this you need three things: the chain id of the network, the URL of the verification endpoint, and the URL of the explorer.
+
+For example, if Rinkeby wasn't supported, you could add it like this:
+
+```
+etherscan: {
+  apiKey: {
+    rinkeby: "<rinkeby-api-key>"
+  },
+  customChains: [
+    {
+      network: "rinkeby",
+      chainId: 4,
+      urls: {
+        apiURL: "https://api-rinkeby.etherscan.io/api",
+        browserURL: "https://rinkeby.etherscan.io"
+      }
+    }
+  ]
+}
+```
+
+Keep in mind that the name you are giving to the network in `customChains` is the same one that has to be used in the `apiKey` object.
+
+To see which custom chains are supported, run `npx hardhat verify --list-networks`.
 
 ### Using programmatically
 
@@ -222,7 +215,3 @@ The plugin works by fetching the bytecode in the given address and using it to c
 ## Known limitations
 
 - Adding, removing, moving or renaming new contracts to the hardhat project or reorganizing the directory structure of contracts after deployment may alter the resulting bytecode in some solc versions. See this [Solidity issue](https://github.com/ethereum/solidity/issues/9573) for further information.
-
-## Contributing
-
-See the [Contribution Guide](./CONTRIBUTING.md) for details.

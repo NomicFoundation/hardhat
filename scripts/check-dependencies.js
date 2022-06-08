@@ -11,16 +11,24 @@ const IGNORE_SAME_VERSION_FOR_PACKAGES = {
   "@types/chai": ["@nomiclabs/hardhat-truffle4", "@nomiclabs/hardhat-truffle5"],
   "truffle-contract": [
     "@nomiclabs/hardhat-truffle4",
-    "@nomiclabs/hardhat-truffle5"
+    "@nomiclabs/hardhat-truffle5",
   ],
   ethers: ["@nomiclabs/hardhat-etherscan"],
-  typescript: ["hardhat"],
-  ["ts-node"]: ["hardhat"]
+  ["@types/node"]: ["docs"],
+  ["@typescript-eslint/eslint-plugin"]: ["docs"],
+  ["@typescript-eslint/parser"]: ["docs"],
+  eslint: ["docs"],
+  ["eslint-config-prettier"]: ["docs"],
+  ["eslint-plugin-prettier"]: ["docs"],
+  ["glob"]: ["docs"],
+  ["undici"]: ["docs"],
+  ["ts-node"]: ["docs", "hardhat"],
+  ["typescript"]: ["docs", "hardhat"],
 };
 
 const IGNORE_PEER_DEPENDENCIES_CHECK_FOR_PACKAGES = {
   typescript: ["hardhat"],
-  ["ts-node"]: ["hardhat"]
+  ["ts-node"]: ["hardhat"],
 };
 
 function checkPeerDepedencies(packageJson) {
@@ -38,7 +46,11 @@ function checkPeerDepedencies(packageJson) {
 
   let success = true;
   for (const dependency of Object.keys(packageJson.peerDependencies)) {
-    if (IGNORE_PEER_DEPENDENCIES_CHECK_FOR_PACKAGES[dependency]?.includes(packageJson.name)) {
+    if (
+      IGNORE_PEER_DEPENDENCIES_CHECK_FOR_PACKAGES[dependency]?.includes(
+        packageJson.name
+      )
+    ) {
       continue;
     }
 

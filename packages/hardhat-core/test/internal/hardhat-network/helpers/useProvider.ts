@@ -126,7 +126,14 @@ export function useProvider({
     delete (this as any).hardhatNetworkProvider;
 
     if (this.server !== undefined) {
+      // close server and fail if it takes too long
+      const beforeClose = Date.now();
       await this.server.close();
+      const afterClose = Date.now();
+      if (afterClose - beforeClose > 1000) {
+        throw new Error("Closing the server took more than 1 second");
+      }
+
       delete this.server;
       delete this.serverInfo;
     }
