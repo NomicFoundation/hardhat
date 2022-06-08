@@ -2,7 +2,7 @@
 
 Once you're ready to share your dApp with other people what you may want to do is deploy to a live network. This way others can access an instance that's not running locally on your system.
 
-There's the Ethereum network that deals with real money which is called "mainnet", and then there are other live networks that don't deal with real money but do mimic the real world scenario well, and can be used by others as a shared staging environment. These are called "testnets" and Ethereum has [multiple ones](https://ethereum.org/en/developers/docs/networks/), like _Goerli_ and _Sepolia_. We recommend you deploy your contracts to the _Goerli_ testnet.
+There's the Ethereum network that deals with real money which is called "mainnet", and then there are other live networks that don't deal with real money but do mimic the real world scenario well, and can be used as a shared staging environment. These are called "testnets" and [Ethereum has several](https://ethereum.org/en/developers/docs/networks/#ethereum-testnets), like _Goerli_ and _Sepolia_. We recommend you deploy your contracts to the _Goerli_ testnet.
 
 At the software level, deploying to a testnet is the same as deploying to mainnet. The only difference is which network you connect to. Let's look into what the code to deploy your contracts using ethers.js would look like.
 
