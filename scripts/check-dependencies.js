@@ -3,17 +3,24 @@ const path = require("path");
 
 // An array of dependencies whose version checks are ignored for all the
 // packages
-const IGNORE_FROM_ALL = ["web3", "hardhat"];
+const IGNORE_SAME_VERSION_FROM_ALL = ["web3", "hardhat"];
 
 // A map from dependencies to package names where it should be ignored
-const IGNORE_FOR_PACKAGES = {
+const IGNORE_SAME_VERSION_FOR_PACKAGES = {
   chai: ["@nomiclabs/hardhat-truffle4", "@nomiclabs/hardhat-truffle5"],
   "@types/chai": ["@nomiclabs/hardhat-truffle4", "@nomiclabs/hardhat-truffle5"],
   "truffle-contract": [
     "@nomiclabs/hardhat-truffle4",
-    "@nomiclabs/hardhat-truffle5",
+    "@nomiclabs/hardhat-truffle5"
   ],
   ethers: ["@nomiclabs/hardhat-etherscan"],
+  typescript: ["hardhat"],
+  ["ts-node"]: ["hardhat"]
+};
+
+const IGNORE_PEER_DEPENDENCIES_CHECK_FOR_PACKAGES = {
+  typescript: ["hardhat"],
+  ["ts-node"]: ["hardhat"]
 };
 
 function checkPeerDepedencies(packageJson) {
@@ -31,6 +38,10 @@ function checkPeerDepedencies(packageJson) {
 
   let success = true;
   for (const dependency of Object.keys(packageJson.peerDependencies)) {
+    if (IGNORE_PEER_DEPENDENCIES_CHECK_FOR_PACKAGES[dependency]?.includes(packageJson.name)) {
+      continue;
+    }
+
     if (packageJson.devDependencies[dependency] === undefined) {
       console.error(
         `${packageJson.name} has ${dependency} as peerDependency, but not as devDependency`
@@ -62,13 +73,13 @@ function addDependencies(packageName, dependenciesToAdd, allDependenciesMap) {
   }
 
   for (const [name, spec] of Object.entries(dependenciesToAdd)) {
-    if (IGNORE_FROM_ALL.includes(name)) {
+    if (IGNORE_SAME_VERSION_FROM_ALL.includes(name)) {
       continue;
     }
 
     if (
-      IGNORE_FOR_PACKAGES[name] !== undefined &&
-      IGNORE_FOR_PACKAGES[name].includes(packageName)
+      IGNORE_SAME_VERSION_FOR_PACKAGES[name] !== undefined &&
+      IGNORE_SAME_VERSION_FOR_PACKAGES[name].includes(packageName)
     ) {
       continue;
     }
