@@ -230,4 +230,4 @@ expect("0x00012AB").to.hexEqual("0x12ab");
 
 ## Dig Deeper
 
-For a full listing of all of the matchers supported by this package, see [the reference documentation](/chai-matchers/reference).
+For a full listing of all of the matchers supported by this package, see [the reference documentation](./reference).

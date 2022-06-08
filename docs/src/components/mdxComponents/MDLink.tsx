@@ -66,7 +66,9 @@ const StyledMdLinkContainer = styled.span`
 `;
 
 const getAbsoluteHrefFromRelativePath = (href: string, currentHref: string) => {
-  const pathSegments = currentHref.split("/");
+  const pathSegments = currentHref
+    .split("/")
+    .filter((segment) => segment !== "");
   const hrefSegments = href.split("/").filter((segment) => segment !== ".");
 
   const pathSegmentsCount = pathSegments.length;
@@ -79,7 +81,7 @@ const getAbsoluteHrefFromRelativePath = (href: string, currentHref: string) => {
     0
   );
 
-  const baseSegments = pathSegments.slice(0, baseSegmentsCount);
+  const baseSegments = pathSegments.slice(0, baseSegmentsCount + 1);
 
   const newSegments = ["", ...baseSegments, ...hrefSegments];
 
