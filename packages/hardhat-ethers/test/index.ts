@@ -1,4 +1,5 @@
-import { assert } from "chai";
+import chai, { assert } from "chai";
+import chaiAsPromised from "chai-as-promised";
 import { ethers } from "ethers";
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import { Artifact } from "hardhat/types";
@@ -7,6 +8,8 @@ import util from "util";
 import { EthersProviderWrapper } from "../src/internal/ethers-provider-wrapper";
 
 import { useEnvironment } from "./helpers";
+
+chai.use(chaiAsPromised);
 
 describe("Ethers plugin", function () {
   describe("ganache", function () {
@@ -17,6 +20,7 @@ describe("Ethers plugin", function () {
         assert.containsAllKeys(this.env.ethers, [
           "provider",
           "getSigners",
+          "getImpersonatedSigner",
           "getContractFactory",
           "getContractAt",
           ...Object.keys(ethers),
@@ -139,6 +143,16 @@ describe("Ethers plugin", function () {
           assert.equal(
             sigs[0].address,
             "0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1"
+          );
+        });
+      });
+
+      describe("getImpersonatedSigner", function () {
+        it("should return the working impersonated signer", async function () {
+          const address = `0x${"ff".repeat(20)}`;
+          await assert.isRejected(
+            this.env.ethers.getImpersonatedSigner(address),
+            "Method hardhat_impersonateAccount not supported"
           );
         });
       });
