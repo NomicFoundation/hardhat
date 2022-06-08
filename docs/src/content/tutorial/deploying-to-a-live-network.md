@@ -2,7 +2,7 @@
 
 Once you're ready to share your dApp with other people what you may want to do is deploy to a live network. This way others can access an instance that's not running locally on your system.
 
-There's the Ethereum network that deals with real money which is called "mainnet", and then there are other live networks that don't deal with real money but do mimic the real world scenario well, and can be used by others as a shared staging environment. These are called "testnets" and Ethereum has multiple ones: _Ropsten_, _Kovan_, _Rinkeby_ and _Goerli_. We recommend you deploy your contracts to the _Ropsten_ testnet.
+There's the Ethereum network that deals with real money which is called "mainnet", and then there are other live networks that don't deal with real money but do mimic the real world scenario well, and can be used as a shared staging environment. These are called "testnets" and [Ethereum has several](https://ethereum.org/en/developers/docs/networks/#ethereum-testnets), like _Goerli_ and _Sepolia_. We recommend you deploy your contracts to the _Goerli_ testnet.
 
 At the software level, deploying to a testnet is the same as deploying to mainnet. The only difference is which network you connect to. Let's look into what the code to deploy your contracts using ethers.js would look like.
 
@@ -49,7 +49,7 @@ Token address: 0x5FbDB2315678afecb367f032d93F642f64180aa3
 
 ## Deploying to remote networks
 
-To deploy to a remote network such as mainnet or any testnet, you need to add a `network` entry to your `hardhat.config.js` file. We’ll use Ropsten for this example, but you can add any network similarly:
+To deploy to a remote network such as mainnet or any testnet, you need to add a `network` entry to your `hardhat.config.js` file. We’ll use Goerli for this example, but you can add any network similarly:
 
 ```js{5,11,15-20}
 require("@nomiclabs/hardhat-waffle");
@@ -58,18 +58,18 @@ require("@nomiclabs/hardhat-waffle");
 // a new App in its dashboard, and replace "KEY" with its key
 const ALCHEMY_API_KEY = "KEY";
 
-// Replace this private key with your Ropsten account private key
+// Replace this private key with your Goerli account private key
 // To export your private key from Metamask, open Metamask and
 // go to Account Details > Export Private Key
 // Be aware of NEVER putting real Ether into testing accounts
-const ROPSTEN_PRIVATE_KEY = "YOUR ROPSTEN PRIVATE KEY";
+const GOERLI_PRIVATE_KEY = "YOUR GOERLI PRIVATE KEY";
 
 module.exports = {
   solidity: "0.7.3",
   networks: {
-    ropsten: {
-      url: `https://eth-ropsten.alchemyapi.io/v2/${ALCHEMY_API_KEY}`,
-      accounts: [`${ROPSTEN_PRIVATE_KEY}`]
+    goerli: {
+      url: `https://eth-goerli.alchemyapi.io/v2/${ALCHEMY_API_KEY}`,
+      accounts: [`${GOERLI_PRIVATE_KEY}`]
     }
   }
 };
@@ -77,28 +77,23 @@ module.exports = {
 
 We're using [Alchemy](https://www.alchemyapi.io), but pointing `url` to any Ethereum node or gateway would work. Go grab your `ALCHEMY_API_KEY` and come back.
 
-To deploy on Ropsten you need to send ropsten-ETH into the address that's going to be making the deployment. You can get some ETH for testnets from a faucet, a service that distributes testing-ETH for free. Here's some for Ropsten:
+To deploy on Goerli you need to send goerli-ETH into the address that's going to be making the deployment. You can get some ETH for testnets from a faucet, a service that distributes testing-ETH for free. Here are some for Goerli:
 
-- [Portland State Ropsten Ethereum (rETH) faucet](https://ropsten.oregonctf.org/eth)
-- [Ropsten testnet faucet](https://faucet.egorfine.com/)
-- [MetaMask Ether Faucet](https://faucet.metamask.io/)
+- [Chainlink faucet](https://faucets.chain.link/)
+- [Alchemy Goerli Faucet](https://goerlifaucet.com/)
 
-You'll have to change Metamask's network to Ropsten before transacting.
+You'll have to change Metamask's network to Goerli before transacting.
 
 :::tip
 
-You can get some ETH for other testnets following these links:
-
-- [Kovan faucet](https://faucet.kovan.network/)
-- [Rinkeby faucet](https://faucet.rinkeby.io/)
-- [Goerli faucet](https://goerli-faucet.slock.it/)
+You can learn more about other testnets and find links to their faucets on the [ethereum.org site](https://ethereum.org/en/developers/docs/networks/#ethereum-testnets).
 
 :::
 
 Finally, run:
 
 ```
-npx hardhat run scripts/deploy.js --network ropsten
+npx hardhat run scripts/deploy.js --network goerli
 ```
 
 If everything went well, you should see the deployed contract address.
