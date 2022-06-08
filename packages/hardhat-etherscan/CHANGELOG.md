@@ -1,5 +1,11 @@
 # @nomiclabs/hardhat-etherscan
 
+## 3.1.0
+
+### Minor Changes
+
+- c4283f816: Added support for verifying contracts on custom explorers. Thanks to @no2chem for the idea and initial implementation of this feature.
+
 ## 3.0.4
 
 ### Patch Changes
