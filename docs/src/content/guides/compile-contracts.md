@@ -8,7 +8,7 @@ Compiling...
 Compiled 1 contract successfully
 ```
 
-The compiled artifacts will be saved in the `artifacts/` directory by default, or whatever your configured artifacts path is. Look at the [paths configuration section](../config/README.md#path-configuration) to learn how to change it. This directory will be created if it doesn't exist.
+The compiled artifacts will be saved in the `artifacts/` directory by default, or whatever your configured artifacts path is. Look at the [paths configuration section](../config/index.md#path-configuration) to learn how to change it. This directory will be created if it doesn't exist.
 
 After the initial compilation, Hardhat will try to do the least amount of work possible the next time you compile. For example, if you didn't change any files since the last compilation, nothing will be compiled:
 

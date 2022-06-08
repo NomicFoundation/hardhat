@@ -52,9 +52,9 @@ You can customize which network is used by default when running Hardhat by setti
 
 ### Hardhat Network
 
-Hardhat comes built-in with a special network called `hardhat`. When using this network, an instance of the [Hardhat Network](../hardhat-network/README.md) will be automatically created when you run a task, script or test your smart contracts.
+Hardhat comes built-in with a special network called `hardhat`. When using this network, an instance of the [Hardhat Network](../hardhat-network/index.md) will be automatically created when you run a task, script or test your smart contracts.
 
-Hardhat Network has first-class support of Solidity. It always knows which smart contracts are being run and exactly what they do and why they fail. Learn more about it [here](../hardhat-network/README.md).
+Hardhat Network has first-class support of Solidity. It always knows which smart contracts are being run and exactly what they do and why they fail. Learn more about it [here](../hardhat-network/index.md).
 
 See [the Hardhat Network Configuration Reference](../hardhat-network/reference/#config) for details on what can be configured.
 

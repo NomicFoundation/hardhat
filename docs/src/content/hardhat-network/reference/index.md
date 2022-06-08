@@ -65,11 +65,11 @@ This setting changes how Hardhat Network works, to mimic Ethereum's mainnet at a
 
 #### `throwOnTransactionFailures`
 
-A boolean that controls if Hardhat Network throws on transaction failures. If this value is `true`, Hardhat Network will throw [combined JavaScript and Solidity stack traces](../README.md#solidity-stack-traces) on transaction failures. If it is `false`, it will return the failing transaction hash. In both cases the transactions are added into the blockchain. Default value: `true`
+A boolean that controls if Hardhat Network throws on transaction failures. If this value is `true`, Hardhat Network will throw [combined JavaScript and Solidity stack traces](../index.md#solidity-stack-traces) on transaction failures. If it is `false`, it will return the failing transaction hash. In both cases the transactions are added into the blockchain. Default value: `true`
 
 #### `throwOnCallFailures`
 
-A boolean that controls if Hardhat Network throws on call failures. If this value is `true`, Hardhat Network will throw [combined JavaScript and Solidity stack traces](../README.md#solidity-stack-traces) when a call fails. If it is `false`, it will return the call's `return data`, which can contain a revert reason. Default value: `true`
+A boolean that controls if Hardhat Network throws on call failures. If this value is `true`, Hardhat Network will throw [combined JavaScript and Solidity stack traces](../index.md#solidity-stack-traces) when a call fails. If it is `false`, it will return the call's `return data`, which can contain a revert reason. Default value: `true`
 
 #### `loggingEnabled`
 
@@ -237,7 +237,7 @@ Hardhat Network is initialized by default in this state:
   - `0xdD2FD4581271e230360230F9337D5c0430Bf44C0`
   - `0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199`
 
-To customise it, take a look at [the configuration section](/config/README.md#hardhat-network).
+To customise it, take a look at [the configuration section](/config/index.md#hardhat-network).
 
 ## JSON-RPC methods support
 

@@ -92,4 +92,4 @@ You can still pass arguments to Hardhat when using it as a library. This is done
 - `HARDHAT_MAX_MEMORY`: Sets the maximum amount of memory that Hardhat can use.
 
 [hardhat runtime environment]: ../advanced/hardhat-runtime-environment.md
-[getting started guide]: ../getting-started/README.md
+[getting started guide]: ../getting-started/index.md

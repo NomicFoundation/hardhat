@@ -109,7 +109,7 @@ To use it, you simply import `hardhat/console.sol` and call it. It implements th
 
 It always works, regardless of the call or transaction failing or being successful. And, because it's implemented in standard Solidity, it works with _any_ tool or library, emitting log entries where it's fully supported &mdash; Hardhat Network, Remix, and Tenderly &mdash; and falling back gracefully to a no-op everywhere else &mdash; Remix, Waffle, Truffle, etc &mdash; though it does consume a small amount of gas on live networks.
 
-You can see an example in the Sample Project. Follow the steps in [Quick Start](/getting-started/README.md#quick-start) to try it out. You can also refer to more details in [the reference documentation](./reference/README.md#console-log).
+You can see an example in the Sample Project. Follow the steps in [Quick Start](/getting-started/index.md#quick-start) to try it out. You can also refer to more details in [the reference documentation](./reference/index.md#console-log).
 
 ### Mainnet forking
 
@@ -159,7 +159,7 @@ eth_call
       at process._tickCallback (internal/process/next_tick.js:68:7)
 ```
 
-This logging is enabled by default when using Hardhat Network's node (i.e. `npx hardhat node`), but disabled when using the in-process Hardhat Network provider. See [Hardhat Network's config](../config/README.md#hardhat-network) to learn more about how to control its logging.
+This logging is enabled by default when using Hardhat Network's node (i.e. `npx hardhat node`), but disabled when using the in-process Hardhat Network provider. See [Hardhat Network's config](../config/index.md#hardhat-network) to learn more about how to control its logging.
 
 ### The `debug_traceTransaction` method
 
@@ -167,8 +167,8 @@ You can get debug traces of already-mined transactions using the `debug_traceTra
 
 If you are using [mainnet forking](guides/mainnet-forking.html) with an archive node, you can get traces of transactions from the remote network even if the node you are using doesn't support `debug_traceTransaction`.
 
-For more details, see [the reference documentation for this method](./reference/README.md#debug-tracetransaction).
+For more details, see [the reference documentation for this method](./reference/index.md#debug-tracetransaction).
 
 ## Dig deeper
 
-This has been just a high-level explanation of what Hardhat Network is. To dig deeper, see [the Reference documentation](./reference/README.md). <!-- TODO: when they exist, add additional links here to "Guides", "Tutorials" and "Explanations" of more specific things. -->
+This has been just a high-level explanation of what Hardhat Network is. To dig deeper, see [the Reference documentation](./reference/index.md). <!-- TODO: when they exist, add additional links here to "Guides", "Tutorials" and "Explanations" of more specific things. -->
