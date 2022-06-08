@@ -5,12 +5,6 @@ on:
     branches: [pre-release-testing-branch]
   workflow_dispatch:
 
-env:
-  RUN_ETHERSCAN_TESTS: yes
-  ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
-  WALLET_PRIVATE_KEY: ${{ secrets.ETHERSCAN_RINKEBY_PRIVATE_KEY }}
-  TESTNET_NETWORK_URL: ${{ secrets.ETHERSCAN_RINKEBY_RPC_URL }}
-
 concurrency:
   group: ${{github.workflow}}-${{github.ref}}
   cancel-in-progress: true
