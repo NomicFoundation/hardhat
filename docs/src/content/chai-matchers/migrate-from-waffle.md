@@ -100,6 +100,6 @@ The `@nomicfoundation/hardhat-chai-matchers` plugin is meant to be a drop-in rep
 
 The Hardhat Chai Matchers are compatible with Waffle's API and offer several advantages:
 
-- **More features**: the Hardhat Chai Matchers include new matchers, like [`.revertedWithCustomError`](/chai-matchers/reference#.revertedwithcustomerror) and [`.revertedWithPanic`](/chai-matchers/reference#.revertedwithpanic), which let you perform better assertions of a transaction's revert reason.
+- **More features**: the Hardhat Chai Matchers include new matchers, like [`.revertedWithCustomError`](/chai-matchers/reference#.revertedwithcustomerror) and [`.revertedWithPanic`](/chai-matchers/reference.md#.revertedwithpanic), which let you perform better assertions of a transaction's revert reason.
 - **Support for native BigInts**: Besides numbers and ethers’s BigNumbers, you can also use JavaScript's native BigInts in your assertions, which means being able to do things like `expect(await token.totalSupply()).to.equal(10n**18n)` instead of `expect(await token.totalSupply()).to.equal(ethers.BigNumber.from("1000000000000000000"))`.
 - **More reliable**: Several problems and minor bugs in Waffle's matchers are fixed in the Hardhat Chai Matchers.
