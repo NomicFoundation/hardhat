@@ -3,22 +3,19 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 type TabType = string;
 
 interface ISelectedTabsState {
-  "npm/yarn": string;
-  "js/ts": string;
   [key: TabType]: string;
 }
 
 interface ITabsContext {
   tabsState: ISelectedTabsState;
   changeTab: (type: string, value: string) => void;
+  setTabsState: React.Dispatch<React.SetStateAction<ISelectedTabsState>>;
 }
 
 export const GlobalTabsContext = React.createContext<ITabsContext>({
-  tabsState: {
-    "npm/yarn": "npm",
-    "js/ts": "js",
-  },
+  tabsState: {},
   changeTab: () => {},
+  setTabsState: () => {},
 });
 
 export const generateTabsGroupType = (options: string): string => {
@@ -28,10 +25,7 @@ export const generateTabsGroupType = (options: string): string => {
 export const TabsProvider = ({
   children,
 }: React.PropsWithChildren<{}>): JSX.Element => {
-  const [tabsState, setTabsState] = useState<ISelectedTabsState>({
-    "npm/yarn": "npm",
-    "js/ts": "js",
-  });
+  const [tabsState, setTabsState] = useState<ISelectedTabsState>({});
 
   const changeTab = useCallback(
     (type, value) => {
@@ -39,15 +33,9 @@ export const TabsProvider = ({
         ...tabsState,
         [type]: value,
       };
-      localStorage.setItem("tabs", JSON.stringify(newTabsState));
       setTabsState(newTabsState);
     },
     [tabsState, setTabsState]
-  );
-
-  const initialContext = useMemo(
-    () => ({ tabsState, changeTab }),
-    [tabsState, changeTab]
   );
 
   useEffect(() => {
@@ -56,6 +44,15 @@ export const TabsProvider = ({
 
     setTabsState(JSON.parse(savedTabsState));
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem("tabs", JSON.stringify(tabsState));
+  }, [tabsState]);
+
+  const initialContext = useMemo(
+    () => ({ tabsState, changeTab, setTabsState }),
+    [tabsState, changeTab, setTabsState]
+  );
 
   return (
     <GlobalTabsContext.Provider value={initialContext}>
