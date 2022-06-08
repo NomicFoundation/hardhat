@@ -3,6 +3,7 @@ name: Pre-release tests
 on:
   push:
     branches: [pre-release-testing-branch]
+  workflow_dispatch:
 
 env:
   RUN_ETHERSCAN_TESTS: yes
