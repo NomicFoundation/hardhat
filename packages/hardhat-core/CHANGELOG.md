@@ -1,5 +1,12 @@
 # hardhat
 
+## 2.9.9
+
+### Patch Changes
+
+- ce6136b2a: Fix incorrect peerDependency
+- 3fd3756e6: Specify ts-node and typescript as optional peerDependencies
+
 ## 2.9.8
 
 ### Patch Changes
