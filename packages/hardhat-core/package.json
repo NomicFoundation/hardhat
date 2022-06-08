@@ -93,19 +93,6 @@
     "ts-node": "^8.1.0",
     "typescript": "~4.5.2"
   },
-  "peerDependencies": {
-    "chai": "^4.2.0",
-    "ts-node": "*",
-    "typescript": "*"
-  },
-  "peerDependenciesMeta": {
-    "ts-node": {
-      "optional": true
-    },
-    "typescript": {
-      "optional": true
-    }
-  },
   "dependencies": {
     "@ethereumjs/block": "^3.6.2",
     "@ethereumjs/blockchain": "^5.5.2",
@@ -155,6 +142,18 @@
     "undici": "^5.4.0",
     "uuid": "^8.3.2",
     "ws": "^7.4.6"
+  },
+  "peerDependencies": {
+    "ts-node": "*",
+    "typescript": "*"
+  },
+  "peerDependenciesMeta": {
+    "ts-node": {
+      "optional": true
+    },
+    "typescript": {
+      "optional": true
+    }
   },
   "nyc": {
     "extension": [
