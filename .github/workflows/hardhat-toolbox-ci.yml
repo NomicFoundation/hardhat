@@ -6,6 +6,10 @@ on:
     paths:
       - "packages/hardhat-toolbox/**"
       - "packages/hardhat-core/**"
+      - "packages/hardhat-chai-matchers/**"
+      - "packages/hardhat-network-helpers/**"
+      - "packages/hardhat-ethers/**"
+      - "packages/hardhat-etherscan/**"
       - "packages/hardhat-common/**"
       - "config/**"
   pull_request:
@@ -14,6 +18,10 @@ on:
     paths:
       - "packages/hardhat-toolbox/**"
       - "packages/hardhat-core/**"
+      - "packages/hardhat-chai-matchers/**"
+      - "packages/hardhat-network-helpers/**"
+      - "packages/hardhat-ethers/**"
+      - "packages/hardhat-etherscan/**"
       - "packages/hardhat-common/**"
       - "config/**"
 
