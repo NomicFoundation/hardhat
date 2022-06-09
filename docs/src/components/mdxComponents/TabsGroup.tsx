@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo } from "react";
+import React, { useContext, useMemo } from "react";
 import { styled } from "linaria/react";
 import { media, tm, tmDark, tmSelectors } from "../../themes";
 import { generateTabsGroupType, GlobalTabsContext } from "../../global-tabs";
@@ -79,18 +79,9 @@ const StyledTabsGroup = styled.div<{ selectedTab: string }>`
 `;
 
 const TabsGroup = ({ children, options }: ITabsGroup) => {
-  const { tabsState, changeTab, setTabsState } = useContext(GlobalTabsContext);
+  const { tabsState, changeTab } = useContext(GlobalTabsContext);
   const type = useMemo(() => generateTabsGroupType(options), [options]);
   const selectedTab = tabsState[type];
-
-  useEffect(() => {
-    const updatedTabsState = {
-      [options.split(",").join("/")]: options.split(",")[0],
-      ...tabsState,
-    };
-    setTabsState(updatedTabsState);
-  }, []);
-
   const childrenWithProps = React.Children.map(children, (child) => {
     // Checking isValidElement is the safe way and avoids a typescript
     // error too.

@@ -1,15 +1,16 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import tabsConfig from "../temp/tabsConfig.json";
 
 type TabType = string;
 
-interface ISelectedTabsState {
+export interface ITabsState {
   [key: TabType]: string;
 }
 
 interface ITabsContext {
-  tabsState: ISelectedTabsState;
+  tabsState: ITabsState;
   changeTab: (type: string, value: string) => void;
-  setTabsState: React.Dispatch<React.SetStateAction<ISelectedTabsState>>;
+  setTabsState: React.Dispatch<React.SetStateAction<ITabsState>>;
 }
 
 export const GlobalTabsContext = React.createContext<ITabsContext>({
@@ -19,13 +20,13 @@ export const GlobalTabsContext = React.createContext<ITabsContext>({
 });
 
 export const generateTabsGroupType = (options: string): string => {
-  return options.split(",").sort().join("/");
+  return options.split(",").join("/");
 };
 
 export const TabsProvider = ({
   children,
 }: React.PropsWithChildren<{}>): JSX.Element => {
-  const [tabsState, setTabsState] = useState<ISelectedTabsState>({});
+  const [tabsState, setTabsState] = useState<ITabsState>(tabsConfig);
 
   const changeTab = useCallback(
     (type, value) => {
@@ -42,7 +43,10 @@ export const TabsProvider = ({
     const savedTabsState = localStorage.getItem("tabs");
     if (savedTabsState === null) return;
 
-    setTabsState(JSON.parse(savedTabsState));
+    setTabsState({
+      ...tabsConfig,
+      ...JSON.parse(savedTabsState),
+    });
   }, []);
 
   useEffect(() => {

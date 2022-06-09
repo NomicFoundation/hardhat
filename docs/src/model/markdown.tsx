@@ -15,6 +15,7 @@ import rehypePrism from "rehype-prism";
 import remarkPrism from "remark-prism";
 
 import { DOCS_PATH, REPO_URL, TEMP_PATH } from "../config";
+import { ITabsState } from "../global-tabs";
 
 export const newLineDividerRegEx = /\r\n|\n/;
 
@@ -154,9 +155,10 @@ function setDefaultLang() {
   };
 }
 
-function checkTabs() {
+function validateTabs() {
   // @ts-ignore
   return (tree) => {
+    const initialTabsState: ITabsState = {};
     visit(tree, (node) => {
       if (node.type === "containerDirective" && node.name === "tabsgroup") {
         node.children?.forEach(
@@ -168,19 +170,20 @@ function checkTabs() {
               };
             }
           ) => {
-            if (
-              !node.attributes.options
-                .split(",")
-                .includes(child.data.hProperties.value)
-            ) {
+            const { options } = node.attributes;
+            if (!options.split(",").includes(child.data.hProperties.value)) {
               throw new Error(
                 `Value "${child.data.hProperties.value}" is not provided in TabsGroups options.`
               );
             }
+            [initialTabsState[options.split(",").join("/")]] =
+              options.split(",");
           }
         );
       }
     });
+    const tabsConfigPath = `${TEMP_PATH}tabsConfig.json`;
+    fs.writeFileSync(tabsConfigPath, JSON.stringify(initialTabsState));
   };
 }
 
@@ -234,7 +237,7 @@ export const prepareMdContent = async (
           remarkUnwrapImages,
           setDefaultLang,
           remarkPrism,
-          checkTabs,
+          validateTabs,
         ],
 
         rehypePlugins: [
