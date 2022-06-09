@@ -20,7 +20,10 @@ export const GlobalTabsContext = React.createContext<ITabsContext>({
 });
 
 export const generateTabsGroupType = (options: string): string => {
-  return options.split(",").join("/");
+  return options
+    .split(",")
+    .map((option) => option.trim())
+    .join("/");
 };
 
 export const TabsProvider = ({

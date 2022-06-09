@@ -176,8 +176,9 @@ function validateTabs() {
                 `Value "${child.data.hProperties.value}" is not provided in TabsGroups options.`
               );
             }
-            [initialTabsState[options.split(",").join("/")]] =
-              options.split(",");
+            initialTabsState[options.split(",").join("/")] = options
+              .split(",")[0]
+              .trim();
           }
         );
       }

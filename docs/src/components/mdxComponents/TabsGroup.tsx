@@ -94,20 +94,23 @@ const TabsGroup = ({ children, options }: ITabsGroup) => {
   return (
     <StyledTabsGroup selectedTab={selectedTab}>
       <StyledTabsContainer>
-        {options.split(",").map((option: string) => {
-          return (
-            <StyledTabButton
-              key={option}
-              data-selected={selectedTab === option}
-              value={option}
-              onClick={() => {
-                changeTab(type, option);
-              }}
-            >
-              {option}
-            </StyledTabButton>
-          );
-        })}
+        {options
+          .split(",")
+          .map((option) => option.trim())
+          .map((option: string) => {
+            return (
+              <StyledTabButton
+                key={option}
+                data-selected={selectedTab === option}
+                value={option}
+                onClick={() => {
+                  changeTab(type, option);
+                }}
+              >
+                {option}
+              </StyledTabButton>
+            );
+          })}
       </StyledTabsContainer>
       {childrenWithProps}
     </StyledTabsGroup>
