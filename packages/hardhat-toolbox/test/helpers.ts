@@ -1,5 +1,3 @@
-import type {} from "@nomiclabs/hardhat-ethers";
-
 import { resetHardhatContext } from "hardhat/plugins-testing";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import path from "path";
