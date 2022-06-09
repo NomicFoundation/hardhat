@@ -5,6 +5,11 @@ import "@nomiclabs/hardhat-etherscan";
 import "@typechain/hardhat";
 import "hardhat-gas-reporter";
 import "solidity-coverage";
+/**
+ * If a new official plugin is added, make sure that the tsconfig.json file and
+ * the hardhat-toolbox workflow are updated. The parts of the documentation that
+ * install hardhat-toolbox with npm 6 or yarn must also be updated.
+ */
 
 import { extendConfig } from "hardhat/config";
 
