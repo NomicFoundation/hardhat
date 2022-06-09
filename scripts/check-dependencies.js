@@ -154,6 +154,12 @@ function main() {
     }
 
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
+
+    // temporarily ignore hardhat-toolbox
+    if (packageJson.name === "@nomicfoundation/hardhat-toolbox") {
+      continue;
+    }
+
     const peersOk = checkPeerDepedencies(packageJson);
     const dependencyMap = getDependencyMap(packageJson);
     dependencyMaps.push(dependencyMap);
