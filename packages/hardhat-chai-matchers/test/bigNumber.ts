@@ -5,7 +5,7 @@ import BN from "bn.js";
 
 import { HardhatError } from "hardhat/internal/core/errors";
 
-import "../src";
+import "../src/internal/add-chai-matchers";
 
 type SupportedNumber = number | bigint | BN | BigNumberEthers | BigNumberJs;
 
