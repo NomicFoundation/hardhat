@@ -3,7 +3,7 @@ import { BigNumber } from "ethers";
 import { ProviderError } from "hardhat/internal/core/providers/errors";
 
 import "../../src";
-import { PANIC_CODES } from "../../src/reverted/panic";
+import { PANIC_CODES } from "../../src/panic";
 import {
   runSuccessfulAsserts,
   runFailedAsserts,

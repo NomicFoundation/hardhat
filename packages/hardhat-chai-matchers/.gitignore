@@ -100,7 +100,3 @@ typings/
 .dynamodb/
 
 !.eslintrc.js
-
-calledOnContract/
-misc/
-reverted/

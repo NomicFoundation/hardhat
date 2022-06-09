@@ -4,7 +4,7 @@ import { AssertionError, expect } from "chai";
 import { BigNumber, Contract, providers } from "ethers";
 
 import "../src";
-import { clearTokenDescriptionsCache } from "../src/changeTokenBalance";
+import { clearTokenDescriptionsCache } from "../src/internal/changeTokenBalance";
 import { useEnvironment, useEnvironmentWithNode } from "./helpers";
 
 type TransactionResponse = providers.TransactionResponse;

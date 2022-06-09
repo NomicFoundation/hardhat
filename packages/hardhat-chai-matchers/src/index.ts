@@ -4,8 +4,8 @@ import chaiAsPromised from "chai-as-promised";
 
 import "./types";
 
-import { checkIfWaffleIsInstalled } from "./checkIfWaffleIsInstalled";
-import { hardhatChaiMatchers } from "./hardhatChaiMatchers";
+import { checkIfWaffleIsInstalled } from "./internal/checkIfWaffleIsInstalled";
+import { hardhatChaiMatchers } from "./internal/hardhatChaiMatchers";
 
 use(hardhatChaiMatchers);
 use(chaiAsPromised);
