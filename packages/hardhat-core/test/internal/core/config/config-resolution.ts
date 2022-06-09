@@ -395,6 +395,7 @@ describe("Config resolution", () => {
           assert.deepEqual(config.networks.hardhat.forking, {
             url: "asd",
             enabled: true,
+            httpHeaders: {},
           });
         });
 
@@ -413,6 +414,7 @@ describe("Config resolution", () => {
           assert.deepEqual(config.networks.hardhat.forking, {
             url: "asd",
             enabled: false,
+            httpHeaders: {},
           });
         });
 
@@ -432,6 +434,7 @@ describe("Config resolution", () => {
             url: "asd",
             enabled: true,
             blockNumber: 123,
+            httpHeaders: {},
           });
         });
       });

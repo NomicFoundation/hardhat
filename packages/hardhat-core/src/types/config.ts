@@ -90,6 +90,7 @@ export interface HardhatNetworkForkingUserConfig {
   enabled?: boolean;
   url: string;
   blockNumber?: number;
+  httpHeaders?: { [name: string]: string };
 }
 
 export type HttpNetworkAccountsUserConfig =
@@ -176,6 +177,7 @@ export interface HardhatNetworkForkingConfig {
   enabled: boolean;
   url: string;
   blockNumber?: number;
+  httpHeaders: { [name: string]: string };
 }
 
 export interface HttpNetworkConfig {

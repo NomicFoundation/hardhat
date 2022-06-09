@@ -39,6 +39,7 @@ export type LocalNodeConfig = CommonConfig;
 export interface ForkConfig {
   jsonRpcUrl: string;
   blockNumber?: number;
+  httpHeaders?: { [name: string]: string };
 }
 
 export interface ForkedNodeConfig extends CommonConfig {

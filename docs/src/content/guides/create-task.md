@@ -54,7 +54,7 @@ For our example, we will use Web3.js to interact with our contracts, so we will 
 npm install --save-dev @nomiclabs/hardhat-web3 web3
 ```
 
-(Take a look at the [list of Hardhat plugins](../plugins/README.md) to see other available libraries.)
+(Take a look at the [list of Hardhat plugins](../plugins/index.md) to see other available libraries.)
 
 Task creation code can go in `hardhat.config.js`, or whatever your configuration file is called. It’s a good place to create simple tasks. If your task is more complex, it's also perfectly valid to split the code into several files and `require` them from the configuration file.
 

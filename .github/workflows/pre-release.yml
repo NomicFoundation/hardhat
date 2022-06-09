@@ -3,12 +3,7 @@ name: Pre-release tests
 on:
   push:
     branches: [pre-release-testing-branch]
-
-env:
-  RUN_ETHERSCAN_TESTS: yes
-  ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
-  WALLET_PRIVATE_KEY: ${{ secrets.ETHERSCAN_RINKEBY_PRIVATE_KEY }}
-  TESTNET_NETWORK_URL: ${{ secrets.ETHERSCAN_RINKEBY_RPC_URL }}
+  workflow_dispatch:
 
 concurrency:
   group: ${{github.workflow}}-${{github.ref}}
@@ -22,7 +17,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
-          node-version: 12
+          node-version: 14
           cache: yarn
       - name: Install
         run: yarn --frozen-lockfile
@@ -30,7 +25,17 @@ jobs:
         run: yarn build
       - name: lint
         run: yarn lint
+      - name: Cache artifacts
+        uses: actions/cache@v2
+        with:
+          path: |
+            packages/hardhat-core/test/internal/hardhat-network/stack-traces/test-files/**/artifacts
+          key: hardhat-network-stack-traces-tests-${{ hashFiles('yarn.lock') }}-${{ hashFiles('packages/hardhat-core/test/internal/hardhat-network/stack-traces/test-files/**/*.sol') }}-${{ hashFiles('packages/hardhat-core/test/internal/hardhat-network/stack-traces/test-files/**/test.json') }}-${{ hashFiles('packages/hardhat-core/test/internal/hardhat-network/stack-traces/**/*.ts') }}
       - name: test
+        env:
+          DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI: true
+          FORCE_COLOR: 3
+          NODE_OPTIONS: "--max-old-space-size=4096"
         run: yarn test
       - name: Check dependency versions
         run: node scripts/check-dependencies.js
