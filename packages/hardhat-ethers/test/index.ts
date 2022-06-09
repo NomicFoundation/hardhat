@@ -148,13 +148,14 @@ describe("Ethers plugin", function () {
       });
 
       describe("getImpersonatedSigner", function () {
-        it("should return the working impersonated signer", async function () {
+        it("should invoke hardhat_impersonateAccount", async function () {
           const address = `0x${"ff".repeat(20)}`;
           await assert.isRejected(
             this.env.ethers.getImpersonatedSigner(address),
             "Method hardhat_impersonateAccount not supported"
           );
         });
+        it("should return the working impersonated signer", async function () {});
       });
 
       describe("signer", function () {
