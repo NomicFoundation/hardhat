@@ -3,8 +3,10 @@ import { styled } from "linaria/react";
 import Link from "next/link";
 import Image from "next/image";
 
-import { media, tm } from "../themes";
+import { media, tm, tmDark, tmSelectors } from "../themes";
 import logo from "../assets/hardhat-logo.svg";
+import darkLogo from "../assets/hardhat-logo-dark.svg";
+
 import Hamburger from "./ui/Hamburger";
 import MobileMenu from "./ui/MobileMenu";
 import DesktopMenu from "./ui/DesktopMenu";
@@ -20,9 +22,20 @@ const Navigation = styled.nav`
   padding: 32px 24px;
   transition: all ease-in-out 0.5s;
   background-color: ${tm(({ colors }) => colors.neutral0)};
+  border-bottom: 1px solid ${tm(({ colors }) => colors.transparent)};
   z-index: 10;
   ${media.md} {
     padding: 24px 0;
+  }
+  ${tmSelectors.dark} {
+    background-color: ${tmDark(({ colors }) => colors.neutral0)};
+    border-bottom: 1px solid ${tmDark(({ colors }) => colors.border)};
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      background-color: ${tmDark(({ colors }) => colors.neutral0)};
+      border-bottom: 1px solid ${tmDark(({ colors }) => colors.border)};
+    }
   }
 `;
 
@@ -46,6 +59,27 @@ const LogoContainer = styled.a`
   background-color: ${tm(({ colors }) => colors.transparent)};
   border: none;
   cursor: pointer;
+  & .dark-logo {
+    display: none;
+  }
+  ${tmSelectors.dark} {
+    & .dark-logo {
+      display: inline;
+    }
+    & .light-logo {
+      display: none;
+    }
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      & .dark-logo {
+        display: inline;
+      }
+      & .light-logo {
+        display: none;
+      }
+    }
+  }
 `;
 
 const LandingNavigation: FC = () => {
@@ -69,7 +103,12 @@ const LandingNavigation: FC = () => {
       <ControlsContainer>
         <Link href="/" passHref>
           <LogoContainer aria-label="home page">
-            <Image src={logo} alt="logo" />
+            <span className="light-logo">
+              <Image src={logo} alt="logo" />
+            </span>
+            <span className="dark-logo">
+              <Image src={darkLogo} alt="logo" />
+            </span>
           </LogoContainer>
         </Link>
         <Hamburger

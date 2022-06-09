@@ -1,13 +1,6 @@
 import React from "react";
 import { styled } from "linaria/react";
-import {
-  breakpoints,
-  media,
-  tm,
-  tmDark,
-  tmHCDark,
-  tmSelectors,
-} from "../../themes";
+import { breakpoints, media, tm, tmDark, tmSelectors } from "../../themes";
 import useWindowSize, { WindowSizeState } from "../../hooks/useWindowSize";
 import { BannerProps, DefaultBannerProps } from "./types";
 
@@ -37,20 +30,14 @@ const BannerContainer = styled.section`
     font-size: 15px;
     line-height: 12px;
   }
-  :not(.landing &) {
-    ${tmSelectors.hcDark} {
-      background-color: ${tmHCDark(({ colors }) => colors.neutral900)};
-      color: ${tmHCDark(({ colors }) => colors.neutral0)};
-    }
-    ${tmSelectors.dark} {
+  ${tmSelectors.dark} {
+    background-color: ${tmDark(({ colors }) => colors.neutral900)};
+    color: ${tmDark(({ colors }) => colors.neutral0)};
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
       background-color: ${tmDark(({ colors }) => colors.neutral900)};
       color: ${tmDark(({ colors }) => colors.neutral0)};
-    }
-    ${media.mqDark} {
-      ${tmSelectors.auto} {
-        background-color: ${tmDark(({ colors }) => colors.neutral900)};
-        color: ${tmDark(({ colors }) => colors.neutral0)};
-      }
     }
   }
 `;

@@ -1,6 +1,6 @@
 import React from "react";
 import { styled } from "linaria/react";
-import { media, tm, tmDark, tmHCDark, tmSelectors } from "../../themes";
+import { media, tm, tmDark, tmSelectors } from "../../themes";
 
 interface Props {
   children: JSX.Element[] | JSX.Element;
@@ -19,10 +19,6 @@ const StyledOrderedList = styled.ol`
 
   ${tmSelectors.dark} {
     color: ${tmDark(({ colors }) => colors.neutral800)};
-  }
-
-  ${tmSelectors.hcDark} {
-    color: ${tmHCDark(({ colors }) => colors.neutral800)};
   }
 
   ${media.mqDark} {

@@ -1,6 +1,6 @@
 import React from "react";
 import { styled } from "linaria/react";
-import { media, tm, tmDark, tmHCDark, tmSelectors } from "../../themes";
+import { media, tm, tmDark, tmSelectors } from "../../themes";
 
 interface HamburgerProps {
   isOpen: boolean;
@@ -45,17 +45,13 @@ const HamburgerLine = styled.div<{ isOpen: boolean }>`
     transform: ${({ isOpen }: { isOpen: boolean }) =>
       isOpen ? "rotate(-45deg) translate(1px, 5px)" : "none"};
   }
-  :not(.landing &) {
-    ${tmSelectors.hcDark} {
-      background-color: ${tmHCDark(({ colors }) => colors.neutral900)};
-    }
-    ${tmSelectors.dark} {
+
+  ${tmSelectors.dark} {
+    background-color: ${tmDark(({ colors }) => colors.neutral900)};
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
       background-color: ${tmDark(({ colors }) => colors.neutral900)};
-    }
-    ${media.mqDark} {
-      ${tmSelectors.auto} {
-        background-color: ${tmDark(({ colors }) => colors.neutral900)};
-      }
     }
   }
 `;

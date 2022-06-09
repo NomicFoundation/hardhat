@@ -2,7 +2,7 @@ import React from "react";
 import { styled } from "linaria/react";
 
 import Section from "../Section";
-import { media, tm } from "../../themes";
+import { media, tm, tmDark, tmSelectors } from "../../themes";
 
 type Props = React.PropsWithChildren<{
   content: { title: string };
@@ -18,6 +18,14 @@ const Container = styled.section`
   ${media.md} {
     border-left: unset;
     border-top: 1px solid ${tm(({ colors }) => colors.neutral400)};
+  }
+  ${tmSelectors.dark} {
+    border-color: ${tmDark(({ colors }) => colors.neutral400)};
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      border-color: ${tmDark(({ colors }) => colors.neutral400)};
+    }
   }
 `;
 
@@ -41,6 +49,16 @@ const Title = styled.h2`
     transform: translate(-50%, -50%);
     font-size: 24px;
   }
+  ${tmSelectors.dark} {
+    background-color: ${tmDark(({ colors }) => colors.neutral0)};
+    color: ${tmDark(({ colors }) => colors.neutral900)};
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      background-color: ${tmDark(({ colors }) => colors.neutral0)};
+      color: ${tmDark(({ colors }) => colors.neutral900)};
+    }
+  }
 `;
 
 const TopBrackets = styled.div`
@@ -58,6 +76,14 @@ const TopBrackets = styled.div`
     width: 100%;
     border-top: none;
     left: 0;
+  }
+  ${tmSelectors.dark} {
+    border-color: ${tmDark(({ colors }) => colors.neutral400)};
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      border-color: ${tmDark(({ colors }) => colors.neutral400)};
+    }
   }
 `;
 const BottomBrackets = styled.div`

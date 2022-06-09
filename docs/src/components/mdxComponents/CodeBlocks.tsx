@@ -1,6 +1,6 @@
 import React from "react";
 import { styled } from "linaria/react";
-import { media, tm, tmDark, tmHCDark, tmSelectors } from "../../themes";
+import { media, tm, tmDark, tmSelectors } from "../../themes";
 
 interface CodeProps {
   children: string | JSX.Element[] | JSX.Element;
@@ -43,11 +43,6 @@ const StyledCode = styled.code`
     color: ${tmDark(({ colors }) => colors.codeColor)};
   }
 
-  ${tmSelectors.hcDark} {
-    background-color: ${tmHCDark(({ colors }) => colors.codeBackground)};
-    color: ${tmHCDark(({ colors }) => colors.codeColor)};
-  }
-
   ${media.mqDark} {
     ${tmSelectors.auto} {
       background-color: ${tmDark(({ colors }) => colors.codeBlockBackground)};
@@ -62,7 +57,7 @@ const StyledPre = styled.pre`
   background-color: ${tm(({ colors }) => colors.codeBlockBackground)};
   border-radius: 6px;
   overflow: auto;
-  border: 1px solid ${tmHCDark(({ colors }) => colors.transparent)};
+  border: 1px solid ${tm(({ colors }) => colors.transparent)};
   & code {
     padding: 0;
     color: ${tm(({ colors }) => colors.preCodeColor)};
@@ -100,14 +95,6 @@ const StyledPre = styled.pre`
     border: 1px solid ${tmDark(({ colors }) => colors.codeBlockBorder)};
     & code {
       color: ${tmDark(({ colors }) => colors.preCodeColor)};
-    }
-  }
-
-  ${tmSelectors.hcDark} {
-    background-color: ${tmHCDark(({ colors }) => colors.codeBlockBackground)};
-    border: 1px solid ${tmHCDark(({ colors }) => colors.codeBlockBorder)};
-    & code {
-      color: ${tmHCDark(({ colors }) => colors.preCodeColor)};
     }
   }
 

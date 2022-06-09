@@ -2,7 +2,7 @@ import React from "react";
 import { styled } from "linaria/react";
 import Image from "next/image";
 
-import { breakpoints, media, tm } from "../../themes";
+import { breakpoints, media, tm, tmDark, tmSelectors } from "../../themes";
 import useWindowSize from "../../hooks/useWindowSize";
 import CTA from "../ui/CTA";
 import Section from "../Section";
@@ -34,6 +34,16 @@ const GetStartedBlockStyled = styled.section`
     margin: unset;
     height: 792px;
   }
+  ${tmSelectors.dark} {
+    background-color: ${tmDark(({ colors }) => colors.neutral0)};
+    mix-blend-mode: color-dodge;
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      background-color: ${tmDark(({ colors }) => colors.neutral0)};
+      mix-blend-mode: color-dodge;
+    }
+  }
 `;
 
 const StyledBackground = styled.div`
@@ -46,6 +56,20 @@ const StyledBackground = styled.div`
   )};
   height: 100%;
   width: 100%;
+  ${tmSelectors.dark} {
+    background: ${tmDark(
+      ({ colors }) =>
+        `linear-gradient(254.24deg, ${colors.complementary600} 0%, ${colors.accent100} 100%, ${colors.accent100} 100%)`
+    )};
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      background: ${tmDark(
+        ({ colors }) =>
+          `linear-gradient(254.24deg, ${colors.complementary600} 0%, ${colors.accent100} 100%, ${colors.accent100} 100%)`
+      )};
+    }
+  }
 `;
 
 const StyledTopGradient = styled.div`
@@ -55,6 +79,14 @@ const StyledTopGradient = styled.div`
   left: 0;
   position: absolute;
   background: ${tm(({ colors }) => colors.getStartedTopBackground)};
+  ${tmSelectors.dark} {
+    background: ${tmDark(({ colors }) => colors.getStartedTopBackground)};
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      background: ${tmDark(({ colors }) => colors.getStartedTopBackground)};
+    }
+  }
 `;
 
 const StyledBottomGradient = styled.div`
@@ -65,6 +97,14 @@ const StyledBottomGradient = styled.div`
   position: absolute;
   background: ${tm(({ colors }) => colors.getStartedBottomBackground)};
   transform: rotate(180deg);
+  ${tmSelectors.dark} {
+    background: ${tmDark(({ colors }) => colors.getStartedBottomBackground)};
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      background: ${tmDark(({ colors }) => colors.getStartedBottomBackground)};
+    }
+  }
 `;
 
 const TextureBrickWrapper = styled.div`
@@ -74,6 +114,14 @@ const TextureBrickWrapper = styled.div`
     left: 0;
     right: auto;
   }
+  ${tmSelectors.dark} {
+    filter: invert(0.5);
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      filter: invert(0.5);
+    }
+  }
 `;
 
 const ContentBlock = styled.section`
@@ -82,6 +130,14 @@ const ContentBlock = styled.section`
   align-items: center;
   z-index: 1;
   color: ${tm(({ colors }) => colors.neutral900)};
+  ${tmSelectors.dark} {
+    color: ${tmDark(({ colors }) => colors.neutral900)};
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      color: ${tmDark(({ colors }) => colors.neutral900)};
+    }
+  }
 `;
 
 const Title = styled.h1`
@@ -92,6 +148,7 @@ const Title = styled.h1`
   letter-spacing: -0.01em;
   text-align: center;
   max-width: 642px;
+
   ${media.md} {
     font-size: 45px;
     line-height: 50px;

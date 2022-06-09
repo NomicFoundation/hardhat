@@ -1,6 +1,6 @@
 import React from "react";
 import { styled } from "linaria/react";
-import { media, tm } from "../../themes";
+import { media, tm, tmDark, tmSelectors } from "../../themes";
 
 const A = styled.a`
   display: inline-flex;
@@ -22,6 +22,14 @@ const A = styled.a`
   cursor: pointer;
   &:hover {
     background-color: ${tm(({ colors }) => colors.accent200)};
+    ${tmSelectors.dark} {
+      background-color: ${tmDark(({ colors }) => colors.accent200)};
+    }
+    ${media.mqDark} {
+      ${tmSelectors.auto} {
+        background-color: ${tmDark(({ colors }) => colors.accent200)};
+      }
+    }
   }
   ${media.md} {
     font-size: 15px;
@@ -31,16 +39,46 @@ const A = styled.a`
     padding: 12px 28px;
   }
 
+  ${tmSelectors.dark} {
+    background-color: ${tmDark(({ colors }) => colors.accent800)};
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      background-color: ${tmDark(({ colors }) => colors.accent800)};
+    }
+  }
+
   &.secondary {
     width: 100%;
     border: 1px solid ${tm(({ colors }) => colors.neutral700)};
     text-align: center;
-    background: ${tm(({ colors }) => colors.transparent)};
+    background-color: ${tm(({ colors }) => colors.transparent)};
     transition: 0.3s;
+
+    ${tmSelectors.dark} {
+      color: ${tmDark(({ colors }) => colors.neutral900)};
+      border-color: ${tmDark(({ colors }) => colors.neutral700)};
+      background-color: ${tmDark(({ colors }) => colors.transparent)};
+    }
+    ${media.mqDark} {
+      ${tmSelectors.auto} {
+        color: ${tmDark(({ colors }) => colors.neutral900)};
+        border-color: ${tmDark(({ colors }) => colors.neutral700)};
+        background-color: ${tmDark(({ colors }) => colors.transparent)};
+      }
+    }
 
     &:hover {
       border-color: ${tm(({ colors }) => colors.transparent)};
       background-color: ${tm(({ colors }) => colors.secondaryCTAHover)};
+      ${tmSelectors.dark} {
+        background-color: ${tmDark(({ colors }) => colors.secondaryCTAHover)};
+      }
+      ${media.mqDark} {
+        ${tmSelectors.auto} {
+          background-color: ${tmDark(({ colors }) => colors.secondaryCTAHover)};
+        }
+      }
     }
   }
 

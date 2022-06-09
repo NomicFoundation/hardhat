@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import Link from "next/link";
 
 import { styled } from "linaria/react";
-import { media, tm, tmDark, tmHCDark, tmSelectors } from "../themes";
+import { media, tm, tmDark, tmSelectors } from "../themes";
 import { IDocumentationSidebarStructure } from "./types";
 
 interface Props {
@@ -22,9 +22,7 @@ const Container = styled.ul`
   font-size: 15px;
   line-height: 28px;
   letter-spacing: 0em;
-  ${tmSelectors.hcDark} {
-    color: ${tmHCDark(({ colors }) => colors.neutral800)};
-  }
+
   ${tmSelectors.dark} {
     color: ${tmDark(({ colors }) => colors.neutral800)};
   }

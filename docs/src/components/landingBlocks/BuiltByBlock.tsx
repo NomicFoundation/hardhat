@@ -3,10 +3,10 @@ import { styled } from "linaria/react";
 import Image from "next/image";
 
 import Section from "../Section";
-import { media, tm } from "../../themes";
+import { media, tm, tmDark, tmSelectors } from "../../themes";
 
 interface Props {
-  content: { title: string; imageUrl: string };
+  content: { title: string; imageUrl: string; imageDarkUrl: string };
 }
 
 const Container = styled.div`
@@ -19,6 +19,27 @@ const Container = styled.div`
     justify-content: center;
     align-items: center;
   }
+  & .dark {
+    display: none;
+  }
+  ${tmSelectors.dark} {
+    & .light {
+      display: none;
+    }
+    & .dark {
+      display: inline;
+    }
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      & .light {
+        display: none;
+      }
+      & .dark {
+        display: inline;
+      }
+    }
+  }
 `;
 
 const Title = styled.h2`
@@ -28,6 +49,14 @@ const Title = styled.h2`
   font-weight: 400;
   font-family: ChivoLight, sans-serif;
   color: ${tm(({ colors }) => colors.neutral900)};
+  ${tmSelectors.dark} {
+    color: ${tmDark(({ colors }) => colors.neutral900)};
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      color: ${tmDark(({ colors }) => colors.neutral900)};
+    }
+  }
 
   ${media.md} {
     margin-right: 22px;
@@ -41,12 +70,22 @@ const BuiltByBlock = ({ content }: Props) => {
     <Section>
       <Container>
         <Title>{content.title}</Title>
-        <Image
-          src={content.imageUrl}
-          width={194}
-          height={51}
-          alt="Nomic Foundation logo"
-        />
+        <span className="light">
+          <Image
+            src={content.imageUrl}
+            width={194}
+            height={51}
+            alt="Nomic Foundation logo"
+          />
+        </span>
+        <span className="dark">
+          <Image
+            src={content.imageDarkUrl}
+            width={194}
+            height={51}
+            alt="Nomic Foundation logo"
+          />
+        </span>
       </Container>
     </Section>
   );

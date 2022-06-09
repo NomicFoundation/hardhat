@@ -4,7 +4,7 @@ import { Carousel } from "react-responsive-carousel";
 import { styled } from "linaria/react";
 
 import Section from "../Section";
-import { media, tm } from "../../themes";
+import { media, tm, tmDark, tmSelectors } from "../../themes";
 import CarouselArrow from "../../assets/icons/carousel-arrow";
 
 interface Props {
@@ -28,11 +28,19 @@ const SliderWrapper = styled.div`
     & .carousel:before,
     .carousel:after {
       content: "";
-      border: 0.1rem solid #d4d4d4;
       width: 36px;
       position: absolute;
       top: 0;
       min-height: 480px;
+      border: 0.1rem solid ${tm(({ colors }) => colors.neutral600)};
+      ${tmSelectors.dark} {
+        border-color: ${tmDark(({ colors }) => colors.neutral600)};
+      }
+      ${media.mqDark} {
+        ${tmSelectors.auto} {
+          border-color: ${tmDark(({ colors }) => colors.neutral600)};
+        }
+      }
     }
 
     & .carousel:after {
@@ -128,6 +136,15 @@ const PersonCaption = styled.div`
   line-height: 24px;
   color: ${tm(({ colors }) => colors.neutral900)};
 
+  ${tmSelectors.dark} {
+    color: ${tmDark(({ colors }) => colors.neutral900)};
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      color: ${tmDark(({ colors }) => colors.neutral900)};
+    }
+  }
+
   ${media.md} {
     margin-left: 0;
     text-align: center;
@@ -153,7 +170,14 @@ const CommentContainer = styled.p`
   font-size: 15px;
   line-height: 28px;
   color: ${tm(({ colors }) => colors.neutral600)};
-
+  ${tmSelectors.dark} {
+    color: ${tmDark(({ colors }) => colors.neutral600)};
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      color: ${tmDark(({ colors }) => colors.neutral600)};
+    }
+  }
   ${media.md} {
     width: 70%;
     padding: 24px;
@@ -176,6 +200,18 @@ const SliderArrow = styled.button`
   border-radius: 30px;
   cursor: pointer;
   transition: all 0.2s ease-in-out;
+  border: 1px solid ${tm(({ colors }) => colors.transparent)};
+
+  ${tmSelectors.dark} {
+    border-color: ${tmDark(({ colors }) => colors.neutral600)};
+    background-color: ${tmDark(({ colors }) => colors.neutral0)};
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      background-color: ${tmDark(({ colors }) => colors.neutral0)};
+      border-color: ${tmDark(({ colors }) => colors.neutral600)};
+    }
+  }
 
   & > span {
     top: 2px;
@@ -213,6 +249,14 @@ const SliderArrow = styled.button`
 
     &:active {
       background-color: ${tm(({ colors }) => colors.neutral100)};
+      ${tmSelectors.dark} {
+        background-color: ${tmDark(({ colors }) => colors.neutral100)};
+      }
+      ${media.mqDark} {
+        ${tmSelectors.auto} {
+          background-color: ${tmDark(({ colors }) => colors.neutral100)};
+        }
+      }
     }
 
     &.right {

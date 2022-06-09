@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { styled } from "linaria/react";
-import { media, tm, tmDark, tmHCDark, tmSelectors } from "../themes";
+import { media, tm, tmDark, tmSelectors } from "../themes";
 import { IPlugin } from "../model/types";
 
 const StyledPluginSnippetContainer = styled.div`
@@ -44,10 +44,7 @@ const Author = styled.a`
     padding-left: 8px;
     border-left: 1px solid ${tm(({ colors }) => colors.autoThemeButton)};
   }
-  ${tmSelectors.hcDark} {
-    color: ${tmHCDark(({ colors }) => colors.autoThemeButton)};
-    border-color: ${tmHCDark(({ colors }) => colors.autoThemeButton)};
-  }
+
   ${tmSelectors.dark} {
     color: ${tmDark(({ colors }) => colors.autoThemeButton)};
     border-color: ${tmDark(({ colors }) => colors.autoThemeButton)};
@@ -66,9 +63,7 @@ const Description = styled.p`
   width: 100%;
   margin-top: 12px;
   color: ${tm(({ colors }) => colors.neutral800)};
-  ${tmSelectors.hcDark} {
-    color: ${tmHCDark(({ colors }) => colors.neutral800)};
-  }
+
   ${tmSelectors.dark} {
     color: ${tmDark(({ colors }) => colors.neutral800)};
   }
@@ -94,10 +89,6 @@ const Tag = styled.div`
   background-color: ${tm(({ colors }) => colors.tagBackground)};
   color: ${tm(({ colors }) => colors.codeColor)};
 
-  ${tmSelectors.hcDark} {
-    background-color: ${tmHCDark(({ colors }) => colors.tagBackground)};
-    color: ${tmHCDark(({ colors }) => colors.codeColor)};
-  }
   ${tmSelectors.dark} {
     background-color: ${tmDark(({ colors }) => colors.tagBackground)};
     color: ${tmDark(({ colors }) => colors.codeColor)};

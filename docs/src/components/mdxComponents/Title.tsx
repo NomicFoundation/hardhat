@@ -1,6 +1,6 @@
 import React, { ReactElement } from "react";
 import { styled } from "linaria/react";
-import { media, tm, tmDark, tmHCDark, tmSelectors } from "../../themes";
+import { media, tm, tmDark, tmSelectors } from "../../themes";
 import MDLink from "./MDLink";
 
 interface Props {
@@ -33,10 +33,7 @@ const StyledH1 = styled.h1`
     border-bottom-color: ${tmDark(({ colors }) => colors.border)};
     color: ${tmDark(({ colors }) => colors.neutral800)};
   }
-  ${tmSelectors.hcDark} {
-    border-bottom-color: ${tmHCDark(({ colors }) => colors.border)};
-    color: ${tmHCDark(({ colors }) => colors.neutral800)};
-  }
+
   ${media.mqDark} {
     ${tmSelectors.auto} {
       border-bottom-color: ${tmDark(({ colors }) => colors.border)};
@@ -71,10 +68,7 @@ const StyledH2 = styled.h2`
     border-bottom-color: ${tmDark(({ colors }) => colors.border)};
     color: ${tmDark(({ colors }) => colors.neutral800)};
   }
-  ${tmSelectors.hcDark} {
-    border-bottom-color: ${tmHCDark(({ colors }) => colors.border)};
-    color: ${tmHCDark(({ colors }) => colors.neutral800)};
-  }
+
   ${media.mqDark} {
     ${tmSelectors.auto} {
       border-bottom-color: ${tmDark(({ colors }) => colors.border)};
@@ -106,9 +100,7 @@ const StyledH3 = styled.h3`
   ${tmSelectors.dark} {
     color: ${tmDark(({ colors }) => colors.neutral800)};
   }
-  ${tmSelectors.hcDark} {
-    color: ${tmHCDark(({ colors }) => colors.neutral800)};
-  }
+
   ${media.mqDark} {
     ${tmSelectors.auto} {
       color: ${tmDark(({ colors }) => colors.neutral800)};
@@ -150,10 +142,6 @@ const StyledH4 = styled.h4`
     color: ${tmDark(({ colors }) => colors.neutral800)};
   }
 
-  ${tmSelectors.hcDark} {
-    color: ${tmHCDark(({ colors }) => colors.neutral800)};
-  }
-
   ${media.mqDark} {
     ${tmSelectors.auto} {
       color: ${tmDark(({ colors }) => colors.neutral800)};
@@ -182,10 +170,6 @@ const StyledH5 = styled.h5`
   }
   ${tmSelectors.dark} {
     color: ${tmDark(({ colors }) => colors.neutral800)};
-  }
-
-  ${tmSelectors.hcDark} {
-    color: ${tmHCDark(({ colors }) => colors.neutral800)};
   }
 
   ${media.mqDark} {

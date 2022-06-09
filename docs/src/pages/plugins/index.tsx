@@ -2,7 +2,7 @@ import type { GetStaticProps, NextPage } from "next";
 import { styled } from "linaria/react";
 import { MDXRemote, MDXRemoteSerializeResult } from "next-mdx-remote";
 import PluginsLayout from "../../components/PluginsLayout";
-import { media, tm, tmDark, tmHCDark, tmSelectors } from "../../themes";
+import { media, tm, tmDark, tmSelectors } from "../../themes";
 import { components } from "../../components/DocumentationLayout";
 import {
   prepareMdContent,
@@ -30,11 +30,6 @@ const PageTitle = styled.h3`
   ${tmSelectors.dark} {
     border-bottom-color: ${tmDark(({ colors }) => colors.border)};
     color: ${tmDark(({ colors }) => colors.neutral800)};
-  }
-
-  ${tmSelectors.hcDark} {
-    border-bottom-color: ${tmHCDark(({ colors }) => colors.border)};
-    color: ${tmHCDark(({ colors }) => colors.neutral800)};
   }
 
   ${media.mqDark} {
@@ -79,10 +74,6 @@ const SectionTitle = styled.h3`
     color: ${tmDark(({ colors }) => colors.neutral800)};
   }
 
-  ${tmSelectors.hcDark} {
-    color: ${tmHCDark(({ colors }) => colors.neutral800)};
-  }
-
   ${media.mqDark} {
     ${tmSelectors.auto} {
       color: ${tmDark(({ colors }) => colors.neutral800)};
@@ -100,10 +91,6 @@ const SectionTitleDescription = styled.span`
 
   ${tmSelectors.dark} {
     color: ${tmDark(({ colors }) => colors.neutral700)};
-  }
-
-  ${tmSelectors.hcDark} {
-    color: ${tmHCDark(({ colors }) => colors.neutral700)};
   }
 
   ${media.mqDark} {

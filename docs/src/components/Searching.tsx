@@ -3,7 +3,7 @@ import Head from "next/head";
 import { DocSearch } from "@docsearch/react";
 import "@docsearch/css";
 import { styled } from "linaria/react";
-import { media, tm, tmDark, tmHCDark, tmSelectors } from "../themes";
+import { media, tm, tmDark, tmSelectors } from "../themes";
 
 const appId = process.env.NEXT_PUBLIC_ALGOLIA_APP_ID as string;
 const apiKey = process.env.NEXT_PUBLIC_ALGOLIA_API_KEY as string;
@@ -38,19 +38,6 @@ const Container = styled.div`
     var(--docsearch-searchbox-shadow-custom);
   --docsearch-spacing: 12px;
 
-  ${tmSelectors.hcDark} {
-    --docsearch-searchbox-background: ${tmHCDark(
-      ({ colors }) => colors.neutral0
-    )};
-    --docsearch-primary-color: ${tmHCDark(({ colors }) => colors.accent700)};
-    --docsearch-text-color: ${tmHCDark(({ colors }) => colors.neutral800)};
-    --docsearch-searchbox-focus-background: ${tmHCDark(
-      ({ colors }) => colors.neutral0
-    )};
-    --docsearch-searchbox-shadow-custom: ${tmHCDark(
-      ({ colors }) => colors.searchShadow
-    )};
-  }
   ${tmSelectors.dark} {
     --docsearch-searchbox-background: ${tmDark(
       ({ colors }) => colors.neutral0
