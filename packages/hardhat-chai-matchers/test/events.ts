@@ -5,7 +5,7 @@ import { anyUint, anyValue } from "../src/withArgs";
 
 import { useEnvironment, useEnvironmentWithNode } from "./helpers";
 
-import "../src";
+import "../src/internal/add-chai-matchers";
 
 describe(".to.emit (contract events)", () => {
   let contract: Contract;

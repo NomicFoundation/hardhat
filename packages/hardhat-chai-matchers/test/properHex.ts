@@ -1,6 +1,6 @@
 import { AssertionError, expect } from "chai";
 
-import "../src";
+import "../src/internal/add-chai-matchers";
 
 describe("properHex", function () {
   it("should handle a successful positive case", function () {

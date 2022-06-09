@@ -9,7 +9,7 @@ import {
   useEnvironmentWithNode,
 } from "../helpers";
 
-import "../../src";
+import "../../src/internal/add-chai-matchers";
 import { anyUint, anyValue } from "../../src/withArgs";
 
 describe("INTEGRATION: Reverted with custom error", function () {
