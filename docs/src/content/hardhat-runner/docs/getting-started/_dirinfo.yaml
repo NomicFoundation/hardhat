@@ -1,5 +1,5 @@
-section-type: single
-section-title: Getting Started
+section-type: group
+section-title: Hardhat Runner
 order:
   - href: "#overview"
     title: Overview
