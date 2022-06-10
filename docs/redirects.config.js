@@ -67,6 +67,56 @@ const customRedirects = [
     destination: "plugins/nomiclabs-hardhat-etherscan.html#multiple-api-keys-and-alternative-block-explorers",
     permanent: false
   },
+  {
+    source: "/hardhat-runner",
+    destination: "/hardhat-runner/docs/getting-started#overview",
+    permanent: false
+  },
+  {
+    source: "/hardhat-runner/docs",
+    destination: "/hardhat-runner/docs/getting-started#overview",
+    permanent: false
+  },
+  {
+    source: "/hardhat-network",
+    destination: "/hardhat-network/docs/overview",
+    permanent: false
+  },
+  {
+    source: "/hardhat-network/docs",
+    destination: "/hardhat-network/docs/overview",
+    permanent: false
+  },
+  {
+    source: "/hardhat-vscode",
+    destination: "/hardhat-vscode/docs/overview",
+    permanent: false
+  },
+  {
+    source: "/hardhat-vscode/docs",
+    destination: "/hardhat-vscode/docs/overview",
+    permanent: false
+  },
+  {
+    source: "/hardhat-chai-matchers",
+    destination: "/hardhat-chai-matchers/docs/overview",
+    permanent: false
+  },
+  {
+    source: "/hardhat-chai-matchers/docs",
+    destination: "/hardhat-chai-matchers/docs/overview",
+    permanent: false
+  },
+  {
+    source: "/hardhat-network-helpers",
+    destination: "/hardhat-network-helpers/docs/overview",
+    permanent: false
+  },
+  {
+    source: "/hardhat-network-helpers/docs",
+    destination: "/hardhat-network-helpers/docs/overview",
+    permanent: false
+  },
   ...loadErrorRedirects()
 ];
 
