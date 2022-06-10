@@ -14,6 +14,7 @@ import {
 import { fromEntries } from "../util/lang";
 import { getPackageJson, getPackageRoot } from "../util/packageInfo";
 
+import { pluralize } from "../util/strings";
 import { emoji } from "./emoji";
 
 enum Action {
@@ -34,32 +35,34 @@ interface Dependencies {
 const HARDHAT_PACKAGE_NAME = "hardhat";
 
 const PROJECT_DEPENDENCIES: Dependencies = {
-  "@nomicfoundation/hardhat-chai-matchers": "^1.0.0-beta.1",
-  "@nomicfoundation/hardhat-network-helpers": "^1.0.0-beta.3",
-  "@nomiclabs/hardhat-ethers": "^2.0.6",
+  "@nomicfoundation/hardhat-toolbox": "^1.0.0-beta.0",
 };
 
 const PEER_DEPENDENCIES: Dependencies = {
-  chai: "^4.3.6",
-  ethers: "^5.6.8",
-};
-
-const TYPESCRIPT_DEPENDENCIES: Dependencies = {
-  "@types/chai": "^4.3.1",
-  "@types/mocha": "^9.1.1",
-  "@types/node": "^17.0.41",
-  "ts-node": "^10.8.1",
-  typescript: "^4.7.3",
-  // TODO: remove
-  typechain: "^8.1.0",
-  "@typechain/ethers-v5": "^10.1.0",
+  hardhat: "^2.9.9",
+  "@nomicfoundation/hardhat-network-helpers": "*",
+  "@nomicfoundation/hardhat-chai-matchers": "*",
+  "@nomiclabs/hardhat-ethers": "^2.0.0",
+  "@nomiclabs/hardhat-etherscan": "^3.0.0",
+  chai: "^4.2.0",
+  ethers: "^5.4.7",
+  "hardhat-gas-reporter": "^1.0.8",
+  "solidity-coverage": "^0.7.21",
   "@typechain/hardhat": "^6.1.0",
-};
-
-const TYPESCRIPT_PEER_DEPENDENCIES: Dependencies = {
   typechain: "^8.0.0",
   "@typechain/ethers-v5": "^10.1.0",
-  "@typechain/hardhat": "^@6.1.0",
+  "@ethersproject/abi": "^5.4.7",
+  "@ethersproject/providers": "^5.4.7",
+};
+
+const TYPESCRIPT_DEPENDENCIES: Dependencies = {};
+
+const TYPESCRIPT_PEER_DEPENDENCIES: Dependencies = {
+  "@types/chai": "^4.2.0",
+  "@types/mocha": "^9.1.0",
+  "@types/node": ">=12.0.0",
+  "ts-node": ">=8.0.0",
+  typescript: ">=4.5.0",
 };
 
 const TELEMETRY_CONSENT_TIMEOUT = 10000;
@@ -118,9 +121,28 @@ async function copySampleProject(
 
   await fsExtra.ensureDir(projectRoot);
 
-  const readmePath = path.join(projectRoot, "README.md");
-  if (await fsExtra.pathExists(readmePath)) {
-    await fsExtra.copy(readmePath, `${readmePath}.old.md`);
+  const sampleProjectPath = path.join(
+    packageRoot,
+    "sample-projects",
+    sampleProjectName
+  );
+
+  const sampleProjectRootFiles = fsExtra.readdirSync(sampleProjectPath);
+  const existingFiles = sampleProjectRootFiles
+    .map((f) => path.join(projectRoot, f))
+    .filter((f) => fsExtra.pathExistsSync(f))
+    .map((f) => path.relative(process.cwd(), f));
+
+  if (existingFiles.length > 0) {
+    const errorMsg = `We couldn't initialize the sample project because ${pluralize(
+      existingFiles.length,
+      "this file exists",
+      "these files exist"
+    )}: ${existingFiles.join(", ")}
+    
+Please delete or move them and try again.`;
+    console.log(chalk.red(errorMsg));
+    process.exit(1);
   }
 
   await fsExtra.copy(
@@ -315,6 +337,8 @@ export async function createProject() {
     }
   }
 
+  await copySampleProject(projectRoot, action);
+
   let shouldShowInstallationInstructions = true;
 
   if (await canInstallRecommendedDeps()) {
@@ -357,8 +381,6 @@ export async function createProject() {
     console.log(``);
     await printRecommendedDepsInstallationInstructions(action);
   }
-
-  await copySampleProject(projectRoot, action);
 
   console.log(
     `\n${emoji("✨ ")}${chalk.cyan("Project created")}${emoji(" ✨")}`
