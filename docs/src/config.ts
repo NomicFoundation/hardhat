@@ -31,6 +31,7 @@ export const bannerContent = {
 };
 
 export const DOCS_PATH = path.join(process.cwd(), "src/content/");
+export const DOCS_LANDING_PATH = path.join(process.cwd(), "src/content/docs-landing");
 export const PLUGINS_PATH = path.join(process.cwd(), "src/content/plugins");
 export const TEMP_PATH = path.join(process.cwd(), "temp/");
 // TODO: change this to "https://github.com/NomicFoundation/hardhat/edit/master/docs/src/content/" before publishing to production
@@ -86,7 +87,7 @@ export const menuItemsList: MenuItemType[] = [
   },
   {
     label: "Documentation",
-    href: "/getting-started",
+    href: "/docs",
   },
   {
     label: "Tutorial",
