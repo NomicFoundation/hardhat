@@ -1,6 +1,6 @@
 import { expect, AssertionError } from "chai";
 
-import "../src";
+import "../src/internal/add-chai-matchers";
 
 /* eslint-disable @typescript-eslint/no-unused-expressions */
 

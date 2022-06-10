@@ -156,8 +156,6 @@ const View = styled.section`
   }
 `;
 const Content = styled.section`
-  display: flex;
-  flex-direction: column;
   width: 100%;
   max-width: 774px;
   padding: 0 34px;

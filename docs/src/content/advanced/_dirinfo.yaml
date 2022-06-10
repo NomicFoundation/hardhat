@@ -3,5 +3,3 @@ section-title: Advanced
 order:
   - /hardhat-runtime-environment
   - /building-plugins
-  - href: /migrating-buidler-plugin
-    title: Migrating a Buidler plugin

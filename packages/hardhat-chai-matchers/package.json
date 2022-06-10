@@ -8,11 +8,6 @@
   "author": "Nomic Labs LLC",
   "license": "MIT",
   "types": "dist/src/index.d.ts",
-  "exports": {
-    ".": "./dist/src/index.js",
-    "./panic": "./dist/src/reverted/panic.js",
-    "./withArgs": "./dist/src/withArgs.js"
-  },
   "keywords": [
     "ethereum",
     "smart-contracts",

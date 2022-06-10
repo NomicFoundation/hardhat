@@ -1,0 +1,1 @@
+require("@nomicfoundation/hardhat-toolbox");

@@ -1,34 +1,20 @@
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import { pluginName } from "./constants";
-import { chainConfig } from "./ChainConfig";
-import { EtherscanConfig, ChainConfig } from "./types";
-
-const isNetworkKey = (network: string): network is keyof ChainConfig => {
-  return network in chainConfig;
-};
+import { EtherscanConfig } from "./types";
 
 export const resolveEtherscanApiKey = (
-  etherscan: EtherscanConfig,
+  apiKey: EtherscanConfig["apiKey"],
   network: string
 ): string => {
-  if (etherscan.apiKey === undefined || etherscan.apiKey === "") {
+  if (apiKey === undefined || apiKey === "") {
     throwMissingApiKeyError(network);
   }
 
-  if (typeof etherscan.apiKey === "string") {
-    return etherscan.apiKey;
+  if (typeof apiKey === "string") {
+    return apiKey;
   }
 
-  const apiKeys = etherscan.apiKey;
-
-  if (!isNetworkKey(network)) {
-    throw new NomicLabsHardhatPluginError(
-      pluginName,
-      `Unrecognized network: ${network}`
-    );
-  }
-
-  const key = apiKeys[network];
+  const key = (apiKey as any)[network];
 
   if (key === undefined || key === "") {
     throwMissingApiKeyError(network);
@@ -40,7 +26,7 @@ export const resolveEtherscanApiKey = (
 function throwMissingApiKeyError(network: string): never {
   throw new NomicLabsHardhatPluginError(
     pluginName,
-    `Please provide an Etherscan API token via hardhat config. For example:
+    `You are trying to verify a contract in '${network}', but no API token was found for this network. Please provide one in your hardhat config. For example:
 
 {
   ...

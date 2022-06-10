@@ -27,7 +27,7 @@ const customRedirects = [
   },
   {
     source: "/console-log",
-    destination: "/hardhat-network/#console-log",
+    destination: "/hardhat-network/#console.log",
     permanent: false
   },
   {
@@ -46,29 +46,6 @@ const customRedirects = [
     permanent: false
   },
 
-  // Hardhat migration
-  { source: "/buidler-evm", destination: "/hardhat-network", permanent: false },
-  {
-    source: "/advanced/buidler-runtime-environment",
-    destination: "/advanced/hardhat-runtime-environment",
-    permanent: false
-  },
-  {
-    source: "/docs/guides/buidler-console",
-    destination: "/docs/guides/hardhat-console",
-    permanent: false
-  },
-  {
-    source: "/tutorial/creating-a-new-buidler-project",
-    destination: "/tutorial/creating-a-new-hardhat-project",
-    permanent: false
-  },
-  {
-    source: "/tutorial/debugging-with-buidler-evm",
-    destination: "/tutorial/debugging-with-hardhat-network",
-    permanent: false
-  },
-
   // Other redirects
   {
     source: "/guides/create-plugin",
@@ -78,6 +55,16 @@ const customRedirects = [
   {
     source: "/guides/mainnet-forking",
     destination: "/hardhat-network/guides/mainnet-forking",
+    permanent: false
+  },
+  {
+    source: "/verify-custom-networks",
+    destination: "/plugins/nomiclabs-hardhat-etherscan#adding-support-for-other-networks",
+    permanent: false
+  },
+  {
+    source: "/verify-multiple-networks",
+    destination: "plugins/nomiclabs-hardhat-etherscan.html#multiple-api-keys-and-alternative-block-explorers",
     permanent: false
   },
   ...loadErrorRedirects()

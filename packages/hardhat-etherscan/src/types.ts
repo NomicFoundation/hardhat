@@ -1,54 +1,19 @@
-type Chain =
-  | "mainnet"
-  | "ropsten"
-  | "rinkeby"
-  | "goerli"
-  | "kovan"
-  | "sepolia"
-  // binance smart chain
-  | "bsc"
-  | "bscTestnet"
-  // huobi eco chain
-  | "heco"
-  | "hecoTestnet"
-  // fantom mainnet
-  | "opera"
-  | "ftmTestnet"
-  // optimistim
-  | "optimisticEthereum"
-  | "optimisticKovan"
-  // polygon
-  | "polygon"
-  | "polygonMumbai"
-  // arbitrum
-  | "arbitrumOne"
-  | "arbitrumTestnet"
-  // avalanche
-  | "avalanche"
-  | "avalancheFujiTestnet"
-  // moonbeam
-  | "moonbeam"
-  | "moonriver"
-  | "moonbaseAlpha"
-  | "harmony"
-  | "harmonyTest"
-  // xdai
-  | "xdai"
-  | "sokol"
-  // aurora
-  | "aurora"
-  | "auroraTestnet";
+export type ChainConfig = Record<string, EtherscanChainConfig>;
 
-export type ChainConfig = {
-  [Network in Chain]: EtherscanChainConfig;
-};
+export interface CustomChain {
+  network: string;
+  chainId: number;
+  urls: EtherscanURLs;
+}
 
-type EtherscanApiKeys = {
-  [Network in Chain]?: string;
-};
+export interface EtherscanUserConfig {
+  apiKey?: string | Record<string, string>;
+  customChains?: CustomChain[];
+}
 
 export interface EtherscanConfig {
-  apiKey?: string | EtherscanApiKeys;
+  apiKey?: string | Record<string, string>;
+  customChains: CustomChain[];
 }
 
 export interface EtherscanURLs {
@@ -62,6 +27,6 @@ interface EtherscanChainConfig {
 }
 
 export interface EtherscanNetworkEntry {
-  network: Chain;
+  network: string;
   urls: EtherscanURLs;
 }

@@ -40,4 +40,4 @@ There are no additional steps you need to take for this plugin to work.
 
 Install it, run `npx hardhat check` and check the Solhint report.
 
-You may want to add a [solhint configuration](https://github.com/protofire/solhint/blob/master/README.md) file to customize your rules or include a Solhint plugin.
+You may want to add a [solhint configuration](https://github.com/protofire/solhint/blob/master) file to customize your rules or include a Solhint plugin.

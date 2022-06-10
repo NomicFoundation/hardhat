@@ -4,7 +4,7 @@ Hardhat Network can be configured to **automine** blocks, immediately upon recei
 
 You can use one of these modes, both or neither. By default, only the automine mode is enabled.
 
-When automine is disabled, every sent transaction is added to the mempool, which contains all the transactions that could be mined in the future. By default, Hardhat Network's mempool follows the same rules as Geth. This means, among other things, that transactions are prioritized by fees paid to the miner (and then by arrival time), and that invalid transactions are dropped. In addition to the default mempool behavior, an [alternative FIFO behavior is also available](../reference/README.md#transaction-ordering).
+When automine is disabled, every sent transaction is added to the mempool, which contains all the transactions that could be mined in the future. By default, Hardhat Network's mempool follows the same rules as Geth. This means, among other things, that transactions are prioritized by fees paid to the miner (and then by arrival time), and that invalid transactions are dropped. In addition to the default mempool behavior, an [alternative FIFO behavior is also available](../reference/index.md#transaction-ordering).
 
 When automine is disabled, pending transactions can be queried via the `eth_getBlockByNumber` RPC method (with `"pending"` as the block number argument), they can be removed using the `hardhat_dropTransaction` RPC method, and they can be replaced by submitting a new transaction with the same nonce but with a 10+% increase in fees paid to the miner.
 
@@ -58,7 +58,7 @@ You can also replace a transaction by sending a new one with the same nonce as t
 
 ## Configuring Mining Modes
 
-See [the Mining Modes configuration reference](../reference/README.md#mining-modes) to understand what to put in your Hardhat config file.
+See [the Mining Modes configuration reference](../reference/index.md#mining-modes) to understand what to put in your Hardhat config file.
 
 ### Using RPC methods
 

@@ -14,7 +14,7 @@ Ethers and Waffle support TypeScript. Learn how to set up Hardhat with TypeScrip
 
 ## Setting up
 
-[Install Hardhat](/getting-started/README.md#installation) on an empty directory. When done, run `npx hardhat`.
+[Install Hardhat](/getting-started/index.md#installation) on an empty directory. When done, run `npx hardhat`.
 
 ```
 $ npx hardhat
@@ -255,5 +255,5 @@ const provider = waffle.provider;
 
 Run your tests with `npx hardhat test` and you should get stack traces when a transaction fails.
 
-[hardhat network]: ../hardhat-network/README.md
+[hardhat network]: ../hardhat-network/index.md
 [hardhat runtime environment]: ../advanced/hardhat-runtime-environment.md

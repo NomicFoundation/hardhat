@@ -1,0 +1,24 @@
+{
+  "extends": "../../config/typescript/tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./dist"
+  },
+  "exclude": ["./dist", "./node_modules", "./test/**/hardhat.config.ts"],
+  "references": [
+    {
+      "path": "../hardhat-core/src"
+    },
+    {
+      "path": "../hardhat-chai-matchers"
+    },
+    {
+      "path": "../hardhat-network-helpers"
+    },
+    {
+      "path": "../hardhat-ethers/src"
+    },
+    {
+      "path": "../hardhat-etherscan"
+    }
+  ]
+}
