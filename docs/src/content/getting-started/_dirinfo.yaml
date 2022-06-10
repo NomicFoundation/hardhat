@@ -1,9 +1,0 @@
-section-type: single
-section-title: Getting Started
-order:
-  - href: "#overview"
-    title: Overview
-  - href: "#installation"
-    title: Installation
-  - href: "#quick-start"
-    title: Quick start
