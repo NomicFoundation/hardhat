@@ -40,8 +40,9 @@ const PROJECT_DEPENDENCIES: Dependencies = {
 
 const PEER_DEPENDENCIES: Dependencies = {
   hardhat: "^2.9.9",
-  "@nomicfoundation/hardhat-network-helpers": "*",
-  "@nomicfoundation/hardhat-chai-matchers": "*",
+  // TODO: Change these versions before the next release
+  "@nomicfoundation/hardhat-network-helpers": ">=1.0.0-beta.3",
+  "@nomicfoundation/hardhat-chai-matchers": ">=1.0.0-beta.2",
   "@nomiclabs/hardhat-ethers": "^2.0.0",
   "@nomiclabs/hardhat-etherscan": "^3.0.0",
   chai: "^4.2.0",
