@@ -1,6 +1,7 @@
 import SolidityIcon from "../assets/tools/solidity";
 import RunnerIcon from "../assets/tools/runner";
-import IgnitionIcon from "../assets/tools/ignition";
+// TODO: Re-enable Ignition section
+// import IgnitionIcon from "../assets/tools/ignition";
 import NetworkIcon from "../assets/tools/network";
 import SolidityImageMobile from "../assets/feature-cards/Mobile/SolidityImage.svg";
 import SolidityImageDesktop from "../assets/feature-cards/Desktop/SolidityImage.png";
@@ -180,15 +181,16 @@ const toolsBlockContent = {
         "Task runner that ties compiling, testing and everything else together through a simple and flexible architecture that is extended through a rich plugin ecosystem.",
       link: "/",
     },
-    {
-      icon: IgnitionIcon,
-      title: "Ignition",
-      value: Tools.IGNITION,
-      mottos: ["deploy", "distribute"],
-      description:
-        "Deployment system for structuring, automating and distributing smart contract deployment setups.",
-      link: "/",
-    },
+    // TODO: Re-enable Ignition section
+    // {
+    //   icon: IgnitionIcon,
+    //   title: "Ignition",
+    //   value: Tools.IGNITION,
+    //   mottos: ["deploy", "distribute"],
+    //   description:
+    //     "Deployment system for structuring, automating and distributing smart contract deployment setups.",
+    //   link: "/",
+    // },
     {
       icon: NetworkIcon,
       title: "Network",
@@ -200,9 +202,9 @@ const toolsBlockContent = {
     },
     {
       icon: SolidityIcon,
-      title: "Solidity",
+      title: "VSCode",
       value: Tools.SOLIDITY,
-      mottos: ["code", "refactor"],
+      mottos: ["code", "navigation", "refactor"],
       description:
         "Visual Studio Code extension for Solidity editing assistance. Code navigation, refactoring and type-smart suggestions.",
       link: "/",

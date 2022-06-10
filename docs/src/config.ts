@@ -3,15 +3,15 @@ import { MenuItemType, SocialsEnum } from "./components/ui/types";
 import GitHubLogo from "./assets/socials/gh-logo";
 import TwitterLogo from "./assets/socials/tw-logo";
 import DiscordLogo from "./assets/socials/dc-logo";
-// TODO: Re-enable tools section
-// import SolidityIcon from "./assets/tools/solidity";
-// import RunnerIcon from "./assets/tools/runner";
+import SolidityIcon from "./assets/tools/solidity";
+import RunnerIcon from "./assets/tools/runner";
+import NetworkIcon from "./assets/tools/network";
+import RunnerIconDark from "./assets/tools/runner-dark";
+import NetworkIconDark from "./assets/tools/network-dark";
+import SolidityIconDark from "./assets/tools/solidity-dark";
+// TODO: Re-enable Ignition section
 // import IgnitionIcon from "./assets/tools/ignition";
-// import NetworkIcon from "./assets/tools/network";
-// import RunnerIconDark from "./assets/tools/runner-dark";
 // import IgnitionIconDark from "./assets/tools/ignition-dark";
-// import NetworkIconDark from "./assets/tools/network-dark";
-// import SolidityIconDark from "./assets/tools/solidity-dark";
 
 export const SOCIALS_LINKS = {
   [SocialsEnum.GITHUB]: "https://github.com/NomicFoundation/hardhat",
@@ -49,41 +49,41 @@ export const menuItemsList: MenuItemType[] = [
     label: "Home",
     href: "/",
   },
-  // TODO: Re-enable tools section
-  // {
-  //   label: "Tools",
-  //   href: "/#tools",
-  //   subItems: [
-  //     {
-  //       prefix: "Hardhat",
-  //       label: "Runner",
-  //       href: "/?tool=RUNNER#tools",
-  //       icon: RunnerIcon,
-  //       iconDark: RunnerIconDark,
-  //     },
-  //     {
-  //       prefix: "Hardhat",
-  //       label: "Ignition",
-  //       href: "/?tool=IGNITION#tools",
-  //       icon: IgnitionIcon,
-  //       iconDark: IgnitionIconDark,
-  //     },
-  //     {
-  //       prefix: "Hardhat",
-  //       label: "Network",
-  //       href: "/?tool=NETWORK#tools",
-  //       icon: NetworkIcon,
-  //       iconDark: NetworkIconDark,
-  //     },
-  //     {
-  //       prefix: "Hardhat",
-  //       label: "Solidity",
-  //       href: "/?tool=SOLIDITY#tools",
-  //       icon: SolidityIcon,
-  //       iconDark: SolidityIconDark,
-  //     },
-  //   ],
-  // },
+  {
+    label: "Tools",
+    href: "/#tools",
+    subItems: [
+      {
+        prefix: "Hardhat",
+        label: "Runner",
+        href: "/hardhat-runner",
+        icon: RunnerIcon,
+        iconDark: RunnerIconDark,
+      },
+      // TODO: Re-enable Ignition section
+      // {
+      //   prefix: "Hardhat",
+      //   label: "Ignition",
+      //   href: "/?tool=IGNITION#tools",
+      //   icon: IgnitionIcon,
+      //   iconDark: IgnitionIconDark,
+      // },
+      {
+        prefix: "Hardhat",
+        label: "Network",
+        href: "/hardhat-network",
+        icon: NetworkIcon,
+        iconDark: NetworkIconDark,
+      },
+      {
+        prefix: "Hardhat",
+        label: "VSCode",
+        href: "/hardhat-vscode",
+        icon: SolidityIcon,
+        iconDark: SolidityIconDark,
+      },
+    ],
+  },
   {
     label: "Plugins",
     href: "/plugins",
@@ -100,7 +100,8 @@ export const menuItemsList: MenuItemType[] = [
 
 export enum Tools {
   RUNNER = "RUNNER",
-  IGNITION = "IGNITION",
+  // TODO: Re-enable Ignition section
+  // IGNITION = "IGNITION",
   NETWORK = "NETWORK",
   SOLIDITY = "SOLIDITY",
 }
