@@ -43,6 +43,11 @@ hardhat-network-helpers:
     - hardhat-network-helpers/docs
     - hardhat-network-helpers/docs/other-projects
 
+other-guides:
+  title: Other guides
+  folders:
+    - other-guides
+
 documentation:
   title: documentation
   folders:
@@ -52,7 +57,6 @@ hidden:
   title: hidden
   folders:
     - docs-landing
-    - guides
 
 tutorial:
   title: tutorial

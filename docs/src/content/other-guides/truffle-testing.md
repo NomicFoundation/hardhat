@@ -1,5 +1,11 @@
 # Testing with Web3.js & Truffle
 
+:::tip
+
+Read [this guide](/hardhat-runner/docs/guides/test-contracts.md) to learn about our recommended approach to testing contracts.
+
+:::
+
 Hardhat allows you to use Truffle to test your smart contracts. This mainly means compatibility with the [`@truffle/contract`](https://www.npmjs.com/package/@truffle/contract) package to interact with your smart contracts.
 
 Truffle 4 and Truffle 5 are supported using the `@nomiclabs/hardhat-truffle4` and `@nomiclabs/hardhat-truffle5` plugins respectively.

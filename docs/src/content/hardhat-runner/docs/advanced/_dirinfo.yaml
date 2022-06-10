@@ -2,4 +2,8 @@ section-type: group
 section-title: Advanced
 order:
   - /hardhat-runtime-environment
+  - /create-task
+  - /scripts
   - /building-plugins
+  - href: /vscode-tests
+    title: Running tests on VS Code
