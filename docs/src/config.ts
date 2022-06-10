@@ -37,9 +37,8 @@ export const DOCS_LANDING_PATH = path.join(
 );
 export const PLUGINS_PATH = path.join(process.cwd(), "src/content/plugins");
 export const TEMP_PATH = path.join(process.cwd(), "temp/");
-// TODO: change this to "https://github.com/NomicFoundation/hardhat/edit/master/docs/src/content/" before publishing to production
 export const REPO_URL =
-  "https://github.com/NomicFoundation/hardhat/edit/master/docs/";
+  "https://github.com/NomicFoundation/hardhat/edit/master/docs/src/content/";
 
 // Regular expression to find tool in query string.
 export const toolRegExp = /tool=[A-Z_]+/;
