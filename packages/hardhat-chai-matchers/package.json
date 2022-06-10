@@ -7,7 +7,8 @@
   "repository": "github:nomicfoundation/hardhat",
   "author": "Nomic Labs LLC",
   "license": "MIT",
-  "types": "dist/src/index.d.ts",
+  "main": "index.js",
+  "types": "index.d.ts",
   "keywords": [
     "ethereum",
     "smart-contracts",
@@ -25,7 +26,6 @@
     "clean": "rimraf dist internal types *.{d.ts,js}{,.map} build-test tsconfig.tsbuildinfo"
   },
   "files": [
-    "dist/src/",
     "src/",
     "internal/",
     "types/",
