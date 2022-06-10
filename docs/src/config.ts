@@ -16,7 +16,7 @@ import DiscordLogo from "./assets/socials/dc-logo";
 export const SOCIALS_LINKS = {
   [SocialsEnum.GITHUB]: "https://github.com/NomicFoundation/hardhat",
   [SocialsEnum.TWITTER]: "https://twitter.com/HardhatHQ",
-  [SocialsEnum.DISCORD]: "https://discord.com/invite/TETZs2KK4k",
+  [SocialsEnum.DISCORD]: "/discord",
 };
 
 export const BANNER_LINK =
