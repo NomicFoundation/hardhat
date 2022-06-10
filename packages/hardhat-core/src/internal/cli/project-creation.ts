@@ -288,11 +288,8 @@ export async function createProject() {
   };
 
   const useDefaultPromptResponses =
-    process.env.HARDHAT_CREATE_ADVANCED_SAMPLE_PROJECT_WITH_DEFAULTS !==
-      undefined ||
-    process.env
-      .HARDHAT_CREATE_ADVANCED_TYPESCRIPT_SAMPLE_PROJECT_WITH_DEFAULTS !==
-      undefined;
+    process.env.HARDHAT_CREATE_JAVASCRIPT_PROJECT_WITH_DEFAULTS !== undefined ||
+    process.env.HARDHAT_CREATE_TYPESCRIPT_PROJECT_WITH_DEFAULTS !== undefined;
 
   if (useDefaultPromptResponses) {
     responses = {
