@@ -17,12 +17,12 @@ describe("Lock", function () {
     const unlockTime = (await time.latest()) + ONE_YEAR_IN_SECS;
 
     // Contracts are deployed using the first signer/account by default
-    const [owner, other] = await ethers.getSigners();
+    const [owner, otherAccount] = await ethers.getSigners();
 
     const Lock = await ethers.getContractFactory("Lock");
     const lock = await Lock.deploy(unlockTime, { value: lockedAmount });
 
-    return { lock, unlockTime, lockedAmount, owner, other };
+    return { lock, unlockTime, lockedAmount, owner, otherAccount };
   }
 
   describe("Deployment", function () {
@@ -69,7 +69,7 @@ describe("Lock", function () {
       });
 
       it("Should revert with the right error if called from another account", async function () {
-        const { lock, unlockTime, other } = await loadFixture(
+        const { lock, unlockTime, otherAccount } = await loadFixture(
           deployOneYearLockFixture
         );
 
@@ -77,7 +77,7 @@ describe("Lock", function () {
         await time.increaseTo(unlockTime);
 
         // We use lock.connect() to send a transaction from another account
-        await expect(lock.connect(other).withdraw()).to.be.revertedWith(
+        await expect(lock.connect(otherAccount).withdraw()).to.be.revertedWith(
           "You aren't the owner"
         );
       });
