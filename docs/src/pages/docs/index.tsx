@@ -35,72 +35,13 @@ const PageTitle = styled.h3`
   }
 `;
 
-const SectionTitleWrapper = styled.div`
-  display: flex;
-  flex-direction: column;
-  margin-top: 74px;
-  margin-bottom: 32px;
-  ${media.md} {
-    align-items: center;
-    flex-direction: row;
-  }
-`;
-
-const SectionTitle = styled.h3`
-  font-weight: 700;
-  font-size: 24px;
-  line-height: 1.25;
-  letter-spacing: 0.5px;
-  color: ${tm(({ colors }) => colors.neutral800)};
-  & > a > span {
-    margin-left: -24px;
-    margin-right: 8px;
-    opacity: 0;
-    cursor: pointer;
-    color: ${tm(({ colors }) => colors.accent700)};
-  }
-  &:hover > a > span {
-    opacity: 1;
-    &:hover {
-      text-decoration: underline;
-    }
-  }
-  ${tmSelectors.dark} {
-    color: ${tmDark(({ colors }) => colors.neutral800)};
-  }
-
-  ${media.mqDark} {
-    ${tmSelectors.auto} {
-      color: ${tmDark(({ colors }) => colors.neutral800)};
-    }
-  }
-`;
-
-const SectionTitleDescription = styled.span`
-  font-size: 16px;
-  color: ${tm(({ colors }) => colors.neutral700)};
-  margin-top: 8px;
-  ${media.md} {
-    padding-left: 10px;
-  }
-
-  ${tmSelectors.dark} {
-    color: ${tmDark(({ colors }) => colors.neutral700)};
-  }
-
-  ${media.mqDark} {
-    ${tmSelectors.auto} {
-      color: ${tmDark(({ colors }) => colors.neutral700)};
-    }
-  }
-`;
-
 const Docs: NextPage<IDocsPage> = ({ mdxSource }) => {
   return (
     <PluginsLayout
       seo={{
         title: "Hardhat Documentation",
-        description: "Hub for all the documentation related to Hardhat products",
+        description:
+          "Hub for all the documentation related to Hardhat products",
       }}
       sidebarLayout={[]}
     >
