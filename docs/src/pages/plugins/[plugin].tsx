@@ -46,7 +46,9 @@ export default PluginPage;
 
 export const getStaticProps: GetStaticProps = async (props) => {
   const pluginSlug = props?.params?.plugin as string;
-  const pluginName = pluginSlug?.replace(/nomiclabs-/, "@nomiclabs/");
+  const pluginName = pluginSlug
+    .replace(/nomiclabs-/, "@nomiclabs/")
+    .replace(/nomicfoundation-/, "@nomicfoundation/");
 
   const source = getPluginMDSource(pluginSlug);
 
