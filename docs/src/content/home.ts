@@ -105,7 +105,7 @@ const vibrantCommunityBlockContent = {
   imageUrl: "/images/vibrant_community.png",
   cta: {
     title: "Join the Hardhat Discord",
-    url: "https://discord.com/invite/TETZs2KK4k",
+    url: "/discord",
   },
 };
 

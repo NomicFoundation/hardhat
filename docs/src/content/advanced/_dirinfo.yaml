@@ -1,5 +1,0 @@
-section-type: group
-section-title: Advanced
-order:
-  - /hardhat-runtime-environment
-  - /building-plugins

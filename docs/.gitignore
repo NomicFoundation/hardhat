@@ -23,7 +23,7 @@
 /temp/error-redirects.json
 /public/sitemap-0.xml
 /public/sitemap*.xml
-src/content/errors/index.md
+src/content/hardhat-runner/docs/errors/index.md
 
 # misc
 .DS_Store

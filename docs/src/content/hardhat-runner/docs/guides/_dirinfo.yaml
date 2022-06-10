@@ -1,0 +1,12 @@
+section-type: group
+section-title: Guides
+order:
+  - /project-setup
+  - /compile-contracts
+  - /test-contracts
+  - /deploying
+  - /tasks-and-scripts
+  - /hardhat-console
+  - /typescript
+  - /shorthand
+  - /getting-help
