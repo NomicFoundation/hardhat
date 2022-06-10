@@ -482,7 +482,7 @@ const communityPlugins: IPlugin[] = [
     name: "hardhat-ctf",
     author: "Oren Yomtov",
     authorUrl: "https://github.com/orenyomtov",
-    description: "Framework for building solidity CTF challenges.",
+    description: "A framework for building solidity CTF challenges.",
     tags: ["ctf", "capture-the-flag", "framework", "security", "solidity"],
   },
 ];
