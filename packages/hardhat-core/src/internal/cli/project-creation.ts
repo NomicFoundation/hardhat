@@ -137,8 +137,8 @@ async function copySampleProject(
   if (existingFiles.length > 0) {
     const errorMsg = `We couldn't initialize the sample project because ${pluralize(
       existingFiles.length,
-      "this file exists",
-      "these files exist"
+      "this file already exists",
+      "these files already exist"
     )}: ${existingFiles.join(", ")}
     
 Please delete or move them and try again.`;
