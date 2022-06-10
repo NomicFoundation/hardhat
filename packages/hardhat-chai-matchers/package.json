@@ -26,7 +26,6 @@
     "clean": "rimraf dist internal types *.{d.ts,js}{,.map} build-test tsconfig.tsbuildinfo"
   },
   "files": [
-    "dist/src/",
     "src/",
     "internal/",
     "types/",
