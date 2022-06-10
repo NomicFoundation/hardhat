@@ -1,4 +1,4 @@
-# Hardhat Network Reference
+# Reference
 
 ## Supported hardforks
 
