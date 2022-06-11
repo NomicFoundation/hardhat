@@ -57,6 +57,16 @@ const StyledMdLinkContainer = styled.span`
   }
 `;
 
+const getAbsoluteHrefFromAbsolutePath = (href: string): string => {
+  return (
+    href
+      // the lookahead is to prevent links like /indexing.md from being broken
+      .replace(/\/index(?=\.)/, "")
+      // remove the .md/.mdx extension but preserve the anchor
+      .replace(/\.mdx?(#.*)?$/, "$1")
+  );
+};
+
 const getAbsoluteHrefFromRelativePath = (href: string, currentHref: string) => {
   const pathSegments = currentHref
     .split("/")
@@ -77,7 +87,7 @@ const getAbsoluteHrefFromRelativePath = (href: string, currentHref: string) => {
 
   const newSegments = ["", ...baseSegments, ...hrefSegments];
 
-  return newSegments.join("/").replace("/index", "");
+  return getAbsoluteHrefFromAbsolutePath(newSegments.join("/"));
 };
 
 const renderLinkByType = ({
@@ -106,7 +116,7 @@ const renderLinkByType = ({
   }
   if (isAbsoluteLink) {
     return (
-      <Link href={href}>
+      <Link href={getAbsoluteHrefFromAbsolutePath(href)}>
         {/* eslint-disable-next-line */}
         <a>{children}</a>
       </Link>
@@ -130,7 +140,7 @@ const MDLink = ({ children, href }: Props) => {
   return (
     <StyledMdLinkContainer>
       {renderLinkByType({
-        href: href.replace(/\.mdx?$/, ""),
+        href,
         children,
         isAnchor,
         isExternalLink,
