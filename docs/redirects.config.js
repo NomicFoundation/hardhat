@@ -157,6 +157,11 @@ const customRedirects = [
     destination: "/hardhat-runner/docs/guides/:slug",
     permanent: false
   },
+  {
+    source: "/advanced/:slug",
+    destination: "/hardhat-runner/docs/advanced/:slug",
+    permanent: false
+  },
 
   // chai-matchers
   {
