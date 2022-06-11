@@ -53,7 +53,7 @@ const featureCardsContent = {
   featureCardThree: {
     mobileImg: ExtensibleImageMobile,
     desktopImg: ExtensibleImageDesktop,
-    cta: { url: "/plugins", title: "Get started with plugins" },
+    cta: { url: "/hardhat-runner/plugins", title: "Get started with plugins" },
     articleOne: {
       title: "Fully extensible",
       text: "A tooling platform designed to be extended, Hardhat has all the utilities you need to address your project-specific needs.",

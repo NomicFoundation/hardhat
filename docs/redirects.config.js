@@ -123,6 +123,18 @@ const customRedirects = [
     permanent: false
   },
 
+  // plugins
+  {
+    source: "/plugins",
+    destination: "/hardhat-runner/plugins",
+    permanent: false
+  },
+  {
+    source: "/plugins/:slug",
+    destination: "/hardhat-runner/plugins/:slug",
+    permanent: false
+  },
+
   // guides redirects, exceptions go first
   {
     source: "/guides/:slug(hardhat-runtime-environment|create-task|scripts|building-plugins|vscode-tests)",
