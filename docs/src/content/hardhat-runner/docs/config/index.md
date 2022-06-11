@@ -144,7 +144,7 @@ The `solidity` config is an optional field that can be one of the following:
 
   - `compilers`: A list of compiler configuration objects like the one above.
 
-  - `overrides`: An optional map of compiler configuration override objects. This maps file names to compiler configuration objects. Take a look at the [compilation guide](../guides/compile-contracts.md) to learn more.
+  - `overrides`: An optional map of compiler configuration override objects. This maps file names to compiler configuration objects. Take a look at the [compilation guide](./guides/compile-contracts.md) to learn more.
 
 ## Path configuration
 

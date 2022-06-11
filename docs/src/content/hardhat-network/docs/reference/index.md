@@ -85,7 +85,7 @@ An optional boolean that disables the contract size limit imposed by the [EIP 17
 
 #### `forking`
 
-An object that describes the [forking](../guides/mainnet-forking.md) configuration that can have the following fields:
+An object that describes the [forking](./guides/mainnet-forking.md) configuration that can have the following fields:
 
 - `url`: a URL that points to a JSON-RPC node with state that you want to fork off. There's no default value for this field. It must be provided for the fork to work.
 - `blockNumber`: an optional number to pin which block to fork from. If no value is provided, the latest block is used.
@@ -417,7 +417,7 @@ Also note that blocks created via `hardhat_mine` may not trigger new-block event
 
 #### `hardhat_reset`
 
-See the [Mainnet Forking guide](./guides/mainnet-forking.md)
+See the [Mainnet Forking guide](./guides/mainnet-forking.md#resetting-the-fork)
 
 #### `hardhat_setBalance`
 
