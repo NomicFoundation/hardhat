@@ -2,12 +2,9 @@
   "compilerOptions": {
     "target": "es2017",
     "module": "commonjs",
-    "noEmit": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "skipLibCheck": true
-  },
-  "include": ["./scripts", "./test", "./typechain-types"],
-  "files": ["./hardhat.config.ts"]
+  }
 }
