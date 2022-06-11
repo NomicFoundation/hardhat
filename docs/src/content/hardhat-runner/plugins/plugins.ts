@@ -4,7 +4,7 @@
 //
 // If your plugin's `name` is not it's package name, you can add an optional
 // `npmPackage` field.
-import { IPlugin } from "../../model/types";
+import { IPlugin } from "../../../model/types";
 
 const communityPlugins: IPlugin[] = [
   {

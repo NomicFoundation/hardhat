@@ -1,18 +1,18 @@
 import type { GetStaticProps, NextPage } from "next";
 import { styled } from "linaria/react";
 import { MDXRemote, MDXRemoteSerializeResult } from "next-mdx-remote";
-import PluginsLayout from "../../components/PluginsLayout";
-import { media, tm, tmDark, tmSelectors } from "../../themes";
-import { components } from "../../components/DocumentationLayout";
+import PluginsLayout from "../../../components/PluginsLayout";
+import { media, tm, tmDark, tmSelectors } from "../../../themes";
+import { components } from "../../../components/DocumentationLayout";
 import {
   prepareMdContent,
   readMDFileFromPathOrIndex,
-} from "../../model/markdown";
-import { PLUGINS_PATH } from "../../config";
+} from "../../../model/markdown";
+import { PLUGINS_PATH } from "../../../config";
 
-import { getPlugins, PluginsList } from "../../model/plugins";
-import { IPlugin } from "../../model/types";
-import PluginSnippet from "../../components/PluginSnippet";
+import { getPlugins, PluginsList } from "../../../model/plugins";
+import { IPlugin } from "../../../model/types";
+import PluginSnippet from "../../../components/PluginSnippet";
 
 interface IPluginsPage {
   mdxSource: MDXRemoteSerializeResult;
@@ -121,7 +121,7 @@ const Plugins: NextPage<IPluginsPage> = ({ mdxSource, sortedPlugins }) => {
             <PluginSnippet
               key={plugin.name}
               {...plugin}
-              href={`/plugins/${plugin.normalizedName || ""}`}
+              href={`/hardhat-runner/plugins/${plugin.normalizedName || ""}`}
             />
           );
         })}

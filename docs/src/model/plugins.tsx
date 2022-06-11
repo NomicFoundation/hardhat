@@ -2,7 +2,7 @@ import path from "path";
 import { request } from "undici";
 import { getSidebarConfig, readFileContent } from "./markdown";
 import { IPlugin, OrderType, SectionType, TocItem, TocSubitem } from "./types";
-import plugins from "../content/plugins/plugins";
+import plugins from "../content/hardhat-runner/plugins/plugins";
 
 /**
  * NOTE: here we assumes that "Plugins" menu items only belongs to ${PLUGINS_LAYOUT} layout.
@@ -15,7 +15,7 @@ import plugins from "../content/plugins/plugins";
  * e.g. for adding a plugin section to another layout start reading `content/layouts.yaml`
  * as a source of actual layouts configuration
  */
-const PLUGINS_LAYOUT = "documentation";
+const PLUGINS_LAYOUT = "hardhat-runner";
 
 export const generateSlug = (pluginName: string): string =>
   pluginName.replace(/^@/, "").replace(/\//g, "-");
@@ -47,11 +47,11 @@ export const getPluginsPaths = (): Array<{ params: { plugin: string } }> => {
     );
     if (!pluginsSection?.children) {
       throw new Error(
-        `Section with type=plugins is missed or empty. Check content/plugins/_dirinfo.yaml`
+        `Section with type=plugins is missed or empty. Check content/hardhat-runner/plugins/_dirinfo.yaml`
       );
     }
     return pluginsSection.children
-      .map(({ href }) => href.replace(/^\/plugins\//, ""))
+      .map(({ href }) => href.replace(/^\/hardhat-runner\/plugins\//, ""))
       .filter((slug) => slug[0] !== "#")
       .map((slug) => ({
         params: {
@@ -68,6 +68,7 @@ export const getPluginsPaths = (): Array<{ params: { plugin: string } }> => {
 
 const getPluginReadmeFilename = (pluginSlug: string): string => {
   const folderName = pluginSlug
+    .replace("hardhat-runner/plugins/", "")
     .replace(/nomiclabs-/, "")
     .replace(/nomicfoundation-/, "");
   const rootPath = process.cwd().toString();

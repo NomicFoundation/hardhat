@@ -1,14 +1,14 @@
 import type { NextPage, GetStaticProps, GetStaticPaths } from "next";
 import { MDXRemoteSerializeResult } from "next-mdx-remote";
-import DocumentationLayout from "../../components/DocumentationLayout";
+import DocumentationLayout from "../../../components/DocumentationLayout";
 import {
   IDocumentationSidebarStructure,
   IFooterNavigation,
-} from "../../components/types";
-import { createLayouts } from "../../model/layout";
-import { getLayout, prepareMdContent } from "../../model/markdown";
-import { getPluginMDSource, getPluginsPaths } from "../../model/plugins";
-import { IFrontMatter } from "../../model/types";
+} from "../../../components/types";
+import { createLayouts } from "../../../model/layout";
+import { getLayout, prepareMdContent } from "../../../model/markdown";
+import { getPluginMDSource, getPluginsPaths } from "../../../model/plugins";
+import { IFrontMatter } from "../../../model/types";
 
 interface Props {
   mdxSource: MDXRemoteSerializeResult;
@@ -47,6 +47,7 @@ export default PluginPage;
 export const getStaticProps: GetStaticProps = async (props) => {
   const pluginSlug = props?.params?.plugin as string;
   const pluginName = pluginSlug
+    .replace("/hardhat-runner/plugins/", "")
     .replace(/nomiclabs-/, "@nomiclabs/")
     .replace(/nomicfoundation-/, "@nomicfoundation/");
 
