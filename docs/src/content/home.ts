@@ -38,7 +38,7 @@ const featureCardsContent = {
     mobileImg: FlexibilityImageMobile,
     desktopImg: FlexibilityImageDesktop,
     cta: {
-      url: "/guides/create-task.html",
+      url: "/hardhat-runner/docs/advanced/create-task.html",
       title: "Learn more about extending Hardhat",
     },
     articleOne: {
@@ -67,7 +67,7 @@ const featureCardsContent = {
     mobileImg: FastIterationImageMobile,
     desktopImg: FastIterationImageDesktop,
     cta: {
-      url: "/guides/typescript.html",
+      url: "/hardhat-runner/docs/guides/typescript.html",
       title: "Get started with TypeScript",
     },
     articleOne: {

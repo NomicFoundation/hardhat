@@ -122,6 +122,18 @@ const customRedirects = [
     destination: "/hardhat-runner/docs/getting-started#overview",
     permanent: false
   },
+
+  // guides redirects, exceptions go first
+  {
+    source: "/guides/:slug(hardhat-runtime-environment|create-task|scripts|building-plugins|vscode-tests)",
+    destination: "/hardhat-runner/docs/advanced/:slug",
+    permanent: false
+  },
+  {
+    source: "/guides/:slug",
+    destination: "/hardhat-runner/docs/guides/:slug",
+    permanent: false
+  },
   ...loadErrorRedirects()
 ];
 
