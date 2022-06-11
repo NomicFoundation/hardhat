@@ -83,7 +83,7 @@ const getAbsoluteHrefFromRelativePath = (href: string, currentHref: string) => {
     0
   );
 
-  const baseSegments = pathSegments.slice(0, baseSegmentsCount + 1);
+  const baseSegments = pathSegments.slice(0, baseSegmentsCount);
 
   const newSegments = ["", ...baseSegments, ...hrefSegments];
 
