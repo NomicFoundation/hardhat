@@ -16,7 +16,12 @@ const path = require("path");
 const customRedirects = [
   {
     source: "/configuration",
-    destination: "/config",
+    destination: "/hardhat-runner/docs/config",
+    permanent: false
+  },
+  {
+    source: "/config",
+    destination: "/hardhat-runner/docs/config",
     permanent: false
   },
   { source: "/links/stack-traces", destination: "/", permanent: false },
