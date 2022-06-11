@@ -5,7 +5,7 @@ import { useRouter } from "next/router";
 import { media, tm, tmDark, tmSelectors } from "../../themes";
 import ExternalLinkIcon from "../../assets/icons/external-link-icon";
 
-interface Props {
+export interface Props {
   children: string | ReactElement;
   href: string;
 }
