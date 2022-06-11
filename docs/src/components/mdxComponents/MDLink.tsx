@@ -71,12 +71,15 @@ const getAbsoluteHrefFromRelativePath = (href: string, currentHref: string) => {
   const pathSegments = currentHref
     .split("/")
     .filter((segment) => segment !== "");
-  const hrefSegments = href.split("/").filter((segment) => segment !== ".");
-
   const pathSegmentsCount = pathSegments.length;
+
+  let hrefSegments = href.split("/").filter((segment) => segment !== ".");
   const upperLevelsCount = hrefSegments.filter(
     (segment) => segment === ".."
   ).length;
+
+  // remove the ".." segments after counting them
+  hrefSegments = hrefSegments.filter((segment) => segment !== "..")
 
   const baseSegmentsCount = Math.max(
     pathSegmentsCount - 1 - upperLevelsCount,
