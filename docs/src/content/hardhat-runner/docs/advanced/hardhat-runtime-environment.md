@@ -45,7 +45,7 @@ describe("Hardhat Runtime Environment", function () {
 });
 ```
 
-This way, tests written for Hardhat are just normal Mocha tests. This enables you to run them from your favorite editor without the need of any Hardhat-specific plugin. For example, you can [run them from Visual Studio Code using Mocha Test Explorer](../guides/vscode-tests.md).
+This way, tests written for Hardhat are just normal Mocha tests. This enables you to run them from your favorite editor without the need of any Hardhat-specific plugin. For example, you can [run them from Visual Studio Code using Mocha Test Explorer](../advanced/vscode-tests.md).
 
 ## Extending the HRE
 
