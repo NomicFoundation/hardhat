@@ -22,7 +22,7 @@ const featureCardsContent = {
     mobileImg: SolidityImageMobile,
     desktopImg: SolidityImageDesktop,
     cta: {
-      url: "/hardhat-network/#console-log",
+      url: "/hardhat-network/#console.log",
       title: "Get started with Solidity console.log",
     },
     articleOne: {
@@ -86,7 +86,7 @@ const heroBlockContent = {
   tagline: "Flexible. Extensible. Fast.",
   cta: {
     title: "Get started",
-    url: "/getting-started",
+    url: "/hardhat-runner/docs/getting-started",
   },
 };
 
@@ -95,7 +95,7 @@ const getStartedBlockContent = {
   subtitle: "Experience the new way of building Ethereum software.",
   cta: {
     title: "Get started",
-    url: "/getting-started",
+    url: "/hardhat-runner/docs/getting-started",
   },
 };
 

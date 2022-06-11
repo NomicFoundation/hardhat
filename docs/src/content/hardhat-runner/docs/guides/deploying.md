@@ -25,7 +25,7 @@ main()
 
 You can deploy in the `localhost` network following these steps:
 
-1. Start a [local node](../getting-started/#connecting-a-wallet-or-dapp-to-hardhat-network)
+1. Start a [local node](../getting-started/index.md#connecting-a-wallet-or-dapp-to-hardhat-network)
 
    `npx hardhat node`
 

@@ -117,6 +117,11 @@ const customRedirects = [
     destination: "/hardhat-network-helpers/docs/overview",
     permanent: false
   },
+  {
+    source: "/getting-started",
+    destination: "/hardhat-runner/docs/getting-started#overview",
+    permanent: false
+  },
   ...loadErrorRedirects()
 ];
 
