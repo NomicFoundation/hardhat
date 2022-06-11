@@ -141,7 +141,7 @@ networks: {
 
 In this case, a new block will be mined after a random delay of between 3 and 6 seconds. For example, the first block could be mined after 4 seconds, the second block 5.5 seconds after that, and so on.
 
-See also [Mining Modes](../explanation/mining-modes.md).
+See also [Mining Modes](./explanation/mining-modes.md).
 
 #### Manual mining
 

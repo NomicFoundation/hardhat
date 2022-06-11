@@ -123,6 +123,12 @@ const customRedirects = [
     permanent: false
   },
 
+  {
+    source: "/hardhat-network/explanation/mining-modes",
+    destination: "/hardhat-network/docs/explanation/mining-modes",
+    permanent: false
+  },
+
   // plugins
   {
     source: "/plugins",
