@@ -52,11 +52,11 @@ You can customize which network is used by default when running Hardhat by setti
 
 ### Hardhat Network
 
-Hardhat comes built-in with a special network called `hardhat`. When using this network, an instance of the [Hardhat Network](../hardhat-network/index.md) will be automatically created when you run a task, script or test your smart contracts.
+Hardhat comes built-in with a special network called `hardhat`. When using this network, an instance of the [Hardhat Network](/hardhat-network/docs) will be automatically created when you run a task, script or test your smart contracts.
 
-Hardhat Network has first-class support of Solidity. It always knows which smart contracts are being run and exactly what they do and why they fail. Learn more about it [here](../hardhat-network/index.md).
+Hardhat Network has first-class support of Solidity. It always knows which smart contracts are being run and exactly what they do and why they fail. Learn more about it [here](/hardhat-network/docs).
 
-See [the Hardhat Network Configuration Reference](../hardhat-network/reference/#config) for details on what can be configured.
+See [the Hardhat Network Configuration Reference](/hardhat-network/docs/reference/#config) for details on what can be configured.
 
 ### JSON-RPC based networks
 
@@ -144,7 +144,7 @@ The `solidity` config is an optional field that can be one of the following:
 
   - `compilers`: A list of compiler configuration objects like the one above.
 
-  - `overrides`: An optional map of compiler configuration override objects. This maps file names to compiler configuration objects. Take a look at the [compilation guide](../guides/compile-contracts.md) to learn more.
+  - `overrides`: An optional map of compiler configuration override objects. This maps file names to compiler configuration objects. Take a look at the [compilation guide](./guides/compile-contracts.md) to learn more.
 
 ## Path configuration
 

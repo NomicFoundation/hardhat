@@ -1,6 +1,6 @@
 \<Introduction, links to tutorial and getting started pages>
 
-[Getting started](/hardhat-runner/docs/getting-started#overview)
+[Getting started](/hardhat-runner/docs/getting-started/index.md#overview)
 
 [Tutorial](/tutorial)
 

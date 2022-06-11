@@ -109,7 +109,7 @@ To use it, you simply import `hardhat/console.sol` and call it. It implements th
 
 It always works, regardless of the call or transaction failing or being successful. And, because it's implemented in standard Solidity, it works with _any_ tool or library, emitting log entries where it's fully supported &mdash; Hardhat Network, Remix, and Tenderly &mdash; and falling back gracefully to a no-op everywhere else &mdash; Remix, Waffle, Truffle, etc &mdash; though it does consume a small amount of gas on live networks.
 
-You can see an example in the Sample Project. Follow the steps in [Quick Start](/getting-started/index.md#quick-start) to try it out. You can also refer to more details in [the reference documentation](./reference/index.md#console-log).
+You can see an example in the Sample Project. Follow the steps in [Quick Start](/hardhat-runner/docs/getting-started/index.md#quick-start) to try it out. You can also refer to more details in [the reference documentation](./reference/index.md#console.log).
 
 ### Mainnet forking
 
@@ -159,7 +159,7 @@ eth_call
       at process._tickCallback (internal/process/next_tick.js:68:7)
 ```
 
-This logging is enabled by default when using Hardhat Network's node (i.e. `npx hardhat node`), but disabled when using the in-process Hardhat Network provider. See [Hardhat Network's config](../config/index.md#hardhat-network) to learn more about how to control its logging.
+This logging is enabled by default when using Hardhat Network's node (i.e. `npx hardhat node`), but disabled when using the in-process Hardhat Network provider. See [Hardhat Network's config](./reference#config) to learn more about how to control its logging.
 
 ### The `debug_traceTransaction` method
 

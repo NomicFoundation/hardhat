@@ -48,7 +48,7 @@ When **Hardhat** is run, it searches for the closest `hardhat.config.js` file st
 
 ## Hardhat's architecture
 
-**Hardhat** is designed around the concepts of **tasks** and **plugins**. The bulk of **Hardhat**'s functionality comes from plugins, which as a developer [you're free to choose](/plugins/) the ones you want to use.
+**Hardhat** is designed around the concepts of **tasks** and **plugins**. The bulk of **Hardhat**'s functionality comes from plugins, which as a developer [you're free to choose](/hardhat-runner/plugins/) the ones you want to use.
 
 ### Tasks
 

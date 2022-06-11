@@ -69,6 +69,6 @@ Interacting with the Ethereum network, and therefore with your smart contracts, 
 
 To make things easier, Hardhat's console supports `await` top-level await (i.e. `console.log(await web3.eth.getBalance()`). To use this feature, you need to be using Node 10 or higher.
 
-For any help or feedback you may have, you can find us in the [Hardhat Support Discord server](https://hardhat.org/discord).
+For any help or feedback you may have, you can find us in the [Hardhat Support Discord server](/discord).
 
 [hardhat runtime environment]: ../advanced/hardhat-runtime-environment.md

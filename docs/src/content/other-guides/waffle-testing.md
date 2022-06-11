@@ -14,13 +14,13 @@ Let's see how to use it going through Hardhat's sample project.
 
 :::tip
 
-Ethers and Waffle support TypeScript. Learn how to set up Hardhat with TypeScript [here](./typescript.md).
+Ethers and Waffle support TypeScript. Learn how to set up Hardhat with TypeScript [here](/hardhat-runner/docs/guides/typescript.md).
 
 :::
 
 ## Setting up
 
-[Install Hardhat](/getting-started/index.md#installation) on an empty directory. When done, run `npx hardhat`.
+[Install Hardhat](/hardhat-runner/docs/getting-started/index.md#installation) on an empty directory. When done, run `npx hardhat`.
 
 ```
 $ npx hardhat

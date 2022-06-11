@@ -16,7 +16,12 @@ const path = require("path");
 const customRedirects = [
   {
     source: "/configuration",
-    destination: "/config",
+    destination: "/hardhat-runner/docs/config",
+    permanent: false
+  },
+  {
+    source: "/config",
+    destination: "/hardhat-runner/docs/config",
     permanent: false
   },
   { source: "/links/stack-traces", destination: "/", permanent: false },
@@ -117,6 +122,115 @@ const customRedirects = [
     destination: "/hardhat-network-helpers/docs/overview",
     permanent: false
   },
+  {
+    source: "/getting-started",
+    destination: "/hardhat-runner/docs/getting-started#overview",
+    permanent: false
+  },
+  {
+    source: "/hardhat-network/guides/mainnet-forking",
+    destination: "/hardhat-network/docs/guides/mainnet-forking",
+    permanent: false
+  },
+  {
+    source: "/hardhat-network/reference",
+    destination: "/hardhat-network/docs/reference",
+    permanent: false
+  },
+  {
+    source: "/hardhat-network/explanation/mining-modes",
+    destination: "/hardhat-network/docs/explanation/mining-modes",
+    permanent: false
+  },
+  {
+    source: "/troubleshooting/verbose-logging",
+    destination: "/hardhat-runner/docs/troubleshooting/verbose-logging",
+    permanent: false
+  },
+  {
+    source: "/troubleshooting/common-problems",
+    destination: "/hardhat-runner/docs/troubleshooting/common-problems",
+    permanent: false
+  },
+  {
+    source: "/errors",
+    destination: "/hardhat-runner/docs/errors",
+    permanent: false
+  },
+  {
+    source: "/reference/stability-guarantees",
+    destination: "/hardhat-runner/docs/reference/stability-guarantees",
+    permanent: false
+  },
+  {
+    source: "/reference/solidity-support",
+    destination: "hardhat-runner/docs/reference/solidity-support",
+    permanent: false
+  },
+  {
+    source: "/metamask-issue",
+    destination: "/hardhat-network/docs/metamask-issue",
+    permanent: false
+  },
+
+  // plugins
+  {
+    source: "/plugins",
+    destination: "/hardhat-runner/plugins",
+    permanent: false
+  },
+  {
+    source: "/plugins/:slug",
+    destination: "/hardhat-runner/plugins/:slug",
+    permanent: false
+  },
+
+  // guides redirects, exceptions go first
+  {
+    source: "/guides/:slug(hardhat-runtime-environment|create-task|scripts|building-plugins|vscode-tests)",
+    destination: "/hardhat-runner/docs/advanced/:slug",
+    permanent: false
+  },
+  {
+    source: "/guides/:slug(waffle-testing|truffle-testing|parallel-tests|truffle-migration|ganache-tests)",
+    destination: "/other-guides/:slug",
+    permanent: false
+  },
+  {
+    source: "/guides/:slug",
+    destination: "/hardhat-runner/docs/guides/:slug",
+    permanent: false
+  },
+  {
+    source: "/advanced/:slug",
+    destination: "/hardhat-runner/docs/advanced/:slug",
+    permanent: false
+  },
+
+  // chai-matchers
+  {
+    source: "/chai-matchers",
+    destination: "/hardhat-chai-matchers",
+    permanent: false
+  },
+  {
+    source: "/chai-matchers/:slug",
+    destination: "/hardhat-chai-matchers/docs/:slug",
+    permanent: false
+  },
+
+  // network-helpers
+  {
+    source: "/network-helpers",
+    destination: "/hardhat-network-helpers",
+    permanent: false
+  },
+  {
+    source: "/network-helpers/:slug",
+    destination: "/hardhat-network-helpers/docs/:slug",
+    permanent: false
+  },
+
   ...loadErrorRedirects()
 ];
 

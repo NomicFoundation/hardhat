@@ -85,7 +85,7 @@ An optional boolean that disables the contract size limit imposed by the [EIP 17
 
 #### `forking`
 
-An object that describes the [forking](../guides/mainnet-forking.md) configuration that can have the following fields:
+An object that describes the [forking](./guides/mainnet-forking.md) configuration that can have the following fields:
 
 - `url`: a URL that points to a JSON-RPC node with state that you want to fork off. There's no default value for this field. It must be provided for the fork to work.
 - `blockNumber`: an optional number to pin which block to fork from. If no value is provided, the latest block is used.
@@ -99,7 +99,7 @@ An object that configures chain-specific options. Each key is a number represent
 
 The default value includes configurations for several well known chains (eg mainnet, chain ID `1`); using this field is only useful when forking unusual networks. The user may override the defaults for some chain ID's while leaving the defaults in place for other chain ID's. Overriding the default for a chain ID will replace the entire configuration for that chain.
 
-For more details, see [Using a custom hardfork history](../guides/mainnet-forking.md#using-a-custom-hardfork-history).
+For more details, see [Using a custom hardfork history](./guides/mainnet-forking.md#using-a-custom-hardfork-history).
 
 #### `minGasPrice`
 
@@ -141,7 +141,7 @@ networks: {
 
 In this case, a new block will be mined after a random delay of between 3 and 6 seconds. For example, the first block could be mined after 4 seconds, the second block 5.5 seconds after that, and so on.
 
-See also [Mining Modes](../explanation/mining-modes.md).
+See also [Mining Modes](./explanation/mining-modes.md).
 
 #### Manual mining
 
@@ -417,7 +417,7 @@ Also note that blocks created via `hardhat_mine` may not trigger new-block event
 
 #### `hardhat_reset`
 
-See the [Mainnet Forking guide](../guides/mainnet-forking.md)
+See the [Mainnet Forking guide](./guides/mainnet-forking.md#resetting-the-fork)
 
 #### `hardhat_setBalance`
 

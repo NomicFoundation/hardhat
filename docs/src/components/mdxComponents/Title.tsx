@@ -3,7 +3,7 @@ import { styled } from "linaria/react";
 import { media, tm, tmDark, tmSelectors } from "../../themes";
 import MDLink from "./MDLink";
 
-interface Props {
+export interface Props {
   children: ReactElement | string;
 }
 

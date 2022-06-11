@@ -3,7 +3,7 @@ import React from "react";
 import Image from "next/image";
 import { styled } from "linaria/react";
 
-interface Props {
+export interface Props {
   src: string;
   alt: string;
 }

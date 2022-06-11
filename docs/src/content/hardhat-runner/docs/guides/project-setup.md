@@ -67,7 +67,7 @@ If you need to change these paths, take a look at the [paths configuration secti
 
 When it comes to testing your contracts, Hardhat comes with some built-in defaults:
 
-- The built-in [Hardhat Network](../hardhat-network/index.md) as the development network to test on
+- The built-in [Hardhat Network](/hardhat-network/docs) as the development network to test on
 - [Mocha](https://mochajs.org/) as the test runner
 
 If you need to use an external network, like an Ethereum testnet, mainnet or some other specific node software, you can set it up using the `networks` configuration entries in the exported object in `hardhat.config.js`, which is how Hardhat projects manage settings.
@@ -85,7 +85,7 @@ You need to install these dependencies to run the sample project:
   npm install --save-dev @nomiclabs/hardhat-waffle ethereum-waffle chai @nomiclabs/hardhat-ethers ethers
 ```
 
-This stems from the fact that **most of Hardhat's functionality comes from plugins**, so check out the [plugins section](../plugins/index.md) for the official list and see if there are any other ones of interest to you.
+This stems from the fact that **most of Hardhat's functionality comes from plugins**, so check out the [plugins section](/hardhat-runner/plugins) for the official list and see if there are any other ones of interest to you.
 
 The sample project uses the `@nomiclabs/hardhat-waffle` plugin, which depends on the `@nomiclabs/hardhat-ethers` plugin. These integrate the Ethers.js and Waffle tools into your project.
 
@@ -99,4 +99,4 @@ module.exports = {};
 
 Plugins are **essential** to Hardhat projects, so make sure to check out all the available ones and also build your own!
 
-For any help or feedback you may have, you can find us in the [Hardhat Support Discord server](https://hardhat.org/discord).
+For any help or feedback you may have, you can find us in the [Hardhat Support Discord server](/discord).

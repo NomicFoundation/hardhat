@@ -10,7 +10,7 @@ There are two ways of writing a script that accesses the [Hardhat Runtime Enviro
 
 Hardhat scripts are useful for simple things that don't take user arguments, and for integrating with external tools that aren't well suited for the Hardhat CLI, like a Node.js debugger.
 
-If you want to automate more complex things, and receive user arguments, you can learn how to [create your own tasks here](../guides/create-task.md).
+If you want to automate more complex things, and receive user arguments, you can learn how to [create your own tasks here](./create-task.md).
 
 :::
 

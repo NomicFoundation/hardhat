@@ -10,6 +10,7 @@ hardhat-runner:
     - hardhat-runner/docs/troubleshooting
     - hardhat-runner/docs/reference
     - hardhat-runner/docs/other-projects
+    - hardhat-runner/plugins
     # hidden
     - hardhat-runner/docs/errors
 
@@ -47,11 +48,7 @@ other-guides:
   title: Other guides
   folders:
     - other-guides
-
-documentation:
-  title: documentation
-  folders:
-    - plugins
+    - other-guides/other-projects
 
 hidden:
   title: hidden

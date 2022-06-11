@@ -2,7 +2,7 @@
 
 In this guide, we will go through the steps to get a Hardhat project working with TypeScript. This means that you can write your Hardhat config, tasks, scripts and tests in [TypeScript](https://www.typescriptlang.org/).
 
-For a general overview of using Hardhat refer to the [Getting started guide](../getting-started).
+For a general overview of using Hardhat refer to the [Getting started guide](../getting-started/index.md).
 
 ## Enabling TypeScript support
 

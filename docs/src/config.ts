@@ -35,7 +35,10 @@ export const DOCS_LANDING_PATH = path.join(
   process.cwd(),
   "src/content/docs-landing"
 );
-export const PLUGINS_PATH = path.join(process.cwd(), "src/content/plugins");
+export const PLUGINS_PATH = path.join(
+  process.cwd(),
+  "src/content/hardhat-runner/plugins"
+);
 export const TEMP_PATH = path.join(process.cwd(), "temp/");
 export const REPO_URL =
   "https://github.com/NomicFoundation/hardhat/edit/master/docs/src/content/";
@@ -85,7 +88,7 @@ export const menuItemsList: MenuItemType[] = [
   },
   {
     label: "Plugins",
-    href: "/plugins",
+    href: "/hardhat-runner/plugins",
   },
   {
     label: "Documentation",

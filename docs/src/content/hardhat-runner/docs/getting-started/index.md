@@ -109,7 +109,7 @@ Welcome to Hardhat v2.0.8
 
 Let’s create the sample project and go through these steps to try out the sample task and compile, test and deploy the sample contract.
 
-The sample project will ask you to install `hardhat-waffle` and `hardhat-ethers`, which makes Hardhat compatible with tests built with Waffle. You can learn more about it [in this guide](../guides/waffle-testing.md).
+The sample project will ask you to install `hardhat-waffle` and `hardhat-ethers`, which makes Hardhat compatible with tests built with Waffle. You can learn more about it [in this guide](/other-guides/waffle-testing.md).
 
 :::tip
 
@@ -270,4 +270,4 @@ npx hardhat run scripts/sample-script.js --network localhost
 
 Congrats! You have created a project, run a Hardhat task, compiled a smart contract, installed a Waffle integration plugin, written and run a test using the Waffle and ethers.js plugins, and deployed a contract.
 
-For any questions or feedback you may have, you can find us in the [Hardhat Discord server](https://hardhat.org/discord).
+For any questions or feedback you may have, you can find us in the [Hardhat Discord server](/discord).

@@ -26,7 +26,7 @@ Not everyone likes magic global variables, and Hardhat doesn't force you to use 
 
 When writing tests or scripts, you can use `require("hardhat")` to import the HRE. You can read more about this in [Accessing the HRE from outside a task](#accessing-the-hre-from-outside-a-task).
 
-You can import the config DSL explicitly when defining your tasks, and receive the HRE explicitly as an argument to your actions. You can read more about this in [Creating your own tasks](../guides/create-task.md).
+You can import the config DSL explicitly when defining your tasks, and receive the HRE explicitly as an argument to your actions. You can read more about this in [Creating your own tasks](./create-task.md).
 
 ## Accessing the HRE from outside a task
 
@@ -45,7 +45,7 @@ describe("Hardhat Runtime Environment", function () {
 });
 ```
 
-This way, tests written for Hardhat are just normal Mocha tests. This enables you to run them from your favorite editor without the need of any Hardhat-specific plugin. For example, you can [run them from Visual Studio Code using Mocha Test Explorer](../guides/vscode-tests.md).
+This way, tests written for Hardhat are just normal Mocha tests. This enables you to run them from your favorite editor without the need of any Hardhat-specific plugin. For example, you can [run them from Visual Studio Code using Mocha Test Explorer](../advanced/vscode-tests.md).
 
 ## Extending the HRE
 

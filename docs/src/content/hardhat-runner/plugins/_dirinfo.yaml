@@ -1,4 +1,5 @@
 section-type: plugins
+section-title: Plugins
 order:
   - "@nomiclabs/hardhat-ethers"
   - "@nomiclabs/hardhat-waffle"
@@ -12,4 +13,4 @@ order:
   - "@nomiclabs/hardhat-web3-legacy"
   - "@nomiclabs/hardhat-truffle4"
   - title: Community plugins
-    href: /plugins/#community-plugins
+    href: /hardhat-runner/plugins/#community-plugins

@@ -5,7 +5,7 @@ import { useRouter } from "next/router";
 import { media, tm, tmDark, tmSelectors } from "../../themes";
 import ExternalLinkIcon from "../../assets/icons/external-link-icon";
 
-interface Props {
+export interface Props {
   children: string | ReactElement;
   href: string;
 }
@@ -57,27 +57,40 @@ const StyledMdLinkContainer = styled.span`
   }
 `;
 
+const getAbsoluteHrefFromAbsolutePath = (href: string): string => {
+  return (
+    href
+      // the lookahead is to prevent links like /indexing.md from being broken
+      .replace(/\/index(?=\.)/, "")
+      // remove the .md/.mdx extension but preserve the anchor
+      .replace(/\.mdx?(#.*)?$/, "$1")
+  );
+};
+
 const getAbsoluteHrefFromRelativePath = (href: string, currentHref: string) => {
   const pathSegments = currentHref
     .split("/")
     .filter((segment) => segment !== "");
-  const hrefSegments = href.split("/").filter((segment) => segment !== ".");
-
   const pathSegmentsCount = pathSegments.length;
+
+  let hrefSegments = href.split("/").filter((segment) => segment !== ".");
   const upperLevelsCount = hrefSegments.filter(
     (segment) => segment === ".."
   ).length;
+
+  // remove the ".." segments after counting them
+  hrefSegments = hrefSegments.filter((segment) => segment !== "..");
 
   const baseSegmentsCount = Math.max(
     pathSegmentsCount - 1 - upperLevelsCount,
     0
   );
 
-  const baseSegments = pathSegments.slice(0, baseSegmentsCount + 1);
+  const baseSegments = pathSegments.slice(0, baseSegmentsCount);
 
   const newSegments = ["", ...baseSegments, ...hrefSegments];
 
-  return newSegments.join("/").replace("/index", "");
+  return getAbsoluteHrefFromAbsolutePath(newSegments.join("/"));
 };
 
 const renderLinkByType = ({
@@ -106,7 +119,7 @@ const renderLinkByType = ({
   }
   if (isAbsoluteLink) {
     return (
-      <Link href={href}>
+      <Link href={getAbsoluteHrefFromAbsolutePath(href)}>
         {/* eslint-disable-next-line */}
         <a>{children}</a>
       </Link>
@@ -130,7 +143,7 @@ const MDLink = ({ children, href }: Props) => {
   return (
     <StyledMdLinkContainer>
       {renderLinkByType({
-        href: href.replace(/\.mdx?$/, ""),
+        href,
         children,
         isAnchor,
         isExternalLink,
