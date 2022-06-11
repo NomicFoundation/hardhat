@@ -127,10 +127,49 @@ const customRedirects = [
     destination: "/hardhat-runner/docs/getting-started#overview",
     permanent: false
   },
-
+  {
+    source: "/hardhat-network/guides/mainnet-forking",
+    destination: "/hardhat-network/docs/guides/mainnet-forking",
+    permanent: false
+  },
+  {
+    source: "/hardhat-network/reference",
+    destination: "/hardhat-network/docs/reference",
+    permanent: false
+  },
   {
     source: "/hardhat-network/explanation/mining-modes",
     destination: "/hardhat-network/docs/explanation/mining-modes",
+    permanent: false
+  },
+  {
+    source: "/troubleshooting/verbose-logging",
+    destination: "/hardhat-runner/docs/troubleshooting/verbose-logging",
+    permanent: false
+  },
+  {
+    source: "/troubleshooting/common-problems",
+    destination: "/hardhat-runner/docs/troubleshooting/common-problems",
+    permanent: false
+  },
+  {
+    source: "/errors",
+    destination: "/hardhat-runner/docs/errors",
+    permanent: false
+  },
+  {
+    source: "/reference/stability-guarantees",
+    destination: "/hardhat-runner/docs/reference/stability-guarantees",
+    permanent: false
+  },
+  {
+    source: "/reference/solidity-support",
+    destination: "hardhat-runner/docs/reference/solidity-support",
+    permanent: false
+  },
+  {
+    source: "/metamask-issue",
+    destination: "/hardhat-network/docs/metamask-issue",
     permanent: false
   },
 
