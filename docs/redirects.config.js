@@ -152,6 +152,31 @@ const customRedirects = [
     destination: "/hardhat-runner/docs/guides/:slug",
     permanent: false
   },
+
+  // chai-matchers
+  {
+    source: "/chai-matchers",
+    destination: "/hardhat-chai-matchers",
+    permanent: false
+  },
+  {
+    source: "/chai-matchers/:slug",
+    destination: "/hardhat-chai-matchers/:slug",
+    permanent: false
+  },
+
+  // network-helpers
+  {
+    source: "/network-helpers",
+    destination: "/hardhat-network-helpers",
+    permanent: false
+  },
+  {
+    source: "/network-helpers/:slug",
+    destination: "/hardhat-network-helpers/:slug",
+    permanent: false
+  },
+
   ...loadErrorRedirects()
 ];
 
