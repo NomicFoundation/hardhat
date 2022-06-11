@@ -79,7 +79,7 @@ const getAbsoluteHrefFromRelativePath = (href: string, currentHref: string) => {
   ).length;
 
   // remove the ".." segments after counting them
-  hrefSegments = hrefSegments.filter((segment) => segment !== "..")
+  hrefSegments = hrefSegments.filter((segment) => segment !== "..");
 
   const baseSegmentsCount = Math.max(
     pathSegmentsCount - 1 - upperLevelsCount,
