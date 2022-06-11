@@ -85,7 +85,7 @@ You need to install these dependencies to run the sample project:
   npm install --save-dev @nomiclabs/hardhat-waffle ethereum-waffle chai @nomiclabs/hardhat-ethers ethers
 ```
 
-This stems from the fact that **most of Hardhat's functionality comes from plugins**, so check out the [plugins section](../plugins/index.md) for the official list and see if there are any other ones of interest to you.
+This stems from the fact that **most of Hardhat's functionality comes from plugins**, so check out the [plugins section](/hardhat-runner/plugins) for the official list and see if there are any other ones of interest to you.
 
 The sample project uses the `@nomiclabs/hardhat-waffle` plugin, which depends on the `@nomiclabs/hardhat-ethers` plugin. These integrate the Ethers.js and Waffle tools into your project.
 
