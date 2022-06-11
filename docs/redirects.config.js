@@ -171,7 +171,7 @@ const customRedirects = [
   },
   {
     source: "/chai-matchers/:slug",
-    destination: "/hardhat-chai-matchers/:slug",
+    destination: "/hardhat-chai-matchers/docs/:slug",
     permanent: false
   },
 
@@ -183,7 +183,7 @@ const customRedirects = [
   },
   {
     source: "/network-helpers/:slug",
-    destination: "/hardhat-network-helpers/:slug",
+    destination: "/hardhat-network-helpers/docs/:slug",
     permanent: false
   },
 
