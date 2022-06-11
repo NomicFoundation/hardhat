@@ -69,4 +69,4 @@ should become:
 console.log(await web3.eth.getAccounts());
 ```
 
-For any help or feedback you may have, you can find us in the [Hardhat Support Discord server](https://hardhat.org/discord).
+For any help or feedback you may have, you can find us in the [Hardhat Support Discord server](/discord).
