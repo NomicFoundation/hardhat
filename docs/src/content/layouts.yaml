@@ -48,6 +48,7 @@ other-guides:
   title: Other guides
   folders:
     - other-guides
+    - other-guides/other-projects
 
 hidden:
   title: hidden
