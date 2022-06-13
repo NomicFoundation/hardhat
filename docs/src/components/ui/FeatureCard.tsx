@@ -12,6 +12,8 @@ interface ArticleType {
 }
 
 interface ContentProps {
+  mobileImgDark: StaticImageData;
+  desktopImgDark: StaticImageData;
   mobileImg: StaticImageData;
   desktopImg: StaticImageData;
   cta: CTAType;
@@ -86,6 +88,27 @@ const ImageWrapper = styled.div`
     &[data-reverse="true"] {
       left: 20%;
       right: unset;
+    }
+  }
+  &.dark {
+    display: none;
+  }
+  ${tmSelectors.dark} {
+    &.dark {
+      display: block;
+    }
+    &.light {
+      display: none;
+    }
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      &.dark {
+        display: block;
+      }
+      &.light {
+        display: none;
+      }
     }
   }
 `;
@@ -176,15 +199,28 @@ const Article = ({ title, text }: ArticleType) => {
 };
 
 const FeatureCard = ({ content, isReversed = false }: Props) => {
-  const { mobileImg, desktopImg, cta, articleOne, articleTwo } = content;
+  const {
+    mobileImg,
+    desktopImg,
+    cta,
+    articleOne,
+    articleTwo,
+    mobileImgDark,
+    desktopImgDark,
+  } = content;
   const windowSize = useWindowSize();
   const isDesktop = breakpoints.md <= windowSize.width;
   const imgPath = isDesktop ? desktopImg : mobileImg;
+  const imgPathDark = isDesktop ? desktopImgDark : mobileImgDark;
+
   return (
     <Container data-reverse={isReversed}>
       <ImageContainer>
-        <ImageWrapper data-reverse={isReversed}>
+        <ImageWrapper data-reverse={isReversed} className="light">
           <Image src={imgPath} alt="Feature card picture" quality={100} />
+        </ImageWrapper>
+        <ImageWrapper data-reverse={isReversed} className="dark">
+          <Image src={imgPathDark} alt="Feature card picture" quality={100} />
         </ImageWrapper>
       </ImageContainer>
       <ContentContainer data-reverse={isReversed}>

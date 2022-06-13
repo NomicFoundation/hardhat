@@ -8,7 +8,13 @@ import Section from "../Section";
 import { CTAType } from "../ui/types";
 
 interface Props {
-  content: { title: string; text: string; imageUrl: string; cta: CTAType };
+  content: {
+    title: string;
+    text: string;
+    imageUrl: string;
+    imageDarkUrl: string;
+    cta: CTAType;
+  };
 }
 
 const CardWrapper = styled.section`
@@ -75,6 +81,27 @@ const ImageContainer = styled.div`
     left: 0;
     transform: scale(1);
   }
+  &.dark {
+    display: none;
+  }
+  ${tmSelectors.dark} {
+    &.dark {
+      display: block;
+    }
+    &.light {
+      display: none;
+    }
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      &.dark {
+        display: block;
+      }
+      &.light {
+        display: none;
+      }
+    }
+  }
 `;
 
 const Title = styled.h2`
@@ -96,7 +123,7 @@ const Title = styled.h2`
   }
   ${media.mqDark} {
     ${tmSelectors.auto} {
-      color: ${tm(({ colors }) => colors.neutral900)};
+      color: ${tmDark(({ colors }) => colors.neutral900)};
     }
   }
 `;
@@ -155,10 +182,22 @@ const VibrantCommunityBlock = ({ content }: Props) => {
     <Section clearPadding>
       <CardWrapper>
         <Container>
-          <ImageContainer>
+          <ImageContainer className="light">
             <Image
               className="img"
               src={content.imageUrl}
+              layout="responsive"
+              objectFit="contain"
+              width="100%"
+              height="100%"
+              quality={100}
+              alt="Vibrant community image"
+            />
+          </ImageContainer>
+          <ImageContainer className="dark">
+            <Image
+              className="img"
+              src={content.imageDarkUrl}
               layout="responsive"
               objectFit="contain"
               width="100%"

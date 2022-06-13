@@ -10,6 +10,17 @@ import ExtensibleImageMobile from "../assets/feature-cards/Mobile/ExtensibleImag
 import ExtensibleImageDesktop from "../assets/feature-cards/Desktop/ExtensibleImage.png";
 import FastIterationImageMobile from "../assets/feature-cards/Mobile/FastIterationImage.svg";
 import FastIterationImageDesktop from "../assets/feature-cards/Desktop/FastIterationImage.png";
+
+// TODO-LANDING-DARK: Replace images below with correct dark themed images.
+import SolidityImageMobileDark from "../assets/feature-cards/Mobile/SolidityImageDark.svg";
+import SolidityImageDesktopDark from "../assets/feature-cards/Desktop/SolidityImageDark.png";
+import FlexibilityImageMobileDark from "../assets/feature-cards/Mobile/FlexibilityImageDark.svg";
+import FlexibilityImageDesktopDark from "../assets/feature-cards/Desktop/FlexibilityImageDark.png";
+import ExtensibleImageMobileDark from "../assets/feature-cards/Mobile/ExtensibleImageDark.svg";
+import ExtensibleImageDesktopDark from "../assets/feature-cards/Desktop/ExtensibleImageDark.png";
+import FastIterationImageMobileDark from "../assets/feature-cards/Mobile/FastIterationImageDark.svg";
+import FastIterationImageDesktopDark from "../assets/feature-cards/Desktop/FastIterationImageDark.png";
+
 import { NavigationPagesPaths, Tools } from "../components/ui/types";
 import reviewsBlock from "../assets/homepage-assets/reviews-block";
 import RunnerIconDark from "../assets/tools/runner-dark";
@@ -23,6 +34,8 @@ const whyHardhatContent = {
 
 const featureCardsContent = {
   featureCardOne: {
+    mobileImgDark: SolidityImageMobileDark,
+    desktopImgDark: SolidityImageDesktopDark,
     mobileImg: SolidityImageMobile,
     desktopImg: SolidityImageDesktop,
     cta: {
@@ -39,6 +52,8 @@ const featureCardsContent = {
     },
   },
   featureCardTwo: {
+    mobileImgDark: FlexibilityImageMobileDark,
+    desktopImgDark: FlexibilityImageDesktopDark,
     mobileImg: FlexibilityImageMobile,
     desktopImg: FlexibilityImageDesktop,
     cta: {
@@ -55,6 +70,8 @@ const featureCardsContent = {
     },
   },
   featureCardThree: {
+    mobileImgDark: ExtensibleImageMobileDark,
+    desktopImgDark: ExtensibleImageDesktopDark,
     mobileImg: ExtensibleImageMobile,
     desktopImg: ExtensibleImageDesktop,
     cta: {
@@ -71,6 +88,8 @@ const featureCardsContent = {
     },
   },
   featureCardFour: {
+    mobileImgDark: FastIterationImageMobileDark,
+    desktopImgDark: FastIterationImageDesktopDark,
     mobileImg: FastIterationImageMobile,
     desktopImg: FastIterationImageDesktop,
     cta: {
@@ -110,6 +129,8 @@ const vibrantCommunityBlockContent = {
   title: "Vibrant community",
   text: "Great tech attracts great people. Join the Hardhat community to find answers to your problems and contribute to the plugin ecosystem.",
   imageUrl: "/images/vibrant_community.png",
+  // TODO-LANDING-DARK: add missing image vibrant_community-dark.png
+  imageDarkUrl: "/images/vibrant_community-dark.png",
   cta: {
     title: "Join the Hardhat Discord",
     url: "https://discord.com/invite/TETZs2KK4k",
