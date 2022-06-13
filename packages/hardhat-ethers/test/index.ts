@@ -150,6 +150,8 @@ describe("Ethers plugin", function () {
       describe("getImpersonatedSigner", function () {
         it("should invoke hardhat_impersonateAccount", async function () {
           const address = `0x${"ff".repeat(20)}`;
+          // TODO: We are testing this plugin against Ganache, so this fails.
+          //  We should test it using Hardhat Network instead.
           await assert.isRejected(
             this.env.ethers.getImpersonatedSigner(address),
             "Method hardhat_impersonateAccount not supported"
