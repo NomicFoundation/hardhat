@@ -17,7 +17,8 @@ function cleanup(ganacheChild) {
       }
     });
     ganacheChild.on("exit", resolve);
-    ganacheChild.kill("SIGINT");
+    ganacheChild.kill();
+    // test
   });
 }
 
