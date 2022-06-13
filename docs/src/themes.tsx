@@ -27,9 +27,16 @@ export const media = {
   mqDark: "@media (prefers-color-scheme: dark)",
 };
 
+// TODO-LANDING-THEMING: uncomment tmSelectors below and delete other (the one with "> div > :not(.landing)")
+
+// export const tmSelectors = {
+//   dark: "body.DARK &",
+//   auto: "body.AUTO &",
+// };
+
 export const tmSelectors = {
-  dark: "body.DARK &",
-  auto: "body.AUTO &",
+  dark: "body.DARK > div > div:not(.landing) &",
+  auto: "body.AUTO > div > div:not(.landing) &",
 };
 
 export const lightPalette = {
