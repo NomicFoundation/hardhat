@@ -26,6 +26,7 @@ const {
 
 interface InfoItem {
   icon: React.FC<any>;
+  iconDark: React.FC<any>;
   title: string;
   value: Tools;
   mottos: string[];
@@ -150,7 +151,14 @@ const ToolsBlock = ({ content }: BlockProps) => {
                 className={selectedTool === button.value ? "active" : ""}
               >
                 <button.icon
-                  className={selectedTool === button.value ? "active" : ""}
+                  className={`${
+                    selectedTool === button.value ? "active" : ""
+                  } light`}
+                />
+                <button.iconDark
+                  className={`${
+                    selectedTool === button.value ? "active" : ""
+                  } dark`}
                 />
                 <ButtonNameContainer>
                   <ButtonCompanyName>{content.companyName}</ButtonCompanyName>

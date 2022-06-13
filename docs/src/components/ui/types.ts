@@ -1,8 +1,15 @@
 import React from "react";
 
+export enum NavigationPagesPaths {
+  HOME = "/",
+  TOOLS = "/#tools",
+  PLUGINS = "/plugins",
+  DOCUMENTATION = "/getting-started",
+  TUTORIAL = "/tutorial",
+}
 export interface MenuItemType {
   label: string;
-  href: string;
+  href: NavigationPagesPaths | string;
   subItems?: MenuItemType[];
   prefix?: string;
   icon?: React.FC<any>;

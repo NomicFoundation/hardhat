@@ -6,6 +6,7 @@ const Container = styled.div`
   display: flex;
   flex-direction: column;
   position: relative;
+  margin-top: 150px;
   &:before {
     width: 100%;
     height: 32px;
@@ -48,6 +49,7 @@ const Container = styled.div`
   ${media.md} {
     flex-direction: row;
     margin-bottom: 200px;
+    margin-top: 150px;
 
     &:before {
       width: 36px;
@@ -232,6 +234,28 @@ const ButtonContainer = styled.div`
       }
     }
   }
+  .dark {
+    display: none;
+  }
+
+  ${tmSelectors.dark} {
+    .light {
+      display: none;
+    }
+    .dark {
+      display: inline;
+    }
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      .light {
+        display: none;
+      }
+      .dark {
+        display: inline;
+      }
+    }
+  }
 `;
 
 const ButtonNameContainer = styled.div`
@@ -384,6 +408,9 @@ const DescriptionLink = styled.a`
   font-size: 15px;
   font-weight: 500;
   color: ${tm(({ colors }) => colors.neutral600)};
+  &:hover {
+    opacity: 0.8;
+  }
   ${tmSelectors.dark} {
     color: ${tmDark(({ colors }) => colors.neutral600)};
   }
@@ -398,7 +425,7 @@ const DescriptionLink = styled.a`
     position: absolute;
     width: 7px;
     height: 7px;
-    background: #fff;
+    background: ${tm(({ colors }) => colors.transparent)};
     border-top: 1px solid ${tm(({ colors }) => colors.neutral600)};
     border-left: 1px solid ${tm(({ colors }) => colors.neutral600)};
     right: -18px;

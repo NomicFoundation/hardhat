@@ -9,9 +9,12 @@ import { tm, tmSelectors, tmDark, media, ThemeProvider } from "../themes";
 import { DefaultBannerProps } from "./ui/types";
 import { IDocumentationSidebarStructure, ISeo } from "./types";
 import { bannerContent, menuItemsList, socialsItems } from "../config";
-import { MobileSidebarMenuMask, SidebarContainer } from "./DocumentationLayout";
+import {
+  Header,
+  MobileSidebarMenuMask,
+  SidebarContainer,
+} from "./DocumentationLayout";
 import MobileSidebarMenu from "./MobileSidebarMenu";
-import { Header } from "./LandingLayout";
 
 const Container = styled.div`
   position: relative;
@@ -160,6 +163,7 @@ const PluginsLayout = ({ children, seo, sidebarLayout }: Props) => {
                 socialsItems={socialsItems}
                 sidebarElementsList={sidebarLayout}
                 closeSidebar={() => setIsSidebarOpen(false)}
+                isDocumentation={false}
               />
             </MobileSidebarMenuMask>
           </SidebarContainer>

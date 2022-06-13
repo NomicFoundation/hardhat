@@ -29,7 +29,6 @@ import MDImage from "./mdxComponents/MDImage";
 import OrderedList from "./mdxComponents/OrderedList";
 import TabsGroup from "./mdxComponents/TabsGroup";
 import Tab from "./mdxComponents/Tab";
-import { Header } from "./LandingLayout";
 import GDPRNotice from "./GDPRNotice";
 
 const Container = styled.div`
@@ -89,17 +88,34 @@ export const SidebarContainer = styled.aside<{ isSidebarOpen: boolean }>`
   width: min(366px, 100%);
   position: fixed;
   top: 136px;
-  left: ${(props) => (props.isSidebarOpen ? "0px" : "-120vw")};
+  left: ${({ isSidebarOpen }) => (isSidebarOpen ? "0px" : "-120vw")};
   height: calc(100vh - 136px);
   display: flex;
   overflow-y: scroll;
   transition: all ease-out 0.25s;
-  z-index: 1;
+  z-index: 50;
   background-color: ${tm(({ colors }) => colors.neutral0)};
 
   ${media.md} {
     left: 0;
   }
+
+  .landing & {
+    ${media.md} {
+      display: none;
+    }
+    pointer-events: ${({ isSidebarOpen }) => (isSidebarOpen ? "auto" : "none")};
+  }
+
+  ${tmSelectors.dark} {
+    background-color: ${tmDark(({ colors }) => colors.neutral0)};
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      background-color: ${tmDark(({ colors }) => colors.neutral0)};
+    }
+  }
+
   :not(&[data-no-border="true"]) {
     border-right: 1px solid ${tm(({ colors }) => colors.neutral400)};
     ${tmSelectors.dark} {
@@ -111,15 +127,6 @@ export const SidebarContainer = styled.aside<{ isSidebarOpen: boolean }>`
         border-right: 1px solid ${tmDark(({ colors }) => colors.border)};
         background-color: ${tmDark(({ colors }) => colors.neutral0)};
       }
-    }
-  }
-
-  ${tmSelectors.dark} {
-    background-color: ${tmDark(({ colors }) => colors.neutral0)};
-  }
-  ${media.mqDark} {
-    ${tmSelectors.auto} {
-      background-color: ${tmDark(({ colors }) => colors.neutral0)};
     }
   }
 
@@ -139,6 +146,16 @@ export const SidebarContainer = styled.aside<{ isSidebarOpen: boolean }>`
   &[data-no-border="true"] {
     border-right: none;
   }
+`;
+
+export const Header = styled.header`
+  position: fixed;
+  width: 100%;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  z-index: 199;
 `;
 
 const View = styled.section`
@@ -282,6 +299,7 @@ const DocumentationLayout = ({
                 socialsItems={socialsItems}
                 sidebarElementsList={sidebarLayout}
                 closeSidebar={() => setIsSidebarOpen(false)}
+                isDocumentation
               />
             </MobileSidebarMenuMask>
           </SidebarContainer>

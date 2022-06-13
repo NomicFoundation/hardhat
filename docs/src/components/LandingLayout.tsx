@@ -1,14 +1,21 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { styled } from "linaria/react";
 
 import SEO from "./SEO";
-import LandingNavigation from "./LandingNavigation";
 import LandingFooter from "./LandingFooter";
 import Banner, { DefaultBanner } from "./ui/Banner";
 import { media, ThemeProvider, tm, tmDark, tmSelectors } from "../themes";
 import { DefaultBannerProps } from "./ui/types";
-import { bannerContent } from "../config";
+import { bannerContent, menuItemsList, socialsItems } from "../config";
 import GDPRNotice from "./GDPRNotice";
+import DocsNavigation from "./DocsNavigation";
+import {
+  Header,
+  MobileSidebarMenuMask,
+  SidebarContainer,
+} from "./DocumentationLayout";
+import MobileSidebarMenu from "./MobileSidebarMenu";
+import { IDocumentationSidebarStructure, ISeo } from "./types";
 
 const Container = styled.div`
   position: relative;
@@ -40,23 +47,37 @@ const Container = styled.div`
 `;
 
 type Props = React.PropsWithChildren<{
-  seo: {
-    title: string;
-    description: string;
-  };
+  seo: ISeo;
+  sidebarLayout: IDocumentationSidebarStructure;
 }>;
 
-export const Header = styled.header`
-  position: fixed;
-  width: 100%;
-  top: 0;
-  left: 0;
-  display: flex;
-  flex-direction: column;
-  z-index: 199;
-`;
+const LandingLayout = ({ children, seo, sidebarLayout }: Props) => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-const LandingLayout = ({ children, seo }: Props) => {
+  useEffect(() => {
+    const body = document.querySelector("body");
+    if (!body) return;
+
+    if (isSidebarOpen) {
+      // Disable scroll
+      body.style.overflow = "hidden";
+    } else {
+      // Enable scroll
+      body.style.overflow = "auto";
+    }
+  }, [isSidebarOpen]);
+
+  useEffect(() => {
+    const listener = () => {
+      if (isSidebarOpen) {
+        setIsSidebarOpen(false);
+      }
+    };
+
+    document.addEventListener("click", listener);
+
+    return () => document.removeEventListener("click", listener);
+  }, [isSidebarOpen]);
   return (
     <ThemeProvider>
       <Container className="landing">
@@ -67,11 +88,31 @@ const LandingLayout = ({ children, seo }: Props) => {
               <DefaultBanner content={content} />
             )}
           />
-          <LandingNavigation />
+          <DocsNavigation
+            isSidebarOpen={isSidebarOpen}
+            onSidebarOpen={setIsSidebarOpen}
+          />
         </Header>
 
         <SEO seo={seo} />
         <main>
+          <SidebarContainer
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+            isSidebarOpen={isSidebarOpen}
+            data-no-border={!isSidebarOpen && sidebarLayout.length === 0}
+          >
+            <MobileSidebarMenuMask data-open={isSidebarOpen}>
+              <MobileSidebarMenu
+                menuItems={menuItemsList}
+                socialsItems={socialsItems}
+                sidebarElementsList={sidebarLayout}
+                closeSidebar={() => setIsSidebarOpen(false)}
+                isDocumentation={false}
+              />
+            </MobileSidebarMenuMask>
+          </SidebarContainer>
           {children}
           <LandingFooter />
         </main>

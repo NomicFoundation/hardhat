@@ -6,21 +6,17 @@ import { MenuProps, MenuItemType, SocialsItem } from "./types";
 import { media, tm, tmDark, tmSelectors } from "../../themes";
 import Searching from "../Searching";
 
-const MenuContainer = styled.section<{ isDocumentation: boolean }>`
+const MenuContainer = styled.section`
   font-family: ChivoRegular, sans-serif;
   user-select: none;
-  width: 607px;
   display: none;
   background-color: ${tm(({ colors }) => colors.transparent)};
-  ${media.md} {
-    display: ${(props) => (props.isDocumentation ? "flex" : "none")};
-    align-items: center;
-    justify-content: space-evenly;
-  }
+
   ${media.md} {
     display: flex;
     align-items: center;
     justify-content: space-evenly;
+    margin-left: -130px;
   }
 `;
 
@@ -28,6 +24,7 @@ const MenuList = styled.ul`
   display: flex;
   list-style-type: none;
   align-items: center;
+  margin-right: 65px;
 `;
 
 const MenuItem = styled.li`
@@ -89,11 +86,11 @@ const MenuButton = styled.a`
 
 const MenuSocialsList = styled.ul`
   min-width: 80px;
+  width: 80px;
   display: flex;
   height: 32px;
   align-items: center;
   list-style-type: none;
-  margin-left: 40px;
   justify-content: space-between;
 `;
 
@@ -128,6 +125,10 @@ const SocialLinksItem = styled.li`
   & svg {
     width: 22px;
     height: 22px;
+  }
+  &[data-mobile="true"] {
+    width: 30px;
+    height: 30px;
   }
 `;
 
@@ -266,22 +267,45 @@ const ButtonToolName = styled.span`
   white-space: nowrap;
 `;
 
-const DesktopMenu = ({
-  menuItems,
+export const SocialsList = ({
   socialsItems,
-  isDocumentation = false,
-}: MenuProps) => {
+  isMobile = false,
+}: {
+  socialsItems: SocialsItem[];
+  isMobile?: boolean;
+}) => {
+  return (
+    <MenuSocialsList>
+      {socialsItems.map((social: SocialsItem) => {
+        const { Icon } = social;
+        return (
+          <SocialLinksItem key={social.name} data-mobile={isMobile}>
+            <SocialLink
+              target="_blank"
+              rel="noreferrer"
+              href={social.href}
+              aria-label={social.name}
+            >
+              <Icon />
+            </SocialLink>
+          </SocialLinksItem>
+        );
+      })}
+    </MenuSocialsList>
+  );
+};
+
+const DesktopMenu = ({ menuItems, socialsItems }: MenuProps) => {
   const router = useRouter();
   const [shownDropdown, setShownDropdown] = useState<string | null>(null);
 
   return (
-    <MenuContainer isDocumentation={isDocumentation}>
+    <MenuContainer>
       <MenuList>
-        {isDocumentation ? (
-          <MenuItem>
-            <Searching />
-          </MenuItem>
-        ) : null}
+        <MenuItem>
+          <Searching />
+        </MenuItem>
+
         {menuItems.map((menuItem: MenuItemType) => {
           const isSelected =
             menuItem.href === "/"
@@ -339,23 +363,7 @@ const DesktopMenu = ({
           );
         })}
       </MenuList>
-      <MenuSocialsList>
-        {socialsItems.map((social: SocialsItem) => {
-          const { Icon } = social;
-          return (
-            <SocialLinksItem key={social.name}>
-              <SocialLink
-                target="_blank"
-                rel="noreferrer"
-                href={social.href}
-                aria-label={social.name}
-              >
-                <Icon />
-              </SocialLink>
-            </SocialLinksItem>
-          );
-        })}
-      </MenuSocialsList>
+      <SocialsList socialsItems={socialsItems} />
     </MenuContainer>
   );
 };

@@ -10,8 +10,12 @@ import ExtensibleImageMobile from "../assets/feature-cards/Mobile/ExtensibleImag
 import ExtensibleImageDesktop from "../assets/feature-cards/Desktop/ExtensibleImage.png";
 import FastIterationImageMobile from "../assets/feature-cards/Mobile/FastIterationImage.svg";
 import FastIterationImageDesktop from "../assets/feature-cards/Desktop/FastIterationImage.png";
-import { Tools } from "../components/ui/types";
+import { NavigationPagesPaths, Tools } from "../components/ui/types";
 import reviewsBlock from "../assets/homepage-assets/reviews-block";
+import RunnerIconDark from "../assets/tools/runner-dark";
+import IgnitionIconDark from "../assets/tools/ignition-dark";
+import NetworkIconDark from "../assets/tools/network-dark";
+import SolidityIconDark from "../assets/tools/solidity-dark";
 
 const whyHardhatContent = {
   title: "Why hardhat",
@@ -53,7 +57,10 @@ const featureCardsContent = {
   featureCardThree: {
     mobileImg: ExtensibleImageMobile,
     desktopImg: ExtensibleImageDesktop,
-    cta: { url: "/plugins", title: "Get started with plugins" },
+    cta: {
+      url: NavigationPagesPaths.PLUGINS,
+      title: "Get started with plugins",
+    },
     articleOne: {
       title: "Fully extensible",
       text: "A tooling platform designed to be extended, Hardhat has all the utilities you need to address your project-specific needs.",
@@ -86,7 +93,7 @@ const heroBlockContent = {
   tagline: "Flexible. Extensible. Fast.",
   cta: {
     title: "Get started",
-    url: "/getting-started",
+    url: NavigationPagesPaths.DOCUMENTATION,
   },
 };
 
@@ -95,7 +102,7 @@ const getStartedBlockContent = {
   subtitle: "Experience the new way of building Ethereum software.",
   cta: {
     title: "Get started",
-    url: "/getting-started",
+    url: NavigationPagesPaths.DOCUMENTATION,
   },
 };
 
@@ -173,6 +180,7 @@ const toolsBlockContent = {
   infoItems: [
     {
       icon: RunnerIcon,
+      iconDark: RunnerIconDark,
       title: "Runner",
       value: Tools.RUNNER,
       mottos: ["compile", "test", "extend"],
@@ -182,6 +190,7 @@ const toolsBlockContent = {
     },
     {
       icon: IgnitionIcon,
+      iconDark: IgnitionIconDark,
       title: "Ignition",
       value: Tools.IGNITION,
       mottos: ["deploy", "distribute"],
@@ -191,6 +200,7 @@ const toolsBlockContent = {
     },
     {
       icon: NetworkIcon,
+      iconDark: NetworkIconDark,
       title: "Network",
       value: Tools.NETWORK,
       mottos: ["debug", "deploy", "simulate"],
@@ -200,6 +210,7 @@ const toolsBlockContent = {
     },
     {
       icon: SolidityIcon,
+      iconDark: SolidityIconDark,
       title: "Solidity",
       value: Tools.SOLIDITY,
       mottos: ["code", "refactor"],

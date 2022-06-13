@@ -20,6 +20,7 @@ const Home: NextPage = () => {
         description:
           "Hardhat is an Ethereum development environment. Compile your contracts and run them on a development network. Get Solidity stack traces, console.log and more.",
       }}
+      sidebarLayout={[]}
     >
       <HeroBlock content={homepageContent.heroBlockContent} />
 

@@ -45,7 +45,8 @@ export const lightPalette = {
   neutral800: "#16181D",
   neutral900: "#0A0A0A",
   accent100: "#FBFCDB",
-  accent200: "#FFF787",
+  accent200: "#F8F6E2",
+  accent300: "#FFF787",
   accent600: "#FFF04D",
   accent700: "#CCB200",
   accent800: "#FFF100",
@@ -94,6 +95,7 @@ export const lightPalette = {
   cookieTextColor: "#4B4B59",
   cookieShadow: "#0A0A0A14",
   cookieDropShadow: "#0A0B0D69",
+  backButton: "#6E6F70",
 };
 
 export const darkPalette = {
@@ -109,7 +111,8 @@ export const darkPalette = {
   neutral800: "#B0B2B5",
   neutral900: "#FFFFFF",
   accent100: "#24241f",
-  accent200: "#FFF787",
+  accent200: "#20232A",
+  accent300: "#FFF787",
   accent600: "#FFF04D",
   accent700: "#CCB200",
   accent800: "#FFF100",
@@ -158,6 +161,7 @@ export const darkPalette = {
   cookieTextColor: "#D2D3D5",
   cookieShadow: "#0A0A0A14",
   cookieDropShadow: "#0A0B0D69",
+  backButton: "#F2F2F2",
 } as Palette;
 
 type Palette = typeof lightPalette;

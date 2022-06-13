@@ -3,21 +3,13 @@ import { styled } from "linaria/react";
 import Link from "next/link";
 import Image from "next/image";
 
-import {
-  media,
-  ThemeContext,
-  ThemesEnum,
-  tm,
-  tmDark,
-  tmSelectors,
-} from "../themes";
+import { media, ThemeContext, tm, tmDark, tmSelectors } from "../themes";
 import logo from "../assets/hardhat-logo.svg";
 import darkLogo from "../assets/hardhat-logo-dark.svg";
 import Hamburger from "./ui/Hamburger";
 import DesktopMenu from "./ui/DesktopMenu";
 import { menuItemsList, socialsItems } from "../config";
-import ThemeSwitcher from "../assets/icons/theme-switcher.svg";
-import ThemeSwitcherDark from "../assets/icons/theme-switcher-dark.svg";
+import ThemeSwitchButton from "./ThemeSwitchButton";
 
 interface Props {
   isSidebarOpen: boolean;
@@ -34,8 +26,8 @@ const NavigationStyled = styled.nav`
   box-sizing: border-box;
   padding: 32px 24px;
   transition: all ease-in-out 0.25s;
-  background-color: ${tm(({ colors }) => colors.neutral200)};
-  border-bottom: 1px solid ${tm(({ colors }) => colors.transparent)};
+  background-color: ${tm(({ colors }) => colors.neutral0)};
+  border-bottom: 1px solid ${tm(({ colors }) => colors.neutral400)};
   z-index: 10;
   ${media.md} {
     padding: 24px;
@@ -105,78 +97,13 @@ const HamburgerWrapper = styled.div`
   }
 `;
 
-const ThemeButton = styled.button`
-  font-size: 15px;
-  line-height: 13px;
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  background-color: ${tm(({ colors }) => colors.transparent)};
-  color: ${tm(({ colors }) => colors.neutral900)};
-  border: none;
-  cursor: pointer;
-  transform-origin: center;
-  min-width: 45px;
-  transition: transform ease-in-out 0.25s;
-  &:hover {
-    opacity: 0.8;
-  }
-  ${tmSelectors.dark} {
-    color: ${tmDark(({ colors }) => colors.autoThemeButton)};
-  }
-  ${media.mqDark} {
-    ${tmSelectors.auto} {
-      color: ${tmDark(({ colors }) => colors.autoThemeButton)};
-    }
-  }
-`;
-
-const ThemeIconWrapper = styled.div`
-  transition: transform ease-in-out 0.25s;
-  & > span {
-    display: none;
-  }
-  & > .theme-switcher {
-    position: relative;
-    bottom: -3px;
-  }
-  & > .light {
-    display: inline;
-  }
-  ${tmSelectors.dark} {
-    & > .light {
-      display: none;
-    }
-    & > .dark {
-      display: inline;
-    }
-  }
-  ${media.mqDark} {
-    ${tmSelectors.auto} {
-      & > .light {
-        display: none;
-      }
-      & > .dark {
-        display: inline;
-      }
-    }
-  }
-`;
-
 const DocsNavigation: FC<Props> = ({ isSidebarOpen, onSidebarOpen }) => {
-  const { theme, changeTheme } = useContext(ThemeContext);
+  const { theme } = useContext(ThemeContext);
 
   return (
     <NavigationStyled data-theme={theme}>
       <ControlsContainer>
         <HamburgerLogoWrapper>
-          <HamburgerWrapper>
-            <Hamburger
-              isOpen={isSidebarOpen}
-              onClick={() => onSidebarOpen(!isSidebarOpen)}
-            />
-          </HamburgerWrapper>
-
           <Link href="/" passHref>
             <LogoContainer aria-label="home page">
               <span className="light-logo">
@@ -189,22 +116,14 @@ const DocsNavigation: FC<Props> = ({ isSidebarOpen, onSidebarOpen }) => {
           </Link>
         </HamburgerLogoWrapper>
 
-        <DesktopMenu
-          isDocumentation
-          menuItems={menuItemsList}
-          socialsItems={socialsItems}
-        />
-        <ThemeButton onClick={changeTheme} aria-label="change color theme">
-          {theme === ThemesEnum.AUTO && "A"}
-          <ThemeIconWrapper>
-            <span className="light theme-switcher">
-              <Image src={ThemeSwitcher} alt="theme-switcher" />
-            </span>
-            <span className="dark theme-switcher">
-              <Image src={ThemeSwitcherDark} alt="theme-switcher" />
-            </span>
-          </ThemeIconWrapper>
-        </ThemeButton>
+        <DesktopMenu menuItems={menuItemsList} socialsItems={socialsItems} />
+        <ThemeSwitchButton />
+        <HamburgerWrapper>
+          <Hamburger
+            isOpen={isSidebarOpen}
+            onClick={() => onSidebarOpen(!isSidebarOpen)}
+          />
+        </HamburgerWrapper>
       </ControlsContainer>
     </NavigationStyled>
   );
