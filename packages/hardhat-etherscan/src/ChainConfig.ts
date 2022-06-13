@@ -209,7 +209,7 @@ export const chainConfig: ChainConfig = {
     chainId: 3737,
     urls: {
       apiURL: "https://scan.crossbell.io/api",
-      browserURL: "https://scan.crossbell.io"
-    }
-  }
+      browserURL: "https://scan.crossbell.io",
+    },
+  },
 };
