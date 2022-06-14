@@ -53,7 +53,7 @@ To use your local installation of Hardhat, you need to use `npx` to run it (i.e.
 
 :::tip
 
-If you are using Windows, we **strongly recommend** running this guide on [WSL 2](https://docs.microsoft.com/en-us/windows/wsl/about).
+If you are using Windows, we **strongly recommend** using [WSL 2](https://docs.microsoft.com/en-us/windows/wsl/about) to follow this guide.
 
 :::
 
