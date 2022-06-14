@@ -8,9 +8,9 @@ Read [this guide](/hardhat-runner/docs/guides/test-contracts.md) to learn about 
 
 Writing smart contract tests in Hardhat is done using JavaScript or TypeScript.
 
-In this guide, we'll show you how to use [Ethers.js](https://docs.ethers.io/), a JavaScript library to interact with Ethereum, and [Waffle](https://getwaffle.io/) a simple smart contract testing library built on top of it. This is our recommended choice for testing.
+In this guide, we'll show you how to use [Ethers.js](https://docs.ethers.io/), a JavaScript library to interact with Ethereum, and [Waffle](https://getwaffle.io/) a simple smart contract testing library built on top of it.
 
-Let's see how to use it going through Hardhat's sample project.
+Let's see how to use it starting from an empty Hardhat project.
 
 :::tip
 
@@ -20,7 +20,7 @@ Ethers and Waffle support TypeScript. Learn how to set up Hardhat with TypeScrip
 
 ## Setting up
 
-[Install Hardhat](/hardhat-runner/docs/getting-started/index.md#installation) on an empty directory. When done, run `npx hardhat`.
+[Install Hardhat](/hardhat-runner/docs/getting-started/index.md#installation) on an empty directory. When done, run `npx hardhat`:
 
 ```
 $ npx hardhat
@@ -33,25 +33,63 @@ $ npx hardhat
 888    888 888  888 888    Y88b 888 888  888 888  888 Y88b.
 888    888 "Y888888 888     "Y88888 888  888 "Y888888  "Y888
 
-Welcome to Hardhat v2.0.0
+Welcome to Hardhat v2.10.0
 
 ? What do you want to do? …
-❯ Create a sample project
+▸ Create a JavaScript project
+  Create a TypeScript project
   Create an empty hardhat.config.js
   Quit
 ```
 
-Select `Create a sample project`. This will create some files and install the `@nomiclabs/hardhat-ethers`, `@nomiclabs/hardhat-waffle` plugins, and other necessary packages.
+Select `Create an empty hardhat.config.js`. This will create an empty Hardhat configuration file.
 
-:::tip
+Then install [`chai`](https://www.chaijs.com/), the `@nomiclabs/hardhat-waffle` plugin, and the peer dependencies of this plugin:
 
-Hardhat will let you know how, but in case you missed it you can install them with `npm install --save-dev @nomiclabs/hardhat-waffle ethereum-waffle chai @nomiclabs/hardhat-ethers ethers`
+::::tabsgroup{options="npm 7+,npm 6,yarn"}
+
+:::tab{value="npm 7+"}
+
+```
+npm install --save-dev chai @nomiclabs/hardhat-waffle
+```
 
 :::
 
-Look at the `hardhat.config.js` file and you'll see that the Waffle plugin is enabled:
+:::tab{value="npm 6"}
 
-TODO @/../packages/hardhat-core/sample-projects/basic/hardhat.config.js{1}
+```
+npm install --save-dev chai @nomiclabs/hardhat-waffle ethereum-waffle @nomiclabs/hardhat-ethers ethers
+```
+
+:::
+
+:::tab{value="yarn"}
+
+```
+yarn add --dev chai @nomiclabs/hardhat-waffle ethereum-waffle @nomiclabs/hardhat-ethers ethers
+```
+
+:::
+
+::::
+
+:::tip
+
+If you are using npm 7 or later, you only need to install chai and the plugin. npm will automatically install all the necessary peer dependencies.
+
+:::
+
+Then open the `hardhat.config.js` file and require the plugin:
+
+```js{1}
+require("@nomiclabs/hardhat-waffle");
+
+/** @type import('hardhat/config').HardhatUserConfig */
+module.exports = {
+  solidity: "0.8.9",
+};
+```
 
 :::tip
 
@@ -61,21 +99,67 @@ There's no need for `require("@nomiclabs/hardhat-ethers")`, as `@nomiclabs/hardh
 
 ## Testing
 
-Tests using Waffle are written with [Mocha](https://mochajs.org/) alongside [Chai](https://www.chaijs.com/). If you haven't heard of them, they are super popular JavaScript testing utilities.
+Tests using Waffle are written with [Mocha](https://mochajs.org/) alongside [Chai](https://www.chaijs.com/), two popular JavaScript testing utilities.
 
-Inside the `test` folder you'll find `sample-test.js`. Let's take a look at it, and we'll explain it next:
+Before writing our test, let's add a simple contract. Create a `contracts` directory and then add a `contracts/Greeter.sol` file with this code:
 
-TODO @/../packages/hardhat-core/sample-projects/basic/test/sample-test.js
+```solidity
+//SPDX-License-Identifier: Unlicense
+pragma solidity ^0.8.0;
+
+import "hardhat/console.sol";
+
+contract Greeter {
+    string private greeting;
+
+    constructor(string memory _greeting) {
+        console.log("Deploying a Greeter with greeting:", _greeting);
+        greeting = _greeting;
+    }
+
+    function greet() public view returns (string memory) {
+        return greeting;
+    }
+
+    function setGreeting(string memory _greeting) public {
+        console.log("Changing greeting from '%s' to '%s'", greeting, _greeting);
+        greeting = _greeting;
+    }
+}
+```
+
+Then create a `test` folder and add a `test/test.js` file:
+
+```js
+const { expect } = require("chai");
+
+describe("Greeter", function () {
+  it("Should return the new greeting once it's changed", async function () {
+    const Greeter = await ethers.getContractFactory("Greeter");
+    const greeter = await Greeter.deploy("Hello, world!");
+
+    expect(await greeter.greet()).to.equal("Hello, world!");
+
+    const setGreetingTx = await greeter.setGreeting("Hola, mundo!");
+
+    // wait until the transaction is mined
+    await setGreetingTx.wait();
+
+    expect(await greeter.greet()).to.equal("Hola, mundo!");
+  });
+});
+```
 
 In your terminal, run `npx hardhat test`. You should see the following output:
 
 ```
-$ npx hardhat test
+  Greeter
+Deploying a Greeter with greeting: Hello, world!
+Changing greeting from 'Hello, world!' to 'Hola, mundo!'
+    ✔ Should return the new greeting once it's changed (847ms)
 
-  Contract: Greeter
-    ✓ Should return the new greeting once it's changed (762ms)
 
-  1 passing (762ms)
+  1 passing (851ms)
 ```
 
 This means the test passed. Let's now explain each line:
@@ -84,7 +168,7 @@ This means the test passed. Let's now explain each line:
 const { expect } = require("chai");
 ```
 
-We are requiring `Chai` which is an assertions library. These asserting functions are called "matchers", and the ones we're using here actually come from Waffle.
+We are requiring Chai, which is an assertions library. These asserting functions are called "matchers", and the ones we're using here actually come from Waffle.
 
 This is why we're using the `@nomiclabs/hardhat-waffle` plugin, which makes it easier to assert values from Ethereum. Check out [this section](https://ethereum-waffle.readthedocs.io/en/latest/matchers.html) in Waffle's documentation for the entire list of Ethereum-specific matchers.
 
@@ -246,7 +330,7 @@ Importing Waffle's functions from `ethereum-waffle`, can lead to multiple proble
 
 For example, Waffle has a [default gas limit](https://github.com/EthWorks/Waffle/blob/3.0.2/waffle-cli/src/deployContract.ts#L4-L7) of 4 million gas for contract deployment transactions, which is normally too low.
 
-Please, make sure you import them from the `waffle` field of the [Hardhat Runtime Environment]. It is a version of Waffle adapted to work well with Hardhat.
+Please, make sure you import them from the `waffle` field of the [Hardhat Runtime Environment](../advanced/hardhat-runtime-environment.md). It is a version of Waffle adapted to work well with Hardhat.
 
 :::
 
@@ -260,6 +344,3 @@ const provider = waffle.provider;
 ```
 
 Run your tests with `npx hardhat test` and you should get stack traces when a transaction fails.
-
-[hardhat network]: ../hardhat-network/index.md
-[hardhat runtime environment]: ../advanced/hardhat-runtime-environment.md
