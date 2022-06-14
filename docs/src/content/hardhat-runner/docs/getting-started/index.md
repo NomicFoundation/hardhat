@@ -11,7 +11,7 @@ Hardhat comes built-in with [Hardhat Network](/hardhat-network), a local Ethereu
 
 Hardhat Runner, the CLI command to interact with Hardhat, is an extensible task runner. It's designed around the concepts of **tasks** and **plugins**. Every time you're running Hardhat from the CLI you're running a task. E.g. `npx hardhat compile` is running the built-in `compile` task. Tasks can call other tasks, allowing complex workflows to be defined. Users and plugins can override existing tasks, making those workflows customizable and extendable.
 
-This guide will take you through the installation of our recommended opinionated setup, but as most of Hardhat's functionality comes from plugins, you are free to customize it or choose a completely different path.
+This guide will take you through the installation of our recommended setup, but as most of Hardhat's functionality comes from plugins, you are free to customize it or choose a completely different path.
 
 ## Installation
 
