@@ -1,0 +1,20 @@
+documentation:
+  title: documentation
+  folders:
+    - getting-started
+    - config
+    - hardhat-network
+    - guides
+    - advanced
+    - troubleshooting
+    - reference
+    - chai-matchers
+    - network-helpers
+    - plugins
+    - metamask-issue
+    - errors
+
+tutorial:
+  title: tutorial
+  folders:
+    - tutorial

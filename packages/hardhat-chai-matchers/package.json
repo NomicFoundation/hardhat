@@ -1,5 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-chai-matchers",
+  "private": true,
   "version": "0.0.1",
   "description": "Hardhat utils for testing",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/master/packages/hardhat-chai-matchers",
@@ -7,10 +8,6 @@
   "author": "Nomic Labs LLC",
   "license": "MIT",
   "types": "dist/src/index.d.ts",
-  "exports": {
-    ".": "./dist/src/index.js",
-    "./panic": "./dist/src/reverted/panic.js"
-  },
   "keywords": [
     "ethereum",
     "smart-contracts",
@@ -73,6 +70,7 @@
     "@ethersproject/abi": "^5.1.2",
     "@types/chai-as-promised": "^7.1.3",
     "chai-as-promised": "^7.1.1",
+    "chalk": "^2.4.2",
     "deep-eql": "^4.0.1"
   }
 }

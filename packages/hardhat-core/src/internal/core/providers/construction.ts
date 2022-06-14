@@ -73,6 +73,7 @@ export function createProvider(
       forkConfig = {
         jsonRpcUrl: hardhatNetConfig.forking?.url,
         blockNumber: hardhatNetConfig.forking?.blockNumber,
+        httpHeaders: hardhatNetConfig.forking.httpHeaders,
       };
     }
 

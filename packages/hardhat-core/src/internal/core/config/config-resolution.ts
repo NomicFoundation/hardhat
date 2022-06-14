@@ -150,6 +150,7 @@ function resolveHardhatNetworkConfig(
       ? {
           url: hardhatNetworkConfig.forking.url,
           enabled: hardhatNetworkConfig.forking.enabled ?? true,
+          httpHeaders: {},
         }
       : undefined;
 
@@ -157,6 +158,11 @@ function resolveHardhatNetworkConfig(
     const blockNumber = hardhatNetworkConfig?.forking?.blockNumber;
     if (blockNumber !== undefined) {
       forking.blockNumber = hardhatNetworkConfig?.forking?.blockNumber;
+    }
+
+    const httpHeaders = hardhatNetworkConfig.forking?.httpHeaders;
+    if (httpHeaders !== undefined) {
+      forking.httpHeaders = httpHeaders;
     }
   }
 

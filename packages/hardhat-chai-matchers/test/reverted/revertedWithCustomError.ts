@@ -9,7 +9,8 @@ import {
   useEnvironmentWithNode,
 } from "../helpers";
 
-import "../../src";
+import "../../src/internal/add-chai-matchers";
+import { anyUint, anyValue } from "../../src/withArgs";
 
 describe("INTEGRATION: Reverted with custom error", function () {
   describe("with the in-process hardhat network", function () {
@@ -87,7 +88,9 @@ describe("INTEGRATION: Reverted with custom error", function () {
         });
       });
 
-      it("failed asserts", async function () {
+      // depends on a bug being fixed on ethers.js
+      // see https://linear.app/nomic-foundation/issue/HH-725
+      it.skip("failed asserts", async function () {
         await runFailedAsserts({
           matchers,
           method: "revertsWithoutReason",
@@ -264,6 +267,17 @@ describe("INTEGRATION: Reverted with custom error", function () {
             )
             .withArgs(1, "bar")
         ).to.be.rejectedWith(AssertionError, "expected 'foo' to equal 'bar'");
+
+        await expect(
+          expect(matchers.revertWithCustomErrorWithUintAndString(1, "foo"))
+            .to.be.revertedWithCustomError(
+              matchers,
+              "CustomErrorWithUintAndString"
+            )
+            .withArgs(() => {
+              throw new Error("user-defined error");
+            }, "foo")
+        ).to.be.rejectedWith(Error, "user-defined error");
       });
 
       it("should check the length of the args", async function () {
@@ -344,6 +358,34 @@ describe("INTEGRATION: Reverted with custom error", function () {
         await expect(matchers.revertWithCustomErrorWithPair(1, 2))
           .to.be.revertedWithCustomError(matchers, "CustomErrorWithPair")
           .withArgs([BigInt(1), BigNumber.from(2)]);
+      });
+
+      it("should work with predicates", async function () {
+        await expect(matchers.revertWithCustomErrorWithUint(1))
+          .to.be.revertedWithCustomError(matchers, "CustomErrorWithUint")
+          .withArgs(anyValue);
+
+        await expect(
+          expect(matchers.revertWithCustomErrorWithUint(1))
+            .to.be.revertedWithCustomError(matchers, "CustomErrorWithUint")
+            .withArgs(() => false)
+        ).to.be.rejectedWith(
+          AssertionError,
+          "The predicate for custom error argument #1 returned false"
+        );
+
+        await expect(matchers.revertWithCustomErrorWithUint(1))
+          .to.be.revertedWithCustomError(matchers, "CustomErrorWithUint")
+          .withArgs(anyUint);
+
+        await expect(
+          expect(matchers.revertWithCustomErrorWithInt(-1))
+            .to.be.revertedWithCustomError(matchers, "CustomErrorWithInt")
+            .withArgs(anyUint)
+        ).to.be.rejectedWith(
+          AssertionError,
+          "The predicate for custom error argument #1 threw an AssertionError: anyUint expected its argument to be an unsigned integer, but it was negative, with value -1"
+        );
       });
     });
 

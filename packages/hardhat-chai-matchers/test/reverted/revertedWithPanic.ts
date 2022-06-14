@@ -2,8 +2,8 @@ import { AssertionError, expect } from "chai";
 import { BigNumber } from "ethers";
 import { ProviderError } from "hardhat/internal/core/providers/errors";
 
-import "../../src";
-import { PANIC_CODES } from "../../src/reverted/panic";
+import "../../src/internal/add-chai-matchers";
+import { PANIC_CODES } from "../../src/panic";
 import {
   runSuccessfulAsserts,
   runFailedAsserts,
@@ -97,7 +97,9 @@ describe("INTEGRATION: Reverted with panic", function () {
         });
       });
 
-      it("failed asserts", async function () {
+      // depends on a bug being fixed on ethers.js
+      // see https://linear.app/nomic-foundation/issue/HH-725
+      it.skip("failed asserts", async function () {
         await runFailedAsserts({
           matchers,
           method: "revertsWithoutReason",

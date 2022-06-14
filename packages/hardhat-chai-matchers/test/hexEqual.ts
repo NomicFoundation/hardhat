@@ -1,6 +1,6 @@
 import { AssertionError, expect } from "chai";
 
-import "../src";
+import "../src/internal/add-chai-matchers";
 
 describe("UNIT: hexEqual", () => {
   it("0xAB equals 0xab", () => {

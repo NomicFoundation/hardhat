@@ -23,7 +23,7 @@ import path from "path";
 import semver from "semver";
 
 import { encodeArguments } from "./ABIEncoder";
-import { etherscanConfigExtender } from "./config";
+import { etherscanConfigExtender, verifyAllowedChains } from "./config";
 import {
   pluginName,
   TASK_VERIFY,
@@ -65,10 +65,10 @@ import {
 import { getLongVersion } from "./solc/version";
 import "./type-extensions";
 import { EtherscanNetworkEntry, EtherscanURLs } from "./types";
-import { buildContractUrl } from "./util";
+import { buildContractUrl, printSupportedNetworks } from "./util";
 
 interface VerificationArgs {
-  address: string;
+  address?: string;
   // constructor args given as positional params
   constructorArgsParams: string[];
   // Filename of constructor arguments module
@@ -77,6 +77,9 @@ interface VerificationArgs {
   contract?: string;
   // Filename of libraries module
   libraries?: string;
+
+  // --list-networks flag
+  listNetworks: boolean;
 }
 
 interface VerificationSubtaskArgs {
@@ -130,9 +133,24 @@ const verify: ActionType<VerificationArgs> = async (
     constructorArgs: constructorArgsModule,
     contract,
     libraries: librariesModule,
+    listNetworks,
   },
-  { run }
+  { config, run }
 ) => {
+  if (listNetworks) {
+    await printSupportedNetworks(config.etherscan.customChains);
+    return;
+  }
+
+  if (address === undefined) {
+    throw new NomicLabsHardhatPluginError(
+      pluginName,
+      "You didn’t provide any address. Please re-run the 'verify' task with the address of the contract you want to verify."
+    );
+  }
+
+  verifyAllowedChains(config.etherscan);
+
   const constructorArguments: any[] = await run(
     TASK_VERIFY_GET_CONSTRUCTOR_ARGUMENTS,
     {
@@ -191,7 +209,7 @@ If your constructor has no arguments pass an empty array. E.g:
   }: EtherscanNetworkEntry = await run(TASK_VERIFY_GET_ETHERSCAN_ENDPOINT);
 
   const etherscanAPIKey = resolveEtherscanApiKey(
-    etherscan,
+    etherscan.apiKey,
     verificationNetwork
   );
 
@@ -593,8 +611,14 @@ See https://etherscan.io/solcversions for more information.`
   }
 );
 
-subtask(TASK_VERIFY_GET_ETHERSCAN_ENDPOINT).setAction(async (_, { network }) =>
-  getEtherscanEndpoints(network.provider, network.name, chainConfig)
+subtask(TASK_VERIFY_GET_ETHERSCAN_ENDPOINT).setAction(
+  async (_, { config, network }) =>
+    getEtherscanEndpoints(
+      network.provider,
+      network.name,
+      chainConfig,
+      config.etherscan.customChains
+    )
 );
 
 subtask(TASK_VERIFY_GET_CONTRACT_INFORMATION)
@@ -784,7 +808,10 @@ subtask(TASK_VERIFY_GET_MINIMUM_BUILD)
   .setAction(getMinimumBuild);
 
 task(TASK_VERIFY, "Verifies contract on Etherscan")
-  .addPositionalParam("address", "Address of the smart contract to verify")
+  .addOptionalPositionalParam(
+    "address",
+    "Address of the smart contract to verify"
+  )
   .addOptionalParam(
     "constructorArgs",
     "File path to a javascript module that exports the list of arguments.",
@@ -810,6 +837,7 @@ task(TASK_VERIFY, "Verifies contract on Etherscan")
     "Contract constructor arguments. Ignored if the --constructor-args option is used.",
     []
   )
+  .addFlag("listNetworks", "Print the list of supported networks")
   .setAction(verify);
 
 subtask(TASK_VERIFY_VERIFY)

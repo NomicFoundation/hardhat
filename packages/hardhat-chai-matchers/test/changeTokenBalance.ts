@@ -3,8 +3,8 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { AssertionError, expect } from "chai";
 import { BigNumber, Contract, providers } from "ethers";
 
-import "../src";
-import { clearTokenDescriptionsCache } from "../src/changeTokenBalance";
+import "../src/internal/add-chai-matchers";
+import { clearTokenDescriptionsCache } from "../src/internal/changeTokenBalance";
 import { useEnvironment, useEnvironmentWithNode } from "./helpers";
 
 type TransactionResponse = providers.TransactionResponse;
