@@ -148,9 +148,17 @@ If you take a look in the `test/` folder, you'll see a test file:
 
 ::::tabsgroup{options="TypeScript,JavaScript"}
 
-:::tab{value="TypeScript"} <<< @/../packages/hardhat-core/sample-projects/typescript/test/Lock.ts :::
+:::tab{value="TypeScript"}
 
-:::tab{value="JavaScript"} <<< @/../packages/hardhat-core/sample-projects/javascript/test/Lock.js :::
+<<< @/../packages/hardhat-core/sample-projects/typescript/test/Lock.ts
+
+:::
+
+:::tab{value="JavaScript"}
+
+<<< @/../packages/hardhat-core/sample-projects/javascript/test/Lock.js
+
+:::
 
 ::::
 
@@ -228,9 +236,17 @@ Inside the `scripts/` folder you will find a file with the following code:
 
 ::::tabsgroup{options="TypeScript,JavaScript"}
 
-:::tab{value="TypeScript"} <<< @/../packages/hardhat-core/sample-projects/typescript/scripts/deploy.ts :::
+:::tab{value="TypeScript"}
 
-:::tab{value="JavaScript"} <<< @/../packages/hardhat-core/sample-projects/javascript/scripts/deploy.js :::
+<<< @/../packages/hardhat-core/sample-projects/typescript/scripts/deploy.ts
+
+:::
+
+:::tab{value="JavaScript"}
+
+<<< @/../packages/hardhat-core/sample-projects/javascript/scripts/deploy.js
+
+:::
 
 ::::
 
