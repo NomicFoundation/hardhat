@@ -57,9 +57,9 @@ If you are using Windows, we **strongly recommend** running this guide on [WSL 2
 
 :::
 
-We will explore the basics of creating a Hardhat project with a sample contract, tests and scripts.
+We will explore the basics of creating a Hardhat project with a sample contract, tests of that contract, and a script to deploy it.
 
-To create your Hardhat project run `npx hardhat` in your project folder:
+To create the sample project, run `npx hardhat` in your project folder:
 
 
 ```
@@ -82,7 +82,7 @@ $ npx hardhat
   Quit
 ```
 
-Let’s create the JavaScript or TypeScript project and go through these steps to compile, test and deploy the sample contract. We recommend using TypeScript, but don't worry if you are not familiar with it, and pick JavaScript.
+Let’s create the JavaScript or TypeScript project and go through these steps to compile, test and deploy the sample contract. We recommend using TypeScript, but if you are not familiar with it just pick JavaScript.
 
 ### Running tasks
 
@@ -123,11 +123,11 @@ AVAILABLE TASKS:
 To get help for a specific task run: npx hardhat help [task]
 ```
 
-This is the list of built-in tasks, plus others that come from the recommended plugins you just installed. This is your starting point to find out what tasks are available to run.
+The list of available tasks includes the built-in ones and also those that came with any installed plugins. `npx hardhat` is your starting point to find out what tasks are available to run.
 
 ### Compiling your contracts
 
-Next, if you take a look at `contracts/`, you should be able to find `Lock.sol`:
+Next, if you take a look in the `contracts/` folder, you'll see `Lock.sol`:
 
 <<< @/../packages/hardhat-core/sample-projects/javascript/contracts/Lock.sol
 
@@ -143,7 +143,7 @@ If you created a TypeScript project, this task will also generate TypeScript bin
 
 Your project comes with tests that use [Mocha](https://mochajs.org), [Chai](https://www.chaijs.com), and [Ethers.js](https://docs.ethers.io/v5). 
 
-If you take a look at `test/`, you should be able to a test file:
+If you take a look in the `test/` folder, you'll see a test file:
 
 ::::tabsgroup{options="TypeScript,JavaScript"}
 
@@ -157,7 +157,7 @@ If you take a look at `test/`, you should be able to a test file:
 
 ::::
 
-You can run your tests with `npx hardhat test`
+You can run your tests with `npx hardhat test`:
 
 ::::tabsgroup{options="TypeScript,JavaScript"}
 
@@ -223,7 +223,7 @@ Compiled 2 Solidity files successfully
 
 Next, to deploy the contract we will use a Hardhat script.
 
-Inside `scripts/` you will find a file with the following code:
+Inside the `scripts/` folder you will find a file with the following code:
 
 ::::tabsgroup{options="TypeScript,JavaScript"}
 
@@ -237,7 +237,7 @@ Inside `scripts/` you will find a file with the following code:
 
 ::::
 
-You can run it using `hardhat run`
+You can run it using `hardhat run`:
 
 ::::tabsgroup{options="TypeScript,JavaScript"}
 
@@ -250,7 +250,7 @@ Lock with 1 ETH deployed to: 0x5FbDB2315678afecb367f032d93F642f64180aa3
 
 :::tab{value="JavaScript"}
 ```
-$ npx hardhat run scripts/deploy.ts
+$ npx hardhat run scripts/deploy.js
 Lock with 1 ETH deployed to: 0x5FbDB2315678afecb367f032d93F642f64180aa3
 ```
 :::
@@ -270,7 +270,7 @@ Started HTTP and WebSocket JSON-RPC server at http://127.0.0.1:8545/
 
 This will expose a JSON-RPC interface to Hardhat Network. To use it connect your wallet or application to `http://127.0.0.1:8545`.
 
-If you want to connect Hardhat to this node to, for example, run a deployment script against it, you simply need to run it using `--network localhost`.
+If you want to connect Hardhat to this node, for example to run a deployment script against it, you simply need to run it using `--network localhost`.
 
 To try this, start a node with `npx hardhat node` and re-run the deployment script using the `network` option:
 
@@ -292,6 +292,6 @@ npx hardhat run scripts/deploy.js --network localhost
 
 
 
-Congrats! You have created a project, compiled a smart contract, tested, and deployed it.
+Congrats! You have created a project and compiled, tested and deployed a smart contract.
 
 For any questions or feedback you may have, you can find us in the [Hardhat Discord server](/discord).
