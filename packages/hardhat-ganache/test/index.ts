@@ -49,7 +49,7 @@ describe.skip("Ganache plugin with empty configs", function () {
   });
 });
 
-describe("Ganache plugin with custom configs", function () {
+describe.skip("Ganache plugin with custom configs", function () {
   useEnvironment("hardhat-project-with-configs", "ganache");
 
   it("Should add ganache network to hardhat's config", function () {
