@@ -14,11 +14,7 @@ const path = require("path");
  *
  */
 const customRedirects = [
-  {
-    source: "/configuration",
-    destination: "/hardhat-runner/docs/config",
-    permanent: false
-  },
+  // shortlinks
   {
     source: "/config",
     destination: "/hardhat-runner/docs/config",
@@ -50,18 +46,6 @@ const customRedirects = [
     destination: "/reference/stability-guarantees#node.js-versions-support",
     permanent: false
   },
-
-  // Other redirects
-  {
-    source: "/guides/create-plugin",
-    destination: "/advanced/building-plugins",
-    permanent: false
-  },
-  {
-    source: "/guides/mainnet-forking",
-    destination: "/hardhat-network/guides/mainnet-forking",
-    permanent: false
-  },
   {
     source: "/verify-custom-networks",
     destination: "/plugins/nomiclabs-hardhat-etherscan#adding-support-for-other-networks",
@@ -72,6 +56,13 @@ const customRedirects = [
     destination: "plugins/nomiclabs-hardhat-etherscan.html#multiple-api-keys-and-alternative-block-explorers",
     permanent: false
   },
+  {
+    source: "/metamask-issue",
+    destination: "/hardhat-network/docs/metamask-issue",
+    permanent: false
+  },
+
+  // top-level projects URLs
   {
     source: "/hardhat-runner",
     destination: "/hardhat-runner/docs/getting-started#overview",
@@ -122,6 +113,23 @@ const customRedirects = [
     destination: "/hardhat-network-helpers/docs/overview",
     permanent: false
   },
+
+  // legacy URLs
+  {
+    source: "/configuration",
+    destination: "/hardhat-runner/docs/config",
+    permanent: false
+  },
+  {
+    source: "/guides/create-plugin",
+    destination: "/advanced/building-plugins",
+    permanent: false
+  },
+  {
+    source: "/guides/mainnet-forking",
+    destination: "/hardhat-network/guides/forking-other-networks",
+    permanent: false
+  },
   {
     source: "/getting-started",
     destination: "/hardhat-runner/docs/getting-started#overview",
@@ -129,7 +137,7 @@ const customRedirects = [
   },
   {
     source: "/hardhat-network/guides/mainnet-forking",
-    destination: "/hardhat-network/docs/guides/mainnet-forking",
+    destination: "/hardhat-network/docs/guides/forking-other-networks",
     permanent: false
   },
   {
@@ -168,13 +176,6 @@ const customRedirects = [
     permanent: false
   },
   {
-    source: "/metamask-issue",
-    destination: "/hardhat-network/docs/metamask-issue",
-    permanent: false
-  },
-
-  // plugins
-  {
     source: "/plugins",
     destination: "/hardhat-runner/plugins",
     permanent: false
@@ -184,7 +185,6 @@ const customRedirects = [
     destination: "/hardhat-runner/plugins/:slug",
     permanent: false
   },
-
   // guides redirects, exceptions go first
   {
     source: "/guides/:slug(hardhat-runtime-environment|create-task|scripts|building-plugins|vscode-tests)",
@@ -206,8 +206,6 @@ const customRedirects = [
     destination: "/hardhat-runner/docs/advanced/:slug",
     permanent: false
   },
-
-  // chai-matchers
   {
     source: "/chai-matchers",
     destination: "/hardhat-chai-matchers",
@@ -218,8 +216,6 @@ const customRedirects = [
     destination: "/hardhat-chai-matchers/docs/:slug",
     permanent: false
   },
-
-  // network-helpers
   {
     source: "/network-helpers",
     destination: "/hardhat-network-helpers",

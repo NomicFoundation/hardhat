@@ -119,7 +119,7 @@ In a local environment forked from mainnet, you can execute transactions to invo
 
 More generally, Hardhat Network can be used to fork **any** network, not just mainnet. Even further, Hardhat Network can be used to fork **any EVM-compatible blockchain**, not just Ethereum.
 
-There are other things you can do with a forked Hardhat Network. Check [our guide](guides/mainnet-forking.md) to learn more.
+There are other things you can do with a forked Hardhat Network. Check [our guide](guides/forking-other-networks.md) to learn more.
 
 ### Mining modes
 
@@ -165,7 +165,7 @@ This logging is enabled by default when using Hardhat Network's node (i.e. `npx 
 
 You can get debug traces of already-mined transactions using the `debug_traceTransaction` RPC method. The returned object has a detailed description of the transaction execution, including a list of steps describing each executed opcode and the state of the EVM at that point.
 
-If you are using [mainnet forking](guides/mainnet-forking.html) with an archive node, you can get traces of transactions from the remote network even if the node you are using doesn't support `debug_traceTransaction`.
+If you are using [mainnet forking](guides/forking-other-networks.html) with an archive node, you can get traces of transactions from the remote network even if the node you are using doesn't support `debug_traceTransaction`.
 
 For more details, see [the reference documentation for this method](./reference/index.md#debug-tracetransaction).
 

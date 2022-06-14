@@ -1,8 +1,0 @@
-section-type: group
-section-title: Other guides
-order:
-  - /waffle-testing
-  - /truffle-testing
-  - /parallel-tests
-  - /truffle-migration
-  - /ganache-tests

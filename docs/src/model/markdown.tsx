@@ -322,6 +322,6 @@ export const getCommitDate = (fileName: string): string => {
 };
 
 export const getEditLink = (fileName: string): string => {
-  // https://github.com/NomicFoundation/hardhat/edit/master/docs/hardhat-network/guides/mainnet-forking.md
+  // https://github.com/NomicFoundation/hardhat/edit/master/docs/hardhat-network/guides/forking-other-networks.md
   return fileName.replace(DOCS_PATH, REPO_URL);
 };

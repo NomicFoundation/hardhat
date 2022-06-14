@@ -3,6 +3,6 @@ section-title: Hardhat Network
 order:
   - title: Overview
     href: /overview
-  - /guides/mainnet-forking
+  - /guides/forking-other-networks
   - /explanation/mining-modes
   - /reference

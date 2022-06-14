@@ -47,9 +47,7 @@ Once you've written your hardhat-truffle fixtures for your migrations and comple
 
 ### Deployment
 
-When it comes to deploying, there are no official plugins that implement a deployment system for Hardhat yet, but there's [an open issue](https://github.com/nomiclabs/hardhat/issues/381) with some ideas and we'd value your opinion on how to best design it.
-
-In the meantime, we recommend [deploying your smart contracts using scripts](../guides/deploying.md), or using [the hardhat-deploy community plugin](https://github.com/wighawag/hardhat-deploy/tree/master).
+When it comes to deploying, there are no official plugins that implement a deployment system for Hardhat yet. In the meantime, we recommend [deploying your smart contracts using scripts](../guides/deploying.md), or using [the hardhat-deploy community plugin](https://github.com/wighawag/hardhat-deploy/tree/master).
 
 ### Truffle 4 and Web3.js' synchronous calls
 
