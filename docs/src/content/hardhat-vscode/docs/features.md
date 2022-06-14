@@ -10,7 +10,6 @@ Relative imports pull their suggestions from the file system based on the curren
 
 ![Import completions](/hardhat-vscode-images/import-completion.gif "Import completions")
 
-
 ### Navigation
 
 Move through your codebase with semantic navigation commands:
@@ -29,15 +28,11 @@ Shows all references of the identifier under the cursor.
 
 ![Navigation](/hardhat-vscode-images/navigation.gif "Navigation")
 
-
-
 ### Renames
 
 Rename the identifier under the cursor and all of its references:
 
 ![Rename](/hardhat-vscode-images/rename.gif "Rename")
-
-
 
 ### Format document
 
@@ -47,15 +42,11 @@ The formatting configuration can be overriden through a `.prettierrc` file, see 
 
 ![Reformat](/hardhat-vscode-images/format.gif "Reformat")
 
-
-
 ### Hover
 
 Hovering the cursor over variables, function calls, errors and events will display a popup showing type and signature information:
 
 ![Hover](/hardhat-vscode-images/on-hover.gif "Hover")
-
-
 
 ### Inline code validation (Diagnostics)
 
@@ -64,8 +55,6 @@ As code is edited, **Hardhat for Visual Studio Code** runs the [solc](https://do
 This feature is only available in solidity files that are part of a **Hardhat** project, as **Hardhat** is used for import resolution, see [Hardhat Projects](#hardhat-projects) for details.
 
 ![Diagnostic](/hardhat-vscode-images/diagnostic.gif "Diagnostic")
-
-
 
 ### Code Actions
 

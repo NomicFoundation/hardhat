@@ -61,7 +61,6 @@ We will explore the basics of creating a Hardhat project with a sample contract,
 
 To create the sample project, run `npx hardhat` in your project folder:
 
-
 ```
 $ npx hardhat
 888    888                      888 888               888
@@ -143,19 +142,15 @@ If you created a TypeScript project, this task will also generate TypeScript bin
 
 ### Testing your contracts
 
-Your project comes with tests that use [Mocha](https://mochajs.org), [Chai](https://www.chaijs.com), and [Ethers.js](https://docs.ethers.io/v5). 
+Your project comes with tests that use [Mocha](https://mochajs.org), [Chai](https://www.chaijs.com), and [Ethers.js](https://docs.ethers.io/v5).
 
 If you take a look in the `test/` folder, you'll see a test file:
 
 ::::tabsgroup{options="TypeScript,JavaScript"}
 
-:::tab{value="TypeScript"}
-<<< @/../packages/hardhat-core/sample-projects/typescript/test/Lock.ts
-:::
+:::tab{value="TypeScript"} <<< @/../packages/hardhat-core/sample-projects/typescript/test/Lock.ts :::
 
-:::tab{value="JavaScript"}
-<<< @/../packages/hardhat-core/sample-projects/javascript/test/Lock.js
-:::
+:::tab{value="JavaScript"} <<< @/../packages/hardhat-core/sample-projects/javascript/test/Lock.js :::
 
 ::::
 
@@ -164,6 +159,7 @@ You can run your tests with `npx hardhat test`:
 ::::tabsgroup{options="TypeScript,JavaScript"}
 
 :::tab{value="TypeScript"}
+
 ```
 $ npx hardhat test
 Generating typings for: 2 artifacts in dir: typechain-types for target: ethers-v5
@@ -190,9 +186,11 @@ Compiled 2 Solidity files successfully
 
   9 passing (790ms)
 ```
+
 :::
 
 :::tab{value="JavaScript"}
+
 ```
 $ npx hardhat test
 Compiled 2 Solidity files successfully
@@ -217,6 +215,7 @@ Compiled 2 Solidity files successfully
 
   9 passing (790ms)
 ```
+
 :::
 
 ::::
@@ -229,13 +228,9 @@ Inside the `scripts/` folder you will find a file with the following code:
 
 ::::tabsgroup{options="TypeScript,JavaScript"}
 
-:::tab{value="TypeScript"}
-<<< @/../packages/hardhat-core/sample-projects/typescript/scripts/deploy.ts
-:::
+:::tab{value="TypeScript"} <<< @/../packages/hardhat-core/sample-projects/typescript/scripts/deploy.ts :::
 
-:::tab{value="JavaScript"}
-<<< @/../packages/hardhat-core/sample-projects/javascript/scripts/deploy.js
-:::
+:::tab{value="JavaScript"} <<< @/../packages/hardhat-core/sample-projects/javascript/scripts/deploy.js :::
 
 ::::
 
@@ -244,17 +239,21 @@ You can run it using `hardhat run`:
 ::::tabsgroup{options="TypeScript,JavaScript"}
 
 :::tab{value="TypeScript"}
+
 ```
 $ npx hardhat run scripts/deploy.ts
 Lock with 1 ETH deployed to: 0x5FbDB2315678afecb367f032d93F642f64180aa3
 ```
+
 :::
 
 :::tab{value="JavaScript"}
+
 ```
 $ npx hardhat run scripts/deploy.js
 Lock with 1 ETH deployed to: 0x5FbDB2315678afecb367f032d93F642f64180aa3
 ```
+
 :::
 
 ::::
@@ -279,20 +278,22 @@ To try this, start a node with `npx hardhat node` and re-run the deployment scri
 ::::tabsgroup{options="TypeScript,JavaScript"}
 
 :::tab{value="TypeScript"}
+
 ```
 npx hardhat run scripts/deploy.ts --network localhost
 ```
+
 :::
 
 :::tab{value="JavaScript"}
+
 ```
 npx hardhat run scripts/deploy.js --network localhost
 ```
+
 :::
 
 ::::
-
-
 
 Congrats! You have created a project and compiled, tested and deployed a smart contract.
 
