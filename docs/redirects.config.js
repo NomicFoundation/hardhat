@@ -127,7 +127,7 @@ const customRedirects = [
   },
   {
     source: "/guides/mainnet-forking",
-    destination: "/hardhat-network/guides/mainnet-forking",
+    destination: "/hardhat-network/guides/forking-other-networks",
     permanent: false
   },
   {
@@ -137,7 +137,7 @@ const customRedirects = [
   },
   {
     source: "/hardhat-network/guides/mainnet-forking",
-    destination: "/hardhat-network/docs/guides/mainnet-forking",
+    destination: "/hardhat-network/docs/guides/forking-other-networks",
     permanent: false
   },
   {
