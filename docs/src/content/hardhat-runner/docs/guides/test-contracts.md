@@ -40,7 +40,7 @@ describe("Lock", function () {
 
 The first thing we do is to import the functions we are going to use: the [`expect`](https://www.chaijs.com/api/bdd/) function from `chai` to write our assertions, the [Hardhat Runtime Environment](../advanced/hardhat-runtime-environment.md), and the [network helpers](/hardhat-network-helpers) to interact with the Hardhat Network. After that we use the `describe` and `it` functions, which are global Mocha's functions used to describe and group your tests (you can read more about Mocha [here](https://mochajs.org/#getting-started)).
 
-The test itself is what’s inside the `it` function. First we set the values for the amount we want to lock (in [wei](https://ethereum.org/en/glossary/#wei)) and the unlock time. For the latter we use [`time.latest`](/hardhat-network-helpers/docs/reference#latest()), a network helper that returns the timestamp of the last mined block. Then we deploy the contract itself: first we get a [`ContractFactory`](https://docs.ethers.io/v5/single-page/#/v5/api/contract/contract-factory/) for the `Lock` contract and then we deploy it, passing the unlock time as its only constructor argument.
+The test itself is what’s inside the `it` function. First we set the values for the amount we want to lock (in [wei](https://ethereum.org/en/glossary/#wei)) and the unlock time. For the latter we use [`time.latest`](</hardhat-network-helpers/docs/reference#latest()>), a network helper that returns the timestamp of the last mined block. Then we deploy the contract itself: first we get a [`ContractFactory`](https://docs.ethers.io/v5/single-page/#/v5/api/contract/contract-factory/) for the `Lock` contract and then we deploy it, passing the unlock time as its only constructor argument.
 
 Finally, we check that the value returned by the `unlockTime()` getter in the contract matches the value that we used when we deployed it. Since all the functions in a contract are async, we have to use the `await` keyword to get its value, otherwise we would be comparing a promise with a number and this would always fail.
 
@@ -60,9 +60,7 @@ The first statement checks that the unlock time has been reached, and the second
 it("Should revert with the right error if called too soon", async function () {
   // ...deploy the contract as before...
 
-  await expect(lock.withdraw()).to.be.revertedWith(
-    "You can't withdraw yet"
-  );
+  await expect(lock.withdraw()).to.be.revertedWith("You can't withdraw yet");
 });
 ```
 
@@ -74,7 +72,7 @@ Notice that in the previous test we wrote `expect(await ...)` but now we are doi
 
 We are deploying our `Lock` contract with an unlock time of one year. If we want to write a test that checks what happens after the unlock time has passed, we can’t wait that amount of time. We could use a shorter amount, like 5 seconds, but that’s a less realistic value and it's still a long time to wait in a test.
 
-The solution is to simulate the passage of time. This can be done with the [`time.increaseTo`](/hardhat-network-helpers/docs/reference#increaseto(timestamp)) network helper:
+The solution is to simulate the passage of time. This can be done with the [`time.increaseTo`](</hardhat-network-helpers/docs/reference#increaseto(timestamp)>) network helper:
 
 ```tsx
 it("Should transfer the funds to the owner", async function () {
@@ -99,7 +97,7 @@ The `ethers.getSigners()` returns an array with all the configured accounts. We 
 it("Should revert with the right error if called from another account", async function () {
   // ...deploy the contract...
 
-  const [owner, otherAccount] = await ethers.getSigners()
+  const [owner, otherAccount] = await ethers.getSigners();
 
   // we increase the time of the chain to pass the first check
   await time.increaseTo(unlockTime);
@@ -129,7 +127,7 @@ beforeEach(async function () {
 
   const Lock = await ethers.getContractFactory("Lock");
   lock = await Lock.deploy(unlockTime, { value: lockedAmount });
-})
+});
 
 it("some test", async function () {
   // use the deployed contract
@@ -141,7 +139,7 @@ There are two problems with this approach:
 - If you have to deploy many contracts, your tests will be slower because each one has to send multiple transactions as part of its setup.
 - Sharing the variables like this between the `beforeEach` hook and your tests is ugly and error-prone.
 
-The `loadFixture` helper in the Hardhat Network Helpers fixes both of these problems. This helper receives a *fixture*, a function that sets up the chain to some desired state. The first time `loadFixture` is called, the fixture is executed. But the second time, instead of executing the fixture again, `loadFixture` will reset the state of the network to the point where it was right after the fixture was executed. This is faster, and it undoes any state changes done by the previous test.
+The `loadFixture` helper in the Hardhat Network Helpers fixes both of these problems. This helper receives a _fixture_, a function that sets up the chain to some desired state. The first time `loadFixture` is called, the fixture is executed. But the second time, instead of executing the fixture again, `loadFixture` will reset the state of the network to the point where it was right after the fixture was executed. This is faster, and it undoes any state changes done by the previous test.
 
 This is how our two first tests look like when a fixture is used:
 
@@ -168,9 +166,7 @@ describe("Lock", function () {
   it("Should revert with the right error if called too soon", async function () {
     const { lock } = await loadFixture(deployOneYearLockFixture);
 
-    await expect(lock.withdraw()).to.be.revertedWith(
-      "You can't withdraw yet"
-    );
+    await expect(lock.withdraw()).to.be.revertedWith("You can't withdraw yet");
   });
 });
 ```
