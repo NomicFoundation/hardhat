@@ -13,6 +13,7 @@ hardhat-runner:
     - hardhat-runner/plugins
     # hidden
     - hardhat-runner/docs/errors
+    - hardhat-runner/docs/other-guides
 
 hardhat-network:
   title: Hardhat Network
@@ -43,12 +44,6 @@ hardhat-network-helpers:
     - hardhat-network-helpers
     - hardhat-network-helpers/docs
     - hardhat-network-helpers/docs/other-projects
-
-other-guides:
-  title: Other guides
-  folders:
-    - other-guides
-    - other-guides/other-projects
 
 hidden:
   title: hidden

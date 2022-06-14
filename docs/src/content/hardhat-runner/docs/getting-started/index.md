@@ -109,7 +109,7 @@ Welcome to Hardhat v2.0.8
 
 Let’s create the sample project and go through these steps to try out the sample task and compile, test and deploy the sample contract.
 
-The sample project will ask you to install `hardhat-waffle` and `hardhat-ethers`, which makes Hardhat compatible with tests built with Waffle. You can learn more about it [in this guide](/other-guides/waffle-testing.md).
+The sample project will ask you to install `hardhat-waffle` and `hardhat-ethers`, which makes Hardhat compatible with tests built with Waffle. You can learn more about it [in this guide](/hardhat-runner/docs/other-guides/waffle-testing.md).
 
 :::tip
 
