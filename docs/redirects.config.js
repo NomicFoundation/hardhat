@@ -185,6 +185,11 @@ const customRedirects = [
     destination: "/hardhat-runner/plugins/:slug",
     permanent: false
   },
+  {
+    source: "/hardhat-runner/docs/guides/shorthand",
+    destination: "/hardhat-runner/docs/guides/command-line-completion",
+    permanent: false
+  },
   // guides redirects, exceptions go first
   {
     source: "/guides/:slug(hardhat-runtime-environment|create-task|scripts|building-plugins|vscode-tests)",
