@@ -18,7 +18,6 @@ function cleanup(ganacheChild) {
     });
     ganacheChild.on("exit", resolve);
     ganacheChild.kill();
-    // test
   });
 }
 

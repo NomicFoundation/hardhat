@@ -4,7 +4,7 @@ import { GanacheService } from "../src/ganache-service";
 
 import { useEnvironment } from "./helpers";
 
-describe("Ganache plugin with empty configs", function () {
+describe.skip("Ganache plugin with empty configs", function () {
   useEnvironment("hardhat-project", "ganache");
 
   it("Should add ganache network to the config", function () {
