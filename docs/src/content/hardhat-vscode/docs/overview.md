@@ -5,7 +5,7 @@ description: Solidity and Hardhat support for Visual Studio Code
 
 # Hardhat for Visual Studio Code
 
-[Hardhat for Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=NomicFoundation.hardhat-solidity) is a Visual Studio Code extension that adds language support for [Solidity](https://soliditylang.org/) to Visual Studio Code, and provides editor integration for [Hardhat projects](https://hardhat.org/). Integrations for other tools are coming in the near future. 
+[Hardhat for Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=NomicFoundation.hardhat-solidity) is a Visual Studio Code extension that adds language support for [Solidity](https://soliditylang.org/) to Visual Studio Code, and provides editor integration for [Hardhat projects](https://hardhat.org/). Integrations for other tools are coming in the near future.
 
 Hardhat for Visual Studio code adds the following features:
 
@@ -13,7 +13,7 @@ Hardhat for Visual Studio code adds the following features:
 - [Go to definition, type definition and references](features.md#navigation)
 - [Symbol renames](features.md#renames)
 - [Solidity code formatting](features.md#format-document)
-- [Inline code validation from compiler errors/warnings for Hardhat projects](features.md#inline-code-validation-(diagnostics))
+- [Inline code validation from compiler errors/warnings for Hardhat projects](<features.md#inline-code-validation-(diagnostics)>)
 - [Hover help for variables, function calls, errors, events etc.](features.md#hover)
 - [Code actions (quickfixes) suggested from compiler errors/warnings for Hardhat projects](features.md#code-actions)
 
@@ -22,7 +22,6 @@ Hardhat for Visual Studio code adds the following features:
 [Hardhat for Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=NomicFoundation.hardhat-solidity) can be installed by using the Visual Studio Code Marketplace.
 
 Some features (e.g. inline validation, quick fixes) are still experimental and are only enabled within a [Hardhat](https://hardhat.org/) project, this is a limitation that will be lifted with future releases.
-
 
 ## Setup
 
