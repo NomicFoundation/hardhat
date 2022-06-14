@@ -90,7 +90,7 @@ To first get a quick sense of what's available and what's going on, run `npx har
 
 ```
 $ npx hardhat
-Hardhat version 2.0.8
+Hardhat version 2.9.9
 
 Usage: hardhat [GLOBAL OPTIONS] <TASK> [TASK OPTIONS]
 
@@ -109,16 +109,18 @@ GLOBAL OPTIONS:
 
 AVAILABLE TASKS:
 
-  accounts      Prints the list of accounts
-  check         Check whatever you need
-  clean         Clears the cache and deletes all artifacts
-  compile       Compiles the entire project, building all artifacts
-  console       Opens a hardhat console
-  flatten       Flattens and prints contracts and their dependencies
-  help          Prints this message
-  node          Starts a JSON-RPC server on top of Hardhat Network
-  run           Runs a user-defined script after compiling the project
-  test          Runs mocha tests
+  check                 Check whatever you need
+  clean                 Clears the cache and deletes all artifacts
+  compile               Compiles the entire project, building all artifacts
+  console               Opens a hardhat console
+  coverage              Generates a code coverage report for tests
+  flatten               Flattens and prints contracts and their dependencies
+  help                  Prints this message
+  node                  Starts a JSON-RPC server on top of Hardhat Network
+  run                   Runs a user-defined script after compiling the project
+  test                  Runs mocha tests
+  typechain             Generate Typechain typings for compiled contracts
+  verify                Verifies contract on Etherscan
 
 To get help for a specific task run: npx hardhat help [task]
 ```
