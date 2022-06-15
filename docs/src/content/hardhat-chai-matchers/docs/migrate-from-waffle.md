@@ -8,9 +8,17 @@ The `@nomicfoundation/hardhat-chai-matchers` plugin is meant to be a drop-in rep
 
 1. Uninstall the `@nomiclabs/hardhat-waffle` and `ethereum-waffle` packages:
 
-   ::::tabsgroup{options=npm,yarn}
+   ::::tabsgroup{options="npm 7+,npm 6,yarn"}
 
-   :::tab{value=npm}
+   :::tab{value="npm 7+"}
+
+   ```
+   npm uninstall @nomiclabs/hardhat-waffle ethereum-waffle
+   ```
+
+   :::
+
+   :::tab{value="npm 6"}
 
    ```
    npm uninstall @nomiclabs/hardhat-waffle ethereum-waffle
@@ -30,12 +38,20 @@ The `@nomicfoundation/hardhat-chai-matchers` plugin is meant to be a drop-in rep
 
 2. Then install the Hardhat Chai Matchers plugin:
 
-   ::::tabsgroup{options=npm,yarn}
+   ::::tabsgroup{options="npm 7+,npm 6,yarn"}
 
-   :::tab{value=npm}
+   :::tab{value="npm 7+"}
 
    ```
-   npm install @nomicfoundation/hardhat-chai-matchers
+   npm install --save-dev @nomicfoundation/hardhat-chai-matchers
+   ```
+
+   :::
+
+   :::tab{value="npm 6"}
+
+   ```
+   npm install --save-dev @nomicfoundation/hardhat-chai-matchers
    ```
 
    :::
@@ -43,7 +59,7 @@ The `@nomicfoundation/hardhat-chai-matchers` plugin is meant to be a drop-in rep
    :::tab{value=yarn}
 
    ```
-   yarn add @nomicfoundation/hardhat-chai-matchers
+   yarn add --dev @nomicfoundation/hardhat-chai-matchers
    ```
 
    :::

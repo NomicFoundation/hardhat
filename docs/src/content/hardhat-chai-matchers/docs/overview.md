@@ -12,20 +12,28 @@ Among other things, you can assert that a contract fired certain events, or that
 
 ## Installation
 
-::::tabsgroup{options=npm,yarn}
+::::tabsgroup{options="npm 7+,npm 6,yarn"}
 
-:::tab{value=npm}
+:::tab{value="npm 7+"}
 
-```bash
-npm install @nomicfoundation/hardhat-chai-matchers@beta
+```
+npm install --save-dev @nomicfoundation/hardhat-chai-matchers@beta
+```
+
+:::
+
+:::tab{value="npm 6"}
+
+```
+npm install --save-dev @nomicfoundation/hardhat-chai-matchers@beta
 ```
 
 :::
 
 :::tab{value=yarn}
 
-```bash
-yarn add @nomicfoundation/hardhat-chai-matchers@beta
+```
+yarn add --dev @nomicfoundation/hardhat-chai-matchers@beta
 ```
 
 :::
