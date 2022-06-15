@@ -1,6 +1,6 @@
 # Command-line completion
 
-Hardhat has a companion NPM package that acts as a shorthand for `npx hardhat`, and at the same time, it enables command-line completions in your terminal.
+Hardhat has a companion npm package that acts as a shorthand for `npx hardhat`, and at the same time, it enables command-line completions in your terminal.
 
 This package, `hardhat-shorthand`, installs a globally accessible binary called `hh` that runs your locally installed `hardhat`.
 
@@ -37,7 +37,7 @@ To try it out, open a **new** terminal, go to the directory of your Hardhat proj
 
 ## Context
 
-Out of best practice, Hardhat projects use a local installation of the NPM package `hardhat` to make sure everyone working on the project is using the same version. This is why you need to use `npx` or npm scripts to run Hardhat.
+Out of best practice, Hardhat projects use a local installation of the npm package `hardhat` to make sure everyone working on the project is using the same version. This is why you need to use `npx` or npm scripts to run Hardhat.
 
 This approach has the downside of there being no way to provide autocomplete suggestions directly for the `hardhat` command, as well as making the CLI commands longer. These are the two issues that `hh` solves.
 

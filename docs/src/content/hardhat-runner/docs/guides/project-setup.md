@@ -144,7 +144,7 @@ Take a look at the [networks configuration section](../config/index.md#networks-
 
 Most of Hardhat's functionality comes from plugins, so check out the [plugins section](/hardhat-runner/plugins) for the official list and see if there are any ones of interest to you.
 
-To use a plugin, the first step is always to install it using `npm` or `yarn`, followed by requiring it in your config file:
+To use a plugin, the first step is always to install it using npm or yarn, followed by requiring it in your config file:
 
 ::::tabsgroup{options="TypeScript,JavaScript"}
 

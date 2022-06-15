@@ -102,7 +102,7 @@ const communityPlugins: IPlugin[] = [
     name: "hardhat-dependency-compiler",
     author: "Nick Barry",
     authorUrl: "https://github.com/ItsNickBarry",
-    description: "Compile Solidity sources directly from NPM dependencies",
+    description: "Compile Solidity sources directly from npm dependencies",
     tags: ["Compiling", "Dependencies"],
   },
   {
