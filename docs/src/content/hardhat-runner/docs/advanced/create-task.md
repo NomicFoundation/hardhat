@@ -97,7 +97,7 @@ module.exports = {
 };
 ```
 
-After saving the file, you should already be able to see the task in Hardhat:
+After saving the file, you should be able to see the task in Hardhat:
 
 ```
 $ npx hardhat
