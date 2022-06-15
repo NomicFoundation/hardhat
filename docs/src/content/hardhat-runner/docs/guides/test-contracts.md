@@ -177,6 +177,22 @@ The fixture function can return anything you want, and the `loadFixture` helper 
 
 There are several other things you can test, like [which events are emitted](/hardhat-chai-matchers/docs/reference#.emit) or [how the balances of the involved addresses change](/hardhat-chai-matchers/docs/reference#balance-change). Check the `test/Lock.js` file to see the other examples.
 
+### Measuring code coverage
+
+The Hardhat Toolbox includes the [`solidity-coverage`](https://github.com/sc-forks/solidity-coverage) plugin to measure the test coverage in your project. Just run the `coverage` task and you'll get a report:
+
+```
+npx hardhat coverage
+```
+
+### Using the gas reporter
+
+The Hardhat Toolbox includes the [`hardhat-gas-reporter`](https://github.com/cgewecke/hardhat-gas-reporter) plugin to get metrics of how much gas is used, based in the execution of your tests. The gas reporter is run when the `test` task is executed and the `REPORT_GAS` environment variable is set:
+
+```
+REPORT_GAS=true npx hardhat test
+```
+
 ### Running tests in parallel
 
 You can run your tests in parallel by using the `--parallel` flag:
