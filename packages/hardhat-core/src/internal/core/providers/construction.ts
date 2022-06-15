@@ -192,7 +192,6 @@ export function applyProviderWrappers(
     }
 
     // TODO: Add some extension mechanism for account plugins here
-
   }
 
   if (netConfig.from !== undefined) {

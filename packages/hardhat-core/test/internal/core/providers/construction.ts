@@ -5,10 +5,7 @@ import {
   defaultHttpNetworkParams,
 } from "../../../../src/internal/core/config/default-config";
 import { ERRORS } from "../../../../src/internal/core/errors-list";
-import {
-  numberToRpcQuantity,
-  rpcQuantityToNumber,
-} from "../../../../src/internal/core/jsonrpc/types/base-types";
+import { numberToRpcQuantity } from "../../../../src/internal/core/jsonrpc/types/base-types";
 import { BackwardsCompatibilityProviderAdapter } from "../../../../src/internal/core/providers/backwards-compatibility";
 import {
   applyProviderWrappers,

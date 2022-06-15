@@ -9,7 +9,7 @@ import {
   AutomaticGasPriceProvider,
   AutomaticGasProvider,
   FixedGasPriceProvider,
-  FixedGasProvider
+  FixedGasProvider,
 } from "../../../../src/internal/core/providers/gas-providers";
 import { EIP1193Provider } from "../../../../src/types";
 
@@ -244,8 +244,8 @@ describe("AutomaticGasPriceProvider", () => {
 
         const expectedBaseFee = Math.floor(
           latestBaseFeeInMockedProvider *
-          (9 / 8) **
-          AutomaticGasPriceProvider.EIP1559_BASE_FEE_MAX_FULL_BLOCKS_PREFERENCE
+            (9 / 8) **
+              AutomaticGasPriceProvider.EIP1559_BASE_FEE_MAX_FULL_BLOCKS_PREFERENCE
         );
 
         const [tx] = mockedProvider.getLatestParams("eth_sendTransaction");

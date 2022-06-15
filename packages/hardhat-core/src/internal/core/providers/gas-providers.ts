@@ -223,9 +223,9 @@ export class AutomaticGasPriceProvider extends ProviderWrapper {
 
   private async _suggestEip1559FeePriceValues(): Promise<
     | {
-      maxFeePerGas: BN;
-      maxPriorityFeePerGas: BN;
-    }
+        maxFeePerGas: BN;
+        maxPriorityFeePerGas: BN;
+      }
     | undefined
   > {
     if (this._nodeSupportsEIP1559 === undefined) {
@@ -263,7 +263,7 @@ export class AutomaticGasPriceProvider extends ProviderWrapper {
             new BN(9).pow(
               new BN(
                 AutomaticGasPriceProvider.EIP1559_BASE_FEE_MAX_FULL_BLOCKS_PREFERENCE -
-                1
+                  1
               )
             )
           )
@@ -271,7 +271,7 @@ export class AutomaticGasPriceProvider extends ProviderWrapper {
             new BN(8).pow(
               new BN(
                 AutomaticGasPriceProvider.EIP1559_BASE_FEE_MAX_FULL_BLOCKS_PREFERENCE -
-                1
+                  1
               )
             )
           ),
