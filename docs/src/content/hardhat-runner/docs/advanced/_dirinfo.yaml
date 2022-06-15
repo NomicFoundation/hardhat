@@ -6,4 +6,4 @@ order:
   - /scripts
   - /building-plugins
   - href: /vscode-tests
-    title: Running tests on VS Code
+    title: Running tests in VS Code

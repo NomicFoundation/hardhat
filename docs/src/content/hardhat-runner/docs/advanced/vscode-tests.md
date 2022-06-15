@@ -1,4 +1,4 @@
-# Running tests on Visual Studio Code
+# Running tests in Visual Studio Code
 
 You can run your tests from [Visual Studio Code](https://code.visualstudio.com) by using one of its Mocha integration extensions. We recommend using [Mocha Test Explorer](https://marketplace.visualstudio.com/items?itemName=hbenl.vscode-mocha-test-adapter).
 
@@ -6,11 +6,35 @@ To use Mocha Test Explorer, you need to install it and follow these instructions
 
 Install Mocha locally by running this:
 
+::::tabsgroup{options="npm 7+,npm 6,yarn"}
+
+:::tab{value="npm 7+"}
+
 ```
 npm install --save-dev mocha
 ```
 
-Then, create a file named `.mocharc.json` in your project's root directory with the following contents:
+:::
+
+:::tab{value="npm 6"}
+
+```
+npm install --save-dev mocha
+```
+
+:::
+
+:::tab{value=yarn}
+
+```
+yarn add --dev mocha
+```
+
+:::
+
+::::
+
+Then, you just need to create a file named `.mocharc.json` in your project's root directory with the following contents:
 
 ```json
 {
@@ -19,21 +43,22 @@ Then, create a file named `.mocharc.json` in your project's root directory with 
 }
 ```
 
-Finally, you can set a shortcut for this VS Code command `test-explorer.run-test-at-cursor`, and you will be able to run the test you are currently editing with it.
+:::warning
 
-## Running TypeScript test
+Running test directly from Visual Studio Code won't compile your contracts automatically. Make sure compile them manually.
 
-Running tests written in TypeScript from [Visual Studio Code](https://code.visualstudio.com) requires two extra steps.
+:::
 
-First, you have to change your `.mocharc.json` to this:
+## Running TypeScript tests
 
-```json{2}
+If you are writing your tests in TypeScript, you should use this `.mocharc.json` instead:
+
+```json
 {
-  "require": "ts-node/register/files",
-  "timeout": 20000
+  "require": "hardhat/register",
+  "timeout": 40000,
+  "_": ["test/**/*.ts"]
 }
 ```
-
-Then, you have to set the vscode option `"mochaExplorer.files"` to `"test/**/*.{j,t}s"`.
 
 For any help or feedback you may have, you can find us in the [Hardhat Support Discord server](/discord).
