@@ -325,5 +325,3 @@ subtask("print", "Prints a message")
     console.log(taskArgs.message);
   });
 ```
-
-For any questions or feedback you may have, you can find us in the [Hardhat Discord server](/discord).

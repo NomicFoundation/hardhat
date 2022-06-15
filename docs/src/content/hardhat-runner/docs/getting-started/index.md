@@ -312,5 +312,3 @@ npx hardhat run scripts/deploy.js --network localhost
 ::::
 
 Congrats! You have created a project and compiled, tested and deployed a smart contract.
-
-For any questions or feedback you may have, you can find us in the [Hardhat Discord server](/discord).

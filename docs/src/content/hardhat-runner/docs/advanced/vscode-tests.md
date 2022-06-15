@@ -60,5 +60,3 @@ If you are writing your tests in TypeScript, you should use this `.mocharc.json`
   "_": ["test/**/*.ts"]
 }
 ```
-
-For any help or feedback you may have, you can find us in the [Hardhat Support Discord server](/discord).

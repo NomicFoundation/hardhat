@@ -73,6 +73,4 @@ Interacting with the Ethereum network, and therefore with your smart contracts, 
 
 To make things easier, Hardhat's console supports top-level `await` statements (e.g. `console.log(await ethers.getSigners()`).
 
-For any help or feedback you may have, you can find us in the [Hardhat Support Discord server](/discord).
-
 [hardhat runtime environment]: ../advanced/hardhat-runtime-environment.md
