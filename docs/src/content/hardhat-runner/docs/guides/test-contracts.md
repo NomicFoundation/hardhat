@@ -14,6 +14,8 @@ The setup includes some example tests in the `test/Lock.ts` file, but ignore the
 
 ### A simple test
 
+In the following sections we'll write some tests for the `Lock` contract that comes with the sample project. If you haven't read it yet, please take a look at the `contracts/Lock.sol` file.
+
 For our first test we’ll deploy the `Lock` contract and assert that the unlock time returned by the `unlockTime()` getter is the same one that we passed in the constructor:
 
 ```tsx
