@@ -102,17 +102,17 @@ Now, we are going to rename the config file from `hardhat.config.js` to `hardhat
 mv hardhat.config.js hardhat.config.ts
 ```
 
-We need to a single change to your config for it to work with TypeScript: plugins must be loaded with `import` instead of `require`.
+We need to a single change to your config for it to work with TypeScript: you must use `import`/`export` instead of `require`/`module.exports`.
 
 By using TypeScript, you can also type your configuration, which will save you from typos and other mistakes.
 
 For example, the sample project's config turns from this:
 
-<<< @/../packages/hardhat-core/sample-projects/javascript/hardhat.config.js{1}
+<<< @/../packages/hardhat-core/sample-projects/javascript/hardhat.config.js{1,4}
 
 into this:
 
-<<< @/../packages/hardhat-core/sample-projects/typescript/hardhat.config.ts{1,2,4-6}
+<<< @/../packages/hardhat-core/sample-projects/typescript/hardhat.config.ts{1,2,4,8}
 
 Finally, you need to create a [`tsconfig.json`](https://www.typescriptlang.org/docs/handbook/tsconfig-json.html) file. Here's our recommended one:
 
@@ -134,7 +134,7 @@ If you installed [`@nomicfoundation/hardhat-toolbox`](../../plugins/nomicfoundat
 
 :::
 
-If you want Hardhat to generate types for your smart contract you should install use [`@typechain/hardhat`](https://github.com/ethereum-ts/TypeChain/tree/master/packages/hardhat). It generates typing files (`*.d.ts`) based on ABI's, and it requires little to no configuration.
+If you want Hardhat to generate types for your smart contract you should install and use [`@typechain/hardhat`](https://github.com/ethereum-ts/TypeChain/tree/master/packages/hardhat). It generates typing files (`*.d.ts`) based on ABI's, and it requires little to no configuration.
 
 ## Support for path mappings
 
