@@ -49,7 +49,7 @@ Running test directly from Visual Studio Code won't compile your contracts autom
 
 :::
 
-## Running TypeScript test
+## Running TypeScript tests
 
 If you are writing your tests in TypeScript, you should use this `.mocharc.json` instead:
 
