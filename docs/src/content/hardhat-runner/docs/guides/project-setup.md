@@ -1,5 +1,11 @@
 # Setting up a project
 
+:::tip
+
+If you are using Windows, we **strongly recommend** using [WSL 2](https://docs.microsoft.com/en-us/windows/wsl/about) to follow this guide.
+
+:::
+
 Hardhat projects are `npm` projects with the `hardhat` package installed and a `hardhat.config.js` file.
 
 If you run `npx hardhat` in a folder without a Hardhat configuration file, you will be shown some options to facilitate project creation:
