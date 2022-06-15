@@ -90,6 +90,14 @@ export const sortPluginsByDownloads = (downloadsD: {
       (p1: IPlugin, p2: IPlugin) => downloadsD[p2.name] - downloadsD[p1.name]
     );
 
+    // Always show the toolbox first
+    const toolboxIndex = plugins.officialPlugins.findIndex(
+      (p) => p.name === "@nomicfoundation/hardhat-toolbox"
+    );
+    const toolbox = plugins.officialPlugins[toolboxIndex];
+    plugins.officialPlugins.splice(toolboxIndex, 1);
+    plugins.officialPlugins.unshift(toolbox);
+
     plugins.communityPlugins.sort(
       (p1: IPlugin, p2: IPlugin) => downloadsD[p2.name] - downloadsD[p1.name]
     );
