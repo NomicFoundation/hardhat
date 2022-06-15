@@ -21,6 +21,8 @@ jobs:
         run: "rm yarn.lock"
       - name: Install
         run: yarn
+      - name: List dependencies
+        run: yarn list
       - name: Run tests
         env:
           DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI: true
