@@ -203,7 +203,7 @@ You can run your tests in parallel by using the `--parallel` flag:
 npx hardhat test --parallel
 ```
 
-Alternatively, use `parallel: true` in the `mocha` section of your Hardhat config, which will enable parallelism for plugins that don't have a `--parallel` flag, like `solidity-coverage`.
+Alternatively, use `parallel: true` in the `mocha` section of your Hardhat config.
 
 Most of the time, running your tests serially or in parallel should produce the same results, but there are some scenarios where tests run in parallel will behave differently:
 
