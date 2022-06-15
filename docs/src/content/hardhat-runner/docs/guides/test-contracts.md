@@ -40,7 +40,7 @@ describe("Lock", function () {
 });
 ```
 
-The first thing we do is to import the functions we are going to use: the [`expect`](https://www.chaijs.com/api/bdd/) function from `chai` to write our assertions, the [Hardhat Runtime Environment](../advanced/hardhat-runtime-environment.md), and the [network helpers](/hardhat-network-helpers) to interact with the Hardhat Network. After that we use the `describe` and `it` functions, which are global Mocha's functions used to describe and group your tests (you can read more about Mocha [here](https://mochajs.org/#getting-started)).
+First we'll import the things we are going to use: the [`expect`](https://www.chaijs.com/api/bdd/) function from `chai` to write our assertions, the [Hardhat Runtime Environment](../advanced/hardhat-runtime-environment.md), and the [network helpers](/hardhat-network-helpers) to interact with the Hardhat Network. After that we use the `describe` and `it` functions, which are global Mocha's functions used to describe and group your tests (you can read more about Mocha [here](https://mochajs.org/#getting-started)).
 
 The test itself is what’s inside the `it` function. First we set the values for the amount we want to lock (in [wei](https://ethereum.org/en/glossary/#wei)) and the unlock time. For the latter we use [`time.latest`](</hardhat-network-helpers/docs/reference#latest()>), a network helper that returns the timestamp of the last mined block. Then we deploy the contract itself: first we get a [`ContractFactory`](https://docs.ethers.io/v5/single-page/#/v5/api/contract/contract-factory/) for the `Lock` contract and then we deploy it, passing the unlock time and the value.
 
