@@ -48,7 +48,7 @@ Let’s go through the process of creating one to interact with a smart contract
 
 Tasks in Hardhat are asynchronous JavaScript functions that get access to the [Hardhat Runtime Environment](../advanced/hardhat-runtime-environment.md), which exposes its configuration and parameters, as well as programmatic access to other tasks and any plugin objects that may have been injected.
 
-For our example, we will use the `@nomicfoundation/toolbox`, which includes the [ethers.js](https://docs.ethers.io/v5/) library to interact with our contracts.
+For our example, we will use the [`@nomicfoundation/hardhat-toolbox`](/hardhat-runner/plugins/nomicfoundation-hardhat-toolbox), which includes the [ethers.js](https://docs.ethers.io/v5/) library to interact with our contracts.
 
 ::::tabsgroup{options="npm 7+,npm 6,yarn"}
 
