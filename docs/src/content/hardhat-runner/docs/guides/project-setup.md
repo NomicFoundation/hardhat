@@ -6,9 +6,69 @@ If you are using Windows, we **strongly recommend** using [WSL 2](https://docs.m
 
 :::
 
-Hardhat projects are `npm` projects with the `hardhat` package installed and a `hardhat.config.js` file.
+Hardhat projects are Node.js projects with the `hardhat` package installed and a `hardhat.config.js` file.
 
-If you run `npx hardhat` in a folder without a Hardhat configuration file, you will be shown some options to facilitate project creation:
+To initialize a Node.js project you can use [npm](https://docs.npmjs.com/cli/v8) or [yarn](https://classic.yarnpkg.com/). We recommend using npm 7 or later:
+
+::::tabsgroup{options="npm 7+,npm 6,yarn"}
+
+:::tab{value="npm 7+"}
+
+```
+npm init -y
+```
+
+:::
+
+:::tab{value="npm 6"}
+
+```
+npm init -y
+```
+
+:::
+
+:::tab{value="yarn"}
+
+```
+yarn init -y
+```
+
+:::
+
+::::
+
+Then you need to install Hardhat:
+
+::::tabsgroup{options="npm 7+,npm 6,yarn"}
+
+:::tab{value="npm 7+"}
+
+```
+npm install --save-dev hardhat
+```
+
+:::
+
+:::tab{value="npm 6"}
+
+```
+npm install --save-dev hardhat
+```
+
+:::
+
+:::tab{value="yarn"}
+
+```
+yarn add --dev hardhat
+```
+
+:::
+
+::::
+
+If you run `npx hardhat` now, you will be shown some options to facilitate project creation:
 
 ```
 $ npx hardhat
@@ -38,36 +98,6 @@ module.exports = {
   solidity: "0.8.9",
 };
 ```
-
-Then, you need to install Hardhat. We recommend using npm 7 or later:
-
-::::tabsgroup{options="npm 7+,npm 6,yarn"}
-
-:::tab{value="npm 7+"}
-
-```
-npm install --save-dev hardhat
-```
-
-:::
-
-:::tab{value="npm 6"}
-
-```
-npm install --save-dev hardhat
-```
-
-:::
-
-:::tab{value="yarn"}
-
-```
-yarn add --dev hardhat
-```
-
-:::
-
-::::
 
 And this is enough to run Hardhat using a default project structure.
 
