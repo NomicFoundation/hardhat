@@ -72,7 +72,7 @@ Notice that in the previous test we wrote `expect(await ...)` but now we are doi
 
 We are deploying our `Lock` contract with an unlock time of one year. If we want to write a test that checks what happens after the unlock time has passed, we can’t wait that amount of time. We could use a shorter amount, like 5 seconds, but that’s a less realistic value and it's still a long time to wait in a test.
 
-The solution is to simulate the passage of time. This can be done with the [`time.increaseTo`](</hardhat-network-helpers/docs/reference#increaseto(timestamp)>) network helper:
+The solution is to simulate the passage of time. This can be done with the [`time.increaseTo`](</hardhat-network-helpers/docs/reference#increaseto(timestamp)>) network helper, which mines a new block with the given timestamp:
 
 ```tsx
 it("Should transfer the funds to the owner", async function () {
@@ -85,7 +85,7 @@ it("Should transfer the funds to the owner", async function () {
 });
 ```
 
-The `time.increaseTo` helper mines a new block with the given timestamp. After doing that, we can call the `withdraw` function again. In ethers, if a function reverts, the method will return a rejected promise. Awaiting the result then means that the test will fail if the function reverts.
+As we mentioned, calling `lock.widthdraw()` returns a Promise. If the transaction fails, the promise will be rejected. Using `await` will throw in that case, so the test will fail if the transaction reverts.
 
 ### Using a different address
 
