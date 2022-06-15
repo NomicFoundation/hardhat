@@ -10,7 +10,7 @@ In this guide weâ€™ll write some tests for the sample project so, if you havenâ€
 
 We also recommend you use [TypeScript](./typescript.md) to get better autocompletion and catch possible errors earlier. This guide will assume you are using TypeScript, but you can click the tabs of the snippets to switch their language.
 
-The setup includes some example tests in the `test/Lock.ts` file, but ignore them for now. Instead, create a `test/my-tests.ts` file directory and run only those. For example, if your test file is called `test/my-tests.ts`, you can run only that file with `npx hardhat test test/my-tests.ts`
+The setup includes some example tests in the `test/Lock.ts` file, but ignore them for now. Instead, create a `test/my-tests.ts` file. During this guide we'll only run those, by running `npx hardhat test test/my-tests.ts`, instead of just `npx hardhat test`.
 
 ### A simple test
 
