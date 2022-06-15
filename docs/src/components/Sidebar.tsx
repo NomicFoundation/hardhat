@@ -71,7 +71,7 @@ const SidebarSubLinksList = styled.ul`
   line-height: 28px;
   list-style-type: none;
   & ${SidebarLinkWrapper} {
-    padding: 0.5px 16px 0.5px 64px;
+    padding: 0.5px 16px 0.5px 40px;
     &[data-anchor="true"] {
       border-left: 4px solid ${tm(({ colors }) => colors.transparent)};
     }
