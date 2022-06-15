@@ -12,7 +12,7 @@ Hardhat will automatically enable its TypeScript support if your config file end
 
 :::tip
 
-If you installed [`@nomicfoundation/hardhat-toolbox`](../../plugins/nomicfoundation-hardhat-toolbox) using `npm` 7 or higher, you don't need to follow these steps.
+If you installed [`@nomicfoundation/hardhat-toolbox`](../../plugins/nomicfoundation-hardhat-toolbox) using npm 7 or higher, you don't need to follow these steps.
 
 :::
 
