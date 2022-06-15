@@ -1,5 +1,5 @@
 section-type: group
-section-title: Other projects
+section-title: Other Hardhat projects
 order:
   - href: /../../../hardhat-runner/docs
     title: Hardhat Runner

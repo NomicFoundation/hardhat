@@ -9,8 +9,8 @@ hardhat-runner:
     - hardhat-runner/docs/advanced
     - hardhat-runner/docs/troubleshooting
     - hardhat-runner/docs/reference
-    - hardhat-runner/docs/other-projects
     - hardhat-runner/plugins
+    - hardhat-runner/docs/other-projects
     # hidden
     - hardhat-runner/docs/errors
     - hardhat-runner/docs/other-guides
