@@ -26,7 +26,9 @@ You can deploy in the `localhost` network following these steps:
 
    `npx hardhat node`
 
-2. Open a new terminal and deploy the smart contract in the `localhost` network ::::tabsgroup{options="TypeScript,JavaScript"}
+2. Open a new terminal and deploy the smart contract in the `localhost` network
+
+   ::::tabsgroup{options="TypeScript,JavaScript"}
 
    :::tab{value="TypeScript"}
 
