@@ -1,16 +1,20 @@
 # Command-line completion
 
-`hardhat-shorthand` is an NPM package that installs a globally accessible binary called `hh` that runs the project's locally installed `hardhat` and supports shell autocompletion for tasks.
+Hardhat has a companion NPM package that acts as a shorthand for `npx hardhat`, and at the same time, it enables command-line completions in your terminal.
+
+This package, `hardhat-shorthand`, installs a globally accessible binary called `hh` that runs your locally installed `hardhat`.
 
 ## Installation
 
 To use the Hardhat shorthand you need to install it **globally**:
 
 ```
-npm i -g hardhat-shorthand
+npm install --global hardhat-shorthand
 ```
 
 After doing this running `hh` will be equivalent to running `npx hardhat`. For example, instead of running `npx hardhat compile` you can run `hh compile`.
+
+### Installing the command-line completions
 
 To enable autocomplete support you'll also need to install the shell completion script using `hardhat-completion`, which comes with `hardhat-shorthand`. Run `hardhat-completion install` and follow the instructions to install the completion script:
 
