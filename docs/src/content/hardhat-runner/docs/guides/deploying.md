@@ -1,27 +1,24 @@
 # Deploying your contracts
 
-When it comes to deploying, there are no official plugins that implement a deployment system for Hardhat yet, but there's [an open issue](https://github.com/nomiclabs/hardhat/issues/381) with some ideas and we'd value your opinion on how to best design it.
+When it comes to deploying, there are no official plugins that implement a deployment system for Hardhat yet. We are working on it.
 
-In the meantime, we recommend deploying your smart contracts using scripts, or using [the hardhat-deploy community plugin](https://github.com/wighawag/hardhat-deploy/tree/master). You can deploy the `Greeter` contract from the sample project with a deploy script `scripts/deploy.js` like this:
+In the meantime, we recommend deploying your smart contracts using scripts, or using [the hardhat-deploy community plugin](https://github.com/wighawag/hardhat-deploy/tree/master). You can deploy the `Lock` contract from the sample project with a deployment script like this:
 
-```js
-async function main() {
-  // We get the contract to deploy
-  const Greeter = await ethers.getContractFactory("Greeter");
-  const greeter = await Greeter.deploy("Hello, Hardhat!");
+::::tabsgroup{options="TypeScript,JavaScript"}
 
-  await greeter.deployed();
+:::tab{value="TypeScript"}
 
-  console.log("Greeter deployed to:", greeter.address);
-}
+<<< @/../packages/hardhat-core/sample-projects/typescript/scripts/deploy.ts
 
-main()
-  .then(() => process.exit(0))
-  .catch((error) => {
-    console.error(error);
-    process.exit(1);
-  });
-```
+:::
+
+:::tab{value="JavaScript"}
+
+<<< @/../packages/hardhat-core/sample-projects/javascript/scripts/deploy.js
+
+:::
+
+::::
 
 You can deploy in the `localhost` network following these steps:
 
@@ -29,16 +26,22 @@ You can deploy in the `localhost` network following these steps:
 
    `npx hardhat node`
 
-2. Open a new terminal and deploy the smart contract in the `localhost` network
+2. Open a new terminal and deploy the smart contract in the `localhost` network ::::tabsgroup{options="TypeScript,JavaScript"}
+
+   :::tab{value="TypeScript"}
+
+   `npx hardhat run --network localhost scripts/deploy.ts`
+
+   :::
+
+   :::tab{value="JavaScript"}
 
    `npx hardhat run --network localhost scripts/deploy.js`
 
-As general rule, you can target any network configured in the `hardhat.config.js`
+   :::
+
+   ::::
+
+As general rule, you can target any network from your Hardhat config using:
 
 `npx hardhat run --network <your-network> scripts/deploy.js`
-
-### Truffle migrations support
-
-You can use Hardhat alongside Truffle if you want to use its migration system. Your contracts written using Hardhat will just work with Truffle.
-
-All you need to do is install Truffle and follow their [migrations guide](https://www.trufflesuite.com/docs/truffle/getting-started/running-migrations).
