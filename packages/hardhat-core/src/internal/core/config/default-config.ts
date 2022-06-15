@@ -14,7 +14,7 @@ export const DEFAULT_HARDHAT_NETWORK_BALANCE = "10000000000000000000000";
 
 export const defaultDefaultNetwork = HARDHAT_NETWORK_NAME;
 
-export const defaultLocalhostNetworkParams = {
+export const defaultlocalhostNetworkParams = {
   url: "http://127.0.0.1:8545",
   timeout: 40000,
 };

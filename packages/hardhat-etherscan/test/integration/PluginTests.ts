@@ -340,7 +340,7 @@ describe("Plugin integration tests", function () {
 
       // We override this task to avoid posting to an actual endpoint and to avoid our own sanity checks.
       task(TASK_VERIFY_GET_ETHERSCAN_ENDPOINT).setAction(async () => {
-        return "http://localhost:54321";
+        return "http://127.0.0.1:54321";
       });
       const { ethers } = this.env as any;
       const signers = await ethers.getSigners();

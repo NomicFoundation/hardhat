@@ -30,7 +30,7 @@ Website content is located in `*.md` files withing `src/content` folder. It's wr
 
 To tune pages, behavior and appearance also use optional `*.yaml` files with additional configurations.
 
-To preview content locally, launch the app with `yarn dev` and open http://localhost:3000 in your browser. See details in [Development](#development) section.
+To preview content locally, launch the app with `yarn dev` and open http://127.0.0.1:3000 in your browser. See details in [Development](#development) section.
 
 ### Layouts
 
@@ -142,7 +142,7 @@ Then, run the development server:
 yarn dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://127.0.0.1:3000](http://127.0.0.1:3000) with your browser to see the result.
 
 You can start editing the page by modifying `src/pages/...`. The page auto-updates as you edit the file.
 
@@ -166,7 +166,7 @@ When developing the application you might need these main
 
 ## Storybook
 
-You can use Storybook to develop components in isolation. Launch it via `yarn storybook` and open http://localhost:6006/ You will see a list of components in the left-side sidebar. When you edit component's code and save it, the Storybook is auto-updating it.
+You can use Storybook to develop components in isolation. Launch it via `yarn storybook` and open http://127.0.0.1:6006/ You will see a list of components in the left-side sidebar. When you edit component's code and save it, the Storybook is auto-updating it.
 
 Each component can be exposed with different states (stories) independently by passing props you need. You can find component stories settings in `Component.stories.ts` files.
 

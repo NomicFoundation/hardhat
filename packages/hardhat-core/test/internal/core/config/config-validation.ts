@@ -267,7 +267,7 @@ describe("Config validation", function () {
             validateConfig({
               networks: {
                 custom: {
-                  url: "http://localhost",
+                  url: "http://127.0.0.1",
                   accounts: [
                     "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
                     "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
@@ -282,7 +282,7 @@ describe("Config validation", function () {
             validateConfig({
               networks: {
                 custom: {
-                  url: "http://localhost",
+                  url: "http://127.0.0.1",
                   accounts: [
                     "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
                   ],
@@ -297,7 +297,7 @@ describe("Config validation", function () {
                 validateConfig({
                   networks: {
                     custom: {
-                      url: "http://localhost",
+                      url: "http://127.0.0.1",
                       accounts: [
                         0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,
                       ],
@@ -314,7 +314,7 @@ describe("Config validation", function () {
                 validateConfig({
                   networks: {
                     custom: {
-                      url: "http://localhost",
+                      url: "http://127.0.0.1",
                       accounts: ["0xaaaa"],
                     },
                   },
@@ -327,7 +327,7 @@ describe("Config validation", function () {
                 validateConfig({
                   networks: {
                     custom: {
-                      url: "http://localhost",
+                      url: "http://127.0.0.1",
                       accounts: [
                         "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabb",
                       ],
@@ -344,7 +344,7 @@ describe("Config validation", function () {
                 validateConfig({
                   networks: {
                     custom: {
-                      url: "http://localhost",
+                      url: "http://127.0.0.1",
                       accounts: [
                         "0xgggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg",
                       ],
@@ -1200,7 +1200,7 @@ describe("Config validation", function () {
             const errors = getValidationErrors({
               networks: {
                 custom: {
-                  url: "http://localhost",
+                  url: "http://127.0.0.1",
                 },
               },
             });
@@ -1211,7 +1211,7 @@ describe("Config validation", function () {
             const errors = getValidationErrors({
               networks: {
                 custom: {
-                  url: "http://localhost",
+                  url: "http://127.0.0.1",
                   httpHeaders: {
                     a: "asd",
                     b: "a",
@@ -1228,7 +1228,7 @@ describe("Config validation", function () {
                 validateConfig({
                   networks: {
                     custom: {
-                      url: "http://localhost",
+                      url: "http://127.0.0.1",
                       httpHeaders: 123,
                     },
                   },
@@ -1241,7 +1241,7 @@ describe("Config validation", function () {
                 validateConfig({
                   networks: {
                     custom: {
-                      url: "http://localhost",
+                      url: "http://127.0.0.1",
                       httpHeaders: "123",
                     },
                   },
@@ -1256,7 +1256,7 @@ describe("Config validation", function () {
                 validateConfig({
                   networks: {
                     custom: {
-                      url: "http://localhost",
+                      url: "http://127.0.0.1",
                       httpHeaders: {
                         a: "a",
                         b: 123,
@@ -1272,7 +1272,7 @@ describe("Config validation", function () {
                 validateConfig({
                   networks: {
                     custom: {
-                      url: "http://localhost",
+                      url: "http://127.0.0.1",
                       httpHeaders: {
                         a: "a",
                         b: false,
@@ -1692,7 +1692,7 @@ describe("Config validation", function () {
         getValidationErrors({
           networks: {
             custom: {
-              url: "http://localhost:8545",
+              url: "http://127.0.0.1:8545",
             },
             localhost: {
               accounts: [

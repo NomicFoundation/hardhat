@@ -146,7 +146,7 @@
 - 8076c43b: Fixed how the cummulative gas is computed for receipts and added a missing field (Thanks @ngotchac!)
 - e6362902: Display similar artifact names in error output if given name is not found (#201)
 - e087bd0b: Improve validation of private keys in the Hardhat config
-- aa1a0080: Fix an issue with new versions of Node.js that prevented clients from connecting to Hardhat's node using 127.0.0.1
+- aa1a0080: Fix an issue with new versions of Node.js that prevented clients from connecting to Hardhat's node using localhost
 - 846f7856: Enable user configurable tsconfig path
 - 89529afc: Print warning when user tries to use solc remapping (#1877)
 

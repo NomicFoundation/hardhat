@@ -202,7 +202,7 @@ export class GanacheService {
 
     // Validate and parse hostname and port from URL (this validation is priority)
     const url = new URL(options.url);
-    if (url.hostname !== "localhost" && url.hostname !== "127.0.0.1") {
+    if (url.hostname !== "127.0.0.1") {
       throw new NomicLabsHardhatPluginError(
         "@nomiclabs/hardhat-ganache",
         "Ganache network only works with localhost"

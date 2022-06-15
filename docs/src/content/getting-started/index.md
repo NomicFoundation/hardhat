@@ -256,7 +256,7 @@ $ npx hardhat node
 Started HTTP and WebSocket JSON-RPC server at http://127.0.0.1:8545/
 ```
 
-This will expose a JSON-RPC interface to Hardhat Network. To use it connect your wallet or application to `http://localhost:8545`.
+This will expose a JSON-RPC interface to Hardhat Network. To use it connect your wallet or application to `http://127.0.0.1:8545`.
 
 If you want to connect Hardhat to this node to, for example, run a deployment script against it, you simply need to run it using `--network localhost`.
 

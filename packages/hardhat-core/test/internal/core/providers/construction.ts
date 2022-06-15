@@ -31,7 +31,7 @@ describe("Network config typeguards", async () => {
 describe("Base provider creation", () => {
   it("Should create a valid HTTP provider and wrap it", () => {
     const provider = createProvider("net", {
-      url: "http://localhost:8545",
+      url: "http://127.0.0.1:8545",
       ...defaultHttpNetworkParams,
     });
 

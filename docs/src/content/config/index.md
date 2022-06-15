@@ -119,7 +119,7 @@ module.exports = {
 
 ```js
 {
-    localhost: {
+    127.0.0.1: {
       url: "http://127.0.0.1:8545"
     },
     hardhat: {
