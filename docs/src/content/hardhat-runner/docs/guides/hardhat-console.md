@@ -48,8 +48,8 @@ Anything that has been injected into the [Hardhat Runtime Environment] will be m
 Alternatively, if you're the more explicit kind of developer, you can instead require the HRE explicitly:
 
 ```
-> const hardhat = require("hardhat")
-> hardhat.ethers
+> const hre = require("hardhat")
+> hre.ethers
 {
   Signer: [Function: Signer] { isSigner: [Function] },
   ...
@@ -71,8 +71,8 @@ You will also notice that the console has the handy history feature you expect o
 
 Interacting with the Ethereum network, and therefore with your smart contracts, are asynchronous operations. Therefore, most APIs and libraries use JavaScript's `Promise` for returning values.
 
-To make things easier, Hardhat's console supports `await` top-level await (i.e. `console.log(await ethers.getSigners()`).
+To make things easier, Hardhat's console supports top-level `await` statements (e.g. `console.log(await ethers.getSigners()`).
 
-For any help or feedback you may have, you can find us in the [Hardhat Support Discord server](/discord).
+For any help or feedback you may have, you can find us in the [Hardhat Support Discord server](/discord).
 
 [hardhat runtime environment]: ../advanced/hardhat-runtime-environment.md
