@@ -1,8 +1,74 @@
 # Setting up a project
 
-Hardhat projects are `npm` projects with the `hardhat` package installed and a `hardhat.config.js` file.
+:::tip
 
-If you run `npx hardhat` in a folder without a Hardhat configuration file, you will be shown two options to facilitate project creation:
+If you are using Windows, we **strongly recommend** using [WSL 2](https://docs.microsoft.com/en-us/windows/wsl/about) to follow this guide.
+
+:::
+
+Hardhat projects are Node.js projects with the `hardhat` package installed and a `hardhat.config.js` file.
+
+To initialize a Node.js project you can use [npm](https://docs.npmjs.com/cli/v8) or [yarn](https://classic.yarnpkg.com/). We recommend using npm 7 or later:
+
+::::tabsgroup{options="npm 7+,npm 6,yarn"}
+
+:::tab{value="npm 7+"}
+
+```
+npm init -y
+```
+
+:::
+
+:::tab{value="npm 6"}
+
+```
+npm init -y
+```
+
+:::
+
+:::tab{value="yarn"}
+
+```
+yarn init -y
+```
+
+:::
+
+::::
+
+Then you need to install Hardhat:
+
+::::tabsgroup{options="npm 7+,npm 6,yarn"}
+
+:::tab{value="npm 7+"}
+
+```
+npm install --save-dev hardhat
+```
+
+:::
+
+:::tab{value="npm 6"}
+
+```
+npm install --save-dev hardhat
+```
+
+:::
+
+:::tab{value="yarn"}
+
+```
+yarn add --dev hardhat
+```
+
+:::
+
+::::
+
+If you run `npx hardhat` now, you will be shown some options to facilitate project creation:
 
 ```
 $ npx hardhat
@@ -15,12 +81,11 @@ $ npx hardhat
 888    888 888  888 888    Y88b 888 888  888 888  888 Y88b.
 888    888 "Y888888 888     "Y88888 888  888 "Y888888  "Y888
 
-Welcome to Hardhat v2.0.0
+Welcome to Hardhat v2.10.0
 
 ? What do you want to do? …
-❯ Create a sample project
-  Create an advanced sample project
-  Create an advanced sample project that uses TypeScript
+▸ Create a JavaScript project
+  Create a TypeScript project
   Create an empty hardhat.config.js
   Quit
 ```
@@ -28,25 +93,19 @@ Welcome to Hardhat v2.0.0
 If you select _Create an empty hardhat.config.js_, Hardhat will create a `hardhat.config.js` like the following:
 
 ```js
-/**
- * @type import('hardhat/config').HardhatUserConfig
- */
+/** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
-  solidity: "0.7.3",
+  solidity: "0.8.9",
 };
-```
-
-Then, you need to install Hardhat with:
-
-```
-npm install --save-dev hardhat
 ```
 
 And this is enough to run Hardhat using a default project structure.
 
 ### Sample Hardhat project
 
-If you select _Create a sample project_ a simple project creation wizard will ask you some questions and create a project with the following structure:
+If you select _Create a JavaScript project_, a simple project creation wizard will ask you some questions. After that, the wizard will create some directories and files and installthe necessary dependencies. The most important of these dependencies is the [Hardhat Toolbox](/hardhat-runner/plugins/nomicfoundation-hardhat-toolbox), a plugin that bundles all the things you need to start working with Hardhat.
+
+The initialized project has the following structure:
 
 ```
 contracts/
@@ -63,12 +122,17 @@ These are the default paths for a Hardhat project.
 
 If you need to change these paths, take a look at the [paths configuration section](../config/index.md#path-configuration).
 
-### Testing and Ethereum networks
+### Testing
 
-When it comes to testing your contracts, Hardhat comes with some built-in defaults:
+When it comes to testing your contracts, the sample project comes with some useful functionality:
 
-- The built-in [Hardhat Network](/hardhat-network/docs) as the development network to test on
-- [Mocha](https://mochajs.org/) as the test runner
+- The built-in [Hardhat Network](/hardhat-network/docs) as the development network to test on, along with the [Hardhat Network Helpers](/hardhat-network-helpers) library to manipulate this network.
+- [Mocha](https://mochajs.org/) as the test runner, [Chai](https://chaijs.com/) as the assertion library, and the [Hardhat Chai Matchers](/hardhat-chai-matchers) to extend Chai with contracts-related functionality.
+- The [`ethers.js`](https://docs.ethers.io/v5/) library to interact with the network and with contracts.
+
+As well as other useful plugins. You can learn more about this in the [Testing contracts guide](./test-contracts.md).
+
+### External networks
 
 If you need to use an external network, like an Ethereum testnet, mainnet or some other specific node software, you can set it up using the `networks` configuration entries in the exported object in `hardhat.config.js`, which is how Hardhat projects manage settings.
 
@@ -78,24 +142,37 @@ Take a look at the [networks configuration section](../config/index.md#networks-
 
 ### Plugins and dependencies
 
-You may have seen this notice when creating the sample project:
-
-```
-You need to install these dependencies to run the sample project:
-  npm install --save-dev @nomiclabs/hardhat-waffle ethereum-waffle chai @nomiclabs/hardhat-ethers ethers
-```
-
-This stems from the fact that **most of Hardhat's functionality comes from plugins**, so check out the [plugins section](/hardhat-runner/plugins) for the official list and see if there are any other ones of interest to you.
-
-The sample project uses the `@nomiclabs/hardhat-waffle` plugin, which depends on the `@nomiclabs/hardhat-ethers` plugin. These integrate the Ethers.js and Waffle tools into your project.
+Most of Hardhat's functionality comes from plugins, so check out the [plugins section](/hardhat-runner/plugins) for the official list and see if there are any ones of interest to you.
 
 To use a plugin, the first step is always to install it using `npm` or `yarn`, followed by requiring it in your config file:
 
-```js
-require("@nomiclabs/hardhat-waffle");
+::::tabsgroup{options="TypeScript,JavaScript"}
 
-module.exports = {};
+:::tab{value="TypeScript"}
+
+```ts
+import "@nomicfoundation/hardhat-toolbox";
+
+export default {
+  solidity: "0.8.9",
+};
 ```
+
+:::
+
+:::tab{value="JavaScript"}
+
+```js
+require("@nomicfoundation/hardhat-toolbox");
+
+module.exports = {
+  solidity: "0.8.9",
+};
+```
+
+:::
+
+::::
 
 Plugins are **essential** to Hardhat projects, so make sure to check out all the available ones and also build your own!
 
