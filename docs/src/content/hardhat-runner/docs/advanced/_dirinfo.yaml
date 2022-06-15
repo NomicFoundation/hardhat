@@ -2,6 +2,8 @@ section-type: group
 section-title: Advanced
 order:
   - /hardhat-runtime-environment
+  - /artifacts
+  - /multiple-solidity-versions 
   - /create-task
   - /scripts
   - /building-plugins
