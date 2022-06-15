@@ -11,18 +11,13 @@ function cleanup(ganacheChild) {
   }
 
   return new Promise((resolve) => {
-    ganacheChild.stdout.on("data", (d) => {
-      if (/Server has been shut down/.test(d)) {
-        resolve();
-      }
-    });
     ganacheChild.on("exit", resolve);
     ganacheChild.kill();
   });
 }
 
 async function startGanache(args = []) {
-  const ganacheCliPath = require.resolve("ganache/dist/node/cli.js");
+  const ganacheCliPath = require.resolve("ganache-cli/cli.js");
 
   const ganacheChild = spawn("node", [ganacheCliPath, ...args]);
   console.time("Ganache spawn");
