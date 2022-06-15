@@ -12,7 +12,7 @@ const communityPlugins: IPlugin[] = [
     author: "Ronan Sandford",
     authorUrl: "https://github.com/wighawag",
     description: "Hardhat plugin for Deployments",
-    tags: ["Deployment", "Testing"]
+    tags: ["Deployment", "Testing"],
   },
   {
     name: "hardhat-preprocessor",
@@ -20,14 +20,14 @@ const communityPlugins: IPlugin[] = [
     authorUrl: "https://github.com/wighawag",
     description:
       "An hardhat plugin to pre-process contract source code before compilation",
-    tags: ["Solidity", "Preprocessor"]
+    tags: ["Solidity", "Preprocessor"],
   },
   {
     name: "hardhat-deploy-ethers",
     author: "Ronan Sandford",
     authorUrl: "https://github.com/wighawag",
     description: "A hardhat-deploy plugin for Ethers.js v5",
-    tags: ["Ethers.js", "hardhat-deploy"]
+    tags: ["Ethers.js", "hardhat-deploy"],
   },
   {
     name: "@openzeppelin/hardhat-upgrades",
@@ -35,7 +35,7 @@ const communityPlugins: IPlugin[] = [
     authorUrl: "https://openzeppelin.com",
     description:
       "Hardhat plugin for deploying and managing upgradeable contracts.",
-    tags: ["Security", "Upgrades", "OpenZeppelin"]
+    tags: ["Security", "Upgrades", "OpenZeppelin"],
   },
   {
     name: "hardhat-forta",
@@ -43,7 +43,7 @@ const communityPlugins: IPlugin[] = [
     authorUrl: "https://forta.org/",
     description:
       "Quickly add security and operational alerting for your project using Forta: a decentralized monitoring network for Web3 systems.",
-    tags: ["Security", "Monitoring", "Alerting", "Forta"]
+    tags: ["Security", "Monitoring", "Alerting", "Forta"],
   },
   {
     name: "@tenderly/hardhat-tenderly",
@@ -51,7 +51,7 @@ const communityPlugins: IPlugin[] = [
     authorUrl: "https://tenderly.co/",
     description:
       "Easily integrate your Hardhat project with Tenderly. Tenderly is an Ethereum monitoring, debugging and analytics platform.",
-    tags: ["Debuggin", "Monitoring", "Alerting", "Tasks", "Scripts"]
+    tags: ["Debuggin", "Monitoring", "Alerting", "Tasks", "Scripts"],
   },
   {
     name: "hardhat-ethernal",
@@ -59,14 +59,14 @@ const communityPlugins: IPlugin[] = [
     authorUrl: "https://www.tryethernal.com",
     description:
       "Integrate your Hardhat project and Hardhat network with Ethernal. Ethernal is a block explorer for private chains.",
-    tags: ["explorer", "debugging", "development-tool"]
+    tags: ["explorer", "debugging", "development-tool"],
   },
   {
     name: "@typechain/hardhat",
     author: "Rahul Sethuram",
     authorUrl: "https://twitter.com/rhlsthrm",
     description: "Zero-config TypeChain support for Hardhat.",
-    tags: ["Testing", "Tasks"]
+    tags: ["Testing", "Tasks"],
   },
   {
     name: "hardhat-spdx-license-identifier",
@@ -74,21 +74,21 @@ const communityPlugins: IPlugin[] = [
     authorUrl: "https://github.com/ItsNickBarry",
     description:
       "Automatically prepend local Solidity source files with an SPDX License Identifier",
-    tags: ["License"]
+    tags: ["License"],
   },
   {
     name: "hardhat-abi-exporter",
     author: "Nick Barry",
     authorUrl: "https://github.com/ItsNickBarry",
     description: "Automatically export Solidity contract ABIs on compilation",
-    tags: ["Compiling", "ABI"]
+    tags: ["Compiling", "ABI"],
   },
   {
     name: "hardhat-contract-sizer",
     author: "Nick Barry",
     authorUrl: "https://github.com/ItsNickBarry",
     description: "Calculate compiled contract sizes",
-    tags: ["Compiling", "Bytecode"]
+    tags: ["Compiling", "Bytecode"],
   },
   {
     name: "hardhat-log-remover",
@@ -96,42 +96,42 @@ const communityPlugins: IPlugin[] = [
     authorUrl: "https://github.com/ItsNickBarry",
     description:
       "Remove Hardhat console.log imports and calls from Solidity source files",
-    tags: ["Logging", "Console", "Deployment"]
+    tags: ["Logging", "Console", "Deployment"],
   },
   {
     name: "hardhat-dependency-compiler",
     author: "Nick Barry",
     authorUrl: "https://github.com/ItsNickBarry",
     description: "Compile Solidity sources directly from NPM dependencies",
-    tags: ["Compiling", "Dependencies"]
+    tags: ["Compiling", "Dependencies"],
   },
   {
     name: "hardhat-docgen",
     author: "Nick Barry, samuveth",
     authorUrl: "https://github.com/ItsNickBarry",
     description: "Generate a static documentation site from NatSpec comments",
-    tags: ["Documentation", "NatSpec"]
+    tags: ["Documentation", "NatSpec"],
   },
   {
     name: "hardhat-watcher",
     author: "Xander Deseyn",
     authorUrl: "https://github.com/N1ghtly",
     description: "Automatically run Hardhat actions on file changes.",
-    tags: ["Tasks", "Testing"]
+    tags: ["Tasks", "Testing"],
   },
   {
     name: "solidity-coverage",
     author: "Chris Gewecke",
     authorUrl: "https://github.com/cgewecke",
     description: "Code coverage for Solidity",
-    tags: ["Testing", "Coverage", "Hardhat plugin"]
+    tags: ["Testing", "Coverage", "Hardhat plugin"],
   },
   {
     name: "hardhat-gas-trackooor",
     author: "d3or",
     authorUrl: "https://github.com/d3or",
     description: "Simple plugin to track gas on the transaction level.",
-    tags: ["Testing", "Gas", "Hardhat plugin"]
+    tags: ["Testing", "Gas", "Hardhat plugin"],
   },
   {
     name: "hardhat-gas-reporter",
@@ -139,7 +139,7 @@ const communityPlugins: IPlugin[] = [
     authorUrl: "https://github.com/cgewecke",
     description:
       "Gas usage per unit test. Average gas usage per method. A mocha reporter.",
-    tags: ["Testing", "Gas", "Hardhat plugin"]
+    tags: ["Testing", "Gas", "Hardhat plugin"],
   },
   {
     name: "hardhat-erc1820",
@@ -147,14 +147,14 @@ const communityPlugins: IPlugin[] = [
     authorUrl: "https://twitter.com/dmihal",
     description:
       "Automatically deploy the ERC-1820 registry contract to Hardhat EVM chains.",
-    tags: ["Testing"]
+    tags: ["Testing"],
   },
   {
     name: "@aragon/buidler-aragon",
     author: "Aragon One",
     authorUrl: "https://twitter.com/aragononeteam",
     description: "Buidler plugin for Aragon App development",
-    tags: ["Aragon", "Apps", "Buidler plugin"]
+    tags: ["Aragon", "Apps", "Buidler plugin"],
   },
   {
     name: "buidler-source-descriptor",
@@ -162,7 +162,7 @@ const communityPlugins: IPlugin[] = [
     authorUrl: "https://github.com/kendricktan",
     description:
       "A Buidler plugin to generate a descriptor of your Solidity source code",
-    tags: ["Compiling", "Documentation", "Buidler plugin"]
+    tags: ["Compiling", "Documentation", "Buidler plugin"],
   },
   {
     name: "hardhat-local-networks-config-plugin",
@@ -170,7 +170,7 @@ const communityPlugins: IPlugin[] = [
     authorUrl: "https://twitter.com/facuspagnuolo",
     description:
       "Allow loading network configs for Hardhat projects in home file",
-    tags: ["Networks", "Config"]
+    tags: ["Networks", "Config"],
   },
   {
     name: "@eth-optimism/plugins/hardhat/compiler",
@@ -179,7 +179,7 @@ const communityPlugins: IPlugin[] = [
     authorUrl: "https://github.com/ethereum-optimism",
     description:
       "Automatically compiles your Solidity contracts with the OVM compiler.",
-    tags: ["Optimism", "Solidity", "Compiler", "OVM"]
+    tags: ["Optimism", "Solidity", "Compiler", "OVM"],
   },
   {
     name: "@eth-optimism/plugins/hardhat/ethers",
@@ -187,7 +187,7 @@ const communityPlugins: IPlugin[] = [
     author: "Optimism",
     authorUrl: "https://github.com/ethereum-optimism",
     description: "Integrates Hardhat and ethers.js with Optimism's L2 network.",
-    tags: ["Optimism", "ethers.js", "OVM"]
+    tags: ["Optimism", "ethers.js", "OVM"],
   },
   {
     name: "hardhat-react",
@@ -196,14 +196,14 @@ const communityPlugins: IPlugin[] = [
     authorUrl: "https://github.com/symfoni/",
     description:
       "A Hardhat plugin that generates a React hook component from your smart contracts. Hot reloaded into your React app. Deployed or not deployed. And everything typed and initialized.",
-    tags: ["Ethers", "React", "Deploy", "Typechain", "Frontend", "Web3modal"]
+    tags: ["Ethers", "React", "Deploy", "Typechain", "Frontend", "Web3modal"],
   },
   {
     name: "hardhat-etherscan-abi",
     author: "Roman Semenov",
     authorUrl: "https://github.com/poma",
     description: "Automatically fetch contract ABI from Etherscan",
-    tags: ["Etherscan", "ABI"]
+    tags: ["Etherscan", "ABI"],
   },
   {
     name: "hardhat-tracer",
@@ -211,7 +211,7 @@ const communityPlugins: IPlugin[] = [
     authorUrl: "https://github.com/zemse/",
     description:
       "See internal transactions, events and storage operations during your hardhat tests in the console",
-    tags: ["EVM", "Events", "Logs", "Trace", "Console", "Testing"]
+    tags: ["EVM", "Events", "Logs", "Trace", "Console", "Testing"],
   },
   {
     name: "hardhat-circom",
@@ -224,22 +224,22 @@ const communityPlugins: IPlugin[] = [
       "Preprocessor",
       "Compiling",
       "Tasks",
-      "Scripts"
-    ]
+      "Scripts",
+    ],
   },
   {
     name: "hardhat-storage-layout",
     author: "Aurora Labs",
     authorUrl: "https://github.com/aurora-is-near",
     description: "Exporting solidity contract storage layout",
-    tags: ["solidity", "storage-layout"]
+    tags: ["solidity", "storage-layout"],
   },
   {
     name: "hardhat-change-network",
     author: "David Mihal",
     authorUrl: "https://github.com/dmihal",
     description: "Allows changing the current network in Hardhat.",
-    tags: ["Testing"]
+    tags: ["Testing"],
   },
   {
     name: "hardhat-packager",
@@ -247,7 +247,7 @@ const communityPlugins: IPlugin[] = [
     authorUrl: "https://github.com/paulrberg",
     description:
       "Prepare the contract artifacts and the TypeChain bindings for registry deployment.",
-    tags: ["Deployment", "Tasks", "TypeChain"]
+    tags: ["Deployment", "Tasks", "TypeChain"],
   },
   {
     name: "hardhat-time-n-mine",
@@ -256,7 +256,7 @@ const communityPlugins: IPlugin[] = [
     authorUrl: "https://github.com/atixlabs",
     description:
       "Helper plugin to manipulate blocks timestamp and trigger mining. It can be used from the command line and in the tests.",
-    tags: ["Testing"]
+    tags: ["Testing"],
   },
   {
     name: "hardhat-proxy",
@@ -264,7 +264,7 @@ const communityPlugins: IPlugin[] = [
     authorUrl: "https://github.com/jinyang1994",
     description:
       "This plugin brings the proxy contract to Hardhat, which allows you to manage the proxy contract in a simple way.",
-    tags: ["Proxy Contract", "Tasks", "Scripts"]
+    tags: ["Proxy Contract", "Tasks", "Scripts"],
   },
   {
     name: "hardhat-fund-link",
@@ -272,7 +272,7 @@ const communityPlugins: IPlugin[] = [
     npmPackage: "@appliedblockchain/chainlink-plugins-fund-link",
     authorUrl: "https://github.com/appliedblockchain",
     description: "Transfers Link token amount between accounts.",
-    tags: ["Chainlink", "Link"]
+    tags: ["Chainlink", "Link"],
   },
   {
     name: "@defi-wonderland/smock",
@@ -280,7 +280,7 @@ const communityPlugins: IPlugin[] = [
     authorUrl: "https://github.com/defi-wonderland",
     description:
       "The Solidity mocking library. Smock is a utility package that can generate mock Solidity contracts written entirely in JavaScript.",
-    tags: ["Testing", "Mocking"]
+    tags: ["Testing", "Mocking"],
   },
   {
     name: "xdeployer",
@@ -288,7 +288,7 @@ const communityPlugins: IPlugin[] = [
     authorUrl: "https://github.com/pcaversaccio",
     description:
       "Hardhat plugin to deploy your smart contracts across multiple EVM chains with the same deterministic address.",
-    tags: ["Deployment", "CREATE2", "Tasks"]
+    tags: ["Deployment", "CREATE2", "Tasks"],
   },
   {
     name: "@controlcpluscontrolv/hardhat-yul",
@@ -296,7 +296,7 @@ const communityPlugins: IPlugin[] = [
     authorUrl: "https://github.com/controlCplusControlV/",
     description:
       "Hardhat plugin to compile the Yul and Yul+ languages into solc compatible artifacts. Works with .yul and .yulp file extensions",
-    tags: ["Yul", "Assembly", "Compiler", "Yul+"]
+    tags: ["Yul", "Assembly", "Compiler", "Yul+"],
   },
   {
     name: "@primitivefi/hardhat-dodoc",
@@ -304,7 +304,7 @@ const communityPlugins: IPlugin[] = [
     authorUrl: "https://github.com/primitivefinance/primitive-dodoc",
     description:
       "Zero-config Hardhat plugin to generate documentation for all your Solidity contracts.",
-    tags: ["Documentation", "Docs", "Solidity", "NatSpec"]
+    tags: ["Documentation", "Docs", "Solidity", "NatSpec"],
   },
   {
     name: "hardhat-output-validator",
@@ -319,8 +319,8 @@ const communityPlugins: IPlugin[] = [
       "Docs",
       "Solidity",
       "NatSpec",
-      "Build"
-    ]
+      "Build",
+    ],
   },
   {
     name: "@ericxstone/hardhat-blockscout-verify",
@@ -328,7 +328,7 @@ const communityPlugins: IPlugin[] = [
     authorUrl: "https://github.com/ericxstone",
     description:
       "Hardhat plugin for solidity contract verification on Blockscout block explorer.",
-    tags: ["Blockscout", "Deployment", "Solidity", "Verification"]
+    tags: ["Blockscout", "Deployment", "Solidity", "Verification"],
   },
   {
     name: "@georacle/hardhat-georacle",
@@ -336,28 +336,28 @@ const communityPlugins: IPlugin[] = [
     authorUrl: "https://georacle.io",
     description:
       "A Hardhat plugin for integrating smart contracts with Georacle.",
-    tags: ["Georacle", "oracle", "geospatial"]
+    tags: ["Georacle", "oracle", "geospatial"],
   },
   {
     name: "@muzamint/hardhat-etherspot",
     author: "muzamint",
     authorUrl: "https://github.com/muzamint",
     description: "Hardhat TypeScript plugin for Etherspot",
-    tags: ["smart contract wallet"]
+    tags: ["smart contract wallet"],
   },
   {
     name: "hardhat-multibaas-plugin",
     author: "Curvegrid",
     authorUrl: "https://www.curvegrid.com/",
     description: "Integrate MultiBaas into Hardhat's workflow!",
-    tags: ["middleware", "ethereum", "OMG"]
+    tags: ["middleware", "ethereum", "OMG"],
   },
   {
     name: "@mangrovedao/hardhat-test-solidity",
     author: "Mangrove",
     authorUrl: "https://mangrove.exchange/",
     description: "Hardhat plugin for writing tests in solidity",
-    tags: ["solidity tests"]
+    tags: ["solidity tests"],
   },
   {
     name: "@reef-defi/hardhat-reef",
@@ -365,7 +365,7 @@ const communityPlugins: IPlugin[] = [
     authorUrl: "https://reef.io/",
     description:
       "Hardhat Reef plugin for interacting with contracts on the Reef chain",
-    tags: ["Reef Chain"]
+    tags: ["Reef Chain"],
   },
   {
     name: "hardhat-diamond-abi",
@@ -373,14 +373,14 @@ const communityPlugins: IPlugin[] = [
     authorUrl: "https://github.com/projectsophon",
     description:
       "Hardhat plugin to combine multiple ABIs into a Diamond ABI artifact",
-    tags: ["diamond standard"]
+    tags: ["diamond standard"],
   },
   {
     name: "@idle-finance/hardhat-proposals-plugin",
     author: "Idle Finance",
     authorUrl: "https://idle.finance/",
     description: "A Hardhat plugin for working with on-chain proposals",
-    tags: ["governance", "proposals", "simulation"]
+    tags: ["governance", "proposals", "simulation"],
   },
   {
     name: "@shardlabs/starknet-hardhat-plugin",
@@ -388,35 +388,35 @@ const communityPlugins: IPlugin[] = [
     authorUrl: "https://shardlabs.io/",
     description:
       "A plugin for integrating Starknet tools into Hardhat projects",
-    tags: ["starknet", "cairo", "layer two"]
+    tags: ["starknet", "cairo", "layer two"],
   },
   {
     name: "@uniswap/hardhat-v3-deploy",
     author: "Uniswap Labs",
     authorUrl: "https://uniswap.org/",
     description: "Hardhat plugin for Uniswap V3 deployment",
-    tags: ["uniswap", "testing", "deployment", "local"]
+    tags: ["uniswap", "testing", "deployment", "local"],
   },
   {
     name: "@unlock-protocol/hardhat-plugin",
     author: "Unlock Inc",
     authorUrl: "http://unlock-protocol.com/",
     description: "Hardhat plugin for Unlock Protocol deployments.",
-    tags: ["unlock", "nft", "memberships", "udt", "testing", "deployment"]
+    tags: ["unlock", "nft", "memberships", "udt", "testing", "deployment"],
   },
   {
     name: "hardhat-deploy-tenderly",
     author: "Ronan Sandford",
     authorUrl: "https://github.com/wighawag",
     description: "A plugin to push contracts to tenderly",
-    tags: ["Deployment", "Testing", "Tenderly", "Verification"]
+    tags: ["Deployment", "Testing", "Tenderly", "Verification"],
   },
   {
     name: "hardhat-laika",
     author: "Laika Blockchain Lab",
     authorUrl: "https://github.com/laika-lab/hardhat-laika",
     description: "Hardhat plugin to sync your compiled contract with Laika",
-    tags: ["Tasks", "Laika"]
+    tags: ["Tasks", "Laika"],
   },
   {
     name: "hardhat-network-metadata",
@@ -424,28 +424,28 @@ const communityPlugins: IPlugin[] = [
     authorUrl: "https://github.com/krruzic/hardhat-network-metadata",
     description:
       "Hardhat plugin to allow adding any extra data to your network configuration",
-    tags: ["Metadata", "Testing", "Tasks", "Config"]
+    tags: ["Metadata", "Testing", "Tasks", "Config"],
   },
   {
     name: "hardhat-exposed",
     author: "Francisco Giordano",
     authorUrl: "https://github.com/frangio",
     description: "Automatically expose internal Solidity functions for testing",
-    tags: ["Solidity", "Testing"]
+    tags: ["Solidity", "Testing"],
   },
   {
     name: "hardhat-hethers",
     author: "LimeChain",
     authorUrl: "https://github.com/LimeChain/hardhat-hethers",
     description: "Injects hethers into the Hardhat Runtime Environment",
-    tags: ["Hedera", "hethers"]
+    tags: ["Hedera", "hethers"],
   },
   {
     name: "hardhat-sourcify",
     author: "Zoey T",
     authorUrl: "https://twitter.com/zzzzoey_t",
     description: "A plugin for submitting code to Sourcify",
-    tags: ["Sourcify", "Verification"]
+    tags: ["Sourcify", "Verification"],
   },
   {
     name: "hardhat-awesome-cli",
@@ -453,7 +453,7 @@ const communityPlugins: IPlugin[] = [
     authorUrl: "https://github.com/marc-aurele-besner",
     description:
       "Hardhat made awesome with a flexible CLI to help run tests, scripts, deploy Mock contracts and more.",
-    tags: ["CLI", "Testing", "Tasks", "Config"]
+    tags: ["CLI", "Testing", "Tasks", "Config"],
   },
   {
     name: "hardhat-test-utils",
@@ -461,7 +461,7 @@ const communityPlugins: IPlugin[] = [
     authorUrl: "https://twitter.com/heyNvN",
     description:
       "Handy set of utilities for testing contracts in Hardhat projects",
-    tags: ["testing", "solidity"]
+    tags: ["testing", "solidity"],
   },
   {
     name: "@0xweb/hardhat",
@@ -469,15 +469,15 @@ const communityPlugins: IPlugin[] = [
     authorUrl: "https://github.com/tenbits",
     description:
       "Generate 0xWeb classes for contracts to easily communicate with the blockchain.",
-    tags: ["dApp-Client", "Class-Generation", "Testing"]
+    tags: ["dApp-Client", "Class-Generation", "Testing"],
   },
   {
     name: "jest-environment-hardhat",
     author: "Uniswap Labs",
     authorUrl: "https://uniswap.org/",
     description: "A jest environment with hardhat built in.",
-    tags: ["uniswap", "testing", "jest", "node"]
-  }
+    tags: ["uniswap", "testing", "jest", "node"],
+  },
 ];
 
 const officialPlugins: IPlugin[] = [
@@ -486,7 +486,7 @@ const officialPlugins: IPlugin[] = [
     author: "Nomic Foundation",
     authorUrl: "https://twitter.com/NomicFoundation",
     description: "Injects ethers.js into the Hardhat Runtime Environment",
-    tags: ["Ethers.js", "Testing", "Tasks", "Scripts"]
+    tags: ["Ethers.js", "Testing", "Tasks", "Scripts"],
   },
   {
     name: "@nomiclabs/hardhat-waffle",
@@ -494,49 +494,49 @@ const officialPlugins: IPlugin[] = [
     authorUrl: "https://twitter.com/NomicFoundation",
     description:
       "Adds a Waffle-compatible provider to the Hardhat Runtime Environment and automatically initializes the Waffle Chai matchers",
-    tags: ["Waffle", "Testing"]
+    tags: ["Waffle", "Testing"],
   },
   {
     name: "@nomiclabs/hardhat-truffle4",
     author: "Nomic Foundation",
     authorUrl: "https://twitter.com/NomicFoundation",
     description: "Integration with TruffleContract from Truffle 4",
-    tags: ["Truffle", "Testing"]
+    tags: ["Truffle", "Testing"],
   },
   {
     name: "@nomiclabs/hardhat-truffle5",
     author: "Nomic Foundation",
     authorUrl: "https://twitter.com/NomicFoundation",
     description: "Integration with TruffleContract from Truffle 5",
-    tags: ["Truffle", "Testing"]
+    tags: ["Truffle", "Testing"],
   },
   {
     name: "@nomiclabs/hardhat-web3",
     author: "Nomic Foundation",
     authorUrl: "https://twitter.com/NomicFoundation",
     description: "Injects Web3 1.x into the Hardhat Runtime Environment",
-    tags: ["Web3.js", "Testing", "Tasks", "Scripts"]
+    tags: ["Web3.js", "Testing", "Tasks", "Scripts"],
   },
   {
     name: "@nomiclabs/hardhat-web3-legacy",
     author: "Nomic Foundation",
     authorUrl: "https://twitter.com/NomicFoundation",
     description: "Injects Web3 0.20.x into the Hardhat Runtime Environment",
-    tags: ["Web3.js", "Legacy", "Testing", "Tasks", "Scripts"]
+    tags: ["Web3.js", "Legacy", "Testing", "Tasks", "Scripts"],
   },
   {
     name: "@nomiclabs/hardhat-etherscan",
     author: "Nomic Foundation",
     authorUrl: "https://twitter.com/NomicFoundation",
     description: "Automatically verify contracts on Etherscan",
-    tags: ["Etherscan", "Verification"]
+    tags: ["Etherscan", "Verification"],
   },
   {
     name: "@nomiclabs/hardhat-ganache",
     author: "Nomic Foundation",
     authorUrl: "https://twitter.com/NomicFoundation",
     description: "Hardhat plugin for managing Ganache",
-    tags: ["Ganache", "Testing network"]
+    tags: ["Ganache", "Testing network"],
   },
   {
     name: "@nomiclabs/hardhat-solpp",
@@ -544,42 +544,42 @@ const officialPlugins: IPlugin[] = [
     authorUrl: "https://twitter.com/NomicFoundation",
     description:
       "Automatically run the solpp preprocessor before each compilation",
-    tags: ["Solpp", "Preprocessor"]
+    tags: ["Solpp", "Preprocessor"],
   },
   {
     name: "@nomiclabs/hardhat-solhint",
     author: "Nomic Foundation",
     authorUrl: "https://twitter.com/NomicFoundation",
     description: "Easily run solhint to lint your Solidity code",
-    tags: ["Solhint", "Linter"]
+    tags: ["Solhint", "Linter"],
   },
   {
     name: "@nomiclabs/hardhat-vyper",
     author: "Nomic Foundation",
     authorUrl: "https://twitter.com/NomicFoundation",
     description: "Adds support to compile Vyper smart contracts",
-    tags: ["Vyper", "Compiler"]
+    tags: ["Vyper", "Compiler"],
   },
   {
     name: "@nomicfoundation/hardhat-chai-matchers",
     author: "Nomic Foundation",
     authorUrl: "https://twitter.com/NomicFoundation",
     description: "Adds Ethereum-related matchers to Chai",
-    tags: ["Chai", "Testing"]
+    tags: ["Chai", "Testing"],
   },
   {
     name: "@nomicfoundation/hardhat-toolbox",
     author: "Nomic Foundation",
     authorUrl: "https://twitter.com/NomicFoundation",
     description: "Nomic Foundation's recommended bundle of Hardhat plugins",
-    tags: ["Hardhat", "Setup"]
-  }
+    tags: ["Hardhat", "Setup"],
+  },
   // Don't add community plugins here. They should be placed in the other array.
 ];
 
 const plugins = {
   communityPlugins,
-  officialPlugins
+  officialPlugins,
 };
 
 export default plugins;
