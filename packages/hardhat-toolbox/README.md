@@ -16,32 +16,20 @@ When you use this plugin, you'll be able to:
 
 ### Installation
 
-We recommend using npm 7 or later. If you do that, then you just need to install the plugin itself. If you are using yarn or an older version of npm, you'll also need to install all the packages used by the toolbox.
+We recommend using npm 7 or later. If you do that, then you just need to install the plugin itself:
 
-::::tabsgroup{options="npm 7+,npm 6,yarn"}
-
-:::tab{value="npm 7+"}
-
-```
+```bash
 npm install --save-dev @nomicfoundation/hardhat-toolbox
 ```
 
-:::
+If you are using an older version of npm, you'll also need to install all the packages used by the toolbox.
 
-:::tab{value="npm 6"}
-
-```
+```bash
 npm install --save-dev @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat-network-helpers @nomicfoundation/hardhat-chai-matchers @nomiclabs/hardhat-ethers @nomiclabs/hardhat-etherscan chai ethers hardhat-gas-reporter solidity-coverage @typechain/hardhat typechain @typechain/ethers-v5 @ethersproject/abi @ethersproject/providers
 ```
 
-:::
-
-:::tab{value="yarn"}
+That's also the case if you are using yarn:
 
 ```
 yarn add --dev @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat-network-helpers @nomicfoundation/hardhat-chai-matchers @nomiclabs/hardhat-ethers @nomiclabs/hardhat-etherscan chai ethers hardhat-gas-reporter solidity-coverage @typechain/hardhat typechain @typechain/ethers-v5 @ethersproject/abi @ethersproject/providers
 ```
-
-:::
-
-::::
