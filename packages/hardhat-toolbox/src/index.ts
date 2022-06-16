@@ -32,4 +32,10 @@ extendConfig((config, userConfig) => {
   if (gasReporterConfig?.currency === undefined) {
     configAsAny.gasReporter.currency = "USD";
   }
+
+  // We don't generate types for js projects
+  if (userConfig?.typechain?.dontOverrideCompile === undefined) {
+    config.typechain.dontOverrideCompile =
+      config.paths.configFile.endsWith(".js");
+  }
 });
