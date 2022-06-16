@@ -17,7 +17,7 @@ This guide will take you through the installation of our recommended setup, but 
 
 :::tip
 
-If you are using Visual Studio Code, try [our extension](/hardhat-vscode), which adds language support for Solidity and provides editor integration for Hardhat projects.
+[Hardhat for Visual Studio Code](/hardhat-vscode) is the official Hardhat extension that adds advanced support for Solidity to VSCode. If you use Visual Studio Code, give it a try!
 
 :::
 
