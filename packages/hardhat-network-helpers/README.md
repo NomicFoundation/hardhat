@@ -2,7 +2,7 @@
 
 # Hardhat Network Helpers
 
-The Hardhat Network Helpers are a set of utility functions to interact with the [Hardhat Network](https://hardhat.org/hardhat-network/docs). You can read their full documentation [here](https://hardhat.org/hardhat-network-helpers/docs).
+Hardhat Network Helpers is a library that provides a set of utility functions to interact with the [Hardhat Network](https://hardhat.org/hardhat-network/docs). You can read their full documentation [here](https://hardhat.org/hardhat-network-helpers/docs).
 
 ### Installation
 
