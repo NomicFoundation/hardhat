@@ -42,11 +42,11 @@ describe("Lock", function () {
 });
 ```
 
-First we'll import the things we are going to use: the [`expect`](https://www.chaijs.com/api/bdd/) function from `chai` to write our assertions, the [Hardhat Runtime Environment](../advanced/hardhat-runtime-environment.md), and the [network helpers](/hardhat-network-helpers) to interact with the Hardhat Network. After that we use the `describe` and `it` functions, which are global Mocha's functions used to describe and group your tests (you can read more about Mocha [here](https://mochajs.org/#getting-started)).
+First we import the things we are going to use: the [`expect`](https://www.chaijs.com/api/bdd/) function from `chai` to write our assertions, the [Hardhat Runtime Environment](../advanced/hardhat-runtime-environment.md) (`hre`), and the [network helpers](/hardhat-network-helpers) to interact with the Hardhat Network. After that we use the `describe` and `it` functions, which are global Mocha functions used to describe and group your tests. (You can read more about Mocha [here](https://mochajs.org/#getting-started).)
 
-The test itself is what’s inside the `it` function. First we set the values for the amount we want to lock (in [wei](https://ethereum.org/en/glossary/#wei)) and the unlock time. For the latter we use [`time.latest`](</hardhat-network-helpers/docs/reference#latest()>), a network helper that returns the timestamp of the last mined block. Then we deploy the contract itself: first we get a [`ContractFactory`](https://docs.ethers.io/v5/single-page/#/v5/api/contract/contract-factory/) for the `Lock` contract and then we deploy it, passing the unlock time as its constructor argument. We also pass an object with the transaction parameters. This is optional, but we'll use it to send some ETH by setting its `value` field.
+The test itself is what’s inside the callback argument to the `it` function. First we set the values for the amount we want to lock (in [wei](https://ethereum.org/en/glossary/#wei)) and the unlock time. For the latter we use [`time.latest`](</hardhat-network-helpers/docs/reference#latest()>), a network helper that returns the timestamp of the last mined block. Then we deploy the contract itself: first we get a [`ContractFactory`](https://docs.ethers.io/v5/single-page/#/v5/api/contract/contract-factory/) for the `Lock` contract and then we deploy it, passing the unlock time as its constructor argument. We also pass an object with the transaction parameters. This is optional, but we'll use it to send some ETH by setting its `value` field.
 
-Finally, we check that the value returned by the `unlockTime()` getter in the contract matches the value that we used when we deployed it. Since all the functions in a contract are async, we have to use the `await` keyword to get its value, otherwise we would be comparing a promise with a number and this would always fail.
+Finally, we check that the value returned by the `unlockTime()` [getter](https://docs.soliditylang.org/en/v0.8.13/contracts.html#getter-functions) in the contract matches the value that we used when we deployed it. Since all the functions on a contract are async, we have to use the `await` keyword to get its value; otherwise, we would be comparing a promise with a number and this would always fail.
 
 ### Testing a function that reverts
 
@@ -68,13 +68,13 @@ it("Should revert with the right error if called too soon", async function () {
 });
 ```
 
-In the previous test we used `.to.equal`, which is part of Chai and it’s used to compare two values, but here we are using [`.to.be.revertedWith`](/hardhat-chai-matchers/docs/reference#.revertedwith). This matcher asserts that a transaction reverts, and that the reason string of the revert is equal to a given string. The `.to.be.revertedWith` matcher is not part of Chai itself; instead, it’s added by the [Hardhat Chai Matchers](/hardhat-chai-matchers) plugin, which is included in the sample project we are using.
+In the previous test we used `.to.equal`, which is part of Chai and is used to compare two values. Here we are using [`.to.be.revertedWith`](/hardhat-chai-matchers/docs/reference#.revertedwith), which asserts that a transaction reverts, and that the reason string of the revert is equal to the given string. The `.to.be.revertedWith` matcher is not part of Chai itself; instead, it’s added by the [Hardhat Chai Matchers](/hardhat-chai-matchers) plugin, which is included in the sample project we are using.
 
-Notice that in the previous test we wrote `expect(await ...)` but now we are doing `await expect(...)`. In the first case we were comparing two values in a synchronous way; the inner await is just there to wait for the value to be retrieved. In the second case, the whole assertion is async, because it has to wait until the transaction is mined. This means that the `expect` call returns a promise that we have to wait.
+Notice that in the previous test we wrote `expect(await ...)` but now we are doing `await expect(...)`. In the first case we were comparing two values in a synchronous way; the inner await is just there to wait for the value to be retrieved. In the second case, the whole assertion is async because it has to wait until the transaction is mined. This means that the `expect` call returns a promise that we have to await.
 
 ### Manipulating the time of the network
 
-We are deploying our `Lock` contract with an unlock time of one year. If we want to write a test that checks what happens after the unlock time has passed, we can’t wait that amount of time. We could use a shorter amount, like 5 seconds, but that’s a less realistic value and it's still a long time to wait in a test.
+We are deploying our `Lock` contract with an unlock time of one year. If we want to write a test that checks what happens after the unlock time has passed, we can’t wait that amount of time. We could use a shorter unlock time, like 5 seconds, but that’s a less realistic value and it's still a long time to wait in a test.
 
 The solution is to simulate the passage of time. This can be done with the [`time.increaseTo`](</hardhat-network-helpers/docs/reference#increaseto(timestamp)>) network helper, which mines a new block with the given timestamp:
 
@@ -89,13 +89,13 @@ it("Should transfer the funds to the owner", async function () {
 });
 ```
 
-As we mentioned, calling `lock.widthdraw()` returns a Promise. If the transaction fails, the promise will be rejected. Using `await` will throw in that case, so the test will fail if the transaction reverts.
+As we mentioned, calling `lock.withdraw()` returns a Promise. If the transaction fails, the promise will be rejected. Using `await` will throw in that case, so the test will fail if the transaction reverts.
 
 ### Using a different address
 
-The second check done by the `withdraw` function is that the function was called by the owner of the contract. In these tests, all the deployments and function calls are done by default with the first [configured account](/hardhat-network/docs/reference.md#accounts). If we want to check that only the owner can call some function, we need to use a different account and verify that it fails.
+The second check done by the `withdraw` function is that the function was called by the owner of the contract. By default, deployments and function calls are done with the first [configured account](/hardhat-network/docs/reference.md#accounts). If we want to check that only the owner can call some function, we need to use a different account and verify that it fails.
 
-The `ethers.getSigners()` returns an array with all the configured accounts. We can then use the `.connect` method of the contract to call the function with a different account and check that the transaction reverts:
+The `ethers.getSigners()` returns an array with all the configured accounts. We can use the `.connect` method of the contract to call the function with a different account and check that the transaction reverts:
 
 ```tsx
 it("Should revert with the right error if called from another account", async function () {
@@ -119,7 +119,7 @@ Here again we are calling a function and asserting that it reverts with the corr
 
 So far we've deployed the `Lock` contract in each test. This means that at the beginning of each test we have to get the contract factory and then deploy the contract. This might be fine for a single contract but, if you have a more complicated setup, each test will have several lines at the begginning just to set up the desired state, and most of the time these lines will be the same.
 
-In Mocha, this duplication of code is handled with a `beforeEach` hook:
+In a typical Mocha test, this duplication of code is handled with a `beforeEach` hook:
 
 ```tsx
 let lock;
@@ -138,7 +138,7 @@ it("some test", async function () {
 });
 ```
 
-There are two problems with this approach:
+However, there are two problems with this approach:
 
 - If you have to deploy many contracts, your tests will be slower because each one has to send multiple transactions as part of its setup.
 - Sharing the variables like this between the `beforeEach` hook and your tests is ugly and error-prone.
@@ -191,7 +191,7 @@ npx hardhat coverage
 
 ### Using the gas reporter
 
-The Hardhat Toolbox includes the [`hardhat-gas-reporter`](https://github.com/cgewecke/hardhat-gas-reporter) plugin to get metrics of how much gas is used, based in the execution of your tests. The gas reporter is run when the `test` task is executed and the `REPORT_GAS` environment variable is set:
+The Hardhat Toolbox also includes the [`hardhat-gas-reporter`](https://github.com/cgewecke/hardhat-gas-reporter) plugin to get metrics of how much gas is used, based on the execution of your tests. The gas reporter is run when the `test` task is executed and the `REPORT_GAS` environment variable is set:
 
 ```
 REPORT_GAS=true npx hardhat test
