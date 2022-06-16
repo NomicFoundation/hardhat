@@ -245,7 +245,7 @@ await snapshot.restore();
 
 ### `loadFixture()`
 
-Useful for `beforeEach` hooks that setup the desired state of the network.
+Useful in tests for setting up the desired state of the network.
 
 Executes the given function and takes a snapshot of the blockchain. Upon subsequent calls to `loadFixture` with the same function, rather than executing the function again, the blockchain will be restored to that snapshot.
 
