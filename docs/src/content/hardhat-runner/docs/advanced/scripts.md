@@ -59,7 +59,7 @@ Lock with 1 ETH deployed to: 0x5FbDB2315678afecb367f032d93F642f64180aa3
 
 By accessing the [Hardhat Runtime Environment](../advanced/hardhat-runtime-environment.md) at the top, you are allowed to run the script in a standalone fashion.
 
-Hardhat always runs the compile task when it's invoked via `npx hardhat run`, but in a standalone fashion you may want to call compile manually to make sure everything is compiled. This is done by calling `hre.run("compile")`. Add the following line at the beginning of the `main` function and re-run the script with node:
+Hardhat always runs the compile task when it's invoked via `npx hardhat run`, but in a standalone fashion you may want to call compile manually to make sure everything is compiled. This can be done by calling `hre.run("compile")`. Add the following line at the beginning of the `main` function and re-run the script with node:
 
 ```js
 await hre.run("compile");
