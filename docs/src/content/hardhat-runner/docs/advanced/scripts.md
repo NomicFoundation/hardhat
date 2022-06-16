@@ -65,7 +65,7 @@ Lock with 1 ETH deployed to: 0x5FbDB2315678afecb367f032d93F642f64180aa3
 
 ### Hardhat arguments
 
-You can still pass arguments (e.g. `--network`) to Hardhat when running a standalone script. This is done by setting environment variables. These are:
+You can still pass arguments to Hardhat when running a standalone script. This is done by setting environment variables. These are:
 
 - `HARDHAT_NETWORK`: Sets the network to connect to.
 
@@ -74,3 +74,5 @@ You can still pass arguments (e.g. `--network`) to Hardhat when running a standa
 - `HARDHAT_VERBOSE`: Enables Hardhat verbose logging.
 
 - `HARDHAT_MAX_MEMORY`: Sets the maximum amount of memory that Hardhat can use.
+
+For example, instead of doing `npx hardhat --network localhost run script.js`, you should do `HARDHAT_NETWORK=localhost node script.js`.

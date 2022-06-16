@@ -80,6 +80,6 @@ Choosing between tasks and scripts is up to you. If you are in doubt which one y
 
 2. If the workflow you are automating requires some parameters, consider creating a Hardhat task.
 
-3. If you feel Hardhat's parameter handling is falling short of your needs, you should write a script. Just import the Hardhat runtime environment explicitly, [run it as a standalone Node.js script](../advanced/scripts#standalone-scripts:-using-hardhat-as-a-library), and use your own argument parsing logic.
+3. If you need to access the Hardhat Runtime Environment from another tool which has its own CLI, like [`jest`](https://jestjs.io/) or [`ndb`](https://www.npmjs.com/package/ndb), you should write a script. Make sure to import the Hardhat runtime environment explicitly, so it can be [run with that tool instead of Hardhat's CLI](../advanced/scripts#standalone-scripts:-using-hardhat-as-a-library).
 
-4. If you need to access the Hardhat Runtime Environment from another tool which has its own CLI, like [`jest`](https://jestjs.io/) or [`ndb`](https://www.npmjs.com/package/ndb), you should write a script, importing the Hardhat runtime environment explicitly, and [running it as a standalone Node.js script](../advanced/scripts#standalone-scripts:-using-hardhat-as-a-library).
+4. If you feel Hardhat's parameter handling is falling short of your needs, you should write a script. Just import the Hardhat runtime environment explicitly, use your own argument parsing logic (e.g. using [`yargs`](https://yargs.js.org/)), and [run it as a standalone Node.js script](../advanced/scripts#standalone-scripts:-using-hardhat-as-a-library).
