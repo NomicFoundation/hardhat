@@ -1,29 +1,35 @@
-\<Introduction, links to tutorial and getting started pages>
+![Teacher Hardhat](/hardhat-tutorial.svg)
 
-[Getting started](/hardhat-runner/docs/getting-started/index.md#overview)
+Hardhat consists of different projects that work together to create a complete Ethereum development environment.
 
-[Tutorial](/tutorial)
+If you want to quickly start using it you can follow [this guide.](/hardhat-runner/docs/getting-started/index.md#overview)
 
-# Hardhat Runner
+If you prefer a step-by-step tutorial, you can find it [here.](/tutorial)
 
-[Hardhat Runner](/hardhat-runner)
+## Browse by project
 
-# Hardhat Network
+:::tip
 
-[Hardhat Network](/hardhat-network)
+If you are in doubt about which project you are looking for, you can start [here.](/hardhat-runner)
 
-# Hardhat VSCode
+:::
 
-[Hardhat VSCode](/hardhat-vscode)
+### Hardhat Runner
 
-# Hardhat Chai Matchers
+Hardhat Runner is the main project you interact with when using Hardhat. It's what you run with `npx hardhat`. It consists of a flexible task runner that lets you automate your development workflow. [Learn more.](/hardhat-runner)
 
-[Hardhat Chai Matchers](/hardhat-chai-matchers)
+### Hardhat Network
 
-# Hardhat Network Helpers
+Hardhat comes built-in with Hardhat Network, a local Ethereum node designed for development. It allows you to deploy your contracts, run your tests and debug your code. [Learn more.](/hardhat-network)
 
-[Hardhat Network Helpers](/hardhat-network-helpers)
+### Hardhat for Visual Studio Code
 
-# Hardhat Ignition
+Hardhat for Visual Studio Code is a VS Code extension that adds language support for Solidity, and provides editor integration for Hardhat projects. [Learn more.](/hardhat-vscode)
 
-\<Description, coming soon>
+### Hardhat Chai Matchers
+
+Hardhat Chai Matchers is a Hardhat plugin that builds on top of [Chai](https://www.chaijs.com/), extending it with Ethereum-related assertion utilities. [Learn more.](/hardhat-chai-matchers)
+
+### Hardhat Network Helpers
+
+Hardhat Network Helpers is a library that provides a set of utility functions to interact with the Hardhat Network. [Learn more.](/hardhat-network-helpers)
