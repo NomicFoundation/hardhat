@@ -4,13 +4,13 @@ After [compiling your contracts](./compile-contracts.md), the next step is to wr
 
 This guide explains our recommended approach for testing contracts in Hardhat. It relies on [ethers](https://docs.ethers.io/v5/) to connect to [Hardhat Network](/hardhat-network) and on [Mocha](https://mochajs.org/) and [Chai](https://www.chaijs.com/) for the tests. It also uses our custom [Chai matchers](/hardhat-chai-matchers) and our [Hardhat Network Helpers](/hardhat-network-helpers) to make it easier to write clean test code. These packages are part of the Hardhat Toolbox plugin; if you followed the previous guides, you should already have them installed.
 
-While this is the way we recommend, Hardhat is flexible and you can customize the approach or take a completely different path with other tools.
+While this is our recommended test setup, Hardhat is flexible: you can customize the approach or take a completely different path with other tools.
 
 ### Initial setup
 
-In this guide we’ll write some tests for the sample project so, if you haven’t done it yet, go and [initialize it](./project-setup.md).
+In this guide we’ll write some tests for the sample project. If you haven’t done it yet, go and [initialize it](./project-setup.md).
 
-We also recommend you use [TypeScript](./typescript.md) to get better autocompletion and catch possible errors earlier. This guide will assume you are using TypeScript, but you can click the tabs of the snippets to switch their language.
+We recommend you use [TypeScript](./typescript.md) to get better autocompletion and catch possible errors earlier. This guide will assume you are using TypeScript, but you can click the tabs of the snippets to switch their language.
 
 The setup includes some example tests in the `test/Lock.ts` file, but ignore them for now. Instead, create a `test/my-tests.ts` file. During this guide we'll only run those, by running `npx hardhat test test/my-tests.ts`, instead of just `npx hardhat test`.
 
