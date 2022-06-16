@@ -24,11 +24,11 @@ Hardhat comes built-in with Hardhat Network, a local Ethereum node designed for 
 
 ### Hardhat for Visual Studio Code
 
-Hardhat for Visual Studio Code is a Visual Studio Code extension that adds language support for Solidity, and provides editor integration for Hardhat projects. [Learn more](/hardhat-vscode)
+Hardhat for Visual Studio Code is a VS Code extension that adds language support for Solidity, and provides editor integration for Hardhat projects. [Learn more](/hardhat-vscode)
 
 ### Hardhat Chai Matchers
 
-Hardhat Chai Matchers is a Hardhat plugin that builds on top of [Chai](https://www.chaijs.com/), adding it Ethereum-related assertion utilities. [Learn more](/hardhat-chai-matchers)
+Hardhat Chai Matchers is a Hardhat plugin that builds on top of [Chai](https://www.chaijs.com/), extending it with Ethereum-related assertion utilities. [Learn more](/hardhat-chai-matchers)
 
 ### Hardhat Network Helpers
 
