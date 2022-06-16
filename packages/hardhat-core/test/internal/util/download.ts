@@ -48,7 +48,9 @@ describe("Compiler List download with proxy", function () {
       process.env.HTTPS_PROXY = `http://127.0.0.1:${proxyPort}`;
     });
 
-    it("Should call download with the right params", async function () {
+    // skipping due to an undici bug
+    // see: https://linear.app/nomic-foundation/issue/HH-863/re-enable-proxy-download-tests-when-undici-is-updated
+    it.skip("Should call download with the right params", async function () {
       const compilersDir = this.tmpDir;
       const downloadPath = path.join(compilersDir, "downloadedCompilerProxy");
       const expectedUrl = `http://solc-bin.ethereum.org/wasm/list.json`;
@@ -72,7 +74,9 @@ describe("Compiler List download with proxy", function () {
       process.env.HTTP_PROXY = `http://127.0.0.1:${proxyPort}`;
     });
 
-    it("Should call download with the right params", async function () {
+    // skipping due to an undici bug
+    // see: https://linear.app/nomic-foundation/issue/HH-863/re-enable-proxy-download-tests-when-undici-is-updated
+    it.skip("Should call download with the right params", async function () {
       const compilersDir = this.tmpDir;
       const downloadPath = path.join(compilersDir, "downloadedCompilerProxy");
       const expectedUrl = `http://solc-bin.ethereum.org/wasm/list.json`;
