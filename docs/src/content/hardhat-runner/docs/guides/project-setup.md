@@ -175,3 +175,7 @@ module.exports = {
 ::::
 
 Plugins are **essential** to Hardhat projects, so make sure to check out all the available ones and also build your own!
+
+### Setting up your editor
+
+If you are using Visual Studio Code, try [our extension](/hardhat-vscode), which adds language support for Solidity and provides editor integration for Hardhat projects.

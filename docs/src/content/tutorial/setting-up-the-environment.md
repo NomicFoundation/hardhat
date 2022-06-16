@@ -4,6 +4,12 @@ prev: false
 
 # 2. Setting up the environment
 
+:::tip
+
+If you are using Visual Studio Code, try [our extension](/hardhat-vscode), which adds language support for Solidity and provides editor integration for Hardhat projects.
+
+:::
+
 Most Ethereum libraries and tools are written in JavaScript, and so is **Hardhat**. If you're not familiar with Node.js, it's a JavaScript runtime built on Chrome's V8 JavaScript engine. It's the most popular solution to run JavaScript outside of a web browser and **Hardhat** is built on top of it.
 
 ## Installing Node.js

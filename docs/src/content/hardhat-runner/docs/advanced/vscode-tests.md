@@ -1,5 +1,11 @@
 # Running tests in Visual Studio Code
 
+:::tip
+
+If you are using Visual Studio Code, try [our extension](/hardhat-vscode), which adds language support for Solidity and provides editor integration for Hardhat projects.
+
+:::
+
 You can run your tests from [Visual Studio Code](https://code.visualstudio.com) by using one of its Mocha integration extensions. We recommend using [Mocha Test Explorer](https://marketplace.visualstudio.com/items?itemName=hbenl.vscode-mocha-test-adapter).
 
 To use Mocha Test Explorer, you need to install it and follow these instructions.

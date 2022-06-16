@@ -15,6 +15,12 @@ This guide will take you through the installation of our recommended setup, but 
 
 ## Installation
 
+:::tip
+
+If you are using Visual Studio Code, try [our extension](/hardhat-vscode), which adds language support for Solidity and provides editor integration for Hardhat projects.
+
+:::
+
 Hardhat is used through a local installation in your project. This way your environment will be reproducible, and you will avoid future version conflicts.
 
 To install it, you need to create an npm project by going to an empty folder, running `npm init`, and following its instructions. Once your project is ready, you should run
