@@ -129,6 +129,7 @@ export const socialsItems = [
 export enum DirInfoConfigKeys {
   SECTION_TYPE = "section-type",
   SECTION_TITLE = "section-title",
+  SECTION_URL = "section-url",
   ORDER = "order",
 }
 

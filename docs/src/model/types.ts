@@ -44,6 +44,7 @@ export interface FolderInfo {
 export interface FolderType {
   [DirInfoConfigKeys.SECTION_TYPE]: SectionType;
   [DirInfoConfigKeys.SECTION_TITLE]: string;
+  [DirInfoConfigKeys.SECTION_URL]: string | undefined;
   [DirInfoConfigKeys.ORDER]: OrderType[];
   path: string;
 }
