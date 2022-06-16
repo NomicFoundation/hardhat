@@ -5,12 +5,6 @@ description: Hardhat Network Helpers is a library that provides a set of utility
 
 # Overview
 
-:::warning
-
-This package is in beta. While we don't expect major changes to its API, some details could change.
-
-:::
-
 [@nomicfoundation/hardhat-network-helpers](https://www.npmjs.com/package/@nomicfoundation/hardhat-network-helpers) provides convenience functions for working with [Hardhat Network](/hardhat-network).
 
 Hardhat Network exposes its custom functionality primarily through its JSON-RPC API. See the extensive set of methods available in [its reference documentation](/hardhat-network/docs/reference#hardhat-network-methods). However, for easy-to-read tests and short scripts, interfacing with the JSON-RPC API is too noisy, requiring a verbose syntax and extensive conversions of both input and output data.
@@ -24,7 +18,7 @@ This package provides convenience functions for quick and easy interaction with 
 :::tab{value="npm 7+"}
 
 ```
-npm install --save-dev @nomicfoundation/hardhat-network-helpers@beta
+npm install --save-dev @nomicfoundation/hardhat-network-helpers
 ```
 
 :::
@@ -32,7 +26,7 @@ npm install --save-dev @nomicfoundation/hardhat-network-helpers@beta
 :::tab{value="npm 6"}
 
 ```
-npm install --save-dev @nomicfoundation/hardhat-network-helpers@beta
+npm install --save-dev @nomicfoundation/hardhat-network-helpers
 ```
 
 :::
@@ -40,7 +34,7 @@ npm install --save-dev @nomicfoundation/hardhat-network-helpers@beta
 :::tab{value=yarn}
 
 ```
-yarn add --dev @nomicfoundation/hardhat-network-helpers@beta
+yarn add --dev @nomicfoundation/hardhat-network-helpers
 ```
 
 :::
