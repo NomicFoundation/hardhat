@@ -9,7 +9,6 @@ import {
   readMDFileFromPathOrIndex,
 } from "../../model/markdown";
 import { DOCS_LANDING_PATH } from "../../config";
-import Image from "next/image";
 
 interface IDocsPage {
   mdxSource: MDXRemoteSerializeResult;
