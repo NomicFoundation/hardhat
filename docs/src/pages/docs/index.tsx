@@ -17,8 +17,7 @@ const Docs: NextPage<IDocsPage> = ({ mdxSource }) => {
     <PluginsLayout
       seo={{
         title: "Hardhat Documentation",
-        description:
-          "Hub for all the documentation related to Hardhat products",
+        description: "Documentation of all the Hardhat projects",
       }}
       sidebarLayout={[]}
     >

@@ -1,3 +1,8 @@
+---
+title: Hardhat Network
+description: Hardhat Network is a local Ethereum node designed for development. It allows you to deploy your contracts, run your tests and debug your code.
+---
+
 # Hardhat Network <!-- An Explanation: theoretical, not practical; for studying, not for working-->
 
 <!-- TODO: make all RPC method mentions be links to the reference on those methods. -->

@@ -1,3 +1,8 @@
+---
+title: Hardhat Chai Matchers
+description: Hardhat Chai Matchers is a Hardhat plugin that builds on top of Chai, extending it with Ethereum-related assertion utilities.
+---
+
 # Overview
 
 :::warning
