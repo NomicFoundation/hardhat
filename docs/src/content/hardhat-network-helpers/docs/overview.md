@@ -1,10 +1,9 @@
+---
+title: Hardhat Network Helpers
+description: Hardhat Network Helpers is a library that provides a set of utility functions to interact with the Hardhat Network.
+---
+
 # Overview
-
-:::warning
-
-This package is in beta. While we don't expect major changes to its API, some details could change.
-
-:::
 
 [@nomicfoundation/hardhat-network-helpers](https://www.npmjs.com/package/@nomicfoundation/hardhat-network-helpers) provides convenience functions for working with [Hardhat Network](/hardhat-network).
 
@@ -19,7 +18,7 @@ This package provides convenience functions for quick and easy interaction with 
 :::tab{value="npm 7+"}
 
 ```
-npm install --save-dev @nomicfoundation/hardhat-network-helpers@beta
+npm install --save-dev @nomicfoundation/hardhat-network-helpers
 ```
 
 :::
@@ -27,7 +26,7 @@ npm install --save-dev @nomicfoundation/hardhat-network-helpers@beta
 :::tab{value="npm 6"}
 
 ```
-npm install --save-dev @nomicfoundation/hardhat-network-helpers@beta
+npm install --save-dev @nomicfoundation/hardhat-network-helpers
 ```
 
 :::
@@ -35,7 +34,7 @@ npm install --save-dev @nomicfoundation/hardhat-network-helpers@beta
 :::tab{value=yarn}
 
 ```
-yarn add --dev @nomicfoundation/hardhat-network-helpers@beta
+yarn add --dev @nomicfoundation/hardhat-network-helpers
 ```
 
 :::
