@@ -9,6 +9,7 @@ import {
 import { useEnvironment } from "./useEnvironment";
 
 describe("integration tests", function () {
+  this.timeout(5000);
   useEnvironment("minimal");
 
   it("should deploy a contract", async function () {
