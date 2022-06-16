@@ -14,7 +14,7 @@ npm install --save-dev @nomicfoundation/hardhat-network-helpers
 
 ### Usage
 
-Import it and use it in any of your files. For example, this script mines some blocks and then prints the block number.
+Import it and use it in any of your files. For example, this [Hardhat script](https://hardhat.org/hardhat-runner/docs/advanced/scripts) mines some blocks and then prints the block number.
 
 ```js
 const helpers = require("@nomicfoundation/hardhat-network-helpers");
