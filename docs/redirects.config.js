@@ -197,7 +197,7 @@ const customRedirects = [
     permanent: false
   },
   {
-    source: "/guides/:slug(waffle-testing|truffle-testing|parallel-tests|truffle-migration|ganache-tests)",
+    source: "/guides/:slug(waffle-testing|truffle-testing|truffle-migration|ganache-tests)",
     destination: "/other-guides/:slug",
     permanent: false
   },
@@ -229,6 +229,12 @@ const customRedirects = [
   {
     source: "/network-helpers/:slug",
     destination: "/hardhat-network-helpers/docs/:slug",
+    permanent: false
+  },
+
+  {
+    source: "/guides/parallel-tests",
+    destination: "/hardhat-runner/docs/guides/test-contracts#running-tests-in-parallel",
     permanent: false
   },
 
