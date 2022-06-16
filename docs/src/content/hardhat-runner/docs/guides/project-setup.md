@@ -175,3 +175,7 @@ module.exports = {
 ::::
 
 Plugins are **essential** to Hardhat projects, so make sure to check out all the available ones and also build your own!
+
+### Setting up your editor
+
+[Hardhat for Visual Studio Code](/hardhat-vscode) is the official Hardhat extension that adds advanced support for Solidity to VSCode. If you use Visual Studio Code, give it a try!

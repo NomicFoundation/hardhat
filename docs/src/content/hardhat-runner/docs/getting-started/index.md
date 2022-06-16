@@ -15,9 +15,17 @@ This guide will take you through the installation of our recommended setup, but 
 
 ## Installation
 
+:::tip
+
+[Hardhat for Visual Studio Code](/hardhat-vscode) is the official Hardhat extension that adds advanced support for Solidity to VSCode. If you use Visual Studio Code, give it a try!
+
+:::
+
 Hardhat is used through a local installation in your project. This way your environment will be reproducible, and you will avoid future version conflicts.
 
-To install it, you need to create an npm project by going to an empty folder, running `npm init`, and following its instructions. Once your project is ready, you should run
+To install it, you need to create an npm project by going to an empty folder, running `npm init`, and following its instructions. You can use another package manager, like yarn, but we recommend you use npm 7 or later, as it makes installing Hardhat plugins simpler.
+
+Once your project is ready, you should run
 
 ::::tabsgroup{options="npm 7+,npm 6,yarn"}
 
