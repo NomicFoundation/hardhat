@@ -2,8 +2,8 @@ section-type: plugins
 section-title: Plugins
 order:
   - "@nomicfoundation/hardhat-toolbox"
-  - "@nomiclabs/hardhat-ethers"
   - "@nomicfoundation/hardhat-chai-matchers"
+  - "@nomiclabs/hardhat-ethers"
   - "@nomiclabs/hardhat-etherscan"
   - "@nomiclabs/hardhat-vyper"
   - "@nomiclabs/hardhat-solhint"

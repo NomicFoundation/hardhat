@@ -86,18 +86,6 @@ export const sortPluginsByDownloads = (downloadsD: {
   [key: string]: number;
 }) => {
   try {
-    plugins.officialPlugins.sort(
-      (p1: IPlugin, p2: IPlugin) => downloadsD[p2.name] - downloadsD[p1.name]
-    );
-
-    // Always show the toolbox first
-    const toolboxIndex = plugins.officialPlugins.findIndex(
-      (p) => p.name === "@nomicfoundation/hardhat-toolbox"
-    );
-    const toolbox = plugins.officialPlugins[toolboxIndex];
-    plugins.officialPlugins.splice(toolboxIndex, 1);
-    plugins.officialPlugins.unshift(toolbox);
-
     plugins.communityPlugins.sort(
       (p1: IPlugin, p2: IPlugin) => downloadsD[p2.name] - downloadsD[p1.name]
     );
@@ -129,11 +117,9 @@ const getLastMonthDownloads = async (npmPackage: string): Promise<number> => {
 
 export const generatePluginsDownloads = async (pluginsD: typeof plugins) => {
   const downloads: Array<{ [plugin: string]: number }> = await Promise.all(
-    [...pluginsD.officialPlugins, ...pluginsD.communityPlugins].map(
-      async (p: any) => ({
-        [p.name]: await getLastMonthDownloads(p.npmPackage ?? p.name),
-      })
-    )
+    pluginsD.communityPlugins.map(async (p: any) => ({
+      [p.name]: await getLastMonthDownloads(p.npmPackage ?? p.name),
+    }))
   );
 
   downloads.sort((p1, p2) => Object.values(p2)[0] - Object.values(p1)[0]);
