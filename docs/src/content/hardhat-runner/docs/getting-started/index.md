@@ -23,7 +23,9 @@ If you are using Visual Studio Code, try [our extension](/hardhat-vscode), which
 
 Hardhat is used through a local installation in your project. This way your environment will be reproducible, and you will avoid future version conflicts.
 
-To install it, you need to create an npm project by going to an empty folder, running `npm init`, and following its instructions. Once your project is ready, you should run
+To install it, you need to create an npm project by going to an empty folder, running `npm init`, and following its instructions. You can use another package manager, like yarn, but we recommend you use npm 7 or later, as it makes installing Hardhat plugins simpler.
+
+Once your project is ready, you should run
 
 ::::tabsgroup{options="npm 7+,npm 6,yarn"}
 
