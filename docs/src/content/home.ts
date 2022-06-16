@@ -179,7 +179,7 @@ const toolsBlockContent = {
       mottos: ["compile", "test", "extend"],
       description:
         "Task runner that ties compiling, testing and everything else together through a simple and flexible architecture that is extended through a rich plugin ecosystem.",
-      link: "/",
+      link: "/hardhat-runner",
     },
     // TODO: Re-enable Ignition section
     // {
@@ -189,7 +189,7 @@ const toolsBlockContent = {
     //   mottos: ["deploy", "distribute"],
     //   description:
     //     "Deployment system for structuring, automating and distributing smart contract deployment setups.",
-    //   link: "/",
+    //   link: "/hardhat-ignition",
     // },
     {
       icon: NetworkIcon,
@@ -197,8 +197,8 @@ const toolsBlockContent = {
       value: Tools.NETWORK,
       mottos: ["debug", "deploy", "simulate"],
       description:
-        "Development network to locally deploy smart contracts. Packed with development features like Solidity console.log, stack traces, different mining modes and more.",
-      link: "/",
+        "Development network to locally run your smart contracts. Packed with development features like Solidity console.log, stack traces, different mining modes and more.",
+      link: "/hardhat-network",
     },
     {
       icon: SolidityIcon,
@@ -207,7 +207,7 @@ const toolsBlockContent = {
       mottos: ["code", "navigation", "refactor"],
       description:
         "Visual Studio Code extension for Solidity editing assistance. Code navigation, refactoring and type-smart suggestions.",
-      link: "/",
+      link: "/hardhat-vscode",
     },
   ],
 };
