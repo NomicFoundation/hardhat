@@ -84,7 +84,7 @@ Task creation code can go in `hardhat.config.js`, or whatever your configuration
 
 **The configuration file is always executed on startup before anything else happens.** It's good to keep this in mind. We will load the Hardhat toolbox and add our task creation code to it.
 
-For this tutorial, we're going to create a task to get an account’s balance from the terminal. You can do this with the Hardhat’s config DSL, which is available in the global scope of `hardhat.config.js`:
+For this tutorial, we're going to create a task to get an account’s balance from the terminal. You can do this with the Hardhat’s config API, which is available in the global scope of `hardhat.config.js`:
 
 ```js
 require("@nomicfoundation/hardhat-toolbox");
@@ -169,7 +169,7 @@ And there you have it, your first fully functional Hardhat task, allowing you to
 
 ## Advanced usage
 
-You can create your own tasks in your `hardhat.config.js` file. The Config DSL will be available in the global environment, with functions for defining tasks. You can also import the DSL with `require("hardhat/config")` if you prefer to keep things explicit, and take advantage of your editor's autocomplete.
+You can create your own tasks in your `hardhat.config.js` file. The Config API will be available in the global environment, with functions for defining tasks. You can also import the API with `require("hardhat/config")` if you prefer to keep things explicit, and take advantage of your editor's autocomplete.
 
 Creating a task is done by calling the `task` function. It will return a `TaskDefinition` object, which can be used to define the task's parameters.
 
@@ -234,7 +234,7 @@ Manually creating a `Promise` can look challenging, but you don't have to do tha
 
 ### Defining parameters
 
-Hardhat tasks can receive named parameters with a value (eg `--parameter-name parameterValue`), flags with no value (eg `--flag-name`), positional parameters, or variadic parameters. Variadic parameters act like JavaScript's rest parameters. The Config DSL `task` function returns an object with methods to define all of them. Once defined, Hardhat takes control of parsing parameters, validating them, and printing help messages.
+Hardhat tasks can receive named parameters with a value (eg `--parameter-name parameterValue`), flags with no value (eg `--flag-name`), positional parameters, or variadic parameters. Variadic parameters act like JavaScript's rest parameters. The Config API `task` function returns an object with methods to define all of them. Once defined, Hardhat takes control of parsing parameters, validating them, and printing help messages.
 
 Adding an optional parameter to the `hello` task can look like this:
 
@@ -259,7 +259,7 @@ Failing to follow these restrictions will result in an exception being thrown wh
 
 Hardhat takes care of validating and parsing the values provided for each parameter. You can declare the type of a parameter, and Hardhat will get the CLI strings and convert them into your desired type. If this conversion fails, it will print an error message explaining why.
 
-A number of types are available in the Config DSL through a `types` object. This object is injected into the global scope before processing your `hardhat.config.js`, but you can also import it explicitly with `const { types } = require("hardhat/config")` and take advantage of your editor's autocomplete.
+A number of types are available in the Config API through a `types` object. This object is injected into the global scope before processing your `hardhat.config.js`, but you can also import it explicitly with `const { types } = require("hardhat/config")` and take advantage of your editor's autocomplete.
 
 An example of a task defining a type for one of its parameters is
 
@@ -306,7 +306,7 @@ Creating tasks with lots of logic makes it hard to extend or customize them. Mak
 
 For example, the `compile` task is implemented as a pipeline of several tasks. It just calls subtasks like `compile:get-source-paths`, `compile:get-dependency-graph`, and `compile:build-artifacts`. We recommend prefixing intermediate tasks with their main task and a colon.
 
-To avoid help messages getting cluttered with lots of intermediate tasks, you can define those using the `subtask` config DSL function. The `subtask` function works almost exactly like `task`. The only difference is that tasks defined with it won't be included in help messages.
+To avoid help messages getting cluttered with lots of intermediate tasks, you can define those using the `subtask` config API function. The `subtask` function works almost exactly like `task`. The only difference is that tasks defined with it won't be included in help messages.
 
 To run a subtask, or any task whatsoever, you can use the `run` function. It takes two arguments: the name of the task to be run, and an object with its arguments.
 
@@ -325,5 +325,3 @@ subtask("print", "Prints a message")
     console.log(taskArgs.message);
   });
 ```
-
-For any questions or feedback you may have, you can find us in the [Hardhat Discord server](/discord).

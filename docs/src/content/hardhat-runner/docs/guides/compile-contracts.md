@@ -69,6 +69,4 @@ Read [this guide](../advanced/multiple-solidity-versions.md) if you need to use 
 
 :::
 
-For any help or feedback you may have, you can find us in the [Hardhat Support Discord server](/discord).
-
 [hre]: ../advanced/hardhat-runtime-environment.md

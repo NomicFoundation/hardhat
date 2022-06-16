@@ -66,5 +66,3 @@ should become:
 ```js
 console.log(await web3.eth.getAccounts());
 ```
-
-For any help or feedback you may have, you can find us in the [Hardhat Support Discord server](/discord).

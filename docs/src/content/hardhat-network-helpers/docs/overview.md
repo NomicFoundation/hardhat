@@ -14,20 +14,28 @@ This package provides convenience functions for quick and easy interaction with 
 
 ## Installation
 
-::::tabsgroup{options=npm,yarn}
+::::tabsgroup{options="npm 7+,npm 6,yarn"}
 
-:::tab{value=npm}
+:::tab{value="npm 7+"}
 
-```bash
-npm install @nomicfoundation/hardhat-network-helpers@beta
+```
+npm install --save-dev @nomicfoundation/hardhat-network-helpers@beta
+```
+
+:::
+
+:::tab{value="npm 6"}
+
+```
+npm install --save-dev @nomicfoundation/hardhat-network-helpers@beta
 ```
 
 :::
 
 :::tab{value=yarn}
 
-```bash
-yarn add @nomicfoundation/hardhat-network-helpers@beta
+```
+yarn add --dev @nomicfoundation/hardhat-network-helpers@beta
 ```
 
 :::
