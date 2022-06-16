@@ -10,7 +10,7 @@ While this is our recommended test setup, Hardhat is flexible: you can customize
 
 In this guide we’ll write some tests for the sample project. If you haven’t done it yet, go and [initialize it](./project-setup.md).
 
-We recommend you [use TypeScript](./typescript.md) to get better autocompletion and catch possible errors earlier. This guide will assume you are using TypeScript, but you can click the tabs of the snippets to switch their language.
+We recommend you [use TypeScript](./typescript.md) to get better autocompletion and catch possible errors earlier. This guide will assume you are using TypeScript, but you can click the tabs of the code examples to switch their language.
 
 The setup includes some example tests in the `test/Lock.ts` file, but ignore them for now. Instead, create a `test/my-tests.ts` file. During this guide we'll only run those, by running `npx hardhat test test/my-tests.ts`, instead of just `npx hardhat test`.
 
@@ -20,8 +20,12 @@ In the following sections we'll write some tests for the `Lock` contract that co
 
 For our first test we’ll deploy the `Lock` contract and assert that the unlock time returned by the `unlockTime()` getter is the same one that we passed in the constructor:
 
+::::tabsgroup{options="TypeScript,JavaScript"}
+
+:::tab{value="TypeScript"}
+
 ```tsx
-import { expect } = from "chai";
+import { expect } from "chai";
 import hre from "hardhat";
 import helpers from "hardhat-network-helpers";
 
@@ -41,6 +45,36 @@ describe("Lock", function () {
   });
 });
 ```
+
+:::
+
+:::tab{value="JavaScript"}
+
+```js
+const { expect } = require("chai");
+const hre = require("hardhat");
+const helpers = require("hardhat-network-helpers");
+
+describe("Lock", function () {
+  it("Should set the right unlockTime", async function () {
+    const lockedAmount = 1_000_000_000;
+    const ONE_YEAR_IN_SECS = 365 * 24 * 60 * 60;
+    const unlockTime = (await helpers.time.latest()) + ONE_YEAR_IN_SECS;
+
+    // deploy a lock contract where funds can be withdrawn
+    // one year in the future
+    const Lock = await ethers.getContractFactory("Lock");
+    const lock = await Lock.deploy(unlockTime, { value: lockedAmount });
+
+    // assert that the value is correct
+    expect(await lock.unlockTime()).to.equal(unlockTime);
+  });
+});
+```
+
+:::
+
+::::
 
 First we import the things we are going to use: the [`expect`](https://www.chaijs.com/api/bdd/) function from `chai` to write our assertions, the [Hardhat Runtime Environment](../advanced/hardhat-runtime-environment.md) (`hre`), and the [network helpers](/hardhat-network-helpers) to interact with the Hardhat Network. After that we use the `describe` and `it` functions, which are global Mocha functions used to describe and group your tests. (You can read more about Mocha [here](https://mochajs.org/#getting-started).)
 
@@ -121,6 +155,36 @@ So far we've deployed the `Lock` contract in each test. This means that at the b
 
 In a typical Mocha test, this duplication of code is handled with a `beforeEach` hook:
 
+::::tabsgroup{options="TypeScript,JavaScript"}
+
+:::tab{value="TypeScript"}
+
+```tsx
+import { Contract } from "ethers";
+
+describe("Lock", function () {
+  let lock: Contract;
+  let unlockTime: number;
+  let lockedAmount = 1_000_000_000;
+
+  beforeEach(async function () {
+    const ONE_YEAR_IN_SECS = 365 * 24 * 60 * 60;
+    unlockTime = (await helpers.time.latest()) + ONE_YEAR_IN_SECS;
+
+    const Lock = await ethers.getContractFactory("Lock");
+    lock = await Lock.deploy(unlockTime, { value: lockedAmount });
+  });
+
+  it("some test", async function () {
+    // use the deployed contract
+  });
+});
+```
+
+:::
+
+:::tab{value="JavaScript"}
+
 ```tsx
 describe("Lock", function () {
   let lock;
@@ -140,6 +204,10 @@ describe("Lock", function () {
   });
 });
 ```
+
+:::
+
+::::
 
 However, there are two problems with this approach:
 
