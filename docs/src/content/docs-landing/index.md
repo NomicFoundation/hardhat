@@ -32,4 +32,4 @@ Hardhat Chai Matchers is a Hardhat plugin that builds on top of [Chai](https://w
 
 ### Hardhat Network Helpers
 
-Hardhat Network Helpers is a Node.js library that makes interacting with Hardhat Network simpler. [Learn more.](/hardhat-network-helpers)
+Hardhat Network Helpers is a library that provides a set of utility functions to interact with the Hardhat Network. [Learn more.](/hardhat-network-helpers)
