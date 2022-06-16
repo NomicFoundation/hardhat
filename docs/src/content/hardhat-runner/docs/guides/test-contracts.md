@@ -10,7 +10,7 @@ While this is our recommended test setup, Hardhat is flexible: you can customize
 
 In this guide we’ll write some tests for the sample project. If you haven’t done it yet, go and [initialize it](./project-setup.md).
 
-We recommend you use [TypeScript](./typescript.md) to get better autocompletion and catch possible errors earlier. This guide will assume you are using TypeScript, but you can click the tabs of the snippets to switch their language.
+We recommend you [use TypeScript](./typescript.md) to get better autocompletion and catch possible errors earlier. This guide will assume you are using TypeScript, but you can click the tabs of the snippets to switch their language.
 
 The setup includes some example tests in the `test/Lock.ts` file, but ignore them for now. Instead, create a `test/my-tests.ts` file. During this guide we'll only run those, by running `npx hardhat test test/my-tests.ts`, instead of just `npx hardhat test`.
 
@@ -122,19 +122,22 @@ So far we've deployed the `Lock` contract in each test. This means that at the b
 In a typical Mocha test, this duplication of code is handled with a `beforeEach` hook:
 
 ```tsx
-let lock;
-let unlockTime;
-let lockedAmount = 1_000_000_000;
-beforeEach(async function () {
-  const ONE_YEAR_IN_SECS = 365 * 24 * 60 * 60;
-  unlockTime = (await helpers.time.latest()) + ONE_YEAR_IN_SECS;
+describe("Lock", function () {
+  let lock;
+  let unlockTime;
+  let lockedAmount = 1_000_000_000;
 
-  const Lock = await ethers.getContractFactory("Lock");
-  lock = await Lock.deploy(unlockTime, { value: lockedAmount });
-});
+  beforeEach(async function () {
+    const ONE_YEAR_IN_SECS = 365 * 24 * 60 * 60;
+    unlockTime = (await helpers.time.latest()) + ONE_YEAR_IN_SECS;
 
-it("some test", async function () {
-  // use the deployed contract
+    const Lock = await ethers.getContractFactory("Lock");
+    lock = await Lock.deploy(unlockTime, { value: lockedAmount });
+  });
+
+  it("some test", async function () {
+    // use the deployed contract
+  });
 });
 ```
 
