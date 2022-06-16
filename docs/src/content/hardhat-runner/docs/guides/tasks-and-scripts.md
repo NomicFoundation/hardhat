@@ -156,3 +156,7 @@ As before, we can run the script with the `run` task:
 ```
 npx hardhat run accounts.ts
 ```
+
+### Learn more
+
+Check the [Creating a task](../advanced/create-task.md) guide to learn more about tasks and the [Writing scripts](../advanced/scripts.md) guide to learn more about scripts.
