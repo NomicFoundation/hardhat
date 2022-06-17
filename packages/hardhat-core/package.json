@@ -23,7 +23,7 @@
     "hardhat": "internal/cli/cli.js"
   },
   "engines": {
-    "node": "^12.0.0 || ^14.0.0 || ^16.0.0"
+    "node": "^14.0.0 || ^16.0.0 || ^18.0.0"
   },
   "scripts": {
     "lint": "yarn prettier --check && yarn eslint",
@@ -84,7 +84,7 @@
     "eslint-plugin-import": "2.24.1",
     "eslint-plugin-prettier": "3.4.0",
     "ethers": "^5.0.0",
-    "mocha": "^9.2.0",
+    "mocha": "^10.0.0",
     "prettier": "2.4.1",
     "proxy": "^1.0.2",
     "rimraf": "^3.0.2",
@@ -115,7 +115,7 @@
     "debug": "^4.1.1",
     "enquirer": "^2.3.0",
     "env-paths": "^2.2.0",
-    "ethereum-cryptography": "^0.1.2",
+    "ethereum-cryptography": "^1.0.3",
     "ethereumjs-abi": "^0.6.8",
     "ethereumjs-util": "^7.1.4",
     "find-up": "^2.1.0",
@@ -127,7 +127,7 @@
     "lodash": "^4.17.11",
     "merkle-patricia-tree": "^4.2.4",
     "mnemonist": "^0.38.0",
-    "mocha": "^9.2.0",
+    "mocha": "^10.0.0",
     "p-map": "^4.0.0",
     "qs": "^6.7.0",
     "raw-body": "^2.4.1",

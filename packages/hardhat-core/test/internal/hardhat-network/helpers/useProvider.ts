@@ -106,7 +106,7 @@ export function useProvider({
     if (useJsonRpc) {
       this.server = new JsonRpcServer({
         port: 0,
-        hostname: "localhost",
+        hostname: "127.0.0.1",
         provider: this.provider,
       });
       this.serverInfo = await this.server.listen();

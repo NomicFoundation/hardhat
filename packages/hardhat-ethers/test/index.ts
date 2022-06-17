@@ -1247,7 +1247,7 @@ describe("Ethers plugin", function () {
       const deployedGreeter: ethers.Contract = await Greeter.deploy();
 
       const readonlyContract = deployedGreeter.connect(
-        new ethers.providers.WebSocketProvider("ws://localhost:8545")
+        new ethers.providers.WebSocketProvider("ws://127.0.0.1:8545")
       );
       let emitted = false;
       readonlyContract.on("GreetingUpdated", () => {
