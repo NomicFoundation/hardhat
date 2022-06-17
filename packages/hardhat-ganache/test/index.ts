@@ -4,6 +4,8 @@ import { GanacheService } from "../src/ganache-service";
 
 import { useEnvironment } from "./helpers";
 
+// Note: Skipping as this plugin hasn't been updated to the latest Ganache version,
+//   so it doesn't work well with Node 18
 describe.skip("Ganache plugin with empty configs", function () {
   useEnvironment("hardhat-project", "ganache");
 
