@@ -66,6 +66,14 @@ export async function getSigner(
   return signerWithAddress;
 }
 
+export async function getImpersonatedSigner(
+  hre: HardhatRuntimeEnvironment,
+  address: string
+): Promise<SignerWithAddress> {
+  await hre.ethers.provider.send("hardhat_impersonateAccount", [address]);
+  return getSigner(hre, address);
+}
+
 export function getContractFactory(
   hre: HardhatRuntimeEnvironment,
   name: string,

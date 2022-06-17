@@ -37,7 +37,7 @@ describe("pweb3", () => {
   let pweb3: any;
 
   beforeEach("Initialize web3 and pweb3", () => {
-    const provider = new Web3.providers.HttpProvider("http://localhost:8545");
+    const provider = new Web3.providers.HttpProvider("http://127.0.0.1:8545");
     web3 = new Web3(provider);
     pweb3 = promisifyWeb3(web3);
   });

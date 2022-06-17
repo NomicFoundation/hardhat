@@ -61,9 +61,9 @@ npm install
 npm run start
 ```
 
-To start the react web app. Open [http://localhost:3000/](http://localhost:3000/) in your browser and you should see this: ![](/front-5.png)
+To start the react web app. Open [http://127.0.0.1:3000/](http://127.0.0.1:3000/) in your browser and you should see this: ![](/front-5.png)
 
-Set your network in MetaMask to `localhost:8545`. You might also need to configure MetaMask to work well with Hardhat. To do that, go to `Settings -> Networks -> Localhost 8545` and change the Chain ID input to 31337.
+Set your network in MetaMask to `127.0.0.1:8545`. You might also need to configure MetaMask to work well with Hardhat. To do that, go to `Settings -> Networks -> localhost 8545` and change the Chain ID input to 31337.
 
 Now click the button in the web app. You should then see this:
 
