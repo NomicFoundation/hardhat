@@ -885,6 +885,24 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
+"@nomicfoundation/hardhat-chai-matchers@>=1.0.0-beta.3":
+  version "1.0.0-beta.3"
+  resolved "https://registry.yarnpkg.com/@nomicfoundation/hardhat-chai-matchers/-/hardhat-chai-matchers-1.0.0-beta.3.tgz#ada229d60c9b65405696e987c7c4e6bf2e28cb73"
+  integrity sha512-w1GcX3JaR664wtgIOrBtlRW+EulECrh/81c4ziicUvKlEKRaV6T2NGKiDGb6xcZltSbFOZYnchhU2DsRqJoGUw==
+  dependencies:
+    "@ethersproject/abi" "^5.1.2"
+    "@types/chai-as-promised" "^7.1.3"
+    chai-as-promised "^7.1.1"
+    chalk "^2.4.2"
+    deep-eql "^4.0.1"
+
+"@nomicfoundation/hardhat-network-helpers@>=1.0.0-beta.4":
+  version "1.0.0-beta.4"
+  resolved "https://registry.yarnpkg.com/@nomicfoundation/hardhat-network-helpers/-/hardhat-network-helpers-1.0.0-beta.4.tgz#d94319f45985927d8c951a3213c63d66ebc6ea9a"
+  integrity sha512-K2SuMitqgPya3abrv1d/ST3pYBJIm0mSb49mKd7mpEwDLG3rlWwrErTnaDPBTiIazUEZDApglOrWLeKxAgzsyQ==
+  dependencies:
+    ethereumjs-util "^7.1.4"
+
 "@nomiclabs/truffle-contract@^4.2.23":
   version "4.5.10"
   resolved "https://registry.yarnpkg.com/@nomiclabs/truffle-contract/-/truffle-contract-4.5.10.tgz#52adcca1068647e1c2b44bf0e6a89fc4ad7f9213"
