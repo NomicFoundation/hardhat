@@ -1,6 +1,10 @@
 # 5. Testing contracts
 
-Writing automated tests when building smart contracts is of crucial importance, as your user's money is what's at stake. For this we're going to use **Hardhat Network**, a local Ethereum network designed for development that is built-in and the default network in **Hardhat**. You don't need to setup anything to use it. In our tests we're going to use ethers.js to interact with the Ethereum contract we built in the previous section, and [Mocha](https://mochajs.org/) as our test runner.
+Writing automated tests when building smart contracts is of crucial importance, as your user's money is what's at stake. 
+
+To test our contract, we are going to use **Hardhat Network**, a local Ethereum network designed for development that is built-in and the default network in **Hardhat**. You don't need to setup anything to use it. 
+
+In our tests we're going to use ethers.js to interact with the Ethereum contract we built in the previous section, and [Mocha](https://mochajs.org/) as our test runner.
 
 ## Writing tests
 
@@ -75,7 +79,7 @@ const ownerBalance = await hardhatToken.balanceOf(owner.address);
 
 Once the contract is deployed, we can call our contract methods on `hardhatToken` and use them to get the balance of the owner account by calling `balanceOf()`.
 
-Remember that the owner of the token who gets the entire supply is the account that makes the deployment, and when using the `hardhat-ethers` plugin `ContractFactory` and `Contract` instances are connected to the first signer by default. This means that the account in the `owner` variable executed the deployment, and `balanceOf()` should return the entire supply amount.
+Remember that the account that deploys the token gets its entire supply. By default, `ContractFactory` and `Contract` instances are connected to the first signer. This means that the account in the `owner` variable executed the deployment, and `balanceOf()` should return the entire supply amount.
 
 ```js
 expect(await hardhatToken.totalSupply()).to.equal(ownerBalance);
@@ -83,13 +87,13 @@ expect(await hardhatToken.totalSupply()).to.equal(ownerBalance);
 
 Here we're again using our `Contract` instance to call a smart contract function in our Solidity code. `totalSupply()` returns the token's supply amount and we're checking that it's equal to `ownerBalance`, as it should.
 
-To do this we're using [Chai](https://www.chaijs.com/) which is an assertions library. These asserting functions are called "matchers", and the ones we're using here actually come from [Waffle](https://getwaffle.io/). This is why we're using the `hardhat-waffle` plugin, which makes it easier to assert values from Ethereum. Check out [this section](https://ethereum-waffle.readthedocs.io/en/latest/matchers.html) in Waffle's documentation for the entire list of Ethereum-specific matchers.
+To do this we're using [Chai](https://www.chaijs.com/) which is a popular JavaScript assertion library. These asserting functions are called "matchers", and the ones we're using here come from our [`@nomicfoundation/hardhat-chai-matchers`](../hardhat-runner/plugins/nomicfoundation-hardhat-chai-matchers) plugin, which extends Chai with many matchers useful to test smart contracts.
 
 ### Using a different account
 
 If you need to send a transaction from an account (or `Signer` in ethers.js speak) other than the default one to test your code, you can use the `connect()` method in your ethers.js `Contract` to connect it to a different account. Like this:
 
-```js{18}
+```js{16}
 const { expect } = require("chai");
 
 describe("Transactions", function() {
@@ -111,9 +115,16 @@ describe("Transactions", function() {
 });
 ```
 
+### Reusing common test setups using fixtures
+
+TODO: Write this
+
+
 ### Full coverage
 
 Now that we've covered the basics you'll need for testing your contracts, here's a full test suite for the token with a lot of additional information about Mocha and how to structure your tests. We recommend reading through.
+
+TODO: Update once the boilerplate is updated
 
 ```js
 // We import Chai to use its asserting functions here.

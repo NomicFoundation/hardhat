@@ -1,14 +1,14 @@
-# Hardhat Hackathon Boilerplate Project
+# Hardhat Boilerplate Project
 
-If you want to get started with your dApp quickly or see what this whole project looks like with a frontend, you can use our hackathon boilerplate repo.
+If you want to get started with your dApp quickly or see what this whole project looks like with a frontend, you can use our boilerplate repo.
 
-[https://github.com/nomiclabs/hardhat-hackathon-boilerplate](https://github.com/nomiclabs/hardhat-hackathon-boilerplate)
+[https://github.com/NomicFoundation/hardhat-boilerplate](https://github.com/NomicFoundation/hardhat-boilerplate)
 
 ## What's included
 
 - The Solidity contract we used in this tutorial
-- A test suite using ethers.js and Waffle
-- A minimal front-end to interact with the contract using ethers.js
+- Tests for the entire functionality of the contract
+- A minimal React front-end to interact with the contract using ethers.js
 
 ### Solidity contract & tests
 
@@ -42,7 +42,7 @@ It's a separate npm project and it was created using `create-react-app`, so this
 First clone the repository, and then to get the contracts deployed:
 
 ```
-cd hardhat-hackathon-boilerplate
+cd hardhat-boilerplate
 npm install
 npx hardhat node
 ```
@@ -63,7 +63,7 @@ npm run start
 
 To start the react web app. Open [http://127.0.0.1:3000/](http://127.0.0.1:3000/) in your browser and you should see this: ![](/front-5.png)
 
-Set your network in MetaMask to `127.0.0.1:8545`. You might also need to configure MetaMask to work well with Hardhat. To do that, go to `Settings -> Networks -> localhost 8545` and change the Chain ID input to 31337.
+Set your network in MetaMask to `127.0.0.1:8545`.
 
 Now click the button in the web app. You should then see this:
 

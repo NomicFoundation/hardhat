@@ -52,7 +52,7 @@ Token address: 0x5FbDB2315678afecb367f032d93F642f64180aa3
 To deploy to a remote network such as mainnet or any testnet, you need to add a `network` entry to your `hardhat.config.js` file. We’ll use Goerli for this example, but you can add any network similarly:
 
 ```js{5,11,15-20}
-require("@nomiclabs/hardhat-waffle");
+require("@nomicfoundation/hardhat-toolbox");
 
 // Go to https://www.alchemyapi.io, sign up, create
 // a new App in its dashboard, and replace "KEY" with its key
@@ -65,7 +65,7 @@ const ALCHEMY_API_KEY = "KEY";
 const GOERLI_PRIVATE_KEY = "YOUR GOERLI PRIVATE KEY";
 
 module.exports = {
-  solidity: "0.7.3",
+  solidity: "0.8.9",
   networks: {
     goerli: {
       url: `https://eth-goerli.alchemyapi.io/v2/${ALCHEMY_API_KEY}`,

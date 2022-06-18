@@ -1,21 +1,46 @@
 # 3. Creating a new Hardhat project
 
-We'll install **Hardhat** using the npm CLI. The **N**ode.js **p**ackage **m**anager is a package manager and an online repository for JavaScript code.
+We'll install **Hardhat** using the npm CLI. The Node.js package manager (or npm), which is a package manager and an online repository for JavaScript code.
 
-Open a new terminal and run these commands:
+You can use other package managers in Node.js, but we suggest you use npm 7 or higher to follow this guide. You should already have it if you followed the previous section's steps.
+
+Open a new terminal and run these commands to create a new folder:
 
 ```
 mkdir hardhat-tutorial
 cd hardhat-tutorial
-npm init --yes
+```
+
+Now, we can install Hardhat:
+
+::::tabsgroup{options="npm 7+,npm 6,yarn"}
+
+:::tab{value="npm 7+"}
+
+```
 npm install --save-dev hardhat
 ```
 
-:::tip
+:::
 
-Installing **Hardhat** will install some Ethereum JavaScript dependencies, so be patient.
+:::tab{value="npm 6"}
+
+```
+npm install --save-dev hardhat
+```
 
 :::
+
+:::tab{value=yarn}
+
+```
+yarn add --dev hardhat
+```
+
+:::
+
+::::
+
 
 In the same directory where you installed **Hardhat** run:
 
@@ -25,7 +50,7 @@ npx hardhat
 
 Select `Create an empty hardhat.config.js` with your keyboard and hit enter.
 
-```markup{15}
+```markup{16}
 $ npx hardhat
 888    888                      888 888               888
 888    888                      888 888               888
@@ -36,10 +61,11 @@ $ npx hardhat
 888    888 888  888 888    Y88b 888 888  888 888  888 Y88b.
 888    888 "Y888888 888     "Y88888 888  888 "Y888888  "Y888
 
-Welcome to Hardhat v2.0.0
+👷 Welcome to Hardhat v2.9.9 👷‍
 
 ? What do you want to do? …
-  Create a sample project
+  Create a JavaScript project
+  Create a TypeScript project
 ❯ Create an empty hardhat.config.js
   Quit
 ```
@@ -64,23 +90,48 @@ You can create your own tasks. Check out the [Creating a task](/guides/create-ta
 
 **Hardhat** is unopinionated in terms of what tools you end up using, but it does come with some built-in defaults. All of which can be overriden. Most of the time the way to use a given tool is by consuming a plugin that integrates it into **Hardhat**.
 
-For this tutorial we are going to use the Ethers.js and Waffle plugins. They'll allow you to interact with Ethereum and to test your contracts. We'll explain how they're used later on. To install them, in your project directory run:
+In this tutorial we are going to use our recommended plugin, [`@nomicfoundation/hardhat-toolbox`](../hardhat-runner/plugins/nomicfoundation-hardhat-toolbox), which has everything you need for developing smart contracts.
+
+To install it, tun this in your project directory:
+
+::::tabsgroup{options="npm 7+,npm 6,yarn"}
+
+:::tab{value="npm 7+"}
 
 ```
-npm install --save-dev @nomiclabs/hardhat-ethers ethers @nomiclabs/hardhat-waffle ethereum-waffle chai
+npm install --save-dev @nomicfoundation/hardhat-toolbox
 ```
+
+:::
+
+:::tab{value="npm 6"}
+
+```
+npm install --save-dev @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat-network-helpers @nomicfoundation/hardhat-chai-matchers @nomiclabs/hardhat-ethers @nomiclabs/hardhat-etherscan chai ethers hardhat-gas-reporter solidity-coverage @typechain/hardhat typechain @typechain/ethers-v5 @ethersproject/abi @ethersproject/providers
+```
+
+:::
+
+:::tab{value=yarn}
+
+```
+yarn add --dev @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat-network-helpers @nomicfoundation/hardhat-chai-matchers @nomiclabs/hardhat-ethers @nomiclabs/hardhat-etherscan chai ethers hardhat-gas-reporter solidity-coverage @typechain/hardhat typechain @typechain/ethers-v5 @ethersproject/abi @ethersproject/providers
+```
+
+:::
+
+::::
 
 Add the highlighted line to your `hardhat.config.js` so that it looks like this:
 
 ```js{1}
-require("@nomiclabs/hardhat-waffle");
+require("@nomicfoundation/hardhat-toolbox");
 
 /**
  * @type import('hardhat/config').HardhatUserConfig
  */
 module.exports = {
-  solidity: "0.8.4",
+  solidity: "0.8.9",
 };
 ```
 
-We're only requiring `hardhat-waffle` here because it depends on `hardhat-ethers` so adding both isn't necessary.

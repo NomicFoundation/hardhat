@@ -6,7 +6,7 @@ prev: false
 
 # Hardhat's tutorial for beginners
 
-Welcome to our beginners guide to Ethereum contracts and dApp development. This tutorial is aimed at hackathon participants who are getting setup to quickly build something from scratch.
+Welcome to our beginners guide to Ethereum contracts and dApp development. This tutorial is aimed at developers who are getting setup to quickly build something from scratch.
 
 To orchestrate this process we're going to use **Hardhat**, a development environment that facilitates building on Ethereum. It helps developers manage and automate the recurring tasks that are inherent to the process of building smart contracts and dApps, as well as easily introducing more functionality around this workflow. This means compiling and testing at the very core.
 
@@ -17,7 +17,7 @@ In this tutorial we'll guide you through:
 - Setting up your Node.js environment for Ethereum development
 - Creating and configuring a **Hardhat** project
 - The basics of a Solidity smart contract that implements a token
-- Writing automated tests for your contract using [Ethers.js](https://docs.ethers.io/) and [Waffle](https://getwaffle.io/)
+- Writing automated tests for your contract using **Hardhat**
 - Debugging Solidity with `console.log()` using **Hardhat Network**
 - Deploying your contract to **Hardhat Network** and Ethereum testnets
 

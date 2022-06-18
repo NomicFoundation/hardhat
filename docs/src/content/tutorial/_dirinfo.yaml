@@ -15,7 +15,7 @@ order:
     href: /debugging-with-hardhat-network
   - title: 7. Deploying to a live network
     href: /deploying-to-a-live-network
-  - title: 8. Hackathon Boilerplate Project
-    href: /hackathon-boilerplate-project
+  - title: 8. Boilerplate Project
+    href: /hardhat-boilerplate
   - title: 9. Final thoughts
     href: /final-thoughts

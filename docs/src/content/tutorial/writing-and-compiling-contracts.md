@@ -10,7 +10,7 @@ We're going to create a simple smart contract that implements a token that can b
 
 :::tip
 
-You might have heard about ERC20, which is a token standard in Ethereum. Tokens such as DAI, USDC, MKR and ZRX follow the ERC20 standard which allows them all to be compatible with any software that can deal with ERC20 tokens. **For simplicity's sake the token we're going to build is _not_ an ERC20.**
+You might have heard about ERC-20, which is a token standard in Ethereum. Tokens such as DAI and USDC implement the ERC-20 standard which allows them all to be compatible with any software that can deal with ERC-20 tokens. **For the sake of simplicity, the token we're going to build does _not_ implement the ERC-20 standard.**
 
 :::
 
@@ -22,10 +22,11 @@ Paste the code below into the file and take a minute to read the code. It's simp
 
 :::tip
 
-To get syntax highlighting you should add Solidity support to your text editor. Just look for Solidity or Ethereum plugins. We recommend using Visual Studio Code or Sublime Text 3.
+To get syntax highlighting and editing assistance for Solidity in Visual Studio Code, try [Hardhat for Visual Studio Code](/hardhat-vscode).
 
 :::
 
+TODO: Update once the boilerplate is ready
 ```solidity
 // Solidity files have to start with this pragma.
 // It will be used by the Solidity compiler to validate its version.
@@ -101,7 +102,7 @@ To compile the contract run `npx hardhat compile` in your terminal. The `compile
 
 ```
 $ npx hardhat compile
-Compiling 1 file with 0.7.3
+Compiling 1 file with 0.8.9
 Compilation finished successfully
 ```
 

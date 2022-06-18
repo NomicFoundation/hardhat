@@ -9,7 +9,7 @@ When running your contracts and tests on **Hardhat Network** you can print loggi
 This is what it looks like:
 
 ```solidity{3}
-pragma solidity ^0.6.0;
+pragma solidity ^0.8.9;
 
 import "hardhat/console.sol";
 
@@ -29,6 +29,8 @@ function transfer(address to, uint256 amount) external {
 
     balances[msg.sender] -= amount;
     balances[to] += amount;
+    
+    emit Transfer(msg.sender, to, amount);
 }
 ```
 
