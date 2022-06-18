@@ -1,6 +1,6 @@
 # 3. Creating a new Hardhat project
 
-We'll install **Hardhat** using the npm CLI. The Node.js package manager (or npm), which is a package manager and an online repository for JavaScript code.
+We'll install Hardhat using the npm CLI. The Node.js package manager (or npm), which is a package manager and an online repository for JavaScript code.
 
 You can use other package managers in Node.js, but we suggest you use npm 7 or higher to follow this guide. You should already have it if you followed the previous section's steps.
 
@@ -41,8 +41,7 @@ yarn add --dev hardhat
 
 ::::
 
-
-In the same directory where you installed **Hardhat** run:
+In the same directory where you installed Hardhat run:
 
 ```
 npx hardhat
@@ -70,15 +69,15 @@ $ npx hardhat
   Quit
 ```
 
-When **Hardhat** is run, it searches for the closest `hardhat.config.js` file starting from the current working directory. This file normally lives in the root of your project and an empty `hardhat.config.js` is enough for **Hardhat** to work. The entirety of your setup is contained in this file.
+When Hardhat is run, it searches for the closest `hardhat.config.js` file starting from the current working directory. This file normally lives in the root of your project and an empty `hardhat.config.js` is enough for Hardhat to work. The entirety of your setup is contained in this file.
 
 ## Hardhat's architecture
 
-**Hardhat** is designed around the concepts of **tasks** and **plugins**. The bulk of **Hardhat**'s functionality comes from plugins, which as a developer [you're free to choose](/hardhat-runner/plugins/) the ones you want to use.
+Hardhat is designed around the concepts of tasks and plugins. The bulk of Hardhat's functionality comes from plugins, which as a developer [you're free to choose](/hardhat-runner/plugins/) the ones you want to use.
 
 ### Tasks
 
-Every time you're running **Hardhat** from the CLI you're running a task. e.g. `npx hardhat compile` is running the `compile` task. To see the currently available tasks in your project, run `npx hardhat`. Feel free to explore any task by running `npx hardhat help [task]`.
+Every time you're running Hardhat from the CLI you're running a task. e.g. `npx hardhat compile` is running the `compile` task. To see the currently available tasks in your project, run `npx hardhat`. Feel free to explore any task by running `npx hardhat help [task]`.
 
 :::tip
 
@@ -88,7 +87,7 @@ You can create your own tasks. Check out the [Creating a task](/guides/create-ta
 
 ### Plugins
 
-**Hardhat** is unopinionated in terms of what tools you end up using, but it does come with some built-in defaults. All of which can be overriden. Most of the time the way to use a given tool is by consuming a plugin that integrates it into **Hardhat**.
+Hardhat is unopinionated in terms of what tools you end up using, but it does come with some built-in defaults. All of which can be overriden. Most of the time the way to use a given tool is by consuming a plugin that integrates it into Hardhat.
 
 In this tutorial we are going to use our recommended plugin, [`@nomicfoundation/hardhat-toolbox`](../hardhat-runner/plugins/nomicfoundation-hardhat-toolbox), which has everything you need for developing smart contracts.
 
@@ -134,4 +133,3 @@ module.exports = {
   solidity: "0.8.9",
 };
 ```
-

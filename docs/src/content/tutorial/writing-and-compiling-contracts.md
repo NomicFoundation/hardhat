@@ -10,7 +10,7 @@ We're going to create a simple smart contract that implements a token that can b
 
 :::tip
 
-You might have heard about ERC-20, which is a token standard in Ethereum. Tokens such as DAI and USDC implement the ERC-20 standard which allows them all to be compatible with any software that can deal with ERC-20 tokens. **For the sake of simplicity, the token we're going to build does _not_ implement the ERC-20 standard.**
+You might have heard about ERC-20, which is a token standard in Ethereum. Tokens such as DAI and USDC implement the ERC-20 standard which allows them all to be compatible with any software that can deal with ERC-20 tokens. For the sake of simplicity, the token we're going to build does _not_ implement the ERC-20 standard.
 
 :::
 
@@ -27,6 +27,7 @@ To get syntax highlighting and editing assistance for Solidity in Visual Studio 
 :::
 
 TODO: Update once the boilerplate is ready
+
 ```solidity
 // Solidity files have to start with this pragma.
 // It will be used by the Solidity compiler to validate its version.
