@@ -1,5 +1,8 @@
-import { use } from "chai";
+import "@nomiclabs/hardhat-ethers";
 
-import { bnChai } from "./bnChai";
+import "./types";
 
-use(bnChai);
+import { checkIfWaffleIsInstalled } from "./internal/checkIfWaffleIsInstalled";
+import "./internal/add-chai-matchers";
+
+checkIfWaffleIsInstalled();

@@ -1042,7 +1042,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     this.setNextBlockTimestamp(snapshot.nextBlockTimestamp);
     this._txPool.revert(snapshot.txPoolSnapshotId);
 
-    if (snapshot.userProvidedNextBlockBaseFeePerGas) {
+    if (snapshot.userProvidedNextBlockBaseFeePerGas !== undefined) {
       this.setUserProvidedNextBlockBaseFeePerGas(
         snapshot.userProvidedNextBlockBaseFeePerGas
       );
@@ -2395,7 +2395,11 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         chain: {
           // eslint-disable-next-line @typescript-eslint/dot-notation
           ...this._vm._common["_chainParams"],
-          chainId: this._forkNetworkId ?? this._configChainId,
+          chainId:
+            this._forkBlockNumber === undefined ||
+            blockContext.header.number.gte(new BN(this._forkBlockNumber))
+              ? this._configChainId
+              : this._forkNetworkId,
           networkId: this._forkNetworkId ?? this._configNetworkId,
         },
         hardfork: this._selectHardfork(blockContext.header.number),

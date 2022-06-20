@@ -1,4 +1,5 @@
-import { assert } from "chai";
+import chai, { assert } from "chai";
+import chaiAsPromised from "chai-as-promised";
 import { ethers } from "ethers";
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import { Artifact } from "hardhat/types";
@@ -7,6 +8,8 @@ import util from "util";
 import { EthersProviderWrapper } from "../src/internal/ethers-provider-wrapper";
 
 import { useEnvironment } from "./helpers";
+
+chai.use(chaiAsPromised);
 
 describe("Ethers plugin", function () {
   describe("ganache", function () {
@@ -17,6 +20,7 @@ describe("Ethers plugin", function () {
         assert.containsAllKeys(this.env.ethers, [
           "provider",
           "getSigners",
+          "getImpersonatedSigner",
           "getContractFactory",
           "getContractAt",
           ...Object.keys(ethers),
@@ -143,8 +147,26 @@ describe("Ethers plugin", function () {
         });
       });
 
+      describe("getImpersonatedSigner", function () {
+        it("should invoke hardhat_impersonateAccount", async function () {
+          const address = `0x${"ff".repeat(20)}`;
+          // TODO: We are testing this plugin against Ganache, so this fails.
+          //  We should test it using Hardhat Network instead.
+          await assert.isRejected(
+            this.env.ethers.getImpersonatedSigner(address),
+            "Method hardhat_impersonateAccount not supported"
+          );
+        });
+        it("should return the working impersonated signer", async function () {});
+      });
+
       describe("signer", function () {
-        it("should sign a message", async function () {
+        /**
+         * this test has been skipped pending the removal of ganache from this
+         * test suite, which is being tracked at
+         * https://linear.app/nomic-foundation/issue/HH-722/remove-ganache-from-our-test-suite
+         */
+        it.skip("should sign a message", async function () {
           const [sig] = await this.env.ethers.getSigners();
 
           const result = await sig.signMessage("hello");
@@ -1225,7 +1247,7 @@ describe("Ethers plugin", function () {
       const deployedGreeter: ethers.Contract = await Greeter.deploy();
 
       const readonlyContract = deployedGreeter.connect(
-        new ethers.providers.WebSocketProvider("ws://localhost:8545")
+        new ethers.providers.WebSocketProvider("ws://127.0.0.1:8545")
       );
       let emitted = false;
       readonlyContract.on("GreetingUpdated", () => {

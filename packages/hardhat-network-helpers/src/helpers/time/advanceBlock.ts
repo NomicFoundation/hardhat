@@ -1,11 +1,6 @@
 import type { NumberLike } from "../../types";
 
-import {
-  getHardhatProvider,
-  assertPositiveNumber,
-  toRpcQuantity,
-  toBigInt,
-} from "../../utils";
+import { mine } from "../mine";
 
 import { latestBlock } from "./latestBlock";
 
@@ -14,19 +9,13 @@ import { latestBlock } from "./latestBlock";
  *
  * @param numberOfBlocks Must be greater than 0
  * @returns number of the latest block mined
+ *
+ * @deprecated Use `helpers.mine` instead.
  */
 export async function advanceBlock(
   numberOfBlocks: NumberLike = 1
 ): Promise<number> {
-  const provider = await getHardhatProvider();
-
-  const blocksParam = toBigInt(numberOfBlocks);
-  assertPositiveNumber(blocksParam);
-
-  await provider.request({
-    method: "hardhat_mine",
-    params: [toRpcQuantity(blocksParam)],
-  });
+  await mine(numberOfBlocks);
 
   return latestBlock();
 }

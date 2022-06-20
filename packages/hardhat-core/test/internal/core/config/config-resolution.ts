@@ -56,7 +56,7 @@ describe("Config resolution", () => {
           defaultNetwork: "custom",
           networks: {
             custom: {
-              url: "http://localhost:8545",
+              url: "http://127.0.0.1:8545",
             },
             localhost: {
               accounts: [
@@ -395,6 +395,7 @@ describe("Config resolution", () => {
           assert.deepEqual(config.networks.hardhat.forking, {
             url: "asd",
             enabled: true,
+            httpHeaders: {},
           });
         });
 
@@ -413,6 +414,7 @@ describe("Config resolution", () => {
           assert.deepEqual(config.networks.hardhat.forking, {
             url: "asd",
             enabled: false,
+            httpHeaders: {},
           });
         });
 
@@ -432,6 +434,7 @@ describe("Config resolution", () => {
             url: "asd",
             enabled: true,
             blockNumber: 123,
+            httpHeaders: {},
           });
         });
       });

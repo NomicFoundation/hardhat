@@ -1,0 +1,19 @@
+section-type: group
+section-title: Guides
+order:
+  - /project-setup
+  - /compile-contracts
+  - /waffle-testing
+  - /truffle-testing
+  - /parallel-tests
+  - /truffle-migration
+  - /deploying
+  - href: /scripts
+    title: Writing scripts
+  - /hardhat-console
+  - /create-task
+  - /ganache-tests
+  - href: /vscode-tests
+    title: Running tests on VS Code
+  - /typescript
+  - /shorthand

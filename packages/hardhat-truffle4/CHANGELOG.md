@@ -1,5 +1,11 @@
 # @nomiclabs/hardhat-truffle4
 
+## 2.0.5
+
+### Patch Changes
+
+- b9f997cb: Upgraded ethereumjs dependencies (thanks @LogvinovLeon!).
+
 ## 2.0.4
 
 ### Patch Changes

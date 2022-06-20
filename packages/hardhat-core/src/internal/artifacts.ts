@@ -501,6 +501,7 @@ Please replace "${contractName}" for the correct contract name wherever you are 
   ): string[] {
     const outputNames = [];
     const groups = similarNames.reduce((obj, cur) => {
+      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       obj[cur] = obj[cur] ? obj[cur] + 1 : 1;
       return obj;
     }, {} as { [k: string]: number });

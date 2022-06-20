@@ -29,6 +29,41 @@ export const rpcHash = new t.Type<Buffer>(
   t.identity
 );
 
+export const rpcStorageSlot = new t.Type<BN>(
+  "Storage slot",
+  BN.isBN,
+  validateStorageSlot,
+  t.identity
+);
+
+function validateStorageSlot(u: unknown, c: t.Context): t.Validation<BN> {
+  if (typeof u !== "string") {
+    return t.failure(
+      u,
+      c,
+      `Storage slot argument must be a string, got '${u as any}'`
+    );
+  }
+
+  if (u.match(/^0x(?:[0-9a-fA-F]*)*$/) === null) {
+    return t.failure(
+      u,
+      c,
+      `Storage slot argument must be a valid hexadecimal prefixed with "0x", got '${u}'`
+    );
+  }
+
+  if (u.length !== 66) {
+    return t.failure(
+      u,
+      c,
+      `Storage slot argument must have a length of 66 ("0x" + 32 bytes), but '${u}' has a length of ${u.length}`
+    );
+  }
+
+  return t.success(new BN(toBuffer(u)));
+}
+
 export const rpcAddress = new t.Type<Buffer>(
   "ADDRESS",
   (v): v is Buffer => Buffer.isBuffer(v) && v.length === ADDRESS_LENGTH_BYTES,
@@ -86,6 +121,15 @@ export function numberToRpcQuantity(n: number | BN): string {
   );
 
   return `0x${n.toString(16)}`;
+}
+
+export function numberToRpcStorageSlot(n: number | BN): string {
+  assertHardhatInvariant(
+    typeof n === "number" || BN.isBN(n),
+    "Expected number"
+  );
+
+  return `0x${n.toString(16).padStart(64, "0")}`;
 }
 
 /**

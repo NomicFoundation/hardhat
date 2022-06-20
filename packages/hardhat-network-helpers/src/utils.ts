@@ -1,8 +1,8 @@
+import type { BN } from "ethereumjs-util";
 import type { EIP1193Provider } from "hardhat/types";
 
 import type { NumberLike } from "./types";
 
-import { isValidChecksumAddress, BN } from "ethereumjs-util";
 import { HardhatNetworkHelpersError, OnlyHardhatNetworkError } from "./errors";
 
 let cachedIsHardhatNetwork: boolean;
@@ -74,6 +74,7 @@ export function toRpcQuantity(x: NumberLike): string {
 }
 
 export function assertValidAddress(address: string): void {
+  const { isValidChecksumAddress } = require("ethereumjs-util");
   const hasChecksum = address !== address.toLowerCase();
   if (!hasChecksum || !isValidChecksumAddress(address)) {
     throw new HardhatNetworkHelpersError(
@@ -127,4 +128,18 @@ export function assertLargerThan(
       `Invalid ${type} ${a} is not larger than current ${type} ${b}`
     );
   }
+}
+
+export function toPaddedRpcQuantity(
+  x: NumberLike,
+  bytesLength: number
+): string {
+  let rpcQuantity = toRpcQuantity(x);
+
+  if (rpcQuantity.length < 2 + 2 * bytesLength) {
+    const rpcQuantityWithout0x = rpcQuantity.slice(2);
+    rpcQuantity = `0x${rpcQuantityWithout0x.padStart(2 * bytesLength, "0")}`;
+  }
+
+  return rpcQuantity;
 }

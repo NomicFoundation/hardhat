@@ -30,9 +30,10 @@ import {
   sendTxToZeroAddress,
 } from "../../../../helpers/transactions";
 import { compileLiteral } from "../../../../stack-traces/compilation";
+import { EthereumProvider } from "../../../../../../../src/types";
 
 describe("Eth module", function () {
-  PROVIDERS.forEach(({ name, useProvider, isFork }) => {
+  PROVIDERS.forEach(({ name, useProvider, isFork, chainId }) => {
     if (isFork) {
       this.timeout(50000);
     }
@@ -692,6 +693,38 @@ contract C {
               });
             });
           }
+        });
+
+        it("should use the proper chain ID", async function () {
+          const [_, compilerOutput] = await compileLiteral(`
+            contract ChainIdGetter {
+              event ChainId(uint i);
+              function getChainId() public returns (uint chainId) {
+                assembly { chainId := chainid() }
+              }
+            }
+          `);
+          const contractAddress = await deployContract(
+            this.provider,
+            `0x${compilerOutput.contracts["literal.sol"].ChainIdGetter.evm.bytecode.object}`
+          );
+
+          async function getChainIdFromContract(
+            provider: EthereumProvider
+          ): Promise<number> {
+            return rpcQuantityToNumber(
+              (
+                await provider.send("eth_call", [
+                  {
+                    to: contractAddress,
+                    data: "0x3408e470", // abi-encoded "getChainId()"
+                  },
+                ])
+              ).replace(/0x0*/, "0x")
+            );
+          }
+
+          assert.equal(await getChainIdFromContract(this.provider), chainId);
         });
 
         describe("http JSON-RPC response", function () {

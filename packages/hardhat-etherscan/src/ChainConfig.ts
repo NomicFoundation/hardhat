@@ -9,20 +9,6 @@ export const chainConfig: ChainConfig = {
       browserURL: "https://etherscan.io",
     },
   },
-  harmony: {
-    chainId: 1666600000,
-    urls: {
-      apiURL: "https://ctrver.t.hmny.io/verify",
-      browserURL: "https://explorer.harmony.one",
-    },
-  },
-  harmonyTest: {
-    chainId: 1666700000,
-    urls: {
-      apiURL: "https://ctrver.t.hmny.io/verify?network=testnet",
-      browserURL: "https://explorer.pops.one",
-    },
-  },
   ropsten: {
     chainId: 3,
     urls: {
@@ -49,6 +35,13 @@ export const chainConfig: ChainConfig = {
     urls: {
       apiURL: "https://api-kovan.etherscan.io/api",
       browserURL: "https://kovan.etherscan.io",
+    },
+  },
+  sepolia: {
+    chainId: 11155111,
+    urls: {
+      apiURL: "https://api-sepolia.etherscan.io/api",
+      browserURL: "https://sepolia.etherscan.io",
     },
   },
   bsc: {
@@ -196,6 +189,20 @@ export const chainConfig: ChainConfig = {
     urls: {
       apiURL: "https://api-testnet.aurorascan.dev/api",
       browserURL: "https://testnet.aurorascan.dev",
+    },
+  },
+  harmony: {
+    chainId: 1666600000,
+    urls: {
+      apiURL: "https://ctrver.t.hmny.io/verify",
+      browserURL: "https://explorer.harmony.one",
+    },
+  },
+  harmonyTest: {
+    chainId: 1666700000,
+    urls: {
+      apiURL: "https://ctrver.t.hmny.io/verify?network=testnet",
+      browserURL: "https://explorer.pops.one",
     },
   },
 };

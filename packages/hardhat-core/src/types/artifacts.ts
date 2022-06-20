@@ -90,6 +90,13 @@ export interface Artifacts {
     input: CompilerInput,
     output: CompilerOutput
   ): Promise<string>;
+
+  /**
+   * Returns the absolute path to the given artifact.
+   *
+   * @param fullyQualifiedName The FQN of the artifact.
+   */
+  formArtifactPathFromFullyQualifiedName(fullyQualifiedName: string): string;
 }
 
 /**

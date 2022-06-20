@@ -7,6 +7,7 @@ import sinon from "sinon";
 import { describe } from "mocha";
 import {
   numberToRpcQuantity,
+  numberToRpcStorageSlot,
   rpcQuantityToBN,
   rpcQuantityToNumber,
 } from "../../../../../src/internal/core/jsonrpc/types/base-types";
@@ -121,6 +122,10 @@ describe("Hardhat module", function () {
         it("lets you deploy a contract from an impersonated account", async function () {
           const impersonatedAddress =
             "0xC014BA5EC014ba5ec014Ba5EC014ba5Ec014bA5E";
+
+          await this.provider.send("hardhat_setNextBlockBaseFeePerGas", [
+            "0x0",
+          ]);
 
           await this.provider.send("eth_sendTransaction", [
             {
@@ -1312,7 +1317,8 @@ describe("Hardhat module", function () {
             });
           });
 
-          afterEach(() => {
+          afterEach(async function () {
+            await this.provider.send("evm_setIntervalMining", [0]);
             sinonClock.restore();
           });
 
@@ -2068,7 +2074,7 @@ describe("Hardhat module", function () {
 
           const resultingStorageValue = await this.provider.send(
             "eth_getStorageAt",
-            [DEFAULT_ACCOUNTS_ADDRESSES[0], numberToRpcQuantity(0), "latest"]
+            [DEFAULT_ACCOUNTS_ADDRESSES[0], numberToRpcStorageSlot(0), "latest"]
           );
 
           assert.equal(resultingStorageValue, targetStorageValue);
@@ -2169,7 +2175,7 @@ describe("Hardhat module", function () {
           assert.equal(
             await this.provider.send("eth_getStorageAt", [
               DEFAULT_ACCOUNTS_ADDRESSES[0],
-              numberToRpcQuantity(0),
+              numberToRpcStorageSlot(0),
               currentBlockNumber,
             ]),
             targetStorageValue

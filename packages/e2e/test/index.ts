@@ -9,6 +9,8 @@ import { useFixture } from "./helpers";
 
 const hardhatBinary = path.join("node_modules", ".bin", "hardhat");
 
+const versionRegExp = /^\d+\.\d+\.\d+\n$/;
+
 describe("e2e tests", function () {
   before(function () {
     shell.set("-e"); // Ensure that shell failures will induce test failures
@@ -16,6 +18,12 @@ describe("e2e tests", function () {
 
   describe("basic-project", function () {
     useFixture("basic-project");
+
+    it("should print the hardhat version", function () {
+      const { code, stdout } = shell.exec(`${hardhatBinary} --version`);
+      assert.equal(code, 0);
+      assert.match(stdout, versionRegExp);
+    });
 
     it("should compile", function () {
       // hh clean
@@ -211,6 +219,26 @@ describe("e2e tests", function () {
           shell.exec(suggestedCommand);
         });
       }
+    });
+  });
+
+  describe("no project", function () {
+    useFixture("empty");
+
+    it("should print the hardhat version", function () {
+      const { code, stdout } = shell.exec(`${hardhatBinary} --version`);
+      assert.equal(code, 0);
+      assert.match(stdout, versionRegExp);
+    });
+
+    it(`should print an error message if you try to compile`, function () {
+      shell.set("+e");
+      const { code, stderr } = shell.exec(`${hardhatBinary} compile`);
+      shell.set("-e");
+      assert.equal(code, 1);
+      // This is a loose match to check HH1 and HH15
+      assert.match(stderr, /You are not inside/);
+      assert.match(stderr, /HH15?/);
     });
   });
 });

@@ -5,7 +5,7 @@ import BN from "bn.js";
 
 import { HardhatError } from "hardhat/internal/core/errors";
 
-import "../src";
+import "../src/internal/add-chai-matchers";
 
 type SupportedNumber = number | bigint | BN | BigNumberEthers | BigNumberJs;
 
@@ -103,7 +103,7 @@ describe("BigNumber matchers", function () {
     });
 
     interface FailureCase extends SuccessCase {
-      msg: string;
+      msg: string | RegExp;
     }
 
     const positiveFailureCases: FailureCase[] = [
@@ -115,7 +115,7 @@ describe("BigNumber matchers", function () {
       {
         obj: new Set([1, 2, 3]),
         len: 2,
-        msg: "expected {} to have a size of 2 but got 3",
+        msg: /expected .* to have a size of 2 but got 3/,
       },
       {
         obj: new Map([
@@ -123,7 +123,7 @@ describe("BigNumber matchers", function () {
           [3, 4],
         ]),
         len: 3,
-        msg: "expected {} to have a size of 3 but got 2",
+        msg: /expected .* to have a size of 3 but got 2/,
       },
     ];
     describe("positive, failing assertions should throw the proper error message", function () {
@@ -864,6 +864,90 @@ describe("BigNumber matchers", function () {
         });
       });
     });
+
+    describe("deep equal", async function () {
+      checkAll(1, 1, (a, b) => {
+        it(`should work with ${typestr(a)} and ${typestr(b)}`, function () {
+          // successful assertions
+          expect([a]).to.deep.equal([b]);
+          expect([[a], [a]]).to.deep.equal([[b], [b]]);
+          expect({ x: a }).to.deep.equal({ x: b });
+          expect({ x: { y: a } }).to.deep.equal({ x: { y: b } });
+          expect({ x: [a] }).to.deep.equal({ x: [b] });
+
+          // failed assertions
+
+          // We are not checking the content of the arrays/objects because
+          // it depends on the type of the numbers (plain numbers, native
+          // bigints, ethers's BigNumbers)
+          // Ideally the output would be normalized and we could check the
+          // actual content more easily.
+
+          expect(() => expect([a]).to.not.deep.equal([b])).to.throw(
+            AssertionError,
+            // the 's' modifier is used to make . match newlines too
+            /expected \[.*\] to not deeply equal \[.*\]/s
+          );
+          expect(() =>
+            expect([[a], [a]]).to.not.deep.equal([[b], [b]])
+          ).to.throw(
+            AssertionError,
+            /expected \[.*\] to not deeply equal \[.*\]/s
+          );
+          expect(() => expect({ x: a }).to.not.deep.equal({ x: b })).to.throw(
+            AssertionError,
+            /expected \{.*\} to not deeply equal \{.*\}/s
+          );
+          expect(() =>
+            expect({ x: { y: a } }).to.not.deep.equal({ x: { y: b } })
+          ).to.throw(
+            AssertionError,
+            /expected \{.*\} to not deeply equal \{.*\}/s
+          );
+          expect(() =>
+            expect({ x: [a] }).to.not.deep.equal({ x: [b] })
+          ).to.throw(
+            AssertionError,
+            /expected \{.*\} to not deeply equal \{.*\}/s
+          );
+        });
+      });
+
+      checkAll(1, 2, (a, b) => {
+        it(`should work with ${typestr(a)} and ${typestr(
+          b
+        )} (negative)`, function () {
+          // successful assertions
+          expect([a]).to.not.deep.equal([b]);
+          expect([[a], [a]]).to.not.deep.equal([[b], [b]]);
+          expect({ x: a }).to.not.deep.equal({ x: b });
+          expect({ x: { y: a } }).to.not.deep.equal({ x: { y: b } });
+          expect({ x: [a] }).to.not.deep.equal({ x: [b] });
+
+          // failed assertions
+          expect(() => expect([a]).to.deep.equal([b])).to.throw(
+            AssertionError,
+            // the 's' modifier is used to make . match newlines too
+            /expected \[.*\] to deeply equal \[.*\]/s
+          );
+          expect(() => expect([[a], [a]]).to.deep.equal([[b], [b]])).to.throw(
+            AssertionError,
+            /expected \[.*\] to deeply equal \[.*\]/s
+          );
+          expect(() => expect({ x: a }).to.deep.equal({ x: b })).to.throw(
+            AssertionError,
+            /expected \{.*\} to deeply equal \{.*\}/s
+          );
+          expect(() =>
+            expect({ x: { y: a } }).to.deep.equal({ x: { y: b } })
+          ).to.throw(AssertionError, /expected \{.*\} to deeply equal \{.*\}/s);
+          expect(() => expect({ x: [a] }).to.deep.equal({ x: [b] })).to.throw(
+            AssertionError,
+            /expected \{.*\} to deeply equal \{.*\}/s
+          );
+        });
+      });
+    });
   });
 
   describe("with three arguments", function () {
@@ -1109,5 +1193,41 @@ describe("BigNumber matchers", function () {
         });
       });
     });
+  });
+
+  it("custom message is preserved", function () {
+    // normal numbers
+    expect(() => expect(1).to.equal(2, "custom message")).to.throw(
+      AssertionError,
+      "custom message"
+    );
+
+    // number and bigint
+    expect(() => expect(1).to.equal(BigInt(2), "custom message")).to.throw(
+      AssertionError,
+      "custom message"
+    );
+
+    // number and ethers bignumber
+    expect(() =>
+      expect(1).to.equal(BigNumberEthers.from(2), "custom message")
+    ).to.throw(AssertionError, "custom message");
+
+    // same but for deep comparisons
+    expect(() => expect([1]).to.equal([2], "custom message")).to.throw(
+      AssertionError,
+      "custom message"
+    );
+
+    // number and bigint
+    expect(() => expect([1]).to.equal([BigInt(2)], "custom message")).to.throw(
+      AssertionError,
+      "custom message"
+    );
+
+    // number and ethers bignumber
+    expect(() =>
+      expect([1]).to.equal([BigNumberEthers.from(2)], "custom message")
+    ).to.throw(AssertionError, "custom message");
   });
 });
