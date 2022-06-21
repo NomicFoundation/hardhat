@@ -205,4 +205,11 @@ export const chainConfig: ChainConfig = {
       browserURL: "https://explorer.pops.one",
     },
   },
+  cronos: {
+    chainId: 25,
+    urls: {
+      apiURL: "https://api.cronoscan.com/api",
+      browserURL: "https://cronoscan.com",
+    },
+  },
 };
