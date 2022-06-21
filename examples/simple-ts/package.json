@@ -14,7 +14,7 @@
     "hardhat": "^2.6.4",
     "ignition": "^0.0.2",
     "ts-node": "^10.3.0",
-    "typescript": "^4.4.4"
+    "typescript": "^4.7.4"
   },
   "devDependencies": {
     "ts-node": "^10.3.0"
