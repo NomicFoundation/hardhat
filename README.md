@@ -8,13 +8,26 @@ Join our [Hardhat Support Discord server](https://hardhat.org/discord) to stay u
 
 ## Installation
 
+Add **Ignition** as a plugin to an existing [Hardhat](https://hardhat.org/) project:
+
 ```shell
 npm install @nomicfoundation/hardhat-ignition
 ```
 
+Modify your Hardhat.config.{ts,js} file, to include Ignition:
+
+```javascript
+// ...
+import "@nomiclabs/hardhat-ignition";
+```
+
+## Getting Started
+
+See our [Getting started guide](./docs/getting-started-guide.md) for a worked example of **Ignition usage**.
+
 ## Documentation
 
-See our [Getting started guide](./docs/getting-started-guide.md)
+* [Creating modules for deployment](./docs/creating-modules-for-deployment.md)
 
 ## Contributing
 
