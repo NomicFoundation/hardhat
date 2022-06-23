@@ -1,4 +1,4 @@
-import { Executor } from "../executors/executors";
+import { Executor } from "../executors/Executor";
 
 import { IgnitionModule } from "./IgnitionModule";
 

@@ -7,6 +7,9 @@ export interface Contract {
   name: string;
   address: string;
   abi: any[];
+}
+
+export interface DeployedContract extends Contract {
   bytecode: string;
 }
 

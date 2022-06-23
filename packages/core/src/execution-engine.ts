@@ -1,7 +1,7 @@
 import setupDebug from "debug";
 
 import { InternalBinding } from "./bindings/InternalBinding";
-import {
+import type {
   ModuleResult,
   SerializedDeploymentResult,
   SerializedModuleResult,

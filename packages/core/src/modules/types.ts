@@ -1,7 +1,7 @@
 import { CallBinding } from "../bindings/CallBinding";
 import { ContractBinding } from "../bindings/ContractBinding";
-import { Bindable } from "../bindings/types";
-import { Executor } from "../executors/executors";
+import type { Bindable } from "../bindings/types";
+import { Executor } from "../executors/Executor";
 
 import { UserModule } from "./UserModule";
 
@@ -22,6 +22,12 @@ export interface ModuleBuilder {
   contract: (
     contractName: string,
     options?: UserContractOptions
+  ) => ContractBinding;
+
+  contractAt: (
+    contractName: string,
+    address: string,
+    abi: any[]
   ) => ContractBinding;
 
   call: (

@@ -10,7 +10,8 @@ export type {
   SerializedBindingResult,
 } from "./bindings/types";
 
-export { Executor, Hold } from "./executors/executors";
+export { Executor } from "./executors/Executor";
+export { Hold } from "./executors/Hold";
 
 export { buildModule } from "./modules/buildModule";
 export type { ModuleBuilder } from "./modules/types";

@@ -17,6 +17,12 @@ export interface ContractOptions {
   args: Array<Bindable<any>>;
 }
 
+export interface ExistingContractOptions {
+  contractName: string;
+  address: string;
+  abi: any[];
+}
+
 export interface CallOptions {
   contract: ContractBinding;
   method: string;

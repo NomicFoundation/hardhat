@@ -1,4 +1,4 @@
-import { Executor } from "../executors/executors";
+import { Executor } from "../executors/Executor";
 
 export class IgnitionModule {
   constructor(public readonly id: string, private _executors: Executor[]) {}

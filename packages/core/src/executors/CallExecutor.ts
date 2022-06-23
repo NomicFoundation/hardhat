@@ -5,7 +5,7 @@ import { CallOptions, Resolved } from "../bindings/types";
 import { Services } from "../services/types";
 import { Tx } from "../types";
 
-import { Executor } from "./executors";
+import { Executor } from "./Executor";
 
 export class CallExecutor extends Executor<CallOptions, Tx> {
   public async execute(

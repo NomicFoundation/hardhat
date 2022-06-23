@@ -1,4 +1,4 @@
-import { buildModule } from "@nomicfoundation/ignition-core";
+import { buildModule, Contract } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 
 import {
@@ -181,6 +181,49 @@ describe("integration tests", function () {
     });
   });
 
+  it("should deploy using existing contract", async function () {
+    // given
+    const originalModule = buildModule("FooModule", (m) => {
+      const foo = m.contract("Foo");
+
+      return { foo };
+    });
+
+    const originalDeploymentResult = await deployModules(
+      this.hre,
+      [originalModule],
+      [1]
+    );
+
+    if (!isContract(originalDeploymentResult.FooModule.Foo.value)) {
+      assert.fail("Expected contract deployed");
+    }
+
+    const { address, abi } = originalDeploymentResult.FooModule.Foo.value;
+
+    const leveragingExistingModule = buildModule("ExistingFooModule", (m) => {
+      const existingFoo = m.contractAt("ExistingFoo", address, abi);
+
+      return { existingFoo };
+    });
+
+    // when
+    const deploymentResult = await deployModules(
+      this.hre,
+      [leveragingExistingModule],
+      [1]
+    );
+
+    // then
+    await assertDeploymentState(this.hre, deploymentResult, {
+      ExistingFooModule: {
+        ExistingFoo: resultAssertions.contract(async (existingFoo) => {
+          assert.isTrue(await existingFoo.isFoo());
+        }),
+      },
+    });
+  });
+
   it("should fail if a call fails", async function () {
     // given
     const userModule = buildModule("MyModule", (m) => {
@@ -195,3 +238,7 @@ describe("integration tests", function () {
     await assert.isRejected(deployModules(this.hre, [userModule], [1, 1]));
   });
 });
+
+function isContract(contract: any): contract is Contract {
+  return contract.address !== undefined;
+}

@@ -3,16 +3,9 @@ import setupDebug, { IDebugger } from "debug";
 import { InternalBinding } from "../bindings/InternalBinding";
 import { BindingOutput, Resolved } from "../bindings/types";
 import { BindingState } from "../deployment-state";
-import { Services } from "../services/types";
+import type { Services } from "../services/types";
 
-/**
- * An instance of this class is thrown to indicate that the executor is waiting
- * for some external event to happen, like a multisig that needs extra
- * confirmations or a timelocked contract.
- */
-export class Hold {
-  constructor(public readonly reason: string) {}
-}
+import { Hold } from "./Hold";
 
 export abstract class Executor<I = unknown, O extends BindingOutput = any> {
   private _dummyInput!: I;

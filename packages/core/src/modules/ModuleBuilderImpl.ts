@@ -1,16 +1,26 @@
 import { ContractBinding } from "../bindings/ContractBinding";
+import { ExistingContractBinding } from "../bindings/ExistingContractBinding";
 import { InternalBinding } from "../bindings/InternalBinding";
 import { InternalCallBinding } from "../bindings/InternalCallBinding";
 import { InternalContractBinding } from "../bindings/InternalContractBinding";
-import { CallOptions, ContractOptions } from "../bindings/types";
+import type {
+  CallOptions,
+  ContractOptions,
+  ExistingContractOptions,
+} from "../bindings/types";
 import { CallExecutor } from "../executors/CallExecutor";
 import { ContractExecutor } from "../executors/ContractExecutor";
-import { Executor } from "../executors/executors";
-import { Contract, Tx } from "../types";
+import { Executor } from "../executors/Executor";
+import { ExistingContractExecutor } from "../executors/ExistingContractExecutor";
+import type { Contract, Tx } from "../types";
 
 import { ExecutionGraph } from "./ExecutionGraph";
 import { UserModule } from "./UserModule";
-import { ModuleBuilder, UserContractOptions, UserCallOptions } from "./types";
+import type {
+  ModuleBuilder,
+  UserContractOptions,
+  UserCallOptions,
+} from "./types";
 
 export class ModuleBuilderImpl implements ModuleBuilder {
   private _currentModuleId: string | undefined;
@@ -54,6 +64,24 @@ export class ModuleBuilderImpl implements ModuleBuilder {
     this.addExecutor(new ContractExecutor(b));
 
     return b;
+  }
+
+  public contractAt(
+    contractName: string,
+    address: string,
+    abi: any[]
+  ): InternalBinding<ExistingContractOptions, Contract> {
+    const id = contractName;
+
+    const binding = new ExistingContractBinding(this.getModuleId(), id, {
+      contractName,
+      address,
+      abi,
+    });
+
+    this.addExecutor(new ExistingContractExecutor(binding));
+
+    return binding;
   }
 
   public call(

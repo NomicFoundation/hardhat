@@ -2,15 +2,15 @@ import { ethers } from "ethers";
 
 import { ContractOptions, Resolved } from "../bindings/types";
 import { Services } from "../services/types";
-import { Contract } from "../types";
+import type { Contract, DeployedContract } from "../types";
 
-import { Executor } from "./executors";
+import { Executor } from "./Executor";
 
 export class ContractExecutor extends Executor<ContractOptions, Contract> {
   public async execute(
     input: Resolved<ContractOptions>,
     services: Services
-  ): Promise<Contract> {
+  ): Promise<DeployedContract> {
     const { contractName } = input;
     const artifact = await services.artifacts.getArtifact(contractName);
 

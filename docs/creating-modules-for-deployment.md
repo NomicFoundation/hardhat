@@ -51,3 +51,14 @@ const b = m.contract("B", {
 ```
 
 You can think of this as `b` being analogue to a promise of an address, although bindings are not promises.
+
+### Using an existing contract
+
+A user might need to execute a method in a contract that wasn't deployed by Ignition. An existing contract can be leveraged by passing an address and abi:
+
+```tsx
+const abi = [{...}]
+const uniswap = m.contractAt("UniswapRouter", "0x123...", abi)
+
+m.call(uniswap, "swap", { ... })
+```
