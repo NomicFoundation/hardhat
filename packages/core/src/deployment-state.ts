@@ -3,8 +3,9 @@ import {
   ModuleResult,
   serializeBindingOutput,
   SerializedModuleResult,
-} from "./bindings";
-import { ExecutionGraph, IgnitionModule } from "./modules";
+} from "./bindings/types";
+import { ExecutionGraph } from "./modules/ExecutionGraph";
+import { IgnitionModule } from "./modules/IgnitionModule";
 
 export class DeploymentState {
   private _modules: Map<string, ModuleState> = new Map();

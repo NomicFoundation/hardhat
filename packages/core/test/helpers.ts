@@ -1,6 +1,6 @@
-import { Bindable, InternalBinding } from "../src/bindings";
+import { Bindable, InternalBinding } from "../src/bindings/types";
 import { DeploymentState } from "../src/deployment-state";
-import { Executor, Hold } from "../src/executors";
+import { Executor, Hold } from "../src/executors/executors";
 import {
   ArtifactsProvider,
   EIP1193Provider,

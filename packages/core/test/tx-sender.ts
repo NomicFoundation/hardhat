@@ -3,7 +3,9 @@ import { ethers } from "ethers";
 import sinon from "sinon";
 import tmp from "tmp";
 
-import { FileJournal, InMemoryJournal, Journal } from "../src/journal";
+import { FileJournal } from "../src/journal/FileJournal";
+import { InMemoryJournal } from "../src/journal/InMemoryJournal";
+import { Journal } from "../src/journal/types";
 import { GasProvider, IgnitionSigner } from "../src/providers";
 import { TxSender } from "../src/tx-sender";
 

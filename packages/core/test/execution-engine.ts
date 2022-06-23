@@ -6,8 +6,8 @@ import {
   ExecutionEngineOptions,
   IgnitionModulesResults,
 } from "../src/execution-engine";
-import { InMemoryJournal } from "../src/journal";
-import { ExecutionGraph } from "../src/modules";
+import { InMemoryJournal } from "../src/journal/InMemoryJournal";
+import { ExecutionGraph } from "../src/modules/ExecutionGraph";
 
 import { getMockedProviders, inc, runUntil, runUntilReady } from "./helpers";
 

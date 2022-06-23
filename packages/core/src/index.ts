@@ -1,15 +1,15 @@
 import setupDebug from "debug";
 
+import { InternalContractBinding } from "./bindings/InternalContractBinding";
 import {
   AddressLike,
   ContractBinding,
   ContractOptions,
   InternalBinding,
-  InternalContractBinding,
   SerializedDeploymentResult,
   SerializedModuleResult,
   SerializedBindingResult,
-} from "./bindings";
+} from "./bindings/types";
 import {
   DeploymentPlan,
   DeploymentResult,
@@ -17,16 +17,18 @@ import {
   ExecutionManager,
   IgnitionModulesResults,
 } from "./execution-engine";
-import { Executor, Hold } from "./executors";
-import { FileJournal, InMemoryJournal } from "./journal";
-import { ModuleBuilder, ModuleBuilderImpl, UserModule } from "./modules";
+import { Executor, Hold } from "./executors/executors";
+import { FileJournal } from "./journal/FileJournal";
+import { InMemoryJournal } from "./journal/InMemoryJournal";
+import { ModuleBuilderImpl } from "./modules/ModuleBuilderImpl";
+import { ModuleBuilder, UserModule } from "./modules/types";
 import { Providers } from "./providers";
-import { Services } from "./services";
+import { Services } from "./services/types";
 import { Contract } from "./types";
 
-export { Binding } from "./bindings";
+export { Binding } from "./bindings/types";
 export { DeploymentPlan } from "./execution-engine";
-export { buildModule } from "./modules";
+export { buildModule } from "./modules/buildModule";
 export {
   AddressLike,
   Contract,

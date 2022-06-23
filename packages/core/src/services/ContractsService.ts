@@ -1,18 +1,12 @@
 import setupDebug from "debug";
 import { ethers, Contract, ContractFactory } from "ethers";
 
-import { IgnitionSigner, Providers } from "./providers";
-import { TxSender } from "./tx-sender";
-import { Artifact } from "./types";
-import { UiService } from "./ui/ui-service";
-import { sleep } from "./utils";
+import { IgnitionSigner, Providers } from "../providers";
+import { TxSender } from "../tx-sender";
+import { Artifact } from "../types";
+import { sleep } from "../utils";
 
-export { UiService };
-
-interface TransactionOptions {
-  gasLimit?: ethers.BigNumberish;
-  gasPrice?: ethers.BigNumberish;
-}
+import type { TransactionOptions } from "./types";
 
 export class ContractsService {
   private _debug = setupDebug("ignition:services:contracts-service");
@@ -161,8 +155,8 @@ export class ContractsService {
     if (previousTx.gasPrice !== undefined) {
       // Increase 10%, and add 1 to be sure it's at least rounded up
       const newGasPrice = ethers.BigNumber.from(previousTx.gasPrice)
-        .mul(110_000)
-        .div(100_000)
+        .mul(110000)
+        .div(100000)
         .add(1);
 
       return {
@@ -177,15 +171,15 @@ export class ContractsService {
       previousTx.maxPriorityFeePerGas !== undefined
     ) {
       const newMaxFeePerGas = ethers.BigNumber.from(previousTx.maxFeePerGas)
-        .mul(110_000)
-        .div(100_000)
+        .mul(110000)
+        .div(100000)
         .add(1);
 
       const newMaxPriorityFeePerGas = ethers.BigNumber.from(
         previousTx.maxPriorityFeePerGas
       )
-        .mul(110_000)
-        .div(100_000)
+        .mul(110000)
+        .div(100000)
         .add(1);
 
       return {
@@ -200,35 +194,4 @@ export class ContractsService {
       `Transaction doesn't have gasPrice or maxFeePerGas/maxPriorityFeePerGas`
     );
   }
-}
-
-export class ArtifactsService {
-  constructor(private readonly _providers: Providers) {}
-
-  public getArtifact(name: string): Promise<Artifact> {
-    return this._providers.artifacts.getArtifact(name);
-  }
-  public hasArtifact(name: string): Promise<boolean> {
-    return this._providers.artifacts.hasArtifact(name);
-  }
-}
-
-export class TransactionsService {
-  constructor(private readonly _providers: Providers) {}
-
-  public async wait(
-    txHash: string
-  ): Promise<ethers.providers.TransactionReceipt> {
-    const provider = new ethers.providers.Web3Provider(
-      this._providers.ethereumProvider
-    );
-
-    return provider.waitForTransaction(txHash);
-  }
-}
-
-export interface Services {
-  contracts: ContractsService;
-  artifacts: ArtifactsService;
-  transactions: TransactionsService;
 }

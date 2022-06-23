@@ -1,6 +1,6 @@
 import { expect } from "chai";
 
-import { ExecutionGraph } from "../src/modules";
+import { ExecutionGraph } from "../src/modules/ExecutionGraph";
 
 import { inc } from "./helpers";
 

@@ -6,19 +6,18 @@ import {
   ModuleResult,
   SerializedDeploymentResult,
   SerializedModuleResult,
-} from "./bindings";
+} from "./bindings/types";
 import { DeploymentState } from "./deployment-state";
-import { Journal } from "./journal";
-import { ExecutionGraph, IgnitionModule } from "./modules";
+import { Journal } from "./journal/types";
+import { ExecutionGraph } from "./modules/ExecutionGraph";
+import { IgnitionModule } from "./modules/IgnitionModule";
 import { Providers } from "./providers";
-import {
-  ArtifactsService,
-  ContractsService,
-  UiService,
-  Services,
-  TransactionsService,
-} from "./services";
+import { ArtifactsService } from "./services/ArtifactsService";
+import { ContractsService } from "./services/ContractsService";
+import { TransactionsService } from "./services/TransactionsService";
+import type { Services } from "./services/types";
 import { TxSender } from "./tx-sender";
+import { UiService } from "./ui/ui-service";
 import { sleep } from "./utils";
 
 export interface IgnitionModulesResults {
