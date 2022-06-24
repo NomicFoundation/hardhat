@@ -1,4 +1,5 @@
-import { Bindable, InternalBinding } from "../src/bindings/types";
+import { InternalBinding } from "../src/bindings/InternalBinding";
+import { Bindable } from "../src/bindings/types";
 import { DeploymentState } from "../src/deployment-state";
 import { Executor, Hold } from "../src/executors/executors";
 import {

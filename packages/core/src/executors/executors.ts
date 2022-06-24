@@ -1,6 +1,7 @@
 import setupDebug, { IDebugger } from "debug";
 
-import { BindingOutput, InternalBinding, Resolved } from "../bindings/types";
+import { InternalBinding } from "../bindings/InternalBinding";
+import { BindingOutput, Resolved } from "../bindings/types";
 import { BindingState } from "../deployment-state";
 import { Services } from "../services/types";
 

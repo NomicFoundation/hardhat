@@ -1,12 +1,12 @@
 import setupDebug from "debug";
 
+import { InternalBinding } from "./bindings/InternalBinding";
 import {
-  deserializeBindingOutput,
-  InternalBinding,
   ModuleResult,
   SerializedDeploymentResult,
   SerializedModuleResult,
 } from "./bindings/types";
+import { deserializeBindingOutput } from "./bindings/utils";
 import { DeploymentState } from "./deployment-state";
 import { Journal } from "./journal/types";
 import { ExecutionGraph } from "./modules/ExecutionGraph";

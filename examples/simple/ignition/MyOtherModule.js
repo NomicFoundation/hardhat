@@ -1,15 +1,15 @@
-const { buildModule } = require("ignition")
+const { buildModule } = require("@nomiclabs/hardhat-ignition");
 
 module.exports = buildModule("MyOtherModule", (m) => {
-  const foo = m.contract("Foo")
-  const foo2 = m.contract("Foo", { id: "Foo2" })
+  const foo = m.contract("Foo");
+  const foo2 = m.contract("Foo", { id: "Foo2" });
 
   m.call(foo, "inc", {
-    args: [1]
-  })
+    args: [1],
+  });
   m.call(foo2, "inc", {
-    args: [1]
-  })
+    args: [1],
+  });
 
-  return { foo }
+  return { foo };
 });

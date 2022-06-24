@@ -10,7 +10,7 @@ import {
 import { FileJournal } from "./journal/FileJournal";
 import { InMemoryJournal } from "./journal/InMemoryJournal";
 import { ModuleBuilderImpl } from "./modules/ModuleBuilderImpl";
-import { UserModule } from "./modules/types";
+import { UserModule } from "./modules/UserModule";
 import { Providers } from "./providers";
 
 const log = setupDebug("ignition:main");

@@ -1,6 +1,3 @@
-import { ethers } from "ethers";
-import fsExtra from "fs-extra";
-import { HardhatConfig, HardhatRuntimeEnvironment } from "hardhat/types";
 import {
   Binding,
   DeploymentPlan,
@@ -9,7 +6,10 @@ import {
   IgnitionDeployOptions,
   SerializedModuleResult,
   Providers,
-} from "ignition";
+} from "@nomiclabs/ignition-core";
+import { ethers } from "ethers";
+import fsExtra from "fs-extra";
+import { HardhatConfig, HardhatRuntimeEnvironment } from "hardhat/types";
 import path from "path";
 
 import { getAllUserModules } from "./user-modules";

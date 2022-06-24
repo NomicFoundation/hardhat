@@ -1,9 +1,9 @@
-import {
+import type {
   BindingOutput,
   ModuleResult,
-  serializeBindingOutput,
   SerializedModuleResult,
 } from "./bindings/types";
+import { serializeBindingOutput } from "./bindings/utils";
 import { ExecutionGraph } from "./modules/ExecutionGraph";
 import { IgnitionModule } from "./modules/IgnitionModule";
 

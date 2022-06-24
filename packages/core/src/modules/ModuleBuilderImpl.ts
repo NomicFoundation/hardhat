@@ -1,23 +1,16 @@
+import { ContractBinding } from "../bindings/ContractBinding";
+import { InternalBinding } from "../bindings/InternalBinding";
 import { InternalCallBinding } from "../bindings/InternalCallBinding";
 import { InternalContractBinding } from "../bindings/InternalContractBinding";
-import {
-  CallOptions,
-  ContractBinding,
-  ContractOptions,
-  InternalBinding,
-} from "../bindings/types";
+import { CallOptions, ContractOptions } from "../bindings/types";
 import { CallExecutor } from "../executors/CallExecutor";
 import { ContractExecutor } from "../executors/ContractExecutor";
 import { Executor } from "../executors/executors";
 import { Contract, Tx } from "../types";
 
 import { ExecutionGraph } from "./ExecutionGraph";
-import {
-  ModuleBuilder,
-  UserModule,
-  UserContractOptions,
-  UserCallOptions,
-} from "./types";
+import { UserModule } from "./UserModule";
+import { ModuleBuilder, UserContractOptions, UserCallOptions } from "./types";
 
 export class ModuleBuilderImpl implements ModuleBuilder {
   private _currentModuleId: string | undefined;

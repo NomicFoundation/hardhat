@@ -1,22 +1,23 @@
-import {ethers} from "ethers";
+import { ethers } from "ethers";
 import {
-  AddressLike,
   ContractBinding,
-  ContractOptions,
   buildModule,
   ModuleBuilder,
   InternalBinding,
-  InternalContractBinding,
   Executor,
   Contract,
   Services,
-  Binding,
-  Hold
-} from "ignition";
+  Hold,
+} from "@nomiclabs/hardhat-ignition";
 
 class TimelockCallExecutor extends Executor<TimelockCallOptions, string> {
   public async execute(
-    input: { timelock: Contract; contract: Contract; method: string; args: any[] },
+    input: {
+      timelock: Contract;
+      contract: Contract;
+      method: string;
+      args: any[];
+    },
     services: Services
   ): Promise<string> {
     const Factory = new ethers.Contract(
@@ -52,7 +53,7 @@ class TimelockCallExecutor extends Executor<TimelockCallOptions, string> {
       input.timelock.abi,
       "isOperationReady",
       [id]
-    )
+    );
 
     if (!isReady) {
       throw new Hold(`Waiting for timelock's tx '${id} to be ready'`);
@@ -65,7 +66,7 @@ class TimelockCallExecutor extends Executor<TimelockCallOptions, string> {
       [input.contract.address, 0, txData, zeroBytes32, zeroBytes32]
     );
 
-    return executeTx
+    return executeTx;
   }
 
   public async validate(
@@ -107,7 +108,7 @@ function callFromTimelock(
   const b = new TimelockCallBinding(m.getModuleId(), id, {
     timelock,
     contract,
-    method
+    method,
   });
 
   m.addExecutor(new TimelockCallExecutor(b));
@@ -115,21 +116,21 @@ function callFromTimelock(
   return b;
 }
 
-export default buildModule("Timelock", m => {
+export default buildModule("Timelock", (m) => {
   const timelock = m.contract("TimelockController", {
     args: [
       15,
       ["0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266"],
-      ["0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266"]
-    ]
+      ["0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266"],
+    ],
   });
 
   const owned = m.contract("Owned", {
-    args: [timelock]
+    args: [timelock],
   });
 
   callFromTimelock(m, timelock, owned, "inc", {
-    id: "Owned.inc"
+    id: "Owned.inc",
   });
 
   return { owned };

@@ -1,6 +1,6 @@
+import { UserModule } from "@nomiclabs/ignition-core";
 import setupDebug from "debug";
 import fsExtra from "fs-extra";
-import { UserModule } from "ignition";
 import path from "path";
 
 const debug = setupDebug("hardhat-ignition:modules");

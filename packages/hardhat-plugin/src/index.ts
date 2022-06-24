@@ -1,4 +1,5 @@
 import "@nomiclabs/hardhat-ethers";
+import { Providers, UserModule } from "@nomiclabs/ignition-core";
 import {
   extendConfig,
   extendEnvironment,
@@ -7,12 +8,26 @@ import {
   types,
 } from "hardhat/config";
 import { lazyObject } from "hardhat/plugins";
-import { Providers, UserModule } from "ignition";
 import path from "path";
 
 import { IgnitionWrapper } from "./ignition-wrapper";
 import { loadUserModules } from "./user-modules";
 import "./type-extensions";
+
+export {
+  buildModule,
+  ModuleBuilder,
+  AddressLike,
+  ContractBinding,
+  ContractOptions,
+  InternalBinding,
+  InternalContractBinding,
+  Executor,
+  Contract,
+  Services,
+  Binding,
+  Hold,
+} from "@nomiclabs/ignition-core";
 
 extendConfig((config, userConfig) => {
   const userIgnitionPath = userConfig.paths?.ignition;

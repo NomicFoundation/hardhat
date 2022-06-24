@@ -1,4 +1,5 @@
-import { ModuleDefinition, UserModule } from "./types";
+import { UserModule } from "./UserModule";
+import { ModuleDefinition } from "./types";
 
 export function buildModule<T>(
   moduleId: string,

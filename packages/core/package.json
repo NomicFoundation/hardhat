@@ -1,5 +1,5 @@
 {
-  "name": "ignition",
+  "name": "@nomiclabs/ignition-core",
   "version": "0.0.2",
   "license": "MIT",
   "main": "dist/src/index.js",

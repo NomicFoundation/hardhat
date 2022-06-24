@@ -1,6 +1,7 @@
 import { Tx } from "../types";
 
-import { InternalBinding, CallOptions, Unflattened } from "./types";
+import { InternalBinding } from "./InternalBinding";
+import { CallOptions, Unflattened } from "./types";
 import { deepFlatten } from "./utils";
 
 export class InternalCallBinding extends InternalBinding<CallOptions, Tx> {

@@ -1,18 +1,14 @@
 import { ethers } from "ethers";
 import {
-  AddressLike,
   ContractBinding,
-  ContractOptions,
   buildModule,
   ModuleBuilder,
   InternalBinding,
-  InternalContractBinding,
   Executor,
-  Contract,
   Services,
   Binding,
-  Hold
-} from "ignition";
+  Hold,
+} from "@nomiclabs/hardhat-ignition";
 
 interface CallFromMultisigAndTimelockOptions {
   id: string;
@@ -64,13 +60,13 @@ class MultisigAndTimelockExecutor extends Executor<
       0,
       txData,
       zeroBytes32,
-      zeroBytes32
+      zeroBytes32,
     ];
 
     // send timelocked tx to multisig
     const scheduleTxData = timelock.interface.encodeFunctionData("schedule", [
       ...timelockParameters,
-      15
+      15,
     ]);
 
     console.log("[MultisigAndTimelockExecutor] submit schedule tx");
@@ -89,9 +85,8 @@ class MultisigAndTimelockExecutor extends Executor<
       input.multisig.abi
     );
 
-    const {
-      transactionId: multisigScheduleTxId
-    } = multisigScheduleSubmissionLog.args;
+    const { transactionId: multisigScheduleTxId } =
+      multisigScheduleSubmissionLog.args;
 
     // wait until the multisig schedule is confirmed
     const isScheduleConfirmed = await services.contracts.staticCall(
@@ -156,9 +151,8 @@ class MultisigAndTimelockExecutor extends Executor<
       input.multisig.abi
     );
 
-    const {
-      transactionId: multisigExecuteTxId
-    } = multisigExecuteSubmissionLog.args;
+    const { transactionId: multisigExecuteTxId } =
+      multisigExecuteSubmissionLog.args;
 
     // wait until the multisig execute is confirmed
     const isConfirmed = await services.contracts.staticCall(
@@ -195,7 +189,7 @@ class MultisigAndTimelockBinding extends InternalBinding<
       this.input.multisig,
       this.input.timelock,
       this.input.destination,
-      ...this.input.args
+      ...this.input.args,
     ].filter((x): x is InternalBinding<unknown, any> => {
       return InternalBinding.isBinding(x);
     });
@@ -217,7 +211,7 @@ function callFromMultisigAndTimelock(
     timelock,
     destination,
     method,
-    args
+    args,
   });
 
   m.addExecutor(new MultisigAndTimelockExecutor(b));
@@ -225,28 +219,28 @@ function callFromMultisigAndTimelock(
   return b;
 }
 
-export default buildModule("MultisigAndTimelock", m => {
+export default buildModule("MultisigAndTimelock", (m) => {
   const multisig = m.contract("MultiSigWallet", {
     args: [
       [
         "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
         "0x70997970c51812dc3a010c7d01b50e0d17dc79c8",
-        "0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc"
+        "0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc",
       ],
-      2
-    ]
+      2,
+    ],
   });
 
   const timelock = m.contract("TimelockController", {
-    args: [15, [multisig], [multisig]]
+    args: [15, [multisig], [multisig]],
   });
 
   const owned = m.contract("Owned", {
-    args: [timelock]
+    args: [timelock],
   });
 
   callFromMultisigAndTimelock(m, multisig, timelock, owned, "inc", {
-    id: "Owned.inc"
+    id: "Owned.inc",
   });
 
   return { owned };

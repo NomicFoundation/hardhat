@@ -1,10 +1,10 @@
-import { assert } from "chai";
 import {
   UserModule,
   SerializedBindingResult,
   SerializedDeploymentResult,
   DeploymentResult,
-} from "ignition";
+} from "@nomiclabs/ignition-core";
+import { assert } from "chai";
 
 export const resultAssertions = {
   contract: (predicate?: ContractResultPredicate): ExpectedBindingResult => {

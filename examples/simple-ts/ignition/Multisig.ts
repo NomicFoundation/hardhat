@@ -6,13 +6,11 @@ import {
   buildModule,
   ModuleBuilder,
   InternalBinding,
-  InternalContractBinding,
   Executor,
-  Contract,
   Services,
   Binding,
-  Hold
-} from "ignition";
+  Hold,
+} from "@nomiclabs/hardhat-ignition";
 
 interface CallFromMultisigOptions {
   id: string;
@@ -113,7 +111,7 @@ class MultisigContractBinding extends InternalBinding<
     return [
       this.input.multiSigWalletAddress,
       this.input.destination,
-      ...this.input.args
+      ...this.input.args,
     ].filter((x): x is InternalBinding<any, any> => {
       return InternalBinding.isBinding(x);
     });
@@ -135,7 +133,7 @@ function callFromMultisig(
     contractName,
     destination,
     method,
-    args
+    args,
   });
 
   m.addExecutor(new MultisigContractExecutor(b));
@@ -143,24 +141,24 @@ function callFromMultisig(
   return b;
 }
 
-export default buildModule("Multisig", m => {
+export default buildModule("Multisig", (m) => {
   const multisig = m.contract("MultiSigWallet", {
     args: [
       [
         "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
         "0x70997970c51812dc3a010c7d01b50e0d17dc79c8",
-        "0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc"
+        "0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc",
       ],
-      2
-    ]
+      2,
+    ],
   });
 
   const owned = m.contract("Owned", {
-    args: [multisig]
+    args: [multisig],
   });
 
   const tx = callFromMultisig(m, multisig, "Owned", owned, "inc", {
-    id: "Owned.inc"
+    id: "Owned.inc",
   });
 
   return { multisig, tx, owned };

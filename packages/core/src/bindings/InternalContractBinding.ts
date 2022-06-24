@@ -1,6 +1,7 @@
 import { Contract } from "../types";
 
-import { InternalBinding, ContractOptions, Unflattened } from "./types";
+import { InternalBinding } from "./InternalBinding";
+import { ContractOptions, Unflattened } from "./types";
 import { deepFlatten } from "./utils";
 
 export class InternalContractBinding extends InternalBinding<

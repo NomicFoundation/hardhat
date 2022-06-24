@@ -1,6 +1,6 @@
 {
   "name": "@nomiclabs/hardhat-ignition",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "license": "MIT",
   "main": "dist/src/index.js",
   "scripts": {
@@ -17,6 +17,7 @@
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "1.0.2",
     "@nomiclabs/hardhat-ethers": "^2.0.2",
+    "@nomiclabs/ignition-core": "^0.0.2",
     "@types/chai": "^4.2.22",
     "@types/chai-as-promised": "^7.1.4",
     "@types/debug": "^4.1.7",
@@ -33,7 +34,6 @@
     "eslint-plugin-mocha": "^9.0.0",
     "eslint-plugin-prettier": "4.0.0",
     "hardhat": "^2.0.0",
-    "ignition": "^0.0.2",
     "mocha": "^9.1.1",
     "nyc": "15.1.0",
     "prettier": "2.4.1",
@@ -43,8 +43,8 @@
   },
   "peerDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.2",
-    "hardhat": "^2.0.0",
-    "ignition": "^0.0.2"
+    "@nomiclabs/ignition-core": "^0.0.2",
+    "hardhat": "^2.0.0"
   },
   "dependencies": {
     "debug": "^4.3.2",

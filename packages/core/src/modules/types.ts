@@ -1,5 +1,9 @@
-import { Bindable, CallBinding, ContractBinding } from "../bindings/types";
+import { CallBinding } from "../bindings/CallBinding";
+import { ContractBinding } from "../bindings/ContractBinding";
+import { Bindable } from "../bindings/types";
 import { Executor } from "../executors/executors";
+
+import { UserModule } from "./UserModule";
 
 export interface UserContractOptions {
   id?: string;
@@ -30,12 +34,3 @@ export interface ModuleBuilder {
 }
 
 export type ModuleDefinition<T> = (m: ModuleBuilder) => T;
-
-export class UserModule<T> {
-  public readonly version = 1;
-
-  constructor(
-    public readonly id: string,
-    public readonly definition: ModuleDefinition<T>
-  ) {}
-}

@@ -1,5 +1,5 @@
+import { buildModule } from "@nomiclabs/ignition-core";
 import { assert } from "chai";
-import { buildModule } from "ignition";
 
 import {
   assertDeploymentState,
