@@ -54,3 +54,11 @@ Formatting is enforced with `prettier` and code rules with `eslint`, to run both
 ```shell
 yarn lint
 ```
+
+## Clean
+
+If typescript or testing gets into a weird state, `clean` will remove ephemeral folders (i.e. `./dist`, `./coverage` etc) and clear the typescript build info cache, allowing you to start from clean:
+
+```shell
+yarn clean
+```
