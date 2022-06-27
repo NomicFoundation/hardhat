@@ -9,7 +9,7 @@ Join our [Hardhat Support Discord server](https://hardhat.org/discord) to stay u
 ## Installation
 
 ```shell
-npm install @nomiclabs/hardhat-ignition
+npm install @nomicfoundation/hardhat-ignition
 ```
 
 ## Documentation

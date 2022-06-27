@@ -1,5 +1,5 @@
-import { extendEnvironment } from "hardhat/config"
-import "@nomiclabs/hardhat-ignition"
+import { extendEnvironment } from "hardhat/config";
+import "@nomicfoundation/hardhat-ignition";
 
 export default {
   solidity: "0.8.4",

@@ -1,5 +1,5 @@
 import "@nomiclabs/hardhat-ethers";
-import { Providers, UserModule } from "@nomiclabs/ignition-core";
+import { Providers, UserModule } from "@nomicfoundation/ignition-core";
 import {
   extendConfig,
   extendEnvironment,
@@ -27,7 +27,7 @@ export {
   Services,
   Binding,
   Hold,
-} from "@nomiclabs/ignition-core";
+} from "@nomicfoundation/ignition-core";
 
 extendConfig((config, userConfig) => {
   const userIgnitionPath = userConfig.paths?.ignition;

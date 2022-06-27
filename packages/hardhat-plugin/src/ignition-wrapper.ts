@@ -6,7 +6,7 @@ import {
   IgnitionDeployOptions,
   SerializedModuleResult,
   Providers,
-} from "@nomiclabs/ignition-core";
+} from "@nomicfoundation/ignition-core";
 import { ethers } from "ethers";
 import fsExtra from "fs-extra";
 import { HardhatConfig, HardhatRuntimeEnvironment } from "hardhat/types";

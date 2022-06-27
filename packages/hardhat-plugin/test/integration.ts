@@ -1,4 +1,4 @@
-import { buildModule } from "@nomiclabs/ignition-core";
+import { buildModule } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 
 import {

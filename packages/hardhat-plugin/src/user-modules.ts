@@ -1,4 +1,4 @@
-import { UserModule } from "@nomiclabs/ignition-core";
+import { UserModule } from "@nomicfoundation/ignition-core";
 import setupDebug from "debug";
 import fsExtra from "fs-extra";
 import path from "path";

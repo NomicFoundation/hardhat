@@ -3,7 +3,7 @@ import {
   SerializedBindingResult,
   SerializedDeploymentResult,
   DeploymentResult,
-} from "@nomiclabs/ignition-core";
+} from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 
 export const resultAssertions = {

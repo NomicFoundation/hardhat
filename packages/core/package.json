@@ -1,7 +1,8 @@
 {
-  "name": "@nomiclabs/ignition-core",
+  "name": "@nomicfoundation/ignition-core",
   "version": "0.0.2",
   "license": "MIT",
+  "author": "Nomic Foundation",
   "main": "dist/src/index.js",
   "scripts": {
     "build": "tsc",

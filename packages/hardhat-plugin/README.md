@@ -9,19 +9,19 @@ This plugin brings **Ignition** to your **Hardhat** project, allowing you to orc
 ## Installation
 
 ```bash
-npm install --save-dev @nomiclabs/hardhat-ignition
+npm install --save-dev @nomicfoundation/hardhat-ignition
 ```
 
 And add the following statement to your `hardhat.config.js`:
 
 ```js
-require("@nomiclabs/hardhat-ignition");
+require("@nomicfoundation/hardhat-ignition");
 ```
 
 Or, if you are using TypeScript, add this to your `hardhat.config.ts`:
 
 ```js
-import "@nomiclabs/hardhat-ignition";
+import "@nomicfoundation/hardhat-ignition";
 ```
 
 ## Tasks

@@ -4,7 +4,7 @@
   "private": true,
   "dependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.2",
-    "@nomiclabs/hardhat-ignition": "^0.0.2",
+    "@nomicfoundation/hardhat-ignition": "^0.0.2",
     "@openzeppelin/contracts": "^4.3.2",
     "@types/chai": "^4.2.22",
     "@types/mocha": "^9.0.0",

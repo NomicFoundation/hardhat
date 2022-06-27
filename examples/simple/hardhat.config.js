@@ -1,4 +1,4 @@
-require("@nomiclabs/hardhat-ignition")
+require("@nomicfoundation/hardhat-ignition");
 
 module.exports = {
   solidity: "0.8.5",
@@ -7,7 +7,7 @@ module.exports = {
       mining: {
         // auto: false
       },
-      initialBaseFeePerGas: 1_000_000_000
+      initialBaseFeePerGas: 1_000_000_000,
     },
   },
 };

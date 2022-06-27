@@ -5,7 +5,7 @@
 Add **Ignition** to your **Hardhat** project by installing the plugin:
 
 ```shell
-npm install @nomiclabs/hardhat-ignition
+npm install @nomicfoundation/hardhat-ignition
 ```
 
 Modify your `Hardhat.config.{ts,js}` file, to include **Ignition**:
@@ -13,7 +13,7 @@ Modify your `Hardhat.config.{ts,js}` file, to include **Ignition**:
 ```javascript
 import { HardhatUserConfig, task } from "hardhat/config";
 // ...
-import "@nomiclabs/hardhat-ignition";
+import "@nomicfoundation/hardhat-ignition";
 ```
 
 Create an `./ignition` folder in your project root to contain your deployment modules.

@@ -10,7 +10,7 @@ import {
   Services,
   Binding,
   Hold,
-} from "@nomiclabs/hardhat-ignition";
+} from "@nomicfoundation/hardhat-ignition";
 
 interface CallFromMultisigOptions {
   id: string;
