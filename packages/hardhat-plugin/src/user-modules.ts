@@ -12,8 +12,7 @@ export async function loadUserModules(
   debug(`Loading user modules from '${userModulesDirectory}'`);
 
   if (!fsExtra.existsSync(userModulesDirectory)) {
-    console.warn(`Directory ${userModulesDirectory} not found.`);
-    process.exit(0);
+    throw new Error(`Directory ${userModulesDirectory} not found.`);
   }
 
   let resolvedUserModulesPaths: string[];
