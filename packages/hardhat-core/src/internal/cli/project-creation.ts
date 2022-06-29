@@ -14,11 +14,11 @@ import {
 } from "../util/global-dir";
 import { fromEntries } from "../util/lang";
 import { getPackageJson, getPackageRoot } from "../util/packageInfo";
+import { Dependencies } from "../../types/cli";
 import {
   confirmRecommendedDepsInstallation,
   confirmTelemetryConsent,
   confirmProjectCreation,
-  Dependencies,
 } from "./prompt";
 
 import { emoji } from "./emoji";

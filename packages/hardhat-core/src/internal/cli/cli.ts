@@ -23,8 +23,8 @@ import { isRunningOnCiServer } from "../util/ci-detection";
 import {
   hasConsentedTelemetry,
   writeTelemetryConsent,
-  hasPromptedForExtension,
-  writePromptedForExtension,
+  hasPromptedForHHVSCode,
+  writePromptedForHHVSCode,
 } from "../util/global-dir";
 import { getPackageJson, PackageJson } from "../util/packageInfo";
 
@@ -33,10 +33,7 @@ import { Analytics } from "./analytics";
 import { ArgumentsParser } from "./ArgumentsParser";
 import { enableEmoji } from "./emoji";
 import { createProject } from "./project-creation";
-import {
-  confirmTelemetryConsent,
-  confirmExtensionInstallation,
-} from "./prompt";
+import { confirmTelemetryConsent, confirmHHVSCodeInstallation } from "./prompt";
 
 const log = debug("hardhat:core:cli");
 
@@ -235,9 +232,9 @@ async function main() {
     }
 
     // VSCode extension prompt for installation
-    const alreadyPrompted = hasPromptedForExtension();
+    const alreadyPrompted = hasPromptedForHHVSCode();
     if (!alreadyPrompted) {
-      const installationConsent = await confirmExtensionInstallation();
+      const installationConsent = await confirmHHVSCodeInstallation();
 
       if (installationConsent !== undefined) {
         if (installationConsent) {
@@ -247,7 +244,7 @@ async function main() {
             "To learn more about Hardhat for Visual Studio Code, go to https://hardhat.org/hardhat-vscode"
           );
         }
-        writePromptedForExtension();
+        writePromptedForHHVSCode();
       }
     }
 

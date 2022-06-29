@@ -1,14 +1,13 @@
 import { exec } from "child_process";
 import { promisify } from "util";
+
+import { Dependencies } from "../../types/cli";
+
 import { isYarnProject } from "./project-creation";
 
 const execAsync = promisify(exec);
 
 const TELEMETRY_CONSENT_TIMEOUT = 10000;
-
-export interface Dependencies {
-  [name: string]: string;
-}
 
 function createConfirmationPrompt(name: string, message: string) {
   return {
@@ -49,7 +48,7 @@ function createConfirmationPrompt(name: string, message: string) {
  * false = don't install and don't ask again
  * undefined = don't install but maybe ask next time if something changes (i.e. they install VS Code)
  */
-export async function confirmExtensionInstallation(): Promise<
+export async function confirmHHVSCodeInstallation(): Promise<
   boolean | undefined
 > {
   const enquirer = require("enquirer");
