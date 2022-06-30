@@ -18,16 +18,6 @@ const Container = styled.div`
   align-items: center;
   -webkit-font-smoothing: antialiased;
   background-color: ${tm(({ colors }) => colors.neutral0)};
-  main {
-    overflow-x: hidden;
-    padding-top: 136px;
-    flex: 1 1 auto;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: center;
-    width: 100%;
-  }
   min-width: 320px;
   ${tmSelectors.dark} {
     background-color: ${tmDark(({ colors }) => colors.neutral0)};
@@ -37,6 +27,17 @@ const Container = styled.div`
       background-color: ${tmDark(({ colors }) => colors.neutral0)};
     }
   }
+`;
+
+const Main = styled.main`
+  overflow-x: hidden;
+  padding-top: 136px;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  width: 100%;
 `;
 
 type Props = React.PropsWithChildren<{
@@ -71,10 +72,10 @@ const LandingLayout = ({ children, seo }: Props) => {
         </Header>
 
         <SEO seo={seo} />
-        <main>
+        <Main>
           {children}
           <LandingFooter />
-        </main>
+        </Main>
       </Container>
       <GDPRNotice />
     </ThemeProvider>

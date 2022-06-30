@@ -13,8 +13,13 @@ import {
 } from "../util/global-dir";
 import { fromEntries } from "../util/lang";
 import { getPackageJson, getPackageRoot } from "../util/packageInfo";
-
+import { Dependencies } from "../../types/cli";
 import { pluralize } from "../util/strings";
+import {
+  confirmRecommendedDepsInstallation,
+  confirmTelemetryConsent,
+  confirmProjectCreation,
+} from "./prompt";
 import { emoji } from "./emoji";
 
 enum Action {
@@ -27,10 +32,6 @@ enum Action {
 type SampleProjectTypeCreationAction =
   | Action.CREATE_JAVASCRIPT_PROJECT_ACTION
   | Action.CREATE_TYPESCRIPT_PROJECT_ACTION;
-
-interface Dependencies {
-  [name: string]: string;
-}
 
 const HARDHAT_PACKAGE_NAME = "hardhat";
 
@@ -65,8 +66,6 @@ const TYPESCRIPT_PEER_DEPENDENCIES: Dependencies = {
   "ts-node": ">=8.0.0",
   typescript: ">=4.5.0",
 };
-
-const TELEMETRY_CONSENT_TIMEOUT = 10000;
 
 // generated with the "colossal" font
 function printAsciiLogo() {
@@ -247,7 +246,6 @@ async function createPackageJson() {
 }
 
 export async function createProject() {
-  const { default: enquirer } = await import("enquirer");
   printAsciiLogo();
 
   await printWelcomeMessage();
@@ -299,18 +297,7 @@ export async function createProject() {
     };
   } else {
     try {
-      responses = await enquirer.prompt<typeof responses>([
-        {
-          name: "projectRoot",
-          type: "input",
-          initial: process.cwd(),
-          message: "Hardhat project root:",
-        },
-        createConfirmationPrompt(
-          "shouldAddGitIgnore",
-          "Do you want to add a .gitignore?"
-        ),
-      ]);
+      responses = await confirmProjectCreation();
     } catch (e) {
       if (e === "") {
         return;
@@ -389,40 +376,6 @@ export async function createProject() {
   );
 }
 
-function createConfirmationPrompt(name: string, message: string) {
-  return {
-    type: "confirm",
-    name,
-    message,
-    initial: "y",
-    default: "(Y/n)",
-    isTrue(input: string | boolean) {
-      if (typeof input === "string") {
-        return input.toLowerCase() === "y";
-      }
-
-      return input;
-    },
-    isFalse(input: string | boolean) {
-      if (typeof input === "string") {
-        return input.toLowerCase() === "n";
-      }
-
-      return input;
-    },
-    format(): string {
-      const that = this as any;
-      const value = that.value === true ? "y" : "n";
-
-      if (that.state.submitted === true) {
-        return that.styles.submitted(value);
-      }
-
-      return value;
-    },
-  };
-}
-
 async function canInstallRecommendedDeps() {
   return (
     (await fsExtra.pathExists("package.json")) &&
@@ -444,7 +397,7 @@ function isInstalled(dep: string) {
   return dep in allDependencies;
 }
 
-async function isYarnProject() {
+export async function isYarnProject() {
   return fsExtra.pathExists("yarn.lock");
 }
 
@@ -471,64 +424,6 @@ async function installRecommendedDependencies(dependencies: Dependencies) {
   return installDependencies(installCmd[0], installCmd.slice(1));
 }
 
-async function confirmRecommendedDepsInstallation(
-  depsToInstall: Dependencies
-): Promise<boolean> {
-  const { default: enquirer } = await import("enquirer");
-
-  let responses: {
-    shouldInstallPlugin: boolean;
-  };
-
-  const packageManager = (await isYarnProject()) ? "yarn" : "npm";
-
-  try {
-    responses = await enquirer.prompt<typeof responses>([
-      createConfirmationPrompt(
-        "shouldInstallPlugin",
-        `Do you want to install this sample project's dependencies with ${packageManager} (${Object.keys(
-          depsToInstall
-        ).join(" ")})?`
-      ),
-    ]);
-  } catch (e) {
-    if (e === "") {
-      return false;
-    }
-
-    // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
-    throw e;
-  }
-
-  return responses.shouldInstallPlugin;
-}
-
-export async function confirmTelemetryConsent(): Promise<boolean | undefined> {
-  const enquirer = require("enquirer");
-
-  const prompt = new enquirer.prompts.Confirm({
-    name: "telemetryConsent",
-    type: "confirm",
-    initial: true,
-    message:
-      "Help us improve Hardhat with anonymous crash reports & basic usage data?",
-  });
-
-  let timeout;
-  const timeoutPromise = new Promise((resolve) => {
-    timeout = setTimeout(resolve, TELEMETRY_CONSENT_TIMEOUT);
-  });
-
-  const result = await Promise.race([prompt.run(), timeoutPromise]);
-
-  clearTimeout(timeout);
-  if (result === undefined) {
-    await prompt.cancel();
-  }
-
-  return result;
-}
-
 async function installDependencies(
   packageManager: string,
   args: string[]
@@ -538,7 +433,7 @@ async function installDependencies(
   console.log(`${packageManager} ${args.join(" ")}`);
 
   const childProcess = spawn(packageManager, args, {
-    stdio: "inherit" as any, // There's an error in the TS definition of ForkOptions
+    stdio: "inherit",
   });
 
   return new Promise((resolve, reject) => {
