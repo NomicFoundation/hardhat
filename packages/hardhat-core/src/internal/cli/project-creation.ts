@@ -345,7 +345,10 @@ export async function createProject() {
     } else if (installedExceptHardhat.length === 0) {
       const shouldInstall =
         useDefaultPromptResponses ||
-        (await confirmRecommendedDepsInstallation(dependenciesToInstall));
+        (await confirmRecommendedDepsInstallation(
+          dependenciesToInstall,
+          await isYarnProject()
+        ));
       if (shouldInstall) {
         const installed = await installRecommendedDependencies(
           dependenciesToInstall
@@ -397,7 +400,7 @@ function isInstalled(dep: string) {
   return dep in allDependencies;
 }
 
-export async function isYarnProject() {
+async function isYarnProject() {
   return fsExtra.pathExists("yarn.lock");
 }
 

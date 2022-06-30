@@ -1,4 +1,3 @@
-import { isYarnProject } from "./project-creation";
 import { Dependencies } from "./types";
 
 const TELEMETRY_CONSENT_TIMEOUT = 10000;
@@ -38,7 +37,8 @@ function createConfirmationPrompt(name: string, message: string) {
 }
 
 export async function confirmRecommendedDepsInstallation(
-  depsToInstall: Dependencies
+  depsToInstall: Dependencies,
+  useYarn: boolean
 ): Promise<boolean> {
   const { default: enquirer } = await import("enquirer");
 
@@ -46,7 +46,7 @@ export async function confirmRecommendedDepsInstallation(
     shouldInstallPlugin: boolean;
   };
 
-  const packageManager = (await isYarnProject()) ? "yarn" : "npm";
+  const packageManager = useYarn ? "yarn" : "npm";
 
   try {
     responses = await enquirer.prompt<typeof responses>([
