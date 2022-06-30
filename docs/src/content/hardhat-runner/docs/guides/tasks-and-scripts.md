@@ -1,14 +1,14 @@
 # Writing tasks and scripts
 
-At its core, Hardhat is a task runner that allows you to automate your development workflow. It comes with some built-in tasks, like `compile` and `test`, but you can customize it.
+At its core, Hardhat is a task runner that allows you to automate your development workflow. It comes with some built-in tasks, like `compile` and `test`, but you can add your own custom tasks as well.
 
-In this guide will show you how to extend Hardhat's functionality using tasks and scripts. It assumes you have initialized a sample project. If you haven't done it, please read [this guide](./project-setup.md) first.
+This guide will show you how to extend Hardhat's functionality using tasks and scripts. It assumes you have initialized a sample project. If you haven't done it, please read [this guide](./project-setup.md) first.
 
 ## Writing Hardhat Tasks
 
 Let's write a very simple task that prints the list of available accounts, and explore how it works.
 
-Please, copy this task definition and paste it into your config:
+Copy this task definition and paste it into your hardhat config file:
 
 ```js
 task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {

@@ -75,4 +75,4 @@ You can still pass arguments to Hardhat when running a standalone script. This i
 
 - `HARDHAT_MAX_MEMORY`: Sets the maximum amount of memory that Hardhat can use.
 
-For example, instead of doing `npx hardhat --network localhost run script.js`, you should do `HARDHAT_NETWORK=localhost node script.js`.
+For example, instead of doing `npx hardhat --network localhost run script.js`, you can do `HARDHAT_NETWORK=localhost node script.js`.
