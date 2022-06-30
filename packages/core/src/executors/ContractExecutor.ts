@@ -35,8 +35,13 @@ export class ContractExecutor extends Executor<ContractOptions, Contract> {
     };
 
     const args = input.args.map(mapToAddress);
-    const txHash = await services.contracts.deploy(artifact, args);
-
+    const libraries = Object.fromEntries(
+      Object.entries(input.libraries ?? {}).map(([k, v]) => [
+        k,
+        mapToAddress(v),
+      ])
+    );
+    const txHash = await services.contracts.deploy(artifact, args, libraries);
     const receipt = await services.transactions.wait(txHash);
 
     return {

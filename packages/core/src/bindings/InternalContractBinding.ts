@@ -25,7 +25,12 @@ export class InternalContractBinding extends InternalBinding<
       return [];
     };
 
-    const dependencies = deepFlatten(mapToBindings(this.input.args));
+    const argBindings = deepFlatten(mapToBindings(this.input.args));
+    const libraryBindings = deepFlatten(
+      mapToBindings(Object.values(this.input.libraries ?? {}))
+    );
+
+    const dependencies = argBindings.concat(libraryBindings);
 
     return dependencies;
   }

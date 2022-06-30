@@ -62,3 +62,18 @@ const uniswap = m.contractAt("UniswapRouter", "0x123...", abi)
 
 m.call(uniswap, "swap", { ... })
 ```
+
+### Linking libraries
+
+A library can be deployed and linked to a contract by passing the libraries contract binding as a named entry under the libraries option:
+
+```tsx
+const safeMath = m.contract("SafeMath")
+const contract = m.contract("Contract", {
+  libraries: {
+    SafeMath: safeMath
+  }
+})
+```
+
+A library is deployed in the same way as a contract.

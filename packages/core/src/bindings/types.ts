@@ -15,6 +15,7 @@ export type SerializedDeploymentResult = Record<string, SerializedModuleResult>;
 export interface ContractOptions {
   contractName: string;
   args: Array<Bindable<any>>;
+  libraries?: Record<string, Bindable<any>>;
 }
 
 export interface ExistingContractOptions {

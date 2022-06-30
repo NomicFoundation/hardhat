@@ -224,6 +224,99 @@ describe("integration tests", function () {
     });
   });
 
+  describe("libraries", () => {
+    it("should deploy a contract with a library", async function () {
+      // given
+      const withLibModule = buildModule("LibModule", (m) => {
+        const rubbishMath = m.contract("RubbishMath");
+
+        const dependsOnLib = m.contract("DependsOnLib", {
+          libraries: {
+            RubbishMath: rubbishMath,
+          },
+        });
+
+        return { dependsOnLib };
+      });
+
+      // when
+      const deploymentResult = await deployModules(
+        this.hre,
+        [withLibModule],
+        [1, 1]
+      );
+
+      // then
+      await assertDeploymentState(this.hre, deploymentResult, {
+        LibModule: {
+          RubbishMath: resultAssertions.contract(async (rubbishMath) => {
+            assert.equal(await rubbishMath.add(1, 2), 3);
+          }),
+          DependsOnLib: resultAssertions.contract(async (dependsOnLib) => {
+            assert.equal(await dependsOnLib.addThreeNumbers(1, 2, 3), 6);
+          }),
+        },
+      });
+    });
+
+    it("should deploy a contract with an existing library", async function () {
+      // given
+      const rubbishMathLibModule = buildModule("RubbishMathLibModule", (m) => {
+        const rubbishMath = m.contract("RubbishMath");
+
+        return { rubbishMath };
+      });
+
+      const rubbishMathDeploymentResult = await deployModules(
+        this.hre,
+        [rubbishMathLibModule],
+        [1]
+      );
+
+      if (
+        !isContract(
+          rubbishMathDeploymentResult.RubbishMathLibModule.RubbishMath.value
+        )
+      ) {
+        assert.fail("Expected library deployed");
+      }
+
+      const { address, abi } =
+        rubbishMathDeploymentResult.RubbishMathLibModule.RubbishMath.value;
+
+      const withLibModule = buildModule("LibModule", (m) => {
+        const rubbishMath = m.contractAt("RubbishMath", address, abi);
+
+        const dependsOnLib = m.contract("DependsOnLib", {
+          libraries: {
+            RubbishMath: rubbishMath,
+          },
+        });
+
+        return { dependsOnLib };
+      });
+
+      // when
+      const deploymentResult = await deployModules(
+        this.hre,
+        [withLibModule],
+        [1]
+      );
+
+      // then
+      await assertDeploymentState(this.hre, deploymentResult, {
+        LibModule: {
+          RubbishMath: resultAssertions.contract(async (rubbishMath) => {
+            assert.equal(await rubbishMath.add(1, 2), 3);
+          }),
+          DependsOnLib: resultAssertions.contract(async (dependsOnLib) => {
+            assert.equal(await dependsOnLib.addThreeNumbers(1, 2, 3), 6);
+          }),
+        },
+      });
+    });
+  });
+
   it("should fail if a call fails", async function () {
     // given
     const userModule = buildModule("MyModule", (m) => {

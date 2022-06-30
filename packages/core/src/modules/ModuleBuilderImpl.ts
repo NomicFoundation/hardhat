@@ -56,9 +56,11 @@ export class ModuleBuilderImpl implements ModuleBuilder {
   ): InternalBinding<ContractOptions, Contract> {
     const id = options?.id ?? contractName;
     const args = options?.args ?? [];
+    const libraries = options?.libraries ?? {};
     const b = new InternalContractBinding(this.getModuleId(), id, {
       contractName,
       args,
+      libraries,
     });
 
     this.addExecutor(new ContractExecutor(b));

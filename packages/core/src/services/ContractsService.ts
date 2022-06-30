@@ -1,6 +1,7 @@
 import setupDebug from "debug";
 import { ethers, Contract, ContractFactory } from "ethers";
 
+import { collectLibrariesAndLink } from "../collectLibrariesAndLink";
 import { IgnitionSigner, Providers } from "../providers";
 import { TxSender } from "../tx-sender";
 import { Artifact } from "../types";
@@ -25,11 +26,15 @@ export class ContractsService {
   public async deploy(
     artifact: Artifact,
     args: any[],
+    libraries: { [k: string]: any },
     txOptions?: TransactionOptions
   ): Promise<string> {
     this._debug("Deploying contract");
     const signer = await this._providers.signers.getDefaultSigner();
-    const Factory = new ContractFactory(artifact.abi, artifact.bytecode);
+
+    const linkedByteCode = await collectLibrariesAndLink(artifact, libraries);
+
+    const Factory = new ContractFactory(artifact.abi, linkedByteCode);
 
     const deployTransaction = Factory.getDeployTransaction(...args);
 

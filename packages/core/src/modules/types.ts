@@ -8,6 +8,7 @@ import { UserModule } from "./UserModule";
 export interface UserContractOptions {
   id?: string;
   args?: Array<Bindable<any>>;
+  libraries?: Record<string, ContractBinding>;
 }
 
 export interface UserCallOptions {

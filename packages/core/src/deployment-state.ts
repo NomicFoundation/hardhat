@@ -87,7 +87,9 @@ export class DeploymentState {
     const bindingState = this._getBindingState(moduleId, bindingId);
 
     if (bindingState._kind !== "success") {
-      throw new Error("assertion error");
+      throw new Error(
+        `assertion error, unsuccessful binding state: ${bindingState._kind}`
+      );
     }
 
     return bindingState.result;
