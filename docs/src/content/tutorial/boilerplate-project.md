@@ -1,8 +1,6 @@
 # Hardhat Boilerplate Project
 
-If you want to get started with your dApp quickly or see what this whole project looks like with a frontend, you can use our boilerplate repo.
-
-[https://github.com/nomiclabs/hardhat-boilerplate](https://github.com/nomiclabs/hardhat-boilerplate)
+If you want to get started with your dApp quickly or see what this whole project looks like with a frontend, you can use [our boilerplate repo](https://github.com/NomicFoundation/hardhat-boilerplate).
 
 ## What's included
 
@@ -77,7 +75,7 @@ npx hardhat --network localhost faucet <your address>
 
 You'll run a custom **Hardhat** task we included that uses the balance of the deploying account to send 100 MBT and 1 ETH to your address. This will allow you to send tokens to another address.
 
-You can check out the code for the task in [`/tasks/faucet.js`](https://github.com/nomiclabs/hardhat-boilerplate/blob/master/tasks/faucet.js), which is required from `hardhat.config.js`.
+You can check out the code for the task in [`/tasks/faucet.js`](https://github.com/NomicFoundation/hardhat-boilerplate/blob/master/tasks/faucet.js), which is required from `hardhat.config.js`.
 
 ```
 $ npx hardhat --network localhost faucet 0x0987a41e73e69f60c5071ce3c8f7e730f9a60f90
