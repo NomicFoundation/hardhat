@@ -188,7 +188,7 @@ const generateGroupSection = (folder: FolderType) => {
 const generateSingleSection = (folder: FolderType) => {
   const tocItem = {
     label: folder[DirInfoConfigKeys.SECTION_TITLE],
-    href: `/${folder.path}`,
+    href: folder[DirInfoConfigKeys.SECTION_URL] ?? `/${folder.path}`,
     type: folder[DirInfoConfigKeys.SECTION_TYPE],
     children: folder.order?.length
       ? getSubitems(folder.path, folder.order)
