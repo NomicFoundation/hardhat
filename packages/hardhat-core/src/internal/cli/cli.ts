@@ -64,6 +64,38 @@ To learn more about which versions of Node.js are supported go to https://hardha
   }
 }
 
+async function suggestInstallingHardhatVscode() {
+  const alreadyPrompted = hasPromptedForHHVSCode();
+  if (alreadyPrompted) {
+    return;
+  }
+
+  const isInstalled = isHardhatVSCodeInstalled();
+
+  if (isInstalled !== InstallationState.EXTENSION_NOT_INSTALLED) {
+    return;
+  }
+
+  const installationConsent = await confirmHHVSCodeInstallation();
+  writePromptedForHHVSCode();
+
+  if (installationConsent === true) {
+    const installed = installHardhatVSCode();
+
+    if (installed) {
+      console.log("Hardhat for Visual Studio Code was successfully installed");
+    } else {
+      console.log(
+        "Hardhat for Visual Studio Code couldn't be installed. To learn more about it, go to https://hardhat.org/hardhat-vscode"
+      );
+    }
+  } else {
+    console.log(
+      "To learn more about Hardhat for Visual Studio Code, go to https://hardhat.org/hardhat-vscode"
+    );
+  }
+}
+
 async function main() {
   // We first accept this argument anywhere, so we know if the user wants
   // stack traces before really parsing the arguments.
@@ -233,25 +265,8 @@ async function main() {
     }
 
     // VSCode extension prompt for installation
-    const alreadyPrompted = hasPromptedForHHVSCode();
-    if (!alreadyPrompted) {
-      const isInstalled = isHardhatVSCodeInstalled();
-
-      if (isInstalled === InstallationState.VSCODE_FAILED_OR_NOT_INSTALLED) {
-        const installationConsent = await confirmHHVSCodeInstallation();
-
-        if (installationConsent !== undefined) {
-          if (installationConsent) {
-            installHardhatVSCode();
-          } else {
-            console.log(
-              "To learn more about Hardhat for Visual Studio Code, go to https://hardhat.org/hardhat-vscode"
-            );
-          }
-
-          writePromptedForHHVSCode();
-        }
-      }
+    if (taskName === "test") {
+      await suggestInstallingHardhatVscode();
     }
 
     log(`Killing Hardhat after successfully running task ${taskName}`);

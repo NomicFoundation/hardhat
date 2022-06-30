@@ -119,12 +119,9 @@ async function confirmationPromptWithTimeout(
   try {
     const enquirer = require("enquirer");
 
-    const prompt = new enquirer.prompts.Confirm({
-      name,
-      type: "confirm",
-      initial: true,
-      message,
-    });
+    const prompt = new enquirer.prompts.Confirm(
+      createConfirmationPrompt(name, message)
+    );
 
     let timeout;
     const timeoutPromise = new Promise((resolve) => {
