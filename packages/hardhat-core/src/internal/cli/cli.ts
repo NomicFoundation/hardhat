@@ -2,6 +2,7 @@
 import chalk from "chalk";
 import debug from "debug";
 import semver from "semver";
+import { execSync } from "child_process";
 import "source-map-support/register";
 
 import { TASK_COMPILE, TASK_HELP } from "../../builtin-tasks/task-names";
@@ -22,6 +23,8 @@ import { isRunningOnCiServer } from "../util/ci-detection";
 import {
   hasConsentedTelemetry,
   writeTelemetryConsent,
+  hasPromptedForHHVSCode,
+  writePromptedForHHVSCode,
 } from "../util/global-dir";
 import { getPackageJson, PackageJson } from "../util/packageInfo";
 
@@ -29,7 +32,8 @@ import { applyWorkaround } from "../util/antlr-prototype-pollution-workaround";
 import { Analytics } from "./analytics";
 import { ArgumentsParser } from "./ArgumentsParser";
 import { enableEmoji } from "./emoji";
-import { confirmTelemetryConsent, createProject } from "./project-creation";
+import { createProject } from "./project-creation";
+import { confirmTelemetryConsent, confirmHHVSCodeInstallation } from "./prompt";
 
 const log = debug("hardhat:core:cli");
 
@@ -226,6 +230,24 @@ async function main() {
     } else {
       abortAnalytics();
     }
+
+    // VSCode extension prompt for installation
+    const alreadyPrompted = hasPromptedForHHVSCode();
+    if (!alreadyPrompted) {
+      const installationConsent = await confirmHHVSCodeInstallation();
+
+      if (installationConsent !== undefined) {
+        if (installationConsent) {
+          execSync("code --install-extension NomicFoundation.hardhat-solidity");
+        } else {
+          console.log(
+            "To learn more about Hardhat for Visual Studio Code, go to https://hardhat.org/hardhat-vscode"
+          );
+        }
+        writePromptedForHHVSCode();
+      }
+    }
+
     log(`Killing Hardhat after successfully running task ${taskName}`);
   } catch (error) {
     let isHardhatError = false;
