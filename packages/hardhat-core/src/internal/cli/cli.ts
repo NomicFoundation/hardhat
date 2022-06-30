@@ -2,7 +2,6 @@
 import chalk from "chalk";
 import debug from "debug";
 import semver from "semver";
-import { execSync } from "child_process";
 import "source-map-support/register";
 
 import { TASK_COMPILE, TASK_HELP } from "../../builtin-tasks/task-names";
