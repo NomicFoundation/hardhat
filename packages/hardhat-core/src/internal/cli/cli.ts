@@ -22,9 +22,9 @@ import { Reporter } from "../sentry/reporter";
 import { isRunningOnCiServer } from "../util/ci-detection";
 import {
   hasConsentedTelemetry,
-  writeTelemetryConsent,
   hasPromptedForHHVSCode,
   writePromptedForHHVSCode,
+  writeTelemetryConsent,
 } from "../util/global-dir";
 import { getPackageJson, PackageJson } from "../util/packageInfo";
 
@@ -33,7 +33,12 @@ import { Analytics } from "./analytics";
 import { ArgumentsParser } from "./ArgumentsParser";
 import { enableEmoji } from "./emoji";
 import { createProject } from "./project-creation";
-import { confirmTelemetryConsent, confirmHHVSCodeInstallation } from "./prompt";
+import { confirmHHVSCodeInstallation, confirmTelemetryConsent } from "./prompt";
+import {
+  InstallationState,
+  installHardhatVSCode,
+  isHardhatVSCodeInstalled,
+} from "./hardhat-vscode-installation";
 
 const log = debug("hardhat:core:cli");
 
@@ -231,17 +236,22 @@ async function main() {
     // VSCode extension prompt for installation
     const alreadyPrompted = hasPromptedForHHVSCode();
     if (!alreadyPrompted) {
-      const installationConsent = await confirmHHVSCodeInstallation();
+      const isInstalled = isHardhatVSCodeInstalled();
 
-      if (installationConsent !== undefined) {
-        if (installationConsent) {
-          execSync("code --install-extension NomicFoundation.hardhat-solidity");
-        } else {
-          console.log(
-            "To learn more about Hardhat for Visual Studio Code, go to https://hardhat.org/hardhat-vscode"
-          );
+      if (isInstalled === InstallationState.VSCODE_FAILED_OR_NOT_INSTALLED) {
+        const installationConsent = await confirmHHVSCodeInstallation();
+
+        if (installationConsent !== undefined) {
+          if (installationConsent) {
+            installHardhatVSCode();
+          } else {
+            console.log(
+              "To learn more about Hardhat for Visual Studio Code, go to https://hardhat.org/hardhat-vscode"
+            );
+          }
+
+          writePromptedForHHVSCode();
         }
-        writePromptedForHHVSCode();
       }
     }
 

@@ -1,10 +1,5 @@
-import { exec } from "child_process";
-import { promisify } from "util";
-
 import { isYarnProject } from "./project-creation";
 import { Dependencies } from "./types";
-
-const execAsync = promisify(exec);
 
 const TELEMETRY_CONSENT_TIMEOUT = 10000;
 
@@ -51,45 +46,29 @@ export async function confirmHHVSCodeInstallation(): Promise<
   boolean | undefined
 > {
   const enquirer = require("enquirer");
-
   try {
-    const { stdout } = await execAsync("code --list-extensions");
-    const extName = new RegExp("NomicFoundation.hardhat-solidity");
+    const prompt = new enquirer.prompts.Confirm({
+      name: "shouldInstallExtension",
+      type: "confirm",
+      initial: true,
+      message:
+        "Would you like to install the Hardhat for Visual Studio Code extension? It adds advanced editing assistance for Solidity to VSCode",
+    });
 
-    const hasExtension = extName.test(stdout);
+    let timeout;
+    const timeoutPromise = new Promise((resolve) => {
+      timeout = setTimeout(resolve, TELEMETRY_CONSENT_TIMEOUT);
+    });
 
-    if (!hasExtension) {
-      const prompt = new enquirer.prompts.Confirm({
-        name: "shouldInstallExtension",
-        type: "confirm",
-        initial: true,
-        message:
-          "Would you like to install the Hardhat for Visual Studio Code extension? It adds advanced editing assistance for Solidity to VSCode",
-      });
+    const result = await Promise.race([prompt.run(), timeoutPromise]);
 
-      let timeout;
-      const timeoutPromise = new Promise((resolve) => {
-        timeout = setTimeout(resolve, TELEMETRY_CONSENT_TIMEOUT);
-      });
-
-      const result = await Promise.race([prompt.run(), timeoutPromise]);
-
-      clearTimeout(timeout);
-      if (result === undefined) {
-        await prompt.cancel();
-      }
-
-      return result;
-    } else {
-      // extension already installed
-      return false;
+    clearTimeout(timeout);
+    if (result === undefined) {
+      await prompt.cancel();
     }
+
+    return result;
   } catch (e: any) {
-    // vscode not installed
-    if (/code: not found/.test(e?.stderr)) {
-      return undefined;
-    }
-
     if (e === "") {
       return false;
     }
