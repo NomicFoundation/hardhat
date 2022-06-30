@@ -1,9 +1,8 @@
 import { exec } from "child_process";
 import { promisify } from "util";
 
-import { Dependencies } from "../../types/cli";
-
 import { isYarnProject } from "./project-creation";
+import { Dependencies } from "./types";
 
 const execAsync = promisify(exec);
 

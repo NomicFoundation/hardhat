@@ -13,7 +13,6 @@ import {
 } from "../util/global-dir";
 import { fromEntries } from "../util/lang";
 import { getPackageJson, getPackageRoot } from "../util/packageInfo";
-import { Dependencies } from "../../types/cli";
 import { pluralize } from "../util/strings";
 import {
   confirmRecommendedDepsInstallation,
@@ -21,6 +20,7 @@ import {
   confirmProjectCreation,
 } from "./prompt";
 import { emoji } from "./emoji";
+import { Dependencies } from "./types";
 
 enum Action {
   CREATE_JAVASCRIPT_PROJECT_ACTION = "Create a JavaScript project",
