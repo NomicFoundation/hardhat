@@ -2,6 +2,7 @@ import { CallBinding } from "../bindings/CallBinding";
 import { ContractBinding } from "../bindings/ContractBinding";
 import type { Bindable } from "../bindings/types";
 import { Executor } from "../executors/Executor";
+import { Artifact } from "../types";
 
 import { UserModule } from "./UserModule";
 
@@ -22,6 +23,7 @@ export interface ModuleBuilder {
 
   contract: (
     contractName: string,
+    artifactOrOptions?: Artifact | UserContractOptions,
     options?: UserContractOptions
   ) => ContractBinding;
 

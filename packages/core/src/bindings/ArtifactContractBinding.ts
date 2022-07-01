@@ -1,11 +1,11 @@
 import { Contract } from "../types";
 
 import { InternalBinding } from "./InternalBinding";
-import { ContractOptions } from "./types";
+import { ArtifactContractOptions } from "./types";
 import { combineArgsAndLibrariesAsDeps } from "./utils";
 
-export class InternalContractBinding extends InternalBinding<
-  ContractOptions,
+export class ArtifactContractBinding extends InternalBinding<
+  ArtifactContractOptions,
   Contract
 > {
   public getDependencies(): InternalBinding[] {

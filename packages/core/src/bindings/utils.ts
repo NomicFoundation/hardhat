@@ -1,3 +1,4 @@
+import { InternalBinding } from "./InternalBinding";
 import type { BindingOutput, Unflattened } from "./types";
 
 export function deepFlatten<T>(array: Unflattened<T>): T[] {
@@ -41,4 +42,32 @@ export function deserializeBindingOutput(x: any) {
   }
 
   return x.value;
+}
+
+export function mapToBindings(x: unknown): Unflattened<InternalBinding> {
+  if (Array.isArray(x)) {
+    return x.map(mapToBindings);
+  }
+
+  if (InternalBinding.isBinding(x)) {
+    return [x];
+  }
+
+  if (typeof x === "object" && x !== null) {
+    return Object.values(x).map(mapToBindings);
+  }
+
+  return [];
+}
+
+export function combineArgsAndLibrariesAsDeps(
+  args: any[],
+  libraries: Record<string, any>
+) {
+  const argBindings = deepFlatten(mapToBindings(args));
+  const libraryBindings = deepFlatten(mapToBindings(Object.values(libraries)));
+
+  const dependencies = argBindings.concat(libraryBindings);
+
+  return dependencies;
 }

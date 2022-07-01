@@ -3,6 +3,7 @@ import {
   SerializedBindingResult,
   SerializedDeploymentResult,
   DeploymentResult,
+  Contract,
 } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 
@@ -195,4 +196,8 @@ async function assertContract(
   );
 
   return contract;
+}
+
+export function isContract(contract: any): contract is Contract {
+  return contract.address !== undefined;
 }

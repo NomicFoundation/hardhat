@@ -1,4 +1,4 @@
-import { Contract, Tx } from "../types";
+import { Artifact, Contract, Tx } from "../types";
 
 import { Binding } from "./Binding";
 import { ContractBinding } from "./ContractBinding";
@@ -14,6 +14,13 @@ export type SerializedDeploymentResult = Record<string, SerializedModuleResult>;
 
 export interface ContractOptions {
   contractName: string;
+  args: Array<Bindable<any>>;
+  libraries?: Record<string, Bindable<any>>;
+}
+
+export interface ArtifactContractOptions {
+  contractName: string;
+  artifact: Artifact;
   args: Array<Bindable<any>>;
   libraries?: Record<string, Bindable<any>>;
 }

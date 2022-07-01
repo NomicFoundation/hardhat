@@ -63,6 +63,20 @@ const uniswap = m.contractAt("UniswapRouter", "0x123...", abi)
 m.call(uniswap, "swap", { ... })
 ```
 
+### Deploying from an artifact
+
+To allow you to use your own mechanism for getting the contract artifact, `contract` supports passing an `Artifact` as an optional second parameter:
+
+```javascript
+const artifact = await this.hre.artifacts.readArtifact("Foo");
+
+const userModule = buildModule("MyModule", (m) => {
+  m.contract("Foo", artifact, {
+    args: [0]
+  });
+});
+```
+
 ### Linking libraries
 
 A library can be deployed and linked to a contract by passing the libraries contract binding as a named entry under the libraries option:

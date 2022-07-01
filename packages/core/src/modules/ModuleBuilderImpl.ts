@@ -1,3 +1,4 @@
+import { ArtifactContractBinding } from "../bindings/ArtifactContractBinding";
 import { ContractBinding } from "../bindings/ContractBinding";
 import { ExistingContractBinding } from "../bindings/ExistingContractBinding";
 import { InternalBinding } from "../bindings/InternalBinding";
@@ -12,7 +13,7 @@ import { CallExecutor } from "../executors/CallExecutor";
 import { ContractExecutor } from "../executors/ContractExecutor";
 import { Executor } from "../executors/Executor";
 import { ExistingContractExecutor } from "../executors/ExistingContractExecutor";
-import type { Contract, Tx } from "../types";
+import type { Artifact, Contract, Tx } from "../types";
 
 import { ExecutionGraph } from "./ExecutionGraph";
 import { UserModule } from "./UserModule";
@@ -21,6 +22,7 @@ import type {
   UserContractOptions,
   UserCallOptions,
 } from "./types";
+import { isArtifact } from "./utils";
 
 export class ModuleBuilderImpl implements ModuleBuilder {
   private _currentModuleId: string | undefined;
@@ -52,20 +54,41 @@ export class ModuleBuilderImpl implements ModuleBuilder {
 
   public contract(
     contractName: string,
-    options?: UserContractOptions
+    artifactOrOptions?: Artifact | UserContractOptions,
+    givenOptions?: UserContractOptions
   ): InternalBinding<ContractOptions, Contract> {
-    const id = options?.id ?? contractName;
-    const args = options?.args ?? [];
-    const libraries = options?.libraries ?? {};
-    const b = new InternalContractBinding(this.getModuleId(), id, {
-      contractName,
-      args,
-      libraries,
-    });
+    let binding;
+    if (isArtifact(artifactOrOptions)) {
+      const artifact = artifactOrOptions;
+      const options = givenOptions;
 
-    this.addExecutor(new ContractExecutor(b));
+      const id = options?.id ?? contractName;
+      const args = options?.args ?? [];
+      const libraries = options?.libraries ?? {};
 
-    return b;
+      binding = new ArtifactContractBinding(this.getModuleId(), id, {
+        contractName,
+        args,
+        libraries,
+        artifact,
+      });
+    } else {
+      const options = artifactOrOptions;
+
+      const id = options?.id ?? contractName;
+      const args = options?.args ?? [];
+      const libraries = options?.libraries ?? {};
+
+      binding = new InternalContractBinding(this.getModuleId(), id, {
+        contractName,
+        args,
+        libraries,
+      });
+    }
+
+    this.addExecutor(new ContractExecutor(binding));
+
+    return binding;
   }
 
   public contractAt(

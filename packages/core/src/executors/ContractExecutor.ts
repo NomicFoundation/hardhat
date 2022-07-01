@@ -1,38 +1,22 @@
 import { ethers } from "ethers";
 
-import { ContractOptions, Resolved } from "../bindings/types";
+import {
+  ArtifactContractOptions,
+  ContractOptions,
+  Resolved,
+} from "../bindings/types";
 import { Services } from "../services/types";
-import type { Contract, DeployedContract } from "../types";
+import type { Artifact, Contract, DeployedContract } from "../types";
 
 import { Executor } from "./Executor";
+import { mapToAddress } from "./utils";
 
 export class ContractExecutor extends Executor<ContractOptions, Contract> {
   public async execute(
     input: Resolved<ContractOptions>,
     services: Services
   ): Promise<DeployedContract> {
-    const { contractName } = input;
-    const artifact = await services.artifacts.getArtifact(contractName);
-
-    const mapToAddress = (x: any): any => {
-      if (typeof x === "string") {
-        return x;
-      }
-
-      if (x === undefined || x === null) {
-        return x;
-      }
-
-      if ((x as any).address) {
-        return (x as any).address;
-      }
-
-      if (Array.isArray(x)) {
-        return x.map(mapToAddress);
-      }
-
-      return x;
-    };
+    const artifact = await this._resolveArtifactFromInput(input, services);
 
     const args = input.args.map(mapToAddress);
     const libraries = Object.fromEntries(
@@ -45,10 +29,10 @@ export class ContractExecutor extends Executor<ContractOptions, Contract> {
     const receipt = await services.transactions.wait(txHash);
 
     return {
-      name: contractName,
+      name: artifact.contractName,
       abi: artifact.abi,
-      address: receipt.contractAddress,
       bytecode: artifact.bytecode,
+      address: receipt.contractAddress,
     };
   }
 
@@ -81,5 +65,20 @@ export class ContractExecutor extends Executor<ContractOptions, Contract> {
 
   public getDescription() {
     return `Deploy contract ${this.binding.input.contractName}`;
+  }
+
+  private async _resolveArtifactFromInput(
+    input: Resolved<ContractOptions | ArtifactContractOptions>,
+    services: Services
+  ): Promise<Artifact> {
+    if ("artifact" in input) {
+      return input.artifact;
+    }
+
+    const { contractName } = input;
+
+    const artifact = await services.artifacts.getArtifact(contractName);
+
+    return artifact;
   }
 }
