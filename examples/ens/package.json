@@ -1,0 +1,15 @@
+{
+  "name": "@nomicfoundation/ignition-ens-example",
+  "private": "true",
+  "version": "0.0.1",
+  "scripts": {
+    "test:examples": "hardhat test"
+  },
+  "devDependencies": {
+    "hardhat": "^2.10.0",
+    "@nomicfoundation/hardhat-ignition": "^0.0.2"
+  },
+  "dependencies": {
+    "@ensdomains/ens-contracts": "0.0.11"
+  }
+}
