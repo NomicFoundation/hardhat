@@ -185,10 +185,7 @@ describe("INTEGRATION: Reverted with", function () {
         expect(() =>
           // @ts-expect-error
           expect(hash).to.be.revertedWith(10)
-        ).to.throw(
-          TypeError,
-          "Expected a string as the expected reason string"
-        );
+        ).to.throw(TypeError, "Expected the revert reason to be a string");
       });
 
       it("errors that are not related to a reverted transaction", async function () {
