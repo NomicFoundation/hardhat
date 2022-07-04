@@ -27,9 +27,9 @@ export class OnlyHardhatNetworkError extends CustomError {
   constructor(networkName: string, version?: string) {
     let errorMessage: string = ``;
     if (version === undefined) {
-      errorMessage = `This helper can only be used in the Hardhat Network. You are connected to '${networkName}'.`;
+      errorMessage = `This helper can only be used with Hardhat Network. You are connected to '${networkName}'.`;
     } else {
-      errorMessage = `This helper can only be used in the Hardhat Network. You are connected to '${networkName}', whose identifier is '${version}'`;
+      errorMessage = `This helper can only be used with Hardhat Network. You are connected to '${networkName}', whose identifier is '${version}'`;
     }
 
     super(errorMessage);
