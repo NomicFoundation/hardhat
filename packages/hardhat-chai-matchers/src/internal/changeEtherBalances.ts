@@ -47,9 +47,9 @@ export function supportChangeEtherBalances(Assertion: Chai.AssertionStatic) {
             actualChanges.forEach((change, i) => {
               if (change.eq(BigNumber.from(balanceChanges[i]))) {
                 lines.push(
-                  `Expected ${
+                  `Expected ether balance of ${
                     accountAddresses[i]
-                  } (address #${i} in the list) not to change balance by ${balanceChanges[
+                  } (address #${i} in the list) not to change by ${balanceChanges[
                     i
                   ].toString()} wei`
                 );
