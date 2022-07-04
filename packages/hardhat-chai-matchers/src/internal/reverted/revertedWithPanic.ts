@@ -19,7 +19,7 @@ export function supportRevertedWithPanic(Assertion: Chai.AssertionStatic) {
         }
       } catch {
         throw new TypeError(
-          `Expected a number-like value as the expected panic code, but got '${expectedCodeArg}'`
+          `Expected the given panic code to be a number-like value, but got '${expectedCodeArg}'`
         );
       }
 
