@@ -111,7 +111,7 @@ export function assertValidTargetBlock(target: BN, latest: BN): void {
 export function assertPositiveNumber(n: bigint): void {
   if (n <= BigInt(0)) {
     throw new HardhatNetworkHelpersError(
-      `Invalid input ${n} - number must be positive.`
+      `Invalid input: expected a positive number but ${n} was given.`
     );
   }
 }
