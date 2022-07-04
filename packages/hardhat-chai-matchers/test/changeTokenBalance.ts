@@ -138,7 +138,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
             ).to.not.changeTokenBalance(mockToken, sender, 0)
           ).to.be.rejectedWith(
             AssertionError,
-            /Expected "0x\w{40}" to not change its balance of MCK by 0, but it did/
+            /Expected "0x\w{40}" not to change its balance of MCK by 0, but it did/
           );
         });
 
@@ -259,7 +259,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
             ).to.not.changeTokenBalance(mockToken, receiver, 50)
           ).to.be.rejectedWith(
             AssertionError,
-            /Expected "0x\w{40}" to not change its balance of MCK by 50, but it did/
+            /Expected "0x\w{40}" not to change its balance of MCK by 50, but it did/
           );
         });
 
@@ -320,7 +320,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
             ).to.not.changeTokenBalance(tokenWithOnlyName, receiver, 50)
           ).to.be.rejectedWith(
             AssertionError,
-            /Expected "0x\w{40}" to not change its balance of MockToken by 50, but it did/
+            /Expected "0x\w{40}" not to change its balance of MockToken by 50, but it did/
           );
         });
 
@@ -347,7 +347,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
             ).to.not.changeTokenBalance(tokenWithoutNameNorSymbol, receiver, 50)
           ).to.be.rejectedWith(
             AssertionError,
-            /Expected "0x\w{40}" to not change its balance of <token at 0x\w{40}> by 50, but it did/
+            /Expected "0x\w{40}" not to change its balance of <token at 0x\w{40}> by 50, but it did/
           );
         });
       });
