@@ -8,7 +8,7 @@ export function supportProperHex(Assertion: Chai.AssertionStatic) {
       this.assert(
         isNegated, // trick to make this assertion always fail
         `Expected "${subject}" to be a proper hex string, but it contains invalid (non-hex) characters`,
-        `Expected "${subject}" not to be a proper hex string, but it contains only valid hex characters`
+        `Expected "${subject}" NOT to be a proper hex string, but it contains only valid hex characters`
       );
     }
 
@@ -19,7 +19,7 @@ export function supportProperHex(Assertion: Chai.AssertionStatic) {
       } (the provided ${length} plus 2 more for the "0x" prefix), but its length is ${
         subject.length
       }`,
-      `Expected "${subject}" not to be a hex string of length ${
+      `Expected "${subject}" NOT to be a hex string of length ${
         length + 2
       } (the provided ${length} plus 2 more for the "0x" prefix), but its length is ${
         subject.length

@@ -31,7 +31,7 @@ export function supportChangeTokenBalance(Assertion: Chai.AssertionStatic) {
         this.assert(
           actualChange.eq(ethers.BigNumber.from(balanceChange)),
           `Expected the balance of ${tokenDescription} tokens for "${address}" to change by ${balanceChange.toString()}, but it changed by ${actualChange.toString()}`,
-          `Expected the balance of ${tokenDescription} tokens for "${address}" not to change by ${balanceChange.toString()}, but it did`,
+          `Expected the balance of ${tokenDescription} tokens for "${address}" NOT to change by ${balanceChange.toString()}, but it did`,
           balanceChange,
           actualChange
         );
@@ -84,7 +84,7 @@ export function supportChangeTokenBalance(Assertion: Chai.AssertionStatic) {
           }, respectively, but they changed by ${actualChanges as any}`,
           `Expected the balance of ${tokenDescription} tokens for ${
             addresses as any
-          } not to change by ${
+          } NOT to change by ${
             balanceChanges as any
           }, respectively, but they did`,
           balanceChanges.map((balanceChange) => balanceChange.toString()),

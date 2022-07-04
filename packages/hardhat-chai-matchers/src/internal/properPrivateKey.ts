@@ -4,7 +4,7 @@ export function supportProperPrivateKey(Assertion: Chai.AssertionStatic) {
     this.assert(
       /^0x[0-9-a-fA-F]{64}$/.test(subject),
       `Expected "${subject}" to be a proper private key`,
-      `Expected "${subject}" not to be a proper private key`,
+      `Expected "${subject}" NOT to be a proper private key`,
       "proper private key (eg.: 0x1010101010101010101010101010101010101010101010101010101010101010)",
       subject
     );

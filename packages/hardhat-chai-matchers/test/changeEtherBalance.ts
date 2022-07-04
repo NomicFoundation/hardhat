@@ -192,7 +192,7 @@ describe("INTEGRATION: changeEtherBalance matcher", function () {
             ).to.not.changeEtherBalance(sender, "-200")
           ).to.be.eventually.rejectedWith(
             AssertionError,
-            `Expected the ether balance of "${sender.address}" not to change by -200 wei, but it did`
+            `Expected the ether balance of "${sender.address}" NOT to change by -200 wei, but it did`
           );
         });
 
@@ -348,7 +348,7 @@ describe("INTEGRATION: changeEtherBalance matcher", function () {
             ).to.not.changeEtherBalance(sender, "-200")
           ).to.be.eventually.rejectedWith(
             AssertionError,
-            `Expected the ether balance of "${sender.address}" not to change by -200 wei, but it did`
+            `Expected the ether balance of "${sender.address}" NOT to change by -200 wei, but it did`
           );
         });
       });
@@ -458,7 +458,7 @@ describe("INTEGRATION: changeEtherBalance matcher", function () {
             ).to.not.changeEtherBalance(sender, "-200")
           ).to.be.eventually.rejectedWith(
             AssertionError,
-            `Expected the ether balance of "${sender.address}" not to change by -200 wei, but it did`
+            `Expected the ether balance of "${sender.address}" NOT to change by -200 wei, but it did`
           );
         });
       });
@@ -537,7 +537,7 @@ describe("INTEGRATION: changeEtherBalance matcher", function () {
             ).to.not.changeEtherBalance(sender, "-200")
           ).to.be.eventually.rejectedWith(
             AssertionError,
-            `Expected the ether balance of "${sender.address}" not to change by -200 wei, but it did`
+            `Expected the ether balance of "${sender.address}" NOT to change by -200 wei, but it did`
           );
         });
       });

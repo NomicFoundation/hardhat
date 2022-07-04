@@ -204,7 +204,7 @@ describe("INTEGRATION: changeEtherBalances matcher", function () {
             ).to.not.changeEtherBalances([sender, receiver], [-200, 200])
           ).to.be.eventually.rejectedWith(
             AssertionError,
-            `Expected ether balance of ${sender.address} (address #0 in the list) not to change by -200 wei`
+            `Expected ether balance of ${sender.address} (address #0 in the list) NOT to change by -200 wei`
           );
         });
       });
@@ -324,7 +324,7 @@ describe("INTEGRATION: changeEtherBalances matcher", function () {
             ).to.not.changeEtherBalances([sender, receiver], [-200, 200])
           ).to.be.eventually.rejectedWith(
             AssertionError,
-            `Expected ether balance of ${sender.address} (address #0 in the list) not to change by -200`
+            `Expected ether balance of ${sender.address} (address #0 in the list) NOT to change by -200`
           );
         });
       });
