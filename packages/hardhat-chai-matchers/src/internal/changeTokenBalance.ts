@@ -86,7 +86,7 @@ export function supportChangeTokenBalance(Assertion: Chai.AssertionStatic) {
             addresses as any
           } not to change their balances by ${
             balanceChanges as any
-          }, but they did`,
+          }, respectively, but they did`,
           balanceChanges.map((balanceChange) => balanceChange.toString()),
           actualChanges.map((actualChange) => actualChange.toString())
         );
