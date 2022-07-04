@@ -51,7 +51,7 @@ export function supportChangeEtherBalances(Assertion: Chai.AssertionStatic) {
                     accountAddresses[i]
                   } (address #${i} in the list) not to change by ${balanceChanges[
                     i
-                  ].toString()} wei`
+                  ].toString()} wei, but it did`
                 );
               }
             });
