@@ -418,7 +418,7 @@ describe("INTEGRATION: Reverted with custom error", function () {
             .revertedWithCustomError("SomeCustomError")
         ).to.throw(
           TypeError,
-          "The first argument of .revertedWithCustomError has to be the contract that defines the custom error"
+          "The first argument of .revertedWithCustomError must be the contract that defines the custom error"
         );
       });
 

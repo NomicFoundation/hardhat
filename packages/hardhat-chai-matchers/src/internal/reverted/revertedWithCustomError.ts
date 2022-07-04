@@ -21,7 +21,7 @@ export function supportRevertedWithCustomError(
       // argument
       if (typeof contract === "string" || contract?.interface === undefined) {
         throw new TypeError(
-          "The first argument of .revertedWithCustomError has to be the contract that defines the custom error"
+          "The first argument of .revertedWithCustomError must be the contract that defines the custom error"
         );
       }
 
