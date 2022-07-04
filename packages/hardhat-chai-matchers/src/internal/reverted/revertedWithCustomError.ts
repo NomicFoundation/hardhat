@@ -27,9 +27,7 @@ export function supportRevertedWithCustomError(
 
       // validate custom error name
       if (typeof expectedCustomErrorName !== "string") {
-        throw new TypeError(
-          "Expected a string as the expected custom error name"
-        );
+        throw new TypeError("Expected the custom error name to be a string");
       }
 
       const iface: any = contract.interface;
