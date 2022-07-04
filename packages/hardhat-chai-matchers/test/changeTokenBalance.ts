@@ -127,7 +127,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
             ).to.changeTokenBalance(mockToken, sender, 1)
           ).to.be.rejectedWith(
             AssertionError,
-            /Expected the balance of MCK tokens for "0x\w{40}" to change by 1, but it has changed by 0/
+            /Expected the balance of MCK tokens for "0x\w{40}" to change by 1, but it changed by 0/
           );
         });
 
@@ -248,7 +248,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
             ).to.changeTokenBalance(mockToken, receiver, 500)
           ).to.be.rejectedWith(
             AssertionError,
-            /Expected the balance of MCK tokens for "0x\w{40}" to change by 500, but it has changed by 50/
+            /Expected the balance of MCK tokens for "0x\w{40}" to change by 500, but it changed by 50/
           );
         });
 
@@ -311,7 +311,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
             ).to.changeTokenBalance(tokenWithOnlyName, receiver, 500)
           ).to.be.rejectedWith(
             AssertionError,
-            /Expected the balance of MockToken tokens for "0x\w{40}" to change by 500, but it has changed by 50/
+            /Expected the balance of MockToken tokens for "0x\w{40}" to change by 500, but it changed by 50/
           );
 
           await expect(
@@ -338,7 +338,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
             ).to.changeTokenBalance(tokenWithoutNameNorSymbol, receiver, 500)
           ).to.be.rejectedWith(
             AssertionError,
-            /Expected the balance of <token at 0x\w{40}> tokens for "0x\w{40}" to change by 500, but it has changed by 50/
+            /Expected the balance of <token at 0x\w{40}> tokens for "0x\w{40}" to change by 500, but it changed by 50/
           );
 
           await expect(
