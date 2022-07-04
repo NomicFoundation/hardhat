@@ -59,9 +59,9 @@ export function supportChangeEtherBalances(Assertion: Chai.AssertionStatic) {
           },
           balanceChanges.map(
             (balanceChange, i) =>
-              `${
+              `Ether balance of ${
                 accountAddresses[i]
-              } balance changed by ${balanceChange.toString()} wei`
+              } changed by ${balanceChange.toString()} wei`
           ),
           actualChanges.map(
             (actualChange, i) =>
