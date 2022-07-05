@@ -71,13 +71,13 @@ async function suggestInstallingHardhatVscode() {
   }
 
   const isInstalled = isHardhatVSCodeInstalled();
+  writePromptedForHHVSCode();
 
   if (isInstalled !== InstallationState.EXTENSION_NOT_INSTALLED) {
     return;
   }
 
   const installationConsent = await confirmHHVSCodeInstallation();
-  writePromptedForHHVSCode();
 
   if (installationConsent === true) {
     const installed = installHardhatVSCode();
