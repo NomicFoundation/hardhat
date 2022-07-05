@@ -48,10 +48,10 @@ const ImageContainer = styled.div`
   margin-bottom: 16px;
   position: relative;
   width: 100%;
-  padding-top: 55%;
+  padding-top: 80%;
   overflow: hidden;
-  ${media.sm} {
-    padding-top: 55%;
+  ${media.smd} {
+    padding-top: 40%;
   }
   ${media.md} {
     padding-top: unset;
@@ -61,14 +61,17 @@ const ImageContainer = styled.div`
 
 const ImageWrapper = styled.div`
   position: absolute;
-  top: 50%;
+  top: 20%;
   left: 50%;
   width: 100%;
-  transform: translate(-50%, -50%);
+  transform: translateX(-50%);
   height: 300px;
   display: flex;
   justify-content: center;
   align-items: center;
+  ${media.smd} {
+    width: unset;
+  }
 
   & > span {
     transform: scale(1.5);

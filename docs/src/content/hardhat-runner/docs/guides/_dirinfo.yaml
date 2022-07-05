@@ -1,0 +1,14 @@
+section-type: group
+section-title: Guides
+order:
+  - /project-setup
+  - /compile-contracts
+  - /test-contracts
+  - /deploying
+  - /tasks-and-scripts
+  - /hardhat-console
+  - /typescript
+  - /command-line-completion
+  - title: Migrating away from hardhat-waffle
+    href: /migrating-from-hardhat-waffle
+  - /getting-help

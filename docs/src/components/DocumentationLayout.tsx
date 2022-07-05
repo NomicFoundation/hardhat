@@ -40,28 +40,29 @@ const Container = styled.div`
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
     Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
   -webkit-font-smoothing: antialiased;
-  main {
-    padding-top: 136px;
-    flex: 1 1 auto;
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
-    background-color: ${tm(({ colors }) => colors.neutral0)};
-    width: 100%;
-    position: relative;
-    transition: background-color ease-in-out 0.25s;
-
-    ${tmSelectors.dark} {
-      background-color: ${tmDark(({ colors }) => colors.neutral0)};
-    }
-    ${media.mqDark} {
-      ${tmSelectors.auto} {
-        background-color: ${tmDark(({ colors }) => colors.neutral0)};
-      }
-    }
-  }
   height: 100vh;
   min-width: 320px;
+`;
+
+const Main = styled.main`
+  padding-top: 136px;
+  flex: 1 1 auto;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  background-color: ${tm(({ colors }) => colors.neutral0)};
+  width: 100%;
+  position: relative;
+  transition: background-color ease-in-out 0.25s;
+
+  ${tmSelectors.dark} {
+    background-color: ${tmDark(({ colors }) => colors.neutral0)};
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      background-color: ${tmDark(({ colors }) => colors.neutral0)};
+    }
+  }
 `;
 
 export const SidebarMask = styled.div`
@@ -280,7 +281,7 @@ const DocumentationLayout = ({
 
         <SEO seo={seo} />
 
-        <main>
+        <Main>
           <SidebarContainer
             onClick={(e) => {
               e.stopPropagation();
@@ -317,7 +318,7 @@ const DocumentationLayout = ({
               />
             ) : null}
           </View>
-        </main>
+        </Main>
       </Container>
       <GDPRNotice />
     </ThemeProvider>

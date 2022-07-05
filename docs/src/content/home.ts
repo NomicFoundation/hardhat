@@ -1,30 +1,35 @@
 import SolidityIcon from "../assets/tools/solidity";
 import RunnerIcon from "../assets/tools/runner";
-import IgnitionIcon from "../assets/tools/ignition";
+// TODO: Re-enable Ignition section
+// import IgnitionIcon from "../assets/tools/ignition";
 import NetworkIcon from "../assets/tools/network";
+
 import SolidityImageMobile from "../assets/feature-cards/Mobile/SolidityImage.svg";
-import SolidityImageDesktop from "../assets/feature-cards/Desktop/SolidityImage.png";
+import SolidityImageDesktop from "../assets/feature-cards/Desktop/SolidityImage.svg";
 import FlexibilityImageMobile from "../assets/feature-cards/Mobile/FlexibilityImage.svg";
-import FlexibilityImageDesktop from "../assets/feature-cards/Desktop/FlexibilityImage.png";
+import FlexibilityImageDesktop from "../assets/feature-cards/Desktop/FlexibilityImage.svg";
 import ExtensibleImageMobile from "../assets/feature-cards/Mobile/ExtensibleImage.svg";
-import ExtensibleImageDesktop from "../assets/feature-cards/Desktop/ExtensibleImage.png";
+import ExtensibleImageDesktop from "../assets/feature-cards/Desktop/ExtensibleImage.svg";
 import FastIterationImageMobile from "../assets/feature-cards/Mobile/FastIterationImage.svg";
-import FastIterationImageDesktop from "../assets/feature-cards/Desktop/FastIterationImage.png";
+import FastIterationImageDesktop from "../assets/feature-cards/Desktop/FastIterationImage.svg";
 
 // TODO-LANDING-DARK: Replace images below with correct dark themed images.
 import SolidityImageMobileDark from "../assets/feature-cards/Mobile/SolidityImageDark.svg";
-import SolidityImageDesktopDark from "../assets/feature-cards/Desktop/SolidityImageDark.png";
+import SolidityImageDesktopDark from "../assets/feature-cards/Desktop/SolidityImageDark.svg";
 import FlexibilityImageMobileDark from "../assets/feature-cards/Mobile/FlexibilityImageDark.svg";
-import FlexibilityImageDesktopDark from "../assets/feature-cards/Desktop/FlexibilityImageDark.png";
+import FlexibilityImageDesktopDark from "../assets/feature-cards/Desktop/FlexibilityImageDark.svg";
 import ExtensibleImageMobileDark from "../assets/feature-cards/Mobile/ExtensibleImageDark.svg";
-import ExtensibleImageDesktopDark from "../assets/feature-cards/Desktop/ExtensibleImageDark.png";
+import ExtensibleImageDesktopDark from "../assets/feature-cards/Desktop/ExtensibleImageDark.svg";
 import FastIterationImageMobileDark from "../assets/feature-cards/Mobile/FastIterationImageDark.svg";
-import FastIterationImageDesktopDark from "../assets/feature-cards/Desktop/FastIterationImageDark.png";
+import FastIterationImageDesktopDark from "../assets/feature-cards/Desktop/FastIterationImageDark.svg";
 
-import { NavigationPagesPaths, Tools } from "../components/ui/types";
+import vibrantCommunityImage from "../assets/vibrantCommunityImage.svg";
+import vibrantCommunityImageDark from "../assets/vibrantCommunityImageDark.svg";
+
+import { Tools } from "../components/ui/types";
 import reviewsBlock from "../assets/homepage-assets/reviews-block";
 import RunnerIconDark from "../assets/tools/runner-dark";
-import IgnitionIconDark from "../assets/tools/ignition-dark";
+// import IgnitionIconDark from "../assets/tools/ignition-dark";
 import NetworkIconDark from "../assets/tools/network-dark";
 import SolidityIconDark from "../assets/tools/solidity-dark";
 
@@ -39,7 +44,7 @@ const featureCardsContent = {
     mobileImg: SolidityImageMobile,
     desktopImg: SolidityImageDesktop,
     cta: {
-      url: "/hardhat-network/#console-log",
+      url: "/hardhat-network/#console.log",
       title: "Get started with Solidity console.log",
     },
     articleOne: {
@@ -57,7 +62,7 @@ const featureCardsContent = {
     mobileImg: FlexibilityImageMobile,
     desktopImg: FlexibilityImageDesktop,
     cta: {
-      url: "/guides/create-task.html",
+      url: "/hardhat-runner/docs/advanced/create-task.html",
       title: "Learn more about extending Hardhat",
     },
     articleOne: {
@@ -74,10 +79,7 @@ const featureCardsContent = {
     desktopImgDark: ExtensibleImageDesktopDark,
     mobileImg: ExtensibleImageMobile,
     desktopImg: ExtensibleImageDesktop,
-    cta: {
-      url: NavigationPagesPaths.PLUGINS,
-      title: "Get started with plugins",
-    },
+    cta: { url: "/hardhat-runner/plugins", title: "Get started with plugins" },
     articleOne: {
       title: "Fully extensible",
       text: "A tooling platform designed to be extended, Hardhat has all the utilities you need to address your project-specific needs.",
@@ -93,7 +95,7 @@ const featureCardsContent = {
     mobileImg: FastIterationImageMobile,
     desktopImg: FastIterationImageDesktop,
     cta: {
-      url: "/guides/typescript.html",
+      url: "/hardhat-runner/docs/guides/typescript.html",
       title: "Get started with TypeScript",
     },
     articleOne: {
@@ -112,7 +114,7 @@ const heroBlockContent = {
   tagline: "Flexible. Extensible. Fast.",
   cta: {
     title: "Get started",
-    url: NavigationPagesPaths.DOCUMENTATION,
+    url: "/hardhat-runner/docs/getting-started",
   },
 };
 
@@ -121,19 +123,20 @@ const getStartedBlockContent = {
   subtitle: "Experience the new way of building Ethereum software.",
   cta: {
     title: "Get started",
-    url: NavigationPagesPaths.DOCUMENTATION,
+    url: "/hardhat-runner/docs/getting-started",
   },
 };
 
 const vibrantCommunityBlockContent = {
   title: "Vibrant community",
   text: "Great tech attracts great people. Join the Hardhat community to find answers to your problems and contribute to the plugin ecosystem.",
-  imageUrl: "/images/vibrant_community.png",
+  // imageUrl: "/images/vibrant_community.png",
+  imageUrl: vibrantCommunityImage,
   // TODO-LANDING-DARK: add missing image vibrant_community-dark.png
-  imageDarkUrl: "/images/vibrant_community-dark.png",
+  imageDarkUrl: vibrantCommunityImageDark,
   cta: {
     title: "Join the Hardhat Discord",
-    url: "https://discord.com/invite/TETZs2KK4k",
+    url: "/discord",
   },
 };
 
@@ -207,18 +210,18 @@ const toolsBlockContent = {
       mottos: ["compile", "test", "extend"],
       description:
         "Task runner that ties compiling, testing and everything else together through a simple and flexible architecture that is extended through a rich plugin ecosystem.",
-      link: "/",
+      link: "/hardhat-runner",
     },
-    {
-      icon: IgnitionIcon,
-      iconDark: IgnitionIconDark,
-      title: "Ignition",
-      value: Tools.IGNITION,
-      mottos: ["deploy", "distribute"],
-      description:
-        "Deployment system for structuring, automating and distributing smart contract deployment setups.",
-      link: "/",
-    },
+    // TODO: Re-enable Ignition section
+    // {
+    //   icon: IgnitionIcon,
+    //   title: "Ignition",
+    //   value: Tools.IGNITION,
+    //   mottos: ["deploy", "distribute"],
+    //   description:
+    //     "Deployment system for structuring, automating and distributing smart contract deployment setups.",
+    //   link: "/hardhat-ignition",
+    // },
     {
       icon: NetworkIcon,
       iconDark: NetworkIconDark,
@@ -226,18 +229,18 @@ const toolsBlockContent = {
       value: Tools.NETWORK,
       mottos: ["debug", "deploy", "simulate"],
       description:
-        "Development network to locally deploy smart contracts. Packed with development features like Solidity console.log, stack traces, different mining modes and more.",
-      link: "/",
+        "Development network to locally run your smart contracts. Packed with development features like Solidity console.log, stack traces, different mining modes and more.",
+      link: "/hardhat-network",
     },
     {
       icon: SolidityIcon,
       iconDark: SolidityIconDark,
-      title: "Solidity",
+      title: "VSCode",
       value: Tools.SOLIDITY,
-      mottos: ["code", "refactor"],
+      mottos: ["code", "navigation", "refactor"],
       description:
         "Visual Studio Code extension for Solidity editing assistance. Code navigation, refactoring and type-smart suggestions.",
-      link: "/",
+      link: "/hardhat-vscode",
     },
   ],
 };

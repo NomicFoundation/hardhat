@@ -18,12 +18,11 @@
 # build
 /build
 /storybook-static
-/temp/sidebarConfig.json
-/temp/plugin-downloads.json
-/temp/error-redirects.json
+/temp/*
+!/temp/info.md
 /public/sitemap-0.xml
 /public/sitemap*.xml
-src/content/errors/index.md
+src/content/hardhat-runner/docs/errors/index.md
 
 # misc
 .DS_Store

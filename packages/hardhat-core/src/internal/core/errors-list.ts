@@ -51,7 +51,7 @@ export const ERRORS = {
       title: "You are not inside a Hardhat project",
       description: `You are trying to run Hardhat outside of a Hardhat project.
 
-You can learn how to use Hardhat by reading the [Getting Started guide](../getting-started).`,
+You can learn how to use Hardhat by reading the [Getting Started guide](/hardhat-runner/docs/getting-started).`,
       shouldBeReported: false,
     },
     INVALID_NODE_VERSION: {
@@ -213,7 +213,7 @@ If you were trying to create a new project, please try again using Windows Subsy
 
 If you were trying to create a new project, please try again using Windows Subsystem for Linux (WSL) or PowerShell.
 
-You can learn how to use Hardhat by reading the [Getting Started guide](../getting-started).`,
+You can learn how to use Hardhat by reading the [Getting Started guide](/hardhat-runner/docs/getting-started).`,
       shouldBeReported: false,
     },
     CONFLICTING_FILES: {

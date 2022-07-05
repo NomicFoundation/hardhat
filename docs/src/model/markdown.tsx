@@ -52,12 +52,14 @@ export const getEntriesInfo = (
   highlightedLinesNumbers: string;
 } => {
   const highlightedLinesNumbers: string | null = line.includes("{")
-    ? line.substring(line.indexOf("{")).replace(/[{}]/g, "")
+    ? line.substring(line.indexOf("{")).replace(/[{}]/g, "").trim()
     : "";
 
   const pathname = (
     highlightedLinesNumbers ? line.substring(0, line.indexOf("{")) : line
-  ).replace("<<< @/", "");
+  )
+    .replace("<<< @/", "")
+    .trim();
 
   return {
     pathname,
@@ -120,7 +122,7 @@ export const readMDFileFromPathOrIndex = (
   }
 };
 
-/** @type {import('unified').Plugin<[], import('mdast').Root>} */
+/** @type {import("unified").Plugin<[], import("mdast").Root>} */
 function createCustomNodes() {
   // @ts-ignore
   return (tree) => {
@@ -142,7 +144,8 @@ function createCustomNodes() {
     });
   };
 }
-/** @type {import('unified').Plugin<[], import('mdast').Root>} */
+
+/** @type {import("unified").Plugin<[], import("mdast").Root>} */
 function setDefaultLang() {
   // @ts-ignore
   return (tree) => {
@@ -322,6 +325,6 @@ export const getCommitDate = (fileName: string): string => {
 };
 
 export const getEditLink = (fileName: string): string => {
-  // https://github.com/NomicFoundation/hardhat/edit/master/docs/hardhat-network/guides/mainnet-forking.md
+  // https://github.com/NomicFoundation/hardhat/edit/master/docs/hardhat-network/guides/forking-other-networks.md
   return fileName.replace(DOCS_PATH, REPO_URL);
 };

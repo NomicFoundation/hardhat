@@ -3,7 +3,7 @@ import { styled } from "linaria/react";
 import { media, tm, tmDark, tmSelectors } from "../../themes";
 import { generateTabsGroupType, GlobalTabsContext } from "../../global-tabs";
 
-interface ITabsGroup {
+export interface ITabsGroup {
   children: React.ReactNode[];
   options: string;
 }

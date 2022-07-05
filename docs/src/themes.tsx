@@ -68,6 +68,8 @@ export const lightPalette = {
   codeBlockBorder: "#282c34",
   complementary600: "#E9DEFA",
   cardBoxShadow: "#0A0A0A14",
+  vibrantBoxShadow: "#0A0A0A14",
+  vibrantBackground: "#FFFFFF",
   sliderButtonShadow: "rgba(0, 0, 0, 0.102)",
   sliderButtonHoverShadow: "#d4d4d480",
   toolsBlockBorder: "#d4d4d4",
@@ -96,12 +98,17 @@ export const lightPalette = {
   cookieShadow: "#0A0A0A14",
   cookieDropShadow: "#0A0B0D69",
   backButton: "#6E6F70",
+  toolsBoxShadow1: "#EEE3FF",
+  toolsBoxShadow2: "#FBFCDB",
+  toolsBoxShadowDark: "#04040566",
+  footerText: "#F2F2F2",
+  footerText2: "#9B9FA8",
 };
 
 export const darkPalette = {
   name: "Dark",
   transparent: "transparent",
-  neutral0: "#16181D",
+  neutral0: "#181A1F",
   neutral100: "#F2F2F2",
   neutral200: "#16181D",
   neutral400: "#4B4D4D",
@@ -134,9 +141,11 @@ export const darkPalette = {
   codeBlockBorder: "#6c6f74",
   complementary600: "#232125",
   cardBoxShadow: "#FFFFFF14",
+  vibrantBoxShadow: "#0A0A0A1A",
+  vibrantBackground: "#20232A",
   sliderButtonShadow: "rgba(0, 0, 0, 0.102)",
   sliderButtonHoverShadow: "#d4d4d480",
-  toolsBlockBorder: "#d4d4d4",
+  toolsBlockBorder: "#4A4D54",
   mottoRunnerBackground: "#F8F4CB",
   mottoNetworkBackground: "#f6edd1",
   mottoIgnitionBackground: "#f3ecf3",
@@ -162,6 +171,11 @@ export const darkPalette = {
   cookieShadow: "#0A0A0A14",
   cookieDropShadow: "#0A0B0D69",
   backButton: "#F2F2F2",
+  toolsBoxShadow1: "#EEE3FF",
+  toolsBoxShadow2: "#FBFCDB",
+  toolsBoxShadowDark: "#04040566",
+  footerText: "#181A1F",
+  footerText2: "#B0B2B5",
 } as Palette;
 
 type Palette = typeof lightPalette;

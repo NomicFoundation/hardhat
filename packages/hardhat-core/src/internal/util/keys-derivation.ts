@@ -22,5 +22,7 @@ export function deriveKeyFromMnemonicAndPath(
   const masterKey = HDKey.fromMasterSeed(seed);
   const derived = masterKey.derive(hdPath);
 
-  return derived.privateKey === null ? undefined : derived.privateKey;
+  return derived.privateKey === null
+    ? undefined
+    : Buffer.from(derived.privateKey);
 }

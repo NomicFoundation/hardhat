@@ -34,15 +34,19 @@ const Container = styled.div`
   ${media.md} {
     padding: 0;
     flex-direction: row-reverse;
-    justify-content: center;
+    justify-content: space-between;
+    padding: 0 150px;
   }
-  box-shadow: 0 6px 50px ${tm(({ colors }) => colors.cardBoxShadow)};
+  box-shadow: 0 6px 50px ${tm(({ colors }) => colors.vibrantBoxShadow)};
+  background-color: ${tm(({ colors }) => colors.vibrantBackground)};
   ${tmSelectors.dark} {
-    box-shadow: 0 6px 50px ${tmDark(({ colors }) => colors.cardBoxShadow)};
+    box-shadow: 0 6px 50px ${tmDark(({ colors }) => colors.vibrantBoxShadow)};
+    background-color: ${tmDark(({ colors }) => colors.vibrantBackground)};
   }
   ${media.mqDark} {
     ${tmSelectors.auto} {
-      box-shadow: 0 6px 50px ${tmDark(({ colors }) => colors.cardBoxShadow)};
+      box-shadow: 0 6px 50px ${tmDark(({ colors }) => colors.vibrantBoxShadow)};
+      background-color: ${tmDark(({ colors }) => colors.vibrantBackground)};
     }
   }
 `;

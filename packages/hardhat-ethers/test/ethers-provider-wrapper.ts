@@ -12,7 +12,9 @@ describe("Ethers provider wrapper", function () {
   useEnvironment("hardhat-project");
 
   beforeEach(function () {
-    realProvider = new ethers.providers.JsonRpcProvider();
+    realProvider = new ethers.providers.JsonRpcProvider(
+      "http://127.0.0.1:8545"
+    );
     wrapper = new EthersProviderWrapper(this.env.network.provider);
   });
 

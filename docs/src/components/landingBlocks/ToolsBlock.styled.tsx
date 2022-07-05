@@ -101,11 +101,11 @@ const ToolsIconsBlock = styled.div`
     bottom: 0;
     background: ${tm(({ colors }) => colors.toolsBlockBorder)};
     ${tmSelectors.dark} {
-      border-color: ${tmDark(({ colors }) => colors.toolsBlockBorder)};
+      background: ${tmDark(({ colors }) => colors.toolsBlockBorder)};
     }
     ${media.mqDark} {
       ${tmSelectors.auto} {
-        border-color: ${tmDark(({ colors }) => colors.toolsBlockBorder)};
+        background: ${tmDark(({ colors }) => colors.toolsBlockBorder)};
       }
     }
   }
@@ -122,10 +122,12 @@ const ToolsIconsBlock = styled.div`
     border-left: 1px solid ${tm(({ colors }) => colors.toolsBlockBorder)};
     transform: translateY(0) rotate(225deg);
     ${tmSelectors.dark} {
+      background: ${tmDark(({ colors }) => colors.neutral0)};
       border-color: ${tmDark(({ colors }) => colors.toolsBlockBorder)};
     }
     ${media.mqDark} {
       ${tmSelectors.auto} {
+        background: ${tmDark(({ colors }) => colors.neutral0)};
         border-color: ${tmDark(({ colors }) => colors.toolsBlockBorder)};
       }
     }
@@ -143,11 +145,11 @@ const ToolsIconsBlock = styled.div`
       width: 1px;
       background: ${tm(({ colors }) => colors.toolsBlockBorder)};
       ${tmSelectors.dark} {
-        border-color: ${tmDark(({ colors }) => colors.toolsBlockBorder)};
+        background: ${tmDark(({ colors }) => colors.toolsBlockBorder)};
       }
       ${media.mqDark} {
         ${tmSelectors.auto} {
-          border-color: ${tmDark(({ colors }) => colors.toolsBlockBorder)};
+          background: ${tmDark(({ colors }) => colors.toolsBlockBorder)};
         }
       }
     }
@@ -203,7 +205,8 @@ const ButtonContainer = styled.div`
   transition: all 0.1s ease-in-out;
 
   &.active {
-    box-shadow: 6px -2px 10px #eee3ff, -6px 2px 10px #fbfcdb;
+    box-shadow: 6px -2px 10px ${tm(({ colors }) => colors.toolsBoxShadow1)},
+      -6px 2px 10px ${tm(({ colors }) => colors.toolsBoxShadow2)};
   }
 
   & svg {
@@ -245,6 +248,15 @@ const ButtonContainer = styled.div`
     .dark {
       display: inline;
     }
+    &.active {
+      box-shadow: 0px 1px 8px ${tm(({ colors }) => colors.toolsBoxShadowDark)};
+    }
+    & svg {
+      box-shadow: 0px 1px 8px ${tm(({ colors }) => colors.toolsBoxShadowDark)};
+      &.active {
+        box-shadow: 0 1px 2px ${tm(({ colors }) => colors.transparent)};
+      }
+    }
   }
   ${media.mqDark} {
     ${tmSelectors.auto} {
@@ -253,6 +265,15 @@ const ButtonContainer = styled.div`
       }
       .dark {
         display: inline;
+      }
+      &.active {
+        box-shadow: 0px 1px 8px ${tm(({ colors }) => colors.toolsBoxShadowDark)};
+      }
+      & svg {
+        box-shadow: 0px 1px 8px ${tm(({ colors }) => colors.toolsBoxShadowDark)};
+        &.active {
+          box-shadow: 0 1px 2px ${tm(({ colors }) => colors.transparent)};
+        }
       }
     }
   }

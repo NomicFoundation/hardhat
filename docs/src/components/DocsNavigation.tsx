@@ -27,7 +27,6 @@ const NavigationStyled = styled.nav`
   padding: 32px 24px;
   transition: all ease-in-out 0.25s;
   background-color: ${tm(({ colors }) => colors.neutral0)};
-  border-bottom: 1px solid ${tm(({ colors }) => colors.neutral400)};
   z-index: 10;
   ${media.md} {
     padding: 24px;
@@ -35,12 +34,10 @@ const NavigationStyled = styled.nav`
 
   ${tmSelectors.dark} {
     background-color: ${tmDark(({ colors }) => colors.neutral200)};
-    border-bottom: 1px solid ${tmDark(({ colors }) => colors.border)};
   }
   ${media.mqDark} {
     ${tmSelectors.auto} {
       background-color: ${tmDark(({ colors }) => colors.neutral200)};
-      border-bottom: 1px solid ${tmDark(({ colors }) => colors.border)};
     }
   }
 `;
