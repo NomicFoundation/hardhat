@@ -178,7 +178,7 @@ const toolsBlockContent = {
       value: Tools.RUNNER,
       mottos: ["compile", "test", "extend"],
       description:
-        "Task runner that ties compiling, testing and everything else together through a simple and flexible architecture that is extended through a rich plugin ecosystem.",
+        "Hardhat Runner is the main component you interact with when using Hardhat. It's a flexible and extensible task runner that helps you manage and automate the recurring tasks inherent to developing smart contracts and dApps.",
       link: "/hardhat-runner",
     },
     // TODO: Re-enable Ignition section
@@ -197,7 +197,7 @@ const toolsBlockContent = {
       value: Tools.NETWORK,
       mottos: ["debug", "deploy", "simulate"],
       description:
-        "Development network to locally run your smart contracts. Packed with development features like Solidity console.log, stack traces, different mining modes and more.",
+        "Hardhat comes built-in with Hardhat Network, a local Ethereum network node designed for development. It allows you to deploy your contracts, run your tests and debug your code, all within the confines of your local machine.",
       link: "/hardhat-network",
     },
     {
@@ -206,7 +206,7 @@ const toolsBlockContent = {
       value: Tools.SOLIDITY,
       mottos: ["code", "navigation", "refactor"],
       description:
-        "Visual Studio Code extension for Solidity editing assistance. Code navigation, refactoring and type-smart suggestions.",
+        "Hardhat for Visual Studio Code is a VS Code extension that adds language support for Solidity and provides editor integration for Hardhat projects.",
       link: "/hardhat-vscode",
     },
   ],
