@@ -5,7 +5,7 @@ description: Solidity and Hardhat support for Visual Studio Code
 
 # Hardhat for Visual Studio Code
 
-[Hardhat for Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=NomicFoundation.hardhat-solidity) is a Visual Studio Code extension that adds language support for [Solidity](https://soliditylang.org/) to Visual Studio Code, and provides editor integration for [Hardhat projects](https://hardhat.org/). Integrations for other tools are coming in the near future.
+[Hardhat for Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=NomicFoundation.hardhat-solidity) is a VS Code extension that adds language support for [Solidity](https://soliditylang.org/) and provides editor integration for [Hardhat projects](https://hardhat.org/). Integrations for other tools are coming in the near future.
 
 Hardhat for Visual Studio code adds the following features:
 
