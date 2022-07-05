@@ -77,12 +77,12 @@ export function supportChangeTokenBalance(Assertion: Chai.AssertionStatic) {
           actualChanges.every((change, ind) =>
             change.eq(ethers.BigNumber.from(balanceChanges[ind]))
           ),
-          `Expected the balance of ${tokenDescription} tokens for ${
+          `Expected the balances of ${tokenDescription} tokens for ${
             addresses as any
           } to change by ${
             balanceChanges as any
           }, respectively, but they changed by ${actualChanges as any}`,
-          `Expected the balance of ${tokenDescription} tokens for ${
+          `Expected the balances of ${tokenDescription} tokens for ${
             addresses as any
           } NOT to change by ${
             balanceChanges as any
