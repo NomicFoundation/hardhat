@@ -34,7 +34,7 @@ describe("Proper address", () => {
           .properAddress
     ).to.throw(
       AssertionError,
-      'Expected "0x28FAA621c3348823D6c6548981a19716bcDc740e" not to be a proper address'
+      'Expected "0x28FAA621c3348823D6c6548981a19716bcDc740e" NOT to be a proper address'
     );
   });
 });

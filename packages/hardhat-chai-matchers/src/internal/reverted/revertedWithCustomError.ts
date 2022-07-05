@@ -21,15 +21,13 @@ export function supportRevertedWithCustomError(
       // argument
       if (typeof contract === "string" || contract?.interface === undefined) {
         throw new TypeError(
-          "The first argument of .revertedWithCustomError has to be the contract that defines the custom error"
+          "The first argument of .revertedWithCustomError must be the contract that defines the custom error"
         );
       }
 
       // validate custom error name
       if (typeof expectedCustomErrorName !== "string") {
-        throw new TypeError(
-          "Expected a string as the expected custom error name"
-        );
+        throw new TypeError("Expected the custom error name to be a string");
       }
 
       const iface: any = contract.interface;
