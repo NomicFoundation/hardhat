@@ -1,4 +1,5 @@
 import type { BigNumberish, providers } from "ethers";
+import ordinal from "ordinal";
 
 import { getAddressOf, Account } from "./misc/account";
 import {
@@ -34,7 +35,9 @@ export function supportChangeEtherBalances(Assertion: Chai.AssertionStatic) {
                 lines.push(
                   `Expected ether balance of ${
                     accountAddresses[i]
-                  } (address #${i} in the list) to change by ${balanceChanges[
+                  } (the ${ordinal(
+                    i + 1
+                  )} address in the list) to change by ${balanceChanges[
                     i
                   ].toString()} wei, but it changed by ${change.toString()} wei`
                 );
@@ -49,7 +52,9 @@ export function supportChangeEtherBalances(Assertion: Chai.AssertionStatic) {
                 lines.push(
                   `Expected ether balance of ${
                     accountAddresses[i]
-                  } (address #${i} in the list) NOT to change by ${balanceChanges[
+                  } (the ${ordinal(
+                    i + 1
+                  )} address in the list) NOT to change by ${balanceChanges[
                     i
                   ].toString()} wei, but it did`
                 );
