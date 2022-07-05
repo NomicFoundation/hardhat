@@ -266,7 +266,11 @@ async function main() {
     }
 
     // VSCode extension prompt for installation
-    if (taskName === "test") {
+    if (
+      taskName === "test" &&
+      !isRunningOnCiServer() &&
+      process.stdout.isTTY === true
+    ) {
       await suggestInstallingHardhatVscode();
     }
 
