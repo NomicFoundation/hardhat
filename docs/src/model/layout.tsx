@@ -109,7 +109,6 @@ const matchFoldersToLayouts = (
 
   // @ts-ignore
   return [...allFolderPaths].map((path) => {
-    console.log("path", path);
     const lt = layoutsList.find(({ folders: ff }) => ff.includes(path));
     if (!lt) {
       throw new Error(
