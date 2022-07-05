@@ -20,7 +20,7 @@ Hardhat Runner is the main component you interact with when using Hardhat. It's 
 
 ### Hardhat Network
 
-Hardhat comes built-in with Hardhat Network, a local Ethereum network node designed for development, akin to Ganache, `geth --dev`, etc. It allows you to deploy your contracts, run your tests and debug your code, all within the confines of your local machine. [Learn more.](/hardhat-network)
+Hardhat comes built-in with Hardhat Network, a local Ethereum network node designed for development. It allows you to deploy your contracts, run your tests and debug your code, all within the confines of your local machine. [Learn more.](/hardhat-network)
 
 ### Hardhat for Visual Studio Code
 
