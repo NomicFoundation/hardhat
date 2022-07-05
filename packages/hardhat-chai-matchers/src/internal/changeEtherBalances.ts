@@ -33,7 +33,7 @@ export function supportChangeEtherBalances(Assertion: Chai.AssertionStatic) {
             actualChanges.forEach((change, i) => {
               if (!change.eq(BigNumber.from(balanceChanges[i]))) {
                 lines.push(
-                  `Expected ether balance of ${
+                  `Expected the ether balance of ${
                     accountAddresses[i]
                   } (the ${ordinal(
                     i + 1
@@ -50,7 +50,7 @@ export function supportChangeEtherBalances(Assertion: Chai.AssertionStatic) {
             actualChanges.forEach((change, i) => {
               if (change.eq(BigNumber.from(balanceChanges[i]))) {
                 lines.push(
-                  `Expected ether balance of ${
+                  `Expected the ether balance of ${
                     accountAddresses[i]
                   } (the ${ordinal(
                     i + 1
