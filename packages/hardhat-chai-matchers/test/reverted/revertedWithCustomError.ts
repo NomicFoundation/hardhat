@@ -342,7 +342,7 @@ describe("INTEGRATION: Reverted with custom error", function () {
             .withArgs(1)
         ).to.throw(
           Error,
-          "withArgs called with both .emit and .revertedWithCustomError, these assertions cannot be combined"
+          "withArgs called with both .emit and .revertedWithCustomError, but these assertions cannot be combined"
         );
       });
 
