@@ -1,16 +1,6 @@
 # Hardhat Boilerplate Project
 
-<<<<<<<< HEAD:docs/src/content/tutorial/hardhat-boilerplate.md
-If you want to get started with your dApp quickly or see what this whole project looks like with a frontend, you can use our boilerplate repo.
-
-[https://github.com/NomicFoundation/hardhat-boilerplate](https://github.com/NomicFoundation/hardhat-boilerplate)
-|||||||| f65dca519:docs/src/content/tutorial/hackathon-boilerplate-project.md
-If you want to get started with your dApp quickly or see what this whole project looks like with a frontend, you can use our hackathon boilerplate repo.
-
-[https://github.com/nomiclabs/hardhat-hackathon-boilerplate](https://github.com/nomiclabs/hardhat-hackathon-boilerplate)
-========
 If you want to get started with your dApp quickly or see what this whole project looks like with a frontend, you can use [our boilerplate repo](https://github.com/NomicFoundation/hardhat-boilerplate).
->>>>>>>> next-version:docs/src/content/tutorial/boilerplate-project.md
 
 ## What's included
 
