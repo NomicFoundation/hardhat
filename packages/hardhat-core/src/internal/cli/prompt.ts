@@ -1,13 +1,4 @@
-import { exec } from "child_process";
-import { promisify } from "util";
-
-import { Dependencies } from "../../types/cli";
-
-import { isYarnProject } from "./project-creation";
-
-const execAsync = promisify(exec);
-
-const TELEMETRY_CONSENT_TIMEOUT = 10000;
+import { Dependencies } from "./types";
 
 function createConfirmationPrompt(name: string, message: string) {
   return {
@@ -43,65 +34,9 @@ function createConfirmationPrompt(name: string, message: string) {
   };
 }
 
-/**
- * true = install ext
- * false = don't install and don't ask again
- * undefined = don't install but maybe ask next time if something changes (i.e. they install VS Code)
- */
-export async function confirmHHVSCodeInstallation(): Promise<
-  boolean | undefined
-> {
-  const enquirer = require("enquirer");
-
-  try {
-    const { stdout } = await execAsync("code --list-extensions");
-    const extName = new RegExp("NomicFoundation.hardhat-solidity");
-
-    const hasExtension = extName.test(stdout);
-
-    if (!hasExtension) {
-      const prompt = new enquirer.prompts.Confirm({
-        name: "shouldInstallExtension",
-        type: "confirm",
-        initial: true,
-        message:
-          "Would you like to install the Hardhat for Visual Studio Code extension? It adds advanced editing assistance for Solidity to VSCode",
-      });
-
-      let timeout;
-      const timeoutPromise = new Promise((resolve) => {
-        timeout = setTimeout(resolve, TELEMETRY_CONSENT_TIMEOUT);
-      });
-
-      const result = await Promise.race([prompt.run(), timeoutPromise]);
-
-      clearTimeout(timeout);
-      if (result === undefined) {
-        await prompt.cancel();
-      }
-
-      return result;
-    } else {
-      // extension already installed
-      return false;
-    }
-  } catch (e: any) {
-    // vscode not installed
-    if (/code: not found/.test(e?.stderr)) {
-      return undefined;
-    }
-
-    if (e === "") {
-      return false;
-    }
-
-    // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
-    throw e;
-  }
-}
-
 export async function confirmRecommendedDepsInstallation(
-  depsToInstall: Dependencies
+  depsToInstall: Dependencies,
+  useYarn: boolean
 ): Promise<boolean> {
   const { default: enquirer } = await import("enquirer");
 
@@ -109,7 +44,7 @@ export async function confirmRecommendedDepsInstallation(
     shouldInstallPlugin: boolean;
   };
 
-  const packageManager = (await isYarnProject()) ? "yarn" : "npm";
+  const packageManager = useYarn ? "yarn" : "npm";
 
   try {
     responses = await enquirer.prompt<typeof responses>([
@@ -132,32 +67,6 @@ export async function confirmRecommendedDepsInstallation(
   return responses.shouldInstallPlugin;
 }
 
-export async function confirmTelemetryConsent(): Promise<boolean | undefined> {
-  const enquirer = require("enquirer");
-
-  const prompt = new enquirer.prompts.Confirm({
-    name: "telemetryConsent",
-    type: "confirm",
-    initial: true,
-    message:
-      "Help us improve Hardhat with anonymous crash reports & basic usage data?",
-  });
-
-  let timeout;
-  const timeoutPromise = new Promise((resolve) => {
-    timeout = setTimeout(resolve, TELEMETRY_CONSENT_TIMEOUT);
-  });
-
-  const result = await Promise.race([prompt.run(), timeoutPromise]);
-
-  clearTimeout(timeout);
-  if (result === undefined) {
-    await prompt.cancel();
-  }
-
-  return result;
-}
-
 export async function confirmProjectCreation(): Promise<{
   projectRoot: string;
   shouldAddGitIgnore: boolean;
@@ -175,4 +84,60 @@ export async function confirmProjectCreation(): Promise<{
       "Do you want to add a .gitignore?"
     ),
   ]);
+}
+
+export async function confirmTelemetryConsent(): Promise<boolean | undefined> {
+  return confirmationPromptWithTimeout(
+    "telemetryConsent",
+    "Help us improve Hardhat with anonymous crash reports & basic usage data?"
+  );
+}
+
+/**
+ * true = install ext
+ * false = don't install and don't ask again
+ * undefined = we couldn't confirm if the extension is installed or not
+ */
+export async function confirmHHVSCodeInstallation(): Promise<
+  boolean | undefined
+> {
+  return confirmationPromptWithTimeout(
+    "shouldInstallExtension",
+    "Would you like to install the Hardhat for Visual Studio Code extension? It adds advanced editing assistance for Solidity to VSCode"
+  );
+}
+
+async function confirmationPromptWithTimeout(
+  name: string,
+  message: string,
+  timeoutMilliseconds: number = 10_000
+): Promise<boolean | undefined> {
+  try {
+    const enquirer = require("enquirer");
+
+    const prompt = new enquirer.prompts.Confirm(
+      createConfirmationPrompt(name, message)
+    );
+
+    let timeout;
+    const timeoutPromise = new Promise((resolve) => {
+      timeout = setTimeout(resolve, timeoutMilliseconds);
+    });
+
+    const result = await Promise.race([prompt.run(), timeoutPromise]);
+    clearTimeout(timeout);
+
+    if (result === undefined) {
+      await prompt.cancel();
+    }
+
+    return result;
+  } catch (e: any) {
+    if (e === "") {
+      return undefined;
+    }
+
+    // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+    throw e;
+  }
 }

@@ -13,7 +13,6 @@ import {
 } from "../util/global-dir";
 import { fromEntries } from "../util/lang";
 import { getPackageJson, getPackageRoot } from "../util/packageInfo";
-import { Dependencies } from "../../types/cli";
 import { pluralize } from "../util/strings";
 import {
   confirmRecommendedDepsInstallation,
@@ -21,6 +20,7 @@ import {
   confirmProjectCreation,
 } from "./prompt";
 import { emoji } from "./emoji";
+import { Dependencies } from "./types";
 
 enum Action {
   CREATE_JAVASCRIPT_PROJECT_ACTION = "Create a JavaScript project",
@@ -345,7 +345,10 @@ export async function createProject() {
     } else if (installedExceptHardhat.length === 0) {
       const shouldInstall =
         useDefaultPromptResponses ||
-        (await confirmRecommendedDepsInstallation(dependenciesToInstall));
+        (await confirmRecommendedDepsInstallation(
+          dependenciesToInstall,
+          await isYarnProject()
+        ));
       if (shouldInstall) {
         const installed = await installRecommendedDependencies(
           dependenciesToInstall
@@ -397,7 +400,7 @@ function isInstalled(dep: string) {
   return dep in allDependencies;
 }
 
-export async function isYarnProject() {
+async function isYarnProject() {
   return fsExtra.pathExists("yarn.lock");
 }
 
