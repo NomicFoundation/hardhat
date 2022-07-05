@@ -14,4 +14,4 @@ export { setNonce } from "./helpers/setNonce";
 export { setStorageAt } from "./helpers/setStorageAt";
 export { setNextBlockBaseFeePerGas } from "./helpers/setNextBlockBaseFeePerGas";
 export { stopImpersonatingAccount } from "./helpers/stopImpersonatingAccount";
-export { takeSnapshot } from "./helpers/takeSnapshot";
+export { takeSnapshot, SnapshotRestorer } from "./helpers/takeSnapshot";
