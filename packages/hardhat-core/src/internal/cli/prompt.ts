@@ -96,7 +96,7 @@ export async function confirmTelemetryConsent(): Promise<boolean | undefined> {
 /**
  * true = install ext
  * false = don't install and don't ask again
- * undefined = don't install but maybe ask next time if something changes (i.e. they install VS Code)
+ * undefined = we couldn't confirm if the extension is installed or not
  */
 export async function confirmHHVSCodeInstallation(): Promise<
   boolean | undefined
