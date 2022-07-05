@@ -1,7 +1,5 @@
 import { Dependencies } from "./types";
 
-const TELEMETRY_CONSENT_TIMEOUT = 10000;
-
 function createConfirmationPrompt(name: string, message: string) {
   return {
     type: "confirm",
@@ -91,8 +89,7 @@ export async function confirmProjectCreation(): Promise<{
 export async function confirmTelemetryConsent(): Promise<boolean | undefined> {
   return confirmationPromptWithTimeout(
     "telemetryConsent",
-    "Help us improve Hardhat with anonymous crash reports & basic usage data?",
-    TELEMETRY_CONSENT_TIMEOUT
+    "Help us improve Hardhat with anonymous crash reports & basic usage data?"
   );
 }
 
@@ -106,15 +103,14 @@ export async function confirmHHVSCodeInstallation(): Promise<
 > {
   return confirmationPromptWithTimeout(
     "shouldInstallExtension",
-    "Would you like to install the Hardhat for Visual Studio Code extension? It adds advanced editing assistance for Solidity to VSCode",
-    TELEMETRY_CONSENT_TIMEOUT
+    "Would you like to install the Hardhat for Visual Studio Code extension? It adds advanced editing assistance for Solidity to VSCode"
   );
 }
 
 async function confirmationPromptWithTimeout(
   name: string,
   message: string,
-  timeoutMilliseconds: number
+  timeoutMilliseconds: number = 10_000
 ): Promise<boolean | undefined> {
   try {
     const enquirer = require("enquirer");
