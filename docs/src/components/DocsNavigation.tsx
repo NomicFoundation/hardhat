@@ -33,11 +33,11 @@ const NavigationStyled = styled.nav`
   }
 
   ${tmSelectors.dark} {
-    background-color: ${tmDark(({ colors }) => colors.neutral200)};
+    background-color: ${tmDark(({ colors }) => colors.neutral0)};
   }
   ${media.mqDark} {
     ${tmSelectors.auto} {
-      background-color: ${tmDark(({ colors }) => colors.neutral200)};
+      background-color: ${tmDark(({ colors }) => colors.neutral0)};
     }
   }
 `;
