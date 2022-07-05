@@ -6,7 +6,7 @@ export function supportRevertedWith(Assertion: Chai.AssertionStatic) {
     function (this: any, expectedReason: unknown) {
       // validate expected reason
       if (typeof expectedReason !== "string") {
-        throw new TypeError("Expected a string as the expected reason string");
+        throw new TypeError("Expected the revert reason to be a string");
       }
 
       const onSuccess = () => {

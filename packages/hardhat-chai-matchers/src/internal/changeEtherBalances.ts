@@ -1,4 +1,5 @@
 import type { BigNumberish, providers } from "ethers";
+import ordinal from "ordinal";
 
 import { getAddressOf, Account } from "./misc/account";
 import {
@@ -32,11 +33,13 @@ export function supportChangeEtherBalances(Assertion: Chai.AssertionStatic) {
             actualChanges.forEach((change, i) => {
               if (!change.eq(BigNumber.from(balanceChanges[i]))) {
                 lines.push(
-                  `Expected ${
+                  `Expected the ether balance of ${
                     accountAddresses[i]
-                  } (address #${i} in the list) to change balance by ${balanceChanges[
+                  } (the ${ordinal(
+                    i + 1
+                  )} address in the list) to change by ${balanceChanges[
                     i
-                  ].toString()} wei, but it has changed by ${change.toString()} wei`
+                  ].toString()} wei, but it changed by ${change.toString()} wei`
                 );
               }
             });
@@ -47,11 +50,13 @@ export function supportChangeEtherBalances(Assertion: Chai.AssertionStatic) {
             actualChanges.forEach((change, i) => {
               if (change.eq(BigNumber.from(balanceChanges[i]))) {
                 lines.push(
-                  `Expected ${
+                  `Expected the ether balance of ${
                     accountAddresses[i]
-                  } (address #${i} in the list) not to change balance by ${balanceChanges[
+                  } (the ${ordinal(
+                    i + 1
+                  )} address in the list) NOT to change by ${balanceChanges[
                     i
-                  ].toString()} wei`
+                  ].toString()} wei, but it did`
                 );
               }
             });
@@ -59,15 +64,15 @@ export function supportChangeEtherBalances(Assertion: Chai.AssertionStatic) {
           },
           balanceChanges.map(
             (balanceChange, i) =>
-              `${
+              `Ether balance of ${
                 accountAddresses[i]
-              } balance changed by ${balanceChange.toString()} wei`
+              } changed by ${balanceChange.toString()} wei`
           ),
           actualChanges.map(
             (actualChange, i) =>
-              `${
+              `Ether balance of ${
                 accountAddresses[i]
-              } balance changed by ${actualChange.toString()} wei`
+              } changed by ${actualChange.toString()} wei`
           )
         );
       });

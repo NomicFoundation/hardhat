@@ -89,7 +89,7 @@ describe(".to.emit (contract events)", () => {
             .withArgs(1)
         ).to.throw(
           Error,
-          "withArgs called without a previous .emit or .revertedWithCustomError assertion"
+          "withArgs can only be used in combination with a previous .emit or .revertedWithCustomError assertion"
         );
       });
 
@@ -454,7 +454,7 @@ describe(".to.emit (contract events)", () => {
                 .withArgs(1, () => false)
             ).to.be.eventually.rejectedWith(
               AssertionError,
-              "The predicate for event argument #2 returned false"
+              "The predicate for the 2nd event argument returned false"
             );
           });
 
@@ -476,7 +476,7 @@ describe(".to.emit (contract events)", () => {
                   .withArgs(anyUint)
               ).to.be.rejectedWith(
                 AssertionError,
-                "The predicate for event argument #1 threw an AssertionError: anyUint expected its argument to be an integer, but its type was 'string'"
+                "The predicate for the 1st event argument threw an AssertionError: anyUint expected its argument to be an integer, but its type was 'string'"
               );
             });
 
@@ -487,7 +487,7 @@ describe(".to.emit (contract events)", () => {
                   .withArgs(anyUint)
               ).to.be.rejectedWith(
                 AssertionError,
-                "The predicate for event argument #1 threw an AssertionError: anyUint expected its argument to be an unsigned integer, but it was negative, with value -1"
+                "The predicate for the 1st event argument threw an AssertionError: anyUint expected its argument to be an unsigned integer, but it was negative, with value -1"
               );
             });
           });

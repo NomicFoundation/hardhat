@@ -16,6 +16,6 @@ order:
   - title: 7. Deploying to a live network
     href: /deploying-to-a-live-network
   - title: 8. Boilerplate Project
-    href: /hardhat-boilerplate
+    href: /boilerplate-project
   - title: 9. Final thoughts
     href: /final-thoughts

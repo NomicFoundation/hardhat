@@ -1,4 +1,3 @@
-import type { BN } from "ethereumjs-util";
 import type { EIP1193Provider } from "hardhat/types";
 
 import type { NumberLike } from "./types";
@@ -100,18 +99,10 @@ export function assertTxHash(hexString: string): void {
   }
 }
 
-export function assertValidTargetBlock(target: BN, latest: BN): void {
-  if (!target.gt(latest)) {
-    throw new HardhatNetworkHelpersError(
-      `Requested target block ${target.toString()} is not greater than current block height.`
-    );
-  }
-}
-
 export function assertPositiveNumber(n: bigint): void {
   if (n <= BigInt(0)) {
     throw new HardhatNetworkHelpersError(
-      `Invalid input ${n} - number must be positive.`
+      `Invalid input: expected a positive number but ${n} was given.`
     );
   }
 }

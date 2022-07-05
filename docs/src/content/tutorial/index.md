@@ -6,7 +6,7 @@ prev: false
 
 # Hardhat's tutorial for beginners
 
-Welcome to our beginners guide to Ethereum contracts and dApp development. This tutorial is aimed at developers who are getting setup to quickly build something from scratch.
+Welcome to our beginners guide to Ethereum contracts and dApp development. This tutorial aims to quickly get you set up to build something from scratch.
 
 To orchestrate this process we're going to use Hardhat, a development environment that facilitates building on Ethereum. It helps developers manage and automate the recurring tasks that are inherent to the process of building smart contracts and dApps, as well as easily introducing more functionality around this workflow. This means compiling and testing at the very core.
 
