@@ -80,6 +80,7 @@ async function suggestInstallingHardhatVscode() {
   const installationConsent = await confirmHHVSCodeInstallation();
 
   if (installationConsent === true) {
+    console.log("Installing Hardhat for Visual Studio Code...");
     const installed = installHardhatVSCode();
 
     if (installed) {
