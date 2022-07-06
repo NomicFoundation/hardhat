@@ -66,6 +66,11 @@ const customRedirects = [
     destination: "/hardhat-chai-matchers/docs/migrate-from-waffle",
     permanent: false
   },
+  {
+    source: "/custom-hardfork-history",
+    destination: "/hardhat-network/docs/guides/forking-other-networks.html#using-a-custom-hardfork-history",
+    permanent: false
+  },
 
   // top-level projects URLs
   {
