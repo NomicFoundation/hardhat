@@ -3,5 +3,5 @@ section-title: Hardhat VSCode
 order:
   - title: Overview
     href: /overview
-  - title: Features
-    href: /features
+  - /hardhat-projects
+  - /formatting

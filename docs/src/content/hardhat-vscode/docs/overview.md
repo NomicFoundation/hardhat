@@ -9,13 +9,13 @@ description: Solidity and Hardhat support for Visual Studio Code
 
 Hardhat for Visual Studio code adds the following features:
 
-- [Code completion](features.md#code-completions)
-- [Go to definition, type definition and references](features.md#navigation)
-- [Symbol renames](features.md#renames)
-- [Solidity code formatting](features.md#format-document)
-- [Inline code validation from compiler errors/warnings for Hardhat projects](<features.md#inline-code-validation-(diagnostics)>)
-- [Hover help for variables, function calls, errors, events etc.](features.md#hover)
-- [Code actions (quickfixes) suggested from compiler errors/warnings for Hardhat projects](features.md#code-actions)
+- [Code completion](#code-completions)
+- [Go to definition, type definition and references](#navigation)
+- [Symbol renames](#renames)
+- [Solidity code formatting](#format-document)
+- [Inline code validation from compiler errors/warnings for Hardhat projects](<#inline-code-validation-(diagnostics)>)
+- [Hover help for variables, function calls, errors, events etc.](#hover)
+- [Code actions (quickfixes) suggested from compiler errors/warnings for Hardhat projects](#code-actions)
 
 ## Installation
 
@@ -23,67 +23,100 @@ Hardhat for Visual Studio code adds the following features:
 
 Some features (e.g. inline validation, quick fixes) are still experimental and are only enabled within a [Hardhat](https://hardhat.org/) project, this is a limitation that will be lifted with future releases.
 
-## Setup
+This extension should work without any configuration. To learn more about how it works with Hardhat projects, please read [this section](./hardhat-projects.md). If formatting functionality isn't working, or you have previously configured another Solidity formatter, please see the [formatting section](./formatting.md).
 
-This extension should work without any configuration. If formatting functionality isn't working, or you have previously configured another **Solidity** formatter, please see the [formatting section](#formatting).
+## Features
 
-## Hardhat Projects
+### Code Completions
 
-Hardhat for Visual Studio Code provides enhanced functionality for Solidity files within a Hardhat project, including inline validation and quick fixes.
+Hardhat for Visual Studio Code autocompletes references to existing symbols (e.g. contract instances, globally available variables and built-in types like arrays) and import directives (i.e. it autocompletes the path to the imported file).
 
-To take advantage of these features, use the `File` menu to `Open Folder`, and select the folder containing the `hardhat.config.{js,ts}` file.
+Direct imports (those not starting with `./` or `../`) are completed based on suggestions from `./node_modules`.
 
-Inline validation (the display of compiler errors and warnings against the code) is based on your Hardhat configuration file. The version of the `solc` solidity compiler used for validation is set within this file, see the [Hardhat documentation](https://hardhat.org/config/#solidity-configuration) for more details.
+Relative imports pull their suggestions from the file system based on the current solidity file's location.
 
-### Monorepo Support
+![Import completions](/hardhat-vscode-images/import-completion.gif "Import completions")
 
-Hardhat for Visual Studio Code will detect Hardhat projects (folders containing a `hardhat.config.{js,ts}` file) within a monorepo, when the root of the monorepo is opened as a workspace folder.
+### Navigation
 
-The Hardhat config file that is used when validating a Solidity file is shown in the Solidity section on the _Status Bar_:
+Move through your codebase with semantic navigation commands:
 
-![Open Config](/hardhat-vscode-images/open-config.gif "Open Config")
+#### Go to Definition
 
-## Formatting
+Navigates to the definition of an identifier.
 
-Hardhat for Visual Studio Code provides formatting support for `.sol` files, by leveraging [prettier-plugin-solidity](https://github.com/prettier-solidity/prettier-plugin-solidity).
+#### Go to Type Definition
 
-> **Note:** if you currently have other solidity extensions installed, or have had previously, they may be set as your default formatter for solidity files.
+Navigates to the type of an identifier.
 
-To set Hardhat for Visual Studio Code as your default formatter for solidity files:
+#### Go to References
 
-1. Within a Solidity file run the _Format Document With_ command, either through the Command Palette, or by right clicking and selecting through the context menu:
+Shows all references of the identifier under the cursor.
 
-![Format Document With](/hardhat-vscode-images/format_document_with.png "Format Document With")
+![Navigation](/hardhat-vscode-images/navigation.gif "Navigation")
 
-2. Select `Configure Default Formatter...`
+### Renames
 
-![Format Document With](/hardhat-vscode-images/configure_default_formatter.png "Configure default formatter")
+Rename the identifier under the cursor and all of its references:
 
-3. Select `Hardhat + Solidity` as the default formatter for solidity files
+![Rename](/hardhat-vscode-images/rename.gif "Rename")
 
-![Format Document With](/hardhat-vscode-images/select_solidity_plus_hardhat.png "Confiure default formatter")
+### Format document
 
-### Formatting Configuration
+Apply solidity formatting to the current document.
 
-The default formatting rules that will be applied are taken from [prettier-plugin-solidity](https://github.com/prettier-solidity/prettier-plugin-solidity#configuration-file), with the exception that `explicitTypes` are preserved (rather than forced).
+The formatting configuration can be overriden through a `.prettierrc` file, see [Formatting Configuration](./formatting.md#formatting-configuration).
 
-To override the settings, add a `prettierrc` configuration file at the root of your project. Add a `*.sol` file override to the prettier configuration file and change from the defaults shown:
+![Reformat](/hardhat-vscode-images/format.gif "Reformat")
 
-```javascript
-// .prettierrc.json
-{
-  "overrides": [
-    {
-      "files": "*.sol",
-      "options": {
-        "printWidth": 80,
-        "tabWidth": 4,
-        "useTabs": false,
-        "singleQuote": false,
-        "bracketSpacing": false,
-        "explicitTypes": "preserve"
-      }
-    }
-  ]
-}
-```
+### Hover
+
+Hovering the cursor over variables, function calls, errors and events will display a popup showing type and signature information:
+
+![Hover](/hardhat-vscode-images/on-hover.gif "Hover")
+
+### Inline code validation (Diagnostics)
+
+As code is edited, Hardhat for Visual Studio Code runs the [solc](https://docs.soliditylang.org/en/latest/using-the-compiler.html) compiler over the changes and displays any warnings or errors it finds.
+
+This feature is only available in solidity files that are part of a **Hardhat** project, as **Hardhat** is used for import resolution, see [Hardhat Projects](#hardhat-projects) for details.
+
+![Diagnostic](/hardhat-vscode-images/diagnostic.gif "Diagnostic")
+
+### Code Actions
+
+Code actions, or quickfixes are refactorings suggested to resolve a [solc](https://docs.soliditylang.org/en/latest/using-the-compiler.html) warning or error.
+
+A line with a warning/error that has a _code action_, will appear with small light bulb against it; clicking the light bulb will provide the option to trigger the _code action_.
+
+#### Implement missing functions on interface
+
+A contract that implements an interface, but is missing functions specified in the interface, will get a `solidity(3656)` error.
+
+The matching code action _Add missing functions from interface_ will determine which functions need to be implemented to satisfy the interface and add them as stubs to the body of the contract.
+
+![Implement interface](/hardhat-vscode-images/implement-interface.gif "Implement interface")
+
+#### Constrain mutability
+
+A function without a mutability keyword but which does not update contract state will show a `solidity(2018)` warning, with `solc` suggesting adding either the `view` or `pure` keyword depending on whether the function reads from state.
+
+The matching code action _Add view/pure modifier to function declaration_ resolves the warning by adding the keyword to the function signature.
+
+![Constrain Mutability](/hardhat-vscode-images/constrain-mutability.gif "Constrain Mutability")
+
+#### Adding `virtual`/`override` on inherited function signature
+
+A function in an inheriting contract, that has the same name and parameters as a function in the base contract, causes `solidity(4334)` in the base contract function if it does not have the `virtual` keyword and `solidity(9456)` in the inheriting contract function if does not have the `override` keyword.
+
+The _Add virtual specifier to function definition_ and _Add override specifier to function definition_ code actions appear against functions with these errors.
+
+![Virtual and Override](/hardhat-vscode-images/virtual-override.gif "Virtual and Override")
+
+#### Adding `public`/`private` to function signature
+
+A function without an accessibility keyword will cause the `solidity(4937)` error.
+
+Two code actions will appear against a function with this error: _Add public visibility to declaration_ and _Add private visibility to declaration_.
+
+![Public Private](/hardhat-vscode-images/public-private.gif "Public Private")
