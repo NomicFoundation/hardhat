@@ -1,11 +1,10 @@
 {
   "name": "@nomicfoundation/hardhat-network-helpers",
-  "private": true,
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Hardhat utils for testing",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/master/packages/hardhat-network-helpers",
   "repository": "github:nomicfoundation/hardhat",
-  "author": "Nomic Labs LLC",
+  "author": "Nomic Foundation",
   "license": "MIT",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",

@@ -1,7 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-toolbox",
-  "private": true,
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "",
   "repository": "github:nomicfoundation/hardhat",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/master/packages/hardhat-toolbox",
