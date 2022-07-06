@@ -5,9 +5,11 @@ description: Documentation about Hardhat, the Ethereum development environment
 
 Hardhat is a development environment for Ethereum software. It consists of different components for editing, compiling, debugging and deploying your smart contracts and dApps, all of which work together to create a complete development environment.
 
-If you want to quickly start using it you can follow [this guide.](/hardhat-runner/docs/getting-started/index.md#overview)
+To get started check out these sections:
 
-If you prefer a step-by-step tutorial, you can find it [here.](/tutorial)
+* [General overview](/hardhat-runner)
+* [Quick start guide](/hardhat-runner/docs/getting-started/index.md#quick-start)
+* [Step-by-step tutorial](/tutorial)
 
 ## Browse by component
 
