@@ -1,5 +1,9 @@
 import path from "path";
-import { MenuItemType, SocialsEnum } from "./components/ui/types";
+import {
+  MenuItemType,
+  NavigationPagesPaths,
+  SocialsEnum,
+} from "./components/ui/types";
 import GitHubLogo from "./assets/socials/gh-logo";
 import TwitterLogo from "./assets/socials/tw-logo";
 import DiscordLogo from "./assets/socials/dc-logo";
@@ -49,7 +53,7 @@ export const toolRegExp = /tool=[A-Z_]+/;
 export const menuItemsList: MenuItemType[] = [
   {
     label: "Home",
-    href: "/",
+    href: NavigationPagesPaths.HOME,
   },
   {
     label: "Tools",
@@ -96,7 +100,7 @@ export const menuItemsList: MenuItemType[] = [
   },
   {
     label: "Tutorial",
-    href: "/tutorial",
+    href: NavigationPagesPaths.TUTORIAL,
   },
 ];
 

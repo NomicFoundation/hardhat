@@ -1,6 +1,6 @@
 /* eslint global-require: "off" */
 
-const TrustedTeamsLogos = [
+export const TrustedTeamsLogos = [
   {
     img: require("./lodestar.png"),
     alt: "Lodestar company logo",
@@ -170,4 +170,173 @@ const TrustedTeamsLogos = [
   },
 ];
 
-export default TrustedTeamsLogos;
+// TODO-LANDING-DARK: Replace images below with correct dark themed images.
+export const TrustedTeamsLogosDark = [
+  {
+    img: require("./dark/lodestar-dark.png"),
+    alt: "Lodestar company logo",
+  },
+  {
+    img: require("./dark/connext-dark.png"),
+    alt: "Connext company logo",
+  },
+  { img: require("./dark/set-dark.png"), alt: "Set company logo" },
+  {
+    img: require("./dark/opyn-dark.png"),
+    alt: "Opyn company logo",
+  },
+  {
+    img: require("./dark/balancer-dark.png"),
+    alt: "Balancer company logo",
+  },
+  {
+    img: require("./dark/molochdao-dark.png"),
+    alt: "Molochdao company logo",
+  },
+  {
+    img: require("./dark/kyber-dark.png"),
+    alt: "Kyber company logo",
+  },
+  {
+    img: require("./dark/openzeppelin-dark.png"),
+    alt: "Openzepellin company logo",
+  },
+  {
+    img: require("./dark/pieDAO-dark.png"),
+    alt: "PieDAO company logo",
+  },
+  {
+    img: require("./dark/optimism-dark.png"),
+    alt: "Optimism company logo",
+  },
+  {
+    img: require("./dark/decentraland-dark.png"),
+    alt: "Decentraland company logo",
+  },
+  {
+    img: require("./dark/aragonOne-dark.png"),
+    alt: "ARAGONE ONE company logo",
+  },
+  {
+    img: require("./dark/kleros-dark.png"),
+    alt: "Kleros company logo",
+  },
+  {
+    img: require("./dark/mstable-dark.png"),
+    alt: "M STABLE company logo",
+  },
+  {
+    img: require("./dark/celo-dark.png"),
+    alt: "Celo company logo",
+  },
+  {
+    img: require("./dark/mycrypto-dark.png"),
+    alt: "MyCrypto company logo",
+  },
+  {
+    img: require("./dark/poap-dark.png"),
+    alt: "Poap company logo",
+  },
+  {
+    img: require("./dark/melon-dark.png"),
+    alt: "Melon company logo",
+  },
+  {
+    img: require("./dark/openGSN-dark.png"),
+    alt: "OpenGSN company logo",
+  },
+  {
+    img: require("./dark/unlock-dark.png"),
+    alt: "Unlock company logo",
+  },
+  {
+    img: require("./dark/status-dark.png"),
+    alt: "Status company logo",
+  },
+  {
+    img: require("./dark/pool-dark.png"),
+    alt: "Pool company logo",
+  },
+  {
+    img: require("./dark/instadapp-dark.png"),
+    alt: "Instadapp company logo",
+  },
+  {
+    img: require("./dark/mainframe-dark.png"),
+    alt: "Mainframe company logo",
+  },
+  {
+    img: require("./dark/horizon-dark.png"),
+    alt: "Horizon company logo",
+  },
+  {
+    img: require("./dark/aave-dark.png"),
+    alt: "Aave company logo",
+  },
+  {
+    img: require("./dark/skale-dark.png"),
+    alt: "Skale company logo",
+  },
+  {
+    img: require("./dark/synthetix-dark.png"),
+    alt: "Synthetix company logo",
+  },
+  {
+    img: require("./dark/celer-dark.png"),
+    alt: "Celer company logo",
+  },
+  { img: require("./dark/uma-dark.png"), alt: "Uma company logo" },
+  {
+    img: require("./dark/chainlink-dark.png"),
+    alt: "Chainlink company logo",
+  },
+  {
+    img: require("./dark/gnosis-dark.png"),
+    alt: "Gnosis company logo",
+  },
+  {
+    img: require("./dark/sushiswap-dark.png"),
+    alt: "Sushiswap company logo",
+  },
+  { img: require("./dark/ens-dark.png"), alt: "ENS company logo" },
+  {
+    img: require("./dark/yearn-dark.png"),
+    alt: "Yearn company logo",
+  },
+  {
+    img: require("./dark/reflexer-dark.png"),
+    alt: "Reflexer company logo",
+  },
+  {
+    img: require("./dark/dharma-dark.png"),
+    alt: "Dharma company logo",
+  },
+  {
+    img: require("./dark/1inch-dark.png"),
+    alt: "1inch company logo",
+  },
+  {
+    img: require("./dark/uniswap-dark.png"),
+    alt: "Uniswap company logo",
+  },
+  {
+    img: require("./dark/hegic-dark.png"),
+    alt: "Hegic company logo",
+  },
+  {
+    img: require("./dark/augur-dark.png"),
+    alt: "Augur company logo",
+  },
+  {
+    img: require("./dark/zksync-dark.png"),
+    alt: "zkSync company logo",
+  },
+  {
+    img: require("./dark/livepeer-dark.png"),
+    alt: "Livepeer company logo",
+  },
+  {
+    img: require("./dark/loopring-dark.png"),
+    alt: "Loopring company logo",
+  },
+];

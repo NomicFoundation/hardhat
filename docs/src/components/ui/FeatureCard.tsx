@@ -12,6 +12,8 @@ interface ArticleType {
 }
 
 interface ContentProps {
+  mobileImgDark: StaticImageData;
+  desktopImgDark: StaticImageData;
   mobileImg: StaticImageData;
   desktopImg: StaticImageData;
   cta: CTAType;
@@ -46,10 +48,10 @@ const ImageContainer = styled.div`
   margin-bottom: 16px;
   position: relative;
   width: 100%;
-  padding-top: 55%;
+  padding-top: 80%;
   overflow: hidden;
-  ${media.sm} {
-    padding-top: 55%;
+  ${media.smd} {
+    padding-top: 40%;
   }
   ${media.md} {
     padding-top: unset;
@@ -59,14 +61,17 @@ const ImageContainer = styled.div`
 
 const ImageWrapper = styled.div`
   position: absolute;
-  top: 50%;
+  top: 20%;
   left: 50%;
   width: 100%;
-  transform: translate(-50%, -50%);
+  transform: translateX(-50%);
   height: 300px;
   display: flex;
   justify-content: center;
   align-items: center;
+  ${media.smd} {
+    width: unset;
+  }
 
   & > span {
     transform: scale(1.5);
@@ -86,6 +91,27 @@ const ImageWrapper = styled.div`
     &[data-reverse="true"] {
       left: 20%;
       right: unset;
+    }
+  }
+  &.dark {
+    display: none;
+  }
+  ${tmSelectors.dark} {
+    &.dark {
+      display: block;
+    }
+    &.light {
+      display: none;
+    }
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      &.dark {
+        display: block;
+      }
+      &.light {
+        display: none;
+      }
     }
   }
 `;
@@ -176,15 +202,28 @@ const Article = ({ title, text }: ArticleType) => {
 };
 
 const FeatureCard = ({ content, isReversed = false }: Props) => {
-  const { mobileImg, desktopImg, cta, articleOne, articleTwo } = content;
+  const {
+    mobileImg,
+    desktopImg,
+    cta,
+    articleOne,
+    articleTwo,
+    mobileImgDark,
+    desktopImgDark,
+  } = content;
   const windowSize = useWindowSize();
   const isDesktop = breakpoints.md <= windowSize.width;
   const imgPath = isDesktop ? desktopImg : mobileImg;
+  const imgPathDark = isDesktop ? desktopImgDark : mobileImgDark;
+
   return (
     <Container data-reverse={isReversed}>
       <ImageContainer>
-        <ImageWrapper data-reverse={isReversed}>
+        <ImageWrapper data-reverse={isReversed} className="light">
           <Image src={imgPath} alt="Feature card picture" quality={100} />
+        </ImageWrapper>
+        <ImageWrapper data-reverse={isReversed} className="dark">
+          <Image src={imgPathDark} alt="Feature card picture" quality={100} />
         </ImageWrapper>
       </ImageContainer>
       <ContentContainer data-reverse={isReversed}>

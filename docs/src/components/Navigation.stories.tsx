@@ -19,6 +19,7 @@ export const MobileSidebar = () => (
       DocumentationSidebarStructure as IDocumentationSidebarStructure
     }
     closeSidebar={() => {}}
+    isDocumentation={false}
   />
 );
 
