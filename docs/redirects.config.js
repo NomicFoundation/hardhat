@@ -61,6 +61,11 @@ const customRedirects = [
     destination: "/hardhat-network/docs/metamask-issue",
     permanent: false
   },
+  {
+    source: "/migrate-from-waffle",
+    destination: "/hardhat-chai-matchers/docs/migrate-from-waffle",
+    permanent: false
+  },
 
   // top-level projects URLs
   {
