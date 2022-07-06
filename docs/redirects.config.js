@@ -20,9 +20,24 @@ const customRedirects = [
     destination: "/hardhat-runner/docs/config",
     permanent: false
   },
+  {
+    source: "/plugins",
+    destination: "/hardhat-runner/plugins",
+    permanent: false
+  },
+  {
+    source: "/getting-started",
+    destination: "/hardhat-runner/docs/getting-started#overview",
+    permanent: false
+  },
   { source: "/links/stack-traces", destination: "/", permanent: false },
   {
     source: "/reportbug",
+    destination: "https://github.com/nomiclabs/hardhat/issues/new",
+    permanent: false
+  },
+  {
+    source: "/report-bug",
     destination: "https://github.com/nomiclabs/hardhat/issues/new",
     permanent: false
   },
@@ -59,6 +74,16 @@ const customRedirects = [
   {
     source: "/metamask-issue",
     destination: "/hardhat-network/docs/metamask-issue",
+    permanent: false
+  },
+  {
+    source: "/migrate-from-waffle",
+    destination: "/hardhat-chai-matchers/docs/migrate-from-waffle",
+    permanent: false
+  },
+  {
+    source: "/custom-hardfork-history",
+    destination: "/hardhat-network/docs/guides/forking-other-networks.html#using-a-custom-hardfork-history",
     permanent: false
   },
 
@@ -131,11 +156,6 @@ const customRedirects = [
     permanent: false
   },
   {
-    source: "/getting-started",
-    destination: "/hardhat-runner/docs/getting-started#overview",
-    permanent: false
-  },
-  {
     source: "/hardhat-network/guides/mainnet-forking",
     destination: "/hardhat-network/docs/guides/forking-other-networks",
     permanent: false
@@ -172,12 +192,7 @@ const customRedirects = [
   },
   {
     source: "/reference/solidity-support",
-    destination: "hardhat-runner/docs/reference/solidity-support",
-    permanent: false
-  },
-  {
-    source: "/plugins",
-    destination: "/hardhat-runner/plugins",
+    destination: "/hardhat-runner/docs/reference/solidity-support",
     permanent: false
   },
   {
@@ -198,7 +213,7 @@ const customRedirects = [
   },
   {
     source: "/guides/:slug(waffle-testing|truffle-testing|truffle-migration|ganache-tests)",
-    destination: "/other-guides/:slug",
+    destination: "/hardhat-runner/docs/other-guides/:slug",
     permanent: false
   },
   {

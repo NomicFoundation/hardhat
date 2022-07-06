@@ -496,7 +496,7 @@ export class ModulesLogger {
       this.printEmptyLine();
 
       this._print(
-        "If you think this is a bug in Hardhat, please report it here: https://hardhat.org/reportbug"
+        "If you think this is a bug in Hardhat, please report it here: https://hardhat.org/report-bug"
       );
     });
   }
