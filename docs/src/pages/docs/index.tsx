@@ -8,7 +8,7 @@ import {
   readMDFileFromPathOrIndex,
 } from "../../model/markdown";
 import { DOCS_LANDING_PATH } from "../../config";
-import { media, tm, tmDark, tmSelectors } from "../../themes";
+import { media, tmDark, tmSelectors } from "../../themes";
 
 interface IDocsPage {
   mdxSource: MDXRemoteSerializeResult;
@@ -36,13 +36,14 @@ const Docs: NextPage<IDocsPage> = ({ mdxSource }) => {
   return (
     <PluginsLayout
       seo={{
-        title: "Hardhat Documentation",
-        description: "Documentation of all the Hardhat projects",
+        title: "Documentation",
+        description:
+          "Documentation about Hardhat, the Ethereum development environment",
       }}
       sidebarLayout={[]}
     >
       <div>
-        <PageTitle>Hardhat documentation</PageTitle>
+        <PageTitle>Documentation</PageTitle>
         {/* @ts-ignore */}
         <MDXRemote {...mdxSource} components={components} />
       </div>

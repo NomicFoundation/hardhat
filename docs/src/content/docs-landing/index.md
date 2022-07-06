@@ -1,5 +1,5 @@
 ---
-title: Hardhat documentation
+title: Documentation
 description: Documentation about Hardhat, the Ethereum development environment
 ---
 
