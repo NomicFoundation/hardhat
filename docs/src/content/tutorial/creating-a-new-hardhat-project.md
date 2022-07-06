@@ -11,6 +11,42 @@ mkdir hardhat-tutorial
 cd hardhat-tutorial
 ```
 
+Then initialize an npm project. You'll be prompted to answer some questions.
+
+::::tip
+
+Use the tabs in the snippets to select your preferred package manager. We recommend using npm 7 or later, since it makes installing Hardhat's dependencies much easier.
+
+::::
+
+::::tabsgroup{options="npm 7+,npm 6,yarn"}
+
+:::tab{value="npm 7+"}
+
+```
+npm init
+```
+
+:::
+
+:::tab{value="npm 6"}
+
+```
+npm init
+```
+
+:::
+
+:::tab{value=yarn}
+
+```
+yarn init
+```
+
+:::
+
+::::
+
 Now, we can install Hardhat:
 
 ::::tabsgroup{options="npm 7+,npm 6,yarn"}
