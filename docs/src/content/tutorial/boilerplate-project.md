@@ -73,7 +73,7 @@ What's happening here is that the frontend code to show the current wallet's bal
 npx hardhat --network localhost faucet <your address>
 ```
 
-You'll run a custom Hardhat task we included that uses the balance of the deploying account to send 100 MBT and 1 ETH to your address. This will allow you to send tokens to another address.
+You'll run a custom Hardhat task we included that uses the balance of the deploying account to send 100 MHT and 1 ETH to your address. This will allow you to send tokens to another address.
 
 You can check out the code for the task in [`/tasks/faucet.js`](https://github.com/NomicFoundation/hardhat-boilerplate/blob/master/tasks/faucet.js), which is required from `hardhat.config.js`.
 
