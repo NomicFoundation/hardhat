@@ -96,7 +96,9 @@ If you need to send a transaction from an account (or `Signer` in ethers.js spea
 ```js{16}
 const { expect } = require("chai");
 
-describe("Transactions", function() {
+describe("Token contract", function () {
+  // ...previous test...
+
   it("Should transfer tokens between accounts", async function() {
     const [owner, addr1, addr2] = await ethers.getSigners();
 
