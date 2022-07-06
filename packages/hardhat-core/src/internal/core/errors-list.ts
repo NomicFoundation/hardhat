@@ -245,7 +245,7 @@ Either try using a new directory name, or remove the conflicting files.`,
       title: "Selected network doesn't exist",
       description: `You are trying to run Hardhat with a nonexistent network.
 
-Read the [documentation](https://hardhat.org/config/#networks-configuration) to learn how to define custom networks.`,
+Read the [documentation](https://hardhat.org/hardhat-runner/docs/config#networks-configuration) to learn how to define custom networks.`,
       shouldBeReported: false,
     },
     INVALID_GLOBAL_CHAIN_ID: {
@@ -305,7 +305,7 @@ Please make sure that your Ethereum node has unlocked accounts.`,
       title: "Invalid HD path",
       description: `An invalid HD/BIP32 derivation path was provided in your config.  
       
-Read the [documentation](https://hardhat.org/config/#hd-wallet-config) to learn how to define HD accounts correctly.`,
+Read the [documentation](https://hardhat.org/hardhat-runner/docs/config#hd-wallet-config) to learn how to define HD accounts correctly.`,
       shouldBeReported: false,
     },
     INVALID_RPC_QUANTITY_VALUE: {
