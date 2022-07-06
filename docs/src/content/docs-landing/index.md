@@ -6,11 +6,11 @@ If you want to quickly start using it you can follow [this guide.](/hardhat-runn
 
 If you prefer a step-by-step tutorial, you can find it [here.](/tutorial)
 
-## Browse by project
+## Browse by component
 
 :::tip
 
-If you are in doubt about which project you are looking for, you can start [here.](/hardhat-runner)
+If you are in doubt about which component you are looking for, you can start [here.](/hardhat-runner)
 
 :::
 

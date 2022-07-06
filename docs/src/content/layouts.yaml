@@ -10,7 +10,7 @@ hardhat-runner:
     - hardhat-runner/docs/troubleshooting
     - hardhat-runner/docs/reference
     - hardhat-runner/plugins
-    - hardhat-runner/docs/other-projects
+    - hardhat-runner/docs/other-components
     # hidden
     - hardhat-runner/docs/errors
     - hardhat-runner/docs/other-guides
@@ -20,7 +20,7 @@ hardhat-network:
   folders:
     - hardhat-network
     - hardhat-network/docs
-    - hardhat-network/docs/other-projects
+    - hardhat-network/docs/other-components
     # hidden
     - hardhat-network/docs/metamask-issue
 
@@ -29,21 +29,21 @@ hardhat-vscode:
   folders:
     - hardhat-vscode
     - hardhat-vscode/docs
-    - hardhat-vscode/docs/other-projects
+    - hardhat-vscode/docs/other-components
 
 hardhat-chai-matchers:
   title: Hardhat Chai Matchers
   folders:
     - hardhat-chai-matchers
     - hardhat-chai-matchers/docs
-    - hardhat-chai-matchers/docs/other-projects
+    - hardhat-chai-matchers/docs/other-components
 
 hardhat-network-helpers:
   title: Hardhat Network Helpers
   folders:
     - hardhat-network-helpers
     - hardhat-network-helpers/docs
-    - hardhat-network-helpers/docs/other-projects
+    - hardhat-network-helpers/docs/other-components
 
 hidden:
   title: hidden

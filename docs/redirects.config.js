@@ -62,7 +62,7 @@ const customRedirects = [
     permanent: false
   },
 
-  // top-level projects URLs
+  // top-level component URLs
   {
     source: "/hardhat-runner",
     destination: "/hardhat-runner/docs/getting-started#overview",
