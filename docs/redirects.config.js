@@ -20,6 +20,16 @@ const customRedirects = [
     destination: "/hardhat-runner/docs/config",
     permanent: false
   },
+  {
+    source: "/plugins",
+    destination: "/hardhat-runner/plugins",
+    permanent: false
+  },
+  {
+    source: "/getting-started",
+    destination: "/hardhat-runner/docs/getting-started#overview",
+    permanent: false
+  },
   { source: "/links/stack-traces", destination: "/", permanent: false },
   {
     source: "/reportbug",
@@ -146,11 +156,6 @@ const customRedirects = [
     permanent: false
   },
   {
-    source: "/getting-started",
-    destination: "/hardhat-runner/docs/getting-started#overview",
-    permanent: false
-  },
-  {
     source: "/hardhat-network/guides/mainnet-forking",
     destination: "/hardhat-network/docs/guides/forking-other-networks",
     permanent: false
@@ -187,12 +192,7 @@ const customRedirects = [
   },
   {
     source: "/reference/solidity-support",
-    destination: "hardhat-runner/docs/reference/solidity-support",
-    permanent: false
-  },
-  {
-    source: "/plugins",
-    destination: "/hardhat-runner/plugins",
+    destination: "/hardhat-runner/docs/reference/solidity-support",
     permanent: false
   },
   {
