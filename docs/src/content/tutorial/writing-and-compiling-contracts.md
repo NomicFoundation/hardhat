@@ -78,7 +78,8 @@ contract Token {
         // transaction will revert.
         require(balances[msg.sender] >= amount, "Not enough tokens");
 
-        // We can print messages and values using console.log
+        // We can print messages and values using console.log, a feature of
+        // Hardhat Network:
         console.log(
             "Transferring from %s to %s %s tokens",
             msg.sender,
