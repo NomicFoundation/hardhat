@@ -307,7 +307,7 @@ async function main() {
     } else {
       if (!isHardhatError) {
         console.error(
-          `If you think this is a bug in Hardhat, please report it here: https://hardhat.org/reportbug`
+          `If you think this is a bug in Hardhat, please report it here: https://hardhat.org/report-bug`
         );
       }
 

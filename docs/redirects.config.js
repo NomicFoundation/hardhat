@@ -27,6 +27,11 @@ const customRedirects = [
     permanent: false
   },
   {
+    source: "/report-bug",
+    destination: "https://github.com/nomiclabs/hardhat/issues/new",
+    permanent: false
+  },
+  {
     source: "/console-log",
     destination: "/hardhat-network/#console.log",
     permanent: false
