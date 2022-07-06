@@ -10,9 +10,9 @@ To learn how to start using them, read [this guide](../../../hardhat-chai-matche
 
 ## Using the Hardhat Toolbox
 
-You can get our recommended setup by installing the [`@nomicfoundation/hardhat-toolbox`] plugin.
+You can get our recommended setup by installing [`@nomicfoundation/hardhat-toolbox`], a single plugin that has everything you need.
 
-When you use this plugin, you'll be able to:
+When you use it, you'll be able to:
 
 - Deploy and interact with your contracts using [ethers.js](https://docs.ethers.io/v5/) and the [`hardhat-ethers`](/hardhat-runner/plugins/nomiclabs-hardhat-ethers) plugin.
 - Test your contracts with [Mocha](https://mochajs.org/), [Chai](https://chaijs.com/) and our own [Hardhat Chai Matchers](/hardhat-chai-matchers) plugin.
