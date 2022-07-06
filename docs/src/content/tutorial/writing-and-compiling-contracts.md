@@ -43,13 +43,13 @@ contract Token {
     string public name = "My Hardhat Token";
     string public symbol = "MHT";
 
-    // The fixed amount of tokens stored in an unsigned integer type variable.
+    // The fixed amount of tokens, stored in an unsigned integer type variable.
     uint256 public totalSupply = 1000000;
 
     // An address type variable is used to store ethereum accounts.
     address public owner;
 
-    // A mapping is a key/value map. Here we store each account balance.
+    // A mapping is a key/value map. Here we store each account's balance.
     mapping(address => uint256) balances;
 
     // The Transfer event helps off-chain aplications understand
@@ -69,7 +69,7 @@ contract Token {
     /**
      * A function to transfer tokens.
      *
-     * The `external` modifier makes a function *only* callable from outside
+     * The `external` modifier makes a function *only* callable from *outside*
      * the contract.
      */
     function transfer(address to, uint256 amount) external {

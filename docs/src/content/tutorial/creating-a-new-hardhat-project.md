@@ -1,8 +1,8 @@
 # 3. Creating a new Hardhat project
 
-We'll install Hardhat using the npm CLI. The Node.js package manager (or npm), which is a package manager and an online repository for JavaScript code.
+We'll install Hardhat using the Node.js package manager (`npm`), which is both a package manager and an online repository for JavaScript code.
 
-You can use other package managers in Node.js, but we suggest you use npm 7 or higher to follow this guide. You should already have it if you followed the previous section's steps.
+You can use other package managers with Node.js, but we suggest you use npm 7 or higher to follow this guide. You should already have it if you followed the previous section's steps.
 
 Open a new terminal and run these commands to create a new folder:
 
@@ -11,7 +11,7 @@ mkdir hardhat-tutorial
 cd hardhat-tutorial
 ```
 
-Then initialize an npm project. You'll be prompted to answer some questions.
+Then initialize an npm project as shown below. You'll be prompted to answer some questions.
 
 ::::tip
 
@@ -47,7 +47,7 @@ yarn init
 
 ::::
 
-Now, we can install Hardhat:
+Now we can install Hardhat:
 
 ::::tabsgroup{options="npm 7+,npm 6,yarn"}
 
@@ -109,11 +109,11 @@ When Hardhat is run, it searches for the closest `hardhat.config.js` file starti
 
 ## Hardhat's architecture
 
-Hardhat is designed around the concepts of tasks and plugins. The bulk of Hardhat's functionality comes from plugins, which as a developer [you're free to choose](/hardhat-runner/plugins/) the ones you want to use.
+Hardhat is designed around the concepts of tasks and plugins. The bulk of Hardhat's functionality comes from plugins, and [you're free to choose](/hardhat-runner/plugins/) the ones you want to use.
 
 ### Tasks
 
-Every time you're running Hardhat from the CLI you're running a task. e.g. `npx hardhat compile` is running the `compile` task. To see the currently available tasks in your project, run `npx hardhat`. Feel free to explore any task by running `npx hardhat help [task]`.
+Every time you're running Hardhat from the command-line, you're running a task. For eample, `npx hardhat compile` is running the `compile` task. To see the currently available tasks in your project, run `npx hardhat`. Feel free to explore any task by running `npx hardhat help [task]`.
 
 :::tip
 

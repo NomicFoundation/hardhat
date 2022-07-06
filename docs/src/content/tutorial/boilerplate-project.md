@@ -37,7 +37,7 @@ It's a separate npm project and it was created using `create-react-app`, so this
 
 ## How to use it
 
-First clone the repository, and then to get the contracts deployed:
+First clone the repository, and then prepare for the contract deployment:
 
 ```
 cd hardhat-boilerplate
@@ -51,7 +51,7 @@ Here we just install the npm project's dependencies, and by running `npx hardhat
 npx hardhat --network localhost run scripts/deploy.js
 ```
 
-This will deploy the contract to Hardhat Network. After this completes run:
+This will deploy the contract to Hardhat Network. After this completes, start the react web app:
 
 ```
 cd frontend
@@ -59,7 +59,7 @@ npm install
 npm run start
 ```
 
-To start the react web app. Open [http://127.0.0.1:3000/](http://127.0.0.1:3000/) in your browser and you should see this: ![](/front-5.png)
+Then open [http://127.0.0.1:3000/](http://127.0.0.1:3000/) in your browser and you should see this: ![](/front-5.png)
 
 Set your network in MetaMask to `127.0.0.1:8545`.
 
