@@ -1,4 +1,7 @@
-![Teacher Hardhat](/hardhat-tutorial.svg)
+---
+title: Hardhat documentation
+description: Documentation about Hardhat, the Ethereum development environment
+---
 
 Hardhat is a development environment for Ethereum software. It consists of different components for editing, compiling, debugging and deploying your smart contracts and dApps, all of which work together to create a complete development environment.
 
