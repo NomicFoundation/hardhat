@@ -198,7 +198,7 @@ const customRedirects = [
   },
   {
     source: "/guides/:slug(waffle-testing|truffle-testing|truffle-migration|ganache-tests)",
-    destination: "/other-guides/:slug",
+    destination: "/hardhat-runner/docs/other-guides/:slug",
     permanent: false
   },
   {
