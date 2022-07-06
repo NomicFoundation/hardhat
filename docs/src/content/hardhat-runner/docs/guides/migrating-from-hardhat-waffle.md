@@ -4,7 +4,7 @@ Our recommended setup used to include [Waffle] using our [`hardhat-waffle`] plug
 
 We now recommend using our [Hardhat Chai Matchers] and [Hardhat Network Helpers] instead.
 
-If you migrate to these packages, you'll get more functionality, like support for Solidity custom errors and native `bigint`, and a more reliable testing experience.
+Migrating to these packages only takes a few minutes, as they were designed as a drop-in replacement. If you do so, you'll get more functionality, like support for Solidity custom errors and native `bigint` support, and a more reliable testing experience.
 
 To learn how to start using them, read [this guide](../../../hardhat-chai-matchers/docs/migrate-from-waffle.md).
 
