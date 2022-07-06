@@ -20,13 +20,13 @@ export const SOCIALS_LINKS = {
 };
 
 export const BANNER_LINK =
-  "https://www.notion.so/Nomic-Foundation-jobs-991b37c547554f75b89a95f437fd5056";
+  "/hardhat-runner/docs/guides/migrating-from-hardhat-waffle";
 
 export const PRIVACY_POLICY_PATH = "/privacy-policy.html";
 
 export const bannerContent = {
-  text: "Join the Hardhat team! Nomic Foundation is hiring",
-  shortText: "Join the Hardhat team! We are hiring",
+  text: "Using @nomiclabs/hardhat-waffle? Check out Hardhat’s new improved replacement!",
+  shortText: "Check out the new hardhat-waffle replacement!",
   href: BANNER_LINK,
 };
 
