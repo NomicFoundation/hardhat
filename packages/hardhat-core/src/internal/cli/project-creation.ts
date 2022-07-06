@@ -36,22 +36,21 @@ type SampleProjectTypeCreationAction =
 const HARDHAT_PACKAGE_NAME = "hardhat";
 
 const PROJECT_DEPENDENCIES: Dependencies = {
-  "@nomicfoundation/hardhat-toolbox": "^1.0.0-beta.0",
+  "@nomicfoundation/hardhat-toolbox": "^1.0.1",
 };
 
 const PEER_DEPENDENCIES: Dependencies = {
   hardhat: "^2.9.9",
-  // TODO: Change these versions before the next release
-  "@nomicfoundation/hardhat-network-helpers": ">=1.0.0-beta.3",
-  "@nomicfoundation/hardhat-chai-matchers": ">=1.0.0-beta.2",
+  "@nomicfoundation/hardhat-network-helpers": "^1.0.0",
+  "@nomicfoundation/hardhat-chai-matchers": "^1.0.0",
   "@nomiclabs/hardhat-ethers": "^2.0.0",
   "@nomiclabs/hardhat-etherscan": "^3.0.0",
   chai: "^4.2.0",
   ethers: "^5.4.7",
   "hardhat-gas-reporter": "^1.0.8",
   "solidity-coverage": "^0.7.21",
-  "@typechain/hardhat": "^6.1.0",
-  typechain: "^8.0.0",
+  "@typechain/hardhat": "^6.1.2",
+  typechain: "^8.1.0",
   "@typechain/ethers-v5": "^10.1.0",
   "@ethersproject/abi": "^5.4.7",
   "@ethersproject/providers": "^5.4.7",
