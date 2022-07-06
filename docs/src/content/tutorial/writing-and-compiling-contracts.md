@@ -90,6 +90,7 @@ contract Token {
         balances[msg.sender] -= amount;
         balances[to] += amount;
 
+        // Notify off-chain applications of the transfer.
         emit Transfer(msg.sender, to, amount);
     }
 
