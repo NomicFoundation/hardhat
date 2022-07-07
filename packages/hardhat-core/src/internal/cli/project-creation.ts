@@ -247,9 +247,10 @@ async function createPackageJson() {
 
 function showStarOnGitHubMessage() {
   console.log(
-    chalk.cyan("Give Hardhat a star on Github if you're enjoying it") +
+    chalk.cyan("Give Hardhat a star on Github if you're enjoying it!") +
       emoji(" 💞✨")
   );
+  console.log();
   console.log(chalk.cyan("      https://github.com/NomicFoundation/hardhat"));
 }
 
