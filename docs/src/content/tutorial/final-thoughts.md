@@ -12,6 +12,8 @@ Here are some links you might find useful throughout your journey:
 - [Mocha Documentation](https://mochajs.org/)
 - [Chai Documentation](https://www.chaijs.com/)
 
+Finally, show us some love by starring [our repository on GitHub!](https://github.com/NomicFoundation/hardhat)️
+
 Happy hacking!
 
 ![](/cool-hardhat.svg)
