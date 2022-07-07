@@ -166,7 +166,7 @@ describe("Token contract", function () {
 });
 ```
 
-Here we wrote a `deployTokenFixture` function that does the necessary setup and returns the values we might care about in our tests. Then in each test we use `loadFixture` to run the fixture and get those values.
+Here we wrote a `deployTokenFixture` function that does the necessary setup and returns every value we use later in the tests. Then in each test, we use `loadFixture` to run the fixture and get those values. `loadFixture` will run the setup the first time, and quickly return to that state in the other tests.
 
 ### Full coverage
 
