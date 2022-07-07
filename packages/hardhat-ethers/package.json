@@ -1,6 +1,6 @@
 {
   "name": "@nomiclabs/hardhat-ethers",
-  "version": "2.0.6",
+  "version": "2.1.0",
   "description": "Hardhat plugin for ethers",
   "homepage": "https://github.com/nomiclabs/hardhat/tree/master/packages/hardhat-ethers",
   "repository": "github:nomiclabs/hardhat",
@@ -50,7 +50,7 @@
     "eslint-plugin-import": "2.24.1",
     "eslint-plugin-prettier": "3.4.0",
     "ethers": "^5.0.0",
-    "hardhat": "^2.0.0",
+    "hardhat": "^2.10.0",
     "mocha": "^10.0.0",
     "prettier": "2.4.1",
     "rimraf": "^3.0.2",
