@@ -5,6 +5,7 @@ import type {
   Transaction,
 } from "ethers";
 import util from "util";
+import ordinal from "ordinal";
 
 import { AssertionError } from "chai";
 
@@ -123,7 +124,9 @@ function assertArgsArraysEqual(
   );
   for (let index = 0; index < expectedArgs.length; index++) {
     if (typeof expectedArgs[index] === "function") {
-      const errorPrefix = `The predicate for event argument #${index + 1}`;
+      const errorPrefix = `The predicate for the ${ordinal(
+        index + 1
+      )} event argument`;
       try {
         context.assert(
           expectedArgs[index](actualArgs[index]),

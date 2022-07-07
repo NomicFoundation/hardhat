@@ -1,13 +1,13 @@
 {
   "name": "@nomicfoundation/hardhat-chai-matchers",
-  "private": true,
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Hardhat utils for testing",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/master/packages/hardhat-chai-matchers",
   "repository": "github:nomicfoundation/hardhat",
-  "author": "Nomic Labs LLC",
+  "author": "Nomic Foundation",
   "license": "MIT",
-  "types": "dist/src/index.d.ts",
+  "main": "index.js",
+  "types": "index.d.ts",
   "keywords": [
     "ethereum",
     "smart-contracts",
@@ -25,7 +25,6 @@
     "clean": "rimraf dist internal types *.{d.ts,js}{,.map} build-test tsconfig.tsbuildinfo"
   },
   "files": [
-    "dist/src/",
     "src/",
     "internal/",
     "types/",
@@ -71,6 +70,7 @@
     "@types/chai-as-promised": "^7.1.3",
     "chai-as-promised": "^7.1.1",
     "chalk": "^2.4.2",
-    "deep-eql": "^4.0.1"
+    "deep-eql": "^4.0.1",
+    "ordinal": "^1.0.3"
   }
 }

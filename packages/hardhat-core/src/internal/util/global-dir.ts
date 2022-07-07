@@ -137,5 +137,5 @@ export function writePromptedForHHVSCode() {
   const configDir = getConfigDirSync();
   const extensionPromptedPath = path.join(configDir, "extension-prompt.json");
 
-  fs.writeFileSync(extensionPromptedPath, "");
+  fs.writeFileSync(extensionPromptedPath, "{}");
 }

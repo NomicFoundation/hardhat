@@ -35,11 +35,44 @@ const Container = styled.ul`
 
 const SidebarLinkWrapper = styled.a`
   cursor: pointer;
+  width: 100%;
+
   &:hover {
     color: ${tm(({ colors }) => colors.accent700)};
   }
+
   &[data-active="true"] {
     color: ${tm(({ colors }) => colors.accent700)};
+    &.heading {
+      border-left: 4px solid ${tm(({ colors }) => colors.transparent)};
+    }
+  }
+  &[data-anchor="true"][data-active="true"] {
+    color: ${tm(({ colors }) => colors.accent700)};
+    background-color: ${tm(({ colors }) => colors.accent200)};
+  }
+
+  ${tmSelectors.dark} {
+    &[data-active="true"] {
+      color: ${tmDark(({ colors }) => colors.accent700)};
+      border-color: ${tmDark(({ colors }) => colors.accent700)};
+    }
+    &[data-anchor="true"][data-active="true"] {
+      color: ${tmDark(({ colors }) => colors.accent700)};
+      background-color: ${tmDark(({ colors }) => colors.accent200)};
+    }
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      &[data-active="true"] {
+        color: ${tmDark(({ colors }) => colors.accent700)};
+        border-color: ${tmDark(({ colors }) => colors.accent700)};
+      }
+      &[data-anchor="true"][data-active="true"] {
+        color: ${tmDark(({ colors }) => colors.accent700)};
+        background-color: ${tmDark(({ colors }) => colors.accent200)};
+      }
+    }
   }
 `;
 
@@ -47,10 +80,26 @@ const SidebarItem = styled.li`
   display: flex;
   flex-direction: column;
   & ${SidebarLinkWrapper} {
-    border-left: 4px solid ${tm(({ colors }) => colors.transparent)};
     padding: 4px 28px;
     &[data-active="true"] {
-      border-color: ${tm(({ colors }) => colors.accent700)};
+      background-color: ${tm(({ colors }) => colors.accent200)};
+      &.heading {
+        background-color: unset;
+      }
+      ${tmSelectors.dark} {
+        background-color: ${tmDark(({ colors }) => colors.accent200)};
+        &.heading {
+          background-color: unset;
+        }
+      }
+      ${media.mqDark} {
+        ${tmSelectors.auto} {
+          background-color: ${tmDark(({ colors }) => colors.accent200)};
+          &.heading {
+            background-color: unset;
+          }
+        }
+      }
     }
   }
   &.group {
@@ -63,6 +112,23 @@ const SidebarHeading = styled.p`
   font-size: 17px;
   line-height: 25px;
   padding: 4px 32px;
+  border-left: 4px solid ${tm(({ colors }) => colors.transparent)};
+
+  &[data-child-active="true"] {
+    color: ${tm(({ colors }) => colors.accent700)};
+    border-color: ${tm(({ colors }) => colors.accent700)};
+
+    ${tmSelectors.dark} {
+      color: ${tmDark(({ colors }) => colors.accent700)};
+      border-color: ${tmDark(({ colors }) => colors.accent700)};
+    }
+    ${media.mqDark} {
+      ${tmSelectors.auto} {
+        color: ${tmDark(({ colors }) => colors.accent700)};
+        border-color: ${tmDark(({ colors }) => colors.accent700)};
+      }
+    }
+  }
 `;
 
 const SidebarSubLinksList = styled.ul`
@@ -70,11 +136,12 @@ const SidebarSubLinksList = styled.ul`
   flex-direction: column;
   line-height: 28px;
   list-style-type: none;
+  & li > a {
+    width: 100%;
+    display: block;
+  }
   & ${SidebarLinkWrapper} {
     padding: 0.5px 16px 0.5px 64px;
-    &[data-anchor="true"] {
-      border-left: 4px solid ${tm(({ colors }) => colors.transparent)};
-    }
   }
 `;
 
@@ -86,6 +153,12 @@ const Sidebar = ({ elementsList, closeSidebar }: Props) => {
         const isLinkActive: boolean =
           sidebarItem.href !== undefined &&
           router?.asPath.indexOf(sidebarItem.href) > -1;
+        const hasActiveChild =
+          sidebarItem?.children?.find(
+            (child) =>
+              router?.asPath.replace(/\//g, "") ===
+              child.href.replace(/\//g, "")
+          ) !== undefined;
         return (
           <SidebarItem
             key={sidebarItem.label}
@@ -94,12 +167,17 @@ const Sidebar = ({ elementsList, closeSidebar }: Props) => {
           >
             {sidebarItem.href !== undefined ? (
               <Link passHref href={sidebarItem.href}>
-                <SidebarLinkWrapper data-active={isLinkActive}>
+                <SidebarLinkWrapper
+                  data-active={isLinkActive}
+                  className="heading"
+                >
                   {sidebarItem.label}
                 </SidebarLinkWrapper>
               </Link>
             ) : (
-              <SidebarHeading>{sidebarItem.label}</SidebarHeading>
+              <SidebarHeading data-child-active={hasActiveChild}>
+                {sidebarItem.label}
+              </SidebarHeading>
             )}
 
             {sidebarItem?.children && (

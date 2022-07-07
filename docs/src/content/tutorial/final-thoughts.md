@@ -4,13 +4,15 @@ Congratulations on finishing the tutorial!
 
 Here are some links you might find useful throughout your journey:
 
-- [Hardhat's Hackathon Boilerplate](https://github.com/nomiclabs/hardhat-hackathon-boilerplate)
-- [Hardhat's documentation site](https://hardhat.org/getting-started/)
-- [Hardhat Support Discord server](https://hardhat.org/discord)
+- [Hardhat's Boilerplate](https://github.com/NomicFoundation/hardhat-boilerplate)
+- [Hardhat's documentation site](/docs/)
+- [Hardhat Toolbox's documenation](/hardhat-runner/plugins/nomicfoundation-hardhat-toolbox)
+- [Hardhat Support Discord server](/discord)
 - [Ethers.js Documentation](https://docs.ethers.io/)
-- [Waffle Documentation](https://getwaffle.io/)
 - [Mocha Documentation](https://mochajs.org/)
 - [Chai Documentation](https://www.chaijs.com/)
+
+Finally, show us some love by starring [our repository on GitHub!](https://github.com/NomicFoundation/hardhat)️
 
 Happy hacking!
 

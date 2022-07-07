@@ -290,7 +290,7 @@ describe("INTEGRATION: Reverted with panic", function () {
 
         expect(() => expect(hash).to.be.revertedWithPanic("invalid")).to.throw(
           TypeError,
-          "Expected a number-like value as the expected panic code, but got 'invalid'"
+          "Expected the given panic code to be a number-like value, but got 'invalid'"
         );
       });
 

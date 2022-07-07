@@ -2,7 +2,7 @@ import React from "react";
 import { styled } from "linaria/react";
 import { media, tm, tmDark, tmSelectors } from "../../themes";
 
-interface Props {
+export interface Props {
   children: string;
 }
 

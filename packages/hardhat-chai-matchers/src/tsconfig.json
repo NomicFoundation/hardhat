@@ -3,7 +3,8 @@
   "compilerOptions": {
     "outDir": "../",
     "rootDirs": ["."],
-    "composite": true
+    "composite": true,
+    "types": ["node", "chai"]
   },
   "include": ["./**/*.ts"],
   "exclude": [],

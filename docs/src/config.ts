@@ -1,41 +1,51 @@
 import path from "path";
-import { MenuItemType, SocialsEnum } from "./components/ui/types";
+import {
+  MenuItemType,
+  NavigationPagesPaths,
+  SocialsEnum,
+} from "./components/ui/types";
 import GitHubLogo from "./assets/socials/gh-logo";
 import TwitterLogo from "./assets/socials/tw-logo";
 import DiscordLogo from "./assets/socials/dc-logo";
-// TODO: Re-enable tools section
-// import SolidityIcon from "./assets/tools/solidity";
-// import RunnerIcon from "./assets/tools/runner";
+import SolidityIcon from "./assets/tools/solidity";
+import RunnerIcon from "./assets/tools/runner";
+import NetworkIcon from "./assets/tools/network";
+import RunnerIconDark from "./assets/tools/runner-dark";
+import NetworkIconDark from "./assets/tools/network-dark";
+import SolidityIconDark from "./assets/tools/solidity-dark";
+// TODO: Re-enable Ignition section
 // import IgnitionIcon from "./assets/tools/ignition";
-// import NetworkIcon from "./assets/tools/network";
-// import RunnerIconDark from "./assets/tools/runner-dark";
 // import IgnitionIconDark from "./assets/tools/ignition-dark";
-// import NetworkIconDark from "./assets/tools/network-dark";
-// import SolidityIconDark from "./assets/tools/solidity-dark";
 
 export const SOCIALS_LINKS = {
   [SocialsEnum.GITHUB]: "https://github.com/NomicFoundation/hardhat",
   [SocialsEnum.TWITTER]: "https://twitter.com/HardhatHQ",
-  [SocialsEnum.DISCORD]: "https://discord.com/invite/TETZs2KK4k",
+  [SocialsEnum.DISCORD]: "/discord",
 };
 
 export const BANNER_LINK =
-  "https://www.notion.so/Nomic-Foundation-jobs-991b37c547554f75b89a95f437fd5056";
+  "/hardhat-runner/docs/guides/migrating-from-hardhat-waffle";
 
 export const PRIVACY_POLICY_PATH = "/privacy-policy.html";
 
 export const bannerContent = {
-  text: "Join the Hardhat team! Nomic Foundation is hiring",
-  shortText: "Join the Hardhat team! We are hiring",
+  text: "Using @nomiclabs/hardhat-waffle? Check out Hardhat’s new improved replacement!",
+  shortText: "Check out the new hardhat-waffle replacement!",
   href: BANNER_LINK,
 };
 
 export const DOCS_PATH = path.join(process.cwd(), "src/content/");
-export const PLUGINS_PATH = path.join(process.cwd(), "src/content/plugins");
+export const DOCS_LANDING_PATH = path.join(
+  process.cwd(),
+  "src/content/docs-landing"
+);
+export const PLUGINS_PATH = path.join(
+  process.cwd(),
+  "src/content/hardhat-runner/plugins"
+);
 export const TEMP_PATH = path.join(process.cwd(), "temp/");
-// TODO: change this to "https://github.com/NomicFoundation/hardhat/edit/master/docs/src/content/" before publishing to production
 export const REPO_URL =
-  "https://github.com/NomicFoundation/hardhat/edit/master/docs/";
+  "https://github.com/NomicFoundation/hardhat/edit/master/docs/src/content/";
 
 // Regular expression to find tool in query string.
 export const toolRegExp = /tool=[A-Z_]+/;
@@ -43,60 +53,61 @@ export const toolRegExp = /tool=[A-Z_]+/;
 export const menuItemsList: MenuItemType[] = [
   {
     label: "Home",
-    href: "/",
+    href: NavigationPagesPaths.HOME,
   },
-  // TODO: Re-enable tools section
-  // {
-  //   label: "Tools",
-  //   href: "/#tools",
-  //   subItems: [
-  //     {
-  //       prefix: "Hardhat",
-  //       label: "Runner",
-  //       href: "/?tool=RUNNER#tools",
-  //       icon: RunnerIcon,
-  //       iconDark: RunnerIconDark,
-  //     },
-  //     {
-  //       prefix: "Hardhat",
-  //       label: "Ignition",
-  //       href: "/?tool=IGNITION#tools",
-  //       icon: IgnitionIcon,
-  //       iconDark: IgnitionIconDark,
-  //     },
-  //     {
-  //       prefix: "Hardhat",
-  //       label: "Network",
-  //       href: "/?tool=NETWORK#tools",
-  //       icon: NetworkIcon,
-  //       iconDark: NetworkIconDark,
-  //     },
-  //     {
-  //       prefix: "Hardhat",
-  //       label: "Solidity",
-  //       href: "/?tool=SOLIDITY#tools",
-  //       icon: SolidityIcon,
-  //       iconDark: SolidityIconDark,
-  //     },
-  //   ],
-  // },
+  {
+    label: "Tools",
+    href: "/#tools",
+    subItems: [
+      {
+        prefix: "Hardhat",
+        label: "Runner",
+        href: "/hardhat-runner",
+        icon: RunnerIcon,
+        iconDark: RunnerIconDark,
+      },
+      // TODO: Re-enable Ignition section
+      // {
+      //   prefix: "Hardhat",
+      //   label: "Ignition",
+      //   href: "/?tool=IGNITION#tools",
+      //   icon: IgnitionIcon,
+      //   iconDark: IgnitionIconDark,
+      // },
+      {
+        prefix: "Hardhat",
+        label: "Network",
+        href: "/hardhat-network",
+        icon: NetworkIcon,
+        iconDark: NetworkIconDark,
+      },
+      {
+        prefix: "Hardhat",
+        label: "VSCode",
+        href: "/hardhat-vscode",
+        icon: SolidityIcon,
+        iconDark: SolidityIconDark,
+      },
+    ],
+  },
   {
     label: "Plugins",
-    href: "/plugins",
+    href: "/hardhat-runner/plugins",
   },
   {
     label: "Documentation",
-    href: "/getting-started",
+    href: "/docs",
   },
   {
     label: "Tutorial",
-    href: "/tutorial",
+    href: NavigationPagesPaths.TUTORIAL,
   },
 ];
 
 export enum Tools {
   RUNNER = "RUNNER",
-  IGNITION = "IGNITION",
+  // TODO: Re-enable Ignition section
+  // IGNITION = "IGNITION",
   NETWORK = "NETWORK",
   SOLIDITY = "SOLIDITY",
 }
@@ -122,6 +133,7 @@ export const socialsItems = [
 export enum DirInfoConfigKeys {
   SECTION_TYPE = "section-type",
   SECTION_TITLE = "section-title",
+  SECTION_URL = "section-url",
   ORDER = "order",
 }
 

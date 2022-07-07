@@ -61,12 +61,12 @@ export function supportWithArgs(
 
     if (!emitCalled && !revertedWithCustomErrorCalled) {
       throw new Error(
-        "withArgs called without a previous .emit or .revertedWithCustomError assertion"
+        "withArgs can only be used in combination with a previous .emit or .revertedWithCustomError assertion"
       );
     }
     if (emitCalled && revertedWithCustomErrorCalled) {
       throw new Error(
-        "withArgs called with both .emit and .revertedWithCustomError, these assertions cannot be combined"
+        "withArgs called with both .emit and .revertedWithCustomError, but these assertions cannot be combined"
       );
     }
 

@@ -21,13 +21,13 @@ const A = styled.a`
   transition: all ease-out 0.3s;
   cursor: pointer;
   &:hover {
-    background-color: ${tm(({ colors }) => colors.accent200)};
+    background-color: ${tm(({ colors }) => colors.accent300)};
     ${tmSelectors.dark} {
-      background-color: ${tmDark(({ colors }) => colors.accent200)};
+      background-color: ${tmDark(({ colors }) => colors.accent300)};
     }
     ${media.mqDark} {
       ${tmSelectors.auto} {
-        background-color: ${tmDark(({ colors }) => colors.accent200)};
+        background-color: ${tmDark(({ colors }) => colors.accent300)};
       }
     }
   }

@@ -6,10 +6,12 @@ import "@typechain/hardhat";
 import "hardhat-gas-reporter";
 import "solidity-coverage";
 /**
- * If a new official plugin is added, make sure that the tsconfig.json file and
- * the hardhat-toolbox workflow are updated. The parts of the documentation that
- * install hardhat-toolbox with npm 6 or yarn must also be updated. Finally, update
- * the list of dependencies that the sample projects install.
+ * If a new official plugin is added, make sure to update:
+ *   - The tsconfig.json file
+ *   - The hardhat-toolbox GitHub workflow
+ *   - The parts of the documentation that install hardhat-toolbox with npm 6 or yarn
+ *   - The list of dependencies that the sample projects install
+ *   - The README
  */
 
 import { extendConfig } from "hardhat/config";
@@ -31,5 +33,11 @@ extendConfig((config, userConfig) => {
 
   if (gasReporterConfig?.currency === undefined) {
     configAsAny.gasReporter.currency = "USD";
+  }
+
+  // We don't generate types for js projects
+  if (userConfig?.typechain?.dontOverrideCompile === undefined) {
+    config.typechain.dontOverrideCompile =
+      config.paths.configFile.endsWith(".js");
   }
 });
