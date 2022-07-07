@@ -251,7 +251,7 @@ function showStarOnGitHubMessage() {
       emoji(" 💞✨")
   );
   console.log();
-  console.log(chalk.cyan("      https://github.com/NomicFoundation/hardhat"));
+  console.log(chalk.cyan("     https://github.com/NomicFoundation/hardhat"));
 }
 
 export async function createProject() {
