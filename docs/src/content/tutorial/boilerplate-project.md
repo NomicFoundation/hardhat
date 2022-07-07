@@ -5,12 +5,12 @@ If you want to get started with your dApp quickly or see what this whole project
 ## What's included
 
 - The Solidity contract we used in this tutorial
-- A test suite using ethers.js and Waffle
-- A minimal front-end to interact with the contract using ethers.js
+- Tests for the entire functionality of the contract
+- A minimal React front-end to interact with the contract using ethers.js
 
 ### Solidity contract & tests
 
-In the root of the repo you'll find the **Hardhat** project we put together through this tutorial with the `Token` contract. To refresh your memory on what it implements:
+In the root of the repo you'll find the Hardhat project we put together through this tutorial with the `Token` contract. To refresh your memory on what it implements:
 
 - There is a fixed total supply of tokens that can't be changed.
 - The entire supply is assigned to the address that deploys the contract.
@@ -37,7 +37,7 @@ It's a separate npm project and it was created using `create-react-app`, so this
 
 ## How to use it
 
-First clone the repository, and then to get the contracts deployed:
+First clone the repository, and then prepare for the contract deployment:
 
 ```
 cd hardhat-boilerplate
@@ -45,13 +45,13 @@ npm install
 npx hardhat node
 ```
 
-Here we just install the npm project's dependencies, and by running `npx hardhat node` we spin up an instance of **Hardhat Network** that you can connect to using MetaMask. In a different terminal in the same directory, run:
+Here we just install the npm project's dependencies, and by running `npx hardhat node` we spin up an instance of Hardhat Network that you can connect to using MetaMask. In a different terminal in the same directory, run:
 
 ```
 npx hardhat --network localhost run scripts/deploy.js
 ```
 
-This will deploy the contract to **Hardhat Network**. After this completes run:
+This will deploy the contract to Hardhat Network. After this completes, start the react web app:
 
 ```
 cd frontend
@@ -59,9 +59,9 @@ npm install
 npm run start
 ```
 
-To start the react web app. Open [http://127.0.0.1:3000/](http://127.0.0.1:3000/) in your browser and you should see this: ![](/front-5.png)
+Then open [http://127.0.0.1:3000/](http://127.0.0.1:3000/) in your browser and you should see this: ![](/front-5.png)
 
-Set your network in MetaMask to `127.0.0.1:8545`. You might also need to configure MetaMask to work well with Hardhat. To do that, go to `Settings -> Networks -> localhost 8545` and change the Chain ID input to 31337.
+Set your network in MetaMask to `127.0.0.1:8545`.
 
 Now click the button in the web app. You should then see this:
 
@@ -73,7 +73,7 @@ What's happening here is that the frontend code to show the current wallet's bal
 npx hardhat --network localhost faucet <your address>
 ```
 
-You'll run a custom **Hardhat** task we included that uses the balance of the deploying account to send 100 MBT and 1 ETH to your address. This will allow you to send tokens to another address.
+You'll run a custom Hardhat task we included that uses the balance of the deploying account to send 100 MHT and 1 ETH to your address. This will allow you to send tokens to another address.
 
 You can check out the code for the task in [`/tasks/faucet.js`](https://github.com/NomicFoundation/hardhat-boilerplate/blob/master/tasks/faucet.js), which is required from `hardhat.config.js`.
 

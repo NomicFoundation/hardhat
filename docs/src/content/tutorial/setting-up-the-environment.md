@@ -1,8 +1,6 @@
----
-prev: false
----
-
 # 2. Setting up the environment
+
+Most Ethereum libraries and tools are written in JavaScript, and so is Hardhat. If you're not familiar with Node.js, it's a JavaScript runtime built on Chrome's V8 JavaScript engine. It's the most popular solution to run JavaScript outside of a web browser and Hardhat is built on top of it.
 
 :::tip
 
@@ -10,11 +8,9 @@ prev: false
 
 :::
 
-Most Ethereum libraries and tools are written in JavaScript, and so is **Hardhat**. If you're not familiar with Node.js, it's a JavaScript runtime built on Chrome's V8 JavaScript engine. It's the most popular solution to run JavaScript outside of a web browser and **Hardhat** is built on top of it.
-
 ## Installing Node.js
 
-You can [skip](./creating-a-new-hardhat-project.md) this section if you already have a working Node.js `>=12.0` installation. If not, here's how to install it on Ubuntu, MacOS and Windows.
+You can [skip](./creating-a-new-hardhat-project.md) this section if you already have a working Node.js `>=16.0` installation. If not, here's how to install it on Ubuntu, MacOS and Windows.
 
 ### Linux
 
@@ -25,8 +21,8 @@ Copy and paste these commands in a terminal:
 ```
 sudo apt update
 sudo apt install curl git
-curl -sL https://deb.nodesource.com/setup_16.x | sudo -E bash -
-sudo apt install nodejs
+curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+sudo apt-get install -y nodejs
 ```
 
 ### MacOS
@@ -36,23 +32,24 @@ Make sure you have `git` installed. Otherwise, follow [these instructions](https
 There are multiple ways of installing Node.js on MacOS. We will be using [Node Version Manager (nvm)](http://github.com/creationix/nvm). Copy and paste these commands in a terminal:
 
 ```
-curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.39.1/install.sh | bash
-nvm install 16
-nvm use 16
-nvm alias default 16
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
+nvm install 18
+nvm use 18
+nvm alias default 18
 npm install npm --global # Upgrade npm to the latest version
 ```
 
 ### Windows
 
-Installing Node.js on Windows requires a few manual steps. We'll install git, Node.js 16.x and npm. Download and run these:
+If you are using Windows, we **strongly recommend** you use Windows Subsystem for Linux (also known as WSL 2). You can use Hardhat without it, but it will work better if you use it.
 
-1. [Git's installer for Windows](https://git-scm.com/download/win)
-2. `node-v16.XX.XX-x64.msi` from [here](https://nodejs.org/dist/latest-v16.x)
+To install Node.js using WSL 2, please read [this guide](https://docs.microsoft.com/en-us/windows/dev-environment/javascript/nodejs-on-wsl).
+
+Make sure you also [have `git` installed on WSL](https://docs.microsoft.com/en-us/windows/wsl/tutorials/wsl-git).
 
 ## Upgrading your Node.js installation
 
-If your version of Node.js is older than `16.0` follow the instructions below to upgrade.
+If your version of Node.js is older and [not supported by Hardhat](../hardhat-runner/docs/reference/stability-guarantees.md#node.js-versions-support) follow the instructions below to upgrade.
 
 ### Linux
 
@@ -64,12 +61,12 @@ If your version of Node.js is older than `16.0` follow the instructions below to
 
 ### MacOS
 
-You can change your Node.js version using [nvm](http://github.com/creationix/nvm). To upgrade to Node.js `16.x` run these in a terminal:
+You can change your Node.js version using [nvm](http://github.com/creationix/nvm). To upgrade to Node.js `18.x` run these in a terminal:
 
 ```
-nvm install 16
-nvm use 16
-nvm alias default 16
+nvm install 18
+nvm use 18
+nvm alias default 18
 npm install npm --global # Upgrade npm to the latest version
 ```
 

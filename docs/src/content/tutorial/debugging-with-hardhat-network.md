@@ -1,15 +1,15 @@
 # 6. Debugging with Hardhat Network
 
-**Hardhat** comes built-in with **Hardhat Network**, a local Ethereum network designed for development. It allows you to deploy your contracts, run your tests and debug your code. It's the default network **Hardhat** connects to, so you don't need to setup anything for it to work. Just run your tests.
+Hardhat comes built-in with Hardhat Network, a local Ethereum network designed for development. It allows you to deploy your contracts, run your tests and debug your code, all within the confines of your local machine. It's the default network Hardhat that connects to, so you don't need to set up anything for it to work. Just run your tests.
 
 ## Solidity `console.log`
 
-When running your contracts and tests on **Hardhat Network** you can print logging messages and contract variables calling `console.log()` from your Solidity code. To use it you have to import `hardhat/console.sol` from your contract code.
+When running your contracts and tests on Hardhat Network you can print logging messages and contract variables calling `console.log()` from your Solidity code. To use it you have to import `hardhat/console.sol` in your contract code.
 
 This is what it looks like:
 
 ```solidity{3}
-pragma solidity ^0.6.0;
+pragma solidity ^0.8.9;
 
 import "hardhat/console.sol";
 
@@ -18,7 +18,7 @@ contract Token {
 }
 ```
 
-Add some `console.log` to the `transfer()` function as if you were using it in JavaScript:
+Then you can just add some `console.log` calls to the `transfer()` function as if you were using it in JavaScript:
 
 ```solidity{2,3}
 function transfer(address to, uint256 amount) external {
@@ -29,6 +29,8 @@ function transfer(address to, uint256 amount) external {
 
     balances[msg.sender] -= amount;
     balances[to] += amount;
+
+    emit Transfer(msg.sender, to, amount);
 }
 ```
 
