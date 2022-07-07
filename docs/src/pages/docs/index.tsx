@@ -4,14 +4,18 @@ import { styled } from "linaria/react";
 import PluginsLayout from "../../components/PluginsLayout";
 import { components } from "../../components/DocumentationLayout";
 import {
+  getLayout,
   prepareMdContent,
   readMDFileFromPathOrIndex,
 } from "../../model/markdown";
 import { DOCS_LANDING_PATH } from "../../config";
 import { media, tmDark, tmSelectors } from "../../themes";
+import { createLayouts } from "../../model/layout";
+import { IDocumentationSidebarStructure } from "../../components/types";
 
 interface IDocsPage {
   mdxSource: MDXRemoteSerializeResult;
+  layout: IDocumentationSidebarStructure;
 }
 
 const PageTitle = styled.h3`
@@ -32,7 +36,7 @@ const PageTitle = styled.h3`
   }
 `;
 
-const Docs: NextPage<IDocsPage> = ({ mdxSource }) => {
+const Docs: NextPage<IDocsPage> = ({ mdxSource, layout }) => {
   return (
     <PluginsLayout
       seo={{
@@ -40,7 +44,7 @@ const Docs: NextPage<IDocsPage> = ({ mdxSource }) => {
         description:
           "Documentation about Hardhat, the Ethereum development environment",
       }}
-      sidebarLayout={[]}
+      sidebarLayout={layout}
     >
       <div>
         <PageTitle>Documentation</PageTitle>
@@ -54,12 +58,15 @@ const Docs: NextPage<IDocsPage> = ({ mdxSource }) => {
 export default Docs;
 
 export const getStaticProps: GetStaticProps = async () => {
+  createLayouts();
   const { source } = readMDFileFromPathOrIndex(`${DOCS_LANDING_PATH}/index.md`);
   const { mdxSource } = await prepareMdContent(source);
+  const { layout } = getLayout("hardhat-runner/docs/getting-started/index.md");
 
   return {
     props: {
       mdxSource,
+      layout,
     },
   };
 };

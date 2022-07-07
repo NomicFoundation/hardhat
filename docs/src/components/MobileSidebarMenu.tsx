@@ -454,9 +454,10 @@ const MobileSidebarMenu: FC<Props> = ({
                   {menuItem.label}
                 </a>
               </Link>
-              {isDocumentation && currentSection === menuItem.href && (
-                <MobileMenuArrowForward style={{ marginLeft: "auto" }} />
-              )}
+              {sidebarElementsList.length > 0 &&
+                currentSection === menuItem.href && (
+                  <MobileMenuArrowForward style={{ marginLeft: "auto" }} />
+                )}
             </MenuItem>
           );
         })}
