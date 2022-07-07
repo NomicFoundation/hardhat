@@ -25,6 +25,7 @@ const Container = styled.div`
   align-items: center;
   -webkit-font-smoothing: antialiased;
   background-color: ${tm(({ colors }) => colors.neutral0)};
+  transition: all ease-in-out 0.25s;
   min-width: 320px;
   ${tmSelectors.dark} {
     background-color: ${tmDark(({ colors }) => colors.neutral0)};
