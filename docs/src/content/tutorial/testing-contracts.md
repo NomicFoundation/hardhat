@@ -93,7 +93,7 @@ To do this we're using [Chai](https://www.chaijs.com/) which is a popular JavaSc
 
 If you need to test your code by sending a transaction from an account (or `Signer` in ethers.js terminology) other than the default one, you can use the `connect()` method on your ethers.js `Contract` object to connect it to a different account, like this:
 
-```js{16}
+```js{18}
 const { expect } = require("chai");
 
 describe("Token contract", function () {
