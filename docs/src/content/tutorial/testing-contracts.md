@@ -117,7 +117,7 @@ describe("Token contract", function () {
 });
 ```
 
-### Reusing common test setups using fixtures
+### Reusing common test setups with fixtures
 
 The two tests that we've written begin with the necessary setup, which in this case means deploying the token contract. In more complex projects, this setup could involve multiple deployments and other transactions. Doing that in every test means a lot of code duplication. Plus, executing many transactions at the beginning of each test can make the test suite much slower.
 
