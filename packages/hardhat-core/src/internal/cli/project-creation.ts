@@ -245,6 +245,14 @@ async function createPackageJson() {
   );
 }
 
+function showStarOnGitHubMessage() {
+  console.log(
+    chalk.cyan("Show us some love by starring our repository on GitHub") +
+      emoji(" 💖")
+  );
+  console.log(chalk.cyan("      https://github.com/NomicFoundation/hardhat"));
+}
+
 export async function createProject() {
   printAsciiLogo();
 
@@ -277,6 +285,9 @@ export async function createProject() {
       console.log(cmd.join(" "));
       console.log("");
     }
+
+    console.log();
+    showStarOnGitHubMessage();
 
     return;
   }
@@ -371,9 +382,9 @@ export async function createProject() {
     `\n${emoji("✨ ")}${chalk.cyan("Project created")}${emoji(" ✨")}`
   );
   console.log();
-  console.log(
-    chalk.cyan("See the README.md file for some example tasks you can run.")
-  );
+  console.log("See the README.md file for some example tasks you can run");
+  console.log();
+  showStarOnGitHubMessage();
 }
 
 async function canInstallRecommendedDeps() {

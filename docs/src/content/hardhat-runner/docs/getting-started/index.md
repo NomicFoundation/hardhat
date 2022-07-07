@@ -320,3 +320,5 @@ npx hardhat run scripts/deploy.js --network localhost
 ::::
 
 Congrats! You have created a project and compiled, tested and deployed a smart contract.
+
+Show us some love by starring [our repository on GitHub!](https://github.com/NomicFoundation/hardhat)️
