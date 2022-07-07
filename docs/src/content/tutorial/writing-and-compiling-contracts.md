@@ -33,9 +33,6 @@ To get syntax highlighting and editing assistance for Solidity in Visual Studio 
 // It will be used by the Solidity compiler to validate its version.
 pragma solidity ^0.8.9;
 
-// We import this library to be able to use console.log
-import "hardhat/console.sol";
-
 
 // This is the main building block for smart contracts.
 contract Token {
@@ -77,15 +74,6 @@ contract Token {
         // If `require`'s first argument evaluates to `false` then the
         // transaction will revert.
         require(balances[msg.sender] >= amount, "Not enough tokens");
-
-        // We can print messages and values using console.log, a feature of
-        // Hardhat Network:
-        console.log(
-            "Transferring from %s to %s %s tokens",
-            msg.sender,
-            to,
-            amount
-        );
 
         // Transfer the amount.
         balances[msg.sender] -= amount;
