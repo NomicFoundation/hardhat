@@ -73,11 +73,16 @@ export function toRpcQuantity(x: NumberLike): string {
 }
 
 export function assertValidAddress(address: string): void {
-  const { isValidChecksumAddress } = require("ethereumjs-util");
+  const { isValidChecksumAddress, isValidAddress } = require("ethereumjs-util");
+
+  if (!isValidAddress(address)) {
+    throw new HardhatNetworkHelpersError(`${address} is not a valid address`);
+  }
+
   const hasChecksum = address !== address.toLowerCase();
-  if (!hasChecksum || !isValidChecksumAddress(address)) {
+  if (hasChecksum && !isValidChecksumAddress(address)) {
     throw new HardhatNetworkHelpersError(
-      `${address} is not a valid hex address`
+      `Address ${address} has an invalid checksum`
     );
   }
 }
