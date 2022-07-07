@@ -7,9 +7,9 @@ Hardhat is a development environment for Ethereum software. It consists of diffe
 
 To get started check out these sections:
 
-* [General overview](/hardhat-runner)
-* [Quick start guide](/hardhat-runner/docs/getting-started/index.md#quick-start)
-* [Step-by-step tutorial](/tutorial)
+- [General overview](/hardhat-runner)
+- [Quick start guide](/hardhat-runner/docs/getting-started/index.md#quick-start)
+- [Step-by-step tutorial](/tutorial)
 
 ## Browse by component
 
