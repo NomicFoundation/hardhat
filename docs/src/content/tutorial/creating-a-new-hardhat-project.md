@@ -162,9 +162,7 @@ Add the highlighted line to your `hardhat.config.js` so that it looks like this:
 ```js{1}
 require("@nomicfoundation/hardhat-toolbox");
 
-/**
- * @type import('hardhat/config').HardhatUserConfig
- */
+/** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
   solidity: "0.8.9",
 };
