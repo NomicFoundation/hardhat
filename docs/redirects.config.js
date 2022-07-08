@@ -152,7 +152,7 @@ const customRedirects = [
   },
   {
     source: "/guides/mainnet-forking",
-    destination: "/hardhat-network/guides/forking-other-networks",
+    destination: "/hardhat-network/docs/guides/forking-other-networks",
     permanent: false
   },
   {
@@ -217,6 +217,11 @@ const customRedirects = [
     permanent: false
   },
   {
+    source: "/guides/parallel-tests",
+    destination: "/hardhat-runner/docs/guides/test-contracts#running-tests-in-parallel",
+    permanent: false
+  },
+  {
     source: "/guides/:slug",
     destination: "/hardhat-runner/docs/guides/:slug",
     permanent: false
@@ -246,13 +251,6 @@ const customRedirects = [
     destination: "/hardhat-network-helpers/docs/:slug",
     permanent: false
   },
-
-  {
-    source: "/guides/parallel-tests",
-    destination: "/hardhat-runner/docs/guides/test-contracts#running-tests-in-parallel",
-    permanent: false
-  },
-
   ...loadErrorRedirects()
 ];
 
