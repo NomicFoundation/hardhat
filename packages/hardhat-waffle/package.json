@@ -22,6 +22,7 @@
     "prettier": "prettier \"**/*.{js,md,json}\"",
     "test": "mocha --recursive \"test/**/*.ts\" --exit",
     "build": "tsc --build .",
+    "prepublishOnly": "yarn build",
     "clean": "rimraf dist"
   },
   "files": [

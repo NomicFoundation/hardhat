@@ -35,6 +35,7 @@
     "test:tracing": "mocha --recursive \"test/internal/hardhat-network/{helpers,stack-traces}/**/*.ts\"",
     "test:forking": "mocha --recursive \"test/internal/hardhat-network/{helpers,jsonrpc,provider}/**/*.ts\"",
     "build": "tsc --build .",
+    "prepublishOnly": "yarn build",
     "clean": "rimraf builtin-tasks internal types utils *.d.ts *.map *.js build-test tsconfig.tsbuildinfo test/internal/hardhat-network/provider/.hardhat_node_test_cache"
   },
   "files": [
