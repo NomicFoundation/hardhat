@@ -268,3 +268,11 @@ it("test", async function () {
   // use token and exchanges contracts
 })
 ```
+
+## Other helpers
+
+### `reset()`
+
+Resets the Hardhat Network to its initial configured state.
+
+If you want to reset a forked network to a non-forked state, or a non-forked network to a forked state, use the low-level [`hardhat_reset`](/hardhat-network/docs/reference#hardhat_reset) JSON-RPC method instead.

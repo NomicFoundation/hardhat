@@ -88,32 +88,15 @@ Once you've got local instances of mainnet protocols, setting them in the specif
 
 ## Resetting the fork
 
-You can manipulate forking during runtime to reset back to a fresh forked state, fork from another block number or disable forking by calling `hardhat_reset`:
+You can reset the network to its initial state with the [`reset`](</hardhat-network-helpers/docs/reference#reset()>) network helper:
 
-```ts
-await network.provider.request({
-  method: "hardhat_reset",
-  params: [
-    {
-      forking: {
-        jsonRpcUrl: "https://eth-mainnet.alchemyapi.io/v2/<key>",
-        blockNumber: 14390000,
-      },
-    },
-  ],
-});
+```js
+const helpers = require("@nomicfoundation/hardhat-network-helpers");
+
+await helpers.reset();
 ```
 
-You can disable forking by passing empty params:
-
-```ts
-await network.provider.request({
-  method: "hardhat_reset",
-  params: [],
-});
-```
-
-This will reset Hardhat Network, starting a new instance in the state described [here](../reference/#initial-state).
+If you want to reset it to a state different to the one in the config, use the low-level [`hardhat_reset`](/hardhat-network/docs/reference#hardhat_reset) JSON-RPC method instead.
 
 ## Using a custom hardfork history
 
