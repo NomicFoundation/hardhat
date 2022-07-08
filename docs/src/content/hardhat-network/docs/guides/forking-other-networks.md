@@ -77,14 +77,7 @@ networks: {
 
 ## Customizing Hardhat Network's behavior
 
-Once you've got local instances of mainnet protocols, setting them in the specific state your tests need is likely the next step. Hardhat Network provides several RPC methods to help you with this:
-
-- [`hardhat_impersonateAccount`](../reference/#hardhat-impersonateaccount)
-- [`hardhat_stopImpersonatingAccount`](../reference/#hardhat-stopimpersonatingaccount)
-- [`hardhat_setNonce`](../reference/#hardhat-setnonce)
-- [`hardhat_setBalance`](../reference/#hardhat-setbalance)
-- [`hardhat_setCode`](../reference/#hardhat-setcode)
-- [`hardhat_setStorageAt`](../reference/#hardhat-setstorageat)
+Once you've got local instances of mainnet protocols, setting them in the specific state your tests need is likely the next step. For this, you can use our [Hardhat Network Helpers](/hardhat-network-helpers) library, which allows you to do things like modifying the balance of an account or impersonate accounts.
 
 ## Resetting the fork
 

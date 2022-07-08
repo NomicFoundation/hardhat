@@ -355,6 +355,12 @@ const trace = await hre.network.provider.send("debug_traceTransaction", [
 
 ### Hardhat network methods
 
+::::tip
+
+Most of these methods can be used more easily through the [Hardhat Network Helpers](/hardhat-network-helpers) library
+
+::::
+
 #### `hardhat_addCompilationResult`
 
 Add information about compiled contracts
