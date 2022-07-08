@@ -148,9 +148,9 @@ export async function revertedWithCustomErrorWithArgs(
     customErrorAssertionData;
 
   const errorFragment = contractInterface.errors[customError.signature];
-  const actualArgs = contractInterface.decodeErrorResult(
-    errorFragment,
-    returnData
+  // We transform ether's Array-like object into an actual array as it's safer
+  const actualArgs = Array.from<any>(
+    contractInterface.decodeErrorResult(errorFragment, returnData)
   );
 
   new Assertion(actualArgs).to.have.same.length(
@@ -158,12 +158,10 @@ export async function revertedWithCustomErrorWithArgs(
     `expected ${expectedArgs.length} args but got ${actualArgs.length}`
   );
 
-  for (const [i, actualArg] of Object.entries(actualArgs) as any) {
+  for (const [i, actualArg] of actualArgs.entries()) {
     const expectedArg = expectedArgs[i];
     if (typeof expectedArg === "function") {
-      const errorPrefix = `The predicate for custom error argument #${
-        parseInt(i, 10) + 1
-      }`;
+      const errorPrefix = `The predicate for custom error argument with index ${i}`;
       try {
         context.assert(
           expectedArg(actualArg),
@@ -183,9 +181,7 @@ export async function revertedWithCustomErrorWithArgs(
         throw e;
       }
     } else if (Array.isArray(expectedArg)) {
-      // we use [...x] here to convert the array-like values used by ethers to
-      // represent structs into proper arrays
-      new Assertion([...actualArg]).to.deep.equal([...expectedArg]);
+      new Assertion(actualArg).to.deep.equal(expectedArg);
     } else {
       new Assertion(actualArg).to.equal(expectedArg);
     }

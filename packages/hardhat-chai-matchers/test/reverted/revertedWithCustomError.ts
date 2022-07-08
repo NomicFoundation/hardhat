@@ -371,7 +371,7 @@ describe("INTEGRATION: Reverted with custom error", function () {
             .withArgs(() => false)
         ).to.be.rejectedWith(
           AssertionError,
-          "The predicate for custom error argument #1 returned false"
+          "The predicate for custom error argument with index 0 returned false"
         );
 
         await expect(matchers.revertWithCustomErrorWithUint(1))
@@ -384,7 +384,7 @@ describe("INTEGRATION: Reverted with custom error", function () {
             .withArgs(anyUint)
         ).to.be.rejectedWith(
           AssertionError,
-          "The predicate for custom error argument #1 threw an AssertionError: anyUint expected its argument to be an unsigned integer, but it was negative, with value -1"
+          "The predicate for custom error argument with index 0 threw an AssertionError: anyUint expected its argument to be an unsigned integer, but it was negative, with value -1"
         );
       });
     });
