@@ -303,7 +303,7 @@ export async function getContractAt(
   address: string,
   signer?: ethers.Signer
 ) {
-  if (await hre.ethers.provider.getCode(address) === "0x") {
+  if ((await hre.ethers.provider.getCode(address)) === "0x") {
     throw new NomicLabsHardhatPluginError(
       pluginName,
       `${address} is a non-contract address.`
