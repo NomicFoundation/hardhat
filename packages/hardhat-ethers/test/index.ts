@@ -710,7 +710,7 @@ describe("Ethers plugin", function () {
         });
 
         describe("by name and address", function () {
-          it("Should throw if address is not a contract", async function () {
+          it("Should throw if address does not belong to a contract", async function () {
             const address = await signers[0].getAddress();
             return assert.isRejected(this.env.ethers.getContractAt(
               "Greeter",
