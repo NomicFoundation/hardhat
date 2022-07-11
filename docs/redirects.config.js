@@ -14,14 +14,30 @@ const path = require("path");
  *
  */
 const customRedirects = [
+  // shortlinks
   {
-    source: "/configuration",
-    destination: "/config",
+    source: "/config",
+    destination: "/hardhat-runner/docs/config",
+    permanent: false
+  },
+  {
+    source: "/plugins",
+    destination: "/hardhat-runner/plugins",
+    permanent: false
+  },
+  {
+    source: "/getting-started",
+    destination: "/hardhat-runner/docs/getting-started#overview",
     permanent: false
   },
   { source: "/links/stack-traces", destination: "/", permanent: false },
   {
     source: "/reportbug",
+    destination: "https://github.com/nomiclabs/hardhat/issues/new",
+    permanent: false
+  },
+  {
+    source: "/report-bug",
     destination: "https://github.com/nomiclabs/hardhat/issues/new",
     permanent: false
   },
@@ -45,18 +61,6 @@ const customRedirects = [
     destination: "/reference/stability-guarantees#node.js-versions-support",
     permanent: false
   },
-
-  // Other redirects
-  {
-    source: "/guides/create-plugin",
-    destination: "/advanced/building-plugins",
-    permanent: false
-  },
-  {
-    source: "/guides/mainnet-forking",
-    destination: "/hardhat-network/guides/mainnet-forking",
-    permanent: false
-  },
   {
     source: "/verify-custom-networks",
     destination: "/plugins/nomiclabs-hardhat-etherscan#adding-support-for-other-networks",
@@ -65,6 +69,186 @@ const customRedirects = [
   {
     source: "/verify-multiple-networks",
     destination: "plugins/nomiclabs-hardhat-etherscan.html#multiple-api-keys-and-alternative-block-explorers",
+    permanent: false
+  },
+  {
+    source: "/metamask-issue",
+    destination: "/hardhat-network/docs/metamask-issue",
+    permanent: false
+  },
+  {
+    source: "/migrate-from-waffle",
+    destination: "/hardhat-chai-matchers/docs/migrate-from-waffle",
+    permanent: false
+  },
+  {
+    source: "/custom-hardfork-history",
+    destination: "/hardhat-network/docs/guides/forking-other-networks.html#using-a-custom-hardfork-history",
+    permanent: false
+  },
+
+  // top-level component URLs
+  {
+    source: "/hardhat-runner",
+    destination: "/hardhat-runner/docs/getting-started#overview",
+    permanent: false
+  },
+  {
+    source: "/hardhat-runner/docs",
+    destination: "/hardhat-runner/docs/getting-started#overview",
+    permanent: false
+  },
+  {
+    source: "/hardhat-network",
+    destination: "/hardhat-network/docs/overview",
+    permanent: false
+  },
+  {
+    source: "/hardhat-network/docs",
+    destination: "/hardhat-network/docs/overview",
+    permanent: false
+  },
+  {
+    source: "/hardhat-vscode",
+    destination: "/hardhat-vscode/docs/overview",
+    permanent: false
+  },
+  {
+    source: "/hardhat-vscode/docs",
+    destination: "/hardhat-vscode/docs/overview",
+    permanent: false
+  },
+  {
+    source: "/hardhat-chai-matchers",
+    destination: "/hardhat-chai-matchers/docs/overview",
+    permanent: false
+  },
+  {
+    source: "/hardhat-chai-matchers/docs",
+    destination: "/hardhat-chai-matchers/docs/overview",
+    permanent: false
+  },
+  {
+    source: "/hardhat-network-helpers",
+    destination: "/hardhat-network-helpers/docs/overview",
+    permanent: false
+  },
+  {
+    source: "/hardhat-network-helpers/docs",
+    destination: "/hardhat-network-helpers/docs/overview",
+    permanent: false
+  },
+
+  // legacy URLs
+  {
+    source: "/configuration",
+    destination: "/hardhat-runner/docs/config",
+    permanent: false
+  },
+  {
+    source: "/guides/create-plugin",
+    destination: "/advanced/building-plugins",
+    permanent: false
+  },
+  {
+    source: "/guides/mainnet-forking",
+    destination: "/hardhat-network/docs/guides/forking-other-networks",
+    permanent: false
+  },
+  {
+    source: "/hardhat-network/guides/mainnet-forking",
+    destination: "/hardhat-network/docs/guides/forking-other-networks",
+    permanent: false
+  },
+  {
+    source: "/hardhat-network/reference",
+    destination: "/hardhat-network/docs/reference",
+    permanent: false
+  },
+  {
+    source: "/hardhat-network/explanation/mining-modes",
+    destination: "/hardhat-network/docs/explanation/mining-modes",
+    permanent: false
+  },
+  {
+    source: "/troubleshooting/verbose-logging",
+    destination: "/hardhat-runner/docs/troubleshooting/verbose-logging",
+    permanent: false
+  },
+  {
+    source: "/troubleshooting/common-problems",
+    destination: "/hardhat-runner/docs/troubleshooting/common-problems",
+    permanent: false
+  },
+  {
+    source: "/errors",
+    destination: "/hardhat-runner/docs/errors",
+    permanent: false
+  },
+  {
+    source: "/reference/stability-guarantees",
+    destination: "/hardhat-runner/docs/reference/stability-guarantees",
+    permanent: false
+  },
+  {
+    source: "/reference/solidity-support",
+    destination: "/hardhat-runner/docs/reference/solidity-support",
+    permanent: false
+  },
+  {
+    source: "/plugins/:slug",
+    destination: "/hardhat-runner/plugins/:slug",
+    permanent: false
+  },
+  {
+    source: "/hardhat-runner/docs/guides/shorthand",
+    destination: "/hardhat-runner/docs/guides/command-line-completion",
+    permanent: false
+  },
+  // guides redirects, exceptions go first
+  {
+    source: "/guides/:slug(hardhat-runtime-environment|create-task|scripts|building-plugins|vscode-tests)",
+    destination: "/hardhat-runner/docs/advanced/:slug",
+    permanent: false
+  },
+  {
+    source: "/guides/:slug(waffle-testing|truffle-testing|truffle-migration|ganache-tests)",
+    destination: "/hardhat-runner/docs/other-guides/:slug",
+    permanent: false
+  },
+  {
+    source: "/guides/parallel-tests",
+    destination: "/hardhat-runner/docs/guides/test-contracts#running-tests-in-parallel",
+    permanent: false
+  },
+  {
+    source: "/guides/:slug",
+    destination: "/hardhat-runner/docs/guides/:slug",
+    permanent: false
+  },
+  {
+    source: "/advanced/:slug",
+    destination: "/hardhat-runner/docs/advanced/:slug",
+    permanent: false
+  },
+  {
+    source: "/chai-matchers",
+    destination: "/hardhat-chai-matchers",
+    permanent: false
+  },
+  {
+    source: "/chai-matchers/:slug",
+    destination: "/hardhat-chai-matchers/docs/:slug",
+    permanent: false
+  },
+  {
+    source: "/network-helpers",
+    destination: "/hardhat-network-helpers",
+    permanent: false
+  },
+  {
+    source: "/network-helpers/:slug",
+    destination: "/hardhat-network-helpers/docs/:slug",
     permanent: false
   },
   ...loadErrorRedirects()

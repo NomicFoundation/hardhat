@@ -9,7 +9,7 @@ import {
   useEnvironmentWithNode,
 } from "../helpers";
 
-import "../../src";
+import "../../src/internal/add-chai-matchers";
 import { anyUint, anyValue } from "../../src/withArgs";
 
 describe("INTEGRATION: Reverted with custom error", function () {
@@ -330,7 +330,7 @@ describe("INTEGRATION: Reverted with custom error", function () {
             .withArgs(1)
         ).to.throw(
           Error,
-          "withArgs called without a previous .emit or .revertedWithCustomError assertion"
+          "withArgs can only be used in combination with a previous .emit or .revertedWithCustomError assertion"
         );
       });
 
@@ -342,7 +342,7 @@ describe("INTEGRATION: Reverted with custom error", function () {
             .withArgs(1)
         ).to.throw(
           Error,
-          "withArgs called with both .emit and .revertedWithCustomError, these assertions cannot be combined"
+          "withArgs called with both .emit and .revertedWithCustomError, but these assertions cannot be combined"
         );
       });
 
@@ -371,7 +371,7 @@ describe("INTEGRATION: Reverted with custom error", function () {
             .withArgs(() => false)
         ).to.be.rejectedWith(
           AssertionError,
-          "The predicate for custom error argument #1 returned false"
+          "The predicate for custom error argument with index 0 returned false"
         );
 
         await expect(matchers.revertWithCustomErrorWithUint(1))
@@ -384,7 +384,7 @@ describe("INTEGRATION: Reverted with custom error", function () {
             .withArgs(anyUint)
         ).to.be.rejectedWith(
           AssertionError,
-          "The predicate for custom error argument #1 threw an AssertionError: anyUint expected its argument to be an unsigned integer, but it was negative, with value -1"
+          "The predicate for custom error argument with index 0 threw an AssertionError: anyUint expected its argument to be an unsigned integer, but it was negative, with value -1"
         );
       });
     });
@@ -405,10 +405,7 @@ describe("INTEGRATION: Reverted with custom error", function () {
         expect(() =>
           // @ts-expect-error
           expect(hash).to.be.revertedWith(10)
-        ).to.throw(
-          TypeError,
-          "Expected a string as the expected reason string"
-        );
+        ).to.throw(TypeError, "Expected the revert reason to be a string");
       });
 
       it("the contract is not specified", async function () {
@@ -418,7 +415,7 @@ describe("INTEGRATION: Reverted with custom error", function () {
             .revertedWithCustomError("SomeCustomError")
         ).to.throw(
           TypeError,
-          "The first argument of .revertedWithCustomError has to be the contract that defines the custom error"
+          "The first argument of .revertedWithCustomError must be the contract that defines the custom error"
         );
       });
 

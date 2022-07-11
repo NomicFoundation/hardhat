@@ -2,11 +2,11 @@ import React from "react";
 import { styled } from "linaria/react";
 import { media, tm, tmDark, tmSelectors } from "../../themes";
 
-interface CodeProps {
+export interface CodeProps {
   children: string | JSX.Element[] | JSX.Element;
 }
 
-interface PreProps {
+export interface PreProps {
   children: React.ReactElement;
   className: string;
 }

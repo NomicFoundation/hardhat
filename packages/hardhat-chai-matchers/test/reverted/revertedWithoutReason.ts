@@ -8,7 +8,7 @@ import {
   useEnvironmentWithNode,
 } from "../helpers";
 
-import "../../src";
+import "../../src/internal/add-chai-matchers";
 
 describe("INTEGRATION: Reverted without reason", function () {
   describe("with the in-process hardhat network", function () {

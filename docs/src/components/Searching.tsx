@@ -66,6 +66,9 @@ const Container = styled.div`
       )};
     }
   }
+  .landing & {
+    visibility: hidden;
+  }
 `;
 
 const Searching = () => {

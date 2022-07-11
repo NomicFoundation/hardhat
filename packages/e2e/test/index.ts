@@ -116,7 +116,7 @@ describe("e2e tests", function () {
   describe("sample projects", function () {
     // These tests generate the sample project and then exercise the commands
     // that are suggested to the user after project generation.  It would be
-    // better if that list of commands were exernalized somewhere, in a place
+    // better if that list of commands were externalized somewhere, in a place
     // from which we could consume them here, so that the lists of commands
     // executed here cannot fall out of sync with what's actually suggested to
     // the user, but this approach was more expedient.
@@ -128,95 +128,62 @@ describe("e2e tests", function () {
       }
     });
 
-    describe("basic sample project", function () {
-      useFixture("basic-sample-project");
+    describe("javascript sample project", function () {
+      useFixture("javascript-sample-project");
 
       before(function () {
         shell.exec(`${hardhatBinary}`, {
           env: {
             ...process.env,
-            HARDHAT_CREATE_BASIC_SAMPLE_PROJECT_WITH_DEFAULTS: "true",
+            HARDHAT_CREATE_JAVASCRIPT_PROJECT_WITH_DEFAULTS: "true",
           },
         });
       });
 
       for (const suggestedCommand of [
         // This list should be kept reasonably in sync with
-        // hardhat-core/sample-projects/basic/README.txt
-        `${hardhatBinary} accounts`,
-        `${hardhatBinary} compile`,
-        `${hardhatBinary} test`,
-        "node scripts/sample-script.js",
-      ]) {
-        it(`should permit successful execution of the suggested command "${suggestedCommand}"`, async function () {
-          shell.exec(suggestedCommand);
-        });
-      }
-    });
-
-    describe("advanced sample project", function () {
-      useFixture("advanced-sample-project");
-
-      before(function () {
-        shell.exec(`${hardhatBinary}`, {
-          env: {
-            ...process.env,
-            HARDHAT_CREATE_ADVANCED_SAMPLE_PROJECT_WITH_DEFAULTS: "true",
-          },
-        });
-      });
-
-      for (const suggestedCommand of [
-        // This list should be kept reasonably in sync with
-        // hardhat-core/sample-projects/advanced/README.txt
-        `${hardhatBinary} compile`,
+        // packages/hardhat-core/sample-projects/javascript/README.md
+        `${hardhatBinary} help`,
         `${hardhatBinary} test`,
         `${hardhatBinary} run scripts/deploy.js`,
-        "node scripts/deploy.js",
-        "REPORT_GAS=true npx hardhat test",
-        `${hardhatBinary} coverage`,
-        "npx eslint '**/*.js'",
-        "npx eslint '**/*.js' --fix",
-        "npx prettier '**/*.{json,sol,md}' --check",
-        "npx solhint 'contracts/**/*.sol'",
-        "npx solhint 'contracts/**/*.sol' --fix",
       ]) {
         it(`should permit successful execution of the suggested command "${suggestedCommand}"`, async function () {
-          shell.exec(suggestedCommand);
+          shell.exec(suggestedCommand, {
+            env: {
+              ...process.env,
+              GAS_REPORT: "true",
+            },
+          });
         });
       }
     });
 
-    describe("advanced TypeScript sample project", function () {
-      useFixture("advanced-ts-sample-project");
+    describe("typescript sample project", function () {
+      useFixture("typescript-sample-project");
 
       before(function () {
         shell.exec(`${hardhatBinary}`, {
           env: {
             ...process.env,
-            HARDHAT_CREATE_ADVANCED_TYPESCRIPT_SAMPLE_PROJECT_WITH_DEFAULTS:
-              "true",
+            HARDHAT_CREATE_TYPESCRIPT_PROJECT_WITH_DEFAULTS: "true",
           },
         });
       });
 
       for (const suggestedCommand of [
         // This list should be kept reasonably in sync with
-        // hardhat-core/sample-projects/advanced-ts/README.txt
-        `${hardhatBinary} compile`,
+        // packages/hardhat-core/sample-projects/typescript/README.md
+        `${hardhatBinary} help`,
         `${hardhatBinary} test`,
         `${hardhatBinary} run scripts/deploy.ts`,
-        "TS_NODE_FILES=true ts-node scripts/deploy.ts",
-        "REPORT_GAS=true npx hardhat test",
-        `${hardhatBinary} coverage`,
-        "npx eslint '**/*.{ts,js}'",
-        "npx eslint '**/*.{ts,js}' --fix",
-        "npx prettier '**/*.{json,sol,md}' --check",
-        "npx solhint 'contracts/**/*.sol'",
-        "npx solhint 'contracts/**/*.sol' --fix",
       ]) {
         it(`should permit successful execution of the suggested command "${suggestedCommand}"`, async function () {
-          shell.exec(suggestedCommand);
+          shell.exec(suggestedCommand, {
+            env: {
+              ...process.env,
+              GAS_REPORT: "true",
+            },
+          });
         });
       }
     });

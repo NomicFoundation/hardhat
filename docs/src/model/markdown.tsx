@@ -1,3 +1,4 @@
+import React from "react";
 import path from "path";
 import glob from "glob";
 import fs from "fs";
@@ -14,6 +15,7 @@ import rehypePrism from "rehype-prism";
 import remarkPrism from "remark-prism";
 
 import { DOCS_PATH, REPO_URL, TEMP_PATH } from "../config";
+import { ITabsState } from "../global-tabs";
 
 export const newLineDividerRegEx = /\r\n|\n/;
 
@@ -50,12 +52,14 @@ export const getEntriesInfo = (
   highlightedLinesNumbers: string;
 } => {
   const highlightedLinesNumbers: string | null = line.includes("{")
-    ? line.substring(line.indexOf("{")).replace(/[{}]/g, "")
+    ? line.substring(line.indexOf("{")).replace(/[{}]/g, "").trim()
     : "";
 
   const pathname = (
     highlightedLinesNumbers ? line.substring(0, line.indexOf("{")) : line
-  ).replace("<<< @/", "");
+  )
+    .replace("<<< @/", "")
+    .trim();
 
   return {
     pathname,
@@ -118,7 +122,7 @@ export const readMDFileFromPathOrIndex = (
   }
 };
 
-/** @type {import('unified').Plugin<[], import('mdast').Root>} */
+/** @type {import("unified").Plugin<[], import("mdast").Root>} */
 function createCustomNodes() {
   // @ts-ignore
   return (tree) => {
@@ -140,7 +144,8 @@ function createCustomNodes() {
     });
   };
 }
-/** @type {import('unified').Plugin<[], import('mdast').Root>} */
+
+/** @type {import("unified").Plugin<[], import("mdast").Root>} */
 function setDefaultLang() {
   // @ts-ignore
   return (tree) => {
@@ -150,6 +155,39 @@ function setDefaultLang() {
         node.lang = "markup";
       }
     });
+  };
+}
+
+function validateTabs() {
+  // @ts-ignore
+  return (tree) => {
+    const initialTabsState: ITabsState = {};
+    visit(tree, (node) => {
+      if (node.type === "containerDirective" && node.name === "tabsgroup") {
+        node.children?.forEach(
+          (
+            child: React.ReactElement & {
+              data: {
+                hName: string;
+                hProperties: { value: string };
+              };
+            }
+          ) => {
+            const { options } = node.attributes;
+            if (!options.split(",").includes(child.data.hProperties.value)) {
+              throw new Error(
+                `Value "${child.data.hProperties.value}" is not provided in TabsGroups options.`
+              );
+            }
+            initialTabsState[options.split(",").join("/")] = options
+              .split(",")[0]
+              .trim();
+          }
+        );
+      }
+    });
+    const tabsConfigPath = `${TEMP_PATH}tabsConfig.json`;
+    fs.writeFileSync(tabsConfigPath, JSON.stringify(initialTabsState));
   };
 }
 
@@ -192,27 +230,33 @@ export const prepareMdContent = async (
   seoDescription: string;
 }> => {
   const { formattedContent, ...props } = parseMdFile(source);
-  const mdxSource = await serialize(formattedContent, {
-    mdxOptions: {
-      remarkPlugins: [
-        remarkGfm,
-        remarkDirective,
-        createCustomNodes,
-        remarkUnwrapImages,
-        setDefaultLang,
-        remarkPrism,
-      ],
-
-      rehypePlugins: [
-        [
-          rehypePrism,
-          {
-            plugins: ["line-highlight"],
-          },
+  let mdxSource: MDXRemoteSerializeResult<Record<string, unknown>>;
+  try {
+    mdxSource = await serialize(formattedContent, {
+      mdxOptions: {
+        remarkPlugins: [
+          remarkGfm,
+          remarkDirective,
+          createCustomNodes,
+          remarkUnwrapImages,
+          setDefaultLang,
+          remarkPrism,
+          validateTabs,
         ],
-      ],
-    },
-  });
+
+        rehypePlugins: [
+          [
+            rehypePrism,
+            {
+              plugins: ["line-highlight"],
+            },
+          ],
+        ],
+      },
+    });
+  } catch (error: unknown) {
+    throw new Error(error as string);
+  }
 
   return {
     mdxSource,
@@ -281,6 +325,6 @@ export const getCommitDate = (fileName: string): string => {
 };
 
 export const getEditLink = (fileName: string): string => {
-  // https://github.com/NomicFoundation/hardhat/edit/master/docs/hardhat-network/guides/mainnet-forking.md
+  // https://github.com/NomicFoundation/hardhat/edit/master/docs/hardhat-network/guides/forking-other-networks.md
   return fileName.replace(DOCS_PATH, REPO_URL);
 };

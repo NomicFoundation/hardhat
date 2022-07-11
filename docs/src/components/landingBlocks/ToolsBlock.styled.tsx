@@ -6,6 +6,7 @@ const Container = styled.div`
   display: flex;
   flex-direction: column;
   position: relative;
+  margin-top: 150px;
   &:before {
     width: 100%;
     height: 32px;
@@ -48,6 +49,7 @@ const Container = styled.div`
   ${media.md} {
     flex-direction: row;
     margin-bottom: 200px;
+    margin-top: 150px;
 
     &:before {
       width: 36px;
@@ -99,11 +101,11 @@ const ToolsIconsBlock = styled.div`
     bottom: 0;
     background: ${tm(({ colors }) => colors.toolsBlockBorder)};
     ${tmSelectors.dark} {
-      border-color: ${tmDark(({ colors }) => colors.toolsBlockBorder)};
+      background: ${tmDark(({ colors }) => colors.toolsBlockBorder)};
     }
     ${media.mqDark} {
       ${tmSelectors.auto} {
-        border-color: ${tmDark(({ colors }) => colors.toolsBlockBorder)};
+        background: ${tmDark(({ colors }) => colors.toolsBlockBorder)};
       }
     }
   }
@@ -120,10 +122,12 @@ const ToolsIconsBlock = styled.div`
     border-left: 1px solid ${tm(({ colors }) => colors.toolsBlockBorder)};
     transform: translateY(0) rotate(225deg);
     ${tmSelectors.dark} {
+      background: ${tmDark(({ colors }) => colors.neutral0)};
       border-color: ${tmDark(({ colors }) => colors.toolsBlockBorder)};
     }
     ${media.mqDark} {
       ${tmSelectors.auto} {
+        background: ${tmDark(({ colors }) => colors.neutral0)};
         border-color: ${tmDark(({ colors }) => colors.toolsBlockBorder)};
       }
     }
@@ -141,11 +145,11 @@ const ToolsIconsBlock = styled.div`
       width: 1px;
       background: ${tm(({ colors }) => colors.toolsBlockBorder)};
       ${tmSelectors.dark} {
-        border-color: ${tmDark(({ colors }) => colors.toolsBlockBorder)};
+        background: ${tmDark(({ colors }) => colors.toolsBlockBorder)};
       }
       ${media.mqDark} {
         ${tmSelectors.auto} {
-          border-color: ${tmDark(({ colors }) => colors.toolsBlockBorder)};
+          background: ${tmDark(({ colors }) => colors.toolsBlockBorder)};
         }
       }
     }
@@ -201,7 +205,8 @@ const ButtonContainer = styled.div`
   transition: all 0.1s ease-in-out;
 
   &.active {
-    box-shadow: 6px -2px 10px #eee3ff, -6px 2px 10px #fbfcdb;
+    box-shadow: 6px -2px 10px ${tm(({ colors }) => colors.toolsBoxShadow1)},
+      -6px 2px 10px ${tm(({ colors }) => colors.toolsBoxShadow2)};
   }
 
   & svg {
@@ -229,6 +234,46 @@ const ButtonContainer = styled.div`
         height: 72px;
         padding: 0px;
         transform: scale(1);
+      }
+    }
+  }
+  .dark {
+    display: none;
+  }
+
+  ${tmSelectors.dark} {
+    .light {
+      display: none;
+    }
+    .dark {
+      display: inline;
+    }
+    &.active {
+      box-shadow: 0px 1px 8px ${tm(({ colors }) => colors.toolsBoxShadowDark)};
+    }
+    & svg {
+      box-shadow: 0px 1px 8px ${tm(({ colors }) => colors.toolsBoxShadowDark)};
+      &.active {
+        box-shadow: 0 1px 2px ${tm(({ colors }) => colors.transparent)};
+      }
+    }
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      .light {
+        display: none;
+      }
+      .dark {
+        display: inline;
+      }
+      &.active {
+        box-shadow: 0px 1px 8px ${tm(({ colors }) => colors.toolsBoxShadowDark)};
+      }
+      & svg {
+        box-shadow: 0px 1px 8px ${tm(({ colors }) => colors.toolsBoxShadowDark)};
+        &.active {
+          box-shadow: 0 1px 2px ${tm(({ colors }) => colors.transparent)};
+        }
       }
     }
   }
@@ -384,6 +429,9 @@ const DescriptionLink = styled.a`
   font-size: 15px;
   font-weight: 500;
   color: ${tm(({ colors }) => colors.neutral600)};
+  &:hover {
+    opacity: 0.8;
+  }
   ${tmSelectors.dark} {
     color: ${tmDark(({ colors }) => colors.neutral600)};
   }
@@ -398,7 +446,7 @@ const DescriptionLink = styled.a`
     position: absolute;
     width: 7px;
     height: 7px;
-    background: #fff;
+    background: ${tm(({ colors }) => colors.transparent)};
     border-top: 1px solid ${tm(({ colors }) => colors.neutral600)};
     border-left: 1px solid ${tm(({ colors }) => colors.neutral600)};
     right: -18px;

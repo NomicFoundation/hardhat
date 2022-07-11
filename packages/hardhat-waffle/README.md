@@ -69,4 +69,4 @@ const { deployContract } = waffle;
 
 Also, you don't need to call `chai.use` in order to use [Waffle's Chai matchers](https://ethereum-waffle.readthedocs.io/en/latest/matchers.html).
 
-Note that by default, Hardhat saves its compilation output into `artifacts/` instead of `build/`. You can either use that directory in your tests, or [customize your Hardhat config](https://hardhat.org/config/#path-configuration).
+Note that by default, Hardhat saves its compilation output into `artifacts/` instead of `build/`. You can either use that directory in your tests, or [customize your Hardhat config](https://hardhat.org/hardhat-runner/docs/config#path-configuration).

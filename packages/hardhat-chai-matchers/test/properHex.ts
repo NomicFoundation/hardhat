@@ -1,6 +1,6 @@
 import { AssertionError, expect } from "chai";
 
-import "../src";
+import "../src/internal/add-chai-matchers";
 
 describe("properHex", function () {
   it("should handle a successful positive case", function () {
@@ -36,7 +36,7 @@ describe("properHex", function () {
     const length = 2;
     expect(() => expect(input).to.not.be.properHex(length)).to.throw(
       AssertionError,
-      `Expected "${input}" not to be a hex string of length ${
+      `Expected "${input}" NOT to be a hex string of length ${
         length + 2
       } (the provided ${length} plus 2 more for the "0x" prefix), but its length is ${
         input.length
@@ -48,7 +48,7 @@ describe("properHex", function () {
     const input = "0xabcdefg";
     expect(() => expect(input).to.not.be.properHex(8)).to.throw(
       AssertionError,
-      `Expected "${input}" not to be a proper hex string, but it contains only valid hex characters`
+      `Expected "${input}" NOT to be a proper hex string, but it contains only valid hex characters`
     );
   });
 });

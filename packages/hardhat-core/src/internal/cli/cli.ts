@@ -21,6 +21,8 @@ import { Reporter } from "../sentry/reporter";
 import { isRunningOnCiServer } from "../util/ci-detection";
 import {
   hasConsentedTelemetry,
+  hasPromptedForHHVSCode,
+  writePromptedForHHVSCode,
   writeTelemetryConsent,
 } from "../util/global-dir";
 import { getPackageJson, PackageJson } from "../util/packageInfo";
@@ -29,7 +31,13 @@ import { applyWorkaround } from "../util/antlr-prototype-pollution-workaround";
 import { Analytics } from "./analytics";
 import { ArgumentsParser } from "./ArgumentsParser";
 import { enableEmoji } from "./emoji";
-import { confirmTelemetryConsent, createProject } from "./project-creation";
+import { createProject } from "./project-creation";
+import { confirmHHVSCodeInstallation, confirmTelemetryConsent } from "./prompt";
+import {
+  InstallationState,
+  installHardhatVSCode,
+  isHardhatVSCodeInstalled,
+} from "./hardhat-vscode-installation";
 
 const log = debug("hardhat:core:cli");
 
@@ -52,6 +60,39 @@ Please, make sure you are using a supported version of Node.js.
 
 To learn more about which versions of Node.js are supported go to https://hardhat.org/nodejs-versions`
       )
+    );
+  }
+}
+
+async function suggestInstallingHardhatVscode() {
+  const alreadyPrompted = hasPromptedForHHVSCode();
+  if (alreadyPrompted) {
+    return;
+  }
+
+  const isInstalled = isHardhatVSCodeInstalled();
+  writePromptedForHHVSCode();
+
+  if (isInstalled !== InstallationState.EXTENSION_NOT_INSTALLED) {
+    return;
+  }
+
+  const installationConsent = await confirmHHVSCodeInstallation();
+
+  if (installationConsent === true) {
+    console.log("Installing Hardhat for Visual Studio Code...");
+    const installed = installHardhatVSCode();
+
+    if (installed) {
+      console.log("Hardhat for Visual Studio Code was successfully installed");
+    } else {
+      console.log(
+        "Hardhat for Visual Studio Code couldn't be installed. To learn more about it, go to https://hardhat.org/hardhat-vscode"
+      );
+    }
+  } else {
+    console.log(
+      "To learn more about Hardhat for Visual Studio Code, go to https://hardhat.org/hardhat-vscode"
     );
   }
 }
@@ -103,12 +144,9 @@ async function main() {
     if (hardhatArguments.config === undefined && !isCwdInsideProject()) {
       if (
         process.stdout.isTTY === true ||
-        process.env.HARDHAT_CREATE_BASIC_SAMPLE_PROJECT_WITH_DEFAULTS !==
+        process.env.HARDHAT_CREATE_JAVASCRIPT_PROJECT_WITH_DEFAULTS !==
           undefined ||
-        process.env.HARDHAT_CREATE_ADVANCED_SAMPLE_PROJECT_WITH_DEFAULTS !==
-          undefined ||
-        process.env
-          .HARDHAT_CREATE_ADVANCED_TYPESCRIPT_SAMPLE_PROJECT_WITH_DEFAULTS !==
+        process.env.HARDHAT_CREATE_TYPESCRIPT_PROJECT_WITH_DEFAULTS !==
           undefined
       ) {
         await createProject();
@@ -226,6 +264,16 @@ async function main() {
     } else {
       abortAnalytics();
     }
+
+    // VSCode extension prompt for installation
+    if (
+      taskName === "test" &&
+      !isRunningOnCiServer() &&
+      process.stdout.isTTY === true
+    ) {
+      await suggestInstallingHardhatVscode();
+    }
+
     log(`Killing Hardhat after successfully running task ${taskName}`);
   } catch (error) {
     let isHardhatError = false;
@@ -259,7 +307,7 @@ async function main() {
     } else {
       if (!isHardhatError) {
         console.error(
-          `If you think this is a bug in Hardhat, please report it here: https://hardhat.org/reportbug`
+          `If you think this is a bug in Hardhat, please report it here: https://hardhat.org/report-bug`
         );
       }
 

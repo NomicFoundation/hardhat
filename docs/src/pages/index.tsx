@@ -7,7 +7,6 @@ import VibrantCommunityBlock from "../components/landingBlocks/VibrantCommunityB
 import TrustedTeamsBlock from "../components/landingBlocks/TrustedTeamsBlock";
 import BuiltByBlock from "../components/landingBlocks/BuiltByBlock";
 import ReviewsBlock from "../components/landingBlocks/ReviewsBlock";
-// TODO: Re-enable tools section
 import ToolsBlock from "../components/landingBlocks/ToolsBlock";
 import homepageContent from "../content/home";
 import LandingLayout from "../components/LandingLayout";
@@ -20,10 +19,10 @@ const Home: NextPage = () => {
         description:
           "Hardhat is an Ethereum development environment. Compile your contracts and run them on a development network. Get Solidity stack traces, console.log and more.",
       }}
+      sidebarLayout={[]}
     >
       <HeroBlock content={homepageContent.heroBlockContent} />
 
-      {/* // TODO: Re-enable tools section */}
       <ToolsBlock content={homepageContent.toolsBlockContent} />
 
       <WhyHardhatBlock content={homepageContent.whyHardhatContent}>

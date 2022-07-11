@@ -3,7 +3,7 @@ import { styled } from "linaria/react";
 import { media, tm, tmDark, tmSelectors } from "../../themes";
 import { generateTabsGroupType, GlobalTabsContext } from "../../global-tabs";
 
-interface ITabsGroup {
+export interface ITabsGroup {
   children: React.ReactNode[];
   options: string;
 }
@@ -82,7 +82,6 @@ const TabsGroup = ({ children, options }: ITabsGroup) => {
   const { tabsState, changeTab } = useContext(GlobalTabsContext);
   const type = useMemo(() => generateTabsGroupType(options), [options]);
   const selectedTab = tabsState[type];
-
   const childrenWithProps = React.Children.map(children, (child) => {
     // Checking isValidElement is the safe way and avoids a typescript
     // error too.
@@ -95,20 +94,23 @@ const TabsGroup = ({ children, options }: ITabsGroup) => {
   return (
     <StyledTabsGroup selectedTab={selectedTab}>
       <StyledTabsContainer>
-        {options.split(",").map((option: string) => {
-          return (
-            <StyledTabButton
-              key={option}
-              data-selected={selectedTab === option}
-              value={option}
-              onClick={() => {
-                changeTab(type, option);
-              }}
-            >
-              {option}
-            </StyledTabButton>
-          );
-        })}
+        {options
+          .split(",")
+          .map((option) => option.trim())
+          .map((option: string) => {
+            return (
+              <StyledTabButton
+                key={option}
+                data-selected={selectedTab === option}
+                value={option}
+                onClick={() => {
+                  changeTab(type, option);
+                }}
+              >
+                {option}
+              </StyledTabButton>
+            );
+          })}
       </StyledTabsContainer>
       {childrenWithProps}
     </StyledTabsGroup>

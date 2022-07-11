@@ -4,12 +4,15 @@ import { styled } from "linaria/react";
 
 import heroBackTextureReflect from "../assets/animation/desktop/hero-back_texture_reflect.svg";
 import heroBackTexture from "../assets/animation/desktop/hero-back_texture.svg";
+import heroBackTextureDark from "../assets/animation/desktop/hero-back_texture-dark.svg";
 import mascotsEthereumLogo from "../assets/animation/desktop/mascots-ethereum_logo.svg";
+import mascotsEthereumLogoDark from "../assets/animation/desktop/mascots-ethereum_logo-dark.svg";
 import heHead from "../assets/animation/desktop/he-head.svg";
 import sheHead from "../assets/animation/desktop/she-head.svg";
 import heEyesOpen from "../assets/animation/desktop/he-eyes_open.svg";
 import sheEyesOpen from "../assets/animation/desktop/she-eyes_open.svg";
 import shadow from "../assets/animation/desktop/shadow.svg";
+import shadowDark from "../assets/animation/desktop/shadow-dark.svg";
 import { media, tmSelectors } from "../themes";
 
 const AnimationContainer = styled.section`
@@ -43,24 +46,16 @@ const AnimationContainer = styled.section`
     z-index: 0;
     top: -100px;
     left: 50px;
-    ${tmSelectors.dark} {
-      filter: invert(0.5);
-    }
-    ${media.mqDark} {
-      ${tmSelectors.auto} {
-        filter: invert(0.5);
-      }
-    }
   }
 
   & .back-reflect {
     z-index: 0;
     ${tmSelectors.dark} {
-      filter: brightness(0.1);
+      display: none;
     }
     ${media.mqDark} {
       ${tmSelectors.auto} {
-        filter: brightness(0.1);
+        display: none;
       }
     }
   }
@@ -97,11 +92,11 @@ const AnimationContainer = styled.section`
     animation: shadowSpread 8s linear infinite;
     z-index: 0;
     ${tmSelectors.dark} {
-      filter: brightness(0.15);
+      fill: "#111316";
     }
     ${media.mqDark} {
       ${tmSelectors.auto} {
-        filter: brightness(0.15);
+        fill: "#111316";
       }
     }
   }
@@ -164,6 +159,30 @@ const AnimationContainer = styled.section`
       transform: none;
     }
   }
+  & .light {
+    display: inline;
+  }
+  & .dark {
+    display: none;
+  }
+  ${tmSelectors.dark} {
+    & .light {
+      display: none;
+    }
+    & .dark {
+      display: inline;
+    }
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      & .light {
+        display: none;
+      }
+      & .dark {
+        display: inline;
+      }
+    }
+  }
 `;
 
 const DesktopAnimation = () => {
@@ -173,17 +192,36 @@ const DesktopAnimation = () => {
         <Image src={heroBackTextureReflect} alt="back reflect" />
       </span>
       <span className="back-texture">
-        <Image
-          src={heroBackTexture}
-          alt="back texture"
-          width={813}
-          height={840}
-          layout="fixed"
-        />
+        <span className="light">
+          <Image
+            src={heroBackTexture}
+            alt="back texture"
+            width={813}
+            height={840}
+            layout="fixed"
+          />
+        </span>
+        <span className="dark">
+          <Image
+            src={heroBackTextureDark}
+            alt="back texture dark"
+            width={813}
+            height={840}
+            layout="fixed"
+          />
+        </span>
       </span>
       <div className="bounce">
         <span className="mascots-ethereum-logo">
-          <Image src={mascotsEthereumLogo} alt="mascots ethereum logo" />
+          <span className="light">
+            <Image src={mascotsEthereumLogo} alt="mascots ethereum logo" />
+          </span>
+          <span className="dark">
+            <Image
+              src={mascotsEthereumLogoDark}
+              alt="mascots ethereum logo dark"
+            />
+          </span>
         </span>
         <span className="he-head">
           <Image src={heHead} alt="he-head" />
@@ -200,7 +238,12 @@ const DesktopAnimation = () => {
         </span>
       </div>
       <span className="shadow">
-        <Image src={shadow} alt="shadow" />
+        <span className="light">
+          <Image src={shadow} alt="shadow" />
+        </span>
+        <span className="dark">
+          <Image src={shadowDark} alt="shadow-dark" />
+        </span>
       </span>
     </AnimationContainer>
   );

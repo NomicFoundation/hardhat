@@ -33,7 +33,7 @@
       },
       {
         "label": "Mainnet Forking",
-        "href": "/hardhat-network/guides/mainnet-forking"
+        "href": "/hardhat-network/guides/forking-other-networks"
       },
       {
         "label": "Mining Modes",

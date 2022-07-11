@@ -2532,7 +2532,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       throw new InternalError(
         `No known hardfork for execution on historical block ${blockNumber.toString()} (relative to fork block number ${
           this._forkBlockNumber
-        }). The node was not configured with a hardfork activation history.  See http://hardhat.org/hardhat-network/guides/mainnet-forking.html#using-a-custom-hardfork-history`
+        }). The node was not configured with a hardfork activation history.  See http://hardhat.org/custom-hardfork-history`
       );
     }
 

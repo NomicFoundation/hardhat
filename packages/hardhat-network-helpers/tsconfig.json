@@ -1,7 +1,8 @@
 {
   "extends": "../../config/typescript/tsconfig.json",
   "compilerOptions": {
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "composite": true
   },
   "exclude": ["./dist", "./node_modules", "./test/**/hardhat.config.ts"],
   "references": [

@@ -2,8 +2,8 @@ import { AssertionError, expect } from "chai";
 import { BigNumber } from "ethers";
 import { ProviderError } from "hardhat/internal/core/providers/errors";
 
-import "../../src";
-import { PANIC_CODES } from "../../src/reverted/panic";
+import "../../src/internal/add-chai-matchers";
+import { PANIC_CODES } from "../../src/panic";
 import {
   runSuccessfulAsserts,
   runFailedAsserts,
@@ -290,7 +290,7 @@ describe("INTEGRATION: Reverted with panic", function () {
 
         expect(() => expect(hash).to.be.revertedWithPanic("invalid")).to.throw(
           TypeError,
-          "Expected a number-like value as the expected panic code, but got 'invalid'"
+          "Expected the given panic code to be a number-like value, but got 'invalid'"
         );
       });
 
