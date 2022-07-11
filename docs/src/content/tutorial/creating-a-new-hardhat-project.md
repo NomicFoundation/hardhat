@@ -127,7 +127,7 @@ Hardhat is unopinionated in terms of what tools you end up using, but it does co
 
 In this tutorial we are going to use our recommended plugin, [`@nomicfoundation/hardhat-toolbox`](../hardhat-runner/plugins/nomicfoundation-hardhat-toolbox), which has everything you need for developing smart contracts.
 
-To install it, tun this in your project directory:
+To install it, run this in your project directory:
 
 ::::tabsgroup{options="npm 7+,npm 6,yarn"}
 
