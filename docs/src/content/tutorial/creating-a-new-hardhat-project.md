@@ -113,7 +113,7 @@ Hardhat is designed around the concepts of tasks and plugins. The bulk of Hardha
 
 ### Tasks
 
-Every time you're running Hardhat from the command-line, you're running a task. For eample, `npx hardhat compile` is running the `compile` task. To see the currently available tasks in your project, run `npx hardhat`. Feel free to explore any task by running `npx hardhat help [task]`.
+Every time you're running Hardhat from the command-line, you're running a task. For example, `npx hardhat compile` is running the `compile` task. To see the currently available tasks in your project, run `npx hardhat`. Feel free to explore any task by running `npx hardhat help [task]`.
 
 :::tip
 
