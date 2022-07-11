@@ -478,6 +478,13 @@ const communityPlugins: IPlugin[] = [
     description: "A jest environment with hardhat built in.",
     tags: ["uniswap", "testing", "jest", "node"],
   },
+  {
+    name: "hardhat-ctf",
+    author: "Oren Yomtov",
+    authorUrl: "https://github.com/orenyomtov",
+    description: "A framework for building solidity CTF challenges.",
+    tags: ["ctf", "capture-the-flag", "framework", "security", "solidity"],
+  },
 ];
 
 const officialPlugins: IPlugin[] = [
