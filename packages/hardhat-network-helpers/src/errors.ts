@@ -31,10 +31,9 @@ You probably did something like this:
 
     loadFixture(async () => { ... });
 
-Instead, define the fixture function in an outer scope and use the same function in each call.
+Instead, define a fixture function and refer to that same function in each call to loadFixture.
 
-Learn more at https://hardhat.org/hardhat-network-helpers/docs/reference#fixtures
-`);
+Learn more at https://hardhat.org/hardhat-network-helpers/docs/reference#fixtures`);
   }
 }
 
