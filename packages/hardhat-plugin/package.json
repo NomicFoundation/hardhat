@@ -34,7 +34,7 @@
     "eslint-plugin-import": "2.24.2",
     "eslint-plugin-mocha": "^9.0.0",
     "eslint-plugin-prettier": "4.0.0",
-    "hardhat": "^2.0.0",
+    "hardhat": "^2.10.0",
     "mocha": "^9.1.1",
     "nyc": "15.1.0",
     "prettier": "2.4.1",
@@ -45,7 +45,7 @@
   "peerDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.2",
     "@nomicfoundation/ignition-core": "^0.0.2",
-    "hardhat": "^2.0.0"
+    "hardhat": "^2.10.0"
   },
   "dependencies": {
     "debug": "^4.3.2",
