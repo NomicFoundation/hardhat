@@ -103,7 +103,7 @@
     "@ethersproject/abi": "^5.1.2",
     "@metamask/eth-sig-util": "^4.0.0",
     "@sentry/node": "^5.18.1",
-    "@solidity-parser/parser": "^0.14.2",
+    "@solidity-parser/parser": "^0.14.3",
     "@types/bn.js": "^5.1.0",
     "@types/lru-cache": "^5.1.0",
     "abort-controller": "^3.0.0",
