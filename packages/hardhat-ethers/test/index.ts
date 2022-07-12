@@ -714,7 +714,7 @@ describe("Ethers plugin", function () {
             const address = await signers[0].getAddress();
             return assert.isRejected(
               this.env.ethers.getContractAt("Greeter", address),
-              `${address} is a non-contract address.`
+              `${address} is not a contract account.`
             );
           });
 
