@@ -1,6 +1,9 @@
 import { assert } from "chai";
 
-import { FixtureSnapshotError } from "../src/errors";
+import {
+  FixtureAnonymousFunctionError,
+  FixtureSnapshotError,
+} from "../src/errors";
 import { loadFixture } from "../src/loadFixture";
 import { useEnvironment, rpcQuantityToNumber } from "./test-utils";
 
@@ -88,6 +91,20 @@ describe("loadFixture", function () {
     await assert.isRejected(
       loadFixture(mineTwoBlocksFixture),
       FixtureSnapshotError
+    );
+  });
+
+  it("should throw when an anonymous regular function is used", async function () {
+    await assert.isRejected(
+      loadFixture(async function () {}),
+      FixtureAnonymousFunctionError
+    );
+  });
+
+  it("should throw when an anonymous arrow function is used", async function () {
+    await assert.isRejected(
+      loadFixture(async () => {}),
+      FixtureAnonymousFunctionError
     );
   });
 });
