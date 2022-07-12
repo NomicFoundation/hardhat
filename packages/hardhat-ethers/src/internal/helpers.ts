@@ -306,7 +306,7 @@ export async function getContractAt(
   if ((await hre.ethers.provider.getCode(address)) === "0x") {
     throw new NomicLabsHardhatPluginError(
       pluginName,
-      `${address} is a non-contract address.`
+      `${address} is not a contract account.`
     );
   }
 
