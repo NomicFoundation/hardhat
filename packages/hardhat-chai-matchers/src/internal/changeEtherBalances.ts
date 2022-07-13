@@ -18,7 +18,11 @@ export function supportChangeEtherBalances(Assertion: Chai.AssertionStatic) {
       options?: BalanceChangeOptions
     ) {
       const { BigNumber } = require("ethers");
-      const subject = this._obj;
+      let subject = this._obj;
+
+      if (typeof subject === "function") {
+        subject = subject();
+      }
 
       const derivedPromise = Promise.all([
         getBalanceChanges(subject, accounts, options),
@@ -87,20 +91,11 @@ export function supportChangeEtherBalances(Assertion: Chai.AssertionStatic) {
 export async function getBalanceChanges(
   transaction:
     | providers.TransactionResponse
-    | Promise<providers.TransactionResponse>
-    | (() =>
-        | Promise<providers.TransactionResponse>
-        | providers.TransactionResponse),
+    | Promise<providers.TransactionResponse>,
   accounts: Array<Account | string>,
   options?: BalanceChangeOptions
 ) {
-  let txResponse: providers.TransactionResponse;
-
-  if (typeof transaction === "function") {
-    txResponse = await transaction();
-  } else {
-    txResponse = await transaction;
-  }
+  const txResponse = await transaction;
 
   const txReceipt = await txResponse.wait();
   const txBlockNumber = txReceipt.blockNumber;

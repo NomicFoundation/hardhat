@@ -2,6 +2,7 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect, AssertionError } from "chai";
 import { BigNumber, Contract } from "ethers";
 
+import "../src/internal/add-chai-matchers";
 import { useEnvironment, useEnvironmentWithNode } from "./helpers";
 
 describe("INTEGRATION: changeEtherBalance matcher", function () {
@@ -201,6 +202,23 @@ describe("INTEGRATION: changeEtherBalance matcher", function () {
             sender.sendTransaction({ to: receiver.address, value: 0 })
           ).to.changeEtherBalance(sender, 0);
         });
+
+        it("shouldn't run the transaction twice", async function () {
+          const receiverBalanceBefore = await receiver.getBalance();
+
+          await expect(() =>
+            sender.sendTransaction({
+              to: receiver.address,
+              value: 200,
+            })
+          ).to.changeEtherBalance(sender, -200);
+
+          const receiverBalanceChange = (await receiver.getBalance()).sub(
+            receiverBalanceBefore
+          );
+
+          expect(receiverBalanceChange.toNumber()).to.equal(200);
+        });
       });
 
       describe("Change balance, one contract", () => {
@@ -393,6 +411,25 @@ describe("INTEGRATION: changeEtherBalance matcher", function () {
             })
           ).to.changeEtherBalance(sender, -100);
         });
+      });
+
+      it("shouldn't run the transaction twice", async function () {
+        const receiverBalanceBefore = await receiver.getBalance();
+
+        await expect(() =>
+          sender.sendTransaction({
+            to: receiver.address,
+            maxFeePerGas: 2,
+            maxPriorityFeePerGas: 1,
+            value: 200,
+          })
+        ).to.changeEtherBalance(sender, -200);
+
+        const receiverBalanceChange = (await receiver.getBalance()).sub(
+          receiverBalanceBefore
+        );
+
+        expect(receiverBalanceChange.toNumber()).to.equal(200);
       });
     });
 
