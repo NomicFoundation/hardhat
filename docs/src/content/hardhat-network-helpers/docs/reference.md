@@ -273,11 +273,11 @@ it("test", async function () {
 
 ### `dropTransaction(txHash)`
 
-Drops the given transaction hash from the mempool, if it exists.
+Removes the given transaction from the mempool, if it exists.
 
 Parameters:
 
-- `txHash`: Transaction hash to be dropped from mempool.
+- `txHash`: Transaction hash to be removed from the mempool.
 
 Returns: `true` if successful, otherwise `false`.
 

@@ -1,9 +1,9 @@
 import { getHardhatProvider, assertTxHash } from "../utils";
 
 /**
- * Drops the given transaction hash from the mempool, if it exists.
+ * Removes the given transaction from the mempool, if it exists.
  *
- * @param txHash Transaction hash to be dropped from mempool.
+ * @param txHash Transaction hash to be removed from the mempool.
  * @returns `true` if successful, otherwise `false`.
  * @throws if the transaction was already mined.
  */
