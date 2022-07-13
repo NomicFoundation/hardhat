@@ -75,9 +75,30 @@ networks: {
 }
 ```
 
+## Impersonating accounts
+
+Hardhat Network allows you to impersonate any address. This lets you send transactions from that account even if you don't have access to its private key.
+
+The easiest way to do this is with the `ethers.getImpersonatedSigner` method, which is added to the `ethers` object by the [`hardhat-ethers`](/hardhat-runner/plugins/nomiclabs-hardhat-ethers) plugin:
+
+```js
+const impersonatedSigner = await ethers.getImpersonatedSigner("0x1234567890123456789012345678901234567890");
+await impersonatedSigner.sendTransaction(...);
+```
+
+Alternatively, you can use the [`impersonateAccount`](</hardhat-network-helpers/docs/reference#impersonateaccount(address)>) helper and then obtain the signer for that address:
+
+```js
+const helpers = require("@nomicfoundation/hardhat-network-helpers");
+
+const address = "0x1234567890123456789012345678901234567890";
+await helpers.impersonateAccount(address);
+const impersonatedSigner = await ethers.getSigner(address);
+```
+
 ## Customizing Hardhat Network's behavior
 
-Once you've got local instances of mainnet protocols, setting them in the specific state your tests need is likely the next step. For this, you can use our [Hardhat Network Helpers](/hardhat-network-helpers) library, which allows you to do things like modifying the balance of an account or impersonate accounts.
+Once you've got local instances of mainnet protocols, setting them in the specific state your tests need is likely the next step. For this, you can use our [Hardhat Network Helpers](/hardhat-network-helpers) library, which allows you to do things like manipulating the time of the network or modify the balance of an account.
 
 ## Resetting the fork
 

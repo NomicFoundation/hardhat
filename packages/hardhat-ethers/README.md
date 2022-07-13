@@ -68,6 +68,8 @@ function getSigners() => Promise<ethers.Signer[]>;
 
 function getSigner(address: string) => Promise<ethers.Signer>;
 
+function getImpersonatedSigner(address: string) => Promise<ethers.Signer>;
+
 function getContractFactoryFromArtifact(artifact: Artifact, signer?: ethers.Signer): Promise<ethers.ContractFactory>;
 
 function getContractFactoryFromArtifact(artifact: Artifact, factoryOptions: FactoryOptions): Promise<ethers.ContractFactory>;
