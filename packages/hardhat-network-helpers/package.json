@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-network-helpers",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Hardhat utils for testing",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/master/packages/hardhat-network-helpers",
   "repository": "github:nomicfoundation/hardhat",
