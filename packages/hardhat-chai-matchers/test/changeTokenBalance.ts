@@ -221,6 +221,38 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
         );
       });
 
+      it("changeTokenBalance shouldn't run the transaction twice", async function () {
+        const receiverBalanceBefore = await mockToken.balanceOf(
+          receiver.address
+        );
+
+        await expect(() =>
+          mockToken.transfer(receiver.address, 50)
+        ).to.changeTokenBalance(mockToken, receiver, 50);
+
+        const receiverBalanceChange = (
+          await mockToken.balanceOf(receiver.address)
+        ).sub(receiverBalanceBefore);
+
+        expect(receiverBalanceChange.toNumber()).to.equal(50);
+      });
+
+      it("changeTokenBalances shouldn't run the transaction twice", async function () {
+        const receiverBalanceBefore = await mockToken.balanceOf(
+          receiver.address
+        );
+
+        await expect(() =>
+          mockToken.transfer(receiver.address, 50)
+        ).to.changeTokenBalances(mockToken, [sender, receiver], [-50, 50]);
+
+        const receiverBalanceChange = (
+          await mockToken.balanceOf(receiver.address)
+        ).sub(receiverBalanceBefore);
+
+        expect(receiverBalanceChange.toNumber()).to.equal(50);
+      });
+
       it("negated", async function () {
         await expect(
           mockToken.transfer(receiver.address, 50)

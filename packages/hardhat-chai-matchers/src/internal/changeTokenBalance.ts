@@ -19,7 +19,11 @@ export function supportChangeTokenBalance(Assertion: Chai.AssertionStatic) {
       balanceChange: EthersT.BigNumberish
     ) {
       const ethers = require("ethers") as typeof EthersT;
-      const subject = this._obj;
+      let subject = this._obj;
+
+      if (typeof subject === "function") {
+        subject = subject();
+      }
 
       checkToken(token, "changeTokenBalance");
 
@@ -53,7 +57,11 @@ export function supportChangeTokenBalance(Assertion: Chai.AssertionStatic) {
       balanceChanges: EthersT.BigNumberish[]
     ) {
       const ethers = require("ethers") as typeof EthersT;
-      const subject = this._obj;
+      let subject = this._obj;
+
+      if (typeof subject === "function") {
+        subject = subject();
+      }
 
       checkToken(token, "changeTokenBalances");
 
@@ -111,11 +119,7 @@ function checkToken(token: unknown, method: string) {
 }
 
 export async function getBalanceChange(
-  transaction:
-    | TransactionResponse
-    | Promise<TransactionResponse>
-    | (() => TransactionResponse)
-    | (() => Promise<TransactionResponse>),
+  transaction: TransactionResponse | Promise<TransactionResponse>,
   token: Token,
   account: Account | string
 ) {
@@ -123,13 +127,7 @@ export async function getBalanceChange(
   const hre = await import("hardhat");
   const provider = hre.network.provider;
 
-  let txResponse: TransactionResponse;
-
-  if (typeof transaction === "function") {
-    txResponse = await transaction();
-  } else {
-    txResponse = await transaction;
-  }
+  const txResponse = await transaction;
 
   const txReceipt = await txResponse.wait();
   const txBlockNumber = txReceipt.blockNumber;
