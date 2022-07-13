@@ -12,7 +12,7 @@ import fsExtra from "fs-extra";
 import { HardhatConfig, HardhatRuntimeEnvironment } from "hardhat/types";
 import path from "path";
 
-import { getAllUserModules } from "./user-modules";
+import { getAllUserModulesPaths } from "./user-modules";
 
 type HardhatEthers = HardhatRuntimeEnvironment["ethers"];
 type HardhatPaths = HardhatConfig["paths"];
@@ -129,7 +129,7 @@ export class IgnitionWrapper {
   }
 
   private async _getModule<T>(moduleId: string): Promise<UserModule<T>> {
-    const userModulesPaths = getAllUserModules(this._paths.ignition);
+    const userModulesPaths = getAllUserModulesPaths(this._paths.ignition);
 
     for (const userModulePath of userModulesPaths) {
       const resolveUserModulePath = path.resolve(
