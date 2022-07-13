@@ -25,6 +25,8 @@ jobs:
         run: yarn lint
       - name: Run tests
         run: yarn test
+      - name: Run tests in examples
+        run: yarn test:examples
 
   test_on_macos:
     name: Test Ignition on MacOS with Node 14
@@ -43,6 +45,8 @@ jobs:
         run: yarn lint
       - name: Run tests
         run: yarn test
+      - name: Run tests in examples
+        run: yarn test:examples
 
   test_on_linux:
     name: Test Ignition on Ubuntu with Node ${{ matrix.node }}
@@ -64,3 +68,5 @@ jobs:
         run: yarn lint
       - name: Run tests
         run: yarn test
+      - name: Run tests in examples
+        run: yarn test:examples
