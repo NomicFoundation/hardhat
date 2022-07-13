@@ -11,7 +11,7 @@ import { lazyObject } from "hardhat/plugins";
 import path from "path";
 
 import { IgnitionWrapper } from "./ignition-wrapper";
-import { loadUserModules } from "./user-modules";
+import { loadUserModules, loadAllUserModules } from "./user-modules";
 import "./type-extensions";
 
 export {
@@ -123,10 +123,15 @@ task("deploy")
     async ({ userModulesPaths = [] }: { userModulesPaths: string[] }, hre) => {
       await hre.run("compile", { quiet: true });
 
-      const userModules = await loadUserModules(
-        hre.config.paths.ignition,
-        userModulesPaths
-      );
+      let userModules: Array<UserModule<any>>;
+      if (userModulesPaths.length === 0) {
+        userModules = loadAllUserModules(hre.config.paths.ignition);
+      } else {
+        userModules = loadUserModules(
+          hre.config.paths.ignition,
+          userModulesPaths
+        );
+      }
 
       if (userModules.length === 0) {
         console.warn("No Ignition modules found");
@@ -168,10 +173,15 @@ task("plan")
     async ({ userModulesPaths = [] }: { userModulesPaths: string[] }, hre) => {
       await hre.run("compile", { quiet: true });
 
-      const userModules = await loadUserModules(
-        hre.config.paths.ignition,
-        userModulesPaths
-      );
+      let userModules: Array<UserModule<any>>;
+      if (userModulesPaths.length === 0) {
+        userModules = loadAllUserModules(hre.config.paths.ignition);
+      } else {
+        userModules = loadUserModules(
+          hre.config.paths.ignition,
+          userModulesPaths
+        );
+      }
 
       if (userModules.length === 0) {
         console.warn("No Ignition modules found");

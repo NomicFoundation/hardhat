@@ -5,34 +5,46 @@ import path from "path";
 
 const debug = setupDebug("hardhat-ignition:modules");
 
-export async function loadUserModules(
+export function loadAllUserModules(
+  userModulesDirectory: string
+): Array<UserModule<any>> {
+  debug(`Loading all user modules from '${userModulesDirectory}'`);
+
+  if (!fsExtra.existsSync(userModulesDirectory)) {
+    throw new Error(`Directory ${userModulesDirectory} not found.`);
+  }
+
+  const resolvedUserModulesPaths = getAllUserModulesPaths(userModulesDirectory);
+
+  return getUserModulesFromPaths(resolvedUserModulesPaths);
+}
+
+export function loadUserModules(
   userModulesDirectory: string,
-  userModulesFiles: string[]
-): Promise<Array<UserModule<any>>> {
+  userModulesFiles: string[] = []
+): Array<UserModule<any>> {
   debug(`Loading user modules from '${userModulesDirectory}'`);
 
   if (!fsExtra.existsSync(userModulesDirectory)) {
     throw new Error(`Directory ${userModulesDirectory} not found.`);
   }
 
-  let resolvedUserModulesPaths: string[];
-  if (userModulesFiles.length === 0) {
-    debug("No files passed, reading all module files");
+  const resolvedUserModulesPaths = getUserModulesPaths(
+    userModulesDirectory,
+    userModulesFiles
+  );
 
-    resolvedUserModulesPaths = getAllUserModules(userModulesDirectory);
-  } else {
-    debug(`Reading '${userModulesFiles.length}' selected module files`);
-    resolvedUserModulesPaths = userModulesFiles.map((x) =>
-      path.resolve(process.cwd(), x)
-    );
-  }
+  return getUserModulesFromPaths(resolvedUserModulesPaths);
+}
 
+export function getUserModulesFromPaths(
+  resolvedUserModulesPaths: string[]
+): Array<UserModule<any>> {
   debug(`Loading '${resolvedUserModulesPaths.length}' module files`);
-  const userModules: any[] = [];
-  for (const ignitionFile of resolvedUserModulesPaths) {
-    const pathToFile = path.resolve(userModulesDirectory, ignitionFile);
 
-    const fileExists = await fsExtra.pathExists(pathToFile);
+  const userModules: any[] = [];
+  for (const pathToFile of resolvedUserModulesPaths) {
+    const fileExists = fsExtra.pathExistsSync(pathToFile);
     if (!fileExists) {
       throw new Error(`Module ${pathToFile} doesn't exist`);
     }
@@ -46,8 +58,16 @@ export async function loadUserModules(
   return userModules;
 }
 
-export function getAllUserModules(userModulesDirectory: string) {
+export function getUserModulesPaths(
+  userModulesDirectory: string,
+  userModulesFiles: string[]
+): string[] {
+  return userModulesFiles.map((x) => path.resolve(userModulesDirectory, x));
+}
+
+export function getAllUserModulesPaths(userModulesDirectory: string) {
   return fsExtra
     .readdirSync(userModulesDirectory)
-    .filter((x) => !x.startsWith("."));
+    .filter((x) => !x.startsWith("."))
+    .map((x) => path.resolve(userModulesDirectory, x));
 }
