@@ -1,5 +1,11 @@
 # hardhat
 
+## 2.10.1
+
+### Patch Changes
+
+- 3d571e40b: Better Solidity errors propagation
+
 ## 2.10.0
 
 ### Minor Changes
