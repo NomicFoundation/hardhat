@@ -173,18 +173,17 @@ describe("INTEGRATION: Reverted without reason", function () {
     describe("stack traces", function () {
       // smoke test for stack traces
       it("includes test file", async function () {
-        let hasProperStackTrace = false;
         try {
           await expect(
             matchers.revertsWithoutReason()
           ).to.not.be.revertedWithoutReason();
         } catch (e: any) {
-          hasProperStackTrace = util
-            .inspect(e)
-            .includes("revertedWithoutReason.ts");
+          expect(util.inspect(e)).to.include("revertedWithoutReason.ts");
+
+          return;
         }
 
-        expect(hasProperStackTrace).to.equal(true);
+        expect.fail("Expected an exception but none was thrown");
       });
     });
   }

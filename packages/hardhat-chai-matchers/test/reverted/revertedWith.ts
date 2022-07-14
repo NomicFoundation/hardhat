@@ -216,14 +216,15 @@ describe("INTEGRATION: Reverted with", function () {
     describe("stack traces", function () {
       // smoke test for stack traces
       it("includes test file", async function () {
-        let hasProperStackTrace = false;
         try {
           await expect(matchers.revertsWith("bar")).to.be.revertedWith("foo");
         } catch (e: any) {
-          hasProperStackTrace = util.inspect(e).includes("revertedWith.ts");
+          expect(util.inspect(e)).to.include("revertedWith.ts");
+
+          return;
         }
 
-        expect(hasProperStackTrace).to.equal(true);
+        expect.fail("Expected an exception but none was thrown");
       });
     });
   }

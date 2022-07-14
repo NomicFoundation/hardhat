@@ -597,7 +597,6 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
 
       describe("changeTokenBalances", function () {
         it("includes test file", async function () {
-          let hasProperStackTrace = false;
           try {
             await expect(
               mockToken.transfer(receiver.address, 50)
@@ -607,12 +606,12 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
               [-100, 100]
             );
           } catch (e: any) {
-            hasProperStackTrace = util
-              .inspect(e)
-              .includes("changeTokenBalance.ts");
+            expect(util.inspect(e)).to.include("changeTokenBalance.ts");
+
+            return;
           }
 
-          expect(hasProperStackTrace).to.equal(true);
+          expect.fail("Expected an exception but none was thrown");
         });
       });
     });

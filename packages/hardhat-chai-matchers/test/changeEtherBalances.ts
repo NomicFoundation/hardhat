@@ -353,7 +353,6 @@ describe("INTEGRATION: changeEtherBalances matcher", function () {
     describe("stack traces", function () {
       // smoke test for stack traces
       it("includes test file", async function () {
-        let hasProperStackTrace = false;
         try {
           await expect(() =>
             sender.sendTransaction({
@@ -362,12 +361,12 @@ describe("INTEGRATION: changeEtherBalances matcher", function () {
             })
           ).to.changeEtherBalances([sender, receiver], [-100, 100]);
         } catch (e: any) {
-          hasProperStackTrace = util
-            .inspect(e)
-            .includes("changeEtherBalances.ts");
+          expect(util.inspect(e)).to.include("changeEtherBalances.ts");
+
+          return;
         }
 
-        expect(hasProperStackTrace).to.equal(true);
+        expect.fail("Expected an exception but none was thrown");
       });
     });
   }

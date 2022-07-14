@@ -322,16 +322,15 @@ describe("INTEGRATION: Reverted with panic", function () {
     describe("stack traces", function () {
       // smoke test for stack traces
       it("includes test file", async function () {
-        let hasProperStackTrace = false;
         try {
           await expect(matchers.panicAssert()).to.not.be.revertedWithPanic();
         } catch (e: any) {
-          hasProperStackTrace = util
-            .inspect(e)
-            .includes("revertedWithPanic.ts");
+          expect(util.inspect(e)).to.include("revertedWithPanic.ts");
+
+          return;
         }
 
-        expect(hasProperStackTrace).to.equal(true);
+        expect.fail("Expected an exception but none was thrown");
       });
     });
   }
