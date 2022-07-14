@@ -6,6 +6,7 @@ import { Services } from "../services/types";
 import { Tx } from "../types";
 
 import { Executor } from "./Executor";
+import { mapToAddress } from "./utils";
 
 export class CallExecutor extends Executor<CallOptions, Tx> {
   public async execute(
@@ -13,25 +14,6 @@ export class CallExecutor extends Executor<CallOptions, Tx> {
     services: Services
   ): Promise<Tx> {
     const { contract, method } = input;
-    const mapToAddress = (x: any): any => {
-      if (typeof x === "string") {
-        return x;
-      }
-
-      if (x === undefined || x === null) {
-        return x;
-      }
-
-      if ((x as any).address) {
-        return (x as any).address;
-      }
-
-      if (Array.isArray(x)) {
-        return x.map(mapToAddress);
-      }
-
-      return x;
-    };
 
     const args = input.args.map(mapToAddress);
     const txHash = await services.contracts.call(
@@ -64,9 +46,14 @@ export class CallExecutor extends Executor<CallOptions, Tx> {
     const argsLength = input.args.length;
 
     const iface = new ethers.utils.Interface(artifact.abi);
-    const functionFragments = iface.fragments.filter(
-      (f) => f.name === input.method
-    );
+
+    const funcs = Object.entries(iface.functions)
+      .filter(([fname]) => fname === input.method)
+      .map(([, fragment]) => fragment);
+
+    const functionFragments = iface.fragments
+      .filter((frag) => frag.name === input.method)
+      .concat(funcs);
 
     if (functionFragments.length === 0) {
       return [
