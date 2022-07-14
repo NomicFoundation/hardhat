@@ -1,5 +1,6 @@
 import { AssertionError, expect } from "chai";
 import { ProviderError } from "hardhat/internal/core/providers/errors";
+import util from "util";
 
 import {
   runSuccessfulAsserts,
@@ -363,6 +364,20 @@ describe("INTEGRATION: Reverted", function () {
           ProviderError,
           "sender doesn't have enough funds to send tx"
         );
+      });
+    });
+
+    describe("stack traces", function () {
+      // smoke test for stack traces
+      it("includes test file", async function () {
+        let hasProperStackTrace = false;
+        try {
+          await expect(matchers.succeeds()).to.be.reverted;
+        } catch (e: any) {
+          hasProperStackTrace = util.inspect(e).includes("reverted.ts");
+        }
+
+        expect(hasProperStackTrace).to.equal(true);
       });
     });
   }

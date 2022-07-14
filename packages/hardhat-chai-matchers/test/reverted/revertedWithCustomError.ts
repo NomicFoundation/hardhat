@@ -1,6 +1,7 @@
 import { AssertionError, expect } from "chai";
 import { BigNumber } from "ethers";
 import { ProviderError } from "hardhat/internal/core/providers/errors";
+import util from "util";
 
 import {
   runSuccessfulAsserts,
@@ -451,6 +452,24 @@ describe("INTEGRATION: Reverted with custom error", function () {
           ProviderError,
           "sender doesn't have enough funds to send tx"
         );
+      });
+    });
+
+    describe("stack traces", function () {
+      // smoke test for stack traces
+      it("includes test file", async function () {
+        let hasProperStackTrace = false;
+        try {
+          await expect(
+            matchers.revertedWith("some reason")
+          ).to.be.revertedWithCustomError(matchers, "SomeCustomError");
+        } catch (e: any) {
+          hasProperStackTrace = util
+            .inspect(e)
+            .includes("revertedWithCustomError.ts");
+        }
+
+        expect(hasProperStackTrace).to.equal(true);
       });
     });
   }

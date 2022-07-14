@@ -1,6 +1,7 @@
 import { AssertionError, expect } from "chai";
 import { BigNumber } from "ethers";
 import { ProviderError } from "hardhat/internal/core/providers/errors";
+import util from "util";
 
 import "../../src/internal/add-chai-matchers";
 import { PANIC_CODES } from "../../src/panic";
@@ -315,6 +316,22 @@ describe("INTEGRATION: Reverted with panic", function () {
           ProviderError,
           "sender doesn't have enough funds to send tx"
         );
+      });
+    });
+
+    describe("stack traces", function () {
+      // smoke test for stack traces
+      it("includes test file", async function () {
+        let hasProperStackTrace = false;
+        try {
+          await expect(matchers.panicAssert()).to.not.be.revertedWithPanic();
+        } catch (e: any) {
+          hasProperStackTrace = util
+            .inspect(e)
+            .includes("revertedWithPanic.ts");
+        }
+
+        expect(hasProperStackTrace).to.equal(true);
       });
     });
   }

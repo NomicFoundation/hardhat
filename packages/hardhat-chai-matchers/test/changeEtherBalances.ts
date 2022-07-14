@@ -1,8 +1,11 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect, AssertionError } from "chai";
 import { BigNumber, Contract } from "ethers";
+import util from "util";
 
 import { useEnvironment, useEnvironmentWithNode } from "./helpers";
+
+import "../src/internal/add-chai-matchers";
 
 describe("INTEGRATION: changeEtherBalances matcher", function () {
   describe("with the in-process hardhat network", function () {
@@ -327,6 +330,27 @@ describe("INTEGRATION: changeEtherBalances matcher", function () {
             `Expected the ether balance of ${sender.address} (the 1st address in the list) NOT to change by -200`
           );
         });
+      });
+    });
+
+    describe("stack traces", function () {
+      // smoke test for stack traces
+      it("includes test file", async function () {
+        let hasProperStackTrace = false;
+        try {
+          await expect(() =>
+            sender.sendTransaction({
+              to: receiver.address,
+              value: 200,
+            })
+          ).to.changeEtherBalances([sender, receiver], [-100, 100]);
+        } catch (e: any) {
+          hasProperStackTrace = util
+            .inspect(e)
+            .includes("changeEtherBalances.ts");
+        }
+
+        expect(hasProperStackTrace).to.equal(true);
       });
     });
   }
