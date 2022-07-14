@@ -268,3 +268,25 @@ it("test", async function () {
   // use token and exchanges contracts
 })
 ```
+
+## Other helpers
+
+### `dropTransaction(txHash)`
+
+Removes the given transaction from the mempool, if it exists.
+
+Parameters:
+
+- `txHash`: Transaction hash to be removed from the mempool.
+
+Returns: `true` if successful, otherwise `false`.
+
+Throws: if the transaction was already mined.
+
+Example:
+
+```ts
+await helpers.dropTransaction(
+  "0x1010101010101010101010101010101010101010101010101010101010101010"
+);
+```
