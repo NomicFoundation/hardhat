@@ -6,8 +6,6 @@ import util from "util";
 import "../src/internal/add-chai-matchers";
 import { useEnvironment, useEnvironmentWithNode } from "./helpers";
 
-import "../src/internal/add-chai-matchers";
-
 describe("INTEGRATION: changeEtherBalance matcher", function () {
   describe("with the in-process hardhat network", function () {
     useEnvironment("hardhat-project");
