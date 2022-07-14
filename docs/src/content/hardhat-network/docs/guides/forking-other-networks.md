@@ -98,7 +98,7 @@ const impersonatedSigner = await ethers.getSigner(address);
 
 ## Customizing Hardhat Network's behavior
 
-Once you've got local instances of mainnet protocols, setting them in the specific state your tests need is likely the next step. For this, you can use our [Hardhat Network Helpers](/hardhat-network-helpers) library, which allows you to do things like manipulating the time of the network or modify the balance of an account.
+Once you've got a local instance of the mainnet chain state, setting that state to the specific needs of your tests is likely the next step. For this, you can use our [Hardhat Network Helpers](/hardhat-network-helpers) library, which allows you to do things like manipulating the time of the network or modify the balance of an account.
 
 ## Resetting the fork
 
