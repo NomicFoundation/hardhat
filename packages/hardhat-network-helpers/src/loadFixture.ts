@@ -1,6 +1,10 @@
 import type { SnapshotRestorer } from "./helpers/takeSnapshot";
 
-import { FixtureSnapshotError, InvalidSnapshotError } from "./errors";
+import {
+  FixtureAnonymousFunctionError,
+  FixtureSnapshotError,
+  InvalidSnapshotError,
+} from "./errors";
 
 type Fixture<T> = () => Promise<T>;
 
@@ -27,6 +31,10 @@ const snapshots: Array<Snapshot<any>> = [];
  * - Incorrect usage: `loadFixture(async () => { ... })`
  */
 export async function loadFixture<T>(fixture: Fixture<T>): Promise<T> {
+  if (fixture.name === "") {
+    throw new FixtureAnonymousFunctionError();
+  }
+
   const snapshot = snapshots.find((s) => s.fixture === fixture);
 
   const { takeSnapshot } = await import("./helpers/takeSnapshot");

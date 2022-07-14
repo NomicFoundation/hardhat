@@ -3,6 +3,7 @@ import { expect, AssertionError } from "chai";
 import { BigNumber, Contract } from "ethers";
 import util from "util";
 
+import "../src/internal/add-chai-matchers";
 import { useEnvironment, useEnvironmentWithNode } from "./helpers";
 
 import "../src/internal/add-chai-matchers";
@@ -210,6 +211,24 @@ describe("INTEGRATION: changeEtherBalances matcher", function () {
             `Expected the ether balance of ${sender.address} (the 1st address in the list) NOT to change by -200 wei`
           );
         });
+      });
+
+      it("shouldn't run the transaction twice", async function () {
+        const receiverBalanceBefore = await receiver.getBalance();
+
+        await expect(() =>
+          sender.sendTransaction({
+            to: receiver.address,
+            gasPrice: 1,
+            value: 200,
+          })
+        ).to.changeEtherBalances([sender, receiver], [-200, 200]);
+
+        const receiverBalanceChange = (await receiver.getBalance()).sub(
+          receiverBalanceBefore
+        );
+
+        expect(receiverBalanceChange.toNumber()).to.equal(200);
       });
     });
 

@@ -22,7 +22,11 @@ export function supportChangeEtherBalances(Assertion: Chai.AssertionStatic) {
 
       // see buildAssert's jsdoc
       const negated = this.__flags.negate;
-      const subject = this._obj;
+
+      let subject = this._obj;
+      if (typeof subject === "function") {
+        subject = subject();
+      }
 
       const checkBalanceChanges = ([actualChanges, accountAddresses]: [
         Array<typeof BigNumber>,
@@ -86,20 +90,11 @@ export function supportChangeEtherBalances(Assertion: Chai.AssertionStatic) {
 export async function getBalanceChanges(
   transaction:
     | providers.TransactionResponse
-    | Promise<providers.TransactionResponse>
-    | (() =>
-        | Promise<providers.TransactionResponse>
-        | providers.TransactionResponse),
+    | Promise<providers.TransactionResponse>,
   accounts: Array<Account | string>,
   options?: BalanceChangeOptions
 ) {
-  let txResponse: providers.TransactionResponse;
-
-  if (typeof transaction === "function") {
-    txResponse = await transaction();
-  } else {
-    txResponse = await transaction;
-  }
+  const txResponse = await transaction;
 
   const txReceipt = await txResponse.wait();
   const txBlockNumber = txReceipt.blockNumber;

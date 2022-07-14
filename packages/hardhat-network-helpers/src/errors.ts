@@ -23,6 +23,20 @@ This might be caused by using nested loadFixture calls in a test, for example by
   }
 }
 
+export class FixtureAnonymousFunctionError extends CustomError {
+  constructor() {
+    super(`Anonymous functions cannot be used as fixtures.
+
+You probably did something like this:
+
+    loadFixture(async () => { ... });
+
+Instead, define a fixture function and refer to that same function in each call to loadFixture.
+
+Learn more at https://hardhat.org/hardhat-network-helpers/docs/reference#fixtures`);
+  }
+}
+
 export class OnlyHardhatNetworkError extends CustomError {
   constructor(networkName: string, version?: string) {
     let errorMessage: string = ``;
