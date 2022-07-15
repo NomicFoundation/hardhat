@@ -258,7 +258,7 @@ Inside the `scripts/` folder you will find a file with the following code:
 
 ::::
 
-You can run it using `hardhat run`:
+You can run it using `npx hardhat run`:
 
 ::::tabsgroup{options="TypeScript,JavaScript"}
 
