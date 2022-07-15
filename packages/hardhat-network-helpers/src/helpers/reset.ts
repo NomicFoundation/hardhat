@@ -1,46 +1,42 @@
-import type {
-  EIP1193Provider,
-  HardhatNetworkForkingConfig,
-} from "hardhat/types";
+import type { HardhatNetworkForkingConfig } from "hardhat/types";
 import { RpcForkConfig } from "hardhat/internal/core/jsonrpc/types/input/hardhat-network";
 
 import { getHardhatProvider } from "../utils";
 
-/**
- * Resets the Hardhat Network to its initial configured state.
- *
- * If you want to reset a forked network to a non-forked state, or a non-forked
- * network to a forked state, use the low-level `hardhat_reset` JSON-RPC method
- * instead.
- */
-export async function reset(): Promise<void> {
-  const hre = await import("hardhat");
-  const provider = await getHardhatProvider();
+type HttpHeaders = HardhatNetworkForkingConfig["httpHeaders"];
 
-  const forkingConfig = hre.config.networks.hardhat.forking;
-
-  return resetInternal(provider, forkingConfig);
+export interface ResetForkOptions {
+  url: string;
+  blockNumber?: number;
+  httpHeaders?: HttpHeaders;
 }
 
-export async function resetInternal(
-  provider: EIP1193Provider,
-  forkingConfig: HardhatNetworkForkingConfig | undefined
-) {
-  if (forkingConfig === undefined || !forkingConfig.enabled) {
-    await provider.request({
-      method: "hardhat_reset",
-      params: [],
-    });
-  } else {
-    const rpcForkConfig: RpcForkConfig = {
-      jsonRpcUrl: forkingConfig.url,
-      blockNumber: forkingConfig.blockNumber,
-      httpHeaders: forkingConfig.httpHeaders,
-    };
+/**
+ * Resets the Hardhat Network fork.
+ */
+export async function resetFork(options: ResetForkOptions): Promise<void> {
+  const provider = await getHardhatProvider();
 
-    await provider.request({
-      method: "hardhat_reset",
-      params: [{ forking: rpcForkConfig }],
-    });
-  }
+  const rpcForkConfig: RpcForkConfig = {
+    jsonRpcUrl: options.url,
+    blockNumber: options.blockNumber,
+    httpHeaders: options.httpHeaders,
+  };
+
+  await provider.request({
+    method: "hardhat_reset",
+    params: [{ forking: rpcForkConfig }],
+  });
+}
+
+/**
+ * Resets the Hardhat Network to an empty, non-forked state.
+ */
+export async function resetWithoutFork(): Promise<void> {
+  const provider = await getHardhatProvider();
+
+  await provider.request({
+    method: "hardhat_reset",
+    params: [],
+  });
 }
