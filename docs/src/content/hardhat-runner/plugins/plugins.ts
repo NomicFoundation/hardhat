@@ -485,6 +485,13 @@ const communityPlugins: IPlugin[] = [
     description: "A framework for building solidity CTF challenges.",
     tags: ["ctf", "capture-the-flag", "framework", "security", "solidity"],
   },
+  {
+    name: "hardhat-contract-prompts",
+    author: "dbadoy",
+    authorUrl: "https://github.com/dbadoy",
+    description: "Build prompt with Solidity code.",
+    tags: ["solidity", "CLI"],
+  },
 ];
 
 const officialPlugins: IPlugin[] = [
