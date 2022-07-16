@@ -26,7 +26,7 @@ import {
   ProviderError,
 } from "../../core/providers/errors";
 import { FIRST_SOLC_VERSION_SUPPORTED } from "../stack-traces/solidityTracer";
-import { Mutex } from "../vendor/await-semaphore";
+import { Mutex } from "../../vendor/await-semaphore";
 
 import { MiningTimer } from "./MiningTimer";
 import { DebugModule } from "./modules/debug";
