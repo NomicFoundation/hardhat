@@ -5,6 +5,7 @@ import os from "os";
 import { download } from "../../util/download";
 import { assertHardhatInvariant, HardhatError } from "../../core/errors";
 import { ERRORS } from "../../core/errors-list";
+import { Mutex } from "../../vendor/await-semaphore";
 
 const log = debug("hardhat:core:solidity:downloader");
 
@@ -90,6 +91,34 @@ export class CompilerDownloader implements ICompilerDownloader {
     }
   }
 
+  private static _downloaderPerPlatform: Map<string, CompilerDownloader> =
+    new Map();
+
+  public static getConcurrencySafeDownloader(
+    platform: CompilerPlatform,
+    compilersDir: string
+  ) {
+    const key = platform + compilersDir;
+
+    if (!this._downloaderPerPlatform.has(key)) {
+      this._downloaderPerPlatform.set(
+        key,
+        new CompilerDownloader(platform, compilersDir)
+      );
+    }
+
+    return this._downloaderPerPlatform.get(key)!;
+  }
+
+  private readonly _mutex = new Mutex();
+
+  /**
+   * Use
+   * @param _platform
+   * @param _compilersDir
+   * @param _compilerListCachePeriodMs
+   * @param _downloadFunction
+   */
   constructor(
     private readonly _platform: CompilerPlatform,
     private readonly _compilersDir: string,
@@ -110,43 +139,49 @@ export class CompilerDownloader implements ICompilerDownloader {
   }
 
   public async downloadCompiler(version: string): Promise<void> {
-    let build = await this._getCompilerBuild(version);
+    await this._mutex.use(async () => {
+      let build = await this._getCompilerBuild(version);
 
-    if (build === undefined && (await this._shouldDownloadCompilerList())) {
-      try {
-        await this._downloadCompilerList();
-      } catch (e: any) {
-        throw new HardhatError(ERRORS.SOLC.VERSION_LIST_DOWNLOAD_FAILED, {}, e);
+      if (build === undefined && (await this._shouldDownloadCompilerList())) {
+        try {
+          await this._downloadCompilerList();
+        } catch (e: any) {
+          throw new HardhatError(
+            ERRORS.SOLC.VERSION_LIST_DOWNLOAD_FAILED,
+            {},
+            e
+          );
+        }
+
+        build = await this._getCompilerBuild(version);
       }
 
-      build = await this._getCompilerBuild(version);
-    }
+      if (build === undefined) {
+        throw new HardhatError(ERRORS.SOLC.INVALID_VERSION, { version });
+      }
 
-    if (build === undefined) {
-      throw new HardhatError(ERRORS.SOLC.INVALID_VERSION, { version });
-    }
+      let downloadPath: string;
+      try {
+        downloadPath = await this._downloadCompiler(build);
+      } catch (e: any) {
+        throw new HardhatError(
+          ERRORS.SOLC.INVALID_VERSION,
+          {
+            remoteVersion: build.longVersion,
+          },
+          e
+        );
+      }
 
-    let downloadPath: string;
-    try {
-      downloadPath = await this._downloadCompiler(build);
-    } catch (e: any) {
-      throw new HardhatError(
-        ERRORS.SOLC.INVALID_VERSION,
-        {
+      const verified = await this._verifyCompilerDownload(build, downloadPath);
+      if (!verified) {
+        throw new HardhatError(ERRORS.SOLC.INVALID_VERSION, {
           remoteVersion: build.longVersion,
-        },
-        e
-      );
-    }
+        });
+      }
 
-    const verified = await this._verifyCompilerDownload(build, downloadPath);
-    if (!verified) {
-      throw new HardhatError(ERRORS.SOLC.INVALID_VERSION, {
-        remoteVersion: build.longVersion,
-      });
-    }
-
-    await this._postProcessCompilerDownload(build, downloadPath);
+      await this._postProcessCompilerDownload(build, downloadPath);
+    });
   }
 
   public async getCompiler(version: string): Promise<Compiler> {

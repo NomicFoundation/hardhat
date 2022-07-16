@@ -412,20 +412,6 @@ subtask(TASK_COMPILE_SOLIDITY_COMPILE_JOBS)
         }
       }
 
-      /**
-       * Downloading the same version of a compiler in parallel can cause an
-       * error. When compilation jobs are executed in parallel, there's a chance
-       * that both use the same solc version and trigger this problem. To
-       * prevent that, we pre-download all the necessary compilers before
-       * running the compilation jobs.
-       */
-      for (const solcVersion of versionList) {
-        await run(TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD, {
-          solcVersion,
-          quiet: false,
-        });
-      }
-
       const { default: pMap } = await import("p-map");
       const pMapOptions = { concurrency, stopOnError: false };
       try {
@@ -546,7 +532,7 @@ subtask(TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD)
       const compilersCache = await getCompilersDir();
 
       const compilerPlatform = CompilerDownloader.getCompilerPlatform();
-      const downloader = new CompilerDownloader(
+      const downloader = CompilerDownloader.getConcurrencySafeDownloader(
         compilerPlatform,
         compilersCache
       );
