@@ -21,3 +21,23 @@ export function completeTaskProfile(taskProfile: TaskProfile) {
 export function createParentTaskProfile(taskProfile: TaskProfile): TaskProfile {
   return createTaskProfile(`super::${taskProfile.name}`);
 }
+
+/**
+ * Sets `parallel` to `true` to any children that was running at the same time
+ * of another.
+ *
+ * We assume `children[]` is in chronological `start` order.
+ */
+export function flagParallelChildren(profile: TaskProfile) {
+  for (const [i, child] of profile.children.entries()) {
+    flagParallelChildren(child);
+    if (i === 0) {
+      continue;
+    }
+    const prevChild = profile.children[i - 1];
+    if (child.start < prevChild.end!) {
+      prevChild.parallel = true;
+      child.parallel = true;
+    }
+  }
+}

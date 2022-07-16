@@ -28,6 +28,11 @@ import {
 import { getPackageJson, PackageJson } from "../util/packageInfo";
 
 import { applyWorkaround } from "../util/antlr-prototype-pollution-workaround";
+import {
+  createFlamegraphHtmlFile,
+  profileToFlamegraph,
+} from "../core/flamegraph";
+import { flagParallelChildren, TaskProfile } from "../core/task-profiling";
 import { Analytics } from "./analytics";
 import { ArgumentsParser } from "./ArgumentsParser";
 import { enableEmoji } from "./emoji";
@@ -95,6 +100,13 @@ async function suggestInstallingHardhatVscode() {
       "To learn more about Hardhat for Visual Studio Code, go to https://hardhat.org/hardhat-vscode"
     );
   }
+}
+
+function saveFlamegraph(profile: TaskProfile) {
+  flagParallelChildren(profile);
+  const flamegraph = profileToFlamegraph(profile);
+  const path = createFlamegraphHtmlFile(flamegraph);
+  console.log("Created flamegraph file", path);
 }
 
 async function main() {
@@ -251,18 +263,25 @@ async function main() {
 
     ctx.setHardhatRuntimeEnvironment(env);
 
-    const timestampBeforeRun = new Date().getTime();
+    try {
+      const timestampBeforeRun = new Date().getTime();
 
-    await env.run(taskName, taskArguments);
+      await env.run(taskName, taskArguments);
 
-    const timestampAfterRun = new Date().getTime();
-    if (
-      timestampAfterRun - timestampBeforeRun >
-      ANALYTICS_SLOW_TASK_THRESHOLD
-    ) {
-      await hitPromise;
-    } else {
-      abortAnalytics();
+      const timestampAfterRun = new Date().getTime();
+
+      if (
+        timestampAfterRun - timestampBeforeRun >
+        ANALYTICS_SLOW_TASK_THRESHOLD
+      ) {
+        await hitPromise;
+      } else {
+        abortAnalytics();
+      }
+    } finally {
+      if (hardhatArguments.flamegraph === true) {
+        saveFlamegraph(env.entryTaskProfile!);
+      }
     }
 
     // VSCode extension prompt for installation
