@@ -2,6 +2,7 @@ import debug from "debug";
 import fsExtra from "fs-extra";
 import * as os from "os";
 import * as path from "path";
+import fsPromises from "fs/promises";
 
 import {
   Artifact,
@@ -173,7 +174,66 @@ export class Artifacts implements IArtifacts {
     );
 
     const buildInfoPath = path.join(buildInfoDir, `${buildInfoName}.json`);
-    await fsExtra.writeJson(buildInfoPath, buildInfo, { spaces: 2 });
+
+    // JSON.stringify of the entire build info can be really slow
+    // in larger projects, so we stringify per part and incrementally create
+    // the JSON in the file.
+    const file = await fsPromises.open(buildInfoPath, "w");
+
+    {
+      const withoutOutput = JSON.stringify({ ...buildInfo, output: undefined });
+      await file.write(withoutOutput.substring(0, withoutOutput.length - 1));
+    }
+
+    {
+      const outputWithoutSourcesAndContracts = JSON.stringify({
+        ...buildInfo.output,
+        sources: undefined,
+        contracts: undefined,
+      });
+
+      await file.write(',"output":');
+
+      await file.write(
+        outputWithoutSourcesAndContracts.substring(
+          0,
+          outputWithoutSourcesAndContracts.length - 1
+        )
+      );
+    }
+
+    await file.write(',"sources":{');
+
+    let isFirst = true;
+    for (const [name, value] of Object.entries(buildInfo.output.sources)) {
+      if (isFirst) {
+        isFirst = false;
+      } else {
+        await file.write(",");
+      }
+
+      await file.write(`${JSON.stringify(name)}:${JSON.stringify(value)}`);
+    }
+
+    await file.write("}");
+
+    await file.write(',"contracts":{');
+
+    isFirst = true;
+    for (const [name, value] of Object.entries(buildInfo.output.contracts)) {
+      if (isFirst) {
+        isFirst = false;
+      } else {
+        await file.write(",");
+      }
+
+      await file.write(`${JSON.stringify(name)}:${JSON.stringify(value)}`);
+    }
+
+    await file.write("}");
+
+    await file.write("}");
+    await file.write("}");
 
     return buildInfoPath;
   }
