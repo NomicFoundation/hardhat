@@ -544,91 +544,74 @@ subtask(TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD)
       { run }
     ): Promise<SolcBuild> => {
       const compilersCache = await getCompilersDir();
-      const downloader = new CompilerDownloader(compilersCache);
+
+      const compilerPlatform = CompilerDownloader.getCompilerPlatform();
+      const downloader = new CompilerDownloader(
+        compilerPlatform,
+        compilersCache
+      );
 
       const isCompilerDownloaded = await downloader.isCompilerDownloaded(
         solcVersion
       );
 
-      const { longVersion, platform: desiredPlatform } =
-        await downloader.getCompilerBuild(solcVersion);
-
-      await run(TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_COMPILER_START, {
-        solcVersion,
-        isCompilerDownloaded,
-        quiet,
-      });
-
-      let compilerPath: string | undefined;
-      let platform: CompilerPlatform | undefined;
-      let nativeBinaryFailed = false;
-
-      const compilerPathResult = await downloader.getDownloadedCompilerPath(
-        solcVersion
-      );
-
-      if (compilerPathResult === undefined) {
-        if (desiredPlatform === CompilerPlatform.WASM) {
-          // if we were trying to download solcjs and it failed, there's nothing
-          // we can do
-          throw new HardhatError(ERRORS.SOLC.CANT_GET_COMPILER, {
-            version: solcVersion,
-          });
-        }
-
-        nativeBinaryFailed = true;
-      } else {
-        compilerPath = compilerPathResult.compilerPath;
-
-        // when using a native binary, check that it works correctly
-        // it it doesn't, force the downloader to use solcjs
-        if (compilerPathResult.platform !== CompilerPlatform.WASM) {
-          log("Checking native solc binary");
-
-          const solcBinaryWorks = await checkSolcBinary(
-            compilerPathResult.compilerPath
-          );
-          if (!solcBinaryWorks) {
-            log("Native solc binary doesn't work, using solcjs instead");
-            nativeBinaryFailed = true;
-          }
-        } else {
-          platform = CompilerPlatform.WASM;
-        }
-      }
-
-      if (nativeBinaryFailed) {
-        const solcJsDownloader = new CompilerDownloader(compilersCache, {
-          forceSolcJs: true,
+      if (!isCompilerDownloaded) {
+        await run(TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_COMPILER_START, {
+          solcVersion,
+          isCompilerDownloaded,
+          quiet,
         });
 
-        const solcjsCompilerPath =
-          await solcJsDownloader.getDownloadedCompilerPath(solcVersion);
+        await downloader.downloadCompiler(solcVersion);
 
-        if (solcjsCompilerPath === undefined) {
-          throw new HardhatError(ERRORS.SOLC.CANT_GET_COMPILER, {
-            version: solcVersion,
-          });
-        }
-
-        compilerPath = solcjsCompilerPath.compilerPath;
-        platform = CompilerPlatform.WASM;
+        await run(TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_COMPILER_END, {
+          solcVersion,
+          isCompilerDownloaded,
+          quiet,
+        });
       }
 
-      await run(TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_COMPILER_END, {
-        solcVersion,
-        isCompilerDownloaded,
-        quiet,
-      });
+      const compiler = await downloader.getCompiler(solcVersion);
 
-      const isSolcJs = platform === CompilerPlatform.WASM;
+      if (compiler.isSolcJs) {
+        return compiler;
+      }
 
-      assertHardhatInvariant(
-        compilerPath !== undefined,
-        "A compilerPath should be defined at this point"
+      log("Checking native solc binary");
+
+      const solcBinaryWorks = await checkSolcBinary(compiler.compilerPath);
+
+      if (solcBinaryWorks) {
+        return compiler;
+      }
+
+      log("Native solc binary doesn't work, using solcjs instead");
+
+      const wasmDownloader = new CompilerDownloader(
+        CompilerPlatform.WASM,
+        compilersCache
       );
 
-      return { compilerPath, isSolcJs, version: solcVersion, longVersion };
+      const isWasmCompilerDownloader =
+        await wasmDownloader.isCompilerDownloaded(solcVersion);
+
+      if (!isWasmCompilerDownloader) {
+        await run(TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_COMPILER_START, {
+          solcVersion,
+          isCompilerDownloaded,
+          quiet,
+        });
+
+        await wasmDownloader.downloadCompiler(solcVersion);
+
+        await run(TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_COMPILER_END, {
+          solcVersion,
+          isCompilerDownloaded,
+          quiet,
+        });
+      }
+
+      return downloader.getCompiler(solcVersion);
     }
   );
 
