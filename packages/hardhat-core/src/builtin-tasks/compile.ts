@@ -814,38 +814,41 @@ subtask(TASK_COMPILE_SOLIDITY_EMIT_ARTIFACTS)
         output
       );
 
-      const artifactsEmittedPerFile: ArtifactsEmittedPerFile = [];
-      for (const file of compilationJob.getResolvedFiles()) {
-        log(`Emitting artifacts for file '${file.sourceName}'`);
-        if (!compilationJob.emitsArtifacts(file)) {
-          continue;
-        }
+      const artifactsEmittedPerFile: ArtifactsEmittedPerFile =
+        await Promise.all(
+          compilationJob
+            .getResolvedFiles()
+            .filter((f) => compilationJob.emitsArtifacts(f))
+            .map(async (file) => {
+              const artifactsEmitted = await Promise.all(
+                Object.entries(output.contracts?.[file.sourceName] ?? {}).map(
+                  async ([contractName, contractOutput]) => {
+                    log(`Emitting artifact for contract '${contractName}'`);
+                    const artifact = await run(
+                      TASK_COMPILE_SOLIDITY_GET_ARTIFACT_FROM_COMPILATION_OUTPUT,
+                      {
+                        sourceName: file.sourceName,
+                        contractName,
+                        contractOutput,
+                      }
+                    );
 
-        const artifactsEmitted = [];
-        for (const [contractName, contractOutput] of Object.entries(
-          output.contracts?.[file.sourceName] ?? {}
-        )) {
-          log(`Emitting artifact for contract '${contractName}'`);
+                    await artifacts.saveArtifactAndDebugFile(
+                      artifact,
+                      pathToBuildInfo
+                    );
 
-          const artifact = await run(
-            TASK_COMPILE_SOLIDITY_GET_ARTIFACT_FROM_COMPILATION_OUTPUT,
-            {
-              sourceName: file.sourceName,
-              contractName,
-              contractOutput,
-            }
-          );
+                    return artifact.contractName;
+                  }
+                )
+              );
 
-          await artifacts.saveArtifactAndDebugFile(artifact, pathToBuildInfo);
-
-          artifactsEmitted.push(artifact.contractName);
-        }
-
-        artifactsEmittedPerFile.push({
-          file,
-          artifactsEmitted,
-        });
-      }
+              return {
+                file,
+                artifactsEmitted,
+              };
+            })
+        );
 
       return { artifactsEmittedPerFile };
     }
