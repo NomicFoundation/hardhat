@@ -26,14 +26,14 @@ For our first test we’ll deploy the `Lock` contract and assert that the unlock
 
 ```tsx
 import { expect } from "chai";
-import hre from "hardhat";
-import helpers from "hardhat-network-helpers";
+import { ethers } from "hardhat";
+import { time } from "@nomicfoundation/hardhat-network-helpers";
 
 describe("Lock", function () {
   it("Should set the right unlockTime", async function () {
     const lockedAmount = 1_000_000_000;
     const ONE_YEAR_IN_SECS = 365 * 24 * 60 * 60;
-    const unlockTime = (await helpers.time.latest()) + ONE_YEAR_IN_SECS;
+    const unlockTime = (await time.latest()) + ONE_YEAR_IN_SECS;
 
     // deploy a lock contract where funds can be withdrawn
     // one year in the future
