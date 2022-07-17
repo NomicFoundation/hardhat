@@ -177,6 +177,41 @@ export const chainConfig: ChainConfig = {
       browserURL: "https://blockscout.com/poa/sokol",
     },
   },
+  mandala: {
+    chainId: 595,
+    urls: {
+      apiURL: "https://blockscout.mandala.acala.network/api",
+      browserURL: "https://blockscout.mandala.acala.network",
+    },
+  },
+  karuraTestnet: {
+    chainId: 596,
+    urls: {
+      apiURL: "https://blockscout.karura-dev.aca-dev.network/api",
+      browserURL: "https://blockscout.karura-dev.aca-dev.network",
+    },
+  },
+  acalaTestnet: {
+    chainId: 597,
+    urls: {
+      apiURL: "https://blockscout.acala-dev.aca-dev.network/api",
+      browserURL: "https://blockscout.acala-dev.aca-dev.network",
+    },
+  },
+  karura: {
+    chainId: 686,
+    urls: {
+      apiURL: "https://blockscout.karura.network/api",
+      browserURL: "https://blockscout.karura.network",
+    },
+  },
+  acala: {
+    chainId: 787,
+    urls: {
+      apiURL: "https://blockscout.acala.network/api",
+      browserURL: "https://blockscout.acala.network",
+    },
+  },
   aurora: {
     chainId: 1313161554,
     urls: {
