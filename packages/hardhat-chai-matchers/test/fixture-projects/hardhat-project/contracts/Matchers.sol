@@ -14,7 +14,7 @@ contract Matchers {
   error SomeCustomError();
   error AnotherCustomError();
   error CustomErrorWithInt(int);
-  error CustomErrorWithUint(uint);
+  error CustomErrorWithUint(uint nameToForceEthersToUseAnArrayLikeWithNamedProperties);
   error CustomErrorWithUintAndString(uint, string);
   error CustomErrorWithPair(Pair);
 

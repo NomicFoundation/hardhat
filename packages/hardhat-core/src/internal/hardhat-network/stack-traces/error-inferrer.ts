@@ -1586,6 +1586,12 @@ export class ErrorInferrer {
       return true;
     }
 
+    // If the return data is not empty, and it's still the same, we assume it
+    // is being propagated
+    if (trace.returnData.length > 0) {
+      return true;
+    }
+
     return this._failsRightAfterCall(trace, callSubtraceStepIndex);
   }
 

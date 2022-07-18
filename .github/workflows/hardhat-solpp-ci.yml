@@ -2,7 +2,7 @@ name: hardhat-solpp CI
 
 on:
   push:
-    branches: [$default-branch, pre-release-testing-branch]
+    branches: [$default-branch]
     paths:
       - "packages/hardhat-solpp/**"
       - "packages/hardhat-core/**"
@@ -27,7 +27,7 @@ concurrency:
 
 jobs:
   test_on_macos:
-    name: Test hardhat-solpp on MacOS with Node 12
+    name: Test hardhat-solpp on MacOS with Node 14
     runs-on: macos-latest
     # disable until actions/virtual-environments#4896 is fixed
     if: ${{ false }}
@@ -35,7 +35,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
-          node-version: 12
+          node-version: 14
           cache: yarn
       - name: Install
         run: yarn --frozen-lockfile
@@ -49,7 +49,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: [12, 14, 16]
+        node: [14, 16, 18]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2

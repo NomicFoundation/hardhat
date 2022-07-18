@@ -19,7 +19,12 @@ function cleanup(ganacheChild) {
 async function startGanache(args = []) {
   const ganacheCliPath = require.resolve("ganache-cli/cli.js");
 
-  const ganacheChild = spawn("node", [ganacheCliPath, ...args]);
+  const env = { ...process.env };
+  if (process.version.startsWith("v18")) {
+    env["NODE_OPTIONS"] = "--openssl-legacy-provider";
+  }
+
+  const ganacheChild = spawn("node", [ganacheCliPath, ...args], { env });
   console.time("Ganache spawn");
 
   // wait for ganache child process to start

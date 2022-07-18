@@ -53,5 +53,6 @@ export interface HardhatEthersHelpers {
   ) => Promise<ethers.Contract>;
   getSigner: (address: string) => Promise<SignerWithAddress>;
   getSigners: () => Promise<SignerWithAddress[]>;
+  getImpersonatedSigner: (address: string) => Promise<SignerWithAddress>;
   deployContract: typeof deployContract;
 }

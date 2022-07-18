@@ -15,18 +15,19 @@ jobs:
     steps:
       - uses: actions/setup-node@v2
         with:
-          node-version: 12
+          node-version: 14
       - uses: actions/checkout@v2
       - name: Delete yarn.lock
         run: "rm yarn.lock"
       - name: Install
         run: yarn
+      - name: List dependencies
+        run: yarn list
       - name: Run tests
         env:
           DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI: true
           FORCE_COLOR: 3
-          NO_FAST_EXIT: true
-        run: yarn test
+        run: yarn test || (echo "===== Retry =====" && yarn test)
       - name: Notify failures
         if: failure()
         uses: slackapi/slack-github-action@v1.18.0

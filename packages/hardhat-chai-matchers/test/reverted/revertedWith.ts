@@ -8,7 +8,7 @@ import {
   useEnvironmentWithNode,
 } from "../helpers";
 
-import "../../src";
+import "../../src/internal/add-chai-matchers";
 
 describe("INTEGRATION: Reverted with", function () {
   describe("with the in-process hardhat network", function () {
@@ -76,7 +76,9 @@ describe("INTEGRATION: Reverted with", function () {
         });
       });
 
-      it("failed asserts", async function () {
+      // depends on a bug being fixed on ethers.js
+      // see https://linear.app/nomic-foundation/issue/HH-725
+      it.skip("failed asserts", async function () {
         await runFailedAsserts({
           matchers,
           method: "revertsWithoutReason",
@@ -183,10 +185,7 @@ describe("INTEGRATION: Reverted with", function () {
         expect(() =>
           // @ts-expect-error
           expect(hash).to.be.revertedWith(10)
-        ).to.throw(
-          TypeError,
-          "Expected a string as the expected reason string"
-        );
+        ).to.throw(TypeError, "Expected the revert reason to be a string");
       });
 
       it("errors that are not related to a reverted transaction", async function () {

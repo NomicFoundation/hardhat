@@ -1,1 +1,0 @@
-../../packages/hardhat-vyper/README.md

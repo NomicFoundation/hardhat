@@ -3,6 +3,7 @@ import {
   getHardhatProvider,
   assertValidAddress,
   toRpcQuantity,
+  toPaddedRpcQuantity,
 } from "../utils";
 
 /**
@@ -21,7 +22,7 @@ export async function setStorageAt(
 
   assertValidAddress(address);
   const indexParam = toRpcQuantity(index);
-  const codeParam = `0x${toRpcQuantity(value).slice(2).padStart(64, "0")}`;
+  const codeParam = toPaddedRpcQuantity(value, 32);
 
   await provider.request({
     method: "hardhat_setStorageAt",

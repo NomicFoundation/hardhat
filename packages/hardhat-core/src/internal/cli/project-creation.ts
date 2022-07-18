@@ -4,7 +4,6 @@ import os from "os";
 import path from "path";
 
 import { HARDHAT_NAME } from "../constants";
-import { DEFAULT_SOLC_VERSION } from "../core/config/default-config";
 import { HardhatError } from "../core/errors";
 import { ERRORS } from "../core/errors-list";
 import { getRecommendedGitIgnore } from "../core/project-structure";
@@ -14,92 +13,58 @@ import {
 } from "../util/global-dir";
 import { fromEntries } from "../util/lang";
 import { getPackageJson, getPackageRoot } from "../util/packageInfo";
-
+import { pluralize } from "../util/strings";
+import {
+  confirmRecommendedDepsInstallation,
+  confirmTelemetryConsent,
+  confirmProjectCreation,
+} from "./prompt";
 import { emoji } from "./emoji";
+import { Dependencies } from "./types";
 
 enum Action {
-  CREATE_BASIC_SAMPLE_PROJECT_ACTION = "Create a basic sample project",
-  CREATE_ADVANCED_SAMPLE_PROJECT_ACTION = "Create an advanced sample project",
-  CREATE_ADVANCED_TYPESCRIPT_SAMPLE_PROJECT_ACTION = "Create an advanced sample project that uses TypeScript",
+  CREATE_JAVASCRIPT_PROJECT_ACTION = "Create a JavaScript project",
+  CREATE_TYPESCRIPT_PROJECT_ACTION = "Create a TypeScript project",
   CREATE_EMPTY_HARDHAT_CONFIG_ACTION = "Create an empty hardhat.config.js",
   QUIT_ACTION = "Quit",
 }
 
 type SampleProjectTypeCreationAction =
-  | Action.CREATE_BASIC_SAMPLE_PROJECT_ACTION
-  | Action.CREATE_ADVANCED_SAMPLE_PROJECT_ACTION
-  | Action.CREATE_ADVANCED_TYPESCRIPT_SAMPLE_PROJECT_ACTION;
-
-interface Dependencies {
-  [name: string]: string;
-}
+  | Action.CREATE_JAVASCRIPT_PROJECT_ACTION
+  | Action.CREATE_TYPESCRIPT_PROJECT_ACTION;
 
 const HARDHAT_PACKAGE_NAME = "hardhat";
 
-const BASIC_SAMPLE_PROJECT_DEPENDENCIES: Dependencies = {
-  "@nomiclabs/hardhat-waffle": "^2.0.0",
-  "ethereum-waffle": "^3.0.0",
-  chai: "^4.2.0",
+const PROJECT_DEPENDENCIES: Dependencies = {
+  "@nomicfoundation/hardhat-toolbox": "^1.0.1",
+};
+
+const PEER_DEPENDENCIES: Dependencies = {
+  hardhat: "^2.9.9",
+  "@nomicfoundation/hardhat-network-helpers": "^1.0.0",
+  "@nomicfoundation/hardhat-chai-matchers": "^1.0.0",
   "@nomiclabs/hardhat-ethers": "^2.0.0",
-  ethers: "^5.0.0",
-};
-
-const ADVANCED_SAMPLE_PROJECT_DEPENDENCIES: Dependencies = {
-  ...BASIC_SAMPLE_PROJECT_DEPENDENCIES,
   "@nomiclabs/hardhat-etherscan": "^3.0.0",
-  dotenv: "^16.0.0",
-  eslint: "^7.29.0",
-  "eslint-config-prettier": "^8.3.0",
-  "eslint-config-standard": "^16.0.3",
-  "eslint-plugin-import": "^2.23.4",
-  "eslint-plugin-node": "^11.1.0",
-  "eslint-plugin-prettier": "^3.4.0",
-  "eslint-plugin-promise": "^5.1.0",
-  "hardhat-gas-reporter": "^1.0.4",
-  prettier: "^2.3.2",
-  "prettier-plugin-solidity": "^1.0.0-beta.13",
-  solhint: "^3.3.6",
-  "solidity-coverage": "^0.7.16",
+  chai: "^4.2.0",
+  ethers: "^5.4.7",
+  "hardhat-gas-reporter": "^1.0.8",
+  "solidity-coverage": "^0.7.21",
+  "@typechain/hardhat": "^6.1.2",
+  typechain: "^8.1.0",
+  "@typechain/ethers-v5": "^10.1.0",
+  "@ethersproject/abi": "^5.4.7",
+  "@ethersproject/providers": "^5.4.7",
 };
 
-const ADVANCED_TYPESCRIPT_SAMPLE_PROJECT_DEPENDENCIES: Dependencies = {
-  ...ADVANCED_SAMPLE_PROJECT_DEPENDENCIES,
-  "@typechain/ethers-v5": "^7.0.1",
-  "@typechain/hardhat": "^2.3.0",
-  "@typescript-eslint/eslint-plugin": "^4.29.1",
-  "@typescript-eslint/parser": "^4.29.1",
-  "@types/chai": "^4.2.21",
-  "@types/node": "^12.0.0",
-  "@types/mocha": "^9.0.0",
-  "ts-node": "^10.1.0",
-  typechain: "^5.1.2", // a workaround. see https://github.com/nomiclabs/hardhat/issues/1672#issuecomment-894497156
-  typescript: "^4.5.2",
+const TYPESCRIPT_DEPENDENCIES: Dependencies = {};
+
+const TYPESCRIPT_PEER_DEPENDENCIES: Dependencies = {
+  "@types/chai": "^4.2.0",
+  "@types/mocha": "^9.1.0",
+  "@types/node": ">=12.0.0",
+  "ts-node": ">=8.0.0",
+  typescript: ">=4.5.0",
 };
-
-const SAMPLE_PROJECT_DEPENDENCIES: {
-  [K in SampleProjectTypeCreationAction]: Dependencies;
-} = {
-  [Action.CREATE_BASIC_SAMPLE_PROJECT_ACTION]:
-    BASIC_SAMPLE_PROJECT_DEPENDENCIES,
-  [Action.CREATE_ADVANCED_SAMPLE_PROJECT_ACTION]:
-    ADVANCED_SAMPLE_PROJECT_DEPENDENCIES,
-  [Action.CREATE_ADVANCED_TYPESCRIPT_SAMPLE_PROJECT_ACTION]:
-    ADVANCED_TYPESCRIPT_SAMPLE_PROJECT_DEPENDENCIES,
-};
-
-const TELEMETRY_CONSENT_TIMEOUT = 10000;
-
-async function removeProjectDirIfPresent(projectRoot: string, dirName: string) {
-  const dirPath = path.join(projectRoot, dirName);
-  if (await fsExtra.pathExists(dirPath)) {
-    await fsExtra.remove(dirPath);
-  }
-}
-
-async function removeTempFilesIfPresent(projectRoot: string) {
-  await removeProjectDirIfPresent(projectRoot, "cache");
-  await removeProjectDirIfPresent(projectRoot, "artifacts");
-}
 
 // generated with the "colossal" font
 function printAsciiLogo() {
@@ -142,100 +107,47 @@ async function printWelcomeMessage() {
   );
 }
 
-async function checkForDuplicates(
-  projectRoot: string,
-  projectType: SampleProjectTypeCreationAction
-): Promise<void> {
-  const { intersection, union } = await import("lodash");
-
-  const packageRoot = getPackageRoot();
-
-  const srcPath = path.join(packageRoot, "sample-projects");
-  const destFiles = fsExtra.readdirSync(projectRoot);
-  let srcFiles: string[] = fsExtra.readdirSync(path.join(srcPath, "basic"));
-
-  switch (projectType) {
-    case Action.CREATE_ADVANCED_SAMPLE_PROJECT_ACTION:
-      srcFiles = union(
-        srcFiles,
-        fsExtra.readdirSync(path.join(srcPath, "advanced"))
-      );
-      break;
-    case Action.CREATE_ADVANCED_TYPESCRIPT_SAMPLE_PROJECT_ACTION:
-      srcFiles = union(
-        srcFiles,
-        fsExtra.readdirSync(path.join(srcPath, "advanced")),
-        fsExtra.readdirSync(path.join(srcPath, "advanced-ts"))
-      );
-      break;
-  }
-
-  const duplicates = intersection(srcFiles, destFiles);
-
-  if (duplicates.length > 0) {
-    throw new HardhatError(ERRORS.GENERAL.CONFLICTING_FILES, {
-      dest: projectRoot,
-      conflicts: duplicates.map((n) => `  ${n}`).join(os.EOL),
-    });
-  }
-}
-
 async function copySampleProject(
   projectRoot: string,
   projectType: SampleProjectTypeCreationAction
 ) {
   const packageRoot = getPackageRoot();
 
-  // first copy the basic project, then, if an advanced project is what was
-  // requested, overlay the advanced files on top of the basic ones. then, if
-  // the advanced TypeScript project is what was requested, overlay those files
-  // on top of the advanced ones.
-
-  await checkForDuplicates(projectRoot, projectType);
+  const sampleProjectName =
+    projectType === Action.CREATE_JAVASCRIPT_PROJECT_ACTION
+      ? "javascript"
+      : "typescript";
 
   await fsExtra.ensureDir(projectRoot);
-  await fsExtra.copy(
-    path.join(packageRoot, "sample-projects", "basic"),
-    projectRoot
+
+  const sampleProjectPath = path.join(
+    packageRoot,
+    "sample-projects",
+    sampleProjectName
   );
 
-  if (
-    projectType === Action.CREATE_ADVANCED_SAMPLE_PROJECT_ACTION ||
-    projectType === Action.CREATE_ADVANCED_TYPESCRIPT_SAMPLE_PROJECT_ACTION
-  ) {
-    await fsExtra.copy(
-      path.join(packageRoot, "sample-projects", "advanced"),
-      projectRoot
-    );
-    await fsExtra.remove(path.join(projectRoot, "scripts", "sample-script.js"));
-    await fsExtra.move(
-      path.join(projectRoot, "npmignore"),
-      path.join(projectRoot, ".npmignore"),
-      { overwrite: true }
-    );
+  const sampleProjectRootFiles = fsExtra.readdirSync(sampleProjectPath);
+  const existingFiles = sampleProjectRootFiles
+    .map((f) => path.join(projectRoot, f))
+    .filter((f) => fsExtra.pathExistsSync(f))
+    .map((f) => path.relative(process.cwd(), f));
+
+  if (existingFiles.length > 0) {
+    const errorMsg = `We couldn't initialize the sample project because ${pluralize(
+      existingFiles.length,
+      "this file already exists",
+      "these files already exist"
+    )}: ${existingFiles.join(", ")}
+    
+Please delete or move them and try again.`;
+    console.log(chalk.red(errorMsg));
+    process.exit(1);
   }
 
-  if (projectType === Action.CREATE_ADVANCED_TYPESCRIPT_SAMPLE_PROJECT_ACTION) {
-    await fsExtra.copy(
-      path.join(packageRoot, "sample-projects", "advanced-ts"),
-      projectRoot
-    );
-    for (const jsFile of [
-      "hardhat.config.js",
-      path.join("scripts", "deploy.js"),
-      path.join("test", "sample-test.js"),
-    ]) {
-      await fsExtra.remove(jsFile);
-    }
-    await fsExtra.move(
-      path.join(projectRoot, "npmignore"),
-      path.join(projectRoot, ".npmignore"),
-      { overwrite: true }
-    );
-  }
-
-  // This is just in case we have been using the sample project for dev/testing
-  await removeTempFilesIfPresent(projectRoot);
+  await fsExtra.copy(
+    path.join(packageRoot, "sample-projects", sampleProjectName),
+    projectRoot
+  );
 
   await fsExtra.remove(path.join(projectRoot, "LICENSE.md"));
 }
@@ -271,11 +183,9 @@ async function printRecommendedDepsInstallationInstructions(
 async function writeEmptyHardhatConfig() {
   return fsExtra.writeFile(
     "hardhat.config.js",
-    `/**
- * @type import('hardhat/config').HardhatUserConfig
- */
+    `/** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
-  solidity: "${DEFAULT_SOLC_VERSION}",
+  solidity: "0.8.9",
 };
 `,
     "utf-8"
@@ -284,20 +194,13 @@ module.exports = {
 
 async function getAction(): Promise<Action> {
   if (
-    process.env.HARDHAT_CREATE_BASIC_SAMPLE_PROJECT_WITH_DEFAULTS !== undefined
+    process.env.HARDHAT_CREATE_JAVASCRIPT_PROJECT_WITH_DEFAULTS !== undefined
   ) {
-    return Action.CREATE_BASIC_SAMPLE_PROJECT_ACTION;
+    return Action.CREATE_JAVASCRIPT_PROJECT_ACTION;
   } else if (
-    process.env.HARDHAT_CREATE_ADVANCED_SAMPLE_PROJECT_WITH_DEFAULTS !==
-    undefined
+    process.env.HARDHAT_CREATE_TYPESCRIPT_PROJECT_WITH_DEFAULTS !== undefined
   ) {
-    return Action.CREATE_ADVANCED_SAMPLE_PROJECT_ACTION;
-  } else if (
-    process.env
-      .HARDHAT_CREATE_ADVANCED_TYPESCRIPT_SAMPLE_PROJECT_WITH_DEFAULTS !==
-    undefined
-  ) {
-    return Action.CREATE_ADVANCED_TYPESCRIPT_SAMPLE_PROJECT_ACTION;
+    return Action.CREATE_TYPESCRIPT_PROJECT_ACTION;
   }
 
   const { default: enquirer } = await import("enquirer");
@@ -341,8 +244,16 @@ async function createPackageJson() {
   );
 }
 
+function showStarOnGitHubMessage() {
+  console.log(
+    chalk.cyan("Give Hardhat a star on Github if you're enjoying it!") +
+      emoji(" 💞✨")
+  );
+  console.log();
+  console.log(chalk.cyan("     https://github.com/NomicFoundation/hardhat"));
+}
+
 export async function createProject() {
-  const { default: enquirer } = await import("enquirer");
   printAsciiLogo();
 
   await printWelcomeMessage();
@@ -375,6 +286,9 @@ export async function createProject() {
       console.log("");
     }
 
+    console.log();
+    showStarOnGitHubMessage();
+
     return;
   }
 
@@ -384,13 +298,8 @@ export async function createProject() {
   };
 
   const useDefaultPromptResponses =
-    process.env.HARDHAT_CREATE_BASIC_SAMPLE_PROJECT_WITH_DEFAULTS !==
-      undefined ||
-    process.env.HARDHAT_CREATE_ADVANCED_SAMPLE_PROJECT_WITH_DEFAULTS !==
-      undefined ||
-    process.env
-      .HARDHAT_CREATE_ADVANCED_TYPESCRIPT_SAMPLE_PROJECT_WITH_DEFAULTS !==
-      undefined;
+    process.env.HARDHAT_CREATE_JAVASCRIPT_PROJECT_WITH_DEFAULTS !== undefined ||
+    process.env.HARDHAT_CREATE_TYPESCRIPT_PROJECT_WITH_DEFAULTS !== undefined;
 
   if (useDefaultPromptResponses) {
     responses = {
@@ -399,18 +308,7 @@ export async function createProject() {
     };
   } else {
     try {
-      responses = await enquirer.prompt<typeof responses>([
-        {
-          name: "projectRoot",
-          type: "input",
-          initial: process.cwd(),
-          message: "Hardhat project root:",
-        },
-        createConfirmationPrompt(
-          "shouldAddGitIgnore",
-          "Do you want to add a .gitignore?"
-        ),
-      ]);
+      responses = await confirmProjectCreation();
     } catch (e) {
       if (e === "") {
         return;
@@ -422,8 +320,6 @@ export async function createProject() {
   }
 
   const { projectRoot, shouldAddGitIgnore } = responses;
-
-  await copySampleProject(projectRoot, action);
 
   if (shouldAddGitIgnore) {
     await addGitIgnore(projectRoot);
@@ -437,13 +333,12 @@ export async function createProject() {
     }
   }
 
+  await copySampleProject(projectRoot, action);
+
   let shouldShowInstallationInstructions = true;
 
   if (await canInstallRecommendedDeps()) {
-    const dependencies = await getDependencies(
-      action as SampleProjectTypeCreationAction /* type cast feels okay here
-      because we already returned from this function if it isn't valid. */
-    );
+    const dependencies = await getDependencies(action);
 
     const recommendedDeps = Object.keys(dependencies);
 
@@ -461,7 +356,10 @@ export async function createProject() {
     } else if (installedExceptHardhat.length === 0) {
       const shouldInstall =
         useDefaultPromptResponses ||
-        (await confirmRecommendedDepsInstallation(dependenciesToInstall));
+        (await confirmRecommendedDepsInstallation(
+          dependenciesToInstall,
+          await isYarnProject()
+        ));
       if (shouldInstall) {
         const installed = await installRecommendedDependencies(
           dependenciesToInstall
@@ -486,42 +384,10 @@ export async function createProject() {
   console.log(
     `\n${emoji("✨ ")}${chalk.cyan("Project created")}${emoji(" ✨")}`
   );
-
-  console.log("See the README.md file for some example tasks you can run.");
-}
-
-function createConfirmationPrompt(name: string, message: string) {
-  return {
-    type: "confirm",
-    name,
-    message,
-    initial: "y",
-    default: "(Y/n)",
-    isTrue(input: string | boolean) {
-      if (typeof input === "string") {
-        return input.toLowerCase() === "y";
-      }
-
-      return input;
-    },
-    isFalse(input: string | boolean) {
-      if (typeof input === "string") {
-        return input.toLowerCase() === "n";
-      }
-
-      return input;
-    },
-    format(): string {
-      const that = this as any;
-      const value = that.value === true ? "y" : "n";
-
-      if (that.state.submitted === true) {
-        return that.styles.submitted(value);
-      }
-
-      return value;
-    },
-  };
+  console.log();
+  console.log("See the README.md file for some example tasks you can run");
+  console.log();
+  showStarOnGitHubMessage();
 }
 
 async function canInstallRecommendedDeps() {
@@ -549,6 +415,16 @@ async function isYarnProject() {
   return fsExtra.pathExists("yarn.lock");
 }
 
+async function doesNpmAutoInstallPeerDependencies() {
+  const { execSync } = require("child_process");
+  try {
+    const version: string = execSync("npm --version").toString();
+    return parseInt(version.split(".")[0], 10) >= 7;
+  } catch (_) {
+    return false;
+  }
+}
+
 async function installRecommendedDependencies(dependencies: Dependencies) {
   console.log("");
 
@@ -562,64 +438,6 @@ async function installRecommendedDependencies(dependencies: Dependencies) {
   return installDependencies(installCmd[0], installCmd.slice(1));
 }
 
-async function confirmRecommendedDepsInstallation(
-  depsToInstall: Dependencies
-): Promise<boolean> {
-  const { default: enquirer } = await import("enquirer");
-
-  let responses: {
-    shouldInstallPlugin: boolean;
-  };
-
-  const packageManager = (await isYarnProject()) ? "yarn" : "npm";
-
-  try {
-    responses = await enquirer.prompt<typeof responses>([
-      createConfirmationPrompt(
-        "shouldInstallPlugin",
-        `Do you want to install this sample project's dependencies with ${packageManager} (${Object.keys(
-          depsToInstall
-        ).join(" ")})?`
-      ),
-    ]);
-  } catch (e) {
-    if (e === "") {
-      return false;
-    }
-
-    // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
-    throw e;
-  }
-
-  return responses.shouldInstallPlugin;
-}
-
-export async function confirmTelemetryConsent(): Promise<boolean | undefined> {
-  const enquirer = require("enquirer");
-
-  const prompt = new enquirer.prompts.Confirm({
-    name: "telemetryConsent",
-    type: "confirm",
-    initial: true,
-    message:
-      "Help us improve Hardhat with anonymous crash reports & basic usage data?",
-  });
-
-  let timeout;
-  const timeoutPromise = new Promise((resolve) => {
-    timeout = setTimeout(resolve, TELEMETRY_CONSENT_TIMEOUT);
-  });
-
-  const result = await Promise.race([prompt.run(), timeoutPromise]);
-
-  clearTimeout(timeout);
-  if (result === undefined) {
-    await prompt.cancel();
-  }
-
-  return result;
-}
-
 async function installDependencies(
   packageManager: string,
   args: string[]
@@ -629,7 +447,7 @@ async function installDependencies(
   console.log(`${packageManager} ${args.join(" ")}`);
 
   const childProcess = spawn(packageManager, args, {
-    stdio: "inherit" as any, // There's an error in the TS definition of ForkOptions
+    stdio: "inherit",
   });
 
   return new Promise((resolve, reject) => {
@@ -666,9 +484,25 @@ async function getRecommendedDependenciesInstallationCommand(
   return ["npm", "install", "--save-dev", ...deps];
 }
 
-async function getDependencies(projectType: SampleProjectTypeCreationAction) {
+async function getDependencies(
+  projectType: SampleProjectTypeCreationAction
+): Promise<Dependencies> {
+  const shouldInstallPeerDependencies =
+    (await isYarnProject()) || !(await doesNpmAutoInstallPeerDependencies());
+
+  const shouldInstallTypescriptDependencies =
+    projectType === Action.CREATE_TYPESCRIPT_PROJECT_ACTION;
+
+  const shouldInstallTypescriptPeerDependencies =
+    shouldInstallTypescriptDependencies && shouldInstallPeerDependencies;
+
   return {
     [HARDHAT_PACKAGE_NAME]: `^${(await getPackageJson()).version}`,
-    ...SAMPLE_PROJECT_DEPENDENCIES[projectType],
+    ...PROJECT_DEPENDENCIES,
+    ...(shouldInstallPeerDependencies ? PEER_DEPENDENCIES : {}),
+    ...(shouldInstallTypescriptDependencies ? TYPESCRIPT_DEPENDENCIES : {}),
+    ...(shouldInstallTypescriptPeerDependencies
+      ? TYPESCRIPT_PEER_DEPENDENCIES
+      : {}),
   };
 }

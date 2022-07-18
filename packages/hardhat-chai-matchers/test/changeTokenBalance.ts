@@ -3,8 +3,8 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { AssertionError, expect } from "chai";
 import { BigNumber, Contract, providers } from "ethers";
 
-import "../src";
-import { clearTokenDescriptionsCache } from "../src/changeTokenBalance";
+import "../src/internal/add-chai-matchers";
+import { clearTokenDescriptionsCache } from "../src/internal/changeTokenBalance";
 import { useEnvironment, useEnvironmentWithNode } from "./helpers";
 
 type TransactionResponse = providers.TransactionResponse;
@@ -127,7 +127,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
             ).to.changeTokenBalance(mockToken, sender, 1)
           ).to.be.rejectedWith(
             AssertionError,
-            /Expected "0x\w{40}" to change its balance of MCK by 1, but it has changed by 0/
+            /Expected the balance of MCK tokens for "0x\w{40}" to change by 1, but it changed by 0/
           );
         });
 
@@ -138,7 +138,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
             ).to.not.changeTokenBalance(mockToken, sender, 0)
           ).to.be.rejectedWith(
             AssertionError,
-            /Expected "0x\w{40}" to not change its balance of MCK by 0, but it did/
+            /Expected the balance of MCK tokens for "0x\w{40}" NOT to change by 0, but it did/
           );
         });
 
@@ -221,6 +221,38 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
         );
       });
 
+      it("changeTokenBalance shouldn't run the transaction twice", async function () {
+        const receiverBalanceBefore = await mockToken.balanceOf(
+          receiver.address
+        );
+
+        await expect(() =>
+          mockToken.transfer(receiver.address, 50)
+        ).to.changeTokenBalance(mockToken, receiver, 50);
+
+        const receiverBalanceChange = (
+          await mockToken.balanceOf(receiver.address)
+        ).sub(receiverBalanceBefore);
+
+        expect(receiverBalanceChange.toNumber()).to.equal(50);
+      });
+
+      it("changeTokenBalances shouldn't run the transaction twice", async function () {
+        const receiverBalanceBefore = await mockToken.balanceOf(
+          receiver.address
+        );
+
+        await expect(() =>
+          mockToken.transfer(receiver.address, 50)
+        ).to.changeTokenBalances(mockToken, [sender, receiver], [-50, 50]);
+
+        const receiverBalanceChange = (
+          await mockToken.balanceOf(receiver.address)
+        ).sub(receiverBalanceBefore);
+
+        expect(receiverBalanceChange.toNumber()).to.equal(50);
+      });
+
       it("negated", async function () {
         await expect(
           mockToken.transfer(receiver.address, 50)
@@ -248,7 +280,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
             ).to.changeTokenBalance(mockToken, receiver, 500)
           ).to.be.rejectedWith(
             AssertionError,
-            /Expected "0x\w{40}" to change its balance of MCK by 500, but it has changed by 50/
+            /Expected the balance of MCK tokens for "0x\w{40}" to change by 500, but it changed by 50/
           );
         });
 
@@ -259,7 +291,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
             ).to.not.changeTokenBalance(mockToken, receiver, 50)
           ).to.be.rejectedWith(
             AssertionError,
-            /Expected "0x\w{40}" to not change its balance of MCK by 50, but it did/
+            /Expected the balance of MCK tokens for "0x\w{40}" NOT to change by 50, but it did/
           );
         });
 
@@ -311,7 +343,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
             ).to.changeTokenBalance(tokenWithOnlyName, receiver, 500)
           ).to.be.rejectedWith(
             AssertionError,
-            /Expected "0x\w{40}" to change its balance of MockToken by 500, but it has changed by 50/
+            /Expected the balance of MockToken tokens for "0x\w{40}" to change by 500, but it changed by 50/
           );
 
           await expect(
@@ -320,7 +352,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
             ).to.not.changeTokenBalance(tokenWithOnlyName, receiver, 50)
           ).to.be.rejectedWith(
             AssertionError,
-            /Expected "0x\w{40}" to not change its balance of MockToken by 50, but it did/
+            /Expected the balance of MockToken tokens for "0x\w{40}" NOT to change by 50, but it did/
           );
         });
 
@@ -338,7 +370,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
             ).to.changeTokenBalance(tokenWithoutNameNorSymbol, receiver, 500)
           ).to.be.rejectedWith(
             AssertionError,
-            /Expected "0x\w{40}" to change its balance of <token at 0x\w{40}> by 500, but it has changed by 50/
+            /Expected the balance of <token at 0x\w{40}> tokens for "0x\w{40}" to change by 500, but it changed by 50/
           );
 
           await expect(
@@ -347,7 +379,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
             ).to.not.changeTokenBalance(tokenWithoutNameNorSymbol, receiver, 50)
           ).to.be.rejectedWith(
             AssertionError,
-            /Expected "0x\w{40}" to not change its balance of <token at 0x\w{40}> by 50, but it did/
+            /Expected the balance of <token at 0x\w{40}> tokens for "0x\w{40}" NOT to change by 50, but it did/
           );
         });
       });

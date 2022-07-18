@@ -1317,7 +1317,8 @@ describe("Hardhat module", function () {
             });
           });
 
-          afterEach(() => {
+          afterEach(async function () {
+            await this.provider.send("evm_setIntervalMining", [0]);
             sinonClock.restore();
           });
 
