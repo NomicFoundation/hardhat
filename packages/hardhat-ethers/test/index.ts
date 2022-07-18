@@ -11,7 +11,7 @@ import { useEnvironment } from "./helpers";
 
 chai.use(chaiAsPromised);
 
-describe.only("Ethers plugin", function () {
+describe("Ethers plugin", function () {
   describe("ganache", function () {
     useEnvironment("hardhat-project");
     describe("HRE extensions", function () {
