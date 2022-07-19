@@ -13,8 +13,8 @@ let logger =
   "// ------------------------------------\n\n";
 
 const singleTypes = [
-  "int",
-  "uint",
+  "int256",
+  "uint256",
   "string memory",
   "bool",
   "address",
@@ -26,6 +26,10 @@ for (let i = 0; i < singleTypes.length; i++) {
   logger += "export const " + type + 'Ty = "' + type + '";\n';
 }
 
+// we also add int and uint for backwards-compatibility
+logger += 'export const IntTy = "Int";\n';
+logger += 'export const UintTy = "Uint";\n';
+
 const offset = singleTypes.length - 1;
 for (let i = 1; i <= 32; i++) {
   singleTypes[offset + i] = "bytes" + i.toString();
@@ -33,7 +37,7 @@ for (let i = 1; i <= 32; i++) {
     "export const Bytes" + i.toString() + 'Ty = "Bytes' + i.toString() + '";\n';
 }
 
-const types = ["uint", "string memory", "bool", "address"];
+const types = ["uint256", "string memory", "bool", "address"];
 
 let consoleSolFile =
   "// SPDX-License-Identifier: MIT\n" +
@@ -65,12 +69,17 @@ logger +=
   "export const ConsoleLogs = {\n";
 
 // Add the empty log() first
-const sigInt = eutil.bufferToInt(eutil.keccak256(Buffer.from("log" + "()")).slice(0, 4));
+const sigInt = eutil.bufferToInt(
+  eutil.keccak256(Buffer.from("log" + "()")).slice(0, 4)
+);
 logger += "  " + sigInt + ": [],\n";
 
 for (let i = 0; i < singleTypes.length; i++) {
   const type = singleTypes[i].replace(" memory", "");
-  const nameSuffix = type.charAt(0).toUpperCase() + type.slice(1);
+
+  // use logInt and logUint as function names for backwards-compatibility (BC)
+  const typeBC = type.replace("int256", "int");
+  const nameSuffix = typeBC.charAt(0).toUpperCase() + typeBC.slice(1);
 
   const sigInt = eutil.bufferToInt(
     eutil.keccak256(Buffer.from("log" + "(" + type + ")")).slice(0, 4)
@@ -82,6 +91,19 @@ for (let i = 0; i < singleTypes.length; i++) {
     type.charAt(0).toUpperCase() +
     type.slice(1) +
     "Ty],\n";
+
+  const sigIntBC = eutil.bufferToInt(
+    eutil.keccak256(Buffer.from("log" + "(" + typeBC + ")")).slice(0, 4)
+  );
+  if (sigIntBC !== sigInt) {
+    logger +=
+      "  " +
+      sigIntBC +
+      ": [" +
+      type.charAt(0).toUpperCase() +
+      type.slice(1) +
+      "Ty],\n";
+  }
 
   consoleSolFile +=
     functionPrefix +
@@ -122,7 +144,9 @@ for (let i = 0; i < maxNumberOfParameters; i++) {
     params.reverse();
 
     let sigParams = [];
+    let sigParamsBC = [];
     let constParams = [];
+    let constParamsBC = [];
 
     let input = "";
     let internalParamsNames = [];
@@ -131,8 +155,13 @@ for (let i = 0; i < maxNumberOfParameters; i++) {
       internalParamsNames.push(paramsNames[i][k]);
 
       let param = params[k].replace(" memory", "");
+      let paramBC = param.replace("int256", "int");
       sigParams.push(param);
+      sigParamsBC.push(paramBC);
       constParams.push(param.charAt(0).toUpperCase() + param.slice(1) + "Ty");
+      constParamsBC.push(
+        paramBC.charAt(0).toUpperCase() + paramBC.slice(1) + "Ty"
+      );
     }
 
     consoleSolFile +=
@@ -147,9 +176,20 @@ for (let i = 0; i < maxNumberOfParameters; i++) {
 
     if (sigParams.length !== 1) {
       const sigInt = eutil.bufferToInt(
-        eutil.keccak256(Buffer.from("log(" + sigParams.join(",") + ")")).slice(0, 4)
+        eutil
+          .keccak256(Buffer.from("log(" + sigParams.join(",") + ")"))
+          .slice(0, 4)
       );
       logger += "  " + sigInt + ": [" + constParams.join(", ") + "],\n";
+
+      const sigIntBC = eutil.bufferToInt(
+        eutil
+          .keccak256(Buffer.from("log(" + sigParamsBC.join(",") + ")"))
+          .slice(0, 4)
+      );
+      if (sigIntBC !== sigInt) {
+        logger += "  " + sigIntBC + ": [" + constParamsBC.join(", ") + "],\n";
+      }
     }
   }
 }

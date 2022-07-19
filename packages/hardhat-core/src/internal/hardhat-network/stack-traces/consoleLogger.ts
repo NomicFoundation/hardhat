@@ -39,8 +39,10 @@ import {
   BytesTy,
   ConsoleLogs,
   IntTy,
+  Int256Ty,
   StringTy,
   UintTy,
+  Uint256Ty,
 } from "./logger";
 import {
   CallMessageTrace,
@@ -137,11 +139,13 @@ export class ConsoleLogger {
       const position = i * 32;
       switch (types[i]) {
         case UintTy:
+        case Uint256Ty:
           return new BN(
             data.slice(position, position + REGISTER_SIZE)
           ).toString(10);
 
         case IntTy:
+        case Int256Ty:
           return fromSigned(
             data.slice(position, position + REGISTER_SIZE)
           ).toString();
