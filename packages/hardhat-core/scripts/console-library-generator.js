@@ -65,7 +65,7 @@ logger +=
   "export const ConsoleLogs = {\n";
 
 // Add the empty log() first
-const sigInt = eutil.bufferToInt(eutil.keccak256("log" + "()").slice(0, 4));
+const sigInt = eutil.bufferToInt(eutil.keccak256(Buffer.from("log" + "()")).slice(0, 4));
 logger += "  " + sigInt + ": [],\n";
 
 for (let i = 0; i < singleTypes.length; i++) {
@@ -73,7 +73,7 @@ for (let i = 0; i < singleTypes.length; i++) {
   const nameSuffix = type.charAt(0).toUpperCase() + type.slice(1);
 
   const sigInt = eutil.bufferToInt(
-    eutil.keccak256("log" + "(" + type + ")").slice(0, 4)
+    eutil.keccak256(Buffer.from("log" + "(" + type + ")")).slice(0, 4)
   );
   logger +=
     "  " +
@@ -147,7 +147,7 @@ for (let i = 0; i < maxNumberOfParameters; i++) {
 
     if (sigParams.length !== 1) {
       const sigInt = eutil.bufferToInt(
-        eutil.keccak256("log(" + sigParams.join(",") + ")").slice(0, 4)
+        eutil.keccak256(Buffer.from("log(" + sigParams.join(",") + ")")).slice(0, 4)
       );
       logger += "  " + sigInt + ": [" + constParams.join(", ") + "],\n";
     }
