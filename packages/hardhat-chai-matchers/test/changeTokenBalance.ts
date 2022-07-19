@@ -588,7 +588,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
           } catch (e: any) {
             hasProperStackTrace = util
               .inspect(e)
-              .includes("changeTokenBalance.ts");
+              .includes("test/changeTokenBalance.ts");
           }
 
           expect(hasProperStackTrace).to.equal(true);
@@ -606,7 +606,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
               [-100, 100]
             );
           } catch (e: any) {
-            expect(util.inspect(e)).to.include("changeTokenBalance.ts");
+            expect(util.inspect(e)).to.include("test/changeTokenBalance.ts");
 
             return;
           }

@@ -592,7 +592,7 @@ describe("INTEGRATION: changeEtherBalance matcher", function () {
             })
           ).to.changeEtherBalance(sender, -100);
         } catch (e: any) {
-          expect(util.inspect(e)).to.include("changeEtherBalance.ts");
+          expect(util.inspect(e)).to.include("test/changeEtherBalance.ts");
 
           return;
         }

@@ -463,7 +463,9 @@ describe("INTEGRATION: Reverted with custom error", function () {
             matchers.revertedWith("some reason")
           ).to.be.revertedWithCustomError(matchers, "SomeCustomError");
         } catch (e: any) {
-          expect(util.inspect(e)).to.include("revertedWithCustomError.ts");
+          expect(util.inspect(e)).to.include(
+            "test/reverted/revertedWithCustomError.ts"
+          );
 
           return;
         }

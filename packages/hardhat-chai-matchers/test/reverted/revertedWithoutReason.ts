@@ -178,7 +178,9 @@ describe("INTEGRATION: Reverted without reason", function () {
             matchers.revertsWithoutReason()
           ).to.not.be.revertedWithoutReason();
         } catch (e: any) {
-          expect(util.inspect(e)).to.include("revertedWithoutReason.ts");
+          expect(util.inspect(e)).to.include(
+            "test/reverted/revertedWithoutReason.ts"
+          );
 
           return;
         }

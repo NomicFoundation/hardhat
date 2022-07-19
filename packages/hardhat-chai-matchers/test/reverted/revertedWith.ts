@@ -219,7 +219,7 @@ describe("INTEGRATION: Reverted with", function () {
         try {
           await expect(matchers.revertsWith("bar")).to.be.revertedWith("foo");
         } catch (e: any) {
-          expect(util.inspect(e)).to.include("revertedWith.ts");
+          expect(util.inspect(e)).to.include("test/reverted/revertedWith.ts");
 
           return;
         }

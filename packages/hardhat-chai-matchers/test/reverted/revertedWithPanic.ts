@@ -325,7 +325,9 @@ describe("INTEGRATION: Reverted with panic", function () {
         try {
           await expect(matchers.panicAssert()).to.not.be.revertedWithPanic();
         } catch (e: any) {
-          expect(util.inspect(e)).to.include("revertedWithPanic.ts");
+          expect(util.inspect(e)).to.include(
+            "test/reverted/revertedWithPanic.ts"
+          );
 
           return;
         }

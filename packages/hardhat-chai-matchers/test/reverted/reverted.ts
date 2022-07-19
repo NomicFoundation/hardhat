@@ -373,7 +373,7 @@ describe("INTEGRATION: Reverted", function () {
         try {
           await expect(matchers.succeeds()).to.be.reverted;
         } catch (e: any) {
-          expect(util.inspect(e)).to.include("reverted.ts");
+          expect(util.inspect(e)).to.include("test/reverted/reverted.ts");
 
           return;
         }
