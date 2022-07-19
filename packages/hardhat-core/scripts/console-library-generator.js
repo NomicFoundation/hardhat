@@ -35,7 +35,7 @@ for (let i = 1; i <= 32; i++) {
 
 const types = ["uint", "string memory", "bool", "address"];
 
-let consoleSolFIle =
+let consoleSolFile =
   "// SPDX-License-Identifier: MIT\n" +
   "pragma solidity >= 0.4.22 <0.9.0;" +
   "\n" +
@@ -83,7 +83,7 @@ for (let i = 0; i < singleTypes.length; i++) {
     type.slice(1) +
     "Ty],\n";
 
-  consoleSolFIle +=
+  consoleSolFile +=
     functionPrefix +
     " log" +
     nameSuffix +
@@ -135,7 +135,7 @@ for (let i = 0; i < maxNumberOfParameters; i++) {
       constParams.push(param.charAt(0).toUpperCase() + param.slice(1) + "Ty");
     }
 
-    consoleSolFIle +=
+    consoleSolFile +=
       functionPrefix +
       " log(" +
       input.substr(0, input.length - 2) +
@@ -154,11 +154,11 @@ for (let i = 0; i < maxNumberOfParameters; i++) {
   }
 }
 
-consoleSolFIle += "}\n";
+consoleSolFile += "}\n";
 logger = logger + "};\n";
 
 fs.writeFileSync(
   __dirname + "/../src/internal/hardhat-network/stack-traces/logger.ts",
   logger
 );
-fs.writeFileSync(__dirname + "/../console.sol", consoleSolFIle);
+fs.writeFileSync(__dirname + "/../console.sol", consoleSolFile);
