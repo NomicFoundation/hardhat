@@ -25,13 +25,25 @@ export function buildAssert(negated: boolean, ssfi: Ssfi) {
     messageFalse?: string | (() => string),
     messageTrue?: string | (() => string)
   ) {
-    if (!negated && !condition && messageFalse !== undefined) {
+    if (!negated && !condition) {
+      if (messageFalse === undefined) {
+        throw new Error(
+          "Assertion doesn't have an error message. Please open an issue to report this."
+        );
+      }
+
       const message =
         typeof messageFalse === "function" ? messageFalse() : messageFalse;
       throw new AssertionError(message, undefined, ssfi);
     }
 
-    if (negated && condition && messageTrue !== undefined) {
+    if (negated && condition) {
+      if (messageTrue === undefined) {
+        throw new Error(
+          "Assertion doesn't have an error message. Please open an issue to report this."
+        );
+      }
+
       const message =
         typeof messageTrue === "function" ? messageTrue() : messageTrue;
       throw new AssertionError(message, undefined, ssfi);
