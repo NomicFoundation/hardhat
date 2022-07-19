@@ -1,6 +1,7 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect, AssertionError } from "chai";
 import { BigNumber, Contract } from "ethers";
+import path from "path";
 import util from "util";
 
 import "../src/internal/add-chai-matchers";
@@ -592,7 +593,9 @@ describe("INTEGRATION: changeEtherBalance matcher", function () {
             })
           ).to.changeEtherBalance(sender, -100);
         } catch (e: any) {
-          expect(util.inspect(e)).to.include("test/changeEtherBalance.ts");
+          expect(util.inspect(e)).to.include(
+            path.join("test", "changeEtherBalance.ts")
+          );
 
           return;
         }

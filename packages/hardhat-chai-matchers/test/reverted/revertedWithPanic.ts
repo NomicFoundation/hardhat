@@ -1,6 +1,7 @@
 import { AssertionError, expect } from "chai";
 import { BigNumber } from "ethers";
 import { ProviderError } from "hardhat/internal/core/providers/errors";
+import path from "path";
 import util from "util";
 
 import "../../src/internal/add-chai-matchers";
@@ -326,7 +327,7 @@ describe("INTEGRATION: Reverted with panic", function () {
           await expect(matchers.panicAssert()).to.not.be.revertedWithPanic();
         } catch (e: any) {
           expect(util.inspect(e)).to.include(
-            "test/reverted/revertedWithPanic.ts"
+            path.join("test", "reverted", "revertedWithPanic.ts")
           );
 
           return;

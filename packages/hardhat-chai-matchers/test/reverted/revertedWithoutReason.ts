@@ -1,5 +1,6 @@
 import { AssertionError, expect } from "chai";
 import { ProviderError } from "hardhat/internal/core/providers/errors";
+import path from "path";
 import util from "util";
 
 import {
@@ -179,7 +180,7 @@ describe("INTEGRATION: Reverted without reason", function () {
           ).to.not.be.revertedWithoutReason();
         } catch (e: any) {
           expect(util.inspect(e)).to.include(
-            "test/reverted/revertedWithoutReason.ts"
+            path.join("test", "reverted", "revertedWithoutReason.ts")
           );
 
           return;

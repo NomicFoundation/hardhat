@@ -1,5 +1,6 @@
 import { AssertionError, expect } from "chai";
 import { ProviderError } from "hardhat/internal/core/providers/errors";
+import path from "path";
 import util from "util";
 
 import {
@@ -219,7 +220,9 @@ describe("INTEGRATION: Reverted with", function () {
         try {
           await expect(matchers.revertsWith("bar")).to.be.revertedWith("foo");
         } catch (e: any) {
-          expect(util.inspect(e)).to.include("test/reverted/revertedWith.ts");
+          expect(util.inspect(e)).to.include(
+            path.join("test", "reverted", "revertedWith.ts")
+          );
 
           return;
         }

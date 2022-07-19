@@ -1,6 +1,7 @@
 import { AssertionError, expect } from "chai";
 import { BigNumber } from "ethers";
 import { ProviderError } from "hardhat/internal/core/providers/errors";
+import path from "path";
 import util from "util";
 
 import {
@@ -464,7 +465,7 @@ describe("INTEGRATION: Reverted with custom error", function () {
           ).to.be.revertedWithCustomError(matchers, "SomeCustomError");
         } catch (e: any) {
           expect(util.inspect(e)).to.include(
-            "test/reverted/revertedWithCustomError.ts"
+            path.join("test", "reverted", "revertedWithCustomError.ts")
           );
 
           return;

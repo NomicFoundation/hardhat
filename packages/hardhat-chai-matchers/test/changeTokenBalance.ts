@@ -2,6 +2,7 @@ import assert from "assert";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { AssertionError, expect } from "chai";
 import { BigNumber, Contract, providers } from "ethers";
+import path from "path";
 import util from "util";
 
 import "../src/internal/add-chai-matchers";
@@ -588,7 +589,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
           } catch (e: any) {
             hasProperStackTrace = util
               .inspect(e)
-              .includes("test/changeTokenBalance.ts");
+              .includes(path.join("test", "changeTokenBalance.ts"));
           }
 
           expect(hasProperStackTrace).to.equal(true);
@@ -606,7 +607,9 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
               [-100, 100]
             );
           } catch (e: any) {
-            expect(util.inspect(e)).to.include("test/changeTokenBalance.ts");
+            expect(util.inspect(e)).to.include(
+              path.join("test", "changeTokenBalance.ts")
+            );
 
             return;
           }
