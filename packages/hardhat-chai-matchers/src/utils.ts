@@ -4,7 +4,7 @@ import { AssertionError } from "chai";
 export type Ssfi = (...args: any[]) => any;
 
 /**
- * This function is sed by the matchers to obtain an `assert` function, which
+ * This function is used by the matchers to obtain an `assert` function, which
  * should be used instead of `this.assert`.
  *
  * The first parameter is the value of the `negated` flag. Keep in mind that
