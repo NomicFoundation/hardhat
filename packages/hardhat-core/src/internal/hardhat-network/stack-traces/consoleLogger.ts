@@ -77,6 +77,11 @@ export class ConsoleLogger {
         return "";
       }
 
+      // special case for console.log()
+      if (log.length === 0) {
+        return "";
+      }
+
       return util.format(log[0], ...log.slice(1));
     });
   }
