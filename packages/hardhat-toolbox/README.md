@@ -38,7 +38,7 @@ yarn add --dev @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat-network
 
 Migrating an existing project to the Toolbox is easy:
 
-1. First, if you are using `hardhat-waffle`, we recommend you migrate to our [Hardhat Chai Matchers](https://next.hardhat.org/hardhat-chai-matchers). They are a drop-in replacement, so this should only take a few minutes. Learn how to do that [here](https://hardhat.org/hardhat-chai-matchers/docs/migrate-from-waffle).
+1. First, if you are using `hardhat-waffle`, we recommend you migrate to our [Hardhat Chai Matchers](https://hardhat.org/hardhat-chai-matchers). They are a drop-in replacement, so this should only take a few minutes. Learn how to do that [here](https://hardhat.org/hardhat-chai-matchers/docs/migrate-from-waffle).
 2. Install the toolbox and its dependencies. If you are using npm 7 or later, you just need to do `npm install --save-dev @nomicfoundation/hardhat-toolbox`. If not, check the [Installation section](#installation) above.
 3. Uninstall `@nomiclabs/hardhat-waffle` and `ethereum-waffle`, and remove the `@nomiclabs/hardhat-waffle` import from your Hardhat config.
 4. Import the Toolbox in your Hardhat config. This will make many other imports redundant, so you can remove any of these if you want:
