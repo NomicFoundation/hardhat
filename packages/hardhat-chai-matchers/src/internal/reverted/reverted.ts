@@ -3,7 +3,7 @@ import { decodeReturnData, getReturnDataFromError } from "./utils";
 
 export function supportReverted(Assertion: Chai.AssertionStatic) {
   Assertion.addProperty("reverted", function (this: any) {
-    // see buildAssert's jsdoc
+    // capture negated flag before async code executes; see buildAssert's jsdoc
     const negated = this.__flags.negate;
 
     const subject: unknown = this._obj;

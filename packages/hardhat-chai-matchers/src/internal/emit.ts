@@ -41,7 +41,7 @@ export function supportEmit(
   Assertion.addMethod(
     "emit",
     function (this: any, contract: Contract, eventName: string) {
-      // see buildAssert's jsdoc
+      // capture negated flag before async code executes; see buildAssert's jsdoc
       const negated = this.__flags.negate;
       const tx = this._obj;
 

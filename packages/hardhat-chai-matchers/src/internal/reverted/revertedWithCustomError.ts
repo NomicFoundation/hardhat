@@ -18,7 +18,7 @@ export function supportRevertedWithCustomError(
   Assertion.addMethod(
     "revertedWithCustomError",
     function (this: any, contract: any, expectedCustomErrorName: string) {
-      // see buildAssert's jsdoc
+      // capture negated flag before async code executes; see buildAssert's jsdoc
       const negated = this.__flags.negate;
 
       // check the case where users forget to pass the contract as the first

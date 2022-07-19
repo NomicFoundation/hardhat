@@ -3,7 +3,7 @@ import { decodeReturnData, getReturnDataFromError } from "./utils";
 
 export function supportRevertedWithoutReason(Assertion: Chai.AssertionStatic) {
   Assertion.addMethod("revertedWithoutReason", function (this: any) {
-    // see buildAssert's jsdoc
+    // capture negated flag before async code executes; see buildAssert's jsdoc
     const negated = this.__flags.negate;
 
     const onSuccess = () => {

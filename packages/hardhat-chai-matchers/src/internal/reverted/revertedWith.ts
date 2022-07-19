@@ -5,7 +5,7 @@ export function supportRevertedWith(Assertion: Chai.AssertionStatic) {
   Assertion.addMethod(
     "revertedWith",
     function (this: any, expectedReason: unknown) {
-      // see buildAssert's jsdoc
+      // capture negated flag before async code executes; see buildAssert's jsdoc
       const negated = this.__flags.negate;
 
       // validate expected reason

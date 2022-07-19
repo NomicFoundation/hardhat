@@ -21,7 +21,7 @@ export function supportChangeTokenBalance(Assertion: Chai.AssertionStatic) {
     ) {
       const ethers = require("ethers") as typeof EthersT;
 
-      // see buildAssert's jsdoc
+      // capture negated flag before async code executes; see buildAssert's jsdoc
       const negated = this.__flags.negate;
 
       let subject = this._obj;
@@ -68,7 +68,7 @@ export function supportChangeTokenBalance(Assertion: Chai.AssertionStatic) {
     ) {
       const ethers = require("ethers") as typeof EthersT;
 
-      // see buildAssert's jsdoc
+      // capture negated flag before async code executes; see buildAssert's jsdoc
       const negated = this.__flags.negate;
 
       let subject = this._obj;
