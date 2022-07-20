@@ -73,9 +73,10 @@ logger += "  " + sigInt + ": [],\n";
 for (let i = 0; i < singleTypes.length; i++) {
   const type = singleTypes[i].replace(" memory", "");
 
-  // use logInt and logUint as function names for backwards-compatibility (BC)
-  const typeBC = type.replace("int256", "int");
-  const nameSuffix = typeBC.charAt(0).toUpperCase() + typeBC.slice(1);
+  // use logInt and logUint as function names for backwards-compatibility
+  const typeAliasedInt = type.replace("int256", "int");
+  const nameSuffix =
+    typeAliasedInt.charAt(0).toUpperCase() + typeAliasedInt.slice(1);
 
   const sigInt = eutil.bufferToInt(
     eutil.keccak256(Buffer.from("log" + "(" + type + ")")).slice(0, 4)
@@ -88,13 +89,13 @@ for (let i = 0; i < singleTypes.length; i++) {
     type.slice(1) +
     "Ty],\n";
 
-  const sigIntBC = eutil.bufferToInt(
-    eutil.keccak256(Buffer.from("log" + "(" + typeBC + ")")).slice(0, 4)
+  const sigIntAliasedInt = eutil.bufferToInt(
+    eutil.keccak256(Buffer.from("log" + "(" + typeAliasedInt + ")")).slice(0, 4)
   );
-  if (sigIntBC !== sigInt) {
+  if (sigIntAliasedInt !== sigInt) {
     logger +=
       "  " +
-      sigIntBC +
+      sigIntAliasedInt +
       ": [" +
       type.charAt(0).toUpperCase() +
       type.slice(1) +
@@ -140,7 +141,7 @@ for (let i = 0; i < maxNumberOfParameters; i++) {
     params.reverse();
 
     let sigParams = [];
-    let sigParamsBC = [];
+    let sigParamsAliasedInt = [];
     let constParams = [];
 
     let input = "";
@@ -150,9 +151,9 @@ for (let i = 0; i < maxNumberOfParameters; i++) {
       internalParamsNames.push(paramsNames[i][k]);
 
       let param = params[k].replace(" memory", "");
-      let paramBC = param.replace("int256", "int");
+      let paramAliasedInt = param.replace("int256", "int");
       sigParams.push(param);
-      sigParamsBC.push(paramBC);
+      sigParamsAliasedInt.push(paramAliasedInt);
       constParams.push(param.charAt(0).toUpperCase() + param.slice(1) + "Ty");
     }
 
@@ -174,13 +175,14 @@ for (let i = 0; i < maxNumberOfParameters; i++) {
       );
       logger += "  " + sigInt + ": [" + constParams.join(", ") + "],\n";
 
-      const sigIntBC = eutil.bufferToInt(
+      const sigIntAliasedInt = eutil.bufferToInt(
         eutil
-          .keccak256(Buffer.from("log(" + sigParamsBC.join(",") + ")"))
+          .keccak256(Buffer.from("log(" + sigParamsAliasedInt.join(",") + ")"))
           .slice(0, 4)
       );
-      if (sigIntBC !== sigInt) {
-        logger += "  " + sigIntBC + ": [" + constParams.join(", ") + "],\n";
+      if (sigIntAliasedInt !== sigInt) {
+        logger +=
+          "  " + sigIntAliasedInt + ": [" + constParams.join(", ") + "],\n";
       }
     }
   }
