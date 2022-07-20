@@ -512,7 +512,7 @@ describe(".to.emit (contract events)", () => {
             .to.emit(contract, "WithUintArg")
             .and.to.emit(contract, "WithStringArg");
         });
-        it.skip("Should succeed when the expected event is emitted and the unexpected event is not", async function () {
+        it("Should succeed when the expected event is emitted and the unexpected event is not", async function () {
           await expect(contract.emitWithoutArgs())
             .to.emit(contract, "WithoutArgs")
             .and.not.to.emit(otherContract, "WithUintArg");

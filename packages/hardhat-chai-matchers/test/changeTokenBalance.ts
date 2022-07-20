@@ -2,6 +2,8 @@ import assert from "assert";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { AssertionError, expect } from "chai";
 import { BigNumber, Contract, providers } from "ethers";
+import path from "path";
+import util from "util";
 
 import "../src/internal/add-chai-matchers";
 import { clearTokenDescriptionsCache } from "../src/internal/changeTokenBalance";
@@ -572,6 +574,48 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
           [sender, receiver],
           [BigNumber.from(-50), BigInt(50)]
         );
+      });
+    });
+
+    // smoke tests for stack traces
+    describe("stack traces", function () {
+      describe("changeTokenBalance", function () {
+        it("includes test file", async function () {
+          let hasProperStackTrace = false;
+          try {
+            await expect(
+              mockToken.transfer(receiver.address, 50)
+            ).to.changeTokenBalance(mockToken, sender, -100);
+          } catch (e: any) {
+            hasProperStackTrace = util
+              .inspect(e)
+              .includes(path.join("test", "changeTokenBalance.ts"));
+          }
+
+          expect(hasProperStackTrace).to.equal(true);
+        });
+      });
+
+      describe("changeTokenBalances", function () {
+        it("includes test file", async function () {
+          try {
+            await expect(
+              mockToken.transfer(receiver.address, 50)
+            ).to.changeTokenBalances(
+              mockToken,
+              [sender, receiver],
+              [-100, 100]
+            );
+          } catch (e: any) {
+            expect(util.inspect(e)).to.include(
+              path.join("test", "changeTokenBalance.ts")
+            );
+
+            return;
+          }
+
+          expect.fail("Expected an exception but none was thrown");
+        });
       });
     });
   }

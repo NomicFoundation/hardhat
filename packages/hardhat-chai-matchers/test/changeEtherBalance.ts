@@ -1,6 +1,8 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect, AssertionError } from "chai";
 import { BigNumber, Contract } from "ethers";
+import path from "path";
+import util from "util";
 
 import "../src/internal/add-chai-matchers";
 import { useEnvironment, useEnvironmentWithNode } from "./helpers";
@@ -577,6 +579,28 @@ describe("INTEGRATION: changeEtherBalance matcher", function () {
             `Expected the ether balance of "${sender.address}" NOT to change by -200 wei, but it did`
           );
         });
+      });
+    });
+
+    describe("stack traces", function () {
+      // smoke test for stack traces
+      it("includes test file", async function () {
+        try {
+          await expect(() =>
+            sender.sendTransaction({
+              to: receiver.address,
+              value: 200,
+            })
+          ).to.changeEtherBalance(sender, -100);
+        } catch (e: any) {
+          expect(util.inspect(e)).to.include(
+            path.join("test", "changeEtherBalance.ts")
+          );
+
+          return;
+        }
+
+        expect.fail("Expected an exception but none was thrown");
       });
     });
   }

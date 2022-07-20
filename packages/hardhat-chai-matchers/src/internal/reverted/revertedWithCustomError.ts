@@ -1,5 +1,6 @@
 import { AssertionError } from "chai";
 
+import { buildAssert, Ssfi } from "../../utils";
 import { decodeReturnData, getReturnDataFromError } from "./utils";
 
 export const REVERTED_WITH_CUSTOM_ERROR_CALLED = "customErrorAssertionCalled";
@@ -17,6 +18,9 @@ export function supportRevertedWithCustomError(
   Assertion.addMethod(
     "revertedWithCustomError",
     function (this: any, contract: any, expectedCustomErrorName: string) {
+      // capture negated flag before async code executes; see buildAssert's jsdoc
+      const negated = this.__flags.negate;
+
       // check the case where users forget to pass the contract as the first
       // argument
       if (typeof contract === "string" || contract?.interface === undefined) {
@@ -45,28 +49,32 @@ export function supportRevertedWithCustomError(
       }
 
       const onSuccess = () => {
-        this.assert(
+        const assert = buildAssert(negated, onSuccess);
+
+        assert(
           false,
           `Expected transaction to be reverted with custom error '${expectedCustomErrorName}', but it didn't revert`
         );
       };
 
       const onError = (error: any) => {
+        const assert = buildAssert(negated, onError);
+
         const returnData = getReturnDataFromError(error);
         const decodedReturnData = decodeReturnData(returnData);
 
         if (decodedReturnData.kind === "Empty") {
-          this.assert(
+          assert(
             false,
             `Expected transaction to be reverted with custom error '${expectedCustomErrorName}', but it reverted without a reason`
           );
         } else if (decodedReturnData.kind === "Error") {
-          this.assert(
+          assert(
             false,
             `Expected transaction to be reverted with custom error '${expectedCustomErrorName}', but it reverted with reason '${decodedReturnData.reason}'`
           );
         } else if (decodedReturnData.kind === "Panic") {
-          this.assert(
+          assert(
             false,
             `Expected transaction to be reverted with custom error '${expectedCustomErrorName}', but it reverted with panic code ${decodedReturnData.code.toHexString()} (${
               decodedReturnData.description
@@ -82,9 +90,9 @@ export function supportRevertedWithCustomError(
             };
             this.customErrorData = customErrorAssertionData;
 
-            this.assert(
+            assert(
               true,
-              null,
+              undefined,
               `Expected transaction NOT to be reverted with custom error '${expectedCustomErrorName}', but it was`
             );
           } else {
@@ -96,12 +104,12 @@ export function supportRevertedWithCustomError(
             );
 
             if (actualCustomError === undefined) {
-              this.assert(
+              assert(
                 false,
                 `Expected transaction to be reverted with custom error '${expectedCustomErrorName}', but it reverted with a different custom error`
               );
             } else {
-              this.assert(
+              assert(
                 false,
                 `Expected transaction to be reverted with custom error '${expectedCustomErrorName}', but it reverted with custom error '${actualCustomError.name}'`
               );
@@ -133,8 +141,12 @@ export async function revertedWithCustomErrorWithArgs(
   context: any,
   Assertion: Chai.AssertionStatic,
   utils: Chai.ChaiUtils,
-  expectedArgs: any[]
+  expectedArgs: any[],
+  ssfi: Ssfi
 ) {
+  const negated = false; // .withArgs cannot be negated
+  const assert = buildAssert(negated, ssfi);
+
   const customErrorAssertionData: CustomErrorAssertionData =
     context.customErrorData;
 
@@ -163,7 +175,7 @@ export async function revertedWithCustomErrorWithArgs(
     if (typeof expectedArg === "function") {
       const errorPrefix = `The predicate for custom error argument with index ${i}`;
       try {
-        context.assert(
+        assert(
           expectedArg(actualArg),
           `${errorPrefix} returned false`
           // no need for a negated message, since we disallow mixing .not. with
@@ -171,7 +183,7 @@ export async function revertedWithCustomErrorWithArgs(
         );
       } catch (e) {
         if (e instanceof AssertionError) {
-          context.assert(
+          assert(
             false,
             `${errorPrefix} threw an AssertionError: ${e.message}`
             // no need for a negated message, since we disallow mixing .not. with
