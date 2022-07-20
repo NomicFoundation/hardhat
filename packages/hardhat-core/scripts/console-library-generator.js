@@ -13,8 +13,8 @@ let logger =
   "// ------------------------------------\n\n";
 
 const singleTypes = [
-  "int",
-  "uint",
+  "int256",
+  "uint256",
   "string memory",
   "bool",
   "address",
@@ -33,9 +33,9 @@ for (let i = 1; i <= 32; i++) {
     "export const Bytes" + i.toString() + 'Ty = "Bytes' + i.toString() + '";\n';
 }
 
-const types = ["uint", "string memory", "bool", "address"];
+const types = ["uint256", "string memory", "bool", "address"];
 
-let consoleSolFIle =
+let consoleSolFile =
   "// SPDX-License-Identifier: MIT\n" +
   "pragma solidity >= 0.4.22 <0.9.0;" +
   "\n" +
@@ -65,15 +65,21 @@ logger +=
   "export const ConsoleLogs = {\n";
 
 // Add the empty log() first
-const sigInt = eutil.bufferToInt(eutil.keccak256("log" + "()").slice(0, 4));
+const sigInt = eutil.bufferToInt(
+  eutil.keccak256(Buffer.from("log" + "()")).slice(0, 4)
+);
 logger += "  " + sigInt + ": [],\n";
 
 for (let i = 0; i < singleTypes.length; i++) {
   const type = singleTypes[i].replace(" memory", "");
-  const nameSuffix = type.charAt(0).toUpperCase() + type.slice(1);
+
+  // use logInt and logUint as function names for backwards-compatibility
+  const typeAliasedInt = type.replace("int256", "int");
+  const nameSuffix =
+    typeAliasedInt.charAt(0).toUpperCase() + typeAliasedInt.slice(1);
 
   const sigInt = eutil.bufferToInt(
-    eutil.keccak256("log" + "(" + type + ")").slice(0, 4)
+    eutil.keccak256(Buffer.from("log" + "(" + type + ")")).slice(0, 4)
   );
   logger +=
     "  " +
@@ -83,7 +89,20 @@ for (let i = 0; i < singleTypes.length; i++) {
     type.slice(1) +
     "Ty],\n";
 
-  consoleSolFIle +=
+  const sigIntAliasedInt = eutil.bufferToInt(
+    eutil.keccak256(Buffer.from("log" + "(" + typeAliasedInt + ")")).slice(0, 4)
+  );
+  if (sigIntAliasedInt !== sigInt) {
+    logger +=
+      "  " +
+      sigIntAliasedInt +
+      ": [" +
+      type.charAt(0).toUpperCase() +
+      type.slice(1) +
+      "Ty],\n";
+  }
+
+  consoleSolFile +=
     functionPrefix +
     " log" +
     nameSuffix +
@@ -122,6 +141,7 @@ for (let i = 0; i < maxNumberOfParameters; i++) {
     params.reverse();
 
     let sigParams = [];
+    let sigParamsAliasedInt = [];
     let constParams = [];
 
     let input = "";
@@ -131,11 +151,13 @@ for (let i = 0; i < maxNumberOfParameters; i++) {
       internalParamsNames.push(paramsNames[i][k]);
 
       let param = params[k].replace(" memory", "");
+      let paramAliasedInt = param.replace("int256", "int");
       sigParams.push(param);
+      sigParamsAliasedInt.push(paramAliasedInt);
       constParams.push(param.charAt(0).toUpperCase() + param.slice(1) + "Ty");
     }
 
-    consoleSolFIle +=
+    consoleSolFile +=
       functionPrefix +
       " log(" +
       input.substr(0, input.length - 2) +
@@ -147,18 +169,30 @@ for (let i = 0; i < maxNumberOfParameters; i++) {
 
     if (sigParams.length !== 1) {
       const sigInt = eutil.bufferToInt(
-        eutil.keccak256("log(" + sigParams.join(",") + ")").slice(0, 4)
+        eutil
+          .keccak256(Buffer.from("log(" + sigParams.join(",") + ")"))
+          .slice(0, 4)
       );
       logger += "  " + sigInt + ": [" + constParams.join(", ") + "],\n";
+
+      const sigIntAliasedInt = eutil.bufferToInt(
+        eutil
+          .keccak256(Buffer.from("log(" + sigParamsAliasedInt.join(",") + ")"))
+          .slice(0, 4)
+      );
+      if (sigIntAliasedInt !== sigInt) {
+        logger +=
+          "  " + sigIntAliasedInt + ": [" + constParams.join(", ") + "],\n";
+      }
     }
   }
 }
 
-consoleSolFIle += "}\n";
+consoleSolFile += "}\n";
 logger = logger + "};\n";
 
 fs.writeFileSync(
   __dirname + "/../src/internal/hardhat-network/stack-traces/logger.ts",
   logger
 );
-fs.writeFileSync(__dirname + "/../console.sol", consoleSolFIle);
+fs.writeFileSync(__dirname + "/../console.sol", consoleSolFile);
