@@ -26,10 +26,6 @@ for (let i = 0; i < singleTypes.length; i++) {
   logger += "export const " + type + 'Ty = "' + type + '";\n';
 }
 
-// we also add int and uint for backwards-compatibility
-logger += 'export const IntTy = "Int";\n';
-logger += 'export const UintTy = "Uint";\n';
-
 const offset = singleTypes.length - 1;
 for (let i = 1; i <= 32; i++) {
   singleTypes[offset + i] = "bytes" + i.toString();
@@ -146,7 +142,6 @@ for (let i = 0; i < maxNumberOfParameters; i++) {
     let sigParams = [];
     let sigParamsBC = [];
     let constParams = [];
-    let constParamsBC = [];
 
     let input = "";
     let internalParamsNames = [];
@@ -159,9 +154,6 @@ for (let i = 0; i < maxNumberOfParameters; i++) {
       sigParams.push(param);
       sigParamsBC.push(paramBC);
       constParams.push(param.charAt(0).toUpperCase() + param.slice(1) + "Ty");
-      constParamsBC.push(
-        paramBC.charAt(0).toUpperCase() + paramBC.slice(1) + "Ty"
-      );
     }
 
     consoleSolFile +=
@@ -188,7 +180,7 @@ for (let i = 0; i < maxNumberOfParameters; i++) {
           .slice(0, 4)
       );
       if (sigIntBC !== sigInt) {
-        logger += "  " + sigIntBC + ": [" + constParamsBC.join(", ") + "],\n";
+        logger += "  " + sigIntBC + ": [" + constParams.join(", ") + "],\n";
       }
     }
   }
