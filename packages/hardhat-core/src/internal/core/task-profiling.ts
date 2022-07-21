@@ -28,16 +28,29 @@ export function createParentTaskProfile(taskProfile: TaskProfile): TaskProfile {
  *
  * We assume `children[]` is in chronological `start` order.
  */
-export function flagParallelChildren(profile: TaskProfile) {
-  for (const [i, child] of profile.children.entries()) {
-    flagParallelChildren(child);
-    if (i === 0) {
-      continue;
-    }
-    const prevChild = profile.children[i - 1];
-    if (child.start < prevChild.end!) {
-      prevChild.parallel = true;
+export function flagParallelChildren(
+  profile: TaskProfile,
+  isParentParallel = false
+) {
+  if (isParentParallel) {
+    profile.parallel = true;
+    for (const child of profile.children) {
       child.parallel = true;
     }
+  } else {
+    for (const [i, child] of profile.children.entries()) {
+      if (i === 0) {
+        continue;
+      }
+      const prevChild = profile.children[i - 1];
+      if (child.start < prevChild.end!) {
+        prevChild.parallel = true;
+        child.parallel = true;
+      }
+    }
+  }
+
+  for (const child of profile.children) {
+    flagParallelChildren(child, child.parallel);
   }
 }
