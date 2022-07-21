@@ -263,12 +263,30 @@ export class Environment implements HardhatRuntimeEnvironment {
     const previousRunSuper: any = globalAsAny.runSuper;
     globalAsAny.runSuper = runSuper;
 
-    let modifiedHreWithParentTaskProfile: Environment | undefined;
+    let modifiedHreWithParentTaskProfile: any | undefined;
     if (this.hardhatArguments.flamegraph === true) {
       modifiedHreWithParentTaskProfile = {
         ...this,
         run: (_name: string, _taskArguments: TaskArguments) =>
           (this as any).run(_name, _taskArguments, taskProfile),
+        adhocProfile: async (_name: string, f: () => Promise<any>) => {
+          const adhocProfile = createTaskProfile(_name);
+          taskProfile!.children.push(adhocProfile);
+          try {
+            return await f();
+          } finally {
+            completeTaskProfile(adhocProfile);
+          }
+        },
+        adhocProfileSync: (_name: string, f: () => any) => {
+          const adhocProfile = createTaskProfile(_name);
+          taskProfile!.children.push(adhocProfile);
+          try {
+            return f();
+          } finally {
+            completeTaskProfile(adhocProfile);
+          }
+        },
       };
 
       Object.setPrototypeOf(
