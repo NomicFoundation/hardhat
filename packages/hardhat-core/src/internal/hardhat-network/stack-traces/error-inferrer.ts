@@ -524,6 +524,11 @@ export class ErrorInferrer {
 
     let errorMessage = "reverted with an unrecognized custom error";
 
+    const selector = returnData.getSelector();
+    if (selector !== undefined) {
+      errorMessage += ` with selector ${selector}`;
+    }
+
     for (const customError of trace.bytecode.contract.customErrors) {
       if (returnData.matchesSelector(customError.selector)) {
         // if the return data matches a custom error in the called contract,
