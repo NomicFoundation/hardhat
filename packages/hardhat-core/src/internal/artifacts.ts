@@ -235,24 +235,31 @@ export class Artifacts implements IArtifacts {
   private async _removeObsoleteBuildInfos() {
     const debugFiles = await this.getDebugFilePaths();
 
-    const validBuildInfos = new Set<string>();
-    for (const debugFile of debugFiles) {
-      const buildInfoFile = await this._getBuildInfoFromDebugFile(debugFile);
-      if (buildInfoFile !== undefined) {
-        validBuildInfos.add(
-          path.resolve(path.dirname(debugFile), buildInfoFile)
-        );
-      }
-    }
+    const buildInfos = await Promise.all(
+      debugFiles.map(async (debugFile) => {
+        const buildInfoFile = await this._getBuildInfoFromDebugFile(debugFile);
+        if (buildInfoFile !== undefined) {
+          return path.resolve(path.dirname(debugFile), buildInfoFile);
+        } else {
+          return undefined;
+        }
+      })
+    );
+
+    const validBuildInfos = new Set<string>(
+      ...buildInfos.filter((bf) => bf !== undefined)
+    );
 
     const buildInfoFiles = await this.getBuildInfoPaths();
 
-    for (const buildInfoFile of buildInfoFiles) {
-      if (!validBuildInfos.has(buildInfoFile)) {
-        log(`Removing buildInfo '${buildInfoFile}'`);
-        await fsExtra.unlink(buildInfoFile);
-      }
-    }
+    await Promise.all(
+      buildInfoFiles
+        .filter((buildInfoFile) => validBuildInfos.has(buildInfoFile))
+        .map(async (buildInfoFile) => {
+          log(`Removing buildInfo '${buildInfoFile}'`);
+          await fsExtra.unlink(buildInfoFile);
+        })
+    );
   }
 
   private _getBuildInfoName(
