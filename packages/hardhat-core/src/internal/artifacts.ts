@@ -182,12 +182,24 @@ export class Artifacts implements IArtifacts {
    * Remove all artifacts that don't correspond to the current solidity files
    */
   public async removeObsoleteArtifacts() {
-    const validArtifactsPaths = new Set<string>();
+    const validArtifactPaths = await Promise.all(
+      this._validArtifacts.map(({ sourceName, artifacts }) =>
+        Promise.all(
+          artifacts.map((artifactName) =>
+            this._getArtifactPath(
+              getFullyQualifiedName(sourceName, artifactName)
+            )
+          )
+        )
+      )
+    );
+
+    const validArtifactsPathsSet = new Set<string>(...validArtifactPaths);
 
     for (const { sourceName, artifacts } of this._validArtifacts) {
       for (const artifactName of artifacts) {
-        validArtifactsPaths.add(
-          this._getArtifactPathSync(
+        validArtifactsPathsSet.add(
+          this.formArtifactPathFromFullyQualifiedName(
             getFullyQualifiedName(sourceName, artifactName)
           )
         );
@@ -196,11 +208,11 @@ export class Artifacts implements IArtifacts {
 
     const existingArtifactsPaths = await this.getArtifactPaths();
 
-    for (const artifactPath of existingArtifactsPaths) {
-      if (!validArtifactsPaths.has(artifactPath)) {
-        await this._removeArtifactFiles(artifactPath);
-      }
-    }
+    await Promise.all(
+      existingArtifactsPaths
+        .filter((artifactPath) => !validArtifactsPathsSet.has(artifactPath))
+        .map((artifactPath) => this._removeArtifactFiles(artifactPath))
+    );
 
     await this._removeObsoleteBuildInfos();
   }
