@@ -1,6 +1,6 @@
 import { TypedTransaction } from "@ethereumjs/tx";
 import { VM } from "@ethereumjs/vm";
-import { EVMResult } from "@ethereumjs/evm";
+import { EVM, EVMResult } from "@ethereumjs/evm";
 import { InterpreterStep } from "@ethereumjs/evm/dist/interpreter";
 import { Message } from "@ethereumjs/evm/dist/message";
 import {
@@ -84,22 +84,26 @@ export class VMDebugTracer {
   }
 
   private _enableTracing(config: RpcDebugTracingConfig) {
-    // ETHJSTODO no idea how to do this, waiting for the ethereumjs response
-    // this._vm.on("beforeTx", this._beforeTxHandler);
-    // this._vm.on("beforeMessage", this._beforeMessageHandler);
-    // this._vm.on("step", this._stepHandler);
-    // this._vm.on("afterMessage", this._afterMessageHandler);
-    // this._vm.on("afterTx", this._afterTxHandler);
+    this._vm.on("beforeTx", this._beforeTxHandler);
+    (this._vm.evm as EVM).on("beforeMessage", this._beforeMessageHandler);
+    (this._vm.evm as EVM).on("step", this._stepHandler);
+    (this._vm.evm as EVM).on("afterMessage", this._afterMessageHandler);
+    this._vm.on("afterTx", this._afterTxHandler);
     this._config = config;
   }
 
   private _disableTracing() {
-    // ETHJSTODO no idea how to do this, waiting for the ethereumjs response
-    // this._vm.removeListener("beforeTx", this._beforeTxHandler);
-    // this._vm.removeListener("beforeMessage", this._beforeMessageHandler);
-    // this._vm.removeListener("step", this._stepHandler);
-    // this._vm.removeListener("afterTx", this._afterTxHandler);
-    // this._vm.removeListener("afterMessage", this._afterMessageHandler);
+    this._vm.removeListener("beforeTx", this._beforeTxHandler);
+    (this._vm.evm as EVM).removeListener(
+      "beforeMessage",
+      this._beforeMessageHandler
+    );
+    (this._vm.evm as EVM).removeListener("step", this._stepHandler);
+    (this._vm.evm as EVM).removeListener(
+      "afterMessage",
+      this._afterMessageHandler
+    );
+    this._vm.removeListener("afterTx", this._afterTxHandler);
     this._config = undefined;
   }
 

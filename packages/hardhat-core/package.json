@@ -57,6 +57,7 @@
   ],
   "devDependencies": {
     "@nomiclabs/eslint-plugin-hardhat-internal-rules": "^1.0.0",
+    "@types/async-eventemitter": "^0.2.1",
     "@types/bn.js": "^5.1.0",
     "@types/chai": "^4.2.0",
     "@types/chai-as-promised": "^7.1.3",

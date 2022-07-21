@@ -101,15 +101,13 @@ async function runBlockAndGetAfterBlockEvent(
   }
 
   try {
-    // ETHJSTODO don't know how to do this yet
-    // vm.once("afterBlock", handler);
+    vm.once("afterBlock", handler);
     await vm.runBlock(runBlockOpts);
   } finally {
     // We need this in case `runBlock` throws before emitting the event.
     // Otherwise we'd be leaking the listener until the next call to runBlock.
 
-    // ETHJSTODO don't know how to do this yet
-    // vm.removeListener("afterBlock", handler);
+    vm.removeListener("afterBlock", handler);
   }
 
   return results!;

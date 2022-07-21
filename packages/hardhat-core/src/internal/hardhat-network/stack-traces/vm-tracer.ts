@@ -1,4 +1,4 @@
-import { EVMResult } from "@ethereumjs/evm";
+import { EVM, EVMResult } from "@ethereumjs/evm";
 import { InterpreterStep } from "@ethereumjs/evm/dist/interpreter";
 import { Message } from "@ethereumjs/evm/dist/message";
 import { precompiles } from "@ethereumjs/evm/dist/precompiles";
@@ -41,10 +41,9 @@ export class VMTracer {
     if (this._enabled) {
       return;
     }
-    // ETHJSTODO no idea how to do this, waiting for the ethereumjs response
-    // this._vm.on("beforeMessage", this._beforeMessageHandler);
-    // this._vm.on("step", this._stepHandler);
-    // this._vm.on("afterMessage", this._afterMessageHandler);
+    (this._vm.evm as EVM).on("beforeMessage", this._beforeMessageHandler);
+    (this._vm.evm as EVM).on("step", this._stepHandler);
+    (this._vm.evm as EVM).on("afterMessage", this._afterMessageHandler);
     this._enabled = true;
   }
 
@@ -52,10 +51,15 @@ export class VMTracer {
     if (!this._enabled) {
       return;
     }
-    // ETHJSTODO no idea how to do this, waiting for the ethereumjs response
-    // this._vm.removeListener("beforeMessage", this._beforeMessageHandler);
-    // this._vm.removeListener("step", this._stepHandler);
-    // this._vm.removeListener("afterMessage", this._afterMessageHandler);
+    (this._vm.evm as EVM).removeListener(
+      "beforeMessage",
+      this._beforeMessageHandler
+    );
+    (this._vm.evm as EVM).removeListener("step", this._stepHandler);
+    (this._vm.evm as EVM).removeListener(
+      "afterMessage",
+      this._afterMessageHandler
+    );
     this._enabled = false;
   }
 

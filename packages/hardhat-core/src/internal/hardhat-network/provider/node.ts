@@ -17,8 +17,8 @@ import {
   setLengthLeft,
   toBuffer,
 } from "@ethereumjs/util";
-import { Bloom, RunBlockResult, VM } from "@ethereumjs/vm";
-import { EVMResult } from "@ethereumjs/evm";
+import { Bloom, EEI, RunBlockResult, VM } from "@ethereumjs/vm";
+import { EVM, EVMResult } from "@ethereumjs/evm";
 import { ERROR } from "@ethereumjs/evm/dist/exceptions";
 import { DefaultStateManager, StateManager } from "@ethereumjs/statemanager";
 import { SignTypedDataVersion, signTypedData } from "@metamask/eth-sig-util";
@@ -244,15 +244,17 @@ export class HardhatNode extends EventEmitter {
 
     const txPool = new TxPool(stateManager, BigInt(blockGasLimit), common);
 
-    const vm = null as any;
-    // ETHJSTODO how is VM created now?
-    // const vm = new VM({
-    //   common,
-    //   activatePrecompiles: true,
-    //   stateManager,
-    //   blockchain: blockchain as any,
-    //   allowUnlimitedContractSize,
-    // });
+    // ETHJSTODO remove as any
+    const eei = new EEI.EEI(stateManager, common, blockchain as any);
+    const evm = await EVM.create({
+      eei,
+      allowUnlimitedContractSize,
+    });
+
+    const vm = await VM.create({
+      evm,
+      activatePrecompiles: true,
+    });
 
     const node = new HardhatNode(
       vm,
@@ -1343,14 +1345,12 @@ Hardhat Network's forking functionality only works with blocks from at least spu
           blockNumber
         );
 
-        // ETHJSTODO how is VM created now?
-        const vm = null as any;
-        // vm = new VM({
-        //   common,
-        //   activatePrecompiles: true,
-        //   stateManager: this._vm.stateManager,
-        //   blockchain: this._vm.blockchain,
-        // });
+        vm = await VM.create({
+          common,
+          activatePrecompiles: true,
+          stateManager: this._vm.stateManager,
+          blockchain: this._vm.blockchain,
+        });
       }
 
       // We don't support tracing transactions before the spuriousDragon fork

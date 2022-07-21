@@ -20,9 +20,7 @@ const senderAddress = privateToAddress(senderPrivateKey);
 export async function instantiateVm(): Promise<VM> {
   const account = Account.fromAccountData({ balance: 1e15 });
 
-  // ETHJSTODO new VM
-  const vm = null as any;
-  // const vm = new VM({ activatePrecompiles: true });
+  const vm = await VM.create({ activatePrecompiles: true });
 
   await vm.stateManager.putAccount(new Address(senderAddress), account);
 
