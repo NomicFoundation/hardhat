@@ -5,6 +5,7 @@ order:
   - /compile-contracts
   - /test-contracts
   - /deploying
+  - /verifying
   - /tasks-and-scripts
   - /hardhat-console
   - /typescript
