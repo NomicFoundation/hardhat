@@ -29,7 +29,7 @@ const snapshots: Array<Snapshot<any>> = [];
  * - Incorrect usage: `loadFixture(async () => { ... })`
  */
 export async function loadFixture<T>(fixture: Fixture<T>): Promise<T> {
-  if(inFixture) {
+  if (inFixture) {
     return fixture();
   }
 
@@ -38,7 +38,7 @@ export async function loadFixture<T>(fixture: Fixture<T>): Promise<T> {
     // Do not optimize this await away because otherwise the try-catch
     // won't work.
     return await loadFixtureHelper(fixture);
-  } catch(e) {
+  } catch (e) {
     throw e;
   } finally {
     inFixture = false;
