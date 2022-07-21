@@ -129,22 +129,24 @@ export class Artifacts implements IArtifacts {
 
     await fsExtra.ensureDir(path.dirname(artifactPath));
 
-    // write artifact
-    await fsExtra.writeJSON(artifactPath, artifact, {
-      spaces: 2,
-    });
+    await Promise.all([
+      fsExtra.writeJSON(artifactPath, artifact, {
+        spaces: 2,
+      }),
+      async () => {
+        if (pathToBuildInfo === undefined) {
+          return;
+        }
 
-    if (pathToBuildInfo === undefined) {
-      return;
-    }
+        // save debug file
+        const debugFilePath = this._getDebugFilePath(artifactPath);
+        const debugFile = this._createDebugFile(artifactPath, pathToBuildInfo);
 
-    // save debug file
-    const debugFilePath = this._getDebugFilePath(artifactPath);
-    const debugFile = this._createDebugFile(artifactPath, pathToBuildInfo);
-
-    await fsExtra.writeJSON(debugFilePath, debugFile, {
-      spaces: 2,
-    });
+        await fsExtra.writeJSON(debugFilePath, debugFile, {
+          spaces: 2,
+        });
+      },
+    ]);
   }
 
   public async saveBuildInfo(
