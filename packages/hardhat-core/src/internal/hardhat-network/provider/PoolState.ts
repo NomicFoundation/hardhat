@@ -1,5 +1,4 @@
 import { TypedTransaction } from "@ethereumjs/tx";
-import { BN } from "ethereumjs-util";
 import {
   List as ImmutableList,
   Map as ImmutableMap,
@@ -45,5 +44,5 @@ export const makePoolState = ImmutableRecord<PoolState>({
   pendingTransactions: ImmutableMap<string, SenderTransactions>(),
   queuedTransactions: ImmutableMap<string, SenderTransactions>(),
   hashToTransaction: ImmutableMap<string, SerializedTransaction>(),
-  blockGasLimit: bnToHex(new BN(9500000)),
+  blockGasLimit: bnToHex(9500000),
 });

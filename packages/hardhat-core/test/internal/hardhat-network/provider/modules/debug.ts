@@ -1,5 +1,4 @@
 import { assert } from "chai";
-import { BN } from "ethereumjs-util";
 import _ from "lodash";
 
 import { defaultHardhatNetworkParams } from "../../../../../src/internal/core/config/default-config";
@@ -60,7 +59,7 @@ describe("Debug module", function () {
             [txHash]
           );
           assert.deepEqual(trace, {
-            gas: 21000,
+            gas: 21_000n,
             failed: false,
             returnValue: "",
             structLogs: [],
@@ -98,7 +97,7 @@ describe("Debug module", function () {
             [txHash]
           );
           assert.deepEqual(trace, {
-            gas: 21000,
+            gas: 21_000n,
             failed: false,
             returnValue: "",
             structLogs: [],
@@ -148,7 +147,7 @@ describe("Debug module", function () {
               [txHash]
             );
             assert.deepEqual(trace, {
-              gas: 23400,
+              gas: 23_400n,
               failed: false,
               returnValue: "",
               structLogs: [],
@@ -170,7 +169,7 @@ describe("Debug module", function () {
       }
       const forkConfig: ForkConfig = {
         jsonRpcUrl: ALCHEMY_URL!,
-        blockNumber: 11954000,
+        blockNumber: 11954000n,
       };
 
       const logger = new ModulesLogger(false);
@@ -180,9 +179,9 @@ describe("Debug module", function () {
         DEFAULT_NETWORK_NAME,
         DEFAULT_CHAIN_ID,
         DEFAULT_NETWORK_ID,
-        13000000,
+        13000000n,
         undefined,
-        new BN(0),
+        0n,
         true,
         true,
         false, // mining.auto

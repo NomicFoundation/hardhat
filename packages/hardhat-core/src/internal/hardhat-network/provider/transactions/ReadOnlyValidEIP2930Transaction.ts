@@ -1,11 +1,11 @@
-import Common from "@ethereumjs/common";
+import { Common } from "@ethereumjs/common";
 import {
   AccessListEIP2930Transaction,
   AccessListEIP2930TxData,
   AccessListEIP2930ValuesArray,
   TxOptions,
 } from "@ethereumjs/tx";
-import { Address, BN } from "ethereumjs-util";
+import { Address } from "ethereumjs-util";
 
 import { InternalError } from "../../../core/providers/errors";
 import { BERLIN_EIPS } from "../../../util/hardforks";
@@ -70,9 +70,10 @@ export class ReadOnlyValidEIP2930Transaction extends AccessListEIP2930Transactio
 
     // this class should only be used with EIP-2930 txs,
     // which (we assume) always have a defined `chainId` value
-    (fakeCommon as any).chainIdBN = () => {
+    (fakeCommon as any).chainId = () => {
+      // ETHJSTODO double-check
       if (data.chainId !== undefined) {
-        return new BN(data.chainId);
+        return data.chainId;
       }
 
       throw new Error("Expected txData to have a chainId");

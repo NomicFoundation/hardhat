@@ -1,5 +1,5 @@
 import { Block } from "@ethereumjs/block";
-import { PostByzantiumTxReceipt } from "@ethereumjs/vm/dist/runBlock";
+import { PostByzantiumTxReceipt } from "@ethereumjs/vm";
 import { assert } from "chai";
 import { bufferToHex } from "ethereumjs-util";
 

@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { BN, toBuffer } from "ethereumjs-util";
+import { toBuffer } from "ethereumjs-util";
 
 import { workaroundWindowsCiFailures } from "../../../../../utils/workaround-windows-ci-failures";
 import { EXAMPLE_SETTER_CONTRACT } from "../../../helpers/contracts";
@@ -42,7 +42,8 @@ describe("Eth module", function () {
             [firstTxHash]
           );
 
-          const gasUsedBefore = new BN(toBuffer(firstReceipt.gasUsed));
+          // ETHJSTODO check that BigInt always can be used for rpc quantities
+          const gasUsedBefore = BigInt(firstReceipt.gasUsed);
 
           const secondTxHash = await this.provider.send("eth_sendTransaction", [
             {
@@ -57,11 +58,11 @@ describe("Eth module", function () {
             [secondTxHash]
           );
 
-          const gasUsedAfter = new BN(toBuffer(secondReceipt.gasUsed));
+          const gasUsedAfter = BigInt(secondReceipt.gasUsed);
 
-          const gasDifference = gasUsedBefore.sub(gasUsedAfter);
+          const gasDifference = gasUsedBefore - gasUsedAfter;
 
-          assert.equal(gasDifference.toString(), "17100");
+          assert.equal(gasDifference, 17_100n);
         });
       });
     });

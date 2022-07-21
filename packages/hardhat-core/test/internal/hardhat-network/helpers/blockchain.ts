@@ -1,14 +1,10 @@
 import { Transaction, TxData } from "@ethereumjs/tx";
-import {
-  Address,
-  AddressLike,
-  BN,
-  bufferToHex,
-  toBuffer,
-} from "ethereumjs-util";
+import { Address, AddressLike, bufferToHex } from "ethereumjs-util";
 
-import { FeeMarketEIP1559TxData } from "@ethereumjs/tx/dist.browser";
-import { AccessListEIP2930TxData } from "@ethereumjs/tx/dist/types";
+import {
+  AccessListEIP2930TxData,
+  FeeMarketEIP1559TxData,
+} from "@ethereumjs/tx/dist/types";
 import { numberToRpcQuantity } from "../../../../src/internal/core/jsonrpc/types/base-types";
 import { randomAddress } from "../../../../src/internal/hardhat-network/provider/fork/random";
 import {
@@ -57,12 +53,12 @@ export function createTestFakeTransaction(
 
   const type =
     data.type !== undefined
-      ? new BN(toBuffer(data.type))
+      ? data.type
       : "maxFeePerGas" in data || "maxPriorityFeePerGas" in data
-      ? new BN(2)
+      ? 2n
       : "accessList" in data
-      ? new BN(1)
-      : new BN(0);
+      ? 1n
+      : 0n;
 
   const dataWithDefaults = {
     to: randomAddress(),
@@ -71,11 +67,11 @@ export function createTestFakeTransaction(
     ...data,
   };
 
-  if (type.eqn(0)) {
+  if (type === 0n) {
     return new FakeSenderTransaction(fromAddress, dataWithDefaults);
   }
 
-  if (type.eqn(1)) {
+  if (type === 1n) {
     return new FakeSenderAccessListEIP2930Transaction(
       fromAddress,
       dataWithDefaults
@@ -126,7 +122,7 @@ export function createTestReceipt(
   return receipt;
 }
 
-export function createTestLog(blockNumber: BN | number): RpcLogOutput {
+export function createTestLog(blockNumber: bigint): RpcLogOutput {
   const log: any = {
     address: randomAddress(),
     blockNumber: numberToRpcQuantity(blockNumber),

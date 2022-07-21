@@ -1,6 +1,7 @@
 import { TxData } from "@ethereumjs/tx";
+import { bufferToBigInt } from "@ethereumjs/util";
 import { assert } from "chai";
-import { AddressLike, BN, keccak256, bufferToHex } from "ethereumjs-util";
+import { AddressLike, keccak256, bufferToHex } from "ethereumjs-util";
 import { randomBytes } from "crypto";
 
 import {
@@ -12,6 +13,7 @@ import { TransactionQueue } from "../../../../src/internal/hardhat-network/provi
 import { createTestOrderedTransaction } from "../helpers/blockchain";
 import { makeOrderedTxMap } from "../helpers/makeOrderedTxMap";
 import { InternalError } from "../../../../src/internal/core/providers/errors";
+import { BigIntUtils } from "../../../../src/internal/util/bigint";
 
 type TestTxData = (
   | TxData
@@ -32,12 +34,12 @@ const SEED = randomBytes(8);
 let lastValue = keccak256(SEED);
 function weakRandomComparator(_left: unknown, _right: unknown) {
   lastValue = keccak256(lastValue);
-  const leftRandomId = new BN(lastValue);
+  const leftRandomId = bufferToBigInt(lastValue);
 
   lastValue = keccak256(lastValue);
-  const rightRandomId = new BN(lastValue);
+  const rightRandomId = bufferToBigInt(lastValue);
 
-  return leftRandomId.cmp(rightRandomId);
+  return BigIntUtils.cmp(leftRandomId, rightRandomId);
 }
 
 describe(`TxPriorityHeap (tests using seed ${bufferToHex(SEED)})`, () => {
@@ -182,15 +184,14 @@ describe(`TxPriorityHeap (tests using seed ${bufferToHex(SEED)})`, () => {
         });
 
         assert.doesNotThrow(
-          () =>
-            new TransactionQueue(makeOrderedTxMap([tx1]), "priority", new BN(1))
+          () => new TransactionQueue(makeOrderedTxMap([tx1]), "priority", 1n)
         );
       });
     });
 
     describe("Sorting", function () {
       it("Should use the effective miner fee to sort txs", function () {
-        const baseFee = new BN(15);
+        const baseFee = 15n;
 
         // Effective miner fee: 96
         const tx1 = createTestTransaction({ gasPrice: 111 });
@@ -232,7 +233,7 @@ describe(`TxPriorityHeap (tests using seed ${bufferToHex(SEED)})`, () => {
       });
 
       it("Should use the order to sort txs in FIFO mode", function () {
-        const baseFee = new BN(15);
+        const baseFee = 15n;
 
         // Effective miner fee: 96
         const tx1 = createTestTransaction({ gasPrice: 111 });
@@ -262,7 +263,7 @@ describe(`TxPriorityHeap (tests using seed ${bufferToHex(SEED)})`, () => {
       });
 
       it("Should not include transactions from a sender whose next tx was discarded", function () {
-        const baseFee = new BN(20);
+        const baseFee = 20n;
 
         const senderWithFirstTxNotMined =
           "0x0000000000000000000000000000000000000001";

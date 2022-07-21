@@ -1,11 +1,12 @@
-import Common from "@ethereumjs/common";
+import { Common } from "@ethereumjs/common";
 import { AccessListEIP2930Transaction } from "@ethereumjs/tx";
 import {
   AccessListEIP2930TxData,
   AccessListEIP2930ValuesArray,
   TxOptions,
 } from "@ethereumjs/tx/dist/types";
-import { Address, BN, rlp } from "ethereumjs-util";
+import { bufferToInt } from "@ethereumjs/util";
+import { Address, rlp } from "ethereumjs-util";
 
 import {
   InternalError,
@@ -112,9 +113,9 @@ export class FakeSenderAccessListEIP2930Transaction extends AccessListEIP2930Tra
         value,
         data: data ?? Buffer.from([]),
         accessList: accessList ?? [],
-        v: v !== undefined ? new BN(v) : undefined, // EIP2930 supports v's with value 0 (empty Buffer)
-        r: r !== undefined && r.length !== 0 ? new BN(r) : undefined,
-        s: s !== undefined && s.length !== 0 ? new BN(s) : undefined,
+        v: v !== undefined ? bufferToInt(v) : undefined, // EIP2930 supports v's with value 0 (empty Buffer)
+        r: r !== undefined && r.length !== 0 ? bufferToInt(r) : undefined,
+        s: s !== undefined && s.length !== 0 ? bufferToInt(s) : undefined,
       },
       opts
     );
@@ -132,9 +133,9 @@ export class FakeSenderAccessListEIP2930Transaction extends AccessListEIP2930Tra
     super(
       {
         ...data,
-        v: data.v ?? new BN(1),
-        r: data.r ?? new BN(1),
-        s: data.s ?? new BN(2),
+        v: data.v ?? 1,
+        r: data.r ?? 1,
+        s: data.s ?? 2,
       },
       { ...opts, freeze: false }
     );
@@ -157,7 +158,7 @@ export class FakeSenderAccessListEIP2930Transaction extends AccessListEIP2930Tra
     );
   }
 
-  public _processSignature(_v: number, _r: Buffer, _s: Buffer): never {
+  public _processSignature(_v: bigint, _r: Buffer, _s: Buffer): never {
     throw new InternalError(
       "`_processSignature` is not implemented in FakeSenderAccessListEIP2930Transaction"
     );

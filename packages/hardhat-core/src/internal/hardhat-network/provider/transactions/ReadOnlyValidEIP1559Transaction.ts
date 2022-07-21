@@ -1,6 +1,6 @@
-import Common from "@ethereumjs/common";
+import { Common } from "@ethereumjs/common";
 import { FeeMarketEIP1559Transaction, TxOptions } from "@ethereumjs/tx";
-import { Address, BN } from "ethereumjs-util";
+import { Address } from "ethereumjs-util";
 
 import {
   FeeMarketEIP1559TxData,
@@ -8,6 +8,7 @@ import {
 } from "@ethereumjs/tx/src/types";
 import { InternalError } from "../../../core/providers/errors";
 import { LONDON_EIPS } from "../../../util/hardforks";
+import { BigIntUtils } from "../../../util/bigint";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
@@ -69,9 +70,10 @@ export class ReadOnlyValidEIP1559Transaction extends FeeMarketEIP1559Transaction
 
     // this class should only be used with EIP-1559 txs,
     // which always have a `chainId` value
-    (fakeCommon as any).chainIdBN = () => {
+    (fakeCommon as any).chainId = () => {
+      // ETHJSTODO double-check
       if (data.chainId !== undefined) {
-        return new BN(data.chainId);
+        return data.chainId;
       }
 
       throw new Error("Expected txData to have a chainId");

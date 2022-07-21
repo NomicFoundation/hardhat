@@ -1,5 +1,6 @@
+import { bufferToBigInt } from "@ethereumjs/util";
 import chalk from "chalk";
-import { BN, toBuffer } from "ethereumjs-util";
+import { toBuffer } from "ethereumjs-util";
 
 import { HARDHAT_NETWORK_NAME } from "../../../constants";
 import {
@@ -28,7 +29,7 @@ export async function makeForkClient(
   forkCachePath?: string
 ): Promise<{
   forkClient: JsonRpcClient;
-  forkBlockNumber: BN;
+  forkBlockNumber: bigint;
   forkBlockTimestamp: number;
 }> {
   const provider = new HttpProvider(
@@ -55,8 +56,8 @@ export async function makeForkClient(
     }
 
     if (forkConfig.blockNumber > lastSafeBlock) {
-      const confirmations = latestBlock - forkConfig.blockNumber + 1;
-      const requiredConfirmations = maxReorg + 1;
+      const confirmations = latestBlock - forkConfig.blockNumber + 1n;
+      const requiredConfirmations = maxReorg + 1n;
       console.warn(
         chalk.yellow(
           `You are forking from block ${
@@ -69,9 +70,9 @@ Please use block number ${lastSafeBlock} or wait for the block to get ${
       );
     }
 
-    forkBlockNumber = new BN(forkConfig.blockNumber);
+    forkBlockNumber = BigInt(forkConfig.blockNumber);
   } else {
-    forkBlockNumber = new BN(lastSafeBlock);
+    forkBlockNumber = BigInt(lastSafeBlock);
   }
 
   const block = await getBlockByNumber(provider, forkBlockNumber);
@@ -96,7 +97,7 @@ Please use block number ${lastSafeBlock} or wait for the block to get ${
 
 async function getBlockByNumber(
   provider: HttpProvider,
-  blockNumber: BN
+  blockNumber: bigint
 ): Promise<RpcBlockOutput> {
   const rpcBlockOutput = (await provider.request({
     method: "eth_getBlockByNumber",
@@ -113,11 +114,11 @@ async function getNetworkId(provider: HttpProvider) {
   return parseInt(networkIdString, 10);
 }
 
-async function getLatestBlockNumber(provider: HttpProvider) {
+async function getLatestBlockNumber(provider: HttpProvider): Promise<bigint> {
   const latestBlockString = (await provider.request({
     method: "eth_blockNumber",
   })) as string;
 
-  const latestBlock = new BN(toBuffer(latestBlockString));
-  return latestBlock.toNumber();
+  const latestBlock = bufferToBigInt(toBuffer(latestBlockString));
+  return latestBlock;
 }

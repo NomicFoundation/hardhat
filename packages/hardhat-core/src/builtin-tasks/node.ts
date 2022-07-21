@@ -51,7 +51,7 @@ function logHardhatNetworkAccounts(networkConfig: HardhatNetworkConfig) {
     !Array.isArray(networkConfig.accounts) &&
     networkConfig.accounts.mnemonic === HARDHAT_NETWORK_MNEMONIC;
 
-  const { BN, bufferToHex, privateToAddress, toBuffer, toChecksumAddress } =
+  const { bufferToHex, privateToAddress, toBuffer, toChecksumAddress } =
     require("ethereumjs-util") as typeof EthereumjsUtilT;
 
   console.log("Accounts");
@@ -72,9 +72,7 @@ function logHardhatNetworkAccounts(networkConfig: HardhatNetworkConfig) {
       bufferToHex(privateToAddress(toBuffer(account.privateKey)))
     );
 
-    const balance = new BN(account.balance)
-      .div(new BN(10).pow(new BN(18)))
-      .toString(10);
+    const balance = (BigInt(account.balance) / 10n ** 18n).toString(10);
 
     let entry = `Account #${index}: ${address} (${balance} ETH)`;
 

@@ -1,5 +1,3 @@
-import { BN } from "ethereumjs-util";
-
 import { HardhatNetworkConfig } from "../../../types";
 import { HardforkName } from "../../util/hardforks";
 import { HARDHAT_NETWORK_NAME } from "../../constants";
@@ -39,7 +37,7 @@ export const defaultHardhatNetworkParams: Omit<
   "gas" | "initialDate"
 > = {
   hardfork: "arrowGlacier",
-  blockGasLimit: 30_000_000,
+  blockGasLimit: 30_000_000n,
   gasPrice: HARDHAT_NETWORK_DEFAULT_GAS_PRICE,
   chainId: 31337,
   throwOnTransactionFailures: true,
@@ -55,20 +53,20 @@ export const defaultHardhatNetworkParams: Omit<
   accounts: defaultHardhatNetworkHdAccountsConfigParams,
   loggingEnabled: false,
   gasMultiplier: DEFAULT_GAS_MULTIPLIER,
-  minGasPrice: new BN(0),
+  minGasPrice: 0n,
   chains: new Map([
     [
       // block numbers below were taken from https://github.com/ethereumjs/ethereumjs-monorepo/tree/master/packages/common/src/chains
       1, // mainnet
       {
         hardforkHistory: new Map([
-          [HardforkName.BYZANTIUM, 4370000],
-          [HardforkName.CONSTANTINOPLE, 7280000],
-          [HardforkName.PETERSBURG, 7280000],
-          [HardforkName.ISTANBUL, 9069000],
-          [HardforkName.MUIR_GLACIER, 9200000],
-          [HardforkName.BERLIN, 12244000],
-          [HardforkName.LONDON, 12965000],
+          [HardforkName.BYZANTIUM, 4370000n],
+          [HardforkName.CONSTANTINOPLE, 7280000n],
+          [HardforkName.PETERSBURG, 7280000n],
+          [HardforkName.ISTANBUL, 9069000n],
+          [HardforkName.MUIR_GLACIER, 9200000n],
+          [HardforkName.BERLIN, 12244000n],
+          [HardforkName.LONDON, 12965000n],
         ]),
       },
     ],
@@ -76,13 +74,13 @@ export const defaultHardhatNetworkParams: Omit<
       3, // ropsten
       {
         hardforkHistory: new Map([
-          [HardforkName.BYZANTIUM, 1700000],
-          [HardforkName.CONSTANTINOPLE, 4230000],
-          [HardforkName.PETERSBURG, 4939394],
-          [HardforkName.ISTANBUL, 6485846],
-          [HardforkName.MUIR_GLACIER, 7117117],
-          [HardforkName.BERLIN, 9812189],
-          [HardforkName.LONDON, 10499401],
+          [HardforkName.BYZANTIUM, 1700000n],
+          [HardforkName.CONSTANTINOPLE, 4230000n],
+          [HardforkName.PETERSBURG, 4939394n],
+          [HardforkName.ISTANBUL, 6485846n],
+          [HardforkName.MUIR_GLACIER, 7117117n],
+          [HardforkName.BERLIN, 9812189n],
+          [HardforkName.LONDON, 10499401n],
         ]),
       },
     ],
@@ -90,12 +88,12 @@ export const defaultHardhatNetworkParams: Omit<
       4, // rinkeby
       {
         hardforkHistory: new Map([
-          [HardforkName.BYZANTIUM, 1035301],
-          [HardforkName.CONSTANTINOPLE, 3660663],
-          [HardforkName.PETERSBURG, 4321234],
-          [HardforkName.ISTANBUL, 5435345],
-          [HardforkName.BERLIN, 8290928],
-          [HardforkName.LONDON, 8897988],
+          [HardforkName.BYZANTIUM, 1035301n],
+          [HardforkName.CONSTANTINOPLE, 3660663n],
+          [HardforkName.PETERSBURG, 4321234n],
+          [HardforkName.ISTANBUL, 5435345n],
+          [HardforkName.BERLIN, 8290928n],
+          [HardforkName.LONDON, 8897988n],
         ]),
       },
     ],
@@ -103,12 +101,12 @@ export const defaultHardhatNetworkParams: Omit<
       42, // kovan
       {
         hardforkHistory: new Map([
-          [HardforkName.BYZANTIUM, 5067000],
-          [HardforkName.CONSTANTINOPLE, 9200000],
-          [HardforkName.PETERSBURG, 10255201],
-          [HardforkName.ISTANBUL, 14111141],
-          [HardforkName.BERLIN, 24770900],
-          [HardforkName.LONDON, 26741100],
+          [HardforkName.BYZANTIUM, 5067000n],
+          [HardforkName.CONSTANTINOPLE, 9200000n],
+          [HardforkName.PETERSBURG, 10255201n],
+          [HardforkName.ISTANBUL, 14111141n],
+          [HardforkName.BERLIN, 24770900n],
+          [HardforkName.LONDON, 26741100n],
         ]),
       },
     ],

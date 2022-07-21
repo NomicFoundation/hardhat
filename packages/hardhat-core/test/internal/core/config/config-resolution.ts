@@ -1,5 +1,4 @@
 import { assert } from "chai";
-import { BN } from "ethereumjs-util";
 import cloneDeep from "lodash/cloneDeep";
 import * as path from "path";
 import sinon from "sinon";
@@ -14,6 +13,7 @@ import {
   defaultLocalhostNetworkParams,
   defaultMochaOptions,
   defaultSolcOutputSelection,
+  HARDHAT_NETWORK_DEFAULT_INITIAL_BASE_FEE_PER_GAS,
 } from "../../../../src/internal/core/config/default-config";
 import {
   HardhatConfig,
@@ -286,6 +286,8 @@ describe("Config resolution", () => {
           // The default values of the next tests are dynamic
           gas: config.networks.hardhat.gas,
           initialDate: config.networks.hardhat.initialDate,
+          // ETHJSTODO fix
+          initialBaseFeePerGas: undefined,
         });
       });
 
@@ -295,6 +297,8 @@ describe("Config resolution", () => {
           ...defaultHardhatNetworkParams,
           gas: configWithoutBlockGasLimit.networks.hardhat.blockGasLimit,
           initialDate: configWithoutBlockGasLimit.networks.hardhat.initialDate,
+          // ETHJSTODO fix
+          initialBaseFeePerGas: undefined,
         });
 
         const configWithBlockGasLimit = resolveConfig(__filename, {
@@ -302,9 +306,11 @@ describe("Config resolution", () => {
         });
         assert.deepEqual(configWithBlockGasLimit.networks.hardhat, {
           ...defaultHardhatNetworkParams,
-          blockGasLimit: 1,
-          gas: 1,
+          blockGasLimit: 1n,
+          gas: 1n,
           initialDate: configWithBlockGasLimit.networks.hardhat.initialDate,
+          // ETHJSTODO fix
+          initialBaseFeePerGas: undefined,
         });
 
         const configWithBlockGasLimitAndGas = resolveConfig(__filename, {
@@ -312,10 +318,12 @@ describe("Config resolution", () => {
         });
         assert.deepEqual(configWithBlockGasLimitAndGas.networks.hardhat, {
           ...defaultHardhatNetworkParams,
-          blockGasLimit: 2,
-          gas: 3,
+          blockGasLimit: 2n,
+          gas: 3n,
           initialDate:
             configWithBlockGasLimitAndGas.networks.hardhat.initialDate,
+          // ETHJSTODO fix
+          initialBaseFeePerGas: undefined,
         });
       });
 
@@ -433,7 +441,7 @@ describe("Config resolution", () => {
           assert.deepEqual(config.networks.hardhat.forking, {
             url: "asd",
             enabled: true,
-            blockNumber: 123,
+            blockNumber: 123n,
             httpHeaders: {},
           });
         });
@@ -621,10 +629,7 @@ describe("Config resolution", () => {
         it("should default to 0", function () {
           const config = resolveConfig(__filename, {});
 
-          assert.equal(
-            config.networks.hardhat.minGasPrice.toString(),
-            new BN(0).toString()
-          );
+          assert.equal(config.networks.hardhat.minGasPrice, 0n);
         });
 
         it("should accept numbers", function () {
@@ -636,10 +641,7 @@ describe("Config resolution", () => {
             },
           });
 
-          assert.equal(
-            config.networks.hardhat.minGasPrice.toString(),
-            new BN(10).toString()
-          );
+          assert.equal(config.networks.hardhat.minGasPrice, 10n);
         });
 
         it("should accept strings", function () {
@@ -651,10 +653,7 @@ describe("Config resolution", () => {
             },
           });
 
-          assert.equal(
-            config.networks.hardhat.minGasPrice.toString(),
-            new BN(10).pow(new BN(11)).toString()
-          );
+          assert.equal(config.networks.hardhat.minGasPrice, 10n ** 11n);
         });
       });
 
@@ -689,9 +688,30 @@ describe("Config resolution", () => {
         });
 
         assert.deepEqual(config.networks.hardhat, {
-          ...networkConfig,
-          minGasPrice: new BN(10),
+          accounts: [{ privateKey: "0x00000", balance: "123" }],
+          chainId: 123,
+          from: "from",
+          gas: 1n,
+          gasMultiplier: 1231,
+          gasPrice: 2345678n,
+          throwOnCallFailures: false,
+          throwOnTransactionFailures: false,
+          loggingEnabled: true,
+          allowUnlimitedContractSize: true,
+          blockGasLimit: 567n,
+          minGasPrice: 10n,
+          mining: {
+            auto: false,
+            interval: 0,
+            mempool: {
+              order: "priority",
+            },
+          },
+          hardfork: "hola",
+          initialDate: "today",
           chains: defaultHardhatNetworkParams.chains,
+          // ETHJSTODO fix
+          initialBaseFeePerGas: undefined,
         });
       });
 
@@ -712,7 +732,7 @@ describe("Config resolution", () => {
           const resolvedConfig = resolveConfig(__filename, userConfig);
           it("If the user provides values for a chain that's included in the default, should use the users' values, and ignore the defaults for that chain.", function () {
             assert.deepEqual(resolvedConfig.networks.hardhat.chains.get(1), {
-              hardforkHistory: new Map([[HardforkName.LONDON, 999]]),
+              hardforkHistory: new Map([[HardforkName.LONDON, 999n]]),
             });
           });
           it("If they don't provide any value for a default chain, should use the default for that one.", function () {
@@ -736,7 +756,7 @@ describe("Config resolution", () => {
             },
           });
           assert.deepEqual(resolvedConfig.networks.hardhat.chains.get(999), {
-            hardforkHistory: new Map([[HardforkName.LONDON, 1234]]),
+            hardforkHistory: new Map([[HardforkName.LONDON, 1234n]]),
           });
         });
       });
@@ -798,7 +818,7 @@ describe("Config resolution", () => {
         });
 
         it("Should let you override everything", function () {
-          const otherNetworkConfig: HttpNetworkConfig = {
+          const otherNetworkConfig: HttpNetworkUserConfig = {
             url: "asd",
             timeout: 1,
             accounts: ["0x00000"],
@@ -816,7 +836,19 @@ describe("Config resolution", () => {
             networks: { other: otherNetworkConfig },
           });
 
-          assert.deepEqual(config.networks.other, otherNetworkConfig);
+          assert.deepEqual(config.networks.other, {
+            url: "asd",
+            timeout: 1,
+            accounts: ["0x00000"],
+            chainId: 123,
+            from: "from",
+            gas: 1n,
+            gasMultiplier: 1231,
+            gasPrice: 2345678n,
+            httpHeaders: {
+              header: "asd",
+            },
+          });
         });
 
         it("Should add default values to HD accounts config objects", function () {

@@ -1,6 +1,5 @@
 import { assert } from "chai";
 
-import { BN } from "ethereumjs-util";
 import {
   numberToRpcQuantity,
   rpcQuantityToBN,
@@ -12,7 +11,7 @@ interface SendTxOptions {
   from?: string;
   to?: string;
   gas?: number;
-  gasPrice?: number | BN;
+  gasPrice?: number | bigint;
   data?: string;
   nonce?: number;
   value?: number;

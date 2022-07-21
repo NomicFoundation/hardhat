@@ -1,6 +1,6 @@
-import Common from "@ethereumjs/common";
+import { Common } from "@ethereumjs/common";
 import { Transaction, TxData, TxOptions } from "@ethereumjs/tx";
-import { Address, BN, rlp } from "ethereumjs-util";
+import { Address, rlp } from "ethereumjs-util";
 
 import { InternalError } from "../../../core/providers/errors";
 
@@ -98,9 +98,9 @@ export class FakeSenderTransaction extends Transaction {
     super(
       {
         ...data,
-        v: data.v ?? new BN(27),
-        r: data.r ?? new BN(1),
-        s: data.s ?? new BN(2),
+        v: data.v ?? 27,
+        r: data.r ?? 1,
+        s: data.s ?? 2,
       },
       { ...opts, freeze: false }
     );

@@ -1,9 +1,9 @@
 import { Block } from "@ethereumjs/block";
-import Common from "@ethereumjs/common";
+import { Common } from "@ethereumjs/common";
 import { TypedTransaction } from "@ethereumjs/tx";
-import { BN } from "ethereumjs-util";
 
 import { assertHardhatInvariant } from "../../core/errors";
+import { BigIntUtils } from "../../util/bigint";
 import { BlockchainData } from "./BlockchainData";
 import { RpcReceiptOutput } from "./output";
 
@@ -37,25 +37,26 @@ export abstract class BlockchainBase {
   }
 
   public async getBlock(
-    blockHashOrNumber: Buffer | BN | number
+    blockHashOrNumber: Buffer | bigint | number
   ): Promise<Block | null> {
     if (
-      (typeof blockHashOrNumber === "number" || BN.isBN(blockHashOrNumber)) &&
-      this._data.isReservedBlock(new BN(blockHashOrNumber))
+      (typeof blockHashOrNumber === "number" ||
+        BigIntUtils.isBigInt(blockHashOrNumber)) &&
+      this._data.isReservedBlock(BigInt(blockHashOrNumber))
     ) {
-      this._data.fulfillBlockReservation(new BN(blockHashOrNumber));
+      this._data.fulfillBlockReservation(BigInt(blockHashOrNumber));
     }
 
     if (typeof blockHashOrNumber === "number") {
-      return this._data.getBlockByNumber(new BN(blockHashOrNumber)) ?? null;
+      return this._data.getBlockByNumber(BigInt(blockHashOrNumber)) ?? null;
     }
-    if (BN.isBN(blockHashOrNumber)) {
+    if (BigIntUtils.isBigInt(blockHashOrNumber)) {
       return this._data.getBlockByNumber(blockHashOrNumber) ?? null;
     }
     return this._data.getBlockByHash(blockHashOrNumber) ?? null;
   }
 
-  public abstract getLatestBlockNumber(): BN;
+  public abstract getLatestBlockNumber(): bigint;
 
   public async getLatestBlock(): Promise<Block> {
     const block = await this.getBlock(this.getLatestBlockNumber());
@@ -74,7 +75,7 @@ export abstract class BlockchainBase {
   public iterator(
     _name: string,
     _onBlock: (block: Block, reorg: boolean) => void | Promise<void>
-  ): Promise<number | void> {
+  ): Promise<number> {
     throw new Error("Method not implemented.");
   }
 
@@ -83,14 +84,14 @@ export abstract class BlockchainBase {
   }
 
   public reserveBlocks(
-    count: BN,
-    interval: BN,
+    count: bigint,
+    interval: bigint,
     previousBlockStateRoot: Buffer,
-    previousBlockTotalDifficulty: BN,
-    previousBlockBaseFeePerGas: BN | undefined
+    previousBlockTotalDifficulty: bigint,
+    previousBlockBaseFeePerGas: bigint | undefined
   ) {
     this._data.reserveBlocks(
-      this.getLatestBlockNumber().addn(1),
+      this.getLatestBlockNumber() + 1n,
       count,
       interval,
       previousBlockStateRoot,
@@ -99,32 +100,32 @@ export abstract class BlockchainBase {
     );
   }
 
-  protected _delBlock(blockNumber: BN): void {
+  protected _delBlock(blockNumber: bigint): void {
     let i = blockNumber;
 
-    while (i.lte(this.getLatestBlockNumber())) {
+    while (i <= this.getLatestBlockNumber()) {
       if (this._data.isReservedBlock(i)) {
         const reservation = this._data.cancelReservationWithBlock(i);
-        i = reservation.last.addn(1);
+        i = reservation.last + 1n;
       } else {
         const current = this._data.getBlockByNumber(i);
         if (current !== undefined) {
           this._data.removeBlock(current);
         }
-        i = i.addn(1);
+        i++;
       }
     }
   }
 
-  protected async _computeTotalDifficulty(block: Block): Promise<BN> {
+  protected async _computeTotalDifficulty(block: Block): Promise<bigint> {
     const difficulty = block.header.difficulty;
     const blockNumber = block.header.number;
 
-    if (blockNumber.eqn(0)) {
+    if (blockNumber === 0n) {
       return difficulty;
     }
 
-    const parentBlock = await this.getBlock(blockNumber.subn(1));
+    const parentBlock = await this.getBlock(blockNumber - 1n);
     assertHardhatInvariant(parentBlock !== null, "Parent block should exist");
 
     const parentHash = parentBlock.hash();
@@ -134,6 +135,6 @@ export abstract class BlockchainBase {
       "Parent block should have total difficulty"
     );
 
-    return parentTD.add(difficulty);
+    return parentTD + difficulty;
   }
 }

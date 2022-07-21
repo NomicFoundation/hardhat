@@ -1,4 +1,4 @@
-import Common from "@ethereumjs/common";
+import { Common } from "@ethereumjs/common";
 import { AccessListEIP2930Transaction } from "@ethereumjs/tx";
 import { assert } from "chai";
 import { bufferToHex, privateToAddress, toBuffer } from "ethereumjs-util";
@@ -817,11 +817,13 @@ describe("Sender providers", () => {
  * the same values as `tx`
  */
 function validateRawEIP2930Transaction(rawTx: string, tx: any) {
-  const common = Common.forCustomChain(
-    "mainnet",
-    { chainId: MOCK_PROVIDER_CHAIN_ID },
-    "berlin"
-  );
+  const common = null as any;
+  // ETHJSTODO Common.forCustomChain, no idea
+  // const common = Common.forCustomChain(
+  //   "mainnet",
+  //   { chainId: MOCK_PROVIDER_CHAIN_ID },
+  //   "berlin"
+  // );
 
   const sentTx = AccessListEIP2930Transaction.fromSerializedTx(
     toBuffer(rawTx),

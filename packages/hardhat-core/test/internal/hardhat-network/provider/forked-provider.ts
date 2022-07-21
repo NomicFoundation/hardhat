@@ -1,5 +1,6 @@
+import { bufferToBigInt } from "@ethereumjs/util";
 import { assert } from "chai";
-import { BN, bufferToHex, toBuffer } from "ethereumjs-util";
+import { bufferToHex, toBuffer } from "ethereumjs-util";
 
 import {
   numberToRpcQuantity,
@@ -68,8 +69,8 @@ describe("Forked provider", function () {
             { to: DAI_ADDRESS.toString(), data: daiTotalSupplySelector },
           ]);
 
-          const bnResult = new BN(toBuffer(result));
-          assert.isTrue(bnResult.gtn(0));
+          const bnResult = bufferToBigInt(toBuffer(result));
+          assert.isTrue(bnResult > 0n);
         });
 
         describe("when used in the context of a past block", () => {
@@ -198,7 +199,7 @@ describe("Forked provider", function () {
           const result = await this.provider.send("eth_getBalance", [
             WETH_ADDRESS.toString(),
           ]);
-          assert.isTrue(rpcQuantityToBN(result).gtn(0));
+          assert.isTrue(rpcQuantityToBN(result) > 0n);
         });
       });
 
@@ -220,7 +221,7 @@ describe("Forked provider", function () {
           const balance = await this.provider.send("eth_getBalance", [
             BITFINEX_WALLET_ADDRESS.toString(),
           ]);
-          assertQuantity(balance, initialBalance.addn(100));
+          assertQuantity(balance, initialBalance + 100n);
         });
 
         it("supports wrapping of Ether", async function () {
@@ -247,10 +248,7 @@ describe("Forked provider", function () {
             },
           ]);
           const balance = await getWrappedBalance();
-          assert.equal(
-            balance.toString("hex"),
-            initialBalance.addn(100).toString("hex")
-          );
+          assert.equal(balance, initialBalance + 100n);
         });
       });
 
@@ -309,7 +307,7 @@ describe("Forked provider", function () {
             [account]
           );
 
-          assert.isTrue(rpcQuantityToBN(transactionCount).gtn(0));
+          assert.isTrue(rpcQuantityToBN(transactionCount) > 0);
         });
       });
 
@@ -394,9 +392,7 @@ describe("Forked provider", function () {
       });
 
       describe("hardhat_impersonateAccount", () => {
-        const oneEtherQuantity = numberToRpcQuantity(
-          new BN(10).pow(new BN(18))
-        );
+        const oneEtherQuantity = numberToRpcQuantity(10n ** 18n);
 
         it("allows to impersonate a remote EOA", async function () {
           await this.provider.send("hardhat_impersonateAccount", [

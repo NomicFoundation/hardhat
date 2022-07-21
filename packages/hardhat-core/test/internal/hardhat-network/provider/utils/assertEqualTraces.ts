@@ -18,8 +18,8 @@ export function assertEqualTraces(
     // we ignore the gasCost of the last step because
     // we don't guarantee that it's correct
     if (i === expected.structLogs.length - 1) {
-      actual.structLogs[i].gasCost = 0;
-      log.gasCost = 0;
+      actual.structLogs[i].gasCost = 0n;
+      log.gasCost = 0n;
     }
 
     assert.deepEqual(

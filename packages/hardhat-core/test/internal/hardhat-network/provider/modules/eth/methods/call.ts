@@ -1,5 +1,4 @@
 import { assert } from "chai";
-import { BN } from "ethereumjs-util";
 import { Client } from "undici";
 
 import {
@@ -119,7 +118,7 @@ describe("Eth module", function () {
 
           it("Should be run in the context of the last block", async function () {
             const firstBlock = await getFirstBlock();
-            const timestamp = getCurrentTimestamp() + 60;
+            const timestamp = getCurrentTimestamp() + 60n;
             await this.provider.send("evm_setNextBlockTimestamp", [timestamp]);
 
             const contractAddress = await deployContract(
@@ -277,7 +276,7 @@ describe("Eth module", function () {
         describe("when called with 'latest' blockTag param", () => {
           it("Should be run in the context of the last block", async function () {
             const firstBlock = await getFirstBlock();
-            const timestamp = getCurrentTimestamp() + 60;
+            const timestamp = getCurrentTimestamp() + 60n;
             await this.provider.send("evm_setNextBlockTimestamp", [timestamp]);
 
             const contractAddress = await deployContract(
@@ -315,7 +314,7 @@ describe("Eth module", function () {
               `0x${EXAMPLE_READ_CONTRACT.bytecode.object}`
             );
 
-            const timestamp = getCurrentTimestamp() + 60;
+            const timestamp = getCurrentTimestamp() + 60n;
             await this.provider.send("evm_setNextBlockTimestamp", [timestamp]);
 
             const blockResult = await this.provider.send("eth_call", [
@@ -515,7 +514,7 @@ contract C {
 
           const CALLER = DEFAULT_ACCOUNTS_ADDRESSES[2];
           let contractAddress: string;
-          let ethBalance: BN;
+          let ethBalance: bigint;
 
           function deployContractAndGetEthBalance() {
             beforeEach(async function () {
@@ -552,8 +551,8 @@ contract C {
             });
 
             it("Should use any provided gasPrice", async function () {
-              const gasLimit = 200_000;
-              const gasPrice = 2;
+              const gasLimit = 200_000n;
+              const gasPrice = 2n;
 
               const balanceResult = await this.provider.send("eth_call", [
                 {
@@ -565,10 +564,9 @@ contract C {
                 },
               ]);
 
-              assert.isTrue(
-                rpcDataToBN(balanceResult).eq(
-                  ethBalance.subn(gasLimit * gasPrice)
-                )
+              assert.equal(
+                rpcDataToBN(balanceResult),
+                ethBalance - gasLimit * gasPrice
               );
             });
           });
@@ -670,8 +668,9 @@ contract C {
                 ]);
 
                 // The miner will get the priority fee
-                assert.isTrue(
-                  rpcDataToBN(balanceResult).eq(ethBalance.subn(500_000 * 3))
+                assert.equal(
+                  rpcDataToBN(balanceResult),
+                  ethBalance - 3n * 500_000n
                 );
               });
 
@@ -687,8 +686,9 @@ contract C {
                 ]);
 
                 // The miner will get the gasPrice * gas as a normalized priority fee
-                assert.isTrue(
-                  rpcDataToBN(balanceResult).eq(ethBalance.subn(500_000 * 6))
+                assert.equal(
+                  rpcDataToBN(balanceResult),
+                  ethBalance - 6n * 500_000n
                 );
               });
             });

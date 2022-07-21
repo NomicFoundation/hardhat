@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { BN, bufferToHex } from "ethereumjs-util";
+import { bufferToHex } from "ethereumjs-util";
 
 import {
   numberToRpcQuantity,
@@ -123,7 +123,7 @@ export async function assertInvalidInputError(
 
 export function assertQuantity(
   actual: any,
-  quantity: number | BN,
+  quantity: number | bigint,
   message?: string
 ) {
   assert.strictEqual(actual, numberToRpcQuantity(quantity), message);
@@ -131,7 +131,7 @@ export function assertQuantity(
 
 export async function assertNodeBalances(
   provider: EthereumProvider,
-  expectedBalances: Array<number | BN>
+  expectedBalances: Array<number | bigint>
 ) {
   const accounts: string[] = await provider.send("eth_accounts");
 
@@ -144,7 +144,7 @@ export async function assertNodeBalances(
 
 export async function assertPendingNodeBalances(
   provider: EthereumProvider,
-  expectedBalances: Array<number | BN>
+  expectedBalances: Array<number | bigint>
 ) {
   const accounts: string[] = await provider.send("eth_accounts");
 
@@ -196,7 +196,7 @@ export async function assertTransactionFailure(
 export function assertReceiptMatchesGethOne(
   actual: any,
   gethReceipt: RpcReceiptOutput,
-  expectedBlockNumber: number | BN
+  expectedBlockNumber: number | bigint
 ) {
   assertQuantity(actual.blockNumber, expectedBlockNumber);
   assert.strictEqual(actual.transactionIndex, gethReceipt.transactionIndex);

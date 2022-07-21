@@ -1,5 +1,6 @@
-import { BN, bufferToHex, toBuffer } from "ethereumjs-util";
+import { bufferToHex, toBuffer } from "ethereumjs-util";
 
-export function bnToHex(bn: BN): string {
+// ETHJSTODO delete this file and move this to BigIntUtils
+export function bnToHex(bn: any): string {
   return bufferToHex(toBuffer(bn));
 }

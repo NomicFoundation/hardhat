@@ -1,7 +1,12 @@
 import { Transaction, TxData } from "@ethereumjs/tx";
-import VM from "@ethereumjs/vm";
+import {
+  Account,
+  Address,
+  privateToAddress,
+  bigIntToBuffer,
+} from "@ethereumjs/util";
+import { VM } from "@ethereumjs/vm";
 import abi from "ethereumjs-abi";
-import { Account, Address, privateToAddress } from "ethereumjs-util";
 
 import { MessageTrace } from "../../../../src/internal/hardhat-network/stack-traces/message-trace";
 import { VMTracer } from "../../../../src/internal/hardhat-network/stack-traces/vm-tracer";
@@ -15,7 +20,9 @@ const senderAddress = privateToAddress(senderPrivateKey);
 export async function instantiateVm(): Promise<VM> {
   const account = Account.fromAccountData({ balance: 1e15 });
 
-  const vm = new VM({ activatePrecompiles: true });
+  // ETHJSTODO new VM
+  const vm = null as any;
+  // const vm = new VM({ activatePrecompiles: true });
 
   await vm.stateManager.putAccount(new Address(senderAddress), account);
 
@@ -88,5 +95,5 @@ export async function traceTransaction(
 
 async function getNextPendingNonce(vm: VM): Promise<Buffer> {
   const acc = await vm.stateManager.getAccount(new Address(senderAddress));
-  return acc.nonce.toBuffer();
+  return bigIntToBuffer(acc.nonce);
 }

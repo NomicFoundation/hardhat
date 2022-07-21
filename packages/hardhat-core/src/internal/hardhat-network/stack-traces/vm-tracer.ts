@@ -1,9 +1,10 @@
-import VM from "@ethereumjs/vm";
-import { EVMResult } from "@ethereumjs/vm/dist/evm/evm";
-import { InterpreterStep } from "@ethereumjs/vm/dist/evm/interpreter";
-import Message from "@ethereumjs/vm/dist/evm/message";
-import { precompiles } from "@ethereumjs/vm/dist/evm/precompiles";
-import { Address, BN } from "ethereumjs-util";
+import { bufferToInt } from "@ethereumjs/util";
+import { VM } from "@ethereumjs/vm";
+import { EVMResult } from "@ethereumjs/evm";
+import { InterpreterStep } from "@ethereumjs/evm/dist/interpreter";
+import { Message } from "@ethereumjs/evm/dist/message";
+import { precompiles } from "@ethereumjs/evm/dist/precompiles";
+import { Address } from "ethereumjs-util";
 
 import {
   CallMessageTrace,
@@ -16,9 +17,11 @@ import {
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
+// ETHJSTODO: can we use getActivePrecompiles here? If not, ask the ethjs
+// team to export `precompiles` in index
 const MAX_PRECOMPILE_NUMBER = Object.keys(precompiles).length + 1;
 const DUMMY_RETURN_DATA = Buffer.from([]);
-const DUMMY_GAS_USED = new BN(0);
+const DUMMY_GAS_USED = 0n;
 
 export class VMTracer {
   private _messageTraces: MessageTrace[] = [];
@@ -39,9 +42,10 @@ export class VMTracer {
     if (this._enabled) {
       return;
     }
-    this._vm.on("beforeMessage", this._beforeMessageHandler);
-    this._vm.on("step", this._stepHandler);
-    this._vm.on("afterMessage", this._afterMessageHandler);
+    // ETHJSTODO no idea how to do this, waiting for the ethereumjs response
+    // this._vm.on("beforeMessage", this._beforeMessageHandler);
+    // this._vm.on("step", this._stepHandler);
+    // this._vm.on("afterMessage", this._afterMessageHandler);
     this._enabled = true;
   }
 
@@ -49,9 +53,10 @@ export class VMTracer {
     if (!this._enabled) {
       return;
     }
-    this._vm.removeListener("beforeMessage", this._beforeMessageHandler);
-    this._vm.removeListener("step", this._stepHandler);
-    this._vm.removeListener("afterMessage", this._afterMessageHandler);
+    // ETHJSTODO no idea how to do this, waiting for the ethereumjs response
+    // this._vm.removeListener("beforeMessage", this._beforeMessageHandler);
+    // this._vm.removeListener("step", this._stepHandler);
+    // this._vm.removeListener("afterMessage", this._afterMessageHandler);
     this._enabled = false;
   }
 
@@ -106,11 +111,11 @@ export class VMTracer {
 
         trace = createTrace;
       } else {
-        const toAsBn = new BN(message.to.toBuffer());
+        const toAsNumber = bufferToInt(message.to.toBuffer());
 
-        if (toAsBn.gtn(0) && toAsBn.lten(MAX_PRECOMPILE_NUMBER)) {
+        if (toAsNumber > 0 && toAsNumber <= MAX_PRECOMPILE_NUMBER) {
           const precompileTrace: PrecompileMessageTrace = {
-            precompile: toAsBn.toNumber(),
+            precompile: toAsNumber,
             calldata: message.data,
             value: message.value,
             returnData: DUMMY_RETURN_DATA,
@@ -204,7 +209,8 @@ export class VMTracer {
 
       trace.error = result.execResult.exceptionError;
       trace.returnData = result.execResult.returnValue;
-      trace.gasUsed = result.gasUsed;
+      // ETHJSTODO double-check
+      trace.gasUsed = result.execResult.executionGasUsed;
 
       if (isCreateTrace(trace)) {
         trace.deployedContract = result?.createdAddress?.toBuffer();

@@ -1,4 +1,3 @@
-import { BN } from "ethereumjs-util";
 import * as t from "io-ts";
 
 import { SignTypedDataVersion, signTypedData } from "@metamask/eth-sig-util";
@@ -225,7 +224,7 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
     }
   }
 
-  private async _getNonce(address: Buffer): Promise<BN> {
+  private async _getNonce(address: Buffer): Promise<bigint> {
     const { bufferToHex } = await import("ethereumjs-util");
 
     const response = (await this._wrappedProvider.request({
@@ -241,13 +240,14 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
     chainId: number,
     privateKey: Buffer
   ): Promise<Buffer> {
-    const { chains } = await import("@ethereumjs/common/dist/chains");
+    // ETHJSTODO not sure what to do about this
+    // const { chains } = await import("@ethereumjs/common/dist/chains");
 
     const { AccessListEIP2930Transaction, Transaction } = await import(
       "@ethereumjs/tx"
     );
 
-    const { default: Common } = await import("@ethereumjs/common");
+    const { Common } = await import("@ethereumjs/common");
 
     const txData = {
       ...transactionRequest,
@@ -255,17 +255,19 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
     };
 
     // TODO: consider changing instances of "london" below to ["latest hardfork"]
-    const common =
-      chains.names[chainId] !== undefined
-        ? new Common({ chain: chainId, hardfork: "london" })
-        : Common.forCustomChain(
-            "mainnet",
-            {
-              chainId,
-              networkId: chainId,
-            },
-            "london"
-          );
+    // ETHJSTODO no idea how to do that
+    const common = null as any;
+    // const common =
+    //   chains.names[chainId] !== undefined
+    //     ? new Common({ chain: chainId, hardfork: "london" })
+    //     : Common.forCustomChain(
+    //         "mainnet",
+    //         {
+    //           chainId,
+    //           networkId: chainId,
+    //         },
+    //         "london"
+    //       );
 
     // we convert the access list to the type
     // that AccessListEIP2930Transaction expects

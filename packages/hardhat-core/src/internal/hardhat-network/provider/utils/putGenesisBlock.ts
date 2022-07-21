@@ -1,13 +1,12 @@
 import { Block, HeaderData } from "@ethereumjs/block";
-import Common from "@ethereumjs/common";
-import { BN } from "ethereumjs-util";
+import { Common } from "@ethereumjs/common";
 
 import { HardhatBlockchain } from "../HardhatBlockchain";
 
 export async function putGenesisBlock(
   blockchain: HardhatBlockchain,
   common: Common,
-  initialBaseFee?: BN
+  initialBaseFee?: bigint
 ) {
   const header: HeaderData = {};
 
@@ -15,11 +14,14 @@ export async function putGenesisBlock(
     header.baseFeePerGas = initialBaseFee;
   }
 
-  const genesisBlock = Block.genesis(
-    {
-      header,
-    },
-    { common }
-  );
+
+  // ETHJSTODO Block.genesis
+  // const genesisBlock = Block.genesis(
+  //   {
+  //     header,
+  //   },
+  //   { common }
+  // );
+  const genesisBlock = null as any;
   await blockchain.putBlock(genesisBlock);
 }

@@ -1,8 +1,8 @@
-import Common from "@ethereumjs/common";
+import { Common } from "@ethereumjs/common";
 import { Transaction } from "@ethereumjs/tx";
+import { bufferToBigInt, bigIntToBuffer } from "@ethereumjs/util";
 import { assert } from "chai";
 import {
-  BN,
   bufferToHex,
   setLengthLeft,
   toBuffer,
@@ -76,9 +76,9 @@ describe("Eth module", function () {
             to: toBuffer(zeroAddress()),
             from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[1]),
             data: toBuffer("0xaa"),
-            nonce: new BN(0),
-            value: new BN(123),
-            gasLimit: new BN(25000),
+            nonce: 0n,
+            value: 123n,
+            gasLimit: 25_000n,
             gasPrice: await getPendingBaseFeePerGas(this.provider),
           };
 
@@ -110,9 +110,9 @@ describe("Eth module", function () {
             to: toBuffer(zeroAddress()),
             from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[1]),
             data: toBuffer([]),
-            nonce: new BN(1),
-            value: new BN(123),
-            gasLimit: new BN(80000),
+            nonce: 1n,
+            value: 123n,
+            gasLimit: 80_000n,
             gasPrice: await getPendingBaseFeePerGas(this.provider),
           };
 
@@ -147,9 +147,9 @@ describe("Eth module", function () {
             to: undefined,
             from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[1]),
             data: toBuffer("0x60006000fd"),
-            nonce: new BN(0),
-            value: new BN(123),
-            gasLimit: new BN(250000),
+            nonce: 0n,
+            value: 123n,
+            gasLimit: 250_000n,
             gasPrice: await getPendingBaseFeePerGas(this.provider),
           };
 
@@ -212,15 +212,17 @@ describe("Eth module", function () {
           ]);
 
           // create and send signed tx
-          const common = Common.forCustomChain(
-            "mainnet",
-            {
-              chainId: DEFAULT_CHAIN_ID,
-              networkId: DEFAULT_NETWORK_ID,
-              name: "hardhat",
-            },
-            "muirGlacier"
-          );
+          // ETHJSTODO Common.forCustomChain
+          const common = null as any;
+          // const common = Common.forCustomChain(
+          //   "mainnet",
+          //   {
+          //     chainId: DEFAULT_CHAIN_ID,
+          //     networkId: DEFAULT_NETWORK_ID,
+          //     name: "hardhat",
+          //   },
+          //   "muirGlacier"
+          // );
 
           const txParams = {
             nonce: "0x0",
@@ -250,38 +252,38 @@ describe("Eth module", function () {
 
           assert.equal(fetchedTx.from, address);
           assert.equal(fetchedTx.to, DEFAULT_ACCOUNTS_ADDRESSES[1]);
-          assert(
-            rpcQuantityToBN(fetchedTx.value).eq(rpcQuantityToBN(txParams.value))
+          assert.equal(
+            rpcQuantityToBN(fetchedTx.value),
+            rpcQuantityToBN(txParams.value)
           );
-          assert(
-            rpcQuantityToBN(fetchedTx.nonce).eq(rpcQuantityToBN(txParams.nonce))
+          assert.equal(
+            rpcQuantityToBN(fetchedTx.nonce),
+            rpcQuantityToBN(txParams.nonce)
           );
-          assert(
-            rpcQuantityToBN(fetchedTx.gas).eq(
-              rpcQuantityToBN(txParams.gasLimit)
-            )
+          assert.equal(
+            rpcQuantityToBN(fetchedTx.gas),
+            rpcQuantityToBN(txParams.gasLimit)
           );
-          assert(
-            rpcQuantityToBN(fetchedTx.gasPrice).eq(
-              rpcQuantityToBN(txParams.gasPrice)
-            )
+          assert.equal(
+            rpcQuantityToBN(fetchedTx.gasPrice),
+            rpcQuantityToBN(txParams.gasPrice)
           );
           assert.equal(fetchedTx.input, txParams.data);
 
           // tx.v is padded but fetchedTx.v is not, so we need to do this
-          const fetchedTxV = new BN(toBuffer(fetchedTx.v));
-          const expectedTxV = new BN(signedTx.v!);
-          assert.isTrue(fetchedTxV.eq(expectedTxV));
+          const fetchedTxV = bufferToBigInt(toBuffer(fetchedTx.v));
+          const expectedTxV = BigInt(signedTx.v!);
+          assert.equal(fetchedTxV, expectedTxV);
 
           // Also equalize left padding (signedTx has a leading 0)
           assert.equal(
             toBuffer(fetchedTx.r).toString("hex"),
-            toBuffer(signedTx.r!).toString("hex")
+            bigIntToBuffer(signedTx.r!).toString("hex")
           );
 
           assert.equal(
             toBuffer(fetchedTx.s).toString("hex"),
-            toBuffer(signedTx.s!).toString("hex")
+            bigIntToBuffer(signedTx.s!).toString("hex")
           );
         });
 
@@ -290,9 +292,9 @@ describe("Eth module", function () {
             to: toBuffer(zeroAddress()),
             from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[1]),
             data: toBuffer([]),
-            nonce: new BN(0),
-            value: new BN(123),
-            gasLimit: new BN(25000),
+            nonce: 0n,
+            value: 123n,
+            gasLimit: 25_000n,
             gasPrice: await getPendingBaseFeePerGas(this.provider),
           };
 
@@ -356,9 +358,9 @@ describe("Eth module", function () {
             from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[1]),
             to: toBuffer(zeroAddress()),
             data: toBuffer("0x"),
-            nonce: new BN(0),
-            value: new BN(123),
-            gasLimit: new BN(30000),
+            nonce: 0n,
+            value: 123n,
+            gasLimit: 30_000n,
             gasPrice: await getPendingBaseFeePerGas(this.provider),
             accessList: [
               [
@@ -401,11 +403,11 @@ describe("Eth module", function () {
             from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[1]),
             to: toBuffer(zeroAddress()),
             data: toBuffer("0x"),
-            nonce: new BN(0),
-            value: new BN(123),
-            gasLimit: new BN(30000),
+            nonce: 0n,
+            value: 123n,
+            gasLimit: 30_000n,
             maxFeePerGas,
-            maxPriorityFeePerGas: maxFeePerGas.divn(2),
+            maxPriorityFeePerGas: maxFeePerGas / 2n,
             accessList: [
               [
                 toBuffer(zeroAddress()),

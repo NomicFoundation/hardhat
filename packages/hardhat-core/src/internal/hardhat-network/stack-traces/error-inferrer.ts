@@ -1,6 +1,5 @@
-import { ERROR } from "@ethereumjs/vm/dist/exceptions";
+import { ERROR } from "@ethereumjs/evm/dist/exceptions";
 import { defaultAbiCoder as abi } from "@ethersproject/abi";
-import { BN } from "ethereumjs-util";
 import semver from "semver";
 
 import { AbiHelpers } from "../../util/abi-helpers";
@@ -493,7 +492,7 @@ export class ErrorInferrer {
     // if the error comes from a call to a zero-initialized function,
     // we remove the last frame, which represents the call, to avoid
     // having duplicated frames
-    if (errorCode.eqn(0x51)) {
+    if (errorCode === 0x51n) {
       stacktrace.splice(-1);
     }
 
@@ -762,7 +761,7 @@ export class ErrorInferrer {
       return false;
     }
 
-    if (trace.value.lten(0)) {
+    if (trace.value <= 0n) {
       return false;
     }
 
@@ -859,7 +858,7 @@ export class ErrorInferrer {
       return false;
     }
 
-    if (trace.value.lten(0)) {
+    if (trace.value <= 0n) {
       return false;
     }
 
@@ -913,7 +912,7 @@ export class ErrorInferrer {
     }
 
     return (
-      trace.value.gtn(0) &&
+      trace.value > 0n &&
       (constructor.isPayable === undefined || !constructor.isPayable)
     );
   }
@@ -1121,7 +1120,7 @@ export class ErrorInferrer {
   private _instructionWithinFunctionToPanicStackTraceEntry(
     trace: DecodedEvmMessageTrace,
     inst: Instruction,
-    errorCode: BN
+    errorCode: bigint
   ): PanicErrorStackTraceEntry {
     return {
       type: StackTraceEntryType.PANIC_ERROR,

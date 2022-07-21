@@ -1,6 +1,3 @@
-import { BN } from "ethereumjs-util";
-
-import { rpcQuantityToBN } from "../../../../../../../src/internal/core/jsonrpc/types/base-types";
 import { workaroundWindowsCiFailures } from "../../../../../../utils/workaround-windows-ci-failures";
 import { assertQuantity } from "../../../../helpers/assertions";
 import { setCWD } from "../../../../helpers/cwd";
@@ -30,9 +27,7 @@ describe("Eth module", function () {
                 false,
               ]);
 
-            const expectedGasPrice = rpcQuantityToBN(
-              nextBlockBaseFeePerGas
-            ).add(new BN(1e9));
+            const expectedGasPrice = BigInt(nextBlockBaseFeePerGas) + 10n ** 9n;
 
             assertQuantity(gasPrice, expectedGasPrice);
           });

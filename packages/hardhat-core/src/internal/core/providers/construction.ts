@@ -7,7 +7,6 @@ import type {
   HDAccountsUserConfig,
   HttpNetworkAccountsUserConfig,
   HttpNetworkConfig,
-  HttpNetworkUserConfig,
   NetworkConfig,
   ProjectPathsConfig,
 } from "../../../types";
@@ -113,7 +112,8 @@ export function createProvider(
       typeof import("./http"),
       "HttpProvider"
     >("./http", "HttpProvider");
-    const httpNetConfig = networkConfig as HttpNetworkUserConfig;
+    // ETHJSTODO double-check, but it looks like the previous version was a mistake
+    const httpNetConfig = networkConfig as HttpNetworkConfig;
 
     eip1193Provider = new HttpProvider(
       httpNetConfig.url!,

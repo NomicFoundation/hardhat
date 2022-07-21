@@ -1,11 +1,11 @@
-import Common from "@ethereumjs/common";
+import { Common } from "@ethereumjs/common";
 import {
   AccessListEIP2930Transaction,
   FeeMarketEIP1559Transaction,
   Transaction,
 } from "@ethereumjs/tx";
+import { intToBuffer, setLengthLeft, toBuffer } from "@ethereumjs/util";
 import { assert } from "chai";
-import { BN, toBuffer } from "ethereumjs-util";
 
 import {
   bufferToRpcData,
@@ -27,6 +27,7 @@ import {
   EIP1559RpcTransactionOutput,
   RpcBlockOutput,
 } from "../../../../../../src/internal/hardhat-network/provider/output";
+import { BigIntUtils } from "../../../../../../src/internal/util/bigint";
 
 describe("Eth module - hardfork dependant tests", function () {
   function useProviderAndCommon(hardfork: string) {
@@ -93,11 +94,13 @@ describe("Eth module - hardfork dependant tests", function () {
   }
 
   function getEffectiveGasPrice(
-    baseFee: BN,
-    maxFeePerGas: BN,
-    maxPriorityFeePerGas: BN
+    baseFee: bigint,
+    maxFeePerGas: bigint,
+    maxPriorityFeePerGas: bigint
   ) {
-    return BN.min(maxFeePerGas.sub(baseFee), maxPriorityFeePerGas).add(baseFee);
+    return (
+      BigIntUtils.min(maxFeePerGas - baseFee, maxPriorityFeePerGas) + baseFee
+    );
   }
 
   describe("Transaction, call and estimate gas validations", function () {
@@ -763,7 +766,7 @@ describe("Eth module - hardfork dependant tests", function () {
           it(`should have an effectiveGasPrice field for EIP-1559 txs when ${hardfork} is activated`, async function () {
             const [sender] = await this.provider.send("eth_accounts");
             const maxFeePerGas = await getPendingBaseFeePerGas(this.provider);
-            const maxPriorityPerGas = maxFeePerGas.divn(2);
+            const maxPriorityPerGas = maxFeePerGas / 2n;
 
             const tx = await this.provider.send("eth_sendTransaction", [
               {
@@ -884,7 +887,7 @@ describe("Eth module - hardfork dependant tests", function () {
           {
             from: DEFAULT_ACCOUNTS_ADDRESSES[0],
             to: impersonated,
-            value: numberToRpcQuantity(new BN("100000000000000000")),
+            value: numberToRpcQuantity(10n ** 17n),
           },
         ]);
         await this.provider.send("hardhat_impersonateAccount", [impersonated]);
@@ -918,7 +921,7 @@ describe("Eth module - hardfork dependant tests", function () {
             {
               from: DEFAULT_ACCOUNTS_ADDRESSES[0],
               to: impersonated,
-              value: numberToRpcQuantity(new BN("100000000000000000")),
+              value: numberToRpcQuantity(10n ** 17n),
             },
           ]);
           await this.provider.send("hardhat_impersonateAccount", [
@@ -1001,7 +1004,8 @@ describe("Eth module - hardfork dependant tests", function () {
     ];
 
     function abiEncodeUint(uint: number) {
-      return new BN(uint).toBuffer("be", 32).toString("hex");
+      // ETHJSTODO verify
+      return setLengthLeft(intToBuffer(uint), 32).toString("hex");
     }
 
     let contract: string;

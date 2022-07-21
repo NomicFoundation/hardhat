@@ -1,11 +1,9 @@
-import { BN } from "ethereumjs-util";
-
 import { EthereumProvider } from "../../../../src/types";
 import { rpcQuantityToBN } from "../../../../src/internal/core/jsonrpc/types/base-types";
 
 export async function getPendingBaseFeePerGas(
   provider: EthereumProvider
-): Promise<BN> {
+): Promise<bigint> {
   const pendingBlock = await provider.send("eth_getBlockByNumber", [
     "pending",
     false,

@@ -245,7 +245,9 @@ describe("AutomaticGasPriceProvider", () => {
         const expectedBaseFee = Math.floor(
           latestBaseFeeInMockedProvider *
             (9 / 8) **
-              AutomaticGasPriceProvider.EIP1559_BASE_FEE_MAX_FULL_BLOCKS_PREFERENCE
+              Number(
+                AutomaticGasPriceProvider.EIP1559_BASE_FEE_MAX_FULL_BLOCKS_PREFERENCE
+              )
         );
 
         const [tx] = mockedProvider.getLatestParams("eth_sendTransaction");
@@ -359,7 +361,7 @@ describe("AutomaticGasPriceProvider", () => {
 });
 
 describe("FixedGasProvider", () => {
-  const FIXED_GAS_LIMIT = 1233;
+  const FIXED_GAS_LIMIT = 1233n;
   let mockedProvider: MockedProvider;
   let provider: EIP1193Provider;
 
@@ -433,7 +435,7 @@ describe("FixedGasProvider", () => {
 });
 
 describe("FixedGasPriceProvider", () => {
-  const FIXED_GAS_PRICE = 1234;
+  const FIXED_GAS_PRICE = 1234n;
   let mockedProvider: MockedProvider;
   let provider: EIP1193Provider;
 

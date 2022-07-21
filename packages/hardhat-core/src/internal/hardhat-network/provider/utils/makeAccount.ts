@@ -1,22 +1,18 @@
-import {
-  Account,
-  Address,
-  BN,
-  privateToAddress,
-  toBuffer,
-} from "ethereumjs-util";
+import { Account, bufferToBigInt } from "@ethereumjs/util";
+import { Address, privateToAddress, toBuffer } from "ethereumjs-util";
 
 import { GenesisAccount } from "../node-types";
 
 import { isHexPrefixed } from "./isHexPrefixed";
 
 export function makeAccount(ga: GenesisAccount) {
-  let balance: BN;
+  let balance: bigint;
 
   if (typeof ga.balance === "string" && isHexPrefixed(ga.balance)) {
-    balance = new BN(toBuffer(ga.balance));
+    balance = bufferToBigInt(toBuffer(ga.balance));
   } else {
-    balance = new BN(ga.balance);
+    // ETHJSTODO not sure at all about this when ga.balance is a string
+    balance = BigInt(ga.balance);
   }
 
   const account = Account.fromAccountData({ balance });
