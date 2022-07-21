@@ -12,95 +12,95 @@ Follow these steps to migrate your project to Hardhat Toolbox.
 
 1. First you'll need to remove some packages from your project.
 
-    ::::tabsgroup{options="npm 7+,npm 6,yarn"}
+   ::::tabsgroup{options="npm 7+,npm 6,yarn"}
 
-    :::tab{value="npm 7+"}
+   :::tab{value="npm 7+"}
 
-    ```
-    npm uninstall @nomiclabs/hardhat-waffle ethereum-waffle @nomiclabs/hardhat-ethers @nomiclabs/hardhat-etherscan chai ethers hardhat-gas-reporter solidity-coverage @typechain/hardhat typechain @typechain/ethers-v5 @ethersproject/abi @ethersproject/providers
-    ```
+   ```
+   npm uninstall @nomiclabs/hardhat-waffle ethereum-waffle @nomiclabs/hardhat-ethers @nomiclabs/hardhat-etherscan chai ethers hardhat-gas-reporter solidity-coverage @typechain/hardhat typechain @typechain/ethers-v5 @ethersproject/abi @ethersproject/providers
+   ```
 
-    :::
+   :::
 
-    :::tab{value="npm 6"}
+   :::tab{value="npm 6"}
 
-    ```
-    npm uninstall @nomiclabs/hardhat-waffle ethereum-waffle @nomiclabs/hardhat-ethers @nomiclabs/hardhat-etherscan chai ethers hardhat-gas-reporter solidity-coverage @typechain/hardhat typechain @typechain/ethers-v5 @ethersproject/abi @ethersproject/providers
-    ```
+   ```
+   npm uninstall @nomiclabs/hardhat-waffle ethereum-waffle @nomiclabs/hardhat-ethers @nomiclabs/hardhat-etherscan chai ethers hardhat-gas-reporter solidity-coverage @typechain/hardhat typechain @typechain/ethers-v5 @ethersproject/abi @ethersproject/providers
+   ```
 
-    :::
+   :::
 
-    :::tab{value=yarn}
+   :::tab{value=yarn}
 
-    ```
-    yarn remove @nomiclabs/hardhat-waffle ethereum-waffle
-    ```
+   ```
+   yarn remove @nomiclabs/hardhat-waffle ethereum-waffle
+   ```
 
-    :::
+   :::
 
-    ::::
+   ::::
 
 2. Then you need to install the Toolbox. If you are using yarn or an old version of npm, you'll also have to install some other packages.
 
-    ::::tabsgroup{options="npm 7+,npm 6,yarn"}
+   ::::tabsgroup{options="npm 7+,npm 6,yarn"}
 
-    :::tab{value="npm 7+"}
+   :::tab{value="npm 7+"}
 
-    ```
-    npm install --save-dev @nomicfoundation/hardhat-toolbox
-    ```
+   ```
+   npm install --save-dev @nomicfoundation/hardhat-toolbox
+   ```
 
-    :::
+   :::
 
-    :::tab{value="npm 6"}
+   :::tab{value="npm 6"}
 
-    ```
-    npm install --save-dev @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat-network-helpers @nomicfoundation/hardhat-chai-matchers @nomiclabs/hardhat-ethers @nomiclabs/hardhat-etherscan chai ethers hardhat-gas-reporter solidity-coverage @typechain/hardhat typechain @typechain/ethers-v5 @ethersproject/abi @ethersproject/providers
-    ```
+   ```
+   npm install --save-dev @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat-network-helpers @nomicfoundation/hardhat-chai-matchers @nomiclabs/hardhat-ethers @nomiclabs/hardhat-etherscan chai ethers hardhat-gas-reporter solidity-coverage @typechain/hardhat typechain @typechain/ethers-v5 @ethersproject/abi @ethersproject/providers
+   ```
 
-    :::
+   :::
 
-    :::tab{value="yarn"}
+   :::tab{value="yarn"}
 
-    ```
-    yarn add --dev @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat-network-helpers @nomicfoundation/hardhat-chai-matchers @nomiclabs/hardhat-ethers @nomiclabs/hardhat-etherscan chai ethers hardhat-gas-reporter solidity-coverage @typechain/hardhat typechain @typechain/ethers-v5 @ethersproject/abi @ethersproject/providers
-    ```
+   ```
+   yarn add --dev @nomicfoundation/hardhat-toolbox @nomicfoundation/hardhat-network-helpers @nomicfoundation/hardhat-chai-matchers @nomiclabs/hardhat-ethers @nomiclabs/hardhat-etherscan chai ethers hardhat-gas-reporter solidity-coverage @typechain/hardhat typechain @typechain/ethers-v5 @ethersproject/abi @ethersproject/providers
+   ```
 
-    :::
+   :::
 
-    ::::
+   ::::
 
 3. Finally, remove `hardhat-waffle` from your imported plugins and import the Toolbox instead:
 
-    ::::tabsgroup{options=TypeScript,JavaScript}
+   ::::tabsgroup{options=TypeScript,JavaScript}
 
-    :::tab{value=TypeScript}
+   :::tab{value=TypeScript}
 
-    ```diff
-    - import "@nomiclabs/hardhat-waffle";
-    + import "@nomicfoundation/hardhat-toolbox";
-    ```
+   ```diff
+   - import "@nomiclabs/hardhat-waffle";
+   + import "@nomicfoundation/hardhat-toolbox";
+   ```
 
-    :::
+   :::
 
-    :::tab{value=JavaScript}
+   :::tab{value=JavaScript}
 
-    ```diff
-    - require("@nomiclabs/hardhat-waffle");
-    + require("@nomicfoundation/hardhat-toolbox");
-    ```
+   ```diff
+   - require("@nomiclabs/hardhat-waffle");
+   + require("@nomicfoundation/hardhat-toolbox");
+   ```
 
-    :::
+   :::
 
-    ::::
+   ::::
 
-    Adding the Toolbox will make many other imports redundant, so you can remove any of these if you want:
+   Adding the Toolbox will make many other imports redundant, so you can remove any of these if you want:
 
-    - `@nomiclabs/hardhat-ethers`
-    - `@nomiclabs/hardhat-etherscan`
-    - `hardhat-gas-reporter`
-    - `solidity-coverage`
-    - `@typechain/hardhat`
+   - `@nomiclabs/hardhat-ethers`
+   - `@nomiclabs/hardhat-etherscan`
+   - `hardhat-gas-reporter`
+   - `solidity-coverage`
+   - `@typechain/hardhat`
 
 Check the [Hardhat Chai Matchers] and [Hardhat Network Helpers] docs to learn more about the functionality included in the Toolbox.
 
