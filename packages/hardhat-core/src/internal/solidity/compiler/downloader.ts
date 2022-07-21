@@ -2,6 +2,7 @@ import path from "path";
 import fsExtra from "fs-extra";
 import debug from "debug";
 import os from "os";
+import { execFile } from "child_process";
 import { download } from "../../util/download";
 import { assertHardhatInvariant, HardhatError } from "../../core/errors";
 import { ERRORS } from "../../core/errors-list";
@@ -62,9 +63,11 @@ export interface ICompilerDownloader {
   /**
    * Returns the compiler, which MUST be downloaded before calling this function.
    *
+   * Returns undefined if the compiler has been downloaded but can't be run.
+   *
    * This function access the filesystem, but doesn't modify it.
    */
-  getCompiler(version: string): Promise<Compiler>;
+  getCompiler(version: string): Promise<Compiler | undefined>;
 }
 
 /**
@@ -184,7 +187,7 @@ export class CompilerDownloader implements ICompilerDownloader {
     });
   }
 
-  public async getCompiler(version: string): Promise<Compiler> {
+  public async getCompiler(version: string): Promise<Compiler | undefined> {
     const build = await this._getCompilerBuild(version);
 
     assertHardhatInvariant(
@@ -198,6 +201,10 @@ export class CompilerDownloader implements ICompilerDownloader {
       await fsExtra.pathExists(compilerPath),
       "Trying to get a compiler before it was downloaded"
     );
+
+    if (await fsExtra.pathExists(this._getCompilerDoesntWorkFile(build))) {
+      return undefined;
+    }
 
     return {
       version,
@@ -242,6 +249,10 @@ export class CompilerDownloader implements ICompilerDownloader {
     }
 
     return path.join(this._compilersDir, build.version, "solc.exe");
+  }
+
+  private _getCompilerDoesntWorkFile(build: CompilerBuild): string {
+    return `${this._getCompilerBinaryPathFromBuild(build)}.does.not.work`;
   }
 
   private async _shouldDownloadCompilerList(): Promise<boolean> {
@@ -299,28 +310,46 @@ export class CompilerDownloader implements ICompilerDownloader {
     build: CompilerBuild,
     downloadPath: string
   ): Promise<void> {
+    if (this._platform === CompilerPlatform.WASM) {
+      return;
+    }
+
     if (
       this._platform === CompilerPlatform.LINUX ||
       this._platform === CompilerPlatform.MACOS
     ) {
       fsExtra.chmodSync(downloadPath, 0o755);
-      return;
-    }
-
-    // some window builds are zipped, some are not
-    if (
+    } else if (
       this._platform !== CompilerPlatform.WINDOWS &&
-      !downloadPath.endsWith(".zip")
+      downloadPath.endsWith(".zip")
     ) {
+      // some window builds are zipped, some are not
+      const { default: AdmZip } = await import("adm-zip");
+
+      const solcFolder = path.join(this._compilersDir, build.version);
+      await fsExtra.ensureDir(solcFolder);
+
+      const zip = new AdmZip(downloadPath);
+      zip.extractAllTo(solcFolder);
+    }
+
+    log("Checking native solc binary");
+    const nativeSolcWorks = await this._checkNativeSolc(build);
+
+    if (nativeSolcWorks) {
       return;
     }
 
-    const { default: AdmZip } = await import("adm-zip");
+    await fsExtra.createFile(this._getCompilerDoesntWorkFile(build));
+  }
 
-    const solcFolder = path.join(this._compilersDir, build.version);
-    await fsExtra.ensureDir(solcFolder);
-
-    const zip = new AdmZip(downloadPath);
-    zip.extractAllTo(solcFolder);
+  private _checkNativeSolc(build: CompilerBuild) {
+    const solcPath = this._getCompilerBinaryPathFromBuild(build);
+    return new Promise((resolve) => {
+      const process = execFile(solcPath, ["--version"]);
+      process.on("exit", (code) => {
+        resolve(code === 0);
+      });
+    });
   }
 }

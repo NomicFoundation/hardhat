@@ -1,6 +1,5 @@
 import os from "os";
 import chalk from "chalk";
-import { exec } from "child_process";
 import debug from "debug";
 import fsExtra from "fs-extra";
 import path from "path";
@@ -559,19 +558,13 @@ subtask(TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD)
 
       const compiler = await downloader.getCompiler(solcVersion);
 
-      if (compiler.isSolcJs) {
+      if (compiler !== undefined) {
         return compiler;
       }
 
-      log("Checking native solc binary");
-
-      const solcBinaryWorks = await checkSolcBinary(compiler.compilerPath);
-
-      if (solcBinaryWorks) {
-        return compiler;
-      }
-
-      log("Native solc binary doesn't work, using solcjs instead");
+      log(
+        "Native solc binary doesn't work, using solcjs instead. Try running npx hardhat clean --global"
+      );
 
       const wasmDownloader = new CompilerDownloader(
         CompilerPlatform.WASM,
@@ -597,7 +590,8 @@ subtask(TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD)
         });
       }
 
-      return downloader.getCompiler(solcVersion);
+      // wasm compilers always work
+      return (await downloader.getCompiler(solcVersion))!;
     }
   );
 
@@ -1473,15 +1467,6 @@ function hasCompilationErrors(output: any): boolean {
   return (
     output.errors && output.errors.some((x: any) => x.severity === "error")
   );
-}
-
-async function checkSolcBinary(solcPath: string): Promise<boolean> {
-  return new Promise((resolve) => {
-    const process = exec(`${solcPath} --version`);
-    process.on("exit", (code) => {
-      resolve(code === 0);
-    });
-  });
 }
 
 /**
