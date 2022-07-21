@@ -57,7 +57,7 @@ export class SolidityFilesCache {
       _format: FORMAT_VERSION,
       files: {},
     };
-    if (fsExtra.existsSync(solidityFilesCachePath)) {
+    if (await fsExtra.pathExists(solidityFilesCachePath)) {
       cacheRaw = await fsExtra.readJson(solidityFilesCachePath);
     }
 
@@ -80,12 +80,13 @@ export class SolidityFilesCache {
   constructor(private _cache: Cache) {}
 
   public async removeNonExistingFiles() {
-    for (const absolutePath of Object.keys(this._cache.files)) {
-      if (!fsExtra.existsSync(absolutePath)) {
-        this.removeEntry(absolutePath);
-        continue;
-      }
-    }
+    await Promise.all(
+      Object.keys(this._cache.files).map(async (absolutePath) => {
+        if (!(await fsExtra.pathExists(absolutePath))) {
+          this.removeEntry(absolutePath);
+        }
+      })
+    );
   }
 
   public async writeToFile(solidityFilesCachePath: string) {
