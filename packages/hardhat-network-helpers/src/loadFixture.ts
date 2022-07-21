@@ -14,6 +14,7 @@ interface Snapshot<T> {
   data: T;
 }
 
+let inFixture: boolean = false;
 const snapshots: Array<Snapshot<any>> = [];
 
 /**
@@ -28,6 +29,23 @@ const snapshots: Array<Snapshot<any>> = [];
  * - Incorrect usage: `loadFixture(async () => { ... })`
  */
 export async function loadFixture<T>(fixture: Fixture<T>): Promise<T> {
+  if(inFixture) {
+    return fixture();
+  }
+
+  inFixture = true;
+  try {
+    // Do not optimize this await away because otherwise the try-catch
+    // won't work.
+    return await loadFixtureHelper(fixture);
+  } catch(e) {
+    throw e;
+  } finally {
+    inFixture = false;
+  }
+}
+
+async function loadFixtureHelper<T>(fixture: Fixture<T>): Promise<T> {
   if (fixture.name === "") {
     throw new FixtureAnonymousFunctionError();
   }
