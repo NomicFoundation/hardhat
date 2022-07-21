@@ -116,7 +116,7 @@ export class SolidityFilesCache {
     contentHash: string,
     solcConfig?: SolcConfig
   ): boolean {
-    const { isEqual }: LoDashStatic = require("lodash");
+    const isEqual = require("lodash/isEqual") as LoDashStatic["isEqual"];
 
     const cacheEntry = this.getEntry(absolutePath);
 
