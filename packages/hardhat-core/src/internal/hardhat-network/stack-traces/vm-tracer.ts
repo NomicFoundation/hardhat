@@ -1,10 +1,9 @@
-import { bufferToInt } from "@ethereumjs/util";
-import { VM } from "@ethereumjs/vm";
 import { EVMResult } from "@ethereumjs/evm";
 import { InterpreterStep } from "@ethereumjs/evm/dist/interpreter";
 import { Message } from "@ethereumjs/evm/dist/message";
 import { precompiles } from "@ethereumjs/evm/dist/precompiles";
-import { Address } from "ethereumjs-util";
+import { Address, bufferToInt } from "@ethereumjs/util";
+import { VM } from "@ethereumjs/vm";
 
 import {
   CallMessageTrace,

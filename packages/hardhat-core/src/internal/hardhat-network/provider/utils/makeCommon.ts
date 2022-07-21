@@ -1,5 +1,5 @@
 import { Common } from "@ethereumjs/common";
-import { bufferToHex } from "ethereumjs-util";
+import { bufferToHex } from "@ethereumjs/util";
 
 import { dateToTimestampSeconds } from "../../../util/date";
 import { LocalNodeConfig } from "../node-types";

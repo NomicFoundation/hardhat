@@ -1,5 +1,5 @@
+import { zeroAddress } from "@ethereumjs/util";
 import { assert } from "chai";
-import { zeroAddress } from "ethereumjs-util";
 import sinon from "sinon";
 
 import {

@@ -1,6 +1,5 @@
-import { bufferToBigInt } from "@ethereumjs/util";
+import { bufferToBigInt, toBuffer } from "@ethereumjs/util";
 import { assert } from "chai";
-import { toBuffer } from "ethereumjs-util";
 import fsExtra from "fs-extra";
 import sinon from "sinon";
 

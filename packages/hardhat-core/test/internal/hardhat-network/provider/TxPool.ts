@@ -1,8 +1,7 @@
 import { Common } from "@ethereumjs/common";
 import { StateManager, DefaultStateManager } from "@ethereumjs/statemanager";
-import { Account } from "@ethereumjs/util";
+import { Account, Address, bufferToHex, toBuffer } from "@ethereumjs/util";
 import { assert } from "chai";
-import { Address, bufferToHex, toBuffer } from "ethereumjs-util";
 
 import { InvalidInputError } from "../../../../src/internal/core/providers/errors";
 import { randomAddress } from "../../../../src/internal/hardhat-network/provider/fork/random";

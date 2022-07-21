@@ -1,8 +1,13 @@
 import { TxData } from "@ethereumjs/tx";
-import { bufferToBigInt } from "@ethereumjs/util";
+import {
+  AddressLike,
+  arrToBufArr,
+  bufferToBigInt,
+  bufferToHex,
+} from "@ethereumjs/util";
 import { assert } from "chai";
-import { AddressLike, keccak256, bufferToHex } from "ethereumjs-util";
 import { randomBytes } from "crypto";
+import { keccak256 } from "ethereum-cryptography/keccak";
 
 import {
   AccessListEIP2930TxData,
@@ -34,10 +39,10 @@ const SEED = randomBytes(8);
 let lastValue = keccak256(SEED);
 function weakRandomComparator(_left: unknown, _right: unknown) {
   lastValue = keccak256(lastValue);
-  const leftRandomId = bufferToBigInt(lastValue);
+  const leftRandomId = bufferToBigInt(arrToBufArr(lastValue));
 
   lastValue = keccak256(lastValue);
-  const rightRandomId = bufferToBigInt(lastValue);
+  const rightRandomId = bufferToBigInt(arrToBufArr(lastValue));
 
   return BigIntUtils.cmp(leftRandomId, rightRandomId);
 }

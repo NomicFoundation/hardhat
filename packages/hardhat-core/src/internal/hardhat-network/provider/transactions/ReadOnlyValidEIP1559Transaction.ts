@@ -1,6 +1,6 @@
 import { Common } from "@ethereumjs/common";
 import { FeeMarketEIP1559Transaction, TxOptions } from "@ethereumjs/tx";
-import { Address } from "ethereumjs-util";
+import { Address } from "@ethereumjs/util";
 
 import {
   FeeMarketEIP1559TxData,
@@ -8,7 +8,6 @@ import {
 } from "@ethereumjs/tx/src/types";
 import { InternalError } from "../../../core/providers/errors";
 import { LONDON_EIPS } from "../../../util/hardforks";
-import { BigIntUtils } from "../../../util/bigint";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 

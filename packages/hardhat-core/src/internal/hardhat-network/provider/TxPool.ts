@@ -1,8 +1,12 @@
 import { Common } from "@ethereumjs/common";
 import { TransactionFactory, TypedTransaction } from "@ethereumjs/tx";
 import { StateManager } from "@ethereumjs/statemanager";
-import { Address, bufferToBigInt } from "@ethereumjs/util";
-import { bufferToHex, toBuffer } from "ethereumjs-util";
+import {
+  Address,
+  bufferToBigInt,
+  bufferToHex,
+  toBuffer,
+} from "@ethereumjs/util";
 import { List as ImmutableList, Record as ImmutableRecord } from "immutable";
 
 import { InvalidInputError } from "../../core/providers/errors";

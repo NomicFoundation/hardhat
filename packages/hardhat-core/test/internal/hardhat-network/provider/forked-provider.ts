@@ -1,6 +1,5 @@
-import { bufferToBigInt } from "@ethereumjs/util";
+import { bufferToBigInt, bufferToHex, toBuffer } from "@ethereumjs/util";
 import { assert } from "chai";
-import { bufferToHex, toBuffer } from "ethereumjs-util";
 
 import {
   numberToRpcQuantity,

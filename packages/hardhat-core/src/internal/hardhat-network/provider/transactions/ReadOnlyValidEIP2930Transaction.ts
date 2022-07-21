@@ -5,7 +5,7 @@ import {
   AccessListEIP2930ValuesArray,
   TxOptions,
 } from "@ethereumjs/tx";
-import { Address } from "ethereumjs-util";
+import { Address } from "@ethereumjs/util";
 
 import { InternalError } from "../../../core/providers/errors";
 import { BERLIN_EIPS } from "../../../util/hardforks";

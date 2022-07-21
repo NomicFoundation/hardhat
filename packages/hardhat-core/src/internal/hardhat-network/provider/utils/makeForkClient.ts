@@ -1,6 +1,5 @@
-import { bufferToBigInt } from "@ethereumjs/util";
+import { bufferToBigInt, toBuffer } from "@ethereumjs/util";
 import chalk from "chalk";
-import { toBuffer } from "ethereumjs-util";
 
 import { HARDHAT_NETWORK_NAME } from "../../../constants";
 import {

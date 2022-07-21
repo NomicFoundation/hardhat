@@ -1,5 +1,5 @@
 import { Transaction, TxData } from "@ethereumjs/tx";
-import { Address, AddressLike, bufferToHex } from "ethereumjs-util";
+import { Address, AddressLike, bufferToHex } from "@ethereumjs/util";
 
 import {
   AccessListEIP2930TxData,

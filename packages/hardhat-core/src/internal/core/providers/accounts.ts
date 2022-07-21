@@ -44,7 +44,7 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
 
   public async request(args: RequestArguments): Promise<unknown> {
     const { ecsign, hashPersonalMessage, toRpcSig, toBuffer, bufferToHex } =
-      await import("ethereumjs-util");
+      await import("@ethereumjs/util");
 
     if (
       args.method === "eth_accounts" ||
@@ -192,7 +192,7 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
       bufferToHex,
       toBuffer,
       privateToAddress,
-    } = require("ethereumjs-util");
+    } = require("@ethereumjs/util");
 
     const privateKeys: Buffer[] = localAccountsHexPrivateKeys.map((h) =>
       toBuffer(h)
@@ -205,7 +205,7 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
   }
 
   private _getPrivateKeyForAddress(address: Buffer): Buffer {
-    const { bufferToHex } = require("ethereumjs-util");
+    const { bufferToHex } = require("@ethereumjs/util");
     const pk = this._addressToPrivateKey.get(bufferToHex(address));
     if (pk === undefined) {
       throw new HardhatError(ERRORS.NETWORK.NOT_LOCAL_ACCOUNT, {
@@ -225,7 +225,7 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
   }
 
   private async _getNonce(address: Buffer): Promise<bigint> {
-    const { bufferToHex } = await import("ethereumjs-util");
+    const { bufferToHex } = await import("@ethereumjs/util");
 
     const response = (await this._wrappedProvider.request({
       method: "eth_getTransactionCount",
@@ -320,7 +320,7 @@ export class HDWalletProvider extends LocalAccountsProvider {
       passphrase
     );
 
-    const { bufferToHex } = require("ethereumjs-util");
+    const { bufferToHex } = require("@ethereumjs/util");
     const privateKeysAsHex = privateKeys.map((pk) => bufferToHex(pk));
     super(provider, privateKeysAsHex);
   }

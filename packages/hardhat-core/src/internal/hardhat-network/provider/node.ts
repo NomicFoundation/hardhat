@@ -6,6 +6,17 @@ import {
   Transaction,
   TypedTransaction,
 } from "@ethereumjs/tx";
+import {
+  Address,
+  ECDSASignature,
+  bigIntToBuffer,
+  bufferToHex,
+  ecsign,
+  hashPersonalMessage,
+  privateToAddress,
+  setLengthLeft,
+  toBuffer,
+} from "@ethereumjs/util";
 import { Bloom, RunBlockResult, VM } from "@ethereumjs/vm";
 import { EVMResult } from "@ethereumjs/evm";
 import { ERROR } from "@ethereumjs/evm/dist/exceptions";
@@ -13,15 +24,6 @@ import { DefaultStateManager, StateManager } from "@ethereumjs/statemanager";
 import { SignTypedDataVersion, signTypedData } from "@metamask/eth-sig-util";
 import chalk from "chalk";
 import debug from "debug";
-import {
-  Address,
-  bufferToHex,
-  ECDSASignature,
-  ecsign,
-  hashPersonalMessage,
-  privateToAddress,
-  toBuffer,
-} from "ethereumjs-util";
 import EventEmitter from "events";
 
 import { BigIntUtils } from "../../util/bigint";
@@ -113,7 +115,6 @@ import { makeStateTrie } from "./utils/makeStateTrie";
 import { makeForkCommon } from "./utils/makeForkCommon";
 import { putGenesisBlock } from "./utils/putGenesisBlock";
 import { txMapToArray } from "./utils/txMapToArray";
-import { bigIntToBuffer, setLengthLeft } from "@ethereumjs/util";
 
 type ExecResult = EVMResult["execResult"];
 

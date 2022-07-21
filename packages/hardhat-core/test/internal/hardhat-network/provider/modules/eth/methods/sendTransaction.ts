@@ -1,5 +1,5 @@
+import { bufferToHex, zeroAddress } from "@ethereumjs/util";
 import { assert } from "chai";
-import { bufferToHex, zeroAddress } from "ethereumjs-util";
 import { Client } from "undici";
 
 import {

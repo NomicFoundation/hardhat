@@ -1,6 +1,7 @@
 import { Common } from "@ethereumjs/common";
 import { Transaction, TxData, TxOptions } from "@ethereumjs/tx";
-import { Address, rlp } from "ethereumjs-util";
+import { Address } from "@ethereumjs/util";
+import * as rlp from "rlp";
 
 import { InternalError } from "../../../core/providers/errors";
 
@@ -57,7 +58,8 @@ export class FakeSenderTransaction extends Transaction {
       throw new Error("Invalid serialized tx input. Must be array");
     }
 
-    return this.fromSenderAndValuesArray(sender, values, opts);
+    // ETHJSTODO find out how rlp.decode is meant to be used
+    return this.fromSenderAndValuesArray(sender, values as any, opts);
   }
 
   public static fromSenderAndValuesArray(

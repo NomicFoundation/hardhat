@@ -9838,7 +9838,7 @@ ripemd160@^2.0.0, ripemd160@^2.0.1, ripemd160@^2.0.2:
     hash-base "^3.0.0"
     inherits "^2.0.1"
 
-rlp@4.0.0-beta.2:
+rlp@4.0.0-beta.2, rlp@^4.0.0-beta.2:
   version "4.0.0-beta.2"
   resolved "https://registry.yarnpkg.com/rlp/-/rlp-4.0.0-beta.2.tgz#a13ee0124426ae99c9112cf417c9cb265543f903"
   integrity sha512-XWsr6lJiBdZIBh006tmYujbEgc6ZC7UYcs/zvFfgQykbpJ6pF8kseNTbxuffdR9ylZOJ9d0gvtqh00YLOZXFTQ==

@@ -11,7 +11,7 @@ import {
   toBuffer,
   toRpcSig,
   zeroAddress,
-} from "ethereumjs-util";
+} from "@ethereumjs/util";
 import * as t from "io-ts";
 import cloneDeep from "lodash/cloneDeep";
 

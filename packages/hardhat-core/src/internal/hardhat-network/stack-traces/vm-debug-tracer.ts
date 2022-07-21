@@ -3,8 +3,12 @@ import { VM } from "@ethereumjs/vm";
 import { EVMResult } from "@ethereumjs/evm";
 import { InterpreterStep } from "@ethereumjs/evm/dist/interpreter";
 import { Message } from "@ethereumjs/evm/dist/message";
-import { bufferToBigInt } from "@ethereumjs/util";
-import { Address, setLengthLeft, toBuffer } from "ethereumjs-util";
+import {
+  Address,
+  bufferToBigInt,
+  setLengthLeft,
+  toBuffer,
+} from "@ethereumjs/util";
 
 import { assertHardhatInvariant } from "../../core/errors";
 import { RpcDebugTracingConfig } from "../../core/jsonrpc/types/input/debugTraceTransaction";

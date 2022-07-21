@@ -4,8 +4,8 @@ import {
   FeeMarketEIP1559ValuesArray,
   TxOptions,
 } from "@ethereumjs/tx/dist/types";
-import { bufferToInt } from "@ethereumjs/util";
-import { Address, rlp } from "ethereumjs-util";
+import { Address, bufferToInt } from "@ethereumjs/util";
+import * as rlp from "rlp";
 
 import {
   InternalError,

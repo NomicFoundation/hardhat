@@ -1,6 +1,6 @@
+import { toBuffer } from "@ethereumjs/util";
 import { VM } from "@ethereumjs/vm";
 import { assert } from "chai";
-import { toBuffer } from "ethereumjs-util";
 import fs from "fs";
 import path from "path";
 import semver from "semver";

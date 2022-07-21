@@ -1,5 +1,9 @@
-import { bufferToBigInt } from "@ethereumjs/util";
-import { bufferToHex, isValidAddress, toBuffer } from "ethereumjs-util";
+import {
+  bufferToBigInt,
+  bufferToHex,
+  isValidAddress,
+  toBuffer,
+} from "@ethereumjs/util";
 import * as t from "io-ts";
 
 import { BigIntUtils } from "../../../util/bigint";

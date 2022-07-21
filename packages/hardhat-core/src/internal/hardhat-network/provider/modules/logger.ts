@@ -1,8 +1,8 @@
 import { Block } from "@ethereumjs/block";
 import { TypedTransaction } from "@ethereumjs/tx";
+import { bufferToHex } from "@ethereumjs/util";
 import ansiEscapes from "ansi-escapes";
 import chalk, { Chalk } from "chalk";
-import { bufferToHex } from "ethereumjs-util";
 import util from "util";
 
 import { assertHardhatInvariant } from "../../../core/errors";

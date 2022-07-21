@@ -1,13 +1,14 @@
 import { Common } from "@ethereumjs/common";
 import { Transaction } from "@ethereumjs/tx";
-import { bufferToBigInt, bigIntToBuffer } from "@ethereumjs/util";
-import { assert } from "chai";
 import {
+  bigIntToBuffer,
+  bufferToBigInt,
   bufferToHex,
   setLengthLeft,
   toBuffer,
   zeroAddress,
-} from "ethereumjs-util";
+} from "@ethereumjs/util";
+import { assert } from "chai";
 
 import {
   numberToRpcQuantity,

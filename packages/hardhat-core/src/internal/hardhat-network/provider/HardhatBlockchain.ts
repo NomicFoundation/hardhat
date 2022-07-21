@@ -1,7 +1,7 @@
 import { Block } from "@ethereumjs/block";
 import { Common } from "@ethereumjs/common";
 import { TypedTransaction } from "@ethereumjs/tx";
-import { zeros } from "ethereumjs-util";
+import { zeros } from "@ethereumjs/util";
 
 import { BlockchainBase } from "./BlockchainBase";
 import { FilterParams } from "./node-types";

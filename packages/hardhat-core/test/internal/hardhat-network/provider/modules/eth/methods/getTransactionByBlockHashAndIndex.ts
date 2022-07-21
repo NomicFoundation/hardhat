@@ -1,5 +1,5 @@
+import { setLengthLeft, toBuffer, zeroAddress } from "@ethereumjs/util";
 import { assert } from "chai";
-import { setLengthLeft, toBuffer, zeroAddress } from "ethereumjs-util";
 
 import { numberToRpcQuantity } from "../../../../../../../src/internal/core/jsonrpc/types/base-types";
 import { TransactionParams } from "../../../../../../../src/internal/hardhat-network/provider/node-types";
