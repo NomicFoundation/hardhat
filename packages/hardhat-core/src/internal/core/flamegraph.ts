@@ -12,7 +12,7 @@ export interface Flamegraph {
 export function profileToFlamegraph(profile: TaskProfile): Flamegraph {
   assertHardhatInvariant(
     profile.end !== undefined,
-    "Formatting invalid task profile. No end was recorded."
+    `Formatting invalid task profile for ${profile.name}. No end was recorded.`
   );
 
   return {
