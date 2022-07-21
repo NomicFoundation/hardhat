@@ -24,9 +24,6 @@ const snapshots: Array<Snapshot<any>> = [];
  * executing the function again, the blockchain will be restored to that
  * snapshot.
  *
- * _Warning_: don't use `loadFixture` with an anonymous function, otherwise the
- * function will be executed each time instead of using snapshots:
- *
  * - Correct usage: `loadFixture(deployTokens)`
  * - Incorrect usage: `loadFixture(async () => { ... })`
  */
