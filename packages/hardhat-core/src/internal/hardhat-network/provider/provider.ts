@@ -25,9 +25,9 @@ import {
   MethodNotSupportedError,
   ProviderError,
 } from "../../core/providers/errors";
-import { FIRST_SOLC_VERSION_SUPPORTED } from "../stack-traces/solidityTracer";
 import { Mutex } from "../../vendor/await-semaphore";
 
+import { FIRST_SOLC_VERSION_SUPPORTED } from "../stack-traces/constants";
 import { MiningTimer } from "./MiningTimer";
 import { DebugModule } from "./modules/debug";
 import { EthModule } from "./modules/eth";
