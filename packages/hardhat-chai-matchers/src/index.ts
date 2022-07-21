@@ -2,7 +2,7 @@ import "@nomiclabs/hardhat-ethers";
 
 import "./types";
 
-import { checkIfWaffleIsInstalled } from "./internal/checkIfWaffleIsInstalled";
+import { hardhatWaffleIncompatibilityCheck } from "./internal/hardhatWaffleIncompatibilityCheck";
 import "./internal/add-chai-matchers";
 
-checkIfWaffleIsInstalled();
+hardhatWaffleIncompatibilityCheck();
