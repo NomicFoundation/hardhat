@@ -2,6 +2,11 @@ import path from "path";
 
 import { HardhatError } from "../internal/core/errors";
 import { ERRORS } from "../internal/core/errors-list";
+import {
+  fileExistsWithExactCasing,
+  FileNotFoundError,
+  getRealCase,
+} from "../internal/util/fs-utils";
 
 const NODE_MODULES = "node_modules";
 
@@ -73,20 +78,8 @@ export async function isLocalSourceName(
   const firstDirOrFileName =
     slashIndex !== -1 ? sourceName.substring(0, slashIndex) : sourceName;
 
-  try {
-    await getPathTrueCase(projectRoot, firstDirOrFileName);
-  } catch (error) {
-    if (
-      HardhatError.isHardhatErrorType(error, ERRORS.SOURCE_NAMES.FILE_NOT_FOUND)
-    ) {
-      return false;
-    }
-
-    // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
-    throw error;
-  }
-
-  return true;
+  const absolutePathToFirstName = path.join(projectRoot, firstDirOrFileName);
+  return fileExistsWithExactCasing(absolutePathToFirstName);
 }
 
 /**
@@ -193,25 +186,19 @@ export function replaceBackslashes(str: string): string {
  * `p` doesn't exist. `p` MUST be in source name format.
  */
 async function getPathTrueCase(fromDir: string, p: string): Promise<string> {
-  const { trueCasePath } = await import("true-case-path");
-
   try {
-    const tcp = await trueCasePath(p, fromDir);
+    const absolute = path.join(fromDir, p);
+    const tcp = await getRealCase(absolute);
     return normalizeSourceName(path.relative(fromDir, tcp));
   } catch (error) {
-    if (error instanceof Error) {
-      if (
-        typeof error.message === "string" &&
-        error.message.includes("no matching file exists")
-      ) {
-        throw new HardhatError(
-          ERRORS.SOURCE_NAMES.FILE_NOT_FOUND,
-          {
-            name: p,
-          },
-          error
-        );
-      }
+    if (error instanceof FileNotFoundError) {
+      throw new HardhatError(
+        ERRORS.SOURCE_NAMES.FILE_NOT_FOUND,
+        {
+          name: p,
+        },
+        error
+      );
     }
 
     // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error

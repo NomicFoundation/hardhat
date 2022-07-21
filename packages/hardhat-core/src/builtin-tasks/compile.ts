@@ -2,7 +2,6 @@ import os from "os";
 import chalk from "chalk";
 import debug from "debug";
 import fsExtra from "fs-extra";
-import path from "path";
 import semver from "semver";
 import AggregateError from "aggregate-error";
 
@@ -27,7 +26,6 @@ import {
 import { DependencyGraph } from "../internal/solidity/dependencyGraph";
 import { Parser } from "../internal/solidity/parse";
 import { ResolvedFile, Resolver } from "../internal/solidity/resolver";
-import { glob } from "../internal/util/glob";
 import { getCompilersDir } from "../internal/util/global-dir";
 import { pluralize } from "../internal/util/strings";
 import { Artifacts, CompilerInput, CompilerOutput, SolcBuild } from "../types";
@@ -41,6 +39,7 @@ import {
 import { getFullyQualifiedName } from "../utils/contract-names";
 import { localPathToSourceName } from "../utils/source-names";
 
+import { getAllFilesMatching } from "../internal/util/fs-utils";
 import {
   TASK_COMPILE,
   TASK_COMPILE_GET_COMPILATION_TASKS,
@@ -116,7 +115,9 @@ const DEFAULT_CONCURRENCY_LEVEL = Math.max(os.cpus().length - 1, 1);
 subtask(
   TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS,
   async (_, { config }): Promise<string[]> => {
-    const paths = await glob(path.join(config.paths.sources, "**/*.sol"));
+    const paths = await getAllFilesMatching(config.paths.sources, (f) =>
+      f.endsWith(".sol")
+    );
 
     return paths;
   }

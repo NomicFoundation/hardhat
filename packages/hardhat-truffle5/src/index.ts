@@ -5,7 +5,7 @@ import {
 } from "hardhat/builtin-tasks/task-names";
 import { extendEnvironment, subtask } from "hardhat/config";
 import { normalizeHardhatNetworkAccountsConfig } from "hardhat/internal/core/providers/util";
-import { glob } from "hardhat/internal/util/glob";
+import { getAllFilesMatching } from "hardhat/internal/util/fs-utils";
 import {
   HARDHAT_NETWORK_NAME,
   lazyFunction,
@@ -179,7 +179,11 @@ subtask(
   TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS,
   async (_, { config }, runSuper) => {
     const sources = await runSuper();
-    const testSources = await glob(join(config.paths.tests, "**", "*.sol"));
+
+    const testSources = await getAllFilesMatching(config.paths.tests, (f) =>
+      f.endsWith(".sol")
+    );
+
     return [...sources, ...testSources];
   }
 );
