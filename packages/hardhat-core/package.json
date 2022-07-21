@@ -129,7 +129,6 @@
     "immutable": "^4.0.0-rc.12",
     "io-ts": "1.10.4",
     "lodash": "^4.17.11",
-    "merkle-patricia-tree": "^4.2.4",
     "mnemonist": "^0.38.0",
     "mocha": "^10.0.0",
     "p-map": "^4.0.0",
