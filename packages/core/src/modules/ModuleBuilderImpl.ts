@@ -30,7 +30,7 @@ export class ModuleBuilderImpl implements ModuleBuilder {
   private _executors: Executor[] = [];
   private _knownModules: Map<string, [UserModule<any>, any]> = new Map();
 
-  constructor() {}
+  constructor(public chainId: number) {}
 
   public getModuleId(): string {
     if (this._currentModuleId === undefined) {

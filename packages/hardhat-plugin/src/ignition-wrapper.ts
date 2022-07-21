@@ -49,6 +49,7 @@ export class IgnitionWrapper {
    */
   public async deployMany(userModulesOrNames: Array<UserModule<any> | string>) {
     const userModules: Array<UserModule<any>> = [];
+
     for (const userModuleOrName of userModulesOrNames) {
       const userModule: UserModule<any> =
         typeof userModuleOrName === "string"
@@ -191,6 +192,7 @@ export class IgnitionWrapper {
       this._paths.deployments,
       String(chainId)
     );
+
     fsExtra.ensureDirSync(deploymentsDirectory);
 
     const moduleResultPath = path.join(

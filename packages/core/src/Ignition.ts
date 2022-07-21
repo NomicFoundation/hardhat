@@ -34,7 +34,9 @@ export class Ignition {
   ): Promise<[DeploymentResult, ModulesOutputs]> {
     log(`Start deploy, '${userModules.length}' modules`);
 
-    const m = new ModuleBuilderImpl();
+    const chainId = await this._getChainId();
+
+    const m = new ModuleBuilderImpl(chainId);
 
     const modulesOutputs: ModulesOutputs = {};
 
@@ -80,7 +82,9 @@ export class Ignition {
   ): Promise<DeploymentPlan> {
     log(`Start building plan, '${userModules.length}' modules`);
 
-    const m = new ModuleBuilderImpl();
+    const chainId = await this._getChainId();
+
+    const m = new ModuleBuilderImpl(chainId);
 
     for (const userModule of userModules) {
       log("Load module '%s'", userModule.id);
@@ -91,5 +95,13 @@ export class Ignition {
     const executionGraph = m.buildExecutionGraph();
 
     return ExecutionEngine.buildPlan(executionGraph, this._modulesResults);
+  }
+
+  private async _getChainId(): Promise<number> {
+    const result = await this._providers.ethereumProvider.request({
+      method: "eth_chainId",
+    });
+
+    return Number(result);
   }
 }

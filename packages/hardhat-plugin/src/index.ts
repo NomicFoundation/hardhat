@@ -101,6 +101,7 @@ extendEnvironment((hre) => {
     const pathToJournal = isHardhatNetwork
       ? undefined
       : path.resolve(hre.config.paths.root, "ignition-journal.json");
+
     const txPollingInterval = isHardhatNetwork ? 100 : 5000;
 
     return new IgnitionWrapper(

@@ -91,3 +91,21 @@ const contract = m.contract("Contract", {
 ```
 
 A library is deployed in the same way as a contract.
+
+### Using the network chain id
+
+The module builder (`m`) exposes the chain id of the network in which the contracts are being deployed. This is useful if you need to do different things depending on the network.
+
+```tsx
+const userModule = buildModule("MyModule", (m) => {
+  const daiAddresses = {
+    1: "0x123...", // mainnet DAI
+    4: "0x234...", // rinkeby DAI
+  }
+
+  const daiAddress = daiAddresses[m.chainId];
+  const myContract = m.contract("MyContract", {
+    args: [daiAddress]
+  });
+});
+```

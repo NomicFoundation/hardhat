@@ -18,6 +18,8 @@ export interface UserCallOptions {
 }
 
 export interface ModuleBuilder {
+  chainId: number;
+
   getModuleId: () => string;
   addExecutor: (executor: Executor) => void;
 
