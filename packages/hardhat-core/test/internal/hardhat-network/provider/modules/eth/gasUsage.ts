@@ -41,7 +41,6 @@ describe("Eth module", function () {
             [firstTxHash]
           );
 
-          // ETHJSTODO check that BigInt always can be used for rpc quantities
           const gasUsedBefore = BigInt(firstReceipt.gasUsed);
 
           const secondTxHash = await this.provider.send("eth_sendTransaction", [
