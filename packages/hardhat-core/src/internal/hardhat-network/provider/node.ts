@@ -836,8 +836,6 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     positionIndex: bigint,
     blockNumberOrPending: bigint | "pending"
   ): Promise<Buffer> {
-    // ETHJSTODO .toArrayLike, not sure at all
-    // const key = positionIndex.toArrayLike(Buffer, "be", 32);
     const key = setLengthLeft(bigIntToBuffer(positionIndex), 32);
 
     const data = await this._runInBlockContext(blockNumberOrPending, () =>
@@ -1318,9 +1316,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   ) {
     await this._stateManager.putContractStorage(
       address,
-      // ETHJSTODO .toArrayLike, not sure at all
-      // positionIndex.toArrayLike(Buffer, "be", 32),
-      setLengthLeft(bigIntToBuffer(positionIndex), 16),
+      setLengthLeft(bigIntToBuffer(positionIndex), 32),
       value
     );
     await this._persistIrregularWorldState();
