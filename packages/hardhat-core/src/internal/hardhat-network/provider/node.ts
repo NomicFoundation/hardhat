@@ -230,6 +230,8 @@ export class HardhatNode extends EventEmitter {
       await putGenesisBlock(
         hardhatBlockchain,
         common,
+        config,
+        stateTrie,
         genesisBlockBaseFeePerGas
       );
 
