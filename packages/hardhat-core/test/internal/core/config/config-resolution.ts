@@ -285,8 +285,6 @@ describe("Config resolution", () => {
           // The default values of the next tests are dynamic
           gas: config.networks.hardhat.gas,
           initialDate: config.networks.hardhat.initialDate,
-          // ETHJSTODO fix
-          initialBaseFeePerGas: undefined,
         });
       });
 
@@ -296,8 +294,6 @@ describe("Config resolution", () => {
           ...defaultHardhatNetworkParams,
           gas: configWithoutBlockGasLimit.networks.hardhat.blockGasLimit,
           initialDate: configWithoutBlockGasLimit.networks.hardhat.initialDate,
-          // ETHJSTODO fix
-          initialBaseFeePerGas: undefined,
         });
 
         const configWithBlockGasLimit = resolveConfig(__filename, {
@@ -308,8 +304,6 @@ describe("Config resolution", () => {
           blockGasLimit: 1n,
           gas: 1n,
           initialDate: configWithBlockGasLimit.networks.hardhat.initialDate,
-          // ETHJSTODO fix
-          initialBaseFeePerGas: undefined,
         });
 
         const configWithBlockGasLimitAndGas = resolveConfig(__filename, {
@@ -321,8 +315,6 @@ describe("Config resolution", () => {
           gas: 3n,
           initialDate:
             configWithBlockGasLimitAndGas.networks.hardhat.initialDate,
-          // ETHJSTODO fix
-          initialBaseFeePerGas: undefined,
         });
       });
 
@@ -709,8 +701,6 @@ describe("Config resolution", () => {
           hardfork: "hola",
           initialDate: "today",
           chains: defaultHardhatNetworkParams.chains,
-          // ETHJSTODO fix
-          initialBaseFeePerGas: undefined,
         });
       });
 

@@ -218,7 +218,7 @@ function resolveHardhatNetworkConfig(
     }
   }
 
-  const config = {
+  const config: HardhatNetworkConfig = {
     ...clonedDefaultHardhatNetworkParams,
     ...hardhatNetworkConfig,
     accounts,
@@ -236,6 +236,9 @@ function resolveHardhatNetworkConfig(
   // We do it this way because ts gets lost otherwise
   if (config.forking === undefined) {
     delete config.forking;
+  }
+  if (config.initialBaseFeePerGas === undefined) {
+    delete config.initialBaseFeePerGas;
   }
 
   return config;
