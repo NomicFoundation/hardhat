@@ -1,5 +1,5 @@
 import { TypedTransaction } from "@ethereumjs/tx";
-import { VM } from "@ethereumjs/vm";
+import { AfterTxEvent, VM } from "@ethereumjs/vm";
 import { EVM, EVMResult } from "@ethereumjs/evm";
 import { InterpreterStep } from "@ethereumjs/evm/dist/interpreter";
 import { Message } from "@ethereumjs/evm/dist/message";
@@ -164,7 +164,7 @@ export class VMDebugTracer {
     next();
   }
 
-  private async _afterTxHandler(result: EVMResult, next: any) {
+  private async _afterTxHandler(result: AfterTxEvent, next: any) {
     const { default: flattenDeep } = await import("lodash/flattenDeep");
     const topLevelMessage = this._messages[0];
 
@@ -200,8 +200,7 @@ export class VMDebugTracer {
     }
 
     this._lastTrace = {
-      // ETHJSTODO double-check this
-      gas: result.execResult.executionGasUsed,
+      gas: result.totalGasSpent,
       failed: result.execResult.exceptionError !== undefined,
       returnValue: result.execResult.returnValue.toString("hex"),
       structLogs: rpcStructLogs,
