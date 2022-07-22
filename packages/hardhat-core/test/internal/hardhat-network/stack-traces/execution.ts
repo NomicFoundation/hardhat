@@ -63,7 +63,7 @@ export async function traceTransaction(
 ): Promise<MessageTrace> {
   const tx = new Transaction({
     value: 0,
-    gasPrice: 1,
+    gasPrice: 10,
     nonce: await getNextPendingNonce(vm),
     ...txData,
     // If the test didn't define a gasLimit, we assume 4M is enough
