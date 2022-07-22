@@ -212,18 +212,16 @@ describe("Eth module", function () {
             },
           ]);
 
-          // create and send signed tx
-          // ETHJSTODO Common.forCustomChain
-          const common = null as any;
-          // const common = Common.forCustomChain(
-          //   "mainnet",
-          //   {
-          //     chainId: DEFAULT_CHAIN_ID,
-          //     networkId: DEFAULT_NETWORK_ID,
-          //     name: "hardhat",
-          //   },
-          //   "muirGlacier"
-          // );
+          const common = Common.custom(
+            {
+              chainId: DEFAULT_CHAIN_ID,
+              networkId: DEFAULT_NETWORK_ID,
+              name: "hardhat",
+            },
+            {
+              hardfork: "muirGlacier",
+            }
+          );
 
           const txParams = {
             nonce: "0x0",

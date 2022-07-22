@@ -382,7 +382,9 @@ export class HardhatModule {
 
     return true;
   }
-  private _hardhatMineParams(params: any[]): [bigint | undefined, bigint | undefined] {
+  private _hardhatMineParams(
+    params: any[]
+  ): [bigint | undefined, bigint | undefined] {
     return validateParams(params, optional(rpcQuantity), optional(rpcQuantity));
   }
 

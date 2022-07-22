@@ -25,7 +25,6 @@ describe("Tx Pool", () => {
   let txPool: TxPool;
 
   beforeEach(() => {
-    // ETHJSTODO does this work?
     stateManager = new DefaultStateManager();
     const common = new Common({ chain: "mainnet", hardfork: "muirGlacier" });
     txPool = new TxPool(stateManager, blockGasLimit, common);

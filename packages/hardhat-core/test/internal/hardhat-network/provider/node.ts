@@ -147,7 +147,6 @@ describe("HardhatNode", () => {
         const beforeBlock = node.getLatestBlockNumber();
         await node.mineBlock();
         const currentBlock = node.getLatestBlockNumber();
-        // ETHJSTODO eslint false negative
         assert.equal(currentBlock.toString(), (beforeBlock + 1n).toString());
       });
 

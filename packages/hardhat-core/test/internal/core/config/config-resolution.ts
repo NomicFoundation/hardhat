@@ -13,7 +13,6 @@ import {
   defaultLocalhostNetworkParams,
   defaultMochaOptions,
   defaultSolcOutputSelection,
-  HARDHAT_NETWORK_DEFAULT_INITIAL_BASE_FEE_PER_GAS,
 } from "../../../../src/internal/core/config/default-config";
 import {
   HardhatConfig,

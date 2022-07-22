@@ -3,7 +3,7 @@ import { assert } from "chai";
 import { useFixtureProject } from "../helpers/project";
 import { useEnvironment } from "../helpers/environment";
 
-// ETHJSTODO
+// ETHJSTODO p:high
 describe.skip("test task", function () {
   describe("default config project", function () {
     useFixtureProject("test-task/minimal-config");

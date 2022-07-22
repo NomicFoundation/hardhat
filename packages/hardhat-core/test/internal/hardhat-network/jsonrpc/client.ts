@@ -398,7 +398,6 @@ describe("JsonRpcClient", () => {
           it("can fetch empty value from storage of an existing contract", async () => {
             const value = await client.getStorageAt(
               DAI_ADDRESS,
-              // ETHJSTODO dubious
               BigInt("0xbaddcafe"),
               forkNumber
             );

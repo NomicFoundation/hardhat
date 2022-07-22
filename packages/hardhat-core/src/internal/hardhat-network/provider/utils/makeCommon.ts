@@ -1,5 +1,4 @@
 import { Common } from "@ethereumjs/common";
-import { bufferToHex } from "@ethereumjs/util";
 
 import { dateToTimestampSeconds } from "../../../util/date";
 import { LocalNodeConfig } from "../node-types";
@@ -15,7 +14,8 @@ export function makeCommon(
     blockGasLimit,
     hardfork,
   }: LocalNodeConfig,
-  stateTrie: any
+  // ETHJSTODO p:medium why is this not used anymore?
+  _stateTrie: any
 ) {
   const initialBlockTimestamp =
     initialDate !== undefined
@@ -34,6 +34,7 @@ export function makeCommon(
         difficulty: 1,
         nonce: "0x0000000000000042",
         extraData: "0x1234",
+        // ETHJSTODO p:medium is it fine to not have this anymore?
         // stateRoot: bufferToHex(stateTrie.root),
       },
     },

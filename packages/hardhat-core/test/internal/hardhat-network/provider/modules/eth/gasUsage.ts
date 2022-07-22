@@ -1,4 +1,3 @@
-import { toBuffer } from "@ethereumjs/util";
 import { assert } from "chai";
 
 import { workaroundWindowsCiFailures } from "../../../../../utils/workaround-windows-ci-failures";
