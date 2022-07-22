@@ -87,7 +87,7 @@ export class EvmModule {
     const latestBlock = await this._node.getLatestBlock();
     const increment = BigInt(timestamp) - latestBlock.header.timestamp;
 
-    if (increment < 0n) {
+    if (increment <= 0n) {
       throw new InvalidInputError(
         `Timestamp ${timestamp.toString()} is lower than or equal to previous block's timestamp` +
           ` ${latestBlock.header.timestamp}`
