@@ -13,7 +13,7 @@ import {
   RunCallResult,
 } from "../../../../src/internal/hardhat-network/provider/node-types";
 import { FakeSenderTransaction } from "../../../../src/internal/hardhat-network/provider/transactions/FakeSenderTransaction";
-import { getCurrentTimestamp } from "../../../../src/internal/hardhat-network/provider/utils/getCurrentTimestamp";
+import { getCurrentTimestampBigInt } from "../../../../src/internal/hardhat-network/provider/utils/getCurrentTimestamp";
 import { HardforkName } from "../../../../src/internal/util/hardforks";
 import {
   HardhatNetworkChainConfig,
@@ -496,7 +496,7 @@ describe("HardhatNode", () => {
 
       it("mines a block with the current timestamp", async () => {
         clock.tick(15_000);
-        const now = getCurrentTimestamp();
+        const now = getCurrentTimestampBigInt();
 
         await node.mineBlock();
         const block = await node.getLatestBlock();
@@ -532,7 +532,7 @@ describe("HardhatNode", () => {
       });
 
       it("mines a block with a preset timestamp", async () => {
-        const now = getCurrentTimestamp();
+        const now = getCurrentTimestampBigInt();
         const timestamp = BigInt(now) + 30n;
         node.setNextBlockTimestamp(timestamp);
         await node.mineBlock();
@@ -543,7 +543,7 @@ describe("HardhatNode", () => {
       });
 
       it("mines the next block normally after a block with preset timestamp", async () => {
-        const now = getCurrentTimestamp();
+        const now = getCurrentTimestampBigInt();
         const timestamp = BigInt(now) + 30n;
         node.setNextBlockTimestamp(timestamp);
         await node.mineBlock();
@@ -557,7 +557,7 @@ describe("HardhatNode", () => {
       });
 
       it("mines a block with the timestamp passed as a parameter irrespective of the preset timestamp", async () => {
-        const now = getCurrentTimestamp();
+        const now = getCurrentTimestampBigInt();
         const presetTimestamp = BigInt(now) + 30n;
         node.setNextBlockTimestamp(presetTimestamp);
         const timestamp = BigInt(now) + 60n;
@@ -569,7 +569,7 @@ describe("HardhatNode", () => {
       });
 
       it("mines a block with correct timestamp after time increase", async () => {
-        const now = getCurrentTimestamp();
+        const now = getCurrentTimestampBigInt();
         const delta = 30n;
         node.increaseTime(delta);
         await node.mineBlock();
@@ -578,7 +578,7 @@ describe("HardhatNode", () => {
       });
 
       it("mining a block having increaseTime called twice counts both calls", async () => {
-        const now = getCurrentTimestamp();
+        const now = getCurrentTimestampBigInt();
         const delta = 30n;
         node.increaseTime(delta);
         node.increaseTime(delta);
@@ -587,7 +587,7 @@ describe("HardhatNode", () => {
       });
 
       it("mining a block having called increaseTime takes into account 'real' passing time", async () => {
-        const now = getCurrentTimestamp();
+        const now = getCurrentTimestampBigInt();
         const delta = 30n;
         const elapsedTimeInSeconds = 3n;
         node.increaseTime(delta);
@@ -600,7 +600,7 @@ describe("HardhatNode", () => {
       describe("when time is increased by 30s", () => {
         function testPresetTimestamp(offset: bigint) {
           it("mines a block with the preset timestamp", async () => {
-            const now = getCurrentTimestamp();
+            const now = getCurrentTimestampBigInt();
             const timestamp = BigInt(now + offset);
             node.increaseTime(30n);
             node.setNextBlockTimestamp(timestamp);
@@ -612,7 +612,7 @@ describe("HardhatNode", () => {
           });
 
           it("mining a block with a preset timestamp changes the time offset", async () => {
-            const now = getCurrentTimestamp();
+            const now = getCurrentTimestampBigInt();
             const timestamp = BigInt(now + offset);
             node.increaseTime(30n);
             node.setNextBlockTimestamp(timestamp);

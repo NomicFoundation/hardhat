@@ -136,7 +136,7 @@ describe("Eth module", function () {
           await assertPendingNodeBalances(this.provider, [
             DEFAULT_ACCOUNTS_BALANCES[0],
             DEFAULT_ACCOUNTS_BALANCES[1] -
-              (21_000n * gasPrice + 1n + 4n * 21_000n * gasPrice),
+              (21_000n * gasPrice + 1n + 2n * 21_000n * gasPrice + 2n),
             DEFAULT_ACCOUNTS_BALANCES[2] + 3n,
             ...DEFAULT_ACCOUNTS_BALANCES.slice(3),
           ]);
