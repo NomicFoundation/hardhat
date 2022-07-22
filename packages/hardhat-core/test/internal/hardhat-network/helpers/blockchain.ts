@@ -1,10 +1,11 @@
 import { Transaction, TxData } from "@ethereumjs/tx";
-import { Address, AddressLike, bufferToHex } from "@ethereumjs/util";
+import { Address, AddressLike, bufferToHex, toBuffer } from "@ethereumjs/util";
 
 import {
   AccessListEIP2930TxData,
   FeeMarketEIP1559TxData,
 } from "@ethereumjs/tx/dist/types";
+
 import { numberToRpcQuantity } from "../../../../src/internal/core/jsonrpc/types/base-types";
 import { randomAddress } from "../../../../src/internal/hardhat-network/provider/fork/random";
 import {
@@ -19,9 +20,12 @@ import { FakeSenderTransaction } from "../../../../src/internal/hardhat-network/
 import { serializeTransaction } from "../../../../src/internal/hardhat-network/provider/TxPool";
 import { FakeSenderAccessListEIP2930Transaction } from "../../../../src/internal/hardhat-network/provider/transactions/FakeSenderAccessListEIP2930Transaction";
 import { FakeSenderEIP1559Transaction } from "../../../../src/internal/hardhat-network/provider/transactions/FakeSenderEIP1559Transaction";
+import { DEFAULT_ACCOUNTS } from "./providers";
 
 export function createTestTransaction(data: TxData = {}) {
-  return new Transaction({ to: randomAddress(), ...data });
+  const tx = new Transaction({ to: randomAddress(), ...data });
+
+  return tx.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
 }
 
 export function createTestFakeTransaction(
