@@ -2,7 +2,7 @@ import { EVM, EVMResult } from "@ethereumjs/evm";
 import { InterpreterStep } from "@ethereumjs/evm/dist/interpreter";
 import { Message } from "@ethereumjs/evm/dist/message";
 import { precompiles } from "@ethereumjs/evm/dist/precompiles";
-import { Address, bufferToInt } from "@ethereumjs/util";
+import { Address, bufferToBigInt } from "@ethereumjs/util";
 import { VM } from "@ethereumjs/vm";
 
 import {
@@ -114,11 +114,11 @@ export class VMTracer {
 
         trace = createTrace;
       } else {
-        const toAsNumber = bufferToInt(message.to.toBuffer());
+        const toAsNumber = bufferToBigInt(message.to.toBuffer());
 
         if (toAsNumber > 0 && toAsNumber <= MAX_PRECOMPILE_NUMBER) {
           const precompileTrace: PrecompileMessageTrace = {
-            precompile: toAsNumber,
+            precompile: Number(toAsNumber),
             calldata: message.data,
             value: message.value,
             returnData: DUMMY_RETURN_DATA,
