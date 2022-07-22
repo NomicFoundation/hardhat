@@ -59,7 +59,7 @@ export async function assertProviderError(
   }
 
   assert.fail(
-    `Method ${method} should have thrown [${code}] ${message} but returned ${res}`
+    `Method '${method}' should have thrown '[${code}] ${message}' but returned '${res}'`
   );
 }
 
