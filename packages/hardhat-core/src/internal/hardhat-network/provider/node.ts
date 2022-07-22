@@ -838,7 +838,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   ): Promise<Buffer> {
     // ETHJSTODO .toArrayLike, not sure at all
     // const key = positionIndex.toArrayLike(Buffer, "be", 32);
-    const key = setLengthLeft(bigIntToBuffer(positionIndex), 16);
+    const key = setLengthLeft(bigIntToBuffer(positionIndex), 32);
 
     const data = await this._runInBlockContext(blockNumberOrPending, () =>
       this._stateManager.getContractStorage(address, key)
