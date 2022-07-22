@@ -19,15 +19,15 @@ import { BigIntUtils } from "../../util/bigint";
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
 interface StructLog {
-  depth: bigint;
-  gas: bigint;
-  gasCost: bigint;
+  depth: number;
+  gas: number;
+  gasCost: number;
   op: string;
-  pc: bigint;
+  pc: number;
   memory: string[];
   stack: string[];
   storage: Record<string, string>;
-  memSize: bigint;
+  memSize: number;
   error?: object;
 }
 
@@ -200,7 +200,7 @@ export class VMDebugTracer {
     }
 
     this._lastTrace = {
-      gas: result.totalGasSpent,
+      gas: Number(result.totalGasSpent),
       failed: result.execResult.exceptionError !== undefined,
       returnValue: result.execResult.returnValue.toString("hex"),
       structLogs: rpcStructLogs,
@@ -305,7 +305,7 @@ export class VMDebugTracer {
     const memory = this._getMemory(step);
     const stack = this._getStack(step);
 
-    let gasCost = BigInt(step.opcode.fee);
+    let gasCost = step.opcode.fee;
 
     let op = step.opcode.name;
     let error: object | undefined;
@@ -336,7 +336,7 @@ export class VMDebugTracer {
         length + offset
       );
 
-      gasCost += gasIncrease;
+      gasCost += Number(gasIncrease);
 
       for (let i = 0; i < addedWords; i++) {
         memory.push(EMPTY_MEMORY_WORD);
@@ -349,7 +349,7 @@ export class VMDebugTracer {
       // const sha3ExtraCost = divUp(memoryUsed, 32)
       //   .muln()
       //   .toNumber();
-      gasCost += sha3ExtraCost;
+      gasCost += Number(sha3ExtraCost);
     } else if (
       step.opcode.name === "CALL" ||
       step.opcode.name === "STATICCALL" ||
@@ -408,7 +408,7 @@ export class VMDebugTracer {
         callCost
       );
 
-      gasCost = constantGas + dynamicGas;
+      gasCost = Number(constantGas + dynamicGas);
     } else if (step.opcode.name === "CALLCODE") {
       // finding an existing tx that uses CALLCODE or compiling a contract
       // so that it uses this opcode is hard,
@@ -425,15 +425,15 @@ export class VMDebugTracer {
     }
 
     const structLog: StructLog = {
-      pc: BigInt(step.pc),
+      pc: step.pc,
       op,
-      gas: step.gasLeft,
+      gas: Number(step.gasLeft),
       gasCost,
-      depth: BigInt(step.depth) + 1n,
+      depth: step.depth + 1,
       stack,
       memory,
       storage,
-      memSize: step.memoryWordCount,
+      memSize: Number(step.memoryWordCount),
     };
 
     if (error !== undefined) {

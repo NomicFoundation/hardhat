@@ -31,9 +31,8 @@ import { sendDummyTransaction } from "../../helpers/sendDummyTransaction";
 import { deployContract } from "../../helpers/transactions";
 import { assertEqualTraces } from "../utils/assertEqualTraces";
 
-// ETHJSTODO re-enable debug module tests
-describe.skip("Debug module", function () {
-  PROVIDERS.forEach(({ name, useProvider }) => {
+describe("Debug module", function () {
+  PROVIDERS.forEach(({ name, useProvider, isJsonRpc }) => {
     describe(`${name} provider`, function () {
       setCWD();
       useProvider();
@@ -60,7 +59,7 @@ describe.skip("Debug module", function () {
             [txHash]
           );
           assert.deepEqual(trace, {
-            gas: 21_000n,
+            gas: 21_000,
             failed: false,
             returnValue: "",
             structLogs: [],
@@ -98,7 +97,7 @@ describe.skip("Debug module", function () {
             [txHash]
           );
           assert.deepEqual(trace, {
-            gas: 21_000n,
+            gas: 21_000,
             failed: false,
             returnValue: "",
             structLogs: [],
@@ -148,7 +147,7 @@ describe.skip("Debug module", function () {
               [txHash]
             );
             assert.deepEqual(trace, {
-              gas: 23_400n,
+              gas: 23_400,
               failed: false,
               returnValue: "",
               structLogs: [],

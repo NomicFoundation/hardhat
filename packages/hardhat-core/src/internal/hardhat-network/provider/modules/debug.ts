@@ -39,6 +39,8 @@ export class DebugModule {
     hash: Buffer,
     config: RpcDebugTracingConfig
   ): Promise<RpcDebugTraceOutput> {
-    return this._node.traceTransaction(hash, config);
+    const trace = await this._node.traceTransaction(hash, config);
+
+    return trace;
   }
 }

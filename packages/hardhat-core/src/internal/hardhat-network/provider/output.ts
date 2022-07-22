@@ -128,21 +128,21 @@ export interface RpcLogOutput {
 }
 
 export interface RpcStructLog {
-  depth: bigint;
-  gas: bigint;
-  gasCost: bigint;
+  depth: number;
+  gas: number;
+  gasCost: number;
   op: string;
-  pc: bigint;
+  pc: number;
   memory?: string[];
   stack?: string[];
   storage?: Record<string, string>;
-  memSize?: bigint;
+  memSize?: number;
   error?: object;
 }
 
 export interface RpcDebugTraceOutput {
   failed: boolean;
-  gas: bigint;
+  gas: number;
   returnValue: string;
   structLogs: RpcStructLog[];
 }

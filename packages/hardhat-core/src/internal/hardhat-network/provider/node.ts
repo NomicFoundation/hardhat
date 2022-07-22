@@ -256,6 +256,7 @@ export class HardhatNode extends EventEmitter {
 
     const vm = await VM.create({
       evm,
+      eei,
       activatePrecompiles: true,
       common,
       stateManager,
