@@ -1444,7 +1444,7 @@ async function invalidateCacheMissingArtifacts(
         )
       );
 
-      const missing = artifactsExist.find(([_, exists]) => exists);
+      const missing = artifactsExist.find(([_, exists]) => !exists);
       if (missing !== undefined) {
         log(
           `Invalidate cache for '${file.absolutePath}' because artifact '${missing[0]}' doesn't exist`
