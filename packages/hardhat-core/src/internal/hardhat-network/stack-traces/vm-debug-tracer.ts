@@ -298,7 +298,7 @@ export class VMDebugTracer {
   private _getStack(step: InterpreterStep): string[] {
     const stack = step.stack
       .slice()
-      .map((el: bigint) => BigIntUtils.toPaddedHex(el, 64));
+      .map((el: bigint) => el.toString(16).padStart(64, "0"));
     return stack;
   }
 
