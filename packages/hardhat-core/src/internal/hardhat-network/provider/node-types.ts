@@ -157,7 +157,6 @@ export interface GatherTracesResult {
 
 export interface FeeHistory {
   oldestBlock: bigint;
-  // ETHJSTODO eslint false negative; maybe upgrading it fixes it
   baseFeePerGas: bigint[];
   gasUsedRatio: number[];
   reward?: bigint[][];

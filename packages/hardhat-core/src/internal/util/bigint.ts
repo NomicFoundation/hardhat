@@ -24,8 +24,7 @@ function cmp(a: bigint, b: bigint): number {
   return a < b ? -1 : a > b ? 1 : 0;
 }
 
-// ETHJSTODO rename this
-function fromNumberOr<T>(x: number | T): bigint | T {
+function mapNumberToBigint<T>(x: number | T): bigint | T {
   if (typeof x === "number") {
     return BigInt(x);
   }
@@ -39,5 +38,5 @@ export const BigIntUtils = {
   isBigInt,
   divUp,
   cmp,
-  fromNumberOr,
+  mapNumberToBigint,
 };

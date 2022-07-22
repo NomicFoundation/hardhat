@@ -157,7 +157,7 @@ function resolveHardhatNetworkConfig(
   if (forking !== undefined) {
     const blockNumber = hardhatNetworkConfig?.forking?.blockNumber;
     if (blockNumber !== undefined) {
-      forking.blockNumber = BigIntUtils.fromNumberOr(
+      forking.blockNumber = BigIntUtils.mapNumberToBigint(
         hardhatNetworkConfig?.forking?.blockNumber
       );
     }
@@ -180,13 +180,13 @@ function resolveHardhatNetworkConfig(
       clonedDefaultHardhatNetworkParams.blockGasLimit
   );
 
-  const gas = BigIntUtils.fromNumberOr(
+  const gas = BigIntUtils.mapNumberToBigint(
     hardhatNetworkConfig.gas ?? blockGasLimit
   );
-  const gasPrice = BigIntUtils.fromNumberOr(
+  const gasPrice = BigIntUtils.mapNumberToBigint(
     hardhatNetworkConfig.gasPrice ?? clonedDefaultHardhatNetworkParams.gasPrice
   );
-  const initialBaseFeePerGas = BigIntUtils.fromNumberOr(
+  const initialBaseFeePerGas = BigIntUtils.mapNumberToBigint(
     hardhatNetworkConfig.initialBaseFeePerGas ??
       clonedDefaultHardhatNetworkParams.initialBaseFeePerGas
   );
@@ -274,10 +274,10 @@ function resolveHttpNetworkConfig(
     ...networkConfig,
     accounts,
     url,
-    gas: BigIntUtils.fromNumberOr(
+    gas: BigIntUtils.mapNumberToBigint(
       networkConfig.gas ?? defaultHttpNetworkParams.gas
     ),
-    gasPrice: BigIntUtils.fromNumberOr(
+    gasPrice: BigIntUtils.mapNumberToBigint(
       networkConfig.gasPrice ?? defaultHttpNetworkParams.gasPrice
     ),
   };
