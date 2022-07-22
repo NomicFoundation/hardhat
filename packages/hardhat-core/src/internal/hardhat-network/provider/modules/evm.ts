@@ -122,7 +122,6 @@ export class EvmModule {
   }
 
   private async _mineAction(timestamp: RpcQuantityOrNumber): Promise<string> {
-    // ETHJSTODO RpcQuantityOrNumber has to be a bigint, not number | bigint
     timestamp = BigInt(timestamp);
     // if timestamp is specified, make sure it is bigger than previous
     // block's timestamp

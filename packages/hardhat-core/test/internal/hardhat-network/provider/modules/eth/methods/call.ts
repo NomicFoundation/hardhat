@@ -5,7 +5,7 @@ import {
   numberToRpcQuantity,
   rpcDataToNumber,
   rpcQuantityToNumber,
-  rpcDataToBN,
+  rpcDataToBigInt,
   rpcQuantityToBigInt,
 } from "../../../../../../../src/internal/core/jsonrpc/types/base-types";
 import { getCurrentTimestamp } from "../../../../../../../src/internal/hardhat-network/provider/utils/getCurrentTimestamp";
@@ -545,7 +545,7 @@ contract C {
               ]);
 
               assert.equal(
-                rpcDataToBN(balanceResult).toString(),
+                rpcDataToBigInt(balanceResult).toString(),
                 ethBalance.toString()
               );
             });
@@ -565,7 +565,7 @@ contract C {
               ]);
 
               assert.equal(
-                rpcDataToBN(balanceResult),
+                rpcDataToBigInt(balanceResult),
                 ethBalance - gasLimit * gasPrice
               );
             });
@@ -633,7 +633,7 @@ contract C {
                 ]);
 
                 assert.equal(
-                  rpcDataToBN(balanceResult).toString(),
+                  rpcDataToBigInt(balanceResult).toString(),
                   ethBalance.toString()
                 );
               });
@@ -651,7 +651,7 @@ contract C {
                 // This doesn't change because the baseFeePerGas of block where we
                 // run the eth_call is 0
                 assert.equal(
-                  rpcDataToBN(balanceResult).toString(),
+                  rpcDataToBigInt(balanceResult).toString(),
                   ethBalance.toString()
                 );
               });
@@ -669,7 +669,7 @@ contract C {
 
                 // The miner will get the priority fee
                 assert.equal(
-                  rpcDataToBN(balanceResult),
+                  rpcDataToBigInt(balanceResult),
                   ethBalance - 3n * 500_000n
                 );
               });
@@ -687,7 +687,7 @@ contract C {
 
                 // The miner will get the gasPrice * gas as a normalized priority fee
                 assert.equal(
-                  rpcDataToBN(balanceResult),
+                  rpcDataToBigInt(balanceResult),
                   ethBalance - 6n * 500_000n
                 );
               });

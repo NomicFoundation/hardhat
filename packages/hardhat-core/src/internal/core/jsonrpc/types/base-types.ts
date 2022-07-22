@@ -16,7 +16,6 @@ const HASH_LENGTH_BYTES = 32;
 export const rpcQuantity = new t.Type<bigint>(
   "QUANTITY",
   BigIntUtils.isBigInt,
-  // ETHJSTODO not super sure about this BigInt(u)
   (u, c) => (isRpcQuantityString(u) ? t.success(BigInt(u)) : t.failure(u, c)),
   t.identity
 );
@@ -87,7 +86,6 @@ export const rpcUnsignedInteger = new t.Type<number>(
 export const rpcQuantityAsNumber = new t.Type<bigint>(
   "Integer",
   BigIntUtils.isBigInt,
-  // ETHJSTODO not super sure about this either
   (u, c) => (isInteger(u) ? t.success(BigInt(u)) : t.failure(u, c)),
   t.identity
 );
@@ -143,14 +141,12 @@ export function numberToRpcStorageSlot(n: number | bigint): string {
  * Transforms a DATA into a number. It should only be used if you are 100% sure that the data
  * represents a value fits in a number.
  */
-// ETHJSTODO delete?
 export function rpcDataToNumber(data: string): number {
-  return Number(rpcDataToBN(data));
+  return Number(rpcDataToBigInt(data));
 }
 
-// ETHJSTODO rename
-export function rpcDataToBN(data: string): bigint {
-  return bufferToBigInt(rpcDataToBuffer(data));
+export function rpcDataToBigInt(data: string): bigint {
+  return data === "0x" ? 0n : BigInt(data);
 }
 
 export function bufferToRpcData(

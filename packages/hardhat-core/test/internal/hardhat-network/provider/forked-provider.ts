@@ -3,7 +3,7 @@ import { assert } from "chai";
 
 import {
   numberToRpcQuantity,
-  rpcDataToBN,
+  rpcDataToBigInt,
   rpcQuantityToBigInt,
   rpcQuantityToNumber,
 } from "../../../../src/internal/core/jsonrpc/types/base-types";
@@ -127,7 +127,7 @@ describe("Forked provider", function () {
                 const balanceOfSelector = `0x70a08231${leftPad32(
                   BITFINEX_WALLET_ADDRESS.toString()
                 )}`;
-                return rpcDataToBN(
+                return rpcDataToBigInt(
                   await this.provider.send("eth_call", [
                     { to: WETH_ADDRESS.toString(), data: balanceOfSelector },
                   ])
@@ -229,7 +229,7 @@ describe("Forked provider", function () {
           )}`;
 
           const getWrappedBalance = async () =>
-            rpcDataToBN(
+            rpcDataToBigInt(
               await this.provider.send("eth_call", [
                 { to: WETH_ADDRESS.toString(), data: wethBalanceOfSelector },
               ])

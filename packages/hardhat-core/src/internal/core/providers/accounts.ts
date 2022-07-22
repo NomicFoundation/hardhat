@@ -240,7 +240,7 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
     chainId: number,
     privateKey: Buffer
   ): Promise<Buffer> {
-    // ETHJSTODO not sure what to do about this
+    // ETHJSTODO can we drop what we were doing with the chains before?
     // const { chains } = await import("@ethereumjs/common/dist/chains");
 
     const { AccessListEIP2930Transaction, Transaction } = await import(
@@ -255,21 +255,6 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
     };
 
     const common = Common.custom({ chainId, networkId: chainId });
-
-    // TODO: consider changing instances of "london" below to ["latest hardfork"]
-    // ETHJSTODO no idea how to do that
-    // const common = null as any;
-    // const common =
-    //   chains.names[chainId] !== undefined
-    //     ? new Common({ chain: chainId, hardfork: "london" })
-    //     : Common.forCustomChain(
-    //         "mainnet",
-    //         {
-    //           chainId,
-    //           networkId: chainId,
-    //         },
-    //         "london"
-    //       );
 
     // we convert the access list to the type
     // that AccessListEIP2930Transaction expects
