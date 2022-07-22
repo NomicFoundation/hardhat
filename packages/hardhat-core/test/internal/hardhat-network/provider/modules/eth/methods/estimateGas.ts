@@ -10,7 +10,7 @@ import {
 
 import {
   numberToRpcQuantity,
-  rpcQuantityToBN,
+  rpcQuantityToBigInt,
 } from "../../../../../../../src/internal/core/jsonrpc/types/base-types";
 import { workaroundWindowsCiFailures } from "../../../../../../utils/workaround-windows-ci-failures";
 import { assertInvalidInputError } from "../../../../helpers/assertions";
@@ -386,7 +386,8 @@ describe("Eth module", function () {
 
                 const tx: FeeMarketEIP1559Transaction = firstArg;
                 assert.isTrue(
-                  tx.maxFeePerGas === rpcQuantityToBN(block.baseFeePerGas!) + 1n
+                  tx.maxFeePerGas ===
+                    rpcQuantityToBigInt(block.baseFeePerGas!) + 1n
                 );
                 assert.isTrue(tx.maxPriorityFeePerGas === 1n);
               });

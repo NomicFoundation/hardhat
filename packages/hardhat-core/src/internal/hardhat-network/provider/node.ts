@@ -71,7 +71,7 @@ import { VmTraceDecoder } from "../stack-traces/vm-trace-decoder";
 import { VMTracer } from "../stack-traces/vm-tracer";
 
 import "./ethereumjs-workarounds";
-import { rpcQuantityToBN } from "../../core/jsonrpc/types/base-types";
+import { rpcQuantityToBigInt } from "../../core/jsonrpc/types/base-types";
 import { JsonRpcClient } from "../jsonrpc/client";
 import { bloomFilter, Filter, filterLogs, LATEST_BLOCK, Type } from "./filter";
 import { ForkBlockchain } from "./fork/ForkBlockchain";
@@ -1576,7 +1576,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
         return {
           effectiveGasReward,
-          gasUsed: rpcQuantityToBN(r?.gasUsed!),
+          gasUsed: rpcQuantityToBigInt(r?.gasUsed!),
         };
       })
       .sort((a, b) =>

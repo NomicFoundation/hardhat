@@ -2,7 +2,7 @@ import { assert } from "chai";
 
 import {
   numberToRpcQuantity,
-  rpcQuantityToBN,
+  rpcQuantityToBigInt,
 } from "../../../../src/internal/core/jsonrpc/types/base-types";
 
 import { DEFAULT_ACCOUNTS_ADDRESSES } from "./providers";
@@ -46,7 +46,7 @@ export function useHelpers() {
     }: SendTxOptions = {}) => {
       const price =
         gasPrice ??
-        rpcQuantityToBN(await this.provider.send("eth_gasPrice", []));
+        rpcQuantityToBigInt(await this.provider.send("eth_gasPrice", []));
 
       return this.provider.send("eth_sendTransaction", [
         {

@@ -1,5 +1,5 @@
 import { EthereumProvider } from "../../../../src/types";
-import { rpcQuantityToBN } from "../../../../src/internal/core/jsonrpc/types/base-types";
+import { rpcQuantityToBigInt } from "../../../../src/internal/core/jsonrpc/types/base-types";
 
 export async function getPendingBaseFeePerGas(
   provider: EthereumProvider
@@ -8,5 +8,5 @@ export async function getPendingBaseFeePerGas(
     "pending",
     false,
   ]);
-  return rpcQuantityToBN(pendingBlock.baseFeePerGas ?? "0x1");
+  return rpcQuantityToBigInt(pendingBlock.baseFeePerGas ?? "0x1");
 }

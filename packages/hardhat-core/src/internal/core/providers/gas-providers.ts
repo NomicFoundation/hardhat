@@ -2,7 +2,7 @@ import { EIP1193Provider, RequestArguments } from "../../../types";
 import {
   numberToRpcQuantity,
   rpcQuantityToNumber,
-  rpcQuantityToBN,
+  rpcQuantityToBigInt,
 } from "../jsonrpc/types/base-types";
 
 import { ProviderWrapper } from "./wrapper";
@@ -195,12 +195,12 @@ export class AutomaticGasPriceProvider extends ProviderWrapper {
 
     let maxFeePerGas =
       tx.maxFeePerGas !== undefined
-        ? rpcQuantityToBN(tx.maxFeePerGas)
+        ? rpcQuantityToBigInt(tx.maxFeePerGas)
         : suggestedEip1559Values.maxFeePerGas;
 
     const maxPriorityFeePerGas =
       tx.maxPriorityFeePerGas !== undefined
-        ? rpcQuantityToBN(tx.maxPriorityFeePerGas)
+        ? rpcQuantityToBigInt(tx.maxPriorityFeePerGas)
         : suggestedEip1559Values.maxPriorityFeePerGas;
 
     if (maxFeePerGas < maxPriorityFeePerGas) {
@@ -218,7 +218,7 @@ export class AutomaticGasPriceProvider extends ProviderWrapper {
       method: "eth_gasPrice",
     })) as string;
 
-    return rpcQuantityToBN(response);
+    return rpcQuantityToBigInt(response);
   }
 
   private async _suggestEip1559FeePriceValues(): Promise<
@@ -260,7 +260,7 @@ export class AutomaticGasPriceProvider extends ProviderWrapper {
         // next N blocks here.
 
         maxFeePerGas:
-          (rpcQuantityToBN(response.baseFeePerGas[1]) *
+          (rpcQuantityToBigInt(response.baseFeePerGas[1]) *
             9n **
               (AutomaticGasPriceProvider.EIP1559_BASE_FEE_MAX_FULL_BLOCKS_PREFERENCE -
                 1n)) /
@@ -268,7 +268,7 @@ export class AutomaticGasPriceProvider extends ProviderWrapper {
             (AutomaticGasPriceProvider.EIP1559_BASE_FEE_MAX_FULL_BLOCKS_PREFERENCE -
               1n),
 
-        maxPriorityFeePerGas: rpcQuantityToBN(response.reward[0][0]),
+        maxPriorityFeePerGas: rpcQuantityToBigInt(response.reward[0][0]),
       };
     } catch {
       this._nodeHasFeeHistory = false;

@@ -6,7 +6,7 @@ import {
   rpcDataToNumber,
   rpcQuantityToNumber,
   rpcDataToBN,
-  rpcQuantityToBN,
+  rpcQuantityToBigInt,
 } from "../../../../../../../src/internal/core/jsonrpc/types/base-types";
 import { getCurrentTimestamp } from "../../../../../../../src/internal/hardhat-network/provider/utils/getCurrentTimestamp";
 import { workaroundWindowsCiFailures } from "../../../../../../utils/workaround-windows-ci-failures";
@@ -523,7 +523,7 @@ contract C {
                 deploymentBytecode
               );
 
-              ethBalance = rpcQuantityToBN(
+              ethBalance = rpcQuantityToBigInt(
                 await this.provider.send("eth_getBalance", [CALLER])
               );
               assert.notEqual(ethBalance.toString(), "0");

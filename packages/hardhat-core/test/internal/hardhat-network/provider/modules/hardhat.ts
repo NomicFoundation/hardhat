@@ -7,7 +7,7 @@ import { describe } from "mocha";
 import {
   numberToRpcQuantity,
   numberToRpcStorageSlot,
-  rpcQuantityToBN,
+  rpcQuantityToBigInt,
   rpcQuantityToNumber,
 } from "../../../../../src/internal/core/jsonrpc/types/base-types";
 import { CompilerOutputContract } from "../../../../../src/types/artifacts";
@@ -867,7 +867,7 @@ describe("Hardhat module", function () {
           const getBlockBaseFeePerGas = async (
             block: number
           ): Promise<bigint> => {
-            return rpcQuantityToBN(
+            return rpcQuantityToBigInt(
               (
                 await this.ctx.provider.send("eth_getBlockByNumber", [
                   numberToRpcQuantity(block),
@@ -1187,8 +1187,8 @@ describe("Hardhat module", function () {
             ]);
 
             return {
-              difficulty: rpcQuantityToBN(block.difficulty),
-              totalDifficulty: rpcQuantityToBN(block.totalDifficulty),
+              difficulty: rpcQuantityToBigInt(block.difficulty),
+              totalDifficulty: rpcQuantityToBigInt(block.totalDifficulty),
             };
           };
 
@@ -1463,7 +1463,7 @@ describe("Hardhat module", function () {
 
         it("should result in a modified balance", async function () {
           // Arrange: Capture existing balance
-          const existingBalance = rpcQuantityToBN(
+          const existingBalance = rpcQuantityToBigInt(
             await this.provider.send("eth_getBalance", [
               DEFAULT_ACCOUNTS_ADDRESSES[0],
             ])
@@ -1479,7 +1479,7 @@ describe("Hardhat module", function () {
           ]);
 
           // Assert: Ensure the new balance was set.
-          const newBalance = rpcQuantityToBN(
+          const newBalance = rpcQuantityToBigInt(
             await this.provider.send("eth_getBalance", [
               DEFAULT_ACCOUNTS_ADDRESSES[0],
             ])
@@ -1559,7 +1559,7 @@ describe("Hardhat module", function () {
           ]);
 
           // Arrange: Capture the existing balance of the destination account.
-          const existingBalance = rpcQuantityToBN(
+          const existingBalance = rpcQuantityToBigInt(
             await this.provider.send("eth_getBalance", [
               DEFAULT_ACCOUNTS_ADDRESSES[0],
             ])
@@ -1581,7 +1581,7 @@ describe("Hardhat module", function () {
           ]);
 
           // Assert: ensure the destination address is increased as expected.
-          const newBalance = rpcQuantityToBN(
+          const newBalance = rpcQuantityToBigInt(
             await this.provider.send("eth_getBalance", [
               DEFAULT_ACCOUNTS_ADDRESSES[0],
             ])

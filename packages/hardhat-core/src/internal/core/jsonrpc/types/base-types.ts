@@ -105,13 +105,11 @@ export const rpcFloat = new t.Type<number>(
  * Transforms a QUANTITY into a number. It should only be used if you are 100% sure that the value
  * fits in a number.
  */
-// ETHJSTODO rename and refactor this one, or maybe delete it
 export function rpcQuantityToNumber(quantity: string): number {
-  return Number(rpcQuantityToBN(quantity));
+  return Number(rpcQuantityToBigInt(quantity));
 }
 
-// ETHJSTODO rename method
-export function rpcQuantityToBN(quantity: string): bigint {
+export function rpcQuantityToBigInt(quantity: string): bigint {
   // We validate it in case a value gets here through a cast or any
   if (!isRpcQuantityString(quantity)) {
     throw new HardhatError(ERRORS.NETWORK.INVALID_RPC_QUANTITY_VALUE, {

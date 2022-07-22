@@ -4,7 +4,7 @@ import { assert } from "chai";
 import {
   numberToRpcQuantity,
   rpcDataToBN,
-  rpcQuantityToBN,
+  rpcQuantityToBigInt,
   rpcQuantityToNumber,
 } from "../../../../src/internal/core/jsonrpc/types/base-types";
 import { InvalidInputError } from "../../../../src/internal/core/providers/errors";
@@ -198,7 +198,7 @@ describe("Forked provider", function () {
           const result = await this.provider.send("eth_getBalance", [
             WETH_ADDRESS.toString(),
           ]);
-          assert.isTrue(rpcQuantityToBN(result) > 0n);
+          assert.isTrue(rpcQuantityToBigInt(result) > 0n);
         });
       });
 
@@ -207,7 +207,7 @@ describe("Forked provider", function () {
           const result = await this.provider.send("eth_getBalance", [
             BITFINEX_WALLET_ADDRESS.toString(),
           ]);
-          const initialBalance = rpcQuantityToBN(result);
+          const initialBalance = rpcQuantityToBigInt(result);
           await this.provider.send("eth_sendTransaction", [
             {
               from: DEFAULT_ACCOUNTS_ADDRESSES[0],
@@ -306,7 +306,7 @@ describe("Forked provider", function () {
             [account]
           );
 
-          assert.isTrue(rpcQuantityToBN(transactionCount) > 0);
+          assert.isTrue(rpcQuantityToBigInt(transactionCount) > 0);
         });
       });
 

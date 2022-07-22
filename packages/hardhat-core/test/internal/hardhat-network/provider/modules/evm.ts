@@ -6,7 +6,7 @@ import {
   bufferToRpcData,
   numberToRpcQuantity,
   rpcDataToNumber,
-  rpcQuantityToBN,
+  rpcQuantityToBigInt,
   rpcQuantityToNumber,
 } from "../../../../../src/internal/core/jsonrpc/types/base-types";
 import {
@@ -378,7 +378,7 @@ describe("Evm module", function () {
             "pending",
             false,
           ]);
-          const gasLimitBefore = rpcQuantityToBN(blockBefore.gasLimit);
+          const gasLimitBefore = rpcQuantityToBigInt(blockBefore.gasLimit);
 
           const newBlockGasLimit = 34228n;
           await this.provider.send("evm_setBlockGasLimit", [
@@ -389,7 +389,7 @@ describe("Evm module", function () {
             "pending",
             false,
           ]);
-          const gasLimitAfter = rpcQuantityToBN(blockAfter.gasLimit);
+          const gasLimitAfter = rpcQuantityToBigInt(blockAfter.gasLimit);
 
           assert.notEqual(gasLimitBefore, gasLimitAfter);
           assert.equal(gasLimitAfter, newBlockGasLimit);
@@ -673,7 +673,7 @@ describe("Evm module", function () {
           ]);
           const currentBlock = await this.provider.send("eth_blockNumber");
 
-          assertQuantity(currentBlock, rpcQuantityToBN(previousBlock) + 1n);
+          assertQuantity(currentBlock, rpcQuantityToBigInt(previousBlock) + 1n);
         });
 
         it("should mine all pending transactions after re-enabling automine", async function () {

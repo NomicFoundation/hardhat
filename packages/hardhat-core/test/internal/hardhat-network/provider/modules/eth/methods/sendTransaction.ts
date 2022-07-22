@@ -5,7 +5,7 @@ import { Client } from "undici";
 import {
   numberToRpcQuantity,
   rpcQuantityToNumber,
-  rpcQuantityToBN,
+  rpcQuantityToBigInt,
 } from "../../../../../../../src/internal/core/jsonrpc/types/base-types";
 import { InvalidInputError } from "../../../../../../../src/internal/core/providers/errors";
 import { workaroundWindowsCiFailures } from "../../../../../../utils/workaround-windows-ci-failures";
@@ -845,7 +845,7 @@ describe("Eth module", function () {
               ["pending", false]
             );
 
-            nextBlockBaseFee = rpcQuantityToBN(pendingBlock.baseFeePerGas!);
+            nextBlockBaseFee = rpcQuantityToBigInt(pendingBlock.baseFeePerGas!);
           });
 
           describe("When no fee param is provided", function () {

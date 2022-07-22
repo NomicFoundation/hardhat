@@ -8,7 +8,7 @@ import { ERRORS } from "../errors-list";
 import {
   rpcAddress,
   rpcData,
-  rpcQuantityToBN,
+  rpcQuantityToBigInt,
 } from "../jsonrpc/types/base-types";
 import {
   RpcTransactionRequest,
@@ -232,7 +232,7 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
       params: [bufferToHex(address), "pending"],
     })) as string;
 
-    return rpcQuantityToBN(response);
+    return rpcQuantityToBigInt(response);
   }
 
   private async _getSignedTransaction(

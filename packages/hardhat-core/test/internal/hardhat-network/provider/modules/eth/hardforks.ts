@@ -10,7 +10,7 @@ import { assert } from "chai";
 import {
   bufferToRpcData,
   numberToRpcQuantity,
-  rpcQuantityToBN,
+  rpcQuantityToBigInt,
 } from "../../../../../../src/internal/core/jsonrpc/types/base-types";
 import {
   assertInvalidArgumentsError,
@@ -669,7 +669,7 @@ describe("Eth module - hardfork dependant tests", function () {
                 await this.provider.send("eth_getTransactionByHash", [txHash]);
 
               const effectiveGasPrice = getEffectiveGasPrice(
-                rpcQuantityToBN(block.baseFeePerGas!),
+                rpcQuantityToBigInt(block.baseFeePerGas!),
                 signedTx.maxFeePerGas,
                 signedTx.maxPriorityFeePerGas
               );
@@ -786,7 +786,7 @@ describe("Eth module - hardfork dependant tests", function () {
               "eth_getBlockByNumber",
               ["latest", false]
             );
-            const baseFee = rpcQuantityToBN(block.baseFeePerGas!);
+            const baseFee = rpcQuantityToBigInt(block.baseFeePerGas!);
 
             const effectiveGasPrice = getEffectiveGasPrice(
               baseFee,
@@ -822,7 +822,7 @@ describe("Eth module - hardfork dependant tests", function () {
               "eth_getBlockByNumber",
               ["latest", false]
             );
-            const baseFee = rpcQuantityToBN(block.baseFeePerGas!);
+            const baseFee = rpcQuantityToBigInt(block.baseFeePerGas!);
 
             const effectiveGasPrice = getEffectiveGasPrice(
               baseFee,
@@ -857,7 +857,7 @@ describe("Eth module - hardfork dependant tests", function () {
               "eth_getBlockByNumber",
               ["latest", false]
             );
-            const baseFee = rpcQuantityToBN(block.baseFeePerGas!);
+            const baseFee = rpcQuantityToBigInt(block.baseFeePerGas!);
 
             const effectiveGasPrice = getEffectiveGasPrice(
               baseFee,

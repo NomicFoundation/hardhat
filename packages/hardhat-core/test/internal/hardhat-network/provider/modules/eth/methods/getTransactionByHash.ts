@@ -12,7 +12,7 @@ import { assert } from "chai";
 
 import {
   numberToRpcQuantity,
-  rpcQuantityToBN,
+  rpcQuantityToBigInt,
 } from "../../../../../../../src/internal/core/jsonrpc/types/base-types";
 import { TransactionParams } from "../../../../../../../src/internal/hardhat-network/provider/node-types";
 import {
@@ -252,20 +252,20 @@ describe("Eth module", function () {
           assert.equal(fetchedTx.from, address);
           assert.equal(fetchedTx.to, DEFAULT_ACCOUNTS_ADDRESSES[1]);
           assert.equal(
-            rpcQuantityToBN(fetchedTx.value),
-            rpcQuantityToBN(txParams.value)
+            rpcQuantityToBigInt(fetchedTx.value),
+            rpcQuantityToBigInt(txParams.value)
           );
           assert.equal(
-            rpcQuantityToBN(fetchedTx.nonce),
-            rpcQuantityToBN(txParams.nonce)
+            rpcQuantityToBigInt(fetchedTx.nonce),
+            rpcQuantityToBigInt(txParams.nonce)
           );
           assert.equal(
-            rpcQuantityToBN(fetchedTx.gas),
-            rpcQuantityToBN(txParams.gasLimit)
+            rpcQuantityToBigInt(fetchedTx.gas),
+            rpcQuantityToBigInt(txParams.gasLimit)
           );
           assert.equal(
-            rpcQuantityToBN(fetchedTx.gasPrice),
-            rpcQuantityToBN(txParams.gasPrice)
+            rpcQuantityToBigInt(fetchedTx.gasPrice),
+            rpcQuantityToBigInt(txParams.gasPrice)
           );
           assert.equal(fetchedTx.input, txParams.data);
 

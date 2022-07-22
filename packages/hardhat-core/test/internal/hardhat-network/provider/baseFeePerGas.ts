@@ -6,7 +6,7 @@ import { workaroundWindowsCiFailures } from "../../../utils/workaround-windows-c
 import { PROVIDERS } from "../helpers/providers";
 import {
   numberToRpcQuantity,
-  rpcQuantityToBN,
+  rpcQuantityToBigInt,
 } from "../../../../src/internal/core/jsonrpc/types/base-types";
 import { EthereumProvider } from "../../../../src/types";
 import { makeForkClient } from "../../../../src/internal/hardhat-network/provider/utils/makeForkClient";
@@ -20,7 +20,7 @@ async function getLatestBaseFeePerGas(provider: EthereumProvider) {
     return undefined;
   }
 
-  return rpcQuantityToBN(block.baseFeePerGas);
+  return rpcQuantityToBigInt(block.baseFeePerGas);
 }
 
 async function assertLatestBaseFeePerGas(
@@ -114,7 +114,7 @@ describe("Block's baseFeePerGas", function () {
 
                 const remoteLatestBlockBaseFeePerGas =
                   await forkClient.getBlockByNumber(
-                    rpcQuantityToBN(blockNumber)
+                    rpcQuantityToBigInt(blockNumber)
                   );
                 await assertLatestBaseFeePerGas(
                   this.provider,

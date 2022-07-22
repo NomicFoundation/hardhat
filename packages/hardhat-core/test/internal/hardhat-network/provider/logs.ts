@@ -3,7 +3,7 @@ import chalk from "chalk";
 
 import {
   numberToRpcQuantity,
-  rpcQuantityToBN,
+  rpcQuantityToBigInt,
 } from "../../../../src/internal/core/jsonrpc/types/base-types";
 import { workaroundWindowsCiFailures } from "../../../utils/workaround-windows-ci-failures";
 import { EXAMPLE_CONTRACT, EXAMPLE_READ_CONTRACT } from "../helpers/contracts";
@@ -30,7 +30,7 @@ describe("Provider logs", function () {
       let gasPrice: bigint;
       beforeEach(async function () {
         gasPrice =
-          2n * rpcQuantityToBN(await this.provider.send("eth_gasPrice"));
+          2n * rpcQuantityToBigInt(await this.provider.send("eth_gasPrice"));
 
         this.logger.reset();
       });
