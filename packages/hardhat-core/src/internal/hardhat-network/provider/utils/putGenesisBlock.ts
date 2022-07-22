@@ -14,7 +14,12 @@ export async function putGenesisBlock(
     header.baseFeePerGas = initialBaseFee;
   }
 
-
+  const genesisBlock = Block.fromBlockData(
+    {
+      header,
+    },
+    { common }
+  );
   // ETHJSTODO Block.genesis
   // const genesisBlock = Block.genesis(
   //   {
@@ -22,6 +27,5 @@ export async function putGenesisBlock(
   //   },
   //   { common }
   // );
-  const genesisBlock = null as any;
   await blockchain.putBlock(genesisBlock);
 }

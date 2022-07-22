@@ -244,16 +244,20 @@ export class HardhatNode extends EventEmitter {
 
     const txPool = new TxPool(stateManager, BigInt(blockGasLimit), common);
 
-    // ETHJSTODO remove as any
+    // ETHJSTODO p:high remove as any
     const eei = new EEI.EEI(stateManager, common, blockchain as any);
     const evm = await EVM.create({
       eei,
       allowUnlimitedContractSize,
+      common,
     });
 
     const vm = await VM.create({
       evm,
       activatePrecompiles: true,
+      common,
+      stateManager,
+      blockchain: blockchain as any,
     });
 
     const node = new HardhatNode(

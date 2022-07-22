@@ -254,9 +254,11 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
       gasLimit: transactionRequest.gas,
     };
 
+    const common = Common.custom({ chainId, networkId: chainId });
+
     // TODO: consider changing instances of "london" below to ["latest hardfork"]
     // ETHJSTODO no idea how to do that
-    const common = null as any;
+    // const common = null as any;
     // const common =
     //   chains.names[chainId] !== undefined
     //     ? new Common({ chain: chainId, hardfork: "london" })

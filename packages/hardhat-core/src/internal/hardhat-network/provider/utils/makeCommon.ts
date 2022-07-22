@@ -22,25 +22,23 @@ export function makeCommon(
       ? dateToTimestampSeconds(initialDate)
       : getCurrentTimestamp();
 
-  return null as any;
-
-  // ETHJSTODO check/ask how forCustomChain changed
-  // return Common.forCustomChain(
-  //   "mainnet",
-  //   {
-  //     chainId,
-  //     networkId,
-  //     name: networkName,
-  //     genesis: {
-  //       timestamp: `0x${initialBlockTimestamp.toString(16)}`,
-  //       hash: "0x",
-  //       gasLimit: blockGasLimit,
-  //       difficulty: 1,
-  //       nonce: "0x0000000000000042",
-  //       extraData: "0x1234",
-  //       stateRoot: bufferToHex(stateTrie.root),
-  //     },
-  //   },
-  //   hardfork
-  // );
+  return Common.custom(
+    {
+      chainId,
+      networkId,
+      name: networkName,
+      genesis: {
+        timestamp: `0x${initialBlockTimestamp.toString(16)}`,
+        // hash: "0x",
+        gasLimit: Number(blockGasLimit),
+        difficulty: 1,
+        nonce: "0x0000000000000042",
+        extraData: "0x1234",
+        // stateRoot: bufferToHex(stateTrie.root),
+      },
+    },
+    {
+      hardfork,
+    }
+  );
 }
