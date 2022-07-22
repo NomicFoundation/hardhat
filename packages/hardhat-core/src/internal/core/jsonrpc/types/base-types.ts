@@ -138,7 +138,7 @@ export function numberToRpcStorageSlot(n: number | bigint): string {
     "Expected number"
   );
 
-  return `0x${n.toString(16).padStart(64, "0")}`;
+  return BigIntUtils.toPaddedHex(n, 64);
 }
 
 /**

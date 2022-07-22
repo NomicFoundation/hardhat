@@ -298,8 +298,7 @@ export class VMDebugTracer {
   private _getStack(step: InterpreterStep): string[] {
     const stack = step.stack
       .slice()
-      // ETHJSTODO double-check
-      .map((el: bigint) => `0x${el.toString(16).padStart(64, "0")}`);
+      .map((el: bigint) => BigIntUtils.toPaddedHex(el, 64));
     return stack;
   }
 

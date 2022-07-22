@@ -32,6 +32,10 @@ function mapNumberToBigint<T>(x: number | T): bigint | T {
   return x;
 }
 
+function toPaddedHex(x: bigint | number, length: number): string {
+  return `0x${x.toString(16).padStart(length, "0")}`;
+}
+
 export const BigIntUtils = {
   min,
   max,
@@ -39,4 +43,5 @@ export const BigIntUtils = {
   divUp,
   cmp,
   mapNumberToBigint,
+  toPaddedHex,
 };
