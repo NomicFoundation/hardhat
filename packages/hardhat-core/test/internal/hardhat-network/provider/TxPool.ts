@@ -12,6 +12,7 @@ import {
   createTestFakeTransaction,
   createTestOrderedTransaction,
   createTestTransaction,
+  createUnsignedTestTransaction,
 } from "../helpers/blockchain";
 import { makeOrderedTxMap } from "../helpers/makeOrderedTxMap";
 import {
@@ -538,7 +539,7 @@ describe("Tx Pool", () => {
       });
 
       it("rejects if transaction is not signed", async () => {
-        const tx = createTestTransaction();
+        const tx = createUnsignedTestTransaction();
         await assert.isRejected(
           txPool.addTransaction(tx),
           InvalidInputError,

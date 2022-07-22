@@ -3,7 +3,6 @@ import { assert } from "chai";
 import { ethers } from "ethers";
 import sinon from "sinon";
 
-import { describe } from "mocha";
 import {
   numberToRpcQuantity,
   numberToRpcStorageSlot,

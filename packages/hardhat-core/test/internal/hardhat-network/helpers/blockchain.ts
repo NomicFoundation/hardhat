@@ -28,6 +28,12 @@ export function createTestTransaction(data: TxData = {}) {
   return tx.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
 }
 
+export function createUnsignedTestTransaction(data: TxData = {}) {
+  const tx = new Transaction({ to: randomAddress(), ...data });
+
+  return tx;
+}
+
 export function createTestFakeTransaction(
   data: (TxData | FeeMarketEIP1559TxData | AccessListEIP2930TxData) & {
     from?: AddressLike;
