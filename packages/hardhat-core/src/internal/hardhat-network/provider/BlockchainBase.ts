@@ -16,6 +16,10 @@ export abstract class BlockchainBase {
     this._data = new BlockchainData(_common);
   }
 
+  // dummy method added so that ethereumjs doesn't crash
+  // when it tries to call it
+  private _init() {}
+
   public abstract addBlock(block: Block): Promise<Block>;
 
   public addTransactionReceipts(receipts: RpcReceiptOutput[]) {
