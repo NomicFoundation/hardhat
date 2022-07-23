@@ -62,6 +62,8 @@ export class ResolvedFile implements IResolvedFile {
 }
 
 export class Resolver {
+  private readonly _cache: Map<string, ResolvedFile> = new Map();
+
   constructor(
     private readonly _projectRoot: string,
     private readonly _parser: Parser,
@@ -74,13 +76,23 @@ export class Resolver {
    * @param sourceName The source name as it would be provided to solc.
    */
   public async resolveSourceName(sourceName: string): Promise<ResolvedFile> {
-    validateSourceNameFormat(sourceName);
-
-    if (await isLocalSourceName(this._projectRoot, sourceName)) {
-      return this._resolveLocalSourceName(sourceName);
+    const cached = this._cache.get(sourceName);
+    if (cached !== undefined) {
+      return cached;
     }
 
-    return this._resolveLibrarySourceName(sourceName);
+    validateSourceNameFormat(sourceName);
+
+    let resolvedFile: ResolvedFile;
+
+    if (await isLocalSourceName(this._projectRoot, sourceName)) {
+      resolvedFile = await this._resolveLocalSourceName(sourceName);
+    } else {
+      resolvedFile = await this._resolveLibrarySourceName(sourceName);
+    }
+
+    this._cache.set(sourceName, resolvedFile);
+    return resolvedFile;
   }
 
   /**
@@ -116,23 +128,38 @@ export class Resolver {
     }
 
     try {
-      if (!this._isRelativeImport(imported)) {
-        return await this.resolveSourceName(normalizeSourceName(imported));
+      let sourceName: string;
+
+      const isRelativeImport = this._isRelativeImport(imported);
+
+      if (!isRelativeImport) {
+        sourceName = normalizeSourceName(imported);
+      } else {
+        sourceName = await this._relativeImportToSourceName(from, imported);
       }
 
-      const sourceName = await this._relativeImportToSourceName(from, imported);
+      const cached = this._cache.get(sourceName);
+      if (cached !== undefined) {
+        return cached;
+      }
+
+      let resolvedFile: ResolvedFile;
 
       // We have this special case here, because otherwise local relative
       // imports can be treated as library imports. For example if
       // `contracts/c.sol` imports `../non-existent/a.sol`
       if (
         from.library === undefined &&
+        isRelativeImport &&
         !this._isRelativeImportToLibrary(from, imported)
       ) {
-        return await this._resolveLocalSourceName(sourceName);
+        resolvedFile = await this._resolveLocalSourceName(sourceName);
+      } else {
+        resolvedFile = await this.resolveSourceName(sourceName);
       }
 
-      return await this.resolveSourceName(sourceName);
+      this._cache.set(sourceName, resolvedFile);
+      return resolvedFile;
     } catch (error) {
       if (
         HardhatError.isHardhatErrorType(
