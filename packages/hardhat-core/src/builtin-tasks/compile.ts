@@ -1423,38 +1423,30 @@ async function invalidateCacheMissingArtifacts(
   artifacts: Artifacts,
   resolvedFiles: ResolvedFile[]
 ): Promise<SolidityFilesCache> {
-  await Promise.all(
-    resolvedFiles.map(async (file) => {
-      const cacheEntry = solidityFilesCache.getEntry(file.absolutePath);
+  const paths = new Set(await artifacts.getArtifactPaths());
 
-      if (cacheEntry === undefined) {
-        return;
-      }
+  for (const file of resolvedFiles) {
+    const cacheEntry = solidityFilesCache.getEntry(file.absolutePath);
 
-      const { artifacts: emittedArtifacts } = cacheEntry;
+    if (cacheEntry === undefined) {
+      continue;
+    }
 
-      const artifactsExist = await Promise.all(
-        emittedArtifacts.map(
-          async (emittedArtifact) =>
-            [
-              getFullyQualifiedName(file.sourceName, emittedArtifact),
-              await artifacts.artifactExists(
-                getFullyQualifiedName(file.sourceName, emittedArtifact)
-              ),
-            ] as const
-        )
-      );
+    const { artifacts: emittedArtifacts } = cacheEntry;
+    for (const emittedArtifact of emittedArtifacts) {
+      const fqn = getFullyQualifiedName(file.sourceName, emittedArtifact);
+      const path = artifacts.formArtifactPathFromFullyQualifiedName(fqn);
 
-      const missing = artifactsExist.find(([_, exists]) => !exists);
-      if (missing !== undefined) {
+      if (!paths.has(path)) {
         log(
-          `Invalidate cache for '${file.absolutePath}' because artifact '${missing[0]}' doesn't exist`
+          `Invalidate cache for '${file.absolutePath}' because artifact '${fqn}' doesn't exist`
         );
 
         solidityFilesCache.removeEntry(file.absolutePath);
+        break;
       }
-    })
-  );
+    }
+  }
 
   return solidityFilesCache;
 }
