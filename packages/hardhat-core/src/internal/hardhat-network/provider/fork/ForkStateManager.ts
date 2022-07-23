@@ -476,13 +476,13 @@ export class ForkStateManager implements StateManager {
   }
 
   public async flush(): Promise<void> {
-    // throw new Error("not implemented");
+    // not implemented
   }
 
   public async modifyAccountFields(
     _address: Address,
     _accountFields: any
   ): Promise<void> {
-    throw new Error("not implemented");
+    // not implemented
   }
 }
