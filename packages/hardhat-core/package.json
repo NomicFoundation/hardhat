@@ -75,7 +75,7 @@
     "@types/sinon": "^9.0.8",
     "@types/uuid": "^8.3.1",
     "@types/ws": "^7.2.1",
-    "@typescript-eslint/eslint-plugin": "5.30.7",
+    "@typescript-eslint/eslint-plugin": "^5.30.7",
     "@typescript-eslint/parser": "4.29.2",
     "bignumber.js": "^9.0.2",
     "bn.js": "^5.1.0",
