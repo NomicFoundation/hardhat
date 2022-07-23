@@ -17,7 +17,7 @@ import {
   setLengthLeft,
   toBuffer,
 } from "@ethereumjs/util";
-import { Bloom, EEI, RunBlockResult, VM } from "@ethereumjs/vm";
+import { Bloom, EEI, RunBlockResult, RunTxResult, VM } from "@ethereumjs/vm";
 import { EVM, EVMResult } from "@ethereumjs/evm";
 import { ERROR } from "@ethereumjs/evm/dist/exceptions";
 import { DefaultStateManager, StateManager } from "@ethereumjs/statemanager";
@@ -794,8 +794,9 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       };
     }
 
-    // ETHJSTODO double-check
-    const initialEstimation = result.execResult.executionGasUsed;
+    // ETHJSTODO add test in hardhat-core for an estimate gas of a simple
+    // function call
+    const initialEstimation = result.totalGasSpent;
 
     return {
       estimation: await this._correctInitialEstimation(
@@ -2316,7 +2317,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     tx: TypedTransaction,
     blockNumberOrPending: bigint | "pending",
     forceBaseFeeZero = false
-  ): Promise<EVMResult> {
+  ): Promise<RunTxResult> {
     const initialStateRoot = await this._stateManager.getStateRoot();
 
     let blockContext: Block | undefined;
