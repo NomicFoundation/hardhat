@@ -957,7 +957,7 @@ describe("HardhatNode", () => {
             [
               1,
               {
-                hardforkHistory: new Map([["london", 100n]]),
+                hardforkHistory: new Map([["london", 100]]),
               },
             ],
           ]),

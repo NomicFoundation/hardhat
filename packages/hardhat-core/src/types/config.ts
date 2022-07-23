@@ -119,7 +119,7 @@ export type NetworkConfig = HardhatNetworkConfig | HttpNetworkConfig;
 
 export type HardforkHistoryConfig = Map<
   /* hardforkName */ string,
-  /* blockNumber */ bigint
+  /* blockNumber */ number
 >;
 
 export interface HardhatNetworkChainConfig {

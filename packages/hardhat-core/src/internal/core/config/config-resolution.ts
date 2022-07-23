@@ -210,7 +210,7 @@ function resolveHardhatNetworkConfig(
         )) {
           chainConfig.hardforkHistory.set(
             name as HardforkName,
-            BigInt(block as number)
+            block as number
           );
         }
       }

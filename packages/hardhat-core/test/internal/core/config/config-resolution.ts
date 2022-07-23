@@ -721,7 +721,7 @@ describe("Config resolution", () => {
           const resolvedConfig = resolveConfig(__filename, userConfig);
           it("If the user provides values for a chain that's included in the default, should use the users' values, and ignore the defaults for that chain.", function () {
             assert.deepEqual(resolvedConfig.networks.hardhat.chains.get(1), {
-              hardforkHistory: new Map([[HardforkName.LONDON, 999n]]),
+              hardforkHistory: new Map([[HardforkName.LONDON, 999]]),
             });
           });
           it("If they don't provide any value for a default chain, should use the default for that one.", function () {
@@ -745,7 +745,7 @@ describe("Config resolution", () => {
             },
           });
           assert.deepEqual(resolvedConfig.networks.hardhat.chains.get(999), {
-            hardforkHistory: new Map([[HardforkName.LONDON, 1234n]]),
+            hardforkHistory: new Map([[HardforkName.LONDON, 1234]]),
           });
         });
       });
