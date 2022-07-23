@@ -64,12 +64,8 @@ export class Artifacts implements IArtifacts {
   }
 
   public async artifactExists(name: string): Promise<boolean> {
-    try {
-      await this.readArtifact(name);
-      return true;
-    } catch {
-      return false;
-    }
+    const artifactPath = await this._getArtifactPath(name);
+    return fsExtra.pathExists(artifactPath);
   }
 
   public async getAllFullyQualifiedNames(): Promise<string[]> {
