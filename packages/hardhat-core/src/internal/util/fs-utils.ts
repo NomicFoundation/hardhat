@@ -72,7 +72,7 @@ export async function fileExistsWithExactCasing(
 /**
  * Returns an array of files (not dirs) that match a condition.
  *
- * @param absolutePathToDir An existing directory.
+ * @param absolutePathToDir A directory. If it doesn't exist `[]` is returned.
  * @param matches
  */
 export async function getAllFilesMatching(
@@ -84,8 +84,7 @@ export async function getAllFilesMatching(
     dir = await fsPromises.readdir(absolutePathToDir);
   } catch (e: any) {
     if (e.code === "ENOENT") {
-      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
-      throw new FileNotFoundError(`File ${absolutePathToDir} not found`, e);
+      return [];
     }
 
     if (e.code === "ENOTDIR") {
@@ -128,8 +127,7 @@ export function getAllFilesMatchingSync(
     dir = fs.readdirSync(absolutePathToDir);
   } catch (e: any) {
     if (e.code === "ENOENT") {
-      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
-      throw new FileNotFoundError(`File ${absolutePathToDir} not found`, e);
+      return [];
     }
 
     if (e.code === "ENOTDIR") {
