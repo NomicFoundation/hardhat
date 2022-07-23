@@ -1,6 +1,4 @@
-import { DefaultStateManager } from "@ethereumjs/statemanager";
-// ETHJSTODO not sure what to do about EIP2929StateManager
-// import { EIP2929StateManager } from "@ethereumjs/vm/dist/state/interface";
+import { StateManager } from "@ethereumjs/statemanager";
 import {
   Account,
   bigIntToHex,
@@ -44,8 +42,7 @@ const notCheckpointedError = (method: string) =>
 const notSupportedError = (method: string) =>
   new Error(`${method} is not supported when forking from remote network`);
 
-// ETHJSTODO no idea what to do with EIP2929StateManager
-export class ForkStateManager /* implements EIP2929StateManager */ {
+export class ForkStateManager implements StateManager {
   private _state: State = ImmutableMap<string, ImmutableRecord<AccountState>>();
   private _initialStateRoot: string = randomHash();
   private _stateRoot: string = this._initialStateRoot;
@@ -272,11 +269,11 @@ export class ForkStateManager /* implements EIP2929StateManager */ {
 
     const storageMap = this._accessedStorage.pop();
     if (storageMap !== undefined) {
-      (DefaultStateManager.prototype as any)._accessedStorageMerge.call(
-        this,
-        this._accessedStorage,
-        storageMap
-      );
+      // (DefaultStateManager.prototype as any)._accessedStorageMerge.call(
+      //   this,
+      //   this._accessedStorage,
+      //   storageMap
+      // );
     }
   }
 
@@ -472,5 +469,20 @@ export class ForkStateManager /* implements EIP2929StateManager */ {
     }
     this._stateRoot = newRoot;
     this._state = state;
+  }
+
+  public async hasStateRoot(root: Buffer): Promise<boolean> {
+    return this._state.has(bufferToHex(root));
+  }
+
+  public async flush(): Promise<void> {
+    // throw new Error("not implemented");
+  }
+
+  public async modifyAccountFields(
+    _address: Address,
+    _accountFields: any
+  ): Promise<void> {
+    throw new Error("not implemented");
   }
 }

@@ -178,8 +178,7 @@ export class HardhatNode extends EventEmitter {
         forkBlockNumber
       );
       await forkStateManager.initializeGenesisAccounts(genesisAccounts);
-      // ETHJSTODO ForkStateManager is not compatible with StateManager
-      stateManager = forkStateManager as any;
+      stateManager = forkStateManager;
 
       blockchain = new ForkBlockchain(forkClient, forkBlockNumber, common);
 
