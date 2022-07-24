@@ -53,8 +53,8 @@ describe("ForkBlockchain", () => {
     forkBlockNumber = clientResult.forkBlockNumber;
 
     common = new Common({ chain: "mainnet" });
-    // ETHJSTODO no idea how to adapt this
-    // common.setHardfork(common.activeHardfork(forkBlockNumber.toNumber()));
+    common.setHardfork(common.getHardforkByBlockNumber(forkBlockNumber));
+
     fb = new ForkBlockchain(client, forkBlockNumber, common);
   });
 
