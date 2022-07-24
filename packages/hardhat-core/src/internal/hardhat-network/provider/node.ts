@@ -340,8 +340,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   private readonly _consoleLogger: ConsoleLogger = new ConsoleLogger();
   private _failedStackTraces = 0;
 
-  // ETHJSTODO check this comment that mentions BN
-  private _irregularStatesByBlockNumber: Map<string, Buffer> = new Map(); // blockNumber as BN.toString() => state root
+  private _irregularStatesByBlockNumber: Map<bigint, Buffer> = new Map();
 
   private constructor(
     private readonly _vm: VM,
@@ -1036,7 +1035,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     this._blockchain.deleteLaterBlocks(snapshot.latestBlock);
     this._irregularStatesByBlockNumber = snapshot.irregularStatesByBlockNumber;
     const irregularStateOrUndefined = this._irregularStatesByBlockNumber.get(
-      (await this.getLatestBlock()).header.number.toString()
+      (await this.getLatestBlock()).header.number
     );
     await this._stateManager.setStateRoot(
       irregularStateOrUndefined ?? snapshot.stateRoot
@@ -2165,7 +2164,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
   private async _setBlockContext(block: Block): Promise<void> {
     const irregularStateOrUndefined = this._irregularStatesByBlockNumber.get(
-      block.header.number.toString()
+      block.header.number
     );
 
     if (this._stateManager instanceof ForkStateManager) {
@@ -2478,7 +2477,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
   private async _persistIrregularWorldState(): Promise<void> {
     this._irregularStatesByBlockNumber.set(
-      this.getLatestBlockNumber().toString(),
+      this.getLatestBlockNumber(),
       await this._stateManager.getStateRoot()
     );
   }

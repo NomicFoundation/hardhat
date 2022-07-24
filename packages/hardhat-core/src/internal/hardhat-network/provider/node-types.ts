@@ -125,7 +125,7 @@ export interface Snapshot {
   txPoolSnapshotId: number;
   blockTimeOffsetSeconds: bigint;
   nextBlockTimestamp: bigint;
-  irregularStatesByBlockNumber: Map<string, Buffer>;
+  irregularStatesByBlockNumber: Map<bigint, Buffer>;
   userProvidedNextBlockBaseFeePerGas: bigint | undefined;
   coinbase: string;
 }
