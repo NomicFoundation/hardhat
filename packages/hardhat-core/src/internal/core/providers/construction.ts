@@ -112,7 +112,6 @@ export function createProvider(
       typeof import("./http"),
       "HttpProvider"
     >("./http", "HttpProvider");
-    // ETHJSTODO double-check, but it looks like the previous version was a mistake
     const httpNetConfig = networkConfig as HttpNetworkConfig;
 
     eip1193Provider = new HttpProvider(

@@ -1,7 +1,6 @@
-import { EVM, EVMResult } from "@ethereumjs/evm";
+import { EVM, EVMResult, getActivePrecompiles } from "@ethereumjs/evm";
 import { InterpreterStep } from "@ethereumjs/evm/dist/interpreter";
 import { Message } from "@ethereumjs/evm/dist/message";
-import { precompiles } from "@ethereumjs/evm/dist/precompiles";
 import { Address, bufferToBigInt } from "@ethereumjs/util";
 import { VM } from "@ethereumjs/vm";
 
@@ -16,9 +15,6 @@ import {
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
-// ETHJSTODO: can we use getActivePrecompiles here? If not, ask the ethjs
-// team to export `precompiles` in index
-const MAX_PRECOMPILE_NUMBER = Object.keys(precompiles).length + 1;
 const DUMMY_RETURN_DATA = Buffer.from([]);
 const DUMMY_GAS_USED = 0n;
 
@@ -26,6 +22,7 @@ export class VMTracer {
   private _messageTraces: MessageTrace[] = [];
   private _enabled = false;
   private _lastError: Error | undefined;
+  private _maxPrecompileNumber = getActivePrecompiles(this._vm._common).size;
 
   constructor(
     private readonly _vm: VM,
@@ -116,7 +113,7 @@ export class VMTracer {
       } else {
         const toAsNumber = bufferToBigInt(message.to.toBuffer());
 
-        if (toAsNumber > 0 && toAsNumber <= MAX_PRECOMPILE_NUMBER) {
+        if (toAsNumber > 0 && toAsNumber <= this._maxPrecompileNumber) {
           const precompileTrace: PrecompileMessageTrace = {
             precompile: Number(toAsNumber),
             calldata: message.data,

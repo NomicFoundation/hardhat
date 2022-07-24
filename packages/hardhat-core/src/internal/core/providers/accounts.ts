@@ -240,7 +240,7 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
     chainId: number,
     privateKey: Buffer
   ): Promise<Buffer> {
-    // ETHJSTODO can we drop what we were doing with the chains before?
+    // ETHJSTODO re-enable this when ethereumjs adds the chainid mapping
     // const { chains } = await import("@ethereumjs/common/dist/chains");
 
     const { AccessListEIP2930Transaction, Transaction } = await import(
