@@ -1574,7 +1574,6 @@ export class EthModule {
         );
 
         const { block, blockResult } = sentTxResult;
-        // ETHJSTODO double-check
         const gasUsed = blockResult.results[sentTxIndex].totalGasSpent;
         this._logger.logCurrentlySentTransaction(
           sentTx,

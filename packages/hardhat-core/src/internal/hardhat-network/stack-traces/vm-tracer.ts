@@ -209,7 +209,6 @@ export class VMTracer {
 
       trace.error = result.execResult.exceptionError;
       trace.returnData = result.execResult.returnValue;
-      // ETHJSTODO double-check
       trace.gasUsed = result.execResult.executionGasUsed;
 
       if (isCreateTrace(trace)) {

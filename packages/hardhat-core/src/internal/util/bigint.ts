@@ -1,3 +1,5 @@
+import { BigIntLike, bufferToBigInt } from "@ethereumjs/util";
+
 function min(x: bigint, y: bigint): bigint {
   return x < y ? x : y;
 }
@@ -36,6 +38,21 @@ function toWord(x: bigint | number): string {
   return x.toString(16).padStart(64, "0");
 }
 
+function fromBigIntLike(x: BigIntLike): bigint {
+  if (typeof x === "bigint") {
+    return x;
+  }
+  if (typeof x === "number" || typeof x === "string") {
+    return BigInt(x);
+  }
+  if (Buffer.isBuffer(x)) {
+    return bufferToBigInt(x);
+  }
+
+  const exhaustiveCheck: never = x;
+  return exhaustiveCheck;
+}
+
 export const BigIntUtils = {
   min,
   max,
@@ -44,4 +61,5 @@ export const BigIntUtils = {
   cmp,
   mapNumberToBigint,
   toWord,
+  fromBigIntLike,
 };

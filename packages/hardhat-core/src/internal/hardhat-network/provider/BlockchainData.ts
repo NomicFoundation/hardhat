@@ -250,7 +250,6 @@ export class BlockchainData {
       ? this._calculateTimestampForReservedBlock(blockNumberBeforeReservation)
       : blockBeforeReservation.header.timestamp;
 
-    // ETHJSTODO double-check
     return (
       previousTimestamp +
       reservation.interval * (blockNumber - reservation.first + 1n)

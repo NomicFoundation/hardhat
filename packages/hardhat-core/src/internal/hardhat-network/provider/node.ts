@@ -812,11 +812,9 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
     if (nextBlockBaseFeePerGas === undefined) {
       // We return a hardcoded value for networks without EIP-1559
-      // ETHJSTODO double-check
       return 8n * 10n ** 9n;
     }
 
-    // ETHJSTODO double-check
     const suggestedPriorityFeePerGas = 10n ** 9n;
     return nextBlockBaseFeePerGas + suggestedPriorityFeePerGas;
   }
@@ -911,7 +909,6 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   }
 
   public increaseTime(increment: bigint) {
-    // ETHJSTODO double-check
     this._blockTimeOffsetSeconds += increment;
   }
 
