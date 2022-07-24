@@ -1,17 +1,17 @@
 # Hardhat documentation website
 
-This is a NextJS-based application for the Hardhat documentation website. This app is utilizing SSG for creating pages on the build step. It's developed keeping the best practices in mind including accessibility, SEO and Performance optimizations, and scalability
+This is a Next.js-based application for the Hardhat documentation website. This app is utilizing SSG for creating pages on the build step. It's developed keeping the best practices in mind including accessibility, SEO and performance optimizations, and scalability.
 
 The app mainly provides pages of two types:
 
-- landing pages (see home page)
-- documentation pages (see documentation section)
+- Landing pages (see home page)
+- Documentation pages (see documentation section)
 
 Landing pages are composed of reusable blocks and separate content files. Blocks are full-width React Components that can be stacked to compose a page. Blocks output content passed to them via props.
 
-Documentation pages are generated from markdown files located in the `src/content` folder. This folder has a nesting structure that is mapped to the page URLs on the website.
+Documentation pages are generated from Markdown files located in the `src/content` folder. This folder has a nesting structure that is mapped to the page URLs on the website.
 
-It's assumed that the app will be hosted on the Vercel platform with is highly optimized for SSG apps.
+It's assumed that the app will be hosted on the Vercel platform, which is highly optimized for SSG apps.
 
 We consider two directions of the follow-up application growing:
 
@@ -41,7 +41,7 @@ All content is organized by hierarchy levels and the top-level entries are layou
 
 ### Folders
 
-The next level is a folder. It can contain nesting folders and `*.md` files. Each `*.md` file represents a single documentation page. Folders usually are represented in a sidebar as a group of items with a common title - each item in this group opens a separate file in the folder. Folders can be nested but it only affects the page's path on the website, sidebar navigation is always of two levels. To configure folders we're using `_dirinfo.yaml` files which can contain the following settings:
+The next level is a folder. It can contain nesting folders and `*.md` files. Each `*.md` file represents a single documentation page. Folders usually are represented in a sidebar as a group of items with a common title - each item in this group opens a separate file in the folder. Folders can be nested but it only affects the page's path on the website, sidebar navigation is always of two levels. To configure folders, we're using `_dirinfo.yaml` files which can contain the following settings:
 
 **section-title**: the title of a group in the sidebar. It's optional, if skipped the folder name will be used.
 
@@ -52,9 +52,9 @@ The next level is a folder. It can contain nesting folders and `*.md` files. Eac
 - hidden - the folder won't be shown in the sidebar but when you open a page from this group sidebar is present.
 - plugins - the "special" group with is generated not from the `*.md` files located in the content folder, but from README.md files from plugin packages
 
-**order**: an array of items in the order they should appear in the sidebar group. This is optional but if it's not specified the order will be based on file names. This array can contain two types of items:
+**order**: an array of items in the order they should appear in the sidebar group. This is optional but if it's not specified, the order will be based on file names. This array can contain two types of items:
 
-- simple href strings (which are the same as a path to a file without a file extension. e.g. `/explanation/mining-modes`). Note it shouldn't contain the group folder name in the path. In this case, the title of the item will be generated automatically and will be the same as a page title.
+- simple href strings (which are the same as a path to a file without a file extension. e.g. `/explanation/mining-modes`). Note: it shouldn't contain the group folder name in the path. In this case, the title of the item will be generated automatically and will be the same as a page title.
 - objects with `href` and `title` keys. In this case, href can be any valid relative link. The title specifies the title of that item in the sidebar. Note: this allows to specify anchor links e.g. `"#quick-start"` or a "index" links - `/`.
 
 ### MD Files
@@ -70,19 +70,19 @@ All documentation content is represented by `*.md` files with Markdown syntax. B
 
 ### Redirects
 
-Redirects allow you to redirect an incoming request path to a different destination path. Redirects settings are located in `redirects.config.js` file. It exports an array of objects. Each object represents a single redirect option. We utilize [NextJS Redirects](https://nextjs.org/docs/api-reference/next.config.js/redirects) API for that.
+Redirects allow you to redirect an incoming request path to a different destination path. Redirects settings are located in `redirects.config.js` file. It exports an array of objects. Each object represents a single redirect option. We utilize [Next.js Redirects](https://nextjs.org/docs/api-reference/next.config.js/redirects) API for that.
 
 ### Tabs
 
-We use plugin `remark-directive` in order to provide tabs functionality.
+We use the plugin `remark-directive` in order to provide tabs functionality.
 
 #### Use
 
 #### `tabsgroup` and `tab`
 
-`tabsgroup` is wrapper that wraps a group of tabs and sets all possible values of tabs.
+`tabsgroup` - wrapper that wraps a group of tabs and sets all possible values of tabs.
 
-`tab` is wrapper that wraps a codeblock (or some other element).
+`tab` - wrapper that wraps a codeblock (or some other element).
 
 #### Example:
 
@@ -100,7 +100,7 @@ We use plugin `remark-directive` in order to provide tabs functionality.
 
 #### Parameters
 
-Parameters is passed in curly braces.
+Parameters are passed in curly braces.
 
 `options-list` - required parameter. Comma separated strings, which is provided in tabs' `value` parameter.  
 `value` - required parameter. It should be provided as an option in `options-list` in `tabsgroup`.
@@ -109,7 +109,7 @@ You can use `space` symbol in parameters by wrapping `options/value` in quotes(`
 
 ### Front Matter
 
-The front matter must be the first thing in the markdown file and must take the form of valid YAML set between triple-dashed lines. Here is an example:
+The front matter must be the first thing in the Markdown file and must take the form of valid YAML set between triple-dashed lines. Here is an example:
 
 ```
 ---
@@ -120,7 +120,7 @@ next: false
 ---
 ```
 
-You can specify `title`, `description` for SEO manually or disable `prev` and `next` links for Footer Navigation by using Front Matter.
+You can specify `title`, `description` for SEO manually; or, disable `prev` and `next` links for Footer Navigation by using Front Matter.
 
 ## Development
 
@@ -152,16 +152,16 @@ When developing the application you might need these main
 
 - src/components - React Components for rendering pages
 - src/components/landingBlocks - "Building blocks" for creating landing pages
-- src/components/mdxComponents - Components used to render markdown content
+- src/components/mdxComponents - Components used to render Markdown content
 - src/components/ui - common UI components
 - src/hooks - common React hooks
 - src/model - business logic files
-- src/pages - NextJS pages. `[...docPath].tsx` means multiple pages will be generated. Page routes are based on the relative paths
+- src/pages - Next.js pages. `[...docPath].tsx` means multiple pages will be generated. Page routes are based on the relative paths
 - src/styles - global CSS styles
 - src/config.ts - keep main information about the app.
 - public/ - static files
 - .storybook/ - Storybook settings
-- next.config.js - NextJS config
+- next.config.js - Next.js config
 - redirects.config.js - Custom redirects
 
 ## Storybook
@@ -176,22 +176,22 @@ We also deploy updated storybook on each build. You can find it on https://hardh
 
 There are two relatively independent processes in the build step:
 
-1. Generating pages themselves. We get page paths directly from the files located in the content folder. Their paths are mapped to the page routes. Layout settings don't affect to page's existence.
-2. Generating layouts and mapping layouts to pages. For that, we're checking which folders belong to what layout and assigning that layout to a page
+1. Generating pages themselves. We get page paths directly from the files located in the content folder. Their paths are mapped to the page routes. Layout settings don't affect the page's existence.
+2. Generating layouts and mapping layouts to pages. For that, we're checking which folders belong to what layout and assigning that layout to a page.
 
-Page paths are generated in the `getStaticPaths` functions in files of the `page` folder. The result of these functions is an array of page paths. Page pros are generated with the `getStaticProps` function which is executed once per page with a page path passed as an argument and returns all required page props.
+Page paths are generated in the `getStaticPaths` functions in files of the `page` folder. The result of these functions is an array of page paths. Page props are generated with the `getStaticProps` function which is executed once per page, with a page path passed as an argument and returns all required page props.
 
-Execution of `getStaticPaths` and `getStaticProps` is handled by NextJS on a build step and it runs them in isolation (which means we can't share common calculated parameters within them). To optimize a building time we store an intermediate config in a temporary file on the `getStaticPaths` execution and read it from `getStaticProps` functions. It contains layout settings and a map of pages with specific props.
+Execution of `getStaticPaths` and `getStaticProps` is handled by Next.js on a build step and it runs them in isolation (which means that we can't share common calculated parameters within them). To optimize the building time, we store an intermediate config in a temporary file on the `getStaticPaths` execution and read it from `getStaticProps` functions. It contains layout settings and a map of pages with specific props.
 
 ## Styling
 
-We utilize [Linaria](https://github.com/callstack/linaria) for styling components. It has the "Styled Components" syntax but generates css without runtime with works fine with SSG sites.
+We utilize [Linaria](https://github.com/callstack/linaria) for styling components. It has the "Styled Components" syntax but generates CSS without runtime, which works fine with SSG sites.
 
 ## Theming
 
 The documentation section is Themable. A user can switch between light, dark and high contrast themes for their convenience. There is also an "Auto" setting when theme is selected based on a user system settings.
 
-Theming solution provides abilities to switch themes, keep the selected value in user's local storage, seamlessly keep selected page on navigating and page refreshing.
+Theming solution provides abilities to switch themes, keeps the selected value in user's local storage and seamlessly keeps selected page on navigating and page refreshing.
 
 We manage themes by applying a CSS class to the HTML body. Each component has special selectors in its CSS to reflect change color depending on selected theme. To support themes, components should provide styles for all app themes (add selectors and specify colors).
 
@@ -205,7 +205,7 @@ Landing pages contains special "blocks" see src/components/landingBlocks. To cre
 
 We use two CI/CD providers:
 
-- Github actions for launching code checks
+- GitHub actions for launching code checks
 - Vercel to deploy app
 
 Each branch triggers own process on CI/CD so you can see a code check details on Github and preview the current branch on Vercel.
