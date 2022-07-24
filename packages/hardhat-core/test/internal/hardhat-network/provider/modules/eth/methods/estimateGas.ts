@@ -54,7 +54,40 @@ describe("Eth module", function () {
             },
           ]);
 
-          assert.isTrue(BigInt(estimation) <= 23_000n);
+          assert.closeTo(Number(estimation), 21_000, 5);
+        });
+
+        it("should estimate the gas for a contract call", async function () {
+          const contractAddress = await deployContract(
+            this.provider,
+            `0x${EXAMPLE_CONTRACT.bytecode.object}`
+          );
+
+          const newState =
+            "000000000000000000000000000000000000000000000000000000000000000a";
+
+          const gasEstimate = await this.provider.send("eth_estimateGas", [
+            {
+              to: contractAddress,
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              data: EXAMPLE_CONTRACT.selectors.modifiesState + newState,
+            },
+          ]);
+
+          const tx = await this.provider.send("eth_sendTransaction", [
+            {
+              to: contractAddress,
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              data: EXAMPLE_CONTRACT.selectors.modifiesState + newState,
+            },
+          ]);
+
+          const receipt = await this.provider.send(
+            "eth_getTransactionReceipt",
+            [tx]
+          );
+
+          assert.equal(gasEstimate, receipt.gasUsed);
         });
 
         it("should leverage block tag parameter", async function () {

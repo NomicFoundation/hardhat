@@ -794,8 +794,6 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       };
     }
 
-    // ETHJSTODO add test in hardhat-core for an estimate gas of a simple
-    // function call
     const initialEstimation = result.totalGasSpent;
 
     return {
