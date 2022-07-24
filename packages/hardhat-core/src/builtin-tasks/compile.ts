@@ -1294,26 +1294,38 @@ subtask(TASK_COMPILE_SOLIDITY_LOG_COMPILATION_RESULT)
 subtask(TASK_COMPILE_SOLIDITY)
   .addParam("force", undefined, undefined, types.boolean)
   .addParam("quiet", undefined, undefined, types.boolean)
+  .addParam("file", undefined, undefined, types.string)
   .addParam("concurrency", undefined, DEFAULT_CONCURRENCY_LEVEL, types.int)
   .setAction(
     async (
       {
         force,
         quiet,
+        file,
         concurrency,
-      }: { force: boolean; quiet: boolean; concurrency: number },
+      }: { force: boolean; quiet: boolean; file: string; concurrency: number },
       { artifacts, config, run }
     ) => {
       const sourcePaths: string[] = await run(
         TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS
       );
 
-      const sourceNames: string[] = await run(
+      let sourceNames: string[] = await run(
         TASK_COMPILE_SOLIDITY_GET_SOURCE_NAMES,
         {
           sourcePaths,
         }
       );
+
+      if (file !== "") {
+        if (sourceNames.includes(file)) {
+          sourceNames = [file];
+        } else {
+          throw new HardhatError(ERRORS.RESOLVER.FILE_NOT_FOUND, {
+            file: file,
+          });
+        }
+      }
 
       const solidityFilesCachePath = getSolidityFilesCachePath(config.paths);
       let solidityFilesCache = await SolidityFilesCache.readFromFile(
@@ -1423,6 +1435,7 @@ subtask(TASK_COMPILE_GET_COMPILATION_TASKS, async (): Promise<string[]> => {
 task(TASK_COMPILE, "Compiles the entire project, building all artifacts")
   .addFlag("force", "Force compilation ignoring cache")
   .addFlag("quiet", "Makes the compilation process less verbose")
+  .addParam("file", "The specific file path to compile", "", types.string)
   .addParam(
     "concurrency",
     "Number of compilation jobs executed in parallel. Defaults to the number of CPU cores - 1",
