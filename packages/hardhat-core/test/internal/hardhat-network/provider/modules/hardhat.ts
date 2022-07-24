@@ -2069,7 +2069,7 @@ describe("Hardhat module", function () {
           await this.provider.send("hardhat_setStorageAt", [
             DEFAULT_ACCOUNTS_ADDRESSES[0],
             numberToRpcQuantity(0),
-            BigIntUtils.toPaddedHex(targetStorageValue, 64),
+            `0x${BigIntUtils.toWord(targetStorageValue)}`,
           ]);
 
           const resultingStorageValue = await this.provider.send(
@@ -2106,7 +2106,7 @@ describe("Hardhat module", function () {
           await this.provider.send("hardhat_setStorageAt", [
             contractAddress,
             numberToRpcQuantity(0),
-            BigIntUtils.toPaddedHex(10n, 64),
+            `0x${BigIntUtils.toWord(10n)}`,
           ]);
 
           // Assert: Verify that the contract retrieves the modified value.
@@ -2165,7 +2165,7 @@ describe("Hardhat module", function () {
           await this.provider.send("hardhat_setStorageAt", [
             DEFAULT_ACCOUNTS_ADDRESSES[0],
             numberToRpcQuantity(0),
-            BigIntUtils.toPaddedHex(targetStorageValue, 64),
+            `0x${BigIntUtils.toWord(targetStorageValue)}`,
           ]);
 
           // Act 2: Mine a block

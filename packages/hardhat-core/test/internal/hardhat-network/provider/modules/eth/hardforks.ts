@@ -4,7 +4,7 @@ import {
   FeeMarketEIP1559Transaction,
   Transaction,
 } from "@ethereumjs/tx";
-import { intToBuffer, setLengthLeft, toBuffer } from "@ethereumjs/util";
+import { toBuffer } from "@ethereumjs/util";
 import { assert } from "chai";
 
 import {
@@ -1004,8 +1004,7 @@ describe("Eth module - hardfork dependant tests", function () {
     ];
 
     function abiEncodeUint(uint: number) {
-      // ETHJSTODO verify
-      return setLengthLeft(intToBuffer(uint), 32).toString("hex");
+      return BigIntUtils.toWord(uint);
     }
 
     let contract: string;

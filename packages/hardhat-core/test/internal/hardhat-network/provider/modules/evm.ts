@@ -5,7 +5,7 @@ import sinon from "sinon";
 import {
   bufferToRpcData,
   numberToRpcQuantity,
-  rpcDataToNumber,
+  rpcDataToBigInt,
   rpcQuantityToBigInt,
   rpcQuantityToNumber,
 } from "../../../../../src/internal/core/jsonrpc/types/base-types";
@@ -592,9 +592,8 @@ describe("Evm module", function () {
 
           assert.equal(logTx1.transactionHash, tx1Hash);
           assert.equal(logTx2.transactionHash, tx2Hash);
-          // ETHJSTODO can I simplify this?
-          assert.equal(BigInt(rpcDataToNumber(logTx1.data)), expectedGasLeft);
-          assert.equal(BigInt(rpcDataToNumber(logTx2.data)), expectedGasLeft);
+          assert.equal(rpcDataToBigInt(logTx1.data), expectedGasLeft);
+          assert.equal(rpcDataToBigInt(logTx2.data), expectedGasLeft);
         });
 
         it("should accept a hex string param", async function () {

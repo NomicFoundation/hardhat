@@ -134,7 +134,7 @@ export function numberToRpcStorageSlot(n: number | bigint): string {
     "Expected number"
   );
 
-  return BigIntUtils.toPaddedHex(n, 64);
+  return `0x${BigIntUtils.toWord(n)}`;
 }
 
 /**
