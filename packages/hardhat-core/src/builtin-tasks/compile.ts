@@ -1322,7 +1322,7 @@ subtask(TASK_COMPILE_SOLIDITY)
           sourceNames = [file];
         } else {
           throw new HardhatError(ERRORS.RESOLVER.FILE_NOT_FOUND, {
-            file: file,
+            file,
           });
         }
       }
