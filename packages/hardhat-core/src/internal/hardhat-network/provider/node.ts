@@ -158,6 +158,7 @@ export class HardhatNode extends EventEmitter {
         forkClient: _forkClient,
         forkBlockNumber,
         forkBlockTimestamp,
+        forkIgnoreUnknownTxType,
       } = await makeForkClient(config.forkConfig, config.forkCachePath);
       forkClient = _forkClient;
       common = await makeForkCommon(config);
@@ -178,7 +179,12 @@ export class HardhatNode extends EventEmitter {
       await forkStateManager.initializeGenesisAccounts(genesisAccounts);
       stateManager = forkStateManager;
 
-      blockchain = new ForkBlockchain(forkClient, forkBlockNumber, common);
+      blockchain = new ForkBlockchain(
+        forkClient,
+        forkBlockNumber,
+        common,
+        forkIgnoreUnknownTxType
+      );
 
       initialBlockTimeOffset = new BN(
         getDifferenceInSeconds(new Date(forkBlockTimestamp), new Date())

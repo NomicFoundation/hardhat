@@ -30,6 +30,7 @@ export async function makeForkClient(
   forkClient: JsonRpcClient;
   forkBlockNumber: BN;
   forkBlockTimestamp: number;
+  forkIgnoreUnknownTxType: boolean;
 }> {
   const provider = new HttpProvider(
     forkConfig.jsonRpcUrl,
@@ -78,6 +79,8 @@ Please use block number ${lastSafeBlock} or wait for the block to get ${
 
   const forkBlockTimestamp = rpcQuantityToNumber(block.timestamp) * 1000;
 
+  const forkIgnoreUnknownTxType = forkConfig.ignoreUnknownTxType ?? false;
+
   const cacheToDiskEnabled =
     forkConfig.blockNumber !== undefined &&
     forkCachePath !== undefined &&
@@ -91,7 +94,12 @@ Please use block number ${lastSafeBlock} or wait for the block to get ${
     cacheToDiskEnabled ? forkCachePath : undefined
   );
 
-  return { forkClient, forkBlockNumber, forkBlockTimestamp };
+  return {
+    forkClient,
+    forkBlockNumber,
+    forkBlockTimestamp,
+    forkIgnoreUnknownTxType,
+  };
 }
 
 async function getBlockByNumber(
