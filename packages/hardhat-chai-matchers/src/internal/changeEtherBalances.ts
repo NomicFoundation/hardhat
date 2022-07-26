@@ -1,6 +1,7 @@
 import type { BigNumberish, providers } from "ethers";
 import ordinal from "ordinal";
 
+import { buildAssert } from "../utils";
 import { getAddressOf, Account } from "./misc/account";
 import {
   BalanceChangeOptions,
@@ -18,17 +19,22 @@ export function supportChangeEtherBalances(Assertion: Chai.AssertionStatic) {
       options?: BalanceChangeOptions
     ) {
       const { BigNumber } = require("ethers");
-      let subject = this._obj;
 
+      // capture negated flag before async code executes; see buildAssert's jsdoc
+      const negated = this.__flags.negate;
+
+      let subject = this._obj;
       if (typeof subject === "function") {
         subject = subject();
       }
 
-      const derivedPromise = Promise.all([
-        getBalanceChanges(subject, accounts, options),
-        getAddresses(accounts),
-      ]).then(([actualChanges, accountAddresses]) => {
-        this.assert(
+      const checkBalanceChanges = ([actualChanges, accountAddresses]: [
+        Array<typeof BigNumber>,
+        string[]
+      ]) => {
+        const assert = buildAssert(negated, checkBalanceChanges);
+
+        assert(
           actualChanges.every((change, ind) =>
             change.eq(BigNumber.from(balanceChanges[ind]))
           ),
@@ -65,21 +71,14 @@ export function supportChangeEtherBalances(Assertion: Chai.AssertionStatic) {
               }
             });
             return lines.join("\n");
-          },
-          balanceChanges.map(
-            (balanceChange, i) =>
-              `Ether balance of ${
-                accountAddresses[i]
-              } changed by ${balanceChange.toString()} wei`
-          ),
-          actualChanges.map(
-            (actualChange, i) =>
-              `Ether balance of ${
-                accountAddresses[i]
-              } changed by ${actualChange.toString()} wei`
-          )
+          }
         );
-      });
+      };
+
+      const derivedPromise = Promise.all([
+        getBalanceChanges(subject, accounts, options),
+        getAddresses(accounts),
+      ]).then(checkBalanceChanges);
       this.then = derivedPromise.then.bind(derivedPromise);
       this.catch = derivedPromise.catch.bind(derivedPromise);
       this.promise = derivedPromise;

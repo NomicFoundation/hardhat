@@ -1,5 +1,6 @@
 import type EthersT from "ethers";
 
+import { buildAssert } from "../utils";
 import { ensure } from "./calledOnContract/utils";
 import { Account, getAddressOf } from "./misc/account";
 
@@ -19,27 +20,36 @@ export function supportChangeTokenBalance(Assertion: Chai.AssertionStatic) {
       balanceChange: EthersT.BigNumberish
     ) {
       const ethers = require("ethers") as typeof EthersT;
-      let subject = this._obj;
 
+      // capture negated flag before async code executes; see buildAssert's jsdoc
+      const negated = this.__flags.negate;
+
+      let subject = this._obj;
       if (typeof subject === "function") {
         subject = subject();
       }
 
       checkToken(token, "changeTokenBalance");
 
+      const checkBalanceChange = ([actualChange, address, tokenDescription]: [
+        EthersT.BigNumber,
+        string,
+        string
+      ]) => {
+        const assert = buildAssert(negated, checkBalanceChange);
+
+        assert(
+          actualChange.eq(ethers.BigNumber.from(balanceChange)),
+          `Expected the balance of ${tokenDescription} tokens for "${address}" to change by ${balanceChange.toString()}, but it changed by ${actualChange.toString()}`,
+          `Expected the balance of ${tokenDescription} tokens for "${address}" NOT to change by ${balanceChange.toString()}, but it did`
+        );
+      };
+
       const derivedPromise = Promise.all([
         getBalanceChange(subject, token, account),
         getAddressOf(account),
         getTokenDescription(token),
-      ]).then(([actualChange, address, tokenDescription]) => {
-        this.assert(
-          actualChange.eq(ethers.BigNumber.from(balanceChange)),
-          `Expected the balance of ${tokenDescription} tokens for "${address}" to change by ${balanceChange.toString()}, but it changed by ${actualChange.toString()}`,
-          `Expected the balance of ${tokenDescription} tokens for "${address}" NOT to change by ${balanceChange.toString()}, but it did`,
-          balanceChange,
-          actualChange
-        );
-      });
+      ]).then(checkBalanceChange);
 
       this.then = derivedPromise.then.bind(derivedPromise);
       this.catch = derivedPromise.catch.bind(derivedPromise);
@@ -57,8 +67,11 @@ export function supportChangeTokenBalance(Assertion: Chai.AssertionStatic) {
       balanceChanges: EthersT.BigNumberish[]
     ) {
       const ethers = require("ethers") as typeof EthersT;
-      let subject = this._obj;
 
+      // capture negated flag before async code executes; see buildAssert's jsdoc
+      const negated = this.__flags.negate;
+
+      let subject = this._obj;
       if (typeof subject === "function") {
         subject = subject();
       }
@@ -76,12 +89,14 @@ export function supportChangeTokenBalance(Assertion: Chai.AssertionStatic) {
       );
       const addressesPromise = Promise.all(accounts.map(getAddressOf));
 
-      const derivedPromise = Promise.all([
-        balanceChangesPromise,
-        addressesPromise,
-        getTokenDescription(token),
-      ]).then(([actualChanges, addresses, tokenDescription]) => {
-        this.assert(
+      const checkBalanceChanges = ([
+        actualChanges,
+        addresses,
+        tokenDescription,
+      ]: [EthersT.BigNumber[], string[], string]) => {
+        const assert = buildAssert(negated, checkBalanceChanges);
+
+        assert(
           actualChanges.every((change, ind) =>
             change.eq(ethers.BigNumber.from(balanceChanges[ind]))
           ),
@@ -94,11 +109,15 @@ export function supportChangeTokenBalance(Assertion: Chai.AssertionStatic) {
             addresses as any
           } NOT to change by ${
             balanceChanges as any
-          }, respectively, but they did`,
-          balanceChanges.map((balanceChange) => balanceChange.toString()),
-          actualChanges.map((actualChange) => actualChange.toString())
+          }, respectively, but they did`
         );
-      });
+      };
+
+      const derivedPromise = Promise.all([
+        balanceChangesPromise,
+        addressesPromise,
+        getTokenDescription(token),
+      ]).then(checkBalanceChanges);
 
       this.then = derivedPromise.then.bind(derivedPromise);
       this.catch = derivedPromise.catch.bind(derivedPromise);

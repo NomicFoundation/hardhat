@@ -1,5 +1,6 @@
 import type { BigNumberish, providers } from "ethers";
 
+import { buildAssert } from "../utils";
 import { ensure } from "./calledOnContract/utils";
 import { Account, getAddressOf } from "./misc/account";
 import { BalanceChangeOptions } from "./misc/balance";
@@ -14,20 +15,28 @@ export function supportChangeEtherBalance(Assertion: Chai.AssertionStatic) {
       options?: BalanceChangeOptions
     ) {
       const { BigNumber } = require("ethers");
+
+      // capture negated flag before async code executes; see buildAssert's jsdoc
+      const negated = this.__flags.negate;
       const subject = this._obj;
+
+      const checkBalanceChange = ([actualChange, address]: [
+        typeof BigNumber,
+        string
+      ]) => {
+        const assert = buildAssert(negated, checkBalanceChange);
+
+        assert(
+          actualChange.eq(BigNumber.from(balanceChange)),
+          `Expected the ether balance of "${address}" to change by ${balanceChange.toString()} wei, but it changed by ${actualChange.toString()} wei`,
+          `Expected the ether balance of "${address}" NOT to change by ${balanceChange.toString()} wei, but it did`
+        );
+      };
 
       const derivedPromise = Promise.all([
         getBalanceChange(subject, account, options),
         getAddressOf(account),
-      ]).then(([actualChange, address]) => {
-        this.assert(
-          actualChange.eq(BigNumber.from(balanceChange)),
-          `Expected the ether balance of "${address}" to change by ${balanceChange.toString()} wei, but it changed by ${actualChange.toString()} wei`,
-          `Expected the ether balance of "${address}" NOT to change by ${balanceChange.toString()} wei, but it did`,
-          balanceChange,
-          actualChange
-        );
-      });
+      ]).then(checkBalanceChange);
       this.then = derivedPromise.then.bind(derivedPromise);
       this.catch = derivedPromise.catch.bind(derivedPromise);
       this.promise = derivedPromise;

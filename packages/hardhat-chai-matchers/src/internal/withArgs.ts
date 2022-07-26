@@ -72,18 +72,21 @@ export function supportWithArgs(
 
     const promise = this.then === undefined ? Promise.resolve() : this;
 
-    const derivedPromise = promise.then(() => {
+    const onSuccess = () => {
       if (emitCalled) {
-        return emitWithArgs(this, Assertion, utils, expectedArgs);
+        return emitWithArgs(this, Assertion, utils, expectedArgs, onSuccess);
       } else {
         return revertedWithCustomErrorWithArgs(
           this,
           Assertion,
           utils,
-          expectedArgs
+          expectedArgs,
+          onSuccess
         );
       }
-    });
+    };
+
+    const derivedPromise = promise.then(onSuccess);
 
     this.then = derivedPromise.then.bind(derivedPromise);
     this.catch = derivedPromise.catch.bind(derivedPromise);

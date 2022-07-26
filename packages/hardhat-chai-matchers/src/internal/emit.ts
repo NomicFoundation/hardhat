@@ -4,10 +4,11 @@ import type {
   Contract,
   Transaction,
 } from "ethers";
+import { AssertionError } from "chai";
 import util from "util";
 import ordinal from "ordinal";
 
-import { AssertionError } from "chai";
+import { AssertWithSsfi, buildAssert, Ssfi } from "../utils";
 
 type EventFragment = EthersUtils.EventFragment;
 type Interface = EthersUtils.Interface;
@@ -40,42 +41,48 @@ export function supportEmit(
   Assertion.addMethod(
     "emit",
     function (this: any, contract: Contract, eventName: string) {
+      // capture negated flag before async code executes; see buildAssert's jsdoc
+      const negated = this.__flags.negate;
       const tx = this._obj;
 
       const promise = this.then === undefined ? Promise.resolve() : this;
 
+      const onSuccess = (receipt: providers.TransactionReceipt) => {
+        const assert = buildAssert(negated, onSuccess);
+
+        let eventFragment: EventFragment | undefined;
+        try {
+          eventFragment = contract.interface.getEvent(eventName);
+        } catch (e) {
+          // ignore error
+        }
+
+        if (eventFragment === undefined) {
+          throw new AssertionError(
+            `Event "${eventName}" doesn't exist in the contract`
+          );
+        }
+
+        const topic = contract.interface.getEventTopic(eventFragment);
+        this.logs = receipt.logs
+          .filter((log) => log.topics.includes(topic))
+          .filter(
+            (log) =>
+              log.address.toLowerCase() === contract.address.toLowerCase()
+          );
+
+        assert(
+          this.logs.length > 0,
+          `Expected event "${eventName}" to be emitted, but it wasn't`,
+          `Expected event "${eventName}" NOT to be emitted, but it was`
+        );
+        chaiUtils.flag(this, "eventName", eventName);
+        chaiUtils.flag(this, "contract", contract);
+      };
+
       const derivedPromise = promise
         .then(() => waitForPendingTransaction(tx, contract.provider))
-        .then((receipt: providers.TransactionReceipt) => {
-          let eventFragment: EventFragment | undefined;
-          try {
-            eventFragment = contract.interface.getEvent(eventName);
-          } catch (e) {
-            // ignore error
-          }
-
-          if (eventFragment === undefined) {
-            throw new AssertionError(
-              `Event "${eventName}" doesn't exist in the contract`
-            );
-          }
-
-          const topic = contract.interface.getEventTopic(eventFragment);
-          this.logs = receipt.logs
-            .filter((log) => log.topics.includes(topic))
-            .filter(
-              (log) =>
-                log.address.toLowerCase() === contract.address.toLowerCase()
-            );
-
-          this.assert(
-            this.logs.length > 0,
-            `Expected event "${eventName}" to be emitted, but it wasn't`,
-            `Expected event "${eventName}" NOT to be emitted, but it was`
-          );
-          chaiUtils.flag(this, "eventName", eventName);
-          chaiUtils.flag(this, "contract", contract);
-        });
+        .then(onSuccess);
 
       chaiUtils.flag(this, EMIT_CALLED, true);
 
@@ -91,14 +98,20 @@ export async function emitWithArgs(
   context: any,
   Assertion: Chai.AssertionStatic,
   chaiUtils: Chai.ChaiUtils,
-  expectedArgs: any[]
+  expectedArgs: any[],
+  ssfi: Ssfi
 ) {
+  const negated = false; // .withArgs cannot be negated
+  const assert = buildAssert(negated, ssfi);
+
   tryAssertArgsArraysEqual(
     context,
     Assertion,
     chaiUtils,
     expectedArgs,
-    context.logs
+    context.logs,
+    assert,
+    ssfi
   );
 }
 
@@ -107,7 +120,9 @@ function assertArgsArraysEqual(
   Assertion: Chai.AssertionStatic,
   chaiUtils: Chai.ChaiUtils,
   expectedArgs: any[],
-  log: any
+  log: any,
+  assert: AssertWithSsfi,
+  ssfi: Ssfi
 ) {
   const { utils } = require("ethers");
 
@@ -115,12 +130,9 @@ function assertArgsArraysEqual(
     chaiUtils.flag(context, "contract").interface as Interface
   ).parseLog(log).args;
   const eventName = chaiUtils.flag(context, "eventName");
-  context.assert(
+  assert(
     actualArgs.length === expectedArgs.length,
-    `Expected "${eventName}" event to have ${expectedArgs.length} argument(s), but it has ${actualArgs.length}`,
-    "Do not combine .not. with .withArgs()",
-    expectedArgs.length,
-    actualArgs.length
+    `Expected "${eventName}" event to have ${expectedArgs.length} argument(s), but it has ${actualArgs.length}`
   );
   for (let index = 0; index < expectedArgs.length; index++) {
     if (typeof expectedArgs[index] === "function") {
@@ -128,7 +140,7 @@ function assertArgsArraysEqual(
         index + 1
       )} event argument`;
       try {
-        context.assert(
+        assert(
           expectedArgs[index](actualArgs[index]),
           `${errorPrefix} returned false`
           // no need for a negated message, since we disallow mixing .not. with
@@ -136,7 +148,7 @@ function assertArgsArraysEqual(
         );
       } catch (e) {
         if (e instanceof AssertionError) {
-          context.assert(
+          assert(
             false,
             `${errorPrefix} threw an AssertionError: ${e.message}`
             // no need for a negated message, since we disallow mixing .not. with
@@ -146,7 +158,7 @@ function assertArgsArraysEqual(
         throw e;
       }
     } else if (expectedArgs[index] instanceof Uint8Array) {
-      new Assertion(actualArgs[index]).equal(
+      new Assertion(actualArgs[index], undefined, ssfi, true).equal(
         utils.hexlify(expectedArgs[index])
       );
     } else if (
@@ -154,14 +166,21 @@ function assertArgsArraysEqual(
       typeof expectedArgs[index] !== "string"
     ) {
       for (let j = 0; j < expectedArgs[index].length; j++) {
-        new Assertion(actualArgs[index][j]).equal(expectedArgs[index][j]);
+        new Assertion(actualArgs[index][j], undefined, ssfi, true).equal(
+          expectedArgs[index][j]
+        );
       }
     } else {
       if (
         actualArgs[index].hash !== undefined &&
         actualArgs[index]._isIndexed === true
       ) {
-        new Assertion(actualArgs[index].hash).to.not.equal(
+        new Assertion(
+          actualArgs[index].hash,
+          undefined,
+          ssfi,
+          true
+        ).to.not.equal(
           expectedArgs[index],
           "The actual value was an indexed and hashed value of the event argument. The expected value provided to the assertion should be the actual event argument (the pre-image of the hash). You provided the hash itself. Please supply the the actual event argument (the pre-image of the hash) instead."
         );
@@ -169,12 +188,14 @@ function assertArgsArraysEqual(
           ? utils.arrayify(expectedArgs[index])
           : utils.toUtf8Bytes(expectedArgs[index]);
         const expectedHash = utils.keccak256(expectedArgBytes);
-        new Assertion(actualArgs[index].hash).to.equal(
+        new Assertion(actualArgs[index].hash, undefined, ssfi, true).to.equal(
           expectedHash,
           `The actual value was an indexed and hashed value of the event argument. The expected value provided to the assertion was hashed to produce ${expectedHash}. The actual hash and the expected hash did not match`
         );
       } else {
-        new Assertion(actualArgs[index]).equal(expectedArgs[index]);
+        new Assertion(actualArgs[index], undefined, ssfi, true).equal(
+          expectedArgs[index]
+        );
       }
     }
   }
@@ -185,7 +206,9 @@ const tryAssertArgsArraysEqual = (
   Assertion: Chai.AssertionStatic,
   chaiUtils: Chai.ChaiUtils,
   expectedArgs: any[],
-  logs: any[]
+  logs: any[],
+  assert: AssertWithSsfi,
+  ssfi: Ssfi
 ) => {
   if (logs.length === 1)
     return assertArgsArraysEqual(
@@ -193,7 +216,9 @@ const tryAssertArgsArraysEqual = (
       Assertion,
       chaiUtils,
       expectedArgs,
-      logs[0]
+      logs[0],
+      assert,
+      ssfi
     );
   for (const index in logs) {
     if (index === undefined) {
@@ -205,20 +230,21 @@ const tryAssertArgsArraysEqual = (
           Assertion,
           chaiUtils,
           expectedArgs,
-          logs[index]
+          logs[index],
+          assert,
+          ssfi
         );
         return;
       } catch {}
     }
   }
   const eventName = chaiUtils.flag(context, "eventName");
-  context.assert(
+  assert(
     false,
     `The specified arguments (${util.inspect(
       expectedArgs
     )}) were not included in any of the ${
       context.logs.length
-    } emitted "${eventName}" events`,
-    "Do not combine .not. with .withArgs()"
+    } emitted "${eventName}" events`
   );
 };

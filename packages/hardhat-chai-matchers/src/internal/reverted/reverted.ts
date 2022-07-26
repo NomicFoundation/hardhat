@@ -1,7 +1,11 @@
+import { buildAssert } from "../../utils";
 import { decodeReturnData, getReturnDataFromError } from "./utils";
 
 export function supportReverted(Assertion: Chai.AssertionStatic) {
   Assertion.addProperty("reverted", function (this: any) {
+    // capture negated flag before async code executes; see buildAssert's jsdoc
+    const negated = this.__flags.negate;
+
     const subject: unknown = this._obj;
 
     // Check if the received value can be linked to a transaction, and then
@@ -9,7 +13,9 @@ export function supportReverted(Assertion: Chai.AssertionStatic) {
     //
     // If the value doesn't correspond to a transaction, then the `reverted`
     // assertion is false.
-    const onSuccess = (value: unknown) => {
+    const onSuccess = async (value: unknown) => {
+      const assert = buildAssert(negated, onSuccess);
+
       if (isTransactionResponse(value) || typeof value === "string") {
         const hash = typeof value === "string" ? value : value.hash;
 
@@ -19,17 +25,17 @@ export function supportReverted(Assertion: Chai.AssertionStatic) {
           );
         }
 
-        return getTransactionReceipt(hash).then((receipt) => {
-          this.assert(
-            receipt.status === 0,
-            "Expected transaction to be reverted",
-            "Expected transaction NOT to be reverted"
-          );
-        });
+        const receipt = await getTransactionReceipt(hash);
+
+        assert(
+          receipt.status === 0,
+          "Expected transaction to be reverted",
+          "Expected transaction NOT to be reverted"
+        );
       } else if (isTransactionReceipt(value)) {
         const receipt = value;
 
-        this.assert(
+        assert(
           receipt.status === 0,
           "Expected transaction to be reverted",
           "Expected transaction NOT to be reverted"
@@ -41,11 +47,12 @@ export function supportReverted(Assertion: Chai.AssertionStatic) {
         // assertions will pass instead of always throwing a validation error.
         // This allows users to do things like:
         //   `expect(c.callStatic.f()).to.not.be.reverted`
-        this.assert(false, "Expected transaction to be reverted");
+        assert(false, "Expected transaction to be reverted");
       }
     };
 
     const onError = (error: any) => {
+      const assert = buildAssert(negated, onError);
       const returnData = getReturnDataFromError(error);
       const decodedReturnData = decodeReturnData(returnData);
 
@@ -55,17 +62,17 @@ export function supportReverted(Assertion: Chai.AssertionStatic) {
       ) {
         // in the negated case, if we can't decode the reason, we just indicate
         // that the transaction didn't revert
-        this.assert(true, null, `Expected transaction NOT to be reverted`);
+        assert(true, undefined, `Expected transaction NOT to be reverted`);
       } else if (decodedReturnData.kind === "Error") {
-        this.assert(
+        assert(
           true,
-          null,
+          undefined,
           `Expected transaction NOT to be reverted, but it reverted with reason '${decodedReturnData.reason}'`
         );
       } else if (decodedReturnData.kind === "Panic") {
-        this.assert(
+        assert(
           true,
-          null,
+          undefined,
           `Expected transaction NOT to be reverted, but it reverted with panic code ${decodedReturnData.code.toHexString()} (${
             decodedReturnData.description
           })`

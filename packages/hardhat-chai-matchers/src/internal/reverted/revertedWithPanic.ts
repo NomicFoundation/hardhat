@@ -2,6 +2,7 @@ import type { BigNumber } from "ethers";
 
 import { normalizeToBigInt } from "hardhat/common";
 
+import { buildAssert } from "../../utils";
 import { panicErrorCodeToReason } from "./panic";
 import { decodeReturnData, getReturnDataFromError } from "./utils";
 
@@ -10,6 +11,9 @@ export function supportRevertedWithPanic(Assertion: Chai.AssertionStatic) {
     "revertedWithPanic",
     function (this: any, expectedCodeArg: any) {
       const ethers = require("ethers");
+
+      // capture negated flag before async code executes; see buildAssert's jsdoc
+      const negated = this.__flags.negate;
 
       let expectedCode: BigNumber | undefined;
       try {
@@ -36,29 +40,33 @@ export function supportRevertedWithPanic(Assertion: Chai.AssertionStatic) {
       }
 
       const onSuccess = () => {
-        this.assert(
+        const assert = buildAssert(negated, onSuccess);
+
+        assert(
           false,
           `Expected transaction to be reverted with ${formattedPanicCode}, but it didn't revert`
         );
       };
 
       const onError = (error: any) => {
+        const assert = buildAssert(negated, onError);
+
         const returnData = getReturnDataFromError(error);
         const decodedReturnData = decodeReturnData(returnData);
 
         if (decodedReturnData.kind === "Empty") {
-          this.assert(
+          assert(
             false,
             `Expected transaction to be reverted with ${formattedPanicCode}, but it reverted without a reason`
           );
         } else if (decodedReturnData.kind === "Error") {
-          this.assert(
+          assert(
             false,
             `Expected transaction to be reverted with ${formattedPanicCode}, but it reverted with reason '${decodedReturnData.reason}'`
           );
         } else if (decodedReturnData.kind === "Panic") {
           if (code !== undefined) {
-            this.assert(
+            assert(
               decodedReturnData.code.eq(code),
               `Expected transaction to be reverted with ${formattedPanicCode}, but it reverted with panic code ${decodedReturnData.code.toHexString()} (${
                 decodedReturnData.description
@@ -66,16 +74,16 @@ export function supportRevertedWithPanic(Assertion: Chai.AssertionStatic) {
               `Expected transaction NOT to be reverted with ${formattedPanicCode}, but it was`
             );
           } else {
-            this.assert(
+            assert(
               true,
-              null,
+              undefined,
               `Expected transaction NOT to be reverted with ${formattedPanicCode}, but it reverted with panic code ${decodedReturnData.code.toHexString()} (${
                 decodedReturnData.description
               })`
             );
           }
         } else if (decodedReturnData.kind === "Custom") {
-          this.assert(
+          assert(
             false,
             `Expected transaction to be reverted with ${formattedPanicCode}, but it reverted with a custom error`
           );
