@@ -492,6 +492,13 @@ const communityPlugins: IPlugin[] = [
     description: "Build prompt with Solidity code.",
     tags: ["solidity", "CLI"],
   },
+  {
+    name: "hardhat-address-exporter",
+    author: "Dennis Zoma",
+    authorUrl: "https://twitter.com/dennis_zoma",
+    description: "Export deployed contract addresses (multichain) in typescript files.",
+    tags: ["solidity", "vyper", "deployment", "typescript", "addresses", "monorepo", "frontend"],
+  },
 ];
 
 const officialPlugins: IPlugin[] = [
