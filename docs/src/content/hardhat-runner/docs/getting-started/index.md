@@ -57,6 +57,16 @@ yarn add --dev hardhat
 
 To use your local installation of Hardhat, you need to use `npx` to run it (i.e. `npx hardhat`).
 
+:::tip
+
+You can get IDE-style autocompletions for hardhat with <a href="https://fig.io/" target="_blank"><img src="https://fig.io/badges/Logo.svg" width="15" height="15"/></a> [Fig](https://fig.io/). It works in bash, zsh, and fish.
+
+To install, run:
+
+```shell
+brew install fig
+```
+
 ## Quick Start
 
 :::tip
