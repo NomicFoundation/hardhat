@@ -409,6 +409,14 @@ const plugins = [
       "The Solidity mocking library. Smock is a utility package that can generate mock Solidity contracts written entirely in JavaScript.",
     tags: ["Testing", "Mocking"],
   },
+  {
+    name: "hardhat-etherscan-contract-cloner",
+    author: "Tuckson",
+    authorUrl: "https://github.com/TucksonDev",
+    url: "https://github.com/TucksonDev/hardhat-etherscan-contract-cloner/tree/main",
+    description: "Hardhat plugin for cloning verified contracts from any supported network using Etherscan's API.",
+    tags: ["Etherscan", "Clone", "Smart contract"],
+  },
 ];
 
 module.exports = plugins.map((p) => ({
