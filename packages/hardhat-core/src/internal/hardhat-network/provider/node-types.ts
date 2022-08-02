@@ -40,6 +40,7 @@ export interface ForkConfig {
   jsonRpcUrl: string;
   blockNumber?: number;
   httpHeaders?: { [name: string]: string };
+  ignoreUnknownTxType?: boolean;
 }
 
 export interface ForkedNodeConfig extends CommonConfig {

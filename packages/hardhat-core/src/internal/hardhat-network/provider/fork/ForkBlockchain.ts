@@ -4,6 +4,7 @@ import { TypedTransaction } from "@ethereumjs/tx";
 import { Address, BN } from "ethereumjs-util";
 
 import { FeeMarketEIP1559TxData } from "@ethereumjs/tx/dist/types";
+import chalk from "chalk";
 import { RpcBlockWithTransactions } from "../../../core/jsonrpc/types/output/block";
 import { RpcTransactionReceipt } from "../../../core/jsonrpc/types/output/receipt";
 import { RpcTransaction } from "../../../core/jsonrpc/types/output/transaction";
@@ -38,7 +39,8 @@ export class ForkBlockchain
   constructor(
     private _jsonRpcClient: JsonRpcClient,
     private _forkBlockNumber: BN,
-    common: Common
+    common: Common,
+    private _forkIgnoreUnknownTxType: boolean
   ) {
     super(common);
   }
@@ -295,9 +297,16 @@ export class ForkBlockchain
           rpcToTxData(transaction) as FeeMarketEIP1559TxData
         );
       } else {
-        throw new InternalError(
-          `Unknown transaction type ${transaction.type.toString()}`
-        );
+        if (this._forkIgnoreUnknownTxType) {
+          console.log(
+            chalk.yellow(`Ignored a tx with unknown type ${transaction.type}`)
+          );
+          continue;
+        } else {
+          throw new InternalError(
+            `Unknown transaction type ${transaction.type.toString()}`
+          );
+        }
       }
 
       block.transactions.push(tx);

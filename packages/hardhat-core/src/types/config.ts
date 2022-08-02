@@ -178,6 +178,7 @@ export interface HardhatNetworkForkingConfig {
   url: string;
   blockNumber?: number;
   httpHeaders: { [name: string]: string };
+  ignoreUnknownTxType?: boolean;
 }
 
 export interface HttpNetworkConfig {
