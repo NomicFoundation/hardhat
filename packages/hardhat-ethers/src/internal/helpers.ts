@@ -303,6 +303,13 @@ export async function getContractAt(
   address: string,
   signer?: ethers.Signer
 ) {
+  if ((await hre.ethers.provider.getCode(address)) === "0x") {
+    throw new NomicLabsHardhatPluginError(
+      pluginName,
+      `${address} is not a contract account.`
+    );
+  }
+
   if (typeof nameOrAbi === "string") {
     const artifact = await hre.artifacts.readArtifact(nameOrAbi);
 
