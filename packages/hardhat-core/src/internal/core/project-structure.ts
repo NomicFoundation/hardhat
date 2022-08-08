@@ -18,14 +18,14 @@ export function isCwdInsideProject() {
 }
 
 export function getUserConfigPath() {
-  const tsConfigPath = findUp.sync(TS_CONFIG_FILENAME);
-  if (tsConfigPath !== null) {
-    return tsConfigPath;
-  }
-
   const ctsConfigPath = findUp.sync(CTS_CONFIG_FILENAME);
   if (ctsConfigPath !== null) {
     return ctsConfigPath;
+  }
+
+  const tsConfigPath = findUp.sync(TS_CONFIG_FILENAME);
+  if (tsConfigPath !== null) {
+    return tsConfigPath;
   }
 
   const pathToConfigFile = findUp.sync(JS_CONFIG_FILENAME);
