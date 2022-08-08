@@ -1526,7 +1526,6 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   private _getGasUsedRatio(block: Block): number {
     const FLOATS_PRECISION = 100_000;
 
-    // ETHJSTODO consider moving this to BigIntUtils
     return (
       Number(
         (block.header.gasUsed * BigInt(FLOATS_PRECISION)) /
