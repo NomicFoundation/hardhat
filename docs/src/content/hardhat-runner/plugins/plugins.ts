@@ -496,8 +496,17 @@ const communityPlugins: IPlugin[] = [
     name: "hardhat-address-exporter",
     author: "Dennis Zoma",
     authorUrl: "https://twitter.com/dennis_zoma",
-    description: "Export deployed contract addresses (multichain) in typescript files.",
-    tags: ["solidity", "vyper", "deployment", "typescript", "addresses", "monorepo", "frontend"],
+    description:
+      "Export deployed contract addresses (multichain) in typescript files.",
+    tags: [
+      "solidity",
+      "vyper",
+      "deployment",
+      "typescript",
+      "addresses",
+      "monorepo",
+      "frontend",
+    ],
   },
 ];
 
