@@ -25,7 +25,7 @@ export function assertEqualTraces(
     assert.deepEqual(
       actual.structLogs[i],
       log,
-      `Different logs at ${i} (opcode: ${log.op}, gas: ${log.gas})`
+      `Different logs at ${i} (pc: ${log.pc}, opcode: ${log.op}, gas: ${log.gas})`
     );
   }
 }
