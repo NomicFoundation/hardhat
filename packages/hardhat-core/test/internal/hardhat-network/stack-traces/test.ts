@@ -773,6 +773,10 @@ const solidityCompilers = [
     solidityVersion: "0.8.13",
     compilerPath: "soljson-v0.8.13+commit.abaa5c0e.js",
   },
+  {
+    solidityVersion: "0.8.14",
+    compilerPath: "soljson-v0.8.14+commit.80d49f37.js",
+  },
 ];
 
 const solidity05Compilers = solidityCompilers.filter(({ solidityVersion }) =>
