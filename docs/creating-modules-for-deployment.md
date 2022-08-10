@@ -6,13 +6,13 @@ For example, this is a minimal module `MyModule` that deploys an instance of a `
 
 ```javascript
 // ./ignition/MyModule.ts
-import { buildModule, ModuleBuilder } from "@nomicfoundation/hardhat-ignition"
+import { buildModule, ModuleBuilder } from "@nomicfoundation/hardhat-ignition";
 
 export default buildModule("MyModule", (m: ModuleBuilder) => {
-  const token = m.contract("Token")
+  const token = m.contract("Token");
 
-  return { token }
-})
+  return { token };
+});
 ```
 
 Modules can be deployed directly at the cli (with `npx hardhat deploy ./ignition/MyModule.ts`), within Hardhat mocha tests (see [Ignition in Tests](TBD)) or consumed by other Modules to allow for complex deployments.
@@ -24,10 +24,10 @@ During a deployment **Ignition** uses the module to generate an execution plan o
 Ignition is aware of the contracts within the `./contracts` **Hardhat** folder. Ignition can deploy any compilable local contract by name:
 
 ```tsx
-const token = m.contract("Token")
+const token = m.contract("Token");
 ```
 
-`token` here is called a **contract binding**. It represents the contract that will *eventually* be deployed.
+`token` here is called a **contract future**. It represents the contract that will _eventually_ be deployed.
 
 ### Constructor arguments
 
@@ -35,22 +35,22 @@ In **Solidity** contracts may have constructor arguments that need satisfied on 
 
 ```tsx
 const token = m.contract("Token", {
-  args: ["My Token", "TKN", 18]
-})
+  args: ["My Token", "TKN", 18],
+});
 ```
 
 ### Dependencies between contracts
 
-If a contract needs the address of another contract as a constructor argument, the contract binding can be used:
+If a contract needs the address of another contract as a constructor argument, the contract future can be used:
 
 ```tsx
-const a = m.contract("A")
+const a = m.contract("A");
 const b = m.contract("B", {
-  args: [a]
-})
+  args: [a],
+});
 ```
 
-You can think of this as `b` being analogue to a promise of an address, although bindings are not promises.
+You can think of this as `b` being analogue to a promise of an address, although futures are not promises.
 
 ### Using an existing contract
 
@@ -72,22 +72,22 @@ const artifact = await this.hre.artifacts.readArtifact("Foo");
 
 const userModule = buildModule("MyModule", (m) => {
   m.contract("Foo", artifact, {
-    args: [0]
+    args: [0],
   });
 });
 ```
 
 ### Linking libraries
 
-A library can be deployed and linked to a contract by passing the libraries contract binding as a named entry under the libraries option:
+A library can be deployed and linked to a contract by passing the libraries contract future as a named entry under the libraries option:
 
 ```tsx
-const safeMath = m.contract("SafeMath")
+const safeMath = m.contract("SafeMath");
 const contract = m.contract("Contract", {
   libraries: {
-    SafeMath: safeMath
-  }
-})
+    SafeMath: safeMath,
+  },
+});
 ```
 
 A library is deployed in the same way as a contract.
@@ -101,11 +101,11 @@ const userModule = buildModule("MyModule", (m) => {
   const daiAddresses = {
     1: "0x123...", // mainnet DAI
     4: "0x234...", // rinkeby DAI
-  }
+  };
 
   const daiAddress = daiAddresses[m.chainId];
   const myContract = m.contract("MyContract", {
-    args: [daiAddress]
+    args: [daiAddress],
   });
 });
 ```

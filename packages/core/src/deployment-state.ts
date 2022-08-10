@@ -88,7 +88,7 @@ export class DeploymentState {
 
     if (futureState._kind !== "success") {
       throw new Error(
-        `assertion error, unsuccessful binding state: ${futureState._kind}`
+        `assertion error, unsuccessful future state: ${futureState._kind}`
       );
     }
 
