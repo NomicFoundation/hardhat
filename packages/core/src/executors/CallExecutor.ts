@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 
-import { InternalContractBinding } from "../bindings/InternalContractBinding";
-import { CallOptions, Resolved } from "../bindings/types";
+import { InternalContractFuture } from "../futures/InternalContractFuture";
+import { CallOptions, Resolved } from "../futures/types";
 import { Services } from "../services/types";
 import { Tx } from "../types";
 
@@ -34,7 +34,7 @@ export class CallExecutor extends Executor<CallOptions, Tx> {
     input: CallOptions,
     services: Services
   ): Promise<string[]> {
-    const contractName = (input.contract as InternalContractBinding).input
+    const contractName = (input.contract as InternalContractFuture).input
       .contractName;
     const artifactExists = await services.artifacts.hasArtifact(contractName);
 
@@ -81,9 +81,8 @@ export class CallExecutor extends Executor<CallOptions, Tx> {
   }
 
   public getDescription() {
-    const contractName = (
-      this.binding.input.contract as InternalContractBinding
-    ).input.contractName;
-    return `Call method ${this.binding.input.method} in contract ${contractName}`;
+    const contractName = (this.future.input.contract as InternalContractFuture)
+      .input.contractName;
+    return `Call method ${this.future.input.method} in contract ${contractName}`;
   }
 }

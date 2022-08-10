@@ -1,5 +1,5 @@
 import {
-  Binding,
+  Future,
   DeploymentPlan,
   Ignition,
   UserModule,
@@ -86,18 +86,18 @@ export class IgnitionWrapper {
     for (const [moduleId, moduleOutput] of Object.entries(moduleOutputs)) {
       const resolvedOutput: any = {};
       for (const [key, value] of Object.entries<any>(moduleOutput)) {
-        const serializedBindingResult =
+        const serializedFutureResult =
           deploymentResult.result[value.moduleId][value.id];
 
         if (
-          serializedBindingResult._kind === "string" ||
-          serializedBindingResult._kind === "number"
+          serializedFutureResult._kind === "string" ||
+          serializedFutureResult._kind === "number"
         ) {
-          resolvedOutput[key] = serializedBindingResult;
-        } else if (serializedBindingResult._kind === "tx") {
-          resolvedOutput[key] = serializedBindingResult.value.hash;
+          resolvedOutput[key] = serializedFutureResult;
+        } else if (serializedFutureResult._kind === "tx") {
+          resolvedOutput[key] = serializedFutureResult.value.hash;
         } else {
-          const { abi, address } = serializedBindingResult.value;
+          const { abi, address } = serializedFutureResult.value;
           resolvedOutput[key] = await this._ethers.getContractAt(abi, address);
         }
       }
@@ -217,12 +217,12 @@ export class IgnitionWrapper {
 
 type Resolved<T> = T extends string
   ? T
-  : T extends Binding<any, infer O>
+  : T extends Future<any, infer O>
   ? O extends string
     ? string
     : ethers.Contract
   : {
-      [K in keyof T]: T[K] extends Binding<any, infer O>
+      [K in keyof T]: T[K] extends Future<any, infer O>
         ? O extends string
           ? string
           : ethers.Contract

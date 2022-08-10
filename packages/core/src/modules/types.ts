@@ -1,20 +1,20 @@
-import { CallBinding } from "../bindings/CallBinding";
-import { ContractBinding } from "../bindings/ContractBinding";
-import type { Bindable } from "../bindings/types";
 import { Executor } from "../executors/Executor";
+import { CallFuture } from "../futures/CallFuture";
+import { ContractFuture } from "../futures/ContractFuture";
+import type { IFuture } from "../futures/types";
 import { Artifact } from "../types";
 
 import { UserModule } from "./UserModule";
 
 export interface UserContractOptions {
   id?: string;
-  args?: Array<Bindable<any>>;
-  libraries?: Record<string, ContractBinding>;
+  args?: Array<IFuture<any>>;
+  libraries?: Record<string, ContractFuture>;
 }
 
 export interface UserCallOptions {
   id?: string;
-  args?: Array<Bindable<any>>;
+  args?: Array<IFuture<any>>;
 }
 
 export interface ModuleBuilder {
@@ -27,19 +27,19 @@ export interface ModuleBuilder {
     contractName: string,
     artifactOrOptions?: Artifact | UserContractOptions,
     options?: UserContractOptions
-  ) => ContractBinding;
+  ) => ContractFuture;
 
   contractAt: (
     contractName: string,
     address: string,
     abi: any[]
-  ) => ContractBinding;
+  ) => ContractFuture;
 
   call: (
-    contract: ContractBinding,
+    contract: ContractFuture,
     method: string,
     options?: UserCallOptions
-  ) => CallBinding;
+  ) => CallFuture;
 
   useModule: <T>(userModule: UserModule<T>) => T;
 }

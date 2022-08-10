@@ -4,7 +4,7 @@ import {
   ArtifactContractOptions,
   ContractOptions,
   Resolved,
-} from "../bindings/types";
+} from "../futures/types";
 import { Services } from "../services/types";
 import type { Artifact, Contract, DeployedContract } from "../types";
 
@@ -64,7 +64,7 @@ export class ContractExecutor extends Executor<ContractOptions, Contract> {
   }
 
   public getDescription() {
-    return `Deploy contract ${this.binding.input.contractName}`;
+    return `Deploy contract ${this.future.input.contractName}`;
   }
 
   private async _resolveArtifactFromInput(

@@ -51,9 +51,9 @@ describe("ExecutionEngine", function () {
     assert.isTrue(resultModule.isSuccess());
     assert.equal(resultModule.count(), 1);
 
-    const bindingResult = deploymentResult.getBindingResult("MyModule", "inc1");
+    const futureResult = deploymentResult.getFutureResult("MyModule", "inc1");
 
-    assert.equal(bindingResult, 2);
+    assert.equal(futureResult, 2);
 
     assert.isTrue(inc1.isSuccess());
   });
@@ -70,7 +70,7 @@ describe("ExecutionEngine", function () {
     const executionGraph = new ExecutionGraph();
     const inc1 = inc("MyModule", "inc1", 1);
     inc1.behavior = "on-demand";
-    const incInc1 = inc("MyModule", "incInc1", inc1.binding);
+    const incInc1 = inc("MyModule", "incInc1", inc1.future);
     executionGraph.addExecutor(inc1);
     executionGraph.addExecutor(incInc1);
 
@@ -99,8 +99,8 @@ describe("ExecutionEngine", function () {
     assert.isTrue(resultModules[0].isSuccess());
     assert.equal(resultModules[0].count(), 2);
 
-    const inc1Result = deploymentState.getBindingResult("MyModule", "inc1");
-    const incInc1Result = deploymentState.getBindingResult(
+    const inc1Result = deploymentState.getFutureResult("MyModule", "inc1");
+    const incInc1Result = deploymentState.getFutureResult(
       "MyModule",
       "incInc1"
     );
@@ -124,7 +124,7 @@ describe("ExecutionEngine", function () {
     const executionGraph = new ExecutionGraph();
     const inc1 = inc("MyModule", "inc1", 1);
     inc1.behavior = "fail";
-    const incInc1 = inc("MyModule", "incInc1", inc1.binding);
+    const incInc1 = inc("MyModule", "incInc1", inc1.future);
     executionGraph.addExecutor(inc1);
     executionGraph.addExecutor(incInc1);
 
@@ -155,7 +155,7 @@ describe("ExecutionEngine", function () {
     const executionGraph = new ExecutionGraph();
     const inc1 = inc("MyModule", "inc1", 1);
     inc1.behavior = "hold";
-    const incInc1 = inc("MyModule", "incInc1", inc1.binding);
+    const incInc1 = inc("MyModule", "incInc1", inc1.future);
     executionGraph.addExecutor(inc1);
     executionGraph.addExecutor(incInc1);
 

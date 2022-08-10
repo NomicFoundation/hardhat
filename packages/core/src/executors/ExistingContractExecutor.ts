@@ -1,6 +1,6 @@
 import { isAddress } from "@ethersproject/address";
 
-import { ExistingContractOptions } from "../bindings/types";
+import { ExistingContractOptions } from "../futures/types";
 import { Services } from "../services/types";
 import { Contract } from "../types";
 
@@ -35,7 +35,7 @@ export class ExistingContractExecutor extends Executor<
   ): Promise<string[]> {
     if (!isAddress(input.address)) {
       return [
-        `The existing contract ${this.binding.input.contractName} is an invalid address ${input.address}`,
+        `The existing contract ${this.future.input.contractName} is an invalid address ${input.address}`,
       ];
     }
 
@@ -43,6 +43,6 @@ export class ExistingContractExecutor extends Executor<
   }
 
   public getDescription() {
-    return `Using existing contract ${this.binding.input.contractName} (${this.binding.input.address})`;
+    return `Using existing contract ${this.future.input.contractName} (${this.future.input.address})`;
   }
 }

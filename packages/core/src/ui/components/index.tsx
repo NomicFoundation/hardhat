@@ -3,7 +3,7 @@ import Spinner from "ink-spinner";
 import React from "react";
 
 import {
-  BindingState,
+  FutureState,
   DeploymentState,
   ModuleState,
 } from "../../deployment-state";
@@ -48,7 +48,7 @@ const CurrentModule = ({ module }: { module?: ModuleState }) => {
     return null;
   }
 
-  const bindingsStates = module.getBindingsStates();
+  const futuresStates = module.getFuturesStates();
 
   return (
     <Box flexDirection="column">
@@ -58,13 +58,13 @@ const CurrentModule = ({ module }: { module?: ModuleState }) => {
         </Text>
       </Box>
       <Box flexDirection="column" marginLeft={4}>
-        {bindingsStates
-          .sort((a, b) => compareBindingsStates(a[1], b[1]))
-          .map(([bindingId, bindingState]) => (
-            <Binding
-              key={bindingId}
-              bindingId={bindingId}
-              bindingState={bindingState}
+        {futuresStates
+          .sort((a, b) => compareFuturesStates(a[1], b[1]))
+          .map(([futureId, futureState]) => (
+            <Future
+              key={futureId}
+              futureId={futureId}
+              futureState={futureState}
             />
           ))}
       </Box>
@@ -72,8 +72,8 @@ const CurrentModule = ({ module }: { module?: ModuleState }) => {
   );
 };
 
-function compareBindingsStates(a: BindingState, b: BindingState): number {
-  const value = (s: BindingState["_kind"]) => {
+function compareFuturesStates(a: FutureState, b: FutureState): number {
+  const value = (s: FutureState["_kind"]) => {
     if (s === "success" || s === "failure" || s === "hold") {
       return 0;
     }
@@ -95,23 +95,23 @@ function compareBindingsStates(a: BindingState, b: BindingState): number {
   return aValue - bValue;
 }
 
-const Binding = ({
-  bindingId,
-  bindingState,
+const Future = ({
+  futureId,
+  futureState,
 }: {
-  bindingId: string;
-  bindingState: BindingState;
+  futureId: string;
+  futureState: FutureState;
 }) => {
   return (
     <Box>
-      {bindingState._kind === "running" ? (
-        <Text>{bindingId}: Executing</Text>
-      ) : bindingState._kind === "success" ? (
-        <Text color="green">{bindingId}: Executed</Text>
-      ) : bindingState._kind === "ready" ? (
-        <Text color="gray">{bindingId}: Ready</Text>
-      ) : bindingState._kind === "waiting" ? (
-        <Text color="gray">{bindingId}: Waiting</Text>
+      {futureState._kind === "running" ? (
+        <Text>{futureId}: Executing</Text>
+      ) : futureState._kind === "success" ? (
+        <Text color="green">{futureId}: Executed</Text>
+      ) : futureState._kind === "ready" ? (
+        <Text color="gray">{futureId}: Ready</Text>
+      ) : futureState._kind === "waiting" ? (
+        <Text color="gray">{futureId}: Waiting</Text>
       ) : null}
     </Box>
   );

@@ -18,14 +18,14 @@ export {
   buildModule,
   ModuleBuilder,
   AddressLike,
-  ContractBinding,
+  ContractFuture,
   ContractOptions,
-  InternalBinding,
-  InternalContractBinding,
+  InternalFuture,
+  InternalContractFuture,
   Executor,
   Contract,
   Services,
-  Binding,
+  Future,
   Hold,
 } from "@nomicfoundation/ignition-core";
 

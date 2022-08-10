@@ -1,9 +1,9 @@
 import { assert } from "chai";
 
-import { InternalCallBinding } from "../../src/bindings/InternalCallBinding";
-import { InternalContractBinding } from "../../src/bindings/InternalContractBinding";
-import { CallOptions } from "../../src/bindings/types";
 import { CallExecutor } from "../../src/executors/CallExecutor";
+import { InternalCallFuture } from "../../src/futures/InternalCallFuture";
+import { InternalContractFuture } from "../../src/futures/InternalContractFuture";
+import { CallOptions } from "../../src/futures/types";
 import { Artifact } from "../../src/types";
 
 describe("Call Executor", () => {
@@ -90,7 +90,7 @@ describe("Call Executor", () => {
       deployedLinkReferences: {},
     };
 
-    const exampleContractBinding = new InternalContractBinding(
+    const exampleContractFuture = new InternalContractFuture(
       "MyModule",
       "MyContract",
       {
@@ -102,7 +102,7 @@ describe("Call Executor", () => {
 
     it("should call existing function", async () => {
       const input: CallOptions = {
-        contract: exampleContractBinding,
+        contract: exampleContractFuture,
         method: "sub",
         args: [2],
       };
@@ -112,7 +112,7 @@ describe("Call Executor", () => {
 
     it("should call overloaded function", async () => {
       const input: CallOptions = {
-        contract: exampleContractBinding,
+        contract: exampleContractFuture,
         method: "inc(bool,uint256)",
         args: [true, 2],
       };
@@ -122,7 +122,7 @@ describe("Call Executor", () => {
 
     it("should fail on call to non-existing function", async () => {
       const input: CallOptions = {
-        contract: exampleContractBinding,
+        contract: exampleContractFuture,
         method: "nonexistant",
         args: [],
       };
@@ -134,7 +134,7 @@ describe("Call Executor", () => {
 
     it("should fail on call to existing function with wrong number of args", async () => {
       const input: CallOptions = {
-        contract: exampleContractBinding,
+        contract: exampleContractFuture,
         method: "sub",
         args: [],
       };
@@ -146,7 +146,7 @@ describe("Call Executor", () => {
 
     it("should fail on overloaded call to existing function with wrong number of args", async () => {
       const input: CallOptions = {
-        contract: exampleContractBinding,
+        contract: exampleContractFuture,
         method: "inc",
         args: [],
       };
@@ -172,9 +172,9 @@ async function assertCallValidation(
     },
   };
 
-  const binding = new InternalCallBinding("MyModule", "binding-1", input);
+  const future = new InternalCallFuture("MyModule", "future-1", input);
 
-  const ex = new CallExecutor(binding);
+  const ex = new CallExecutor(future);
 
   const validationResult = await ex.validate(input, {
     artifacts: mockArtifactsService,

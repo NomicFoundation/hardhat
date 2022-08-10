@@ -1,6 +1,6 @@
 import {
   UserModule,
-  SerializedBindingResult,
+  SerializedFutureResult,
   SerializedDeploymentResult,
   DeploymentResult,
   Contract,
@@ -8,13 +8,13 @@ import {
 import { assert } from "chai";
 
 export const resultAssertions = {
-  contract: (predicate?: ContractResultPredicate): ExpectedBindingResult => {
+  contract: (predicate?: ContractResultPredicate): ExpectedFutureResult => {
     return {
       kind: "contract",
       predicate: predicate ?? (async () => {}),
     };
   },
-  transaction: (): ExpectedBindingResult => {
+  transaction: (): ExpectedFutureResult => {
     return {
       kind: "transaction",
     };
@@ -22,7 +22,7 @@ export const resultAssertions = {
 };
 
 type ContractResultPredicate = (contract: any) => Promise<void>;
-type ExpectedBindingResult =
+type ExpectedFutureResult =
   | {
       kind: "contract";
       predicate: ContractResultPredicate;
@@ -30,15 +30,15 @@ type ExpectedBindingResult =
   | {
       kind: "transaction";
     };
-type ExpectedModuleResult = Record<string, ExpectedBindingResult>;
+type ExpectedModuleResult = Record<string, ExpectedFutureResult>;
 type ExpectedDeploymentState = Record<string, ExpectedModuleResult>;
 
 /**
  * Check that the given deployment result matches some conditions.
  *
  * `expectedResult` is an object with expected modules results, which have
- * expected bindings results. These bindings results assert that that the
- * result of each binding is of the correct type, and it can also run
+ * expected futures results. These futures results assert that that the
+ * result of each future is of the correct type, and it can also run
  * some custom predicate logic on the result to further verify it.
  */
 export async function assertDeploymentState(
@@ -68,23 +68,23 @@ export async function assertDeploymentState(
       Object.entries(expectedModule).length
     );
 
-    for (const [bindingId, bindingResult] of Object.entries(moduleResult)) {
-      const expectedBindingResult = expectedModule[bindingId];
+    for (const [futureId, futureResult] of Object.entries(moduleResult)) {
+      const expectedFutureResult = expectedModule[futureId];
 
-      if (expectedBindingResult.kind === "contract") {
-        const contract = await assertContract(hre, bindingResult);
+      if (expectedFutureResult.kind === "contract") {
+        const contract = await assertContract(hre, futureResult);
 
-        await expectedBindingResult.predicate(contract);
-      } else if (expectedBindingResult.kind === "transaction") {
-        if (bindingResult._kind !== "tx") {
+        await expectedFutureResult.predicate(contract);
+      } else if (expectedFutureResult.kind === "transaction") {
+        if (futureResult._kind !== "tx") {
           assert.fail(
-            `Expected binding result to be a transaction, but got ${bindingResult._kind}`
+            `Expected future result to be a transaction, but got ${futureResult._kind}`
           );
         }
-        assert.isDefined(bindingResult.value.hash);
-        await assertTxMined(hre, bindingResult.value.hash);
+        assert.isDefined(futureResult.value.hash);
+        await assertTxMined(hre, futureResult.value.hash);
       } else {
-        const _exhaustiveCheck: never = expectedBindingResult;
+        const _exhaustiveCheck: never = expectedFutureResult;
       }
     }
   }
@@ -178,21 +178,18 @@ async function waitForPendingTxs(
   }
 }
 
-async function assertContract(
-  hre: any,
-  bindingResult: SerializedBindingResult
-) {
-  if (bindingResult._kind !== "contract") {
+async function assertContract(hre: any, futureResult: SerializedFutureResult) {
+  if (futureResult._kind !== "contract") {
     assert.fail(
-      `Expected binding result to be a contract, but got ${bindingResult._kind}`
+      `Expected future result to be a contract, but got ${futureResult._kind}`
     );
   }
 
-  await assertHasCode(hre, bindingResult.value.address);
+  await assertHasCode(hre, futureResult.value.address);
 
   const contract = await hre.ethers.getContractAt(
-    bindingResult.value.abi,
-    bindingResult.value.address
+    futureResult.value.abi,
+    futureResult.value.address
   );
 
   return contract;

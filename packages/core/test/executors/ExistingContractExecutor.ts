@@ -1,8 +1,8 @@
 import { assert } from "chai";
 
-import { ExistingContractBinding } from "../../src/bindings/ExistingContractBinding";
 import { ExistingContractExecutor } from "../../src/executors/ExistingContractExecutor";
-import { ExistingContractOptions } from "../bindings/types";
+import { ExistingContractFuture } from "../../src/futures/ExistingContractFuture";
+import { ExistingContractOptions } from "../../src/futures/types";
 
 describe("Existing Contract - Executor", () => {
   describe("validate", () => {
@@ -34,9 +34,9 @@ async function assertExistingContractValidation(
   input: ExistingContractOptions,
   expected: string[]
 ) {
-  const binding = new ExistingContractBinding("MyModule", "binding-1", input);
+  const future = new ExistingContractFuture("MyModule", "future-1", input);
 
-  const ex = new ExistingContractExecutor(binding);
+  const ex = new ExistingContractExecutor(future);
 
   const validationResult = await ex.validate(input, {} as any);
 

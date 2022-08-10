@@ -1,7 +1,7 @@
 import { render, useInput } from "ink";
 import { useRef, useState } from "react";
 import {
-  BindingState,
+  FutureState,
   DeploymentState,
   ModuleState,
 } from "../src/deployment-state";
@@ -33,8 +33,8 @@ function getExamples(): Example[] {
       MyModule: ["Foo"],
     },
     transitions: [
-      (d) => d.setBindingState("MyModule", "Foo", BindingState.running()),
-      (d) => d.setBindingState("MyModule", "Foo", BindingState.success(1)),
+      (d) => d.setFutureState("MyModule", "Foo", FutureState.running()),
+      (d) => d.setFutureState("MyModule", "Foo", FutureState.success(1)),
     ],
   });
 
@@ -45,11 +45,11 @@ function getExamples(): Example[] {
     },
     transitions: [
       (d) => {
-        d.setBindingState("MyModule", "Foo", BindingState.running());
-        d.setBindingState("MyModule", "Bar", BindingState.running());
+        d.setFutureState("MyModule", "Foo", FutureState.running());
+        d.setFutureState("MyModule", "Bar", FutureState.running());
       },
-      (d) => d.setBindingState("MyModule", "Bar", BindingState.success(2)),
-      (d) => d.setBindingState("MyModule", "Foo", BindingState.success(1)),
+      (d) => d.setFutureState("MyModule", "Bar", FutureState.success(2)),
+      (d) => d.setFutureState("MyModule", "Foo", FutureState.success(1)),
     ],
   });
 
@@ -60,10 +60,10 @@ function getExamples(): Example[] {
       MyOtherModule: ["Bar"],
     },
     transitions: [
-      (d) => d.setBindingState("MyModule", "Foo", BindingState.running()),
-      (d) => d.setBindingState("MyModule", "Foo", BindingState.success(1)),
-      (d) => d.setBindingState("MyOtherModule", "Bar", BindingState.running()),
-      (d) => d.setBindingState("MyOtherModule", "Bar", BindingState.success(1)),
+      (d) => d.setFutureState("MyModule", "Foo", FutureState.running()),
+      (d) => d.setFutureState("MyModule", "Foo", FutureState.success(1)),
+      (d) => d.setFutureState("MyOtherModule", "Bar", FutureState.running()),
+      (d) => d.setFutureState("MyOtherModule", "Bar", FutureState.success(1)),
     ],
   });
 
@@ -74,15 +74,15 @@ function getExamples(): Example[] {
     },
     transitions: [
       (d) => {
-        d.setBindingState("MyModule", "Foo", BindingState.running());
-        d.setBindingState("MyModule", "Bar", BindingState.running());
+        d.setFutureState("MyModule", "Foo", FutureState.running());
+        d.setFutureState("MyModule", "Bar", FutureState.running());
       },
-      (d) => d.setBindingState("MyModule", "Bar", BindingState.success(1)),
-      (d) => d.setBindingState("MyModule", "Foo", BindingState.success(1)),
-      (d) => d.setBindingState("MyModule", "Foo.f", BindingState.running()),
-      (d) => d.setBindingState("MyModule", "Bar.b", BindingState.running()),
-      (d) => d.setBindingState("MyModule", "Foo.f", BindingState.success(1)),
-      (d) => d.setBindingState("MyModule", "Bar.b", BindingState.success(1)),
+      (d) => d.setFutureState("MyModule", "Bar", FutureState.success(1)),
+      (d) => d.setFutureState("MyModule", "Foo", FutureState.success(1)),
+      (d) => d.setFutureState("MyModule", "Foo.f", FutureState.running()),
+      (d) => d.setFutureState("MyModule", "Bar.b", FutureState.running()),
+      (d) => d.setFutureState("MyModule", "Foo.f", FutureState.success(1)),
+      (d) => d.setFutureState("MyModule", "Bar.b", FutureState.success(1)),
     ],
   });
 
@@ -115,10 +115,10 @@ const ExampleRenderer = ({
   onFinish: () => void;
 }) => {
   const deploymentState = new DeploymentState();
-  for (const [moduleId, bindingsIds] of Object.entries(initialData)) {
+  for (const [moduleId, futuresIds] of Object.entries(initialData)) {
     const moduleState = new ModuleState(moduleId);
-    for (const bindingId of bindingsIds) {
-      moduleState.addBinding(bindingId, BindingState.waiting());
+    for (const futureId of futuresIds) {
+      moduleState.addFuture(futureId, FutureState.waiting());
     }
     deploymentState.addModule(moduleState);
   }

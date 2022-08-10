@@ -7,23 +7,23 @@ export class ExecutionGraph {
   private _dependencies: Map<string, Set<string>> = new Map();
 
   public addExecutor(executor: Executor) {
-    const moduleId = executor.binding.moduleId;
+    const moduleId = executor.future.moduleId;
     let executorsMap = this._modules.get(moduleId);
     if (executorsMap === undefined) {
       executorsMap = new Map();
       this._modules.set(moduleId, executorsMap);
     }
 
-    if (executorsMap.has(executor.binding.id)) {
-      throw new Error(`Executor with id ${executor.binding.id} already exists`);
+    if (executorsMap.has(executor.future.id)) {
+      throw new Error(`Executor with id ${executor.future.id} already exists`);
     }
 
-    const dependencies = executor.binding.getDependencies();
+    const dependencies = executor.future.getDependencies();
     for (const dependency of dependencies) {
       this._addDependency(moduleId, dependency.moduleId);
     }
 
-    executorsMap.set(executor.binding.id, executor);
+    executorsMap.set(executor.future.id, executor);
   }
 
   public getModule(moduleId: string): IgnitionModule | undefined {
