@@ -56,6 +56,14 @@ function ensureHexPrefix(hex: string) {
   return `${/^0x/i.test(hex) ? "" : "0x"}${hex}`;
 }
 
+/** Earlier versions of vyper have an gas estimate which is often
+ * incorrect (https://github.com/vyperlang/vyper/issues/2151)*/
+function removeGasEstimate(abi: string[]): string[] {
+  return JSON.parse(JSON.stringify(abi), (key, value) => {
+    if (key !== "gas") return value;
+  });
+}
+
 /** Vyper contract names are taken from their file names, so we can convert directly */
 function pathToContractName(file: string) {
   const sourceName = path.basename(file);
@@ -72,7 +80,7 @@ export function getArtifactFromVyperOutput(
     _format: ARTIFACT_FORMAT_VERSION,
     contractName,
     sourceName,
-    abi: output.abi,
+    abi: removeGasEstimate(output.abi),
     bytecode: ensureHexPrefix(output.bytecode),
     deployedBytecode: ensureHexPrefix(output.bytecode_runtime),
     linkReferences: {},
