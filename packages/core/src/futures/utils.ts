@@ -1,5 +1,5 @@
-import { InternalBinding } from "./InternalBinding";
-import type { BindingOutput, Unflattened } from "./types";
+import { InternalFuture } from "./InternalFuture";
+import type { FutureOutput, Unflattened } from "./types";
 
 export function deepFlatten<T>(array: Unflattened<T>): T[] {
   let result: T[] = [];
@@ -15,7 +15,7 @@ export function deepFlatten<T>(array: Unflattened<T>): T[] {
   return result;
 }
 
-export function serializeBindingOutput(x: BindingOutput) {
+export function serializeFutureOutput(x: FutureOutput) {
   if (typeof x === "string") {
     return { _kind: "string" as const, value: x };
   } else if (typeof x === "number") {
@@ -30,31 +30,31 @@ export function serializeBindingOutput(x: BindingOutput) {
   return exhaustiveCheck;
 }
 
-export function deserializeBindingOutput(x: any) {
+export function deserializeFutureOutput(x: any) {
   if (x === null || x === undefined) {
-    throw new Error("[deserializeBindingOutput] value is null or undefined");
+    throw new Error("[deserializeFutureOutput] value is null or undefined");
   }
 
   if (!("_kind" in x)) {
     throw new Error(
-      "[deserializeBindingOutput] value was not serialized by Ignition"
+      "[deserializeFutureOutput] value was not serialized by Ignition"
     );
   }
 
   return x.value;
 }
 
-export function mapToBindings(x: unknown): Unflattened<InternalBinding> {
+export function mapToFutures(x: unknown): Unflattened<InternalFuture> {
   if (Array.isArray(x)) {
-    return x.map(mapToBindings);
+    return x.map(mapToFutures);
   }
 
-  if (InternalBinding.isBinding(x)) {
+  if (InternalFuture.isFuture(x)) {
     return [x];
   }
 
   if (typeof x === "object" && x !== null) {
-    return Object.values(x).map(mapToBindings);
+    return Object.values(x).map(mapToFutures);
   }
 
   return [];
@@ -64,10 +64,10 @@ export function combineArgsAndLibrariesAsDeps(
   args: any[],
   libraries: Record<string, any>
 ) {
-  const argBindings = deepFlatten(mapToBindings(args));
-  const libraryBindings = deepFlatten(mapToBindings(Object.values(libraries)));
+  const argFutures = deepFlatten(mapToFutures(args));
+  const libraryFutures = deepFlatten(mapToFutures(Object.values(libraries)));
 
-  const dependencies = argBindings.concat(libraryBindings);
+  const dependencies = argFutures.concat(libraryFutures);
 
   return dependencies;
 }

@@ -1,14 +1,14 @@
-export { Binding } from "./bindings/Binding";
-export { ContractBinding } from "./bindings/ContractBinding";
-export { InternalBinding } from "./bindings/InternalBinding";
-export { InternalContractBinding } from "./bindings/InternalContractBinding";
+export { Future } from "./futures/Future";
+export { ContractFuture } from "./futures/ContractFuture";
+export { InternalFuture } from "./futures/InternalFuture";
+export { InternalContractFuture } from "./futures/InternalContractFuture";
 export type {
   AddressLike,
   ContractOptions,
   SerializedDeploymentResult,
   SerializedModuleResult,
-  SerializedBindingResult,
-} from "./bindings/types";
+  SerializedFutureResult,
+} from "./futures/types";
 
 export { Executor } from "./executors/Executor";
 export { Hold } from "./executors/Hold";

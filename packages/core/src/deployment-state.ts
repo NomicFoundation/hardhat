@@ -1,9 +1,9 @@
 import type {
-  BindingOutput,
+  FutureOutput,
   ModuleResult,
   SerializedModuleResult,
-} from "./bindings/types";
-import { serializeBindingOutput } from "./bindings/utils";
+} from "./futures/types";
+import { serializeFutureOutput } from "./futures/utils";
 import { ExecutionGraph } from "./modules/ExecutionGraph";
 import { IgnitionModule } from "./modules/IgnitionModule";
 
@@ -35,8 +35,8 @@ export class DeploymentState {
       );
     }
 
-    for (const [bindingId, bindingOutput] of Object.entries(moduleResult)) {
-      moduleState.setSuccess(bindingId, bindingOutput);
+    for (const [futureId, futureOutput] of Object.entries(moduleResult)) {
+      moduleState.setSuccess(futureId, futureOutput);
     }
   }
 
@@ -77,22 +77,22 @@ export class DeploymentState {
     return [...this._modules.values()].filter((m) => m.isSuccess());
   }
 
-  public isBindingSuccess(moduleId: string, bindingId: string): boolean {
-    const bindingState = this._getBindingState(moduleId, bindingId);
+  public isFutureSuccess(moduleId: string, futureId: string): boolean {
+    const futureState = this._getFutureState(moduleId, futureId);
 
-    return bindingState._kind === "success";
+    return futureState._kind === "success";
   }
 
-  public getBindingResult(moduleId: string, bindingId: string) {
-    const bindingState = this._getBindingState(moduleId, bindingId);
+  public getFutureResult(moduleId: string, futureId: string) {
+    const futureState = this._getFutureState(moduleId, futureId);
 
-    if (bindingState._kind !== "success") {
+    if (futureState._kind !== "success") {
       throw new Error(
-        `assertion error, unsuccessful binding state: ${bindingState._kind}`
+        `assertion error, unsuccessful future state: ${futureState._kind}`
       );
     }
 
-    return bindingState.result;
+    return futureState.result;
   }
 
   public isModuleSuccess(moduleId: string): boolean {
@@ -123,20 +123,20 @@ export class DeploymentState {
     return;
   }
 
-  public setBindingState(
+  public setFutureState(
     moduleId: string,
-    bindingId: string,
-    bindingState: BindingState
+    futureId: string,
+    futureState: FutureState
   ) {
     const moduleState = this._getModuleState(moduleId);
 
-    moduleState.setBindingState(bindingId, bindingState);
+    moduleState.setFutureState(futureId, futureState);
   }
 
-  private _getBindingState(moduleId: string, bindingId: string) {
+  private _getFutureState(moduleId: string, futureId: string) {
     const moduleState = this._getModuleState(moduleId);
 
-    return moduleState.getBindingState(bindingId);
+    return moduleState.getFutureState(futureId);
   }
 
   private _getModuleState(moduleId: string) {
@@ -150,57 +150,57 @@ export class DeploymentState {
   }
 }
 
-interface BindingStateWaiting {
+interface FutureStateWaiting {
   _kind: "waiting";
 }
-interface BindingStateReady {
+interface FutureStateReady {
   _kind: "ready";
 }
-interface BindingStateRunning {
+interface FutureStateRunning {
   _kind: "running";
 }
-interface BindingStateSuccess {
+interface FutureStateSuccess {
   _kind: "success";
-  result: BindingOutput;
+  result: FutureOutput;
 }
-interface BindingStateFailure {
+interface FutureStateFailure {
   _kind: "failure";
   error: Error;
 }
-interface BindingStateHold {
+interface FutureStateHold {
   _kind: "hold";
   reason: string;
 }
-export type BindingState =
-  | BindingStateWaiting
-  | BindingStateReady
-  | BindingStateRunning
-  | BindingStateSuccess
-  | BindingStateFailure
-  | BindingStateHold;
+export type FutureState =
+  | FutureStateWaiting
+  | FutureStateReady
+  | FutureStateRunning
+  | FutureStateSuccess
+  | FutureStateFailure
+  | FutureStateHold;
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare -- intentionally naming the variable the same as the type
-export const BindingState = {
-  waiting(): BindingState {
+export const FutureState = {
+  waiting(): FutureState {
     return { _kind: "waiting" };
   },
-  running(): BindingState {
+  running(): FutureState {
     return { _kind: "running" };
   },
-  success(result: BindingOutput): BindingState {
+  success(result: FutureOutput): FutureState {
     return { _kind: "success", result };
   },
-  failure(error: Error): BindingState {
+  failure(error: Error): FutureState {
     return { _kind: "failure", error };
   },
-  hold(reason: string): BindingState {
+  hold(reason: string): FutureState {
     return { _kind: "hold", reason };
   },
 };
 
 export class ModuleState {
   private _started = false;
-  private _bindings = new Map<string, BindingState>();
+  private _futures = new Map<string, FutureState>();
 
   public static fromIgnitionModule(
     ignitionModule: IgnitionModule
@@ -208,7 +208,7 @@ export class ModuleState {
     const moduleState = new ModuleState(ignitionModule.id);
 
     for (const executor of ignitionModule.getSortedExecutors()) {
-      moduleState.addBinding(executor.binding.id, BindingState.waiting());
+      moduleState.addFuture(executor.future.id, FutureState.waiting());
     }
 
     return moduleState;
@@ -216,20 +216,20 @@ export class ModuleState {
 
   constructor(public readonly id: string) {}
 
-  public addBinding(bindingId: string, bindingState: BindingState) {
-    this._bindings.set(bindingId, bindingState);
+  public addFuture(futureId: string, futureState: FutureState) {
+    this._futures.set(futureId, futureState);
   }
 
-  public getBindingsStates(): Array<[string, BindingState]> {
-    return [...this._bindings.entries()];
+  public getFuturesStates(): Array<[string, FutureState]> {
+    return [...this._futures.entries()];
   }
 
   public isSuccess(): boolean {
-    const successCount = [...this._bindings.values()].filter(
+    const successCount = [...this._futures.values()].filter(
       (b) => b._kind === "success"
     ).length;
 
-    return successCount === this._bindings.size;
+    return successCount === this._futures.size;
   }
 
   public isRunning(): boolean {
@@ -239,92 +239,92 @@ export class ModuleState {
   }
 
   public isFailure(): boolean {
-    return [...this._bindings.values()].some((b) => b._kind === "failure");
+    return [...this._futures.values()].some((b) => b._kind === "failure");
   }
 
   public isHold(): boolean {
     return (
       !this.isFailure() &&
-      [...this._bindings.values()].some((b) => b._kind === "hold")
+      [...this._futures.values()].some((b) => b._kind === "hold")
     );
   }
 
-  public setBindingState(bindingId: string, bindingState: BindingState) {
+  public setFutureState(futureId: string, futureState: FutureState) {
     this._started = true;
-    this._bindings.set(bindingId, bindingState);
+    this._futures.set(futureId, futureState);
   }
 
-  public setSuccess(bindingId: string, result: any) {
-    this._bindings.set(bindingId, BindingState.success(result));
+  public setSuccess(futureId: string, result: any) {
+    this._futures.set(futureId, FutureState.success(result));
   }
 
-  public getBindingState(bindingId: string): BindingState {
-    const bindingState = this._bindings.get(bindingId);
-    if (bindingState === undefined) {
+  public getFutureState(futureId: string): FutureState {
+    const futureState = this._futures.get(futureId);
+    if (futureState === undefined) {
       throw new Error(
-        `[ModuleResult] Module '${this.id}' has no result for binding '${bindingId}'`
+        `[ModuleResult] Module '${this.id}' has no result for future '${futureId}'`
       );
     }
 
-    return bindingState;
+    return futureState;
   }
 
   public getFailures(): Error[] {
-    return [...this._bindings.values()]
-      .filter((x): x is BindingStateFailure => x._kind === "failure")
+    return [...this._futures.values()]
+      .filter((x): x is FutureStateFailure => x._kind === "failure")
       .map((x) => x.error);
   }
 
   public getHolds(): string[] {
-    return [...this._bindings.values()]
-      .filter((x): x is BindingStateHold => x._kind === "hold")
+    return [...this._futures.values()]
+      .filter((x): x is FutureStateHold => x._kind === "hold")
       .map((x) => x.reason);
   }
 
   public count(): number {
-    return this._bindings.size;
+    return this._futures.size;
   }
 
   public toModuleResult(): SerializedModuleResult {
     const moduleResult: SerializedModuleResult = {};
 
-    for (const [bindingId, bindingState] of this._bindings.entries()) {
-      if (bindingState._kind !== "success") {
+    for (const [futureId, futureState] of this._futures.entries()) {
+      if (futureState._kind !== "success") {
         throw new Error(
           "toModuleResult can only be called in successful modules"
         );
       }
-      moduleResult[bindingId] = serializeBindingOutput(bindingState.result);
+      moduleResult[futureId] = serializeFutureOutput(futureState.result);
     }
 
     return moduleResult;
   }
 
-  private _getBinding(bindingId: string) {
-    const bindingState = this._bindings.get(bindingId);
+  private _getFuture(futureId: string) {
+    const futureState = this._futures.get(futureId);
 
-    if (bindingState === undefined) {
+    if (futureState === undefined) {
       throw new Error("assertion error");
     }
 
-    return bindingState;
+    return futureState;
   }
 
-  private _isBindingSuccess(bindingId: string): boolean {
-    const bindingState = this._getBinding(bindingId);
+  private _isFutureSuccess(futureId: string): boolean {
+    const futureState = this._getFuture(futureId);
 
-    return bindingState._kind === "success";
+    return futureState._kind === "success";
   }
 
-  private _isBindingFailure(bindingId: string): boolean {
-    const bindingState = this._getBinding(bindingId);
+  private _isFutureFailure(futureId: string): boolean {
+    const futureState = this._getFuture(futureId);
 
-    return bindingState._kind === "failure";
+    return futureState._kind === "failure";
   }
 
-  private _isBindingHold(bindingId: string): boolean {
-    const bindingState = this._getBinding(bindingId);
+  private _isFutureHold(futureId: string): boolean {
+    const futureState = this._getFuture(futureId);
 
-    return bindingState._kind === "hold";
+    return futureState._kind === "hold";
   }
 }

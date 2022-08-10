@@ -24,7 +24,7 @@ describe("ExecutionGraph", function () {
       // given
       const executionGraph = new ExecutionGraph();
       const module1Inc = inc("Module1", "inc1", 1);
-      const module2Inc = inc("Module2", "inc1", module1Inc.binding);
+      const module2Inc = inc("Module2", "inc1", module1Inc.future);
 
       executionGraph.addExecutor(module2Inc);
       executionGraph.addExecutor(module1Inc);
@@ -49,7 +49,7 @@ describe("ExecutionGraph", function () {
       const [ignitionModule] = executionGraph.getSortedModules();
       const executors = ignitionModule
         .getSortedExecutors()
-        .map((e) => e.binding.id);
+        .map((e) => e.future.id);
 
       // then
       expect(executors).to.deep.equal(["inc1"]);
@@ -59,14 +59,14 @@ describe("ExecutionGraph", function () {
       // given
       const executionGraph = new ExecutionGraph();
       const inc1 = inc("MyModule", "inc1", 1);
-      executionGraph.addExecutor(inc("MyModule", "incInc1", inc1.binding));
+      executionGraph.addExecutor(inc("MyModule", "incInc1", inc1.future));
       executionGraph.addExecutor(inc1);
 
       // when
       const [ignitionModule] = executionGraph.getSortedModules();
       const executors = ignitionModule
         .getSortedExecutors()
-        .map((e) => e.binding.id);
+        .map((e) => e.future.id);
 
       // then
       expect(executors).to.deep.equal(["inc1", "incInc1"]);
@@ -76,8 +76,8 @@ describe("ExecutionGraph", function () {
       // given
       const executionGraph = new ExecutionGraph();
       const inc1 = inc("MyModule", "inc1", 1);
-      const incInc1 = inc("MyModule", "incInc1", inc1.binding);
-      const incIncInc1 = inc("MyModule", "incIncInc1", incInc1.binding);
+      const incInc1 = inc("MyModule", "incInc1", inc1.future);
+      const incIncInc1 = inc("MyModule", "incIncInc1", incInc1.future);
       executionGraph.addExecutor(incIncInc1);
       executionGraph.addExecutor(inc1);
       executionGraph.addExecutor(incInc1);
@@ -86,7 +86,7 @@ describe("ExecutionGraph", function () {
       const [ignitionModule] = executionGraph.getSortedModules();
       const executors = ignitionModule
         .getSortedExecutors()
-        .map((e) => e.binding.id);
+        .map((e) => e.future.id);
 
       // then
       expect(executors).to.deep.equal(["inc1", "incInc1", "incIncInc1"]);

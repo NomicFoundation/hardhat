@@ -1,18 +1,18 @@
-import { ArtifactContractBinding } from "../bindings/ArtifactContractBinding";
-import { ContractBinding } from "../bindings/ContractBinding";
-import { ExistingContractBinding } from "../bindings/ExistingContractBinding";
-import { InternalBinding } from "../bindings/InternalBinding";
-import { InternalCallBinding } from "../bindings/InternalCallBinding";
-import { InternalContractBinding } from "../bindings/InternalContractBinding";
-import type {
-  CallOptions,
-  ContractOptions,
-  ExistingContractOptions,
-} from "../bindings/types";
 import { CallExecutor } from "../executors/CallExecutor";
 import { ContractExecutor } from "../executors/ContractExecutor";
 import { Executor } from "../executors/Executor";
 import { ExistingContractExecutor } from "../executors/ExistingContractExecutor";
+import { ArtifactContractFuture } from "../futures/ArtifactContractFuture";
+import { ContractFuture } from "../futures/ContractFuture";
+import { ExistingContractFuture } from "../futures/ExistingContractFuture";
+import { InternalCallFuture } from "../futures/InternalCallFuture";
+import { InternalContractFuture } from "../futures/InternalContractFuture";
+import { InternalFuture } from "../futures/InternalFuture";
+import type {
+  CallOptions,
+  ContractOptions,
+  ExistingContractOptions,
+} from "../futures/types";
 import type { Artifact, Contract, Tx } from "../types";
 
 import { ExecutionGraph } from "./ExecutionGraph";
@@ -56,8 +56,8 @@ export class ModuleBuilderImpl implements ModuleBuilder {
     contractName: string,
     artifactOrOptions?: Artifact | UserContractOptions,
     givenOptions?: UserContractOptions
-  ): InternalBinding<ContractOptions, Contract> {
-    let binding;
+  ): InternalFuture<ContractOptions, Contract> {
+    let future;
     if (isArtifact(artifactOrOptions)) {
       const artifact = artifactOrOptions;
       const options = givenOptions;
@@ -66,7 +66,7 @@ export class ModuleBuilderImpl implements ModuleBuilder {
       const args = options?.args ?? [];
       const libraries = options?.libraries ?? {};
 
-      binding = new ArtifactContractBinding(this.getModuleId(), id, {
+      future = new ArtifactContractFuture(this.getModuleId(), id, {
         contractName,
         args,
         libraries,
@@ -79,45 +79,45 @@ export class ModuleBuilderImpl implements ModuleBuilder {
       const args = options?.args ?? [];
       const libraries = options?.libraries ?? {};
 
-      binding = new InternalContractBinding(this.getModuleId(), id, {
+      future = new InternalContractFuture(this.getModuleId(), id, {
         contractName,
         args,
         libraries,
       });
     }
 
-    this.addExecutor(new ContractExecutor(binding));
+    this.addExecutor(new ContractExecutor(future));
 
-    return binding;
+    return future;
   }
 
   public contractAt(
     contractName: string,
     address: string,
     abi: any[]
-  ): InternalBinding<ExistingContractOptions, Contract> {
+  ): InternalFuture<ExistingContractOptions, Contract> {
     const id = contractName;
 
-    const binding = new ExistingContractBinding(this.getModuleId(), id, {
+    const future = new ExistingContractFuture(this.getModuleId(), id, {
       contractName,
       address,
       abi,
     });
 
-    this.addExecutor(new ExistingContractExecutor(binding));
+    this.addExecutor(new ExistingContractExecutor(future));
 
-    return binding;
+    return future;
   }
 
   public call(
-    contract: ContractBinding,
+    contract: ContractFuture,
     method: string,
     options?: UserCallOptions
-  ): InternalBinding<CallOptions, Tx> {
+  ): InternalFuture<CallOptions, Tx> {
     const id =
-      options?.id ?? `${(contract as InternalContractBinding).id}.${method}`;
+      options?.id ?? `${(contract as InternalContractFuture).id}.${method}`;
     const args = options?.args ?? [];
-    const b = new InternalCallBinding(this.getModuleId(), id, {
+    const b = new InternalCallFuture(this.getModuleId(), id, {
       contract,
       method,
       args,

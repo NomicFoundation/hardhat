@@ -1,13 +1,13 @@
 import setupDebug, { IDebugger } from "debug";
 
-import { InternalBinding } from "../bindings/InternalBinding";
-import { BindingOutput, Resolved } from "../bindings/types";
-import { BindingState } from "../deployment-state";
+import { FutureState } from "../deployment-state";
+import { InternalFuture } from "../futures/InternalFuture";
+import { FutureOutput, Resolved } from "../futures/types";
 import type { Services } from "../services/types";
 
 import { Hold } from "./Hold";
 
-export abstract class Executor<I = unknown, O extends BindingOutput = any> {
+export abstract class Executor<I = unknown, O extends FutureOutput = any> {
   private _dummyInput!: I;
   private _dummyOutput!: O;
   private state: "ready" | "running" | "hold" | "success" | "failure" = "ready";
@@ -16,10 +16,10 @@ export abstract class Executor<I = unknown, O extends BindingOutput = any> {
   private holdReason?: string;
   private _debug: IDebugger;
 
-  constructor(public readonly binding: InternalBinding<I, O>) {
-    const moduleId = binding.moduleId;
-    const bindingId = binding.id;
-    this._debug = setupDebug(`ignition:executor:${moduleId}:${bindingId}`);
+  constructor(public readonly future: InternalFuture<I, O>) {
+    const moduleId = future.moduleId;
+    const futureId = future.id;
+    this._debug = setupDebug(`ignition:executor:${moduleId}:${futureId}`);
   }
 
   abstract execute(input: Resolved<I>, services: Services): Promise<O>;
@@ -29,25 +29,25 @@ export abstract class Executor<I = unknown, O extends BindingOutput = any> {
   public async run(
     input: Resolved<I>,
     services: Services,
-    onStateChange: (newState: BindingState) => void
+    onStateChange: (newState: FutureState) => void
   ) {
     try {
       this._debug("Start running");
       this._setRunning();
-      onStateChange(BindingState.running());
+      onStateChange(FutureState.running());
       const result = await this.execute(input, services);
       this._debug("Ended successfully");
       this._setSuccess(result);
-      onStateChange(BindingState.success(result));
+      onStateChange(FutureState.success(result));
     } catch (e: any) {
       if (e instanceof Hold) {
         this._debug("Ended with hold");
         this._setHold(e.reason);
-        onStateChange(BindingState.hold(e.reason));
+        onStateChange(FutureState.hold(e.reason));
       } else {
         this._debug("Ended with error");
         this._setFailure(e);
-        onStateChange(BindingState.failure(e));
+        onStateChange(FutureState.failure(e));
       }
     }
   }
@@ -67,7 +67,7 @@ export abstract class Executor<I = unknown, O extends BindingOutput = any> {
   public getHoldReason(): string {
     if (this.holdReason === undefined) {
       throw new Error(
-        `[executor ${this.binding.id}] assertion error: no hold reason`
+        `[executor ${this.future.id}] assertion error: no hold reason`
       );
     }
 
@@ -81,7 +81,7 @@ export abstract class Executor<I = unknown, O extends BindingOutput = any> {
   public getResult() {
     if (this.result === undefined) {
       throw new Error(
-        `[executor ${this.binding.id}] assertion error: no result`
+        `[executor ${this.future.id}] assertion error: no result`
       );
     }
 

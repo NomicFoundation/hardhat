@@ -1,8 +1,8 @@
-import { InternalBinding } from "../src/bindings/InternalBinding";
-import { Bindable } from "../src/bindings/types";
 import { DeploymentState } from "../src/deployment-state";
 import { Executor } from "../src/executors/Executor";
 import { Hold } from "../src/executors/Hold";
+import { InternalFuture } from "../src/futures/InternalFuture";
+import { IFuture } from "../src/futures/types";
 import {
   ArtifactsProvider,
   EIP1193Provider,
@@ -28,16 +28,16 @@ export function emptyDeploymentResult() {
 }
 
 /**
- * Test executor that receives a number (or a binding that produces a number)
+ * Test executor that receives a number (or a future that produces a number)
  * and increments it.
  */
 export function inc(
   moduleId: string,
-  bindingId: string,
-  x: Bindable<number>
+  futureId: string,
+  x: IFuture<number>
 ): IncreaseNumberExecutor {
   return new IncreaseNumberExecutor(
-    new IncreaseNumberBinding(moduleId, bindingId, x)
+    new IncreaseNumberFuture(moduleId, futureId, x)
   );
 }
 
@@ -87,13 +87,13 @@ class MockArtifactsProvider implements ArtifactsProvider {
   }
 }
 
-class IncreaseNumberBinding extends InternalBinding<Bindable<number>, number> {
-  public getDependencies(): InternalBinding[] {
-    return InternalBinding.isBinding(this.input) ? [this.input] : [];
+class IncreaseNumberFuture extends InternalFuture<IFuture<number>, number> {
+  public getDependencies(): InternalFuture[] {
+    return InternalFuture.isFuture(this.input) ? [this.input] : [];
   }
 }
 
-class IncreaseNumberExecutor extends Executor<Bindable<number>, number> {
+class IncreaseNumberExecutor extends Executor<IFuture<number>, number> {
   public behavior: "default" | "on-demand" | "fail" | "hold" = "default";
   public finish: any;
 
@@ -119,7 +119,7 @@ class IncreaseNumberExecutor extends Executor<Bindable<number>, number> {
   }
 
   public getDescription() {
-    const input = this.binding.input;
+    const input = this.future.input;
 
     if (typeof input === "number") {
       return `Increase ${input}`;

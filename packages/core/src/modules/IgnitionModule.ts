@@ -8,15 +8,15 @@ export class IgnitionModule {
 
     for (const executor of this._executors) {
       const executorDependencies =
-        dependencies.get(executor.binding.id) ?? new Set();
+        dependencies.get(executor.future.id) ?? new Set();
 
-      for (const executorDependency of executor.binding.getDependencies()) {
-        if (executorDependency.moduleId === executor.binding.moduleId) {
+      for (const executorDependency of executor.future.getDependencies()) {
+        if (executorDependency.moduleId === executor.future.moduleId) {
           executorDependencies.add(executorDependency.id);
         }
       }
 
-      dependencies.set(executor.binding.id, executorDependencies);
+      dependencies.set(executor.future.id, executorDependencies);
     }
 
     const added = new Set<string>();
@@ -24,15 +24,15 @@ export class IgnitionModule {
 
     while (added.size < this._executors.length) {
       for (const executor of this._executors) {
-        if (added.has(executor.binding.id)) {
+        if (added.has(executor.future.id)) {
           continue;
         }
 
         const executorDependencies =
-          dependencies.get(executor.binding.id) ?? new Set();
+          dependencies.get(executor.future.id) ?? new Set();
         if ([...executorDependencies].every((d) => added.has(d))) {
           sortedExecutors.push(executor);
-          added.add(executor.binding.id);
+          added.add(executor.future.id);
         }
       }
     }

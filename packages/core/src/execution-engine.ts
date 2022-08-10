@@ -1,13 +1,13 @@
 import setupDebug from "debug";
 
-import { InternalBinding } from "./bindings/InternalBinding";
+import { DeploymentState } from "./deployment-state";
+import { InternalFuture } from "./futures/InternalFuture";
 import type {
   ModuleResult,
   SerializedDeploymentResult,
   SerializedModuleResult,
-} from "./bindings/types";
-import { deserializeBindingOutput } from "./bindings/utils";
-import { DeploymentState } from "./deployment-state";
+} from "./futures/types";
+import { deserializeFutureOutput } from "./futures/utils";
 import { Journal } from "./journal/types";
 import { ExecutionGraph } from "./modules/ExecutionGraph";
 import { IgnitionModule } from "./modules/IgnitionModule";
@@ -63,7 +63,7 @@ export class ExecutionEngine {
       const executors = ignitionModule.getSortedExecutors();
       for (const executor of executors) {
         modulePlan.push({
-          id: executor.binding.id,
+          id: executor.future.id,
           description: executor.getDescription(),
         });
       }
@@ -133,7 +133,7 @@ export class ExecutionEngine {
         const moduleResult: ModuleResult = Object.fromEntries(
           Object.entries(serializedModuleResult).map(([key, value]) => [
             key,
-            deserializeBindingOutput(value),
+            deserializeFutureOutput(value),
           ])
         );
 
@@ -176,14 +176,14 @@ export class ExecutionEngine {
 
     for (const executor of executors) {
       this._debug(
-        `Validating binding ${executor.binding.id} of module ${ignitionModule.id}`
+        `Validating future ${executor.future.id} of module ${ignitionModule.id}`
       );
       const services = this._createServices(
         ignitionModule.id,
-        executor.binding.id
+        executor.future.id
       );
 
-      const errors = await executor.validate(executor.binding.input, services);
+      const errors = await executor.validate(executor.future.input, services);
       if (errors.length > 0) {
         allErrors.push(...errors);
       }
@@ -222,35 +222,35 @@ export class ExecutionEngine {
       }
 
       for (const executor of ignitionModule.getSortedExecutors()) {
-        this._debug(`Check ${ignitionModule.id}/${executor.binding.id}`);
+        this._debug(`Check ${ignitionModule.id}/${executor.future.id}`);
 
         if (executor.isReady() && runningCount < parallelizationLevel) {
           this._debug(
-            `Check dependencies of ${ignitionModule.id}/${executor.binding.id}`
+            `Check dependencies of ${ignitionModule.id}/${executor.future.id}`
           );
-          const dependencies = executor.binding.getDependencies();
+          const dependencies = executor.future.getDependencies();
           const allDependenciesReady = dependencies.every((d) =>
-            deploymentState.isBindingSuccess(d.moduleId, d.id)
+            deploymentState.isFutureSuccess(d.moduleId, d.id)
           );
 
           if (allDependenciesReady) {
             const resolvedInput = this._resolve(
-              executor.binding.input,
+              executor.future.input,
               deploymentState
             );
 
             const services = this._createServices(
               ignitionModule.id,
-              executor.binding.id
+              executor.future.id
             );
 
-            this._debug(`Start ${ignitionModule.id}/${executor.binding.id}`);
+            this._debug(`Start ${ignitionModule.id}/${executor.future.id}`);
 
             // eslint-disable-next-line @typescript-eslint/no-floating-promises
             executor.run(resolvedInput, services, (newState) => {
-              deploymentState.setBindingState(
+              deploymentState.setFutureState(
                 ignitionModule.id,
-                executor.binding.id,
+                executor.future.id,
                 newState
               );
 
@@ -266,8 +266,8 @@ export class ExecutionEngine {
   }
 
   private _resolve(input: any, deploymentResult: DeploymentState): any {
-    if (InternalBinding.isBinding(input)) {
-      return deploymentResult.getBindingResult(input.moduleId, input.id);
+    if (InternalFuture.isFuture(input)) {
+      return deploymentResult.getFutureResult(input.moduleId, input.id);
     }
 
     if (Array.isArray(input)) {
