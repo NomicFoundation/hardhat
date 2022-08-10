@@ -1,14 +1,14 @@
 import { ethers } from "ethers";
 import {
   AddressLike,
-  ContractBinding,
+  ContractFuture,
   ContractOptions,
   buildModule,
   ModuleBuilder,
-  InternalBinding,
+  InternalFuture,
   Executor,
   Services,
-  Binding,
+  Future,
   Hold,
 } from "@nomicfoundation/hardhat-ignition";
 
@@ -103,17 +103,17 @@ class MultisigContractExecutor extends Executor<
   }
 }
 
-class MultisigContractBinding extends InternalBinding<
+class MultisigContractFuture extends InternalFuture<
   MultiSigContractOptions,
   string
 > {
-  public getDependencies(): InternalBinding[] {
+  public getDependencies(): InternalFuture[] {
     return [
       this.input.multiSigWalletAddress,
       this.input.destination,
       ...this.input.args,
-    ].filter((x): x is InternalBinding<any, any> => {
-      return InternalBinding.isBinding(x);
+    ].filter((x): x is InternalFuture<any, any> => {
+      return InternalFuture.isFuture(x);
     });
   }
 }
@@ -125,10 +125,10 @@ function callFromMultisig(
   destination: AddressLike,
   method: string,
   options: CallFromMultisigOptions
-): Binding<any, string> {
+): Future<any, string> {
   const id = options.id;
   const args = options?.args ?? [];
-  const b = new MultisigContractBinding(m.getModuleId(), id, {
+  const b = new MultisigContractFuture(m.getModuleId(), id, {
     multiSigWalletAddress: multisig,
     contractName,
     destination,

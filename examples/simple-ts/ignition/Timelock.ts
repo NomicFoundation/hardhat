@@ -1,9 +1,9 @@
 import { ethers } from "ethers";
 import {
-  ContractBinding,
+  ContractFuture,
   buildModule,
   ModuleBuilder,
-  InternalBinding,
+  InternalFuture,
   Executor,
   Contract,
   Services,
@@ -82,16 +82,16 @@ class TimelockCallExecutor extends Executor<TimelockCallOptions, string> {
 }
 
 interface TimelockCallOptions {
-  timelock: ContractBinding;
-  contract: ContractBinding;
+  timelock: ContractFuture;
+  contract: ContractFuture;
   method: string;
 }
 
-class TimelockCallBinding extends InternalBinding<TimelockCallOptions, string> {
-  public getDependencies(): InternalBinding[] {
+class TimelockCallFuture extends InternalFuture<TimelockCallOptions, string> {
+  public getDependencies(): InternalFuture[] {
     return [this.input.timelock, this.input.contract].filter(
-      (x): x is InternalBinding<any, any> => {
-        return InternalBinding.isBinding(x);
+      (x): x is InternalFuture<any, any> => {
+        return InternalFuture.isFuture(x);
       }
     );
   }
@@ -99,13 +99,13 @@ class TimelockCallBinding extends InternalBinding<TimelockCallOptions, string> {
 
 function callFromTimelock(
   m: ModuleBuilder,
-  timelock: ContractBinding,
-  contract: ContractBinding,
+  timelock: ContractFuture,
+  contract: ContractFuture,
   method: string,
   options: { id: string }
-): TimelockCallBinding {
+): TimelockCallFuture {
   const id = options.id;
-  const b = new TimelockCallBinding(m.getModuleId(), id, {
+  const b = new TimelockCallFuture(m.getModuleId(), id, {
     timelock,
     contract,
     method,

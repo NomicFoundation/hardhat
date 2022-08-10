@@ -1,12 +1,12 @@
 import { ethers } from "ethers";
 import {
-  ContractBinding,
+  ContractFuture,
   buildModule,
   ModuleBuilder,
-  InternalBinding,
+  InternalFuture,
   Executor,
   Services,
-  Binding,
+  Future,
   Hold,
 } from "@nomicfoundation/hardhat-ignition";
 
@@ -16,9 +16,9 @@ interface CallFromMultisigAndTimelockOptions {
 }
 
 interface MultiSigContractOptions {
-  multisig: ContractBinding;
-  timelock: ContractBinding;
-  destination: ContractBinding;
+  multisig: ContractFuture;
+  timelock: ContractFuture;
+  destination: ContractFuture;
   method: string;
   args: unknown[];
 }
@@ -180,33 +180,33 @@ class MultisigAndTimelockExecutor extends Executor<
   }
 }
 
-class MultisigAndTimelockBinding extends InternalBinding<
+class MultisigAndTimelockFuture extends InternalFuture<
   MultiSigContractOptions,
   string
 > {
-  public getDependencies(): InternalBinding[] {
+  public getDependencies(): InternalFuture[] {
     return [
       this.input.multisig,
       this.input.timelock,
       this.input.destination,
       ...this.input.args,
-    ].filter((x): x is InternalBinding<unknown, any> => {
-      return InternalBinding.isBinding(x);
+    ].filter((x): x is InternalFuture<unknown, any> => {
+      return InternalFuture.isFuture(x);
     });
   }
 }
 
 function callFromMultisigAndTimelock(
   m: ModuleBuilder,
-  multisig: ContractBinding,
-  timelock: ContractBinding,
-  destination: ContractBinding,
+  multisig: ContractFuture,
+  timelock: ContractFuture,
+  destination: ContractFuture,
   method: string,
   options: CallFromMultisigAndTimelockOptions
-): Binding<any, string> {
+): Future<any, string> {
   const id = options.id;
   const args = options?.args ?? [];
-  const b = new MultisigAndTimelockBinding(m.getModuleId(), id, {
+  const b = new MultisigAndTimelockFuture(m.getModuleId(), id, {
     multisig,
     timelock,
     destination,
