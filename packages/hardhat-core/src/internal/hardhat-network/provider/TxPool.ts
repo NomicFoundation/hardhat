@@ -104,7 +104,7 @@ export class TxPool {
     common: Common
   ) {
     this._state = makePoolState({
-      blockGasLimit: bnToHex(blockGasLimit),
+      blockGasLimit: BigIntUtils.toHex(blockGasLimit),
     });
     this._deserializeTransaction = (tx) => deserializeTransaction(tx, common);
   }
@@ -555,8 +555,8 @@ export class TxPool {
     );
   }
 
-  private _setBlockGasLimit(newLimit: BN) {
-    this._state = this._state.set("blockGasLimit", bnToHex(newLimit));
+  private _setBlockGasLimit(newLimit: bigint) {
+    this._state = this._state.set("blockGasLimit", BigIntUtils.toHex(newLimit));
   }
 
   private _deleteTransactionByHash(hash: Buffer) {
