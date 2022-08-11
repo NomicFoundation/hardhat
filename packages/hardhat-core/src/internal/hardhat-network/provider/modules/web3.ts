@@ -46,6 +46,6 @@ export class Web3Module {
   }
 
   private async _sha3Action(buffer: Buffer): Promise<string> {
-    return bufferToRpcData(keccak256(buffer));
+    return bufferToRpcData(arrToBufArr(keccak256(bufArrToArr(buffer))));
   }
 }

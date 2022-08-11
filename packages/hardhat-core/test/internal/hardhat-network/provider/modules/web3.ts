@@ -29,7 +29,9 @@ describe("Web3 module", function () {
       describe("web3_sha3", async function () {
         it("Should return the keccak256 of the input", async function () {
           const data = "0x123a1b238123";
-          const hashed = bufferToRpcData(keccak256(toBuffer(data)));
+          const hashed = bufferToRpcData(
+            arrToBufArr(keccak256(bufArrToArr(toBuffer(data))))
+          );
 
           const res = await this.provider.send("web3_sha3", [
             bufferToRpcData(toBuffer(data)),

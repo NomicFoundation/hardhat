@@ -88,7 +88,9 @@ export class CompilerDownloader {
     const compiler = await fsExtra.readFile(downloadedFilePath);
 
     const compilerKeccak256 = ethereumjsUtil.bufferToHex(
-      ethereumjsUtil.keccak(compiler)
+      ethereumjsUtil.arrToBufArr(
+        keccak256(ethereumjsUtil.bufArrToArr(compiler))
+      )
     );
 
     if (expectedKeccak256 !== compilerKeccak256) {

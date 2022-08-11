@@ -6,19 +6,21 @@ export const randomHash = () => {
   return bufferToHex(randomHashBuffer());
 };
 
-let next: Buffer | undefined;
-export const randomHashBuffer = () => {
-  const { keccakFromString, keccak256 } =
-    require("ethereumjs-util") as typeof EthereumjsUtilT;
+let next: Uint8Array | undefined;
+export const randomHashBuffer = (): Buffer => {
+  const { arrToBufArr, bufArrToArr } =
+    require("@ethereumjs/util") as typeof EthereumjsUtilT;
+  const { keccak256 } =
+    require("ethereum-cryptography/keccak") as typeof EthereumCryptographyKeccakT;
 
   if (next === undefined) {
-    next = keccakFromString("seed");
+    next = keccak256(bufArrToArr(Buffer.from("seed")));
   }
 
   const result = next;
   next = keccak256(next);
 
-  return result;
+  return arrToBufArr(result);
 };
 
 export const randomAddress = () => {
