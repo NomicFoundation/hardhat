@@ -60,7 +60,7 @@ describe("Debug module", function () {
             [txHash]
           );
           assert.deepEqual(trace, {
-            gas: 21000,
+            gas: 21_000,
             failed: false,
             returnValue: "",
             structLogs: [],
@@ -98,7 +98,7 @@ describe("Debug module", function () {
             [txHash]
           );
           assert.deepEqual(trace, {
-            gas: 21000,
+            gas: 21_000,
             failed: false,
             returnValue: "",
             structLogs: [],
@@ -148,7 +148,7 @@ describe("Debug module", function () {
               [txHash]
             );
             assert.deepEqual(trace, {
-              gas: 23400,
+              gas: 23_400,
               failed: false,
               returnValue: "",
               structLogs: [],
@@ -159,7 +159,7 @@ describe("Debug module", function () {
     });
   });
 
-  describe("fork tests", function () {
+  describe("fork tests (pre-berlin)", function () {
     this.timeout(240000);
 
     let provider: EthereumProvider;
@@ -170,7 +170,7 @@ describe("Debug module", function () {
       }
       const forkConfig: ForkConfig = {
         jsonRpcUrl: ALCHEMY_URL!,
-        blockNumber: 11954000,
+        blockNumber: 11_954_000,
       };
 
       const logger = new ModulesLogger(false);
@@ -180,9 +180,9 @@ describe("Debug module", function () {
         DEFAULT_NETWORK_NAME,
         DEFAULT_CHAIN_ID,
         DEFAULT_NETWORK_ID,
-        13000000,
+        13000000n,
         undefined,
-        new BN(0),
+        0n,
         true,
         true,
         false, // mining.auto
@@ -284,6 +284,62 @@ describe("Debug module", function () {
         ...mainnetRevertTrace,
         structLogs,
       });
+    });
+  });
+
+  describe("fork tests (post-london)", function () {
+    let provider: EthereumProvider;
+
+    beforeEach(function () {
+      if (ALCHEMY_URL === undefined) {
+        this.skip();
+      }
+      const forkConfig: ForkConfig = {
+        jsonRpcUrl: ALCHEMY_URL!,
+        blockNumber: 15_204_358,
+      };
+
+      const logger = new ModulesLogger(false);
+
+      const hardhatNetworkProvider = new HardhatNetworkProvider(
+        DEFAULT_HARDFORK,
+        DEFAULT_NETWORK_NAME,
+        DEFAULT_CHAIN_ID,
+        DEFAULT_NETWORK_ID,
+        13000000n,
+        undefined,
+        0n,
+        true,
+        true,
+        false, // mining.auto
+        0, // mining.interval
+        "priority", // mining.mempool.order
+        defaultHardhatNetworkParams.chains,
+        logger,
+        DEFAULT_ACCOUNTS,
+        undefined,
+        DEFAULT_ALLOW_UNLIMITED_CONTRACT_SIZE,
+        undefined,
+        undefined,
+        forkConfig,
+        FORK_TESTS_CACHE_PATH
+      );
+
+      provider = new BackwardsCompatibilityProviderAdapter(
+        hardhatNetworkProvider
+      );
+    });
+
+    // see HH-1031
+    it.skip("Should return the right values for a successful tx", async function () {
+      const trace: RpcDebugTraceOutput = await provider.send(
+        "debug_traceTransaction",
+        ["0xe0b1f8e11eb822107ddc35ce2d944147cc043acf680c39332ee95dd6508d107e"]
+      );
+
+      console.log(trace.structLogs.length);
+
+      assertEqualTraces(trace, mainnetPostLondonTxTrace);
     });
   });
 });
