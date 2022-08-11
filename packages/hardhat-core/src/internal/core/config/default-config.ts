@@ -100,6 +100,16 @@ export const defaultHardhatNetworkParams: Omit<
       },
     ],
     [
+      5, // goerli
+      {
+        hardforkHistory: new Map([
+          [HardforkName.ISTANBUL, 1561651],
+          [HardforkName.BERLIN, 4460644],
+          [HardforkName.LONDON, 5062605],
+        ]),
+      },
+    ],
+    [
       42, // kovan
       {
         hardforkHistory: new Map([
