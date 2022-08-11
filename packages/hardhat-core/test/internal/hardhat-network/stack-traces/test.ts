@@ -759,15 +759,24 @@ const solidityCompilers = [
   },
 ];
 
-const solidity05Compilers = solidityCompilers.filter(({ solidityVersion }) =>
-  semver.satisfies(solidityVersion, "^0.5.0")
-);
-const solidity06Compilers = solidityCompilers.filter(({ solidityVersion }) =>
-  semver.satisfies(solidityVersion, "^0.6.0")
-);
-const solidity07Compilers = solidityCompilers.filter(({ solidityVersion }) =>
-  semver.satisfies(solidityVersion, "^0.7.0")
-);
+const solidity05Compilers =
+  process.env.HARDHAT_TESTS_ONLY_LATEST_SOLC_VERSIONS !== undefined
+    ? []
+    : solidityCompilers.filter(({ solidityVersion }) =>
+        semver.satisfies(solidityVersion, "^0.5.0")
+      );
+const solidity06Compilers =
+  process.env.HARDHAT_TESTS_ONLY_LATEST_SOLC_VERSIONS !== undefined
+    ? []
+    : solidityCompilers.filter(({ solidityVersion }) =>
+        semver.satisfies(solidityVersion, "^0.6.0")
+      );
+const solidity07Compilers =
+  process.env.HARDHAT_TESTS_ONLY_LATEST_SOLC_VERSIONS !== undefined
+    ? []
+    : solidityCompilers.filter(({ solidityVersion }) =>
+        semver.satisfies(solidityVersion, "^0.7.0")
+      );
 const solidity08Compilers = solidityCompilers.filter(({ solidityVersion }) =>
   semver.satisfies(solidityVersion, "^0.8.0")
 );
