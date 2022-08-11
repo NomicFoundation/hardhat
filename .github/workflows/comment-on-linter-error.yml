@@ -2,9 +2,10 @@ name: Comment on lint failure
 
 on:
   pull_request_target:
-    types: [opened]
+    types:
+      - opened
     branches:
-      - $default-branch
+      - master
 
 concurrency:
   group: ${{github.workflow}}-${{github.ref}}
@@ -21,7 +22,7 @@ jobs:
           ref: "refs/pull/${{ github.event.number }}/merge"
       - uses: actions/setup-node@v2
         with:
-          node-version: 12
+          node-version: 14
           cache: yarn
       - name: Install
         run: yarn --frozen-lockfile
@@ -31,6 +32,12 @@ jobs:
         run: yarn lint
       - name: Check dependency versions
         run: node scripts/check-dependencies.js
+      - name: Install website
+        working-directory: docs/
+        run: yarn
+      - name: Lint website
+        working-directory: docs/
+        run: yarn lint
       - uses: actions/github-script@v6
         name: Comment on failure
         if: ${{ failure() }}
@@ -40,5 +47,5 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: "Thanks for submitting this PR!\nUnfortunately, it has some linter errors, so we can't merge it yet. Can you please fix them?\nRunning yarn `lint:fix` in the root of the repository may fix them automatically."
+              body: "Thanks for submitting this PR!\n\nUnfortunately, it has some linter errors, so we can't merge it yet. Can you please fix them?\n\nRunning yarn `lint:fix` in the root of the repository may fix them automatically."
             })

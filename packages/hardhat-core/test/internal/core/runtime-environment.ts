@@ -30,7 +30,7 @@ describe("Environment", () => {
     defaultNetwork: "default",
     networks: {
       localhost: {
-        url: "http://localhosthost:8545",
+        url: "http://127.0.0.1:8545",
         ...defaultHttpNetworkParams,
       },
       hardhat: {
@@ -40,7 +40,7 @@ describe("Environment", () => {
         accounts: [],
       },
       default: {
-        url: "http://localhost:8545",
+        url: "http://127.0.0.1:8545",
         ...defaultHttpNetworkParams,
       },
     },

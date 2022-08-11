@@ -34,7 +34,7 @@ export async function makeForkClient(
   const provider = new HttpProvider(
     forkConfig.jsonRpcUrl,
     HARDHAT_NETWORK_NAME,
-    undefined,
+    forkConfig.httpHeaders,
     FORK_HTTP_TIMEOUT
   );
 

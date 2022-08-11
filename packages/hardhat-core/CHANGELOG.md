@@ -1,5 +1,52 @@
 # hardhat
 
+## 2.10.1
+
+### Patch Changes
+
+- 3d571e40b: Better Solidity errors propagation
+
+## 2.10.0
+
+### Minor Changes
+
+- 5b29b0e0b: Update sample projects to use the Hardhat Toolbox
+
+### Patch Changes
+
+- 3dcc802b3: Add support for Node 18
+- 3dcc802b3: Upgrade Mocha to 10.x
+- 3dcc802b3: Upgrade ethereum-cryptography to 1.x
+- f5afa18d3: Removed a workaround to past Ganache's gas estimation problems.
+- 3dcc802b3: Drop support for Node 12
+
+## 2.9.9
+
+### Patch Changes
+
+- ce6136b2a: Fix incorrect peerDependency
+- 3fd3756e6: Specify ts-node and typescript as optional peerDependencies
+
+## 2.9.8
+
+### Patch Changes
+
+- 5bd775a8b: Added support for HTTP headers in the forking config (thanks @TimDaub!)
+- 3770a5bbc: Expose a missing method in the Artifacts interface
+
+## 2.9.7
+
+### Patch Changes
+
+- 73beb279b: Fixed `block.chainid` returning 0 in view functions
+
+## 2.9.6
+
+### Patch Changes
+
+- fde08e0c: Updates `node` task to terminate when the server closes.
+- 736e850a: Fixed an issue that was preventing compilation from working on Windows (#2712)
+
 ## 2.9.5
 
 ### Patch Changes

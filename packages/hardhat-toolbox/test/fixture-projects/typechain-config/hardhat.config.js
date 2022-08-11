@@ -1,0 +1,5 @@
+require("../../../");
+
+module.exports = {
+  typechain: {},
+};
