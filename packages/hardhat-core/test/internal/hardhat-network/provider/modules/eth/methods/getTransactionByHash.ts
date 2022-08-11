@@ -324,8 +324,7 @@ describe("Eth module", function () {
           assert.equal(tx.from, "0x8a9d69aa686fa0f9bbdec21294f67d4d9cfb4a3e");
         });
 
-        // see HH-1037
-        it.skip("should get an existing transaction from rinkeby", async function () {
+        it("should get an existing transaction from rinkeby", async function () {
           const { ALCHEMY_URL } = process.env;
           if (!isFork || ALCHEMY_URL === undefined || ALCHEMY_URL === "") {
             this.skip();
