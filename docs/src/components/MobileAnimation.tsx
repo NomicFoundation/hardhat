@@ -3,10 +3,11 @@ import Image from "next/image";
 import { styled } from "linaria/react";
 
 import ethereumLogo from "../assets/animation/mobile/ethereum_logo.svg";
+import ethereumLogoDark from "../assets/animation/mobile/ethereum_logo-dark.svg";
 import mascots from "../assets/animation/mobile/mascots.svg";
 import heEyesOpen from "../assets/animation/mobile/he-eyes_open.svg";
 import sheEyesOpen from "../assets/animation/mobile/she-eyes_open.svg";
-import { media } from "../themes";
+import { media, tmSelectors } from "../themes";
 
 const AnimationContainer = styled.section`
   width: 300px;
@@ -30,6 +31,30 @@ const AnimationContainer = styled.section`
   }
   ${media.md} {
     display: none;
+  }
+  & .light {
+    display: inline;
+  }
+  & .dark {
+    display: none;
+  }
+  ${tmSelectors.dark} {
+    & .light {
+      display: none;
+    }
+    & .dark {
+      display: inline;
+    }
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      & .light {
+        display: none;
+      }
+      & .dark {
+        display: inline;
+      }
+    }
   }
 `;
 
@@ -133,7 +158,12 @@ const MobileAnimation = () => {
           anchorPosition={anchorPosition}
           className="ethereum-logo"
         >
-          <Image src={ethereumLogo} alt="ethereum logo" />
+          <span className="light">
+            <Image src={ethereumLogo} alt="ethereum logo" />
+          </span>
+          <span className="dark">
+            <Image src={ethereumLogoDark} alt="ethereum logo dark" />
+          </span>
         </EthereumLogoContainer>
         <MascotsContainer anchorPosition={anchorPosition}>
           <Image src={mascots} alt="mascots" />

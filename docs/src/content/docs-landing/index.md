@@ -1,35 +1,40 @@
-![Teacher Hardhat](/hardhat-tutorial.svg)
+---
+title: Documentation
+description: Documentation about Hardhat, the Ethereum development environment
+---
 
-Hardhat consists of different projects that work together to create a complete Ethereum development environment.
+Hardhat is a development environment for Ethereum software. It consists of different components for editing, compiling, debugging and deploying your smart contracts and dApps, all of which work together to create a complete development environment.
 
-If you want to quickly start using it you can follow [this guide.](/hardhat-runner/docs/getting-started/index.md#overview)
+To get started check out these sections:
 
-If you prefer a step-by-step tutorial, you can find it [here.](/tutorial)
+- [General overview](/hardhat-runner)
+- [Quick start guide](/hardhat-runner/docs/getting-started/index.md#quick-start)
+- [Step-by-step tutorial](/tutorial)
 
-## Browse by project
+## Browse by component
 
 :::tip
 
-If you are in doubt about which project you are looking for, you can start [here.](/hardhat-runner)
+If you are in doubt about which component you are looking for, you can start [here.](/hardhat-runner)
 
 :::
 
 ### Hardhat Runner
 
-Hardhat Runner is the main project you interact with when using Hardhat. It's what you run with `npx hardhat`. It consists of a flexible task runner that lets you automate your development workflow. [Learn more.](/hardhat-runner)
+Hardhat Runner is the main component you interact with when using Hardhat. It's a flexible and extensible task runner that helps you manage and automate the recurring tasks inherent to developing smart contracts and dApps. [Learn more.](/hardhat-runner)
 
 ### Hardhat Network
 
-Hardhat comes built-in with Hardhat Network, a local Ethereum node designed for development. It allows you to deploy your contracts, run your tests and debug your code. [Learn more.](/hardhat-network)
+Hardhat comes built-in with Hardhat Network, a local Ethereum network node designed for development. It allows you to deploy your contracts, run your tests and debug your code, all within the confines of your local machine. [Learn more.](/hardhat-network)
 
 ### Hardhat for Visual Studio Code
 
-Hardhat for Visual Studio Code is a VS Code extension that adds language support for Solidity, and provides editor integration for Hardhat projects. [Learn more.](/hardhat-vscode)
+Hardhat for Visual Studio Code is a VS Code extension that adds language support for Solidity and provides editor integration for Hardhat projects. [Learn more.](/hardhat-vscode)
 
 ### Hardhat Chai Matchers
 
-Hardhat Chai Matchers is a Hardhat plugin that builds on top of [Chai](https://www.chaijs.com/), extending it with Ethereum-related assertion utilities. [Learn more.](/hardhat-chai-matchers)
+Hardhat Chai Matchers adds Ethereum-specific capabilities to the [Chai](https://www.chaijs.com/) assertion library, making your smart contract tests easy to write and read. Among other things, you can assert that a contract fired certain events, or that it exhibited a specific revert, or that a transaction resulted in specific changes to a wallet's Ether or token balance. [Learn more.](/hardhat-chai-matchers)
 
 ### Hardhat Network Helpers
 
-Hardhat Network Helpers is a library that provides a set of utility functions to interact with the Hardhat Network. [Learn more.](/hardhat-network-helpers)
+Hardhat Network Helpers provides a convenient JavaScript interface to the JSON-RPC functionality of Hardhat Network. [Learn more.](/hardhat-network-helpers)

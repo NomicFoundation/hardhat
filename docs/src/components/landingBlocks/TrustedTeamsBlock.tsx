@@ -2,7 +2,10 @@ import React, { useMemo } from "react";
 import { styled } from "linaria/react";
 import Image from "next/image";
 
-import TrustedTeamsLogos from "../../assets/trustedTeamsLogos/logos";
+import {
+  TrustedTeamsLogos,
+  TrustedTeamsLogosDark,
+} from "../../assets/trustedTeamsLogos/logos";
 
 import { media, tm, tmDark, tmSelectors } from "../../themes";
 import Section from "../Section";
@@ -53,6 +56,27 @@ const Title = styled.h2`
 const LogosContainer = styled.div`
   display: flex;
   flex-direction: column;
+  &.dark {
+    display: none;
+  }
+  ${tmSelectors.dark} {
+    &.dark {
+      display: flex;
+    }
+    &.light {
+      display: none;
+    }
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      &.dark {
+        display: flex;
+      }
+      &.light {
+        display: none;
+      }
+    }
+  }
 `;
 
 const LogosRowContainer = styled.div`
@@ -119,20 +143,25 @@ const LogosSubrowContainer = styled.div`
   }
 `;
 
-const createLogosRows = (rowsAmount: number) => {
-  const logosInRowAmount = Math.floor(TrustedTeamsLogos.length / rowsAmount);
+const createLogosRows = (
+  logosArray: Array<{ img: string; alt: string }>,
+  rowsAmount: number
+) => {
+  const logosInRowAmount = Math.floor(logosArray.length / rowsAmount);
   const logosRows = [];
 
   for (let i = 0; i < rowsAmount; i += 1) {
-    const rowImages = TrustedTeamsLogos.slice(
-      i * logosInRowAmount,
-      (i + 1) * logosInRowAmount
-      // eslint-disable-next-line
-    ).map((logo) => (
-      <div className="image-wrapper" key={logo.alt}>
-        <Image src={logo.img} alt={logo.alt} title={logo.alt} />
-      </div>
-    ));
+    const rowImages = logosArray
+      .slice(
+        i * logosInRowAmount,
+        (i + 1) * logosInRowAmount
+        // eslint-disable-next-line
+      )
+      .map((logo) => (
+        <div className="image-wrapper" key={logo.alt}>
+          <Image src={logo.img} alt={logo.alt} title={logo.alt} />
+        </div>
+      ));
 
     logosRows.push(
       <LogosRowContainer key={i + rowsAmount}>
@@ -155,16 +184,29 @@ const createLogosRows = (rowsAmount: number) => {
 };
 
 const TrustedTeamsBlock = ({ content }: Props) => {
-  const threeRows = useMemo(() => createLogosRows(3), []);
-  const fiveRows = useMemo(() => createLogosRows(5), []);
+  const threeRows = useMemo(() => createLogosRows(TrustedTeamsLogos, 3), []);
+  const fiveRows = useMemo(() => createLogosRows(TrustedTeamsLogos, 5), []);
+
+  const threeRowsDark = useMemo(
+    () => createLogosRows(TrustedTeamsLogosDark, 3),
+    []
+  );
+  const fiveRowsDark = useMemo(
+    () => createLogosRows(TrustedTeamsLogosDark, 5),
+    []
+  );
 
   return (
     <Section clearPadding>
       <Container>
         <Title>{content.title}</Title>
-        <LogosContainer>
+        <LogosContainer className="light">
           {threeRows}
           {fiveRows}
+        </LogosContainer>
+        <LogosContainer className="dark">
+          {threeRowsDark}
+          {fiveRowsDark}
         </LogosContainer>
       </Container>
     </Section>

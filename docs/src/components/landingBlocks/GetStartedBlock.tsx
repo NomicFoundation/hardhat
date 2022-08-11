@@ -36,12 +36,10 @@ const GetStartedBlockStyled = styled.section`
   }
   ${tmSelectors.dark} {
     background-color: ${tmDark(({ colors }) => colors.neutral0)};
-    mix-blend-mode: color-dodge;
   }
   ${media.mqDark} {
     ${tmSelectors.auto} {
       background-color: ${tmDark(({ colors }) => colors.neutral0)};
-      mix-blend-mode: color-dodge;
     }
   }
 `;
@@ -57,6 +55,7 @@ const StyledBackground = styled.div`
   height: 100%;
   width: 100%;
   ${tmSelectors.dark} {
+    mix-blend-mode: color-dodge;
     background: ${tmDark(
       ({ colors }) =>
         `linear-gradient(254.24deg, ${colors.complementary600} 0%, ${colors.accent100} 100%, ${colors.accent100} 100%)`
@@ -64,6 +63,7 @@ const StyledBackground = styled.div`
   }
   ${media.mqDark} {
     ${tmSelectors.auto} {
+      mix-blend-mode: color-dodge;
       background: ${tmDark(
         ({ colors }) =>
           `linear-gradient(254.24deg, ${colors.complementary600} 0%, ${colors.accent100} 100%, ${colors.accent100} 100%)`

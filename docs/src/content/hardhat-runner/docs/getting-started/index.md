@@ -5,11 +5,11 @@ description: Getting started with Hardhat, a development environment to compile,
 
 ## Overview
 
-Hardhat is a development environment to compile, deploy, test, and debug your Ethereum software. It helps developers manage and automate the recurring tasks that are inherent to the process of building smart contracts and dApps, as well as easily introducing more functionality around this workflow. This means compiling, running and testing smart contracts at the very core.
+Hardhat is a development environment for Ethereum software. It consists of different components for editing, compiling, debugging and deploying your smart contracts and dApps, all of which work together to create a complete development environment.
 
-Hardhat comes built-in with [Hardhat Network](/hardhat-network), a local Ethereum network designed for development. Its functionality focuses around Solidity debugging, featuring stack traces, `console.log()` and explicit error messages when transactions fail.
+Hardhat Runner is the main component you interact with when using Hardhat. It's a flexible and extensible task runner that helps you manage and automate the recurring tasks inherent to developing smart contracts and dApps.
 
-Hardhat Runner, the CLI command to interact with Hardhat, is an extensible task runner. It's designed around the concepts of **tasks** and **plugins**. Every time you're running Hardhat from the CLI you're running a task. E.g. `npx hardhat compile` is running the built-in `compile` task. Tasks can call other tasks, allowing complex workflows to be defined. Users and plugins can override existing tasks, making those workflows customizable and extendable.
+Hardhat Runner is designed around the concepts of **tasks** and **plugins**. Every time you're running Hardhat from the command-line, you're running a task. For example, `npx hardhat compile` runs the built-in `compile` task. Tasks can call other tasks, allowing complex workflows to be defined. Users and plugins can override existing tasks, making those workflows customizable and extendable.
 
 This guide will take you through the installation of our recommended setup, but as most of Hardhat's functionality comes from plugins, you are free to customize it or choose a completely different path.
 
@@ -258,7 +258,7 @@ Inside the `scripts/` folder you will find a file with the following code:
 
 ::::
 
-You can run it using `hardhat run`:
+You can run it using `npx hardhat run`:
 
 ::::tabsgroup{options="TypeScript,JavaScript"}
 
@@ -320,3 +320,5 @@ npx hardhat run scripts/deploy.js --network localhost
 ::::
 
 Congrats! You have created a project and compiled, tested and deployed a smart contract.
+
+Show us some love by starring [our repository on GitHub!](https://github.com/NomicFoundation/hardhat)️

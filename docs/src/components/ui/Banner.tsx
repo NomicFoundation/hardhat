@@ -109,9 +109,9 @@ const BracesAnimation: React.FC<React.PropsWithChildren<{}>> = ({
 
   return (
     <BracesContainer>
-      <div className="braces reversed">{bracesString}</div>
-      <div className="text">{children}</div>
       <div className="braces">{bracesString}</div>
+      <div className="text">{children}</div>
+      <div className="braces reversed">{bracesString}</div>
     </BracesContainer>
   );
 };

@@ -1,6 +1,8 @@
 import { AssertionError, expect } from "chai";
 import { BigNumber } from "ethers";
 import { ProviderError } from "hardhat/internal/core/providers/errors";
+import path from "path";
+import util from "util";
 
 import "../../src/internal/add-chai-matchers";
 import { PANIC_CODES } from "../../src/panic";
@@ -290,7 +292,7 @@ describe("INTEGRATION: Reverted with panic", function () {
 
         expect(() => expect(hash).to.be.revertedWithPanic("invalid")).to.throw(
           TypeError,
-          "Expected a number-like value as the expected panic code, but got 'invalid'"
+          "Expected the given panic code to be a number-like value, but got 'invalid'"
         );
       });
 
@@ -315,6 +317,23 @@ describe("INTEGRATION: Reverted with panic", function () {
           ProviderError,
           "sender doesn't have enough funds to send tx"
         );
+      });
+    });
+
+    describe("stack traces", function () {
+      // smoke test for stack traces
+      it("includes test file", async function () {
+        try {
+          await expect(matchers.panicAssert()).to.not.be.revertedWithPanic();
+        } catch (e: any) {
+          expect(util.inspect(e)).to.include(
+            path.join("test", "reverted", "revertedWithPanic.ts")
+          );
+
+          return;
+        }
+
+        expect.fail("Expected an exception but none was thrown");
       });
     });
   }

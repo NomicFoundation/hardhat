@@ -885,24 +885,6 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
-"@nomicfoundation/hardhat-chai-matchers@>=1.0.0-beta.3":
-  version "1.0.0-beta.3"
-  resolved "https://registry.yarnpkg.com/@nomicfoundation/hardhat-chai-matchers/-/hardhat-chai-matchers-1.0.0-beta.3.tgz#ada229d60c9b65405696e987c7c4e6bf2e28cb73"
-  integrity sha512-w1GcX3JaR664wtgIOrBtlRW+EulECrh/81c4ziicUvKlEKRaV6T2NGKiDGb6xcZltSbFOZYnchhU2DsRqJoGUw==
-  dependencies:
-    "@ethersproject/abi" "^5.1.2"
-    "@types/chai-as-promised" "^7.1.3"
-    chai-as-promised "^7.1.1"
-    chalk "^2.4.2"
-    deep-eql "^4.0.1"
-
-"@nomicfoundation/hardhat-network-helpers@>=1.0.0-beta.4":
-  version "1.0.0-beta.4"
-  resolved "https://registry.yarnpkg.com/@nomicfoundation/hardhat-network-helpers/-/hardhat-network-helpers-1.0.0-beta.4.tgz#d94319f45985927d8c951a3213c63d66ebc6ea9a"
-  integrity sha512-K2SuMitqgPya3abrv1d/ST3pYBJIm0mSb49mKd7mpEwDLG3rlWwrErTnaDPBTiIazUEZDApglOrWLeKxAgzsyQ==
-  dependencies:
-    ethereumjs-util "^7.1.4"
-
 "@nomiclabs/truffle-contract@^4.2.23":
   version "4.5.10"
   resolved "https://registry.yarnpkg.com/@nomiclabs/truffle-contract/-/truffle-contract-4.5.10.tgz#52adcca1068647e1c2b44bf0e6a89fc4ad7f9213"
@@ -1203,10 +1185,10 @@
   dependencies:
     ethers "^5.0.2"
 
-"@typechain/hardhat@^6.1.0":
-  version "6.1.0"
-  resolved "https://registry.yarnpkg.com/@typechain/hardhat/-/hardhat-6.1.0.tgz#248e6512e9ef192499729dd90071ca0d77ea714a"
-  integrity sha512-JoqQTLlVuAWdnIjyw5CVQ6hmZjtvckDtwCyx01suCcPPTYHKDgUYToVmsPnhoCX50oBe+yDmFyzJcKRUagUwvg==
+"@typechain/hardhat@^6.1.2":
+  version "6.1.2"
+  resolved "https://registry.yarnpkg.com/@typechain/hardhat/-/hardhat-6.1.2.tgz#d3beccc6937d93f9b437616b741f839a8b953693"
+  integrity sha512-k4Ea3pVITKB2DH8p1a5U38cyy7KZPD04Spo4q5b4wO+n2mT+uAz5dxckPtbczn/Kk5wiFq+ZkuOtw5ZKFhL/+w==
   dependencies:
     fs-extra "^9.1.0"
     lodash "^4.17.15"
@@ -8487,6 +8469,11 @@ optionator@^0.9.1:
     type-check "^0.4.0"
     word-wrap "^1.2.3"
 
+ordinal@^1.0.3:
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/ordinal/-/ordinal-1.0.3.tgz#1a3c7726a61728112f50944ad7c35c06ae3a0d4d"
+  integrity sha512-cMddMgb2QElm8G7vdaa02jhUNbTSrhsgAGUz1OokD83uJTwSUn+nKoNoKVVaRa08yF6sgfO7Maou1+bgLd9rdQ==
+
 os-homedir@^1.0.0:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/os-homedir/-/os-homedir-1.0.2.tgz#ffbc4988336e0e833de0c168c7ef152121aa7fb3"
@@ -11110,7 +11097,7 @@ typechain@^3.0.0:
     ts-essentials "^6.0.3"
     ts-generator "^0.1.1"
 
-typechain@^8.0.0:
+typechain@^8.1.0:
   version "8.1.0"
   resolved "https://registry.yarnpkg.com/typechain/-/typechain-8.1.0.tgz#fc4902ce596519cb2ccfd012e4ddf92a9945b569"
   integrity sha512-5jToLgKTjHdI1VKqs/K8BLYy42Sr3o8bV5ojh4MnR9ExHO83cyyUdw+7+vMJCpKXUiVUvARM4qmHTFuyaCMAZQ==

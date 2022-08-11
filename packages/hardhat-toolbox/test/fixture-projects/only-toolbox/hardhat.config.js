@@ -1,1 +1,1 @@
-require("@nomicfoundation/hardhat-toolbox");
+require("../../../");

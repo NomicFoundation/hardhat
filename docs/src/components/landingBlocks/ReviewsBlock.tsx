@@ -171,11 +171,11 @@ const CommentContainer = styled.p`
   line-height: 28px;
   color: ${tm(({ colors }) => colors.neutral600)};
   ${tmSelectors.dark} {
-    color: ${tmDark(({ colors }) => colors.neutral600)};
+    color: ${tmDark(({ colors }) => colors.neutral800)};
   }
   ${media.mqDark} {
     ${tmSelectors.auto} {
-      color: ${tmDark(({ colors }) => colors.neutral600)};
+      color: ${tmDark(({ colors }) => colors.neutral800)};
     }
   }
   ${media.md} {

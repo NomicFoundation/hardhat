@@ -1,5 +1,9 @@
 import path from "path";
-import { MenuItemType, SocialsEnum } from "./components/ui/types";
+import {
+  MenuItemType,
+  NavigationPagesPaths,
+  SocialsEnum,
+} from "./components/ui/types";
 import GitHubLogo from "./assets/socials/gh-logo";
 import TwitterLogo from "./assets/socials/tw-logo";
 import DiscordLogo from "./assets/socials/dc-logo";
@@ -20,13 +24,13 @@ export const SOCIALS_LINKS = {
 };
 
 export const BANNER_LINK =
-  "https://www.notion.so/Nomic-Foundation-jobs-991b37c547554f75b89a95f437fd5056";
+  "/hardhat-runner/docs/guides/migrating-from-hardhat-waffle";
 
 export const PRIVACY_POLICY_PATH = "/privacy-policy.html";
 
 export const bannerContent = {
-  text: "Join the Hardhat team! Nomic Foundation is hiring",
-  shortText: "Join the Hardhat team! We are hiring",
+  text: "Using @nomiclabs/hardhat-waffle? Check out Hardhat’s new improved replacement!",
+  shortText: "Check out the new hardhat-waffle replacement!",
   href: BANNER_LINK,
 };
 
@@ -49,7 +53,7 @@ export const toolRegExp = /tool=[A-Z_]+/;
 export const menuItemsList: MenuItemType[] = [
   {
     label: "Home",
-    href: "/",
+    href: NavigationPagesPaths.HOME,
   },
   {
     label: "Tools",
@@ -96,7 +100,7 @@ export const menuItemsList: MenuItemType[] = [
   },
   {
     label: "Tutorial",
-    href: "/tutorial",
+    href: NavigationPagesPaths.TUTORIAL,
   },
 ];
 

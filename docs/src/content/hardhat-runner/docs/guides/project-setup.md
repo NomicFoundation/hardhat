@@ -136,7 +136,7 @@ As well as other useful plugins. You can learn more about this in the [Testing c
 
 If you need to use an external network, like an Ethereum testnet, mainnet or some other specific node software, you can set it up using the `networks` configuration entries in the exported object in `hardhat.config.js`, which is how Hardhat projects manage settings.
 
-You can use of the `--network` CLI parameter to quickly change the network.
+You can make use of the `--network` CLI parameter to quickly change the network.
 
 Take a look at the [networks configuration section](../config/index.md#networks-configuration) to learn more about setting up different networks.
 

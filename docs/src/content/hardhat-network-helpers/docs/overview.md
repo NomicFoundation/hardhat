@@ -5,7 +5,7 @@ description: Hardhat Network Helpers is a library that provides a set of utility
 
 # Overview
 
-[@nomicfoundation/hardhat-network-helpers](https://www.npmjs.com/package/@nomicfoundation/hardhat-network-helpers) provides convenience functions for working with [Hardhat Network](/hardhat-network).
+[@nomicfoundation/hardhat-network-helpers](https://www.npmjs.com/package/@nomicfoundation/hardhat-network-helpers) provides a convenient JavaScript interface to the JSON-RPC functionality of [Hardhat Network](/hardhat-network).
 
 Hardhat Network exposes its custom functionality primarily through its JSON-RPC API. See the extensive set of methods available in [its reference documentation](/hardhat-network/docs/reference#hardhat-network-methods). However, for easy-to-read tests and short scripts, interfacing with the JSON-RPC API is too noisy, requiring a verbose syntax and extensive conversions of both input and output data.
 
@@ -75,6 +75,6 @@ async function main() {
 
 ::::
 
-Since this is not a Hardhat plugin, you don't need to import it in your config.
+Since this is not a Hardhat plugin, you don’t need to import the whole package in your config. You can simply import each specific helper function where you need to use them.
 
-For a full listing of all of the helpers provided by this package, see [the reference documentation](./reference).
+For a full listing of all the helpers provided by this package, see [the reference documentation](./reference).

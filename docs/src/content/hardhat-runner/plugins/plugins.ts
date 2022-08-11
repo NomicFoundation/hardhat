@@ -478,6 +478,36 @@ const communityPlugins: IPlugin[] = [
     description: "A jest environment with hardhat built in.",
     tags: ["uniswap", "testing", "jest", "node"],
   },
+  {
+    name: "hardhat-ctf",
+    author: "Oren Yomtov",
+    authorUrl: "https://github.com/orenyomtov",
+    description: "A framework for building solidity CTF challenges.",
+    tags: ["ctf", "capture-the-flag", "framework", "security", "solidity"],
+  },
+  {
+    name: "hardhat-contract-prompts",
+    author: "dbadoy",
+    authorUrl: "https://github.com/dbadoy",
+    description: "Build prompt with Solidity code.",
+    tags: ["solidity", "CLI"],
+  },
+  {
+    name: "hardhat-address-exporter",
+    author: "Dennis Zoma",
+    authorUrl: "https://twitter.com/dennis_zoma",
+    description:
+      "Export deployed contract addresses (multichain) in typescript files.",
+    tags: [
+      "solidity",
+      "vyper",
+      "deployment",
+      "typescript",
+      "addresses",
+      "monorepo",
+      "frontend",
+    ],
+  },
 ];
 
 const officialPlugins: IPlugin[] = [

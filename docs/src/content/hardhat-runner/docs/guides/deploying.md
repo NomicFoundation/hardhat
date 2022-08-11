@@ -24,7 +24,9 @@ You can deploy in the `localhost` network following these steps:
 
 1. Start a [local node](../getting-started/index.md#connecting-a-wallet-or-dapp-to-hardhat-network)
 
-   `npx hardhat node`
+   ```
+   npx hardhat node
+   ```
 
 2. Open a new terminal and deploy the smart contract in the `localhost` network
 
@@ -32,13 +34,17 @@ You can deploy in the `localhost` network following these steps:
 
    :::tab{value="TypeScript"}
 
-   `npx hardhat run --network localhost scripts/deploy.ts`
+   ```
+   npx hardhat run --network localhost scripts/deploy.ts
+   ```
 
    :::
 
    :::tab{value="JavaScript"}
 
-   `npx hardhat run --network localhost scripts/deploy.js`
+   ```
+   npx hardhat run --network localhost scripts/deploy.js
+   ```
 
    :::
 
@@ -46,4 +52,6 @@ You can deploy in the `localhost` network following these steps:
 
 As general rule, you can target any network from your Hardhat config using:
 
-`npx hardhat run --network <your-network> scripts/deploy.js`
+```
+npx hardhat run --network <your-network> scripts/deploy.js
+```

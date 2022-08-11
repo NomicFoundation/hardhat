@@ -7,7 +7,7 @@ description: Hardhat Network is a local Ethereum node designed for development. 
 
 <!-- TODO: make all RPC method mentions be links to the reference on those methods. -->
 
-Hardhat comes built-in with Hardhat Network, a local Ethereum network node designed for development, akin to Ganache, `geth --dev`, etc. It allows you to deploy your contracts, run your tests and debug your code.
+Hardhat comes built-in with Hardhat Network, a local Ethereum network node designed for development. It allows you to deploy your contracts, run your tests and debug your code, all within the confines of your local machine.
 
 ## How does it work?
 

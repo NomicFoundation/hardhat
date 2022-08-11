@@ -47,11 +47,11 @@ networks: {
 
 ## Removing and replacing transactions
 
-Transactions in the mempool can be removed using the `hardhat_dropTransaction` method:
+Transactions in the mempool can be removed using the [`dropTransaction`](</hardhat-network-helpers/docs/reference#droptransaction(txhash)>) network helper:
 
 ```js
 const txHash = "0xabc...";
-await network.provider.send("hardhat_dropTransaction", [txHash]);
+await helpers.dropTransaction(txHash);
 ```
 
 You can also replace a transaction by sending a new one with the same nonce as the one that it's already in the mempool but with a higher gas price. Keep in mind that, like in Geth, for this to work the new gas/fees prices have to be at least 10% higher than the gas price of the current transaction.

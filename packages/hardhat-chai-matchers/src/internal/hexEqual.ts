@@ -21,7 +21,7 @@ export function supportHexEqual(Assertion: Chai.AssertionStatic) {
       extractNumeric(subject.toLowerCase()) ===
         extractNumeric(other.toLowerCase()),
       `Expected "${subject}" to be a hex string equal to "${other}"`,
-      `Expected "${subject}" not to be a hex string equal to "${other}", but it was`,
+      `Expected "${subject}" NOT to be a hex string equal to "${other}", but it was`,
       `Hex string representing the same number as ${other}`,
       subject
     );

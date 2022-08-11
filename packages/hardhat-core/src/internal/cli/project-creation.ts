@@ -13,7 +13,6 @@ import {
 } from "../util/global-dir";
 import { fromEntries } from "../util/lang";
 import { getPackageJson, getPackageRoot } from "../util/packageInfo";
-import { Dependencies } from "../../types/cli";
 import { pluralize } from "../util/strings";
 import {
   confirmRecommendedDepsInstallation,
@@ -21,6 +20,7 @@ import {
   confirmProjectCreation,
 } from "./prompt";
 import { emoji } from "./emoji";
+import { Dependencies } from "./types";
 
 enum Action {
   CREATE_JAVASCRIPT_PROJECT_ACTION = "Create a JavaScript project",
@@ -36,22 +36,21 @@ type SampleProjectTypeCreationAction =
 const HARDHAT_PACKAGE_NAME = "hardhat";
 
 const PROJECT_DEPENDENCIES: Dependencies = {
-  "@nomicfoundation/hardhat-toolbox": "^1.0.0-beta.0",
+  "@nomicfoundation/hardhat-toolbox": "^1.0.1",
 };
 
 const PEER_DEPENDENCIES: Dependencies = {
   hardhat: "^2.9.9",
-  // TODO: Change these versions before the next release
-  "@nomicfoundation/hardhat-network-helpers": ">=1.0.0-beta.3",
-  "@nomicfoundation/hardhat-chai-matchers": ">=1.0.0-beta.2",
+  "@nomicfoundation/hardhat-network-helpers": "^1.0.0",
+  "@nomicfoundation/hardhat-chai-matchers": "^1.0.0",
   "@nomiclabs/hardhat-ethers": "^2.0.0",
   "@nomiclabs/hardhat-etherscan": "^3.0.0",
   chai: "^4.2.0",
   ethers: "^5.4.7",
   "hardhat-gas-reporter": "^1.0.8",
   "solidity-coverage": "^0.7.21",
-  "@typechain/hardhat": "^6.1.0",
-  typechain: "^8.0.0",
+  "@typechain/hardhat": "^6.1.2",
+  typechain: "^8.1.0",
   "@typechain/ethers-v5": "^10.1.0",
   "@ethersproject/abi": "^5.4.7",
   "@ethersproject/providers": "^5.4.7",
@@ -245,6 +244,15 @@ async function createPackageJson() {
   );
 }
 
+function showStarOnGitHubMessage() {
+  console.log(
+    chalk.cyan("Give Hardhat a star on Github if you're enjoying it!") +
+      emoji(" 💞✨")
+  );
+  console.log();
+  console.log(chalk.cyan("     https://github.com/NomicFoundation/hardhat"));
+}
+
 export async function createProject() {
   printAsciiLogo();
 
@@ -277,6 +285,9 @@ export async function createProject() {
       console.log(cmd.join(" "));
       console.log("");
     }
+
+    console.log();
+    showStarOnGitHubMessage();
 
     return;
   }
@@ -345,7 +356,10 @@ export async function createProject() {
     } else if (installedExceptHardhat.length === 0) {
       const shouldInstall =
         useDefaultPromptResponses ||
-        (await confirmRecommendedDepsInstallation(dependenciesToInstall));
+        (await confirmRecommendedDepsInstallation(
+          dependenciesToInstall,
+          await isYarnProject()
+        ));
       if (shouldInstall) {
         const installed = await installRecommendedDependencies(
           dependenciesToInstall
@@ -371,9 +385,9 @@ export async function createProject() {
     `\n${emoji("✨ ")}${chalk.cyan("Project created")}${emoji(" ✨")}`
   );
   console.log();
-  console.log(
-    chalk.cyan("See the README.md file for some example tasks you can run.")
-  );
+  console.log("See the README.md file for some example tasks you can run");
+  console.log();
+  showStarOnGitHubMessage();
 }
 
 async function canInstallRecommendedDeps() {
@@ -397,7 +411,7 @@ function isInstalled(dep: string) {
   return dep in allDependencies;
 }
 
-export async function isYarnProject() {
+async function isYarnProject() {
   return fsExtra.pathExists("yarn.lock");
 }
 

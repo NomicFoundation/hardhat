@@ -268,7 +268,7 @@ Remove one of them and review your library links before proceeding.`
       `The contract ${artifact.contractName} is missing links for the following libraries:
 ${missingLibraries}
 
-Learn more about linking contracts at https://hardhat.org/plugins/nomiclabs-hardhat-ethers.html#library-linking
+Learn more about linking contracts at https://hardhat.org/hardhat-runner/plugins/nomiclabs-hardhat-ethers#library-linking
 `
     );
   }
@@ -303,6 +303,13 @@ export async function getContractAt(
   address: string,
   signer?: ethers.Signer
 ) {
+  if ((await hre.ethers.provider.getCode(address)) === "0x") {
+    throw new NomicLabsHardhatPluginError(
+      pluginName,
+      `${address} is not a contract account.`
+    );
+  }
+
   if (typeof nameOrAbi === "string") {
     const artifact = await hre.artifacts.readArtifact(nameOrAbi);
 

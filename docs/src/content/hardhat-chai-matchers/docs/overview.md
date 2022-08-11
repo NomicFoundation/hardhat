@@ -201,6 +201,7 @@ await expect(() =>
 ).to.changeEtherBalances([sender, receiver], [-200, 200]);
 
 await expect(token.transferFrom(sender, receiver, 1)).to.changeTokenBalances(
+  token,
   [sender, receiver],
   [-1, 1]
 );

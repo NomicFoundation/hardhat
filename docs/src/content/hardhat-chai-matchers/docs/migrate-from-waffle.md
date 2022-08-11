@@ -1,6 +1,6 @@
 # Migrating from Waffle
 
-This page explains how to migrate from Waffle to Hardhat Chai Matchers, and the advantages of doing it.
+This page explains how to migrate from Waffle to Hardhat Chai Matchers, and the advantages of doing it. Migrating should only take a few minutes.
 
 ## How to migrate
 

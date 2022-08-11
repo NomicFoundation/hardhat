@@ -19,6 +19,7 @@
     "eslint": "eslint 'src/**/*.ts' 'test/**/*.ts'",
     "test": "mocha --recursive \"test/**/*.ts\" --exit",
     "build": "tsc --build .",
+    "prepublishOnly": "yarn build",
     "clean": "rimraf dist"
   },
   "files": [

@@ -1,5 +1,7 @@
 import type { BigNumberish, providers } from "ethers";
+import ordinal from "ordinal";
 
+import { buildAssert } from "../utils";
 import { getAddressOf, Account } from "./misc/account";
 import {
   BalanceChangeOptions,
@@ -17,13 +19,22 @@ export function supportChangeEtherBalances(Assertion: Chai.AssertionStatic) {
       options?: BalanceChangeOptions
     ) {
       const { BigNumber } = require("ethers");
-      const subject = this._obj;
 
-      const derivedPromise = Promise.all([
-        getBalanceChanges(subject, accounts, options),
-        getAddresses(accounts),
-      ]).then(([actualChanges, accountAddresses]) => {
-        this.assert(
+      // capture negated flag before async code executes; see buildAssert's jsdoc
+      const negated = this.__flags.negate;
+
+      let subject = this._obj;
+      if (typeof subject === "function") {
+        subject = subject();
+      }
+
+      const checkBalanceChanges = ([actualChanges, accountAddresses]: [
+        Array<typeof BigNumber>,
+        string[]
+      ]) => {
+        const assert = buildAssert(negated, checkBalanceChanges);
+
+        assert(
           actualChanges.every((change, ind) =>
             change.eq(BigNumber.from(balanceChanges[ind]))
           ),
@@ -32,11 +43,13 @@ export function supportChangeEtherBalances(Assertion: Chai.AssertionStatic) {
             actualChanges.forEach((change, i) => {
               if (!change.eq(BigNumber.from(balanceChanges[i]))) {
                 lines.push(
-                  `Expected ${
+                  `Expected the ether balance of ${
                     accountAddresses[i]
-                  } (address #${i} in the list) to change balance by ${balanceChanges[
+                  } (the ${ordinal(
+                    i + 1
+                  )} address in the list) to change by ${balanceChanges[
                     i
-                  ].toString()} wei, but it has changed by ${change.toString()} wei`
+                  ].toString()} wei, but it changed by ${change.toString()} wei`
                 );
               }
             });
@@ -47,30 +60,25 @@ export function supportChangeEtherBalances(Assertion: Chai.AssertionStatic) {
             actualChanges.forEach((change, i) => {
               if (change.eq(BigNumber.from(balanceChanges[i]))) {
                 lines.push(
-                  `Expected ${
+                  `Expected the ether balance of ${
                     accountAddresses[i]
-                  } (address #${i} in the list) not to change balance by ${balanceChanges[
+                  } (the ${ordinal(
+                    i + 1
+                  )} address in the list) NOT to change by ${balanceChanges[
                     i
-                  ].toString()} wei`
+                  ].toString()} wei, but it did`
                 );
               }
             });
             return lines.join("\n");
-          },
-          balanceChanges.map(
-            (balanceChange, i) =>
-              `${
-                accountAddresses[i]
-              } balance changed by ${balanceChange.toString()} wei`
-          ),
-          actualChanges.map(
-            (actualChange, i) =>
-              `${
-                accountAddresses[i]
-              } balance changed by ${actualChange.toString()} wei`
-          )
+          }
         );
-      });
+      };
+
+      const derivedPromise = Promise.all([
+        getBalanceChanges(subject, accounts, options),
+        getAddresses(accounts),
+      ]).then(checkBalanceChanges);
       this.then = derivedPromise.then.bind(derivedPromise);
       this.catch = derivedPromise.catch.bind(derivedPromise);
       this.promise = derivedPromise;
@@ -82,20 +90,11 @@ export function supportChangeEtherBalances(Assertion: Chai.AssertionStatic) {
 export async function getBalanceChanges(
   transaction:
     | providers.TransactionResponse
-    | Promise<providers.TransactionResponse>
-    | (() =>
-        | Promise<providers.TransactionResponse>
-        | providers.TransactionResponse),
+    | Promise<providers.TransactionResponse>,
   accounts: Array<Account | string>,
   options?: BalanceChangeOptions
 ) {
-  let txResponse: providers.TransactionResponse;
-
-  if (typeof transaction === "function") {
-    txResponse = await transaction();
-  } else {
-    txResponse = await transaction;
-  }
+  const txResponse = await transaction;
 
   const txReceipt = await txResponse.wait();
   const txBlockNumber = txReceipt.blockNumber;
