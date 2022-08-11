@@ -1,7 +1,7 @@
 import { Block } from "@ethereumjs/block";
 import { Chain, Common } from "@ethereumjs/common";
 import { TypedTransaction } from "@ethereumjs/tx";
-import { Address, bufferToBigInt } from "@ethereumjs/util";
+import { Address } from "@ethereumjs/util";
 
 import { FeeMarketEIP1559TxData } from "@ethereumjs/tx/dist/types";
 import { RpcBlockWithTransactions } from "../../../core/jsonrpc/types/output/block";
@@ -50,17 +50,11 @@ export class ForkBlockchain
   public async getBlock(
     blockHashOrNumber: Buffer | bigint
   ): Promise<Block | null> {
-    // ETHJSTODO refactor?
     if (
       typeof blockHashOrNumber === "bigint" &&
       this._data.isReservedBlock(blockHashOrNumber)
     ) {
       this._data.fulfillBlockReservation(blockHashOrNumber);
-    } else if (
-      Buffer.isBuffer(blockHashOrNumber) &&
-      this._data.isReservedBlock(bufferToBigInt(blockHashOrNumber))
-    ) {
-      this._data.fulfillBlockReservation(bufferToBigInt(blockHashOrNumber));
     }
 
     let block: Block | undefined | null;

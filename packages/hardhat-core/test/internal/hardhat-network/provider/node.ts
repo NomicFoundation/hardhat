@@ -845,7 +845,7 @@ describe("HardhatNode", () => {
       hardfork: "london",
       forkConfig: {
         jsonRpcUrl: ALCHEMY_URL!,
-        blockNumber: eip1559ActivationBlock,
+        blockNumber: Number(eip1559ActivationBlock),
       },
       forkCachePath: FORK_TESTS_CACHE_PATH,
       blockGasLimit: 1_000_000n,
@@ -1011,7 +1011,7 @@ describe("HardhatNode", () => {
       hardfork: "london",
       forkConfig: {
         jsonRpcUrl: ALCHEMY_URL,
-        blockNumber: 12965000n, // eip1559ActivationBlock
+        blockNumber: 12965000, // eip1559ActivationBlock
       },
       forkCachePath: FORK_TESTS_CACHE_PATH,
       blockGasLimit: 1_000_000n,

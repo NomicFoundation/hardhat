@@ -219,8 +219,7 @@ export class HardhatModule {
   private async _resetAction(
     networkConfig?: RpcHardhatNetworkConfig
   ): Promise<true> {
-    // ETHJSTODO fix this
-    await this._resetCallback(networkConfig?.forking as any);
+    await this._resetCallback(networkConfig?.forking);
     return true;
   }
 

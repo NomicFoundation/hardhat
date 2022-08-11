@@ -168,7 +168,7 @@ export class HardhatNode extends EventEmitter {
       forkBlockNum = forkBlockNumber;
 
       this._validateHardforks(
-        config.forkConfig.blockNumber,
+        BigIntUtils.mapNumberToBigInt(config.forkConfig.blockNumber),
         common,
         forkNetworkId
       );

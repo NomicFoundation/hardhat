@@ -16,7 +16,6 @@ export function makeAccount(ga: GenesisAccount) {
   if (typeof ga.balance === "string" && isHexPrefixed(ga.balance)) {
     balance = bufferToBigInt(toBuffer(ga.balance));
   } else {
-    // ETHJSTODO not sure at all about this when ga.balance is a string
     balance = BigInt(ga.balance);
   }
 

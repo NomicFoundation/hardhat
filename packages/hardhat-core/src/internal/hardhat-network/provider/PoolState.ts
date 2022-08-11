@@ -5,7 +5,7 @@ import {
   Record as ImmutableRecord,
 } from "immutable";
 
-import { bnToHex } from "./utils/bnToHex";
+import { BigIntUtils } from "../../util/bigint";
 
 export interface OrderedTransaction {
   orderId: number;
@@ -44,5 +44,5 @@ export const makePoolState = ImmutableRecord<PoolState>({
   pendingTransactions: ImmutableMap<string, SenderTransactions>(),
   queuedTransactions: ImmutableMap<string, SenderTransactions>(),
   hashToTransaction: ImmutableMap<string, SerializedTransaction>(),
-  blockGasLimit: bnToHex(9500000),
+  blockGasLimit: BigIntUtils.toHex(9500000),
 });

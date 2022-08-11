@@ -21,7 +21,7 @@ export async function runFullBlock(
 ) {
   const forkConfig = {
     jsonRpcUrl: url,
-    blockNumber: blockToRun - 1n,
+    blockNumber: Number(blockToRun) - 1,
   };
 
   const { forkClient } = await makeForkClient(forkConfig);

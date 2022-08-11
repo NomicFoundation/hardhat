@@ -24,7 +24,6 @@ import { ModulesLogger } from "./logger";
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
 // Type to accept decimal or hex-encoded params (for test rpc methods only)
-// ETHJSTODO (best effort) normalize this so that these values are converted to bigint
 const rpcQuantityOrNumber = t.union([rpcQuantity, t.number]);
 type RpcQuantityOrNumber = t.TypeOf<typeof rpcQuantityOrNumber>;
 

@@ -1,4 +1,9 @@
-import { BigIntLike, bufferToBigInt } from "@ethereumjs/util";
+import {
+  BigIntLike,
+  bufferToBigInt,
+  bufferToHex,
+  toBuffer,
+} from "@ethereumjs/util";
 
 function min(x: bigint, y: bigint): bigint {
   return x < y ? x : y;
@@ -26,9 +31,17 @@ function cmp(a: bigint, b: bigint): number {
   return a < b ? -1 : a > b ? 1 : 0;
 }
 
-function mapNumberToBigint<T>(x: number | T): bigint | T {
+function mapNumberToBigInt<T>(x: number | T): bigint | T {
   if (typeof x === "number") {
     return BigInt(x);
+  }
+
+  return x;
+}
+
+function mapBigIntToNumber<T>(x: bigint | T): number | T {
+  if (typeof x === "bigint") {
+    return Number(x);
   }
 
   return x;
@@ -53,13 +66,19 @@ function fromBigIntLike(x: BigIntLike): bigint {
   return exhaustiveCheck;
 }
 
+function toHex(x: number | bigint): string {
+  return bufferToHex(toBuffer(x));
+}
+
 export const BigIntUtils = {
   min,
   max,
   isBigInt,
   divUp,
   cmp,
-  mapNumberToBigint,
+  mapNumberToBigInt,
+  mapBigIntToNumber,
   toWord,
   fromBigIntLike,
+  toHex,
 };

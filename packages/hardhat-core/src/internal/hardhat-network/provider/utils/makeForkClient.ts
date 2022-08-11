@@ -55,7 +55,7 @@ export async function makeForkClient(
     }
 
     if (forkConfig.blockNumber > lastSafeBlock) {
-      const confirmations = latestBlock - forkConfig.blockNumber + 1n;
+      const confirmations = latestBlock - BigInt(forkConfig.blockNumber) + 1n;
       const requiredConfirmations = maxReorg + 1n;
       console.warn(
         chalk.yellow(

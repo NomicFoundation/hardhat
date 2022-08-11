@@ -10,6 +10,7 @@ import {
 import { List as ImmutableList, Record as ImmutableRecord } from "immutable";
 
 import { InvalidInputError } from "../../core/providers/errors";
+import { BigIntUtils } from "../../util/bigint";
 
 import {
   AddressToTransactions,
@@ -22,7 +23,6 @@ import {
 } from "./PoolState";
 import { FakeSenderAccessListEIP2930Transaction } from "./transactions/FakeSenderAccessListEIP2930Transaction";
 import { FakeSenderTransaction } from "./transactions/FakeSenderTransaction";
-import { bnToHex } from "./utils/bnToHex";
 import { reorganizeTransactionsLists } from "./utils/reorganizeTransactionsLists";
 import { FakeSenderEIP1559Transaction } from "./transactions/FakeSenderEIP1559Transaction";
 
@@ -104,7 +104,7 @@ export class TxPool {
     common: Common
   ) {
     this._state = makePoolState({
-      blockGasLimit: bnToHex(blockGasLimit),
+      blockGasLimit: BigIntUtils.toHex(blockGasLimit),
     });
     this._deserializeTransaction = (tx) => deserializeTransaction(tx, common);
   }
@@ -556,7 +556,7 @@ export class TxPool {
   }
 
   private _setBlockGasLimit(newLimit: bigint) {
-    this._state = this._state.set("blockGasLimit", bnToHex(newLimit));
+    this._state = this._state.set("blockGasLimit", BigIntUtils.toHex(newLimit));
   }
 
   private _deleteTransactionByHash(hash: Buffer) {

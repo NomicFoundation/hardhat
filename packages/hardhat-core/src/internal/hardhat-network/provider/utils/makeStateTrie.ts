@@ -16,10 +16,7 @@ export async function makeStateTrie(genesisAccounts: GenesisAccount[]) {
   // Mimic precompiles activation
   for (let i = 1; i <= 8; i++) {
     await stateTrie.put(
-      // ETHJSTODO not sure at all about this
-      // ETHJSTODO also: move to BigIntUtils
-      // BigInt(i).toArrayLike(Buffer, "be", 20),
-      setLengthLeft(intToBuffer(i), 10),
+      setLengthLeft(intToBuffer(i), 20),
       new Account().serialize()
     );
   }

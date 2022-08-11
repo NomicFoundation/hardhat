@@ -411,39 +411,6 @@ export class ForkStateManager implements StateManager {
     return value;
   }
 
-  // the following methods are copied verbatim from
-  // DefaultStateManager
-
-  // ETHJSTODO begin: no idea what to do with this
-  // public isWarmedAddress(address: Buffer): boolean {
-  //   return DefaultStateManager.prototype.isWarmedAddress.call(this, address);
-  // }
-  //
-  // public addWarmedAddress(address: Buffer): void {
-  //   return DefaultStateManager.prototype.addWarmedAddress.call(this, address);
-  // }
-  //
-  // public isWarmedStorage(address: Buffer, slot: Buffer): boolean {
-  //   return DefaultStateManager.prototype.isWarmedStorage.call(
-  //     this,
-  //     address,
-  //     slot
-  //   );
-  // }
-  //
-  // public addWarmedStorage(address: Buffer, slot: Buffer): void {
-  //   return DefaultStateManager.prototype.addWarmedStorage.call(
-  //     this,
-  //     address,
-  //     slot
-  //   );
-  // }
-  //
-  // public clearWarmedAccounts(): void {
-  //   return DefaultStateManager.prototype.clearWarmedAccounts.call(this);
-  // }
-  // ETHJSTODO end: no idea what to do with this
-
   private _putAccount(address: Address, account: Account): void {
     // Because the vm only ever modifies the nonce, balance and codeHash using this
     // method we ignore the stateRoot property

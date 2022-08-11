@@ -170,7 +170,7 @@ describe("Debug module", function () {
       }
       const forkConfig: ForkConfig = {
         jsonRpcUrl: ALCHEMY_URL!,
-        blockNumber: 11_954_000n,
+        blockNumber: 11_954_000,
       };
 
       const logger = new ModulesLogger(false);
@@ -296,7 +296,7 @@ describe("Debug module", function () {
       }
       const forkConfig: ForkConfig = {
         jsonRpcUrl: ALCHEMY_URL!,
-        blockNumber: 15_204_358n,
+        blockNumber: 15_204_358,
       };
 
       const logger = new ModulesLogger(false);
