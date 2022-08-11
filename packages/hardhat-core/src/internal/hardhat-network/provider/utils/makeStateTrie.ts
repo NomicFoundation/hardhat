@@ -16,7 +16,7 @@ export async function makeStateTrie(genesisAccounts: GenesisAccount[]) {
   // Mimic precompiles activation
   for (let i = 1; i <= 8; i++) {
     await stateTrie.put(
-      new BN(i).toArrayLike(Buffer, "be", 20),
+      setLengthLeft(intToBuffer(i), 20),
       new Account().serialize()
     );
   }

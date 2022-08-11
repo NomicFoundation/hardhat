@@ -817,11 +817,7 @@ describe("Sender providers", () => {
  * the same values as `tx`
  */
 function validateRawEIP2930Transaction(rawTx: string, tx: any) {
-  const common = Common.forCustomChain(
-    "mainnet",
-    { chainId: MOCK_PROVIDER_CHAIN_ID },
-    "berlin"
-  );
+  const common = Common.custom({ chainId: MOCK_PROVIDER_CHAIN_ID });
 
   const sentTx = AccessListEIP2930Transaction.fromSerializedTx(
     toBuffer(rawTx),

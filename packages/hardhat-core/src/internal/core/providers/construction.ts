@@ -72,7 +72,9 @@ export function createProvider(
     ) {
       forkConfig = {
         jsonRpcUrl: hardhatNetConfig.forking?.url,
-        blockNumber: hardhatNetConfig.forking?.blockNumber,
+        blockNumber: BigIntUtils.mapBigIntToNumber(
+          hardhatNetConfig.forking?.blockNumber
+        ),
         httpHeaders: hardhatNetConfig.forking.httpHeaders,
       };
     }
@@ -113,7 +115,7 @@ export function createProvider(
       typeof import("./http"),
       "HttpProvider"
     >("./http", "HttpProvider");
-    const httpNetConfig = networkConfig as HttpNetworkUserConfig;
+    const httpNetConfig = networkConfig as HttpNetworkConfig;
 
     eip1193Provider = new HttpProvider(
       httpNetConfig.url!,

@@ -142,7 +142,7 @@ export class ConsoleLogger {
       const position = i * 32;
       switch (types[i]) {
         case Uint256Ty:
-          return new BN(
+          return bufferToBigInt(
             data.slice(position, position + REGISTER_SIZE)
           ).toString(10);
 

@@ -163,9 +163,8 @@ describe("Eth module", function () {
 
           assertQuantity(
             block.totalDifficulty,
-            rpcQuantityToBN(forkBlock.totalDifficulty).add(
-              rpcQuantityToBN(block.difficulty)
-            )
+            rpcQuantityToBigInt(forkBlock.totalDifficulty) +
+              rpcQuantityToBigInt(block.difficulty)
           );
         }
 

@@ -71,9 +71,9 @@ export class ReadOnlyValidEIP2930Transaction extends AccessListEIP2930Transactio
 
     // this class should only be used with EIP-2930 txs,
     // which (we assume) always have a defined `chainId` value
-    (fakeCommon as any).chainIdBN = () => {
+    (fakeCommon as any).chainId = () => {
       if (data.chainId !== undefined) {
-        return new BN(data.chainId);
+        return BigIntUtils.fromBigIntLike(data.chainId);
       }
 
       throw new Error("Expected txData to have a chainId");

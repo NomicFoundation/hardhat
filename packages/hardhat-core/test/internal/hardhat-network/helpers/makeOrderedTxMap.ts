@@ -13,7 +13,7 @@ export function makeOrderedTxMap(
   }
 
   for (const txList of map.values()) {
-    txList.sort((tx1, tx2) => tx1.data.nonce.cmp(tx2.data.nonce));
+    txList.sort((tx1, tx2) => BigIntUtils.cmp(tx1.data.nonce, tx2.data.nonce));
   }
 
   return map;

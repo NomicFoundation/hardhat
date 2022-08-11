@@ -27,9 +27,7 @@ describe("Eth module", function () {
                 false,
               ]);
 
-            const expectedGasPrice = rpcQuantityToBN(
-              nextBlockBaseFeePerGas
-            ).add(new BN(1e9));
+            const expectedGasPrice = BigInt(nextBlockBaseFeePerGas) + 10n ** 9n;
 
             assertQuantity(gasPrice, expectedGasPrice);
           });

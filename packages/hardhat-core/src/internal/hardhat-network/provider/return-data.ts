@@ -53,7 +53,7 @@ export class ReturnData {
     return decoded.toString("utf8");
   }
 
-  public decodePanic(): BN {
+  public decodePanic(): bigint {
     assertHardhatInvariant(
       this._selector === PANIC_SELECTOR,
       "Expected return data to be a Panic(uint256)"

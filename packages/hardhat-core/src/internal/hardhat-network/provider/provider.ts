@@ -78,9 +78,9 @@ export class HardhatNetworkProvider
     private readonly _networkName: string,
     private readonly _chainId: number,
     private readonly _networkId: number,
-    private readonly _blockGasLimit: number,
-    private readonly _initialBaseFeePerGas: number | undefined,
-    private readonly _minGasPrice: BN,
+    private readonly _blockGasLimit: bigint,
+    private readonly _initialBaseFeePerGas: bigint | undefined,
+    private readonly _minGasPrice: bigint,
     private readonly _throwOnTransactionFailures: boolean,
     private readonly _throwOnCallFailures: boolean,
     private readonly _automine: boolean,
@@ -352,7 +352,7 @@ export class HardhatNetworkProvider
     node.removeListener("ethEvent", this._ethEventListener);
   }
 
-  private _ethEventListener = (payload: { filterId: BN; result: any }) => {
+  private _ethEventListener = (payload: { filterId: bigint; result: any }) => {
     const subscription = `0x${payload.filterId.toString(16)}`;
     const result = payload.result;
     this._emitLegacySubscriptionEvent(subscription, result);

@@ -70,9 +70,9 @@ export class ReadOnlyValidEIP1559Transaction extends FeeMarketEIP1559Transaction
 
     // this class should only be used with EIP-1559 txs,
     // which always have a `chainId` value
-    (fakeCommon as any).chainIdBN = () => {
+    (fakeCommon as any).chainId = () => {
       if (data.chainId !== undefined) {
-        return new BN(data.chainId);
+        return BigIntUtils.fromBigIntLike(data.chainId);
       }
 
       throw new Error("Expected txData to have a chainId");

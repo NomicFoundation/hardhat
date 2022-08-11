@@ -46,10 +46,10 @@ export interface UseProviderOptions {
   networkName?: string;
   chainId?: number;
   networkId?: number;
-  blockGasLimit?: number;
-  accounts?: Array<{ privateKey: string; balance: BN }>;
+  blockGasLimit?: bigint;
+  accounts?: Array<{ privateKey: string; balance: bigint }>;
   allowUnlimitedContractSize?: boolean;
-  initialBaseFeePerGas?: number;
+  initialBaseFeePerGas?: bigint;
   mempool?: HardhatNetworkMempoolConfig;
   coinbase?: string;
   chains?: HardhatNetworkChainsConfig;
@@ -81,7 +81,7 @@ export function useProvider({
       networkId,
       blockGasLimit,
       initialBaseFeePerGas,
-      new BN(0), // minGasPrice
+      0n, // minGasPrice
       true,
       true,
       mining.auto,

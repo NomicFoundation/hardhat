@@ -44,5 +44,5 @@ export const makePoolState = ImmutableRecord<PoolState>({
   pendingTransactions: ImmutableMap<string, SenderTransactions>(),
   queuedTransactions: ImmutableMap<string, SenderTransactions>(),
   hashToTransaction: ImmutableMap<string, SerializedTransaction>(),
-  blockGasLimit: bnToHex(new BN(9500000)),
+  blockGasLimit: BigIntUtils.toHex(9500000),
 });

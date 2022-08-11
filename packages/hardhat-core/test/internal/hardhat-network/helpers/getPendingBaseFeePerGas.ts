@@ -3,10 +3,10 @@ import { rpcQuantityToBigInt } from "../../../../src/internal/core/jsonrpc/types
 
 export async function getPendingBaseFeePerGas(
   provider: EthereumProvider
-): Promise<BN> {
+): Promise<bigint> {
   const pendingBlock = await provider.send("eth_getBlockByNumber", [
     "pending",
     false,
   ]);
-  return rpcQuantityToBN(pendingBlock.baseFeePerGas ?? "0x1");
+  return rpcQuantityToBigInt(pendingBlock.baseFeePerGas ?? "0x1");
 }
