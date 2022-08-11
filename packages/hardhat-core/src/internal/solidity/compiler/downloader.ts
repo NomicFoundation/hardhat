@@ -81,7 +81,8 @@ export class CompilerDownloader {
     compilerBuild: CompilerBuild,
     downloadedFilePath: string
   ) {
-    const ethereumjsUtil = await import("ethereumjs-util");
+    const ethereumjsUtil = await import("@ethereumjs/util");
+    const { keccak256 } = await import("ethereum-cryptography/keccak");
 
     const expectedKeccak256 = compilerBuild.keccak256;
     const compiler = await fsExtra.readFile(downloadedFilePath);

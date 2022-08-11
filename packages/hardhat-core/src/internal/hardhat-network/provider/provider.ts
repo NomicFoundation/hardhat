@@ -7,10 +7,9 @@ import type {
   RequestArguments,
 } from "../../../types";
 
-import Common from "@ethereumjs/common";
+import { Common } from "@ethereumjs/common";
 import chalk from "chalk";
 import debug from "debug";
-import { BN } from "ethereumjs-util";
 import { EventEmitter } from "events";
 import fsExtra from "fs-extra";
 import semver from "semver";

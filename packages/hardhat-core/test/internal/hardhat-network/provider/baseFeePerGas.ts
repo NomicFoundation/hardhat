@@ -1,12 +1,12 @@
 import { assert } from "chai";
 import { Block } from "@ethereumjs/block";
-import Common from "@ethereumjs/common";
+import { Common } from "@ethereumjs/common";
 
 import { workaroundWindowsCiFailures } from "../../../utils/workaround-windows-ci-failures";
 import { PROVIDERS } from "../helpers/providers";
 import {
   numberToRpcQuantity,
-  rpcQuantityToBN,
+  rpcQuantityToBigInt,
 } from "../../../../src/internal/core/jsonrpc/types/base-types";
 import { EthereumProvider } from "../../../../src/types";
 import { makeForkClient } from "../../../../src/internal/hardhat-network/provider/utils/makeForkClient";

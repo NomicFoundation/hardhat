@@ -1,7 +1,7 @@
 import { Block } from "@ethereumjs/block";
-import Common from "@ethereumjs/common";
+import { Common } from "@ethereumjs/common";
+import { BufferLike, bufferToBigInt, zeros } from "@ethereumjs/util";
 import { assert } from "chai";
-import { BN, BufferLike, zeros } from "ethereumjs-util";
 
 import { randomHashBuffer } from "../../../../src/internal/hardhat-network/provider/fork/random";
 import { HardhatBlockchain } from "../../../../src/internal/hardhat-network/provider/HardhatBlockchain";

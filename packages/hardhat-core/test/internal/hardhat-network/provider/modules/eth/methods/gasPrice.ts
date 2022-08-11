@@ -1,6 +1,3 @@
-import { BN } from "ethereumjs-util";
-
-import { rpcQuantityToBN } from "../../../../../../../src/internal/core/jsonrpc/types/base-types";
 import { workaroundWindowsCiFailures } from "../../../../../../utils/workaround-windows-ci-failures";
 import { assertQuantity } from "../../../../helpers/assertions";
 import { setCWD } from "../../../../helpers/cwd";

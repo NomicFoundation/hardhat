@@ -1,7 +1,7 @@
-import Common from "@ethereumjs/common";
-import StateManager from "@ethereumjs/vm/dist/state/stateManager";
+import { Common } from "@ethereumjs/common";
+import { StateManager, DefaultStateManager } from "@ethereumjs/statemanager";
+import { Account, Address, bufferToHex, toBuffer } from "@ethereumjs/util";
 import { assert } from "chai";
-import { Account, Address, BN, bufferToHex, toBuffer } from "ethereumjs-util";
 
 import { InvalidInputError } from "../../../../src/internal/core/providers/errors";
 import { randomAddress } from "../../../../src/internal/hardhat-network/provider/fork/random";
@@ -12,6 +12,7 @@ import {
   createTestFakeTransaction,
   createTestOrderedTransaction,
   createTestTransaction,
+  createUnsignedTestTransaction,
 } from "../helpers/blockchain";
 import { makeOrderedTxMap } from "../helpers/makeOrderedTxMap";
 import {

@@ -1,17 +1,18 @@
-import Common from "@ethereumjs/common";
+import { Common } from "@ethereumjs/common";
 import { Transaction } from "@ethereumjs/tx";
-import { assert } from "chai";
 import {
-  BN,
+  bigIntToBuffer,
+  bufferToBigInt,
   bufferToHex,
   setLengthLeft,
   toBuffer,
   zeroAddress,
-} from "ethereumjs-util";
+} from "@ethereumjs/util";
+import { assert } from "chai";
 
 import {
   numberToRpcQuantity,
-  rpcQuantityToBN,
+  rpcQuantityToBigInt,
 } from "../../../../../../../src/internal/core/jsonrpc/types/base-types";
 import { TransactionParams } from "../../../../../../../src/internal/hardhat-network/provider/node-types";
 import {

@@ -3,7 +3,7 @@ import { Context } from "mocha";
 
 import {
   numberToRpcQuantity,
-  rpcQuantityToBN,
+  rpcQuantityToBigInt,
   rpcQuantityToNumber,
 } from "../../../../../../../src/internal/core/jsonrpc/types/base-types";
 import {

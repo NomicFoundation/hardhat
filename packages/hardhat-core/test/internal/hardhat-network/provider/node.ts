@@ -1,7 +1,7 @@
-import Common from "@ethereumjs/common";
+import { Common } from "@ethereumjs/common";
 import { TxData, TypedTransaction } from "@ethereumjs/tx";
 import { assert } from "chai";
-import { Address, BN, bufferToHex, toBuffer } from "ethereumjs-util";
+import { Address, bufferToHex, toBuffer } from "@ethereumjs/util";
 import { ethers } from "ethers";
 import sinon from "sinon";
 
@@ -13,7 +13,7 @@ import {
   RunCallResult,
 } from "../../../../src/internal/hardhat-network/provider/node-types";
 import { FakeSenderTransaction } from "../../../../src/internal/hardhat-network/provider/transactions/FakeSenderTransaction";
-import { getCurrentTimestamp } from "../../../../src/internal/hardhat-network/provider/utils/getCurrentTimestamp";
+import { getCurrentTimestampBigInt } from "../../../../src/internal/hardhat-network/provider/utils/getCurrentTimestamp";
 import { HardforkName } from "../../../../src/internal/util/hardforks";
 import {
   HardhatNetworkChainConfig,

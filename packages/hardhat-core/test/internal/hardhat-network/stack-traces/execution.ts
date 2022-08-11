@@ -1,7 +1,12 @@
 import { Transaction, TxData } from "@ethereumjs/tx";
-import VM from "@ethereumjs/vm";
+import {
+  Account,
+  Address,
+  privateToAddress,
+  bigIntToBuffer,
+} from "@ethereumjs/util";
+import { VM } from "@ethereumjs/vm";
 import abi from "ethereumjs-abi";
-import { Account, Address, privateToAddress } from "ethereumjs-util";
 
 import { MessageTrace } from "../../../../src/internal/hardhat-network/stack-traces/message-trace";
 import { VMTracer } from "../../../../src/internal/hardhat-network/stack-traces/vm-tracer";

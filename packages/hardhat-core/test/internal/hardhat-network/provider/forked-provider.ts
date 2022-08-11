@@ -1,10 +1,10 @@
+import { bufferToBigInt, bufferToHex, toBuffer } from "@ethereumjs/util";
 import { assert } from "chai";
-import { BN, bufferToHex, toBuffer } from "ethereumjs-util";
 
 import {
   numberToRpcQuantity,
-  rpcDataToBN,
-  rpcQuantityToBN,
+  rpcDataToBigInt,
+  rpcQuantityToBigInt,
   rpcQuantityToNumber,
 } from "../../../../src/internal/core/jsonrpc/types/base-types";
 import { InvalidInputError } from "../../../../src/internal/core/providers/errors";

@@ -1,5 +1,4 @@
-import type { VmError } from "@ethereumjs/vm/dist/exceptions";
-import type { BN } from "ethereumjs-util";
+import type { EvmError } from "@ethereumjs/evm";
 
 import type { Bytecode } from "./model";
 

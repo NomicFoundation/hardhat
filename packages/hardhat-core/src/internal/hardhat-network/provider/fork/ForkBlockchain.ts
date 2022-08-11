@@ -1,7 +1,7 @@
 import { Block } from "@ethereumjs/block";
-import Common from "@ethereumjs/common";
+import { Chain, Common } from "@ethereumjs/common";
 import { TypedTransaction } from "@ethereumjs/tx";
-import { Address, BN } from "ethereumjs-util";
+import { Address } from "@ethereumjs/util";
 
 import { FeeMarketEIP1559TxData } from "@ethereumjs/tx/dist/types";
 import { RpcBlockWithTransactions } from "../../../core/jsonrpc/types/output/block";

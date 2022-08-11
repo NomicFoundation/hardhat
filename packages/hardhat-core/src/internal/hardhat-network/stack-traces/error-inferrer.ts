@@ -1,6 +1,5 @@
-import { ERROR } from "@ethereumjs/vm/dist/exceptions";
+import { ERROR } from "@ethereumjs/evm/dist/exceptions";
 import { defaultAbiCoder as abi } from "@ethersproject/abi";
-import { BN } from "ethereumjs-util";
 import semver from "semver";
 
 import { AbiHelpers } from "../../util/abi-helpers";

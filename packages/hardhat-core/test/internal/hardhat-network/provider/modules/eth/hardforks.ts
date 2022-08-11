@@ -1,16 +1,16 @@
-import Common from "@ethereumjs/common";
+import { Common } from "@ethereumjs/common";
 import {
   AccessListEIP2930Transaction,
   FeeMarketEIP1559Transaction,
   Transaction,
 } from "@ethereumjs/tx";
+import { toBuffer } from "@ethereumjs/util";
 import { assert } from "chai";
-import { BN, toBuffer } from "ethereumjs-util";
 
 import {
   bufferToRpcData,
   numberToRpcQuantity,
-  rpcQuantityToBN,
+  rpcQuantityToBigInt,
 } from "../../../../../../src/internal/core/jsonrpc/types/base-types";
 import {
   assertInvalidArgumentsError,
@@ -27,6 +27,7 @@ import {
   EIP1559RpcTransactionOutput,
   RpcBlockOutput,
 } from "../../../../../../src/internal/hardhat-network/provider/output";
+import { BigIntUtils } from "../../../../../../src/internal/util/bigint";
 
 describe("Eth module - hardfork dependant tests", function () {
   function useProviderAndCommon(hardfork: string) {

@@ -1,5 +1,5 @@
-import Bloom from "@ethereumjs/vm/dist/bloom";
-import { BN, bufferToHex, toBuffer } from "ethereumjs-util";
+import { bufferToBigInt, bufferToHex, toBuffer } from "@ethereumjs/util";
+import { Bloom } from "@ethereumjs/vm";
 
 import { RpcLogOutput } from "./output";
 

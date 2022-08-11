@@ -1,4 +1,5 @@
-import { keccak256 } from "ethereumjs-util";
+import { arrToBufArr, bufArrToArr } from "@ethereumjs/util";
+import { keccak256 } from "ethereum-cryptography/keccak";
 
 import {
   bufferToRpcData,

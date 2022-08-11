@@ -1,9 +1,8 @@
 import { assert } from "chai";
 
-import { BN } from "ethereumjs-util";
 import {
   numberToRpcQuantity,
-  rpcQuantityToBN,
+  rpcQuantityToBigInt,
 } from "../../../../src/internal/core/jsonrpc/types/base-types";
 
 import { DEFAULT_ACCOUNTS_ADDRESSES } from "./providers";

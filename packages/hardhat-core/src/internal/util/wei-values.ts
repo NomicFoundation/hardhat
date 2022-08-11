@@ -1,5 +1,3 @@
-import { BN } from "ethereumjs-util";
-
 /**
  * This function turns a wei value in a human readable string. It shows values
  * in ETH, gwei or wei, depending on how large it is.

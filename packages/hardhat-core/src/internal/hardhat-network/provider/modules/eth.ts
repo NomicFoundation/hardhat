@@ -1,5 +1,5 @@
 import { Block } from "@ethereumjs/block";
-import Common from "@ethereumjs/common";
+import { Common } from "@ethereumjs/common";
 import {
   Transaction,
   TransactionFactory,
@@ -7,12 +7,11 @@ import {
 } from "@ethereumjs/tx";
 import {
   Address,
-  BN,
   bufferToHex,
   toBuffer,
   toRpcSig,
   zeroAddress,
-} from "ethereumjs-util";
+} from "@ethereumjs/util";
 import * as t from "io-ts";
 import cloneDeep from "lodash/cloneDeep";
 
@@ -86,6 +85,7 @@ import {
 
 import { assertHardhatNetworkInvariant } from "../utils/assertions";
 import { optional } from "../../../util/io-ts";
+import { BigIntUtils } from "../../../util/bigint";
 import { ModulesLogger } from "./logger";
 
 const EIP1559_MIN_HARDFORK = "london";

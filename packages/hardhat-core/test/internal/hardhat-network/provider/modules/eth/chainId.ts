@@ -1,5 +1,4 @@
 import { assert } from "chai";
-import { BN, toBuffer } from "ethereumjs-util";
 
 import { workaroundWindowsCiFailures } from "../../../../../utils/workaround-windows-ci-failures";
 import { EXAMPLE_CHAIN_ID_CONTRACT } from "../../../helpers/contracts";

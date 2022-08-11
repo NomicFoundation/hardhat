@@ -1,8 +1,12 @@
 import { Block, HeaderData } from "@ethereumjs/block";
-import Common from "@ethereumjs/common";
-import { BN } from "ethereumjs-util";
+import { Common } from "@ethereumjs/common";
+import { SecureTrie } from "@ethereumjs/trie";
+import { bufferToHex } from "@ethereumjs/util";
 
+import { dateToTimestampSeconds } from "../../../util/date";
 import { HardhatBlockchain } from "../HardhatBlockchain";
+import { LocalNodeConfig } from "../node-types";
+import { getCurrentTimestamp } from "./getCurrentTimestamp";
 
 export async function putGenesisBlock(
   blockchain: HardhatBlockchain,

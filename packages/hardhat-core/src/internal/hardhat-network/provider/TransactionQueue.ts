@@ -1,8 +1,8 @@
 import { TypedTransaction } from "@ethereumjs/tx";
-import { BN } from "ethereumjs-util";
 import Heap from "mnemonist/heap";
 
 import { InternalError, InvalidInputError } from "../../core/providers/errors";
+import { BigIntUtils } from "../../util/bigint";
 import { MempoolOrder } from "./node-types";
 import { OrderedTransaction } from "./PoolState";
 

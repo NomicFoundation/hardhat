@@ -7,7 +7,6 @@ import type {
   HDAccountsUserConfig,
   HttpNetworkAccountsUserConfig,
   HttpNetworkConfig,
-  HttpNetworkUserConfig,
   NetworkConfig,
   ProjectPathsConfig,
 } from "../../../types";
@@ -19,6 +18,7 @@ import {
   MempoolOrder,
 } from "../../hardhat-network/provider/node-types";
 import { getForkCacheDirPath } from "../../hardhat-network/provider/utils/disk-cache";
+import { BigIntUtils } from "../../util/bigint";
 import { parseDateString } from "../../util/date";
 
 import { normalizeHardhatNetworkAccountsConfig } from "./util";

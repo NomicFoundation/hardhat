@@ -1,10 +1,10 @@
 import {
   Account,
   Address,
-  BN,
+  bufferToBigInt,
   privateToAddress,
   toBuffer,
-} from "ethereumjs-util";
+} from "@ethereumjs/util";
 
 import { GenesisAccount } from "../node-types";
 

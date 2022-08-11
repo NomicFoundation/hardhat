@@ -1,6 +1,12 @@
-import { BN, bufferToHex, isValidAddress, toBuffer } from "ethereumjs-util";
+import {
+  bufferToBigInt,
+  bufferToHex,
+  isValidAddress,
+  toBuffer,
+} from "@ethereumjs/util";
 import * as t from "io-ts";
 
+import { BigIntUtils } from "../../../util/bigint";
 import { assertHardhatInvariant, HardhatError } from "../../errors";
 import { ERRORS } from "../../errors-list";
 

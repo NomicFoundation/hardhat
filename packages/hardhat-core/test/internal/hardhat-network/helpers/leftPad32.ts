@@ -1,5 +1,5 @@
+import { setLengthLeft, toBuffer } from "@ethereumjs/util";
 import { assert } from "chai";
-import { BN, setLengthLeft, toBuffer } from "ethereumjs-util";
 
 export function leftPad32(value: string | Buffer | BN): string {
   return setLengthLeft(toBuffer(value), 32).toString("hex");

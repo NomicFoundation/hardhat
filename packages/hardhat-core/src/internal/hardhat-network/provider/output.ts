@@ -1,9 +1,10 @@
 import { Block } from "@ethereumjs/block";
-import Common from "@ethereumjs/common";
+import { Common } from "@ethereumjs/common";
 import { TypedTransaction } from "@ethereumjs/tx";
-import { RunBlockResult } from "@ethereumjs/vm/dist/runBlock";
-import { BN, bufferToHex } from "ethereumjs-util";
+import { bufferToHex } from "@ethereumjs/util";
+import { RunBlockResult } from "@ethereumjs/vm";
 
+import { BigIntUtils } from "../../util/bigint";
 import { assertHardhatInvariant } from "../../core/errors";
 import {
   bufferToRpcData,

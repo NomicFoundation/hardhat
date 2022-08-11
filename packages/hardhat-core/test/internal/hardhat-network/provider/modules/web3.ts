@@ -1,5 +1,6 @@
+import { arrToBufArr, bufArrToArr, toBuffer } from "@ethereumjs/util";
 import { assert } from "chai";
-import { keccak256, toBuffer } from "ethereumjs-util";
+import { keccak256 } from "ethereum-cryptography/keccak";
 
 import { bufferToRpcData } from "../../../../../src/internal/core/jsonrpc/types/base-types";
 import { workaroundWindowsCiFailures } from "../../../../utils/workaround-windows-ci-failures";

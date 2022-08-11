@@ -1,11 +1,11 @@
+import { bufferToHex, zeroAddress } from "@ethereumjs/util";
 import { assert } from "chai";
-import { BN, bufferToHex, toBuffer, zeroAddress } from "ethereumjs-util";
 import { Client } from "undici";
 
 import {
   numberToRpcQuantity,
   rpcQuantityToNumber,
-  rpcQuantityToBN,
+  rpcQuantityToBigInt,
 } from "../../../../../../../src/internal/core/jsonrpc/types/base-types";
 import { InvalidInputError } from "../../../../../../../src/internal/core/providers/errors";
 import { workaroundWindowsCiFailures } from "../../../../../../utils/workaround-windows-ci-failures";

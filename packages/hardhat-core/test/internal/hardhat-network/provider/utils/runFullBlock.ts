@@ -1,8 +1,6 @@
 import { Block } from "@ethereumjs/block";
-import VM from "@ethereumjs/vm";
-import { AfterBlockEvent, RunBlockOpts } from "@ethereumjs/vm/dist/runBlock";
+import { AfterBlockEvent, RunBlockOpts, VM } from "@ethereumjs/vm";
 import { assert } from "chai";
-import { BN } from "ethereumjs-util";
 
 import { defaultHardhatNetworkParams } from "../../../../../src/internal/core/config/default-config";
 import { rpcToBlockData } from "../../../../../src/internal/hardhat-network/provider/fork/rpcToBlockData";

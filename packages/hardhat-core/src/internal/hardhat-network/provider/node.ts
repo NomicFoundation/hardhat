@@ -1,32 +1,32 @@
 import { Block, HeaderData } from "@ethereumjs/block";
-import Common from "@ethereumjs/common";
+import { Common } from "@ethereumjs/common";
 import {
   AccessListEIP2930Transaction,
   FeeMarketEIP1559Transaction,
   Transaction,
   TypedTransaction,
 } from "@ethereumjs/tx";
-import VM from "@ethereumjs/vm";
-import Bloom from "@ethereumjs/vm/dist/bloom";
-import { EVMResult, ExecResult } from "@ethereumjs/vm/dist/evm/evm";
-import { ERROR } from "@ethereumjs/vm/dist/exceptions";
-import { RunBlockResult } from "@ethereumjs/vm/dist/runBlock";
-import { DefaultStateManager, StateManager } from "@ethereumjs/vm/dist/state";
-import { SignTypedDataVersion, signTypedData } from "@metamask/eth-sig-util";
-import chalk from "chalk";
-import debug from "debug";
 import {
   Address,
-  BN,
-  bufferToHex,
   ECDSASignature,
+  bigIntToBuffer,
+  bufferToHex,
   ecsign,
   hashPersonalMessage,
   privateToAddress,
+  setLengthLeft,
   toBuffer,
-} from "ethereumjs-util";
+} from "@ethereumjs/util";
+import { Bloom, EEI, RunBlockResult, RunTxResult, VM } from "@ethereumjs/vm";
+import { EVM, EVMResult } from "@ethereumjs/evm";
+import { ERROR } from "@ethereumjs/evm/dist/exceptions";
+import { DefaultStateManager, StateManager } from "@ethereumjs/statemanager";
+import { SignTypedDataVersion, signTypedData } from "@metamask/eth-sig-util";
+import chalk from "chalk";
+import debug from "debug";
 import EventEmitter from "events";
 
+import { BigIntUtils } from "../../util/bigint";
 import { CompilerInput, CompilerOutput } from "../../../types";
 import { HardforkHistoryConfig } from "../../../types/config";
 import { HARDHAT_NETWORK_SUPPORTED_HARDFORKS } from "../../constants";
@@ -71,7 +71,7 @@ import { VmTraceDecoder } from "../stack-traces/vm-trace-decoder";
 import { VMTracer } from "../stack-traces/vm-tracer";
 
 import "./ethereumjs-workarounds";
-import { rpcQuantityToBN } from "../../core/jsonrpc/types/base-types";
+import { rpcQuantityToBigInt } from "../../core/jsonrpc/types/base-types";
 import { JsonRpcClient } from "../jsonrpc/client";
 import { bloomFilter, Filter, filterLogs, LATEST_BLOCK, Type } from "./filter";
 import { ForkBlockchain } from "./fork/ForkBlockchain";
@@ -115,6 +115,8 @@ import { makeStateTrie } from "./utils/makeStateTrie";
 import { makeForkCommon } from "./utils/makeForkCommon";
 import { putGenesisBlock } from "./utils/putGenesisBlock";
 import { txMapToArray } from "./utils/txMapToArray";
+
+type ExecResult = EVMResult["execResult"];
 
 const log = debug("hardhat:core:hardhat-network:node");
 

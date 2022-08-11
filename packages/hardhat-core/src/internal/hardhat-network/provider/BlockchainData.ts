@@ -1,8 +1,8 @@
 import { Block } from "@ethereumjs/block";
-import Common from "@ethereumjs/common";
+import { Common } from "@ethereumjs/common";
 import { TypedTransaction } from "@ethereumjs/tx";
-import Bloom from "@ethereumjs/vm/dist/bloom";
-import { BN, bufferToHex } from "ethereumjs-util";
+import { bufferToHex } from "@ethereumjs/util";
+import { Bloom } from "@ethereumjs/vm";
 
 import { assertHardhatInvariant } from "../../core/errors";
 import { bloomFilter, filterLogs } from "./filter";

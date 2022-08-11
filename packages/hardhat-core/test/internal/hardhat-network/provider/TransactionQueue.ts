@@ -1,7 +1,13 @@
 import { TxData } from "@ethereumjs/tx";
+import {
+  AddressLike,
+  arrToBufArr,
+  bufferToBigInt,
+  bufferToHex,
+} from "@ethereumjs/util";
 import { assert } from "chai";
-import { AddressLike, BN, keccak256, bufferToHex } from "ethereumjs-util";
 import { randomBytes } from "crypto";
+import { keccak256 } from "ethereum-cryptography/keccak";
 
 import {
   AccessListEIP2930TxData,
@@ -12,6 +18,7 @@ import { TransactionQueue } from "../../../../src/internal/hardhat-network/provi
 import { createTestOrderedTransaction } from "../helpers/blockchain";
 import { makeOrderedTxMap } from "../helpers/makeOrderedTxMap";
 import { InternalError } from "../../../../src/internal/core/providers/errors";
+import { BigIntUtils } from "../../../../src/internal/util/bigint";
 
 type TestTxData = (
   | TxData

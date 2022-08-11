@@ -1,4 +1,4 @@
-import type EthereumjsUtilT from "ethereumjs-util";
+import type EthereumjsUtilT from "@ethereumjs/util";
 
 import chalk from "chalk";
 import debug from "debug";
@@ -51,8 +51,8 @@ function logHardhatNetworkAccounts(networkConfig: HardhatNetworkConfig) {
     !Array.isArray(networkConfig.accounts) &&
     networkConfig.accounts.mnemonic === HARDHAT_NETWORK_MNEMONIC;
 
-  const { BN, bufferToHex, privateToAddress, toBuffer, toChecksumAddress } =
-    require("ethereumjs-util") as typeof EthereumjsUtilT;
+  const { bufferToHex, privateToAddress, toBuffer, toChecksumAddress } =
+    require("@ethereumjs/util") as typeof EthereumjsUtilT;
 
   console.log("Accounts");
   console.log("========");

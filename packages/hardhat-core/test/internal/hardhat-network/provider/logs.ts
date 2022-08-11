@@ -1,10 +1,9 @@
 import { assert } from "chai";
 import chalk from "chalk";
 
-import { BN } from "ethereumjs-util";
 import {
   numberToRpcQuantity,
-  rpcQuantityToBN,
+  rpcQuantityToBigInt,
 } from "../../../../src/internal/core/jsonrpc/types/base-types";
 import { workaroundWindowsCiFailures } from "../../../utils/workaround-windows-ci-failures";
 import { EXAMPLE_CONTRACT, EXAMPLE_READ_CONTRACT } from "../helpers/contracts";

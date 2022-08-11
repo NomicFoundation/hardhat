@@ -1,5 +1,4 @@
 import { assert } from "chai";
-import { BN } from "ethereumjs-util";
 import cloneDeep from "lodash/cloneDeep";
 import * as path from "path";
 import sinon from "sinon";

@@ -1,5 +1,4 @@
 import { assert } from "chai";
-import { BN } from "ethereumjs-util";
 
 import { weiToHumanReadableString } from "../../../src/internal/util/wei-values";
 

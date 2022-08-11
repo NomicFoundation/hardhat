@@ -1,5 +1,5 @@
+import { zeroAddress } from "@ethereumjs/util";
 import { assert } from "chai";
-import { zeroAddress } from "ethereumjs-util";
 
 import { numberToRpcQuantity } from "../../../../../../../src/internal/core/jsonrpc/types/base-types";
 import { randomAddress } from "../../../../../../../src/internal/hardhat-network/provider/fork/random";

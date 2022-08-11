@@ -1,4 +1,3 @@
-import { BN } from "ethereumjs-util";
 import * as t from "io-ts";
 
 import { SignTypedDataVersion, signTypedData } from "@metamask/eth-sig-util";
@@ -9,7 +8,7 @@ import { ERRORS } from "../errors-list";
 import {
   rpcAddress,
   rpcData,
-  rpcQuantityToBN,
+  rpcQuantityToBigInt,
 } from "../jsonrpc/types/base-types";
 import {
   RpcTransactionRequest,
@@ -45,7 +44,7 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
 
   public async request(args: RequestArguments): Promise<unknown> {
     const { ecsign, hashPersonalMessage, toRpcSig, toBuffer, bufferToHex } =
-      await import("ethereumjs-util");
+      await import("@ethereumjs/util");
 
     if (
       args.method === "eth_accounts" ||
@@ -193,7 +192,7 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
       bufferToHex,
       toBuffer,
       privateToAddress,
-    } = require("ethereumjs-util");
+    } = require("@ethereumjs/util");
 
     const privateKeys: Buffer[] = localAccountsHexPrivateKeys.map((h) =>
       toBuffer(h)
@@ -206,7 +205,7 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
   }
 
   private _getPrivateKeyForAddress(address: Buffer): Buffer {
-    const { bufferToHex } = require("ethereumjs-util");
+    const { bufferToHex } = require("@ethereumjs/util");
     const pk = this._addressToPrivateKey.get(bufferToHex(address));
     if (pk === undefined) {
       throw new HardhatError(ERRORS.NETWORK.NOT_LOCAL_ACCOUNT, {
@@ -318,7 +317,7 @@ export class HDWalletProvider extends LocalAccountsProvider {
       passphrase
     );
 
-    const { bufferToHex } = require("ethereumjs-util");
+    const { bufferToHex } = require("@ethereumjs/util");
     const privateKeysAsHex = privateKeys.map((pk) => bufferToHex(pk));
     super(provider, privateKeysAsHex);
   }

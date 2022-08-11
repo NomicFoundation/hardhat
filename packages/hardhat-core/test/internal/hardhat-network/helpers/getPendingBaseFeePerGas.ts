@@ -1,7 +1,5 @@
-import { BN } from "ethereumjs-util";
-
 import { EthereumProvider } from "../../../../src/types";
-import { rpcQuantityToBN } from "../../../../src/internal/core/jsonrpc/types/base-types";
+import { rpcQuantityToBigInt } from "../../../../src/internal/core/jsonrpc/types/base-types";
 
 export async function getPendingBaseFeePerGas(
   provider: EthereumProvider

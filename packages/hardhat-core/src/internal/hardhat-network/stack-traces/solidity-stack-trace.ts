@@ -1,5 +1,3 @@
-import { BN } from "ethereumjs-util";
-
 import { ReturnData } from "../provider/return-data";
 
 import { ContractFunctionType } from "./model";

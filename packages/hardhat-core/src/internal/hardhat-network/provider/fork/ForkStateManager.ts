@@ -1,15 +1,15 @@
-import { DefaultStateManager } from "@ethereumjs/vm/dist/state";
-import { EIP2929StateManager } from "@ethereumjs/vm/dist/state/interface";
+import { StateManager } from "@ethereumjs/statemanager";
 import {
   Account,
+  bigIntToHex,
+  bufferToBigInt,
   Address,
-  BN,
   bufferToHex,
-  keccak256,
   KECCAK256_NULL,
   toBuffer,
   unpadBuffer,
-} from "ethereumjs-util";
+} from "@ethereumjs/util";
+import { keccak256 } from "ethereum-cryptography/keccak";
 import { Map as ImmutableMap, Record as ImmutableRecord } from "immutable";
 
 import { assertHardhatInvariant } from "../../../core/errors";

@@ -1,13 +1,12 @@
 import { assert } from "chai";
-import { BN } from "ethereumjs-util";
 import { Client } from "undici";
 
 import {
   numberToRpcQuantity,
   rpcDataToNumber,
   rpcQuantityToNumber,
-  rpcDataToBN,
-  rpcQuantityToBN,
+  rpcDataToBigInt,
+  rpcQuantityToBigInt,
 } from "../../../../../../../src/internal/core/jsonrpc/types/base-types";
 import { getCurrentTimestamp } from "../../../../../../../src/internal/hardhat-network/provider/utils/getCurrentTimestamp";
 import { workaroundWindowsCiFailures } from "../../../../../../utils/workaround-windows-ci-failures";

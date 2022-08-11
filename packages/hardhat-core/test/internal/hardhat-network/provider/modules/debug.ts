@@ -1,5 +1,4 @@
 import { assert } from "chai";
-import { BN } from "ethereumjs-util";
 import _ from "lodash";
 
 import { defaultHardhatNetworkParams } from "../../../../../src/internal/core/config/default-config";
@@ -9,6 +8,7 @@ import { ForkConfig } from "../../../../../src/internal/hardhat-network/provider
 import { RpcDebugTraceOutput } from "../../../../../src/internal/hardhat-network/provider/output";
 import { HardhatNetworkProvider } from "../../../../../src/internal/hardhat-network/provider/provider";
 import { EthereumProvider } from "../../../../../src/types";
+import { trace as mainnetPostLondonTxTrace } from "../../../../fixture-debug-traces/mainnetPostLondonTxTrace";
 import { trace as mainnetReturnsDataTrace } from "../../../../fixture-debug-traces/mainnetReturnsDataTrace";
 import { trace as mainnetReturnsDataTraceGeth } from "../../../../fixture-debug-traces/mainnetReturnsDataTraceGeth";
 import { trace as mainnetRevertTrace } from "../../../../fixture-debug-traces/mainnetRevertTrace";

@@ -1,10 +1,16 @@
-import Common from "@ethereumjs/common";
+import { Common } from "@ethereumjs/common";
 import { TransactionFactory, TypedTransaction } from "@ethereumjs/tx";
-import { StateManager } from "@ethereumjs/vm/dist/state";
-import { Address, BN, bufferToHex, toBuffer } from "ethereumjs-util";
+import { StateManager } from "@ethereumjs/statemanager";
+import {
+  Address,
+  bufferToBigInt,
+  bufferToHex,
+  toBuffer,
+} from "@ethereumjs/util";
 import { List as ImmutableList, Record as ImmutableRecord } from "immutable";
 
 import { InvalidInputError } from "../../core/providers/errors";
+import { BigIntUtils } from "../../util/bigint";
 
 import {
   AddressToTransactions,
@@ -17,7 +23,6 @@ import {
 } from "./PoolState";
 import { FakeSenderAccessListEIP2930Transaction } from "./transactions/FakeSenderAccessListEIP2930Transaction";
 import { FakeSenderTransaction } from "./transactions/FakeSenderTransaction";
-import { bnToHex } from "./utils/bnToHex";
 import { reorganizeTransactionsLists } from "./utils/reorganizeTransactionsLists";
 import { FakeSenderEIP1559Transaction } from "./transactions/FakeSenderEIP1559Transaction";
 

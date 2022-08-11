@@ -1,4 +1,9 @@
-import { BN, bufferToHex, bufferToInt, fromSigned } from "ethereumjs-util";
+import {
+  bufferToBigInt,
+  bufferToHex,
+  bufferToInt,
+  fromSigned,
+} from "@ethereumjs/util";
 import util from "util";
 
 import {

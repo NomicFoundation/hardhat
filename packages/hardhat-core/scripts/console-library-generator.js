@@ -1,5 +1,6 @@
+const eutil = require("@ethereumjs/util");
+const { keccak256 } = require("ethereum-cryptography/keccak");
 const fs = require("fs");
-const eutil = require("ethereumjs-util");
 
 const functionPrefix = "\tfunction";
 const functionBody =

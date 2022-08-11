@@ -1,9 +1,8 @@
-import { BN } from "ethereumjs-util";
 import { EIP1193Provider, RequestArguments } from "../../../types";
 import {
   numberToRpcQuantity,
   rpcQuantityToNumber,
-  rpcQuantityToBN,
+  rpcQuantityToBigInt,
 } from "../jsonrpc/types/base-types";
 
 import { ProviderWrapper } from "./wrapper";

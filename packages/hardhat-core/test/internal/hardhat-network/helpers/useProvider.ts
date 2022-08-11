@@ -1,5 +1,3 @@
-import { BN } from "ethereumjs-util";
-
 import { HardhatNetworkChainsConfig } from "../../../../src/types/config";
 import { defaultHardhatNetworkParams } from "../../../../src/internal/core/config/default-config";
 import { BackwardsCompatibilityProviderAdapter } from "../../../../src/internal/core/providers/backwards-compatibility";

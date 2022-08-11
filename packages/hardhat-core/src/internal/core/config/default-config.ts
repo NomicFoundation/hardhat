@@ -1,5 +1,3 @@
-import { BN } from "ethereumjs-util";
-
 import { HardhatNetworkConfig } from "../../../types";
 import { HardforkName } from "../../util/hardforks";
 import { HARDHAT_NETWORK_NAME } from "../../constants";

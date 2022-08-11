@@ -1,5 +1,5 @@
+import { zeroAddress } from "@ethereumjs/util";
 import { assert } from "chai";
-import { BN, toBuffer, zeroAddress } from "ethereumjs-util";
 import sinon, { SinonSpy } from "sinon";
 import { Client } from "undici";
 import {
@@ -10,7 +10,7 @@ import {
 
 import {
   numberToRpcQuantity,
-  rpcQuantityToBN,
+  rpcQuantityToBigInt,
 } from "../../../../../../../src/internal/core/jsonrpc/types/base-types";
 import { workaroundWindowsCiFailures } from "../../../../../../utils/workaround-windows-ci-failures";
 import { assertInvalidInputError } from "../../../../helpers/assertions";
@@ -28,6 +28,7 @@ import { retrieveForkBlockNumber } from "../../../../helpers/retrieveForkBlockNu
 import { deployContract } from "../../../../helpers/transactions";
 import { HardhatNode } from "../../../../../../../src/internal/hardhat-network/provider/node";
 import { RpcBlockOutput } from "../../../../../../../src/internal/hardhat-network/provider/output";
+import { BigIntUtils } from "../../../../../../../src/internal/util/bigint";
 
 describe("Eth module", function () {
   PROVIDERS.forEach(({ name, useProvider, isFork }) => {

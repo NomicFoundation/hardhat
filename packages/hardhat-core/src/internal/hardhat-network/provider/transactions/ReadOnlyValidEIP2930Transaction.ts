@@ -1,13 +1,14 @@
-import Common from "@ethereumjs/common";
+import { Common } from "@ethereumjs/common";
 import {
   AccessListEIP2930Transaction,
   AccessListEIP2930TxData,
   AccessListEIP2930ValuesArray,
   TxOptions,
 } from "@ethereumjs/tx";
-import { Address, BN } from "ethereumjs-util";
+import { Address } from "@ethereumjs/util";
 
 import { InternalError } from "../../../core/providers/errors";
+import { BigIntUtils } from "../../../util/bigint";
 import { BERLIN_EIPS } from "../../../util/hardforks";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */

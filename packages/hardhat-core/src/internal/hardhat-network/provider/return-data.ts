@@ -1,5 +1,4 @@
 import { rawDecode } from "ethereumjs-abi";
-import { BN } from "ethereumjs-util";
 
 import { assertHardhatInvariant } from "../../core/errors";
 

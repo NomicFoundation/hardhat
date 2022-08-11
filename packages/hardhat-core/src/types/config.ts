@@ -12,8 +12,6 @@
 // fields), we don't use `extends` as that can interfere with plugin authors
 // trying to augment the config types.
 
-import type { BN } from "ethereumjs-util";
-
 // Networks config
 
 export interface NetworksUserConfig {

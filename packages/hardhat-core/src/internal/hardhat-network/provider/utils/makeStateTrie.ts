@@ -1,5 +1,5 @@
-import { Account, BN } from "ethereumjs-util";
-import { SecureTrie as Trie } from "merkle-patricia-tree";
+import { SecureTrie as Trie } from "@ethereumjs/trie";
+import { Account, intToBuffer, setLengthLeft } from "@ethereumjs/util";
 
 import { GenesisAccount } from "../node-types";
 

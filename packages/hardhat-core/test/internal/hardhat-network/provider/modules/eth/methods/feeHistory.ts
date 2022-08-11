@@ -1,6 +1,5 @@
 import { assert } from "chai";
 
-import { BN } from "ethereumjs-util";
 import { workaroundWindowsCiFailures } from "../../../../../../utils/workaround-windows-ci-failures";
 import { setCWD } from "../../../../helpers/cwd";
 import {

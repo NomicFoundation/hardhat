@@ -1,8 +1,7 @@
 import type { ReturnData } from "./return-data";
 
 import { Block } from "@ethereumjs/block";
-import { RunBlockResult } from "@ethereumjs/vm/dist/runBlock";
-import { BN } from "ethereumjs-util";
+import { RunBlockResult } from "@ethereumjs/vm";
 
 import { HARDHAT_MEMPOOL_SUPPORTED_ORDERS } from "../../constants";
 import { BuildInfo, HardhatNetworkChainsConfig } from "../../../types";

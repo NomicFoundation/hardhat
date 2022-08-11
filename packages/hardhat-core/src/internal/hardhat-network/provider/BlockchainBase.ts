@@ -1,9 +1,16 @@
-import { Block } from "@ethereumjs/block";
-import Common from "@ethereumjs/common";
+import { Block, BlockHeader } from "@ethereumjs/block";
+import {
+  BlockchainInterface,
+  CasperConsensus,
+  CliqueConsensus,
+  Consensus,
+  EthashConsensus,
+} from "@ethereumjs/blockchain";
+import { Common, ConsensusAlgorithm } from "@ethereumjs/common";
 import { TypedTransaction } from "@ethereumjs/tx";
-import { BN } from "ethereumjs-util";
 
 import { assertHardhatInvariant } from "../../core/errors";
+import { BigIntUtils } from "../../util/bigint";
 import { BlockchainData } from "./BlockchainData";
 import { RpcReceiptOutput } from "./output";
 

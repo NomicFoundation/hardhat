@@ -1,12 +1,11 @@
 import { TypedTransaction } from "@ethereumjs/tx";
-import { BN } from "ethereumjs-util";
 import {
   List as ImmutableList,
   Map as ImmutableMap,
   Record as ImmutableRecord,
 } from "immutable";
 
-import { bnToHex } from "./utils/bnToHex";
+import { BigIntUtils } from "../../util/bigint";
 
 export interface OrderedTransaction {
   orderId: number;

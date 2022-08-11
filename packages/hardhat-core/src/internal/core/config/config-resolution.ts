@@ -1,4 +1,3 @@
-import { BN } from "ethereumjs-util";
 import * as fs from "fs";
 import cloneDeep from "lodash/cloneDeep";
 import path from "path";
@@ -33,6 +32,7 @@ import {
   SolidityUserConfig,
 } from "../../../types";
 import { HARDHAT_NETWORK_NAME } from "../../constants";
+import { BigIntUtils } from "../../util/bigint";
 import { HardforkName } from "../../util/hardforks";
 import { fromEntries } from "../../util/lang";
 import { assertHardhatInvariant } from "../errors";

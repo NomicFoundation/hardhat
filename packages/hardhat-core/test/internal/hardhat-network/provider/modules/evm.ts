@@ -1,12 +1,12 @@
+import { zeroAddress } from "@ethereumjs/util";
 import { assert } from "chai";
-import { BN, zeroAddress } from "ethereumjs-util";
 import sinon from "sinon";
 
 import {
   bufferToRpcData,
   numberToRpcQuantity,
-  rpcDataToNumber,
-  rpcQuantityToBN,
+  rpcDataToBigInt,
+  rpcQuantityToBigInt,
   rpcQuantityToNumber,
 } from "../../../../../src/internal/core/jsonrpc/types/base-types";
 import {

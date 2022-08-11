@@ -1,18 +1,20 @@
 import { TypedTransaction } from "@ethereumjs/tx";
-import VM from "@ethereumjs/vm";
-import { EVMResult } from "@ethereumjs/vm/dist/evm/evm";
-import { InterpreterStep } from "@ethereumjs/vm/dist/evm/interpreter";
-import Message from "@ethereumjs/vm/dist/evm/message";
+import { AfterTxEvent, VM } from "@ethereumjs/vm";
+import { EVM, EVMResult } from "@ethereumjs/evm";
+import { InterpreterStep } from "@ethereumjs/evm/dist/interpreter";
+import { Message } from "@ethereumjs/evm/dist/message";
 import {
-  EIP2929StateManager,
-  StateManager,
-} from "@ethereumjs/vm/dist/state/interface";
-import { Address, BN, setLengthLeft, toBuffer } from "ethereumjs-util";
+  Address,
+  bufferToBigInt,
+  setLengthLeft,
+  toBuffer,
+} from "@ethereumjs/util";
 
 import { assertHardhatInvariant } from "../../core/errors";
 import { RpcDebugTracingConfig } from "../../core/jsonrpc/types/input/debugTraceTransaction";
 import { InvalidInputError } from "../../core/providers/errors";
 import { RpcDebugTraceOutput, RpcStructLog } from "../provider/output";
+import { BigIntUtils } from "../../util/bigint";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
