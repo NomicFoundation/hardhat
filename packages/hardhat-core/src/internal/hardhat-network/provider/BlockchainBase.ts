@@ -1,5 +1,12 @@
-import { Block } from "@ethereumjs/block";
-import { Common } from "@ethereumjs/common";
+import { Block, BlockHeader } from "@ethereumjs/block";
+import {
+  BlockchainInterface,
+  CasperConsensus,
+  CliqueConsensus,
+  Consensus,
+  EthashConsensus,
+} from "@ethereumjs/blockchain";
+import { Common, ConsensusAlgorithm } from "@ethereumjs/common";
 import { TypedTransaction } from "@ethereumjs/tx";
 
 import { assertHardhatInvariant } from "../../core/errors";
@@ -10,15 +17,29 @@ import { RpcReceiptOutput } from "./output";
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
 export abstract class BlockchainBase {
+  public consensus: Consensus;
   protected readonly _data: BlockchainData;
 
   constructor(protected _common: Common) {
     this._data = new BlockchainData(_common);
-  }
 
-  // dummy method added so that ethereumjs doesn't crash
-  // when it tries to call it
-  private _init() {}
+    // copied from blockchain.ts in @ethereumjs/blockchain
+    switch (this._common.consensusAlgorithm()) {
+      case ConsensusAlgorithm.Casper:
+        this.consensus = new CasperConsensus();
+        break;
+      case ConsensusAlgorithm.Clique:
+        this.consensus = new CliqueConsensus();
+        break;
+      case ConsensusAlgorithm.Ethash:
+        this.consensus = new EthashConsensus();
+        break;
+      default:
+        throw new Error(
+          `consensus algorithm ${this._common.consensusAlgorithm()} not supported`
+        );
+    }
+  }
 
   public abstract addBlock(block: Block): Promise<Block>;
 
@@ -102,6 +123,17 @@ export abstract class BlockchainBase {
       previousBlockTotalDifficulty,
       previousBlockBaseFeePerGas
     );
+  }
+
+  public copy(): BlockchainInterface {
+    throw new Error("Method not implemented.");
+  }
+
+  public validateHeader(
+    _header: BlockHeader,
+    _height?: bigint | undefined
+  ): Promise<void> {
+    throw new Error("Method not implemented.");
   }
 
   protected _delBlock(blockNumber: bigint): void {

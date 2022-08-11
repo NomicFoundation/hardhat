@@ -1,3 +1,4 @@
+import * as rlp from "@ethereumjs/rlp";
 import { FeeMarketEIP1559Transaction } from "@ethereumjs/tx";
 import {
   FeeMarketEIP1559TxData,
@@ -5,7 +6,6 @@ import {
   TxOptions,
 } from "@ethereumjs/tx/dist/types";
 import { Address, bufferToInt } from "@ethereumjs/util";
-import * as rlp from "rlp";
 
 import {
   InternalError,

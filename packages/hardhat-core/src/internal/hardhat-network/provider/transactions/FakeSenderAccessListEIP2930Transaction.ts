@@ -1,4 +1,5 @@
 import { Common } from "@ethereumjs/common";
+import * as rlp from "@ethereumjs/rlp";
 import { AccessListEIP2930Transaction } from "@ethereumjs/tx";
 import {
   AccessListEIP2930TxData,
@@ -6,7 +7,6 @@ import {
   TxOptions,
 } from "@ethereumjs/tx/dist/types";
 import { Address, bufferToInt } from "@ethereumjs/util";
-import * as rlp from "rlp";
 
 import {
   InternalError,

@@ -1,7 +1,7 @@
 import { Common } from "@ethereumjs/common";
+import * as rlp from "@ethereumjs/rlp";
 import { Transaction, TxData, TxOptions } from "@ethereumjs/tx";
 import { Address, arrToBufArr, NestedBufferArray } from "@ethereumjs/util";
-import * as rlp from "rlp";
 
 import { InternalError } from "../../../core/providers/errors";
 
