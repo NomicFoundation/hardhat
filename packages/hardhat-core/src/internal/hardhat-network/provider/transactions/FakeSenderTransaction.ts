@@ -1,6 +1,6 @@
 import { Common } from "@ethereumjs/common";
 import { Transaction, TxData, TxOptions } from "@ethereumjs/tx";
-import { Address } from "@ethereumjs/util";
+import { Address, arrToBufArr, NestedBufferArray } from "@ethereumjs/util";
 import * as rlp from "rlp";
 
 import { InternalError } from "../../../core/providers/errors";
@@ -52,14 +52,13 @@ export class FakeSenderTransaction extends Transaction {
     serialized: Buffer,
     opts?: TxOptions
   ) {
-    const values = rlp.decode(serialized);
+    const values = arrToBufArr(rlp.decode(serialized));
 
-    if (!Array.isArray(values)) {
-      throw new Error("Invalid serialized tx input. Must be array");
+    if (!isFlatBufferArray(values)) {
+      throw new Error("Invalid serialized tx input. Must be a flat array");
     }
 
-    // ETHJSTODO find out how rlp.decode is meant to be used
-    return this.fromSenderAndValuesArray(sender, values as any, opts);
+    return this.fromSenderAndValuesArray(sender, values, opts);
   }
 
   public static fromSenderAndValuesArray(
@@ -184,3 +183,17 @@ FakeSenderTransactionPrototype._processSignature = function () {
     "`_processSignature` is not implemented in FakeSenderTransaction"
   );
 };
+
+function isFlatBufferArray(x: Buffer | NestedBufferArray): x is Buffer[] {
+  if (!Array.isArray(x)) {
+    return false;
+  }
+
+  for (const item of x) {
+    if (Array.isArray(item)) {
+      return false;
+    }
+  }
+
+  return true;
+}

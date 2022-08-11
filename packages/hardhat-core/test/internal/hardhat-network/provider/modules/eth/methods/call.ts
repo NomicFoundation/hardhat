@@ -550,7 +550,7 @@ contract C {
               );
             });
 
-            // ETHJSTODO re-enable when we figure out the skipBalance question
+            // see HH-1036
             it.skip("Should use any provided gasPrice", async function () {
               const gasLimit = 200_000n;
               const gasPrice = 2n;
@@ -657,7 +657,7 @@ contract C {
                 );
               });
 
-              // ETHJSTODO re-enable when we figure out the skipBalance question
+              // see HH-1036
               it.skip("Should use maxPriorityFeePerGas if provided, with maxFeePerGas = maxPriorityFeePerGas", async function () {
                 const balanceResult = await this.provider.send("eth_call", [
                   {
@@ -676,7 +676,7 @@ contract C {
                 );
               });
 
-              // ETHJSTODO re-enable when we figure out the skipBalance question
+              // see HH-1036
               it.skip("Should use gasPrice if provided", async function () {
                 const balanceResult = await this.provider.send("eth_call", [
                   {

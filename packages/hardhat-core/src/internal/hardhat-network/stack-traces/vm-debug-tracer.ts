@@ -546,8 +546,6 @@ export class VMDebugTracer {
   ): bigint {
     availableGas -= base;
 
-    // ETHJSTODO is Math.floor(number1 / number2) equivalent
-    // to bigint1 / bigint2?
     const gas = availableGas - availableGas / 64n;
 
     if (callCost > gas) {
