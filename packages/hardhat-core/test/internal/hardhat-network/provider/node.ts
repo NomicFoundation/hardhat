@@ -671,10 +671,10 @@ describe("HardhatNode", () => {
         chainId: 1,
       },
       {
-        networkName: "kovan",
-        url: ALCHEMY_URL.replace("mainnet", "kovan"),
-        blockToRun: 23115227n,
-        chainId: 42,
+        networkName: "goerli",
+        url: ALCHEMY_URL.replace("mainnet", "goerli"),
+        blockToRun: 5062605n,
+        chainId: 5,
       },
       {
         networkName: "rinkeby",
