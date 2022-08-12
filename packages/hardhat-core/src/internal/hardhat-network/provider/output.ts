@@ -171,7 +171,7 @@ export function getRpcBlock(
     nonce: pending ? null : bufferToRpcData(block.header.nonce, 8),
     mixHash: pending ? null : bufferToRpcData(block.header.mixHash, 32),
     sha3Uncles: bufferToRpcData(block.header.uncleHash),
-    logsBloom: pending ? null : bufferToRpcData(block.header.bloom),
+    logsBloom: pending ? null : bufferToRpcData(block.header.logsBloom),
     transactionsRoot: bufferToRpcData(block.header.transactionsTrie),
     stateRoot: bufferToRpcData(block.header.stateRoot),
     receiptsRoot: bufferToRpcData(block.header.receiptTrie),

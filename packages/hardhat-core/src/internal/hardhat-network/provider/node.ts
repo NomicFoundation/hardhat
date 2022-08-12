@@ -1787,7 +1787,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
           results,
           receipts,
           stateRoot: block.header.stateRoot,
-          logsBloom: block.header.bloom,
+          logsBloom: block.header.logsBloom,
           receiptRoot: block.header.receiptTrie,
           gasUsed: block.header.gasUsed,
         },
@@ -2078,7 +2078,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         case Type.LOGS_SUBSCRIPTION:
           if (
             bloomFilter(
-              new Bloom(block.header.bloom),
+              new Bloom(block.header.logsBloom),
               filter.criteria!.addresses,
               filter.criteria!.normalizedTopics
             )

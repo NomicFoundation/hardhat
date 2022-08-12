@@ -79,7 +79,7 @@ export class BlockchainData {
       if (
         block === undefined ||
         !bloomFilter(
-          new Bloom(block.header.bloom),
+          new Bloom(block.header.logsBloom),
           filterParams.addresses,
           filterParams.normalizedTopics
         )
