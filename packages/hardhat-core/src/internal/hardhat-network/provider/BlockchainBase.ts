@@ -17,10 +17,28 @@ import { RpcReceiptOutput } from "./output";
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
 export abstract class BlockchainBase {
+  public consensus: Consensus;
   protected readonly _data: BlockchainData;
 
   constructor(protected _common: Common) {
     this._data = new BlockchainData(_common);
+
+    // copied from blockchain.ts in @ethereumjs/blockchain
+    switch (this._common.consensusAlgorithm()) {
+      case ConsensusAlgorithm.Casper:
+        this.consensus = new CasperConsensus();
+        break;
+      case ConsensusAlgorithm.Clique:
+        this.consensus = new CliqueConsensus();
+        break;
+      case ConsensusAlgorithm.Ethash:
+        this.consensus = new EthashConsensus();
+        break;
+      default:
+        throw new Error(
+          `consensus algorithm ${this._common.consensusAlgorithm()} not supported`
+        );
+    }
   }
 
   public abstract addBlock(block: Block): Promise<Block>;
@@ -82,7 +100,7 @@ export abstract class BlockchainBase {
   public iterator(
     _name: string,
     _onBlock: (block: Block, reorg: boolean) => void | Promise<void>
-  ): Promise<number | void> {
+  ): Promise<number> {
     throw new Error("Method not implemented.");
   }
 
@@ -107,7 +125,18 @@ export abstract class BlockchainBase {
     );
   }
 
-  protected _delBlock(blockNumber: BN): void {
+  public copy(): BlockchainInterface {
+    throw new Error("Method not implemented.");
+  }
+
+  public validateHeader(
+    _header: BlockHeader,
+    _height?: bigint | undefined
+  ): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+
+  protected _delBlock(blockNumber: bigint): void {
     let i = blockNumber;
 
     while (i <= this.getLatestBlockNumber()) {
