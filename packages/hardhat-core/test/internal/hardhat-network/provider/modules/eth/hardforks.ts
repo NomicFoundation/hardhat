@@ -94,11 +94,13 @@ describe("Eth module - hardfork dependant tests", function () {
   }
 
   function getEffectiveGasPrice(
-    baseFee: BN,
-    maxFeePerGas: BN,
-    maxPriorityFeePerGas: BN
+    baseFee: bigint,
+    maxFeePerGas: bigint,
+    maxPriorityFeePerGas: bigint
   ) {
-    return BN.min(maxFeePerGas.sub(baseFee), maxPriorityFeePerGas).add(baseFee);
+    return (
+      BigIntUtils.min(maxFeePerGas - baseFee, maxPriorityFeePerGas) + baseFee
+    );
   }
 
   describe("Transaction, call and estimate gas validations", function () {
@@ -667,7 +669,7 @@ describe("Eth module - hardfork dependant tests", function () {
                 await this.provider.send("eth_getTransactionByHash", [txHash]);
 
               const effectiveGasPrice = getEffectiveGasPrice(
-                rpcQuantityToBN(block.baseFeePerGas!),
+                rpcQuantityToBigInt(block.baseFeePerGas!),
                 signedTx.maxFeePerGas,
                 signedTx.maxPriorityFeePerGas
               );
@@ -764,7 +766,7 @@ describe("Eth module - hardfork dependant tests", function () {
           it(`should have an effectiveGasPrice field for EIP-1559 txs when ${hardfork} is activated`, async function () {
             const [sender] = await this.provider.send("eth_accounts");
             const maxFeePerGas = await getPendingBaseFeePerGas(this.provider);
-            const maxPriorityPerGas = maxFeePerGas.divn(2);
+            const maxPriorityPerGas = maxFeePerGas / 2n;
 
             const tx = await this.provider.send("eth_sendTransaction", [
               {
@@ -784,7 +786,7 @@ describe("Eth module - hardfork dependant tests", function () {
               "eth_getBlockByNumber",
               ["latest", false]
             );
-            const baseFee = rpcQuantityToBN(block.baseFeePerGas!);
+            const baseFee = rpcQuantityToBigInt(block.baseFeePerGas!);
 
             const effectiveGasPrice = getEffectiveGasPrice(
               baseFee,
@@ -820,7 +822,7 @@ describe("Eth module - hardfork dependant tests", function () {
               "eth_getBlockByNumber",
               ["latest", false]
             );
-            const baseFee = rpcQuantityToBN(block.baseFeePerGas!);
+            const baseFee = rpcQuantityToBigInt(block.baseFeePerGas!);
 
             const effectiveGasPrice = getEffectiveGasPrice(
               baseFee,
@@ -855,7 +857,7 @@ describe("Eth module - hardfork dependant tests", function () {
               "eth_getBlockByNumber",
               ["latest", false]
             );
-            const baseFee = rpcQuantityToBN(block.baseFeePerGas!);
+            const baseFee = rpcQuantityToBigInt(block.baseFeePerGas!);
 
             const effectiveGasPrice = getEffectiveGasPrice(
               baseFee,
@@ -885,7 +887,7 @@ describe("Eth module - hardfork dependant tests", function () {
           {
             from: DEFAULT_ACCOUNTS_ADDRESSES[0],
             to: impersonated,
-            value: numberToRpcQuantity(new BN("100000000000000000")),
+            value: numberToRpcQuantity(10n ** 17n),
           },
         ]);
         await this.provider.send("hardhat_impersonateAccount", [impersonated]);
@@ -919,7 +921,7 @@ describe("Eth module - hardfork dependant tests", function () {
             {
               from: DEFAULT_ACCOUNTS_ADDRESSES[0],
               to: impersonated,
-              value: numberToRpcQuantity(new BN("100000000000000000")),
+              value: numberToRpcQuantity(10n ** 17n),
             },
           ]);
           await this.provider.send("hardhat_impersonateAccount", [
@@ -1002,7 +1004,7 @@ describe("Eth module - hardfork dependant tests", function () {
     ];
 
     function abiEncodeUint(uint: number) {
-      return new BN(uint).toBuffer("be", 32).toString("hex");
+      return BigIntUtils.toWord(uint);
     }
 
     let contract: string;

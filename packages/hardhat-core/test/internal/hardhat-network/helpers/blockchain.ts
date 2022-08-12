@@ -23,7 +23,15 @@ import { FakeSenderEIP1559Transaction } from "../../../../src/internal/hardhat-n
 import { DEFAULT_ACCOUNTS } from "./providers";
 
 export function createTestTransaction(data: TxData = {}) {
-  return new Transaction({ to: randomAddress(), ...data });
+  const tx = new Transaction({ to: randomAddress(), ...data });
+
+  return tx.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
+}
+
+export function createUnsignedTestTransaction(data: TxData = {}) {
+  const tx = new Transaction({ to: randomAddress(), ...data });
+
+  return tx;
 }
 
 export function createTestFakeTransaction(
@@ -55,12 +63,12 @@ export function createTestFakeTransaction(
 
   const type =
     data.type !== undefined
-      ? new BN(toBuffer(data.type))
+      ? data.type
       : "maxFeePerGas" in data || "maxPriorityFeePerGas" in data
-      ? new BN(2)
+      ? 2n
       : "accessList" in data
-      ? new BN(1)
-      : new BN(0);
+      ? 1n
+      : 0n;
 
   const dataWithDefaults = {
     to: randomAddress(),
@@ -69,11 +77,11 @@ export function createTestFakeTransaction(
     ...data,
   };
 
-  if (type.eqn(0)) {
+  if (type === 0n) {
     return new FakeSenderTransaction(fromAddress, dataWithDefaults);
   }
 
-  if (type.eqn(1)) {
+  if (type === 1n) {
     return new FakeSenderAccessListEIP2930Transaction(
       fromAddress,
       dataWithDefaults
@@ -124,7 +132,7 @@ export function createTestReceipt(
   return receipt;
 }
 
-export function createTestLog(blockNumber: BN | number): RpcLogOutput {
+export function createTestLog(blockNumber: bigint): RpcLogOutput {
   const log: any = {
     address: randomAddress(),
     blockNumber: numberToRpcQuantity(blockNumber),
