@@ -177,7 +177,7 @@ export class VMDebugTracer {
     next();
   }
 
-  private async _afterTxHandler(result: EVMResult, next: any) {
+  private async _afterTxHandler(result: AfterTxEvent, next: any) {
     const { default: flattenDeep } = await import("lodash/flattenDeep");
     const topLevelMessage = this._messages[0];
 
