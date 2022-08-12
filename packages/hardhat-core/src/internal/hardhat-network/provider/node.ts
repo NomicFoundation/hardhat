@@ -2309,7 +2309,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     tx: TypedTransaction,
     blockNumberOrPending: bigint | "pending",
     forceBaseFeeZero = false
-  ): Promise<EVMResult> {
+  ): Promise<RunTxResult> {
     const initialStateRoot = await this._stateManager.getStateRoot();
 
     let blockContext: Block | undefined;
