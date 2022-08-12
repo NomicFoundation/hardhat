@@ -56,6 +56,8 @@ export class VMDebugTracer {
   private _messages: DebugMessage[] = [];
   private _addressToStorage: Record<string, Storage> = {};
 
+  private _error: any;
+
   constructor(private readonly _vm: VM) {
     this._beforeMessageHandler = this._beforeMessageHandler.bind(this);
     this._afterMessageHandler = this._afterMessageHandler.bind(this);
@@ -76,6 +78,10 @@ export class VMDebugTracer {
       this._config = config;
 
       await action();
+
+      if (this._error !== undefined) {
+        throw this._error;
+      }
 
       return this._getDebugTrace();
     } finally {
@@ -135,13 +141,20 @@ export class VMDebugTracer {
   }
 
   private async _stepHandler(step: InterpreterStep, next: any) {
-    assertHardhatInvariant(
-      this._messages.length > 0,
-      "Step handler should be called after at least one beforeMessage handler"
-    );
+    try {
+      assertHardhatInvariant(
+        this._messages.length > 0,
+        "Step handler should be called after at least one beforeMessage handler"
+      );
 
-    const structLog = await this._stepToStructLog(step);
-    this._messages[this._messages.length - 1].structLogs.push(structLog);
+      const structLog = await this._stepToStructLog(step);
+      this._messages[this._messages.length - 1].structLogs.push(structLog);
+    } catch (e: any) {
+      // errors thrown in event handlers are lost, so we save this error to
+      // re-throw it in the `trace` function
+      this._error = e;
+      this._disableTracing();
+    }
 
     next();
   }
