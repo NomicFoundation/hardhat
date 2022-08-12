@@ -1389,16 +1389,18 @@ export class EthModule {
       return 0n;
     }
 
-    if ("blockNumber" in newBlockTag && "blockHash" in newBlockTag) {
-      throw new InvalidArgumentsError(
-        "Invalid block tag received. Only one of hash or block number can be used."
-      );
-    }
+    if (!BigIntUtils.isBigInt(newBlockTag)) {
+      if ("blockNumber" in newBlockTag && "blockHash" in newBlockTag) {
+        throw new InvalidArgumentsError(
+          "Invalid block tag received. Only one of hash or block number can be used."
+        );
+      }
 
-    if ("blockNumber" in newBlockTag && "requireCanonical" in newBlockTag) {
-      throw new InvalidArgumentsError(
-        "Invalid block tag received. requireCanonical only works with hashes."
-      );
+      if ("blockNumber" in newBlockTag && "requireCanonical" in newBlockTag) {
+        throw new InvalidArgumentsError(
+          "Invalid block tag received. requireCanonical only works with hashes."
+        );
+      }
     }
 
     let block: Block | undefined;
