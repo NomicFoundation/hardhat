@@ -209,7 +209,7 @@ export class VMTracer {
 
       trace.error = result.execResult.exceptionError;
       trace.returnData = result.execResult.returnValue;
-      trace.gasUsed = result.gasUsed;
+      trace.gasUsed = result.execResult.executionGasUsed;
 
       if (isCreateTrace(trace)) {
         trace.deployedContract = result?.createdAddress?.toBuffer();
