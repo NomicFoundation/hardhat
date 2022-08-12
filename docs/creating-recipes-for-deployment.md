@@ -82,7 +82,7 @@ const userRecipe = buildRecipe("MyRecipe", (m) => {
 A library can be deployed and linked to a contract by passing the libraries contract future as a named entry under the libraries option:
 
 ```tsx
-const safeMath = m.contract("SafeMath");
+const safeMath = m.library("SafeMath");
 const contract = m.contract("Contract", {
   libraries: {
     SafeMath: safeMath,
