@@ -499,16 +499,7 @@ export class VMDebugTracer {
   ): Promise<bigint> {
     // The available gas is reduced when the address is cold
     if (this._vm._common.gteHardfork("berlin")) {
-      const stateManager = this._vm.stateManager as
-        | StateManager
-        | EIP2929StateManager;
-
-      assertHardhatInvariant(
-        "isWarmedAddress" in stateManager,
-        "The VM should have an EIP2929StateManger when berlin is enabled"
-      );
-
-      const isWarmed = stateManager.isWarmedAddress(address.toBuffer());
+      const isWarmed = this._vm.eei.isWarmedAddress(address.toBuffer());
 
       const coldCost =
         this._vm._common.param("gasPrices", "coldaccountaccess") -
