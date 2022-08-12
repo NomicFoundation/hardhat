@@ -52,10 +52,10 @@ export class FakeSenderTransaction extends Transaction {
     serialized: Buffer,
     opts?: TxOptions
   ) {
-    const values = rlp.decode(serialized);
+    const values = arrToBufArr(rlp.decode(serialized));
 
-    if (!Array.isArray(values)) {
-      throw new Error("Invalid serialized tx input. Must be array");
+    if (!isFlatBufferArray(values)) {
+      throw new Error("Invalid serialized tx input. Must be a flat array");
     }
 
     return this.fromSenderAndValuesArray(sender, values, opts);
@@ -183,3 +183,17 @@ FakeSenderTransactionPrototype._processSignature = function () {
     "`_processSignature` is not implemented in FakeSenderTransaction"
   );
 };
+
+function isFlatBufferArray(x: Buffer | NestedBufferArray): x is Buffer[] {
+  if (!Array.isArray(x)) {
+    return false;
+  }
+
+  for (const item of x) {
+    if (Array.isArray(item)) {
+      return false;
+    }
+  }
+
+  return true;
+}
