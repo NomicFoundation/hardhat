@@ -338,7 +338,8 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   private readonly _consoleLogger: ConsoleLogger = new ConsoleLogger();
   private _failedStackTraces = 0;
 
-  private _irregularStatesByBlockNumber: Map<string, Buffer> = new Map(); // blockNumber as BN.toString() => state root
+  // blockNumber => state root
+  private _irregularStatesByBlockNumber: Map<bigint, Buffer> = new Map();
 
   private constructor(
     private readonly _vm: VM,
