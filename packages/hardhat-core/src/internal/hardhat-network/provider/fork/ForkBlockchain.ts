@@ -252,11 +252,20 @@ export class ForkBlockchain
       return undefined;
     }
 
+    const forkNetworkId = this._jsonRpcClient.getNetworkId();
+    let common: Common;
+    if (Chain[forkNetworkId] !== undefined) {
+      common = new Common({ chain: forkNetworkId });
+    } else {
+      // unknown networks use Goerli's common to prevent the
+      // maxExtraDataSize check
+      common = new Common({ chain: 5 });
+    }
+
     // We copy the common and set it to London or Berlin if the remote block
     // had EIP-1559 activated or not. The reason for this is that ethereumjs
     // throws if we have a base fee for an older hardfork, and set a default
     // one for London.
-    const common = this._common.copy();
     if (rpcBlock.baseFeePerGas !== undefined) {
       common.setHardfork("london"); // TODO: consider changing this to "latest hardfork"
     } else {
