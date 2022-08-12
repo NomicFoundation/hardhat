@@ -240,7 +240,8 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
     chainId: number,
     privateKey: Buffer
   ): Promise<Buffer> {
-    const { chains } = await import("@ethereumjs/common/dist/chains");
+    // see HH-1038
+    // const { chains } = await import("@ethereumjs/common/dist/chains");
 
     const { AccessListEIP2930Transaction, Transaction } = await import(
       "@ethereumjs/tx"
@@ -253,18 +254,7 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
       gasLimit: transactionRequest.gas,
     };
 
-    // TODO: consider changing instances of "london" below to ["latest hardfork"]
-    const common =
-      chains.names[chainId] !== undefined
-        ? new Common({ chain: chainId, hardfork: "london" })
-        : Common.forCustomChain(
-            "mainnet",
-            {
-              chainId,
-              networkId: chainId,
-            },
-            "london"
-          );
+    const common = Common.custom({ chainId, networkId: chainId });
 
     // we convert the access list to the type
     // that AccessListEIP2930Transaction expects
