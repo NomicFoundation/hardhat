@@ -40,7 +40,7 @@ export function serializeTransaction(
     orderId: tx.orderId,
     fakeFrom: isFake ? tx.data.getSenderAddress().toString() : undefined,
     data: rlpSerialization,
-    txType: tx.data.transactionType,
+    txType: tx.data.type,
   });
 }
 

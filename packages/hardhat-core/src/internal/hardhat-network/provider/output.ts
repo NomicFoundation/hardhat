@@ -238,7 +238,7 @@ export function getRpcTransaction(
     s: numberToRpcQuantity(tx.s),
     type:
       showTransactionType || isTypedTransaction
-        ? numberToRpcQuantity(tx.transactionType)
+        ? numberToRpcQuantity(tx.type)
         : undefined,
     accessList:
       "accessList" in tx
@@ -321,9 +321,7 @@ export function getRpcReceiptOutputsFromLocalBlockExecution(
       logsBloom: bufferToRpcData(receipt.bitvector),
       // There's no way to execute an EIP-2718 tx locally if we aren't in
       // an HF >= Berlin, so this check is enough
-      type: showTransactionType
-        ? numberToRpcQuantity(tx.transactionType)
-        : undefined,
+      type: showTransactionType ? numberToRpcQuantity(tx.type) : undefined,
     };
 
     if ("stateRoot" in receipt) {
@@ -385,7 +383,7 @@ export function remoteReceiptToRpcReceiptOutput(
     transactionIndex: numberToRpcQuantity(receipt.transactionIndex),
     type:
       showTransactionType || isTypedTransaction
-        ? numberToRpcQuantity(tx.transactionType)
+        ? numberToRpcQuantity(tx.type)
         : undefined,
     effectiveGasPrice:
       showEffectiveGasPrice || tx.type === 2
