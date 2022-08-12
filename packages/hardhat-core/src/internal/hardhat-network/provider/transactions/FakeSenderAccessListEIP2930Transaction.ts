@@ -158,7 +158,7 @@ export class FakeSenderAccessListEIP2930Transaction extends AccessListEIP2930Tra
     );
   }
 
-  public _processSignature(_v: number, _r: Buffer, _s: Buffer): never {
+  public _processSignature(_v: bigint, _r: Buffer, _s: Buffer): never {
     throw new InternalError(
       "`_processSignature` is not implemented in FakeSenderAccessListEIP2930Transaction"
     );

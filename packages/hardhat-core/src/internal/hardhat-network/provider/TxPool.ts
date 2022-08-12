@@ -100,7 +100,7 @@ export class TxPool {
 
   constructor(
     private readonly _stateManager: StateManager,
-    blockGasLimit: BN,
+    blockGasLimit: bigint,
     common: Common
   ) {
     this._state = makePoolState({
@@ -116,7 +116,7 @@ export class TxPool {
 
     await this._validateTransaction(tx, senderAddress, nextConfirmedNonce);
 
-    const txNonce = new BN(tx.nonce);
+    const txNonce = tx.nonce;
 
     if (txNonce.gt(nextPendingNonce)) {
       this._addQueuedTransaction(tx);
@@ -243,7 +243,7 @@ export class TxPool {
    * Returns the next available nonce for an address, taking into account
    * its pending transactions.
    */
-  public async getNextPendingNonce(accountAddress: Address): Promise<BN> {
+  public async getNextPendingNonce(accountAddress: Address): Promise<bigint> {
     const pendingTxs = this._getPendingForAddress(accountAddress.toString());
     const lastPendingTx = pendingTxs?.last(undefined);
 
@@ -260,9 +260,9 @@ export class TxPool {
     return new BN(toBuffer(this._state.get("blockGasLimit")));
   }
 
-  public setBlockGasLimit(newLimit: BN | number) {
+  public setBlockGasLimit(newLimit: bigint | number) {
     if (typeof newLimit === "number") {
-      newLimit = new BN(newLimit);
+      newLimit = BigInt(newLimit);
     }
 
     this._setBlockGasLimit(newLimit);
@@ -279,8 +279,8 @@ export class TxPool {
       const senderAccount = await this._stateManager.getAccount(
         Address.fromString(address)
       );
-      const senderNonce = new BN(senderAccount.nonce);
-      const senderBalance = new BN(senderAccount.balance);
+      const senderNonce = senderAccount.nonce;
+      const senderBalance = senderAccount.balance;
 
       let moveToQueued = false;
       for (const tx of txs) {
@@ -294,7 +294,7 @@ export class TxPool {
           continue;
         }
 
-        const txNonce = new BN(deserializedTx.data.nonce);
+        const txNonce = deserializedTx.data.nonce;
 
         if (
           !this._isTxValid(deserializedTx, txNonce, senderNonce, senderBalance)
@@ -317,12 +317,12 @@ export class TxPool {
       const senderAccount = await this._stateManager.getAccount(
         Address.fromString(address)
       );
-      const senderNonce = new BN(senderAccount.nonce);
-      const senderBalance = new BN(senderAccount.balance);
+      const senderNonce = senderAccount.nonce;
+      const senderBalance = senderAccount.balance;
 
       for (const tx of txs) {
         const deserializedTx = this._deserializeTransaction(tx);
-        const txNonce = new BN(deserializedTx.data.nonce);
+        const txNonce = deserializedTx.data.nonce;
 
         if (
           !this._isTxValid(deserializedTx, txNonce, senderNonce, senderBalance)
@@ -425,7 +425,7 @@ export class TxPool {
   private async _validateTransaction(
     tx: TypedTransaction,
     senderAddress: Address,
-    senderNonce: BN
+    senderNonce: bigint
   ) {
     if (this._knownTransaction(tx)) {
       throw new InvalidInputError(
@@ -433,7 +433,7 @@ export class TxPool {
       );
     }
 
-    const txNonce = new BN(tx.nonce);
+    const txNonce = tx.nonce;
 
     // Geth returns this error if trying to create a contract and no data is provided
     if (tx.to === undefined && tx.data.length === 0) {
@@ -443,7 +443,7 @@ export class TxPool {
     }
 
     const senderAccount = await this._stateManager.getAccount(senderAddress);
-    const senderBalance = new BN(senderAccount.balance);
+    const senderBalance = senderAccount.balance;
 
     const maxFee = "gasPrice" in tx ? tx.gasPrice : tx.maxFeePerGas;
     const txMaxUpfrontCost = tx.gasLimit.mul(maxFee).add(tx.value);
@@ -461,7 +461,7 @@ export class TxPool {
       );
     }
 
-    const gasLimit = new BN(tx.gasLimit);
+    const gasLimit = tx.gasLimit;
     const baseFee = tx.getBaseFee();
 
     if (gasLimit.lt(baseFee)) {
@@ -568,11 +568,11 @@ export class TxPool {
 
   private _isTxValid(
     tx: OrderedTransaction,
-    txNonce: BN,
-    senderNonce: BN,
-    senderBalance: BN
+    txNonce: bigint,
+    senderNonce: bigint,
+    senderBalance: bigint
   ): boolean {
-    const txGasLimit = new BN(tx.data.gasLimit);
+    const txGasLimit = tx.data.gasLimit;
 
     return (
       txGasLimit.lte(this.getBlockGasLimit()) &&
@@ -585,9 +585,11 @@ export class TxPool {
    * Returns the next available nonce for an address, ignoring its
    * pending transactions.
    */
-  private async _getNextConfirmedNonce(accountAddress: Address): Promise<BN> {
+  private async _getNextConfirmedNonce(
+    accountAddress: Address
+  ): Promise<bigint> {
     const account = await this._stateManager.getAccount(accountAddress);
-    return new BN(account.nonce);
+    return account.nonce;
   }
 
   /**
@@ -650,27 +652,23 @@ export class TxPool {
 
     const deserializedExistingTx = this._deserializeTransaction(existingTx);
 
-    const currentMaxFeePerGas = new BN(
+    const currentMaxFeePerGas =
       "gasPrice" in deserializedExistingTx.data
         ? deserializedExistingTx.data.gasPrice
-        : deserializedExistingTx.data.maxFeePerGas
-    );
+        : deserializedExistingTx.data.maxFeePerGas;
 
-    const currentPriorityFeePerGas = new BN(
+    const currentPriorityFeePerGas =
       "gasPrice" in deserializedExistingTx.data
         ? deserializedExistingTx.data.gasPrice
-        : deserializedExistingTx.data.maxPriorityFeePerGas
-    );
+        : deserializedExistingTx.data.maxPriorityFeePerGas;
 
-    const newMaxFeePerGas = new BN(
-      "gasPrice" in newTx.data ? newTx.data.gasPrice : newTx.data.maxFeePerGas
-    );
+    const newMaxFeePerGas =
+      "gasPrice" in newTx.data ? newTx.data.gasPrice : newTx.data.maxFeePerGas;
 
-    const newPriorityFeePerGas = new BN(
+    const newPriorityFeePerGas =
       "gasPrice" in newTx.data
         ? newTx.data.gasPrice
-        : newTx.data.maxPriorityFeePerGas
-    );
+        : newTx.data.maxPriorityFeePerGas;
 
     const minNewMaxFeePerGas = this._getMinNewFeePrice(currentMaxFeePerGas);
 

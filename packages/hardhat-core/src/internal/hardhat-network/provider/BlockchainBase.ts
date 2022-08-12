@@ -44,25 +44,25 @@ export abstract class BlockchainBase {
   }
 
   public async getBlock(
-    blockHashOrNumber: Buffer | BN | number
+    blockHashOrNumber: Buffer | bigint | number
   ): Promise<Block | null> {
     if (
       (typeof blockHashOrNumber === "number" || BN.isBN(blockHashOrNumber)) &&
       this._data.isReservedBlock(new BN(blockHashOrNumber))
     ) {
-      this._data.fulfillBlockReservation(new BN(blockHashOrNumber));
+      this._data.fulfillBlockReservation(BigInt(blockHashOrNumber));
     }
 
     if (typeof blockHashOrNumber === "number") {
-      return this._data.getBlockByNumber(new BN(blockHashOrNumber)) ?? null;
+      return this._data.getBlockByNumber(BigInt(blockHashOrNumber)) ?? null;
     }
-    if (BN.isBN(blockHashOrNumber)) {
+    if (BigIntUtils.isBigInt(blockHashOrNumber)) {
       return this._data.getBlockByNumber(blockHashOrNumber) ?? null;
     }
     return this._data.getBlockByHash(blockHashOrNumber) ?? null;
   }
 
-  public abstract getLatestBlockNumber(): BN;
+  public abstract getLatestBlockNumber(): bigint;
 
   public async getLatestBlock(): Promise<Block> {
     const block = await this.getBlock(this.getLatestBlockNumber());
@@ -90,14 +90,14 @@ export abstract class BlockchainBase {
   }
 
   public reserveBlocks(
-    count: BN,
-    interval: BN,
+    count: bigint,
+    interval: bigint,
     previousBlockStateRoot: Buffer,
-    previousBlockTotalDifficulty: BN,
-    previousBlockBaseFeePerGas: BN | undefined
+    previousBlockTotalDifficulty: bigint,
+    previousBlockBaseFeePerGas: bigint | undefined
   ) {
     this._data.reserveBlocks(
-      this.getLatestBlockNumber().addn(1),
+      this.getLatestBlockNumber() + 1n,
       count,
       interval,
       previousBlockStateRoot,
@@ -123,7 +123,7 @@ export abstract class BlockchainBase {
     }
   }
 
-  protected async _computeTotalDifficulty(block: Block): Promise<BN> {
+  protected async _computeTotalDifficulty(block: Block): Promise<bigint> {
     const difficulty = block.header.difficulty;
     const blockNumber = block.header.number;
 

@@ -224,15 +224,15 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
     }
   }
 
-  private async _getNonce(address: Buffer): Promise<BN> {
-    const { bufferToHex } = await import("ethereumjs-util");
+  private async _getNonce(address: Buffer): Promise<bigint> {
+    const { bufferToHex } = await import("@ethereumjs/util");
 
     const response = (await this._wrappedProvider.request({
       method: "eth_getTransactionCount",
       params: [bufferToHex(address), "pending"],
     })) as string;
 
-    return rpcQuantityToBN(response);
+    return rpcQuantityToBigInt(response);
   }
 
   private async _getSignedTransaction(
@@ -246,7 +246,7 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
       "@ethereumjs/tx"
     );
 
-    const { default: Common } = await import("@ethereumjs/common");
+    const { Common } = await import("@ethereumjs/common");
 
     const txData = {
       ...transactionRequest,

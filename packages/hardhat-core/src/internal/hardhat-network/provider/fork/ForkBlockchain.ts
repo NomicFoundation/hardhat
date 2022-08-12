@@ -37,24 +37,24 @@ export class ForkBlockchain
 
   constructor(
     private _jsonRpcClient: JsonRpcClient,
-    private _forkBlockNumber: BN,
+    private _forkBlockNumber: bigint,
     common: Common
   ) {
     super(common);
   }
 
-  public getLatestBlockNumber(): BN {
+  public getLatestBlockNumber(): bigint {
     return this._latestBlockNumber;
   }
 
   public async getBlock(
-    blockHashOrNumber: Buffer | number | BN
+    blockHashOrNumber: Buffer | bigint
   ): Promise<Block | null> {
     if (
       (typeof blockHashOrNumber === "number" || BN.isBN(blockHashOrNumber)) &&
       this._data.isReservedBlock(new BN(blockHashOrNumber))
     ) {
-      this._data.fulfillBlockReservation(new BN(blockHashOrNumber));
+      this._data.fulfillBlockReservation(blockHashOrNumber);
     }
 
     let block: Block | undefined | null;
@@ -63,7 +63,7 @@ export class ForkBlockchain
       return block ?? null;
     }
 
-    block = await this._getBlockByNumber(new BN(blockHashOrNumber));
+    block = await this._getBlockByNumber(BigInt(blockHashOrNumber));
     return block ?? null;
   }
 
@@ -94,11 +94,11 @@ export class ForkBlockchain
   }
 
   public reserveBlocks(
-    count: BN,
-    interval: BN,
+    count: bigint,
+    interval: bigint,
     previousBlockStateRoot: Buffer,
-    previousBlockTotalDifficulty: BN,
-    previousBlockBaseFeePerGas: BN | undefined
+    previousBlockTotalDifficulty: bigint,
+    previousBlockBaseFeePerGas: bigint | undefined
   ) {
     super.reserveBlocks(
       count,
@@ -111,7 +111,7 @@ export class ForkBlockchain
   }
 
   public deleteLaterBlocks(block: Block): void {
-    const blockNumber = new BN(block.header.number);
+    const blockNumber = block.header.number;
     const savedBlock = this._data.getBlockByNumber(blockNumber);
     if (savedBlock === undefined || !savedBlock.hash().equals(block.hash())) {
       throw new Error("Invalid block");
@@ -125,7 +125,7 @@ export class ForkBlockchain
     this._delBlock(nextBlockNumber);
   }
 
-  public async getTotalDifficulty(blockHash: Buffer): Promise<BN> {
+  public async getTotalDifficulty(blockHash: Buffer): Promise<bigint> {
     let td = this._data.getTotalDifficulty(blockHash);
     if (td !== undefined) {
       return td;

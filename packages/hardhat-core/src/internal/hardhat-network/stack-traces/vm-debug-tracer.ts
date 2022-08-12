@@ -194,7 +194,7 @@ export class VMDebugTracer {
     }
 
     this._lastTrace = {
-      gas: result.gasUsed.toNumber(),
+      gas: Number(result.totalGasSpent),
       failed: result.execResult.exceptionError !== undefined,
       returnValue: result.execResult.returnValue.toString("hex"),
       structLogs: rpcStructLogs,
@@ -400,7 +400,7 @@ export class VMDebugTracer {
         callCost
       );
 
-      gasCost = constantGas + dynamicGas;
+      gasCost = Number(constantGas + dynamicGas);
     } else if (step.opcode.name === "CALLCODE") {
       // finding an existing tx that uses CALLCODE or compiling a contract
       // so that it uses this opcode is hard,
@@ -419,13 +419,13 @@ export class VMDebugTracer {
     const structLog: StructLog = {
       pc: step.pc,
       op,
-      gas: step.gasLeft.toNumber(),
+      gas: Number(step.gasLeft),
       gasCost,
       depth: step.depth + 1,
       stack,
       memory,
       storage,
-      memSize: step.memoryWordCount.toNumber(),
+      memSize: Number(step.memoryWordCount),
     };
 
     if (error !== undefined) {
@@ -435,15 +435,15 @@ export class VMDebugTracer {
     return structLog;
   }
 
-  private _memoryGas(): number {
+  private _memoryGas(): bigint {
     return this._vm._common.param("gasPrices", "memory");
   }
 
-  private _sha3WordGas(): number {
+  private _sha3WordGas(): bigint {
     return this._vm._common.param("gasPrices", "sha3Word");
   }
 
-  private _callConstantGas(): number {
+  private _callConstantGas(): bigint {
     if (this._vm._common.gteHardfork("berlin")) {
       return this._vm._common.param("gasPrices", "warmstorageread");
     }
@@ -451,15 +451,15 @@ export class VMDebugTracer {
     return this._vm._common.param("gasPrices", "call");
   }
 
-  private _callNewAccountGas(): number {
+  private _callNewAccountGas(): bigint {
     return this._vm._common.param("gasPrices", "callNewAccount");
   }
 
-  private _callValueTransferGas(): number {
+  private _callValueTransferGas(): bigint {
     return this._vm._common.param("gasPrices", "callValueTransfer");
   }
 
-  private _quadCoeffDiv(): number {
+  private _quadCoeffDiv(): bigint {
     return this._vm._common.param("gasPrices", "quadCoeffDiv");
   }
 
@@ -477,11 +477,11 @@ export class VMDebugTracer {
 
   private async _callDynamicGas(
     address: Address,
-    value: BN,
-    availableGas: number,
-    memoryGas: number,
-    callCost: BN
-  ): Promise<number> {
+    value: bigint,
+    availableGas: bigint,
+    memoryGas: bigint,
+    callCost: bigint
+  ): Promise<bigint> {
     // The available gas is reduced when the address is cold
     if (this._vm._common.gteHardfork("berlin")) {
       const stateManager = this._vm.stateManager as

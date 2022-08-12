@@ -93,7 +93,7 @@ export class EvmModule {
           ` ${new BN(latestBlock.header.timestamp).toNumber()}`
       );
     }
-    this._node.setNextBlockTimestamp(new BN(timestamp));
+    this._node.setNextBlockTimestamp(BigInt(timestamp));
     return timestamp.toString();
   }
 
@@ -106,7 +106,7 @@ export class EvmModule {
   private async _increaseTimeAction(
     increment: RpcQuantityOrNumber
   ): Promise<string> {
-    this._node.increaseTime(new BN(increment));
+    this._node.increaseTime(BigInt(increment));
     const totalIncrement = this._node.getTimeIncrement();
     // This RPC call is an exception: it returns a number in decimal
     return totalIncrement.toString();
@@ -124,7 +124,7 @@ export class EvmModule {
   private async _mineAction(timestamp: RpcQuantityOrNumber): Promise<string> {
     // if timestamp is specified, make sure it is bigger than previous
     // block's timestamp
-    if (timestamp !== 0) {
+    if (timestamp !== 0n) {
       const latestBlock = await this._node.getLatestBlock();
       const increment = new BN(timestamp).sub(
         new BN(latestBlock.header.timestamp)
@@ -136,7 +136,7 @@ export class EvmModule {
         );
       }
     }
-    const result = await this._node.mineBlock(new BN(timestamp));
+    const result = await this._node.mineBlock(timestamp);
 
     await this._logBlock(result);
 
@@ -145,12 +145,12 @@ export class EvmModule {
 
   // evm_revert
 
-  private _revertParams(params: any[]): [BN] {
+  private _revertParams(params: any[]): [bigint] {
     return validateParams(params, rpcQuantity);
   }
 
-  private async _revertAction(snapshotId: BN): Promise<boolean> {
-    return this._node.revertToSnapshot(snapshotId.toNumber());
+  private async _revertAction(snapshotId: bigint): Promise<boolean> {
+    return this._node.revertToSnapshot(Number(snapshotId));
   }
 
   // evm_snapshot
@@ -211,7 +211,7 @@ export class EvmModule {
     for (const txTrace of traces) {
       const code = await this._node.getCodeFromTrace(
         txTrace.trace,
-        new BN(block.header.number)
+        block.header.number
       );
 
       codes.push(code);

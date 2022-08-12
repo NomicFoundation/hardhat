@@ -28,7 +28,7 @@ export async function makeForkClient(
   forkCachePath?: string
 ): Promise<{
   forkClient: JsonRpcClient;
-  forkBlockNumber: BN;
+  forkBlockNumber: bigint;
   forkBlockTimestamp: number;
 }> {
   const provider = new HttpProvider(
@@ -69,9 +69,9 @@ Please use block number ${lastSafeBlock} or wait for the block to get ${
       );
     }
 
-    forkBlockNumber = new BN(forkConfig.blockNumber);
+    forkBlockNumber = BigInt(forkConfig.blockNumber);
   } else {
-    forkBlockNumber = new BN(lastSafeBlock);
+    forkBlockNumber = BigInt(lastSafeBlock);
   }
 
   const block = await getBlockByNumber(provider, forkBlockNumber);
@@ -96,7 +96,7 @@ Please use block number ${lastSafeBlock} or wait for the block to get ${
 
 async function getBlockByNumber(
   provider: HttpProvider,
-  blockNumber: BN
+  blockNumber: bigint
 ): Promise<RpcBlockOutput> {
   const rpcBlockOutput = (await provider.request({
     method: "eth_getBlockByNumber",

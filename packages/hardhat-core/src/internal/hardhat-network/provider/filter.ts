@@ -3,7 +3,7 @@ import { Bloom } from "@ethereumjs/vm";
 
 import { RpcLogOutput } from "./output";
 
-export const LATEST_BLOCK = new BN(-1);
+export const LATEST_BLOCK = -1n;
 
 export enum Type {
   LOGS_SUBSCRIPTION = 0,
@@ -12,14 +12,14 @@ export enum Type {
 }
 
 export interface FilterCriteria {
-  fromBlock: BN;
-  toBlock: BN;
+  fromBlock: bigint;
+  toBlock: bigint;
   addresses: Buffer[];
   normalizedTopics: Array<Array<Buffer | null> | null>;
 }
 
 export interface Filter {
-  id: BN;
+  id: bigint;
   type: Type;
   criteria?: FilterCriteria;
   deadline: Date;

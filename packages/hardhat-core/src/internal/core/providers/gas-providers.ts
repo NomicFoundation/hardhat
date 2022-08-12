@@ -10,7 +10,7 @@ import { ProviderWrapper } from "./wrapper";
 const DEFAULT_GAS_MULTIPLIER = 1;
 
 export class FixedGasProvider extends ProviderWrapper {
-  constructor(provider: EIP1193Provider, private readonly _gasLimit: number) {
+  constructor(provider: EIP1193Provider, private readonly _gasLimit: bigint) {
     super(provider);
   }
 
@@ -30,7 +30,7 @@ export class FixedGasProvider extends ProviderWrapper {
 }
 
 export class FixedGasPriceProvider extends ProviderWrapper {
-  constructor(provider: EIP1193Provider, private readonly _gasPrice: number) {
+  constructor(provider: EIP1193Provider, private readonly _gasPrice: bigint) {
     super(provider);
   }
 
@@ -139,10 +139,11 @@ export class AutomaticGasProvider extends MultipliedGasEstimationProvider {
 export class AutomaticGasPriceProvider extends ProviderWrapper {
   // We pay the max base fee that can be required if the next
   // EIP1559_BASE_FEE_MAX_FULL_BLOCKS_PREFERENCE are full.
-  public static readonly EIP1559_BASE_FEE_MAX_FULL_BLOCKS_PREFERENCE: number = 3;
+  public static readonly EIP1559_BASE_FEE_MAX_FULL_BLOCKS_PREFERENCE: bigint =
+    3n;
 
   // See eth_feeHistory for an explanation of what this means
-  public static readonly EIP1559_REWARD_PERCENTILE: number = 50;
+  public static readonly EIP1559_REWARD_PERCENTILE: bigint = 50n;
 
   private _nodeHasFeeHistory?: boolean;
   private _nodeSupportsEIP1559?: boolean;
@@ -194,12 +195,12 @@ export class AutomaticGasPriceProvider extends ProviderWrapper {
 
     let maxFeePerGas =
       tx.maxFeePerGas !== undefined
-        ? rpcQuantityToBN(tx.maxFeePerGas)
+        ? rpcQuantityToBigInt(tx.maxFeePerGas)
         : suggestedEip1559Values.maxFeePerGas;
 
     const maxPriorityFeePerGas =
       tx.maxPriorityFeePerGas !== undefined
-        ? rpcQuantityToBN(tx.maxPriorityFeePerGas)
+        ? rpcQuantityToBigInt(tx.maxPriorityFeePerGas)
         : suggestedEip1559Values.maxPriorityFeePerGas;
 
     if (maxFeePerGas.lt(maxPriorityFeePerGas)) {
@@ -212,18 +213,18 @@ export class AutomaticGasPriceProvider extends ProviderWrapper {
     return this._wrappedProvider.request(args);
   }
 
-  private async _getGasPrice(): Promise<BN> {
+  private async _getGasPrice(): Promise<bigint> {
     const response = (await this._wrappedProvider.request({
       method: "eth_gasPrice",
     })) as string;
 
-    return rpcQuantityToBN(response);
+    return rpcQuantityToBigInt(response);
   }
 
   private async _suggestEip1559FeePriceValues(): Promise<
     | {
-        maxFeePerGas: BN;
-        maxPriorityFeePerGas: BN;
+        maxFeePerGas: bigint;
+        maxPriorityFeePerGas: bigint;
       }
     | undefined
   > {

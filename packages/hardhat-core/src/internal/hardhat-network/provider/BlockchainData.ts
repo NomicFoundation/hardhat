@@ -10,32 +10,32 @@ import { FilterParams } from "./node-types";
 import { RpcLogOutput, RpcReceiptOutput } from "./output";
 
 interface Reservation {
-  first: BN;
-  last: BN;
-  interval: BN;
+  first: bigint;
+  last: bigint;
+  interval: bigint;
   previousBlockStateRoot: Buffer;
-  previousBlockTotalDifficulty: BN;
-  previousBlockBaseFeePerGas: BN | undefined;
+  previousBlockTotalDifficulty: bigint;
+  previousBlockBaseFeePerGas: bigint | undefined;
 }
 
 export class BlockchainData {
-  private _blocksByNumber: Map<number, Block> = new Map();
+  private _blocksByNumber: Map<bigint, Block> = new Map();
   private _blocksByHash: Map<string, Block> = new Map();
   private _blocksByTransactions: Map<string, Block> = new Map();
   private _transactions: Map<string, TypedTransaction> = new Map();
   private _transactionReceipts: Map<string, RpcReceiptOutput> = new Map();
-  private _totalDifficulty: Map<string, BN> = new Map();
+  private _totalDifficulty: Map<string, bigint> = new Map();
   private _blockReservations: Reservation[] = new Array();
 
   constructor(private _common: Common) {}
 
   public reserveBlocks(
-    first: BN,
-    count: BN,
-    interval: BN,
+    first: bigint,
+    count: bigint,
+    interval: bigint,
     previousBlockStateRoot: Buffer,
-    previousBlockTotalDifficulty: BN,
-    previousBlockBaseFeePerGas: BN | undefined
+    previousBlockTotalDifficulty: bigint,
+    previousBlockBaseFeePerGas: bigint | undefined
   ) {
     const reservation: Reservation = {
       first,
@@ -48,8 +48,8 @@ export class BlockchainData {
     this._blockReservations.push(reservation);
   }
 
-  public getBlockByNumber(blockNumber: BN) {
-    return this._blocksByNumber.get(blockNumber.toNumber());
+  public getBlockByNumber(blockNumber: bigint) {
+    return this._blocksByNumber.get(blockNumber);
   }
 
   public getBlockByHash(blockHash: Buffer) {
@@ -107,9 +107,9 @@ export class BlockchainData {
     return logs;
   }
 
-  public addBlock(block: Block, totalDifficulty: BN) {
+  public addBlock(block: Block, totalDifficulty: bigint) {
     const blockHash = bufferToHex(block.hash());
-    const blockNumber = new BN(block.header.number).toNumber();
+    const blockNumber = block.header.number;
     this._blocksByNumber.set(blockNumber, block);
     this._blocksByHash.set(blockHash, block);
     this._totalDifficulty.set(blockHash, totalDifficulty);
@@ -128,7 +128,7 @@ export class BlockchainData {
    */
   public removeBlock(block: Block) {
     const blockHash = bufferToHex(block.hash());
-    const blockNumber = new BN(block.header.number).toNumber();
+    const blockNumber = block.header.number;
     this._blocksByNumber.delete(blockNumber);
     this._blocksByHash.delete(blockHash);
     this._totalDifficulty.delete(blockHash);
@@ -149,11 +149,11 @@ export class BlockchainData {
     this._transactionReceipts.set(receipt.transactionHash, receipt);
   }
 
-  public isReservedBlock(blockNumber: BN): boolean {
+  public isReservedBlock(blockNumber: bigint): boolean {
     return this._findBlockReservation(blockNumber) !== -1;
   }
 
-  private _findBlockReservation(blockNumber: BN): number {
+  private _findBlockReservation(blockNumber: bigint): number {
     return this._blockReservations.findIndex(
       (reservation) =>
         reservation.first.lte(blockNumber) && blockNumber.lte(reservation.last)
@@ -180,11 +180,11 @@ export class BlockchainData {
   /**
    * Cancel and return the reservation that has block `blockNumber`
    */
-  public cancelReservationWithBlock(blockNumber: BN): Reservation {
+  public cancelReservationWithBlock(blockNumber: bigint): Reservation {
     return this._removeReservation(this._findBlockReservation(blockNumber));
   }
 
-  public fulfillBlockReservation(blockNumber: BN) {
+  public fulfillBlockReservation(blockNumber: bigint) {
     // in addition to adding the given block, the reservation needs to be split
     // in two in order to accomodate access to the given block.
 
@@ -230,7 +230,7 @@ export class BlockchainData {
     );
   }
 
-  private _calculateTimestampForReservedBlock(blockNumber: BN): BN {
+  private _calculateTimestampForReservedBlock(blockNumber: bigint): bigint {
     const reservationIndex = this._findBlockReservation(blockNumber);
 
     assertHardhatInvariant(

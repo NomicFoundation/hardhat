@@ -17,7 +17,7 @@ import {
 
 const MAX_PRECOMPILE_NUMBER = Object.keys(precompiles).length + 1;
 const DUMMY_RETURN_DATA = Buffer.from([]);
-const DUMMY_GAS_USED = new BN(0);
+const DUMMY_GAS_USED = 0n;
 
 export class VMTracer {
   private _messageTraces: MessageTrace[] = [];

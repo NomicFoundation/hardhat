@@ -14,30 +14,30 @@ export class HardhatBlockchain
   extends BlockchainBase
   implements HardhatBlockchainInterface
 {
-  private _length = 0;
+  private _length = 0n;
 
   constructor(common: Common) {
     super(common);
   }
 
-  public getLatestBlockNumber(): BN {
-    return new BN(this._length - 1);
+  public getLatestBlockNumber(): bigint {
+    return BigInt(this._length - 1n);
   }
 
   public async addBlock(block: Block): Promise<Block> {
     this._validateBlock(block);
     const totalDifficulty = await this._computeTotalDifficulty(block);
     this._data.addBlock(block, totalDifficulty);
-    this._length += 1;
+    this._length += 1n;
     return block;
   }
 
   public reserveBlocks(
-    count: BN,
-    interval: BN,
+    count: bigint,
+    interval: bigint,
     previousBlockStateRoot: Buffer,
-    previousBlockTotalDifficulty: BN,
-    previousBlockBaseFeePerGas: BN | undefined
+    previousBlockTotalDifficulty: bigint,
+    previousBlockBaseFeePerGas: bigint | undefined
   ) {
     super.reserveBlocks(
       count,
@@ -58,7 +58,7 @@ export class HardhatBlockchain
     this._delBlock(actual.header.number.addn(1));
   }
 
-  public async getTotalDifficulty(blockHash: Buffer): Promise<BN> {
+  public async getTotalDifficulty(blockHash: Buffer): Promise<bigint> {
     const totalDifficulty = this._data.getTotalDifficulty(blockHash);
     if (totalDifficulty === undefined) {
       throw new Error("Block not found");
@@ -88,18 +88,18 @@ export class HardhatBlockchain
   }
 
   private _validateBlock(block: Block) {
-    const blockNumber = block.header.number.toNumber();
+    const blockNumber = block.header.number;
     const parentHash = block.header.parentHash;
-    const parent = this._data.getBlockByNumber(new BN(blockNumber - 1));
+    const parent = this._data.getBlockByNumber(BigInt(blockNumber - 1n));
 
-    if (this._length !== blockNumber) {
+    if (BigInt(this._length) !== blockNumber) {
       throw new Error(
         `Invalid block number ${blockNumber}. Expected ${this._length}.`
       );
     }
 
     if (
-      (blockNumber === 0 && !parentHash.equals(zeros(32))) ||
+      (blockNumber === 0n && !parentHash.equals(zeros(32))) ||
       (blockNumber > 0 &&
         parent !== undefined &&
         !parentHash.equals(parent.hash()))
@@ -108,8 +108,8 @@ export class HardhatBlockchain
     }
   }
 
-  protected _delBlock(blockNumber: BN): void {
+  protected _delBlock(blockNumber: bigint): void {
     super._delBlock(blockNumber);
-    this._length = blockNumber.toNumber();
+    this._length = blockNumber;
   }
 }

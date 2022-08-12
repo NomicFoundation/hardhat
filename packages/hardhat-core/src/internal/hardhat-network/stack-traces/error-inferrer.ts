@@ -1120,7 +1120,7 @@ export class ErrorInferrer {
   private _instructionWithinFunctionToPanicStackTraceEntry(
     trace: DecodedEvmMessageTrace,
     inst: Instruction,
-    errorCode: BN
+    errorCode: bigint
   ): PanicErrorStackTraceEntry {
     return {
       type: StackTraceEntryType.PANIC_ERROR,

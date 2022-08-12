@@ -522,7 +522,7 @@ export class EthModule {
     }
 
     let block: Block | undefined;
-    let totalDifficulty: BN | undefined;
+    let totalDifficulty: bigint | undefined;
 
     if (numberOrPending === "pending") {
       [block, totalDifficulty] =
@@ -607,12 +607,12 @@ export class EthModule {
 
   // eth_getFilterChanges
 
-  private _getFilterChangesParams(params: any[]): [BN] {
+  private _getFilterChangesParams(params: any[]): [bigint] {
     return validateParams(params, rpcQuantity);
   }
 
   private async _getFilterChangesAction(
-    filterId: BN
+    filterId: bigint
   ): Promise<string[] | RpcLogOutput[] | null> {
     const changes = await this._node.getFilterChanges(filterId);
     if (changes === undefined) {
@@ -624,12 +624,12 @@ export class EthModule {
 
   // eth_getFilterLogs
 
-  private _getFilterLogsParams(params: any[]): [BN] {
+  private _getFilterLogsParams(params: any[]): [bigint] {
     return validateParams(params, rpcQuantity);
   }
 
   private async _getFilterLogsAction(
-    filterId: BN
+    filterId: bigint
   ): Promise<RpcLogOutput[] | null> {
     const changes = await this._node.getFilterLogs(filterId);
     if (changes === undefined) {
@@ -691,7 +691,7 @@ export class EthModule {
 
   private _getStorageAtParams(
     params: any[]
-  ): [Buffer, BN, OptionalRpcNewBlockTag] {
+  ): [Buffer, bigint, OptionalRpcNewBlockTag] {
     return validateParams(
       params,
       rpcAddress,
@@ -702,7 +702,7 @@ export class EthModule {
 
   private async _getStorageAtAction(
     address: Buffer,
-    slot: BN,
+    slot: bigint,
     blockTag: OptionalRpcNewBlockTag
   ): Promise<string> {
     const blockNumberOrPending = await this._resolveNewBlockTag(blockTag);
@@ -720,15 +720,15 @@ export class EthModule {
 
   private _getTransactionByBlockHashAndIndexParams(
     params: any[]
-  ): [Buffer, BN] {
+  ): [Buffer, bigint] {
     return validateParams(params, rpcHash, rpcQuantity);
   }
 
   private async _getTransactionByBlockHashAndIndexAction(
     hash: Buffer,
-    index: BN
+    index: bigint
   ): Promise<RpcTransactionOutput | null> {
-    const i = index.toNumber();
+    const i = Number(index);
     const block = await this._node.getBlockByHash(hash);
     if (block === undefined) {
       return null;
@@ -751,13 +751,13 @@ export class EthModule {
 
   private _getTransactionByBlockNumberAndIndexParams(
     params: any[]
-  ): [RpcOldBlockTag, BN] {
+  ): [RpcOldBlockTag, bigint] {
     return validateParams(params, rpcOldBlockTag, rpcQuantity);
   }
 
   private async _getTransactionByBlockNumberAndIndexAction(
     oldBlockTag: RpcOldBlockTag,
-    index: BN
+    index: bigint
   ): Promise<RpcTransactionOutput | null> {
     const numberOrPending = await this._resolveOldBlockTag(oldBlockTag);
     if (numberOrPending === undefined) {
@@ -765,7 +765,7 @@ export class EthModule {
     }
 
     const block = await this._node.getBlockByNumber(numberOrPending);
-    const i = index.toNumber();
+    const i = Number(index);
 
     if (block === undefined) {
       return null;
@@ -986,7 +986,7 @@ export class EthModule {
         }
 
         if (error.message.includes("The chain ID does not match")) {
-          const chainId = this._common.chainIdBN().toString();
+          const chainId = this._common.chainId();
           throw new InvalidArgumentsError(
             `Trying to send a raw transaction with an invalid chainId. The expected chainId is ${chainId}`,
             error
@@ -1017,7 +1017,7 @@ export class EthModule {
   private async _sendTransactionAction(
     transactionRequest: RpcTransactionRequest
   ): Promise<string> {
-    const expectedChainId = this._common.chainIdBN();
+    const expectedChainId = this._common.chainId();
     if (
       transactionRequest.chainId !== undefined &&
       !transactionRequest.chainId.eq(expectedChainId)
@@ -1143,21 +1143,21 @@ export class EthModule {
 
   // eth_uninstallFilter
 
-  private _uninstallFilterParams(params: any): [BN] {
+  private _uninstallFilterParams(params: any): [bigint] {
     return validateParams(params, rpcQuantity);
   }
 
-  private async _uninstallFilterAction(filterId: BN): Promise<boolean> {
+  private async _uninstallFilterAction(filterId: bigint): Promise<boolean> {
     return this._node.uninstallFilter(filterId, false);
   }
 
   // eth_unsubscribe
 
-  private _unsubscribeParams(params: any[]): [BN] {
+  private _unsubscribeParams(params: any[]): [bigint] {
     return validateParams(params, rpcQuantity);
   }
 
-  private async _unsubscribeAction(filterId: BN): Promise<boolean> {
+  private async _unsubscribeAction(filterId: bigint): Promise<boolean> {
     return this._node.uninstallFilter(filterId, true);
   }
 
@@ -1165,7 +1165,7 @@ export class EthModule {
 
   private _feeHistoryParams(
     params: any[]
-  ): [BN, RpcNewBlockTag, number[] | undefined] {
+  ): [bigint, RpcNewBlockTag, number[] | undefined] {
     const [blockCount, newestBlock, rewardPercentiles] = validateParams(
       params,
       rpcQuantity,
@@ -1206,7 +1206,7 @@ export class EthModule {
   }
 
   private async _feeHistoryAction(
-    blockCount: BN,
+    blockCount: bigint,
     newestBlock: RpcNewBlockTag,
     rewardPercentiles?: number[]
   ) {
@@ -1354,7 +1354,7 @@ export class EthModule {
 
   private async _resolveOldBlockTag(
     oldBlockTag: RpcOldBlockTag
-  ): Promise<BN | "pending" | undefined> {
+  ): Promise<bigint | "pending" | undefined> {
     if (oldBlockTag === undefined || oldBlockTag === "latest") {
       return this._node.getLatestBlockNumber();
     }
@@ -1364,7 +1364,7 @@ export class EthModule {
     }
 
     if (oldBlockTag === "earliest") {
-      return new BN(0);
+      return 0n;
     }
 
     const block = await this._node.getBlockByNumber(oldBlockTag);
@@ -1374,7 +1374,7 @@ export class EthModule {
   private async _resolveNewBlockTag(
     newBlockTag: OptionalRpcNewBlockTag,
     defaultValue: RpcNewBlockTag = "latest"
-  ): Promise<BN | "pending"> {
+  ): Promise<bigint | "pending"> {
     if (newBlockTag === undefined) {
       newBlockTag = defaultValue;
     }
@@ -1388,7 +1388,7 @@ export class EthModule {
     }
 
     if (newBlockTag === "earliest") {
-      return new BN(0);
+      return 0n;
     }
 
     if ("blockNumber" in newBlockTag && "blockHash" in newBlockTag) {
@@ -1404,7 +1404,7 @@ export class EthModule {
     }
 
     let block: Block | undefined;
-    if (BN.isBN(newBlockTag)) {
+    if (BigIntUtils.isBigInt(newBlockTag)) {
       block = await this._node.getBlockByNumber(newBlockTag);
     } else if ("blockNumber" in newBlockTag) {
       block = await this._node.getBlockByNumber(newBlockTag.blockNumber);
@@ -1427,7 +1427,7 @@ export class EthModule {
 
   private async _normalizeOldBlockTagForFilterRequest(
     blockTag: OptionalRpcOldBlockTag
-  ): Promise<BN> {
+  ): Promise<bigint> {
     if (
       blockTag === undefined ||
       blockTag === "latest" ||
@@ -1437,7 +1437,7 @@ export class EthModule {
     }
 
     if (blockTag === "earliest") {
-      return new BN(0);
+      return 0n;
     }
 
     return blockTag;
@@ -1448,7 +1448,7 @@ export class EthModule {
       return tag;
     }
 
-    if (BN.isBN(tag)) {
+    if (BigIntUtils.isBigInt(tag)) {
       return tag.toString();
     }
 
@@ -1570,7 +1570,7 @@ export class EthModule {
         const blockNumber = sentTxResult.block.header.number;
         const code = await this._node.getCodeFromTrace(
           sentTxTrace.trace,
-          new BN(blockNumber)
+          blockNumber
         );
 
         const { block, blockResult } = sentTxResult;
@@ -1591,12 +1591,12 @@ export class EthModule {
   private async _logSingleTransaction(
     tx: TypedTransaction,
     block: Block,
-    txGasUsed: number,
+    txGasUsed: bigint,
     txTrace: GatherTracesResult
   ) {
     const code = await this._node.getCodeFromTrace(
       txTrace.trace,
-      new BN(block.header.number)
+      block.header.number
     );
     this._logger.logSingleTransaction(tx, block, txGasUsed, txTrace, code);
 
@@ -1610,7 +1610,7 @@ export class EthModule {
     for (const txTrace of traces) {
       const code = await this._node.getCodeFromTrace(
         txTrace.trace,
-        new BN(block.header.number)
+        block.header.number
       );
 
       codes.push(code);

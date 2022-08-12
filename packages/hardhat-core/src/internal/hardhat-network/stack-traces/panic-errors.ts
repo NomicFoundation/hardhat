@@ -1,6 +1,4 @@
-import { BN } from "ethereumjs-util";
-
-export function panicErrorCodeToMessage(errorCode: BN): string {
+export function panicErrorCodeToMessage(errorCode: bigint): string {
   const reason = panicErrorCodeToReason(errorCode);
 
   if (reason !== undefined) {

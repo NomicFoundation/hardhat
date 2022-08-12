@@ -17,17 +17,17 @@ export function isForkedNodeConfig(
 
 interface CommonConfig {
   automine: boolean;
-  blockGasLimit: number;
+  blockGasLimit: bigint;
   chainId: number;
   genesisAccounts: GenesisAccount[];
   hardfork: string;
-  minGasPrice: BN;
+  minGasPrice: bigint;
   networkId: number;
   networkName: string;
   allowUnlimitedContractSize?: boolean;
   initialDate?: Date;
   tracingConfig?: TracingConfig;
-  initialBaseFeePerGas?: number;
+  initialBaseFeePerGas?: bigint;
   mempoolOrder: MempoolOrder;
   coinbase: string;
   chains: HardhatNetworkChainsConfig;
@@ -56,7 +56,7 @@ export type MempoolOrder = typeof HARDHAT_MEMPOOL_SUPPORTED_ORDERS[number];
 
 export interface GenesisAccount {
   privateKey: string;
-  balance: string | number | BN;
+  balance: string | number | bigint;
 }
 
 export type AccessListBufferItem = [Buffer, Buffer[]];
@@ -64,16 +64,16 @@ export type AccessListBufferItem = [Buffer, Buffer[]];
 export interface CallParams {
   to?: Buffer;
   from: Buffer;
-  gasLimit: BN;
-  value: BN;
+  gasLimit: bigint;
+  value: bigint;
   data: Buffer;
   // We use this access list format because @ethereumjs/tx access list data
   // forces us to use it or stringify them
   accessList?: AccessListBufferItem[];
   // Fee params
-  gasPrice?: BN;
-  maxFeePerGas?: BN;
-  maxPriorityFeePerGas?: BN;
+  gasPrice?: bigint;
+  maxFeePerGas?: bigint;
+  maxPriorityFeePerGas?: bigint;
 }
 
 export type TransactionParams =
@@ -85,18 +85,18 @@ interface BaseTransactionParams {
   // `to` should be undefined for contract creation
   to?: Buffer;
   from: Buffer;
-  gasLimit: BN;
-  value: BN;
+  gasLimit: bigint;
+  value: bigint;
   data: Buffer;
-  nonce: BN;
+  nonce: bigint;
 }
 
 export interface LegacyTransactionParams extends BaseTransactionParams {
-  gasPrice: BN;
+  gasPrice: bigint;
 }
 
 export interface AccessListTransactionParams extends BaseTransactionParams {
-  gasPrice: BN;
+  gasPrice: bigint;
   // We use this access list format because @ethereumjs/tx access list data
   // forces us to use it or stringify them
   accessList: AccessListBufferItem[];
@@ -106,13 +106,13 @@ export interface AccessListTransactionParams extends BaseTransactionParams {
 
 export interface EIP1559TransactionParams extends BaseTransactionParams {
   accessList: AccessListBufferItem[];
-  maxFeePerGas: BN;
-  maxPriorityFeePerGas: BN;
+  maxFeePerGas: bigint;
+  maxPriorityFeePerGas: bigint;
 }
 
 export interface FilterParams {
-  fromBlock: BN;
-  toBlock: BN;
+  fromBlock: bigint;
+  toBlock: bigint;
   addresses: Buffer[];
   normalizedTopics: Array<Array<Buffer | null> | null>;
 }
@@ -123,10 +123,10 @@ export interface Snapshot {
   latestBlock: Block;
   stateRoot: Buffer;
   txPoolSnapshotId: number;
-  blockTimeOffsetSeconds: BN;
-  nextBlockTimestamp: BN;
-  irregularStatesByBlockNumber: Map<string, Buffer>;
-  userProvidedNextBlockBaseFeePerGas: BN | undefined;
+  blockTimeOffsetSeconds: bigint;
+  nextBlockTimestamp: bigint;
+  irregularStatesByBlockNumber: Map<bigint, Buffer>;
+  userProvidedNextBlockBaseFeePerGas: bigint | undefined;
   coinbase: string;
 }
 
@@ -146,7 +146,7 @@ export interface RunCallResult extends GatherTracesResult {
 }
 
 export interface EstimateGasResult extends GatherTracesResult {
-  estimation: BN;
+  estimation: bigint;
 }
 
 export interface GatherTracesResult {
@@ -156,8 +156,8 @@ export interface GatherTracesResult {
 }
 
 export interface FeeHistory {
-  oldestBlock: BN;
-  baseFeePerGas: BN[];
+  oldestBlock: bigint;
+  baseFeePerGas: bigint[];
   gasUsedRatio: number[];
-  reward?: BN[][];
+  reward?: bigint[][];
 }

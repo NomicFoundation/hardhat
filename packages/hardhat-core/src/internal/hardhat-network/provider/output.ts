@@ -151,7 +151,7 @@ export interface RpcDebugTraceOutput {
 
 export function getRpcBlock(
   block: Block,
-  totalDifficulty: BN,
+  totalDifficulty: bigint,
   showTransactionType: boolean,
   includeTransactions = true,
   pending = false
@@ -163,7 +163,7 @@ export function getRpcBlock(
     : block.transactions.map((tx) => bufferToRpcData(tx.hash()));
 
   const output: RpcBlockOutput = {
-    number: pending ? null : numberToRpcQuantity(new BN(block.header.number)),
+    number: pending ? null : numberToRpcQuantity(block.header.number),
     hash: pending ? null : bufferToRpcData(block.hash()),
     parentHash: bufferToRpcData(block.header.parentHash),
     // We pad this to 8 bytes because of a limitation in The Graph
@@ -434,9 +434,7 @@ function getRpcLogOutput(
     transactionHash: block !== undefined ? bufferToRpcData(tx.hash()) : null,
     blockHash: block !== undefined ? bufferToRpcData(block.hash()) : null,
     blockNumber:
-      block !== undefined
-        ? numberToRpcQuantity(new BN(block.header.number))
-        : null,
+      block !== undefined ? numberToRpcQuantity(block.header.number) : null,
     address: bufferToRpcData(log[0]),
     data: bufferToRpcData(log[2]),
     topics: log[1].map((topic: Buffer) => bufferToRpcData(topic)),
