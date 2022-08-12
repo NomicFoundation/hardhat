@@ -15,7 +15,6 @@ import {
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
-const MAX_PRECOMPILE_NUMBER = Object.keys(precompiles).length + 1;
 const DUMMY_RETURN_DATA = Buffer.from([]);
 const DUMMY_GAS_USED = 0n;
 
@@ -23,6 +22,7 @@ export class VMTracer {
   private _messageTraces: MessageTrace[] = [];
   private _enabled = false;
   private _lastError: Error | undefined;
+  private _maxPrecompileNumber = getActivePrecompiles(this._vm._common).size;
 
   constructor(
     private readonly _vm: VM,
