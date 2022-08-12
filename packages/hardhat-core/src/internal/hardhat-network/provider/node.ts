@@ -782,7 +782,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       };
     }
 
-    const initialEstimation = result.gasUsed;
+    const initialEstimation = result.totalGasSpent;
 
     return {
       estimation: await this._correctInitialEstimation(

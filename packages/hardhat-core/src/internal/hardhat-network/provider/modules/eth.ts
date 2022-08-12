@@ -1548,7 +1548,7 @@ export class EthModule {
     if (singleTransactionMined) {
       const block = results[0].block;
       const tx = block.transactions[0];
-      const txGasUsed = results[0].blockResult.results[0].gasUsed.toNumber();
+      const txGasUsed = results[0].blockResult.results[0].totalGasSpent;
       const trace = results[0].traces[0];
       await this._logSingleTransaction(tx, block, txGasUsed, trace);
 
@@ -1574,7 +1574,7 @@ export class EthModule {
         );
 
         const { block, blockResult } = sentTxResult;
-        const gasUsed = blockResult.results[sentTxIndex].gasUsed.toNumber();
+        const gasUsed = blockResult.results[sentTxIndex].totalGasSpent;
         this._logger.logCurrentlySentTransaction(
           sentTx,
           gasUsed,

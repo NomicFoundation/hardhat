@@ -295,7 +295,7 @@ export function getRpcReceiptOutputsFromLocalBlockExecution(
 
   for (let i = 0; i < runBlockResult.results.length; i += 1) {
     const tx = block.transactions[i];
-    const { createdAddress, gasUsed } = runBlockResult.results[i];
+    const { createdAddress, totalGasSpent } = runBlockResult.results[i];
     const receipt = runBlockResult.receipts[i];
 
     const logs = receipt.logs.map((log) => {
@@ -311,8 +311,8 @@ export function getRpcReceiptOutputsFromLocalBlockExecution(
       blockNumber: numberToRpcQuantity(block.header.number),
       from: bufferToRpcData(tx.getSenderAddress().toBuffer()),
       to: tx.to === undefined ? null : bufferToRpcData(tx.to.toBuffer()),
-      cumulativeGasUsed: numberToRpcQuantity(new BN(receipt.gasUsed)),
-      gasUsed: numberToRpcQuantity(gasUsed),
+      cumulativeGasUsed: numberToRpcQuantity(receipt.cumulativeBlockGasUsed),
+      gasUsed: numberToRpcQuantity(totalGasSpent),
       contractAddress:
         createdAddress !== undefined
           ? bufferToRpcData(createdAddress.toBuffer())

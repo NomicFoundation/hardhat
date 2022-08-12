@@ -108,7 +108,8 @@ export class ModulesLogger {
 
         for (let i = 0; i < block.transactions.length; i++) {
           const tx = block.transactions[i];
-          const txGasUsed = results[i].gasUsed.toNumber();
+
+          const txGasUsed = results[i].totalGasSpent;
           const txTrace = traces[i];
           const code = codes[i];
 
@@ -155,7 +156,7 @@ export class ModulesLogger {
 
           for (let i = 0; i < block.transactions.length; i++) {
             const tx = block.transactions[i];
-            const txGasUsed = results[i].gasUsed.toNumber();
+            const txGasUsed = results[i].totalGasSpent;
             const txTrace = traces[i];
             const code = codes[i];
 
@@ -187,7 +188,7 @@ export class ModulesLogger {
 
         for (let i = 0; i < block.transactions.length; i++) {
           const tx = block.transactions[i];
-          const txGasUsed = results[i].gasUsed.toNumber();
+          const txGasUsed = results[i].totalGasSpent;
           const txTrace = traces[i];
           const code = codes[i];
 
