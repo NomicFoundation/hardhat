@@ -14,10 +14,10 @@ export type DecodedEvmMessageTrace =
   | DecodedCallMessageTrace;
 
 export interface BaseMessageTrace {
-  value: BN;
+  value: bigint;
   returnData: Buffer;
-  error?: VmError;
-  gasUsed: BN;
+  error?: EvmError;
+  gasUsed: bigint;
   depth: number;
 }
 
@@ -28,9 +28,9 @@ export interface PrecompileMessageTrace extends BaseMessageTrace {
 
 export interface BaseEvmMessageTrace extends BaseMessageTrace {
   code: Buffer;
-  value: BN;
+  value: bigint;
   returnData: Buffer;
-  error?: VmError;
+  error?: EvmError;
   steps: MessageTraceStep[];
   bytecode?: Bytecode;
   // The following is just an optimization: When processing this traces it's useful to know ahead of

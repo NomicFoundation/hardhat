@@ -203,8 +203,8 @@ export class AutomaticGasPriceProvider extends ProviderWrapper {
         ? rpcQuantityToBigInt(tx.maxPriorityFeePerGas)
         : suggestedEip1559Values.maxPriorityFeePerGas;
 
-    if (maxFeePerGas.lt(maxPriorityFeePerGas)) {
-      maxFeePerGas = maxFeePerGas.add(maxPriorityFeePerGas);
+    if (maxFeePerGas < maxPriorityFeePerGas) {
+      maxFeePerGas += maxPriorityFeePerGas;
     }
 
     tx.maxFeePerGas = numberToRpcQuantity(maxFeePerGas);
@@ -258,25 +258,17 @@ export class AutomaticGasPriceProvider extends ProviderWrapper {
         // Each block increases the base fee by 1/8 at most, when full.
         // We have the next block's base fee, so we compute a cap for the
         // next N blocks here.
-        maxFeePerGas: rpcQuantityToBN(response.baseFeePerGas[1])
-          .mul(
-            new BN(9).pow(
-              new BN(
-                AutomaticGasPriceProvider.EIP1559_BASE_FEE_MAX_FULL_BLOCKS_PREFERENCE -
-                  1
-              )
-            )
-          )
-          .div(
-            new BN(8).pow(
-              new BN(
-                AutomaticGasPriceProvider.EIP1559_BASE_FEE_MAX_FULL_BLOCKS_PREFERENCE -
-                  1
-              )
-            )
-          ),
 
-        maxPriorityFeePerGas: rpcQuantityToBN(response.reward[0][0]),
+        maxFeePerGas:
+          (rpcQuantityToBigInt(response.baseFeePerGas[1]) *
+            9n **
+              (AutomaticGasPriceProvider.EIP1559_BASE_FEE_MAX_FULL_BLOCKS_PREFERENCE -
+                1n)) /
+          8n **
+            (AutomaticGasPriceProvider.EIP1559_BASE_FEE_MAX_FULL_BLOCKS_PREFERENCE -
+              1n),
+
+        maxPriorityFeePerGas: rpcQuantityToBigInt(response.reward[0][0]),
       };
     } catch {
       this._nodeHasFeeHistory = false;

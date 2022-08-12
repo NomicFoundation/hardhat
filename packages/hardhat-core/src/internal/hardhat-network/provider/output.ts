@@ -176,13 +176,13 @@ export function getRpcBlock(
     stateRoot: bufferToRpcData(block.header.stateRoot),
     receiptsRoot: bufferToRpcData(block.header.receiptTrie),
     miner: bufferToRpcData(block.header.coinbase.toBuffer()),
-    difficulty: numberToRpcQuantity(new BN(block.header.difficulty)),
+    difficulty: numberToRpcQuantity(block.header.difficulty),
     totalDifficulty: numberToRpcQuantity(totalDifficulty),
     extraData: bufferToRpcData(block.header.extraData),
     size: numberToRpcQuantity(block.serialize().length),
-    gasLimit: numberToRpcQuantity(new BN(block.header.gasLimit)),
-    gasUsed: numberToRpcQuantity(new BN(block.header.gasUsed)),
-    timestamp: numberToRpcQuantity(new BN(block.header.timestamp)),
+    gasLimit: numberToRpcQuantity(block.header.gasLimit),
+    gasUsed: numberToRpcQuantity(block.header.gasUsed),
+    timestamp: numberToRpcQuantity(block.header.timestamp),
     transactions,
     uncles: block.uncleHeaders.map((uh: any) => bufferToRpcData(uh.hash())),
   };
@@ -224,20 +224,18 @@ export function getRpcTransaction(
   const baseOutput = {
     blockHash: block === "pending" ? null : bufferToRpcData(block.hash()),
     blockNumber:
-      block === "pending"
-        ? null
-        : numberToRpcQuantity(new BN(block.header.number)),
+      block === "pending" ? null : numberToRpcQuantity(block.header.number),
     from: bufferToRpcData(tx.getSenderAddress().toBuffer()),
-    gas: numberToRpcQuantity(new BN(tx.gasLimit)),
+    gas: numberToRpcQuantity(tx.gasLimit),
     hash: bufferToRpcData(tx.hash()),
     input: bufferToRpcData(tx.data),
-    nonce: numberToRpcQuantity(new BN(tx.nonce)),
+    nonce: numberToRpcQuantity(tx.nonce),
     to: tx.to === undefined ? null : bufferToRpcData(tx.to.toBuffer()),
     transactionIndex: index !== undefined ? numberToRpcQuantity(index) : null,
-    value: numberToRpcQuantity(new BN(tx.value)),
-    v: numberToRpcQuantity(new BN(tx.v)),
-    r: numberToRpcQuantity(new BN(tx.r)),
-    s: numberToRpcQuantity(new BN(tx.s)),
+    value: numberToRpcQuantity(tx.value),
+    v: numberToRpcQuantity(tx.v),
+    r: numberToRpcQuantity(tx.r),
+    s: numberToRpcQuantity(tx.s),
     type:
       showTransactionType || isTypedTransaction
         ? numberToRpcQuantity(tx.transactionType)
@@ -275,14 +273,14 @@ export function getRpcTransaction(
   };
 }
 
-function getEffectiveGasPrice(tx: TypedTransaction, baseFeePerGas: BN) {
+function getEffectiveGasPrice(tx: TypedTransaction, baseFeePerGas: bigint) {
   const maxFeePerGas = "maxFeePerGas" in tx ? tx.maxFeePerGas : tx.gasPrice;
   const maxPriorityFeePerGas =
     "maxPriorityFeePerGas" in tx ? tx.maxPriorityFeePerGas : tx.gasPrice;
 
-  // baseFeePerGas + min(maxFeePerGas - baseFeePerGas, maxPriorityFeePerGas)
-  return baseFeePerGas.add(
-    BN.min(maxFeePerGas.sub(baseFeePerGas), maxPriorityFeePerGas)
+  return (
+    baseFeePerGas +
+    BigIntUtils.min(maxFeePerGas - baseFeePerGas, maxPriorityFeePerGas)
   );
 }
 
@@ -310,7 +308,7 @@ export function getRpcReceiptOutputsFromLocalBlockExecution(
       transactionHash: bufferToRpcData(tx.hash()),
       transactionIndex: numberToRpcQuantity(i),
       blockHash: bufferToRpcData(block.hash()),
-      blockNumber: numberToRpcQuantity(new BN(block.header.number)),
+      blockNumber: numberToRpcQuantity(block.header.number),
       from: bufferToRpcData(tx.getSenderAddress().toBuffer()),
       to: tx.to === undefined ? null : bufferToRpcData(tx.to.toBuffer()),
       cumulativeGasUsed: numberToRpcQuantity(new BN(receipt.gasUsed)),

@@ -55,8 +55,8 @@ export async function makeForkClient(
     }
 
     if (forkConfig.blockNumber > lastSafeBlock) {
-      const confirmations = latestBlock - forkConfig.blockNumber + 1;
-      const requiredConfirmations = maxReorg + 1;
+      const confirmations = latestBlock - BigInt(forkConfig.blockNumber) + 1n;
+      const requiredConfirmations = maxReorg + 1n;
       console.warn(
         chalk.yellow(
           `You are forking from block ${
@@ -118,6 +118,6 @@ async function getLatestBlockNumber(provider: HttpProvider) {
     method: "eth_blockNumber",
   })) as string;
 
-  const latestBlock = new BN(toBuffer(latestBlockString));
-  return latestBlock.toNumber();
+  const latestBlock = bufferToBigInt(toBuffer(latestBlockString));
+  return latestBlock;
 }

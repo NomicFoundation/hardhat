@@ -11,7 +11,9 @@ import { getCurrentTimestamp } from "./getCurrentTimestamp";
 export async function putGenesisBlock(
   blockchain: HardhatBlockchain,
   common: Common,
-  initialBaseFee?: BN
+  { initialDate, blockGasLimit }: LocalNodeConfig,
+  stateTrie: SecureTrie,
+  initialBaseFee?: bigint
 ) {
   const header: HeaderData = {};
 

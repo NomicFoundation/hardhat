@@ -84,13 +84,12 @@ export class EvmModule {
     timestamp: RpcQuantityOrNumber
   ): Promise<string> {
     const latestBlock = await this._node.getLatestBlock();
-    const increment = new BN(timestamp).sub(
-      new BN(latestBlock.header.timestamp)
-    );
-    if (increment.lte(new BN(0))) {
+    const increment = BigInt(timestamp) - latestBlock.header.timestamp;
+
+    if (increment <= 0n) {
       throw new InvalidInputError(
         `Timestamp ${timestamp.toString()} is lower than or equal to previous block's timestamp` +
-          ` ${new BN(latestBlock.header.timestamp).toNumber()}`
+          ` ${latestBlock.header.timestamp}`
       );
     }
     this._node.setNextBlockTimestamp(BigInt(timestamp));
@@ -122,17 +121,16 @@ export class EvmModule {
   }
 
   private async _mineAction(timestamp: RpcQuantityOrNumber): Promise<string> {
+    timestamp = BigInt(timestamp);
     // if timestamp is specified, make sure it is bigger than previous
     // block's timestamp
     if (timestamp !== 0n) {
       const latestBlock = await this._node.getLatestBlock();
-      const increment = new BN(timestamp).sub(
-        new BN(latestBlock.header.timestamp)
-      );
-      if (increment.lte(new BN(0))) {
+      const increment = timestamp - latestBlock.header.timestamp;
+      if (increment <= 0n) {
         throw new InvalidInputError(
           `Timestamp ${timestamp.toString()} is lower than previous block's timestamp` +
-            ` ${new BN(latestBlock.header.timestamp).toNumber()}`
+            ` ${latestBlock.header.timestamp}`
         );
       }
     }
@@ -191,12 +189,12 @@ export class EvmModule {
 
   // evm_setBlockGasLimit
 
-  private _setBlockGasLimitParams(params: any[]): [BN] {
+  private _setBlockGasLimitParams(params: any[]): [bigint] {
     return validateParams(params, rpcQuantity);
   }
 
-  private async _setBlockGasLimitAction(blockGasLimit: BN): Promise<true> {
-    if (blockGasLimit.lte(new BN(0))) {
+  private async _setBlockGasLimitAction(blockGasLimit: bigint): Promise<true> {
+    if (blockGasLimit <= 0n) {
       throw new InvalidInputError("Block gas limit must be greater than 0");
     }
 

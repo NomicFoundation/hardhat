@@ -21,7 +21,7 @@ function getEffectiveMinerFee(
     return maxFeePerGas;
   }
 
-  return BN.min(maxPriorityFeePerGas, maxFeePerGas.sub(baseFee));
+  return BigIntUtils.min(maxPriorityFeePerGas, maxFeePerGas - baseFee);
 }
 
 function decreasingOrderEffectiveMinerFeeComparator(

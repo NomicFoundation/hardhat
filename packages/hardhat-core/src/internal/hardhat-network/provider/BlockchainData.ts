@@ -39,7 +39,7 @@ export class BlockchainData {
   ) {
     const reservation: Reservation = {
       first,
-      last: first.add(count.subn(1)),
+      last: first + count - 1n,
       interval,
       previousBlockStateRoot,
       previousBlockTotalDifficulty,
@@ -74,11 +74,7 @@ export class BlockchainData {
 
   public getLogs(filterParams: FilterParams) {
     const logs: RpcLogOutput[] = [];
-    for (
-      let i = filterParams.fromBlock;
-      i.lte(filterParams.toBlock);
-      i = i.addn(1)
-    ) {
+    for (let i = filterParams.fromBlock; i <= filterParams.toBlock; i++) {
       const block = this.getBlockByNumber(i);
       if (
         block === undefined ||
@@ -156,7 +152,7 @@ export class BlockchainData {
   private _findBlockReservation(blockNumber: bigint): number {
     return this._blockReservations.findIndex(
       (reservation) =>
-        reservation.first.lte(blockNumber) && blockNumber.lte(reservation.last)
+        reservation.first <= blockNumber && blockNumber <= reservation.last
     );
   }
 
@@ -200,17 +196,17 @@ export class BlockchainData {
     // split the block reservation:
     const oldReservation = this._removeReservation(reservationIndex);
 
-    if (!blockNumber.eq(oldReservation.first)) {
+    if (blockNumber !== oldReservation.first) {
       this._blockReservations.push({
         ...oldReservation,
-        last: blockNumber.subn(1),
+        last: blockNumber - 1n,
       });
     }
 
-    if (!blockNumber.eq(oldReservation.last)) {
+    if (blockNumber !== oldReservation.last) {
       this._blockReservations.push({
         ...oldReservation,
-        first: blockNumber.addn(1),
+        first: blockNumber + 1n,
       });
     }
 
@@ -240,7 +236,7 @@ export class BlockchainData {
 
     const reservation = this._blockReservations[reservationIndex];
 
-    const blockNumberBeforeReservation = reservation.first.subn(1);
+    const blockNumberBeforeReservation = reservation.first - 1n;
 
     const blockBeforeReservation = this.getBlockByNumber(
       blockNumberBeforeReservation
@@ -254,8 +250,9 @@ export class BlockchainData {
       ? this._calculateTimestampForReservedBlock(blockNumberBeforeReservation)
       : blockBeforeReservation.header.timestamp;
 
-    return previousTimestamp.add(
-      reservation.interval.mul(blockNumber.sub(reservation.first).addn(1))
+    return (
+      previousTimestamp +
+      reservation.interval * (blockNumber - reservation.first + 1n)
     );
   }
 }

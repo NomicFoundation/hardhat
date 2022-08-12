@@ -47,8 +47,9 @@ export abstract class BlockchainBase {
     blockHashOrNumber: Buffer | bigint | number
   ): Promise<Block | null> {
     if (
-      (typeof blockHashOrNumber === "number" || BN.isBN(blockHashOrNumber)) &&
-      this._data.isReservedBlock(new BN(blockHashOrNumber))
+      (typeof blockHashOrNumber === "number" ||
+        BigIntUtils.isBigInt(blockHashOrNumber)) &&
+      this._data.isReservedBlock(BigInt(blockHashOrNumber))
     ) {
       this._data.fulfillBlockReservation(BigInt(blockHashOrNumber));
     }
@@ -109,16 +110,16 @@ export abstract class BlockchainBase {
   protected _delBlock(blockNumber: BN): void {
     let i = blockNumber;
 
-    while (i.lte(this.getLatestBlockNumber())) {
+    while (i <= this.getLatestBlockNumber()) {
       if (this._data.isReservedBlock(i)) {
         const reservation = this._data.cancelReservationWithBlock(i);
-        i = reservation.last.addn(1);
+        i = reservation.last + 1n;
       } else {
         const current = this._data.getBlockByNumber(i);
         if (current !== undefined) {
           this._data.removeBlock(current);
         }
-        i = i.addn(1);
+        i++;
       }
     }
   }
@@ -127,11 +128,11 @@ export abstract class BlockchainBase {
     const difficulty = block.header.difficulty;
     const blockNumber = block.header.number;
 
-    if (blockNumber.eqn(0)) {
+    if (blockNumber === 0n) {
       return difficulty;
     }
 
-    const parentBlock = await this.getBlock(blockNumber.subn(1));
+    const parentBlock = await this.getBlock(blockNumber - 1n);
     assertHardhatInvariant(parentBlock !== null, "Parent block should exist");
 
     const parentHash = parentBlock.hash();
@@ -141,6 +142,6 @@ export abstract class BlockchainBase {
       "Parent block should have total difficulty"
     );
 
-    return parentTD.add(difficulty);
+    return parentTD + difficulty;
   }
 }

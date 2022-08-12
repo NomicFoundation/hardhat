@@ -291,7 +291,7 @@ export class VMDebugTracer {
   private _getStack(step: InterpreterStep): string[] {
     const stack = step.stack
       .slice()
-      .map((el: BN) => el.toString("hex").padStart(64, "0"));
+      .map((el: bigint) => el.toString(16).padStart(64, "0"));
     return stack;
   }
 
@@ -322,26 +322,28 @@ export class VMDebugTracer {
       storage[key] = storageValue;
     } else if (step.opcode.name === "REVERT") {
       const [offsetBuffer, lengthBuffer] = this._getFromStack(stack, 2);
-      const length = new BN(lengthBuffer);
-      const offset = new BN(offsetBuffer);
+      const length = bufferToBigInt(lengthBuffer);
+      const offset = bufferToBigInt(offsetBuffer);
 
       const [gasIncrease, addedWords] = this._memoryExpansion(
-        memory.length,
-        length.add(offset)
+        BigInt(memory.length),
+        length + offset
       );
 
-      gasCost += gasIncrease;
+      gasCost += Number(gasIncrease);
 
       for (let i = 0; i < addedWords; i++) {
         memory.push(EMPTY_MEMORY_WORD);
       }
     } else if (step.opcode.name === "CREATE2") {
       const [, , memoryUsedBuffer] = this._getFromStack(stack, 3);
-      const memoryUsed = new BN(memoryUsedBuffer);
-      const sha3ExtraCost = divUp(memoryUsed, 32)
-        .muln(this._sha3WordGas())
-        .toNumber();
-      gasCost += sha3ExtraCost;
+      const memoryUsed = bufferToBigInt(memoryUsedBuffer);
+      const sha3ExtraCost =
+        BigIntUtils.divUp(memoryUsed, 32n) * this._sha3WordGas();
+      // const sha3ExtraCost = divUp(memoryUsed, 32)
+      //   .muln()
+      //   .toNumber();
+      gasCost += Number(sha3ExtraCost);
     } else if (
       step.opcode.name === "CALL" ||
       step.opcode.name === "STATICCALL" ||
@@ -373,22 +375,22 @@ export class VMDebugTracer {
         ] = this._getFromStack(stack, 7);
       }
 
-      const callCost = new BN(callCostBuffer);
+      const callCost = bufferToBigInt(callCostBuffer);
 
-      const value = new BN(valueBuffer);
+      const value = bufferToBigInt(valueBuffer);
 
-      const memoryLength = memory.length;
-      const inBN = new BN(inBuffer);
-      const inSizeBN = new BN(inSizeBuffer);
-      const inPosition = inSizeBN.isZero() ? inSizeBN : inBN.add(inSizeBN);
-      const outBN = new BN(outBuffer);
-      const outSizeBN = new BN(outSizeBuffer);
-      const outPosition = outSizeBN.isZero() ? outSizeBN : outBN.add(outSizeBN);
-      const memSize = inPosition.gt(outPosition) ? inPosition : outPosition;
+      const memoryLength = BigInt(memory.length);
+      const inBN = bufferToBigInt(inBuffer);
+      const inSizeBN = bufferToBigInt(inSizeBuffer);
+      const inPosition = inSizeBN === 0n ? inSizeBN : inBN + inSizeBN;
+      const outBN = bufferToBigInt(outBuffer);
+      const outSizeBN = bufferToBigInt(outSizeBuffer);
+      const outPosition = outSizeBN === 0n ? outSizeBN : outBN + outSizeBN;
+      const memSize = inPosition > outPosition ? inPosition : outPosition;
       const toAddress = new Address(recipientAddressBuffer.slice(-20));
 
       const constantGas = this._callConstantGas();
-      const availableGas = step.gasLeft.toNumber() - constantGas;
+      const availableGas = step.gasLeft - constantGas;
 
       const [memoryGas] = this._memoryExpansion(memoryLength, memSize);
 
@@ -507,9 +509,9 @@ export class VMDebugTracer {
       }
     }
 
-    let gas = 0;
+    let gas = 0n;
 
-    const transfersValue = !value.isZero();
+    const transfersValue = value !== 0n;
     const addressIsEmpty = await this._isAddressEmpty(address);
 
     if (transfersValue && addressIsEmpty) {
@@ -527,41 +529,45 @@ export class VMDebugTracer {
     return gas;
   }
 
-  private _callGas(availableGas: number, base: number, callCost: BN): number {
+  private _callGas(
+    availableGas: bigint,
+    base: bigint,
+    callCost: bigint
+  ): bigint {
     availableGas -= base;
 
-    const gas = availableGas - Math.floor(availableGas / 64);
+    const gas = availableGas - availableGas / 64n;
 
-    if (callCost.gtn(gas)) {
+    if (callCost > gas) {
       return gas;
     }
 
-    return callCost.toNumber();
+    return callCost;
   }
 
   /**
    * Returns the increase in gas and the number of added words
    */
   private _memoryExpansion(
-    currentWords: number,
-    newSize: BN
-  ): [number, number] {
-    const currentSize = new BN(currentWords).muln(32);
-    const currentWordsLength = currentSize.addn(31).divn(32);
-    const newWordsLength = newSize.addn(31).divn(32);
+    currentWords: bigint,
+    newSize: bigint
+  ): [bigint, bigint] {
+    const currentSize = currentWords * 32n;
+    const currentWordsLength = (currentSize + 31n) / 32n;
+    const newWordsLength = (newSize + 31n) / 32n;
 
-    const wordsDiff = newWordsLength.sub(currentWordsLength);
+    const wordsDiff = newWordsLength - currentWordsLength;
 
-    if (newSize.gt(currentSize)) {
+    if (newSize > currentSize) {
       const newTotalFee = this._memoryFee(newWordsLength);
       const currentTotalFee = this._memoryFee(currentWordsLength);
 
-      const fee = newTotalFee.sub(currentTotalFee);
+      const fee = newTotalFee - currentTotalFee;
 
-      return [fee.toNumber(), wordsDiff.toNumber()];
+      return [fee, wordsDiff];
     }
 
-    return [0, 0];
+    return [0n, 0n];
   }
 
   private _getFromStack(stack: string[], count: number): Buffer[] {
@@ -572,26 +578,14 @@ export class VMDebugTracer {
       .map(toBuffer);
   }
 
-  private _memoryFee(words: BN): BN {
-    const square = words.mul(words);
-    const linCoef = words.muln(this._memoryGas());
-    const quadCoef = square.divn(this._quadCoeffDiv());
-    const newTotalFee = linCoef.add(quadCoef);
+  private _memoryFee(words: bigint): bigint {
+    const square = words * words;
+    const linCoef = words * this._memoryGas();
+    const quadCoef = square / this._quadCoeffDiv();
+    const newTotalFee = linCoef + quadCoef;
 
     return newTotalFee;
   }
-}
-
-function divUp(x: BN, y: number | BN): BN {
-  y = new BN(y);
-
-  let result = x.div(y);
-
-  if (!x.mod(y).eqn(0)) {
-    result = result.addn(1);
-  }
-
-  return result;
 }
 
 function toWord(b: Buffer): string {

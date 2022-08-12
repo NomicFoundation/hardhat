@@ -1020,7 +1020,7 @@ export class EthModule {
     const expectedChainId = this._common.chainId();
     if (
       transactionRequest.chainId !== undefined &&
-      !transactionRequest.chainId.eq(expectedChainId)
+      transactionRequest.chainId !== expectedChainId
     ) {
       throw new InvalidArgumentsError(
         `Invalid chainId ${transactionRequest.chainId.toString()} provided, expected ${expectedChainId.toString()} instead.`
@@ -1173,11 +1173,11 @@ export class EthModule {
       optional(t.array(rpcFloat))
     );
 
-    if (blockCount.ltn(1)) {
+    if (blockCount < 1n) {
       throw new InvalidInputError(`blockCount should be at least 1`);
     }
 
-    if (blockCount.gtn(1024)) {
+    if (blockCount > 1024n) {
       throw new InvalidInputError(`blockCount should be at most 1024`);
     }
 
@@ -1251,7 +1251,7 @@ export class EthModule {
       data: rpcCall.data !== undefined ? rpcCall.data : toBuffer([]),
       gasLimit:
         rpcCall.gas !== undefined ? rpcCall.gas : this._node.getBlockGasLimit(),
-      value: rpcCall.value !== undefined ? rpcCall.value : new BN(0),
+      value: rpcCall.value !== undefined ? rpcCall.value : 0n,
       accessList:
         rpcCall.accessList !== undefined
           ? this._rpcAccessListToNodeAccessList(rpcCall.accessList)
@@ -1270,7 +1270,7 @@ export class EthModule {
       from: rpcTx.from,
       gasLimit:
         rpcTx.gas !== undefined ? rpcTx.gas : this._node.getBlockGasLimit(),
-      value: rpcTx.value !== undefined ? rpcTx.value : new BN(0),
+      value: rpcTx.value !== undefined ? rpcTx.value : 0n,
       data: rpcTx.data !== undefined ? rpcTx.data : toBuffer([]),
       nonce:
         rpcTx.nonce !== undefined
@@ -1298,7 +1298,7 @@ export class EthModule {
         // than that, we adjust the tip to make the tx valid
         if (
           rpcTx.maxFeePerGas !== undefined &&
-          rpcTx.maxFeePerGas.lt(rpcTx.maxPriorityFeePerGas)
+          rpcTx.maxFeePerGas < rpcTx.maxPriorityFeePerGas
         ) {
           rpcTx.maxPriorityFeePerGas = rpcTx.maxFeePerGas;
         }
@@ -1312,9 +1312,7 @@ export class EthModule {
           "EIP-1559 transactions should only be sent if the next block has baseFeePerGas"
         );
 
-        rpcTx.maxFeePerGas = baseFeePerGas
-          .muln(2)
-          .add(rpcTx.maxPriorityFeePerGas);
+        rpcTx.maxFeePerGas = 2n * baseFeePerGas + rpcTx.maxPriorityFeePerGas;
       }
 
       return {
@@ -1702,7 +1700,7 @@ You can use them by running Hardhat Network with 'hardfork' ${ACCESS_LIST_MIN_HA
     if (
       rpcRequest.maxFeePerGas !== undefined &&
       rpcRequest.maxPriorityFeePerGas !== undefined &&
-      rpcRequest.maxPriorityFeePerGas.gt(rpcRequest.maxFeePerGas)
+      rpcRequest.maxPriorityFeePerGas > rpcRequest.maxFeePerGas
     ) {
       throw new InvalidInputError(
         `maxPriorityFeePerGas (${rpcRequest.maxPriorityFeePerGas.toString()}) is bigger than maxFeePerGas (${rpcRequest.maxFeePerGas.toString()})`
@@ -1713,7 +1711,7 @@ You can use them by running Hardhat Network with 'hardfork' ${ACCESS_LIST_MIN_HA
   // TODO: Find a better place for this
   private _validateEip155HardforkRequirement(tx: Transaction) {
     // 27 and 28 are only valid for non-EIP-155 legacy txs
-    if (tx.v!.eqn(27) || tx.v!.eqn(28)) {
+    if (tx.v === 27n || tx.v === 28n) {
       return;
     }
 

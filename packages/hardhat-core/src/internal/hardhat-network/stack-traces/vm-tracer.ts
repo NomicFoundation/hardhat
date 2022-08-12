@@ -105,11 +105,11 @@ export class VMTracer {
 
         trace = createTrace;
       } else {
-        const toAsBn = new BN(message.to.toBuffer());
+        const toAsNumber = bufferToBigInt(message.to.toBuffer());
 
-        if (toAsBn.gtn(0) && toAsBn.lten(MAX_PRECOMPILE_NUMBER)) {
+        if (toAsNumber > 0 && toAsNumber <= this._maxPrecompileNumber) {
           const precompileTrace: PrecompileMessageTrace = {
-            precompile: toAsBn.toNumber(),
+            precompile: Number(toAsNumber),
             calldata: message.data,
             value: message.value,
             returnData: DUMMY_RETURN_DATA,

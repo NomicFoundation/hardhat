@@ -46,7 +46,7 @@ export class HardhatBlockchain
       previousBlockTotalDifficulty,
       previousBlockBaseFeePerGas
     );
-    this._length = this._length + count.toNumber();
+    this._length += count;
   }
 
   public deleteLaterBlocks(block: Block): void {
@@ -55,7 +55,7 @@ export class HardhatBlockchain
       throw new Error("Invalid block");
     }
 
-    this._delBlock(actual.header.number.addn(1));
+    this._delBlock(actual.header.number + 1n);
   }
 
   public async getTotalDifficulty(blockHash: Buffer): Promise<bigint> {

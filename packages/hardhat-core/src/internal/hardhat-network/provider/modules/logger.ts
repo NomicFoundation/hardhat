@@ -217,14 +217,11 @@ export class ModulesLogger {
 
       this._logTxFrom(tx.getSenderAddress().toBuffer());
       this._logTxTo(tx.to?.toBuffer(), txTrace.trace);
-      this._logTxValue(new BN(tx.value));
-      this._logWithTitle(
-        "Gas used",
-        `${txGasUsed} of ${tx.gasLimit.toNumber()}`
-      );
+      this._logTxValue(tx.value);
+      this._logWithTitle("Gas used", `${txGasUsed} of ${tx.gasLimit}`);
 
       this._logWithTitle(
-        `Block #${block.header.number.toNumber()}`,
+        `Block #${block.header.number}`,
         bufferToHex(block.hash())
       );
 
@@ -255,14 +252,11 @@ export class ModulesLogger {
 
       this._logTxFrom(tx.getSenderAddress().toBuffer());
       this._logTxTo(tx.to?.toBuffer(), txTrace.trace);
-      this._logTxValue(new BN(tx.value));
-      this._logWithTitle(
-        "Gas used",
-        `${txGasUsed} of ${tx.gasLimit.toNumber()}`
-      );
+      this._logTxValue(tx.value);
+      this._logWithTitle("Gas used", `${txGasUsed} of ${tx.gasLimit}`);
 
       this._logWithTitle(
-        `Block #${block.header.number.toNumber()}`,
+        `Block #${block.header.number}`,
         bufferToHex(block.hash())
       );
 
@@ -310,7 +304,7 @@ export class ModulesLogger {
 
       this._logTxFrom(callParams.from);
       this._logTxTo(callParams.to, trace);
-      if (callParams.value.gtn(0)) {
+      if (callParams.value > 0n) {
         this._logTxValue(callParams.value);
       }
 
@@ -593,11 +587,8 @@ export class ModulesLogger {
       this._logContractAndFunctionName(txTrace.trace, code);
       this._logTxFrom(tx.getSenderAddress().toBuffer());
       this._logTxTo(tx.to?.toBuffer(), txTrace.trace);
-      this._logTxValue(new BN(tx.value));
-      this._logWithTitle(
-        "Gas used",
-        `${txGasUsed} of ${tx.gasLimit.toNumber()}`
-      );
+      this._logTxValue(tx.value);
+      this._logWithTitle("Gas used", `${txGasUsed} of ${tx.gasLimit}`);
 
       this._logConsoleLogMessages(txTrace.consoleLogMessages);
 
@@ -753,9 +744,7 @@ export class ModulesLogger {
   }
 
   private _logBlockNumber(block: Block) {
-    this._log(
-      `Block #${block.header.number.toNumber()}: ${bufferToHex(block.hash())}`
-    );
+    this._log(`Block #${block.header.number}: ${bufferToHex(block.hash())}`);
   }
 
   private _logEmptyLineBetweenTransactions(

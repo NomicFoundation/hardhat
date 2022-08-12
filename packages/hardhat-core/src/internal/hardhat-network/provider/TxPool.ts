@@ -118,7 +118,7 @@ export class TxPool {
 
     const txNonce = tx.nonce;
 
-    if (txNonce.gt(nextPendingNonce)) {
+    if (txNonce > nextPendingNonce) {
       this._addQueuedTransaction(tx);
     } else {
       this._addPendingTransaction(tx);
@@ -253,11 +253,11 @@ export class TxPool {
 
     const lastPendingTxNonce =
       this._deserializeTransaction(lastPendingTx).data.nonce;
-    return lastPendingTxNonce.addn(1);
+    return lastPendingTxNonce + 1n;
   }
 
-  public getBlockGasLimit(): BN {
-    return new BN(toBuffer(this._state.get("blockGasLimit")));
+  public getBlockGasLimit(): bigint {
+    return bufferToBigInt(toBuffer(this._state.get("blockGasLimit")));
   }
 
   public setBlockGasLimit(newLimit: bigint | number) {
@@ -303,7 +303,7 @@ export class TxPool {
 
           // if we are dropping a pending transaction with a valid nonce,
           // then we move all the following txs to the queued list
-          if (txNonce.gte(senderNonce)) {
+          if (txNonce >= senderNonce) {
             moveToQueued = true;
           }
         }
@@ -446,16 +446,16 @@ export class TxPool {
     const senderBalance = senderAccount.balance;
 
     const maxFee = "gasPrice" in tx ? tx.gasPrice : tx.maxFeePerGas;
-    const txMaxUpfrontCost = tx.gasLimit.mul(maxFee).add(tx.value);
+    const txMaxUpfrontCost = tx.gasLimit * maxFee + tx.value;
 
-    if (txMaxUpfrontCost.gt(senderBalance)) {
+    if (txMaxUpfrontCost > senderBalance) {
       throw new InvalidInputError(
         `sender doesn't have enough funds to send tx. The max upfront cost is: ${txMaxUpfrontCost.toString()}` +
           ` and the sender's account only has: ${senderBalance.toString()}`
       );
     }
 
-    if (txNonce.lt(senderNonce)) {
+    if (txNonce < senderNonce) {
       throw new InvalidInputError(
         `Nonce too low. Expected nonce to be at least ${senderNonce.toString()} but got ${txNonce.toString()}.`
       );
@@ -464,7 +464,7 @@ export class TxPool {
     const gasLimit = tx.gasLimit;
     const baseFee = tx.getBaseFee();
 
-    if (gasLimit.lt(baseFee)) {
+    if (gasLimit < baseFee) {
       throw new InvalidInputError(
         `Transaction requires at least ${baseFee.toString()} gas but got ${gasLimit.toString()}`
       );
@@ -472,7 +472,7 @@ export class TxPool {
 
     const blockGasLimit = this.getBlockGasLimit();
 
-    if (gasLimit.gt(blockGasLimit)) {
+    if (gasLimit > blockGasLimit) {
       throw new InvalidInputError(
         `Transaction gas limit is ${gasLimit.toString()} and exceeds block gas limit of ${blockGasLimit.toString()}`
       );
@@ -575,9 +575,9 @@ export class TxPool {
     const txGasLimit = tx.data.gasLimit;
 
     return (
-      txGasLimit.lte(this.getBlockGasLimit()) &&
-      txNonce.gte(senderNonce) &&
-      tx.data.getUpfrontCost().lte(senderBalance)
+      txGasLimit <= this.getBlockGasLimit() &&
+      txNonce >= senderNonce &&
+      tx.data.getUpfrontCost() <= senderBalance
     );
   }
 
@@ -640,8 +640,8 @@ export class TxPool {
       return;
     }
 
-    const existingTxEntry = txs.findEntry((tx) =>
-      this._deserializeTransaction(tx).data.nonce.eq(new BN(newTx.data.nonce))
+    const existingTxEntry = txs.findEntry(
+      (tx) => this._deserializeTransaction(tx).data.nonce === newTx.data.nonce
     );
 
     if (existingTxEntry === undefined) {
@@ -676,13 +676,13 @@ export class TxPool {
       currentPriorityFeePerGas
     );
 
-    if (newMaxFeePerGas.lt(minNewMaxFeePerGas)) {
+    if (newMaxFeePerGas < minNewMaxFeePerGas) {
       throw new InvalidInputError(
         `Replacement transaction underpriced. A gasPrice/maxFeePerGas of at least ${minNewMaxFeePerGas.toString()} is necessary to replace the existing transaction with nonce ${newTx.data.nonce.toString()}.`
       );
     }
 
-    if (newPriorityFeePerGas.lt(minNewPriorityFeePerGas)) {
+    if (newPriorityFeePerGas < minNewPriorityFeePerGas) {
       throw new InvalidInputError(
         `Replacement transaction underpriced. A gasPrice/maxPriorityFeePerGas of at least ${minNewPriorityFeePerGas.toString()} is necessary to replace the existing transaction with nonce ${newTx.data.nonce.toString()}.`
       );
@@ -695,13 +695,13 @@ export class TxPool {
     return newTxs;
   }
 
-  private _getMinNewFeePrice(feePrice: BN): BN {
-    let minNewPriorityFee = feePrice.muln(110);
+  private _getMinNewFeePrice(feePrice: bigint): bigint {
+    let minNewPriorityFee = feePrice * 110n;
 
-    if (minNewPriorityFee.modn(100) === 0) {
-      minNewPriorityFee = minNewPriorityFee.divn(100);
+    if (minNewPriorityFee % 100n === 0n) {
+      minNewPriorityFee = minNewPriorityFee / 100n;
     } else {
-      minNewPriorityFee = minNewPriorityFee.divn(100).addn(1);
+      minNewPriorityFee = minNewPriorityFee / 100n + 1n;
     }
 
     return minNewPriorityFee;

@@ -73,15 +73,12 @@ export function filterLogs(
 ): RpcLogOutput[] {
   const filteredLogs: RpcLogOutput[] = [];
   for (const log of logs) {
-    const blockNumber = new BN(toBuffer(log.blockNumber!));
-    if (blockNumber.lt(criteria.fromBlock)) {
+    const blockNumber = bufferToBigInt(toBuffer(log.blockNumber!));
+    if (blockNumber < criteria.fromBlock) {
       continue;
     }
 
-    if (
-      !criteria.toBlock.eq(LATEST_BLOCK) &&
-      blockNumber.gt(criteria.toBlock)
-    ) {
+    if (criteria.toBlock !== LATEST_BLOCK && blockNumber > criteria.toBlock) {
       continue;
     }
 

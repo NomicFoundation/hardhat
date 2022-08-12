@@ -242,8 +242,8 @@ export class HardhatModule {
     return validateParams(params, rpcQuantity);
   }
 
-  private async _setMinGasPriceAction(minGasPrice: BN): Promise<true> {
-    if (minGasPrice.lt(new BN(0))) {
+  private async _setMinGasPriceAction(minGasPrice: bigint): Promise<true> {
+    if (minGasPrice < 0n) {
       throw new InvalidInputError("Minimum gas price cannot be negative");
     }
 
@@ -310,8 +310,8 @@ export class HardhatModule {
       rpcData
     );
 
-    const MAX_WORD_VALUE = new BN(2).pow(new BN(256));
-    if (positionIndex.gte(MAX_WORD_VALUE)) {
+    const MAX_WORD_VALUE = 2n ** 256n;
+    if (positionIndex >= MAX_WORD_VALUE) {
       throw new InvalidInputError(
         `Storage key must not be greater than or equal to 2^256. Received ${positionIndex.toString()}.`
       );
