@@ -91,19 +91,25 @@ export class VMDebugTracer {
 
   private _enableTracing(config: RpcDebugTracingConfig) {
     this._vm.on("beforeTx", this._beforeTxHandler);
-    this._vm.on("beforeMessage", this._beforeMessageHandler);
-    this._vm.on("step", this._stepHandler);
-    this._vm.on("afterMessage", this._afterMessageHandler);
+    (this._vm.evm as EVM).on("beforeMessage", this._beforeMessageHandler);
+    (this._vm.evm as EVM).on("step", this._stepHandler);
+    (this._vm.evm as EVM).on("afterMessage", this._afterMessageHandler);
     this._vm.on("afterTx", this._afterTxHandler);
     this._config = config;
   }
 
   private _disableTracing() {
     this._vm.removeListener("beforeTx", this._beforeTxHandler);
-    this._vm.removeListener("beforeMessage", this._beforeMessageHandler);
-    this._vm.removeListener("step", this._stepHandler);
+    (this._vm.evm as EVM).removeListener(
+      "beforeMessage",
+      this._beforeMessageHandler
+    );
+    (this._vm.evm as EVM).removeListener("step", this._stepHandler);
+    (this._vm.evm as EVM).removeListener(
+      "afterMessage",
+      this._afterMessageHandler
+    );
     this._vm.removeListener("afterTx", this._afterTxHandler);
-    this._vm.removeListener("afterMessage", this._afterMessageHandler);
     this._config = undefined;
   }
 

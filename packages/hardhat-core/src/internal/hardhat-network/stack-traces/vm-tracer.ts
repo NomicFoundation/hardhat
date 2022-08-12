@@ -38,9 +38,9 @@ export class VMTracer {
     if (this._enabled) {
       return;
     }
-    this._vm.on("beforeMessage", this._beforeMessageHandler);
-    this._vm.on("step", this._stepHandler);
-    this._vm.on("afterMessage", this._afterMessageHandler);
+    (this._vm.evm as EVM).on("beforeMessage", this._beforeMessageHandler);
+    (this._vm.evm as EVM).on("step", this._stepHandler);
+    (this._vm.evm as EVM).on("afterMessage", this._afterMessageHandler);
     this._enabled = true;
   }
 
@@ -48,9 +48,15 @@ export class VMTracer {
     if (!this._enabled) {
       return;
     }
-    this._vm.removeListener("beforeMessage", this._beforeMessageHandler);
-    this._vm.removeListener("step", this._stepHandler);
-    this._vm.removeListener("afterMessage", this._afterMessageHandler);
+    (this._vm.evm as EVM).removeListener(
+      "beforeMessage",
+      this._beforeMessageHandler
+    );
+    (this._vm.evm as EVM).removeListener("step", this._stepHandler);
+    (this._vm.evm as EVM).removeListener(
+      "afterMessage",
+      this._afterMessageHandler
+    );
     this._enabled = false;
   }
 
