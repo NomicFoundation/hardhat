@@ -245,12 +245,19 @@ export class HardhatNode extends EventEmitter {
 
     const txPool = new TxPool(stateManager, BigInt(blockGasLimit), common);
 
-    const vm = new VM({
-      common,
-      activatePrecompiles: true,
-      stateManager,
-      blockchain: blockchain as any,
+    const eei = new EEI(stateManager, common, blockchain);
+    const evm = await EVM.create({
+      eei,
       allowUnlimitedContractSize,
+      common,
+    });
+
+    const vm = await VM.create({
+      evm,
+      activatePrecompiles: true,
+      common,
+      stateManager,
+      blockchain,
     });
 
     const node = new HardhatNode(
