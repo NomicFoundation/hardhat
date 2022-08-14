@@ -52,8 +52,8 @@ const PEER_DEPENDENCIES: Dependencies = {
   "@typechain/hardhat": "^6.1.2",
   typechain: "^8.1.0",
   "@typechain/ethers-v5": "^10.1.0",
-  "@ethersproject/abi": "^5.4.7",
-  "@ethersproject/providers": "^5.4.7",
+  "@ethersproject/abi": "^5.6.4",
+  "@ethersproject/providers": "^5.6.8",
 };
 
 const TYPESCRIPT_DEPENDENCIES: Dependencies = {};
