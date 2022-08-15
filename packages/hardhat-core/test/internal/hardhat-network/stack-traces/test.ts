@@ -757,6 +757,34 @@ const solidityCompilers = [
     solidityVersion: "0.8.9",
     compilerPath: "soljson-v0.8.9+commit.e5eed63a.js",
   },
+  {
+    solidityVersion: "0.8.10",
+    compilerPath: "soljson-v0.8.10+commit.fc410830.js",
+  },
+  {
+    solidityVersion: "0.8.11",
+    compilerPath: "soljson-v0.8.11+commit.d7f03943.js",
+  },
+  {
+    solidityVersion: "0.8.12",
+    compilerPath: "soljson-v0.8.12+commit.f00d7308.js",
+  },
+  {
+    solidityVersion: "0.8.13",
+    compilerPath: "soljson-v0.8.13+commit.abaa5c0e.js",
+  },
+  {
+    solidityVersion: "0.8.14",
+    compilerPath: "soljson-v0.8.14+commit.80d49f37.js",
+  },
+  {
+    solidityVersion: "0.8.15",
+    compilerPath: "soljson-v0.8.15+commit.e14f2714.js",
+  },
+  {
+    solidityVersion: "0.8.16",
+    compilerPath: "soljson-v0.8.16+commit.07a7930e.js",
+  },
 ];
 
 const solidity05Compilers = solidityCompilers.filter(({ solidityVersion }) =>
