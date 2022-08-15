@@ -359,9 +359,6 @@ export class VMDebugTracer {
       const memoryUsed = bufferToBigInt(memoryUsedBuffer);
       const sha3ExtraCost =
         BigIntUtils.divUp(memoryUsed, 32n) * this._sha3WordGas();
-      // const sha3ExtraCost = divUp(memoryUsed, 32)
-      //   .muln()
-      //   .toNumber();
       gasCost += Number(sha3ExtraCost);
     } else if (
       step.opcode.name === "CALL" ||
