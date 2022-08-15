@@ -1,4 +1,5 @@
 import * as fs from "fs";
+import Tsort from "tsort-ts";
 
 import { subtask, task, types } from "../internal/core/config/config-env";
 import { HardhatError } from "../internal/core/errors";
@@ -17,8 +18,7 @@ import {
 } from "./task-names";
 
 function getSortedFiles(dependenciesGraph: DependencyGraph) {
-  const tsort = require("tsort");
-  const graph = tsort();
+  const graph = new Tsort();
 
   const filesMap: ResolvedFilesMap = {};
   const resolvedFiles = dependenciesGraph.getResolvedFiles();
