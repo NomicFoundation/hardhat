@@ -1,10 +1,4 @@
-import {
-  Account,
-  Address,
-  bufferToBigInt,
-  privateToAddress,
-  toBuffer,
-} from "@ethereumjs/util";
+import { Account, Address, privateToAddress, toBuffer } from "@ethereumjs/util";
 
 import { GenesisAccount } from "../node-types";
 
@@ -14,7 +8,7 @@ export function makeAccount(ga: GenesisAccount) {
   let balance: bigint;
 
   if (typeof ga.balance === "string" && isHexPrefixed(ga.balance)) {
-    balance = bufferToBigInt(toBuffer(ga.balance));
+    balance = BigInt(ga.balance);
   } else {
     balance = BigInt(ga.balance);
   }

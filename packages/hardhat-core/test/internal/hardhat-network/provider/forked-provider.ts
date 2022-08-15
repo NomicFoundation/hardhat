@@ -1,4 +1,4 @@
-import { bufferToBigInt, bufferToHex, toBuffer } from "@ethereumjs/util";
+import { bufferToHex } from "@ethereumjs/util";
 import { assert } from "chai";
 
 import {
@@ -68,7 +68,7 @@ describe("Forked provider", function () {
             { to: DAI_ADDRESS.toString(), data: daiTotalSupplySelector },
           ]);
 
-          const bnResult = bufferToBigInt(toBuffer(result));
+          const bnResult = BigInt(result);
           assert.isTrue(bnResult > 0n);
         });
 

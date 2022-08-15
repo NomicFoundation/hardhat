@@ -1,4 +1,4 @@
-import { bufferToBigInt, bufferToHex, toBuffer } from "@ethereumjs/util";
+import { bufferToHex, toBuffer } from "@ethereumjs/util";
 import { Bloom } from "@ethereumjs/vm";
 
 import { RpcLogOutput } from "./output";
@@ -73,7 +73,7 @@ export function filterLogs(
 ): RpcLogOutput[] {
   const filteredLogs: RpcLogOutput[] = [];
   for (const log of logs) {
-    const blockNumber = bufferToBigInt(toBuffer(log.blockNumber!));
+    const blockNumber = BigInt(log.blockNumber!);
     if (blockNumber < criteria.fromBlock) {
       continue;
     }

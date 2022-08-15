@@ -1,4 +1,3 @@
-import { bufferToBigInt, toBuffer } from "@ethereumjs/util";
 import chalk from "chalk";
 
 import { HARDHAT_NETWORK_NAME } from "../../../constants";
@@ -118,6 +117,6 @@ async function getLatestBlockNumber(provider: HttpProvider) {
     method: "eth_blockNumber",
   })) as string;
 
-  const latestBlock = bufferToBigInt(toBuffer(latestBlockString));
+  const latestBlock = BigInt(latestBlockString);
   return latestBlock;
 }

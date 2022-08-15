@@ -1,12 +1,7 @@
 import { Common } from "@ethereumjs/common";
 import { TransactionFactory, TypedTransaction } from "@ethereumjs/tx";
 import { StateManager } from "@ethereumjs/statemanager";
-import {
-  Address,
-  bufferToBigInt,
-  bufferToHex,
-  toBuffer,
-} from "@ethereumjs/util";
+import { Address, bufferToHex, toBuffer } from "@ethereumjs/util";
 import { List as ImmutableList, Record as ImmutableRecord } from "immutable";
 
 import { InvalidInputError } from "../../core/providers/errors";
@@ -257,7 +252,7 @@ export class TxPool {
   }
 
   public getBlockGasLimit(): bigint {
-    return bufferToBigInt(toBuffer(this._state.get("blockGasLimit")));
+    return BigInt(this._state.get("blockGasLimit"));
   }
 
   public setBlockGasLimit(newLimit: bigint | number) {

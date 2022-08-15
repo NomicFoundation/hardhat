@@ -2,7 +2,6 @@ import { Common } from "@ethereumjs/common";
 import { Transaction } from "@ethereumjs/tx";
 import {
   bigIntToBuffer,
-  bufferToBigInt,
   bufferToHex,
   setLengthLeft,
   toBuffer,
@@ -270,7 +269,7 @@ describe("Eth module", function () {
           assert.equal(fetchedTx.input, txParams.data);
 
           // tx.v is padded but fetchedTx.v is not, so we need to do this
-          const fetchedTxV = bufferToBigInt(toBuffer(fetchedTx.v));
+          const fetchedTxV = BigInt(fetchedTx.v);
           const expectedTxV = BigInt(signedTx.v!);
           assert.equal(fetchedTxV, expectedTxV);
 
