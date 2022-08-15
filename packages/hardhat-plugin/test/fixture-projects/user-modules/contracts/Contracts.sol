@@ -10,6 +10,12 @@ contract Foo {
     require(n > 0, "n must be positive");
     x += n;
   }
+
+  function incTwoNumbers(uint n, uint y) public {
+    require(n > 0, "n must be positive");
+    x += n;
+    x += y;
+  }
 }
 
 contract Bar {

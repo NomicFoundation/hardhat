@@ -30,6 +30,7 @@ export class IgnitionModule {
 
         const executorDependencies =
           dependencies.get(executor.future.id) ?? new Set();
+
         if ([...executorDependencies].every((d) => added.has(d))) {
           sortedExecutors.push(executor);
           added.add(executor.future.id);

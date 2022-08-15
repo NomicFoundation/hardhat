@@ -1,3 +1,4 @@
+import { ParamValue } from "../modules/types";
 import { Artifact, Contract, Tx } from "../types";
 
 import { ContractFuture } from "./ContractFuture";
@@ -35,6 +36,11 @@ export interface CallOptions {
   contract: ContractFuture;
   method: string;
   args: Array<IFuture<any>>;
+}
+
+export interface ParamOptions {
+  paramName: string;
+  defaultValue?: ParamValue;
 }
 
 export type IFuture<T extends FutureOutput> = T | Future<unknown, T>;

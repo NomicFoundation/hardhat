@@ -5,13 +5,17 @@ import { InternalFuture } from "../src/futures/InternalFuture";
 import { IFuture } from "../src/futures/types";
 import {
   ArtifactsProvider,
+  ConfigProvider,
   EIP1193Provider,
   GasProvider,
+  HasParamResult,
   IgnitionSigner,
   Providers,
   SignersProvider,
   TransactionsProvider,
 } from "../src/providers";
+
+import { ParamValue } from "./modules/types";
 
 export function getMockedProviders(): Providers {
   return {
@@ -20,6 +24,7 @@ export function getMockedProviders(): Providers {
     gasProvider: new MockGasProvider(),
     signers: new MockSignersProvider(),
     transactions: new TransactionsMockProvider(),
+    config: new ConfigMockProvider(),
   };
 }
 
@@ -74,6 +79,20 @@ class TransactionsMockProvider implements TransactionsProvider {
     throw new Error("not implemented");
   }
   public async isMined(): Promise<boolean> {
+    throw new Error("not implemented");
+  }
+}
+
+class ConfigMockProvider implements ConfigProvider {
+  public setParams(_parameters: { [key: string]: ParamValue }): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+
+  public hasParam(_paramName: string): Promise<HasParamResult> {
+    throw new Error("Method not implemented.");
+  }
+
+  public getParam(_paramName: string): Promise<ParamValue> {
     throw new Error("not implemented");
   }
 }

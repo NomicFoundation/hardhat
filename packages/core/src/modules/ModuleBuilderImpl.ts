@@ -2,12 +2,14 @@ import { CallExecutor } from "../executors/CallExecutor";
 import { ContractExecutor } from "../executors/ContractExecutor";
 import { Executor } from "../executors/Executor";
 import { ExistingContractExecutor } from "../executors/ExistingContractExecutor";
+import { ParamExecutor } from "../executors/ParamExecutor";
 import { ArtifactContractFuture } from "../futures/ArtifactContractFuture";
 import { ContractFuture } from "../futures/ContractFuture";
 import { ExistingContractFuture } from "../futures/ExistingContractFuture";
 import { InternalCallFuture } from "../futures/InternalCallFuture";
 import { InternalContractFuture } from "../futures/InternalContractFuture";
 import { InternalFuture } from "../futures/InternalFuture";
+import { ParamFuture } from "../futures/ParamFuture";
 import type {
   CallOptions,
   ContractOptions,
@@ -21,6 +23,7 @@ import type {
   ModuleBuilder,
   UserContractOptions,
   UserCallOptions,
+  ParamValue,
 } from "./types";
 import { isArtifact } from "./utils";
 
@@ -147,5 +150,31 @@ export class ModuleBuilderImpl implements ModuleBuilder {
     this._knownModules.set(userModule.id, [userModule, output]);
 
     return output;
+  }
+
+  public getParam(paramName: string): ParamFuture {
+    const id = paramName;
+
+    const future = new ParamFuture(this.getModuleId(), id, { paramName });
+
+    this.addExecutor(new ParamExecutor(future));
+
+    return future;
+  }
+
+  public getOptionalParam(
+    paramName: string,
+    defaultValue: ParamValue
+  ): ParamFuture {
+    const id = paramName;
+
+    const future = new ParamFuture(this.getModuleId(), id, {
+      paramName,
+      defaultValue,
+    });
+
+    this.addExecutor(new ParamExecutor(future));
+
+    return future;
   }
 }

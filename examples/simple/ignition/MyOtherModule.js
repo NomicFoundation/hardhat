@@ -7,6 +7,7 @@ module.exports = buildModule("MyOtherModule", (m) => {
   m.call(foo, "inc", {
     args: [1],
   });
+
   m.call(foo2, "inc", {
     args: [1],
   });

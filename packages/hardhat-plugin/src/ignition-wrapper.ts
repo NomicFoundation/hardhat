@@ -6,6 +6,7 @@ import {
   IgnitionDeployOptions,
   SerializedModuleResult,
   Providers,
+  ParamValue,
 } from "@nomicfoundation/ignition-core";
 import { ethers } from "ethers";
 import fsExtra from "fs-extra";
@@ -22,13 +23,13 @@ export class IgnitionWrapper {
   private _cachedChainId: number | undefined;
 
   constructor(
-    providers: Providers,
+    private _providers: Providers,
     private _ethers: HardhatEthers,
     private _isHardhatNetwork: boolean,
     private _paths: HardhatPaths,
     private _deployOptions: IgnitionDeployOptions
   ) {
-    this._ignition = new Ignition(providers, {
+    this._ignition = new Ignition(_providers, {
       load: (moduleId) => this._getModuleResult(moduleId),
       save: (moduleId, moduleResult) =>
         this._saveModuleResult(moduleId, moduleResult),
@@ -36,9 +37,14 @@ export class IgnitionWrapper {
   }
 
   public async deploy<T>(
-    userModuleOrName: UserModule<T> | string
+    userModuleOrName: UserModule<T> | string,
+    deployParams: { parameters: { [key: string]: ParamValue } } | undefined
   ): Promise<Resolved<T>> {
-    const [, resolvedOutputs] = await this.deployMany([userModuleOrName]);
+    const [, resolvedOutputs] = await this.deployMany(
+      [userModuleOrName],
+      deployParams
+    );
+
     return resolvedOutputs[0];
   }
 
@@ -47,7 +53,14 @@ export class IgnitionWrapper {
    * array with the resolved outputs that corresponds to each module in
    * the input.
    */
-  public async deployMany(userModulesOrNames: Array<UserModule<any> | string>) {
+  public async deployMany(
+    userModulesOrNames: Array<UserModule<any> | string>,
+    deployParams: { parameters: { [key: string]: ParamValue } } | undefined
+  ) {
+    if (deployParams !== undefined) {
+      await this._providers.config.setParams(deployParams.parameters);
+    }
+
     const userModules: Array<UserModule<any>> = [];
 
     for (const userModuleOrName of userModulesOrNames) {

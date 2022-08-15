@@ -1,5 +1,6 @@
 import type { ethers } from "ethers";
 
+import { ParamValue } from "./modules/types";
 import { Artifact } from "./types";
 
 export interface Providers {
@@ -8,6 +9,7 @@ export interface Providers {
   gasProvider: GasProvider;
   signers: SignersProvider;
   transactions: TransactionsProvider;
+  config: ConfigProvider;
 }
 
 export interface ArtifactsProvider {
@@ -33,6 +35,23 @@ export interface SignersProvider {
 export interface TransactionsProvider {
   isConfirmed(txHash: string): Promise<boolean>;
   isMined(txHash: string): Promise<boolean>;
+}
+
+export type HasParamErrorCode = "no-params" | "param-missing";
+
+export type HasParamResult =
+  | {
+      found: false;
+      errorCode: HasParamErrorCode;
+    }
+  | { found: true };
+
+export interface ConfigProvider {
+  setParams(parameters: { [key: string]: ParamValue }): Promise<void>;
+
+  getParam(paramName: string): Promise<ParamValue>;
+
+  hasParam(paramName: string): Promise<HasParamResult>;
 }
 
 export interface IgnitionSigner {

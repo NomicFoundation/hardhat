@@ -1,25 +1,40 @@
+// SPDX-License-Identifier: GPL-3.0
+pragma solidity >=0.7.0 <0.9.0;
+
 contract Foo {
-  bool public isFoo = true;
-  uint public x = 1;
+    bool public isFoo = true;
+    uint256 public x = 1;
 
-  function inc() public {
-    x++;
-  }
+    function inc() public {
+        x++;
+    }
 
-  function incByPositiveNumber(uint n) public {
-    require(n > 0, "n must be positive");
-    x += n;
-  }
+    function incByPositiveNumber(uint256 n) public {
+        require(n > 0, "n must be positive");
+        x += n;
+    }
 }
 
 contract Bar {
-  bool public isBar = true;
+    bool public isBar = true;
 }
 
 contract UsesContract {
-  address public contractAddress;
+    address public contractAddress;
 
-  constructor (address _contract) {
-    contractAddress = _contract;
-  }
+    constructor(address _contract) {
+        contractAddress = _contract;
+    }
+}
+
+contract Greeter {
+    string private _greeting;
+
+    constructor(string memory greeting) {
+        _greeting = greeting;
+    }
+
+    function getGreeting() public view returns (string memory) {
+        return _greeting;
+    }
 }

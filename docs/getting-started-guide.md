@@ -52,6 +52,13 @@ To deploy against a network configured in `hardhat.config.{ts,js}` pass the netw
 npx hardhat deploy --network mainnet ./ignition/MyModule.ts
 ```
 
+Modules that accept parameters can be passed those parameters at the command line via a json string:
+
+```shell
+npx hardhat deploy --parameters "{\"IncAmount\": 5}" ParamModule.js
+# Ensure you have properly escaped the json string
+```
+
 Next, dig deeper into defining modules:
 
 [Creating modules for deployment](./creating-modules-for-deployment.md)

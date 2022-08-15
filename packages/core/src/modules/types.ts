@@ -1,6 +1,7 @@
 import { Executor } from "../executors/Executor";
 import { CallFuture } from "../futures/CallFuture";
 import { ContractFuture } from "../futures/ContractFuture";
+import { ParamFuture } from "../futures/ParamFuture";
 import type { IFuture } from "../futures/types";
 import { Artifact } from "../types";
 
@@ -16,6 +17,8 @@ export interface UserCallOptions {
   id?: string;
   args?: Array<IFuture<any>>;
 }
+
+export type ParamValue = string | number;
 
 export interface ModuleBuilder {
   chainId: number;
@@ -42,6 +45,13 @@ export interface ModuleBuilder {
   ) => CallFuture;
 
   useModule: <T>(userModule: UserModule<T>) => T;
+
+  getParam: (paramName: string) => ParamFuture;
+
+  getOptionalParam: (
+    paramName: string,
+    defaultValue: ParamValue
+  ) => ParamFuture;
 }
 
 export type ModuleDefinition<T> = (m: ModuleBuilder) => T;

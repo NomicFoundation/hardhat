@@ -10,6 +10,7 @@ import {
 import { lazyObject } from "hardhat/plugins";
 import path from "path";
 
+import { ConfigWrapper } from "./ConfigWrapper";
 import { IgnitionWrapper } from "./ignition-wrapper";
 import { loadUserModules, loadAllUserModules } from "./user-modules";
 import "./type-extensions";
@@ -93,6 +94,7 @@ extendEnvironment((hre) => {
         return receipt !== null;
       },
     },
+    config: new ConfigWrapper(),
   };
 
   hre.ignition = lazyObject(() => {
@@ -120,9 +122,30 @@ extendEnvironment((hre) => {
  */
 task("deploy")
   .addOptionalVariadicPositionalParam("userModulesPaths")
+  .addOptionalParam(
+    "parameters",
+    "A json object as a string, of the module paramters"
+  )
   .setAction(
-    async ({ userModulesPaths = [] }: { userModulesPaths: string[] }, hre) => {
+    async (
+      {
+        userModulesPaths = [],
+        parameters: parametersAsJson,
+      }: { userModulesPaths: string[]; parameters?: string },
+      hre
+    ) => {
       await hre.run("compile", { quiet: true });
+
+      let parameters: { [key: string]: number | string };
+      try {
+        parameters =
+          parametersAsJson !== undefined
+            ? JSON.parse(parametersAsJson)
+            : undefined;
+      } catch {
+        console.warn("Could not parse parameters json");
+        process.exit(0);
+      }
 
       let userModules: Array<UserModule<any>>;
       if (userModulesPaths.length === 0) {
@@ -141,24 +164,32 @@ task("deploy")
 
       await hre.run("deploy:deploy-modules", {
         userModules,
+        parameters,
       });
     }
   );
 
 subtask("deploy:deploy-modules")
   .addParam("userModules", undefined, undefined, types.any)
+  .addOptionalParam("parameters", undefined, undefined, types.any)
   .setAction(
     async (
       {
         userModules,
-      }: { userModules: Array<UserModule<any>>; pathToJournal?: string },
+        parameters,
+      }: {
+        userModules: Array<UserModule<any>>;
+        pathToJournal?: string;
+        parameters: { [key: string]: string | number };
+      },
       hre
     ) => {
       // we ignore the module outputs because they are not relevant when
       // the deployment is done via a task (as opposed to a deployment
       // done with `hre.ignition.deploy`)
       const [serializedDeploymentResult] = await hre.ignition.deployMany(
-        userModules
+        userModules,
+        { parameters }
       );
 
       return serializedDeploymentResult;

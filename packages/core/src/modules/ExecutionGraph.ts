@@ -1,4 +1,5 @@
 import { Executor } from "../executors/Executor";
+import { ParamFuture } from "../futures/ParamFuture";
 
 import { IgnitionModule } from "./IgnitionModule";
 
@@ -15,7 +16,21 @@ export class ExecutionGraph {
     }
 
     if (executorsMap.has(executor.future.id)) {
-      throw new Error(`Executor with id ${executor.future.id} already exists`);
+      if (executor.future instanceof ParamFuture) {
+        if (executor.future.input.defaultValue === undefined) {
+          throw new Error(
+            `A parameter should only be retrieved once, but found more than one call to getParam for "${executor.future.id}"`
+          );
+        } else {
+          throw new Error(
+            `An optional parameter should only be retrieved once, but found more than one call to getParam for "${executor.future.id}"`
+          );
+        }
+      } else {
+        throw new Error(
+          `Executor with id ${executor.future.id} already exists`
+        );
+      }
     }
 
     const dependencies = executor.future.getDependencies();

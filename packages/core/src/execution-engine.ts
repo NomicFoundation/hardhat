@@ -13,6 +13,7 @@ import { ExecutionGraph } from "./modules/ExecutionGraph";
 import { IgnitionModule } from "./modules/IgnitionModule";
 import { Providers } from "./providers";
 import { ArtifactsService } from "./services/ArtifactsService";
+import { ConfigService } from "./services/ConfigService";
 import { ContractsService } from "./services/ContractsService";
 import { TransactionsService } from "./services/TransactionsService";
 import type { Services } from "./services/types";
@@ -95,10 +96,13 @@ export class ExecutionEngine {
     let hasErrors = false;
     for (const executionModule of executionModules) {
       this._debug(`Validating module ${executionModule.id}`);
+
       const errors = await this._validateModule(executionModule);
+
       if (errors.length > 0) {
         hasErrors = true;
       }
+
       errorsPerModule.set(executionModule.id, errors);
     }
 
@@ -228,7 +232,9 @@ export class ExecutionEngine {
           this._debug(
             `Check dependencies of ${ignitionModule.id}/${executor.future.id}`
           );
+
           const dependencies = executor.future.getDependencies();
+
           const allDependenciesReady = dependencies.every((d) =>
             deploymentState.isFutureSuccess(d.moduleId, d.id)
           );
@@ -301,6 +307,7 @@ export class ExecutionEngine {
         pollingInterval: this._options.txPollingInterval,
       }),
       transactions: new TransactionsService(this._providers),
+      config: new ConfigService(this._providers),
     };
 
     return services;

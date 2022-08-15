@@ -134,7 +134,7 @@ export async function deployModules(
   return deploymentResult.result;
 }
 
-async function mineBlocks(
+export async function mineBlocks(
   hre: any,
   expectedBlocks: number[],
   finished: Promise<any>
