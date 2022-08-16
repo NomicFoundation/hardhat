@@ -1,5 +1,5 @@
-import { ParamValue } from "../modules/types";
 import { HasParamResult, Providers } from "../providers";
+import { ParamValue } from "../recipes/types";
 
 export class ConfigService {
   constructor(private readonly _providers: Providers) {}

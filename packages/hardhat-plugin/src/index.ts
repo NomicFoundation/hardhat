@@ -1,5 +1,5 @@
 import "@nomiclabs/hardhat-ethers";
-import { Providers, UserModule } from "@nomicfoundation/ignition-core";
+import { Providers, UserRecipe } from "@nomicfoundation/ignition-core";
 import {
   extendConfig,
   extendEnvironment,
@@ -12,12 +12,12 @@ import path from "path";
 
 import { ConfigWrapper } from "./ConfigWrapper";
 import { IgnitionWrapper } from "./ignition-wrapper";
-import { loadUserModules, loadAllUserModules } from "./user-modules";
+import { loadUserRecipes, loadAllUserRecipes } from "./user-recipes";
 import "./type-extensions";
 
 export {
-  buildModule,
-  ModuleBuilder,
+  buildRecipe,
+  RecipeBuilder,
   AddressLike,
   ContractFuture,
   ContractOptions,
@@ -117,21 +117,21 @@ extendEnvironment((hre) => {
 });
 
 /**
- * Deploy the given user modules. If none is passed, all modules under
+ * Deploy the given user recipes. If none is passed, all recipes under
  * the `paths.ignition` directory are deployed.
  */
 task("deploy")
-  .addOptionalVariadicPositionalParam("userModulesPaths")
+  .addOptionalVariadicPositionalParam("userRecipesPaths")
   .addOptionalParam(
     "parameters",
-    "A json object as a string, of the module paramters"
+    "A json object as a string, of the recipe paramters"
   )
   .setAction(
     async (
       {
-        userModulesPaths = [],
+        userRecipesPaths = [],
         parameters: parametersAsJson,
-      }: { userModulesPaths: string[]; parameters?: string },
+      }: { userRecipesPaths: string[]; parameters?: string },
       hre
     ) => {
       await hre.run("compile", { quiet: true });
@@ -147,48 +147,48 @@ task("deploy")
         process.exit(0);
       }
 
-      let userModules: Array<UserModule<any>>;
-      if (userModulesPaths.length === 0) {
-        userModules = loadAllUserModules(hre.config.paths.ignition);
+      let userRecipes: Array<UserRecipe<any>>;
+      if (userRecipesPaths.length === 0) {
+        userRecipes = loadAllUserRecipes(hre.config.paths.ignition);
       } else {
-        userModules = loadUserModules(
+        userRecipes = loadUserRecipes(
           hre.config.paths.ignition,
-          userModulesPaths
+          userRecipesPaths
         );
       }
 
-      if (userModules.length === 0) {
-        console.warn("No Ignition modules found");
+      if (userRecipes.length === 0) {
+        console.warn("No Ignition recipes found");
         process.exit(0);
       }
 
-      await hre.run("deploy:deploy-modules", {
-        userModules,
+      await hre.run("deploy:deploy-recipes", {
+        userRecipes,
         parameters,
       });
     }
   );
 
-subtask("deploy:deploy-modules")
-  .addParam("userModules", undefined, undefined, types.any)
+subtask("deploy:deploy-recipes")
+  .addParam("userRecipes", undefined, undefined, types.any)
   .addOptionalParam("parameters", undefined, undefined, types.any)
   .setAction(
     async (
       {
-        userModules,
+        userRecipes,
         parameters,
       }: {
-        userModules: Array<UserModule<any>>;
+        userRecipes: Array<UserRecipe<any>>;
         pathToJournal?: string;
         parameters: { [key: string]: string | number };
       },
       hre
     ) => {
-      // we ignore the module outputs because they are not relevant when
+      // we ignore the recipe outputs because they are not relevant when
       // the deployment is done via a task (as opposed to a deployment
       // done with `hre.ignition.deploy`)
       const [serializedDeploymentResult] = await hre.ignition.deployMany(
-        userModules,
+        userRecipes,
         { parameters }
       );
 
@@ -197,43 +197,43 @@ subtask("deploy:deploy-modules")
   );
 
 /**
- * Build and show the deployment plan for the given user modules.
+ * Build and show the deployment plan for the given user recipes.
  */
 task("plan")
-  .addOptionalVariadicPositionalParam("userModulesPaths")
+  .addOptionalVariadicPositionalParam("userRecipesPaths")
   .setAction(
-    async ({ userModulesPaths = [] }: { userModulesPaths: string[] }, hre) => {
+    async ({ userRecipesPaths = [] }: { userRecipesPaths: string[] }, hre) => {
       await hre.run("compile", { quiet: true });
 
-      let userModules: Array<UserModule<any>>;
-      if (userModulesPaths.length === 0) {
-        userModules = loadAllUserModules(hre.config.paths.ignition);
+      let userRecipes: Array<UserRecipe<any>>;
+      if (userRecipesPaths.length === 0) {
+        userRecipes = loadAllUserRecipes(hre.config.paths.ignition);
       } else {
-        userModules = loadUserModules(
+        userRecipes = loadUserRecipes(
           hre.config.paths.ignition,
-          userModulesPaths
+          userRecipesPaths
         );
       }
 
-      if (userModules.length === 0) {
-        console.warn("No Ignition modules found");
+      if (userRecipes.length === 0) {
+        console.warn("No Ignition recipes found");
         process.exit(0);
       }
 
-      const plan = await hre.ignition.buildPlan(userModules);
+      const plan = await hre.ignition.buildPlan(userRecipes);
 
       let first = true;
-      for (const [moduleId, modulePlan] of Object.entries(plan)) {
+      for (const [recipeId, recipePlan] of Object.entries(plan)) {
         if (first) {
           first = false;
         } else {
           console.log();
         }
-        console.log(`- Module ${moduleId}`);
-        if (modulePlan === "already-deployed") {
+        console.log(`- Recipe ${recipeId}`);
+        if (recipePlan === "already-deployed") {
           console.log("    Already deployed");
         } else {
-          for (const step of modulePlan) {
+          for (const step of recipePlan) {
             console.log(`    ${step.id}: ${step.description}`);
           }
         }

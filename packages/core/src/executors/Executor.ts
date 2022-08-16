@@ -17,9 +17,9 @@ export abstract class Executor<I = unknown, O extends FutureOutput = any> {
   private _debug: IDebugger;
 
   constructor(public readonly future: InternalFuture<I, O>) {
-    const moduleId = future.moduleId;
+    const recipeId = future.recipeId;
     const futureId = future.id;
-    this._debug = setupDebug(`ignition:executor:${moduleId}:${futureId}`);
+    this._debug = setupDebug(`ignition:executor:${recipeId}:${futureId}`);
   }
 
   abstract execute(input: Resolved<I>, services: Services): Promise<O>;

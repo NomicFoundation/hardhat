@@ -91,7 +91,7 @@ describe("Call Executor", () => {
     };
 
     const exampleContractFuture = new InternalContractFuture(
-      "MyModule",
+      "MyRecipe",
       "MyContract",
       {
         contractName: "MyContract",
@@ -172,7 +172,7 @@ async function assertCallValidation(
     },
   };
 
-  const future = new InternalCallFuture("MyModule", "future-1", input);
+  const future = new InternalCallFuture("MyRecipe", "future-1", input);
 
   const ex = new CallExecutor(future);
 

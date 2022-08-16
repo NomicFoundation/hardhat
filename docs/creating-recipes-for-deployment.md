@@ -1,23 +1,23 @@
-# Creating Modules for Deployments
+# Creating Recipes for Deployments
 
-An **Ingition** deployment is composed of modules. A module is a special javascript/typescript function that encapsulates several on-chain transactions (e.g. deploy a contract, invoke a contract function etc).
+An **Ingition** deployment is composed of recipes. A recipe is a special javascript/typescript function that encapsulates several on-chain transactions (e.g. deploy a contract, invoke a contract function etc).
 
-For example, this is a minimal module `MyModule` that deploys an instance of a `Token` contract and exposes it to any consumer of `MyModule`:
+For example, this is a minimal recipe `MyRecipe` that deploys an instance of a `Token` contract and exposes it to any consumer of `MyRecipe`:
 
 ```javascript
-// ./ignition/MyModule.ts
-import { buildModule, ModuleBuilder } from "@nomicfoundation/hardhat-ignition";
+// ./ignition/MyRecipe.ts
+import { buildRecipe, RecipeBuilder } from "@nomicfoundation/hardhat-ignition";
 
-export default buildModule("MyModule", (m: ModuleBuilder) => {
+export default buildRecipe("MyRecipe", (m: RecipeBuilder) => {
   const token = m.contract("Token");
 
   return { token };
 });
 ```
 
-Modules can be deployed directly at the cli (with `npx hardhat deploy ./ignition/MyModule.ts`), within Hardhat mocha tests (see [Ignition in Tests](TBD)) or consumed by other Modules to allow for complex deployments.
+Recipes can be deployed directly at the cli (with `npx hardhat deploy ./ignition/MyRecipe.ts`), within Hardhat mocha tests (see [Ignition in Tests](TBD)) or consumed by other Recipes to allow for complex deployments.
 
-During a deployment **Ignition** uses the module to generate an execution plan of the transactions to run and the order and dependency in which to run them. A module uses the passed `ModuleBuilder` to specify the on-chain transactions that will _eventually_ be run, and how they relate to each other to allow building a dependency graph.
+During a deployment **Ignition** uses the recipe to generate an execution plan of the transactions to run and the order and dependency in which to run them. A recipe uses the passed `RecipeBuilder` to specify the on-chain transactions that will _eventually_ be run, and how they relate to each other to allow building a dependency graph.
 
 ## Deploying a contract
 
@@ -70,7 +70,7 @@ To allow you to use your own mechanism for getting the contract artifact, `contr
 ```javascript
 const artifact = await this.hre.artifacts.readArtifact("Foo");
 
-const userModule = buildModule("MyModule", (m) => {
+const userRecipe = buildRecipe("MyRecipe", (m) => {
   m.contract("Foo", artifact, {
     args: [0],
   });
@@ -94,10 +94,10 @@ A library is deployed in the same way as a contract.
 
 ### Using the network chain id
 
-The module builder (`m`) exposes the chain id of the network in which the contracts are being deployed. This is useful if you need to do different things depending on the network.
+The recipe builder (`m`) exposes the chain id of the network in which the contracts are being deployed. This is useful if you need to do different things depending on the network.
 
 ```tsx
-const userModule = buildModule("MyModule", (m) => {
+const userRecipe = buildRecipe("MyRecipe", (m) => {
   const daiAddresses = {
     1: "0x123...", // mainnet DAI
     4: "0x234...", // rinkeby DAI
@@ -110,21 +110,20 @@ const userModule = buildModule("MyModule", (m) => {
 });
 ```
 
-### Module Parameters
+### Recipe Parameters
 
-
-Modules can have parameters that are accessed using the ModuleBuilder object:
+Recipes can have parameters that are accessed using the RecipeBuilder object:
 
 ```tsx
-const symbol = m.getParam("tokenSymbol")
-const name = m.getParam("tokenName")
+const symbol = m.getParam("tokenSymbol");
+const name = m.getParam("tokenName");
 const token = m.contract("Token", {
-  args: [symbol, name, 1_000_000]
-})
+  args: [symbol, name, 1_000_000],
+});
 ```
 
-When a module is deployed, the proper parameters must be provided. If they are not available, the deployment won't be executed. You can use optional params with default values too:
+When a recipe is deployed, the proper parameters must be provided. If they are not available, the deployment won't be executed. You can use optional params with default values too:
 
 ```tsx
-const symbol = m.getOptionalParam("tokenSymbol", "TKN")
+const symbol = m.getOptionalParam("tokenSymbol", "TKN");
 ```

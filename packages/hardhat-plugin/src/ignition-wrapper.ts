@@ -2,9 +2,9 @@ import {
   Future,
   DeploymentPlan,
   Ignition,
-  UserModule,
+  UserRecipe,
   IgnitionDeployOptions,
-  SerializedModuleResult,
+  SerializedRecipeResult,
   Providers,
   ParamValue,
 } from "@nomicfoundation/ignition-core";
@@ -13,7 +13,7 @@ import fsExtra from "fs-extra";
 import { HardhatConfig, HardhatRuntimeEnvironment } from "hardhat/types";
 import path from "path";
 
-import { getAllUserModulesPaths } from "./user-modules";
+import { getAllUserRecipesPaths } from "./user-recipes";
 
 type HardhatEthers = HardhatRuntimeEnvironment["ethers"];
 type HardhatPaths = HardhatConfig["paths"];
@@ -30,18 +30,18 @@ export class IgnitionWrapper {
     private _deployOptions: IgnitionDeployOptions
   ) {
     this._ignition = new Ignition(_providers, {
-      load: (moduleId) => this._getModuleResult(moduleId),
-      save: (moduleId, moduleResult) =>
-        this._saveModuleResult(moduleId, moduleResult),
+      load: (recipeId) => this._getRecipeResult(recipeId),
+      save: (recipeId, recipeResult) =>
+        this._saveRecipeResult(recipeId, recipeResult),
     });
   }
 
   public async deploy<T>(
-    userModuleOrName: UserModule<T> | string,
-    deployParams: { parameters: { [key: string]: ParamValue } } | undefined
+    userRecipeOrName: UserRecipe<T> | string,
+    deployParams?: { parameters: { [key: string]: ParamValue } }
   ): Promise<Resolved<T>> {
     const [, resolvedOutputs] = await this.deployMany(
-      [userModuleOrName],
+      [userRecipeOrName],
       deployParams
     );
 
@@ -49,41 +49,41 @@ export class IgnitionWrapper {
   }
 
   /**
-   * Deploys all the given modules. Returns the deployment result, and an
-   * array with the resolved outputs that corresponds to each module in
+   * Deploys all the given recipes. Returns the deployment result, and an
+   * array with the resolved outputs that corresponds to each recipe in
    * the input.
    */
   public async deployMany(
-    userModulesOrNames: Array<UserModule<any> | string>,
+    userRecipesOrNames: Array<UserRecipe<any> | string>,
     deployParams: { parameters: { [key: string]: ParamValue } } | undefined
   ) {
     if (deployParams !== undefined) {
       await this._providers.config.setParams(deployParams.parameters);
     }
 
-    const userModules: Array<UserModule<any>> = [];
+    const userRecipes: Array<UserRecipe<any>> = [];
 
-    for (const userModuleOrName of userModulesOrNames) {
-      const userModule: UserModule<any> =
-        typeof userModuleOrName === "string"
-          ? await this._getModule(userModuleOrName)
-          : userModuleOrName;
+    for (const userRecipeOrName of userRecipesOrNames) {
+      const userRecipe: UserRecipe<any> =
+        typeof userRecipeOrName === "string"
+          ? await this._getRecipe(userRecipeOrName)
+          : userRecipeOrName;
 
-      userModules.push(userModule);
+      userRecipes.push(userRecipe);
     }
 
-    const [deploymentResult, moduleOutputs] = await this._ignition.deploy(
-      userModules,
+    const [deploymentResult, recipeOutputs] = await this._ignition.deploy(
+      userRecipes,
       this._deployOptions
     );
 
     if (deploymentResult._kind === "hold") {
-      const [moduleId, holdReason] = deploymentResult.holds;
-      throw new Error(`Execution held for module '${moduleId}': ${holdReason}`);
+      const [recipeId, holdReason] = deploymentResult.holds;
+      throw new Error(`Execution held for recipe '${recipeId}': ${holdReason}`);
     }
 
     if (deploymentResult._kind === "failure") {
-      const [moduleId, failures] = deploymentResult.failures;
+      const [recipeId, failures] = deploymentResult.failures;
 
       let failuresMessage = "";
       for (const failure of failures) {
@@ -91,16 +91,16 @@ export class IgnitionWrapper {
       }
 
       throw new Error(
-        `Execution failed for module '${moduleId}':\n\n${failuresMessage}`
+        `Execution failed for recipe '${recipeId}':\n\n${failuresMessage}`
       );
     }
 
-    const resolvedOutputPerModule: Record<string, any> = {};
-    for (const [moduleId, moduleOutput] of Object.entries(moduleOutputs)) {
+    const resolvedOutputPerRecipe: Record<string, any> = {};
+    for (const [recipeId, recipeOutput] of Object.entries(recipeOutputs)) {
       const resolvedOutput: any = {};
-      for (const [key, value] of Object.entries<any>(moduleOutput)) {
+      for (const [key, value] of Object.entries<any>(recipeOutput)) {
         const serializedFutureResult =
-          deploymentResult.result[value.moduleId][value.id];
+          deploymentResult.result[value.recipeId][value.id];
 
         if (
           serializedFutureResult._kind === "string" ||
@@ -114,86 +114,86 @@ export class IgnitionWrapper {
           resolvedOutput[key] = await this._ethers.getContractAt(abi, address);
         }
       }
-      resolvedOutputPerModule[moduleId] = resolvedOutput;
+      resolvedOutputPerRecipe[recipeId] = resolvedOutput;
     }
 
-    const resolvedOutputs = userModules.map(
-      (x) => resolvedOutputPerModule[x.id]
+    const resolvedOutputs = userRecipes.map(
+      (x) => resolvedOutputPerRecipe[x.id]
     );
 
     return [deploymentResult, resolvedOutputs] as const;
   }
 
   public async buildPlan(
-    userModulesOrNames: Array<UserModule<any> | string>
+    userRecipesOrNames: Array<UserRecipe<any> | string>
   ): Promise<DeploymentPlan> {
-    const userModules: Array<UserModule<any>> = [];
-    for (const userModuleOrName of userModulesOrNames) {
-      const userModule: UserModule<any> =
-        typeof userModuleOrName === "string"
-          ? await this._getModule(userModuleOrName)
-          : userModuleOrName;
+    const userRecipes: Array<UserRecipe<any>> = [];
+    for (const userRecipeOrName of userRecipesOrNames) {
+      const userRecipe: UserRecipe<any> =
+        typeof userRecipeOrName === "string"
+          ? await this._getRecipe(userRecipeOrName)
+          : userRecipeOrName;
 
-      userModules.push(userModule);
+      userRecipes.push(userRecipe);
     }
 
-    const plan = await this._ignition.buildPlan(userModules);
+    const plan = await this._ignition.buildPlan(userRecipes);
 
     return plan;
   }
 
-  private async _getModule<T>(moduleId: string): Promise<UserModule<T>> {
-    const userModulesPaths = getAllUserModulesPaths(this._paths.ignition);
+  private async _getRecipe<T>(recipeId: string): Promise<UserRecipe<T>> {
+    const userRecipesPaths = getAllUserRecipesPaths(this._paths.ignition);
 
-    for (const userModulePath of userModulesPaths) {
-      const resolveUserModulePath = path.resolve(
+    for (const userRecipePath of userRecipesPaths) {
+      const resolveUserRecipePath = path.resolve(
         this._paths.ignition,
-        userModulePath
+        userRecipePath
       );
 
-      const fileExists = await fsExtra.pathExists(resolveUserModulePath);
+      const fileExists = await fsExtra.pathExists(resolveUserRecipePath);
       if (!fileExists) {
-        throw new Error(`Module ${resolveUserModulePath} doesn't exist`);
+        throw new Error(`Recipe ${resolveUserRecipePath} doesn't exist`);
       }
 
-      const userModule = require(resolveUserModulePath);
-      const userModuleContent = userModule.default ?? userModule;
+      const userRecipe = require(resolveUserRecipePath);
+      const userRecipeContent = userRecipe.default ?? userRecipe;
 
-      if (userModuleContent.id === moduleId) {
-        return userModuleContent;
+      if (userRecipeContent.id === recipeId) {
+        return userRecipeContent;
       }
     }
 
-    throw new Error(`No module found with id ${moduleId}`);
+    throw new Error(`No recipe found with id ${recipeId}`);
   }
 
-  private async _getModuleResult(
-    moduleId: string
-  ): Promise<SerializedModuleResult | undefined> {
+  private async _getRecipeResult(
+    recipeId: string
+  ): Promise<SerializedRecipeResult | undefined> {
     if (this._isHardhatNetwork) {
       return;
     }
 
     const chainId = await this._getChainId();
 
-    const moduleResultPath = path.join(
+    const recipeResultPath = path.join(
       this._paths.deployments,
       String(chainId),
-      `${moduleId}.json`
+      `${recipeId}.json`
     );
 
-    if (!(await fsExtra.pathExists(moduleResultPath))) {
+    if (!(await fsExtra.pathExists(recipeResultPath))) {
       return;
     }
 
-    const serializedModuleResult = await fsExtra.readJson(moduleResultPath);
+    const serializedRecipeResult = await fsExtra.readJson(recipeResultPath);
 
-    return serializedModuleResult;
+    return serializedRecipeResult;
   }
 
-  private async _saveModuleResult(
-    moduleId: string,
-    serializedModuleResult: SerializedModuleResult
+  private async _saveRecipeResult(
+    recipeId: string,
+    serializedRecipeResult: SerializedRecipeResult
   ): Promise<void> {
     if (this._isHardhatNetwork) {
       return;
@@ -208,12 +208,12 @@ export class IgnitionWrapper {
 
     fsExtra.ensureDirSync(deploymentsDirectory);
 
-    const moduleResultPath = path.join(
+    const recipeResultPath = path.join(
       deploymentsDirectory,
-      `${moduleId}.json`
+      `${recipeId}.json`
     );
 
-    await fsExtra.writeJson(moduleResultPath, serializedModuleResult, {
+    await fsExtra.writeJson(recipeResultPath, serializedRecipeResult, {
       spaces: 2,
     });
   }

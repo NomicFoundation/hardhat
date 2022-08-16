@@ -1,18 +1,18 @@
 import { Executor } from "../executors/Executor";
 import { ParamFuture } from "../futures/ParamFuture";
 
-import { IgnitionModule } from "./IgnitionModule";
+import { IgnitionRecipe } from "./IgnitionRecipe";
 
 export class ExecutionGraph {
-  private _modules: Map<string, Map<string, Executor>> = new Map();
+  private _recipes: Map<string, Map<string, Executor>> = new Map();
   private _dependencies: Map<string, Set<string>> = new Map();
 
   public addExecutor(executor: Executor) {
-    const moduleId = executor.future.moduleId;
-    let executorsMap = this._modules.get(moduleId);
+    const recipeId = executor.future.recipeId;
+    let executorsMap = this._recipes.get(recipeId);
     if (executorsMap === undefined) {
       executorsMap = new Map();
-      this._modules.set(moduleId, executorsMap);
+      this._recipes.set(recipeId, executorsMap);
     }
 
     if (executorsMap.has(executor.future.id)) {
@@ -35,56 +35,56 @@ export class ExecutionGraph {
 
     const dependencies = executor.future.getDependencies();
     for (const dependency of dependencies) {
-      this._addDependency(moduleId, dependency.moduleId);
+      this._addDependency(recipeId, dependency.recipeId);
     }
 
     executorsMap.set(executor.future.id, executor);
   }
 
-  public getModule(moduleId: string): IgnitionModule | undefined {
-    const executorsMap = this._modules.get(moduleId);
+  public getRecipe(recipeId: string): IgnitionRecipe | undefined {
+    const executorsMap = this._recipes.get(recipeId);
     if (executorsMap === undefined) {
       return undefined;
     }
 
-    return new IgnitionModule(moduleId, [...executorsMap.values()]);
+    return new IgnitionRecipe(recipeId, [...executorsMap.values()]);
   }
 
-  public getSortedModules(): IgnitionModule[] {
+  public getSortedRecipes(): IgnitionRecipe[] {
     const added = new Set<string>();
-    const ignitionModules = this._getModules();
-    const sortedModules: IgnitionModule[] = [];
+    const ignitionRecipes = this._getRecipes();
+    const sortedRecipes: IgnitionRecipe[] = [];
 
-    while (added.size < ignitionModules.length) {
-      for (const ignitionModule of ignitionModules) {
-        if (added.has(ignitionModule.id)) {
+    while (added.size < ignitionRecipes.length) {
+      for (const ignitionRecipe of ignitionRecipes) {
+        if (added.has(ignitionRecipe.id)) {
           continue;
         }
 
         const dependencies =
-          this._dependencies.get(ignitionModule.id) ?? new Set();
+          this._dependencies.get(ignitionRecipe.id) ?? new Set();
         if ([...dependencies].every((d) => added.has(d))) {
-          sortedModules.push(ignitionModule);
-          added.add(ignitionModule.id);
+          sortedRecipes.push(ignitionRecipe);
+          added.add(ignitionRecipe.id);
         }
       }
     }
 
-    return sortedModules;
+    return sortedRecipes;
   }
 
-  private _addDependency(moduleId: string, dependencyModuleId: string) {
-    if (moduleId !== dependencyModuleId) {
+  private _addDependency(recipeId: string, dependencyRecipeId: string) {
+    if (recipeId !== dependencyRecipeId) {
       const dependencies =
-        this._dependencies.get(moduleId) ?? new Set<string>();
-      dependencies.add(dependencyModuleId);
-      this._dependencies.set(moduleId, dependencies);
+        this._dependencies.get(recipeId) ?? new Set<string>();
+      dependencies.add(dependencyRecipeId);
+      this._dependencies.set(recipeId, dependencies);
     }
   }
 
-  private _getModules(): IgnitionModule[] {
-    return [...this._modules.entries()].map(
-      ([id, executorsMap]) => new IgnitionModule(id, [...executorsMap.values()])
+  private _getRecipes(): IgnitionRecipe[] {
+    return [...this._recipes.entries()].map(
+      ([id, executorsMap]) => new IgnitionRecipe(id, [...executorsMap.values()])
     );
   }
 }

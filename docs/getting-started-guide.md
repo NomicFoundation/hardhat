@@ -16,32 +16,32 @@ import { HardhatUserConfig, task } from "hardhat/config";
 import "@nomicfoundation/hardhat-ignition";
 ```
 
-Create an `./ignition` folder in your project root to contain your deployment modules.
+Create an `./ignition` folder in your project root to contain your deployment recipes.
 
 ```shell
 mkdir ./ignition
 ```
 
-## Write a deployment Module
+## Write a deployment Recipe
 
-Add a deployment module under the `./ignition` folder:
+Add a deployment recipe under the `./ignition` folder:
 
 ```typescript
-// ./ignition/MyModule.ts
+// ./ignition/MyRecipe.ts
 
-import { buildModule, ModuleBuilder } from "@nomiclabs/hardhat-ignition"
+import { buildRecipe, RecipeBuilder } from "@nomiclabs/hardhat-ignition";
 
-export default buildModule("MyModule", (m: ModuleBuilder) => {
-  const token = m.contract("Token")
+export default buildRecipe("MyRecipe", (m: RecipeBuilder) => {
+  const token = m.contract("Token");
 
-  return { token }
-})
+  return { token };
+});
 ```
 
-Run the `deploy` task to test the module against a local ephemeral **Hardhat** node:
+Run the `deploy` task to test the recipe against a local ephemeral **Hardhat** node:
 
 ```shell
-npx hardhat deploy ./ignition/MyModule.ts
+npx hardhat deploy ./ignition/MyRecipe.ts
 # No need to generate any newer typings.
 # Token contract address 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512
 ```
@@ -49,16 +49,16 @@ npx hardhat deploy ./ignition/MyModule.ts
 To deploy against a network configured in `hardhat.config.{ts,js}` pass the network name:
 
 ```shell
-npx hardhat deploy --network mainnet ./ignition/MyModule.ts
+npx hardhat deploy --network mainnet ./ignition/MyRecipe.ts
 ```
 
-Modules that accept parameters can be passed those parameters at the command line via a json string:
+Recipes that accept parameters can be passed those parameters at the command line via a json string:
 
 ```shell
-npx hardhat deploy --parameters "{\"IncAmount\": 5}" ParamModule.js
+npx hardhat deploy --parameters "{\"IncAmount\": 5}" ParamRecipe.js
 # Ensure you have properly escaped the json string
 ```
 
-Next, dig deeper into defining modules:
+Next, dig deeper into defining recipes:
 
-[Creating modules for deployment](./creating-modules-for-deployment.md)
+[Creating recipes for deployment](./creating-recipes-for-deployment.md)

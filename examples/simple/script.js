@@ -1,10 +1,10 @@
 const hre = require("hardhat");
 
-// const MyModule = require("./ignition/MyModule")
-// const MyOtherModule = require("./ignition/MyOtherModule")
+// const MyRecipe = require("./ignition/MyRecipe")
+// const MyOtherRecipe = require("./ignition/MyOtherRecipe")
 
 async function main() {
-  const { foo } = await ignition.deploy("MyModule")
+  const { foo } = await ignition.deploy("MyRecipe");
 
   console.log(foo.address);
   console.log((await foo.x()).toString());
@@ -12,7 +12,7 @@ async function main() {
 
 main()
   .then(() => process.exit(0))
-  .catch(error => {
+  .catch((error) => {
     console.error(error);
     process.exit(1);
   });

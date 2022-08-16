@@ -24,7 +24,7 @@ export class ConfigWrapper implements ConfigProvider {
   public async getParam(paramName: string): Promise<ParamValue> {
     if (this.parameters === undefined) {
       throw new Error(
-        `No parameters object provided to deploy options, but module requires parameter "${paramName}"`
+        `No parameters object provided to deploy options, but recipe requires parameter "${paramName}"`
       );
     }
 

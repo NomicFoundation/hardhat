@@ -5,7 +5,7 @@ import { ParamFuture } from "../futures/ParamFuture";
 import type { IFuture } from "../futures/types";
 import { Artifact } from "../types";
 
-import { UserModule } from "./UserModule";
+import { UserRecipe } from "./UserRecipe";
 
 export interface UserContractOptions {
   id?: string;
@@ -20,10 +20,10 @@ export interface UserCallOptions {
 
 export type ParamValue = string | number;
 
-export interface ModuleBuilder {
+export interface RecipeBuilder {
   chainId: number;
 
-  getModuleId: () => string;
+  getRecipeId: () => string;
   addExecutor: (executor: Executor) => void;
 
   contract: (
@@ -44,7 +44,7 @@ export interface ModuleBuilder {
     options?: UserCallOptions
   ) => CallFuture;
 
-  useModule: <T>(userModule: UserModule<T>) => T;
+  useRecipe: <T>(userRecipe: UserRecipe<T>) => T;
 
   getParam: (paramName: string) => ParamFuture;
 
@@ -54,4 +54,4 @@ export interface ModuleBuilder {
   ) => ParamFuture;
 }
 
-export type ModuleDefinition<T> = (m: ModuleBuilder) => T;
+export type RecipeDefinition<T> = (m: RecipeBuilder) => T;

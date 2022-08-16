@@ -1,5 +1,5 @@
 import {
-  UserModule,
+  UserRecipe,
   SerializedFutureResult,
   SerializedDeploymentResult,
   DeploymentResult,
@@ -30,13 +30,13 @@ type ExpectedFutureResult =
   | {
       kind: "transaction";
     };
-type ExpectedModuleResult = Record<string, ExpectedFutureResult>;
-type ExpectedDeploymentState = Record<string, ExpectedModuleResult>;
+type ExpectedRecipeResult = Record<string, ExpectedFutureResult>;
+type ExpectedDeploymentState = Record<string, ExpectedRecipeResult>;
 
 /**
  * Check that the given deployment result matches some conditions.
  *
- * `expectedResult` is an object with expected modules results, which have
+ * `expectedResult` is an object with expected recipes results, which have
  * expected futures results. These futures results assert that that the
  * result of each future is of the correct type, and it can also run
  * some custom predicate logic on the result to further verify it.
@@ -46,30 +46,30 @@ export async function assertDeploymentState(
   result: SerializedDeploymentResult,
   expectedResult: ExpectedDeploymentState
 ) {
-  const modulesResults = Object.entries(result);
-  const expectedModules = Object.entries(expectedResult);
+  const recipesResults = Object.entries(result);
+  const expectedRecipes = Object.entries(expectedResult);
 
   assert.equal(
-    modulesResults.length,
-    expectedModules.length,
-    "Expected result and actual result have a different number of modules"
+    recipesResults.length,
+    expectedRecipes.length,
+    "Expected result and actual result have a different number of recipes"
   );
 
-  for (const [moduleId, moduleResult] of modulesResults) {
-    const expectedModule = expectedResult[moduleId];
+  for (const [recipeId, recipeResult] of recipesResults) {
+    const expectedRecipe = expectedResult[recipeId];
 
     assert.isDefined(
-      expectedModule,
-      `Module ${moduleId} is not part of the expected result`
+      expectedRecipe,
+      `Recipe ${recipeId} is not part of the expected result`
     );
 
     assert.equal(
-      Object.entries(moduleResult).length,
-      Object.entries(expectedModule).length
+      Object.entries(recipeResult).length,
+      Object.entries(expectedRecipe).length
     );
 
-    for (const [futureId, futureResult] of Object.entries(moduleResult)) {
-      const expectedFutureResult = expectedModule[futureId];
+    for (const [futureId, futureResult] of Object.entries(recipeResult)) {
+      const expectedFutureResult = expectedRecipe[futureId];
 
       if (expectedFutureResult.kind === "contract") {
         const contract = await assertContract(hre, futureResult);
@@ -103,22 +103,22 @@ async function assertTxMined(hre: any, hash: string) {
 }
 
 /**
- * Deploy all the modules in `userModules`.
+ * Deploy all the recipes in `userRecipes`.
  *
  * Assert that `expectedBlocks.length` blocks are mined, and that
  * each mined block has `expectedBlocks[i]` transactions.
  */
-export async function deployModules(
+export async function deployRecipes(
   hre: any,
-  userModules: Array<UserModule<any>>,
+  userRecipes: Array<UserRecipe<any>>,
   expectedBlocks: number[]
 ): Promise<SerializedDeploymentResult> {
   await hre.run("compile", { quiet: true });
 
   const deploymentResultPromise: Promise<DeploymentResult> = hre.run(
-    "deploy:deploy-modules",
+    "deploy:deploy-recipes",
     {
-      userModules,
+      userRecipes,
     }
   );
 

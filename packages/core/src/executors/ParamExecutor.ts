@@ -33,7 +33,7 @@ export class ParamExecutor extends Executor<ParamOptions, any> {
 
     if (!hasParamResult.found && hasParamResult.errorCode === "no-params") {
       return [
-        `No parameters object provided to deploy options, but module requires parameter "${paramName}"`,
+        `No parameters object provided to deploy options, but recipe requires parameter "${paramName}"`,
       ];
     }
 

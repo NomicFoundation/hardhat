@@ -1,41 +1,41 @@
 import { expect } from "chai";
 
-import { ExecutionGraph } from "../src/modules/ExecutionGraph";
+import { ExecutionGraph } from "../src/recipes/ExecutionGraph";
 
 import { inc } from "./helpers";
 
 describe("ExecutionGraph", function () {
-  describe("sort modules", function () {
-    it("should work for a single module", function () {
+  describe("sort recipes", function () {
+    it("should work for a single recipe", function () {
       // given
       const executionGraph = new ExecutionGraph();
-      executionGraph.addExecutor(inc("MyModule", "inc1", 1));
+      executionGraph.addExecutor(inc("MyRecipe", "inc1", 1));
 
       // when
-      const ignitionModules = executionGraph
-        .getSortedModules()
+      const ignitionRecipes = executionGraph
+        .getSortedRecipes()
         .map((m) => m.id);
 
       // then
-      expect(ignitionModules).to.deep.equal(["MyModule"]);
+      expect(ignitionRecipes).to.deep.equal(["MyRecipe"]);
     });
 
-    it("should work for two modules", function () {
+    it("should work for two recipes", function () {
       // given
       const executionGraph = new ExecutionGraph();
-      const module1Inc = inc("Module1", "inc1", 1);
-      const module2Inc = inc("Module2", "inc1", module1Inc.future);
+      const recipe1Inc = inc("Recipe1", "inc1", 1);
+      const recipe2Inc = inc("Recipe2", "inc1", recipe1Inc.future);
 
-      executionGraph.addExecutor(module2Inc);
-      executionGraph.addExecutor(module1Inc);
+      executionGraph.addExecutor(recipe2Inc);
+      executionGraph.addExecutor(recipe1Inc);
 
       // when
-      const ignitionModules = executionGraph
-        .getSortedModules()
+      const ignitionRecipes = executionGraph
+        .getSortedRecipes()
         .map((m) => m.id);
 
       // then
-      expect(ignitionModules).to.deep.equal(["Module1", "Module2"]);
+      expect(ignitionRecipes).to.deep.equal(["Recipe1", "Recipe2"]);
     });
   });
 
@@ -43,11 +43,11 @@ describe("ExecutionGraph", function () {
     it("should work for a single executor", function () {
       // given
       const executionGraph = new ExecutionGraph();
-      executionGraph.addExecutor(inc("MyModule", "inc1", 1));
+      executionGraph.addExecutor(inc("MyRecipe", "inc1", 1));
 
       // when
-      const [ignitionModule] = executionGraph.getSortedModules();
-      const executors = ignitionModule
+      const [ignitionRecipe] = executionGraph.getSortedRecipes();
+      const executors = ignitionRecipe
         .getSortedExecutors()
         .map((e) => e.future.id);
 
@@ -58,13 +58,13 @@ describe("ExecutionGraph", function () {
     it("should work for two executors", function () {
       // given
       const executionGraph = new ExecutionGraph();
-      const inc1 = inc("MyModule", "inc1", 1);
-      executionGraph.addExecutor(inc("MyModule", "incInc1", inc1.future));
+      const inc1 = inc("MyRecipe", "inc1", 1);
+      executionGraph.addExecutor(inc("MyRecipe", "incInc1", inc1.future));
       executionGraph.addExecutor(inc1);
 
       // when
-      const [ignitionModule] = executionGraph.getSortedModules();
-      const executors = ignitionModule
+      const [ignitionRecipe] = executionGraph.getSortedRecipes();
+      const executors = ignitionRecipe
         .getSortedExecutors()
         .map((e) => e.future.id);
 
@@ -75,16 +75,16 @@ describe("ExecutionGraph", function () {
     it("should work for three sequential executors", function () {
       // given
       const executionGraph = new ExecutionGraph();
-      const inc1 = inc("MyModule", "inc1", 1);
-      const incInc1 = inc("MyModule", "incInc1", inc1.future);
-      const incIncInc1 = inc("MyModule", "incIncInc1", incInc1.future);
+      const inc1 = inc("MyRecipe", "inc1", 1);
+      const incInc1 = inc("MyRecipe", "incInc1", inc1.future);
+      const incIncInc1 = inc("MyRecipe", "incIncInc1", incInc1.future);
       executionGraph.addExecutor(incIncInc1);
       executionGraph.addExecutor(inc1);
       executionGraph.addExecutor(incInc1);
 
       // when
-      const [ignitionModule] = executionGraph.getSortedModules();
-      const executors = ignitionModule
+      const [ignitionRecipe] = executionGraph.getSortedRecipes();
+      const executors = ignitionRecipe
         .getSortedExecutors()
         .map((e) => e.future.id);
 

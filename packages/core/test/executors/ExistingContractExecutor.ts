@@ -34,7 +34,7 @@ async function assertExistingContractValidation(
   input: ExistingContractOptions,
   expected: string[]
 ) {
-  const future = new ExistingContractFuture("MyModule", "future-1", input);
+  const future = new ExistingContractFuture("MyRecipe", "future-1", input);
 
   const ex = new ExistingContractExecutor(future);
 

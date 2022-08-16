@@ -4,14 +4,14 @@ import { DeploymentState } from "../src/deployment-state";
 import {
   ExecutionEngine,
   ExecutionEngineOptions,
-  IgnitionModulesResults,
+  IgnitionRecipesResults,
 } from "../src/execution-engine";
 import { InMemoryJournal } from "../src/journal/InMemoryJournal";
-import { ExecutionGraph } from "../src/modules/ExecutionGraph";
+import { ExecutionGraph } from "../src/recipes/ExecutionGraph";
 
 import { getMockedProviders, inc, runUntil, runUntilReady } from "./helpers";
 
-const mockModulesResults: IgnitionModulesResults = {
+const mockRecipesResults: IgnitionRecipesResults = {
   load: async () => {
     return undefined;
   },
@@ -25,16 +25,16 @@ const executionEngineOptions: ExecutionEngineOptions = {
 };
 
 describe("ExecutionEngine", function () {
-  it("should run a single module with a single executor", async function () {
+  it("should run a single recipe with a single executor", async function () {
     // given
     const executionEngine = new ExecutionEngine(
       getMockedProviders(),
       new InMemoryJournal(),
-      mockModulesResults,
+      mockRecipesResults,
       executionEngineOptions
     );
 
-    const inc1 = inc("MyModule", "inc1", 1);
+    const inc1 = inc("MyRecipe", "inc1", 1);
 
     const executionGraph = new ExecutionGraph();
     executionGraph.addExecutor(inc1);
@@ -44,14 +44,14 @@ describe("ExecutionEngine", function () {
     const deploymentResult = await runUntilReady(executionGenerator);
 
     // then
-    const resultModules = deploymentResult.getModules();
+    const resultRecipes = deploymentResult.getRecipes();
 
-    assert.lengthOf(resultModules, 1);
-    const [resultModule] = resultModules;
-    assert.isTrue(resultModule.isSuccess());
-    assert.equal(resultModule.count(), 1);
+    assert.lengthOf(resultRecipes, 1);
+    const [resultRecipe] = resultRecipes;
+    assert.isTrue(resultRecipe.isSuccess());
+    assert.equal(resultRecipe.count(), 1);
 
-    const futureResult = deploymentResult.getFutureResult("MyModule", "inc1");
+    const futureResult = deploymentResult.getFutureResult("MyRecipe", "inc1");
 
     assert.equal(futureResult, 2);
 
@@ -63,14 +63,14 @@ describe("ExecutionEngine", function () {
     const executionEngine = new ExecutionEngine(
       getMockedProviders(),
       new InMemoryJournal(),
-      mockModulesResults,
+      mockRecipesResults,
       executionEngineOptions
     );
 
     const executionGraph = new ExecutionGraph();
-    const inc1 = inc("MyModule", "inc1", 1);
+    const inc1 = inc("MyRecipe", "inc1", 1);
     inc1.behavior = "on-demand";
-    const incInc1 = inc("MyModule", "incInc1", inc1.future);
+    const incInc1 = inc("MyRecipe", "incInc1", inc1.future);
     executionGraph.addExecutor(inc1);
     executionGraph.addExecutor(incInc1);
 
@@ -93,15 +93,15 @@ describe("ExecutionEngine", function () {
     );
 
     // then
-    const resultModules = deploymentState.getModules();
+    const resultRecipes = deploymentState.getRecipes();
 
-    assert.lengthOf(resultModules, 1);
-    assert.isTrue(resultModules[0].isSuccess());
-    assert.equal(resultModules[0].count(), 2);
+    assert.lengthOf(resultRecipes, 1);
+    assert.isTrue(resultRecipes[0].isSuccess());
+    assert.equal(resultRecipes[0].count(), 2);
 
-    const inc1Result = deploymentState.getFutureResult("MyModule", "inc1");
+    const inc1Result = deploymentState.getFutureResult("MyRecipe", "inc1");
     const incInc1Result = deploymentState.getFutureResult(
-      "MyModule",
+      "MyRecipe",
       "incInc1"
     );
 
@@ -117,14 +117,14 @@ describe("ExecutionEngine", function () {
     const executionEngine = new ExecutionEngine(
       getMockedProviders(),
       new InMemoryJournal(),
-      mockModulesResults,
+      mockRecipesResults,
       executionEngineOptions
     );
 
     const executionGraph = new ExecutionGraph();
-    const inc1 = inc("MyModule", "inc1", 1);
+    const inc1 = inc("MyRecipe", "inc1", 1);
     inc1.behavior = "fail";
-    const incInc1 = inc("MyModule", "incInc1", inc1.future);
+    const incInc1 = inc("MyRecipe", "incInc1", inc1.future);
     executionGraph.addExecutor(inc1);
     executionGraph.addExecutor(incInc1);
 
@@ -133,11 +133,11 @@ describe("ExecutionEngine", function () {
     const deploymentResult = await runUntilReady(executionGenerator);
 
     // then
-    const resultModules = deploymentResult.getModules();
+    const resultRecipes = deploymentResult.getRecipes();
 
-    assert.lengthOf(resultModules, 1);
-    assert.isFalse(resultModules[0].isSuccess());
-    assert.isTrue(resultModules[0].isFailure());
+    assert.lengthOf(resultRecipes, 1);
+    assert.isFalse(resultRecipes[0].isSuccess());
+    assert.isTrue(resultRecipes[0].isFailure());
 
     assert.isTrue(inc1.isFailure());
     assert.isTrue(incInc1.isReady());
@@ -148,14 +148,14 @@ describe("ExecutionEngine", function () {
     const executionEngine = new ExecutionEngine(
       getMockedProviders(),
       new InMemoryJournal(),
-      mockModulesResults,
+      mockRecipesResults,
       executionEngineOptions
     );
 
     const executionGraph = new ExecutionGraph();
-    const inc1 = inc("MyModule", "inc1", 1);
+    const inc1 = inc("MyRecipe", "inc1", 1);
     inc1.behavior = "hold";
-    const incInc1 = inc("MyModule", "incInc1", inc1.future);
+    const incInc1 = inc("MyRecipe", "incInc1", inc1.future);
     executionGraph.addExecutor(inc1);
     executionGraph.addExecutor(incInc1);
 
@@ -167,10 +167,10 @@ describe("ExecutionEngine", function () {
     if (deploymentResult === undefined) {
       assert.fail("Deployment result should be ready");
     }
-    const resultModules = deploymentResult.getModules();
+    const resultRecipes = deploymentResult.getRecipes();
 
-    assert.lengthOf(resultModules, 1);
-    assert.isTrue(resultModules[0].isHold());
+    assert.lengthOf(resultRecipes, 1);
+    assert.isTrue(resultRecipes[0].isHold());
 
     assert.isTrue(inc1.isHold());
     assert.isTrue(incInc1.isReady());

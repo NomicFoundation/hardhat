@@ -6,7 +6,7 @@ export abstract class InternalFuture<
   O extends FutureOutput = any
 > extends Future<I, O> {
   constructor(
-    public readonly moduleId: string,
+    public readonly recipeId: string,
     public readonly id: string,
     public readonly input: I
   ) {

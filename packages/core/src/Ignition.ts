@@ -5,13 +5,13 @@ import {
   DeploymentResult,
   ExecutionEngine,
   ExecutionManager,
-  IgnitionModulesResults,
+  IgnitionRecipesResults,
 } from "./execution-engine";
 import { FileJournal } from "./journal/FileJournal";
 import { InMemoryJournal } from "./journal/InMemoryJournal";
-import { ModuleBuilderImpl } from "./modules/ModuleBuilderImpl";
-import { UserModule } from "./modules/UserModule";
 import { Providers } from "./providers";
+import { RecipeBuilderImpl } from "./recipes/RecipeBuilderImpl";
+import { UserRecipe } from "./recipes/UserRecipe";
 
 const log = setupDebug("ignition:main");
 
@@ -20,30 +20,30 @@ export interface IgnitionDeployOptions {
   txPollingInterval: number;
 }
 
-type ModulesOutputs = Record<string, any>;
+type RecipesOutputs = Record<string, any>;
 
 export class Ignition {
   constructor(
     private _providers: Providers,
-    private _modulesResults: IgnitionModulesResults
+    private _recipesResults: IgnitionRecipesResults
   ) {}
 
   public async deploy(
-    userModules: Array<UserModule<any>>,
+    userRecipes: Array<UserRecipe<any>>,
     { pathToJournal, txPollingInterval }: IgnitionDeployOptions
-  ): Promise<[DeploymentResult, ModulesOutputs]> {
-    log(`Start deploy, '${userModules.length}' modules`);
+  ): Promise<[DeploymentResult, RecipesOutputs]> {
+    log(`Start deploy, '${userRecipes.length}' recipes`);
 
     const chainId = await this._getChainId();
 
-    const m = new ModuleBuilderImpl(chainId);
+    const m = new RecipeBuilderImpl(chainId);
 
-    const modulesOutputs: ModulesOutputs = {};
+    const recipesOutputs: RecipesOutputs = {};
 
-    for (const userModule of userModules) {
-      log("Load module '%s'", userModule.id);
-      const moduleOutput = m.useModule(userModule) ?? {};
-      modulesOutputs[userModule.id] = moduleOutput;
+    for (const userRecipe of userRecipes) {
+      log("Load recipe '%s'", userRecipe.id);
+      const recipeOutput = m.useRecipe(userRecipe) ?? {};
+      recipesOutputs[userRecipe.id] = recipeOutput;
     }
 
     log("Build execution graph");
@@ -58,7 +58,7 @@ export class Ignition {
     const engine = new ExecutionEngine(
       this._providers,
       journal,
-      this._modulesResults,
+      this._recipesResults,
       {
         parallelizationLevel: 2,
         loggingEnabled: pathToJournal !== undefined,
@@ -74,27 +74,27 @@ export class Ignition {
     log("Execute deployment");
     const deploymentResult = await executionManager.execute(executionGraph);
 
-    return [deploymentResult, modulesOutputs];
+    return [deploymentResult, recipesOutputs];
   }
 
   public async buildPlan(
-    userModules: Array<UserModule<any>>
+    userRecipes: Array<UserRecipe<any>>
   ): Promise<DeploymentPlan> {
-    log(`Start building plan, '${userModules.length}' modules`);
+    log(`Start building plan, '${userRecipes.length}' recipes`);
 
     const chainId = await this._getChainId();
 
-    const m = new ModuleBuilderImpl(chainId);
+    const m = new RecipeBuilderImpl(chainId);
 
-    for (const userModule of userModules) {
-      log("Load module '%s'", userModule.id);
-      m.useModule(userModule);
+    for (const userRecipe of userRecipes) {
+      log("Load recipe '%s'", userRecipe.id);
+      m.useRecipe(userRecipe);
     }
 
     log("Build ExecutionGraph");
     const executionGraph = m.buildExecutionGraph();
 
-    return ExecutionEngine.buildPlan(executionGraph, this._modulesResults);
+    return ExecutionEngine.buildPlan(executionGraph, this._recipesResults);
   }
 
   private async _getChainId(): Promise<number> {

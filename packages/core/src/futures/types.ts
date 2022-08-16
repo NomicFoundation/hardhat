@@ -1,4 +1,4 @@
-import { ParamValue } from "../modules/types";
+import { ParamValue } from "../recipes/types";
 import { Artifact, Contract, Tx } from "../types";
 
 import { ContractFuture } from "./ContractFuture";
@@ -7,11 +7,11 @@ import { serializeFutureOutput } from "./utils";
 
 export type FutureOutput = string | number | Contract | Tx;
 
-export type ModuleResult = Record<string, FutureOutput>;
-export type SerializedModuleResult = Record<string, SerializedFutureResult>;
+export type RecipeResult = Record<string, FutureOutput>;
+export type SerializedRecipeResult = Record<string, SerializedFutureResult>;
 export type SerializedFutureResult = ReturnType<typeof serializeFutureOutput>;
 
-export type SerializedDeploymentResult = Record<string, SerializedModuleResult>;
+export type SerializedDeploymentResult = Record<string, SerializedRecipeResult>;
 
 export interface ContractOptions {
   contractName: string;
