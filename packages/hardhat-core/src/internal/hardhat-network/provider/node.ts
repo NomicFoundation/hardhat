@@ -115,6 +115,7 @@ import { makeStateTrie } from "./utils/makeStateTrie";
 import { makeForkCommon } from "./utils/makeForkCommon";
 import { putGenesisBlock } from "./utils/putGenesisBlock";
 import { txMapToArray } from "./utils/txMapToArray";
+import { RandomBufferGenerator } from "./fork/random";
 
 type ExecResult = EVMResult["execResult"];
 
@@ -153,6 +154,7 @@ export class HardhatNode extends EventEmitter {
         : undefined;
 
     const hardfork = getHardforkName(config.hardfork);
+    const mixHashGenerator = RandomBufferGenerator.create("randomMixHashSeed");
     let forkClient: JsonRpcClient | undefined;
 
     if (isForkedNodeConfig(config)) {
@@ -232,6 +234,7 @@ export class HardhatNode extends EventEmitter {
         config,
         stateTrie,
         hardfork,
+        mixHashGenerator.next(),
         genesisBlockBaseFeePerGas
       );
 
@@ -276,6 +279,7 @@ export class HardhatNode extends EventEmitter {
       chainId,
       hardfork,
       hardforkActivations,
+      mixHashGenerator,
       tracingConfig,
       forkNetworkId,
       forkBlockNum,
@@ -358,6 +362,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     private readonly _configChainId: number,
     private readonly _hardfork: HardforkName,
     private readonly _hardforkActivations: HardforkHistoryConfig,
+    private _mixHashGenerator: RandomBufferGenerator,
     tracingConfig?: TracingConfig,
     private _forkNetworkId?: number,
     private _forkBlockNumber?: bigint,
@@ -1001,6 +1006,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       userProvidedNextBlockBaseFeePerGas:
         this.getUserProvidedNextBlockBaseFeePerGas(),
       coinbase: this.getCoinbaseAddress().toString(),
+      mixHashGenerator: this._mixHashGenerator.clone(),
     };
 
     this._irregularStatesByBlockNumber = new Map(
@@ -1055,6 +1061,8 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     }
 
     this._coinbase = snapshot.coinbase;
+
+    this._mixHashGenerator = snapshot.mixHashGenerator;
 
     // We delete this and the following snapshots, as they can only be used
     // once in Ganache
@@ -1741,11 +1749,15 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     const headerData: HeaderData = {
       gasLimit: this.getBlockGasLimit(),
       coinbase: this.getCoinbaseAddress(),
-      nonce: this.isPostMergeHardfork()
+      nonce: this._isPostMergeHardfork()
         ? "0x0000000000000000"
         : "0x0000000000000042",
       timestamp: blockTimestamp,
     };
+
+    if (this._isPostMergeHardfork()) {
+      headerData.mixHash = this._getNextMixHash();
+    }
 
     headerData.baseFeePerGas = await this.getNextBlockBaseFeePerGas();
 
@@ -2498,8 +2510,12 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     return this._vm._common.gteHardfork("london");
   }
 
-  public isPostMergeHardfork(): boolean {
+  private _isPostMergeHardfork(): boolean {
     return hardforkGte(this._hardfork, HardforkName.MERGE);
+  }
+
+  private _getNextMixHash(): Buffer {
+    return this._mixHashGenerator.next();
   }
 
   private async _getEstimateGasFeePriceFields(

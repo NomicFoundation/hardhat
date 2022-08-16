@@ -15,6 +15,7 @@ export async function putGenesisBlock(
   { initialDate, blockGasLimit }: LocalNodeConfig,
   stateTrie: SecureTrie,
   hardfork: HardforkName,
+  initialMixHash: Buffer,
   initialBaseFee?: bigint
 ) {
   const initialBlockTimestamp =
@@ -32,6 +33,10 @@ export async function putGenesisBlock(
     extraData: "0x1234",
     stateRoot: bufferToHex(stateTrie.root),
   };
+
+  if (isPostMerge) {
+    header.mixHash = initialMixHash;
+  }
 
   if (initialBaseFee !== undefined) {
     header.baseFeePerGas = initialBaseFee;

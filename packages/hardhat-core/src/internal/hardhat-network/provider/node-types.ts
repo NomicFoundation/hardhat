@@ -6,6 +6,7 @@ import { RunBlockResult } from "@ethereumjs/vm";
 import { HARDHAT_MEMPOOL_SUPPORTED_ORDERS } from "../../constants";
 import { BuildInfo, HardhatNetworkChainsConfig } from "../../../types";
 import { MessageTrace } from "../stack-traces/message-trace";
+import { RandomBufferGenerator } from "./fork/random";
 
 export type NodeConfig = LocalNodeConfig | ForkedNodeConfig;
 
@@ -128,6 +129,7 @@ export interface Snapshot {
   irregularStatesByBlockNumber: Map<bigint, Buffer>;
   userProvidedNextBlockBaseFeePerGas: bigint | undefined;
   coinbase: string;
+  mixHashGenerator: RandomBufferGenerator;
 }
 
 export type SendTransactionResult =

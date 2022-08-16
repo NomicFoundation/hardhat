@@ -1248,6 +1248,31 @@ describe("Eth module - hardfork dependant tests", function () {
         assert.notEqual(difficulty, 0n);
         assert.notEqual(nonce, 0n);
       });
+
+      it("mixHash value is always the same", async function () {
+        let latestBlock = await this.provider.send("eth_getBlockByNumber", [
+          "latest",
+          false,
+        ]);
+
+        assert.equal(
+          latestBlock.mixHash,
+          "0x0000000000000000000000000000000000000000000000000000000000000000"
+        );
+
+        // send a transaction to generate a new block
+        await sendTxToZeroAddress(this.provider);
+
+        latestBlock = await this.provider.send("eth_getBlockByNumber", [
+          "latest",
+          false,
+        ]);
+
+        assert.equal(
+          latestBlock.mixHash,
+          "0x0000000000000000000000000000000000000000000000000000000000000000"
+        );
+      });
     });
 
     describe("post-merge hardfork", function () {
@@ -1267,6 +1292,63 @@ describe("Eth module - hardfork dependant tests", function () {
 
         assert.equal(difficulty, 0n);
         assert.equal(nonce, 0n);
+      });
+
+      it("mixHash value changes from block to block", async function () {
+        let latestBlock = await this.provider.send("eth_getBlockByNumber", [
+          "latest",
+          false,
+        ]);
+
+        // this value and the next one are hardcoded because the mixHash is
+        // pseudo-randomly generated from a fixed seed
+        assert.equal(
+          latestBlock.mixHash,
+          "0x53c5ae3ce8eefbfad3aca77e5f4e1b19a949b04e2e5ce7a24fbb64422f14f0bf"
+        );
+
+        // send a transaction to generate a new block
+        await sendTxToZeroAddress(this.provider);
+
+        latestBlock = await this.provider.send("eth_getBlockByNumber", [
+          "latest",
+          false,
+        ]);
+
+        assert.equal(
+          latestBlock.mixHash,
+          "0xf4fbfa6c8463f342eb58838d8c6b0661faf22e7076a518bf4deaddbf3fa8a112"
+        );
+      });
+
+      it("the mixHash of a pending block is null", async function () {
+        const pendingBlock = await this.provider.send("eth_getBlockByNumber", [
+          "pending",
+          false,
+        ]);
+
+        assert.isNull(pendingBlock.mixHash);
+      });
+
+      it("fetching the pending block shouldn't affect the mixHash", async function () {
+        // fetch pending block before mining
+        await this.provider.send("eth_getBlockByNumber", ["pending", false]);
+
+        // send a transaction to generate a new block
+        await sendTxToZeroAddress(this.provider);
+
+        // fetch pending block after mining
+        await this.provider.send("eth_getBlockByNumber", ["pending", false]);
+
+        const latestBlock = await this.provider.send("eth_getBlockByNumber", [
+          "latest",
+          false,
+        ]);
+
+        assert.equal(
+          latestBlock.mixHash,
+          "0xf4fbfa6c8463f342eb58838d8c6b0661faf22e7076a518bf4deaddbf3fa8a112"
+        );
       });
     });
   });
