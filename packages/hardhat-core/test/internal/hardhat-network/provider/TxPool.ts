@@ -4,7 +4,7 @@ import { Account, Address, bufferToHex, toBuffer } from "@ethereumjs/util";
 import { assert } from "chai";
 
 import { InvalidInputError } from "../../../../src/internal/core/providers/errors";
-import { randomAddress } from "../../../../src/internal/hardhat-network/provider/fork/random";
+import { randomAddress } from "../../../../src/internal/hardhat-network/provider/utils/random";
 import { TxPool } from "../../../../src/internal/hardhat-network/provider/TxPool";
 import { txMapToArray } from "../../../../src/internal/hardhat-network/provider/utils/txMapToArray";
 import { assertEqualTransactionMaps } from "../helpers/assertEqualTransactionMaps";

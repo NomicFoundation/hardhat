@@ -115,7 +115,7 @@ import { makeStateTrie } from "./utils/makeStateTrie";
 import { makeForkCommon } from "./utils/makeForkCommon";
 import { putGenesisBlock } from "./utils/putGenesisBlock";
 import { txMapToArray } from "./utils/txMapToArray";
-import { RandomBufferGenerator } from "./fork/random";
+import { RandomBufferGenerator } from "./utils/random";
 
 type ExecResult = EVMResult["execResult"];
 

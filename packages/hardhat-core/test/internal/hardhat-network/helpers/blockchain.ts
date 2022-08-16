@@ -7,7 +7,7 @@ import {
 } from "@ethereumjs/tx/dist/types";
 
 import { numberToRpcQuantity } from "../../../../src/internal/core/jsonrpc/types/base-types";
-import { randomAddress } from "../../../../src/internal/hardhat-network/provider/fork/random";
+import { randomAddress } from "../../../../src/internal/hardhat-network/provider/utils/random";
 import {
   RpcLogOutput,
   RpcReceiptOutput,

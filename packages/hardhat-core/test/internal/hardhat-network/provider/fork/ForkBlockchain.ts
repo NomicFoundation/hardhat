@@ -5,7 +5,7 @@ import { assert } from "chai";
 
 import { JsonRpcClient } from "../../../../../src/internal/hardhat-network/jsonrpc/client";
 import { ForkBlockchain } from "../../../../../src/internal/hardhat-network/provider/fork/ForkBlockchain";
-import { randomHashBuffer } from "../../../../../src/internal/hardhat-network/provider/fork/random";
+import { randomHashBuffer } from "../../../../../src/internal/hardhat-network/provider/utils/random";
 import { makeForkClient } from "../../../../../src/internal/hardhat-network/provider/utils/makeForkClient";
 import { ALCHEMY_URL } from "../../../../setup";
 import {
