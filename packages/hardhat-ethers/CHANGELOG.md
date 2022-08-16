@@ -1,5 +1,11 @@
 # @nomiclabs/hardhat-ethers
 
+## 2.1.1
+
+### Patch Changes
+
+- fa2a98c8a: getContractAt() now throws an error if the address is not of a contract.
+
 ## 2.1.0
 
 ### Minor Changes
