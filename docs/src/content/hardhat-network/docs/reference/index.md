@@ -9,6 +9,7 @@
 - muirGlacier
 - london
 - arrowGlacier
+- merge
 
 ## Config
 
@@ -61,7 +62,7 @@ The block gas limit to use in Hardhat Network's blockchain. Default value: `30_0
 
 #### `hardfork`
 
-This setting changes how Hardhat Network works, to mimic Ethereum's mainnet at a given hardfork. It must be one of `"byzantium"`, `"constantinople"`, `"petersburg"`, `"istanbul"`, `"muirGlacier"`, `"berlin"`, `"london"` and `"arrowGlacier"`. Default value: `"arrowGlacier"`
+This setting changes how Hardhat Network works, to mimic Ethereum's mainnet at a given hardfork. It must be one of `"byzantium"`, `"constantinople"`, `"petersburg"`, `"istanbul"`, `"muirGlacier"`, `"berlin"`, `"london"`, `"arrowGlacier"` and `"merge"`. Default value: `"arrowGlacier"`
 
 #### `throwOnTransactionFailures`
 

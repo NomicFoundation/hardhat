@@ -21,7 +21,10 @@ import {
   DEFAULT_ACCOUNTS,
   DEFAULT_ACCOUNTS_ADDRESSES,
 } from "../../../helpers/providers";
-import { deployContract } from "../../../helpers/transactions";
+import {
+  deployContract,
+  sendTxToZeroAddress,
+} from "../../../helpers/transactions";
 import { useProvider as importedUseProvider } from "../../../helpers/useProvider";
 import {
   EIP1559RpcTransactionOutput,
@@ -1223,6 +1226,48 @@ describe("Eth module - hardfork dependant tests", function () {
           await this.provider.send("eth_feeHistory", ["0x1", "latest"]);
         });
       }
+    });
+  });
+
+  describe("merge hardfork", function () {
+    describe("pre-merge hardfork", function () {
+      useProviderAndCommon("london");
+
+      it("difficulty and nonce should be non-zero values", async function () {
+        // send a transaction to generate a new block
+        await sendTxToZeroAddress(this.provider);
+
+        const latestBlock = await this.provider.send("eth_getBlockByNumber", [
+          "latest",
+          false,
+        ]);
+
+        const difficulty = BigInt(latestBlock.difficulty);
+        const nonce = BigInt(latestBlock.nonce);
+
+        assert.notEqual(difficulty, 0n);
+        assert.notEqual(nonce, 0n);
+      });
+    });
+
+    describe("post-merge hardfork", function () {
+      useProviderAndCommon("merge");
+
+      it("difficulty and nonce should be zero values", async function () {
+        // send a transaction to generate a new block
+        await sendTxToZeroAddress(this.provider);
+
+        const latestBlock = await this.provider.send("eth_getBlockByNumber", [
+          "latest",
+          false,
+        ]);
+
+        const difficulty = BigInt(latestBlock.difficulty);
+        const nonce = BigInt(latestBlock.nonce);
+
+        assert.equal(difficulty, 0n);
+        assert.equal(nonce, 0n);
+      });
     });
   });
 });

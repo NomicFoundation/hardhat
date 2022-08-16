@@ -231,6 +231,7 @@ export class HardhatNode extends EventEmitter {
         common,
         config,
         stateTrie,
+        hardfork,
         genesisBlockBaseFeePerGas
       );
 
@@ -273,6 +274,7 @@ export class HardhatNode extends EventEmitter {
       genesisAccounts,
       networkId,
       chainId,
+      hardfork,
       hardforkActivations,
       tracingConfig,
       forkNetworkId,
@@ -354,6 +356,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     genesisAccounts: GenesisAccount[],
     private readonly _configNetworkId: number,
     private readonly _configChainId: number,
+    private readonly _hardfork: HardforkName,
     private readonly _hardforkActivations: HardforkHistoryConfig,
     tracingConfig?: TracingConfig,
     private _forkNetworkId?: number,
@@ -1738,7 +1741,9 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     const headerData: HeaderData = {
       gasLimit: this.getBlockGasLimit(),
       coinbase: this.getCoinbaseAddress(),
-      nonce: "0x0000000000000042",
+      nonce: this.isPostMergeHardfork()
+        ? "0x0000000000000000"
+        : "0x0000000000000042",
       timestamp: blockTimestamp,
     };
 
@@ -2491,6 +2496,10 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       );
     }
     return this._vm._common.gteHardfork("london");
+  }
+
+  public isPostMergeHardfork(): boolean {
+    return hardforkGte(this._hardfork, HardforkName.MERGE);
   }
 
   private async _getEstimateGasFeePriceFields(
