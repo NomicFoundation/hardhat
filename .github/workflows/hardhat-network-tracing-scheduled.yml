@@ -2,7 +2,7 @@ name: Hardhat Network Tracing Capabilities, scheduled runs for all solc verisons
 
 on:
   schedule:
-    - cron: "0 0 * * *"
+    - cron: "0 0 * * *" # every day at midnight
   workflow_dispatch:
 
 defaults:
