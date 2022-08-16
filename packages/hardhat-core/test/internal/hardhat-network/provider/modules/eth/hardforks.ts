@@ -31,6 +31,7 @@ import {
   RpcBlockOutput,
 } from "../../../../../../src/internal/hardhat-network/provider/output";
 import { BigIntUtils } from "../../../../../../src/internal/util/bigint";
+import { EXAMPLE_DIFFICULTY_CONTRACT } from "../../../helpers/contracts";
 
 describe("Eth module - hardfork dependant tests", function () {
   function useProviderAndCommon(hardfork: string) {
@@ -1349,6 +1350,32 @@ describe("Eth module - hardfork dependant tests", function () {
           latestBlock.mixHash,
           "0xf4fbfa6c8463f342eb58838d8c6b0661faf22e7076a518bf4deaddbf3fa8a112"
         );
+      });
+
+      it("the DIFFICULTY opcode should match the value returned in the mixHash", async function () {
+        const contractAddress = await deployContract(
+          this.provider,
+          `0x${EXAMPLE_DIFFICULTY_CONTRACT.bytecode.object}`
+        );
+
+        const difficultyHex = await this.provider.send("eth_call", [
+          {
+            to: contractAddress,
+            from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+            data: `${EXAMPLE_DIFFICULTY_CONTRACT.selectors.difficulty}`,
+          },
+        ]);
+
+        const difficulty = BigInt(difficultyHex);
+
+        const latestBlock = await this.provider.send("eth_getBlockByNumber", [
+          "latest",
+          false,
+        ]);
+
+        const latestBlockMixHash = BigInt(latestBlock.mixHash);
+
+        assert.equal(difficulty, latestBlockMixHash);
       });
     });
   });
