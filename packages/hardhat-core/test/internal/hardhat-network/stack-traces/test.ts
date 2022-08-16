@@ -647,7 +647,13 @@ async function runCallTransactionTest(
   return trace as CallMessageTrace;
 }
 
-const solidityCompilers = [
+interface SolidityCompiler {
+  solidityVersion: string;
+  compilerPath: string;
+  latestSolcVersion?: boolean;
+}
+
+const solidityCompilers: SolidityCompiler[] = [
   // 0.5
   {
     solidityVersion: "0.5.1",
@@ -727,6 +733,11 @@ const solidityCompilers = [
     solidityVersion: "0.7.4",
     compilerPath: "soljson-v0.7.4+commit.3f05b770.js",
   },
+  {
+    solidityVersion: "0.7.6",
+    compilerPath: "soljson-v0.7.6+commit.7338295f.js",
+    latestSolcVersion: true,
+  },
 
   // 0.8
   {
@@ -776,37 +787,44 @@ const solidityCompilers = [
   {
     solidityVersion: "0.8.14",
     compilerPath: "soljson-v0.8.14+commit.80d49f37.js",
+    latestSolcVersion: true,
   },
   {
     solidityVersion: "0.8.15",
     compilerPath: "soljson-v0.8.15+commit.e14f2714.js",
+    latestSolcVersion: true,
   },
   {
     solidityVersion: "0.8.16",
     compilerPath: "soljson-v0.8.16+commit.07a7930e.js",
+    latestSolcVersion: true,
   },
 ];
 
-const solidity05Compilers =
-  process.env.HARDHAT_TESTS_ONLY_LATEST_SOLC_VERSIONS !== undefined
-    ? []
-    : solidityCompilers.filter(({ solidityVersion }) =>
-        semver.satisfies(solidityVersion, "^0.5.0")
-      );
-const solidity06Compilers =
-  process.env.HARDHAT_TESTS_ONLY_LATEST_SOLC_VERSIONS !== undefined
-    ? []
-    : solidityCompilers.filter(({ solidityVersion }) =>
-        semver.satisfies(solidityVersion, "^0.6.0")
-      );
-const solidity07Compilers =
-  process.env.HARDHAT_TESTS_ONLY_LATEST_SOLC_VERSIONS !== undefined
-    ? []
-    : solidityCompilers.filter(({ solidityVersion }) =>
-        semver.satisfies(solidityVersion, "^0.7.0")
-      );
-const solidity08Compilers = solidityCompilers.filter(({ solidityVersion }) =>
-  semver.satisfies(solidityVersion, "^0.8.0")
+const onlyLatestSolcVersions =
+  process.env.HARDHAT_TESTS_ONLY_LATEST_SOLC_VERSIONS !== undefined;
+
+const filterSolcVersionBy =
+  (versionRange: string) =>
+  ({ solidityVersion, latestSolcVersion }: SolidityCompiler) => {
+    if (onlyLatestSolcVersions && latestSolcVersion !== true) {
+      return false;
+    }
+
+    return semver.satisfies(solidityVersion, versionRange);
+  };
+
+const solidity05Compilers = solidityCompilers.filter(
+  filterSolcVersionBy("^0.5.0")
+);
+const solidity06Compilers = solidityCompilers.filter(
+  filterSolcVersionBy("^0.6.0")
+);
+const solidity07Compilers = solidityCompilers.filter(
+  filterSolcVersionBy("^0.7.0")
+);
+const solidity08Compilers = solidityCompilers.filter(
+  filterSolcVersionBy("^0.8.0")
 );
 
 describe("Stack traces", function () {
