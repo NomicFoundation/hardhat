@@ -360,7 +360,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     genesisAccounts: GenesisAccount[],
     private readonly _configNetworkId: number,
     private readonly _configChainId: number,
-    private readonly _hardfork: HardforkName,
+    public readonly hardfork: HardforkName,
     private readonly _hardforkActivations: HardforkHistoryConfig,
     private _mixHashGenerator: RandomBufferGenerator,
     tracingConfig?: TracingConfig,
@@ -1749,13 +1749,13 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     const headerData: HeaderData = {
       gasLimit: this.getBlockGasLimit(),
       coinbase: this.getCoinbaseAddress(),
-      nonce: this._isPostMergeHardfork()
+      nonce: this.isPostMergeHardfork()
         ? "0x0000000000000000"
         : "0x0000000000000042",
       timestamp: blockTimestamp,
     };
 
-    if (this._isPostMergeHardfork()) {
+    if (this.isPostMergeHardfork()) {
       headerData.mixHash = this._getNextMixHash();
     }
 
@@ -2510,8 +2510,8 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     return this._vm._common.gteHardfork("london");
   }
 
-  private _isPostMergeHardfork(): boolean {
-    return hardforkGte(this._hardfork, HardforkName.MERGE);
+  public isPostMergeHardfork(): boolean {
+    return hardforkGte(this.hardfork, HardforkName.MERGE);
   }
 
   private _getNextMixHash(): Buffer {

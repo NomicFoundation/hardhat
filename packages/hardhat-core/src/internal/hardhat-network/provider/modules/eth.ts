@@ -1365,6 +1365,12 @@ export class EthModule {
       return 0n;
     }
 
+    if (oldBlockTag === "safe" || oldBlockTag === "finalized") {
+      this._checkPostMergeBlockTags(oldBlockTag);
+
+      return this._node.getLatestBlockNumber();
+    }
+
     const block = await this._node.getBlockByNumber(oldBlockTag);
     return block?.header.number;
   }
@@ -1387,6 +1393,12 @@ export class EthModule {
 
     if (newBlockTag === "earliest") {
       return 0n;
+    }
+
+    if (newBlockTag === "safe" || newBlockTag === "finalized") {
+      this._checkPostMergeBlockTags(newBlockTag);
+
+      return this._node.getLatestBlockNumber();
     }
 
     if (!BigIntUtils.isBigInt(newBlockTag)) {
@@ -1433,6 +1445,12 @@ export class EthModule {
       blockTag === "latest" ||
       blockTag === "pending"
     ) {
+      return LATEST_BLOCK;
+    }
+
+    if (blockTag === "safe" || blockTag === "finalized") {
+      this._checkPostMergeBlockTags(blockTag);
+
       return LATEST_BLOCK;
     }
 
@@ -1744,6 +1762,17 @@ You can use them by running Hardhat Network with 'hardfork' ${ACCESS_LIST_MIN_HA
         `Trying to send an EIP-1559 transaction but they are not supported by the current hard fork.
 
 You can use them by running Hardhat Network with 'hardfork' ${EIP1559_MIN_HARDFORK} or later.`
+      );
+    }
+  }
+
+  private _checkPostMergeBlockTags(blockTag: "safe" | "finalized") {
+    const isPostMerge = this._node.isPostMergeHardfork();
+    const hardfork = this._node.hardfork;
+
+    if (!isPostMerge) {
+      throw new InvalidArgumentsError(
+        `The '${blockTag}' block tag is not allowed in pre-merge hardforks. You are using the '${hardfork}' hardfork.`
       );
     }
   }

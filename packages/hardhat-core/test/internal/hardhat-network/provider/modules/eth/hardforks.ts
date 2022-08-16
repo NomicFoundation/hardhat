@@ -31,7 +31,10 @@ import {
   RpcBlockOutput,
 } from "../../../../../../src/internal/hardhat-network/provider/output";
 import { BigIntUtils } from "../../../../../../src/internal/util/bigint";
-import { EXAMPLE_DIFFICULTY_CONTRACT } from "../../../helpers/contracts";
+import {
+  EXAMPLE_DIFFICULTY_CONTRACT,
+  EXAMPLE_READ_CONTRACT,
+} from "../../../helpers/contracts";
 
 describe("Eth module - hardfork dependant tests", function () {
   function useProviderAndCommon(hardfork: string) {
@@ -1274,6 +1277,88 @@ describe("Eth module - hardfork dependant tests", function () {
           "0x0000000000000000000000000000000000000000000000000000000000000000"
         );
       });
+
+      it("should throw if the 'safe' or 'finalized' block tags are used in eth_getBlockByNumber", async function () {
+        await assertInvalidArgumentsError(
+          this.provider,
+          "eth_getBlockByNumber",
+          ["safe", false],
+          "The 'safe' block tag is not allowed in pre-merge hardforks. You are using the 'london' hardfork."
+        );
+
+        await assertInvalidArgumentsError(
+          this.provider,
+          "eth_getBlockByNumber",
+          ["finalized", false],
+          "The 'finalized' block tag is not allowed in pre-merge hardforks. You are using the 'london' hardfork."
+        );
+      });
+
+      it("should throw if the 'safe' or 'finalized' block tags are used in eth_call", async function () {
+        const contractAddress = await deployContract(
+          this.provider,
+          `0x${EXAMPLE_READ_CONTRACT.bytecode.object}`
+        );
+
+        await assertInvalidArgumentsError(
+          this.provider,
+          "eth_call",
+          [
+            {
+              to: contractAddress,
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              data: `${EXAMPLE_READ_CONTRACT.selectors.blockNumber}`,
+            },
+            "safe",
+          ],
+          "The 'safe' block tag is not allowed in pre-merge hardforks. You are using the 'london' hardfork."
+        );
+
+        await assertInvalidArgumentsError(
+          this.provider,
+          "eth_call",
+          [
+            {
+              to: contractAddress,
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              data: `${EXAMPLE_READ_CONTRACT.selectors.blockNumber}`,
+            },
+            "finalized",
+          ],
+          "The 'finalized' block tag is not allowed in pre-merge hardforks. You are using the 'london' hardfork."
+        );
+      });
+
+      it("should throw if the 'safe' or 'finalized' block tags are used in eth_getLogs", async function () {
+        const fromBlock = await this.provider.send("eth_blockNumber");
+
+        // send a transaction to generate a new block
+        await sendTxToZeroAddress(this.provider);
+
+        await assertInvalidArgumentsError(
+          this.provider,
+          "eth_getLogs",
+          [
+            {
+              fromBlock,
+              toBlock: "safe",
+            },
+          ],
+          "The 'safe' block tag is not allowed in pre-merge hardforks. You are using the 'london' hardfork."
+        );
+
+        await assertInvalidArgumentsError(
+          this.provider,
+          "eth_getLogs",
+          [
+            {
+              fromBlock,
+              toBlock: "finalized",
+            },
+          ],
+          "The 'finalized' block tag is not allowed in pre-merge hardforks. You are using the 'london' hardfork."
+        );
+      });
     });
 
     describe("post-merge hardfork", function () {
@@ -1376,6 +1461,74 @@ describe("Eth module - hardfork dependant tests", function () {
         const latestBlockMixHash = BigInt(latestBlock.mixHash);
 
         assert.equal(difficulty, latestBlockMixHash);
+      });
+
+      it("should support the 'safe' and 'finalized' block tags in eth_getBlockByNumber", async function () {
+        // send a transaction to generate a new block
+        await sendTxToZeroAddress(this.provider);
+
+        const latestBlock = await this.provider.send("eth_getBlockByNumber", [
+          "latest",
+          false,
+        ]);
+        const safeBlock = await this.provider.send("eth_getBlockByNumber", [
+          "safe",
+          false,
+        ]);
+        const finalizedBlock = await this.provider.send(
+          "eth_getBlockByNumber",
+          ["finalized", false]
+        );
+
+        assert.deepEqual(latestBlock, safeBlock);
+        assert.deepEqual(latestBlock, finalizedBlock);
+      });
+
+      it("should support the 'safe' and 'finalized' block tags in eth_call", async function () {
+        const contractAddress = await deployContract(
+          this.provider,
+          `0x${EXAMPLE_READ_CONTRACT.bytecode.object}`
+        );
+
+        await this.provider.send("eth_call", [
+          {
+            to: contractAddress,
+            from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+            data: `${EXAMPLE_READ_CONTRACT.selectors.blockNumber}`,
+          },
+          "safe",
+        ]);
+
+        await this.provider.send("eth_call", [
+          {
+            to: contractAddress,
+            from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+            data: `${EXAMPLE_READ_CONTRACT.selectors.blockNumber}`,
+          },
+          "finalized",
+        ]);
+      });
+
+      it("should support the 'safe' and 'finalized' block tags in eth_getLogs", async function () {
+        const fromBlock = await this.provider.send("eth_blockNumber");
+
+        // send a transaction to generate a new block
+        await sendTxToZeroAddress(this.provider);
+
+        // we just check that it doesn't throw
+        await this.provider.send("eth_getLogs", [
+          {
+            fromBlock,
+            toBlock: "safe",
+          },
+        ]);
+
+        await this.provider.send("eth_getLogs", [
+          {
+            fromBlock,
+            toBlock: "finalized",
+          },
+        ]);
       });
     });
   });
