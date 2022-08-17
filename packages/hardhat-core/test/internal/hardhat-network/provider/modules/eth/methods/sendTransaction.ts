@@ -355,7 +355,7 @@ describe("Eth module", function () {
                 from: DEFAULT_ACCOUNTS_ADDRESSES[1],
                 data: "0xAA",
               },
-              "Transaction reverted without a reason"
+              "VM Exception while processing transaction: invalid opcode"
             );
 
             // Out of gas. This a deployment transaction that pushes 0x00 multiple times
