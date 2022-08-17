@@ -1,45 +1,45 @@
-import { buildModule } from "@nomicfoundation/ignition-core";
+import { buildRecipe } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 
 import {
   assertDeploymentState,
-  deployModules,
+  deployRecipes,
   resultAssertions,
 } from "./helpers";
 import { useEnvironment } from "./useEnvironment";
 
-describe("modules", () => {
+describe("recipes", () => {
   useEnvironment("minimal");
 
-  it("should deploy two modules", async function () {
+  it("should deploy two recipes", async function () {
     // given
-    const userModule1 = buildModule("MyModule1", (m) => {
+    const userRecipe1 = buildRecipe("MyRecipe1", (m) => {
       const foo = m.contract("Foo");
 
       return { foo };
     });
-    const userModule2 = buildModule("MyModule2", (m) => {
-      const { foo } = m.useModule(userModule1);
+    const userRecipe2 = buildRecipe("MyRecipe2", (m) => {
+      const { foo } = m.useRecipe(userRecipe1);
 
       m.call(foo, "inc");
     });
 
     // when
-    const deploymentResult = await deployModules(
+    const deploymentResult = await deployRecipes(
       this.hre,
-      [userModule2, userModule1],
+      [userRecipe2, userRecipe1],
       [1, 1]
     );
 
     // then
     await assertDeploymentState(this.hre, deploymentResult, {
-      MyModule1: {
+      MyRecipe1: {
         Foo: resultAssertions.contract(async (foo) => {
           assert.isTrue(await foo.isFoo());
           assert.equal(await foo.x(), 2);
         }),
       },
-      MyModule2: {
+      MyRecipe2: {
         "Foo.inc": resultAssertions.transaction(),
       },
     });

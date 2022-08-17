@@ -18,29 +18,29 @@ import type {
 import type { Artifact, Contract, Tx } from "../types";
 
 import { ExecutionGraph } from "./ExecutionGraph";
-import { UserModule } from "./UserModule";
+import { UserRecipe } from "./UserRecipe";
 import type {
-  ModuleBuilder,
+  RecipeBuilder,
   UserContractOptions,
   UserCallOptions,
   ParamValue,
 } from "./types";
 import { isArtifact } from "./utils";
 
-export class ModuleBuilderImpl implements ModuleBuilder {
-  private _currentModuleId: string | undefined;
+export class RecipeBuilderImpl implements RecipeBuilder {
+  private _currentRecipeId: string | undefined;
   private _executionGraph = new ExecutionGraph();
   private _executors: Executor[] = [];
-  private _knownModules: Map<string, [UserModule<any>, any]> = new Map();
+  private _knownRecipes: Map<string, [UserRecipe<any>, any]> = new Map();
 
   constructor(public chainId: number) {}
 
-  public getModuleId(): string {
-    if (this._currentModuleId === undefined) {
-      throw new Error("[ModuleBuilderImpl] Assertion error: no module is set");
+  public getRecipeId(): string {
+    if (this._currentRecipeId === undefined) {
+      throw new Error("[RecipeBuilderImpl] Assertion error: no recipe is set");
     }
 
-    return this._currentModuleId;
+    return this._currentRecipeId;
   }
 
   public buildExecutionGraph(): ExecutionGraph {
@@ -48,8 +48,8 @@ export class ModuleBuilderImpl implements ModuleBuilder {
   }
 
   public addExecutor(executor: Executor) {
-    if (this._currentModuleId === undefined) {
-      throw new Error("[ModuleBuilderImpl] Assertion error: no module is set");
+    if (this._currentRecipeId === undefined) {
+      throw new Error("[RecipeBuilderImpl] Assertion error: no recipe is set");
     }
 
     this._executionGraph.addExecutor(executor);
@@ -69,7 +69,7 @@ export class ModuleBuilderImpl implements ModuleBuilder {
       const args = options?.args ?? [];
       const libraries = options?.libraries ?? {};
 
-      future = new ArtifactContractFuture(this.getModuleId(), id, {
+      future = new ArtifactContractFuture(this.getRecipeId(), id, {
         contractName,
         args,
         libraries,
@@ -82,7 +82,7 @@ export class ModuleBuilderImpl implements ModuleBuilder {
       const args = options?.args ?? [];
       const libraries = options?.libraries ?? {};
 
-      future = new InternalContractFuture(this.getModuleId(), id, {
+      future = new InternalContractFuture(this.getRecipeId(), id, {
         contractName,
         args,
         libraries,
@@ -101,7 +101,7 @@ export class ModuleBuilderImpl implements ModuleBuilder {
   ): InternalFuture<ExistingContractOptions, Contract> {
     const id = contractName;
 
-    const future = new ExistingContractFuture(this.getModuleId(), id, {
+    const future = new ExistingContractFuture(this.getRecipeId(), id, {
       contractName,
       address,
       abi,
@@ -120,7 +120,7 @@ export class ModuleBuilderImpl implements ModuleBuilder {
     const id =
       options?.id ?? `${(contract as InternalContractFuture).id}.${method}`;
     const args = options?.args ?? [];
-    const b = new InternalCallFuture(this.getModuleId(), id, {
+    const b = new InternalCallFuture(this.getRecipeId(), id, {
       contract,
       method,
       args,
@@ -131,23 +131,23 @@ export class ModuleBuilderImpl implements ModuleBuilder {
     return b;
   }
 
-  public useModule<T>(userModule: UserModule<T>): T {
-    const knownModuleAndOutput = this._knownModules.get(userModule.id);
-    if (knownModuleAndOutput !== undefined) {
-      const [knownModule, knownOutput] = knownModuleAndOutput;
-      if (userModule === knownModule) {
+  public useRecipe<T>(userRecipe: UserRecipe<T>): T {
+    const knownRecipeAndOutput = this._knownRecipes.get(userRecipe.id);
+    if (knownRecipeAndOutput !== undefined) {
+      const [knownRecipe, knownOutput] = knownRecipeAndOutput;
+      if (userRecipe === knownRecipe) {
         return knownOutput;
       } else {
-        throw new Error(`Module with id ${userModule.id} already exists`);
+        throw new Error(`Recipe with id ${userRecipe.id} already exists`);
       }
     }
 
-    const previousModuleId = this._currentModuleId;
-    this._currentModuleId = userModule.id;
-    const output = userModule.definition(this);
-    this._currentModuleId = previousModuleId;
+    const previousRecipeId = this._currentRecipeId;
+    this._currentRecipeId = userRecipe.id;
+    const output = userRecipe.definition(this);
+    this._currentRecipeId = previousRecipeId;
 
-    this._knownModules.set(userModule.id, [userModule, output]);
+    this._knownRecipes.set(userRecipe.id, [userRecipe, output]);
 
     return output;
   }
@@ -155,7 +155,7 @@ export class ModuleBuilderImpl implements ModuleBuilder {
   public getParam(paramName: string): ParamFuture {
     const id = paramName;
 
-    const future = new ParamFuture(this.getModuleId(), id, { paramName });
+    const future = new ParamFuture(this.getRecipeId(), id, { paramName });
 
     this.addExecutor(new ParamExecutor(future));
 
@@ -168,7 +168,7 @@ export class ModuleBuilderImpl implements ModuleBuilder {
   ): ParamFuture {
     const id = paramName;
 
-    const future = new ParamFuture(this.getModuleId(), id, {
+    const future = new ParamFuture(this.getRecipeId(), id, {
       paramName,
       defaultValue,
     });

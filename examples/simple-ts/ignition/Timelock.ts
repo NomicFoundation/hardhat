@@ -1,8 +1,8 @@
 import { ethers } from "ethers";
 import {
   ContractFuture,
-  buildModule,
-  ModuleBuilder,
+  buildRecipe,
+  RecipeBuilder,
   InternalFuture,
   Executor,
   Contract,
@@ -98,14 +98,14 @@ class TimelockCallFuture extends InternalFuture<TimelockCallOptions, string> {
 }
 
 function callFromTimelock(
-  m: ModuleBuilder,
+  m: RecipeBuilder,
   timelock: ContractFuture,
   contract: ContractFuture,
   method: string,
   options: { id: string }
 ): TimelockCallFuture {
   const id = options.id;
-  const b = new TimelockCallFuture(m.getModuleId(), id, {
+  const b = new TimelockCallFuture(m.getRecipeId(), id, {
     timelock,
     contract,
     method,
@@ -116,7 +116,7 @@ function callFromTimelock(
   return b;
 }
 
-export default buildModule("Timelock", (m) => {
+export default buildRecipe("Timelock", (m) => {
   const timelock = m.contract("TimelockController", {
     args: [
       15,

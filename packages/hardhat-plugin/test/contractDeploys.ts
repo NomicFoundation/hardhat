@@ -1,9 +1,9 @@
-import { buildModule } from "@nomicfoundation/ignition-core";
+import { buildRecipe } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 
 import {
   assertDeploymentState,
-  deployModules,
+  deployRecipes,
   isContract,
   resultAssertions,
 } from "./helpers";
@@ -15,16 +15,16 @@ describe("contract deploys", () => {
   describe("local", () => {
     it("should deploy a contract", async function () {
       // given
-      const userModule = buildModule("MyModule", (m) => {
+      const userRecipe = buildRecipe("MyRecipe", (m) => {
         m.contract("Foo");
       });
 
       // when
-      const deploymentResult = await deployModules(this.hre, [userModule], [1]);
+      const deploymentResult = await deployRecipes(this.hre, [userRecipe], [1]);
 
       // then
       await assertDeploymentState(this.hre, deploymentResult, {
-        MyModule: {
+        MyRecipe: {
           Foo: resultAssertions.contract(async (foo) => {
             assert.isTrue(await foo.isFoo());
           }),
@@ -34,17 +34,17 @@ describe("contract deploys", () => {
 
     it("should deploy two contracts in parallel", async function () {
       // given
-      const userModule = buildModule("MyModule", (m) => {
+      const userRecipe = buildRecipe("MyRecipe", (m) => {
         m.contract("Foo");
         m.contract("Bar");
       });
 
       // when
-      const deploymentResult = await deployModules(this.hre, [userModule], [2]);
+      const deploymentResult = await deployRecipes(this.hre, [userRecipe], [2]);
 
       // then
       await assertDeploymentState(this.hre, deploymentResult, {
-        MyModule: {
+        MyRecipe: {
           Foo: resultAssertions.contract(async (foo) => {
             assert.isTrue(await foo.isFoo());
           }),
@@ -57,7 +57,7 @@ describe("contract deploys", () => {
 
     it("should deploy two contracts sequentially", async function () {
       // given
-      const userModule = buildModule("MyModule", (m) => {
+      const userRecipe = buildRecipe("MyRecipe", (m) => {
         const foo = m.contract("Foo");
         m.contract("UsesContract", {
           args: [foo],
@@ -65,21 +65,21 @@ describe("contract deploys", () => {
       });
 
       // when
-      const deploymentResult = await deployModules(
+      const deploymentResult = await deployRecipes(
         this.hre,
-        [userModule],
+        [userRecipe],
         [1, 1]
       );
 
       // then
       await assertDeploymentState(this.hre, deploymentResult, {
-        MyModule: {
+        MyRecipe: {
           Foo: resultAssertions.contract(async (foo) => {
             assert.isTrue(await foo.isFoo());
           }),
           UsesContract: resultAssertions.contract(async (usesContract) => {
             const contractAddress = await usesContract.contractAddress();
-            const fooResult: any = deploymentResult.MyModule.Foo;
+            const fooResult: any = deploymentResult.MyRecipe.Foo;
 
             assert.equal(contractAddress, fooResult.value.address);
           }),
@@ -89,7 +89,7 @@ describe("contract deploys", () => {
 
     it("should deploy two independent contracts and call a function in each one", async function () {
       // given
-      const userModule = buildModule("MyModule", (m) => {
+      const userRecipe = buildRecipe("MyRecipe", (m) => {
         const foo1 = m.contract("Foo", { id: "Foo1" });
         const foo2 = m.contract("Foo", { id: "Foo2" });
         m.call(foo1, "inc");
@@ -98,15 +98,15 @@ describe("contract deploys", () => {
       });
 
       // when
-      const deploymentResult = await deployModules(
+      const deploymentResult = await deployRecipes(
         this.hre,
-        [userModule],
+        [userRecipe],
         [2, 2, 1]
       );
 
       // then
       await assertDeploymentState(this.hre, deploymentResult, {
-        MyModule: {
+        MyRecipe: {
           Foo1: resultAssertions.contract(async (foo) => {
             assert.isTrue(await foo.isFoo());
             assert.equal(await foo.x(), 2);
@@ -125,7 +125,7 @@ describe("contract deploys", () => {
     describe("libraries", () => {
       it("should deploy a contract with a library", async function () {
         // given
-        const withLibModule = buildModule("LibModule", (m) => {
+        const withLibRecipe = buildRecipe("LibRecipe", (m) => {
           const rubbishMath = m.contract("RubbishMath");
 
           const dependsOnLib = m.contract("DependsOnLib", {
@@ -138,15 +138,15 @@ describe("contract deploys", () => {
         });
 
         // when
-        const deploymentResult = await deployModules(
+        const deploymentResult = await deployRecipes(
           this.hre,
-          [withLibModule],
+          [withLibRecipe],
           [1, 1]
         );
 
         // then
         await assertDeploymentState(this.hre, deploymentResult, {
-          LibModule: {
+          LibRecipe: {
             RubbishMath: resultAssertions.contract(async (rubbishMath) => {
               assert.equal(await rubbishMath.add(1, 2), 3);
             }),
@@ -159,8 +159,8 @@ describe("contract deploys", () => {
 
       it("should deploy a contract with an existing library", async function () {
         // given
-        const rubbishMathLibModule = buildModule(
-          "RubbishMathLibModule",
+        const rubbishMathLibRecipe = buildRecipe(
+          "RubbishMathLibRecipe",
           (m) => {
             const rubbishMath = m.contract("RubbishMath");
 
@@ -168,24 +168,24 @@ describe("contract deploys", () => {
           }
         );
 
-        const rubbishMathDeploymentResult = await deployModules(
+        const rubbishMathDeploymentResult = await deployRecipes(
           this.hre,
-          [rubbishMathLibModule],
+          [rubbishMathLibRecipe],
           [1]
         );
 
         if (
           !isContract(
-            rubbishMathDeploymentResult.RubbishMathLibModule.RubbishMath.value
+            rubbishMathDeploymentResult.RubbishMathLibRecipe.RubbishMath.value
           )
         ) {
           assert.fail("Expected library deployed");
         }
 
         const { address, abi } =
-          rubbishMathDeploymentResult.RubbishMathLibModule.RubbishMath.value;
+          rubbishMathDeploymentResult.RubbishMathLibRecipe.RubbishMath.value;
 
-        const withLibModule = buildModule("LibModule", (m) => {
+        const withLibRecipe = buildRecipe("LibRecipe", (m) => {
           const rubbishMath = m.contractAt("RubbishMath", address, abi);
 
           const dependsOnLib = m.contract("DependsOnLib", {
@@ -198,15 +198,15 @@ describe("contract deploys", () => {
         });
 
         // when
-        const deploymentResult = await deployModules(
+        const deploymentResult = await deployRecipes(
           this.hre,
-          [withLibModule],
+          [withLibRecipe],
           [1]
         );
 
         // then
         await assertDeploymentState(this.hre, deploymentResult, {
-          LibModule: {
+          LibRecipe: {
             RubbishMath: resultAssertions.contract(async (rubbishMath) => {
               assert.equal(await rubbishMath.add(1, 2), 3);
             }),
@@ -224,16 +224,16 @@ describe("contract deploys", () => {
       const artifact = await this.hre.artifacts.readArtifact("Foo");
 
       // given
-      const userModule = buildModule("MyModule", (m) => {
+      const userRecipe = buildRecipe("MyRecipe", (m) => {
         m.contract("Foo", artifact);
       });
 
       // when
-      const deploymentResult = await deployModules(this.hre, [userModule], [1]);
+      const deploymentResult = await deployRecipes(this.hre, [userRecipe], [1]);
 
       // then
       await assertDeploymentState(this.hre, deploymentResult, {
-        MyModule: {
+        MyRecipe: {
           Foo: resultAssertions.contract(async (foo) => {
             assert.isTrue(await foo.isFoo());
           }),
@@ -248,7 +248,7 @@ describe("contract deploys", () => {
         );
 
         // given
-        const withLibModule = buildModule("LibModule", (m) => {
+        const withLibRecipe = buildRecipe("LibRecipe", (m) => {
           const rubbishMath = m.contract("RubbishMath", rubbishMathArtifact);
 
           const dependsOnLib = m.contract("DependsOnLib", {
@@ -261,15 +261,15 @@ describe("contract deploys", () => {
         });
 
         // when
-        const deploymentResult = await deployModules(
+        const deploymentResult = await deployRecipes(
           this.hre,
-          [withLibModule],
+          [withLibRecipe],
           [1, 1]
         );
 
         // then
         await assertDeploymentState(this.hre, deploymentResult, {
-          LibModule: {
+          LibRecipe: {
             RubbishMath: resultAssertions.contract(async (rubbishMath) => {
               assert.equal(await rubbishMath.add(1, 2), 3);
             }),
@@ -285,40 +285,40 @@ describe("contract deploys", () => {
   describe("existing", () => {
     it("should deploy using existing contract", async function () {
       // given
-      const originalModule = buildModule("FooModule", (m) => {
+      const originalRecipe = buildRecipe("FooRecipe", (m) => {
         const foo = m.contract("Foo");
 
         return { foo };
       });
 
-      const originalDeploymentResult = await deployModules(
+      const originalDeploymentResult = await deployRecipes(
         this.hre,
-        [originalModule],
+        [originalRecipe],
         [1]
       );
 
-      if (!isContract(originalDeploymentResult.FooModule.Foo.value)) {
+      if (!isContract(originalDeploymentResult.FooRecipe.Foo.value)) {
         assert.fail("Expected contract deployed");
       }
 
-      const { address, abi } = originalDeploymentResult.FooModule.Foo.value;
+      const { address, abi } = originalDeploymentResult.FooRecipe.Foo.value;
 
-      const leveragingExistingModule = buildModule("ExistingFooModule", (m) => {
+      const leveragingExistingRecipe = buildRecipe("ExistingFooRecipe", (m) => {
         const existingFoo = m.contractAt("ExistingFoo", address, abi);
 
         return { existingFoo };
       });
 
       // when
-      const deploymentResult = await deployModules(
+      const deploymentResult = await deployRecipes(
         this.hre,
-        [leveragingExistingModule],
+        [leveragingExistingRecipe],
         [1]
       );
 
       // then
       await assertDeploymentState(this.hre, deploymentResult, {
-        ExistingFooModule: {
+        ExistingFooRecipe: {
           ExistingFoo: resultAssertions.contract(async (existingFoo) => {
             assert.isTrue(await existingFoo.isFoo());
           }),

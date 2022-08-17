@@ -1,90 +1,90 @@
 import type {
   FutureOutput,
-  ModuleResult,
-  SerializedModuleResult,
+  RecipeResult,
+  SerializedRecipeResult,
 } from "./futures/types";
 import { serializeFutureOutput } from "./futures/utils";
-import { ExecutionGraph } from "./modules/ExecutionGraph";
-import { IgnitionModule } from "./modules/IgnitionModule";
+import { ExecutionGraph } from "./recipes/ExecutionGraph";
+import { IgnitionRecipe } from "./recipes/IgnitionRecipe";
 
 export class DeploymentState {
-  private _modules: Map<string, ModuleState> = new Map();
+  private _recipes: Map<string, RecipeState> = new Map();
 
   public static fromExecutionGraph(
     executionGraph: ExecutionGraph
   ): DeploymentState {
     const deploymentState = new DeploymentState();
-    for (const ignitionModule of executionGraph.getSortedModules()) {
-      const moduleState = ModuleState.fromIgnitionModule(ignitionModule);
-      deploymentState.addModule(moduleState);
+    for (const ignitionRecipe of executionGraph.getSortedRecipes()) {
+      const recipeState = RecipeState.fromIgnitionRecipe(ignitionRecipe);
+      deploymentState.addRecipe(recipeState);
     }
 
     return deploymentState;
   }
 
-  public addModule(moduleState: ModuleState) {
-    this._modules.set(moduleState.id, moduleState);
+  public addRecipe(recipeState: RecipeState) {
+    this._recipes.set(recipeState.id, recipeState);
   }
 
-  public addModuleResult(moduleId: string, moduleResult: ModuleResult) {
-    const moduleState = this._modules.get(moduleId);
+  public addRecipeResult(recipeId: string, recipeResult: RecipeResult) {
+    const recipeState = this._recipes.get(recipeId);
 
-    if (moduleState === undefined) {
+    if (recipeState === undefined) {
       throw new Error(
-        `DeploymentState doesn't have module with id '${moduleId}'`
+        `DeploymentState doesn't have recipe with id '${recipeId}'`
       );
     }
 
-    for (const [futureId, futureOutput] of Object.entries(moduleResult)) {
-      moduleState.setSuccess(futureId, futureOutput);
+    for (const [futureId, futureOutput] of Object.entries(recipeResult)) {
+      recipeState.setSuccess(futureId, futureOutput);
     }
   }
 
-  public getModule(moduleId: string): ModuleState {
-    const moduleState = this._modules.get(moduleId);
-    if (moduleState === undefined) {
+  public getRecipe(recipeId: string): RecipeState {
+    const recipeState = this._recipes.get(recipeId);
+    if (recipeState === undefined) {
       throw new Error(
-        `DeploymentState doesn't have module with id '${moduleId}'`
+        `DeploymentState doesn't have recipe with id '${recipeId}'`
       );
     }
 
-    return moduleState;
+    return recipeState;
   }
 
-  public getCurrentModule(): ModuleState | undefined {
-    const runningModules = [...this._modules.values()].filter((m) =>
+  public getCurrentRecipe(): RecipeState | undefined {
+    const runningRecipes = [...this._recipes.values()].filter((m) =>
       m.isRunning()
     );
 
-    if (runningModules.length === 0) {
+    if (runningRecipes.length === 0) {
       return;
     }
 
-    if (runningModules.length > 1) {
+    if (runningRecipes.length > 1) {
       throw new Error(
-        "assertion error: only one module should be running at the same time"
+        "assertion error: only one recipe should be running at the same time"
       );
     }
 
-    return runningModules[0];
+    return runningRecipes[0];
   }
 
-  public getModules(): ModuleState[] {
-    return [...this._modules.values()];
+  public getRecipes(): RecipeState[] {
+    return [...this._recipes.values()];
   }
 
-  public getSuccessfulModules(): ModuleState[] {
-    return [...this._modules.values()].filter((m) => m.isSuccess());
+  public getSuccessfulRecipes(): RecipeState[] {
+    return [...this._recipes.values()].filter((m) => m.isSuccess());
   }
 
-  public isFutureSuccess(moduleId: string, futureId: string): boolean {
-    const futureState = this._getFutureState(moduleId, futureId);
+  public isFutureSuccess(recipeId: string, futureId: string): boolean {
+    const futureState = this._getFutureState(recipeId, futureId);
 
     return futureState._kind === "success";
   }
 
-  public getFutureResult(moduleId: string, futureId: string) {
-    const futureState = this._getFutureState(moduleId, futureId);
+  public getFutureResult(recipeId: string, futureId: string) {
+    const futureState = this._getFutureState(recipeId, futureId);
 
     if (futureState._kind !== "success") {
       throw new Error(
@@ -95,17 +95,17 @@ export class DeploymentState {
     return futureState.result;
   }
 
-  public isModuleSuccess(moduleId: string): boolean {
-    const moduleState = this._getModuleState(moduleId);
+  public isRecipeSuccess(recipeId: string): boolean {
+    const recipeState = this._getRecipeState(recipeId);
 
-    return moduleState.isSuccess();
+    return recipeState.isSuccess();
   }
 
   public getHolds(): [string, string[]] | undefined {
-    for (const [moduleId, moduleState] of this._modules.entries()) {
-      const holds = moduleState.getHolds();
+    for (const [recipeId, recipeState] of this._recipes.entries()) {
+      const holds = recipeState.getHolds();
       if (holds.length > 0) {
-        return [moduleId, holds];
+        return [recipeId, holds];
       }
     }
 
@@ -113,10 +113,10 @@ export class DeploymentState {
   }
 
   public getFailures(): [string, Error[]] | undefined {
-    for (const [moduleId, moduleState] of this._modules.entries()) {
-      const failures = moduleState.getFailures();
+    for (const [recipeId, recipeState] of this._recipes.entries()) {
+      const failures = recipeState.getFailures();
       if (failures.length > 0) {
-        return [moduleId, failures];
+        return [recipeId, failures];
       }
     }
 
@@ -124,29 +124,29 @@ export class DeploymentState {
   }
 
   public setFutureState(
-    moduleId: string,
+    recipeId: string,
     futureId: string,
     futureState: FutureState
   ) {
-    const moduleState = this._getModuleState(moduleId);
+    const recipeState = this._getRecipeState(recipeId);
 
-    moduleState.setFutureState(futureId, futureState);
+    recipeState.setFutureState(futureId, futureState);
   }
 
-  private _getFutureState(moduleId: string, futureId: string) {
-    const moduleState = this._getModuleState(moduleId);
+  private _getFutureState(recipeId: string, futureId: string) {
+    const recipeState = this._getRecipeState(recipeId);
 
-    return moduleState.getFutureState(futureId);
+    return recipeState.getFutureState(futureId);
   }
 
-  private _getModuleState(moduleId: string) {
-    const moduleState = this._modules.get(moduleId);
+  private _getRecipeState(recipeId: string) {
+    const recipeState = this._recipes.get(recipeId);
 
-    if (moduleState === undefined) {
-      throw new Error(`No state for module '${moduleId}'`);
+    if (recipeState === undefined) {
+      throw new Error(`No state for recipe '${recipeId}'`);
     }
 
-    return moduleState;
+    return recipeState;
   }
 }
 
@@ -198,20 +198,20 @@ export const FutureState = {
   },
 };
 
-export class ModuleState {
+export class RecipeState {
   private _started = false;
   private _futures = new Map<string, FutureState>();
 
-  public static fromIgnitionModule(
-    ignitionModule: IgnitionModule
-  ): ModuleState {
-    const moduleState = new ModuleState(ignitionModule.id);
+  public static fromIgnitionRecipe(
+    ignitionRecipe: IgnitionRecipe
+  ): RecipeState {
+    const recipeState = new RecipeState(ignitionRecipe.id);
 
-    for (const executor of ignitionModule.getSortedExecutors()) {
-      moduleState.addFuture(executor.future.id, FutureState.waiting());
+    for (const executor of ignitionRecipe.getSortedExecutors()) {
+      recipeState.addFuture(executor.future.id, FutureState.waiting());
     }
 
-    return moduleState;
+    return recipeState;
   }
 
   constructor(public readonly id: string) {}
@@ -262,7 +262,7 @@ export class ModuleState {
     const futureState = this._futures.get(futureId);
     if (futureState === undefined) {
       throw new Error(
-        `[ModuleResult] Module '${this.id}' has no result for future '${futureId}'`
+        `[RecipeResult] Recipe '${this.id}' has no result for future '${futureId}'`
       );
     }
 
@@ -285,19 +285,19 @@ export class ModuleState {
     return this._futures.size;
   }
 
-  public toModuleResult(): SerializedModuleResult {
-    const moduleResult: SerializedModuleResult = {};
+  public toRecipeResult(): SerializedRecipeResult {
+    const recipeResult: SerializedRecipeResult = {};
 
     for (const [futureId, futureState] of this._futures.entries()) {
       if (futureState._kind !== "success") {
         throw new Error(
-          "toModuleResult can only be called in successful modules"
+          "toRecipeResult can only be called in successful recipes"
         );
       }
-      moduleResult[futureId] = serializeFutureOutput(futureState.result);
+      recipeResult[futureId] = serializeFutureOutput(futureState.result);
     }
 
-    return moduleResult;
+    return recipeResult;
   }
 
   private _getFuture(futureId: string) {

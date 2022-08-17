@@ -3,15 +3,15 @@ import setupDebug from "debug";
 import { DeploymentState } from "./deployment-state";
 import { InternalFuture } from "./futures/InternalFuture";
 import type {
-  ModuleResult,
+  RecipeResult,
   SerializedDeploymentResult,
-  SerializedModuleResult,
+  SerializedRecipeResult,
 } from "./futures/types";
 import { deserializeFutureOutput } from "./futures/utils";
 import { Journal } from "./journal/types";
-import { ExecutionGraph } from "./modules/ExecutionGraph";
-import { IgnitionModule } from "./modules/IgnitionModule";
 import { Providers } from "./providers";
+import { ExecutionGraph } from "./recipes/ExecutionGraph";
+import { IgnitionRecipe } from "./recipes/IgnitionRecipe";
 import { ArtifactsService } from "./services/ArtifactsService";
 import { ConfigService } from "./services/ConfigService";
 import { ContractsService } from "./services/ContractsService";
@@ -21,11 +21,11 @@ import { TxSender } from "./tx-sender";
 import { UiService } from "./ui/ui-service";
 import { sleep } from "./utils";
 
-export interface IgnitionModulesResults {
-  load: (moduleId: string) => Promise<SerializedModuleResult | undefined>;
+export interface IgnitionRecipesResults {
+  load: (recipeId: string) => Promise<SerializedRecipeResult | undefined>;
   save: (
-    moduleId: string,
-    moduleResult: SerializedModuleResult
+    recipeId: string,
+    recipeResult: SerializedRecipeResult
   ) => Promise<void>;
 }
 
@@ -39,36 +39,36 @@ interface ExecutorPlan {
   id: string;
   description: string;
 }
-type ModulePlan = "already-deployed" | ExecutorPlan[];
-export type DeploymentPlan = Record<string, ModulePlan>;
+type RecipePlan = "already-deployed" | ExecutorPlan[];
+export type DeploymentPlan = Record<string, RecipePlan>;
 
 export class ExecutionEngine {
   private _debug = setupDebug("ignition:execution-engine");
 
   public static async buildPlan(
     executionGraph: ExecutionGraph,
-    modulesResults: IgnitionModulesResults
+    recipesResults: IgnitionRecipesResults
   ): Promise<DeploymentPlan> {
     const plan: DeploymentPlan = {};
 
-    const ignitionModules = executionGraph.getSortedModules();
+    const ignitionRecipes = executionGraph.getSortedRecipes();
 
-    for (const ignitionModule of ignitionModules) {
-      const moduleResult = await modulesResults.load(ignitionModule.id);
-      if (moduleResult !== undefined) {
-        plan[ignitionModule.id] = "already-deployed";
+    for (const ignitionRecipe of ignitionRecipes) {
+      const recipeResult = await recipesResults.load(ignitionRecipe.id);
+      if (recipeResult !== undefined) {
+        plan[ignitionRecipe.id] = "already-deployed";
         continue;
       }
 
-      const modulePlan: ExecutorPlan[] = [];
-      const executors = ignitionModule.getSortedExecutors();
+      const recipePlan: ExecutorPlan[] = [];
+      const executors = ignitionRecipe.getSortedExecutors();
       for (const executor of executors) {
-        modulePlan.push({
+        recipePlan.push({
           id: executor.future.id,
           description: executor.getDescription(),
         });
       }
-      plan[ignitionModule.id] = modulePlan;
+      plan[ignitionRecipe.id] = recipePlan;
     }
 
     return plan;
@@ -77,39 +77,39 @@ export class ExecutionEngine {
   constructor(
     private _providers: Providers,
     private _journal: Journal,
-    private _modulesResults: IgnitionModulesResults,
+    private _recipesResults: IgnitionRecipesResults,
     private _options: ExecutionEngineOptions
   ) {}
 
   public async *execute(executionGraph: ExecutionGraph) {
     const deploymentState = DeploymentState.fromExecutionGraph(executionGraph);
 
-    const executionModules = executionGraph.getSortedModules();
+    const executionRecipes = executionGraph.getSortedRecipes();
 
     const uiService = new UiService({
       enabled: this._options.loggingEnabled,
       deploymentState,
     });
 
-    // validate all modules
-    const errorsPerModule: Map<string, string[]> = new Map();
+    // validate all recipes
+    const errorsPerRecipe: Map<string, string[]> = new Map();
     let hasErrors = false;
-    for (const executionModule of executionModules) {
-      this._debug(`Validating module ${executionModule.id}`);
+    for (const executionRecipe of executionRecipes) {
+      this._debug(`Validating recipe ${executionRecipe.id}`);
 
-      const errors = await this._validateModule(executionModule);
+      const errors = await this._validateRecipe(executionRecipe);
 
       if (errors.length > 0) {
         hasErrors = true;
       }
 
-      errorsPerModule.set(executionModule.id, errors);
+      errorsPerRecipe.set(executionRecipe.id, errors);
     }
 
     if (hasErrors) {
       let errorMessage = `The following validation errors were found:\n`;
       let isFirst = true;
-      for (const [moduleId, errors] of errorsPerModule.entries()) {
+      for (const [recipeId, errors] of errorsPerRecipe.entries()) {
         if (errors.length === 0) {
           continue;
         }
@@ -118,7 +118,7 @@ export class ExecutionEngine {
         }
         isFirst = false;
 
-        errorMessage += `  In module ${moduleId}:\n`;
+        errorMessage += `  In recipe ${recipeId}:\n`;
         for (const error of errors) {
           errorMessage += `    - ${error}\n`;
         }
@@ -127,42 +127,42 @@ export class ExecutionEngine {
       throw new Error(errorMessage);
     }
 
-    // execute each module sequentially
-    for (const executionModule of executionModules) {
-      const serializedModuleResult = await this._modulesResults.load(
-        executionModule.id
+    // execute each recipe sequentially
+    for (const executionRecipe of executionRecipes) {
+      const serializedRecipeResult = await this._recipesResults.load(
+        executionRecipe.id
       );
 
-      if (serializedModuleResult !== undefined) {
-        const moduleResult: ModuleResult = Object.fromEntries(
-          Object.entries(serializedModuleResult).map(([key, value]) => [
+      if (serializedRecipeResult !== undefined) {
+        const recipeResult: RecipeResult = Object.fromEntries(
+          Object.entries(serializedRecipeResult).map(([key, value]) => [
             key,
             deserializeFutureOutput(value),
           ])
         );
 
-        deploymentState.addModuleResult(executionModule.id, moduleResult);
+        deploymentState.addRecipeResult(executionRecipe.id, recipeResult);
 
         continue;
       }
 
-      this._debug(`Begin execution of module ${executionModule.id}`);
+      this._debug(`Begin execution of recipe ${executionRecipe.id}`);
 
-      if (deploymentState.isModuleSuccess(executionModule.id)) {
+      if (deploymentState.isRecipeSuccess(executionRecipe.id)) {
         this._debug(
-          `The module ${executionModule.id} was already successfully deployed`
+          `The recipe ${executionRecipe.id} was already successfully deployed`
         );
         continue;
       }
 
-      this._debug(`Executing module ${executionModule.id}`);
-      const moduleExecutionGenerator = this._executeModule(
-        executionModule,
+      this._debug(`Executing recipe ${executionRecipe.id}`);
+      const recipeExecutionGenerator = this._executeRecipe(
+        executionRecipe,
         deploymentState,
         uiService
       );
-      for await (const moduleResult of moduleExecutionGenerator) {
-        if (moduleResult !== undefined) {
+      for await (const recipeResult of recipeExecutionGenerator) {
+        if (recipeResult !== undefined) {
           break;
         }
         yield;
@@ -172,18 +172,18 @@ export class ExecutionEngine {
     yield deploymentState;
   }
 
-  private async _validateModule(
-    ignitionModule: IgnitionModule
+  private async _validateRecipe(
+    ignitionRecipe: IgnitionRecipe
   ): Promise<string[]> {
-    const executors = ignitionModule.getSortedExecutors();
+    const executors = ignitionRecipe.getSortedExecutors();
     const allErrors: string[] = [];
 
     for (const executor of executors) {
       this._debug(
-        `Validating future ${executor.future.id} of module ${ignitionModule.id}`
+        `Validating future ${executor.future.id} of recipe ${ignitionRecipe.id}`
       );
       const services = this._createServices(
-        ignitionModule.id,
+        ignitionRecipe.id,
         executor.future.id
       );
 
@@ -196,14 +196,14 @@ export class ExecutionEngine {
     return allErrors;
   }
 
-  private async *_executeModule(
-    ignitionModule: IgnitionModule,
+  private async *_executeRecipe(
+    ignitionRecipe: IgnitionRecipe,
     deploymentState: DeploymentState,
     uiService: UiService
   ) {
     const { parallelizationLevel } = this._options;
-    const executors = ignitionModule.getSortedExecutors();
-    const moduleState = deploymentState.getModule(ignitionModule.id);
+    const executors = ignitionRecipe.getSortedExecutors();
+    const recipeState = deploymentState.getRecipe(ignitionRecipe.id);
 
     while (true) {
       const someFailure = executors.some((e) => e.isFailure());
@@ -216,27 +216,27 @@ export class ExecutionEngine {
         (someFailure && runningCount === 0) ||
         (someHold && runningCount === 0)
       ) {
-        if (moduleState.isSuccess()) {
-          const moduleResult = moduleState.toModuleResult();
-          await this._modulesResults.save(ignitionModule.id, moduleResult);
-          await this._journal.delete(ignitionModule.id);
+        if (recipeState.isSuccess()) {
+          const recipeResult = recipeState.toRecipeResult();
+          await this._recipesResults.save(ignitionRecipe.id, recipeResult);
+          await this._journal.delete(ignitionRecipe.id);
         }
 
-        yield moduleState;
+        yield recipeState;
       }
 
-      for (const executor of ignitionModule.getSortedExecutors()) {
-        this._debug(`Check ${ignitionModule.id}/${executor.future.id}`);
+      for (const executor of ignitionRecipe.getSortedExecutors()) {
+        this._debug(`Check ${ignitionRecipe.id}/${executor.future.id}`);
 
         if (executor.isReady() && runningCount < parallelizationLevel) {
           this._debug(
-            `Check dependencies of ${ignitionModule.id}/${executor.future.id}`
+            `Check dependencies of ${ignitionRecipe.id}/${executor.future.id}`
           );
 
           const dependencies = executor.future.getDependencies();
 
           const allDependenciesReady = dependencies.every((d) =>
-            deploymentState.isFutureSuccess(d.moduleId, d.id)
+            deploymentState.isFutureSuccess(d.recipeId, d.id)
           );
 
           if (allDependenciesReady) {
@@ -246,16 +246,16 @@ export class ExecutionEngine {
             );
 
             const services = this._createServices(
-              ignitionModule.id,
+              ignitionRecipe.id,
               executor.future.id
             );
 
-            this._debug(`Start ${ignitionModule.id}/${executor.future.id}`);
+            this._debug(`Start ${ignitionRecipe.id}/${executor.future.id}`);
 
             // eslint-disable-next-line @typescript-eslint/no-floating-promises
             executor.run(resolvedInput, services, (newState) => {
               deploymentState.setFutureState(
-                ignitionModule.id,
+                ignitionRecipe.id,
                 executor.future.id,
                 newState
               );
@@ -273,7 +273,7 @@ export class ExecutionEngine {
 
   private _resolve(input: any, deploymentResult: DeploymentState): any {
     if (InternalFuture.isFuture(input)) {
-      return deploymentResult.getFutureResult(input.moduleId, input.id);
+      return deploymentResult.getFutureResult(input.recipeId, input.id);
     }
 
     if (Array.isArray(input)) {
@@ -293,9 +293,9 @@ export class ExecutionEngine {
     return input;
   }
 
-  private _createServices(moduleId: string, executorId: string): Services {
+  private _createServices(recipeId: string, executorId: string): Services {
     const txSender = new TxSender(
-      moduleId,
+      recipeId,
       executorId,
       this._providers.gasProvider,
       this._journal
@@ -356,9 +356,9 @@ export class ExecutionManager {
 
         const serializedDeploymentResult: SerializedDeploymentResult = {};
 
-        for (const moduleState of deploymentState.getModules()) {
-          serializedDeploymentResult[moduleState.id] =
-            moduleState.toModuleResult();
+        for (const recipeState of deploymentState.getRecipes()) {
+          serializedDeploymentResult[recipeState.id] =
+            recipeState.toRecipeResult();
         }
 
         return {

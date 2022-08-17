@@ -1,6 +1,6 @@
 import { Executor } from "../executors/Executor";
 
-export class IgnitionModule {
+export class IgnitionRecipe {
   constructor(public readonly id: string, private _executors: Executor[]) {}
 
   public getSortedExecutors(): Executor[] {
@@ -11,7 +11,7 @@ export class IgnitionModule {
         dependencies.get(executor.future.id) ?? new Set();
 
       for (const executorDependency of executor.future.getDependencies()) {
-        if (executorDependency.moduleId === executor.future.moduleId) {
+        if (executorDependency.recipeId === executor.future.recipeId) {
           executorDependencies.add(executorDependency.id);
         }
       }

@@ -6,17 +6,17 @@ export type {
   AddressLike,
   ContractOptions,
   SerializedDeploymentResult,
-  SerializedModuleResult,
+  SerializedRecipeResult,
   SerializedFutureResult,
 } from "./futures/types";
 
 export { Executor } from "./executors/Executor";
 export { Hold } from "./executors/Hold";
 
-export { buildModule } from "./modules/buildModule";
-export type { ModuleBuilder } from "./modules/types";
-export { UserModule } from "./modules/UserModule";
-export type { ParamValue, ModuleDefinition } from "./modules/types";
+export { buildRecipe } from "./recipes/buildRecipe";
+export type { RecipeBuilder } from "./recipes/types";
+export { UserRecipe } from "./recipes/UserRecipe";
+export type { ParamValue, RecipeDefinition } from "./recipes/types";
 
 export type { Services } from "./services/types";
 

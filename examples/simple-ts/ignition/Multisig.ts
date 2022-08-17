@@ -3,8 +3,8 @@ import {
   AddressLike,
   ContractFuture,
   ContractOptions,
-  buildModule,
-  ModuleBuilder,
+  buildRecipe,
+  RecipeBuilder,
   InternalFuture,
   Executor,
   Services,
@@ -119,7 +119,7 @@ class MultisigContractFuture extends InternalFuture<
 }
 
 function callFromMultisig(
-  m: ModuleBuilder,
+  m: RecipeBuilder,
   multisig: AddressLike,
   contractName: string,
   destination: AddressLike,
@@ -128,7 +128,7 @@ function callFromMultisig(
 ): Future<any, string> {
   const id = options.id;
   const args = options?.args ?? [];
-  const b = new MultisigContractFuture(m.getModuleId(), id, {
+  const b = new MultisigContractFuture(m.getRecipeId(), id, {
     multiSigWalletAddress: multisig,
     contractName,
     destination,
@@ -141,7 +141,7 @@ function callFromMultisig(
   return b;
 }
 
-export default buildModule("Multisig", (m) => {
+export default buildRecipe("Multisig", (m) => {
   const multisig = m.contract("MultiSigWallet", {
     args: [
       [

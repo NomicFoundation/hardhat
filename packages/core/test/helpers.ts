@@ -15,7 +15,7 @@ import {
   TransactionsProvider,
 } from "../src/providers";
 
-import { ParamValue } from "./modules/types";
+import { ParamValue } from "./recipes/types";
 
 export function getMockedProviders(): Providers {
   return {
@@ -37,12 +37,12 @@ export function emptyDeploymentResult() {
  * and increments it.
  */
 export function inc(
-  moduleId: string,
+  recipeId: string,
   futureId: string,
   x: IFuture<number>
 ): IncreaseNumberExecutor {
   return new IncreaseNumberExecutor(
-    new IncreaseNumberFuture(moduleId, futureId, x)
+    new IncreaseNumberFuture(recipeId, futureId, x)
   );
 }
 

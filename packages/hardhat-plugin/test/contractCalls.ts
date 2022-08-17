@@ -1,9 +1,9 @@
-import { buildModule } from "@nomicfoundation/ignition-core";
+import { buildRecipe } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 
 import {
   assertDeploymentState,
-  deployModules,
+  deployRecipes,
   resultAssertions,
 } from "./helpers";
 import { useEnvironment } from "./useEnvironment";
@@ -13,21 +13,21 @@ describe("contract calls", () => {
 
   it("should call a function in a contract", async function () {
     // given
-    const userModule = buildModule("MyModule", (m) => {
+    const userRecipe = buildRecipe("MyRecipe", (m) => {
       const foo = m.contract("Foo");
       m.call(foo, "inc");
     });
 
     // when
-    const deploymentResult = await deployModules(
+    const deploymentResult = await deployRecipes(
       this.hre,
-      [userModule],
+      [userRecipe],
       [1, 1]
     );
 
     // then
     await assertDeploymentState(this.hre, deploymentResult, {
-      MyModule: {
+      MyRecipe: {
         Foo: resultAssertions.contract(async (foo) => {
           assert.isTrue(await foo.isFoo());
           assert.equal(await foo.x(), 2);
@@ -39,7 +39,7 @@ describe("contract calls", () => {
 
   it("should fail if a call fails", async function () {
     // given
-    const userModule = buildModule("MyModule", (m) => {
+    const userRecipe = buildRecipe("MyRecipe", (m) => {
       const foo = m.contract("Foo");
 
       m.call(foo, "incByPositiveNumber", {
@@ -48,6 +48,6 @@ describe("contract calls", () => {
     });
 
     // then
-    await assert.isRejected(deployModules(this.hre, [userModule], [1, 1]));
+    await assert.isRejected(deployRecipes(this.hre, [userRecipe], [1, 1]));
   });
 });

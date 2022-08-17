@@ -1,4 +1,4 @@
-import { buildModule, ModuleDefinition } from "@nomicfoundation/ignition-core";
+import { buildRecipe, RecipeDefinition } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 
 import { mineBlocks } from "./helpers";
@@ -9,7 +9,7 @@ describe("params", () => {
 
   describe("required", () => {
     it("should be able to retrieve a number", async function () {
-      const result = await deployModule(
+      const result = await deployRecipe(
         this.hre,
         (m) => {
           const myNumber = m.getParam("MyNumber");
@@ -35,7 +35,7 @@ describe("params", () => {
     });
 
     it("should be able to retrieve a string", async function () {
-      const result = await deployModule(
+      const result = await deployRecipe(
         this.hre,
         (m) => {
           const myString = m.getParam("MyString");
@@ -61,7 +61,7 @@ describe("params", () => {
 
   describe("optional", () => {
     it("should be able to retrieve a default number", async function () {
-      const result = await deployModule(this.hre, (m) => {
+      const result = await deployRecipe(this.hre, (m) => {
         const myNumber = m.getOptionalParam("MyNumber", 42);
 
         const foo = m.contract("Foo");
@@ -80,7 +80,7 @@ describe("params", () => {
     });
 
     it("should be able to override a default number", async function () {
-      const result = await deployModule(
+      const result = await deployRecipe(
         this.hre,
         (m) => {
           const myNumber = m.getOptionalParam("MyNumber", 10);
@@ -107,7 +107,7 @@ describe("params", () => {
     });
 
     it("should be able to retrieve a default string", async function () {
-      const result = await deployModule(this.hre, (m) => {
+      const result = await deployRecipe(this.hre, (m) => {
         const myString = m.getOptionalParam("MyString", "Example");
 
         const greeter = m.contract("Greeter", {
@@ -123,7 +123,7 @@ describe("params", () => {
     });
 
     it("should be able to override a default string", async function () {
-      const result = await deployModule(
+      const result = await deployRecipe(
         this.hre,
         (m) => {
           const myString = m.getOptionalParam("MyString", "Example");
@@ -152,7 +152,7 @@ describe("params", () => {
     it("should throw if no parameters object provided", async function () {
       await this.hre.run("compile", { quiet: true });
 
-      const userModule = buildModule("MyModule", (m) => {
+      const userRecipe = buildRecipe("MyRecipe", (m) => {
         const myNumber = m.getParam("MyNumber");
 
         const foo = m.contract("Foo");
@@ -164,20 +164,20 @@ describe("params", () => {
         return { foo };
       });
 
-      const deployPromise = this.hre.ignition.deploy(userModule, {});
+      const deployPromise = this.hre.ignition.deploy(userRecipe, {});
 
       await mineBlocks(this.hre, [1, 1], deployPromise);
 
       await assert.isRejected(
         deployPromise,
-        'No parameters object provided to deploy options, but module requires parameter "MyNumber"'
+        'No parameters object provided to deploy options, but recipe requires parameter "MyNumber"'
       );
     });
 
     it("should throw if parameter missing from parameters", async function () {
       await this.hre.run("compile", { quiet: true });
 
-      const userModule = buildModule("MyModule", (m) => {
+      const userRecipe = buildRecipe("MyRecipe", (m) => {
         const myNumber = m.getParam("MyNumber");
 
         const foo = m.contract("Foo");
@@ -189,7 +189,7 @@ describe("params", () => {
         return { foo };
       });
 
-      const deployPromise = this.hre.ignition.deploy(userModule, {
+      const deployPromise = this.hre.ignition.deploy(userRecipe, {
         parameters: {
           NotMyNumber: 11,
         },
@@ -206,7 +206,7 @@ describe("params", () => {
     it("should ban multiple params with the same name", async function () {
       await this.hre.run("compile", { quiet: true });
 
-      const userModule = buildModule("MyModule", (m) => {
+      const userRecipe = buildRecipe("MyRecipe", (m) => {
         const myNumber = m.getParam("MyNumber");
         const myNumber2 = m.getParam("MyNumber");
 
@@ -219,7 +219,7 @@ describe("params", () => {
         return { foo };
       });
 
-      const deployPromise = this.hre.ignition.deploy(userModule, {
+      const deployPromise = this.hre.ignition.deploy(userRecipe, {
         parameters: {
           NotMyNumber: 11,
         },
@@ -236,7 +236,7 @@ describe("params", () => {
     it("should ban multiple optional params with the same name", async function () {
       await this.hre.run("compile", { quiet: true });
 
-      const userModule = buildModule("MyModule", (m) => {
+      const userRecipe = buildRecipe("MyRecipe", (m) => {
         const myNumber = m.getOptionalParam("MyNumber", 11);
         const myNumber2 = m.getOptionalParam("MyNumber", 12);
 
@@ -249,7 +249,7 @@ describe("params", () => {
         return { foo };
       });
 
-      const deployPromise = this.hre.ignition.deploy(userModule, {
+      const deployPromise = this.hre.ignition.deploy(userRecipe, {
         parameters: {
           NotMyNumber: 11,
         },
@@ -265,16 +265,16 @@ describe("params", () => {
   });
 });
 
-async function deployModule<T>(
+async function deployRecipe<T>(
   hre: any,
-  moduleDefinition: ModuleDefinition<T>,
+  recipeDefinition: RecipeDefinition<T>,
   options?: { parameters: {} }
 ): Promise<any> {
   await hre.run("compile", { quiet: true });
 
-  const userModule = buildModule("MyModule", moduleDefinition);
+  const userRecipe = buildRecipe("MyRecipe", recipeDefinition);
 
-  const deployPromise = hre.ignition.deploy(userModule, options);
+  const deployPromise = hre.ignition.deploy(userRecipe, options);
 
   await mineBlocks(hre, [1, 1], deployPromise);
 

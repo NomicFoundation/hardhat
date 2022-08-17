@@ -5,7 +5,7 @@ import React from "react";
 import {
   FutureState,
   DeploymentState,
-  ModuleState,
+  RecipeState,
 } from "../../deployment-state";
 
 export const IgnitionUi = ({
@@ -13,48 +13,48 @@ export const IgnitionUi = ({
 }: {
   deploymentState: DeploymentState;
 }) => {
-  const currentModule = deploymentState.getCurrentModule();
+  const currentRecipe = deploymentState.getCurrentRecipe();
 
-  const successfulModules = deploymentState.getSuccessfulModules();
+  const successfulRecipes = deploymentState.getSuccessfulRecipes();
 
   return (
     <Box flexDirection="column">
       <Header deploymentState={deploymentState} />
 
       <Box flexDirection="column" marginLeft={2} marginTop={1}>
-        <SuccessfulModules modules={successfulModules} />
+        <SuccessfulRecipes recipes={successfulRecipes} />
 
-        <CurrentModule module={currentModule} />
+        <CurrentRecipe recipe={currentRecipe} />
       </Box>
     </Box>
   );
 };
 
 const Header = ({ deploymentState }: { deploymentState: DeploymentState }) => {
-  const successfulModulesCount = deploymentState.getSuccessfulModules().length;
-  const modulesCount = deploymentState.getModules().length;
+  const successfulRecipesCount = deploymentState.getSuccessfulRecipes().length;
+  const recipesCount = deploymentState.getRecipes().length;
 
   return (
     <Box>
       <Text bold={true}>
-        {successfulModulesCount} of {modulesCount} modules deployed
+        {successfulRecipesCount} of {recipesCount} recipes deployed
       </Text>
     </Box>
   );
 };
 
-const CurrentModule = ({ module }: { module?: ModuleState }) => {
-  if (module === undefined) {
+const CurrentRecipe = ({ recipe }: { recipe?: RecipeState }) => {
+  if (recipe === undefined) {
     return null;
   }
 
-  const futuresStates = module.getFuturesStates();
+  const futuresStates = recipe.getFuturesStates();
 
   return (
     <Box flexDirection="column">
       <Box>
         <Text>
-          <Spinner type="dots" /> Deploying {module.id}
+          <Spinner type="dots" /> Deploying {recipe.id}
         </Text>
       </Box>
       <Box flexDirection="column" marginLeft={4}>
@@ -117,14 +117,14 @@ const Future = ({
   );
 };
 
-const SuccessfulModules = ({ modules }: { modules: ModuleState[] }) => {
-  if (modules.length === 0) {
+const SuccessfulRecipes = ({ recipes }: { recipes: RecipeState[] }) => {
+  if (recipes.length === 0) {
     return null;
   }
 
   return (
     <Box flexDirection="column">
-      {modules.map((m) => (
+      {recipes.map((m) => (
         <Box key={m.id}>
           <Text color="green">Deployed {m.id}</Text>
         </Box>

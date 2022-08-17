@@ -1,6 +1,6 @@
 import type { ethers } from "ethers";
 
-import { ParamValue } from "./modules/types";
+import { ParamValue } from "./recipes/types";
 import { Artifact } from "./types";
 
 export interface Providers {

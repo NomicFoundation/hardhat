@@ -11,7 +11,7 @@ describe("Existing Contract - future", () => {
       abi: [],
     };
 
-    const future = new ExistingContractFuture("MyModule", "future-1", input);
+    const future = new ExistingContractFuture("MyRecipe", "future-1", input);
 
     assert.deepStrictEqual(future.getDependencies(), []);
   });

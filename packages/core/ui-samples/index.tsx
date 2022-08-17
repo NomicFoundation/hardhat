@@ -3,7 +3,7 @@ import { useRef, useState } from "react";
 import {
   FutureState,
   DeploymentState,
-  ModuleState,
+  RecipeState,
 } from "../src/deployment-state";
 
 import { IgnitionUi } from "../src/ui/components";
@@ -28,61 +28,61 @@ function getExamples(): Example[] {
   const examples: Example[] = [];
 
   examples.push({
-    description: "Single module with single contract",
+    description: "Single recipe with single contract",
     initialData: {
-      MyModule: ["Foo"],
+      MyRecipe: ["Foo"],
     },
     transitions: [
-      (d) => d.setFutureState("MyModule", "Foo", FutureState.running()),
-      (d) => d.setFutureState("MyModule", "Foo", FutureState.success(1)),
+      (d) => d.setFutureState("MyRecipe", "Foo", FutureState.running()),
+      (d) => d.setFutureState("MyRecipe", "Foo", FutureState.success(1)),
     ],
   });
 
   examples.push({
-    description: "Single module with two contracts deployed in parallel",
+    description: "Single recipe with two contracts deployed in parallel",
     initialData: {
-      MyModule: ["Foo", "Bar"],
+      MyRecipe: ["Foo", "Bar"],
     },
     transitions: [
       (d) => {
-        d.setFutureState("MyModule", "Foo", FutureState.running());
-        d.setFutureState("MyModule", "Bar", FutureState.running());
+        d.setFutureState("MyRecipe", "Foo", FutureState.running());
+        d.setFutureState("MyRecipe", "Bar", FutureState.running());
       },
-      (d) => d.setFutureState("MyModule", "Bar", FutureState.success(2)),
-      (d) => d.setFutureState("MyModule", "Foo", FutureState.success(1)),
+      (d) => d.setFutureState("MyRecipe", "Bar", FutureState.success(2)),
+      (d) => d.setFutureState("MyRecipe", "Foo", FutureState.success(1)),
     ],
   });
 
   examples.push({
-    description: "Two modules",
+    description: "Two recipes",
     initialData: {
-      MyModule: ["Foo"],
-      MyOtherModule: ["Bar"],
+      MyRecipe: ["Foo"],
+      MyOtherRecipe: ["Bar"],
     },
     transitions: [
-      (d) => d.setFutureState("MyModule", "Foo", FutureState.running()),
-      (d) => d.setFutureState("MyModule", "Foo", FutureState.success(1)),
-      (d) => d.setFutureState("MyOtherModule", "Bar", FutureState.running()),
-      (d) => d.setFutureState("MyOtherModule", "Bar", FutureState.success(1)),
+      (d) => d.setFutureState("MyRecipe", "Foo", FutureState.running()),
+      (d) => d.setFutureState("MyRecipe", "Foo", FutureState.success(1)),
+      (d) => d.setFutureState("MyOtherRecipe", "Bar", FutureState.running()),
+      (d) => d.setFutureState("MyOtherRecipe", "Bar", FutureState.success(1)),
     ],
   });
 
   examples.push({
     description: "Two parallel deploys followed by two parallel calls",
     initialData: {
-      MyModule: ["Foo", "Bar", "Foo.f", "Bar.b"],
+      MyRecipe: ["Foo", "Bar", "Foo.f", "Bar.b"],
     },
     transitions: [
       (d) => {
-        d.setFutureState("MyModule", "Foo", FutureState.running());
-        d.setFutureState("MyModule", "Bar", FutureState.running());
+        d.setFutureState("MyRecipe", "Foo", FutureState.running());
+        d.setFutureState("MyRecipe", "Bar", FutureState.running());
       },
-      (d) => d.setFutureState("MyModule", "Bar", FutureState.success(1)),
-      (d) => d.setFutureState("MyModule", "Foo", FutureState.success(1)),
-      (d) => d.setFutureState("MyModule", "Foo.f", FutureState.running()),
-      (d) => d.setFutureState("MyModule", "Bar.b", FutureState.running()),
-      (d) => d.setFutureState("MyModule", "Foo.f", FutureState.success(1)),
-      (d) => d.setFutureState("MyModule", "Bar.b", FutureState.success(1)),
+      (d) => d.setFutureState("MyRecipe", "Bar", FutureState.success(1)),
+      (d) => d.setFutureState("MyRecipe", "Foo", FutureState.success(1)),
+      (d) => d.setFutureState("MyRecipe", "Foo.f", FutureState.running()),
+      (d) => d.setFutureState("MyRecipe", "Bar.b", FutureState.running()),
+      (d) => d.setFutureState("MyRecipe", "Foo.f", FutureState.success(1)),
+      (d) => d.setFutureState("MyRecipe", "Bar.b", FutureState.success(1)),
     ],
   });
 
@@ -115,12 +115,12 @@ const ExampleRenderer = ({
   onFinish: () => void;
 }) => {
   const deploymentState = new DeploymentState();
-  for (const [moduleId, futuresIds] of Object.entries(initialData)) {
-    const moduleState = new ModuleState(moduleId);
+  for (const [recipeId, futuresIds] of Object.entries(initialData)) {
+    const recipeState = new RecipeState(recipeId);
     for (const futureId of futuresIds) {
-      moduleState.addFuture(futureId, FutureState.waiting());
+      recipeState.addFuture(futureId, FutureState.waiting());
     }
-    deploymentState.addModule(moduleState);
+    deploymentState.addRecipe(recipeState);
   }
   const deploymentStateRef = useRef(deploymentState);
   const [transitionIndex, setTransitionIndex] = useState(0);

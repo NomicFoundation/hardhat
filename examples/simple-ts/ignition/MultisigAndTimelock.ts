@@ -1,8 +1,8 @@
 import { ethers } from "ethers";
 import {
   ContractFuture,
-  buildModule,
-  ModuleBuilder,
+  buildRecipe,
+  RecipeBuilder,
   InternalFuture,
   Executor,
   Services,
@@ -197,7 +197,7 @@ class MultisigAndTimelockFuture extends InternalFuture<
 }
 
 function callFromMultisigAndTimelock(
-  m: ModuleBuilder,
+  m: RecipeBuilder,
   multisig: ContractFuture,
   timelock: ContractFuture,
   destination: ContractFuture,
@@ -206,7 +206,7 @@ function callFromMultisigAndTimelock(
 ): Future<any, string> {
   const id = options.id;
   const args = options?.args ?? [];
-  const b = new MultisigAndTimelockFuture(m.getModuleId(), id, {
+  const b = new MultisigAndTimelockFuture(m.getRecipeId(), id, {
     multisig,
     timelock,
     destination,
@@ -219,7 +219,7 @@ function callFromMultisigAndTimelock(
   return b;
 }
 
-export default buildModule("MultisigAndTimelock", (m) => {
+export default buildRecipe("MultisigAndTimelock", (m) => {
   const multisig = m.contract("MultiSigWallet", {
     args: [
       [
