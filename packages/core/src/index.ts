@@ -26,3 +26,10 @@ export type { DeploymentResult } from "./execution-engine";
 export { DeploymentPlan } from "./execution-engine";
 export { Ignition, IgnitionDeployOptions } from "./Ignition";
 export type { Contract } from "./types";
+
+export { buildRecipeSingleGraph } from "./single-graph/index";
+export type {
+  RecipeSingleGraph,
+  IRecipeGraphBuilder,
+  FutureDict,
+} from "./single-graph/index";

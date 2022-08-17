@@ -7,11 +7,18 @@ import {
   ExecutionManager,
   IgnitionRecipesResults,
 } from "./execution-engine";
+import { SerializedDeploymentResult } from "./futures/types";
+import { serializeFutureOutput } from "./futures/utils";
 import { FileJournal } from "./journal/FileJournal";
 import { InMemoryJournal } from "./journal/InMemoryJournal";
 import { Providers } from "./providers";
 import { RecipeBuilderImpl } from "./recipes/RecipeBuilderImpl";
 import { UserRecipe } from "./recipes/UserRecipe";
+import { execute } from "./single-graph/execution/execute";
+import { transformRecipeGraphToExecutionGraph } from "./single-graph/execution/transformRecipeGraphToExecutionGraph";
+import { generateRecipeGraphFrom } from "./single-graph/recipe/generateRecipeGraphFrom";
+import { FutureDict } from "./single-graph/types/future";
+import { validateRecipeGraph } from "./single-graph/validation/validateRecipeGraph";
 
 const log = setupDebug("ignition:main");
 
@@ -97,11 +104,75 @@ export class Ignition {
     return ExecutionEngine.buildPlan(executionGraph, this._recipesResults);
   }
 
+  public async deploySingleGraph(
+    recipe: any
+  ): Promise<[DeploymentResult, any]> {
+    log(`Start deploy`);
+
+    const chainId = await this._getChainId();
+
+    const { graph: recipeGraph, recipeOutputs } = generateRecipeGraphFrom(
+      recipe,
+      { chainId }
+    );
+
+    const validationResult = validateRecipeGraph(recipeGraph);
+
+    if (validationResult._kind === "failure") {
+      return [validationResult, {}];
+    }
+
+    const serviceOptions = {
+      providers: this._providers,
+      journal: new InMemoryJournal(),
+      txPollingInterval: 300,
+    };
+
+    const transformResult = await transformRecipeGraphToExecutionGraph(
+      recipeGraph,
+      serviceOptions
+    );
+
+    if (transformResult._kind === "failure") {
+      return [transformResult, {}];
+    }
+
+    const { executionGraph } = transformResult;
+
+    const executionResult = await execute(executionGraph, serviceOptions);
+
+    if (executionResult._kind === "failure") {
+      return [executionResult, {}];
+    }
+
+    const serializedDeploymentResult = this._serialize(
+      recipeOutputs,
+      executionResult.result
+    );
+
+    return [{ _kind: "success", result: serializedDeploymentResult }, {}];
+  }
+
   private async _getChainId(): Promise<number> {
     const result = await this._providers.ethereumProvider.request({
       method: "eth_chainId",
     });
 
     return Number(result);
+  }
+
+  private _serialize(
+    recipeOutputs: FutureDict,
+    result: Map<number, any>
+  ): SerializedDeploymentResult {
+    const convertedEntries = Object.entries(recipeOutputs).map(
+      ([name, future]) => {
+        const executionResultValue = result.get(future.id);
+
+        return [name, serializeFutureOutput(executionResultValue)];
+      }
+    );
+
+    return Object.fromEntries(convertedEntries);
   }
 }

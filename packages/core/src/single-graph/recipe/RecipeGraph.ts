@@ -1,41 +1,42 @@
 import { VertexDescriptor } from "../types/graph";
 import { isFuture } from "../types/guards";
 import { IRecipeGraph, RecipeVertex } from "../types/recipeGraph";
+import {
+  addEdge,
+  AdjacencyList,
+  constructEmptyAdjacencyList,
+  getDependenciesFor,
+} from "../utils/adjacencyList";
 
 export class RecipeGraph implements IRecipeGraph {
-  public nodes: Map<number, VertexDescriptor>;
-  public edges: Array<{ from: number; to: number }>;
-  private deps: Map<number, RecipeVertex>;
+  public adjacencyList: AdjacencyList;
+  public vertexes: Map<number, RecipeVertex>;
 
   constructor() {
-    this.nodes = new Map();
-    this.edges = [];
-    this.deps = new Map();
+    this.adjacencyList = constructEmptyAdjacencyList();
+    this.vertexes = new Map<number, RecipeVertex>();
   }
 
-  public size(): number {
-    return this.nodes.size;
+  public vertexSize(): number {
+    return this.vertexes.size;
   }
 
-  public getDepNodeByLabel(label: string): RecipeVertex | undefined {
-    const node = Array.from(this.nodes.values()).find((n) => n.label === label);
-
-    return node !== undefined ? this.deps.get(node.id) : undefined;
+  public getRecipeVertexByLabel(label: string): RecipeVertex | undefined {
+    return Array.from(this.vertexes.values()).find((n) => n.label === label);
   }
 
-  public getDepNodeById(id: number): RecipeVertex | undefined {
-    return this.deps.get(id);
+  public getRecipeVertexById(id: number): RecipeVertex | undefined {
+    return this.vertexes.get(id);
   }
 
-  public addDepNode(depNode: RecipeVertex) {
-    this.nodes.set(depNode.id, { id: depNode.id, label: depNode.label });
-    this.deps.set(depNode.id, depNode);
+  public addRecipeVertex(depNode: RecipeVertex) {
+    this.vertexes.set(depNode.id, depNode);
 
     if (depNode.type !== "DeployedContract") {
       const futureArgs = depNode.args.filter(isFuture);
 
       for (const arg of futureArgs) {
-        this.edges.push({ from: arg.id, to: depNode.id });
+        addEdge(this.adjacencyList, { from: arg.id, to: depNode.id });
       }
     }
 
@@ -46,24 +47,24 @@ export class RecipeGraph implements IRecipeGraph {
       const futureLibraries = Object.values(depNode.libraries);
 
       for (const lib of futureLibraries) {
-        this.edges.push({ from: lib.id, to: depNode.id });
+        addEdge(this.adjacencyList, { from: lib.id, to: depNode.id });
       }
     }
 
     if (depNode.type === "Call") {
-      this.edges.push({ from: depNode.contract, to: depNode.id });
+      addEdge(this.adjacencyList, {
+        from: depNode.contract.id,
+        to: depNode.id,
+      });
     }
   }
 
-  public getDependenciesFor({ id }: { id: number }): VertexDescriptor[] {
-    const depIds = this.edges
-      .filter((edge) => edge.to === id)
-      .map((edge) => edge.from);
+  public getDependenciesForVertex({ id }: { id: number }): VertexDescriptor[] {
+    const depIds = getDependenciesFor(this.adjacencyList, id);
 
     return depIds
-      .map((depId) => this.nodes.get(depId))
-      .filter(
-        (nodeDesc): nodeDesc is VertexDescriptor => nodeDesc !== undefined
-      );
+      .map((depId) => this.vertexes.get(depId))
+      .filter((nodeDesc): nodeDesc is RecipeVertex => nodeDesc !== undefined)
+      .map((vertex) => ({ id: vertex.id, label: vertex.label }));
   }
 }

@@ -25,6 +25,10 @@ contract UsesContract {
     constructor(address _contract) {
         contractAddress = _contract;
     }
+
+    function setAddress(address _contract) public {
+        contractAddress = _contract;
+    }
 }
 
 contract Greeter {

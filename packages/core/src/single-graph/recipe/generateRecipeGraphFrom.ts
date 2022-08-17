@@ -1,3 +1,4 @@
+import { FutureDict } from "../types/future";
 import type {
   RecipeGraphBuilderOptions,
   Recipe,
@@ -9,12 +10,12 @@ import { RecipeGraphBuilder } from "./RecipeGraphBuilder";
 export function generateRecipeGraphFrom(
   recipe: Recipe,
   builderOptions: RecipeGraphBuilderOptions
-): IRecipeGraph {
+): { graph: IRecipeGraph; recipeOutputs: FutureDict } {
   const graphBuilder = new RecipeGraphBuilder(builderOptions);
 
-  recipe.steps(graphBuilder);
+  const recipeOutputs = recipe.steps(graphBuilder);
 
   const graph = graphBuilder.graph;
 
-  return graph;
+  return { graph, recipeOutputs };
 }

@@ -1,4 +1,4 @@
-import type { Future } from "./future";
+import type { RecipeFuture } from "./future";
 import { Artifact } from "./hardhat";
 import type {
   RecipeVertex,
@@ -53,7 +53,7 @@ export function isArtifactLibrary(
   return node.type === "ArtifactLibrary";
 }
 
-export function isFuture(possible: {}): possible is Future {
+export function isFuture(possible: {}): possible is RecipeFuture {
   return (
     possible !== undefined &&
     possible !== null &&

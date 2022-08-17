@@ -3,7 +3,7 @@ import {
   ArtifactLibrary,
   ContractCall,
   DeployedContract,
-  Future,
+  RecipeFuture,
   FutureDict,
   HardhatContract,
   HardhatLibrary,
@@ -11,18 +11,18 @@ import {
   ParameterValue,
   RequiredParameter,
 } from "./future";
-import { VertexDescriptor } from "./graph";
 import { Artifact } from "./hardhat";
 
 interface LibraryMap {
-  [key: string]: Future;
+  [key: string]: RecipeFuture;
 }
 
 export interface HardhatContractRecipeVertex {
   id: number;
   type: "HardhatContract";
   label: string;
-  args: Array<string | number | Future>;
+  contractName: string;
+  args: Array<string | number | RecipeFuture>;
   libraries: LibraryMap;
 }
 
@@ -30,7 +30,7 @@ export interface ArtifactContractRecipeVertex {
   id: number;
   type: "ArtifactContract";
   label: string;
-  args: Array<string | number | Future>;
+  args: Array<string | number | RecipeFuture>;
   libraries: LibraryMap;
 }
 
@@ -46,22 +46,23 @@ export interface HardhatLibraryRecipeVertex {
   id: number;
   type: "HardhatLibrary";
   label: string;
-  args: Array<string | number | Future>;
+  args: Array<string | number | RecipeFuture>;
 }
 
 export interface ArtifactLibraryRecipeVertex {
   id: number;
   type: "ArtifactLibrary";
   label: string;
-  args: Array<string | number | Future>;
+  args: Array<string | number | RecipeFuture>;
 }
 
 export interface CallRecipeVertex {
   id: number;
   type: "Call";
   label: string;
-  contract: number;
-  args: Array<string | number | Future>;
+  contract: HardhatContract | ArtifactContract | DeployedContract;
+  method: string;
+  args: Array<string | number | RecipeFuture>;
 }
 
 export type RecipeVertex =
@@ -73,21 +74,21 @@ export type RecipeVertex =
   | CallRecipeVertex;
 
 export interface ContractOptions {
-  args?: Array<string | number | Future>;
+  args?: Array<string | number | RecipeFuture>;
   libraries?: {
-    [key: string]: Future;
+    [key: string]: RecipeFuture;
   };
 }
 
 export interface IRecipeGraph {
-  nodes: Map<number, VertexDescriptor>;
-  edges: Array<{ from: number; to: number }>;
+  vertexes: Map<number, RecipeVertex>;
+  adjacencyList: Array<Set<number>>;
 
-  size: () => number;
-  addDepNode: (node: RecipeVertex) => void;
-  getDepNodeByLabel: (label: string) => RecipeVertex | undefined;
-  getDepNodeById: (id: number) => RecipeVertex | undefined;
-  getDependenciesFor: ({
+  vertexSize: () => number;
+  addRecipeVertex: (node: RecipeVertex) => void;
+  getRecipeVertexByLabel: (label: string) => RecipeVertex | undefined;
+  getRecipeVertexById: (id: number) => RecipeVertex | undefined;
+  getDependenciesForVertex: ({
     id,
   }: {
     id: number;
@@ -122,11 +123,12 @@ export interface IRecipeGraphBuilder {
     {
       args,
     }: {
-      args: Array<string | number | Future>;
+      args: Array<string | number | RecipeFuture>;
     }
   ) => ContractCall;
 
   getParam: (paramName: string) => RequiredParameter;
+
   getOptionalParam: (
     paramName: string,
     defaultValue: ParameterValue

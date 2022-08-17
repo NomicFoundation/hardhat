@@ -36,6 +36,47 @@ export class IgnitionWrapper {
     });
   }
 
+  public async deploySingleGraph(recipe: any, _options: any) {
+    const [deploymentResult] = await this._ignition.deploySingleGraph(recipe);
+
+    if (deploymentResult._kind === "hold") {
+      const [recipeId, holdReason] = deploymentResult.holds;
+      throw new Error(`Execution held for recipe '${recipeId}': ${holdReason}`);
+    }
+
+    if (deploymentResult._kind === "failure") {
+      const [recipeId, failures] = deploymentResult.failures;
+
+      let failuresMessage = "";
+      for (const failure of failures) {
+        failuresMessage += `  - ${failure.message}\n`;
+      }
+
+      throw new Error(
+        `Execution failed for recipe '${recipeId}':\n\n${failuresMessage}`
+      );
+    }
+
+    const resolvedOutput: any = {};
+    for (const [key, serializedFutureResult] of Object.entries<any>(
+      deploymentResult.result
+    )) {
+      if (
+        serializedFutureResult._kind === "string" ||
+        serializedFutureResult._kind === "number"
+      ) {
+        resolvedOutput[key] = serializedFutureResult;
+      } else if (serializedFutureResult._kind === "tx") {
+        resolvedOutput[key] = serializedFutureResult.value.hash;
+      } else {
+        const { abi, address } = serializedFutureResult.value;
+        resolvedOutput[key] = await this._ethers.getContractAt(abi, address);
+      }
+    }
+
+    return resolvedOutput;
+  }
+
   public async deploy<T>(
     userRecipeOrName: UserRecipe<T> | string,
     deployParams?: { parameters: { [key: string]: ParamValue } }

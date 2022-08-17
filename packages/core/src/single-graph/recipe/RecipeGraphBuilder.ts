@@ -1,5 +1,5 @@
 import type {
-  Future,
+  RecipeFuture,
   HardhatContract,
   ArtifactLibrary,
   HardhatLibrary,
@@ -48,7 +48,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
         _future: true,
       };
 
-      this.graph.addDepNode({
+      this.graph.addRecipeVertex({
         id: artifactContractFuture.id,
         label: libraryName,
         type: "ArtifactLibrary",
@@ -67,7 +67,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
         _future: true,
       };
 
-      this.graph.addDepNode({
+      this.graph.addRecipeVertex({
         id: libraryFuture.id,
         label: libraryName,
         type: "HardhatLibrary",
@@ -94,7 +94,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
         _future: true,
       };
 
-      this.graph.addDepNode({
+      this.graph.addRecipeVertex({
         id: artifactContractFuture.id,
         label: contractName,
         type: "ArtifactContract",
@@ -114,10 +114,11 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
         _future: true,
       };
 
-      this.graph.addDepNode({
+      this.graph.addRecipeVertex({
         id: contractFuture.id,
         label: contractName,
         type: "HardhatContract",
+        contractName,
         args: options?.args ?? [],
         libraries: options?.libraries ?? {},
       });
@@ -139,7 +140,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
       _future: true,
     };
 
-    this.graph.addDepNode({
+    this.graph.addRecipeVertex({
       id: deployedFuture.id,
       label: contractName,
       type: "DeployedContract",
@@ -156,7 +157,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
     {
       args,
     }: {
-      args: Array<string | number | Future>;
+      args: Array<string | number | RecipeFuture>;
     }
   ): ContractCall {
     const callFuture: ContractCall = {
@@ -166,11 +167,12 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
       _future: true,
     };
 
-    this.graph.addDepNode({
+    this.graph.addRecipeVertex({
       id: callFuture.id,
       label: callFuture.label,
       type: "Call",
-      contract: contractFuture.id,
+      contract: contractFuture,
+      method: functionName,
       args: args ?? [],
     });
 
@@ -206,6 +208,6 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
   }
 
   private _resolveNextId(): number {
-    return ++this.idCounter;
+    return this.idCounter++;
   }
 }

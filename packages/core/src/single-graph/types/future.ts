@@ -45,7 +45,7 @@ export interface ContractCall {
   _future: true;
 }
 
-export type ParameterValue = string | number | Future;
+export type ParameterValue = string | number | RecipeFuture;
 
 export interface RequiredParameter {
   id: number;
@@ -64,7 +64,7 @@ export interface OptionalParameter {
   _future: true;
 }
 
-export type Future =
+export type RecipeFuture =
   | HardhatContract
   | ArtifactContract
   | DeployedContract
@@ -75,5 +75,5 @@ export type Future =
   | OptionalParameter;
 
 export interface FutureDict {
-  [key: string]: Future;
+  [key: string]: RecipeFuture;
 }
