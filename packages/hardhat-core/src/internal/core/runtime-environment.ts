@@ -7,6 +7,7 @@ import {
   HardhatArguments,
   HardhatConfig,
   HardhatRuntimeEnvironment,
+  HardhatUserConfig,
   Network,
   ParamDefinition,
   RunSuperFunction,
@@ -56,7 +57,8 @@ export class Environment implements HardhatRuntimeEnvironment {
     public readonly hardhatArguments: HardhatArguments,
     public readonly tasks: TasksMap,
     extenders: EnvironmentExtender[] = [],
-    experimentalHardhatNetworkMessageTraceHooks: ExperimentalHardhatNetworkMessageTraceHook[] = []
+    experimentalHardhatNetworkMessageTraceHooks: ExperimentalHardhatNetworkMessageTraceHook[] = [],
+    public readonly userConfig: HardhatUserConfig = {}
   ) {
     log("Creating HardhatRuntimeEnvironment");
 

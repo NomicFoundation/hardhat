@@ -258,6 +258,7 @@ export class ForkStateManager implements EIP2929StateManager {
   public async checkpoint(): Promise<void> {
     const stateRoot = await this.getStateRoot();
     this._stateCheckpoints.push(bufferToHex(stateRoot));
+    this._accessedStorage.push(new Map());
   }
 
   public async commit(): Promise<void> {
@@ -265,6 +266,15 @@ export class ForkStateManager implements EIP2929StateManager {
       throw notCheckpointedError("commit");
     }
     this._stateCheckpoints.pop();
+
+    const storageMap = this._accessedStorage.pop();
+    if (storageMap !== undefined) {
+      (DefaultStateManager.prototype as any)._accessedStorageMerge.call(
+        this,
+        this._accessedStorage,
+        storageMap
+      );
+    }
   }
 
   public async revert(): Promise<void> {
@@ -273,6 +283,11 @@ export class ForkStateManager implements EIP2929StateManager {
       throw notCheckpointedError("revert");
     }
     await this.setStateRoot(toBuffer(checkpointedRoot));
+
+    const lastItem = this._accessedStorage.pop();
+    if (lastItem !== undefined) {
+      this._accessedStorageReverted.push(lastItem);
+    }
   }
 
   public async getStateRoot(): Promise<Buffer> {

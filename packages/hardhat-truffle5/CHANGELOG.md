@@ -1,5 +1,23 @@
 # @nomiclabs/hardhat-truffle5
 
+## 2.0.6
+
+### Patch Changes
+
+- b9f997cb: Upgraded ethereumjs dependencies (thanks @LogvinovLeon!).
+
+## 2.0.5
+
+### Patch Changes
+
+- 01d675df: Add support for artifacts type extensibility
+
+## 2.0.4
+
+### Patch Changes
+
+- 1de2a228: Fix an issue that was causing typescript projects to also compile Hardhat's source (#2260).
+
 ## 2.0.3
 
 ### Patch Changes

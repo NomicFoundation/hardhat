@@ -1,10 +1,10 @@
-![](https://user-images.githubusercontent.com/176499/96893278-ebc67580-1460-11eb-9530-d5df3a3d65d0.png) [![NPM Package](https://img.shields.io/npm/v/hardhat.svg?style=flat-square)](https://www.npmjs.org/package/hardhat)
+![](https://user-images.githubusercontent.com/176499/96893278-ebc67580-1460-11eb-9530-d5df3a3d65d0.png) [![NPM Package](https://img.shields.io/npm/v/hardhat.svg?style=flat-square)](https://www.npmjs.org/package/hardhat) [![GitPOAP Badge](https://public-api.gitpoap.io/v1/repo/NomicFoundation/hardhat/badge)](https://www.gitpoap.io/gh/NomicFoundation/hardhat)
 
 ---
 
 Hardhat is an Ethereum development environment for professionals. It facilitates performing frequent tasks, such as running tests, automatically checking code for mistakes or interacting with a smart contract. Check out the [plugin list](https://hardhat.org/plugins/) to use it with your existing tools.
 
-Developed by [Nomic Labs](https://nomiclabs.io/) and funded by an Ethereum Foundation grant.
+Built by the [Nomic Foundation](https://nomic.foundation/) for the Ethereum community.
 
 Join our [Hardhat Support Discord server](https://hardhat.org/discord) to stay up to date on new releases, plugins and tutorials.
 
@@ -42,6 +42,6 @@ Go to [CONTRIBUTING.md](./CONTRIBUTING.md) to learn about how to set up Hardhat'
 
 [Follow Hardhat on Twitter.](https://twitter.com/HardhatHQ)
 
-## Happy buidling!
+## Happy building!
 
 👷‍♀️👷‍♂️👷‍♀️👷‍♂️👷‍♀️👷‍♂️👷‍♀️👷‍♂️👷‍♀️👷‍♂️👷‍♀️👷‍♂️👷‍♀️👷‍♂️

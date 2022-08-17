@@ -1,15 +1,11 @@
-import { Block } from "@ethereumjs/block";
 import Common from "@ethereumjs/common";
 import { TxData, TypedTransaction } from "@ethereumjs/tx";
-import VM from "@ethereumjs/vm";
-import { AfterBlockEvent, RunBlockOpts } from "@ethereumjs/vm/dist/runBlock";
 import { assert } from "chai";
 import { Address, BN, bufferToHex, toBuffer } from "ethereumjs-util";
 import { ethers } from "ethers";
 import sinon from "sinon";
 
 import { defaultHardhatNetworkParams } from "../../../../src/internal/core/config/default-config";
-import { rpcToBlockData } from "../../../../src/internal/hardhat-network/provider/fork/rpcToBlockData";
 import { HardhatNode } from "../../../../src/internal/hardhat-network/provider/node";
 import {
   ForkedNodeConfig,
@@ -18,7 +14,6 @@ import {
 } from "../../../../src/internal/hardhat-network/provider/node-types";
 import { FakeSenderTransaction } from "../../../../src/internal/hardhat-network/provider/transactions/FakeSenderTransaction";
 import { getCurrentTimestamp } from "../../../../src/internal/hardhat-network/provider/utils/getCurrentTimestamp";
-import { makeForkClient } from "../../../../src/internal/hardhat-network/provider/utils/makeForkClient";
 import { HardforkName } from "../../../../src/internal/util/hardforks";
 import {
   HardhatNetworkChainConfig,
@@ -40,10 +35,7 @@ import {
   DEFAULT_NETWORK_ID,
   DEFAULT_NETWORK_NAME,
 } from "../helpers/providers";
-
-import { assertEqualBlocks } from "./utils/assertEqualBlocks";
-
-/* eslint-disable @typescript-eslint/dot-notation */
+import { runFullBlock } from "./utils/runFullBlock";
 
 interface ForkedBlock {
   networkName: string;
@@ -152,9 +144,9 @@ describe("HardhatNode", () => {
 
     describe("basic tests", () => {
       it("can mine an empty block", async () => {
-        const beforeBlock = await node.getLatestBlockNumber();
+        const beforeBlock = node.getLatestBlockNumber();
         await node.mineBlock();
-        const currentBlock = await node.getLatestBlockNumber();
+        const currentBlock = node.getLatestBlockNumber();
         assert.equal(currentBlock.toString(), beforeBlock.addn(1).toString());
       });
 
@@ -682,10 +674,10 @@ describe("HardhatNode", () => {
         chainId: 1,
       },
       {
-        networkName: "kovan",
-        url: ALCHEMY_URL.replace("mainnet", "kovan"),
-        blockToRun: 23115227,
-        chainId: 42,
+        networkName: "goerli",
+        url: ALCHEMY_URL.replace("mainnet", "goerli"),
+        blockToRun: 5062605,
+        chainId: 5,
       },
       {
         networkName: "rinkeby",
@@ -714,86 +706,128 @@ describe("HardhatNode", () => {
       it(`should run a ${networkName} block from ${hardfork} and produce the same results`, async function () {
         this.timeout(240000);
 
-        const forkConfig = {
-          jsonRpcUrl: url,
-          blockNumber: blockToRun - 1,
-        };
-
-        const { forkClient } = await makeForkClient(forkConfig);
-
-        const rpcBlock = await forkClient.getBlockByNumber(
-          new BN(blockToRun),
-          true
-        );
-
-        if (rpcBlock === null) {
-          assert.fail();
-        }
-
-        const forkedNodeConfig: ForkedNodeConfig = {
-          automine: true,
-          networkName: "mainnet",
-          chainId,
-          networkId: 1,
-          hardfork,
-          forkConfig,
-          forkCachePath: FORK_TESTS_CACHE_PATH,
-          blockGasLimit: rpcBlock.gasLimit.toNumber(),
-          minGasPrice: new BN(0),
-          genesisAccounts: [],
-          mempoolOrder: "priority",
-          coinbase: "0x0000000000000000000000000000000000000000",
-          chains: defaultHardhatNetworkParams.chains,
-        };
-
-        const [common, forkedNode] = await HardhatNode.create(forkedNodeConfig);
-
-        const block = Block.fromBlockData(
-          rpcToBlockData({
-            ...rpcBlock,
-            // We wipe the receipt root to make sure we get a new one
-            receiptsRoot: Buffer.alloc(32, 0),
-          }),
-          {
-            common,
-            freeze: false,
-          }
-        );
-
-        forkedNode["_vmTracer"].disableTracing();
-
-        const afterBlockEvent = await runBlockAndGetAfterBlockEvent(
-          forkedNode["_vm"],
-          {
-            block,
-            generate: true,
-            skipBlockValidation: true,
-          }
-        );
-
-        const modifiedBlock = afterBlockEvent.block;
-
-        await forkedNode["_vm"].blockchain.putBlock(modifiedBlock);
-        await forkedNode["_saveBlockAsSuccessfullyRun"](
-          modifiedBlock,
-          afterBlockEvent
-        );
-
-        const newBlock = await forkedNode.getBlockByNumber(new BN(blockToRun));
-
-        if (newBlock === undefined) {
-          assert.fail();
-        }
-
-        await assertEqualBlocks(
-          newBlock,
-          afterBlockEvent,
-          rpcBlock,
-          forkClient
-        );
+        await runFullBlock(url, blockToRun, chainId, hardfork);
       });
     }
   });
+
+  describe("mineBlocks", function () {
+    it("shouldn't break getLatestBlock()", async function () {
+      const previousLatestBlockNumber = node.getLatestBlockNumber();
+      await node.mineBlocks(new BN(10));
+      const latestBlock = await node.getLatestBlock();
+      assert.equal(
+        latestBlock.header.number.toString(),
+        previousLatestBlockNumber.addn(10).toString()
+      );
+    });
+
+    it("shouldn't break getLatestBlockNumber()", async function () {
+      const previousLatestBlockNumber = node.getLatestBlockNumber();
+      await node.mineBlocks(new BN(10));
+      const latestBlockNumber = node.getLatestBlockNumber();
+      assert.equal(
+        latestBlockNumber.toString(),
+        previousLatestBlockNumber.addn(10).toString()
+      );
+    });
+
+    describe("shouldn't break snapshotting", async function () {
+      it("when doing mineBlocks() before a snapshot", async function () {
+        await node.mineBlocks(new BN(10));
+
+        const latestBlockNumberBeforeSnapshot = node.getLatestBlockNumber();
+
+        const snapshotId = await node.takeSnapshot();
+        await node.sendTransaction(
+          createTestTransaction({
+            from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+            to: Address.fromString(
+              "0x1111111111111111111111111111111111111111"
+            ),
+            gasLimit: 21000,
+          })
+        );
+        await node.mineBlocks(new BN(1));
+
+        await node.revertToSnapshot(snapshotId);
+
+        assert.equal(
+          node.getLatestBlockNumber().toString(),
+          latestBlockNumberBeforeSnapshot.toString()
+        );
+      });
+
+      it("when doing mineBlocks() after a snapshot", async function () {
+        const originalLatestBlockNumber = node.getLatestBlockNumber();
+        await node.sendTransaction(
+          createTestTransaction({
+            from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+            to: Address.fromString(
+              "0x1111111111111111111111111111111111111111"
+            ),
+            gasLimit: 21000,
+          })
+        );
+
+        const latestBlockNumberBeforeSnapshot = node.getLatestBlockNumber();
+        assert.equal(
+          latestBlockNumberBeforeSnapshot.toString(),
+          originalLatestBlockNumber.toString()
+        );
+
+        const snapshotId = await node.takeSnapshot();
+        assert.equal(
+          node.getLatestBlockNumber().toString(),
+          originalLatestBlockNumber.toString()
+        );
+
+        await node.mineBlocks(new BN(10));
+        assert.equal(
+          node.getLatestBlockNumber().toString(),
+          latestBlockNumberBeforeSnapshot.addn(10).toString()
+        );
+
+        await node.revertToSnapshot(snapshotId);
+
+        assert.equal(
+          node.getLatestBlockNumber().toString(),
+          latestBlockNumberBeforeSnapshot.toString()
+        );
+      });
+    });
+  });
+
+  /** execute a call to method Hello() on contract HelloWorld, deployed to
+   * mainnet years ago, which should return a string, "Hello World". */
+  async function runCall(
+    gasParams: { gasPrice?: BN; maxFeePerGas?: BN },
+    block: number,
+    targetNode: HardhatNode
+  ): Promise<string> {
+    const contractInterface = new ethers.utils.Interface([
+      "function Hello() public pure returns (string)",
+    ]);
+
+    const callOpts = {
+      to: toBuffer("0xe36613A299bA695aBA8D0c0011FCe95e681f6dD3"),
+      from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
+      value: new BN(0),
+      data: toBuffer(contractInterface.encodeFunctionData("Hello", [])),
+      gasLimit: new BN(1_000_000),
+    };
+
+    function decodeResult(runCallResult: RunCallResult) {
+      return contractInterface.decodeFunctionResult(
+        "Hello",
+        bufferToHex(runCallResult.result.value)
+      )[0];
+    }
+
+    return decodeResult(
+      await targetNode.runCall({ ...callOpts, ...gasParams }, new BN(block))
+    );
+  }
 
   describe("should run calls in the right hardfork context", async function () {
     this.timeout(10000);
@@ -829,37 +863,6 @@ describe("HardhatNode", () => {
       mempoolOrder: "priority",
       coinbase: "0x0000000000000000000000000000000000000000",
     };
-
-    /** execute a call to method Hello() on contract HelloWorld, deployed to
-     * mainnet years ago, which should return a string, "Hello World". */
-    async function runCall(
-      gasParams: { gasPrice?: BN; maxFeePerGas?: BN },
-      block: number,
-      targetNode: HardhatNode
-    ): Promise<string> {
-      const contractInterface = new ethers.utils.Interface([
-        "function Hello() public pure returns (string)",
-      ]);
-
-      const callOpts = {
-        to: toBuffer("0xe36613A299bA695aBA8D0c0011FCe95e681f6dD3"),
-        from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
-        value: new BN(0),
-        data: toBuffer(contractInterface.encodeFunctionData("Hello", [])),
-        gasLimit: new BN(1_000_000),
-      };
-
-      function decodeResult(runCallResult: RunCallResult) {
-        return contractInterface.decodeFunctionResult(
-          "Hello",
-          bufferToHex(runCallResult.result.value)
-        )[0];
-      }
-
-      return decodeResult(
-        await targetNode.runCall({ ...callOpts, ...gasParams }, new BN(block))
-      );
-    }
 
     describe("when forking with a default hardfork activation history", function () {
       let hardhatNode: HardhatNode;
@@ -1002,26 +1005,43 @@ describe("HardhatNode", () => {
       });
     });
   });
+
+  it("should support a historical call in the context of a block added via mineBlocks()", async function () {
+    if (ALCHEMY_URL === undefined) {
+      this.skip();
+      return;
+    }
+    const nodeConfig: ForkedNodeConfig = {
+      automine: true,
+      networkName: "mainnet",
+      chainId: 1,
+      networkId: 1,
+      hardfork: "london",
+      forkConfig: {
+        jsonRpcUrl: ALCHEMY_URL,
+        blockNumber: 12965000, // eip1559ActivationBlock
+      },
+      forkCachePath: FORK_TESTS_CACHE_PATH,
+      blockGasLimit: 1_000_000,
+      minGasPrice: new BN(0),
+      genesisAccounts: [],
+      chains: defaultHardhatNetworkParams.chains,
+      mempoolOrder: "priority",
+      coinbase: "0x0000000000000000000000000000000000000000",
+    };
+    const [, hardhatNode] = await HardhatNode.create(nodeConfig);
+
+    const oldLatestBlockNumber = hardhatNode.getLatestBlockNumber();
+
+    await hardhatNode.mineBlocks(new BN(100));
+
+    assert.equal(
+      "Hello World",
+      await runCall(
+        { maxFeePerGas: new BN(0) },
+        oldLatestBlockNumber.addn(50).toNumber(),
+        hardhatNode
+      )
+    );
+  });
 });
-
-async function runBlockAndGetAfterBlockEvent(
-  vm: VM,
-  runBlockOpts: RunBlockOpts
-): Promise<AfterBlockEvent> {
-  let results: AfterBlockEvent;
-
-  function handler(event: AfterBlockEvent) {
-    results = event;
-  }
-
-  try {
-    vm.once("afterBlock", handler);
-    await vm.runBlock(runBlockOpts);
-  } finally {
-    // We need this in case `runBlock` throws before emitting the event.
-    // Otherwise we'd be leaking the listener until the next call to runBlock.
-    vm.removeListener("afterBlock", handler);
-  }
-
-  return results!;
-}

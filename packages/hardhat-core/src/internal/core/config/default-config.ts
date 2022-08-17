@@ -16,12 +16,14 @@ export const defaultDefaultNetwork = HARDHAT_NETWORK_NAME;
 
 export const defaultLocalhostNetworkParams = {
   url: "http://127.0.0.1:8545",
+  timeout: 40000,
 };
 
 export const defaultHdAccountsConfigParams = {
   initialIndex: 0,
   count: 20,
   path: "m/44'/60'/0'/0",
+  passphrase: "",
 };
 
 export const defaultHardhatNetworkHdAccountsConfigParams = {
@@ -98,6 +100,16 @@ export const defaultHardhatNetworkParams: Omit<
       },
     ],
     [
+      5, // goerli
+      {
+        hardforkHistory: new Map([
+          [HardforkName.ISTANBUL, 1561651],
+          [HardforkName.BERLIN, 4460644],
+          [HardforkName.LONDON, 5062605],
+        ]),
+      },
+    ],
+    [
       42, // kovan
       {
         hardforkHistory: new Map([
@@ -123,7 +135,7 @@ export const defaultHttpNetworkParams = {
 };
 
 export const defaultMochaOptions: Mocha.MochaOptions = {
-  timeout: 20000,
+  timeout: 40000,
 };
 
 export const defaultSolcOutputSelection = {

@@ -168,7 +168,7 @@ function encodeStackTraceEntry(
 
     case StackTraceEntryType.INTERNAL_FUNCTION_CALLSTACK_ENTRY:
       return new SolidityCallSite(
-        stackTraceEntry.sourceReference.file.sourceName,
+        stackTraceEntry.sourceReference.sourceName,
         stackTraceEntry.sourceReference.contract,
         `internal@${stackTraceEntry.pc}`,
         undefined
@@ -205,7 +205,7 @@ function sourceReferenceToSolidityCallsite(
   sourceReference: SourceReference
 ): SolidityCallSite {
   return new SolidityCallSite(
-    sourceReference.file.sourceName,
+    sourceReference.sourceName,
     sourceReference.contract,
     sourceReference.function !== undefined
       ? sourceReference.function
@@ -300,7 +300,7 @@ function getMessageFromLastStackTraceEntry(
 
     case StackTraceEntryType.OTHER_EXECUTION_ERROR:
       // TODO: What if there was returnData?
-      return `Transaction reverted and Hardhat couldn't infer the reason. Please report this to help us improve Hardhat.`;
+      return `Transaction reverted and Hardhat couldn't infer the reason.`;
 
     case StackTraceEntryType.UNMAPPED_SOLC_0_6_3_REVERT_ERROR:
       return "Transaction reverted without a reason string and without a valid sourcemap provided by the compiler. Some line numbers may be off. We strongly recommend upgrading solc and always using revert reasons.";

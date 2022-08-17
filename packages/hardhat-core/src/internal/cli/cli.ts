@@ -21,6 +21,8 @@ import { Reporter } from "../sentry/reporter";
 import { isRunningOnCiServer } from "../util/ci-detection";
 import {
   hasConsentedTelemetry,
+  hasPromptedForHHVSCode,
+  writePromptedForHHVSCode,
   writeTelemetryConsent,
 } from "../util/global-dir";
 import { getPackageJson, PackageJson } from "../util/packageInfo";
@@ -29,7 +31,13 @@ import { applyWorkaround } from "../util/antlr-prototype-pollution-workaround";
 import { Analytics } from "./analytics";
 import { ArgumentsParser } from "./ArgumentsParser";
 import { enableEmoji } from "./emoji";
-import { confirmTelemetryConsent, createProject } from "./project-creation";
+import { createProject } from "./project-creation";
+import { confirmHHVSCodeInstallation, confirmTelemetryConsent } from "./prompt";
+import {
+  InstallationState,
+  installHardhatVSCode,
+  isHardhatVSCodeInstalled,
+} from "./hardhat-vscode-installation";
 
 const log = debug("hardhat:core:cli");
 
@@ -41,17 +49,50 @@ async function printVersionMessage(packageJson: PackageJson) {
   console.log(packageJson.version);
 }
 
-function printWarningAboutNodeJsVersionIfNeceesary(packageJson: PackageJson) {
+function printWarningAboutNodeJsVersionIfNecessary(packageJson: PackageJson) {
   const requirement = packageJson.engines.node;
   if (!semver.satisfies(process.version, requirement)) {
     console.warn(
       chalk.yellow(
         `You are using a version of Node.js that is not supported by Hardhat, and it may work incorrectly, or not work at all.
 
-Please, upgrade your Node.js version.
+Please, make sure you are using a supported version of Node.js.
 
 To learn more about which versions of Node.js are supported go to https://hardhat.org/nodejs-versions`
       )
+    );
+  }
+}
+
+async function suggestInstallingHardhatVscode() {
+  const alreadyPrompted = hasPromptedForHHVSCode();
+  if (alreadyPrompted) {
+    return;
+  }
+
+  const isInstalled = isHardhatVSCodeInstalled();
+  writePromptedForHHVSCode();
+
+  if (isInstalled !== InstallationState.EXTENSION_NOT_INSTALLED) {
+    return;
+  }
+
+  const installationConsent = await confirmHHVSCodeInstallation();
+
+  if (installationConsent === true) {
+    console.log("Installing Hardhat for Visual Studio Code...");
+    const installed = installHardhatVSCode();
+
+    if (installed) {
+      console.log("Hardhat for Visual Studio Code was successfully installed");
+    } else {
+      console.log(
+        "Hardhat for Visual Studio Code couldn't be installed. To learn more about it, go to https://hardhat.org/hardhat-vscode"
+      );
+    }
+  } else {
+    console.log(
+      "To learn more about Hardhat for Visual Studio Code, go to https://hardhat.org/hardhat-vscode"
     );
   }
 }
@@ -64,7 +105,7 @@ async function main() {
   try {
     const packageJson = await getPackageJson();
 
-    printWarningAboutNodeJsVersionIfNeceesary(packageJson);
+    printWarningAboutNodeJsVersionIfNecessary(packageJson);
 
     const envVariableArguments = getEnvHardhatArguments(
       HARDHAT_PARAM_DEFINITIONS,
@@ -94,26 +135,31 @@ async function main() {
 
     showStackTraces = hardhatArguments.showStackTraces;
 
-    if (
-      hardhatArguments.config === undefined &&
-      !isCwdInsideProject() &&
-      (process.stdout.isTTY === true ||
-        process.env.HARDHAT_CREATE_BASIC_SAMPLE_PROJECT_WITH_DEFAULTS !==
-          undefined ||
-        process.env.HARDHAT_CREATE_ADVANCED_SAMPLE_PROJECT_WITH_DEFAULTS !==
-          undefined ||
-        process.env
-          .HARDHAT_CREATE_ADVANCED_TYPESCRIPT_SAMPLE_PROJECT_WITH_DEFAULTS !==
-          undefined)
-    ) {
-      await createProject();
-      return;
-    }
-
     // --version is a special case
     if (hardhatArguments.version) {
       await printVersionMessage(packageJson);
       return;
+    }
+
+    if (hardhatArguments.config === undefined && !isCwdInsideProject()) {
+      if (
+        process.stdout.isTTY === true ||
+        process.env.HARDHAT_CREATE_JAVASCRIPT_PROJECT_WITH_DEFAULTS !==
+          undefined ||
+        process.env.HARDHAT_CREATE_TYPESCRIPT_PROJECT_WITH_DEFAULTS !==
+          undefined
+      ) {
+        await createProject();
+        return;
+      }
+
+      // Many terminal emulators in windows fail to run the createProject()
+      // workflow, and don't present themselves as TTYs. If we are in this
+      // situation we throw a special error instructing the user to use WSL or
+      // powershell to initialize the project.
+      if (process.platform === "win32") {
+        throw new HardhatError(ERRORS.GENERAL.NOT_INSIDE_PROJECT_ON_WINDOWS);
+      }
     }
 
     if (!isHardhatInstalledLocallyOrLinked()) {
@@ -131,10 +177,13 @@ async function main() {
 
     const ctx = HardhatContext.createHardhatContext();
 
-    const config = loadConfigAndTasks(hardhatArguments, {
-      showEmptyConfigWarning,
-      showSolidityConfigWarnings,
-    });
+    const { resolvedConfig, userConfig } = loadConfigAndTasks(
+      hardhatArguments,
+      {
+        showEmptyConfigWarning,
+        showSolidityConfigWarnings,
+      }
+    );
 
     let telemetryConsent: boolean | undefined = hasConsentedTelemetry();
 
@@ -154,7 +203,7 @@ async function main() {
 
     const analytics = await Analytics.getInstance(telemetryConsent);
 
-    Reporter.setConfigPath(config.paths.configFile);
+    Reporter.setConfigPath(resolvedConfig.paths.configFile);
     if (telemetryConsent === true) {
       Reporter.setEnabled(true);
     }
@@ -192,11 +241,12 @@ async function main() {
     }
 
     const env = new Environment(
-      config,
+      resolvedConfig,
       hardhatArguments,
       taskDefinitions,
       envExtenders,
-      ctx.experimentalHardhatNetworkMessageTraceHooks
+      ctx.experimentalHardhatNetworkMessageTraceHooks,
+      userConfig
     );
 
     ctx.setHardhatRuntimeEnvironment(env);
@@ -214,6 +264,16 @@ async function main() {
     } else {
       abortAnalytics();
     }
+
+    // VSCode extension prompt for installation
+    if (
+      taskName === "test" &&
+      !isRunningOnCiServer() &&
+      process.stdout.isTTY === true
+    ) {
+      await suggestInstallingHardhatVscode();
+    }
+
     log(`Killing Hardhat after successfully running task ${taskName}`);
   } catch (error) {
     let isHardhatError = false;
@@ -247,7 +307,7 @@ async function main() {
     } else {
       if (!isHardhatError) {
         console.error(
-          `If you think this is a bug in Hardhat, please report it here: https://hardhat.org/reportbug`
+          `If you think this is a bug in Hardhat, please report it here: https://hardhat.org/report-bug`
         );
       }
 

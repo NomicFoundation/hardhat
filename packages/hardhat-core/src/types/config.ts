@@ -75,6 +75,7 @@ export interface HardhatNetworkHDAccountsUserConfig {
   count?: number;
   path?: string;
   accountsBalance?: string;
+  passphrase?: string;
 }
 
 export interface HDAccountsUserConfig {
@@ -82,12 +83,14 @@ export interface HDAccountsUserConfig {
   initialIndex?: number;
   count?: number;
   path?: string;
+  passphrase?: string;
 }
 
 export interface HardhatNetworkForkingUserConfig {
   enabled?: boolean;
   url: string;
   blockNumber?: number;
+  httpHeaders?: { [name: string]: string };
 }
 
 export type HttpNetworkAccountsUserConfig =
@@ -167,12 +170,14 @@ export interface HardhatNetworkHDAccountsConfig {
   count: number;
   path: string;
   accountsBalance: string;
+  passphrase: string;
 }
 
 export interface HardhatNetworkForkingConfig {
   enabled: boolean;
   url: string;
   blockNumber?: number;
+  httpHeaders: { [name: string]: string };
 }
 
 export interface HttpNetworkConfig {
@@ -197,6 +202,7 @@ export interface HttpNetworkHDAccountsConfig {
   initialIndex: number;
   count: number;
   path: string;
+  passphrase: string;
 }
 
 export interface HardhatNetworkMiningConfig {

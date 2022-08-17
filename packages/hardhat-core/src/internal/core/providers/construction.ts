@@ -11,6 +11,7 @@ import type {
   NetworkConfig,
   ProjectPathsConfig,
 } from "../../../types";
+
 import { HARDHAT_NETWORK_NAME } from "../../constants";
 import { ModulesLogger } from "../../hardhat-network/provider/modules/logger";
 import {
@@ -72,6 +73,7 @@ export function createProvider(
       forkConfig = {
         jsonRpcUrl: hardhatNetConfig.forking?.url,
         blockNumber: hardhatNetConfig.forking?.blockNumber,
+        httpHeaders: hardhatNetConfig.forking.httpHeaders,
       };
     }
 
@@ -169,11 +171,6 @@ export function applyProviderWrappers(
     typeof import("./gas-providers"),
     "FixedGasPriceProvider"
   >("./gas-providers", "FixedGasPriceProvider");
-  const GanacheGasMultiplierProvider = importProvider<
-    typeof import("./gas-providers"),
-    "GanacheGasMultiplierProvider"
-  >("./gas-providers", "GanacheGasMultiplierProvider");
-
   const ChainIdValidatorProvider = importProvider<
     typeof import("./chainId"),
     "ChainIdValidatorProvider"
@@ -190,15 +187,12 @@ export function applyProviderWrappers(
         accounts.mnemonic,
         accounts.path,
         accounts.initialIndex,
-        accounts.count
+        accounts.count,
+        accounts.passphrase
       );
     }
 
     // TODO: Add some extension mechanism for account plugins here
-
-    if (typeof netConfig.gas !== "number") {
-      provider = new GanacheGasMultiplierProvider(provider);
-    }
   }
 
   if (netConfig.from !== undefined) {

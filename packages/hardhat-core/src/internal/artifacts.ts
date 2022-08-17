@@ -36,6 +36,7 @@ const log = debug("hardhat:core:artifacts");
 export class Artifacts implements IArtifacts {
   private _buildInfosGlob: string;
   private _dbgsGlob: string;
+  private _validArtifacts: Array<{ sourceName: string; artifacts: string[] }>;
 
   constructor(private _artifactsPath: string) {
     this._buildInfosGlob = path.join(
@@ -44,6 +45,13 @@ export class Artifacts implements IArtifacts {
       "**/*.json"
     );
     this._dbgsGlob = path.join(this._artifactsPath, "**/*.dbg.json");
+    this._validArtifacts = [];
+  }
+
+  public addValidArtifacts(
+    validArtifacts: Array<{ sourceName: string; artifacts: string[] }>
+  ) {
+    this._validArtifacts.push(...validArtifacts);
   }
 
   public async readArtifact(name: string): Promise<Artifact> {
@@ -171,15 +179,10 @@ export class Artifacts implements IArtifacts {
   /**
    * Remove all artifacts that don't correspond to the current solidity files
    */
-  public async removeObsoleteArtifacts(
-    artifactsEmittedPerFile: Array<{
-      sourceName: string;
-      artifacts: string[];
-    }>
-  ) {
+  public async removeObsoleteArtifacts() {
     const validArtifactsPaths = new Set<string>();
 
-    for (const { sourceName, artifacts } of artifactsEmittedPerFile) {
+    for (const { sourceName, artifacts } of this._validArtifacts) {
       for (const artifactName of artifacts) {
         validArtifactsPaths.add(
           this._getArtifactPathSync(
@@ -196,12 +199,26 @@ export class Artifacts implements IArtifacts {
         await this._removeArtifactFiles(artifactPath);
       }
     }
+
+    await this._removeObsoleteBuildInfos();
+  }
+
+  /**
+   * Returns the absolute path to the given artifact
+   */
+  public formArtifactPathFromFullyQualifiedName(
+    fullyQualifiedName: string
+  ): string {
+    const { sourceName, contractName } =
+      parseFullyQualifiedName(fullyQualifiedName);
+
+    return path.join(this._artifactsPath, sourceName, `${contractName}.json`);
   }
 
   /**
    * Remove all build infos that aren't used by any debug file
    */
-  public async removeObsoleteBuildInfos() {
+  private async _removeObsoleteBuildInfos() {
     const debugFiles = await this.getDebugFilePaths();
 
     const validBuildInfos = new Set<string>();
@@ -222,18 +239,6 @@ export class Artifacts implements IArtifacts {
         await fsExtra.unlink(buildInfoFile);
       }
     }
-  }
-
-  /**
-   * Returns the absolute path to the given artifact
-   */
-  public formArtifactPathFromFullyQualifiedName(
-    fullyQualifiedName: string
-  ): string {
-    const { sourceName, contractName } =
-      parseFullyQualifiedName(fullyQualifiedName);
-
-    return path.join(this._artifactsPath, sourceName, `${contractName}.json`);
   }
 
   private _getBuildInfoName(
@@ -423,7 +428,7 @@ export class Artifacts implements IArtifacts {
     return paths.map((p) => this._getFullyQualifiedNameFromPath(p)).sort();
   }
 
-  private _formatSuggestions(names: string[], contractName?: string): string {
+  private _formatSuggestions(names: string[], contractName: string): string {
     switch (names.length) {
       case 0:
         return "";
@@ -451,7 +456,7 @@ Please replace "${contractName}" for the correct contract name wherever you are 
 
     throw new HardhatError(ERRORS.ARTIFACTS.NOT_FOUND, {
       contractName: fullyQualifiedName,
-      suggestion: this._formatSuggestions(similarNames),
+      suggestion: this._formatSuggestions(similarNames, fullyQualifiedName),
     });
   }
 
@@ -496,6 +501,7 @@ Please replace "${contractName}" for the correct contract name wherever you are 
   ): string[] {
     const outputNames = [];
     const groups = similarNames.reduce((obj, cur) => {
+      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       obj[cur] = obj[cur] ? obj[cur] + 1 : 1;
       return obj;
     }, {} as { [k: string]: number });

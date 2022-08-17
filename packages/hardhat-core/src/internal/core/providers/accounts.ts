@@ -1,6 +1,7 @@
 import { BN } from "ethereumjs-util";
 import * as t from "io-ts";
 
+import { SignTypedDataVersion, signTypedData } from "@metamask/eth-sig-util";
 import { FeeMarketEIP1559Transaction } from "@ethereumjs/tx";
 import { EIP1193Provider, RequestArguments } from "../../../types";
 import { HardhatError } from "../errors";
@@ -19,8 +20,6 @@ import { validateParams } from "../jsonrpc/types/input/validation";
 import { ProviderWrapperWithChainId } from "./chainId";
 import { derivePrivateKeys } from "./util";
 import { ProviderWrapper } from "./wrapper";
-
-const ethSigUtil = require("eth-sig-util");
 
 export interface JsonRpcTransactionData {
   from?: string;
@@ -114,7 +113,9 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
       // if we don't manage the address, the method is forwarded
       const privateKey = this._getPrivateKeyForAddressOrNull(address);
       if (privateKey !== null) {
-        return ethSigUtil.signTypedData_v4(privateKey, {
+        return signTypedData({
+          privateKey,
+          version: SignTypedDataVersion.V4,
           data: typedMessage,
         });
       }
@@ -306,13 +307,15 @@ export class HDWalletProvider extends LocalAccountsProvider {
     mnemonic: string,
     hdpath: string = "m/44'/60'/0'/0/",
     initialIndex: number = 0,
-    count: number = 10
+    count: number = 10,
+    passphrase: string = ""
   ) {
     const privateKeys = derivePrivateKeys(
       mnemonic,
       hdpath,
       initialIndex,
-      count
+      count,
+      passphrase
     );
 
     const { bufferToHex } = require("ethereumjs-util");

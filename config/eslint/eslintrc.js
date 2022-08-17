@@ -132,9 +132,15 @@ module.exports = {
     "@typescript-eslint/prefer-function-type": "error",
     "@typescript-eslint/prefer-namespace-keyword": "error",
     "@typescript-eslint/restrict-plus-operands": "error",
+    "@typescript-eslint/restrict-template-expressions": ["error", {
+      allowAny: true,
+    }],
     "@typescript-eslint/strict-boolean-expressions": [
       "error",
       {
+        allowString: false,
+        allowNumber: false,
+        allowNullableObject: false,
         allowAny: true,
       },
     ],
@@ -162,6 +168,7 @@ module.exports = {
       "error",
       {
         groups: [
+          "type",
           "object",
           ["builtin", "external"],
           "parent",
@@ -206,5 +213,8 @@ module.exports = {
       },
     ],
     "use-isnan": "error",
+    "no-restricted-imports": ["error", {
+      patterns: ["hardhat/src", "@nomiclabs/*/src"]
+    }],
   },
 };

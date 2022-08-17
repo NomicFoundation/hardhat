@@ -37,6 +37,13 @@ export const chainConfig: ChainConfig = {
       browserURL: "https://kovan.etherscan.io",
     },
   },
+  sepolia: {
+    chainId: 11155111,
+    urls: {
+      apiURL: "https://api-sepolia.etherscan.io/api",
+      browserURL: "https://sepolia.etherscan.io",
+    },
+  },
   bsc: {
     chainId: 56,
     urls: {
@@ -135,11 +142,18 @@ export const chainConfig: ChainConfig = {
       browserURL: "https://testnet.snowtrace.io/",
     },
   },
+  moonbeam: {
+    chainId: 1284,
+    urls: {
+      apiURL: "https://api-moonbeam.moonscan.io/api",
+      browserURL: "https://moonbeam.moonscan.io",
+    },
+  },
   moonriver: {
     chainId: 1285,
     urls: {
       apiURL: "https://api-moonriver.moonscan.io/api",
-      browserURL: "https://moonscan.io",
+      browserURL: "https://moonriver.moonscan.io",
     },
   },
   moonbaseAlpha: {
@@ -163,4 +177,35 @@ export const chainConfig: ChainConfig = {
       browserURL: "https://blockscout.com/poa/sokol",
     },
   },
+  aurora: {
+    chainId: 1313161554,
+    urls: {
+      apiURL: "https://api.aurorascan.dev/api",
+      browserURL: "https://aurorascan.dev/",
+    },
+  },
+  auroraTestnet: {
+    chainId: 1313161555,
+    urls: {
+      apiURL: "https://api-testnet.aurorascan.dev/api",
+      browserURL: "https://testnet.aurorascan.dev",
+    },
+  },
+  harmony: {
+    chainId: 1666600000,
+    urls: {
+      apiURL: "https://ctrver.t.hmny.io/verify",
+      browserURL: "https://explorer.harmony.one",
+    },
+  },
+  harmonyTest: {
+    chainId: 1666700000,
+    urls: {
+      apiURL: "https://ctrver.t.hmny.io/verify?network=testnet",
+      browserURL: "https://explorer.pops.one",
+    },
+  },
+  // We are not adding new networks to the core of hardhat-etherscan anymore.
+  // Please read this to learn how to manually add support for custom networks:
+  // https://github.com/NomicFoundation/hardhat/tree/master/packages/hardhat-etherscan#adding-support-for-other-networks
 };

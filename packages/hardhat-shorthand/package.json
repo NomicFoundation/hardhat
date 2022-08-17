@@ -23,6 +23,7 @@
     "prettier": "prettier \"**/*.{js,md,json}\"",
     "test": "mocha --recursive \"test/**/*.ts\" --exit",
     "build": "tsc --build .",
+    "prepublishOnly": "yarn build",
     "clean": "rimraf dist"
   },
   "files": [
@@ -34,7 +35,7 @@
   "devDependencies": {
     "@types/chai": "^4.2.0",
     "@types/fs-extra": "^5.1.0",
-    "@types/mocha": "^9.0.0",
+    "@types/mocha": "^9.1.0",
     "@types/node": "^12.0.0",
     "@typescript-eslint/eslint-plugin": "4.29.2",
     "@typescript-eslint/parser": "4.29.2",
@@ -44,7 +45,7 @@
     "eslint-plugin-import": "2.24.1",
     "eslint-plugin-prettier": "3.4.0",
     "hardhat": "^2.0.0",
-    "mocha": "^7.2.0",
+    "mocha": "^10.0.0",
     "prettier": "2.4.1",
     "rimraf": "^3.0.2",
     "ts-node": "^8.1.0",

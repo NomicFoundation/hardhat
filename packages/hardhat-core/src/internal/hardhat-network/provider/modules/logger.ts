@@ -27,7 +27,8 @@ interface PrintOptions {
   color?: Chalk;
   replaceLastLine?: boolean;
   collapsePrintedMethod?: boolean;
-  collapseMinedBlock?: boolean;
+  collapseIntervalMinedBlock?: boolean;
+  collapseHardhatMinedBlock?: boolean;
 }
 
 function printLine(line: string) {
@@ -61,7 +62,8 @@ export class ModulesLogger {
   private _logs: Array<string | [string, string]> = [];
   private _titleLength = 0;
   private _currentIndent = 0;
-  private _emptyMinedBlocksRangeStart: number | undefined = undefined;
+  private _emptyIntervalMinedBlocksRangeStart: number | undefined = undefined;
+  private _emptyHardhatMinedBlocksRangeStart: number | undefined = undefined;
   private _methodBeingCollapsed?: string;
   private _methodCollapsedCount: number = 0;
 
@@ -329,7 +331,9 @@ export class ModulesLogger {
     if (isEmpty) {
       this._log(
         `Mined empty block #${blockNumber}${
-          baseFeePerGas !== undefined ? ` with base fee ${baseFeePerGas}` : ""
+          baseFeePerGas !== undefined
+            ? ` with base fee ${baseFeePerGas.toString()}`
+            : ""
         }`
       );
 
@@ -363,7 +367,7 @@ export class ModulesLogger {
 
   private _logBaseFeePerGas(block: Block) {
     if (block.header.baseFeePerGas !== undefined) {
-      this._log(`Base fee: ${block.header.baseFeePerGas}`);
+      this._log(`Base fee: ${block.header.baseFeePerGas.toString()}`);
     }
   }
 
@@ -395,26 +399,28 @@ export class ModulesLogger {
     return true;
   }
 
-  public printMinedBlockNumber(
+  public printIntervalMinedBlockNumber(
     blockNumber: number,
     isEmpty: boolean,
     baseFeePerGas?: BN
   ) {
-    if (this._emptyMinedBlocksRangeStart !== undefined) {
+    if (this._emptyIntervalMinedBlocksRangeStart !== undefined) {
       this._print(
-        `Mined empty block range #${this._emptyMinedBlocksRangeStart} to #${blockNumber}`,
-        { collapseMinedBlock: true, replaceLastLine: true }
+        `Mined empty block range #${this._emptyIntervalMinedBlocksRangeStart} to #${blockNumber}`,
+        { collapseIntervalMinedBlock: true, replaceLastLine: true }
       );
     } else {
-      this._emptyMinedBlocksRangeStart = blockNumber;
+      this._emptyIntervalMinedBlocksRangeStart = blockNumber;
 
       if (isEmpty) {
         this._print(
           `Mined empty block #${blockNumber}${
-            baseFeePerGas !== undefined ? ` with base fee ${baseFeePerGas}` : ""
+            baseFeePerGas !== undefined
+              ? ` with base fee ${baseFeePerGas.toString()}`
+              : ""
           }`,
           {
-            collapseMinedBlock: true,
+            collapseIntervalMinedBlock: true,
           }
         );
 
@@ -422,9 +428,35 @@ export class ModulesLogger {
       }
 
       this._print(`Mined block #${blockNumber}`, {
-        collapseMinedBlock: true,
+        collapseIntervalMinedBlock: true,
       });
     }
+  }
+
+  public logEmptyHardhatMinedBlock(blockNumber: number, baseFeePerGas?: BN) {
+    this._indent(() => {
+      if (this._emptyHardhatMinedBlocksRangeStart !== undefined) {
+        this._log(
+          `Mined empty block range #${this._emptyHardhatMinedBlocksRangeStart} to #${blockNumber}`,
+          { collapseHardhatMinedBlock: true, replaceLastLine: true }
+        );
+      } else {
+        this._emptyHardhatMinedBlocksRangeStart = blockNumber;
+
+        this._log(
+          `Mined empty block #${blockNumber}${
+            baseFeePerGas !== undefined
+              ? ` with base fee ${baseFeePerGas.toString()}`
+              : ""
+          }`,
+          {
+            collapseHardhatMinedBlock: true,
+          }
+        );
+
+        return;
+      }
+    });
   }
 
   public printMetaMaskWarning() {
@@ -464,7 +496,7 @@ export class ModulesLogger {
       this.printEmptyLine();
 
       this._print(
-        "If you think this is a bug in Hardhat, please report it here: https://hardhat.org/reportbug"
+        "If you think this is a bug in Hardhat, please report it here: https://hardhat.org/report-bug"
       );
     });
   }
@@ -510,12 +542,19 @@ export class ModulesLogger {
     if (printOptions.collapsePrintedMethod !== true) {
       this._stopCollapsingMethod();
     }
-    if (printOptions.collapseMinedBlock !== true) {
-      this._emptyMinedBlocksRangeStart = undefined;
+    if (printOptions.collapseIntervalMinedBlock !== true) {
+      this._emptyIntervalMinedBlocksRangeStart = undefined;
+    }
+    if (printOptions.collapseHardhatMinedBlock !== true) {
+      this._emptyHardhatMinedBlocksRangeStart = undefined;
     }
     const formattedMessage = this._format(msg, printOptions);
 
-    this._logs.push(formattedMessage);
+    if (printOptions.replaceLastLine === true) {
+      this._logs[this._logs.length - 1] = formattedMessage;
+    } else {
+      this._logs.push(formattedMessage);
+    }
   }
 
   private _logError(err: Error) {
@@ -579,8 +618,11 @@ export class ModulesLogger {
     if (printOptions.collapsePrintedMethod !== true) {
       this._stopCollapsingMethod();
     }
-    if (printOptions.collapseMinedBlock !== true) {
-      this._emptyMinedBlocksRangeStart = undefined;
+    if (printOptions.collapseIntervalMinedBlock !== true) {
+      this._emptyIntervalMinedBlocksRangeStart = undefined;
+    }
+    if (printOptions.collapseHardhatMinedBlock !== true) {
+      this._emptyHardhatMinedBlocksRangeStart = undefined;
     }
     const formattedMessage = this._format(msg, printOptions);
 

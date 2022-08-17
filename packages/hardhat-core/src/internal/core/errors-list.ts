@@ -51,7 +51,7 @@ export const ERRORS = {
       title: "You are not inside a Hardhat project",
       description: `You are trying to run Hardhat outside of a Hardhat project.
 
-You can learn how to use Hardhat by reading the [Getting Started guide](../getting-started).`,
+You can learn how to use Hardhat by reading the [Getting Started guide](/hardhat-runner/docs/getting-started).`,
       shouldBeReported: false,
     },
     INVALID_NODE_VERSION: {
@@ -68,7 +68,7 @@ Please upgrade your version of Node.js and try again.`,
       number: 3,
       message: "%operation% is not supported in Hardhat.",
       title: "Unsupported operation",
-      description: `You are tying to perform an unsupported operation. 
+      description: `You are trying to perform an unsupported operation. 
 
 Unless you are creating a task or plugin, this is probably a bug. 
 
@@ -140,7 +140,7 @@ To learn more about how to access the Hardhat Runtime Environment from different
 The most common source of errors is trying to import the Hardhat Runtime Environment from your config or a file imported from it.
 This is not possible, as Hardhat can't be initialized while its config is being defined.
 
-You may also have accidentally imported \`hardhat\' instead of \`hardhat/config\`.
+You may also have accidentally imported \`hardhat\` instead of \`hardhat/config\`.
 
 Please make sure your config file is correct.
 
@@ -183,11 +183,11 @@ Please install Hardhat locally using npm or Yarn, and try again.`,
       number: 13,
       message: `Your Hardhat project uses typescript, but ts-node is not installed.
       
-Please run: npm \`install --save-dev ts-node\``,
+Please run: npm install --save-dev ts-node`,
       title: "ts-node not installed",
       description: `You are running a Hardhat project that uses typescript, but you haven't installed ts-node.
 
-Please run this and try again: npm install --save-dev ts-node`,
+Please run this and try again: \`npm install --save-dev ts-node\``,
       shouldBeReported: false,
     },
     TYPESCRIPT_NOT_INSTALLED: {
@@ -201,6 +201,42 @@ Please run: npm install --save-dev typescript`,
 Please run this and try again: \`npm install --save-dev typescript\``,
       shouldBeReported: false,
     },
+    NOT_INSIDE_PROJECT_ON_WINDOWS: {
+      number: 15,
+      message: `You are not inside a project and Hardhat failed to initialize a new one.
+
+If you were trying to create a new project, please try again using Windows Subsystem for Linux (WSL) or PowerShell.
+`,
+      title:
+        "You are not inside a Hardhat project and Hardhat failed to initialize a new one",
+      description: `You are trying to run Hardhat outside of a Hardhat project, and we couldn't initialize one.
+
+If you were trying to create a new project, please try again using Windows Subsystem for Linux (WSL) or PowerShell.
+
+You can learn how to use Hardhat by reading the [Getting Started guide](/hardhat-runner/docs/getting-started).`,
+      shouldBeReported: false,
+    },
+    CONFLICTING_FILES: {
+      number: 16,
+      message: `The directory %dest% contains files that could conflict:
+
+%conflicts%
+
+Either try using a new directory, or remove the files listed above.`,
+      title: "conflicting files during project creation",
+      description: `You are trying to create a new hardhat project, but there are existing files that would be overwritten by the creation process.
+
+Either try using a new directory name, or remove the conflicting files.`,
+      shouldBeReported: false,
+    },
+    INVALID_BIG_NUMBER: {
+      number: 17,
+      message: "The input value cannot be normalized to a BigInt: %message%",
+      title: "Invalid big number",
+      description:
+        "Hardhat attempted to convert the input value to a BigInt, but no known conversion method was applicable to the given value.",
+      shouldBeReported: false,
+    },
   },
   NETWORK: {
     CONFIG_NOT_FOUND: {
@@ -209,7 +245,7 @@ Please run this and try again: \`npm install --save-dev typescript\``,
       title: "Selected network doesn't exist",
       description: `You are trying to run Hardhat with a nonexistent network.
 
-Read the [documentation](https://hardhat.org/config/#networks-configuration) to learn how to define custom networks.`,
+Read the [documentation](https://hardhat.org/hardhat-runner/docs/config#networks-configuration) to learn how to define custom networks.`,
       shouldBeReported: false,
     },
     INVALID_GLOBAL_CHAIN_ID: {
@@ -269,7 +305,7 @@ Please make sure that your Ethereum node has unlocked accounts.`,
       title: "Invalid HD path",
       description: `An invalid HD/BIP32 derivation path was provided in your config.  
       
-Read the [documentation](https://hardhat.org/config/#hd-wallet-config) to learn how to define HD accounts correctly.`,
+Read the [documentation](https://hardhat.org/hardhat-runner/docs/config#hd-wallet-config) to learn how to define HD accounts correctly.`,
       shouldBeReported: false,
     },
     INVALID_RPC_QUANTITY_VALUE: {
@@ -627,7 +663,7 @@ Please double check how you invoked Hardhat or ran your task.`,
       number: 312,
       title: "Subtask run from the command line",
       message: "Trying to run the %name% subtask from the CLI",
-      description: `You tried to run an subtask from the command line.
+      description: `You tried to run a subtask from the command line.
       
 This is not supported. Please run the help task to see the available options.`,
       shouldBeReported: false,
@@ -694,7 +730,7 @@ You must always use slashes (/) in Solidity imports.`,
       title: "Invalid import: trying to use an unsupported protocol",
       description: `A Solidity file is trying to import a file using an unsupported protocol, like http.
       
-You can only import files thar are available locally or installed through npm.`,
+You can only import files that are available locally or installed through npm.`,
       shouldBeReported: false,
     },
     INVALID_IMPORT_ABSOLUTE_PATH: {

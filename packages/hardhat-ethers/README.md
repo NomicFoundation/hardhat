@@ -54,23 +54,34 @@ interface FactoryOptions {
   libraries?: Libraries;
 }
 
-function getContractFactory(name: string): Promise<ethers.ContractFactory>;
-
-function getContractFactory(name: string, signer: ethers.Signer): Promise<ethers.ContractFactory>;
+function getContractFactory(name: string, signer?: ethers.Signer): Promise<ethers.ContractFactory>;
 
 function getContractFactory(name: string, factoryOptions: FactoryOptions): Promise<ethers.ContractFactory>;
 
+function getContractFactory(abi: any[], bytecode: ethers.utils.BytesLike, signer?: ethers.Signer): Promise<ethers.ContractFactory>;
 
-function getContractAt(nameOrAbi: string | any[], address: string, signer?: ethers.Signer): Promise<ethers.Contract>;
+function getContractAt(name: string, address: string, signer?: ethers.Signer): Promise<ethers.Contract>;
+
+function getContractAt(abi: any[], address: string, signer?: ethers.Signer): Promise<ethers.Contract>;
 
 function getSigners() => Promise<ethers.Signer[]>;
 
 function getSigner(address: string) => Promise<ethers.Signer>;
+
+function getImpersonatedSigner(address: string) => Promise<ethers.Signer>;
+
+function getContractFactoryFromArtifact(artifact: Artifact, signer?: ethers.Signer): Promise<ethers.ContractFactory>;
+
+function getContractFactoryFromArtifact(artifact: Artifact, factoryOptions: FactoryOptions): Promise<ethers.ContractFactory>;
+
+function getContractAtFromArtifact(artifact: Artifact, address: string, signer?: ethers.Signer): Promise<ethers.Contract>;
 ```
 
 The [`Contract`s](https://docs.ethers.io/v5/single-page/#/v5/api/contract/contract/) and [`ContractFactory`s](https://docs.ethers.io/v5/single-page/#/v5/api/contract/contract-factory/) returned by these helpers are connected to the first [signer](https://docs.ethers.io/v5/single-page/#/v5/api/signer/) returned by `getSigners` by default.
 
 If there is no signer available, `getContractAt` returns [read-only](https://docs.ethers.io/v5/single-page/#/v5/api/contract/contract/-%23-Contract--readonly) contracts.
+
+If the address provided to `getContractAt` is not the address of a contract account, an error will be thrown.
 
 ## Usage
 
@@ -97,7 +108,7 @@ module.exports = {};
 
 And then run `npx hardhat blockNumber` to try it.
 
-Read the documentation on the [Hardhat Runtime Environment](https://hardhat.org/advanced/hardhat-runtime-environment.html) to learn how to access the HRE in different ways to use ethers.js from anywhere the HRE is accessible.
+Read the documentation on the [Hardhat Runtime Environment](https://hardhat.org/hardhat-runner/docs/advanced/hardhat-runtime-environment) to learn how to access the HRE in different ways to use ethers.js from anywhere the HRE is accessible.
 
 ### Library linking
 
@@ -121,4 +132,8 @@ To create a contract factory, all libraries must be linked. An error will be thr
 
 Ethers.js polls the network to check if some event was emitted (except when a `WebSocketProvider` is used; see below). This polling is done every 4 seconds. If you have a script or test that is not emitting an event, it's likely that the execution is finishing before the event is detected by the polling mechanism.
 
-If you are connecting to a Hardhat node using a `WebSocketProvider`, events should be emitted immediately. But keep in mind that you'll have to create this provider manually, since Hardhat only supports configuring networks via http. That is, you can't add a `localhost` network with a URL like `ws://localhost:8545`.
+If you are connecting to a Hardhat node using a `WebSocketProvider`, events should be emitted immediately. But keep in mind that you'll have to create this provider manually, since Hardhat only supports configuring networks via http. That is, you can't add a `localhost` network with a URL like `ws://127.0.0.1:8545`.
+
+### Gas transaction parameters in `hardhat.config` are not used
+
+When using this plugin, the `gas`, `gasPrice` and `gasMultiplier` parameters from your `hardhat.config` are not automatically applied to transactions. In order to provide such values to your transactions, specify them as [overrides](https://docs.ethers.io/v5/single-page/#/v5/api/contract/contract/-%23-contract-functionsSend) on the transaction itself.

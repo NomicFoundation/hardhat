@@ -5,12 +5,14 @@ import {
 import { EthereumProvider } from "hardhat/types";
 
 import { pluginName } from "../constants";
-import { ChainConfig, EtherscanNetworkEntry } from "../types";
+import { throwUnsupportedNetwork } from "../errors";
+import { ChainConfig, CustomChain, EtherscanNetworkEntry } from "../types";
 
 export async function getEtherscanEndpoints(
   provider: EthereumProvider,
   networkName: string,
-  chainConfig: ChainConfig
+  chainConfig: ChainConfig,
+  customChains: CustomChain[]
 ): Promise<EtherscanNetworkEntry> {
   if (networkName === HARDHAT_NETWORK_NAME) {
     throw new NomicLabsHardhatPluginError(
@@ -28,13 +30,20 @@ export async function getEtherscanEndpoints(
 
   const chainID = parseInt(await provider.send("eth_chainId"), 16);
 
-  const network = chainIdsToNames.get(chainID);
+  const networkInCustomChains = [...customChains]
+    .reverse() // the last entry wins
+    .find((customChain) => customChain.chainId === chainID);
+
+  // if there is a custom chain with the given chain id, that one is preferred
+  // over the built-in ones
+  if (networkInCustomChains !== undefined) {
+    return networkInCustomChains;
+  }
+
+  const network = networkInCustomChains ?? chainIdsToNames.get(chainID);
 
   if (network === undefined) {
-    throw new NomicLabsHardhatPluginError(
-      pluginName,
-      `Unsupported network ("${networkName}", chainId: ${chainID}).`
-    );
+    throwUnsupportedNetwork(networkName, chainID);
   }
 
   const chainConfigEntry = chainConfig[network];

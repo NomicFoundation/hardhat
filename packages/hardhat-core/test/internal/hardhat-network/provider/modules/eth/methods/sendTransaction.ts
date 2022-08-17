@@ -1,5 +1,6 @@
 import { assert } from "chai";
 import { BN, bufferToHex, toBuffer, zeroAddress } from "ethereumjs-util";
+import { Client } from "undici";
 
 import {
   numberToRpcQuantity,
@@ -15,6 +16,7 @@ import {
 } from "../../../../helpers/assertions";
 import { EXAMPLE_REVERT_CONTRACT } from "../../../../helpers/contracts";
 import { setCWD } from "../../../../helpers/cwd";
+import { getPendingBaseFeePerGas } from "../../../../helpers/getPendingBaseFeePerGas";
 import {
   DEFAULT_ACCOUNTS_ADDRESSES,
   DEFAULT_ACCOUNTS_BALANCES,
@@ -28,13 +30,15 @@ import {
   sendTxToZeroAddress,
 } from "../../../../helpers/transactions";
 import { useHelpers } from "../../../../helpers/useHelpers";
+import { compileLiteral } from "../../../../stack-traces/compilation";
 import {
   EIP1559RpcTransactionOutput,
   RpcBlockOutput,
 } from "../../../../../../../src/internal/hardhat-network/provider/output";
+import { EthereumProvider } from "../../../../../../../src/types";
 
 describe("Eth module", function () {
-  PROVIDERS.forEach(({ name, useProvider, isFork, isJsonRpc }) => {
+  PROVIDERS.forEach(({ name, useProvider, isFork, isJsonRpc, chainId }) => {
     if (isFork) {
       this.timeout(50000);
     }
@@ -67,7 +71,9 @@ describe("Eth module", function () {
                 from: zeroAddress(),
                 to: DEFAULT_ACCOUNTS_ADDRESSES[0],
                 gas: numberToRpcQuantity(21000),
-                gasPrice: numberToRpcQuantity(10e9),
+                gasPrice: numberToRpcQuantity(
+                  await getPendingBaseFeePerGas(this.provider)
+                ),
               },
               "unknown account",
               InvalidInputError.CODE
@@ -89,7 +95,9 @@ describe("Eth module", function () {
               {
                 from: DEFAULT_ACCOUNTS_ADDRESSES[0],
                 gas: numberToRpcQuantity(21000),
-                gasPrice: numberToRpcQuantity(10e9),
+                gasPrice: numberToRpcQuantity(
+                  await getPendingBaseFeePerGas(this.provider)
+                ),
               },
               "contract creation without any data provided",
               InvalidInputError.CODE
@@ -101,7 +109,9 @@ describe("Eth module", function () {
                 from: DEFAULT_ACCOUNTS_ADDRESSES[0],
                 data: "0x",
                 gas: numberToRpcQuantity(21000),
-                gasPrice: numberToRpcQuantity(10e9),
+                gasPrice: numberToRpcQuantity(
+                  await getPendingBaseFeePerGas(this.provider)
+                ),
               },
               "contract creation without any data provided",
               InvalidInputError.CODE
@@ -115,8 +125,12 @@ describe("Eth module", function () {
                 to: DEFAULT_ACCOUNTS_ADDRESSES[1],
                 value: numberToRpcQuantity(1),
                 gas: numberToRpcQuantity(21000),
-                maxFeePerGas: numberToRpcQuantity(10e9),
-                maxPriorityFeePerGas: numberToRpcQuantity(10e9),
+                maxFeePerGas: numberToRpcQuantity(
+                  await getPendingBaseFeePerGas(this.provider)
+                ),
+                maxPriorityFeePerGas: numberToRpcQuantity(
+                  await getPendingBaseFeePerGas(this.provider)
+                ),
               },
             ]);
 
@@ -131,7 +145,9 @@ describe("Eth module", function () {
                 to: DEFAULT_ACCOUNTS_ADDRESSES[1],
                 value: numberToRpcQuantity(1),
                 gas: numberToRpcQuantity(21000),
-                gasPrice: numberToRpcQuantity(10e9),
+                gasPrice: numberToRpcQuantity(
+                  await getPendingBaseFeePerGas(this.provider)
+                ),
                 maxFeePerGas: numberToRpcQuantity(10),
                 maxPriorityFeePerGas: numberToRpcQuantity(10),
               },
@@ -216,7 +232,9 @@ describe("Eth module", function () {
                 to: DEFAULT_ACCOUNTS_ADDRESSES[1],
                 value: numberToRpcQuantity(1),
                 gas: numberToRpcQuantity(21000),
-                gasPrice: numberToRpcQuantity(10e9),
+                gasPrice: numberToRpcQuantity(
+                  await getPendingBaseFeePerGas(this.provider)
+                ),
               },
             ]);
 
@@ -455,7 +473,9 @@ describe("Eth module", function () {
                       from: DEFAULT_ACCOUNTS_ADDRESSES[1],
                       to: DEFAULT_ACCOUNTS_ADDRESSES[2],
                       gas: numberToRpcQuantity(21000),
-                      gasPrice: numberToRpcQuantity(10e9),
+                      gasPrice: numberToRpcQuantity(
+                        await getPendingBaseFeePerGas(this.provider)
+                      ),
                       value: wholeAccountBalance,
                     },
                   ],
@@ -516,7 +536,7 @@ describe("Eth module", function () {
               });
 
               it("Should throw if the sender doesn't have enough balance as a result of mining pending transactions first", async function () {
-                const gasPrice = new BN(10e9);
+                const gasPrice = await getPendingBaseFeePerGas(this.provider);
 
                 const sendTransaction = async (
                   nonce: number,
@@ -673,12 +693,13 @@ describe("Eth module", function () {
           });
 
           it("Should replace pending transactions", async function () {
+            const gasPrice = await getPendingBaseFeePerGas(this.provider);
             const txHash1 = await this.provider.send("eth_sendTransaction", [
               {
                 from: DEFAULT_ACCOUNTS_ADDRESSES[1],
                 to: DEFAULT_ACCOUNTS_ADDRESSES[2],
                 nonce: numberToRpcQuantity(0),
-                gasPrice: numberToRpcQuantity(20e9),
+                gasPrice: numberToRpcQuantity(gasPrice),
               },
             ]);
             let tx1 = await this.provider.send("eth_getTransactionByHash", [
@@ -691,7 +712,7 @@ describe("Eth module", function () {
                 from: DEFAULT_ACCOUNTS_ADDRESSES[1],
                 to: DEFAULT_ACCOUNTS_ADDRESSES[2],
                 nonce: numberToRpcQuantity(0),
-                gasPrice: numberToRpcQuantity(30e9),
+                gasPrice: numberToRpcQuantity(gasPrice.muln(2)),
               },
             ]);
             tx1 = await this.provider.send("eth_getTransactionByHash", [
@@ -759,12 +780,13 @@ describe("Eth module", function () {
           });
 
           it("Should throw an error if the replacement gasPrice, maxFeePerGas or maxPriorityFeePerGas are too low", async function () {
+            const baseFeePerGas = await getPendingBaseFeePerGas(this.provider);
             const txHash1 = await this.provider.send("eth_sendTransaction", [
               {
                 from: DEFAULT_ACCOUNTS_ADDRESSES[1],
                 to: DEFAULT_ACCOUNTS_ADDRESSES[2],
                 nonce: numberToRpcQuantity(0),
-                gasPrice: numberToRpcQuantity(20e9),
+                gasPrice: numberToRpcQuantity(baseFeePerGas),
               },
             ]);
 
@@ -781,10 +803,10 @@ describe("Eth module", function () {
                   from: DEFAULT_ACCOUNTS_ADDRESSES[1],
                   to: DEFAULT_ACCOUNTS_ADDRESSES[2],
                   nonce: numberToRpcQuantity(0),
-                  gasPrice: numberToRpcQuantity(21e9),
+                  gasPrice: numberToRpcQuantity(baseFeePerGas.addn(1)),
                 },
               ],
-              "Replacement transaction underpriced. A gasPrice/maxFeePerGas of at least 22000000000 is necessary to replace the existing transaction with nonce 0."
+              "Replacement transaction underpriced."
             );
 
             await assertInvalidInputError(
@@ -795,10 +817,10 @@ describe("Eth module", function () {
                   from: DEFAULT_ACCOUNTS_ADDRESSES[1],
                   to: DEFAULT_ACCOUNTS_ADDRESSES[2],
                   nonce: numberToRpcQuantity(0),
-                  maxFeePerGas: numberToRpcQuantity(21e9),
+                  maxFeePerGas: numberToRpcQuantity(baseFeePerGas.addn(1)),
                 },
               ],
-              "Replacement transaction underpriced. A gasPrice/maxFeePerGas of at least 22000000000 is necessary to replace the existing transaction with nonce 0."
+              "Replacement transaction underpriced."
             );
 
             await assertInvalidInputError(
@@ -809,10 +831,12 @@ describe("Eth module", function () {
                   from: DEFAULT_ACCOUNTS_ADDRESSES[1],
                   to: DEFAULT_ACCOUNTS_ADDRESSES[2],
                   nonce: numberToRpcQuantity(0),
-                  maxPriorityFeePerGas: numberToRpcQuantity(21e9),
+                  maxPriorityFeePerGas: numberToRpcQuantity(
+                    baseFeePerGas.addn(1)
+                  ),
                 },
               ],
-              "Replacement transaction underpriced. A gasPrice/maxPriorityFeePerGas of at least 22000000000 is necessary to replace the existing transaction with nonce 0."
+              "Replacement transaction underpriced."
             );
 
             // check that original tx was not replaced
@@ -960,7 +984,9 @@ describe("Eth module", function () {
                   from: DEFAULT_ACCOUNTS_ADDRESSES[0],
                   to: "0x0000000000000000000000000000000000000001",
                   gas: numberToRpcQuantity(21000), // Address 1 is a precompile, so this will OOG
-                  gasPrice: numberToRpcQuantity(10e9),
+                  gasPrice: numberToRpcQuantity(
+                    await getPendingBaseFeePerGas(this.provider)
+                  ),
                 },
               ]);
 
@@ -1042,6 +1068,45 @@ describe("Eth module", function () {
 
           assert.isTrue(new BN(toBuffer(balanceAfter)).isZero());
         });
+
+        it("should use the proper chain ID", async function () {
+          // arrange: deploy a contract that will emit the chain ID:
+          const [_, compilerOutput] = await compileLiteral(`
+            contract ChainIdEmitter {
+              event ChainId(uint i);
+              function emitChainId() public {
+                uint chainId;
+                assembly { chainId := chainid() }
+                emit ChainId(chainId);
+              }
+            }
+          `);
+          const contractAddress = await deployContract(
+            this.provider,
+            `0x${compilerOutput.contracts["literal.sol"].ChainIdEmitter.evm.bytecode.object}`
+          );
+
+          async function getChainIdFromContract(
+            provider: EthereumProvider
+          ): Promise<number> {
+            const txHash = await provider.send("eth_sendTransaction", [
+              {
+                from: DEFAULT_ACCOUNTS_ADDRESSES[1],
+                to: contractAddress,
+                data: "0x68df392f", // abi-encoded "emitChainId()"
+              },
+            ]);
+            const receipt = await provider.send("eth_getTransactionReceipt", [
+              txHash,
+            ]);
+            return rpcQuantityToNumber(
+              receipt.logs[0].data.replace(/0x0*/, "0x")
+            );
+          }
+
+          // assert:
+          assert.equal(await getChainIdFromContract(this.provider), chainId);
+        });
       });
 
       describe("eth_sendTransaction with minGasPrice", function () {
@@ -1110,6 +1175,155 @@ describe("Eth module", function () {
           await this.mine();
           await this.assertPendingTxs([txHash1, txHash2]);
           await this.assertLatestBlockTxs([txHash3]);
+        });
+      });
+
+      describe("eth_sendTransaction http JSON-RPC response", function () {
+        useProvider();
+
+        let client: Client;
+
+        // send the transaction using an http client, otherwise the wrapped
+        // provider will intercept the response and throw an error
+        async function sendTransaction({ from, to, data }: any) {
+          return client
+            .request({
+              method: "POST",
+              path: "/",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                jsonrpc: "2.0",
+                id: 1,
+                method: "eth_sendTransaction",
+                params: [
+                  {
+                    from,
+                    to,
+                    data,
+                  },
+                ],
+              }),
+            })
+            .then((x) => x.body.json());
+        }
+
+        beforeEach(function () {
+          if (this.serverInfo === undefined || isFork) {
+            this.skip();
+          }
+
+          const url = `http://${this.serverInfo.address}:${this.serverInfo.port}`;
+          client = new Client(url, {
+            keepAliveTimeout: 10,
+            keepAliveMaxTimeout: 10,
+          });
+        });
+
+        it("Should return the hash of the transaction that reverts", async function () {
+          const contractAddress = await deployContract(
+            this.provider,
+            `0x${EXAMPLE_REVERT_CONTRACT.bytecode.object}`
+          );
+
+          const response = await sendTransaction({
+            from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+            to: contractAddress,
+            data: `${EXAMPLE_REVERT_CONTRACT.selectors.reverts}`,
+          });
+
+          const txHash = response.error?.data?.txHash;
+          assert.isDefined(txHash);
+
+          const receipt = await this.provider.send(
+            "eth_getTransactionReceipt",
+            [txHash]
+          );
+
+          assert.equal(receipt.from, DEFAULT_ACCOUNTS_ADDRESSES[0]);
+          assert.equal(receipt.to, contractAddress);
+          assert.equal(receipt.status, "0x0");
+        });
+
+        it("Should return the data of a transaction that reverts without a reason string", async function () {
+          const contractAddress = await deployContract(
+            this.provider,
+            `0x${EXAMPLE_REVERT_CONTRACT.bytecode.object}`
+          );
+
+          const response = await sendTransaction({
+            from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+            to: contractAddress,
+            data: `${EXAMPLE_REVERT_CONTRACT.selectors.reverts}`,
+          });
+
+          assert.isDefined(response.error?.data);
+          assert.equal(response.error.message, response.error.data.message);
+          assert.equal(response.error.data.data, "0x");
+        });
+
+        it("Should return the data of a transaction that reverts with a reason string", async function () {
+          const contractAddress = await deployContract(
+            this.provider,
+            `0x${EXAMPLE_REVERT_CONTRACT.bytecode.object}`
+          );
+
+          const response = await sendTransaction({
+            from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+            to: contractAddress,
+            data: `${EXAMPLE_REVERT_CONTRACT.selectors.revertsWithReasonString}`,
+          });
+
+          assert.isDefined(response.error?.data);
+          assert.equal(response.error.message, response.error.data.message);
+          assert.equal(
+            response.error.data.data,
+            // Error(string) encoded with value "a reason"
+            "0x08c379a0000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000086120726561736f6e000000000000000000000000000000000000000000000000"
+          );
+        });
+
+        it("Should return the data of a transaction that panics", async function () {
+          const contractAddress = await deployContract(
+            this.provider,
+            `0x${EXAMPLE_REVERT_CONTRACT.bytecode.object}`
+          );
+
+          const response = await sendTransaction({
+            from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+            to: contractAddress,
+            data: `${EXAMPLE_REVERT_CONTRACT.selectors.panics}`,
+          });
+
+          assert.isDefined(response.error?.data);
+          assert.equal(response.error.message, response.error.data.message);
+          assert.equal(
+            response.error.data.data,
+            // Panic(uint256) encoded with value 0x32 (out-of-bounds array access)
+            "0x4e487b710000000000000000000000000000000000000000000000000000000000000032"
+          );
+        });
+
+        it("Should return the data of a transaction that reverts with a custom error", async function () {
+          const contractAddress = await deployContract(
+            this.provider,
+            `0x${EXAMPLE_REVERT_CONTRACT.bytecode.object}`
+          );
+
+          const response = await sendTransaction({
+            from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+            to: contractAddress,
+            data: `${EXAMPLE_REVERT_CONTRACT.selectors.customError}`,
+          });
+
+          assert.isDefined(response.error?.data);
+          assert.equal(response.error.message, response.error.data.message);
+          assert.equal(
+            response.error.data.data,
+            // MyCustomError() encoded
+            "0x4e7254d6"
+          );
         });
       });
     });

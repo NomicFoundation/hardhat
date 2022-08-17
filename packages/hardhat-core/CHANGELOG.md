@@ -1,5 +1,150 @@
 # hardhat
 
+## 2.10.2
+
+### Patch Changes
+
+- f799e7e41: - Fixed a bug that was causing `console.log()` to print `undefined` instead of an empty line (issue #2721)
+  - Made `console.log` ABI-compliant (issue #2666)
+- 36ca875dc: The selector is now shown in the "Unrecognized custom error" message
+- 3e3fe7bf0: Added support for Solidity versions up through 0.8.16
+
+## 2.10.1
+
+### Patch Changes
+
+- 3d571e40b: Better Solidity errors propagation
+
+## 2.10.0
+
+### Minor Changes
+
+- 5b29b0e0b: Update sample projects to use the Hardhat Toolbox
+
+### Patch Changes
+
+- 3dcc802b3: Add support for Node 18
+- 3dcc802b3: Upgrade Mocha to 10.x
+- 3dcc802b3: Upgrade ethereum-cryptography to 1.x
+- f5afa18d3: Removed a workaround to past Ganache's gas estimation problems.
+- 3dcc802b3: Drop support for Node 12
+
+## 2.9.9
+
+### Patch Changes
+
+- ce6136b2a: Fix incorrect peerDependency
+- 3fd3756e6: Specify ts-node and typescript as optional peerDependencies
+
+## 2.9.8
+
+### Patch Changes
+
+- 5bd775a8b: Added support for HTTP headers in the forking config (thanks @TimDaub!)
+- 3770a5bbc: Expose a missing method in the Artifacts interface
+
+## 2.9.7
+
+### Patch Changes
+
+- 73beb279b: Fixed `block.chainid` returning 0 in view functions
+
+## 2.9.6
+
+### Patch Changes
+
+- fde08e0c: Updates `node` task to terminate when the server closes.
+- 736e850a: Fixed an issue that was preventing compilation from working on Windows (#2712)
+
+## 2.9.5
+
+### Patch Changes
+
+- e42ef24d: Fixed a publish problem in 2.9.4
+- 81e28117: Make `eth_getStorageAt` spec-compliant. This means that the storage slot argument **must** have a length of 32 bytes (a hex-encoded string of length 66).
+
+## 2.9.4
+
+### Patch Changes
+
+- 1de87072: Fix passing options and depth when inspecting a lazyObject or lazyFunction
+- 7403ec1d: Stop publishing tsconfig.json files
+- b9f997cb: Upgraded ethereumjs dependencies (thanks @LogvinovLeon!).
+- 58aa161a: Expand the `data` object returned by the JSON-RPC response when a transaction or call reverts. Now it also includes the `message` and `data` fields. The `message` is the same message that is part of the response, and it's included to make things work better with ethers.js. The `data` field includes the return data of the transaction. These fields are included in the responses of the `eth_sendTransaction`, `eth_sendRawTransaction`, `eth_call` and `eth_estimateGas` methods when they revert.
+- 78876d64: Fix a bug preventing to run the solcjs compiler.
+- 1929e177: Fix a bug when formatting optional params in the help messages.
+- 4238a921: Fixed a problem with `hardhat_mine` when used with `solidity-coverage`.
+- 32cc90bf: Allow --version flag to be used when not in a Hardhat project directory
+- b5273ce1: - Fixed a potential OOM error during parallel compilation
+  - Added a `--concurrency` param to the compile task
+- 97eb5820: The `CustomError` class is now exported in `hardhat/common`
+
+## 2.9.3
+
+### Patch Changes
+
+- 74a12d7b: Fixed a bug preventing loggingEnabled from working properly and exposed userConfig field in HRE
+
+## 2.9.2
+
+### Patch Changes
+
+- 8fda4036: - Fix a bug that would override mocha grep options within the test task
+- dd0dc168: Fix a bug in Hardhat Network that prevented the forking functionality from working (#2528)
+- 6ff1cb03: Fixed bug (#2352) preventing the disabling of node task logging via hardhat.config.
+
+## 2.9.1
+
+### Patch Changes
+
+- 69a6434e: Fix a bug that made Hardhat Network hang when connecting MetaMask (#2380)
+
+## 2.9.0
+
+### Minor Changes
+
+- bf017963: Add a new RPC method, `hardhat_mine`, which supports the mining of multiple blocks in a single call (#1112)
+- 345ebab7: The `test` task now supports a `--parallel` flag to run tests in parallel. There are also two other new flags: `--bail`, to stop the execution after the first test failure, and `--grep`, to filter which tests should be run.
+
+  To support running tests in parallel, the version of `mocha` used by Hardhat was upgraded to its latest version. This should be a mostly backward-compatible change, but there could be some edge cases where this breaks existing tests.
+
+### Patch Changes
+
+- 04f4b3a4: Added support for BIP39 passphrases (thanks @zhuqicn!)
+- dda96346: Solidity files are now compiled in parallel
+- ce06e238: Preserve any existing user's README when initializing a project (#1942)
+- caecc59b: The test task now works correctly when a test file starts with `./` (fixes #2220).
+- 87c50af1: A warning is now shown when a node version greater than the current LTS is used.
+- b18e043b: Improved the performance of requests to remote RPC nodes by the use of connection pooling.
+
+## 2.8.4
+
+### Patch Changes
+
+- 5473906d: The sample projects now include an empty `.prettierc` to make IDEs auto-formatting work properly in some scenarios.
+- 38ee6230: Replace deprecated eth-sig-util with @metamask/eth-sig-util
+- 2425201c: Upgraded the version of `@nomiclabs/hardhat-etherscan` used by the sample projects (#2217)
+
+## 2.8.3
+
+### Patch Changes
+
+- 9b1de8e0: Full rework of vyper plugin (#2082, #1364, #1338, #1335, #1258)
+- e2eb07cc: Use 40s as the default value for mocha's timeout and for the localhost network's timeout (#1549).
+
+## 2.8.2
+
+### Patch Changes
+
+- 2794fc00: Show a special error when project initialization fails on windows
+
+## 2.8.1
+
+### Patch Changes
+
+- 6753b930: Show warning if user doesn't export or exports empty object from Hardhat config file (issue #1490)
+- 0a5ab4f8: Fix running the `test` task multiple times in a script (issue #1720)
+
 ## 2.8.0
 
 ### Minor Changes

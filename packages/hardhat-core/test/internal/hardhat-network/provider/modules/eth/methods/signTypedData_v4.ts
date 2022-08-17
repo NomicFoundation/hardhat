@@ -1,4 +1,8 @@
 import { assert } from "chai";
+import {
+  recoverTypedSignature,
+  SignTypedDataVersion,
+} from "@metamask/eth-sig-util";
 
 import { workaroundWindowsCiFailures } from "../../../../../../utils/workaround-windows-ci-failures";
 import { setCWD } from "../../../../helpers/cwd";
@@ -6,9 +10,6 @@ import {
   DEFAULT_ACCOUNTS_ADDRESSES,
   PROVIDERS,
 } from "../../../../helpers/providers";
-
-// eslint-disable-next-line  @typescript-eslint/no-var-requires, @typescript-eslint/naming-convention
-const { recoverTypedSignature_v4 } = require("eth-sig-util");
 
 describe("Eth module", function () {
   PROVIDERS.forEach(({ name, useProvider, isFork }) => {
@@ -63,34 +64,30 @@ describe("Eth module", function () {
         const [address] = DEFAULT_ACCOUNTS_ADDRESSES;
 
         it("should sign a message", async function () {
-          const signature = await this.provider.request({
+          const signature = (await this.provider.request({
             method: "eth_signTypedData_v4",
             params: [address, typedMessage],
-          });
-          const signedMessage = {
-            data: typedMessage,
-            sig: signature,
-          };
+          })) as string;
 
-          const recoveredAddress = recoverTypedSignature_v4(
-            signedMessage as any
-          );
+          const recoveredAddress = recoverTypedSignature({
+            signature,
+            version: SignTypedDataVersion.V4,
+            data: typedMessage as any,
+          });
           assert.equal(address.toLowerCase(), recoveredAddress.toLowerCase());
         });
 
         it("should sign a message that is JSON stringified", async function () {
-          const signature = await this.provider.request({
+          const signature = (await this.provider.request({
             method: "eth_signTypedData_v4",
             params: [address, JSON.stringify(typedMessage)],
-          });
-          const signedMessage = {
-            data: typedMessage,
-            sig: signature,
-          };
+          })) as string;
 
-          const recoveredAddress = recoverTypedSignature_v4(
-            signedMessage as any
-          );
+          const recoveredAddress = recoverTypedSignature({
+            signature,
+            version: SignTypedDataVersion.V4,
+            data: typedMessage as any,
+          });
           assert.equal(address.toLowerCase(), recoveredAddress.toLowerCase());
         });
 
