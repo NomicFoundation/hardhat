@@ -1268,6 +1268,16 @@ describe("Hardhat module", function () {
               },
             },
           ]);
+
+          await assertInvalidArgumentsError(this.provider, "hardhat_reset", [
+            {
+              forking: {
+                jsonRpcUrl: ALCHEMY_URL,
+                blockNumber: safeBlockInThePast,
+              },
+              chainId: "not a number",
+            },
+          ]);
         });
 
         it("returns true", async function () {
@@ -1359,6 +1369,12 @@ describe("Hardhat module", function () {
           );
         };
 
+        const getCurrentChainId = async (): Promise<number> => {
+          return rpcQuantityToNumber(
+            await this.ctx.provider.send("eth_chainId")
+          );
+        };
+
         function testForkedProviderBehaviour() {
           it("can reset the forked provider to a given forkBlockNumber", async function () {
             await this.provider.send("hardhat_reset", [
@@ -1397,6 +1413,21 @@ describe("Hardhat module", function () {
 
             await this.provider.send("hardhat_reset", [{}]);
             assert.equal(await getLatestBlockNumber(), 0);
+          });
+
+          it("can reset the forked provider and set chainId", async function () {
+            await this.provider.send("hardhat_reset", [
+              {
+                forking: {
+                  ALCHEMY_URL,
+                  safeBlockInThePast,
+                },
+                chainId: 200,
+              },
+            ]);
+
+            assert.equal(await getLatestBlockNumber(), safeBlockInThePast);
+            assert.equal(await getCurrentChainId(), 200);
           });
         }
 

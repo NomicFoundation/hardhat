@@ -274,7 +274,8 @@ export class HardhatNetworkProvider
     );
     this._hardhatModule = new HardhatModule(
       node,
-      (forkConfig?: ForkConfig, chainId?: number) => this._reset(miningTimer, forkConfig, chainId),
+      (forkConfig?: ForkConfig, chainId?: number) =>
+        this._reset(miningTimer, forkConfig, chainId),
       (loggingEnabled: boolean) => {
         this._logger.setEnabled(loggingEnabled);
       },
@@ -333,7 +334,11 @@ export class HardhatNetworkProvider
     return miningTimer;
   }
 
-  private async _reset(miningTimer: MiningTimer, forkConfig?: ForkConfig, chainId?: number) {
+  private async _reset(
+    miningTimer: MiningTimer,
+    forkConfig?: ForkConfig,
+    chainId?: number
+  ) {
     this._forkConfig = forkConfig;
     this._chainId = chainId ?? this._chainId;
     if (this._node !== undefined) {
