@@ -77,6 +77,15 @@ export class IgnitionWrapper {
     return resolvedOutput;
   }
 
+  public async planSingleGraph(recipe: any) {
+    const plan = await this._ignition.planSingleGraph(recipe);
+
+    console.log(plan);
+
+    // better display needed ...
+    return JSON.stringify(plan);
+  }
+
   public async deploy<T>(
     userRecipeOrName: UserRecipe<T> | string,
     deployParams?: { parameters: { [key: string]: ParamValue } }

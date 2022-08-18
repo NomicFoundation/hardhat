@@ -153,6 +153,39 @@ export class Ignition {
     return [{ _kind: "success", result: serializedDeploymentResult }, {}];
   }
 
+  public async planSingleGraph(recipe: any) {
+    log(`Start deploy`);
+
+    const chainId = await this._getChainId();
+
+    const { graph: recipeGraph } = generateRecipeGraphFrom(recipe, { chainId });
+
+    const validationResult = validateRecipeGraph(recipeGraph);
+
+    if (validationResult._kind === "failure") {
+      return [validationResult, {}];
+    }
+
+    const serviceOptions = {
+      providers: this._providers,
+      journal: new InMemoryJournal(),
+      txPollingInterval: 300,
+    };
+
+    const transformResult = await transformRecipeGraphToExecutionGraph(
+      recipeGraph,
+      serviceOptions
+    );
+
+    if (transformResult._kind === "failure") {
+      return [transformResult, {}];
+    }
+
+    const { executionGraph } = transformResult;
+
+    return executionGraph;
+  }
+
   private async _getChainId(): Promise<number> {
     const result = await this._providers.ethereumProvider.request({
       method: "eth_chainId",

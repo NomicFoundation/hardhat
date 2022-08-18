@@ -5,8 +5,8 @@ import {
 } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 
-import { mineBlocks } from "./helpers";
-import { useEnvironment } from "./useEnvironment";
+import { mineBlocks } from "../helpers";
+import { useEnvironment } from "../useEnvironment";
 
 describe("single graph version", () => {
   useEnvironment("minimal");
