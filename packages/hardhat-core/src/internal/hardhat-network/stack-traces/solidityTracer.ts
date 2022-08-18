@@ -1,3 +1,4 @@
+import { ERROR } from "@ethereumjs/vm/dist/exceptions";
 import { ReturnData } from "../provider/return-data";
 
 import {
@@ -101,11 +102,14 @@ export class SolidityTracer {
       }
     }
 
+    const isInvalidOpcodeError = trace.error?.error === ERROR.INVALID_OPCODE;
+
     if (isCreateTrace(trace)) {
       return [
         {
           type: StackTraceEntryType.UNRECOGNIZED_CREATE_ERROR,
           message: new ReturnData(trace.returnData),
+          isInvalidOpcodeError,
         },
       ];
     }
@@ -115,6 +119,7 @@ export class SolidityTracer {
         type: StackTraceEntryType.UNRECOGNIZED_CONTRACT_ERROR,
         address: trace.address,
         message: new ReturnData(trace.returnData),
+        isInvalidOpcodeError,
       },
     ];
   }
