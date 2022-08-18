@@ -412,6 +412,7 @@ describe("Eth module", function () {
               },
               "reverted with reason string 'A'"
             );
+
             // This deploys a contract that reverts with a custom error in its constructor:
             await assertTransactionFailure(
               this.provider,
