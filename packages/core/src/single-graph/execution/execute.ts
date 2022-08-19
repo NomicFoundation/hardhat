@@ -5,6 +5,7 @@ import {
   ArgValue,
   ContractCall,
   ContractDeploy,
+  DeployedContract,
   ExecutionVertex,
   IExecutionGraph,
 } from "../types/executionGraph";
@@ -46,6 +47,11 @@ export async function execute(
       switch (executionVertex.type) {
         case "ContractDeploy":
           return executeContractDeploy(executionVertex, {
+            ...services,
+            context,
+          });
+        case "DeployedContract":
+          return executeDeployedContract(executionVertex, {
             ...services,
             context,
           });
@@ -114,6 +120,17 @@ async function executeContractDeploy(
     abi: artifact.abi,
     bytecode: artifact.bytecode,
     address: receipt.contractAddress,
+  };
+}
+
+async function executeDeployedContract(
+  { label, address, abi }: DeployedContract,
+  _services: Services & { context: Map<number, any> }
+): Promise<any> {
+  return {
+    name: label,
+    abi,
+    address,
   };
 }
 

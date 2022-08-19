@@ -38,7 +38,7 @@ export interface DeployedContractRecipeVertex {
   id: number;
   type: "DeployedContract";
   label: string;
-  bytecode: string;
+  address: string;
   abi: any[];
 }
 
@@ -107,7 +107,7 @@ export interface IRecipeGraphBuilder {
 
   contractAt: (
     contractName: string,
-    bytecode: string,
+    address: string,
     abi: any[]
   ) => DeployedContract;
 

@@ -13,6 +13,14 @@ export interface ContractDeploy {
   args: ArgValue[];
 }
 
+export interface DeployedContract {
+  type: "DeployedContract";
+  id: number;
+  label: string;
+  address: string;
+  abi: any[];
+}
+
 export interface ContractCall {
   type: "ContractCall";
   id: number;
@@ -22,7 +30,7 @@ export interface ContractCall {
   args: ArgValue[];
 }
 
-export type ExecutionVertex = ContractDeploy | ContractCall;
+export type ExecutionVertex = ContractDeploy | DeployedContract | ContractCall;
 
 export interface IExecutionGraph {
   adjacencyList: AdjacencyList;

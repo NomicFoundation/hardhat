@@ -129,7 +129,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
 
   public contractAt(
     contractName: string,
-    bytecode: string,
+    address: string,
     abi: any[]
   ): DeployedContract {
     const deployedFuture: DeployedContract = {
@@ -144,7 +144,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
       id: deployedFuture.id,
       label: contractName,
       type: "DeployedContract",
-      bytecode,
+      address,
       abi,
     });
 

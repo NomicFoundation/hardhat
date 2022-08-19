@@ -70,7 +70,10 @@ export class IgnitionWrapper {
         resolvedOutput[key] = serializedFutureResult.value.hash;
       } else {
         const { abi, address } = serializedFutureResult.value;
-        resolvedOutput[key] = await this._ethers.getContractAt(abi, address);
+
+        const contract: any = await this._ethers.getContractAt(abi, address);
+        contract.abi = abi;
+        resolvedOutput[key] = contract;
       }
     }
 
@@ -79,8 +82,6 @@ export class IgnitionWrapper {
 
   public async planSingleGraph(recipe: any) {
     const plan = await this._ignition.planSingleGraph(recipe);
-
-    console.log(plan);
 
     // better display needed ...
     return JSON.stringify(plan);

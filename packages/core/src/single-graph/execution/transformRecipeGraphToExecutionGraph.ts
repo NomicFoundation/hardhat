@@ -5,11 +5,13 @@ import { Artifact } from "../../types";
 import {
   ContractCall,
   ContractDeploy,
+  DeployedContract,
   ExecutionVertex,
   IExecutionGraph,
 } from "../types/executionGraph";
 import {
   CallRecipeVertex,
+  DeployedContractRecipeVertex,
   HardhatContractRecipeVertex,
   IRecipeGraph,
   RecipeVertex,
@@ -57,6 +59,8 @@ function convertRecipeVertexToExecutionVertex(
     switch (recipeVertex.type) {
       case "HardhatContract":
         return convertHardhatContractToContractDeploy(recipeVertex, services);
+      case "DeployedContract":
+        return convertDeployedContractToDeployedDeploy(recipeVertex, services);
       case "Call":
         return convertCallToContractCall(recipeVertex, services);
       default:
@@ -79,6 +83,19 @@ async function convertHardhatContractToContractDeploy(
     label: hardhatContractRecipeVertex.label,
     artifact,
     args: hardhatContractRecipeVertex.args,
+  };
+}
+
+async function convertDeployedContractToDeployedDeploy(
+  deployedContractRecipeVertex: DeployedContractRecipeVertex,
+  _services: Services
+): Promise<DeployedContract> {
+  return {
+    type: "DeployedContract",
+    id: deployedContractRecipeVertex.id,
+    label: deployedContractRecipeVertex.label,
+    address: deployedContractRecipeVertex.address,
+    abi: deployedContractRecipeVertex.abi,
   };
 }
 
