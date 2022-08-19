@@ -122,6 +122,26 @@ describe("single graph version", () => {
 
     assert.equal(usedAddress, result.bar.address);
   });
+
+  it("should be able to use an artifact to deploy a contract", async function () {
+    await this.hre.run("compile", { quiet: true });
+
+    const artifact = await this.hre.artifacts.readArtifact("Greeter");
+
+    const result = await deployRecipe(this.hre, (m) => {
+      const greeter = m.contract("Greeter", artifact, {
+        args: ["Hello World"],
+      });
+
+      return { greeter };
+    });
+
+    assert.isDefined(result);
+
+    const greeting = await result.greeter.getGreeting();
+
+    assert.equal(greeting, "Hello World");
+  });
 });
 
 async function deployRecipe(

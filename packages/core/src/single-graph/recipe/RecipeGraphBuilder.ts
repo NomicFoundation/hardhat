@@ -84,6 +84,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
     givenOptions?: ContractOptions
   ): HardhatContract | ArtifactContract {
     if (isArtifact(artifactOrOptions)) {
+      const artifact = artifactOrOptions;
       const options: ContractOptions | undefined = givenOptions;
 
       const artifactContractFuture: ArtifactContract = {
@@ -98,6 +99,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
         id: artifactContractFuture.id,
         label: contractName,
         type: "ArtifactContract",
+        artifact,
         args: options?.args ?? [],
         libraries: options?.libraries ?? {},
       });

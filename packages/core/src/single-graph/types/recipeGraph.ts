@@ -30,6 +30,7 @@ export interface ArtifactContractRecipeVertex {
   id: number;
   type: "ArtifactContract";
   label: string;
+  artifact: Artifact;
   args: Array<string | number | RecipeFuture>;
   libraries: LibraryMap;
 }
