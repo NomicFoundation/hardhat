@@ -8,12 +8,14 @@ import {
   DeployedContract,
   ExecutionVertex,
   IExecutionGraph,
+  LibraryDeploy,
 } from "../types/executionGraph";
 import {
   ArtifactContractRecipeVertex,
   CallRecipeVertex,
   DeployedContractRecipeVertex,
   HardhatContractRecipeVertex,
+  HardhatLibraryRecipeVertex,
   IRecipeGraph,
   RecipeVertex,
 } from "../types/recipeGraph";
@@ -66,26 +68,29 @@ function convertRecipeVertexToExecutionVertex(
         return convertDeployedContractToDeployedDeploy(recipeVertex, services);
       case "Call":
         return convertCallToContractCall(recipeVertex, services);
+      case "HardhatLibrary":
+        return convertHardhatLibraryToLibraryDeploy(recipeVertex, services);
       default:
-        throw new Error(`Type note expected: ${recipeVertex.type}`);
+        throw new Error(`Type not expected: ${recipeVertex.type}`);
     }
   };
 }
 
 async function convertHardhatContractToContractDeploy(
-  hardhatContractRecipeVertex: HardhatContractRecipeVertex,
+  vertex: HardhatContractRecipeVertex,
   services: Services
 ): Promise<ContractDeploy> {
   const artifact: Artifact = await services.artifacts.getArtifact(
-    hardhatContractRecipeVertex.contractName
+    vertex.contractName
   );
 
   return {
     type: "ContractDeploy",
-    id: hardhatContractRecipeVertex.id,
-    label: hardhatContractRecipeVertex.label,
+    id: vertex.id,
+    label: vertex.label,
     artifact,
-    args: hardhatContractRecipeVertex.args,
+    args: vertex.args,
+    libraries: vertex.libraries,
   };
 }
 
@@ -99,33 +104,51 @@ async function convertArtifactContractToContractDeploy(
     label: vertex.label,
     artifact: vertex.artifact,
     args: vertex.args,
+    libraries: vertex.libraries,
   };
 }
 
 async function convertDeployedContractToDeployedDeploy(
-  deployedContractRecipeVertex: DeployedContractRecipeVertex,
+  vertex: DeployedContractRecipeVertex,
   _services: Services
 ): Promise<DeployedContract> {
   return {
     type: "DeployedContract",
-    id: deployedContractRecipeVertex.id,
-    label: deployedContractRecipeVertex.label,
-    address: deployedContractRecipeVertex.address,
-    abi: deployedContractRecipeVertex.abi,
+    id: vertex.id,
+    label: vertex.label,
+    address: vertex.address,
+    abi: vertex.abi,
   };
 }
 
 async function convertCallToContractCall(
-  callRecipeVertex: CallRecipeVertex,
+  vertex: CallRecipeVertex,
   _services: Services
 ): Promise<ContractCall> {
   return {
     type: "ContractCall",
-    id: callRecipeVertex.id,
-    label: callRecipeVertex.label,
+    id: vertex.id,
+    label: vertex.label,
 
-    contract: callRecipeVertex.contract,
-    method: callRecipeVertex.method,
-    args: callRecipeVertex.args,
+    contract: vertex.contract,
+    method: vertex.method,
+    args: vertex.args,
+  };
+}
+
+async function convertHardhatLibraryToLibraryDeploy(
+  hardhatLibraryRecipeVertex: HardhatLibraryRecipeVertex,
+  services: Services
+): Promise<LibraryDeploy> {
+  const artifact: Artifact = await services.artifacts.getArtifact(
+    hardhatLibraryRecipeVertex.libraryName
+  );
+
+  return {
+    type: "LibraryDeploy",
+    id: hardhatLibraryRecipeVertex.id,
+    label: hardhatLibraryRecipeVertex.label,
+    artifact,
+    args: hardhatLibraryRecipeVertex.args,
   };
 }

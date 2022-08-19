@@ -2,6 +2,7 @@ import { AdjacencyList } from "../utils/adjacencyList";
 
 import { RecipeFuture } from "./future";
 import { Artifact } from "./hardhat";
+import { LibraryMap } from "./recipeGraph";
 
 export type ArgValue = string | number | RecipeFuture;
 
@@ -11,6 +12,7 @@ export interface ContractDeploy {
   label: string;
   artifact: Artifact;
   args: ArgValue[];
+  libraries: LibraryMap;
 }
 
 export interface DeployedContract {
@@ -19,6 +21,14 @@ export interface DeployedContract {
   label: string;
   address: string;
   abi: any[];
+}
+
+export interface LibraryDeploy {
+  type: "LibraryDeploy";
+  id: number;
+  label: string;
+  artifact: Artifact;
+  args: ArgValue[];
 }
 
 export interface ContractCall {
@@ -30,7 +40,11 @@ export interface ContractCall {
   args: ArgValue[];
 }
 
-export type ExecutionVertex = ContractDeploy | DeployedContract | ContractCall;
+export type ExecutionVertex =
+  | ContractDeploy
+  | DeployedContract
+  | LibraryDeploy
+  | ContractCall;
 
 export interface IExecutionGraph {
   adjacencyList: AdjacencyList;

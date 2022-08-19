@@ -8,6 +8,7 @@ import {
   DeployedContract,
   ExecutionVertex,
   IExecutionGraph,
+  LibraryDeploy,
 } from "../types/executionGraph";
 import { isFuture } from "../types/guards";
 import { topologicalSort } from "../utils/adjacencyList";
@@ -60,6 +61,11 @@ export async function execute(
             ...services,
             context,
           });
+        case "LibraryDeploy":
+          return executeLibraryDeploy(executionVertex, {
+            ...services,
+            context,
+          });
         default:
           return assertUnknownExecutionVertexType(executionVertex);
       }
@@ -104,14 +110,22 @@ function topological(executionGraph: IExecutionGraph): number[] {
 }
 
 async function executeContractDeploy(
-  { artifact, args }: ContractDeploy,
+  { artifact, args, libraries }: ContractDeploy,
   services: Services & { context: Map<number, any> }
 ): Promise<any> {
-  const resolvedArgs = args
-    .map(resolveFromContext(services.context))
-    .map(toAddress);
+  const resolve = resolveFromContext(services.context);
 
-  const txHash = await services.contracts.deploy(artifact, resolvedArgs, {});
+  const resolvedArgs = args.map(resolve).map(toAddress);
+
+  const resolvedLibraries = Object.fromEntries(
+    Object.entries(libraries ?? {}).map(([k, v]) => [k, toAddress(resolve(v))])
+  );
+
+  const txHash = await services.contracts.deploy(
+    artifact,
+    resolvedArgs,
+    resolvedLibraries
+  );
 
   const receipt = await services.transactions.wait(txHash);
 
@@ -131,6 +145,26 @@ async function executeDeployedContract(
     name: label,
     abi,
     address,
+  };
+}
+
+async function executeLibraryDeploy(
+  { artifact, args }: LibraryDeploy,
+  services: Services & { context: Map<number, any> }
+): Promise<any> {
+  const resolvedArgs = args
+    .map(resolveFromContext(services.context))
+    .map(toAddress);
+
+  const txHash = await services.contracts.deploy(artifact, resolvedArgs, {});
+
+  const receipt = await services.transactions.wait(txHash);
+
+  return {
+    name: artifact.contractName,
+    abi: artifact.abi,
+    bytecode: artifact.bytecode,
+    address: receipt.contractAddress,
   };
 }
 

@@ -71,6 +71,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
         id: libraryFuture.id,
         label: libraryName,
         type: "HardhatLibrary",
+        libraryName,
         args: options?.args ?? [],
       });
 

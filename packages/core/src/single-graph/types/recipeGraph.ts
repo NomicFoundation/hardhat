@@ -13,7 +13,7 @@ import {
 } from "./future";
 import { Artifact } from "./hardhat";
 
-interface LibraryMap {
+export interface LibraryMap {
   [key: string]: RecipeFuture;
 }
 
@@ -46,6 +46,7 @@ export interface DeployedContractRecipeVertex {
 export interface HardhatLibraryRecipeVertex {
   id: number;
   type: "HardhatLibrary";
+  libraryName: string;
   label: string;
   args: Array<string | number | RecipeFuture>;
 }
