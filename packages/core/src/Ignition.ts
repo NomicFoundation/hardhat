@@ -15,8 +15,8 @@ import { Providers } from "./providers";
 import { RecipeBuilderImpl } from "./recipes/RecipeBuilderImpl";
 import { UserRecipe } from "./recipes/UserRecipe";
 import { execute } from "./single-graph/execution/execute";
-import { transformRecipeGraphToExecutionGraph } from "./single-graph/execution/transformRecipeGraphToExecutionGraph";
 import { generateRecipeGraphFrom } from "./single-graph/recipe/generateRecipeGraphFrom";
+import { transformRecipeGraphToExecutionGraph } from "./single-graph/transform/transformRecipeGraphToExecutionGraph";
 import { FutureDict } from "./single-graph/types/future";
 import { validateRecipeGraph } from "./single-graph/validation/validateRecipeGraph";
 

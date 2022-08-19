@@ -2,6 +2,8 @@ import { Journal } from "../../journal/types";
 import { Providers } from "../../providers";
 import { Services } from "../../services/types";
 import { Artifact } from "../../types";
+import { ExecutionGraph } from "../execution/ExecutionGraph";
+import { createServices } from "../services/createServices";
 import {
   ContractCall,
   ContractDeploy,
@@ -20,9 +22,7 @@ import {
   IRecipeGraph,
   RecipeVertex,
 } from "../types/recipeGraph";
-
-import { ExecutionGraph } from "./ExecutionGraph";
-import { createServices } from "./createServices";
+import { clone } from "../utils/adjacencyList";
 
 export type TransformResult =
   | {
@@ -48,12 +48,28 @@ export async function transformRecipeGraphToExecutionGraph(
     servicesOptions
   );
 
-  const executionGraph: IExecutionGraph = await ExecutionGraph.from(
+  const executionGraph: IExecutionGraph = await convertRecipeToExecution(
     recipeGraph,
     convertRecipeVertexToExecutionVertex(services)
   );
 
   return { _kind: "success", executionGraph };
+}
+
+async function convertRecipeToExecution(
+  recipeGraph: IRecipeGraph,
+  convert: (vertex: RecipeVertex) => Promise<ExecutionVertex>
+) {
+  const executionGraph = new ExecutionGraph();
+  executionGraph.adjacencyList = clone(recipeGraph.adjacencyList);
+
+  for (const [id, recipeVertex] of recipeGraph.vertexes.entries()) {
+    const executionVertex = await convert(recipeVertex);
+
+    executionGraph.vertexes.set(id, executionVertex);
+  }
+
+  return executionGraph;
 }
 
 function convertRecipeVertexToExecutionVertex(
