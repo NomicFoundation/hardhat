@@ -34,7 +34,7 @@
     "README.md"
   ],
   "dependencies": {
-    "solhint": "^2.0.0"
+    "solhint": "^3.0.0"
   },
   "devDependencies": {
     "@types/chai": "^4.2.0",
