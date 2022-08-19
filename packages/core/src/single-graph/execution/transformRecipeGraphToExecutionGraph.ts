@@ -12,6 +12,7 @@ import {
 } from "../types/executionGraph";
 import {
   ArtifactContractRecipeVertex,
+  ArtifactLibraryRecipeVertex,
   CallRecipeVertex,
   DeployedContractRecipeVertex,
   HardhatContractRecipeVertex,
@@ -58,7 +59,7 @@ export async function transformRecipeGraphToExecutionGraph(
 function convertRecipeVertexToExecutionVertex(
   services: Services
 ): (recipeVertex: RecipeVertex) => Promise<ExecutionVertex> {
-  return (recipeVertex: RecipeVertex) => {
+  return (recipeVertex: RecipeVertex): Promise<ExecutionVertex> => {
     switch (recipeVertex.type) {
       case "HardhatContract":
         return convertHardhatContractToContractDeploy(recipeVertex, services);
@@ -70,8 +71,10 @@ function convertRecipeVertexToExecutionVertex(
         return convertCallToContractCall(recipeVertex, services);
       case "HardhatLibrary":
         return convertHardhatLibraryToLibraryDeploy(recipeVertex, services);
+      case "ArtifactLibrary":
+        return convertArtifactLibraryToLibraryDeploy(recipeVertex, services);
       default:
-        throw new Error(`Type not expected: ${recipeVertex.type}`);
+        return assertRecipeVertexNotExpected(recipeVertex);
     }
   };
 }
@@ -151,4 +154,27 @@ async function convertHardhatLibraryToLibraryDeploy(
     artifact,
     args: hardhatLibraryRecipeVertex.args,
   };
+}
+
+async function convertArtifactLibraryToLibraryDeploy(
+  vertex: ArtifactLibraryRecipeVertex,
+  _services: Services
+): Promise<LibraryDeploy> {
+  return {
+    type: "LibraryDeploy",
+    id: vertex.id,
+    label: vertex.label,
+    artifact: vertex.artifact,
+    args: vertex.args,
+  };
+}
+
+function assertRecipeVertexNotExpected(
+  vertex: never
+): Promise<ExecutionVertex> {
+  const v: any = vertex;
+
+  const obj = typeof v === "object" && "type" in v ? v.type : v;
+
+  throw new Error(`Type not expected: ${obj}`);
 }

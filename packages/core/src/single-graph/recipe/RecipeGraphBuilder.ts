@@ -38,6 +38,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
     givenOptions?: ContractOptions | undefined
   ): HardhatLibrary | ArtifactLibrary {
     if (isArtifact(artifactOrOptions)) {
+      const artifact = artifactOrOptions;
       const options: ContractOptions | undefined = givenOptions;
 
       const artifactContractFuture: ArtifactLibrary = {
@@ -52,6 +53,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
         id: artifactContractFuture.id,
         label: libraryName,
         type: "ArtifactLibrary",
+        artifact,
         args: options?.args ?? [],
       });
 
