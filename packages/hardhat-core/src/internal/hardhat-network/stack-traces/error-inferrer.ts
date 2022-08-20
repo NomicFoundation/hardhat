@@ -1,4 +1,4 @@
-import { ERROR } from "@ethereumjs/evm/dist/exceptions";
+import { ERROR } from "@ignored/evm/dist/exceptions";
 import { defaultAbiCoder as abi } from "@ethersproject/abi";
 import semver from "semver";
 

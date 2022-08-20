@@ -1,4 +1,4 @@
-import { StateManager } from "@ethereumjs/statemanager";
+import { StateManager } from "@ignored/statemanager";
 import {
   Account,
   bigIntToHex,
@@ -8,7 +8,7 @@ import {
   KECCAK256_NULL,
   toBuffer,
   unpadBuffer,
-} from "@ethereumjs/util";
+} from "@ignored/util";
 import { keccak256 } from "ethereum-cryptography/keccak";
 import { Map as ImmutableMap, Record as ImmutableRecord } from "immutable";
 

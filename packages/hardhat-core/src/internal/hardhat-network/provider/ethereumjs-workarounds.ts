@@ -1,10 +1,10 @@
-import { TransactionFactory } from "@ethereumjs/tx";
-import { BaseTransaction } from "@ethereumjs/tx/dist/baseTransaction";
+import { TransactionFactory } from "@ignored/tx";
+import { BaseTransaction } from "@ignored/tx/dist/baseTransaction";
 import {
   AccessListEIP2930TxData,
   TxData,
   TxOptions,
-} from "@ethereumjs/tx/dist/types";
+} from "@ignored/tx/dist/types";
 
 // This is a hack to prevent Block.fromBlockData from recreating our
 // transactions and changing their types. Note fromBlockData is used

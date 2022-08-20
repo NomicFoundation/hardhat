@@ -1,4 +1,4 @@
-import { setLengthLeft, toBuffer } from "@ethereumjs/util";
+import { setLengthLeft, toBuffer } from "@ignored/util";
 import { assert } from "chai";
 
 export function leftPad32(value: string | Buffer | bigint): string {

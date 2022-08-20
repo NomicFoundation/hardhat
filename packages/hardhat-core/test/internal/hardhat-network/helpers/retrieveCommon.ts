@@ -1,5 +1,5 @@
 /* eslint-disable dot-notation,@typescript-eslint/dot-notation */
-import { Common } from "@ethereumjs/common";
+import { Common } from "@ignored/common";
 
 import { HardhatNetworkProvider } from "../../../../src/internal/hardhat-network/provider/provider";
 

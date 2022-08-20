@@ -1,8 +1,8 @@
-import { Block } from "@ethereumjs/block";
-import { Common } from "@ethereumjs/common";
-import { TypedTransaction } from "@ethereumjs/tx";
-import { bufferToHex } from "@ethereumjs/util";
-import { RunBlockResult } from "@ethereumjs/vm";
+import { Block } from "@ignored/block";
+import { Common } from "@ignored/common";
+import { TypedTransaction } from "@ignored/tx";
+import { bufferToHex } from "@ignored/util";
+import { RunBlockResult } from "@ignored/vm";
 
 import { BigIntUtils } from "../../util/bigint";
 import { assertHardhatInvariant } from "../../core/errors";

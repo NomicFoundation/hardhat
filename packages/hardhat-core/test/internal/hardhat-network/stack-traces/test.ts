@@ -1,5 +1,5 @@
-import { toBuffer } from "@ethereumjs/util";
-import { VM } from "@ethereumjs/vm";
+import { toBuffer } from "@ignored/util";
+import { VM } from "@ignored/vm";
 import { assert } from "chai";
 import fs from "fs";
 import path from "path";

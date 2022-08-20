@@ -1,4 +1,4 @@
-import { bufferToBigInt, toBuffer } from "@ethereumjs/util";
+import { bufferToBigInt, toBuffer } from "@ignored/util";
 import { assert } from "chai";
 import fsExtra from "fs-extra";
 import sinon from "sinon";

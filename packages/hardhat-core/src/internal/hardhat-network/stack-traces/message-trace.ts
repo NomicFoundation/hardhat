@@ -1,4 +1,4 @@
-import type { EvmError } from "@ethereumjs/evm";
+import type { EvmError } from "@ignored/evm";
 
 import type { Bytecode } from "./model";
 

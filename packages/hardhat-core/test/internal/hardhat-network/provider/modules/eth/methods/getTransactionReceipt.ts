@@ -1,4 +1,4 @@
-import { bufferToHex, toBuffer } from "@ethereumjs/util";
+import { bufferToHex, toBuffer } from "@ignored/util";
 import { assert } from "chai";
 
 import {

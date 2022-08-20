@@ -1,7 +1,7 @@
-import { Block } from "@ethereumjs/block";
-import { PostByzantiumTxReceipt } from "@ethereumjs/vm";
+import { Block } from "@ignored/block";
+import { PostByzantiumTxReceipt } from "@ignored/vm";
 import { assert } from "chai";
-import { bufferToHex } from "@ethereumjs/util";
+import { bufferToHex } from "@ignored/util";
 
 import { numberToRpcQuantity } from "../../../../../src/internal/core/jsonrpc/types/base-types";
 import { RpcBlockWithTransactions } from "../../../../../src/internal/core/jsonrpc/types/output/block";

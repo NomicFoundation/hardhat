@@ -1,6 +1,6 @@
-import { Common } from "@ethereumjs/common";
-import { Transaction, TxData, TxOptions } from "@ethereumjs/tx";
-import { Address } from "@ethereumjs/util";
+import { Common } from "@ignored/common";
+import { Transaction, TxData, TxOptions } from "@ignored/tx";
+import { Address } from "@ignored/util";
 
 import { InternalError } from "../../../core/providers/errors";
 

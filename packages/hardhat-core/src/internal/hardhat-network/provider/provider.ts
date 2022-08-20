@@ -7,7 +7,7 @@ import type {
   RequestArguments,
 } from "../../../types";
 
-import { Common } from "@ethereumjs/common";
+import { Common } from "@ignored/common";
 import chalk from "chalk";
 import debug from "debug";
 import { EventEmitter } from "events";

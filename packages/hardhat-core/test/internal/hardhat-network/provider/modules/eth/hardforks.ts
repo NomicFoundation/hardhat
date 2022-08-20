@@ -1,10 +1,10 @@
-import { Common } from "@ethereumjs/common";
+import { Common } from "@ignored/common";
 import {
   AccessListEIP2930Transaction,
   FeeMarketEIP1559Transaction,
   Transaction,
-} from "@ethereumjs/tx";
-import { toBuffer } from "@ethereumjs/util";
+} from "@ignored/tx";
+import { toBuffer } from "@ignored/util";
 import { assert } from "chai";
 
 import {

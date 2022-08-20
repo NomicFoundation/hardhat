@@ -1,5 +1,5 @@
-import { SecureTrie as Trie } from "@ethereumjs/trie";
-import { Account, intToBuffer, setLengthLeft } from "@ethereumjs/util";
+import { SecureTrie as Trie } from "@ignored/trie";
+import { Account, intToBuffer, setLengthLeft } from "@ignored/util";
 
 import { GenesisAccount } from "../node-types";
 

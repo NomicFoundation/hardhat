@@ -3,7 +3,7 @@ import {
   bufferToHex,
   bufferToInt,
   fromSigned,
-} from "@ethereumjs/util";
+} from "@ignored/util";
 import util from "util";
 
 import {

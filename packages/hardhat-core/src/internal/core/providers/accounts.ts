@@ -1,7 +1,7 @@
 import * as t from "io-ts";
 
 import { SignTypedDataVersion, signTypedData } from "@metamask/eth-sig-util";
-import { FeeMarketEIP1559Transaction } from "@ethereumjs/tx";
+import { FeeMarketEIP1559Transaction } from "@ignored/tx";
 import { EIP1193Provider, RequestArguments } from "../../../types";
 import { HardhatError } from "../errors";
 import { ERRORS } from "../errors-list";
@@ -44,7 +44,7 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
 
   public async request(args: RequestArguments): Promise<unknown> {
     const { ecsign, hashPersonalMessage, toRpcSig, toBuffer, bufferToHex } =
-      await import("@ethereumjs/util");
+      await import("@ignored/util");
 
     if (
       args.method === "eth_accounts" ||
@@ -192,7 +192,7 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
       bufferToHex,
       toBuffer,
       privateToAddress,
-    } = require("@ethereumjs/util");
+    } = require("@ignored/util");
 
     const privateKeys: Buffer[] = localAccountsHexPrivateKeys.map((h) =>
       toBuffer(h)
@@ -205,7 +205,7 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
   }
 
   private _getPrivateKeyForAddress(address: Buffer): Buffer {
-    const { bufferToHex } = require("@ethereumjs/util");
+    const { bufferToHex } = require("@ignored/util");
     const pk = this._addressToPrivateKey.get(bufferToHex(address));
     if (pk === undefined) {
       throw new HardhatError(ERRORS.NETWORK.NOT_LOCAL_ACCOUNT, {
@@ -225,7 +225,7 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
   }
 
   private async _getNonce(address: Buffer): Promise<bigint> {
-    const { bufferToHex } = await import("@ethereumjs/util");
+    const { bufferToHex } = await import("@ignored/util");
 
     const response = (await this._wrappedProvider.request({
       method: "eth_getTransactionCount",
@@ -241,13 +241,13 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
     privateKey: Buffer
   ): Promise<Buffer> {
     // see HH-1038
-    // const { chains } = await import("@ethereumjs/common/dist/chains");
+    // const { chains } = await import("@ignored/common/dist/chains");
 
     const { AccessListEIP2930Transaction, Transaction } = await import(
-      "@ethereumjs/tx"
+      "@ignored/tx"
     );
 
-    const { Common } = await import("@ethereumjs/common");
+    const { Common } = await import("@ignored/common");
 
     const txData = {
       ...transactionRequest,
@@ -311,7 +311,7 @@ export class HDWalletProvider extends LocalAccountsProvider {
       passphrase
     );
 
-    const { bufferToHex } = require("@ethereumjs/util");
+    const { bufferToHex } = require("@ignored/util");
     const privateKeysAsHex = privateKeys.map((pk) => bufferToHex(pk));
     super(provider, privateKeysAsHex);
   }

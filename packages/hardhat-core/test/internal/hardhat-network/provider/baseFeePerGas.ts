@@ -1,6 +1,6 @@
 import { assert } from "chai";
-import { Block } from "@ethereumjs/block";
-import { Common } from "@ethereumjs/common";
+import { Block } from "@ignored/block";
+import { Common } from "@ignored/common";
 
 import { workaroundWindowsCiFailures } from "../../../utils/workaround-windows-ci-failures";
 import { PROVIDERS } from "../helpers/providers";

@@ -1,10 +1,10 @@
-import { Transaction, TxData } from "@ethereumjs/tx";
-import { Address, AddressLike, bufferToHex, toBuffer } from "@ethereumjs/util";
+import { Transaction, TxData } from "@ignored/tx";
+import { Address, AddressLike, bufferToHex, toBuffer } from "@ignored/util";
 
 import {
   AccessListEIP2930TxData,
   FeeMarketEIP1559TxData,
-} from "@ethereumjs/tx/dist/types";
+} from "@ignored/tx/dist/types";
 
 import { numberToRpcQuantity } from "../../../../src/internal/core/jsonrpc/types/base-types";
 import { randomAddress } from "../../../../src/internal/hardhat-network/provider/utils/random";

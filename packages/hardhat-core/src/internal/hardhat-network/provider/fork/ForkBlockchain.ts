@@ -1,9 +1,9 @@
-import { Block } from "@ethereumjs/block";
-import { Chain, Common } from "@ethereumjs/common";
-import { TypedTransaction } from "@ethereumjs/tx";
-import { Address } from "@ethereumjs/util";
+import { Block } from "@ignored/block";
+import { Chain, Common } from "@ignored/common";
+import { TypedTransaction } from "@ignored/tx";
+import { Address } from "@ignored/util";
 
-import { FeeMarketEIP1559TxData } from "@ethereumjs/tx/dist/types";
+import { FeeMarketEIP1559TxData } from "@ignored/tx/dist/types";
 import { RpcBlockWithTransactions } from "../../../core/jsonrpc/types/output/block";
 import { RpcTransactionReceipt } from "../../../core/jsonrpc/types/output/receipt";
 import { RpcTransaction } from "../../../core/jsonrpc/types/output/transaction";

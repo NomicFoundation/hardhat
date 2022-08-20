@@ -1,6 +1,6 @@
-import { Block } from "@ethereumjs/block";
-import { TypedTransaction } from "@ethereumjs/tx";
-import { bufferToHex } from "@ethereumjs/util";
+import { Block } from "@ignored/block";
+import { TypedTransaction } from "@ignored/tx";
+import { bufferToHex } from "@ignored/util";
 import ansiEscapes from "ansi-escapes";
 import chalk, { Chalk } from "chalk";
 import util from "util";

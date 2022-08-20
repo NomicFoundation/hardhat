@@ -1,4 +1,4 @@
-import { Account, Address, privateToAddress, toBuffer } from "@ethereumjs/util";
+import { Account, Address, privateToAddress, toBuffer } from "@ignored/util";
 
 import { GenesisAccount } from "../node-types";
 

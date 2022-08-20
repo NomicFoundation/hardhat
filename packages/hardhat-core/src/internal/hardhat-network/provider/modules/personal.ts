@@ -1,4 +1,4 @@
-import { Address, toRpcSig } from "@ethereumjs/util";
+import { Address, toRpcSig } from "@ignored/util";
 
 import { rpcAddress, rpcData } from "../../../core/jsonrpc/types/base-types";
 import { validateParams } from "../../../core/jsonrpc/types/input/validation";

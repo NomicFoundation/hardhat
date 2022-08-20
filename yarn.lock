@@ -347,45 +347,6 @@
     patch-package "^6.2.2"
     postinstall-postinstall "^2.1.0"
 
-"@ethereumjs/block@4.0.0-beta.3", "@ethereumjs/block@^4.0.0-beta.3":
-  version "4.0.0-beta.3"
-  resolved "https://registry.yarnpkg.com/@ethereumjs/block/-/block-4.0.0-beta.3.tgz#7935baa0208605338fa1bd3de9ceab966398a1f7"
-  integrity sha512-EXNCmshgrgleOFd/ldKtDHZW7Uz5pFzdVoIYDuBvLdERQA42agJU/PoFJVYjrtS4D0MmoSz0cizYZNF357lTYw==
-  dependencies:
-    "@ethereumjs/common" "3.0.0-beta.3"
-    "@ethereumjs/rlp" "4.0.0-beta.3"
-    "@ethereumjs/trie" "5.0.0-beta.3"
-    "@ethereumjs/tx" "4.0.0-beta.3"
-    "@ethereumjs/util" "8.0.0-beta.3"
-    ethereum-cryptography "^1.1.2"
-
-"@ethereumjs/blockchain@6.0.0-beta.3", "@ethereumjs/blockchain@^6.0.0-beta.3":
-  version "6.0.0-beta.3"
-  resolved "https://registry.yarnpkg.com/@ethereumjs/blockchain/-/blockchain-6.0.0-beta.3.tgz#bf170acc90d620bcc482279905c2a937e38d2fb4"
-  integrity sha512-tamy75QKsxLlnQ0wqKuqd1tap4qOuL8b9ltePFfQnxBNpM4RuVC8Lpe6y1C0iatKp/QdQ/nRZbgErIu0x81bcw==
-  dependencies:
-    "@ethereumjs/block" "4.0.0-beta.3"
-    "@ethereumjs/common" "3.0.0-beta.3"
-    "@ethereumjs/ethash" "2.0.0-beta.3"
-    "@ethereumjs/rlp" "4.0.0-beta.3"
-    "@ethereumjs/trie" "5.0.0-beta.3"
-    "@ethereumjs/util" "8.0.0-beta.3"
-    abstract-level "^1.0.3"
-    debug "^4.3.3"
-    ethereum-cryptography "^1.1.2"
-    level "^8.0.0"
-    lru-cache "^5.1.1"
-    memory-level "^1.0.0"
-    semaphore-async-await "^1.5.1"
-
-"@ethereumjs/common@3.0.0-beta.3", "@ethereumjs/common@^3.0.0-beta.3":
-  version "3.0.0-beta.3"
-  resolved "https://registry.yarnpkg.com/@ethereumjs/common/-/common-3.0.0-beta.3.tgz#750a85944b75ce239a9763d4e517e55913f97ec4"
-  integrity sha512-JTLBsyXL8pDjXLpYczlwY6QfZm00P0ntvT8g4iAMIF9xe1YAGKOSoh51T9Cfxr4l3HPhGg6675RfaO0LkVgShw==
-  dependencies:
-    "@ethereumjs/util" "8.0.0-beta.3"
-    crc-32 "^1.2.0"
-
 "@ethereumjs/common@^2.3.0", "@ethereumjs/common@^2.4.0", "@ethereumjs/common@^2.5.0", "@ethereumjs/common@^2.6.4":
   version "2.6.4"
   resolved "https://registry.yarnpkg.com/@ethereumjs/common/-/common-2.6.4.tgz#1b3cdd3aa4ee3b0ca366756fc35e4a03022a01cc"
@@ -394,77 +355,6 @@
     crc-32 "^1.2.0"
     ethereumjs-util "^7.1.4"
 
-"@ethereumjs/ethash@2.0.0-beta.3":
-  version "2.0.0-beta.3"
-  resolved "https://registry.yarnpkg.com/@ethereumjs/ethash/-/ethash-2.0.0-beta.3.tgz#e292e4398b8afad25a85110e899b9c56374255aa"
-  integrity sha512-aXTzyTyghX4dOp86Uck/vGw5L8iZ/wBdXOlfMIHOJSt/ok3O3bUn86F1WTX9oRUOYNjngXDNC44hVeMPJsIjpw==
-  dependencies:
-    "@ethereumjs/block" "4.0.0-beta.3"
-    "@ethereumjs/rlp" "4.0.0-beta.3"
-    "@ethereumjs/util" "8.0.0-beta.3"
-    abstract-level "^1.0.3"
-    bigint-crypto-utils "^3.0.23"
-    buffer-xor "^2.0.1"
-    ethereum-cryptography "^1.1.2"
-    miller-rabin "^4.0.0"
-
-"@ethereumjs/evm@1.0.0-beta.3", "@ethereumjs/evm@^1.0.0-beta.3":
-  version "1.0.0-beta.3"
-  resolved "https://registry.yarnpkg.com/@ethereumjs/evm/-/evm-1.0.0-beta.3.tgz#050ec85e151344facb214edb0811f658cda195cb"
-  integrity sha512-iAfCMh4Vwq2lBkmtuflcq9k4COhAyCsQPhU48v7LXMdoHVf0bofZ4TNx35U4McaMkExoKN87xF8kQyDMpfh13w==
-  dependencies:
-    "@ethereumjs/common" "3.0.0-beta.3"
-    "@ethereumjs/util" "8.0.0-beta.3"
-    "@types/async-eventemitter" "^0.2.1"
-    async-eventemitter "^0.2.4"
-    debug "^4.3.3"
-    ethereum-cryptography "^1.1.2"
-    mcl-wasm "^0.7.1"
-    rustbn.js "~0.2.0"
-
-"@ethereumjs/rlp@4.0.0-beta.3", "@ethereumjs/rlp@^4.0.0-beta.2", "@ethereumjs/rlp@^4.0.0-beta.3":
-  version "4.0.0-beta.3"
-  resolved "https://registry.yarnpkg.com/@ethereumjs/rlp/-/rlp-4.0.0-beta.3.tgz#61ad6a535c03e0281f8ddf72a3dbd64b2a3d78da"
-  integrity sha512-pvQqtxPJCn2vxm8AJtKUv7+IOqgOb5gf+4xhO5qcRDXzk6Ef/RX+g1xzA3Dss/wd/jV4nPN1jUGHjsIzhtp4EQ==
-
-"@ethereumjs/statemanager@1.0.0-beta.3", "@ethereumjs/statemanager@^1.0.0-beta.3":
-  version "1.0.0-beta.3"
-  resolved "https://registry.yarnpkg.com/@ethereumjs/statemanager/-/statemanager-1.0.0-beta.3.tgz#90afc2607eb775dda1be66397c1cb19a43a20dfd"
-  integrity sha512-a1wcbHosJGYnf+Xih6FH4nw/2gEEbwJ0Fl0gulLu7ziosRJdiPgbwnrnNnno8xlkVuwukjN9zyEHGSuSALOs3Q==
-  dependencies:
-    "@ethereumjs/common" "3.0.0-beta.3"
-    "@ethereumjs/rlp" "4.0.0-beta.3"
-    "@ethereumjs/trie" "5.0.0-beta.3"
-    "@ethereumjs/util" "8.0.0-beta.3"
-    debug "^4.3.3"
-    ethereum-cryptography "^1.1.2"
-    functional-red-black-tree "^1.0.1"
-
-"@ethereumjs/trie@5.0.0-beta.3", "@ethereumjs/trie@^5.0.0-beta.3":
-  version "5.0.0-beta.3"
-  resolved "https://registry.yarnpkg.com/@ethereumjs/trie/-/trie-5.0.0-beta.3.tgz#f81707187faef017c96941acd108d6e472aa8172"
-  integrity sha512-3nznU0AzWAkOupqGPXTgDDtAuhL3hSaunZscDXJoxx+qIYw7qQPv6hoB4muE3UnfAuyrZ+ELnegWkigTt3Kfrw==
-  dependencies:
-    "@ethereumjs/common" "^3.0.0-beta.3"
-    "@ethereumjs/rlp" "4.0.0-beta.3"
-    "@ethereumjs/util" "8.0.0-beta.3"
-    abstract-level "^1.0.3"
-    ethereum-cryptography "^1.1.2"
-    level "^8.0.0"
-    memory-level "^1.0.0"
-    readable-stream "^3.6.0"
-    semaphore-async-await "^1.5.1"
-
-"@ethereumjs/tx@4.0.0-beta.3", "@ethereumjs/tx@^4.0.0-beta.3":
-  version "4.0.0-beta.3"
-  resolved "https://registry.yarnpkg.com/@ethereumjs/tx/-/tx-4.0.0-beta.3.tgz#0005546910b554a49e14a986453ef28269b2ab86"
-  integrity sha512-KAnbDcVr/TQhPy9SGFgE333STWQFZDqu/frK59AzsrQ0Bz+/yXflztUesj4O3L8MM0mtNlKqCq0vbbEn15MM1w==
-  dependencies:
-    "@ethereumjs/common" "3.0.0-beta.3"
-    "@ethereumjs/rlp" "4.0.0-beta.3"
-    "@ethereumjs/util" "8.0.0-beta.3"
-    ethereum-cryptography "^1.1.2"
-
 "@ethereumjs/tx@^3.2.1", "@ethereumjs/tx@^3.3.2":
   version "3.5.2"
   resolved "https://registry.yarnpkg.com/@ethereumjs/tx/-/tx-3.5.2.tgz#197b9b6299582ad84f9527ca961466fce2296c1c"
@@ -472,37 +362,6 @@
   dependencies:
     "@ethereumjs/common" "^2.6.4"
     ethereumjs-util "^7.1.5"
-
-"@ethereumjs/util@8.0.0-beta.3", "@ethereumjs/util@^8.0.0-beta.3":
-  version "8.0.0-beta.3"
-  resolved "https://registry.yarnpkg.com/@ethereumjs/util/-/util-8.0.0-beta.3.tgz#1ace6d4effc0e8a0345656e1bafe3845caf5d653"
-  integrity sha512-aWGrrZgQ8yZW5wEHWVji71+goJYM+Z+XyDpVU1KaT56wJJE0qHEqhjULfiTS+VEl27YTc13/hO2HLSXeZ4YGww==
-  dependencies:
-    "@ethereumjs/rlp" "^4.0.0-beta.2"
-    ethereum-cryptography "^1.1.2"
-
-"@ethereumjs/vm@^6.0.0-beta.3":
-  version "6.0.0-beta.3"
-  resolved "https://registry.yarnpkg.com/@ethereumjs/vm/-/vm-6.0.0-beta.3.tgz#c81361d4e6c379954b1f2cb40e85b2a251534493"
-  integrity sha512-oRa1iK2AiKhjoB/otqdrFc9aACgVthsLlbor38MtxjaLUzu8DzIMvo8j2LTpKC4+G9R/nAmlBABKGpRoayg0Uw==
-  dependencies:
-    "@ethereumjs/block" "4.0.0-beta.3"
-    "@ethereumjs/blockchain" "6.0.0-beta.3"
-    "@ethereumjs/common" "3.0.0-beta.3"
-    "@ethereumjs/evm" "1.0.0-beta.3"
-    "@ethereumjs/rlp" "4.0.0-beta.3"
-    "@ethereumjs/statemanager" "1.0.0-beta.3"
-    "@ethereumjs/trie" "5.0.0-beta.3"
-    "@ethereumjs/tx" "4.0.0-beta.3"
-    "@ethereumjs/util" "8.0.0-beta.3"
-    "@types/async-eventemitter" "^0.2.1"
-    async-eventemitter "^0.2.4"
-    core-js-pure "^3.0.1"
-    debug "^4.3.3"
-    ethereum-cryptography "^1.1.2"
-    functional-red-black-tree "^1.0.1"
-    mcl-wasm "^0.7.1"
-    rustbn.js "~0.2.0"
 
 "@ethersproject/abi@5.0.0-beta.153":
   version "5.0.0-beta.153"
@@ -899,6 +758,144 @@
   version "1.2.1"
   resolved "https://registry.yarnpkg.com/@humanwhocodes/object-schema/-/object-schema-1.2.1.tgz#b520529ec21d8e5945a1851dfd1c32e94e39ff45"
   integrity sha512-ZnQMnLV4e7hDlUvw8H+U8ASL02SS2Gn6+9Ac3wGGLIe7+je2AeAOxPY+izIPJDfFDb7eDjev0Us8MO1iFRN8hA==
+
+"@ignored/block@4.0.0-beta.6", "@ignored/block@^4.0.0-beta.6":
+  version "4.0.0-beta.6"
+  resolved "https://registry.yarnpkg.com/@ignored/block/-/block-4.0.0-beta.6.tgz#b71f95cb6b04202ade2240b97c316c775621d0c5"
+  integrity sha512-eWBp0y9W7ME/n2422rqsMofHDKklG6TQrKqnwbbMPsBdZf3amF/hr0GDeFylPnyBJxxAunnTNhzzokAZ3OT/hA==
+  dependencies:
+    "@ignored/common" "3.0.0-beta.6"
+    "@ignored/rlp" "4.0.0-beta.6"
+    "@ignored/trie" "5.0.0-beta.6"
+    "@ignored/tx" "4.0.0-beta.6"
+    "@ignored/util" "8.0.0-beta.6"
+    ethereum-cryptography "^1.1.2"
+
+"@ignored/blockchain@6.0.0-beta.6", "@ignored/blockchain@^6.0.0-beta.6":
+  version "6.0.0-beta.6"
+  resolved "https://registry.yarnpkg.com/@ignored/blockchain/-/blockchain-6.0.0-beta.6.tgz#cb85588446cef488b2f7e73b6a04048edc7912ce"
+  integrity sha512-vg0DRBf4v0Pfe08IhD2xKvbQNvsKNw64NOMGTtwNtGnURekh3BMTRslqpTAJK0taAZPd8GDhNygAxCU9VvVgLQ==
+  dependencies:
+    "@ignored/block" "4.0.0-beta.6"
+    "@ignored/common" "3.0.0-beta.6"
+    "@ignored/ethash" "2.0.0-beta.6"
+    "@ignored/rlp" "4.0.0-beta.6"
+    "@ignored/trie" "5.0.0-beta.6"
+    "@ignored/util" "8.0.0-beta.6"
+    abstract-level "^1.0.3"
+    debug "^4.3.3"
+    ethereum-cryptography "^1.1.2"
+    level "^8.0.0"
+    lru-cache "^5.1.1"
+    memory-level "^1.0.0"
+    semaphore-async-await "^1.5.1"
+
+"@ignored/common@3.0.0-beta.6", "@ignored/common@^3.0.0-beta.6":
+  version "3.0.0-beta.6"
+  resolved "https://registry.yarnpkg.com/@ignored/common/-/common-3.0.0-beta.6.tgz#3e4a50e60b02ff356cdc70385e974d041c484cbf"
+  integrity sha512-vPpcx0CVdJ42EzZThRjQYpefOAlladPtsOQc4QNEdzyI85WxrD2Fte/FoE2TYRjNUgRa+fIkp/6GFlIoRIAtwQ==
+  dependencies:
+    "@ignored/util" "8.0.0-beta.6"
+    crc-32 "^1.2.0"
+
+"@ignored/ethash@2.0.0-beta.6":
+  version "2.0.0-beta.6"
+  resolved "https://registry.yarnpkg.com/@ignored/ethash/-/ethash-2.0.0-beta.6.tgz#e87ccea34940b7015fa200989ca3135178d53471"
+  integrity sha512-6Mj3MfwI4dQYLLyRTfFXNQxhP7LnF/QCg1Sw/KSLaw4JsQTR7aqLb48bFFri33YkT932PRIce9/iQBuVbwDNvA==
+  dependencies:
+    "@ignored/block" "4.0.0-beta.6"
+    "@ignored/rlp" "4.0.0-beta.6"
+    "@ignored/util" "8.0.0-beta.6"
+    abstract-level "^1.0.3"
+    bigint-crypto-utils "^3.0.23"
+    ethereum-cryptography "^1.1.2"
+
+"@ignored/evm@1.0.0-beta.6", "@ignored/evm@^1.0.0-beta.6":
+  version "1.0.0-beta.6"
+  resolved "https://registry.yarnpkg.com/@ignored/evm/-/evm-1.0.0-beta.6.tgz#984865a7ce65291bc4622d013eacc2db2a3ed31b"
+  integrity sha512-tReqtUVFdLIx2mcRWdmKFZhFVIHy4oq3DAAnIEnOFX6/2+OJ74hjap2itgDGYsa0srrijmk2/PAKrkZYkbacIQ==
+  dependencies:
+    "@ignored/common" "3.0.0-beta.6"
+    "@ignored/util" "8.0.0-beta.6"
+    "@types/async-eventemitter" "^0.2.1"
+    async-eventemitter "^0.2.4"
+    debug "^4.3.3"
+    ethereum-cryptography "^1.1.2"
+    mcl-wasm "^0.7.1"
+    rustbn.js "~0.2.0"
+
+"@ignored/rlp@4.0.0-beta.6", "@ignored/rlp@^4.0.0-beta.6":
+  version "4.0.0-beta.6"
+  resolved "https://registry.yarnpkg.com/@ignored/rlp/-/rlp-4.0.0-beta.6.tgz#a47f65c38b5c9a978fbcd2be4a83038d7c51ae75"
+  integrity sha512-JlJpxoqausV6kTx86KzAjSkYLprt0/NkUmZ7GJRdY0BqT1ok4oE2uJgm0oFsV5Eyr95GGX3xJXgXgXvPhk5E4Q==
+
+"@ignored/rlp@^4.0.0-beta.2":
+  version "4.0.0-beta.4"
+  resolved "https://registry.yarnpkg.com/@ignored/rlp/-/rlp-4.0.0-beta.4.tgz#fdb24589812be291034d04a193c4200c8d40066e"
+  integrity sha512-bRIeMIiyreU5QeC8ymyEkYAGrKxgsEYj02qWAOP+FTJ3y8pn9aVy0R1nOBMa4R669aaLPWhDru9Zswu84Zx/Lg==
+
+"@ignored/statemanager@1.0.0-beta.6", "@ignored/statemanager@^1.0.0-beta.6":
+  version "1.0.0-beta.6"
+  resolved "https://registry.yarnpkg.com/@ignored/statemanager/-/statemanager-1.0.0-beta.6.tgz#f2758ecbfdfcf09e4b22af4e8f44e2ca35c6908c"
+  integrity sha512-k4LUxMblXG1dUFysNn5K5vLmAq6GyjwWwDx9T7ZkT5bZBzijQpeWMSNg5aRMw4c0OBvhc8pPP5Ik6BXIe2CMOQ==
+  dependencies:
+    "@ignored/common" "3.0.0-beta.6"
+    "@ignored/rlp" "4.0.0-beta.6"
+    "@ignored/trie" "5.0.0-beta.6"
+    "@ignored/util" "8.0.0-beta.6"
+    debug "^4.3.3"
+    ethereum-cryptography "^1.1.2"
+    functional-red-black-tree "^1.0.1"
+
+"@ignored/trie@5.0.0-beta.6", "@ignored/trie@^5.0.0-beta.6":
+  version "5.0.0-beta.6"
+  resolved "https://registry.yarnpkg.com/@ignored/trie/-/trie-5.0.0-beta.6.tgz#59bb5a79cca2c95742b7599f17d0e85c47dbe813"
+  integrity sha512-KnjEmPOvXxWUIT/UOSUAdOYUiEMpWQA/bhS4XjmdhHrI9pDmIC/p2sJFA5ZpEyCbnXZiE57LzEzXo1EKCqHIlg==
+  dependencies:
+    "@ignored/rlp" "4.0.0-beta.6"
+    "@ignored/util" "8.0.0-beta.6"
+    ethereum-cryptography "^1.1.2"
+    readable-stream "^3.6.0"
+
+"@ignored/tx@4.0.0-beta.6", "@ignored/tx@^4.0.0-beta.6":
+  version "4.0.0-beta.6"
+  resolved "https://registry.yarnpkg.com/@ignored/tx/-/tx-4.0.0-beta.6.tgz#509fcf07ce1f2773697b06111a75ca3d8e2459f7"
+  integrity sha512-G8KJR/7HwmcioTSZtSIFiK1xcerIfw88N4tZPZUQ9B2SkxtfF4m1G8Pj0WtMtRncxFC8DZ/5ASCrawJerU6MYg==
+  dependencies:
+    "@ignored/common" "3.0.0-beta.6"
+    "@ignored/rlp" "4.0.0-beta.6"
+    "@ignored/util" "8.0.0-beta.6"
+    ethereum-cryptography "^1.1.2"
+
+"@ignored/util@8.0.0-beta.6", "@ignored/util@^8.0.0-beta.6":
+  version "8.0.0-beta.6"
+  resolved "https://registry.yarnpkg.com/@ignored/util/-/util-8.0.0-beta.6.tgz#081cc5ac36e384839bb6c7d14aa1ac8cb7890dc3"
+  integrity sha512-X0UGkXjlSd6/jpwvEZTztCEbgLYDM+RmvV1jnpjvE/40XXGtdt7c8kzHaBZ7HNE8QZpx3MhDBJYWFNGRjifBjg==
+  dependencies:
+    "@ignored/rlp" "^4.0.0-beta.2"
+    ethereum-cryptography "^1.1.2"
+
+"@ignored/vm@^6.0.0-beta.6":
+  version "6.0.0-beta.6"
+  resolved "https://registry.yarnpkg.com/@ignored/vm/-/vm-6.0.0-beta.6.tgz#f7149a497df4a5ecea4a4b678c38b88c68068b80"
+  integrity sha512-gggGlWNLJfF9VyTWncjF4o3Jg/7NUPzge83H6EIv60RMpMokCe1lY0GK4ZD+y3WGJMybyKL7r7k0fCjxT+kvbA==
+  dependencies:
+    "@ignored/block" "4.0.0-beta.6"
+    "@ignored/blockchain" "6.0.0-beta.6"
+    "@ignored/common" "3.0.0-beta.6"
+    "@ignored/evm" "1.0.0-beta.6"
+    "@ignored/rlp" "4.0.0-beta.6"
+    "@ignored/statemanager" "1.0.0-beta.6"
+    "@ignored/trie" "5.0.0-beta.6"
+    "@ignored/tx" "4.0.0-beta.6"
+    "@ignored/util" "8.0.0-beta.6"
+    "@types/async-eventemitter" "^0.2.1"
+    async-eventemitter "^0.2.4"
+    debug "^4.3.3"
+    ethereum-cryptography "^1.1.2"
+    functional-red-black-tree "^1.0.1"
+    mcl-wasm "^0.7.1"
+    rustbn.js "~0.2.0"
 
 "@jest/types@^24.9.0":
   version "24.9.0"

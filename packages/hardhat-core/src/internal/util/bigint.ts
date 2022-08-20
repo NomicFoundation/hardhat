@@ -3,7 +3,7 @@ import {
   bufferToBigInt,
   bufferToHex,
   toBuffer,
-} from "@ethereumjs/util";
+} from "@ignored/util";
 
 function min(x: bigint, y: bigint): bigint {
   return x < y ? x : y;

@@ -1,4 +1,4 @@
-import { Common } from "@ethereumjs/common";
+import { Common } from "@ignored/common";
 import { assert } from "chai";
 import {
   getHardforkName,

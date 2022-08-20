@@ -5,7 +5,7 @@ import {
   KECCAK256_NULL,
   toBuffer,
   unpadBuffer,
-} from "@ethereumjs/util";
+} from "@ignored/util";
 import { assert } from "chai";
 import { keccak256 } from "ethereum-cryptography/keccak";
 import sinon from "sinon";

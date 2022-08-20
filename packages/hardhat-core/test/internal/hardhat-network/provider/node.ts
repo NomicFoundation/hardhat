@@ -1,7 +1,7 @@
-import { Common } from "@ethereumjs/common";
-import { TxData, TypedTransaction } from "@ethereumjs/tx";
+import { Common } from "@ignored/common";
+import { TxData, TypedTransaction } from "@ignored/tx";
 import { assert } from "chai";
-import { Address, bufferToHex, toBuffer } from "@ethereumjs/util";
+import { Address, bufferToHex, toBuffer } from "@ignored/util";
 import { ethers } from "ethers";
 import sinon from "sinon";
 

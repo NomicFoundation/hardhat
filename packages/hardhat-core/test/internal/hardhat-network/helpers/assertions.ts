@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { bufferToHex } from "@ethereumjs/util";
+import { bufferToHex } from "@ignored/util";
 
 import {
   numberToRpcQuantity,

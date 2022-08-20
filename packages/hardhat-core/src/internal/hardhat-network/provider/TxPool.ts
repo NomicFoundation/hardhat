@@ -1,7 +1,7 @@
-import { Common } from "@ethereumjs/common";
-import { TransactionFactory, TypedTransaction } from "@ethereumjs/tx";
-import { StateManager } from "@ethereumjs/statemanager";
-import { Address, bufferToHex, toBuffer } from "@ethereumjs/util";
+import { Common } from "@ignored/common";
+import { TransactionFactory, TypedTransaction } from "@ignored/tx";
+import { StateManager } from "@ignored/statemanager";
+import { Address, bufferToHex, toBuffer } from "@ignored/util";
 import { List as ImmutableList, Record as ImmutableRecord } from "immutable";
 
 import { InvalidInputError } from "../../core/providers/errors";

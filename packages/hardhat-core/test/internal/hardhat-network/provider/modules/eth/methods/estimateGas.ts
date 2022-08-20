@@ -1,4 +1,4 @@
-import { zeroAddress } from "@ethereumjs/util";
+import { zeroAddress } from "@ignored/util";
 import { assert } from "chai";
 import sinon, { SinonSpy } from "sinon";
 import { Client } from "undici";
@@ -6,7 +6,7 @@ import {
   AccessListEIP2930Transaction,
   FeeMarketEIP1559Transaction,
   Transaction,
-} from "@ethereumjs/tx";
+} from "@ignored/tx";
 
 import {
   numberToRpcQuantity,

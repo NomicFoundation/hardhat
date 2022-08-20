@@ -1,6 +1,6 @@
-import { Common } from "@ethereumjs/common";
-import { StateManager, DefaultStateManager } from "@ethereumjs/statemanager";
-import { Account, Address, bufferToHex, toBuffer } from "@ethereumjs/util";
+import { Common } from "@ignored/common";
+import { StateManager, DefaultStateManager } from "@ignored/statemanager";
+import { Account, Address, bufferToHex, toBuffer } from "@ignored/util";
 import { assert } from "chai";
 
 import { InvalidInputError } from "../../../../src/internal/core/providers/errors";

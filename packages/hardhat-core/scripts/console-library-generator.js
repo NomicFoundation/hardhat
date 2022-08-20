@@ -1,4 +1,4 @@
-const eutil = require("@ethereumjs/util");
+const eutil = require("@ignored/util");
 const { keccak256 } = require("ethereum-cryptography/keccak");
 const fs = require("fs");
 

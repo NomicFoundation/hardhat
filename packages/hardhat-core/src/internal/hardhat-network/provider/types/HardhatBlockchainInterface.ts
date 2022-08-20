@@ -1,5 +1,5 @@
-import { Block } from "@ethereumjs/block";
-import { BlockchainInterface } from "@ethereumjs/blockchain";
+import { Block } from "@ignored/block";
+import { BlockchainInterface } from "@ignored/blockchain";
 
 import { FilterParams } from "../node-types";
 import { RpcLogOutput, RpcReceiptOutput } from "../output";

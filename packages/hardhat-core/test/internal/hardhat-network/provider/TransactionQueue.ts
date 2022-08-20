@@ -1,10 +1,10 @@
-import { TxData } from "@ethereumjs/tx";
+import { TxData } from "@ignored/tx";
 import {
   AddressLike,
   arrToBufArr,
   bufferToBigInt,
   bufferToHex,
-} from "@ethereumjs/util";
+} from "@ignored/util";
 import { assert } from "chai";
 import { randomBytes } from "crypto";
 import { keccak256 } from "ethereum-cryptography/keccak";
@@ -12,7 +12,7 @@ import { keccak256 } from "ethereum-cryptography/keccak";
 import {
   AccessListEIP2930TxData,
   FeeMarketEIP1559TxData,
-} from "@ethereumjs/tx/dist/types";
+} from "@ignored/tx/dist/types";
 import { OrderedTransaction } from "../../../../src/internal/hardhat-network/provider/PoolState";
 import { TransactionQueue } from "../../../../src/internal/hardhat-network/provider/TransactionQueue";
 import { createTestOrderedTransaction } from "../helpers/blockchain";

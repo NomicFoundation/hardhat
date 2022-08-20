@@ -1,11 +1,11 @@
-import { Common } from "@ethereumjs/common";
+import { Common } from "@ignored/common";
 import {
   AccessListEIP2930Transaction,
   AccessListEIP2930TxData,
   AccessListEIP2930ValuesArray,
   TxOptions,
-} from "@ethereumjs/tx";
-import { Address } from "@ethereumjs/util";
+} from "@ignored/tx";
+import { Address } from "@ignored/util";
 
 import { InternalError } from "../../../core/providers/errors";
 import { BigIntUtils } from "../../../util/bigint";

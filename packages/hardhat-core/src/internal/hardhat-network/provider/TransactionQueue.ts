@@ -1,4 +1,4 @@
-import { TypedTransaction } from "@ethereumjs/tx";
+import { TypedTransaction } from "@ignored/tx";
 import Heap from "mnemonist/heap";
 
 import { InternalError, InvalidInputError } from "../../core/providers/errors";

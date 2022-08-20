@@ -1,7 +1,7 @@
-import { Common } from "@ethereumjs/common";
-import { AccessListEIP2930Transaction } from "@ethereumjs/tx";
+import { Common } from "@ignored/common";
+import { AccessListEIP2930Transaction } from "@ignored/tx";
 import { assert } from "chai";
-import { bufferToHex, privateToAddress, toBuffer } from "@ethereumjs/util";
+import { bufferToHex, privateToAddress, toBuffer } from "@ignored/util";
 
 import { ERRORS } from "../../../../src/internal/core/errors-list";
 import { numberToRpcQuantity } from "../../../../src/internal/core/jsonrpc/types/base-types";

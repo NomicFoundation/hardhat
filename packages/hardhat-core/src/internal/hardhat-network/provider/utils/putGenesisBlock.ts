@@ -1,7 +1,7 @@
-import { Block, HeaderData } from "@ethereumjs/block";
-import { Common } from "@ethereumjs/common";
-import { SecureTrie } from "@ethereumjs/trie";
-import { bufferToHex } from "@ethereumjs/util";
+import { Block, HeaderData } from "@ignored/block";
+import { Common } from "@ignored/common";
+import { SecureTrie } from "@ignored/trie";
+import { bufferToHex } from "@ignored/util";
 
 import { dateToTimestampSeconds } from "../../../util/date";
 import { hardforkGte, HardforkName } from "../../../util/hardforks";

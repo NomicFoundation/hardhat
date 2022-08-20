@@ -1,4 +1,4 @@
-import { zeroAddress } from "@ethereumjs/util";
+import { zeroAddress } from "@ignored/util";
 
 import { numberToRpcQuantity } from "../../../../../../../src/internal/core/jsonrpc/types/base-types";
 import { randomAddress } from "../../../../../../../src/internal/hardhat-network/provider/utils/random";

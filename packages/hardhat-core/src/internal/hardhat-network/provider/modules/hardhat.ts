@@ -1,4 +1,4 @@
-import { Address } from "@ethereumjs/util";
+import { Address } from "@ignored/util";
 import * as t from "io-ts";
 
 import {

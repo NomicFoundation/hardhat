@@ -1,12 +1,12 @@
-import { Common } from "@ethereumjs/common";
-import * as rlp from "@ethereumjs/rlp";
-import { AccessListEIP2930Transaction } from "@ethereumjs/tx";
+import { Common } from "@ignored/common";
+import * as rlp from "@ignored/rlp";
+import { AccessListEIP2930Transaction } from "@ignored/tx";
 import {
   AccessListEIP2930TxData,
   AccessListEIP2930ValuesArray,
   TxOptions,
-} from "@ethereumjs/tx/dist/types";
-import { Address, arrToBufArr, bufferToInt } from "@ethereumjs/util";
+} from "@ignored/tx/dist/types";
+import { Address, arrToBufArr, bufferToInt } from "@ignored/util";
 
 import {
   InternalError,

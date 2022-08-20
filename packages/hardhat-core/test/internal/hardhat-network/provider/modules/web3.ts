@@ -1,4 +1,4 @@
-import { arrToBufArr, bufArrToArr, toBuffer } from "@ethereumjs/util";
+import { arrToBufArr, bufArrToArr, toBuffer } from "@ignored/util";
 import { assert } from "chai";
 import { keccak256 } from "ethereum-cryptography/keccak";
 

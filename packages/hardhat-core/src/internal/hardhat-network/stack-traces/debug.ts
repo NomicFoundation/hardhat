@@ -1,4 +1,4 @@
-import { bufferToHex } from "@ethereumjs/util";
+import { bufferToHex } from "@ignored/util";
 
 import {
   CallMessageTrace,

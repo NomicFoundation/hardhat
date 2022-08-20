@@ -1,12 +1,12 @@
-import { Common } from "@ethereumjs/common";
-import { Transaction } from "@ethereumjs/tx";
+import { Common } from "@ignored/common";
+import { Transaction } from "@ignored/tx";
 import {
   bigIntToBuffer,
   bufferToHex,
   setLengthLeft,
   toBuffer,
   zeroAddress,
-} from "@ethereumjs/util";
+} from "@ignored/util";
 import { assert } from "chai";
 
 import {

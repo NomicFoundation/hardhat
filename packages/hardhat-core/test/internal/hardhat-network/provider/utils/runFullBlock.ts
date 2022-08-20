@@ -1,5 +1,5 @@
-import { Block } from "@ethereumjs/block";
-import { AfterBlockEvent, RunBlockOpts, VM } from "@ethereumjs/vm";
+import { Block } from "@ignored/block";
+import { AfterBlockEvent, RunBlockOpts, VM } from "@ignored/vm";
 import { assert } from "chai";
 
 import { defaultHardhatNetworkParams } from "../../../../../src/internal/core/config/default-config";
