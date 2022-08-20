@@ -7,7 +7,6 @@ export async function makeForkCommon(config: ForkedNodeConfig) {
     {
       chainId: config.chainId,
       networkId: config.networkId,
-      name: config.networkName,
     },
     { hardfork: config.hardfork }
   );
