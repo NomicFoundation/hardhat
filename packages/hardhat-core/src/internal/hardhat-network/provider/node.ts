@@ -112,7 +112,6 @@ import { getCurrentTimestamp } from "./utils/getCurrentTimestamp";
 import { makeCommon } from "./utils/makeCommon";
 import { makeForkClient } from "./utils/makeForkClient";
 import { makeStateTrie } from "./utils/makeStateTrie";
-import { makeForkCommon } from "./utils/makeForkCommon";
 import { putGenesisBlock } from "./utils/putGenesisBlock";
 import { txMapToArray } from "./utils/txMapToArray";
 import { RandomBufferGenerator } from "./utils/random";
@@ -139,7 +138,6 @@ export class HardhatNode extends EventEmitter {
       chainId,
     } = config;
 
-    let common: Common;
     let stateManager: StateManager;
     let blockchain: HardhatBlockchainInterface;
     let initialBlockTimeOffset: bigint | undefined;
@@ -157,6 +155,8 @@ export class HardhatNode extends EventEmitter {
     const mixHashGenerator = RandomBufferGenerator.create("randomMixHashSeed");
     let forkClient: JsonRpcClient | undefined;
 
+    const common = makeCommon(config);
+
     if (isForkedNodeConfig(config)) {
       const {
         forkClient: _forkClient,
@@ -164,7 +164,6 @@ export class HardhatNode extends EventEmitter {
         forkBlockTimestamp,
       } = await makeForkClient(config.forkConfig, config.forkCachePath);
       forkClient = _forkClient;
-      common = await makeForkCommon(config);
 
       forkNetworkId = forkClient.getNetworkId();
       forkBlockNum = forkBlockNumber;
@@ -211,7 +210,6 @@ export class HardhatNode extends EventEmitter {
       }
     } else {
       const stateTrie = await makeStateTrie(genesisAccounts);
-      common = makeCommon(config);
 
       stateManager = new DefaultStateManager({
         common,
