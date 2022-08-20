@@ -51,8 +51,8 @@ function toWord(x: bigint | number): string {
   return x.toString(16).padStart(64, "0");
 }
 
-function fromBigIntLike(x: BigIntLike): bigint {
-  if (typeof x === "bigint") {
+function fromBigIntLike(x: BigIntLike | undefined): bigint | undefined {
+  if (x === undefined || typeof x === "bigint") {
     return x;
   }
   if (typeof x === "number" || typeof x === "string") {
