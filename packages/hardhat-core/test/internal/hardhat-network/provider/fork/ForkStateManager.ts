@@ -76,7 +76,7 @@ describe("ForkStateManager", () => {
       assert.isTrue(account.balance > 0n);
       assert.isTrue(account.nonce === 1n);
       assert.isTrue(account.codeHash.equals(codeHash));
-      assert.isNotTrue(account.stateRoot.equals(Buffer.from([])));
+      assert.isNotTrue(account.storageRoot.equals(Buffer.from([])));
     });
 
     it("can get non-existent account", async () => {
@@ -85,7 +85,7 @@ describe("ForkStateManager", () => {
       assert.isTrue(account.balance === 0n);
       assert.isTrue(account.nonce === 0n);
       assert.isTrue(account.codeHash.equals(KECCAK256_NULL));
-      assert.isNotTrue(account.stateRoot.equals(Buffer.from([])));
+      assert.isNotTrue(account.storageRoot.equals(Buffer.from([])));
     });
 
     it("works with accounts created locally", async () => {
@@ -106,7 +106,7 @@ describe("ForkStateManager", () => {
       assert.isTrue(account.nonce === 1n);
       assert.isTrue(account.balance === 2n);
       assert.isTrue(account.codeHash.equals(codeHash));
-      assert.isNotTrue(account.stateRoot.equals(Buffer.from([])));
+      assert.isNotTrue(account.storageRoot.equals(Buffer.from([])));
     });
 
     it("works with accounts modified locally", async () => {
@@ -117,7 +117,7 @@ describe("ForkStateManager", () => {
       assert.isTrue(account.balance > 0);
       assert.isTrue(account.nonce === 1n);
       assert.isTrue(account.codeHash.equals(keccak256(code)));
-      assert.isNotTrue(account.stateRoot.equals(Buffer.from([])));
+      assert.isNotTrue(account.storageRoot.equals(Buffer.from([])));
     });
   });
 
@@ -178,7 +178,7 @@ describe("ForkStateManager", () => {
       assert.isTrue(account.balance > 0);
       assert.isTrue(account.nonce === 1n);
       assert.isTrue(account.codeHash.equals(codeHash));
-      assert.isNotTrue(account.stateRoot.equals(Buffer.from([])));
+      assert.isNotTrue(account.storageRoot.equals(Buffer.from([])));
 
       await fsm.deleteAccount(WETH_ADDRESS);
       account = await fsm.getAccount(WETH_ADDRESS);
@@ -186,7 +186,7 @@ describe("ForkStateManager", () => {
       assert.isTrue(account.balance === 0n);
       assert.isTrue(account.nonce === 0n);
       assert.isTrue(account.codeHash.equals(KECCAK256_NULL));
-      assert.isNotTrue(account.stateRoot.equals(Buffer.from([])));
+      assert.isNotTrue(account.storageRoot.equals(Buffer.from([])));
     });
 
     it("can delete non-existent account", async () => {
@@ -196,7 +196,7 @@ describe("ForkStateManager", () => {
       assert.isTrue(account.balance === 0n);
       assert.isTrue(account.nonce === 0n);
       assert.isTrue(account.codeHash.equals(KECCAK256_NULL));
-      assert.isNotTrue(account.stateRoot.equals(Buffer.from([])));
+      assert.isNotTrue(account.storageRoot.equals(Buffer.from([])));
     });
   });
 
