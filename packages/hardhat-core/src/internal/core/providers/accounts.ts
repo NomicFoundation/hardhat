@@ -254,6 +254,10 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
       gasLimit: transactionRequest.gas,
     };
 
+    // We don't specify a hardfork here because the default hardfork should
+    // support all possible types of transactions.
+    // If the network doesn't support a given transaction type, then the
+    // transaction it will be rejected somewhere else.
     const common = Common.custom({ chainId, networkId: chainId });
 
     // we convert the access list to the type
