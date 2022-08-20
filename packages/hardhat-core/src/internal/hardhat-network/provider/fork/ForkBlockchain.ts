@@ -253,14 +253,7 @@ export class ForkBlockchain
     }
 
     const forkNetworkId = this._jsonRpcClient.getNetworkId();
-    let common: Common;
-    if (Chain[forkNetworkId] !== undefined) {
-      common = new Common({ chain: forkNetworkId });
-    } else {
-      // unknown networks use Goerli's common to prevent the
-      // maxExtraDataSize check
-      common = new Common({ chain: 5 });
-    }
+    const common = new Common({ chain: forkNetworkId });
 
     // We set the common's hardfork to Berlin if the remote block doesn't have
     // EIP-1559 activated. The reason for this is that ethereumjs throws if we
@@ -281,6 +274,9 @@ export class ForkBlockchain
 
       // We use freeze false here because we add the transactions manually
       freeze: false,
+
+      // don't validate things like the size of `extraData` in the header
+      consensusFormatValidation: false,
     });
 
     for (const transaction of rpcBlock.transactions) {
