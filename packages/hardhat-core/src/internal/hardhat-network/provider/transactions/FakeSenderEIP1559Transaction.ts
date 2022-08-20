@@ -5,7 +5,7 @@ import {
   FeeMarketEIP1559ValuesArray,
   TxOptions,
 } from "@ethereumjs/tx/dist/types";
-import { Address, bufferToInt } from "@ethereumjs/util";
+import { Address, arrToBufArr, bufferToInt } from "@ethereumjs/util";
 
 import {
   InternalError,
@@ -65,15 +65,11 @@ export class FakeSenderEIP1559Transaction extends FeeMarketEIP1559Transaction {
       );
     }
 
-    const values = rlp.decode(serialized.slice(1));
+    const values = arrToBufArr(rlp.decode(serialized.slice(1)));
 
-    if (!Array.isArray(values)) {
-      throw new InvalidArgumentsError(
-        "Invalid serialized tx input. Must be array"
-      );
-    }
+    checkIsFeeMarketEIP1559ValuesArray(values);
 
-    return this.fromSenderAndValuesArray(sender, values as any, opts);
+    return this.fromSenderAndValuesArray(sender, values, opts);
   }
 
   public static fromSenderAndValuesArray(
@@ -81,12 +77,6 @@ export class FakeSenderEIP1559Transaction extends FeeMarketEIP1559Transaction {
     values: FeeMarketEIP1559ValuesArray,
     opts: TxOptions = {}
   ): FakeSenderEIP1559Transaction {
-    if (values.length !== 9 && values.length !== 12) {
-      throw new InvalidArgumentsError(
-        "Invalid EIP-1559 transaction. Only expecting 9 values (for unsigned tx) or 12 values (for signed tx)."
-      );
-    }
-
     const [
       chainId,
       nonce,
@@ -188,5 +178,41 @@ export class FakeSenderEIP1559Transaction extends FeeMarketEIP1559Transaction {
     }
 
     return true;
+  }
+}
+
+function checkIsFeeMarketEIP1559ValuesArray(
+  values: unknown
+): asserts values is FeeMarketEIP1559ValuesArray {
+  if (!Array.isArray(values)) {
+    throw new InvalidArgumentsError(
+      `Invalid deserialized tx. Expected a Buffer[], but got '${values as any}'`
+    );
+  }
+
+  if (values.length !== 9 && values.length !== 12) {
+    throw new InvalidArgumentsError(
+      "Invalid EIP-1559 transaction. Only expecting 9 values (for unsigned tx) or 12 values (for signed tx)."
+    );
+  }
+
+  // all elements in the array are buffers, except the 9th one that is an
+  // AccessListBuffer (an array of AccessListBufferItems)
+  for (const [i, value] of values.entries()) {
+    if (i === 8) {
+      if (!Array.isArray(value)) {
+        // we could check more things to assert that it's an AccessListBuffer,
+        // but we're assuming that just checking if it's an array is enough
+        throw new InvalidArgumentsError(
+          `Invalid deserialized tx. Expected a AccessListBuffer in position ${i}, but got '${value}'`
+        );
+      }
+    } else {
+      if (!Buffer.isBuffer(values[i])) {
+        throw new InvalidArgumentsError(
+          `Invalid deserialized tx. Expected a Buffer in position ${i}, but got '${value}'`
+        );
+      }
+    }
   }
 }

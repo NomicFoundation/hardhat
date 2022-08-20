@@ -6,7 +6,7 @@ import {
   AccessListEIP2930ValuesArray,
   TxOptions,
 } from "@ethereumjs/tx/dist/types";
-import { Address, bufferToInt } from "@ethereumjs/util";
+import { Address, arrToBufArr, bufferToInt } from "@ethereumjs/util";
 
 import {
   InternalError,
@@ -66,15 +66,11 @@ export class FakeSenderAccessListEIP2930Transaction extends AccessListEIP2930Tra
       );
     }
 
-    const values = rlp.decode(serialized.slice(1));
+    const values = arrToBufArr(rlp.decode(serialized.slice(1)));
 
-    if (!Array.isArray(values)) {
-      throw new InvalidArgumentsError(
-        "Invalid serialized tx input. Must be array"
-      );
-    }
+    checkIsAccessListEIP2930ValuesArray(values);
 
-    return this.fromSenderAndValuesArray(sender, values as any, opts);
+    return this.fromSenderAndValuesArray(sender, values, opts);
   }
 
   public static fromSenderAndValuesArray(
@@ -82,12 +78,6 @@ export class FakeSenderAccessListEIP2930Transaction extends AccessListEIP2930Tra
     values: AccessListEIP2930ValuesArray,
     opts: TxOptions = {}
   ): FakeSenderAccessListEIP2930Transaction {
-    if (values.length !== 8 && values.length !== 11) {
-      throw new InvalidArgumentsError(
-        "Invalid EIP-2930 transaction. Only expecting 8 values (for unsigned tx) or 11 values (for signed tx)."
-      );
-    }
-
     const [
       chainId,
       nonce,
@@ -190,5 +180,41 @@ export class FakeSenderAccessListEIP2930Transaction extends AccessListEIP2930Tra
     }
 
     return true;
+  }
+}
+
+function checkIsAccessListEIP2930ValuesArray(
+  values: unknown
+): asserts values is AccessListEIP2930ValuesArray {
+  if (!Array.isArray(values)) {
+    throw new InvalidArgumentsError(
+      `Invalid deserialized tx. Expected a Buffer[], but got '${values as any}'`
+    );
+  }
+
+  if (values.length !== 8 && values.length !== 11) {
+    throw new InvalidArgumentsError(
+      "Invalid EIP-2930 transaction. Only expecting 8 values (for unsigned tx) or 11 values (for signed tx)."
+    );
+  }
+
+  // all elements in the array are buffers, except the 8th one that is an
+  // AccessListBuffer (an array of AccessListBufferItems)
+  for (const [i, value] of values.entries()) {
+    if (i === 7) {
+      if (!Array.isArray(value)) {
+        // we could check more things to assert that it's an AccessListBuffer,
+        // but we're assuming that just checking if it's an array is enough
+        throw new InvalidArgumentsError(
+          `Invalid deserialized tx. Expected a AccessListBuffer in position ${i}, but got '${value}'`
+        );
+      }
+    } else {
+      if (!Buffer.isBuffer(values[i])) {
+        throw new InvalidArgumentsError(
+          `Invalid deserialized tx. Expected a Buffer in position ${i}, but got '${value}'`
+        );
+      }
+    }
   }
 }

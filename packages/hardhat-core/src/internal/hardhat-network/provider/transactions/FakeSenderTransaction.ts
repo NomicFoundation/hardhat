@@ -1,9 +1,12 @@
 import { Common } from "@ethereumjs/common";
 import * as rlp from "@ethereumjs/rlp";
 import { Transaction, TxData, TxOptions } from "@ethereumjs/tx";
-import { Address, arrToBufArr, NestedBufferArray } from "@ethereumjs/util";
+import { Address, arrToBufArr } from "@ethereumjs/util";
 
-import { InternalError } from "../../../core/providers/errors";
+import {
+  InternalError,
+  InvalidArgumentsError,
+} from "../../../core/providers/errors";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
@@ -54,9 +57,7 @@ export class FakeSenderTransaction extends Transaction {
   ) {
     const values = arrToBufArr(rlp.decode(serialized));
 
-    if (!isFlatBufferArray(values)) {
-      throw new Error("Invalid serialized tx input. Must be a flat array");
-    }
+    checkIsFlatBufferArray(values);
 
     return this.fromSenderAndValuesArray(sender, values, opts);
   }
@@ -184,16 +185,18 @@ FakeSenderTransactionPrototype._processSignature = function () {
   );
 };
 
-function isFlatBufferArray(x: Buffer | NestedBufferArray): x is Buffer[] {
-  if (!Array.isArray(x)) {
-    return false;
+function checkIsFlatBufferArray(values: unknown): asserts values is Buffer[] {
+  if (!Array.isArray(values)) {
+    throw new InvalidArgumentsError(
+      `Invalid deserialized tx. Expected a Buffer[], but got '${values as any}'`
+    );
   }
 
-  for (const item of x) {
-    if (Array.isArray(item)) {
-      return false;
+  for (const [i, value] of values.entries()) {
+    if (!Buffer.isBuffer(value)) {
+      throw new InvalidArgumentsError(
+        `Invalid deserialized tx. Expected a Buffer in position ${i}, but got '${value}'`
+      );
     }
   }
-
-  return true;
 }
