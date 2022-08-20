@@ -550,8 +550,7 @@ contract C {
               );
             });
 
-            // see HH-1036
-            it.skip("Should use any provided gasPrice", async function () {
+            it("Should use any provided gasPrice", async function () {
               const gasLimit = 200_000n;
               const gasPrice = 2n;
 
@@ -657,8 +656,7 @@ contract C {
                 );
               });
 
-              // see HH-1036
-              it.skip("Should use maxPriorityFeePerGas if provided, with maxFeePerGas = maxPriorityFeePerGas", async function () {
+              it("Should use maxPriorityFeePerGas if provided, with maxFeePerGas = maxPriorityFeePerGas", async function () {
                 const balanceResult = await this.provider.send("eth_call", [
                   {
                     from: CALLER,
@@ -676,8 +674,7 @@ contract C {
                 );
               });
 
-              // see HH-1036
-              it.skip("Should use gasPrice if provided", async function () {
+              it("Should use gasPrice if provided", async function () {
                 const balanceResult = await this.provider.send("eth_call", [
                   {
                     from: CALLER,
