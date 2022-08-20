@@ -1,5 +1,5 @@
 import { Block } from "@ignored/block";
-import { Chain, Common } from "@ignored/common";
+import { Common } from "@ignored/common";
 import { TypedTransaction } from "@ignored/tx";
 import { Address } from "@ignored/util";
 
