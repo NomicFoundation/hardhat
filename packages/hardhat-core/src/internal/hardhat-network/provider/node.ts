@@ -212,7 +212,6 @@ export class HardhatNode extends EventEmitter {
       const stateTrie = await makeStateTrie(genesisAccounts);
 
       stateManager = new DefaultStateManager({
-        common,
         trie: stateTrie,
       });
 
