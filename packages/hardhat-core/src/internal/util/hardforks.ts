@@ -14,6 +14,7 @@ export enum HardforkName {
   BERLIN = "berlin",
   LONDON = "london",
   ARROW_GLACIER = "arrowGlacier",
+  GRAY_GLACIER = "grayGlacier",
   MERGE = "merge",
 }
 
@@ -31,6 +32,7 @@ const HARDFORKS_ORDER: HardforkName[] = [
   HardforkName.BERLIN,
   HardforkName.LONDON,
   HardforkName.ARROW_GLACIER,
+  HardforkName.GRAY_GLACIER,
   HardforkName.MERGE,
 ];
 
