@@ -19,6 +19,7 @@ export const HARDHAT_NETWORK_SUPPORTED_HARDFORKS = [
   "berlin",
   "london",
   "arrowGlacier",
+  "grayGlacier",
   "merge",
 ];
 
