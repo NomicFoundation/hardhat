@@ -36,7 +36,14 @@ export class IgnitionWrapper {
     });
   }
 
-  public async deploySingleGraph(recipe: any, _options: any) {
+  public async deploySingleGraph(
+    recipe: any,
+    deployParams: { parameters: { [key: string]: ParamValue } } | undefined
+  ) {
+    if (deployParams !== undefined) {
+      await this._providers.config.setParams(deployParams.parameters);
+    }
+
     const [deploymentResult] = await this._ignition.deploySingleGraph(recipe);
 
     if (deploymentResult._kind === "hold") {

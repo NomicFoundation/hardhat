@@ -207,7 +207,7 @@ function resolveFromContext(context: Map<number, any>) {
     const entry = context.get(arg.id);
 
     if (!entry) {
-      throw new Error(`No context entry for ${arg.id}`);
+      throw new Error(`No context entry for ${arg.id} (${arg.label})`);
     }
 
     return entry;

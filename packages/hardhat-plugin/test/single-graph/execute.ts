@@ -206,6 +206,34 @@ describe("single graph version", () => {
 
     assert.equal(libBasedAddtion, 6);
   });
+
+  describe("recipe parameters", () => {
+    it("should allow parameters", async function () {
+      const result = await deployRecipe(
+        this.hre,
+        (m) => {
+          const myNumber = m.getParam("MyNumber");
+
+          const foo = m.contract("Foo");
+
+          m.call(foo, "incByPositiveNumber", {
+            args: [myNumber],
+          });
+
+          return { foo };
+        },
+        {
+          parameters: {
+            MyNumber: 123,
+          },
+        }
+      );
+
+      const v = await result.foo.x();
+
+      assert.equal(v, Number(124));
+    });
+  });
 });
 
 async function deployRecipe(

@@ -12,6 +12,8 @@ import {
   IExecutionGraph,
   LibraryDeploy,
 } from "../types/executionGraph";
+import { RecipeFuture } from "../types/future";
+import { isFuture } from "../types/guards";
 import {
   ArtifactContractRecipeVertex,
   ArtifactLibraryRecipeVertex,
@@ -108,21 +110,21 @@ async function convertHardhatContractToContractDeploy(
     id: vertex.id,
     label: vertex.label,
     artifact,
-    args: vertex.args,
+    args: await convertArgs(vertex.args, services),
     libraries: vertex.libraries,
   };
 }
 
 async function convertArtifactContractToContractDeploy(
   vertex: ArtifactContractRecipeVertex,
-  _services: Services
+  services: Services
 ): Promise<ContractDeploy> {
   return {
     type: "ContractDeploy",
     id: vertex.id,
     label: vertex.label,
     artifact: vertex.artifact,
-    args: vertex.args,
+    args: await convertArgs(vertex.args, services),
     libraries: vertex.libraries,
   };
 }
@@ -142,7 +144,7 @@ async function convertDeployedContractToDeployedDeploy(
 
 async function convertCallToContractCall(
   vertex: CallRecipeVertex,
-  _services: Services
+  services: Services
 ): Promise<ContractCall> {
   return {
     type: "ContractCall",
@@ -151,37 +153,37 @@ async function convertCallToContractCall(
 
     contract: vertex.contract,
     method: vertex.method,
-    args: vertex.args,
+    args: await convertArgs(vertex.args, services),
   };
 }
 
 async function convertHardhatLibraryToLibraryDeploy(
-  hardhatLibraryRecipeVertex: HardhatLibraryRecipeVertex,
+  vertex: HardhatLibraryRecipeVertex,
   services: Services
 ): Promise<LibraryDeploy> {
   const artifact: Artifact = await services.artifacts.getArtifact(
-    hardhatLibraryRecipeVertex.libraryName
+    vertex.libraryName
   );
 
   return {
     type: "LibraryDeploy",
-    id: hardhatLibraryRecipeVertex.id,
-    label: hardhatLibraryRecipeVertex.label,
+    id: vertex.id,
+    label: vertex.label,
     artifact,
-    args: hardhatLibraryRecipeVertex.args,
+    args: await convertArgs(vertex.args, services),
   };
 }
 
 async function convertArtifactLibraryToLibraryDeploy(
   vertex: ArtifactLibraryRecipeVertex,
-  _services: Services
+  services: Services
 ): Promise<LibraryDeploy> {
   return {
     type: "LibraryDeploy",
     id: vertex.id,
     label: vertex.label,
     artifact: vertex.artifact,
-    args: vertex.args,
+    args: await convertArgs(vertex.args, services),
   };
 }
 
@@ -193,4 +195,40 @@ function assertRecipeVertexNotExpected(
   const obj = typeof v === "object" && "type" in v ? v.type : v;
 
   throw new Error(`Type not expected: ${obj}`);
+}
+
+async function convertArgs(
+  args: Array<string | number | RecipeFuture>,
+  services: Services
+): Promise<Array<string | number | RecipeFuture>> {
+  const resolvedArgs = [];
+
+  for (const arg of args) {
+    const resolvedArg = await convertArg(arg, services);
+
+    resolvedArgs.push(resolvedArg);
+  }
+
+  return resolvedArgs;
+}
+
+async function convertArg(
+  arg: string | number | RecipeFuture,
+  services: Services
+) {
+  if (!isFuture(arg)) {
+    return arg;
+  }
+
+  if (arg.type !== "parameter") {
+    return arg;
+  }
+
+  const param = await services.config.getParam(arg.label);
+
+  if (param === undefined) {
+    throw new Error(`No param for ${arg.label}`);
+  }
+
+  return param;
 }
