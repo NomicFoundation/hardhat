@@ -10,6 +10,7 @@ import { CompilationJobCreationErrorReason } from "../../src/types/builtin-tasks
 import { useEnvironment } from "../helpers/environment";
 import { expectHardhatErrorAsync } from "../helpers/errors";
 import { useFixtureProject } from "../helpers/project";
+import { assertValidJson } from "../utils/json";
 import { mockFile } from "../utils/mock-file";
 
 function assertFileExists(pathToFile: string) {
@@ -42,7 +43,65 @@ describe("compile task", function () {
       assertBuildInfoExists(
         path.join("artifacts", "contracts", "A.sol", "A.dbg.json")
       );
-      assert.lengthOf(globSync("artifacts/build-info/*.json"), 1);
+      const buildInfos = globSync("artifacts/build-info/*.json");
+      assert.lengthOf(buildInfos, 1);
+
+      assertValidJson(buildInfos[0]);
+    });
+  });
+
+  describe("project with an empty file", function () {
+    useFixtureProject("compilation-empty-file");
+    useEnvironment();
+
+    it("should compile and emit build info file but no artifacts", async function () {
+      await this.env.run("compile");
+
+      // the artifacts directory only has the build-info directory
+      const artifactsDirectory = fsExtra.readdirSync("artifacts");
+      assert.lengthOf(artifactsDirectory, 1);
+
+      const buildInfos = globSync("artifacts/build-info/*.json");
+      assert.lengthOf(buildInfos, 1);
+
+      assertValidJson(buildInfos[0]);
+    });
+  });
+
+  describe("project with a single file with many contracts", function () {
+    useFixtureProject("compilation-single-file-many-contracts");
+    useEnvironment();
+
+    it("should compile and emit artifacts", async function () {
+      await this.env.run("compile");
+
+      const artifactsDirectory = fsExtra.readdirSync(
+        "artifacts/contracts/A.sol"
+      );
+      // 100 contracts, 2 files per contract
+      assert.lengthOf(artifactsDirectory, 200);
+
+      const buildInfos = globSync("artifacts/build-info/*.json");
+      assert.lengthOf(buildInfos, 1);
+
+      assertValidJson(buildInfos[0]);
+    });
+  });
+
+  describe("project with many files", function () {
+    useFixtureProject("compilation-many-files");
+    useEnvironment();
+
+    it("should compile and emit artifacts", async function () {
+      await this.env.run("compile");
+
+      const contractsDirectory = fsExtra.readdirSync("artifacts/contracts");
+      assert.lengthOf(contractsDirectory, 100);
+
+      const buildInfos = globSync("artifacts/build-info/*.json");
+      assert.lengthOf(buildInfos, 1);
+
+      assertValidJson(buildInfos[0]);
     });
   });
 
@@ -61,7 +120,11 @@ describe("compile task", function () {
       assertBuildInfoExists(
         path.join("artifacts", "contracts", "B.sol", "B.dbg.json")
       );
-      assert.lengthOf(globSync("artifacts/build-info/*.json"), 2);
+
+      const buildInfos = globSync("artifacts/build-info/*.json");
+      assert.lengthOf(buildInfos, 2);
+      assertValidJson(buildInfos[0]);
+      assertValidJson(buildInfos[1]);
     });
   });
 
