@@ -55,6 +55,9 @@ export async function runFullBlock(
       ...rpcBlock,
       // We wipe the receipt root to make sure we get a new one
       receiptsRoot: Buffer.alloc(32, 0),
+
+      // remove the extra data to prevent ethereumjs from validating it
+      extraData: Buffer.from([]),
     }),
     {
       common,
