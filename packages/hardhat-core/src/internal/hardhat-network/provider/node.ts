@@ -212,7 +212,6 @@ export class HardhatNode extends EventEmitter {
       const stateTrie = await makeStateTrie(genesisAccounts);
 
       stateManager = new DefaultStateManager({
-        common,
         trie: stateTrie,
       });
 
@@ -2375,10 +2374,9 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       }
 
       originalCommon = (this._vm as any)._common;
-      (this._vm as any)._common = new Common({
-        chain: {
-          // eslint-disable-next-line @typescript-eslint/dot-notation
-          ...this._vm._common["_chainParams"],
+
+      (this._vm as any)._common = Common.custom(
+        {
           chainId:
             this._forkBlockNumber === undefined ||
             blockContext.header.number >= this._forkBlockNumber
@@ -2386,8 +2384,10 @@ Hardhat Network's forking functionality only works with blocks from at least spu
               : this._forkNetworkId,
           networkId: this._forkNetworkId ?? this._configNetworkId,
         },
-        hardfork: this._selectHardfork(blockContext.header.number),
-      });
+        {
+          hardfork: this._selectHardfork(blockContext.header.number),
+        }
+      );
 
       return await this._vm.runTx({
         block: blockContext,
@@ -2605,15 +2605,15 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
   private _getCommonForTracing(networkId: number, blockNumber: bigint): Common {
     try {
-      const common = new Common({
-        chain: {
-          // eslint-disable-next-line @typescript-eslint/dot-notation
-          ...Common["_getChainParams"]("mainnet"),
+      const common = Common.custom(
+        {
           chainId: networkId,
           networkId,
         },
-        hardfork: this._selectHardfork(BigInt(blockNumber)),
-      });
+        {
+          hardfork: this._selectHardfork(BigInt(blockNumber)),
+        }
+      );
 
       return common;
     } catch {
