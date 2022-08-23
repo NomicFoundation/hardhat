@@ -9,6 +9,7 @@ import type {
   RequiredParameter,
   OptionalParameter,
   ParameterValue,
+  FutureDict,
 } from "../types/future";
 import { isArtifact } from "../types/guards";
 import type { Artifact } from "../types/hardhat";
@@ -16,6 +17,7 @@ import {
   ContractOptions,
   IRecipeGraph,
   IRecipeGraphBuilder,
+  Recipe,
   RecipeGraphBuilderOptions,
 } from "../types/recipeGraph";
 
@@ -210,6 +212,12 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
     };
 
     return paramFuture;
+  }
+
+  public useRecipe(recipe: Recipe): FutureDict {
+    const result = recipe.steps(this);
+
+    return result;
   }
 
   private _resolveNextId(): number {

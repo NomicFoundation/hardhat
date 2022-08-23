@@ -136,6 +136,8 @@ export interface IRecipeGraphBuilder {
     paramName: string,
     defaultValue: ParameterValue
   ) => OptionalParameter;
+
+  useRecipe: (recipe: Recipe) => FutureDict;
 }
 
 export interface Recipe {
