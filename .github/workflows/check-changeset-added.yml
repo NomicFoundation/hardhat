@@ -30,4 +30,4 @@ jobs:
           issue-number: ${{ github.event.pull_request.number }}
           body-includes: no changeset needed
       - name: Check changeset
-        run: test -n "${{ steps.search_changeset_comment.outputs.comment-id }}" || test -n "${{ steps.search_no_changeset_neededoutputs.comment-id }}"
+        run: test -n "${{ steps.search_changeset_comment.outputs.comment-id }}" || test -n "${{ steps.search_no_changeset_needed.outputs.comment-id }}"
