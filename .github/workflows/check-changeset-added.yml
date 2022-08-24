@@ -1,6 +1,8 @@
 # Checks that a PR has a changeset, or that someone explicitly added a comment
 # saying "no changeset needed".
 
+name: Check changeset
+
 on:
   pull_request:
     branches:
