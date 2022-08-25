@@ -12,6 +12,7 @@ import {
   OptionalParameter,
   ParameterValue,
   RequiredParameter,
+  CallableFuture,
 } from "./future";
 import { Artifact } from "./hardhat";
 
@@ -65,7 +66,7 @@ export interface CallRecipeVertex {
   id: number;
   type: "Call";
   label: string;
-  contract: HardhatContract | ArtifactContract | DeployedContract;
+  contract: CallableFuture;
   method: string;
   args: Array<string | number | RecipeFuture>;
   after: RecipeFuture[];
@@ -131,7 +132,7 @@ export interface IRecipeGraphBuilder {
   ) => HardhatLibrary | ArtifactLibrary;
 
   call: (
-    contractFuture: HardhatContract | ArtifactContract | DeployedContract,
+    contractFuture: RecipeFuture,
     functionName: string,
     {
       args,

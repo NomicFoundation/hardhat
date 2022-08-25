@@ -10,8 +10,9 @@ import type {
   OptionalParameter,
   ParameterValue,
   FutureDict,
+  CallableFuture,
 } from "../types/future";
-import { isArtifact, isParameter } from "../types/guards";
+import { isArtifact, isCallable, isParameter } from "../types/guards";
 import type { Artifact } from "../types/hardhat";
 import {
   ContractOptions,
@@ -187,12 +188,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
   }
 
   public call(
-    contractFuture:
-      | HardhatContract
-      | ArtifactContract
-      | DeployedContract
-      | RequiredParameter
-      | OptionalParameter,
+    contractFuture: RecipeFuture,
     functionName: string,
     {
       args,
@@ -209,7 +205,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
       _future: true,
     };
 
-    let contract: RecipeFuture;
+    let contract: CallableFuture;
     if (isParameter(contractFuture)) {
       const parameter = contractFuture;
       const scope = parameter.scope;
@@ -227,8 +223,12 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
         | HardhatContract
         | ArtifactContract
         | DeployedContract;
-    } else {
+    } else if (isCallable(contractFuture)) {
       contract = contractFuture;
+    } else {
+      throw new Error(
+        `Not a callable future ${contractFuture.label} (${contractFuture.type})`
+      );
     }
 
     this.graph.addRecipeVertex({

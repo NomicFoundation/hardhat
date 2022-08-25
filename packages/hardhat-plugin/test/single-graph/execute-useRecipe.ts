@@ -7,92 +7,162 @@ import { assert } from "chai";
 import { mineBlocks } from "../helpers";
 import { useEnvironment } from "../useEnvironment";
 
-describe("useRecipe", () => {
+describe("useRecipe", function () {
   useEnvironment("minimal");
 
-  it("should be able to use contracts created in other recipes", async function () {
-    await this.hre.run("compile", { quiet: true });
+  describe("returning futures from recipe usage", () => {
+    it("using useRecipe", async function () {
+      await this.hre.run("compile", { quiet: true });
 
-    const thirdPartyRecipe = buildRecipeSingleGraph(
-      "ThirdPartyRecipe",
-      (m: IRecipeGraphBuilder) => {
-        const foo = m.contract("Foo");
+      const thirdPartyRecipe = buildRecipeSingleGraph(
+        "ThirdPartyRecipe",
+        (m: IRecipeGraphBuilder) => {
+          const foo = m.contract("Foo");
 
-        return { foo };
-      }
-    );
+          return { foo };
+        }
+      );
 
-    const userRecipe = buildRecipeSingleGraph(
-      "UserRecipe",
-      (m: IRecipeGraphBuilder) => {
-        const { foo } = m.useRecipe(thirdPartyRecipe);
+      const userRecipe = buildRecipeSingleGraph(
+        "UserRecipe",
+        (m: IRecipeGraphBuilder) => {
+          const { foo } = m.useRecipe(thirdPartyRecipe);
 
-        m.call(foo as any, "inc", {
-          args: [],
-        });
+          m.call(foo, "inc", {
+            args: [],
+          });
 
-        return { foo };
-      }
-    );
+          return { foo };
+        }
+      );
 
-    const deployPromise = this.hre.ignition.deploySingleGraph(userRecipe, {
-      parameters: {},
+      const deployPromise = this.hre.ignition.deploySingleGraph(userRecipe, {
+        parameters: {},
+      });
+
+      await mineBlocks(this.hre, [1, 1, 1], deployPromise);
+
+      const result = await deployPromise;
+
+      assert.isDefined(result);
+
+      const x = await result.foo.x();
+
+      assert.equal(x, Number(2));
     });
-
-    await mineBlocks(this.hre, [1, 1, 1], deployPromise);
-
-    const result = await deployPromise;
-
-    assert.isDefined(result);
-
-    const x = await result.foo.x();
-
-    assert.equal(x, Number(2));
   });
 
-  it("should be able to pass contract futures into another recipe", async function () {
-    await this.hre.run("compile", { quiet: true });
+  describe("passing futures into recipes", () => {
+    it("using useRecipe", async function () {
+      await this.hre.run("compile", { quiet: true });
 
-    const thirdPartyRecipe = buildRecipeSingleGraph(
-      "ThirdPartyRecipe",
-      (m: IRecipeGraphBuilder) => {
-        const foo = m.getParam("Foo");
+      const thirdPartyRecipe = buildRecipeSingleGraph(
+        "ThirdPartyRecipe",
+        (m: IRecipeGraphBuilder) => {
+          const foo = m.getParam("Foo");
 
-        m.call(foo as any, "inc", {
-          args: [],
-        });
+          m.call(foo, "inc", {
+            args: [],
+          });
 
-        return { foo };
-      }
-    );
+          return { foo };
+        }
+      );
 
-    const userRecipe = buildRecipeSingleGraph(
-      "UserRecipe",
-      (m: IRecipeGraphBuilder) => {
-        const foo = m.contract("Foo");
+      const userRecipe = buildRecipeSingleGraph(
+        "UserRecipe",
+        (m: IRecipeGraphBuilder) => {
+          const foo = m.contract("Foo");
 
-        m.useRecipe(thirdPartyRecipe, {
-          parameters: {
-            Foo: foo as any,
-          },
-        });
+          m.useRecipe(thirdPartyRecipe, {
+            parameters: {
+              Foo: foo,
+            },
+          });
 
-        return { foo };
-      }
-    );
+          return { foo };
+        }
+      );
 
-    const deployPromise = this.hre.ignition.deploySingleGraph(userRecipe, {
-      parameters: {},
+      const deployPromise = this.hre.ignition.deploySingleGraph(userRecipe, {
+        parameters: {},
+      });
+
+      await mineBlocks(this.hre, [1, 1, 1], deployPromise);
+
+      const result = await deployPromise;
+
+      assert.isDefined(result);
+
+      const x = await result.foo.x();
+
+      assert.equal(x, Number(2));
     });
+  });
 
-    await mineBlocks(this.hre, [1, 1, 1], deployPromise);
+  describe("passing futures into and out of recipes", () => {
+    it("using useRecipe", async function () {
+      await this.hre.run("compile", { quiet: true });
 
-    const result = await deployPromise;
+      const addSecondAndThirdEntryRecipe = buildRecipeSingleGraph(
+        "ThirdPartyRecipe",
+        (m: IRecipeGraphBuilder) => {
+          const trace = m.getParam("Trace");
 
-    assert.isDefined(result);
+          const secondCall = m.call(trace, "addEntry", {
+            args: ["second"],
+          });
 
-    const x = await result.foo.x();
+          const thirdCall = m.call(trace, "addEntry", {
+            args: ["third"],
+            after: [secondCall],
+          });
 
-    assert.equal(x, Number(2));
+          return { thirdCall };
+        }
+      );
+
+      const userRecipe = buildRecipeSingleGraph(
+        "UserRecipe",
+        (m: IRecipeGraphBuilder) => {
+          const trace = m.contract("Trace", {
+            args: ["first"],
+          });
+
+          const { thirdCall } = m.useRecipe(addSecondAndThirdEntryRecipe, {
+            parameters: {
+              Trace: trace,
+            },
+          });
+
+          m.call(trace, "addEntry", {
+            args: ["fourth"],
+            after: [thirdCall],
+          });
+
+          return { trace };
+        }
+      );
+
+      const deployPromise = this.hre.ignition.deploySingleGraph(userRecipe, {
+        parameters: {},
+      });
+
+      await mineBlocks(this.hre, [1, 1, 1, 1], deployPromise);
+
+      const result = await deployPromise;
+
+      assert.isDefined(result);
+
+      const entry1 = await result.trace.entries(0);
+      const entry2 = await result.trace.entries(1);
+      const entry3 = await result.trace.entries(2);
+      const entry4 = await result.trace.entries(3);
+
+      assert.deepStrictEqual(
+        [entry1, entry2, entry3, entry4],
+        ["first", "second", "third", "fourth"]
+      );
+    });
   });
 });

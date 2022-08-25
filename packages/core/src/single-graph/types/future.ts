@@ -64,13 +64,16 @@ export interface OptionalParameter {
   _future: true;
 }
 
-export type DependableFuture =
+export type ContractFuture =
   | HardhatContract
   | ArtifactContract
-  | DeployedContract
-  | HardhatLibrary
-  | ArtifactLibrary
-  | ContractCall;
+  | DeployedContract;
+
+export type LibraryFuture = HardhatLibrary | ArtifactLibrary;
+
+export type CallableFuture = ContractFuture | LibraryFuture;
+
+export type DependableFuture = CallableFuture | ContractCall;
 
 export type ParameterFuture = RequiredParameter | OptionalParameter;
 

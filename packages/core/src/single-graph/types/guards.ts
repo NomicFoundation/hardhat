@@ -1,4 +1,5 @@
 import type {
+  CallableFuture,
   DependableFuture,
   OptionalParameter,
   RecipeFuture,
@@ -77,7 +78,11 @@ export function isDependable(possible: any): possible is DependableFuture {
 }
 
 export function isParameter(
-  recipe: RecipeFuture
-): recipe is RequiredParameter | OptionalParameter {
-  return recipe.type === "parameter";
+  future: RecipeFuture
+): future is RequiredParameter | OptionalParameter {
+  return future.type === "parameter";
+}
+
+export function isCallable(future: RecipeFuture): future is CallableFuture {
+  return future.type === "contract" || future.type === "library";
 }
