@@ -52,6 +52,7 @@ export interface RequiredParameter {
   label: string;
   type: "parameter";
   subtype: "required";
+  scope: string;
   _future: true;
 }
 
@@ -61,6 +62,7 @@ export interface OptionalParameter {
   type: "parameter";
   subtype: "optional";
   defaultValue: ParameterValue;
+  scope: string;
   _future: true;
 }
 

@@ -174,6 +174,7 @@ async function executeContractCall(
   const resolve = resolveFromContext(services.context);
 
   const resolvedArgs = args.map(resolve).map(toAddress);
+
   const { address, abi } = resolve(contract);
 
   const txHash = await services.contracts.call(

@@ -1,4 +1,8 @@
-import type { RecipeFuture } from "./future";
+import type {
+  OptionalParameter,
+  RecipeFuture,
+  RequiredParameter,
+} from "./future";
 import { Artifact } from "./hardhat";
 import type {
   RecipeVertex,
@@ -60,4 +64,10 @@ export function isFuture(possible: {}): possible is RecipeFuture {
     typeof possible === "object" &&
     "_future" in possible
   );
+}
+
+export function isParameter(
+  recipe: RecipeFuture
+): recipe is RequiredParameter | OptionalParameter {
+  return recipe.type === "parameter";
 }

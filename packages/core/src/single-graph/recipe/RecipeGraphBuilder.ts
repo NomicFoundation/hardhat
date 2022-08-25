@@ -11,7 +11,7 @@ import type {
   ParameterValue,
   FutureDict,
 } from "../types/future";
-import { isArtifact } from "../types/guards";
+import { isArtifact, isParameter } from "../types/guards";
 import type { Artifact } from "../types/hardhat";
 import {
   ContractOptions,
@@ -19,19 +19,47 @@ import {
   IRecipeGraphBuilder,
   Recipe,
   RecipeGraphBuilderOptions,
+  UseRecipeOptions,
 } from "../types/recipeGraph";
 
 import { RecipeGraph } from "./RecipeGraph";
+
+class ScopeStack {
+  private scopes: string[];
+
+  constructor() {
+    this.scopes = [];
+  }
+
+  public push(scopeName: string): void {
+    this.scopes.push(scopeName);
+  }
+
+  public pop(): string | undefined {
+    return this.scopes.pop();
+  }
+
+  public getScopedLabel(label: string | undefined) {
+    const joinedScopes = this.scopes.join("/");
+
+    return label === undefined ? joinedScopes : `${joinedScopes}/${label}`;
+  }
+}
 
 export class RecipeGraphBuilder implements IRecipeGraphBuilder {
   public chainId: number;
   public graph: IRecipeGraph;
   private idCounter: number;
+  private useRecipeInvocationCounter: number;
+  private scopes: ScopeStack;
 
   constructor(options: RecipeGraphBuilderOptions) {
     this.chainId = options.chainId;
     this.idCounter = 0;
+    this.useRecipeInvocationCounter = 0;
     this.graph = new RecipeGraph();
+
+    this.scopes = new ScopeStack();
   }
 
   public library(
@@ -159,7 +187,12 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
   }
 
   public call(
-    contractFuture: HardhatContract | ArtifactContract | DeployedContract,
+    contractFuture:
+      | HardhatContract
+      | ArtifactContract
+      | DeployedContract
+      | RequiredParameter
+      | OptionalParameter,
     functionName: string,
     {
       args,
@@ -174,11 +207,33 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
       _future: true,
     };
 
+    let contract: RecipeFuture;
+    if (isParameter(contractFuture)) {
+      const parameter = contractFuture;
+      const scope = parameter.scope;
+
+      const registeredScope = this.graph.registeredParameters[scope];
+
+      if (
+        registeredScope === undefined ||
+        !(parameter.label in registeredScope)
+      ) {
+        throw new Error("Could not resolve contract from parameter");
+      }
+
+      contract = registeredScope[parameter.label] as
+        | HardhatContract
+        | ArtifactContract
+        | DeployedContract;
+    } else {
+      contract = contractFuture;
+    }
+
     this.graph.addRecipeVertex({
       id: callFuture.id,
       label: callFuture.label,
       type: "Call",
-      contract: contractFuture,
+      contract,
       method: functionName,
       args: args ?? [],
     });
@@ -192,6 +247,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
       label: paramName,
       type: "parameter",
       subtype: "required",
+      scope: this.scopes.getScopedLabel(undefined),
       _future: true,
     };
 
@@ -208,14 +264,27 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
       type: "parameter",
       subtype: "optional",
       defaultValue,
+      scope: this.scopes.getScopedLabel(undefined),
       _future: true,
     };
 
     return paramFuture;
   }
 
-  public useRecipe(recipe: Recipe): FutureDict {
+  public useRecipe(recipe: Recipe, options?: UseRecipeOptions): FutureDict {
+    const useRecipeInvocationId = this.useRecipeInvocationCounter++;
+
+    this.scopes.push(`${recipe.name}:${useRecipeInvocationId}`);
+
+    if (options !== undefined && options.parameters !== undefined) {
+      const parametersLabel = this.scopes.getScopedLabel(undefined);
+
+      this.graph.registeredParameters[parametersLabel] = options.parameters;
+    }
+
     const result = recipe.steps(this);
+
+    this.scopes.pop();
 
     return result;
   }

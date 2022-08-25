@@ -83,9 +83,16 @@ export interface ContractOptions {
   };
 }
 
+export interface UseRecipeOptions {
+  parameters?: { [key: string]: number | string | RecipeFuture };
+}
+
 export interface IRecipeGraph {
   vertexes: Map<number, RecipeVertex>;
   adjacencyList: Array<Set<number>>;
+  registeredParameters: {
+    [key: string]: { [key: string]: string | number | RecipeFuture };
+  };
 
   vertexSize: () => number;
   addRecipeVertex: (node: RecipeVertex) => void;
@@ -137,7 +144,7 @@ export interface IRecipeGraphBuilder {
     defaultValue: ParameterValue
   ) => OptionalParameter;
 
-  useRecipe: (recipe: Recipe) => FutureDict;
+  useRecipe: (recipe: Recipe, options?: UseRecipeOptions) => FutureDict;
 }
 
 export interface Recipe {

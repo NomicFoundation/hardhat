@@ -48,7 +48,7 @@ export function topologicalSort(adjacencyList: AdjacencyList): number[] {
     return new Set([...acc].concat([...v]));
   }, new Set<number>(adjacencyList.keys()));
 
-  const dag = new DiGraph(vertexes.size);
+  const dag = new DiGraph(Math.max(...vertexes) + 1);
 
   for (let from = 0; from < adjacencyList.length; from++) {
     const toSet = adjacencyList[from];

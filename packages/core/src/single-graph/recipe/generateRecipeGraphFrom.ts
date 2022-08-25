@@ -15,7 +15,5 @@ export function generateRecipeGraphFrom(
 
   const recipeOutputs = recipe.steps(graphBuilder);
 
-  const graph = graphBuilder.graph;
-
-  return { graph, recipeOutputs };
+  return { graph: graphBuilder.graph, recipeOutputs };
 }

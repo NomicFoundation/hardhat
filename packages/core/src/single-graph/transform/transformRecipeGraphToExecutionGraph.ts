@@ -36,6 +36,11 @@ export type TransformResult =
       failures: [string, Error[]];
     };
 
+interface TransformContext {
+  services: Services;
+  graph: IRecipeGraph;
+}
+
 export async function transformRecipeGraphToExecutionGraph(
   recipeGraph: IRecipeGraph,
   servicesOptions: {
@@ -52,7 +57,7 @@ export async function transformRecipeGraphToExecutionGraph(
 
   const executionGraph: IExecutionGraph = await convertRecipeToExecution(
     recipeGraph,
-    convertRecipeVertexToExecutionVertex(services)
+    convertRecipeVertexToExecutionVertex({ services, graph: recipeGraph })
   );
 
   return { _kind: "success", executionGraph };
@@ -75,22 +80,22 @@ async function convertRecipeToExecution(
 }
 
 function convertRecipeVertexToExecutionVertex(
-  services: Services
+  context: TransformContext
 ): (recipeVertex: RecipeVertex) => Promise<ExecutionVertex> {
   return (recipeVertex: RecipeVertex): Promise<ExecutionVertex> => {
     switch (recipeVertex.type) {
       case "HardhatContract":
-        return convertHardhatContractToContractDeploy(recipeVertex, services);
+        return convertHardhatContractToContractDeploy(recipeVertex, context);
       case "ArtifactContract":
-        return convertArtifactContractToContractDeploy(recipeVertex, services);
+        return convertArtifactContractToContractDeploy(recipeVertex, context);
       case "DeployedContract":
-        return convertDeployedContractToDeployedDeploy(recipeVertex, services);
+        return convertDeployedContractToDeployedDeploy(recipeVertex, context);
       case "Call":
-        return convertCallToContractCall(recipeVertex, services);
+        return convertCallToContractCall(recipeVertex, context);
       case "HardhatLibrary":
-        return convertHardhatLibraryToLibraryDeploy(recipeVertex, services);
+        return convertHardhatLibraryToLibraryDeploy(recipeVertex, context);
       case "ArtifactLibrary":
-        return convertArtifactLibraryToLibraryDeploy(recipeVertex, services);
+        return convertArtifactLibraryToLibraryDeploy(recipeVertex, context);
       default:
         return assertRecipeVertexNotExpected(recipeVertex);
     }
@@ -99,39 +104,38 @@ function convertRecipeVertexToExecutionVertex(
 
 async function convertHardhatContractToContractDeploy(
   vertex: HardhatContractRecipeVertex,
-  services: Services
+  transformContext: TransformContext
 ): Promise<ContractDeploy> {
-  const artifact: Artifact = await services.artifacts.getArtifact(
-    vertex.contractName
-  );
+  const artifact: Artifact =
+    await transformContext.services.artifacts.getArtifact(vertex.contractName);
 
   return {
     type: "ContractDeploy",
     id: vertex.id,
     label: vertex.label,
     artifact,
-    args: await convertArgs(vertex.args, services),
+    args: await convertArgs(vertex.args, transformContext),
     libraries: vertex.libraries,
   };
 }
 
 async function convertArtifactContractToContractDeploy(
   vertex: ArtifactContractRecipeVertex,
-  services: Services
+  transformContext: TransformContext
 ): Promise<ContractDeploy> {
   return {
     type: "ContractDeploy",
     id: vertex.id,
     label: vertex.label,
     artifact: vertex.artifact,
-    args: await convertArgs(vertex.args, services),
+    args: await convertArgs(vertex.args, transformContext),
     libraries: vertex.libraries,
   };
 }
 
 async function convertDeployedContractToDeployedDeploy(
   vertex: DeployedContractRecipeVertex,
-  _services: Services
+  _transformContext: TransformContext
 ): Promise<DeployedContract> {
   return {
     type: "DeployedContract",
@@ -144,46 +148,45 @@ async function convertDeployedContractToDeployedDeploy(
 
 async function convertCallToContractCall(
   vertex: CallRecipeVertex,
-  services: Services
+  transformContext: TransformContext
 ): Promise<ContractCall> {
   return {
     type: "ContractCall",
     id: vertex.id,
     label: vertex.label,
 
-    contract: vertex.contract,
+    contract: await resolveParameter(vertex.contract, transformContext),
     method: vertex.method,
-    args: await convertArgs(vertex.args, services),
+    args: await convertArgs(vertex.args, transformContext),
   };
 }
 
 async function convertHardhatLibraryToLibraryDeploy(
   vertex: HardhatLibraryRecipeVertex,
-  services: Services
+  transformContext: TransformContext
 ): Promise<LibraryDeploy> {
-  const artifact: Artifact = await services.artifacts.getArtifact(
-    vertex.libraryName
-  );
+  const artifact: Artifact =
+    await transformContext.services.artifacts.getArtifact(vertex.libraryName);
 
   return {
     type: "LibraryDeploy",
     id: vertex.id,
     label: vertex.label,
     artifact,
-    args: await convertArgs(vertex.args, services),
+    args: await convertArgs(vertex.args, transformContext),
   };
 }
 
 async function convertArtifactLibraryToLibraryDeploy(
   vertex: ArtifactLibraryRecipeVertex,
-  services: Services
+  transformContext: TransformContext
 ): Promise<LibraryDeploy> {
   return {
     type: "LibraryDeploy",
     id: vertex.id,
     label: vertex.label,
     artifact: vertex.artifact,
-    args: await convertArgs(vertex.args, services),
+    args: await convertArgs(vertex.args, transformContext),
   };
 }
 
@@ -199,12 +202,12 @@ function assertRecipeVertexNotExpected(
 
 async function convertArgs(
   args: Array<string | number | RecipeFuture>,
-  services: Services
+  transformContext: TransformContext
 ): Promise<Array<string | number | RecipeFuture>> {
   const resolvedArgs = [];
 
   for (const arg of args) {
-    const resolvedArg = await convertArg(arg, services);
+    const resolvedArg = await resolveParameter(arg, transformContext);
 
     resolvedArgs.push(resolvedArg);
   }
@@ -212,9 +215,9 @@ async function convertArgs(
   return resolvedArgs;
 }
 
-async function convertArg(
+async function resolveParameter(
   arg: string | number | RecipeFuture,
-  services: Services
+  { services, graph }: TransformContext
 ) {
   if (!isFuture(arg)) {
     return arg;
@@ -222,6 +225,13 @@ async function convertArg(
 
   if (arg.type !== "parameter") {
     return arg;
+  }
+
+  const scope = arg.scope;
+  const scopeParameters = graph.registeredParameters[scope];
+
+  if (scopeParameters !== undefined && arg.label in scopeParameters) {
+    return scopeParameters[arg.label];
   }
 
   const param = await services.config.getParam(arg.label);

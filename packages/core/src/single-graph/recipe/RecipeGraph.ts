@@ -1,3 +1,4 @@
+import { RecipeFuture } from "../types/future";
 import { VertexDescriptor } from "../types/graph";
 import { isFuture } from "../types/guards";
 import { IRecipeGraph, RecipeVertex } from "../types/recipeGraph";
@@ -11,10 +12,14 @@ import {
 export class RecipeGraph implements IRecipeGraph {
   public adjacencyList: AdjacencyList;
   public vertexes: Map<number, RecipeVertex>;
+  public registeredParameters: {
+    [key: string]: { [key: string]: string | number | RecipeFuture };
+  };
 
   constructor() {
     this.adjacencyList = constructEmptyAdjacencyList();
     this.vertexes = new Map<number, RecipeVertex>();
+    this.registeredParameters = {};
   }
 
   public vertexSize(): number {
