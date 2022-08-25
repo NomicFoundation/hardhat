@@ -68,6 +68,7 @@ export interface CallRecipeVertex {
   contract: HardhatContract | ArtifactContract | DeployedContract;
   method: string;
   args: Array<string | number | RecipeFuture>;
+  after: RecipeFuture[];
 }
 
 export type RecipeVertex =
@@ -136,6 +137,7 @@ export interface IRecipeGraphBuilder {
       args,
     }: {
       args: Array<string | number | RecipeFuture>;
+      after?: RecipeFuture[];
     }
   ) => ContractCall;
 

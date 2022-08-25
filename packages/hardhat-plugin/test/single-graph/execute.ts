@@ -59,26 +59,58 @@ describe("single graph version", () => {
     assert.equal(usedAddress, result.bar.address);
   });
 
-  it("should be able to call contracts", async function () {
-    const result = await deployRecipe(this.hre, (m) => {
-      const bar = m.contract("Bar");
-      const usesContract = m.contract("UsesContract", {
-        args: ["0x0000000000000000000000000000000000000000"],
+  describe("calls", () => {
+    it("should be able to call contracts", async function () {
+      const result = await deployRecipe(this.hre, (m) => {
+        const bar = m.contract("Bar");
+        const usesContract = m.contract("UsesContract", {
+          args: ["0x0000000000000000000000000000000000000000"],
+        });
+
+        m.call(usesContract, "setAddress", {
+          args: [bar],
+        });
+
+        return { bar, usesContract };
       });
 
-      m.call(usesContract, "setAddress", {
-        args: [bar],
-      });
+      assert.isDefined(result.bar);
+      assert.isDefined(result.usesContract);
 
-      return { bar, usesContract };
+      const usedAddress = await result.usesContract.contractAddress();
+
+      assert.equal(usedAddress, result.bar.address);
     });
 
-    assert.isDefined(result.bar);
-    assert.isDefined(result.usesContract);
+    it("should be able to make calls in order", async function () {
+      const result = await deployRecipe(this.hre, (m) => {
+        const trace = m.contract("Trace", {
+          args: ["first"],
+        });
 
-    const usedAddress = await result.usesContract.contractAddress();
+        const second = m.call(trace, "addEntry", {
+          args: ["second"],
+        });
 
-    assert.equal(usedAddress, result.bar.address);
+        m.call(trace, "addEntry", {
+          args: ["third"],
+          after: [second],
+        });
+
+        return { trace };
+      });
+
+      assert.isDefined(result.trace);
+
+      const entry1 = await result.trace.entries(0);
+      const entry2 = await result.trace.entries(1);
+      const entry3 = await result.trace.entries(2);
+
+      assert.deepStrictEqual(
+        [entry1, entry2, entry3],
+        ["first", "second", "third"]
+      );
+    });
   });
 
   it("should be able to use an existing contract", async function () {

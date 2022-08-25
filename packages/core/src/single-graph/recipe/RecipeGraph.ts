@@ -63,6 +63,13 @@ export class RecipeGraph implements IRecipeGraph {
         from: depNode.contract.vertexId,
         to: depNode.id,
       });
+
+      for (const afterVertex of depNode.after.filter(isDependable)) {
+        addEdge(this.adjacencyList, {
+          from: afterVertex.vertexId,
+          to: depNode.id,
+        });
+      }
     }
   }
 

@@ -196,8 +196,10 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
     functionName: string,
     {
       args,
+      after,
     }: {
       args: Array<string | number | RecipeFuture>;
+      after?: RecipeFuture[];
     }
   ): ContractCall {
     const callFuture: ContractCall = {
@@ -236,6 +238,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
       contract,
       method: functionName,
       args: args ?? [],
+      after: after ?? [],
     });
 
     return callFuture;
