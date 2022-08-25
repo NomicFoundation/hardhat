@@ -1,3 +1,5 @@
+import { AdjacencyList } from "../utils/adjacencyList";
+
 import {
   ArtifactContract,
   ArtifactLibrary,
@@ -89,7 +91,7 @@ export interface UseRecipeOptions {
 
 export interface IRecipeGraph {
   vertexes: Map<number, RecipeVertex>;
-  adjacencyList: Array<Set<number>>;
+  adjacencyList: AdjacencyList;
   registeredParameters: {
     [key: string]: { [key: string]: string | number | RecipeFuture };
   };
