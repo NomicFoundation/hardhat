@@ -1,5 +1,5 @@
 export interface HardhatContract {
-  id: number;
+  vertexId: number;
   label: string;
   type: "contract";
   subtype: "hardhat";
@@ -7,7 +7,7 @@ export interface HardhatContract {
 }
 
 export interface ArtifactContract {
-  id: number;
+  vertexId: number;
   label: string;
   type: "contract";
   subtype: "artifact";
@@ -15,7 +15,7 @@ export interface ArtifactContract {
 }
 
 export interface DeployedContract {
-  id: number;
+  vertexId: number;
   label: string;
   type: "contract";
   subtype: "deployed";
@@ -23,7 +23,7 @@ export interface DeployedContract {
 }
 
 export interface HardhatLibrary {
-  id: number;
+  vertexId: number;
   label: string;
   type: "library";
   subtype: "hardhat";
@@ -31,7 +31,7 @@ export interface HardhatLibrary {
 }
 
 export interface ArtifactLibrary {
-  id: number;
+  vertexId: number;
   label: string;
   type: "library";
   subtype: "artifact";
@@ -39,7 +39,7 @@ export interface ArtifactLibrary {
 }
 
 export interface ContractCall {
-  id: number;
+  vertexId: number;
   label: string;
   type: "call";
   _future: true;
@@ -48,7 +48,6 @@ export interface ContractCall {
 export type ParameterValue = string | number | RecipeFuture;
 
 export interface RequiredParameter {
-  id: number;
   label: string;
   type: "parameter";
   subtype: "required";
@@ -57,7 +56,6 @@ export interface RequiredParameter {
 }
 
 export interface OptionalParameter {
-  id: number;
   label: string;
   type: "parameter";
   subtype: "optional";
@@ -66,15 +64,17 @@ export interface OptionalParameter {
   _future: true;
 }
 
-export type RecipeFuture =
+export type DependableFuture =
   | HardhatContract
   | ArtifactContract
   | DeployedContract
   | HardhatLibrary
   | ArtifactLibrary
-  | ContractCall
-  | RequiredParameter
-  | OptionalParameter;
+  | ContractCall;
+
+export type ParameterFuture = RequiredParameter | OptionalParameter;
+
+export type RecipeFuture = DependableFuture | ParameterFuture;
 
 export interface FutureDict {
   [key: string]: RecipeFuture;

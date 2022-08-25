@@ -1,6 +1,6 @@
 import { RecipeFuture } from "../types/future";
 import { VertexDescriptor } from "../types/graph";
-import { isFuture } from "../types/guards";
+import { isDependable } from "../types/guards";
 import { IRecipeGraph, RecipeVertex } from "../types/recipeGraph";
 import {
   addEdge,
@@ -38,10 +38,10 @@ export class RecipeGraph implements IRecipeGraph {
     this.vertexes.set(depNode.id, depNode);
 
     if (depNode.type !== "DeployedContract") {
-      const futureArgs = depNode.args.filter(isFuture);
+      const futureArgs = depNode.args.filter(isDependable);
 
       for (const arg of futureArgs) {
-        addEdge(this.adjacencyList, { from: arg.id, to: depNode.id });
+        addEdge(this.adjacencyList, { from: arg.vertexId, to: depNode.id });
       }
     }
 
@@ -49,16 +49,18 @@ export class RecipeGraph implements IRecipeGraph {
       depNode.type === "HardhatContract" ||
       depNode.type === "ArtifactContract"
     ) {
-      const futureLibraries = Object.values(depNode.libraries);
+      const futureLibraries = Object.values(depNode.libraries).filter(
+        isDependable
+      );
 
       for (const lib of futureLibraries) {
-        addEdge(this.adjacencyList, { from: lib.id, to: depNode.id });
+        addEdge(this.adjacencyList, { from: lib.vertexId, to: depNode.id });
       }
     }
 
     if (depNode.type === "Call") {
       addEdge(this.adjacencyList, {
-        from: depNode.contract.id,
+        from: depNode.contract.vertexId,
         to: depNode.id,
       });
     }

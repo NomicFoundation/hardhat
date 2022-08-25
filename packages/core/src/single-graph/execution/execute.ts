@@ -11,7 +11,7 @@ import {
   IExecutionGraph,
   LibraryDeploy,
 } from "../types/executionGraph";
-import { isFuture } from "../types/guards";
+import { isDependable } from "../types/guards";
 import { topologicalSort } from "../utils/adjacencyList";
 
 export type ExecuteResult =
@@ -201,14 +201,14 @@ function toAddress(v: any) {
 
 function resolveFromContext(context: Map<number, any>) {
   return (arg: ArgValue) => {
-    if (!isFuture(arg)) {
+    if (!isDependable(arg)) {
       return arg;
     }
 
-    const entry = context.get(arg.id);
+    const entry = context.get(arg.vertexId);
 
     if (!entry) {
-      throw new Error(`No context entry for ${arg.id} (${arg.label})`);
+      throw new Error(`No context entry for ${arg.vertexId} (${arg.label})`);
     }
 
     return entry;

@@ -440,7 +440,7 @@ describe("Recipes", function () {
 
       assert.deepStrictEqual(depNode.args, [
         {
-          id: 0,
+          vertexId: 0,
           label: "Token",
           type: "contract",
           subtype: "hardhat",

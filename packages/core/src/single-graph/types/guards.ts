@@ -1,4 +1,5 @@
 import type {
+  DependableFuture,
   OptionalParameter,
   RecipeFuture,
   RequiredParameter,
@@ -63,6 +64,15 @@ export function isFuture(possible: {}): possible is RecipeFuture {
     possible !== null &&
     typeof possible === "object" &&
     "_future" in possible
+  );
+}
+
+export function isDependable(possible: any): possible is DependableFuture {
+  return (
+    isFuture(possible) &&
+    (possible.type === "call" ||
+      possible.type === "contract" ||
+      possible.type === "library")
   );
 }
 

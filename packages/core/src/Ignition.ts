@@ -17,7 +17,8 @@ import { UserRecipe } from "./recipes/UserRecipe";
 import { execute } from "./single-graph/execution/execute";
 import { generateRecipeGraphFrom } from "./single-graph/recipe/generateRecipeGraphFrom";
 import { transformRecipeGraphToExecutionGraph } from "./single-graph/transform/transformRecipeGraphToExecutionGraph";
-import { FutureDict } from "./single-graph/types/future";
+import { DependableFuture, FutureDict } from "./single-graph/types/future";
+import { isDependable } from "./single-graph/types/guards";
 import { validateRecipeGraph } from "./single-graph/validation/validateRecipeGraph";
 
 const log = setupDebug("ignition:main");
@@ -198,13 +199,15 @@ export class Ignition {
     recipeOutputs: FutureDict,
     result: Map<number, any>
   ): SerializedDeploymentResult {
-    const convertedEntries = Object.entries(recipeOutputs).map(
-      ([name, future]) => {
-        const executionResultValue = result.get(future.id);
-
-        return [name, serializeFutureOutput(executionResultValue)];
-      }
+    const entries = Object.entries(recipeOutputs).filter(
+      (entry): entry is [string, DependableFuture] => isDependable(entry[1])
     );
+
+    const convertedEntries = entries.map(([name, future]) => {
+      const executionResultValue = result.get(future.vertexId);
+
+      return [name, serializeFutureOutput(executionResultValue)];
+    });
 
     return Object.fromEntries(convertedEntries);
   }

@@ -72,7 +72,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
       const options: ContractOptions | undefined = givenOptions;
 
       const artifactContractFuture: ArtifactLibrary = {
-        id: this._resolveNextId(),
+        vertexId: this._resolveNextId(),
         label: libraryName,
         type: "library",
         subtype: "artifact",
@@ -80,7 +80,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
       };
 
       this.graph.addRecipeVertex({
-        id: artifactContractFuture.id,
+        id: artifactContractFuture.vertexId,
         label: libraryName,
         type: "ArtifactLibrary",
         artifact,
@@ -92,7 +92,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
       const options: ContractOptions | undefined = artifactOrOptions;
 
       const libraryFuture: HardhatLibrary = {
-        id: this._resolveNextId(),
+        vertexId: this._resolveNextId(),
         label: libraryName,
         type: "library",
         subtype: "hardhat",
@@ -100,7 +100,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
       };
 
       this.graph.addRecipeVertex({
-        id: libraryFuture.id,
+        id: libraryFuture.vertexId,
         label: libraryName,
         type: "HardhatLibrary",
         libraryName,
@@ -121,7 +121,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
       const options: ContractOptions | undefined = givenOptions;
 
       const artifactContractFuture: ArtifactContract = {
-        id: this._resolveNextId(),
+        vertexId: this._resolveNextId(),
         label: contractName,
         type: "contract",
         subtype: "artifact",
@@ -129,7 +129,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
       };
 
       this.graph.addRecipeVertex({
-        id: artifactContractFuture.id,
+        id: artifactContractFuture.vertexId,
         label: contractName,
         type: "ArtifactContract",
         artifact,
@@ -142,7 +142,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
       const options: ContractOptions | undefined = artifactOrOptions;
 
       const contractFuture: HardhatContract = {
-        id: this._resolveNextId(),
+        vertexId: this._resolveNextId(),
         label: contractName,
         type: "contract",
         subtype: "hardhat",
@@ -150,7 +150,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
       };
 
       this.graph.addRecipeVertex({
-        id: contractFuture.id,
+        id: contractFuture.vertexId,
         label: contractName,
         type: "HardhatContract",
         contractName,
@@ -168,7 +168,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
     abi: any[]
   ): DeployedContract {
     const deployedFuture: DeployedContract = {
-      id: this._resolveNextId(),
+      vertexId: this._resolveNextId(),
       label: contractName,
       type: "contract",
       subtype: "deployed",
@@ -176,7 +176,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
     };
 
     this.graph.addRecipeVertex({
-      id: deployedFuture.id,
+      id: deployedFuture.vertexId,
       label: contractName,
       type: "DeployedContract",
       address,
@@ -201,7 +201,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
     }
   ): ContractCall {
     const callFuture: ContractCall = {
-      id: this._resolveNextId(),
+      vertexId: this._resolveNextId(),
       label: `${contractFuture.label}/${functionName}`,
       type: "call",
       _future: true,
@@ -230,7 +230,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
     }
 
     this.graph.addRecipeVertex({
-      id: callFuture.id,
+      id: callFuture.vertexId,
       label: callFuture.label,
       type: "Call",
       contract,
@@ -243,7 +243,6 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
 
   public getParam(paramName: string): RequiredParameter {
     const paramFuture: RequiredParameter = {
-      id: this._resolveNextId(),
       label: paramName,
       type: "parameter",
       subtype: "required",
@@ -259,7 +258,6 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
     defaultValue: ParameterValue
   ): OptionalParameter {
     const paramFuture: OptionalParameter = {
-      id: this._resolveNextId(),
       label: paramName,
       type: "parameter",
       subtype: "optional",
