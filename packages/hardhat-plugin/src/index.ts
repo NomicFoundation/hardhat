@@ -28,6 +28,7 @@ export {
   Services,
   Future,
   Hold,
+  buildRecipeSingleGraph,
 } from "@nomicfoundation/ignition-core";
 
 extendConfig((config, userConfig) => {

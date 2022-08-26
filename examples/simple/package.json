@@ -2,6 +2,9 @@
   "name": "hardhat-ignition-example-simple-ts",
   "version": "0.0.1",
   "private": true,
+  "scripts": {
+    "test:examples": "hardhat test"
+  },
   "dependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.2",
     "@nomicfoundation/hardhat-ignition": "^0.0.2"
