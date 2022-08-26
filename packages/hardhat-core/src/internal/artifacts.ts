@@ -133,7 +133,7 @@ export class Artifacts implements IArtifacts {
       fsExtra.writeJSON(artifactPath, artifact, {
         spaces: 2,
       }),
-      async () => {
+      (async () => {
         if (pathToBuildInfo === undefined) {
           return;
         }
@@ -145,7 +145,7 @@ export class Artifacts implements IArtifacts {
         await fsExtra.writeJSON(debugFilePath, debugFile, {
           spaces: 2,
         });
-      },
+      })(),
     ]);
   }
 
