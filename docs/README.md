@@ -1,13 +1,13 @@
 # Hardhat documentation website
 
-This is a NextJS-based application for the Hardhat documentation website. This app is utilizing SSG for creating pages on the build step. It's developed keeping the best practices in mind including accessibility, SEO and Performance optimizations, and scalability
+This is a NextJS-based application for the Hardhat documentation website. This app utilizes SSG for creating pages on the build step. It's developed keeping the best practices in mind, including accessibility, SEO and Performance optimizations, and scalability.
 
 The app mainly provides two types of pages:
 
 - landing pages (see home page)
 - documentation pages (see documentation section)
 
-Landing pages are composed of reusable blocks and separate content files. Blocks are full-width React Components that can be stacked to compose a page. Blocks output content passed to them via props.
+Landing pages are composed of reusable blocks and separate content files. Blocks are full-width React Components that can be stacked to form a page. Blocks output content passed to them via props.
 
 Documentation pages are generated from markdown files located in the `src/content` folder. This folder has a nesting structure that is mapped to the page URLs on the website.
 
@@ -18,7 +18,7 @@ We consider two directions of the follow-up application growing:
 - by creating and editing new content.
 - by adding new features to the app.
 
-The first one can be provided by working with human-friendly file formats located in the content folder (MD and YAML). Only minimal tech knowledge is needed for that. The second way requires developers' efforts.
+The first can be provided by working with human-friendly file formats in the content folder (MD and YAML). Only minimal tech knowledge is needed for that. The second way requires developers' efforts.
 
 ## Preview
 
@@ -34,14 +34,14 @@ To preview content locally, launch the app with `yarn dev` and open http://127.0
 
 ### Layouts
 
-All content is organized by hierarchy levels and the top-level entries are layouts. The layout represents a set of folders and provides navigation within them. Currently, a folder should belong to one of the layouts. In terms of UI, the layout is equal to a sidebar navigation menu with two-level items. Layouts settings can be found in the `src/content/layouts.yaml` file. It contains all layouts (currently "documentation" and "tutorial"). Each layout can have the following settings:
+Hierarchy levels organize all content, and the top-level entries are layouts. The layout represents a set of folders and provides navigation within them. Currently, a folder should belong to one of the layouts. The design is equal to a sidebar navigation menu with two-level items in terms of UI. Layout settings can be found in the `src/content/layouts.yaml` file. It contains all layouts (currently "documentation" and "tutorial"). Each design can have the following settings:
 
 - title (optional)
 - folders - the list of folders should be included in this layout
 
 ### Folders
 
-The next level is a folder. It can contain nesting folders and `*.md` files. Each `*.md` file represents a single documentation page. Folders usually are represented in a sidebar as a group of items with a common title - each item in this group opens a separate file in the folder. Folders can be nested but it only affects the page's path on the website, sidebar navigation is always of two levels. To configure folders we're using `_dirinfo.yaml` files which can contain the following settings:
+The next level is a folder. It can contain nesting folders and `*.md` files. Each `*.md` file represents a single documentation page. Folders usually are represented in a sidebar as a group of items with a common title - each item in this group opens a separate file in the folder. Folders can be nested, but it only affects the page's path on the website; sidebar navigation is always of two levels. To configure folders, we're using `_dirinfo.yaml` files which can contain the following settings:
 
 **section-title**: the title of a group in the sidebar. It's optional, if skipped the folder name will be used.
 
@@ -189,11 +189,11 @@ We utilize [Linaria](https://github.com/callstack/linaria) for styling component
 
 ## Theming
 
-The documentation section is Themable. A user can switch between light, dark and high contrast themes for their convenience. There is also an "Auto" setting when theme is selected based on a user system settings.
+The documentation section is Themable. Users can switch between light, dark and high-contrast themes for convenience. There is also an "Auto" setting based on user system settings when the theme is selected.
 
-Theming solution provides abilities to switch themes, keep the selected value in user's local storage, seamlessly keep selected page on navigating and page refreshing.
+Theming solution provides abilities to switch themes, keep the selected value in the user's local storage, seamlessly keep a designated page on navigating and page refreshing.
 
-We manage themes by applying a CSS class to the HTML body. Each component has special selectors in its CSS to reflect change color depending on selected theme. To support themes, components should provide styles for all app themes (add selectors and specify colors).
+We manage themes by applying a CSS class to the HTML body. Each component has special selectors in its CSS to reflect and change color depending on the selected theme. To support themes, components should provide styles for all app themes (add selectors and specify colors).
 
 Landing pages don't support themes.
 
