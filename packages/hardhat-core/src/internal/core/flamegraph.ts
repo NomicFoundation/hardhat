@@ -18,7 +18,7 @@ export function profileToFlamegraph(profile: TaskProfile): Flamegraph {
   return {
     name: profile.name,
     // We assume this is a safe int, which is ok unless a task runs for months
-    value: Number(profile.end - profile.start).valueOf(),
+    value: Number(profile.end - profile.start),
     children: profile.children.map((c) => profileToFlamegraph(c)),
     parallel: profile.parallel === true,
   };
