@@ -253,7 +253,7 @@ export class HardhatModule {
       );
     }
 
-    await this._node.setMinGasPrice(minGasPrice);
+    await this._node.setMinGasPrice(Number(minGasPrice));
     return true;
   }
 

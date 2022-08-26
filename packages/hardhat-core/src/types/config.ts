@@ -134,15 +134,15 @@ export type HardhatNetworkChainsConfig = Map<
 export interface HardhatNetworkConfig {
   chainId: number;
   from?: string;
-  gas: "auto" | bigint;
-  gasPrice: "auto" | bigint;
+  gas: "auto" | number;
+  gasPrice: "auto" | number;
   gasMultiplier: number;
-  initialBaseFeePerGas?: bigint;
+  initialBaseFeePerGas?: number;
   hardfork: string;
   mining: HardhatNetworkMiningConfig;
   accounts: HardhatNetworkAccountsConfig;
-  blockGasLimit: bigint;
-  minGasPrice: bigint;
+  blockGasLimit: number;
+  minGasPrice: number;
   throwOnTransactionFailures: boolean;
   throwOnCallFailures: boolean;
   allowUnlimitedContractSize: boolean;
@@ -174,15 +174,15 @@ export interface HardhatNetworkHDAccountsConfig {
 export interface HardhatNetworkForkingConfig {
   enabled: boolean;
   url: string;
-  blockNumber?: bigint;
+  blockNumber?: number;
   httpHeaders: { [name: string]: string };
 }
 
 export interface HttpNetworkConfig {
   chainId?: number;
   from?: string;
-  gas: "auto" | bigint;
-  gasPrice: "auto" | bigint;
+  gas: "auto" | number;
+  gasPrice: "auto" | number;
   gasMultiplier: number;
   url: string;
   timeout: number;

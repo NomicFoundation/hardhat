@@ -37,7 +37,7 @@ export const defaultHardhatNetworkParams: Omit<
   "gas" | "initialDate"
 > = {
   hardfork: "arrowGlacier",
-  blockGasLimit: 30_000_000n,
+  blockGasLimit: 30_000_000,
   gasPrice: HARDHAT_NETWORK_DEFAULT_GAS_PRICE,
   chainId: 31337,
   throwOnTransactionFailures: true,
@@ -53,7 +53,7 @@ export const defaultHardhatNetworkParams: Omit<
   accounts: defaultHardhatNetworkHdAccountsConfigParams,
   loggingEnabled: false,
   gasMultiplier: DEFAULT_GAS_MULTIPLIER,
-  minGasPrice: 0n,
+  minGasPrice: 0,
   chains: new Map([
     [
       // block numbers below were taken from https://github.com/ethereumjs/ethereumjs-monorepo/tree/master/packages/common/src/chains

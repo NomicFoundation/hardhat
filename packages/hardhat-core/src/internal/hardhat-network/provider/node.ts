@@ -347,7 +347,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     private readonly _blockchain: HardhatBlockchainInterface,
     private readonly _txPool: TxPool,
     private _automine: boolean,
-    private _minGasPrice: bigint,
+    private _minGasPrice: number,
     private _blockTimeOffsetSeconds: bigint = 0n,
     private _mempoolOrder: MempoolOrder,
     private _coinbase: string,
@@ -1241,7 +1241,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     await this._txPool.updatePendingAndQueued();
   }
 
-  public async setMinGasPrice(minGasPrice: bigint) {
+  public async setMinGasPrice(minGasPrice: number) {
     this._minGasPrice = minGasPrice;
   }
 
