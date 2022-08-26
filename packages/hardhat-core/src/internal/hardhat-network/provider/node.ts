@@ -26,7 +26,7 @@ import chalk from "chalk";
 import debug from "debug";
 import EventEmitter from "events";
 
-import { BigIntUtils } from "../../util/bigint";
+import * as BigIntUtils from "../../util/bigint";
 import { CompilerInput, CompilerOutput } from "../../../types";
 import { HardforkHistoryConfig } from "../../../types/config";
 import { HARDHAT_NETWORK_SUPPORTED_HARDFORKS } from "../../constants";

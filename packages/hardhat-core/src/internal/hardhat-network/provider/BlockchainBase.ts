@@ -10,7 +10,7 @@ import { Common, ConsensusAlgorithm } from "@ethereumjs/common";
 import { TypedTransaction } from "@ethereumjs/tx";
 
 import { assertHardhatInvariant } from "../../core/errors";
-import { BigIntUtils } from "../../util/bigint";
+import * as BigIntUtils from "../../util/bigint";
 import { BlockchainData } from "./BlockchainData";
 import { RpcReceiptOutput } from "./output";
 

@@ -25,7 +25,7 @@ import { deployContract } from "../../helpers/transactions";
 import { compileLiteral } from "../../stack-traces/compilation";
 import { getPendingBaseFeePerGas } from "../../helpers/getPendingBaseFeePerGas";
 import { RpcBlockOutput } from "../../../../../src/internal/hardhat-network/provider/output";
-import { BigIntUtils } from "../../../../../src/internal/util/bigint";
+import * as BigIntUtils from "../../../../../src/internal/util/bigint";
 
 describe("Hardhat module", function () {
   PROVIDERS.forEach(({ name, useProvider, isFork }) => {
