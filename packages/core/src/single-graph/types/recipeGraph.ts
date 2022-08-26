@@ -1,5 +1,3 @@
-import { AdjacencyList } from "../utils/adjacencyList";
-
 import {
   ArtifactContract,
   ArtifactLibrary,
@@ -14,6 +12,7 @@ import {
   RequiredParameter,
   CallableFuture,
 } from "./future";
+import { AdjacencyList } from "./graph";
 import { Artifact } from "./hardhat";
 
 export interface LibraryMap {

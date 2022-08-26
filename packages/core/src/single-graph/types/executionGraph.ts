@@ -1,6 +1,5 @@
-import { AdjacencyList } from "../utils/adjacencyList";
-
 import { RecipeFuture } from "./future";
+import { AdjacencyList } from "./graph";
 import { Artifact } from "./hardhat";
 import { LibraryMap } from "./recipeGraph";
 

@@ -4,8 +4,8 @@ import type {
   OptionalParameter,
   RecipeFuture,
   RequiredParameter,
-} from "./future";
-import { Artifact } from "./hardhat";
+} from "../types/future";
+import { Artifact } from "../types/hardhat";
 import type {
   RecipeVertex,
   HardhatContractRecipeVertex,
@@ -14,7 +14,7 @@ import type {
   CallRecipeVertex,
   HardhatLibraryRecipeVertex,
   ArtifactLibraryRecipeVertex,
-} from "./recipeGraph";
+} from "../types/recipeGraph";
 
 export function isArtifact(artifact: any): artifact is Artifact {
   return (

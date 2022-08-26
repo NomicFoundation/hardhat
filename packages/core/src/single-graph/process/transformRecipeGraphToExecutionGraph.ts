@@ -3,6 +3,7 @@ import { Providers } from "../../providers";
 import { Services } from "../../services/types";
 import { Artifact } from "../../types";
 import { ExecutionGraph } from "../execution/ExecutionGraph";
+import { clone } from "../graph/adjacencyList";
 import { createServices } from "../services/createServices";
 import {
   ContractCall,
@@ -13,7 +14,6 @@ import {
   LibraryDeploy,
 } from "../types/executionGraph";
 import { RecipeFuture } from "../types/future";
-import { isFuture } from "../types/guards";
 import {
   ArtifactContractRecipeVertex,
   ArtifactLibraryRecipeVertex,
@@ -24,7 +24,7 @@ import {
   IRecipeGraph,
   RecipeVertex,
 } from "../types/recipeGraph";
-import { clone } from "../utils/adjacencyList";
+import { isFuture } from "../utils/guards";
 
 import { reduceRecipeGraphByEliminatingVirtualVertexes } from "./reduceRecipeGraphByEliminatingVirtualVertexes";
 

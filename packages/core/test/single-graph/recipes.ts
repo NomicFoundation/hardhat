@@ -2,22 +2,22 @@ import { assert } from "chai";
 
 import { RecipeGraph } from "../../src/single-graph//recipe/RecipeGraph";
 import { VertexDescriptor } from "../../src/single-graph//types/graph";
+import { getDependenciesFor } from "../../src/single-graph/graph/adjacencyList";
+import { generateRecipeGraphFrom } from "../../src/single-graph/process/generateRecipeGraphFrom";
 import { buildRecipe } from "../../src/single-graph/recipe/buildRecipe";
-import { generateRecipeGraphFrom } from "../../src/single-graph/recipe/generateRecipeGraphFrom";
-import {
-  isArtifactContract,
-  isCall,
-  isDeployedContract,
-  isHardhatContract,
-  isHardhatLibrary,
-} from "../../src/single-graph/types/guards";
 import { Artifact } from "../../src/single-graph/types/hardhat";
 import type {
   IRecipeGraph,
   IRecipeGraphBuilder,
   RecipeVertex,
 } from "../../src/single-graph/types/recipeGraph";
-import { getDependenciesFor } from "../../src/single-graph/utils/adjacencyList";
+import {
+  isArtifactContract,
+  isCall,
+  isDeployedContract,
+  isHardhatContract,
+  isHardhatLibrary,
+} from "../../src/single-graph/utils/guards";
 
 describe("Recipes", function () {
   describe("single contract", () => {

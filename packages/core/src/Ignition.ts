@@ -15,10 +15,10 @@ import { Providers } from "./providers";
 import { RecipeBuilderImpl } from "./recipes/RecipeBuilderImpl";
 import { UserRecipe } from "./recipes/UserRecipe";
 import { execute } from "./single-graph/execution/execute";
-import { generateRecipeGraphFrom } from "./single-graph/recipe/generateRecipeGraphFrom";
-import { transformRecipeGraphToExecutionGraph } from "./single-graph/transform/transformRecipeGraphToExecutionGraph";
+import { generateRecipeGraphFrom } from "./single-graph/process/generateRecipeGraphFrom";
+import { transformRecipeGraphToExecutionGraph } from "./single-graph/process/transformRecipeGraphToExecutionGraph";
 import { DependableFuture, FutureDict } from "./single-graph/types/future";
-import { isDependable } from "./single-graph/types/guards";
+import { isDependable } from "./single-graph/utils/guards";
 import { validateRecipeGraph } from "./single-graph/validation/validateRecipeGraph";
 
 const log = setupDebug("ignition:main");

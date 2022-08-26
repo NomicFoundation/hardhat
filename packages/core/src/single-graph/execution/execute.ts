@@ -1,6 +1,7 @@
 import { Journal } from "../../journal/types";
 import { Providers } from "../../providers";
 import { Services } from "../../services/types";
+import { topologicalSort } from "../graph/adjacencyList";
 import { createServices } from "../services/createServices";
 import {
   ArgValue,
@@ -11,8 +12,7 @@ import {
   IExecutionGraph,
   LibraryDeploy,
 } from "../types/executionGraph";
-import { isDependable } from "../types/guards";
-import { topologicalSort } from "../utils/adjacencyList";
+import { isDependable } from "../utils/guards";
 
 export type ExecuteResult =
   | {

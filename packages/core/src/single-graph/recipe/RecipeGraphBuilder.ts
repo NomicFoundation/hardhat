@@ -1,3 +1,4 @@
+import { addEdge, ensureVertex } from "../graph/adjacencyList";
 import type {
   RecipeFuture,
   HardhatContract,
@@ -13,12 +14,6 @@ import type {
   CallableFuture,
   Virtual,
 } from "../types/future";
-import {
-  isArtifact,
-  isCallable,
-  isDependable,
-  isParameter,
-} from "../types/guards";
 import type { Artifact } from "../types/hardhat";
 import {
   ContractOptions,
@@ -29,29 +24,15 @@ import {
   RecipeVertex,
   UseRecipeOptions,
 } from "../types/recipeGraph";
-import { addEdge, ensureVertex } from "../utils/adjacencyList";
+import {
+  isArtifact,
+  isCallable,
+  isDependable,
+  isParameter,
+} from "../utils/guards";
 
 import { RecipeGraph } from "./RecipeGraph";
-
-class ScopeStack {
-  private scopes: string[];
-
-  constructor() {
-    this.scopes = [];
-  }
-
-  public push(scopeName: string): void {
-    this.scopes.push(scopeName);
-  }
-
-  public pop(): string | undefined {
-    return this.scopes.pop();
-  }
-
-  public getScopedLabel() {
-    return this.scopes.join("/");
-  }
-}
+import { ScopeStack } from "./ScopeStack";
 
 export class RecipeGraphBuilder implements IRecipeGraphBuilder {
   public chainId: number;

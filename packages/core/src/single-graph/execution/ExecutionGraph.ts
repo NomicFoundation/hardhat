@@ -1,15 +1,4 @@
-import { ExecutionVertex, IExecutionGraph } from "../types/executionGraph";
-import {
-  AdjacencyList,
-  constructEmptyAdjacencyList,
-} from "../utils/adjacencyList";
+import { Graph } from "../graph/Graph";
+import { ExecutionVertex } from "../types/executionGraph";
 
-export class ExecutionGraph implements IExecutionGraph {
-  public adjacencyList: AdjacencyList;
-  public vertexes: Map<number, ExecutionVertex>;
-
-  constructor() {
-    this.adjacencyList = constructEmptyAdjacencyList();
-    this.vertexes = new Map<number, ExecutionVertex>();
-  }
-}
+export class ExecutionGraph extends Graph<ExecutionVertex> {}

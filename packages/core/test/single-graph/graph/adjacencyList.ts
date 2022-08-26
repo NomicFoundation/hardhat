@@ -8,7 +8,7 @@ import {
   topologicalSort,
   eliminate,
   ensureVertex,
-} from "../../../src/single-graph/utils/adjacencyList";
+} from "../../../src/single-graph/graph/adjacencyList";
 
 describe("Adjacency list", () => {
   it("should allow looking up deps for a two node graph", () => {

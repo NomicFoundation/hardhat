@@ -1,6 +1,6 @@
 import { DiGraph, TopologicalSort } from "js-graph-algorithms";
 
-export type AdjacencyList = Map<number, Set<number>>;
+import { AdjacencyList } from "../types/graph";
 
 export function constructEmptyAdjacencyList(): AdjacencyList {
   return new Map<number, Set<number>>();
