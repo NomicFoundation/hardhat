@@ -79,9 +79,11 @@ export function useProvider({
       networkName,
       chainId,
       networkId,
-      blockGasLimit,
-      initialBaseFeePerGas,
-      0n, // minGasPrice
+      Number(blockGasLimit),
+      initialBaseFeePerGas === undefined
+        ? undefined
+        : Number(initialBaseFeePerGas),
+      0, // minGasPrice
       true,
       true,
       mining.auto,

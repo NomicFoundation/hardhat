@@ -301,8 +301,8 @@ describe("Config resolution", () => {
         });
         assert.deepEqual(configWithBlockGasLimit.networks.hardhat, {
           ...defaultHardhatNetworkParams,
-          blockGasLimit: 1n,
-          gas: 1n,
+          blockGasLimit: 1,
+          gas: 1,
           initialDate: configWithBlockGasLimit.networks.hardhat.initialDate,
         });
 
@@ -311,8 +311,8 @@ describe("Config resolution", () => {
         });
         assert.deepEqual(configWithBlockGasLimitAndGas.networks.hardhat, {
           ...defaultHardhatNetworkParams,
-          blockGasLimit: 2n,
-          gas: 3n,
+          blockGasLimit: 2,
+          gas: 3,
           initialDate:
             configWithBlockGasLimitAndGas.networks.hardhat.initialDate,
         });
@@ -432,7 +432,7 @@ describe("Config resolution", () => {
           assert.deepEqual(config.networks.hardhat.forking, {
             url: "asd",
             enabled: true,
-            blockNumber: 123n,
+            blockNumber: 123,
             httpHeaders: {},
           });
         });
@@ -620,7 +620,7 @@ describe("Config resolution", () => {
         it("should default to 0", function () {
           const config = resolveConfig(__filename, {});
 
-          assert.equal(config.networks.hardhat.minGasPrice, 0n);
+          assert.equal(config.networks.hardhat.minGasPrice, 0);
         });
 
         it("should accept numbers", function () {
@@ -632,7 +632,7 @@ describe("Config resolution", () => {
             },
           });
 
-          assert.equal(config.networks.hardhat.minGasPrice, 10n);
+          assert.equal(config.networks.hardhat.minGasPrice, 10);
         });
 
         it("should accept strings", function () {
@@ -644,7 +644,7 @@ describe("Config resolution", () => {
             },
           });
 
-          assert.equal(config.networks.hardhat.minGasPrice, 10n ** 11n);
+          assert.equal(config.networks.hardhat.minGasPrice, 10 ** 11);
         });
       });
 
@@ -682,15 +682,15 @@ describe("Config resolution", () => {
           accounts: [{ privateKey: "0x00000", balance: "123" }],
           chainId: 123,
           from: "from",
-          gas: 1n,
+          gas: 1,
           gasMultiplier: 1231,
-          gasPrice: 2345678n,
+          gasPrice: 2345678,
           throwOnCallFailures: false,
           throwOnTransactionFailures: false,
           loggingEnabled: true,
           allowUnlimitedContractSize: true,
-          blockGasLimit: 567n,
-          minGasPrice: 10n,
+          blockGasLimit: 567,
+          minGasPrice: 10,
           mining: {
             auto: false,
             interval: 0,
@@ -831,9 +831,9 @@ describe("Config resolution", () => {
             accounts: ["0x00000"],
             chainId: 123,
             from: "from",
-            gas: 1n,
+            gas: 1,
             gasMultiplier: 1231,
-            gasPrice: 2345678n,
+            gasPrice: 2345678,
             httpHeaders: {
               header: "asd",
             },

@@ -180,9 +180,9 @@ describe("Debug module", function () {
         DEFAULT_NETWORK_NAME,
         DEFAULT_CHAIN_ID,
         DEFAULT_NETWORK_ID,
-        13000000n,
+        13000000,
         undefined,
-        0n,
+        0,
         true,
         true,
         false, // mining.auto
@@ -306,9 +306,9 @@ describe("Debug module", function () {
         DEFAULT_NETWORK_NAME,
         DEFAULT_CHAIN_ID,
         DEFAULT_NETWORK_ID,
-        13000000n,
+        13000000,
         undefined,
-        0n,
+        0,
         true,
         true,
         false, // mining.auto
