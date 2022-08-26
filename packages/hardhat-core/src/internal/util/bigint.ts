@@ -1,10 +1,3 @@
-import {
-  BigIntLike,
-  bufferToBigInt,
-  bufferToHex,
-  toBuffer,
-} from "@ethereumjs/util";
-
 function min(x: bigint, y: bigint): bigint {
   return x < y ? x : y;
 }
@@ -35,7 +28,12 @@ function toWord(x: bigint | number): string {
   return x.toString(16).padStart(64, "0");
 }
 
-function fromBigIntLike(x: BigIntLike): bigint {
+function bufferToBigInt(x: Buffer): bigint {
+  const hex = `0x${x.toString("hex")}`;
+  return hex === "0x" ? 0n : BigInt(hex);
+}
+
+function fromBigIntLike(x: string | number | bigint | Buffer): bigint {
   if (typeof x === "bigint") {
     return x;
   }
@@ -51,7 +49,7 @@ function fromBigIntLike(x: BigIntLike): bigint {
 }
 
 function toHex(x: number | bigint): string {
-  return bufferToHex(toBuffer(x));
+  return `0x${x.toString(16)}`;
 }
 
 export const BigIntUtils = {
