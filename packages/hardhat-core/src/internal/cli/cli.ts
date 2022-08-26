@@ -32,11 +32,7 @@ import {
 import { getPackageJson, PackageJson } from "../util/packageInfo";
 
 import { applyWorkaround } from "../util/antlr-prototype-pollution-workaround";
-import {
-  createFlamegraphHtmlFile,
-  profileToFlamegraph,
-} from "../core/flamegraph";
-import { flagParallelChildren, TaskProfile } from "../core/task-profiling";
+import { saveFlamegraph } from "../core/flamegraph";
 import { Analytics } from "./analytics";
 import { ArgumentsParser } from "./ArgumentsParser";
 import { enableEmoji } from "./emoji";
@@ -104,13 +100,6 @@ async function suggestInstallingHardhatVscode() {
       "To learn more about Hardhat for Visual Studio Code, go to https://hardhat.org/hardhat-vscode"
     );
   }
-}
-
-function saveFlamegraph(profile: TaskProfile) {
-  flagParallelChildren(profile);
-  const flamegraph = profileToFlamegraph(profile);
-  const path = createFlamegraphHtmlFile(flamegraph);
-  console.log("Created flamegraph file", path);
 }
 
 async function main() {
@@ -289,7 +278,8 @@ async function main() {
           "--flamegraph was set but entryTaskProfile is not defined"
         );
 
-        saveFlamegraph(env.entryTaskProfile);
+        const flamegraphPath = saveFlamegraph(env.entryTaskProfile);
+        console.log("Created flamegraph file", flamegraphPath);
       }
     }
 

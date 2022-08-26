@@ -1,6 +1,6 @@
 import fs from "fs";
 import { assertHardhatInvariant } from "./errors";
-import { TaskProfile } from "./task-profiling";
+import { flagParallelChildren, TaskProfile } from "./task-profiling";
 
 export interface Flamegraph {
   name: string;
@@ -256,4 +256,13 @@ function getFlamegraphFileContent(flamegraph: Flamegraph): string {
   </body>
 </html>
 `;
+}
+
+/**
+ * Converts the TaskProfile into a flamegraph, saves it, and returns its path.
+ */
+export function saveFlamegraph(profile: TaskProfile): string {
+  flagParallelChildren(profile);
+  const flamegraph = profileToFlamegraph(profile);
+  return createFlamegraphHtmlFile(flamegraph);
 }
