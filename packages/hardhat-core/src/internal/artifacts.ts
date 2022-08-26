@@ -246,9 +246,11 @@ export class Artifacts implements IArtifacts {
       })
     );
 
-    const validBuildInfos = new Set<string>(
-      ...buildInfos.filter((bf) => bf !== undefined)
+    const filteredBuildInfos: string[] = buildInfos.filter(
+      (bf): bf is string => typeof bf === "string"
     );
+
+    const validBuildInfos = new Set<string>(filteredBuildInfos);
 
     const buildInfoFiles = await this.getBuildInfoPaths();
 
