@@ -13,7 +13,12 @@ import type {
   CallableFuture,
   Virtual,
 } from "../types/future";
-import { isArtifact, isCallable, isParameter } from "../types/guards";
+import {
+  isArtifact,
+  isCallable,
+  isDependable,
+  isParameter,
+} from "../types/guards";
 import type { Artifact } from "../types/hardhat";
 import {
   ContractOptions,
@@ -21,8 +26,10 @@ import {
   IRecipeGraphBuilder,
   Recipe,
   RecipeGraphBuilderOptions,
+  RecipeVertex,
   UseRecipeOptions,
 } from "../types/recipeGraph";
+import { addEdge, ensureVertex } from "../utils/adjacencyList";
 
 import { RecipeGraph } from "./RecipeGraph";
 
@@ -79,7 +86,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
         _future: true,
       };
 
-      this.graph.addRecipeVertex({
+      RecipeGraphBuilder._addRecipeVertex(this.graph, {
         id: artifactContractFuture.vertexId,
         label: libraryName,
         type: "ArtifactLibrary",
@@ -100,7 +107,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
         _future: true,
       };
 
-      this.graph.addRecipeVertex({
+      RecipeGraphBuilder._addRecipeVertex(this.graph, {
         id: libraryFuture.vertexId,
         label: libraryName,
         type: "HardhatLibrary",
@@ -130,7 +137,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
         _future: true,
       };
 
-      this.graph.addRecipeVertex({
+      RecipeGraphBuilder._addRecipeVertex(this.graph, {
         id: artifactContractFuture.vertexId,
         label: contractName,
         type: "ArtifactContract",
@@ -152,7 +159,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
         _future: true,
       };
 
-      this.graph.addRecipeVertex({
+      RecipeGraphBuilder._addRecipeVertex(this.graph, {
         id: contractFuture.vertexId,
         label: contractName,
         type: "HardhatContract",
@@ -179,7 +186,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
       _future: true,
     };
 
-    this.graph.addRecipeVertex({
+    RecipeGraphBuilder._addRecipeVertex(this.graph, {
       id: deployedFuture.vertexId,
       label: contractName,
       type: "DeployedContract",
@@ -235,7 +242,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
       );
     }
 
-    this.graph.addRecipeVertex({
+    RecipeGraphBuilder._addRecipeVertex(this.graph, {
       id: callFuture.vertexId,
       label: callFuture.label,
       type: "Call",
@@ -319,7 +326,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
         })
       );
 
-    this.graph.addRecipeVertex({
+    RecipeGraphBuilder._addRecipeVertex(this.graph, {
       id: virtualFuture.vertexId,
       label,
       type: "Virtual",
@@ -332,5 +339,54 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
 
   private _resolveNextId(): number {
     return this.idCounter++;
+  }
+
+  private static _addRecipeVertex(graph: RecipeGraph, depNode: RecipeVertex) {
+    graph.vertexes.set(depNode.id, depNode);
+    ensureVertex(graph.adjacencyList, depNode.id);
+
+    if (depNode.type !== "DeployedContract" && depNode.type !== "Virtual") {
+      const futureArgs = depNode.args.filter(isDependable);
+
+      for (const arg of futureArgs) {
+        addEdge(graph.adjacencyList, { from: arg.vertexId, to: depNode.id });
+      }
+    }
+
+    if (
+      depNode.type === "HardhatContract" ||
+      depNode.type === "ArtifactContract"
+    ) {
+      const futureLibraries = Object.values(depNode.libraries).filter(
+        isDependable
+      );
+
+      for (const lib of futureLibraries) {
+        addEdge(graph.adjacencyList, { from: lib.vertexId, to: depNode.id });
+      }
+    }
+
+    if (depNode.type === "Call") {
+      addEdge(graph.adjacencyList, {
+        from: depNode.contract.vertexId,
+        to: depNode.id,
+      });
+
+      for (const afterVertex of depNode.after.filter(isDependable)) {
+        addEdge(graph.adjacencyList, {
+          from: afterVertex.vertexId,
+          to: depNode.id,
+        });
+      }
+    }
+
+    if (depNode.type === "Virtual") {
+      for (const afterVertex of depNode.after.filter(isDependable)) {
+        addEdge(graph.adjacencyList, {
+          from: afterVertex.vertexId,
+          to: depNode.id,
+        });
+      }
+    }
   }
 }

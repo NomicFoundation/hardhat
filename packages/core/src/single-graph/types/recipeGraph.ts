@@ -112,16 +112,6 @@ export interface IRecipeGraph {
   registeredParameters: {
     [key: string]: { [key: string]: string | number | RecipeFuture };
   };
-
-  vertexSize: () => number;
-  addRecipeVertex: (node: RecipeVertex) => void;
-  getRecipeVertexByLabel: (label: string) => RecipeVertex | undefined;
-  getRecipeVertexById: (id: number) => RecipeVertex | undefined;
-  getDependenciesForVertex: ({
-    id,
-  }: {
-    id: number;
-  }) => Array<{ id: number; label: string }>;
 }
 
 export interface IRecipeGraphBuilder {
