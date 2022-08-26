@@ -254,7 +254,7 @@ export class Artifacts implements IArtifacts {
 
     await Promise.all(
       buildInfoFiles
-        .filter((buildInfoFile) => validBuildInfos.has(buildInfoFile))
+        .filter((buildInfoFile) => !validBuildInfos.has(buildInfoFile))
         .map(async (buildInfoFile) => {
           log(`Removing buildInfo '${buildInfoFile}'`);
           await fsExtra.unlink(buildInfoFile);
