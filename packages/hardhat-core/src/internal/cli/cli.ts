@@ -9,7 +9,11 @@ import { TaskArguments } from "../../types";
 import { HARDHAT_NAME } from "../constants";
 import { HardhatContext } from "../context";
 import { loadConfigAndTasks } from "../core/config/config-loading";
-import { HardhatError, HardhatPluginError } from "../core/errors";
+import {
+  assertHardhatInvariant,
+  HardhatError,
+  HardhatPluginError,
+} from "../core/errors";
 import { ERRORS, getErrorCode } from "../core/errors-list";
 import { isHardhatInstalledLocallyOrLinked } from "../core/execution-mode";
 import { getEnvHardhatArguments } from "../core/params/env-variables";
@@ -280,7 +284,12 @@ async function main() {
       }
     } finally {
       if (hardhatArguments.flamegraph === true) {
-        saveFlamegraph(env.entryTaskProfile!);
+        assertHardhatInvariant(
+          env.entryTaskProfile !== undefined,
+          "--flamegraph was set but entryTaskProfile is not defined"
+        );
+
+        saveFlamegraph(env.entryTaskProfile);
       }
     }
 
