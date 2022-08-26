@@ -1,3 +1,5 @@
+import { assertHardhatInvariant } from "../core/errors";
+
 export function min(x: bigint, y: bigint): bigint {
   return x < y ? x : y;
 }
@@ -53,5 +55,10 @@ export function fromBigIntLike(x: string | number | bigint | Buffer): bigint {
 }
 
 export function toHex(x: number | bigint): string {
+  assertHardhatInvariant(
+    x >= 0,
+    `toHex can only be used with non-negative numbers, but received ${x}`
+  );
+
   return `0x${x.toString(16)}`;
 }
