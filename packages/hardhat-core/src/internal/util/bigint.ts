@@ -31,22 +31,6 @@ function cmp(a: bigint, b: bigint): number {
   return a < b ? -1 : a > b ? 1 : 0;
 }
 
-function mapNumberToBigInt<T>(x: number | T): bigint | T {
-  if (typeof x === "number") {
-    return BigInt(x);
-  }
-
-  return x;
-}
-
-function mapBigIntToNumber<T>(x: bigint | T): number | T {
-  if (typeof x === "bigint") {
-    return Number(x);
-  }
-
-  return x;
-}
-
 function toWord(x: bigint | number): string {
   return x.toString(16).padStart(64, "0");
 }
@@ -76,8 +60,6 @@ export const BigIntUtils = {
   isBigInt,
   divUp,
   cmp,
-  mapNumberToBigInt,
-  mapBigIntToNumber,
   toWord,
   fromBigIntLike,
   toHex,
