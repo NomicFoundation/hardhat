@@ -128,7 +128,7 @@ export function numberToRpcStorageSlot(n: number | bigint): string {
     "Expected number"
   );
 
-  return `0x${BigIntUtils.toWord(n)}`;
+  return `0x${BigIntUtils.toEvmWord(n)}`;
 }
 
 /**

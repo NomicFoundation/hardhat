@@ -24,7 +24,11 @@ export function cmp(a: bigint, b: bigint): number {
   return a < b ? -1 : a > b ? 1 : 0;
 }
 
-export function toWord(x: bigint | number): string {
+/**
+ * Converts the number to a hexadecimal string with a length of 32
+ * bytes. This hex string is NOT 0x-prefixed.
+ */
+export function toEvmWord(x: bigint | number): string {
   return x.toString(16).padStart(64, "0");
 }
 

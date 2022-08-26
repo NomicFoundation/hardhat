@@ -1004,7 +1004,7 @@ describe("Eth module - hardfork dependant tests", function () {
     ];
 
     function abiEncodeUint(uint: number) {
-      return BigIntUtils.toWord(uint);
+      return BigIntUtils.toEvmWord(uint);
     }
 
     let contract: string;
