@@ -265,6 +265,11 @@ export class Environment implements HardhatRuntimeEnvironment {
 
     let modifiedHreWithParentTaskProfile: any | undefined;
     if (this.hardhatArguments.flamegraph === true) {
+      // We create a modified version of `this`, as we want to keep track of the
+      // `taskProfile` and use it as `callerTaskProfile` if the action calls
+      // `run`, and add a few utility methods.
+      //
+      // Note that for this to work we need to set the prototype later
       modifiedHreWithParentTaskProfile = {
         ...this,
         run: (_name: string, _taskArguments: TaskArguments) =>
