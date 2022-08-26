@@ -64,6 +64,13 @@ export interface OptionalParameter {
   _future: true;
 }
 
+export interface Virtual {
+  vertexId: number;
+  label: string;
+  type: "virtual";
+  _future: true;
+}
+
 export type ContractFuture =
   | HardhatContract
   | ArtifactContract
@@ -73,7 +80,7 @@ export type LibraryFuture = HardhatLibrary | ArtifactLibrary;
 
 export type CallableFuture = ContractFuture | LibraryFuture;
 
-export type DependableFuture = CallableFuture | ContractCall;
+export type DependableFuture = CallableFuture | ContractCall | Virtual;
 
 export type ParameterFuture = RequiredParameter | OptionalParameter;
 

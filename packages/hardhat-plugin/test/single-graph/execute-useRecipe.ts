@@ -101,7 +101,7 @@ describe("useRecipe", function () {
   });
 
   describe("passing futures into and out of recipes", () => {
-    it("using useRecipe", async function () {
+    it("should allow ordering using returned futures", async function () {
       await this.hre.run("compile", { quiet: true });
 
       const addSecondAndThirdEntryRecipe = buildRecipeSingleGraph(
@@ -138,6 +138,70 @@ describe("useRecipe", function () {
           m.call(trace, "addEntry", {
             args: ["fourth"],
             after: [thirdCall],
+          });
+
+          return { trace };
+        }
+      );
+
+      const deployPromise = this.hre.ignition.deploySingleGraph(userRecipe, {
+        parameters: {},
+      });
+
+      await mineBlocks(this.hre, [1, 1, 1, 1], deployPromise);
+
+      const result = await deployPromise;
+
+      assert.isDefined(result);
+
+      const entry1 = await result.trace.entries(0);
+      const entry2 = await result.trace.entries(1);
+      const entry3 = await result.trace.entries(2);
+      const entry4 = await result.trace.entries(3);
+
+      assert.deepStrictEqual(
+        [entry1, entry2, entry3, entry4],
+        ["first", "second", "third", "fourth"]
+      );
+    });
+
+    it("should allow ordering based on the recipe overall", async function () {
+      await this.hre.run("compile", { quiet: true });
+
+      const addSecondAndThirdEntryRecipe = buildRecipeSingleGraph(
+        "ThirdPartyRecipe",
+        (m: IRecipeGraphBuilder) => {
+          const trace = m.getParam("Trace");
+
+          const secondCall = m.call(trace, "addEntry", {
+            args: ["second"],
+          });
+
+          m.call(trace, "addEntry", {
+            args: ["third"],
+            after: [secondCall],
+          });
+
+          return { secondCall };
+        }
+      );
+
+      const userRecipe = buildRecipeSingleGraph(
+        "UserRecipe",
+        (m: IRecipeGraphBuilder) => {
+          const trace = m.contract("Trace", {
+            args: ["first"],
+          });
+
+          const { recipe } = m.useRecipe(addSecondAndThirdEntryRecipe, {
+            parameters: {
+              Trace: trace,
+            },
+          });
+
+          m.call(trace, "addEntry", {
+            args: ["fourth"],
+            after: [recipe],
           });
 
           return { trace };

@@ -11,6 +11,7 @@ import type {
   ParameterValue,
   FutureDict,
   CallableFuture,
+  Virtual,
 } from "../types/future";
 import { isArtifact, isCallable, isParameter } from "../types/guards";
 import type { Artifact } from "../types/hardhat";
@@ -40,10 +41,8 @@ class ScopeStack {
     return this.scopes.pop();
   }
 
-  public getScopedLabel(label: string | undefined) {
-    const joinedScopes = this.scopes.join("/");
-
-    return label === undefined ? joinedScopes : `${joinedScopes}/${label}`;
+  public getScopedLabel() {
+    return this.scopes.join("/");
   }
 }
 
@@ -86,6 +85,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
         type: "ArtifactLibrary",
         artifact,
         args: options?.args ?? [],
+        scopeAdded: this.scopes.getScopedLabel(),
       });
 
       return artifactContractFuture;
@@ -106,6 +106,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
         type: "HardhatLibrary",
         libraryName,
         args: options?.args ?? [],
+        scopeAdded: this.scopes.getScopedLabel(),
       });
 
       return libraryFuture;
@@ -136,6 +137,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
         artifact,
         args: options?.args ?? [],
         libraries: options?.libraries ?? {},
+        scopeAdded: this.scopes.getScopedLabel(),
       });
 
       return artifactContractFuture;
@@ -157,6 +159,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
         contractName,
         args: options?.args ?? [],
         libraries: options?.libraries ?? {},
+        scopeAdded: this.scopes.getScopedLabel(),
       });
 
       return contractFuture;
@@ -182,6 +185,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
       type: "DeployedContract",
       address,
       abi,
+      scopeAdded: this.scopes.getScopedLabel(),
     });
 
     return deployedFuture;
@@ -239,6 +243,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
       method: functionName,
       args: args ?? [],
       after: after ?? [],
+      scopeAdded: this.scopes.getScopedLabel(),
     });
 
     return callFuture;
@@ -249,7 +254,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
       label: paramName,
       type: "parameter",
       subtype: "required",
-      scope: this.scopes.getScopedLabel(undefined),
+      scope: this.scopes.getScopedLabel(),
       _future: true,
     };
 
@@ -265,7 +270,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
       type: "parameter",
       subtype: "optional",
       defaultValue,
-      scope: this.scopes.getScopedLabel(undefined),
+      scope: this.scopes.getScopedLabel(),
       _future: true,
     };
 
@@ -274,20 +279,55 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
 
   public useRecipe(recipe: Recipe, options?: UseRecipeOptions): FutureDict {
     const useRecipeInvocationId = this.useRecipeInvocationCounter++;
+    const label = `${recipe.name}:${useRecipeInvocationId}`;
 
-    this.scopes.push(`${recipe.name}:${useRecipeInvocationId}`);
+    this.scopes.push(label);
+    const scopeLabel = this.scopes.getScopedLabel();
 
     if (options !== undefined && options.parameters !== undefined) {
-      const parametersLabel = this.scopes.getScopedLabel(undefined);
-
-      this.graph.registeredParameters[parametersLabel] = options.parameters;
+      this.graph.registeredParameters[scopeLabel] = options.parameters;
     }
 
     const result = recipe.steps(this);
 
+    const virtualVertex = this._createRecipeVirtualVertex(label);
+
     this.scopes.pop();
 
-    return result;
+    return { ...result, recipe: virtualVertex };
+  }
+
+  private _createRecipeVirtualVertex(label: string): Virtual {
+    const virtualFuture: Virtual = {
+      vertexId: this._resolveNextId(),
+      label,
+      type: "virtual",
+      _future: true,
+    };
+
+    const scopeLabel = this.scopes.getScopedLabel();
+
+    const afterVertexFutures = [...this.graph.vertexes.values()]
+      .filter((v) => v.scopeAdded === scopeLabel)
+      .map(
+        (v): RecipeFuture => ({
+          vertexId: v.id,
+          label: v.label,
+          type: "contract", // TODO: this is a hack, lets add a future type for this sort of ellision
+          subtype: "artifact",
+          _future: true,
+        })
+      );
+
+    this.graph.addRecipeVertex({
+      id: virtualFuture.vertexId,
+      label,
+      type: "Virtual",
+      after: afterVertexFutures,
+      scopeAdded: scopeLabel,
+    });
+
+    return virtualFuture;
   }
 
   private _resolveNextId(): number {

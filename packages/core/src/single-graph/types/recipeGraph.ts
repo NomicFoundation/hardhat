@@ -24,6 +24,7 @@ export interface HardhatContractRecipeVertex {
   id: number;
   type: "HardhatContract";
   label: string;
+  scopeAdded: string;
   contractName: string;
   args: Array<string | number | RecipeFuture>;
   libraries: LibraryMap;
@@ -33,6 +34,7 @@ export interface ArtifactContractRecipeVertex {
   id: number;
   type: "ArtifactContract";
   label: string;
+  scopeAdded: string;
   artifact: Artifact;
   args: Array<string | number | RecipeFuture>;
   libraries: LibraryMap;
@@ -42,6 +44,7 @@ export interface DeployedContractRecipeVertex {
   id: number;
   type: "DeployedContract";
   label: string;
+  scopeAdded: string;
   address: string;
   abi: any[];
 }
@@ -51,6 +54,7 @@ export interface HardhatLibraryRecipeVertex {
   type: "HardhatLibrary";
   libraryName: string;
   label: string;
+  scopeAdded: string;
   args: Array<string | number | RecipeFuture>;
 }
 
@@ -58,6 +62,7 @@ export interface ArtifactLibraryRecipeVertex {
   id: number;
   type: "ArtifactLibrary";
   label: string;
+  scopeAdded: string;
   artifact: Artifact;
   args: Array<string | number | RecipeFuture>;
 }
@@ -66,9 +71,18 @@ export interface CallRecipeVertex {
   id: number;
   type: "Call";
   label: string;
+  scopeAdded: string;
   contract: CallableFuture;
   method: string;
   args: Array<string | number | RecipeFuture>;
+  after: RecipeFuture[];
+}
+
+export interface VirtualVertex {
+  id: number;
+  type: "Virtual";
+  label: string;
+  scopeAdded: string;
   after: RecipeFuture[];
 }
 
@@ -78,7 +92,8 @@ export type RecipeVertex =
   | DeployedContractRecipeVertex
   | HardhatLibraryRecipeVertex
   | ArtifactLibraryRecipeVertex
-  | CallRecipeVertex;
+  | CallRecipeVertex
+  | VirtualVertex;
 
 export interface ContractOptions {
   args?: Array<string | number | RecipeFuture>;

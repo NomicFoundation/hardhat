@@ -26,6 +26,8 @@ import {
 } from "../types/recipeGraph";
 import { clone } from "../utils/adjacencyList";
 
+import { reduceRecipeGraphByEliminatingVirtualVertexes } from "./reduceRecipeGraphByEliminatingVirtualVertexes";
+
 export type TransformResult =
   | {
       _kind: "success";
@@ -55,9 +57,15 @@ export async function transformRecipeGraphToExecutionGraph(
     servicesOptions
   );
 
+  const reducedRecipeGraph =
+    reduceRecipeGraphByEliminatingVirtualVertexes(recipeGraph);
+
   const executionGraph: IExecutionGraph = await convertRecipeToExecution(
-    recipeGraph,
-    convertRecipeVertexToExecutionVertex({ services, graph: recipeGraph })
+    reducedRecipeGraph,
+    convertRecipeVertexToExecutionVertex({
+      services,
+      graph: reducedRecipeGraph,
+    })
   );
 
   return { _kind: "success", executionGraph };
@@ -96,6 +104,10 @@ function convertRecipeVertexToExecutionVertex(
         return convertHardhatLibraryToLibraryDeploy(recipeVertex, context);
       case "ArtifactLibrary":
         return convertArtifactLibraryToLibraryDeploy(recipeVertex, context);
+      case "Virtual":
+        throw new Error(
+          `Virtual vertex should be removed ${recipeVertex.id} (${recipeVertex.label})`
+        );
       default:
         return assertRecipeVertexNotExpected(recipeVertex);
     }

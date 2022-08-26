@@ -6,6 +6,7 @@ import {
   addEdge,
   AdjacencyList,
   constructEmptyAdjacencyList,
+  ensureVertex,
   getDependenciesFor,
 } from "../utils/adjacencyList";
 
@@ -36,8 +37,9 @@ export class RecipeGraph implements IRecipeGraph {
 
   public addRecipeVertex(depNode: RecipeVertex) {
     this.vertexes.set(depNode.id, depNode);
+    ensureVertex(this.adjacencyList, depNode.id);
 
-    if (depNode.type !== "DeployedContract") {
+    if (depNode.type !== "DeployedContract" && depNode.type !== "Virtual") {
       const futureArgs = depNode.args.filter(isDependable);
 
       for (const arg of futureArgs) {
@@ -64,6 +66,15 @@ export class RecipeGraph implements IRecipeGraph {
         to: depNode.id,
       });
 
+      for (const afterVertex of depNode.after.filter(isDependable)) {
+        addEdge(this.adjacencyList, {
+          from: afterVertex.vertexId,
+          to: depNode.id,
+        });
+      }
+    }
+
+    if (depNode.type === "Virtual") {
       for (const afterVertex of depNode.after.filter(isDependable)) {
         addEdge(this.adjacencyList, {
           from: afterVertex.vertexId,

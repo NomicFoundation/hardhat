@@ -17,6 +17,12 @@ export function addEdge(
   adjacencyList.set(from, toSet);
 }
 
+export function ensureVertex(adjacencyList: AdjacencyList, v: number) {
+  const toSet = adjacencyList.get(v) ?? new Set<number>();
+
+  adjacencyList.set(v, toSet);
+}
+
 export function getDependenciesFor(adjacencyList: AdjacencyList, to: number) {
   return [...adjacencyList.entries()]
     .filter(([_from, toSet]) => toSet.has(to))
@@ -55,4 +61,38 @@ export function topologicalSort(adjacencyList: AdjacencyList): number[] {
   const order = ts.order();
 
   return order;
+}
+
+/**
+ * Remove a vertex, transfering its dependencies to its dependents.
+ * @param adjacencyList the adjacency list
+ * @param v the vertex to eliminate
+ * @returns an adjacency list without the vertex
+ */
+export function eliminate(
+  adjacencyList: AdjacencyList,
+  v: number
+): AdjacencyList {
+  const updatedList = clone(adjacencyList);
+
+  const dependencies = getDependenciesFor(updatedList, v);
+  const dependents = updatedList.get(v) ?? new Set<number>();
+
+  updatedList.delete(v);
+
+  for (const dependency of dependencies) {
+    const toSet = updatedList.get(dependency);
+
+    if (toSet === undefined) {
+      throw new Error("Dependency sets should be defined");
+    }
+
+    const setWithoutV = new Set<number>([...toSet].filter((n) => n !== v));
+
+    const updatedSet = new Set<number>([...setWithoutV, ...dependents]);
+
+    updatedList.set(dependency, updatedSet);
+  }
+
+  return updatedList;
 }

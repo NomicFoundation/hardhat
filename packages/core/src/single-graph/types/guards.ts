@@ -73,7 +73,8 @@ export function isDependable(possible: any): possible is DependableFuture {
     isFuture(possible) &&
     (possible.type === "call" ||
       possible.type === "contract" ||
-      possible.type === "library")
+      possible.type === "library" ||
+      possible.type === "virtual")
   );
 }
 
