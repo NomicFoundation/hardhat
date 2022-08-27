@@ -133,7 +133,7 @@ export class CompilerDownloader implements ICompilerDownloader {
       return false;
     }
 
-    const downloadPath = this._getCompilerDownloadPathFromBuild(build);
+    const downloadPath = this._getCompilerBinaryPathFromBuild(build);
 
     return fsExtra.pathExists(downloadPath);
   }
