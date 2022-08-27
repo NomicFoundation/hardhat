@@ -183,18 +183,14 @@ export class Artifacts implements IArtifacts {
    */
   public async removeObsoleteArtifacts() {
     const validArtifactPaths = await Promise.all(
-      this._validArtifacts.map(({ sourceName, artifacts }) =>
-        Promise.all(
-          artifacts.map((artifactName) =>
-            this._getArtifactPath(
-              getFullyQualifiedName(sourceName, artifactName)
-            )
-          )
+      this._validArtifacts.flatMap(({ sourceName, artifacts }) =>
+        artifacts.map((artifactName) =>
+          this._getArtifactPath(getFullyQualifiedName(sourceName, artifactName))
         )
       )
     );
 
-    const validArtifactsPathsSet = new Set<string>(...validArtifactPaths);
+    const validArtifactsPathsSet = new Set<string>(validArtifactPaths);
 
     for (const { sourceName, artifacts } of this._validArtifacts) {
       for (const artifactName of artifacts) {
