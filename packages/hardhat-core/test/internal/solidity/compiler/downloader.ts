@@ -1,5 +1,6 @@
 import { assert } from "chai";
 import fsExtra from "fs-extra";
+import path from "path";
 import { ERRORS } from "../../../../src/internal/core/errors-list";
 import {
   CompilerDownloader,
@@ -165,9 +166,73 @@ describe("Compiler downloader", function () {
   });
 
   describe("getCompiler", function () {
-    it("should throw when trying to get a compiler that doesn't exist in the compiler list", function () {});
-    it("should throw when trying to get a compiler that's in the compiler list but hasn't been downloaded yet", function () {});
-    it("should return undefined when the native compiler can't be run", function () {});
-    it("should work for downloaded compilers", function () {});
+    it("should throw when trying to get a compiler that doesn't exist in the compiler list", async function () {
+      await expectHardhatErrorAsync(
+        () => downloader.getCompiler("0.0.1"),
+        ERRORS.GENERAL.ASSERTION_ERROR
+      );
+    });
+
+    it("should throw when trying to get a compiler that's in the compiler list but hasn't been downloaded yet", async function () {
+      await downloader.downloadCompiler("0.4.12");
+
+      await expectHardhatErrorAsync(
+        () => downloader.getCompiler("0.4.13"),
+        ERRORS.GENERAL.ASSERTION_ERROR
+      );
+    });
+
+    it("should return undefined when the native compiler can't be run", async function () {
+      let hasDownloadedOnce = false;
+      const platform = CompilerDownloader.getCompilerPlatform();
+      const mockDownloader = new CompilerDownloader(
+        platform,
+        this.tmpDir,
+        CompilerDownloader.defaultCompilerListCachePeriod,
+        async (_url, filePath, _timeoutMillis) => {
+          if (!hasDownloadedOnce) {
+            hasDownloadedOnce = true;
+            const longVersion = "0.4.12+mock";
+            const compilersList = {
+              builds: [
+                {
+                  path:
+                    platform === CompilerPlatform.WINDOWS ? "solc.exe" : "solc",
+                  version: "0.4.12",
+                  longVersion,
+                  build: "build",
+                  keccak256:
+                    "0x87c2d362de99f75a4f2755cdaaad2d11bf6cc65dc71356593c445535ff28f43d",
+                  urls: [],
+                  platform,
+                },
+              ],
+              releases: {
+                "0.4.12": "0.4.12+mock",
+              },
+              latestRelease: "0.4.12",
+            };
+
+            await fsExtra.ensureDir(path.dirname(filePath));
+            await fsExtra.writeJSON(filePath, compilersList);
+            return;
+          }
+
+          await fsExtra.ensureDir(path.dirname(filePath));
+          await fsExtra.writeFile(filePath, "asd");
+        }
+      );
+
+      await mockDownloader.downloadCompiler("0.4.12");
+      assert.isUndefined(await mockDownloader.getCompiler("0.4.12"));
+    });
+
+    it("should work for downloaded compilers", async function () {
+      await downloader.downloadCompiler("0.4.12");
+      assert.isDefined(downloader.getCompiler("0.4.12"));
+
+      await downloader.downloadCompiler("0.4.13");
+      assert.isDefined(downloader.getCompiler("0.4.13"));
+    });
   });
 });
