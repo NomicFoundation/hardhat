@@ -185,7 +185,7 @@ export class Artifacts implements IArtifacts {
           ...buildInfo,
           output: undefined,
         });
-        await file.write(withoutOutput.substring(0, withoutOutput.length - 1));
+        await file.write(withoutOutput.slice(0, -1));
       }
 
       {
