@@ -165,7 +165,7 @@ export class CompilerDownloader implements ICompilerDownloader {
         downloadPath = await this._downloadCompiler(build);
       } catch (e: any) {
         throw new HardhatError(
-          ERRORS.SOLC.INVALID_VERSION,
+          ERRORS.SOLC.DOWNLOAD_FAILED,
           {
             remoteVersion: build.longVersion,
           },
@@ -175,7 +175,7 @@ export class CompilerDownloader implements ICompilerDownloader {
 
       const verified = await this._verifyCompilerDownload(build, downloadPath);
       if (!verified) {
-        throw new HardhatError(ERRORS.SOLC.INVALID_VERSION, {
+        throw new HardhatError(ERRORS.SOLC.INVALID_DOWNLOAD, {
           remoteVersion: build.longVersion,
         });
       }
