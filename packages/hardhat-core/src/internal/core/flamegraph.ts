@@ -45,7 +45,9 @@ function foldFramegraph(toFold: Flamegraph): Flamegraph {
   }
 
   const children = toFold.children.map((c) => foldFramegraph(c));
-  children.sort((a, b) => (a.parallel === b.parallel ? 0 : 1));
+  children.sort((a, b) =>
+    a.parallel === b.parallel ? 0 : b.parallel ? -1 : 1
+  );
   children.sort((a, b) => a.name.localeCompare(b.name));
 
   const foldedChildren = [children[0]];
