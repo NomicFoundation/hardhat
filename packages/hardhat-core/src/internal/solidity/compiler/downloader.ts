@@ -76,9 +76,9 @@ export interface ICompilerDownloader {
  * Important things to note:
  *   1. If a compiler version is not found, this downloader may fail.
  *    1.1. It only re-downloads the list of compilers once every X time.
- *      1.1.1 If a user tries to download a new compiler after X time has passed
- *      since its release, they may need to clean the cache, as indicated in the
- *      error messages.
+ *      1.1.1 If a user tries to download a new compiler before X amount of time
+ *      has passed since its release, they may need to clean the cache, as
+ *      indicated in the error messages.
  */
 export class CompilerDownloader implements ICompilerDownloader {
   public static getCompilerPlatform(): CompilerPlatform {
