@@ -14,6 +14,7 @@ export interface EtherscanUserConfig {
 export interface EtherscanConfig {
   apiKey?: string | Record<string, string>;
   customChains: CustomChain[];
+  proxy?: string;
 }
 
 export interface EtherscanURLs {

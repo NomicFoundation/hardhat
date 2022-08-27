@@ -174,6 +174,18 @@ Keep in mind that the name you are giving to the network in `customChains` is th
 
 To see which custom chains are supported, run `npx hardhat verify --list-networks`.
 
+### Adding proxy
+
+If your Node environment is unable to access certain links through proxies, add the proxy field to resolve this [issue](https://github.com/NomicFoundation/hardhat/issues/2684). Please enter this field after enabling the global agent. Note: The client port of each agent is different. Please enter the corresponding value according to your actual situation.
+
+For example, You are using ClashX for global proxy, but this error is still reported. In this case, you need to add proxy to 127.0.0.0:7890 .
+
+```
+etherscan: {
+  proxy: 'http://127.0.0.0:7890'
+}
+```
+
 ### Using programmatically
 
 To call the verification task from within a Hardhat task or script, use the `"verify:verify"` subtask. Assuming the same contract as [above](#complex-arguments), you can run the subtask like this:

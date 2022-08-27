@@ -290,7 +290,7 @@ Possible causes are:
   // If OVM, the full version string was already read from the hardhat config. If solc, get the full version string
   const solcFullVersion = deployedBytecode.isOvmInferred()
     ? contractInformation.solcVersion
-    : await getLongVersion(contractInformation.solcVersion);
+    : await getLongVersion(contractInformation.solcVersion, etherscan);
 
   const minimumBuild: Build = await run(TASK_VERIFY_GET_MINIMUM_BUILD, {
     sourceName: contractInformation.sourceName,

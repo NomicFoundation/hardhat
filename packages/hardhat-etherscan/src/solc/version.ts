@@ -1,6 +1,7 @@
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 
 import { pluginName } from "../constants";
+import { EtherscanConfig } from "../types";
 
 const COMPILERS_LIST_URL = "https://solc-bin.ethereum.org/bin/list.json";
 
@@ -13,8 +14,11 @@ export interface CompilersList {
 }
 
 // TODO: this could be retrieved from the hardhat config instead.
-export async function getLongVersion(shortVersion: string): Promise<string> {
-  const versions = await getVersions();
+export async function getLongVersion(
+  shortVersion: string,
+  etherscanConfig?: EtherscanConfig
+): Promise<string> {
+  const versions = await getVersions(etherscanConfig);
   const fullVersion = versions.releases[shortVersion];
 
   if (fullVersion === undefined || fullVersion === "") {
@@ -27,9 +31,18 @@ export async function getLongVersion(shortVersion: string): Promise<string> {
   return fullVersion.replace(/(soljson-)(.*)(.js)/, "$2");
 }
 
-export async function getVersions(): Promise<CompilersList> {
+export async function getVersions(
+  etherscanConfig?: EtherscanConfig
+): Promise<CompilersList> {
   try {
-    const { request } = await import("undici");
+    const { request, ProxyAgent, setGlobalDispatcher } = await import("undici");
+    if (
+      etherscanConfig?.proxy !== undefined &&
+      typeof etherscanConfig.proxy === "string"
+    ) {
+      const proxyAgent = new ProxyAgent(etherscanConfig?.proxy);
+      setGlobalDispatcher(proxyAgent);
+    }
     // It would be better to query an etherscan API to get this list but there's no such API yet.
     const response = await request(COMPILERS_LIST_URL, { method: "GET" });
 
