@@ -1,4 +1,4 @@
-import { SecureTrie as Trie } from "@ethereumjs/trie";
+import { Trie } from "@ethereumjs/trie";
 import { Account, intToBuffer, setLengthLeft } from "@ethereumjs/util";
 
 import { GenesisAccount } from "../node-types";
@@ -6,7 +6,7 @@ import { GenesisAccount } from "../node-types";
 import { makeAccount } from "./makeAccount";
 
 export async function makeStateTrie(genesisAccounts: GenesisAccount[]) {
-  const stateTrie = new Trie();
+  const stateTrie = new Trie({ useKeyHashing: true });
 
   for (const acc of genesisAccounts) {
     const { address, account } = makeAccount(acc);
