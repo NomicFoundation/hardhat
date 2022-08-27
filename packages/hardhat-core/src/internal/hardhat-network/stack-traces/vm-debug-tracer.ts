@@ -1,6 +1,6 @@
 import { TypedTransaction } from "@ethereumjs/tx";
 import { AfterTxEvent, VM } from "@ethereumjs/vm";
-import { EVM, EVMResult } from "@ethereumjs/evm";
+import { EVMResult } from "@ethereumjs/evm";
 import { InterpreterStep } from "@ethereumjs/evm/dist/interpreter";
 import { Message } from "@ethereumjs/evm/dist/message";
 import {
@@ -90,26 +90,40 @@ export class VMDebugTracer {
   }
 
   private _enableTracing(config: RpcDebugTracingConfig) {
-    this._vm.on("beforeTx", this._beforeTxHandler);
-    (this._vm.evm as EVM).on("beforeMessage", this._beforeMessageHandler);
-    (this._vm.evm as EVM).on("step", this._stepHandler);
-    (this._vm.evm as EVM).on("afterMessage", this._afterMessageHandler);
-    this._vm.on("afterTx", this._afterTxHandler);
+    assertHardhatInvariant(
+      this._vm.evm.events !== undefined,
+      "EVM should have an 'events' property"
+    );
+
+    this._vm.events.on("beforeTx", this._beforeTxHandler);
+
+    this._vm.evm.events.on("beforeMessage", this._beforeMessageHandler);
+    this._vm.evm.events.on("step", this._stepHandler);
+    this._vm.evm.events.on("afterMessage", this._afterMessageHandler);
+
+    this._vm.events.on("afterTx", this._afterTxHandler);
+
     this._config = config;
   }
 
   private _disableTracing() {
-    this._vm.removeListener("beforeTx", this._beforeTxHandler);
-    (this._vm.evm as EVM).removeListener(
+    assertHardhatInvariant(
+      this._vm.evm.events !== undefined,
+      "EVM should have an 'events' property"
+    );
+
+    this._vm.events.removeListener("beforeTx", this._beforeTxHandler);
+
+    this._vm.evm.events.removeListener(
       "beforeMessage",
       this._beforeMessageHandler
     );
-    (this._vm.evm as EVM).removeListener("step", this._stepHandler);
-    (this._vm.evm as EVM).removeListener(
+    this._vm.evm.events.removeListener("step", this._stepHandler);
+    this._vm.evm.events.removeListener(
       "afterMessage",
       this._afterMessageHandler
     );
-    this._vm.removeListener("afterTx", this._afterTxHandler);
+    this._vm.events.removeListener("afterTx", this._afterTxHandler);
     this._config = undefined;
   }
 
