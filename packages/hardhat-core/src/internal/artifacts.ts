@@ -241,9 +241,11 @@ export class Artifacts implements IArtifacts {
         await file.write(`${JSON.stringify(name)}:${JSON.stringify(value)}`);
       }
 
+      // close contracts object
       await file.write("}");
-
+      // close output object
       await file.write("}");
+      // close build info object
       await file.write("}");
     } finally {
       await file.close();
