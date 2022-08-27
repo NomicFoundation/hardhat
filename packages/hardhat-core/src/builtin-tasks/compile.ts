@@ -590,8 +590,14 @@ subtask(TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD)
         });
       }
 
-      // wasm compilers always work
-      return (await downloader.getCompiler(solcVersion))!;
+      const wasmCompiler = await downloader.getCompiler(solcVersion);
+
+      assertHardhatInvariant(
+        wasmCompiler !== undefined,
+        `WASM build of solc ${solcVersion} isn't working`
+      );
+
+      return wasmCompiler;
     }
   );
 
