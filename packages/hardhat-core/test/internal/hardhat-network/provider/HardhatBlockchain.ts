@@ -18,9 +18,14 @@ describe("HardhatBlockchain", () => {
   function createBlock(number: number, _difficulty?: BufferLike) {
     const difficulty = bufferToBigInt(_difficulty as Buffer);
     const parentHash = number === 0 ? zeros(32) : blocks[number - 1].hash();
-    const newBlock = Block.fromBlockData({
-      header: { number, difficulty, parentHash },
-    });
+    const newBlock = Block.fromBlockData(
+      {
+        header: { number, difficulty, parentHash },
+      },
+      {
+        skipConsensusFormatValidation: true,
+      }
+    );
     blocks.push(newBlock);
     return newBlock;
   }
