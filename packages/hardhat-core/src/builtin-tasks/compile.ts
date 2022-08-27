@@ -566,7 +566,7 @@ subtask(TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD)
         "Native solc binary doesn't work, using solcjs instead. Try running npx hardhat clean --global"
       );
 
-      const wasmDownloader = new CompilerDownloader(
+      const wasmDownloader = CompilerDownloader.getConcurrencySafeDownloader(
         CompilerPlatform.WASM,
         compilersCache
       );
