@@ -31,7 +31,7 @@ export async function putGenesisBlock(
     difficulty: isPostMerge ? 0 : 1,
     nonce: isPostMerge ? "0x0000000000000000" : "0x0000000000000042",
     extraData: "0x1234",
-    stateRoot: bufferToHex(stateTrie.root),
+    stateRoot: bufferToHex(stateTrie.root()),
   };
 
   if (isPostMerge) {
