@@ -117,11 +117,7 @@ export class CompilerDownloader implements ICompilerDownloader {
   private readonly _mutex = new Mutex();
 
   /**
-   * Use
-   * @param _platform
-   * @param _compilersDir
-   * @param _compilerListCachePeriodMs
-   * @param _downloadFunction
+   * Use CompilerDownloader.getConcurrencySafeDownloader instead
    */
   constructor(
     private readonly _platform: CompilerPlatform,
