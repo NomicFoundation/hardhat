@@ -317,7 +317,7 @@ export class CompilerDownloader implements ICompilerDownloader {
     ) {
       fsExtra.chmodSync(downloadPath, 0o755);
     } else if (
-      this._platform !== CompilerPlatform.WINDOWS &&
+      this._platform === CompilerPlatform.WINDOWS &&
       downloadPath.endsWith(".zip")
     ) {
       // some window builds are zipped, some are not
