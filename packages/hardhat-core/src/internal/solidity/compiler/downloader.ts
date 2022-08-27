@@ -113,6 +113,7 @@ export class CompilerDownloader implements ICompilerDownloader {
     return this._downloaderPerPlatform.get(key)!;
   }
 
+  public static defaultCompilerListCachePeriod = 3_600_00;
   private readonly _mutex = new Mutex();
 
   /**
@@ -125,7 +126,7 @@ export class CompilerDownloader implements ICompilerDownloader {
   constructor(
     private readonly _platform: CompilerPlatform,
     private readonly _compilersDir: string,
-    private readonly _compilerListCachePeriodMs = 3_600_000,
+    private readonly _compilerListCachePeriodMs = CompilerDownloader.defaultCompilerListCachePeriod,
     private readonly _downloadFunction: typeof download = download
   ) {}
 
