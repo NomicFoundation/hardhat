@@ -343,10 +343,14 @@ export class CompilerDownloader implements ICompilerDownloader {
   private _checkNativeSolc(build: CompilerBuild) {
     const solcPath = this._getCompilerBinaryPathFromBuild(build);
     return new Promise((resolve) => {
-      const process = execFile(solcPath, ["--version"]);
-      process.on("exit", (code) => {
-        resolve(code === 0);
-      });
+      try {
+        const process = execFile(solcPath, ["--version"]);
+        process.on("exit", (code) => {
+          resolve(code === 0);
+        });
+      } catch {
+        resolve(false);
+      }
     });
   }
 }
