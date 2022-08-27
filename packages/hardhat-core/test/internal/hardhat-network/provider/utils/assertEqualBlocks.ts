@@ -1,5 +1,5 @@
 import { Block } from "@ethereumjs/block";
-import { PostByzantiumTxReceipt } from "@ethereumjs/vm";
+import { AfterBlockEvent, PostByzantiumTxReceipt } from "@ethereumjs/vm";
 import { assert } from "chai";
 import { bufferToHex } from "@ethereumjs/util";
 
@@ -11,7 +11,7 @@ import { JsonRpcClient } from "../../../../../src/internal/hardhat-network/jsonr
 
 export async function assertEqualBlocks(
   block: Block,
-  afterBlockEvent: any,
+  afterBlockEvent: AfterBlockEvent,
   expectedBlock: RpcBlockWithTransactions,
   forkClient: JsonRpcClient
 ) {
@@ -39,7 +39,7 @@ export async function assertEqualBlocks(
       );
 
       assert.equal(
-        numberToRpcQuantity(evmResult.gasUsed.toNumber()),
+        numberToRpcQuantity(evmResult.totalGasSpent),
         remoteReceipt.gasUsed,
         `Gas used of tx index ${i} (${txHash}) should match`
       );
@@ -53,7 +53,7 @@ export async function assertEqualBlocks(
       assert.equal(
         evmResult.createdAddress === undefined
           ? undefined
-          : `0x${evmResult.createdAddress.toString()}`,
+          : evmResult.createdAddress.toString(),
         remoteReceipt.contractAddress,
         `Contract address created by tx index ${i} (${txHash}) should be the same`
       );
