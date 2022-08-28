@@ -343,8 +343,8 @@ Hardhat plugin instead.`
         const files = ctx.getFilesLoadedDuringConfig();
 
         for (const file of builtinTasksFiles) {
-          // The task names may have been loaded before, so we ignore it.
-          if (file.endsWith("task-names.ts")) {
+          // The task names and the utils may have been loaded before, so we ignore them.
+          if (file.endsWith("task-names.ts") || file.includes("/utils/")) {
             continue;
           }
 
