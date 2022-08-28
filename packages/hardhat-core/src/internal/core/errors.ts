@@ -37,7 +37,7 @@ export class CustomError extends Error {
       const causeString =
         parentAsAny[inspect]?.() ??
         parentAsAny.inspect?.() ??
-        parentAsAny._stack ??
+        parentAsAny.stack ??
         parentAsAny.toString();
       const nestedCauseStr = causeString
         .split("\n")
