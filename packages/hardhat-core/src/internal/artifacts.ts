@@ -34,8 +34,8 @@ import {
   FileNotFoundError,
   getAllFilesMatching,
   getAllFilesMatchingSync,
-  getRealCase,
-  getRealCaseSync,
+  getFileTrueCase,
+  getFileTrueCaseSync,
 } from "./util/fs-utils";
 
 const log = debug("hardhat:core:artifacts");
@@ -464,16 +464,24 @@ export class Artifacts implements IArtifacts {
       this.formArtifactPathFromFullyQualifiedName(fullyQualifiedName);
 
     try {
-      const realCasePath = await getRealCase(artifactPath);
+      const trueCasePath = path.join(
+        this._artifactsPath,
+        await getFileTrueCase(
+          this._artifactsPath,
+          path.relative(this._artifactsPath, artifactPath)
+        )
+      );
 
-      if (artifactPath !== realCasePath) {
+      console.log({ trueCasePath, artifactPath });
+
+      if (artifactPath !== trueCasePath) {
         throw new HardhatError(ERRORS.ARTIFACTS.WRONG_CASING, {
-          correct: realCasePath,
-          incorrect: artifactPath,
+          correct: this._getFullyQualifiedNameFromPath(trueCasePath),
+          incorrect: fullyQualifiedName,
         });
       }
 
-      return artifactPath;
+      return trueCasePath;
     } catch (e) {
       if (e instanceof FileNotFoundError) {
         return this._handleWrongArtifactForFullyQualifiedName(
@@ -629,16 +637,22 @@ Please replace "${contractName}" for the correct contract name wherever you are 
       this.formArtifactPathFromFullyQualifiedName(fullyQualifiedName);
 
     try {
-      const realCasePath = getRealCaseSync(artifactPath);
+      const trueCasePath = path.join(
+        this._artifactsPath,
+        getFileTrueCaseSync(
+          this._artifactsPath,
+          path.relative(this._artifactsPath, artifactPath)
+        )
+      );
 
-      if (artifactPath !== realCasePath) {
+      if (artifactPath !== trueCasePath) {
         throw new HardhatError(ERRORS.ARTIFACTS.WRONG_CASING, {
-          correct: realCasePath,
-          incorrect: artifactPath,
+          correct: this._getFullyQualifiedNameFromPath(trueCasePath),
+          incorrect: fullyQualifiedName,
         });
       }
 
-      return artifactPath;
+      return trueCasePath;
     } catch (e) {
       if (e instanceof FileNotFoundError) {
         return this._handleWrongArtifactForFullyQualifiedName(
