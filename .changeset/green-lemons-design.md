@@ -1,5 +1,5 @@
 ---
-"hardhat": patch
+"hardhat": minor
 ---
 
 Added support for the merge.
