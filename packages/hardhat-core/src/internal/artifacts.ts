@@ -2,6 +2,7 @@ import debug from "debug";
 import fsExtra from "fs-extra";
 import * as os from "os";
 import * as path from "path";
+import fsPromises from "fs/promises";
 
 import {
   Artifact,
@@ -173,7 +174,90 @@ export class Artifacts implements IArtifacts {
     );
 
     const buildInfoPath = path.join(buildInfoDir, `${buildInfoName}.json`);
-    await fsExtra.writeJson(buildInfoPath, buildInfo, { spaces: 2 });
+
+    // JSON.stringify of the entire build info can be really slow
+    // in larger projects, so we stringify per part and incrementally create
+    // the JSON in the file.
+    //
+    // We split this code into different curly-brace-enclosed scopes so that
+    // partial JSON strings get out of scope sooner and hence can be reclaimed
+    // by the GC if needed.
+    const file = await fsPromises.open(buildInfoPath, "w");
+    try {
+      {
+        const withoutOutput = JSON.stringify({
+          ...buildInfo,
+          output: undefined,
+        });
+
+        // We write the JSON (without output) except the last }
+        await file.write(withoutOutput.slice(0, -1));
+      }
+
+      {
+        const outputWithoutSourcesAndContracts = JSON.stringify({
+          ...buildInfo.output,
+          sources: undefined,
+          contracts: undefined,
+        });
+
+        // We start writing the output
+        await file.write(',"output":');
+
+        // Write the output object except for the last }
+        await file.write(outputWithoutSourcesAndContracts.slice(0, -1));
+
+        // If there were other field apart from sources and contracts we need
+        // a comma
+        if (outputWithoutSourcesAndContracts.length > 2) {
+          await file.write(",");
+        }
+      }
+
+      // Writing the sources
+      await file.write('"sources":{');
+
+      let isFirst = true;
+      for (const [name, value] of Object.entries(
+        buildInfo.output.sources ?? {}
+      )) {
+        if (isFirst) {
+          isFirst = false;
+        } else {
+          await file.write(",");
+        }
+
+        await file.write(`${JSON.stringify(name)}:${JSON.stringify(value)}`);
+      }
+
+      // Close sources object
+      await file.write("}");
+
+      // Writing the contracts
+      await file.write(',"contracts":{');
+
+      isFirst = true;
+      for (const [name, value] of Object.entries(
+        buildInfo.output.contracts ?? {}
+      )) {
+        if (isFirst) {
+          isFirst = false;
+        } else {
+          await file.write(",");
+        }
+
+        await file.write(`${JSON.stringify(name)}:${JSON.stringify(value)}`);
+      }
+
+      // close contracts object
+      await file.write("}");
+      // close output object
+      await file.write("}");
+      // close build info object
+      await file.write("}");
+    } finally {
+      await file.close();
+    }
 
     return buildInfoPath;
   }

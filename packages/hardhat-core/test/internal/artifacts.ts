@@ -8,7 +8,7 @@ import {
   getArtifactFromContractOutput,
 } from "../../src/internal/artifacts";
 import { ERRORS } from "../../src/internal/core/errors-list";
-import { Artifact } from "../../src/types";
+import { Artifact, CompilerInput, CompilerOutput } from "../../src/types";
 import { getFullyQualifiedName } from "../../src/utils/contract-names";
 import { expectHardhatError, expectHardhatErrorAsync } from "../helpers/errors";
 import { useTmpDir } from "../helpers/fs";
@@ -766,8 +766,8 @@ describe("Artifacts class", function () {
 
       const solcVersion = "0.5.6";
       const solcLongVersion = "0.5.6+12321";
-      const solcInput = { input: true } as any;
-      const solcOutput = { output: true } as any;
+      const solcInput = { input: {} } as any;
+      const solcOutput = { sources: {}, contracts: {} } as any;
 
       const buildInfoPath = await artifacts.saveBuildInfo(
         solcVersion,
@@ -907,6 +907,100 @@ describe("Artifacts class", function () {
 
       // -2 because of the ones that we tested above that are equal
       assert.equal(new Set(allPaths).size, allPaths.length - 2);
+    });
+
+    it("Should be able to save build-infos with partial fields", async function () {
+      const artifacts = new Artifacts(this.tmpDir);
+
+      async function assertBuildInfoIsCorrectylSavedAndHasTheRightOutput<
+        OutputT extends CompilerOutput
+      >(solcOutput: OutputT) {
+        const solcInput: CompilerInput = {
+          language: "solidity",
+          sources: {},
+          settings: {
+            optimizer: {},
+            outputSelection: {},
+          },
+        };
+
+        const buildInfoPath = await artifacts.saveBuildInfo(
+          "0.4.12",
+          "0.4.12+asd",
+          solcInput,
+          solcOutput
+        );
+        const read = await fsExtra.readJSON(buildInfoPath);
+        assert.deepEqual(read.output, solcOutput);
+      }
+
+      // empty sources and contracts
+      await assertBuildInfoIsCorrectylSavedAndHasTheRightOutput({
+        sources: {},
+        contracts: {},
+      });
+
+      // with unrelated data
+      await assertBuildInfoIsCorrectylSavedAndHasTheRightOutput({
+        sources: {},
+        contracts: {},
+        otherStuff: { a: 1 },
+      });
+
+      // with a single source
+      await assertBuildInfoIsCorrectylSavedAndHasTheRightOutput({
+        sources: { a: { id: 123, ast: {} } },
+        contracts: {},
+      });
+
+      // with a multiple sources
+      await assertBuildInfoIsCorrectylSavedAndHasTheRightOutput({
+        sources: { a: { id: 123, ast: {} }, b: { id: 1, ast: { asdas: 123 } } },
+        contracts: {},
+      });
+
+      const contract = {
+        abi: [],
+        evm: {
+          bytecode: {
+            object: "123",
+            sourceMap: "asd",
+            opcodes: "123asd",
+            linkReferences: {},
+          },
+          deployedBytecode: {
+            object: "123",
+            sourceMap: "asd",
+            opcodes: "123asd",
+            linkReferences: {},
+          },
+          methodIdentifiers: {},
+        },
+      };
+
+      // with a single contract
+      await assertBuildInfoIsCorrectylSavedAndHasTheRightOutput({
+        sources: {},
+        contracts: {
+          asd: {
+            C: contract,
+          },
+        },
+      });
+
+      // with multiple contracts
+      await assertBuildInfoIsCorrectylSavedAndHasTheRightOutput({
+        sources: {},
+        contracts: {
+          asd: {
+            C: contract,
+            B: contract,
+          },
+          f: {
+            F: contract,
+          },
+        },
+      });
     });
   });
 });
