@@ -107,19 +107,17 @@ export async function getAllFilesMatching(
       const absolutePathToFile = path.join(absolutePathToDir, file);
       const stats = await fsPromises.stat(absolutePathToFile);
       if (stats.isDirectory()) {
-        return getAllFilesMatching(absolutePathToFile, matches);
+        const files = await getAllFilesMatching(absolutePathToFile, matches);
+        return files.flat();
+      } else if (matches === undefined || matches(absolutePathToFile)) {
+        return absolutePathToFile;
       } else {
-        if (matches === undefined || matches(absolutePathToFile)) {
-          return absolutePathToFile;
-        }
+        return [];
       }
     })
   );
 
-  const filteredResults: Array<string | string[]> =
-    results.filter(isNotundefined);
-
-  return filteredResults.flat(1_000_000);
+  return results.flat();
 }
 
 export function getAllFilesMatchingSync(
@@ -149,20 +147,13 @@ export function getAllFilesMatchingSync(
     const absolutePathToFile = path.join(absolutePathToDir, file);
     const stats = fs.statSync(absolutePathToFile);
     if (stats.isDirectory()) {
-      return getAllFilesMatchingSync(absolutePathToFile, matches);
+      return getAllFilesMatchingSync(absolutePathToFile, matches).flat();
+    } else if (matches === undefined || matches(absolutePathToFile)) {
+      return absolutePathToFile;
     } else {
-      if (matches === undefined || matches(absolutePathToFile)) {
-        return absolutePathToFile;
-      }
+      return [];
     }
   });
 
-  const filteredResults: Array<string | string[]> =
-    results.filter(isNotundefined);
-
-  return filteredResults.flat(1_000_000);
-}
-
-function isNotundefined<T>(t: T | undefined): t is T {
-  return t !== undefined;
+  return results.flat();
 }
