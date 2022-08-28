@@ -26,7 +26,7 @@ export class CustomError extends Error {
     this._stack = this.stack ?? "";
 
     Object.defineProperty(this, "stack", {
-      get: () => this[inspect].call(this),
+      get: () => this[inspect](),
     });
   }
 
