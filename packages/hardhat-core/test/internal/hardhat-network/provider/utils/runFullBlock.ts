@@ -41,7 +41,7 @@ export async function runFullBlock(
     forkConfig,
     forkCachePath: FORK_TESTS_CACHE_PATH,
     blockGasLimit: Number(rpcBlock.gasLimit),
-    minGasPrice: 0,
+    minGasPrice: 0n,
     genesisAccounts: [],
     mempoolOrder: "priority",
     coinbase: "0x0000000000000000000000000000000000000000",

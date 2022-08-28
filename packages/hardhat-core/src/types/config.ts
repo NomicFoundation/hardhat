@@ -142,7 +142,7 @@ export interface HardhatNetworkConfig {
   mining: HardhatNetworkMiningConfig;
   accounts: HardhatNetworkAccountsConfig;
   blockGasLimit: number;
-  minGasPrice: number;
+  minGasPrice: bigint;
   throwOnTransactionFailures: boolean;
   throwOnCallFailures: boolean;
   allowUnlimitedContractSize: boolean;

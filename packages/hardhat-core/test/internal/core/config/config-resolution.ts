@@ -620,7 +620,7 @@ describe("Config resolution", () => {
         it("should default to 0", function () {
           const config = resolveConfig(__filename, {});
 
-          assert.equal(config.networks.hardhat.minGasPrice, 0);
+          assert.equal(config.networks.hardhat.minGasPrice, 0n);
         });
 
         it("should accept numbers", function () {
@@ -632,7 +632,7 @@ describe("Config resolution", () => {
             },
           });
 
-          assert.equal(config.networks.hardhat.minGasPrice, 10);
+          assert.equal(config.networks.hardhat.minGasPrice, 10n);
         });
 
         it("should accept strings", function () {
@@ -644,7 +644,7 @@ describe("Config resolution", () => {
             },
           });
 
-          assert.equal(config.networks.hardhat.minGasPrice, 10 ** 11);
+          assert.equal(config.networks.hardhat.minGasPrice, 10n ** 11n);
         });
       });
 
@@ -690,7 +690,7 @@ describe("Config resolution", () => {
           loggingEnabled: true,
           allowUnlimitedContractSize: true,
           blockGasLimit: 567,
-          minGasPrice: 10,
+          minGasPrice: 10n,
           mining: {
             auto: false,
             interval: 0,

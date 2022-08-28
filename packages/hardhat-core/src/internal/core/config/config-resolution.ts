@@ -167,7 +167,7 @@ function resolveHardhatNetworkConfig(
 
   const mining = resolveMiningConfig(hardhatNetworkConfig.mining);
 
-  const minGasPrice = Number(
+  const minGasPrice = BigInt(
     hardhatNetworkConfig.minGasPrice ??
       clonedDefaultHardhatNetworkParams.minGasPrice
   );

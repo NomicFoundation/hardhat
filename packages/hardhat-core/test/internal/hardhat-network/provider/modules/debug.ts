@@ -182,7 +182,7 @@ describe("Debug module", function () {
         DEFAULT_NETWORK_ID,
         13000000,
         undefined,
-        0,
+        0n,
         true,
         true,
         false, // mining.auto
@@ -308,7 +308,7 @@ describe("Debug module", function () {
         DEFAULT_NETWORK_ID,
         13000000,
         undefined,
-        0,
+        0n,
         true,
         true,
         false, // mining.auto

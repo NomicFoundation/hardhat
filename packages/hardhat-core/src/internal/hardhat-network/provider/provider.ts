@@ -80,7 +80,7 @@ export class HardhatNetworkProvider
     private readonly _networkId: number,
     private readonly _blockGasLimit: number,
     private readonly _initialBaseFeePerGas: number | undefined,
-    private readonly _minGasPrice: number,
+    private readonly _minGasPrice: bigint,
     private readonly _throwOnTransactionFailures: boolean,
     private readonly _throwOnCallFailures: boolean,
     private readonly _automine: boolean,

@@ -21,7 +21,7 @@ interface CommonConfig {
   chainId: number;
   genesisAccounts: GenesisAccount[];
   hardfork: string;
-  minGasPrice: number;
+  minGasPrice: bigint;
   networkId: number;
   networkName: string;
   allowUnlimitedContractSize?: boolean;

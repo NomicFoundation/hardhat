@@ -83,7 +83,7 @@ export function useProvider({
       initialBaseFeePerGas === undefined
         ? undefined
         : Number(initialBaseFeePerGas),
-      0, // minGasPrice
+      0n, // minGasPrice
       true,
       true,
       mining.auto,
