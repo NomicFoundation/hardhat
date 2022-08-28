@@ -1,7 +1,6 @@
 import { assert } from "chai";
 import * as fsExtra from "fs-extra";
 import path from "path";
-import slash from "slash";
 
 import { TASK_COMPILE } from "../../../src/builtin-tasks/task-names";
 import { ERRORS } from "../../../src/internal/core/errors-list";
@@ -145,7 +144,7 @@ describe("Resolver", function () {
       );
 
       await expectHardhatErrorAsync(
-        () => resolver.resolveSourceName(slash(__dirname)),
+        () => resolver.resolveSourceName(replaceBackslashes(__dirname)),
         ERRORS.SOURCE_NAMES.INVALID_SOURCE_NAME_ABSOLUTE_PATH
       );
     });

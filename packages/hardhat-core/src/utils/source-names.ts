@@ -177,8 +177,23 @@ function isExplicitRelativePath(sourceName: string): boolean {
  * Note that a source name must not contain backslashes.
  */
 export function replaceBackslashes(str: string): string {
-  const slash = require("slash");
-  return slash(str);
+  // Based in the npm module slash
+  const isExtendedLengthPath = /^\\\\\?\\/.test(str);
+  const hasNonAscii = /[^\u0000-\u0080]+/.test(str);
+
+  if (isExtendedLengthPath || hasNonAscii) {
+    return str;
+  }
+
+  return str.replace(/\\/g, "/");
+}
+
+function slashesToPathSeparator(str: string): string {
+  if (path.sep === "/") {
+    return str;
+  }
+
+  return str.replace(/\//g, path.sep);
 }
 
 /**
