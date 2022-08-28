@@ -132,10 +132,10 @@ export class Resolver {
 
       const isRelativeImport = this._isRelativeImport(imported);
 
-      if (!isRelativeImport) {
-        sourceName = normalizeSourceName(imported);
-      } else {
+      if (isRelativeImport) {
         sourceName = await this._relativeImportToSourceName(from, imported);
+      } else {
+        sourceName = normalizeSourceName(imported);
       }
 
       const cached = this._cache.get(sourceName);
