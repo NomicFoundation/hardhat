@@ -2,11 +2,7 @@ import path from "path";
 
 import { HardhatError } from "../internal/core/errors";
 import { ERRORS } from "../internal/core/errors-list";
-import {
-  fileExistsWithExactCasing,
-  FileNotFoundError,
-  getRealCase,
-} from "../internal/util/fs-utils";
+import { FileNotFoundError, getFileTrueCase } from "../internal/util/fs-utils";
 
 const NODE_MODULES = "node_modules";
 
@@ -78,8 +74,18 @@ export async function isLocalSourceName(
   const firstDirOrFileName =
     slashIndex !== -1 ? sourceName.substring(0, slashIndex) : sourceName;
 
-  const absolutePathToFirstName = path.join(projectRoot, firstDirOrFileName);
-  return fileExistsWithExactCasing(absolutePathToFirstName);
+  try {
+    await getFileTrueCase(projectRoot, firstDirOrFileName);
+  } catch (error) {
+    if (error instanceof FileNotFoundError) {
+      return false;
+    }
+
+    // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+    throw error;
+  }
+
+  return true;
 }
 
 /**
@@ -92,7 +98,7 @@ export async function validateSourceNameExistenceAndCasing(
   fromDir: string,
   sourceName: string
 ) {
-  const trueCaseSourceName = await getPathTrueCase(fromDir, sourceName);
+  const trueCaseSourceName = await getSourceNameTrueCase(fromDir, sourceName);
 
   if (trueCaseSourceName !== sourceName) {
     throw new HardhatError(ERRORS.SOURCE_NAMES.WRONG_CASING, {
@@ -127,7 +133,7 @@ export async function localPathToSourceName(
     });
   }
 
-  return getPathTrueCase(projectRoot, relativePath);
+  return getSourceNameTrueCase(projectRoot, relativePath);
 }
 
 /**
@@ -200,11 +206,13 @@ function slashesToPathSeparator(str: string): string {
  * Returns the true casing of `p` as a relative path from `fromDir`. Throws if
  * `p` doesn't exist. `p` MUST be in source name format.
  */
-async function getPathTrueCase(fromDir: string, p: string): Promise<string> {
+async function getSourceNameTrueCase(
+  fromDir: string,
+  p: string
+): Promise<string> {
   try {
-    const absolute = path.join(fromDir, p);
-    const realCase = await getRealCase(absolute);
-    return normalizeSourceName(path.relative(fromDir, realCase));
+    const realCase = await getFileTrueCase(fromDir, slashesToPathSeparator(p));
+    return normalizeSourceName(realCase);
   } catch (error) {
     if (error instanceof FileNotFoundError) {
       throw new HardhatError(
