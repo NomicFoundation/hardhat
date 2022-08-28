@@ -766,8 +766,8 @@ describe("Artifacts class", function () {
 
       const solcVersion = "0.5.6";
       const solcLongVersion = "0.5.6+12321";
-      const solcInput = { input: true } as any;
-      const solcOutput = { output: true } as any;
+      const solcInput = { input: {} } as any;
+      const solcOutput = { sources: {}, contracts: {} } as any;
 
       const buildInfoPath = await artifacts.saveBuildInfo(
         solcVersion,
