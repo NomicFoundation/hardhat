@@ -178,6 +178,10 @@ export class Artifacts implements IArtifacts {
     // JSON.stringify of the entire build info can be really slow
     // in larger projects, so we stringify per part and incrementally create
     // the JSON in the file.
+    //
+    // We split this code into different curly-brace-enclosed scopes so that
+    // partial JSON strings get out of scope sooner and hence can be reclaimed
+    // by the GC if needed.
     const file = await fsPromises.open(buildInfoPath, "w");
     try {
       {
