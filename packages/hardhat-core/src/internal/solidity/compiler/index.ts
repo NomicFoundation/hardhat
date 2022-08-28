@@ -1,12 +1,17 @@
 import { exec } from "child_process";
 import * as fs from "fs";
+import { CompilerInput, CompilerOutput } from "../../../types";
 
-export class Compiler {
+export interface ICompiler {
+  compile(input: CompilerInput): Promise<CompilerOutput>;
+}
+
+export class Compiler implements ICompiler {
   private _loadedSolc?: any;
 
   constructor(private _pathToSolcJs: string) {}
 
-  public async compile(input: any) {
+  public async compile(input: CompilerInput) {
     const solc = await this.getSolc();
 
     const jsonOutput = solc.compile(JSON.stringify(input));
@@ -52,10 +57,10 @@ export class Compiler {
   }
 }
 
-export class NativeCompiler {
+export class NativeCompiler implements ICompiler {
   constructor(private _pathToSolc: string) {}
 
-  public async compile(input: any) {
+  public async compile(input: CompilerInput) {
     const output: string = await new Promise((resolve, reject) => {
       const process = exec(
         `${this._pathToSolc} --standard-json`,
