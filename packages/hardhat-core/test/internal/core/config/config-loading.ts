@@ -327,7 +327,7 @@ Hardhat plugin instead.`
         // We use realpathSync and not getRealPathSync as that's what node uses
         // internally.
         fs.realpathSync(
-          path.normalize(`${__dirname}/../../../../src/builtin-tasks/`)
+          path.join(__dirname, "..", "..", "..", "..", "src", "builtin-tasks")
         ),
         (f) => f.endsWith(".ts")
       );
@@ -342,13 +342,19 @@ Hardhat plugin instead.`
 
         const files = ctx.getFilesLoadedDuringConfig();
 
+        const filesJson = JSON.stringify(files, undefined, 2);
+
         for (const file of builtinTasksFiles) {
           // The task names and the utils may have been loaded before, so we ignore them.
-          if (file.endsWith("task-names.ts") || file.includes("/utils/")) {
+          if (file.endsWith("task-names.ts") || file.includes("utils")) {
             continue;
           }
 
-          assert.include(files, file);
+          assert.include(
+            files,
+            file,
+            `${file} should be included in ${filesJson}`
+          );
         }
 
         // Must include the config file and the files directly and
