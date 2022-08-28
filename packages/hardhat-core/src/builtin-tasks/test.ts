@@ -36,7 +36,7 @@ subtask(TASK_TEST_GET_TEST_FILES)
     }
 
     const jsFiles = await getAllFilesMatching(config.paths.tests, (f) =>
-      f.endsWith("**/*.js")
+      f.endsWith(".js")
     );
 
     if (!isRunningWithTypescript(config)) {
@@ -44,7 +44,7 @@ subtask(TASK_TEST_GET_TEST_FILES)
     }
 
     const tsFiles = await getAllFilesMatching(config.paths.tests, (f) =>
-      f.endsWith("**/*.ts")
+      f.endsWith(".ts")
     );
 
     return [...jsFiles, ...tsFiles];
