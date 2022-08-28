@@ -9,7 +9,6 @@ import { loadConfigAndTasks } from "../../../../src/internal/core/config/config-
 import { DEFAULT_SOLC_VERSION } from "../../../../src/internal/core/config/default-config";
 import { ERRORS } from "../../../../src/internal/core/errors-list";
 import { resetHardhatContext } from "../../../../src/internal/reset";
-import { glob } from "../../../../src/internal/util/glob";
 import { useEnvironment } from "../../../helpers/environment";
 import {
   expectHardhatError,
@@ -19,6 +18,7 @@ import {
   getFixtureProjectPath,
   useFixtureProject,
 } from "../../../helpers/project";
+import { getAllFilesMatching } from "../../../../src/internal/util/fs-utils";
 
 describe("config loading", function () {
   describe("default config path", function () {
@@ -320,8 +320,9 @@ Hardhat plugin instead.`
     });
 
     it("Should keep track of all the files imported when loading the config", async function () {
-      const builtinTasksFiles = await glob(
-        "../../../../src/builtin-tasks/*.ts"
+      const builtinTasksFiles = await getAllFilesMatching(
+        fsExtra.realpathSync("../../../../src/builtin-tasks/"),
+        (f) => f.endsWith(".ts")
       );
 
       const projectPath = await fsExtra.realpath(".");

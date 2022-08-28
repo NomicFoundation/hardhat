@@ -5,13 +5,13 @@ import * as path from "path";
 import { TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURE_REASONS } from "../../src/builtin-tasks/task-names";
 import { SOLIDITY_FILES_CACHE_FILENAME } from "../../src/internal/constants";
 import { ERRORS } from "../../src/internal/core/errors-list";
-import { globSync } from "../../src/internal/util/glob";
 import { CompilationJobCreationErrorReason } from "../../src/types/builtin-tasks";
 import { useEnvironment } from "../helpers/environment";
 import { expectHardhatErrorAsync } from "../helpers/errors";
 import { useFixtureProject } from "../helpers/project";
 import { assertValidJson } from "../utils/json";
 import { mockFile } from "../utils/mock-file";
+import { getAllFilesMatchingSync } from "../../src/internal/util/fs-utils";
 
 function assertFileExists(pathToFile: string) {
   assert.isTrue(
@@ -32,6 +32,13 @@ describe("compile task", function () {
     fsExtra.removeSync(path.join("cache", SOLIDITY_FILES_CACHE_FILENAME));
   });
 
+  function getBuildInfos() {
+    return getAllFilesMatchingSync(
+      fsExtra.realpathSync("artifacts/build-info"),
+      (f) => f.endsWith(".json")
+    );
+  }
+
   describe("project with single file", function () {
     useFixtureProject("compilation-single-file");
     useEnvironment();
@@ -43,7 +50,8 @@ describe("compile task", function () {
       assertBuildInfoExists(
         path.join("artifacts", "contracts", "A.sol", "A.dbg.json")
       );
-      const buildInfos = globSync("artifacts/build-info/*.json");
+
+      const buildInfos = getBuildInfos();
       assert.lengthOf(buildInfos, 1);
 
       assertValidJson(buildInfos[0]);
@@ -61,7 +69,7 @@ describe("compile task", function () {
       const artifactsDirectory = fsExtra.readdirSync("artifacts");
       assert.lengthOf(artifactsDirectory, 1);
 
-      const buildInfos = globSync("artifacts/build-info/*.json");
+      const buildInfos = getBuildInfos();
       assert.lengthOf(buildInfos, 0);
     });
   });
@@ -79,7 +87,7 @@ describe("compile task", function () {
       // 100 contracts, 2 files per contract
       assert.lengthOf(artifactsDirectory, 200);
 
-      const buildInfos = globSync("artifacts/build-info/*.json");
+      const buildInfos = getBuildInfos();
       assert.lengthOf(buildInfos, 1);
 
       assertValidJson(buildInfos[0]);
@@ -96,7 +104,7 @@ describe("compile task", function () {
       const contractsDirectory = fsExtra.readdirSync("artifacts/contracts");
       assert.lengthOf(contractsDirectory, 100);
 
-      const buildInfos = globSync("artifacts/build-info/*.json");
+      const buildInfos = getBuildInfos();
       assert.lengthOf(buildInfos, 1);
 
       assertValidJson(buildInfos[0]);
@@ -119,7 +127,7 @@ describe("compile task", function () {
         path.join("artifacts", "contracts", "B.sol", "B.dbg.json")
       );
 
-      const buildInfos = globSync("artifacts/build-info/*.json");
+      const buildInfos = getBuildInfos();
       assert.lengthOf(buildInfos, 2);
       assertValidJson(buildInfos[0]);
       assertValidJson(buildInfos[1]);
