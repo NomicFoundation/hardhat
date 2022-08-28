@@ -205,7 +205,7 @@ export class Artifacts implements IArtifacts {
         await file.write(',"output":');
 
         // Write the output object except for the last }
-        await file.write(outputWithoutSourcesAndContracts.slice(0, 1));
+        await file.write(outputWithoutSourcesAndContracts.slice(0, -1));
 
         // If there were other field apart from sources and contracts we need
         // a comma
