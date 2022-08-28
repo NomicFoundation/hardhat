@@ -105,7 +105,8 @@ export class Artifacts implements IArtifacts {
 
   public async getBuildInfoPaths(): Promise<string[]> {
     const paths = await getAllFilesMatching(
-      path.join(this._artifactsPath, BUILD_INFO_DIR_NAME)
+      path.join(this._artifactsPath, BUILD_INFO_DIR_NAME),
+      (f) => f.endsWith(".json")
     );
 
     return paths.sort();
