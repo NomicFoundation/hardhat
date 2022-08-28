@@ -189,6 +189,8 @@ export class Artifacts implements IArtifacts {
           ...buildInfo,
           output: undefined,
         });
+
+        // We write the JSON (without output) except the last }
         await file.write(withoutOutput.slice(0, -1));
       }
 
@@ -199,15 +201,20 @@ export class Artifacts implements IArtifacts {
           contracts: undefined,
         });
 
+        // We start writing the output
         await file.write(',"output":');
 
+        // Write the output object except for the last }
         await file.write(outputWithoutSourcesAndContracts.slice(0, 1));
 
+        // If there were other field apart from sources and contracts we need
+        // a comma
         if (outputWithoutSourcesAndContracts.length > 2) {
           await file.write(",");
         }
       }
 
+      // Writing the sources
       await file.write('"sources":{');
 
       let isFirst = true;
@@ -223,8 +230,10 @@ export class Artifacts implements IArtifacts {
         await file.write(`${JSON.stringify(name)}:${JSON.stringify(value)}`);
       }
 
+      // Close sources object
       await file.write("}");
 
+      // Writing the contracts
       await file.write(',"contracts":{');
 
       isFirst = true;
