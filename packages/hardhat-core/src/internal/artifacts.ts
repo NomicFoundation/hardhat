@@ -197,12 +197,7 @@ export class Artifacts implements IArtifacts {
 
         await file.write(',"output":');
 
-        await file.write(
-          outputWithoutSourcesAndContracts.substring(
-            0,
-            outputWithoutSourcesAndContracts.length - 1
-          )
-        );
+        await file.write(outputWithoutSourcesAndContracts.slice(0, 1));
 
         if (outputWithoutSourcesAndContracts.length > 2) {
           await file.write(",");
