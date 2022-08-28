@@ -17,6 +17,8 @@ export class InvalidDirectoryError extends CustomError {}
  */
 export async function getRealCase(absolutePath: string): Promise<string> {
   try {
+    // This method returns the actual casing.
+    // Please read Node.js' docs to learn more.
     return await fsPromises.realpath(absolutePath);
   } catch (e: any) {
     if (e.code === "ENOENT") {
@@ -36,6 +38,8 @@ export async function getRealCase(absolutePath: string): Promise<string> {
  */
 export function getRealCaseSync(absolutePath: string): string {
   try {
+    // This method returns the actual casing.
+    // Please read Node.js' docs to learn more.
     return fs.realpathSync.native(absolutePath);
   } catch (e: any) {
     if (e.code === "ENOENT") {
