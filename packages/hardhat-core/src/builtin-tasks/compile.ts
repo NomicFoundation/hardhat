@@ -1448,6 +1448,8 @@ async function invalidateCacheMissingArtifacts(
     }
   }
 
+  artifacts.clearCache?.();
+
   return solidityFilesCache;
 }
 

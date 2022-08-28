@@ -40,8 +40,21 @@ import {
 
 const log = debug("hardhat:core:artifacts");
 
+interface Cache {
+  artifactPaths?: string[];
+  debugFilePaths?: string[];
+  buildInfoPaths?: string[];
+  artifactNameToArtifactPathCache: Map<string, string>;
+  artifactFQNToBuildInfoPathCache: Map<string, string>;
+}
+
 export class Artifacts implements IArtifacts {
   private _validArtifacts: Array<{ sourceName: string; artifacts: string[] }>;
+
+  private _cache?: Cache = {
+    artifactNameToArtifactPathCache: new Map(),
+    artifactFQNToBuildInfoPathCache: new Map(),
+  };
 
   constructor(private _artifactsPath: string) {
     this._validArtifacts = [];
@@ -76,20 +89,35 @@ export class Artifacts implements IArtifacts {
   public async getBuildInfo(
     fullyQualifiedName: string
   ): Promise<BuildInfo | undefined> {
-    const artifactPath =
-      this.formArtifactPathFromFullyQualifiedName(fullyQualifiedName);
-
-    const debugFilePath = this._getDebugFilePath(artifactPath);
-    const buildInfoPath = await this._getBuildInfoFromDebugFile(debugFilePath);
+    let buildInfoPath =
+      this._cache?.artifactFQNToBuildInfoPathCache.get(fullyQualifiedName);
 
     if (buildInfoPath === undefined) {
-      return undefined;
+      const artifactPath =
+        this.formArtifactPathFromFullyQualifiedName(fullyQualifiedName);
+
+      const debugFilePath = this._getDebugFilePath(artifactPath);
+      buildInfoPath = await this._getBuildInfoFromDebugFile(debugFilePath);
+
+      if (buildInfoPath === undefined) {
+        return undefined;
+      }
+
+      this._cache?.artifactFQNToBuildInfoPathCache.set(
+        fullyQualifiedName,
+        buildInfoPath
+      );
     }
 
     return fsExtra.readJSON(buildInfoPath);
   }
 
   public async getArtifactPaths(): Promise<string[]> {
+    const cached = this._cache?.artifactPaths;
+    if (cached !== undefined) {
+      return cached;
+    }
+
     const buildInfosDir = path.join(this._artifactsPath, BUILD_INFO_DIR_NAME);
 
     const paths = await getAllFilesMatching(
@@ -100,25 +128,53 @@ export class Artifacts implements IArtifacts {
         !f.endsWith(".dbg.json")
     );
 
-    return paths.sort();
+    const result = paths.sort();
+
+    if (this._cache !== undefined) {
+      this._cache.artifactPaths = result;
+    }
+
+    return result;
   }
 
   public async getBuildInfoPaths(): Promise<string[]> {
+    const cached = this._cache?.buildInfoPaths;
+    if (cached !== undefined) {
+      return cached;
+    }
+
     const paths = await getAllFilesMatching(
       path.join(this._artifactsPath, BUILD_INFO_DIR_NAME),
       (f) => f.endsWith(".json")
     );
 
-    return paths.sort();
+    const result = paths.sort();
+
+    if (this._cache !== undefined) {
+      this._cache.buildInfoPaths = result;
+    }
+
+    return result;
   }
 
   public async getDebugFilePaths(): Promise<string[]> {
+    const cached = this._cache?.debugFilePaths;
+    if (cached !== undefined) {
+      return cached;
+    }
+
     const paths = await getAllFilesMatching(
       path.join(this._artifactsPath),
       (f) => f.endsWith(".dbg.json")
     );
 
-    return paths.sort();
+    const result = paths.sort();
+
+    if (this._cache !== undefined) {
+      this._cache.debugFilePaths = result;
+    }
+
+    return result;
   }
 
   public async saveArtifactAndDebugFile(
@@ -154,6 +210,8 @@ export class Artifacts implements IArtifacts {
         });
       })(),
     ]);
+
+    this.clearCache();
   }
 
   public async saveBuildInfo(
@@ -265,6 +323,8 @@ export class Artifacts implements IArtifacts {
       await file.close();
     }
 
+    this.clearCache();
+
     return buildInfoPath;
   }
 
@@ -272,6 +332,9 @@ export class Artifacts implements IArtifacts {
    * Remove all artifacts that don't correspond to the current solidity files
    */
   public async removeObsoleteArtifacts() {
+    // We clear the cache here, as we want to be sure this runs correctly
+    this.clearCache();
+
     const validArtifactPaths = await Promise.all(
       this._validArtifacts.flatMap(({ sourceName, artifacts }) =>
         artifacts.map((artifactName) =>
@@ -313,6 +376,22 @@ export class Artifacts implements IArtifacts {
       parseFullyQualifiedName(fullyQualifiedName);
 
     return path.join(this._artifactsPath, sourceName, `${contractName}.json`);
+  }
+
+  public clearCache() {
+    // Avoid accidentally re-enabling the cache
+    if (this._cache === undefined) {
+      return;
+    }
+
+    this._cache = {
+      artifactFQNToBuildInfoPathCache: new Map(),
+      artifactNameToArtifactPathCache: new Map(),
+    };
+  }
+
+  public disableCaching() {
+    this._cache = undefined;
   }
 
   /**
@@ -376,12 +455,21 @@ export class Artifacts implements IArtifacts {
    * If there is an ambiguity, an error is thrown.
    */
   private async _getArtifactPath(name: string): Promise<string> {
-    if (isFullyQualifiedName(name)) {
-      return this._getValidArtifactPathFromFullyQualifiedName(name);
+    const cached = this._cache?.artifactNameToArtifactPathCache.get(name);
+    if (cached !== undefined) {
+      return cached;
     }
 
-    const files = await this.getArtifactPaths();
-    return this._getArtifactPathFromFiles(name, files);
+    let result: string;
+    if (isFullyQualifiedName(name)) {
+      result = await this._getValidArtifactPathFromFullyQualifiedName(name);
+    } else {
+      const files = await this.getArtifactPaths();
+      result = this._getArtifactPathFromFiles(name, files);
+    }
+
+    this._cache?.artifactNameToArtifactPathCache.set(name, result);
+    return result;
   }
 
   private _createBuildInfo(
@@ -416,6 +504,11 @@ export class Artifacts implements IArtifacts {
   }
 
   private _getArtifactPathsSync(): string[] {
+    const cached = this._cache?.artifactPaths;
+    if (cached !== undefined) {
+      return cached;
+    }
+
     const buildInfosDir = path.join(this._artifactsPath, BUILD_INFO_DIR_NAME);
 
     const paths = getAllFilesMatchingSync(
@@ -426,19 +519,35 @@ export class Artifacts implements IArtifacts {
         !f.endsWith(".dbg.json")
     );
 
-    return paths.sort();
+    const result = paths.sort();
+
+    if (this._cache !== undefined) {
+      this._cache.artifactPaths = result;
+    }
+
+    return result;
   }
 
   /**
    * Sync version of _getArtifactPath
    */
   private _getArtifactPathSync(name: string): string {
-    if (isFullyQualifiedName(name)) {
-      return this._getValidArtifactPathFromFullyQualifiedNameSync(name);
+    const cached = this._cache?.artifactNameToArtifactPathCache.get(name);
+    if (cached !== undefined) {
+      return cached;
     }
 
-    const files = this._getArtifactPathsSync();
-    return this._getArtifactPathFromFiles(name, files);
+    let result: string;
+
+    if (isFullyQualifiedName(name)) {
+      result = this._getValidArtifactPathFromFullyQualifiedNameSync(name);
+    } else {
+      const files = this._getArtifactPathsSync();
+      result = this._getArtifactPathFromFiles(name, files);
+    }
+
+    this._cache?.artifactNameToArtifactPathCache.set(name, result);
+    return result;
   }
 
   /**
