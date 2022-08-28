@@ -2512,6 +2512,10 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     return hardforkGte(this.hardfork, HardforkName.MERGE);
   }
 
+  public setPrevRandao(prevRandao: Buffer): void {
+    this._mixHashGenerator.setNext(prevRandao);
+  }
+
   private _getNextMixHash(): Buffer {
     return this._mixHashGenerator.next();
   }
