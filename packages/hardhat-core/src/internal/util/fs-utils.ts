@@ -75,7 +75,7 @@ export async function fileExistsWithExactCasing(
  * Returns an array of files (not dirs) that match a condition.
  *
  * @param absolutePathToDir A directory. If it doesn't exist `[]` is returned.
- * @param matches
+ * @param matches A function to filter files (not directories)
  */
 export async function getAllFilesMatching(
   absolutePathToDir: string,
@@ -118,6 +118,11 @@ export async function getAllFilesMatching(
   return results.flat();
 }
 
+/**
+ * Sync version of getAllFilesMatching
+ *
+ * @see getAllFilesMatching
+ */
 export function getAllFilesMatchingSync(
   absolutePathToDir: string,
   matches?: (absolutePathToFile: string) => boolean
