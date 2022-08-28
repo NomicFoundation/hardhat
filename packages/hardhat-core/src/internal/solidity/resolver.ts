@@ -19,6 +19,7 @@ import { assertHardhatInvariant, HardhatError } from "../core/errors";
 import { ERRORS } from "../core/errors-list";
 import { createNonCryptographicHashBasedIdentifier } from "../util/hash";
 
+import { getRealPath } from "../util/fs-utils";
 import { Parser } from "./parse";
 
 export interface ResolvedFilesMap {
@@ -279,7 +280,7 @@ export class Resolver {
     return this._resolveFile(
       sourceName,
       // We resolve to the real path here, as we may be resolving a linked library
-      await fsExtra.realpath(path.join(nodeModulesPath, sourceName)),
+      await getRealPath(path.join(nodeModulesPath, sourceName)),
       libraryName,
       libraryVersion
     );

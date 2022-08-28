@@ -17,6 +17,8 @@ import {
   getFixtureProjectPath,
   useFixtureProject,
 } from "../../helpers/project";
+import { replaceBackslashes } from "../../../src/utils/source-names";
+import { getRealPath } from "../../../src/internal/util/fs-utils";
 
 function assertResolvedFilePartiallyEquals(
   actual: ResolvedFile,
@@ -109,7 +111,7 @@ async function assertResolvedFileFromPath(
   libraryInfo?: LibraryInfo
 ) {
   const resolved = await resolverPromise;
-  const absolutePath = await fsExtra.realpath(filePath);
+  const absolutePath = await getRealPath(filePath);
 
   assert.equal(resolved.sourceName, expectedSourceName);
   assert.equal(resolved.absolutePath, absolutePath);

@@ -11,7 +11,10 @@ import { expectHardhatErrorAsync } from "../helpers/errors";
 import { useFixtureProject } from "../helpers/project";
 import { assertValidJson } from "../utils/json";
 import { mockFile } from "../utils/mock-file";
-import { getAllFilesMatchingSync } from "../../src/internal/util/fs-utils";
+import {
+  getAllFilesMatchingSync,
+  getRealPathSync,
+} from "../../src/internal/util/fs-utils";
 
 function assertFileExists(pathToFile: string) {
   assert.isTrue(
@@ -34,7 +37,7 @@ describe("compile task", function () {
 
   function getBuildInfos() {
     return getAllFilesMatchingSync(
-      fsExtra.realpathSync("artifacts/build-info"),
+      getRealPathSync("artifacts/build-info"),
       (f) => f.endsWith(".json")
     );
   }

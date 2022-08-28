@@ -1,8 +1,8 @@
 import { assert } from "chai";
-import fsExtra from "fs-extra";
 import path from "path";
 import sinon from "sinon";
 
+import fs from "fs";
 import { TASK_CLEAN } from "../../../../src/builtin-tasks/task-names";
 import { HardhatContext } from "../../../../src/internal/context";
 import { loadConfigAndTasks } from "../../../../src/internal/core/config/config-loading";
@@ -18,7 +18,10 @@ import {
   getFixtureProjectPath,
   useFixtureProject,
 } from "../../../helpers/project";
-import { getAllFilesMatching } from "../../../../src/internal/util/fs-utils";
+import {
+  getAllFilesMatching,
+  getRealPathSync,
+} from "../../../../src/internal/util/fs-utils";
 
 describe("config loading", function () {
   describe("default config path", function () {
@@ -321,11 +324,15 @@ Hardhat plugin instead.`
 
     it("Should keep track of all the files imported when loading the config", async function () {
       const builtinTasksFiles = await getAllFilesMatching(
-        fsExtra.realpathSync("../../../../src/builtin-tasks/"),
+        // We use realpathSync and not getRealPathSync as that's what node uses
+        // internally.
+        fs.realpathSync(
+          path.normalize(`${__dirname}/../../../../src/builtin-tasks/`)
+        ),
         (f) => f.endsWith(".ts")
       );
 
-      const projectPath = await fsExtra.realpath(".");
+      const projectPath = getRealPathSync(".");
 
       // We run this twice to make sure that the cache is cleaned properly
       for (let i = 0; i < 2; i++) {
