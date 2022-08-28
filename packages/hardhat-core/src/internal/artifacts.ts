@@ -129,22 +129,24 @@ export class Artifacts implements IArtifacts {
 
     await fsExtra.ensureDir(path.dirname(artifactPath));
 
-    // write artifact
-    await fsExtra.writeJSON(artifactPath, artifact, {
-      spaces: 2,
-    });
+    await Promise.all([
+      fsExtra.writeJSON(artifactPath, artifact, {
+        spaces: 2,
+      }),
+      (async () => {
+        if (pathToBuildInfo === undefined) {
+          return;
+        }
 
-    if (pathToBuildInfo === undefined) {
-      return;
-    }
+        // save debug file
+        const debugFilePath = this._getDebugFilePath(artifactPath);
+        const debugFile = this._createDebugFile(artifactPath, pathToBuildInfo);
 
-    // save debug file
-    const debugFilePath = this._getDebugFilePath(artifactPath);
-    const debugFile = this._createDebugFile(artifactPath, pathToBuildInfo);
-
-    await fsExtra.writeJSON(debugFilePath, debugFile, {
-      spaces: 2,
-    });
+        await fsExtra.writeJSON(debugFilePath, debugFile, {
+          spaces: 2,
+        });
+      })(),
+    ]);
   }
 
   public async saveBuildInfo(
@@ -180,12 +182,20 @@ export class Artifacts implements IArtifacts {
    * Remove all artifacts that don't correspond to the current solidity files
    */
   public async removeObsoleteArtifacts() {
-    const validArtifactsPaths = new Set<string>();
+    const validArtifactPaths = await Promise.all(
+      this._validArtifacts.flatMap(({ sourceName, artifacts }) =>
+        artifacts.map((artifactName) =>
+          this._getArtifactPath(getFullyQualifiedName(sourceName, artifactName))
+        )
+      )
+    );
+
+    const validArtifactsPathsSet = new Set<string>(validArtifactPaths);
 
     for (const { sourceName, artifacts } of this._validArtifacts) {
       for (const artifactName of artifacts) {
-        validArtifactsPaths.add(
-          this._getArtifactPathSync(
+        validArtifactsPathsSet.add(
+          this.formArtifactPathFromFullyQualifiedName(
             getFullyQualifiedName(sourceName, artifactName)
           )
         );
@@ -194,11 +204,11 @@ export class Artifacts implements IArtifacts {
 
     const existingArtifactsPaths = await this.getArtifactPaths();
 
-    for (const artifactPath of existingArtifactsPaths) {
-      if (!validArtifactsPaths.has(artifactPath)) {
-        await this._removeArtifactFiles(artifactPath);
-      }
-    }
+    await Promise.all(
+      existingArtifactsPaths
+        .filter((artifactPath) => !validArtifactsPathsSet.has(artifactPath))
+        .map((artifactPath) => this._removeArtifactFiles(artifactPath))
+    );
 
     await this._removeObsoleteBuildInfos();
   }
@@ -221,24 +231,33 @@ export class Artifacts implements IArtifacts {
   private async _removeObsoleteBuildInfos() {
     const debugFiles = await this.getDebugFilePaths();
 
-    const validBuildInfos = new Set<string>();
-    for (const debugFile of debugFiles) {
-      const buildInfoFile = await this._getBuildInfoFromDebugFile(debugFile);
-      if (buildInfoFile !== undefined) {
-        validBuildInfos.add(
-          path.resolve(path.dirname(debugFile), buildInfoFile)
-        );
-      }
-    }
+    const buildInfos = await Promise.all(
+      debugFiles.map(async (debugFile) => {
+        const buildInfoFile = await this._getBuildInfoFromDebugFile(debugFile);
+        if (buildInfoFile !== undefined) {
+          return path.resolve(path.dirname(debugFile), buildInfoFile);
+        } else {
+          return undefined;
+        }
+      })
+    );
+
+    const filteredBuildInfos: string[] = buildInfos.filter(
+      (bf): bf is string => typeof bf === "string"
+    );
+
+    const validBuildInfos = new Set<string>(filteredBuildInfos);
 
     const buildInfoFiles = await this.getBuildInfoPaths();
 
-    for (const buildInfoFile of buildInfoFiles) {
-      if (!validBuildInfos.has(buildInfoFile)) {
-        log(`Removing buildInfo '${buildInfoFile}'`);
-        await fsExtra.unlink(buildInfoFile);
-      }
-    }
+    await Promise.all(
+      buildInfoFiles
+        .filter((buildInfoFile) => !validBuildInfos.has(buildInfoFile))
+        .map(async (buildInfoFile) => {
+          log(`Removing buildInfo '${buildInfoFile}'`);
+          await fsExtra.unlink(buildInfoFile);
+        })
+    );
   }
 
   private _getBuildInfoName(

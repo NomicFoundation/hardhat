@@ -814,38 +814,41 @@ subtask(TASK_COMPILE_SOLIDITY_EMIT_ARTIFACTS)
         output
       );
 
-      const artifactsEmittedPerFile: ArtifactsEmittedPerFile = [];
-      for (const file of compilationJob.getResolvedFiles()) {
-        log(`Emitting artifacts for file '${file.sourceName}'`);
-        if (!compilationJob.emitsArtifacts(file)) {
-          continue;
-        }
+      const artifactsEmittedPerFile: ArtifactsEmittedPerFile =
+        await Promise.all(
+          compilationJob
+            .getResolvedFiles()
+            .filter((f) => compilationJob.emitsArtifacts(f))
+            .map(async (file) => {
+              const artifactsEmitted = await Promise.all(
+                Object.entries(output.contracts?.[file.sourceName] ?? {}).map(
+                  async ([contractName, contractOutput]) => {
+                    log(`Emitting artifact for contract '${contractName}'`);
+                    const artifact = await run(
+                      TASK_COMPILE_SOLIDITY_GET_ARTIFACT_FROM_COMPILATION_OUTPUT,
+                      {
+                        sourceName: file.sourceName,
+                        contractName,
+                        contractOutput,
+                      }
+                    );
 
-        const artifactsEmitted = [];
-        for (const [contractName, contractOutput] of Object.entries(
-          output.contracts?.[file.sourceName] ?? {}
-        )) {
-          log(`Emitting artifact for contract '${contractName}'`);
+                    await artifacts.saveArtifactAndDebugFile(
+                      artifact,
+                      pathToBuildInfo
+                    );
 
-          const artifact = await run(
-            TASK_COMPILE_SOLIDITY_GET_ARTIFACT_FROM_COMPILATION_OUTPUT,
-            {
-              sourceName: file.sourceName,
-              contractName,
-              contractOutput,
-            }
-          );
+                    return artifact.contractName;
+                  }
+                )
+              );
 
-          await artifacts.saveArtifactAndDebugFile(artifact, pathToBuildInfo);
-
-          artifactsEmitted.push(artifact.contractName);
-        }
-
-        artifactsEmittedPerFile.push({
-          file,
-          artifactsEmitted,
-        });
-      }
+              return {
+                file,
+                artifactsEmitted,
+              };
+            })
+        );
 
       return { artifactsEmittedPerFile };
     }
@@ -1419,28 +1422,38 @@ async function invalidateCacheMissingArtifacts(
   artifacts: Artifacts,
   resolvedFiles: ResolvedFile[]
 ): Promise<SolidityFilesCache> {
-  for (const file of resolvedFiles) {
-    const cacheEntry = solidityFilesCache.getEntry(file.absolutePath);
+  await Promise.all(
+    resolvedFiles.map(async (file) => {
+      const cacheEntry = solidityFilesCache.getEntry(file.absolutePath);
 
-    if (cacheEntry === undefined) {
-      continue;
-    }
-
-    const { artifacts: emittedArtifacts } = cacheEntry;
-
-    for (const emittedArtifact of emittedArtifacts) {
-      const artifactExists = await artifacts.artifactExists(
-        getFullyQualifiedName(file.sourceName, emittedArtifact)
-      );
-      if (!artifactExists) {
-        log(
-          `Invalidate cache for '${file.absolutePath}' because artifact '${emittedArtifact}' doesn't exist`
-        );
-        solidityFilesCache.removeEntry(file.absolutePath);
-        break;
+      if (cacheEntry === undefined) {
+        return;
       }
-    }
-  }
+
+      const { artifacts: emittedArtifacts } = cacheEntry;
+
+      const artifactsExist = await Promise.all(
+        emittedArtifacts.map(
+          async (emittedArtifact) =>
+            [
+              getFullyQualifiedName(file.sourceName, emittedArtifact),
+              await artifacts.artifactExists(
+                getFullyQualifiedName(file.sourceName, emittedArtifact)
+              ),
+            ] as const
+        )
+      );
+
+      const missing = artifactsExist.find(([_, exists]) => !exists);
+      if (missing !== undefined) {
+        log(
+          `Invalidate cache for '${file.absolutePath}' because artifact '${missing[0]}' doesn't exist`
+        );
+
+        solidityFilesCache.removeEntry(file.absolutePath);
+      }
+    })
+  );
 
   return solidityFilesCache;
 }
