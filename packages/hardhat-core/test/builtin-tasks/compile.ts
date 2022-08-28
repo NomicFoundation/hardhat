@@ -54,7 +54,7 @@ describe("compile task", function () {
     useFixtureProject("compilation-empty-file");
     useEnvironment();
 
-    it("should compile and emit build info file but no artifacts", async function () {
+    it("should compile and emit no artifact", async function () {
       await this.env.run("compile");
 
       // the artifacts directory only has the build-info directory
@@ -62,9 +62,7 @@ describe("compile task", function () {
       assert.lengthOf(artifactsDirectory, 1);
 
       const buildInfos = globSync("artifacts/build-info/*.json");
-      assert.lengthOf(buildInfos, 1);
-
-      assertValidJson(buildInfos[0]);
+      assert.lengthOf(buildInfos, 0);
     });
   });
 
