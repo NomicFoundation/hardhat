@@ -44,7 +44,7 @@ describe("fs-utils", function () {
       await fsPromises.writeFile(actualPath, "");
 
       await assertWithBoth(
-        `${this.tmpDir}/a/../././///mixedCasingFile`,
+        path.join(this.tmpDir, "a", "..", ".", ".", "", "", "mixedCasingFile"),
         actualPath
       );
     });
@@ -172,17 +172,17 @@ describe("fs-utils", function () {
       // We test mixedCaseFilePath2 form tmpdir
       await assertWithBoth(
         this.tmpDir,
-        "mixedCaseDir/mixedCaseFile2",
+        path.join("mixedCaseDir", "mixedCaseFile2"),
         path.relative(this.tmpDir, mixedCaseFile2Path)
       );
       await assertWithBoth(
         this.tmpDir,
-        "mixedcasedir/MIXEDCASEFILE2",
+        path.join("mixedcasedir", "MIXEDCASEFILE2"),
         path.relative(this.tmpDir, mixedCaseFile2Path)
       );
       await assertWithBoth(
         this.tmpDir,
-        "MIXEDCASEDIR/mixedcasefile2",
+        path.join("MIXEDCASEDIR", "mixedcasefile2"),
         path.relative(this.tmpDir, mixedCaseFile2Path)
       );
 
@@ -228,7 +228,7 @@ describe("fs-utils", function () {
       await fsPromises.mkdir(path.join(this.tmpDir, "dir-with-extension.txt"));
       await fsPromises.mkdir(path.join(this.tmpDir, "dir-WithCasing"));
       await fsPromises.mkdir(
-        path.join(this.tmpDir, "dir-with-files/dir-within-dir")
+        path.join(this.tmpDir, "dir-with-files", "dir-within-dir")
       );
 
       await fsPromises.writeFile(path.join(this.tmpDir, "file-1.txt"), "");
@@ -236,31 +236,31 @@ describe("fs-utils", function () {
       await fsPromises.writeFile(path.join(this.tmpDir, "file-3.json"), "");
 
       await fsPromises.writeFile(
-        path.join(this.tmpDir, "dir-with-files/inner-file-1.json"),
+        path.join(this.tmpDir, "dir-with-files", "inner-file-1.json"),
         ""
       );
       await fsPromises.writeFile(
-        path.join(this.tmpDir, "dir-with-files/inner-file-2.txt"),
+        path.join(this.tmpDir, "dir-with-files", "inner-file-2.txt"),
         ""
       );
 
       // This dir has .txt extension and has a .txt and .json file
       await fsPromises.writeFile(
-        path.join(this.tmpDir, "dir-with-extension.txt/inner-file-3.txt"),
+        path.join(this.tmpDir, "dir-with-extension.txt", "inner-file-3.txt"),
         ""
       );
       await fsPromises.writeFile(
-        path.join(this.tmpDir, "dir-with-extension.txt/inner-file-4.json"),
-        ""
-      );
-
-      await fsPromises.writeFile(
-        path.join(this.tmpDir, "dir-WithCasing/file-WithCASING"),
+        path.join(this.tmpDir, "dir-with-extension.txt", "inner-file-4.json"),
         ""
       );
 
       await fsPromises.writeFile(
-        path.join(this.tmpDir, "dir-with-files/dir-within-dir/file-deep"),
+        path.join(this.tmpDir, "dir-WithCasing", "file-WithCASING"),
+        ""
+      );
+
+      await fsPromises.writeFile(
+        path.join(this.tmpDir, "dir-with-files", "dir-within-dir", "file-deep"),
         ""
       );
     });
@@ -294,16 +294,16 @@ describe("fs-utils", function () {
         path.join(this.tmpDir, "file-1.txt"),
         path.join(this.tmpDir, "file-2.txt"),
         path.join(this.tmpDir, "file-3.json"),
-        path.join(this.tmpDir, "dir-with-files/inner-file-1.json"),
-        path.join(this.tmpDir, "dir-with-files/inner-file-2.txt"),
-        path.join(this.tmpDir, "dir-with-extension.txt/inner-file-3.txt"),
-        path.join(this.tmpDir, "dir-with-extension.txt/inner-file-4.json"),
-        path.join(this.tmpDir, "dir-WithCasing/file-WithCASING"),
-        path.join(this.tmpDir, "dir-with-files/dir-within-dir/file-deep"),
+        path.join(this.tmpDir, "dir-with-files", "inner-file-1.json"),
+        path.join(this.tmpDir, "dir-with-files", "inner-file-2.txt"),
+        path.join(this.tmpDir, "dir-with-extension.txt", "inner-file-3.txt"),
+        path.join(this.tmpDir, "dir-with-extension.txt", "inner-file-4.json"),
+        path.join(this.tmpDir, "dir-WithCasing", "file-WithCASING"),
+        path.join(this.tmpDir, "dir-with-files", "dir-within-dir", "file-deep"),
       ]);
 
       await assertBoth(path.join(this.tmpDir, "dir-WithCasing"), undefined, [
-        path.join(this.tmpDir, "dir-WithCasing/file-WithCASING"),
+        path.join(this.tmpDir, "dir-WithCasing", "file-WithCASING"),
       ]);
     });
 
@@ -311,16 +311,16 @@ describe("fs-utils", function () {
       await assertBoth(this.tmpDir, (f) => f.endsWith(".txt"), [
         path.join(this.tmpDir, "file-1.txt"),
         path.join(this.tmpDir, "file-2.txt"),
-        path.join(this.tmpDir, "dir-with-files/inner-file-2.txt"),
-        path.join(this.tmpDir, "dir-with-extension.txt/inner-file-3.txt"),
+        path.join(this.tmpDir, "dir-with-files", "inner-file-2.txt"),
+        path.join(this.tmpDir, "dir-with-extension.txt", "inner-file-3.txt"),
       ]);
 
       await assertBoth(this.tmpDir, (f) => !f.endsWith(".txt"), [
         path.join(this.tmpDir, "file-3.json"),
-        path.join(this.tmpDir, "dir-with-files/inner-file-1.json"),
-        path.join(this.tmpDir, "dir-with-extension.txt/inner-file-4.json"),
-        path.join(this.tmpDir, "dir-WithCasing/file-WithCASING"),
-        path.join(this.tmpDir, "dir-with-files/dir-within-dir/file-deep"),
+        path.join(this.tmpDir, "dir-with-files", "inner-file-1.json"),
+        path.join(this.tmpDir, "dir-with-extension.txt", "inner-file-4.json"),
+        path.join(this.tmpDir, "dir-WithCasing", "file-WithCASING"),
+        path.join(this.tmpDir, "dir-with-files", "dir-within-dir", "file-deep"),
       ]);
     });
 
@@ -329,7 +329,7 @@ describe("fs-utils", function () {
         await assertBoth(
           this.tmpDir,
           (f) => f.toLowerCase().endsWith("withcasing"),
-          [path.join(this.tmpDir, "dir-WithCasing/file-WithCASING")]
+          [path.join(this.tmpDir, "dir-WithCasing", "file-WithCASING")]
         );
       });
     });
