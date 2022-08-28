@@ -472,8 +472,6 @@ export class Artifacts implements IArtifacts {
         )
       );
 
-      console.log({ trueCasePath, artifactPath });
-
       if (artifactPath !== trueCasePath) {
         throw new HardhatError(ERRORS.ARTIFACTS.WRONG_CASING, {
           correct: this._getFullyQualifiedNameFromPath(trueCasePath),
