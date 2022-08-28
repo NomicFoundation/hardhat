@@ -69,8 +69,6 @@ export async function fileExistsWithExactCasing(
     // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
     throw new FileSystemAccessError(e.message, e);
   }
-
-  return true;
 }
 
 /**
