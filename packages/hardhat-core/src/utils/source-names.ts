@@ -188,8 +188,8 @@ export function replaceBackslashes(str: string): string {
 async function getPathTrueCase(fromDir: string, p: string): Promise<string> {
   try {
     const absolute = path.join(fromDir, p);
-    const tcp = await getRealCase(absolute);
-    return normalizeSourceName(path.relative(fromDir, tcp));
+    const realCase = await getRealCase(absolute);
+    return normalizeSourceName(path.relative(fromDir, realCase));
   } catch (error) {
     if (error instanceof FileNotFoundError) {
       throw new HardhatError(
