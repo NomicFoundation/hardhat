@@ -1,10 +1,10 @@
 {
   "name": "@dolomite-exchange/hardhat",
-  "version": "2.10.1",
+  "version": "2.10.2",
   "author": "Nomic Labs LLC",
   "license": "MIT",
   "homepage": "https://hardhat.org",
-  "repository": "github:nomiclabs/hardhat",
+  "repository": "github:dolomite-exchange/hardhat",
   "main": "internal/lib/hardhat-lib.js",
   "types": "internal/lib/hardhat-lib.d.ts",
   "description": "Hardhat is an extensible developer tool that helps smart contract developers increase productivity by reliably bringing together the tools they want.",
