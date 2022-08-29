@@ -346,7 +346,7 @@ Hardhat plugin instead.`
 
         for (const file of builtinTasksFiles) {
           // The task names and the utils may have been loaded before, so we ignore them.
-          if (file.endsWith("task-names.ts") || file.includes("utils")) {
+          if (file.endsWith("task-names.ts") || file.includes(path.join(path.sep, "utils", path.sep))) {
             continue;
           }
 
