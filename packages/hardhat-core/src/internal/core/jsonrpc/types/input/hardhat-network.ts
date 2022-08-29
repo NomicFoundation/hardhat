@@ -9,6 +9,7 @@ export const rpcForkConfig = optional(
       jsonRpcUrl: t.string,
       blockNumber: optional(t.number),
       httpHeaders: optional(t.record(t.string, t.string, "httpHeaders")),
+      ignoreUnknownTxType: optional(t.boolean),
     },
     "RpcForkConfig"
   )

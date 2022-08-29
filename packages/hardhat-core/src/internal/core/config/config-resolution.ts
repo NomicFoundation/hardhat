@@ -164,6 +164,12 @@ function resolveHardhatNetworkConfig(
     if (httpHeaders !== undefined) {
       forking.httpHeaders = httpHeaders;
     }
+
+    const ignoreUnknownTxType =
+      hardhatNetworkConfig.forking?.ignoreUnknownTxType;
+    if (ignoreUnknownTxType !== undefined) {
+      forking.ignoreUnknownTxType = ignoreUnknownTxType;
+    }
   }
 
   const mining = resolveMiningConfig(hardhatNetworkConfig.mining);

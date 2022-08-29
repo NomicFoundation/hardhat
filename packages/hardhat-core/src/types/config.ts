@@ -91,6 +91,7 @@ export interface HardhatNetworkForkingUserConfig {
   url: string;
   blockNumber?: number;
   httpHeaders?: { [name: string]: string };
+  ignoreUnknownTxType?: boolean;
 }
 
 export type HttpNetworkAccountsUserConfig =
