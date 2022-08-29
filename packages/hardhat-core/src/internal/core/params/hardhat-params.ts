@@ -93,4 +93,13 @@ export const HARDHAT_PARAM_DEFINITIONS: HardhatParamDefinitions = {
     isFlag: true,
     isVariadic: false,
   },
+  typecheck: {
+    name: "typecheck",
+    defaultValue: false,
+    description: "Enable TypeScript type-checking of your scripts/tests",
+    type: types.boolean,
+    isFlag: true,
+    isOptional: true,
+    isVariadic: false,
+  },
 };
