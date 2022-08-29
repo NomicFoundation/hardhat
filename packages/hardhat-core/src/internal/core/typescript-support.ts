@@ -68,7 +68,7 @@ export function loadTsNode(tsConfigPath?: string) {
   }
 
   // eslint-disable-next-line import/no-extraneous-dependencies
-  require("ts-node/register");
+  require("ts-node/register/transpile-only");
 }
 
 function isTypescriptFile(path: string): boolean {

@@ -103,7 +103,7 @@ function getTsNodeArgsIfNeeded(scriptPath: string): string[] {
 
   // If the script we are going to run is .ts we need ts-node
   if (/\.tsx?$/i.test(scriptPath)) {
-    return ["--require", "ts-node/register"];
+    return ["--require", "ts-node/register/transpile-only"];
   }
 
   return [];
