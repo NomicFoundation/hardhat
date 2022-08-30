@@ -62,7 +62,6 @@ export class HardhatNetworkProvider
   extends EventEmitter
   implements EIP1193Provider
 {
-  private _common?: Common;
   private _node?: HardhatNode;
   private _ethModule?: EthModule;
   private _netModule?: NetModule;
@@ -72,6 +71,8 @@ export class HardhatNetworkProvider
   private _debugModule?: DebugModule;
   private _personalModule?: PersonalModule;
   private readonly _mutex = new Mutex();
+  // this field is not used here but it's used in the tests
+  private _common?: Common;
 
   constructor(
     private readonly _hardfork: string,
