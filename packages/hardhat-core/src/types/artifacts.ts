@@ -109,7 +109,7 @@ export interface Artifacts {
   clearCache?: () => void;
 
   /**
-   * This method, if present, disables the artifacts caching.
+   * This method, if present, disables the artifact paths cache.
    *
    * We recommend NOT using this method. The only reason it exists is for
    * backwards compatibility. If your app was assuming no cache, you can use it
@@ -117,7 +117,7 @@ export interface Artifacts {
    *
    * @see clearCache
    */
-  disableCaching?: () => void;
+  disableCache?: () => void;
 }
 
 /**

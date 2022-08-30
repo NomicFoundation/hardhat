@@ -1097,7 +1097,7 @@ describe("Artifacts class", function () {
       });
 
       it("Shouldn't re-enable the cache", async function () {
-        artifacts.disableCaching();
+        artifacts.disableCache();
 
         assert.lengthOf(await artifacts.getArtifactPaths(), 1);
         assert.lengthOf(await artifacts.getDebugFilePaths(), 1);
@@ -1165,7 +1165,7 @@ describe("Artifacts class", function () {
       });
 
       it("Shouldn't re-enable the cache", async function () {
-        artifacts.disableCaching();
+        artifacts.disableCache();
         artifacts.clearCache();
 
         assert.lengthOf(await artifacts.getArtifactPaths(), 1);
@@ -1240,7 +1240,7 @@ describe("Artifacts class", function () {
         assert.lengthOf(await artifacts.getDebugFilePaths(), 1);
         assert.lengthOf(await artifacts.getBuildInfoPaths(), 1);
 
-        artifacts.disableCaching();
+        artifacts.disableCache();
 
         // we disabled the cache, so now they should be returned
 

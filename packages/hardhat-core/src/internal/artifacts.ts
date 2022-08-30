@@ -405,7 +405,7 @@ export class Artifacts implements IArtifacts {
     };
   }
 
-  public disableCaching() {
+  public disableCache() {
     this._cache = undefined;
   }
 
