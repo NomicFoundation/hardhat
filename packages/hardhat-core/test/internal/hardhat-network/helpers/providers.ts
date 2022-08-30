@@ -1,4 +1,8 @@
-import { bufferToHex, privateToAddress, toBuffer } from "@nomicfoundation/util";
+import {
+  bufferToHex,
+  privateToAddress,
+  toBuffer,
+} from "@nomicfoundation/ethereumjs-util";
 
 import {
   HardhatNetworkMempoolConfig,

@@ -1,5 +1,5 @@
-import { toBuffer } from "@nomicfoundation/util";
-import { VM } from "@nomicfoundation/vm";
+import { toBuffer } from "@nomicfoundation/ethereumjs-util";
+import { VM } from "@nomicfoundation/ethereumjs-vm";
 import { assert } from "chai";
 import fs from "fs";
 import path from "path";

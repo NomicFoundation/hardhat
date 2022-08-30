@@ -1,4 +1,4 @@
-import type { EvmError } from "@nomicfoundation/evm";
+import type { EvmError } from "@nomicfoundation/ethereumjs-evm";
 
 import type { Bytecode } from "./model";
 

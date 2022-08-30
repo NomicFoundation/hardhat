@@ -1,4 +1,4 @@
-import { bufferToHex, toBuffer } from "@nomicfoundation/util";
+import { bufferToHex, toBuffer } from "@nomicfoundation/ethereumjs-util";
 import { assert } from "chai";
 
 import {

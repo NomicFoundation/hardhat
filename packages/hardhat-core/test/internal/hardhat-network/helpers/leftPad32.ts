@@ -1,4 +1,4 @@
-import { setLengthLeft, toBuffer } from "@nomicfoundation/util";
+import { setLengthLeft, toBuffer } from "@nomicfoundation/ethereumjs-util";
 import { assert } from "chai";
 
 export function leftPad32(value: string | Buffer | bigint): string {

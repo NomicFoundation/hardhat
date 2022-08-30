@@ -1,11 +1,15 @@
-import * as rlp from "@nomicfoundation/rlp";
-import { FeeMarketEIP1559Transaction } from "@nomicfoundation/tx";
+import * as rlp from "@nomicfoundation/ethereumjs-rlp";
+import { FeeMarketEIP1559Transaction } from "@nomicfoundation/ethereumjs-tx";
 import {
   FeeMarketEIP1559TxData,
   FeeMarketEIP1559ValuesArray,
   TxOptions,
-} from "@nomicfoundation/tx/dist/types";
-import { Address, arrToBufArr, bufferToInt } from "@nomicfoundation/util";
+} from "@nomicfoundation/ethereumjs-tx/dist/types";
+import {
+  Address,
+  arrToBufArr,
+  bufferToInt,
+} from "@nomicfoundation/ethereumjs-util";
 
 import {
   InternalError,

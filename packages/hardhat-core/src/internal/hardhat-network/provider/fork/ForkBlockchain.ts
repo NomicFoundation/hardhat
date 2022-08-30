@@ -1,9 +1,9 @@
-import { Block } from "@nomicfoundation/block";
-import { Common } from "@nomicfoundation/common";
-import { TypedTransaction } from "@nomicfoundation/tx";
-import { Address } from "@nomicfoundation/util";
+import { Block } from "@nomicfoundation/ethereumjs-block";
+import { Common } from "@nomicfoundation/ethereumjs-common";
+import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
+import { Address } from "@nomicfoundation/ethereumjs-util";
 
-import { FeeMarketEIP1559TxData } from "@nomicfoundation/tx/dist/types";
+import { FeeMarketEIP1559TxData } from "@nomicfoundation/ethereumjs-tx/dist/types";
 import { RpcBlockWithTransactions } from "../../../core/jsonrpc/types/output/block";
 import { RpcTransactionReceipt } from "../../../core/jsonrpc/types/output/receipt";
 import { RpcTransaction } from "../../../core/jsonrpc/types/output/transaction";

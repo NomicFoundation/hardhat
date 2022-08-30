@@ -1,4 +1,4 @@
-import { zeroAddress } from "@nomicfoundation/util";
+import { zeroAddress } from "@nomicfoundation/ethereumjs-util";
 import { assert } from "chai";
 import { ethers } from "ethers";
 

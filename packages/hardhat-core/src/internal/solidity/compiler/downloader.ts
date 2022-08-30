@@ -81,7 +81,7 @@ export class CompilerDownloader {
     compilerBuild: CompilerBuild,
     downloadedFilePath: string
   ) {
-    const ethereumjsUtil = await import("@nomicfoundation/util");
+    const ethereumjsUtil = await import("@nomicfoundation/ethereumjs-util");
     const { keccak256 } = await import("ethereum-cryptography/keccak");
 
     const expectedKeccak256 = compilerBuild.keccak256;

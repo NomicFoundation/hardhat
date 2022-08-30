@@ -3,7 +3,7 @@ import {
   Address,
   privateToAddress,
   toBuffer,
-} from "@nomicfoundation/util";
+} from "@nomicfoundation/ethereumjs-util";
 
 import { GenesisAccount } from "../node-types";
 

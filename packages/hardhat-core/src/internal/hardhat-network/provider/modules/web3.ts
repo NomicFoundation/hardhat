@@ -1,4 +1,4 @@
-import { arrToBufArr, bufArrToArr } from "@nomicfoundation/util";
+import { arrToBufArr, bufArrToArr } from "@nomicfoundation/ethereumjs-util";
 import { keccak256 } from "ethereum-cryptography/keccak";
 
 import {
@@ -35,8 +35,8 @@ export class Web3Module {
 
   private async _clientVersionAction(): Promise<string> {
     const hardhatPackage = await getPackageJson();
-    const ethereumjsVMPackage = require("@nomicfoundation/vm/package.json");
-    return `HardhatNetwork/${hardhatPackage.version}/@nomicfoundation/vm/${ethereumjsVMPackage.version}`;
+    const ethereumjsVMPackage = require("@nomicfoundation/ethereumjs-vm/package.json");
+    return `HardhatNetwork/${hardhatPackage.version}/@nomicfoundation/ethereumjs-vm/${ethereumjsVMPackage.version}`;
   }
 
   // web3_sha3

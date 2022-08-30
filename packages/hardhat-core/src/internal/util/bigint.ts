@@ -3,7 +3,7 @@ import {
   bufferToBigInt,
   bufferToHex,
   toBuffer,
-} from "@nomicfoundation/util";
+} from "@nomicfoundation/ethereumjs-util";
 
 function min(x: bigint, y: bigint): bigint {
   return x < y ? x : y;

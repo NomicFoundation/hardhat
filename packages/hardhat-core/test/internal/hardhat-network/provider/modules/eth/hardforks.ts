@@ -1,10 +1,10 @@
-import { Common } from "@nomicfoundation/common";
+import { Common } from "@nomicfoundation/ethereumjs-common";
 import {
   AccessListEIP2930Transaction,
   FeeMarketEIP1559Transaction,
   Transaction,
-} from "@nomicfoundation/tx";
-import { toBuffer } from "@nomicfoundation/util";
+} from "@nomicfoundation/ethereumjs-tx";
+import { toBuffer } from "@nomicfoundation/ethereumjs-util";
 import { assert } from "chai";
 
 import {

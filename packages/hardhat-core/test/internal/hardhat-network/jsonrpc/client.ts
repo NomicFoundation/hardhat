@@ -1,4 +1,4 @@
-import { bufferToBigInt, toBuffer } from "@nomicfoundation/util";
+import { bufferToBigInt, toBuffer } from "@nomicfoundation/ethereumjs-util";
 import { assert } from "chai";
 import fsExtra from "fs-extra";
 import sinon from "sinon";

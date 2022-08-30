@@ -1,10 +1,10 @@
-import { TxData } from "@nomicfoundation/tx";
+import { TxData } from "@nomicfoundation/ethereumjs-tx";
 import {
   AddressLike,
   arrToBufArr,
   bufferToBigInt,
   bufferToHex,
-} from "@nomicfoundation/util";
+} from "@nomicfoundation/ethereumjs-util";
 import { assert } from "chai";
 import { randomBytes } from "crypto";
 import { keccak256 } from "ethereum-cryptography/keccak";
@@ -12,7 +12,7 @@ import { keccak256 } from "ethereum-cryptography/keccak";
 import {
   AccessListEIP2930TxData,
   FeeMarketEIP1559TxData,
-} from "@nomicfoundation/tx/dist/types";
+} from "@nomicfoundation/ethereumjs-tx/dist/types";
 import { OrderedTransaction } from "../../../../src/internal/hardhat-network/provider/PoolState";
 import { TransactionQueue } from "../../../../src/internal/hardhat-network/provider/TransactionQueue";
 import { createTestOrderedTransaction } from "../helpers/blockchain";

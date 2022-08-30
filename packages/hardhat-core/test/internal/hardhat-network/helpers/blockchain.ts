@@ -1,15 +1,15 @@
-import { Transaction, TxData } from "@nomicfoundation/tx";
+import { Transaction, TxData } from "@nomicfoundation/ethereumjs-tx";
 import {
   Address,
   AddressLike,
   bufferToHex,
   toBuffer,
-} from "@nomicfoundation/util";
+} from "@nomicfoundation/ethereumjs-util";
 
 import {
   AccessListEIP2930TxData,
   FeeMarketEIP1559TxData,
-} from "@nomicfoundation/tx/dist/types";
+} from "@nomicfoundation/ethereumjs-tx/dist/types";
 
 import { numberToRpcQuantity } from "../../../../src/internal/core/jsonrpc/types/base-types";
 import { randomAddress } from "../../../../src/internal/hardhat-network/provider/utils/random";

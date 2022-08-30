@@ -1,8 +1,8 @@
-import { Block } from "@nomicfoundation/block";
-import { Common } from "@nomicfoundation/common";
-import { TypedTransaction } from "@nomicfoundation/tx";
-import { bufferToHex } from "@nomicfoundation/util";
-import { Bloom } from "@nomicfoundation/vm";
+import { Block } from "@nomicfoundation/ethereumjs-block";
+import { Common } from "@nomicfoundation/ethereumjs-common";
+import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
+import { bufferToHex } from "@nomicfoundation/ethereumjs-util";
+import { Bloom } from "@nomicfoundation/ethereumjs-vm";
 
 import { assertHardhatInvariant } from "../../core/errors";
 import { bloomFilter, filterLogs } from "./filter";

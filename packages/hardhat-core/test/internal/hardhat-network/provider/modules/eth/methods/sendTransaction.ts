@@ -1,4 +1,4 @@
-import { bufferToHex, zeroAddress } from "@nomicfoundation/util";
+import { bufferToHex, zeroAddress } from "@nomicfoundation/ethereumjs-util";
 import { assert } from "chai";
 import { Client } from "undici";
 
@@ -60,7 +60,7 @@ describe("Eth module", function () {
         // of Ethereum: its state transition function.
         //
         // We have mostly test about logic added on top of that, and will add new ones whenever
-        // suitable. This is approximately the same as assuming that @nomicfoundation/vm is correct, which
+        // suitable. This is approximately the same as assuming that @nomicfoundation/ethereumjs-vm is correct, which
         // seems reasonable, and if it weren't we should address the issues there.
 
         describe("Params validation", function () {

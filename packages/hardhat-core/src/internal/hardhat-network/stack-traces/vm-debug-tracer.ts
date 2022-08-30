@@ -1,14 +1,14 @@
-import { TypedTransaction } from "@nomicfoundation/tx";
-import { AfterTxEvent, VM } from "@nomicfoundation/vm";
-import { EVMResult } from "@nomicfoundation/evm";
-import { InterpreterStep } from "@nomicfoundation/evm/dist/interpreter";
-import { Message } from "@nomicfoundation/evm/dist/message";
+import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
+import { AfterTxEvent, VM } from "@nomicfoundation/ethereumjs-vm";
+import { EVMResult } from "@nomicfoundation/ethereumjs-evm";
+import { InterpreterStep } from "@nomicfoundation/ethereumjs-evm/dist/interpreter";
+import { Message } from "@nomicfoundation/ethereumjs-evm/dist/message";
 import {
   Address,
   bufferToBigInt,
   setLengthLeft,
   toBuffer,
-} from "@nomicfoundation/util";
+} from "@nomicfoundation/ethereumjs-util";
 
 import { assertHardhatInvariant } from "../../core/errors";
 import { RpcDebugTracingConfig } from "../../core/jsonrpc/types/input/debugTraceTransaction";

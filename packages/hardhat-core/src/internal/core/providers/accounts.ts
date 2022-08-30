@@ -1,7 +1,7 @@
 import * as t from "io-ts";
 
 import { SignTypedDataVersion, signTypedData } from "@metamask/eth-sig-util";
-import { FeeMarketEIP1559Transaction } from "@nomicfoundation/tx";
+import { FeeMarketEIP1559Transaction } from "@nomicfoundation/ethereumjs-tx";
 import { EIP1193Provider, RequestArguments } from "../../../types";
 import { HardhatError } from "../errors";
 import { ERRORS } from "../errors-list";
@@ -44,7 +44,7 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
 
   public async request(args: RequestArguments): Promise<unknown> {
     const { ecsign, hashPersonalMessage, toRpcSig, toBuffer, bufferToHex } =
-      await import("@nomicfoundation/util");
+      await import("@nomicfoundation/ethereumjs-util");
 
     if (
       args.method === "eth_accounts" ||
@@ -192,7 +192,7 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
       bufferToHex,
       toBuffer,
       privateToAddress,
-    } = require("@nomicfoundation/util");
+    } = require("@nomicfoundation/ethereumjs-util");
 
     const privateKeys: Buffer[] = localAccountsHexPrivateKeys.map((h) =>
       toBuffer(h)
@@ -205,7 +205,7 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
   }
 
   private _getPrivateKeyForAddress(address: Buffer): Buffer {
-    const { bufferToHex } = require("@nomicfoundation/util");
+    const { bufferToHex } = require("@nomicfoundation/ethereumjs-util");
     const pk = this._addressToPrivateKey.get(bufferToHex(address));
     if (pk === undefined) {
       throw new HardhatError(ERRORS.NETWORK.NOT_LOCAL_ACCOUNT, {
@@ -225,7 +225,7 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
   }
 
   private async _getNonce(address: Buffer): Promise<bigint> {
-    const { bufferToHex } = await import("@nomicfoundation/util");
+    const { bufferToHex } = await import("@nomicfoundation/ethereumjs-util");
 
     const response = (await this._wrappedProvider.request({
       method: "eth_getTransactionCount",
@@ -241,10 +241,10 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
     privateKey: Buffer
   ): Promise<Buffer> {
     const { AccessListEIP2930Transaction, Transaction } = await import(
-      "@nomicfoundation/tx"
+      "@nomicfoundation/ethereumjs-tx"
     );
 
-    const { Common } = await import("@nomicfoundation/common");
+    const { Common } = await import("@nomicfoundation/ethereumjs-common");
 
     const txData = {
       ...transactionRequest,
@@ -308,7 +308,7 @@ export class HDWalletProvider extends LocalAccountsProvider {
       passphrase
     );
 
-    const { bufferToHex } = require("@nomicfoundation/util");
+    const { bufferToHex } = require("@nomicfoundation/ethereumjs-util");
     const privateKeysAsHex = privateKeys.map((pk) => bufferToHex(pk));
     super(provider, privateKeysAsHex);
   }

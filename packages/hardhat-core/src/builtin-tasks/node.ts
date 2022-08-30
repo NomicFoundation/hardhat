@@ -1,4 +1,4 @@
-import type EthereumjsUtilT from "@nomicfoundation/util";
+import type EthereumjsUtilT from "@nomicfoundation/ethereumjs-util";
 
 import chalk from "chalk";
 import debug from "debug";
@@ -52,7 +52,7 @@ function logHardhatNetworkAccounts(networkConfig: HardhatNetworkConfig) {
     networkConfig.accounts.mnemonic === HARDHAT_NETWORK_MNEMONIC;
 
   const { bufferToHex, privateToAddress, toBuffer, toChecksumAddress } =
-    require("@nomicfoundation/util") as typeof EthereumjsUtilT;
+    require("@nomicfoundation/ethereumjs-util") as typeof EthereumjsUtilT;
 
   console.log("Accounts");
   console.log("========");

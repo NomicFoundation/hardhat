@@ -7,7 +7,7 @@ import type {
   RequestArguments,
 } from "../../../types";
 
-import { Common } from "@nomicfoundation/common";
+import { Common } from "@nomicfoundation/ethereumjs-common";
 import chalk from "chalk";
 import debug from "debug";
 import { EventEmitter } from "events";

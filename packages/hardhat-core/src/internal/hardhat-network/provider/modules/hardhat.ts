@@ -1,4 +1,4 @@
-import { Address } from "@nomicfoundation/util";
+import { Address } from "@nomicfoundation/ethereumjs-util";
 import * as t from "io-ts";
 
 import {

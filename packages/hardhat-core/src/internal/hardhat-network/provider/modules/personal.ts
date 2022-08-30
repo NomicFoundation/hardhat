@@ -1,4 +1,4 @@
-import { Address, toRpcSig } from "@nomicfoundation/util";
+import { Address, toRpcSig } from "@nomicfoundation/ethereumjs-util";
 
 import { rpcAddress, rpcData } from "../../../core/jsonrpc/types/base-types";
 import { validateParams } from "../../../core/jsonrpc/types/input/validation";

@@ -1,8 +1,8 @@
-import { Block } from "@nomicfoundation/block";
-import { Common } from "@nomicfoundation/common";
-import { TypedTransaction } from "@nomicfoundation/tx";
-import { bufferToHex } from "@nomicfoundation/util";
-import { RunBlockResult } from "@nomicfoundation/vm";
+import { Block } from "@nomicfoundation/ethereumjs-block";
+import { Common } from "@nomicfoundation/ethereumjs-common";
+import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
+import { bufferToHex } from "@nomicfoundation/ethereumjs-util";
+import { RunBlockResult } from "@nomicfoundation/ethereumjs-vm";
 
 import { BigIntUtils } from "../../util/bigint";
 import { assertHardhatInvariant } from "../../core/errors";
