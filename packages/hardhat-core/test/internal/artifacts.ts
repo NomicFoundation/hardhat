@@ -1003,6 +1003,253 @@ describe("Artifacts class", function () {
       });
     });
   });
+
+  // TODO: How do we test that getting a path for an artifact and build
+  //   info gets cached?
+  describe("Caching", function () {
+    useTmpDir("artifacts");
+
+    const SOLC_INPUT: CompilerInput = {
+      sources: {},
+      settings: { optimizer: {}, outputSelection: {} },
+      language: "",
+    };
+
+    const SOLC_OUPUT: CompilerOutput = {
+      sources: {},
+      contracts: {},
+    };
+
+    let artifacts: Artifacts;
+    let buildInfoPath: string;
+    beforeEach(async function () {
+      artifacts = new Artifacts(this.tmpDir);
+      buildInfoPath = await artifacts.saveBuildInfo(
+        "0.4.12",
+        "0.4.12+123",
+        SOLC_INPUT,
+        SOLC_OUPUT
+      );
+
+      await artifacts.saveArtifactAndDebugFile(
+        {
+          _format: "",
+          abi: [],
+          contractName: "C",
+          sourceName: "c.sol",
+          bytecode: "",
+          deployedBytecode: "",
+          linkReferences: {},
+          deployedLinkReferences: {},
+        },
+        buildInfoPath
+      );
+    });
+
+    describe("Successful caching", function () {
+      it("Should cache the path to each artifact and build info, and the lists of paths", async function () {
+        assert.lengthOf(await artifacts.getArtifactPaths(), 1);
+        assert.lengthOf(await artifacts.getDebugFilePaths(), 1);
+        assert.lengthOf(await artifacts.getBuildInfoPaths(), 1);
+
+        // we create some other files, which shouldn't be returned
+
+        await fsExtra.writeJSON(path.join(this.tmpDir, "c.sol", "B.json"), {});
+        await fsExtra.writeJSON(
+          path.join(this.tmpDir, "c.sol", "B.dbg.json"),
+          {}
+        );
+        await fsExtra.writeJSON(
+          path.join(this.tmpDir, "build-info", "something.json"),
+          {}
+        );
+
+        assert.lengthOf(await artifacts.getArtifactPaths(), 1);
+        assert.lengthOf(await artifacts.getDebugFilePaths(), 1);
+        assert.lengthOf(await artifacts.getBuildInfoPaths(), 1);
+      });
+    });
+
+    describe("Clear cache", function () {
+      it("Should clear all the caches", async function () {
+        assert.lengthOf(await artifacts.getArtifactPaths(), 1);
+        assert.lengthOf(await artifacts.getDebugFilePaths(), 1);
+        assert.lengthOf(await artifacts.getBuildInfoPaths(), 1);
+
+        // we create some other files, which should be returned after clearing
+        //  the cache
+
+        await fsExtra.writeJSON(path.join(this.tmpDir, "c.sol", "B.json"), {});
+        await fsExtra.writeJSON(
+          path.join(this.tmpDir, "c.sol", "B.dbg.json"),
+          {}
+        );
+        await fsExtra.writeJSON(
+          path.join(this.tmpDir, "build-info", "something.json"),
+          {}
+        );
+
+        artifacts.clearCache();
+
+        assert.lengthOf(await artifacts.getArtifactPaths(), 2);
+        assert.lengthOf(await artifacts.getDebugFilePaths(), 2);
+        assert.lengthOf(await artifacts.getBuildInfoPaths(), 2);
+      });
+
+      it("Shouldn't re-enable the cache", async function () {
+        artifacts.disableCache();
+
+        assert.lengthOf(await artifacts.getArtifactPaths(), 1);
+        assert.lengthOf(await artifacts.getDebugFilePaths(), 1);
+        assert.lengthOf(await artifacts.getBuildInfoPaths(), 1);
+
+        // We clear the cache here and call the getters again, this shouldn't
+        // cache the results
+        artifacts.clearCache();
+
+        assert.lengthOf(await artifacts.getArtifactPaths(), 1);
+        assert.lengthOf(await artifacts.getDebugFilePaths(), 1);
+        assert.lengthOf(await artifacts.getBuildInfoPaths(), 1);
+
+        // we create some other files, which should be returned, as there's
+        // no cache
+
+        await fsExtra.writeJSON(path.join(this.tmpDir, "c.sol", "B.json"), {});
+        await fsExtra.writeJSON(
+          path.join(this.tmpDir, "c.sol", "B.dbg.json"),
+          {}
+        );
+        await fsExtra.writeJSON(
+          path.join(this.tmpDir, "build-info", "something.json"),
+          {}
+        );
+
+        assert.lengthOf(await artifacts.getArtifactPaths(), 2);
+        assert.lengthOf(await artifacts.getDebugFilePaths(), 2);
+        assert.lengthOf(await artifacts.getBuildInfoPaths(), 2);
+      });
+    });
+
+    describe("Automatic cache clearing", function () {
+      it("Should clear all the caches", async function () {
+        assert.lengthOf(await artifacts.getArtifactPaths(), 1);
+        assert.lengthOf(await artifacts.getDebugFilePaths(), 1);
+        assert.lengthOf(await artifacts.getBuildInfoPaths(), 1);
+
+        // create new artifacts clears the cache
+
+        buildInfoPath = await artifacts.saveBuildInfo(
+          "0.4.13",
+          "0.4.13+123",
+          SOLC_INPUT,
+          SOLC_OUPUT
+        );
+
+        await artifacts.saveArtifactAndDebugFile(
+          {
+            _format: "",
+            abi: [],
+            contractName: "C",
+            sourceName: "e.sol",
+            bytecode: "",
+            deployedBytecode: "",
+            linkReferences: {},
+            deployedLinkReferences: {},
+          },
+          buildInfoPath
+        );
+
+        assert.lengthOf(await artifacts.getArtifactPaths(), 2);
+        assert.lengthOf(await artifacts.getDebugFilePaths(), 2);
+        assert.lengthOf(await artifacts.getBuildInfoPaths(), 2);
+      });
+
+      it("Shouldn't re-enable the cache", async function () {
+        artifacts.disableCache();
+        artifacts.clearCache();
+
+        assert.lengthOf(await artifacts.getArtifactPaths(), 1);
+        assert.lengthOf(await artifacts.getDebugFilePaths(), 1);
+        assert.lengthOf(await artifacts.getBuildInfoPaths(), 1);
+
+        // create new artifacts clears the cache
+
+        buildInfoPath = await artifacts.saveBuildInfo(
+          "0.4.13",
+          "0.4.13+123",
+          SOLC_INPUT,
+          SOLC_OUPUT
+        );
+
+        await artifacts.saveArtifactAndDebugFile(
+          {
+            _format: "",
+            abi: [],
+            contractName: "C",
+            sourceName: "e.sol",
+            bytecode: "",
+            deployedBytecode: "",
+            linkReferences: {},
+            deployedLinkReferences: {},
+          },
+          buildInfoPath
+        );
+
+        assert.lengthOf(await artifacts.getArtifactPaths(), 2);
+        assert.lengthOf(await artifacts.getDebugFilePaths(), 2);
+        assert.lengthOf(await artifacts.getBuildInfoPaths(), 2);
+
+        // we create some other files, which should be returned, as the cache
+        //  is disabled
+
+        await fsExtra.writeJSON(path.join(this.tmpDir, "c.sol", "B.json"), {});
+        await fsExtra.writeJSON(
+          path.join(this.tmpDir, "c.sol", "B.dbg.json"),
+          {}
+        );
+        await fsExtra.writeJSON(
+          path.join(this.tmpDir, "build-info", "something.json"),
+          {}
+        );
+
+        assert.lengthOf(await artifacts.getArtifactPaths(), 3);
+        assert.lengthOf(await artifacts.getDebugFilePaths(), 3);
+        assert.lengthOf(await artifacts.getBuildInfoPaths(), 3);
+      });
+    });
+
+    describe("Disabling cache", function () {
+      it("Should clear the cache", async function () {
+        assert.lengthOf(await artifacts.getArtifactPaths(), 1);
+        assert.lengthOf(await artifacts.getDebugFilePaths(), 1);
+        assert.lengthOf(await artifacts.getBuildInfoPaths(), 1);
+
+        // we create some other files, which shouldn't be returned
+
+        await fsExtra.writeJSON(path.join(this.tmpDir, "c.sol", "B.json"), {});
+        await fsExtra.writeJSON(
+          path.join(this.tmpDir, "c.sol", "B.dbg.json"),
+          {}
+        );
+        await fsExtra.writeJSON(
+          path.join(this.tmpDir, "build-info", "something.json"),
+          {}
+        );
+
+        assert.lengthOf(await artifacts.getArtifactPaths(), 1);
+        assert.lengthOf(await artifacts.getDebugFilePaths(), 1);
+        assert.lengthOf(await artifacts.getBuildInfoPaths(), 1);
+
+        artifacts.disableCache();
+
+        // we disabled the cache, so now they should be returned
+
+        assert.lengthOf(await artifacts.getArtifactPaths(), 2);
+        assert.lengthOf(await artifacts.getDebugFilePaths(), 2);
+        assert.lengthOf(await artifacts.getBuildInfoPaths(), 2);
+      });
+    });
+  });
 });
 
 // TODO: All of these outputs have their evm.bytecode duplicated as

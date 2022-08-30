@@ -40,8 +40,22 @@ import {
 
 const log = debug("hardhat:core:artifacts");
 
+interface Cache {
+  artifactPaths?: string[];
+  debugFilePaths?: string[];
+  buildInfoPaths?: string[];
+  artifactNameToArtifactPathCache: Map<string, string>;
+  artifactFQNToBuildInfoPathCache: Map<string, string>;
+}
+
 export class Artifacts implements IArtifacts {
   private _validArtifacts: Array<{ sourceName: string; artifacts: string[] }>;
+
+  // Undefined means that the cache is disabled.
+  private _cache?: Cache = {
+    artifactNameToArtifactPathCache: new Map(),
+    artifactFQNToBuildInfoPathCache: new Map(),
+  };
 
   constructor(private _artifactsPath: string) {
     this._validArtifacts = [];
@@ -76,20 +90,35 @@ export class Artifacts implements IArtifacts {
   public async getBuildInfo(
     fullyQualifiedName: string
   ): Promise<BuildInfo | undefined> {
-    const artifactPath =
-      this.formArtifactPathFromFullyQualifiedName(fullyQualifiedName);
-
-    const debugFilePath = this._getDebugFilePath(artifactPath);
-    const buildInfoPath = await this._getBuildInfoFromDebugFile(debugFilePath);
+    let buildInfoPath =
+      this._cache?.artifactFQNToBuildInfoPathCache.get(fullyQualifiedName);
 
     if (buildInfoPath === undefined) {
-      return undefined;
+      const artifactPath =
+        this.formArtifactPathFromFullyQualifiedName(fullyQualifiedName);
+
+      const debugFilePath = this._getDebugFilePath(artifactPath);
+      buildInfoPath = await this._getBuildInfoFromDebugFile(debugFilePath);
+
+      if (buildInfoPath === undefined) {
+        return undefined;
+      }
+
+      this._cache?.artifactFQNToBuildInfoPathCache.set(
+        fullyQualifiedName,
+        buildInfoPath
+      );
     }
 
     return fsExtra.readJSON(buildInfoPath);
   }
 
   public async getArtifactPaths(): Promise<string[]> {
+    const cached = this._cache?.artifactPaths;
+    if (cached !== undefined) {
+      return cached;
+    }
+
     const buildInfosDir = path.join(this._artifactsPath, BUILD_INFO_DIR_NAME);
 
     const paths = await getAllFilesMatching(
@@ -100,60 +129,95 @@ export class Artifacts implements IArtifacts {
         !f.endsWith(".dbg.json")
     );
 
-    return paths.sort();
+    const result = paths.sort();
+
+    if (this._cache !== undefined) {
+      this._cache.artifactPaths = result;
+    }
+
+    return result;
   }
 
   public async getBuildInfoPaths(): Promise<string[]> {
+    const cached = this._cache?.buildInfoPaths;
+    if (cached !== undefined) {
+      return cached;
+    }
+
     const paths = await getAllFilesMatching(
       path.join(this._artifactsPath, BUILD_INFO_DIR_NAME),
       (f) => f.endsWith(".json")
     );
 
-    return paths.sort();
+    const result = paths.sort();
+
+    if (this._cache !== undefined) {
+      this._cache.buildInfoPaths = result;
+    }
+
+    return result;
   }
 
   public async getDebugFilePaths(): Promise<string[]> {
+    const cached = this._cache?.debugFilePaths;
+    if (cached !== undefined) {
+      return cached;
+    }
+
     const paths = await getAllFilesMatching(
       path.join(this._artifactsPath),
       (f) => f.endsWith(".dbg.json")
     );
 
-    return paths.sort();
+    const result = paths.sort();
+
+    if (this._cache !== undefined) {
+      this._cache.debugFilePaths = result;
+    }
+
+    return result;
   }
 
   public async saveArtifactAndDebugFile(
     artifact: Artifact,
     pathToBuildInfo?: string
   ) {
-    // artifact
-    const fullyQualifiedName = getFullyQualifiedName(
-      artifact.sourceName,
-      artifact.contractName
-    );
+    try {
+      // artifact
+      const fullyQualifiedName = getFullyQualifiedName(
+        artifact.sourceName,
+        artifact.contractName
+      );
 
-    const artifactPath =
-      this.formArtifactPathFromFullyQualifiedName(fullyQualifiedName);
+      const artifactPath =
+        this.formArtifactPathFromFullyQualifiedName(fullyQualifiedName);
 
-    await fsExtra.ensureDir(path.dirname(artifactPath));
+      await fsExtra.ensureDir(path.dirname(artifactPath));
 
-    await Promise.all([
-      fsExtra.writeJSON(artifactPath, artifact, {
-        spaces: 2,
-      }),
-      (async () => {
-        if (pathToBuildInfo === undefined) {
-          return;
-        }
-
-        // save debug file
-        const debugFilePath = this._getDebugFilePath(artifactPath);
-        const debugFile = this._createDebugFile(artifactPath, pathToBuildInfo);
-
-        await fsExtra.writeJSON(debugFilePath, debugFile, {
+      await Promise.all([
+        fsExtra.writeJSON(artifactPath, artifact, {
           spaces: 2,
-        });
-      })(),
-    ]);
+        }),
+        (async () => {
+          if (pathToBuildInfo === undefined) {
+            return;
+          }
+
+          // save debug file
+          const debugFilePath = this._getDebugFilePath(artifactPath);
+          const debugFile = this._createDebugFile(
+            artifactPath,
+            pathToBuildInfo
+          );
+
+          await fsExtra.writeJSON(debugFilePath, debugFile, {
+            spaces: 2,
+          });
+        })(),
+      ]);
+    } finally {
+      this.clearCache();
+    }
   }
 
   public async saveBuildInfo(
@@ -162,145 +226,159 @@ export class Artifacts implements IArtifacts {
     input: CompilerInput,
     output: CompilerOutput
   ): Promise<string> {
-    const buildInfoDir = path.join(this._artifactsPath, BUILD_INFO_DIR_NAME);
-    await fsExtra.ensureDir(buildInfoDir);
-
-    const buildInfoName = this._getBuildInfoName(
-      solcVersion,
-      solcLongVersion,
-      input
-    );
-
-    const buildInfo = this._createBuildInfo(
-      buildInfoName,
-      solcVersion,
-      solcLongVersion,
-      input,
-      output
-    );
-
-    const buildInfoPath = path.join(buildInfoDir, `${buildInfoName}.json`);
-
-    // JSON.stringify of the entire build info can be really slow
-    // in larger projects, so we stringify per part and incrementally create
-    // the JSON in the file.
-    //
-    // We split this code into different curly-brace-enclosed scopes so that
-    // partial JSON strings get out of scope sooner and hence can be reclaimed
-    // by the GC if needed.
-    const file = await fsPromises.open(buildInfoPath, "w");
     try {
-      {
-        const withoutOutput = JSON.stringify({
-          ...buildInfo,
-          output: undefined,
-        });
+      const buildInfoDir = path.join(this._artifactsPath, BUILD_INFO_DIR_NAME);
+      await fsExtra.ensureDir(buildInfoDir);
 
-        // We write the JSON (without output) except the last }
-        await file.write(withoutOutput.slice(0, -1));
-      }
+      const buildInfoName = this._getBuildInfoName(
+        solcVersion,
+        solcLongVersion,
+        input
+      );
 
-      {
-        const outputWithoutSourcesAndContracts = JSON.stringify({
-          ...buildInfo.output,
-          sources: undefined,
-          contracts: undefined,
-        });
+      const buildInfo = this._createBuildInfo(
+        buildInfoName,
+        solcVersion,
+        solcLongVersion,
+        input,
+        output
+      );
 
-        // We start writing the output
-        await file.write(',"output":');
+      const buildInfoPath = path.join(buildInfoDir, `${buildInfoName}.json`);
 
-        // Write the output object except for the last }
-        await file.write(outputWithoutSourcesAndContracts.slice(0, -1));
+      // JSON.stringify of the entire build info can be really slow
+      // in larger projects, so we stringify per part and incrementally create
+      // the JSON in the file.
+      //
+      // We split this code into different curly-brace-enclosed scopes so that
+      // partial JSON strings get out of scope sooner and hence can be reclaimed
+      // by the GC if needed.
+      const file = await fsPromises.open(buildInfoPath, "w");
+      try {
+        {
+          const withoutOutput = JSON.stringify({
+            ...buildInfo,
+            output: undefined,
+          });
 
-        // If there were other field apart from sources and contracts we need
-        // a comma
-        if (outputWithoutSourcesAndContracts.length > 2) {
-          await file.write(",");
-        }
-      }
-
-      // Writing the sources
-      await file.write('"sources":{');
-
-      let isFirst = true;
-      for (const [name, value] of Object.entries(
-        buildInfo.output.sources ?? {}
-      )) {
-        if (isFirst) {
-          isFirst = false;
-        } else {
-          await file.write(",");
+          // We write the JSON (without output) except the last }
+          await file.write(withoutOutput.slice(0, -1));
         }
 
-        await file.write(`${JSON.stringify(name)}:${JSON.stringify(value)}`);
-      }
+        {
+          const outputWithoutSourcesAndContracts = JSON.stringify({
+            ...buildInfo.output,
+            sources: undefined,
+            contracts: undefined,
+          });
 
-      // Close sources object
-      await file.write("}");
+          // We start writing the output
+          await file.write(',"output":');
 
-      // Writing the contracts
-      await file.write(',"contracts":{');
+          // Write the output object except for the last }
+          await file.write(outputWithoutSourcesAndContracts.slice(0, -1));
 
-      isFirst = true;
-      for (const [name, value] of Object.entries(
-        buildInfo.output.contracts ?? {}
-      )) {
-        if (isFirst) {
-          isFirst = false;
-        } else {
-          await file.write(",");
+          // If there were other field apart from sources and contracts we need
+          // a comma
+          if (outputWithoutSourcesAndContracts.length > 2) {
+            await file.write(",");
+          }
         }
 
-        await file.write(`${JSON.stringify(name)}:${JSON.stringify(value)}`);
+        // Writing the sources
+        await file.write('"sources":{');
+
+        let isFirst = true;
+        for (const [name, value] of Object.entries(
+          buildInfo.output.sources ?? {}
+        )) {
+          if (isFirst) {
+            isFirst = false;
+          } else {
+            await file.write(",");
+          }
+
+          await file.write(`${JSON.stringify(name)}:${JSON.stringify(value)}`);
+        }
+
+        // Close sources object
+        await file.write("}");
+
+        // Writing the contracts
+        await file.write(',"contracts":{');
+
+        isFirst = true;
+        for (const [name, value] of Object.entries(
+          buildInfo.output.contracts ?? {}
+        )) {
+          if (isFirst) {
+            isFirst = false;
+          } else {
+            await file.write(",");
+          }
+
+          await file.write(`${JSON.stringify(name)}:${JSON.stringify(value)}`);
+        }
+
+        // close contracts object
+        await file.write("}");
+        // close output object
+        await file.write("}");
+        // close build info object
+        await file.write("}");
+      } finally {
+        await file.close();
       }
 
-      // close contracts object
-      await file.write("}");
-      // close output object
-      await file.write("}");
-      // close build info object
-      await file.write("}");
+      return buildInfoPath;
     } finally {
-      await file.close();
+      this.clearCache();
     }
-
-    return buildInfoPath;
   }
 
   /**
    * Remove all artifacts that don't correspond to the current solidity files
    */
   public async removeObsoleteArtifacts() {
-    const validArtifactPaths = await Promise.all(
-      this._validArtifacts.flatMap(({ sourceName, artifacts }) =>
-        artifacts.map((artifactName) =>
-          this._getArtifactPath(getFullyQualifiedName(sourceName, artifactName))
-        )
-      )
-    );
+    // We clear the cache here, as we want to be sure this runs correctly
+    this.clearCache();
 
-    const validArtifactsPathsSet = new Set<string>(validArtifactPaths);
-
-    for (const { sourceName, artifacts } of this._validArtifacts) {
-      for (const artifactName of artifacts) {
-        validArtifactsPathsSet.add(
-          this.formArtifactPathFromFullyQualifiedName(
-            getFullyQualifiedName(sourceName, artifactName)
+    try {
+      const validArtifactPaths = await Promise.all(
+        this._validArtifacts.flatMap(({ sourceName, artifacts }) =>
+          artifacts.map((artifactName) =>
+            this._getArtifactPath(
+              getFullyQualifiedName(sourceName, artifactName)
+            )
           )
-        );
+        )
+      );
+
+      const validArtifactsPathsSet = new Set<string>(validArtifactPaths);
+
+      for (const { sourceName, artifacts } of this._validArtifacts) {
+        for (const artifactName of artifacts) {
+          validArtifactsPathsSet.add(
+            this.formArtifactPathFromFullyQualifiedName(
+              getFullyQualifiedName(sourceName, artifactName)
+            )
+          );
+        }
       }
+
+      const existingArtifactsPaths = await this.getArtifactPaths();
+
+      await Promise.all(
+        existingArtifactsPaths
+          .filter((artifactPath) => !validArtifactsPathsSet.has(artifactPath))
+          .map((artifactPath) => this._removeArtifactFiles(artifactPath))
+      );
+
+      await this._removeObsoleteBuildInfos();
+    } finally {
+      // We clear the cache here, as this may have non-existent paths now
+      this.clearCache();
     }
-
-    const existingArtifactsPaths = await this.getArtifactPaths();
-
-    await Promise.all(
-      existingArtifactsPaths
-        .filter((artifactPath) => !validArtifactsPathsSet.has(artifactPath))
-        .map((artifactPath) => this._removeArtifactFiles(artifactPath))
-    );
-
-    await this._removeObsoleteBuildInfos();
   }
 
   /**
@@ -313,6 +391,22 @@ export class Artifacts implements IArtifacts {
       parseFullyQualifiedName(fullyQualifiedName);
 
     return path.join(this._artifactsPath, sourceName, `${contractName}.json`);
+  }
+
+  public clearCache() {
+    // Avoid accidentally re-enabling the cache
+    if (this._cache === undefined) {
+      return;
+    }
+
+    this._cache = {
+      artifactFQNToBuildInfoPathCache: new Map(),
+      artifactNameToArtifactPathCache: new Map(),
+    };
+  }
+
+  public disableCache() {
+    this._cache = undefined;
   }
 
   /**
@@ -376,12 +470,21 @@ export class Artifacts implements IArtifacts {
    * If there is an ambiguity, an error is thrown.
    */
   private async _getArtifactPath(name: string): Promise<string> {
-    if (isFullyQualifiedName(name)) {
-      return this._getValidArtifactPathFromFullyQualifiedName(name);
+    const cached = this._cache?.artifactNameToArtifactPathCache.get(name);
+    if (cached !== undefined) {
+      return cached;
     }
 
-    const files = await this.getArtifactPaths();
-    return this._getArtifactPathFromFiles(name, files);
+    let result: string;
+    if (isFullyQualifiedName(name)) {
+      result = await this._getValidArtifactPathFromFullyQualifiedName(name);
+    } else {
+      const files = await this.getArtifactPaths();
+      result = this._getArtifactPathFromFiles(name, files);
+    }
+
+    this._cache?.artifactNameToArtifactPathCache.set(name, result);
+    return result;
   }
 
   private _createBuildInfo(
@@ -416,6 +519,11 @@ export class Artifacts implements IArtifacts {
   }
 
   private _getArtifactPathsSync(): string[] {
+    const cached = this._cache?.artifactPaths;
+    if (cached !== undefined) {
+      return cached;
+    }
+
     const buildInfosDir = path.join(this._artifactsPath, BUILD_INFO_DIR_NAME);
 
     const paths = getAllFilesMatchingSync(
@@ -426,19 +534,35 @@ export class Artifacts implements IArtifacts {
         !f.endsWith(".dbg.json")
     );
 
-    return paths.sort();
+    const result = paths.sort();
+
+    if (this._cache !== undefined) {
+      this._cache.artifactPaths = result;
+    }
+
+    return result;
   }
 
   /**
    * Sync version of _getArtifactPath
    */
   private _getArtifactPathSync(name: string): string {
-    if (isFullyQualifiedName(name)) {
-      return this._getValidArtifactPathFromFullyQualifiedNameSync(name);
+    const cached = this._cache?.artifactNameToArtifactPathCache.get(name);
+    if (cached !== undefined) {
+      return cached;
     }
 
-    const files = this._getArtifactPathsSync();
-    return this._getArtifactPathFromFiles(name, files);
+    let result: string;
+
+    if (isFullyQualifiedName(name)) {
+      result = this._getValidArtifactPathFromFullyQualifiedNameSync(name);
+    } else {
+      const files = this._getArtifactPathsSync();
+      result = this._getArtifactPathFromFiles(name, files);
+    }
+
+    this._cache?.artifactNameToArtifactPathCache.set(name, result);
+    return result;
   }
 
   /**
