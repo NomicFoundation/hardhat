@@ -3,7 +3,6 @@ import fsExtra from "fs-extra";
 import * as os from "os";
 import * as path from "path";
 
-import { beforeEach } from "mocha";
 import {
   Artifacts,
   getArtifactFromContractOutput,
