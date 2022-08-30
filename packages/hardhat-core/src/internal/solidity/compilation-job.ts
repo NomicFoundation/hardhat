@@ -17,7 +17,7 @@ import { ResolvedFile } from "./resolver";
 const log = debug("hardhat:core:compilation-job");
 
 // this should have a proper version range when it's fixed
-const SOLC_BUG_9573_VERSIONS = "*";
+const SOLC_BUG_9573_VERSIONS = "<0.8.0";
 
 function isCompilationJobCreationError(
   x:
