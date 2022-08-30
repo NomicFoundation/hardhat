@@ -1098,13 +1098,21 @@ describe("Artifacts class", function () {
 
       it("Shouldn't re-enable the cache", async function () {
         artifacts.disableCaching();
+
+        assert.lengthOf(await artifacts.getArtifactPaths(), 1);
+        assert.lengthOf(await artifacts.getDebugFilePaths(), 1);
+        assert.lengthOf(await artifacts.getBuildInfoPaths(), 1);
+
+        // We clear the cache here and call the getters again, this shouldn't
+        // cache the results
         artifacts.clearCache();
 
         assert.lengthOf(await artifacts.getArtifactPaths(), 1);
         assert.lengthOf(await artifacts.getDebugFilePaths(), 1);
         assert.lengthOf(await artifacts.getBuildInfoPaths(), 1);
 
-        // we create some other files, which shouldn't be returned
+        // we create some other files, which should be returned, as there's
+        // no cache
 
         await fsExtra.writeJSON(path.join(this.tmpDir, "c.sol", "B.json"), {});
         await fsExtra.writeJSON(
