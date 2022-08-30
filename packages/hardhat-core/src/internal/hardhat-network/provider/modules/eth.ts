@@ -967,7 +967,7 @@ export class EthModule {
       // Please keep it updated.
 
       if (error instanceof Error) {
-        if (error.message === "invalid remainder") {
+        if (error.message === "invalid RLP: remainder must be zero") {
           throw new InvalidArgumentsError("Invalid transaction", error);
         }
 
