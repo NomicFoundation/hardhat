@@ -7,6 +7,7 @@ import { ERRORS } from "../../../../src/internal/core/errors-list";
 import * as types from "../../../../src/internal/core/params/argumentTypes";
 import { ArgumentType } from "../../../../src/types";
 import { expectHardhatError } from "../../../helpers/errors";
+import { getRealPath } from "../../../../src/internal/util/fs-utils";
 
 describe("argumentTypes", () => {
   it("should set the right name to all the argument types", () => {
@@ -221,7 +222,7 @@ describe("argumentTypes", () => {
     });
 
     it("Should work with an absolute path", async () => {
-      const absolute = await fsExtra.realpath(__filename);
+      const absolute = await getRealPath(__filename);
       const output = types.inputFile.parse("A file", absolute);
       assert.equal(output, absolute);
     });
