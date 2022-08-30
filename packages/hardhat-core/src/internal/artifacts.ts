@@ -51,6 +51,7 @@ interface Cache {
 export class Artifacts implements IArtifacts {
   private _validArtifacts: Array<{ sourceName: string; artifacts: string[] }>;
 
+  // Undefined means that the cache is disabled.
   private _cache?: Cache = {
     artifactNameToArtifactPathCache: new Map(),
     artifactFQNToBuildInfoPathCache: new Map(),
