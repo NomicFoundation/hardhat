@@ -1217,6 +1217,38 @@ describe("Artifacts class", function () {
         assert.lengthOf(await artifacts.getBuildInfoPaths(), 3);
       });
     });
+
+    describe("Disabling cache", function () {
+      it("Should clear the cache", async function () {
+        assert.lengthOf(await artifacts.getArtifactPaths(), 1);
+        assert.lengthOf(await artifacts.getDebugFilePaths(), 1);
+        assert.lengthOf(await artifacts.getBuildInfoPaths(), 1);
+
+        // we create some other files, which shouldn't be returned
+
+        await fsExtra.writeJSON(path.join(this.tmpDir, "c.sol", "B.json"), {});
+        await fsExtra.writeJSON(
+          path.join(this.tmpDir, "c.sol", "B.dbg.json"),
+          {}
+        );
+        await fsExtra.writeJSON(
+          path.join(this.tmpDir, "build-info", "something.json"),
+          {}
+        );
+
+        assert.lengthOf(await artifacts.getArtifactPaths(), 1);
+        assert.lengthOf(await artifacts.getDebugFilePaths(), 1);
+        assert.lengthOf(await artifacts.getBuildInfoPaths(), 1);
+
+        artifacts.disableCaching();
+
+        // we disabled the cache, so now they should be returned
+
+        assert.lengthOf(await artifacts.getArtifactPaths(), 2);
+        assert.lengthOf(await artifacts.getDebugFilePaths(), 2);
+        assert.lengthOf(await artifacts.getBuildInfoPaths(), 2);
+      });
+    });
   });
 });
 
