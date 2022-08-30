@@ -26,7 +26,10 @@ describe("Web3 module", function () {
       describe("web3_clientVersion", async function () {
         it("Should return the right value", async function () {
           const res = await this.provider.send("web3_clientVersion");
-          assert.match(res, /^HardhatNetwork\/.*\/@nomicfoundation\/ethereumjs-vm/);
+          assert.match(
+            res,
+            /^HardhatNetwork\/.*\/@nomicfoundation\/ethereumjs-vm/
+          );
         });
       });
 
