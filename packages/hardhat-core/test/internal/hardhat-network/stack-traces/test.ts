@@ -26,10 +26,7 @@ import {
   SolidityStackTraceEntry,
   StackTraceEntryType,
 } from "../../../../src/internal/hardhat-network/stack-traces/solidity-stack-trace";
-import {
-  SolidityTracer,
-  SUPPORTED_SOLIDITY_VERSION_RANGE,
-} from "../../../../src/internal/hardhat-network/stack-traces/solidityTracer";
+import { SolidityTracer } from "../../../../src/internal/hardhat-network/stack-traces/solidityTracer";
 import { VmTraceDecoder } from "../../../../src/internal/hardhat-network/stack-traces/vm-trace-decoder";
 import {
   CompilerInput,
@@ -38,6 +35,7 @@ import {
 } from "../../../../src/types";
 import { setCWD } from "../helpers/cwd";
 
+import { SUPPORTED_SOLIDITY_VERSION_RANGE } from "../../../../src/internal/hardhat-network/stack-traces/constants";
 import {
   compileFiles,
   COMPILER_DOWNLOAD_TIMEOUT,

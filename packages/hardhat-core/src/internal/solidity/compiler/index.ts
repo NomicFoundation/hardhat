@@ -1,4 +1,4 @@
-import { exec } from "child_process";
+import { execFile } from "child_process";
 import * as fs from "fs";
 import { CompilerInput, CompilerOutput } from "../../../types";
 
@@ -62,8 +62,9 @@ export class NativeCompiler implements ICompiler {
 
   public async compile(input: CompilerInput) {
     const output: string = await new Promise((resolve, reject) => {
-      const process = exec(
-        `${this._pathToSolc} --standard-json`,
+      const process = execFile(
+        this._pathToSolc,
+        [`--standard-json`],
         {
           maxBuffer: 1024 * 1024 * 500,
         },

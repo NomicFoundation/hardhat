@@ -391,7 +391,7 @@ describe("Artifacts class", function () {
       const artifact = getArtifactFromContractOutput(sourceName, name, output);
 
       const artifacts = new Artifacts(this.tmpDir);
-      await artifacts.saveArtifactAndDebugFile(artifact, "");
+      await artifacts.saveArtifactAndDebugFile(artifact);
 
       const storedArtifact = await artifacts.readArtifact("MyLib.sol:Lib");
 

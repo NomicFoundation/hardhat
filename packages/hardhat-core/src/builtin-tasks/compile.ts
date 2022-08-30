@@ -2,7 +2,6 @@ import os from "os";
 import chalk from "chalk";
 import debug from "debug";
 import fsExtra from "fs-extra";
-import path from "path";
 import semver from "semver";
 import AggregateError from "aggregate-error";
 
@@ -27,7 +26,6 @@ import {
 import { DependencyGraph } from "../internal/solidity/dependencyGraph";
 import { Parser } from "../internal/solidity/parse";
 import { ResolvedFile, Resolver } from "../internal/solidity/resolver";
-import { glob } from "../internal/util/glob";
 import { getCompilersDir } from "../internal/util/global-dir";
 import { pluralize } from "../internal/util/strings";
 import { Artifacts, CompilerInput, CompilerOutput, SolcBuild } from "../types";
@@ -41,6 +39,7 @@ import {
 import { getFullyQualifiedName } from "../utils/contract-names";
 import { localPathToSourceName } from "../utils/source-names";
 
+import { getAllFilesMatching } from "../internal/util/fs-utils";
 import {
   TASK_COMPILE,
   TASK_COMPILE_GET_COMPILATION_TASKS,
@@ -116,7 +115,9 @@ const DEFAULT_CONCURRENCY_LEVEL = Math.max(os.cpus().length - 1, 1);
 subtask(
   TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS,
   async (_, { config }): Promise<string[]> => {
-    const paths = await glob(path.join(config.paths.sources, "**/*.sol"));
+    const paths = await getAllFilesMatching(config.paths.sources, (f) =>
+      f.endsWith(".sol")
+    );
 
     return paths;
   }
@@ -1422,38 +1423,30 @@ async function invalidateCacheMissingArtifacts(
   artifacts: Artifacts,
   resolvedFiles: ResolvedFile[]
 ): Promise<SolidityFilesCache> {
-  await Promise.all(
-    resolvedFiles.map(async (file) => {
-      const cacheEntry = solidityFilesCache.getEntry(file.absolutePath);
+  const paths = new Set(await artifacts.getArtifactPaths());
 
-      if (cacheEntry === undefined) {
-        return;
-      }
+  for (const file of resolvedFiles) {
+    const cacheEntry = solidityFilesCache.getEntry(file.absolutePath);
 
-      const { artifacts: emittedArtifacts } = cacheEntry;
+    if (cacheEntry === undefined) {
+      continue;
+    }
 
-      const artifactsExist = await Promise.all(
-        emittedArtifacts.map(
-          async (emittedArtifact) =>
-            [
-              getFullyQualifiedName(file.sourceName, emittedArtifact),
-              await artifacts.artifactExists(
-                getFullyQualifiedName(file.sourceName, emittedArtifact)
-              ),
-            ] as const
-        )
-      );
+    const { artifacts: emittedArtifacts } = cacheEntry;
+    for (const emittedArtifact of emittedArtifacts) {
+      const fqn = getFullyQualifiedName(file.sourceName, emittedArtifact);
+      const path = artifacts.formArtifactPathFromFullyQualifiedName(fqn);
 
-      const missing = artifactsExist.find(([_, exists]) => !exists);
-      if (missing !== undefined) {
+      if (!paths.has(path)) {
         log(
-          `Invalidate cache for '${file.absolutePath}' because artifact '${missing[0]}' doesn't exist`
+          `Invalidate cache for '${file.absolutePath}' because artifact '${fqn}' doesn't exist`
         );
 
         solidityFilesCache.removeEntry(file.absolutePath);
+        break;
       }
-    })
-  );
+    }
+  }
 
   return solidityFilesCache;
 }

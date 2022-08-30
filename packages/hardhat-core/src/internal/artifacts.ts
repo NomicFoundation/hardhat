@@ -29,23 +29,21 @@ import {
 } from "./constants";
 import { HardhatError } from "./core/errors";
 import { ERRORS } from "./core/errors-list";
-import { glob, globSync } from "./util/glob";
 import { createNonCryptographicHashBasedIdentifier } from "./util/hash";
+import {
+  FileNotFoundError,
+  getAllFilesMatching,
+  getAllFilesMatchingSync,
+  getFileTrueCase,
+  getFileTrueCaseSync,
+} from "./util/fs-utils";
 
 const log = debug("hardhat:core:artifacts");
 
 export class Artifacts implements IArtifacts {
-  private _buildInfosGlob: string;
-  private _dbgsGlob: string;
   private _validArtifacts: Array<{ sourceName: string; artifacts: string[] }>;
 
   constructor(private _artifactsPath: string) {
-    this._buildInfosGlob = path.join(
-      this._artifactsPath,
-      BUILD_INFO_DIR_NAME,
-      "**/*.json"
-    );
-    this._dbgsGlob = path.join(this._artifactsPath, "**/*.dbg.json");
     this._validArtifacts = [];
   }
 
@@ -66,12 +64,8 @@ export class Artifacts implements IArtifacts {
   }
 
   public async artifactExists(name: string): Promise<boolean> {
-    try {
-      await this.readArtifact(name);
-      return true;
-    } catch {
-      return false;
-    }
+    const artifactPath = await this._getArtifactPath(name);
+    return fsExtra.pathExists(artifactPath);
   }
 
   public async getAllFullyQualifiedNames(): Promise<string[]> {
@@ -96,21 +90,33 @@ export class Artifacts implements IArtifacts {
   }
 
   public async getArtifactPaths(): Promise<string[]> {
-    const paths = await glob(path.join(this._artifactsPath, "**/*.json"), {
-      ignore: [this._buildInfosGlob, this._dbgsGlob],
-    });
+    const buildInfosDir = path.join(this._artifactsPath, BUILD_INFO_DIR_NAME);
+
+    const paths = await getAllFilesMatching(
+      this._artifactsPath,
+      (f) =>
+        f.endsWith(".json") &&
+        !f.startsWith(buildInfosDir) &&
+        !f.endsWith(".dbg.json")
+    );
 
     return paths.sort();
   }
 
   public async getBuildInfoPaths(): Promise<string[]> {
-    const paths = await glob(this._buildInfosGlob);
+    const paths = await getAllFilesMatching(
+      path.join(this._artifactsPath, BUILD_INFO_DIR_NAME),
+      (f) => f.endsWith(".json")
+    );
 
     return paths.sort();
   }
 
   public async getDebugFilePaths(): Promise<string[]> {
-    const paths = await glob(this._dbgsGlob);
+    const paths = await getAllFilesMatching(
+      path.join(this._artifactsPath),
+      (f) => f.endsWith(".dbg.json")
+    );
 
     return paths.sort();
   }
@@ -410,9 +416,15 @@ export class Artifacts implements IArtifacts {
   }
 
   private _getArtifactPathsSync(): string[] {
-    const paths = globSync(path.join(this._artifactsPath, "**/*.json"), {
-      ignore: [this._buildInfosGlob, this._dbgsGlob],
-    });
+    const buildInfosDir = path.join(this._artifactsPath, BUILD_INFO_DIR_NAME);
+
+    const paths = getAllFilesMatchingSync(
+      this._artifactsPath,
+      (f) =>
+        f.endsWith(".json") &&
+        !f.startsWith(buildInfosDir) &&
+        !f.endsWith(".dbg.json")
+    );
 
     return paths.sort();
   }
@@ -427,55 +439,6 @@ export class Artifacts implements IArtifacts {
 
     const files = this._getArtifactPathsSync();
     return this._getArtifactPathFromFiles(name, files);
-  }
-
-  /**
-   * Same signature as imported function, but abstracted to handle the only error we consistently care about
-   */
-  private async _trueCasePath(
-    filePath: string,
-    basePath?: string
-  ): Promise<string | null> {
-    const { trueCasePath } = await import("true-case-path");
-
-    try {
-      const result = await trueCasePath(filePath, basePath);
-      return result;
-    } catch (error) {
-      if (error instanceof Error) {
-        if (error.message.includes("no matching file exists")) {
-          return null;
-        }
-      }
-
-      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
-      throw error;
-    }
-  }
-
-  /**
-   * Same signature as imported function, but abstracted to handle the only error we consistently care about
-   * and synchronous
-   */
-  private _trueCasePathSync(
-    filePath: string,
-    basePath?: string
-  ): string | null {
-    const { trueCasePathSync } = require("true-case-path");
-
-    try {
-      const result = trueCasePathSync(filePath, basePath);
-      return result;
-    } catch (error) {
-      if (error instanceof Error) {
-        if (error.message.includes("no matching file exists")) {
-          return null;
-        }
-      }
-
-      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
-      throw error;
-    }
   }
 
   /**
@@ -500,23 +463,33 @@ export class Artifacts implements IArtifacts {
     const artifactPath =
       this.formArtifactPathFromFullyQualifiedName(fullyQualifiedName);
 
-    const trueCaseArtifactPath = await this._trueCasePath(
-      path.relative(this._artifactsPath, artifactPath),
-      this._artifactsPath
-    );
+    try {
+      const trueCasePath = path.join(
+        this._artifactsPath,
+        await getFileTrueCase(
+          this._artifactsPath,
+          path.relative(this._artifactsPath, artifactPath)
+        )
+      );
 
-    if (trueCaseArtifactPath === null) {
-      return this._handleWrongArtifactForFullyQualifiedName(fullyQualifiedName);
+      if (artifactPath !== trueCasePath) {
+        throw new HardhatError(ERRORS.ARTIFACTS.WRONG_CASING, {
+          correct: this._getFullyQualifiedNameFromPath(trueCasePath),
+          incorrect: fullyQualifiedName,
+        });
+      }
+
+      return trueCasePath;
+    } catch (e) {
+      if (e instanceof FileNotFoundError) {
+        return this._handleWrongArtifactForFullyQualifiedName(
+          fullyQualifiedName
+        );
+      }
+
+      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+      throw e;
     }
-
-    if (artifactPath !== trueCaseArtifactPath) {
-      throw new HardhatError(ERRORS.ARTIFACTS.WRONG_CASING, {
-        correct: trueCaseArtifactPath,
-        incorrect: artifactPath,
-      });
-    }
-
-    return artifactPath;
   }
 
   private _getAllContractNamesFromFiles(files: string[]): string[] {
@@ -661,23 +634,33 @@ Please replace "${contractName}" for the correct contract name wherever you are 
     const artifactPath =
       this.formArtifactPathFromFullyQualifiedName(fullyQualifiedName);
 
-    const trueCaseArtifactPath = this._trueCasePathSync(
-      path.relative(this._artifactsPath, artifactPath),
-      this._artifactsPath
-    );
+    try {
+      const trueCasePath = path.join(
+        this._artifactsPath,
+        getFileTrueCaseSync(
+          this._artifactsPath,
+          path.relative(this._artifactsPath, artifactPath)
+        )
+      );
 
-    if (trueCaseArtifactPath === null) {
-      return this._handleWrongArtifactForFullyQualifiedName(fullyQualifiedName);
+      if (artifactPath !== trueCasePath) {
+        throw new HardhatError(ERRORS.ARTIFACTS.WRONG_CASING, {
+          correct: this._getFullyQualifiedNameFromPath(trueCasePath),
+          incorrect: fullyQualifiedName,
+        });
+      }
+
+      return trueCasePath;
+    } catch (e) {
+      if (e instanceof FileNotFoundError) {
+        return this._handleWrongArtifactForFullyQualifiedName(
+          fullyQualifiedName
+        );
+      }
+
+      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+      throw e;
     }
-
-    if (artifactPath !== trueCaseArtifactPath) {
-      throw new HardhatError(ERRORS.ARTIFACTS.WRONG_CASING, {
-        correct: trueCaseArtifactPath,
-        incorrect: artifactPath,
-      });
-    }
-
-    return artifactPath;
   }
 
   private _getDebugFilePath(artifactPath: string): string {

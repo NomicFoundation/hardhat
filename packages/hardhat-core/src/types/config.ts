@@ -144,6 +144,7 @@ export interface HardhatNetworkConfig {
   mining: HardhatNetworkMiningConfig;
   accounts: HardhatNetworkAccountsConfig;
   blockGasLimit: number;
+  // TODO: This shouldn't be a BN, as it forces use to load ethereumjs-util
   minGasPrice: BN;
   throwOnTransactionFailures: boolean;
   throwOnCallFailures: boolean;

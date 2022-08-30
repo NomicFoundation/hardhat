@@ -1,5 +1,4 @@
 import { BN } from "ethereumjs-util";
-import * as fs from "fs";
 import cloneDeep from "lodash/cloneDeep";
 import path from "path";
 
@@ -37,6 +36,7 @@ import { HardforkName } from "../../util/hardforks";
 import { fromEntries } from "../../util/lang";
 import { assertHardhatInvariant } from "../errors";
 
+import { getRealPathSync } from "../../util/fs-utils";
 import {
   DEFAULT_SOLC_VERSION,
   defaultDefaultNetwork,
@@ -432,7 +432,7 @@ export function resolveProjectPaths(
   userConfigPath: string,
   userPaths: ProjectPathsUserConfig = {}
 ): ProjectPathsConfig {
-  const configFile = fs.realpathSync(userConfigPath);
+  const configFile = getRealPathSync(userConfigPath);
   const configDir = path.dirname(configFile);
 
   const root = resolvePathFrom(configDir, "", userPaths.root);
