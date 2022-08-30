@@ -1,6 +1,6 @@
-import { Block } from "@ethereumjs/block";
-import { Common } from "@ethereumjs/common";
-import { BufferLike, bufferToBigInt, zeros } from "@ethereumjs/util";
+import { Block } from "@nomicfoundation/block";
+import { Common } from "@nomicfoundation/common";
+import { BufferLike, bufferToBigInt, zeros } from "@nomicfoundation/util";
 import { assert } from "chai";
 
 import { randomHashBuffer } from "../../../../src/internal/hardhat-network/provider/utils/random";

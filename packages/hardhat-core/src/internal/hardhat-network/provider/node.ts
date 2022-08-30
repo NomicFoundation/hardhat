@@ -1,11 +1,11 @@
-import { Block, HeaderData } from "@ethereumjs/block";
-import { Common } from "@ethereumjs/common";
+import { Block, HeaderData } from "@nomicfoundation/block";
+import { Common } from "@nomicfoundation/common";
 import {
   AccessListEIP2930Transaction,
   FeeMarketEIP1559Transaction,
   Transaction,
   TypedTransaction,
-} from "@ethereumjs/tx";
+} from "@nomicfoundation/tx";
 import {
   Address,
   ECDSASignature,
@@ -16,11 +16,20 @@ import {
   privateToAddress,
   setLengthLeft,
   toBuffer,
-} from "@ethereumjs/util";
-import { Bloom, EEI, RunBlockResult, RunTxResult, VM } from "@ethereumjs/vm";
-import { EVM, EVMResult } from "@ethereumjs/evm";
-import { ERROR } from "@ethereumjs/evm/dist/exceptions";
-import { DefaultStateManager, StateManager } from "@ethereumjs/statemanager";
+} from "@nomicfoundation/util";
+import {
+  Bloom,
+  EEI,
+  RunBlockResult,
+  RunTxResult,
+  VM,
+} from "@nomicfoundation/vm";
+import { EVM, EVMResult } from "@nomicfoundation/evm";
+import { ERROR } from "@nomicfoundation/evm/dist/exceptions";
+import {
+  DefaultStateManager,
+  StateManager,
+} from "@nomicfoundation/statemanager";
 import { SignTypedDataVersion, signTypedData } from "@metamask/eth-sig-util";
 import chalk from "chalk";
 import debug from "debug";
@@ -2348,7 +2357,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         // know anything about the txs in the current block
       }
 
-      // NOTE: This is a workaround of both an @ethereumjs/vm limitation, and
+      // NOTE: This is a workaround of both an @nomicfoundation/vm limitation, and
       //   a bug in Hardhat Network.
       //
       // See: https://github.com/nomiclabs/hardhat/issues/1666

@@ -1,8 +1,8 @@
-import { EVMResult, getActivePrecompiles } from "@ethereumjs/evm";
-import { InterpreterStep } from "@ethereumjs/evm/dist/interpreter";
-import { Message } from "@ethereumjs/evm/dist/message";
-import { Address, bufferToBigInt } from "@ethereumjs/util";
-import { VM } from "@ethereumjs/vm";
+import { EVMResult, getActivePrecompiles } from "@nomicfoundation/evm";
+import { InterpreterStep } from "@nomicfoundation/evm/dist/interpreter";
+import { Message } from "@nomicfoundation/evm/dist/message";
+import { Address, bufferToBigInt } from "@nomicfoundation/util";
+import { VM } from "@nomicfoundation/vm";
 import { assertHardhatInvariant } from "../../core/errors";
 
 import {

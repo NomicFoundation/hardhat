@@ -1,6 +1,9 @@
-import { Common } from "@ethereumjs/common";
-import { StateManager, DefaultStateManager } from "@ethereumjs/statemanager";
-import { Account, Address, bufferToHex, toBuffer } from "@ethereumjs/util";
+import { Common } from "@nomicfoundation/common";
+import {
+  StateManager,
+  DefaultStateManager,
+} from "@nomicfoundation/statemanager";
+import { Account, Address, bufferToHex, toBuffer } from "@nomicfoundation/util";
 import { assert } from "chai";
 
 import { InvalidInputError } from "../../../../src/internal/core/providers/errors";

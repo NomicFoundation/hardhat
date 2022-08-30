@@ -1,4 +1,4 @@
-import { TypedTransaction } from "@ethereumjs/tx";
+import { TypedTransaction } from "@nomicfoundation/tx";
 import Heap from "mnemonist/heap";
 
 import { InternalError, InvalidInputError } from "../../core/providers/errors";

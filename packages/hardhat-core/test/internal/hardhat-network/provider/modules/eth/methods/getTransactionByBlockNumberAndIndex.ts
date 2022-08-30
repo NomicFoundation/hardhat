@@ -1,4 +1,4 @@
-import { toBuffer, zeroAddress } from "@ethereumjs/util";
+import { toBuffer, zeroAddress } from "@nomicfoundation/util";
 import { assert } from "chai";
 
 import { numberToRpcQuantity } from "../../../../../../../src/internal/core/jsonrpc/types/base-types";

@@ -1,5 +1,5 @@
 // reused from ethers.js
-import { Address, toBuffer } from "@ethereumjs/util";
+import { Address, toBuffer } from "@nomicfoundation/util";
 import path from "path";
 
 export const DAI_ADDRESS = Address.fromString(

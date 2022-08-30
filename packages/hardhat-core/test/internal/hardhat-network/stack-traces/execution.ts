@@ -1,11 +1,11 @@
-import { Transaction, TxData } from "@ethereumjs/tx";
+import { Transaction, TxData } from "@nomicfoundation/tx";
 import {
   Account,
   Address,
   privateToAddress,
   bigIntToBuffer,
-} from "@ethereumjs/util";
-import { VM } from "@ethereumjs/vm";
+} from "@nomicfoundation/util";
+import { VM } from "@nomicfoundation/vm";
 import abi from "ethereumjs-abi";
 
 import { MessageTrace } from "../../../../src/internal/hardhat-network/stack-traces/message-trace";

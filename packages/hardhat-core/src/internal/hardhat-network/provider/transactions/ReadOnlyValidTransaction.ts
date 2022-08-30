@@ -1,6 +1,6 @@
-import { Common } from "@ethereumjs/common";
-import { Transaction, TxData, TxOptions } from "@ethereumjs/tx";
-import { Address } from "@ethereumjs/util";
+import { Common } from "@nomicfoundation/common";
+import { Transaction, TxData, TxOptions } from "@nomicfoundation/tx";
+import { Address } from "@nomicfoundation/util";
 
 import { InternalError } from "../../../core/providers/errors";
 

@@ -1,4 +1,4 @@
-import { toBuffer } from "@ethereumjs/util";
+import { toBuffer } from "@nomicfoundation/util";
 import { assert } from "chai";
 import * as t from "io-ts";
 

@@ -1,4 +1,4 @@
-import { arrToBufArr, bufArrToArr, toBuffer } from "@ethereumjs/util";
+import { arrToBufArr, bufArrToArr, toBuffer } from "@nomicfoundation/util";
 import { assert } from "chai";
 import { keccak256 } from "ethereum-cryptography/keccak";
 
@@ -22,7 +22,7 @@ describe("Web3 module", function () {
       describe("web3_clientVersion", async function () {
         it("Should return the right value", async function () {
           const res = await this.provider.send("web3_clientVersion");
-          assert.match(res, /^HardhatNetwork\/.*\/@ethereumjs\/vm/);
+          assert.match(res, /^HardhatNetwork\/.*\/@nomicfoundation\/vm/);
         });
       });
 

@@ -1,4 +1,4 @@
-import { Address, bufferToHex } from "@ethereumjs/util";
+import { Address, bufferToHex } from "@nomicfoundation/util";
 import fsExtra from "fs-extra";
 import * as t from "io-ts";
 import path from "path";

@@ -1,7 +1,7 @@
-import { Block } from "@ethereumjs/block";
-import { AfterBlockEvent, PostByzantiumTxReceipt } from "@ethereumjs/vm";
+import { Block } from "@nomicfoundation/block";
+import { AfterBlockEvent, PostByzantiumTxReceipt } from "@nomicfoundation/vm";
 import { assert } from "chai";
-import { bufferToHex } from "@ethereumjs/util";
+import { bufferToHex } from "@nomicfoundation/util";
 
 import { numberToRpcQuantity } from "../../../../../src/internal/core/jsonrpc/types/base-types";
 import { RpcBlockWithTransactions } from "../../../../../src/internal/core/jsonrpc/types/output/block";

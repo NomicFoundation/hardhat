@@ -3,7 +3,7 @@ import {
   bufferToHex,
   privateToAddress,
   toChecksumAddress,
-} from "@ethereumjs/util";
+} from "@nomicfoundation/util";
 
 import { deriveKeyFromMnemonicAndPath } from "../../../src/internal/util/keys-derivation";
 

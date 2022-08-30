@@ -1,17 +1,17 @@
-import { Block } from "@ethereumjs/block";
-import { Common } from "@ethereumjs/common";
+import { Block } from "@nomicfoundation/block";
+import { Common } from "@nomicfoundation/common";
 import {
   Transaction,
   TransactionFactory,
   TypedTransaction,
-} from "@ethereumjs/tx";
+} from "@nomicfoundation/tx";
 import {
   Address,
   bufferToHex,
   toBuffer,
   toRpcSig,
   zeroAddress,
-} from "@ethereumjs/util";
+} from "@nomicfoundation/util";
 import * as t from "io-ts";
 import cloneDeep from "lodash/cloneDeep";
 

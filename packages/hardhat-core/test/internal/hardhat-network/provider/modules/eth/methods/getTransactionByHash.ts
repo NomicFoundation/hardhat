@@ -1,12 +1,12 @@
-import { Common } from "@ethereumjs/common";
-import { Transaction } from "@ethereumjs/tx";
+import { Common } from "@nomicfoundation/common";
+import { Transaction } from "@nomicfoundation/tx";
 import {
   bigIntToBuffer,
   bufferToHex,
   setLengthLeft,
   toBuffer,
   zeroAddress,
-} from "@ethereumjs/util";
+} from "@nomicfoundation/util";
 import { assert } from "chai";
 
 import {

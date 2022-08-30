@@ -1,7 +1,7 @@
-import { Common } from "@ethereumjs/common";
-import { TxData, TypedTransaction } from "@ethereumjs/tx";
+import { Common } from "@nomicfoundation/common";
+import { TxData, TypedTransaction } from "@nomicfoundation/tx";
 import { assert } from "chai";
-import { Address, bufferToHex, toBuffer } from "@ethereumjs/util";
+import { Address, bufferToHex, toBuffer } from "@nomicfoundation/util";
 import { ethers } from "ethers";
 import sinon from "sinon";
 

@@ -1,6 +1,6 @@
-import { Block } from "@ethereumjs/block";
-import { Common } from "@ethereumjs/common";
-import { bufferToBigInt, bufferToHex, toBuffer } from "@ethereumjs/util";
+import { Block } from "@nomicfoundation/block";
+import { Common } from "@nomicfoundation/common";
+import { bufferToBigInt, bufferToHex, toBuffer } from "@nomicfoundation/util";
 import { assert } from "chai";
 
 import { JsonRpcClient } from "../../../../../src/internal/hardhat-network/jsonrpc/client";
