@@ -1076,7 +1076,7 @@ describe("Artifacts class", function () {
         assert.lengthOf(await artifacts.getDebugFilePaths(), 1);
         assert.lengthOf(await artifacts.getBuildInfoPaths(), 1);
 
-        // we create some other files, which should be returned after clearin
+        // we create some other files, which should be returned after clearing
         //  the cache
 
         await fsExtra.writeJSON(path.join(this.tmpDir, "c.sol", "B.json"), {});
