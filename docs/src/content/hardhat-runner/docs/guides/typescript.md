@@ -102,7 +102,7 @@ Now, we are going to rename the config file from `hardhat.config.js` to `hardhat
 mv hardhat.config.js hardhat.config.ts
 ```
 
-We need to a single change to your config for it to work with TypeScript: you must use `import`/`export` instead of `require`/`module.exports`.
+We need to make a single change to your config for it to work with TypeScript: you must use `import`/`export` instead of `require`/`module.exports`.
 
 By using TypeScript, you can also type your configuration, which will save you from typos and other mistakes.
 
