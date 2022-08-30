@@ -1,5 +1,9 @@
 import { HardhatConfig } from "../../types";
 
+import { ArgumentsParser } from "../cli/ArgumentsParser";
+import { HARDHAT_PARAM_DEFINITIONS } from "./params/hardhat-params";
+import { getEnvHardhatArguments } from "./params/env-variables";
+
 import { resolveConfigPath } from "./config/config-loading";
 import { HardhatError } from "./errors";
 import { ERRORS } from "./errors-list";
@@ -67,8 +71,19 @@ export function loadTsNode(tsConfigPath?: string) {
     process.env.TS_NODE_FILES = "true";
   }
 
+  let tsNodeRequirement = "ts-node/register";
+  const shouldTypecheck =
+    new ArgumentsParser().parseHardhatArguments(
+      HARDHAT_PARAM_DEFINITIONS,
+      getEnvHardhatArguments(HARDHAT_PARAM_DEFINITIONS, process.env),
+      process.argv.slice(2)
+    ).hardhatArguments.typecheck ?? false;
+  if (!shouldTypecheck) {
+    tsNodeRequirement += "/transpile-only";
+  }
+
   // eslint-disable-next-line import/no-extraneous-dependencies
-  require("ts-node/register/transpile-only");
+  require(tsNodeRequirement);
 }
 
 function isTypescriptFile(path: string): boolean {

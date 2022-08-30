@@ -3,7 +3,12 @@ import path from "path";
 
 import { HardhatArguments } from "../../types";
 import { isRunningHardhatCoreTests } from "../core/execution-mode";
-import { getEnvVariablesMap } from "../core/params/env-variables";
+import {
+  getEnvHardhatArguments,
+  getEnvVariablesMap,
+} from "../core/params/env-variables";
+import { ArgumentsParser } from "../cli/ArgumentsParser";
+import { HARDHAT_PARAM_DEFINITIONS } from "../core/params/hardhat-params";
 
 const log = debug("hardhat:core:scripts-runner");
 
@@ -102,8 +107,18 @@ function getTsNodeArgsIfNeeded(scriptPath: string): string[] {
   }
 
   // If the script we are going to run is .ts we need ts-node
+  let tsNodeRequirement = "ts-node/register";
+  const shouldTypecheck =
+    new ArgumentsParser().parseHardhatArguments(
+      HARDHAT_PARAM_DEFINITIONS,
+      getEnvHardhatArguments(HARDHAT_PARAM_DEFINITIONS, process.env),
+      process.argv.slice(2)
+    ).hardhatArguments.typecheck ?? false;
+  if (!shouldTypecheck) {
+    tsNodeRequirement += "/transpile-only";
+  }
   if (/\.tsx?$/i.test(scriptPath)) {
-    return ["--require", "ts-node/register/transpile-only"];
+    return ["--require", tsNodeRequirement];
   }
 
   return [];
