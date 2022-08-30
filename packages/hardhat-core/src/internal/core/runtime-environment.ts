@@ -25,13 +25,21 @@ import { HardhatError } from "./errors";
 import { ERRORS } from "./errors-list";
 import { createProvider } from "./providers/construction";
 import { OverriddenTaskDefinition } from "./tasks/task-definitions";
+import {
+  completeTaskProfile,
+  createParentTaskProfile,
+  createTaskProfile,
+  TaskProfile,
+} from "./task-profiling";
 
 const log = debug("hardhat:core:hre");
 
 export class Environment implements HardhatRuntimeEnvironment {
   private static readonly _BLACKLISTED_PROPERTIES: string[] = [
     "injectToGlobal",
+    "entryTaskProfile",
     "_runTaskDefinition",
+    "_extenders",
   ];
 
   public network: Network;
@@ -39,6 +47,8 @@ export class Environment implements HardhatRuntimeEnvironment {
   public artifacts: IArtifacts;
 
   private readonly _extenders: EnvironmentExtender[];
+
+  public entryTaskProfile?: TaskProfile;
 
   /**
    * Initializes the Hardhat Runtime Environment and the given
@@ -111,7 +121,11 @@ export class Environment implements HardhatRuntimeEnvironment {
    * @throws a HH303 if there aren't any defined tasks with the given name.
    * @returns a promise with the task's execution result.
    */
-  public readonly run: RunTaskFunction = async (name, taskArguments = {}) => {
+  public readonly run: RunTaskFunction = async (
+    name,
+    taskArguments = {},
+    callerTaskProfile?: TaskProfile
+  ) => {
     const taskDefinition = this.tasks[name];
 
     log("Running task %s", name);
@@ -127,16 +141,32 @@ export class Environment implements HardhatRuntimeEnvironment {
       taskArguments
     );
 
+    let taskProfile: TaskProfile | undefined;
+    if (this.hardhatArguments.flamegraph === true) {
+      taskProfile = createTaskProfile(name);
+
+      if (callerTaskProfile !== undefined) {
+        callerTaskProfile.children.push(taskProfile);
+      } else {
+        this.entryTaskProfile = taskProfile;
+      }
+    }
+
     try {
       return await this._runTaskDefinition(
         taskDefinition,
-        resolvedTaskArguments
+        resolvedTaskArguments,
+        taskProfile
       );
     } catch (e) {
       analyzeModuleNotFoundError(e, this.config.paths.configFile);
 
       // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
       throw e;
+    } finally {
+      if (taskProfile !== undefined) {
+        completeTaskProfile(taskProfile);
+      }
     }
   };
 
@@ -178,10 +208,15 @@ export class Environment implements HardhatRuntimeEnvironment {
     };
   }
 
+  /**
+   * @param taskProfile Undefined if we aren't computing task profiles
+   * @private
+   */
   private async _runTaskDefinition(
     taskDefinition: TaskDefinition,
-    taskArguments: TaskArguments
-  ) {
+    taskArguments: TaskArguments,
+    taskProfile?: TaskProfile
+  ): Promise<any> {
     let runSuperFunction: any;
 
     if (taskDefinition instanceof OverriddenTaskDefinition) {
@@ -190,10 +225,25 @@ export class Environment implements HardhatRuntimeEnvironment {
       ) => {
         log("Running %s's super", taskDefinition.name);
 
-        return this._runTaskDefinition(
-          taskDefinition.parentTaskDefinition,
-          _taskArguments
-        );
+        if (taskProfile === undefined) {
+          return this._runTaskDefinition(
+            taskDefinition.parentTaskDefinition,
+            _taskArguments
+          );
+        }
+
+        const parentTaskProfile = createParentTaskProfile(taskProfile);
+        taskProfile.children.push(parentTaskProfile);
+
+        try {
+          return await this._runTaskDefinition(
+            taskDefinition.parentTaskDefinition,
+            _taskArguments,
+            parentTaskProfile
+          );
+        } finally {
+          completeTaskProfile(parentTaskProfile);
+        }
       };
 
       runSuperFunction.isDefined = true;
@@ -213,10 +263,53 @@ export class Environment implements HardhatRuntimeEnvironment {
     const previousRunSuper: any = globalAsAny.runSuper;
     globalAsAny.runSuper = runSuper;
 
-    const uninjectFromGlobal = this.injectToGlobal();
+    let modifiedHreWithParentTaskProfile: any | undefined;
+    if (this.hardhatArguments.flamegraph === true) {
+      // We create a modified version of `this`, as we want to keep track of the
+      // `taskProfile` and use it as `callerTaskProfile` if the action calls
+      // `run`, and add a few utility methods.
+      //
+      // Note that for this to work we need to set the prototype later
+      modifiedHreWithParentTaskProfile = {
+        ...this,
+        run: (_name: string, _taskArguments: TaskArguments) =>
+          (this as any).run(_name, _taskArguments, taskProfile),
+        adhocProfile: async (_name: string, f: () => Promise<any>) => {
+          const adhocProfile = createTaskProfile(_name);
+          taskProfile!.children.push(adhocProfile);
+          try {
+            return await f();
+          } finally {
+            completeTaskProfile(adhocProfile);
+          }
+        },
+        adhocProfileSync: (_name: string, f: () => any) => {
+          const adhocProfile = createTaskProfile(_name);
+          taskProfile!.children.push(adhocProfile);
+          try {
+            return f();
+          } finally {
+            completeTaskProfile(adhocProfile);
+          }
+        },
+      };
+
+      Object.setPrototypeOf(
+        modifiedHreWithParentTaskProfile,
+        Object.getPrototypeOf(this)
+      );
+    }
+
+    const uninjectFromGlobal =
+      modifiedHreWithParentTaskProfile?.injectToGlobal() ??
+      this.injectToGlobal();
 
     try {
-      return await taskDefinition.action(taskArguments, this, runSuper);
+      return await taskDefinition.action(
+        taskArguments,
+        modifiedHreWithParentTaskProfile ?? this,
+        runSuper
+      );
     } finally {
       uninjectFromGlobal();
       globalAsAny.runSuper = previousRunSuper;

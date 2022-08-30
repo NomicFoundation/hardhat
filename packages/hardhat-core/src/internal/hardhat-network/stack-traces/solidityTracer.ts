@@ -32,9 +32,6 @@ import {
   StackTraceEntryType,
 } from "./solidity-stack-trace";
 
-export const SUPPORTED_SOLIDITY_VERSION_RANGE = "<=0.8.16";
-export const FIRST_SOLC_VERSION_SUPPORTED = "0.5.1";
-
 export class SolidityTracer {
   private _errorInferrer = new ErrorInferrer();
 
