@@ -335,35 +335,42 @@ export class Artifacts implements IArtifacts {
     // We clear the cache here, as we want to be sure this runs correctly
     this.clearCache();
 
-    const validArtifactPaths = await Promise.all(
-      this._validArtifacts.flatMap(({ sourceName, artifacts }) =>
-        artifacts.map((artifactName) =>
-          this._getArtifactPath(getFullyQualifiedName(sourceName, artifactName))
-        )
-      )
-    );
-
-    const validArtifactsPathsSet = new Set<string>(validArtifactPaths);
-
-    for (const { sourceName, artifacts } of this._validArtifacts) {
-      for (const artifactName of artifacts) {
-        validArtifactsPathsSet.add(
-          this.formArtifactPathFromFullyQualifiedName(
-            getFullyQualifiedName(sourceName, artifactName)
+    try {
+      const validArtifactPaths = await Promise.all(
+        this._validArtifacts.flatMap(({ sourceName, artifacts }) =>
+          artifacts.map((artifactName) =>
+            this._getArtifactPath(
+              getFullyQualifiedName(sourceName, artifactName)
+            )
           )
-        );
+        )
+      );
+
+      const validArtifactsPathsSet = new Set<string>(validArtifactPaths);
+
+      for (const { sourceName, artifacts } of this._validArtifacts) {
+        for (const artifactName of artifacts) {
+          validArtifactsPathsSet.add(
+            this.formArtifactPathFromFullyQualifiedName(
+              getFullyQualifiedName(sourceName, artifactName)
+            )
+          );
+        }
       }
+
+      const existingArtifactsPaths = await this.getArtifactPaths();
+
+      await Promise.all(
+        existingArtifactsPaths
+          .filter((artifactPath) => !validArtifactsPathsSet.has(artifactPath))
+          .map((artifactPath) => this._removeArtifactFiles(artifactPath))
+      );
+
+      await this._removeObsoleteBuildInfos();
+    } finally {
+      // We clear the cache here, as this may have non-existent paths now
+      this.clearCache();
     }
-
-    const existingArtifactsPaths = await this.getArtifactPaths();
-
-    await Promise.all(
-      existingArtifactsPaths
-        .filter((artifactPath) => !validArtifactsPathsSet.has(artifactPath))
-        .map((artifactPath) => this._removeArtifactFiles(artifactPath))
-    );
-
-    await this._removeObsoleteBuildInfos();
   }
 
   /**
