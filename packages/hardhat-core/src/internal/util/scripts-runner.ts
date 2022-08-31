@@ -22,7 +22,7 @@ export async function runScript(
       ...processExecArgv,
       ...getTsNodeArgsIfNeeded(
         scriptPath,
-        extraEnvVars.HARDHAT_TYPECHECK !== undefined ?? false
+        extraEnvVars.HARDHAT_TYPECHECK === "true"
       ),
       ...extraNodeArgs,
     ];
@@ -111,7 +111,7 @@ function getTsNodeArgsIfNeeded(
   if (/\.tsx?$/i.test(scriptPath)) {
     return [
       "--require",
-      `ts-node/register${shouldTypecheck ? "/transpile-only" : ""}`,
+      `ts-node/register${shouldTypecheck ? "" : "/transpile-only"}`,
     ];
   }
 
