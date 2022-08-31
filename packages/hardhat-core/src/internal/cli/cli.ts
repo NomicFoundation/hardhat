@@ -169,7 +169,7 @@ async function main() {
     }
 
     if (willRunWithTypescript(hardhatArguments.config)) {
-      loadTsNode(hardhatArguments.tsconfig);
+      loadTsNode(hardhatArguments.tsconfig, hardhatArguments.typecheck);
     }
 
     let taskName = parsedTaskName ?? TASK_HELP;
