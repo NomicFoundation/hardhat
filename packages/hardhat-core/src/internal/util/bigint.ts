@@ -39,8 +39,10 @@ function bufferToBigInt(x: Buffer): bigint {
   return hex === "0x" ? 0n : BigInt(hex);
 }
 
-export function fromBigIntLike(x: string | number | bigint | Buffer): bigint {
-  if (typeof x === "bigint") {
+export function fromBigIntLike(
+  x: string | number | bigint | Buffer | undefined
+): bigint | undefined {
+  if (x === undefined || typeof x === "bigint") {
     return x;
   }
   if (typeof x === "number" || typeof x === "string") {

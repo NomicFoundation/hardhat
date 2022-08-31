@@ -215,7 +215,6 @@ describe("Eth module", function () {
             {
               chainId: DEFAULT_CHAIN_ID,
               networkId: DEFAULT_NETWORK_ID,
-              name: "hardhat",
             },
             {
               hardfork: "muirGlacier",

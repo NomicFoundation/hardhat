@@ -262,13 +262,10 @@ export class ForkBlockchain
       common = new Common({ chain: 5 });
     }
 
-    // We copy the common and set it to London or Berlin if the remote block
-    // had EIP-1559 activated or not. The reason for this is that ethereumjs
-    // throws if we have a base fee for an older hardfork, and set a default
-    // one for London.
-    if (rpcBlock.baseFeePerGas !== undefined) {
-      common.setHardfork("london"); // TODO: consider changing this to "latest hardfork"
-    } else {
+    // We set the common's hardfork to Berlin if the remote block doesn't have
+    // EIP-1559 activated. The reason for this is that ethereumjs throws if we
+    // have a base fee for an older hardfork, and set a default one for London.
+    if (rpcBlock.baseFeePerGas === undefined) {
       common.setHardfork("berlin");
     }
 
