@@ -18,7 +18,7 @@ import { TransactionQueue } from "../../../../src/internal/hardhat-network/provi
 import { createTestOrderedTransaction } from "../helpers/blockchain";
 import { makeOrderedTxMap } from "../helpers/makeOrderedTxMap";
 import { InternalError } from "../../../../src/internal/core/providers/errors";
-import { BigIntUtils } from "../../../../src/internal/util/bigint";
+import * as BigIntUtils from "../../../../src/internal/util/bigint";
 
 type TestTxData = (
   | TxData

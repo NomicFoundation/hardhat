@@ -1,7 +1,7 @@
 import { bufferToHex, isValidAddress, toBuffer } from "@ethereumjs/util";
 import * as t from "io-ts";
 
-import { BigIntUtils } from "../../../util/bigint";
+import * as BigIntUtils from "../../../util/bigint";
 import { assertHardhatInvariant, HardhatError } from "../../errors";
 import { ERRORS } from "../../errors-list";
 
@@ -128,7 +128,7 @@ export function numberToRpcStorageSlot(n: number | bigint): string {
     "Expected number"
   );
 
-  return `0x${BigIntUtils.toWord(n)}`;
+  return `0x${BigIntUtils.toEvmWord(n)}`;
 }
 
 /**

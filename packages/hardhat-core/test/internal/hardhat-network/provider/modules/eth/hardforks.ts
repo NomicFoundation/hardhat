@@ -27,7 +27,7 @@ import {
   EIP1559RpcTransactionOutput,
   RpcBlockOutput,
 } from "../../../../../../src/internal/hardhat-network/provider/output";
-import { BigIntUtils } from "../../../../../../src/internal/util/bigint";
+import * as BigIntUtils from "../../../../../../src/internal/util/bigint";
 
 describe("Eth module - hardfork dependant tests", function () {
   function useProviderAndCommon(hardfork: string) {
@@ -1004,7 +1004,7 @@ describe("Eth module - hardfork dependant tests", function () {
     ];
 
     function abiEncodeUint(uint: number) {
-      return BigIntUtils.toWord(uint);
+      return BigIntUtils.toEvmWord(uint);
     }
 
     let contract: string;

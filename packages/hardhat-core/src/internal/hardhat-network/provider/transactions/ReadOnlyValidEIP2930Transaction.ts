@@ -8,7 +8,7 @@ import {
 import { Address } from "@ethereumjs/util";
 
 import { InternalError } from "../../../core/providers/errors";
-import { BigIntUtils } from "../../../util/bigint";
+import * as BigIntUtils from "../../../util/bigint";
 import { BERLIN_EIPS } from "../../../util/hardforks";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */

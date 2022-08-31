@@ -17,7 +17,7 @@ export function isForkedNodeConfig(
 
 interface CommonConfig {
   automine: boolean;
-  blockGasLimit: bigint;
+  blockGasLimit: number;
   chainId: number;
   genesisAccounts: GenesisAccount[];
   hardfork: string;
@@ -27,7 +27,7 @@ interface CommonConfig {
   allowUnlimitedContractSize?: boolean;
   initialDate?: Date;
   tracingConfig?: TracingConfig;
-  initialBaseFeePerGas?: bigint;
+  initialBaseFeePerGas?: number;
   mempoolOrder: MempoolOrder;
   coinbase: string;
   chains: HardhatNetworkChainsConfig;

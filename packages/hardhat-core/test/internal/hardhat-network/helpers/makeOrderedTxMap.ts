@@ -1,5 +1,5 @@
 import { OrderedTransaction } from "../../../../src/internal/hardhat-network/provider/PoolState";
-import { BigIntUtils } from "../../../../src/internal/util/bigint";
+import * as BigIntUtils from "../../../../src/internal/util/bigint";
 
 export function makeOrderedTxMap(
   txs: OrderedTransaction[]

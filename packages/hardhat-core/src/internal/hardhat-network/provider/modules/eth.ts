@@ -85,7 +85,7 @@ import {
 
 import { assertHardhatNetworkInvariant } from "../utils/assertions";
 import { optional } from "../../../util/io-ts";
-import { BigIntUtils } from "../../../util/bigint";
+import * as BigIntUtils from "../../../util/bigint";
 import { ModulesLogger } from "./logger";
 
 const EIP1559_MIN_HARDFORK = "london";

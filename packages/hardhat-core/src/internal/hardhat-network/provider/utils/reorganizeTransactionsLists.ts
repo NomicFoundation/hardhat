@@ -1,5 +1,5 @@
 import { InternalError } from "../../../core/providers/errors";
-import { BigIntUtils } from "../../../util/bigint";
+import * as BigIntUtils from "../../../util/bigint";
 import { SenderTransactions, SerializedTransaction } from "../PoolState";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
