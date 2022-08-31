@@ -17,7 +17,7 @@ export function weiToHumanReadableString(wei: bigint | number): string {
     return "0 ETH";
   }
 
-  if (wei < 10_0000n) {
+  if (wei < 100_000n) {
     return `${wei.toString()} wei`;
   }
 

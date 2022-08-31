@@ -86,6 +86,7 @@ const coreParams = [
     description: "Show stack traces.",
     name: "--show-stack-traces",
   },
+  versionParam,
   {
     description: "Shows this message, or a task's help if its name is provided",
     name: "--help",
@@ -107,7 +108,10 @@ const coreParams = [
     name: "--tsconfig",
   },
   verboseParam,
-  versionParam,
+  {
+    description: "Generate a flamegraph of your Hardhat tasks",
+    name: "--flamegraph",
+  },
 ];
 
 const forceParam = {
