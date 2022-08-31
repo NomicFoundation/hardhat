@@ -2,7 +2,7 @@ import { TypedTransaction } from "@ethereumjs/tx";
 import Heap from "mnemonist/heap";
 
 import { InternalError, InvalidInputError } from "../../core/providers/errors";
-import { BigIntUtils } from "../../util/bigint";
+import * as BigIntUtils from "../../util/bigint";
 import { MempoolOrder } from "./node-types";
 import { OrderedTransaction } from "./PoolState";
 

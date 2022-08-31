@@ -52,12 +52,6 @@ export class ForkStateManager implements StateManager {
   private _contextBlockNumber = this._forkBlockNumber;
   private _contextChanged = false;
 
-  // used by the DefaultStateManager calls
-  private _accessedStorage: Array<Map<string, Set<string>>> = [new Map()];
-  private _accessedStorageReverted: Array<Map<string, Set<string>>> = [
-    new Map(),
-  ];
-
   constructor(
     private readonly _jsonRpcClient: JsonRpcClient,
     private readonly _forkBlockNumber: bigint
@@ -258,7 +252,6 @@ export class ForkStateManager implements StateManager {
   public async checkpoint(): Promise<void> {
     const stateRoot = await this.getStateRoot();
     this._stateCheckpoints.push(bufferToHex(stateRoot));
-    this._accessedStorage.push(new Map());
   }
 
   public async commit(): Promise<void> {
@@ -274,11 +267,6 @@ export class ForkStateManager implements StateManager {
       throw notCheckpointedError("revert");
     }
     await this.setStateRoot(toBuffer(checkpointedRoot));
-
-    const lastItem = this._accessedStorage.pop();
-    if (lastItem !== undefined) {
-      this._accessedStorageReverted.push(lastItem);
-    }
   }
 
   public async getStateRoot(): Promise<Buffer> {
@@ -438,9 +426,15 @@ export class ForkStateManager implements StateManager {
   }
 
   public async modifyAccountFields(
-    _address: Address,
-    _accountFields: any
+    address: Address,
+    accountFields: any
   ): Promise<void> {
-    // not implemented
+    // copied from BaseStateManager
+    const account = await this.getAccount(address);
+    account.nonce = accountFields.nonce ?? account.nonce;
+    account.balance = accountFields.balance ?? account.balance;
+    account.stateRoot = accountFields.storageRoot ?? account.stateRoot;
+    account.codeHash = accountFields.codeHash ?? account.codeHash;
+    await this.putAccount(address, account);
   }
 }

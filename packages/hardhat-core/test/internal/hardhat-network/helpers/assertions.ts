@@ -3,6 +3,7 @@ import { bufferToHex } from "@ethereumjs/util";
 
 import {
   numberToRpcQuantity,
+  rpcDataToBigInt,
   rpcQuantity,
 } from "../../../../src/internal/core/jsonrpc/types/base-types";
 import { RpcTransactionRequestInput } from "../../../../src/internal/core/jsonrpc/types/input/transactionRequest";
@@ -323,4 +324,21 @@ export async function assertLatestBlockNumber(
 
   assert.isNotNull(block);
   assert.equal(block.number, numberToRpcQuantity(latestBlockNumber));
+}
+
+export async function assertContractFieldEqualNumber(
+  provider: EthereumProvider,
+  contractAddress: string,
+  selector: string,
+  expectedValue: bigint
+) {
+  const value = rpcDataToBigInt(
+    await provider.send("eth_call", [
+      {
+        to: contractAddress,
+        data: selector,
+      },
+    ])
+  );
+  assert.equal(value, expectedValue);
 }

@@ -5,7 +5,7 @@ import {
   Record as ImmutableRecord,
 } from "immutable";
 
-import { BigIntUtils } from "../../util/bigint";
+import * as BigIntUtils from "../../util/bigint";
 
 export interface OrderedTransaction {
   orderId: number;

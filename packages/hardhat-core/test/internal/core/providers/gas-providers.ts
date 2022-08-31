@@ -361,7 +361,7 @@ describe("AutomaticGasPriceProvider", () => {
 });
 
 describe("FixedGasProvider", () => {
-  const FIXED_GAS_LIMIT = 1233n;
+  const FIXED_GAS_LIMIT = 1233;
   let mockedProvider: MockedProvider;
   let provider: EIP1193Provider;
 
@@ -435,7 +435,7 @@ describe("FixedGasProvider", () => {
 });
 
 describe("FixedGasPriceProvider", () => {
-  const FIXED_GAS_PRICE = 1234n;
+  const FIXED_GAS_PRICE = 1234;
   let mockedProvider: MockedProvider;
   let provider: EIP1193Provider;
 

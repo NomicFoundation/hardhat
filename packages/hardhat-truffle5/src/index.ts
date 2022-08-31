@@ -180,6 +180,7 @@ subtask(
   async (_, { config }, runSuper) => {
     const sources = await runSuper();
     const testSources = await glob(join(config.paths.tests, "**", "*.sol"));
+
     return [...sources, ...testSources];
   }
 );

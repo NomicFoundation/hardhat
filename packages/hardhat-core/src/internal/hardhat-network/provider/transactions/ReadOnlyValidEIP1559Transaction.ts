@@ -7,7 +7,7 @@ import {
   FeeMarketEIP1559ValuesArray,
 } from "@ethereumjs/tx/src/types";
 import { InternalError } from "../../../core/providers/errors";
-import { BigIntUtils } from "../../../util/bigint";
+import * as BigIntUtils from "../../../util/bigint";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 

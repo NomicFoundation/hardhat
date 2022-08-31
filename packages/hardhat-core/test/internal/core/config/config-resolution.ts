@@ -301,8 +301,8 @@ describe("Config resolution", () => {
         });
         assert.deepEqual(configWithBlockGasLimit.networks.hardhat, {
           ...defaultHardhatNetworkParams,
-          blockGasLimit: 1n,
-          gas: 1n,
+          blockGasLimit: 1,
+          gas: 1,
           initialDate: configWithBlockGasLimit.networks.hardhat.initialDate,
         });
 
@@ -311,8 +311,8 @@ describe("Config resolution", () => {
         });
         assert.deepEqual(configWithBlockGasLimitAndGas.networks.hardhat, {
           ...defaultHardhatNetworkParams,
-          blockGasLimit: 2n,
-          gas: 3n,
+          blockGasLimit: 2,
+          gas: 3,
           initialDate:
             configWithBlockGasLimitAndGas.networks.hardhat.initialDate,
         });
@@ -432,7 +432,7 @@ describe("Config resolution", () => {
           assert.deepEqual(config.networks.hardhat.forking, {
             url: "asd",
             enabled: true,
-            blockNumber: 123n,
+            blockNumber: 123,
             httpHeaders: {},
           });
         });
@@ -682,14 +682,14 @@ describe("Config resolution", () => {
           accounts: [{ privateKey: "0x00000", balance: "123" }],
           chainId: 123,
           from: "from",
-          gas: 1n,
+          gas: 1,
           gasMultiplier: 1231,
-          gasPrice: 2345678n,
+          gasPrice: 2345678,
           throwOnCallFailures: false,
           throwOnTransactionFailures: false,
           loggingEnabled: true,
           allowUnlimitedContractSize: true,
-          blockGasLimit: 567n,
+          blockGasLimit: 567,
           minGasPrice: 10n,
           mining: {
             auto: false,
@@ -831,9 +831,9 @@ describe("Config resolution", () => {
             accounts: ["0x00000"],
             chainId: 123,
             from: "from",
-            gas: 1n,
+            gas: 1,
             gasMultiplier: 1231,
-            gasPrice: 2345678n,
+            gasPrice: 2345678,
             httpHeaders: {
               header: "asd",
             },

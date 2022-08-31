@@ -1,6 +1,5 @@
-import * as fs from "fs";
-
 import { getPackageJsonPath } from "../util/packageInfo";
+import { getRealPathSync } from "../util/fs-utils";
 
 /**
  * Returns true if Hardhat is installed locally or linked from its repository,
@@ -20,7 +19,7 @@ export function isHardhatInstalledLocallyOrLinked(configPath?: string) {
     // We need to get the realpaths here, as hardhat may be linked and
     // running with `node --preserve-symlinks`
     return (
-      fs.realpathSync(resolvedPackageJson) === fs.realpathSync(thisPackageJson)
+      getRealPathSync(resolvedPackageJson) === getRealPathSync(thisPackageJson)
     );
   } catch {
     return false;

@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-chai-matchers
 
+## 1.0.3
+
+### Patch Changes
+
+- 616a78617: Failed assertions now show a more useful stack trace
+
 ## 1.0.2
 
 ### Patch Changes

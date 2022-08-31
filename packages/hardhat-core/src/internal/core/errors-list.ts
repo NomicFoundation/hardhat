@@ -787,42 +787,48 @@ Try installing the library using npm.`,
   SOLC: {
     INVALID_VERSION: {
       number: 500,
-      message:
-        "Solidity version %version% is invalid or hasn't been released yet.",
-      title: "Invalid `solc` version",
+      message: `Solidity version %version% is invalid or hasn't been released yet.
+        
+If you are certain it has been released, run "npx hardhat clean --global" and try again`,
+      title: "Invalid or unreleased `solc` version",
       description: `The Solidity version in your config is invalid or hasn't been released yet. 
 
-Please double check your \`solc\` config.`,
+If you are certain it has been released, run \`npx hardhat clean --global\` and try again.`,
       shouldBeReported: false,
     },
     DOWNLOAD_FAILED: {
       number: 501,
       message:
-        "Couldn't download compiler version %remoteVersion%. Please check your connection.",
+        "Couldn't download compiler version %remoteVersion%. Please check your internet connection and try again.",
       title: "`solc` download failed",
       description: `Couldn't download \`solc\`. 
       
-Please check your Internet connection.`,
+Please check your internet connection and try again.`,
       shouldBeReported: false,
     },
     VERSION_LIST_DOWNLOAD_FAILED: {
       number: 502,
       message:
-        "Couldn't download compiler versions list. Please check your connection.",
+        "Couldn't download compiler version list. Please check your internet connection and try again.",
       title: "Couldn't obtain `solc` version list",
       description: `Couldn't download \`solc\`'s version list. 
       
-Please check your Internet connection.`,
+Please check your internet connection and try again.`,
       shouldBeReported: false,
     },
     INVALID_DOWNLOAD: {
       number: 503,
-      message:
-        "Couldn't download compiler version %remoteVersion%. Checksum verification failed. Please check your connection.",
+      message: `Couldn't download compiler version %remoteVersion%: Checksum verification failed.
+
+Please check your internet connection and try again.
+
+If this error persists, run "npx hardhat clean --global".`,
       title: "Downloaded `solc` checksum verification failed",
-      description: `Downloaded \`solc\` verification failed.
-      
-Please check your Internet connection.`,
+      description: `Hardhat downloaded a version of the Solidity compiler, and its checksum verification failed.
+ 
+Please check your internet connection and try again.
+
+If this error persists, run \`npx hardhat clean --global\`.`,
       shouldBeReported: false,
     },
     CANT_GET_COMPILER: {

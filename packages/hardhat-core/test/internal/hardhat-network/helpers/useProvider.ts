@@ -79,8 +79,10 @@ export function useProvider({
       networkName,
       chainId,
       networkId,
-      blockGasLimit,
-      initialBaseFeePerGas,
+      Number(blockGasLimit),
+      initialBaseFeePerGas === undefined
+        ? undefined
+        : Number(initialBaseFeePerGas),
       0n, // minGasPrice
       true,
       true,
