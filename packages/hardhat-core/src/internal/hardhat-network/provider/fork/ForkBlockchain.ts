@@ -1,5 +1,5 @@
 import { Block } from "@ethereumjs/block";
-import { Chain, Common } from "@ethereumjs/common";
+import { Common } from "@ethereumjs/common";
 import { TypedTransaction } from "@ethereumjs/tx";
 import { Address } from "@ethereumjs/util";
 
@@ -252,20 +252,13 @@ export class ForkBlockchain
       return undefined;
     }
 
-    const forkNetworkId = this._jsonRpcClient.getNetworkId();
-    let common: Common;
-    if (Chain[forkNetworkId] !== undefined) {
-      common = new Common({ chain: forkNetworkId });
-    } else {
-      // unknown networks use Goerli's common to prevent the
-      // maxExtraDataSize check
-      common = new Common({ chain: 5 });
-    }
-
+    const common = this._common.copy();
     // We set the common's hardfork to Berlin if the remote block doesn't have
     // EIP-1559 activated. The reason for this is that ethereumjs throws if we
     // have a base fee for an older hardfork, and set a default one for London.
-    if (rpcBlock.baseFeePerGas === undefined) {
+    if (rpcBlock.baseFeePerGas !== undefined) {
+      common.setHardfork("london"); // TODO: consider changing this to "latest hardfork"
+    } else {
       common.setHardfork("berlin");
     }
 
@@ -281,6 +274,9 @@ export class ForkBlockchain
 
       // We use freeze false here because we add the transactions manually
       freeze: false,
+
+      // don't validate things like the size of `extraData` in the header
+      skipConsensusFormatValidation: true,
     });
 
     for (const transaction of rpcBlock.transactions) {

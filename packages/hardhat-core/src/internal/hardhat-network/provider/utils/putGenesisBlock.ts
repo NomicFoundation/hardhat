@@ -1,6 +1,6 @@
 import { Block, HeaderData } from "@ethereumjs/block";
 import { Common } from "@ethereumjs/common";
-import { SecureTrie } from "@ethereumjs/trie";
+import { Trie } from "@ethereumjs/trie";
 import { bufferToHex } from "@ethereumjs/util";
 
 import { dateToTimestampSeconds } from "../../../util/date";
@@ -13,7 +13,7 @@ export async function putGenesisBlock(
   blockchain: HardhatBlockchain,
   common: Common,
   { initialDate, blockGasLimit }: LocalNodeConfig,
-  stateTrie: SecureTrie,
+  stateTrie: Trie,
   hardfork: HardforkName,
   initialMixHash: Buffer,
   initialBaseFee?: bigint
@@ -31,7 +31,7 @@ export async function putGenesisBlock(
     difficulty: isPostMerge ? 0 : 1,
     nonce: isPostMerge ? "0x0000000000000000" : "0x0000000000000042",
     extraData: "0x1234",
-    stateRoot: bufferToHex(stateTrie.root),
+    stateRoot: bufferToHex(stateTrie.root()),
   };
 
   if (isPostMerge) {

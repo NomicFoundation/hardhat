@@ -700,8 +700,7 @@ describe("HardhatNode", () => {
       const remoteCommon = new Common({ chain: chainId });
       const hardfork = remoteCommon.getHardforkByBlockNumber(blockToRun);
 
-      // see HH-1037
-      it.skip(`should run a ${networkName} block from ${hardfork} and produce the same results`, async function () {
+      it(`should run a ${networkName} block from ${hardfork} and produce the same results`, async function () {
         this.timeout(240000);
 
         await runFullBlock(url, blockToRun, chainId, hardfork);

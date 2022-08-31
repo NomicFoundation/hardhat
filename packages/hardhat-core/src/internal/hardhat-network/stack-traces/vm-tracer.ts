@@ -1,8 +1,9 @@
-import { EVM, EVMResult, getActivePrecompiles } from "@ethereumjs/evm";
+import { EVMResult, getActivePrecompiles } from "@ethereumjs/evm";
 import { InterpreterStep } from "@ethereumjs/evm/dist/interpreter";
 import { Message } from "@ethereumjs/evm/dist/message";
 import { Address, bufferToBigInt } from "@ethereumjs/util";
 import { VM } from "@ethereumjs/vm";
+import { assertHardhatInvariant } from "../../core/errors";
 
 import {
   CallMessageTrace,
@@ -38,9 +39,14 @@ export class VMTracer {
     if (this._enabled) {
       return;
     }
-    (this._vm.evm as EVM).on("beforeMessage", this._beforeMessageHandler);
-    (this._vm.evm as EVM).on("step", this._stepHandler);
-    (this._vm.evm as EVM).on("afterMessage", this._afterMessageHandler);
+    assertHardhatInvariant(
+      this._vm.evm.events !== undefined,
+      "EVM should have an 'events' property"
+    );
+
+    this._vm.evm.events.on("beforeMessage", this._beforeMessageHandler);
+    this._vm.evm.events.on("step", this._stepHandler);
+    this._vm.evm.events.on("afterMessage", this._afterMessageHandler);
     this._enabled = true;
   }
 
@@ -48,12 +54,18 @@ export class VMTracer {
     if (!this._enabled) {
       return;
     }
-    (this._vm.evm as EVM).removeListener(
+
+    assertHardhatInvariant(
+      this._vm.evm.events !== undefined,
+      "EVM should have an 'events' property"
+    );
+
+    this._vm.evm.events.removeListener(
       "beforeMessage",
       this._beforeMessageHandler
     );
-    (this._vm.evm as EVM).removeListener("step", this._stepHandler);
-    (this._vm.evm as EVM).removeListener(
+    this._vm.evm.events.removeListener("step", this._stepHandler);
+    this._vm.evm.events.removeListener(
       "afterMessage",
       this._afterMessageHandler
     );
