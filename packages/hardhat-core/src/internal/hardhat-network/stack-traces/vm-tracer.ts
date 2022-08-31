@@ -1,9 +1,8 @@
-import VM from "@ethereumjs/vm";
-import { EVMResult } from "@ethereumjs/vm/dist/evm/evm";
-import { InterpreterStep } from "@ethereumjs/vm/dist/evm/interpreter";
-import Message from "@ethereumjs/vm/dist/evm/message";
-import { precompiles } from "@ethereumjs/vm/dist/evm/precompiles";
-import { Address, BN } from "ethereumjs-util";
+import { EVM, EVMResult, getActivePrecompiles } from "@ethereumjs/evm";
+import { InterpreterStep } from "@ethereumjs/evm/dist/interpreter";
+import { Message } from "@ethereumjs/evm/dist/message";
+import { Address, bufferToBigInt } from "@ethereumjs/util";
+import { VM } from "@ethereumjs/vm";
 
 import {
   CallMessageTrace,
@@ -16,14 +15,14 @@ import {
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
-const MAX_PRECOMPILE_NUMBER = Object.keys(precompiles).length + 1;
 const DUMMY_RETURN_DATA = Buffer.from([]);
-const DUMMY_GAS_USED = new BN(0);
+const DUMMY_GAS_USED = 0n;
 
 export class VMTracer {
   private _messageTraces: MessageTrace[] = [];
   private _enabled = false;
   private _lastError: Error | undefined;
+  private _maxPrecompileNumber = getActivePrecompiles(this._vm._common).size;
 
   constructor(
     private readonly _vm: VM,
@@ -39,9 +38,9 @@ export class VMTracer {
     if (this._enabled) {
       return;
     }
-    this._vm.on("beforeMessage", this._beforeMessageHandler);
-    this._vm.on("step", this._stepHandler);
-    this._vm.on("afterMessage", this._afterMessageHandler);
+    (this._vm.evm as EVM).on("beforeMessage", this._beforeMessageHandler);
+    (this._vm.evm as EVM).on("step", this._stepHandler);
+    (this._vm.evm as EVM).on("afterMessage", this._afterMessageHandler);
     this._enabled = true;
   }
 
@@ -49,9 +48,15 @@ export class VMTracer {
     if (!this._enabled) {
       return;
     }
-    this._vm.removeListener("beforeMessage", this._beforeMessageHandler);
-    this._vm.removeListener("step", this._stepHandler);
-    this._vm.removeListener("afterMessage", this._afterMessageHandler);
+    (this._vm.evm as EVM).removeListener(
+      "beforeMessage",
+      this._beforeMessageHandler
+    );
+    (this._vm.evm as EVM).removeListener("step", this._stepHandler);
+    (this._vm.evm as EVM).removeListener(
+      "afterMessage",
+      this._afterMessageHandler
+    );
     this._enabled = false;
   }
 
@@ -106,11 +111,11 @@ export class VMTracer {
 
         trace = createTrace;
       } else {
-        const toAsBn = new BN(message.to.toBuffer());
+        const toAsNumber = bufferToBigInt(message.to.toBuffer());
 
-        if (toAsBn.gtn(0) && toAsBn.lten(MAX_PRECOMPILE_NUMBER)) {
+        if (toAsNumber > 0 && toAsNumber <= this._maxPrecompileNumber) {
           const precompileTrace: PrecompileMessageTrace = {
-            precompile: toAsBn.toNumber(),
+            precompile: Number(toAsNumber),
             calldata: message.data,
             value: message.value,
             returnData: DUMMY_RETURN_DATA,
@@ -204,7 +209,7 @@ export class VMTracer {
 
       trace.error = result.execResult.exceptionError;
       trace.returnData = result.execResult.returnValue;
-      trace.gasUsed = result.gasUsed;
+      trace.gasUsed = result.execResult.executionGasUsed;
 
       if (isCreateTrace(trace)) {
         trace.deployedContract = result?.createdAddress?.toBuffer();

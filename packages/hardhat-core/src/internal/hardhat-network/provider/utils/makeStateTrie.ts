@@ -1,5 +1,5 @@
-import { Account, BN } from "ethereumjs-util";
-import { SecureTrie as Trie } from "merkle-patricia-tree";
+import { SecureTrie as Trie } from "@ethereumjs/trie";
+import { Account, intToBuffer, setLengthLeft } from "@ethereumjs/util";
 
 import { GenesisAccount } from "../node-types";
 
@@ -16,7 +16,7 @@ export async function makeStateTrie(genesisAccounts: GenesisAccount[]) {
   // Mimic precompiles activation
   for (let i = 1; i <= 8; i++) {
     await stateTrie.put(
-      new BN(i).toArrayLike(Buffer, "be", 20),
+      setLengthLeft(intToBuffer(i), 20),
       new Account().serialize()
     );
   }

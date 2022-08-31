@@ -1,13 +1,14 @@
-import Common from "@ethereumjs/common";
+import { Common } from "@ethereumjs/common";
 import {
   AccessListEIP2930Transaction,
   AccessListEIP2930TxData,
   AccessListEIP2930ValuesArray,
   TxOptions,
 } from "@ethereumjs/tx";
-import { Address, BN } from "ethereumjs-util";
+import { Address } from "@ethereumjs/util";
 
 import { InternalError } from "../../../core/providers/errors";
+import { BigIntUtils } from "../../../util/bigint";
 import { BERLIN_EIPS } from "../../../util/hardforks";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
@@ -70,9 +71,9 @@ export class ReadOnlyValidEIP2930Transaction extends AccessListEIP2930Transactio
 
     // this class should only be used with EIP-2930 txs,
     // which (we assume) always have a defined `chainId` value
-    (fakeCommon as any).chainIdBN = () => {
+    (fakeCommon as any).chainId = () => {
       if (data.chainId !== undefined) {
-        return new BN(data.chainId);
+        return BigIntUtils.fromBigIntLike(data.chainId);
       }
 
       throw new Error("Expected txData to have a chainId");

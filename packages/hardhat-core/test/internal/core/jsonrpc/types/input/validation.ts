@@ -1,5 +1,5 @@
+import { toBuffer } from "@ethereumjs/util";
 import { assert } from "chai";
-import { toBuffer } from "ethereumjs-util";
 import * as t from "io-ts";
 
 import {

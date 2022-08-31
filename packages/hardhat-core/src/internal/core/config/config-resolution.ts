@@ -1,4 +1,3 @@
-import { BN } from "ethereumjs-util";
 import cloneDeep from "lodash/cloneDeep";
 import path from "path";
 
@@ -32,6 +31,7 @@ import {
   SolidityUserConfig,
 } from "../../../types";
 import { HARDHAT_NETWORK_NAME } from "../../constants";
+import { BigIntUtils } from "../../util/bigint";
 import { HardforkName } from "../../util/hardforks";
 import { fromEntries } from "../../util/lang";
 import { assertHardhatInvariant } from "../errors";
@@ -157,7 +157,9 @@ function resolveHardhatNetworkConfig(
   if (forking !== undefined) {
     const blockNumber = hardhatNetworkConfig?.forking?.blockNumber;
     if (blockNumber !== undefined) {
-      forking.blockNumber = hardhatNetworkConfig?.forking?.blockNumber;
+      forking.blockNumber = BigIntUtils.mapNumberToBigInt(
+        hardhatNetworkConfig?.forking?.blockNumber
+      );
     }
 
     const httpHeaders = hardhatNetworkConfig.forking?.httpHeaders;
@@ -168,16 +170,26 @@ function resolveHardhatNetworkConfig(
 
   const mining = resolveMiningConfig(hardhatNetworkConfig.mining);
 
-  const minGasPrice = new BN(
+  const minGasPrice = BigInt(
     hardhatNetworkConfig.minGasPrice ??
       clonedDefaultHardhatNetworkParams.minGasPrice
   );
 
-  const blockGasLimit =
+  const blockGasLimit = BigInt(
     hardhatNetworkConfig.blockGasLimit ??
-    clonedDefaultHardhatNetworkParams.blockGasLimit;
+      clonedDefaultHardhatNetworkParams.blockGasLimit
+  );
 
-  const gas = hardhatNetworkConfig.gas ?? blockGasLimit;
+  const gas = BigIntUtils.mapNumberToBigInt(
+    hardhatNetworkConfig.gas ?? blockGasLimit
+  );
+  const gasPrice = BigIntUtils.mapNumberToBigInt(
+    hardhatNetworkConfig.gasPrice ?? clonedDefaultHardhatNetworkParams.gasPrice
+  );
+  const initialBaseFeePerGas = BigIntUtils.mapNumberToBigInt(
+    hardhatNetworkConfig.initialBaseFeePerGas ??
+      clonedDefaultHardhatNetworkParams.initialBaseFeePerGas
+  );
 
   const initialDate =
     hardhatNetworkConfig.initialDate ?? new Date().toISOString();
@@ -206,7 +218,7 @@ function resolveHardhatNetworkConfig(
     }
   }
 
-  const config = {
+  const config: HardhatNetworkConfig = {
     ...clonedDefaultHardhatNetworkParams,
     ...hardhatNetworkConfig,
     accounts,
@@ -214,6 +226,8 @@ function resolveHardhatNetworkConfig(
     mining,
     blockGasLimit,
     gas,
+    gasPrice,
+    initialBaseFeePerGas,
     initialDate,
     minGasPrice,
     chains,
@@ -222,6 +236,9 @@ function resolveHardhatNetworkConfig(
   // We do it this way because ts gets lost otherwise
   if (config.forking === undefined) {
     delete config.forking;
+  }
+  if (config.initialBaseFeePerGas === undefined) {
+    delete config.initialBaseFeePerGas;
   }
 
   return config;
@@ -260,6 +277,12 @@ function resolveHttpNetworkConfig(
     ...networkConfig,
     accounts,
     url,
+    gas: BigIntUtils.mapNumberToBigInt(
+      networkConfig.gas ?? defaultHttpNetworkParams.gas
+    ),
+    gasPrice: BigIntUtils.mapNumberToBigInt(
+      networkConfig.gasPrice ?? defaultHttpNetworkParams.gasPrice
+    ),
   };
 }
 

@@ -7,7 +7,6 @@ import type {
   HDAccountsUserConfig,
   HttpNetworkAccountsUserConfig,
   HttpNetworkConfig,
-  HttpNetworkUserConfig,
   NetworkConfig,
   ProjectPathsConfig,
 } from "../../../types";
@@ -16,6 +15,7 @@ import type {
   ForkConfig,
   MempoolOrder,
 } from "../../hardhat-network/provider/node-types";
+import { BigIntUtils } from "../../util/bigint";
 import type * as ModulesLoggerT from "../../hardhat-network/provider/modules/logger";
 import type * as DiskCacheT from "../../hardhat-network/provider/utils/disk-cache";
 import { HARDHAT_NETWORK_NAME } from "../../constants";
@@ -72,7 +72,9 @@ export function createProvider(
     ) {
       forkConfig = {
         jsonRpcUrl: hardhatNetConfig.forking?.url,
-        blockNumber: hardhatNetConfig.forking?.blockNumber,
+        blockNumber: BigIntUtils.mapBigIntToNumber(
+          hardhatNetConfig.forking?.blockNumber
+        ),
         httpHeaders: hardhatNetConfig.forking.httpHeaders,
       };
     }
@@ -118,7 +120,7 @@ export function createProvider(
       typeof import("./http"),
       "HttpProvider"
     >("./http", "HttpProvider");
-    const httpNetConfig = networkConfig as HttpNetworkUserConfig;
+    const httpNetConfig = networkConfig as HttpNetworkConfig;
 
     eip1193Provider = new HttpProvider(
       httpNetConfig.url!,

@@ -1,15 +1,14 @@
-import Common from "@ethereumjs/common";
+import { Common } from "@ethereumjs/common";
 
 import { ForkedNodeConfig } from "../node-types";
 
 export async function makeForkCommon(config: ForkedNodeConfig) {
-  return Common.forCustomChain(
-    "mainnet",
+  return Common.custom(
     {
       chainId: config.chainId,
       networkId: config.networkId,
       name: config.networkName,
     },
-    config.hardfork
+    { hardfork: config.hardfork }
   );
 }

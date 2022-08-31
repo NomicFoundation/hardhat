@@ -1,14 +1,12 @@
 import { assert } from "chai";
-import { BN } from "ethereumjs-util";
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { ethers } from "ethers";
 import sinon from "sinon";
 
-import { describe } from "mocha";
 import {
   numberToRpcQuantity,
   numberToRpcStorageSlot,
-  rpcQuantityToBN,
+  rpcQuantityToBigInt,
   rpcQuantityToNumber,
 } from "../../../../../src/internal/core/jsonrpc/types/base-types";
 import { CompilerOutputContract } from "../../../../../src/types/artifacts";
@@ -27,6 +25,7 @@ import { deployContract } from "../../helpers/transactions";
 import { compileLiteral } from "../../stack-traces/compilation";
 import { getPendingBaseFeePerGas } from "../../helpers/getPendingBaseFeePerGas";
 import { RpcBlockOutput } from "../../../../../src/internal/hardhat-network/provider/output";
+import { BigIntUtils } from "../../../../../src/internal/util/bigint";
 
 describe("Hardhat module", function () {
   PROVIDERS.forEach(({ name, useProvider, isFork }) => {
@@ -864,8 +863,10 @@ describe("Hardhat module", function () {
         });
 
         describe("base fee per gas", function () {
-          const getBlockBaseFeePerGas = async (block: number): Promise<BN> => {
-            return rpcQuantityToBN(
+          const getBlockBaseFeePerGas = async (
+            block: number
+          ): Promise<bigint> => {
+            return rpcQuantityToBigInt(
               (
                 await this.ctx.provider.send("eth_getBlockByNumber", [
                   numberToRpcQuantity(block),
@@ -895,7 +896,7 @@ describe("Hardhat module", function () {
               const blockBaseFeePerGas = await getBlockBaseFeePerGas(
                 originalLatestBlockNumber + i
               );
-              assert.isTrue(blockBaseFeePerGas.eqn(1));
+              assert.equal(blockBaseFeePerGas, 1n);
             }
           });
         });
@@ -1185,8 +1186,8 @@ describe("Hardhat module", function () {
             ]);
 
             return {
-              difficulty: rpcQuantityToBN(block.difficulty),
-              totalDifficulty: rpcQuantityToBN(block.totalDifficulty),
+              difficulty: rpcQuantityToBigInt(block.difficulty),
+              totalDifficulty: rpcQuantityToBigInt(block.totalDifficulty),
             };
           };
 
@@ -1201,7 +1202,7 @@ describe("Hardhat module", function () {
               previousBlockNumber + 10
             );
 
-            assert.isTrue(middleBlockDifficulty.difficulty.eqn(0));
+            assert.equal(middleBlockDifficulty.difficulty, 0n);
           });
 
           it("reserved blocks should have consistent difficulty values", async function () {
@@ -1218,12 +1219,10 @@ describe("Hardhat module", function () {
                 previousBlockNumber + i
               );
 
-              assert.isTrue(
-                blockDifficulty.totalDifficulty.eq(
-                  previousBlockDifficulty.totalDifficulty.add(
-                    blockDifficulty.difficulty
-                  )
-                )
+              assert.equal(
+                blockDifficulty.totalDifficulty,
+                previousBlockDifficulty.totalDifficulty +
+                  blockDifficulty.difficulty
               );
 
               previousBlockDifficulty = blockDifficulty;
@@ -1463,28 +1462,28 @@ describe("Hardhat module", function () {
 
         it("should result in a modified balance", async function () {
           // Arrange: Capture existing balance
-          const existingBalance = rpcQuantityToBN(
+          const existingBalance = rpcQuantityToBigInt(
             await this.provider.send("eth_getBalance", [
               DEFAULT_ACCOUNTS_ADDRESSES[0],
             ])
           );
 
           // Act: Set the new balance.
-          const targetBalance = existingBalance.add(new BN(1)).mul(new BN(2));
+          const targetBalance = (existingBalance + 1n) * 2n;
           // For sanity, ensure that we really are making a change:
-          assert.isFalse(targetBalance.eq(existingBalance));
+          assert.notEqual(targetBalance, existingBalance);
           await this.provider.send("hardhat_setBalance", [
             DEFAULT_ACCOUNTS_ADDRESSES[0],
             numberToRpcQuantity(targetBalance),
           ]);
 
           // Assert: Ensure the new balance was set.
-          const newBalance = rpcQuantityToBN(
+          const newBalance = rpcQuantityToBigInt(
             await this.provider.send("eth_getBalance", [
               DEFAULT_ACCOUNTS_ADDRESSES[0],
             ])
           );
-          assert(targetBalance.eq(newBalance));
+          assert(targetBalance === newBalance);
         });
 
         it("should not result in a modified state root", async function () {
@@ -1523,7 +1522,7 @@ describe("Hardhat module", function () {
           );
 
           // Arrange 2: Set a new balance
-          const targetBalance = new BN("123454321");
+          const targetBalance = 123454321n;
           const targetBalanceHex = numberToRpcQuantity(targetBalance);
           await this.provider.send("hardhat_setBalance", [
             DEFAULT_ACCOUNTS_ADDRESSES[0],
@@ -1547,18 +1546,19 @@ describe("Hardhat module", function () {
           // Arrange: Fund a not-yet-existing account.
           const notYetExistingAccount =
             "0x1234567890123456789012345678901234567890";
-          const amountToBeSent = new BN(10);
-          const cost = new BN("21000000000000" /* 21k gwei in wei*/).mul(
-            await getPendingBaseFeePerGas(this.provider)
-          );
-          const balanceRequired = amountToBeSent.add(cost);
+          const amountToBeSent = 10n;
+          /* 21k gwei in wei * pending base fee */
+          const cost =
+            21_000_000_000_000n *
+            (await getPendingBaseFeePerGas(this.provider));
+          const balanceRequired = amountToBeSent + cost;
           await this.provider.send("hardhat_setBalance", [
             notYetExistingAccount,
             numberToRpcQuantity(balanceRequired),
           ]);
 
           // Arrange: Capture the existing balance of the destination account.
-          const existingBalance = rpcQuantityToBN(
+          const existingBalance = rpcQuantityToBigInt(
             await this.provider.send("eth_getBalance", [
               DEFAULT_ACCOUNTS_ADDRESSES[0],
             ])
@@ -1580,13 +1580,13 @@ describe("Hardhat module", function () {
           ]);
 
           // Assert: ensure the destination address is increased as expected.
-          const newBalance = rpcQuantityToBN(
+          const newBalance = rpcQuantityToBigInt(
             await this.provider.send("eth_getBalance", [
               DEFAULT_ACCOUNTS_ADDRESSES[0],
             ])
           );
 
-          assert(newBalance.eq(existingBalance.add(amountToBeSent)));
+          assert.equal(newBalance, existingBalance + amountToBeSent);
         });
 
         it("should have its effects persist across snapshot save/restore", async function () {
@@ -2026,13 +2026,13 @@ describe("Hardhat module", function () {
         });
 
         it("should reject a storage key that is greater than 32 bytes", async function () {
-          const MAX_WORD_VALUE = new BN(2).pow(new BN(256));
+          const MAX_WORD_VALUE = 2n ** 256n;
           await assertInvalidInputError(
             this.provider,
             "hardhat_setStorageAt",
             [
               DEFAULT_ACCOUNTS_ADDRESSES[0],
-              numberToRpcQuantity(MAX_WORD_VALUE.add(new BN(1))),
+              numberToRpcQuantity(MAX_WORD_VALUE + 1n),
               "0xff",
             ],
             "Storage key must not be greater than or equal to 2^256. Received 115792089237316195423570985008687907853269984665640564039457584007913129639937."
@@ -2069,7 +2069,7 @@ describe("Hardhat module", function () {
           await this.provider.send("hardhat_setStorageAt", [
             DEFAULT_ACCOUNTS_ADDRESSES[0],
             numberToRpcQuantity(0),
-            `0x${new BN(targetStorageValue).toString(16, 64)}`,
+            `0x${BigIntUtils.toWord(targetStorageValue)}`,
           ]);
 
           const resultingStorageValue = await this.provider.send(
@@ -2106,7 +2106,7 @@ describe("Hardhat module", function () {
           await this.provider.send("hardhat_setStorageAt", [
             contractAddress,
             numberToRpcQuantity(0),
-            `0x${new BN(10).toString(16, 64)}`,
+            `0x${BigIntUtils.toWord(10n)}`,
           ]);
 
           // Assert: Verify that the contract retrieves the modified value.
@@ -2165,7 +2165,7 @@ describe("Hardhat module", function () {
           await this.provider.send("hardhat_setStorageAt", [
             DEFAULT_ACCOUNTS_ADDRESSES[0],
             numberToRpcQuantity(0),
-            `0x${new BN(targetStorageValue).toString(16, 64)}`,
+            `0x${BigIntUtils.toWord(targetStorageValue)}`,
           ]);
 
           // Act 2: Mine a block

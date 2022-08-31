@@ -1,8 +1,6 @@
 import { Block } from "@ethereumjs/block";
-import VM from "@ethereumjs/vm";
-import { AfterBlockEvent, RunBlockOpts } from "@ethereumjs/vm/dist/runBlock";
+import { AfterBlockEvent, RunBlockOpts, VM } from "@ethereumjs/vm";
 import { assert } from "chai";
-import { BN } from "ethereumjs-util";
 
 import { defaultHardhatNetworkParams } from "../../../../../src/internal/core/config/default-config";
 import { rpcToBlockData } from "../../../../../src/internal/hardhat-network/provider/fork/rpcToBlockData";
@@ -17,18 +15,18 @@ import { assertEqualBlocks } from "./assertEqualBlocks";
 
 export async function runFullBlock(
   url: string,
-  blockToRun: number,
+  blockToRun: bigint,
   chainId: number,
   hardfork: string
 ) {
   const forkConfig = {
     jsonRpcUrl: url,
-    blockNumber: blockToRun - 1,
+    blockNumber: Number(blockToRun) - 1,
   };
 
   const { forkClient } = await makeForkClient(forkConfig);
 
-  const rpcBlock = await forkClient.getBlockByNumber(new BN(blockToRun), true);
+  const rpcBlock = await forkClient.getBlockByNumber(blockToRun, true);
 
   if (rpcBlock === null) {
     assert.fail();
@@ -42,8 +40,8 @@ export async function runFullBlock(
     hardfork,
     forkConfig,
     forkCachePath: FORK_TESTS_CACHE_PATH,
-    blockGasLimit: rpcBlock.gasLimit.toNumber(),
-    minGasPrice: new BN(0),
+    blockGasLimit: rpcBlock.gasLimit,
+    minGasPrice: 0n,
     genesisAccounts: [],
     mempoolOrder: "priority",
     coinbase: "0x0000000000000000000000000000000000000000",
@@ -83,7 +81,7 @@ export async function runFullBlock(
     afterBlockEvent
   );
 
-  const newBlock = await forkedNode.getBlockByNumber(new BN(blockToRun));
+  const newBlock = await forkedNode.getBlockByNumber(blockToRun);
 
   if (newBlock === undefined) {
     assert.fail();
@@ -108,6 +106,7 @@ async function runBlockAndGetAfterBlockEvent(
   } finally {
     // We need this in case `runBlock` throws before emitting the event.
     // Otherwise we'd be leaking the listener until the next call to runBlock.
+
     vm.removeListener("afterBlock", handler);
   }
 

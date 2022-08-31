@@ -1,13 +1,12 @@
 import { assert } from "chai";
-import { BN } from "ethereumjs-util";
 import { Client } from "undici";
 
 import {
   numberToRpcQuantity,
   rpcDataToNumber,
   rpcQuantityToNumber,
-  rpcDataToBN,
-  rpcQuantityToBN,
+  rpcDataToBigInt,
+  rpcQuantityToBigInt,
 } from "../../../../../../../src/internal/core/jsonrpc/types/base-types";
 import { getCurrentTimestamp } from "../../../../../../../src/internal/hardhat-network/provider/utils/getCurrentTimestamp";
 import { workaroundWindowsCiFailures } from "../../../../../../utils/workaround-windows-ci-failures";
@@ -515,7 +514,7 @@ contract C {
 
           const CALLER = DEFAULT_ACCOUNTS_ADDRESSES[2];
           let contractAddress: string;
-          let ethBalance: BN;
+          let ethBalance: bigint;
 
           function deployContractAndGetEthBalance() {
             beforeEach(async function () {
@@ -524,7 +523,7 @@ contract C {
                 deploymentBytecode
               );
 
-              ethBalance = rpcQuantityToBN(
+              ethBalance = rpcQuantityToBigInt(
                 await this.provider.send("eth_getBalance", [CALLER])
               );
               assert.notEqual(ethBalance.toString(), "0");
@@ -546,14 +545,15 @@ contract C {
               ]);
 
               assert.equal(
-                rpcDataToBN(balanceResult).toString(),
+                rpcDataToBigInt(balanceResult).toString(),
                 ethBalance.toString()
               );
             });
 
-            it("Should use any provided gasPrice", async function () {
-              const gasLimit = 200_000;
-              const gasPrice = 2;
+            // see HH-1036
+            it.skip("Should use any provided gasPrice", async function () {
+              const gasLimit = 200_000n;
+              const gasPrice = 2n;
 
               const balanceResult = await this.provider.send("eth_call", [
                 {
@@ -565,10 +565,9 @@ contract C {
                 },
               ]);
 
-              assert.isTrue(
-                rpcDataToBN(balanceResult).eq(
-                  ethBalance.subn(gasLimit * gasPrice)
-                )
+              assert.equal(
+                rpcDataToBigInt(balanceResult),
+                ethBalance - gasLimit * gasPrice
               );
             });
           });
@@ -635,7 +634,7 @@ contract C {
                 ]);
 
                 assert.equal(
-                  rpcDataToBN(balanceResult).toString(),
+                  rpcDataToBigInt(balanceResult).toString(),
                   ethBalance.toString()
                 );
               });
@@ -653,12 +652,13 @@ contract C {
                 // This doesn't change because the baseFeePerGas of block where we
                 // run the eth_call is 0
                 assert.equal(
-                  rpcDataToBN(balanceResult).toString(),
+                  rpcDataToBigInt(balanceResult).toString(),
                   ethBalance.toString()
                 );
               });
 
-              it("Should use maxPriorityFeePerGas if provided, with maxFeePerGas = maxPriorityFeePerGas", async function () {
+              // see HH-1036
+              it.skip("Should use maxPriorityFeePerGas if provided, with maxFeePerGas = maxPriorityFeePerGas", async function () {
                 const balanceResult = await this.provider.send("eth_call", [
                   {
                     from: CALLER,
@@ -670,12 +670,14 @@ contract C {
                 ]);
 
                 // The miner will get the priority fee
-                assert.isTrue(
-                  rpcDataToBN(balanceResult).eq(ethBalance.subn(500_000 * 3))
+                assert.equal(
+                  rpcDataToBigInt(balanceResult),
+                  ethBalance - 3n * 500_000n
                 );
               });
 
-              it("Should use gasPrice if provided", async function () {
+              // see HH-1036
+              it.skip("Should use gasPrice if provided", async function () {
                 const balanceResult = await this.provider.send("eth_call", [
                   {
                     from: CALLER,
@@ -687,8 +689,9 @@ contract C {
                 ]);
 
                 // The miner will get the gasPrice * gas as a normalized priority fee
-                assert.isTrue(
-                  rpcDataToBN(balanceResult).eq(ethBalance.subn(500_000 * 6))
+                assert.equal(
+                  rpcDataToBigInt(balanceResult),
+                  ethBalance - 6n * 500_000n
                 );
               });
             });
