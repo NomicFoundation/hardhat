@@ -668,6 +668,16 @@ Please double check how you invoked Hardhat or ran your task.`,
 This is not supported. Please run the help task to see the available options.`,
       shouldBeReported: false,
     },
+    TYPECHECK_USED_IN_JAVASCRIPT_PROJECT: {
+      number: 313,
+      title: "The --typecheck flag was used in a javascript project",
+      message:
+        "Trying to use the --typecheck flag, but the project is not in typescript",
+      description: `You tried to run Hardhat with the \`--typecheck\` flag in a javascript project.
+
+This flag can only be used in typescript projects.`,
+      shouldBeReported: false,
+    },
   },
   RESOLVER: {
     FILE_NOT_FOUND: {

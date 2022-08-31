@@ -170,6 +170,12 @@ async function main() {
 
     if (willRunWithTypescript(hardhatArguments.config)) {
       loadTsNode(hardhatArguments.tsconfig, hardhatArguments.typecheck);
+    } else {
+      if (hardhatArguments.typecheck === true) {
+        throw new HardhatError(
+          ERRORS.ARGUMENTS.TYPECHECK_USED_IN_JAVASCRIPT_PROJECT
+        );
+      }
     }
 
     let taskName = parsedTaskName ?? TASK_HELP;
