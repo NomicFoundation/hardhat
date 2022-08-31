@@ -34,10 +34,14 @@ export function useFixture(project: string) {
     }
 
     if (isYarn) {
-      shell.exec("yarn");
+      if (fsExtra.existsSync("package.json")) {
+        shell.exec("yarn");
+      }
       shell.exec(`yarn add ${hardhatPackagePath}`);
     } else {
-      shell.exec("npm install");
+      if (fsExtra.existsSync("package.json")) {
+        shell.exec("npm install");
+      }
       shell.exec(`npm install ${hardhatPackagePath}`);
     }
   });
