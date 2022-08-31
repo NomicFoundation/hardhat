@@ -112,6 +112,10 @@ const coreParams = [
     description: "Generate a flamegraph of your Hardhat tasks",
     name: "--flamegraph",
   },
+  {
+    description: "Enable TypeScript type-checking of your scripts/tests",
+    name: "--typecheck",
+  },
 ];
 
 const forceParam = {
