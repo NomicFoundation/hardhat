@@ -15,7 +15,6 @@ import type {
   ForkConfig,
   MempoolOrder,
 } from "../../hardhat-network/provider/node-types";
-import { BigIntUtils } from "../../util/bigint";
 import type * as ModulesLoggerT from "../../hardhat-network/provider/modules/logger";
 import type * as DiskCacheT from "../../hardhat-network/provider/utils/disk-cache";
 import { HARDHAT_NETWORK_NAME } from "../../constants";
@@ -72,9 +71,7 @@ export function createProvider(
     ) {
       forkConfig = {
         jsonRpcUrl: hardhatNetConfig.forking?.url,
-        blockNumber: BigIntUtils.mapBigIntToNumber(
-          hardhatNetConfig.forking?.blockNumber
-        ),
+        blockNumber: hardhatNetConfig.forking?.blockNumber,
         httpHeaders: hardhatNetConfig.forking.httpHeaders,
       };
     }

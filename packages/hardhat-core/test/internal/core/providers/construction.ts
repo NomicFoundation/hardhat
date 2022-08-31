@@ -199,7 +199,7 @@ describe("Base providers wrapping", () => {
     it("Should wrap with a fixed gas provider if a number is used", async () => {
       const provider = applyProviderWrappers(mockedProvider, {
         url: "",
-        gas: 678n,
+        gas: 678,
       });
 
       await provider.request({
@@ -238,7 +238,7 @@ describe("Base providers wrapping", () => {
     it("Should wrap with a fixed gas price provider if a number is used", async () => {
       const provider = applyProviderWrappers(mockedProvider, {
         url: "",
-        gasPrice: 789n,
+        gasPrice: 789,
       });
 
       await provider.request({ method: "eth_sendTransaction", params: [{}] });
