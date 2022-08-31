@@ -1,5 +1,3 @@
-import { BN } from "ethereumjs-util";
-
 import { HardhatNetworkConfig } from "../../../types";
 import { HardforkName } from "../../util/hardforks";
 import { HARDHAT_NETWORK_NAME } from "../../constants";
@@ -55,7 +53,7 @@ export const defaultHardhatNetworkParams: Omit<
   accounts: defaultHardhatNetworkHdAccountsConfigParams,
   loggingEnabled: false,
   gasMultiplier: DEFAULT_GAS_MULTIPLIER,
-  minGasPrice: new BN(0),
+  minGasPrice: 0n,
   chains: new Map([
     [
       // block numbers below were taken from https://github.com/ethereumjs/ethereumjs-monorepo/tree/master/packages/common/src/chains

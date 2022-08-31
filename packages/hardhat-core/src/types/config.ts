@@ -12,8 +12,6 @@
 // fields), we don't use `extends` as that can interfere with plugin authors
 // trying to augment the config types.
 
-import type { BN } from "ethereumjs-util";
-
 // Networks config
 
 export interface NetworksUserConfig {
@@ -144,8 +142,7 @@ export interface HardhatNetworkConfig {
   mining: HardhatNetworkMiningConfig;
   accounts: HardhatNetworkAccountsConfig;
   blockGasLimit: number;
-  // TODO: This shouldn't be a BN, as it forces use to load ethereumjs-util
-  minGasPrice: BN;
+  minGasPrice: bigint;
   throwOnTransactionFailures: boolean;
   throwOnCallFailures: boolean;
   allowUnlimitedContractSize: boolean;

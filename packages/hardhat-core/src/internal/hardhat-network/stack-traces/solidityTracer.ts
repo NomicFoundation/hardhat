@@ -1,4 +1,4 @@
-import { ERROR } from "@ethereumjs/vm/dist/exceptions";
+import { ERROR } from "@nomicfoundation/ethereumjs-evm/dist/exceptions";
 import { ReturnData } from "../provider/return-data";
 
 import {

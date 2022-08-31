@@ -1,6 +1,6 @@
-import VM from "@ethereumjs/vm";
+import { toBuffer } from "@nomicfoundation/ethereumjs-util";
+import { VM } from "@nomicfoundation/ethereumjs-vm";
 import { assert } from "chai";
-import { BN, toBuffer } from "ethereumjs-util";
 import fs from "fs";
 import path from "path";
 import semver from "semver";
@@ -304,10 +304,10 @@ function compareStackTraces(
         `Stack trace of tx ${txIndex} entry ${i} should have value`
       );
 
-      const expectedValue = new BN(expected.value);
+      const expectedValue = BigInt(expected.value);
 
       assert.isTrue(
-        expectedValue.eq((actual as any).value),
+        expectedValue === (actual as any).value,
         `Stack trace of tx ${txIndex} entry ${i} has value ${actualValue.toString(
           10
         )} and should have ${expectedValue.toString(10)}`
@@ -327,7 +327,7 @@ function compareStackTraces(
         `Stack trace of tx ${txIndex} entry ${i} should have an errorCode`
       );
 
-      const actualErrorCodeHex = actualErrorCode.toString("hex");
+      const actualErrorCodeHex = actualErrorCode.toString(16);
 
       assert.isTrue(
         expected.errorCode === actualErrorCodeHex,

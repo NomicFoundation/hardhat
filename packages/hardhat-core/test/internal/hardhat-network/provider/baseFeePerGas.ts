@@ -1,12 +1,12 @@
 import { assert } from "chai";
-import { Block } from "@ethereumjs/block";
-import Common from "@ethereumjs/common";
+import { Block } from "@nomicfoundation/ethereumjs-block";
+import { Common } from "@nomicfoundation/ethereumjs-common";
 
 import { workaroundWindowsCiFailures } from "../../../utils/workaround-windows-ci-failures";
 import { PROVIDERS } from "../helpers/providers";
 import {
   numberToRpcQuantity,
-  rpcQuantityToBN,
+  rpcQuantityToBigInt,
 } from "../../../../src/internal/core/jsonrpc/types/base-types";
 import { EthereumProvider } from "../../../../src/types";
 import { makeForkClient } from "../../../../src/internal/hardhat-network/provider/utils/makeForkClient";
@@ -20,17 +20,17 @@ async function getLatestBaseFeePerGas(provider: EthereumProvider) {
     return undefined;
   }
 
-  return rpcQuantityToBN(block.baseFeePerGas);
+  return rpcQuantityToBigInt(block.baseFeePerGas);
 }
 
 async function assertLatestBaseFeePerGas(
   provider: EthereumProvider,
-  expectedBaseFeePerGas: number
+  expectedBaseFeePerGas: bigint
 ) {
   const baseFeePerGas = await getLatestBaseFeePerGas(provider);
 
   assert.isDefined(baseFeePerGas);
-  assert.equal(baseFeePerGas!.toString(), expectedBaseFeePerGas.toString());
+  assert.equal(baseFeePerGas, expectedBaseFeePerGas);
 }
 
 async function sendValueTransferTx(provider: EthereumProvider, sender: string) {
@@ -72,10 +72,10 @@ describe("Block's baseFeePerGas", function () {
         if (!isFork) {
           describe("When not forking from a remote network the first block must have the right value", function () {
             describe("With an initialBaseFeePerGas config value", function () {
-              useProvider({ initialBaseFeePerGas: 123 });
+              useProvider({ initialBaseFeePerGas: 123n });
 
               it("should use the given value", async function () {
-                await assertLatestBaseFeePerGas(this.provider, 123);
+                await assertLatestBaseFeePerGas(this.provider, 123n);
               });
             });
 
@@ -83,18 +83,18 @@ describe("Block's baseFeePerGas", function () {
               useProvider({});
 
               it("should use the initial base fee from the EIP (i.e. 1gwei)", async function () {
-                await assertLatestBaseFeePerGas(this.provider, 1_000_000_000);
+                await assertLatestBaseFeePerGas(this.provider, 1_000_000_000n);
               });
             });
           });
         } else {
           describe("When forking from a remote network the forked block must have the right value", function () {
             describe("With an initialBaseFeePerGas config value", function () {
-              useProvider({ initialBaseFeePerGas: 123123 });
+              useProvider({ initialBaseFeePerGas: 123123n });
 
               it("should use the given value", async function () {
                 await mineBlockWithValueTransferTxs(this.provider, 0);
-                await assertLatestBaseFeePerGas(this.provider, 123123);
+                await assertLatestBaseFeePerGas(this.provider, 123123n);
               });
             });
 
@@ -114,11 +114,11 @@ describe("Block's baseFeePerGas", function () {
 
                 const remoteLatestBlockBaseFeePerGas =
                   await forkClient.getBlockByNumber(
-                    rpcQuantityToBN(blockNumber)
+                    rpcQuantityToBigInt(blockNumber)
                   );
                 await assertLatestBaseFeePerGas(
                   this.provider,
-                  remoteLatestBlockBaseFeePerGas!.baseFeePerGas!.toNumber()
+                  remoteLatestBlockBaseFeePerGas!.baseFeePerGas!
                 );
               });
 
@@ -153,7 +153,7 @@ describe("Block's baseFeePerGas", function () {
 
                   await assertLatestBaseFeePerGas(
                     this.provider,
-                    expectedNextBaseFee.toNumber()
+                    expectedNextBaseFee
                   );
                 });
               }
@@ -185,34 +185,34 @@ describe("Block's baseFeePerGas", function () {
         async function validateTheNext6BlocksBaseFeePerGas(
           provider: EthereumProvider
         ) {
-          await assertLatestBaseFeePerGas(provider, 1_000_000_000);
+          await assertLatestBaseFeePerGas(provider, 1_000_000_000n);
 
           await mineBlockWithValueTransferTxs(provider, 1);
 
-          await assertLatestBaseFeePerGas(provider, 875_000_000);
+          await assertLatestBaseFeePerGas(provider, 875_000_000n);
 
           await mineBlockWithValueTransferTxs(provider, 2);
 
-          await assertLatestBaseFeePerGas(provider, 820_312_500);
+          await assertLatestBaseFeePerGas(provider, 820_312_500n);
 
           await mineBlockWithValueTransferTxs(provider, 3);
 
-          await assertLatestBaseFeePerGas(provider, 820_312_500);
+          await assertLatestBaseFeePerGas(provider, 820_312_500n);
 
           await mineBlockWithValueTransferTxs(provider, 4);
 
-          await assertLatestBaseFeePerGas(provider, 871_582_031);
+          await assertLatestBaseFeePerGas(provider, 871_582_031n);
 
           await mineBlockWithValueTransferTxs(provider, 0);
 
-          await assertLatestBaseFeePerGas(provider, 980_529_784);
+          await assertLatestBaseFeePerGas(provider, 980_529_784n);
         }
 
         if (!isFork) {
           describe("When not forking", function () {
             useProvider({
-              blockGasLimit: 21000 * 4,
-              initialBaseFeePerGas: 1_000_000_000,
+              blockGasLimit: 21000n * 4n,
+              initialBaseFeePerGas: 1_000_000_000n,
             });
 
             it("should update the baseFeePerGas starting with the first block", async function () {
@@ -222,8 +222,8 @@ describe("Block's baseFeePerGas", function () {
         } else {
           describe("When not forking", function () {
             useProvider({
-              blockGasLimit: 21000 * 4,
-              initialBaseFeePerGas: 1_000_000_000,
+              blockGasLimit: 21000n * 4n,
+              initialBaseFeePerGas: 1_000_000_000n,
             });
 
             it("should update the baseFeePerGas starting with the first block", async function () {

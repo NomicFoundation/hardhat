@@ -1,5 +1,6 @@
+const eutil = require("@ethereumjs/util");
+const { keccak256 } = require("ethereum-cryptography/keccak");
 const fs = require("fs");
-const eutil = require("ethereumjs-util");
 
 const functionPrefix = "\tfunction";
 const functionBody =
@@ -66,7 +67,7 @@ logger +=
 
 // Add the empty log() first
 const sigInt = eutil.bufferToInt(
-  eutil.keccak256(Buffer.from("log" + "()")).slice(0, 4)
+  keccak256(eutil.bufArrToArr(Buffer.from("log" + "()"))).slice(0, 4)
 );
 logger += "  " + sigInt + ": [],\n";
 
@@ -79,7 +80,10 @@ for (let i = 0; i < singleTypes.length; i++) {
     typeAliasedInt.charAt(0).toUpperCase() + typeAliasedInt.slice(1);
 
   const sigInt = eutil.bufferToInt(
-    eutil.keccak256(Buffer.from("log" + "(" + type + ")")).slice(0, 4)
+    keccak256(eutil.bufArrToArr(Buffer.from("log" + "(" + type + ")"))).slice(
+      0,
+      4
+    )
   );
   logger +=
     "  " +
@@ -90,7 +94,9 @@ for (let i = 0; i < singleTypes.length; i++) {
     "Ty],\n";
 
   const sigIntAliasedInt = eutil.bufferToInt(
-    eutil.keccak256(Buffer.from("log" + "(" + typeAliasedInt + ")")).slice(0, 4)
+    keccak256(
+      eutil.bufArrToArr(Buffer.from("log" + "(" + typeAliasedInt + ")"))
+    ).slice(0, 4)
   );
   if (sigIntAliasedInt !== sigInt) {
     logger +=
@@ -169,16 +175,18 @@ for (let i = 0; i < maxNumberOfParameters; i++) {
 
     if (sigParams.length !== 1) {
       const sigInt = eutil.bufferToInt(
-        eutil
-          .keccak256(Buffer.from("log(" + sigParams.join(",") + ")"))
-          .slice(0, 4)
+        keccak256(
+          eutil.bufArrToArr(Buffer.from("log(" + sigParams.join(",") + ")"))
+        ).slice(0, 4)
       );
       logger += "  " + sigInt + ": [" + constParams.join(", ") + "],\n";
 
       const sigIntAliasedInt = eutil.bufferToInt(
-        eutil
-          .keccak256(Buffer.from("log(" + sigParamsAliasedInt.join(",") + ")"))
-          .slice(0, 4)
+        keccak256(
+          eutil.bufArrToArr(
+            Buffer.from("log(" + sigParamsAliasedInt.join(",") + ")")
+          )
+        ).slice(0, 4)
       );
       if (sigIntAliasedInt !== sigInt) {
         logger +=
