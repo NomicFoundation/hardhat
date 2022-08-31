@@ -241,3 +241,49 @@ task("plan")
       }
     }
   );
+
+task("deploySingleGraph")
+  .addOptionalVariadicPositionalParam("userRecipesPaths")
+  .addOptionalParam(
+    "parameters",
+    "A json object as a string, of the recipe paramters"
+  )
+  .setAction(
+    async (
+      {
+        userRecipesPaths = [],
+        parameters: parametersAsJson,
+      }: { userRecipesPaths: string[]; parameters?: string },
+      hre
+    ) => {
+      await hre.run("compile", { quiet: true });
+
+      let parameters: { [key: string]: number | string };
+      try {
+        parameters =
+          parametersAsJson !== undefined
+            ? JSON.parse(parametersAsJson)
+            : undefined;
+      } catch {
+        console.warn("Could not parse parameters json");
+        process.exit(0);
+      }
+
+      let userRecipes: Array<UserRecipe<any>>;
+      if (userRecipesPaths.length === 0) {
+        userRecipes = loadAllUserRecipes(hre.config.paths.ignition);
+      } else {
+        userRecipes = loadUserRecipes(
+          hre.config.paths.ignition,
+          userRecipesPaths
+        );
+      }
+
+      if (userRecipes.length === 0) {
+        console.warn("No Ignition recipes found");
+        process.exit(0);
+      }
+
+      await hre.ignition.deploySingleGraph(userRecipes[0], { parameters });
+    }
+  );

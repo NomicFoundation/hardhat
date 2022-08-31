@@ -18,6 +18,8 @@ import { execute } from "./single-graph/execution/execute";
 import { generateRecipeGraphFrom } from "./single-graph/process/generateRecipeGraphFrom";
 import { transformRecipeGraphToExecutionGraph } from "./single-graph/process/transformRecipeGraphToExecutionGraph";
 import { DependableFuture, FutureDict } from "./single-graph/types/future";
+import { DeploymentState } from "./single-graph/ui/types";
+import { UiService } from "./single-graph/ui/ui-service";
 import { isDependable } from "./single-graph/utils/guards";
 import { validateRecipeGraph } from "./single-graph/validation/validateRecipeGraph";
 
@@ -127,6 +129,10 @@ export class Ignition {
       providers: this._providers,
       journal: new InMemoryJournal(),
       txPollingInterval: 300,
+      ui: new UiService({
+        enabled: true,
+        deploymentState: new DeploymentState(),
+      }),
     };
 
     const transformResult = await transformRecipeGraphToExecutionGraph(

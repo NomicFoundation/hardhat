@@ -12,6 +12,8 @@ import {
   IExecutionGraph,
   LibraryDeploy,
 } from "../types/executionGraph";
+import { DeploymentState } from "../ui/types";
+import { UiService } from "../ui/ui-service";
 import { isDependable } from "../utils/guards";
 
 export type ExecuteResult =
@@ -30,6 +32,7 @@ export async function execute(
     providers: Providers;
     journal: Journal;
     txPollingInterval: number;
+    ui: UiService;
   }
 ): Promise<ExecuteResult> {
   const services: Services = createServices(
@@ -38,11 +41,17 @@ export async function execute(
     servicesOptions
   );
 
+  const uiDeploymentState: DeploymentState = new DeploymentState();
+
+  servicesOptions.ui.setDeploymentState(uiDeploymentState);
+
   const resultContext: Map<number, any> = new Map<number, any>();
 
   const executionResults = await visit(
     executionGraph,
     resultContext,
+    servicesOptions.ui,
+    uiDeploymentState,
     (executionVertex: ExecutionVertex, context: Map<number, any>) => {
       switch (executionVertex.type) {
         case "ContractDeploy":
@@ -71,18 +80,30 @@ export async function execute(
     }
   );
 
+  servicesOptions.ui.render();
+
   return { _kind: "success", result: executionResults };
 }
 
 async function visit(
   executionGraph: IExecutionGraph,
   resultContext: Map<number, any>,
+  ui: UiService,
+  uiDeploymentState: DeploymentState,
   vistitorAction: (
     executionVertex: ExecutionVertex,
     context: Map<number, any>
   ) => Promise<Map<number, any>>
 ) {
-  for (const vertexId of topological(executionGraph)) {
+  const orderedVertexIds = topological(executionGraph);
+
+  uiDeploymentState.setVertexes(
+    orderedVertexIds
+      .map((vid) => executionGraph.vertexes.get(vid))
+      .filter((vertex): vertex is ExecutionVertex => vertex !== undefined)
+  );
+
+  for (const vertexId of orderedVertexIds) {
     const vertex = executionGraph.vertexes.get(vertexId);
 
     if (vertex === undefined) {
@@ -93,6 +114,9 @@ async function visit(
     const result = await vistitorAction(vertex, resultContext);
 
     resultContext.set(vertexId, result);
+    uiDeploymentState.setSuccess(vertex);
+
+    ui.render();
   }
 
   return resultContext;

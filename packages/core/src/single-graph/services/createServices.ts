@@ -14,7 +14,11 @@ export function createServices(
     providers,
     journal,
     txPollingInterval,
-  }: { providers: Providers; journal: Journal; txPollingInterval: number }
+  }: {
+    providers: Providers;
+    journal: Journal;
+    txPollingInterval: number;
+  }
 ): Services {
   const txSender = new TxSender(
     recipeId,
