@@ -120,6 +120,14 @@ Finally, you need to create a [`tsconfig.json`](https://www.typescriptlang.org/d
 
 And that's really all it takes. Now you can write your config, tests, tasks and scripts in TypeScript.
 
+## Type-checking your project
+
+For performance reasons, Hardhat won't type-check your project when you run a task. You can explicitly enable type-checking with the `--typecheck` flag.
+
+For example, if you run `npx hardhat test` and one of your tests has a compilation error, the test task will be executed anyway. But if you run `npx hardhat test --typecheck`, Hardhat will detect and throw the compilation error before starting to run the tests.
+
+Since type-checking adds significant overhead, we recommend to do it only in your CI or in pre-commit/pre-push hooks.
+
 ## Writing tests and scripts in TypeScript
 
 When using JavaScript, all the properties in the [Hardhat Runtime Environment](../advanced/hardhat-runtime-environment.md) are injected into the global scope. When using TypeScript nothing will be available in the global scope and you will need to import everything explicitly using, for example, `import { ethers } from "hardhat"`.
@@ -163,14 +171,6 @@ const config: HardhatUserConfig = {
 
 export default config;
 ```
-
-## Performance optimizations
-
-Under the hood, Hardhat uses [ts-node](https://www.npmjs.com/package/ts-node) to support TypeScript. By default, it will recompile and type-check everything on every run. Depending on your project's size, this can get slow.
-
-You can make Hardhat run faster by preventing `ts-node` from type-checking your project. This is done by setting the `TS_NODE_TRANSPILE_ONLY` env variable to `1`.
-
-For example, you can run your TypeScript-based tests faster like this `TS_NODE_TRANSPILE_ONLY=1 npx hardhat test`.
 
 ## Running your tests and scripts directly with `ts-node`
 
