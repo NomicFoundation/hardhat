@@ -4,4 +4,4 @@
 "@nomiclabs/hardhat-vyper": patch
 ---
 
-Avoid using glob when possible
+Improve the compilation performance by not using the `glob` library whenever we can avoid it.
