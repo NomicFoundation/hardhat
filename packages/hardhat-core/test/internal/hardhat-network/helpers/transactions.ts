@@ -1,5 +1,9 @@
-import { Transaction } from "@ethereumjs/tx";
-import { bufferToHex, toBuffer, zeroAddress } from "@ethereumjs/util";
+import { Transaction } from "@nomicfoundation/ethereumjs-tx";
+import {
+  bufferToHex,
+  toBuffer,
+  zeroAddress,
+} from "@nomicfoundation/ethereumjs-util";
 
 import { numberToRpcQuantity } from "../../../../src/internal/core/jsonrpc/types/base-types";
 import { RpcTransactionRequestInput } from "../../../../src/internal/core/jsonrpc/types/input/transactionRequest";

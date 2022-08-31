@@ -1,4 +1,4 @@
-import { BlockData } from "@ethereumjs/block";
+import { BlockData } from "@nomicfoundation/ethereumjs-block";
 
 import { RpcBlockWithTransactions } from "../../../core/jsonrpc/types/output/block";
 

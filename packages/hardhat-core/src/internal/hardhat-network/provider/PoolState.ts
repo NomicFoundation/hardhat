@@ -1,4 +1,4 @@
-import { TypedTransaction } from "@ethereumjs/tx";
+import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
 import {
   List as ImmutableList,
   Map as ImmutableMap,

@@ -1,17 +1,17 @@
-import { Block } from "@ethereumjs/block";
-import { Common } from "@ethereumjs/common";
+import { Block } from "@nomicfoundation/ethereumjs-block";
+import { Common } from "@nomicfoundation/ethereumjs-common";
 import {
   Transaction,
   TransactionFactory,
   TypedTransaction,
-} from "@ethereumjs/tx";
+} from "@nomicfoundation/ethereumjs-tx";
 import {
   Address,
   bufferToHex,
   toBuffer,
   toRpcSig,
   zeroAddress,
-} from "@ethereumjs/util";
+} from "@nomicfoundation/ethereumjs-util";
 import * as t from "io-ts";
 import cloneDeep from "lodash/cloneDeep";
 
@@ -967,7 +967,7 @@ export class EthModule {
       // Please keep it updated.
 
       if (error instanceof Error) {
-        if (error.message === "invalid remainder") {
+        if (error.message === "invalid RLP: remainder must be zero") {
           throw new InvalidArgumentsError("Invalid transaction", error);
         }
 

@@ -1,5 +1,9 @@
-import { Trie } from "@ethereumjs/trie";
-import { Account, intToBuffer, setLengthLeft } from "@ethereumjs/util";
+import { Trie } from "@nomicfoundation/ethereumjs-trie";
+import {
+  Account,
+  intToBuffer,
+  setLengthLeft,
+} from "@nomicfoundation/ethereumjs-util";
 
 import { GenesisAccount } from "../node-types";
 

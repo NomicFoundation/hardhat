@@ -1,4 +1,4 @@
-import { zeroAddress } from "@ethereumjs/util";
+import { zeroAddress } from "@nomicfoundation/ethereumjs-util";
 import { assert } from "chai";
 
 import { RpcBlockOutput } from "../../../../../../src/internal/hardhat-network/provider/output";

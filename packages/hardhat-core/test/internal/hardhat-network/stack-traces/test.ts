@@ -1,5 +1,5 @@
-import { toBuffer } from "@ethereumjs/util";
-import { VM } from "@ethereumjs/vm";
+import { toBuffer } from "@nomicfoundation/ethereumjs-util";
+import { VM } from "@nomicfoundation/ethereumjs-vm";
 import { assert } from "chai";
 import fs from "fs";
 import path from "path";
@@ -327,7 +327,7 @@ function compareStackTraces(
         `Stack trace of tx ${txIndex} entry ${i} should have an errorCode`
       );
 
-      const actualErrorCodeHex = actualErrorCode.toString("hex");
+      const actualErrorCodeHex = actualErrorCode.toString(16);
 
       assert.isTrue(
         expected.errorCode === actualErrorCodeHex,

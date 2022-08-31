@@ -1,6 +1,6 @@
 import { assert } from "chai";
-import { Block } from "@ethereumjs/block";
-import { Common } from "@ethereumjs/common";
+import { Block } from "@nomicfoundation/ethereumjs-block";
+import { Common } from "@nomicfoundation/ethereumjs-common";
 
 import { workaroundWindowsCiFailures } from "../../../utils/workaround-windows-ci-failures";
 import { PROVIDERS } from "../helpers/providers";

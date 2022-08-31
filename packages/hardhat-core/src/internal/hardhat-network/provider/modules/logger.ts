@@ -1,6 +1,6 @@
-import { Block } from "@ethereumjs/block";
-import { TypedTransaction } from "@ethereumjs/tx";
-import { bufferToHex } from "@ethereumjs/util";
+import { Block } from "@nomicfoundation/ethereumjs-block";
+import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
+import { bufferToHex } from "@nomicfoundation/ethereumjs-util";
 import ansiEscapes from "ansi-escapes";
 import chalk, { Chalk } from "chalk";
 import util from "util";

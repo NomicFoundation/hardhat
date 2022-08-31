@@ -1,4 +1,9 @@
-import { Account, Address, privateToAddress, toBuffer } from "@ethereumjs/util";
+import {
+  Account,
+  Address,
+  privateToAddress,
+  toBuffer,
+} from "@nomicfoundation/ethereumjs-util";
 
 import { GenesisAccount } from "../node-types";
 

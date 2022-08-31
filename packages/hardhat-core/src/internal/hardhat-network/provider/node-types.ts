@@ -1,7 +1,7 @@
 import type { ReturnData } from "./return-data";
 
-import { Block } from "@ethereumjs/block";
-import { RunBlockResult } from "@ethereumjs/vm";
+import { Block } from "@nomicfoundation/ethereumjs-block";
+import { RunBlockResult } from "@nomicfoundation/ethereumjs-vm";
 
 import { HARDHAT_MEMPOOL_SUPPORTED_ORDERS } from "../../constants";
 import { BuildInfo, HardhatNetworkChainsConfig } from "../../../types";
@@ -68,7 +68,7 @@ export interface CallParams {
   gasLimit: bigint;
   value: bigint;
   data: Buffer;
-  // We use this access list format because @ethereumjs/tx access list data
+  // We use this access list format because @nomicfoundation/ethereumjs-tx access list data
   // forces us to use it or stringify them
   accessList?: AccessListBufferItem[];
   // Fee params
@@ -98,7 +98,7 @@ export interface LegacyTransactionParams extends BaseTransactionParams {
 
 export interface AccessListTransactionParams extends BaseTransactionParams {
   gasPrice: bigint;
-  // We use this access list format because @ethereumjs/tx access list data
+  // We use this access list format because @nomicfoundation/ethereumjs-tx access list data
   // forces us to use it or stringify them
   accessList: AccessListBufferItem[];
   // We don't include chainId as it's not necessary, the node

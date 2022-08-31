@@ -1,5 +1,5 @@
-import { Common } from "@ethereumjs/common";
-import { TransactionFactory } from "@ethereumjs/tx";
+import { Common } from "@nomicfoundation/ethereumjs-common";
+import { TransactionFactory } from "@nomicfoundation/ethereumjs-tx";
 import { assert } from "chai";
 import { Client } from "undici";
 

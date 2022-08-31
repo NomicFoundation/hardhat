@@ -1,13 +1,13 @@
-import { Block, BlockHeader } from "@ethereumjs/block";
+import { Block, BlockHeader } from "@nomicfoundation/ethereumjs-block";
 import {
   BlockchainInterface,
   CasperConsensus,
   CliqueConsensus,
   Consensus,
   EthashConsensus,
-} from "@ethereumjs/blockchain";
-import { Common, ConsensusAlgorithm } from "@ethereumjs/common";
-import { TypedTransaction } from "@ethereumjs/tx";
+} from "@nomicfoundation/ethereumjs-blockchain";
+import { Common, ConsensusAlgorithm } from "@nomicfoundation/ethereumjs-common";
+import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
 
 import { assertHardhatInvariant } from "../../core/errors";
 import * as BigIntUtils from "../../util/bigint";
@@ -23,7 +23,7 @@ export abstract class BlockchainBase {
   constructor(protected _common: Common) {
     this._data = new BlockchainData(_common);
 
-    // copied from blockchain.ts in @ethereumjs/blockchain
+    // copied from blockchain.ts in @nomicfoundation/ethereumjs-blockchain
     switch (this._common.consensusAlgorithm()) {
       case ConsensusAlgorithm.Casper:
         this.consensus = new CasperConsensus();
