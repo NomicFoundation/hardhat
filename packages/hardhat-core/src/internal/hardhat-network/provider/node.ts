@@ -35,7 +35,7 @@ import chalk from "chalk";
 import debug from "debug";
 import EventEmitter from "events";
 
-import { BigIntUtils } from "../../util/bigint";
+import * as BigIntUtils from "../../util/bigint";
 import { CompilerInput, CompilerOutput } from "../../../types";
 import { HardforkHistoryConfig } from "../../../types/config";
 import { HARDHAT_NETWORK_SUPPORTED_HARDFORKS } from "../../constants";
@@ -178,7 +178,7 @@ export class HardhatNode extends EventEmitter {
       forkBlockNum = forkBlockNumber;
 
       this._validateHardforks(
-        BigIntUtils.mapNumberToBigInt(config.forkConfig.blockNumber),
+        config.forkConfig.blockNumber,
         common,
         forkNetworkId
       );
@@ -297,7 +297,7 @@ export class HardhatNode extends EventEmitter {
   }
 
   private static _validateHardforks(
-    forkBlockNumber: bigint | undefined,
+    forkBlockNumber: number | undefined,
     common: Common,
     remoteChainId: number
   ): void {
@@ -2519,6 +2519,10 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
   public isPostMergeHardfork(): boolean {
     return hardforkGte(this.hardfork, HardforkName.MERGE);
+  }
+
+  public setPrevRandao(prevRandao: Buffer): void {
+    this._mixHashGenerator.setNext(prevRandao);
   }
 
   private _getNextMixHash(): Buffer {

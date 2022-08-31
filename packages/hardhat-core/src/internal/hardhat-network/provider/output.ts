@@ -4,7 +4,7 @@ import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
 import { bufferToHex } from "@nomicfoundation/ethereumjs-util";
 import { RunBlockResult } from "@nomicfoundation/ethereumjs-vm";
 
-import { BigIntUtils } from "../../util/bigint";
+import * as BigIntUtils from "../../util/bigint";
 import { assertHardhatInvariant } from "../../core/errors";
 import {
   bufferToRpcData,

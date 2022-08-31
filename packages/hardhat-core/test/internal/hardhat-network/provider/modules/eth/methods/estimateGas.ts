@@ -28,7 +28,7 @@ import { retrieveForkBlockNumber } from "../../../../helpers/retrieveForkBlockNu
 import { deployContract } from "../../../../helpers/transactions";
 import { HardhatNode } from "../../../../../../../src/internal/hardhat-network/provider/node";
 import { RpcBlockOutput } from "../../../../../../../src/internal/hardhat-network/provider/output";
-import { BigIntUtils } from "../../../../../../../src/internal/util/bigint";
+import * as BigIntUtils from "../../../../../../../src/internal/util/bigint";
 
 describe("Eth module", function () {
   PROVIDERS.forEach(({ name, useProvider, isFork }) => {

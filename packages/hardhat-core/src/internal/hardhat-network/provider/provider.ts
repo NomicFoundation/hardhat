@@ -24,9 +24,9 @@ import {
   MethodNotSupportedError,
   ProviderError,
 } from "../../core/providers/errors";
-import { FIRST_SOLC_VERSION_SUPPORTED } from "../stack-traces/solidityTracer";
-import { Mutex } from "../vendor/await-semaphore";
+import { Mutex } from "../../vendor/await-semaphore";
 
+import { FIRST_SOLC_VERSION_SUPPORTED } from "../stack-traces/constants";
 import { MiningTimer } from "./MiningTimer";
 import { DebugModule } from "./modules/debug";
 import { EthModule } from "./modules/eth";
@@ -79,8 +79,8 @@ export class HardhatNetworkProvider
     private readonly _networkName: string,
     private readonly _chainId: number,
     private readonly _networkId: number,
-    private readonly _blockGasLimit: bigint,
-    private readonly _initialBaseFeePerGas: bigint | undefined,
+    private readonly _blockGasLimit: number,
+    private readonly _initialBaseFeePerGas: number | undefined,
     private readonly _minGasPrice: bigint,
     private readonly _throwOnTransactionFailures: boolean,
     private readonly _throwOnCallFailures: boolean,

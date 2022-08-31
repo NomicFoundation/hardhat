@@ -67,4 +67,8 @@ export class ReturnData {
 
     return errorCode;
   }
+
+  public getSelector(): string | undefined {
+    return this._selector;
+  }
 }

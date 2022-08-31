@@ -1,4 +1,3 @@
-import * as fs from "fs";
 import cloneDeep from "lodash/cloneDeep";
 import path from "path";
 
@@ -32,11 +31,11 @@ import {
   SolidityUserConfig,
 } from "../../../types";
 import { HARDHAT_NETWORK_NAME } from "../../constants";
-import { BigIntUtils } from "../../util/bigint";
 import { HardforkName } from "../../util/hardforks";
 import { fromEntries } from "../../util/lang";
 import { assertHardhatInvariant } from "../errors";
 
+import { getRealPathSync } from "../../util/fs-utils";
 import {
   DEFAULT_SOLC_VERSION,
   defaultDefaultNetwork,
@@ -157,9 +156,7 @@ function resolveHardhatNetworkConfig(
   if (forking !== undefined) {
     const blockNumber = hardhatNetworkConfig?.forking?.blockNumber;
     if (blockNumber !== undefined) {
-      forking.blockNumber = BigIntUtils.mapNumberToBigInt(
-        hardhatNetworkConfig?.forking?.blockNumber
-      );
+      forking.blockNumber = hardhatNetworkConfig?.forking?.blockNumber;
     }
 
     const httpHeaders = hardhatNetworkConfig.forking?.httpHeaders;
@@ -175,21 +172,16 @@ function resolveHardhatNetworkConfig(
       clonedDefaultHardhatNetworkParams.minGasPrice
   );
 
-  const blockGasLimit = BigInt(
+  const blockGasLimit =
     hardhatNetworkConfig.blockGasLimit ??
-      clonedDefaultHardhatNetworkParams.blockGasLimit
-  );
+    clonedDefaultHardhatNetworkParams.blockGasLimit;
 
-  const gas = BigIntUtils.mapNumberToBigInt(
-    hardhatNetworkConfig.gas ?? blockGasLimit
-  );
-  const gasPrice = BigIntUtils.mapNumberToBigInt(
-    hardhatNetworkConfig.gasPrice ?? clonedDefaultHardhatNetworkParams.gasPrice
-  );
-  const initialBaseFeePerGas = BigIntUtils.mapNumberToBigInt(
+  const gas = hardhatNetworkConfig.gas ?? blockGasLimit;
+  const gasPrice =
+    hardhatNetworkConfig.gasPrice ?? clonedDefaultHardhatNetworkParams.gasPrice;
+  const initialBaseFeePerGas =
     hardhatNetworkConfig.initialBaseFeePerGas ??
-      clonedDefaultHardhatNetworkParams.initialBaseFeePerGas
-  );
+    clonedDefaultHardhatNetworkParams.initialBaseFeePerGas;
 
   const initialDate =
     hardhatNetworkConfig.initialDate ?? new Date().toISOString();
@@ -277,12 +269,8 @@ function resolveHttpNetworkConfig(
     ...networkConfig,
     accounts,
     url,
-    gas: BigIntUtils.mapNumberToBigInt(
-      networkConfig.gas ?? defaultHttpNetworkParams.gas
-    ),
-    gasPrice: BigIntUtils.mapNumberToBigInt(
-      networkConfig.gasPrice ?? defaultHttpNetworkParams.gasPrice
-    ),
+    gas: networkConfig.gas ?? defaultHttpNetworkParams.gas,
+    gasPrice: networkConfig.gasPrice ?? defaultHttpNetworkParams.gasPrice,
   };
 }
 
@@ -455,7 +443,7 @@ export function resolveProjectPaths(
   userConfigPath: string,
   userPaths: ProjectPathsUserConfig = {}
 ): ProjectPathsConfig {
-  const configFile = fs.realpathSync(userConfigPath);
+  const configFile = getRealPathSync(userConfigPath);
   const configDir = path.dirname(configFile);
 
   const root = resolvePathFrom(configDir, "", userPaths.root);

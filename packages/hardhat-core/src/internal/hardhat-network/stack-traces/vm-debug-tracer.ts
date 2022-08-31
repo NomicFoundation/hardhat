@@ -14,7 +14,7 @@ import { assertHardhatInvariant } from "../../core/errors";
 import { RpcDebugTracingConfig } from "../../core/jsonrpc/types/input/debugTraceTransaction";
 import { InvalidInputError } from "../../core/providers/errors";
 import { RpcDebugTraceOutput, RpcStructLog } from "../provider/output";
-import { BigIntUtils } from "../../util/bigint";
+import * as BigIntUtils from "../../util/bigint";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 

@@ -492,6 +492,20 @@ await network.provider.send("hardhat_setNextBlockBaseFeePerGas", [
 
 This only affects the next block; the base fee will keep being updated in each subsequent block according to [EIP-1559](https://eips.ethereum.org/EIPS/eip-1559).
 
+#### `hardhat_setPrevRandao`
+
+Sets the PREVRANDAO value of the next block.
+
+For example:
+
+```tsx
+await network.provider.send("hardhat_setPrevRandao", [
+  "0x1234567812345678123456781234567812345678123456781234567812345678",
+]);
+```
+
+This only affects the next block. The PREVRANDAO of the following blocks will continue to be computed as the keccak256 hash of the previous value.
+
 #### `hardhat_setNonce`
 
 Modifies an account's nonce by overwriting it.

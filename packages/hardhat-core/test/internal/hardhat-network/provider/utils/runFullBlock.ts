@@ -44,7 +44,7 @@ export async function runFullBlock(
     hardfork,
     forkConfig,
     forkCachePath: FORK_TESTS_CACHE_PATH,
-    blockGasLimit: rpcBlock.gasLimit,
+    blockGasLimit: Number(rpcBlock.gasLimit),
     minGasPrice: 0n,
     genesisAccounts: [],
     mempoolOrder: "priority",

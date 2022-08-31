@@ -263,6 +263,21 @@ function getMessageFromLastStackTraceEntry(
         return `VM Exception while processing transaction: reverted with reason string '${stackTraceEntry.message.decodeError()}'`;
       }
 
+      if (stackTraceEntry.message.isPanicReturnData()) {
+        const message = panicErrorCodeToMessage(
+          stackTraceEntry.message.decodePanic()
+        );
+        return `VM Exception while processing transaction: ${message}`;
+      }
+
+      if (!stackTraceEntry.message.isEmpty()) {
+        return `VM Exception while processing transaction: reverted with an unrecognized custom error`;
+      }
+
+      if (stackTraceEntry.isInvalidOpcodeError) {
+        return "VM Exception while processing transaction: invalid opcode";
+      }
+
       return "Transaction reverted without a reason string";
 
     case StackTraceEntryType.REVERT_ERROR:
