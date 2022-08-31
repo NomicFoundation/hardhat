@@ -433,7 +433,7 @@ export class ForkStateManager implements StateManager {
     const account = await this.getAccount(address);
     account.nonce = accountFields.nonce ?? account.nonce;
     account.balance = accountFields.balance ?? account.balance;
-    account.stateRoot = accountFields.storageRoot ?? account.stateRoot;
+    account.storageRoot = accountFields.storageRoot ?? account.storageRoot;
     account.codeHash = accountFields.codeHash ?? account.codeHash;
     await this.putAccount(address, account);
   }

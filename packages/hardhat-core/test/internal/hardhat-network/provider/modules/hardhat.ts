@@ -21,11 +21,15 @@ import {
 import { EMPTY_ACCOUNT_ADDRESS } from "../../helpers/constants";
 import { setCWD } from "../../helpers/cwd";
 import { DEFAULT_ACCOUNTS_ADDRESSES, PROVIDERS } from "../../helpers/providers";
-import { deployContract } from "../../helpers/transactions";
+import {
+  deployContract,
+  sendTxToZeroAddress,
+} from "../../helpers/transactions";
 import { compileLiteral } from "../../stack-traces/compilation";
 import { getPendingBaseFeePerGas } from "../../helpers/getPendingBaseFeePerGas";
 import { RpcBlockOutput } from "../../../../../src/internal/hardhat-network/provider/output";
 import * as BigIntUtils from "../../../../../src/internal/util/bigint";
+import { EXAMPLE_DIFFICULTY_CONTRACT } from "../../helpers/contracts";
 
 describe("Hardhat module", function () {
   PROVIDERS.forEach(({ name, useProvider, isFork }) => {
@@ -2594,6 +2598,169 @@ describe("Hardhat module", function () {
 
           await this.provider.send("hardhat_setCoinbase", [cb2]);
           assert.equal(await this.provider.send("eth_coinbase"), cb2);
+        });
+      });
+
+      describe("hardhat_setPrevRandao", function () {
+        async function assertPrevRandao(
+          provider: any,
+          expectedPrevRandao: string
+        ) {
+          const latestBlock = await provider.send("eth_getBlockByNumber", [
+            "latest",
+            false,
+          ]);
+
+          assert.equal(latestBlock.mixHash, expectedPrevRandao);
+        }
+
+        describe("in hardforks before the merge", function () {
+          useProvider({ hardfork: "london" });
+
+          it("should throw", async function () {
+            await assertInvalidInputError(
+              this.provider,
+              "hardhat_setPrevRandao",
+              [
+                "0x1234567812345678123456781234567812345678123456781234567812345678",
+              ],
+              "hardhat_setPrevRandao is only available in post-merge hardforks"
+            );
+          });
+        });
+
+        describe("in hardforks after the merge", function () {
+          useProvider({ hardfork: "merge" });
+
+          it("should set a value and get it in the next block header", async function () {
+            await this.provider.send("hardhat_setPrevRandao", [
+              "0x1234567812345678123456781234567812345678123456781234567812345678",
+            ]);
+
+            // send a transaction to generate a new block
+            await sendTxToZeroAddress(this.provider);
+
+            await assertPrevRandao(
+              this.provider,
+              "0x1234567812345678123456781234567812345678123456781234567812345678"
+            );
+          });
+
+          it("should set a value and get it in the next block execution", async function () {
+            await this.provider.send("hardhat_setPrevRandao", [
+              "0x0000000000000000000000000000000000000000000000000000000000000017",
+            ]);
+
+            const contractAddress = await deployContract(
+              this.provider,
+              `0x${EXAMPLE_DIFFICULTY_CONTRACT.bytecode.object}`
+            );
+
+            const difficultyHex = await this.provider.send("eth_call", [
+              {
+                to: contractAddress,
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                data: `${EXAMPLE_DIFFICULTY_CONTRACT.selectors.difficulty}`,
+              },
+            ]);
+
+            const difficulty = BigInt(difficultyHex);
+
+            assert.equal(difficulty, 0x17n);
+          });
+
+          it("should accept zero as a value", async function () {
+            await this.provider.send("hardhat_setPrevRandao", [
+              "0x0000000000000000000000000000000000000000000000000000000000000000",
+            ]);
+
+            // send a transaction to generate a new block
+            await sendTxToZeroAddress(this.provider);
+
+            await assertPrevRandao(
+              this.provider,
+              "0x0000000000000000000000000000000000000000000000000000000000000000"
+            );
+          });
+
+          it("should accept 0xfff...fff as a value", async function () {
+            await this.provider.send("hardhat_setPrevRandao", [
+              "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+            ]);
+
+            // send a transaction to generate a new block
+            await sendTxToZeroAddress(this.provider);
+
+            await assertPrevRandao(
+              this.provider,
+              "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            );
+          });
+
+          it("should work with snapshots", async function () {
+            await this.provider.send("hardhat_setPrevRandao", [
+              "0x1234567812345678123456781234567812345678123456781234567812345678",
+            ]);
+
+            const snapshotId = await this.provider.send("evm_snapshot");
+
+            // send a transaction to generate a new block
+            await sendTxToZeroAddress(this.provider);
+
+            await assertPrevRandao(
+              this.provider,
+              "0x1234567812345678123456781234567812345678123456781234567812345678"
+            );
+
+            await this.provider.send("evm_revert", [snapshotId]);
+
+            // send a transaction to generate a new block
+            await sendTxToZeroAddress(this.provider);
+
+            await assertPrevRandao(
+              this.provider,
+              "0x1234567812345678123456781234567812345678123456781234567812345678"
+            );
+          });
+
+          it("should be used as the preimage of the following block", async function () {
+            await this.provider.send("hardhat_setPrevRandao", [
+              "0x1234567812345678123456781234567812345678123456781234567812345678",
+            ]);
+
+            // send a transaction to generate a new block
+            await sendTxToZeroAddress(this.provider);
+
+            await assertPrevRandao(
+              this.provider,
+              "0x1234567812345678123456781234567812345678123456781234567812345678"
+            );
+
+            // send a transaction to generate a new block
+            await sendTxToZeroAddress(this.provider);
+
+            // keccak of 0x12345671234...
+            await assertPrevRandao(
+              this.provider,
+              "0x3d6b7104c741bf23615b1bb00e067e9ef51c8ba2ab40042ee05086c14870f17c"
+            );
+          });
+
+          it("should reject values with less than 32 bytes", async function () {
+            await assertInvalidArgumentsError(
+              this.provider,
+              "hardhat_setPrevRandao",
+              ["0x12345678"]
+            );
+          });
+
+          it("should reject values with more than 32 bytes", async function () {
+            await assertInvalidArgumentsError(
+              this.provider,
+              "hardhat_setPrevRandao",
+              [`0x${"f".repeat(65)}`]
+            );
+          });
         });
       });
     });

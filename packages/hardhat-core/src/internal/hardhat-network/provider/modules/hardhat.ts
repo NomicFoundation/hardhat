@@ -115,6 +115,11 @@ export class HardhatModule {
 
       case "hardhat_mine":
         return this._hardhatMineAction(...this._hardhatMineParams(params));
+
+      case "hardhat_setPrevRandao":
+        return this._hardhatSetPrevRandaoAction(
+          ...this._hardhatSetPrevRandaoParams(params)
+        );
     }
 
     throw new MethodNotFoundError(`Method ${method} not found`);
@@ -385,6 +390,25 @@ export class HardhatModule {
     params: any[]
   ): [bigint | undefined, bigint | undefined] {
     return validateParams(params, optional(rpcQuantity), optional(rpcQuantity));
+  }
+
+  // hardhat_setPrevRandao
+
+  private _hardhatSetPrevRandaoParams(params: any[]): [Buffer] {
+    // using rpcHash because it's also 32 bytes long
+    return validateParams(params, rpcHash);
+  }
+
+  private async _hardhatSetPrevRandaoAction(prevRandao: Buffer) {
+    if (!this._node.isPostMergeHardfork()) {
+      throw new InvalidInputError(
+        `hardhat_setPrevRandao is only available in post-merge hardforks, the current hardfork is ${this._node.hardfork}`
+      );
+    }
+
+    this._node.setPrevRandao(prevRandao);
+
+    return true;
   }
 
   private async _logBlock(

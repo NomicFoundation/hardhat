@@ -28,6 +28,10 @@ export class RandomBufferGenerator {
     return arrToBufArr(valueToReturn);
   }
 
+  public setNext(nextValue: Buffer) {
+    this._nextValue = Buffer.from(nextValue);
+  }
+
   public clone(): RandomBufferGenerator {
     return new RandomBufferGenerator(this._nextValue);
   }
