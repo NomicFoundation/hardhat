@@ -1,5 +1,14 @@
 # hardhat
 
+## 2.10.2
+
+### Patch Changes
+
+- f799e7e41: - Fixed a bug that was causing `console.log()` to print `undefined` instead of an empty line (issue #2721)
+  - Made `console.log` ABI-compliant (issue #2666)
+- 36ca875dc: The selector is now shown in the "Unrecognized custom error" message
+- 3e3fe7bf0: Added support for Solidity versions up through 0.8.16
+
 ## 2.10.1
 
 ### Patch Changes

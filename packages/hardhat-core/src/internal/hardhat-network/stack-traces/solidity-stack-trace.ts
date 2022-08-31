@@ -153,6 +153,7 @@ export interface UnrecognizedCreateErrorStackTraceEntry {
   type: StackTraceEntryType.UNRECOGNIZED_CREATE_ERROR;
   message: ReturnData;
   sourceReference?: undefined;
+  isInvalidOpcodeError: boolean;
 }
 
 export interface UnrecognizedContractErrorStackTraceEntry {
@@ -160,6 +161,7 @@ export interface UnrecognizedContractErrorStackTraceEntry {
   address: Buffer;
   message: ReturnData;
   sourceReference?: undefined;
+  isInvalidOpcodeError: boolean;
 }
 
 export interface OtherExecutionErrorStackTraceEntry {

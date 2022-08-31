@@ -5,7 +5,7 @@ import { Address, bufferToHex, toBuffer } from "@ethereumjs/util";
 import { List as ImmutableList, Record as ImmutableRecord } from "immutable";
 
 import { InvalidInputError } from "../../core/providers/errors";
-import { BigIntUtils } from "../../util/bigint";
+import * as BigIntUtils from "../../util/bigint";
 
 import {
   AddressToTransactions,

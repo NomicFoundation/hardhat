@@ -2,6 +2,7 @@ import path from "path";
 
 import { HardhatError } from "../internal/core/errors";
 import { ERRORS } from "../internal/core/errors-list";
+import { FileNotFoundError, getFileTrueCase } from "../internal/util/fs-utils";
 
 const NODE_MODULES = "node_modules";
 
@@ -74,11 +75,9 @@ export async function isLocalSourceName(
     slashIndex !== -1 ? sourceName.substring(0, slashIndex) : sourceName;
 
   try {
-    await getPathTrueCase(projectRoot, firstDirOrFileName);
+    await getFileTrueCase(projectRoot, firstDirOrFileName);
   } catch (error) {
-    if (
-      HardhatError.isHardhatErrorType(error, ERRORS.SOURCE_NAMES.FILE_NOT_FOUND)
-    ) {
+    if (error instanceof FileNotFoundError) {
       return false;
     }
 
@@ -99,7 +98,7 @@ export async function validateSourceNameExistenceAndCasing(
   fromDir: string,
   sourceName: string
 ) {
-  const trueCaseSourceName = await getPathTrueCase(fromDir, sourceName);
+  const trueCaseSourceName = await getSourceNameTrueCase(fromDir, sourceName);
 
   if (trueCaseSourceName !== sourceName) {
     throw new HardhatError(ERRORS.SOURCE_NAMES.WRONG_CASING, {
@@ -134,7 +133,7 @@ export async function localPathToSourceName(
     });
   }
 
-  return getPathTrueCase(projectRoot, relativePath);
+  return getSourceNameTrueCase(projectRoot, relativePath);
 }
 
 /**
@@ -184,34 +183,45 @@ function isExplicitRelativePath(sourceName: string): boolean {
  * Note that a source name must not contain backslashes.
  */
 export function replaceBackslashes(str: string): string {
-  const slash = require("slash");
-  return slash(str);
+  // Based in the npm module slash
+  const isExtendedLengthPath = /^\\\\\?\\/.test(str);
+  const hasNonAscii = /[^\u0000-\u0080]+/.test(str);
+
+  if (isExtendedLengthPath || hasNonAscii) {
+    return str;
+  }
+
+  return str.replace(/\\/g, "/");
+}
+
+function slashesToPathSeparator(str: string): string {
+  if (path.sep === "/") {
+    return str;
+  }
+
+  return str.replace(/\//g, path.sep);
 }
 
 /**
  * Returns the true casing of `p` as a relative path from `fromDir`. Throws if
  * `p` doesn't exist. `p` MUST be in source name format.
  */
-async function getPathTrueCase(fromDir: string, p: string): Promise<string> {
-  const { trueCasePath } = await import("true-case-path");
-
+async function getSourceNameTrueCase(
+  fromDir: string,
+  p: string
+): Promise<string> {
   try {
-    const tcp = await trueCasePath(p, fromDir);
-    return normalizeSourceName(path.relative(fromDir, tcp));
+    const realCase = await getFileTrueCase(fromDir, slashesToPathSeparator(p));
+    return normalizeSourceName(realCase);
   } catch (error) {
-    if (error instanceof Error) {
-      if (
-        typeof error.message === "string" &&
-        error.message.includes("no matching file exists")
-      ) {
-        throw new HardhatError(
-          ERRORS.SOURCE_NAMES.FILE_NOT_FOUND,
-          {
-            name: p,
-          },
-          error
-        );
-      }
+    if (error instanceof FileNotFoundError) {
+      throw new HardhatError(
+        ERRORS.SOURCE_NAMES.FILE_NOT_FOUND,
+        {
+          name: p,
+        },
+        error
+      );
     }
 
     // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error

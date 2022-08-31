@@ -9,7 +9,11 @@ import { TaskArguments } from "../../types";
 import { HARDHAT_NAME } from "../constants";
 import { HardhatContext } from "../context";
 import { loadConfigAndTasks } from "../core/config/config-loading";
-import { HardhatError, HardhatPluginError } from "../core/errors";
+import {
+  assertHardhatInvariant,
+  HardhatError,
+  HardhatPluginError,
+} from "../core/errors";
 import { ERRORS, getErrorCode } from "../core/errors-list";
 import { isHardhatInstalledLocallyOrLinked } from "../core/execution-mode";
 import { getEnvHardhatArguments } from "../core/params/env-variables";
@@ -27,7 +31,7 @@ import {
 } from "../util/global-dir";
 import { getPackageJson, PackageJson } from "../util/packageInfo";
 
-import { applyWorkaround } from "../util/antlr-prototype-pollution-workaround";
+import { saveFlamegraph } from "../core/flamegraph";
 import { Analytics } from "./analytics";
 import { ArgumentsParser } from "./ArgumentsParser";
 import { enableEmoji } from "./emoji";
@@ -40,8 +44,6 @@ import {
 } from "./hardhat-vscode-installation";
 
 const log = debug("hardhat:core:cli");
-
-applyWorkaround();
 
 const ANALYTICS_SLOW_TASK_THRESHOLD = 300;
 
@@ -251,18 +253,31 @@ async function main() {
 
     ctx.setHardhatRuntimeEnvironment(env);
 
-    const timestampBeforeRun = new Date().getTime();
+    try {
+      const timestampBeforeRun = new Date().getTime();
 
-    await env.run(taskName, taskArguments);
+      await env.run(taskName, taskArguments);
 
-    const timestampAfterRun = new Date().getTime();
-    if (
-      timestampAfterRun - timestampBeforeRun >
-      ANALYTICS_SLOW_TASK_THRESHOLD
-    ) {
-      await hitPromise;
-    } else {
-      abortAnalytics();
+      const timestampAfterRun = new Date().getTime();
+
+      if (
+        timestampAfterRun - timestampBeforeRun >
+        ANALYTICS_SLOW_TASK_THRESHOLD
+      ) {
+        await hitPromise;
+      } else {
+        abortAnalytics();
+      }
+    } finally {
+      if (hardhatArguments.flamegraph === true) {
+        assertHardhatInvariant(
+          env.entryTaskProfile !== undefined,
+          "--flamegraph was set but entryTaskProfile is not defined"
+        );
+
+        const flamegraphPath = saveFlamegraph(env.entryTaskProfile);
+        console.log("Created flamegraph file", flamegraphPath);
+      }
     }
 
     // VSCode extension prompt for installation

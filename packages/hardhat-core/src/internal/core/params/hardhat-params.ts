@@ -84,4 +84,13 @@ export const HARDHAT_PARAM_DEFINITIONS: HardhatParamDefinitions = {
     isFlag: false,
     isVariadic: false,
   },
+  flamegraph: {
+    name: "flamegraph",
+    defaultValue: undefined,
+    description: "Generate a flamegraph of your Hardhat tasks",
+    type: types.boolean,
+    isOptional: true,
+    isFlag: true,
+    isVariadic: false,
+  },
 };

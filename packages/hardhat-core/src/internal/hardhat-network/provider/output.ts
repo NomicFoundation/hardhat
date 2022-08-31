@@ -4,7 +4,7 @@ import { TypedTransaction } from "@ethereumjs/tx";
 import { bufferToHex } from "@ethereumjs/util";
 import { RunBlockResult } from "@ethereumjs/vm";
 
-import { BigIntUtils } from "../../util/bigint";
+import * as BigIntUtils from "../../util/bigint";
 import { assertHardhatInvariant } from "../../core/errors";
 import {
   bufferToRpcData,
