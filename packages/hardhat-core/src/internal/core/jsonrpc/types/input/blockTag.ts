@@ -16,6 +16,8 @@ export const rpcBlockTagName = t.keyof({
   earliest: null,
   latest: null,
   pending: null,
+  safe: null,
+  finalized: null,
 });
 
 // This is the new kind of block tag as defined by https://github.com/ethereum/EIPs/blob/master/EIPS/eip-1898.md

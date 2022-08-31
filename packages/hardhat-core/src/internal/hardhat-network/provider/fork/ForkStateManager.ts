@@ -17,13 +17,13 @@ import { InternalError } from "../../../core/providers/errors";
 import { JsonRpcClient } from "../../jsonrpc/client";
 import { GenesisAccount } from "../node-types";
 import { makeAccount } from "../utils/makeAccount";
+import { randomHash } from "../utils/random";
 
 import {
   AccountState,
   makeAccountState,
   makeEmptyAccountState,
 } from "./AccountState";
-import { randomHash } from "./random";
 
 const encodeStorageKey = (address: Buffer, position: Buffer): string => {
   return `${address.toString("hex")}${unpadBuffer(position).toString("hex")}`;

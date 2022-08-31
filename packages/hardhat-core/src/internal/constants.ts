@@ -19,6 +19,7 @@ export const HARDHAT_NETWORK_SUPPORTED_HARDFORKS = [
   "berlin",
   "london",
   "arrowGlacier",
+  "merge",
 ];
 
 export const HARDHAT_MEMPOOL_SUPPORTED_ORDERS = ["fifo", "priority"] as const;

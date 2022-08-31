@@ -15,7 +15,7 @@ import { ForkStateManager } from "../../../../../src/internal/hardhat-network/pr
 import {
   randomAddress,
   randomHashBuffer,
-} from "../../../../../src/internal/hardhat-network/provider/fork/random";
+} from "../../../../../src/internal/hardhat-network/provider/utils/random";
 import { makeForkClient } from "../../../../../src/internal/hardhat-network/provider/utils/makeForkClient";
 import { ALCHEMY_URL } from "../../../../setup";
 import {

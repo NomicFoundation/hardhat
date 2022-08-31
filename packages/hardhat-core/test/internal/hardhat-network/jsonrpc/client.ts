@@ -6,7 +6,7 @@ import sinon from "sinon";
 import { RpcTransaction } from "../../../../src/internal/core/jsonrpc/types/output/transaction";
 import { HttpProvider } from "../../../../src/internal/core/providers/http";
 import { JsonRpcClient } from "../../../../src/internal/hardhat-network/jsonrpc/client";
-import { randomHashBuffer } from "../../../../src/internal/hardhat-network/provider/fork/random";
+import { randomHashBuffer } from "../../../../src/internal/hardhat-network/provider/utils/random";
 import { makeForkClient } from "../../../../src/internal/hardhat-network/provider/utils/makeForkClient";
 import { useTmpDir } from "../../../helpers/fs";
 import { workaroundWindowsCiFailures } from "../../../utils/workaround-windows-ci-failures";

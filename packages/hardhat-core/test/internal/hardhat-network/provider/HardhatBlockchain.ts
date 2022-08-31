@@ -3,7 +3,7 @@ import { Common } from "@ethereumjs/common";
 import { BufferLike, bufferToBigInt, zeros } from "@ethereumjs/util";
 import { assert } from "chai";
 
-import { randomHashBuffer } from "../../../../src/internal/hardhat-network/provider/fork/random";
+import { randomHashBuffer } from "../../../../src/internal/hardhat-network/provider/utils/random";
 import { HardhatBlockchain } from "../../../../src/internal/hardhat-network/provider/HardhatBlockchain";
 import {
   createTestLog,
