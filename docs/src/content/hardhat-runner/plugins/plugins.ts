@@ -514,13 +514,7 @@ const communityPlugins: IPlugin[] = [
     authorUrl: "https://thegraph.com",
     description:
       "Develop your subgraph side by side with your contracts to save gas and increase productivity.",
-    tags: [
-      "graphprotocol",
-      "subgraph",
-      "graphql",
-      "development",
-      "deployment",
-    ],
+    tags: ["graphprotocol",·"subgraph",·"graphql",·"development",·"deployment"],
   },
 ];
 
