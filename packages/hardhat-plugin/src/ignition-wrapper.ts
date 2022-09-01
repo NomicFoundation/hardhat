@@ -38,13 +38,17 @@ export class IgnitionWrapper {
 
   public async deploySingleGraph(
     recipe: any,
-    deployParams: { parameters: { [key: string]: ParamValue } } | undefined
+    deployParams:
+      | { parameters: { [key: string]: ParamValue }; ui?: boolean }
+      | undefined
   ) {
     if (deployParams !== undefined) {
       await this._providers.config.setParams(deployParams.parameters);
     }
 
-    const [deploymentResult] = await this._ignition.deploySingleGraph(recipe);
+    const [deploymentResult] = await this._ignition.deploySingleGraph(recipe, {
+      ui: deployParams?.ui ?? true,
+    });
 
     if (deploymentResult._kind === "hold") {
       const [recipeId, holdReason] = deploymentResult.holds;

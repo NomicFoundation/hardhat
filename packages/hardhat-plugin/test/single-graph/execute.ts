@@ -277,7 +277,10 @@ async function deployRecipe(
 
   const userRecipe = buildRecipeSingleGraph("MyRecipe", recipeDefinition);
 
-  const deployPromise = hre.ignition.deploySingleGraph(userRecipe, options);
+  const deployPromise = hre.ignition.deploySingleGraph(userRecipe, {
+    ...options,
+    ui: false,
+  });
 
   await mineBlocks(hre, [1, 1, 1], deployPromise);
 

@@ -108,7 +108,8 @@ export class Ignition {
   }
 
   public async deploySingleGraph(
-    recipe: any
+    recipe: any,
+    options = { ui: true }
   ): Promise<[DeploymentResult, any]> {
     log(`Start deploy`);
 
@@ -130,7 +131,7 @@ export class Ignition {
       journal: new InMemoryJournal(),
       txPollingInterval: 300,
       ui: new UiService({
-        enabled: true,
+        enabled: options.ui,
         deploymentState: new DeploymentState(),
       }),
     };

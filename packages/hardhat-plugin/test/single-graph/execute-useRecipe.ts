@@ -38,6 +38,7 @@ describe("useRecipe", function () {
 
       const deployPromise = this.hre.ignition.deploySingleGraph(userRecipe, {
         parameters: {},
+        ui: false,
       });
 
       await mineBlocks(this.hre, [1, 1, 1], deployPromise);
@@ -86,6 +87,7 @@ describe("useRecipe", function () {
 
       const deployPromise = this.hre.ignition.deploySingleGraph(userRecipe, {
         parameters: {},
+        ui: false,
       });
 
       await mineBlocks(this.hre, [1, 1, 1], deployPromise);
@@ -146,6 +148,7 @@ describe("useRecipe", function () {
 
       const deployPromise = this.hre.ignition.deploySingleGraph(userRecipe, {
         parameters: {},
+        ui: false,
       });
 
       await mineBlocks(this.hre, [1, 1, 1, 1], deployPromise);
@@ -210,6 +213,7 @@ describe("useRecipe", function () {
 
       const deployPromise = this.hre.ignition.deploySingleGraph(userRecipe, {
         parameters: {},
+        ui: false,
       });
 
       await mineBlocks(this.hre, [1, 1, 1, 1], deployPromise);
