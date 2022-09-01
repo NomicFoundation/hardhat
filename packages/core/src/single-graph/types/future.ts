@@ -1,8 +1,11 @@
+import { Artifact } from "./hardhat";
+
 export interface HardhatContract {
   vertexId: number;
   label: string;
   type: "contract";
   subtype: "hardhat";
+  contractName: string;
   _future: true;
 }
 
@@ -11,6 +14,7 @@ export interface ArtifactContract {
   label: string;
   type: "contract";
   subtype: "artifact";
+  artifact: Artifact;
   _future: true;
 }
 
@@ -19,6 +23,7 @@ export interface DeployedContract {
   label: string;
   type: "contract";
   subtype: "deployed";
+  abi: any[];
   _future: true;
 }
 
@@ -27,6 +32,7 @@ export interface HardhatLibrary {
   label: string;
   type: "library";
   subtype: "hardhat";
+  libraryName: string;
   _future: true;
 }
 
@@ -35,6 +41,7 @@ export interface ArtifactLibrary {
   label: string;
   type: "library";
   subtype: "artifact";
+  artifact: Artifact;
   _future: true;
 }
 

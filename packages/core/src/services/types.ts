@@ -1,9 +1,9 @@
 import { ethers } from "ethers";
 
-import { ArtifactsService } from "./ArtifactsService";
-import { ConfigService } from "./ConfigService";
-import { ContractsService } from "./ContractsService";
-import { TransactionsService } from "./TransactionsService";
+import { IArtifactsService } from "./ArtifactsService";
+import { IConfigService } from "./ConfigService";
+import { IContractsService } from "./ContractsService";
+import { ITransactionsService } from "./TransactionsService";
 
 export interface TransactionOptions {
   gasLimit?: ethers.BigNumberish;
@@ -11,8 +11,8 @@ export interface TransactionOptions {
 }
 
 export interface Services {
-  contracts: ContractsService;
-  artifacts: ArtifactsService;
-  transactions: TransactionsService;
-  config: ConfigService;
+  contracts: IContractsService;
+  artifacts: IArtifactsService;
+  transactions: ITransactionsService;
+  config: IConfigService;
 }

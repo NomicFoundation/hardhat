@@ -25,7 +25,7 @@ export interface HardhatContractRecipeVertex {
   label: string;
   scopeAdded: string;
   contractName: string;
-  args: Array<string | number | RecipeFuture>;
+  args: Array<boolean | string | number | RecipeFuture>;
   libraries: LibraryMap;
 }
 
@@ -35,7 +35,7 @@ export interface ArtifactContractRecipeVertex {
   label: string;
   scopeAdded: string;
   artifact: Artifact;
-  args: Array<string | number | RecipeFuture>;
+  args: Array<boolean | string | number | RecipeFuture>;
   libraries: LibraryMap;
 }
 
@@ -54,7 +54,7 @@ export interface HardhatLibraryRecipeVertex {
   libraryName: string;
   label: string;
   scopeAdded: string;
-  args: Array<string | number | RecipeFuture>;
+  args: Array<boolean | string | number | RecipeFuture>;
 }
 
 export interface ArtifactLibraryRecipeVertex {
@@ -63,7 +63,7 @@ export interface ArtifactLibraryRecipeVertex {
   label: string;
   scopeAdded: string;
   artifact: Artifact;
-  args: Array<string | number | RecipeFuture>;
+  args: Array<boolean | string | number | RecipeFuture>;
 }
 
 export interface CallRecipeVertex {
@@ -73,7 +73,7 @@ export interface CallRecipeVertex {
   scopeAdded: string;
   contract: CallableFuture;
   method: string;
-  args: Array<string | number | RecipeFuture>;
+  args: Array<boolean | string | number | RecipeFuture>;
   after: RecipeFuture[];
 }
 
@@ -95,7 +95,7 @@ export type RecipeVertex =
   | VirtualVertex;
 
 export interface ContractOptions {
-  args?: Array<string | number | RecipeFuture>;
+  args?: Array<boolean | string | number | RecipeFuture>;
   libraries?: {
     [key: string]: RecipeFuture;
   };
@@ -141,7 +141,7 @@ export interface IRecipeGraphBuilder {
     {
       args,
     }: {
-      args: Array<string | number | RecipeFuture>;
+      args: Array<boolean | string | number | RecipeFuture>;
       after?: RecipeFuture[];
     }
   ) => ContractCall;

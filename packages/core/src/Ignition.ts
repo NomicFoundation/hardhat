@@ -14,11 +14,12 @@ import { InMemoryJournal } from "./journal/InMemoryJournal";
 import { Providers } from "./providers";
 import { RecipeBuilderImpl } from "./recipes/RecipeBuilderImpl";
 import { UserRecipe } from "./recipes/UserRecipe";
+import { Services } from "./services/types";
 import { execute } from "./single-graph/execution/execute";
 import { generateRecipeGraphFrom } from "./single-graph/process/generateRecipeGraphFrom";
 import { transformRecipeGraphToExecutionGraph } from "./single-graph/process/transformRecipeGraphToExecutionGraph";
+import { createServices } from "./single-graph/services/createServices";
 import { DependableFuture, FutureDict } from "./single-graph/types/future";
-import { DeploymentState } from "./single-graph/ui/types";
 import { UiService } from "./single-graph/ui/ui-service";
 import { isDependable } from "./single-graph/utils/guards";
 import { validateRecipeGraph } from "./single-graph/validation/validateRecipeGraph";
@@ -113,6 +114,20 @@ export class Ignition {
   ): Promise<[DeploymentResult, any]> {
     log(`Start deploy`);
 
+    const ui = new UiService({ enabled: options.ui });
+
+    const serviceOptions = {
+      providers: this._providers,
+      journal: new InMemoryJournal(),
+      txPollingInterval: 300,
+    };
+
+    const services: Services = createServices(
+      "recipeIdEXECUTE",
+      "executorIdEXECUTE",
+      serviceOptions
+    );
+
     const chainId = await this._getChainId();
 
     const { graph: recipeGraph, recipeOutputs } = generateRecipeGraphFrom(
@@ -120,21 +135,11 @@ export class Ignition {
       { chainId }
     );
 
-    const validationResult = validateRecipeGraph(recipeGraph);
+    const validationResult = await validateRecipeGraph(recipeGraph, services);
 
     if (validationResult._kind === "failure") {
       return [validationResult, {}];
     }
-
-    const serviceOptions = {
-      providers: this._providers,
-      journal: new InMemoryJournal(),
-      txPollingInterval: 300,
-      ui: new UiService({
-        enabled: options.ui,
-        deploymentState: new DeploymentState(),
-      }),
-    };
 
     const transformResult = await transformRecipeGraphToExecutionGraph(
       recipeGraph,
@@ -147,7 +152,7 @@ export class Ignition {
 
     const { executionGraph } = transformResult;
 
-    const executionResult = await execute(executionGraph, serviceOptions);
+    const executionResult = await execute(executionGraph, services, ui);
 
     if (executionResult._kind === "failure") {
       return [executionResult, {}];
@@ -164,21 +169,27 @@ export class Ignition {
   public async planSingleGraph(recipe: any) {
     log(`Start deploy`);
 
-    const chainId = await this._getChainId();
-
-    const { graph: recipeGraph } = generateRecipeGraphFrom(recipe, { chainId });
-
-    const validationResult = validateRecipeGraph(recipeGraph);
-
-    if (validationResult._kind === "failure") {
-      return [validationResult, {}];
-    }
-
     const serviceOptions = {
       providers: this._providers,
       journal: new InMemoryJournal(),
       txPollingInterval: 300,
     };
+
+    const services: Services = createServices(
+      "recipeIdEXECUTE",
+      "executorIdEXECUTE",
+      serviceOptions
+    );
+
+    const chainId = await this._getChainId();
+
+    const { graph: recipeGraph } = generateRecipeGraphFrom(recipe, { chainId });
+
+    const validationResult = await validateRecipeGraph(recipeGraph, services);
+
+    if (validationResult._kind === "failure") {
+      return [validationResult, {}];
+    }
 
     const transformResult = await transformRecipeGraphToExecutionGraph(
       recipeGraph,

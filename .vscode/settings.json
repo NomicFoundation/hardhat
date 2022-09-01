@@ -1,0 +1,3 @@
+{
+  "task.allowAutomaticTasks": "on"
+}

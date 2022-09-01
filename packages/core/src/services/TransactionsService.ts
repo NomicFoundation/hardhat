@@ -2,7 +2,11 @@ import { ethers } from "ethers";
 
 import { Providers } from "../providers";
 
-export class TransactionsService {
+export interface ITransactionsService {
+  wait(txHash: string): Promise<ethers.providers.TransactionReceipt>;
+}
+
+export class TransactionsService implements ITransactionsService {
   constructor(private readonly _providers: Providers) {}
 
   public async wait(

@@ -9,7 +9,24 @@ import { sleep } from "../utils";
 
 import type { TransactionOptions } from "./types";
 
-export class ContractsService {
+export interface IContractsService {
+  deploy(
+    artifact: Artifact,
+    args: any[],
+    libraries: { [k: string]: any },
+    txOptions?: TransactionOptions
+  ): Promise<string>;
+
+  call(
+    address: string,
+    abi: any[],
+    method: string,
+    args: any[],
+    txOptions?: TransactionOptions
+  ): Promise<string>;
+}
+
+export class ContractsService implements IContractsService {
   private _debug = setupDebug("ignition:services:contracts-service");
   private _ethersProvider: ethers.providers.Web3Provider;
 

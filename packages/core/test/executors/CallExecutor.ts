@@ -6,7 +6,8 @@ import { InternalContractFuture } from "../../src/futures/InternalContractFuture
 import { CallOptions } from "../../src/futures/types";
 import { Artifact } from "../../src/types";
 
-describe("Call Executor", () => {
+// eslint-disable-next-line mocha/no-skipped-tests
+describe.skip("Call Executor", () => {
   describe("validate", () => {
     const exampleArtifact = {
       _format: "hh-sol-artifact-1",

@@ -213,9 +213,9 @@ function assertRecipeVertexNotExpected(
 }
 
 async function convertArgs(
-  args: Array<string | number | RecipeFuture>,
+  args: Array<boolean | string | number | RecipeFuture>,
   transformContext: TransformContext
-): Promise<Array<string | number | RecipeFuture>> {
+): Promise<Array<boolean | string | number | RecipeFuture>> {
   const resolvedArgs = [];
 
   for (const arg of args) {
@@ -228,7 +228,7 @@ async function convertArgs(
 }
 
 async function resolveParameter(
-  arg: string | number | RecipeFuture,
+  arg: boolean | string | number | RecipeFuture,
   { services, graph }: TransformContext
 ) {
   if (!isFuture(arg)) {

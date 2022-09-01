@@ -3,7 +3,7 @@ import { AdjacencyList } from "./graph";
 import { Artifact } from "./hardhat";
 import { LibraryMap } from "./recipeGraph";
 
-export type ArgValue = string | number | RecipeFuture;
+export type ArgValue = boolean | string | number | RecipeFuture;
 
 export interface ContractDeploy {
   type: "ContractDeploy";

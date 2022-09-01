@@ -1,16 +1,23 @@
+import { Services } from "../../services/types";
+import { getSortedVertexIdsFrom } from "../graph/utils";
+import { visit } from "../graph/visit";
+import { VisitResult } from "../types/graph";
 import { IRecipeGraph } from "../types/recipeGraph";
 
-export type ValidateRecipeGraphResult =
-  | {
-      _kind: "success";
-    }
-  | {
-      _kind: "failure";
-      failures: [string, Error[]];
-    };
+import { validationDispatch } from "./dispatch/validationDispatch";
 
 export function validateRecipeGraph(
-  _recipeGraph: IRecipeGraph
-): ValidateRecipeGraphResult {
-  return { _kind: "success" };
+  recipeGraph: IRecipeGraph,
+  services: Services
+): Promise<VisitResult> {
+  const orderedVertexIds = getSortedVertexIdsFrom(recipeGraph);
+
+  return visit(
+    "Validation",
+    orderedVertexIds,
+    recipeGraph,
+    { services },
+    new Map<number, any>(),
+    validationDispatch
+  );
 }

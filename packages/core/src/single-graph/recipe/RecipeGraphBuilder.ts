@@ -64,6 +64,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
         label: libraryName,
         type: "library",
         subtype: "artifact",
+        artifact,
         _future: true,
       };
 
@@ -85,6 +86,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
         label: libraryName,
         type: "library",
         subtype: "hardhat",
+        libraryName,
         _future: true,
       };
 
@@ -115,6 +117,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
         label: contractName,
         type: "contract",
         subtype: "artifact",
+        artifact,
         _future: true,
       };
 
@@ -137,6 +140,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
         label: contractName,
         type: "contract",
         subtype: "hardhat",
+        contractName,
         _future: true,
       };
 
@@ -164,6 +168,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
       label: contractName,
       type: "contract",
       subtype: "deployed",
+      abi,
       _future: true,
     };
 
@@ -186,7 +191,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
       args,
       after,
     }: {
-      args: Array<string | number | RecipeFuture>;
+      args: Array<boolean | string | number | RecipeFuture>;
       after?: RecipeFuture[];
     }
   ): ContractCall {
@@ -303,6 +308,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
           label: v.label,
           type: "contract", // TODO: this is a hack, lets add a future type for this sort of ellision
           subtype: "artifact",
+          artifact: {} as any,
           _future: true,
         })
       );

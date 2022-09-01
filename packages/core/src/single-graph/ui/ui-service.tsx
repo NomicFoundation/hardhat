@@ -6,17 +6,10 @@ import { DeploymentState } from "./types";
 
 export class UiService {
   private _enabled: boolean;
-  private _deploymentState: DeploymentState;
+  private _deploymentState: DeploymentState | undefined;
 
-  constructor({
-    enabled,
-    deploymentState,
-  }: {
-    enabled: boolean;
-    deploymentState: DeploymentState;
-  }) {
+  constructor({ enabled }: { enabled: boolean }) {
     this._enabled = enabled;
-    this._deploymentState = deploymentState;
   }
 
   public setDeploymentState(deploymentState: DeploymentState) {
@@ -24,6 +17,10 @@ export class UiService {
   }
 
   public render() {
+    if (this._deploymentState === undefined) {
+      throw new Error("Cannot render before deployment state set");
+    }
+
     if (this._enabled) {
       render(<IgnitionUi deploymentState={this._deploymentState} />);
     }

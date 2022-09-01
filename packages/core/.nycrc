@@ -3,7 +3,7 @@
   "check-coverage": true,
   "statements": 35,
   "branches": 25,
-  "functions": 38,
+  "functions": 30,
   "lines": 35,
   "all": true,
   "include": [

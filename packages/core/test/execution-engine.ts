@@ -24,7 +24,8 @@ const executionEngineOptions: ExecutionEngineOptions = {
   txPollingInterval: 100,
 };
 
-describe("ExecutionEngine", function () {
+// eslint-disable-next-line mocha/no-skipped-tests
+describe.skip("ExecutionEngine", function () {
   it("should run a single recipe with a single executor", async function () {
     // given
     const executionEngine = new ExecutionEngine(

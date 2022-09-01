@@ -10,6 +10,8 @@ import {
   ensureVertex,
 } from "../../../src/single-graph/graph/adjacencyList";
 
+import { buildAdjacencyListFrom, constructAdjacencyList } from "./helpers";
+
 describe("Adjacency list", () => {
   it("should allow looking up deps for a two node graph", () => {
     const adjacencyList = constructEmptyAdjacencyList();
@@ -153,33 +155,3 @@ describe("Adjacency list", () => {
     });
   });
 });
-
-function constructAdjacencyList(edges: Array<{ from: number; to: number }>) {
-  const adjacencyList = constructEmptyAdjacencyList();
-
-  const vertexes = edges.reduce((acc, { from, to }) => {
-    acc.add(from);
-    acc.add(to);
-    return acc;
-  }, new Set<number>());
-
-  for (const vertex of vertexes) {
-    ensureVertex(adjacencyList, vertex);
-  }
-
-  for (const { from, to } of edges) {
-    addEdge(adjacencyList, { from, to });
-  }
-
-  return adjacencyList;
-}
-
-function buildAdjacencyListFrom(literal: { [key: number]: number[] }) {
-  const expectedMap = new Map<number, Set<number>>();
-
-  for (const [key, list] of Object.entries(literal)) {
-    expectedMap.set(parseInt(key, 10), new Set<number>(list));
-  }
-
-  return expectedMap;
-}

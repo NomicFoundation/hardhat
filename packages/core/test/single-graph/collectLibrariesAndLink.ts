@@ -1,6 +1,6 @@
 import { expect } from "chai";
 
-import { collectLibrariesAndLink } from "../src/collectLibrariesAndLink";
+import { collectLibrariesAndLink } from "../../src/collectLibrariesAndLink";
 
 describe("collectLibrariesAndLink", function () {
   describe("library linking needed", () => {

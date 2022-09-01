@@ -448,6 +448,7 @@ describe("Recipes", function () {
           label: "Token",
           type: "contract",
           subtype: "hardhat",
+          contractName: "Token",
           _future: true,
         },
       ]);
