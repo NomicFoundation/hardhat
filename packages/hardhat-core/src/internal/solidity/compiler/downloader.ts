@@ -292,11 +292,7 @@ export class CompilerDownloader implements ICompilerDownloader {
     const expectedKeccak256 = build.keccak256;
     const compiler = await fsExtra.readFile(downloadPath);
 
-    const compilerKeccak256 = ethereumjsUtil.bufferToHex(
-      ethereumjsUtil.arrToBufArr(
-        keccak256(ethereumjsUtil.bufArrToArr(compiler))
-      )
-    );
+    const compilerKeccak256 = ethereumjsUtil.bufferToHex(keccak256(compiler));
 
     if (expectedKeccak256 !== compilerKeccak256) {
       await fsExtra.unlink(downloadPath);

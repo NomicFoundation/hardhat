@@ -5,12 +5,10 @@ export class RandomBufferGenerator {
   private constructor(private _nextValue: Uint8Array) {}
 
   public static create(seed: string): RandomBufferGenerator {
-    const { bufArrToArr } =
-      require("@nomicfoundation/ethereumjs-util") as typeof EthereumjsUtilT;
     const { keccak256 } =
       require("ethereum-cryptography/keccak") as typeof EthereumCryptographyKeccakT;
 
-    const nextValue = keccak256(bufArrToArr(Buffer.from(seed)));
+    const nextValue = keccak256(Buffer.from(seed));
 
     return new RandomBufferGenerator(nextValue);
   }
@@ -23,7 +21,7 @@ export class RandomBufferGenerator {
 
     const valueToReturn = this._nextValue;
 
-    this._nextValue = keccak256(this._nextValue);
+    this._nextValue = keccak256(arrToBufArr(this._nextValue));
 
     return arrToBufArr(valueToReturn);
   }
