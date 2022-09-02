@@ -4,7 +4,11 @@ import debug from "debug";
 import semver from "semver";
 import "source-map-support/register";
 
-import { TASK_COMPILE, TASK_HELP } from "../../builtin-tasks/task-names";
+import {
+  TASK_COMPILE,
+  TASK_HELP,
+  TASK_TEST,
+} from "../../builtin-tasks/task-names";
 import { TaskArguments } from "../../types";
 import { HARDHAT_NAME } from "../constants";
 import { HardhatContext } from "../context";
@@ -268,7 +272,8 @@ async function main() {
 
       if (
         timestampAfterRun - timestampBeforeRun >
-        ANALYTICS_SLOW_TASK_THRESHOLD
+          ANALYTICS_SLOW_TASK_THRESHOLD &&
+        taskName !== TASK_COMPILE
       ) {
         await hitPromise;
       } else {
@@ -288,7 +293,7 @@ async function main() {
 
     // VSCode extension prompt for installation
     if (
-      taskName === "test" &&
+      taskName === TASK_TEST &&
       !isRunningOnCiServer() &&
       process.stdout.isTTY === true
     ) {
