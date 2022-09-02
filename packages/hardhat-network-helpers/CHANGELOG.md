@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-network-helpers
 
+## 1.0.5
+
+### Patch Changes
+
+- f3ba15ca8: Added a new `setPrevRandao` helper
+
 ## 1.0.4
 
 ### Patch Changes
