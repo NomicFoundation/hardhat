@@ -1,5 +1,17 @@
 # hardhat
 
+## 2.11.0
+
+### Minor Changes
+
+- f3ba15ca8: - Added support for the merge
+  - Added a new `hardhat_setPrevRandao` RPC method
+  - Optimized the compilation task
+  - Typechecking is now opt-in instead of opt-out
+  - Added a new `--flamegraph` flag for performance profiling
+  - Artifact paths are now cached
+- d93ab3198: Added support for the merge.
+
 ## 2.10.2
 
 ### Patch Changes
