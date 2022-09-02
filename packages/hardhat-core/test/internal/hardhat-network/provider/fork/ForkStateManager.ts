@@ -7,7 +7,6 @@ import {
   unpadBuffer,
 } from "@nomicfoundation/ethereumjs-util";
 import { assert } from "chai";
-import { keccak256 } from "ethereum-cryptography/keccak";
 import sinon from "sinon";
 
 import { JsonRpcClient } from "../../../../../src/internal/hardhat-network/jsonrpc/client";
@@ -17,6 +16,7 @@ import {
   randomHashBuffer,
 } from "../../../../../src/internal/hardhat-network/provider/utils/random";
 import { makeForkClient } from "../../../../../src/internal/hardhat-network/provider/utils/makeForkClient";
+import { keccak256 } from "../../../../../src/internal/util/keccak";
 import { ALCHEMY_URL } from "../../../../setup";
 import {
   DAI_ADDRESS,

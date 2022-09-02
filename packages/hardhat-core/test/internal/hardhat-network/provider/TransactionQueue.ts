@@ -7,7 +7,6 @@ import {
 } from "@nomicfoundation/ethereumjs-util";
 import { assert } from "chai";
 import { randomBytes } from "crypto";
-import { keccak256 } from "ethereum-cryptography/keccak";
 
 import {
   AccessListEIP2930TxData,
@@ -19,6 +18,7 @@ import { createTestOrderedTransaction } from "../helpers/blockchain";
 import { makeOrderedTxMap } from "../helpers/makeOrderedTxMap";
 import { InternalError } from "../../../../src/internal/core/providers/errors";
 import * as BigIntUtils from "../../../../src/internal/util/bigint";
+import { keccak256 } from "../../../../src/internal/util/keccak";
 
 type TestTxData = (
   | TxData

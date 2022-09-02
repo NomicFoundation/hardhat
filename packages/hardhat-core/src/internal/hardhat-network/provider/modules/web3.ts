@@ -1,12 +1,10 @@
-import { arrToBufArr, bufArrToArr } from "@nomicfoundation/ethereumjs-util";
-import { keccak256 } from "ethereum-cryptography/keccak";
-
 import {
   bufferToRpcData,
   rpcData,
 } from "../../../core/jsonrpc/types/base-types";
 import { validateParams } from "../../../core/jsonrpc/types/input/validation";
 import { MethodNotFoundError } from "../../../core/providers/errors";
+import { keccak256 } from "../../../util/keccak";
 import { getPackageJson } from "../../../util/packageInfo";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
@@ -46,6 +44,6 @@ export class Web3Module {
   }
 
   private async _sha3Action(buffer: Buffer): Promise<string> {
-    return bufferToRpcData(arrToBufArr(keccak256(bufArrToArr(buffer))));
+    return bufferToRpcData(keccak256(buffer));
   }
 }

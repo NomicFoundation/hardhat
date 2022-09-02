@@ -1,31 +1,25 @@
 import type EthereumjsUtilT from "@nomicfoundation/ethereumjs-util";
-import type EthereumCryptographyKeccakT from "ethereum-cryptography/keccak";
+import type * as UtilKeccakT from "../../../util/keccak";
 
 export class RandomBufferGenerator {
-  private constructor(private _nextValue: Uint8Array) {}
+  private constructor(private _nextValue: Buffer) {}
 
   public static create(seed: string): RandomBufferGenerator {
-    const { bufArrToArr } =
-      require("@nomicfoundation/ethereumjs-util") as typeof EthereumjsUtilT;
-    const { keccak256 } =
-      require("ethereum-cryptography/keccak") as typeof EthereumCryptographyKeccakT;
+    const { keccak256 } = require("../../../util/keccak") as typeof UtilKeccakT;
 
-    const nextValue = keccak256(bufArrToArr(Buffer.from(seed)));
+    const nextValue = keccak256(Buffer.from(seed));
 
     return new RandomBufferGenerator(nextValue);
   }
 
   public next(): Buffer {
-    const { arrToBufArr } =
-      require("@nomicfoundation/ethereumjs-util") as typeof EthereumjsUtilT;
-    const { keccak256 } =
-      require("ethereum-cryptography/keccak") as typeof EthereumCryptographyKeccakT;
+    const { keccak256 } = require("../../../util/keccak") as typeof UtilKeccakT;
 
     const valueToReturn = this._nextValue;
 
     this._nextValue = keccak256(this._nextValue);
 
-    return arrToBufArr(valueToReturn);
+    return valueToReturn;
   }
 
   public setNext(nextValue: Buffer) {

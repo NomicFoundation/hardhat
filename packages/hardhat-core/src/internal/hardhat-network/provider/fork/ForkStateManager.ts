@@ -9,11 +9,11 @@ import {
   toBuffer,
   unpadBuffer,
 } from "@nomicfoundation/ethereumjs-util";
-import { keccak256 } from "ethereum-cryptography/keccak";
 import { Map as ImmutableMap, Record as ImmutableRecord } from "immutable";
 
 import { assertHardhatInvariant } from "../../../core/errors";
 import { InternalError } from "../../../core/providers/errors";
+import { keccak256 } from "../../../util/keccak";
 import { JsonRpcClient } from "../../jsonrpc/client";
 import { GenesisAccount } from "../node-types";
 import { makeAccount } from "../utils/makeAccount";
