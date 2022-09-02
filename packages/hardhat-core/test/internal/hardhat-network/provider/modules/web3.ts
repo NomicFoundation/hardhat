@@ -1,8 +1,8 @@
-import { arrToBufArr, toBuffer } from "@nomicfoundation/ethereumjs-util";
+import { toBuffer } from "@nomicfoundation/ethereumjs-util";
 import { assert } from "chai";
-import { keccak256 } from "ethereum-cryptography/keccak";
 
 import { bufferToRpcData } from "../../../../../src/internal/core/jsonrpc/types/base-types";
+import { keccak256 } from "../../../../../src/internal/util/keccak";
 import { workaroundWindowsCiFailures } from "../../../../utils/workaround-windows-ci-failures";
 import { setCWD } from "../../helpers/cwd";
 import { PROVIDERS } from "../../helpers/providers";
@@ -32,9 +32,7 @@ describe("Web3 module", function () {
       describe("web3_sha3", async function () {
         it("Should return the keccak256 of the input", async function () {
           const data = "0x123a1b238123";
-          const hashed = bufferToRpcData(
-            arrToBufArr(keccak256(toBuffer(data)))
-          );
+          const hashed = bufferToRpcData(keccak256(toBuffer(data)));
 
           const res = await this.provider.send("web3_sha3", [
             bufferToRpcData(toBuffer(data)),
