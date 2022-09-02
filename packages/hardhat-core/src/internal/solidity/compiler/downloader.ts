@@ -1,3 +1,4 @@
+import { arrToBufArr } from "@nomicfoundation/ethereumjs-util";
 import path from "path";
 import fsExtra from "fs-extra";
 import debug from "debug";
@@ -292,7 +293,9 @@ export class CompilerDownloader implements ICompilerDownloader {
     const expectedKeccak256 = build.keccak256;
     const compiler = await fsExtra.readFile(downloadPath);
 
-    const compilerKeccak256 = ethereumjsUtil.bufferToHex(keccak256(compiler));
+    const compilerKeccak256 = ethereumjsUtil.bufferToHex(
+      arrToBufArr(keccak256(compiler))
+    );
 
     if (expectedKeccak256 !== compilerKeccak256) {
       await fsExtra.unlink(downloadPath);
