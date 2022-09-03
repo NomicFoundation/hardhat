@@ -69,7 +69,7 @@ export function toRpcQuantity(x: NumberLike): string {
 
   if (hex === "0x0") return hex;
 
-  return hex.startsWith("0x") ? hex.replace("0x0", "0x") : `0x${hex}`;
+  return hex.startsWith("0x") ? hex.replace(/0x0+/, "0x") : `0x${hex}`;
 }
 
 export function assertValidAddress(address: string): void {
