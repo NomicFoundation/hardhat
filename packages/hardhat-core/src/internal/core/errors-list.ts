@@ -850,6 +850,21 @@ If this error persists, run \`npx hardhat clean --global\`.`,
 Please [report it](https://github.com/nomiclabs/hardhat/issues/new) to help us improve Hardhat.`,
       shouldBeReported: true,
     },
+    CANT_RUN_NATIVE_COMPILER: {
+      number: 505,
+      message: `A native version of solc failed to run.
+
+If you are running MacOS, try installing Apple Rosetta.
+
+If this error persists, run "npx hardhat clean --global".`,
+      title: "Failed to run native solc",
+      description: `Hardhat successfully downloaded a native version of solc but it doesn't run.
+
+If you are running MacOS, try installing Apple Rosetta.
+
+If this error persists, run "npx hardhat clean --global".`,
+      shouldBeReported: false,
+    },
   },
   BUILTIN_TASKS: {
     COMPILE_FAILURE: {

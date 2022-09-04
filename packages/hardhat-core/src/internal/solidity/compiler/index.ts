@@ -1,6 +1,8 @@
 import { execFile } from "child_process";
 import * as fs from "fs";
 import { CompilerInput, CompilerOutput } from "../../../types";
+import { HardhatError } from "../../core/errors";
+import { ERRORS } from "../../core/errors-list";
 
 export interface ICompiler {
   compile(input: CompilerInput): Promise<CompilerOutput>;
@@ -62,22 +64,26 @@ export class NativeCompiler implements ICompiler {
 
   public async compile(input: CompilerInput) {
     const output: string = await new Promise((resolve, reject) => {
-      const process = execFile(
-        this._pathToSolc,
-        [`--standard-json`],
-        {
-          maxBuffer: 1024 * 1024 * 500,
-        },
-        (err, stdout) => {
-          if (err !== null) {
-            return reject(err);
+      try {
+        const process = execFile(
+          this._pathToSolc,
+          [`--standard-json`],
+          {
+            maxBuffer: 1024 * 1024 * 500,
+          },
+          (err, stdout) => {
+            if (err !== null) {
+              return reject(err);
+            }
+            resolve(stdout);
           }
-          resolve(stdout);
-        }
-      );
+        );
 
-      process.stdin!.write(JSON.stringify(input));
-      process.stdin!.end();
+        process.stdin!.write(JSON.stringify(input));
+        process.stdin!.end();
+      } catch (e: any) {
+        throw new HardhatError(ERRORS.SOLC.CANT_RUN_NATIVE_COMPILER, {}, e);
+      }
     });
 
     return JSON.parse(output);
