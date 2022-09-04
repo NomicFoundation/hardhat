@@ -1,0 +1,5 @@
+section-type: group
+section-title: Sponsor guides
+order:
+  - title: Working with Chainlink oracles
+    href: /chainlink
