@@ -1,11 +1,10 @@
-import { buildRecipe, RecipeDefinition } from "@nomicfoundation/ignition-core";
+import { buildRecipeSingleGraph } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 
-import { mineBlocks } from "./helpers";
-import { useEnvironment } from "./useEnvironment";
+import { deployRecipe, mineBlocks } from "../helpers";
+import { useEnvironment } from "../useEnvironment";
 
-// eslint-disable-next-line mocha/no-skipped-tests
-describe.skip("params", () => {
+describe("recipe parameters", () => {
   useEnvironment("minimal");
 
   describe("required", () => {
@@ -153,7 +152,7 @@ describe.skip("params", () => {
     it("should throw if no parameters object provided", async function () {
       await this.hre.run("compile", { quiet: true });
 
-      const userRecipe = buildRecipe("MyRecipe", (m) => {
+      const userRecipe = buildRecipeSingleGraph("MyRecipe", (m) => {
         const myNumber = m.getParam("MyNumber");
 
         const foo = m.contract("Foo");
@@ -165,7 +164,7 @@ describe.skip("params", () => {
         return { foo };
       });
 
-      const deployPromise = this.hre.ignition.deploy(userRecipe, {});
+      const deployPromise = this.hre.ignition.deploySingleGraph(userRecipe, {});
 
       await mineBlocks(this.hre, [1, 1], deployPromise);
 
@@ -178,7 +177,7 @@ describe.skip("params", () => {
     it("should throw if parameter missing from parameters", async function () {
       await this.hre.run("compile", { quiet: true });
 
-      const userRecipe = buildRecipe("MyRecipe", (m) => {
+      const userRecipe = buildRecipeSingleGraph("MyRecipe", (m) => {
         const myNumber = m.getParam("MyNumber");
 
         const foo = m.contract("Foo");
@@ -190,7 +189,7 @@ describe.skip("params", () => {
         return { foo };
       });
 
-      const deployPromise = this.hre.ignition.deploy(userRecipe, {
+      const deployPromise = this.hre.ignition.deploySingleGraph(userRecipe, {
         parameters: {
           NotMyNumber: 11,
         },
@@ -203,83 +202,5 @@ describe.skip("params", () => {
         'No parameter provided for "MyNumber"'
       );
     });
-
-    it("should ban multiple params with the same name", async function () {
-      await this.hre.run("compile", { quiet: true });
-
-      const userRecipe = buildRecipe("MyRecipe", (m) => {
-        const myNumber = m.getParam("MyNumber");
-        const myNumber2 = m.getParam("MyNumber");
-
-        const foo = m.contract("Foo");
-
-        m.call(foo, "incTwoNumbers", {
-          args: [myNumber, myNumber2],
-        });
-
-        return { foo };
-      });
-
-      const deployPromise = this.hre.ignition.deploy(userRecipe, {
-        parameters: {
-          NotMyNumber: 11,
-        },
-      });
-
-      await mineBlocks(this.hre, [1, 1], deployPromise);
-
-      await assert.isRejected(
-        deployPromise,
-        'A parameter should only be retrieved once, but found more than one call to getParam for "MyNumber"'
-      );
-    });
-
-    it("should ban multiple optional params with the same name", async function () {
-      await this.hre.run("compile", { quiet: true });
-
-      const userRecipe = buildRecipe("MyRecipe", (m) => {
-        const myNumber = m.getOptionalParam("MyNumber", 11);
-        const myNumber2 = m.getOptionalParam("MyNumber", 12);
-
-        const foo = m.contract("Foo");
-
-        m.call(foo, "incTwoNumbers", {
-          args: [myNumber, myNumber2],
-        });
-
-        return { foo };
-      });
-
-      const deployPromise = this.hre.ignition.deploy(userRecipe, {
-        parameters: {
-          NotMyNumber: 11,
-        },
-      });
-
-      await mineBlocks(this.hre, [1, 1], deployPromise);
-
-      await assert.isRejected(
-        deployPromise,
-        'An optional parameter should only be retrieved once, but found more than one call to getParam for "MyNumber"'
-      );
-    });
   });
 });
-
-async function deployRecipe<T>(
-  hre: any,
-  recipeDefinition: RecipeDefinition<T>,
-  options?: { parameters: {} }
-): Promise<any> {
-  await hre.run("compile", { quiet: true });
-
-  const userRecipe = buildRecipe("MyRecipe", recipeDefinition);
-
-  const deployPromise = hre.ignition.deploy(userRecipe, options);
-
-  await mineBlocks(hre, [1, 1], deployPromise);
-
-  const result = await deployPromise;
-
-  return result;
-}

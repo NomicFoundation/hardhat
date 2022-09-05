@@ -7,7 +7,8 @@ import { useEnvironment } from "./useEnvironment";
 describe("chain id", () => {
   useEnvironment("minimal");
 
-  it("should be available on the recipe builder", async function () {
+  // eslint-disable-next-line mocha/no-skipped-tests
+  it.skip("should be available on the recipe builder", async function () {
     // given
     const chainIdRecipe = buildRecipe("MyRecipe", (m) => {
       assert.equal(m.chainId, 31337);

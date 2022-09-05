@@ -246,11 +246,30 @@ async function resolveParameter(
     return scopeParameters[arg.label];
   }
 
-  const param = await services.config.getParam(arg.label);
+  const hasParamResult = await services.config.hasParam(arg.label);
 
-  if (param === undefined) {
-    throw new Error(`No param for ${arg.label}`);
+  if (arg.subtype === "optional") {
+    return hasParamResult.found
+      ? services.config.getParam(arg.label)
+      : arg.defaultValue;
   }
 
-  return param;
+  if (hasParamResult.found === false) {
+    switch (hasParamResult.errorCode) {
+      case "no-params":
+        throw new Error(
+          `No parameters object provided to deploy options, but recipe requires parameter "${arg.label}"`
+        );
+      case "param-missing":
+        throw new Error(`No parameter provided for "${arg.label}"`);
+      default:
+        assertNeverParamResult(hasParamResult.errorCode);
+    }
+  }
+
+  return services.config.getParam(arg.label);
+}
+
+function assertNeverParamResult(hasParamResult: never) {
+  throw new Error(`Unexpected error code ${hasParamResult}`);
 }

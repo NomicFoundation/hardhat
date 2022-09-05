@@ -4,6 +4,9 @@ import {
   SerializedDeploymentResult,
   DeploymentResult,
   Contract,
+  buildRecipeSingleGraph,
+  IRecipeGraphBuilder,
+  FutureDict,
 } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 
@@ -197,4 +200,25 @@ async function assertContract(hre: any, futureResult: SerializedFutureResult) {
 
 export function isContract(contract: any): contract is Contract {
   return contract.address !== undefined;
+}
+
+export async function deployRecipe(
+  hre: any,
+  recipeDefinition: (m: IRecipeGraphBuilder) => FutureDict,
+  options?: { parameters: {} }
+): Promise<any> {
+  await hre.run("compile", { quiet: true });
+
+  const userRecipe = buildRecipeSingleGraph("MyRecipe", recipeDefinition);
+
+  const deployPromise = hre.ignition.deploySingleGraph(userRecipe, {
+    ...options,
+    ui: false,
+  });
+
+  await mineBlocks(hre, [1, 1, 1], deployPromise);
+
+  const result = await deployPromise;
+
+  return result;
 }

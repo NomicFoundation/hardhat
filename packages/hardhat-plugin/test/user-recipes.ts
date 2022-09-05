@@ -10,7 +10,8 @@ import {
 
 import { useEnvironment } from "./useEnvironment";
 
-describe("User recipes", function () {
+// eslint-disable-next-line mocha/no-skipped-tests
+describe.skip("User recipes", function () {
   useEnvironment("user-recipes");
 
   describe("loadUserRecipes", function () {
