@@ -46,7 +46,10 @@ export async function putGenesisBlock(
     {
       header,
     },
-    { common }
+    {
+      common,
+      skipConsensusFormatValidation: true,
+    }
   );
 
   await blockchain.putBlock(genesisBlock);
