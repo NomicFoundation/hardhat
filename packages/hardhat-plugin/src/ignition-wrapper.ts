@@ -1,19 +1,13 @@
 import {
-  Future,
-  DeploymentPlan,
   Ignition,
-  UserRecipe,
   IgnitionDeployOptions,
   SerializedRecipeResult,
   Providers,
   ParamValue,
 } from "@nomicfoundation/ignition-core";
-import { ethers } from "ethers";
 import fsExtra from "fs-extra";
 import { HardhatConfig, HardhatRuntimeEnvironment } from "hardhat/types";
 import path from "path";
-
-import { getAllUserRecipesPaths } from "./user-recipes";
 
 type HardhatEthers = HardhatRuntimeEnvironment["ethers"];
 type HardhatPaths = HardhatConfig["paths"];
@@ -98,137 +92,6 @@ export class IgnitionWrapper {
     return JSON.stringify(plan);
   }
 
-  public async deploy<T>(
-    userRecipeOrName: UserRecipe<T> | string,
-    deployParams?: { parameters: { [key: string]: ParamValue } }
-  ): Promise<Resolved<T>> {
-    const [, resolvedOutputs] = await this.deployMany(
-      [userRecipeOrName],
-      deployParams
-    );
-
-    return resolvedOutputs[0];
-  }
-
-  /**
-   * Deploys all the given recipes. Returns the deployment result, and an
-   * array with the resolved outputs that corresponds to each recipe in
-   * the input.
-   */
-  public async deployMany(
-    userRecipesOrNames: Array<UserRecipe<any> | string>,
-    deployParams: { parameters: { [key: string]: ParamValue } } | undefined
-  ) {
-    if (deployParams !== undefined) {
-      await this._providers.config.setParams(deployParams.parameters);
-    }
-
-    const userRecipes: Array<UserRecipe<any>> = [];
-
-    for (const userRecipeOrName of userRecipesOrNames) {
-      const userRecipe: UserRecipe<any> =
-        typeof userRecipeOrName === "string"
-          ? await this._getRecipe(userRecipeOrName)
-          : userRecipeOrName;
-
-      userRecipes.push(userRecipe);
-    }
-
-    const [deploymentResult, recipeOutputs] = await this._ignition.deploy(
-      userRecipes,
-      this._deployOptions
-    );
-
-    if (deploymentResult._kind === "hold") {
-      const [recipeId, holdReason] = deploymentResult.holds;
-      throw new Error(`Execution held for recipe '${recipeId}': ${holdReason}`);
-    }
-
-    if (deploymentResult._kind === "failure") {
-      const [recipeId, failures] = deploymentResult.failures;
-
-      let failuresMessage = "";
-      for (const failure of failures) {
-        failuresMessage += `  - ${failure.message}\n`;
-      }
-
-      throw new Error(
-        `Execution failed for recipe '${recipeId}':\n\n${failuresMessage}`
-      );
-    }
-
-    const resolvedOutputPerRecipe: Record<string, any> = {};
-    for (const [recipeId, recipeOutput] of Object.entries(recipeOutputs)) {
-      const resolvedOutput: any = {};
-      for (const [key, value] of Object.entries<any>(recipeOutput)) {
-        const serializedFutureResult =
-          deploymentResult.result[value.recipeId][value.id];
-
-        if (
-          serializedFutureResult._kind === "string" ||
-          serializedFutureResult._kind === "number"
-        ) {
-          resolvedOutput[key] = serializedFutureResult;
-        } else if (serializedFutureResult._kind === "tx") {
-          resolvedOutput[key] = serializedFutureResult.value.hash;
-        } else {
-          const { abi, address } = serializedFutureResult.value;
-          resolvedOutput[key] = await this._ethers.getContractAt(abi, address);
-        }
-      }
-      resolvedOutputPerRecipe[recipeId] = resolvedOutput;
-    }
-
-    const resolvedOutputs = userRecipes.map(
-      (x) => resolvedOutputPerRecipe[x.id]
-    );
-
-    return [deploymentResult, resolvedOutputs] as const;
-  }
-
-  public async buildPlan(
-    userRecipesOrNames: Array<UserRecipe<any> | string>
-  ): Promise<DeploymentPlan> {
-    const userRecipes: Array<UserRecipe<any>> = [];
-    for (const userRecipeOrName of userRecipesOrNames) {
-      const userRecipe: UserRecipe<any> =
-        typeof userRecipeOrName === "string"
-          ? await this._getRecipe(userRecipeOrName)
-          : userRecipeOrName;
-
-      userRecipes.push(userRecipe);
-    }
-
-    const plan = await this._ignition.buildPlan(userRecipes);
-
-    return plan;
-  }
-
-  private async _getRecipe<T>(recipeId: string): Promise<UserRecipe<T>> {
-    const userRecipesPaths = getAllUserRecipesPaths(this._paths.ignition);
-
-    for (const userRecipePath of userRecipesPaths) {
-      const resolveUserRecipePath = path.resolve(
-        this._paths.ignition,
-        userRecipePath
-      );
-
-      const fileExists = await fsExtra.pathExists(resolveUserRecipePath);
-      if (!fileExists) {
-        throw new Error(`Recipe ${resolveUserRecipePath} doesn't exist`);
-      }
-
-      const userRecipe = require(resolveUserRecipePath);
-      const userRecipeContent = userRecipe.default ?? userRecipe;
-
-      if (userRecipeContent.id === recipeId) {
-        return userRecipeContent;
-      }
-    }
-
-    throw new Error(`No recipe found with id ${recipeId}`);
-  }
-
   private async _getRecipeResult(
     recipeId: string
   ): Promise<SerializedRecipeResult | undefined> {
@@ -289,17 +152,3 @@ export class IgnitionWrapper {
     return this._cachedChainId;
   }
 }
-
-type Resolved<T> = T extends string
-  ? T
-  : T extends Future<any, infer O>
-  ? O extends string
-    ? string
-    : ethers.Contract
-  : {
-      [K in keyof T]: T[K] extends Future<any, infer O>
-        ? O extends string
-          ? string
-          : ethers.Contract
-        : T[K];
-    };
