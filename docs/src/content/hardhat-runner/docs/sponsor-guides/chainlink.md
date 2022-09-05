@@ -58,8 +58,7 @@ Using services like Chainlink, you can reference decentralized data on-chain tha
 
 - [Get crypto price feeds in your contract](https://chain.link/solutions/defi)
 - [Generate verifiable random numbers (useful for gaming)](https://chain.link/solutions/chainlink-vrf)
-- [Call external APIs](https://docs.chain.link/docs/request-and-receive-data)
-  – One novel use of this is [Checking wBTC reserves](https://cointelegraph.com/news/1b-in-wrapped-bitcoin-now-being-audited-using-chainlink-s-proof-of-reserve)
+- [Call external APIs](https://docs.chain.link/docs/request-and-receive-data) – One novel use of this is [Checking wBTC reserves](https://cointelegraph.com/news/1b-in-wrapped-bitcoin-now-being-audited-using-chainlink-s-proof-of-reserve)
 
 Here is an example of how to get the latest ETH price in your smart contract using a Chainlink price feed:
 
@@ -113,8 +112,7 @@ Chainlink VRF (Verifiable Random Function) is a provably-fair and verifiable sou
 
 Random numbers are difficult because blockchains are deterministic.
 
-Working with Chainlink Oracles outside of data feeds follows the [request and receive cycle](https://docs.chain.link/docs/architecture-request-model) of working with Chainlink. They use the LINK token to send oracle providers oracle gas for returning responses. The LINK token is specifically designed to work with oracles and are based on the upgraded ERC-677 token, which is backwards compatible with [ERC-20](https://ethereum.org/developers/docs/standards/tokens/erc-20/).
-The following code, if deployed on the Kovan testnet will retrieve a cryptographically proven random number. To make the request, fund the contract with some testnet LINK token that you can get from the [Kovan LINK Faucet](https://kovan.chain.link/).
+Working with Chainlink Oracles outside of data feeds follows the [request and receive cycle](https://docs.chain.link/docs/architecture-request-model) of working with Chainlink. They use the LINK token to send oracle providers oracle gas for returning responses. The LINK token is specifically designed to work with oracles and are based on the upgraded ERC-677 token, which is backwards compatible with [ERC-20](https://ethereum.org/developers/docs/standards/tokens/erc-20/). The following code, if deployed on the Kovan testnet will retrieve a cryptographically proven random number. To make the request, fund the contract with some testnet LINK token that you can get from the [Kovan LINK Faucet](https://kovan.chain.link/).
 
 ```javascript
 
