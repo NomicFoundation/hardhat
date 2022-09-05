@@ -228,7 +228,7 @@ export interface CompilerOutputBytecode {
   sourceMap: string;
   linkReferences: {
     [sourceName: string]: {
-      [libraryName: string]: Array<{ start: 0; length: 20 }>;
+      [libraryName: string]: Array<{ start: number; length: 20 }>;
     };
   };
   immutableReferences?: {
