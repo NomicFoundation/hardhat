@@ -1,0 +1,22 @@
+{
+    "package": "rethnet-evm",
+    "name": "rethnet-evm",
+    "version": "0.1.0-dev",
+    "main": "rethnet-evm.node",
+    "types": "rethnet-evm.d.ts",
+    "license": "MIT",
+    "napi": {
+        "name": "rethnet-evm"
+    },
+    "scripts": {
+        "build": "napi build --release --dts rethnet-evm.d.ts",
+        "build:debug": "napi build --dts rethnet-evm.d.ts",
+        "test": "mocha --recursive \"test/**/*.ts\""
+    },
+    "devDependencies": {
+        "@napi-rs/cli": "^2.11.4",
+        "chai": "^4.3.6",
+        "mocha": "^10.0.0",
+        "typescript": "~4.5.2"
+    }
+}

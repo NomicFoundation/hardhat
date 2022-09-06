@@ -1,0 +1,16 @@
+[package]
+name = "rethnet_evm_napi"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+anyhow = "1.0.64"
+napi = { version = "2.9.0", default-features = false, features = ["async", "error_anyhow", "napi8"] }
+napi-derive = "2.9.0"
+rethnet_evm = { version = "0.1.0-dev", path = "../rethnet_evm" }
+
+[build-dependencies]
+napi-build = "2.0.1"

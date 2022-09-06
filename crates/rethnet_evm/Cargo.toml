@@ -1,0 +1,10 @@
+[package]
+name = "rethnet_evm"
+version = "0.1.0-dev"
+edition = "2021"
+
+[dependencies]
+bytes = "1.2.1"
+hashbrown = { version = "0.12.3", features = ["serde"] }
+primitive-types = { version = "0.11.1", default-features = false, features = ["impl-serde"] }
+revm = { version = "1.9.0", default-features = false, features = ["k256", "with-serde"] }
