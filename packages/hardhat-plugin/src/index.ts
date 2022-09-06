@@ -1,5 +1,5 @@
 import "@nomiclabs/hardhat-ethers";
-import { Providers, UserRecipe } from "@nomicfoundation/ignition-core";
+import { Providers, Recipe } from "@nomicfoundation/ignition-core";
 import { exec } from "child_process";
 import fs from "fs-extra";
 import { extendConfig, extendEnvironment, task } from "hardhat/config";
@@ -12,21 +12,7 @@ import { IgnitionWrapper } from "./ignition-wrapper";
 import { loadUserRecipes, loadAllUserRecipes } from "./user-recipes";
 import "./type-extensions";
 
-export {
-  buildRecipe,
-  RecipeBuilder,
-  AddressLike,
-  ContractFuture,
-  ContractOptions,
-  InternalFuture,
-  InternalContractFuture,
-  Executor,
-  Contract,
-  Services,
-  Future,
-  Hold,
-  buildRecipeSingleGraph,
-} from "@nomicfoundation/ignition-core";
+export { buildRecipeSingleGraph } from "@nomicfoundation/ignition-core";
 
 extendConfig((config, userConfig) => {
   const userIgnitionPath = userConfig.paths?.ignition;
@@ -141,7 +127,7 @@ task("deploySingleGraph")
         process.exit(0);
       }
 
-      let userRecipes: Array<UserRecipe<any>>;
+      let userRecipes: Recipe[];
       if (userRecipesPaths.length === 0) {
         userRecipes = loadAllUserRecipes(hre.config.paths.ignition);
       } else {
@@ -173,7 +159,7 @@ task("plan")
     ) => {
       await hre.run("compile", { quiet: true });
 
-      let userRecipes: Array<UserRecipe<any>>;
+      let userRecipes: Recipe[];
       if (userRecipesPaths.length === 0) {
         userRecipes = loadAllUserRecipes(hre.config.paths.ignition);
       } else {

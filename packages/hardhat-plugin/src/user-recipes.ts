@@ -1,13 +1,11 @@
-import { UserRecipe } from "@nomicfoundation/ignition-core";
+import { Recipe } from "@nomicfoundation/ignition-core";
 import setupDebug from "debug";
 import fsExtra from "fs-extra";
 import path from "path";
 
 const debug = setupDebug("hardhat-ignition:recipes");
 
-export function loadAllUserRecipes(
-  userRecipesDirectory: string
-): Array<UserRecipe<any>> {
+export function loadAllUserRecipes(userRecipesDirectory: string): Recipe[] {
   debug(`Loading all user recipes from '${userRecipesDirectory}'`);
 
   if (!fsExtra.existsSync(userRecipesDirectory)) {
@@ -22,7 +20,7 @@ export function loadAllUserRecipes(
 export function loadUserRecipes(
   userRecipesDirectory: string,
   userRecipesFiles: string[] = []
-): Array<UserRecipe<any>> {
+): Recipe[] {
   debug(`Loading user recipes from '${userRecipesDirectory}'`);
 
   if (!fsExtra.existsSync(userRecipesDirectory)) {
@@ -39,7 +37,7 @@ export function loadUserRecipes(
 
 export function getUserRecipesFromPaths(
   resolvedUserRecipesPaths: string[]
-): Array<UserRecipe<any>> {
+): Recipe[] {
   debug(`Loading '${resolvedUserRecipesPaths.length}' recipe files`);
 
   const userRecipes: any[] = [];

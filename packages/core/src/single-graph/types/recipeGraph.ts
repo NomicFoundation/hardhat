@@ -19,13 +19,17 @@ export interface LibraryMap {
   [key: string]: RecipeFuture;
 }
 
+export type ExternalParamValue = boolean | string | number;
+
+export type InternalParamValue = ExternalParamValue | RecipeFuture;
+
 export interface HardhatContractRecipeVertex {
   id: number;
   type: "HardhatContract";
   label: string;
   scopeAdded: string;
   contractName: string;
-  args: Array<boolean | string | number | RecipeFuture>;
+  args: InternalParamValue[];
   libraries: LibraryMap;
 }
 
@@ -35,7 +39,7 @@ export interface ArtifactContractRecipeVertex {
   label: string;
   scopeAdded: string;
   artifact: Artifact;
-  args: Array<boolean | string | number | RecipeFuture>;
+  args: InternalParamValue[];
   libraries: LibraryMap;
 }
 
@@ -54,7 +58,7 @@ export interface HardhatLibraryRecipeVertex {
   libraryName: string;
   label: string;
   scopeAdded: string;
-  args: Array<boolean | string | number | RecipeFuture>;
+  args: InternalParamValue[];
 }
 
 export interface ArtifactLibraryRecipeVertex {
@@ -63,7 +67,7 @@ export interface ArtifactLibraryRecipeVertex {
   label: string;
   scopeAdded: string;
   artifact: Artifact;
-  args: Array<boolean | string | number | RecipeFuture>;
+  args: InternalParamValue[];
 }
 
 export interface CallRecipeVertex {
@@ -73,7 +77,7 @@ export interface CallRecipeVertex {
   scopeAdded: string;
   contract: CallableFuture;
   method: string;
-  args: Array<boolean | string | number | RecipeFuture>;
+  args: InternalParamValue[];
   after: RecipeFuture[];
 }
 
@@ -95,7 +99,7 @@ export type RecipeVertex =
   | VirtualVertex;
 
 export interface ContractOptions {
-  args?: Array<boolean | string | number | RecipeFuture>;
+  args?: InternalParamValue[];
   libraries?: {
     [key: string]: RecipeFuture;
   };
@@ -142,7 +146,7 @@ export interface IRecipeGraphBuilder {
     {
       args,
     }: {
-      args: Array<boolean | string | number | RecipeFuture>;
+      args: InternalParamValue[];
       after?: RecipeFuture[];
     }
   ) => ContractCall;

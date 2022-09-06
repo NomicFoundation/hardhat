@@ -1,3 +1,4 @@
+/* eslint-disable import/no-unused-modules */
 import { buildRecipeSingleGraph } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 

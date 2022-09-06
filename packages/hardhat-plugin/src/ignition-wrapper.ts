@@ -3,7 +3,8 @@ import {
   IgnitionDeployOptions,
   SerializedRecipeResult,
   Providers,
-  ParamValue,
+  ExternalParamValue,
+  Recipe,
 } from "@nomicfoundation/ignition-core";
 import fsExtra from "fs-extra";
 import { HardhatConfig, HardhatRuntimeEnvironment } from "hardhat/types";
@@ -46,9 +47,9 @@ export class IgnitionWrapper {
   }
 
   public async deploySingleGraph(
-    recipe: any,
+    recipe: Recipe,
     deployParams:
-      | { parameters: { [key: string]: ParamValue }; ui?: boolean }
+      | { parameters: { [key: string]: ExternalParamValue }; ui?: boolean }
       | undefined
   ) {
     if (deployParams !== undefined) {

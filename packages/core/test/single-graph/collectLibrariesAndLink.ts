@@ -1,3 +1,4 @@
+/* eslint-disable import/no-unused-modules */
 import { expect } from "chai";
 
 import { collectLibrariesAndLink } from "../../src/collectLibrariesAndLink";

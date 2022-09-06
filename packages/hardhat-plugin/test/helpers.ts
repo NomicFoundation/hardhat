@@ -1,5 +1,5 @@
 import {
-  UserRecipe,
+  Recipe,
   SerializedFutureResult,
   SerializedDeploymentResult,
   DeploymentResult,
@@ -113,7 +113,7 @@ async function assertTxMined(hre: any, hash: string) {
  */
 export async function deployRecipes(
   hre: any,
-  userRecipes: Array<UserRecipe<any>>,
+  userRecipes: Recipe[],
   expectedBlocks: number[]
 ): Promise<SerializedDeploymentResult> {
   await hre.run("compile", { quiet: true });

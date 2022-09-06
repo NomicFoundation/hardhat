@@ -1,7 +1,4 @@
-import {
-  SerializedDeploymentResult,
-  SerializedRecipeResult,
-} from "./futures/types";
+import { serializeFutureOutput } from "./utils";
 
 export interface Artifact {
   contractName: string;
@@ -39,3 +36,9 @@ export type DeploymentResult =
   | { _kind: "failure"; failures: [string, Error[]] }
   | { _kind: "hold"; holds: [string, string[]] }
   | { _kind: "success"; result: SerializedDeploymentResult };
+
+export type SerializedRecipeResult = Record<string, SerializedFutureResult>;
+export type SerializedDeploymentResult = Record<string, SerializedRecipeResult>;
+export type SerializedFutureResult = ReturnType<typeof serializeFutureOutput>;
+
+export type FutureOutput = string | number | Contract | Tx;

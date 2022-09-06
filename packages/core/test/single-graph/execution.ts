@@ -1,3 +1,4 @@
+/* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
 import { Services, TransactionOptions } from "../../src/services/types";

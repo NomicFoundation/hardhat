@@ -1,6 +1,6 @@
 import type { ethers } from "ethers";
 
-import { ParamValue } from "./recipes/types";
+import { ExternalParamValue } from "./single-graph/types/recipeGraph";
 import { Artifact } from "./types";
 
 export interface Providers {
@@ -47,9 +47,9 @@ export type HasParamResult =
   | { found: true };
 
 export interface ConfigProvider {
-  setParams(parameters: { [key: string]: ParamValue }): Promise<void>;
+  setParams(parameters: { [key: string]: ExternalParamValue }): Promise<void>;
 
-  getParam(paramName: string): Promise<ParamValue>;
+  getParam(paramName: string): Promise<ExternalParamValue>;
 
   hasParam(paramName: string): Promise<HasParamResult>;
 }
