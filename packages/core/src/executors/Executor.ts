@@ -1,6 +1,6 @@
 import setupDebug, { IDebugger } from "debug";
 
-import { FutureState } from "../deployment-state";
+import { FutureState } from "../deployment-state-old2";
 import { InternalFuture } from "../futures/InternalFuture";
 import { FutureOutput, Resolved } from "../futures/types";
 import type { Services } from "../services/types";
