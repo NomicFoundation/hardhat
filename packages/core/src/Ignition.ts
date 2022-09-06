@@ -1,25 +1,17 @@
 import setupDebug from "debug";
 
-import {
-  DeploymentPlan,
-  DeploymentResult,
-  ExecutionEngine,
-  ExecutionManager,
-  IgnitionRecipesResults,
-} from "./execution-engine";
+import { DeploymentResult, IgnitionRecipesResults } from "./execution-engine";
 import { SerializedDeploymentResult } from "./futures/types";
 import { serializeFutureOutput } from "./futures/utils";
-import { FileJournal } from "./journal/FileJournal";
 import { InMemoryJournal } from "./journal/InMemoryJournal";
 import { Providers } from "./providers";
-import { RecipeBuilderImpl } from "./recipes/RecipeBuilderImpl";
-import { UserRecipe } from "./recipes/UserRecipe";
 import { Services } from "./services/types";
 import { execute } from "./single-graph/execution/execute";
 import { generateRecipeGraphFrom } from "./single-graph/process/generateRecipeGraphFrom";
 import { transformRecipeGraphToExecutionGraph } from "./single-graph/process/transformRecipeGraphToExecutionGraph";
 import { createServices } from "./single-graph/services/createServices";
 import { DependableFuture, FutureDict } from "./single-graph/types/future";
+import { Recipe } from "./single-graph/types/recipeGraph";
 import { UiService } from "./single-graph/ui/ui-service";
 import { isDependable } from "./single-graph/utils/guards";
 import { validateRecipeGraph } from "./single-graph/validation/validateRecipeGraph";
@@ -29,6 +21,7 @@ const log = setupDebug("ignition:main");
 export interface IgnitionDeployOptions {
   pathToJournal: string | undefined;
   txPollingInterval: number;
+  ui: boolean;
 }
 
 type RecipesOutputs = Record<string, any>;
@@ -39,79 +32,14 @@ export class Ignition {
     private _recipesResults: IgnitionRecipesResults
   ) {}
 
-  public async deploy(
-    userRecipes: Array<UserRecipe<any>>,
-    { pathToJournal, txPollingInterval }: IgnitionDeployOptions
-  ): Promise<[DeploymentResult, RecipesOutputs]> {
-    log(`Start deploy, '${userRecipes.length}' recipes`);
-
-    const chainId = await this._getChainId();
-
-    const m = new RecipeBuilderImpl(chainId);
-
-    const recipesOutputs: RecipesOutputs = {};
-
-    for (const userRecipe of userRecipes) {
-      log("Load recipe '%s'", userRecipe.id);
-      const recipeOutput = m.useRecipe(userRecipe) ?? {};
-      recipesOutputs[userRecipe.id] = recipeOutput;
-    }
-
-    log("Build execution graph");
-    const executionGraph = m.buildExecutionGraph();
-
-    log("Create journal with path '%s'", pathToJournal);
-    const journal =
-      pathToJournal !== undefined
-        ? new FileJournal(pathToJournal)
-        : new InMemoryJournal();
-
-    const engine = new ExecutionEngine(
-      this._providers,
-      journal,
-      this._recipesResults,
-      {
-        parallelizationLevel: 2,
-        loggingEnabled: pathToJournal !== undefined,
-        txPollingInterval,
-      }
-    );
-
-    const executionManager = new ExecutionManager(
-      engine,
-      txPollingInterval / 5
-    );
-
-    log("Execute deployment");
-    const deploymentResult = await executionManager.execute(executionGraph);
-
-    return [deploymentResult, recipesOutputs];
-  }
-
-  public async buildPlan(
-    userRecipes: Array<UserRecipe<any>>
-  ): Promise<DeploymentPlan> {
-    log(`Start building plan, '${userRecipes.length}' recipes`);
-
-    const chainId = await this._getChainId();
-
-    const m = new RecipeBuilderImpl(chainId);
-
-    for (const userRecipe of userRecipes) {
-      log("Load recipe '%s'", userRecipe.id);
-      m.useRecipe(userRecipe);
-    }
-
-    log("Build ExecutionGraph");
-    const executionGraph = m.buildExecutionGraph();
-
-    return ExecutionEngine.buildPlan(executionGraph, this._recipesResults);
-  }
-
   public async deploySingleGraph(
-    recipe: any,
-    options = { ui: true }
-  ): Promise<[DeploymentResult, any]> {
+    recipe: Recipe,
+    options: IgnitionDeployOptions = {
+      ui: true,
+      pathToJournal: undefined,
+      txPollingInterval: 300,
+    }
+  ): Promise<[DeploymentResult, RecipesOutputs]> {
     log(`Start deploy`);
 
     const ui = new UiService({ enabled: options.ui });
@@ -166,7 +94,7 @@ export class Ignition {
     return [{ _kind: "success", result: serializedDeploymentResult }, {}];
   }
 
-  public async planSingleGraph(recipe: any) {
+  public async planSingleGraph(recipe: Recipe) {
     log(`Start plan`);
 
     const serviceOptions = {

@@ -109,7 +109,7 @@ extendEnvironment((hre) => {
       hre.ethers,
       isHardhatNetwork,
       hre.config.paths,
-      { pathToJournal, txPollingInterval }
+      { pathToJournal, txPollingInterval, ui: true }
     );
   });
 });
