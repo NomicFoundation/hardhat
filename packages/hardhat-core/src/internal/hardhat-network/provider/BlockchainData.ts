@@ -220,7 +220,10 @@ export class BlockchainData {
             timestamp,
           },
         },
-        { common: this._common }
+        {
+          common: this._common,
+          skipConsensusFormatValidation: true,
+        }
       ),
       oldReservation.previousBlockTotalDifficulty
     );

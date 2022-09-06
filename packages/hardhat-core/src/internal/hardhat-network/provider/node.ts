@@ -2377,6 +2377,8 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         blockContext = Block.fromBlockData(blockContext, {
           freeze: false,
           common: this._vm._common,
+
+          skipConsensusFormatValidation: true,
         });
 
         (blockContext.header as any).baseFeePerGas = 0n;
