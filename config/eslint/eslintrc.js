@@ -8,6 +8,7 @@ module.exports = {
   parser: "@typescript-eslint/parser",
   plugins: ["eslint-plugin-import", "@typescript-eslint", "mocha"],
   rules: {
+    "import/no-unused-modules": [1, { unusedExports: true }],
     "@typescript-eslint/adjacent-overload-signatures": "error",
     "@typescript-eslint/array-type": [
       "error",

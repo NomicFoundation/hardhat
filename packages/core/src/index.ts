@@ -22,8 +22,8 @@ export type { Services } from "./services/types";
 
 export type { Providers, ConfigProvider, HasParamResult } from "./providers";
 
-export type { DeploymentResult } from "./execution-engine";
-export { DeploymentPlan } from "./execution-engine";
+export type { DeploymentResult } from "./types";
+
 export { Ignition, IgnitionDeployOptions } from "./Ignition";
 export type { Contract } from "./types";
 

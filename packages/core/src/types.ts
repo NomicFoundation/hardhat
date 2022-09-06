@@ -1,3 +1,8 @@
+import {
+  SerializedDeploymentResult,
+  SerializedRecipeResult,
+} from "./futures/types";
+
 export interface Artifact {
   contractName: string;
   bytecode: string;
@@ -21,3 +26,16 @@ export interface DeployedContract extends Contract {
 export interface Tx {
   hash: string;
 }
+
+export interface IgnitionRecipesResults {
+  load: (recipeId: string) => Promise<SerializedRecipeResult | undefined>;
+  save: (
+    recipeId: string,
+    recipeResult: SerializedRecipeResult
+  ) => Promise<void>;
+}
+
+export type DeploymentResult =
+  | { _kind: "failure"; failures: [string, Error[]] }
+  | { _kind: "hold"; holds: [string, string[]] }
+  | { _kind: "success"; result: SerializedDeploymentResult };

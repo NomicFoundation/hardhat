@@ -1,6 +1,6 @@
 import setupDebug from "debug";
 
-import { DeploymentResult, IgnitionRecipesResults } from "./execution-engine";
+// import { DeploymentResult, IgnitionRecipesResults } from "./execution-engine";
 import { SerializedDeploymentResult } from "./futures/types";
 import { serializeFutureOutput } from "./futures/utils";
 import { InMemoryJournal } from "./journal/InMemoryJournal";
@@ -15,6 +15,7 @@ import { Recipe } from "./single-graph/types/recipeGraph";
 import { UiService } from "./single-graph/ui/ui-service";
 import { isDependable } from "./single-graph/utils/guards";
 import { validateRecipeGraph } from "./single-graph/validation/validateRecipeGraph";
+import { DeploymentResult, IgnitionRecipesResults } from "./types";
 
 const log = setupDebug("ignition:main");
 
