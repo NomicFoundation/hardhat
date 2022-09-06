@@ -111,6 +111,7 @@ export interface IRecipeGraph {
   registeredParameters: {
     [key: string]: { [key: string]: string | number | RecipeFuture };
   };
+  toMermaid(): string;
 }
 
 export interface IRecipeGraphBuilder {

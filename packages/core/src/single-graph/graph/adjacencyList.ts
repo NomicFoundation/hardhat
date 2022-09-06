@@ -96,3 +96,17 @@ export function eliminate(
 
   return updatedList;
 }
+
+export function getEdges(
+  adjacencyList: AdjacencyList
+): Array<{ from: number; to: number }> {
+  const edges: Array<{ from: number; to: number }> = [];
+
+  for (const [from, edgeList] of adjacencyList.entries()) {
+    for (const to of edgeList.values()) {
+      edges.push({ from, to });
+    }
+  }
+
+  return edges;
+}

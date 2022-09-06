@@ -167,7 +167,7 @@ export class Ignition {
   }
 
   public async planSingleGraph(recipe: any) {
-    log(`Start deploy`);
+    log(`Start plan`);
 
     const serviceOptions = {
       providers: this._providers,
@@ -202,7 +202,7 @@ export class Ignition {
 
     const { executionGraph } = transformResult;
 
-    return executionGraph;
+    return { recipeGraph, executionGraph };
   }
 
   private async _getChainId(): Promise<number> {

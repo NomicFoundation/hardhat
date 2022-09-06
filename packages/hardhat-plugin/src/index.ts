@@ -1,7 +1,10 @@
 import "@nomiclabs/hardhat-ethers";
 import { Providers, UserRecipe } from "@nomicfoundation/ignition-core";
+import fs from "fs-extra";
 import { extendConfig, extendEnvironment, task } from "hardhat/config";
 import { lazyObject } from "hardhat/plugins";
+import { exec } from "child_process";
+import os from "os";
 import path from "path";
 
 import { ConfigWrapper } from "./ConfigWrapper";
@@ -115,7 +118,7 @@ task("deploySingleGraph")
   .addOptionalVariadicPositionalParam("userRecipesPaths")
   .addOptionalParam(
     "parameters",
-    "A json object as a string, of the recipe paramters"
+    "A json object as a string, of the recipe parameters"
   )
   .setAction(
     async (
@@ -154,5 +157,60 @@ task("deploySingleGraph")
       }
 
       await hre.ignition.deploySingleGraph(userRecipes[0], { parameters });
+    }
+  );
+
+task("plan")
+  .addFlag("quiet", "Disables logging output path to terminal")
+  .addOptionalVariadicPositionalParam("userRecipesPaths")
+  .setAction(
+    async (
+      {
+        quiet = false,
+        userRecipesPaths = [],
+      }: { quiet: boolean; userRecipesPaths: string[] },
+      hre
+    ) => {
+      await hre.run("compile", { quiet: true });
+
+      let userRecipes: Array<UserRecipe<any>>;
+      if (userRecipesPaths.length === 0) {
+        userRecipes = loadAllUserRecipes(hre.config.paths.ignition);
+      } else {
+        userRecipes = loadUserRecipes(
+          hre.config.paths.ignition,
+          userRecipesPaths
+        );
+      }
+
+      if (userRecipes.length === 0) {
+        console.warn("No Ignition recipes found");
+        process.exit(0);
+      }
+
+      const html = await hre.ignition.planSingleGraph(userRecipes[0]);
+
+      const filePath = `${hre.config.paths.cache}/plan.html`;
+
+      let command: string;
+      switch (os.platform()) {
+        case "win32":
+          command = "start";
+          break;
+        case "darwin":
+          command = "open";
+          break;
+        default:
+          command = "xdg-open";
+      }
+
+      await fs.ensureDir(hre.config.paths.cache);
+      await fs.writeFile(filePath, html);
+
+      if (!quiet) {
+        console.log(`Plan written to ${filePath}`);
+      }
+
+      exec(`${command} ${filePath}`);
     }
   );

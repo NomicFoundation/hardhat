@@ -12,6 +12,21 @@ import path from "path";
 type HardhatEthers = HardhatRuntimeEnvironment["ethers"];
 type HardhatPaths = HardhatConfig["paths"];
 
+const htmlTemplate = `
+<html>
+  <body>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script>
+      mermaid.initialize({ startOnLoad: true });
+    </script>
+
+    <div class="mermaid">
+      $
+    </div>
+  </body>
+</html>
+`;
+
 export class IgnitionWrapper {
   private _ignition: Ignition;
   private _cachedChainId: number | undefined;
@@ -88,8 +103,25 @@ export class IgnitionWrapper {
   public async planSingleGraph(recipe: any) {
     const plan = await this._ignition.planSingleGraph(recipe);
 
-    // better display needed ...
-    return JSON.stringify(plan);
+    if (!Array.isArray(plan)) {
+      const recipeGraph = plan.recipeGraph.toMermaid();
+      const executionGraph = plan.executionGraph.toMermaid();
+
+      const output = `
+flowchart
+subgraph ExecutionGraph
+direction TB
+${executionGraph.substring(executionGraph.indexOf("\n"))}
+end
+subgraph RecipeGraph
+direction TB
+${recipeGraph.substring(recipeGraph.indexOf("\n"))}
+end
+`;
+      return htmlTemplate.replace("$", output);
+    }
+
+    return htmlTemplate.replace("$", "");
   }
 
   private async _getRecipeResult(

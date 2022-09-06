@@ -48,4 +48,5 @@ export type ExecutionVertex =
 export interface IExecutionGraph {
   adjacencyList: AdjacencyList;
   vertexes: Map<number, ExecutionVertex>;
+  toMermaid(): string;
 }

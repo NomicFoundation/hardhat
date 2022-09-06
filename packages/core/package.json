@@ -52,6 +52,7 @@
     "ink": "^3.2.0",
     "ink-spinner": "^4.0.3",
     "js-graph-algorithms": "1.0.18",
+    "mermaid": "^9.1.6",
     "react": "^17.0.2"
   }
 }
