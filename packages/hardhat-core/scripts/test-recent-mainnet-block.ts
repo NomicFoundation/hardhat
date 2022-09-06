@@ -1,4 +1,4 @@
-import { Common } from "@ethereumjs/common";
+import { Common } from "@nomicfoundation/ethereumjs-common";
 
 import { makeForkClient } from "../src/internal/hardhat-network/provider/utils/makeForkClient";
 import { runFullBlock } from "../test/internal/hardhat-network/provider/utils/runFullBlock";

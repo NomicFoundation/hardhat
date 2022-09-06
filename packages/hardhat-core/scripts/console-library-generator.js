@@ -1,4 +1,4 @@
-const eutil = require("@ethereumjs/util");
+const eutil = require("@nomicfoundation/ethereumjs-util");
 const fs = require("fs");
 
 const { keccak256 } = require("../internal/util/keccak");
