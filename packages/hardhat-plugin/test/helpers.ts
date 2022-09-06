@@ -3,7 +3,7 @@ import {
   SerializedFutureResult,
   SerializedDeploymentResult,
   DeploymentResult,
-  buildRecipeSingleGraph,
+  buildRecipe,
   IRecipeGraphBuilder,
   FutureDict,
 } from "@nomicfoundation/ignition-core";
@@ -204,9 +204,9 @@ export async function deployRecipe(
 ): Promise<any> {
   await hre.run("compile", { quiet: true });
 
-  const userRecipe = buildRecipeSingleGraph("MyRecipe", recipeDefinition);
+  const userRecipe = buildRecipe("MyRecipe", recipeDefinition);
 
-  const deployPromise = hre.ignition.deploySingleGraph(userRecipe, {
+  const deployPromise = hre.ignition.deploy(userRecipe, {
     ...options,
     ui: false,
   });

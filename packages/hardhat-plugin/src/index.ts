@@ -12,7 +12,7 @@ import { IgnitionWrapper } from "./ignition-wrapper";
 import { loadUserRecipes, loadAllUserRecipes } from "./user-recipes";
 import "./type-extensions";
 
-export { buildRecipeSingleGraph } from "@nomicfoundation/ignition-core";
+export { buildRecipe } from "@nomicfoundation/ignition-core";
 
 extendConfig((config, userConfig) => {
   const userIgnitionPath = userConfig.paths?.ignition;
@@ -100,7 +100,7 @@ extendEnvironment((hre) => {
   });
 });
 
-task("deploySingleGraph")
+task("deploy")
   .addOptionalVariadicPositionalParam("userRecipesPaths")
   .addOptionalParam(
     "parameters",
@@ -142,7 +142,7 @@ task("deploySingleGraph")
         process.exit(0);
       }
 
-      await hre.ignition.deploySingleGraph(userRecipes[0], { parameters });
+      await hre.ignition.deploy(userRecipes[0], { parameters });
     }
   );
 
@@ -174,7 +174,7 @@ task("plan")
         process.exit(0);
       }
 
-      const html = await hre.ignition.planSingleGraph(userRecipes[0]);
+      const html = await hre.ignition.plan(userRecipes[0]);
 
       const filePath = `${hre.config.paths.cache}/plan.html`;
 

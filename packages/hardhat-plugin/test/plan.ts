@@ -1,6 +1,6 @@
 /* eslint-disable import/no-unused-modules */
 import {
-  buildRecipeSingleGraph,
+  buildRecipe,
   IRecipeGraphBuilder,
   FutureDict,
 } from "@nomicfoundation/ignition-core";
@@ -8,7 +8,7 @@ import {
 import { mineBlocks } from "./helpers";
 import { useEnvironment } from "./useEnvironment";
 
-describe("single graph version", () => {
+describe("plan", () => {
   useEnvironment("minimal");
 
   it("should be able to deploy a contract", async function () {
@@ -35,9 +35,9 @@ async function plan(
 ): Promise<any> {
   await hre.run("compile", { quiet: true });
 
-  const userRecipe = buildRecipeSingleGraph("MyRecipe", recipeDefinition);
+  const userRecipe = buildRecipe("MyRecipe", recipeDefinition);
 
-  const planPromise = hre.ignition.planSingleGraph(userRecipe);
+  const planPromise = hre.ignition.plan(userRecipe);
 
   await mineBlocks(hre, [1, 1, 1], planPromise);
 

@@ -46,7 +46,7 @@ export class IgnitionWrapper {
     });
   }
 
-  public async deploySingleGraph(
+  public async deploy(
     recipe: Recipe,
     deployParams:
       | { parameters: { [key: string]: ExternalParamValue }; ui?: boolean }
@@ -56,7 +56,7 @@ export class IgnitionWrapper {
       await this._providers.config.setParams(deployParams.parameters);
     }
 
-    const [deploymentResult] = await this._ignition.deploySingleGraph(recipe, {
+    const [deploymentResult] = await this._ignition.deploy(recipe, {
       ui: deployParams?.ui ?? true,
       pathToJournal: undefined,
       txPollingInterval: 300,
@@ -103,8 +103,8 @@ export class IgnitionWrapper {
     return resolvedOutput;
   }
 
-  public async planSingleGraph(recipe: any) {
-    const plan = await this._ignition.planSingleGraph(recipe);
+  public async plan(recipe: any) {
+    const plan = await this._ignition.plan(recipe);
 
     if (!Array.isArray(plan)) {
       const recipeGraph = plan.recipeGraph.toMermaid();

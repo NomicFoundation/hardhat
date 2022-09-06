@@ -4,7 +4,7 @@ import { assert } from "chai";
 import { deployRecipe } from "./helpers";
 import { useEnvironment } from "./useEnvironment";
 
-describe("single graph version", () => {
+describe("chain id", () => {
   useEnvironment("minimal");
 
   it("should have a chain id", async function () {

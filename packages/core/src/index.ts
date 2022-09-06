@@ -16,10 +16,10 @@ export type { DeploymentResult } from "./types/deployment";
 
 export { Ignition, IgnitionDeployOptions } from "./Ignition";
 
-export { buildRecipe as buildRecipeSingleGraph } from "./recipe/buildRecipe";
-export type { Recipe, ExternalParamValue } from "./types/recipeGraph";
+export { buildRecipe } from "./recipe/buildRecipe";
 export type {
-  Recipe as RecipeSingleGraph,
+  Recipe,
+  ExternalParamValue,
   IRecipeGraphBuilder,
 } from "./types/recipeGraph";
 export type { FutureDict } from "./types/future";

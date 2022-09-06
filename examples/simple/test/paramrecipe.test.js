@@ -3,7 +3,7 @@ const ParamRecipe = require("../ignition/ParamRecipe");
 
 describe("Param Recipe", function () {
   it("should be able to pass parameters", async function () {
-    const { foo } = await ignition.deploySingleGraph(ParamRecipe, {
+    const { foo } = await ignition.deploy(ParamRecipe, {
       parameters: {
         IncAmount: 42,
       },

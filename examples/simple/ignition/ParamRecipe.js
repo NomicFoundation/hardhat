@@ -1,6 +1,6 @@
-const { buildRecipeSingleGraph } = require("@nomicfoundation/hardhat-ignition");
+const { buildRecipe } = require("@nomicfoundation/hardhat-ignition");
 
-module.exports = buildRecipeSingleGraph("ParamRecipe", (m) => {
+module.exports = buildRecipe("ParamRecipe", (m) => {
   const incAmount = m.getParam("IncAmount");
 
   const foo = m.contract("Foo");

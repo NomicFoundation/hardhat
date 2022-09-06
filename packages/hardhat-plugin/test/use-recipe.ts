@@ -1,6 +1,6 @@
 /* eslint-disable import/no-unused-modules */
 import {
-  buildRecipeSingleGraph,
+  buildRecipe,
   IRecipeGraphBuilder,
 } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
@@ -15,7 +15,7 @@ describe("useRecipe", function () {
     it("using useRecipe", async function () {
       await this.hre.run("compile", { quiet: true });
 
-      const thirdPartyRecipe = buildRecipeSingleGraph(
+      const thirdPartyRecipe = buildRecipe(
         "ThirdPartyRecipe",
         (m: IRecipeGraphBuilder) => {
           const foo = m.contract("Foo");
@@ -24,20 +24,17 @@ describe("useRecipe", function () {
         }
       );
 
-      const userRecipe = buildRecipeSingleGraph(
-        "UserRecipe",
-        (m: IRecipeGraphBuilder) => {
-          const { foo } = m.useRecipe(thirdPartyRecipe);
+      const userRecipe = buildRecipe("UserRecipe", (m: IRecipeGraphBuilder) => {
+        const { foo } = m.useRecipe(thirdPartyRecipe);
 
-          m.call(foo, "inc", {
-            args: [],
-          });
+        m.call(foo, "inc", {
+          args: [],
+        });
 
-          return { foo };
-        }
-      );
+        return { foo };
+      });
 
-      const deployPromise = this.hre.ignition.deploySingleGraph(userRecipe, {
+      const deployPromise = this.hre.ignition.deploy(userRecipe, {
         parameters: {},
         ui: false,
       });
@@ -58,7 +55,7 @@ describe("useRecipe", function () {
     it("using useRecipe", async function () {
       await this.hre.run("compile", { quiet: true });
 
-      const thirdPartyRecipe = buildRecipeSingleGraph(
+      const thirdPartyRecipe = buildRecipe(
         "ThirdPartyRecipe",
         (m: IRecipeGraphBuilder) => {
           const foo = m.getParam("Foo");
@@ -71,22 +68,19 @@ describe("useRecipe", function () {
         }
       );
 
-      const userRecipe = buildRecipeSingleGraph(
-        "UserRecipe",
-        (m: IRecipeGraphBuilder) => {
-          const foo = m.contract("Foo");
+      const userRecipe = buildRecipe("UserRecipe", (m: IRecipeGraphBuilder) => {
+        const foo = m.contract("Foo");
 
-          m.useRecipe(thirdPartyRecipe, {
-            parameters: {
-              Foo: foo,
-            },
-          });
+        m.useRecipe(thirdPartyRecipe, {
+          parameters: {
+            Foo: foo,
+          },
+        });
 
-          return { foo };
-        }
-      );
+        return { foo };
+      });
 
-      const deployPromise = this.hre.ignition.deploySingleGraph(userRecipe, {
+      const deployPromise = this.hre.ignition.deploy(userRecipe, {
         parameters: {},
         ui: false,
       });
@@ -107,7 +101,7 @@ describe("useRecipe", function () {
     it("should allow ordering using returned futures", async function () {
       await this.hre.run("compile", { quiet: true });
 
-      const addSecondAndThirdEntryRecipe = buildRecipeSingleGraph(
+      const addSecondAndThirdEntryRecipe = buildRecipe(
         "ThirdPartyRecipe",
         (m: IRecipeGraphBuilder) => {
           const trace = m.getParam("Trace");
@@ -125,29 +119,26 @@ describe("useRecipe", function () {
         }
       );
 
-      const userRecipe = buildRecipeSingleGraph(
-        "UserRecipe",
-        (m: IRecipeGraphBuilder) => {
-          const trace = m.contract("Trace", {
-            args: ["first"],
-          });
+      const userRecipe = buildRecipe("UserRecipe", (m: IRecipeGraphBuilder) => {
+        const trace = m.contract("Trace", {
+          args: ["first"],
+        });
 
-          const { thirdCall } = m.useRecipe(addSecondAndThirdEntryRecipe, {
-            parameters: {
-              Trace: trace,
-            },
-          });
+        const { thirdCall } = m.useRecipe(addSecondAndThirdEntryRecipe, {
+          parameters: {
+            Trace: trace,
+          },
+        });
 
-          m.call(trace, "addEntry", {
-            args: ["fourth"],
-            after: [thirdCall],
-          });
+        m.call(trace, "addEntry", {
+          args: ["fourth"],
+          after: [thirdCall],
+        });
 
-          return { trace };
-        }
-      );
+        return { trace };
+      });
 
-      const deployPromise = this.hre.ignition.deploySingleGraph(userRecipe, {
+      const deployPromise = this.hre.ignition.deploy(userRecipe, {
         parameters: {},
         ui: false,
       });
@@ -172,7 +163,7 @@ describe("useRecipe", function () {
     it("should allow ordering based on the recipe overall", async function () {
       await this.hre.run("compile", { quiet: true });
 
-      const addSecondAndThirdEntryRecipe = buildRecipeSingleGraph(
+      const addSecondAndThirdEntryRecipe = buildRecipe(
         "ThirdPartyRecipe",
         (m: IRecipeGraphBuilder) => {
           const trace = m.getParam("Trace");
@@ -190,29 +181,26 @@ describe("useRecipe", function () {
         }
       );
 
-      const userRecipe = buildRecipeSingleGraph(
-        "UserRecipe",
-        (m: IRecipeGraphBuilder) => {
-          const trace = m.contract("Trace", {
-            args: ["first"],
-          });
+      const userRecipe = buildRecipe("UserRecipe", (m: IRecipeGraphBuilder) => {
+        const trace = m.contract("Trace", {
+          args: ["first"],
+        });
 
-          const { recipe } = m.useRecipe(addSecondAndThirdEntryRecipe, {
-            parameters: {
-              Trace: trace,
-            },
-          });
+        const { recipe } = m.useRecipe(addSecondAndThirdEntryRecipe, {
+          parameters: {
+            Trace: trace,
+          },
+        });
 
-          m.call(trace, "addEntry", {
-            args: ["fourth"],
-            after: [recipe],
-          });
+        m.call(trace, "addEntry", {
+          args: ["fourth"],
+          after: [recipe],
+        });
 
-          return { trace };
-        }
-      );
+        return { trace };
+      });
 
-      const deployPromise = this.hre.ignition.deploySingleGraph(userRecipe, {
+      const deployPromise = this.hre.ignition.deploy(userRecipe, {
         parameters: {},
         ui: false,
       });

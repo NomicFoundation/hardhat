@@ -1,5 +1,5 @@
 /* eslint-disable import/no-unused-modules */
-import { buildRecipeSingleGraph } from "@nomicfoundation/ignition-core";
+import { buildRecipe } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 
 import { deployRecipe, mineBlocks } from "./helpers";
@@ -153,7 +153,7 @@ describe("recipe parameters", () => {
     it("should throw if no parameters object provided", async function () {
       await this.hre.run("compile", { quiet: true });
 
-      const userRecipe = buildRecipeSingleGraph("MyRecipe", (m) => {
+      const userRecipe = buildRecipe("MyRecipe", (m) => {
         const myNumber = m.getParam("MyNumber");
 
         const foo = m.contract("Foo");
@@ -165,7 +165,7 @@ describe("recipe parameters", () => {
         return { foo };
       });
 
-      const deployPromise = this.hre.ignition.deploySingleGraph(userRecipe, {});
+      const deployPromise = this.hre.ignition.deploy(userRecipe, {});
 
       await mineBlocks(this.hre, [1, 1], deployPromise);
 
@@ -178,7 +178,7 @@ describe("recipe parameters", () => {
     it("should throw if parameter missing from parameters", async function () {
       await this.hre.run("compile", { quiet: true });
 
-      const userRecipe = buildRecipeSingleGraph("MyRecipe", (m) => {
+      const userRecipe = buildRecipe("MyRecipe", (m) => {
         const myNumber = m.getParam("MyNumber");
 
         const foo = m.contract("Foo");
@@ -190,7 +190,7 @@ describe("recipe parameters", () => {
         return { foo };
       });
 
-      const deployPromise = this.hre.ignition.deploySingleGraph(userRecipe, {
+      const deployPromise = this.hre.ignition.deploy(userRecipe, {
         parameters: {
           NotMyNumber: 11,
         },

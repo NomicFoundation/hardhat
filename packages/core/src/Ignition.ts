@@ -32,7 +32,7 @@ export class Ignition {
     private _recipesResults: IgnitionRecipesResults
   ) {}
 
-  public async deploySingleGraph(
+  public async deploy(
     recipe: Recipe,
     options: IgnitionDeployOptions = {
       ui: true,
@@ -94,7 +94,7 @@ export class Ignition {
     return [{ _kind: "success", result: serializedDeploymentResult }, {}];
   }
 
-  public async planSingleGraph(recipe: Recipe) {
+  public async plan(recipe: Recipe) {
     log(`Start plan`);
 
     const serviceOptions = {
