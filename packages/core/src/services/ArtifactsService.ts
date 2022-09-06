@@ -1,5 +1,5 @@
-import { Providers } from "../providers";
-import { Artifact } from "../types";
+import { Artifact } from "../types/hardhat";
+import { Providers } from "../types/providers";
 
 export interface IArtifactsService {
   getArtifact(name: string): Promise<Artifact>;

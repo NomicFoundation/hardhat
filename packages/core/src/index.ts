@@ -2,24 +2,24 @@ export type {
   SerializedDeploymentResult,
   SerializedRecipeResult,
   SerializedFutureResult,
-} from "./types";
+} from "./types/serialization";
 
 export type { Services } from "./services/types";
 
-export type { Providers, ConfigProvider, HasParamResult } from "./providers";
+export type {
+  Providers,
+  ConfigProvider,
+  HasParamResult,
+} from "./types/providers";
 
-export type { DeploymentResult } from "./types";
+export type { DeploymentResult } from "./types/deployment";
 
 export { Ignition, IgnitionDeployOptions } from "./Ignition";
-export type { Contract } from "./types";
 
-export { buildRecipeSingleGraph } from "./single-graph/index";
+export { buildRecipe as buildRecipeSingleGraph } from "./recipe/buildRecipe";
+export type { Recipe, ExternalParamValue } from "./types/recipeGraph";
 export type {
-  RecipeSingleGraph,
+  Recipe as RecipeSingleGraph,
   IRecipeGraphBuilder,
-  FutureDict,
-} from "./single-graph/index";
-export type {
-  Recipe,
-  ExternalParamValue,
-} from "./single-graph/types/recipeGraph";
+} from "./types/recipeGraph";
+export type { FutureDict } from "./types/future";

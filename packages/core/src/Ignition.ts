@@ -1,23 +1,20 @@
 import setupDebug from "debug";
 
+import { execute } from "./execution/execute";
 import { InMemoryJournal } from "./journal/InMemoryJournal";
-import { Providers } from "./providers";
+import { generateRecipeGraphFrom } from "./process/generateRecipeGraphFrom";
+import { transformRecipeGraphToExecutionGraph } from "./process/transformRecipeGraphToExecutionGraph";
+import { createServices } from "./services/createServices";
 import { Services } from "./services/types";
-import { execute } from "./single-graph/execution/execute";
-import { generateRecipeGraphFrom } from "./single-graph/process/generateRecipeGraphFrom";
-import { transformRecipeGraphToExecutionGraph } from "./single-graph/process/transformRecipeGraphToExecutionGraph";
-import { createServices } from "./single-graph/services/createServices";
-import { DependableFuture, FutureDict } from "./single-graph/types/future";
-import { Recipe } from "./single-graph/types/recipeGraph";
-import { UiService } from "./single-graph/ui/ui-service";
-import { isDependable } from "./single-graph/utils/guards";
-import { validateRecipeGraph } from "./single-graph/validation/validateRecipeGraph";
-import {
-  DeploymentResult,
-  IgnitionRecipesResults,
-  SerializedDeploymentResult,
-} from "./types";
-import { serializeFutureOutput } from "./utils";
+import { DeploymentResult, IgnitionRecipesResults } from "./types/deployment";
+import { DependableFuture, FutureDict } from "./types/future";
+import { Providers } from "./types/providers";
+import { Recipe } from "./types/recipeGraph";
+import { SerializedDeploymentResult } from "./types/serialization";
+import { UiService } from "./ui/ui-service";
+import { isDependable } from "./utils/guards";
+import { serializeFutureOutput } from "./utils/serialize";
+import { validateRecipeGraph } from "./validation/validateRecipeGraph";
 
 const log = setupDebug("ignition:main");
 

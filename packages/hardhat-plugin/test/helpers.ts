@@ -3,7 +3,6 @@ import {
   SerializedFutureResult,
   SerializedDeploymentResult,
   DeploymentResult,
-  Contract,
   buildRecipeSingleGraph,
   IRecipeGraphBuilder,
   FutureDict,
@@ -196,10 +195,6 @@ async function assertContract(hre: any, futureResult: SerializedFutureResult) {
   );
 
   return contract;
-}
-
-export function isContract(contract: any): contract is Contract {
-  return contract.address !== undefined;
 }
 
 export async function deployRecipe(
