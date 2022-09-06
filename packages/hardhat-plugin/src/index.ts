@@ -1,9 +1,9 @@
 import "@nomiclabs/hardhat-ethers";
 import { Providers, UserRecipe } from "@nomicfoundation/ignition-core";
+import { exec } from "child_process";
 import fs from "fs-extra";
 import { extendConfig, extendEnvironment, task } from "hardhat/config";
 import { lazyObject } from "hardhat/plugins";
-import { exec } from "child_process";
 import os from "os";
 import path from "path";
 
