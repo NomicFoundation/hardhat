@@ -58,7 +58,7 @@ export function topologicalSort(adjacencyList: AdjacencyList): number[] {
   }
 
   const ts = new TopologicalSort(dag);
-  const order = ts.order();
+  const order = ts.order().filter((elem) => vertexes.has(elem));
 
   return order;
 }

@@ -21,8 +21,7 @@ export async function visit<T, C>(
     const vertex = executionGraph.vertexes.get(vertexId);
 
     if (vertex === undefined) {
-      // TODO: this shouldn't happen, so lets figure that out
-      continue;
+      throw new Error(`Could not get vertex ${vertexId}`);
     }
 
     const vertexVisitResult = await vistitorAction(
