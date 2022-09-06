@@ -1,5 +1,12 @@
 # hardhat
 
+## 2.11.1
+
+### Patch Changes
+
+- f4101d1be: Fixed a problem when the wasm version of the solidity compiler was downloaded.
+- 1a1fa4cd5: Fix an error when forking from non-POW chains
+
 ## 2.11.0
 
 ### Minor Changes

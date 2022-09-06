@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-network-helpers
 
+## 1.0.6
+
+### Patch Changes
+
+- 89f153a72: Fix `setStorageAt` so it can accept multiple leading zeros in the slot
+
 ## 1.0.5
 
 ### Patch Changes
