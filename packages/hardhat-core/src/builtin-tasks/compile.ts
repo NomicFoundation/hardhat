@@ -753,13 +753,13 @@ subtask(TASK_COMPILE_SOLIDITY_LOG_COMPILATION_ERRORS)
 
     for (const error of output.errors) {
       if (error.severity === "error") {
-        const errorMessage =
+        const errorMessage: string =
           getFormattedInternalCompilerErrorMessage(error) ??
           error.formattedMessage;
 
-        console.error(chalk.red(errorMessage));
+        console.error(errorMessage.replace(/^\w+:/, t => chalk.red.bold(t)));
       } else {
-        console.warn(chalk.yellow(error.formattedMessage));
+        console.warn((error.formattedMessage as string).replace(/^\w+/, t => chalk.yellow.bold(t)));
       }
     }
 
