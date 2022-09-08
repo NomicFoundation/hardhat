@@ -281,7 +281,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
       this.graph.registeredParameters[scopeLabel] = options.parameters;
     }
 
-    const result = recipe.steps(this);
+    const result = recipe.recipeAction(this);
 
     const virtualVertex = this._createRecipeVirtualVertex(label);
 

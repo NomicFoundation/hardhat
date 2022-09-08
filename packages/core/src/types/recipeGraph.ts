@@ -163,7 +163,7 @@ export interface IRecipeGraphBuilder {
 
 export interface Recipe {
   name: string;
-  steps: (builder: IRecipeGraphBuilder) => FutureDict;
+  recipeAction: (builder: IRecipeGraphBuilder) => FutureDict;
 }
 
 export interface RecipeGraphBuilderOptions {

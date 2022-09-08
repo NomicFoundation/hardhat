@@ -7,6 +7,6 @@ export function buildRecipe(
 ): Recipe {
   return {
     name: recipeName,
-    steps: recipeFunc,
+    recipeAction: recipeFunc,
   };
 }

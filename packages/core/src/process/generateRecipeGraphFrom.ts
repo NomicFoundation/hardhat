@@ -12,7 +12,7 @@ export function generateRecipeGraphFrom(
 ): { graph: IRecipeGraph; recipeOutputs: FutureDict } {
   const graphBuilder = new RecipeGraphBuilder(builderOptions);
 
-  const recipeOutputs = recipe.steps(graphBuilder);
+  const recipeOutputs = recipe.recipeAction(graphBuilder);
 
   return { graph: graphBuilder.graph, recipeOutputs };
 }

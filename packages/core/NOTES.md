@@ -5,5 +5,5 @@
 3. [x] Execution tests
 4. [x] Remove old files
 5. [x] Check code level todos
-6. [ ] Change steps as a function name
+6. [x] Change steps as a function name
 7. [ ] add docs and images
