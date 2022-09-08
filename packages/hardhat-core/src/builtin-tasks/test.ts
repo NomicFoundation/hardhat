@@ -98,6 +98,9 @@ subtask(TASK_TEST_RUN_MOCHA_TESTS)
 
       const mocha = new Mocha(mochaConfig);
       taskArgs.testFiles.forEach((file) => mocha.addFile(file));
+      // This instructs Mocha to use the more verbose file loading infrastructure
+      // which supports both ESM and CJS
+      await mocha.loadFilesAsync();
 
       const testFailures = await new Promise<number>((resolve) => {
         mocha.run(resolve);
