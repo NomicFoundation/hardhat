@@ -1821,7 +1821,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
           receipts,
           stateRoot: block.header.stateRoot,
           logsBloom: block.header.logsBloom,
-          receiptRoot: block.header.receiptTrie,
+          receiptsRoot: block.header.receiptTrie,
           gasUsed: block.header.gasUsed,
         },
         traces,
