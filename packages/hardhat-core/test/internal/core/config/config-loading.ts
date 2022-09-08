@@ -36,6 +36,18 @@ describe("config loading", function () {
     });
   });
 
+  describe("can load CJS config path inside an esm project", function () {
+    useFixtureProject("esm-project");
+    useEnvironment();
+
+    it("should load the default config if none is given", function () {
+      assert.isDefined(this.env.config.networks.localhost);
+      assert.deepEqual(this.env.config.networks.localhost.accounts, [
+        "0xa95f9e3e7ae4e4865c5968828fe7c03fffa8a9f3bb52d36d26243f4c868ee166",
+      ]);
+    });
+  });
+
   describe("Config validation", function () {
     describe("When the config is invalid", function () {
       useFixtureProject("invalid-config");
