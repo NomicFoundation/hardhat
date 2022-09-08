@@ -306,9 +306,7 @@ export class RecipeGraphBuilder implements IRecipeGraphBuilder {
         (v): RecipeFuture => ({
           vertexId: v.id,
           label: v.label,
-          type: "contract", // TODO: this is a hack, lets add a future type for this sort of ellision
-          subtype: "artifact",
-          artifact: {} as any,
+          type: "virtual",
           _future: true,
         })
       );
