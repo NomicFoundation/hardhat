@@ -12,7 +12,12 @@ export class HardhatDB {
         this._stateManager = stateManager;
     }
 
-    public async get_account_by_address(address: Buffer): Promise<Account> {
-        return this._stateManager.getAccount(new Address(address));
+    public async get_account_by_address(address: Buffer): Promise<void> {
+        console.log("JS CALL START");
+        let account = await this._stateManager.getAccount(new Address(address));
+        console.log(account);
+        console.log("JS CALL END");
+        return;
+        // return new Account(account.balance, account.nonce, account.codeHash);
     }
 }

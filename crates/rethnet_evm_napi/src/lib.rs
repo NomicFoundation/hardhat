@@ -1,6 +1,10 @@
+mod db;
+
 use anyhow::anyhow;
+use db::HardhatDatabase;
 use napi::{
     bindgen_prelude::*,
+    threadsafe_function::{ErrorStrategy, ThreadSafeCallContext, ThreadsafeFunction},
     tokio::{
         self,
         sync::{
@@ -10,9 +14,9 @@ use napi::{
     },
 };
 use napi_derive::napi;
-use rethnet_evm::{AccountInfo, DatabaseRef, EmptyDB, EVM, H160};
+use rethnet_evm::{AccountInfo, Database, EVM, H160};
 
-#[napi]
+#[napi(constructor)]
 pub struct Account {
     /// Account balance
     #[napi(readonly)]
@@ -25,19 +29,21 @@ pub struct Account {
     pub code_hash: Buffer,
 }
 
-impl From<AccountInfo> for Account {
-    fn from(account_info: AccountInfo) -> Self {
-        println!("account: {:?}", account_info);
-        Account {
-            balance: BigInt {
-                sign_bit: false,
-                words: account_info.balance.0.to_vec(),
-            },
-            nonce: BigInt::from(account_info.nonce),
-            code_hash: Buffer::from(account_info.code_hash.as_bytes()),
-        }
-    }
-}
+// #[napi]
+// impl Account {
+//     fn try_from_with_env(env: Env, account_info: AccountInfo) -> anyhow::Result<Self> {
+//         env.adjust_external_memory(mem::size_of_val(&account_info.code_hash) as i64)?;
+
+//         Ok()
+//     }
+// }
+
+// #[napi]
+// pub struct AccountByAddressQuery {
+//     #[napi(readonly)]
+//     pub address: Uint8Array,
+//     pub response: Account,
+// }
 
 #[napi]
 pub struct RethnetClient {
@@ -47,12 +53,23 @@ pub struct RethnetClient {
 #[napi]
 impl RethnetClient {
     #[napi(constructor)]
-    pub fn new() -> Self {
+    pub fn new(
+        #[napi(ts_arg_type = "(address: Buffer) => void")] get_account_by_address_fn: JsFunction,
+    ) -> Result<Self> {
+        let get_account_by_address_fn: ThreadsafeFunction<H160, ErrorStrategy::Fatal> =
+            get_account_by_address_fn.create_threadsafe_function(
+                0,
+                |ctx: ThreadSafeCallContext<H160>| {
+                    ctx.env
+                        .create_buffer_copy(ctx.value.as_bytes())
+                        .map(|buffer| vec![buffer.into_raw()])
+                },
+            )?;
         let (request_sender, request_receiver) = unbounded_channel();
 
-        tokio::spawn(Rethnet::run(request_receiver));
+        tokio::spawn(Rethnet::run(request_receiver, get_account_by_address_fn));
 
-        Self { request_sender }
+        Ok(Self { request_sender })
     }
 
     #[napi]
@@ -66,7 +83,14 @@ impl RethnetClient {
             .map_err(|_| anyhow!("Failed to send request"))?;
 
         let account_info = receiver.await.expect("Rethnet unexpectedly crashed");
-        Ok(account_info.into())
+        Ok(Account {
+            balance: BigInt {
+                sign_bit: false,
+                words: account_info.balance.0.to_vec(),
+            },
+            nonce: BigInt::from(account_info.nonce),
+            code_hash: Buffer::from(account_info.code_hash.as_bytes()),
+        })
     }
 }
 
@@ -78,14 +102,14 @@ enum Request {
 }
 
 struct Rethnet {
-    evm: EVM<EmptyDB>,
+    evm: EVM<HardhatDatabase>,
     request_receiver: UnboundedReceiver<Request>,
 }
 
 impl Rethnet {
-    pub fn new(request_receiver: UnboundedReceiver<Request>) -> Self {
+    pub fn new(request_receiver: UnboundedReceiver<Request>, db: HardhatDatabase) -> Self {
         let mut evm = EVM::new();
-        evm.database(EmptyDB::default());
+        evm.database(db);
 
         Self {
             evm,
@@ -93,8 +117,12 @@ impl Rethnet {
         }
     }
 
-    pub async fn run(request_receiver: UnboundedReceiver<Request>) -> anyhow::Result<()> {
-        let mut rethnet = Rethnet::new(request_receiver);
+    pub async fn run(
+        request_receiver: UnboundedReceiver<Request>,
+        get_account_by_address_fn: ThreadsafeFunction<H160, ErrorStrategy::Fatal>,
+    ) -> anyhow::Result<()> {
+        let db = HardhatDatabase::new(get_account_by_address_fn);
+        let mut rethnet = Rethnet::new(request_receiver, db);
 
         rethnet.event_loop().await
     }
