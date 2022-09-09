@@ -49,8 +49,6 @@ const FIRST_SOLC_VERSION_CREATE_PARAMS_VALIDATION = "0.5.9";
 const FIRST_SOLC_VERSION_RECEIVE_FUNCTION = "0.6.0";
 const FIRST_SOLC_VERSION_WITH_UNMAPPED_REVERTS = "0.6.3";
 
-const EIP170_BYTECODE_SIZE_INCLUSIVE_LIMIT = 0x6000;
-
 export interface SubmessageData {
   messageTrace: MessageTrace;
   stacktrace: SolidityStackTrace;
