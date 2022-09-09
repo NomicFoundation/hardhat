@@ -285,7 +285,14 @@ async function assertExecuteSingleVertex(
     render: () => {},
   } as any;
 
-  return execute(executionGraph, mockServices, mockUiService);
+  const mockRecipeResults = {} as any;
+
+  return execute(
+    executionGraph,
+    mockServices,
+    mockUiService,
+    mockRecipeResults
+  );
 }
 
 async function assertDependentVertex(
@@ -306,5 +313,12 @@ async function assertDependentVertex(
     render: () => {},
   } as any;
 
-  return execute(executionGraph, mockServices, mockUiService);
+  const mockRecipeResults = {} as any;
+
+  return execute(
+    executionGraph,
+    mockServices,
+    mockUiService,
+    mockRecipeResults
+  );
 }

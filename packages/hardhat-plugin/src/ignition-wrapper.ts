@@ -57,9 +57,8 @@ export class IgnitionWrapper {
     }
 
     const [deploymentResult] = await this._ignition.deploy(recipe, {
-      ui: deployParams?.ui ?? true,
-      pathToJournal: undefined,
-      txPollingInterval: 300,
+      ...this._deployOptions,
+      ui: true,
     });
 
     if (deploymentResult._kind === "hold") {

@@ -1,7 +1,5 @@
 import { ExecutionGraph } from "../execution/ExecutionGraph";
 import { clone } from "../graph/adjacencyList";
-import { Journal } from "../journal/types";
-import { createServices } from "../services/createServices";
 import { Services } from "../services/types";
 import {
   ContractCall,
@@ -13,7 +11,6 @@ import {
 } from "../types/executionGraph";
 import { RecipeFuture } from "../types/future";
 import { Artifact } from "../types/hardhat";
-import { Providers } from "../types/providers";
 import {
   ArtifactContractRecipeVertex,
   ArtifactLibraryRecipeVertex,
@@ -45,18 +42,8 @@ interface TransformContext {
 
 export async function transformRecipeGraphToExecutionGraph(
   recipeGraph: IRecipeGraph,
-  servicesOptions: {
-    providers: Providers;
-    journal: Journal;
-    txPollingInterval: number;
-  }
+  services: Services
 ): Promise<TransformResult> {
-  const services = createServices(
-    "recipeIdTRANSFORM",
-    "recipeIdTRANSFORM",
-    servicesOptions
-  );
-
   const reducedRecipeGraph =
     reduceRecipeGraphByEliminatingVirtualVertexes(recipeGraph);
 

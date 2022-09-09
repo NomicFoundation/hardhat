@@ -1,6 +1,7 @@
 import setupDebug from "debug";
 
 import { execute } from "./execution/execute";
+import { FileJournal } from "./journal/FileJournal";
 import { InMemoryJournal } from "./journal/InMemoryJournal";
 import { generateRecipeGraphFrom } from "./process/generateRecipeGraphFrom";
 import { transformRecipeGraphToExecutionGraph } from "./process/transformRecipeGraphToExecutionGraph";
@@ -44,9 +45,16 @@ export class Ignition {
 
     const ui = new UiService({ enabled: options.ui });
 
+    log("Create journal with path '%s'", options.pathToJournal);
+
+    const journal =
+      options.pathToJournal !== undefined
+        ? new FileJournal(options.pathToJournal)
+        : new InMemoryJournal();
+
     const serviceOptions = {
       providers: this._providers,
-      journal: new InMemoryJournal(),
+      journal,
       txPollingInterval: 300,
     };
 
@@ -57,21 +65,26 @@ export class Ignition {
     );
 
     const chainId = await this._getChainId();
+    log("ChainId resolved as '%s'", chainId);
+
+    log("Generate recipe graph from recipe");
 
     const { graph: recipeGraph, recipeOutputs } = generateRecipeGraphFrom(
       recipe,
       { chainId }
     );
 
+    log("Validate recipe graph");
     const validationResult = await validateRecipeGraph(recipeGraph, services);
 
     if (validationResult._kind === "failure") {
       return [validationResult, {}];
     }
 
+    log("Transform recipe graph to execution graph");
     const transformResult = await transformRecipeGraphToExecutionGraph(
       recipeGraph,
-      serviceOptions
+      services
     );
 
     if (transformResult._kind === "failure") {
@@ -80,7 +93,13 @@ export class Ignition {
 
     const { executionGraph } = transformResult;
 
-    const executionResult = await execute(executionGraph, services, ui);
+    log("Execute based on execution graph");
+    const executionResult = await execute(
+      executionGraph,
+      services,
+      ui,
+      this._recipesResults
+    );
 
     if (executionResult._kind === "failure") {
       return [executionResult, {}];
@@ -121,7 +140,7 @@ export class Ignition {
 
     const transformResult = await transformRecipeGraphToExecutionGraph(
       recipeGraph,
-      serviceOptions
+      services
     );
 
     if (transformResult._kind === "failure") {
