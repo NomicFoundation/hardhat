@@ -1944,10 +1944,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       throw error;
     }
 
-    if (
-      error.error === ERROR.OUT_OF_GAS ||
-      error.error === ERROR.CODESIZE_EXCEEDS_MAXIMUM
-    ) {
+    if (error.error === ERROR.CODESIZE_EXCEEDS_MAXIMUM) {
       if (stackTrace !== undefined) {
         return encodeSolidityStackTrace(
           "Transaction ran out of gas",
@@ -1955,6 +1952,12 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         );
       }
 
+      return new TransactionExecutionError("Transaction ran out of gas");
+    }
+
+    if (error.error === ERROR.OUT_OF_GAS) {
+      // if the error is an out of gas, we ignore the inferred error in the
+      // trace
       return new TransactionExecutionError("Transaction ran out of gas");
     }
 
