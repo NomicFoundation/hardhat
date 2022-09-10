@@ -8,6 +8,9 @@
 		},
 		{
 			"path": "../../../hardhat-ganache"
+		},
+		{
+			"path": "D:/Truffle Eth/Vxlab5"
 		}
 	],
 	"settings": {}
