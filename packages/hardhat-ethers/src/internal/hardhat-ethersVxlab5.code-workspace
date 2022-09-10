@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "../.."
+		},
+		{
+			"path": "../../../hardhat-network-helpers"
+		},
+		{
+			"path": "../../../hardhat-ganache"
+		}
+	],
+	"settings": {}
+}
