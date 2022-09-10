@@ -1,10 +1,10 @@
+import { bufferToHex } from "@nomicfoundation/ethereumjs-util";
 import { assert } from "chai";
-import { BN, bufferToHex, toBuffer } from "ethereumjs-util";
 
 import {
   numberToRpcQuantity,
-  rpcDataToBN,
-  rpcQuantityToBN,
+  rpcDataToBigInt,
+  rpcQuantityToBigInt,
   rpcQuantityToNumber,
 } from "../../../../src/internal/core/jsonrpc/types/base-types";
 import { InvalidInputError } from "../../../../src/internal/core/providers/errors";
@@ -68,8 +68,8 @@ describe("Forked provider", function () {
             { to: DAI_ADDRESS.toString(), data: daiTotalSupplySelector },
           ]);
 
-          const bnResult = new BN(toBuffer(result));
-          assert.isTrue(bnResult.gtn(0));
+          const bnResult = BigInt(result);
+          assert.isTrue(bnResult > 0n);
         });
 
         describe("when used in the context of a past block", () => {
@@ -127,7 +127,7 @@ describe("Forked provider", function () {
                 const balanceOfSelector = `0x70a08231${leftPad32(
                   BITFINEX_WALLET_ADDRESS.toString()
                 )}`;
-                return rpcDataToBN(
+                return rpcDataToBigInt(
                   await this.provider.send("eth_call", [
                     { to: WETH_ADDRESS.toString(), data: balanceOfSelector },
                   ])
@@ -198,7 +198,7 @@ describe("Forked provider", function () {
           const result = await this.provider.send("eth_getBalance", [
             WETH_ADDRESS.toString(),
           ]);
-          assert.isTrue(rpcQuantityToBN(result).gtn(0));
+          assert.isTrue(rpcQuantityToBigInt(result) > 0n);
         });
       });
 
@@ -207,7 +207,7 @@ describe("Forked provider", function () {
           const result = await this.provider.send("eth_getBalance", [
             BITFINEX_WALLET_ADDRESS.toString(),
           ]);
-          const initialBalance = rpcQuantityToBN(result);
+          const initialBalance = rpcQuantityToBigInt(result);
           await this.provider.send("eth_sendTransaction", [
             {
               from: DEFAULT_ACCOUNTS_ADDRESSES[0],
@@ -220,7 +220,7 @@ describe("Forked provider", function () {
           const balance = await this.provider.send("eth_getBalance", [
             BITFINEX_WALLET_ADDRESS.toString(),
           ]);
-          assertQuantity(balance, initialBalance.addn(100));
+          assertQuantity(balance, initialBalance + 100n);
         });
 
         it("supports wrapping of Ether", async function () {
@@ -229,7 +229,7 @@ describe("Forked provider", function () {
           )}`;
 
           const getWrappedBalance = async () =>
-            rpcDataToBN(
+            rpcDataToBigInt(
               await this.provider.send("eth_call", [
                 { to: WETH_ADDRESS.toString(), data: wethBalanceOfSelector },
               ])
@@ -247,10 +247,7 @@ describe("Forked provider", function () {
             },
           ]);
           const balance = await getWrappedBalance();
-          assert.equal(
-            balance.toString("hex"),
-            initialBalance.addn(100).toString("hex")
-          );
+          assert.equal(balance, initialBalance + 100n);
         });
       });
 
@@ -309,7 +306,7 @@ describe("Forked provider", function () {
             [account]
           );
 
-          assert.isTrue(rpcQuantityToBN(transactionCount).gtn(0));
+          assert.isTrue(rpcQuantityToBigInt(transactionCount) > 0);
         });
       });
 
@@ -394,9 +391,7 @@ describe("Forked provider", function () {
       });
 
       describe("hardhat_impersonateAccount", () => {
-        const oneEtherQuantity = numberToRpcQuantity(
-          new BN(10).pow(new BN(18))
-        );
+        const oneEtherQuantity = numberToRpcQuantity(10n ** 18n);
 
         it("allows to impersonate a remote EOA", async function () {
           await this.provider.send("hardhat_impersonateAccount", [

@@ -1,16 +1,18 @@
-import { Transaction, TxData } from "@ethereumjs/tx";
+import { Transaction, TxData } from "@nomicfoundation/ethereumjs-tx";
 import {
   Address,
   AddressLike,
-  BN,
   bufferToHex,
   toBuffer,
-} from "ethereumjs-util";
+} from "@nomicfoundation/ethereumjs-util";
 
-import { FeeMarketEIP1559TxData } from "@ethereumjs/tx/dist.browser";
-import { AccessListEIP2930TxData } from "@ethereumjs/tx/dist/types";
+import {
+  AccessListEIP2930TxData,
+  FeeMarketEIP1559TxData,
+} from "@nomicfoundation/ethereumjs-tx/dist/types";
+
 import { numberToRpcQuantity } from "../../../../src/internal/core/jsonrpc/types/base-types";
-import { randomAddress } from "../../../../src/internal/hardhat-network/provider/fork/random";
+import { randomAddress } from "../../../../src/internal/hardhat-network/provider/utils/random";
 import {
   RpcLogOutput,
   RpcReceiptOutput,
@@ -23,9 +25,18 @@ import { FakeSenderTransaction } from "../../../../src/internal/hardhat-network/
 import { serializeTransaction } from "../../../../src/internal/hardhat-network/provider/TxPool";
 import { FakeSenderAccessListEIP2930Transaction } from "../../../../src/internal/hardhat-network/provider/transactions/FakeSenderAccessListEIP2930Transaction";
 import { FakeSenderEIP1559Transaction } from "../../../../src/internal/hardhat-network/provider/transactions/FakeSenderEIP1559Transaction";
+import { DEFAULT_ACCOUNTS } from "./providers";
 
 export function createTestTransaction(data: TxData = {}) {
-  return new Transaction({ to: randomAddress(), ...data });
+  const tx = new Transaction({ to: randomAddress(), ...data });
+
+  return tx.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
+}
+
+export function createUnsignedTestTransaction(data: TxData = {}) {
+  const tx = new Transaction({ to: randomAddress(), ...data });
+
+  return tx;
 }
 
 export function createTestFakeTransaction(
@@ -57,12 +68,12 @@ export function createTestFakeTransaction(
 
   const type =
     data.type !== undefined
-      ? new BN(toBuffer(data.type))
+      ? data.type
       : "maxFeePerGas" in data || "maxPriorityFeePerGas" in data
-      ? new BN(2)
+      ? 2n
       : "accessList" in data
-      ? new BN(1)
-      : new BN(0);
+      ? 1n
+      : 0n;
 
   const dataWithDefaults = {
     to: randomAddress(),
@@ -71,11 +82,11 @@ export function createTestFakeTransaction(
     ...data,
   };
 
-  if (type.eqn(0)) {
+  if (type === 0n) {
     return new FakeSenderTransaction(fromAddress, dataWithDefaults);
   }
 
-  if (type.eqn(1)) {
+  if (type === 1n) {
     return new FakeSenderAccessListEIP2930Transaction(
       fromAddress,
       dataWithDefaults
@@ -126,7 +137,7 @@ export function createTestReceipt(
   return receipt;
 }
 
-export function createTestLog(blockNumber: BN | number): RpcLogOutput {
+export function createTestLog(blockNumber: bigint): RpcLogOutput {
   const log: any = {
     address: randomAddress(),
     blockNumber: numberToRpcQuantity(blockNumber),

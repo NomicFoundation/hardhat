@@ -9,6 +9,7 @@
 - muirGlacier
 - london
 - arrowGlacier
+- merge
 
 ## Config
 
@@ -61,7 +62,7 @@ The block gas limit to use in Hardhat Network's blockchain. Default value: `30_0
 
 #### `hardfork`
 
-This setting changes how Hardhat Network works, to mimic Ethereum's mainnet at a given hardfork. It must be one of `"byzantium"`, `"constantinople"`, `"petersburg"`, `"istanbul"`, `"muirGlacier"`, `"berlin"`, `"london"` and `"arrowGlacier"`. Default value: `"arrowGlacier"`
+This setting changes how Hardhat Network works, to mimic Ethereum's mainnet at a given hardfork. It must be one of `"byzantium"`, `"constantinople"`, `"petersburg"`, `"istanbul"`, `"muirGlacier"`, `"berlin"`, `"london"`, `"arrowGlacier"`, `"grayGlacier"` and `"merge"`. Default value: `"arrowGlacier"`
 
 #### `throwOnTransactionFailures`
 
@@ -490,6 +491,20 @@ await network.provider.send("hardhat_setNextBlockBaseFeePerGas", [
 ```
 
 This only affects the next block; the base fee will keep being updated in each subsequent block according to [EIP-1559](https://eips.ethereum.org/EIPS/eip-1559).
+
+#### `hardhat_setPrevRandao`
+
+Sets the PREVRANDAO value of the next block.
+
+For example:
+
+```tsx
+await network.provider.send("hardhat_setPrevRandao", [
+  "0x1234567812345678123456781234567812345678123456781234567812345678",
+]);
+```
+
+This only affects the next block. The PREVRANDAO of the following blocks will continue to be computed as the keccak256 hash of the previous value.
 
 #### `hardhat_setNonce`
 

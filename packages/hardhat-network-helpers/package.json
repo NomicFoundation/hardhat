@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-network-helpers",
-  "version": "1.0.4",
+  "version": "1.0.6",
   "description": "Hardhat utils for testing",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/master/packages/hardhat-network-helpers",
   "repository": "github:nomicfoundation/hardhat",
@@ -42,8 +42,8 @@
   "devDependencies": {
     "@types/chai": "^4.2.0",
     "@types/mocha": "^9.1.0",
-    "@types/node": "^12.0.0",
-    "@typescript-eslint/eslint-plugin": "4.29.2",
+    "@types/node": "^14.0.0",
+    "@typescript-eslint/eslint-plugin": "^5.30.7",
     "@typescript-eslint/parser": "4.29.2",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",

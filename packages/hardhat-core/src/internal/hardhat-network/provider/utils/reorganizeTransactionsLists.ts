@@ -1,6 +1,5 @@
-import { BN } from "ethereumjs-util";
-
 import { InternalError } from "../../../core/providers/errors";
+import * as BigIntUtils from "../../../util/bigint";
 import { SenderTransactions, SerializedTransaction } from "../PoolState";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
@@ -14,24 +13,24 @@ import { SenderTransactions, SerializedTransaction } from "../PoolState";
 export function reorganizeTransactionsLists(
   pending: SenderTransactions,
   queued: SenderTransactions,
-  retrieveNonce: (serializedTx: SerializedTransaction) => BN
+  retrieveNonce: (serializedTx: SerializedTransaction) => bigint
 ) {
   let newPending = pending;
-  let newQueued = queued.sortBy(retrieveNonce, (l, r) => l.cmp(r));
+  let newQueued = queued.sortBy(retrieveNonce, (l, r) => BigIntUtils.cmp(l, r));
 
   if (pending.last() === undefined) {
     throw new InternalError("Pending list cannot be empty");
   }
 
-  const nextPendingNonce = retrieveNonce(pending.last()).addn(1);
+  let nextPendingNonce = retrieveNonce(pending.last()) + 1n;
 
   let movedCount = 0;
   for (const queuedTx of newQueued) {
     const queuedTxNonce = retrieveNonce(queuedTx);
 
-    if (nextPendingNonce.eq(queuedTxNonce)) {
+    if (nextPendingNonce === queuedTxNonce) {
       newPending = newPending.push(queuedTx);
-      nextPendingNonce.iaddn(1);
+      nextPendingNonce++;
       movedCount++;
     } else {
       break;

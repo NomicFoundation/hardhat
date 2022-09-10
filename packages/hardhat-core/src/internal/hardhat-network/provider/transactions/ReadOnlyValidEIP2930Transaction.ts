@@ -1,14 +1,14 @@
-import Common from "@ethereumjs/common";
+import { Common } from "@nomicfoundation/ethereumjs-common";
 import {
   AccessListEIP2930Transaction,
   AccessListEIP2930TxData,
   AccessListEIP2930ValuesArray,
   TxOptions,
-} from "@ethereumjs/tx";
-import { Address, BN } from "ethereumjs-util";
+} from "@nomicfoundation/ethereumjs-tx";
+import { Address } from "@nomicfoundation/ethereumjs-util";
 
 import { InternalError } from "../../../core/providers/errors";
-import { BERLIN_EIPS } from "../../../util/hardforks";
+import * as BigIntUtils from "../../../util/bigint";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
@@ -58,25 +58,14 @@ export class ReadOnlyValidEIP2930Transaction extends AccessListEIP2930Transactio
   private readonly _sender: Address;
 
   constructor(sender: Address, data: AccessListEIP2930TxData = {}) {
-    const fakeCommon = new Common({
-      chain: "mainnet",
-    });
-
-    // this class should only be used with txs in a hardfork that
-    // supports EIP-2930
-    (fakeCommon as any).isActivatedEIP = (eip: number) => {
-      return BERLIN_EIPS.has(eip);
-    };
-
-    // this class should only be used with EIP-2930 txs,
-    // which (we assume) always have a defined `chainId` value
-    (fakeCommon as any).chainIdBN = () => {
-      if (data.chainId !== undefined) {
-        return new BN(data.chainId);
+    const fakeCommon = Common.custom(
+      {
+        chainId: BigIntUtils.fromBigIntLike(data.chainId),
+      },
+      {
+        hardfork: "berlin",
       }
-
-      throw new Error("Expected txData to have a chainId");
-    };
+    );
 
     super(data, { freeze: false, common: fakeCommon });
 

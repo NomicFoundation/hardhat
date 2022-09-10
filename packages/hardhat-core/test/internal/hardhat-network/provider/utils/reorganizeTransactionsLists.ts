@@ -1,6 +1,6 @@
-import { TxData } from "@ethereumjs/tx";
+import { TxData } from "@nomicfoundation/ethereumjs-tx";
+import { AddressLike } from "@nomicfoundation/ethereumjs-util";
 import { assert } from "chai";
-import { AddressLike } from "ethereumjs-util";
 import { List } from "immutable";
 
 import { SerializedTransaction } from "../../../../../src/internal/hardhat-network/provider/PoolState";

@@ -208,4 +208,76 @@ describe("e2e tests", function () {
       assert.match(stderr, /HH15?/);
     });
   });
+
+  describe("--typecheck", function () {
+    // we don't want to throw for failed executions in these tests
+    before(() => shell.set("+e"));
+    after(() => shell.set("-e"));
+
+    describe("javascript project", function () {
+      useFixture("basic-project");
+
+      it("should throw if --typecheck is used", async function () {
+        const { code, stderr } = shell.exec(`${hardhatBinary} --typecheck`);
+
+        assert.equal(code, 1);
+        assert.include(stderr, "Error HH313");
+      });
+    });
+
+    describe("type error in config", function () {
+      useFixture("type-error-in-config");
+
+      it("should not throw by default", async function () {
+        const { code } = shell.exec(`${hardhatBinary}`);
+
+        assert.equal(code, 0);
+      });
+
+      it("should throw if --typecheck is used", async function () {
+        const { code, stderr } = shell.exec(`${hardhatBinary} --typecheck`);
+
+        assert.equal(code, 1);
+        assert.include(stderr, "error TS");
+      });
+    });
+
+    describe("type error in script", function () {
+      useFixture("type-error-in-script");
+
+      it("should not throw by default", async function () {
+        const { code } = shell.exec(`${hardhatBinary} run script.ts`);
+
+        assert.equal(code, 0);
+      });
+
+      it("should throw if --typecheck is used", async function () {
+        const { code, stderr } = shell.exec(
+          `${hardhatBinary} run script.ts --typecheck`
+        );
+
+        assert.equal(code, 1);
+        assert.include(stderr, "error TS");
+      });
+    });
+
+    describe("type error in test", function () {
+      useFixture("type-error-in-test");
+
+      it("should not throw by default", async function () {
+        const { code } = shell.exec(`${hardhatBinary} test`);
+
+        assert.equal(code, 0);
+      });
+
+      it("should throw if --typecheck is used", async function () {
+        const { code, stderr } = shell.exec(
+          `${hardhatBinary} test --typecheck`
+        );
+
+        assert.equal(code, 1);
+        assert.include(stderr, "error TS");
+      });
+    });
+  });
 });
