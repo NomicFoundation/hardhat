@@ -1,3 +1,6 @@
+pub use bytes::Bytes;
+pub use db::layered_db::{LayeredDatabase, RethnetLayer};
+pub use debug::DatabaseDebug;
 pub use hashbrown::HashMap;
 pub use primitive_types::{H160, H256, U256};
 pub use revm::{
@@ -7,7 +10,8 @@ pub use revm::{
 
 pub type State = HashMap<H160, Account>;
 
-// mod db;
+mod db;
+mod debug;
 
 pub struct Rethnet<D: Database + DatabaseCommit> {
     evm: EVM<D>,
@@ -34,11 +38,3 @@ impl<D: Database + DatabaseCommit> Rethnet<D> {
         self.evm.transact_commit()
     }
 }
-
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
-
-//     #[test]
-//     fn it_works() {}
-// }

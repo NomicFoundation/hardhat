@@ -1,10 +1,6 @@
-mod db;
-
 use anyhow::anyhow;
-use db::HardhatDatabase;
 use napi::{
     bindgen_prelude::*,
-    threadsafe_function::{ErrorStrategy, ThreadSafeCallContext, ThreadsafeFunction},
     tokio::{
         self,
         sync::{
@@ -14,7 +10,10 @@ use napi::{
     },
 };
 use napi_derive::napi;
-use rethnet_evm::{AccountInfo, Database, EVM, H160};
+use rethnet_evm::{
+    AccountInfo, Bytecode, Bytes, Database, DatabaseDebug, LayeredDatabase, RethnetLayer, EVM,
+    H160, H256, U256,
+};
 
 #[napi(constructor)]
 pub struct Account {
@@ -29,22 +28,6 @@ pub struct Account {
     pub code_hash: Buffer,
 }
 
-// #[napi]
-// impl Account {
-//     fn try_from_with_env(env: Env, account_info: AccountInfo) -> anyhow::Result<Self> {
-//         env.adjust_external_memory(mem::size_of_val(&account_info.code_hash) as i64)?;
-
-//         Ok()
-//     }
-// }
-
-// #[napi]
-// pub struct AccountByAddressQuery {
-//     #[napi(readonly)]
-//     pub address: Uint8Array,
-//     pub response: Account,
-// }
-
 #[napi]
 pub struct RethnetClient {
     request_sender: UnboundedSender<Request>,
@@ -53,27 +36,41 @@ pub struct RethnetClient {
 #[napi]
 impl RethnetClient {
     #[napi(constructor)]
-    pub fn new(
-        #[napi(ts_arg_type = "(address: Buffer) => void")] get_account_by_address_fn: JsFunction,
-    ) -> Result<Self> {
-        let get_account_by_address_fn: ThreadsafeFunction<H160, ErrorStrategy::Fatal> =
-            get_account_by_address_fn.create_threadsafe_function(
-                0,
-                |ctx: ThreadSafeCallContext<H160>| {
-                    ctx.env
-                        .create_buffer_copy(ctx.value.as_bytes())
-                        .map(|buffer| vec![buffer.into_raw()])
-                },
-            )?;
+    pub fn new() -> Self {
         let (request_sender, request_receiver) = unbounded_channel();
 
-        tokio::spawn(Rethnet::run(request_receiver, get_account_by_address_fn));
+        tokio::spawn(Rethnet::run(request_receiver));
 
-        Ok(Self { request_sender })
+        Self { request_sender }
     }
 
     #[napi]
-    pub async fn get_account_by_address(&mut self, address: Buffer) -> Result<Account> {
+    pub async fn add_block(&self, block_number: BigInt, block_hash: Buffer) -> Result<()> {
+        let block_number = U256(
+            block_number
+                .words
+                .try_into()
+                .expect("Block number should contain 4 words."),
+        );
+
+        let block_hash = H256::from_slice(&block_hash);
+
+        let (sender, receiver) = oneshot::channel();
+
+        self.request_sender
+            .send(Request::AddBlock {
+                block_number,
+                block_hash,
+                sender,
+            })
+            .map_err(|_| anyhow!("Failed to send request"))?;
+
+        receiver.await.expect("Rethnet unexpectedly crashed");
+        Ok(())
+    }
+
+    #[napi]
+    pub async fn get_account_by_address(&self, address: Buffer) -> Result<Account> {
         let address = H160::from_slice(&address);
 
         let (sender, receiver) = oneshot::channel();
@@ -92,6 +89,104 @@ impl RethnetClient {
             code_hash: Buffer::from(account_info.code_hash.as_bytes()),
         })
     }
+
+    #[napi]
+    pub async fn set_account_balance(&self, address: Buffer, balance: BigInt) -> Result<()> {
+        let address = H160::from_slice(&address);
+
+        let balance = U256(
+            balance
+                .words
+                .try_into()
+                .expect("Block number should contain 4 words."),
+        );
+
+        let (sender, receiver) = oneshot::channel();
+
+        self.request_sender
+            .send(Request::SetAccountBalance {
+                address,
+                balance,
+                sender,
+            })
+            .map_err(|_| anyhow!("Failed to send request"))?;
+
+        receiver.await.expect("Rethnet unexpectedly crashed");
+        Ok(())
+    }
+
+    #[napi]
+    pub async fn set_account_code(&self, address: Buffer, code: Buffer) -> Result<()> {
+        let address = H160::from_slice(&address);
+
+        let (sender, receiver) = oneshot::channel();
+
+        self.request_sender
+            .send(Request::SetAccountCode {
+                address,
+                bytes: Bytes::copy_from_slice(&code),
+                sender,
+            })
+            .map_err(|_| anyhow!("Failed to send request"))?;
+
+        receiver.await.expect("Rethnet unexpectedly crashed");
+        Ok(())
+    }
+
+    #[napi]
+    pub async fn set_account_nonce(&self, address: Buffer, nonce: BigInt) -> Result<()> {
+        let address = H160::from_slice(&address);
+        let (sign, nonce, lossless) = nonce.get_u64();
+        assert!(!sign && lossless, "Expected nonce to be a u64.");
+
+        let (sender, receiver) = oneshot::channel();
+
+        self.request_sender
+            .send(Request::SetAccountNonce {
+                address,
+                nonce,
+                sender,
+            })
+            .map_err(|_| anyhow!("Failed to send request"))?;
+
+        receiver.await.expect("Rethnet unexpectedly crashed");
+        Ok(())
+    }
+
+    #[napi]
+    pub async fn set_account_storage_slot(
+        &self,
+        address: Buffer,
+        index: BigInt,
+        value: BigInt,
+    ) -> Result<()> {
+        let address = H160::from_slice(&address);
+        let index = U256(
+            index
+                .words
+                .try_into()
+                .expect("Block number should contain 4 words."),
+        );
+        let value = U256(
+            value
+                .words
+                .try_into()
+                .expect("Block number should contain 4 words."),
+        );
+        let (sender, receiver) = oneshot::channel();
+
+        self.request_sender
+            .send(Request::SetAccountStorageSlot {
+                address,
+                index,
+                value,
+                sender,
+            })
+            .map_err(|_| anyhow!("Failed to send request"))?;
+
+        receiver.await.expect("Rethnet unexpectedly crashed");
+        Ok(())
+    }
 }
 
 enum Request {
@@ -99,17 +194,43 @@ enum Request {
         address: H160,
         sender: oneshot::Sender<AccountInfo>,
     },
+    AddBlock {
+        block_number: U256,
+        block_hash: H256,
+        sender: oneshot::Sender<()>,
+    },
+    SetAccountBalance {
+        address: H160,
+        balance: U256,
+        sender: oneshot::Sender<()>,
+    },
+    SetAccountCode {
+        address: H160,
+        bytes: Bytes,
+        sender: oneshot::Sender<()>,
+    },
+    SetAccountNonce {
+        address: H160,
+        nonce: u64,
+        sender: oneshot::Sender<()>,
+    },
+    SetAccountStorageSlot {
+        address: H160,
+        index: U256,
+        value: U256,
+        sender: oneshot::Sender<()>,
+    },
 }
 
 struct Rethnet {
-    evm: EVM<HardhatDatabase>,
+    evm: EVM<LayeredDatabase<RethnetLayer>>,
     request_receiver: UnboundedReceiver<Request>,
 }
 
 impl Rethnet {
-    pub fn new(request_receiver: UnboundedReceiver<Request>, db: HardhatDatabase) -> Self {
+    pub fn new(request_receiver: UnboundedReceiver<Request>) -> Self {
         let mut evm = EVM::new();
-        evm.database(db);
+        evm.database(LayeredDatabase::default());
 
         Self {
             evm,
@@ -117,29 +238,70 @@ impl Rethnet {
         }
     }
 
-    pub async fn run(
-        request_receiver: UnboundedReceiver<Request>,
-        get_account_by_address_fn: ThreadsafeFunction<H160, ErrorStrategy::Fatal>,
-    ) -> anyhow::Result<()> {
-        let db = HardhatDatabase::new(get_account_by_address_fn);
-        let mut rethnet = Rethnet::new(request_receiver, db);
+    pub async fn run(request_receiver: UnboundedReceiver<Request>) -> anyhow::Result<()> {
+        let mut rethnet = Rethnet::new(request_receiver);
 
         rethnet.event_loop().await
     }
 
     async fn event_loop(&mut self) -> anyhow::Result<()> {
         while let Some(request) = self.request_receiver.recv().await {
-            match request {
+            let sent_response = match request {
                 Request::AccountByAddress { address, sender } => {
-                    sender.send(self.get_account_by_address(address).await)
+                    sender.send(self.evm.db().unwrap().basic(address)).is_ok()
                 }
+                Request::AddBlock {
+                    block_number,
+                    block_hash,
+                    sender,
+                } => {
+                    self.evm.db().unwrap().add_block(block_number, block_hash);
+                    sender.send(()).is_ok()
+                }
+                Request::SetAccountBalance {
+                    address,
+                    balance,
+                    sender,
+                } => {
+                    self.evm.db().unwrap().account_info_mut(&address).balance = balance;
+                    sender.send(()).is_ok()
+                }
+                Request::SetAccountCode {
+                    address,
+                    bytes,
+                    sender,
+                } => {
+                    self.evm.db().unwrap().account_info_mut(&address).code =
+                        Some(Bytecode::new_raw(bytes));
+                    sender.send(()).is_ok()
+                }
+                Request::SetAccountNonce {
+                    address,
+                    nonce,
+                    sender,
+                } => {
+                    self.evm.db().unwrap().account_info_mut(&address).nonce = nonce;
+                    sender.send(()).is_ok()
+                }
+                Request::SetAccountStorageSlot {
+                    address,
+                    index,
+                    value,
+                    sender,
+                } => {
+                    self.evm
+                        .db()
+                        .unwrap()
+                        .set_storage_slot_at_layer(address, index, value);
+
+                    sender.send(()).is_ok()
+                }
+            };
+
+            if !sent_response {
+                return Err(anyhow!("Failed to send response"));
             }
-            .map_err(|_| anyhow!("Failed to send response"))?;
         }
         Ok(())
-    }
-
-    async fn get_account_by_address(&mut self, address: H160) -> AccountInfo {
-        self.evm.db().unwrap().basic(address)
     }
 }
