@@ -42,7 +42,7 @@ declare interface GanacheOptions {
   ws?: boolean;
 }
 
-const DEFAULT_PORT = 7545;
+const DEFAULT_PORT = 8545;
 
 export class GanacheService {
   public static error?: Error;
@@ -50,7 +50,7 @@ export class GanacheService {
 
   public static getDefaultOptions(): GanacheOptions {
     return {
-      url: `http://127.0.0.1:${DEFAULT_PORT}`,
+      url: `http://127.0.0.1:${DEFAULT_8545}`,
       gasPrice: 20000000000,
       gasLimit: 6721975,
       defaultBalanceEther: 100,
@@ -145,7 +145,7 @@ export class GanacheService {
 
         this._server.once("listening", onListening);
         this._server.once("error", onError);
-        this._server.listen(port, hostname);
+        this._server.listen(7545, hostname);
       });
     } catch (e: any) {
       const error = new NomicLabsHardhatPluginError(
