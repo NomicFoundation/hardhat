@@ -26,10 +26,7 @@ import {
 } from "@nomicfoundation/ethereumjs-vm";
 import { EVM, EVMResult } from "@nomicfoundation/ethereumjs-evm";
 import { ERROR } from "@nomicfoundation/ethereumjs-evm/dist/exceptions";
-import {
-  DefaultStateManager,
-  StateManager,
-} from "@nomicfoundation/ethereumjs-statemanager";
+import { StateManager } from "@nomicfoundation/ethereumjs-statemanager";
 import { SignTypedDataVersion, signTypedData } from "@metamask/eth-sig-util";
 import chalk from "chalk";
 import debug from "debug";
@@ -120,10 +117,10 @@ import { HardhatBlockchainInterface } from "./types/HardhatBlockchainInterface";
 import { getCurrentTimestamp } from "./utils/getCurrentTimestamp";
 import { makeCommon } from "./utils/makeCommon";
 import { makeForkClient } from "./utils/makeForkClient";
-import { makeStateTrie } from "./utils/makeStateTrie";
 import { putGenesisBlock } from "./utils/putGenesisBlock";
 import { txMapToArray } from "./utils/txMapToArray";
 import { RandomBufferGenerator } from "./utils/random";
+import { SyncStateManager } from "./SyncStateManager";
 
 type ExecResult = EVMResult["execResult"];
 
@@ -218,11 +215,14 @@ export class HardhatNode extends EventEmitter {
         hardforkActivations = config.chains.get(forkNetworkId)!.hardforkHistory;
       }
     } else {
-      const stateTrie = await makeStateTrie(genesisAccounts);
+      const syncStateManager = new SyncStateManager();
 
-      stateManager = new DefaultStateManager({
-        trie: stateTrie,
-      });
+      syncStateManager.initializeGenesisAccounts(genesisAccounts);
+      const initialStateRoot = syncStateManager.getStateRoot();
+
+      // SyncStateManager doesn't implement the StateManager interface
+      // because all its methods are sync
+      stateManager = syncStateManager as any;
 
       const hardhatBlockchain = new HardhatBlockchain(common);
 
@@ -238,7 +238,7 @@ export class HardhatNode extends EventEmitter {
         hardhatBlockchain,
         common,
         config,
-        stateTrie,
+        initialStateRoot,
         hardfork,
         mixHashGenerator.next(),
         genesisBlockBaseFeePerGas
