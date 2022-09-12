@@ -58,7 +58,7 @@ export class IgnitionWrapper {
 
     const [deploymentResult] = await this._ignition.deploy(recipe, {
       ...this._deployOptions,
-      ui: true,
+      ui: deployParams?.ui ?? true,
     });
 
     if (deploymentResult._kind === "hold") {
