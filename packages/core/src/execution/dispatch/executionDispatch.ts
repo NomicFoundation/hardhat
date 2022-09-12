@@ -1,6 +1,6 @@
-import { Services } from "../../services/types";
-import { ExecutionVertex } from "../../types/executionGraph";
-import { VertexVisitResult } from "../../types/graph";
+import { Services } from "services/types";
+import { ExecutionVertex } from "types/executionGraph";
+import { VertexVisitResult } from "types/graph";
 
 import { executeContractCall } from "./executeContractCall";
 import { executeContractDeploy } from "./executeContractDeploy";

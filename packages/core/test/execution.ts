@@ -1,11 +1,11 @@
 /* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
-import { ExecutionGraph } from "../src/execution/ExecutionGraph";
-import { execute } from "../src/execution/execute";
-import { Services, TransactionOptions } from "../src/services/types";
-import { ExecutionVertex } from "../src/types/executionGraph";
-import { Artifact } from "../src/types/hardhat";
+import { ExecutionGraph } from "execution/ExecutionGraph";
+import { execute } from "execution/execute";
+import { Services, TransactionOptions } from "services/types";
+import { ExecutionVertex } from "types/executionGraph";
+import { Artifact } from "types/hardhat";
 
 import { buildAdjacencyListFrom } from "./graph/helpers";
 import { getMockServices } from "./helpers";

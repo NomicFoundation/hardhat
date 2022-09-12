@@ -1,5 +1,7 @@
+const { resolve } = require("path");
+
 module.exports = {
-  extends: [`${__dirname}/../../config/eslint/eslintrc.js`],
+  extends: [resolve(__dirname, "../../config/eslint/.eslintrc.js")],
   parserOptions: {
     project: `${__dirname}/tsconfig.json`,
     sourceType: "module",
@@ -7,4 +9,5 @@ module.exports = {
   rules: {
     "no-console": "error",
   },
+  ignorePatterns: ["post-build.js"],
 };

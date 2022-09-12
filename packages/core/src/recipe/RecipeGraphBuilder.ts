@@ -1,4 +1,4 @@
-import { addEdge, ensureVertex } from "../graph/adjacencyList";
+import { addEdge, ensureVertex } from "graph/adjacencyList";
 import type {
   RecipeFuture,
   HardhatContract,
@@ -13,8 +13,8 @@ import type {
   FutureDict,
   CallableFuture,
   Virtual,
-} from "../types/future";
-import type { Artifact } from "../types/hardhat";
+} from "types/future";
+import type { Artifact } from "types/hardhat";
 import {
   ContractOptions,
   IRecipeGraph,
@@ -23,13 +23,13 @@ import {
   RecipeGraphBuilderOptions,
   RecipeVertex,
   UseRecipeOptions,
-} from "../types/recipeGraph";
+} from "types/recipeGraph";
 import {
   isArtifact,
   isCallable,
   isDependable,
   isParameter,
-} from "../utils/guards";
+} from "utils/guards";
 
 import { RecipeGraph } from "./RecipeGraph";
 import { ScopeStack } from "./ScopeStack";

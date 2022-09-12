@@ -1,7 +1,7 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 
-import { Artifact } from "../types/hardhat";
+import { Artifact } from "types/hardhat";
 
 interface Link {
   sourceName: string;

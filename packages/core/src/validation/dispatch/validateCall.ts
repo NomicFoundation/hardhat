@@ -1,9 +1,9 @@
 import { ethers } from "ethers";
 
-import { Services } from "../../services/types";
-import { CallableFuture } from "../../types/future";
-import { VertexVisitResult } from "../../types/graph";
-import { CallRecipeVertex } from "../../types/recipeGraph";
+import { Services } from "services/types";
+import { CallableFuture } from "types/future";
+import { VertexVisitResult } from "types/graph";
+import { CallRecipeVertex } from "types/recipeGraph";
 
 export async function validateCall(
   vertex: CallRecipeVertex,

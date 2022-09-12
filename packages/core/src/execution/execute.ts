@@ -1,11 +1,11 @@
-import { getSortedVertexIdsFrom } from "../graph/utils";
-import { visit } from "../graph/visit";
-import { Services } from "../services/types";
-import { IgnitionRecipesResults } from "../types/deployment";
-import { ExecutionVertex, IExecutionGraph } from "../types/executionGraph";
-import { VisitResult } from "../types/graph";
-import { DeploymentState } from "../ui/types";
-import { UiService } from "../ui/ui-service";
+import { getSortedVertexIdsFrom } from "graph/utils";
+import { visit } from "graph/visit";
+import { Services } from "services/types";
+import { IgnitionRecipesResults } from "types/deployment";
+import { ExecutionVertex, IExecutionGraph } from "types/executionGraph";
+import { VisitResult } from "types/graph";
+import { DeploymentState } from "ui/types";
+import { UiService } from "ui/ui-service";
 
 import { executionDispatch } from "./dispatch/executionDispatch";
 

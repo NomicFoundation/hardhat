@@ -1,6 +1,6 @@
-import { Services } from "../../services/types";
-import { DeployedContract } from "../../types/executionGraph";
-import { VertexVisitResult } from "../../types/graph";
+import { Services } from "services/types";
+import { DeployedContract } from "types/executionGraph";
+import { VertexVisitResult } from "types/graph";
 
 export async function executeDeployedContract(
   { label, address, abi }: DeployedContract,

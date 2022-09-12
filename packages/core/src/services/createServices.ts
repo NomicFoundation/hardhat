@@ -1,6 +1,6 @@
-import { Journal } from "../journal/types";
-import { Providers } from "../types/providers";
-import { TxSender } from "../utils/tx-sender";
+import { Journal } from "journal/types";
+import { Providers } from "types/providers";
+import { TxSender } from "utils/tx-sender";
 
 import { ArtifactsService } from "./ArtifactsService";
 import { ConfigService } from "./ConfigService";

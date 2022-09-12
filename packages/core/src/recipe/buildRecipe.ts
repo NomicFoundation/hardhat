@@ -1,5 +1,5 @@
-import type { FutureDict } from "../types/future";
-import type { IRecipeGraphBuilder, Recipe } from "../types/recipeGraph";
+import type { FutureDict } from "types/future";
+import type { IRecipeGraphBuilder, Recipe } from "types/recipeGraph";
 
 export function buildRecipe(
   recipeName: string,

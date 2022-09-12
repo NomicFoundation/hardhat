@@ -1,24 +1,24 @@
 /* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
-import { getDependenciesFor } from "../src/graph/adjacencyList";
-import { generateRecipeGraphFrom } from "../src/process/generateRecipeGraphFrom";
-import { RecipeGraph } from "../src/recipe/RecipeGraph";
-import { buildRecipe } from "../src/recipe/buildRecipe";
-import { VertexDescriptor } from "../src/types/graph";
-import { Artifact } from "../src/types/hardhat";
+import { getDependenciesFor } from "graph/adjacencyList";
+import { generateRecipeGraphFrom } from "process/generateRecipeGraphFrom";
+import { RecipeGraph } from "recipe/RecipeGraph";
+import { buildRecipe } from "recipe/buildRecipe";
+import { VertexDescriptor } from "types/graph";
+import { Artifact } from "types/hardhat";
 import type {
   IRecipeGraph,
   IRecipeGraphBuilder,
   RecipeVertex,
-} from "../src/types/recipeGraph";
+} from "types/recipeGraph";
 import {
   isArtifactContract,
   isCall,
   isDeployedContract,
   isHardhatContract,
   isHardhatLibrary,
-} from "../src/utils/guards";
+} from "utils/guards";
 
 describe("Recipes", function () {
   describe("single contract", () => {

@@ -4,11 +4,11 @@ import { ethers } from "ethers";
 import sinon from "sinon";
 import tmp from "tmp";
 
-import { FileJournal } from "../src/journal/FileJournal";
-import { InMemoryJournal } from "../src/journal/InMemoryJournal";
-import { Journal } from "../src/journal/types";
-import { GasProvider, IgnitionSigner } from "../src/types/providers";
-import { TxSender } from "../src/utils/tx-sender";
+import { FileJournal } from "journal/FileJournal";
+import { InMemoryJournal } from "journal/InMemoryJournal";
+import { Journal } from "journal/types";
+import { GasProvider, IgnitionSigner } from "types/providers";
+import { TxSender } from "utils/tx-sender";
 
 class SignerSpy implements IgnitionSigner {
   private _index = -1;

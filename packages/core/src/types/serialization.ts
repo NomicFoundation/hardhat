@@ -1,4 +1,4 @@
-import { serializeFutureOutput } from "../utils/serialize";
+import { serializeFutureOutput } from "utils/serialize";
 
 export type SerializedRecipeResult = Record<string, SerializedFutureResult>;
 export type SerializedDeploymentResult = Record<string, SerializedRecipeResult>;

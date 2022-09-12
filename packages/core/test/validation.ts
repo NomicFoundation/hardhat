@@ -1,11 +1,11 @@
 /* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
-import { generateRecipeGraphFrom } from "../src/process/generateRecipeGraphFrom";
-import { buildRecipe } from "../src/recipe/buildRecipe";
-import { Artifact } from "../src/types/hardhat";
-import type { IRecipeGraphBuilder } from "../src/types/recipeGraph";
-import { validateRecipeGraph } from "../src/validation/validateRecipeGraph";
+import { generateRecipeGraphFrom } from "process/generateRecipeGraphFrom";
+import { buildRecipe } from "recipe/buildRecipe";
+import { Artifact } from "types/hardhat";
+import type { IRecipeGraphBuilder } from "types/recipeGraph";
+import { validateRecipeGraph } from "validation/validateRecipeGraph";
 
 import { getMockServices } from "./helpers";
 

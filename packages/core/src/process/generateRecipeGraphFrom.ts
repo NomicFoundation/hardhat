@@ -1,10 +1,10 @@
-import { RecipeGraphBuilder } from "../recipe/RecipeGraphBuilder";
-import { FutureDict } from "../types/future";
+import { RecipeGraphBuilder } from "recipe/RecipeGraphBuilder";
+import { FutureDict } from "types/future";
 import type {
   RecipeGraphBuilderOptions,
   Recipe,
   IRecipeGraph,
-} from "../types/recipeGraph";
+} from "types/recipeGraph";
 
 export function generateRecipeGraphFrom(
   recipe: Recipe,

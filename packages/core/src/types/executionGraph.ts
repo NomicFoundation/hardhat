@@ -6,7 +6,7 @@ import { LibraryMap } from "./recipeGraph";
 export interface IExecutionGraph {
   adjacencyList: AdjacencyList;
   vertexes: Map<number, ExecutionVertex>;
-  toMermaid(): string;
+  getEdges(): Array<{ from: number; to: number }>;
 }
 
 export type ArgValue = boolean | string | number | RecipeFuture;

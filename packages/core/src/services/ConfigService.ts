@@ -1,5 +1,5 @@
-import { HasParamResult, Providers } from "../types/providers";
-import { ExternalParamValue } from "../types/recipeGraph";
+import { HasParamResult, Providers } from "types/providers";
+import { ExternalParamValue } from "types/recipeGraph";
 
 export interface IConfigService {
   getParam(paramName: string): Promise<ExternalParamValue>;

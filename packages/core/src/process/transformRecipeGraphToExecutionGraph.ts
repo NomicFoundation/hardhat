@@ -1,6 +1,6 @@
-import { ExecutionGraph } from "../execution/ExecutionGraph";
-import { clone } from "../graph/adjacencyList";
-import { Services } from "../services/types";
+import { ExecutionGraph } from "execution/ExecutionGraph";
+import { clone } from "graph/adjacencyList";
+import { Services } from "services/types";
 import {
   ContractCall,
   ContractDeploy,
@@ -8,9 +8,9 @@ import {
   ExecutionVertex,
   IExecutionGraph,
   LibraryDeploy,
-} from "../types/executionGraph";
-import { RecipeFuture } from "../types/future";
-import { Artifact } from "../types/hardhat";
+} from "types/executionGraph";
+import { RecipeFuture } from "types/future";
+import { Artifact } from "types/hardhat";
 import {
   ArtifactContractRecipeVertex,
   ArtifactLibraryRecipeVertex,
@@ -20,8 +20,8 @@ import {
   HardhatLibraryRecipeVertex,
   IRecipeGraph,
   RecipeVertex,
-} from "../types/recipeGraph";
-import { isFuture } from "../utils/guards";
+} from "types/recipeGraph";
+import { isFuture } from "utils/guards";
 
 import { reduceRecipeGraphByEliminatingVirtualVertexes } from "./reduceRecipeGraphByEliminatingVirtualVertexes";
 

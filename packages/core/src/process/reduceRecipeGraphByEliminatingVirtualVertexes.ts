@@ -1,6 +1,6 @@
-import { eliminate } from "../graph/adjacencyList";
-import { RecipeGraph } from "../recipe/RecipeGraph";
-import { RecipeVertex } from "../types/recipeGraph";
+import { eliminate } from "graph/adjacencyList";
+import { RecipeGraph } from "recipe/RecipeGraph";
+import { RecipeVertex } from "types/recipeGraph";
 
 /**
  * Recipe graphs can have virtual vertex that represent the

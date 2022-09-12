@@ -21,7 +21,7 @@ export interface IRecipeGraph {
   registeredParameters: {
     [key: string]: { [key: string]: string | number | RecipeFuture };
   };
-  toMermaid(): string;
+  getEdges(): Array<{ from: number; to: number }>;
 }
 
 export interface LibraryMap {

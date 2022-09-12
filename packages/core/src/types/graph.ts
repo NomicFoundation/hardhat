@@ -8,6 +8,7 @@ export type AdjacencyList = Map<number, Set<number>>;
 export interface IGraph<T> {
   adjacencyList: AdjacencyList;
   vertexes: Map<number, T>;
+  getEdges(): Array<{ from: number; to: number }>;
 }
 
 export type VertexVisitResult =

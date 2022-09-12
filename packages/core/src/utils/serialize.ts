@@ -1,4 +1,4 @@
-import { FutureOutput } from "../types/serialization";
+import { FutureOutput } from "types/serialization";
 
 export function serializeFutureOutput(x: FutureOutput) {
   if (typeof x === "string") {

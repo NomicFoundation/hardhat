@@ -1,6 +1,6 @@
-import { Services } from "../../services/types";
-import { ContractCall } from "../../types/executionGraph";
-import { VertexVisitResult } from "../../types/graph";
+import { Services } from "services/types";
+import { ContractCall } from "types/executionGraph";
+import { VertexVisitResult } from "types/graph";
 
 import { resolveFrom, toAddress } from "./utils";
 

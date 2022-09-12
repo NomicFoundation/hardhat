@@ -1,12 +1,12 @@
 import { ethers } from "ethers";
 
-import { IArtifactsService } from "../src/services/ArtifactsService";
-import { IConfigService } from "../src/services/ConfigService";
-import { IContractsService } from "../src/services/ContractsService";
-import { ITransactionsService } from "../src/services/TransactionsService";
-import { Services, TransactionOptions } from "../src/services/types";
-import { Artifact } from "../src/types/hardhat";
-import { HasParamResult } from "../src/types/providers";
+import { IArtifactsService } from "services/ArtifactsService";
+import { IConfigService } from "services/ConfigService";
+import { IContractsService } from "services/ContractsService";
+import { ITransactionsService } from "services/TransactionsService";
+import { Services, TransactionOptions } from "services/types";
+import { Artifact } from "types/hardhat";
+import { HasParamResult } from "types/providers";
 
 export function getMockServices() {
   const mockServices: Services = {

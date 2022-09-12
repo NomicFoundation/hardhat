@@ -1,4 +1,4 @@
-import { IGraph, VertexVisitResult, VisitResult } from "../types/graph";
+import { IGraph, VertexVisitResult, VisitResult } from "types/graph";
 
 export async function visit<T, C>(
   phase: "Execution" | "Validation",

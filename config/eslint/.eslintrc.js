@@ -1,4 +1,14 @@
 module.exports = {
+  settings: {
+    "import/resolver": {
+      typescript: {
+        project: [
+          "packages/core/tsconfig.json",
+          "packages/hardhat-plugin/tsconfig.json",
+        ],
+      },
+    },
+  },
   env: {
     browser: false,
     es6: true,
@@ -6,6 +16,10 @@ module.exports = {
   },
   extends: ["plugin:prettier/recommended"],
   parser: "@typescript-eslint/parser",
+  parserOptions: {
+    project: "./tsconfig.json",
+    tsConfigRootDir: "./",
+  },
   plugins: ["eslint-plugin-import", "@typescript-eslint", "mocha"],
   rules: {
     "import/no-unused-modules": [
@@ -163,6 +177,7 @@ module.exports = {
         groups: [
           "object",
           ["builtin", "external"],
+          "internal",
           "parent",
           "sibling",
           "index",

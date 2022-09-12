@@ -1,5 +1,5 @@
-import { ArgValue } from "../../types/executionGraph";
-import { isDependable } from "../../utils/guards";
+import { ArgValue } from "types/executionGraph";
+import { isDependable } from "utils/guards";
 
 export function toAddress(v: any) {
   if (typeof v === "object" && "address" in v) {

@@ -1,6 +1,6 @@
 import { DiGraph, TopologicalSort } from "js-graph-algorithms";
 
-import { AdjacencyList } from "../types/graph";
+import { AdjacencyList } from "types/graph";
 
 export function constructEmptyAdjacencyList(): AdjacencyList {
   return new Map<number, Set<number>>();
@@ -95,18 +95,4 @@ export function eliminate(
   }
 
   return updatedList;
-}
-
-export function getEdges(
-  adjacencyList: AdjacencyList
-): Array<{ from: number; to: number }> {
-  const edges: Array<{ from: number; to: number }> = [];
-
-  for (const [from, edgeList] of adjacencyList.entries()) {
-    for (const to of edgeList.values()) {
-      edges.push({ from, to });
-    }
-  }
-
-  return edges;
 }

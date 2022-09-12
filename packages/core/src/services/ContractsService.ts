@@ -1,11 +1,11 @@
 import setupDebug from "debug";
 import { ethers, Contract, ContractFactory } from "ethers";
 
-import { Artifact } from "../types/hardhat";
-import { IgnitionSigner, Providers } from "../types/providers";
-import { collectLibrariesAndLink } from "../utils/collectLibrariesAndLink";
-import { sleep } from "../utils/sleep";
-import { TxSender } from "../utils/tx-sender";
+import { Artifact } from "types/hardhat";
+import { IgnitionSigner, Providers } from "types/providers";
+import { collectLibrariesAndLink } from "utils/collectLibrariesAndLink";
+import { sleep } from "utils/sleep";
+import { TxSender } from "utils/tx-sender";
 
 import type { TransactionOptions } from "./types";
 

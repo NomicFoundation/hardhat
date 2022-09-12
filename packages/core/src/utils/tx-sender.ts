@@ -1,8 +1,8 @@
 import setupDebug, { IDebugger } from "debug";
 import { ethers } from "ethers";
 
-import { Journal } from "../journal/types";
-import { GasProvider, IgnitionSigner } from "../types/providers";
+import { Journal } from "journal/types";
+import { GasProvider, IgnitionSigner } from "types/providers";
 
 /**
  * Sends, replaces and keeps track of transactions.

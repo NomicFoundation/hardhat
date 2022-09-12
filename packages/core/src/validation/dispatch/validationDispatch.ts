@@ -1,6 +1,6 @@
-import { Services } from "../../services/types";
-import { VertexVisitResult } from "../../types/graph";
-import { RecipeVertex } from "../../types/recipeGraph";
+import { Services } from "services/types";
+import { VertexVisitResult } from "types/graph";
+import { RecipeVertex } from "types/recipeGraph";
 
 import { validateArtifactContract } from "./validateArtifactContract";
 import { validateArtifactLibrary } from "./validateArtifactLibrary";

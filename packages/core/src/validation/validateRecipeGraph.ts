@@ -1,8 +1,8 @@
-import { getSortedVertexIdsFrom } from "../graph/utils";
-import { visit } from "../graph/visit";
-import { Services } from "../services/types";
-import { VisitResult } from "../types/graph";
-import { IRecipeGraph } from "../types/recipeGraph";
+import { getSortedVertexIdsFrom } from "graph/utils";
+import { visit } from "graph/visit";
+import { Services } from "services/types";
+import { VisitResult } from "types/graph";
+import { IRecipeGraph } from "types/recipeGraph";
 
 import { validationDispatch } from "./dispatch/validationDispatch";
 

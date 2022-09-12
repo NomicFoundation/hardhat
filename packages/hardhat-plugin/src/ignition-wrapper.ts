@@ -106,8 +106,12 @@ export class IgnitionWrapper {
     const plan = await this._ignition.plan(recipe);
 
     if (!Array.isArray(plan)) {
-      const recipeGraph = plan.recipeGraph.toMermaid();
-      const executionGraph = plan.executionGraph.toMermaid();
+      // const recipeGraph = plan.recipeGraph.toMermaid();
+      // const executionGraph = plan.executionGraph.toMermaid();
+
+      // placeholder
+      const recipeGraph = "";
+      const executionGraph = "";
 
       const output = `
 flowchart

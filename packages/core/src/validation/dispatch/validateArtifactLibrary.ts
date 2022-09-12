@@ -1,9 +1,9 @@
 import { ethers } from "ethers";
 
-import { Services } from "../../services/types";
-import { VertexVisitResult } from "../../types/graph";
-import { ArtifactLibraryRecipeVertex } from "../../types/recipeGraph";
-import { isArtifact } from "../../utils/guards";
+import { Services } from "services/types";
+import { VertexVisitResult } from "types/graph";
+import { ArtifactLibraryRecipeVertex } from "types/recipeGraph";
+import { isArtifact } from "utils/guards";
 
 export async function validateArtifactLibrary(
   vertex: ArtifactLibraryRecipeVertex,

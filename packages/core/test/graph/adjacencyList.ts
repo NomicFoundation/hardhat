@@ -9,7 +9,7 @@ import {
   topologicalSort,
   eliminate,
   ensureVertex,
-} from "../../src/graph/adjacencyList";
+} from "graph/adjacencyList";
 
 import { buildAdjacencyListFrom, constructAdjacencyList } from "./helpers";
 

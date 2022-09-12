@@ -1,4 +1,4 @@
-import { ExecutionVertex } from "../types/executionGraph";
+import { ExecutionVertex } from "types/executionGraph";
 
 interface VertexSuccess {
   status: "success";
