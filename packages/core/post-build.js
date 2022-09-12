@@ -4,8 +4,6 @@ const { resolve, dirname, relative, join } = require("path");
 
 const srcRoot = resolve(__dirname, "src");
 const dir = fs.readdirSync(srcRoot);
-console.log("dir");
-console.log(dir);
 
 const pwd = process.cwd();
 const configFile = resolve(pwd, "tsconfig.json");
@@ -39,9 +37,6 @@ for (let i = 0; i < dir.length; i++) {
     name: item,
   });
 }
-
-console.log("aliases");
-console.log(aliases);
 
 const absToRel = (modulePath, outFile) => {
   const len = aliases.length;
@@ -98,9 +93,6 @@ const files = glob
     onlyFiles: true,
   })
   .map((x) => resolve(x));
-
-console.log("files");
-console.log(files);
 
 const len = files.length;
 for (let i = 0; i < len; i++) {
