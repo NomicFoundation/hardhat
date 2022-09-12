@@ -3,22 +3,18 @@ import { IGraph, VertexVisitResult, VisitResult } from "types/graph";
 export async function visit<T, C>(
   phase: "Execution" | "Validation",
   orderedVertexIds: number[],
-  executionGraph: IGraph<T>,
+  graph: IGraph<T>,
   context: C,
   resultAccumulator: Map<number, any>,
   vistitorAction: (
-    executionVertex: T,
+    vertex: T,
     resultAccumulator: Map<number, any>,
     context: C
   ) => Promise<VertexVisitResult>,
-  afterAction?: (
-    executionVertex: T,
-    kind: "success" | "failure",
-    err?: unknown
-  ) => void
+  afterAction?: (vertex: T, kind: "success" | "failure", err?: unknown) => void
 ): Promise<VisitResult> {
   for (const vertexId of orderedVertexIds) {
-    const vertex = executionGraph.vertexes.get(vertexId);
+    const vertex = graph.vertexes.get(vertexId);
 
     if (vertex === undefined) {
       throw new Error(`Could not get vertex ${vertexId}`);
