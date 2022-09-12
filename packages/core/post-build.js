@@ -1,6 +1,6 @@
 const fs = require("fs-extra");
 const glob = require("fast-glob");
-const { resolve, dirname, relative } = require("path");
+const { resolve, dirname, relative, join } = require("path");
 
 const srcRoot = resolve(__dirname, "src");
 const dir = fs.readdirSync(srcRoot);
@@ -93,7 +93,7 @@ const replaceAlias = (text, outFile) =>
     );
 
 const files = glob
-  .sync(`${outPath}/**/*.{js,jsx,ts,tsx}`, {
+  .sync(join(outPath, "**", "*.{js,jsx,ts,tsx}").replace(/\\/g, "/"), {
     dot: true,
     onlyFiles: true,
   })
