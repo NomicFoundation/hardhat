@@ -11,8 +11,8 @@ use napi::{
 };
 use napi_derive::napi;
 use rethnet_evm::{
-    AccountInfo, Bytecode, Bytes, Database, DatabaseDebug, LayeredDatabase, RethnetLayer, EVM,
-    H160, H256, U256,
+    AccountInfo, Bytecode, Bytes, CreateScheme, Database, DatabaseDebug, ExecutionResult,
+    LayeredDatabase, RethnetLayer, State, TransactTo, TxEnv, EVM, H160, H256, U256,
 };
 
 #[napi(constructor)]
@@ -26,6 +26,41 @@ pub struct Account {
     /// 256-bit code hash
     #[napi(readonly)]
     pub code_hash: Buffer,
+}
+
+#[napi(object)]
+pub struct Transaction {
+    /// 160-bit address
+    pub from: Buffer,
+    pub input: Option<Buffer>,
+    pub value: Option<BigInt>,
+}
+
+impl From<Transaction> for TxEnv {
+    fn from(transaction: Transaction) -> Self {
+        let caller = H160::from_slice(&transaction.from);
+
+        let value = transaction.value.map_or(U256::default(), |value| {
+            U256(
+                value
+                    .words
+                    .try_into()
+                    .expect("Block number should contain 4 words."),
+            )
+        });
+
+        let data = transaction
+            .input
+            .map_or(Bytes::default(), |input| Bytes::copy_from_slice(&input));
+
+        Self {
+            transact_to: TransactTo::Call(caller.clone()),
+            caller,
+            data,
+            value,
+            ..Default::default()
+        }
+    }
 }
 
 #[napi]
@@ -70,6 +105,25 @@ impl RethnetClient {
     }
 
     #[napi]
+    pub async fn call(&self, transaction: Transaction) -> Result<serde_json::Value> {
+        let transaction = transaction.into();
+
+        let (sender, receiver) = oneshot::channel();
+
+        self.request_sender
+            .send(Request::Call {
+                transaction,
+                sender,
+            })
+            .map_err(|_| anyhow!("Failed to send request"))?;
+
+        let result = receiver.await.expect("Rethnet unexpectedly crashed");
+
+        serde_json::to_value(result.1)
+            .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))
+    }
+
+    #[napi]
     pub async fn get_account_by_address(&self, address: Buffer) -> Result<Account> {
         let address = H160::from_slice(&address);
 
@@ -79,15 +133,30 @@ impl RethnetClient {
             .send(Request::AccountByAddress { address, sender })
             .map_err(|_| anyhow!("Failed to send request"))?;
 
-        let account_info = receiver.await.expect("Rethnet unexpectedly crashed");
-        Ok(Account {
-            balance: BigInt {
-                sign_bit: false,
-                words: account_info.balance.0.to_vec(),
-            },
-            nonce: BigInt::from(account_info.nonce),
-            code_hash: Buffer::from(account_info.code_hash.as_bytes()),
-        })
+        receiver
+            .await
+            .expect("Rethnet unexpectedly crashed")?
+            .map_or_else(
+                || {
+                    Err(napi::Error::new(
+                        Status::GenericFailure,
+                        format!(
+                            "Database does not contain account with address: {}.",
+                            address,
+                        ),
+                    ))
+                },
+                |account_info| {
+                    Ok(Account {
+                        balance: BigInt {
+                            sign_bit: false,
+                            words: account_info.balance.0.to_vec(),
+                        },
+                        nonce: BigInt::from(account_info.nonce),
+                        code_hash: Buffer::from(account_info.code_hash.as_bytes()),
+                    })
+                },
+            )
     }
 
     #[napi]
@@ -192,12 +261,16 @@ impl RethnetClient {
 enum Request {
     AccountByAddress {
         address: H160,
-        sender: oneshot::Sender<AccountInfo>,
+        sender: oneshot::Sender<anyhow::Result<Option<AccountInfo>>>,
     },
     AddBlock {
         block_number: U256,
         block_hash: H256,
         sender: oneshot::Sender<()>,
+    },
+    Call {
+        transaction: TxEnv,
+        sender: oneshot::Sender<(ExecutionResult, State)>,
     },
     SetAccountBalance {
         address: H160,
@@ -257,6 +330,13 @@ impl Rethnet {
                 } => {
                     self.evm.db().unwrap().add_block(block_number, block_hash);
                     sender.send(()).is_ok()
+                }
+                Request::Call {
+                    transaction,
+                    sender,
+                } => {
+                    self.evm.env.tx = transaction;
+                    sender.send(self.evm.transact()).is_ok()
                 }
                 Request::SetAccountBalance {
                     address,

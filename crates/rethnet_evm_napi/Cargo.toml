@@ -8,9 +8,10 @@ crate-type = ["cdylib"]
 
 [dependencies]
 anyhow = "1.0.64"
-napi = { version = "2.9.0", default-features = false, features = ["async", "error_anyhow", "napi8"] }
+napi = { version = "2.9.0", default-features = false, features = ["async", "error_anyhow", "napi8", "serde-json"] }
 napi-derive = "2.9.0"
 rethnet_evm = { version = "0.1.0-dev", path = "../rethnet_evm" }
+serde_json = { version = "1.0.85", default-features = false, features = ["alloc"] }
 
 [build-dependencies]
 napi-build = "2.0.1"

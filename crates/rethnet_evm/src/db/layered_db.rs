@@ -1,7 +1,8 @@
+use anyhow::anyhow;
 use bytes::Bytes;
 use hashbrown::HashMap;
 use primitive_types::{H160, H256, U256};
-use revm::{Account, AccountInfo, Bytecode, Database, DatabaseCommit, Filth, KECCAK_EMPTY};
+use revm::{Account, AccountInfo, Bytecode, Database, DatabaseCommit, KECCAK_EMPTY};
 
 use crate::DatabaseDebug;
 
@@ -84,33 +85,30 @@ impl RethnetLayer {
 }
 
 impl Database for LayeredDatabase<RethnetLayer> {
-    fn basic(&mut self, address: H160) -> AccountInfo {
-        self.iter()
-            .find_map(|layer| layer.account_infos.get(&address).cloned())
-            .unwrap_or_else(|| {
-                panic!(
-                    "Layered database does not contain account with address: {}.",
-                    address,
-                )
-            })
+    type Error = anyhow::Error;
+
+    fn basic(&mut self, address: H160) -> anyhow::Result<Option<AccountInfo>> {
+        Ok(self
+            .iter()
+            .find_map(|layer| layer.account_infos.get(&address).cloned()))
     }
 
-    fn code_by_hash(&mut self, code_hash: H256) -> Bytecode {
+    fn code_by_hash(&mut self, code_hash: H256) -> anyhow::Result<Bytecode> {
         self.iter()
             .find_map(|layer| {
                 layer.contracts.get(&code_hash).map(|bytecode| unsafe {
                     Bytecode::new_raw_with_hash(bytecode.clone(), code_hash.clone())
                 })
             })
-            .unwrap_or_else(|| {
-                panic!(
+            .ok_or_else(|| {
+                anyhow!(
                     "Layered database does not contain contract with code hash: {}.",
                     code_hash,
                 )
             })
     }
 
-    fn storage(&mut self, address: H160, index: U256) -> U256 {
+    fn storage(&mut self, address: H160, index: U256) -> anyhow::Result<U256> {
         self.iter()
             .find_map(|layer| {
                 layer
@@ -119,19 +117,20 @@ impl Database for LayeredDatabase<RethnetLayer> {
                     .and_then(|storage| storage.get(&index))
                     .cloned()
             })
-            .unwrap_or_else(|| {
-                panic!(
+            .ok_or_else(|| {
+                anyhow!(
                     "Layered database does not contain storage with address: {}; and index: {}.",
-                    address, index
+                    address,
+                    index
                 )
             })
     }
 
-    fn block_hash(&mut self, number: U256) -> H256 {
+    fn block_hash(&mut self, number: U256) -> anyhow::Result<H256> {
         self.iter()
             .find_map(|layer| layer.block_hashes.get(&number).cloned())
-            .unwrap_or_else(|| {
-                panic!(
+            .ok_or_else(|| {
+                anyhow!(
                     "Layered database does not contain block hash with number: {}.",
                     number
                 )
@@ -144,17 +143,23 @@ impl DatabaseCommit for LayeredDatabase<RethnetLayer> {
         let last_layer = self.last_layer_mut();
 
         changes.into_iter().for_each(|(address, account)| {
-            if account.is_empty() || matches!(account.filth, Filth::Destroyed) {
+            if account.is_empty() || account.is_destroyed {
                 last_layer.account_infos.remove(&address);
             } else {
                 last_layer.insert_account(address, account.info);
 
-                let storage = last_layer.storage.entry(address).or_default();
-                if account.filth.abandon_old_storage() {
-                    storage.clear();
-                }
+                let storage = last_layer
+                    .storage
+                    .entry(address)
+                    .and_modify(|storage| {
+                        if account.storage_cleared {
+                            storage.clear();
+                        }
+                    })
+                    .or_default();
 
                 account.storage.into_iter().for_each(|(index, value)| {
+                    let value = value.present_value();
                     if value.is_zero() {
                         storage.remove(&index);
                     } else {

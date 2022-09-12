@@ -4,8 +4,8 @@ pub use debug::DatabaseDebug;
 pub use hashbrown::HashMap;
 pub use primitive_types::{H160, H256, U256};
 pub use revm::{
-    db::DatabaseRef, db::EmptyDB, Account, AccountInfo, Bytecode, Database, DatabaseCommit, Log,
-    Return, TransactOut, TxEnv, EVM,
+    db::DatabaseRef, db::EmptyDB, Account, AccountInfo, Bytecode, CreateScheme, Database,
+    DatabaseCommit, ExecutionResult, Log, Return, TransactOut, TransactTo, TxEnv, EVM,
 };
 
 pub type State = HashMap<H160, Account>;
@@ -28,12 +28,12 @@ impl<D: Database + DatabaseCommit> Rethnet<D> {
     // ?
     // TransactTo::Call & TransactTo::Create
     // For both cases, can we do a dry run and state-changing run?
-    pub fn dry_run(&mut self, tx: TxEnv) -> (Return, TransactOut, u64, State, Vec<Log>) {
+    pub fn call(&mut self, tx: TxEnv) -> (ExecutionResult, State) {
         self.evm.env.tx = tx;
         self.evm.transact()
     }
 
-    pub fn run(&mut self, tx: TxEnv) -> (Return, TransactOut, u64, Vec<Log>) {
+    pub fn run(&mut self, tx: TxEnv) -> ExecutionResult {
         self.evm.env.tx = tx;
         self.evm.transact_commit()
     }
