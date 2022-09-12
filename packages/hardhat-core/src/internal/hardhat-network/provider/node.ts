@@ -131,6 +131,8 @@ const log = debug("hardhat:core:hardhat-network:node");
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
+// trigger ci
+
 export class HardhatNode extends EventEmitter {
   public static async create(
     config: NodeConfig
