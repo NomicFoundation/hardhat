@@ -2,19 +2,22 @@ const fs = require("fs-extra");
 const glob = require("fast-glob");
 const { resolve, dirname, relative } = require("path");
 
-const dir = fs.readdirSync("./src");
+const srcRoot = resolve(__dirname, "src");
+const dir = fs.readdirSync(srcRoot);
+console.log("dir");
+console.log(dir);
 
 const pwd = process.cwd();
 const configFile = resolve(pwd, "tsconfig.json");
 const {
   compilerOptions: { baseUrl },
 } = require(configFile);
-const srcRoot = resolve("./src");
+// const srcRoot = resolve("./src");
 
 const configDir = dirname(configFile);
 
 const basePath = resolve(configDir, baseUrl);
-const outPath = resolve("./dist/src");
+const outPath = resolve(__dirname, "dist", "src");
 
 const outFileToSrcFile = (x) => resolve(srcRoot, relative(outPath, x));
 
@@ -36,6 +39,9 @@ for (let i = 0; i < dir.length; i++) {
     name: item,
   });
 }
+
+console.log("aliases");
+console.log(aliases);
 
 const absToRel = (modulePath, outFile) => {
   const len = aliases.length;
@@ -92,6 +98,9 @@ const files = glob
     onlyFiles: true,
   })
   .map((x) => resolve(x));
+
+console.log("files");
+console.log(files);
 
 const len = files.length;
 for (let i = 0; i < len; i++) {
