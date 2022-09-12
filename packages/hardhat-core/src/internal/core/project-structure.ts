@@ -13,6 +13,7 @@ const TS_CONFIG_FILENAME = "hardhat.config.ts";
 export function isCwdInsideProject() {
   return (
     findUp.sync(TS_CONFIG_FILENAME) !== null ||
+    findUp.sync(CJS_CONFIG_FILENAME) !== null ||
     findUp.sync(JS_CONFIG_FILENAME) !== null
   );
 }
