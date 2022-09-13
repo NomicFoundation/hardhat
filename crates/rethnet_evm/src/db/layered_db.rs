@@ -192,6 +192,18 @@ impl DatabaseDebug for LayeredDatabase<RethnetLayer> {
             })
     }
 
+    fn insert_account(&mut self, address: &H160, account_info: AccountInfo) {
+        self.last_layer_mut()
+            .account_infos
+            .insert(*address, account_info);
+    }
+
+    fn insert_block(&mut self, block_number: U256, block_hash: H256) {
+        self.last_layer_mut()
+            .block_hashes
+            .insert(block_number, block_hash);
+    }
+
     fn set_storage_slot_at_layer(&mut self, address: H160, index: U256, value: U256) {
         match self.last_layer_mut().storage.entry(address) {
             hashbrown::hash_map::Entry::Occupied(mut entry) => {
@@ -203,11 +215,5 @@ impl DatabaseDebug for LayeredDatabase<RethnetLayer> {
                 entry.insert(account_storage);
             }
         }
-    }
-
-    fn add_block(&mut self, block_number: U256, block_hash: H256) {
-        self.last_layer_mut()
-            .block_hashes
-            .insert(block_number, block_hash);
     }
 }

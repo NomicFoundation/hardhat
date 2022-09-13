@@ -1,3 +1,5 @@
+use std::convert::TryFrom;
+
 use anyhow::anyhow;
 use napi::{
     bindgen_prelude::*,
@@ -30,46 +32,55 @@ pub struct Account {
 
 #[napi(object)]
 pub struct Transaction {
-    /// 160-bit address
+    /// 160-bit address for caller
     pub from: Buffer,
+    /// 160-bit address for receiver
     pub to: Option<Buffer>,
+    /// Input byte data
     pub input: Option<Buffer>,
+    /// (Up to) 256-bit unsigned value
     pub value: Option<BigInt>,
 }
 
-impl From<Transaction> for TxEnv {
-    fn from(transaction: Transaction) -> Self {
-        let caller = H160::from_slice(&transaction.from);
+fn try_u256_from_bigint(mut value: BigInt) -> napi::Result<U256> {
+    let num_words = value.words.len();
+    if num_words > 4 {
+        return Err(napi::Error::new(
+            Status::InvalidArg,
+            "BigInt cannot have more than 4 words.".to_owned(),
+        ));
+    } else if num_words < 4 {
+        value.words.append(&mut vec![0u64; 4 - num_words]);
+    }
 
-        let value = transaction.value.map_or(U256::default(), |value| {
-            // this will truncate values to u64, but the previous code would
-            // fail for small values because value.words had a length of 1
-            U256::from(value.get_u64().1)
-            // U256(
-            //     value
-            //         .words
-            //         .try_into()
-            //         .expect("Block number should contain 4 words."),
-            // )
-        });
+    Ok(U256(value.words.try_into().unwrap()))
+}
 
-        let data = transaction
+impl TryFrom<Transaction> for TxEnv {
+    type Error = napi::Error;
+
+    fn try_from(value: Transaction) -> std::result::Result<Self, Self::Error> {
+        let caller = H160::from_slice(&value.from);
+
+        let data = value
             .input
             .map_or(Bytes::default(), |input| Bytes::copy_from_slice(&input));
 
-        let transact_to: TransactTo = if let Some(to) = transaction.to {
+        let transact_to: TransactTo = if let Some(to) = value.to {
             TransactTo::Call(H160::from_slice(&to))
         } else {
             TransactTo::Create(CreateScheme::Create)
         };
 
-        Self {
+        Ok(Self {
             transact_to,
             caller,
             data,
-            value,
+            value: value
+                .value
+                .map_or(Ok(U256::default()), |value| try_u256_from_bigint(value))?,
             ..Default::default()
-        }
+        })
     }
 }
 
@@ -90,33 +101,8 @@ impl RethnetClient {
     }
 
     #[napi]
-    pub async fn add_block(&self, block_number: BigInt, block_hash: Buffer) -> Result<()> {
-        let block_number = U256(
-            block_number
-                .words
-                .try_into()
-                .expect("Block number should contain 4 words."),
-        );
-
-        let block_hash = H256::from_slice(&block_hash);
-
-        let (sender, receiver) = oneshot::channel();
-
-        self.request_sender
-            .send(Request::AddBlock {
-                block_number,
-                block_hash,
-                sender,
-            })
-            .map_err(|_| anyhow!("Failed to send request"))?;
-
-        receiver.await.expect("Rethnet unexpectedly crashed");
-        Ok(())
-    }
-
-    #[napi]
     pub async fn call(&self, transaction: Transaction) -> Result<serde_json::Value> {
-        let transaction = transaction.into();
+        let transaction = transaction.try_into()?;
 
         let (sender, receiver) = oneshot::channel();
 
@@ -131,6 +117,39 @@ impl RethnetClient {
 
         serde_json::to_value(result.1)
             .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))
+    }
+
+    #[napi]
+    pub async fn insert_account(&self, address: Buffer) -> Result<()> {
+        let address = H160::from_slice(&address);
+
+        let (sender, receiver) = oneshot::channel();
+
+        self.request_sender
+            .send(Request::InsertAccount { address, sender })
+            .map_err(|_| anyhow!("Failed to send request"))?;
+
+        receiver.await.expect("Rethnet unexpectedly crashed");
+        Ok(())
+    }
+
+    #[napi]
+    pub async fn insert_block(&self, block_number: BigInt, block_hash: Buffer) -> Result<()> {
+        let block_number = try_u256_from_bigint(block_number)?;
+        let block_hash = H256::from_slice(&block_hash);
+
+        let (sender, receiver) = oneshot::channel();
+
+        self.request_sender
+            .send(Request::InsertBlock {
+                block_number,
+                block_hash,
+                sender,
+            })
+            .map_err(|_| anyhow!("Failed to send request"))?;
+
+        receiver.await.expect("Rethnet unexpectedly crashed");
+        Ok(())
     }
 
     #[napi]
@@ -172,13 +191,7 @@ impl RethnetClient {
     #[napi]
     pub async fn set_account_balance(&self, address: Buffer, balance: BigInt) -> Result<()> {
         let address = H160::from_slice(&address);
-
-        let balance = U256(
-            balance
-                .words
-                .try_into()
-                .expect("Block number should contain 4 words."),
-        );
+        let balance = try_u256_from_bigint(balance)?;
 
         let (sender, receiver) = oneshot::channel();
 
@@ -240,18 +253,9 @@ impl RethnetClient {
         value: BigInt,
     ) -> Result<()> {
         let address = H160::from_slice(&address);
-        let index = U256(
-            index
-                .words
-                .try_into()
-                .expect("Block number should contain 4 words."),
-        );
-        let value = U256(
-            value
-                .words
-                .try_into()
-                .expect("Block number should contain 4 words."),
-        );
+        let index = try_u256_from_bigint(index)?;
+        let value = try_u256_from_bigint(value)?;
+
         let (sender, receiver) = oneshot::channel();
 
         self.request_sender
@@ -273,14 +277,18 @@ enum Request {
         address: H160,
         sender: oneshot::Sender<anyhow::Result<Option<AccountInfo>>>,
     },
-    AddBlock {
-        block_number: U256,
-        block_hash: H256,
-        sender: oneshot::Sender<()>,
-    },
     Call {
         transaction: TxEnv,
         sender: oneshot::Sender<(ExecutionResult, State)>,
+    },
+    InsertAccount {
+        address: H160,
+        sender: oneshot::Sender<()>,
+    },
+    InsertBlock {
+        block_number: U256,
+        block_hash: H256,
+        sender: oneshot::Sender<()>,
     },
     SetAccountBalance {
         address: H160,
@@ -333,29 +341,30 @@ impl Rethnet {
                 Request::AccountByAddress { address, sender } => {
                     sender.send(self.evm.db().unwrap().basic(address)).is_ok()
                 }
-                Request::AddBlock {
-                    block_number,
-                    block_hash,
-                    sender,
-                } => {
-                    self.evm.db().unwrap().add_block(block_number, block_hash);
-                    sender.send(()).is_ok()
-                }
                 Request::Call {
                     transaction,
                     sender,
                 } => {
-                    // add funds to callee
-                    // I didn't use SetAccountBalance since that throws if the
-                    // address doesn't exist
-                    let last_layer = self.evm.db().unwrap().last_layer_mut();
-                    last_layer.insert_account(transaction.caller, AccountInfo{
-                      balance: U256::exp10(20),
-                      ..Default::default()
-                    });
-
                     self.evm.env.tx = transaction;
                     sender.send(self.evm.transact()).is_ok()
+                }
+                Request::InsertAccount { address, sender } => {
+                    self.evm
+                        .db()
+                        .unwrap()
+                        .insert_account(&address, AccountInfo::default());
+                    sender.send(()).is_ok()
+                }
+                Request::InsertBlock {
+                    block_number,
+                    block_hash,
+                    sender,
+                } => {
+                    self.evm
+                        .db()
+                        .unwrap()
+                        .insert_block(block_number, block_hash);
+                    sender.send(()).is_ok()
                 }
                 Request::SetAccountBalance {
                     address,
