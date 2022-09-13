@@ -165,6 +165,8 @@ export function analyzeModuleNotFoundError(error: any, configPath: string) {
   const throwingFile = stackTrace
     .filter((x) => x.file !== null)
     .map((x) => x.file!)
+    // ignore frames related to source map support
+    .filter((x) => !x.includes(path.join("@cspotcode", "source-map-support")))
     .find((x) => path.isAbsolute(x));
 
   if (throwingFile === null || throwingFile === undefined) {

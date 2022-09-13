@@ -8,6 +8,7 @@ import { HardhatError } from "./errors";
 import { ERRORS } from "./errors-list";
 const JS_CONFIG_FILENAME = "hardhat.config.js";
 const TS_CONFIG_FILENAME = "hardhat.config.ts";
+const CTS_CONFIG_FILENAME = "hardhat.config.cts";
 
 export function isCwdInsideProject() {
   return (
@@ -17,6 +18,11 @@ export function isCwdInsideProject() {
 }
 
 export function getUserConfigPath() {
+  const ctsConfigPath = findUp.sync(CTS_CONFIG_FILENAME);
+  if (ctsConfigPath !== null) {
+    return ctsConfigPath;
+  }
+
   const tsConfigPath = findUp.sync(TS_CONFIG_FILENAME);
   if (tsConfigPath !== null) {
     return tsConfigPath;
