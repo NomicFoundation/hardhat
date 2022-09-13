@@ -32,6 +32,7 @@ pub struct Account {
 pub struct Transaction {
     /// 160-bit address
     pub from: Buffer,
+    pub to: Option<Buffer>,
     pub input: Option<Buffer>,
     pub value: Option<BigInt>,
 }
@@ -41,20 +42,29 @@ impl From<Transaction> for TxEnv {
         let caller = H160::from_slice(&transaction.from);
 
         let value = transaction.value.map_or(U256::default(), |value| {
-            U256(
-                value
-                    .words
-                    .try_into()
-                    .expect("Block number should contain 4 words."),
-            )
+            // this will truncate values to u64, but the previous code would
+            // fail for small values because value.words had a length of 1
+            U256::from(value.get_u64().1)
+            // U256(
+            //     value
+            //         .words
+            //         .try_into()
+            //         .expect("Block number should contain 4 words."),
+            // )
         });
 
         let data = transaction
             .input
             .map_or(Bytes::default(), |input| Bytes::copy_from_slice(&input));
 
+        let transact_to: TransactTo = if let Some(to) = transaction.to {
+            TransactTo::Call(H160::from_slice(&to))
+        } else {
+            TransactTo::Create(CreateScheme::Create)
+        };
+
         Self {
-            transact_to: TransactTo::Call(caller.clone()),
+            transact_to,
             caller,
             data,
             value,
@@ -335,6 +345,15 @@ impl Rethnet {
                     transaction,
                     sender,
                 } => {
+                    // add funds to callee
+                    // I didn't use SetAccountBalance since that throws if the
+                    // address doesn't exist
+                    let last_layer = self.evm.db().unwrap().last_layer_mut();
+                    last_layer.insert_account(transaction.caller, AccountInfo{
+                      balance: U256::exp10(20),
+                      ..Default::default()
+                    });
+
                     self.evm.env.tx = transaction;
                     sender.send(self.evm.transact()).is_ok()
                 }
