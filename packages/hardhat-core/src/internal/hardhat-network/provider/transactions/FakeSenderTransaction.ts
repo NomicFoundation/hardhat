@@ -1,3 +1,6 @@
+import crypto from "crypto";
+import util from "util";
+
 import { Common } from "@nomicfoundation/ethereumjs-common";
 import * as rlp from "@nomicfoundation/ethereumjs-rlp";
 import { Transaction, TxData, TxOptions } from "@nomicfoundation/ethereumjs-tx";
@@ -97,12 +100,18 @@ export class FakeSenderTransaction extends Transaction {
   private readonly _sender: Address;
 
   constructor(sender: Address, data: TxData = {}, opts?: TxOptions) {
+    const fakeSignature: Buffer = crypto
+      .createHash("md5")
+      .update(Buffer.from(`${util.inspect(data)}`))
+      .update(sender.buf)
+      .digest();
+
     super(
       {
         ...data,
         v: data.v ?? 27,
-        r: data.r ?? 1,
-        s: data.s ?? 2,
+        r: data.r ?? fakeSignature.readUInt32LE(),
+        s: data.s ?? fakeSignature.readUInt32LE(4),
       },
       { ...opts, freeze: false }
     );
