@@ -23,14 +23,13 @@ export const SOCIALS_LINKS = {
   [SocialsEnum.DISCORD]: "/discord",
 };
 
-export const BANNER_LINK =
-  "/hardhat-runner/docs/guides/migrating-from-hardhat-waffle";
+export const BANNER_LINK = "https://nomic.foundation/hiring";
 
 export const PRIVACY_POLICY_PATH = "/privacy-policy.html";
 
 export const bannerContent = {
-  text: "Using @nomiclabs/hardhat-waffle? Check out Hardhat’s new improved replacement!",
-  shortText: "Check out the new hardhat-waffle replacement!",
+  text: "Join the Hardhat team! Nomic Foundation is hiring",
+  shortText: "Join the Hardhat team! We are hiring",
   href: BANNER_LINK,
 };
 
