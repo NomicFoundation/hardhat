@@ -1,3 +1,3 @@
-import * as process from "process"
+import * as process from "process";
 
 process.exit(123);

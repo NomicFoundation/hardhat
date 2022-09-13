@@ -1,4 +1,4 @@
-import * as process from "process"
+import * as process from "process";
 
 setTimeout(() => {
   if (global.config === undefined || global.config.solidity === undefined) {
