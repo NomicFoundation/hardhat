@@ -29,9 +29,9 @@ Add a deployment recipe under the `./ignition` folder:
 ```typescript
 // ./ignition/MyRecipe.ts
 
-import { buildRecipe, RecipeBuilder } from "@nomiclabs/hardhat-ignition";
+import { buildRecipe } from "@nomicfoundation/hardhat-ignition";
 
-export default buildRecipe("MyRecipe", (m: RecipeBuilder) => {
+export default buildRecipe("MyRecipe", (m) => {
   const token = m.contract("Token");
 
   return { token };
@@ -41,7 +41,7 @@ export default buildRecipe("MyRecipe", (m: RecipeBuilder) => {
 Run the `deploy` task to test the recipe against a local ephemeral **Hardhat** node:
 
 ```shell
-npx hardhat deploy ./ignition/MyRecipe.ts
+npx hardhat deploy MyRecipe.ts
 # No need to generate any newer typings.
 # Token contract address 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512
 ```

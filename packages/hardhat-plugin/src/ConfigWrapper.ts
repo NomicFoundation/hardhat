@@ -1,11 +1,11 @@
 import type {
   ConfigProvider,
-  ParamValue,
+  ExternalParamValue,
   HasParamResult,
 } from "@nomicfoundation/ignition-core";
 
 export class ConfigWrapper implements ConfigProvider {
-  private parameters: { [key: string]: ParamValue } | undefined;
+  private parameters: { [key: string]: ExternalParamValue } | undefined;
 
   constructor() {
     this.parameters = undefined;
@@ -14,14 +14,14 @@ export class ConfigWrapper implements ConfigProvider {
   public async setParams(
     parameters:
       | {
-          [key: string]: ParamValue;
+          [key: string]: ExternalParamValue;
         }
       | undefined
   ): Promise<void> {
     this.parameters = parameters;
   }
 
-  public async getParam(paramName: string): Promise<ParamValue> {
+  public async getParam(paramName: string): Promise<ExternalParamValue> {
     if (this.parameters === undefined) {
       throw new Error(
         `No parameters object provided to deploy options, but recipe requires parameter "${paramName}"`

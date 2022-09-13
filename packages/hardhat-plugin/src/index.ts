@@ -1,13 +1,10 @@
 import "@nomiclabs/hardhat-ethers";
-import { Providers, UserRecipe } from "@nomicfoundation/ignition-core";
-import {
-  extendConfig,
-  extendEnvironment,
-  subtask,
-  task,
-  types,
-} from "hardhat/config";
+import { Providers, Recipe } from "@nomicfoundation/ignition-core";
+import { exec } from "child_process";
+import fs from "fs-extra";
+import { extendConfig, extendEnvironment, task } from "hardhat/config";
 import { lazyObject } from "hardhat/plugins";
+import os from "os";
 import path from "path";
 
 import { ConfigWrapper } from "./ConfigWrapper";
@@ -15,20 +12,7 @@ import { IgnitionWrapper } from "./ignition-wrapper";
 import { loadUserRecipes, loadAllUserRecipes } from "./user-recipes";
 import "./type-extensions";
 
-export {
-  buildRecipe,
-  RecipeBuilder,
-  AddressLike,
-  ContractFuture,
-  ContractOptions,
-  InternalFuture,
-  InternalContractFuture,
-  Executor,
-  Contract,
-  Services,
-  Future,
-  Hold,
-} from "@nomicfoundation/ignition-core";
+export { buildRecipe } from "@nomicfoundation/ignition-core";
 
 extendConfig((config, userConfig) => {
   const userIgnitionPath = userConfig.paths?.ignition;
@@ -111,20 +95,16 @@ extendEnvironment((hre) => {
       hre.ethers,
       isHardhatNetwork,
       hre.config.paths,
-      { pathToJournal, txPollingInterval }
+      { pathToJournal, txPollingInterval, ui: false }
     );
   });
 });
 
-/**
- * Deploy the given user recipes. If none is passed, all recipes under
- * the `paths.ignition` directory are deployed.
- */
 task("deploy")
   .addOptionalVariadicPositionalParam("userRecipesPaths")
   .addOptionalParam(
     "parameters",
-    "A json object as a string, of the recipe paramters"
+    "A json object as a string, of the recipe parameters"
   )
   .setAction(
     async (
@@ -147,7 +127,7 @@ task("deploy")
         process.exit(0);
       }
 
-      let userRecipes: Array<UserRecipe<any>>;
+      let userRecipes: Recipe[];
       if (userRecipesPaths.length === 0) {
         userRecipes = loadAllUserRecipes(hre.config.paths.ignition);
       } else {
@@ -162,50 +142,24 @@ task("deploy")
         process.exit(0);
       }
 
-      await hre.run("deploy:deploy-recipes", {
-        userRecipes,
-        parameters,
-      });
+      await hre.ignition.deploy(userRecipes[0], { parameters });
     }
   );
 
-subtask("deploy:deploy-recipes")
-  .addParam("userRecipes", undefined, undefined, types.any)
-  .addOptionalParam("parameters", undefined, undefined, types.any)
+task("plan")
+  .addFlag("quiet", "Disables logging output path to terminal")
+  .addOptionalVariadicPositionalParam("userRecipesPaths")
   .setAction(
     async (
       {
-        userRecipes,
-        parameters,
-      }: {
-        userRecipes: Array<UserRecipe<any>>;
-        pathToJournal?: string;
-        parameters: { [key: string]: string | number };
-      },
+        quiet = false,
+        userRecipesPaths = [],
+      }: { quiet: boolean; userRecipesPaths: string[] },
       hre
     ) => {
-      // we ignore the recipe outputs because they are not relevant when
-      // the deployment is done via a task (as opposed to a deployment
-      // done with `hre.ignition.deploy`)
-      const [serializedDeploymentResult] = await hre.ignition.deployMany(
-        userRecipes,
-        { parameters }
-      );
-
-      return serializedDeploymentResult;
-    }
-  );
-
-/**
- * Build and show the deployment plan for the given user recipes.
- */
-task("plan")
-  .addOptionalVariadicPositionalParam("userRecipesPaths")
-  .setAction(
-    async ({ userRecipesPaths = [] }: { userRecipesPaths: string[] }, hre) => {
       await hre.run("compile", { quiet: true });
 
-      let userRecipes: Array<UserRecipe<any>>;
+      let userRecipes: Recipe[];
       if (userRecipesPaths.length === 0) {
         userRecipes = loadAllUserRecipes(hre.config.paths.ignition);
       } else {
@@ -220,23 +174,29 @@ task("plan")
         process.exit(0);
       }
 
-      const plan = await hre.ignition.buildPlan(userRecipes);
+      const html = await hre.ignition.plan(userRecipes[0]);
 
-      let first = true;
-      for (const [recipeId, recipePlan] of Object.entries(plan)) {
-        if (first) {
-          first = false;
-        } else {
-          console.log();
-        }
-        console.log(`- Recipe ${recipeId}`);
-        if (recipePlan === "already-deployed") {
-          console.log("    Already deployed");
-        } else {
-          for (const step of recipePlan) {
-            console.log(`    ${step.id}: ${step.description}`);
-          }
-        }
+      const filePath = `${hre.config.paths.cache}/plan.html`;
+
+      let command: string;
+      switch (os.platform()) {
+        case "win32":
+          command = "start";
+          break;
+        case "darwin":
+          command = "open";
+          break;
+        default:
+          command = "xdg-open";
       }
+
+      await fs.ensureDir(hre.config.paths.cache);
+      await fs.writeFile(filePath, html);
+
+      if (!quiet) {
+        console.log(`Plan written to ${filePath}`);
+      }
+
+      exec(`${command} ${filePath}`);
     }
   );

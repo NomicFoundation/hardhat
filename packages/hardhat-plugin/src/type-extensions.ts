@@ -1,3 +1,4 @@
+/* eslint-disable import/no-unused-modules */
 import "hardhat/types/config";
 import "hardhat/types/runtime";
 

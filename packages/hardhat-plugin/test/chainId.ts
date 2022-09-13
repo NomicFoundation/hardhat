@@ -1,18 +1,19 @@
-import { buildRecipe } from "@nomicfoundation/ignition-core";
+/* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
-import { deployRecipes } from "./helpers";
+import { deployRecipe } from "./helpers";
 import { useEnvironment } from "./useEnvironment";
 
 describe("chain id", () => {
   useEnvironment("minimal");
 
-  it("should be available on the recipe builder", async function () {
-    // given
-    const chainIdRecipe = buildRecipe("MyRecipe", (m) => {
-      assert.equal(m.chainId, 31337);
-    });
+  it("should have a chain id", async function () {
+    await deployRecipe(this.hre, (m) => {
+      const chainId = m.chainId;
 
-    await deployRecipes(this.hre, [chainIdRecipe], [1, 1]);
+      assert.equal(chainId, 31337);
+
+      return {};
+    });
   });
 });

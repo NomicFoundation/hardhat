@@ -1,134 +1,102 @@
 import { Box, Text } from "ink";
-import Spinner from "ink-spinner";
 import React from "react";
 
-import {
-  FutureState,
-  DeploymentState,
-  RecipeState,
-} from "../../deployment-state";
+import { DeploymentState, VertexStatus } from "../types";
 
 export const IgnitionUi = ({
   deploymentState,
 }: {
   deploymentState: DeploymentState;
 }) => {
-  const currentRecipe = deploymentState.getCurrentRecipe();
-
-  const successfulRecipes = deploymentState.getSuccessfulRecipes();
+  const vertexEntries = deploymentState.toStatus();
+  const { executed, total } = deploymentState.executedCount();
 
   return (
     <Box flexDirection="column">
-      <Header deploymentState={deploymentState} />
-
-      <Box flexDirection="column" marginLeft={2} marginTop={1}>
-        <SuccessfulRecipes recipes={successfulRecipes} />
-
-        <CurrentRecipe recipe={currentRecipe} />
-      </Box>
-    </Box>
-  );
-};
-
-const Header = ({ deploymentState }: { deploymentState: DeploymentState }) => {
-  const successfulRecipesCount = deploymentState.getSuccessfulRecipes().length;
-  const recipesCount = deploymentState.getRecipes().length;
-
-  return (
-    <Box>
+      <Text> </Text>
       <Text bold={true}>
-        {successfulRecipesCount} of {recipesCount} recipes deployed
+        Deploying ({executed} of {total} transactions executed){" "}
       </Text>
-    </Box>
-  );
-};
+      <Text> </Text>
 
-const CurrentRecipe = ({ recipe }: { recipe?: RecipeState }) => {
-  if (recipe === undefined) {
-    return null;
-  }
+      {vertexEntries.map((entry) => (
+        <VertexStatusRow key={entry.vertex.id} vertexEntry={entry} />
+      ))}
 
-  const futuresStates = recipe.getFuturesStates();
-
-  return (
-    <Box flexDirection="column">
-      <Box>
-        <Text>
-          <Spinner type="dots" /> Deploying {recipe.id}
-        </Text>
-      </Box>
-      <Box flexDirection="column" marginLeft={4}>
-        {futuresStates
-          .sort((a, b) => compareFuturesStates(a[1], b[1]))
-          .map(([futureId, futureState]) => (
-            <Future
-              key={futureId}
-              futureId={futureId}
-              futureState={futureState}
-            />
-          ))}
-      </Box>
-    </Box>
-  );
-};
-
-function compareFuturesStates(a: FutureState, b: FutureState): number {
-  const value = (s: FutureState["_kind"]) => {
-    if (s === "success" || s === "failure" || s === "hold") {
-      return 0;
-    }
-    if (s === "running") {
-      return 1;
-    }
-    if (s === "ready") {
-      return 2;
-    }
-    if (s === "waiting") {
-      return 3;
-    }
-    const _exhaustiveCheck: never = s;
-    return s;
-  };
-
-  const aValue = value(a._kind);
-  const bValue = value(b._kind);
-  return aValue - bValue;
-}
-
-const Future = ({
-  futureId,
-  futureState,
-}: {
-  futureId: string;
-  futureState: FutureState;
-}) => {
-  return (
-    <Box>
-      {futureState._kind === "running" ? (
-        <Text>{futureId}: Executing</Text>
-      ) : futureState._kind === "success" ? (
-        <Text color="green">{futureId}: Executed</Text>
-      ) : futureState._kind === "ready" ? (
-        <Text color="gray">{futureId}: Ready</Text>
-      ) : futureState._kind === "waiting" ? (
-        <Text color="gray">{futureId}: Waiting</Text>
+      {executed === total ? (
+        <>
+          <Text> </Text>
+          <Text bold={true} color={"green"}>
+            Deployment complete
+          </Text>
+          <Text> </Text>
+        </>
       ) : null}
     </Box>
   );
 };
 
-const SuccessfulRecipes = ({ recipes }: { recipes: RecipeState[] }) => {
-  if (recipes.length === 0) {
-    return null;
-  }
+const VertexStatusRow = ({ vertexEntry }: { vertexEntry: VertexStatus }) => {
+  const { color, message } = toDisplayMessage(vertexEntry);
 
   return (
-    <Box flexDirection="column">
-      {recipes.map((m) => (
-        <Box key={m.id}>
-          <Text color="green">Deployed {m.id}</Text>
-        </Box>
-      ))}
+    <Box key={vertexEntry.vertex.id}>
+      <Text color={color}>{message}</Text>
     </Box>
   );
 };
+
+function toDisplayMessage(vertexEntry: VertexStatus): {
+  color: "green" | "gray";
+  message: string;
+} {
+  if (vertexEntry.status === "unstarted") {
+    return {
+      color: "gray",
+      message: resolveUnstartedMessage(vertexEntry),
+    };
+  }
+
+  if (vertexEntry.status === "success") {
+    return { color: "green", message: resolveCompletedMessage(vertexEntry) };
+  }
+
+  throw new Error(`Unexpected vertex status: ${vertexEntry}`);
+}
+
+function resolveUnstartedMessage(vertexEntry: VertexStatus) {
+  switch (vertexEntry.vertex.type) {
+    case "ContractCall":
+      return `Waiting to call contract ${vertexEntry.vertex.label}`;
+    case "ContractDeploy":
+      return `Waiting to deploy contract ${vertexEntry.vertex.label}`;
+    case "DeployedContract":
+      return `Waiting to resolve contract ${vertexEntry.vertex.label}`;
+    case "LibraryDeploy":
+      return `Waiting to deploy library ${vertexEntry.vertex.label}`;
+    default:
+      return assertNeverMessage(vertexEntry.vertex);
+  }
+}
+
+function resolveCompletedMessage(vertexEntry: VertexStatus) {
+  switch (vertexEntry.vertex.type) {
+    case "ContractCall":
+      return `Executed call to contract ${vertexEntry.vertex.label}`;
+    case "ContractDeploy":
+      return `Deployed contract ${vertexEntry.vertex.label}`;
+    case "DeployedContract":
+      return `Contract resolved ${vertexEntry.vertex.label}`;
+    case "LibraryDeploy":
+      return `Deployed contract ${vertexEntry.vertex.label}`;
+    default:
+      return assertNeverMessage(vertexEntry.vertex);
+  }
+}
+
+function assertNeverMessage(vertexEntry: never): string {
+  const entry: any = vertexEntry;
+  const text = "type" in entry ? entry.type : entry;
+
+  throw new Error(`Unexpected vertex type: ${text}`);
+}

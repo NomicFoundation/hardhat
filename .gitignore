@@ -129,3 +129,6 @@ dist
 .yarn/install-state.gz
 .pnp.*
 .npmrc
+
+# Mac OSX garbage
+.DS_Store

@@ -13,6 +13,11 @@ contract Foo {
         require(n > 0, "n must be positive");
         x += n;
     }
+
+    function incTwoNumbers(uint256 first, uint256 second) public {
+        x += first;
+        x += second;
+    }
 }
 
 contract Bar {
@@ -23,6 +28,10 @@ contract UsesContract {
     address public contractAddress;
 
     constructor(address _contract) {
+        contractAddress = _contract;
+    }
+
+    function setAddress(address _contract) public {
         contractAddress = _contract;
     }
 }

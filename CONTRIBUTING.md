@@ -15,6 +15,10 @@ There are two packages:
 * [**core**](./packages/core/README.md) - containing the ignition library for orchestrating deployments
 * [**hardhat-plugin**](./packages/hardhat-plugin/README.md) - containing the Hardhat plugin wrapper for the core library
 
+## Architecture
+
+An overview of the [architecture of the deploy process is explained here](./docs/architecture.md).
+
 ## Setup
 
 Ignition is a `typescript` project managed by `yarn`.

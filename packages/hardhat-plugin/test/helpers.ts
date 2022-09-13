@@ -1,9 +1,11 @@
 import {
-  UserRecipe,
+  Recipe,
   SerializedFutureResult,
   SerializedDeploymentResult,
   DeploymentResult,
-  Contract,
+  buildRecipe,
+  IRecipeGraphBuilder,
+  FutureDict,
 } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 
@@ -110,7 +112,7 @@ async function assertTxMined(hre: any, hash: string) {
  */
 export async function deployRecipes(
   hre: any,
-  userRecipes: Array<UserRecipe<any>>,
+  userRecipes: Recipe[],
   expectedBlocks: number[]
 ): Promise<SerializedDeploymentResult> {
   await hre.run("compile", { quiet: true });
@@ -195,6 +197,23 @@ async function assertContract(hre: any, futureResult: SerializedFutureResult) {
   return contract;
 }
 
-export function isContract(contract: any): contract is Contract {
-  return contract.address !== undefined;
+export async function deployRecipe(
+  hre: any,
+  recipeDefinition: (m: IRecipeGraphBuilder) => FutureDict,
+  options?: { parameters: {} }
+): Promise<any> {
+  await hre.run("compile", { quiet: true });
+
+  const userRecipe = buildRecipe("MyRecipe", recipeDefinition);
+
+  const deployPromise = hre.ignition.deploy(userRecipe, {
+    ...options,
+    ui: false,
+  });
+
+  await mineBlocks(hre, [1, 1, 1], deployPromise);
+
+  const result = await deployPromise;
+
+  return result;
 }

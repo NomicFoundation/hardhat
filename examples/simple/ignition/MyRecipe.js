@@ -3,9 +3,9 @@ const { buildRecipe } = require("@nomicfoundation/hardhat-ignition");
 module.exports = buildRecipe("MyRecipe", (m) => {
   const foo = m.contract("Foo");
 
-  // m.call(foo, "inc", {
-  //   args: [1]
-  // })
-  //
-  return { foo };
+  const bar = m.contract("Bar", { args: [foo] });
+
+  const qux = m.contract("Qux", { args: [foo] });
+
+  return { foo, bar, qux };
 });

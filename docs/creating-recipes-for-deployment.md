@@ -52,6 +52,17 @@ const b = m.contract("B", {
 
 You can think of this as `b` being analogue to a promise of an address, although futures are not promises.
 
+### Executing a method in a contract
+
+```tsx
+const token = m.contract("Token")
+const exchange = m.contract("Exchange")
+
+m.call(exchange, "addToken", {
+  args: [token]
+})
+```
+
 ### Using an existing contract
 
 A user might need to execute a method in a contract that wasn't deployed by Ignition. An existing contract can be leveraged by passing an address and abi:
@@ -82,7 +93,7 @@ const userRecipe = buildRecipe("MyRecipe", (m) => {
 A library can be deployed and linked to a contract by passing the libraries contract future as a named entry under the libraries option:
 
 ```tsx
-const safeMath = m.contract("SafeMath");
+const safeMath = m.library("SafeMath");
 const contract = m.contract("Contract", {
   libraries: {
     SafeMath: safeMath,

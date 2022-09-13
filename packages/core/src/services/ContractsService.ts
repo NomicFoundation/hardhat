@@ -1,15 +1,32 @@
 import setupDebug from "debug";
 import { ethers, Contract, ContractFactory } from "ethers";
 
-import { collectLibrariesAndLink } from "../collectLibrariesAndLink";
-import { IgnitionSigner, Providers } from "../providers";
-import { TxSender } from "../tx-sender";
-import { Artifact } from "../types";
-import { sleep } from "../utils";
+import { Artifact } from "types/hardhat";
+import { IgnitionSigner, Providers } from "types/providers";
+import { collectLibrariesAndLink } from "utils/collectLibrariesAndLink";
+import { sleep } from "utils/sleep";
+import { TxSender } from "utils/tx-sender";
 
 import type { TransactionOptions } from "./types";
 
-export class ContractsService {
+export interface IContractsService {
+  deploy(
+    artifact: Artifact,
+    args: any[],
+    libraries: { [k: string]: any },
+    txOptions?: TransactionOptions
+  ): Promise<string>;
+
+  call(
+    address: string,
+    abi: any[],
+    method: string,
+    args: any[],
+    txOptions?: TransactionOptions
+  ): Promise<string>;
+}
+
+export class ContractsService implements IContractsService {
   private _debug = setupDebug("ignition:services:contracts-service");
   private _ethersProvider: ethers.providers.Web3Provider;
 

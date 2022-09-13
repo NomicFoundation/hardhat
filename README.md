@@ -18,7 +18,7 @@ Modify your Hardhat.config.{ts,js} file, to include Ignition:
 
 ```javascript
 // ...
-import "@nomiclabs/hardhat-ignition";
+import "@nomicfoundation/hardhat-ignition";
 ```
 
 ## Getting Started
