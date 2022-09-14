@@ -1,5 +1,5 @@
 ---
-"@nomicfoundation/hardhat-toolbox": patch
+"@nomicfoundation/hardhat-toolbox": major
 ---
 
-Upgrade `solidity-coverage`
+Upgraded `solidity-coverage` to the latest version. Since this new version includes some breaking changes, we are bumping the Toolbox to a new major version.
