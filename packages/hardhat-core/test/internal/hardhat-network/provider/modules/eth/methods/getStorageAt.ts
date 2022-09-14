@@ -272,6 +272,12 @@ describe("Eth module", function () {
               "0x1",
               "0x01",
               "0x001",
+              "0xA",
+              "0x0A",
+              "0x00A",
+              "0xb",
+              "0x0b",
+              "0x00b",
             ];
 
             for (const storageSlot of validHexStrings) {
@@ -286,7 +292,20 @@ describe("Eth module", function () {
           });
 
           it("should accept storage slots without the 0x prefix", async function () {
-            const validHexStrings = ["0", "00", "000", "1", "01", "001"];
+            const validHexStrings = [
+              "0",
+              "00",
+              "000",
+              "1",
+              "01",
+              "001",
+              "A",
+              "0A",
+              "00A",
+              "b",
+              "0b",
+              "00b",
+            ];
 
             for (const storageSlot of validHexStrings) {
               assert.strictEqual(
