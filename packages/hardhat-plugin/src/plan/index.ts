@@ -50,7 +50,7 @@ export class Renderer {
 
   public write(): void {
     const mainOutput = this.getIndexOutput();
-    this._writeMainHTML(this.htmlTemplate.replace("$", mainOutput));
+    this._writeMainHTML(mainOutput);
 
     // the stringify in these loops is just a first draft version
     // they'll be full html pages with styles at some point
