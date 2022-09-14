@@ -10,7 +10,6 @@ const configFile = resolve(pwd, "tsconfig.json");
 const {
   compilerOptions: { baseUrl },
 } = require(configFile);
-// const srcRoot = resolve("./src");
 
 const configDir = dirname(configFile);
 
