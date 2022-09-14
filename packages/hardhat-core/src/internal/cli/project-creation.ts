@@ -180,16 +180,15 @@ async function printRecommendedDepsInstallationInstructions(
   console.log(`  ${cmd.join(" ")}`);
 }
 
-async function writeEmptyHardhatConfig() {
-  return fsExtra.writeFile(
-    "hardhat.config.js",
-    `/** @type import('hardhat/config').HardhatUserConfig */
+// exported so we can test that it uses the latest supported version of solidity
+export const EMPTY_HARDHAT_CONFIG = `/** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
-  solidity: "0.8.9",
+  solidity: "0.8.17",
 };
-`,
-    "utf-8"
-  );
+`;
+
+async function writeEmptyHardhatConfig() {
+  return fsExtra.writeFile("hardhat.config.js", EMPTY_HARDHAT_CONFIG, "utf-8");
 }
 
 async function getAction(): Promise<Action> {
