@@ -49,8 +49,6 @@ const FIRST_SOLC_VERSION_CREATE_PARAMS_VALIDATION = "0.5.9";
 const FIRST_SOLC_VERSION_RECEIVE_FUNCTION = "0.6.0";
 const FIRST_SOLC_VERSION_WITH_UNMAPPED_REVERTS = "0.6.3";
 
-const EIP170_BYTECODE_SIZE_INCLUSIVE_LIMIT = 0x6000;
-
 export interface SubmessageData {
   messageTrace: MessageTrace;
   stacktrace: SolidityStackTrace;
@@ -1376,34 +1374,7 @@ export class ErrorInferrer {
   }
 
   private _isContractTooLargeError(trace: DecodedCreateMessageTrace) {
-    if (trace.error === undefined || trace.error.error !== ERROR.OUT_OF_GAS) {
-      return false;
-    }
-
-    // This error doesn't come from solidity, but actually from the VM.
-    // The deployment code executes correctly, but it OOGs.
-    const lastStep = trace.steps[trace.steps.length - 1];
-    if (!isEvmStep(lastStep)) {
-      return false;
-    }
-
-    const lastInst = trace.bytecode.getInstruction(lastStep.pc);
-    if (lastInst.opcode !== Opcode.RETURN) {
-      return false;
-    }
-
-    // TODO: This is an over approximation, as we should be comparing the
-    //  runtime bytecode.
-    if (
-      trace.bytecode.normalizedCode.length <=
-      EIP170_BYTECODE_SIZE_INCLUSIVE_LIMIT
-    ) {
-      return false;
-    }
-
-    // TODO: What happens if it's an actual out of gas that OOGs at the return?
-    //   maybe traces should have gasLimit and gasUsed.
-    return true;
+    return trace.error?.error === ERROR.CODESIZE_EXCEEDS_MAXIMUM;
   }
 
   private _solidity063CorrectLineNumber(
