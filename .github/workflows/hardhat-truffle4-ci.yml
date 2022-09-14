@@ -11,7 +11,7 @@ on:
       - "config/**"
   pull_request:
     branches:
-      - "*"
+      - "**"
     paths:
       - "packages/hardhat-truffle4/**"
       - "packages/hardhat-web3-legacy/**"
