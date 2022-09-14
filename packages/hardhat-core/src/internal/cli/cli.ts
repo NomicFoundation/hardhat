@@ -50,6 +50,7 @@ import {
 const log = debug("hardhat:core:cli");
 
 const ANALYTICS_SLOW_TASK_THRESHOLD = 300;
+const SHOULD_SHOW_STACK_TRACES_BY_DEFAULT = isRunningOnCiServer();
 
 async function printVersionMessage(packageJson: PackageJson) {
   console.log(packageJson.version);
@@ -106,7 +107,9 @@ async function suggestInstallingHardhatVscode() {
 async function main() {
   // We first accept this argument anywhere, so we know if the user wants
   // stack traces before really parsing the arguments.
-  let showStackTraces = process.argv.includes("--show-stack-traces");
+  let showStackTraces =
+    process.argv.includes("--show-stack-traces") ||
+    SHOULD_SHOW_STACK_TRACES_BY_DEFAULT;
 
   try {
     const packageJson = await getPackageJson();
@@ -328,7 +331,7 @@ async function main() {
       log("Couldn't report error to sentry: %O", e);
     }
 
-    if (showStackTraces) {
+    if (showStackTraces || SHOULD_SHOW_STACK_TRACES_BY_DEFAULT) {
       console.error(error);
     } else {
       if (!isHardhatError) {

@@ -83,7 +83,7 @@ const coreParams = [
     name: "--network",
   },
   {
-    description: "Show stack traces.",
+    description: "Show stack traces (always enabled on CI servers).",
     name: "--show-stack-traces",
   },
   versionParam,
