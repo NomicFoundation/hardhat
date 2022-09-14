@@ -11,6 +11,8 @@ export interface IGraph<T> {
   getEdges(): Array<{ from: number; to: number }>;
 }
 
+export type VertexGraph = IGraph<VertexDescriptor>;
+
 export type VertexVisitResult =
   | {
       _kind: "success";
