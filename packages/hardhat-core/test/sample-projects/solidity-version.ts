@@ -1,25 +1,25 @@
 import { assert } from "chai";
+import fs from "fs";
 import path from "path";
 import semver from "semver";
 
 import { SUPPORTED_SOLIDITY_VERSION_RANGE } from "../../src/internal/hardhat-network/stack-traces/constants";
-import { useEnvironment } from "../helpers/environment";
 
 describe("sample projects solidity versions", function () {
   describe("javascript sample project", function () {
-    useEnvironment(
-      path.resolve(
+    it("should use the latest supported version", async function () {
+      const pathToConfig = path.resolve(
         __dirname,
         "..",
         "..",
         "sample-projects",
         "javascript",
         "hardhat.config.js"
-      )
-    );
+      );
 
-    it("should use the latest supported version", async function () {
-      const solidityVersion = this.env.userConfig.solidity;
+      const configContent = fs.readFileSync(pathToConfig).toString();
+
+      const solidityVersion = configContent.match(/solidity: "(.*)"/)![1];
 
       if (typeof solidityVersion !== "string") {
         assert.fail("solidity version should ve a string");
@@ -46,19 +46,19 @@ describe("sample projects solidity versions", function () {
   });
 
   describe("typescript sample project", function () {
-    useEnvironment(
-      path.resolve(
+    it("should use the latest supported version", async function () {
+      const pathToConfig = path.resolve(
         __dirname,
         "..",
         "..",
         "sample-projects",
         "typescript",
         "hardhat.config.ts"
-      )
-    );
+      );
 
-    it("should use the latest supported version", async function () {
-      const solidityVersion = this.env.userConfig.solidity;
+      const configContent = fs.readFileSync(pathToConfig).toString();
+
+      const solidityVersion = configContent.match(/solidity: "(.*)"/)![1];
 
       if (typeof solidityVersion !== "string") {
         assert.fail("solidity version should ve a string");
