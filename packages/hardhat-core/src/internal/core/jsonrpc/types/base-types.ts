@@ -79,7 +79,7 @@ function validateStorageSlot(u: unknown, c: t.Context): t.Validation<bigint> {
     );
   }
 
-  return t.success(u === "0x" ? 0n : BigInt(u));
+  return t.success(u === "0x" ? 0n : BigInt(u.startsWith("0x") ? u : `0x${u}`));
 }
 
 export const rpcAddress = new t.Type<Buffer>(
