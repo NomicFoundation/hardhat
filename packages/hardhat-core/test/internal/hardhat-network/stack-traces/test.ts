@@ -805,7 +805,7 @@ const solidityCompilers: SolidityCompiler[] = [
 ];
 
 const onlyLatestSolcVersions =
-  process.env.HARDHAT_TESTS_ONLY_LATEST_SOLC_VERSIONS !== undefined;
+  process.env.HARDHAT_TESTS_ALL_SOLC_VERSIONS === undefined;
 
 const filterSolcVersionBy =
   (versionRange: string) =>
