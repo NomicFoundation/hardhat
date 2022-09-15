@@ -44,13 +44,15 @@ pub struct Transaction {
 
 fn try_u256_from_bigint(mut value: BigInt) -> napi::Result<U256> {
     let num_words = value.words.len();
-    if num_words > 4 {
-        return Err(napi::Error::new(
-            Status::InvalidArg,
-            "BigInt cannot have more than 4 words.".to_owned(),
-        ));
-    } else if num_words < 4 {
-        value.words.append(&mut vec![0u64; 4 - num_words]);
+    match num_words.cmp(&4) {
+        std::cmp::Ordering::Less => value.words.append(&mut vec![0u64; 4 - num_words]),
+        std::cmp::Ordering::Equal => (),
+        std::cmp::Ordering::Greater => {
+            return Err(napi::Error::new(
+                Status::InvalidArg,
+                "BigInt cannot have more than 4 words.".to_owned(),
+            ));
+        }
     }
 
     Ok(U256(value.words.try_into().unwrap()))
@@ -78,7 +80,7 @@ impl TryFrom<Transaction> for TxEnv {
             data,
             value: value
                 .value
-                .map_or(Ok(U256::default()), |value| try_u256_from_bigint(value))?,
+                .map_or(Ok(U256::default()), try_u256_from_bigint)?,
             ..Default::default()
         })
     }
@@ -91,6 +93,7 @@ pub struct RethnetClient {
 
 #[napi]
 impl RethnetClient {
+    #[allow(clippy::new_without_default)]
     #[napi(constructor)]
     pub fn new() -> Self {
         let (request_sender, request_receiver) = unbounded_channel();

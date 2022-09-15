@@ -97,7 +97,7 @@ impl Database for LayeredDatabase<RethnetLayer> {
         self.iter()
             .find_map(|layer| {
                 layer.contracts.get(&code_hash).map(|bytecode| unsafe {
-                    Bytecode::new_raw_with_hash(bytecode.clone(), code_hash.clone())
+                    Bytecode::new_raw_with_hash(bytecode.clone(), code_hash)
                 })
             })
             .ok_or_else(|| {
@@ -183,7 +183,7 @@ impl DatabaseDebug for LayeredDatabase<RethnetLayer> {
     fn account_info_mut(&mut self, address: &H160) -> &mut AccountInfo {
         self.last_layer_mut()
             .account_infos
-            .get_mut(&address)
+            .get_mut(address)
             .unwrap_or_else(|| {
                 panic!(
                     "Layered database does not contain account with address: {}.",
