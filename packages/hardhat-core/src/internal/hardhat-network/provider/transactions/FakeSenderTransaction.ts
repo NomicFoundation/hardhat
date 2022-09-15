@@ -1,6 +1,3 @@
-import crypto from "crypto";
-import util from "util";
-
 import { Common } from "@nomicfoundation/ethereumjs-common";
 import * as rlp from "@nomicfoundation/ethereumjs-rlp";
 import { Transaction, TxData, TxOptions } from "@nomicfoundation/ethereumjs-tx";
@@ -10,6 +7,7 @@ import {
   InternalError,
   InvalidArgumentsError,
 } from "../../../core/providers/errors";
+import { makeFakeSignature } from "../utils/makeFakeSignature";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
@@ -100,18 +98,14 @@ export class FakeSenderTransaction extends Transaction {
   private readonly _sender: Address;
 
   constructor(sender: Address, data: TxData = {}, opts?: TxOptions) {
-    const fakeSignature: Buffer = crypto
-      .createHash("md5")
-      .update(Buffer.from(`${util.inspect(data)}`))
-      .update(sender.buf)
-      .digest();
+    const fakeSignature = makeFakeSignature(data, sender);
 
     super(
       {
         ...data,
-        v: data.v ?? 27,
-        r: data.r ?? fakeSignature.readUInt32LE(),
-        s: data.s ?? fakeSignature.readUInt32LE(4),
+        v: data.v ?? fakeSignature.v,
+        r: data.r ?? fakeSignature.r,
+        s: data.s ?? fakeSignature.s,
       },
       { ...opts, freeze: false }
     );
