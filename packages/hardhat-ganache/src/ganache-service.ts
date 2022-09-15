@@ -117,7 +117,8 @@ export class GanacheService {
     }
   }
 
-  public async startServer() {
+  public async 
+  startServer() {
     // Verify service state before start (TODO Maybe extract this to a decorator)
     this._checkForServiceErrors();
 
