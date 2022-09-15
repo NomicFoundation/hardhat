@@ -29,7 +29,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: |
-            packages/hardhat-core/test/internal/hardhat-network/stack-traces/test-files/**/artifacts
+            packages/hardhat-core/test/internal/hardhat-network/stack-traces/test-files/artifacts
           key: hardhat-network-stack-traces-tests-${{ hashFiles('packages/hardhat-core/test/internal/hardhat-network/stack-traces/test-files/**/*.sol') }}-${{ hashFiles('packages/hardhat-core/test/internal/hardhat-network/stack-traces/test-files/**/test.json') }}-${{ hashFiles('packages/hardhat-core/test/internal/hardhat-network/stack-traces/**/*.ts') }}
       - name: test
         env:
