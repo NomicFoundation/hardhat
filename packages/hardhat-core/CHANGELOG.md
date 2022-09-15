@@ -1,5 +1,11 @@
 # hardhat
 
+## 2.12.0
+
+### Minor Changes
+
+- aebec509e: Use `"merge"` hardfork setting by default in Hardhat Network
+
 ## 2.11.2
 
 ### Patch Changes
