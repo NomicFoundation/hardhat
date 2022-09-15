@@ -1,0 +1,130 @@
+name: rethnet CI
+
+on:
+  push:
+    branches:
+      - $default-branch
+      - "rethnet/main"
+    paths:
+      - "config/**"
+      - "crates/**"
+      - "Cargo.toml"
+      - "rust-toolchain"
+  pull_request:
+    branches: ["*"]
+    paths:
+      - "config/**"
+      - "crates/**"
+      - "Cargo.toml"
+      - "rust-toolchain"
+
+env:
+  RUSTFLAGS: -Dwarnings
+
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Rust (stable)
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          override: true
+
+      - uses: Swatinem/rust-cache@v1
+
+      - name: Cargo check
+        uses: actions-rs/cargo@v1
+        with:
+          command: check
+          args: --all-targets
+
+  test-js:
+    name: Test Node.js
+    runs-on: ${{ matrix.os }}
+    needs: check
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ["ubuntu-latest", "windows-latest", "macOS-latest"]
+        include:
+          - RUSTFLAGS: "-Dwarnings"
+          - os: "windows-latest"
+            RUSTFLAGS: "-Dwarnings -Ctarget-feature=+crt-static"
+    defaults:
+      run:
+        working-directory: crates/rethnet_evm_napi
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 14
+          cache: yarn
+
+      - name: Install Rust (stable)
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          override: true
+          components: rustfmt
+
+      - uses: Swatinem/rust-cache@v1
+
+      - name: Build
+        run: yarn build
+
+      - name: Test
+        run: yarn test
+
+  test-rs:
+    name: Test Rust
+    runs-on: ${{ matrix.os }}
+    needs: check
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ["ubuntu-latest", "windows-latest", "macOS-latest"]
+        include:
+          - RUSTFLAGS: "-Dwarnings"
+          - os: "windows-latest"
+            RUSTFLAGS: "-Dwarnings -Ctarget-feature=+crt-static"
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Rust (stable)
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          override: true
+          components: rustfmt
+
+      - uses: Swatinem/rust-cache@v1
+        
+      - name: Doctests
+        uses: actions-rs/cargo@v1
+        env:
+          RUSTFLAGS: ${{ matrix.RUSTFLAGS }}
+        with:
+          command: test
+          args: --doc --all-features
+
+      - name: Install latest nextest release
+        uses: taiki-e/install-action@nextest
+
+      - name: Test with latest nextest release
+        uses: actions-rs/cargo@v1
+        env:
+          RUSTFLAGS: ${{ matrix.RUSTFLAGS }}
+          CARGO_INCREMENTAL: ${{ matrix.CARGO_INCREMENTAL }}
+        with:
+          command: nextest
+          args: run --all-features
