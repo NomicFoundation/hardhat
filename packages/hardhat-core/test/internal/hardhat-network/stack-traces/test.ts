@@ -41,7 +41,7 @@ import {
   compileFiles,
   COMPILER_DOWNLOAD_TIMEOUT,
   CompilerOptions,
-  downloadSolc,
+  downloadCompiler,
 } from "./compilation";
 import {
   encodeCall,
@@ -895,14 +895,14 @@ describe("Stack traces", function () {
       ...solidity07Compilers,
       ...solidity08Compilers,
     ];
-    const paths = new Set(
-      solidityCompilersToDownload.map((c) => c.compilerPath)
+
+    this.timeout(
+      solidityCompilersToDownload.length * COMPILER_DOWNLOAD_TIMEOUT
     );
 
-    this.timeout(paths.size * COMPILER_DOWNLOAD_TIMEOUT);
-
-    for (const p of paths) {
-      await downloadSolc(p);
+    for (const { solidityVersion } of solidityCompilersToDownload) {
+      console.log("Downloading solc", solidityVersion);
+      await downloadCompiler(solidityVersion);
     }
   });
 
