@@ -2,6 +2,7 @@ import { toBuffer } from "@nomicfoundation/ethereumjs-util";
 import { VM } from "@nomicfoundation/ethereumjs-vm";
 import { assert } from "chai";
 import fs from "fs";
+import fsExtra from "fs-extra";
 import path from "path";
 import semver from "semver";
 
@@ -200,11 +201,12 @@ async function compileIfNecessary(
     .map((s) => fs.statSync(s).ctimeMs)
     .reduce((t1, t2) => Math.max(t1, t2), 0);
 
-  const artifacts = path.join(testDir, "artifacts");
+  // save the artifacts in test-files/artifacts/<path-to-test-dir>
+  const testFilesDir = path.join(__dirname, "test-files");
+  const relativeTestDir = path.relative(testFilesDir, testDir);
+  const artifacts = path.join(testFilesDir, "artifacts", relativeTestDir);
 
-  if (!fs.existsSync(artifacts)) {
-    fs.mkdirSync(artifacts);
-  }
+  fsExtra.ensureDirSync(artifacts);
 
   const optimizerModifier =
     runs !== undefined ? `optimized-with-runs-${runs}` : "unoptimized";
