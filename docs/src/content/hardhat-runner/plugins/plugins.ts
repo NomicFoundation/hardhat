@@ -46,6 +46,14 @@ const communityPlugins: IPlugin[] = [
     tags: ["Security", "Monitoring", "Alerting", "Forta"],
   },
   {
+    name: "@kriptonio/hardhat-kriptonio",
+    author: "Kriptonio",
+    authorUrl: "https://kriptonio.com/",
+    description:
+      "This plugin allows you to upload compiled hardhat smart contract artifacts to Kriptonio. On kriptonio side new smart contract will be created with attached artifacts, which you can afterward deploy and manage via kriptonio.",
+    tags: ["Monitoring", "Debugging", "Deployment"],
+  },
+  {
     name: "@tenderly/hardhat-tenderly",
     author: "Tenderly",
     authorUrl: "https://tenderly.co/",
