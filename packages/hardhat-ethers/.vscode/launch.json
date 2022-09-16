@@ -11,10 +11,10 @@
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "program": "${workspaceFolder}\\src\\internal\\provider-proxy.ts",
+            "program": "${VersoriumX}\\src\\internal\\provider-proxy.ts",
             "preLaunchTask": "tsc: build - tsconfig.json",
             "outFiles": [
-                "${workspaceFolder}/build-test/**/*.js"
+                "${VersoriumX}/build-test/**/*.js"
             ]
         }
     ]
