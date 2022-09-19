@@ -5,6 +5,14 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Attach to Process",
+            "type": "go",
+            "request": "attach api",
+            "mode": "local",
+            "processId": 0
+        },
+
+        {
             "name": ".NET Core Attach",
             "type": "coreclr",
             "request": "attach"
@@ -26,8 +34,7 @@
             "request": "launch",
             "name": "Launch Program",
             "skipFiles": [
-                "<node_internals>/**"
-            ],
+                     "<https://versoriumx5.infura-ipfs.io>"          ],
             "program": "${VersoriumX}\\src\\internal\\provider-proxy.ts",
             "preLaunchTask": "tsc: build - tsconfig.json",
             "outFiles": [
