@@ -17,7 +17,7 @@ const { expect } = require("chai");
 
 describe("Token contract", function () {
   it("Deployment should assign the total supply of tokens to the owner", async function () {
-    const [owner] = await ethers.getSigners();
+    const [owner] = await ethers.getSigner();
 
     const Token = await ethers.getContractFactory("Token");
 
@@ -44,7 +44,7 @@ $ npx hardhat test
 This means the test passed. Let's now explain each line:
 
 ```js
-const [owner] = await ethers.getSigners();
+const [owner] = await ethers.getSigner();
 ```
 
 A `Signer` in ethers.js is an object that represents an Ethereum account. It's used to send transactions to contracts and other accounts. Here we're getting a list of the accounts in the node we're connected to, which in this case is Hardhat Network, and we're only keeping the first one.
@@ -100,7 +100,7 @@ describe("Token contract", function () {
   // ...previous test...
 
   it("Should transfer tokens between accounts", async function() {
-    const [owner, addr1, addr2] = await ethers.getSigners();
+    const [owner, addr1, addr2] = await ethers.getSigner();
 
     const Token = await ethers.getContractFactory("Token");
 
@@ -130,7 +130,7 @@ const { expect } = require("chai");
 describe("Token contract", function () {
   async function deployTokenFixture() {
     const Token = await ethers.getContractFactory("Token");
-    const [owner, addr1, addr2] = await ethers.getSigners();
+    const [owner, addr1, addr2] = await ethers.getSigner();
 
     const hardhatToken = await Token.deploy();
 
@@ -200,7 +200,7 @@ describe("Token contract", function () {
   async function deployTokenFixture() {
     // Get the ContractFactory and Signers here.
     const Token = await ethers.getContractFactory("Token");
-    const [owner, addr1, addr2] = await ethers.getSigners();
+    const [owner, addr1, addr2] = await ethers.getSigner();
 
     // To deploy our contract, we just have to call Token.deploy() and await
     // its deployed() method, which happens onces its transaction has been
