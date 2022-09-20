@@ -58,7 +58,7 @@ export const etherscanConfigExtender: ConfigExtender = (
 
     // check that there is no etherscan entry in the networks object, since
     // this is a common mistake done by users
-    if (resolvedConfig.networks.etherscan !== undefined) {
+    if (resolvedConfig.networks?.etherscan !== undefined) {
       console.warn(
         chalk.yellow(
           `WARNING: you have an 'etherscan' entry in your networks configuration. This is likely a mistake. The etherscan configuration should be at the root of the configuration, not within the networks object.`
