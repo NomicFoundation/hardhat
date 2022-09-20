@@ -1,0 +1,7 @@
+section-type: group
+section-title: Hardhat VSCode
+order:
+  - title: Overview
+    href: /overview
+  - /hardhat-projects
+  - /formatting

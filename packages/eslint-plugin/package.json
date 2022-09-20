@@ -1,0 +1,6 @@
+{
+  "name": "@nomiclabs/eslint-plugin-hardhat-internal-rules",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT"
+}
