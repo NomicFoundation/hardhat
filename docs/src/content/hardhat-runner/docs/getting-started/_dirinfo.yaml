@@ -1,9 +1,0 @@
-section-type: group
-section-title: Hardhat Runner
-order:
-  - href: "#overview"
-    title: Overview
-  - href: "#installation"
-    title: Installation
-  - href: "#quick-start"
-    title: Quick start

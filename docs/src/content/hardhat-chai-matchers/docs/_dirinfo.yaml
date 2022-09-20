@@ -1,7 +1,0 @@
-section-type: group
-section-title: Hardhat Chai Matchers
-order:
-  - title: Overview
-    href: /overview
-  - /migrate-from-waffle
-  - /reference
