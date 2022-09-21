@@ -2,6 +2,7 @@
 import type { IgnitionPlan } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 import fs from "fs-extra";
+import path from "path";
 import sinon from "sinon";
 
 import { Renderer } from "../../src/plan";
@@ -18,10 +19,13 @@ describe("Renderer", () => {
     new Renderer({} as IgnitionPlan, { cachePath: "test/path" });
 
     assert(fake.callCount === 2);
-    sinon.assert.calledWithMatch(fake.getCalls()[0], "/test/path/plan/recipe");
+    sinon.assert.calledWithMatch(
+      fake.getCalls()[0],
+      path.resolve("/test/path/plan/recipe")
+    );
     sinon.assert.calledWithMatch(
       fake.getCalls()[1],
-      "/test/path/plan/execution"
+      path.resolve("/test/path/plan/execution")
     );
   });
 
@@ -30,8 +34,12 @@ describe("Renderer", () => {
       cachePath: "test/path",
     });
 
-    assert(renderer.planPath.endsWith("/test/path/plan"));
-    assert(renderer.recipePath.endsWith("/test/path/plan/recipe"));
-    assert(renderer.executionPath.endsWith("/test/path/plan/execution"));
+    assert(renderer.planPath.endsWith(path.resolve("/test/path/plan")));
+    assert(
+      renderer.recipePath.endsWith(path.resolve("/test/path/plan/recipe"))
+    );
+    assert(
+      renderer.executionPath.endsWith(path.resolve("/test/path/plan/execution"))
+    );
   });
 });
