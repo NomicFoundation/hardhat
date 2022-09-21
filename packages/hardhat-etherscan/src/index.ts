@@ -168,7 +168,7 @@ const verify: ActionType<VerificationArgs> = async (
   });
 
   if (!noCompile) {
-      // Make sure that contract artifacts are up-to-date.
+    // Make sure that contract artifacts are up-to-date.
     await run(TASK_COMPILE, { quiet: true });
   }
 
