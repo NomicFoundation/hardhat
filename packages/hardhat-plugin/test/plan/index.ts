@@ -5,7 +5,7 @@ import { assert } from "chai";
 import { Renderer } from "../../src/plan";
 import { useEnvironment } from "../useEnvironment";
 
-describe.only("plan", () => {
+describe("plan", () => {
   useEnvironment("minimal");
 
   it("should create a plan", async function () {
