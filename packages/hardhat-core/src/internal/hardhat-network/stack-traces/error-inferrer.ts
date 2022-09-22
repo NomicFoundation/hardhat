@@ -1078,7 +1078,14 @@ export class ErrorInferrer {
         continue;
       }
 
-      return sourceLocationToSourceReference(trace.bytecode, inst.location);
+      const sourceReference = sourceLocationToSourceReference(
+        trace.bytecode,
+        inst.location
+      );
+
+      if (sourceReference !== undefined) {
+        return sourceReference;
+      }
     }
 
     return undefined;
