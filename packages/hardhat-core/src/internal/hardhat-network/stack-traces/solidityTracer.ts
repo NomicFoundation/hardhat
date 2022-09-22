@@ -1,4 +1,5 @@
 import { ERROR } from "@nomicfoundation/ethereumjs-evm/dist/exceptions";
+import debug from "debug";
 import { ReturnData } from "../provider/return-data";
 
 import {
@@ -32,6 +33,8 @@ import {
   StackTraceEntryType,
 } from "./solidity-stack-trace";
 
+const log = debug("hardhat:core:hardhat-network:errors:solidity-tracer");
+
 export class SolidityTracer {
   private _errorInferrer = new ErrorInferrer();
 
@@ -39,21 +42,26 @@ export class SolidityTracer {
     maybeDecodedMessageTrace: MessageTrace
   ): SolidityStackTrace {
     if (maybeDecodedMessageTrace.error === undefined) {
+      log("No error object in trace");
       return [];
     }
 
     if (isPrecompileTrace(maybeDecodedMessageTrace)) {
+      log("Trace is a precompile trace");
       return this._getPrecompileMessageStackTrace(maybeDecodedMessageTrace);
     }
 
     if (isDecodedCreateTrace(maybeDecodedMessageTrace)) {
+      log("Trace is a decoded create trace");
       return this._getCreateMessageStackTrace(maybeDecodedMessageTrace);
     }
 
     if (isDecodedCallTrace(maybeDecodedMessageTrace)) {
+      log("Trace is a decoded call trace");
       return this._getCallMessageStackTrace(maybeDecodedMessageTrace);
     }
 
+    log("Trace is not decoded");
     return this._getUnrecognizedMessageStackTrace(maybeDecodedMessageTrace);
   }
 
@@ -64,9 +72,11 @@ export class SolidityTracer {
       this._errorInferrer.inferBeforeTracingCallMessage(trace);
 
     if (inferredError !== undefined) {
+      log("Got an inferred error");
       return inferredError;
     }
 
+    log("No inferred error");
     return this._traceEvmExecution(trace);
   }
 

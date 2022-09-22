@@ -1,6 +1,7 @@
 /* eslint "@typescript-eslint/no-non-null-assertion": "error" */
 import { ERROR } from "@nomicfoundation/ethereumjs-evm/dist/exceptions";
 import { defaultAbiCoder as abi } from "@ethersproject/abi";
+import debug from "debug";
 import semver from "semver";
 
 import { assertHardhatInvariant } from "../../core/errors";
@@ -46,6 +47,8 @@ import {
   StackTraceEntryType,
   UnmappedSolc063RevertErrorStackTraceEntry,
 } from "./solidity-stack-trace";
+
+const log = debug("hardhat:core:hardhat-network:errors:error-inferrer");
 
 const FIRST_SOLC_VERSION_CREATE_PARAMS_VALIDATION = "0.5.9";
 const FIRST_SOLC_VERSION_RECEIVE_FUNCTION = "0.6.0";
@@ -253,7 +256,9 @@ export class ErrorInferrer {
     stacktrace: SolidityStackTrace,
     lastSubmessageData: SubmessageData | undefined
   ): SolidityStackTrace | undefined {
+    log("Start last submessage heuristic");
     if (lastSubmessageData === undefined) {
+      log("Last submessage is undefined");
       return undefined;
     }
 
@@ -328,6 +333,7 @@ export class ErrorInferrer {
     trace: DecodedEvmMessageTrace,
     stacktrace: SolidityStackTrace
   ): SolidityStackTrace | undefined {
+    log("Start last call/create failed heuristic");
     for (let stepIndex = trace.steps.length - 2; stepIndex >= 0; stepIndex--) {
       const step = trace.steps[stepIndex];
       const nextStep = trace.steps[stepIndex + 1];
@@ -372,6 +378,7 @@ export class ErrorInferrer {
     ) {
       return;
     }
+    log("Last instruction is a revert or an invalid opcode");
 
     const inferredStacktrace = [...stacktrace];
 
@@ -476,6 +483,10 @@ export class ErrorInferrer {
 
       return this._fixInitialModifier(trace, inferredStacktrace);
     }
+
+    log(
+      "Last instruction is a revert or an invalid opcode, but couldn't infer anything"
+    );
   }
 
   /**
@@ -578,6 +589,7 @@ export class ErrorInferrer {
     functionJumpdests: Instruction[],
     jumpedIntoFunction: boolean
   ): SolidityStackTrace | undefined {
+    log("Start last executed instruction heuristic");
     const lastStep = trace.steps[trace.steps.length - 1];
 
     if (!isEvmStep(lastStep)) {
@@ -665,15 +677,18 @@ export class ErrorInferrer {
     trace: DecodedEvmMessageTrace,
     stacktrace: SolidityStackTrace
   ): SolidityStackTrace | undefined {
+    log("Start non-contract address called heuristic");
     if (this._isCalledNonContractAccountError(trace)) {
       const sourceReference = this._getLastSourceReference(trace);
+
+      // We are sure this is not undefined because there was at least a call instruction
       assertHardhatInvariant(
         sourceReference !== undefined,
         "Expected source reference to be defined"
       );
+
       const nonContractCalledFrame: SolidityStackTraceEntry = {
         type: StackTraceEntryType.NONCONTRACT_ACCOUNT_CALLED_ERROR,
-        // We are sure this is not undefined because there was at least a call instruction
         sourceReference,
       };
 
@@ -685,6 +700,7 @@ export class ErrorInferrer {
     trace: DecodedEvmMessageTrace,
     stacktrace: SolidityStackTrace
   ): SolidityStackTrace | undefined {
+    log("Start solidity 0.6.3 unmapped revert heuristic");
     if (this._solidity063MaybeUnmappedRevert(trace)) {
       const revertFrame =
         this._solidity063GetFrameForUnmappedRevertWithinFunction(trace);
@@ -698,6 +714,7 @@ export class ErrorInferrer {
   private _checkContractTooLarge(
     trace: DecodedEvmMessageTrace
   ): SolidityStackTrace | undefined {
+    log("Start contract is too large heuristic");
     if (isCreateTrace(trace) && this._isContractTooLargeError(trace)) {
       return [
         {
@@ -712,6 +729,7 @@ export class ErrorInferrer {
     trace: DecodedEvmMessageTrace,
     stacktrace: SolidityStackTrace
   ): SolidityStackTrace {
+    log("No heuristic matched, return other execution error entry");
     const otherExecutionErrorFrame: SolidityStackTraceEntry = {
       type: StackTraceEntryType.OTHER_EXECUTION_ERROR,
       sourceReference: this._getLastSourceReference(trace),
