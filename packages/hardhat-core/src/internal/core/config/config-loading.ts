@@ -269,18 +269,22 @@ Learn more about compiler configuration at https://hardhat.org/config
 }
 
 function checkUnsupportedSolidityConfig(resolvedConfig: HardhatConfig) {
-  const compilerVersions = resolvedConfig.solidity.compilers.map(
-    (x) => x.version
-  );
-  const overrideVersions = Object.values(resolvedConfig.solidity.overrides).map(
-    (x) => x.version
-  );
-  const solcVersions = [...compilerVersions, ...overrideVersions];
+  const compilerConfigs = resolvedConfig.solidity.compilers;
+  const overrideConfigs = Object.values(resolvedConfig.solidity.overrides);
+
+  const solcConfigs = [...compilerConfigs, ...overrideConfigs];
 
   const unsupportedVersions: string[] = [];
-  for (const solcVersion of solcVersions) {
-    if (!semver.satisfies(solcVersion, SUPPORTED_SOLIDITY_VERSION_RANGE)) {
-      unsupportedVersions.push(solcVersion);
+  let viaIREnabled = false;
+  for (const solcConfig of solcConfigs) {
+    if (
+      !semver.satisfies(solcConfig.version, SUPPORTED_SOLIDITY_VERSION_RANGE)
+    ) {
+      unsupportedVersions.push(solcConfig.version);
+    }
+
+    if (solcConfig.settings.viaIR === true) {
+      viaIREnabled = true;
     }
   }
 
@@ -292,6 +296,17 @@ function checkUnsupportedSolidityConfig(resolvedConfig: HardhatConfig) {
         } not fully supported yet. You can still use Hardhat, but some features, like stack traces, might not work correctly.
 
 Learn more at https://hardhat.org/hardhat-runner/docs/reference/solidity-support
+`
+      )
+    );
+  }
+
+  if (viaIREnabled) {
+    console.warn(
+      chalk.yellow(
+        `Your solidity settings have viaIR enabled, which is not fully supported yet. You can still use Hardhat, but some features, like stack traces, might not work correctly.
+
+Learn more at https://hardhat.org/solc-viair
 `
       )
     );

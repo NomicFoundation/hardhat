@@ -86,6 +86,11 @@ const customRedirects = [
     destination: "/hardhat-network/docs/guides/forking-other-networks.html#using-a-custom-hardfork-history",
     permanent: false
   },
+  {
+    source: "/solc-viair",
+    destination: "/hardhat-runner/docs/reference/solidity-support#support-for-ir-based-codegen",
+    permanent: false
+  },
 
   // top-level component URLs
   {

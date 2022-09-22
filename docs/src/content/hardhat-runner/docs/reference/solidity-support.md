@@ -24,3 +24,9 @@ When running an unsupported version of Solidity, our integration may not work or
 This could mean that Solidity stack traces stop working, are incorrect, or incomplete. It could also mean that `console.log` stops working.
 
 Despite these features possibly being affected, the compilation and execution of your smart contracts won't be affected. You can still trust your test results and deploy smart contracts, but Hardhat may be less useful in the process.
+
+## Support for IR-based codegen
+
+The solc compiler has a newer, alternative way of generating bytecode through an [intermediate representation](https://docs.soliditylang.org/en/latest/ir-breaking-changes.html). This mode of compilation can be enabled with the `viaIR` setting.
+
+At the moment, this option only works well [when the optimizer is enabled](https://github.com/ethereum/solidity/issues/12533). Since Hardhat works much better when the optimizer is disabled, we don't completely support the `viaIR` option yet. You can still use the `viaIR` option for compiling your contracts and running your tests, but things like stack traces won't work as well.
