@@ -947,6 +947,14 @@ The first supported version is %firstSupportedVersion%`,
 Please use a newer, supported version.`,
       shouldBeReported: true,
     },
+    TEST_TASK_ESM_TESTS_RUN_TWICE: {
+      number: 609,
+      message: `Your project uses ESM and you've programmatically run your tests twice. This is not supported yet.`,
+      title: "Running tests twice in an ESM project",
+      description:
+        'You have run your tests twice programmatically and your project is an ESM project (you have `"type": "module"` in your `package.json`, or some of your files has a `.mjs` or `.mts` extension). This is not supported by Mocha yet.',
+      shouldBeReported: true,
+    },
   },
   ARTIFACTS: {
     NOT_FOUND: {
