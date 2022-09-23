@@ -12,7 +12,7 @@ import {
   RequiredParameter,
   CallableFuture,
 } from "./future";
-import { AdjacencyList } from "./graph";
+import { AdjacencyList, VertexDescriptor } from "./graph";
 import { Artifact } from "./hardhat";
 
 export interface IRecipeGraph {
@@ -41,57 +41,45 @@ export type RecipeVertex =
   | CallRecipeVertex
   | VirtualVertex;
 
-export interface HardhatContractRecipeVertex {
-  id: number;
+export interface HardhatContractRecipeVertex extends VertexDescriptor {
   type: "HardhatContract";
-  label: string;
   scopeAdded: string;
   contractName: string;
   args: InternalParamValue[];
   libraries: LibraryMap;
 }
 
-export interface ArtifactContractRecipeVertex {
-  id: number;
+export interface ArtifactContractRecipeVertex extends VertexDescriptor {
   type: "ArtifactContract";
-  label: string;
   scopeAdded: string;
   artifact: Artifact;
   args: InternalParamValue[];
   libraries: LibraryMap;
 }
 
-export interface DeployedContractRecipeVertex {
-  id: number;
+export interface DeployedContractRecipeVertex extends VertexDescriptor {
   type: "DeployedContract";
-  label: string;
   scopeAdded: string;
   address: string;
   abi: any[];
 }
 
-export interface HardhatLibraryRecipeVertex {
-  id: number;
+export interface HardhatLibraryRecipeVertex extends VertexDescriptor {
   type: "HardhatLibrary";
   libraryName: string;
-  label: string;
   scopeAdded: string;
   args: InternalParamValue[];
 }
 
-export interface ArtifactLibraryRecipeVertex {
-  id: number;
+export interface ArtifactLibraryRecipeVertex extends VertexDescriptor {
   type: "ArtifactLibrary";
-  label: string;
   scopeAdded: string;
   artifact: Artifact;
   args: InternalParamValue[];
 }
 
-export interface CallRecipeVertex {
-  id: number;
+export interface CallRecipeVertex extends VertexDescriptor {
   type: "Call";
-  label: string;
   scopeAdded: string;
   contract: CallableFuture;
   method: string;
@@ -99,10 +87,8 @@ export interface CallRecipeVertex {
   after: RecipeFuture[];
 }
 
-export interface VirtualVertex {
-  id: number;
+export interface VirtualVertex extends VertexDescriptor {
   type: "Virtual";
-  label: string;
   scopeAdded: string;
   after: RecipeFuture[];
 }

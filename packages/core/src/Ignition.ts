@@ -9,6 +9,7 @@ import { createServices } from "services/createServices";
 import { Services } from "services/types";
 import { DeploymentResult, IgnitionRecipesResults } from "types/deployment";
 import { DependableFuture, FutureDict } from "types/future";
+import { IgnitionPlan } from "types/plan";
 import { Providers } from "types/providers";
 import { Recipe } from "types/recipeGraph";
 import { SerializedDeploymentResult } from "types/serialization";
@@ -113,7 +114,7 @@ export class Ignition {
     return [{ _kind: "success", result: serializedDeploymentResult }, {}];
   }
 
-  public async plan(recipe: Recipe) {
+  public async plan(recipe: Recipe): Promise<IgnitionPlan> {
     log(`Start plan`);
 
     const serviceOptions = {
@@ -135,7 +136,7 @@ export class Ignition {
     const validationResult = await validateRecipeGraph(recipeGraph, services);
 
     if (validationResult._kind === "failure") {
-      return [validationResult, {}];
+      throw new Error(validationResult.failures[0]);
     }
 
     const transformResult = await transformRecipeGraphToExecutionGraph(
@@ -144,7 +145,7 @@ export class Ignition {
     );
 
     if (transformResult._kind === "failure") {
-      return [transformResult, {}];
+      throw new Error(transformResult.failures[0]);
     }
 
     const { executionGraph } = transformResult;

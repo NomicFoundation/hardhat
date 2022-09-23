@@ -19,3 +19,5 @@ export type {
   IRecipeGraphBuilder,
 } from "types/recipeGraph";
 export type { FutureDict } from "types/future";
+export type { IgnitionPlan } from "types/plan";
+export type { VertexGraph, VertexDescriptor } from "types/graph";

@@ -1,5 +1,5 @@
 import { RecipeFuture } from "./future";
-import { AdjacencyList } from "./graph";
+import { AdjacencyList, VertexDescriptor } from "./graph";
 import { Artifact } from "./hardhat";
 import { LibraryMap } from "./recipeGraph";
 
@@ -17,35 +17,27 @@ export type ExecutionVertex =
   | LibraryDeploy
   | ContractCall;
 
-export interface ContractDeploy {
+export interface ContractDeploy extends VertexDescriptor {
   type: "ContractDeploy";
-  id: number;
-  label: string;
   artifact: Artifact;
   args: ArgValue[];
   libraries: LibraryMap;
 }
 
-export interface DeployedContract {
+export interface DeployedContract extends VertexDescriptor {
   type: "DeployedContract";
-  id: number;
-  label: string;
   address: string;
   abi: any[];
 }
 
-export interface LibraryDeploy {
+export interface LibraryDeploy extends VertexDescriptor {
   type: "LibraryDeploy";
-  id: number;
-  label: string;
   artifact: Artifact;
   args: ArgValue[];
 }
 
-export interface ContractCall {
+export interface ContractCall extends VertexDescriptor {
   type: "ContractCall";
-  id: number;
-  label: string;
   contract: any;
   method: string;
   args: ArgValue[];

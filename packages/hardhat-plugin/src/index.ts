@@ -1,14 +1,12 @@
 import "@nomiclabs/hardhat-ethers";
 import { Providers, Recipe } from "@nomicfoundation/ignition-core";
-import { exec } from "child_process";
-import fs from "fs-extra";
 import { extendConfig, extendEnvironment, task } from "hardhat/config";
 import { lazyObject } from "hardhat/plugins";
-import os from "os";
 import path from "path";
 
 import { ConfigWrapper } from "./ConfigWrapper";
 import { IgnitionWrapper } from "./ignition-wrapper";
+import { Renderer } from "./plan";
 import { loadUserRecipes, loadAllUserRecipes } from "./user-recipes";
 import "./type-extensions";
 
@@ -174,29 +172,18 @@ task("plan")
         process.exit(0);
       }
 
-      const html = await hre.ignition.plan(userRecipes[0]);
+      const plan = await hre.ignition.plan(userRecipes[0]);
 
-      const filePath = `${hre.config.paths.cache}/plan.html`;
+      const renderer = new Renderer(plan, {
+        cachePath: hre.config.paths.cache,
+      });
 
-      let command: string;
-      switch (os.platform()) {
-        case "win32":
-          command = "start";
-          break;
-        case "darwin":
-          command = "open";
-          break;
-        default:
-          command = "xdg-open";
-      }
-
-      await fs.ensureDir(hre.config.paths.cache);
-      await fs.writeFile(filePath, html);
+      renderer.write();
 
       if (!quiet) {
-        console.log(`Plan written to ${filePath}`);
+        console.log(`Plan written to ${renderer.planPath}/index.html`);
       }
 
-      exec(`${command} ${filePath}`);
+      renderer.open();
     }
   );
