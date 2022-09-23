@@ -30,7 +30,11 @@ function importCsjOrEsModule(filePath: string): any {
     return imported.default !== undefined ? imported.default : imported;
   } catch (e: any) {
     if (e.code === "ERR_REQUIRE_ESM") {
-      throw new HardhatError(ERRORS.GENERAL.ESM_PROJECT_WITHOUT_CJS_CONFIG);
+      throw new HardhatError(
+        ERRORS.GENERAL.ESM_PROJECT_WITHOUT_CJS_CONFIG,
+        {},
+        e
+      );
     }
 
     // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
