@@ -3,7 +3,7 @@
   "version": "0.0.2",
   "license": "MIT",
   "author": "Nomic Foundation",
-  "main": "dist/src/index.js",
+  "main": "dist/index.js",
   "scripts": {
     "build": "tsc && node ./post-build.js",
     "lint": "yarn prettier --check && yarn eslint",

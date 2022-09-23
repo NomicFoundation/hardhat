@@ -14,7 +14,7 @@ const {
 const configDir = dirname(configFile);
 
 const basePath = resolve(configDir, baseUrl);
-const outPath = resolve(__dirname, "dist", "src");
+const outPath = resolve(__dirname, "dist");
 
 const outFileToSrcFile = (x) => resolve(srcRoot, relative(outPath, x));
 
