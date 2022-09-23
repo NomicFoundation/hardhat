@@ -18,6 +18,8 @@ describe("Renderer", () => {
 
     new Renderer({} as IgnitionPlan, { cachePath: "test/path" });
 
+    console.log("fake.getCalls()[0].args[0]");
+    console.log(fake.getCalls()[0].args[0]);
     assert(fake.callCount === 2);
     sinon.assert.calledWithMatch(
       fake.getCalls()[0],
@@ -34,6 +36,10 @@ describe("Renderer", () => {
       cachePath: "test/path",
     });
 
+    console.log("renderer.planPath");
+    console.log(renderer.planPath);
+    console.log("renderer.recipePath");
+    console.log(renderer.recipePath);
     assert(renderer.planPath.endsWith(path.resolve("/test/path/plan")));
     assert(
       renderer.recipePath.endsWith(path.resolve("/test/path/plan/recipe"))
