@@ -21,13 +21,15 @@ describe("Renderer", () => {
     console.log("fake.getCalls()[0].args[0]");
     console.log(fake.getCalls()[0].args[0]);
     assert(fake.callCount === 2);
-    sinon.assert.calledWithMatch(
-      fake.getCalls()[0],
-      path.resolve("/test/path/plan/recipe")
+    assert(
+      fake
+        .getCalls()[0]
+        .args[0].endsWith(path.normalize("/test/path/plan/recipe"))
     );
-    sinon.assert.calledWithMatch(
-      fake.getCalls()[1],
-      path.resolve("/test/path/plan/execution")
+    assert(
+      fake
+        .getCalls()[1]
+        .args[0].endsWith(path.normalize("/test/path/plan/execution"))
     );
   });
 
@@ -40,12 +42,15 @@ describe("Renderer", () => {
     console.log(renderer.planPath);
     console.log("renderer.recipePath");
     console.log(renderer.recipePath);
-    assert(renderer.planPath.endsWith(path.resolve("/test/path/plan")));
+    console.log(path.normalize("/test/path/plan/recipe"));
+    assert(renderer.planPath.endsWith(path.normalize("/test/path/plan")));
     assert(
-      renderer.recipePath.endsWith(path.resolve("/test/path/plan/recipe"))
+      renderer.recipePath.endsWith(path.normalize("/test/path/plan/recipe"))
     );
     assert(
-      renderer.executionPath.endsWith(path.resolve("/test/path/plan/execution"))
+      renderer.executionPath.endsWith(
+        path.normalize("/test/path/plan/execution")
+      )
     );
   });
 });
