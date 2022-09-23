@@ -35,16 +35,18 @@ subtask(TASK_TEST_GET_TEST_FILES)
       return testFilesAbsolutePaths;
     }
 
-    const jsFiles = await getAllFilesMatching(config.paths.tests, (f) =>
-      f.endsWith(".js")
+    const jsFiles = await getAllFilesMatching(
+      config.paths.tests,
+      (f) => f.endsWith(".js") || f.endsWith(".cjs") || f.endsWith(".mjs")
     );
 
     if (!isRunningWithTypescript(config)) {
       return jsFiles;
     }
 
-    const tsFiles = await getAllFilesMatching(config.paths.tests, (f) =>
-      f.endsWith(".ts")
+    const tsFiles = await getAllFilesMatching(
+      config.paths.tests,
+      (f) => f.endsWith(".ts") || f.endsWith(".cts") || f.endsWith(".mts")
     );
 
     return [...jsFiles, ...tsFiles];
