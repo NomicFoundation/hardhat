@@ -2,6 +2,8 @@ import findup from "find-up";
 import fsExtra from "fs-extra";
 import path from "path";
 
+import { assertHardhatInvariant } from "../core/errors";
+
 export function getPackageJsonPath(): string {
   return findClosestPackageJson(__filename)!;
 }
@@ -42,4 +44,18 @@ export function getHardhatVersion(): string | null {
   } catch {
     return null;
   }
+}
+
+/**
+ * Return the contents of the package.json in the user's project
+ */
+export function getProjectPackageJson(): Promise<any> {
+  const packageJsonPath = findup.sync("package.json");
+
+  assertHardhatInvariant(
+    packageJsonPath !== null,
+    "Expected a package.json file in the current directory or in an ancestor directory"
+  );
+
+  return fsExtra.readJson(packageJsonPath);
 }

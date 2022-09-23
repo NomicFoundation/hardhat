@@ -237,6 +237,16 @@ Either try using a new directory name, or remove the conflicting files.`,
         "Hardhat attempted to convert the input value to a BigInt, but no known conversion method was applicable to the given value.",
       shouldBeReported: false,
     },
+    ESM_PROJECT_WITHOUT_CJS_CONFIG: {
+      number: 18,
+      message: `Your project is an ESM project (you have "type": "module" set in your package.json) but your Hardhat config file uses a .js or .ts extension.
+
+Rename the file to use a .cjs or .cts extension to fix this problem.`,
+      title: "Hardht config with .js or .ts extension in an ESM project",
+      description:
+        "Your project is an ESM project but your Hardhat config uses an .js or .ts extension. Hardhat config files cannot be an ES module. To fix this, rename your Hardhat config to use the .cjs or .cts extension.",
+      shouldBeReported: false,
+    },
   },
   NETWORK: {
     CONFIG_NOT_FOUND: {
@@ -945,6 +955,14 @@ The first supported version is %firstSupportedVersion%`,
       title: "Unsupported solc version",
       description: `This version of solidity is not supported by Hardhtat.
 Please use a newer, supported version.`,
+      shouldBeReported: true,
+    },
+    TEST_TASK_ESM_TESTS_RUN_TWICE: {
+      number: 609,
+      message: `Your project uses ESM and you've programmatically run your tests twice. This is not supported yet.`,
+      title: "Running tests twice in an ESM project",
+      description:
+        'You have run your tests twice programmatically and your project is an ESM project (you have `"type": "module"` in your `package.json`, or some of your files has a `.mjs` or `.mts` extension). This is not supported by Mocha yet.',
       shouldBeReported: true,
     },
   },

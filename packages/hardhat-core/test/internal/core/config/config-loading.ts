@@ -520,4 +520,76 @@ Hardhat plugin instead.`
       );
     });
   });
+
+  describe("ESM project", function () {
+    describe(".js config file", function () {
+      useFixtureProject("esm/js-config");
+
+      beforeEach(function () {
+        HardhatContext.createHardhatContext();
+      });
+
+      afterEach(function () {
+        resetHardhatContext();
+      });
+
+      it("Should throw the right error", function () {
+        expectHardhatError(
+          () => loadConfigAndTasks(),
+          ERRORS.GENERAL.ESM_PROJECT_WITHOUT_CJS_CONFIG
+        );
+      });
+    });
+
+    describe(".cjs config file", function () {
+      useFixtureProject("esm/cjs-config");
+
+      beforeEach(function () {
+        HardhatContext.createHardhatContext();
+      });
+
+      afterEach(function () {
+        resetHardhatContext();
+      });
+
+      it("Should not throw", function () {
+        loadConfigAndTasks();
+      });
+    });
+
+    describe(".ts config file", function () {
+      useFixtureProject("esm/ts-config");
+
+      beforeEach(function () {
+        HardhatContext.createHardhatContext();
+      });
+
+      afterEach(function () {
+        resetHardhatContext();
+      });
+
+      it("Should throw the right error", function () {
+        expectHardhatError(
+          () => loadConfigAndTasks(),
+          ERRORS.GENERAL.ESM_PROJECT_WITHOUT_CJS_CONFIG
+        );
+      });
+    });
+
+    describe(".cts config file", function () {
+      useFixtureProject("esm/cts-config");
+
+      beforeEach(function () {
+        HardhatContext.createHardhatContext();
+      });
+
+      afterEach(function () {
+        resetHardhatContext();
+      });
+
+      it("Should not throw", function () {
+        loadConfigAndTasks();
+      });
+    });
+  });
 });
