@@ -18,8 +18,6 @@ describe("Renderer", () => {
 
     new Renderer({} as IgnitionPlan, { cachePath: "test/path" });
 
-    console.log("fake.getCalls()[0].args[0]");
-    console.log(fake.getCalls()[0].args[0]);
     assert(fake.callCount === 2);
     assert(
       fake
@@ -38,11 +36,6 @@ describe("Renderer", () => {
       cachePath: "test/path",
     });
 
-    console.log("renderer.planPath");
-    console.log(renderer.planPath);
-    console.log("renderer.recipePath");
-    console.log(renderer.recipePath);
-    console.log(path.normalize("/test/path/plan/recipe"));
     assert(renderer.planPath.endsWith(path.normalize("/test/path/plan")));
     assert(
       renderer.recipePath.endsWith(path.normalize("/test/path/plan/recipe"))
