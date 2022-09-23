@@ -34,5 +34,7 @@ describe("plan", () => {
 
     // not sure this is the best way to test this, but it works for now
     assert(output.trim().startsWith("<html>"));
+    assert(/subgraph RecipeGraph/g.test(output));
+    assert(/subgraph ExecutionGraph/g.test(output));
   });
 });
