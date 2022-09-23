@@ -15,7 +15,7 @@ export const HARDHAT_PARAM_DEFINITIONS: HardhatParamDefinitions = {
   showStackTraces: {
     name: "showStackTraces",
     defaultValue: false,
-    description: "Show stack traces.",
+    description: "Show stack traces (always enabled on CI servers).",
     type: types.boolean,
     isFlag: true,
     isOptional: true,

@@ -49,23 +49,37 @@ function validateStorageSlot(u: unknown, c: t.Context): t.Validation<bigint> {
     );
   }
 
-  if (u.match(/^0x(?:[0-9a-fA-F]*)*$/) === null) {
+  if (u === "") {
+    return t.failure(u, c, "Storage slot argument cannot be an empty string");
+  }
+
+  if (u.startsWith("0x")) {
+    if (u.length > 66) {
+      return t.failure(
+        u,
+        c,
+        `Storage slot argument must have a length of at most 66 ("0x" + 32 bytes), but '${u}' has a length of ${u.length}`
+      );
+    }
+  } else {
+    if (u.length > 64) {
+      return t.failure(
+        u,
+        c,
+        `Storage slot argument must have a length of at most 64 (32 bytes), but '${u}' has a length of ${u.length}`
+      );
+    }
+  }
+
+  if (u.match(/^(0x)?([0-9a-fA-F]){0,64}$/) === null) {
     return t.failure(
       u,
       c,
-      `Storage slot argument must be a valid hexadecimal prefixed with "0x", got '${u}'`
+      `Storage slot argument must be a valid hexadecimal, got '${u}'`
     );
   }
 
-  if (u.length !== 66) {
-    return t.failure(
-      u,
-      c,
-      `Storage slot argument must have a length of 66 ("0x" + 32 bytes), but '${u}' has a length of ${u.length}`
-    );
-  }
-
-  return t.success(BigInt(u));
+  return t.success(u === "0x" ? 0n : BigInt(u.startsWith("0x") ? u : `0x${u}`));
 }
 
 export const rpcAddress = new t.Type<Buffer>(

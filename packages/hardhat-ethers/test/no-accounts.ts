@@ -18,18 +18,13 @@ describe("hardhat-ethers plugin", function () {
     });
 
     describe("getContractAt", function () {
-      let signerAddress: string;
+      const signerAddress = "0x1010101010101010101010101010101010101010";
 
       beforeEach(async function () {
-        // We need some ether to send transactions so we mine a block and use the coinbase account to send them
-        // TODO: being able to send transactions with gasPrice 0 would work too, but currently can't be done.
-        await this.env.network.provider.request({
-          method: "evm_mine",
-          params: [],
-        });
-
-        const { miner } = await this.env.ethers.provider.getBlock("latest");
-        signerAddress = miner;
+        await this.env.network.provider.send("hardhat_setBalance", [
+          signerAddress,
+          "0x1000000000000000000",
+        ]);
 
         await this.env.run(TASK_COMPILE, { quiet: true });
       });

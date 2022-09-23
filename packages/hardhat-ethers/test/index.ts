@@ -957,7 +957,7 @@ describe("Ethers plugin", function () {
         // see also
         // https://github.com/ethers-io/ethers.js/issues/615#issuecomment-848991047
         const provider = deployedGreeter.provider as EthersProviderWrapper;
-        provider.pollingInterval = 100;
+        provider.pollingInterval = 200;
 
         let eventEmitted = false;
         deployedGreeter.on("GreetingUpdated", () => {
