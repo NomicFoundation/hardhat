@@ -1,7 +1,9 @@
 use clap::{Parser, Subcommand};
 
-mod hardhat;
+mod execution_api;
 mod update;
+
+use update::Mode;
 
 #[derive(Parser)]
 #[clap(name = "tasks", version, author)]
@@ -12,17 +14,13 @@ struct Args {
 
 #[derive(Subcommand)]
 enum Command {
-    /// Generate Rust WASM bindings for Hardhat
-    GenHardhatApi,
-    /// Generate WASM and JS/TS bindings for Rethnet
-    GenRethnetApi,
+    /// Generate Ethereum execution API
+    GenExecutionApi,
 }
 
 fn main() -> anyhow::Result<()> {
     let args = Args::parse();
     match args.command {
-        Command::GenHardhatApi => todo!(),
-        Command::GenRethnetApi => todo!(),
+        Command::GenExecutionApi => execution_api::generate(Mode::Overwrite),
     }
-    Ok(())
 }

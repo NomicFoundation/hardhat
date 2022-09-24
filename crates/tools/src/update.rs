@@ -1,5 +1,6 @@
 use std::{
     fs,
+    io::Write,
     path::{Path, PathBuf},
     process::{Command, Stdio},
 };
@@ -9,9 +10,11 @@ use anyhow::bail;
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum Mode {
     Overwrite,
+    #[allow(unused)]
     Verify,
 }
 
+#[allow(unused)]
 pub fn update(path: &Path, contents: &str, mode: Mode) -> anyhow::Result<()> {
     let old_contents = fs::read_to_string(path)?;
     let old_contents = old_contents.replace("\r\n", "\n");
@@ -29,10 +32,9 @@ pub fn update(path: &Path, contents: &str, mode: Mode) -> anyhow::Result<()> {
     Ok(())
 }
 
+#[allow(unused)]
 pub fn reformat(text: impl std::fmt::Display) -> anyhow::Result<String> {
     let mut rustfmt = Command::new("rustfmt")
-        //.arg("--config-path")
-        //.arg(project_root().join("rustfmt.toml"))
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .spawn()?;

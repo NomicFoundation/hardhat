@@ -2,9 +2,6 @@
 members = [
     "crates/*",
 ]
-exclude = [
-    "crates/tools"
-]
 resolver = "2"
 
 [profile.dev]
