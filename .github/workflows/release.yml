@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     branches:
-      - master
+      - $default-branch
 
 jobs:
   release:

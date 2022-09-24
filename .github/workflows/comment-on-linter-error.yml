@@ -5,7 +5,7 @@ on:
     types:
       - opened
     branches:
-      - master
+      - $default-branch
 
 concurrency:
   group: ${{github.workflow}}-${{github.ref}}

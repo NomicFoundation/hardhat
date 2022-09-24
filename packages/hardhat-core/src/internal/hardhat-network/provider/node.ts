@@ -70,10 +70,7 @@ import {
   encodeSolidityStackTrace,
   SolidityError,
 } from "../stack-traces/solidity-errors";
-import {
-  SolidityStackTrace,
-  StackTraceEntryType,
-} from "../stack-traces/solidity-stack-trace";
+import { SolidityStackTrace } from "../stack-traces/solidity-stack-trace";
 import { SolidityTracer } from "../stack-traces/solidityTracer";
 import { VMDebugTracer } from "../stack-traces/vm-debug-tracer";
 import { VmTraceDecoder } from "../stack-traces/vm-trace-decoder";
@@ -1821,7 +1818,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
           receipts,
           stateRoot: block.header.stateRoot,
           logsBloom: block.header.logsBloom,
-          receiptRoot: block.header.receiptTrie,
+          receiptsRoot: block.header.receiptTrie,
           gasUsed: block.header.gasUsed,
         },
         traces,
@@ -1947,17 +1944,20 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       throw error;
     }
 
-    if (error.error === ERROR.OUT_OF_GAS) {
-      if (
-        stackTrace !== undefined &&
-        this._isContractTooLargeStackTrace(stackTrace)
-      ) {
+    if (error.error === ERROR.CODESIZE_EXCEEDS_MAXIMUM) {
+      if (stackTrace !== undefined) {
         return encodeSolidityStackTrace(
           "Transaction ran out of gas",
           stackTrace
         );
       }
 
+      return new TransactionExecutionError("Transaction ran out of gas");
+    }
+
+    if (error.error === ERROR.OUT_OF_GAS) {
+      // if the error is an out of gas, we ignore the inferred error in the
+      // trace
       return new TransactionExecutionError("Transaction ran out of gas");
     }
 
@@ -1994,14 +1994,6 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
     return new TransactionExecutionError(
       `Transaction reverted ${returnDataExplanation}`
-    );
-  }
-
-  private _isContractTooLargeStackTrace(stackTrace: SolidityStackTrace) {
-    return (
-      stackTrace.length > 0 &&
-      stackTrace[stackTrace.length - 1].type ===
-        StackTraceEntryType.CONTRACT_TOO_LARGE_ERROR
     );
   }
 

@@ -9,7 +9,7 @@ on:
       - "config/**"
   pull_request:
     branches:
-      - "*"
+      - "**"
     paths:
       - "packages/hardhat-network-helpers/**"
       - "packages/hardhat-common/**"

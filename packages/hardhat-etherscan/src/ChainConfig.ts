@@ -93,11 +93,11 @@ export const chainConfig: ChainConfig = {
       browserURL: "https://optimistic.etherscan.io/",
     },
   },
-  optimisticKovan: {
-    chainId: 69,
+  optimisticGoerli: {
+    chainId: 420,
     urls: {
-      apiURL: "https://api-kovan-optimistic.etherscan.io/api",
-      browserURL: "https://kovan-optimistic.etherscan.io/",
+      apiURL: "https://api-goerli-optimistic.etherscan.io/api",
+      browserURL: "https://goerli-optimistic.etherscan.io/",
     },
   },
   polygon: {
