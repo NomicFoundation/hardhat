@@ -10,5 +10,5 @@
     "strict": true,
     "esModuleInterop": true
   },
-  "exclude": ["dist", "node_modules", "test"]
+  "exclude": ["dist", "node_modules", "test", "src/plan/assets"]
 }
