@@ -1,9 +1,12 @@
 use std::{
+    fs::File,
+    io::Write,
     path::Path,
     process::{Command, Stdio},
 };
 
-use anyhow::anyhow;
+use anyhow::{anyhow, bail};
+use cfg_if::cfg_if;
 
 use crate::update::{project_root, Mode};
 
@@ -55,18 +58,39 @@ pub fn generate(_mode: Mode) -> anyhow::Result<()> {
     let version = get_version(&crate_path)?;
     let openrpc_json = get_openrpc_json(&version)?;
 
+    cfg_if! {
+        if #[cfg(windows)] {
+            let program = "npx.cmd";
+        } else {
+            let program = "npx";
+        }
+    };
+
+    let tempdir = tempfile::tempdir()?;
+    let tempfile_path = tempdir.path().join("openrpc.json");
+
+    {
+        let mut tempfile = File::create(&tempfile_path)?;
+        tempfile.write_all(openrpc_json.as_bytes())?;
+    }
+
     let src_path = crate_path.join("src");
-    Command::new("npx")
+    let mut command = Command::new(program)
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .arg("open-rpc-typings")
         .arg("-d")
-        .arg(openrpc_json)
+        .arg(tempfile_path.to_str().unwrap())
         .arg("--output-rs")
         .arg(src_path.to_str().unwrap())
         .arg("--name-rs")
         .arg("lib")
         .spawn()?;
 
-    Ok(())
+    let status = command.wait()?;
+    if status.success() {
+        Ok(())
+    } else {
+        bail!("Failed to generate execution api, due to: {}", status)
+    }
 }
