@@ -163,10 +163,17 @@ export const chainConfig: ChainConfig = {
       browserURL: "https://moonbase.moonscan.io/",
     },
   },
+  xdai: {
+    chainId: 100,
+    urls: {
+      apiURL: "https://api.gnosisscan.io/api",
+      browserURL: "https://gnosisscan.io",
+    },
+  },
   gnosis: {
     chainId: 100,
     urls: {
-      apiURL: "https://gnosisscan.io/api",
+      apiURL: "https://api.gnosisscan.io/api",
       browserURL: "https://gnosisscan.io",
     },
   },
