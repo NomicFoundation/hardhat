@@ -5,6 +5,7 @@ module.exports = {
   parserOptions: {
     project: `${__dirname}/tsconfig.json`,
     sourceType: "module",
+    createDefaultProgram: true,
   },
   rules: {
     "no-console": "error",

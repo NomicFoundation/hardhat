@@ -5,5 +5,7 @@ module.exports = {
   parserOptions: {
     project: `${__dirname}/tsconfig.json`,
     sourceType: "module",
+    createDefaultProgram: true,
   },
+  ignorePatterns: ["**/assets/bundle.ts"],
 };
