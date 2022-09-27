@@ -524,6 +524,21 @@ const communityPlugins: IPlugin[] = [
       "Develop your subgraph side by side with your contracts to save gas and increase productivity.",
     tags: ["graphprotocol", "subgraph", "graphql", "development", "deployment"],
   },
+  {
+    name: "hardhat-storage-layout-changes",
+    author: "Soham Zemse",
+    authorUrl: "https://github.com/zemse/",
+    description: "Check for storage layout changes",
+    tags: ["Storage Layout", "Solidity", "Upgradable Contracts"],
+  },
+  {
+    name: "hardhat-live-fork",
+    author: "Soham Zemse",
+    authorUrl: "https://github.com/zemse/",
+    description:
+      "Keeps mainnet fork state updated by replaying relevant live txs",
+    tags: ["Mainnet fork", "live", "transaction replay"],
+  },
 ];
 
 const officialPlugins: IPlugin[] = [
