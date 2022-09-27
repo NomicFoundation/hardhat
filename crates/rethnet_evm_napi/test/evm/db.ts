@@ -4,20 +4,54 @@ import { AccountData, Address } from '@nomicfoundation/ethereumjs-util'
 
 import { RethnetClient, Account, Transaction } from '../../rethnet-evm'
 
-describe('HardhatDB', () => {
+describe('Rethnet', () => {
+    const caller = Address.fromString("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266");
+    const receiver = Address.fromString("0x70997970C51812dc3A010C7d01b50e0d17dc79C8");
+
+    // TODO: insertBlock, setAccountCode, setAccountStorageSlot
     it('getAccountByAddress', async () => {
         let rethnet = new RethnetClient();
-        const caller = Address.fromString("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266");
+
+        await rethnet.insertAccount(caller.buf);
+        let account = await rethnet.getAccountByAddress(caller.buf);
+
+        expect(account.balance).to.equal(0n);
+        expect(account.nonce).to.equal(0n);
+    });
+    it('setAccountBalance', async () => {
+        let rethnet = new RethnetClient();
+
+        await rethnet.insertAccount(caller.buf);
+        await rethnet.setAccountBalance(caller.buf, 100n);
+
+        let account = await rethnet.getAccountByAddress(caller.buf);
+
+        expect(account.balance).to.equal(100n);
+        expect(account.nonce).to.equal(0n);
+    });
+    it('setAccountNonce', async () => {
+        let rethnet = new RethnetClient();
+
+        await rethnet.insertAccount(caller.buf);
+        await rethnet.setAccountNonce(caller.buf, 5n);
+
+        let account = await rethnet.getAccountByAddress(caller.buf);
+
+        expect(account.balance).to.equal(0n);
+        expect(account.nonce).to.equal(5n);
+    });
+    it('call', async () => {
+        let rethnet = new RethnetClient();
 
         // Add funds to caller
         await rethnet.insertAccount(caller.buf);
         await rethnet.setAccountBalance(caller.buf, BigInt("0xffffffff"));
 
         // send some value
-        const receiver = Address.fromString("0x70997970C51812dc3A010C7d01b50e0d17dc79C8");
         const sendValue: Transaction = {
             from: caller.buf,
             to: receiver.buf,
+            gasLimit: BigInt(1000000),
             value: 100n
         };
 
@@ -30,6 +64,8 @@ describe('HardhatDB', () => {
         // create a contract
         const createContract: Transaction = {
             from: caller.buf,
+
+            gasLimit: BigInt(1000000),
 
             // minimal creation bytecode
             input: Buffer.from("3859818153F3", "hex"),

@@ -30,18 +30,6 @@ pub struct Account {
     pub code_hash: Buffer,
 }
 
-#[napi(object)]
-pub struct Transaction {
-    /// 160-bit address for caller
-    pub from: Buffer,
-    /// 160-bit address for receiver
-    pub to: Option<Buffer>,
-    /// Input byte data
-    pub input: Option<Buffer>,
-    /// (Up to) 256-bit unsigned value
-    pub value: Option<BigInt>,
-}
-
 fn try_u256_from_bigint(mut value: BigInt) -> napi::Result<U256> {
     let num_words = value.words.len();
     match num_words.cmp(&4) {
@@ -58,30 +46,73 @@ fn try_u256_from_bigint(mut value: BigInt) -> napi::Result<U256> {
     Ok(U256(value.words.try_into().unwrap()))
 }
 
+#[napi(object)]
+pub struct Transaction {
+    /// 160-bit address for caller
+    /// Defaults to `0x00.0` address.
+    pub from: Option<Buffer>,
+    /// 160-bit address for receiver
+    /// Creates a contract if no address is provided.
+    pub to: Option<Buffer>,
+    /// Maximum gas allowance for the code execution to avoid infinite loops.
+    /// Defaults to 2^63.
+    pub gas_limit: Option<BigInt>,
+    /// Number of wei to pay for each unit of gas during execution.
+    /// Defaults to 1 wei.
+    pub gas_price: Option<BigInt>,
+    /// Maximum tip per gas that's given directly to the forger.
+    pub gas_priority_fee: Option<BigInt>,
+    /// (Up to) 256-bit unsigned value.
+    pub value: Option<BigInt>,
+    /// Nonce of sender account.
+    pub nonce: Option<BigInt>,
+    /// Input byte data
+    pub input: Option<Buffer>,
+    /// A list of addresses and storage keys that the transaction plans to access.
+    // pub access_list: &Vec<(Buffer, Vec<BigInt>)>,
+    /// Transaction is only valid on networks with this chain ID.
+    pub chain_id: Option<BigInt>,
+}
+
 impl TryFrom<Transaction> for TxEnv {
     type Error = napi::Error;
 
     fn try_from(value: Transaction) -> std::result::Result<Self, Self::Error> {
-        let caller = H160::from_slice(&value.from);
+        let caller = if let Some(from) = value.from.as_ref() {
+            H160::from_slice(from)
+        } else {
+            H160::default()
+        };
+
+        let transact_to = if let Some(to) = value.to.as_ref() {
+            TransactTo::Call(H160::from_slice(to))
+        } else {
+            TransactTo::Create(CreateScheme::Create)
+        };
 
         let data = value
             .input
             .map_or(Bytes::default(), |input| Bytes::copy_from_slice(&input));
 
-        let transact_to: TransactTo = if let Some(to) = value.to {
-            TransactTo::Call(H160::from_slice(&to))
-        } else {
-            TransactTo::Create(CreateScheme::Create)
-        };
-
         Ok(Self {
-            transact_to,
             caller,
-            data,
+            gas_limit: value
+                .gas_limit
+                .map_or(2u64.pow(63), |limit| limit.get_u64().1),
+            gas_price: value
+                .gas_price
+                .map_or(Ok(U256::from(1)), try_u256_from_bigint)?,
+            gas_priority_fee: value
+                .gas_priority_fee
+                .map_or(Ok(None), |price| try_u256_from_bigint(price).map(Some))?,
+            transact_to,
             value: value
                 .value
                 .map_or(Ok(U256::default()), try_u256_from_bigint)?,
-            ..Default::default()
+            data,
+            chain_id: value.chain_id.map(|chain_id| chain_id.get_u64().1),
+            nonce: value.nonce.map(|nonce| nonce.get_u64().1),
+            access_list: Vec::new(),
         })
     }
 }
@@ -231,8 +262,7 @@ impl RethnetClient {
     #[napi]
     pub async fn set_account_nonce(&self, address: Buffer, nonce: BigInt) -> Result<()> {
         let address = H160::from_slice(&address);
-        let (sign, nonce, lossless) = nonce.get_u64();
-        assert!(!sign && lossless, "Expected nonce to be a u64.");
+        let nonce = nonce.get_u64().1;
 
         let (sender, receiver) = oneshot::channel();
 

@@ -19,9 +19,7 @@
     "task-runner",
     "solidity"
   ],
-  "bin": {
-    "hardhat": "internal/cli/cli.js"
-  },
+  "bin": "internal/cli/cli.js",
   "engines": {
     "node": "^14.0.0 || ^16.0.0 || ^18.0.0"
   },
@@ -96,6 +94,8 @@
     "typescript": "~4.5.2"
   },
   "dependencies": {
+    "@ethersproject/abi": "^5.1.2",
+    "@metamask/eth-sig-util": "^4.0.0",
     "@nomicfoundation/ethereumjs-block": "^4.0.0-rc.1",
     "@nomicfoundation/ethereumjs-blockchain": "^6.0.0-rc.1",
     "@nomicfoundation/ethereumjs-common": "^3.0.0-rc.1",
@@ -106,8 +106,6 @@
     "@nomicfoundation/ethereumjs-tx": "^4.0.0-rc.1",
     "@nomicfoundation/ethereumjs-util": "^8.0.0-rc.1",
     "@nomicfoundation/ethereumjs-vm": "^6.0.0-rc.1",
-    "@ethersproject/abi": "^5.1.2",
-    "@metamask/eth-sig-util": "^4.0.0",
     "@nomicfoundation/solidity-analyzer": "^0.0.3",
     "@sentry/node": "^5.18.1",
     "@types/bn.js": "^5.1.0",
@@ -137,6 +135,7 @@
     "qs": "^6.7.0",
     "raw-body": "^2.4.1",
     "resolve": "1.17.0",
+    "rethnet-evm": "link:../../crates/rethnet_evm_napi",
     "semver": "^6.3.0",
     "solc": "0.7.3",
     "source-map-support": "^0.5.13",

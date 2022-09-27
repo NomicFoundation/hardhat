@@ -124,6 +124,7 @@ import { makeStateTrie } from "./utils/makeStateTrie";
 import { putGenesisBlock } from "./utils/putGenesisBlock";
 import { txMapToArray } from "./utils/txMapToArray";
 import { RandomBufferGenerator } from "./utils/random";
+import { RethnetClient } from "rethnet-evm/rethnet-evm";
 
 type ExecResult = EVMResult["execResult"];
 
@@ -231,7 +232,7 @@ export class HardhatNode extends EventEmitter {
         HardforkName.LONDON
       )
         ? initialBaseFeePerGasConfig ??
-          BigInt(HARDHAT_NETWORK_DEFAULT_INITIAL_BASE_FEE_PER_GAS)
+        BigInt(HARDHAT_NETWORK_DEFAULT_INITIAL_BASE_FEE_PER_GAS)
         : undefined;
 
       await putGenesisBlock(
@@ -352,6 +353,8 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
   // blockNumber => state root
   private _irregularStatesByBlockNumber: Map<bigint, Buffer> = new Map();
+
+  private _rethnet = new RethnetClient();
 
   private constructor(
     private readonly _vm: VM,
@@ -1545,7 +1548,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     return (
       Number(
         (block.header.gasUsed * BigInt(FLOATS_PRECISION)) /
-          block.header.gasLimit
+        block.header.gasLimit
       ) / FLOATS_PRECISION
     );
   }
@@ -1821,7 +1824,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
           receipts,
           stateRoot: block.header.stateRoot,
           logsBloom: block.header.logsBloom,
-          receiptRoot: block.header.receiptTrie,
+          receiptsRoot: block.header.receiptTrie,
           gasUsed: block.header.gasUsed,
         },
         traces,
@@ -2001,7 +2004,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     return (
       stackTrace.length > 0 &&
       stackTrace[stackTrace.length - 1].type ===
-        StackTraceEntryType.CONTRACT_TOO_LARGE_ERROR
+      StackTraceEntryType.CONTRACT_TOO_LARGE_ERROR
     );
   }
 
@@ -2264,14 +2267,14 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       highestFailingEstimation >= 4_000_000n
         ? 50_000
         : highestFailingEstimation >= 1_000_000n
-        ? 10_000
-        : highestFailingEstimation >= 100_000n
-        ? 1_000
-        : highestFailingEstimation >= 50_000n
-        ? 500
-        : highestFailingEstimation >= 30_000n
-        ? 300
-        : 200;
+          ? 10_000
+          : highestFailingEstimation >= 100_000n
+            ? 1_000
+            : highestFailingEstimation >= 50_000n
+              ? 500
+              : highestFailingEstimation >= 30_000n
+                ? 300
+                : 200;
 
     if (diff <= minDiff) {
       return lowestSuccessfulEstimation;
@@ -2388,7 +2391,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         {
           chainId:
             this._forkBlockNumber === undefined ||
-            blockContext.header.number >= this._forkBlockNumber
+              blockContext.header.number >= this._forkBlockNumber
               ? this._configChainId
               : this._forkNetworkId,
           networkId: this._forkNetworkId ?? this._configNetworkId,
@@ -2398,13 +2401,15 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         }
       );
 
-      return await this._vm.runTx({
+      const ethereumjsResult = await this._vm.runTx({
         block: blockContext,
         tx,
         skipNonce: true,
         skipBalance: true,
         skipBlockGasLimitValidation: true,
       });
+
+      return ethereumjsResult;
     } finally {
       if (originalCommon !== undefined) {
         (this._vm as any)._common = originalCommon;
@@ -2579,8 +2584,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
     if (this._hardforkActivations.size === 0) {
       throw new InternalError(
-        `No known hardfork for execution on historical block ${blockNumber.toString()} (relative to fork block number ${
-          this._forkBlockNumber
+        `No known hardfork for execution on historical block ${blockNumber.toString()} (relative to fork block number ${this._forkBlockNumber
         }). The node was not configured with a hardfork activation history.  See http://hardhat.org/custom-hardfork-history`
       );
     }
