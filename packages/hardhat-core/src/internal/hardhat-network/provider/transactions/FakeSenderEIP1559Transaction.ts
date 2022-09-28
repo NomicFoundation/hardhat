@@ -129,7 +129,7 @@ export class FakeSenderEIP1559Transaction extends FeeMarketEIP1559Transaction {
     super(
       {
         ...data,
-        v: data.v ?? fakeSignature.v,
+        v: data.v ?? 1,
         r: data.r ?? fakeSignature.r,
         s: data.s ?? fakeSignature.s,
       },

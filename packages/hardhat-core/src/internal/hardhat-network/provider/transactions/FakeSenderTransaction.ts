@@ -103,7 +103,7 @@ export class FakeSenderTransaction extends Transaction {
     super(
       {
         ...data,
-        v: data.v ?? fakeSignature.v,
+        v: data.v ?? 27,
         r: data.r ?? fakeSignature.r,
         s: data.s ?? fakeSignature.s,
       },

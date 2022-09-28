@@ -130,7 +130,7 @@ export class FakeSenderAccessListEIP2930Transaction extends AccessListEIP2930Tra
     super(
       {
         ...data,
-        v: data.v ?? fakeSignature.v,
+        v: data.v ?? 1,
         r: data.r ?? fakeSignature.r,
         s: data.s ?? fakeSignature.s,
       },
