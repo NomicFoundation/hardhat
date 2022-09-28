@@ -51,7 +51,7 @@ export function supportWithArgs(
   utils: Chai.ChaiUtils
 ) {
   Assertion.addMethod("withArgs", function (this: any, ...expectedArgs: any[]) {
-    if (this.__flags.negate) {
+    if (Boolean(this.__flags.negate)) {
       throw new Error("Do not combine .not. with .withArgs()");
     }
 

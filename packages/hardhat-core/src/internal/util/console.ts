@@ -1,3 +1,5 @@
+import type ReplT from "repl";
+
 export function isNodeCalledWithoutAScript() {
   const script = process.argv[1];
   return script === undefined || script.trim() === "";
@@ -9,9 +11,9 @@ export function isNodeCalledWithoutAScript() {
  * so we disable it in hardhat/register.
  */
 export function disableReplWriterShowProxy() {
-  const repl = require("repl");
+  const repl = require("repl") as typeof ReplT;
 
-  if (repl.writer.options) {
+  if (repl.writer.options !== undefined) {
     Object.defineProperty(repl.writer.options, "showProxy", {
       value: false,
       writable: false,

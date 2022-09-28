@@ -339,7 +339,7 @@ export class CompilerDownloader implements ICompilerDownloader {
     await fsExtra.createFile(this._getCompilerDoesntWorkFile(build));
   }
 
-  private _checkNativeSolc(build: CompilerBuild) {
+  private _checkNativeSolc(build: CompilerBuild): Promise<boolean> {
     const solcPath = this._getCompilerBinaryPathFromBuild(build);
     return new Promise((resolve) => {
       try {

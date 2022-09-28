@@ -406,11 +406,11 @@ describe("Ethers plugin", function () {
                 },
               });
             } catch (reason: any) {
-              assert.instanceOf(
-                reason,
-                NomicLabsHardhatPluginError,
-                "getContractFactory should fail with a hardhat plugin error"
-              );
+              if (!(reason instanceof NomicLabsHardhatPluginError)) {
+                assert.fail(
+                  "getContractFactory should fail with a hardhat plugin error"
+                );
+              }
               assert.isTrue(
                 reason.message.includes("is ambiguous for the contract"),
                 "getContractFactory should report the ambiguous name resolution as the cause"

@@ -748,7 +748,7 @@ subtask(TASK_COMPILE_SOLIDITY_LOG_COMPILATION_ERRORS)
       }
     }
 
-    const hasConsoleErrors = output.errors.some(isConsoleLogError);
+    const hasConsoleErrors: boolean = output.errors.some(isConsoleLogError);
     if (hasConsoleErrors) {
       console.error(
         chalk.red(
@@ -1478,9 +1478,7 @@ function needsCompilation(
 }
 
 function hasCompilationErrors(output: any): boolean {
-  return (
-    output.errors && output.errors.some((x: any) => x.severity === "error")
-  );
+  return output.errors?.some((x: any) => x.severity === "error");
 }
 
 /**

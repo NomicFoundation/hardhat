@@ -1,4 +1,4 @@
-import { InvalidSnapshotError } from "../errors";
+import { HardhatNetworkHelpersError, InvalidSnapshotError } from "../errors";
 import { getHardhatProvider } from "../utils";
 
 export interface SnapshotRestorer {
@@ -28,6 +28,12 @@ export async function takeSnapshot(): Promise<SnapshotRestorer> {
         method: "evm_revert",
         params: [snapshotId],
       });
+
+      if (typeof reverted !== "boolean") {
+        throw new HardhatNetworkHelpersError(
+          "Assertion error: the value returned by evm_revert should be a boolean"
+        );
+      }
 
       if (!reverted) {
         throw new InvalidSnapshotError();

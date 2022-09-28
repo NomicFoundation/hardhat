@@ -124,7 +124,7 @@ function assertArgsArraysEqual(
   assert: AssertWithSsfi,
   ssfi: Ssfi
 ) {
-  const { utils } = require("ethers");
+  const { utils } = require("ethers") as { utils: typeof EthersUtils };
 
   const actualArgs = (
     chaiUtils.flag(context, "contract").interface as Interface

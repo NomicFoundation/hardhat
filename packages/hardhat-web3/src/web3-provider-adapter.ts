@@ -85,6 +85,7 @@ export class Web3HTTPProviderAdapter {
       }
 
       response.error = {
+        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         code: error.code ? +error.code : 404,
         message: error.message,
         data: {

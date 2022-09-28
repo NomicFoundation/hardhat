@@ -408,9 +408,10 @@ function resolveCompiler(compiler: SolcUserConfig): SolcConfig {
       }
 
       for (const output of outputs) {
-        if (
-          !resolved.settings.outputSelection[file][contract].includes(output)
-        ) {
+        const includesOutput: boolean =
+          resolved.settings.outputSelection[file][contract].includes(output);
+
+        if (!includesOutput) {
           resolved.settings.outputSelection[file][contract].push(output);
         }
       }
