@@ -1,4 +1,4 @@
-import { bufferToHex } from "ethereumjs-util";
+import { bufferToHex } from "@nomicfoundation/ethereumjs-util";
 
 import { panicErrorCodeToMessage } from "./panic-errors";
 import {
@@ -123,7 +123,6 @@ function encodeStackTraceEntry(
     case StackTraceEntryType.CALL_FAILED_ERROR:
     case StackTraceEntryType.DIRECT_LIBRARY_CALL_ERROR:
     case StackTraceEntryType.UNMAPPED_SOLC_0_6_3_REVERT_ERROR:
-    case StackTraceEntryType.CONTRACT_TOO_LARGE_ERROR:
       return sourceReferenceToSolidityCallsite(stackTraceEntry.sourceReference);
 
     case StackTraceEntryType.UNRECOGNIZED_CREATE_CALLSTACK_ENTRY:
@@ -188,6 +187,7 @@ function encodeStackTraceEntry(
       );
 
     case StackTraceEntryType.OTHER_EXECUTION_ERROR:
+    case StackTraceEntryType.CONTRACT_TOO_LARGE_ERROR:
       if (stackTraceEntry.sourceReference === undefined) {
         return new SolidityCallSite(
           undefined,
@@ -261,6 +261,21 @@ function getMessageFromLastStackTraceEntry(
     case StackTraceEntryType.UNRECOGNIZED_CONTRACT_ERROR:
       if (stackTraceEntry.message.isErrorReturnData()) {
         return `VM Exception while processing transaction: reverted with reason string '${stackTraceEntry.message.decodeError()}'`;
+      }
+
+      if (stackTraceEntry.message.isPanicReturnData()) {
+        const message = panicErrorCodeToMessage(
+          stackTraceEntry.message.decodePanic()
+        );
+        return `VM Exception while processing transaction: ${message}`;
+      }
+
+      if (!stackTraceEntry.message.isEmpty()) {
+        return `VM Exception while processing transaction: reverted with an unrecognized custom error`;
+      }
+
+      if (stackTraceEntry.isInvalidOpcodeError) {
+        return "VM Exception while processing transaction: invalid opcode";
       }
 
       return "Transaction reverted without a reason string";

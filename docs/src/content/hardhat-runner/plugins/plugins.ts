@@ -46,6 +46,14 @@ const communityPlugins: IPlugin[] = [
     tags: ["Security", "Monitoring", "Alerting", "Forta"],
   },
   {
+    name: "@kriptonio/hardhat-kriptonio",
+    author: "Kriptonio",
+    authorUrl: "https://kriptonio.com/",
+    description:
+      "This plugin allows you to upload compiled hardhat smart contract artifacts to Kriptonio. On kriptonio side new smart contract will be created with attached artifacts, which you can afterward deploy and manage via kriptonio.",
+    tags: ["Monitoring", "Debugging", "Deployment"],
+  },
+  {
     name: "@tenderly/hardhat-tenderly",
     author: "Tenderly",
     authorUrl: "https://tenderly.co/",
@@ -507,6 +515,29 @@ const communityPlugins: IPlugin[] = [
       "monorepo",
       "frontend",
     ],
+  },
+  {
+    name: "@graphprotocol/hardhat-graph",
+    author: "The Graph",
+    authorUrl: "https://thegraph.com",
+    description:
+      "Develop your subgraph side by side with your contracts to save gas and increase productivity.",
+    tags: ["graphprotocol", "subgraph", "graphql", "development", "deployment"],
+  },
+  {
+    name: "hardhat-storage-layout-changes",
+    author: "Soham Zemse",
+    authorUrl: "https://github.com/zemse/",
+    description: "Check for storage layout changes",
+    tags: ["Storage Layout", "Solidity", "Upgradable Contracts"],
+  },
+  {
+    name: "hardhat-live-fork",
+    author: "Soham Zemse",
+    authorUrl: "https://github.com/zemse/",
+    description:
+      "Keeps mainnet fork state updated by replaying relevant live txs",
+    tags: ["Mainnet fork", "live", "transaction replay"],
   },
 ];
 

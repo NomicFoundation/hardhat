@@ -83,9 +83,10 @@ const coreParams = [
     name: "--network",
   },
   {
-    description: "Show stack traces.",
+    description: "Show stack traces (always enabled on CI servers).",
     name: "--show-stack-traces",
   },
+  versionParam,
   {
     description: "Shows this message, or a task's help if its name is provided",
     name: "--help",
@@ -107,7 +108,14 @@ const coreParams = [
     name: "--tsconfig",
   },
   verboseParam,
-  versionParam,
+  {
+    description: "Generate a flamegraph of your Hardhat tasks",
+    name: "--flamegraph",
+  },
+  {
+    description: "Enable TypeScript type-checking of your scripts/tests",
+    name: "--typecheck",
+  },
 ];
 
 const forceParam = {

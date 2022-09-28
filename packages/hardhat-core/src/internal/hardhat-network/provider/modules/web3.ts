@@ -1,11 +1,10 @@
-import { keccak256 } from "ethereumjs-util";
-
 import {
   bufferToRpcData,
   rpcData,
 } from "../../../core/jsonrpc/types/base-types";
 import { validateParams } from "../../../core/jsonrpc/types/input/validation";
 import { MethodNotFoundError } from "../../../core/providers/errors";
+import { keccak256 } from "../../../util/keccak";
 import { getPackageJson } from "../../../util/packageInfo";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
@@ -34,8 +33,8 @@ export class Web3Module {
 
   private async _clientVersionAction(): Promise<string> {
     const hardhatPackage = await getPackageJson();
-    const ethereumjsVMPackage = require("@ethereumjs/vm/package.json");
-    return `HardhatNetwork/${hardhatPackage.version}/@ethereumjs/vm/${ethereumjsVMPackage.version}`;
+    const ethereumjsVMPackage = require("@nomicfoundation/ethereumjs-vm/package.json");
+    return `HardhatNetwork/${hardhatPackage.version}/@nomicfoundation/ethereumjs-vm/${ethereumjsVMPackage.version}`;
   }
 
   // web3_sha3

@@ -1,10 +1,18 @@
-import Common from "@ethereumjs/common";
-import StateManager from "@ethereumjs/vm/dist/state/stateManager";
+import { Common } from "@nomicfoundation/ethereumjs-common";
+import {
+  StateManager,
+  DefaultStateManager,
+} from "@nomicfoundation/ethereumjs-statemanager";
+import {
+  Account,
+  Address,
+  bufferToHex,
+  toBuffer,
+} from "@nomicfoundation/ethereumjs-util";
 import { assert } from "chai";
-import { Account, Address, BN, bufferToHex, toBuffer } from "ethereumjs-util";
 
 import { InvalidInputError } from "../../../../src/internal/core/providers/errors";
-import { randomAddress } from "../../../../src/internal/hardhat-network/provider/fork/random";
+import { randomAddress } from "../../../../src/internal/hardhat-network/provider/utils/random";
 import { TxPool } from "../../../../src/internal/hardhat-network/provider/TxPool";
 import { txMapToArray } from "../../../../src/internal/hardhat-network/provider/utils/txMapToArray";
 import { assertEqualTransactionMaps } from "../helpers/assertEqualTransactionMaps";
@@ -12,6 +20,7 @@ import {
   createTestFakeTransaction,
   createTestOrderedTransaction,
   createTestTransaction,
+  createUnsignedTestTransaction,
 } from "../helpers/blockchain";
 import { makeOrderedTxMap } from "../helpers/makeOrderedTxMap";
 import {
@@ -20,13 +29,13 @@ import {
 } from "../helpers/providers";
 
 describe("Tx Pool", () => {
-  const blockGasLimit = new BN(10_000_000);
+  const blockGasLimit = 10_000_000n;
   let stateManager: StateManager;
   let txPool: TxPool;
 
   beforeEach(() => {
-    stateManager = new StateManager();
-    const common = new Common({ chain: "mainnet", hardfork: "muirGlacier" });
+    stateManager = new DefaultStateManager();
+    const common = new Common({ chain: "mainnet" });
     txPool = new TxPool(stateManager, blockGasLimit, common);
   });
 
@@ -39,7 +48,7 @@ describe("Tx Pool", () => {
           it("adds the transaction to pending", async () => {
             await stateManager.putAccount(
               address,
-              Account.fromAccountData({ nonce: new BN(0) })
+              Account.fromAccountData({ nonce: 0n })
             );
             const tx = createTestFakeTransaction({
               from: address,
@@ -57,7 +66,7 @@ describe("Tx Pool", () => {
           it("queues the transaction", async () => {
             await stateManager.putAccount(
               address,
-              Account.fromAccountData({ nonce: new BN(0) })
+              Account.fromAccountData({ nonce: 0n })
             );
             const tx = createTestFakeTransaction({
               from: address,
@@ -74,7 +83,7 @@ describe("Tx Pool", () => {
           it("throws an error", async () => {
             await stateManager.putAccount(
               address,
-              Account.fromAccountData({ nonce: new BN(1) })
+              Account.fromAccountData({ nonce: 1n })
             );
             const tx = createTestFakeTransaction({
               from: address,
@@ -94,7 +103,7 @@ describe("Tx Pool", () => {
         beforeEach(async () => {
           await stateManager.putAccount(
             address,
-            Account.fromAccountData({ nonce: new BN(0) })
+            Account.fromAccountData({ nonce: 0n })
           );
         });
 
@@ -217,7 +226,7 @@ describe("Tx Pool", () => {
           it("should replace a pending transaction", async function () {
             await stateManager.putAccount(
               address,
-              Account.fromAccountData({ balance: new BN(10).pow(new BN(18)) })
+              Account.fromAccountData({ balance: 10n ** 18n })
             );
             const tx1a = createTestFakeTransaction({
               from: address,
@@ -242,7 +251,7 @@ describe("Tx Pool", () => {
           it("should replace a queued transaction", async function () {
             await stateManager.putAccount(
               address,
-              Account.fromAccountData({ balance: new BN(10).pow(new BN(18)) })
+              Account.fromAccountData({ balance: 10n ** 18n })
             );
             const tx2a = createTestFakeTransaction({
               from: address,
@@ -268,7 +277,7 @@ describe("Tx Pool", () => {
           it("should throw if the new gas price is not at least 10% higher (pending tx)", async function () {
             await stateManager.putAccount(
               address,
-              Account.fromAccountData({ balance: new BN(10).pow(new BN(18)) })
+              Account.fromAccountData({ balance: 10n ** 18n })
             );
 
             const tx1a = createTestFakeTransaction({
@@ -327,7 +336,7 @@ describe("Tx Pool", () => {
           it("should throw if the new gas price is not at least 10% higher (queued tx)", async function () {
             await stateManager.putAccount(
               address,
-              Account.fromAccountData({ balance: new BN(10).pow(new BN(18)) })
+              Account.fromAccountData({ balance: 10n ** 18n })
             );
             const tx2a = createTestFakeTransaction({
               from: address,
@@ -364,11 +373,11 @@ describe("Tx Pool", () => {
       beforeEach(async () => {
         await stateManager.putAccount(
           address1,
-          Account.fromAccountData({ nonce: new BN(0) })
+          Account.fromAccountData({ nonce: 0n })
         );
         await stateManager.putAccount(
           address2,
-          Account.fromAccountData({ nonce: new BN(0) })
+          Account.fromAccountData({ nonce: 0n })
         );
       });
 
@@ -538,7 +547,7 @@ describe("Tx Pool", () => {
       });
 
       it("rejects if transaction is not signed", async () => {
-        const tx = createTestTransaction();
+        const tx = createUnsignedTestTransaction();
         await assert.isRejected(
           txPool.addTransaction(tx),
           InvalidInputError,
@@ -591,8 +600,8 @@ describe("Tx Pool", () => {
         await stateManager.putAccount(
           address,
           Account.fromAccountData({
-            nonce: new BN(0),
-            balance: new BN(21000 * 900 + 5 - 1),
+            nonce: 0n,
+            balance: 21000n * 900n + 5n - 1n,
           })
         );
 
@@ -628,7 +637,7 @@ describe("Tx Pool", () => {
       beforeEach(async () => {
         await stateManager.putAccount(
           address,
-          Account.fromAccountData({ nonce: new BN(0) })
+          Account.fromAccountData({ nonce: 0n })
         );
       });
 
@@ -718,7 +727,7 @@ describe("Tx Pool", () => {
         signedTx.getSenderAddress(),
         Account.fromAccountData({
           nonce: 1,
-          balance: new BN(10).pow(new BN(18)),
+          balance: 10n ** 18n,
         })
       );
 
@@ -748,7 +757,7 @@ describe("Tx Pool", () => {
         signedTx.getSenderAddress(),
         Account.fromAccountData({
           nonce: 3,
-          balance: new BN(10).pow(new BN(18)),
+          balance: 10n ** 18n,
         })
       );
 
@@ -766,7 +775,7 @@ describe("Tx Pool", () => {
     beforeEach(async () => {
       await stateManager.putAccount(
         address,
-        Account.fromAccountData({ nonce: new BN(0) })
+        Account.fromAccountData({ nonce: 0n })
       );
     });
 
@@ -778,7 +787,7 @@ describe("Tx Pool", () => {
 
       await txPool.addTransaction(tx1);
 
-      assert.isTrue((await txPool.getNextPendingNonce(address)).eq(new BN(1)));
+      assert.isTrue((await txPool.getNextPendingNonce(address)) === 1n);
     });
 
     it("is not affected by queued transactions", async () => {
@@ -794,7 +803,7 @@ describe("Tx Pool", () => {
       await txPool.addTransaction(tx1);
       await txPool.addTransaction(tx2);
 
-      assert.isTrue((await txPool.getNextPendingNonce(address)).eq(new BN(1)));
+      assert.isTrue((await txPool.getNextPendingNonce(address)) === 1n);
     });
 
     it("returns correct nonce after all queued transactions are moved to pending", async () => {
@@ -815,7 +824,7 @@ describe("Tx Pool", () => {
       await txPool.addTransaction(tx2);
       await txPool.addTransaction(tx3);
 
-      assert.isTrue((await txPool.getNextPendingNonce(address)).eq(new BN(3)));
+      assert.isTrue((await txPool.getNextPendingNonce(address)) === 3n);
     });
 
     it("returns correct nonce after some queued transactions are moved to pending", async () => {
@@ -829,7 +838,7 @@ describe("Tx Pool", () => {
       await txPool.addTransaction(tx3);
       await txPool.addTransaction(tx4);
 
-      assert.isTrue((await txPool.getNextPendingNonce(address)).eq(new BN(3)));
+      assert.isTrue((await txPool.getNextPendingNonce(address)) === 3n);
     });
   });
 
@@ -840,15 +849,15 @@ describe("Tx Pool", () => {
       await stateManager.putAccount(
         address1,
         Account.fromAccountData({
-          nonce: new BN(0),
-          balance: new BN(10).pow(new BN(18)),
+          nonce: 0n,
+          balance: 10n ** 18n,
         })
       );
       await stateManager.putAccount(
         address2,
         Account.fromAccountData({
-          nonce: new BN(0),
-          balance: new BN(10).pow(new BN(18)),
+          nonce: 0n,
+          balance: 10n ** 18n,
         })
       );
     });
@@ -915,15 +924,15 @@ describe("Tx Pool", () => {
       await stateManager.putAccount(
         address1,
         Account.fromAccountData({
-          nonce: new BN(1),
-          balance: new BN(10).pow(new BN(18)),
+          nonce: 1n,
+          balance: 10n ** 18n,
         })
       );
       await stateManager.putAccount(
         address2,
         Account.fromAccountData({
-          nonce: new BN(1),
-          balance: new BN(10).pow(new BN(18)),
+          nonce: 1n,
+          balance: 10n ** 18n,
         })
       );
 
@@ -948,7 +957,7 @@ describe("Tx Pool", () => {
 
       await stateManager.putAccount(
         address1,
-        Account.fromAccountData({ nonce: new BN(0), balance: new BN(0) })
+        Account.fromAccountData({ nonce: 0n, balance: 0n })
       );
 
       await txPool.updatePendingAndQueued();
@@ -969,7 +978,7 @@ describe("Tx Pool", () => {
 
       await stateManager.putAccount(
         address1,
-        Account.fromAccountData({ nonce: new BN(0), balance: new BN(0) })
+        Account.fromAccountData({ nonce: 0n, balance: 0n })
       );
 
       await txPool.updatePendingAndQueued();
@@ -983,8 +992,8 @@ describe("Tx Pool", () => {
       await stateManager.putAccount(
         sender,
         Account.fromAccountData({
-          nonce: new BN(0),
-          balance: new BN(10).pow(new BN(20)),
+          nonce: 0n,
+          balance: 10n ** 20n,
         })
       );
 
@@ -1090,8 +1099,8 @@ describe("Tx Pool", () => {
       await stateManager.putAccount(
         sender,
         Account.fromAccountData({
-          nonce: new BN(0),
-          balance: new BN(10).pow(new BN(20)),
+          nonce: 0n,
+          balance: 10n ** 20n,
         })
       );
 
@@ -1149,15 +1158,15 @@ describe("Tx Pool", () => {
 
   describe("setBlockGasLimit", () => {
     it("sets a new block gas limit when new limit is a number", () => {
-      assert.equal(txPool.getBlockGasLimit().toNumber(), 10_000_000);
+      assert.equal(txPool.getBlockGasLimit(), 10_000_000n);
       txPool.setBlockGasLimit(15_000_000);
-      assert.equal(txPool.getBlockGasLimit().toNumber(), 15_000_000);
+      assert.equal(txPool.getBlockGasLimit(), 15_000_000n);
     });
 
-    it("sets a new block gas limit when new limit is a BN", () => {
-      assert.equal(txPool.getBlockGasLimit().toNumber(), 10_000_000);
-      txPool.setBlockGasLimit(new BN(15_000_000));
-      assert.equal(txPool.getBlockGasLimit().toNumber(), 15_000_000);
+    it("sets a new block gas limit when new limit is a bigint", () => {
+      assert.equal(txPool.getBlockGasLimit(), 10_000_000n);
+      txPool.setBlockGasLimit(15_000_000n);
+      assert.equal(txPool.getBlockGasLimit(), 15_000_000n);
     });
 
     it("makes the new block gas limit actually used for validating added transactions", async () => {
@@ -1199,7 +1208,7 @@ describe("Tx Pool", () => {
       const address = randomAddress();
       await stateManager.putAccount(
         address,
-        Account.fromAccountData({ nonce: new BN(0) })
+        Account.fromAccountData({ nonce: 0n })
       );
       const tx1 = createTestOrderedTransaction({
         from: address,
@@ -1224,12 +1233,9 @@ describe("Tx Pool", () => {
 
     it("reverts to the previous state of block gas limit", () => {
       const id = txPool.snapshot();
-      txPool.setBlockGasLimit(new BN(5_000_000));
+      txPool.setBlockGasLimit(5_000_000n);
       txPool.revert(id);
-      assert.equal(
-        txPool.getBlockGasLimit().toNumber(),
-        blockGasLimit.toNumber()
-      );
+      assert.equal(txPool.getBlockGasLimit(), blockGasLimit);
     });
   });
 

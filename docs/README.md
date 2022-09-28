@@ -2,7 +2,7 @@
 
 This is a NextJS-based application for the Hardhat documentation website. This app is utilizing SSG for creating pages on the build step. It's developed keeping the best practices in mind including accessibility, SEO and Performance optimizations, and scalability
 
-The app mainly provides pages of two types:
+The app mainly provides two types of pages:
 
 - landing pages (see home page)
 - documentation pages (see documentation section)
@@ -11,7 +11,7 @@ Landing pages are composed of reusable blocks and separate content files. Blocks
 
 Documentation pages are generated from markdown files located in the `src/content` folder. This folder has a nesting structure that is mapped to the page URLs on the website.
 
-It's assumed that the app will be hosted on the Vercel platform with is highly optimized for SSG apps.
+It's assumed that the app will be hosted on the Vercel platform which is highly optimized for SSG apps.
 
 We consider two directions of the follow-up application growing:
 
@@ -26,7 +26,7 @@ https://hardhat-lime.vercel.app/
 
 ## Adding content
 
-Website content is located in `*.md` files withing `src/content` folder. It's written in Markdown syntax. Folders structure in `content` is reflected on the website.
+Website content is located in `*.md` files within `src/content` folder. It's written in Markdown syntax. Folders structure in `content` is reflected on the website.
 
 To tune pages, behavior and appearance also use optional `*.yaml` files with additional configurations.
 
@@ -59,7 +59,7 @@ The next level is a folder. It can contain nesting folders and `*.md` files. Eac
 
 ### MD Files
 
-All documentation content is represented by `*.md` files with Markdown syntax. Besides the base Markdown syntax we support the following features:
+All documentation content is represented by `*.md` files with Markdown syntax. Besides the base Markdown syntax, we support the following features:
 
 - MD Directives. Used to represent _Admonition_ components (currently `Tip` and `Warning`).
 - Code syntax highlighting
@@ -74,15 +74,15 @@ Redirects allow you to redirect an incoming request path to a different destinat
 
 ### Tabs
 
-We use plugin `remark-directive` in order to provide tabs functionality.
+We use the plugin `remark-directive` in order to provide tabs functionality.
 
 #### Use
 
 #### `tabsgroup` and `tab`
 
-`tabsgroup` is wrapper that wraps a group of tabs and sets all possible values of tabs.
+`tabsgroup` is a wrapper that wraps a group of tabs and sets all possible values of tabs.
 
-`tab` is wrapper that wraps a codeblock (or some other element).
+`tab` is a wrapper that wraps a codeblock (or some other element).
 
 #### Example:
 
@@ -100,7 +100,7 @@ We use plugin `remark-directive` in order to provide tabs functionality.
 
 #### Parameters
 
-Parameters is passed in curly braces.
+Parameters are passed in curly braces.
 
 `options-list` - required parameter. Comma separated strings, which is provided in tabs' `value` parameter.  
 `value` - required parameter. It should be provided as an option in `options-list` in `tabsgroup`.
@@ -148,7 +148,7 @@ You can start editing the page by modifying `src/pages/...`. The page auto-updat
 
 ### Folders structure
 
-When developing the application you might need these main
+When developing the application you might need these main folders
 
 - src/components - React Components for rendering pages
 - src/components/landingBlocks - "Building blocks" for creating landing pages
@@ -181,7 +181,7 @@ There are two relatively independent processes in the build step:
 
 Page paths are generated in the `getStaticPaths` functions in files of the `page` folder. The result of these functions is an array of page paths. Page pros are generated with the `getStaticProps` function which is executed once per page with a page path passed as an argument and returns all required page props.
 
-Execution of `getStaticPaths` and `getStaticProps` is handled by NextJS on a build step and it runs them in isolation (which means we can't share common calculated parameters within them). To optimize a building time we store an intermediate config in a temporary file on the `getStaticPaths` execution and read it from `getStaticProps` functions. It contains layout settings and a map of pages with specific props.
+Execution of `getStaticPaths` and `getStaticProps` is handled by NextJS on a build step and it runs them in isolation (which means we can't share common calculated parameters within them). To optimize building time, we store an intermediate config in a temporary file on the `getStaticPaths` execution and read it from `getStaticProps` functions. It contains layout settings and a map of pages with specific props.
 
 ## Styling
 
@@ -208,4 +208,4 @@ We use two CI/CD providers:
 - Github actions for launching code checks
 - Vercel to deploy app
 
-Each branch triggers own process on CI/CD so you can see a code check details on Github and preview the current branch on Vercel.
+Each branch triggers its own process on CI/CD so you can see code check details on Github and preview the current branch on Vercel.

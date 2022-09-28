@@ -12,12 +12,12 @@ import {
   HardhatUserConfig,
 } from "../../../types";
 import { HardhatContext } from "../../context";
-import { SUPPORTED_SOLIDITY_VERSION_RANGE } from "../../hardhat-network/stack-traces/solidityTracer";
 import { findClosestPackageJson } from "../../util/packageInfo";
 import { HardhatError } from "../errors";
 import { ERRORS } from "../errors-list";
 import { getUserConfigPath } from "../project-structure";
 
+import { SUPPORTED_SOLIDITY_VERSION_RANGE } from "../../hardhat-network/stack-traces/constants";
 import { resolveConfig } from "./config-resolution";
 import { validateConfig } from "./config-validation";
 import { DEFAULT_SOLC_VERSION } from "./default-config";
