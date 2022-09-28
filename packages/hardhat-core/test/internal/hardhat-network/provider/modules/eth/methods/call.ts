@@ -756,6 +756,10 @@ contract C {
               },
             ]);
 
+            // We expect that, before the transaction is executed, the balance
+            // of the sender will be increased to the minimum value that lets
+            // the VM execute the tx. This means that during the execution of
+            // the tx, msg.sender.balance will be 0.
             assert.equal(rpcDataToNumber(senderBalance), 0);
           });
 
@@ -773,6 +777,10 @@ contract C {
               },
             ]);
 
+            // We expect that, before the transaction is executed, the balance
+            // of the sender will be increased to the minimum value that lets
+            // the VM execute the tx. This means that during the execution of
+            // the tx, msg.sender.balance will be 0.
             assert.equal(rpcDataToNumber(senderBalance), 0);
           });
         });
