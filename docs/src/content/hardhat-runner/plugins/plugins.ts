@@ -539,6 +539,14 @@ const communityPlugins: IPlugin[] = [
       "Keeps mainnet fork state updated by replaying relevant live txs",
     tags: ["Mainnet fork", "live", "transaction replay"],
   },
+  {
+    name: "hardhat-ens-mock",
+    author: "DefiCake",
+    authorUrl: "https://github.com/DefiCake",
+    description:
+      "Overrides ENS ownership in hardhat network to allow orchestration superpowers",
+    tags: ["ENS", "Testing", "Orchestration", "Productivity"],
+  },
 ];
 
 const officialPlugins: IPlugin[] = [
