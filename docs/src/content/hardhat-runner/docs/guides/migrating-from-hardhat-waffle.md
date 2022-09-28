@@ -1,8 +1,8 @@
 # Migrating away from hardhat-waffle
 
-Our recommended setup used to include [Waffle] using the [`hardhat-waffle`] plugin.
+In the past, our recommended setup included [Waffle], by using the [`hardhat-waffle`] plugin.
 
-We now recommend using [Hardhat Toolbox], a plugin that bundles a curated set of useful packages. These include [Hardhat Chai Matchers] and [Hardhat Network Helpers], which work as an improved replacement for `hardhat-waffle`.
+However, we now recommend using [Hardhat Toolbox], a plugin that bundles a curated set of useful packages. This set includes [Hardhat Chai Matchers] and [Hardhat Network Helpers], which work as an improved replacement for `hardhat-waffle`.
 
 Migrating to the Toolbox only takes a few minutes. If you do so, you'll get more functionality, like support for Solidity custom errors and native `bigint` support, and a more reliable testing experience. It will also make it easier for you to keep up to date with our recommended setup.
 
@@ -40,7 +40,7 @@ Follow these steps to migrate your project to Hardhat Toolbox.
 
    ::::
 
-2. Then you need to install the Toolbox. If you are using yarn or an old version of npm, you'll also have to install some other packages.
+2. Then you need to install the Toolbox. If you are using yarn or an old version of npm, you'll also have to install some other packages (the peer dependencies of the Toolbox).
 
    ::::tabsgroup{options="npm 7+,npm 6,yarn"}
 

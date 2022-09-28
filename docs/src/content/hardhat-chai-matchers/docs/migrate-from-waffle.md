@@ -92,6 +92,6 @@ The `@nomicfoundation/hardhat-chai-matchers` plugin is meant to be a drop-in rep
 
 :::tip
 
-Looking for a replacement of Waffle's `loadFixture`? You can find our version of it in [Hardhat Network Helpers](/hardhat-network-helpers/docs/reference#fixtures).
+Looking for a replacement for Waffle's `loadFixture`? You can find our version of it in [Hardhat Network Helpers](/hardhat-network-helpers/docs/reference#fixtures).
 
 :::

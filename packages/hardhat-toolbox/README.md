@@ -16,6 +16,6 @@ When you use this plugin, you'll be able to:
 
 ### Usage
 
-To create a new project that uses the Toolbox, check our [Setting up a project](https://hardhat.org/hardhat-runner/docs/guides/project-setup) guide.
+To create a new project that uses the Toolbox, check our [Setting up a project guide](https://hardhat.org/hardhat-runner/docs/guides/project-setup).
 
 If you want to migrate an existing Hardhat project to use the Toolbox, read [our migration guide](https://hardhat.org/hardhat-runner/docs/guides/migrating-from-hardhat-waffle).
