@@ -1,4 +1,3 @@
-import crypto from "crypto";
 import util from "util";
 
 import {
@@ -7,6 +6,8 @@ import {
   TxData,
 } from "@nomicfoundation/ethereumjs-tx";
 import { Address } from "@nomicfoundation/ethereumjs-util";
+
+import { createNonCryptographicHashBasedIdentifier } from "../../../util/hash";
 
 // Produces a signature with r and s values taken from a hash of the inputs.
 export function makeFakeSignature(
@@ -17,11 +18,9 @@ export function makeFakeSignature(
   r: number;
   s: number;
 } {
-  const hash = crypto.createHash("md5");
-
-  hash.update(Buffer.from(`${util.inspect(sender)}${util.inspect(tx)}`));
-
-  const hashDigest = hash.digest();
+  const hashDigest = createNonCryptographicHashBasedIdentifier(
+    Buffer.from(`${util.inspect(sender)}${util.inspect(tx)}`)
+  );
 
   return {
     v: 1,
