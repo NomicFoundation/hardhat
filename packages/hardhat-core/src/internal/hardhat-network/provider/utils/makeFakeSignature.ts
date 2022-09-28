@@ -1,17 +1,25 @@
 import crypto from "crypto";
 import util from "util";
 
+import {
+  AccessListEIP2930Transaction,
+  FeeMarketEIP1559Transaction,
+  TxData,
+} from "@nomicfoundation/ethereumjs-tx";
+import { Address } from "@nomicfoundation/ethereumjs-util";
+
 // Produces a signature with r and s values taken from a hash of the inputs.
-export function makeFakeSignature(...inputs: any[]): {
+export function makeFakeSignature(
+  tx: TxData | AccessListEIP2930Transaction | FeeMarketEIP1559Transaction,
+  sender: Address
+): {
   v: number;
   r: number;
   s: number;
 } {
   const hash = crypto.createHash("md5");
 
-  for (const input of inputs) {
-    hash.update(Buffer.from(`${util.inspect(input)}`));
-  }
+  hash.update(Buffer.from(`${util.inspect(sender)}${util.inspect(tx)}`));
 
   const hashDigest = hash.digest();
 
