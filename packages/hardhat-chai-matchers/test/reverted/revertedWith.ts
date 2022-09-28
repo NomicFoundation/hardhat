@@ -1,5 +1,7 @@
 import { AssertionError, expect } from "chai";
 import { ProviderError } from "hardhat/internal/core/providers/errors";
+import path from "path";
+import util from "util";
 
 import {
   runSuccessfulAsserts,
@@ -8,7 +10,7 @@ import {
   useEnvironmentWithNode,
 } from "../helpers";
 
-import "../../src";
+import "../../src/internal/add-chai-matchers";
 
 describe("INTEGRATION: Reverted with", function () {
   describe("with the in-process hardhat network", function () {
@@ -76,7 +78,9 @@ describe("INTEGRATION: Reverted with", function () {
         });
       });
 
-      it("failed asserts", async function () {
+      // depends on a bug being fixed on ethers.js
+      // see https://linear.app/nomic-foundation/issue/HH-725
+      it.skip("failed asserts", async function () {
         await runFailedAsserts({
           matchers,
           method: "revertsWithoutReason",
@@ -183,10 +187,7 @@ describe("INTEGRATION: Reverted with", function () {
         expect(() =>
           // @ts-expect-error
           expect(hash).to.be.revertedWith(10)
-        ).to.throw(
-          TypeError,
-          "Expected a string as the expected reason string"
-        );
+        ).to.throw(TypeError, "Expected the revert reason to be a string");
       });
 
       it("errors that are not related to a reverted transaction", async function () {
@@ -210,6 +211,23 @@ describe("INTEGRATION: Reverted with", function () {
           ProviderError,
           "sender doesn't have enough funds to send tx"
         );
+      });
+    });
+
+    describe("stack traces", function () {
+      // smoke test for stack traces
+      it("includes test file", async function () {
+        try {
+          await expect(matchers.revertsWith("bar")).to.be.revertedWith("foo");
+        } catch (e: any) {
+          expect(util.inspect(e)).to.include(
+            path.join("test", "reverted", "revertedWith.ts")
+          );
+
+          return;
+        }
+
+        expect.fail("Expected an exception but none was thrown");
       });
     });
   }

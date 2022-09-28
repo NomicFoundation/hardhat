@@ -51,7 +51,7 @@ export const ERRORS = {
       title: "You are not inside a Hardhat project",
       description: `You are trying to run Hardhat outside of a Hardhat project.
 
-You can learn how to use Hardhat by reading the [Getting Started guide](../getting-started).`,
+You can learn how to use Hardhat by reading the [Getting Started guide](/hardhat-runner/docs/getting-started).`,
       shouldBeReported: false,
     },
     INVALID_NODE_VERSION: {
@@ -213,7 +213,7 @@ If you were trying to create a new project, please try again using Windows Subsy
 
 If you were trying to create a new project, please try again using Windows Subsystem for Linux (WSL) or PowerShell.
 
-You can learn how to use Hardhat by reading the [Getting Started guide](../getting-started).`,
+You can learn how to use Hardhat by reading the [Getting Started guide](/hardhat-runner/docs/getting-started).`,
       shouldBeReported: false,
     },
     CONFLICTING_FILES: {
@@ -245,7 +245,7 @@ Either try using a new directory name, or remove the conflicting files.`,
       title: "Selected network doesn't exist",
       description: `You are trying to run Hardhat with a nonexistent network.
 
-Read the [documentation](https://hardhat.org/config/#networks-configuration) to learn how to define custom networks.`,
+Read the [documentation](https://hardhat.org/hardhat-runner/docs/config#networks-configuration) to learn how to define custom networks.`,
       shouldBeReported: false,
     },
     INVALID_GLOBAL_CHAIN_ID: {
@@ -305,7 +305,7 @@ Please make sure that your Ethereum node has unlocked accounts.`,
       title: "Invalid HD path",
       description: `An invalid HD/BIP32 derivation path was provided in your config.  
       
-Read the [documentation](https://hardhat.org/config/#hd-wallet-config) to learn how to define HD accounts correctly.`,
+Read the [documentation](https://hardhat.org/hardhat-runner/docs/config#hd-wallet-config) to learn how to define HD accounts correctly.`,
       shouldBeReported: false,
     },
     INVALID_RPC_QUANTITY_VALUE: {
@@ -668,6 +668,16 @@ Please double check how you invoked Hardhat or ran your task.`,
 This is not supported. Please run the help task to see the available options.`,
       shouldBeReported: false,
     },
+    TYPECHECK_USED_IN_JAVASCRIPT_PROJECT: {
+      number: 313,
+      title: "The --typecheck flag was used in a javascript project",
+      message:
+        "Trying to use the --typecheck flag, but the project is not in typescript",
+      description: `You tried to run Hardhat with the \`--typecheck\` flag in a javascript project.
+
+This flag can only be used in typescript projects.`,
+      shouldBeReported: false,
+    },
   },
   RESOLVER: {
     FILE_NOT_FOUND: {
@@ -787,42 +797,48 @@ Try installing the library using npm.`,
   SOLC: {
     INVALID_VERSION: {
       number: 500,
-      message:
-        "Solidity version %version% is invalid or hasn't been released yet.",
-      title: "Invalid `solc` version",
+      message: `Solidity version %version% is invalid or hasn't been released yet.
+        
+If you are certain it has been released, run "npx hardhat clean --global" and try again`,
+      title: "Invalid or unreleased `solc` version",
       description: `The Solidity version in your config is invalid or hasn't been released yet. 
 
-Please double check your \`solc\` config.`,
+If you are certain it has been released, run \`npx hardhat clean --global\` and try again.`,
       shouldBeReported: false,
     },
     DOWNLOAD_FAILED: {
       number: 501,
       message:
-        "Couldn't download compiler version %remoteVersion%. Please check your connection.",
+        "Couldn't download compiler version %remoteVersion%. Please check your internet connection and try again.",
       title: "`solc` download failed",
       description: `Couldn't download \`solc\`. 
       
-Please check your Internet connection.`,
+Please check your internet connection and try again.`,
       shouldBeReported: false,
     },
     VERSION_LIST_DOWNLOAD_FAILED: {
       number: 502,
       message:
-        "Couldn't download compiler versions list. Please check your connection.",
+        "Couldn't download compiler version list. Please check your internet connection and try again.",
       title: "Couldn't obtain `solc` version list",
       description: `Couldn't download \`solc\`'s version list. 
       
-Please check your Internet connection.`,
+Please check your internet connection and try again.`,
       shouldBeReported: false,
     },
     INVALID_DOWNLOAD: {
       number: 503,
-      message:
-        "Couldn't download compiler version %remoteVersion%. Checksum verification failed. Please check your connection.",
+      message: `Couldn't download compiler version %remoteVersion%: Checksum verification failed.
+
+Please check your internet connection and try again.
+
+If this error persists, run "npx hardhat clean --global".`,
       title: "Downloaded `solc` checksum verification failed",
-      description: `Downloaded \`solc\` verification failed.
-      
-Please check your Internet connection.`,
+      description: `Hardhat downloaded a version of the Solidity compiler, and its checksum verification failed.
+ 
+Please check your internet connection and try again.
+
+If this error persists, run \`npx hardhat clean --global\`.`,
       shouldBeReported: false,
     },
     CANT_GET_COMPILER: {
@@ -833,6 +849,21 @@ Please check your Internet connection.`,
 
 Please [report it](https://github.com/nomiclabs/hardhat/issues/new) to help us improve Hardhat.`,
       shouldBeReported: true,
+    },
+    CANT_RUN_NATIVE_COMPILER: {
+      number: 505,
+      message: `A native version of solc failed to run.
+
+If you are running MacOS, try installing Apple Rosetta.
+
+If this error persists, run "npx hardhat clean --global".`,
+      title: "Failed to run native solc",
+      description: `Hardhat successfully downloaded a native version of solc but it doesn't run.
+
+If you are running MacOS, try installing Apple Rosetta.
+
+If this error persists, run "npx hardhat clean --global".`,
+      shouldBeReported: false,
     },
   },
   BUILTIN_TASKS: {

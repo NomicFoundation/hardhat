@@ -7,18 +7,17 @@ import type {
   HDAccountsUserConfig,
   HttpNetworkAccountsUserConfig,
   HttpNetworkConfig,
-  HttpNetworkUserConfig,
   NetworkConfig,
   ProjectPathsConfig,
 } from "../../../types";
 
-import { HARDHAT_NETWORK_NAME } from "../../constants";
-import { ModulesLogger } from "../../hardhat-network/provider/modules/logger";
-import {
+import type {
   ForkConfig,
   MempoolOrder,
 } from "../../hardhat-network/provider/node-types";
-import { getForkCacheDirPath } from "../../hardhat-network/provider/utils/disk-cache";
+import type * as ModulesLoggerT from "../../hardhat-network/provider/modules/logger";
+import type * as DiskCacheT from "../../hardhat-network/provider/utils/disk-cache";
+import { HARDHAT_NETWORK_NAME } from "../../constants";
 import { parseDateString } from "../../util/date";
 
 import { normalizeHardhatNetworkAccountsConfig } from "./util";
@@ -73,12 +72,18 @@ export function createProvider(
       forkConfig = {
         jsonRpcUrl: hardhatNetConfig.forking?.url,
         blockNumber: hardhatNetConfig.forking?.blockNumber,
+        httpHeaders: hardhatNetConfig.forking.httpHeaders,
       };
     }
 
     const accounts = normalizeHardhatNetworkAccountsConfig(
       hardhatNetConfig.accounts
     );
+
+    const { ModulesLogger } =
+      require("../../hardhat-network/provider/modules/logger") as typeof ModulesLoggerT;
+    const { getForkCacheDirPath } =
+      require("../../hardhat-network/provider/utils/disk-cache") as typeof DiskCacheT;
 
     eip1193Provider = new HardhatNetworkProvider(
       hardhatNetConfig.hardfork,
@@ -112,7 +117,7 @@ export function createProvider(
       typeof import("./http"),
       "HttpProvider"
     >("./http", "HttpProvider");
-    const httpNetConfig = networkConfig as HttpNetworkUserConfig;
+    const httpNetConfig = networkConfig as HttpNetworkConfig;
 
     eip1193Provider = new HttpProvider(
       httpNetConfig.url!,
@@ -170,11 +175,6 @@ export function applyProviderWrappers(
     typeof import("./gas-providers"),
     "FixedGasPriceProvider"
   >("./gas-providers", "FixedGasPriceProvider");
-  const GanacheGasMultiplierProvider = importProvider<
-    typeof import("./gas-providers"),
-    "GanacheGasMultiplierProvider"
-  >("./gas-providers", "GanacheGasMultiplierProvider");
-
   const ChainIdValidatorProvider = importProvider<
     typeof import("./chainId"),
     "ChainIdValidatorProvider"
@@ -197,10 +197,6 @@ export function applyProviderWrappers(
     }
 
     // TODO: Add some extension mechanism for account plugins here
-
-    if (typeof netConfig.gas !== "number") {
-      provider = new GanacheGasMultiplierProvider(provider);
-    }
   }
 
   if (netConfig.from !== undefined) {

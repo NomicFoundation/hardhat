@@ -1,7 +1,7 @@
+import { setLengthLeft, toBuffer } from "@nomicfoundation/ethereumjs-util";
 import { assert } from "chai";
-import { BN, setLengthLeft, toBuffer } from "ethereumjs-util";
 
-export function leftPad32(value: string | Buffer | BN): string {
+export function leftPad32(value: string | Buffer | bigint): string {
   return setLengthLeft(toBuffer(value), 32).toString("hex");
 }
 
@@ -22,8 +22,8 @@ describe("leftPad32", () => {
     );
   });
 
-  it("converts to hex and correctly pads BNs", () => {
-    const bn = new BN(10).pow(new BN(18));
+  it("converts to hex and correctly pads bigints", () => {
+    const bn = 10n ** 18n;
     assert.equal(
       leftPad32(bn),
       "0000000000000000000000000000000000000000000000000de0b6b3a7640000"

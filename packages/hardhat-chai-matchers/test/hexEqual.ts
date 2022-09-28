@@ -1,6 +1,6 @@
 import { AssertionError, expect } from "chai";
 
-import "../src";
+import "../src/internal/add-chai-matchers";
 
 describe("UNIT: hexEqual", () => {
   it("0xAB equals 0xab", () => {
@@ -73,7 +73,7 @@ describe("UNIT: hexEqual", () => {
   it("correct error when strings are equal but expected not to", async function () {
     expect(() => expect("0xa").not.to.hexEqual("0xa")).to.throw(
       AssertionError,
-      'Expected "0xa" not to be a hex string equal to "0xa", but it was'
+      'Expected "0xa" NOT to be a hex string equal to "0xa", but it was'
     );
   });
 });

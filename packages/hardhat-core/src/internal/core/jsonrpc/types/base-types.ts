@@ -1,17 +1,21 @@
-import { BN, bufferToHex, isValidAddress, toBuffer } from "ethereumjs-util";
+import {
+  bufferToHex,
+  isValidAddress,
+  toBuffer,
+} from "@nomicfoundation/ethereumjs-util";
 import * as t from "io-ts";
 
+import * as BigIntUtils from "../../../util/bigint";
 import { assertHardhatInvariant, HardhatError } from "../../errors";
 import { ERRORS } from "../../errors-list";
 
 const ADDRESS_LENGTH_BYTES = 20;
 const HASH_LENGTH_BYTES = 32;
 
-export const rpcQuantity = new t.Type<BN>(
+export const rpcQuantity = new t.Type<bigint>(
   "QUANTITY",
-  BN.isBN,
-  (u, c) =>
-    isRpcQuantityString(u) ? t.success(new BN(toBuffer(u))) : t.failure(u, c),
+  BigIntUtils.isBigInt,
+  (u, c) => (isRpcQuantityString(u) ? t.success(BigInt(u)) : t.failure(u, c)),
   t.identity
 );
 
@@ -29,6 +33,55 @@ export const rpcHash = new t.Type<Buffer>(
   t.identity
 );
 
+export const rpcStorageSlot = new t.Type<bigint>(
+  "Storage slot",
+  BigIntUtils.isBigInt,
+  validateStorageSlot,
+  t.identity
+);
+
+function validateStorageSlot(u: unknown, c: t.Context): t.Validation<bigint> {
+  if (typeof u !== "string") {
+    return t.failure(
+      u,
+      c,
+      `Storage slot argument must be a string, got '${u as any}'`
+    );
+  }
+
+  if (u === "") {
+    return t.failure(u, c, "Storage slot argument cannot be an empty string");
+  }
+
+  if (u.startsWith("0x")) {
+    if (u.length > 66) {
+      return t.failure(
+        u,
+        c,
+        `Storage slot argument must have a length of at most 66 ("0x" + 32 bytes), but '${u}' has a length of ${u.length}`
+      );
+    }
+  } else {
+    if (u.length > 64) {
+      return t.failure(
+        u,
+        c,
+        `Storage slot argument must have a length of at most 64 (32 bytes), but '${u}' has a length of ${u.length}`
+      );
+    }
+  }
+
+  if (u.match(/^(0x)?([0-9a-fA-F]){0,64}$/) === null) {
+    return t.failure(
+      u,
+      c,
+      `Storage slot argument must be a valid hexadecimal, got '${u}'`
+    );
+  }
+
+  return t.success(u === "0x" ? 0n : BigInt(u.startsWith("0x") ? u : `0x${u}`));
+}
+
 export const rpcAddress = new t.Type<Buffer>(
   "ADDRESS",
   (v): v is Buffer => Buffer.isBuffer(v) && v.length === ADDRESS_LENGTH_BYTES,
@@ -43,10 +96,10 @@ export const rpcUnsignedInteger = new t.Type<number>(
   t.identity
 );
 
-export const rpcQuantityAsNumber = new t.Type<BN>(
+export const rpcQuantityAsNumber = new t.Type<bigint>(
   "Integer",
-  BN.isBN,
-  (u, c) => (isInteger(u) ? t.success(new BN(u)) : t.failure(u, c)),
+  BigIntUtils.isBigInt,
+  (u, c) => (isInteger(u) ? t.success(BigInt(u)) : t.failure(u, c)),
   t.identity
 );
 
@@ -64,10 +117,10 @@ export const rpcFloat = new t.Type<number>(
  * fits in a number.
  */
 export function rpcQuantityToNumber(quantity: string): number {
-  return rpcQuantityToBN(quantity).toNumber();
+  return Number(rpcQuantityToBigInt(quantity));
 }
 
-export function rpcQuantityToBN(quantity: string): BN {
+export function rpcQuantityToBigInt(quantity: string): bigint {
   // We validate it in case a value gets here through a cast or any
   if (!isRpcQuantityString(quantity)) {
     throw new HardhatError(ERRORS.NETWORK.INVALID_RPC_QUANTITY_VALUE, {
@@ -75,17 +128,25 @@ export function rpcQuantityToBN(quantity: string): BN {
     });
   }
 
-  const buffer = toBuffer(quantity);
-  return new BN(buffer);
+  return BigInt(quantity);
 }
 
-export function numberToRpcQuantity(n: number | BN): string {
+export function numberToRpcQuantity(n: number | bigint): string {
   assertHardhatInvariant(
-    typeof n === "number" || BN.isBN(n),
+    typeof n === "number" || typeof n === "bigint",
     "Expected number"
   );
 
   return `0x${n.toString(16)}`;
+}
+
+export function numberToRpcStorageSlot(n: number | bigint): string {
+  assertHardhatInvariant(
+    typeof n === "number" || typeof n === "bigint",
+    "Expected number"
+  );
+
+  return `0x${BigIntUtils.toEvmWord(n)}`;
 }
 
 /**
@@ -93,11 +154,11 @@ export function numberToRpcQuantity(n: number | BN): string {
  * represents a value fits in a number.
  */
 export function rpcDataToNumber(data: string): number {
-  return rpcDataToBN(data).toNumber();
+  return Number(rpcDataToBigInt(data));
 }
 
-export function rpcDataToBN(data: string): BN {
-  return new BN(rpcDataToBuffer(data));
+export function rpcDataToBigInt(data: string): bigint {
+  return data === "0x" ? 0n : BigInt(data);
 }
 
 export function bufferToRpcData(

@@ -1,9 +1,8 @@
 import { assert } from "chai";
 
-import { BN } from "ethereumjs-util";
 import {
   numberToRpcQuantity,
-  rpcQuantityToBN,
+  rpcQuantityToBigInt,
 } from "../../../../src/internal/core/jsonrpc/types/base-types";
 
 import { DEFAULT_ACCOUNTS_ADDRESSES } from "./providers";
@@ -12,7 +11,7 @@ interface SendTxOptions {
   from?: string;
   to?: string;
   gas?: number;
-  gasPrice?: number | BN;
+  gasPrice?: number | bigint;
   data?: string;
   nonce?: number;
   value?: number;
@@ -47,7 +46,7 @@ export function useHelpers() {
     }: SendTxOptions = {}) => {
       const price =
         gasPrice ??
-        rpcQuantityToBN(await this.provider.send("eth_gasPrice", []));
+        rpcQuantityToBigInt(await this.provider.send("eth_gasPrice", []));
 
       return this.provider.send("eth_sendTransaction", [
         {

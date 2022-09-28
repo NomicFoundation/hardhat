@@ -7,7 +7,10 @@ describe("Config extension", () => {
     const resolvedConfig = {} as HardhatConfig;
     etherscanConfigExtender(resolvedConfig, {});
 
-    assert.deepStrictEqual(resolvedConfig.etherscan, { apiKey: "" });
+    assert.deepStrictEqual(resolvedConfig.etherscan, {
+      apiKey: "",
+      customChains: [],
+    });
   });
 
   it("copy across a string api key", () => {
@@ -18,6 +21,7 @@ describe("Config extension", () => {
 
     assert.deepStrictEqual(resolvedConfig.etherscan, {
       apiKey: "example_token",
+      customChains: [],
     });
   });
 
@@ -29,39 +33,40 @@ describe("Config extension", () => {
 
     assert.deepStrictEqual(resolvedConfig.etherscan, {
       apiKey: { ropsten: "example_token" },
+      customChains: [],
     });
   });
 
-  it("should error on providing unsupported api key", () => {
-    assert.throws(() => {
-      const resolvedConfig = {} as HardhatConfig;
+  it("should accept custom chains", async function () {
+    const resolvedConfig = {} as HardhatConfig;
+    etherscanConfigExtender(resolvedConfig, {
+      etherscan: {
+        apiKey: { ropsten: "example_token" },
+        customChains: [
+          {
+            network: "My Chain",
+            chainId: 12345,
+            urls: {
+              apiURL: "https://mychainscan.io/api",
+              browserURL: "https://mychainscan.io",
+            },
+          },
+        ],
+      },
+    });
 
-      const invalidEtherscanConfig = {
-        etherscan: {
-          apiKey: {
-            newhotness: "example_token",
+    assert.deepStrictEqual(resolvedConfig.etherscan, {
+      apiKey: { ropsten: "example_token" },
+      customChains: [
+        {
+          network: "My Chain",
+          chainId: 12345,
+          urls: {
+            apiURL: "https://mychainscan.io/api",
+            browserURL: "https://mychainscan.io",
           },
         },
-      } as any;
-
-      etherscanConfigExtender(resolvedConfig, invalidEtherscanConfig);
-    }, 'Etherscan API token "newhotness" is for an unsupported network');
-  });
-
-  it("should error on providing multiple unsupported api keys", () => {
-    assert.throws(() => {
-      const resolvedConfig = {} as HardhatConfig;
-
-      const invalidEtherscanConfig = {
-        etherscan: {
-          apiKey: {
-            newhotness: "example_token",
-            newhotness2: "example_token",
-          },
-        },
-      } as any;
-
-      etherscanConfigExtender(resolvedConfig, invalidEtherscanConfig);
-    }, 'Etherscan API token "newhotness" is for an unsupported network');
+      ],
+    });
   });
 });

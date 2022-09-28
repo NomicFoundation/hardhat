@@ -1,5 +1,17 @@
 # @nomiclabs/hardhat-ethers
 
+## 2.1.1
+
+### Patch Changes
+
+- fa2a98c8a: getContractAt() now throws an error if the address is not of a contract.
+
+## 2.1.0
+
+### Minor Changes
+
+- 0d4a68043: Added new helper `getImpersonatedSigner()`, a shorthand for invoking the `hardhat_impersonateAccount` JSON-RPC method followed immediately by `ethers.getSigner()`.
+
 ## 2.0.6
 
 ### Patch Changes

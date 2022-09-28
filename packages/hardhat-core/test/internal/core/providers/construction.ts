@@ -5,17 +5,13 @@ import {
   defaultHttpNetworkParams,
 } from "../../../../src/internal/core/config/default-config";
 import { ERRORS } from "../../../../src/internal/core/errors-list";
-import {
-  numberToRpcQuantity,
-  rpcQuantityToNumber,
-} from "../../../../src/internal/core/jsonrpc/types/base-types";
+import { numberToRpcQuantity } from "../../../../src/internal/core/jsonrpc/types/base-types";
 import { BackwardsCompatibilityProviderAdapter } from "../../../../src/internal/core/providers/backwards-compatibility";
 import {
   applyProviderWrappers,
   createProvider,
   isHDAccountsConfig,
 } from "../../../../src/internal/core/providers/construction";
-import { GANACHE_GAS_MULTIPLIER } from "../../../../src/internal/core/providers/gas-providers";
 import { expectHardhatErrorAsync } from "../../../helpers/errors";
 
 import { MockedProvider } from "./mocks";
@@ -31,7 +27,7 @@ describe("Network config typeguards", async () => {
 describe("Base provider creation", () => {
   it("Should create a valid HTTP provider and wrap it", () => {
     const provider = createProvider("net", {
-      url: "http://localhost:8545",
+      url: "http://127.0.0.1:8545",
       ...defaultHttpNetworkParams,
     });
 
@@ -265,33 +261,6 @@ describe("Base providers wrapping", () => {
         () => provider.request({ method: "eth_getAccounts", params: [] }),
         ERRORS.NETWORK.INVALID_GLOBAL_CHAIN_ID
       );
-    });
-  });
-
-  describe("Ganache multiplier provider", () => {
-    it("Should wrap with a ganache multiplier provider", async () => {
-      mockedProvider.setReturnValue(
-        "eth_estimateGas",
-        numberToRpcQuantity(123)
-      );
-      mockedProvider.setReturnValue(
-        "web3_clientVersion",
-        "EthereumJS TestRPC/v2.5.5/ethereum-js"
-      );
-
-      const provider = applyProviderWrappers(mockedProvider, {
-        url: "",
-      });
-
-      const estimation = (await provider.request({
-        method: "eth_estimateGas",
-        params: [
-          { to: "0xa2b6816c50d49101901d93f5302a3a57e0a1281b", value: 1 },
-        ],
-      })) as string;
-
-      const gas = rpcQuantityToNumber(estimation);
-      assert.equal(gas, Math.floor(123 * GANACHE_GAS_MULTIPLIER));
     });
   });
 });

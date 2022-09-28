@@ -1,4 +1,9 @@
-import { BN, bufferToHex, bufferToInt, fromSigned } from "ethereumjs-util";
+import {
+  bufferToBigInt,
+  bufferToHex,
+  bufferToInt,
+  fromSigned,
+} from "@nomicfoundation/ethereumjs-util";
 import util from "util";
 
 import {
@@ -38,9 +43,9 @@ import {
   Bytes9Ty,
   BytesTy,
   ConsoleLogs,
-  IntTy,
+  Int256Ty,
   StringTy,
-  UintTy,
+  Uint256Ty,
 } from "./logger";
 import {
   CallMessageTrace,
@@ -74,6 +79,11 @@ export class ConsoleLogger {
   public getLogMessages(maybeDecodedMessageTrace: MessageTrace): string[] {
     return this.getExecutionLogs(maybeDecodedMessageTrace).map((log) => {
       if (log === undefined) {
+        return "";
+      }
+
+      // special case for console.log()
+      if (log.length === 0) {
         return "";
       }
 
@@ -131,12 +141,12 @@ export class ConsoleLogger {
     return types.map((type, i) => {
       const position = i * 32;
       switch (types[i]) {
-        case UintTy:
-          return new BN(
+        case Uint256Ty:
+          return bufferToBigInt(
             data.slice(position, position + REGISTER_SIZE)
           ).toString(10);
 
-        case IntTy:
+        case Int256Ty:
           return fromSigned(
             data.slice(position, position + REGISTER_SIZE)
           ).toString();

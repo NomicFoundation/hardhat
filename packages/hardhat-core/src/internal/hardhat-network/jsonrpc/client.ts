@@ -1,4 +1,4 @@
-import { Address, BN, bufferToHex } from "ethereumjs-util";
+import { Address, bufferToHex } from "@nomicfoundation/ethereumjs-util";
 import fsExtra from "fs-extra";
 import * as t from "io-ts";
 import path from "path";
@@ -29,8 +29,8 @@ export class JsonRpcClient {
   constructor(
     private _httpProvider: HttpProvider,
     private _networkId: number,
-    private _latestBlockNumberOnCreation: number,
-    private _maxReorg: number,
+    private _latestBlockNumberOnCreation: bigint,
+    private _maxReorg: bigint,
     private _forkCachePath?: string
   ) {}
 
@@ -50,8 +50,8 @@ export class JsonRpcClient {
   // Storage key must be 32 bytes long
   public async getStorageAt(
     address: Address,
-    position: BN,
-    blockNumber: BN
+    position: bigint,
+    blockNumber: bigint
   ): Promise<Buffer> {
     return this._perform(
       "eth_getStorageAt",
@@ -66,17 +66,17 @@ export class JsonRpcClient {
   }
 
   public async getBlockByNumber(
-    blockNumber: BN,
+    blockNumber: bigint,
     includeTransactions?: false
   ): Promise<RpcBlock | null>;
 
   public async getBlockByNumber(
-    blockNumber: BN,
+    blockNumber: bigint,
     includeTransactions: true
   ): Promise<RpcBlockWithTransactions | null>;
 
   public async getBlockByNumber(
-    blockNumber: BN,
+    blockNumber: bigint,
     includeTransactions = false
   ): Promise<RpcBlock | RpcBlockWithTransactions | null> {
     if (includeTransactions) {
@@ -136,7 +136,7 @@ export class JsonRpcClient {
     );
   }
 
-  public async getTransactionCount(address: Buffer, blockNumber: BN) {
+  public async getTransactionCount(address: Buffer, blockNumber: bigint) {
     return this._perform(
       "eth_getTransactionCount",
       [bufferToHex(address), numberToRpcQuantity(blockNumber)],
@@ -155,8 +155,8 @@ export class JsonRpcClient {
   }
 
   public async getLogs(options: {
-    fromBlock: BN;
-    toBlock: BN;
+    fromBlock: bigint;
+    toBlock: bigint;
     address?: Buffer | Buffer[];
     topics?: Array<Array<Buffer | null> | null>;
   }) {
@@ -192,8 +192,8 @@ export class JsonRpcClient {
 
   public async getAccountData(
     address: Address,
-    blockNumber: BN
-  ): Promise<{ code: Buffer; transactionCount: BN; balance: BN }> {
+    blockNumber: bigint
+  ): Promise<{ code: Buffer; transactionCount: bigint; balance: bigint }> {
     const results = await this._performBatch(
       [
         {
@@ -225,8 +225,8 @@ export class JsonRpcClient {
   // This is part of a temporary fix to https://github.com/NomicFoundation/hardhat/issues/2380
   // This method caches each request instead of caching each block's fee info individually, which is not ideal
   public async getFeeHistory(
-    blockCount: BN,
-    newestBlock: BN | "pending",
+    blockCount: bigint,
+    newestBlock: bigint | "pending",
     rewardPercentiles: number[]
   ): Promise<FeeHistory> {
     return this._perform(
@@ -244,7 +244,16 @@ export class JsonRpcClient {
         gasUsedRatio: t.array(t.number),
         reward: optional(t.array(t.array(rpcQuantity))),
       }),
-      (res) => res.oldestBlock.addn(res.baseFeePerGas.length)
+      (res) => res.oldestBlock + BigInt(res.baseFeePerGas.length)
+    );
+  }
+
+  public async getLatestBlockNumber(): Promise<bigint> {
+    return this._perform(
+      "eth_blockNumber",
+      [],
+      rpcQuantity,
+      (blockNumber) => blockNumber
     );
   }
 
@@ -252,7 +261,7 @@ export class JsonRpcClient {
     method: string,
     params: any[],
     tType: t.Type<T>,
-    getMaxAffectedBlockNumber: (decodedResult: T) => BN | undefined
+    getMaxAffectedBlockNumber: (decodedResult: T) => bigint | undefined
   ): Promise<T> {
     const cacheKey = this._getCacheKey(method, params);
 
@@ -294,7 +303,7 @@ export class JsonRpcClient {
       params: any[];
       tType: t.Type<any>;
     }>,
-    getMaxAffectedBlockNumber: (decodedResults: any[]) => BN | undefined
+    getMaxAffectedBlockNumber: (decodedResults: any[]) => bigint | undefined
   ): Promise<any[]> {
     // Perform Batch caches the entire batch at once.
     // It could implement something more clever, like caching per request
@@ -487,15 +496,15 @@ export class JsonRpcClient {
     );
   }
 
-  private _canBeCached(blockNumber: BN | undefined) {
+  private _canBeCached(blockNumber: bigint | undefined) {
     if (blockNumber === undefined) {
       return false;
     }
 
-    return !this._canBeReorgedOut(blockNumber.toNumber());
+    return !this._canBeReorgedOut(blockNumber);
   }
 
-  private _canBeReorgedOut(blockNumber: number) {
+  private _canBeReorgedOut(blockNumber: bigint) {
     const maxSafeBlockNumber =
       this._latestBlockNumberOnCreation - this._maxReorg;
     return blockNumber > maxSafeBlockNumber;

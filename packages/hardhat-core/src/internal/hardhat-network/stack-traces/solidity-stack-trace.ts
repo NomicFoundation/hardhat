@@ -1,5 +1,3 @@
-import { BN } from "ethereumjs-util";
-
 import { ReturnData } from "../provider/return-data";
 
 import { ContractFunctionType } from "./model";
@@ -82,7 +80,7 @@ export interface RevertErrorStackTraceEntry {
 
 export interface PanicErrorStackTraceEntry {
   type: StackTraceEntryType.PANIC_ERROR;
-  errorCode: BN;
+  errorCode: bigint;
   sourceReference: SourceReference;
 }
 
@@ -100,7 +98,7 @@ export interface UnmappedSolc063RevertErrorStackTraceEntry {
 
 export interface FunctionNotPayableErrorStackTraceEntry {
   type: StackTraceEntryType.FUNCTION_NOT_PAYABLE_ERROR;
-  value: BN;
+  value: bigint;
   sourceReference: SourceReference;
 }
 
@@ -111,13 +109,13 @@ export interface InvalidParamsErrorStackTraceEntry {
 
 export interface FallbackNotPayableErrorStackTraceEntry {
   type: StackTraceEntryType.FALLBACK_NOT_PAYABLE_ERROR;
-  value: BN;
+  value: bigint;
   sourceReference: SourceReference;
 }
 
 export interface FallbackNotPayableAndNoReceiveErrorStackTraceEntry {
   type: StackTraceEntryType.FALLBACK_NOT_PAYABLE_AND_NO_RECEIVE_ERROR;
-  value: BN;
+  value: bigint;
   sourceReference: SourceReference;
 }
 
@@ -155,6 +153,7 @@ export interface UnrecognizedCreateErrorStackTraceEntry {
   type: StackTraceEntryType.UNRECOGNIZED_CREATE_ERROR;
   message: ReturnData;
   sourceReference?: undefined;
+  isInvalidOpcodeError: boolean;
 }
 
 export interface UnrecognizedContractErrorStackTraceEntry {
@@ -162,6 +161,7 @@ export interface UnrecognizedContractErrorStackTraceEntry {
   address: Buffer;
   message: ReturnData;
   sourceReference?: undefined;
+  isInvalidOpcodeError: boolean;
 }
 
 export interface OtherExecutionErrorStackTraceEntry {
@@ -171,7 +171,7 @@ export interface OtherExecutionErrorStackTraceEntry {
 
 export interface ContractTooLargeErrorStackTraceEntry {
   type: StackTraceEntryType.CONTRACT_TOO_LARGE_ERROR;
-  sourceReference: SourceReference;
+  sourceReference?: SourceReference;
 }
 
 export interface InternalFunctionCallStackEntry {

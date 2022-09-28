@@ -15,7 +15,7 @@ export const HARDHAT_PARAM_DEFINITIONS: HardhatParamDefinitions = {
   showStackTraces: {
     name: "showStackTraces",
     defaultValue: false,
-    description: "Show stack traces.",
+    description: "Show stack traces (always enabled on CI servers).",
     type: types.boolean,
     isFlag: true,
     isOptional: true,
@@ -82,6 +82,24 @@ export const HARDHAT_PARAM_DEFINITIONS: HardhatParamDefinitions = {
     type: types.inputFile,
     isOptional: true,
     isFlag: false,
+    isVariadic: false,
+  },
+  flamegraph: {
+    name: "flamegraph",
+    defaultValue: undefined,
+    description: "Generate a flamegraph of your Hardhat tasks",
+    type: types.boolean,
+    isOptional: true,
+    isFlag: true,
+    isVariadic: false,
+  },
+  typecheck: {
+    name: "typecheck",
+    defaultValue: false,
+    description: "Enable TypeScript type-checking of your scripts/tests",
+    type: types.boolean,
+    isFlag: true,
+    isOptional: true,
     isVariadic: false,
   },
 };

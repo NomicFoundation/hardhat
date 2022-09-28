@@ -1,5 +1,4 @@
 import { rawDecode } from "ethereumjs-abi";
-import { BN } from "ethereumjs-util";
 
 import { assertHardhatInvariant } from "../../core/errors";
 
@@ -50,18 +49,26 @@ export class ReturnData {
       "Expected return data to be a Error(string)"
     );
 
-    const decoded = rawDecode(["string"], this.value.slice(4));
-    return decoded.toString("utf8");
+    const [decodedError] = rawDecode(["string"], this.value.slice(4)) as [
+      string
+    ];
+
+    return decodedError;
   }
 
-  public decodePanic(): BN {
+  public decodePanic(): bigint {
     assertHardhatInvariant(
       this._selector === PANIC_SELECTOR,
       "Expected return data to be a Panic(uint256)"
     );
 
-    const [errorCode] = rawDecode(["uint256"], this.value.slice(4));
+    // we are assuming that panic codes are smaller than Number.MAX_SAFE_INTEGER
+    const errorCode = BigInt(`0x${this.value.slice(4).toString("hex")}`);
 
     return errorCode;
+  }
+
+  public getSelector(): string | undefined {
+    return this._selector;
   }
 }

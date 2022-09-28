@@ -1,5 +1,5 @@
 // reused from ethers.js
-import { Address, BN, toBuffer } from "ethereumjs-util";
+import { Address, toBuffer } from "@nomicfoundation/ethereumjs-util";
 import path from "path";
 
 export const DAI_ADDRESS = Address.fromString(
@@ -30,13 +30,11 @@ export const DAI_TOTAL_SUPPLY_STORAGE_POSITION = toBuffer(
 );
 
 // 10496585 block number was chosen for no particular reason
-export const BLOCK_NUMBER_OF_10496585 = new BN(10496585);
+export const BLOCK_NUMBER_OF_10496585 = 10496585n;
 export const BLOCK_HASH_OF_10496585 = toBuffer(
   "0x71d5e7c8ff9ea737034c16e333a75575a4a94d29482e0c2b88f0a6a8369c1812"
 );
-export const TOTAL_DIFFICULTY_OF_BLOCK_10496585 = new BN(
-  "16430631039734293348166"
-);
+export const TOTAL_DIFFICULTY_OF_BLOCK_10496585 = 16430631039734293348166n;
 export const FIRST_TX_HASH_OF_10496585 = toBuffer(
   "0xed0b0b132bd693ef34a72084f090df07c5c3a2ec019d76316da040d4222cdfb8"
 );

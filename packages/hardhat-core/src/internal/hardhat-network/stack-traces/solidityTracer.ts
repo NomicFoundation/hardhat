@@ -1,3 +1,4 @@
+import { ERROR } from "@nomicfoundation/ethereumjs-evm/dist/exceptions";
 import { ReturnData } from "../provider/return-data";
 
 import {
@@ -30,9 +31,6 @@ import {
   SolidityStackTraceEntry,
   StackTraceEntryType,
 } from "./solidity-stack-trace";
-
-export const SUPPORTED_SOLIDITY_VERSION_RANGE = "<=0.8.9";
-export const FIRST_SOLC_VERSION_SUPPORTED = "0.5.1";
 
 export class SolidityTracer {
   private _errorInferrer = new ErrorInferrer();
@@ -101,11 +99,22 @@ export class SolidityTracer {
       }
     }
 
+    if (trace.error?.error === ERROR.CODESIZE_EXCEEDS_MAXIMUM) {
+      return [
+        {
+          type: StackTraceEntryType.CONTRACT_TOO_LARGE_ERROR,
+        },
+      ];
+    }
+
+    const isInvalidOpcodeError = trace.error?.error === ERROR.INVALID_OPCODE;
+
     if (isCreateTrace(trace)) {
       return [
         {
           type: StackTraceEntryType.UNRECOGNIZED_CREATE_ERROR,
           message: new ReturnData(trace.returnData),
+          isInvalidOpcodeError,
         },
       ];
     }
@@ -115,6 +124,7 @@ export class SolidityTracer {
         type: StackTraceEntryType.UNRECOGNIZED_CONTRACT_ERROR,
         address: trace.address,
         message: new ReturnData(trace.returnData),
+        isInvalidOpcodeError,
       },
     ];
   }

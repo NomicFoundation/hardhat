@@ -1,6 +1,5 @@
-import { ERROR } from "@ethereumjs/vm/dist/exceptions";
+import { ERROR } from "@nomicfoundation/ethereumjs-evm/dist/exceptions";
 import { defaultAbiCoder as abi } from "@ethersproject/abi";
-import { BN } from "ethereumjs-util";
 import semver from "semver";
 
 import { AbiHelpers } from "../../util/abi-helpers";
@@ -49,8 +48,6 @@ import {
 const FIRST_SOLC_VERSION_CREATE_PARAMS_VALIDATION = "0.5.9";
 const FIRST_SOLC_VERSION_RECEIVE_FUNCTION = "0.6.0";
 const FIRST_SOLC_VERSION_WITH_UNMAPPED_REVERTS = "0.6.3";
-
-const EIP170_BYTECODE_SIZE_INCLUSIVE_LIMIT = 0x6000;
 
 export interface SubmessageData {
   messageTrace: MessageTrace;
@@ -493,7 +490,7 @@ export class ErrorInferrer {
     // if the error comes from a call to a zero-initialized function,
     // we remove the last frame, which represents the call, to avoid
     // having duplicated frames
-    if (errorCode.eqn(0x51)) {
+    if (errorCode === 0x51n) {
       stacktrace.splice(-1);
     }
 
@@ -523,6 +520,11 @@ export class ErrorInferrer {
     }
 
     let errorMessage = "reverted with an unrecognized custom error";
+
+    const selector = returnData.getSelector();
+    if (selector !== undefined) {
+      errorMessage += ` with selector ${selector}`;
+    }
 
     for (const customError of trace.bytecode.contract.customErrors) {
       if (returnData.matchesSelector(customError.selector)) {
@@ -762,7 +764,7 @@ export class ErrorInferrer {
       return false;
     }
 
-    if (trace.value.lten(0)) {
+    if (trace.value <= 0n) {
       return false;
     }
 
@@ -859,7 +861,7 @@ export class ErrorInferrer {
       return false;
     }
 
-    if (trace.value.lten(0)) {
+    if (trace.value <= 0n) {
       return false;
     }
 
@@ -913,7 +915,7 @@ export class ErrorInferrer {
     }
 
     return (
-      trace.value.gtn(0) &&
+      trace.value > 0n &&
       (constructor.isPayable === undefined || !constructor.isPayable)
     );
   }
@@ -1121,7 +1123,7 @@ export class ErrorInferrer {
   private _instructionWithinFunctionToPanicStackTraceEntry(
     trace: DecodedEvmMessageTrace,
     inst: Instruction,
-    errorCode: BN
+    errorCode: bigint
   ): PanicErrorStackTraceEntry {
     return {
       type: StackTraceEntryType.PANIC_ERROR,
@@ -1372,34 +1374,7 @@ export class ErrorInferrer {
   }
 
   private _isContractTooLargeError(trace: DecodedCreateMessageTrace) {
-    if (trace.error === undefined || trace.error.error !== ERROR.OUT_OF_GAS) {
-      return false;
-    }
-
-    // This error doesn't come from solidity, but actually from the VM.
-    // The deployment code executes correctly, but it OOGs.
-    const lastStep = trace.steps[trace.steps.length - 1];
-    if (!isEvmStep(lastStep)) {
-      return false;
-    }
-
-    const lastInst = trace.bytecode.getInstruction(lastStep.pc);
-    if (lastInst.opcode !== Opcode.RETURN) {
-      return false;
-    }
-
-    // TODO: This is an over approximation, as we should be comparing the
-    //  runtime bytecode.
-    if (
-      trace.bytecode.normalizedCode.length <=
-      EIP170_BYTECODE_SIZE_INCLUSIVE_LIMIT
-    ) {
-      return false;
-    }
-
-    // TODO: What happens if it's an actual out of gas that OOGs at the return?
-    //   maybe traces should have gasLimit and gasUsed.
-    return true;
+    return trace.error?.error === ERROR.CODESIZE_EXCEEDS_MAXIMUM;
   }
 
   private _solidity063CorrectLineNumber(
@@ -1583,6 +1558,12 @@ export class ErrorInferrer {
       trace.error?.error === ERROR.OUT_OF_GAS &&
       call.error?.error === ERROR.OUT_OF_GAS
     ) {
+      return true;
+    }
+
+    // If the return data is not empty, and it's still the same, we assume it
+    // is being propagated
+    if (trace.returnData.length > 0) {
       return true;
     }
 

@@ -120,3 +120,22 @@ export function writeTelemetryConsent(consent: boolean) {
 
   fs.writeJSONSync(telemetryConsentPath, { consent }, { spaces: 2 });
 }
+
+/**
+ * Checks if we have already prompted the user to install the Hardhat for VSCode extension.
+ */
+export function hasPromptedForHHVSCode(): boolean {
+  const configDir = getConfigDirSync();
+  const extensionPromptedPath = path.join(configDir, "extension-prompt.json");
+
+  const fileExists = fs.pathExistsSync(extensionPromptedPath);
+
+  return fileExists;
+}
+
+export function writePromptedForHHVSCode() {
+  const configDir = getConfigDirSync();
+  const extensionPromptedPath = path.join(configDir, "extension-prompt.json");
+
+  fs.writeFileSync(extensionPromptedPath, "{}");
+}

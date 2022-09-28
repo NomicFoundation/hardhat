@@ -1,5 +1,4 @@
 import chalk from "chalk";
-import { BN, toBuffer } from "ethereumjs-util";
 
 import { HARDHAT_NETWORK_NAME } from "../../../constants";
 import {
@@ -28,13 +27,13 @@ export async function makeForkClient(
   forkCachePath?: string
 ): Promise<{
   forkClient: JsonRpcClient;
-  forkBlockNumber: BN;
+  forkBlockNumber: bigint;
   forkBlockTimestamp: number;
 }> {
   const provider = new HttpProvider(
     forkConfig.jsonRpcUrl,
     HARDHAT_NETWORK_NAME,
-    undefined,
+    forkConfig.httpHeaders,
     FORK_HTTP_TIMEOUT
   );
 
@@ -55,8 +54,8 @@ export async function makeForkClient(
     }
 
     if (forkConfig.blockNumber > lastSafeBlock) {
-      const confirmations = latestBlock - forkConfig.blockNumber + 1;
-      const requiredConfirmations = maxReorg + 1;
+      const confirmations = latestBlock - BigInt(forkConfig.blockNumber) + 1n;
+      const requiredConfirmations = maxReorg + 1n;
       console.warn(
         chalk.yellow(
           `You are forking from block ${
@@ -69,9 +68,9 @@ Please use block number ${lastSafeBlock} or wait for the block to get ${
       );
     }
 
-    forkBlockNumber = new BN(forkConfig.blockNumber);
+    forkBlockNumber = BigInt(forkConfig.blockNumber);
   } else {
-    forkBlockNumber = new BN(lastSafeBlock);
+    forkBlockNumber = BigInt(lastSafeBlock);
   }
 
   const block = await getBlockByNumber(provider, forkBlockNumber);
@@ -79,9 +78,7 @@ Please use block number ${lastSafeBlock} or wait for the block to get ${
   const forkBlockTimestamp = rpcQuantityToNumber(block.timestamp) * 1000;
 
   const cacheToDiskEnabled =
-    forkConfig.blockNumber !== undefined &&
-    forkCachePath !== undefined &&
-    actualMaxReorg !== undefined;
+    forkConfig.blockNumber !== undefined && forkCachePath !== undefined;
 
   const forkClient = new JsonRpcClient(
     provider,
@@ -96,7 +93,7 @@ Please use block number ${lastSafeBlock} or wait for the block to get ${
 
 async function getBlockByNumber(
   provider: HttpProvider,
-  blockNumber: BN
+  blockNumber: bigint
 ): Promise<RpcBlockOutput> {
   const rpcBlockOutput = (await provider.request({
     method: "eth_getBlockByNumber",
@@ -118,6 +115,6 @@ async function getLatestBlockNumber(provider: HttpProvider) {
     method: "eth_blockNumber",
   })) as string;
 
-  const latestBlock = new BN(toBuffer(latestBlockString));
-  return latestBlock.toNumber();
+  const latestBlock = BigInt(latestBlockString);
+  return latestBlock;
 }
