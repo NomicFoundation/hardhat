@@ -228,7 +228,7 @@ export class ArgumentsParser {
       if (value === undefined) {
         throw new HardhatError(ERRORS.ARGUMENTS.MISSING_TASK_ARGUMENT, {
           param: ArgumentsParser.paramNameToCLA(paramName),
-          task: taskName,
+          task: taskName ?? "help",
         });
       }
 
