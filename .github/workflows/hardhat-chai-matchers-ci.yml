@@ -9,7 +9,7 @@ on:
       - "config/**"
   pull_request:
     branches:
-      - "*"
+      - "**"
     paths:
       - "packages/hardhat-chai-matchers/**"
       - "packages/hardhat-common/**"

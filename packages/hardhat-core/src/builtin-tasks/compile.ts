@@ -591,7 +591,7 @@ subtask(TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD)
         });
       }
 
-      const wasmCompiler = await downloader.getCompiler(solcVersion);
+      const wasmCompiler = await wasmDownloader.getCompiler(solcVersion);
 
       assertHardhatInvariant(
         wasmCompiler !== undefined,

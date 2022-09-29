@@ -4,7 +4,11 @@ import debug from "debug";
 import semver from "semver";
 import "source-map-support/register";
 
-import { TASK_COMPILE, TASK_HELP } from "../../builtin-tasks/task-names";
+import {
+  TASK_COMPILE,
+  TASK_HELP,
+  TASK_TEST,
+} from "../../builtin-tasks/task-names";
 import { TaskArguments } from "../../types";
 import { HARDHAT_NAME } from "../constants";
 import { HardhatContext } from "../context";
@@ -46,6 +50,7 @@ import {
 const log = debug("hardhat:core:cli");
 
 const ANALYTICS_SLOW_TASK_THRESHOLD = 300;
+const SHOULD_SHOW_STACK_TRACES_BY_DEFAULT = isRunningOnCiServer();
 
 async function printVersionMessage(packageJson: PackageJson) {
   console.log(packageJson.version);
@@ -102,7 +107,9 @@ async function suggestInstallingHardhatVscode() {
 async function main() {
   // We first accept this argument anywhere, so we know if the user wants
   // stack traces before really parsing the arguments.
-  let showStackTraces = process.argv.includes("--show-stack-traces");
+  let showStackTraces =
+    process.argv.includes("--show-stack-traces") ||
+    SHOULD_SHOW_STACK_TRACES_BY_DEFAULT;
 
   try {
     const packageJson = await getPackageJson();
@@ -268,7 +275,8 @@ async function main() {
 
       if (
         timestampAfterRun - timestampBeforeRun >
-        ANALYTICS_SLOW_TASK_THRESHOLD
+          ANALYTICS_SLOW_TASK_THRESHOLD &&
+        taskName !== TASK_COMPILE
       ) {
         await hitPromise;
       } else {
@@ -288,7 +296,7 @@ async function main() {
 
     // VSCode extension prompt for installation
     if (
-      taskName === "test" &&
+      taskName === TASK_TEST &&
       !isRunningOnCiServer() &&
       process.stdout.isTTY === true
     ) {
@@ -323,7 +331,7 @@ async function main() {
       log("Couldn't report error to sentry: %O", e);
     }
 
-    if (showStackTraces) {
+    if (showStackTraces || SHOULD_SHOW_STACK_TRACES_BY_DEFAULT) {
       console.error(error);
     } else {
       if (!isHardhatError) {

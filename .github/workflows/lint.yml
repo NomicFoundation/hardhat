@@ -5,7 +5,7 @@ on:
     branches: [$default-branch]
   pull_request:
     branches:
-      - "*"
+      - "**"
 
 concurrency:
   group: ${{github.workflow}}-${{github.ref}}

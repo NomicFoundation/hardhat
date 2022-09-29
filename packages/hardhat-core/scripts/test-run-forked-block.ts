@@ -1,4 +1,4 @@
-import { Common } from "@ethereumjs/common";
+import { Common } from "@nomicfoundation/ethereumjs-common";
 import { request } from "undici";
 
 import { runFullBlock } from "../test/internal/hardhat-network/provider/utils/runFullBlock";
