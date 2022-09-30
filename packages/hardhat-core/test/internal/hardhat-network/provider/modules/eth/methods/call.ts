@@ -735,6 +735,11 @@ contract C {
           });
 
           it("should increase the sender's balance if it's positive but not enough", async function () {
+            // We expect that, before the transaction is executed, the balance
+            // of the sender will be increased to the minimum value that lets
+            // the VM execute the tx. This means that during the execution of
+            // the tx, msg.sender.balance will be 0.
+
             // fund the sender
             await this.provider.send("eth_sendTransaction", [
               {
@@ -756,14 +761,15 @@ contract C {
               },
             ]);
 
-            // We expect that, before the transaction is executed, the balance
-            // of the sender will be increased to the minimum value that lets
-            // the VM execute the tx. This means that during the execution of
-            // the tx, msg.sender.balance will be 0.
             assert.equal(rpcDataToNumber(senderBalance), 0);
           });
 
           it("should increase the sender's balance if it's zero", async function () {
+            // We expect that, before the transaction is executed, the balance
+            // of the sender will be increased to the minimum value that lets
+            // the VM execute the tx. This means that during the execution of
+            // the tx, msg.sender.balance will be 0.
+
             await assertAddressBalance(this.provider, sender, 0n);
 
             // call the contract
@@ -777,10 +783,6 @@ contract C {
               },
             ]);
 
-            // We expect that, before the transaction is executed, the balance
-            // of the sender will be increased to the minimum value that lets
-            // the VM execute the tx. This means that during the execution of
-            // the tx, msg.sender.balance will be 0.
             assert.equal(rpcDataToNumber(senderBalance), 0);
           });
         });
