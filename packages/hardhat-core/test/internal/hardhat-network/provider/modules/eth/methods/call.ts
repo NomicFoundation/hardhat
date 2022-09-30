@@ -699,7 +699,7 @@ contract C {
         });
 
         describe("sender balance", function () {
-          const sender = "0x1234512345123451234512345123451234512345";
+          const sender = "0x47dc9a4a1ff2436deb1828d038868561c8a5aedf";
           let contractAddress: string;
 
           beforeEach("deploy the contract", async function () {
