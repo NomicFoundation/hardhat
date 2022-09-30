@@ -37,7 +37,6 @@ import {
   DEFAULT_CHAIN_ID,
   DEFAULT_HARDFORK,
   DEFAULT_NETWORK_ID,
-  DEFAULT_NETWORK_NAME,
 } from "../helpers/providers";
 import { runFullBlock } from "./utils/runFullBlock";
 
@@ -68,7 +67,6 @@ describe("HardhatNode", () => {
   const config: NodeConfig = {
     automine: false,
     hardfork: DEFAULT_HARDFORK,
-    networkName: DEFAULT_NETWORK_NAME,
     chainId: DEFAULT_CHAIN_ID,
     networkId: DEFAULT_NETWORK_ID,
     blockGasLimit: Number(DEFAULT_BLOCK_GAS_LIMIT),
@@ -842,7 +840,6 @@ describe("HardhatNode", () => {
 
     const baseNodeConfig: ForkedNodeConfig = {
       automine: true,
-      networkName: "mainnet",
       chainId: 1,
       networkId: 1,
       hardfork: "london",
@@ -1008,7 +1005,6 @@ describe("HardhatNode", () => {
     }
     const nodeConfig: ForkedNodeConfig = {
       automine: true,
-      networkName: "mainnet",
       chainId: 1,
       networkId: 1,
       hardfork: "london",

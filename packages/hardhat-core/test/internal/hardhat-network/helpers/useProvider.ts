@@ -22,7 +22,6 @@ import {
   DEFAULT_HARDFORK,
   DEFAULT_MINING_CONFIG,
   DEFAULT_NETWORK_ID,
-  DEFAULT_NETWORK_NAME,
   DEFAULT_MEMPOOL_CONFIG,
   DEFAULT_USE_JSON_RPC,
 } from "./providers";
@@ -43,7 +42,6 @@ export interface UseProviderOptions {
   forkConfig?: ForkConfig;
   mining?: HardhatNetworkMiningConfig;
   hardfork?: string;
-  networkName?: string;
   chainId?: number;
   networkId?: number;
   blockGasLimit?: bigint;
@@ -61,7 +59,6 @@ export function useProvider({
   forkConfig,
   mining = DEFAULT_MINING_CONFIG,
   hardfork = DEFAULT_HARDFORK,
-  networkName = DEFAULT_NETWORK_NAME,
   chainId = DEFAULT_CHAIN_ID,
   networkId = DEFAULT_NETWORK_ID,
   blockGasLimit = DEFAULT_BLOCK_GAS_LIMIT,
@@ -75,29 +72,28 @@ export function useProvider({
   beforeEach("Initialize provider", async function () {
     this.logger = new FakeModulesLogger(loggerEnabled);
     this.hardhatNetworkProvider = new HardhatNetworkProvider(
-      hardfork,
-      networkName,
-      chainId,
-      networkId,
-      Number(blockGasLimit),
-      initialBaseFeePerGas === undefined
-        ? undefined
-        : Number(initialBaseFeePerGas),
-      0n, // minGasPrice
-      true,
-      true,
-      mining.auto,
-      mining.interval,
-      mempool.order as MempoolOrder,
-      chains,
-      this.logger,
-      accounts,
-      undefined,
-      allowUnlimitedContractSize,
-      undefined,
-      undefined,
-      forkConfig,
-      coinbase
+      {
+        hardfork,
+        chainId,
+        networkId,
+        blockGasLimit: Number(blockGasLimit),
+        initialBaseFeePerGas:
+          initialBaseFeePerGas === undefined
+            ? undefined
+            : Number(initialBaseFeePerGas),
+        minGasPrice: 0n,
+        throwOnTransactionFailures: true,
+        throwOnCallFailures: true,
+        automine: mining.auto,
+        intervalMining: mining.interval,
+        mempoolOrder: mempool.order as MempoolOrder,
+        chains,
+        genesisAccounts: accounts,
+        allowUnlimitedContractSize,
+        forkConfig,
+        coinbase,
+      },
+      this.logger
     );
     this.provider = new BackwardsCompatibilityProviderAdapter(
       this.hardhatNetworkProvider

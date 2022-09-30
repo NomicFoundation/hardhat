@@ -24,7 +24,6 @@ interface CommonConfig {
   hardfork: string;
   minGasPrice: bigint;
   networkId: number;
-  networkName: string;
   allowUnlimitedContractSize?: boolean;
   initialDate?: Date;
   tracingConfig?: TracingConfig;

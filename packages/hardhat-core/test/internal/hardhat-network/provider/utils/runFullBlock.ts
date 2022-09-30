@@ -38,7 +38,6 @@ export async function runFullBlock(
 
   const forkedNodeConfig: ForkedNodeConfig = {
     automine: true,
-    networkName: "mainnet",
     chainId,
     networkId: 1,
     hardfork,

@@ -11,7 +11,6 @@ import {
   DEFAULT_CHAIN_ID,
   DEFAULT_HARDFORK,
   DEFAULT_NETWORK_ID,
-  DEFAULT_NETWORK_NAME,
 } from "../test/internal/hardhat-network/helpers/providers";
 import { assertEqualTraces } from "../test/internal/hardhat-network/provider/utils/assertEqualTraces";
 
@@ -31,7 +30,6 @@ async function main(
 
   const hardhatNetworkProvider = new HardhatNetworkProvider(
     DEFAULT_HARDFORK,
-    DEFAULT_NETWORK_NAME,
     DEFAULT_CHAIN_ID,
     DEFAULT_NETWORK_ID,
     100000000,
