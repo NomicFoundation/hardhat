@@ -1,5 +1,3 @@
-import util from "util";
-
 import {
   AccessListEIP2930Transaction,
   FeeMarketEIP1559Transaction,
@@ -18,8 +16,24 @@ export function makeFakeSignature(
   r: number;
   s: number;
 } {
+  const hashInputString = [
+    sender,
+    tx.nonce,
+    tx.gasLimit,
+    tx.value,
+    tx.to,
+    tx.data,
+    "gasPrice" in tx ? tx.gasPrice : "",
+    "chainId" in tx ? tx.chainId : "",
+    "maxPriorityFeePerGas" in tx ? tx.maxPriorityFeePerGas : "",
+    "maxFeePerGas" in tx ? tx.maxFeePerGas : "",
+    // note: accessList omitted because it doesn't serialize readily.
+  ]
+    .map((a) => a?.toString() ?? "")
+    .join();
+
   const hashDigest = createNonCryptographicHashBasedIdentifier(
-    Buffer.from(`${util.inspect(sender)}${util.inspect(tx)}`)
+    Buffer.from(hashInputString)
   );
 
   return {
