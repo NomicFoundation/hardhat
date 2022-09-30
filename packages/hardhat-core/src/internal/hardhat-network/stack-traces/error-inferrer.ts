@@ -485,7 +485,7 @@ export class ErrorInferrer {
     }
 
     log(
-      "Last instruction is a revert or an invalid opcode, but couldn't infer anything"
+      "Last instruction is a revert or an invalid opcode, but nothing could be inferred"
     );
   }
 
