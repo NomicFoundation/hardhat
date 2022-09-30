@@ -702,7 +702,7 @@ contract C {
           const sender = "0x1234512345123451234512345123451234512345";
           let contractAddress: string;
 
-          beforeEach("fund the sender", async function () {
+          beforeEach("deploy the contract", async function () {
             contractAddress = await deployContract(
               this.provider,
               `0x${EXAMPLE_READ_CONTRACT.bytecode.object}`
