@@ -3,7 +3,7 @@ import type { NumberLike } from "../../types";
 import {
   getHardhatProvider,
   toRpcQuantity,
-  assertPositiveNumber,
+  assertNonNegativeNumber,
   toBigInt,
 } from "../../utils";
 import { mine } from "../mine";
@@ -20,7 +20,7 @@ export async function increase(amountInSeconds: NumberLike): Promise<number> {
   const provider = await getHardhatProvider();
 
   const normalizedAmount = toBigInt(amountInSeconds);
-  assertPositiveNumber(normalizedAmount);
+  assertNonNegativeNumber(normalizedAmount);
 
   const latestTimestamp = BigInt(await latest());
 
